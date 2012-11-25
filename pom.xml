@@ -1,0 +1,46 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.jenkins-ci.plugins</groupId>
+    <artifactId>plugin</artifactId>
+    <version>1.466</version><!-- which version of Jenkins is this plugin built against? -->
+  </parent>
+
+  <groupId>hp-application-automation-tools-plugin</groupId>
+  <artifactId>hp-application-automation-tools-plugin</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>hpi</packaging>
+  <name>HP Application Automation Tools</name>
+
+  <scm>
+    <connection>scm:git:ssh://github.com/jenkinsci/hp-application-automation-tools-plugin.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/jenkinsci/hp-application-automation-tools-plugin.git</developerConnection>
+    <url>https://github.com/jenkinsci/hp-application-automation-tools-plugin</url>
+  </scm>
+  
+  <project>
+  <url>https://wiki.jenkins-ci.org/display/JENKINS/HP+Application+Automation+Tools</url>
+  <developers>
+    <developer>
+      <id>ofirshaked</id>
+      <name>Ofir Shaked</name>
+      <email>ofir.shaked@hp.com</email>
+    </developer>
+  </developers>
+</project>
+  
+  <!-- get every artifact through repo.jenkins-ci.org, which proxies all the artifacts that we need -->
+  <repositories>
+    <repository>
+      <id>repo.jenkins-ci.org</id>
+      <url>http://repo.jenkins-ci.org/public/</url>
+    </repository>
+  </repositories>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>repo.jenkins-ci.org</id>
+      <url>http://repo.jenkins-ci.org/public/</url>
+    </pluginRepository>
+  </pluginRepositories>
+</project>
