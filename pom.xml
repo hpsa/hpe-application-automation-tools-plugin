@@ -13,7 +13,7 @@
   <name>HP Application Automation Tools</name>
   <description>Allowing to run HP testing tools tests: Unified Functional Testing, QuickTest Professional, and Service Test.</description>
   <url>https://wiki.jenkins-ci.org/display/JENKINS/HP+Application+Automation+Tools</url>
-  
+   
   <scm>
     <connection>scm:git:ssh://github.com/jenkinsci/hp-application-automation-tools-plugin.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/jenkinsci/hp-application-automation-tools-plugin.git</developerConnection>
