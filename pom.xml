@@ -8,7 +8,7 @@
    
   <groupId>hp-application-automation-tools-plugin</groupId>
   <artifactId>hp-application-automation-tools-plugin</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0</version>
   <packaging>hpi</packaging>
   <name>HP Application Automation Tools</name>
   <description>Allowing to run HP testing tools tests: Unified Functional Testing, QuickTest Professional, and Service Test.</description>
