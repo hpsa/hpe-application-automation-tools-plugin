@@ -5,10 +5,9 @@
     <artifactId>plugin</artifactId>
     <version>1.466</version><!-- which version of Jenkins is this plugin built against? -->
   </parent>
-   
-  <groupId>hp-application-automation-tools-plugin</groupId>
+
   <artifactId>hp-application-automation-tools-plugin</artifactId>
-  <version>1.3-SNAPSHOT</version> 
+  <version>1.0-SNAPSHOT</version> 
   <packaging>hpi</packaging>
   <name>HP Application Automation Tools</name>
   <description>Allowing to run HP testing tools tests: Unified Functional Testing, QuickTest Professional, and Service Test.</description>
@@ -20,7 +19,6 @@
     <url>http://maven.jenkins-ci.org:8081/content/repositories/releases/</url>
    </repository>
   </distributionManagement>   
-   
    
   <scm>
     <connection>scm:git:ssh://github.com/jenkinsci/hp-application-automation-tools-plugin.git</connection>
@@ -42,9 +40,6 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-release-plugin</artifactId>
         <version>2.2.1</version>
-        <configuration>
-          <tagNameFormat>v@{project.version}</tagNameFormat>
-        </configuration>
       </plugin>
     </plugins>
   </build>
