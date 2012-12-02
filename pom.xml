@@ -7,7 +7,7 @@
   </parent>
 
   <artifactId>hp-application-automation-tools-plugin</artifactId>
-  <version>1.1-SNAPSHOT</version> 
+  <version>1.0.1-SNAPSHOT</version> 
   <packaging>hpi</packaging>
   <name>HP Application Automation Tools</name>
   <description>Allowing to run HP testing tools tests: Unified Functional Testing, QuickTest Professional, and Service Test.</description>
@@ -32,6 +32,15 @@
       <name>Ofir Shaked</name>
       <email>ofir.shaked@hp.com</email>
     </developer>
+	<developer>
+      <id>amitb</id>
+      <name>Amit Bezalel</name>
+      <email>amit.bezalel@hp.com</email>
+    </developer>	
+	<developer>
+      <name>Liron Tzabari</name>
+      <email>liron.tzabari@hp.com</email>
+    </developer>	
   </developers>
 
   <build>
