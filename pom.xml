@@ -38,8 +38,15 @@
       <email>amit.bezalel@hp.com</email>
     </developer>	
 	<developer>
-      <name>Liron Tzabari</name>
+      <id>liron_tzabari</id>
+	  <name>Liron Tzabari</name>
       <email>liron.tzabari@hp.com</email>
+    </developer>	
+	<developer>
+	  <name>Daniel Petisme</name>
+    </developer>	
+	<developer>
+	  <name>Romain Seguy</name>
     </developer>	
   </developers>
 
