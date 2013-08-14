@@ -3,11 +3,11 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.527</version><!-- which version of Jenkins is this plugin built against? -->
+    <version>1.466</version><!-- which version of Jenkins is this plugin built against? -->
   </parent>
  
   <artifactId>hp-application-automation-tools-plugin</artifactId>
-  <version>2.0.2-SNAPSHOT</version> 
+  <version>2.0.2</version> 
   <packaging>hpi</packaging>
   <name>HP Application Automation Tools</name>
   <description>Allowing to run HP testing tools tests: Unified Functional Testing, QuickTest Professional, and Service Test.</description>
