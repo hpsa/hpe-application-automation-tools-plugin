@@ -7,7 +7,7 @@
   </parent>
  
   <artifactId>hp-application-automation-tools-plugin</artifactId>
-  <version>3.0.4-SNAPSHOT</version> 
+  <version>3.0.5</version> 
   <packaging>hpi</packaging>
   <name>HP Application Automation Tools</name>
   <description>Allowing to run HP testing tools tests: Unified Functional Testing, QuickTest Professional, Service Test and Performance Center</description>
@@ -24,6 +24,7 @@
     <connection>scm:git:ssh://github.com/jenkinsci/hp-application-automation-tools-plugin.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/jenkinsci/hp-application-automation-tools-plugin.git</developerConnection>
     <url>https://github.com/jenkinsci/hp-application-automation-tools-plugin</url>
+    <tag>HEAD</tag>
   </scm>
   
   <developers>
