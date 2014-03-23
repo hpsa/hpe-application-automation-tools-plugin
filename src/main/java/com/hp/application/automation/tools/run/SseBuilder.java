@@ -130,7 +130,7 @@ public class SseBuilder extends Builder {
         
     }
     
-    private Testsuites execute(AbstractBuild<?, ?> build, PrintStream logger) {
+    private Testsuites execute(AbstractBuild<?, ?> build, PrintStream logger) throws InterruptedException {
         
         Testsuites ret = null;
         SSEBuilderPerformer performer = null;
@@ -140,6 +140,7 @@ public class SseBuilder extends Builder {
         } catch (InterruptedException e) {
             build.setResult(Result.ABORTED);
             stop(performer, logger);
+            throw e;
         } catch (Throwable cause) {
             build.setResult(Result.FAILURE);
         }

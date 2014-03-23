@@ -8,6 +8,7 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.hp.application.automation.tools.rest.RestClient;
 import com.hp.application.automation.tools.sse.common.TestCase;
 import com.hp.application.automation.tools.sse.sdk.handler.RunHandler;
 import com.hp.application.automation.tools.sse.sdk.handler.RunHandlerFactory;
@@ -22,7 +23,7 @@ public class TestPCRunHandler implements TestCase {
     @Test
     public void testStart() {
         
-        Client client = new MockRestStartClient(URL, DOMAIN, PROJECT);
+        Client client = new MockRestStartClient(URL, DOMAIN, PROJECT, USER);
         Response response =
                 new RunHandlerFactory().create(client, "PC", ENTITY_ID).start(
                         DURATION,
@@ -34,13 +35,13 @@ public class TestPCRunHandler implements TestCase {
     
     private class MockRestStartClient extends RestClient {
         
-        public MockRestStartClient(String url, String domain, String project) {
+        public MockRestStartClient(String url, String domain, String project, String username) {
             
-            super(url, domain, project);
+            super(url, domain, project, username);
         }
         
         @Override
-        public Response httpPost(String url, byte[] data, Map<String, String> headers) {
+        public Response httpPost(String url, byte[] data, Map<String, String> headers, ResourceAccessLevel resourceAccessLevel) {
             
             return new Response(null, null, null, HttpURLConnection.HTTP_OK);
         }
@@ -49,7 +50,7 @@ public class TestPCRunHandler implements TestCase {
     @Test
     public void testStop() {
         
-        Client client = new MockRestStopClient(URL, DOMAIN, PROJECT);
+        Client client = new MockRestStopClient(URL, DOMAIN, PROJECT, USER);
         Response response = new RunHandlerFactory().create(client, "PC", "23").stop();
         Assert.assertTrue(response.isOk());
     }
@@ -57,7 +58,10 @@ public class TestPCRunHandler implements TestCase {
     @Test
     public void testReportUrl() {
         RunHandler handler =
-                new RunHandlerFactory().create(new RestClient(URL, DOMAIN, PROJECT), "PC", "1001");
+                new RunHandlerFactory().create(
+                        new RestClient(URL, DOMAIN, PROJECT, USER),
+                        "PC",
+                        "1001");
         handler.setRunId("1");
         
         try {
@@ -88,13 +92,13 @@ public class TestPCRunHandler implements TestCase {
     
     private class MockRestStopClient extends RestClient {
         
-        public MockRestStopClient(String url, String domain, String project) {
+        public MockRestStopClient(String url, String domain, String project, String username) {
             
-            super(url, domain, project);
+            super(url, domain, project, username);
         }
         
         @Override
-        public Response httpPost(String url, byte[] data, Map<String, String> headers) {
+        public Response httpPost(String url, byte[] data, Map<String, String> headers, ResourceAccessLevel resourceAccessLevel) {
             
             return new Response(null, null, null, HttpURLConnection.HTTP_OK);
         }

@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.hp.application.automation.tools.common.SSEException;
+import com.hp.application.automation.tools.rest.HttpHeaders;
+import com.hp.application.automation.tools.rest.RestClient;
 
 /***
  * 
@@ -21,7 +23,7 @@ public class RestAuthenticator {
     public boolean login(Client client, String username, String password, Logger logger) {
         
         boolean ret = true;
-        String authenticationPoint = isAuthenticated(client, username, logger);
+        String authenticationPoint = isAuthenticated(client, logger);
         if (authenticationPoint != null) {
             Response response = login(client, authenticationPoint, username, password);
             if (response.isOk()) {
@@ -50,10 +52,10 @@ public class RestAuthenticator {
         // "Basic ((username:password)<as bytes>)<64encoded>"
         byte[] credBytes = (username + ":" + password).getBytes();
         String credEncodedString = "Basic " + Base64Encoder.encode(credBytes);
-        Map<String, String> map = new HashMap<String, String>();
-        map.put("Authorization", credEncodedString);
+        Map<String, String> headers = new HashMap<String, String>();
+        headers.put(HttpHeaders.AUTHORIZATION, credEncodedString);
         
-        return client.httpGet(loginUrl, null, map);
+        return client.httpGet(loginUrl, null, headers, ResourceAccessLevel.PUBLIC);
     }
     
     /**
@@ -61,11 +63,16 @@ public class RestAuthenticator {
      * @throws Exception
      *             close session on server and clean session cookies on client
      */
-    public boolean logout(RestClient client) {
+    public boolean logout(RestClient client, String username) {
         
         // note the get operation logs us out by setting authentication cookies to:
         // LWSSO_COOKIE_KEY="" via server response header Set-Cookie
-        Response response = client.httpGet(client.build("authentication-point/logout"), null, null);
+        Response response =
+                client.httpGet(
+                        client.build("authentication-point/logout"),
+                        null,
+                        null,
+                        ResourceAccessLevel.PUBLIC);
         
         return response.isOk();
         
@@ -77,16 +84,21 @@ public class RestAuthenticator {
      * @throws Exception
      *             if error such as 404, or 500
      */
-    public String isAuthenticated(Client client, String username, Logger logger) {
+    public String isAuthenticated(Client client, Logger logger) {
         
         String ret;
-        Response response = client.httpGet(client.build(IS_AUTHENTICATED), null, null);
+        Response response =
+                client.httpGet(
+                        client.build(IS_AUTHENTICATED),
+                        null,
+                        null,
+                        ResourceAccessLevel.PUBLIC);
         int responseCode = response.getStatusCode();
         
         // already authenticated
         if (responseCode == HttpURLConnection.HTTP_OK) {
             ret = null;
-            logLoggedInSuccessfully(username, client.getServerUrl(), logger);
+            logLoggedInSuccessfully(client.getUsername(), client.getServerUrl(), logger);
         }
         // if not authenticated - get the address where to authenticate via WWW-Authenticate
         else if (responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) {

@@ -3,14 +3,14 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.466</version><!-- which version of Jenkins is this plugin built against? -->
+    <version>1.509.4</version><!-- which version of Jenkins is this plugin built against? -->
   </parent>
  
   <artifactId>hp-application-automation-tools-plugin</artifactId>
-  <version>2.0.2</version> 
+  <version>3.0.2-SNAPSHOT</version> 
   <packaging>hpi</packaging>
   <name>HP Application Automation Tools</name>
-  <description>Allowing to run HP testing tools tests: Unified Functional Testing, QuickTest Professional, and Service Test.</description>
+  <description>Allowing to run HP testing tools tests: Unified Functional Testing, QuickTest Professional, Service Test and Performance Center</description>
   <url>https://wiki.jenkins-ci.org/display/JENKINS/HP+Application+Automation+Tools</url>
    
   <distributionManagement>
@@ -27,40 +27,44 @@
   </scm>
   
   <developers>
-    <developer>
-      <id>ofirshaked</id>
-      <name>Ofir Shaked</name>
-      <email>ofir.shaked@hp.com</email>
-    </developer>
-	<developer>
-      <id>amitb</id>
-      <name>Amit Bezalel</name>
-      <email>amit.bezalel@hp.com</email>
-    </developer>	
-	<developer>
-      <id>liron_tzabari</id>
-	  <name>Liron Tzabari</name>
-      <email>liron.tzabari@hp.com</email>
-    </developer>	
+
+
 	<developer>	
 	  <name>Effi Bar-Shean</name>
       <email>effi.bar--shean@hp.com</email>
-    </developer>		
-    <developer>	
-	  <name>Daniel Schreiber</name>
-      <email>daniel.schreiber@hp.com</email>
-    </developer>	
+    </developer>			
     <developer>	
 	  <id>mrmann</id>
 	  <name>Avishai Moshka</name>
       <email>avishai.moshka@hp.com</email>
     </developer>
 	<developer>
+	<id>orens</id>
+	  <name>Oren Schwartz</name>
+      <email>orens@hp.com</email>
+	</developer>
+	<developer>
 	  <name>Daniel Petisme</name>
     </developer>	
 	<developer>
 	  <name>Romain Seguy</name>
-    </developer>	
+    </developer>
+    <developer>
+      <id>ofirshaked</id>
+      <name>Ofir Shaked</name>
+    </developer>
+	<developer>
+      <id>amitb</id>
+      <name>Amit Bezalel</name>
+    </developer>
+    <developer>	
+	  <name>Daniel Schreiber</name>
+      <email>daniel.schreiber@hp.com</email>
+    </developer>
+	<developer>
+      <id>liron_tzabari</id>
+	  <name>Liron Tzabari</name>
+    </developer>		
   </developers>
 
   <build>
@@ -82,10 +86,23 @@
     </repository>
   </repositories>
 
-  <pluginRepositories>
-    <pluginRepository>
-      <id>repo.jenkins-ci.org</id>
-      <url>http://repo.jenkins-ci.org/public/</url>
-    </pluginRepository>
-  </pluginRepositories>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>repo.jenkins-ci.org</id>
+			<url>http://repo.jenkins-ci.org/public/</url>
+		</pluginRepository>
+	</pluginRepositories>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.2.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpcore</artifactId>
+			<version>4.2.1</version>
+		</dependency>
+	</dependencies>
 </project>

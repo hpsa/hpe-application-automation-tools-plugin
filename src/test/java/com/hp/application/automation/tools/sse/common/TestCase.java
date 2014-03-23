@@ -4,18 +4,14 @@ import com.hp.application.automation.tools.model.CdaDetails;
 
 public interface TestCase {
     
-    final String URL = "http://16.55.245.168:8081/qcbin";
-    final String SERVERNAME = "doc05";
+    final String URL = "http://1.1.1.1:8081/qcbin";
+    final String SERVERNAME = "vm1";
     final String USER = "sa";
     final String PASS = "pwd";
     final String DOMAIN = "DEFAULT";
-    final String PROJECT = "dani_demo";
+    final String PROJECT = "demo";
     final String DURATION = "60";
     final String DESCRIPTION = "This is an entity description";
-    final String ERROR = "error";
-    final String PASSED = "pass";
-    final String BVS = "BVS";
-    final String TEST_SET = "TEST_SET";
     final String ENTITY_ID = "12";
     final String ENVIRONMENT_CONFIGURATION_ID = "1001";
     final String DEPLOYMENT_ACTION = "Use Deployed";
@@ -43,5 +39,4 @@ public interface TestCase {
     final byte[] RUNNING_DATA = String.format(TIMESLOT_DATA_FORMAT, "Running").getBytes();
     final byte[] EVENT_LOG_DATA =
             "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><Entities TotalResults=\"7\"><Entity Type=\"event-log-read\"><Fields><Field Name=\"id\"><Value>1798</Value></Field><Field Name=\"description\"><Value>Timeslot ID '1005' was created successfully</Value></Field><Field Name=\"action\"><Value>Create Timeslot</Value></Field><Field Name=\"creation-time\"><Value>2013-02-19 12:03:42</Value></Field><Field Name=\"event-type\"><Value>Info</Value></Field></Fields><RelatedEntities/></Entity><Entity Type=\"event-log-read\"><Fields><Field Name=\"id\"><Value>1800</Value></Field><Field Name=\"description\"><Value>Creating run-time data for run '1036' of 'Test Set' '1' (Timeslot ID '1005'; BVS ID '1036')</Value></Field><Field Name=\"action\"><Value>Create run-time data</Value></Field><Field Name=\"creation-time\"><Value>2013-02-19 12:03:43</Value></Field><Field Name=\"event-type\"><Value>Info</Value></Field></Fields><RelatedEntities/></Entity><Entity Type=\"event-log-read\"><Fields><Field Name=\"id\"><Value>1801</Value></Field><Field Name=\"description\"><Value>TestSet ID: '1036' start time: '2013-02-19 12:03:43.907'</Value></Field><Field Name=\"action\"><Value>BVS Run</Value></Field><Field Name=\"creation-time\"><Value>2013-02-19 12:03:43</Value></Field><Field Name=\"event-type\"><Value>Info</Value></Field></Fields><RelatedEntities/></Entity><Entity Type=\"event-log-read\"><Fields><Field Name=\"id\"><Value>1802</Value></Field><Field Name=\"description\"><Value>Host 'vmltqa63' failed to run task '1244' of type 'hp.alm.test-execution'. Cause: The testing tool is not installed - ALM Lab service could not execute  test VAPI-XP because : ALM Lab service could not connect to the testing tool for Check host because Can't initialize host service process</Value></Field><Field Name=\"action\"><Value>Host Fail</Value></Field><Field Name=\"creation-time\"><Value>2013-02-19 12:03:50</Value></Field><Field Name=\"event-type\"><Value>Error</Value></Field></Fields><RelatedEntities/></Entity><Entity Type=\"event-log-read\"><Fields><Field Name=\"id\"><Value>1803</Value></Field><Field Name=\"description\"><Value>Host 'vmltqa63' ('1068') is about to become non operational and be replaced. The host is used by BVS run '1036' of BVS '1036' (timeslot '1005'). Reason: ALM Lab service could not execute  test VAPI-XP because : ALM Lab service could not connect to the testing tool for Check host because Can't initialize host service process</Value></Field><Field Name=\"action\"><Value>Host non operational</Value></Field><Field Name=\"creation-time\"><Value>2013-02-19 12:03:50</Value></Field><Field Name=\"event-type\"><Value>Error</Value></Field></Fields><RelatedEntities/></Entity><Entity Type=\"event-log-read\"><Fields><Field Name=\"id\"><Value>1805</Value></Field><Field Name=\"description\"><Value>Host 'vmltqa63' ('1068') became non operational and was replaced by host 'effi2' ('1065'). The host is assigned to timeslot '1005'</Value></Field><Field Name=\"action\"><Value>Host non operational</Value></Field><Field Name=\"creation-time\"><Value>2013-02-19 12:03:50</Value></Field><Field Name=\"event-type\"><Value>Error</Value></Field></Fields><RelatedEntities/></Entity><Entity Type=\"event-log-read\"><Fields><Field Name=\"id\"><Value>1808</Value></Field><Field Name=\"description\"><Value>Timeslot ID '1005' was closed</Value></Field><Field Name=\"action\"><Value>Close Timeslot</Value></Field><Field Name=\"creation-time\"><Value>2013-02-19 12:04:17</Value></Field><Field Name=\"event-type\"><Value>Info</Value></Field></Fields><RelatedEntities/></Entity></Entities>".getBytes();
-    
 }

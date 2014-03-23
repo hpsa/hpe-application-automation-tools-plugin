@@ -7,6 +7,7 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
+import com.hp.application.automation.tools.rest.RestClient;
 import com.hp.application.automation.tools.sse.common.ConsoleLogger;
 import com.hp.application.automation.tools.sse.common.TestCase;
 import com.hp.application.automation.tools.sse.sdk.handler.PollHandler;
@@ -17,7 +18,7 @@ public class TestPollHandler implements TestCase {
     @Test
     public void testBVSPoll() throws InterruptedException {
         
-        Client client = new MockRestClientBVS(URL, DOMAIN, PROJECT);
+        Client client = new MockRestClientBVS(URL, DOMAIN, PROJECT, USER);
         boolean isOk;
         PollHandler pollHandler = new PollHandlerFactory().create(client, "BVS", "12", 0);
         isOk = pollHandler.poll(new ConsoleLogger());
@@ -26,13 +27,13 @@ public class TestPollHandler implements TestCase {
     
     private class MockRestClientBVS extends RestClient {
         
-        public MockRestClientBVS(String url, String domain, String project) {
+        public MockRestClientBVS(String url, String domain, String project, String username) {
             
-            super(url, domain, project);
+            super(url, domain, project, username);
         }
         
         @Override
-        public Response httpGet(String url, String queryString, Map<String, String> headers) {
+        public Response httpGet(String url, String queryString, Map<String, String> headers, ResourceAccessLevel resourceAccessLevel) {
             
             Response ret = null;
             if (url.contains("procedure-runs/")) {
@@ -52,7 +53,7 @@ public class TestPollHandler implements TestCase {
     @Test
     public void testPCPoll() throws InterruptedException {
         
-        Client client = new MockRestClientPC(URL, DOMAIN, PROJECT);
+        Client client = new MockRestClientPC(URL, DOMAIN, PROJECT, USER);
         boolean isOk;
         PollHandler pollHandler = new PollHandlerFactory().create(client, "PC", "12", 0);
         isOk = pollHandler.poll(new ConsoleLogger());
@@ -61,13 +62,13 @@ public class TestPollHandler implements TestCase {
     
     private class MockRestClientPC extends RestClient {
         
-        public MockRestClientPC(String url, String domain, String project) {
+        public MockRestClientPC(String url, String domain, String project, String username) {
             
-            super(url, domain, project);
+            super(url, domain, project, username);
         }
         
         @Override
-        public Response httpGet(String url, String queryString, Map<String, String> headers) {
+        public Response httpGet(String url, String queryString, Map<String, String> headers, ResourceAccessLevel resourceAccessLevel) {
             
             Response ret = null;
             if (url.contains("runs/")) {
@@ -88,7 +89,7 @@ public class TestPollHandler implements TestCase {
     @Test
     public void testPollBVSThrowsException() throws InterruptedException {
         
-        Client client = new MockRestClientThrowsException(URL, DOMAIN, PROJECT);
+        Client client = new MockRestClientThrowsException(URL, DOMAIN, PROJECT, USER);
         boolean isOk;
         isOk = new PollHandlerFactory().create(client, "BVS", "12", 0).poll(new ConsoleLogger());
         Assert.assertFalse(isOk);
@@ -97,7 +98,7 @@ public class TestPollHandler implements TestCase {
     @Test
     public void testPollPCThrowsException() throws InterruptedException {
         
-        Client client = new MockRestClientThrowsException(URL, DOMAIN, PROJECT);
+        Client client = new MockRestClientThrowsException(URL, DOMAIN, PROJECT, USER);
         boolean isOk;
         isOk = new PollHandlerFactory().create(client, "PC", "12", 0).poll(new ConsoleLogger());
         Assert.assertFalse(isOk);
@@ -105,13 +106,17 @@ public class TestPollHandler implements TestCase {
     
     private class MockRestClientThrowsException extends RestClient {
         
-        public MockRestClientThrowsException(String url, String domain, String project) {
+        public MockRestClientThrowsException(
+                String url,
+                String domain,
+                String project,
+                String username) {
             
-            super(url, domain, project);
+            super(url, domain, project, username);
         }
         
         @Override
-        public Response httpGet(String url, String queryString, Map<String, String> headers) {
+        public Response httpGet(String url, String queryString, Map<String, String> headers, ResourceAccessLevel resourceAccessLevel) {
             
             throw new RuntimeException("MockRestClientThrowsException");
         }
@@ -120,7 +125,7 @@ public class TestPollHandler implements TestCase {
     @Test
     public void testPollBvsTwoPasses() throws InterruptedException {
         
-        Client client = new MockRestClientBvsTwoPasses(URL, DOMAIN, PROJECT);
+        Client client = new MockRestClientBvsTwoPasses(URL, DOMAIN, PROJECT, USER);
         boolean isOk;
         isOk = new PollHandlerFactory().create(client, "BVS", "12", 0).poll(new ConsoleLogger());
         Assert.assertTrue(isOk);
@@ -130,13 +135,13 @@ public class TestPollHandler implements TestCase {
         
         private int _calls = 0;
         
-        public MockRestClientBvsTwoPasses(String url, String domain, String project) {
+        public MockRestClientBvsTwoPasses(String url, String domain, String project, String username) {
             
-            super(url, domain, project);
+            super(url, domain, project, username);
         }
         
         @Override
-        public Response httpGet(String url, String queryString, Map<String, String> headers) {
+        public Response httpGet(String url, String queryString, Map<String, String> headers, ResourceAccessLevel resourceAccessLevel) {
             
             byte[] data = null;
             String expectedUrl =
@@ -168,7 +173,7 @@ public class TestPollHandler implements TestCase {
     @Test
     public void testPollPCTwoPasses() throws InterruptedException {
         
-        Client client = new MockRestClientPCTwoPasses(URL, DOMAIN, PROJECT);
+        Client client = new MockRestClientPCTwoPasses(URL, DOMAIN, PROJECT, USER);
         boolean isOk;
         isOk = new PollHandlerFactory().create(client, "PC", "12", 0).poll(new ConsoleLogger());
         Assert.assertTrue(isOk);
@@ -178,13 +183,13 @@ public class TestPollHandler implements TestCase {
         
         private int _calls = 0;
         
-        public MockRestClientPCTwoPasses(String url, String domain, String project) {
+        public MockRestClientPCTwoPasses(String url, String domain, String project, String username) {
             
-            super(url, domain, project);
+            super(url, domain, project, username);
         }
         
         @Override
-        public Response httpGet(String url, String queryString, Map<String, String> headers) {
+        public Response httpGet(String url, String queryString, Map<String, String> headers, ResourceAccessLevel resourceAccessLevel) {
             
             byte[] data = null;
             

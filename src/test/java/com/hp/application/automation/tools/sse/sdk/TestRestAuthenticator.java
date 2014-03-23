@@ -9,31 +9,33 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.hp.application.automation.tools.rest.RestClient;
 import com.hp.application.automation.tools.sse.common.ConsoleLogger;
+import com.hp.application.automation.tools.sse.common.TestCase;
 
-public class TestRestAuthenticator {
+public class TestRestAuthenticator implements TestCase {
     
     @Test
     public void testLogin_alreadyAuthenticated() {
         
-        final String URL = "http://16.55.245.168:8081/qcbin";
-        final String DOMAIN = "demo";
-        final String PROJECT = "prj1";
-        Client client = new MockRestClientAlreadyAuthenticated(URL, DOMAIN, PROJECT);
-        boolean ok =
-                new RestAuthenticator().login(client, "tester", "blabla", new ConsoleLogger());
+        Client client = new MockRestClientAlreadyAuthenticated(URL, DOMAIN, PROJECT, USER);
+        boolean ok = new RestAuthenticator().login(client, "tester", "blabla", new ConsoleLogger());
         Assert.assertTrue(ok);
     }
     
     public class MockRestClientAlreadyAuthenticated extends RestClient {
         
-        public MockRestClientAlreadyAuthenticated(String url, String domain, String project) {
+        public MockRestClientAlreadyAuthenticated(
+                String url,
+                String domain,
+                String project,
+                String username) {
             
-            super(url, domain, project);
+            super(url, domain, project, username);
         }
         
         @Override
-        public Response httpGet(String url, String queryString, Map<String, String> headers) {
+        public Response httpGet(String url, String queryString, Map<String, String> headers, ResourceAccessLevel resourceAccessLevel) {
             
             return new Response(null, null, null, HttpURLConnection.HTTP_OK);
         }
@@ -42,12 +44,8 @@ public class TestRestAuthenticator {
     @Test
     public void testLogin_notAuthenticated() {
         
-        final String URL = "http://16.55.245.168:8081/qcbin";
-        final String DOMAIN = "demo";
-        final String PROJECT = "prj1";
-        Client client = new MockRestClientNotAuthenticated(URL, DOMAIN, PROJECT);
-        boolean ok =
-                new RestAuthenticator().login(client, "tester", "blabla", new ConsoleLogger());
+        Client client = new MockRestClientNotAuthenticated(URL, DOMAIN, PROJECT, USER);
+        boolean ok = new RestAuthenticator().login(client, "tester", "blabla", new ConsoleLogger());
         Assert.assertTrue(ok);
     }
     
@@ -57,15 +55,19 @@ public class TestRestAuthenticator {
         private final String _isAuthenticatedUrl;
         private final String _authenticationUrl;
         
-        private MockRestClientNotAuthenticated(String url, String domain, String project) {
+        private MockRestClientNotAuthenticated(
+                String url,
+                String domain,
+                String project,
+                String username) {
             
-            super(url, domain, project);
+            super(url, domain, project, username);
             _isAuthenticatedUrl = build(RestAuthenticator.IS_AUTHENTICATED);
             _authenticationUrl = build("authentication-point/authenticate");
         }
         
         @Override
-        public Response httpGet(String url, String queryString, Map<String, String> headers) {
+        public Response httpGet(String url, String queryString, Map<String, String> headers, ResourceAccessLevel resourceAccessLevel) {
             
             Response ret = null;
             if (++_time == 1) {
@@ -99,12 +101,8 @@ public class TestRestAuthenticator {
     @Test
     public void testLogin_failedToLogin() {
         
-        final String URL = "http://16.55.245.168:8081/qcbin";
-        final String DOMAIN = "demo";
-        final String PROJECT = "prj1";
-        Client client = new MockRestClientFailedToLogin(URL, DOMAIN, PROJECT);
-        boolean ok =
-                new RestAuthenticator().login(client, "tester", "blabla", new ConsoleLogger());
+        Client client = new MockRestClientFailedToLogin(URL, DOMAIN, PROJECT, USER);
+        boolean ok = new RestAuthenticator().login(client, "tester", "blabla", new ConsoleLogger());
         Assert.assertFalse(ok);
     }
     
@@ -114,15 +112,19 @@ public class TestRestAuthenticator {
         private final String _isAuthenticatedUrl;
         private final String _authenticationUrl;
         
-        private MockRestClientFailedToLogin(String url, String domain, String project) {
+        private MockRestClientFailedToLogin(
+                String url,
+                String domain,
+                String project,
+                String username) {
             
-            super(url, domain, project);
+            super(url, domain, project, username);
             _isAuthenticatedUrl = build(RestAuthenticator.IS_AUTHENTICATED);
             _authenticationUrl = build("authentication-point/authenticate");
         }
         
         @Override
-        public Response httpGet(String url, String queryString, Map<String, String> headers) {
+        public Response httpGet(String url, String queryString, Map<String, String> headers, ResourceAccessLevel resourceAccessLevel) {
             
             Response ret = null;
             if (++_time == 1) {

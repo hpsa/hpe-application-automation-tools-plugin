@@ -3,15 +3,17 @@ package com.hp.application.automation.tools.sse.sdk;
 import java.net.HttpURLConnection;
 import java.util.Map;
 
+import com.hp.application.automation.tools.rest.RestClient;
+
 public class MockRestClientFailedLogin extends RestClient {
     
-    public MockRestClientFailedLogin(String url, String domain, String project) {
+    public MockRestClientFailedLogin(String url, String domain, String project, String username) {
         
-        super(url, domain, project);
+        super(url, domain, project, username);
     }
     
     @Override
-    public Response httpGet(String url, String queryString, Map<String, String> headers) {
+    public Response httpGet(String url, String queryString, Map<String, String> headers, ResourceAccessLevel resourceAccessLevel) {
         
         Response ret = new Response();
         ret.setStatusCode(200);
@@ -35,7 +37,7 @@ public class MockRestClientFailedLogin extends RestClient {
     }
     
     @Override
-    public Response httpPost(String url, byte[] data, Map<String, String> headers) {
+    public Response httpPost(String url, byte[] data, Map<String, String> headers, ResourceAccessLevel resourceAccessLevel) {
         
         Response ret = new Response();
         if (url.contains("startrun")) {

@@ -9,6 +9,7 @@ import java.util.Map;
 import com.hp.application.automation.tools.common.SSEException;
 import com.hp.application.automation.tools.sse.common.StringUtils;
 import com.hp.application.automation.tools.sse.result.model.junit.Error;
+import com.hp.application.automation.tools.sse.result.model.junit.JUnitTestCaseStatus;
 import com.hp.application.automation.tools.sse.result.model.junit.Testcase;
 import com.hp.application.automation.tools.sse.result.model.junit.Testsuite;
 import com.hp.application.automation.tools.sse.result.model.junit.Testsuites;
@@ -163,9 +164,6 @@ public class JUnitParser {
     
     private static class TestcaseStatusUpdater {
         
-        private static final String ERROR = "error";
-        private static final String PASS = "pass";
-        
         public void update(
                 Testcase testcase,
                 Map<String, String> entity,
@@ -175,7 +173,7 @@ public class JUnitParser {
             
             String status = entity.get("status");
             testcase.setStatus(getJenkinsStatus(status));
-            if (testcase.getStatus().equals(ERROR)) {
+            if (testcase.getStatus().equals(JUnitTestCaseStatus.ERROR)) {
                 String errorMessage = status;
                 if (errorMessage != null) {
                     Error error = new Error();
@@ -215,7 +213,9 @@ public class JUnitParser {
         
         private String getJenkinsStatus(String status) {
             
-            return (!StringUtils.isNullOrEmpty(status) && "Passed".equals(status)) ? PASS : ERROR;
+            return (!StringUtils.isNullOrEmpty(status) && "Passed".equals(status))
+                    ? JUnitTestCaseStatus.PASS
+                    : JUnitTestCaseStatus.ERROR;
         }
     }
 }

@@ -56,6 +56,7 @@ import com.hp.application.automation.tools.model.ResultsPublisherModel;
 import com.hp.application.automation.tools.run.RunFromAlmBuilder;
 import com.hp.application.automation.tools.run.RunFromFileBuilder;
 import com.hp.application.automation.tools.run.SseBuilder;
+import com.hp.application.automation.tools.run.PcBuilder;
 
 /**
  * This class is adapted from {@link JunitResultArchiver}; Only the {@code perform()} method
@@ -92,6 +93,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         final List<String> fileSystemResultNames = new ArrayList<String>();
         final List<String> mergedResultNames = new ArrayList<String>();
         final List<String> almSSEResultNames = new ArrayList<String>();
+        final List<String> pcResultNames = new ArrayList<String>();
         
         // Get the TestSet report files names of the current build
         for (Builder builder : builders) {
@@ -100,13 +102,20 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             } else if (builder instanceof RunFromFileBuilder) {
                 fileSystemResultNames.add(((RunFromFileBuilder) builder).getRunResultsFileName());
             } else if (builder instanceof SseBuilder) {
-                almSSEResultNames.add(((SseBuilder) builder).getRunResultsFileName());
+                String resultsFileName = ((SseBuilder) builder).getRunResultsFileName();
+                if (resultsFileName != null)
+                    almSSEResultNames.add(resultsFileName);
+            } else if (builder instanceof PcBuilder) {
+            	String resultsFileName = ((PcBuilder) builder).getRunResultsFileName();
+            	if (resultsFileName != null)
+            		pcResultNames.add(resultsFileName);
             }
         }
         
         mergedResultNames.addAll(almResultNames);
         mergedResultNames.addAll(fileSystemResultNames);
         mergedResultNames.addAll(almSSEResultNames);
+        mergedResultNames.addAll(pcResultNames);
         
         // Has any QualityCenter builder been set up?
         if (mergedResultNames.isEmpty()) {

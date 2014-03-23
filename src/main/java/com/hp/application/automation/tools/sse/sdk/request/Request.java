@@ -23,7 +23,19 @@ public abstract class Request {
         _runId = runId;
     }
     
-    public abstract Response execute();
+    public final Response execute() {
+        
+        Response ret = new Response();
+        try {
+            ret = perform();
+        } catch (Throwable cause) {
+            ret.setFailure(cause);
+        }
+        
+        return ret;
+    }
+    
+    protected abstract Response perform();
     
     protected abstract String getSuffix();
     
@@ -41,4 +53,5 @@ public abstract class Request {
         
         return _client.buildRestRequest(getSuffix());
     }
+    
 }

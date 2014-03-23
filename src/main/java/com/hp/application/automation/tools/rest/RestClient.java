@@ -1,4 +1,4 @@
-package com.hp.application.automation.tools.sse.sdk;
+package com.hp.application.automation.tools.rest;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -13,6 +13,10 @@ import java.util.Map.Entry;
 
 import com.hp.application.automation.tools.common.SSEException;
 import com.hp.application.automation.tools.sse.common.RestXmlUtils;
+import com.hp.application.automation.tools.sse.sdk.Client;
+import com.hp.application.automation.tools.sse.sdk.HttpRequestDecorator;
+import com.hp.application.automation.tools.sse.sdk.ResourceAccessLevel;
+import com.hp.application.automation.tools.sse.sdk.Response;
 
 /***
  * 
@@ -26,13 +30,15 @@ public class RestClient implements Client {
     protected Map<String, String> _cookies = new HashMap<String, String>();
     private final String _restPrefix;
     private final String _webuiPrefix;
+    private final String _username;
     
-    public RestClient(String url, String domain, String project) {
+    public RestClient(String url, String domain, String project, String username) {
         
         if (!url.endsWith("/")) {
             url = String.format("%s/", url);
         }
         _serverUrl = url;
+        _username = username;
         _restPrefix =
                 getPrefixUrl(
                         "rest",
@@ -60,27 +66,36 @@ public class RestClient implements Client {
     }
     
     @Override
-    public Response httpGet(String url, String queryString, Map<String, String> headers) {
+    public Response httpGet(
+            String url,
+            String queryString,
+            Map<String, String> headers,
+            ResourceAccessLevel resourceAccessLevel) {
         
         Response ret = null;
-        
         try {
-            ret = doHttp(RestXmlUtils.GET, url, queryString, null, headers);
+            ret = doHttp(RestXmlUtils.GET, url, queryString, null, headers, resourceAccessLevel);
         } catch (Throwable cause) {
             throw new SSEException(cause);
         }
+        
         return ret;
     }
     
     @Override
-    public Response httpPost(String url, byte[] data, Map<String, String> headers) {
+    public Response httpPost(
+            String url,
+            byte[] data,
+            Map<String, String> headers,
+            ResourceAccessLevel resourceAccessLevel) {
         
         Response ret = null;
         try {
-            ret = doHttp(RestXmlUtils.POST, url, null, data, headers);
+            ret = doHttp(RestXmlUtils.POST, url, null, data, headers, resourceAccessLevel);
         } catch (Throwable cause) {
             throw new SSEException(cause);
         }
+        
         return ret;
     }
     
@@ -114,7 +129,8 @@ public class RestClient implements Client {
             String url,
             String queryString,
             byte[] data,
-            Map<String, String> headers) {
+            Map<String, String> headers,
+            ResourceAccessLevel resourceAccessLevel) {
         
         Response ret = null;
         if ((queryString != null) && !queryString.isEmpty()) {
@@ -123,7 +139,18 @@ public class RestClient implements Client {
         try {
             HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
             connection.setRequestMethod(type);
-            prepareHttpRequest(connection, headers, data);
+            
+            Map<String, String> decoratedHeaders = new HashMap<String, String>();
+            if (headers != null) {
+                decoratedHeaders.putAll(headers);
+            }
+            
+            HttpRequestDecorator.decorateHeaderWithUserInfo(
+                    decoratedHeaders,
+                    getUsername(),
+                    resourceAccessLevel);
+            
+            prepareHttpRequest(connection, decoratedHeaders, data);
             connection.connect();
             ret = retrieveHtmlResponse(connection);
             updateCookies(ret);
@@ -147,36 +174,18 @@ public class RestClient implements Client {
             Map<String, String> headers,
             byte[] bytes) {
         
-        // attach cookie information if such exists
-        if (!_cookies.isEmpty()) {
-            connnection.setRequestProperty(RestXmlUtils.COOKIE, getCookies());
-        }
+        // set all cookies for request
+        connnection.setRequestProperty(RestXmlUtils.COOKIE, getCookies());
         
-        String contentType = null;
+        setConnectionHeaders(connnection, headers);
         
-        // send data from headers
-        if (headers != null) {
-            // skip the content-type header - should only be sent
-            // if you actually have any content to send. see below.
-            contentType = headers.remove(RestXmlUtils.CONTENT_TYPE);
-            Iterator<Entry<String, String>> headersIterator = headers.entrySet().iterator();
-            while (headersIterator.hasNext()) {
-                Entry<String, String> header = headersIterator.next();
-                connnection.setRequestProperty(header.getKey(), header.getValue());
-            }
-        }
+        setConnectionData(connnection, bytes);
+    }
+    
+    private void setConnectionData(HttpURLConnection connnection, byte[] bytes) {
         
-        // if there's data to attach to the request, it's handled here.
-        // note that if data exists, we take into account previously removed
-        // content-type.
-        if ((bytes != null) && (bytes.length > 0)) {
+        if (bytes != null && bytes.length > 0) {
             connnection.setDoOutput(true);
-            // warning: if you add content-type header then you MUST send
-            // information or receive error.
-            // so only do so if you're writing information...
-            if (contentType != null) {
-                connnection.setRequestProperty(RestXmlUtils.CONTENT_TYPE, contentType);
-            }
             try {
                 OutputStream out = connnection.getOutputStream();
                 out.write(bytes);
@@ -184,6 +193,17 @@ public class RestClient implements Client {
                 out.close();
             } catch (Throwable cause) {
                 throw new SSEException(cause);
+            }
+        }
+    }
+    
+    private void setConnectionHeaders(HttpURLConnection connnection, Map<String, String> headers) {
+        
+        if (headers != null) {
+            Iterator<Entry<String, String>> headersIterator = headers.entrySet().iterator();
+            while (headersIterator.hasNext()) {
+                Entry<String, String> header = headersIterator.next();
+                connnection.setRequestProperty(header.getKey(), header.getValue());
             }
         }
     }
@@ -238,7 +258,7 @@ public class RestClient implements Client {
     
     private void updateCookies(Response response) {
         
-        Iterable<String> newCookies = response.getHeaders().get(RestXmlUtils.SET_COOKIE);
+        Iterable<String> newCookies = response.getHeaders().get(HttpHeaders.SET_COOKIE);
         if (newCookies != null) {
             for (String cookie : newCookies) {
                 int equalIndex = cookie.indexOf('=');
@@ -260,5 +280,11 @@ public class RestClient implements Client {
         }
         
         return ret.toString();
+    }
+    
+    @Override
+    public String getUsername() {
+        
+        return _username;
     }
 }

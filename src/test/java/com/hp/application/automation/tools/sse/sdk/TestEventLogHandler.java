@@ -7,71 +7,62 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
+import com.hp.application.automation.tools.rest.RestClient;
 import com.hp.application.automation.tools.sse.common.TestCase;
 import com.hp.application.automation.tools.sse.sdk.handler.EventLogHandler;
 
 public class TestEventLogHandler implements TestCase {
     
     String _expectedEventLogUrl =
-            "http://16.55.245.168:8081/qcbin/rest/domains/DEFAULT/projects/dani_demo/event-log-reads?query={context[\"*Timeslot:%20"
+            URL
+                    + "/rest/domains/"
+                    + DOMAIN
+                    + "/projects/"
+                    + PROJECT
+                    + "/event-log-reads?query={context[\"*Timeslot:%20"
                     + TIMESLOT_ID
                     + "%3B*\"]}&fields=id,event-type,creation-time,action,description";
     
     @Test
     public void testLog() {
         
-        Client client = new MockRestClient(URL, DOMAIN, PROJECT);
+        Client client = new MockRestClient(URL, DOMAIN, PROJECT, USER);
         EventLogHandler eventLogHandler = new EventLogHandler(client, TIMESLOT_ID);
-        boolean isOk = eventLogHandler.log(new Logger() {
-            
-            @Override
-            public void log(String message) {
-                
-                System.out.println(message);
-            }
-        });
+        boolean isOk = eventLogHandler.log(new ConsoleLogger());
         Assert.assertTrue(isOk);
     }
     
     @Test
     public void testLogBadTimeslot() {
         
-        Client client = new MockRestClientBadTimeslot(URL, DOMAIN, PROJECT);
+        Client client = new MockRestClientBadTimeslot(URL, DOMAIN, PROJECT, USER);
         EventLogHandler eventLogHandler = new EventLogHandler(client, "");
-        boolean isOk = eventLogHandler.log(new Logger() {
-            
-            @Override
-            public void log(String message) {
-                System.out.println(message);
-            }
-        });
+        boolean isOk = eventLogHandler.log(new ConsoleLogger());
         Assert.assertTrue(isOk);
     }
     
     @Test
     public void testLogBadLog() {
         
-        Client client = new MockRestClientBadLogResponse(URL, DOMAIN, PROJECT);
+        Client client = new MockRestClientBadLogResponse(URL, DOMAIN, PROJECT, USER);
         EventLogHandler eventLogHandler = new EventLogHandler(client, TIMESLOT_ID);
-        boolean isOk = eventLogHandler.log(new Logger() {
-            
-            @Override
-            public void log(String message) {
-                System.out.println(message);
-            }
-        });
+        boolean isOk = eventLogHandler.log(new ConsoleLogger());
         Assert.assertFalse(isOk);
     }
     
     private class MockRestClient extends RestClient {
         
-        public MockRestClient(String url, String domain, String project) {
+        public MockRestClient(String url, String domain, String project, String username) {
             
-            super(url, domain, project);
+            super(url, domain, project, username);
         }
         
         @Override
-        public Response httpGet(String url, String queryString, Map<String, String> headers) {
+        public Response httpGet(
+                String url,
+                String queryString,
+                Map<String, String> headers,
+                ResourceAccessLevel resourceAccessLevel) {
             
             if (url.contains("event-log-reads")) {
                 
@@ -87,13 +78,17 @@ public class TestEventLogHandler implements TestCase {
     
     private class MockRestClientBadTimeslot extends RestClient {
         
-        public MockRestClientBadTimeslot(String url, String domain, String project) {
+        public MockRestClientBadTimeslot(String url, String domain, String project, String username) {
             
-            super(url, domain, project);
+            super(url, domain, project, username);
         }
         
         @Override
-        public Response httpGet(String url, String queryString, Map<String, String> headers) {
+        public Response httpGet(
+                String url,
+                String queryString,
+                Map<String, String> headers,
+                ResourceAccessLevel resourceAccessLevel) {
             
             if (url.contains("event-log-reads")) {
                 
@@ -109,13 +104,21 @@ public class TestEventLogHandler implements TestCase {
     
     private class MockRestClientBadLogResponse extends RestClient {
         
-        public MockRestClientBadLogResponse(String url, String domain, String project) {
+        public MockRestClientBadLogResponse(
+                String url,
+                String domain,
+                String project,
+                String username) {
             
-            super(url, domain, project);
+            super(url, domain, project, username);
         }
         
         @Override
-        public Response httpGet(String url, String queryString, Map<String, String> headers) {
+        public Response httpGet(
+                String url,
+                String queryString,
+                Map<String, String> headers,
+                ResourceAccessLevel resourceAccessLevel) {
             
             return new Response(null, "".getBytes(), null, HttpURLConnection.HTTP_OK);
         }

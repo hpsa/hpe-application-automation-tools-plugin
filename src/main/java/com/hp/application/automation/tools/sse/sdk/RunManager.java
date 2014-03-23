@@ -1,5 +1,7 @@
 package com.hp.application.automation.tools.sse.sdk;
 
+import com.hp.application.automation.tools.common.SSEException;
+import com.hp.application.automation.tools.rest.RestClient;
 import com.hp.application.automation.tools.sse.common.StringUtils;
 import com.hp.application.automation.tools.sse.result.PublisherFactory;
 import com.hp.application.automation.tools.sse.result.model.junit.Testsuites;
@@ -60,8 +62,23 @@ public class RunManager {
     private void initialize(Args args, RestClient client) {
         
         String entityId = args.getEntityId();
+        appendQCSessionCookies(client);
         _runHandler = new RunHandlerFactory().create(client, args.getRunType(), entityId);
         _pollHandler = new PollHandlerFactory().create(client, args.getRunType(), entityId);
+    }
+    
+    private void appendQCSessionCookies(RestClient client) {
+        
+        // issue a post request so that cookies relevant to the QC Session will be added to the RestClient
+        Response response =
+                client.httpPost(
+                        client.build("rest/site-session"),
+                        null,
+                        null,
+                        ResourceAccessLevel.PUBLIC);
+        if (!response.isOk()) {
+            throw new SSEException("Cannot appned QCSession cookies", response.getFailure());
+        }
     }
     
     private boolean poll() throws InterruptedException {
