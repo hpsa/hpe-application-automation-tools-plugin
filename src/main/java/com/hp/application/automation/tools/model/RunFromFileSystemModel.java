@@ -15,9 +15,21 @@ public class RunFromFileSystemModel {
 
 	private String fsTests;
 	private String fsTimeout;
+<<<<<<< HEAD
+	private String controllerPollingInterval = "30";
+	private String perScenarioTimeOut = "10";
+	private String ignoreErrorStrings;
+	
+	
+	
+
+	@DataBoundConstructor
+	public RunFromFileSystemModel(String fsTests, String fsTimeout, String controllerPollingInterval,String perScenarioTimeOut, String ignoreErrorStrings) {
+=======
 
 	@DataBoundConstructor
 	public RunFromFileSystemModel(String fsTests, String fsTimeout) {
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
 		this.fsTests = fsTests;
 
@@ -26,7 +38,18 @@ public class RunFromFileSystemModel {
 		}
 
 		this.fsTimeout = fsTimeout;
+<<<<<<< HEAD
+		
+		
+		this.perScenarioTimeOut = perScenarioTimeOut;
+		this.controllerPollingInterval = controllerPollingInterval;
+		this.ignoreErrorStrings = ignoreErrorStrings;
+		
 	}
+	
+=======
+	}
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
 	public String getFsTests() {
 		return fsTests;
@@ -36,6 +59,57 @@ public class RunFromFileSystemModel {
 		return fsTimeout;
 	}
 
+<<<<<<< HEAD
+	
+
+	
+	/**
+	 * @return the controllerPollingInterval
+	 */
+	public String getControllerPollingInterval() {
+		return controllerPollingInterval;
+	}
+
+	/**
+	 * @param controllerPollingInterval the controllerPollingInterval to set
+	 */
+	public void setControllerPollingInterval(String controllerPollingInterval) {
+		this.controllerPollingInterval = controllerPollingInterval;
+	}
+
+	/**
+	 * @return the ignoreErrorStrings
+	 */
+	public String getIgnoreErrorStrings() {
+		return ignoreErrorStrings;
+	}
+
+
+	/**
+	 * @param ignoreErrorStrings the ignoreErrorStrings to set
+	 */
+	public void setIgnoreErrorStrings(String ignoreErrorStrings) {
+		this.ignoreErrorStrings = ignoreErrorStrings;
+	}
+
+
+
+	/**
+	 * @return the perScenarioTimeOut
+	 */
+	public String getPerScenarioTimeOut() {
+		return perScenarioTimeOut;
+	}
+
+	/**
+	 * @param perScenarioTimeOut the perScenarioTimeOut to set
+	 */
+	public void setPerScenarioTimeOut(String perScenarioTimeOut) {
+		this.perScenarioTimeOut = perScenarioTimeOut;
+	}
+
+=======
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 	public Properties getProperties(EnvVars envVars,
 			VariableResolver<String> varResolver) {
 		return CreateProperties(envVars, varResolver);
@@ -48,7 +122,11 @@ public class RunFromFileSystemModel {
 	private Properties CreateProperties(EnvVars envVars,
 			VariableResolver<String> varResolver) {
 		Properties props = new Properties();
+<<<<<<< HEAD
+		
+=======
 
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 		if (!StringUtils.isEmpty(this.fsTests)) {
 
 			String[] testsArr = this.fsTests.replaceAll("\r", "").split("\n");
@@ -70,6 +148,29 @@ public class RunFromFileSystemModel {
 		else{
 			props.put("fsTimeout", "" + fsTimeout);
 		}
+<<<<<<< HEAD
+		
+		
+		if (StringUtils.isEmpty(controllerPollingInterval)){
+			props.put("controllerPollingInterval", "30");
+		}
+		else{
+			props.put("controllerPollingInterval", "" + controllerPollingInterval);
+		}
+		
+		if (StringUtils.isEmpty(perScenarioTimeOut)){
+			props.put("PerScenarioTimeOut", "10");
+		}
+		else{
+			props.put("PerScenarioTimeOut", ""+ perScenarioTimeOut);
+		}
+		
+		if (!StringUtils.isEmpty(ignoreErrorStrings.replaceAll("\\r|\\n", ""))){
+			props.put("ignoreErrorStrings", ""+ignoreErrorStrings.replaceAll("\r", ""));
+		}
+
+=======
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
 		return props;
 	}

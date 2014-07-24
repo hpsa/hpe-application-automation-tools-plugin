@@ -130,7 +130,11 @@
     <value>Run cancelled by user.</value>
   </data>
   <data name="QtpCleanupError" xml:space="preserve">
+<<<<<<< HEAD
+    <value>QTPActivity.TestCleanup - exception {0}</value>
+=======
     <value>"QTPActivity.TestCleanup - exception {0}"</value>
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
   </data>
   <data name="QtpNotLaunchedError" xml:space="preserve">
     <value>QTP is not launched.</value>
@@ -154,7 +158,286 @@ Save the test in QuickTest and then run it again.</value>
   <data name="XmlNodeNotExistError" xml:space="preserve">
     <value>XML node '{0}' could not be found.</value>
   </data>
+<<<<<<< HEAD
+  <data name="FileSystemTestsRunner_No_HP_testing_tool_is_installed_on" xml:space="preserve">
+    <value>No HP testing tool is installed on {0}</value>
+  </data>
+  <data name="AlmRunnerCantFindTest" xml:space="preserve">
+    <value>Could not find TestSet {0}</value>
+  </data>
+  <data name="AlmRunnerConnParamEmpty" xml:space="preserve">
+    <value>One or more of the required connection parameters is empty.</value>
+  </data>
+  <data name="AlmRunnerDisplayLink" xml:space="preserve">
+    <value>Link: {0}</value>
+  </data>
+  <data name="AlmRunnerDisplayTest" xml:space="preserve">
+    <value>Test set name: {0}, Test set id: {1}</value>
+  </data>
+  <data name="AlmRunnerDisplayTestRunOnHost" xml:space="preserve">
+    <value>Test {0}: {1} will run on host: {2}</value>
+  </data>
+  <data name="AlmRunnerErrorAuthorization" xml:space="preserve">
+    <value>Cannot Login to QC: Authorization failed.</value>
+  </data>
+  <data name="AlmRunnerErrorBadQcInstallation" xml:space="preserve">
+    <value>Check that your QC client is installed properly\n {0} \n{1}.</value>
+  </data>
+  <data name="AlmRunnerErrorConnectToProj" xml:space="preserve">
+    <value>Cannot connect to QC: Project / Domain does not exist.</value>
+  </data>
+  <data name="AlmRunnerErrorGettingStat" xml:space="preserve">
+    <value>Problem in updating tests status for test: {0}\n {1}</value>
+  </data>
+  <data name="AlmRunnerNoSuchFolder" xml:space="preserve">
+    <value>folder {0} cannot be found in ALM</value>
+  </data>
+  <data name="AlmRunnerNumTests" xml:space="preserve">
+    <value>"Number of tests in set: "</value>
+  </data>
+  <data name="AlmRunnerProblemWithHost" xml:space="preserve">
+    <value>problem while setting remote host: {0}</value>
+  </data>
+  <data name="AlmRunnerRunError" xml:space="preserve">
+    <value>Problem while running TestSet: </value>
+  </data>
+  <data name="AlmRunnerRunIdCaption" xml:space="preserve">
+    <value>Run ID:</value>
+  </data>
+  <data name="AlmRunnerSchedStarted" xml:space="preserve">
+    <value>"Scheduler started at:</value>
+  </data>
+  <data name="AlmRunnerServerUnreachable" xml:space="preserve">
+    <value>"ALM server {0} unreachable, check that server Url is correct"</value>
+  </data>
+  <data name="AlmRunnerStartingExecution" xml:space="preserve">
+    <value>Starting test set execution</value>
+  </data>
+  <data name="AlmRunnerStat" xml:space="preserve">
+    <value>Test: {0}, Id: {1}, Execution status: {2}</value>
+  </data>
+  <data name="AlmRunnerStatWithMessage" xml:space="preserve">
+    <value>Test: {0}, Id: {1}, Execution status: {2}, Message: {3}</value>
+  </data>
+  <data name="AlmRunnerTestCompleteCaption" xml:space="preserve">
+    <value>Test complete:</value>
+  </data>
+  <data name="AlmRunnerTestsetDone" xml:space="preserve">
+    <value>Test set: {0}, finished at {1}</value>
+  </data>
+  <data name="AlmRunnerTestStat" xml:space="preserve">
+    <value>Test: {0}, Status: {1}, Message: {2} \nLink: {3}\n</value>
+  </data>
+  <data name="FsRunnerNoValidTests" xml:space="preserve">
+    <value>===============================\nThere are no valid tests to run!\n===============================</value>
+  </data>
+  <data name="FsRunnerRunningTest" xml:space="preserve">
+    <value>Running test: {0}</value>
+  </data>
+  <data name="FsRunnerTestDone" xml:space="preserve">
+    <value>Test result: {0}</value>
+  </data>
+  <data name="FsRunnerTestDoneWarnings" xml:space="preserve">
+    <value>Test result: Succeeded with Warnings</value>
+  </data>
+  <data name="FsRunnerTestsFound" xml:space="preserve">
+    <value>{0} tests found:</value>
+  </data>
+  <data name="GeneralAbortedByUser" xml:space="preserve">
+    <value>========================\nJob was aborted by user!\n========================</value>
+  </data>
+  <data name="GeneralDoubleSeperator" xml:space="preserve">
+    <value>============================================================================</value>
+  </data>
+  <data name="GeneralErrorWithStack" xml:space="preserve">
+    <value>Error: {0}\n{1}</value>
+  </data>
+  <data name="GeneralFileNotFound" xml:space="preserve">
+    <value>&gt;&gt;&gt; File/Folder not found: {0}</value>
+  </data>
+  <data name="GeneralQtpNotInstalled" xml:space="preserve">
+    <value>QTP is not installed on {0}.</value>
+  </data>
+  <data name="GeneralStarted" xml:space="preserve">
+    <value>"Started..."</value>
+  </data>
+  <data name="GeneralStopAborted" xml:space="preserve">
+    <value>Test run was aborted by user. Stopping all tests.</value>
+  </data>
+  <data name="GeneralTestCanceled" xml:space="preserve">
+    <value>Test run was cancelled</value>
+  </data>
+  <data name="GeneralTimedOut" xml:space="preserve">
+    <value>==============\nJob timed out!\n==============</value>
+  </data>
+  <data name="GeneralTimeoutExpired" xml:space="preserve">
+    <value>Timeout has expired</value>
+  </data>
+  <data name="LauncherDisplayRunmode" xml:space="preserve">
+    <value>Run mode is set to: {0}</value>
+  </data>
+  <data name="LauncherDisplayStatistics" xml:space="preserve">
+    <value>Run status: {0}, total tests: {1}, succeeded: {2}, failures: {3}, errors: {4}</value>
+  </data>
+  <data name="LauncherDoubleSeperator" xml:space="preserve">
+    <value>================================================</value>
+  </data>
+  <data name="LauncherIncorrectRunmode" xml:space="preserve">
+    <value>The parameter 'runMode' should be: RUN_LOCAL | RUN_REMOTE | RUN_PLANNED_HOST</value>
+  </data>
+  <data name="LauncherNoTests" xml:space="preserve">
+    <value>No test sets were found. Add some test sets or folders.</value>
+  </data>
+  <data name="LauncherNoValidTests" xml:space="preserve">
+    <value>No valid tests were found. Fix the test paths.</value>
+  </data>
+  <data name="LauncherParamRequired" xml:space="preserve">
+    <value>The parameter '{0}' is required to run a test from QC.</value>
+  </data>
+  <data name="LauncherRunnerDisposeError" xml:space="preserve">
+    <value>An error occured while disposing runner: {0}.</value>
+  </data>
+  <data name="LauncherStNotInstalled" xml:space="preserve">
+    <value>Service Test is not installed on {0}</value>
+  </data>
+  <data name="LauncherTimeoutNotNumeric" xml:space="preserve">
+    <value>almTimeout should be an integer!</value>
+  </data>
+  <data name="LuancherDisplayTimout" xml:space="preserve">
+    <value>Timeout is set to: {0}</value>
+  </data>
+  <data name="SingleSeperator" xml:space="preserve">
+    <value>-------------------------------------------------------------------------------------------------------</value>
+  </data>
+  <data name="LauncherNoResFilenameFound" xml:space="preserve">
+    <value>No results filename provided, please add one</value>
+  </data>
+  <data name="LauncherNoRuntype" xml:space="preserve">
+    <value>No runType parameter was provided. Enter a runType (Alm/FileSystem/LoadRunner).</value>
+  </data>
+  <data name="LauncherNoTestsFound" xml:space="preserve">
+    <value>No tests were found. Add tests or folders containing tests.</value>
+  </data>
+  <data name="LoadRunnerNotInstalled" xml:space="preserve">
+    <value>LoadRunner is not installed on {0}.</value>
+  </data>
+  <data name="HPToolsAssemblyResolverWrongVersion" xml:space="preserve">
+    <value>The LoadRunner version must be 11.52 or higher. Check that '{0}' has a compatible version of LoadRunner.</value>
+  </data>
+  <data name="CannotDeleteReportFolder" xml:space="preserve">
+    <value>Unable to delete report folder {0}.</value>
+  </data>
+  <data name="FailedToCreateTempDirError" xml:space="preserve">
+    <value>Failed to create Temp Dir {0}.</value>
+  </data>
+  <data name="LrAnalysingResults" xml:space="preserve">
+    <value>Analyzing results...</value>
+  </data>
+  <data name="LrCleanENV" xml:space="preserve">
+    <value>Cleaning up the environment...</value>
+  </data>
+  <data name="LrControllerFailedToStop" xml:space="preserve">
+    <value>Controller failed to stop.</value>
+  </data>
+  <data name="LrErrorIgnored" xml:space="preserve">
+    <value>Ignored error message : "{0}" contains ignored string "{1}".</value>
+  </data>
+  <data name="LrErrorSummeryNum" xml:space="preserve">
+    <value>{0} ignored , {1} errors</value>
+  </data>
+  <data name="LRExceptionInAnalysisRunner" xml:space="preserve">
+    <value>Exception while trying to analyze results:</value>
+  </data>
+  <data name="LrFailedToOpenScenario" xml:space="preserve">
+    <value>Cannot open scenario {0} ret code = {1}.</value>
+  </data>
+  <data name="LrFailToOpenController" xml:space="preserve">
+    <value>Failed to start the LoadRunner Controller.</value>
+  </data>
+  <data name="LrFailToRegisterEndScenarioEvent" xml:space="preserve">
+    <value>Cannot register the end scenario event. End scenario detection is based on Vuser status.</value>
+  </data>
+  <data name="LrInitScenario" xml:space="preserve">
+    <value>Preparing scenario {0} for execution.</value>
+  </data>
+  <data name="LrScenarioCollateFail" xml:space="preserve">
+    <value>Cannot collate results ret code = {0}.</value>
+  </data>
+  <data name="LrScenarioEnded" xml:space="preserve">
+    <value>Scenario {0} ended.</value>
+  </data>
+  <data name="LrScenarioEndedTimeOut" xml:space="preserve">
+    <value>Timeout passed. Stopping sceario by force.</value>
+  </data>
+  <data name="LrScenarioEndedWithErrors" xml:space="preserve">
+    <value>Errors occured during scenario execution. Stopping the scenario run.</value>
+  </data>
+  <data name="LrScenarioTimeOut" xml:space="preserve">
+    <value>Scenario Execution timeout ({0} minutes) passed.</value>
+  </data>
+  <data name="LrScenarioValidationCannotConnectLG" xml:space="preserve">
+    <value>Cannot connect to Load Generator {0}.</value>
+  </data>
+  <data name="LrScenarioValidationCannotSyncLG" xml:space="preserve">
+    <value>Cannot synchronize with Load Generator {0}.</value>
+  </data>
+  <data name="LrScenarioValidationFailNoLGs" xml:space="preserve">
+    <value>No Load Generators were configured for the scenario {0.}</value>
+  </data>
+  <data name="LrScenarioValidationFailNoSLA" xml:space="preserve">
+    <value>Scenario {0}  does not have an SLA configuration.</value>
+  </data>
+  <data name="LrScenarioValidationLGConnected" xml:space="preserve">
+    <value>Load Generator {0} connected</value>
+  </data>
+  <data name="LrScenarioValidationLGNotReady" xml:space="preserve">
+    <value>Could not connect to Load Generator {0}.</value>
+  </data>
+  <data name="LrStartScenario" xml:space="preserve">
+    <value>Starting scenario...</value>
+  </data>
+  <data name="LrStartScenarioFail" xml:space="preserve">
+    <value>Cannot start scenario {0}. Return Code = {1}.</value>
+  </data>
+  <data name="LrStopScenarioEnded" xml:space="preserve">
+    <value>Stop scenario failed. Return code = {0}</value>
+  </data>
+  <data name="LRTestFailDueToFatalErrors" xml:space="preserve">
+    <value>Test FAILED. {0} errors occured during scenario execution.</value>
+  </data>
+  <data name="LRTestPassed" xml:space="preserve">
+    <value>Test PASSED</value>
+  </data>
+  <data name="LRTestWarningDueToIgnoredErrors" xml:space="preserve">
+    <value>Setting test state to WARNING. {0} Ignored errors occured during scenario execution.</value>
+  </data>
+  <data name="LrSLARuleFailed" xml:space="preserve">
+    <value>SLA rule {0} failed: GoalValue = {1} ActualValue = {2}</value>
+  </data>
+  <data name="LrAnalysisRunTimeError" xml:space="preserve">
+    <value>Error during Analysis run. See output console for details</value>
+  </data>
+  <data name="LrAnalysisTimeOut" xml:space="preserve">
+    <value>Timeout for Analysis passed.</value>
+  </data>
+  <data name="LrAnlysisInitFail" xml:space="preserve">
+    <value>Failed to initilize Analysis launcher.</value>
+  </data>
+  <data name="LrAnlysisResults" xml:space="preserve">
+    <value>Analysis Results:</value>
+  </data>
+  <data name="LRErrorReasonSummaryTitle" xml:space="preserve">
+    <value>Errors during scenario run: \n</value>
+  </data>
+  <data name="LRErrorsSummary" xml:space="preserve">
+    <value>Error(s) summary: </value>
+  </data>
+  <data name="LrScenarioOpenTimeOut" xml:space="preserve">
+    <value>Scenario open process timed out.</value>
+  </data>
+=======
 	<data name="FileSystemTestsRunner_No_HP_testing_tool_is_installed_on">
 		<value><![CDATA[No HP testing tool is installed on ]]></value>
 	</data>
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 </root>

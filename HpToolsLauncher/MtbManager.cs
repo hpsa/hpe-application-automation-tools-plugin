@@ -5,9 +5,15 @@
 
 using System;
 using System.Collections.Generic;
+<<<<<<< HEAD
+using System.IO;
+using System.Linq;
+using HpToolsLauncher.Properties;
+=======
 using System.Linq;
 using HpToolsLauncher.Properties;
 using System.IO;
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 //using UFT.Runner.Properties;
 
 namespace HpToolsLauncher
@@ -39,7 +45,13 @@ namespace HpToolsLauncher
 
                     if (!Directory.Exists(testFileName))
                     {
+<<<<<<< HEAD
+                        string line = string.Format(Resources.GeneralFileNotFound, testFileName);
+                        ConsoleWriter.WriteLine(line);
+                        ConsoleWriter.ErrorSummaryLines.Add(line);
+=======
                         ConsoleWriter.WriteErrLine(string.Format("File/Folder not found: '{0}'", testFileName));
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                         Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
                     }
                     else
@@ -49,7 +61,11 @@ namespace HpToolsLauncher
                 }
             }
             //The given file is not a valid mtb file
+<<<<<<< HEAD
+            catch { }
+=======
             catch{}
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
             return paths;
         }

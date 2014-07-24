@@ -46,7 +46,11 @@ namespace HpToolsLauncher
         {
             if (File.Exists(STRunnerName))
                 return true;
+<<<<<<< HEAD
+            _stExecuterPath = Helper.GetSTInstallPath();
+=======
             _stExecuterPath = Helper.GetInstallPath();
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
             if ((!String.IsNullOrEmpty(_stExecuterPath)))
             {
                 _stExecuterPath += "bin";
@@ -65,13 +69,22 @@ namespace HpToolsLauncher
         /// <returns></returns>
         public TestRunResults RunTest(string testPath, ref string errorReason, RunCancelledDelegate runCancelled)
         {
+<<<<<<< HEAD
+
+
+=======
                      
             
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
             TestRunResults runDesc = new TestRunResults();
             ConsoleWriter.ActiveTestRun = runDesc;
             ConsoleWriter.WriteLine(DateTime.Now.ToString(Launcher.DateFormat) + " Running: " + testPath);
 
+<<<<<<< HEAD
+
+=======
             
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
             runDesc.ReportLocation = Helper.CreateTempDir();
             runDesc.ErrorDesc = errorReason;
@@ -80,11 +93,19 @@ namespace HpToolsLauncher
             if (!Helper.IsServiceTestInstalled())
             {
                 runDesc.TestState = TestState.Error;
+<<<<<<< HEAD
+                runDesc.ErrorDesc = string.Format(Resources.LauncherStNotInstalled, System.Environment.MachineName);
+                ConsoleWriter.WriteErrLine(runDesc.ErrorDesc);
+                Environment.ExitCode = (int)Launcher.ExitCodeEnum.Failed;
+                return runDesc;
+            }
+=======
                 runDesc.ErrorDesc = "Service Test is not installed on " + System.Environment.MachineName;
                 ConsoleWriter.WriteErrLine(runDesc.ErrorDesc);
                 Environment.ExitCode = (int)Launcher.ExitCodeEnum.Failed;
                 return runDesc;
             }   
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
             _runCancelled = runCancelled;
             if (!_stCanRun)

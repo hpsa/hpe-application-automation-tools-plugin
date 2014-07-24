@@ -5,12 +5,20 @@
 
 using System;
 using System.Collections.Generic;
+<<<<<<< HEAD
+using System.Diagnostics;
+using System.IO;
+using System.Reflection;
+using HpToolsLauncher.Properties;
+using HpToolsLauncher.TestRunners;
+=======
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Diagnostics;
 using HpToolsLauncher.Properties;
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
 namespace HpToolsLauncher
 {
@@ -18,7 +26,11 @@ namespace HpToolsLauncher
     {
         #region Members
 
+<<<<<<< HEAD
+
+=======
         
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
         private List<TestInstance> _tests;
         private static string _uftViewerPath;
         private int _errors, _fail;
@@ -27,6 +39,15 @@ namespace HpToolsLauncher
         private Stopwatch _stopwatch = null;
         private string _abortFilename = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\stop" + Launcher.UniqueTimeStamp + ".txt";
 
+<<<<<<< HEAD
+        //LoadRunner Arguments
+        private int _pollingInterval;
+        private TimeSpan _perScenarioTimeOut;
+        private List<string> _ignoreErrorStrings;
+
+
+=======
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
         //saves runners for cleaning up at the end.
         private Dictionary<TestType, IFileSysTestRunner> _colRunnersForCleanup = new Dictionary<TestType, IFileSysTestRunner>();
 
@@ -44,6 +65,13 @@ namespace HpToolsLauncher
         /// <param name="useUFTLicense"></param>
         public FileSystemTestsRunner(List<string> sources,
             TimeSpan timeout,
+<<<<<<< HEAD
+            int ControllerPollingInterval,
+            TimeSpan perScenarioTimeOut,
+            List<string> ignoreErrorStrings,
+
+=======
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
             bool useUFTLicense = false
             )
         {
@@ -51,13 +79,25 @@ namespace HpToolsLauncher
             //search if we have any testing tools installed
             if (!Helper.IsTestingToolsInstalled(TestStorageType.FileSystem))
             {
+<<<<<<< HEAD
+                ConsoleWriter.WriteErrLine(string.Format(Resources.FileSystemTestsRunner_No_HP_testing_tool_is_installed_on,System.Environment.MachineName));
+=======
                 ConsoleWriter.WriteErrLine(Resources.FileSystemTestsRunner_No_HP_testing_tool_is_installed_on + System.Environment.MachineName);
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                 Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
             }
 
             _timeout = timeout;
             _stopwatch = Stopwatch.StartNew();
 
+<<<<<<< HEAD
+            _pollingInterval = ControllerPollingInterval;
+            _perScenarioTimeOut = perScenarioTimeOut;
+            _ignoreErrorStrings = ignoreErrorStrings;
+
+
+=======
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
             _useUFTLicense = useUFTLicense;
             _tests = new List<TestInstance>();
 
@@ -69,7 +109,11 @@ namespace HpToolsLauncher
 
                 try
                 {
+<<<<<<< HEAD
+                    //--handle directories which contain test subdirectories (recursively)
+=======
                     //--handle directories which contain test subdirs (recursively)
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                     if (Helper.IsDirectory(source))
                     {
 
@@ -77,9 +121,22 @@ namespace HpToolsLauncher
                     }
                     //--handle mtb files (which contain links to tests)
                     else
+<<<<<<< HEAD
+                    //file might be LoadRunner scenario or
+                    //mtb file (which contain links to tests)
+                    //other files are dropped
+                    {
+                        testGroup = new List<string>();
+                        FileInfo fi = new FileInfo(source);
+                        if (fi.Extension == Helper.LoadRunnerFileExtention)
+                            testGroup.Add(source);
+                        else if (fi.Extension == ".mtb")
+                        //if (source.TrimEnd().EndsWith(".mtb", StringComparison.CurrentCultureIgnoreCase))
+=======
                     {
                         testGroup = new List<string>();
                         if (source.TrimEnd().EndsWith(".mtb", StringComparison.CurrentCultureIgnoreCase))
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                         {
                             IMtbManager manager = new MtbManager();
                             testGroup = manager.Parse(source);
@@ -109,6 +166,20 @@ namespace HpToolsLauncher
 
             if (_tests == null || _tests.Count == 0)
             {
+<<<<<<< HEAD
+                ConsoleWriter.WriteLine(Resources.FsRunnerNoValidTests);
+                Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
+            }
+
+            ConsoleWriter.WriteLine(string.Format(Resources.FsRunnerTestsFound, _tests.Count));
+            _tests.ForEach(t => ConsoleWriter.WriteLine("" + t.TestName));
+            ConsoleWriter.WriteLine(Resources.GeneralDoubleSeperator);
+        }
+
+        
+
+
+=======
                 ConsoleWriter.WriteLine("===============================\nThere are no valid tests to run!\n===============================");
                 Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
             }
@@ -118,6 +189,7 @@ namespace HpToolsLauncher
             ConsoleWriter.WriteLine("================================================");
         }
 
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
         /// <summary>
         /// runs all tests given to this runner and returns a suite of run resutls
         /// </summary>
@@ -141,7 +213,11 @@ namespace HpToolsLauncher
                     TestRunResults runResult = null;
                     try
                     {
+<<<<<<< HEAD
+                        runResult = RunHPToolsTest(test.TestName, ref errorReason);
+=======
                         runResult = RunUftTest(test.TestName, ref errorReason);
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                     }
                     catch (Exception ex)
                     {
@@ -156,7 +232,11 @@ namespace HpToolsLauncher
 
                     activeRunDesc.TestRuns.Add(runResult);
 
+<<<<<<< HEAD
+                    //if fail was terminated before this step, continue
+=======
                     //if fail was dtermind before this step, continue
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                     if (runResult.TestState != TestState.Failed)
                     {
                         if (runResult.TestState != TestState.Error)
@@ -183,11 +263,20 @@ namespace HpToolsLauncher
 
                     if (runResult.TestState == TestState.Passed && runResult.HasWarnings)
                     {
+<<<<<<< HEAD
+                        runResult.TestState = TestState.Warning;
+                        ConsoleWriter.WriteLine(Resources.FsRunnerTestDoneWarnings);
+                    }
+                    else
+                    {
+                        ConsoleWriter.WriteLine(string.Format(Resources.FsRunnerTestDone, runResult.TestState));
+=======
                         ConsoleWriter.WriteLine("Test result: Succeeded with Warnings");
                     }
                     else
                     {
                         ConsoleWriter.WriteLine("Test result: " + runResult.TestState);
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                     }
 
                     ConsoleWriter.WriteLine(DateTime.Now.ToString(Launcher.DateFormat) + " Test complete: " + runResult.TestPath + "\n-------------------------------------------------------------------------------------------------------");
@@ -229,7 +318,11 @@ namespace HpToolsLauncher
         /// <param name="testPath"></param>
         /// <param name="errorReason"></param>
         /// <returns></returns>
+<<<<<<< HEAD
+        private TestRunResults RunHPToolsTest(string testPath, ref string errorReason)
+=======
         private TestRunResults RunUftTest(string testPath, ref string errorReason)
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
         {
             var type = Helper.GetTestType(testPath);
             IFileSysTestRunner runner = null;
@@ -241,6 +334,13 @@ namespace HpToolsLauncher
                 case TestType.QTP:
                     runner = new GuiTestRunner(this, _useUFTLicense, _timeout - _stopwatch.Elapsed);
                     break;
+<<<<<<< HEAD
+                case TestType.LoadRunner:
+                    AppDomain.CurrentDomain.AssemblyResolve += Helper.HPToolsAssemblyResolver;
+                    runner = new PerformanceTestRunner(this, _timeout, _pollingInterval, _perScenarioTimeOut, _ignoreErrorStrings);
+                    break;
+=======
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
             }
 
 
@@ -252,7 +352,12 @@ namespace HpToolsLauncher
                 Stopwatch s = Stopwatch.StartNew();
                 var results = runner.RunTest(testPath, ref errorReason, RunCancelled);
                 results.Runtime = s.Elapsed;
+<<<<<<< HEAD
+                if (type == TestType.LoadRunner)
+                    AppDomain.CurrentDomain.AssemblyResolve -= Helper.HPToolsAssemblyResolver;
+=======
 
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
                 return results;
             }
@@ -261,10 +366,14 @@ namespace HpToolsLauncher
             if (System.IO.File.Exists(_abortFilename))
             {
 
+<<<<<<< HEAD
+                ConsoleWriter.WriteLine(Resources.GeneralStopAborted);
+=======
                 ConsoleWriter.WriteLine("Test run Was aborted by user, stopping all tests.");
 
                 //remove the file (got the message)
                 System.IO.File.Delete(_abortFilename);
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
                 //stop working 
                 Environment.Exit((int)Launcher.ExitCodeEnum.Aborted);
@@ -280,6 +389,17 @@ namespace HpToolsLauncher
         /// <returns></returns>
         public bool RunCancelled()
         {
+<<<<<<< HEAD
+            
+            //if timeout has passed
+            if (_stopwatch.Elapsed > _timeout)
+            {
+            
+                if (!_blnRunCancelled)
+                {
+                    ConsoleWriter.WriteLine(Resources.GeneralTimedOut);
+            
+=======
             //if timeout has passed
             if (_stopwatch.Elapsed > _timeout)
             {
@@ -287,11 +407,23 @@ namespace HpToolsLauncher
                 {
                     ConsoleWriter.WriteLine("==============\nJob timed out!\n==============");
 
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                     Launcher.ExitCode = Launcher.ExitCodeEnum.Aborted;
                     _blnRunCancelled = true;
                 }
             }
 
+<<<<<<< HEAD
+            //if (System.IO.File.Exists(_abortFilename))
+            //{
+            //    if (!_blnRunCancelled)
+            //    {
+            //        ConsoleWriter.WriteLine(Resources.GeneralAbortedByUser);
+            //        Launcher.ExitCode = Launcher.ExitCodeEnum.Aborted;
+            //        _blnRunCancelled = true;
+            //    }
+            //}
+=======
             if (System.IO.File.Exists(_abortFilename))
             {
                 if (!_blnRunCancelled)
@@ -301,6 +433,7 @@ namespace HpToolsLauncher
                     _blnRunCancelled = true;
                 }
             }
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
             return _blnRunCancelled;
         }
 

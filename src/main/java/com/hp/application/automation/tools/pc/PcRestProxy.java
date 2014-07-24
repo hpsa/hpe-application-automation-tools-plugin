@@ -1,0 +1,165 @@
+package com.hp.application.automation.tools.pc;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.CookieStore;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.impl.conn.SchemeRegistryFactory;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
+
+import static org.apache.commons.httpclient.HttpStatus.*;
+
+import com.hp.application.automation.tools.common.PcException;
+import com.hp.application.automation.tools.model.TimeslotDuration;
+import com.hp.application.automation.tools.rest.HttpHeaders;
+import com.hp.application.automation.tools.sse.sdk.Base64Encoder;
+
+public class PcRestProxy {
+	
+    protected static final String        BASE_PC_API_URL                = "http://%s/LoadTest/rest";
+    protected static final String        BASE_PC_API_AUTHENTICATION_URL = BASE_PC_API_URL + "/authentication-point";
+    protected static final String        AUTHENTICATION_LOGIN_URL       = BASE_PC_API_AUTHENTICATION_URL + "/authenticate";
+    protected static final String        AUTHENTICATION_LOGOUT_URL      = BASE_PC_API_AUTHENTICATION_URL + "/logout";
+    protected static final String        PC_API_RESOURCES_TEMPLATE      = BASE_PC_API_URL + "/domains/%s/projects/%s";
+    protected static final String        RUNS_RESOURCE_NAME             = "Runs";
+    protected static final String        RESULTS_RESOURCE_NAME          = "Results";
+    protected static final String        CONTENT_TYPE_XML               = "application/xml";
+    static final String                  PC_API_XMLNS                   = "http://www.hp.com/PC/REST/API";
+	
+    protected static final List<Integer> validStatusCodes = Arrays.asList(SC_OK, SC_CREATED, SC_ACCEPTED, SC_NO_CONTENT);
+	
+	private String baseURL;
+    private String pcServer;
+	private String domain;
+	private String project;
+
+	private HttpClient client;
+    private HttpContext context;
+    private CookieStore cookieStore;
+    
+    public PcRestProxy(String pcServerName, String almDomain, String almProject) {
+ 
+    	pcServer = pcServerName;
+    	domain = almDomain;
+    	project = almProject;
+    	baseURL = String.format(PC_API_RESOURCES_TEMPLATE, pcServer, domain, project);
+
+    	PoolingClientConnectionManager cxMgr = new PoolingClientConnectionManager(SchemeRegistryFactory.createDefault());
+    	cxMgr.setMaxTotal(100);
+    	cxMgr.setDefaultMaxPerRoute(20);
+    	
+    	client = new DefaultHttpClient(cxMgr);   	
+    	context = new BasicHttpContext();
+    	cookieStore = new BasicCookieStore();
+    	context.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
+	}
+
+    
+    public boolean authenticate(String userName, String password) throws PcException, ClientProtocolException, IOException {
+
+        String userNameAndPassword = userName + ":" + password;
+        String encodedCredentials = Base64Encoder.encode(userNameAndPassword.getBytes());
+        HttpGet authRequest = new HttpGet(String.format(AUTHENTICATION_LOGIN_URL, pcServer));
+        authRequest.addHeader("Authorization", String.format("Basic %s", encodedCredentials));
+        executeRequest(authRequest);
+        return true;
+    }
+
+    public PcRunResponse startRun(int testId, int testInstaceId, TimeslotDuration timeslotDuration,
+            String postRunAction, boolean vudsMode) throws PcException, ClientProtocolException, IOException {
+        HttpPost startRunRequest = new HttpPost(String.format(baseURL + "/%s", RUNS_RESOURCE_NAME));
+        startRunRequest.addHeader(HttpHeaders.CONTENT_TYPE, CONTENT_TYPE_XML);
+        PcRunRequest runRequestData = new PcRunRequest(testId, testInstaceId, 0, timeslotDuration, postRunAction, vudsMode);
+        startRunRequest.setEntity(new StringEntity(runRequestData.objectToXML(), ContentType.APPLICATION_XML));
+        HttpResponse response = executeRequest(startRunRequest);
+        String startRunResponse = IOUtils.toString(response.getEntity().getContent());
+        return PcRunResponse.xmlToObject(startRunResponse);
+    }
+
+    public boolean stopRun(int runId, String stopMode) throws PcException, ClientProtocolException, IOException {
+        String stopUrl = String.format(baseURL + "/%s/%s/%s", RUNS_RESOURCE_NAME, runId, stopMode);
+        HttpPost stopRunRequest = new HttpPost(stopUrl);;
+        ReleaseTimeslot releaseTimesloteRequest = new ReleaseTimeslot(true, "Do Not Collate");
+        stopRunRequest.addHeader(HttpHeaders.CONTENT_TYPE, CONTENT_TYPE_XML);
+        stopRunRequest.setEntity(new StringEntity (releaseTimesloteRequest.objectToXML(),ContentType.APPLICATION_XML)); 
+        executeRequest(stopRunRequest);
+        return true;
+    }
+
+    public PcRunResponse getRunData(int runId) throws PcException, ClientProtocolException, IOException {
+        HttpGet getRunDataRequest = new HttpGet(String.format(baseURL + "/%s/%s", RUNS_RESOURCE_NAME, runId));
+        HttpResponse response = executeRequest(getRunDataRequest);
+        String runData = IOUtils.toString(response.getEntity().getContent());
+        return PcRunResponse.xmlToObject(runData);
+    }
+
+    public PcRunResults getRunResults(int runId) throws PcException, ClientProtocolException, IOException {
+        String getRunResultsUrl = String
+            .format(baseURL + "/%s/%s/%s", RUNS_RESOURCE_NAME, runId, RESULTS_RESOURCE_NAME);
+        HttpGet getRunResultsRequest = new HttpGet(getRunResultsUrl);
+        HttpResponse response = executeRequest(getRunResultsRequest);
+        String runResults = IOUtils.toString(response.getEntity().getContent());
+        return PcRunResults.xmlToObject(runResults);
+    }
+
+    public boolean GetRunResultData(int runId, int resultId, String localFilePath) throws PcException, ClientProtocolException, IOException {
+        String getRunResultDataUrl = String.format(baseURL + "/%s/%s/%s/%s/data", RUNS_RESOURCE_NAME, runId,
+            RESULTS_RESOURCE_NAME, resultId);
+        HttpGet getRunResultRequest = new HttpGet(getRunResultDataUrl);
+        HttpResponse response = executeRequest(getRunResultRequest);
+        OutputStream out = new FileOutputStream(localFilePath);
+        InputStream in = response.getEntity().getContent();
+        IOUtils.copy(in, out);
+        IOUtils.closeQuietly(in);
+        IOUtils.closeQuietly(out);
+        return true;
+    }
+    
+    public boolean logout() throws PcException, ClientProtocolException, IOException {
+        HttpGet logoutRequest = new HttpGet(String.format(AUTHENTICATION_LOGOUT_URL, pcServer));
+        executeRequest(logoutRequest);
+        return true;
+    }
+
+    protected HttpResponse executeRequest(HttpRequestBase request) throws PcException, ClientProtocolException, IOException  {  
+    		HttpResponse response = client.execute(request,context);
+			if (!isOk(response)){
+				String message;
+				try {
+					String content = IOUtils.toString(response.getEntity().getContent());
+					PcErrorResponse exception = PcErrorResponse.xmlToObject(content);
+					message  = String.format("%s Error code: %s", exception.ExceptionMessage, exception.ErrorCode);					
+				} catch (Exception ex) {
+					message = response.getStatusLine().toString();
+				}
+				throw new PcException(message); 
+			}  		
+    		return response;           
+    }
+
+	public static boolean isOk (HttpResponse response) {
+	    return validStatusCodes.contains(response.getStatusLine().getStatusCode());
+	}
+	
+    protected String getBaseURL() {
+        return baseURL;
+    }
+}

@@ -23,4 +23,21 @@
     <f:entry title="Timeout" field="fsTimeout">
         <f:textbox name="runfromfs.fsTimeout" value="${instance.runFromFileModel.fsTimeout}"/>
     </f:entry>
+<<<<<<< HEAD
+    <f:advanced title="LoadRunner-Specific Settings">
+    	<f:section title="LoadRunner Settings">
+			<f:entry title="Controller Polling Interval" field="controllerPollingInterval">
+				<f:textbox name="runfromfs.controllerPollingInterval" value="${instance.runFromFileModel.controllerPollingInterval}" default="30"/>
+			</f:entry>
+			<f:entry title="Scenario Execution Timeout" field="perScenarioTimeOut">
+				<f:textbox name="runfromfs.perScenarioTimeOut" value="${instance.runFromFileModel.perScenarioTimeOut}" default="10"/>
+			</f:entry>
+			<f:entry title="Errors to Ignore" field="ignoreErrorStrings">
+				<f:textarea name="runfromfs.ignoreErrorStrings" value="${instance.runFromFileModel.ignoreErrorStrings}"  />
+			</f:entry>
+    	</f:section>
+    </f:advanced> 
+
+=======
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 </j:jelly>

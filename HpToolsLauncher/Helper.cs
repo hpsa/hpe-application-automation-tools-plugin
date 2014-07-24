@@ -8,6 +8,17 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+<<<<<<< HEAD
+using System.Reflection;
+using System.Text;
+using System.Web.UI;
+using System.Xml;
+using System.Xml.Linq;
+using System.Xml.XPath;
+using System.Xml.Xsl;
+using HpToolsLauncher.Properties;
+using Microsoft.Win32;
+=======
 using System.Text;
 using System.Web.UI;
 using System.Xml;
@@ -18,6 +29,7 @@ using System.Xml.Linq;
 using System.Collections.Specialized;
 using HpToolsLauncher.Properties;
 using System.Runtime.InteropServices;
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
 namespace HpToolsLauncher
 {
@@ -25,6 +37,10 @@ namespace HpToolsLauncher
     {
         QTP,
         ST,
+<<<<<<< HEAD
+        LoadRunner,
+=======
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
     }
 
     public enum TestState
@@ -43,6 +59,10 @@ namespace HpToolsLauncher
     {
         Passed,
         Failed,
+<<<<<<< HEAD
+        Warning,
+=======
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
         Done,
     }
 
@@ -62,6 +82,14 @@ namespace HpToolsLauncher
         public const string ServiceTesCurrentVersionWOW64RegistryKey = ServiceTesWOW64RegistryKey + @"\CurrentVersion";
 
         public const string LoadRunnerRegistryKey = @"SOFTWARE\Mercury Interactive\LoadRunner";
+<<<<<<< HEAD
+        public const string LoadRunner64RegisryKey = @"SOFTWARE\Wow6432Node\Mercury Interactive\LoadRunner";
+        public const string LoadRunnerControllerRegistryKey = @"CustComponent\Controller\CurrentVersion";
+        public const string LoadRunnerControllerDirRegistryKey = @"\CurrentVersion";
+
+        public const string LoadRunnerControllerDirRegistryValue = @"\Controller";
+        public static readonly System.Collections.ObjectModel.ReadOnlyCollection<string> LoadRunnerENVVariables = new System.Collections.ObjectModel.ReadOnlyCollection<string>(new[] { "LG_PATH", "LR_PATH" });
+=======
         public const string LoadRunner64RegisryKey = @"SOFTWARE\Wo6432Node\Mercury Interactive\LoadRunner";
 
         public const string LoadRunnerControllerRegistryKey = @"\CustComponent\Controller\CurrentVersion";
@@ -69,6 +97,7 @@ namespace HpToolsLauncher
         public const string LoadRunnerControllerDirRegistryKey = @"\CurrentVersion";
 
         public const string LoadRunnerControllerDirRegistryValue = @"\Controller";
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
 
         public const string InstalltionFolderValue = "LOCAL_MLROOT";
@@ -82,7 +111,74 @@ namespace HpToolsLauncher
         public const string ResultsFileName = "Results.xml";
         public const string QTPReportProcessPath = @"bin\reportviewer.exe";
 
+<<<<<<< HEAD
+        public const string STFileExtention = ".st";
+        public const string QTPFileExtention = ".tsp";
+        public const string LoadRunnerFileExtention = ".lrs";
+
         #endregion
+
+        public static Assembly HPToolsAssemblyResolver(object sender, ResolveEventArgs args)
+        {
+            AssemblyName asmName = new AssemblyName(args.Name);
+            if (asmName == null) return null;
+
+            string assemblyName = asmName.Name;
+            if (assemblyName.EndsWith(".resources")) return null;
+
+            if (assemblyName == "HpToolsLauncher.XmlSerializers") return null;
+
+            string installtionPath = null;
+            installtionPath = Helper.getLRInstallPath();
+            if (installtionPath == null)
+            {
+                ConsoleWriter.WriteErrLine(string.Format(Resources.LoadRunnerNotInstalled, System.Environment.MachineName));
+                Environment.Exit((int)Launcher.ExitCodeEnum.Aborted);
+            }
+
+            installtionPath = Path.Combine(installtionPath, "bin");
+
+            Assembly ans;
+            if (!File.Exists(Path.Combine(installtionPath, assemblyName + ".dll")))
+            {
+                //resource!
+                ConsoleWriter.WriteErrLine("cannot locate " + assemblyName + ".dll in installation directory");
+                Environment.Exit((int)Launcher.ExitCodeEnum.Aborted);
+            }
+            else
+            {
+                //Console.WriteLine("loading " + assemblyName + " from " + Path.Combine(installtionPath, assemblyName + ".dll"));
+                ans = Assembly.LoadFrom(Path.Combine(installtionPath, assemblyName + ".dll"));
+
+                AssemblyName loadedName = ans.GetName();
+                if (loadedName.Name == "Interop.Wlrun")
+                {
+                    if (loadedName.Version.Major > 11 || (loadedName.Version.Major == 11 && loadedName.Version.Minor >= 52))
+                    {
+                        return ans;
+                    }
+                    else
+                    {
+                        ConsoleWriter.WriteErrLine(string.Format(Resources.HPToolsAssemblyResolverWrongVersion, Environment.MachineName));
+                        Environment.Exit((int)Launcher.ExitCodeEnum.Aborted);
+                    }
+                }
+                else
+                {
+                    return ans;
+                }
+
+            }
+
+
+            return null;
+
+        }
+
+
+=======
+        #endregion
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
         public static string GetRootDirectoryPath()
         {
             String directoryPath;
@@ -101,6 +197,59 @@ namespace HpToolsLauncher
 
             return directoryPath;
         }
+<<<<<<< HEAD
+
+
+        //verify that files/fodlers exist (does not recurse into folders)
+        public static List<string> ValidateFiles(IEnumerable<string> tests)
+        {
+            List<string> validTests = new List<string>();
+            foreach (string test in tests)
+            {
+                if (!File.Exists(test) && !Directory.Exists(test))
+                {
+                    ConsoleWriter.WriteLine(string.Format(">>>> File/Folder not found: '{0}'", test));
+                    Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
+                }
+                else
+                {
+                    validTests.Add(test);
+                }
+            }
+            return validTests;
+        }
+
+        public static bool IsTestingToolsInstalled(TestStorageType type)
+        {
+            //we want to check if we have Service Test, QTP installed on a machine
+
+            return IsQtpInstalled() || IsServiceTestInstalled() || isLoadRunnerInstalled();
+
+        }
+
+        public static bool isLoadRunnerInstalled()
+        {
+            //try 32 bit
+            RegistryKey regkey = Registry.LocalMachine.OpenSubKey(LoadRunnerRegistryKey);
+
+            if (regkey == null)
+            {
+                //try 64-bit
+                regkey = Registry.LocalMachine.OpenSubKey(LoadRunner64RegisryKey);
+
+            }
+
+            if (regkey != null)
+            {
+
+                //LoadRunner Exist.
+                //check if Controller is installed (not SA version)
+
+                if (regkey.OpenSubKey(LoadRunnerControllerRegistryKey) != null)
+                {
+                    return true;
+                }
+=======
         public static bool IsTestingToolsInstalled(TestStorageType type)
         {
             //we want to check if we have Service Test, QTP installed on a machine
@@ -140,6 +289,7 @@ namespace HpToolsLauncher
 
                 default:
                     return false;
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
             }
             return false;
@@ -212,7 +362,11 @@ namespace HpToolsLauncher
             return qtpRoot;
         }
 
+<<<<<<< HEAD
+        public static string GetSTInstallPath()
+=======
         public static string GetInstallPath()
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
         {
             string ret = String.Empty;
             var regKey = Registry.LocalMachine.OpenSubKey(ServiceTesCurrentVersionRegistryKey);
@@ -257,6 +411,45 @@ namespace HpToolsLauncher
             return ret;
         }
 
+<<<<<<< HEAD
+        public static string getLRInstallPath()
+        {
+            string installPath = null;
+            System.Collections.IDictionary envVariables = Environment.GetEnvironmentVariables();
+
+            //try to find LoadRunner install path in environment vars
+            foreach (string variable in LoadRunnerENVVariables)
+            {
+                if (envVariables.Contains(variable))
+                    return envVariables[variable] as string;
+            }
+
+            //Fallback to registry
+            //try 32 bit
+            RegistryKey regkey = Registry.LocalMachine.OpenSubKey(LoadRunnerRegistryKey);
+
+            if (regkey == null)
+            {
+                //try 64-bit
+                regkey = Registry.LocalMachine.OpenSubKey(LoadRunner64RegisryKey);
+
+            }
+
+            if (regkey != null)
+            {
+
+                //LoadRunner Exists. check if Controller is installed (not SA version)
+                regkey = regkey.OpenSubKey(LoadRunnerControllerDirRegistryKey);
+                if (regkey != null)
+                    return regkey.GetValue("Controller").ToString();
+
+            }
+
+            return installPath;
+        }
+
+=======
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
         public static List<string> GetTestsLocations(string baseDir)
         {
             var testsLocations = new List<string>();
@@ -271,11 +464,28 @@ namespace HpToolsLauncher
 
         public static TestType GetTestType(string path)
         {
+<<<<<<< HEAD
+
+
+            if ((File.GetAttributes(path) & FileAttributes.Directory) == FileAttributes.Directory)
+            {//ST and QTP uses folder as test locations
+                var stFiles = Directory.GetFiles(path,
+                                   @"*.st?",
+                                   SearchOption.TopDirectoryOnly);
+
+                return (stFiles.Count() > 0) ? TestType.ST : TestType.QTP;
+            }
+            else//not directory
+            {//loadrunner is a path to file...
+                return TestType.LoadRunner;
+            }
+=======
             var stFiles = Directory.GetFiles(path,
                                @"*.st?",
                                SearchOption.TopDirectoryOnly);
 
             return (stFiles.Count() > 0) ? TestType.ST : TestType.QTP;
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
         }
 
         public static bool IsDirectory(string path)
@@ -297,8 +507,15 @@ namespace HpToolsLauncher
             // First, process all the files directly under this folder
             try
             {
+<<<<<<< HEAD
+
+                files = root.GetFiles("*" + STFileExtention);
+                files = files.Union(root.GetFiles("*" + QTPFileExtention)).ToArray();
+                files = files.Union(root.GetFiles("*" + LoadRunnerFileExtention)).ToArray();
+=======
                 files = root.GetFiles("*.st");
                 files = files.Union(root.GetFiles("*.tsp")).ToArray();
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
             }
             catch (Exception e)
             {
@@ -312,7 +529,15 @@ namespace HpToolsLauncher
             {
                 foreach (System.IO.FileInfo fi in files)
                 {
+<<<<<<< HEAD
+                    if (fi.Extension == LoadRunnerFileExtention)
+                        results.Add(fi.FullName);
+                    else
+                        results.Add(fi.Directory.FullName);
+
+=======
                     results.Add(fi.Directory.FullName);
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                     // In this example, we only access the existing FileInfo object. If we
                     // want to open, delete or modify the file, then
                     // a try-catch block is required here to handle the case
@@ -324,7 +549,11 @@ namespace HpToolsLauncher
 
                 foreach (System.IO.DirectoryInfo dirInfo in subDirs)
                 {
+<<<<<<< HEAD
+                    // Recursive call for each subdirectory.
+=======
                     // Resursive call for each subdirectory.
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                     WalkDirectoryTree(dirInfo, ref results);
                 }
             }
@@ -406,6 +635,14 @@ namespace HpToolsLauncher
             }
         }
 
+<<<<<<< HEAD
+        public static TestState GetTestStateFromUFTReport(TestRunResults runDesc, string[] resultFiles)
+        {
+            try
+            {
+                TestState finalState = TestState.Unknown;
+
+=======
         public static TestState GetTestStateFromReport(TestRunResults runDesc)
         {
             try
@@ -428,11 +665,16 @@ namespace HpToolsLauncher
                     return runDesc.TestState;
                 }
 
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                 foreach (string resultsFileFullPath in resultFiles)
                 {
                     finalState = TestState.Unknown;
                     string desc = "";
+<<<<<<< HEAD
+                    TestState state = GetStateFromUFTResultsFile(resultsFileFullPath, out desc);
+=======
                     TestState state = GetStateFromResultsFile(resultsFileFullPath, out desc);
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                     if (finalState == TestState.Unknown || finalState == TestState.Passed)
                     {
                         finalState = state;
@@ -457,7 +699,7 @@ namespace HpToolsLauncher
                     runDesc.FailureDesc = "Test failed";
 
                 runDesc.TestState = finalState;
-
+<<<<<<< HEAD
                 return runDesc.TestState;
             }
             catch (Exception e)
@@ -467,7 +709,121 @@ namespace HpToolsLauncher
 
         }
 
+
+        public static TestState GetTestStateFromLRReport(TestRunResults runDesc, string[] resultFiles)
+        {
+
+            foreach (string resultFileFullPath in resultFiles)
+            {
+                string desc = "";
+                runDesc.TestState = GetTestStateFromLRReport(resultFileFullPath, out desc);
+                if (runDesc.TestState == TestState.Failed)
+                {
+                    runDesc.ErrorDesc = desc;
+                    break;
+                }
+            }
+
+            return runDesc.TestState;
+        }
+
+
+        public static TestState GetTestStateFromReport(TestRunResults runDesc)
+        {
+            try
+            {
+                if (!Directory.Exists(runDesc.ReportLocation))
+                {
+                    runDesc.ErrorDesc = string.Format(Resources.DirectoryNotExistError, runDesc.ReportLocation);
+
+                    runDesc.TestState = TestState.Error;
+                    return runDesc.TestState;
+                }
+                //if there is Result.xml -> UFT
+                //if there is sla.xml file -> LR
+
+                string[] resultFiles = Directory.GetFiles(runDesc.ReportLocation, "Results.xml", SearchOption.AllDirectories);
+
+                if (resultFiles != null && resultFiles.Length > 0)
+                    return GetTestStateFromUFTReport(runDesc, resultFiles);
+
+                resultFiles = Directory.GetFiles(runDesc.ReportLocation, "SLA.xml", SearchOption.AllDirectories);
+
+                if (resultFiles != null && resultFiles.Length > 0)
+                {
+                    return GetTestStateFromLRReport(runDesc, resultFiles);
+                }
+
+                //no LR or UFT => error
+                runDesc.ErrorDesc = string.Format("no results file found for " + runDesc.TestName);
+                runDesc.TestState = TestState.Error;
+=======
+
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
+                return runDesc.TestState;
+            }
+            catch (Exception e)
+            {
+                return TestState.Unknown;
+            }
+
+        }
+
+<<<<<<< HEAD
+
+        private static TestState GetTestStateFromLRReport(string resultFileFullPath, out string desc)
+        {
+            desc = "";
+
+            XmlDocument xdoc = new XmlDocument();
+            xdoc.Load(resultFileFullPath);
+            return checkNodeStatus(xdoc.DocumentElement, out desc);
+        }
+
+        private static TestState checkNodeStatus(XmlNode node, out string desc)
+        {
+            desc = "";
+            if (node == null)
+                return TestState.Failed;
+
+            if (node.ChildNodes.Count == 1 && node.ChildNodes[0].NodeType == XmlNodeType.Text)
+            {
+                if (node.InnerText.ToLowerInvariant() == "failed")
+                {
+                    if (node.Attributes != null && node.Attributes["FullName"] != null)
+                    {
+                        desc = string.Format(Resources.LrSLARuleFailed, node.Attributes["FullName"].Value, node.Attributes["GoalValue"].Value, node.Attributes["ActualValue"].Value);
+                        ConsoleWriter.WriteLine(desc);
+                    }
+                    return TestState.Failed;
+                }
+                else
+                {
+                    return TestState.Passed;
+                }
+            }
+            //node has children
+            foreach (XmlNode childNode in node.ChildNodes)
+            {
+                TestState res = checkNodeStatus(childNode, out desc);
+                if (res == TestState.Failed)
+                {
+                    if (string.IsNullOrEmpty(desc) && node.Attributes != null && node.Attributes["FullName"] != null)
+                    {
+                        desc = string.Format(Resources.LrSLARuleFailed, node.Attributes["FullName"].Value, node.Attributes["GoalValue"].Value, node.Attributes["ActualValue"].Value);
+                        ConsoleWriter.WriteLine(desc);
+                    }
+                    return TestState.Failed;
+                }
+            }
+            return TestState.Passed;
+        }
+
+
+        private static TestState GetStateFromUFTResultsFile(string resultsFileFullPath, out string desc)
+=======
         private static TestState GetStateFromResultsFile(string resultsFileFullPath, out string desc)
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
         {
             TestState finalState = TestState.Unknown;
             desc = "";
@@ -490,10 +846,22 @@ namespace HpToolsLauncher
             if (result == TestResult.Passed || result == TestResult.Done)
             {
                 finalState = TestState.Passed;
+<<<<<<< HEAD
+            }
+            else if (result == TestResult.Warning)
+            {
+                finalState = TestState.Warning;
+            }
+            else
+            {
+                finalState = TestState.Failed;
+            }
+=======
                 //return runDesc.TestState;
             }
             else
                 finalState = TestState.Failed;
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
             return finalState;
         }
