@@ -36,10 +36,15 @@ namespace HpToolsLauncher
                     {
                         //load the previous section to a properties object
                         JavaProperties props = new JavaProperties();
+<<<<<<< HEAD
                         using (MemoryStream s = new MemoryStream(Encoding.Default.GetBytes(sb.ToString())))
                         {
                             props.Load(s);
                         }
+=======
+                        MemoryStream s = new MemoryStream(Encoding.Default.GetBytes(sb.ToString()));
+                        props.Load(s);
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
                         //add to the dictionary
                         this.Add(currentSectionName, props);
@@ -60,10 +65,15 @@ namespace HpToolsLauncher
             {
                 //load the last section to a properties object
                 JavaProperties props1 = new JavaProperties();
+<<<<<<< HEAD
                 using (MemoryStream s1 = new MemoryStream(Encoding.Default.GetBytes(sb.ToString())))
                 {
                     props1.Load(s1);
                 }
+=======
+                MemoryStream s1 = new MemoryStream(Encoding.Default.GetBytes(sb.ToString()));
+                props1.Load(s1);
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
                 //add to the dictionary
                 this.Add(currentSectionName, props1);

@@ -15,6 +15,7 @@ public class RunFromFileSystemModel {
 
 	private String fsTests;
 	private String fsTimeout;
+<<<<<<< HEAD
 	private String controllerPollingInterval = "30";
 	private String perScenarioTimeOut = "10";
 	private String ignoreErrorStrings;
@@ -24,6 +25,11 @@ public class RunFromFileSystemModel {
 
 	@DataBoundConstructor
 	public RunFromFileSystemModel(String fsTests, String fsTimeout, String controllerPollingInterval,String perScenarioTimeOut, String ignoreErrorStrings) {
+=======
+
+	@DataBoundConstructor
+	public RunFromFileSystemModel(String fsTests, String fsTimeout) {
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
 		this.fsTests = fsTests;
 
@@ -32,6 +38,7 @@ public class RunFromFileSystemModel {
 		}
 
 		this.fsTimeout = fsTimeout;
+<<<<<<< HEAD
 		
 		
 		this.perScenarioTimeOut = perScenarioTimeOut;
@@ -40,6 +47,9 @@ public class RunFromFileSystemModel {
 		
 	}
 	
+=======
+	}
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
 	public String getFsTests() {
 		return fsTests;
@@ -49,6 +59,7 @@ public class RunFromFileSystemModel {
 		return fsTimeout;
 	}
 
+<<<<<<< HEAD
 	
 
 	
@@ -97,6 +108,8 @@ public class RunFromFileSystemModel {
 		this.perScenarioTimeOut = perScenarioTimeOut;
 	}
 
+=======
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 	public Properties getProperties(EnvVars envVars,
 			VariableResolver<String> varResolver) {
 		return CreateProperties(envVars, varResolver);
@@ -109,7 +122,11 @@ public class RunFromFileSystemModel {
 	private Properties CreateProperties(EnvVars envVars,
 			VariableResolver<String> varResolver) {
 		Properties props = new Properties();
+<<<<<<< HEAD
 		
+=======
+
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 		if (!StringUtils.isEmpty(this.fsTests)) {
 
 			String[] testsArr = this.fsTests.replaceAll("\r", "").split("\n");
@@ -131,6 +148,7 @@ public class RunFromFileSystemModel {
 		else{
 			props.put("fsTimeout", "" + fsTimeout);
 		}
+<<<<<<< HEAD
 		
 		
 		if (StringUtils.isEmpty(controllerPollingInterval)){
@@ -151,6 +169,8 @@ public class RunFromFileSystemModel {
 			props.put("ignoreErrorStrings", ""+ignoreErrorStrings.replaceAll("\r", ""));
 		}
 
+=======
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
 		return props;
 	}

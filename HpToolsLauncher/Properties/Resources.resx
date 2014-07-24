@@ -130,7 +130,11 @@
     <value>Run cancelled by user.</value>
   </data>
   <data name="QtpCleanupError" xml:space="preserve">
+<<<<<<< HEAD
     <value>QTPActivity.TestCleanup - exception {0}</value>
+=======
+    <value>"QTPActivity.TestCleanup - exception {0}"</value>
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
   </data>
   <data name="QtpNotLaunchedError" xml:space="preserve">
     <value>QTP is not launched.</value>
@@ -154,6 +158,7 @@ Save the test in QuickTest and then run it again.</value>
   <data name="XmlNodeNotExistError" xml:space="preserve">
     <value>XML node '{0}' could not be found.</value>
   </data>
+<<<<<<< HEAD
   <data name="FileSystemTestsRunner_No_HP_testing_tool_is_installed_on" xml:space="preserve">
     <value>No HP testing tool is installed on {0}</value>
   </data>
@@ -430,4 +435,9 @@ Save the test in QuickTest and then run it again.</value>
   <data name="LrScenarioOpenTimeOut" xml:space="preserve">
     <value>Scenario open process timed out.</value>
   </data>
+=======
+	<data name="FileSystemTestsRunner_No_HP_testing_tool_is_installed_on">
+		<value><![CDATA[No HP testing tool is installed on ]]></value>
+	</data>
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 </root>

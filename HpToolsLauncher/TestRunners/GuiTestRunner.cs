@@ -12,7 +12,10 @@ using Resources = HpToolsLauncher.Properties.Resources;
 using System.Threading;
 using System.Diagnostics;
 using System.Collections.Generic;
+<<<<<<< HEAD
 using Microsoft.Win32;
+=======
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
 namespace HpToolsLauncher
 {
@@ -57,9 +60,13 @@ namespace HpToolsLauncher
             TestRunResults runDesc = new TestRunResults();
             ConsoleWriter.ActiveTestRun = runDesc;
             ConsoleWriter.WriteLine(DateTime.Now.ToString(Launcher.DateFormat) + " Running: " + testPath);
+<<<<<<< HEAD
             runDesc.ReportLocation = testPath;
 
 
+=======
+            runDesc.ReportLocation = Helper.CreateTempDir();
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
             runDesc.TestPath = testPath;
             runDesc.TestState = TestState.Unknown;
 
@@ -68,6 +75,7 @@ namespace HpToolsLauncher
             if (!Helper.IsQtpInstalled())
             {
                 runDesc.TestState = TestState.Error;
+<<<<<<< HEAD
                 runDesc.ErrorDesc = string.Format(Resources.GeneralQtpNotInstalled, System.Environment.MachineName);
                 ConsoleWriter.WriteErrLine(runDesc.ErrorDesc);
                 Environment.ExitCode = (int)Launcher.ExitCodeEnum.Failed;
@@ -77,12 +85,23 @@ namespace HpToolsLauncher
             try
             {
                 ChangeDCOMSettingToInteractiveUser();
+=======
+                runDesc.ErrorDesc = "QTP is not installed on " + System.Environment.MachineName;
+                ConsoleWriter.WriteErrLine(runDesc.ErrorDesc);
+                Environment.ExitCode = (int)Launcher.ExitCodeEnum.Failed;
+                return runDesc;
+            }   
+
+            try
+            {
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                 var type = Type.GetTypeFromProgID("Quicktest.Application");
 
                 lock (_lockObject)
                 {
                     _qtpApplication = Activator.CreateInstance(type) as Application;
 
+<<<<<<< HEAD
                     Version qtpVersion = Version.Parse(_qtpApplication.Version);
                     if (qtpVersion.Equals(new Version(11,0)))
                     {
@@ -95,6 +114,8 @@ namespace HpToolsLauncher
                     }
 
 
+=======
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                     // Check for required Addins
                     LoadNeededAddins(testPath);
 
@@ -103,7 +124,10 @@ namespace HpToolsLauncher
                         if (_runCancelled())
                         {
                             QTPTestCleanup();
+<<<<<<< HEAD
                             KillQtp();
+=======
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                             runDesc.TestState = TestState.Error;
                             return runDesc;
                         }
@@ -119,7 +143,11 @@ namespace HpToolsLauncher
                 errorReason = Resources.QtpNotLaunchedError;
                 runDesc.TestState = TestState.Error;
                 runDesc.ReportLocation = "";
+<<<<<<< HEAD
                 runDesc.ErrorDesc = e.Message;
+=======
+                runDesc.ErrorDesc = errorReason;
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                 return runDesc;
             }
 
@@ -299,6 +327,21 @@ namespace HpToolsLauncher
             GuiTestRunResult result = new GuiTestRunResult { IsSuccess = true };
             try
             {
+<<<<<<< HEAD
+=======
+                if (Directory.Exists(testResults.ReportLocation))
+                {
+                    try
+                    {
+                        Directory.Delete(testResults.ReportLocation, true);
+                    }
+                    catch (Exception)
+                    {
+                        Console.WriteLine("Unable to delete report folder " + testResults.ReportLocation);
+                    }
+                }
+                if (!Directory.Exists(testResults.ReportLocation)) Directory.CreateDirectory(testResults.ReportLocation);
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                 Type runResultsOptionstype = Type.GetTypeFromProgID("QuickTest.RunResultsOptions");
                 var options = (RunResultsOptions)Activator.CreateInstance(runResultsOptionstype);
                 options.ResultsLocation = testResults.ReportLocation;
@@ -308,12 +351,21 @@ namespace HpToolsLauncher
                 if (_runCancelled())
                 {
                     testResults.TestState = TestState.Error;
+<<<<<<< HEAD
                     testResults.ErrorDesc = Resources.GeneralTestCanceled;
                     ConsoleWriter.WriteLine(Resources.GeneralTestCanceled);
                     result.IsSuccess = false;
                     return result;
                 }
                 ConsoleWriter.WriteLine(string.Format(Resources.FsRunnerRunningTest, testResults.TestPath));
+=======
+                    testResults.ErrorDesc = "Test run was Canceled";
+                    ConsoleWriter.WriteLine("Test run was Canceled");
+                    result.IsSuccess = false;
+                    return result;
+                }
+                ConsoleWriter.WriteLine("Running Test: " + testResults.TestPath);
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
                 _qtpApplication.Test.Run(options, false, _qtpParameters);
 
@@ -333,8 +385,13 @@ namespace HpToolsLauncher
                     {
                         _qtpApplication.Test.Stop();
                         testResults.TestState = TestState.Error;
+<<<<<<< HEAD
                         testResults.ErrorDesc = Resources.GeneralTimeoutExpired;
                         ConsoleWriter.WriteLine(Resources.GeneralTimeoutExpired);
+=======
+                        testResults.ErrorDesc = "Timeout has expired.";
+                        ConsoleWriter.WriteLine("Timeout has expired.");
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
                         result.IsSuccess = false;
                         return result;
@@ -344,10 +401,16 @@ namespace HpToolsLauncher
                 if (_runCancelled())
                 {
                     QTPTestCleanup();
+<<<<<<< HEAD
                     KillQtp();
                     testResults.TestState = TestState.Error;
                     testResults.ErrorDesc = Resources.GeneralTestCanceled;
                     ConsoleWriter.WriteLine(Resources.GeneralTestCanceled);
+=======
+                    testResults.TestState = TestState.Error;
+                    testResults.ErrorDesc = "Test run was Canceled";
+                    ConsoleWriter.WriteLine("Test run was Canceled");
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                     Launcher.ExitCode = Launcher.ExitCodeEnum.Aborted;
                     result.IsSuccess = false;
                     return result;
@@ -385,7 +448,11 @@ namespace HpToolsLauncher
             }
             catch (NullReferenceException e)
             {
+<<<<<<< HEAD
                 ConsoleWriter.WriteLine(string.Format(Resources.GeneralErrorWithStack, e.Message, e.StackTrace));
+=======
+                ConsoleWriter.WriteLine("Error: " + e.Message + "\n" + e.StackTrace);
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                 testResults.TestState = TestState.Error;
                 testResults.ErrorDesc = Resources.QtpRunError;
 
@@ -395,7 +462,11 @@ namespace HpToolsLauncher
             catch (SystemException e)
             {
                 KillQtp();
+<<<<<<< HEAD
                 ConsoleWriter.WriteLine(string.Format(Resources.GeneralErrorWithStack, e.Message, e.StackTrace));
+=======
+                ConsoleWriter.WriteLine("Error: " + e.Message + "\n" + e.StackTrace);
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                 testResults.TestState = TestState.Error;
                 testResults.ErrorDesc = Resources.QtpRunError;
 
@@ -405,7 +476,11 @@ namespace HpToolsLauncher
             catch (Exception e2)
             {
 
+<<<<<<< HEAD
                 ConsoleWriter.WriteLine(string.Format(Resources.GeneralErrorWithStack, e2.Message, e2.StackTrace));
+=======
+                ConsoleWriter.WriteLine("Error: " + e2.Message + "\n" + e2.StackTrace);
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                 testResults.TestState = TestState.Error;
                 testResults.ErrorDesc = Resources.QtpRunError;
 
@@ -467,7 +542,10 @@ namespace HpToolsLauncher
                 if (_runCancelled())
                 {
                     QTPTestCleanup();
+<<<<<<< HEAD
                     KillQtp();
+=======
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                     return false;
                 }
 
@@ -512,7 +590,11 @@ namespace HpToolsLauncher
                             }
                             finally
                             {
+<<<<<<< HEAD
 
+=======
+                                
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                             }
                         }
                     }
@@ -527,6 +609,7 @@ namespace HpToolsLauncher
             _qtpApplication = null;
         }
 
+<<<<<<< HEAD
 
         /// <summary>
         /// Why we need this? If we run jenkins in a master slave node where there is a jenkins service installed in the slave machine, we need to change the DCOM settings as follow:
@@ -583,6 +666,11 @@ namespace HpToolsLauncher
 
 
 
+=======
+        #endregion
+
+
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
         /// <summary>
         /// holds the resutls for a GUI test
         /// </summary>

@@ -5,6 +5,7 @@
 
 package com.hp.application.automation.tools;
 
+<<<<<<< HEAD
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.BuildListener;
@@ -89,4 +90,57 @@ public class AlmToolsUtils {
     }
     
     
+=======
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintStream;
+
+import sun.util.logging.resources.logging;
+import hudson.AbortException;
+import hudson.EnvVars;
+import hudson.FilePath;
+import hudson.Launcher;
+import hudson.model.BuildListener;
+import hudson.model.AbstractBuild;
+import hudson.model.Result;
+import hudson.util.ArgumentListBuilder;
+import hudson.util.IOUtils;
+
+public class AlmToolsUtils {
+
+	public static String runOnBuildEnv(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener,
+			FilePath file, String paramFileName) throws IOException, InterruptedException {
+		ArgumentListBuilder args = new ArgumentListBuilder();
+		EnvVars env = build.getEnvironment(listener);
+
+		PrintStream out = listener.getLogger();
+
+		// Use script to run the cmdLine and get the console output
+		args.add(file);
+		args.add("-paramfile");
+		args.add(paramFileName);
+
+		// Run the script on node
+		// Execution result should be 0
+		int returnCode = launcher.launch().cmds(args).stdout(out).pwd(file.getParent()).join();
+
+		if (returnCode != 0) {
+
+			if (returnCode == 1) {
+				build.setResult(Result.FAILURE);
+			}
+			if (returnCode == 2) {
+				build.setResult(Result.UNSTABLE);
+			}
+			if (returnCode == 3) {
+				build.setResult(Result.ABORTED);
+			}
+		}
+
+		return "";
+	}
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 }

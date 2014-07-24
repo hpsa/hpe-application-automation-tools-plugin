@@ -14,6 +14,7 @@
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
+<<<<<<< HEAD
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -29,13 +30,19 @@
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+=======
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <PlatformTarget>x86</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
+<<<<<<< HEAD
     <OutputPath>.\</OutputPath>
+=======
+    <OutputPath>bin\debug\</OutputPath>
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -44,7 +51,11 @@
     <PlatformTarget>x86</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
+<<<<<<< HEAD
     <OutputPath>.\</OutputPath>
+=======
+    <OutputPath>bin\release\</OutputPath>
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -52,18 +63,24 @@
   <PropertyGroup>
     <NoWin32Manifest>true</NoWin32Manifest>
   </PropertyGroup>
+<<<<<<< HEAD
   <PropertyGroup>
     <StartupObject>HpToolsLauncher.Program</StartupObject>
   </PropertyGroup>
+=======
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
   <ItemGroup>
     <Reference Include="interop.OTAClient">
       <HintPath>externals\interop.OTAClient.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
+<<<<<<< HEAD
     <Reference Include="Interop.Wlrun, Version=11.52.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>externals\Interop.Wlrun.dll</HintPath>
       <Private>False</Private>
     </Reference>
+=======
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
     <Reference Include="QTObjectModelLib">
       <HintPath>externals\QTObjectModelLib.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
@@ -102,7 +119,10 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Runners\RunnerBase.cs" />
+<<<<<<< HEAD
     <Compile Include="TestRunners\PerformanceTestRunner.cs" />
+=======
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
     <Compile Include="TestRunResults.cs" />
     <Compile Include="TestRunners\GuiTestRunner.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -137,6 +157,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+<<<<<<< HEAD
     <BootstrapperPackage Include=".NETFramework,Version=v4.0">
       <Visible>False</Visible>
       <ProductName>Microsoft .NET Framework 4 %28x86 and x64%29</ProductName>
@@ -161,6 +182,21 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy $(TargetFileName) ..\src\main\resources\$(TargetFileName)</PostBuildEvent>
+=======
+    <COMReference Include="TDAPIOLELib">
+      <Guid>{F645BD06-E1B4-4E6A-82FB-E97D027FD456}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>copy $(TargetFileName) ..\..\..\src\main\resources\$(TargetFileName)</PostBuildEvent>
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
   </PropertyGroup>
   <PropertyGroup>
     <PreBuildEvent>

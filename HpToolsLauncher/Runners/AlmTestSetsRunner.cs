@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+<<<<<<< HEAD
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -14,6 +15,16 @@ using System.Text;
 using System.Threading;
 using HpToolsLauncher.Properties;
 using Mercury.TD.Client.Ota.QC9;
+=======
+using System.Linq;
+using System.Text;
+using System.Runtime.InteropServices;
+using System.Threading;
+using System.Diagnostics;
+using Mercury.TD.Client.Ota.QC9;
+using System.Reflection;
+using System.IO;
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
 //using Mercury.TD.Client.Ota.Api;
 
@@ -110,6 +121,10 @@ namespace HpToolsLauncher
             TestSets = qcTestSets;
             if (!Connected)
             {
+<<<<<<< HEAD
+=======
+                //ConsoleWriter.WriteLine("connection error, stopping.");
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                 Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
             }
         }
@@ -139,8 +154,12 @@ namespace HpToolsLauncher
             }
             catch (Exception ex)
             {
+<<<<<<< HEAD
 
                 ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerErrorBadQcInstallation, ex.Message, ex.StackTrace));
+=======
+                ConsoleWriter.WriteErrLine("please check that your QC client is installed properly\n" + ex.Message + "\n" + ex.StackTrace);
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                 return null;
             }
 
@@ -397,7 +416,11 @@ namespace HpToolsLauncher
             if (tsFolder == null)
             {
                 //node wasn't found, folder = null
+<<<<<<< HEAD
                 ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerNoSuchFolder, tsFolder));
+=======
+                ConsoleWriter.WriteErrLine("folder " + tsFolder + " cannot be found in ALM");
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
                 //this will make sure run will fail at the end. (since there was an error)
                 Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
@@ -409,7 +432,11 @@ namespace HpToolsLauncher
             }
             if (tsList == null)
             {
+<<<<<<< HEAD
                 ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerCantFindTest, tsName));
+=======
+                ConsoleWriter.WriteLine("Could not find TestSet " + tsName);
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
                 //this will make sure run will fail at the end. (since there was an error)
                 Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
@@ -427,7 +454,11 @@ namespace HpToolsLauncher
 
             if (targetTestSet == null)
             {
+<<<<<<< HEAD
                 ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerCantFindTest, tsName));
+=======
+                ConsoleWriter.WriteLine("Could not find TestSet " + tsName);
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
                 //this will make sure run will fail at the end. (since there was an error)
                 Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
@@ -435,9 +466,15 @@ namespace HpToolsLauncher
             }
 
 
+<<<<<<< HEAD
             ConsoleWriter.WriteLine(Resources.GeneralDoubleSeperator);
             ConsoleWriter.WriteLine(Resources.AlmRunnerStartingExecution);
             ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerDisplayTest, tsName, targetTestSet.ID));
+=======
+            ConsoleWriter.WriteLine("============================================================================");
+            ConsoleWriter.WriteLine("Starting test set execution");
+            ConsoleWriter.WriteLine("Test set name: " + tsName + " Test set id: " + targetTestSet.ID);
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
             ITSScheduler Scheduler = null;
             try
@@ -496,10 +533,17 @@ namespace HpToolsLauncher
             }
             catch (Exception ex)
             {
+<<<<<<< HEAD
                 ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerProblemWithHost, ex.Message));
             }
 
             ConsoleWriter.WriteLine(Resources.AlmRunnerNumTests + tList.Count);
+=======
+                ConsoleWriter.WriteLine("problem while setting remote host: " + ex.Message);
+            }
+
+            ConsoleWriter.WriteLine("Number of tests in set: " + tList.Count);
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
             int i = 1;
             foreach (ITSTest3 test in tList)
@@ -514,7 +558,11 @@ namespace HpToolsLauncher
                 {
                     hostName = Environment.MachineName;
                 }
+<<<<<<< HEAD
                 ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerDisplayTestRunOnHost, i, test.Name, hostName));
+=======
+                ConsoleWriter.WriteLine("Test" + i + ": " + test.Name + " will run on host: " + hostName);
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
                 Scheduler.RunOnHost[test.ID] = runOnHost;
 
@@ -534,27 +582,41 @@ namespace HpToolsLauncher
             }
             catch (Exception ex)
             {
+<<<<<<< HEAD
                 ConsoleWriter.WriteLine(Resources.AlmRunnerRunError + ex.Message);
             }
 
             ConsoleWriter.WriteLine(Resources.AlmRunnerSchedStarted + DateTime.Now.ToString(Launcher.DateFormat));
             ConsoleWriter.WriteLine(Resources.SingleSeperator);
+=======
+                ConsoleWriter.WriteLine("problem while running testSet: " + ex.Message);
+            }
+
+            ConsoleWriter.WriteLine("Scheduler started at: " + DateTime.Now.ToString(Launcher.DateFormat));
+            ConsoleWriter.WriteLine("-------------------------------------------------------------------------------------------------------");
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
             IExecutionStatus executionStatus = Scheduler.ExecutionStatus;
             bool tsExecutionFinished = false;
             ITSTest prevTest = null;
             ITSTest currentTest = null;
+<<<<<<< HEAD
             string abortFilename = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\stop" + Launcher.UniqueTimeStamp + ".txt";
+=======
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
             //wait for the tests to end ("normally" or because of the timeout)
             while ((tsExecutionFinished == false) && (timeout == -1 || sw.Elapsed.TotalMinutes < timeout))
             {
                 executionStatus.RefreshExecStatusInfo("all", true);
                 tsExecutionFinished = executionStatus.Finished;
 
+<<<<<<< HEAD
                 if (System.IO.File.Exists(abortFilename))
                 {
                     break;
                 }
 
+=======
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                 for (int j = 1; j <= executionStatus.Count; ++j)
                 {
                     TestExecStatus testExecStatusObj = executionStatus[j];
@@ -608,6 +670,7 @@ namespace HpToolsLauncher
 
                         if (enmState == TestState.Running)
                         {
+<<<<<<< HEAD
                             ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerStat, activeTestDesc.TestName, testExecStatusObj.TSTestId, statusString));
                         }
                         else if (enmState != TestState.Waiting)
@@ -617,6 +680,13 @@ namespace HpToolsLauncher
                         if (System.IO.File.Exists(abortFilename))
                         {
                             break;
+=======
+                            ConsoleWriter.WriteLine("Test: " + activeTestDesc.TestName + ", Id: " + testExecStatusObj.TSTestId + ", Execution status: " + statusString);
+                        }
+                        else if (enmState != TestState.Waiting)
+                        {
+                            ConsoleWriter.WriteLine("Test: " + activeTestDesc.TestName + ", Id: " + testExecStatusObj.TSTestId + ", Execution status: " + statusString + ", Message: " + testExecStatusObj.Message);
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                         }
                     }
                 }
@@ -624,18 +694,33 @@ namespace HpToolsLauncher
                 //wait 0.2 seconds
                 Thread.Sleep(200);
 
+<<<<<<< HEAD
+=======
+                string abortFilename = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\stop" + Launcher.UniqueTimeStamp + ".txt";
+
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                 //check for abortion
                 if (System.IO.File.Exists(abortFilename))
                 {
                     _blnRunCancelled = true;
 
+<<<<<<< HEAD
                     ConsoleWriter.WriteLine(Resources.GeneralStopAborted);
+=======
+                    ConsoleWriter.WriteLine("Test run Was aborted by user, stopping all tests.");
+
+                    //remove the file (got the message)
+                    System.IO.File.Delete(abortFilename);
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
                     //stop all test instances in this testSet.
                     Scheduler.Stop(currentTestSetInstances);
 
+<<<<<<< HEAD
                     ConsoleWriter.WriteLine(Resources.GeneralAbortedByUser);
 
+=======
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                     //stop working 
                     Environment.Exit((int)Launcher.ExitCodeEnum.Aborted);
                 }
@@ -654,11 +739,14 @@ namespace HpToolsLauncher
                 ConsoleWriter.ActiveTestRun = null;
                 for (int k = 1; k <= executionStatus.Count; ++k)
                 {
+<<<<<<< HEAD
                     if (System.IO.File.Exists(abortFilename))
                     {
                         break;
                     }
 
+=======
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                     TestExecStatus testExecStatusObj = executionStatus[k];
                     activeTestDesc = UpdateTestStatus(runDesc, targetTestSet, testExecStatusObj, false);
 
@@ -675,12 +763,20 @@ namespace HpToolsLauncher
                 //update the total runtime
                 runDesc.TotalRunTime = sw.Elapsed;
 
+<<<<<<< HEAD
                 ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerTestsetDone, tsName, DateTime.Now.ToString(Launcher.DateFormat)));
+=======
+                ConsoleWriter.WriteLine("Test set: " + tsName + ", finished at " + DateTime.Now.ToString(Launcher.DateFormat));
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
             }
             else
             {
                 _blnRunCancelled = true;
+<<<<<<< HEAD
                 ConsoleWriter.WriteLine(Resources.GeneralTimedOut);
+=======
+                ConsoleWriter.WriteLine("==============\nJob timed out!\n==============");
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                 Launcher.ExitCode = Launcher.ExitCodeEnum.Aborted;
             }
 
@@ -708,10 +804,17 @@ namespace HpToolsLauncher
 
                 string linkStr = GetTestRunLink(prevTest, runid);
 
+<<<<<<< HEAD
                 ConsoleWriter.WriteLine("\n" + string.Format(Resources.AlmRunnerDisplayLink, linkStr));
             }
             ConsoleWriter.WriteLine(DateTime.Now.ToString(Launcher.DateFormat) + " " + Resources.AlmRunnerTestCompleteCaption + " " + prevTest.Name +
                 ((runid > prevRunId) ? ", " + Resources.AlmRunnerRunIdCaption + " " + runid : "")
+=======
+                ConsoleWriter.WriteLine("\nLink: " + linkStr);
+            }
+            ConsoleWriter.WriteLine(DateTime.Now.ToString(Launcher.DateFormat) + " Test complete: " + prevTest.Name +
+                ((runid > prevRunId) ? ", Run id: " + runid : "")
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                 + "\n-------------------------------------------------------------------------------------------------------");
         }
 
@@ -767,12 +870,21 @@ namespace HpToolsLauncher
                         sb.Append(", Status: " + step.Status);
 
                     string desc = step["ST_DESCRIPTION"] as string;
+<<<<<<< HEAD
                     if (!string.IsNullOrEmpty(desc))
                     {
                         desc = "\n\t" + desc.Trim().Replace("\n", "\t").Replace("\r", "");
                         if (!string.IsNullOrWhiteSpace(desc))
                             sb.AppendLine(desc);
                     }
+=======
+                    desc = "\n\t" + desc.Trim().Replace("\n", "\t").Replace("\r", "");
+                    if (!string.IsNullOrWhiteSpace(desc))
+                        sb.AppendLine(desc);
+
+                    //step["ST_EXPECTED"];
+                    //step["ST_ACTUAL"];
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                 }
             }
             catch (Exception ex)
@@ -895,13 +1007,21 @@ namespace HpToolsLauncher
                     string linkStr = GetTestRunLink(currentTest, runid);
 
                     string statusString = GetTsStateFromQcState(testExecStatusObj.Status as string).ToString();
+<<<<<<< HEAD
                     ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerTestStat, currentTest.Name, statusString, testExecStatusObj.Message, linkStr));
+=======
+                    ConsoleWriter.WriteLine("Test: " + currentTest.Name + ", Status: " + statusString + ", Message: " + testExecStatusObj.Message + "\nLink: " + linkStr + "\n");
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                     runResults.TestRuns[testIndex] = qTest;
                 }
             }
             catch (Exception ex)
             {
+<<<<<<< HEAD
                 ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerErrorGettingStat, currentTest.Name, ex.Message));
+=======
+                ConsoleWriter.WriteLine("Problem on updating tests status for test: " + currentTest.Name + "\n " + ex.Message);
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
             }
 
             return qTest;
@@ -1016,7 +1136,11 @@ namespace HpToolsLauncher
                 || string.IsNullOrWhiteSpace(QCDomain)
                 || string.IsNullOrWhiteSpace(QCProject))
             {
+<<<<<<< HEAD
                 ConsoleWriter.WriteLine(Resources.AlmRunnerConnParamEmpty);
+=======
+                ConsoleWriter.WriteLine("One or more of the required connection parameters is empty");
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                 return false;
             }
 
@@ -1031,7 +1155,11 @@ namespace HpToolsLauncher
 
             if (!TdConnection.Connected)
             {
+<<<<<<< HEAD
                 ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerServerUnreachable, QCServerURL));
+=======
+                ConsoleWriter.WriteErrLine(string.Format("ALM server {0} unreachable, check that server Url is correct", QCServerURL));
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                 return false;
             }
             try
@@ -1045,7 +1173,11 @@ namespace HpToolsLauncher
 
             if (!TdConnection.LoggedIn)
             {
+<<<<<<< HEAD
                 ConsoleWriter.WriteErrLine(Resources.AlmRunnerErrorAuthorization);
+=======
+                ConsoleWriter.WriteErrLine("Cannot Login to QC: Authorization failed");
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                 return false;
             }
 
@@ -1055,12 +1187,20 @@ namespace HpToolsLauncher
             }
             catch (Exception ex)
             {
+<<<<<<< HEAD
 
+=======
+                //ConsoleWriter.WriteErrLine(ex.Message);
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
             }
 
             if (!TdConnection.ProjectConnected)
             {
+<<<<<<< HEAD
                 ConsoleWriter.WriteErrLine(Resources.AlmRunnerErrorConnectToProj);
+=======
+                ConsoleWriter.WriteErrLine("Cannot connect to QC: Project / Domain doesn't exist");
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                 return false;
             }
             return true;

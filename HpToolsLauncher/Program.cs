@@ -6,7 +6,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+<<<<<<< HEAD
 using HpToolsLauncher.Properties;
+=======
+using System.Text;
+using System.Diagnostics;
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
 namespace HpToolsLauncher
 {
@@ -24,7 +29,11 @@ namespace HpToolsLauncher
 
         static void Main(string[] args)
         {
+<<<<<<< HEAD
             ConsoleWriter.WriteLine(Resources.GeneralStarted);
+=======
+            ConsoleWriter.WriteLine("started!");
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
             
             if (args.Count() == 0 || args.Contains("/?"))
             {
@@ -58,9 +67,20 @@ namespace HpToolsLauncher
 
         private static void ShowHelp()
         {
+<<<<<<< HEAD
             Console.WriteLine("HP Automation Tools Command Line Executer");
             Console.WriteLine();
             Console.Write("Usage: HpToolsLauncher.exe");
+=======
+            Console.WriteLine("HP Unified Functional Testing Command Line Executer");
+            Console.WriteLine();
+            Console.Write("Usage: HpToolsLauncher.exe");
+            //Console.Write("\t\t\t\t-mtb ");
+            //Console.ForegroundColor = ConsoleColor.Cyan;
+            //Console.Write("\t<testsdirectory/.mtb file> ");
+            //Console.ResetColor();
+            //Console.WriteLine();
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
             Console.Write("  -paramfile ");
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write("<a file in key=value format> ");

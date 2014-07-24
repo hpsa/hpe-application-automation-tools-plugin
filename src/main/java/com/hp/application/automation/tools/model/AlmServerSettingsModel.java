@@ -11,6 +11,7 @@ import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 public class AlmServerSettingsModel {
+<<<<<<< HEAD
     
     private final String _almServerName;
     private final String _almServerUrl;
@@ -49,4 +50,41 @@ public class AlmServerSettingsModel {
         
         return prop;
     }
+=======
+
+	private final String almServerName;
+	private final String almServerURL;
+
+	@DataBoundConstructor
+	public AlmServerSettingsModel(String almServerName, String almServerURL) {
+		this.almServerName = almServerName;
+		this.almServerURL = almServerURL;
+	}
+
+	/**
+	 * @return the almServerName
+	 */
+	public String getAlmServerName() {
+		return almServerName;
+	}
+
+	/**
+	 * @return the almServerURL
+	 */
+	public String getAlmServerURL() {
+		return almServerURL;
+	}
+
+	public Properties getProperties() {
+		Properties prop = new Properties();
+
+		if (!StringUtils.isEmpty(almServerURL)) {
+			prop.put("almServerURL", almServerURL);
+		} else {
+			prop.put("almServerURL", "");
+		}
+
+		return prop;
+	}
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 }

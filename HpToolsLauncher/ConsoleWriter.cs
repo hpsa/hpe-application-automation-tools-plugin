@@ -5,12 +5,19 @@
 
 using System;
 using System.Collections.Generic;
+<<<<<<< HEAD
+=======
+using System.Linq;
+using System.Text;
+using System.IO;
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 using System.Text.RegularExpressions;
 namespace HpToolsLauncher
 {
     public static class ConsoleWriter
     {
         static TestRunResults activeTestRun = null;
+<<<<<<< HEAD
         static List<string> _errSummaryLines = new List<string>();
 
         /// <summary>
@@ -21,6 +28,8 @@ namespace HpToolsLauncher
             get { return _errSummaryLines; }
             set { _errSummaryLines = value; }
         }
+=======
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
         public static TestRunResults ActiveTestRun
         {
@@ -82,5 +91,9 @@ namespace HpToolsLauncher
             if (activeTestRun != null)
                 activeTestRun.ConsoleOut += message + "\n";
         }
+<<<<<<< HEAD
+=======
+
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
     }
 }

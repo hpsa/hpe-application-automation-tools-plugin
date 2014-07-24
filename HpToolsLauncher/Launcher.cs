@@ -4,11 +4,24 @@
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+<<<<<<< HEAD
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using HpToolsLauncher.Properties;
+=======
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Xml.Linq;
+using System.Xml.XPath;
+using System.Xml;
+using HpToolsLauncher;
+using System.Collections.Generic;
+using System.Security.Cryptography;
+using System.Text;
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
 namespace HpToolsLauncher
 {
@@ -40,7 +53,11 @@ namespace HpToolsLauncher
         /// <summary>
         /// if running an alm job theses strings are mandatory:
         /// </summary>
+<<<<<<< HEAD
         private string[] requiredParamsForQcRun = { "almServerUrl",
+=======
+        private string[] requiredParamsForQcRun = { "almServerURL",
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                                  "almUserName",
                                  "almPassword",
                                  "almDomain",
@@ -168,13 +185,21 @@ namespace HpToolsLauncher
                 Enum.TryParse<TestStorageType>(_ciParams["runType"], true, out _runtype);
             if (_runtype == TestStorageType.Unknown)
             {
+<<<<<<< HEAD
                 WriteToConsole(Resources.LauncherNoRuntype);
+=======
+                WriteToConsole(string.Format("no runType parameter provided, please state runType=<Alm/FileSystem/LoadRunner> in param file"));
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                 return;
             }
 
             if (!_ciParams.ContainsKey("resultsFilename"))
             {
+<<<<<<< HEAD
                 WriteToConsole(Resources.LauncherNoResFilenameFound);
+=======
+                WriteToConsole(string.Format("no resultsFilename parameter provided, please add 'resultsFilename=<name.xml>' to param file"));
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                 return;
             }
             string resultsFilename = _ciParams["resultsFilename"];
@@ -191,7 +216,11 @@ namespace HpToolsLauncher
             //create the runner according to type
             IAssetRunner runner = CreateRunner(_runtype, _ciParams);
 
+<<<<<<< HEAD
             //runner instantiation failed (no tests to run or other problem)
+=======
+            //runner instansiation failed (no tests to run or other problem)
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
             if (runner == null)
             {
                 Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
@@ -221,7 +250,11 @@ namespace HpToolsLauncher
                     {
                         if (!_ciParams.ContainsKey(param1))
                         {
+<<<<<<< HEAD
                             ConsoleWriter.WriteLine(string.Format(Resources.LauncherParamRequired, param1));
+=======
+                            ConsoleWriter.WriteLine("the parameter '" + param1 + "' is required to run a test from QC");
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                             return null;
                         }
                     }
@@ -230,31 +263,54 @@ namespace HpToolsLauncher
                     double dblQcTimeout = int.MaxValue;
                     if (!double.TryParse(_ciParams["almTimeout"], out dblQcTimeout))
                     {
+<<<<<<< HEAD
                         ConsoleWriter.WriteLine(Resources.LauncherTimeoutNotNumeric);
                         dblQcTimeout = int.MaxValue;
                     }
 
                     ConsoleWriter.WriteLine(string.Format(Resources.LuancherDisplayTimout, dblQcTimeout));
+=======
+                        ConsoleWriter.WriteLine("the parameter 'almTimeout' should be an integer!");
+                        dblQcTimeout = int.MaxValue;
+                    }
+
+                    ConsoleWriter.WriteLine("Timeout is set to: " + dblQcTimeout);
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
                     QcRunMode enmQcRunMode = QcRunMode.RUN_LOCAL;
                     if (!Enum.TryParse<QcRunMode>(_ciParams["almRunMode"], true, out enmQcRunMode))
                     {
+<<<<<<< HEAD
                         ConsoleWriter.WriteLine(Resources.LauncherIncorrectRunmode);
                         enmQcRunMode = QcRunMode.RUN_LOCAL;
                     }
                     ConsoleWriter.WriteLine(string.Format(Resources.LauncherDisplayRunmode, enmQcRunMode.ToString()));
+=======
+                        ConsoleWriter.WriteLine("the parameter 'runMode' should be: RUN_LOCAL | RUN_REMOTE | RUN_PLANNED_HOST");
+                        enmQcRunMode = QcRunMode.RUN_LOCAL;
+                    }
+                    ConsoleWriter.WriteLine("Run mode is set to: " + enmQcRunMode.ToString());
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
                     //go over testsets in the parameters, and collect them
                     List<string> sets = GetParamsWithPrefix("TestSet");
 
                     if (sets.Count == 0)
                     {
+<<<<<<< HEAD
                         ConsoleWriter.WriteLine(Resources.LauncherNoTests);
+=======
+                        ConsoleWriter.WriteLine("No test sets found, please add some test sets or folders");
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                         return null;
                     }
 
                     //create an Alm runner
+<<<<<<< HEAD
                     runner = new AlmTestSetsRunner(_ciParams["almServerUrl"],
+=======
+                    runner = new AlmTestSetsRunner(_ciParams["almServerURL"],
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                                      _ciParams["almUserName"],
                                      Decrypt(_ciParams["almPassword"], secretkey),
                                      _ciParams["almDomain"],
@@ -282,6 +338,7 @@ namespace HpToolsLauncher
                         }
                     }
 
+<<<<<<< HEAD
                     //LR specific values:
                     //default values are set by JAVA code, in com.hp.application.automation.tools.model.RunFromFileSystemModel.java
 
@@ -326,6 +383,38 @@ namespace HpToolsLauncher
 
                     break;
 
+=======
+                    if (tests == null || tests.Count() == 0)
+                    {
+                        WriteToConsole("No tests were found, please add tests or folders containing tests");
+                    }
+
+                    List<string> validTests = new List<string>();
+                    foreach (string test in tests)
+                    {
+                        if (!File.Exists(test) && !Directory.Exists(test))
+                        {
+                            ConsoleWriter.WriteLine(string.Format(">>>> File/Folder not found: '{0}'", test));
+                            Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
+                        }
+                        else
+                        {
+                            validTests.Add(test);
+                        }
+                    }
+
+                    if (tests != null && tests.Count() > 0 && validTests.Count == 0)
+                    {
+                        ConsoleWriter.WriteLine("No valid tests were found, please correct test paths.");
+                        return null;
+                    }
+
+                    runner = new FileSystemTestsRunner(validTests, timeout);
+
+                    break;
+                case TestStorageType.LoadRunner:
+                    break;
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                 default:
                     runner = null;
                     break;
@@ -383,6 +472,7 @@ namespace HpToolsLauncher
                 int numFailures = results.TestRuns.Count(t => t.TestState == TestState.Failed);
                 int numSuccess = results.TestRuns.Count(t => t.TestState == TestState.Passed);
                 int numErrors = results.TestRuns.Count(t => t.TestState == TestState.Error);
+<<<<<<< HEAD
                 ConsoleWriter.WriteLine(Resources.LauncherDoubleSeperator);
                 ConsoleWriter.WriteLine(string.Format(Resources.LauncherDisplayStatistics, runStatus, results.TestRuns.Count, numSuccess, numFailures, numErrors));
 
@@ -397,6 +487,13 @@ namespace HpToolsLauncher
                         ConsoleWriter.ErrorSummaryLines.ForEach(line => ConsoleWriter.WriteLine(line));
                     }
                 }
+=======
+                ConsoleWriter.WriteLine("================================================");
+                ConsoleWriter.WriteLine("Run status: " + runStatus + ", total tests:" + results.TestRuns.Count + ", succeeded: " + numSuccess + ", failures: " + numFailures + ", errors: " + numErrors);
+                
+                if (!runner.RunWasCancelled)
+                    results.TestRuns.ForEach(tr => ConsoleWriter.WriteLine(((tr.HasWarnings) ? "Warning".PadLeft(7) : tr.TestState.ToString().PadRight(7)) + ": " + tr.TestPath));
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
                 //ConsoleWriter.WriteLine("Returning " + runStatus + ".");
             }
@@ -408,7 +505,11 @@ namespace HpToolsLauncher
                 }
                 catch (Exception ex)
                 {
+<<<<<<< HEAD
                     ConsoleWriter.WriteLine(string.Format(Resources.LauncherRunnerDisposeError, ex.Message));
+=======
+                    ConsoleWriter.WriteLine("got an error while disposing runner: " + ex.Message);
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
                 };
             }
 

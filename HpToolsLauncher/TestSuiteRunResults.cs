@@ -5,6 +5,11 @@
 
 using System;
 using System.Collections.Generic;
+<<<<<<< HEAD
+=======
+using System.Linq;
+using System.Text;
+>>>>>>> a70002b5448518e77174a13b68e98364fdd02033
 
 namespace HpToolsLauncher
 {
