@@ -5,14 +5,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using HpToolsLauncher.Properties;
-using System.IO;
 //using UFT.Runner.Properties;
 
 namespace HpToolsLauncher
 {
-    public class MtbManager : IMtbManager
+    public class MtbManager 
     {
         public delegate IEnumerable<string> GetContentDelegate();
 
@@ -39,7 +39,9 @@ namespace HpToolsLauncher
 
                     if (!Directory.Exists(testFileName))
                     {
-                        ConsoleWriter.WriteErrLine(string.Format("File/Folder not found: '{0}'", testFileName));
+                        string line = string.Format(Resources.GeneralFileNotFound, testFileName);
+                        ConsoleWriter.WriteLine(line);
+                        ConsoleWriter.ErrorSummaryLines.Add(line);
                         Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
                     }
                     else
@@ -49,7 +51,7 @@ namespace HpToolsLauncher
                 }
             }
             //The given file is not a valid mtb file
-            catch{}
+            catch { }
 
             return paths;
         }

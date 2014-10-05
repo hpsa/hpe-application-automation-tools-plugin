@@ -11,39 +11,42 @@ import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 public class AlmServerSettingsModel {
-
-	private final String almServerName;
-	private final String almServerURL;
-
-	@DataBoundConstructor
-	public AlmServerSettingsModel(String almServerName, String almServerURL) {
-		this.almServerName = almServerName;
-		this.almServerURL = almServerURL;
-	}
-
-	/**
-	 * @return the almServerName
-	 */
-	public String getAlmServerName() {
-		return almServerName;
-	}
-
-	/**
-	 * @return the almServerURL
-	 */
-	public String getAlmServerURL() {
-		return almServerURL;
-	}
-
-	public Properties getProperties() {
-		Properties prop = new Properties();
-
-		if (!StringUtils.isEmpty(almServerURL)) {
-			prop.put("almServerURL", almServerURL);
-		} else {
-			prop.put("almServerURL", "");
-		}
-
-		return prop;
-	}
+    
+    private final String _almServerName;
+    private final String _almServerUrl;
+    
+    @DataBoundConstructor
+    public AlmServerSettingsModel(String almServerName, String almServerUrl) {
+        
+        _almServerName = almServerName;
+        _almServerUrl = almServerUrl;
+    }
+    
+    /**
+     * @return the almServerName
+     */
+    public String getAlmServerName() {
+        
+        return _almServerName;
+    }
+    
+    /**
+     * @return the almServerUrl
+     */
+    public String getAlmServerUrl() {
+        
+        return _almServerUrl;
+    }
+    
+    public Properties getProperties() {
+        
+        Properties prop = new Properties();
+        if (!StringUtils.isEmpty(_almServerUrl)) {
+            prop.put("almServerUrl", _almServerUrl);
+        } else {
+            prop.put("almServerUrl", "");
+        }
+        
+        return prop;
+    }
 }

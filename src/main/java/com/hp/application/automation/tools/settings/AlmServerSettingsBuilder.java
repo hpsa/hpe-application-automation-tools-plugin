@@ -5,25 +5,28 @@
 
 package com.hp.application.automation.tools.settings;
 
-
 import hudson.CopyOnWrite;
-import hudson.Launcher;
 import hudson.Extension;
-import hudson.util.FormValidation;
-import hudson.model.AbstractBuild;
+import hudson.Launcher;
 import hudson.model.BuildListener;
+import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-import hudson.tasks.Builder;
 import hudson.tasks.BuildStepDescriptor;
-import net.sf.json.JSONObject;
-import org.apache.commons.lang.StringUtils;
-import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.QueryParameter;
-import com.hp.application.automation.tools.model.AlmServerSettingsModel;
+import hudson.tasks.Builder;
+import hudson.util.FormValidation;
+
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+
+import net.sf.json.JSONObject;
+
+import org.apache.commons.lang.StringUtils;
+import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.StaplerRequest;
+
+import com.hp.application.automation.tools.model.AlmServerSettingsModel;
 
 /**
  * Sample {@link Builder}.
@@ -31,141 +34,141 @@ import java.net.URL;
  * <p>
  * When the user configures the project and enables this builder,
  * {@link DescriptorImpl#newInstance(StaplerRequest)} is invoked and a new
- * {@link AlmServerSettingsBuilder} is created. The created instance is
- * persisted to the project configuration XML by using XStream, so this allows
- * you to use instance fields (like {@link #name}) to remember the
- * configuration.
+ * {@link AlmServerSettingsBuilder} is created. The created instance is persisted to the project
+ * configuration XML by using XStream, so this allows you to use instance fields (like {@link #name}
+ * ) to remember the configuration.
  * 
  * <p>
- * When a build is performed, the
- * {@link #perform(AbstractBuild, Launcher, BuildListener)} method will be
- * invoked.
+ * When a build is performed, the {@link #perform(AbstractBuild, Launcher, BuildListener)} method
+ * will be invoked.
  * 
  * @author Kohsuke Kawaguchi
  */
 public class AlmServerSettingsBuilder extends Builder {
-
-	@Override
-	public DescriptorImpl getDescriptor() {
-		return (DescriptorImpl) super.getDescriptor();
-	}
-
-	/**
-	 * Descriptor for {@link AlmServerSettingsBuilder}. Used as a singleton. The
-	 * class is marked as public so that it can be accessed from views.
-	 * 
-	 * <p>
-	 * See
-	 * <tt>src/main/resources/hudson/plugins/hello_world/HelloWorldBuilder/*.jelly</tt>
-	 * for the actual HTML fragment for the configuration screen.
-	 */
-	@Extension
-	// This indicates to Jenkins that this is an implementation of an extension
-	// point.
-	public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
-
-		public boolean isApplicable(Class<? extends AbstractProject> aClass) {
-			// Indicates that this builder can be used with all kinds of project
-			// types
-			return true;
-		}
-
-		/**
-		 * This human readable name is used in the configuration screen.
-		 */
-		public String getDisplayName() {
-			return "";
-		}
-
-		public DescriptorImpl() {
-			load();
-		}
-
-		@Override
-		public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
-			// To persist global configuration information,
-			// set that to properties and call save().
-			// useFrench = formData.getBoolean("useFrench");
-			// ^Can also use req.bindJSON(this, formData);
-			// (easier when there are many fields; need set* methods for this,
-			// like setUseFrench)
-			// req.bindParameters(this, "locks.");
-
-			setInstallations(req.bindParametersToList(AlmServerSettingsModel.class, "alm.").toArray(
-					new AlmServerSettingsModel[0]));
-
-			save();
-
-			return super.configure(req, formData);
-		}
-
-		public FormValidation doCheckAlmServerURL(@QueryParameter String value) {
-			return checkQcServerURL(value, false);
-		}
-
-		@CopyOnWrite
-		private AlmServerSettingsModel[] installations = new AlmServerSettingsModel[0];
-
-		public AlmServerSettingsModel[] getInstallations() {
-			return installations;
-		}
-
-		public void setInstallations(AlmServerSettingsModel... installations) {
-			this.installations = installations;
-		}
-
-		public FormValidation doCheckAlmServerName(@QueryParameter String value) {
-			if (StringUtils.isBlank(value)) {
-				return FormValidation.error("ALM server name cannot be empty");
-			}
-
-			return FormValidation.ok();
-		}
-
-		private FormValidation checkQcServerURL(String value, Boolean acceptEmpty) {
-			String url;
-			// Path to the page to check if the server is alive
-			String page = "servlet/tdservlet/TDAPI_GeneralWebTreatment";
-
-			// Do will allow empty value?
-			if (StringUtils.isBlank(value)) {
-				if (!acceptEmpty) {
-					return FormValidation.error("ALM server must be defined");
-				} else {
-					return FormValidation.ok();
-				}
-			}
-
-			// Does the URL ends with a "/" ? if not, add it
-			if (value.lastIndexOf("/") == value.length() - 1) {
-				url = value + page;
-			} else {
-				url = value + "/" + page;
-			}
-
-			// Open the connection and perform a HEAD request
-			HttpURLConnection connection;
-			try {
-				connection = (HttpURLConnection) new URL(url).openConnection();
-				connection.setRequestMethod("HEAD");
-
-				// Check the response code
-				if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
-					return FormValidation.error(connection.getResponseMessage());
-				}
-			} catch (MalformedURLException ex) {
-				// This is not a valid URL
-				return FormValidation.error("ALM server URL is malformed.");
-			} catch (IOException ex) {
-				// Cant open connection to the server
-				return FormValidation.error("Error openning a connection to the ALM server");
-			}
-
-			return FormValidation.ok();
-		}
-
-		public Boolean hasAlmServers() {
-			return installations.length > 0;
-		}
-	}
+    
+    @Override
+    public DescriptorImpl getDescriptor() {
+        return (DescriptorImpl) super.getDescriptor();
+    }
+    
+    /**
+     * Descriptor for {@link AlmServerSettingsBuilder}. Used as a singleton. The class is marked as
+     * public so that it can be accessed from views.
+     * 
+     * <p>
+     * See <tt>src/main/resources/hudson/plugins/hello_world/HelloWorldBuilder/*.jelly</tt> for the
+     * actual HTML fragment for the configuration screen.
+     */
+    @Extension
+    // This indicates to Jenkins that this is an implementation of an extension
+    // point.
+    public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
+        
+        @Override
+        public boolean isApplicable(
+                @SuppressWarnings("rawtypes") Class<? extends AbstractProject> aClass) {
+            // Indicates that this builder can be used with all kinds of project
+            // types
+            return true;
+        }
+        
+        /**
+         * This human readable name is used in the configuration screen.
+         */
+        @Override
+        public String getDisplayName() {
+            return "";
+        }
+        
+        public DescriptorImpl() {
+            load();
+        }
+        
+        @Override
+        public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
+            // To persist global configuration information,
+            // set that to properties and call save().
+            // useFrench = formData.getBoolean("useFrench");
+            // ^Can also use req.bindJSON(this, formData);
+            // (easier when there are many fields; need set* methods for this,
+            // like setUseFrench)
+            // req.bindParameters(this, "locks.");
+            
+            setInstallations(req.bindParametersToList(AlmServerSettingsModel.class, "alm.").toArray(
+                    new AlmServerSettingsModel[0]));
+            
+            save();
+            
+            return super.configure(req, formData);
+        }
+        
+        public FormValidation doCheckAlmServerURL(@QueryParameter String value) {
+            return checkQcServerURL(value, false);
+        }
+        
+        @CopyOnWrite
+        private AlmServerSettingsModel[] installations = new AlmServerSettingsModel[0];
+        
+        public AlmServerSettingsModel[] getInstallations() {
+            return installations;
+        }
+        
+        public void setInstallations(AlmServerSettingsModel... installations) {
+            this.installations = installations;
+        }
+        
+        public FormValidation doCheckAlmServerName(@QueryParameter String value) {
+            if (StringUtils.isBlank(value)) {
+                return FormValidation.error("ALM server name cannot be empty");
+            }
+            
+            return FormValidation.ok();
+        }
+        
+        private FormValidation checkQcServerURL(String value, Boolean acceptEmpty) {
+            String url;
+            // Path to the page to check if the server is alive
+            String page = "servlet/tdservlet/TDAPI_GeneralWebTreatment";
+            
+            // Do will allow empty value?
+            if (StringUtils.isBlank(value)) {
+                if (!acceptEmpty) {
+                    return FormValidation.error("ALM server must be defined");
+                } else {
+                    return FormValidation.ok();
+                }
+            }
+            
+            // Does the URL ends with a "/" ? if not, add it
+            if (value.lastIndexOf("/") == value.length() - 1) {
+                url = value + page;
+            } else {
+                url = value + "/" + page;
+            }
+            
+            // Open the connection and perform a HEAD request
+            HttpURLConnection connection;
+            try {
+                connection = (HttpURLConnection) new URL(url).openConnection();
+                connection.setRequestMethod("HEAD");
+                
+                // Check the response code
+                if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                    return FormValidation.error(connection.getResponseMessage());
+                }
+            } catch (MalformedURLException ex) {
+                // This is not a valid URL
+                return FormValidation.error("ALM server URL is malformed.");
+            } catch (IOException ex) {
+                // Cant open connection to the server
+                return FormValidation.error("Error openning a connection to the ALM server");
+            }
+            
+            return FormValidation.ok();
+        }
+        
+        public Boolean hasAlmServers() {
+            return installations.length > 0;
+        }
+    }
 }

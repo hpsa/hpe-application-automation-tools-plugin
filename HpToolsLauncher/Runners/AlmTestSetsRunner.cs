@@ -5,14 +5,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Runtime.InteropServices;
-using System.Threading;
 using System.Diagnostics;
-using Mercury.TD.Client.Ota.QC9;
-using System.Reflection;
 using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading;
+using HpToolsLauncher.Properties;
+using Mercury.TD.Client.Ota.QC9;
 
 //using Mercury.TD.Client.Ota.Api;
 
@@ -109,7 +110,6 @@ namespace HpToolsLauncher
             TestSets = qcTestSets;
             if (!Connected)
             {
-                //ConsoleWriter.WriteLine("connection error, stopping.");
                 Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
             }
         }
@@ -139,7 +139,8 @@ namespace HpToolsLauncher
             }
             catch (Exception ex)
             {
-                ConsoleWriter.WriteErrLine("please check that your QC client is installed properly\n" + ex.Message + "\n" + ex.StackTrace);
+
+                ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerErrorBadQcInstallation, ex.Message, ex.StackTrace));
                 return null;
             }
 
@@ -396,7 +397,7 @@ namespace HpToolsLauncher
             if (tsFolder == null)
             {
                 //node wasn't found, folder = null
-                ConsoleWriter.WriteErrLine("folder " + tsFolder + " cannot be found in ALM");
+                ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerNoSuchFolder, tsFolder));
 
                 //this will make sure run will fail at the end. (since there was an error)
                 Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
@@ -408,7 +409,7 @@ namespace HpToolsLauncher
             }
             if (tsList == null)
             {
-                ConsoleWriter.WriteLine("Could not find TestSet " + tsName);
+                ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerCantFindTest, tsName));
 
                 //this will make sure run will fail at the end. (since there was an error)
                 Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
@@ -426,7 +427,7 @@ namespace HpToolsLauncher
 
             if (targetTestSet == null)
             {
-                ConsoleWriter.WriteLine("Could not find TestSet " + tsName);
+                ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerCantFindTest, tsName));
 
                 //this will make sure run will fail at the end. (since there was an error)
                 Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
@@ -434,9 +435,9 @@ namespace HpToolsLauncher
             }
 
 
-            ConsoleWriter.WriteLine("============================================================================");
-            ConsoleWriter.WriteLine("Starting test set execution");
-            ConsoleWriter.WriteLine("Test set name: " + tsName + " Test set id: " + targetTestSet.ID);
+            ConsoleWriter.WriteLine(Resources.GeneralDoubleSeperator);
+            ConsoleWriter.WriteLine(Resources.AlmRunnerStartingExecution);
+            ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerDisplayTest, tsName, targetTestSet.ID));
 
             ITSScheduler Scheduler = null;
             try
@@ -495,10 +496,10 @@ namespace HpToolsLauncher
             }
             catch (Exception ex)
             {
-                ConsoleWriter.WriteLine("problem while setting remote host: " + ex.Message);
+                ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerProblemWithHost, ex.Message));
             }
 
-            ConsoleWriter.WriteLine("Number of tests in set: " + tList.Count);
+            ConsoleWriter.WriteLine(Resources.AlmRunnerNumTests + tList.Count);
 
             int i = 1;
             foreach (ITSTest3 test in tList)
@@ -513,7 +514,7 @@ namespace HpToolsLauncher
                 {
                     hostName = Environment.MachineName;
                 }
-                ConsoleWriter.WriteLine("Test" + i + ": " + test.Name + " will run on host: " + hostName);
+                ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerDisplayTestRunOnHost, i, test.Name, hostName));
 
                 Scheduler.RunOnHost[test.ID] = runOnHost;
 
@@ -533,20 +534,26 @@ namespace HpToolsLauncher
             }
             catch (Exception ex)
             {
-                ConsoleWriter.WriteLine("problem while running testSet: " + ex.Message);
+                ConsoleWriter.WriteLine(Resources.AlmRunnerRunError + ex.Message);
             }
 
-            ConsoleWriter.WriteLine("Scheduler started at: " + DateTime.Now.ToString(Launcher.DateFormat));
-            ConsoleWriter.WriteLine("-------------------------------------------------------------------------------------------------------");
+            ConsoleWriter.WriteLine(Resources.AlmRunnerSchedStarted + DateTime.Now.ToString(Launcher.DateFormat));
+            ConsoleWriter.WriteLine(Resources.SingleSeperator);
             IExecutionStatus executionStatus = Scheduler.ExecutionStatus;
             bool tsExecutionFinished = false;
             ITSTest prevTest = null;
             ITSTest currentTest = null;
+            string abortFilename = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\stop" + Launcher.UniqueTimeStamp + ".txt";
             //wait for the tests to end ("normally" or because of the timeout)
-            while ((tsExecutionFinished == false) && (timeout == -1 || sw.Elapsed.TotalMinutes < timeout))
+            while ((tsExecutionFinished == false) && (timeout == -1 || sw.Elapsed.TotalSeconds < timeout))
             {
                 executionStatus.RefreshExecStatusInfo("all", true);
                 tsExecutionFinished = executionStatus.Finished;
+
+                if (System.IO.File.Exists(abortFilename))
+                {
+                    break;
+                }
 
                 for (int j = 1; j <= executionStatus.Count; ++j)
                 {
@@ -585,7 +592,6 @@ namespace HpToolsLauncher
 
                             //start timing the new test run
                             string foldername = "";
-                            testSw = Stopwatch.StartNew();
                             ITestSetFolder folder = targetTestSet.TestSetFolder as ITestSetFolder;
 
                             if (folder != null)
@@ -601,11 +607,15 @@ namespace HpToolsLauncher
 
                         if (enmState == TestState.Running)
                         {
-                            ConsoleWriter.WriteLine("Test: " + activeTestDesc.TestName + ", Id: " + testExecStatusObj.TSTestId + ", Execution status: " + statusString);
+                            ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerStat, activeTestDesc.TestName, testExecStatusObj.TSTestId, statusString));
                         }
                         else if (enmState != TestState.Waiting)
                         {
-                            ConsoleWriter.WriteLine("Test: " + activeTestDesc.TestName + ", Id: " + testExecStatusObj.TSTestId + ", Execution status: " + statusString + ", Message: " + testExecStatusObj.Message);
+                            ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerStatWithMessage, activeTestDesc.TestName, testExecStatusObj.TSTestId, statusString, testExecStatusObj.Message));
+                        }
+                        if (System.IO.File.Exists(abortFilename))
+                        {
+                            break;
                         }
                     }
                 }
@@ -613,20 +623,17 @@ namespace HpToolsLauncher
                 //wait 0.2 seconds
                 Thread.Sleep(200);
 
-                string abortFilename = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\stop" + Launcher.UniqueTimeStamp + ".txt";
-
                 //check for abortion
                 if (System.IO.File.Exists(abortFilename))
                 {
                     _blnRunCancelled = true;
 
-                    ConsoleWriter.WriteLine("Test run Was aborted by user, stopping all tests.");
-
-                    //remove the file (got the message)
-                    System.IO.File.Delete(abortFilename);
+                    ConsoleWriter.WriteLine(Resources.GeneralStopAborted);
 
                     //stop all test instances in this testSet.
                     Scheduler.Stop(currentTestSetInstances);
+
+                    ConsoleWriter.WriteLine(Resources.GeneralAbortedByUser);
 
                     //stop working 
                     Environment.Exit((int)Launcher.ExitCodeEnum.Aborted);
@@ -646,6 +653,11 @@ namespace HpToolsLauncher
                 ConsoleWriter.ActiveTestRun = null;
                 for (int k = 1; k <= executionStatus.Count; ++k)
                 {
+                    if (System.IO.File.Exists(abortFilename))
+                    {
+                        break;
+                    }
+
                     TestExecStatus testExecStatusObj = executionStatus[k];
                     activeTestDesc = UpdateTestStatus(runDesc, targetTestSet, testExecStatusObj, false);
 
@@ -656,18 +668,17 @@ namespace HpToolsLauncher
                     string testPath = "Root\\" + tsFolderName + "\\" + tsName + "\\" + activeTestDesc.TestName;
 
                     activeTestDesc.TestPath = testPath;
-                    activeTestDesc.Runtime = testSw.Elapsed;
                 }
 
                 //update the total runtime
                 runDesc.TotalRunTime = sw.Elapsed;
 
-                ConsoleWriter.WriteLine("Test set: " + tsName + ", finished at " + DateTime.Now.ToString(Launcher.DateFormat));
+                ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerTestsetDone, tsName, DateTime.Now.ToString(Launcher.DateFormat)));
             }
             else
             {
                 _blnRunCancelled = true;
-                ConsoleWriter.WriteLine("==============\nJob timed out!\n==============");
+                ConsoleWriter.WriteLine(Resources.GeneralTimedOut);
                 Launcher.ExitCode = Launcher.ExitCodeEnum.Aborted;
             }
 
@@ -695,10 +706,10 @@ namespace HpToolsLauncher
 
                 string linkStr = GetTestRunLink(prevTest, runid);
 
-                ConsoleWriter.WriteLine("\nLink: " + linkStr);
+                ConsoleWriter.WriteLine("\n" + string.Format(Resources.AlmRunnerDisplayLink, linkStr));
             }
-            ConsoleWriter.WriteLine(DateTime.Now.ToString(Launcher.DateFormat) + " Test complete: " + prevTest.Name +
-                ((runid > prevRunId) ? ", Run id: " + runid : "")
+            ConsoleWriter.WriteLine(DateTime.Now.ToString(Launcher.DateFormat) + " " + Resources.AlmRunnerTestCompleteCaption + " " + prevTest.Name +
+                ((runid > prevRunId) ? ", " + Resources.AlmRunnerRunIdCaption + " " + runid : "")
                 + "\n-------------------------------------------------------------------------------------------------------");
         }
 
@@ -754,12 +765,12 @@ namespace HpToolsLauncher
                         sb.Append(", Status: " + step.Status);
 
                     string desc = step["ST_DESCRIPTION"] as string;
-                    desc = "\n\t" + desc.Trim().Replace("\n", "\t").Replace("\r", "");
-                    if (!string.IsNullOrWhiteSpace(desc))
-                        sb.AppendLine(desc);
-
-                    //step["ST_EXPECTED"];
-                    //step["ST_ACTUAL"];
+                    if (!string.IsNullOrEmpty(desc))
+                    {
+                        desc = "\n\t" + desc.Trim().Replace("\n", "\t").Replace("\r", "");
+                        if (!string.IsNullOrWhiteSpace(desc))
+                            sb.AppendLine(desc);
+                    }
                 }
             }
             catch (Exception ex)
@@ -882,13 +893,13 @@ namespace HpToolsLauncher
                     string linkStr = GetTestRunLink(currentTest, runid);
 
                     string statusString = GetTsStateFromQcState(testExecStatusObj.Status as string).ToString();
-                    ConsoleWriter.WriteLine("Test: " + currentTest.Name + ", Status: " + statusString + ", Message: " + testExecStatusObj.Message + "\nLink: " + linkStr + "\n");
+                    ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerTestStat, currentTest.Name, statusString, testExecStatusObj.Message, linkStr));
                     runResults.TestRuns[testIndex] = qTest;
                 }
             }
             catch (Exception ex)
             {
-                ConsoleWriter.WriteLine("Problem on updating tests status for test: " + currentTest.Name + "\n " + ex.Message);
+                ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerErrorGettingStat, currentTest.Name, ex.Message));
             }
 
             return qTest;
@@ -1003,7 +1014,7 @@ namespace HpToolsLauncher
                 || string.IsNullOrWhiteSpace(QCDomain)
                 || string.IsNullOrWhiteSpace(QCProject))
             {
-                ConsoleWriter.WriteLine("One or more of the required connection parameters is empty");
+                ConsoleWriter.WriteLine(Resources.AlmRunnerConnParamEmpty);
                 return false;
             }
 
@@ -1018,7 +1029,7 @@ namespace HpToolsLauncher
 
             if (!TdConnection.Connected)
             {
-                ConsoleWriter.WriteErrLine(string.Format("ALM server {0} unreachable, check that server Url is correct", QCServerURL));
+                ConsoleWriter.WriteErrLine(string.Format(Resources.AlmRunnerServerUnreachable, QCServerURL));
                 return false;
             }
             try
@@ -1032,7 +1043,7 @@ namespace HpToolsLauncher
 
             if (!TdConnection.LoggedIn)
             {
-                ConsoleWriter.WriteErrLine("Cannot Login to QC: Authorization failed");
+                ConsoleWriter.WriteErrLine(Resources.AlmRunnerErrorAuthorization);
                 return false;
             }
 
@@ -1042,12 +1053,12 @@ namespace HpToolsLauncher
             }
             catch (Exception ex)
             {
-                //ConsoleWriter.WriteErrLine(ex.Message);
+
             }
 
             if (!TdConnection.ProjectConnected)
             {
-                ConsoleWriter.WriteErrLine("Cannot connect to QC: Project / Domain doesn't exist");
+                ConsoleWriter.WriteErrLine(Resources.AlmRunnerErrorConnectToProj);
                 return false;
             }
             return true;

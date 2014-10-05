@@ -15,7 +15,7 @@ namespace HpToolsLauncher
         public const string STRunnerName = "ServiceTestExecuter.exe";
         public const string STRunnerTestArg = @"-test";
         public const string STRunnerReportArg = @"-report";
-
+        public const string STRunnerInputParamsArg = @"-inParams";
         private const int PollingTimeMs = 500;
         private bool _stCanRun;
         private string _stExecuterPath = Directory.GetCurrentDirectory();
@@ -46,7 +46,7 @@ namespace HpToolsLauncher
         {
             if (File.Exists(STRunnerName))
                 return true;
-            _stExecuterPath = Helper.GetInstallPath();
+            _stExecuterPath = Helper.GetSTInstallPath();
             if ((!String.IsNullOrEmpty(_stExecuterPath)))
             {
                 _stExecuterPath += "bin";
@@ -56,35 +56,33 @@ namespace HpToolsLauncher
             return false;
         }
 
+
         /// <summary>
         /// runs the given test
         /// </summary>
-        /// <param name="testPath"></param>
+        /// <param name="testinf"></param>
         /// <param name="errorReason"></param>
         /// <param name="runCancelled">cancellation delegate, holds the function that checks cancellation</param>
         /// <returns></returns>
-        public TestRunResults RunTest(string testPath, ref string errorReason, RunCancelledDelegate runCancelled)
+        public TestRunResults RunTest(TestInfo testinf, ref string errorReason, RunCancelledDelegate runCancelled)
         {
-                     
-            
+
             TestRunResults runDesc = new TestRunResults();
             ConsoleWriter.ActiveTestRun = runDesc;
-            ConsoleWriter.WriteLine(DateTime.Now.ToString(Launcher.DateFormat) + " Running: " + testPath);
-
-            
+            ConsoleWriter.WriteLine(DateTime.Now.ToString(Launcher.DateFormat) + " Running: " + testinf.TestPath);
 
             runDesc.ReportLocation = Helper.CreateTempDir();
             runDesc.ErrorDesc = errorReason;
-            runDesc.TestPath = testPath;
+            runDesc.TestPath = testinf.TestPath;
             runDesc.TestState = TestState.Unknown;
             if (!Helper.IsServiceTestInstalled())
             {
                 runDesc.TestState = TestState.Error;
-                runDesc.ErrorDesc = "Service Test is not installed on " + System.Environment.MachineName;
+                runDesc.ErrorDesc = string.Format(Resources.LauncherStNotInstalled, System.Environment.MachineName);
                 ConsoleWriter.WriteErrLine(runDesc.ErrorDesc);
                 Environment.ExitCode = (int)Launcher.ExitCodeEnum.Failed;
                 return runDesc;
-            }   
+            }
 
             _runCancelled = runCancelled;
             if (!_stCanRun)
@@ -103,20 +101,39 @@ namespace HpToolsLauncher
                 return runDesc;
             }
 
+            //write the input parameter xml file for the API test
+            string paramsFile = Path.GetTempFileName();
+            string paramFileContent = testinf.GenerateAPITestXmlForTest();
+
+            string argumentString = "";
+            if (!string.IsNullOrWhiteSpace(paramFileContent))
+            {
+                File.WriteAllText(paramsFile, paramFileContent);
+                argumentString = String.Format("{0} \"{1}\" {2} \"{3}\" {4} \"{5}\"", STRunnerTestArg, testinf.TestPath, STRunnerReportArg, runDesc.ReportLocation, STRunnerInputParamsArg, paramsFile);
+            }
+            else
+            {
+                argumentString = String.Format("{0} \"{1}\" {2} \"{3}\"", STRunnerTestArg, testinf.TestPath, STRunnerReportArg, runDesc.ReportLocation);
+            }
+
             Stopwatch s = Stopwatch.StartNew();
             runDesc.TestState = TestState.Running;
+
             if (!ExecuteProcess(fileName,
-                                  String.Format("{0} \"{1}\" {2} \"{3}\" ", STRunnerTestArg, testPath, STRunnerReportArg, runDesc.ReportLocation),
-                                  ref errorReason))
+                                argumentString,
+                                ref errorReason))
             {
                 runDesc.TestState = TestState.Error;
                 runDesc.ErrorDesc = errorReason;
-                runDesc.Runtime = s.Elapsed;
-                return runDesc;
             }
             else
             {
                 runDesc.ReportLocation = Path.Combine(runDesc.ReportLocation, "Report");
+                if (!File.Exists(Path.Combine(runDesc.ReportLocation, "Results.xml")))
+                {
+                    runDesc.TestState = TestState.Error;
+                    runDesc.ErrorDesc = "No Results.xml file found";
+                }
             }
 
             runDesc.Runtime = s.Elapsed;

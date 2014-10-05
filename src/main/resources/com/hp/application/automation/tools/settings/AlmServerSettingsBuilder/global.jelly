@@ -20,8 +20,8 @@
 				<f:textbox value="${inst.almServerName}" name="alm.almServerName" />
 			</f:entry>
 
-			<f:entry title="${%ALM server URL}" field="almServerURL">
-				<f:textbox value="${inst.almServerURL}" name="alm.almServerURL" />
+			<f:entry title="${%ALM server URL}" field="almServerUrl">
+				<f:textbox value="${inst.almServerUrl}" name="alm.almServerUrl" />
 			</f:entry>
 			
 			<f:entry title="">

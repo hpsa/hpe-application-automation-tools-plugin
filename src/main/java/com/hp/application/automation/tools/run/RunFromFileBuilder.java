@@ -5,7 +5,22 @@
 
 package com.hp.application.automation.tools.run;
 
-import org.apache.commons.lang.StringUtils;
+import hudson.EnvVars;
+import hudson.Extension;
+import hudson.FilePath;
+import hudson.Launcher;
+import hudson.Util;
+import hudson.model.BuildListener;
+import hudson.model.Result;
+import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
+import hudson.model.Hudson;
+import hudson.tasks.BuildStepDescriptor;
+import hudson.tasks.Builder;
+import hudson.util.FormValidation;
+import hudson.util.IOUtils;
+import hudson.util.VariableResolver;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,39 +30,31 @@ import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Properties;
+
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
+
+import com.hp.application.automation.tools.AlmToolsUtils;
 import com.hp.application.automation.tools.model.RunFromFileSystemModel;
 import com.hp.application.automation.tools.run.AlmRunTypes.RunType;
-import com.hp.application.automation.tools.AlmToolsUtils;
-import hudson.EnvVars;
-import hudson.Extension;
-import hudson.FilePath;
-import hudson.Launcher;
-import hudson.Util;
-import hudson.model.BuildListener;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.Hudson;
-import hudson.model.Result;
-import hudson.tasks.BuildStepDescriptor;
-import hudson.tasks.Builder;
-import hudson.util.FormValidation;
-import hudson.util.IOUtils;
-import hudson.util.VariableResolver;
 
 public class RunFromFileBuilder extends Builder {
 
-	private RunFromFileSystemModel runFromFileModel;
+	private final RunFromFileSystemModel runFromFileModel;
 	private final static String HpToolsLauncher_SCRIPT_NAME = "HpToolsLauncher.exe";
+	private final static String LRAnalysisLauncher_EXE = "LRAnalysisLauncher.exe";
 	private String ResultFilename = "ApiResults.xml";
-	private String KillFileName = "";
+	//private String KillFileName = "";
 	private String ParamFileName = "ApiRun.txt";
 
 	@DataBoundConstructor
-	public RunFromFileBuilder(String fsTests, String fsTimeout) {
+	public RunFromFileBuilder(String fsTests, String fsTimeout, String controllerPollingInterval,
+			String perScenarioTimeOut, String ignoreErrorStrings) {
 
-		runFromFileModel = new RunFromFileSystemModel(fsTests, fsTimeout);
+		runFromFileModel = new RunFromFileSystemModel(fsTests, fsTimeout, controllerPollingInterval,
+				perScenarioTimeOut, ignoreErrorStrings);
+
 	}
 
 	@Override
@@ -61,6 +68,7 @@ public class RunFromFileBuilder extends Builder {
 		EnvVars env = null;
 		try {
 			env = build.getEnvironment(listener);
+
 		} catch (IOException e2) {
 			// TODO Auto-generated catch block
 			e2.printStackTrace();
@@ -74,6 +82,11 @@ public class RunFromFileBuilder extends Builder {
 		Properties mergedProperties = new Properties();
 
 		mergedProperties.putAll(runFromFileModel.getProperties(env, varResolver));
+		int idx = 0;
+		for (String key : env.keySet()) {
+			idx++;
+			mergedProperties.put("JenkinsEnv" + idx, key+";"+env.get(key));
+		}
 
 		Date now = new Date();
 		Format formatter = new SimpleDateFormat("ddMMyyyyHHmmssSSS");
@@ -82,7 +95,7 @@ public class RunFromFileBuilder extends Builder {
 		// get a unique filename for the params file
 		ParamFileName = "props" + time + ".txt";
 		ResultFilename = "Results" + time + ".xml";
-		KillFileName = "stop" + time + ".txt";
+		//KillFileName = "stop" + time + ".txt";
 
 		mergedProperties.put("runType", RunType.FileSystem.toString());
 		mergedProperties.put("resultsFilename", ResultFilename);
@@ -109,16 +122,29 @@ public class RunFromFileBuilder extends Builder {
 			listener.fatalError(HpToolsLauncher_SCRIPT_NAME + " not found in resources");
 			return false;
 		}
+		
+		URL cmdExe2Url = Hudson.getInstance().pluginManager.uberClassLoader.getResource(LRAnalysisLauncher_EXE);
+		if (cmdExe2Url == null){
+			listener.fatalError(LRAnalysisLauncher_EXE+ "not found in resources");
+			return false;
+		}
 
 		FilePath propsFileName = projectWS.child(ParamFileName);
 		FilePath CmdLineExe = projectWS.child(HpToolsLauncher_SCRIPT_NAME);
+		FilePath CmdLineExe2 = projectWS.child(LRAnalysisLauncher_EXE);
+
 
 		try {
 			// create a file for the properties file, and save the properties
 			propsFileName.copyFrom(propsStream);
 
+			
 			// Copy the script to the project workspace
 			CmdLineExe.copyFrom(cmdExeUrl);
+			
+			CmdLineExe2.copyFrom(cmdExe2Url);
+			
+			
 		} catch (IOException e1) {
 			build.setResult(Result.FAILURE);
 			// TODO Auto-generated catch block
@@ -131,30 +157,41 @@ public class RunFromFileBuilder extends Builder {
 
 		try {
 			// Run the HpToolsLauncher.exe
-			String logFile = AlmToolsUtils.runOnBuildEnv(build, launcher, listener, CmdLineExe, ParamFileName);
+            AlmToolsUtils.runOnBuildEnv(build, launcher, listener, CmdLineExe, ParamFileName);
 			// Has the report been successfuly generated?
-			if (!projectWS.child(logFile).exists()) {
-				listener.fatalError("Report could not be generated");
-				return false;
-			}
 		} catch (IOException ioe) {
 			Util.displayIOException(ioe, listener);
 			build.setResult(Result.FAILURE);
 			return false;
 		} catch (InterruptedException e) {
-			build.setResult(Result.FAILURE);
+			build.setResult(Result.ABORTED);
 			PrintStream out = listener.getLogger();
+			
+			try {
+				AlmToolsUtils.runHpToolsAborterOnBuildEnv(build, launcher, listener, ParamFileName);
+			} catch (IOException e1) {
+				Util.displayIOException(e1, listener);
+				build.setResult(Result.FAILURE);
+				return false;
+		} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			
 			// kill processes
-			FilePath killFile = projectWS.child(KillFileName);
+			/*FilePath killFile = projectWS.child(KillFileName);
 			try {
 				killFile.write("\n", "UTF-8");
+                while (!killFile.exists())
+                    Thread.sleep(1000);
+                Thread.sleep(1500);
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			} catch (InterruptedException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
-			}
+			}*/
 
 			out.println("Operation Was aborted by user.");
 		}
@@ -177,7 +214,8 @@ public class RunFromFileBuilder extends Builder {
 		}
 
 		@Override
-		public boolean isApplicable(Class<? extends AbstractProject> jobType) {
+        public boolean isApplicable(
+                @SuppressWarnings("rawtypes") Class<? extends AbstractProject> jobType) {
 			return true;
 		}
 
@@ -191,6 +229,14 @@ public class RunFromFileBuilder extends Builder {
 			return FormValidation.ok();
 		}
 		
+		public FormValidation doCheckIgnoreErrorStrings(@QueryParameter String value)
+		{
+			
+			
+			return FormValidation.ok();
+		}
+		
+						
 		public FormValidation doCheckFsTimeout(@QueryParameter String value) 
 		{
 			if (StringUtils.isEmpty(value)){
@@ -205,6 +251,30 @@ public class RunFromFileBuilder extends Builder {
 			{
 				return FormValidation.error("Timeout name must be a number");
 			}
+			return FormValidation.ok();
+		}
+		
+		public FormValidation doCheckControllerPollingInterval(@QueryParameter String value){
+			if (StringUtils.isEmpty(value)){
+				return FormValidation.ok();
+			}
+			
+			if (!StringUtils.isNumeric(value)){
+				return FormValidation.error("Controller Polling Interval must be a number");
+			}
+			
+			return FormValidation.ok();
+		}
+		
+		public FormValidation doCheckPerScenarioTimeOut(@QueryParameter String value){
+			if (StringUtils.isEmpty(value)){
+				return FormValidation.ok();
+			}
+			
+			if (!StringUtils.isNumeric(value)){
+				return FormValidation.error("Per Scenario Timeout must be a number");
+			}
+			
 			return FormValidation.ok();
 		}
 		

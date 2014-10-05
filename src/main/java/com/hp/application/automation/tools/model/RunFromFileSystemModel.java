@@ -15,9 +15,15 @@ public class RunFromFileSystemModel {
 
 	private String fsTests;
 	private String fsTimeout;
+	private String controllerPollingInterval = "30";
+	private String perScenarioTimeOut = "10";
+	private String ignoreErrorStrings;
+	
+	
+	
 
 	@DataBoundConstructor
-	public RunFromFileSystemModel(String fsTests, String fsTimeout) {
+	public RunFromFileSystemModel(String fsTests, String fsTimeout, String controllerPollingInterval,String perScenarioTimeOut, String ignoreErrorStrings) {
 
 		this.fsTests = fsTests;
 
@@ -26,7 +32,14 @@ public class RunFromFileSystemModel {
 		}
 
 		this.fsTimeout = fsTimeout;
+		
+		
+		this.perScenarioTimeOut = perScenarioTimeOut;
+		this.controllerPollingInterval = controllerPollingInterval;
+		this.ignoreErrorStrings = ignoreErrorStrings;
+		
 	}
+
 
 	public String getFsTests() {
 		return fsTests;
@@ -34,6 +47,54 @@ public class RunFromFileSystemModel {
 
 	public String getFsTimeout() {
 		return fsTimeout;
+	}
+
+	
+
+	
+	/**
+	 * @return the controllerPollingInterval
+	 */
+	public String getControllerPollingInterval() {
+		return controllerPollingInterval;
+	}
+
+	/**
+	 * @param controllerPollingInterval the controllerPollingInterval to set
+	 */
+	public void setControllerPollingInterval(String controllerPollingInterval) {
+		this.controllerPollingInterval = controllerPollingInterval;
+	}
+
+	/**
+	 * @return the ignoreErrorStrings
+	 */
+	public String getIgnoreErrorStrings() {
+		return ignoreErrorStrings;
+	}
+
+
+	/**
+	 * @param ignoreErrorStrings the ignoreErrorStrings to set
+	 */
+	public void setIgnoreErrorStrings(String ignoreErrorStrings) {
+		this.ignoreErrorStrings = ignoreErrorStrings;
+	}
+
+
+
+	/**
+	 * @return the perScenarioTimeOut
+	 */
+	public String getPerScenarioTimeOut() {
+		return perScenarioTimeOut;
+	}
+
+	/**
+	 * @param perScenarioTimeOut the perScenarioTimeOut to set
+	 */
+	public void setPerScenarioTimeOut(String perScenarioTimeOut) {
+		this.perScenarioTimeOut = perScenarioTimeOut;
 	}
 
 	public Properties getProperties(EnvVars envVars,
@@ -48,10 +109,10 @@ public class RunFromFileSystemModel {
 	private Properties CreateProperties(EnvVars envVars,
 			VariableResolver<String> varResolver) {
 		Properties props = new Properties();
-
+		
 		if (!StringUtils.isEmpty(this.fsTests)) {
-
-			String[] testsArr = this.fsTests.replaceAll("\r", "").split("\n");
+			String expandedFsTests = envVars.expand(fsTests);
+			String[] testsArr = expandedFsTests.replaceAll("\r", "").split("\n");
 
 			int i = 1;
 
@@ -70,6 +131,26 @@ public class RunFromFileSystemModel {
 		else{
 			props.put("fsTimeout", "" + fsTimeout);
 		}
+		
+		
+		if (StringUtils.isEmpty(controllerPollingInterval)){
+			props.put("controllerPollingInterval", "30");
+		}
+		else{
+			props.put("controllerPollingInterval", "" + controllerPollingInterval);
+		}
+		
+		if (StringUtils.isEmpty(perScenarioTimeOut)){
+			props.put("PerScenarioTimeOut", "10");
+		}
+		else{
+			props.put("PerScenarioTimeOut", ""+ perScenarioTimeOut);
+		}
+		
+		if (!StringUtils.isEmpty(ignoreErrorStrings.replaceAll("\\r|\\n", ""))){
+			props.put("ignoreErrorStrings", ""+ignoreErrorStrings.replaceAll("\r", ""));
+		}
+
 
 		return props;
 	}

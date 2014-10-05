@@ -6,8 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Diagnostics;
+using HpToolsLauncher.Properties;
 
 namespace HpToolsLauncher
 {
@@ -25,7 +24,7 @@ namespace HpToolsLauncher
 
         static void Main(string[] args)
         {
-            ConsoleWriter.WriteLine("started!");
+            ConsoleWriter.WriteLine(Resources.GeneralStarted);
             
             if (args.Count() == 0 || args.Contains("/?"))
             {
@@ -59,14 +58,9 @@ namespace HpToolsLauncher
 
         private static void ShowHelp()
         {
-            Console.WriteLine("HP Unified Functional Testing Command Line Executer");
+            Console.WriteLine("HP Automation Tools Command Line Executer");
             Console.WriteLine();
             Console.Write("Usage: HpToolsLauncher.exe");
-            //Console.Write("\t\t\t\t-mtb ");
-            //Console.ForegroundColor = ConsoleColor.Cyan;
-            //Console.Write("\t<testsdirectory/.mtb file> ");
-            //Console.ResetColor();
-            //Console.WriteLine();
             Console.Write("  -paramfile ");
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write("<a file in key=value format> ");
@@ -76,7 +70,7 @@ namespace HpToolsLauncher
             Console.WriteLine("-paramfile is required in for the program to run");
             Console.WriteLine("the parameter file may contain the following fields:");
             Console.WriteLine("\trunType=<Alm/FileSystem/LoadRunner>");
-            Console.WriteLine("\talmServerURL=http://<server>:<port>/qcbin");
+            Console.WriteLine("\talmServerUrl=http://<server>:<port>/qcbin");
             Console.WriteLine("\talmUserName=<user>");
             Console.WriteLine("\talmPassword=<password>");
             Console.WriteLine("\talmDomain=<domain>");

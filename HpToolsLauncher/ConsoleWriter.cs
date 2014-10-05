@@ -5,15 +5,22 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
 using System.Text.RegularExpressions;
 namespace HpToolsLauncher
 {
     public static class ConsoleWriter
     {
         static TestRunResults activeTestRun = null;
+        static List<string> _errSummaryLines = new List<string>();
+
+        /// <summary>
+        /// lines to append to the summary at the end (used for files/dirs not found)
+        /// </summary>
+        public static List<string> ErrorSummaryLines
+        {
+            get { return _errSummaryLines; }
+            set { _errSummaryLines = value; }
+        }
 
         public static TestRunResults ActiveTestRun
         {
@@ -69,12 +76,12 @@ namespace HpToolsLauncher
 
         public static void WriteLine(string message)
         {
+            message = message.Replace("\\n", "\n");
             message = FilterXmlProblematicChars(message);
             //File.AppendAllText("c:\\stam11.stam", message);
             Console.Out.WriteLine(message);
             if (activeTestRun != null)
                 activeTestRun.ConsoleOut += message + "\n";
         }
-
     }
 }
