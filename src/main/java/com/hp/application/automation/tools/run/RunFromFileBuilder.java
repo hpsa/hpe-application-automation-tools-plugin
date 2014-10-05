@@ -49,9 +49,12 @@ public class RunFromFileBuilder extends Builder {
 	private String ParamFileName = "ApiRun.txt";
 
 	@DataBoundConstructor
-	public RunFromFileBuilder(String fsTests, String fsTimeout,  String controllerPollingInterval,String perScenarioTimeOut, String ignoreErrorStrings) {
+	public RunFromFileBuilder(String fsTests, String fsTimeout, String controllerPollingInterval,
+			String perScenarioTimeOut, String ignoreErrorStrings) {
 
-		runFromFileModel = new RunFromFileSystemModel(fsTests, fsTimeout,  controllerPollingInterval,perScenarioTimeOut, ignoreErrorStrings);
+		runFromFileModel = new RunFromFileSystemModel(fsTests, fsTimeout, controllerPollingInterval,
+				perScenarioTimeOut, ignoreErrorStrings);
+
 	}
 
 	@Override
@@ -65,6 +68,7 @@ public class RunFromFileBuilder extends Builder {
 		EnvVars env = null;
 		try {
 			env = build.getEnvironment(listener);
+
 		} catch (IOException e2) {
 			// TODO Auto-generated catch block
 			e2.printStackTrace();
@@ -78,6 +82,11 @@ public class RunFromFileBuilder extends Builder {
 		Properties mergedProperties = new Properties();
 
 		mergedProperties.putAll(runFromFileModel.getProperties(env, varResolver));
+		int idx = 0;
+		for (String key : env.keySet()) {
+			idx++;
+			mergedProperties.put("JenkinsEnv" + idx, key+";"+env.get(key));
+		}
 
 		Date now = new Date();
 		Format formatter = new SimpleDateFormat("ddMMyyyyHHmmssSSS");

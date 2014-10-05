@@ -256,7 +256,7 @@ public class RunFromAlmBuilder extends Builder {
         
         @Override
         public String getDisplayName() {
-            return "Execute HP tests from HP ALM";
+            return "Execute HP functional tests from HP ALM";
         }
         
         public boolean hasAlmServers() {

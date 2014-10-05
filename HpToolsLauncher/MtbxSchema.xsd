@@ -1,0 +1,44 @@
+﻿<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:simpleType name="varType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Float" />
+      <xs:enumeration value="String" />
+      <xs:enumeration value="Any" />
+      <xs:enumeration value="Boolean" />
+      <xs:enumeration value="Int" />
+      <xs:enumeration value="Number" />
+      <xs:enumeration value="Password" />
+      <xs:enumeration value="DateTime" />
+      <xs:enumeration value="Date" />
+      <xs:enumeration value="Long" />
+      <xs:enumeration value="Double" />
+      <xs:enumeration value="Decimal" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:element name="Mtbx">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Test" maxOccurs="unbounded" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Parameter" maxOccurs="unbounded" minOccurs="0">
+                <xs:complexType>
+                  <xs:simpleContent>
+                    <xs:extension base="xs:string">
+                      <xs:attribute type="xs:string" name="name" use="required"/>
+                      <xs:attribute type="xs:string" name="value" use="required"/>
+                      <xs:attribute type="varType" name="type" use="optional"/>
+                    </xs:extension>
+                  </xs:simpleContent>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+            <xs:attribute type="xs:string" name="name" use="optional"/>
+            <xs:attribute type="xs:string" name="path" use="required"/>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

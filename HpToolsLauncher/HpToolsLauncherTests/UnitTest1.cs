@@ -7,9 +7,11 @@ using System;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using HpToolsLauncher;
 using System.IO;
+using System.Xml.Linq;
 
 namespace HpToolsLauncherTests
 {
@@ -50,9 +52,28 @@ namespace HpToolsLauncherTests
             props["almTimeout"] = "-1";
             props["almRunHost"] = "";
             props.Save(file1, "");
-            Launcher runner = new Launcher( "false", file1, TestStorageType.Alm);
+            Launcher runner = new Launcher("false", file1, TestStorageType.Alm);
 
             runner.Run();
+        }
+
+        [TestMethod]
+        public void TestMtbxReadFile()
+        {
+            string content = "<Mtbx><Test name=\"test1\" path=\"${workspace}\\test1\"><Parameter name=\"mee\" value=\"12\" type=\"int\"/>		<Parameter name=\"mee1\" value=\"12.0\" type=\"double\"/><Parameter name=\"mee2\" value=\"abc\" type=\"string\"/></Test><Test name=\"test2\" path=\"${workspace}\\test2\"><Parameter name=\"mee\" value=\"12\" type=\"int\"/><Parameter name=\"mee1\" value=\"12.0\" type=\"double\"/>		<Parameter name=\"mee2\" value=\"abc\" type=\"string\"/><Parameter name=\"mee3\" value=\"123.5\" type=\"float\"/>	</Test></Mtbx>";
+            List<TestInfo> tests = MtbxManager.LoadMtbx(content, "TestGroup1");
+            Assert.IsTrue(tests.Count == 2);
+        }
+
+        [TestMethod]
+        public void TestGenerateApiXmlFile()
+        {
+            string content = "<Mtbx><Test name=\"test1\" path=\"${workspace}\\test1\"><Parameter name=\"mee\" value=\"12\" type=\"int\"/>		<Parameter name=\"mee1\" value=\"12.0\" type=\"double\"/><Parameter name=\"mee2\" value=\"abc\" type=\"string\"/></Test><Test name=\"test2\" path=\"${workspace}\\test2\"><Parameter name=\"mee\" value=\"12\" type=\"int\"/><Parameter name=\"mee1\" value=\"12.0\" type=\"double\"/>		<Parameter name=\"mee2\" value=\"abc\" type=\"string\"/><Parameter name=\"mee3\" value=\"123.5\" type=\"float\"/>	</Test></Mtbx>";
+            List<TestInfo> tests = MtbxManager.LoadMtbx(content, "dunno");
+            string xmlContent = tests[0].GenerateAPITestXmlForTest();
+            //XDocument doc = XDocument.Parse(xmlContent);
+            Assert.IsTrue(xmlContent.Contains("<mee2>abc</mee2>"));
+            Assert.IsTrue(xmlContent.Contains("name=\"mee\" type=\"xs:int\""));
         }
 
         [TestMethod]
@@ -78,10 +99,10 @@ namespace HpToolsLauncherTests
         [TestMethod]
         public void TestGetTestStateFromReport()
         {
-            TestRunResults res =new TestRunResults{ ReportLocation = @"c:\Temp\report\"};
+            TestRunResults res = new TestRunResults { ReportLocation = @"c:\Temp\report\" };
             TestState state = Helper.GetTestStateFromReport(res);
         }
-        
+
         [TestMethod]
         public void TestQcTestRun()
         {
@@ -105,6 +126,20 @@ namespace HpToolsLauncherTests
             //    QcRunMode.RUN_LOCAL,
             //    null);
         }
+
+        //[TestMethod]
+        //public void RunAPITestWithParams()
+        //{
+        //    var jenkinsEnv = new Dictionary<string,string>();
+        //    jenkinsEnv.Add("workspace","c:\\tests");
+        //    FileSystemTestsRunner runner = new FileSystemTestsRunner(new List<string>() { @"c:\workspace\mtbx\stam.mtbx" }, TimeSpan.FromMinutes(10), 500, TimeSpan.FromMinutes(10), new List<string>() { "" }, jenkinsEnv);
+        //    runner.Run();
+        //}
+
+        //[TestMethod]
+        //public void RunGUITestWithParams()
+        //{ 
+        //}
 
         [TestMethod]
         public void TestJavaPropertiesSaveAndLoad()

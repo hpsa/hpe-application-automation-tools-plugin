@@ -368,7 +368,7 @@ Save the test in QuickTest and then run it again.</value>
     <value>Errors occured during scenario execution. Stopping the scenario run.</value>
   </data>
   <data name="LrScenarioTimeOut" xml:space="preserve">
-    <value>Scenario Execution timeout ({0} minutes) passed.</value>
+    <value>Scenario Execution timeout ({0} seconds) passed.</value>
   </data>
   <data name="LrScenarioValidationCannotConnectLG" xml:space="preserve">
     <value>Cannot connect to Load Generator {0}.</value>
@@ -429,5 +429,8 @@ Save the test in QuickTest and then run it again.</value>
   </data>
   <data name="LrScenarioOpenTimeOut" xml:space="preserve">
     <value>Scenario open process timed out.</value>
+  </data>
+  <data name="GeneralDuplicateParameterWarning" xml:space="preserve">
+    <value>The Parameter {0} of test: {1} is defined more than once</value>
   </data>
 </root>

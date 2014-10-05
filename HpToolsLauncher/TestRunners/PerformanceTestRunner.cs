@@ -96,9 +96,9 @@ namespace HpToolsLauncher.TestRunners
             this._errorsCount = 0;
         }
 
-        public TestRunResults RunTest(string scenarioPath, ref string errorReason, RunCancelledDelegate runCancelled)
+        public TestRunResults RunTest(TestInfo scenarioInf, ref string errorReason, RunCancelledDelegate runCancelled)
         {
-
+            string scenarioPath = scenarioInf.TestPath;
             //prepare the instance that will contain test results for JUnit
             TestRunResults runDesc = new TestRunResults();
 
@@ -518,8 +518,8 @@ namespace HpToolsLauncher.TestRunners
                 if (_stopWatch.Elapsed > _perScenarioTimeOut)
                 {
                     _stopWatch.Stop();
-                    ConsoleWriter.WriteErrLine(string.Format(Resources.LrScenarioTimeOut, _stopWatch.Elapsed.Minutes));
-                    errorReason = string.Format(Resources.LrScenarioTimeOut, _stopWatch.Elapsed.Minutes);
+                    ConsoleWriter.WriteErrLine(string.Format(Resources.LrScenarioTimeOut, _stopWatch.Elapsed.Seconds));
+                    errorReason = string.Format(Resources.LrScenarioTimeOut, _stopWatch.Elapsed.Seconds);
                     break;
                 }
 

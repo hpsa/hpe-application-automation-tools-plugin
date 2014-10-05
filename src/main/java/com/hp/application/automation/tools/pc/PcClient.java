@@ -155,4 +155,15 @@ public class PcClient {
         logger.println(String.format("Stop run %s", stopRunSucceeded ? "succeeded" : "failed"));
         return stopRunSucceeded;
     }
+    
+    public PcRunEventLog getRunEventLog(int runId){
+        try {
+            return restProxy.getRunEventLog(runId);
+        } catch (PcException e) {
+            logger.println(e.getMessage());
+        } catch (Exception e) {
+            logger.println(e);
+        }
+        return null;
+    }
 }

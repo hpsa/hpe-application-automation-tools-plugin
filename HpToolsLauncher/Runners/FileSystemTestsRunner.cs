@@ -17,8 +17,8 @@ namespace HpToolsLauncher
     {
         #region Members
 
-
-        private List<TestInstance> _tests;
+        Dictionary<string, string> _jenkinsEnvVariables;
+        private List<TestInfo> _tests;
         private static string _uftViewerPath;
         private int _errors, _fail;
         private bool _useUFTLicense;
@@ -52,15 +52,15 @@ namespace HpToolsLauncher
             int ControllerPollingInterval,
             TimeSpan perScenarioTimeOut,
             List<string> ignoreErrorStrings,
-
+            Dictionary<string, string> jenkinsEnvVariables,
             bool useUFTLicense = false
             )
         {
-
+            _jenkinsEnvVariables = jenkinsEnvVariables;
             //search if we have any testing tools installed
             if (!Helper.IsTestingToolsInstalled(TestStorageType.FileSystem))
             {
-                ConsoleWriter.WriteErrLine(string.Format(Resources.FileSystemTestsRunner_No_HP_testing_tool_is_installed_on,System.Environment.MachineName));
+                ConsoleWriter.WriteErrLine(string.Format(Resources.FileSystemTestsRunner_No_HP_testing_tool_is_installed_on, System.Environment.MachineName));
                 Environment.Exit((int)Launcher.ExitCodeEnum.Failed);
             }
 
@@ -73,21 +73,24 @@ namespace HpToolsLauncher
 
 
             _useUFTLicense = useUFTLicense;
-            _tests = new List<TestInstance>();
-
-            List<string> testGroup;
+            _tests = new List<TestInfo>();
 
             //go over all sources, and create a list of all tests
             foreach (string source in sources)
             {
-
+                List<TestInfo> testGroup = new List<TestInfo>();
                 try
                 {
                     //--handle directories which contain test subdirectories (recursively)
                     if (Helper.IsDirectory(source))
                     {
 
-                        testGroup = Helper.GetTestsLocations(source);
+                        var testsLocations = Helper.GetTestsLocations(source);
+                        foreach (var loc in testsLocations)
+                        {
+                            var test = new TestInfo(loc, loc, source);
+                            testGroup.Add(test);
+                        }
                     }
                     //--handle mtb files (which contain links to tests)
                     else
@@ -95,37 +98,39 @@ namespace HpToolsLauncher
                     //mtb file (which contain links to tests)
                     //other files are dropped
                     {
-                        testGroup = new List<string>();
+                        testGroup = new List<TestInfo>();
                         FileInfo fi = new FileInfo(source);
                         if (fi.Extension == Helper.LoadRunnerFileExtention)
-                            testGroup.Add(source);
+                            testGroup.Add(new TestInfo(source, source, source));
                         else if (fi.Extension == ".mtb")
                         //if (source.TrimEnd().EndsWith(".mtb", StringComparison.CurrentCultureIgnoreCase))
                         {
-                            IMtbManager manager = new MtbManager();
-                            testGroup = manager.Parse(source);
+                            MtbManager manager = new MtbManager();
+                            var paths = manager.Parse(source);
+                            foreach (var p in paths)
+                            {
+                                testGroup.Add(new TestInfo(p, p, source));
+                            }
+                        }
+                        else if (fi.Extension == ".mtbx")
+                        //if (source.TrimEnd().EndsWith(".mtb", StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            testGroup = MtbxManager.Parse(source, _jenkinsEnvVariables, source);
                         }
                     }
                 }
                 catch (Exception)
                 {
-                    testGroup = new List<string>();
-                }
-
-                //add all tests in group, with the root directory as a group
-                if (testGroup.Count > 1)
-                {
-                    testGroup.ForEach(t =>
-                    {
-                        _tests.Add(new TestInstance(t, source.TrimEnd("\\/".ToCharArray()).Replace(".", "_")));
-                    });
+                    testGroup = new List<TestInfo>();
                 }
 
                 //--handle single test dir, add it with no group
-                else if (testGroup.Count == 1)
+                if (testGroup.Count == 1)
                 {
-                    _tests.Add(new TestInstance(testGroup[0], "<None>"));
+                    testGroup[0].TestGroup = "<None>";
                 }
+
+                _tests.AddRange(testGroup);
             }
 
             if (_tests == null || _tests.Count == 0)
@@ -139,7 +144,7 @@ namespace HpToolsLauncher
             ConsoleWriter.WriteLine(Resources.GeneralDoubleSeperator);
         }
 
-        
+
 
 
         /// <summary>
@@ -165,7 +170,7 @@ namespace HpToolsLauncher
                     TestRunResults runResult = null;
                     try
                     {
-                        runResult = RunHPToolsTest(test.TestName, ref errorReason);
+                        runResult = RunHPToolsTest(test, ref errorReason);
                     }
                     catch (Exception ex)
                     {
@@ -176,7 +181,7 @@ namespace HpToolsLauncher
                     }
 
                     //get the original source for this test, for grouping tests under test classes
-                    runResult.TestGroup = test.TestSource;
+                    runResult.TestGroup = test.TestGroup;
 
                     activeRunDesc.TestRuns.Add(runResult);
 
@@ -254,8 +259,10 @@ namespace HpToolsLauncher
         /// <param name="testPath"></param>
         /// <param name="errorReason"></param>
         /// <returns></returns>
-        private TestRunResults RunHPToolsTest(string testPath, ref string errorReason)
+        private TestRunResults RunHPToolsTest(TestInfo testinf, ref string errorReason)
         {
+
+            var testPath = testinf.TestPath;
             var type = Helper.GetTestType(testPath);
             IFileSysTestRunner runner = null;
             switch (type)
@@ -279,7 +286,11 @@ namespace HpToolsLauncher
                     _colRunnersForCleanup.Add(type, runner);
 
                 Stopwatch s = Stopwatch.StartNew();
-                var results = runner.RunTest(testPath, ref errorReason, RunCancelled);
+
+                TestRunResults results = null;
+
+                results = runner.RunTest(testinf, ref errorReason, RunCancelled);
+
                 results.Runtime = s.Elapsed;
                 if (type == TestType.LoadRunner)
                     AppDomain.CurrentDomain.AssemblyResolve -= Helper.HPToolsAssemblyResolver;
@@ -307,15 +318,15 @@ namespace HpToolsLauncher
         /// <returns></returns>
         public bool RunCancelled()
         {
-            
+
             //if timeout has passed
             if (_stopwatch.Elapsed > _timeout)
             {
-            
+
                 if (!_blnRunCancelled)
                 {
                     ConsoleWriter.WriteLine(Resources.GeneralTimedOut);
-            
+
                     Launcher.ExitCode = Launcher.ExitCodeEnum.Aborted;
                     _blnRunCancelled = true;
                 }
@@ -358,33 +369,6 @@ namespace HpToolsLauncher
         public static void OpenReport(string reportDirectory)
         {
             Helper.OpenReport(reportDirectory, ref _uftViewerPath);
-        }
-
-        /// <summary>
-        /// an internall class which holds info about the test instance before it's run, mainly used for describing it's group
-        /// </summary>
-        private class TestInstance
-        {
-            string m_testName;
-
-            public string TestName
-            {
-                get { return m_testName; }
-                set { m_testName = value; }
-            }
-            string m_testSource;
-
-            public string TestSource
-            {
-                get { return m_testSource; }
-                set { m_testSource = value; }
-            }
-
-            public TestInstance(string testName, string source)
-            {
-                TestName = testName;
-                m_testSource = source;
-            }
         }
     }
 }

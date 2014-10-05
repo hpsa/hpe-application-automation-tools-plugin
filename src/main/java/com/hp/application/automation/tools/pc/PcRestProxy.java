@@ -41,6 +41,7 @@ public class PcRestProxy {
     protected static final String        PC_API_RESOURCES_TEMPLATE      = BASE_PC_API_URL + "/domains/%s/projects/%s";
     protected static final String        RUNS_RESOURCE_NAME             = "Runs";
     protected static final String        RESULTS_RESOURCE_NAME          = "Results";
+    protected static final String        EVENTLOG_RESOURCE_NAME         = "EventLog";    
     protected static final String        CONTENT_TYPE_XML               = "application/xml";
     static final String                  PC_API_XMLNS                   = "http://www.hp.com/PC/REST/API";
 	
@@ -131,6 +132,15 @@ public class PcRestProxy {
         IOUtils.closeQuietly(in);
         IOUtils.closeQuietly(out);
         return true;
+    }
+    
+    public PcRunEventLog getRunEventLog(int runId) throws PcException, ClientProtocolException, IOException {
+        String getRunEventLogUrl = String
+            .format(baseURL + "/%s/%s/%s", RUNS_RESOURCE_NAME, runId, EVENTLOG_RESOURCE_NAME);
+        HttpGet getRunEventLogRequest = new HttpGet(getRunEventLogUrl);
+        HttpResponse response = executeRequest(getRunEventLogRequest);
+        String runEventLog = IOUtils.toString(response.getEntity().getContent());
+        return PcRunEventLog.xmlToObject(runEventLog);
     }
     
     public boolean logout() throws PcException, ClientProtocolException, IOException {

@@ -51,9 +51,9 @@ namespace HpToolsLauncher
         /// <param name="errorReason"></param>
         /// <param name="runCanclled"></param>
         /// <returns></returns>
-        public TestRunResults RunTest(string testPath, ref string errorReason, RunCancelledDelegate runCanclled)
+        public TestRunResults RunTest(TestInfo testinf, ref string errorReason, RunCancelledDelegate runCanclled)
         {
-
+            var testPath = testinf.TestPath;
             TestRunResults runDesc = new TestRunResults();
             ConsoleWriter.ActiveTestRun = runDesc;
             ConsoleWriter.WriteLine(DateTime.Now.ToString(Launcher.DateFormat) + " Running: " + testPath);
@@ -84,7 +84,7 @@ namespace HpToolsLauncher
                     _qtpApplication = Activator.CreateInstance(type) as Application;
 
                     Version qtpVersion = Version.Parse(_qtpApplication.Version);
-                    if (qtpVersion.Equals(new Version(11,0)))
+                    if (qtpVersion.Equals(new Version(11, 0)))
                     {
                         runDesc.ReportLocation = Path.Combine(testPath, "Report");
                         if (Directory.Exists(runDesc.ReportLocation))
@@ -136,7 +136,7 @@ namespace HpToolsLauncher
                                                  ? tagUnifiedLicenseType.qtUnifiedFunctionalTesting
                                                  : tagUnifiedLicenseType.qtNonUnified);
 
-            if (!HandleInputParameters(testPath, ref errorReason))
+            if (!HandleInputParameters(testPath, ref errorReason, testinf.GetParameterDictionaryForQTP()))
             {
                 runDesc.TestState = TestState.Error;
                 runDesc.ErrorDesc = errorReason;
@@ -319,7 +319,7 @@ namespace HpToolsLauncher
 
                 result.ReportPath = Path.Combine(testResults.ReportLocation, "Report");
                 int slept = 0;
-                while (slept < 20000 && _qtpApplication.GetStatus().Equals("Ready"))
+                while ((slept < 20000 && _qtpApplication.GetStatus().Equals("Ready")) || _qtpApplication.GetStatus().Equals("Waiting"))
                 {
                     Thread.Sleep(50);
                     slept += 50;
@@ -436,7 +436,7 @@ namespace HpToolsLauncher
                 var outputArguments = new XmlDocument { PreserveWhitespace = true };
                 outputArguments.LoadXml("<Arguments/>");
 
-                for (int i = 0; i < _qtpParamDefs.Count; ++i)
+                for (int i = 1; i <= _qtpParamDefs.Count; ++i)
                 {
                     var pd = _qtpParamDefs[i];
                     if (pd.InOut == qtParameterDirection.qtParamDirOut)
@@ -457,8 +457,41 @@ namespace HpToolsLauncher
             }
             return true;
         }
+        private bool VerifyParameterValueType(object paramValue, qtParameterType type)
+        {
+            bool legal = false;
 
-        private bool HandleInputParameters(string fileName, ref string errorReason)
+            switch (type)
+            {
+                case qtParameterType.qtParamTypeBoolean:
+                    legal = paramValue is bool;
+                    break;
+
+                case qtParameterType.qtParamTypeDate:
+                    legal = paramValue is DateTime;
+                    break;
+
+                case qtParameterType.qtParamTypeNumber:
+                    legal = ((paramValue is int) || (paramValue is long) || (paramValue is decimal) || (paramValue is float) || (paramValue is double));
+                    break;
+
+                case qtParameterType.qtParamTypePassword:
+                    legal = paramValue is string;
+                    break;
+
+                case qtParameterType.qtParamTypeString:
+                    legal = paramValue is string;
+                    break;
+
+                default:
+                    legal = true;
+                    break;
+            }
+
+            return legal;
+        }
+
+        private bool HandleInputParameters(string fileName, ref string errorReason, Dictionary<string, object> inputParams)
         {
             try
             {
@@ -474,6 +507,32 @@ namespace HpToolsLauncher
                 _qtpApplication.Open(path, true, false);
                 _qtpParamDefs = _qtpApplication.Test.ParameterDefinitions;
                 _qtpParameters = _qtpParamDefs.GetParameters();
+
+                // handle all parameters (index starts with 1 !!!)
+                for (int i = 1; i <= _qtpParamDefs.Count; i++)
+                {
+                    // input parameters
+                    if (_qtpParamDefs[i].InOut == qtParameterDirection.qtParamDirIn)
+                    {
+                        string paramName = _qtpParamDefs[i].Name;
+                        qtParameterType type = _qtpParamDefs[i].Type;
+
+                        // if the caller supplies value for a parameter we set it
+                        if (inputParams.ContainsKey(paramName))
+                        {
+                            // first verify that the type is correct
+                            object paramValue = inputParams[paramName];
+                            if (!VerifyParameterValueType(paramValue, type))
+                            {
+                                ConsoleWriter.WriteErrLine(string.Format("Illegal input parameter type (skipped). param: '{0}'. expected type: '{1}'. actual type: '{2}'", paramName, Enum.GetName(typeof(qtParameterType), type), paramValue.GetType()));
+                            }
+                            else
+                            {
+                                _qtpParameters[paramName].Value = paramValue;
+                            }
+                        }
+                    }
+                }
             }
             catch (Exception e)
             {

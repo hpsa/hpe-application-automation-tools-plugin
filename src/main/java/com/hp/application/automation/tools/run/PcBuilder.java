@@ -36,6 +36,8 @@ import com.hp.application.automation.tools.model.PcModel;
 import com.hp.application.automation.tools.model.PostRunAction;
 import com.hp.application.automation.tools.model.TimeslotDuration;
 import com.hp.application.automation.tools.pc.PcClient;
+import com.hp.application.automation.tools.pc.PcRunEventLog;
+import com.hp.application.automation.tools.pc.PcRunEventLogRecord;
 import com.hp.application.automation.tools.pc.PcRunResponse;
 import com.hp.application.automation.tools.pc.RunState;
 import com.hp.application.automation.tools.sse.result.model.junit.Error;
@@ -183,21 +185,34 @@ public class PcBuilder extends Builder {
         
         PcRunResponse response = null;
         String errorMessage = "";
+        String eventLogString = "";
         try {
             runId = pcClient.startRun();
             response = pcClient.waitForRunCompletion(runId);
             if (response != null && RunState.get(response.getRunState()) == FINISHED) {
                 pcReportFile = pcClient.publishRunReport(runId, getReportDirectory(build));
-            }
+            } else  if (RunState.get(response.getRunState()).ordinal() > FINISHED.ordinal()) {
+                PcRunEventLog eventLog = pcClient.getRunEventLog(runId);                
+                eventLogString = buildEventLogString(eventLog);
+            }           
         } catch (PcException e) {
             errorMessage = e.getMessage();
-            logger.println(errorMessage);
         }
         if (response == null)
             return null;
-        return parsePcRunResponse(response, build, errorMessage);
+        return parsePcRunResponse(response, build, errorMessage, eventLogString);
     }
     
+    private String buildEventLogString(PcRunEventLog eventLog) {
+        
+        String logFormat = "%-5s | %-7s | %-19s | %s\n";
+        StringBuilder eventLogStr = new StringBuilder("Event Log:\n\n" + String.format(logFormat, "ID", "TYPE", "TIME","DESCRIPTION"));
+        for (PcRunEventLogRecord record : eventLog.getRecordsList()) {
+            eventLogStr.append(String.format(logFormat, record.getID(), record.getType(), record.getTime(), record.getDescription()));            
+        }
+        return eventLogStr.toString();
+    }
+
     private boolean beforeRun(PcClient pcClient) {
         return validatePcForm() && pcClient.login();
     }
@@ -246,7 +261,7 @@ public class PcBuilder extends Builder {
     private Testsuites parsePcRunResponse(
             PcRunResponse runResponse,
             AbstractBuild<?, ?> build,
-            String errorMessage) throws IOException, InterruptedException {
+            String errorMessage, String eventLogString) throws IOException, InterruptedException {
         
         Testsuites ret = new Testsuites();
         List<Testsuite> testSuites = ret.getTestsuite();
@@ -257,40 +272,44 @@ public class PcBuilder extends Builder {
         testCase.setTime(String.valueOf(runResponse.getDuration() * 60));
         if (pcReportFile != null && pcReportFile.exists())
             testCase.getSystemOut().add(getOutputForReportLinks(build));
-        updateTestStatus(testCase, runResponse, errorMessage);
+        updateTestStatus(testCase, runResponse, errorMessage, eventLogString);
         testSuite.getTestcase().add(testCase);
         testSuites.add(testSuite);
         
         return ret;
     }
     
-    private void updateTestStatus(Testcase testCase, PcRunResponse response, String errorMessage) {
+    private void updateTestStatus(Testcase testCase, PcRunResponse response, String errorMessage, String eventLog) {
         RunState runState = RunState.get(response.getRunState());
         if (runState == RUN_FAILURE) {
-            setError(testCase, String.format("%s. %s", runState, errorMessage));
+            setError(testCase, String.format("%s. %s", runState, errorMessage), eventLog);
         } else if (statusBySLA && runState == FINISHED && !(response.getRunSLAStatus().equalsIgnoreCase("passed"))) {
             setFailure(testCase, "Run measurements did not reach SLA criteria. Run SLA Status: "
-                                 + response.getRunSLAStatus());
-        } else if (runState.hasFailure()) {
-            setFailure(testCase, String.format("%s. %s", runState, errorMessage));
+                                 + response.getRunSLAStatus(), eventLog);
+        } else if (runState.hasFailure()) {          
+            setFailure(testCase, String.format("%s. %s", runState, errorMessage), eventLog);
         } else
             testCase.setStatus(JUnitTestCaseStatus.PASS);
     }
     
-    private void setError(Testcase testCase, String message) {
+    private void setError(Testcase testCase, String message, String eventLog) {
         Error error = new Error();
         error.setMessage(message);
+        if (!(eventLog == null || eventLog.isEmpty()))
+            testCase.getSystemErr().add(eventLog);
         testCase.getError().add(error);
         testCase.setStatus(JUnitTestCaseStatus.ERROR);
-        logger.println("Error: " + message);
+        logger.println(String.format("%s %s", message ,eventLog));
     }
     
-    private void setFailure(Testcase testCase, String message) {
+    private void setFailure(Testcase testCase, String message, String eventLog) {
         Failure failure = new Failure();
         failure.setMessage(message);
+        if (!(eventLog == null || eventLog.isEmpty()))
+            testCase.getSystemErr().add(eventLog);
         testCase.getFailure().add(failure);
         testCase.setStatus(JUnitTestCaseStatus.FAILURE);
-        logger.println("Failure: " + message);
+        logger.println(String.format("Failure: %s %s", message ,eventLog));
     }
     
     private String getOutputForReportLinks(AbstractBuild<?, ?> build) {

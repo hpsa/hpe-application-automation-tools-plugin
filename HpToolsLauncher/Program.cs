@@ -70,7 +70,7 @@ namespace HpToolsLauncher
             Console.WriteLine("-paramfile is required in for the program to run");
             Console.WriteLine("the parameter file may contain the following fields:");
             Console.WriteLine("\trunType=<Alm/FileSystem/LoadRunner>");
-            Console.WriteLine("\talmServerURL=http://<server>:<port>/qcbin");
+            Console.WriteLine("\talmServerUrl=http://<server>:<port>/qcbin");
             Console.WriteLine("\talmUserName=<user>");
             Console.WriteLine("\talmPassword=<password>");
             Console.WriteLine("\talmDomain=<domain>");

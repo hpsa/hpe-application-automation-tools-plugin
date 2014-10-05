@@ -69,7 +69,6 @@
   <ItemGroup>
     <Compile Include="Launcher.cs" />
     <Compile Include="ConsoleWriter.cs" />
-    <Compile Include="Interfaces\IMtbManager.cs" />
     <Compile Include="Interfaces\IAssetRunner.cs" />
     <Compile Include="Interfaces\IFileSysTestRunner.cs" />
     <Compile Include="Interfaces\IXmlBuilder.cs" />
@@ -86,7 +85,10 @@
     <Compile Include="MtbManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="MtbxManager.cs" />
     <Compile Include="Runners\RunnerBase.cs" />
+    <Compile Include="TestInfo.cs" />
+    <Compile Include="TestParameterInfo.cs" />
     <Compile Include="TestRunners\PerformanceTestRunner.cs" />
     <Compile Include="TestRunResults.cs" />
     <Compile Include="TestRunners\GuiTestRunner.cs" />
@@ -113,6 +115,9 @@
     <None Include="JunitXml\junit.xsd">
       <SubType>Designer</SubType>
     </None>
+    <EmbeddedResource Include="MtbxSchema.xsd">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">

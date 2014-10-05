@@ -39,7 +39,7 @@ public class RunFromFileSystemModel {
 		this.ignoreErrorStrings = ignoreErrorStrings;
 		
 	}
-	
+
 
 	public String getFsTests() {
 		return fsTests;
@@ -111,8 +111,8 @@ public class RunFromFileSystemModel {
 		Properties props = new Properties();
 		
 		if (!StringUtils.isEmpty(this.fsTests)) {
-
-			String[] testsArr = this.fsTests.replaceAll("\r", "").split("\n");
+			String expandedFsTests = envVars.expand(fsTests);
+			String[] testsArr = expandedFsTests.replaceAll("\r", "").split("\n");
 
 			int i = 1;
 

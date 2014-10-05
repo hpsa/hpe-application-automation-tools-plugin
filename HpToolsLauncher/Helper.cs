@@ -609,7 +609,9 @@ namespace HpToolsLauncher
                 //if there is Result.xml -> UFT
                 //if there is sla.xml file -> LR
 
-                string[] resultFiles = Directory.GetFiles(runDesc.ReportLocation, "Results.xml", SearchOption.AllDirectories);
+                string[] resultFiles = Directory.GetFiles(runDesc.ReportLocation, "Results.xml", SearchOption.TopDirectoryOnly);
+                if (resultFiles.Length == 0)
+                    resultFiles = Directory.GetFiles(Path.Combine(runDesc.ReportLocation, "Report"), "Results.xml", SearchOption.TopDirectoryOnly);
 
                 if (resultFiles != null && resultFiles.Length > 0)
                     return GetTestStateFromUFTReport(runDesc, resultFiles);

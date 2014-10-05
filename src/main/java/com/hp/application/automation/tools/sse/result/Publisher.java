@@ -28,7 +28,8 @@ public abstract class Publisher extends Handler {
             Logger logger) {
         
         Testsuites ret = null;
-        Response response = getRunEntityTestSetRunsRequest(_client, _runId).execute();
+        GetRequest testSetRunsRequest = getRunEntityTestSetRunsRequest(_client, _runId);
+        Response response = testSetRunsRequest.execute();
         List<Map<String, String>> testInstanceRun = getTestInstanceRun(response, logger);
         String entityName = getEntityName(nameSuffix, logger);
         if (testInstanceRun != null) {

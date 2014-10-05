@@ -545,7 +545,7 @@ namespace HpToolsLauncher
             ITSTest currentTest = null;
             string abortFilename = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\stop" + Launcher.UniqueTimeStamp + ".txt";
             //wait for the tests to end ("normally" or because of the timeout)
-            while ((tsExecutionFinished == false) && (timeout == -1 || sw.Elapsed.TotalMinutes < timeout))
+            while ((tsExecutionFinished == false) && (timeout == -1 || sw.Elapsed.TotalSeconds < timeout))
             {
                 executionStatus.RefreshExecStatusInfo("all", true);
                 tsExecutionFinished = executionStatus.Finished;
@@ -592,7 +592,6 @@ namespace HpToolsLauncher
 
                             //start timing the new test run
                             string foldername = "";
-                            testSw = Stopwatch.StartNew();
                             ITestSetFolder folder = targetTestSet.TestSetFolder as ITestSetFolder;
 
                             if (folder != null)
@@ -669,7 +668,6 @@ namespace HpToolsLauncher
                     string testPath = "Root\\" + tsFolderName + "\\" + tsName + "\\" + activeTestDesc.TestName;
 
                     activeTestDesc.TestPath = testPath;
-                    activeTestDesc.Runtime = testSw.Elapsed;
                 }
 
                 //update the total runtime

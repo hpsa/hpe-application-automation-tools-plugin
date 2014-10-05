@@ -21,7 +21,7 @@ import com.hp.application.automation.tools.sse.sdk.Response;
 /***
  * 
  * @author Effi Bar-She'an
- * @author Dani Schreiber
+ * @author Dani Schreiber 
  * 
  */
 public class RestClient implements Client {

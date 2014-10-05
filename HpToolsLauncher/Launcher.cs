@@ -61,7 +61,6 @@ namespace HpToolsLauncher
             Failed = 1,
             Unstable = 2,
             Aborted = 3
-
         }
         /// <summary>
         /// saves the exit code in case we want to run all tests but fail at the end since a file wasn't found
@@ -269,16 +268,23 @@ namespace HpToolsLauncher
                     //get the tests
                     IEnumerable<string> tests = GetParamsWithPrefix("Test");
 
+                    IEnumerable<string> jenkinsEnvVariablesWithCommas = GetParamsWithPrefix("JenkinsEnv");
+                    Dictionary<string, string> jenkinsEnvVariables = new Dictionary<string,string>();
+                    foreach (string var in jenkinsEnvVariablesWithCommas)
+                    { 
+                        string[] nameVal = var.Split(",;".ToCharArray());
+                        jenkinsEnvVariables.Add(nameVal[0], nameVal[1]);
+                    }
                     //parse the timeout into a TimeSpan
                     TimeSpan timeout = TimeSpan.MaxValue;
                     if (_ciParams.ContainsKey("fsTimeout"))
                     {
-                        string strTimoutInMinutes = _ciParams["fsTimeout"];
-                        if (strTimoutInMinutes.Trim() != "-1")
+                        string strTimoutInSeconds = _ciParams["fsTimeout"];
+                        if (strTimoutInSeconds.Trim() != "-1")
                         {
-                            int intTimoutInMinutes = 0;
-                            int.TryParse(strTimoutInMinutes, out intTimoutInMinutes);
-                            timeout = TimeSpan.FromMinutes(intTimoutInMinutes);
+                            int intTimoutInSeconds = 0;
+                            int.TryParse(strTimoutInSeconds, out intTimoutInSeconds);
+                            timeout = TimeSpan.FromSeconds(intTimoutInSeconds);
                         }
                     }
 
@@ -292,12 +298,12 @@ namespace HpToolsLauncher
                     TimeSpan perScenarioTimeOut = TimeSpan.MaxValue;
                     if (_ciParams.ContainsKey("PerScenarioTimeOut"))
                     {
-                        string strTimoutInMinutes = _ciParams["PerScenarioTimeOut"];
-                        if (strTimoutInMinutes.Trim() != "-1")
+                        string strTimoutInSeconds = _ciParams["PerScenarioTimeOut"];
+                        if (strTimoutInSeconds.Trim() != "-1")
                         {
-                            int intTimoutInMinutes = 0;
-                            int.TryParse(strTimoutInMinutes, out intTimoutInMinutes);
-                            perScenarioTimeOut = TimeSpan.FromMinutes(intTimoutInMinutes);
+                            int intTimoutInSeconds = 0;
+                            int.TryParse(strTimoutInSeconds, out intTimoutInSeconds);
+                            perScenarioTimeOut = TimeSpan.FromSeconds(intTimoutInSeconds);
                         }
                     }
 
@@ -322,7 +328,7 @@ namespace HpToolsLauncher
                         return null;
                     }
 
-                    runner = new FileSystemTestsRunner(validTests, timeout, pollingInterval, perScenarioTimeOut, ignoreErrorStrings);
+                    runner = new FileSystemTestsRunner(validTests, timeout, pollingInterval, perScenarioTimeOut, ignoreErrorStrings, jenkinsEnvVariables);
 
                     break;
 

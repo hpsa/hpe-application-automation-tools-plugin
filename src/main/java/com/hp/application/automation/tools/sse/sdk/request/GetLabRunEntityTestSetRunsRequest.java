@@ -17,7 +17,13 @@ public class GetLabRunEntityTestSetRunsRequest extends GetRequest {
     
     @Override
     protected String getSuffix() {
-        
-        return String.format("procedure-testset-instance-runs?query={procedure-run[%s]}", _runId);
+        return "procedure-testset-instance-runs";
     }
+    
+    @Override
+    protected String getQueryString() {
+        
+        return String.format("query={procedure-run[%s]}&page-size=2000", _runId);
+    }
+    
 }
