@@ -9,6 +9,7 @@ import com.hp.application.automation.tools.sse.sdk.handler.PollHandler;
 import com.hp.application.automation.tools.sse.sdk.handler.PollHandlerFactory;
 import com.hp.application.automation.tools.sse.sdk.handler.RunHandler;
 import com.hp.application.automation.tools.sse.sdk.handler.RunHandlerFactory;
+import com.hp.application.automation.tools.sse.sdk.request.CreateSiteSessionRequest;
 
 /**
  * 
@@ -70,14 +71,9 @@ public class RunManager {
     private void appendQCSessionCookies(RestClient client) {
         
         // issue a post request so that cookies relevant to the QC Session will be added to the RestClient
-        Response response =
-                client.httpPost(
-                        client.build("rest/site-session"),
-                        null,
-                        null,
-                        ResourceAccessLevel.PUBLIC);
+        Response response = new CreateSiteSessionRequest(client).execute();
         if (!response.isOk()) {
-            throw new SSEException("Cannot appned QCSession cookies", response.getFailure());
+            throw new SSEException("Cannot append session cookies", response.getFailure());
         }
     }
     

@@ -3,8 +3,7 @@ package com.hp.application.automation.tools.sse.sdk;
 import java.net.HttpURLConnection;
 import java.util.Map;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.hp.application.automation.tools.rest.RestClient;

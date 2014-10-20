@@ -2,6 +2,7 @@ package com.hp.application.automation.tools.sse.sdk.request;
 
 import java.util.Map;
 
+import com.hp.application.automation.tools.sse.common.StringUtils;
 import com.hp.application.automation.tools.sse.sdk.Client;
 import com.hp.application.automation.tools.sse.sdk.Response;
 
@@ -16,7 +17,12 @@ public abstract class Request {
     
     protected final Client _client;
     protected final String _runId;
-    
+
+    public Request(Client client) {
+
+        this(client, StringUtils.EMPTY_STRING);
+    }
+
     protected Request(Client client, String runId) {
         
         _client = client;
@@ -36,8 +42,11 @@ public abstract class Request {
     }
     
     protected abstract Response perform();
-    
-    protected abstract String getSuffix();
+
+    protected String getSuffix() {
+
+        return null;
+    }
     
     protected Map<String, String> getHeaders() {
         
@@ -53,5 +62,4 @@ public abstract class Request {
         
         return _client.buildRestRequest(getSuffix());
     }
-    
 }
