@@ -20,18 +20,10 @@ public class RestXmlUtils {
     public static final String COOKIE = "Cookie";
     
     public static final String APP_XML = "application/xml";
+    public static final String TEXT_PLAIN = "text/plain";
     
     public static String fieldXml(String field, String value) {
         
         return String.format("<Field Name=\"%s\"><Value>%s</Value></Field>", field, value);
-    }
-    
-    public static Map<String, String> getAppXmlHeaders() {
-        
-        Map<String, String> ret = new HashMap<String, String>();
-        ret.put(HttpHeaders.CONTENT_TYPE, APP_XML);
-        ret.put(HttpHeaders.ACCEPT, APP_XML);
-        
-        return ret;
     }
 }
