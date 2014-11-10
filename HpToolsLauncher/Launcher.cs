@@ -302,8 +302,8 @@ namespace HpToolsLauncher
                         if (strTimoutInSeconds.Trim() != "-1")
                         {
                             int intTimoutInSeconds = 0;
-                            int.TryParse(strTimoutInSeconds, out intTimoutInSeconds);
-                            perScenarioTimeOut = TimeSpan.FromSeconds(intTimoutInSeconds);
+                            if (int.TryParse(strTimoutInSeconds, out intTimoutInSeconds))
+                                perScenarioTimeOut = TimeSpan.FromMinutes(intTimoutInSeconds);
                         }
                     }
 

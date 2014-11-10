@@ -25,6 +25,7 @@ using LRAnalysisLauncher.Properties;
 using HpToolsLauncher;
 using Analysis.ApiSL;
 using Analysis.Api.Dictionaries;
+using System.Diagnostics;
 
 namespace LRAnalysisLauncher
 {
@@ -38,7 +39,8 @@ namespace LRAnalysisLauncher
         //args: lrr location, lra location, html report location
         static int Main(string[] args)
         {
-            //Console.WriteLine("in LrAnlysisLauncher");
+            Console.WriteLine("starting analysis launcher");
+            int iPassed = (int)Launcher.ExitCodeEnum.Passed;//variable to keep track of whether all of the SLAs passed
             try
             {
                 if (args.Length != 3)
@@ -66,18 +68,25 @@ namespace LRAnalysisLauncher
                     session.ErrorMessages.LoadValuesIfNeeded();
                     if (session.ErrorMessages.Count != 0)
                     {
+                        if (session.ErrorMessages.Count > 1000)
+                        {
+                            Console.WriteLine("more then 1000 error during scenario run, analyzing only the first 1000.");
+                        }
                         Console.WriteLine(Resources.ErrorsReportTitle);
                         XmlElement errorRoot = xmlDoc.CreateElement("Errors");
                         xmlDoc.AppendChild(errorRoot);
-                        foreach (ErrorMessage err in session.ErrorMessages)
+                        int limit = 1000;
+                        ErrorMessage[] errors = session.ErrorMessages.ToArray();
+                        //foreach (ErrorMessage err in session.ErrorMessages)
+                        for (int i = 0; i < limit && i < errors.Length; i++)
                         {
+                            ErrorMessage err = errors[i];
                             XmlElement elem = xmlDoc.CreateElement("Error");
                             elem.SetAttribute("ID", err.ID.ToString());
                             elem.AppendChild(xmlDoc.CreateTextNode(err.Name));
                             Console.WriteLine("ID: " + err.ID + " Name: " + err.Name);
                             errorRoot.AppendChild(elem);
                         }
-
                         xmlDoc.Save(Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(lrrlocation)), "Errors.xml"));
 
                         xmlDoc.RemoveAll();
@@ -89,61 +98,148 @@ namespace LRAnalysisLauncher
                     XmlElement root = xmlDoc.CreateElement("SLA");
                     xmlDoc.AppendChild(root);
 
+                    int iCounter = 0; // set counter
                     foreach (SlaWholeRunRuleResult a in slaResult.WholeRunRules)
                     {
-                        XmlElement elem = xmlDoc.CreateElement(a.RuleName);
                         Console.WriteLine(Resources.DoubleLineSeperator);
-                        elem.SetAttribute("FullName", a.RuleUiName);
-                        Console.WriteLine("Full Name : " + a.RuleUiName);
-                        Console.WriteLine("Measurement : " + a.Measurement);
-                        elem.SetAttribute("Measurement", a.Measurement.ToString());
-                        Console.WriteLine("Goal Value : " + a.GoalValue);
-                        elem.SetAttribute("GoalValue", a.GoalValue.ToString());
-                        Console.WriteLine("Actual value : " + a.ActualValue);
-                        elem.SetAttribute("ActualValue", a.ActualValue.ToString());
-                        Console.WriteLine("status : " + a.Status);
-                        elem.AppendChild(xmlDoc.CreateTextNode(a.Status.ToString()));
-                        Console.WriteLine(Resources.DoubleLineSeperator);
+                        XmlElement elem;
+                        if (a.Measurement.Equals(SlaMeasurement.PercentileTRT))
+                        {
+                            SlaPercentileRuleResult b = slaResult.TransactionRules.PercentileRules[iCounter];
+                            elem = xmlDoc.CreateElement(b.RuleName);
+                            Console.WriteLine("Transaction Name : " + b.TransactionName);
+                            elem.SetAttribute("TransactionName", b.TransactionName.ToString());
+                            Console.WriteLine("Percentile : " + b.Percentage);
+                            elem.SetAttribute("Percentile", b.Percentage.ToString());
+                            elem.SetAttribute("FullName", b.RuleUiName);
+                            Console.WriteLine("Full Name : " + b.RuleUiName);
+                            Console.WriteLine("Measurement : " + b.Measurement);
+                            elem.SetAttribute("Measurement", b.Measurement.ToString());
+                            Console.WriteLine("Goal Value : " + b.GoalValue);
+                            elem.SetAttribute("GoalValue", b.GoalValue.ToString());
+                            Console.WriteLine("Actual value : " + b.ActualValue);
+                            elem.SetAttribute("ActualValue", b.ActualValue.ToString());
+                            Console.WriteLine("status : " + b.Status);
+                            elem.AppendChild(xmlDoc.CreateTextNode(b.Status.ToString()));
+
+                            if (!b.Status.Equals(SlaRuleStatus.Passed)) // 0 = failed
+                            {
+                                iPassed = (int)Launcher.ExitCodeEnum.Failed;
+                            }
+                            iCounter++;
+                        }
+                        else
+                        {
+                            elem = xmlDoc.CreateElement(a.RuleName);
+                            elem.SetAttribute("FullName", a.RuleUiName);
+                            Console.WriteLine("Full Name : " + a.RuleUiName);
+                            Console.WriteLine("Measurement : " + a.Measurement);
+                            elem.SetAttribute("Measurement", a.Measurement.ToString());
+                            Console.WriteLine("Goal Value : " + a.GoalValue);
+                            elem.SetAttribute("GoalValue", a.GoalValue.ToString());
+                            Console.WriteLine("Actual value : " + a.ActualValue);
+                            elem.SetAttribute("ActualValue", a.ActualValue.ToString());
+                            Console.WriteLine("status : " + a.Status);
+                            elem.AppendChild(xmlDoc.CreateTextNode(a.Status.ToString()));
+
+                            if (!a.Status.Equals(SlaRuleStatus.Passed)) // 0 = failed
+                            {
+                                iPassed = (int)Launcher.ExitCodeEnum.Failed;
+                            }
+                        }
                         root.AppendChild(elem);
+                        Console.WriteLine(Resources.DoubleLineSeperator);
                     }
 
-
+                    iCounter = 0; // reset counter
                     foreach (SlaTimeRangeRuleResult a in slaResult.TimeRangeRules)
                     {
-                        XmlElement rule = xmlDoc.CreateElement(a.RuleName);
+                        
                         Console.WriteLine(Resources.DoubleLineSeperator);
-                        Console.WriteLine("Full Name : " + a.RuleUiName);
-                        rule.SetAttribute("FullName", a.RuleUiName);
-                        Console.WriteLine("Measurement : " + a.Measurement);
-                        rule.SetAttribute("Measurement", a.Measurement.ToString());
-                        Console.WriteLine("CriteriaMeasurement Value : " + a.CriteriaMeasurement);
-                        rule.SetAttribute("CriteriaMeasurementValue", a.CriteriaMeasurement.ToString());
-                        Console.WriteLine("LoadThresholds value : ");
-                        foreach (SlaLoadThreshold slat in a.LoadThresholds)
-                        {
-                            XmlElement loadThr = xmlDoc.CreateElement("SlaLoadThreshold");
-                            loadThr.SetAttribute("StartLoadValue", slat.StartLoadValue.ToString());
-                            loadThr.SetAttribute("EndLoadValue", slat.EndLoadValue.ToString());
-                            loadThr.SetAttribute("ThresholdValue", slat.ThresholdValue.ToString());
-                            rule.AppendChild(loadThr);
+                        XmlElement rule;
+                        if (a.Measurement.Equals(SlaMeasurement.AverageTRT))
+                         {
+                        SlaTransactionTimeRangeRuleResult b = slaResult.TransactionRules.TimeRangeRules[iCounter];
+                            rule = xmlDoc.CreateElement(b.RuleName);
+                            Console.WriteLine("Transaction Name: " + b.TransactionName);
+                            rule.SetAttribute("TransactionName", b.TransactionName);
+                            Console.WriteLine("Full Name : " + b.RuleUiName);
+                            rule.SetAttribute("FullName", b.RuleUiName);
+                            Console.WriteLine("Measurement : " + b.Measurement);
+                            rule.SetAttribute("Measurement", b.Measurement.ToString());
+                            Console.WriteLine("SLA Load Threshold Value : " + b.CriteriaMeasurement);
+                            rule.SetAttribute("SLALoadThresholdValue", b.CriteriaMeasurement.ToString());
+ 
+                            foreach (SlaLoadThreshold slat in b.LoadThresholds)
+                            {
+                                XmlElement loadThr = xmlDoc.CreateElement("SlaLoadThreshold");
+                                loadThr.SetAttribute("StartLoadValue", slat.StartLoadValue.ToString());
+                                loadThr.SetAttribute("EndLoadValue", slat.EndLoadValue.ToString());
+                                loadThr.SetAttribute("ThresholdValue", slat.ThresholdValue.ToString());
+                                rule.AppendChild(loadThr);
 
-                        }
-                        XmlElement timeRanges = xmlDoc.CreateElement("TimeRanges");
-                        foreach (SlaTimeRangeInfo slatri in a.TimeRanges)
+                            }
+                            XmlElement timeRanges = xmlDoc.CreateElement("TimeRanges");
+                            foreach (SlaTimeRangeInfo slatri in b.TimeRanges)
+                            {
+                                XmlElement subsubelem = xmlDoc.CreateElement("TimeRangeInfo");
+                                subsubelem.SetAttribute("StartTime", slatri.StartTime.ToString());
+                                subsubelem.SetAttribute("EndTime", slatri.EndTime.ToString());
+                                subsubelem.SetAttribute("GoalValue", slatri.GoalValue.ToString());
+                                subsubelem.SetAttribute("ActualValue", slatri.ActualValue.ToString());
+                               subsubelem.SetAttribute("LoadValue", slatri.LoadValue.ToString());
+                                subsubelem.InnerText = slatri.Status.ToString();
+                                timeRanges.AppendChild(subsubelem);
+                            }
+                            rule.AppendChild(timeRanges);
+                           Console.WriteLine("status : " + b.Status);
+                            rule.AppendChild(xmlDoc.CreateTextNode(b.Status.ToString()));
+                            if (!b.Status.Equals(SlaRuleStatus.Passed)) // 0 = failed
+                            {
+                                iPassed = (int)Launcher.ExitCodeEnum.Failed;
+                            }
+                            iCounter++;
+                         }
+                        else
                         {
-                            XmlElement subsubelem = xmlDoc.CreateElement("TimeRangeInfo");
-                            subsubelem.SetAttribute("StartTime", slatri.StartTime.ToString());
-                            subsubelem.SetAttribute("EndTime", slatri.EndTime.ToString());
-                            subsubelem.SetAttribute("GoalValue", slatri.GoalValue.ToString());
-                            subsubelem.SetAttribute("ActualValue", slatri.ActualValue.ToString());
-                            subsubelem.SetAttribute("LoadValue", slatri.LoadValue.ToString());
-                            subsubelem.InnerText = slatri.Status.ToString();
-                            timeRanges.AppendChild(subsubelem);
-                        }
-                        rule.AppendChild(timeRanges);
-                        Console.WriteLine("status : " + a.Status);
-                        rule.AppendChild(xmlDoc.CreateTextNode(a.Status.ToString()));
+                            rule = xmlDoc.CreateElement(a.RuleName);
+                            Console.WriteLine("Full Name : " + a.RuleUiName);
+                            rule.SetAttribute("FullName", a.RuleUiName);
+                            Console.WriteLine("Measurement : " + a.Measurement);
+                            rule.SetAttribute("Measurement", a.Measurement.ToString());
+                            Console.WriteLine("SLA Load Threshold Value : " + a.CriteriaMeasurement);
+                            rule.SetAttribute("SLALoadThresholdValue", a.CriteriaMeasurement.ToString());
 
+                            foreach (SlaLoadThreshold slat in a.LoadThresholds)
+                            {
+                                XmlElement loadThr = xmlDoc.CreateElement("SlaLoadThreshold");
+                                loadThr.SetAttribute("StartLoadValue", slat.StartLoadValue.ToString());
+                                loadThr.SetAttribute("EndLoadValue", slat.EndLoadValue.ToString());
+                                loadThr.SetAttribute("ThresholdValue", slat.ThresholdValue.ToString());
+                                rule.AppendChild(loadThr);
+
+                            }
+                            XmlElement timeRanges = xmlDoc.CreateElement("TimeRanges");
+                            foreach (SlaTimeRangeInfo slatri in a.TimeRanges)
+                            {
+                                XmlElement subsubelem = xmlDoc.CreateElement("TimeRangeInfo");
+                                subsubelem.SetAttribute("StartTime", slatri.StartTime.ToString());
+                                subsubelem.SetAttribute("EndTime", slatri.EndTime.ToString());
+                                subsubelem.SetAttribute("GoalValue", slatri.GoalValue.ToString());
+                                subsubelem.SetAttribute("ActualValue", slatri.ActualValue.ToString());
+                                subsubelem.SetAttribute("LoadValue", slatri.LoadValue.ToString());
+                                subsubelem.InnerText = slatri.Status.ToString();
+                                timeRanges.AppendChild(subsubelem);
+                            }
+                            rule.AppendChild(timeRanges);
+                            Console.WriteLine("status : " + a.Status);
+                            rule.AppendChild(xmlDoc.CreateTextNode(a.Status.ToString()));
+                            if (!a.Status.Equals(SlaRuleStatus.Passed))
+                            {
+                                iPassed = (int)Launcher.ExitCodeEnum.Failed;
+                            }
+                        
+                        }
                         root.AppendChild(rule);
 
                         Console.WriteLine(Resources.DoubleLineSeperator);
@@ -168,12 +264,9 @@ namespace LRAnalysisLauncher
                 Console.WriteLine(e.StackTrace);
                 return (int)Launcher.ExitCodeEnum.Aborted;
             }
-            finally
-            {
-                //close analysis?
-            }
 
-            return (int)Launcher.ExitCodeEnum.Passed;
+            // return SLA status code, if any SLA fails return a fail here.
+            return iPassed;
 
         }
 
