@@ -79,7 +79,7 @@ public class AutEnvironmentBuilder extends Builder {
             AutEnvironmentModel autEnvironmentModel,
             final PrintStream printStreamLogger) throws InterruptedException {
         
-        AUTEnvironmentBuilderPerformer performer = null;
+        AUTEnvironmentBuilderPerformer performer;
         try {
             Logger logger = new Logger() {
                 
@@ -91,8 +91,7 @@ public class AutEnvironmentBuilder extends Builder {
             AUTEnvironmentResolvedModel autEnvModel =
                     AUTEnvironmentModelResolver.resolveModel(
                             autEnvironmentModel,
-                            build.getBuildVariableResolver(),
-                            logger);
+                            build.getBuildVariableResolver());
             performer =
                     new AUTEnvironmentBuilderPerformer(
                             autEnvModel,

@@ -26,7 +26,7 @@ public class SSEBuilderPerformer {
         Testsuites ret = new Testsuites();
         try {
             //Args args = new ArgsFactory().create(model);
-            Args args = new ArgsFactory().createResolved(model, buildVariableResolver, logger);
+            Args args = new ArgsFactory().createResolved(model, buildVariableResolver);
             RestClient restClient =
                     new RestClient(
                             args.getUrl(),

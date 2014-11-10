@@ -1,9 +1,9 @@
 package com.hp.application.automation.tools.sse;
 
 import com.hp.application.automation.tools.model.SseModel;
-import com.hp.application.automation.tools.sse.common.EnvironmnetVariablesUtils;
 import com.hp.application.automation.tools.sse.sdk.Args;
-import com.hp.application.automation.tools.sse.sdk.Logger;
+
+import hudson.Util;
 import hudson.util.VariableResolver;
 
 /***
@@ -33,42 +33,21 @@ public class ArgsFactory {
                 model.getCdaDetails());
     }
     
-    public Args createResolved(
-            SseModel model,
-            VariableResolver<String> buildVariableResolver,
-            Logger logger) {
+    public Args createResolved(SseModel model, VariableResolver<String> buildResolver) {
         
         return new Args(
                 
                 model.getAlmServerUrl(),
-                EnvironmnetVariablesUtils.reolveVariable(
-                        model.getAlmDomain(),
-                        buildVariableResolver,
-                        logger),
-                EnvironmnetVariablesUtils.reolveVariable(
-                        model.getAlmProject(),
-                        buildVariableResolver,
-                        logger),
-                EnvironmnetVariablesUtils.reolveVariable(
-                        model.getAlmUserName(),
-                        buildVariableResolver,
-                        logger),
+                Util.replaceMacro(model.getAlmDomain(), buildResolver),
+                Util.replaceMacro(model.getAlmProject(), buildResolver),
+                Util.replaceMacro(model.getAlmUserName(), buildResolver),
                 model.getAlmPassword(),
                 model.getRunType(),
-                EnvironmnetVariablesUtils.reolveVariable(
-                        model.getAlmEntityId(),
-                        buildVariableResolver,
-                        logger),
-                EnvironmnetVariablesUtils.reolveVariable(
-                        model.getTimeslotDuration(),
-                        buildVariableResolver,
-                        logger),
+                Util.replaceMacro(model.getAlmEntityId(), buildResolver),
+                Util.replaceMacro(model.getTimeslotDuration(), buildResolver),
                 model.getDescription(),
                 model.getPostRunAction(),
-                EnvironmnetVariablesUtils.reolveVariable(
-                        model.getEnvironmentConfigurationId(),
-                        buildVariableResolver,
-                        logger),
+                Util.replaceMacro(model.getEnvironmentConfigurationId(), buildResolver),
                 model.getCdaDetails());
     }
 }

@@ -9,6 +9,7 @@ import com.hp.application.automation.tools.model.AUTEnvironmentResolvedModel;
 import com.hp.application.automation.tools.sse.autenvironment.request.get.GetAutEnvironmentByIdRequest;
 import com.hp.application.automation.tools.sse.autenvironment.request.get.GetAutEnvironmentConfigurationByIdRequest;
 import com.hp.application.automation.tools.sse.autenvironment.request.post.CreateAutEnvConfRequest;
+import com.hp.application.automation.tools.sse.common.StringUtils;
 import com.hp.application.automation.tools.sse.common.XPathUtils;
 import com.hp.application.automation.tools.sse.sdk.Client;
 import com.hp.application.automation.tools.sse.sdk.Logger;
@@ -58,6 +59,7 @@ public class AUTEnvironmentManager {
         
         String newConfigurationName =
                 autEnvironmentModel.isUseExistingAutEnvConf()
+                        || StringUtils.isNullOrEmpty(autEnvironmentModel.getNewAutEnvConfName())
                         ? createTempConfigurationName()
                         : autEnvironmentModel.getNewAutEnvConfName();
         return createNewAutEnvironmentConfiguration(autEnvironmentId, newConfigurationName);
@@ -76,7 +78,7 @@ public class AUTEnvironmentManager {
                     "Failed to create new AUT Environment Configuration named: [%s] for AUT Environment with id: [%s]",
                     newAutEnvConfigurationName,
                     autEnvironmentId));
-            return newAutEnvironmentConfigurationId;
+            return null;
         }
         try {
             newAutEnvironmentConfigurationId =

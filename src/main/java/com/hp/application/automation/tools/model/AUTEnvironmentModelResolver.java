@@ -1,7 +1,6 @@
 package com.hp.application.automation.tools.model;
 
-import com.hp.application.automation.tools.sse.common.EnvironmnetVariablesUtils;
-import com.hp.application.automation.tools.sse.sdk.Logger;
+import hudson.Util;
 import hudson.util.VariableResolver;
 
 /**
@@ -11,62 +10,38 @@ public class AUTEnvironmentModelResolver {
     
     public static AUTEnvironmentResolvedModel resolveModel(
             AutEnvironmentModel autEnvironmentModel,
-            VariableResolver<String> buildResolver,
-            Logger logger) {
+            VariableResolver<String> buildResolver) {
         
         String resolvedUserName =
-                EnvironmnetVariablesUtils.reolveVariable(
-                        autEnvironmentModel.getAlmUserName(),
-                        buildResolver,
-                        logger);
+                Util.replaceMacro(autEnvironmentModel.getAlmUserName(), buildResolver);
         String resolvedAlmDomain =
-                EnvironmnetVariablesUtils.reolveVariable(
-                        autEnvironmentModel.getAlmDomain(),
-                        buildResolver,
-                        logger);
+                Util.replaceMacro(autEnvironmentModel.getAlmDomain(), buildResolver);
         String resolvedAlmProject =
-                EnvironmnetVariablesUtils.reolveVariable(
-                        autEnvironmentModel.getAlmProject(),
-                        buildResolver,
-                        logger);
+                Util.replaceMacro(autEnvironmentModel.getAlmProject(), buildResolver);
         String resolvedAutEnvironmentId =
-                EnvironmnetVariablesUtils.reolveVariable(
-                        autEnvironmentModel.getAutEnvironmentId(),
-                        buildResolver,
-                        logger);
+                Util.replaceMacro(autEnvironmentModel.getAutEnvironmentId(), buildResolver);
         String resolvedAutEnvConfId =
-                EnvironmnetVariablesUtils.reolveVariable(
-                        autEnvironmentModel.getExistingAutEnvConfId(),
-                        buildResolver,
-                        logger);
+                Util.replaceMacro(autEnvironmentModel.getExistingAutEnvConfId(), buildResolver);
         String resolvedAutEnvConfName =
-                EnvironmnetVariablesUtils.reolveVariable(
-                        autEnvironmentModel.getNewAutEnvConfName(),
-                        buildResolver,
-                        logger);
+                Util.replaceMacro(autEnvironmentModel.getNewAutEnvConfName(), buildResolver);
         String resolvedJsonPath =
-                EnvironmnetVariablesUtils.reolveVariable(
-                        autEnvironmentModel.getPathToJsonFile(),
-                        buildResolver,
-                        logger);
+                Util.replaceMacro(autEnvironmentModel.getPathToJsonFile(), buildResolver);
         
-        AUTEnvironmentResolvedModel autEnvironmentResolvedModel =
-                new AUTEnvironmentResolvedModel(
-                        autEnvironmentModel.getAlmServerName(),
-                        autEnvironmentModel.getAlmServerUrl(),
-                        resolvedUserName,
-                        autEnvironmentModel.getAlmPassword(),
-                        resolvedAlmDomain,
-                        resolvedAlmProject,
-                        resolvedAutEnvironmentId,
-                        autEnvironmentModel.isUseExistingAutEnvConf(),
-                        resolvedAutEnvConfId,
-                        autEnvironmentModel.isCreateNewAutEnvConf(),
-                        resolvedAutEnvConfName,
-                        autEnvironmentModel.getAutEnvironmentParameters(),
-                        resolvedJsonPath,
-                        autEnvironmentModel.getOutputParameter());
-        return autEnvironmentResolvedModel;
+        return new AUTEnvironmentResolvedModel(
+                autEnvironmentModel.getAlmServerName(),
+                autEnvironmentModel.getAlmServerUrl(),
+                resolvedUserName,
+                autEnvironmentModel.getAlmPassword(),
+                resolvedAlmDomain,
+                resolvedAlmProject,
+                resolvedAutEnvironmentId,
+                autEnvironmentModel.isUseExistingAutEnvConf(),
+                resolvedAutEnvConfId,
+                autEnvironmentModel.isCreateNewAutEnvConf(),
+                resolvedAutEnvConfName,
+                autEnvironmentModel.getAutEnvironmentParameters(),
+                resolvedJsonPath,
+                autEnvironmentModel.getOutputParameter());
         
     }
 }

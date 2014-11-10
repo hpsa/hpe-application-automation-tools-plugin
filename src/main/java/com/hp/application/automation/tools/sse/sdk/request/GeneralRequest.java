@@ -30,7 +30,9 @@ public abstract class GeneralRequest {
     
     protected abstract Response perform();
     
-    protected abstract String getSuffix();
+    protected String getSuffix() {
+        return null;
+    }
     
     protected Map<String, String> getHeaders() {
         
