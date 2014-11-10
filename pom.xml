@@ -1,109 +1,123 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>org.jenkins-ci.plugins</groupId>
-    <artifactId>plugin</artifactId>
-    <version>1.509.4</version><!-- which version of Jenkins is this plugin built against? -->
-  </parent>
- 
-  <artifactId>hp-application-automation-tools-plugin</artifactId>
-  <version>3.0.6-SNAPSHOT</version> 
-  <packaging>hpi</packaging>
-  <name>HP Application Automation Tools</name>
-  <description>Allowing to run HP testing tools tests: Unified Functional Testing, QuickTest Professional, Service Test and Performance Center</description>
-  <url>https://wiki.jenkins-ci.org/display/JENKINS/HP+Application+Automation+Tools</url>
-   
-  <distributionManagement>
-   <repository>
-    <id>maven.jenkins-ci.org</id>
-    <url>http://maven.jenkins-ci.org:8081/content/repositories/releases/</url>
-   </repository>
-  </distributionManagement>   
-   
-  <scm>
-    <connection>scm:git:ssh://github.com/hpsa/hp-application-automation-tools-plugin.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/hpsa/hp-application-automation-tools-plugin.git</developerConnection>
-    <url>https://github.com/hpsa/hp-application-automation-tools-plugin</url>
-    <tag>HEAD</tag>
-  </scm>
-  
-  <developers>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.jenkins-ci.plugins</groupId>
+        <artifactId>plugin</artifactId>
+        <version>1.509.4</version>
+        <!-- which version of Jenkins is this plugin built against? -->
+    </parent>
+
+    <artifactId>hp-application-automation-tools-plugin</artifactId>
+    <version>3.0.6-SNAPSHOT</version>
+    <packaging>hpi</packaging>
+    <name>HP Application Automation Tools</name>
+    <description>Allowing to run HP testing tools tests: Unified Functional Testing, QuickTest Professional, Service
+        Test and Performance Center
+    </description>
+    <url>https://wiki.jenkins-ci.org/display/JENKINS/HP+Application+Automation+Tools</url>
+
+    <distributionManagement>
+        <repository>
+            <id>maven.jenkins-ci.org</id>
+            <url>http://maven.jenkins-ci.org:8081/content/repositories/releases/</url>
+        </repository>
+    </distributionManagement>
+
+    <scm>
+        <connection>scm:git:ssh://github.com/hpsa/hp-application-automation-tools-plugin.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/hpsa/hp-application-automation-tools-plugin.git
+        </developerConnection>
+        <url>https://github.com/hpsa/hp-application-automation-tools-plugin</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <developers>
 
 
-	<developer>	
-	  <name>Effi Bar-Shean</name>
-      <email>effi.bar--shean@hp.com</email>
-    </developer>			
-    <developer>	
-	  <id>mrmann</id>
-	  <name>Avishai Moshka</name>
-      <email>avishai.moshka@hp.com</email>
-    </developer>
-	<developer>
-	<id>orens</id>
-	  <name>Oren Schwartz</name>
-      <email>orens@hp.com</email>
-	</developer>
-	<developer>
-	  <name>Daniel Petisme</name>
-    </developer>	
-	<developer>
-	  <name>Romain Seguy</name>
-    </developer>
-    <developer>
-      <id>ofirshaked</id>
-      <name>Ofir Shaked</name>
-    </developer>
-	<developer>
-      <id>amitb</id>
-      <name>Amit Bezalel</name>
-    </developer>
-    <developer>	
-	  <name>Daniel Schreiber</name>
-      <email>daniel.schreiber@hp.com</email>
-    </developer>
-	<developer>
-      <id>liron_tzabari</id>
-	  <name>Liron Tzabari</name>
-    </developer>		
-  </developers>
+        <developer>
+            <name>Effi Bar-Shean</name>
+            <email>effi.bar--shean@hp.com</email>
+        </developer>
+        <developer>
+            <id>mrmann</id>
+            <name>Avishai Moshka</name>
+            <email>avishai.moshka@hp.com</email>
+        </developer>
+        <developer>
+            <id>orens</id>
+            <name>Oren Schwartz</name>
+            <email>orens@hp.com</email>
+        </developer>
+        <developer>
+            <name>Daniel Petisme</name>
+        </developer>
+        <developer>
+            <name>Romain Seguy</name>
+        </developer>
+        <developer>
+            <id>ofirshaked</id>
+            <name>Ofir Shaked</name>
+        </developer>
+        <developer>
+            <id>amitb</id>
+            <name>Amit Bezalel</name>
+        </developer>
+        <developer>
+            <name>Daniel Schreiber</name>
+            <email>daniel.schreiber@hp.com</email>
+        </developer>
+        <developer>
+            <id>liron_tzabari</id>
+            <name>Liron Tzabari</name>
+        </developer>
+    </developers>
 
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-release-plugin</artifactId>
-        <version>2.4.1</version>
-      </plugin>
-    </plugins>
-  </build>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.4.1</version>
+            </plugin>
+        </plugins>
+    </build>
 
-  
-  <!-- get every artifact through repo.jenkins-ci.org, which proxies all the artifacts that we need -->
-  <repositories>
-    <repository>
-      <id>repo.jenkins-ci.org</id>
-      <url>http://repo.jenkins-ci.org/public/</url>
-    </repository>
-  </repositories>
 
-	<pluginRepositories>
-		<pluginRepository>
-			<id>repo.jenkins-ci.org</id>
-			<url>http://repo.jenkins-ci.org/public/</url>
-		</pluginRepository>
-	</pluginRepositories>
+    <!-- get every artifact through repo.jenkins-ci.org, which proxies all the artifacts that we need -->
+    <repositories>
+        <repository>
+            <id>repo.jenkins-ci.org</id>
+            <url>http://repo.jenkins-ci.org/public/</url>
+        </repository>
+        <repository>
+            <id>central</id>
+            <url>http://repo1.maven.org/maven2</url>
+        </repository>
+    </repositories>
 
-	<dependencies>
-		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpclient</artifactId>
-			<version>4.2.1</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpcore</artifactId>
-			<version>4.2.1</version>
-		</dependency>
-	</dependencies>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>repo.jenkins-ci.org</id>
+            <url>http://repo.jenkins-ci.org/public/</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+            <version>4.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.jayway.jsonpath</groupId>
+            <artifactId>json-path</artifactId>
+            <version>1.1.0</version>
+        </dependency>
+    </dependencies>
 </project>
