@@ -1,9 +1,11 @@
 package com.hp.application.automation.tools.sse.autenvironment;
 
 import java.util.Collection;
+import java.util.List;
 
 import com.hp.application.automation.tools.common.SSEException;
 import com.hp.application.automation.tools.model.AUTEnvironmentResolvedModel;
+import com.hp.application.automation.tools.model.AutEnvironmentParameterModel;
 import com.hp.application.automation.tools.rest.RestClient;
 import com.hp.application.automation.tools.sse.common.StringUtils;
 import com.hp.application.automation.tools.sse.sdk.*;
@@ -70,10 +72,17 @@ public class AUTEnvironmentBuilderPerformer {
             String autEnvironmentConfigurationId,
             String parametersRootFolderId) {
         
+        List<AutEnvironmentParameterModel> autEnvironmentParameters =
+                model.getAutEnvironmentParameters();
+        if (autEnvironmentParameters == null || autEnvironmentParameters.size() == 0) {
+            logger.log("There's no AUT Environment parameters to assign for this build...");
+            return;
+        }
+        
         AUTEnvironmentParametersManager parametersManager =
                 new AUTEnvironmentParametersManager(
                         getClient(),
-                        model.getAutEnvironmentParameters(),
+                        autEnvironmentParameters,
                         parametersRootFolderId,
                         autEnvironmentConfigurationId,
                         buildVariableResolver,

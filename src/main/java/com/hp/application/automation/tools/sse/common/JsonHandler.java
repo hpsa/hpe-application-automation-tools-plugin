@@ -30,7 +30,7 @@ public class JsonHandler {
         try {
             InputStream is = new FileInputStream(path);
             String jsonTxt;
-            jsonTxt = IOUtils.toString(is);
+            jsonTxt = IOUtils.toString(is, "UTF-8");
             parsedJson =
                     Configuration.defaultConfiguration().addOptions(Option.ALWAYS_RETURN_LIST).jsonProvider().parse(
                             jsonTxt);

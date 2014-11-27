@@ -17,11 +17,13 @@ import com.hp.application.automation.tools.sse.autenvironment.AUTEnvironmentBuil
 import com.hp.application.automation.tools.sse.common.StringUtils;
 import com.hp.application.automation.tools.sse.sdk.Logger;
 
+import hudson.EnvVars;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
+import hudson.util.VariableResolver;
 
 /**
  * Created by barush on 21/10/2014.
@@ -53,7 +55,8 @@ public class AutEnvironmentBuilder extends Builder {
         
         autEnvironmentModel.setAlmServerUrl(getServerUrl(autEnvironmentModel.getAlmServerName()));
         PrintStream logger = listener.getLogger();
-        execute(build, autEnvironmentModel, logger);
+        EnvVars envVars = build.getEnvironment(listener);
+        execute(build, envVars, autEnvironmentModel, logger);
         
         return true;
     }
@@ -76,6 +79,7 @@ public class AutEnvironmentBuilder extends Builder {
     
     private void execute(
             AbstractBuild<?, ?> build,
+            EnvVars envVars,
             AutEnvironmentModel autEnvironmentModel,
             final PrintStream printStreamLogger) throws InterruptedException {
         
@@ -87,16 +91,12 @@ public class AutEnvironmentBuilder extends Builder {
                     printStreamLogger.println(message);
                 }
             };
+            VariableResolver.ByMap<String> variableResolver =
+                    new VariableResolver.ByMap<String>(envVars);
             
             AUTEnvironmentResolvedModel autEnvModel =
-                    AUTEnvironmentModelResolver.resolveModel(
-                            autEnvironmentModel,
-                            build.getBuildVariableResolver());
-            performer =
-                    new AUTEnvironmentBuilderPerformer(
-                            autEnvModel,
-                            build.getBuildVariableResolver(),
-                            logger);
+                    AUTEnvironmentModelResolver.resolveModel(autEnvironmentModel, variableResolver);
+            performer = new AUTEnvironmentBuilderPerformer(autEnvModel, variableResolver, logger);
             performer.start();
             assignOutputValue(build, performer, autEnvModel.getOutputParameter(), logger);
         } catch (InterruptedException e) {
