@@ -6,6 +6,7 @@ import com.hp.application.automation.tools.sse.result.model.junit.Testsuites;
 import com.hp.application.automation.tools.sse.sdk.Args;
 import com.hp.application.automation.tools.sse.sdk.Logger;
 import com.hp.application.automation.tools.sse.sdk.RunManager;
+import hudson.util.VariableResolver;
 
 /***
  * 
@@ -17,11 +18,15 @@ public class SSEBuilderPerformer {
     
     private final RunManager _runManager = new RunManager();
     
-    public Testsuites start(SseModel model, Logger logger) throws InterruptedException {
+    public Testsuites start(
+            SseModel model,
+            Logger logger,
+            VariableResolver<String> buildVariableResolver) throws InterruptedException {
         
         Testsuites ret = new Testsuites();
         try {
-            Args args = new ArgsFactory().create(model);
+            //Args args = new ArgsFactory().create(model);
+            Args args = new ArgsFactory().createResolved(model, buildVariableResolver);
             RestClient restClient =
                     new RestClient(
                             args.getUrl(),

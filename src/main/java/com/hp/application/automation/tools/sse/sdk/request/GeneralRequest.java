@@ -2,31 +2,18 @@ package com.hp.application.automation.tools.sse.sdk.request;
 
 import java.util.Map;
 
-import com.hp.application.automation.tools.sse.common.StringUtils;
 import com.hp.application.automation.tools.sse.sdk.Client;
 import com.hp.application.automation.tools.sse.sdk.Response;
 
-/***
- * 
- * @author Effi Bar-She'an
- * @author Dani Schreiber
- * 
+/**
+ * Created by barush on 29/10/2014.
  */
-
-public abstract class Request {
+public abstract class GeneralRequest {
     
-    protected final Client _client;
-    protected final String _runId;
-
-    public Request(Client client) {
-
-        this(client, StringUtils.EMPTY_STRING);
-    }
-
-    protected Request(Client client, String runId) {
-        
-        _client = client;
-        _runId = runId;
+    protected final Client client;
+    
+    protected GeneralRequest(Client client) {
+        this.client = client;
     }
     
     public final Response execute() {
@@ -42,9 +29,8 @@ public abstract class Request {
     }
     
     protected abstract Response perform();
-
+    
     protected String getSuffix() {
-
         return null;
     }
     
@@ -60,6 +46,7 @@ public abstract class Request {
     
     protected String getUrl() {
         
-        return _client.buildRestRequest(getSuffix());
+        return client.buildRestRequest(getSuffix());
     }
+    
 }
