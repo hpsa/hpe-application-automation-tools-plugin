@@ -17,6 +17,11 @@
     </description>
     <url>https://wiki.jenkins-ci.org/display/JENKINS/HP+Application+Automation+Tools</url>
 
+    <properties>
+        <msbuild.exe>C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe</msbuild.exe>
+        <msbuild.configuration>Release</msbuild.configuration>
+    </properties>
+
     <distributionManagement>
         <repository>
             <id>maven.jenkins-ci.org</id>
@@ -78,7 +83,65 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
-                <version>2.4.1</version>
+                <!-- <version>2.4.1</version> -->
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <configuration>
+                    <executable>${msbuild.exe}</executable>
+                    <workingDirectory>${basedir}/HpToolsLauncher</workingDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>InstallPlugin - "${project.artifactId}"</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>java</executable>
+                            <arguments>
+                                <argument> -jar</argument>
+                                <argument>${env.JENKINS_HOME}war\WEB-INF\jenkins-cli.jar</argument>
+                                <argument>-s</argument>
+                                <argument>http://localhost:8080/</argument>
+                                <argumnet>install-plugin</argumnet>
+                                <argumnet>${project.build.directory}\${project.build.finalName}.${project.packaging}</argumnet>
+                                <argument>-name</argument>
+                                <argument>"${project.artifactId}"</argument>
+                                <!-- <argument>-deploy</argument> -->
+                                <argument>-restart</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>clean HPToolsLauncher</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>
+                                <argument>/t:Clean</argument>
+                                <argument>/p:Configuration=${msbuild.configuration}</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>creating HPToolsLauncher</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>
+                                <argument>/t:Rebuild</argument>
+                                <argument>/p:Configuration=${msbuild.configuration}</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
