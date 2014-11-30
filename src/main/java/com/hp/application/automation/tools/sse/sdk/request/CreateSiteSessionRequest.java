@@ -7,7 +7,7 @@ import com.hp.application.automation.tools.rest.HttpHeaders;
 import com.hp.application.automation.tools.sse.common.RestXmlUtils;
 import com.hp.application.automation.tools.sse.sdk.Client;
 
-public class CreateSiteSessionRequest extends PostRequest {
+public class CreateSiteSessionRequest extends GeneralPostRequest {
 
     public CreateSiteSessionRequest(Client client) {
 
@@ -17,7 +17,7 @@ public class CreateSiteSessionRequest extends PostRequest {
     @Override
     protected String getUrl() {
 
-        return _client.build("rest/site-session");
+        return client.build("rest/site-session");
     }
 
     @Override
