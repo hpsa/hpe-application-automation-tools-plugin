@@ -458,7 +458,7 @@ namespace HpToolsLauncher
 
         public static string GetTempDir()
         {
-            string baseTemp = Path.GetTempPath();
+            string baseTemp = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
             string dirName = Guid.NewGuid().ToString().Replace("-", string.Empty).Substring(0, 6);
             string tempDirPath = Path.Combine(baseTemp, dirName);
