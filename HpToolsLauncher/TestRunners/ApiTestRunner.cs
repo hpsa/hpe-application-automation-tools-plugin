@@ -139,7 +139,7 @@ namespace HpToolsLauncher
                     runDesc.ErrorDesc = "No Results.xml file found";
                 }
             }
-			File.Delete(paramsFilePath);
+			//File.Delete(paramsFilePath);
             runDesc.Runtime = s.Elapsed;
             return runDesc;
         }
