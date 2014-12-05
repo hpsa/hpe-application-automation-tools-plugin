@@ -10,6 +10,8 @@ import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Hudson;
+import hudson.model.ParametersAction;
+import hudson.model.StringParameterValue;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
@@ -54,6 +56,7 @@ public class PcBuilder extends Builder {
     public static final String runReportStructure = "%s/%s/performanceTestsReports/pcRun%s";
     public static final String pcReportArchiveName = "Reports.zip";
     public static final String pcReportFileName = "Report.html";
+	private static final String RUNID_BUILD_VARIABLE = "HP_RUN_ID";
     
     private final PcModel pcModel;
     private final boolean statusBySLA;
@@ -100,6 +103,7 @@ public class PcBuilder extends Builder {
     public DescriptorImpl getDescriptor() {
         
         return (DescriptorImpl) super.getDescriptor();
+
     }
     
     @Override
@@ -186,8 +190,14 @@ public class PcBuilder extends Builder {
         PcRunResponse response = null;
         String errorMessage = "";
         String eventLogString = "";
+
         try {
             runId = pcClient.startRun();
+              
+            // This allows a user to access the runId from within Jenkins using a build variable.
+            build.addAction(new ParametersAction(new StringParameterValue(RUNID_BUILD_VARIABLE, "" + runId))); 
+            logger.print("Set " + RUNID_BUILD_VARIABLE + " Env Variable to " + runId + "\n");
+          
             response = pcClient.waitForRunCompletion(runId);
             if (response != null && RunState.get(response.getRunState()) == FINISHED) {
                 pcReportFile = pcClient.publishRunReport(runId, getReportDirectory(build));
