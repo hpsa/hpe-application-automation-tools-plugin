@@ -3,7 +3,7 @@ package com.hp.octane.plugins.jenkins.build;
 import hudson.model.AbstractBuild;
 import hudson.model.Run;
 import jenkins.model.RunAction2;
-import com.hp.mqm.plugins.jenkins.commons.Serializer;
+import com.hp.octane.plugins.jenkins.commons.Serializer;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 

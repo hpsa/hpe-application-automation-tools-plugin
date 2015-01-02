@@ -1,7 +1,7 @@
 package com.hp.octane.plugins.jenkins.project;
 
 import com.hp.devops.apis.IJSONable;
-import com.hp.mqm.plugins.jenkins.scm.SCMDataFactory;
+import com.hp.octane.plugins.jenkins.scm.SCMDataFactory;
 import com.hp.devops.scm.SCMData;
 import com.tikal.jenkins.plugins.multijob.MultiJobBuilder;
 import com.tikal.jenkins.plugins.multijob.MultiJobProject;

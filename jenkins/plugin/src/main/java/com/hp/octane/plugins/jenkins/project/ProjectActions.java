@@ -2,7 +2,7 @@ package com.hp.octane.plugins.jenkins.project;
 
 import hudson.model.AbstractProject;
 import hudson.model.ProminentProjectAction;
-import com.hp.mqm.plugins.jenkins.commons.Serializer;
+import com.hp.octane.plugins.jenkins.commons.Serializer;
 import jenkins.util.TimeDuration;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;

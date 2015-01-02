@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jenkins.root;
 
-import com.hp.mqm.plugins.jenkins.notifications.EventDispatcher;
+import com.hp.octane.plugins.jenkins.notifications.EventDispatcher;
 import hudson.Extension;
 import hudson.model.Hudson;
 import hudson.model.RootAction;

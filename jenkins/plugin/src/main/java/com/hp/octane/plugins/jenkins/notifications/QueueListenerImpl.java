@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jenkins.notifications;
 
-import com.hp.mqm.plugins.jenkins.commons.CIEventCausesFactory;
+import com.hp.octane.plugins.jenkins.commons.CIEventCausesFactory;
 import com.hp.devops.providers.CIServerType;
 import com.hp.devops.providers.events.CIEventQueued;
 import hudson.Extension;
