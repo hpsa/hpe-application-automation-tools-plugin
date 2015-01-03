@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jenkins.notifications;
 
-import com.hp.devops.providers.events.CIEventBase;
+import com.hp.octane.plugins.jenkins.model.events.CIEventBase;
 import hudson.model.Hudson;
 import org.json.JSONObject;
 import org.apache.http.HttpResponse;

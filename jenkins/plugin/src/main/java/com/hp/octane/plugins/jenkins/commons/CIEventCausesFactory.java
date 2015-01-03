@@ -1,9 +1,6 @@
 package com.hp.octane.plugins.jenkins.commons;
 
-import com.hp.devops.providers.causes.CIEventCauseBase;
-import com.hp.devops.providers.causes.CIEventSCMCause;
-import com.hp.devops.providers.causes.CIEventUpstreamCause;
-import com.hp.devops.providers.causes.CIEventUserCause;
+import com.hp.octane.plugins.jenkins.model.causes.*;
 import hudson.model.Cause;
 import hudson.triggers.SCMTrigger;
 

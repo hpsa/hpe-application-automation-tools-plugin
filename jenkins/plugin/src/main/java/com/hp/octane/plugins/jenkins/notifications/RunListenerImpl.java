@@ -1,11 +1,11 @@
 package com.hp.octane.plugins.jenkins.notifications;
 
-import com.hp.devops.pipelines.SnapshotResult;
+import com.hp.octane.plugins.jenkins.model.pipeline.SnapshotResult;
 import com.hp.octane.plugins.jenkins.commons.CIEventCausesFactory;
-import com.hp.octane.plugins.jenkins.scm.SCMDataFactory;
-import com.hp.devops.providers.CIServerType;
-import com.hp.devops.providers.events.CIEventFinished;
-import com.hp.devops.providers.events.CIEventStarted;
+import com.hp.octane.plugins.jenkins.commons.SCMDataFactory;
+import com.hp.octane.plugins.jenkins.model.CIServerType;
+import com.hp.octane.plugins.jenkins.model.events.CIEventFinished;
+import com.hp.octane.plugins.jenkins.model.events.CIEventStarted;
 import hudson.Extension;
 import hudson.model.AbstractBuild;
 import hudson.model.Result;
