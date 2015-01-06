@@ -298,12 +298,12 @@ namespace HpToolsLauncher
                     TimeSpan perScenarioTimeOut = TimeSpan.MaxValue;
                     if (_ciParams.ContainsKey("PerScenarioTimeOut"))
                     {
-                        string strTimoutInSeconds = _ciParams["PerScenarioTimeOut"];
-                        if (strTimoutInSeconds.Trim() != "-1")
+                        string strTimoutInMinutes = _ciParams["PerScenarioTimeOut"];
+                        if (strTimoutInMinutes.Trim() != "-1")
                         {
-                            int intTimoutInSeconds = 0;
-                            if (int.TryParse(strTimoutInSeconds, out intTimoutInSeconds))
-                                perScenarioTimeOut = TimeSpan.FromMinutes(intTimoutInSeconds);
+                            int intTimoutInMinutes = 0;
+                            int.TryParse(strTimoutInMinutes, out intTimoutInMinutes);
+                            perScenarioTimeOut = TimeSpan.FromMinutes(intTimoutInMinutes);
                         }
                     }
 
