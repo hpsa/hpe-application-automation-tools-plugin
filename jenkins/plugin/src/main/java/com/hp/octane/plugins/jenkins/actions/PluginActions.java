@@ -24,8 +24,8 @@ import java.util.List;
 public class PluginActions implements RootAction {
 
 	@ExportedBean
-	public class PluginInfo {
-		private final String version = "1.2";
+	static final public class PluginInfo {
+		private final String version = "1.0.0";
 		private final String type = "jenkins";
 
 		@Exported(inline = true)
@@ -40,7 +40,7 @@ public class PluginActions implements RootAction {
 	}
 
 	@ExportedBean
-	public class ProjectsList {
+	static final public class ProjectsList {
 		@Exported(inline = true)
 		public String[] getJobs() {
 			List<String> itemNames = (List) Hudson.getInstance().getTopLevelItemNames();
@@ -53,7 +53,7 @@ public class PluginActions implements RootAction {
 	}
 
 	public String getDisplayName() {
-		return null;
+		return "Octane CI Data Provider";
 	}
 
 	public String getUrlName() {
