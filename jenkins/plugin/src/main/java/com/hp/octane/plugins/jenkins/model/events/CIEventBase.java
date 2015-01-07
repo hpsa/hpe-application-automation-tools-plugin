@@ -1,6 +1,5 @@
 package com.hp.octane.plugins.jenkins.model.events;
 
-import com.hp.octane.plugins.jenkins.apis.IJSONable;
 import com.hp.octane.plugins.jenkins.model.CIServerType;
 import com.hp.octane.plugins.jenkins.model.causes.*;
 import org.json.JSONArray;
@@ -13,7 +12,7 @@ import org.json.JSONObject;
  * Time: 18:01
  * To change this template use File | Settings | File Templates.
  */
-public abstract class CIEventBase implements IJSONable {
+public abstract class CIEventBase {
 	public abstract CIEventType getEventType();
 
 	public CIServerType serverType;
@@ -33,7 +32,6 @@ public abstract class CIEventBase implements IJSONable {
 		this.serverURL = serverURL;
 	}
 
-	@Override
 	public JSONObject toJSON() {
 		JSONObject r = new JSONObject();
 		JSONArray tmp = new JSONArray();
@@ -45,7 +43,6 @@ public abstract class CIEventBase implements IJSONable {
 		return r;
 	}
 
-	@Override
 	public void fromJSON(JSONObject json) {
 		JSONArray tmp;
 		JSONObject causeJson;

@@ -1,6 +1,5 @@
 package com.hp.octane.plugins.jenkins.model.scm;
 
-import com.hp.octane.plugins.jenkins.apis.IJSONable;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -13,9 +12,9 @@ import java.util.ArrayList;
  * Time: 09:51
  * To change this template use File | Settings | File Templates.
  */
-public class SCMCommit implements IJSONable {
+public class SCMCommit {
 
-	class User implements IJSONable {
+	class User {
 		private String nickName;
 		private String fullName;
 		private String email;
@@ -30,7 +29,6 @@ public class SCMCommit implements IJSONable {
 			this.fromJSON(json);
 		}
 
-		@Override
 		public JSONObject toJSON() {
 			JSONObject r = new JSONObject();
 			r.put("nickName", nickName);
@@ -39,7 +37,6 @@ public class SCMCommit implements IJSONable {
 			return r;
 		}
 
-		@Override
 		public void fromJSON(JSONObject json) {
 			this.nickName = json.getString("nickName");
 			this.fullName = json.getString("fullName");
@@ -47,7 +44,7 @@ public class SCMCommit implements IJSONable {
 		}
 	}
 
-	class Change implements IJSONable {
+	class Change {
 		private String type;
 		private String file;
 
@@ -60,7 +57,6 @@ public class SCMCommit implements IJSONable {
 			this.fromJSON(json);
 		}
 
-		@Override
 		public JSONObject toJSON() {
 			JSONObject r = new JSONObject();
 			r.put("type", type);
@@ -68,7 +64,6 @@ public class SCMCommit implements IJSONable {
 			return r;
 		}
 
-		@Override
 		public void fromJSON(JSONObject json) {
 			this.type = json.getString("type");
 			this.file = json.getString("file");
@@ -101,7 +96,6 @@ public class SCMCommit implements IJSONable {
 		changes.add(new Change(type, file));
 	}
 
-	@Override
 	public JSONObject toJSON() {
 		JSONObject r = new JSONObject();
 		JSONArray tmp = new JSONArray();
@@ -116,7 +110,6 @@ public class SCMCommit implements IJSONable {
 		return r;
 	}
 
-	@Override
 	public void fromJSON(JSONObject json) {
 		JSONArray tmp;
 		this.id = json.getString("id");

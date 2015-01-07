@@ -1,4 +1,4 @@
-package com.hp.octane.plugins.jenkins.commons;
+package com.hp.octane.plugins.jenkins.model.causes;
 
 import com.hp.octane.plugins.jenkins.model.causes.*;
 import hudson.model.Cause;

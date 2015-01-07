@@ -1,6 +1,5 @@
 package com.hp.octane.plugins.jenkins.model.scm;
 
-import com.hp.octane.plugins.jenkins.apis.IJSONable;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -13,7 +12,7 @@ import java.util.ArrayList;
  * Time: 09:46
  * To change this template use File | Settings | File Templates.
  */
-public class SCMRepository implements IJSONable {
+public class SCMRepository {
 	private SCMType type;
 	private String uri;
 	private String builtBranch;
@@ -60,7 +59,6 @@ public class SCMRepository implements IJSONable {
 		return builtBranch;
 	}
 
-	@Override
 	public JSONObject toJSON() {
 		JSONObject r = new JSONObject();
 		JSONArray tmp = new JSONArray();
@@ -77,7 +75,6 @@ public class SCMRepository implements IJSONable {
 		return r;
 	}
 
-	@Override
 	public void fromJSON(JSONObject json) {
 		JSONArray tmp;
 		this.type = SCMType.getByValue(json.getString("type"));

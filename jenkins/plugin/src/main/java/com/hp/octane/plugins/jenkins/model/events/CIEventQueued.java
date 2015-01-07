@@ -1,6 +1,5 @@
 package com.hp.octane.plugins.jenkins.model.events;
 
-import com.hp.octane.plugins.jenkins.apis.IJSONable;
 import com.hp.octane.plugins.jenkins.model.CIServerType;
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCauseBase;
 import org.json.JSONObject;
@@ -12,7 +11,7 @@ import org.json.JSONObject;
  * Time: 21:33
  * To change this template use File | Settings | File Templates.
  */
-public class CIEventQueued extends CIEventBase implements IJSONable {
+public class CIEventQueued extends CIEventBase {
 	public final CIEventType eventType = CIEventType.QUEUED;
 
 	public CIEventQueued(CIServerType serverType, String serverURL, String project, CIEventCauseBase cause) {

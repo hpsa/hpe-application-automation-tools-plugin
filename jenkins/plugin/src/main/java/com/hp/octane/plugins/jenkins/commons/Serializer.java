@@ -1,9 +1,11 @@
 package com.hp.octane.plugins.jenkins.commons;
 
+import com.hp.octane.plugins.jenkins.model.causes.CIEventCausesFactory;
 import com.hp.octane.plugins.jenkins.model.pipeline.SnapshotResult;
 import com.hp.octane.plugins.jenkins.model.pipeline.SnapshotStatus;
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCauseBase;
 import com.hp.octane.plugins.jenkins.model.scm.SCMData;
+import com.hp.octane.plugins.jenkins.model.scm.SCMDataFactory;
 import hudson.matrix.MatrixProject;
 import hudson.maven.MavenModuleSet;
 import hudson.model.*;

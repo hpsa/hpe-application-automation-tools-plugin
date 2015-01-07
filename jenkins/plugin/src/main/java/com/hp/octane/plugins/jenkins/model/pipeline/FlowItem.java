@@ -1,8 +1,7 @@
 package com.hp.octane.plugins.jenkins.model.pipeline;
 
-import com.hp.octane.plugins.jenkins.apis.IJSONable;
 import com.hp.octane.plugins.jenkins.model.scm.SCMData;
-import com.hp.octane.plugins.jenkins.commons.SCMDataFactory;
+import com.hp.octane.plugins.jenkins.model.scm.SCMDataFactory;
 import com.tikal.jenkins.plugins.multijob.MultiJobBuilder;
 import com.tikal.jenkins.plugins.multijob.MultiJobProject;
 import com.tikal.jenkins.plugins.multijob.PhaseJobsConfig;
@@ -26,7 +25,7 @@ import java.util.List;
  * Time: 09:15
  * To change this template use File | Settings | File Templates.
  */
-public final class FlowItem implements IJSONable {
+public final class FlowItem {
 	private String name;
 	private int order;
 	private String phase;

@@ -1,6 +1,5 @@
 package com.hp.octane.plugins.jenkins.model.causes;
 
-import com.hp.octane.plugins.jenkins.apis.IJSONable;
 import org.json.JSONObject;
 
 /**
@@ -10,7 +9,7 @@ import org.json.JSONObject;
  * Time: 16:03
  * To change this template use File | Settings | File Templates.
  */
-public class CIEventUserCause extends CIEventCauseBase implements IJSONable {
+public class CIEventUserCause extends CIEventCauseBase {
 	public final CIEventCauseType type = CIEventCauseType.USER;
 	public String userId = "";
 	public String userName = "";

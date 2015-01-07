@@ -1,6 +1,5 @@
 package com.hp.octane.plugins.jenkins.model.causes;
 
-import com.hp.octane.plugins.jenkins.apis.IJSONable;
 import org.json.JSONObject;
 
 /**
@@ -10,7 +9,7 @@ import org.json.JSONObject;
  * Time: 20:18
  * To change this template use File | Settings | File Templates.
  */
-public class CIEventSCMCause extends CIEventCauseBase implements IJSONable {
+public class CIEventSCMCause extends CIEventCauseBase {
 	public final CIEventCauseType type = CIEventCauseType.SCM;
 
 	public CIEventSCMCause() {

@@ -1,4 +1,4 @@
-package com.hp.octane.plugins.jenkins.commons;
+package com.hp.octane.plugins.jenkins.model.scm;
 
 import com.hp.octane.plugins.jenkins.model.scm.*;
 import hudson.model.AbstractBuild;
