@@ -1,7 +1,7 @@
 package com.hp.octane.plugins.jenkins.notifications;
 
 import com.hp.octane.plugins.jenkins.model.events.CIEventBase;
-import hudson.model.Hudson;
+import jenkins.model.Jenkins;
 import org.json.JSONObject;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -38,7 +38,7 @@ public final class EventDispatcher {
 	//  persist the subscribers' list by the means Jenkins provides
 
 	static {
-		String selfUrl = Hudson.getInstance().getRootUrl();
+		String selfUrl = Jenkins.getInstance().getRootUrl();
 		if (selfUrl.endsWith("/")) selfUrl = selfUrl.substring(0, selfUrl.length() - 1);
 		SELF_URL = selfUrl;
 	}

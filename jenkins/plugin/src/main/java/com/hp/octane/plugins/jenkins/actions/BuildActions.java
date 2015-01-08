@@ -1,50 +1,71 @@
 package com.hp.octane.plugins.jenkins.actions;
 
-import hudson.model.AbstractBuild;
-import hudson.model.Run;
+import hudson.Extension;
+import hudson.model.*;
 import jenkins.model.RunAction2;
-import com.hp.octane.plugins.jenkins.commons.Serializer;
+import jenkins.model.TransientActionFactory;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
+import javax.annotation.Nonnull;
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Created with IntelliJ IDEA.
  * User: gullery
  * Date: 12/08/14
- * Time: 11:41
+ * Time: 10:45
  * To change this template use File | Settings | File Templates.
  */
-public class BuildActions implements RunAction2 {
 
-	AbstractBuild build;
+@Extension
+public class BuildActions extends TransientActionFactory<AbstractBuild> {
 
-	public BuildActions(Run run) {
-		build = (AbstractBuild) run;
+	public class OctaneBuildActions implements RunAction2 {
+
+		AbstractBuild build;
+
+		public OctaneBuildActions(AbstractBuild build) {
+			this.build = build;
+		}
+
+		public void onAttached(Run<?, ?> run) {
+		}
+
+		public void onLoad(Run<?, ?> run) {
+		}
+
+		public String getIconFileName() {
+			return null;
+		}
+
+		public String getDisplayName() {
+			return null;
+		}
+
+		public String getUrlName() {
+			return "octane";
+		}
+
+		public void doSnapshot(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
+//		res.getOutputStream().println(Serializer.getJSON(build).toString());
+//		res.flushBuffer();
+		}
 	}
 
-	public void onAttached(Run<?, ?> run) {
+	@Override
+	public Class<AbstractBuild> type() {
+		return AbstractBuild.class;
 	}
 
-	public void onLoad(Run<?, ?> run) {
-	}
-
-	public String getIconFileName() {
-		return null;
-	}
-
-	public String getDisplayName() {
-		return null;
-	}
-
-	public String getUrlName() {
-		return "hpDevopsApi";
-	}
-
-	public void doSnapshot(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
-		res.getOutputStream().println(Serializer.getJSON(build).toString());
-		res.flushBuffer();
+	@Override
+	@Nonnull
+	public Collection<? extends Action> createFor(@Nonnull AbstractBuild build) {
+		ArrayList<Action> actions = new ArrayList<Action>();
+		actions.add(new OctaneBuildActions(build));
+		return actions;
 	}
 }

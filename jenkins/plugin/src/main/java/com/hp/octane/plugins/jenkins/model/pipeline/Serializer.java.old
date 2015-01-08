@@ -1,8 +1,7 @@
-package com.hp.octane.plugins.jenkins.commons;
+package com.hp.octane.plugins.jenkins.model.pipeline;
 
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCausesFactory;
-import com.hp.octane.plugins.jenkins.model.pipeline.SnapshotResult;
-import com.hp.octane.plugins.jenkins.model.pipeline.SnapshotStatus;
+import com.hp.octane.plugins.jenkins.model.pipeline.utils.MultiJob;
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCauseBase;
 import com.hp.octane.plugins.jenkins.model.scm.SCMData;
 import com.hp.octane.plugins.jenkins.model.scm.SCMDataFactory;
@@ -89,8 +88,8 @@ public class Serializer {
 					appendStep(config.getProjectList(project.getParent(), null), steps, orderMap, phaseName, config.getBlock() == null);
 				}
 			} else if (builder.getClass().getName().compareTo("com.tikal.jenkins.plugins.multijob.MultiJobBuilder") == 0) {
-				subSteps = MultiJobUtils.retrieveSubSteps(builder);
-				appendStep(subSteps, steps, orderMap, MultiJobUtils.retrievePhaseName(builder), false);
+				subSteps = MultiJob.retrieveSubSteps(builder);
+				appendStep(subSteps, steps, orderMap, MultiJob.retrievePhaseName(builder), false);
 			} else {
 				System.out.println("not yet supported build action: " + builder.getClass().getName());
 			}

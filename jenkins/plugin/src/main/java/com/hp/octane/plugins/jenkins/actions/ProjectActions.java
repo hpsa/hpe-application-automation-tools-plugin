@@ -1,49 +1,60 @@
 package com.hp.octane.plugins.jenkins.actions;
 
+import com.hp.octane.plugins.jenkins.model.pipeline.FlowItem;
+import hudson.Extension;
 import hudson.model.AbstractProject;
+import hudson.model.Action;
 import hudson.model.ProminentProjectAction;
-import com.hp.octane.plugins.jenkins.commons.Serializer;
-import jenkins.util.TimeDuration;
+import hudson.model.TransientProjectActionFactory;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
+import org.kohsuke.stapler.export.Flavor;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Created with IntelliJ IDEA.
  * User: gullery
  * Date: 12/08/14
- * Time: 11:41
+ * Time: 10:46
  * To change this template use File | Settings | File Templates.
  */
-public class ProjectActions implements ProminentProjectAction {
 
-	AbstractProject project;
+@Extension
+public class ProjectActions extends TransientProjectActionFactory {
 
-	public ProjectActions(AbstractProject project) {
-		this.project = project;
+	static final public class OctaneProjectActions implements ProminentProjectAction {
+
+		private AbstractProject project;
+
+		public OctaneProjectActions(AbstractProject p) {
+			project = p;
+		}
+
+		public String getIconFileName() {
+			return null;
+		}
+
+		public String getDisplayName() {
+			return null;
+		}
+
+		public String getUrlName() {
+			return "octane";
+		}
+
+		public void doStructure(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
+			res.serveExposedBean(req, new FlowItem(project), Flavor.JSON);
+		}
 	}
 
-	public String getIconFileName() {
-		return null;
-	}
-
-	public String getDisplayName() {
-		return null;
-	}
-
-	public String getUrlName() {
-		return "hpDevopsApi";
-	}
-
-	public void doStructure(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
-		res.getOutputStream().println(Serializer.getJSON(project).toString());
-		res.flushBuffer();
-	}
-
-	public void doRun(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
-		//  TODO: add support for parametrized delay (pass it in the request)
-		project.doBuild(req, res, new TimeDuration(10));
+	@Override
+	public Collection<? extends Action> createFor(AbstractProject project) {
+		ArrayList<Action> actions = new ArrayList<Action>();
+		actions.add(new OctaneProjectActions(project));
+		return actions;
 	}
 }
