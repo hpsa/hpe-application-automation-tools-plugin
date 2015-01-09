@@ -7,6 +7,7 @@ package com.hp.octane.plugins.jenkins.model.pipeline;
  * Time: 13:07
  * To change this template use File | Settings | File Templates.
  */
+
 public enum SnapshotResult {
 	UNAVAILABLE("unavailable"),
 	UNSTABLE("unstable"),

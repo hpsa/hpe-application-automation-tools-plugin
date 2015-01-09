@@ -7,5 +7,6 @@ package com.hp.octane.plugins.jenkins.model.pipeline;
  * Time: 10:49
  * To change this template use File | Settings | File Templates.
  */
+
 public class Snapshot {
 }

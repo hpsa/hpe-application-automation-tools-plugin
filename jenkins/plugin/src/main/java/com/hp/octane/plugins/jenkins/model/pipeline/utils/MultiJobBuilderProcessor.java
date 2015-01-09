@@ -8,7 +8,6 @@ import hudson.tasks.Builder;
 import jenkins.model.Jenkins;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
