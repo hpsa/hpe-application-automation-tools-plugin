@@ -18,24 +18,17 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 
-public class MultiJobBuilderProcessor implements IBuilderProcessor {
-	private ArrayList<FlowPhase> phases;
-
+public class MultiJobBuilderProcessor extends AbstractBuilderProcessor {
 	private MultiJobBuilderProcessor() {
 	}
 
 	public MultiJobBuilderProcessor(Builder builder) {
 		MultiJobBuilder b = (MultiJobBuilder) builder;
-		phases = new ArrayList<FlowPhase>();
+		super.phases = new ArrayList<FlowPhase>();
 		ArrayList<AbstractProject> items = new ArrayList<AbstractProject>();
 		for (PhaseJobsConfig config : b.getPhaseJobs()) {
 			items.add((AbstractProject) Jenkins.getInstance().getItem(config.getJobName()));
 		}
-		phases.add(new FlowPhase(b.getPhaseName(), true, items));
-	}
-
-	@Override
-	public List<FlowPhase> getPhases() {
-		return phases;
+		super.phases.add(new FlowPhase(b.getPhaseName(), true, items));
 	}
 }

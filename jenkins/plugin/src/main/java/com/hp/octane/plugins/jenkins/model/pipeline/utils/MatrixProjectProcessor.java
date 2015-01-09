@@ -25,6 +25,6 @@ public class MatrixProjectProcessor extends AbstractProjectProcessor {
 
 		//  Post build phases
 		//
-		//  TODO: add processing publishers here
+		super.processPublishers(p);
 	}
 }
