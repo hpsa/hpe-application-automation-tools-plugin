@@ -1,6 +1,7 @@
 package com.hp.octane.plugins.jenkins.model.causes;
 
-import org.json.JSONObject;
+import org.kohsuke.stapler.export.Exported;
+import org.kohsuke.stapler.export.ExportedBean;
 
 /**
  * Created with IntelliJ IDEA.
@@ -9,27 +10,14 @@ import org.json.JSONObject;
  * Time: 20:18
  * To change this template use File | Settings | File Templates.
  */
-public class CIEventSCMCause extends CIEventCauseBase {
+
+@ExportedBean
+public class CIEventSCMCause implements CIEventCauseBase {
 	public final CIEventCauseType type = CIEventCauseType.SCM;
 
-	public CIEventSCMCause() {
-	}
-
-	public CIEventSCMCause(JSONObject json) {
-		fromJSON(json);
-	}
-
 	@Override
-	CIEventCauseType getType() {
+	@Exported(inline = true)
+	public CIEventCauseType getType() {
 		return type;
-	}
-
-	@Override
-	public JSONObject toJSON() {
-		JSONObject r = super.toJSON();
-		return r;
-	}
-
-	public void fromJSON(JSONObject json) {
 	}
 }

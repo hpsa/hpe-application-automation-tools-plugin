@@ -1,8 +1,5 @@
 package com.hp.octane.plugins.jenkins.model.scm;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import java.util.ArrayList;
 
 /**
@@ -24,24 +21,6 @@ public class SCMCommit {
 			this.fullName = fullName;
 			this.email = email;
 		}
-
-		User(JSONObject json) {
-			this.fromJSON(json);
-		}
-
-		public JSONObject toJSON() {
-			JSONObject r = new JSONObject();
-			r.put("nickName", nickName);
-			r.put("fullName", fullName);
-			r.put("email", email);
-			return r;
-		}
-
-		public void fromJSON(JSONObject json) {
-			this.nickName = json.getString("nickName");
-			this.fullName = json.getString("fullName");
-			this.email = json.getString("email");
-		}
 	}
 
 	class Change {
@@ -51,22 +30,6 @@ public class SCMCommit {
 		Change(String type, String file) {
 			this.type = type;
 			this.file = file;
-		}
-
-		Change(JSONObject json) {
-			this.fromJSON(json);
-		}
-
-		public JSONObject toJSON() {
-			JSONObject r = new JSONObject();
-			r.put("type", type);
-			r.put("file", file);
-			return r;
-		}
-
-		public void fromJSON(JSONObject json) {
-			this.type = json.getString("type");
-			this.file = json.getString("file");
 		}
 	}
 
@@ -84,42 +47,11 @@ public class SCMCommit {
 		this.changes = new ArrayList<Change>();
 	}
 
-	public SCMCommit(JSONObject json) {
-		this.fromJSON(json);
-	}
-
 	public void setUser(String nickName, String fullName, String email) {
 		user = new User(nickName, fullName, email);
 	}
 
 	public void addChange(String type, String file) {
 		changes.add(new Change(type, file));
-	}
-
-	public JSONObject toJSON() {
-		JSONObject r = new JSONObject();
-		JSONArray tmp = new JSONArray();
-		r.put("id", id);
-		r.put("comment", comment);
-		r.put("time", time);
-		r.put("user", user.toJSON());
-		for (Change change : changes) {
-			tmp.put(change.toJSON());
-		}
-		r.put("changes", tmp);
-		return r;
-	}
-
-	public void fromJSON(JSONObject json) {
-		JSONArray tmp;
-		this.id = json.getString("id");
-		this.comment = json.getString("comment");
-		this.time = json.getLong("time");
-		this.user = new User(json.getJSONObject("user"));
-		changes = new ArrayList<Change>();
-		tmp = json.getJSONArray("changes");
-		for (int i = 0; i < tmp.length(); i++) {
-			changes.add(new Change(tmp.getJSONObject(i)));
-		}
 	}
 }

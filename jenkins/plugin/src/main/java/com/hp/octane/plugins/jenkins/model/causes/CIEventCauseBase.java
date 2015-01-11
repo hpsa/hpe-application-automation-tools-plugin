@@ -1,7 +1,5 @@
 package com.hp.octane.plugins.jenkins.model.causes;
 
-import org.json.JSONObject;
-
 /**
  * Created with IntelliJ IDEA.
  * User: gullery
@@ -9,14 +7,7 @@ import org.json.JSONObject;
  * Time: 17:01
  * To change this template use File | Settings | File Templates.
  */
-public abstract class CIEventCauseBase {
-	abstract CIEventCauseType getType();
 
-	public JSONObject toJSON() {
-		JSONObject r = new JSONObject();
-		r.put("type", getType().toString());
-		return r;
-	}
-
-	abstract void fromJSON(JSONObject json);
+public interface CIEventCauseBase {
+	CIEventCauseType getType();
 }

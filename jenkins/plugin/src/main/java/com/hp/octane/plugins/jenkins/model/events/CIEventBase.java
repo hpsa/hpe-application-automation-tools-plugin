@@ -2,8 +2,7 @@ package com.hp.octane.plugins.jenkins.model.events;
 
 import com.hp.octane.plugins.jenkins.model.CIServerType;
 import com.hp.octane.plugins.jenkins.model.causes.*;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import org.kohsuke.stapler.export.ExportedBean;
 
 /**
  * Created with IntelliJ IDEA.
@@ -12,6 +11,8 @@ import org.json.JSONObject;
  * Time: 18:01
  * To change this template use File | Settings | File Templates.
  */
+
+@ExportedBean
 public abstract class CIEventBase {
 	public abstract CIEventType getEventType();
 
@@ -30,36 +31,5 @@ public abstract class CIEventBase {
 	public CIEventBase(CIServerType serverType, String serverURL) {
 		this.serverType = serverType;
 		this.serverURL = serverURL;
-	}
-
-	public JSONObject toJSON() {
-		JSONObject r = new JSONObject();
-		JSONArray tmp = new JSONArray();
-		r.put("serverType", serverType.toString());
-		r.put("serverURL", serverURL);
-		r.put("eventType", getEventType().toString());
-		r.put("project", project);
-		if (cause != null) r.put("cause", cause.toJSON());
-		return r;
-	}
-
-	public void fromJSON(JSONObject json) {
-		JSONArray tmp;
-		JSONObject causeJson;
-		CIEventCauseType causeType;
-		serverType = CIServerType.getByValue(json.getString("serverType"));
-		serverURL = json.getString("serverURL");
-		project = json.getString("project");
-		if (json.has("cause")) {
-			causeJson = json.getJSONObject("cause");
-			causeType = CIEventCauseType.getByValue(causeJson.getString("type"));
-			if (causeType == CIEventCauseType.SCM) {
-				cause = new CIEventSCMCause(causeJson);
-			} else if (causeType == CIEventCauseType.USER) {
-				cause = new CIEventUserCause(causeJson);
-			} else if (causeType == CIEventCauseType.UPSTREAM) {
-				cause = new CIEventUpstreamCause(causeJson);
-			}
-		}
 	}
 }

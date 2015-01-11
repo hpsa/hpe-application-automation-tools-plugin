@@ -1,11 +1,13 @@
 package com.hp.octane.plugins.jenkins.actions;
 
+import com.hp.octane.plugins.jenkins.model.pipeline.SnapshotItem;
 import hudson.Extension;
 import hudson.model.*;
 import jenkins.model.RunAction2;
 import jenkins.model.TransientActionFactory;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
+import org.kohsuke.stapler.export.Flavor;
 
 import javax.annotation.Nonnull;
 import javax.servlet.ServletException;
@@ -28,8 +30,8 @@ public class BuildActions extends TransientActionFactory<AbstractBuild> {
 
 		AbstractBuild build;
 
-		public OctaneBuildActions(AbstractBuild build) {
-			this.build = build;
+		public OctaneBuildActions(AbstractBuild b) {
+			build = b;
 		}
 
 		public void onAttached(Run<?, ?> run) {
@@ -51,8 +53,7 @@ public class BuildActions extends TransientActionFactory<AbstractBuild> {
 		}
 
 		public void doSnapshot(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
-//		res.getOutputStream().println(Serializer.getJSON(build).toString());
-//		res.flushBuffer();
+			res.serveExposedBean(req, new SnapshotItem(build), Flavor.JSON);
 		}
 	}
 

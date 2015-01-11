@@ -2,8 +2,12 @@ package com.hp.octane.plugins.jenkins.model.pipeline;
 
 import com.hp.octane.plugins.jenkins.model.pipeline.utils.*;
 import hudson.model.AbstractProject;
+import hudson.model.ParameterDefinition;
+import hudson.model.ParametersDefinitionProperty;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
+
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -16,14 +20,23 @@ import org.kohsuke.stapler.export.ExportedBean;
 @ExportedBean
 public class FlowItem {
 	private String name;
-	private FlowPhase[] internals;
-	private FlowPhase[] postBuilds;
+	protected ParameterConfig[] parameters;
+	protected FlowPhase[] internals;
+	protected FlowPhase[] postBuilds;
 
 	public FlowItem(AbstractProject project) {
-		if (project == null) throw new IllegalArgumentException("project MUST not be null");
-
 		AbstractProjectProcessor flowProcessor = null;
+		List<ParameterDefinition> paramDefinitions;
 		name = project.getName();
+		if (project.isParameterized()) {
+			paramDefinitions = ((ParametersDefinitionProperty) project.getProperty(ParametersDefinitionProperty.class)).getParameterDefinitions();
+			parameters = new ParameterConfig[paramDefinitions.size()];
+			for (int i = 0; i < parameters.length; i++) {
+				parameters[i] = new ParameterConfig(paramDefinitions.get(i));
+			}
+		} else {
+			parameters = new ParameterConfig[0];
+		}
 
 		//  TODO: add scm data handling
 
@@ -48,6 +61,11 @@ public class FlowItem {
 	@Exported(inline = true)
 	public String getName() {
 		return name;
+	}
+
+	@Exported(inline = true)
+	public ParameterConfig[] getParameters() {
+		return parameters;
 	}
 
 	@Exported(inline = true)

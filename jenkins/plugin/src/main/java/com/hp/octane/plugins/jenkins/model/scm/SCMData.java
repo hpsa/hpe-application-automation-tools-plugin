@@ -1,8 +1,5 @@
 package com.hp.octane.plugins.jenkins.model.scm;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import java.util.ArrayList;
 
 /**
@@ -19,35 +16,7 @@ public class SCMData {
 		this.repositories = repositories;
 	}
 
-	public SCMData(JSONObject json) {
-		this.fromJSON(json);
-	}
-
 	public ArrayList<SCMRepository> getRepositories() {
 		return repositories;
-	}
-
-	public JSONObject toJSON() {
-		JSONObject r = null;
-		JSONArray tmp = new JSONArray();
-		if (repositories.size() > 0) {
-			r = new JSONObject();
-			for (SCMRepository repository : repositories) {
-				tmp.put(repository.toJSON());
-			}
-			r.put("repositories", tmp);
-		}
-		return r;
-	}
-
-	public void fromJSON(JSONObject json) {
-		JSONArray tmp;
-		repositories = new ArrayList<SCMRepository>();
-		if (json.has("repositories")) {
-			tmp = json.getJSONArray("repositories");
-			for (int i = 0; i < tmp.length(); i++) {
-				repositories.add(new SCMRepository(tmp.getJSONObject(i)));
-			}
-		}
 	}
 }

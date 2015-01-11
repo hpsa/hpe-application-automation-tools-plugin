@@ -1,6 +1,7 @@
 package com.hp.octane.plugins.jenkins.model.causes;
 
-import org.json.JSONObject;
+import org.kohsuke.stapler.export.Exported;
+import org.kohsuke.stapler.export.ExportedBean;
 
 /**
  * Created with IntelliJ IDEA.
@@ -9,36 +10,31 @@ import org.json.JSONObject;
  * Time: 16:03
  * To change this template use File | Settings | File Templates.
  */
-public class CIEventUserCause extends CIEventCauseBase {
-	public final CIEventCauseType type = CIEventCauseType.USER;
-	public String userId = "";
-	public String userName = "";
+
+@ExportedBean
+public class CIEventUserCause implements CIEventCauseBase {
+	private final CIEventCauseType type = CIEventCauseType.USER;
+	private String userId = "";
+	private String userName = "";
 
 	public CIEventUserCause(String userId, String userName) {
 		this.userId = userId;
 		this.userName = userName;
 	}
 
-	public CIEventUserCause(JSONObject json) {
-		fromJSON(json);
-	}
-
 	@Override
-	CIEventCauseType getType() {
+	@Exported(inline = true)
+	public CIEventCauseType getType() {
 		return type;
 	}
 
-	@Override
-	public JSONObject toJSON() {
-		JSONObject r = super.toJSON();
-		r.put("userId", userId);
-		r.put("userName", userName);
-		return r;
+	@Exported(inline = true)
+	public String getUserId() {
+		return userId;
 	}
 
-	@Override
-	public void fromJSON(JSONObject json) {
-		if (json.has("userId")) userId = json.getString("userId");
-		if (json.has("userName")) userName = json.getString("userName");
+	@Exported(inline = true)
+	public String getUserName() {
+		return userName;
 	}
 }

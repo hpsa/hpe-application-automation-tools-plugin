@@ -2,7 +2,6 @@ package com.hp.octane.plugins.jenkins.notifications;
 
 import com.hp.octane.plugins.jenkins.model.events.CIEventBase;
 import jenkins.model.Jenkins;
-import org.json.JSONObject;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -63,7 +62,7 @@ public final class EventDispatcher {
 		DefaultHttpClient client;
 		HttpPost request;
 		HttpResponse response;
-		JSONObject tmp;
+//		JSONObject tmp;
 		StringEntity entity;
 
 		for (Client c : clients) {
@@ -71,8 +70,8 @@ public final class EventDispatcher {
 
 			try {
 				System.out.println("Pushing event '" + event.getEventType() + "' to " + c.clientUri);
-				tmp = event.toJSON();
-				entity = new StringEntity(tmp.toString());
+//				tmp = event.toJSON();
+				entity = new StringEntity("{}");    //  removed here the serialization of event
 				request = new HttpPost(c.clientUri + "/rest/realtime/notification");
 				//request = new HttpPost("http://localhost:8889" + "/rest/realtime/notification");
 				request.setEntity(entity);

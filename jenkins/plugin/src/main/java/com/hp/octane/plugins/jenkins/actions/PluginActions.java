@@ -3,7 +3,6 @@ package com.hp.octane.plugins.jenkins.actions;
 import hudson.Extension;
 import hudson.model.RootAction;
 import jenkins.model.Jenkins;
-import org.json.JSONArray;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.export.Exported;
@@ -12,7 +11,6 @@ import org.kohsuke.stapler.export.Flavor;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.List;
 
 /**
@@ -42,6 +40,21 @@ public class PluginActions implements RootAction {
 		}
 	}
 
+	@ExportedBean
+	static final public class ProjectsList {
+		private String[] items;
+
+		ProjectsList() {
+			List<String> itemNames = (List<String>) Jenkins.getInstance().getTopLevelItemNames();
+			items = itemNames.toArray(new String[itemNames.size()]);
+		}
+
+		@Exported(inline = true)
+		public String[] getJobs() {
+			return items;
+		}
+	}
+
 	public String getIconFileName() {
 		return null;
 	}
@@ -58,13 +71,7 @@ public class PluginActions implements RootAction {
 		res.serveExposedBean(req, new PluginInfo(), Flavor.JSON);
 	}
 
-	public void doJobs(StaplerRequest req, StaplerResponse res) throws IOException {
-		res.setContentType("application/json");
-		OutputStream out = res.getOutputStream();
-		JSONArray body = new JSONArray();
-		List<String> itemNames = (List<String>) Jenkins.getInstance().getTopLevelItemNames();
-		for (String item : itemNames) body.put(item);
-		out.write(body.toString().getBytes());
-		res.flushBuffer();
+	public void doJobs(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
+		res.serveExposedBean(req, new ProjectsList(), Flavor.JSON);
 	}
 }

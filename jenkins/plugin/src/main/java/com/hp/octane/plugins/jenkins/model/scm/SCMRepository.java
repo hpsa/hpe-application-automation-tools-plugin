@@ -1,8 +1,5 @@
 package com.hp.octane.plugins.jenkins.model.scm;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import java.util.ArrayList;
 
 /**
@@ -35,10 +32,6 @@ public class SCMRepository {
 		this.commits = new ArrayList<SCMCommit>();
 	}
 
-	public SCMRepository(JSONObject json) {
-		this.fromJSON(json);
-	}
-
 	public void addCommit(SCMCommit commit) {
 		commits.add(commit);
 	}
@@ -57,36 +50,5 @@ public class SCMRepository {
 
 	public String getBuiltBranch() {
 		return builtBranch;
-	}
-
-	public JSONObject toJSON() {
-		JSONObject r = new JSONObject();
-		JSONArray tmp = new JSONArray();
-		r.put("type", type.toString());
-		r.put("uri", uri);
-		r.put("builtBranch", builtBranch);
-		r.put("builtCommitRev", builtCommitRev);
-		if (commits.size() > 0) {
-			for (SCMCommit commit : commits) {
-				tmp.put(commit.toJSON());
-			}
-			r.put("commits", tmp);
-		}
-		return r;
-	}
-
-	public void fromJSON(JSONObject json) {
-		JSONArray tmp;
-		this.type = SCMType.getByValue(json.getString("type"));
-		this.uri = json.getString("uri");
-		this.builtBranch = json.getString("builtBranch");
-		this.builtCommitRev = json.getString("builtCommitRev");
-		commits = new ArrayList<SCMCommit>();
-		if (json.has("commits")) {
-			tmp = json.getJSONArray("commits");
-			for (int i = 0; i < tmp.length(); i++) {
-				commits.add(new SCMCommit(tmp.getJSONObject(i)));
-			}
-		}
 	}
 }
