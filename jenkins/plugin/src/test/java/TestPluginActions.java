@@ -34,6 +34,17 @@ public class TestPluginActions {
 	}
 
 	@Test
+	public void testProjectsListClass() throws IOException {
+		PluginActions.ProjectsList projectsList = new PluginActions.ProjectsList();
+		assertEquals(projectsList.getJobs().getClass(), String[].class);
+		assertEquals(projectsList.getJobs().length, 0);
+
+		rule.createFreeStyleProject(projectName);
+		assertEquals(projectsList.getJobs().length, 1);
+		assertEquals(projectsList.getJobs()[0], projectName);
+	}
+
+	@Test
 	public void testPluginActionsMethods() {
 		PluginActions pluginActions = new PluginActions();
 		assertEquals(pluginActions.getIconFileName(), null);
@@ -56,16 +67,21 @@ public class TestPluginActions {
 	public void testPluginActions_REST_Jobs() throws IOException, SAXException {
 		JenkinsRule.WebClient client = rule.createWebClient();
 		Page page;
-		JSONArray body;
+		JSONObject body;
+		JSONArray jobs;
 
 		page = client.goTo("octane/jobs", "application/json");
-		body = new JSONArray(page.getWebResponse().getContentAsString());
-		assertEquals(body.length(), 0);
+		body = new JSONObject(page.getWebResponse().getContentAsString());
+		assertTrue(body.has("jobs"));
+		jobs = body.getJSONArray("jobs");
+		assertEquals(jobs.length(), 0);
 
 		rule.createFreeStyleProject(projectName);
 		page = client.goTo("octane/jobs", "application/json");
-		body = new JSONArray(page.getWebResponse().getContentAsString());
-		assertEquals(body.length(), 1);
-		assertEquals(body.get(0), projectName);
+		body = new JSONObject(page.getWebResponse().getContentAsString());
+		assertTrue(body.has("jobs"));
+		jobs = body.getJSONArray("jobs");
+		assertEquals(jobs.length(), 1);
+		assertEquals(jobs.get(0), projectName);
 	}
 }

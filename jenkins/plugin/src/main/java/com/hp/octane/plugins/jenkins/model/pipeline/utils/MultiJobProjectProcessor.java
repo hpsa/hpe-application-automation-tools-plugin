@@ -16,7 +16,6 @@ public class MultiJobProjectProcessor extends AbstractProjectProcessor {
 	}
 
 	public MultiJobProjectProcessor(AbstractProject project) {
-		if (project == null) throw new IllegalArgumentException("project MUST not be null");
 		MultiJobProject p = (MultiJobProject) project;
 
 		//  Internal phases

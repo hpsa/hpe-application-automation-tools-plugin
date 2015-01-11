@@ -42,16 +42,10 @@ public class PluginActions implements RootAction {
 
 	@ExportedBean
 	static final public class ProjectsList {
-		private String[] items;
-
-		ProjectsList() {
-			List<String> itemNames = (List<String>) Jenkins.getInstance().getTopLevelItemNames();
-			items = itemNames.toArray(new String[itemNames.size()]);
-		}
-
 		@Exported(inline = true)
 		public String[] getJobs() {
-			return items;
+			List<String> itemNames = (List<String>) Jenkins.getInstance().getTopLevelItemNames();
+			return itemNames.toArray(new String[itemNames.size()]);
 		}
 	}
 

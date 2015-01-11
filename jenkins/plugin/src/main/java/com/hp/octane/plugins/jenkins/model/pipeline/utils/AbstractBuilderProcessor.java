@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jenkins.model.pipeline.utils;
 
-import com.hp.octane.plugins.jenkins.model.pipeline.FlowPhase;
+import com.hp.octane.plugins.jenkins.model.pipeline.StructurePhase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,9 +14,9 @@ import java.util.List;
  */
 
 public abstract class AbstractBuilderProcessor {
-	protected ArrayList<FlowPhase> phases = new ArrayList<FlowPhase>();
+	protected ArrayList<StructurePhase> phases = new ArrayList<StructurePhase>();
 
-	public List<FlowPhase> getPhases() {
+	public List<StructurePhase> getPhases() {
 		return phases;
 	}
 }

@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jenkins.actions;
 
-import com.hp.octane.plugins.jenkins.model.pipeline.FlowItem;
+import com.hp.octane.plugins.jenkins.model.pipeline.StructureItem;
 import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.Action;
@@ -27,7 +27,6 @@ import java.util.Collection;
 public class ProjectActions extends TransientProjectActionFactory {
 
 	static final public class OctaneProjectActions implements ProminentProjectAction {
-
 		private AbstractProject project;
 
 		public OctaneProjectActions(AbstractProject p) {
@@ -47,7 +46,7 @@ public class ProjectActions extends TransientProjectActionFactory {
 		}
 
 		public void doStructure(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
-			res.serveExposedBean(req, new FlowItem(project), Flavor.JSON);
+			res.serveExposedBean(req, new StructureItem(project), Flavor.JSON);
 		}
 	}
 

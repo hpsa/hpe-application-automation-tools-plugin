@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jenkins.model.pipeline.utils;
 
-import com.hp.octane.plugins.jenkins.model.pipeline.FlowPhase;
+import com.hp.octane.plugins.jenkins.model.pipeline.StructurePhase;
 import hudson.model.AbstractProject;
 import hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig;
 import hudson.plugins.parameterizedtrigger.BuildTrigger;
@@ -24,23 +24,23 @@ public class ParameterizedTriggerProcessor extends AbstractBuilderProcessor {
 	private ParameterizedTriggerProcessor() {
 	}
 
-	public ParameterizedTriggerProcessor(Builder builder, AbstractProject project) {
+	public ParameterizedTriggerProcessor(Builder builder, AbstractProject project, String phasesName) {
 		TriggerBuilder b = (TriggerBuilder) builder;
-		super.phases = new ArrayList<FlowPhase>();
+		super.phases = new ArrayList<StructurePhase>();
 		List<AbstractProject> items;
 		for (BlockableBuildTriggerConfig config : b.getConfigs()) {
 			items = config.getProjectList(project.getParent(), null);
-			super.phases.add(new FlowPhase("", config.getBlock() != null, items));
+			super.phases.add(new StructurePhase(phasesName, config.getBlock() != null, items));
 		}
 	}
 
-	public ParameterizedTriggerProcessor(Publisher publisher, AbstractProject project) {
+	public ParameterizedTriggerProcessor(Publisher publisher, AbstractProject project, String phasesName) {
 		BuildTrigger t = (BuildTrigger) publisher;
-		super.phases = new ArrayList<FlowPhase>();
+		super.phases = new ArrayList<StructurePhase>();
 		List<AbstractProject> items;
 		for (BuildTriggerConfig config : t.getConfigs()) {
 			items = config.getProjectList(project.getParent(), null);
-			super.phases.add(new FlowPhase("", false, items));
+			super.phases.add(new StructurePhase(phasesName, false, items));
 		}
 	}
 }

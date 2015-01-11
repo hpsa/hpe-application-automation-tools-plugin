@@ -17,7 +17,7 @@ import org.kohsuke.stapler.export.ExportedBean;
  */
 
 @ExportedBean
-public class SnapshotItem extends FlowItem {
+public class SnapshotItem extends StructureItem {
 	private int number = -1;
 	private CIEventCauseBase cause = null;
 	private SnapshotStatus status = SnapshotStatus.UNAVAILABLE;

@@ -16,7 +16,6 @@ public class MatrixProjectProcessor extends AbstractProjectProcessor {
 	}
 
 	public MatrixProjectProcessor(AbstractProject project) {
-		if (project == null) throw new IllegalArgumentException("project MUST not be null");
 		MatrixProject p = (MatrixProject) project;
 
 		//  Internal phases

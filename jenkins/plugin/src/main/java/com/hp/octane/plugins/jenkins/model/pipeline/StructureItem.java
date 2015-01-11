@@ -18,13 +18,13 @@ import java.util.List;
  */
 
 @ExportedBean
-public class FlowItem {
+public class StructureItem {
 	private String name;
 	protected ParameterConfig[] parameters;
-	protected FlowPhase[] internals;
-	protected FlowPhase[] postBuilds;
+	protected StructurePhase[] internals;
+	protected StructurePhase[] postBuilds;
 
-	public FlowItem(AbstractProject project) {
+	public StructureItem(AbstractProject project) {
 		AbstractProjectProcessor flowProcessor = null;
 		List<ParameterDefinition> paramDefinitions;
 		name = project.getName();
@@ -53,8 +53,8 @@ public class FlowItem {
 			internals = flowProcessor.getInternals();
 			postBuilds = flowProcessor.getPostBuilds();
 		} else {
-			internals = new FlowPhase[0];
-			postBuilds = new FlowPhase[0];
+			internals = new StructurePhase[0];
+			postBuilds = new StructurePhase[0];
 		}
 	}
 
@@ -69,12 +69,12 @@ public class FlowItem {
 	}
 
 	@Exported(inline = true)
-	public FlowPhase[] getPhasesInternal() {
+	public StructurePhase[] getPhasesInternal() {
 		return internals;
 	}
 
 	@Exported(inline = true)
-	public FlowPhase[] getPhasesPostBuild() {
+	public StructurePhase[] getPhasesPostBuild() {
 		return postBuilds;
 	}
 }

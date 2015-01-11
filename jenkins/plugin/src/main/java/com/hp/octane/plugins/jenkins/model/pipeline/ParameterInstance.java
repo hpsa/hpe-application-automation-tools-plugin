@@ -1,9 +1,6 @@
 package com.hp.octane.plugins.jenkins.model.pipeline;
 
-import hudson.model.BooleanParameterDefinition;
-import hudson.model.ParameterDefinition;
 import hudson.model.ParameterValue;
-import hudson.model.SimpleParameterDefinition;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 

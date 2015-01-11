@@ -16,16 +16,15 @@ public class MavenProjectProcessor extends AbstractProjectProcessor{
 	}
 
 	public MavenProjectProcessor(AbstractProject project) {
-		if (project == null) throw new IllegalArgumentException("project MUST not be null");
 		MavenModuleSet p = (MavenModuleSet) project;
 
 		//  Internal phases - pre maven phases
 		//
-		super.processBuilders(p.getPrebuilders(), p);
+		super.processBuilders(p.getPrebuilders(), p, "pre-maven");
 
 		//  Internal phases - post maven phases
 		//
-		super.processBuilders(p.getPostbuilders(), p);
+		super.processBuilders(p.getPostbuilders(), p, "post-maven");
 
 		//  Post build phases
 		//

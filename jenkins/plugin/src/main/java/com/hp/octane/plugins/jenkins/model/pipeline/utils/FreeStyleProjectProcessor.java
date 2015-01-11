@@ -16,7 +16,6 @@ public class FreeStyleProjectProcessor extends AbstractProjectProcessor {
 	}
 
 	public FreeStyleProjectProcessor(AbstractProject project) {
-		if (project == null) throw new IllegalArgumentException("project MUST not be null");
 		FreeStyleProject p = (FreeStyleProject) project;
 
 		//  Internal phases

@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jenkins.model.pipeline.utils;
 
-import com.hp.octane.plugins.jenkins.model.pipeline.FlowPhase;
+import com.hp.octane.plugins.jenkins.model.pipeline.StructurePhase;
 import hudson.model.AbstractProject;
 import hudson.tasks.Builder;
 import hudson.tasks.Publisher;
@@ -17,15 +17,19 @@ import java.util.List;
  */
 
 public abstract class AbstractProjectProcessor {
-	private ArrayList<FlowPhase> internals = new ArrayList<FlowPhase>();
-	private ArrayList<FlowPhase> postBuilds = new ArrayList<FlowPhase>();
+	private ArrayList<StructurePhase> internals = new ArrayList<StructurePhase>();
+	private ArrayList<StructurePhase> postBuilds = new ArrayList<StructurePhase>();
 
 	protected void processBuilders(List<Builder> builders, AbstractProject project) {
+		this.processBuilders(builders, project, "");
+	}
+
+	protected void processBuilders(List<Builder> builders, AbstractProject project, String phasesName) {
 		AbstractBuilderProcessor builderProcessor;
 		for (Builder builder : builders) {
 			builderProcessor = null;
 			if (builder.getClass().getName().compareTo("hudson.plugins.parameterizedtrigger.TriggerBuilder") == 0) {
-				builderProcessor = new ParameterizedTriggerProcessor(builder, project);
+				builderProcessor = new ParameterizedTriggerProcessor(builder, project, phasesName);
 			} else if (builder.getClass().getName().compareTo("com.tikal.jenkins.plugins.multijob.MultiJobBuilder") == 0) {
 				builderProcessor = new MultiJobBuilderProcessor(builder);
 			}
@@ -48,7 +52,7 @@ public abstract class AbstractProjectProcessor {
 			if (publisher.getClass().getName().compareTo("hudson.tasks.BuildTrigger") == 0) {
 				builderProcessor = new BuildTriggerProcessor(publisher, project);
 			} else if (publisher.getClass().getName().compareTo("hudson.plugins.parameterizedtrigger.BuildTrigger") == 0) {
-				builderProcessor = new ParameterizedTriggerProcessor(publisher, project);
+				builderProcessor = new ParameterizedTriggerProcessor(publisher, project, "");
 			}
 			if (builderProcessor != null) {
 				postBuilds.addAll(builderProcessor.getPhases());
@@ -58,11 +62,11 @@ public abstract class AbstractProjectProcessor {
 		}
 	}
 
-	public FlowPhase[] getInternals() {
-		return internals.toArray(new FlowPhase[internals.size()]);
+	public StructurePhase[] getInternals() {
+		return internals.toArray(new StructurePhase[internals.size()]);
 	}
 
-	public FlowPhase[] getPostBuilds() {
-		return postBuilds.toArray(new FlowPhase[postBuilds.size()]);
+	public StructurePhase[] getPostBuilds() {
+		return postBuilds.toArray(new StructurePhase[postBuilds.size()]);
 	}
 }

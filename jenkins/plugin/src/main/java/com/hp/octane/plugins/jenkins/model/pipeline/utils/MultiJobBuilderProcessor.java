@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jenkins.model.pipeline.utils;
 
-import com.hp.octane.plugins.jenkins.model.pipeline.FlowPhase;
+import com.hp.octane.plugins.jenkins.model.pipeline.StructurePhase;
 import com.tikal.jenkins.plugins.multijob.MultiJobBuilder;
 import com.tikal.jenkins.plugins.multijob.PhaseJobsConfig;
 import hudson.model.AbstractProject;
@@ -23,11 +23,11 @@ public class MultiJobBuilderProcessor extends AbstractBuilderProcessor {
 
 	public MultiJobBuilderProcessor(Builder builder) {
 		MultiJobBuilder b = (MultiJobBuilder) builder;
-		super.phases = new ArrayList<FlowPhase>();
+		super.phases = new ArrayList<StructurePhase>();
 		ArrayList<AbstractProject> items = new ArrayList<AbstractProject>();
 		for (PhaseJobsConfig config : b.getPhaseJobs()) {
 			items.add((AbstractProject) Jenkins.getInstance().getItem(config.getJobName()));
 		}
-		super.phases.add(new FlowPhase(b.getPhaseName(), true, items));
+		super.phases.add(new StructurePhase(b.getPhaseName(), true, items));
 	}
 }

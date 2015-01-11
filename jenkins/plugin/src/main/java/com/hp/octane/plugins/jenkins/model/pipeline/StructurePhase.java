@@ -15,17 +15,17 @@ import java.util.List;
  */
 
 @ExportedBean
-public class FlowPhase {
+public class StructurePhase {
 	private String name;
 	private boolean blocking;
-	private FlowItem[] items;
+	private StructureItem[] items;
 
-	public FlowPhase(String name, boolean blocking, List<AbstractProject> items) {
+	public StructurePhase(String name, boolean blocking, List<AbstractProject> items) {
 		this.name = name;
 		this.blocking = blocking;
-		this.items = new FlowItem[items.size()];
+		this.items = new StructureItem[items.size()];
 		for (int i = 0; i < this.items.length; i++) {
-			this.items[i] = new FlowItem(items.get(i));
+			this.items[i] = new StructureItem(items.get(i));
 		}
 	}
 
@@ -40,7 +40,7 @@ public class FlowPhase {
 	}
 
 	@Exported(inline = true)
-	public FlowItem[] getJobs() {
+	public StructureItem[] getJobs() {
 		return items;
 	}
 }

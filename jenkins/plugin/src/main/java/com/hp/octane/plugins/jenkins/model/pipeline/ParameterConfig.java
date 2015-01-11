@@ -21,15 +21,18 @@ public class ParameterConfig {
 
 	public ParameterConfig(ParameterDefinition pb) {
 		name = pb.getName();
+		description = pb.getDescription();
 		if (pb instanceof SimpleParameterDefinition) {
 			if (pb instanceof BooleanParameterDefinition) {
 				type = ParameterType.BOOLEAN;
 			} else {
 				type = ParameterType.STRING;
 			}
+			defaultValue = pb.getDefaultParameterValue().getValue();
+		} else {
+			type = ParameterType.UNAVAILABLE;
+			System.out.println("TODO: add handling file parameter");
 		}
-		description = pb.getDescription();
-		defaultValue = pb.getDefaultParameterValue().getValue();
 	}
 
 	public ParameterConfig(ParameterConfig config) {
