@@ -1,5 +1,8 @@
 package com.hp.octane.plugins.jenkins.model.scm;
 
+import org.kohsuke.stapler.export.Exported;
+import org.kohsuke.stapler.export.ExportedBean;
+
 import java.util.ArrayList;
 
 /**
@@ -9,9 +12,12 @@ import java.util.ArrayList;
  * Time: 09:51
  * To change this template use File | Settings | File Templates.
  */
+
+@ExportedBean
 public class SCMCommit {
 
-	class User {
+	@ExportedBean
+	public class User {
 		private String nickName;
 		private String fullName;
 		private String email;
@@ -21,15 +27,41 @@ public class SCMCommit {
 			this.fullName = fullName;
 			this.email = email;
 		}
+
+		@Exported(inline = true)
+		public String getNickName() {
+			return nickName;
+		}
+
+		@Exported(inline = true)
+		public String getFullName() {
+			return fullName;
+		}
+
+		@Exported(inline = true)
+		public String getEmail() {
+			return email;
+		}
 	}
 
-	class Change {
+	@ExportedBean
+	public class Change {
 		private String type;
 		private String file;
 
 		Change(String type, String file) {
 			this.type = type;
 			this.file = file;
+		}
+
+		@Exported(inline = true)
+		public String getType() {
+			return type;
+		}
+
+		@Exported(inline = true)
+		public String getFile() {
+			return file;
 		}
 	}
 
@@ -53,5 +85,30 @@ public class SCMCommit {
 
 	public void addChange(String type, String file) {
 		changes.add(new Change(type, file));
+	}
+
+	@Exported(inline = true)
+	public String getId() {
+		return id;
+	}
+
+	@Exported(inline = true)
+	public String getComment() {
+		return comment;
+	}
+
+	@Exported(inline = true)
+	public long getTime() {
+		return time;
+	}
+
+	@Exported(inline = true)
+	public User getUser() {
+		return user;
+	}
+
+	@Exported(inline = true)
+	public Change[] getChanges() {
+		return changes.toArray(new Change[changes.size()]);
 	}
 }

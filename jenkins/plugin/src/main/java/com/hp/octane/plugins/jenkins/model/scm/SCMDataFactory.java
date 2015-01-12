@@ -1,6 +1,5 @@
 package com.hp.octane.plugins.jenkins.model.scm;
 
-import com.hp.octane.plugins.jenkins.model.scm.*;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.plugins.git.GitChangeSet;
@@ -23,12 +22,14 @@ import java.util.Set;
  * Time: 14:55
  * To change this template use File | Settings | File Templates.
  */
+
 public final class SCMDataFactory {
+
 	static public SCMData create(AbstractProject project) {
-		ArrayList<SCMRepository> repositories = new ArrayList<SCMRepository>();
+		ArrayList<SCMRepositoryData> repositories = new ArrayList<SCMRepositoryData>();
 		GitSCM scmGit;
 		SCMType tmpType;
-		SCMRepository tmpRepo;
+		SCMRepositoryData tmpRepo;
 		List<UserRemoteConfig> remoteConfigs;
 		if (project.getScm() instanceof NullSCM) return null;
 		if (project.getScm() instanceof GitSCM) {
@@ -36,7 +37,7 @@ public final class SCMDataFactory {
 			scmGit = (GitSCM) project.getScm();
 			remoteConfigs = scmGit.getUserRemoteConfigs();
 			for (UserRemoteConfig remoteConfig : remoteConfigs) {
-				tmpRepo = new SCMRepository(
+				tmpRepo = new SCMRepositoryData(
 						tmpType,
 						remoteConfig.getUrl()
 				);
@@ -47,11 +48,11 @@ public final class SCMDataFactory {
 	}
 
 	static public SCMData create(AbstractBuild build) {
-		ArrayList<SCMRepository> repositories = new ArrayList<SCMRepository>();
+		ArrayList<SCMRepositoryData> repositories = new ArrayList<SCMRepositoryData>();
 		AbstractProject project = build.getProject();
 		GitSCM scmGit;
 		SCMType tmpType;
-		SCMRepository tmpRepo;
+		SCMRepositoryData tmpRepo;
 		SCMCommit tmpCommit;
 		ChangeLogSet<ChangeLogSet.Entry> changes = build.getChangeSet();
 		BuildData buildData;
@@ -66,7 +67,7 @@ public final class SCMDataFactory {
 			buildCommitRev = buildData.getLastBuiltRevision();
 			repoUris = buildData.getRemoteUrls();
 			if (!repoUris.iterator().hasNext()) return null;
-			tmpRepo = new SCMRepository(
+			tmpRepo = new SCMRepositoryData(
 					tmpType,
 					repoUris.iterator().next(),
 					buildCommitRev.getSha1String(),

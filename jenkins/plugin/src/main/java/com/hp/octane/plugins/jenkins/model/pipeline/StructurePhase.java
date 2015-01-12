@@ -15,32 +15,19 @@ import java.util.List;
  */
 
 @ExportedBean
-public class StructurePhase {
-	private String name;
-	private boolean blocking;
+public final class StructurePhase extends AbstractPhase {
 	private StructureItem[] items;
 
 	public StructurePhase(String name, boolean blocking, List<AbstractProject> items) {
-		this.name = name;
-		this.blocking = blocking;
+		super(name, blocking);
 		this.items = new StructureItem[items.size()];
 		for (int i = 0; i < this.items.length; i++) {
 			this.items[i] = new StructureItem(items.get(i));
 		}
 	}
 
-	@Exported(inline = true)
-	public String getName() {
-		return name;
-	}
-
-	@Exported(inline = true)
-	public boolean getBlocking() {
-		return blocking;
-	}
-
-	@Exported(inline = true)
-	public StructureItem[] getJobs() {
+	@Override
+	AbstractItem[] provideItems() {
 		return items;
 	}
 }

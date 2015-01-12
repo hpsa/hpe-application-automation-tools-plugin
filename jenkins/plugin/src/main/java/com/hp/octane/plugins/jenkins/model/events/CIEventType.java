@@ -7,6 +7,7 @@ package com.hp.octane.plugins.jenkins.model.events;
  * Time: 16:39
  * To change this template use File | Settings | File Templates.
  */
+
 public enum CIEventType {
 	QUEUED("queued"),
 	STARTED("started"),

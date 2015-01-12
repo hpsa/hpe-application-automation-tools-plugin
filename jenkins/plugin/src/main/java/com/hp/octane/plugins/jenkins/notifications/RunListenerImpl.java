@@ -3,7 +3,6 @@ package com.hp.octane.plugins.jenkins.notifications;
 import com.hp.octane.plugins.jenkins.model.pipeline.SnapshotResult;
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCausesFactory;
 import com.hp.octane.plugins.jenkins.model.scm.SCMDataFactory;
-import com.hp.octane.plugins.jenkins.model.CIServerType;
 import com.hp.octane.plugins.jenkins.model.events.CIEventFinished;
 import com.hp.octane.plugins.jenkins.model.events.CIEventStarted;
 import hudson.Extension;
@@ -28,7 +27,6 @@ public final class RunListenerImpl extends RunListener<Run> {
 		if (r instanceof AbstractBuild) {
 			AbstractBuild build = (AbstractBuild) r;
 			CIEventStarted event = new CIEventStarted(
-					CIServerType.JENKINS,
 					EventDispatcher.SELF_URL,
 					build.getProject().getName(),
 					build.getNumber(),
@@ -57,7 +55,6 @@ public final class RunListenerImpl extends RunListener<Run> {
 				result = SnapshotResult.UNAVAILABLE;
 			}
 			CIEventFinished event = new CIEventFinished(
-					CIServerType.JENKINS,
 					EventDispatcher.SELF_URL,
 					build.getProject().getName(),
 					build.getNumber(),

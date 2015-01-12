@@ -1,5 +1,8 @@
 package com.hp.octane.plugins.jenkins.model.scm;
 
+import org.kohsuke.stapler.export.Exported;
+import org.kohsuke.stapler.export.ExportedBean;
+
 import java.util.ArrayList;
 
 /**
@@ -9,14 +12,17 @@ import java.util.ArrayList;
  * Time: 22:33
  * To change this template use File | Settings | File Templates.
  */
-public class SCMData {
-	private ArrayList<SCMRepository> repositories;
 
-	public SCMData(ArrayList<SCMRepository> repositories) {
+@ExportedBean
+public class SCMData {
+	private ArrayList<SCMRepositoryData> repositories;
+
+	public SCMData(ArrayList<SCMRepositoryData> repositories) {
 		this.repositories = repositories;
 	}
 
-	public ArrayList<SCMRepository> getRepositories() {
-		return repositories;
+	@Exported(inline = true)
+	public SCMRepositoryData[] getRepositories() {
+		return repositories.toArray(new SCMRepositoryData[repositories.size()]);
 	}
 }

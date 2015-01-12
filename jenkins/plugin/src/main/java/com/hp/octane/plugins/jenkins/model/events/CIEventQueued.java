@@ -1,7 +1,7 @@
 package com.hp.octane.plugins.jenkins.model.events;
 
-import com.hp.octane.plugins.jenkins.model.CIServerType;
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCauseBase;
+import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
 /**
@@ -13,15 +13,15 @@ import org.kohsuke.stapler.export.ExportedBean;
  */
 
 @ExportedBean
-public class CIEventQueued extends CIEventBase {
-	public final CIEventType eventType = CIEventType.QUEUED;
+public final class CIEventQueued extends CIEventBase {
+	private final CIEventType eventType = CIEventType.QUEUED;
 
-	public CIEventQueued(CIServerType serverType, String serverURL, String project, CIEventCauseBase cause) {
-		super(serverType, serverURL, project, cause);
+	public CIEventQueued(String serverURL, String project, CIEventCauseBase cause) {
+		super(serverURL, project, cause);
 	}
 
 	@Override
-	public CIEventType getEventType() {
+	CIEventType provideEventType() {
 		return eventType;
 	}
 }

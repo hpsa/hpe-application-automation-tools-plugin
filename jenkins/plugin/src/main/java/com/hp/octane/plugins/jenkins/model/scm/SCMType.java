@@ -7,6 +7,7 @@ package com.hp.octane.plugins.jenkins.model.scm;
  * Time: 09:46
  * To change this template use File | Settings | File Templates.
  */
+
 public enum SCMType {
 	UNSUPPORTED("unsupported"),
 	GIT("git");

@@ -1,7 +1,8 @@
 package com.hp.octane.plugins.jenkins.model.events;
 
-import com.hp.octane.plugins.jenkins.model.CIServerType;
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCauseBase;
+import org.kohsuke.stapler.export.Exported;
+import org.kohsuke.stapler.export.ExportedBean;
 
 /**
  * Created with IntelliJ IDEA.
@@ -10,38 +11,38 @@ import com.hp.octane.plugins.jenkins.model.causes.CIEventCauseBase;
  * Time: 21:38
  * To change this template use File | Settings | File Templates.
  */
-public class CIEventStarted extends CIEventBase {
-	public final CIEventType eventType = CIEventType.STARTED;
-	public int number;
-	public long startTime;
-	public long estimatedDuration;
 
-	public CIEventStarted(CIServerType serverType, String serverURL, String project, int number, long startTime, long estimatedDuration, CIEventCauseBase cause) {
-		super(serverType, serverURL, project, cause);
+@ExportedBean
+public final class CIEventStarted extends CIEventBase {
+	private final CIEventType eventType = CIEventType.STARTED;
+	private int number;
+	private long startTime;
+	private long estimatedDuration;
+
+	public CIEventStarted(String serverURL, String project, int number, long startTime, long estimatedDuration, CIEventCauseBase cause) {
+		super(serverURL, project, cause);
 		this.number = number;
 		this.startTime = startTime;
 		this.estimatedDuration = estimatedDuration;
 	}
 
 	@Override
-	public CIEventType getEventType() {
+	CIEventType provideEventType() {
 		return eventType;
 	}
 
-//	@Override
-//	public JSONObject toJSON() {
-//		JSONObject r = super.toJSON();
-//		r.put("number", number);
-//		r.put("startTime", startTime);
-//		r.put("estimatedDuration", estimatedDuration);
-//		return r;
-//	}
-//
-//	@Override
-//	public void fromJSON(JSONObject json) {
-//		super.fromJSON(json);
-//		number = json.getInt("number");
-//		startTime = json.getLong("startTime");
-//		estimatedDuration = json.getLong("estimatedDuration");
-//	}
+	@Exported(inline = true)
+	public int getNumber() {
+		return number;
+	}
+
+	@Exported(inline = true)
+	public long getStartTime() {
+		return startTime;
+	}
+
+	@Exported(inline = true)
+	public long getEstimatedDuration() {
+		return estimatedDuration;
+	}
 }

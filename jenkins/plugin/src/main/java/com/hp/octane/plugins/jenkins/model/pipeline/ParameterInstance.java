@@ -16,9 +16,12 @@ import org.kohsuke.stapler.export.ExportedBean;
 public class ParameterInstance extends ParameterConfig {
 	private Object value;
 
-	public ParameterInstance(ParameterValue value, ParameterConfig config) {
+	public ParameterInstance(ParameterConfig config) {
 		super(config);
-		this.value = value.getValue();
+	}
+
+	public void setValue(Object value) {
+		this.value = value;
 	}
 
 	@Exported(inline = true)

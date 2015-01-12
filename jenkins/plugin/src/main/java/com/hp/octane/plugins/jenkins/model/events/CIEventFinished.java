@@ -1,9 +1,9 @@
 package com.hp.octane.plugins.jenkins.model.events;
 
 import com.hp.octane.plugins.jenkins.model.pipeline.SnapshotResult;
-import com.hp.octane.plugins.jenkins.model.CIServerType;
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCauseBase;
 import com.hp.octane.plugins.jenkins.model.scm.SCMData;
+import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
 /**
@@ -15,15 +15,15 @@ import org.kohsuke.stapler.export.ExportedBean;
  */
 
 @ExportedBean
-public class CIEventFinished extends CIEventBase {
-	public final CIEventType eventType = CIEventType.FINISHED;
-	public int number;
-	public SnapshotResult result;
-	public long duration;
-	public SCMData scmData;
+public final class CIEventFinished extends CIEventBase {
+	private final CIEventType eventType = CIEventType.FINISHED;
+	private int number;
+	private SnapshotResult result;
+	private long duration;
+	private SCMData scmData;
 
-	public CIEventFinished(CIServerType serverType, String serverURL, String project, int number, SnapshotResult result, long duration, SCMData scmData, CIEventCauseBase cause) {
-		super(serverType, serverURL, project, cause);
+	public CIEventFinished(String serverURL, String project, int number, SnapshotResult result, long duration, SCMData scmData, CIEventCauseBase cause) {
+		super(serverURL, project, cause);
 		this.number = number;
 		this.result = result;
 		this.duration = duration;
@@ -31,7 +31,27 @@ public class CIEventFinished extends CIEventBase {
 	}
 
 	@Override
-	public CIEventType getEventType() {
+	CIEventType provideEventType() {
 		return eventType;
+	}
+
+	@Exported(inline = true)
+	public int getNumber() {
+		return number;
+	}
+
+	@Exported(inline = true)
+	public String getResult() {
+		return result.toString();
+	}
+
+	@Exported(inline = true)
+	public long getDuration() {
+		return duration;
+	}
+
+	@Exported(inline = true)
+	public SCMData getScmData() {
+		return scmData;
 	}
 }

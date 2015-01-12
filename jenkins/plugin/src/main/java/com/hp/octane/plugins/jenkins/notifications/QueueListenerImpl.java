@@ -1,7 +1,6 @@
 package com.hp.octane.plugins.jenkins.notifications;
 
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCausesFactory;
-import com.hp.octane.plugins.jenkins.model.CIServerType;
 import com.hp.octane.plugins.jenkins.model.events.CIEventQueued;
 import hudson.Extension;
 import hudson.model.AbstractProject;
@@ -15,6 +14,7 @@ import hudson.model.queue.QueueListener;
  * Time: 13:25
  * To change this template use File | Settings | File Templates.
  */
+
 @Extension
 public final class QueueListenerImpl extends QueueListener {
 
@@ -24,7 +24,6 @@ public final class QueueListenerImpl extends QueueListener {
 		if (wi.task instanceof AbstractProject) {
 			project = (AbstractProject) wi.task;
 			event = new CIEventQueued(
-					CIServerType.JENKINS,
 					EventDispatcher.SELF_URL,
 					project.getName(),
 					CIEventCausesFactory.convertCause(wi.getCauses())
