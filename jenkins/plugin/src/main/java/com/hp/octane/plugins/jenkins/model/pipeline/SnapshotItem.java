@@ -6,10 +6,14 @@ import com.hp.octane.plugins.jenkins.model.pipeline.utils.AbstractProjectProcess
 import com.hp.octane.plugins.jenkins.model.scm.SCMData;
 import com.hp.octane.plugins.jenkins.model.scm.SCMDataFactory;
 import hudson.model.*;
+import jenkins.model.Jenkins;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -40,65 +44,109 @@ public final class SnapshotItem extends AbstractItem {
 		ParametersAction parametersAction;
 		ArrayList<ParameterValue> parametersValues;
 		ParameterConfig[] parametersConfigs;
-		if (build != null) {
-			number = build.getNumber();
-			cause = CIEventCausesFactory.convertCause(build.getCauses());
-			if (build.hasntStartedYet()) {
-				status = SnapshotStatus.QUEUED;
-			} else if (build.isBuilding()) {
-				status = SnapshotStatus.RUNNING;
-			} else {
-				status = SnapshotStatus.FINISHED;
-			}
-			if (build.getResult() == Result.SUCCESS) {
-				result = SnapshotResult.SUCCESS;
-			} else if (build.getResult() == Result.ABORTED) {
-				result = SnapshotResult.ABORTED;
-			} else if (build.getResult() == Result.FAILURE) {
-				result = SnapshotResult.FAILURE;
-			} else if (build.getResult() == Result.UNSTABLE) {
-				result = SnapshotResult.UNSTABLE;
-			}
-			estimatedDuration = build.getEstimatedDuration();
-			startTime = build.getStartTimeInMillis();
-			duration = build.getDuration();
-			scmData = SCMDataFactory.create(build);
-			parametersAction = build.getAction(ParametersAction.class);
-			if (parametersAction != null) {
-				parametersValues = new ArrayList<ParameterValue>(parametersAction.getParameters());
-			} else {
-				parametersValues = new ArrayList<ParameterValue>();
-			}
-			parametersConfigs = super.getParameterConfigs(project);
-			parameters = new ParameterInstance[parametersConfigs.length];
-			for (int i = 0; i < parameters.length; i++) {
-				parameters[i] = new ParameterInstance(parametersConfigs[i]);
-				for (int j = 0; j < parametersValues.size(); j++) {
-					//  TODO: reevaluate config to value mapping logic
-					if (parametersValues.get(j).getName().compareTo(parametersConfigs[i].getName()) == 0) {
-						parameters[i].setValue(parametersValues.get(j).getValue());
-						parametersValues.remove(j);
-						break;
-					}
+
+		number = build.getNumber();
+		cause = CIEventCausesFactory.convertCause(build.getCauses());
+		if (build.hasntStartedYet()) {
+			status = SnapshotStatus.QUEUED;
+		} else if (build.isBuilding()) {
+			status = SnapshotStatus.RUNNING;
+		} else {
+			status = SnapshotStatus.FINISHED;
+		}
+		if (build.getResult() == Result.SUCCESS) {
+			result = SnapshotResult.SUCCESS;
+		} else if (build.getResult() == Result.ABORTED) {
+			result = SnapshotResult.ABORTED;
+		} else if (build.getResult() == Result.FAILURE) {
+			result = SnapshotResult.FAILURE;
+		} else if (build.getResult() == Result.UNSTABLE) {
+			result = SnapshotResult.UNSTABLE;
+		}
+		estimatedDuration = build.getEstimatedDuration();
+		startTime = build.getStartTimeInMillis();
+		duration = build.getDuration();
+		scmData = SCMDataFactory.create(build);
+		parametersAction = build.getAction(ParametersAction.class);
+		if (parametersAction != null) {
+			parametersValues = new ArrayList<ParameterValue>(parametersAction.getParameters());
+		} else {
+			parametersValues = new ArrayList<ParameterValue>();
+		}
+		parametersConfigs = super.getParameterConfigs(project);
+		parameters = new ParameterInstance[parametersConfigs.length];
+		for (int i = 0; i < parameters.length; i++) {
+			parameters[i] = new ParameterInstance(parametersConfigs[i]);
+			for (int j = 0; j < parametersValues.size(); j++) {
+				//  TODO: reevaluate config to value mapping logic
+				if (parametersValues.get(j).getName().compareTo(parametersConfigs[i].getName()) == 0) {
+					parameters[i].setValue(parametersValues.get(j).getValue());
+					parametersValues.remove(j);
+					break;
 				}
 			}
-			AbstractProjectProcessor flowProcessor = super.getFlowProcessor(project);
-			internals = inflatePhases(build, flowProcessor.getInternals());
-			postBuilds = inflatePhases(build, flowProcessor.getPostBuilds());
 		}
+		AbstractProjectProcessor flowProcessor = super.getFlowProcessor(project);
+		StructurePhase[] tmpStructInternals = flowProcessor.getInternals();
+		StructurePhase[] tmpStructPostBuilds = flowProcessor.getPostBuilds();
+		ArrayList<String> invokeesNames = new ArrayList<String>();
+		appendInvokeesNames(invokeesNames, tmpStructInternals);
+		appendInvokeesNames(invokeesNames, tmpStructPostBuilds);
+		HashMap<String, ArrayList<AbstractBuild>> invokedBuilds = getInvokedBuilds(build, invokeesNames);
+		internals = inflatePhases(tmpStructInternals, invokedBuilds);
+		postBuilds = inflatePhases(tmpStructPostBuilds, invokedBuilds);
 	}
 
 	public SnapshotItem(AbstractProject project) {
 		super(project.getName());
 		AbstractProjectProcessor flowProcessor = super.getFlowProcessor(project);
-		internals = inflatePhases(null, flowProcessor.getInternals());
-		postBuilds = inflatePhases(null, flowProcessor.getPostBuilds());
+		internals = inflatePhases(flowProcessor.getInternals(), null);
+		postBuilds = inflatePhases(flowProcessor.getPostBuilds(), null);
 	}
 
-	private SnapshotPhase[] inflatePhases(AbstractBuild self, StructurePhase[] structures) {
+	private void appendInvokeesNames(ArrayList<String> list, StructurePhase[] phases) {
+		for (StructurePhase phase : phases) {
+			for (AbstractItem item : phase.getJobs()) {
+				if (!list.contains(item.getName())) list.add(item.getName());
+			}
+		}
+	}
+
+	private HashMap<String, ArrayList<AbstractBuild>> getInvokedBuilds(AbstractBuild self, ArrayList<String> invokeesNames) {
+		HashMap<String, ArrayList<AbstractBuild>> result = new HashMap<String, ArrayList<AbstractBuild>>();
+		AbstractProject project;
+		for (String invokeeName : invokeesNames) {
+			project = (AbstractProject) Jenkins.getInstance().getItem(invokeeName);
+			result.put(invokeeName, getInvokees(self, project));
+		}
+		return result;
+	}
+
+	@SuppressWarnings("unchecked")
+	private ArrayList<AbstractBuild> getInvokees(AbstractBuild invoker, AbstractProject project) {
+		ArrayList<AbstractBuild> result = new ArrayList<AbstractBuild>();
+		AbstractBuild tmpBuild;
+		Cause.UpstreamCause tmpCause;
+		for (Iterator i = project.getBuilds().iterator(); i.hasNext(); ) {
+			tmpBuild = (AbstractBuild) i.next();
+			for (Cause cause : (List<Cause>) tmpBuild.getCauses()) {
+				if (!(cause instanceof Cause.UpstreamCause)) continue;
+
+				tmpCause = (Cause.UpstreamCause) cause;
+				if (tmpCause.pointsTo(invoker)) {
+					result.add(0, tmpBuild);
+				} else if (tmpCause.pointsTo(invoker.getProject()) && tmpCause.getUpstreamBuild() < invoker.getNumber()) {
+					return result;
+				}
+			}
+		}
+		return result;
+	}
+
+	private SnapshotPhase[] inflatePhases(StructurePhase[] structures, HashMap<String, ArrayList<AbstractBuild>> invokedBuilds) {
 		SnapshotPhase[] phases = new SnapshotPhase[structures.length];
 		for (int i = 0; i < phases.length; i++) {
-			phases[i] = new SnapshotPhase(self, structures[i]);
+			phases[i] = new SnapshotPhase(structures[i], invokedBuilds);
 		}
 		return phases;
 	}

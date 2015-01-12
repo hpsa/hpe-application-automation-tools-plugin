@@ -8,8 +8,13 @@ import hudson.matrix.MatrixProject;
 import hudson.maven.MavenModuleSet;
 import hudson.model.*;
 import hudson.plugins.parameterizedtrigger.*;
+import hudson.search.Search;
+import hudson.search.SearchIndex;
+import hudson.security.ACL;
+import hudson.security.Permission;
 import hudson.tasks.*;
 import hudson.tasks.BuildTrigger;
+import org.acegisecurity.AccessDeniedException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Rule;
@@ -17,12 +22,14 @@ import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.xml.sax.SAXException;
 
+import javax.annotation.Nonnull;
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -174,6 +181,7 @@ public class TestProjectActions {
 		MatrixProject p2 = rule.createMatrixProject("jobB");
 		FreeStyleProject p3 = rule.createFreeStyleProject("jobC");
 		MavenModuleSet p4 = rule.createMavenProject("jobD");
+		CustomProject p5 = rule.getInstance().createProject(CustomProject.class, "jobE");
 		ParametersDefinitionProperty params = new ParametersDefinitionProperty(Arrays.asList(
 				(ParameterDefinition) new BooleanParameterDefinition("ParamA", true, "bool"),
 				(ParameterDefinition) new StringParameterDefinition("ParamB", "str", "string")
@@ -189,7 +197,7 @@ public class TestProjectActions {
 		)));
 		p.getBuildersList().add(new Shell(""));
 		p.getBuildersList().add(new TriggerBuilder(Arrays.asList(
-				new BlockableBuildTriggerConfig("jobA, jobB", new BlockingBehaviour(
+				new BlockableBuildTriggerConfig("jobA, jobB, jobE", new BlockingBehaviour(
 						Result.FAILURE,
 						Result.UNSTABLE,
 						Result.FAILURE
@@ -282,7 +290,7 @@ public class TestProjectActions {
 		assertEquals(tmpPhase.getString("name"), "");
 		assertEquals(tmpPhase.getBoolean("blocking"), true);
 		tmpJobs = tmpPhase.getJSONArray("jobs");
-		assertEquals(tmpJobs.length(), 2);
+		assertEquals(tmpJobs.length(), 3);
 		tmpJob = tmpJobs.getJSONObject(0);
 		assertEquals(tmpJob.length(), 4);
 		assertEquals(tmpJob.getString("name"), "jobA");
@@ -292,6 +300,12 @@ public class TestProjectActions {
 		tmpJob = tmpJobs.getJSONObject(1);
 		assertEquals(tmpJob.length(), 4);
 		assertEquals(tmpJob.getString("name"), "jobB");
+		assertEquals(tmpJob.getJSONArray("parameters").length(), 0);
+		assertEquals(tmpJob.getJSONArray("phasesInternal").length(), 0);
+		assertEquals(tmpJob.getJSONArray("phasesPostBuild").length(), 0);
+		tmpJob = tmpJobs.getJSONObject(2);
+		assertEquals(tmpJob.length(), 4);
+		assertEquals(tmpJob.getString("name"), "jobE");
 		assertEquals(tmpJob.getJSONArray("parameters").length(), 0);
 		assertEquals(tmpJob.getJSONArray("phasesInternal").length(), 0);
 		assertEquals(tmpJob.getJSONArray("phasesPostBuild").length(), 0);
@@ -471,6 +485,7 @@ public class TestProjectActions {
 		MatrixProject p2 = rule.createMatrixProject("jobB");
 		FreeStyleProject p3 = rule.createFreeStyleProject("jobC");
 		MavenModuleSet p4 = rule.createMavenProject("jobD");
+		CustomProject p5 = rule.getInstance().createProject(CustomProject.class, "jobE");
 		ParametersDefinitionProperty params = new ParametersDefinitionProperty(Arrays.asList(
 				(ParameterDefinition) new BooleanParameterDefinition("ParamA", true, "bool"),
 				(ParameterDefinition) new StringParameterDefinition("ParamB", "str", "string")
@@ -486,7 +501,7 @@ public class TestProjectActions {
 		)));
 		p.getBuildersList().add(new Shell(""));
 		p.getPublishersList().add(new Fingerprinter(""));
-		p.getPublishersList().add(new BuildTrigger("jobA, jobB", Result.SUCCESS));
+		p.getPublishersList().add(new BuildTrigger("jobA, jobB, JobE", Result.SUCCESS));
 		p.getPublishersList().add(new hudson.plugins.parameterizedtrigger.BuildTrigger(Arrays.asList(
 				new BuildTriggerConfig("jobC,jobD", ResultCondition.ALWAYS, false, null)
 		)));
@@ -575,7 +590,7 @@ public class TestProjectActions {
 		assertEquals(tmpPhase.getString("name"), "downstream");
 		assertEquals(tmpPhase.getBoolean("blocking"), false);
 		tmpJobs = tmpPhase.getJSONArray("jobs");
-		assertEquals(tmpJobs.length(), 2);
+		assertEquals(tmpJobs.length(), 3);
 		tmpJob = tmpJobs.getJSONObject(0);
 		assertEquals(tmpJob.length(), 4);
 		assertEquals(tmpJob.getString("name"), "jobA");
@@ -585,6 +600,12 @@ public class TestProjectActions {
 		tmpJob = tmpJobs.getJSONObject(1);
 		assertEquals(tmpJob.length(), 4);
 		assertEquals(tmpJob.getString("name"), "jobB");
+		assertEquals(tmpJob.getJSONArray("parameters").length(), 0);
+		assertEquals(tmpJob.getJSONArray("phasesInternal").length(), 0);
+		assertEquals(tmpJob.getJSONArray("phasesPostBuild").length(), 0);
+		tmpJob = tmpJobs.getJSONObject(2);
+		assertEquals(tmpJob.length(), 4);
+		assertEquals(tmpJob.getString("name"), "jobE");
 		assertEquals(tmpJob.getJSONArray("parameters").length(), 0);
 		assertEquals(tmpJob.getJSONArray("phasesInternal").length(), 0);
 		assertEquals(tmpJob.getJSONArray("phasesPostBuild").length(), 0);
@@ -1020,6 +1041,7 @@ public class TestProjectActions {
 		MatrixProject p2 = rule.createMatrixProject("jobB");
 		MultiJobProject p3 = rule.getInstance().createProject(MultiJobProject.class, "jobC");
 		MatrixProject p4 = rule.createMatrixProject("jobD");
+		CustomProject p5 = rule.getInstance().createProject(CustomProject.class, "jobE");
 		ParametersDefinitionProperty params = new ParametersDefinitionProperty(Arrays.asList(
 				(ParameterDefinition) new BooleanParameterDefinition("ParamA", true, "bool"),
 				(ParameterDefinition) new StringParameterDefinition("ParamB", "str", "string")
@@ -1037,7 +1059,8 @@ public class TestProjectActions {
 				"Build",
 				Arrays.asList(
 						new PhaseJobsConfig("jobA", "", false, null, PhaseJobsConfig.KillPhaseOnJobResultCondition.NEVER, false, false, "", 0, false, false, "", false),
-						new PhaseJobsConfig("jobB", "", false, null, PhaseJobsConfig.KillPhaseOnJobResultCondition.NEVER, false, false, "", 0, false, false, "", false)
+						new PhaseJobsConfig("jobB", "", false, null, PhaseJobsConfig.KillPhaseOnJobResultCondition.NEVER, false, false, "", 0, false, false, "", false),
+						new PhaseJobsConfig("jobE", "", false, null, PhaseJobsConfig.KillPhaseOnJobResultCondition.NEVER, false, false, "", 0, false, false, "", false)
 				),
 				MultiJobBuilder.ContinuationCondition.SUCCESSFUL
 		));
@@ -1136,7 +1159,7 @@ public class TestProjectActions {
 		assertEquals(tmpPhase.getString("name"), "Build");
 		assertEquals(tmpPhase.getBoolean("blocking"), true);
 		tmpJobs = tmpPhase.getJSONArray("jobs");
-		assertEquals(tmpJobs.length(), 2);
+		assertEquals(tmpJobs.length(), 3);
 		tmpJob = tmpJobs.getJSONObject(0);
 		assertEquals(tmpJob.length(), 4);
 		assertEquals(tmpJob.getString("name"), "jobA");
@@ -1146,6 +1169,12 @@ public class TestProjectActions {
 		tmpJob = tmpJobs.getJSONObject(1);
 		assertEquals(tmpJob.length(), 4);
 		assertEquals(tmpJob.getString("name"), "jobB");
+		assertEquals(tmpJob.getJSONArray("parameters").length(), 0);
+		assertEquals(tmpJob.getJSONArray("phasesInternal").length(), 0);
+		assertEquals(tmpJob.getJSONArray("phasesPostBuild").length(), 0);
+		tmpJob = tmpJobs.getJSONObject(2);
+		assertEquals(tmpJob.length(), 4);
+		assertEquals(tmpJob.getString("name"), "jobE");
 		assertEquals(tmpJob.getJSONArray("parameters").length(), 0);
 		assertEquals(tmpJob.getJSONArray("phasesInternal").length(), 0);
 		assertEquals(tmpJob.getJSONArray("phasesPostBuild").length(), 0);

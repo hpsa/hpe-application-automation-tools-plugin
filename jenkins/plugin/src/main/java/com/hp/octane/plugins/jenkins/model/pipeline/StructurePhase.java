@@ -1,7 +1,6 @@
 package com.hp.octane.plugins.jenkins.model.pipeline;
 
 import hudson.model.AbstractProject;
-import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
 import java.util.List;
