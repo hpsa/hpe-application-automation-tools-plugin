@@ -12,9 +12,6 @@ import hudson.model.FreeStyleProject;
  */
 
 public class FreeStyleProjectProcessor extends AbstractProjectProcessor {
-	private FreeStyleProjectProcessor() {
-	}
-
 	public FreeStyleProjectProcessor(AbstractProject project) {
 		FreeStyleProject p = (FreeStyleProject) project;
 

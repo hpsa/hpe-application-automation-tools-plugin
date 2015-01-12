@@ -12,9 +12,6 @@ import hudson.model.AbstractProject;
  */
 
 public class MatrixProjectProcessor extends AbstractProjectProcessor {
-	private MatrixProjectProcessor() {
-	}
-
 	public MatrixProjectProcessor(AbstractProject project) {
 		MatrixProject p = (MatrixProject) project;
 

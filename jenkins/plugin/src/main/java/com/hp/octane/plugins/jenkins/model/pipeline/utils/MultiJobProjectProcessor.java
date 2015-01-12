@@ -12,9 +12,6 @@ import hudson.model.AbstractProject;
  */
 
 public class MultiJobProjectProcessor extends AbstractProjectProcessor {
-	private MultiJobProjectProcessor() {
-	}
-
 	public MultiJobProjectProcessor(AbstractProject project) {
 		MultiJobProject p = (MultiJobProject) project;
 

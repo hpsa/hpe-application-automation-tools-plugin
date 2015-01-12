@@ -21,9 +21,6 @@ import java.util.List;
  */
 
 public class ParameterizedTriggerProcessor extends AbstractBuilderProcessor {
-	private ParameterizedTriggerProcessor() {
-	}
-
 	public ParameterizedTriggerProcessor(Builder builder, AbstractProject project, String phasesName) {
 		TriggerBuilder b = (TriggerBuilder) builder;
 		super.phases = new ArrayList<StructurePhase>();

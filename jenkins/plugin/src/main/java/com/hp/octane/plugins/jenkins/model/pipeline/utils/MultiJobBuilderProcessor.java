@@ -18,9 +18,6 @@ import java.util.ArrayList;
  */
 
 public class MultiJobBuilderProcessor extends AbstractBuilderProcessor {
-	private MultiJobBuilderProcessor() {
-	}
-
 	public MultiJobBuilderProcessor(Builder builder) {
 		MultiJobBuilder b = (MultiJobBuilder) builder;
 		super.phases = new ArrayList<StructurePhase>();

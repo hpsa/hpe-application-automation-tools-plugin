@@ -2,11 +2,7 @@ package com.hp.octane.plugins.jenkins.model.pipeline;
 
 import com.hp.octane.plugins.jenkins.model.pipeline.utils.*;
 import hudson.model.AbstractProject;
-import hudson.model.ParameterDefinition;
-import hudson.model.ParametersDefinitionProperty;
 import org.kohsuke.stapler.export.ExportedBean;
-
-import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.

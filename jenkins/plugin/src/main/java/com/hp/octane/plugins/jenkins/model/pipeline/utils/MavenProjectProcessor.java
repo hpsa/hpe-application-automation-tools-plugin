@@ -12,9 +12,6 @@ import hudson.model.AbstractProject;
  */
 
 public class MavenProjectProcessor extends AbstractProjectProcessor{
-	private MavenProjectProcessor() {
-	}
-
 	public MavenProjectProcessor(AbstractProject project) {
 		MavenModuleSet p = (MavenModuleSet) project;
 

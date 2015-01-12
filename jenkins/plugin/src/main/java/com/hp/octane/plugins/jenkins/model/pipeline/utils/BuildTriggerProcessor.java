@@ -17,9 +17,6 @@ import java.util.List;
  */
 
 public class BuildTriggerProcessor extends AbstractBuilderProcessor {
-	private BuildTriggerProcessor() {
-	}
-
 	public BuildTriggerProcessor(Publisher publisher, AbstractProject project) {
 		BuildTrigger t = (BuildTrigger) publisher;
 		super.phases = new ArrayList<StructurePhase>();
