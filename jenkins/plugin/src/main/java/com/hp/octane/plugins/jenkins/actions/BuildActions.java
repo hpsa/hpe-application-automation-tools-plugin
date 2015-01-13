@@ -26,7 +26,7 @@ import java.util.Collection;
 @Extension
 public class BuildActions extends TransientActionFactory<AbstractBuild> {
 
-	public class OctaneBuildActions implements RunAction2 {
+	static final public class OctaneBuildActions implements RunAction2 {
 
 		AbstractBuild build;
 

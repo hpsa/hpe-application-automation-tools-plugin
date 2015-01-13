@@ -21,10 +21,10 @@ import static org.junit.Assert.assertTrue;
  */
 
 public class TestPluginActions {
-	final private String projectName = "free-style-test";
+	final private String projectName = "root-job";
 
 	@Rule
-	public JenkinsRule rule = new JenkinsRule();
+	final public JenkinsRule rule = new JenkinsRule();
 
 	@Test
 	public void testPluginInfoClass() {
