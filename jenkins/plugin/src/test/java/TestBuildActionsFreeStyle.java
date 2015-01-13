@@ -158,7 +158,7 @@ public class TestBuildActionsFreeStyle {
 		JSONArray tmpArray;
 
 		assertEquals(p.getBuilds().toArray().length, 0);
-		Utils.buildProject(client, p);
+		Utils.buildProjectWithParams(client, p, "ParamA=false&ParamC=not_exists");
 		while (p.getLastBuild() == null || p.getLastBuild().isBuilding()) {
 		}
 		assertEquals(p.getBuilds().toArray().length, 1);

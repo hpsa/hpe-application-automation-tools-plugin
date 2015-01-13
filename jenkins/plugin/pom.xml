@@ -49,12 +49,22 @@
 			<optional>true</optional>
 		</dependency>
 
+		<!--Test-->
+
 		<dependency>
 			<groupId>org.json</groupId>
 			<artifactId>json</artifactId>
 			<version>20140107</version>
 			<scope>test</scope>
 		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-server</artifactId>
+			<version>9.2.6.v20141205</version>
+			<scope>test</scope>
+		</dependency>
+
 
 	</dependencies>
 

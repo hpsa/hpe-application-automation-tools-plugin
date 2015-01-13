@@ -6,10 +6,18 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.export.DataWriter;
+import org.kohsuke.stapler.export.ExportedBean;
+import org.kohsuke.stapler.export.Flavor;
+import org.kohsuke.stapler.export.Model;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
+import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * Created with IntelliJ IDEA.
@@ -65,26 +73,26 @@ public final class EventDispatcher {
 //		JSONObject tmp;
 		StringEntity entity;
 
-		for (Client c : clients) {
-			if (c.suspended) continue;
-
+//		for (Client c : clients) {
+//			if (c.suspended) continue;
+//
 			try {
-				System.out.println("Pushing event '" + event.getEventType() + "' to " + c.clientUri);
+//				System.out.println("Pushing event '" + event.getEventType() + "' to " + c.clientUri);
 //				tmp = event.toJSON();
 				entity = new StringEntity("{}");    //  removed here the serialization of event
-				request = new HttpPost(c.clientUri + "/rest/realtime/notification");
-				//request = new HttpPost("http://localhost:8889" + "/rest/realtime/notification");
+				//request = new HttpPost(c.clientUri + "/rest/realtime/notification");
+				request = new HttpPost("http://localhost:9999/" + event.getEventType());
 				request.setEntity(entity);
 				client = new DefaultHttpClient();
 				response = client.execute(request);
-				c.connectFails = 0;
+//				c.connectFails = 0;
 			} catch (UnsupportedEncodingException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
 				e.printStackTrace();
-				c.connectFails++;
-				if (c.connectFails == c.connectFailsTolerance) c.suspended = true;
+//				c.connectFails++;
+//				if (c.connectFails == c.connectFailsTolerance) c.suspended = true;
 			}
-		}
+//		}
 	}
 }
