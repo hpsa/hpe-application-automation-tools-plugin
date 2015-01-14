@@ -99,6 +99,9 @@ namespace HpToolsLauncher
                 case "integer":
                 case "number":
                     return "integer";
+                case "bool":
+                case "boolean":
+                    return "boolean";
                 default:
                     return pType.ToLower();
             }
