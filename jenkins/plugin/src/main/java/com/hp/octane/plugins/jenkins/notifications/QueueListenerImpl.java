@@ -18,6 +18,7 @@ import hudson.model.queue.QueueListener;
 @Extension
 public final class QueueListenerImpl extends QueueListener {
 
+	@Override
 	public void onEnterWaiting(Queue.WaitingItem wi) {
 		AbstractProject project;
 		CIEventQueued event;
@@ -32,6 +33,21 @@ public final class QueueListenerImpl extends QueueListener {
 		}
 	}
 
+	@Override
+	public void onEnterBlocked(Queue.BlockedItem bi) {
+		if (bi.task instanceof AbstractProject) {
+
+		}
+	}
+
+	@Override
+	public void onEnterBuildable(Queue.BuildableItem bi) {
+		if (bi.task instanceof AbstractProject) {
+
+		}
+	}
+
+	@Override
 	public void onLeft(Queue.LeftItem li) {
 		AbstractProject project;
 		if (li.task instanceof AbstractProject) {
@@ -39,4 +55,5 @@ public final class QueueListenerImpl extends QueueListener {
 			System.out.println(project.getName() + " left queue");
 		}
 	}
+
 }

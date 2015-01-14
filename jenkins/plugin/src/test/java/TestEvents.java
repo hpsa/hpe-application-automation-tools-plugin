@@ -30,9 +30,6 @@ public class TestEvents {
 	final private String projectName = "root-job";
 	private Server server;
 
-	public int hits = 0;
-	public String stam = "";
-
 	@Rule
 	final public JenkinsRule rule = new JenkinsRule();
 
@@ -41,8 +38,6 @@ public class TestEvents {
 
 		@Override
 		public void handle(String s, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-			hits++;
-			stam += s + " | ";
 			response.setStatus(HttpServletResponse.SC_OK);
 			baseRequest.setHandled(true);
 		}
@@ -70,7 +65,9 @@ public class TestEvents {
 		while (p.getLastBuild() == null || p.getLastBuild().isBuilding()) {
 		}
 		assertEquals(p.getBuilds().toArray().length, 1);
-		assertEquals(stam, "");
+		Thread.sleep(100);      //  give a chance to the finished event to be processed
+
+		//  process the accumulated events here
 
 		killServer();
 	}

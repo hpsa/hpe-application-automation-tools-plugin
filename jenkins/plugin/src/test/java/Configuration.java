@@ -13,10 +13,10 @@ public class Configuration {
 	private static int OS;
 
 	static {
-		String system = System.getProperty("platform");
-		if (system == null || system.compareTo("windows") == 0) OS = WINDOWS;
-		else if (system.compareTo("linux") == 0) OS = LINUX;
-		else OS = WINDOWS;
+		String system = System.getProperty("os.name").toLowerCase();
+		if (system.indexOf("windows") == 0) OS = WINDOWS;
+		else if (system.indexOf("linux") == 0) OS = LINUX;
+		else OS = LINUX;
 	}
 
 	static String getSleepScript(int seconds) {

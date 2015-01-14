@@ -6,6 +6,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.export.DataWriter;
 import org.kohsuke.stapler.export.ExportedBean;
@@ -79,7 +80,9 @@ public final class EventDispatcher {
 			try {
 //				System.out.println("Pushing event '" + event.getEventType() + "' to " + c.clientUri);
 //				tmp = event.toJSON();
-				entity = new StringEntity("{}");    //  removed here the serialization of event
+
+				entity = new StringEntity(Stapler.CONVERT_UTILS.convert(event));
+
 				//request = new HttpPost(c.clientUri + "/rest/realtime/notification");
 				request = new HttpPost("http://localhost:9999/" + event.getEventType());
 				request.setEntity(entity);
