@@ -235,8 +235,6 @@ public class TestBuildActionsFreeStyle {
 		tmpArray = body.getJSONArray("phasesInternal");
 		assertEquals(tmpArray.length(), 2);
 
-		assertEquals(tmpArray.toString(), "");
-
 		//  post builds
 		tmpArray = body.getJSONArray("phasesPostBuild");
 		assertEquals(tmpArray.length(), 2);
