@@ -1,20 +1,20 @@
 package com.hp.application.automation.tools.sse.autenvironment.request.put;
 
-import java.util.*;
-
 import com.hp.application.automation.tools.sse.autenvironment.AUTEnvironmnentParameter;
 import com.hp.application.automation.tools.sse.autenvironment.request.AUTEnvironmentResources;
 import com.hp.application.automation.tools.sse.sdk.Client;
 import com.hp.application.automation.tools.sse.sdk.request.GeneralPutBulkRequest;
 
+import java.util.*;
+
 /**
  * Created by barush on 03/11/2014.
  */
-public class PutAutEnvironmentParametersRequest extends GeneralPutBulkRequest {
+public class PutAutEnvironmentParametersBulkRequest extends GeneralPutBulkRequest {
     
-    Collection<AUTEnvironmnentParameter> parameters;
+    private Collection<AUTEnvironmnentParameter> parameters;
     
-    public PutAutEnvironmentParametersRequest(
+    public PutAutEnvironmentParametersBulkRequest(
             Client client,
             Collection<AUTEnvironmnentParameter> parameters) {
         super(client);
