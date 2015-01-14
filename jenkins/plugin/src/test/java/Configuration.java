@@ -7,25 +7,26 @@
  */
 
 public class Configuration {
-	private static final int WINDOWS = 0;
-	private static final int LINUX = 1;
+	public static enum OS {
+		WINDOWS("windows"),
+		LINUX("linux");
 
-	private static int OS;
+		private String value;
+		private static OS current;
 
-	static {
-		String system = System.getProperty("os.name").toLowerCase();
-		if (system.indexOf("windows") == 0) OS = WINDOWS;
-		else if (system.indexOf("linux") == 0) OS = LINUX;
-		else OS = LINUX;
-	}
+		private OS(String v) {
+			value = v;
+		}
 
-	static String getSleepScript(int seconds) {
-		if (OS == WINDOWS) {
-			return "ping -n " + seconds + " 127.0.0.1 >nul";
-		} else if (OS == LINUX) {
-			return "sleep " + seconds;
-		} else {
-			return "";
+		public static OS getCurrent() {
+			String tmpVal;
+			if (current == null) {
+				tmpVal = System.getProperty("os.name").toLowerCase();
+				if (tmpVal.indexOf("windows") == 0) current = WINDOWS;
+				else if (tmpVal.indexOf("linux") == 0) current = LINUX;
+				else current = LINUX;
+			}
+			return current;
 		}
 	}
 }

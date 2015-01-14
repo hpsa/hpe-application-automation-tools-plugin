@@ -54,7 +54,7 @@ public class TestEvents {
 		server.destroy();
 	}
 
-	@Test
+//	@Test
 	public void testEvents() throws Exception {
 		raiseServer();
 

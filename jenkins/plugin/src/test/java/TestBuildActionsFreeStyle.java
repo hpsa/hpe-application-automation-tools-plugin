@@ -3,12 +3,16 @@ import com.hp.octane.plugins.jenkins.model.pipeline.ParameterType;
 import com.hp.octane.plugins.jenkins.model.pipeline.SnapshotResult;
 import com.hp.octane.plugins.jenkins.model.pipeline.SnapshotStatus;
 import hudson.model.*;
+import hudson.plugins.parameterizedtrigger.*;
+import hudson.tasks.*;
+import jenkins.model.Jenkins;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
@@ -27,7 +31,58 @@ public class TestBuildActionsFreeStyle {
 	final private String projectName = "root-job";
 
 	@Rule
-	final public JenkinsRule rule = new JenkinsRule();
+	public final JenkinsRule rule = new JenkinsRule();
+
+	private void createProjectStructure(FreeStyleProject project) throws IOException {
+		FreeStyleProject jobA = rule.createFreeStyleProject("jobA");
+		FreeStyleProject jobB = rule.createFreeStyleProject("jobB");
+		FreeStyleProject jobC = rule.createFreeStyleProject("jobC");
+		FreeStyleProject jobAA = rule.createFreeStyleProject("jobAA");
+		FreeStyleProject jobBB = rule.createFreeStyleProject("jobBB");
+		FreeStyleProject jobCC = rule.createFreeStyleProject("jobCC");
+
+		//  jobA
+		jobA.getBuildersList().add(Utils.getSleepScript(5));
+		jobA.getBuildersList().add(new TriggerBuilder(Arrays.asList(
+				new BlockableBuildTriggerConfig("jobAA, jobC", new BlockingBehaviour(
+						Result.FAILURE,
+						Result.FAILURE,
+						Result.UNSTABLE
+				), null)
+		)));
+
+		//  jobB
+		jobB.getBuildersList().add(Utils.getSleepScript(12));
+		jobB.getPublishersList().add(new hudson.tasks.BuildTrigger("jobBB, jobC", Result.SUCCESS));
+
+		//  jobC
+		jobC.getBuildersList().add(Utils.getSleepScript(20));
+		jobC.getPublishersList().add(new hudson.plugins.parameterizedtrigger.BuildTrigger(Arrays.asList(
+				new BuildTriggerConfig("jobCC", ResultCondition.ALWAYS, true, null)
+		)));
+
+		jobAA.getBuildersList().add(Utils.getSleepScript(10));
+		jobBB.getBuildersList().add(Utils.getSleepScript(25));
+		jobCC.getBuildersList().add(Utils.getSleepScript(17));
+
+		//  root job config
+		project.getBuildersList().add(new TriggerBuilder(Arrays.asList(
+				new BlockableBuildTriggerConfig("jobA, jobB", new BlockingBehaviour(
+						Result.FAILURE,
+						Result.FAILURE,
+						Result.UNSTABLE
+				), Arrays.asList(new AbstractBuildParameters[0])),
+				new BlockableBuildTriggerConfig("jobC", new BlockingBehaviour(
+						Result.FAILURE,
+						Result.FAILURE,
+						Result.UNSTABLE
+				), Arrays.asList(new AbstractBuildParameters[0]))
+		)));
+		project.getPublishersList().add(new hudson.tasks.BuildTrigger("jobA, jobB", Result.SUCCESS));
+		project.getPublishersList().add(new hudson.plugins.parameterizedtrigger.BuildTrigger(Arrays.asList(
+				new BuildTriggerConfig("jobC", ResultCondition.ALWAYS, true, null)
+		)));
+	}
 
 	//  Snapshot: free-style, no params, no children
 	//
@@ -142,14 +197,17 @@ public class TestBuildActionsFreeStyle {
 	//
 	@Test
 	public void testFreeStyleWithParamsWithChildren() throws Exception {
+		rule.jenkins.setNumExecutors(10);
+		rule.jenkins.setNodes(rule.jenkins.getNodes());
 		FreeStyleProject p = rule.createFreeStyleProject(projectName);
-		//  add more jobs
+		createProjectStructure(p);
+		FreeStyleProject lastToBeBuilt = (FreeStyleProject) rule.jenkins.getItem("jobCC");
+
 		ParametersDefinitionProperty params = new ParametersDefinitionProperty(Arrays.asList(
 				(ParameterDefinition) new BooleanParameterDefinition("ParamA", true, "bool"),
 				(ParameterDefinition) new StringParameterDefinition("ParamB", "str", "string")
 		));
 		p.addProperty(params);
-		//  add jobs hierarchy
 
 		JenkinsRule.WebClient client = rule.createWebClient();
 		Page page;
@@ -159,7 +217,10 @@ public class TestBuildActionsFreeStyle {
 
 		assertEquals(p.getBuilds().toArray().length, 0);
 		Utils.buildProjectWithParams(client, p, "ParamA=false&ParamC=not_exists");
-		while (p.getLastBuild() == null || p.getLastBuild().isBuilding()) {
+		while (lastToBeBuilt.getLastBuild() == null ||
+				lastToBeBuilt.getLastBuild().getNumber() < 6 ||
+				lastToBeBuilt.getLastBuild().isBuilding()) {
+			Thread.sleep(100);
 		}
 		assertEquals(p.getBuilds().toArray().length, 1);
 
@@ -170,6 +231,14 @@ public class TestBuildActionsFreeStyle {
 		tmpArray = body.getJSONArray("parameters");
 		assertEquals(tmpArray.length(), 2);
 
-		//  validate the hierarchy
+		//  internals
+		tmpArray = body.getJSONArray("phasesInternal");
+		assertEquals(tmpArray.length(), 2);
+
+		assertEquals(tmpArray.toString(), "");
+
+		//  post builds
+		tmpArray = body.getJSONArray("phasesPostBuild");
+		assertEquals(tmpArray.length(), 2);
 	}
 }
