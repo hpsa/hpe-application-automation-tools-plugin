@@ -1,15 +1,10 @@
 package com.hp.application.automation.tools.sse.autenvironment;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.hp.application.automation.tools.common.SSEException;
 import com.hp.application.automation.tools.model.AutEnvironmentParameterModel;
 import com.hp.application.automation.tools.sse.autenvironment.request.get.GetAutEnvFoldersByIdRequest;
 import com.hp.application.automation.tools.sse.autenvironment.request.get.GetParametersByAutEnvConfIdRequest;
-import com.hp.application.automation.tools.sse.autenvironment.request.put.PutAutEnvironmentParametersRequest;
+import com.hp.application.automation.tools.sse.autenvironment.request.put.PutAutEnvironmentParametersBulkRequest;
 import com.hp.application.automation.tools.sse.common.JsonHandler;
 import com.hp.application.automation.tools.sse.common.StringUtils;
 import com.hp.application.automation.tools.sse.common.XPathUtils;
@@ -17,6 +12,8 @@ import com.hp.application.automation.tools.sse.sdk.Client;
 import com.hp.application.automation.tools.sse.sdk.Logger;
 import com.hp.application.automation.tools.sse.sdk.Response;
 import hudson.util.VariableResolver;
+
+import java.util.*;
 
 /**
  * Created by barush on 29/10/2014.
@@ -66,14 +63,13 @@ public class AUTEnvironmentParametersManager {
         }
         
         resolveValuesOfParameters();
-        assignValuesToResolvedParameters();
-        return parameters.values();
+        return getResolvedParametersWithAssignedValues();
     }
     
     public void updateParametersValues(Collection<AUTEnvironmnentParameter> parametersToUpdate) {
         
         Response response =
-                new PutAutEnvironmentParametersRequest(client, parametersToUpdate).execute();
+                new PutAutEnvironmentParametersBulkRequest(client, parametersToUpdate).execute();
         if (!response.isOk()) {
             throw new SSEException(
                     String.format(
@@ -216,8 +212,10 @@ public class AUTEnvironmentParametersManager {
         
     }
     
-    private void assignValuesToResolvedParameters() {
+    private Collection<AUTEnvironmnentParameter> getResolvedParametersWithAssignedValues() {
         
+        Collection<AUTEnvironmnentParameter> valuesToReturn =
+                new ArrayList<AUTEnvironmnentParameter>();
         for (AutEnvironmentParameterModel parameterByModel : parametersToAssign) {
             String parameterPathByModel = parameterByModel.getName();
             for (AUTEnvironmnentParameter parameter : parameters.values()) {
@@ -229,6 +227,7 @@ public class AUTEnvironmentParametersManager {
                             parameter.getFullPath(),
                             parameterByModel.getParamType(),
                             resolvedValue));
+                    valuesToReturn.add(parameter);
                     break;
                 }
             }
@@ -237,5 +236,7 @@ public class AUTEnvironmentParametersManager {
         logger.log(parametersToAssign.size() > 0
                 ? "Finished assignment of values for all parameters"
                 : "There was no parameters to assign");
+        
+        return valuesToReturn;
     }
 }
