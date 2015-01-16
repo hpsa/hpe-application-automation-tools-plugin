@@ -65,6 +65,12 @@ public class PluginActions implements RootAction {
 		res.serveExposedBean(req, new PluginInfo(), Flavor.JSON);
 	}
 
+	public void doConfig(StaplerRequest req, StaplerResponse res) throws IOException {
+		if (req.getMethod().toLowerCase().compareTo("post") != 0) res.sendError(405, "Configuration MUST be performed by POST requests only.");
+		//  process the configuration request
+		//  respond accordingly
+	}
+
 	public void doJobs(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
 		res.serveExposedBean(req, new ProjectsList(), Flavor.JSON);
 	}
