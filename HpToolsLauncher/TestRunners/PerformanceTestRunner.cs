@@ -42,7 +42,7 @@ namespace HpToolsLauncher.TestRunners
         private IAssetRunner _runner;
         private TimeSpan _timeout;
         private int _pollingInterval;
-        private TimeSpan _perScenarioTimeOut;
+        private TimeSpan _perScenarioTimeOutMinutes;
         private RunCancelledDelegate _runCancelled;
 
         private bool _scenarioEnded;
@@ -88,7 +88,7 @@ namespace HpToolsLauncher.TestRunners
             this._runner = runner;
             this._timeout = timeout;
             this._pollingInterval = pollingInterval;
-            this._perScenarioTimeOut = perScenarioTimeOut;
+            this._perScenarioTimeOutMinutes = perScenarioTimeOut;
             this._ignoreErrorStrings = ignoreErrorStrings;
             this._scenarioEnded = false;
             _engine = null;
@@ -416,19 +416,30 @@ namespace HpToolsLauncher.TestRunners
 
             ProcessStartInfo analysisRunner = new ProcessStartInfo();
             analysisRunner.FileName = ANALYSIS_LAUNCHER;
-            analysisRunner.Arguments = lrrLocation + " " + lraLocation + " " + htmlLocation;
+            analysisRunner.Arguments = "\""+lrrLocation + "\" \"" + lraLocation + "\" \"" + htmlLocation+"\"";
             analysisRunner.UseShellExecute = false;
             analysisRunner.RedirectStandardOutput = true;
 
+            ConsoleWriter.WriteLine("executing Analysis launcher with arguments : "+analysisRunner.Arguments);
+            ConsoleWriter.WriteLine("time for analysis: " + _perScenarioTimeOutMinutes.ToString(@"dd\:\:hh\:mm\:ss"));
+            analysisRunner.RedirectStandardOutput = true;
+            analysisRunner.RedirectStandardError = true;
             Process runner = Process.Start(analysisRunner);
             if (runner != null)
             {
+                runner.OutputDataReceived += runner_OutputDataReceived;
+                runner.ErrorDataReceived += runner_ErrorDataReceived;
+                runner.BeginOutputReadLine();
+                runner.BeginErrorReadLine();
                 Stopwatch analysisStopWatch = Stopwatch.StartNew();
 
-                while (!runner.WaitForExit(_pollingInterval * 1000) && analysisStopWatch.Elapsed < _perScenarioTimeOut) ;
+                while (!runner.WaitForExit(_pollingInterval * 1000) && analysisStopWatch.Elapsed < _perScenarioTimeOutMinutes) ;
 
                 analysisStopWatch.Stop();
-                if (analysisStopWatch.Elapsed > _perScenarioTimeOut)
+                runner.CancelOutputRead();
+                runner.CancelErrorRead();
+                ConsoleWriter.WriteLine("time passed: " + analysisStopWatch.Elapsed.ToString(@"dd\:\:hh\:mm\:ss"));
+                if (analysisStopWatch.Elapsed > _perScenarioTimeOutMinutes)
                 {
                     runDesc.ErrorDesc = Resources.LrAnalysisTimeOut;
                     ConsoleWriter.WriteErrLine(runDesc.ErrorDesc);
@@ -445,13 +456,13 @@ namespace HpToolsLauncher.TestRunners
                     ConsoleWriter.WriteErrLine(runDesc.ErrorDesc);
                     runDesc.TestState = TestState.Error;
                 }
-                using (StreamReader reader = runner.StandardOutput)
-                {
-                    string result = reader.ReadToEnd();
-                    ConsoleWriter.WriteLine(Resources.LrAnlysisResults);
-                    ConsoleWriter.WriteLine("");
-                    ConsoleWriter.WriteLine(result);
-                }
+                //using (StreamReader reader = runner.StandardOutput)
+                //{
+                //    string result = reader.ReadToEnd();
+                //    ConsoleWriter.WriteLine(Resources.LrAnlysisResults);
+                //    ConsoleWriter.WriteLine("");
+                //    ConsoleWriter.WriteLine(result);
+                //}
 
             }
             else
@@ -463,6 +474,20 @@ namespace HpToolsLauncher.TestRunners
 
         }
 
+        void runner_ErrorDataReceived(object sender, DataReceivedEventArgs errData)
+        {
+            if (!String.IsNullOrEmpty(errData.Data))
+                ConsoleWriter.WriteErrLine(errData.Data);
+        }
+
+        void runner_OutputDataReceived(object sender, DataReceivedEventArgs outLine)
+        {
+            if (!String.IsNullOrEmpty(outLine.Data))
+            {
+                ConsoleWriter.WriteLine(outLine.Data);
+            }
+        }
+
 
         private void collateResults()
         {
@@ -472,7 +497,7 @@ namespace HpToolsLauncher.TestRunners
                 ConsoleWriter.WriteErrLine(string.Format(Resources.LrScenarioCollateFail, ret));
             }
 
-            while (!_engine.Scenario.IsResultsCollated() && _stopWatch.Elapsed < _perScenarioTimeOut)
+            while (!_engine.Scenario.IsResultsCollated() && _stopWatch.Elapsed < _perScenarioTimeOutMinutes)
             {
                 Thread.Sleep(_pollingInterval * 1000);
             }
@@ -529,7 +554,7 @@ namespace HpToolsLauncher.TestRunners
                 Thread.Sleep(_pollingInterval * 1000);
 
 
-                if (_stopWatch.Elapsed > _perScenarioTimeOut)
+                if (_stopWatch.Elapsed > _perScenarioTimeOutMinutes)
                 {
                     _stopWatch.Stop();
                     ConsoleWriter.WriteErrLine(string.Format(Resources.LrScenarioTimeOut, _stopWatch.Elapsed.Seconds));

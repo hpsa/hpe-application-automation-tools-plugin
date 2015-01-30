@@ -1,186 +1,219 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>org.jenkins-ci.plugins</groupId>
-        <artifactId>plugin</artifactId>
-        <version>1.509.4</version>
-        <!-- which version of Jenkins is this plugin built against? -->
-    </parent>
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.jenkins-ci.plugins</groupId>
+		<artifactId>plugin</artifactId>
+		<version>1.509.4</version>
+		<!-- which version of Jenkins is this plugin built against? -->
+	</parent>
 
-    <artifactId>hp-application-automation-tools-plugin</artifactId>
-    <version>3.0.6-SNAPSHOT</version>
-    <packaging>hpi</packaging>
-    <name>HP Application Automation Tools</name>
-    <description>Allowing to run HP testing tools tests: Unified Functional Testing, QuickTest Professional, Service
+	<artifactId>hp-application-automation-tools-plugin</artifactId>
+	<version>3.0.6-SNAPSHOT</version>
+	<packaging>hpi</packaging>
+	<name>HP Application Automation Tools</name>
+	<description>Allowing to run HP testing tools tests: Unified Functional Testing, QuickTest Professional, Service
         Test and Performance Center
-    </description>
-    <url>https://wiki.jenkins-ci.org/display/JENKINS/HP+Application+Automation+Tools</url>
+	</description>
+	<url>https://wiki.jenkins-ci.org/display/JENKINS/HP+Application+Automation+Tools</url>
 
-    <properties>
-        <msbuild.exe>C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe</msbuild.exe>
-        <msbuild.configuration>Release</msbuild.configuration>
-    </properties>
+	<properties>
+		<msbuild.exe>C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe</msbuild.exe>
+		<msbuild.configuration>Release</msbuild.configuration>
+	</properties>
 
-    <distributionManagement>
-        <repository>
-            <id>maven.jenkins-ci.org</id>
-            <url>http://maven.jenkins-ci.org:8081/content/repositories/releases/</url>
-        </repository>
-    </distributionManagement>
+	<distributionManagement>
+		<repository>
+			<id>maven.jenkins-ci.org</id>
+			<url>http://maven.jenkins-ci.org:8081/content/repositories/releases/</url>
+		</repository>
+	</distributionManagement>
 
-    <scm>
-        <connection>scm:git:ssh://github.com/hpsa/hp-application-automation-tools-plugin.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/hpsa/hp-application-automation-tools-plugin.git
-        </developerConnection>
-        <url>https://github.com/hpsa/hp-application-automation-tools-plugin</url>
-        <tag>HEAD</tag>
-    </scm>
+	<scm>
+		<connection>scm:git:ssh://github.com/hpsa/hp-application-automation-tools-plugin.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/hpsa/hp-application-automation-tools-plugin.git
+		</developerConnection>
+		<url>https://github.com/hpsa/hp-application-automation-tools-plugin</url>
+		<tag>HEAD</tag>
+	</scm>
 
-    <developers>
-
-
-        <developer>
-            <name>Effi Bar-Shean</name>
-            <email>effi.bar--shean@hp.com</email>
-        </developer>
-        <developer>
-            <id>mrmann</id>
-            <name>Avishai Moshka</name>
-            <email>avishai.moshka@hp.com</email>
-        </developer>
-        <developer>
-            <id>orens</id>
-            <name>Oren Schwartz</name>
-            <email>orens@hp.com</email>
-        </developer>
-        <developer>
-            <name>Daniel Petisme</name>
-        </developer>
-        <developer>
-            <name>Romain Seguy</name>
-        </developer>
-        <developer>
-            <id>ofirshaked</id>
-            <name>Ofir Shaked</name>
-        </developer>
-        <developer>
-            <id>amitb</id>
-            <name>Amit Bezalel</name>
-        </developer>
-        <developer>
-            <name>Daniel Schreiber</name>
-            <email>daniel.schreiber@hp.com</email>
-        </developer>
-        <developer>
-            <id>liron_tzabari</id>
-            <name>Liron Tzabari</name>
-        </developer>
-    </developers>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-release-plugin</artifactId>
-                <!-- <version>2.4.1</version> -->
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <configuration>
-                    <executable>${msbuild.exe}</executable>
-                    <workingDirectory>${basedir}/HpToolsLauncher</workingDirectory>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>InstallPlugin - "${project.artifactId}"</id>
-                        <phase>install</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <executable>java</executable>
-                            <arguments>
-                                <argument> -jar</argument>
-                                <argument>${env.JENKINS_HOME}war\WEB-INF\jenkins-cli.jar</argument>
-                                <argument>-s</argument>
-                                <argument>http://localhost:8080/</argument>
-                                <argumnet>install-plugin</argumnet>
-                                <argumnet>${project.build.directory}\${project.build.finalName}.${project.packaging}</argumnet>
-                                <argument>-name</argument>
-                                <argument>"${project.artifactId}"</argument>
-                                <!-- <argument>-deploy</argument> -->
-                                <argument>-restart</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>clean HPToolsLauncher</id>
-                        <phase>clean</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <arguments>
-                                <argument>/t:Clean</argument>
-                                <argument>/p:Configuration=${msbuild.configuration}</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>creating HPToolsLauncher</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <arguments>
-                                <argument>/t:Rebuild</argument>
-                                <argument>/p:Configuration=${msbuild.configuration}</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
+	<developers>
 
 
-    <!-- get every artifact through repo.jenkins-ci.org, which proxies all the artifacts that we need -->
-    <repositories>
-        <repository>
-            <id>repo.jenkins-ci.org</id>
-            <url>http://repo.jenkins-ci.org/public/</url>
-        </repository>
-        <repository>
-            <id>central</id>
-            <url>http://repo1.maven.org/maven2</url>
-        </repository>
-    </repositories>
+		<developer>
+			<name>Effi Bar-Shean</name>
+			<email>effi.bar--shean@hp.com</email>
+		</developer>
+		<developer>
+			<id>mrmann</id>
+			<name>Avishai Moshka</name>
+			<email>avishai.moshka@hp.com</email>
+		</developer>
+		<developer>
+			<id>orens</id>
+			<name>Oren Schwartz</name>
+			<email>orens@hp.com</email>
+		</developer>
+		<developer>
+			<name>Daniel Petisme</name>
+		</developer>
+		<developer>
+			<name>Romain Seguy</name>
+		</developer>
+		<developer>
+			<id>ofirshaked</id>
+			<name>Ofir Shaked</name>
+		</developer>
+		<developer>
+			<id>amitb</id>
+			<name>Amit Bezalel</name>
+		</developer>
+		<developer>
+			<name>Daniel Schreiber</name>
+			<email>daniel.schreiber@hp.com</email>
+		</developer>
+		<developer>
+			<id>liron_tzabari</id>
+			<name>Liron Tzabari</name>
+		</developer>
+	</developers>
 
-    <pluginRepositories>
-        <pluginRepository>
-            <id>repo.jenkins-ci.org</id>
-            <url>http://repo.jenkins-ci.org/public/</url>
-        </pluginRepository>
-    </pluginRepositories>
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>org.codehaus.mojo</groupId>
+										<artifactId>exec-maven-plugin</artifactId>
+										<versionRange>[1.2.1,)</versionRange>
+										<goals>
+											<goal>java</goal>
+											<goal>exec</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore/>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<!-- <version>2.4.1</version> -->
+			</plugin>
+			<!--  -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<configuration>
+					<executable>${msbuild.exe}</executable>
+					<workingDirectory>${basedir}/HpToolsLauncher</workingDirectory>
+				</configuration>
+				<executions>
+					<execution>
+						<id>InstallPlugin - "${project.artifactId}"</id>
+						<phase>install</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						
+						<configuration>
+							<skip>false</skip>
+							<executable>java</executable>
+							<arguments>
+								<argument> -jar</argument>
+								<argument>${env.JENKINS_HOME}war\WEB-INF\jenkins-cli.jar</argument>
+								<argument>-s</argument>
+								<argument>http://localhost:8080/</argument>
+								<argumnet>install-plugin</argumnet>
+								<argumnet>${project.build.directory}\${project.build.finalName}.${project.packaging}</argumnet>
+								<argument>-name</argument>
+								<argument>"${project.artifactId}"</argument>
+								<!-- <argument>-deploy</argument> -->
+								<argument>-restart</argument>
+							</arguments>
+						</configuration>
+					</execution>
+					<execution>
+						<id>clean HPToolsLauncher</id>
+						<phase>clean</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<arguments>
+								<argument>/t:Clean</argument>
+								<argument>/p:Configuration=${msbuild.configuration}</argument>
+							</arguments>
+						</configuration>
+					</execution>
+					<execution>
+						<id>creating HPToolsLauncher</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<arguments>
+								<argument>/t:Rebuild</argument>
+								<argument>/p:Configuration=${msbuild.configuration}</argument>
+							</arguments>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.2.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpcore</artifactId>
-            <version>4.2.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.jayway.jsonpath</groupId>
-            <artifactId>json-path</artifactId>
-            <version>1.1.0</version>
-        </dependency>
-    </dependencies>
+	</build>
+
+
+	<!-- get every artifact through repo.jenkins-ci.org, which proxies all the artifacts that we need -->
+	<repositories>
+		<repository>
+			<id>repo.jenkins-ci.org</id>
+			<url>http://repo.jenkins-ci.org/public/</url>
+		</repository>
+		<repository>
+			<id>central</id>
+			<url>http://repo1.maven.org/maven2</url>
+		</repository>
+	</repositories>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>repo.jenkins-ci.org</id>
+			<url>http://repo.jenkins-ci.org/public/</url>
+		</pluginRepository>
+	</pluginRepositories>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.2.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpcore</artifactId>
+			<version>4.2.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.jayway.jsonpath</groupId>
+			<artifactId>json-path</artifactId>
+			<version>1.1.0</version>
+		</dependency>
+	</dependencies>
 </project>
