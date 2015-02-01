@@ -1,5 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
@@ -9,7 +8,7 @@
     </parent>
 
     <artifactId>hp-application-automation-tools-plugin</artifactId>
-    <version>3.0.7-SNAPSHOT</version>
+    <version>3.0.7</version>
     <packaging>hpi</packaging>
     <name>HP Application Automation Tools</name>
     <description>Allowing to run HP testing tools tests: Unified Functional Testing, QuickTest Professional, Service
@@ -34,7 +33,7 @@
         <developerConnection>scm:git:ssh://git@github.com/hpsa/hp-application-automation-tools-plugin.git
         </developerConnection>
         <url>https://github.com/hpsa/hp-application-automation-tools-plugin</url>
-        <tag>HEAD</tag>
+        <tag>hp-application-automation-tools-plugin-3.0.7</tag>
     </scm>
 
     <developers>
