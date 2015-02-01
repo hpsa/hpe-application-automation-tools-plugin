@@ -28,7 +28,7 @@ namespace HpToolsLauncher
 
         //LoadRunner Arguments
         private int _pollingInterval;
-        private TimeSpan _perScenarioTimeOut;
+        private TimeSpan _perScenarioTimeOutMinutes;
         private List<string> _ignoreErrorStrings;
 
 
@@ -50,7 +50,7 @@ namespace HpToolsLauncher
         public FileSystemTestsRunner(List<string> sources,
             TimeSpan timeout,
             int ControllerPollingInterval,
-            TimeSpan perScenarioTimeOut,
+            TimeSpan perScenarioTimeOutMinutes,
             List<string> ignoreErrorStrings,
             Dictionary<string, string> jenkinsEnvVariables,
             bool useUFTLicense = false
@@ -65,10 +65,11 @@ namespace HpToolsLauncher
             }
 
             _timeout = timeout;
+            ConsoleWriter.WriteLine("FileSystemTestRunner timeout is " + _timeout );
             _stopwatch = Stopwatch.StartNew();
 
             _pollingInterval = ControllerPollingInterval;
-            _perScenarioTimeOut = perScenarioTimeOut;
+            _perScenarioTimeOutMinutes = perScenarioTimeOutMinutes;
             _ignoreErrorStrings = ignoreErrorStrings;
 
 
@@ -275,7 +276,7 @@ namespace HpToolsLauncher
                     break;
                 case TestType.LoadRunner:
                     AppDomain.CurrentDomain.AssemblyResolve += Helper.HPToolsAssemblyResolver;
-                    runner = new PerformanceTestRunner(this, _timeout, _pollingInterval, _perScenarioTimeOut, _ignoreErrorStrings);
+                    runner = new PerformanceTestRunner(this, _timeout, _pollingInterval, _perScenarioTimeOutMinutes, _ignoreErrorStrings);
                     break;
             }
 
