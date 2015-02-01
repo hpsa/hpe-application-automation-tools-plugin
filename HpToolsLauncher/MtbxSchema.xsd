@@ -25,11 +25,11 @@
       <xs:enumeration value="number" />
       <xs:enumeration value="password" />
       <xs:enumeration value="dateTime" />
-      <xs:enumeration value="DateTime" />
-      <xs:enumeration value="Date" />
-      <xs:enumeration value="Long" />
-      <xs:enumeration value="Double" />
-      <xs:enumeration value="Decimal" />
+      <xs:enumeration value="datetime" />
+      <xs:enumeration value="date" />
+      <xs:enumeration value="long" />
+      <xs:enumeration value="double" />
+      <xs:enumeration value="decimal" />
     </xs:restriction>
   </xs:simpleType>
 
