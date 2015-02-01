@@ -64,6 +64,25 @@ public class TestProjectActionsMaven {
 		assertEquals(tmpArray.length(), 0);
 	}
 
+	@Test
+	/**
+	 * @info
+	 * try to approach jenkins_url/job/projectName/octane/run url and verify it triggers new build
+	 */
+	public void testDoRun() throws IOException, SAXException, InterruptedException {
+
+		Page page;
+		JSONObject body;
+		MavenModuleSet p = rule.createMavenProject(projectName);
+		JenkinsRule.WebClient client = rule.createWebClient();
+		page = client.goTo("job/" + projectName + "/octane/run","");
+		//body = new JSONObject(page.getWebResponse().getContentAsString());
+		while (p.getLastBuild() == null || p.getLastBuild().isBuilding()) {
+		}
+		assertEquals(p.getBuilds().toArray().length, 1);
+	}
+
+
 	//  Structure test: maven, with params, no children
 	//
 	@Test
