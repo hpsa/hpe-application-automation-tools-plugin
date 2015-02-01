@@ -1,8 +1,6 @@
 package com.hp.application.automation.tools.sse.sdk.request;
 
 import com.hp.application.automation.tools.sse.sdk.Client;
-import com.hp.application.automation.tools.sse.sdk.ResourceAccessLevel;
-import com.hp.application.automation.tools.sse.sdk.Response;
 
 /***
  * 
@@ -11,26 +9,14 @@ import com.hp.application.automation.tools.sse.sdk.Response;
  * 
  */
 
-public abstract class GetRequest extends Request {
+public abstract class GetRequest extends GeneralGetRequest {
+    
+    protected final String _runId;
     
     protected GetRequest(Client client, String runId) {
         
-        super(client, runId);
-    }
-    
-    protected String getQueryString() {
-        
-        return null;
-    }
-    
-    @Override
-    public Response perform() {
-        
-        return _client.httpGet(
-                getUrl(),
-                getQueryString(),
-                getHeaders(),
-                ResourceAccessLevel.PROTECTED);
+        super(client);
+        _runId = runId;
     }
     
 }

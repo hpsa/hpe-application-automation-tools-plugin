@@ -4,7 +4,6 @@ import java.net.HttpURLConnection;
 import java.util.Map;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.hp.application.automation.tools.rest.RestClient;
@@ -17,7 +16,6 @@ import com.hp.application.automation.tools.sse.sdk.handler.RunHandlerFactory;
  * @author barshean
  * 
  */
-@Ignore
 public class TestBvsRunHandler implements TestCase {
     
     @Test
@@ -57,6 +55,7 @@ public class TestBvsRunHandler implements TestCase {
     
     @Test
     public void testReportUrl() {
+
         RunHandler handler =
                 new RunHandlerFactory().create(
                         new RestClient(URL, DOMAIN, PROJECT, USER),
@@ -97,5 +96,4 @@ public class TestBvsRunHandler implements TestCase {
             return new Response(null, null, null, HttpURLConnection.HTTP_OK);
         }
     }
-    
 }

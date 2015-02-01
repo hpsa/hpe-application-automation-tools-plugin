@@ -190,11 +190,14 @@ namespace HpToolsLauncher.TestRunners
                     ConsoleWriter.WriteLine(Resources.LrAnalysingResults);
 
                     //close the controller, so Analysis can be opened
+                    ConsoleWriter.WriteLine("closing Controller");
                     closeController();
+                    ConsoleWriter.WriteLine("Controller closed");
 
                     //generate report using Analysis:
+                    ConsoleWriter.WriteLine("calling analysis report generator");
                     generateAnalysisReport(runDesc);
-
+                    ConsoleWriter.WriteLine("analysis report generator finished");
 
 
                     //check for errors:
@@ -356,7 +359,7 @@ namespace HpToolsLauncher.TestRunners
                 }
                 else
                 {//scenario has ended
-                    Console.WriteLine(string.Format(Resources.LrScenarioEnded, scenario));
+                    Console.WriteLine(string.Format(Resources.LrScenarioEnded, scenario,_stopWatch.Elapsed.Hours,_stopWatch.Elapsed.Minutes, _stopWatch.Elapsed.Seconds));
 
                     //collate results
                     collateResults();
@@ -480,21 +483,32 @@ namespace HpToolsLauncher.TestRunners
             //try to gracefully shut down the controller
             if (_engine != null)
             {
-                int rc = _engine.CloseController();
-                if (rc != 0)
+                try
                 {
-                    ConsoleWriter.WriteErrLine("\t\tFailed to close Controller with CloseController API function, rc: " + rc);
-                }
+                    int rc = _engine.CloseController();
+                    if (rc != 0)
+                    {
+                        ConsoleWriter.WriteErrLine("\t\tFailed to close Controller with CloseController API function, rc: " + rc);
+                    }
 
-                //give the controller 15 secs to shutdown. otherwise, print an error.
-                Thread.Sleep(15000);
+                    //give the controller 15 secs to shutdown. otherwise, print an error.
+                    Thread.Sleep(15000);
 
-                var process = Process.GetProcessesByName("Wlrun");
-                if (process.Length > 0)
-                {
-                    ConsoleWriter.WriteErrLine("\t\tThe Controller is still running...");
-                    return;
-                }
+                    var process = Process.GetProcessesByName("Wlrun");
+                    if (process.Length > 0)
+                    {
+                        ConsoleWriter.WriteErrLine("\t\tThe Controller is still running...");
+                        return;
+                    }
+                }catch(Exception e)
+                    {
+                        ConsoleWriter.WriteErrLine("\t\t Cannot close Controller gracefully, exception details:");
+                        ConsoleWriter.WriteErrLine(e.Message);
+                        ConsoleWriter.WriteErrLine(e.StackTrace);
+
+                        ConsoleWriter.WriteErrLine("killing Controller process");
+                        cleanENV();
+                    }
             }
             _engine = null;
         }
@@ -598,7 +612,7 @@ namespace HpToolsLauncher.TestRunners
             {
                 message = errorNode.InnerText;
 
-                ControllerError cerror;
+                //ControllerError cerror;
                 //if error exist, just update the count:
                 bool added = false;
                 //check if the error is ignorable
@@ -607,7 +621,10 @@ namespace HpToolsLauncher.TestRunners
                     if (message.ToLowerInvariant().Contains(ignoreError.ToLowerInvariant()))
                     {
                         ConsoleWriter.WriteLine(string.Format(Resources.LrErrorIgnored, message, ignoreError));
-                        _errors.Add(message, new ControllerError { state = ERRORState.Ignore, occurences = 1 });
+                        if (_errors.ContainsKey(message))
+                            _errors[message].occurences++;
+                        else
+                            _errors.Add(message, new ControllerError { state = ERRORState.Ignore, occurences = 1 });
                         added = true;
                         _errorsCount++;
                     }
@@ -618,7 +635,15 @@ namespace HpToolsLauncher.TestRunners
                 {
                     // non ignorable error message,
                     ConsoleWriter.WriteErrLine(message);//+ ", time " + time + ", host: " + host + ", VuserID: " + vuserId + ", script: " + script + ", line: " + line);
-                    _errors.Add(message, new ControllerError { state = ERRORState.Error, occurences = 1 });
+                 
+                    if (_errors.ContainsKey(message))
+                    {
+                        _errors[message].occurences++;
+                    }
+                    else
+                    {
+                        _errors.Add(message, new ControllerError { state = ERRORState.Error, occurences = 1 });
+                    }
                     _errorsCount++;
                     //if the scenario ended event was not registered, we need to provide the opportunity to check the vuser status.
                     //if (!_scenarioEndedEvent)
@@ -628,6 +653,7 @@ namespace HpToolsLauncher.TestRunners
                 }
 
             }
+            ConsoleWriter.WriteErrLine("total number of errors: " + _errorsCount);
 
 
 

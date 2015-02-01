@@ -1,14 +1,6 @@
 package com.hp.application.automation.tools.sse.sdk.request;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import com.hp.application.automation.tools.common.Pair;
-import com.hp.application.automation.tools.sse.common.RestXmlUtils;
 import com.hp.application.automation.tools.sse.sdk.Client;
-import com.hp.application.automation.tools.sse.sdk.ResourceAccessLevel;
-import com.hp.application.automation.tools.sse.sdk.Response;
 
 /***
  * 
@@ -16,42 +8,14 @@ import com.hp.application.automation.tools.sse.sdk.Response;
  * @author Dani Schreiber
  * 
  */
-public abstract class PostRequest extends Request {
+public abstract class PostRequest extends GeneralPostRequest {
+    
+    protected final String _runId;
     
     protected PostRequest(Client client, String runId) {
         
-        super(client, runId);
-    }
-    
-    @Override
-    protected Map<String, String> getHeaders() {
-        
-        return RestXmlUtils.getAppXmlHeaders();
-    }
-    
-    @Override
-    public Response perform() {
-        
-        return _client.httpPost(
-                getUrl(),
-                getDataBytes(),
-                getHeaders(),
-                ResourceAccessLevel.PROTECTED);
-    }
-    
-    private byte[] getDataBytes() {
-        
-        StringBuilder builder = new StringBuilder("<Entity><Fields>");
-        for (Pair<String, String> currPair : getDataFields()) {
-            builder.append(RestXmlUtils.fieldXml(currPair.getFirst(), currPair.getSecond()));
-        }
-        
-        return builder.append("</Fields></Entity>").toString().getBytes();
-    }
-    
-    protected List<Pair<String, String>> getDataFields() {
-        
-        return new ArrayList<Pair<String, String>>(0);
+        super(client);
+        _runId = runId;
     }
     
 }

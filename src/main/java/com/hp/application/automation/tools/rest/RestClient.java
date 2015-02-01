@@ -21,7 +21,7 @@ import com.hp.application.automation.tools.sse.sdk.Response;
 /***
  * 
  * @author Effi Bar-She'an
- * @author Dani Schreiber 
+ * @author Dani Schreiber
  * 
  */
 public class RestClient implements Client {
@@ -92,6 +92,22 @@ public class RestClient implements Client {
         Response ret = null;
         try {
             ret = doHttp(RestXmlUtils.POST, url, null, data, headers, resourceAccessLevel);
+        } catch (Throwable cause) {
+            throw new SSEException(cause);
+        }
+        
+        return ret;
+    }
+    
+    public Response httpPut(
+            String url,
+            byte[] data,
+            Map<String, String> headers,
+            ResourceAccessLevel resourceAccessLevel) {
+        
+        Response ret = null;
+        try {
+            ret = doHttp(RestXmlUtils.PUT, url, null, data, headers, resourceAccessLevel);
         } catch (Throwable cause) {
             throw new SSEException(cause);
         }
