@@ -1,11 +1,8 @@
 package com.hp.application.automation.tools.sse.autenvironment;
 
-import java.util.Calendar;
-import java.util.List;
-import java.util.Map;
-
 import com.hp.application.automation.tools.common.SSEException;
 import com.hp.application.automation.tools.model.AUTEnvironmentResolvedModel;
+import com.hp.application.automation.tools.sse.autenvironment.request.get.GetAutEnvironmentByIdOldApiRequest;
 import com.hp.application.automation.tools.sse.autenvironment.request.get.GetAutEnvironmentByIdRequest;
 import com.hp.application.automation.tools.sse.autenvironment.request.get.GetAutEnvironmentConfigurationByIdRequest;
 import com.hp.application.automation.tools.sse.autenvironment.request.post.CreateAutEnvConfRequest;
@@ -14,6 +11,11 @@ import com.hp.application.automation.tools.sse.common.XPathUtils;
 import com.hp.application.automation.tools.sse.sdk.Client;
 import com.hp.application.automation.tools.sse.sdk.Logger;
 import com.hp.application.automation.tools.sse.sdk.Response;
+
+import java.net.HttpURLConnection;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by barush on 03/11/2014.
@@ -35,6 +37,13 @@ public class AUTEnvironmentManager {
         
         String parametersRootFolderId = null;
         Response response = new GetAutEnvironmentByIdRequest(client, autEnvironmentId).execute();
+        /**
+         * This if here for backward compatibility to ALM 11.52. After the support for version <
+         * 12.00 will be removed this 'if' statement can be removed
+         * **/
+        if (!response.isOk() && response.getStatusCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+            response = new GetAutEnvironmentByIdOldApiRequest(client, autEnvironmentId).execute();
+        }
         try {
             List<Map<String, String>> entities = XPathUtils.toEntities(response.toString());
             if (!response.isOk() || entities.size() != 1) {
