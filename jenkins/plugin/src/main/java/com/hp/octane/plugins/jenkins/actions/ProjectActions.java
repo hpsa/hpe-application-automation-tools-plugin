@@ -52,11 +52,8 @@ public class ProjectActions extends TransientProjectActionFactory {
 
 		public void doRun(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
 			project.doBuild(req, res, new TimeDuration(1));
-
 		}
 	}
-
-
 
 	@Override
 	public Collection<? extends Action> createFor(AbstractProject project) {
