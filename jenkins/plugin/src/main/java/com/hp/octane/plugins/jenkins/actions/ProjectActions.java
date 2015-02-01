@@ -6,6 +6,7 @@ import hudson.model.AbstractProject;
 import hudson.model.Action;
 import hudson.model.ProminentProjectAction;
 import hudson.model.TransientProjectActionFactory;
+import jenkins.util.TimeDuration;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.export.Flavor;
@@ -48,7 +49,14 @@ public class ProjectActions extends TransientProjectActionFactory {
 		public void doStructure(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
 			res.serveExposedBean(req, new StructureItem(project), Flavor.JSON);
 		}
+
+		public void doRun(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
+			project.doBuild(req, res, new TimeDuration(1));
+
+		}
 	}
+
+
 
 	@Override
 	public Collection<? extends Action> createFor(AbstractProject project) {
