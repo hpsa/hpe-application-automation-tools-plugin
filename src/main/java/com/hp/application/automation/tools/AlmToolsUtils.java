@@ -39,11 +39,11 @@ public class AlmToolsUtils {
         int returnCode = launcher.launch().cmds(args).stdout(out).pwd(file.getParent()).join();
         
         if (returnCode != 0) {
-            if (returnCode == 1) {
+            if (returnCode == -1) {
                 build.setResult(Result.FAILURE);
-            } else if (returnCode == 2) {
+            } else if (returnCode == -2) {
                 build.setResult(Result.UNSTABLE);
-            } else if (returnCode == 3) {
+            } else if (returnCode == -3) {
                 build.setResult(Result.ABORTED);
             }
         }
