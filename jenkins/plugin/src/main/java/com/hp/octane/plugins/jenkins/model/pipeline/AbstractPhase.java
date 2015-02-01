@@ -21,8 +21,6 @@ public abstract class AbstractPhase {
 		this.blocking = blocking;
 	}
 
-	abstract AbstractItem[] provideItems();
-
 	@Exported(inline = true)
 	public String getName() {
 		return name;
@@ -31,10 +29,5 @@ public abstract class AbstractPhase {
 	@Exported(inline = true)
 	public boolean getBlocking() {
 		return blocking;
-	}
-
-	@Exported(inline = true)
-	public AbstractItem[] getJobs() {
-		return provideItems();
 	}
 }

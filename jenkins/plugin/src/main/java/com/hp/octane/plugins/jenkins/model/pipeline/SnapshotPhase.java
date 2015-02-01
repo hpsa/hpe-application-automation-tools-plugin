@@ -3,6 +3,7 @@ package com.hp.octane.plugins.jenkins.model.pipeline;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import jenkins.model.Jenkins;
+import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
 import java.util.ArrayList;
@@ -36,8 +37,8 @@ public final class SnapshotPhase extends AbstractPhase {
 		}
 	}
 
-	@Override
-	AbstractItem[] provideItems() {
+	@Exported(inline = true)
+	public AbstractItem[] getBuilds() {
 		return items;
 	}
 }

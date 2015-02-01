@@ -1,6 +1,7 @@
 package com.hp.octane.plugins.jenkins.model.pipeline;
 
 import hudson.model.AbstractProject;
+import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
 import java.util.List;
@@ -25,8 +26,8 @@ public final class StructurePhase extends AbstractPhase {
 		}
 	}
 
-	@Override
-	AbstractItem[] provideItems() {
+	@Exported(inline = true)
+	public AbstractItem[] getJobs() {
 		return items;
 	}
 }
