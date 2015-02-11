@@ -12,7 +12,8 @@ public enum ParameterType {
 	UNAVAILABLE("unavailable"),
 	BOOLEAN("boolean"),
 	STRING("string"),
-	NUMBER("number");
+	NUMBER("number"),
+	FILE("file");
 
 	private String value;
 
