@@ -1,5 +1,6 @@
 import com.gargoylesoftware.htmlunit.Page;
 import com.hp.octane.plugins.jenkins.actions.PluginActions;
+import hudson.model.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Rule;
@@ -8,6 +9,8 @@ import org.jvnet.hudson.test.JenkinsRule;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -34,14 +37,35 @@ public class TestPluginActions {
 	}
 
 	@Test
-	public void testProjectsListClass() throws IOException {
+	public void testProjectsListClassNoParams() throws IOException {
 		PluginActions.ProjectsList projectsList = new PluginActions.ProjectsList();
-		assertEquals(projectsList.getJobs().getClass(), String[].class);
+		assertEquals(projectsList.getJobs().getClass(), PluginActions.ProjectConfig[].class);
 		assertEquals(projectsList.getJobs().length, 0);
 
 		rule.createFreeStyleProject(projectName);
 		assertEquals(projectsList.getJobs().length, 1);
-		assertEquals(projectsList.getJobs()[0], projectName);
+		assertEquals(projectsList.getJobs()[0].getName(), projectName);
+		assertEquals(projectsList.getJobs()[0].getParameters().getClass(), ArrayList.class);
+		assertEquals(projectsList.getJobs()[0].getParameters().size(), 0);
+	}
+
+	@Test
+	public void testProjectsListClassWithParams() throws IOException {
+		FreeStyleProject fsp;
+		PluginActions.ProjectsList projectsList = new PluginActions.ProjectsList();
+		assertEquals(projectsList.getJobs().getClass(), PluginActions.ProjectConfig[].class);
+		assertEquals(projectsList.getJobs().length, 0);
+
+		fsp = rule.createFreeStyleProject(projectName);
+		ParametersDefinitionProperty params = new ParametersDefinitionProperty(Arrays.asList(
+				(ParameterDefinition) new BooleanParameterDefinition("ParamA", true, "bool"),
+				(ParameterDefinition) new StringParameterDefinition("ParamB", "str", "string")
+		));
+		fsp.addProperty(params);
+
+		assertEquals(projectsList.getJobs().length, 1);
+		assertEquals(projectsList.getJobs()[0].getName(), projectName);
+
 	}
 
 	@Test
@@ -64,10 +88,11 @@ public class TestPluginActions {
 	}
 
 	@Test
-	public void testPluginActions_REST_Jobs() throws IOException, SAXException {
+	public void testPluginActions_REST_Jobs_NoParams() throws IOException, SAXException {
 		JenkinsRule.WebClient client = rule.createWebClient();
 		Page page;
 		JSONObject body;
+		JSONObject job;
 		JSONArray jobs;
 
 		page = client.goTo("octane/jobs", "application/json");
@@ -82,6 +107,33 @@ public class TestPluginActions {
 		assertTrue(body.has("jobs"));
 		jobs = body.getJSONArray("jobs");
 		assertEquals(jobs.length(), 1);
-		assertEquals(jobs.get(0), projectName);
+		job = jobs.getJSONObject(0);
+		assertEquals(job.getString("name"), projectName);
+		assertEquals(job.getJSONArray("parameters").length(), 0);
+	}
+
+	@Test
+	public void testPluginActions_REST_Jobs_WithParams() throws IOException, SAXException {
+		FreeStyleProject fsp;
+		JenkinsRule.WebClient client = rule.createWebClient();
+		Page page;
+		JSONObject body;
+		JSONObject job;
+		JSONArray jobs;
+
+		page = client.goTo("octane/jobs", "application/json");
+		body = new JSONObject(page.getWebResponse().getContentAsString());
+		assertTrue(body.has("jobs"));
+		jobs = body.getJSONArray("jobs");
+		assertEquals(jobs.length(), 0);
+
+		fsp = rule.createFreeStyleProject(projectName);
+
+		page = client.goTo("octane/jobs", "application/json");
+		body = new JSONObject(page.getWebResponse().getContentAsString());
+		assertTrue(body.has("jobs"));
+		jobs = body.getJSONArray("jobs");
+		assertEquals(jobs.length(), 1);
+	//	assertEquals(jobs.get(0), projectName);
 	}
 }
