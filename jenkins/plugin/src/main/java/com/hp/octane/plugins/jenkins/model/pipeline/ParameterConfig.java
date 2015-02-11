@@ -29,13 +29,10 @@ public class ParameterConfig {
 				type = ParameterType.STRING;
 			}
 			defaultValue = pb.getDefaultParameterValue().getValue();
-		}
-		else if (pb instanceof FileParameterDefinition)
-		{
-			type=ParameterType.FILE;
+		} else if (pb instanceof FileParameterDefinition) {
+			type = ParameterType.FILE;
 			defaultValue = "";
-		}
-		else {
+		} else {
 			type = ParameterType.UNAVAILABLE;
 			System.out.println("TODO: add handling file parameter");
 		}

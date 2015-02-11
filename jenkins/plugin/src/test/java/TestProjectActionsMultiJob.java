@@ -127,9 +127,9 @@ public class TestProjectActionsMultiJob {
 		tmpParam = tmpArray.getJSONObject(4);
 		assertEquals(tmpParam.length(), 4);
 		assertEquals(tmpParam.getString("name"), "ParamE");
-		assertEquals(tmpParam.getString("type"), ParameterType.UNAVAILABLE.toString());
+		assertEquals(tmpParam.getString("type"), ParameterType.FILE.toString());
 		assertEquals(tmpParam.getString("description"), "file param");
-		assertTrue(tmpParam.isNull("defaultValue"));
+		assertEquals(tmpParam.getString("defaultValue"), "");
 
 		assertTrue(body.has("phasesInternal"));
 		tmpArray = body.getJSONArray("phasesInternal");

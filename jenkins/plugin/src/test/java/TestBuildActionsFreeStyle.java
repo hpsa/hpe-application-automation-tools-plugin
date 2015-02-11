@@ -189,9 +189,9 @@ public class TestBuildActionsFreeStyle {
 
 		tmpObject = tmpArray.getJSONObject(4);
 		assertEquals(tmpObject.getString("name"), "ParamE");
-		assertEquals(tmpObject.getString("type"), ParameterType.UNAVAILABLE.toString());
+		assertEquals(tmpObject.getString("type"), ParameterType.FILE.toString());
 		assertEquals(tmpObject.getString("description"), "file param");
-		assertTrue(tmpObject.isNull("defaultValue"));
+		assertEquals(tmpObject.getString("defaultValue"), "");
 		assertTrue(tmpObject.isNull("value"));
 	}
 

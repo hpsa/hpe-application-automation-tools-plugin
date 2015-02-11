@@ -1,5 +1,7 @@
 import com.gargoylesoftware.htmlunit.Page;
 import com.hp.octane.plugins.jenkins.actions.PluginActions;
+import com.hp.octane.plugins.jenkins.model.pipeline.ParameterConfig;
+import com.hp.octane.plugins.jenkins.model.pipeline.ParameterType;
 import hudson.model.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -52,6 +54,7 @@ public class TestPluginActions {
 	@Test
 	public void testProjectsListClassWithParams() throws IOException {
 		FreeStyleProject fsp;
+		ParameterConfig tmpConf;
 		PluginActions.ProjectsList projectsList = new PluginActions.ProjectsList();
 		assertEquals(projectsList.getJobs().getClass(), PluginActions.ProjectConfig[].class);
 		assertEquals(projectsList.getJobs().length, 0);
@@ -60,13 +63,31 @@ public class TestPluginActions {
 		ParametersDefinitionProperty params = new ParametersDefinitionProperty(Arrays.asList(
 				(ParameterDefinition) new BooleanParameterDefinition("ParamA", true, "bool"),
 				(ParameterDefinition) new StringParameterDefinition("ParamB", "str", "string"),
-				(ParameterDefinition) new FileParameterDefinition("file","desc")
+				(ParameterDefinition) new FileParameterDefinition("ParamC", "file param")
 		));
 		fsp.addProperty(params);
 
 		assertEquals(projectsList.getJobs().length, 1);
 		assertEquals(projectsList.getJobs()[0].getName(), projectName);
+		assertEquals(projectsList.getJobs()[0].getParameters().size(), 3);
 
+		tmpConf = projectsList.getJobs()[0].getParameters().get(0);
+		assertEquals(tmpConf.getName(), "ParamA");
+		assertEquals(tmpConf.getType(), ParameterType.BOOLEAN.toString());
+		assertEquals(tmpConf.getDefaultValue(), true);
+		assertEquals(tmpConf.getDescription(), "bool");
+
+		tmpConf = projectsList.getJobs()[0].getParameters().get(1);
+		assertEquals(tmpConf.getName(), "ParamB");
+		assertEquals(tmpConf.getType(), ParameterType.STRING.toString());
+		assertEquals(tmpConf.getDefaultValue(), "str");
+		assertEquals(tmpConf.getDescription(), "string");
+
+		tmpConf = projectsList.getJobs()[0].getParameters().get(2);
+		assertEquals(tmpConf.getName(), "ParamC");
+		assertEquals(tmpConf.getType(), ParameterType.FILE.toString());
+		assertEquals(tmpConf.getDefaultValue(), "");
+		assertEquals(tmpConf.getDescription(), "file param");
 	}
 
 	@Test
@@ -119,7 +140,6 @@ public class TestPluginActions {
 		JenkinsRule.WebClient client = rule.createWebClient();
 		Page page;
 		JSONObject body;
-		JSONObject job;
 		JSONArray jobs;
 
 		page = client.goTo("octane/jobs", "application/json");
@@ -132,7 +152,7 @@ public class TestPluginActions {
 		ParametersDefinitionProperty params = new ParametersDefinitionProperty(Arrays.asList(
 				(ParameterDefinition) new BooleanParameterDefinition("ParamA", true, "bool"),
 				(ParameterDefinition) new StringParameterDefinition("ParamB", "str", "string"),
-				(ParameterDefinition) new FileParameterDefinition("file","desc")
+				(ParameterDefinition) new FileParameterDefinition("ParamC", "file param")
 		));
 		fsp.addProperty(params);
 
@@ -142,31 +162,25 @@ public class TestPluginActions {
 		jobs = body.getJSONArray("jobs");
 		assertEquals(jobs.length(), 1);
 
+		//  Test ParamA
+		JSONObject paramBoolean = jobs.getJSONObject(0).getJSONArray("parameters").getJSONObject(0);
+		assertEquals("ParamA", paramBoolean.get("name"));
+		assertEquals(ParameterType.BOOLEAN.toString(), paramBoolean.get("type"));
+		assertEquals("bool", paramBoolean.get("description"));
+		assertEquals(true, paramBoolean.get("defaultValue"));
 
+		//  Test ParamB
+		JSONObject paramString = jobs.getJSONObject(0).getJSONArray("parameters").getJSONObject(1);
+		assertEquals("ParamB", paramString.get("name"));
+		assertEquals(ParameterType.STRING.toString(), paramString.get("type"));
+		assertEquals("string", paramString.get("description"));
+		assertEquals("str", paramString.get("defaultValue"));
 
-
-
-		//check ParamB
-		JSONObject paramBolean=jobs.getJSONObject(0).getJSONArray("parameters").getJSONObject(0);
-		assertEquals("ParamA",paramBolean.get("name") );
-		assertEquals("bool",paramBolean.get("description") );
-		assertEquals("boolean",paramBolean.get("type") );
-		assertEquals(true,paramBolean.get("defaultValue") );
-
-		//check ParamA value
-		JSONObject paramStr=jobs.getJSONObject(0).getJSONArray("parameters").getJSONObject(1);
-		assertEquals("ParamB",paramStr.get("name") );
-		assertEquals("string",paramStr.get("description") );
-		assertEquals("string",paramStr.get("type") );
-		assertEquals("str",paramStr.get("defaultValue") );
-
-		//check Paramc
-		JSONObject paramFile=jobs.getJSONObject(0).getJSONArray("parameters").getJSONObject(2);
-		assertEquals("file",paramFile.get("name") );
-		assertEquals("desc",paramFile.get("description") );
-		assertEquals("file",paramFile.get("type") );
-		assertEquals("",paramFile.get("defaultValue") );
-
-	//	assertEquals(jobs.get(0), projectName);
+		//  Test ParamC
+		JSONObject paramFile = jobs.getJSONObject(0).getJSONArray("parameters").getJSONObject(2);
+		assertEquals("ParamC", paramFile.get("name"));
+		assertEquals(ParameterType.FILE.toString(), paramFile.get("type"));
+		assertEquals("file param", paramFile.get("description"));
+		assertEquals("", paramFile.get("defaultValue"));
 	}
 }
