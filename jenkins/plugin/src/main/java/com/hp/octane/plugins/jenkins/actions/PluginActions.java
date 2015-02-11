@@ -1,7 +1,6 @@
 package com.hp.octane.plugins.jenkins.actions;
 
 import com.hp.octane.plugins.jenkins.model.pipeline.ParameterConfig;
-import com.sun.xml.internal.ws.api.ha.StickyFeature;
 import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.ParameterDefinition;
@@ -60,12 +59,13 @@ public class PluginActions implements RootAction {
 			return name;
 		}
 
-		public List<ParameterConfig> getParameters() {
-			return parameters;
-		}
-
 		public void setParameters(List<ParameterConfig> parameters) {
 			this.parameters = parameters;
+		}
+
+		@Exported(inline = true)
+		public List<ParameterConfig> getParameters() {
+			return parameters;
 		}
 	}
 
