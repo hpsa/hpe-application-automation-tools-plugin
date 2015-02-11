@@ -128,6 +128,11 @@ public class TestPluginActions {
 		assertEquals(jobs.length(), 0);
 
 		fsp = rule.createFreeStyleProject(projectName);
+		ParametersDefinitionProperty params = new ParametersDefinitionProperty(Arrays.asList(
+				(ParameterDefinition) new BooleanParameterDefinition("ParamA", true, "bool"),
+				(ParameterDefinition) new StringParameterDefinition("ParamB", "str", "string")
+		));
+		fsp.addProperty(params);
 
 		page = client.goTo("octane/jobs", "application/json");
 		body = new JSONObject(page.getWebResponse().getContentAsString());
