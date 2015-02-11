@@ -59,7 +59,8 @@ public class TestPluginActions {
 		fsp = rule.createFreeStyleProject(projectName);
 		ParametersDefinitionProperty params = new ParametersDefinitionProperty(Arrays.asList(
 				(ParameterDefinition) new BooleanParameterDefinition("ParamA", true, "bool"),
-				(ParameterDefinition) new StringParameterDefinition("ParamB", "str", "string")
+				(ParameterDefinition) new StringParameterDefinition("ParamB", "str", "string"),
+				(ParameterDefinition) new FileParameterDefinition("file","desc")
 		));
 		fsp.addProperty(params);
 
@@ -130,7 +131,8 @@ public class TestPluginActions {
 		fsp = rule.createFreeStyleProject(projectName);
 		ParametersDefinitionProperty params = new ParametersDefinitionProperty(Arrays.asList(
 				(ParameterDefinition) new BooleanParameterDefinition("ParamA", true, "bool"),
-				(ParameterDefinition) new StringParameterDefinition("ParamB", "str", "string")
+				(ParameterDefinition) new StringParameterDefinition("ParamB", "str", "string"),
+				(ParameterDefinition) new FileParameterDefinition("file","desc")
 		));
 		fsp.addProperty(params);
 
@@ -139,6 +141,32 @@ public class TestPluginActions {
 		assertTrue(body.has("jobs"));
 		jobs = body.getJSONArray("jobs");
 		assertEquals(jobs.length(), 1);
+
+
+
+
+
+		//check ParamB
+		JSONObject paramBolean=jobs.getJSONObject(0).getJSONArray("parameters").getJSONObject(0);
+		assertEquals("ParamA",paramBolean.get("name") );
+		assertEquals("bool",paramBolean.get("description") );
+		assertEquals("boolean",paramBolean.get("type") );
+		assertEquals(true,paramBolean.get("defaultValue") );
+
+		//check ParamA value
+		JSONObject paramStr=jobs.getJSONObject(0).getJSONArray("parameters").getJSONObject(1);
+		assertEquals("ParamB",paramStr.get("name") );
+		assertEquals("string",paramStr.get("description") );
+		assertEquals("string",paramStr.get("type") );
+		assertEquals("str",paramStr.get("defaultValue") );
+
+		//check Paramc
+		JSONObject paramFile=jobs.getJSONObject(0).getJSONArray("parameters").getJSONObject(2);
+		assertEquals("file",paramFile.get("name") );
+		assertEquals("desc",paramFile.get("description") );
+		assertEquals("file",paramFile.get("type") );
+		assertEquals("",paramFile.get("defaultValue") );
+
 	//	assertEquals(jobs.get(0), projectName);
 	}
 }
