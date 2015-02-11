@@ -99,6 +99,7 @@ public class TestBuildActionsFreeStyle {
 		assertEquals(p.getBuilds().toArray().length, 0);
 		Utils.buildProject(client, p);
 		while (p.getLastBuild() == null || p.getLastBuild().isBuilding()) {
+			Thread.sleep(1000);
 		}
 		assertEquals(p.getBuilds().toArray().length, 1);
 
@@ -147,6 +148,7 @@ public class TestBuildActionsFreeStyle {
 		assertEquals(p.getBuilds().toArray().length, 0);
 		Utils.buildProjectWithParams(client, p, "ParamA=false&ParamD=two&ParamX=some_string");
 		while (p.getLastBuild() == null || p.getLastBuild().isBuilding()) {
+			Thread.sleep(1000);
 		}
 		assertEquals(p.getBuilds().toArray().length, 1);
 

@@ -54,7 +54,7 @@ public class TestEvents {
 		server.destroy();
 	}
 
-//	@Test
+	//	@Test
 	public void testEvents() throws Exception {
 		raiseServer();
 
@@ -63,6 +63,7 @@ public class TestEvents {
 		assertEquals(p.getBuilds().toArray().length, 0);
 		Utils.buildProject(client, p);
 		while (p.getLastBuild() == null || p.getLastBuild().isBuilding()) {
+			Thread.sleep(1000);
 		}
 		assertEquals(p.getBuilds().toArray().length, 1);
 		Thread.sleep(100);      //  give a chance to the finished event to be processed
