@@ -38,11 +38,12 @@ public class TestEnums {
 
 	@Test
 	public void testParameterType() {
-		assertEquals(ParameterType.values().length, 4);
+		assertEquals(ParameterType.values().length, 5);
 		assertEquals(ParameterType.UNAVAILABLE.toString(), "unavailable");
 		assertEquals(ParameterType.BOOLEAN.toString(), "boolean");
 		assertEquals(ParameterType.STRING.toString(), "string");
 		assertEquals(ParameterType.NUMBER.toString(), "number");
+		assertEquals(ParameterType.FILE.toString(), "file");
 		assertEquals(ParameterType.getByValue("unavailable"), ParameterType.UNAVAILABLE);
 	}
 
