@@ -1,16 +1,15 @@
 package com.hp.octane.plugins.jenkins.notifications;
 
+import com.hp.octane.plugins.jenkins.configuration.RestUtils;
 import com.hp.octane.plugins.jenkins.model.events.CIEventBase;
 import jenkins.model.Jenkins;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.kohsuke.stapler.Stapler;
+import org.kohsuke.stapler.export.Flavor;
+import org.kohsuke.stapler.export.ModelBuilder;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -21,71 +20,81 @@ import java.util.ArrayList;
  */
 public final class EventDispatcher {
 	static class Client {
-		public String clientUri;
-		public int connectFails;
-		public boolean suspended;
-		public final int connectFailsTolerance = 3;
+		private final EventsList eventsList = new EventsList();
+		private Thread executor;
+		private boolean shuttingDown;
+		public String clientURL;
 
-		public Client(String cUri) {
-			this.clientUri = cUri;
+		public Client(String cURL) {
+			this.clientURL = cURL;
+			shuttingDown = false;
+			executor = new Thread(new Runnable() {
+				@Override
+				public void run() {
+					int status;
+					List<CIEventBase> localList;
+					while (!shuttingDown) {
+						try {
+							if (eventsList.getEvents().size() > 0) {
+								localList = new ArrayList<CIEventBase>(eventsList.getEvents());
+								Writer w = new StringWriter();
+								new ModelBuilder().get(EventsList.class).writeTo(eventsList, Flavor.JSON.createDataWriter(localList, w));
+								status = RestUtils.post(clientURL + "", w.toString());
+								if (status == 201) {
+									eventsList.getEvents().removeAll(localList);
+								}
+							}
+							Thread.sleep(100);
+						} catch (Exception e) {
+							e.printStackTrace();
+							//  TODO: decide what to do on the exception case
+						}
+					}
+				}
+			});
+			executor.start();
+			System.out.println("New thread started to push events to '" + this.clientURL + "'");
+		}
+
+		public void dispose() {
+			shuttingDown = true;
+		}
+
+		public int pushEvent(CIEventBase event) {
+			synchronized (eventsList) {
+				eventsList.getEvents().add(event);
+			}
+			return eventsList.getEvents().size();
 		}
 	}
 
 	public static final String SELF_URL;
-	private static final ArrayList<Client> clients = new ArrayList<Client>();
-
-	//  TODO:
-	//  persist the subscribers' list by the means Jenkins provides
+	private static final List<Client> clients = new ArrayList<Client>();
 
 	static {
 		String selfUrl = Jenkins.getInstance().getRootUrl();
-		if (selfUrl.endsWith("/")) selfUrl = selfUrl.substring(0, selfUrl.length() - 1);
+		if (selfUrl != null && selfUrl.endsWith("/")) selfUrl = selfUrl.substring(0, selfUrl.length() - 1);
 		SELF_URL = selfUrl;
+
+		//  TODO: the below code should be moved or refactored according to the configurational core by ALI
+		//  TODO: part of the below URL should be retrieved from the integration user data
+		addClient("http://localhost:8080/qcbin/rest/domains/DEFAULT/projects/CIA_P1/cia/events");
 	}
 
-	public static synchronized void updateClient(String clientUri) {
-		Client tmp = null;
-		for (Client c : clients) {
-			if (c.clientUri.equals(clientUri)) {
-				tmp = c;
-				break;
-			}
-		}
-		if (tmp == null) {
-			tmp = new Client(clientUri);
-			clients.add(tmp);
-		}
-		tmp.connectFails = 0;
-		tmp.suspended = false;
+	public static Client addClient(String clientURL) {
+		Client client = new Client(clientURL);
+		clients.add(client);
+		return client;
+	}
+
+	public static void removeClient(Client client) {
+		clients.remove(client);
+		client.dispose();
 	}
 
 	public static void dispatchEvent(CIEventBase event) {
-		DefaultHttpClient client;
-		HttpPost request;
-		HttpResponse response;
-		StringEntity entity;
-
 		for (Client c : clients) {
-			if (c.suspended) continue;
-
-			try {
-				System.out.println("Pushing event '" + event.getEventType() + "' to " + c.clientUri);
-
-				entity = new StringEntity(Stapler.CONVERT_UTILS.convert(event));
-
-				//request = new HttpPost(c.clientUri + "/rest/realtime/notification");
-				request = new HttpPost("http://localhost:9999/" + event.getEventType());
-				request.setEntity(entity);
-				client = new DefaultHttpClient();
-				response = client.execute(request);
-				c.connectFails = 0;
-			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-				c.connectFails++;
-				if (c.connectFails == c.connectFailsTolerance) c.suspended = true;
-			}
+			c.pushEvent(event);
 		}
 	}
 }
