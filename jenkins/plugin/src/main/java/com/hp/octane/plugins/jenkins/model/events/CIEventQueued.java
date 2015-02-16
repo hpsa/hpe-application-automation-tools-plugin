@@ -14,14 +14,12 @@ import org.kohsuke.stapler.export.ExportedBean;
 
 @ExportedBean
 public final class CIEventQueued extends CIEventBase {
-	private final CIEventType eventType = CIEventType.QUEUED;
-
-	public CIEventQueued(String serverURL, String project, CIEventCauseBase cause) {
-		super(serverURL, project, cause);
+	public CIEventQueued(String project, CIEventCauseBase cause) {
+		super(project, cause);
 	}
 
 	@Override
 	CIEventType provideEventType() {
-		return eventType;
+		return CIEventType.QUEUED;
 	}
 }

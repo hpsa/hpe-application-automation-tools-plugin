@@ -3,6 +3,7 @@ package com.hp.octane.plugins.jenkins.configuration;
 import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 
 /**
@@ -12,64 +13,55 @@ public class RestUtils {
 
 	private static Cookie[] cookies;
 	private static final String loginXmlA = "<alm-authentication><user>admin</user><password></password></alm-authentication>";
-	private static final String sessionXml = "<session-parameters><client-type>HP ALM Web UI</client-type><time-out>6</time-out></session-parameters>";
+	private static final String sessionXml = "<session-parameters><client-type>adfsadf</client-type><time-out>6</time-out></session-parameters>";
 
-	private static HttpClient login() {
+	private static HttpClient login() throws Exception {
 		int status;
 		HttpClient httpClient = new HttpClient();
-		try {
-			//  LWSSO login
-			PostMethod post = new PostMethod("http://localhost:8080/qcbin/authentication-point/alm-authenticate");
-			post.setRequestEntity(new StringRequestEntity(loginXmlA, "application/xml", "UTF-8"));
 
-			status = httpClient.executeMethod(post);
-			System.out.println(status);
-			cookies = httpClient.getState().getCookies();
+		//  LWSSO login
+		PostMethod post = new PostMethod("http://localhost:8080/qcbin/authentication-point/alm-authenticate");
+		post.setRequestEntity(new StringRequestEntity(loginXmlA, "application/xml", "UTF-8"));
 
-			//  QC Session
-			post = new PostMethod("http://localhost:8080/qcbin/rest/site-session");
-			post.setRequestEntity(new StringRequestEntity(sessionXml, "application/xml", "UTF-8"));
-			httpClient.getState().addCookies(cookies);
+		status = httpClient.executeMethod(post);
+		System.out.println(status);
+		cookies = httpClient.getState().getCookies();
 
-			status = httpClient.executeMethod(post);
-			cookies = httpClient.getState().getCookies();
-			System.out.println(status);
-			return httpClient;
-		} catch (Exception e) {
-			System.out.println(e.getMessage());
-			return null;
-		}
+		//  QC Session
+		post = new PostMethod("http://localhost:8080/qcbin/rest/site-session");
+		post.setRequestEntity(new StringRequestEntity(sessionXml, "application/xml", "UTF-8"));
+		httpClient.getState().addCookies(cookies);
+
+		status = httpClient.executeMethod(post);
+		cookies = httpClient.getState().getCookies();
+		System.out.println(status);
+		return httpClient;
 	}
 
-	public static int post(String url, String body) {
-		try {
-			int status;
-			HttpClient httpClient;
-			if (cookies == null) {
-				httpClient = login();
-			} else {
-				httpClient = new HttpClient();
-				httpClient.getState().addCookies(cookies);
-			}
-
-			PostMethod post = new PostMethod(url);
-			post.setRequestEntity(new StringRequestEntity(body, "application/json", "UTF-8"));
-			for (Cookie c : cookies) {
-				if (c.getName().equals("XSRF-TOKEN")) {
-					post.setRequestHeader("X-XSRF-TOKEN", c.getValue());
-				}
-			}
-			status = httpClient.executeMethod(post);
-
-			if (status == 401) {
-				System.out.println("seems like login needed...");
-				login();
-				post(url, body);
-			}
-			return status;
-		} catch (Exception e) {
-			e.printStackTrace();
-			return 0;
+	public static int put(String url, String body) throws Exception {
+		int status;
+		HttpClient httpClient;
+		if (cookies == null) {
+			httpClient = login();
+		} else {
+			httpClient = new HttpClient();
+			httpClient.getState().addCookies(cookies);
 		}
+
+		PutMethod putMethod = new PutMethod(url);
+		putMethod.setRequestEntity(new StringRequestEntity(body, "application/json", "UTF-8"));
+		for (Cookie c : cookies) {
+			if (c.getName().equals("XSRF-TOKEN")) {
+				putMethod.setRequestHeader("X-XSRF-TOKEN", c.getValue());
+			}
+		}
+		status = httpClient.executeMethod(putMethod);
+
+		if (status == 401) {
+			System.out.println("seems like login needed...");
+			login();
+			put(url, body);
+		}
+		return status;
 	}
 }

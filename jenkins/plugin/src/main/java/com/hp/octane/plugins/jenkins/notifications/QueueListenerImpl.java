@@ -25,7 +25,6 @@ public final class QueueListenerImpl extends QueueListener {
 		if (wi.task instanceof AbstractProject) {
 			project = (AbstractProject) wi.task;
 			event = new CIEventQueued(
-					EventDispatcher.SELF_URL,
 					project.getName(),
 					CIEventCausesFactory.convertCause(wi.getCauses())
 			);
@@ -55,5 +54,4 @@ public final class QueueListenerImpl extends QueueListener {
 			System.out.println(project.getName() + " left queue");
 		}
 	}
-
 }

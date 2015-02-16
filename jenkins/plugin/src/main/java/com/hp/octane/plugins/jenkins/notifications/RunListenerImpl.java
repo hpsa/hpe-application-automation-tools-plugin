@@ -12,6 +12,8 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.model.listeners.RunListener;
 
+import javax.annotation.Nonnull;
+
 /**
  * Created with IntelliJ IDEA.
  * User: gullery
@@ -23,11 +25,11 @@ import hudson.model.listeners.RunListener;
 public final class RunListenerImpl extends RunListener<Run> {
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public void onStarted(Run r, TaskListener listener) {
 		if (r instanceof AbstractBuild) {
 			AbstractBuild build = (AbstractBuild) r;
 			CIEventStarted event = new CIEventStarted(
-					EventDispatcher.SELF_URL,
 					build.getProject().getName(),
 					build.getNumber(),
 					build.getStartTimeInMillis(),
@@ -39,7 +41,8 @@ public final class RunListenerImpl extends RunListener<Run> {
 	}
 
 	@Override
-	public void onCompleted(Run r, TaskListener listener) {
+	@SuppressWarnings("unchecked")
+	public void onCompleted(Run r, @Nonnull TaskListener listener) {
 		if (r instanceof AbstractBuild) {
 			AbstractBuild build = (AbstractBuild) r;
 			SnapshotResult result;
@@ -55,7 +58,6 @@ public final class RunListenerImpl extends RunListener<Run> {
 				result = SnapshotResult.UNAVAILABLE;
 			}
 			CIEventFinished event = new CIEventFinished(
-					EventDispatcher.SELF_URL,
 					build.getProject().getName(),
 					build.getNumber(),
 					result,

@@ -20,40 +20,68 @@ import java.util.List;
  */
 public final class EventDispatcher {
 	static class Client {
-		private final EventsList eventsList = new EventsList();
+		private final EventsList eventsList = new EventsList(SELF_URL);
 		private Thread executor;
 		private boolean shuttingDown;
-		public String clientURL;
+		private int failedRetries;
 
-		public Client(String cURL) {
-			this.clientURL = cURL;
+		public String url;
+		public String domain;
+		public String project;
+
+		public Client(String url, String domain, String project) {
+			this.url = url;
+			this.domain = domain;
+			this.project = project;
+		}
+
+		public void start() {
+			eventsList.clear();
 			shuttingDown = false;
+			failedRetries = 0;
 			executor = new Thread(new Runnable() {
 				@Override
 				public void run() {
 					int status;
+					int suspendTime = 3;
 					List<CIEventBase> localList;
-					while (!shuttingDown) {
+					while (!shuttingDown && failedRetries < MAX_PUSH_RETRIES) {
 						try {
 							if (eventsList.getEvents().size() > 0) {
+								System.out.println("Pushing " + eventsList.getEvents().size() + " event/s to '" + url + "'...");
 								localList = new ArrayList<CIEventBase>(eventsList.getEvents());
 								Writer w = new StringWriter();
 								new ModelBuilder().get(EventsList.class).writeTo(eventsList, Flavor.JSON.createDataWriter(localList, w));
-								status = RestUtils.post(clientURL + "", w.toString());
-								if (status == 201) {
+								status = RestUtils.put(url + "/qcbin/rest/domains/" + domain + "/projects/" + project + "/cia/events", w.toString());
+								if (status == 200) {
 									eventsList.getEvents().removeAll(localList);
+									failedRetries = 0;
+									suspendTime = 3;
+								} else {
+									failedRetries++;
+									System.out.println("Push to '" + url + "' failed; total fails: " + failedRetries);
+									Thread.sleep(suspendTime * 1000);
+									suspendTime *= 2;
 								}
+								System.out.println("Done, " + eventsList.getEvents().size() + " is/are in queue of '" + url + "'");
 							}
 							Thread.sleep(100);
 						} catch (Exception e) {
-							e.printStackTrace();
-							//  TODO: decide what to do on the exception case
+							failedRetries++;
+							System.out.println("Push to '" + url + "' failed with exception '" + e.getMessage() + "'; total fails: " + failedRetries);
+							try {
+								Thread.sleep(suspendTime * 1000);
+							} catch (Exception ie) {
+								System.out.println(ie.getMessage());
+							}
+							suspendTime *= 2;
 						}
 					}
+					System.out.println("Events client for '" + url + "' shut down");
 				}
 			});
 			executor.start();
-			System.out.println("New thread started to push events to '" + this.clientURL + "'");
+			System.out.println("New thread started for events client at '" + this.url + "'");
 		}
 
 		public void dispose() {
@@ -66,35 +94,51 @@ public final class EventDispatcher {
 			}
 			return eventsList.getEvents().size();
 		}
+
+		public boolean isActive() {
+			System.out.println(executor != null && executor.isAlive());
+			return executor != null && executor.isAlive();
+		}
 	}
 
-	public static final String SELF_URL;
+	private static final int MAX_PUSH_RETRIES = 3;
+	private static final String SELF_URL;
 	private static final List<Client> clients = new ArrayList<Client>();
 
 	static {
 		String selfUrl = Jenkins.getInstance().getRootUrl();
 		if (selfUrl != null && selfUrl.endsWith("/")) selfUrl = selfUrl.substring(0, selfUrl.length() - 1);
 		SELF_URL = selfUrl;
-
-		//  TODO: the below code should be moved or refactored according to the configurational core by ALI
-		//  TODO: part of the below URL should be retrieved from the integration user data
-		addClient("http://localhost:8080/qcbin/rest/domains/DEFAULT/projects/CIA_P1/cia/events");
 	}
 
-	public static Client addClient(String clientURL) {
-		Client client = new Client(clientURL);
-		clients.add(client);
-		return client;
+	public static void updateClient(String url, String domain, String project) {
+		Client client = null;
+		synchronized (clients) {
+			for (Client c : clients) {
+				if (c.url.equals(url)) {
+					client = c;
+				}
+			}
+			if (client == null) {
+				client = new Client(url, domain, project);
+				clients.add(client);
+			}
+		}
+		if (!client.isActive()) client.start();
 	}
 
 	public static void removeClient(Client client) {
-		clients.remove(client);
-		client.dispose();
+		synchronized (clients) {
+			client.dispose();
+			clients.remove(client);
+		}
 	}
 
 	public static void dispatchEvent(CIEventBase event) {
 		for (Client c : clients) {
-			c.pushEvent(event);
+			if (c.isActive()) {
+				c.pushEvent(event);
+			}
 		}
 	}
 }

@@ -1,7 +1,6 @@
 package com.hp.octane.plugins.jenkins.notifications;
 
 import com.hp.octane.plugins.jenkins.model.events.CIEventBase;
-import jenkins.model.Jenkins;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
@@ -13,20 +12,20 @@ import java.util.List;
  */
 @ExportedBean
 public class EventsList {
-	private static final String serverType = "Jenkins";
-	private static final String serverURL;
+	private final List<CIEventBase> events = new ArrayList<CIEventBase>();
+	private String serverURL;
 
-	static {
-		String tmpURL = Jenkins.getInstance().getRootUrl();
-		if (tmpURL != null && tmpURL.endsWith("/")) tmpURL = tmpURL.substring(0, tmpURL.length() - 1);
-		serverURL = tmpURL;
+	public EventsList(String serverURL) {
+		this.serverURL = serverURL;
 	}
 
-	private final List<CIEventBase> events = new ArrayList<CIEventBase>();
+	public void clear() {
+		events.clear();
+	}
 
 	@Exported
 	public String serverType() {
-		return serverType;
+		return "jenkins";
 	}
 
 	@Exported

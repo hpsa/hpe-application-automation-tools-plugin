@@ -1,12 +1,14 @@
 package com.hp.octane.plugins.jenkins.actions;
 
 import com.hp.octane.plugins.jenkins.model.pipeline.ParameterConfig;
+import com.hp.octane.plugins.jenkins.notifications.EventDispatcher;
 import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.ParameterDefinition;
 import hudson.model.ParametersDefinitionProperty;
 import hudson.model.RootAction;
 import jenkins.model.Jenkins;
+import net.sf.json.JSONObject;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.export.Exported;
@@ -115,5 +117,26 @@ public class PluginActions implements RootAction {
 
 	public void doJobs(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
 		res.serveExposedBean(req, new ProjectsList(), Flavor.JSON);
+	}
+
+	//  TODO: remove once available in core part of the plugin
+	public void doConfig(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
+		String body = "";
+		JSONObject inputJSON;
+		byte[] buffer = new byte[1024];
+		int length;
+		while ((length = req.getInputStream().read(buffer)) > 0) body += new String(buffer, 0, length);
+
+		inputJSON = JSONObject.fromObject(body);
+		String url;
+		String domain;
+		String project;
+		if (inputJSON.containsKey("type") && inputJSON.getString("type").equals("events-client")) {
+			url = inputJSON.getString("url");
+			domain = inputJSON.getString("domain");
+			project = inputJSON.getString("project");
+			System.out.println("Accepted events-client config request for '" + url + "', '" + domain + "', '" + project + "'");
+			EventDispatcher.updateClient(url, domain, project);
+		}
 	}
 }

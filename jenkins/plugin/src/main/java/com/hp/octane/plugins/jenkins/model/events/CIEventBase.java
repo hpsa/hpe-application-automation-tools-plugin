@@ -18,25 +18,12 @@ import org.kohsuke.stapler.export.ExportedBean;
 public abstract class CIEventBase {
 	abstract CIEventType provideEventType();
 
-	private final String serverType = "jenkins";
-	private String serverURL;
 	private String project;
 	private CIEventCauseBase cause;
 
-	public CIEventBase(String serverURL, String project, CIEventCauseBase cause) {
-		this.serverURL = serverURL;
+	public CIEventBase(String project, CIEventCauseBase cause) {
 		this.project = project;
 		this.cause = cause;
-	}
-
-	@Exported(inline = true)
-	public String getServerType() {
-		return serverType;
-	}
-
-	@Exported(inline = true)
-	public String getServerURL() {
-		return serverURL;
 	}
 
 	@Exported(inline = true)

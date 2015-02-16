@@ -14,13 +14,12 @@ import org.kohsuke.stapler.export.ExportedBean;
 
 @ExportedBean
 public final class CIEventStarted extends CIEventBase {
-	private final CIEventType eventType = CIEventType.STARTED;
 	private int number;
 	private long startTime;
 	private long estimatedDuration;
 
-	public CIEventStarted(String serverURL, String project, int number, long startTime, long estimatedDuration, CIEventCauseBase cause) {
-		super(serverURL, project, cause);
+	public CIEventStarted(String project, int number, long startTime, long estimatedDuration, CIEventCauseBase cause) {
+		super(project, cause);
 		this.number = number;
 		this.startTime = startTime;
 		this.estimatedDuration = estimatedDuration;
@@ -28,7 +27,7 @@ public final class CIEventStarted extends CIEventBase {
 
 	@Override
 	CIEventType provideEventType() {
-		return eventType;
+		return CIEventType.STARTED;
 	}
 
 	@Exported(inline = true)
