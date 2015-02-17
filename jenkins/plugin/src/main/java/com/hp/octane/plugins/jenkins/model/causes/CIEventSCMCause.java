@@ -13,11 +13,9 @@ import org.kohsuke.stapler.export.ExportedBean;
 
 @ExportedBean
 public class CIEventSCMCause implements CIEventCauseBase {
-	public final CIEventCauseType type = CIEventCauseType.SCM;
-
 	@Override
 	@Exported(inline = true)
 	public CIEventCauseType getType() {
-		return type;
+		return CIEventCauseType.SCM;
 	}
 }

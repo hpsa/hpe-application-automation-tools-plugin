@@ -1,6 +1,6 @@
-package com.hp.octane.plugins.jenkins.model.pipeline.utils;
+package com.hp.octane.plugins.jenkins.model.pipelines.utils;
 
-import com.hp.octane.plugins.jenkins.model.pipeline.StructurePhase;
+import com.hp.octane.plugins.jenkins.model.pipelines.StructurePhase;
 import com.tikal.jenkins.plugins.multijob.MultiJobBuilder;
 import com.tikal.jenkins.plugins.multijob.PhaseJobsConfig;
 import hudson.model.AbstractProject;

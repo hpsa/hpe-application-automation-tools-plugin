@@ -1,7 +1,7 @@
 import com.gargoylesoftware.htmlunit.Page;
 import com.hp.octane.plugins.jenkins.actions.PluginActions;
-import com.hp.octane.plugins.jenkins.model.pipeline.ParameterConfig;
-import com.hp.octane.plugins.jenkins.model.pipeline.ParameterType;
+import com.hp.octane.plugins.jenkins.model.parameters.ParameterConfig;
+import com.hp.octane.plugins.jenkins.model.parameters.ParameterType;
 import hudson.model.*;
 import org.json.JSONArray;
 import org.json.JSONObject;

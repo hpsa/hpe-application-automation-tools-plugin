@@ -1,11 +1,9 @@
 import com.gargoylesoftware.htmlunit.Page;
-import com.hp.octane.plugins.jenkins.model.pipeline.ParameterType;
-import com.hp.octane.plugins.jenkins.model.pipeline.SnapshotResult;
-import com.hp.octane.plugins.jenkins.model.pipeline.SnapshotStatus;
+import com.hp.octane.plugins.jenkins.model.parameters.ParameterType;
+import com.hp.octane.plugins.jenkins.model.pipelines.SnapshotResult;
+import com.hp.octane.plugins.jenkins.model.pipelines.SnapshotStatus;
 import hudson.model.*;
 import hudson.plugins.parameterizedtrigger.*;
-import hudson.tasks.*;
-import jenkins.model.Jenkins;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Rule;

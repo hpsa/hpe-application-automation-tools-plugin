@@ -1,4 +1,4 @@
-package com.hp.octane.plugins.jenkins.model.pipeline.utils;
+package com.hp.octane.plugins.jenkins.model.pipelines.utils;
 
 /**
  * Created with IntelliJ IDEA.

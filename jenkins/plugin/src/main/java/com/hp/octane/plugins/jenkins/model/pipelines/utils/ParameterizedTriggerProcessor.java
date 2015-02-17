@@ -1,6 +1,6 @@
-package com.hp.octane.plugins.jenkins.model.pipeline.utils;
+package com.hp.octane.plugins.jenkins.model.pipelines.utils;
 
-import com.hp.octane.plugins.jenkins.model.pipeline.StructurePhase;
+import com.hp.octane.plugins.jenkins.model.pipelines.StructurePhase;
 import hudson.model.AbstractProject;
 import hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig;
 import hudson.plugins.parameterizedtrigger.BuildTrigger;

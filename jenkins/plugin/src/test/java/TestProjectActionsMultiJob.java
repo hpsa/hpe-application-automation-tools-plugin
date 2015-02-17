@@ -1,5 +1,5 @@
 import com.gargoylesoftware.htmlunit.Page;
-import com.hp.octane.plugins.jenkins.model.pipeline.ParameterType;
+import com.hp.octane.plugins.jenkins.model.parameters.ParameterType;
 import com.tikal.jenkins.plugins.multijob.MultiJobBuilder;
 import com.tikal.jenkins.plugins.multijob.MultiJobProject;
 import com.tikal.jenkins.plugins.multijob.PhaseJobsConfig;
@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -75,7 +76,7 @@ public class TestProjectActionsMultiJob {
 				(ParameterDefinition) new BooleanParameterDefinition("ParamA", true, "bool"),
 				(ParameterDefinition) new StringParameterDefinition("ParamB", "str", "string"),
 				(ParameterDefinition) new TextParameterDefinition("ParamC", "txt", "text"),
-				(ParameterDefinition) new ChoiceParameterDefinition("ParamD", new String[]{"one", "two", "three"}, "choice"),
+				(ParameterDefinition) new ChoiceParameterDefinition("ParamD", new String[]{"A", "B", "C"}, "choice"),
 				(ParameterDefinition) new FileParameterDefinition("ParamE", "file param")
 		));
 		p.addProperty(params);
@@ -97,39 +98,48 @@ public class TestProjectActionsMultiJob {
 		assertEquals(tmpArray.length(), 5);
 
 		tmpParam = tmpArray.getJSONObject(0);
-		assertEquals(tmpParam.length(), 4);
+		assertEquals(tmpParam.length(), 5);
 		assertEquals(tmpParam.getString("name"), "ParamA");
 		assertEquals(tmpParam.getString("type"), ParameterType.BOOLEAN.toString());
 		assertEquals(tmpParam.getString("description"), "bool");
 		assertEquals(tmpParam.getBoolean("defaultValue"), true);
+		assertTrue(tmpParam.isNull("choices"));
 
 		tmpParam = tmpArray.getJSONObject(1);
-		assertEquals(tmpParam.length(), 4);
+		assertEquals(tmpParam.length(), 5);
 		assertEquals(tmpParam.getString("name"), "ParamB");
 		assertEquals(tmpParam.getString("type"), ParameterType.STRING.toString());
 		assertEquals(tmpParam.getString("description"), "string");
 		assertEquals(tmpParam.getString("defaultValue"), "str");
+		assertTrue(tmpParam.isNull("choices"));
 
 		tmpParam = tmpArray.getJSONObject(2);
-		assertEquals(tmpParam.length(), 4);
+		assertEquals(tmpParam.length(), 5);
 		assertEquals(tmpParam.getString("name"), "ParamC");
 		assertEquals(tmpParam.getString("type"), ParameterType.STRING.toString());
 		assertEquals(tmpParam.getString("description"), "text");
 		assertEquals(tmpParam.getString("defaultValue"), "txt");
+		assertTrue(tmpParam.isNull("choices"));
 
 		tmpParam = tmpArray.getJSONObject(3);
-		assertEquals(tmpParam.length(), 4);
+		assertEquals(tmpParam.length(), 5);
 		assertEquals(tmpParam.getString("name"), "ParamD");
 		assertEquals(tmpParam.getString("type"), ParameterType.STRING.toString());
 		assertEquals(tmpParam.getString("description"), "choice");
-		assertEquals(tmpParam.getString("defaultValue"), "one");
+		assertEquals(tmpParam.getString("defaultValue"), "A");
+		assertNotNull(tmpParam.get("choices"));
+		assertEquals(tmpParam.getJSONArray("choices").length(), 3);
+		assertEquals(tmpParam.getJSONArray("choices").get(0), "A");
+		assertEquals(tmpParam.getJSONArray("choices").get(1), "B");
+		assertEquals(tmpParam.getJSONArray("choices").get(2), "C");
 
 		tmpParam = tmpArray.getJSONObject(4);
-		assertEquals(tmpParam.length(), 4);
+		assertEquals(tmpParam.length(), 5);
 		assertEquals(tmpParam.getString("name"), "ParamE");
 		assertEquals(tmpParam.getString("type"), ParameterType.FILE.toString());
 		assertEquals(tmpParam.getString("description"), "file param");
 		assertEquals(tmpParam.getString("defaultValue"), "");
+		assertTrue(tmpParam.isNull("choices"));
 
 		assertTrue(body.has("phasesInternal"));
 		tmpArray = body.getJSONArray("phasesInternal");
@@ -207,18 +217,20 @@ public class TestProjectActionsMultiJob {
 		assertEquals(tmpArray.length(), 2);
 
 		tmpParam = tmpArray.getJSONObject(0);
-		assertEquals(tmpParam.length(), 4);
+		assertEquals(tmpParam.length(), 5);
 		assertEquals(tmpParam.getString("name"), "ParamA");
 		assertEquals(tmpParam.getString("type"), ParameterType.BOOLEAN.toString());
 		assertEquals(tmpParam.getString("description"), "bool");
 		assertEquals(tmpParam.getBoolean("defaultValue"), true);
+		assertTrue(tmpParam.isNull("choices"));
 
 		tmpParam = tmpArray.getJSONObject(1);
-		assertEquals(tmpParam.length(), 4);
+		assertEquals(tmpParam.length(), 5);
 		assertEquals(tmpParam.getString("name"), "ParamB");
 		assertEquals(tmpParam.getString("type"), ParameterType.STRING.toString());
 		assertEquals(tmpParam.getString("description"), "string");
 		assertEquals(tmpParam.getString("defaultValue"), "str");
+		assertTrue(tmpParam.isNull("choices"));
 
 		assertTrue(body.has("phasesInternal"));
 		tmpArray = body.getJSONArray("phasesInternal");

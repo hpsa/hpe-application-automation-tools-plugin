@@ -1,6 +1,7 @@
 package com.hp.octane.plugins.jenkins.model.events;
 
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCauseBase;
+import com.hp.octane.plugins.jenkins.model.parameters.ParameterInstance;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
@@ -17,12 +18,14 @@ public final class CIEventStarted extends CIEventBase {
 	private int number;
 	private long startTime;
 	private long estimatedDuration;
+	private ParameterInstance[] parameters;
 
-	public CIEventStarted(String project, int number, long startTime, long estimatedDuration, CIEventCauseBase cause) {
+	public CIEventStarted(String project, int number, long startTime, long estimatedDuration, CIEventCauseBase cause, ParameterInstance[] parameters) {
 		super(project, cause);
 		this.number = number;
 		this.startTime = startTime;
 		this.estimatedDuration = estimatedDuration;
+		this.parameters = parameters;
 	}
 
 	@Override
@@ -43,5 +46,10 @@ public final class CIEventStarted extends CIEventBase {
 	@Exported(inline = true)
 	public long getEstimatedDuration() {
 		return estimatedDuration;
+	}
+
+	@Exported(inline = true)
+	public ParameterInstance[] getParameters() {
+		return parameters;
 	}
 }

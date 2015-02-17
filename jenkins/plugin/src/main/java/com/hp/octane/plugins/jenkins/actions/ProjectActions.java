@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jenkins.actions;
 
-import com.hp.octane.plugins.jenkins.model.pipeline.StructureItem;
+import com.hp.octane.plugins.jenkins.model.pipelines.StructureItem;
 import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.Action;

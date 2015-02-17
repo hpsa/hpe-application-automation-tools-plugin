@@ -1,4 +1,4 @@
-package com.hp.octane.plugins.jenkins.model.pipeline;
+package com.hp.octane.plugins.jenkins.model.pipelines;
 
 /**
  * Created with IntelliJ IDEA.
@@ -8,16 +8,16 @@ package com.hp.octane.plugins.jenkins.model.pipeline;
  * To change this template use File | Settings | File Templates.
  */
 
-public enum ParameterType {
+public enum SnapshotResult {
 	UNAVAILABLE("unavailable"),
-	BOOLEAN("boolean"),
-	STRING("string"),
-	NUMBER("number"),
-	FILE("file");
+	UNSTABLE("unstable"),
+	ABORTED("aborted"),
+	FAILURE("failure"),
+	SUCCESS("success");
 
 	private String value;
 
-	private ParameterType(String value) {
+	private SnapshotResult(String value) {
 		this.value = value;
 	}
 
@@ -26,9 +26,9 @@ public enum ParameterType {
 		return value;
 	}
 
-	public static ParameterType getByValue(String value) {
-		ParameterType r = null;
-		for (ParameterType i : values()) {
+	public static SnapshotResult getByValue(String value) {
+		SnapshotResult r = null;
+		for (SnapshotResult i : values()) {
 			if (i.value.compareTo(value) == 0) {
 				r = i;
 				break;

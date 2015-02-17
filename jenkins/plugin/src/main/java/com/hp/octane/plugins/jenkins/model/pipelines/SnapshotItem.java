@@ -1,8 +1,10 @@
-package com.hp.octane.plugins.jenkins.model.pipeline;
+package com.hp.octane.plugins.jenkins.model.pipelines;
 
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCauseBase;
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCausesFactory;
-import com.hp.octane.plugins.jenkins.model.pipeline.utils.AbstractProjectProcessor;
+import com.hp.octane.plugins.jenkins.model.parameters.ParameterConfig;
+import com.hp.octane.plugins.jenkins.model.parameters.ParameterInstance;
+import com.hp.octane.plugins.jenkins.model.pipelines.utils.AbstractProjectProcessor;
 import com.hp.octane.plugins.jenkins.model.scm.SCMData;
 import com.hp.octane.plugins.jenkins.model.scm.SCMDataFactory;
 import hudson.model.*;
@@ -106,7 +108,7 @@ public final class SnapshotItem extends AbstractItem {
 
 	private void appendInvokeesNames(ArrayList<String> list, StructurePhase[] phases) {
 		for (StructurePhase phase : phases) {
-			for (AbstractItem item : phase.getJobs()) {
+			for (com.hp.octane.plugins.jenkins.model.pipelines.AbstractItem item : phase.getJobs()) {
 				if (!list.contains(item.getName())) list.add(item.getName());
 			}
 		}
@@ -127,8 +129,8 @@ public final class SnapshotItem extends AbstractItem {
 		ArrayList<AbstractBuild> result = new ArrayList<AbstractBuild>();
 		AbstractBuild tmpBuild;
 		Cause.UpstreamCause tmpCause;
-		for (Iterator i = project.getBuilds().iterator(); i.hasNext(); ) {
-			tmpBuild = (AbstractBuild) i.next();
+		for (Object o : project.getBuilds()) {
+			tmpBuild = (AbstractBuild) o;
 			for (Cause cause : (List<Cause>) tmpBuild.getCauses()) {
 				if (!(cause instanceof Cause.UpstreamCause)) continue;
 

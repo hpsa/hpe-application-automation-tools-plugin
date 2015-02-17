@@ -19,8 +19,27 @@ public class EventsList {
 		this.serverURL = serverURL;
 	}
 
+	public int add(CIEventBase event) {
+		synchronized (events) {
+			events.add(event);
+		}
+		return events.size();
+	}
+
 	public void clear() {
-		events.clear();
+		synchronized (events) {
+			events.clear();
+		}
+	}
+
+	public void clear(List<CIEventBase> sent) {
+		synchronized (events) {
+			events.removeAll(sent);
+		}
+	}
+
+	public int size() {
+		return events.size();
 	}
 
 	@Exported

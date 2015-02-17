@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jenkins.actions;
 
-import com.hp.octane.plugins.jenkins.model.pipeline.ParameterConfig;
+import com.hp.octane.plugins.jenkins.model.parameters.ParameterConfig;
 import com.hp.octane.plugins.jenkins.notifications.EventDispatcher;
 import hudson.Extension;
 import hudson.model.AbstractProject;

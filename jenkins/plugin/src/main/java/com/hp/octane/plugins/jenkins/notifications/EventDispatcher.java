@@ -47,27 +47,28 @@ public final class EventDispatcher {
 					List<CIEventBase> localList;
 					while (!shuttingDown) {
 						try {
-							if (eventsList.getEvents().size() > 0) {
-								System.out.println("Pushing " + eventsList.getEvents().size() + " event/s to '" + url + "'...");
+							if (eventsList.size() > 0) {
+								System.out.println("Pushing " + eventsList.size() + " event/s to '" + url + "'...");
 								localList = new ArrayList<CIEventBase>(eventsList.getEvents());
 								Writer w = new StringWriter();
 								new ModelBuilder().get(EventsList.class).writeTo(eventsList, Flavor.JSON.createDataWriter(localList, w));
 								status = RestUtils.put(url + "/qcbin/rest/domains/" + domain + "/projects/" + project + "/cia/events", w.toString());
 								if (status == 200) {
-									eventsList.getEvents().removeAll(localList);
+									eventsList.clear(localList);
 									failedRetries = 0;
 									suspendTime = 3;
 								} else {
 									failedRetries++;
 									System.out.println("Push to '" + url + "' failed with status '" + status + "'; total fails: " + failedRetries);
 									if (failedRetries >= MAX_PUSH_RETRIES) {
-									//	shuttingDown = true;
+										eventsList.clear();
+										//	shuttingDown = true;
 									} else {
 										Thread.sleep(suspendTime * 1000);
-									//	suspendTime *= 2;
+										//	suspendTime *= 2;
 									}
 								}
-								System.out.println("Done, " + eventsList.getEvents().size() + " is/are in queue of '" + url + "'");
+								System.out.println("Done, " + eventsList.size() + " is/are in queue of '" + url + "'");
 							} else {
 								Thread.sleep(100);
 							}
@@ -75,7 +76,8 @@ public final class EventDispatcher {
 							failedRetries++;
 							System.out.println("Push to '" + url + "' failed with exception '" + e.getMessage() + "'; total fails: " + failedRetries);
 							if (failedRetries >= MAX_PUSH_RETRIES) {
-							//	shuttingDown = true;
+								eventsList.clear();
+								//	shuttingDown = true;
 							}
 						}
 					}
@@ -91,10 +93,7 @@ public final class EventDispatcher {
 		}
 
 		public int pushEvent(CIEventBase event) {
-			synchronized (eventsList) {
-				eventsList.getEvents().add(event);
-			}
-			return eventsList.getEvents().size();
+			return eventsList.add(event);
 		}
 
 		public boolean isActive() {

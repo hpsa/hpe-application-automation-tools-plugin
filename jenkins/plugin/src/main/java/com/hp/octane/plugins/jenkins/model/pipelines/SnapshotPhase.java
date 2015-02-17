@@ -1,4 +1,4 @@
-package com.hp.octane.plugins.jenkins.model.pipeline;
+package com.hp.octane.plugins.jenkins.model.pipelines;
 
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;

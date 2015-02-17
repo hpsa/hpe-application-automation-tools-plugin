@@ -15,7 +15,6 @@ import org.kohsuke.stapler.export.ExportedBean;
 
 @ExportedBean
 public class CIEventUpstreamCause implements CIEventCauseBase {
-	private final CIEventCauseType type = CIEventCauseType.UPSTREAM;
 	private String project;
 	private int number;
 	private CIEventCauseBase cause;
@@ -29,7 +28,7 @@ public class CIEventUpstreamCause implements CIEventCauseBase {
 	@Override
 	@Exported(inline = true)
 	public CIEventCauseType getType() {
-		return type;
+		return CIEventCauseType.UPSTREAM;
 	}
 
 	@Exported(inline = true)

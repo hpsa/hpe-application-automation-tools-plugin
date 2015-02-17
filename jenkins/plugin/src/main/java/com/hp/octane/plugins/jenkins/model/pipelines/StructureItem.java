@@ -1,6 +1,7 @@
-package com.hp.octane.plugins.jenkins.model.pipeline;
+package com.hp.octane.plugins.jenkins.model.pipelines;
 
-import com.hp.octane.plugins.jenkins.model.pipeline.utils.*;
+import com.hp.octane.plugins.jenkins.model.parameters.ParameterConfig;
+import com.hp.octane.plugins.jenkins.model.pipelines.utils.*;
 import hudson.model.AbstractProject;
 import org.kohsuke.stapler.export.ExportedBean;
 

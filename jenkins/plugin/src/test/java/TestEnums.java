@@ -1,8 +1,8 @@
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCauseType;
 import com.hp.octane.plugins.jenkins.model.events.CIEventType;
-import com.hp.octane.plugins.jenkins.model.pipeline.ParameterType;
-import com.hp.octane.plugins.jenkins.model.pipeline.SnapshotResult;
-import com.hp.octane.plugins.jenkins.model.pipeline.SnapshotStatus;
+import com.hp.octane.plugins.jenkins.model.parameters.ParameterType;
+import com.hp.octane.plugins.jenkins.model.pipelines.SnapshotResult;
+import com.hp.octane.plugins.jenkins.model.pipelines.SnapshotStatus;
 import com.hp.octane.plugins.jenkins.model.scm.SCMType;
 import org.junit.Test;
 
