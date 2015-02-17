@@ -57,6 +57,7 @@ public class ParameterConfig {
 		type = ParameterType.getByValue(config.getType());
 		description = config.getDescription();
 		defaultValue = config.getDefaultValue();
+		choices = config.getChoices();
 	}
 
 	@Exported(inline = true)

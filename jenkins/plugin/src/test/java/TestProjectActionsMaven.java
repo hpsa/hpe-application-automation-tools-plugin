@@ -74,7 +74,6 @@ public class TestProjectActionsMaven {
 		MavenModuleSet p = rule.createMavenProject(projectName);
 		JenkinsRule.WebClient client = rule.createWebClient();
 		client.goTo("job/" + projectName + "/octane/run", "");
-		//body = new JSONObject(page.getWebResponse().getContentAsString());
 		while (p.getLastBuild() == null || p.getLastBuild().isBuilding()) {
 			Thread.sleep(1000);
 		}
