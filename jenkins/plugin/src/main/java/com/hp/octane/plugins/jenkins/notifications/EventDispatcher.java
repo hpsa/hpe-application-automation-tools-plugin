@@ -35,7 +35,7 @@ public final class EventDispatcher {
 			this.project = project;
 		}
 
-		public void start() {
+		public void activate() {
 			eventsList.clear();
 			shuttingDown = false;
 			failedRetries = 0;
@@ -45,7 +45,7 @@ public final class EventDispatcher {
 					int status;
 					int suspendTime = 3;
 					List<CIEventBase> localList;
-					while (!shuttingDown && failedRetries < MAX_PUSH_RETRIES) {
+					while (!shuttingDown) {
 						try {
 							if (eventsList.getEvents().size() > 0) {
 								System.out.println("Pushing " + eventsList.getEvents().size() + " event/s to '" + url + "'...");
@@ -59,22 +59,24 @@ public final class EventDispatcher {
 									suspendTime = 3;
 								} else {
 									failedRetries++;
-									System.out.println("Push to '" + url + "' failed; total fails: " + failedRetries);
-									Thread.sleep(suspendTime * 1000);
-									suspendTime *= 2;
+									System.out.println("Push to '" + url + "' failed with status '" + status + "'; total fails: " + failedRetries);
+									if (failedRetries >= MAX_PUSH_RETRIES) {
+									//	shuttingDown = true;
+									} else {
+										Thread.sleep(suspendTime * 1000);
+									//	suspendTime *= 2;
+									}
 								}
 								System.out.println("Done, " + eventsList.getEvents().size() + " is/are in queue of '" + url + "'");
+							} else {
+								Thread.sleep(100);
 							}
-							Thread.sleep(100);
 						} catch (Exception e) {
 							failedRetries++;
 							System.out.println("Push to '" + url + "' failed with exception '" + e.getMessage() + "'; total fails: " + failedRetries);
-							try {
-								Thread.sleep(suspendTime * 1000);
-							} catch (Exception ie) {
-								System.out.println(ie.getMessage());
+							if (failedRetries >= MAX_PUSH_RETRIES) {
+							//	shuttingDown = true;
 							}
-							suspendTime *= 2;
 						}
 					}
 					System.out.println("Events client for '" + url + "' shut down");
@@ -96,7 +98,6 @@ public final class EventDispatcher {
 		}
 
 		public boolean isActive() {
-			System.out.println(executor != null && executor.isAlive());
 			return executor != null && executor.isAlive();
 		}
 	}
@@ -124,7 +125,7 @@ public final class EventDispatcher {
 				clients.add(client);
 			}
 		}
-		if (!client.isActive()) client.start();
+		if (!client.isActive()) client.activate();
 	}
 
 	public static void removeClient(Client client) {
