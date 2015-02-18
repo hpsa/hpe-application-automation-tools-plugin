@@ -86,6 +86,7 @@ public final class EventDispatcher {
 					System.out.println("Events client for '" + url + "' shut down");
 				}
 			});
+			executor.setDaemon(true);
 			executor.start();
 			System.out.println("New thread started for events client at '" + this.url + "'");
 		}
