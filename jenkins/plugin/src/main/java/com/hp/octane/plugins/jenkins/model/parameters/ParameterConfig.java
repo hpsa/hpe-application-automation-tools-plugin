@@ -43,6 +43,8 @@ public class ParameterConfig {
 				type = ParameterType.STRING;
 				defaultValue = choicePd.getDefaultParameterValue().getValue();
 				choices = choicePd.getChoices();
+			} else {
+				type = ParameterType.UNAVAILABLE;
 			}
 		} else if (pd instanceof FileParameterDefinition) {
 			type = ParameterType.FILE;

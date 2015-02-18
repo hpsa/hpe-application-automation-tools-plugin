@@ -139,7 +139,6 @@ public class PluginActions implements RootAction {
 	public static final ServerInfo SERVER_INFO;
 	public static final PluginInfo PLUGIN_INFO;
 
-
 	static {
 		String serverId = Base64.encode(InstanceIdentity.get().getPublic().getEncoded());
 		String serverUrl = Jenkins.getInstance().getRootUrl();
