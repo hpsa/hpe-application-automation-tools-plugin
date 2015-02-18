@@ -1,5 +1,6 @@
 package com.hp.octane.plugins.jenkins.notifications;
 
+import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import com.hp.octane.plugins.jenkins.model.events.CIEventBase;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
@@ -13,11 +14,6 @@ import java.util.List;
 @ExportedBean
 public class EventsList {
 	private final List<CIEventBase> events = new ArrayList<CIEventBase>();
-	private String serverURL;
-
-	public EventsList(String serverURL) {
-		this.serverURL = serverURL;
-	}
 
 	public int add(CIEventBase event) {
 		synchronized (events) {
@@ -42,14 +38,9 @@ public class EventsList {
 		return events.size();
 	}
 
-	@Exported
-	public String serverType() {
-		return "jenkins";
-	}
-
-	@Exported
-	public String serverURL() {
-		return serverURL;
+	@Exported(inline = true)
+	public PluginActions.ServerInfo getServer() {
+		return PluginActions.SERVER_INFO;
 	}
 
 	@Exported(inline = true)

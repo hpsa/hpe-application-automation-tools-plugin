@@ -7,8 +7,10 @@ import hudson.model.AbstractProject;
 import hudson.model.ParameterDefinition;
 import hudson.model.ParametersDefinitionProperty;
 import hudson.model.RootAction;
+import hudson.remoting.Base64;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
+import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.export.Exported;
@@ -32,14 +34,35 @@ import java.util.List;
 public class PluginActions implements RootAction {
 
 	@ExportedBean
-	static final public class PluginInfo {
-		private final String version = "1.0.0";
+	public static final class ServerInfo {
+		private String instanceId;
+		private String url;
 		private final String type = "jenkins";
+
+		ServerInfo(String instanceId, String url) {
+			this.instanceId = instanceId;
+			this.url = url;
+		}
+
+		@Exported(inline = true)
+		public String getInstanceId() {
+			return instanceId;
+		}
+
+		@Exported(inline = true)
+		public String getUrl() {
+			return url;
+		}
 
 		@Exported(inline = true)
 		public String getType() {
 			return type;
 		}
+	}
+
+	@ExportedBean
+	public static final class PluginInfo {
+		private final String version = "1.0.0";
 
 		@Exported(inline = true)
 		public String getVersion() {
@@ -47,8 +70,22 @@ public class PluginActions implements RootAction {
 		}
 	}
 
+	//  TODO: probably add status collecting logic from all relevant services
 	@ExportedBean
-	static final public class ProjectConfig {
+	public static final class PluginStatus {
+		@Exported(inline = true)
+		public PluginInfo getPlugin() {
+			return PLUGIN_INFO;
+		}
+
+		@Exported(inline = true)
+		public ServerInfo getServer() {
+			return SERVER_INFO;
+		}
+	}
+
+	@ExportedBean
+	public static final class ProjectConfig {
 		private String name;
 		private List<ParameterConfig> parameters;
 
@@ -72,7 +109,7 @@ public class PluginActions implements RootAction {
 	}
 
 	@ExportedBean
-	static final public class ProjectsList {
+	public static final class ProjectsList {
 		@Exported(inline = true)
 		public ProjectConfig[] getJobs() {
 			ProjectConfig tmpConfig;
@@ -99,6 +136,18 @@ public class PluginActions implements RootAction {
 		}
 	}
 
+	public static final ServerInfo SERVER_INFO;
+	public static final PluginInfo PLUGIN_INFO;
+
+
+	static {
+		String serverId = Base64.encode(InstanceIdentity.get().getPublic().getEncoded());
+		String serverUrl = Jenkins.getInstance().getRootUrl();
+		if (serverUrl.endsWith("/")) serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
+		SERVER_INFO = new ServerInfo(serverId, serverUrl);
+		PLUGIN_INFO = new PluginInfo();
+	}
+
 	public String getIconFileName() {
 		return null;
 	}
@@ -111,8 +160,8 @@ public class PluginActions implements RootAction {
 		return "octane";
 	}
 
-	public void doAbout(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
-		res.serveExposedBean(req, new PluginInfo(), Flavor.JSON);
+	public void doStatus(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
+		res.serveExposedBean(req, new PluginStatus(), Flavor.JSON);
 	}
 
 	public void doJobs(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {

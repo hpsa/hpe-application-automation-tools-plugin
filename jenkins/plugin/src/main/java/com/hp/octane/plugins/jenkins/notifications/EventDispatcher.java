@@ -2,7 +2,9 @@ package com.hp.octane.plugins.jenkins.notifications;
 
 import com.hp.octane.plugins.jenkins.configuration.RestUtils;
 import com.hp.octane.plugins.jenkins.model.events.CIEventBase;
+import hudson.remoting.Base64;
 import jenkins.model.Jenkins;
+import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 import org.kohsuke.stapler.export.Flavor;
 import org.kohsuke.stapler.export.ModelBuilder;
 
@@ -20,7 +22,7 @@ import java.util.List;
  */
 public final class EventDispatcher {
 	static class Client {
-		private final EventsList eventsList = new EventsList(SELF_URL);
+		private final EventsList eventsList = new EventsList();
 		private Thread executor;
 		private boolean shuttingDown;
 		private int failedRetries;
@@ -70,7 +72,7 @@ public final class EventDispatcher {
 								}
 								System.out.println("Done, " + eventsList.size() + " is/are in queue of '" + url + "'");
 							} else {
-								Thread.sleep(100);
+								Thread.sleep(137);
 							}
 						} catch (Exception e) {
 							failedRetries++;
@@ -90,6 +92,11 @@ public final class EventDispatcher {
 
 		public void dispose() {
 			shuttingDown = true;
+			try {
+				executor.join();
+			} catch (InterruptedException ie) {
+				System.out.println(ie.getMessage());
+			}
 		}
 
 		public int pushEvent(CIEventBase event) {
@@ -102,14 +109,7 @@ public final class EventDispatcher {
 	}
 
 	private static final int MAX_PUSH_RETRIES = 3;
-	private static final String SELF_URL;
 	private static final List<Client> clients = new ArrayList<Client>();
-
-	static {
-		String selfUrl = Jenkins.getInstance().getRootUrl();
-		if (selfUrl != null && selfUrl.endsWith("/")) selfUrl = selfUrl.substring(0, selfUrl.length() - 1);
-		SELF_URL = selfUrl;
-	}
 
 	public static void updateClient(String url, String domain, String project) {
 		Client client = null;
