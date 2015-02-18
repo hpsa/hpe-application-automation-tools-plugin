@@ -17,8 +17,8 @@ import java.util.List;
 @ExportedBean
 public class ParameterConfig {
 	private String name;
-	private ParameterType type;
 	private String description;
+	private ParameterType type;
 	private Object defaultValue;
 	private List<String> choices;
 

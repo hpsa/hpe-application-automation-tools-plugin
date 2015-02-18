@@ -3,6 +3,8 @@ import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import com.hp.octane.plugins.jenkins.model.parameters.ParameterConfig;
 import com.hp.octane.plugins.jenkins.model.parameters.ParameterType;
 import hudson.model.*;
+import hudson.remoting.Base64;
+import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Rule;
@@ -15,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -30,13 +33,6 @@ public class TestPluginActions {
 
 	@Rule
 	final public JenkinsRule rule = new JenkinsRule();
-
-	@Test
-	public void testPluginInfoClass() {
-		PluginActions.PluginInfo pluginInfo = new PluginActions.PluginInfo();
-		assertEquals(pluginInfo.getType(), "jenkins");
-		assertEquals(pluginInfo.getVersion(), "1.0.0");
-	}
 
 	@Test
 	public void testProjectsListClassNoParams() throws IOException {
@@ -99,14 +95,14 @@ public class TestPluginActions {
 	}
 
 	@Test
-	public void testPluginActions_REST_About() throws IOException, SAXException {
+	public void testPluginActions_REST_Status() throws IOException, SAXException {
 		JenkinsRule.WebClient client = rule.createWebClient();
-		Page page = client.goTo("octane/about", "application/json");
+		Page page = client.goTo("octane/status", "application/json");
 		JSONObject body = new JSONObject(page.getWebResponse().getContentAsString());
-		assertTrue(body.has("type"));
-		assertEquals(body.getString("type"), "jenkins");
-		assertTrue(body.has("version"));
-		assertEquals(body.getString("version"), "1.0.0");
+		assertTrue(body.has("server"));
+		//  TODO: extend the test deeper
+		assertTrue(body.has("plugin"));
+		//  TODO: extent the test deeper
 	}
 
 	@Test
