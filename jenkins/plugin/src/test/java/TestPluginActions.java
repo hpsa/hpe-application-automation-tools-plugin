@@ -7,6 +7,7 @@ import hudson.remoting.Base64;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -27,7 +28,7 @@ import static org.junit.Assert.assertTrue;
  * Time: 22:09
  * To change this template use File | Settings | File Templates.
  */
-
+@Ignore
 public class TestPluginActions {
 	final private String projectName = "root-job";
 
