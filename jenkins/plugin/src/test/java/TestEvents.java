@@ -1,22 +1,29 @@
+import com.gargoylesoftware.htmlunit.HttpMethod;
+import com.gargoylesoftware.htmlunit.WebRequestSettings;
+import com.gargoylesoftware.htmlunit.WebResponse;
+import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import com.hp.octane.plugins.jenkins.model.events.CIEventBase;
+import com.hp.octane.plugins.jenkins.model.events.CIEventType;
 import hudson.model.FreeStyleProject;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.junit.Rule;
-import org.junit.Test;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.junit.*;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.kohsuke.stapler.export.Exported;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -29,24 +36,56 @@ import static org.junit.Assert.assertEquals;
 public class TestEvents {
 	final private String projectName = "root-job";
 	private Server server;
+	private EventsHandler eventsHandler;
 
 	@Rule
-	final public JenkinsRule rule = new JenkinsRule();
+	public final JenkinsRule rule = new JenkinsRule();
 
-	private final class EventsHandler extends AbstractHandler {
-		private final HashMap<String, ArrayList<CIEventBase>> events = new HashMap<String, ArrayList<CIEventBase>>();
+	private static final class EventsHandler extends AbstractHandler {
+		private final ArrayList<JSONObject> eventLists = new ArrayList<JSONObject>();
 
 		@Override
 		public void handle(String s, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+			String body = "";
+			byte[] buffer;
+			int len;
+			if (request.getPathInfo().equals("/qcbin/rest/domains/DOMAIN/projects/PROJECT/cia/events")) {
+				buffer = new byte[1024];
+				while ((len = request.getInputStream().read(buffer, 0, 1024)) > 0) {
+					body += new String(buffer, 0, len);
+				}
+				eventLists.add(new JSONObject(body));
+			}
 			response.setStatus(HttpServletResponse.SC_OK);
 			baseRequest.setHandled(true);
+		}
+
+		public ArrayList<JSONObject> getResults() {
+			return eventLists;
+		}
+
+		public void clearResults() {
+			eventLists.clear();
 		}
 	}
 
 	private void raiseServer() throws Exception {
-		server = new Server(9999);       //  TODO: make it configurable
-		server.setHandler(new EventsHandler());
+		eventsHandler = new EventsHandler();
+		server = new Server(9999);
+		server.setHandler(eventsHandler);
 		server.start();
+	}
+
+	private void configEventsClient() throws Exception {
+		JenkinsRule.WebClient client = rule.createWebClient();
+		WebRequestSettings req = new WebRequestSettings(client.createCrumbedUrl("octane/config"), HttpMethod.POST);
+		JSONObject json = new JSONObject();
+		json.put("type", "events-client");
+		json.put("url", "http://localhost:9999");
+		json.put("domain", "DOMAIN");
+		json.put("project", "PROJECT");
+		req.setRequestBody(json.toString());
+		WebResponse res = client.loadWebResponse(req);
 	}
 
 	private void killServer() throws Exception {
@@ -54,10 +93,19 @@ public class TestEvents {
 		server.destroy();
 	}
 
-	//	@Test
-	public void testEvents() throws Exception {
+	@Before
+	public void beforeEach() throws Exception {
 		raiseServer();
+		configEventsClient();
+	}
 
+	@After
+	public void afterEach() throws Exception {
+		killServer();
+	}
+
+	@Test
+	public void testEventsA() throws Exception {
 		FreeStyleProject p = rule.createFreeStyleProject(projectName);
 		JenkinsRule.WebClient client = rule.createWebClient();
 		assertEquals(p.getBuilds().toArray().length, 0);
@@ -66,10 +114,31 @@ public class TestEvents {
 			Thread.sleep(1000);
 		}
 		assertEquals(p.getBuilds().toArray().length, 1);
-		Thread.sleep(100);      //  give a chance to the finished event to be processed
+		Thread.sleep(5000);
 
-		//  process the accumulated events here
+		ArrayList<CIEventType> eventsOrder = new ArrayList<CIEventType>(Arrays.asList(CIEventType.QUEUED, CIEventType.STARTED, CIEventType.FINISHED));
+		ArrayList<JSONObject> eventLists = eventsHandler.getResults();
+		JSONObject tmp;
+		JSONArray events;
+		for (JSONObject l : eventLists) {
+			assertEquals(l.length(), 2);
 
-		killServer();
+			assertFalse(l.isNull("server"));
+			tmp = l.getJSONObject("server");
+			assertEquals(tmp.getString("url"), new PluginActions.ServerInfo().getUrl());
+			assertEquals(tmp.getString("type"), new PluginActions.ServerInfo().getType());
+			assertEquals(tmp.getString("instanceId"), new PluginActions.ServerInfo().getInstanceId());
+
+			assertFalse(l.isNull("events"));
+			events = l.getJSONArray("events");
+			for (int i = 0; i < events.length(); i++) {
+				tmp = events.getJSONObject(i);
+				if (tmp.getString("project").equals("root-job")) {
+					assertEquals(CIEventType.getByValue(tmp.getString("eventType")), eventsOrder.get(0));
+					eventsOrder.remove(0);
+				}
+			}
+		}
+		assertEquals(eventsOrder.size(), 0);
 	}
 }

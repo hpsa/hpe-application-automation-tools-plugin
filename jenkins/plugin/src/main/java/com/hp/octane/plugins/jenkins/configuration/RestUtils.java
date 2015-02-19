@@ -15,12 +15,12 @@ public class RestUtils {
 	private static final String loginXmlA = "<alm-authentication><user>admin</user><password></password></alm-authentication>";
 	private static final String sessionXml = "<session-parameters><client-type>adfsadf</client-type><time-out>6</time-out></session-parameters>";
 
-	private static HttpClient login() throws Exception {
+	private static HttpClient login(String url) throws Exception {
 		int status;
 		HttpClient httpClient = new HttpClient();
 
 		//  LWSSO login
-		PostMethod post = new PostMethod("http://localhost:8080/qcbin/authentication-point/alm-authenticate");
+		PostMethod post = new PostMethod(url + "/qcbin/authentication-point/alm-authenticate");
 		post.setRequestEntity(new StringRequestEntity(loginXmlA, "application/xml", "UTF-8"));
 
 		status = httpClient.executeMethod(post);
@@ -28,7 +28,7 @@ public class RestUtils {
 		cookies = httpClient.getState().getCookies();
 
 		//  QC Session
-		post = new PostMethod("http://localhost:8080/qcbin/rest/site-session");
+		post = new PostMethod(url + "/qcbin/rest/site-session");
 		post.setRequestEntity(new StringRequestEntity(sessionXml, "application/xml", "UTF-8"));
 		httpClient.getState().addCookies(cookies);
 
@@ -38,17 +38,17 @@ public class RestUtils {
 		return httpClient;
 	}
 
-	public static int put(String url, String body) throws Exception {
+	public static int put(String url, String path, String body) throws Exception {
 		int status;
 		HttpClient httpClient;
 		if (cookies == null) {
-			httpClient = login();
+			httpClient = login(url);
 		} else {
 			httpClient = new HttpClient();
 			httpClient.getState().addCookies(cookies);
 		}
 
-		PutMethod putMethod = new PutMethod(url);
+		PutMethod putMethod = new PutMethod(url + path);
 		putMethod.setRequestEntity(new StringRequestEntity(body, "application/json", "UTF-8"));
 		for (Cookie c : cookies) {
 			if (c.getName().equals("XSRF-TOKEN")) {
@@ -59,8 +59,8 @@ public class RestUtils {
 
 		if (status == 401) {
 			System.out.println("seems like login needed...");
-			login();
-			put(url, body);
+			login(url);
+			put(url, path, body);
 		}
 		return status;
 	}

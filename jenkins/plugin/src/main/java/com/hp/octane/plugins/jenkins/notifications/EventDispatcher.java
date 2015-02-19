@@ -54,7 +54,7 @@ public final class EventDispatcher {
 								localList = new ArrayList<CIEventBase>(eventsList.getEvents());
 								Writer w = new StringWriter();
 								new ModelBuilder().get(EventsList.class).writeTo(eventsList, Flavor.JSON.createDataWriter(localList, w));
-								status = RestUtils.put(url + "/qcbin/rest/domains/" + domain + "/projects/" + project + "/cia/events", w.toString());
+								status = RestUtils.put(url, "/qcbin/rest/domains/" + domain + "/projects/" + project + "/cia/events", w.toString());
 								if (status == 200) {
 									eventsList.clear(localList);
 									failedRetries = 0;
