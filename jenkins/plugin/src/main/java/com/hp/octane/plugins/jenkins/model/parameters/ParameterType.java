@@ -10,6 +10,7 @@ package com.hp.octane.plugins.jenkins.model.parameters;
 
 public enum ParameterType {
 	UNAVAILABLE("unavailable"),
+	PASSWORD("password"),
 	BOOLEAN("boolean"),
 	STRING("string"),
 	NUMBER("number"),

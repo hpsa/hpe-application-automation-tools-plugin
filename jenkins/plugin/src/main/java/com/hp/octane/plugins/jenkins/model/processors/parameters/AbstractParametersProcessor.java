@@ -38,6 +38,8 @@ public abstract class AbstractParametersProcessor {
 					processor = DynamicParameterProcessor.getInstance();
 				} else if (className.equals("hudson.plugins.random_string_parameter.RandomStringParameterDefinition")) {
 					processor = RandomStringParameterProcessor.getInstance();
+				} else if (className.startsWith("org.jvnet.jenkins.plugins.nodelabelparameter")) {
+					processor = NodeLabelParameterProcessor.getInstance();
 				} else {
 					processor = UnsupportedParameterProcessor.getInstance();
 				}
@@ -97,6 +99,8 @@ public abstract class AbstractParametersProcessor {
 					processor = DynamicParameterProcessor.getInstance();
 				} else if (className.equals("hudson.plugins.random_string_parameter.RandomStringParameterDefinition")) {
 					processor = RandomStringParameterProcessor.getInstance();
+				} else if (className.startsWith("org.jvnet.jenkins.plugins.nodelabelparameter")) {
+					processor = NodeLabelParameterProcessor.getInstance();
 				} else {
 					processor = UnsupportedParameterProcessor.getInstance();
 				}

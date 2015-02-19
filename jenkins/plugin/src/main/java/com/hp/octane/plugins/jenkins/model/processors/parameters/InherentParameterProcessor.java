@@ -37,6 +37,9 @@ public class InherentParameterProcessor extends AbstractParametersProcessor {
 		} else if (pd instanceof ChoiceParameterDefinition) {
 			ChoiceParameterDefinition choicePd = (ChoiceParameterDefinition) pd;
 			result = new ParameterConfig(pd, ParameterType.STRING, new ArrayList<Object>(choicePd.getChoices()));
+		} else if (pd instanceof PasswordParameterDefinition) {
+			PasswordParameterDefinition passPd = (PasswordParameterDefinition) pd;
+			result = new ParameterConfig(pd, ParameterType.PASSWORD, passPd.getDefaultValue());
 		} else if (pd instanceof FileParameterDefinition) {
 			result = new ParameterConfig(pd, ParameterType.FILE);
 		} else {
@@ -57,6 +60,8 @@ public class InherentParameterProcessor extends AbstractParametersProcessor {
 			result = new ParameterInstance(pc, pv.getValue());
 		} else if (pd instanceof ChoiceParameterDefinition) {
 			result = new ParameterInstance(pc, pv.getValue());
+		} else if (pd instanceof PasswordParameterDefinition) {
+			result = new ParameterInstance(pc, "");
 		} else if (pd instanceof FileParameterDefinition) {
 			FileParameterValue filePv = (FileParameterValue) pv;
 			result = new ParameterInstance(pc, filePv == null ? null : filePv.getLocation());

@@ -20,21 +20,29 @@ public class ParameterConfig {
 	private List<Object> choices;
 
 	public ParameterConfig(ParameterDefinition pd) {
-		this(pd, ParameterType.UNAVAILABLE, null);
+		this(pd, ParameterType.UNAVAILABLE, null, null);
 	}
 
 	public ParameterConfig(ParameterDefinition pd, ParameterType type) {
-		this(pd, type, null);
+		this(pd, type, null, null);
 	}
 
-	public ParameterConfig(ParameterDefinition pd, ParameterType type, List<Object> choices) {
+	public ParameterConfig(ParameterDefinition pd, ParameterType type, Object defaultValue) {
+		this(pd, type, defaultValue, null);
+	}
+
+	public ParameterConfig(ParameterDefinition pd, ParameterType type, Object defaultValue, List<Object> choices) {
 		ParameterValue tmp;
 		this.name = pd.getName();
 		this.type = type;
 		this.description = pd.getDescription();
 		if (type != ParameterType.UNAVAILABLE) {
-			tmp = pd.getDefaultParameterValue();
-			this.defaultValue = tmp == null ? "" : tmp.getValue();
+			if (defaultValue != null || type == ParameterType.PASSWORD) {
+				this.defaultValue = defaultValue;
+			} else {
+				tmp = pd.getDefaultParameterValue();
+				this.defaultValue = tmp == null ? "" : tmp.getValue();
+			}
 			this.choices = choices;
 		}
 	}
