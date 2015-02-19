@@ -33,7 +33,7 @@ public class DynamicParameterProcessor extends AbstractParametersProcessor {
 			return new ParameterConfig(pd, ParameterType.STRING);
 		} else if (pd instanceof ChoiceParameterDefinition) {
 			ChoiceParameterDefinition choicePd = (ChoiceParameterDefinition) pd;
-			return new ParameterConfig(pd, ParameterType.STRING, choicePd.getChoices());
+			return new ParameterConfig(pd, ParameterType.STRING, null, choicePd.getChoices());
 		} else {
 			return new ParameterConfig(pd);
 		}

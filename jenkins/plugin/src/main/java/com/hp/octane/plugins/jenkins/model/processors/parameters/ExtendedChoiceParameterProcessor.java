@@ -43,7 +43,7 @@ public class ExtendedChoiceParameterProcessor extends AbstractParametersProcesso
 		if (choicesMap != null) {
 			choices = new ArrayList<Object>(choicesMap.values());
 		}
-		return new ParameterConfig(pd, ParameterType.STRING, choices);
+		return new ParameterConfig(pd, ParameterType.STRING, null, choices);
 	}
 
 	@Override

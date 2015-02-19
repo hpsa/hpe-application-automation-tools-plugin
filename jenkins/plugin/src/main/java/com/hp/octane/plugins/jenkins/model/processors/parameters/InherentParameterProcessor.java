@@ -36,7 +36,7 @@ public class InherentParameterProcessor extends AbstractParametersProcessor {
 			result = new ParameterConfig(pd, ParameterType.STRING);
 		} else if (pd instanceof ChoiceParameterDefinition) {
 			ChoiceParameterDefinition choicePd = (ChoiceParameterDefinition) pd;
-			result = new ParameterConfig(pd, ParameterType.STRING, new ArrayList<Object>(choicePd.getChoices()));
+			result = new ParameterConfig(pd, ParameterType.STRING, null, new ArrayList<Object>(choicePd.getChoices()));
 		} else if (pd instanceof PasswordParameterDefinition) {
 			PasswordParameterDefinition passPd = (PasswordParameterDefinition) pd;
 			result = new ParameterConfig(pd, ParameterType.PASSWORD, passPd.getDefaultValue());

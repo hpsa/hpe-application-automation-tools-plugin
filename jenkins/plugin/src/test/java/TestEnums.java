@@ -38,8 +38,9 @@ public class TestEnums {
 
 	@Test
 	public void testParameterType() {
-		assertEquals(ParameterType.values().length, 5);
+		assertEquals(ParameterType.values().length, 6);
 		assertEquals(ParameterType.UNAVAILABLE.toString(), "unavailable");
+		assertEquals(ParameterType.PASSWORD.toString(), "password");
 		assertEquals(ParameterType.BOOLEAN.toString(), "boolean");
 		assertEquals(ParameterType.STRING.toString(), "string");
 		assertEquals(ParameterType.NUMBER.toString(), "number");
