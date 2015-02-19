@@ -2,7 +2,7 @@ package com.hp.octane.plugins.jenkins.notifications;
 
 import com.hp.octane.plugins.jenkins.model.parameters.ParameterConfig;
 import com.hp.octane.plugins.jenkins.model.parameters.ParameterInstance;
-import com.hp.octane.plugins.jenkins.model.pipelines.SnapshotResult;
+import com.hp.octane.plugins.jenkins.model.snapshots.SnapshotResult;
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCausesFactory;
 import com.hp.octane.plugins.jenkins.model.scm.SCMDataFactory;
 import com.hp.octane.plugins.jenkins.model.events.CIEventFinished;

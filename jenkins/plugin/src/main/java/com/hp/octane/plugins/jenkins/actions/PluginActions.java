@@ -39,9 +39,12 @@ public class PluginActions implements RootAction {
 		private String url;
 		private final String type = "jenkins";
 
-		ServerInfo(String instanceId, String url) {
-			this.instanceId = instanceId;
-			this.url = url;
+		public ServerInfo() {
+			this.instanceId = INSTANCE_ID;
+			String serverUrl = Jenkins.getInstance().getRootUrl();
+			if (serverUrl != null && serverUrl.endsWith("/"))
+				serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
+			this.url = serverUrl;
 		}
 
 		@Exported(inline = true)
@@ -74,13 +77,13 @@ public class PluginActions implements RootAction {
 	@ExportedBean
 	public static final class PluginStatus {
 		@Exported(inline = true)
-		public PluginInfo getPlugin() {
-			return PLUGIN_INFO;
+		public ServerInfo getServer() {
+			return new ServerInfo();
 		}
 
 		@Exported(inline = true)
-		public ServerInfo getServer() {
-			return SERVER_INFO;
+		public PluginInfo getPlugin() {
+			return new PluginInfo();
 		}
 	}
 
@@ -136,15 +139,10 @@ public class PluginActions implements RootAction {
 		}
 	}
 
-	public static final ServerInfo SERVER_INFO;
-	public static final PluginInfo PLUGIN_INFO;
+	static final String INSTANCE_ID;
 
 	static {
-		String serverId = Base64.encode(InstanceIdentity.get().getPublic().getEncoded());
-		String serverUrl = Jenkins.getInstance().getRootUrl();
-		if (serverUrl.endsWith("/")) serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
-		SERVER_INFO = new ServerInfo(serverId, serverUrl);
-		PLUGIN_INFO = new PluginInfo();
+		INSTANCE_ID = Base64.encode(InstanceIdentity.get().getPublic().getEncoded());
 	}
 
 	public String getIconFileName() {

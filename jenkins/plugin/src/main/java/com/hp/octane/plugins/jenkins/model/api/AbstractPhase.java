@@ -1,4 +1,4 @@
-package com.hp.octane.plugins.jenkins.model.pipelines;
+package com.hp.octane.plugins.jenkins.model.api;
 
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;

@@ -1,4 +1,4 @@
-package com.hp.octane.plugins.jenkins.model.pipelines;
+package com.hp.octane.plugins.jenkins.model.snapshots;
 
 /**
  * Created with IntelliJ IDEA.
@@ -8,15 +8,16 @@ package com.hp.octane.plugins.jenkins.model.pipelines;
  * To change this template use File | Settings | File Templates.
  */
 
-public enum SnapshotStatus {
+public enum SnapshotResult {
 	UNAVAILABLE("unavailable"),
-	QUEUED("queued"),
-	RUNNING("running"),
-	FINISHED("finished");
+	UNSTABLE("unstable"),
+	ABORTED("aborted"),
+	FAILURE("failure"),
+	SUCCESS("success");
 
 	private String value;
 
-	private SnapshotStatus(String value) {
+	private SnapshotResult(String value) {
 		this.value = value;
 	}
 
@@ -25,9 +26,9 @@ public enum SnapshotStatus {
 		return value;
 	}
 
-	public static SnapshotStatus getByValue(String value) {
-		SnapshotStatus r = null;
-		for (SnapshotStatus i : values()) {
+	public static SnapshotResult getByValue(String value) {
+		SnapshotResult r = null;
+		for (SnapshotResult i : values()) {
 			if (i.value.compareTo(value) == 0) {
 				r = i;
 				break;

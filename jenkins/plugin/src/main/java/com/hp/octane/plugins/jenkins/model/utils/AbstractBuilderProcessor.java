@@ -1,4 +1,4 @@
-package com.hp.octane.plugins.jenkins.model.pipelines.utils;
+package com.hp.octane.plugins.jenkins.model.utils;
 
 import com.hp.octane.plugins.jenkins.model.pipelines.StructurePhase;
 

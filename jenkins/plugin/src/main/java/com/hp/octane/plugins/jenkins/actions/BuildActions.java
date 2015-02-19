@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jenkins.actions;
 
-import com.hp.octane.plugins.jenkins.model.pipelines.SnapshotItem;
+import com.hp.octane.plugins.jenkins.model.snapshots.SnapshotItem;
 import hudson.Extension;
 import hudson.model.*;
 import jenkins.model.RunAction2;

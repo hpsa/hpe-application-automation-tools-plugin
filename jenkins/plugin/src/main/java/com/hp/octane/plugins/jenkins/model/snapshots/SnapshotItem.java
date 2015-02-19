@@ -1,12 +1,15 @@
-package com.hp.octane.plugins.jenkins.model.pipelines;
+package com.hp.octane.plugins.jenkins.model.snapshots;
 
+import com.hp.octane.plugins.jenkins.model.api.AbstractPhase;
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCauseBase;
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCausesFactory;
 import com.hp.octane.plugins.jenkins.model.parameters.ParameterConfig;
 import com.hp.octane.plugins.jenkins.model.parameters.ParameterInstance;
-import com.hp.octane.plugins.jenkins.model.pipelines.utils.AbstractProjectProcessor;
+import com.hp.octane.plugins.jenkins.model.pipelines.*;
+import com.hp.octane.plugins.jenkins.model.utils.*;
 import com.hp.octane.plugins.jenkins.model.scm.SCMData;
 import com.hp.octane.plugins.jenkins.model.scm.SCMDataFactory;
+import com.hp.octane.plugins.jenkins.model.api.AbstractItem;
 import hudson.model.*;
 import jenkins.model.Jenkins;
 import org.kohsuke.stapler.export.Exported;
@@ -14,7 +17,6 @@ import org.kohsuke.stapler.export.ExportedBean;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -108,7 +110,7 @@ public final class SnapshotItem extends AbstractItem {
 
 	private void appendInvokeesNames(ArrayList<String> list, StructurePhase[] phases) {
 		for (StructurePhase phase : phases) {
-			for (com.hp.octane.plugins.jenkins.model.pipelines.AbstractItem item : phase.getJobs()) {
+			for (AbstractItem item : phase.getJobs()) {
 				if (!list.contains(item.getName())) list.add(item.getName());
 			}
 		}
@@ -194,17 +196,17 @@ public final class SnapshotItem extends AbstractItem {
 	}
 
 	@Override
-	ParameterConfig[] provideParameters() {
+	protected ParameterConfig[] provideParameters() {
 		return parameters;
 	}
 
 	@Override
-	AbstractPhase[] providePhasesInternal() {
+	protected AbstractPhase[] providePhasesInternal() {
 		return internals;
 	}
 
 	@Override
-	AbstractPhase[] providePhasesPostBuilds() {
+	protected AbstractPhase[] providePhasesPostBuilds() {
 		return postBuilds;
 	}
 }

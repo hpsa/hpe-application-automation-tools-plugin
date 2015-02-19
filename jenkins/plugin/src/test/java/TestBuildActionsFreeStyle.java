@@ -1,7 +1,7 @@
 import com.gargoylesoftware.htmlunit.Page;
 import com.hp.octane.plugins.jenkins.model.parameters.ParameterType;
-import com.hp.octane.plugins.jenkins.model.pipelines.SnapshotResult;
-import com.hp.octane.plugins.jenkins.model.pipelines.SnapshotStatus;
+import com.hp.octane.plugins.jenkins.model.snapshots.SnapshotResult;
+import com.hp.octane.plugins.jenkins.model.snapshots.SnapshotStatus;
 import hudson.model.*;
 import hudson.plugins.parameterizedtrigger.*;
 import org.json.JSONArray;

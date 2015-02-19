@@ -40,7 +40,7 @@ public class EventsList {
 
 	@Exported(inline = true)
 	public PluginActions.ServerInfo getServer() {
-		return PluginActions.SERVER_INFO;
+		return new PluginActions.ServerInfo();
 	}
 
 	@Exported(inline = true)

@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jenkins.model.events;
 
-import com.hp.octane.plugins.jenkins.model.pipelines.SnapshotResult;
+import com.hp.octane.plugins.jenkins.model.snapshots.SnapshotResult;
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCauseBase;
 import com.hp.octane.plugins.jenkins.model.scm.SCMData;
 import org.kohsuke.stapler.export.Exported;

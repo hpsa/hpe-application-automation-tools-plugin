@@ -1,19 +1,19 @@
-package com.hp.octane.plugins.jenkins.model.pipelines.utils;
+package com.hp.octane.plugins.jenkins.model.utils;
 
+import com.tikal.jenkins.plugins.multijob.MultiJobProject;
 import hudson.model.AbstractProject;
-import hudson.model.FreeStyleProject;
 
 /**
  * Created with IntelliJ IDEA.
  * User: gullery
  * Date: 24/12/14
- * Time: 13:47
+ * Time: 13:40
  * To change this template use File | Settings | File Templates.
  */
 
-public class FreeStyleProjectProcessor extends AbstractProjectProcessor {
-	public FreeStyleProjectProcessor(AbstractProject project) {
-		FreeStyleProject p = (FreeStyleProject) project;
+public class MultiJobProjectProcessor extends AbstractProjectProcessor {
+	public MultiJobProjectProcessor(AbstractProject project) {
+		MultiJobProject p = (MultiJobProject) project;
 
 		//  Internal phases
 		//

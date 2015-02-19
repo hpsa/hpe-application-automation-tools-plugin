@@ -18,16 +18,14 @@
 		<!--Dev-->
 
 		<dependency>
-			<groupId>org.jenkins-ci.main</groupId>
-			<artifactId>maven-plugin</artifactId>
-			<version>2.5</version>
-		</dependency>
-		<dependency>
 			<groupId>org.jenkins-ci.modules</groupId>
 			<artifactId>instance-identity</artifactId>
 			<version>1.4</version>
 			<scope>provided</scope>
 		</dependency>
+
+		<!--Extensibility-->
+
 		<dependency>
 			<groupId>org.jenkins-ci.plugins</groupId>
 			<artifactId>git</artifactId>
@@ -41,15 +39,45 @@
 			<optional>true</optional>
 		</dependency>
 		<dependency>
-			<groupId>org.jenkins-ci.plugins</groupId>
-			<artifactId>parameterized-trigger</artifactId>
-			<version>2.25</version>
+			<groupId>org.jenkins-ci.main</groupId>
+			<artifactId>maven-plugin</artifactId>
+			<version>2.5</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.jenkins-ci.plugins</groupId>
 			<artifactId>jenkins-multijob-plugin</artifactId>
 			<version>1.15</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>parameterized-trigger</artifactId>
+			<version>2.25</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>com.seitenbau.jenkins.plugins</groupId>
+			<artifactId>dynamicparameter</artifactId>
+			<version>0.2.0</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>extended-choice-parameter</artifactId>
+			<version>0.34</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>random-string-parameter</artifactId>
+			<version>1.0</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>nodelabelparameter</artifactId>
+			<version>1.5.0</version>
 			<optional>true</optional>
 		</dependency>
 

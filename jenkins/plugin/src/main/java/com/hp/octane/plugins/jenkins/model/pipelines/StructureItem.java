@@ -1,7 +1,9 @@
 package com.hp.octane.plugins.jenkins.model.pipelines;
 
+import com.hp.octane.plugins.jenkins.model.api.AbstractItem;
+import com.hp.octane.plugins.jenkins.model.api.AbstractPhase;
 import com.hp.octane.plugins.jenkins.model.parameters.ParameterConfig;
-import com.hp.octane.plugins.jenkins.model.pipelines.utils.*;
+import com.hp.octane.plugins.jenkins.model.utils.*;
 import hudson.model.AbstractProject;
 import org.kohsuke.stapler.export.ExportedBean;
 
@@ -28,17 +30,17 @@ public final class StructureItem extends AbstractItem {
 	}
 
 	@Override
-	ParameterConfig[] provideParameters() {
+	protected ParameterConfig[] provideParameters() {
 		return parameters;
 	}
 
 	@Override
-	AbstractPhase[] providePhasesInternal() {
+	protected AbstractPhase[] providePhasesInternal() {
 		return internals;
 	}
 
 	@Override
-	AbstractPhase[] providePhasesPostBuilds() {
+	protected AbstractPhase[] providePhasesPostBuilds() {
 		return postBuilds;
 	}
 }

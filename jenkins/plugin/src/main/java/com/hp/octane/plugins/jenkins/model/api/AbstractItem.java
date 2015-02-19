@@ -1,7 +1,7 @@
-package com.hp.octane.plugins.jenkins.model.pipelines;
+package com.hp.octane.plugins.jenkins.model.api;
 
 import com.hp.octane.plugins.jenkins.model.parameters.ParameterConfig;
-import com.hp.octane.plugins.jenkins.model.pipelines.utils.*;
+import com.hp.octane.plugins.jenkins.model.utils.*;
 import hudson.model.AbstractProject;
 import hudson.model.ParameterDefinition;
 import hudson.model.ParametersDefinitionProperty;
@@ -26,11 +26,11 @@ public abstract class AbstractItem {
 		this.name = name;
 	}
 
-	abstract ParameterConfig[] provideParameters();
+	protected abstract ParameterConfig[] provideParameters();
 
-	abstract AbstractPhase[] providePhasesInternal();
+	protected abstract AbstractPhase[] providePhasesInternal();
 
-	abstract AbstractPhase[] providePhasesPostBuilds();
+	protected abstract AbstractPhase[] providePhasesPostBuilds();
 
 	@Exported(inline = true)
 	public String getName() {
