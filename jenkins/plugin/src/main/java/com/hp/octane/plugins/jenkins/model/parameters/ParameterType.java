@@ -29,7 +29,7 @@ public enum ParameterType {
 	public static ParameterType getByValue(String value) {
 		ParameterType r = null;
 		for (ParameterType i : values()) {
-			if (i.value.compareTo(value) == 0) {
+			if (i.value.equals(value)) {
 				r = i;
 				break;
 			}

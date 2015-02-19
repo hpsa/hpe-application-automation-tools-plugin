@@ -28,7 +28,7 @@ public enum SnapshotStatus {
 	public static SnapshotStatus getByValue(String value) {
 		SnapshotStatus r = null;
 		for (SnapshotStatus i : values()) {
-			if (i.value.compareTo(value) == 0) {
+			if (i.value.equals(value)) {
 				r = i;
 				break;
 			}

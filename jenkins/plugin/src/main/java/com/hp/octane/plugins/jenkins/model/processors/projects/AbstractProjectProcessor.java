@@ -1,6 +1,10 @@
-package com.hp.octane.plugins.jenkins.model.utils;
+package com.hp.octane.plugins.jenkins.model.processors.projects;
 
 import com.hp.octane.plugins.jenkins.model.pipelines.StructurePhase;
+import com.hp.octane.plugins.jenkins.model.processors.builders.AbstractBuilderProcessor;
+import com.hp.octane.plugins.jenkins.model.processors.builders.BuildTriggerProcessor;
+import com.hp.octane.plugins.jenkins.model.processors.builders.MultiJobBuilderProcessor;
+import com.hp.octane.plugins.jenkins.model.processors.builders.ParameterizedTriggerProcessor;
 import hudson.model.AbstractProject;
 import hudson.tasks.Builder;
 import hudson.tasks.Publisher;
@@ -28,9 +32,9 @@ public abstract class AbstractProjectProcessor {
 		AbstractBuilderProcessor builderProcessor;
 		for (Builder builder : builders) {
 			builderProcessor = null;
-			if (builder.getClass().getName().compareTo("hudson.plugins.parameterizedtrigger.TriggerBuilder") == 0) {
+			if (builder.getClass().getName().equals("hudson.plugins.parameterizedtrigger.TriggerBuilder")) {
 				builderProcessor = new ParameterizedTriggerProcessor(builder, project, phasesName);
-			} else if (builder.getClass().getName().compareTo("com.tikal.jenkins.plugins.multijob.MultiJobBuilder") == 0) {
+			} else if (builder.getClass().getName().equals("com.tikal.jenkins.plugins.multijob.MultiJobBuilder")) {
 				builderProcessor = new MultiJobBuilderProcessor(builder);
 			}
 			if (builderProcessor != null) {
@@ -44,14 +48,15 @@ public abstract class AbstractProjectProcessor {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	protected void processPublishers(AbstractProject project) {
 		AbstractBuilderProcessor builderProcessor;
 		List<Publisher> publishers = project.getPublishersList();
 		for (Publisher publisher : publishers) {
 			builderProcessor = null;
-			if (publisher.getClass().getName().compareTo("hudson.tasks.BuildTrigger") == 0) {
+			if (publisher.getClass().getName().equals("hudson.tasks.BuildTrigger")) {
 				builderProcessor = new BuildTriggerProcessor(publisher, project);
-			} else if (publisher.getClass().getName().compareTo("hudson.plugins.parameterizedtrigger.BuildTrigger") == 0) {
+			} else if (publisher.getClass().getName().equals("hudson.plugins.parameterizedtrigger.BuildTrigger")) {
 				builderProcessor = new ParameterizedTriggerProcessor(publisher, project, "");
 			}
 			if (builderProcessor != null) {
@@ -68,5 +73,21 @@ public abstract class AbstractProjectProcessor {
 
 	public StructurePhase[] getPostBuilds() {
 		return postBuilds.toArray(new StructurePhase[postBuilds.size()]);
+	}
+
+	public static AbstractProjectProcessor getFlowProcessor(AbstractProject project) {
+		AbstractProjectProcessor flowProcessor = null;
+		if (project.getClass().getName().equals("hudson.model.FreeStyleProject")) {
+			flowProcessor = new FreeStyleProjectProcessor(project);
+		} else if (project.getClass().getName().equals("hudson.matrix.MatrixProject")) {
+			flowProcessor = new MatrixProjectProcessor(project);
+		} else if (project.getClass().getName().equals("hudson.maven.MavenModuleSet")) {
+			flowProcessor = new MavenProjectProcessor(project);
+		} else if (project.getClass().getName().equals("com.tikal.jenkins.plugins.multijob.MultiJobProject")) {
+			flowProcessor = new MultiJobProjectProcessor(project);
+		} else {
+			flowProcessor = new UnsupportedProjectProcessor();
+		}
+		return flowProcessor;
 	}
 }

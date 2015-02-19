@@ -1,19 +1,19 @@
-package com.hp.octane.plugins.jenkins.model.utils;
+package com.hp.octane.plugins.jenkins.model.processors.projects;
 
+import hudson.matrix.MatrixProject;
 import hudson.model.AbstractProject;
-import hudson.model.FreeStyleProject;
 
 /**
  * Created with IntelliJ IDEA.
  * User: gullery
  * Date: 24/12/14
- * Time: 13:47
+ * Time: 13:30
  * To change this template use File | Settings | File Templates.
  */
 
-public class FreeStyleProjectProcessor extends AbstractProjectProcessor {
-	public FreeStyleProjectProcessor(AbstractProject project) {
-		FreeStyleProject p = (FreeStyleProject) project;
+public class MatrixProjectProcessor extends AbstractProjectProcessor {
+	public MatrixProjectProcessor(AbstractProject project) {
+		MatrixProject p = (MatrixProject) project;
 
 		//  Internal phases
 		//

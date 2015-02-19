@@ -1,9 +1,8 @@
 package com.hp.octane.plugins.jenkins.model.pipelines;
 
 import com.hp.octane.plugins.jenkins.model.api.AbstractItem;
-import com.hp.octane.plugins.jenkins.model.api.AbstractPhase;
-import com.hp.octane.plugins.jenkins.model.parameters.ParameterConfig;
-import com.hp.octane.plugins.jenkins.model.utils.*;
+import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
+import com.hp.octane.plugins.jenkins.model.processors.parameters.AbstractParametersProcessor;
 import hudson.model.AbstractProject;
 import org.kohsuke.stapler.export.ExportedBean;
 
@@ -16,31 +15,11 @@ import org.kohsuke.stapler.export.ExportedBean;
  */
 
 @ExportedBean
-public final class StructureItem extends AbstractItem {
-	private ParameterConfig[] parameters;
-	private StructurePhase[] internals;
-	private StructurePhase[] postBuilds;
-
+public final class StructureItem extends AbstractItem<ParameterConfig, StructurePhase> {
 	public StructureItem(AbstractProject project) {
-		super(project.getName());
-		parameters = super.getParameterConfigs(project);
-		AbstractProjectProcessor flowProcessor = super.getFlowProcessor(project);
-		internals = flowProcessor.getInternals();
-		postBuilds = flowProcessor.getPostBuilds();
-	}
-
-	@Override
-	protected ParameterConfig[] provideParameters() {
-		return parameters;
-	}
-
-	@Override
-	protected AbstractPhase[] providePhasesInternal() {
-		return internals;
-	}
-
-	@Override
-	protected AbstractPhase[] providePhasesPostBuilds() {
-		return postBuilds;
+		super(project);
+		setParameters(AbstractParametersProcessor.getConfigs(project));
+		setInternals(super.getFlowProcessor().getInternals());
+		setPostBuilds(super.getFlowProcessor().getPostBuilds());
 	}
 }

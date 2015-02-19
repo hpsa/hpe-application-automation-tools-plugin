@@ -26,7 +26,7 @@ public enum SCMType {
 	public static SCMType getByValue(String value) {
 		SCMType r = null;
 		for (SCMType i : values()) {
-			if (i.value.compareTo(value) == 0) {
+			if (i.value.equals(value)) {
 				r = i;
 				break;
 			}

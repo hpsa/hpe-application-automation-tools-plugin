@@ -56,6 +56,7 @@
 			<version>2.25</version>
 			<optional>true</optional>
 		</dependency>
+
 		<dependency>
 			<groupId>com.seitenbau.jenkins.plugins</groupId>
 			<artifactId>dynamicparameter</artifactId>

@@ -1,4 +1,4 @@
-package com.hp.octane.plugins.jenkins.model.utils;
+package com.hp.octane.plugins.jenkins.model.processors.projects;
 
 import hudson.maven.MavenModuleSet;
 import hudson.model.AbstractProject;

@@ -12,9 +12,10 @@ import org.kohsuke.stapler.export.ExportedBean;
  */
 
 @ExportedBean
-public abstract class AbstractPhase {
+public abstract class AbstractPhase<T extends AbstractItem> {
 	private String name;
 	private boolean blocking;
+	private T[] items;
 
 	protected AbstractPhase(String name, boolean blocking) {
 		this.name = name;
@@ -29,5 +30,13 @@ public abstract class AbstractPhase {
 	@Exported(inline = true)
 	public boolean getBlocking() {
 		return blocking;
+	}
+
+	protected void setItems(T[] items) {
+		this.items = items;
+	}
+
+	protected T[] getItems() {
+		return items;
 	}
 }

@@ -22,27 +22,26 @@ import java.util.HashMap;
  */
 
 @ExportedBean
-public final class SnapshotPhase extends AbstractPhase {
-	private SnapshotItem[] items;
-
+public final class SnapshotPhase extends AbstractPhase<SnapshotItem> {
 	public SnapshotPhase(StructurePhase structurePhase, HashMap<String, ArrayList<AbstractBuild>> invokedBuilds) {
 		super(structurePhase.getName(), structurePhase.getBlocking());
 		ArrayList<AbstractBuild> tmpBuilds;
-		StructureItem[] structures = (StructureItem[]) structurePhase.getJobs();
-		items = new SnapshotItem[structures.length];
-		for (int i = 0; i < items.length; i++) {
+		StructureItem[] structures = structurePhase.getItems();
+		SnapshotItem[] tmp = new SnapshotItem[structures.length];
+		for (int i = 0; i < tmp.length; i++) {
 			tmpBuilds = invokedBuilds == null ? null : invokedBuilds.get(structures[i].getName());
 			if (tmpBuilds == null || tmpBuilds.size() == 0) {
-				items[i] = new SnapshotItem((AbstractProject) Jenkins.getInstance().getItem(structures[i].getName()));
+				tmp[i] = new SnapshotItem((AbstractProject) Jenkins.getInstance().getItem(structures[i].getName()));
 			} else {
-				items[i] = new SnapshotItem(tmpBuilds.get(0));
+				tmp[i] = new SnapshotItem(tmpBuilds.get(0));
 				tmpBuilds.remove(0);
 			}
 		}
+		super.setItems(tmp);
 	}
 
-	@Exported(inline = true)
-	public AbstractItem[] getBuilds() {
-		return items;
+	@Exported(inline = true, name = "builds")
+	public SnapshotItem[] getItems() {
+		return super.getItems();
 	}
 }

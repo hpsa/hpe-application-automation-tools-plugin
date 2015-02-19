@@ -26,7 +26,7 @@ public enum CIEventCauseType {
 	public static CIEventCauseType getByValue(String value) {
 		CIEventCauseType r = null;
 		for (CIEventCauseType v : values()) {
-			if (v.value.compareTo(value) == 0) {
+			if (v.value.equals(value)) {
 				r = v;
 				break;
 			}

@@ -1,11 +1,10 @@
 package com.hp.octane.plugins.jenkins.actions;
 
-import com.hp.octane.plugins.jenkins.model.parameters.ParameterConfig;
+import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
+import com.hp.octane.plugins.jenkins.model.processors.parameters.AbstractParametersProcessor;
 import com.hp.octane.plugins.jenkins.notifications.EventDispatcher;
 import hudson.Extension;
 import hudson.model.AbstractProject;
-import hudson.model.ParameterDefinition;
-import hudson.model.ParametersDefinitionProperty;
 import hudson.model.RootAction;
 import hudson.remoting.Base64;
 import jenkins.model.Jenkins;
@@ -90,7 +89,7 @@ public class PluginActions implements RootAction {
 	@ExportedBean
 	public static final class ProjectConfig {
 		private String name;
-		private List<ParameterConfig> parameters;
+		private ParameterConfig[] parameters;
 
 		public void setName(String value) {
 			name = value;
@@ -101,12 +100,12 @@ public class PluginActions implements RootAction {
 			return name;
 		}
 
-		public void setParameters(List<ParameterConfig> parameters) {
+		public void setParameters(ParameterConfig[] parameters) {
 			this.parameters = parameters;
 		}
 
 		@Exported(inline = true)
-		public List<ParameterConfig> getParameters() {
+		public ParameterConfig[] getParameters() {
 			return parameters;
 		}
 	}
@@ -117,22 +116,13 @@ public class PluginActions implements RootAction {
 		public ProjectConfig[] getJobs() {
 			ProjectConfig tmpConfig;
 			AbstractProject tmpProject;
-			List<ParameterDefinition> paramDefinitions;
-			List<ParameterConfig> parameters;
 			List<ProjectConfig> list = new ArrayList<ProjectConfig>();
 			List<String> itemNames = (List<String>) Jenkins.getInstance().getTopLevelItemNames();
 			for (String name : itemNames) {
 				tmpProject = (AbstractProject) Jenkins.getInstance().getItem(name);
 				tmpConfig = new ProjectConfig();
 				tmpConfig.setName(name);
-				parameters = new ArrayList<ParameterConfig>();
-				if (tmpProject.isParameterized()) {
-					paramDefinitions = ((ParametersDefinitionProperty) tmpProject.getProperty(ParametersDefinitionProperty.class)).getParameterDefinitions();
-					for (ParameterDefinition pdp : paramDefinitions) {
-						parameters.add(new ParameterConfig(pdp));
-					}
-				}
-				tmpConfig.setParameters(parameters);
+				tmpConfig.setParameters(AbstractParametersProcessor.getConfigs(tmpProject));
 				list.add(tmpConfig);
 			}
 			return list.toArray(new ProjectConfig[list.size()]);

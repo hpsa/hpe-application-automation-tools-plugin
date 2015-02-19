@@ -1,10 +1,8 @@
 import com.gargoylesoftware.htmlunit.Page;
 import com.hp.octane.plugins.jenkins.actions.PluginActions;
-import com.hp.octane.plugins.jenkins.model.parameters.ParameterConfig;
+import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
 import com.hp.octane.plugins.jenkins.model.parameters.ParameterType;
 import hudson.model.*;
-import hudson.remoting.Base64;
-import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Ignore;
@@ -14,7 +12,6 @@ import org.jvnet.hudson.test.JenkinsRule;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
@@ -28,7 +25,7 @@ import static org.junit.Assert.assertTrue;
  * Time: 22:09
  * To change this template use File | Settings | File Templates.
  */
-@Ignore
+
 public class TestPluginActions {
 	final private String projectName = "root-job";
 
@@ -44,8 +41,8 @@ public class TestPluginActions {
 		rule.createFreeStyleProject(projectName);
 		assertEquals(projectsList.getJobs().length, 1);
 		assertEquals(projectsList.getJobs()[0].getName(), projectName);
-		assertEquals(projectsList.getJobs()[0].getParameters().getClass(), ArrayList.class);
-		assertEquals(projectsList.getJobs()[0].getParameters().size(), 0);
+		assertEquals(projectsList.getJobs()[0].getParameters().getClass(), ParameterConfig[].class);
+		assertEquals(projectsList.getJobs()[0].getParameters().length, 0);
 	}
 
 	@Test
@@ -66,21 +63,21 @@ public class TestPluginActions {
 
 		assertEquals(projectsList.getJobs().length, 1);
 		assertEquals(projectsList.getJobs()[0].getName(), projectName);
-		assertEquals(projectsList.getJobs()[0].getParameters().size(), 3);
+		assertEquals(projectsList.getJobs()[0].getParameters().length, 3);
 
-		tmpConf = projectsList.getJobs()[0].getParameters().get(0);
+		tmpConf = projectsList.getJobs()[0].getParameters()[0];
 		assertEquals(tmpConf.getName(), "ParamA");
 		assertEquals(tmpConf.getType(), ParameterType.BOOLEAN.toString());
 		assertEquals(tmpConf.getDefaultValue(), true);
 		assertEquals(tmpConf.getDescription(), "bool");
 
-		tmpConf = projectsList.getJobs()[0].getParameters().get(1);
+		tmpConf = projectsList.getJobs()[0].getParameters()[1];
 		assertEquals(tmpConf.getName(), "ParamB");
 		assertEquals(tmpConf.getType(), ParameterType.STRING.toString());
 		assertEquals(tmpConf.getDefaultValue(), "str");
 		assertEquals(tmpConf.getDescription(), "string");
 
-		tmpConf = projectsList.getJobs()[0].getParameters().get(2);
+		tmpConf = projectsList.getJobs()[0].getParameters()[2];
 		assertEquals(tmpConf.getName(), "ParamC");
 		assertEquals(tmpConf.getType(), ParameterType.FILE.toString());
 		assertEquals(tmpConf.getDefaultValue(), "");

@@ -27,7 +27,7 @@ public enum CIEventType {
 	public static CIEventType getByValue(String value) {
 		CIEventType r = null;
 		for (CIEventType v : values()) {
-			if (v.value.compareTo(value) == 0) {
+			if (v.value.equals(value)) {
 				r = v;
 				break;
 			}

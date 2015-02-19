@@ -1,6 +1,5 @@
 package com.hp.octane.plugins.jenkins.model.pipelines;
 
-import com.hp.octane.plugins.jenkins.model.api.AbstractItem;
 import com.hp.octane.plugins.jenkins.model.api.AbstractPhase;
 import hudson.model.AbstractProject;
 import org.kohsuke.stapler.export.Exported;
@@ -17,19 +16,18 @@ import java.util.List;
  */
 
 @ExportedBean
-public final class StructurePhase extends AbstractPhase {
-	private StructureItem[] items;
-
+public final class StructurePhase extends AbstractPhase<StructureItem> {
 	public StructurePhase(String name, boolean blocking, List<AbstractProject> items) {
 		super(name, blocking);
-		this.items = new StructureItem[items.size()];
-		for (int i = 0; i < this.items.length; i++) {
-			this.items[i] = new StructureItem(items.get(i));
+		StructureItem[] tmp = new StructureItem[items.size()];
+		for (int i = 0; i < tmp.length; i++) {
+			tmp[i] = new StructureItem(items.get(i));
 		}
+		super.setItems(tmp);
 	}
 
-	@Exported(inline = true)
-	public AbstractItem[] getJobs() {
-		return items;
+	@Exported(inline = true, name = "jobs")
+	public StructureItem[] getItems() {
+		return super.getItems();
 	}
 }

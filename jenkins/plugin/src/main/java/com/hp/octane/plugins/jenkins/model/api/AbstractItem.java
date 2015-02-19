@@ -1,14 +1,9 @@
 package com.hp.octane.plugins.jenkins.model.api;
 
-import com.hp.octane.plugins.jenkins.model.parameters.ParameterConfig;
-import com.hp.octane.plugins.jenkins.model.utils.*;
+import com.hp.octane.plugins.jenkins.model.processors.projects.AbstractProjectProcessor;
 import hudson.model.AbstractProject;
-import hudson.model.ParameterDefinition;
-import hudson.model.ParametersDefinitionProperty;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
-
-import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -19,67 +14,53 @@ import java.util.List;
  */
 
 @ExportedBean
-public abstract class AbstractItem {
+public abstract class AbstractItem<TP extends ParameterConfig, TPH extends AbstractPhase> {
 	private String name;
+	private TP[] parameters;
+	private TPH[] internals;
+	private TPH[] postBuilds;
 
-	protected AbstractItem(String name) {
-		this.name = name;
+	private AbstractProjectProcessor flowProcessor;
+
+	@SuppressWarnings("unchecked")
+	protected AbstractItem(AbstractProject project) {
+		this.name = project.getName();
+		flowProcessor = AbstractProjectProcessor.getFlowProcessor(project);
 	}
-
-	protected abstract ParameterConfig[] provideParameters();
-
-	protected abstract AbstractPhase[] providePhasesInternal();
-
-	protected abstract AbstractPhase[] providePhasesPostBuilds();
 
 	@Exported(inline = true)
 	public String getName() {
 		return name;
 	}
 
-	@Exported(inline = true)
-	public ParameterConfig[] getParameters() {
-		return provideParameters();
+	protected void setParameters(TP[] parameters) {
+		this.parameters = parameters;
 	}
 
 	@Exported(inline = true)
-	public AbstractPhase[] getPhasesInternal() {
-		return providePhasesInternal();
-	}
-
-	@Exported(inline = true)
-	public AbstractPhase[] getPhasesPostBuild() {
-		return providePhasesPostBuilds();
-	}
-
-	protected ParameterConfig[] getParameterConfigs(AbstractProject project) {
-		ParameterConfig[] parameters;
-		List<ParameterDefinition> paramDefinitions;
-		if (project.isParameterized()) {
-			paramDefinitions = ((ParametersDefinitionProperty) project.getProperty(ParametersDefinitionProperty.class)).getParameterDefinitions();
-			parameters = new ParameterConfig[paramDefinitions.size()];
-			for (int i = 0; i < parameters.length; i++) {
-				parameters[i] = new ParameterConfig(paramDefinitions.get(i));
-			}
-		} else {
-			parameters = new ParameterConfig[0];
-		}
+	public TP[] getParameters() {
 		return parameters;
 	}
 
-	protected AbstractProjectProcessor getFlowProcessor(AbstractProject project) {
-		AbstractProjectProcessor flowProcessor = null;
-		if (project.getClass().getName().compareTo("hudson.model.FreeStyleProject") == 0) {
-			flowProcessor = new FreeStyleProjectProcessor(project);
-		} else if (project.getClass().getName().compareTo("hudson.matrix.MatrixProject") == 0) {
-			flowProcessor = new MatrixProjectProcessor(project);
-		} else if (project.getClass().getName().compareTo("hudson.maven.MavenModuleSet") == 0) {
-			flowProcessor = new MavenProjectProcessor(project);
-		} else if (project.getClass().getName().compareTo("com.tikal.jenkins.plugins.multijob.MultiJobProject") == 0) {
-			flowProcessor = new MultiJobProjectProcessor(project);
-		} else {
-			flowProcessor = new UnsupportedProjectProcessor();
-		}
+	protected void setInternals(TPH[] internals) {
+		this.internals = internals;
+	}
+
+	@Exported(inline = true, name = "phasesInternal")
+	public TPH[] getInternals() {
+		return internals;
+	}
+
+	protected void setPostBuilds(TPH[] postBuilds) {
+		this.postBuilds = postBuilds;
+	}
+
+	@Exported(inline = true, name = "phasesPostBuild")
+	public TPH[] getPostBuilds() {
+		return postBuilds;
+	}
+
+	protected AbstractProjectProcessor getFlowProcessor() {
 		return flowProcessor;
 	}
 }

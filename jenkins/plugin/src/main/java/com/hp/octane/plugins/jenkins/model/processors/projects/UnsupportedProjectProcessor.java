@@ -1,4 +1,4 @@
-package com.hp.octane.plugins.jenkins.model.utils;
+package com.hp.octane.plugins.jenkins.model.processors.projects;
 
 /**
  * Created with IntelliJ IDEA.

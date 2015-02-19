@@ -1,12 +1,10 @@
 package com.hp.octane.plugins.jenkins.model.snapshots;
 
-import com.hp.octane.plugins.jenkins.model.api.AbstractPhase;
+import com.hp.octane.plugins.jenkins.model.api.ParameterInstance;
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCauseBase;
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCausesFactory;
-import com.hp.octane.plugins.jenkins.model.parameters.ParameterConfig;
-import com.hp.octane.plugins.jenkins.model.parameters.ParameterInstance;
 import com.hp.octane.plugins.jenkins.model.pipelines.*;
-import com.hp.octane.plugins.jenkins.model.utils.*;
+import com.hp.octane.plugins.jenkins.model.processors.parameters.AbstractParametersProcessor;
 import com.hp.octane.plugins.jenkins.model.scm.SCMData;
 import com.hp.octane.plugins.jenkins.model.scm.SCMDataFactory;
 import com.hp.octane.plugins.jenkins.model.api.AbstractItem;
@@ -28,7 +26,7 @@ import java.util.List;
  */
 
 @ExportedBean
-public final class SnapshotItem extends AbstractItem {
+public final class SnapshotItem extends AbstractItem<ParameterInstance, SnapshotPhase> {
 	private int number = -1;
 	private CIEventCauseBase cause = null;
 	private SnapshotStatus status = SnapshotStatus.UNAVAILABLE;
@@ -37,17 +35,10 @@ public final class SnapshotItem extends AbstractItem {
 	private long startTime = -1;
 	private long duration = -1;
 	private SCMData scmData = null;
-	private ParameterInstance[] parameters;
-	private SnapshotPhase[] internals;
-	private SnapshotPhase[] postBuilds;
 
 	@SuppressWarnings("unchecked")
 	public SnapshotItem(AbstractBuild build) {
-		super(build.getProject().getName());
-		AbstractProject project = build.getProject();
-		ParametersAction parametersAction;
-		ArrayList<ParameterValue> parametersValues;
-		ParameterConfig[] parametersConfigs;
+		super(build.getProject());
 
 		number = build.getNumber();
 		cause = CIEventCausesFactory.convertCause(build.getCauses());
@@ -71,88 +62,24 @@ public final class SnapshotItem extends AbstractItem {
 		startTime = build.getStartTimeInMillis();
 		duration = build.getDuration();
 		scmData = SCMDataFactory.create(build);
-		parametersAction = build.getAction(ParametersAction.class);
-		if (parametersAction != null) {
-			parametersValues = new ArrayList<ParameterValue>(parametersAction.getParameters());
-		} else {
-			parametersValues = new ArrayList<ParameterValue>();
-		}
-		parametersConfigs = super.getParameterConfigs(project);
-		parameters = new ParameterInstance[parametersConfigs.length];
-		for (int i = 0; i < parameters.length; i++) {
-			parameters[i] = new ParameterInstance(parametersConfigs[i]);
-			for (int j = 0; j < parametersValues.size(); j++) {
-				//  TODO: reevaluate config to value mapping logic
-				if (parametersValues.get(j).getName().compareTo(parametersConfigs[i].getName()) == 0) {
-					parameters[i].setValue(parametersValues.get(j).getValue());
-					parametersValues.remove(j);
-					break;
-				}
-			}
-		}
-		AbstractProjectProcessor flowProcessor = super.getFlowProcessor(project);
-		StructurePhase[] tmpStructInternals = flowProcessor.getInternals();
-		StructurePhase[] tmpStructPostBuilds = flowProcessor.getPostBuilds();
+
+		setParameters(AbstractParametersProcessor.getInstances(build));
+
+		StructurePhase[] tmpStructurePhasesInternals = super.getFlowProcessor().getInternals();
+		StructurePhase[] tmpStructurePhasesPostBuilds = super.getFlowProcessor().getPostBuilds();
 		ArrayList<String> invokeesNames = new ArrayList<String>();
-		appendInvokeesNames(invokeesNames, tmpStructInternals);
-		appendInvokeesNames(invokeesNames, tmpStructPostBuilds);
+		appendInvokeesNames(invokeesNames, tmpStructurePhasesInternals);
+		appendInvokeesNames(invokeesNames, tmpStructurePhasesPostBuilds);
 		HashMap<String, ArrayList<AbstractBuild>> invokedBuilds = getInvokedBuilds(build, invokeesNames);
-		internals = inflatePhases(tmpStructInternals, invokedBuilds);
-		postBuilds = inflatePhases(tmpStructPostBuilds, invokedBuilds);
+
+		setInternals(inflatePhases(tmpStructurePhasesInternals, invokedBuilds));
+		setPostBuilds(inflatePhases(tmpStructurePhasesPostBuilds, invokedBuilds));
 	}
 
 	public SnapshotItem(AbstractProject project) {
-		super(project.getName());
-		AbstractProjectProcessor flowProcessor = super.getFlowProcessor(project);
-		internals = inflatePhases(flowProcessor.getInternals(), null);
-		postBuilds = inflatePhases(flowProcessor.getPostBuilds(), null);
-	}
-
-	private void appendInvokeesNames(ArrayList<String> list, StructurePhase[] phases) {
-		for (StructurePhase phase : phases) {
-			for (AbstractItem item : phase.getJobs()) {
-				if (!list.contains(item.getName())) list.add(item.getName());
-			}
-		}
-	}
-
-	private HashMap<String, ArrayList<AbstractBuild>> getInvokedBuilds(AbstractBuild self, ArrayList<String> invokeesNames) {
-		HashMap<String, ArrayList<AbstractBuild>> result = new HashMap<String, ArrayList<AbstractBuild>>();
-		AbstractProject project;
-		for (String invokeeName : invokeesNames) {
-			project = (AbstractProject) Jenkins.getInstance().getItem(invokeeName);
-			result.put(invokeeName, getInvokees(self, project));
-		}
-		return result;
-	}
-
-	@SuppressWarnings("unchecked")
-	private ArrayList<AbstractBuild> getInvokees(AbstractBuild invoker, AbstractProject project) {
-		ArrayList<AbstractBuild> result = new ArrayList<AbstractBuild>();
-		AbstractBuild tmpBuild;
-		Cause.UpstreamCause tmpCause;
-		for (Object o : project.getBuilds()) {
-			tmpBuild = (AbstractBuild) o;
-			for (Cause cause : (List<Cause>) tmpBuild.getCauses()) {
-				if (!(cause instanceof Cause.UpstreamCause)) continue;
-
-				tmpCause = (Cause.UpstreamCause) cause;
-				if (tmpCause.pointsTo(invoker)) {
-					result.add(0, tmpBuild);
-				} else if (tmpCause.pointsTo(invoker.getProject()) && tmpCause.getUpstreamBuild() < invoker.getNumber()) {
-					return result;
-				}
-			}
-		}
-		return result;
-	}
-
-	private SnapshotPhase[] inflatePhases(StructurePhase[] structures, HashMap<String, ArrayList<AbstractBuild>> invokedBuilds) {
-		SnapshotPhase[] phases = new SnapshotPhase[structures.length];
-		for (int i = 0; i < phases.length; i++) {
-			phases[i] = new SnapshotPhase(structures[i], invokedBuilds);
-		}
-		return phases;
+		super(project);
+		setInternals(inflatePhases(super.getFlowProcessor().getInternals(), null));
+		setPostBuilds(inflatePhases(super.getFlowProcessor().getPostBuilds(), null));
 	}
 
 	@Exported(inline = true)
@@ -195,18 +122,50 @@ public final class SnapshotItem extends AbstractItem {
 		return scmData;
 	}
 
-	@Override
-	protected ParameterConfig[] provideParameters() {
-		return parameters;
+	private void appendInvokeesNames(ArrayList<String> list, StructurePhase[] phases) {
+		for (StructurePhase phase : phases) {
+			for (StructureItem item : phase.getItems()) {
+				if (!list.contains(item.getName())) list.add(item.getName());
+			}
+		}
 	}
 
-	@Override
-	protected AbstractPhase[] providePhasesInternal() {
-		return internals;
+	private HashMap<String, ArrayList<AbstractBuild>> getInvokedBuilds(AbstractBuild self, ArrayList<String> invokeesNames) {
+		HashMap<String, ArrayList<AbstractBuild>> result = new HashMap<String, ArrayList<AbstractBuild>>();
+		AbstractProject project;
+		for (String invokeeName : invokeesNames) {
+			project = (AbstractProject) Jenkins.getInstance().getItem(invokeeName);
+			result.put(invokeeName, getInvokees(self, project));
+		}
+		return result;
 	}
 
-	@Override
-	protected AbstractPhase[] providePhasesPostBuilds() {
-		return postBuilds;
+	@SuppressWarnings("unchecked")
+	private ArrayList<AbstractBuild> getInvokees(AbstractBuild invoker, AbstractProject project) {
+		ArrayList<AbstractBuild> result = new ArrayList<AbstractBuild>();
+		AbstractBuild tmpBuild;
+		Cause.UpstreamCause tmpCause;
+		for (Object o : project.getBuilds()) {
+			tmpBuild = (AbstractBuild) o;
+			for (Cause cause : (List<Cause>) tmpBuild.getCauses()) {
+				if (!(cause instanceof Cause.UpstreamCause)) continue;
+
+				tmpCause = (Cause.UpstreamCause) cause;
+				if (tmpCause.pointsTo(invoker)) {
+					result.add(0, tmpBuild);
+				} else if (tmpCause.pointsTo(invoker.getProject()) && tmpCause.getUpstreamBuild() < invoker.getNumber()) {
+					return result;
+				}
+			}
+		}
+		return result;
+	}
+
+	private SnapshotPhase[] inflatePhases(StructurePhase[] structures, HashMap<String, ArrayList<AbstractBuild>> invokedBuilds) {
+		SnapshotPhase[] phases = new SnapshotPhase[structures.length];
+		for (int i = 0; i < phases.length; i++) {
+			phases[i] = new SnapshotPhase(structures[i], invokedBuilds);
+		}
+		return phases;
 	}
 }
