@@ -97,9 +97,12 @@ public class TestPluginActions {
 		JenkinsRule.WebClient client = rule.createWebClient();
 		Page page = client.goTo("octane/status", "application/json");
 		JSONObject body = new JSONObject(page.getWebResponse().getContentAsString());
+		assertEquals(body.length(), 3);
 		assertTrue(body.has("server"));
 		//  TODO: extend the test deeper
 		assertTrue(body.has("plugin"));
+		//  TODO: extent the test deeper
+		assertTrue(body.has("eventsClients"));
 		//  TODO: extent the test deeper
 	}
 

@@ -2,9 +2,8 @@ package com.hp.octane.plugins.jenkins.notifications;
 
 import com.hp.octane.plugins.jenkins.configuration.RestUtils;
 import com.hp.octane.plugins.jenkins.model.events.CIEventBase;
-import hudson.remoting.Base64;
-import jenkins.model.Jenkins;
-import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
+import org.kohsuke.stapler.export.Exported;
+import org.kohsuke.stapler.export.ExportedBean;
 import org.kohsuke.stapler.export.Flavor;
 import org.kohsuke.stapler.export.ModelBuilder;
 
@@ -21,15 +20,25 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 public final class EventDispatcher {
-	static class Client {
+
+	@ExportedBean
+	public static class Client {
 		private final EventsList eventsList = new EventsList();
 		private Thread executor;
 		private boolean shuttingDown;
 		private int failedRetries;
 
+		@Exported(inline = true)
 		public String url;
+		@Exported(inline = true)
 		public String domain;
+		@Exported(inline = true)
 		public String project;
+
+		@Exported(inline = true)
+		public boolean isActive() {
+			return executor != null && executor.isAlive();
+		}
 
 		public Client(String url, String domain, String project) {
 			this.url = url;
@@ -104,10 +113,6 @@ public final class EventDispatcher {
 			return eventsList.add(event);
 		}
 
-		public boolean isActive() {
-			return executor != null && executor.isAlive();
-		}
-
 		private String buildUrl() {
 			return "/qcbin/rest/domains/" + domain + "/projects/" + project + "/cia/events";
 		}
@@ -145,5 +150,9 @@ public final class EventDispatcher {
 				c.pushEvent(event);
 			}
 		}
+	}
+
+	public static List<Client> getStatus() {
+		return clients;
 	}
 }

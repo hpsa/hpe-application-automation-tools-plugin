@@ -84,6 +84,11 @@ public class PluginActions implements RootAction {
 		public PluginInfo getPlugin() {
 			return new PluginInfo();
 		}
+
+		@Exported(inline = true)
+		public List<EventDispatcher.Client> getEventsClients() {
+			return EventDispatcher.getStatus();
+		}
 	}
 
 	@ExportedBean
