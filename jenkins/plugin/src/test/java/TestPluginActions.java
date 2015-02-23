@@ -5,7 +5,6 @@ import com.hp.octane.plugins.jenkins.model.parameters.ParameterType;
 import hudson.model.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -14,9 +13,7 @@ import org.xml.sax.SAXException;
 import java.io.IOException;
 import java.util.Arrays;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -97,11 +94,22 @@ public class TestPluginActions {
 		JenkinsRule.WebClient client = rule.createWebClient();
 		Page page = client.goTo("octane/status", "application/json");
 		JSONObject body = new JSONObject(page.getWebResponse().getContentAsString());
+		JSONObject tmp;
+
 		assertEquals(body.length(), 3);
+
 		assertTrue(body.has("server"));
+		tmp = body.getJSONObject("server");
+		assertFalse(tmp.isNull("instanceId"));
+		assertEquals(tmp.getString("url") + "/", rule.getInstance().getRootUrl());
+		assertEquals(tmp.getString("type"), "jenkins");
 		//  TODO: extend the test deeper
+
 		assertTrue(body.has("plugin"));
+		tmp = body.getJSONObject("plugin");
+		assertNotEquals(tmp.getString("version"), "");
 		//  TODO: extent the test deeper
+
 		assertTrue(body.has("eventsClients"));
 		//  TODO: extent the test deeper
 	}
