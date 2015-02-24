@@ -13,7 +13,7 @@ public class RestUtils {
 
 	private static Cookie[] cookies;
 	private static final String loginXmlA = "<alm-authentication><user>admin</user><password></password></alm-authentication>";
-	private static final String sessionXml = "<session-parameters><client-type>adfsadf</client-type><time-out>6</time-out></session-parameters>";
+	private static final String sessionXml = "<session-parameters><client-type>Octane Jenkins Plugin</client-type><time-out>6</time-out></session-parameters>";
 
 	private static HttpClient login(String url) throws Exception {
 		int status;
