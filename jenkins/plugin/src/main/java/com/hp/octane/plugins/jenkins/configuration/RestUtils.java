@@ -12,16 +12,18 @@ import org.apache.commons.httpclient.methods.StringRequestEntity;
 public class RestUtils {
 
 	private static Cookie[] cookies;
-	private static final String loginXmlA = "<alm-authentication><user>admin</user><password></password></alm-authentication>";
 	private static final String sessionXml = "<session-parameters><client-type>Octane Jenkins Plugin</client-type><time-out>6</time-out></session-parameters>";
 
-	private static HttpClient login(String url) throws Exception {
+	private static HttpClient login(String url, String username, String password) throws Exception {
 		int status;
 		HttpClient httpClient = new HttpClient();
 
 		//  LWSSO login
 		PostMethod post = new PostMethod(url + "/qcbin/authentication-point/alm-authenticate");
-		post.setRequestEntity(new StringRequestEntity(loginXmlA, "application/xml", "UTF-8"));
+		post.setRequestEntity(new StringRequestEntity(
+				"<alm-authentication><user>" + username + "</user><password>" + password + "</password></alm-authentication>",
+				"application/xml",
+				"UTF-8"));
 
 		status = httpClient.executeMethod(post);
 		System.out.println(status);
@@ -38,11 +40,11 @@ public class RestUtils {
 		return httpClient;
 	}
 
-	public static int put(String url, String path, String body) throws Exception {
+	public static int put(String url, String path, String username, String password, String body) throws Exception {
 		int status;
 		HttpClient httpClient;
 		if (cookies == null) {
-			httpClient = login(url);
+			httpClient = login(url, username, password);
 		} else {
 			httpClient = new HttpClient();
 			httpClient.getState().addCookies(cookies);
@@ -59,8 +61,8 @@ public class RestUtils {
 
 		if (status == 401) {
 			System.out.println("seems like login needed...");
-			login(url);
-			put(url, path, body);
+			login(url, username, password);
+			put(url, path, body, username, password);
 		}
 		return status;
 	}

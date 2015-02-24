@@ -28,6 +28,7 @@ public final class EventDispatcher {
 		private Thread executor;
 		private boolean shuttingDown;
 		private int failedRetries;
+		private String password;
 
 		@Exported(inline = true)
 		public String url;
@@ -37,7 +38,10 @@ public final class EventDispatcher {
 		public String project;
 		@Exported(inline = true)
 		public String lastErrorNote;
+		@Exported(inline = true)
 		public Date lastErrorTime;
+		@Exported(inline = true)
+		public String username;
 
 		@Exported(inline = true)
 		public boolean isActive() {
@@ -67,7 +71,7 @@ public final class EventDispatcher {
 								localList = new ArrayList<CIEventBase>(eventsList.getEvents());
 								Writer w = new StringWriter();
 								new ModelBuilder().get(EventsList.class).writeTo(eventsList, Flavor.JSON.createDataWriter(localList, w));
-								status = RestUtils.put(url, buildUrl(), w.toString());
+								status = RestUtils.put(url, buildUrl(), w.toString(), username, password);
 								if (status == 200) {
 									eventsList.clear(localList);
 									failedRetries = 0;
@@ -129,7 +133,7 @@ public final class EventDispatcher {
 	private static final int MAX_PUSH_RETRIES = 3;
 	private static final List<Client> clients = new ArrayList<Client>();
 
-	public static void updateClient(String url, String domain, String project) {
+	public static void updateClient(String url, String domain, String project, String username, String password) {
 		Client client = null;
 		synchronized (clients) {
 			for (Client c : clients) {
