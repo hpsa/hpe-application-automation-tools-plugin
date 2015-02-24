@@ -34,6 +34,8 @@ public final class EventDispatcher {
 		public String domain;
 		@Exported(inline = true)
 		public String project;
+		@Exported(inline = true)
+		public String lastErrorNote;
 
 		@Exported(inline = true)
 		public boolean isActive() {
@@ -69,6 +71,7 @@ public final class EventDispatcher {
 									failedRetries = 0;
 									suspendTime = 3;
 								} else {
+									lastErrorNote = "push to MQM server failed with status " + status;
 									failedRetries++;
 									System.out.println("Push to '" + url + "' failed with status '" + status + "'; total fails: " + failedRetries);
 									if (failedRetries >= MAX_PUSH_RETRIES) {
@@ -84,6 +87,7 @@ public final class EventDispatcher {
 								Thread.sleep(137);
 							}
 						} catch (Exception e) {
+							lastErrorNote = "push to MQM server failed with exception '" + e.getMessage() + "'";
 							failedRetries++;
 							System.out.println("Push to '" + url + "' failed with exception '" + e.getMessage() + "'; total fails: " + failedRetries);
 							if (failedRetries >= MAX_PUSH_RETRIES) {
