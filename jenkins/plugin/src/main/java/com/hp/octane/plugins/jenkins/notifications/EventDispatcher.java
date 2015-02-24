@@ -48,10 +48,12 @@ public final class EventDispatcher {
 			return executor != null && executor.isAlive();
 		}
 
-		public Client(String url, String domain, String project) {
+		public Client(String url, String domain, String project, String username, String password) {
 			this.url = url;
 			this.domain = domain;
 			this.project = project;
+			this.username = username;
+			this.password = password;
 		}
 
 		public void activate() {
@@ -71,7 +73,7 @@ public final class EventDispatcher {
 								localList = new ArrayList<CIEventBase>(eventsList.getEvents());
 								Writer w = new StringWriter();
 								new ModelBuilder().get(EventsList.class).writeTo(eventsList, Flavor.JSON.createDataWriter(localList, w));
-								status = RestUtils.put(url, buildUrl(), w.toString(), username, password);
+								status = RestUtils.put(url, buildUrl(), username, password, w.toString());
 								if (status == 200) {
 									eventsList.clear(localList);
 									failedRetries = 0;
@@ -142,7 +144,7 @@ public final class EventDispatcher {
 				}
 			}
 			if (client == null) {
-				client = new Client(url, domain, project);
+				client = new Client(url, domain, project, username, password);
 				clients.add(client);
 			}
 		}

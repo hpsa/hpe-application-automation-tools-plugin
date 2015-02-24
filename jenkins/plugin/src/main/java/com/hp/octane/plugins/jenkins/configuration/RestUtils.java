@@ -62,7 +62,7 @@ public class RestUtils {
 		if (status == 401) {
 			System.out.println("seems like login needed...");
 			login(url, username, password);
-			put(url, path, body, username, password);
+			put(url, path, username, password, body);
 		}
 		return status;
 	}
