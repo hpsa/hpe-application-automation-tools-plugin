@@ -84,6 +84,8 @@ public class TestEvents {
 		json.put("url", "http://localhost:9999");
 		json.put("domain", "DOMAIN");
 		json.put("project", "PROJECT");
+		json.put("username", "");
+		json.put("password", "");
 		req.setRequestBody(json.toString());
 		WebResponse res = client.loadWebResponse(req);
 	}
