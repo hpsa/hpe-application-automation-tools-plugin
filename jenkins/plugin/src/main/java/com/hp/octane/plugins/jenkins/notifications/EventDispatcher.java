@@ -10,6 +10,7 @@ import org.kohsuke.stapler.export.ModelBuilder;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -36,6 +37,7 @@ public final class EventDispatcher {
 		public String project;
 		@Exported(inline = true)
 		public String lastErrorNote;
+		public Date lastErrorTime;
 
 		@Exported(inline = true)
 		public boolean isActive() {
@@ -72,6 +74,7 @@ public final class EventDispatcher {
 									suspendTime = 3;
 								} else {
 									lastErrorNote = "push to MQM server failed with status " + status;
+									lastErrorTime = new Date();
 									failedRetries++;
 									System.out.println("Push to '" + url + "' failed with status '" + status + "'; total fails: " + failedRetries);
 									if (failedRetries >= MAX_PUSH_RETRIES) {
@@ -88,6 +91,7 @@ public final class EventDispatcher {
 							}
 						} catch (Exception e) {
 							lastErrorNote = "push to MQM server failed with exception '" + e.getMessage() + "'";
+							lastErrorTime = new Date();
 							failedRetries++;
 							System.out.println("Push to '" + url + "' failed with exception '" + e.getMessage() + "'; total fails: " + failedRetries);
 							if (failedRetries >= MAX_PUSH_RETRIES) {
