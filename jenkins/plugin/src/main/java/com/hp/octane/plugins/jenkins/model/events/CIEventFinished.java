@@ -21,8 +21,8 @@ public final class CIEventFinished extends CIEventBase {
 	private long duration;
 	private SCMData scmData;
 
-	public CIEventFinished(String project, int number, SnapshotResult result, long duration, SCMData scmData, CIEventCauseBase cause) {
-		super(project, cause);
+	public CIEventFinished(String project, int number, SnapshotResult result, long duration, SCMData scmData, CIEventCauseBase[] causes) {
+		super(project, causes);
 		this.number = number;
 		this.result = result;
 		this.duration = duration;

@@ -20,8 +20,8 @@ public final class CIEventStarted extends CIEventBase {
 	private long estimatedDuration;
 	private ParameterInstance[] parameters;
 
-	public CIEventStarted(String project, int number, long startTime, long estimatedDuration, CIEventCauseBase cause, ParameterInstance[] parameters) {
-		super(project, cause);
+	public CIEventStarted(String project, int number, long startTime, long estimatedDuration, CIEventCauseBase[] causes, ParameterInstance[] parameters) {
+		super(project, causes);
 		this.number = number;
 		this.startTime = startTime;
 		this.estimatedDuration = estimatedDuration;

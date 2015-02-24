@@ -33,7 +33,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 					build.getNumber(),
 					build.getStartTimeInMillis(),
 					build.getEstimatedDuration(),
-					CIEventCausesFactory.convertCause(build.getCauses()),
+					CIEventCausesFactory.processCauses(build.getCauses()),
 					AbstractParametersProcessor.getInstances(build)
 			);
 			EventDispatcher.dispatchEvent(event);
@@ -63,7 +63,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 					result,
 					build.getDuration(),
 					SCMDataFactory.create(build),
-					CIEventCausesFactory.convertCause(build.getCauses())
+					CIEventCausesFactory.processCauses(build.getCauses())
 			);
 			EventDispatcher.dispatchEvent(event);
 		}

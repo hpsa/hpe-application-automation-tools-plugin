@@ -11,18 +11,16 @@ import org.kohsuke.stapler.export.ExportedBean;
  * To change this template use File | Settings | File Templates.
  */
 
-//  TODO: add support for multiple causes
-
 @ExportedBean
 public class CIEventUpstreamCause implements CIEventCauseBase {
 	private String project;
 	private int number;
-	private CIEventCauseBase cause;
+	private CIEventCauseBase[] causes;
 
-	public CIEventUpstreamCause(String project, int number, CIEventCauseBase cause) {
+	public CIEventUpstreamCause(String project, int number, CIEventCauseBase[] causes) {
 		this.project = project;
 		this.number = number;
-		this.cause = cause;
+		this.causes = causes;
 	}
 
 	@Override
@@ -42,7 +40,7 @@ public class CIEventUpstreamCause implements CIEventCauseBase {
 	}
 
 	@Exported(inline = true)
-	public CIEventCauseBase getCause() {
-		return cause;
+	public CIEventCauseBase[] getCauses() {
+		return causes;
 	}
 }

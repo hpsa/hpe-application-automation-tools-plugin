@@ -26,7 +26,7 @@ public final class QueueListenerImpl extends QueueListener {
 			project = (AbstractProject) wi.task;
 			event = new CIEventQueued(
 					project.getName(),
-					CIEventCausesFactory.convertCause(wi.getCauses())
+					CIEventCausesFactory.processCauses(wi.getCauses())
 			);
 			EventDispatcher.dispatchEvent(event);
 		}

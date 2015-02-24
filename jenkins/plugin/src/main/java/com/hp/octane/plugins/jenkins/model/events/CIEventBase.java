@@ -4,6 +4,8 @@ import com.hp.octane.plugins.jenkins.model.causes.*;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
+import java.util.List;
+
 /**
  * Created with IntelliJ IDEA.
  * User: gullery
@@ -12,18 +14,16 @@ import org.kohsuke.stapler.export.ExportedBean;
  * To change this template use File | Settings | File Templates.
  */
 
-//  TODO: support multiple causes
-
 @ExportedBean
 public abstract class CIEventBase {
 	abstract CIEventType provideEventType();
 
 	private String project;
-	private CIEventCauseBase cause;
+	private CIEventCauseBase[] causes;
 
-	public CIEventBase(String project, CIEventCauseBase cause) {
+	public CIEventBase(String project, CIEventCauseBase[] causes) {
 		this.project = project;
-		this.cause = cause;
+		this.causes = causes;
 	}
 
 	@Exported(inline = true)
@@ -37,7 +37,7 @@ public abstract class CIEventBase {
 	}
 
 	@Exported(inline = true)
-	public CIEventCauseBase getCause() {
-		return cause;
+	public CIEventCauseBase[] getCauses() {
+		return causes;
 	}
 }

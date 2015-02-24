@@ -105,15 +105,25 @@ public class TestBuildActionsFreeStyle {
 		body = new JSONObject(page.getWebResponse().getContentAsString());
 		assertEquals(body.length(), 12);
 		assertEquals(body.getString("name"), projectName);
+
+		assertFalse(body.isNull("parameters"));
 		tmpArray = body.getJSONArray("parameters");
 		assertEquals(tmpArray.length(), 0);
+
+		assertFalse(body.isNull("phasesInternal"));
 		tmpArray = body.getJSONArray("phasesInternal");
 		assertEquals(tmpArray.length(), 0);
+
+		assertFalse(body.isNull("phasesPostBuild"));
 		tmpArray = body.getJSONArray("phasesPostBuild");
 		assertEquals(tmpArray.length(), 0);
-		assertFalse(body.isNull("cause"));
-		tmpObject = body.getJSONObject("cause");
+
+		assertFalse(body.isNull("causes"));
+		tmpArray = body.getJSONArray("causes");
+		assertEquals(tmpArray.length(), 1);
+		tmpObject = tmpArray.getJSONObject(0);
 		assertEquals(tmpObject.getString("type"), "user");
+
 		assertFalse(body.isNull("duration"));
 		assertFalse(body.isNull("estimatedDuration"));
 		assertEquals(body.getInt("number"), p.getLastBuild().getNumber());

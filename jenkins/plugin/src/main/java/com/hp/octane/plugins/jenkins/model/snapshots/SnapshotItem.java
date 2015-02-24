@@ -28,7 +28,7 @@ import java.util.List;
 @ExportedBean
 public final class SnapshotItem extends AbstractItem<ParameterInstance, SnapshotPhase> {
 	private int number = -1;
-	private CIEventCauseBase cause = null;
+	private CIEventCauseBase[] causes = null;
 	private SnapshotStatus status = SnapshotStatus.UNAVAILABLE;
 	private SnapshotResult result = SnapshotResult.UNAVAILABLE;
 	private long estimatedDuration = -1;
@@ -41,7 +41,7 @@ public final class SnapshotItem extends AbstractItem<ParameterInstance, Snapshot
 		super(build.getProject());
 
 		number = build.getNumber();
-		cause = CIEventCausesFactory.convertCause(build.getCauses());
+		causes = CIEventCausesFactory.processCauses(build.getCauses());
 		if (build.hasntStartedYet()) {
 			status = SnapshotStatus.QUEUED;
 		} else if (build.isBuilding()) {
@@ -88,8 +88,8 @@ public final class SnapshotItem extends AbstractItem<ParameterInstance, Snapshot
 	}
 
 	@Exported(inline = true)
-	public CIEventCauseBase getCause() {
-		return cause;
+	public CIEventCauseBase[] getCauses() {
+		return causes;
 	}
 
 	@Exported(inline = true)
