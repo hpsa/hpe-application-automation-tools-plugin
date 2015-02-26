@@ -1,5 +1,6 @@
 package com.hp.octane.plugins.jenkins.notifications;
 
+import com.hp.alm.ali.hudson.server.AliServerExtension;
 import com.hp.octane.plugins.jenkins.configuration.RestUtils;
 import com.hp.octane.plugins.jenkins.model.events.CIEventBase;
 import org.kohsuke.stapler.export.Exported;
