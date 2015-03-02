@@ -17,7 +17,7 @@ import java.util.List;
 public class RestUtils {
 
 	private static HashMap<String, Cookie> cookies = new HashMap<String, Cookie>();
-	private static final String sessionXml = "<session-parameters><client-type>Octane Plugin (Jenkins)</client-type><time-out>6</time-out></session-parameters>";
+	private static final String sessionXml = "<session-parameters><client-type>Octane CI Data Provider (Jenkins)</client-type><time-out>6</time-out></session-parameters>";
 
 	private static void storeCookies(Cookie[] cookiesArray) {
 		for (Cookie cookie : cookiesArray) {
@@ -72,7 +72,8 @@ public class RestUtils {
 		applyCookies(httpClient);
 
 		PutMethod putMethod = new PutMethod(url + path);
-		putMethod.setRequestHeader("X-XSRF-TOKEN", cookies.get("XSRF-TOKEN").getValue());
+		if (cookies.containsKey("XSRF-TOKEN"))
+			putMethod.setRequestHeader("X-XSRF-TOKEN", cookies.get("XSRF-TOKEN").getValue());
 		putMethod.setRequestEntity(new StringRequestEntity(body, "application/json", "UTF-8"));
 
 		status = httpClient.executeMethod(putMethod);

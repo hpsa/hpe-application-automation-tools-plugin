@@ -35,8 +35,11 @@ import static org.junit.Assert.*;
 
 public class TestEvents {
 	final private String projectName = "root-job";
+	final private int DEFAULT_TESTING_SERVER_PORT = 9999;
+
 	private Server server;
 	private EventsHandler eventsHandler;
+	private int testingServerPort = DEFAULT_TESTING_SERVER_PORT;
 
 	@Rule
 	public final JenkinsRule rule = new JenkinsRule();
@@ -69,9 +72,14 @@ public class TestEvents {
 		}
 	}
 
+	public TestEvents() {
+		String p = System.getProperty("testingServerPort");
+		if (p != null) testingServerPort = Integer.parseInt(p);
+	}
+
 	private void raiseServer() throws Exception {
 		eventsHandler = new EventsHandler();
-		server = new Server(9999);
+		server = new Server(testingServerPort);
 		server.setHandler(eventsHandler);
 		server.start();
 	}
@@ -81,13 +89,14 @@ public class TestEvents {
 		WebRequestSettings req = new WebRequestSettings(client.createCrumbedUrl("octane/config"), HttpMethod.POST);
 		JSONObject json = new JSONObject();
 		json.put("type", "events-client");
-		json.put("url", "http://localhost:9999");
+		json.put("url", "http://localhost:" + testingServerPort);
 		json.put("domain", "DOMAIN");
 		json.put("project", "PROJECT");
 		json.put("username", "");
 		json.put("password", "");
 		req.setRequestBody(json.toString());
 		WebResponse res = client.loadWebResponse(req);
+		System.out.println("Configuration submitted with result: " + res.getStatusMessage() + "; testing server will run on port " + testingServerPort);
 	}
 
 	private void killServer() throws Exception {
