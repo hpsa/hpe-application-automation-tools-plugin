@@ -74,7 +74,11 @@ public class TestEvents {
 
 	public TestEvents() {
 		String p = System.getProperty("testingServerPort");
-		if (p != null) testingServerPort = Integer.parseInt(p);
+		try {
+			if (p != null) testingServerPort = Integer.parseInt(p);
+		} catch (NumberFormatException nfe) {
+			System.out.println("Bad port number format, default port will be used: " + testingServerPort);
+		}
 	}
 
 	private void raiseServer() throws Exception {
