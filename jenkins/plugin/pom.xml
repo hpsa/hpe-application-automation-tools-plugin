@@ -2,6 +2,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
+	<distributionManagement>
+		<snapshotRepository>
+			<id>mqm-snapshots</id>
+			<name>Snapshot repository</name>
+			<url>http://mydtbld0011.isr.hp.com:8081/nexus/content/repositories/mqm-snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
+
 	<parent>
 		<groupId>org.jenkins-ci.plugins</groupId>
 		<artifactId>plugin</artifactId>
