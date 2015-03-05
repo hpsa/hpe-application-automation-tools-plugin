@@ -107,13 +107,13 @@
 
 	</dependencies>
 
-	<!--<distributionManagement>-->
-		<!--<snapshotRepository>-->
-			<!--<id>mqm-snapshots</id>-->
-			<!--<name>Snapshot repository</name>-->
-			<!--<url>http://mydtbld0011.isr.hp.com:8081/nexus/content/repositories/mqm-snapshots</url>-->
-		<!--</snapshotRepository>-->
-	<!--</distributionManagement>-->
+	<distributionManagement>
+		<snapshotRepository>
+			<id>mqm-snapshots</id>
+			<name>Snapshot repository</name>
+			<url>http://mydtbld0011.isr.hp.com:8081/nexus/content/repositories/mqm-snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
 
 	<repositories>
 		<repository>
