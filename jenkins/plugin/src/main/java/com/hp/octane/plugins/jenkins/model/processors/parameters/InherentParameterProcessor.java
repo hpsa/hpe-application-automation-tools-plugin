@@ -64,7 +64,7 @@ public class InherentParameterProcessor extends AbstractParametersProcessor {
 			result = new ParameterInstance(pc, "");
 		} else if (pd instanceof FileParameterDefinition) {
 			FileParameterValue filePv = (FileParameterValue) pv;
-			result = new ParameterInstance(pc, filePv == null ? null : filePv.getLocation());
+			result = new ParameterInstance(pc, filePv == null ? null : filePv.getOriginalFileName());
 		} else {
 			result = UnsupportedParameterProcessor.getInstance().createParameterInstance(pd, pv);
 		}
