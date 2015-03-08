@@ -142,6 +142,10 @@ public final class EventDispatcher {
 			for (Client c : clients) {
 				if (c.url.equals(url)) {
 					client = c;
+					client.domain = domain;
+					client.project = project;
+					client.username = username;
+					client.password = password;
 				}
 			}
 			if (client == null) {
