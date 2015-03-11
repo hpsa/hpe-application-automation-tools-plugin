@@ -26,6 +26,7 @@ using System.Threading;
 using HP.LoadRunner.Interop.Wlrun;
 using HpToolsLauncher.Properties;
 using System.Xml;
+using System.Security.AccessControl;
 //using Analysis.Api;
 
 namespace HpToolsLauncher.TestRunners
@@ -50,6 +51,7 @@ namespace HpToolsLauncher.TestRunners
         private LrEngine _engine;
         private Stopwatch _stopWatch;
         private string _resultsFolder;
+        private string _controller_result_dir;
         private List<string> _ignoreErrorStrings;
 
         private enum VuserStatus
@@ -141,7 +143,10 @@ namespace HpToolsLauncher.TestRunners
                 }
             }
             //create LRR folder:
-            Directory.CreateDirectory(Path.Combine(_resultsFolder, LRR_FOLDER));
+            _controller_result_dir = Path.Combine(_resultsFolder, LRR_FOLDER);
+            
+
+            Directory.CreateDirectory(_controller_result_dir);
 
             //init result params
             runDesc.ErrorDesc = errorReason;
@@ -328,7 +333,9 @@ namespace HpToolsLauncher.TestRunners
             if (openScenario(scenario, ref errorReason) && validateScenario(currentScenario, ref errorReason))
             {
                 //set the result dir:
+                ConsoleWriter.WriteLine("setting scenario result folder to " + Path.Combine(_resultsFolder, LRR_FOLDER));
                 currentScenario.ResultDir = Path.Combine(_resultsFolder, LRR_FOLDER);
+                ConsoleWriter.WriteLine("scenario result folder: " + currentScenario.ResultDir);
 
                 //check if canceled or timedOut:
                 if (_runCancelled())
@@ -342,6 +349,14 @@ namespace HpToolsLauncher.TestRunners
                 ConsoleWriter.WriteLine(Resources.LrStartScenario);
 
                 int ret = currentScenario.Start();
+
+                if (!currentScenario.ResultDir.Equals(Path.Combine(_resultsFolder, LRR_FOLDER)))
+                {
+                    ConsoleWriter.WriteLine("controller failed to write to " + Path.Combine(_resultsFolder, LRR_FOLDER) + " setting result folder to " + currentScenario.ResultDir);
+                    _controller_result_dir = new DirectoryInfo(currentScenario.ResultDir).Name;
+                    ConsoleWriter.WriteLine("controller reult dir: " + _controller_result_dir);
+                }
+                
 
                 if (ret != 0)
                 {
@@ -410,7 +425,7 @@ namespace HpToolsLauncher.TestRunners
 
         private void generateAnalysisReport(TestRunResults runDesc)
         {
-            string lrrLocation = Path.Combine(runDesc.ReportLocation, LRR_FOLDER, LRR_FOLDER + ".lrr");
+            string lrrLocation = Path.Combine(runDesc.ReportLocation, _controller_result_dir, _controller_result_dir + ".lrr");
             string lraLocation = Path.Combine(runDesc.ReportLocation, LRA_FOLDER, LRA_FOLDER + ".lra");
             string htmlLocation = Path.Combine(runDesc.ReportLocation, HTML_FOLDER, HTML_FOLDER + ".html");
 
