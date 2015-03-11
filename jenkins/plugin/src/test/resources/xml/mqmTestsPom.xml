@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testResult>
+    <build server="@@@uuid@@@" buildType="junit-job" buildSid="1">
+        <tests>
+            <test module="/helloWorld" package="hello" class="HelloWorldTest" name="testOne" duration="3" status="PASSED" />
+            <test module="/helloWorld" package="hello" class="HelloWorldTest" name="testTwo" duration="2" status="FAILED" />
+            <test module="/helloWorld" package="hello" class="HelloWorldTest" name="testThree" duration="4" status="SKIPPED" />
+        </tests>
+    </build>
+</testResult>

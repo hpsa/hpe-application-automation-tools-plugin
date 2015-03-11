@@ -81,14 +81,12 @@
 			<version>1.5.0</version>
 			<optional>true</optional>
 		</dependency>
-
-		<!--Internals-->
-
-		<dependency>
-			<groupId>com.hp.alm.ali</groupId>
-			<artifactId>ali-jenkins-api</artifactId>
-			<version>3.4.0-SNAPSHOT</version>
-		</dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>junit</artifactId>
+            <version>1.0</version>
+            <optional>true</optional>
+        </dependency>
 
 		<!--Test-->
 
@@ -104,7 +102,12 @@
 			<version>9.2.6.v20141205</version>
 			<scope>test</scope>
 		</dependency>
-
+        <dependency>
+            <groupId>xmlunit</groupId>
+            <artifactId>xmlunit</artifactId>
+            <version>1.3</version>
+            <scope>test</scope>
+        </dependency>
 	</dependencies>
 
 	<distributionManagement>
