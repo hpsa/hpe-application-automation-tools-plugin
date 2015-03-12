@@ -2,18 +2,18 @@
 
 package com.hp.octane.plugins.jenkins.tests.junit;
 
+import com.hp.octane.plugins.jenkins.tests.ModuleDetection;
 import com.hp.octane.plugins.jenkins.tests.impl.AbstractXmlIterator;
 import com.hp.octane.plugins.jenkins.tests.MqmTestsExtension;
+import com.hp.octane.plugins.jenkins.tests.maven.FreeStyleModuleDetection;
 import com.hp.octane.plugins.jenkins.tests.impl.ObjectStreamIterator;
 import com.hp.octane.plugins.jenkins.tests.TestResult;
 import com.hp.octane.plugins.jenkins.tests.TestResultStatus;
+import com.hp.octane.plugins.jenkins.tests.maven.MavenSetModuleDetection;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.model.AbstractBuild;
-import hudson.model.FreeStyleProject;
 import hudson.remoting.VirtualChannel;
-import hudson.tasks.Builder;
-import hudson.tasks.Maven;
 import hudson.tasks.test.AbstractTestResultAction;
 import org.jenkinsci.remoting.Role;
 import org.jenkinsci.remoting.RoleChecker;
@@ -30,8 +30,9 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.text.DecimalFormat;
 import java.text.ParseException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -55,26 +56,30 @@ public class JUnitExtension extends MqmTestsExtension {
     @Override
     public Iterator<TestResult> getTestResults(AbstractBuild<?, ?> build) throws IOException, InterruptedException {
         logger.fine("Collecting JUnit results");
-        FilePath[] list = new FilePath(build.getRootDir()).list("**/" + JUNIT_RESULT_XML);
-        logger.fine("Found " + list.length + " reports");
-
-        FilePath filePath = build.getWorkspace().act(new GetJUnitTestResults(build, list));
-        return new ObjectStreamIterator<TestResult>(filePath, true);
+        FilePath resultFile = new FilePath(build.getRootDir()).child(JUNIT_RESULT_XML);
+        if (resultFile.exists()) {
+            logger.fine("JUnit result report found");
+            FilePath filePath = build.getWorkspace().act(new GetJUnitTestResults(build, resultFile));
+            return new ObjectStreamIterator<TestResult>(filePath, true);
+        } else {
+            return Collections.emptyListIterator();
+        }
     }
 
     private static class GetJUnitTestResults implements FilePath.FileCallable<FilePath>  {
 
-        private final FilePath[] reports;
+        private final FilePath report;
         private FilePath filePath;
-        private List<FilePath> pomDirs;
-        private FilePath workspace;
+        private List<ModuleDetection> moduleDetection;
 
-        public GetJUnitTestResults(AbstractBuild<?, ?> build, FilePath[] reports) throws IOException, InterruptedException {
-            this.reports = reports;
+        public GetJUnitTestResults(AbstractBuild<?, ?> build, FilePath report) throws IOException, InterruptedException {
+            this.report = report;
             this.filePath = new FilePath(build.getRootDir()).createTempFile(getClass().getSimpleName(), null);
 
-            workspace = build.getWorkspace();
-            pomDirs = listPomDirectories(build);
+            moduleDetection = Arrays.asList(
+                    new FreeStyleModuleDetection(build),
+                    new MavenSetModuleDetection(build),
+                    new ModuleDetection.Default());
         }
 
         @Override
@@ -83,17 +88,15 @@ public class JUnitExtension extends MqmTestsExtension {
             BufferedOutputStream bos = new BufferedOutputStream(os);
             ObjectOutputStream oos = new ObjectOutputStream(bos);
 
-            for (FilePath report: reports) {
-                try {
-                    JUnitXmlIterator iterator = new JUnitXmlIterator(report.read());
-                    while (iterator.hasNext()) {
-                        oos.writeObject(iterator.next());
-                    }
-                } catch (XMLStreamException e) {
-                    throw new IOException(e);
+            try {
+                JUnitXmlIterator iterator = new JUnitXmlIterator(report.read());
+                while (iterator.hasNext()) {
+                    oos.writeObject(iterator.next());
                 }
-                os.flush();
+            } catch (XMLStreamException e) {
+                throw new IOException(e);
             }
+            os.flush();
 
             oos.close();
             return filePath;
@@ -102,63 +105,6 @@ public class JUnitExtension extends MqmTestsExtension {
         @Override
         public void checkRoles(RoleChecker roleChecker) throws SecurityException {
             roleChecker.check(this, Role.UNKNOWN);
-        }
-
-        private boolean childOf(FilePath parent, FilePath child) {
-            while (child != null) {
-                if (parent.equals(child)) {
-                    return true;
-                }
-                child = child.getParent();
-            }
-            return false;
-        }
-
-        private String locatePom(FilePath filePath) throws IOException, InterruptedException {
-            while (filePath != null) {
-                FilePath parentPath = filePath.getParent();
-                FilePath pomPath = new FilePath(parentPath, "pom.xml");
-                if (pomPath.exists()) {
-                    return parentPath.getRemote().substring(workspace.getRemote().length());
-                }
-                filePath = parentPath;
-            }
-            return "";
-        }
-
-        private List<FilePath> listPomDirectories(AbstractBuild build) {
-            List<FilePath> ret = new LinkedList<FilePath>();
-            if (build.getProject() instanceof FreeStyleProject) {
-                for (Builder builder: ((FreeStyleProject) build.getProject()).getBuilders()) {
-                    if (builder instanceof Maven) {
-                        Maven maven = (Maven) builder;
-                        if (maven.pom != null) {
-                            if (maven.pom.endsWith("/pom.xml") || maven.pom.endsWith("\\pom.xml")) {
-                                ret.add(new FilePath(workspace, maven.pom.substring(0, maven.pom.length() - 8)));
-                                continue;
-                            } else {
-                                int p = maven.pom.lastIndexOf(File.separatorChar);
-                                if (p > 0) {
-                                    ret.add(new FilePath(workspace, maven.pom.substring(0, p)));
-                                    continue;
-                                }
-                            }
-                        }
-                        ret.add(workspace);
-                    }
-                }
-            }
-            return ret;
-        }
-
-        private String guessMavenModule(FilePath resultFile) throws IOException, InterruptedException {
-            for (FilePath pomDir: pomDirs) {
-                if (childOf(pomDir, resultFile)) {
-                    return locatePom(resultFile);
-                }
-            }
-            // unable to determine module
-            return "";
         }
 
         private static long parseTime(String timeString) {
@@ -196,7 +142,12 @@ public class JUnitExtension extends MqmTestsExtension {
                     String localName = element.getName().getLocalPart();
                     if ("file".equals(localName)) {  // NON-NLS
                         String path = readNextValue();
-                        moduleName = guessMavenModule(new FilePath(new File(path)));
+                        for (ModuleDetection detection: moduleDetection) {
+                            moduleName = detection.getModule(new FilePath(new File(path)));
+                            if (moduleName != null) {
+                                break;
+                            }
+                        }
                     } else if ("case".equals(localName)) { // NON-NLS
                         packageName = "";
                         className = "";

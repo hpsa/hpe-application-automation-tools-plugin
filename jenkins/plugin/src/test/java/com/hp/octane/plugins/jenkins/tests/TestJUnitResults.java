@@ -1,39 +1,38 @@
 package com.hp.octane.plugins.jenkins.tests;// (C) Copyright 2003-2015 Hewlett-Packard Development Company, L.P.
 
-import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
+import hudson.maven.MavenModuleSet;
+import hudson.maven.MavenModuleSetBuild;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.tasks.Maven;
 import hudson.tasks.junit.JUnitResultArchiver;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.custommonkey.xmlunit.Diff;
-import org.custommonkey.xmlunit.Difference;
-import org.custommonkey.xmlunit.DifferenceListener;
-import org.custommonkey.xmlunit.XMLUnit;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
-import org.w3c.dom.Node;
-import org.xml.sax.SAXException;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Set;
 
 public class TestJUnitResults {
 
     final private static String projectName = "junit-job";
 
+    private static Set<String> helloWorldTests = new HashSet<String>();
+    static {
+        helloWorldTests.add(test("/helloWorld", "hello", "HelloWorldTest", "testOne", TestResultStatus.PASSED));
+        helloWorldTests.add(test("/helloWorld", "hello", "HelloWorldTest", "testTwo", TestResultStatus.FAILED));
+        helloWorldTests.add(test("/helloWorld", "hello", "HelloWorldTest", "testThree", TestResultStatus.SKIPPED));
+    }
+    private static Set<String> helloWorld2Tests = new HashSet<String>();
+    static {
+        helloWorld2Tests.add(test("/helloWorld2", "hello", "HelloWorld2Test", "testOnce", TestResultStatus.PASSED));
+        helloWorld2Tests.add(test("/helloWorld2", "hello", "HelloWorld2Test", "testDoce", TestResultStatus.PASSED));
+    }
+
     @Rule
     final public JenkinsRule rule = new JenkinsRule();
-
-    @BeforeClass
-    public static void initClass() {
-        XMLUnit.setIgnoreWhitespace(true);
-    }
 
     @Test
     public void testJUnitResults() throws Exception {
@@ -44,8 +43,7 @@ public class TestJUnitResults {
         project.setScm(new CopyResourceSCM("/helloWorldRoot"));
         FreeStyleBuild build = project.scheduleBuild2(0).get();
 
-        String value = FileUtils.readFileToString(new File(build.getRootDir(), "mqmTests.xml"));
-        compareXml(expectedXml("/xml/mqmTests.xml"), value);
+        matchTests(new File(build.getRootDir(), "mqmTests.xml"), helloWorldTests, helloWorld2Tests);
     }
 
     @Test
@@ -57,8 +55,7 @@ public class TestJUnitResults {
         project.setScm(new CopyResourceSCM("/helloWorldRoot"));
         FreeStyleBuild build = project.scheduleBuild2(0).get();
 
-        String value = FileUtils.readFileToString(new File(build.getRootDir(), "mqmTests.xml"));
-        compareXml(expectedXml("/xml/mqmTestsPom.xml"), value);
+        matchTests(new File(build.getRootDir(), "mqmTests.xml"), helloWorldTests);
     }
 
     @Test
@@ -71,38 +68,39 @@ public class TestJUnitResults {
         project.setScm(new CopyResourceSCM("/helloWorldRoot"));
         FreeStyleBuild build = project.scheduleBuild2(0).get();
 
-        String value = FileUtils.readFileToString(new File(build.getRootDir(), "mqmTests.xml"));
-        compareXml(expectedXml("/xml/mqmTests.xml"), value);
+        matchTests(new File(build.getRootDir(), "mqmTests.xml"), helloWorldTests, helloWorld2Tests);
     }
 
-    private void compareXml(String expected, String value) throws IOException, SAXException {
-        Diff myDiff = new Diff(expected, value);
-        myDiff.overrideDifferenceListener(new TestResultDifferenceListener());
-        Assert.assertTrue(myDiff.toString(), myDiff.identical());
+    @Test
+    public void testJUnitResultsLegacy() throws Exception {
+        MavenModuleSet project = rule.createMavenProject(projectName);
+        Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
+        project.setMaven(mavenInstallation.getName());
+        project.setGoals("install -Dmaven.test.failure.ignore=true");
+        project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
+        project.setScm(new CopyResourceSCM("/helloWorldRoot"));
+        MavenModuleSetBuild build = project.scheduleBuild2(0).get();
+
+        matchTests(new File(build.getRootDir(), "mqmTests.xml"), helloWorldTests, helloWorld2Tests);
     }
 
-    private String expectedXml(String resourcePath) throws IOException {
-        return buildXml(TestJUnitResults.class.getResourceAsStream(resourcePath), ServerIdentity.getIdentity());
-    }
-
-    private String buildXml(InputStream template, String uuid) throws IOException {
-        String xml = IOUtils.toString(template);
-        IOUtils.closeQuietly(template);
-        return xml.replaceAll("@@@uuid@@@", uuid);
-    }
-
-    private static class TestResultDifferenceListener implements DifferenceListener {
-
-        @Override
-        public int differenceFound(Difference difference) {
-            if ("duration".equals(difference.getTestNodeDetail().getNode().getNodeName())) {
-                return RETURN_IGNORE_DIFFERENCE_NODES_IDENTICAL;
-            } else {
-                return RETURN_UPGRADE_DIFFERENCE_NODES_DIFFERENT;
-            }
+    private void matchTests(File mqmTestsXml, Set<String> ... expectedTests) {
+        Set<String> copy = new HashSet<String>();
+        for (Set<String> expected: expectedTests) {
+            copy.addAll(expected);
         }
-        @Override
-        public void skippedComparison(Node node, Node node2) {
+        for(TestResult testResult: new TestResultIterable(mqmTestsXml)) {
+            Assert.assertTrue(copy.remove(test(testResult)));
         }
+        Assert.assertTrue(copy.isEmpty());
+    }
+
+    private static String test(TestResult testResult) {
+        return test(testResult.getModuleName(), testResult.getPackageName(), testResult.getClassName(),
+                testResult.getTestName(), testResult.getResult());
+    }
+
+    private static String test(String moduleName, String packageName, String className, String testName, TestResultStatus status) {
+        return moduleName + "#" + packageName + "#" + className + "#" + testName + "#" + status.name() + "#";
     }
 }
