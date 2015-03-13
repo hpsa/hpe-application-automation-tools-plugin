@@ -1,6 +1,6 @@
 // (C) Copyright 2003-2015 Hewlett-Packard Development Company, L.P.
 
-package com.hp.octane.plugins.jenkins.tests.impl;
+package com.hp.octane.plugins.jenkins.tests.xml;
 
 import org.apache.commons.io.IOUtils;
 
@@ -25,7 +25,6 @@ public abstract class AbstractXmlIterator<E> {
         this.is = is;
         reader = createXmlInputFactory().createXMLEventReader(is);
         queue = new LinkedList<E>();
-
     }
 
     public boolean hasNext() throws XMLStreamException, IOException, InterruptedException {

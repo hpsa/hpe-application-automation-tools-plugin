@@ -1,0 +1,23 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
+                 xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+    <f:section title="${%global.config.description}">
+        <f:entry title="${%global.config.server.title}">
+            <f:nested>
+                <table width="100%">
+                    <f:entry title="${%global.config.location.title}"
+                             description="${%global.config.location.description}">
+                        <f:textbox field="location" />
+                    </f:entry>
+                    <f:entry title="${%global.config.username.title}" description="${%global.config.username.description}">
+                        <f:textbox field="username" />
+                    </f:entry>
+                    <f:entry title="${%global.config.password.title}" description="${%global.config.password.description}">
+                        <f:password field="password" />
+                    </f:entry>
+                    <f:validateButton title="${%global.config.test.connection}" progress="${%global.config.test.connection.progress}"
+                        method="testGlobalConnection" with="location,username,password" />
+                </table>
+            </f:nested>
+        </f:entry>
+    </f:section>
+</j:jelly>

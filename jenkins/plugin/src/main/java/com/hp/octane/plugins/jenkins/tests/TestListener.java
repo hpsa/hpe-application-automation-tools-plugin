@@ -2,7 +2,7 @@
 
 package com.hp.octane.plugins.jenkins.tests;
 
-import com.hp.octane.plugins.jenkins.tests.impl.TestResultWriter;
+import com.hp.octane.plugins.jenkins.tests.xml.TestResultXmlWriter;
 import hudson.FilePath;
 import hudson.model.AbstractBuild;
 
@@ -17,7 +17,7 @@ public class TestListener {
 
     public static void processBuild(AbstractBuild build) {
         FilePath resultPath = new FilePath(new FilePath(build.getRootDir()), "mqmTests.xml");
-        TestResultWriter resultWriter = new TestResultWriter(resultPath, build);
+        TestResultXmlWriter resultWriter = new TestResultXmlWriter(resultPath, build);
         try {
             for (MqmTestsExtension ext: MqmTestsExtension.all()) {
                 try {

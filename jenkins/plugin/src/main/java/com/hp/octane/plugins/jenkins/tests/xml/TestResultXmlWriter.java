@@ -1,6 +1,6 @@
 // (C) Copyright 2003-2015 Hewlett-Packard Development Company, L.P.
 
-package com.hp.octane.plugins.jenkins.tests.impl;
+package com.hp.octane.plugins.jenkins.tests.xml;
 
 import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
 import com.hp.octane.plugins.jenkins.tests.TestResult;
@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Iterator;
 
-public class TestResultWriter {
+public class TestResultXmlWriter {
 
     private FilePath targetPath;
     private AbstractBuild build;
@@ -23,7 +23,7 @@ public class TestResultWriter {
     private XMLStreamWriter writer;
     private OutputStream outputStream;
 
-    public TestResultWriter(FilePath targetPath, AbstractBuild build) {
+    public TestResultXmlWriter(FilePath targetPath, AbstractBuild build) {
         this.targetPath = targetPath;
         this.build = build;
     }

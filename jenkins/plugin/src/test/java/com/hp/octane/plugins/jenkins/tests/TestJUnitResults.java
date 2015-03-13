@@ -1,4 +1,6 @@
-package com.hp.octane.plugins.jenkins.tests;// (C) Copyright 2003-2015 Hewlett-Packard Development Company, L.P.
+// (C) Copyright 2003-2015 Hewlett-Packard Development Company, L.P.
+
+package com.hp.octane.plugins.jenkins.tests;
 
 import hudson.maven.MavenModuleSet;
 import hudson.maven.MavenModuleSetBuild;

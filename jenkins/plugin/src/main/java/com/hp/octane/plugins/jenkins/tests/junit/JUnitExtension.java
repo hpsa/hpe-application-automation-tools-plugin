@@ -3,7 +3,7 @@
 package com.hp.octane.plugins.jenkins.tests.junit;
 
 import com.hp.octane.plugins.jenkins.tests.ModuleDetection;
-import com.hp.octane.plugins.jenkins.tests.impl.AbstractXmlIterator;
+import com.hp.octane.plugins.jenkins.tests.xml.AbstractXmlIterator;
 import com.hp.octane.plugins.jenkins.tests.MqmTestsExtension;
 import com.hp.octane.plugins.jenkins.tests.maven.FreeStyleModuleDetection;
 import com.hp.octane.plugins.jenkins.tests.impl.ObjectStreamIterator;
