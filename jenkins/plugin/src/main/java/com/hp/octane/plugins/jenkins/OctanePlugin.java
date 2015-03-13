@@ -71,7 +71,6 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 
         public OctanePluginDescriptor() {
             octanePlugin = Jenkins.getInstance().getPlugin(OctanePlugin.class);
-            load();
         }
 
         @Override
@@ -80,19 +79,19 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
                 octanePlugin.configure(req, formData);
                 return true;
             } catch (IOException e) {
-                throw new FormException(e, "Unable to save configuration"); // TODO: janotav: localization
+                throw new FormException(e, Messages.ConfigurationSaveFailed());
             }
         }
 
         public FormValidation doCheckLocation(@QueryParameter String value) {
             if (value.isEmpty()) {
-                return FormValidation.error("URL must be specified"); // TODO: janotav: localization
+                return FormValidation.error(Messages.ConfigurationUrlNotSpecified());
             }
             try {
                 new URL(value);
                 return FormValidation.ok();
             } catch (MalformedURLException e) {
-                return FormValidation.error("Invalid URL"); // TODO: janotav: localization
+                return FormValidation.error(Messages.ConfigurationUrInvalid());
             }
         }
 
