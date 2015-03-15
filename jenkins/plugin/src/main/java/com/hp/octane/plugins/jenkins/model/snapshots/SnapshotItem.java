@@ -83,7 +83,7 @@ public final class SnapshotItem extends AbstractItem<ParameterInstance, Snapshot
 	}
 
 	@Exported(inline = true)
-	public int getNumber() {
+	public Integer getNumber() {
 		return number;
 	}
 
@@ -103,17 +103,17 @@ public final class SnapshotItem extends AbstractItem<ParameterInstance, Snapshot
 	}
 
 	@Exported(inline = true)
-	public long getEstimatedDuration() {
+	public Long getEstimatedDuration() {
 		return estimatedDuration;
 	}
 
 	@Exported(inline = true)
-	public long getStartTime() {
+	public Long getStartTime() {
 		return startTime;
 	}
 
 	@Exported(inline = true)
-	public long getDuration() {
+	public Long getDuration() {
 		return duration;
 	}
 
