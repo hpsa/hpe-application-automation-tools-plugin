@@ -62,7 +62,7 @@ public class JUnitExtension extends MqmTestsExtension {
             FilePath filePath = build.getWorkspace().act(new GetJUnitTestResults(build, resultFile));
             return new ObjectStreamIterator<TestResult>(filePath, true);
         } else {
-            return Collections.emptyListIterator();
+            return Collections.<TestResult>emptyList().iterator();
         }
     }
 

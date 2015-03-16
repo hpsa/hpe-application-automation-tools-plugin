@@ -8,6 +8,12 @@
                              description="${%global.config.location.description}">
                         <f:textbox field="location" />
                     </f:entry>
+                    <f:entry title="${%global.config.domain.title}" description="${%global.config.domain.description}">
+                        <f:textbox field="domain" />
+                    </f:entry>
+                    <f:entry title="${%global.config.project.title}" description="${%global.config.project.description}">
+                        <f:textbox field="project" />
+                    </f:entry>
                     <f:entry title="${%global.config.username.title}" description="${%global.config.username.description}">
                         <f:textbox field="username" />
                     </f:entry>
@@ -15,7 +21,7 @@
                         <f:password field="password" />
                     </f:entry>
                     <f:validateButton title="${%global.config.test.connection}" progress="${%global.config.test.connection.progress}"
-                        method="testGlobalConnection" with="location,username,password" />
+                        method="testGlobalConnection" with="location,domain,project,username,password" />
                 </table>
             </f:nested>
         </f:entry>
