@@ -1,12 +1,14 @@
 // (C) Copyright 2003-2015 Hewlett-Packard Development Company, L.P.
 
-package com.hp.octane.plugins.jenkins.tests;
+package com.hp.octane.plugins.jenkins.client;
 
+import com.hp.octane.plugins.jenkins.configuration.ConfigurationListener;
+import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import hudson.Extension;
 import hudson.util.TimeUnit2;
 
 @Extension
-public class LockoutModel { // TODO: janotav: write test
+public class RetryModel implements ConfigurationListener { // TODO: janotav: write test
 
     private static final long[] QUIET_PERIOD = { // TODO: janotav: verify against our Saas policy
             TimeUnit2.MINUTES.toMillis(1),
@@ -17,7 +19,7 @@ public class LockoutModel { // TODO: janotav: write test
     private long boundary;
     private int periodIndex;
 
-    public LockoutModel() {
+    public RetryModel() {
         success();
     }
 
@@ -35,5 +37,10 @@ public class LockoutModel { // TODO: janotav: write test
     public synchronized void success() {
         periodIndex = -1;
         boundary = 0;
+    }
+
+    @Override
+    public void onChanged(ServerConfiguration conf) {
+        success();
     }
 }

@@ -3,9 +3,12 @@
 package com.hp.octane.plugins.jenkins;
 
 import com.google.inject.Inject;
+import com.hp.octane.plugins.jenkins.client.RetryModel;
+import com.hp.octane.plugins.jenkins.configuration.ConfigurationListener;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationService;
-import com.hp.octane.plugins.jenkins.tests.LockoutModel;
+import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import hudson.Extension;
+import hudson.ExtensionList;
 import hudson.Plugin;
 import hudson.model.Describable;
 import hudson.model.Descriptor;
@@ -20,8 +23,12 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
+
+    private static Logger logger = Logger.getLogger(OctanePlugin.class.getName());
 
     private String identity;
 
@@ -44,38 +51,65 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
     }
 
     @Override
-    public void configure(StaplerRequest req, JSONObject formData) throws IOException {
+    public Descriptor<OctanePlugin> getDescriptor() {
+        return new OctanePluginDescriptor();
+    }
+
+    public ServerConfiguration getServerConfiguration() {
+        return new ServerConfiguration(
+                getLocation(),
+                getDomain(),
+                getProject(),
+                getUsername(),
+                getPassword());
+    }
+
+    private String getLocation() {
+        return location;
+    }
+
+    private String getDomain() {
+        return domain;
+    }
+
+    private String getProject() {
+        return project;
+    }
+
+    private String getUsername() {
+        return username;
+    }
+
+    private String getPassword() {
+        return Scrambler.descramble(password);
+    }
+
+    private void configurePlugin(JSONObject formData) throws IOException {
+        ServerConfiguration oldConfiguration = getServerConfiguration();
         location = (String) formData.get("location");
         domain = (String) formData.get("domain");
         project = (String) formData.get("project");
         username = (String) formData.get("username");
         password = Scrambler.scramble((String) formData.get("password"));
-        save();
+
+        ServerConfiguration newConfiguration = getServerConfiguration();
+        if(!oldConfiguration.equals(newConfiguration)) {
+            save();
+            fireOnChanged(newConfiguration);
+        }
     }
 
-    @Override
-    public Descriptor<OctanePlugin> getDescriptor() {
-        return new OctanePluginDescriptor();
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public String getDomain() {
-        return domain;
-    }
-
-    public String getProject() {
-        return project;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public String getPassword() {
-        return Scrambler.descramble(password);
+    private void fireOnChanged(ServerConfiguration configuration) {
+        ExtensionList<ConfigurationListener> listeners = ExtensionList.lookup(ConfigurationListener.class);
+        for (ConfigurationListener listener: listeners) {
+            try {
+                listener.onChanged(configuration);
+            } catch (ThreadDeath t) {
+                throw t;
+            } catch (Throwable t) {
+                logger.log(Level.WARNING, null, t);
+            }
+        }
     }
 
     @Extension
@@ -84,7 +118,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
         private OctanePlugin octanePlugin;
 
         @Inject
-        private LockoutModel lockoutModel;
+        private RetryModel retryModel;
 
         public OctanePluginDescriptor() {
             octanePlugin = Jenkins.getInstance().getPlugin(OctanePlugin.class);
@@ -93,7 +127,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
         @Override
         public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
             try {
-                octanePlugin.configure(req, formData);
+                octanePlugin.configurePlugin(formData);
                 return true;
             } catch (IOException e) {
                 throw new FormException(e, Messages.ConfigurationSaveFailed());
@@ -136,9 +170,11 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
             FormValidation validation = ConfigurationService.checkConfiguration(location, domain, project, username, password);
             if (validation.kind == FormValidation.Kind.OK &&
                     location.equals(octanePlugin.getLocation()) &&
+                    domain.equals(octanePlugin.getDomain()) &&
+                    project.equals(octanePlugin.getProject()) &&
                     username.equals(octanePlugin.getUsername()) &&
                     password.equals(octanePlugin.getPassword())) {
-                    lockoutModel.success();
+                    retryModel.success();
             }
             return validation;
         }

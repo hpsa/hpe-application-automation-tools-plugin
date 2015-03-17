@@ -12,12 +12,7 @@ public class ConfigurationService {
 
     public static ServerConfiguration getServerConfiguration() {
         OctanePlugin octanePlugin = Jenkins.getInstance().getPlugin(OctanePlugin.class);
-        return new ServerConfiguration(
-                octanePlugin.getLocation(),
-                octanePlugin.getDomain(),
-                octanePlugin.getProject(),
-                octanePlugin.getUsername(),
-                octanePlugin.getPassword());
+        return octanePlugin.getServerConfiguration();
     }
 
     public static FormValidation checkConfiguration(String location, String domain, String project, String username, String password) {
