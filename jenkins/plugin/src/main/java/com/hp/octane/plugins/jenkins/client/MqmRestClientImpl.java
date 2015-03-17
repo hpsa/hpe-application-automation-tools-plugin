@@ -9,6 +9,7 @@ import org.apache.commons.httpclient.methods.FileRequestEntity;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.apache.commons.lang.StringUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
@@ -131,8 +132,8 @@ public class MqmRestClientImpl implements MqmRestClient {
     private String createAuthenticationXml() {
         Document document = DocumentHelper.createDocument();
         Element root = document.addElement("alm-authentication");
-        root.addElement("user").addText(username);
-        root.addElement("password").addText(password);
+        root.addElement("user").addText(StringUtils.defaultIfEmpty(username, ""));
+        root.addElement("password").addText(StringUtils.defaultIfEmpty(password, ""));
         return document.asXML();
     }
 

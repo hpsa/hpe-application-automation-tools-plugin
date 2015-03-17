@@ -1,5 +1,6 @@
 package com.hp.octane.plugins.jenkins.notifications;
 
+import com.google.inject.Inject;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.AbstractParametersProcessor;
 import com.hp.octane.plugins.jenkins.model.snapshots.SnapshotResult;
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCausesFactory;
@@ -23,6 +24,9 @@ import javax.annotation.Nonnull;
 
 @Extension
 public final class RunListenerImpl extends RunListener<Run> {
+
+    @Inject
+    private TestListener testListener;
 
 	@Override
 	@SuppressWarnings("unchecked")
@@ -68,7 +72,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 			);
 			EventDispatcher.dispatchEvent(event);
 
-            TestListener.processBuild(build);
+            testListener.processBuild(build);
         }
 	}
 }
