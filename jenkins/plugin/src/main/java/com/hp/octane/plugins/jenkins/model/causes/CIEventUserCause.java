@@ -13,7 +13,6 @@ import org.kohsuke.stapler.export.ExportedBean;
 
 @ExportedBean
 public class CIEventUserCause implements CIEventCauseBase {
-	private final CIEventCauseType type = CIEventCauseType.USER;
 	private String userId = "";
 	private String userName = "";
 
@@ -25,7 +24,7 @@ public class CIEventUserCause implements CIEventCauseBase {
 	@Override
 	@Exported(inline = true)
 	public CIEventCauseType getType() {
-		return type;
+		return CIEventCauseType.USER;
 	}
 
 	@Exported(inline = true)
