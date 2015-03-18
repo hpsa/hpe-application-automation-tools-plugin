@@ -2,10 +2,10 @@
 
 package com.hp.octane.plugins.jenkins.tests;
 
+import com.hp.octane.plugins.jenkins.ExtensionUtil;
 import com.hp.octane.plugins.jenkins.client.MqmRestClient;
 import com.hp.octane.plugins.jenkins.client.MqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
-import hudson.ExtensionList;
 import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
@@ -30,8 +30,6 @@ import java.util.concurrent.ExecutionException;
 
 public class TestDispatcherTest {
 
-    final private static String projectName = "TestDispatcher";
-
     private TestQueue queue;
     private TestDispatcher testDispatcher;
     private TestClientFactory clientFactory;
@@ -53,18 +51,16 @@ public class TestDispatcherTest {
         restClient = Mockito.mock(MqmRestClient.class);
         clientFactory = new TestClientFactory(restClient);
 
-        ExtensionList<TestDispatcher> dispatcher = rule.getInstance().getExtensionList(TestDispatcher.class);
-        testDispatcher = dispatcher.get(0);
+        testDispatcher = ExtensionUtil.getInstance(rule, TestDispatcher.class);
         testDispatcher._setMqmRestClientFactory(clientFactory);
         queue = new TestQueue();
         testDispatcher._setTestResultQueue(queue);
         waitForTicks(1); // needed to avoid occasional interaction with the client we just overrode (race condition)
 
-        ExtensionList<RetryModel> retry = rule.getInstance().getExtensionList(RetryModel.class);
-        retryModel = retry.get(0);
+        retryModel = ExtensionUtil.getInstance(rule, RetryModel.class);
         retryModel.success();
 
-        project = rule.createFreeStyleProject(projectName);
+        project = rule.createFreeStyleProject("TestDispatcher");
         Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
         project.getBuildersList().add(new Maven("install", mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
         project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
@@ -185,7 +181,7 @@ public class TestDispatcherTest {
             }
             Thread.sleep(10);
         }
-        Assert.fail("Timeout out: ticks: expected=" + target + "; actual=" + current);
+        Assert.fail("Timed out: ticks: expected=" + target + "; actual=" + current);
     }
 
     private FreeStyleBuild executeBuild() throws ExecutionException, InterruptedException {

@@ -44,6 +44,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 
     @Override
     public void postInitialize() throws IOException {
+        load();
         if (identity == null) {
             this.identity = UUID.randomUUID().toString();
             save();
@@ -118,6 +119,9 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
         private OctanePlugin octanePlugin;
 
         @Inject
+        private ConfigurationService configurationService;
+
+        @Inject
         private RetryModel retryModel;
 
         public OctanePluginDescriptor() {
@@ -127,7 +131,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
         @Override
         public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
             try {
-                octanePlugin.configurePlugin(formData);
+                octanePlugin.configurePlugin(formData.getJSONObject("mqm")); // NON-NLS
                 return true;
             } catch (IOException e) {
                 throw new FormException(e, Messages.ConfigurationSaveFailed());
@@ -167,7 +171,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
                                                      @QueryParameter("project") String project,
                                                      @QueryParameter("username") String username,
                                                      @QueryParameter("password") String password) {
-            FormValidation validation = ConfigurationService.checkConfiguration(location, domain, project, username, password);
+            FormValidation validation = configurationService.checkConfiguration(location, domain, project, username, password);
             if (validation.kind == FormValidation.Kind.OK &&
                     location.equals(octanePlugin.getLocation()) &&
                     domain.equals(octanePlugin.getDomain()) &&
