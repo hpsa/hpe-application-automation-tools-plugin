@@ -27,13 +27,13 @@ import java.util.List;
 
 @ExportedBean
 public final class SnapshotItem extends AbstractItem<ParameterInstance, SnapshotPhase> {
-	private int number = -1;
+	private Integer number = null;
 	private CIEventCauseBase[] causes = null;
 	private SnapshotStatus status = SnapshotStatus.UNAVAILABLE;
 	private SnapshotResult result = SnapshotResult.UNAVAILABLE;
-	private long estimatedDuration = -1;
-	private long startTime = -1;
-	private long duration = -1;
+	private Long estimatedDuration = null;
+	private Long startTime = null;
+	private Long duration = null;
 	private SCMData scmData = null;
 
 	@SuppressWarnings("unchecked")
@@ -83,7 +83,7 @@ public final class SnapshotItem extends AbstractItem<ParameterInstance, Snapshot
 	}
 
 	@Exported(inline = true)
-	public int getNumber() {
+	public Integer getNumber() {
 		return number;
 	}
 
@@ -103,17 +103,17 @@ public final class SnapshotItem extends AbstractItem<ParameterInstance, Snapshot
 	}
 
 	@Exported(inline = true)
-	public long getEstimatedDuration() {
+	public Long getEstimatedDuration() {
 		return estimatedDuration;
 	}
 
 	@Exported(inline = true)
-	public long getStartTime() {
+	public Long getStartTime() {
 		return startTime;
 	}
 
 	@Exported(inline = true)
-	public long getDuration() {
+	public Long getDuration() {
 		return duration;
 	}
 

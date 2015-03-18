@@ -88,6 +88,8 @@
             <optional>true</optional>
         </dependency>
 
+		<!--Internals-->
+
 		<!--Test-->
 
 		<dependency>
