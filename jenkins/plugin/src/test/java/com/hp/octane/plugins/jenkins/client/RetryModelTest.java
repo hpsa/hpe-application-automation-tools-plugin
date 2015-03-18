@@ -7,7 +7,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class TestRetryModel {
+public class RetryModelTest {
 
     private RetryModel retryModel;
     private TestTimeProvider testTimeProvider;

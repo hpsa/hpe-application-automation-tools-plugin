@@ -28,7 +28,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.concurrent.ExecutionException;
 
-public class TestTestDispatcher {
+public class TestDispatcherTest {
 
     final private static String projectName = "TestDispatcher";
 

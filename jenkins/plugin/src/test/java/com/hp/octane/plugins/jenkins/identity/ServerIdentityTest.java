@@ -7,7 +7,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
-public class TestServerIdentity {
+public class ServerIdentityTest {
 
     @Rule
     final public JenkinsRule rule = new JenkinsRule();
