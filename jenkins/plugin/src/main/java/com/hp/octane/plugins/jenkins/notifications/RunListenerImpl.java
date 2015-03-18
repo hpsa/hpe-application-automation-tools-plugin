@@ -1,11 +1,13 @@
 package com.hp.octane.plugins.jenkins.notifications;
 
+import com.google.inject.Inject;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.AbstractParametersProcessor;
 import com.hp.octane.plugins.jenkins.model.snapshots.SnapshotResult;
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCausesFactory;
 import com.hp.octane.plugins.jenkins.model.scm.SCMDataFactory;
 import com.hp.octane.plugins.jenkins.model.events.CIEventFinished;
 import com.hp.octane.plugins.jenkins.model.events.CIEventStarted;
+import com.hp.octane.plugins.jenkins.tests.TestListener;
 import hudson.Extension;
 import hudson.model.*;
 import hudson.model.listeners.RunListener;
@@ -22,6 +24,9 @@ import javax.annotation.Nonnull;
 
 @Extension
 public final class RunListenerImpl extends RunListener<Run> {
+
+    @Inject
+    private TestListener testListener;
 
 	@Override
 	@SuppressWarnings("unchecked")
@@ -66,6 +71,8 @@ public final class RunListenerImpl extends RunListener<Run> {
 					CIEventCausesFactory.processCauses(build.getCauses())
 			);
 			EventDispatcher.dispatchEvent(event);
-		}
+
+            testListener.processBuild(build);
+        }
 	}
 }
