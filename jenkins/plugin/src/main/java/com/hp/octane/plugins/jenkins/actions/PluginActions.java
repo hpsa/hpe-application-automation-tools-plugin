@@ -1,15 +1,14 @@
 package com.hp.octane.plugins.jenkins.actions;
 
+import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
 import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.AbstractParametersProcessor;
 import com.hp.octane.plugins.jenkins.notifications.EventDispatcher;
 import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.RootAction;
-import hudson.remoting.Base64;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
-import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.export.Exported;
@@ -39,7 +38,7 @@ public class PluginActions implements RootAction {
 		private final String type = "jenkins";
 
 		public ServerInfo() {
-			this.instanceId = INSTANCE_ID;
+			this.instanceId = ServerIdentity.getIdentity();
 			String serverUrl = Jenkins.getInstance().getRootUrl();
 			if (serverUrl != null && serverUrl.endsWith("/"))
 				serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
@@ -132,12 +131,6 @@ public class PluginActions implements RootAction {
 			}
 			return list.toArray(new ProjectConfig[list.size()]);
 		}
-	}
-
-	static final String INSTANCE_ID;
-
-	static {
-		INSTANCE_ID = Base64.encode(InstanceIdentity.get().getPublic().getEncoded());
 	}
 
 	public String getIconFileName() {
