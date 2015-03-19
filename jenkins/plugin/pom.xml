@@ -15,15 +15,6 @@
 
 	<dependencies>
 
-		<!--Dev-->
-
-		<dependency>
-			<groupId>org.jenkins-ci.modules</groupId>
-			<artifactId>instance-identity</artifactId>
-			<version>1.4</version>
-			<scope>provided</scope>
-		</dependency>
-
 		<!--Extensibility-->
 
 		<dependency>
@@ -88,8 +79,6 @@
             <optional>true</optional>
         </dependency>
 
-		<!--Internals-->
-
 		<!--Test-->
 
 		<dependency>
@@ -108,6 +97,7 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
             <version>1.10.19</version>
+	        <scope>test</scope>
         </dependency>
 	</dependencies>
 
