@@ -2,6 +2,8 @@
 
 package com.hp.octane.plugins.jenkins.tests;
 
+import com.gargoylesoftware.htmlunit.html.HtmlForm;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.hp.octane.plugins.jenkins.ExtensionUtil;
 import com.hp.octane.plugins.jenkins.client.MqmRestClient;
 import com.hp.octane.plugins.jenkins.client.MqmRestClientFactory;
@@ -32,7 +34,7 @@ public class TestDispatcherTest {
 
     private TestQueue queue;
     private TestDispatcher testDispatcher;
-    private TestClientFactory clientFactory;
+    private MqmRestClientFactory clientFactory;
     private MqmRestClient restClient;
     private RetryModel retryModel;
 
@@ -49,7 +51,8 @@ public class TestDispatcherTest {
     @Before
     public void init() throws Exception {
         restClient = Mockito.mock(MqmRestClient.class);
-        clientFactory = new TestClientFactory(restClient);
+        clientFactory = Mockito.mock(MqmRestClientFactory.class);
+        Mockito.when(clientFactory.create(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(restClient);
 
         testDispatcher = ExtensionUtil.getInstance(rule, TestDispatcher.class);
         testDispatcher._setMqmRestClientFactory(clientFactory);
@@ -65,6 +68,16 @@ public class TestDispatcherTest {
         project.getBuildersList().add(new Maven("install", mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
         project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
         project.setScm(new CopyResourceSCM("/helloWorldRoot"));
+
+        // server needs to be configured in order for the processing to happen
+        HtmlPage configPage = rule.createWebClient().goTo("configure");
+        HtmlForm form = configPage.getFormByName("config");
+        form.getInputByName("_.location").setValueAttribute("http://localhost:8008/");
+        form.getInputByName("_.domain").setValueAttribute("domain");
+        form.getInputByName("_.project").setValueAttribute("project");
+        form.getInputByName("_.username").setValueAttribute("username");
+        form.getInputByName("_.password").setValueAttribute("password");
+        rule.submit(form);
     }
 
     @Test
@@ -255,19 +268,6 @@ public class TestDispatcherTest {
         }
         @Override
         public void describeTo(Description description) {
-        }
-    }
-
-    private static class TestClientFactory implements MqmRestClientFactory {
-        private MqmRestClient mqmRestClient;
-
-        public TestClientFactory(MqmRestClient mqmRestClient) {
-            this.mqmRestClient = mqmRestClient;
-        }
-
-        @Override
-        public MqmRestClient create(String location, String domain, String project, String username, String password) {
-            return mqmRestClient;
         }
     }
 }
