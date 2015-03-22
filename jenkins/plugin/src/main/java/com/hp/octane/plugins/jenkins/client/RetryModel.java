@@ -44,7 +44,7 @@ public class RetryModel implements ConfigurationListener {
     }
 
     @Override
-    public void onChanged(ServerConfiguration conf) {
+    public void onChanged(ServerConfiguration conf, ServerConfiguration oldConf) {
         success();
     }
 

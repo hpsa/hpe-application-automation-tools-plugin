@@ -1,6 +1,8 @@
 package com.hp.octane.plugins.jenkins.notifications;
 
+import com.hp.octane.plugins.jenkins.configuration.ConfigurationService;
 import com.hp.octane.plugins.jenkins.configuration.RestUtils;
+import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jenkins.model.events.CIEventBase;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
@@ -20,6 +22,7 @@ import java.util.List;
  * Time: 14:07
  * To change this template use File | Settings | File Templates.
  */
+
 public final class EventDispatcher {
 
 	@ExportedBean
@@ -106,7 +109,7 @@ public final class EventDispatcher {
 							}
 						}
 					}
-					System.out.println("Events client for '" + url + "' shut down");
+					System.out.println("Events client for '" + url + "' shuts down");
 				}
 			});
 			executor.setDaemon(true);
@@ -128,12 +131,32 @@ public final class EventDispatcher {
 		}
 
 		private String buildUrl() {
-			return "/qcbin/rest/domains/" + domain + "/projects/" + project + "/cia/events";
+			return "/rest/domains/" + domain + "/projects/" + project + "/cia/events";
 		}
 	}
 
 	private static final int MAX_PUSH_RETRIES = 3;
 	private static final List<Client> clients = new ArrayList<Client>();
+
+	public static void updateClient(ServerConfiguration conf) {
+		updateClient(conf, null);
+	}
+
+	public static void updateClient(ServerConfiguration conf, ServerConfiguration oldConf) {
+		synchronized (clients) {
+			if (oldConf != null && !conf.location.equals(oldConf.location)) {
+				for (Client client : clients) {
+					if (client.url.equals(oldConf.location)) {
+						clients.remove(client);
+						break;
+					}
+				}
+			}
+			if (conf != null && conf.location != null && conf.domain != null && conf.project != null && conf.username != null && conf.password != null) {
+				updateClient(conf.location, conf.domain, conf.project, conf.username, conf.password);
+			}
+		}
+	}
 
 	public static void updateClient(String url, String domain, String project, String username, String password) {
 		Client client = null;
@@ -153,13 +176,6 @@ public final class EventDispatcher {
 			}
 		}
 		if (!client.isActive()) client.activate();
-	}
-
-	public static void removeClient(Client client) {
-		synchronized (clients) {
-			client.dispose();
-			clients.remove(client);
-		}
 	}
 
 	public static void dispatchEvent(CIEventBase event) {

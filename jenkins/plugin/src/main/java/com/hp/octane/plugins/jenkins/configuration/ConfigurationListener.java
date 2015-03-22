@@ -6,6 +6,6 @@ import hudson.ExtensionPoint;
 
 public interface ConfigurationListener extends ExtensionPoint {
 
-    void onChanged(ServerConfiguration conf);
+    void onChanged(ServerConfiguration conf, ServerConfiguration oldConf);
 
 }
