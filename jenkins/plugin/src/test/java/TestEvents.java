@@ -93,7 +93,7 @@ public class TestEvents {
 		WebRequestSettings req = new WebRequestSettings(client.createCrumbedUrl("octane/config"), HttpMethod.POST);
 		JSONObject json = new JSONObject();
 		json.put("type", "events-client");
-		json.put("url", "http://localhost:" + testingServerPort);
+		json.put("url", "http://localhost:" + testingServerPort + "/qcbin");
 		json.put("domain", "DOMAIN");
 		json.put("project", "PROJECT");
 		json.put("username", "");
@@ -154,6 +154,6 @@ public class TestEvents {
 				}
 			}
 		}
-		assertEquals(eventsOrder.size(), 0);
+		assertEquals(0, eventsOrder.size());
 	}
 }
