@@ -116,9 +116,10 @@ public class PluginActions implements RootAction {
 
 	@ExportedBean
 	public static final class ProjectsList {
-		ProjectConfig[] jobs;
+		@Exported(inline = true)
+		public ProjectConfig[] jobs;
 
-		ProjectsList(boolean areParametersNeeded) {
+		public ProjectsList(boolean areParametersNeeded) {
 			ProjectConfig tmpConfig;
 			AbstractProject tmpProject;
 			List<ProjectConfig> list = new ArrayList<ProjectConfig>();
@@ -133,11 +134,6 @@ public class PluginActions implements RootAction {
 				list.add(tmpConfig);
 			}
 			jobs = list.toArray(new ProjectConfig[list.size()]);
-		}
-
-		@Exported(inline = true)
-		public ProjectConfig[] getJobs() {
-			return jobs;
 		}
 	}
 

@@ -31,7 +31,7 @@ public class TestPluginActions {
 
 	@Test
 	public void testProjectsListClassNoParams() throws IOException {
-		PluginActions.ProjectsList projectsList = new PluginActions.ProjectsList();
+		PluginActions.ProjectsList projectsList = new PluginActions.ProjectsList(true);
 		assertEquals(projectsList.getJobs().getClass(), PluginActions.ProjectConfig[].class);
 		assertEquals(projectsList.getJobs().length, 0);
 
@@ -46,7 +46,7 @@ public class TestPluginActions {
 	public void testProjectsListClassWithParams() throws IOException {
 		FreeStyleProject fsp;
 		ParameterConfig tmpConf;
-		PluginActions.ProjectsList projectsList = new PluginActions.ProjectsList();
+		PluginActions.ProjectsList projectsList = new PluginActions.ProjectsList(true);
 		assertEquals(projectsList.getJobs().getClass(), PluginActions.ProjectConfig[].class);
 		assertEquals(projectsList.getJobs().length, 0);
 
