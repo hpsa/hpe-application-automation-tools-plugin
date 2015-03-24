@@ -32,14 +32,14 @@ public class TestPluginActions {
 	@Test
 	public void testProjectsListClassNoParams() throws IOException {
 		PluginActions.ProjectsList projectsList = new PluginActions.ProjectsList(true);
-		assertEquals(projectsList.getJobs().getClass(), PluginActions.ProjectConfig[].class);
-		assertEquals(projectsList.getJobs().length, 0);
+		assertEquals(projectsList.jobs.getClass(), PluginActions.ProjectConfig[].class);
+		assertEquals(projectsList.jobs.length, 0);
 
 		rule.createFreeStyleProject(projectName);
-		assertEquals(projectsList.getJobs().length, 1);
-		assertEquals(projectsList.getJobs()[0].getName(), projectName);
-		assertEquals(projectsList.getJobs()[0].getParameters().getClass(), ParameterConfig[].class);
-		assertEquals(projectsList.getJobs()[0].getParameters().length, 0);
+		assertEquals(projectsList.jobs.length, 1);
+		assertEquals(projectsList.jobs[0].getName(), projectName);
+		assertEquals(projectsList.jobs[0].getParameters().getClass(), ParameterConfig[].class);
+		assertEquals(projectsList.jobs[0].getParameters().length, 0);
 	}
 
 	@Test
@@ -47,8 +47,8 @@ public class TestPluginActions {
 		FreeStyleProject fsp;
 		ParameterConfig tmpConf;
 		PluginActions.ProjectsList projectsList = new PluginActions.ProjectsList(true);
-		assertEquals(projectsList.getJobs().getClass(), PluginActions.ProjectConfig[].class);
-		assertEquals(projectsList.getJobs().length, 0);
+		assertEquals(projectsList.jobs.getClass(), PluginActions.ProjectConfig[].class);
+		assertEquals(projectsList.jobs.length, 0);
 
 		fsp = rule.createFreeStyleProject(projectName);
 		ParametersDefinitionProperty params = new ParametersDefinitionProperty(Arrays.asList(
@@ -58,23 +58,23 @@ public class TestPluginActions {
 		));
 		fsp.addProperty(params);
 
-		assertEquals(projectsList.getJobs().length, 1);
-		assertEquals(projectsList.getJobs()[0].getName(), projectName);
-		assertEquals(projectsList.getJobs()[0].getParameters().length, 3);
+		assertEquals(projectsList.jobs.length, 1);
+		assertEquals(projectsList.jobs[0].getName(), projectName);
+		assertEquals(projectsList.jobs[0].getParameters().length, 3);
 
-		tmpConf = projectsList.getJobs()[0].getParameters()[0];
+		tmpConf = projectsList.jobs[0].getParameters()[0];
 		assertEquals(tmpConf.getName(), "ParamA");
 		assertEquals(tmpConf.getType(), ParameterType.BOOLEAN.toString());
 		assertEquals(tmpConf.getDefaultValue(), true);
 		assertEquals(tmpConf.getDescription(), "bool");
 
-		tmpConf = projectsList.getJobs()[0].getParameters()[1];
+		tmpConf = projectsList.jobs[0].getParameters()[1];
 		assertEquals(tmpConf.getName(), "ParamB");
 		assertEquals(tmpConf.getType(), ParameterType.STRING.toString());
 		assertEquals(tmpConf.getDefaultValue(), "str");
 		assertEquals(tmpConf.getDescription(), "string");
 
-		tmpConf = projectsList.getJobs()[0].getParameters()[2];
+		tmpConf = projectsList.jobs[0].getParameters()[2];
 		assertEquals(tmpConf.getName(), "ParamC");
 		assertEquals(tmpConf.getType(), ParameterType.FILE.toString());
 		assertEquals(tmpConf.getDefaultValue(), "");
