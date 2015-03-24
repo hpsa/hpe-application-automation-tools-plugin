@@ -11,10 +11,16 @@ import java.io.InputStream;
  * <p/>
  *
  * <p>
- * Because client cares about login all methods except {@link #release()} can throw
- * {@link com.hp.mqm.client.exception.AuthenticationException} in case authentication failed and
- * {@link com.hp.mqm.client.exception.AuthenticationErrorException} in case of IO error or error in the HTTP protocol
- * during authentication.
+ * Because client cares about login automatically all methods except {@link #release()} can throw:
+ * <ul>
+ *   <li>
+ *      {@link com.hp.mqm.client.exception.AuthenticationException} in case authentication failed and
+ *  </li>
+ *  <li>
+ *      {@link com.hp.mqm.client.exception.AuthenticationErrorException} in case of IO error or error in the HTTP protocol
+ *      during authentication.
+ *  </li>
+ * <ul/>
  * </p>
  *
  */
@@ -33,7 +39,9 @@ public interface MqmRestClient {
     boolean checkDomainAndProject();
 
     /**
-     * Posts test results to MQM. Test result can be large data and therefore be aware to keep it in memory.
+     * Posts test results to MQM. Test results can be large data and therefore be aware to keep it in memory.
+     * Also divide extra large test results to smaller parts which will be posted individually
+     * (multiple invocation of this method) to avoid HTTP request timeout.
      * @param testResultReportStream input stream with test results in MQM XML format.
      */
     void postTestResult(InputStream testResultReportStream);

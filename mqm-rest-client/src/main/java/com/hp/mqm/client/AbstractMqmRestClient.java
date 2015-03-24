@@ -1,11 +1,14 @@
 package com.hp.mqm.client;
 
+import com.hp.mqm.client.exception.AuthenticationErrorException;
 import com.hp.mqm.client.exception.AuthenticationException;
+import com.hp.mqm.client.exception.InvalidCredentialsException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -34,6 +37,9 @@ public abstract class AbstractMqmRestClient {
 
     private static final String BASE_REST_URI = "rest/domains/{0}/projects/{1}";
 
+    public static final int DEFAULT_CONNECTION_TIMEOUT = 20000; // in milliseconds
+    public static final int DEFAULT_SO_TIMEOUT = 40000; // in milliseconds
+
     private final CloseableHttpClient httpClient;
 
     private final String location;
@@ -41,8 +47,6 @@ public abstract class AbstractMqmRestClient {
     private final String project;
     private final String username;
     private final String password;
-    private final String proxyHost;
-    private final Integer proxyPort;
 
     private boolean alreadyLoggedIn = false;
 
@@ -54,18 +58,21 @@ public abstract class AbstractMqmRestClient {
         this.project = connectionConfig.getProject();
         this.username = connectionConfig.getUsername();
         this.password = connectionConfig.getPassword();
-        this.proxyHost = connectionConfig.getProxyHost();
-        this.proxyPort = connectionConfig.getProxyPort();
 
-        HttpClientBuilder clientBuilder = HttpClientBuilder.create();
-        if (proxyHost != null && !proxyHost.isEmpty()) {
-            clientBuilder.setProxy(new HttpHost(proxyHost, proxyPort));
+        RequestConfig.Builder requestConfigBuilder = RequestConfig.custom();
+        if (connectionConfig.getDefaultConnectionRequestTimeout() != null) {
+            requestConfigBuilder.setConnectionRequestTimeout(connectionConfig.getDefaultConnectionRequestTimeout());
+        }
+        requestConfigBuilder.setConnectTimeout(connectionConfig.getDefaultConnectionTimeout() != null ?
+                connectionConfig.getDefaultConnectionTimeout() : DEFAULT_CONNECTION_TIMEOUT);
+        requestConfigBuilder.setSocketTimeout(connectionConfig.getDefaultSocketTimeout() != null ?
+                connectionConfig.getDefaultSocketTimeout() : DEFAULT_SO_TIMEOUT);
+
+        HttpClientBuilder clientBuilder = HttpClientBuilder.create().setDefaultRequestConfig(requestConfigBuilder.build());
+        if (connectionConfig.getProxyHost() != null && !connectionConfig.getProxyHost().isEmpty()) {
+            clientBuilder.setProxy(new HttpHost(connectionConfig.getProxyHost(), connectionConfig.getProxyPort()));
         }
         httpClient = clientBuilder.build();
-//        List<String> authPrefs = new ArrayList<String>(2);
-//        authPrefs.add(AuthPolicy.DIGEST);
-//        authPrefs.add(AuthPolicy.BASIC);
-//        httpClient.getParams().setParameter(AuthPolicy.AUTH_SCHEME_PRIORITY, authPrefs);
     }
 
     /**
@@ -92,7 +99,7 @@ public abstract class AbstractMqmRestClient {
             }
             alreadyLoggedIn = false;
         } catch (IOException e) {
-            throw new RequestErrorException("Error occurs during logout", e); // TODO specific exception
+            throw new RequestErrorException("Error occurs during logout", e);
         } finally {
             HttpClientUtils.closeQuietly(response);
         }
@@ -105,11 +112,13 @@ public abstract class AbstractMqmRestClient {
         CloseableHttpResponse response = null;
         try {
             response = httpClient.execute(post);
-            if (response.getStatusLine().getStatusCode() != 200) {
+            if (response.getStatusLine().getStatusCode() == 401) {
+                throw new InvalidCredentialsException("Invalid credentials");
+            } else if (response.getStatusLine().getStatusCode() != 200) {
                 throw new AuthenticationException("Authentication failed: code=" + response.getStatusLine().getStatusCode() + "; reason=" + response.getStatusLine().getReasonPhrase());
             }
         } catch (IOException e) {
-            throw new AuthenticationException("Error occurs during authentication", e); // TODO specific exception
+            throw new AuthenticationErrorException("Error occurs during authentication", e); // TODO specific exception
         } finally {
             HttpClientUtils.closeQuietly(response);
         }
@@ -208,7 +217,7 @@ public abstract class AbstractMqmRestClient {
     protected CloseableHttpResponse execute(HttpUriRequest request) throws IOException {
         doFirstLogin();
         CloseableHttpResponse response = httpClient.execute(request);
-        if (isLoginNecessary(response)) {
+        if (isLoginNecessary(response)) { // if request fails with 401 do login and execute request again
             login();
             response = httpClient.execute(request);
         }
@@ -235,7 +244,7 @@ public abstract class AbstractMqmRestClient {
     }
 
     private boolean isLoginNecessary(HttpResponse response) {
-        return response.getStatusLine().getStatusCode() != 401;
+        return response.getStatusLine().getStatusCode() == 401;
     }
 
     private void doFirstLogin() {

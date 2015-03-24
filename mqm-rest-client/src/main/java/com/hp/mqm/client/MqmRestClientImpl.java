@@ -1,6 +1,6 @@
 package com.hp.mqm.client;
 
-import com.hp.mqm.client.exception.AuthenticationException;
+import com.hp.mqm.client.exception.InvalidCredentialsException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
 import org.apache.commons.io.IOUtils;
@@ -8,6 +8,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.client.utils.HttpClientUtils;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.InputStreamEntity;
 
 import java.io.IOException;
@@ -27,7 +28,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
         try {
             login();
             return true;
-        } catch (AuthenticationException e) {
+        } catch (InvalidCredentialsException e) {
             return false;
         }
     }
@@ -58,8 +59,8 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 
     @Override
     public void postTestResult(InputStream testResultReportStream) {
-        RequestBuilder requestBuilder = RequestBuilder.post(createRestUri(URI_PUSH_TEST_RESULT_PUSH));
-        requestBuilder.setEntity(new InputStreamEntity(testResultReportStream));
+        RequestBuilder requestBuilder = RequestBuilder.post(createRestUri(URI_PUSH_TEST_RESULT_PUSH))
+                .setEntity(new InputStreamEntity(testResultReportStream, ContentType.APPLICATION_XML));
 
         CloseableHttpResponse response = null;
         try {

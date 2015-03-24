@@ -9,8 +9,19 @@ public class MqmConnectionConfig {
     private String password;
     private String proxyHost;
     private Integer proxyPort;
+    private Integer defaultSocketTimeout;
+    private Integer defaultConnectionTimeout;
+    private Integer defaultConnectionRequestTimeout;
 
     public MqmConnectionConfig() {
+    }
+
+    public MqmConnectionConfig(String location, String domain, String project, String username, String password) {
+        this.location = location;
+        this.domain = domain;
+        this.project = project;
+        this.username = username;
+        this.password = password;
     }
 
     public MqmConnectionConfig(String location, String domain, String project, String username, String password, String proxyHost, Integer proxyPort) {
@@ -79,4 +90,27 @@ public class MqmConnectionConfig {
         return proxyPort;
     }
 
+    public Integer getDefaultSocketTimeout() {
+        return defaultSocketTimeout;
+    }
+
+    public void setDefaultSocketTimeout(Integer defaultSocketTimeout) {
+        this.defaultSocketTimeout = defaultSocketTimeout;
+    }
+
+    public Integer getDefaultConnectionTimeout() {
+        return defaultConnectionTimeout;
+    }
+
+    public void setDefaultConnectionTimeout(Integer defaultConnectionTimeout) {
+        this.defaultConnectionTimeout = defaultConnectionTimeout;
+    }
+
+    public Integer getDefaultConnectionRequestTimeout() {
+        return defaultConnectionRequestTimeout;
+    }
+
+    public void setDefaultConnectionRequestTimeout(Integer defaultConnectionRequestTimeout) {
+        this.defaultConnectionRequestTimeout = defaultConnectionRequestTimeout;
+    }
 }

@@ -1,6 +1,8 @@
 package com.hp.mqm.client;
 
+import com.hp.mqm.client.exception.AuthenticationErrorException;
 import com.hp.mqm.client.exception.AuthenticationException;
+import com.hp.mqm.client.exception.InvalidCredentialsException;
 import com.hp.mqm.client.exception.RequestException;
 import org.junit.Assert;
 import org.junit.Test;
@@ -37,7 +39,43 @@ public class MqmRestClientImplTest {
         try {
             client.login();
             fail("Login should failed because of bad credentials.");
-        } catch (AuthenticationException e) {
+        } catch (InvalidCredentialsException e) {
+            Assert.assertNotNull(e);
+        } finally {
+            client.release();
+        }
+
+        // bad location
+        badConnectionConfig = new MqmConnectionConfig(
+                "http://invalidaddress", DOMAIN, PROJECT, USERNAME, "xxxbadxxxpasswordxxx", PROXY_HOST, PROXY_PORT);
+        client = new MqmRestClientImpl(badConnectionConfig);
+        try {
+            client.login();
+            fail("Login should failed because of bad credentials.");
+        } catch (AuthenticationErrorException e) {
+            Assert.assertNotNull(e);
+        }
+    }
+
+    @Test
+    public void testCheckCredentials() {
+        MqmRestClientImpl client = new MqmRestClientImpl(connectionConfig);
+        Assert.assertTrue(client.checkCredentials());
+
+        // bad credentials
+        MqmConnectionConfig badConnectionConfig = new MqmConnectionConfig(
+                LOCATION, DOMAIN, PROJECT, USERNAME, "xxxbadxxxpasswordxxx", PROXY_HOST, PROXY_PORT);
+        client = new MqmRestClientImpl(badConnectionConfig);
+        Assert.assertFalse(client.checkCredentials());
+
+        // bad location
+        badConnectionConfig = new MqmConnectionConfig(
+                "http://invalidaddress", DOMAIN, PROJECT, USERNAME, "xxxbadxxxpasswordxxx", PROXY_HOST, PROXY_PORT);
+        client = new MqmRestClientImpl(badConnectionConfig);
+        try {
+            Assert.assertFalse(client.checkCredentials());
+            fail();
+        } catch (AuthenticationErrorException e) {
             Assert.assertNotNull(e);
         }
     }
@@ -89,8 +127,11 @@ public class MqmRestClientImplTest {
     public void testPostTestResult() throws UnsupportedEncodingException {
         MqmRestClientImpl client = new MqmRestClientImpl(connectionConfig);
         ByteArrayInputStream stream = new ByteArrayInputStream("<testResult></testResult>".getBytes("utf-8"));
-        client.postTestResult(stream);
-        client.release();
+        try {
+            client.postTestResult(stream);
+        } finally {
+            client.release();
+        }
 
         // invalid payload
         stream = new ByteArrayInputStream("<testRResult></testRResult>".getBytes("utf-8"));
@@ -99,7 +140,8 @@ public class MqmRestClientImplTest {
             fail();
         } catch (RequestException e) {
             Assert.assertNotNull(e);
+        } finally {
+            client.release();
         }
-        client.release();
     }
 }
