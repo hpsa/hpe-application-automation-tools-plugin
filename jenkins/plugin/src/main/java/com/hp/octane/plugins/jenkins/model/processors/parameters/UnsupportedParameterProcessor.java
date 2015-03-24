@@ -10,11 +10,7 @@ import hudson.model.ParameterValue;
  */
 
 public class UnsupportedParameterProcessor extends AbstractParametersProcessor {
-	private static final UnsupportedParameterProcessor instance;
-
-	static {
-		instance = new UnsupportedParameterProcessor();
-	}
+	private static final UnsupportedParameterProcessor instance = new UnsupportedParameterProcessor();
 
 	private UnsupportedParameterProcessor() {
 	}

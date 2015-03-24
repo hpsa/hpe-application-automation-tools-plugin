@@ -15,11 +15,7 @@ import java.util.ArrayList;
  */
 
 public class NodeLabelParameterProcessor extends AbstractParametersProcessor {
-	private static final NodeLabelParameterProcessor instance;
-
-	static {
-		instance = new NodeLabelParameterProcessor();
-	}
+	private static final NodeLabelParameterProcessor instance = new NodeLabelParameterProcessor();
 
 	private NodeLabelParameterProcessor() {
 	}

@@ -17,11 +17,7 @@ import java.util.Map;
  */
 
 public class ExtendedChoiceParameterProcessor extends AbstractParametersProcessor {
-	private static final ExtendedChoiceParameterProcessor instance;
-
-	static {
-		instance = new ExtendedChoiceParameterProcessor();
-	}
+	private static final ExtendedChoiceParameterProcessor instance = new ExtendedChoiceParameterProcessor();
 
 	private ExtendedChoiceParameterProcessor() {
 	}

@@ -13,11 +13,7 @@ import hudson.model.ParameterValue;
  */
 
 public class DynamicParameterProcessor extends AbstractParametersProcessor {
-	private static final DynamicParameterProcessor instance;
-
-	static {
-		instance = new DynamicParameterProcessor();
-	}
+	private static final DynamicParameterProcessor instance = new DynamicParameterProcessor();
 
 	private DynamicParameterProcessor() {
 	}

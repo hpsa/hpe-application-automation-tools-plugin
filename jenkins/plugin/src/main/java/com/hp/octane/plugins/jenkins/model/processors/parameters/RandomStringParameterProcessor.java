@@ -13,11 +13,7 @@ import hudson.plugins.random_string_parameter.RandomStringParameterValue;
  */
 
 public class RandomStringParameterProcessor extends AbstractParametersProcessor {
-	private static final RandomStringParameterProcessor instance;
-
-	static {
-		instance = new RandomStringParameterProcessor();
-	}
+	private static final RandomStringParameterProcessor instance = new RandomStringParameterProcessor();
 
 	private RandomStringParameterProcessor() {
 	}

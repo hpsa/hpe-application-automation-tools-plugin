@@ -32,14 +32,14 @@ public abstract class AbstractParametersProcessor {
 
 					//  Plugin driven parameter types
 
+//				} else if (className.startsWith("com.seitenbau.jenkins.plugins.dynamicparameter")) {
+//					processor = DynamicParameterProcessor.getInstance();
 				} else if (className.equals("com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoiceParameterDefinition")) {
 					processor = ExtendedChoiceParameterProcessor.getInstance();
-				} else if (className.startsWith("com.seitenbau.jenkins.plugins.dynamicparameter")) {
-					processor = DynamicParameterProcessor.getInstance();
-				} else if (className.equals("hudson.plugins.random_string_parameter.RandomStringParameterDefinition")) {
-					processor = RandomStringParameterProcessor.getInstance();
 				} else if (className.startsWith("org.jvnet.jenkins.plugins.nodelabelparameter")) {
 					processor = NodeLabelParameterProcessor.getInstance();
+				} else if (className.equals("hudson.plugins.random_string_parameter.RandomStringParameterDefinition")) {
+					processor = RandomStringParameterProcessor.getInstance();
 				} else {
 					processor = UnsupportedParameterProcessor.getInstance();
 				}
