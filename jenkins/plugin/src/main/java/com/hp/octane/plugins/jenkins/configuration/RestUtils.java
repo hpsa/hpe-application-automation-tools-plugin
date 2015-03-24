@@ -41,7 +41,7 @@ public class RestUtils {
 		httpClient.getParams().setParameter(AuthPolicy.AUTH_SCHEME_PRIORITY, authPrefs);
 
 		//  LWSSO login
-		PostMethod post = new PostMethod(url + "/qcbin/authentication-point/alm-authenticate");
+		PostMethod post = new PostMethod(url + "/authentication-point/alm-authenticate");
 		post.setRequestEntity(new StringRequestEntity(
 				"<alm-authentication><user>" + username + "</user><password>" + password + "</password></alm-authentication>",
 				"application/xml",
@@ -53,7 +53,7 @@ public class RestUtils {
 		storeCookies(httpClient.getState().getCookies());
 
 		//  QC Session
-		post = new PostMethod(url + "/qcbin/rest/site-session");
+		post = new PostMethod(url + "/rest/site-session");
 		post.setRequestEntity(new StringRequestEntity(sessionXml, "application/xml", "UTF-8"));
 		applyCookies(httpClient);
 
