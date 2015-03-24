@@ -36,6 +36,7 @@ public class TestPluginActions {
 		assertEquals(projectsList.jobs.length, 0);
 
 		rule.createFreeStyleProject(projectName);
+		projectsList = new PluginActions.ProjectsList(true);
 		assertEquals(projectsList.jobs.length, 1);
 		assertEquals(projectsList.jobs[0].getName(), projectName);
 		assertEquals(projectsList.jobs[0].getParameters().getClass(), ParameterConfig[].class);
@@ -58,6 +59,7 @@ public class TestPluginActions {
 		));
 		fsp.addProperty(params);
 
+		projectsList = new PluginActions.ProjectsList(true);
 		assertEquals(projectsList.jobs.length, 1);
 		assertEquals(projectsList.jobs[0].getName(), projectName);
 		assertEquals(projectsList.jobs[0].getParameters().length, 3);
