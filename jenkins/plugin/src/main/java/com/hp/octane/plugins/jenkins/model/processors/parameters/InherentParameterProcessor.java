@@ -12,11 +12,7 @@ import java.util.ArrayList;
  */
 
 public class InherentParameterProcessor extends AbstractParametersProcessor {
-	private static final InherentParameterProcessor instance;
-
-	static {
-		instance = new InherentParameterProcessor();
-	}
+	private static final InherentParameterProcessor instance = new InherentParameterProcessor();
 
 	private InherentParameterProcessor() {
 	}

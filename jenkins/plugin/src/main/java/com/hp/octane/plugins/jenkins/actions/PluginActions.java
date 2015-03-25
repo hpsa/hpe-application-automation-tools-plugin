@@ -117,7 +117,9 @@ public class PluginActions implements RootAction {
 	@ExportedBean
 	public static final class ProjectsList {
 		@Exported(inline = true)
-		public ProjectConfig[] getJobs() {
+		public ProjectConfig[] jobs;
+
+		public ProjectsList(boolean areParametersNeeded) {
 			ProjectConfig tmpConfig;
 			AbstractProject tmpProject;
 			List<ProjectConfig> list = new ArrayList<ProjectConfig>();
@@ -126,10 +128,12 @@ public class PluginActions implements RootAction {
 				tmpProject = (AbstractProject) Jenkins.getInstance().getItem(name);
 				tmpConfig = new ProjectConfig();
 				tmpConfig.setName(name);
-				tmpConfig.setParameters(AbstractParametersProcessor.getConfigs(tmpProject));
+				if (areParametersNeeded) {
+					tmpConfig.setParameters(AbstractParametersProcessor.getConfigs(tmpProject));
+				}
 				list.add(tmpConfig);
 			}
-			return list.toArray(new ProjectConfig[list.size()]);
+			jobs = list.toArray(new ProjectConfig[list.size()]);
 		}
 	}
 
@@ -150,7 +154,11 @@ public class PluginActions implements RootAction {
 	}
 
 	public void doJobs(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
-		res.serveExposedBean(req, new ProjectsList(), Flavor.JSON);
+		boolean areParametersNeeded = true;
+		if (req.getParameter("parameters") != null && req.getParameter("parameters").toLowerCase().equals("false")) {
+			areParametersNeeded = false;
+		}
+		res.serveExposedBean(req, new ProjectsList(areParametersNeeded), Flavor.JSON);
 	}
 
 	//  TODO: remove once available in core part of the plugin

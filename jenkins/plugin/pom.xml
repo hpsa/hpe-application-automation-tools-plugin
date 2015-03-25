@@ -15,15 +15,6 @@
 
 	<dependencies>
 
-		<!--Dev-->
-
-		<dependency>
-			<groupId>org.jenkins-ci.modules</groupId>
-			<artifactId>instance-identity</artifactId>
-			<version>1.4</version>
-			<scope>provided</scope>
-		</dependency>
-
 		<!--Extensibility-->
 
 		<dependency>
@@ -89,6 +80,7 @@
         </dependency>
 
 		<!--Internals-->
+        
         <dependency>
             <groupId>com.hp.mqm</groupId>
             <artifactId>mqm-rest-client</artifactId>
@@ -113,6 +105,7 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
             <version>1.10.19</version>
+	        <scope>test</scope>
         </dependency>
 	</dependencies>
 
@@ -140,7 +133,7 @@
 		<snapshotRepository>
 			<id>mqm-snapshots</id>
 			<name>Snapshot repository</name>
-			<url>http://mydtbld0011.isr.hp.com:8081/nexus/content/repositories/mqm-snapshots</url>
+			<url>http://mydtbld0051.isr.hp.com:8081/nexus/content/repositories/mqm-snapshots</url>
 		</snapshotRepository>
 	</distributionManagement>
 

@@ -53,8 +53,13 @@ public class TestDispatcher extends AsyncPeriodicWork {
             return;
         }
 
-        logger.info("There are pending test results, connecting to the MQM server");
         ServerConfiguration configuration = ConfigurationService.getServerConfiguration();
+        if (StringUtils.isEmpty(configuration.location)) {
+            logger.warning("There are pending test results, but MQM server location is not specified, results can't be submitted");
+            return;
+        }
+
+        logger.info("There are pending test results, connecting to the MQM server");
         MqmRestClient client = clientFactory.create(
                 configuration.location,
                 configuration.domain,

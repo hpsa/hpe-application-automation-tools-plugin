@@ -25,9 +25,6 @@ public class ConfigurationServiceTest {
     private MqmRestClientFactory clientFactory;
     private MqmRestClient client;
 
-    // NOTE: prefix should be mqm - bug in Jenkins test harness?
-    private static final String formPrefix = "_";
-
     @Before
     public void init() throws Exception {
         client = Mockito.mock(MqmRestClient.class);
@@ -38,11 +35,11 @@ public class ConfigurationServiceTest {
         HtmlPage configPage = rule.createWebClient().goTo("configure");
         HtmlForm form = configPage.getFormByName("config");
 
-        form.getInputByName(formPrefix + ".location").setValueAttribute("http://localhost:8008/");
-        form.getInputByName(formPrefix + ".domain").setValueAttribute("domain");
-        form.getInputByName(formPrefix + ".project").setValueAttribute("project");
-        form.getInputByName(formPrefix + ".username").setValueAttribute("username");
-        form.getInputByName(formPrefix + ".password").setValueAttribute("password");
+        form.getInputByName("_.location").setValueAttribute("http://localhost:8008/");
+        form.getInputByName("_.domain").setValueAttribute("domain");
+        form.getInputByName("_.project").setValueAttribute("project");
+        form.getInputByName("_.username").setValueAttribute("username");
+        form.getInputByName("_.password").setValueAttribute("password");
         rule.submit(form);
     }
 
@@ -62,12 +59,12 @@ public class ConfigurationServiceTest {
         HtmlForm formIn = webClient.goTo("configure").getFormByName("config");
         rule.submit(formIn);
         HtmlForm formOut = webClient.goTo("configure").getFormByName("config");
-        Assert.assertEquals(formIn.getInputByName(formPrefix + ".location").getValueAttribute(), formOut.getInputByName(formPrefix + ".location").getValueAttribute());
-        Assert.assertEquals(formIn.getInputByName(formPrefix + ".domain").getValueAttribute(), formOut.getInputByName(formPrefix + ".domain").getValueAttribute());
-        Assert.assertEquals(formIn.getInputByName(formPrefix + ".project").getValueAttribute(), formOut.getInputByName(formPrefix + ".project").getValueAttribute());
-        Assert.assertEquals(formIn.getInputByName(formPrefix + ".username").getValueAttribute(), formOut.getInputByName(formPrefix + ".username").getValueAttribute());
+        Assert.assertEquals(formIn.getInputByName("_.location").getValueAttribute(), formOut.getInputByName("_.location").getValueAttribute());
+        Assert.assertEquals(formIn.getInputByName("_.domain").getValueAttribute(), formOut.getInputByName("_.domain").getValueAttribute());
+        Assert.assertEquals(formIn.getInputByName("_.project").getValueAttribute(), formOut.getInputByName("_.project").getValueAttribute());
+        Assert.assertEquals(formIn.getInputByName("_.username").getValueAttribute(), formOut.getInputByName("_.username").getValueAttribute());
         // NOTE: password is actually empty (bug or security feature?)
-        Assert.assertEquals(formIn.getInputByName(formPrefix + ".password").getValueAttribute(), formOut.getInputByName(formPrefix + ".password").getValueAttribute());
+        Assert.assertEquals(formIn.getInputByName("_.password").getValueAttribute(), formOut.getInputByName("_.password").getValueAttribute());
     }
 
     @Test
