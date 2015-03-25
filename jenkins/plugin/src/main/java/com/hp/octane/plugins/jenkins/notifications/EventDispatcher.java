@@ -131,7 +131,7 @@ public final class EventDispatcher {
 		}
 
 		private String buildUrl() {
-			return "/rest/domains/" + domain + "/projects/" + project + "/cia/events";
+			return "/api/domains/" + domain + "/projects/" + project + "/cia/events";
 		}
 	}
 
