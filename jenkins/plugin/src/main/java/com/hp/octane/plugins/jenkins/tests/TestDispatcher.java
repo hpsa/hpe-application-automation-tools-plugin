@@ -76,12 +76,15 @@ public class TestDispatcher extends AsyncPeriodicWork {
         } catch (InvalidCredentialsException e) {
             logger.log(Level.WARNING, "Could not authenticate because of invalid credentials, pending test results can't be submitted", e);
             retryModel.failure();
+            return;
         } catch (RequestException e) {
-            logger.log(Level.WARNING, "Problem with communication with MQM server, Pending test results can't be submitted", e);
+            logger.log(Level.WARNING, "Problem with communication with MQM server. Pending test results can't be submitted", e);
             retryModel.failure();
+            return;
         } catch (RequestErrorException e) {
             logger.log(Level.WARNING, "Connection problem, pending test results can't be submitted", e);
             retryModel.failure();
+            return;
         }
 
         retryModel.success();

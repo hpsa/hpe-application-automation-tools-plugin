@@ -2,11 +2,11 @@
 
 package com.hp.octane.plugins.jenkins.tests;
 
+import com.gargoylesoftware.htmlunit.html.HtmlForm;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.AuthenticationException;
 import com.hp.mqm.client.exception.InvalidCredentialsException;
-import com.gargoylesoftware.htmlunit.html.HtmlForm;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.hp.octane.plugins.jenkins.ExtensionUtil;
 import com.hp.octane.plugins.jenkins.client.MqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
@@ -207,12 +207,14 @@ public class TestDispatcherTest {
         Mockito.reset(restClient);
         if (!login) {
             Mockito.when(restClient.checkDomainAndProject()).thenThrow(new InvalidCredentialsException());
-        } else if (session) {
+        } else if (!session) {
             Mockito.when(restClient.checkDomainAndProject()).thenThrow(new AuthenticationException());
         } else {
-            Mockito.when(restClient.checkCredentials()).thenReturn(login);
+            Mockito.when(restClient.checkDomainAndProject()).thenReturn(project);
+            if (project) {
+                Mockito.doNothing().when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()));
+            }
         }
-        Mockito.doNothing().when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()));
     }
 
     private void verifyRestClient(MqmRestClient restClient, AbstractBuild build, boolean session, boolean project, boolean body) throws IOException {
