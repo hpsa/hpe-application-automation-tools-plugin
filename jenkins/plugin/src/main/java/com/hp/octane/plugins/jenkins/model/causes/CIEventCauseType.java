@@ -7,6 +7,7 @@ package com.hp.octane.plugins.jenkins.model.causes;
  * Time: 13:07
  * To change this template use File | Settings | File Templates.
  */
+
 public enum CIEventCauseType {
 	SCM("scm"),
 	USER("user"),
@@ -24,13 +25,11 @@ public enum CIEventCauseType {
 	}
 
 	public static CIEventCauseType getByValue(String value) {
-		CIEventCauseType r = null;
 		for (CIEventCauseType v : values()) {
 			if (v.value.equals(value)) {
-				r = v;
-				break;
+				return v;
 			}
 		}
-		return r;
+		throw new RuntimeException("No CIEventCauseType matches '" + value + "'");
 	}
 }

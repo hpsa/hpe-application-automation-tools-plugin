@@ -17,7 +17,7 @@ import java.util.ArrayList;
 public class SCMCommit {
 
 	@ExportedBean
-	public class User {
+	public static class User {
 		private String nickName;
 		private String fullName;
 		private String email;
@@ -45,7 +45,7 @@ public class SCMCommit {
 	}
 
 	@ExportedBean
-	public class Change {
+	public static class Change {
 		private String type;
 		private String file;
 

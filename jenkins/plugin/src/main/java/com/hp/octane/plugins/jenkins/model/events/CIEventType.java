@@ -25,13 +25,11 @@ public enum CIEventType {
 	}
 
 	public static CIEventType getByValue(String value) {
-		CIEventType r = null;
 		for (CIEventType v : values()) {
 			if (v.value.equals(value)) {
-				r = v;
-				break;
+				return v;
 			}
 		}
-		return r;
+		throw new RuntimeException("No CIEventType matches '" + value + "'");
 	}
 }

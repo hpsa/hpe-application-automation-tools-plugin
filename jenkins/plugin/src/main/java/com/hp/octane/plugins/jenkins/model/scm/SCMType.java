@@ -24,13 +24,11 @@ public enum SCMType {
 	}
 
 	public static SCMType getByValue(String value) {
-		SCMType r = null;
 		for (SCMType i : values()) {
 			if (i.value.equals(value)) {
-				r = i;
-				break;
+				return i;
 			}
 		}
-		return r;
+		throw new RuntimeException("No SCMType matches '" + value + "'");
 	}
 }

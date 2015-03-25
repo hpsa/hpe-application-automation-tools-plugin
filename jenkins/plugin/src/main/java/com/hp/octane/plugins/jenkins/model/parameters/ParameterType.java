@@ -28,13 +28,11 @@ public enum ParameterType {
 	}
 
 	public static ParameterType getByValue(String value) {
-		ParameterType r = null;
 		for (ParameterType i : values()) {
 			if (i.value.equals(value)) {
-				r = i;
-				break;
+				return i;
 			}
 		}
-		return r;
+		throw new RuntimeException("No ParameterType matches '" + value + "'");
 	}
 }

@@ -27,13 +27,11 @@ public enum SnapshotResult {
 	}
 
 	public static SnapshotResult getByValue(String value) {
-		SnapshotResult r = null;
 		for (SnapshotResult i : values()) {
 			if (i.value.equals(value)) {
-				r = i;
-				break;
+				return i;
 			}
 		}
-		return r;
+		throw new RuntimeException("No SnapshotResult matches '" + value + "'");
 	}
 }
