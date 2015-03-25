@@ -3,9 +3,11 @@
 package com.hp.octane.plugins.jenkins.configuration;
 
 import com.google.inject.Inject;
+import com.hp.mqm.client.MqmRestClient;
+import com.hp.mqm.client.exception.RequestErrorException;
+import com.hp.mqm.client.exception.RequestException;
 import com.hp.octane.plugins.jenkins.Messages;
 import com.hp.octane.plugins.jenkins.OctanePlugin;
-import com.hp.octane.plugins.jenkins.client.MqmRestClient;
 import com.hp.octane.plugins.jenkins.client.MqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.MqmRestClientFactoryImpl;
 import hudson.Extension;
@@ -24,11 +26,14 @@ public class ConfigurationService {
 
     public FormValidation checkConfiguration(String location, String domain, String project, String username, String password) {
         MqmRestClient client = clientFactory.create(location, domain, project, username, password);
-        if (!client.login()) {
+        try {
+            if (!client.checkCredentials()) {
+                return FormValidation.errorWithMarkup(markup("red", Messages.InvalidCredentials()));
+            }
+        } catch (RequestException e) {
+            return FormValidation.errorWithMarkup(markup("red", Messages.CommunicationProblem()));
+        } catch (RequestErrorException e) {
             return FormValidation.errorWithMarkup(markup("red", Messages.ConnectionFailure()));
-        }
-        if (!client.createSession()) {
-            return FormValidation.errorWithMarkup(markup("red", Messages.ConnectionSessionFailure()));
         }
         if (!client.checkDomainAndProject()) {
             return FormValidation.errorWithMarkup(markup("red", Messages.ConnectionDomainProjectInvalid()));

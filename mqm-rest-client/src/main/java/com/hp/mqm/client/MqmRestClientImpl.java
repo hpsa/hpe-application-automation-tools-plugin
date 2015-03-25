@@ -1,5 +1,6 @@
 package com.hp.mqm.client;
 
+import com.hp.mqm.client.exception.FileNotFoundException;
 import com.hp.mqm.client.exception.InvalidCredentialsException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
@@ -11,6 +12,8 @@ import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.InputStreamEntity;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -74,5 +77,16 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
             HttpClientUtils.closeQuietly(response);
             IOUtils.closeQuietly(testResultReportStream);
         }
+    }
+
+    @Override
+    public void postTestResult(File testResultReport) {
+        FileInputStream inputStream = null;
+        try {
+            inputStream = new FileInputStream(testResultReport);
+        } catch (java.io.FileNotFoundException e) {
+            throw new FileNotFoundException("Cannot find test result file " + testResultReport.getPath() + ".",e);
+        }
+        postTestResult(inputStream);
     }
 }

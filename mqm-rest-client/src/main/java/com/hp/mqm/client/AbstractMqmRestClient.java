@@ -7,6 +7,10 @@ import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.Credentials;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -16,6 +20,7 @@ import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.jdom.Document;
@@ -60,6 +65,7 @@ public abstract class AbstractMqmRestClient {
         this.password = connectionConfig.getPassword();
 
         RequestConfig.Builder requestConfigBuilder = RequestConfig.custom();
+        // default timeouts
         if (connectionConfig.getDefaultConnectionRequestTimeout() != null) {
             requestConfigBuilder.setConnectionRequestTimeout(connectionConfig.getDefaultConnectionRequestTimeout());
         }
@@ -69,10 +75,29 @@ public abstract class AbstractMqmRestClient {
                 connectionConfig.getDefaultSocketTimeout() : DEFAULT_SO_TIMEOUT);
 
         HttpClientBuilder clientBuilder = HttpClientBuilder.create().setDefaultRequestConfig(requestConfigBuilder.build());
+        // proxy setting
         if (connectionConfig.getProxyHost() != null && !connectionConfig.getProxyHost().isEmpty()) {
             clientBuilder.setProxy(new HttpHost(connectionConfig.getProxyHost(), connectionConfig.getProxyPort()));
+
+            if (connectionConfig.getProxyCredentials() != null) {
+                AuthScope proxyAuthScope = new AuthScope(connectionConfig.getProxyHost(), connectionConfig.getProxyPort());
+                Credentials credentials = proxyCredentialsToCredentials(connectionConfig.getProxyCredentials());
+                CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+                credentialsProvider.setCredentials(proxyAuthScope, credentials);
+                clientBuilder.setDefaultCredentialsProvider(credentialsProvider);
+            }
         }
+
         httpClient = clientBuilder.build();
+    }
+
+    private Credentials proxyCredentialsToCredentials(ProxyCredentials credentials) {
+        if (credentials instanceof UsernamePasswordProxyCredentials) {
+            return new UsernamePasswordCredentials(((UsernamePasswordProxyCredentials) credentials).getUsername(),
+                    ((UsernamePasswordProxyCredentials) credentials).getPassword());
+        } else {
+            throw new IllegalStateException("Unsupported proxy credentials type " + credentials.getClass().getName());
+        }
     }
 
     /**
@@ -118,7 +143,7 @@ public abstract class AbstractMqmRestClient {
                 throw new AuthenticationException("Authentication failed: code=" + response.getStatusLine().getStatusCode() + "; reason=" + response.getStatusLine().getReasonPhrase());
             }
         } catch (IOException e) {
-            throw new AuthenticationErrorException("Error occurs during authentication", e); // TODO specific exception
+            throw new AuthenticationErrorException("Error occurs during authentication", e);
         } finally {
             HttpClientUtils.closeQuietly(response);
         }
@@ -132,11 +157,10 @@ public abstract class AbstractMqmRestClient {
         try {
             response = httpClient.execute(requestBuilder.build());
             if (response.getStatusLine().getStatusCode() != 201) {
-                String errorMessage = "Session creation failed: code=" + response.getStatusLine().getStatusCode() + "; reason=" + response.getStatusLine().getReasonPhrase();
-                throw new IllegalStateException(errorMessage); // TODO specific exception
+                throw new AuthenticationException("Session creation failed: code=" + response.getStatusLine().getStatusCode() + "; reason=" + response.getStatusLine().getReasonPhrase());
             }
         } catch (IOException e) {
-            throw new IllegalStateException("Session creation failed", e); // TODO specific exception
+            throw new AuthenticationErrorException("Session creation failed", e);
         } finally {
             HttpClientUtils.closeQuietly(response);
         }

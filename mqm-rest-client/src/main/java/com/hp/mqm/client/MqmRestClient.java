@@ -1,5 +1,6 @@
 package com.hp.mqm.client;
 
+import java.io.File;
 import java.io.InputStream;
 
 /**
@@ -13,6 +14,9 @@ import java.io.InputStream;
  * <p>
  * Because client cares about login automatically all methods except {@link #release()} can throw:
  * <ul>
+ *   <li>
+ *      {@link com.hp.mqm.client.exception.InvalidCredentialsException} for invalid credentials
+ *  </li>
  *   <li>
  *      {@link com.hp.mqm.client.exception.AuthenticationException} in case authentication failed and
  *  </li>
@@ -40,11 +44,20 @@ public interface MqmRestClient {
 
     /**
      * Posts test results to MQM. Test results can be large data and therefore be aware to keep it in memory.
-     * Also divide extra large test results to smaller parts which will be posted individually
+     * Also divide extra large test results into smaller parts which will be posted individually
      * (multiple invocation of this method) to avoid HTTP request timeout.
+     * <p/>
+     * InputStream is automatically closed after all data are read.
      * @param testResultReportStream input stream with test results in MQM XML format.
      */
     void postTestResult(InputStream testResultReportStream);
+
+    /**
+     * Posts test results to MQM. Divide extra large test results into smaller files which will be posted individually
+     * (multiple invocation of this method) to avoid HTTP request timeout.
+     * @param  testResultReport XML file with test reports
+     */
+    void postTestResult(File testResultReport);
 
     /**
      * This method should be called when client is not needed. It performs logout and releases all system resources if it is necessary.

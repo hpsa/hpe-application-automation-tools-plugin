@@ -4,8 +4,9 @@ package com.hp.octane.plugins.jenkins.configuration;
 
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.hp.mqm.client.MqmRestClient;
 import com.hp.octane.plugins.jenkins.ExtensionUtil;
-import com.hp.octane.plugins.jenkins.client.MqmRestClient;
+import com.hp.octane.plugins.jenkins.Messages;
 import com.hp.octane.plugins.jenkins.client.MqmRestClientFactory;
 import hudson.util.FormValidation;
 import org.junit.Assert;
@@ -74,28 +75,20 @@ public class ConfigurationServiceTest {
     public void testCheckConfiguration() {
         Mockito.when(clientFactory.create("http://localhost:8088/", "domain1", "project1", "username1", "password1")).thenReturn(client);
 
-        Mockito.when(client.login()).thenReturn(true);
-        Mockito.when(client.createSession()).thenReturn(true);
+        Mockito.when(client.checkCredentials()).thenReturn(true);
         Mockito.when(client.checkDomainAndProject()).thenReturn(true);
 
         FormValidation validation = configurationService.checkConfiguration("http://localhost:8088/", "domain1", "project1", "username1", "password1");
         Assert.assertEquals(FormValidation.Kind.OK, validation.kind);
         Assert.assertTrue(validation.getMessage().contains("Connection successful"));
 
-        Mockito.when(client.login()).thenReturn(false);
+        Mockito.when(client.checkCredentials()).thenReturn(false);
 
         validation = configurationService.checkConfiguration("http://localhost:8088/", "domain1", "project1", "username1", "password1");
         Assert.assertEquals(FormValidation.Kind.ERROR, validation.kind);
-        Assert.assertTrue(validation.getMessage().contains("Unable to connect, check server location and user credentials"));
+        Assert.assertTrue(validation.getMessage().contains(Messages.InvalidCredentials()));
 
-        Mockito.when(client.login()).thenReturn(true);
-        Mockito.when(client.createSession()).thenReturn(false);
-
-        validation = configurationService.checkConfiguration("http://localhost:8088/", "domain1", "project1", "username1", "password1");
-        Assert.assertEquals(FormValidation.Kind.ERROR, validation.kind);
-        Assert.assertTrue(validation.getMessage().contains("Unable to connect, session creation failed"));
-
-        Mockito.when(client.createSession()).thenReturn(true);
+        Mockito.when(client.checkCredentials()).thenReturn(true);
         Mockito.when(client.checkDomainAndProject()).thenReturn(false);
 
         validation = configurationService.checkConfiguration("http://localhost:8088/", "domain1", "project1", "username1", "password1");

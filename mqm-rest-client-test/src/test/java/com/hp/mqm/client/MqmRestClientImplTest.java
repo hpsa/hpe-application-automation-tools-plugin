@@ -14,13 +14,13 @@ import static org.junit.Assert.fail;
 
 public class MqmRestClientImplTest {
 
-    private static final String LOCATION = "http://localhost:8080/qcbin";
-    private static final String DOMAIN = "DEFAULT";
-    private static final String PROJECT = "new28";
-    private static final String USERNAME = "admin";
-    private static final String PASSWORD = "changeit";
-    private static final String PROXY_HOST = null;
-    private static final Integer PROXY_PORT = null;
+    private static final String LOCATION = ConnectionProperties.getLocation();
+    private static final String DOMAIN = ConnectionProperties.getDomain();
+    private static final String PROJECT = ConnectionProperties.getProject();
+    private static final String USERNAME = ConnectionProperties.getUsername();
+    private static final String PASSWORD = ConnectionProperties.getPassword();
+    private static final String PROXY_HOST = ConnectionProperties.getProxyHost();
+    private static final Integer PROXY_PORT = ConnectionProperties.getProxyPort();
 
     public static final MqmConnectionConfig connectionConfig = new MqmConnectionConfig(
             LOCATION, DOMAIN, PROJECT, USERNAME, PASSWORD, PROXY_HOST, PROXY_PORT

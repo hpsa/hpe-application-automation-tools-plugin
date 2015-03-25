@@ -3,10 +3,14 @@
 package com.hp.octane.plugins.jenkins.tests;
 
 import com.google.inject.Inject;
+import com.hp.mqm.client.MqmRestClient;
+import com.hp.mqm.client.exception.FileNotFoundException;
+import com.hp.mqm.client.exception.InvalidCredentialsException;
+import com.hp.mqm.client.exception.RequestErrorException;
+import com.hp.mqm.client.exception.RequestException;
 import com.hp.octane.plugins.jenkins.client.MqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.MqmRestClientFactoryImpl;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
-import com.hp.octane.plugins.jenkins.client.MqmRestClient;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationService;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import hudson.Extension;
@@ -27,8 +31,6 @@ import java.util.logging.Logger;
 public class TestDispatcher extends AsyncPeriodicWork {
 
     private static Logger logger = Logger.getLogger(TestDispatcher.class.getName());
-
-    private static final String TEST_RESULT_PUSH_ENDPOINT = "/tb/build-push";
 
     @Inject
     private RetryModel retryModel;
@@ -59,53 +61,56 @@ public class TestDispatcher extends AsyncPeriodicWork {
                 configuration.project,
                 configuration.username,
                 configuration.password);
-        if (!client.login()) {
-            logger.warning("Could not authenticate, pending test results can't be submitted");
+
+        try {
+            if (!client.checkDomainAndProject()) {
+                logger.warning("Invalid domain, project. Pending test results can't be submitted");
+                retryModel.failure();
+                return;
+            }
+        } catch (InvalidCredentialsException e) {
+            logger.log(Level.WARNING, "Could not authenticate because of invalid credentials, pending test results can't be submitted", e);
             retryModel.failure();
-            return;
-        }
-        if (!client.createSession()) {
-            logger.warning("Could not create session, pending test results can't be submitted");
+        } catch (RequestException e) {
+            logger.log(Level.WARNING, "Problem with communication with MQM server, Pending test results can't be submitted", e);
             retryModel.failure();
-            return;
-        }
-        if (!client.checkDomainAndProject()) {
-            logger.warning("Could not validate domain and project, pending test results can't be submitted");
+        } catch (RequestErrorException e) {
+            logger.log(Level.WARNING, "Connection problem, pending test results can't be submitted", e);
             retryModel.failure();
-            return;
         }
+
         retryModel.success();
 
         while (!queue.isEmpty()) {
             TestResultQueue.QueueItem item = queue.removeFirst();
             AbstractProject project = (AbstractProject) Jenkins.getInstance().getItem(item.projectName);
             if (project == null) {
-                logger.warning("Project [" +  item.projectName + "] no longer exists, pending test results can't be submitted");
+                logger.warning("Project [" + item.projectName + "] no longer exists, pending test results can't be submitted");
                 return;
             }
 
             AbstractBuild build = project.getBuildByNumber(item.buildNumber);
             if (build == null) {
-                logger.warning("Build [" + item.projectName + "#" + item.buildNumber  + "] no longer exists, pending test results can't be submitted");
+                logger.warning("Build [" + item.projectName + "#" + item.buildNumber + "] no longer exists, pending test results can't be submitted");
                 return;
             }
-
-            if (!pushTestResults(client, build)) {
-                // TODO: janotav: try again later
+            try {
+                if (!pushTestResults(client, build)) {
+                    // TODO: janotav: try again later
+                }
+            } catch (FileNotFoundException e) {
+                logger.log(Level.WARNING, "Failed to submit test results [" + build.getProject().getName() + "#" + build.getNumber() + "]", e);
             }
         }
+
     }
 
     private boolean pushTestResults(MqmRestClient client, AbstractBuild build) {
         File resultFile = new File(build.getRootDir(), TestListener.TEST_RESULT_FILE);
         try {
-            int code = client.post(TEST_RESULT_PUSH_ENDPOINT, resultFile, "application/xml");
-            if (code != 201) {
-                logger.log(Level.WARNING, "Failed to submit test results [" + build.getProject().getName() + "#" + build.getNumber()  + "]: code=" + code);
-                return false;
-            }
-        } catch (IOException e) {
-            logger.log(Level.WARNING, "Failed to submit test results [" + build.getProject().getName() + "#" + build.getNumber()  + "]", e);
+            client.postTestResult(resultFile);
+        } catch (RequestException e) {
+            logger.log(Level.WARNING, "Failed to submit test results [" + build.getProject().getName() + "#" + build.getNumber() + "]", e);
             return false;
         }
         return true;

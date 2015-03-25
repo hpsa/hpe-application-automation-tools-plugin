@@ -9,6 +9,7 @@ public class MqmConnectionConfig {
     private String password;
     private String proxyHost;
     private Integer proxyPort;
+    private ProxyCredentials proxyCredentials;
     private Integer defaultSocketTimeout;
     private Integer defaultConnectionTimeout;
     private Integer defaultConnectionRequestTimeout;
@@ -112,5 +113,13 @@ public class MqmConnectionConfig {
 
     public void setDefaultConnectionRequestTimeout(Integer defaultConnectionRequestTimeout) {
         this.defaultConnectionRequestTimeout = defaultConnectionRequestTimeout;
+    }
+
+    public ProxyCredentials getProxyCredentials() {
+        return proxyCredentials;
+    }
+
+    public void setProxyCredentials(ProxyCredentials proxyCredentials) {
+        this.proxyCredentials = proxyCredentials;
     }
 }

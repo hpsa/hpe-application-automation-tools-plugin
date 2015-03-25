@@ -2,8 +2,10 @@
 
 package com.hp.octane.plugins.jenkins.tests;
 
+import com.hp.mqm.client.MqmRestClient;
+import com.hp.mqm.client.exception.AuthenticationException;
+import com.hp.mqm.client.exception.InvalidCredentialsException;
 import com.hp.octane.plugins.jenkins.ExtensionUtil;
-import com.hp.octane.plugins.jenkins.client.MqmRestClient;
 import com.hp.octane.plugins.jenkins.client.MqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
 import hudson.model.AbstractBuild;
@@ -69,12 +71,12 @@ public class TestDispatcherTest {
 
     @Test
     public void testDispatcher() throws Exception {
-        mockRestClient(restClient, true, true, true, 201);
+        mockRestClient(restClient, true, true, true);
         FreeStyleBuild build = executeBuild();
         waitForTicks(5);
         verifyRestClient(restClient, build, true, true, true);
 
-        mockRestClient(restClient, true, true, true, 201);
+        mockRestClient(restClient, true, true, true);
         FreeStyleBuild build2 = executeBuild();
         waitForTicks(5);
         verifyRestClient(restClient, build2, true, true, true);
@@ -83,26 +85,24 @@ public class TestDispatcherTest {
 
     @Test
     public void testDispatcherBatch() throws Exception {
-        mockRestClient(restClient, true, true, true, 201);
+        mockRestClient(restClient, true, true, true);
         FreeStyleBuild build = project.scheduleBuild2(0).get();
         FreeStyleBuild build2 = project.scheduleBuild2(0).get();
         FreeStyleBuild build3 = project.scheduleBuild2(0).get();
         queue.add(Arrays.asList(build, build2, build3));
         waitForTicks(10);
 
-        Mockito.verify(restClient).login();
-        Mockito.verify(restClient).createSession();
         Mockito.verify(restClient).checkDomainAndProject();
-        Mockito.verify(restClient).post("/tb/build-push", new File(build.getRootDir(), "mqmTests.xml"), "application/xml");
-        Mockito.verify(restClient).post("/tb/build-push", new File(build2.getRootDir(), "mqmTests.xml"), "application/xml");
-        Mockito.verify(restClient).post("/tb/build-push", new File(build3.getRootDir(), "mqmTests.xml"), "application/xml");
+        Mockito.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
+        Mockito.verify(restClient).postTestResult(new File(build2.getRootDir(), "mqmTests.xml"));
+        Mockito.verify(restClient).postTestResult(new File(build3.getRootDir(), "mqmTests.xml"));
         Mockito.verifyNoMoreInteractions(restClient);
         Assert.assertEquals(0, queue.size());
     }
 
     @Test
     public void testDispatcherLoginFailure() throws Exception {
-        mockRestClient(restClient, false, true, true, 201);
+        mockRestClient(restClient, false, true, true);
         FreeStyleBuild build = executeBuild();
         waitForTicks(5);
 
@@ -119,7 +119,7 @@ public class TestDispatcherTest {
 
     @Test
     public void testDispatcherSessionFailure() throws Exception {
-        mockRestClient(restClient, true, false, true, 201);
+        mockRestClient(restClient, true, false, true);
         FreeStyleBuild build = executeBuild();
         waitForTicks(5);
 
@@ -136,7 +136,7 @@ public class TestDispatcherTest {
 
     @Test
     public void testDispatcherProjectFailure() throws Exception {
-        mockRestClient(restClient, true, true, false, 201);
+        mockRestClient(restClient, true, true, false);
         FreeStyleBuild build = executeBuild();
         waitForTicks(5);
 
@@ -153,12 +153,12 @@ public class TestDispatcherTest {
 
     @Test
     public void testDispatcherBodyFailure() throws Exception {
-        mockRestClient(restClient, true, true, true, 500);
+        mockRestClient(restClient, true, true, true);
         FreeStyleBuild build = executeBuild();
         waitForTicks(5);
 
         verifyRestClient(restClient, build, true, true, true);
-        mockRestClient(restClient, true, true, true, 201);
+        mockRestClient(restClient, true, true, true);
         FreeStyleBuild build2 = executeBuild();
         waitForTicks(5);
 
@@ -190,24 +190,22 @@ public class TestDispatcherTest {
         return build;
     }
 
-    private void mockRestClient(MqmRestClient restClient, boolean login, boolean session, boolean project, int code) throws IOException {
+    private void mockRestClient(MqmRestClient restClient, boolean login, boolean session, boolean project) throws IOException {
         Mockito.reset(restClient);
-        Mockito.when(restClient.login()).thenReturn(login);
-        Mockito.when(restClient.createSession()).thenReturn(session);
-        Mockito.when(restClient.checkDomainAndProject()).thenReturn(project);
-        Mockito.when(restClient.post(Mockito.eq("/tb/build-push"), Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq("application/xml"))).thenReturn(code);
+        if (!login) {
+            Mockito.when(restClient.checkDomainAndProject()).thenThrow(new InvalidCredentialsException());
+        } else if (session) {
+            Mockito.when(restClient.checkDomainAndProject()).thenThrow(new AuthenticationException());
+        } else {
+            Mockito.when(restClient.checkCredentials()).thenReturn(login);
+        }
+        Mockito.doNothing().when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()));
     }
 
     private void verifyRestClient(MqmRestClient restClient, AbstractBuild build, boolean session, boolean project, boolean body) throws IOException {
-        Mockito.verify(restClient).login();
-        if (session) {
-            Mockito.verify(restClient).createSession();
-        }
-        if (project) {
-            Mockito.verify(restClient).checkDomainAndProject();
-        }
+        Mockito.verify(restClient).checkDomainAndProject();
         if (body) {
-            Mockito.verify(restClient).post("/tb/build-push", new File(build.getRootDir(), "mqmTests.xml"), "application/xml");
+            Mockito.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
         }
         Mockito.verifyNoMoreInteractions(restClient);
     }
