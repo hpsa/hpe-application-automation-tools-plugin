@@ -27,7 +27,7 @@ public abstract class AbstractMavenModuleDetection implements ModuleDetection {
     public String getModule(FilePath resultFile) throws IOException, InterruptedException {
         for (FilePath pomDir: pomDirs) {
             if (childOf(pomDir, resultFile)) {
-                return locatePom(resultFile, pomDir);
+                return normalize(locatePom(resultFile, pomDir));
             }
         }
         // unable to determine module
@@ -59,11 +59,15 @@ public abstract class AbstractMavenModuleDetection implements ModuleDetection {
             FilePath pomPath = new FilePath(parentPath, "pom.xml");
             if (pomPath.exists()) {
                 // we found a nested pom directory
-                return parentPath.getRemote().substring(rootDir.getRemote().length());
+                return parentPath.getRemote().substring(rootDir.getRemote().length() + 1);
             }
             filePath = parentPath;
         }
         // no other pom found in nested directories
-        return pomDir.getRemote().substring(rootDir.getRemote().length());
+        return pomDir.getRemote().substring(rootDir.getRemote().length() + 1);
+    }
+
+    private String normalize(String path) {
+        return path.replace("\\", "/");
     }
 }

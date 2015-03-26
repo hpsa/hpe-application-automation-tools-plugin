@@ -23,14 +23,20 @@ public class JUnitResultsTest {
 
     private static Set<String> helloWorldTests = new HashSet<String>();
     static {
-        helloWorldTests.add(test("/helloWorld", "hello", "HelloWorldTest", "testOne", TestResultStatus.PASSED));
-        helloWorldTests.add(test("/helloWorld", "hello", "HelloWorldTest", "testTwo", TestResultStatus.FAILED));
-        helloWorldTests.add(test("/helloWorld", "hello", "HelloWorldTest", "testThree", TestResultStatus.SKIPPED));
+        helloWorldTests.add(test("helloWorld", "hello", "HelloWorldTest", "testOne", TestResultStatus.PASSED));
+        helloWorldTests.add(test("helloWorld", "hello", "HelloWorldTest", "testTwo", TestResultStatus.FAILED));
+        helloWorldTests.add(test("helloWorld", "hello", "HelloWorldTest", "testThree", TestResultStatus.SKIPPED));
     }
     private static Set<String> helloWorld2Tests = new HashSet<String>();
     static {
-        helloWorld2Tests.add(test("/helloWorld2", "hello", "HelloWorld2Test", "testOnce", TestResultStatus.PASSED));
-        helloWorld2Tests.add(test("/helloWorld2", "hello", "HelloWorld2Test", "testDoce", TestResultStatus.PASSED));
+        helloWorld2Tests.add(test("helloWorld2", "hello", "HelloWorld2Test", "testOnce", TestResultStatus.PASSED));
+        helloWorld2Tests.add(test("helloWorld2", "hello", "HelloWorld2Test", "testDoce", TestResultStatus.PASSED));
+    }
+    private static Set<String> subFolderHelloWorldTests = new HashSet<String>();
+    static {
+        subFolderHelloWorldTests.add(test("subFolder/helloWorld", "hello", "HelloWorldTest", "testOne", TestResultStatus.PASSED));
+        subFolderHelloWorldTests.add(test("subFolder/helloWorld", "hello", "HelloWorldTest", "testTwo", TestResultStatus.FAILED));
+        subFolderHelloWorldTests.add(test("subFolder/helloWorld", "hello", "HelloWorldTest", "testThree", TestResultStatus.SKIPPED));
     }
 
     @Rule
@@ -52,12 +58,12 @@ public class JUnitResultsTest {
     public void testJUnitResultsPom() throws Exception {
         FreeStyleProject project = rule.createFreeStyleProject(projectName);
         Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
-        project.getBuildersList().add(new Maven("install", mavenInstallation.getName(), "helloWorld/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
+        project.getBuildersList().add(new Maven("install", mavenInstallation.getName(), "subFolder/helloWorld/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
         project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
-        project.setScm(new CopyResourceSCM("/helloWorldRoot"));
+        project.setScm(new CopyResourceSCM("/helloWorldRoot", "subFolder"));
         FreeStyleBuild build = project.scheduleBuild2(0).get();
 
-        matchTests(new File(build.getRootDir(), "mqmTests.xml"), helloWorldTests);
+        matchTests(new File(build.getRootDir(), "mqmTests.xml"), subFolderHelloWorldTests);
     }
 
     @Test

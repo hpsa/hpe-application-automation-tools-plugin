@@ -16,9 +16,15 @@ import java.io.IOException;
 public class CopyResourceSCM extends NullSCM {
 
     private String path;
+    private String targetPath;
 
     public CopyResourceSCM(String path) {
+        this(path, "");
+    }
+
+    public CopyResourceSCM(String path, String targetPath) {
         this.path = path;
+        this.targetPath = targetPath;
     }
 
     @Override
@@ -33,7 +39,7 @@ public class CopyResourceSCM extends NullSCM {
                 String urlString = resource.getURL().toExternalForm();
                 String targetName = urlString.substring(urlString.indexOf(path) + path.length());
                 byte[] fileContent = IOUtils.toByteArray(resource.getInputStream());
-                FileUtils.writeByteArrayToFile(new File(workspace.getRemote(), targetName), fileContent);
+                FileUtils.writeByteArrayToFile(new File(new File(workspace.getRemote(), targetPath), targetName), fileContent);
             }
         }
         return true;
