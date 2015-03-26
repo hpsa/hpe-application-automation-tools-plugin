@@ -52,7 +52,7 @@ public class TestEvents {
 			String body = "";
 			byte[] buffer;
 			int len;
-			if (request.getPathInfo().equals("/qcbin/rest/domains/DOMAIN/projects/PROJECT/cia/events")) {
+			if (request.getPathInfo().equals("/qcbin/api/domains/DOMAIN/projects/PROJECT/cia/events")) {
 				buffer = new byte[1024];
 				while ((len = request.getInputStream().read(buffer, 0, 1024)) > 0) {
 					body += new String(buffer, 0, len);
