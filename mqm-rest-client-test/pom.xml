@@ -7,6 +7,11 @@
     <name>MQM REST Client - Integration Tests</name>
     <version>1.0-SNAPSHOT</version>
 
+    <properties>
+        <maven.compiler.plugin.version>3.1</maven.compiler.plugin.version>
+        <jdk.version>1.6</jdk.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.hp.mqm</groupId>
@@ -19,4 +24,18 @@
             <version>4.12</version>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.compiler.plugin.version}</version>
+                <configuration>
+                    <source>${jdk.version}</source>
+                    <target>${jdk.version}</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
