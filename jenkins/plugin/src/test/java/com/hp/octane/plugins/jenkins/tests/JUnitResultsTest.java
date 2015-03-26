@@ -92,7 +92,8 @@ public class JUnitResultsTest {
             copy.addAll(expected);
         }
         for(TestResult testResult: new TestResultIterable(mqmTestsXml)) {
-            Assert.assertTrue(copy.remove(test(testResult)));
+            String testSignature = test(testResult);
+            Assert.assertTrue("Not found: " + testSignature + " in " + copy, copy.remove(testSignature));
         }
         Assert.assertTrue(copy.isEmpty());
     }
