@@ -13,13 +13,9 @@ import hudson.plugins.random_string_parameter.RandomStringParameterValue;
  */
 
 public class RandomStringParameterProcessor extends AbstractParametersProcessor {
-	private static final RandomStringParameterProcessor instance = new RandomStringParameterProcessor();
-
-	private RandomStringParameterProcessor() {
-	}
-
-	public static RandomStringParameterProcessor getInstance() {
-		return instance;
+	@Override
+	public boolean isAppropriate(String className) {
+		return className.equals("hudson.plugins.random_string_parameter.RandomStringParameterDefinition");
 	}
 
 	@Override

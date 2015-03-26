@@ -24,25 +24,7 @@ public abstract class AbstractParametersProcessor {
 			for (int i = 0; i < result.length; i++) {
 				pd = paramDefinitions.get(i);
 				className = pd.getClass().getName();
-
-				//  Out of the box parameter types
-
-				if (className.startsWith("hudson.model")) {
-					processor = InherentParameterProcessor.getInstance();
-
-					//  Plugin driven parameter types
-
-//				} else if (className.startsWith("com.seitenbau.jenkins.plugins.dynamicparameter")) {
-//					processor = DynamicParameterProcessor.getInstance();
-				} else if (className.equals("com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoiceParameterDefinition")) {
-					processor = ExtendedChoiceParameterProcessor.getInstance();
-				} else if (className.startsWith("org.jvnet.jenkins.plugins.nodelabelparameter")) {
-					processor = NodeLabelParameterProcessor.getInstance();
-				} else if (className.equals("hudson.plugins.random_string_parameter.RandomStringParameterDefinition")) {
-					processor = RandomStringParameterProcessor.getInstance();
-				} else {
-					processor = UnsupportedParameterProcessor.getInstance();
-				}
+				processor = ParameterProcessors.getAppropriate(className);
 				result[i] = processor.createParameterConfig(pd);
 			}
 		} else {
@@ -85,26 +67,7 @@ public abstract class AbstractParametersProcessor {
 						break;
 					}
 				}
-
-				//  Out of the box parameter types
-
-				if (className.startsWith("hudson.model")) {
-					processor = InherentParameterProcessor.getInstance();
-
-					//  Plugin driven parameter types
-
-				} else if (className.equals("com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoiceParameterDefinition")) {
-					processor = ExtendedChoiceParameterProcessor.getInstance();
-				} else if (className.startsWith("com.seitenbau.jenkins.plugins.dynamicparameter")) {
-					processor = DynamicParameterProcessor.getInstance();
-				} else if (className.equals("hudson.plugins.random_string_parameter.RandomStringParameterDefinition")) {
-					processor = RandomStringParameterProcessor.getInstance();
-				} else if (className.startsWith("org.jvnet.jenkins.plugins.nodelabelparameter")) {
-					processor = NodeLabelParameterProcessor.getInstance();
-				} else {
-					processor = UnsupportedParameterProcessor.getInstance();
-				}
-
+				processor = ParameterProcessors.getAppropriate(className);
 				result[i] = processor.createParameterInstance(pd, pv);
 			}
 		} else {
@@ -113,6 +76,8 @@ public abstract class AbstractParametersProcessor {
 
 		return result;
 	}
+
+	public abstract boolean isAppropriate(String className);
 
 	public abstract ParameterConfig createParameterConfig(ParameterDefinition pd);
 

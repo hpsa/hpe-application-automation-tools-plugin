@@ -12,13 +12,9 @@ import java.util.ArrayList;
  */
 
 public class InherentParameterProcessor extends AbstractParametersProcessor {
-	private static final InherentParameterProcessor instance = new InherentParameterProcessor();
-
-	private InherentParameterProcessor() {
-	}
-
-	public static InherentParameterProcessor getInstance() {
-		return instance;
+	@Override
+	public boolean isAppropriate(String className) {
+		return className.startsWith("hudson.model");
 	}
 
 	@Override
@@ -39,7 +35,7 @@ public class InherentParameterProcessor extends AbstractParametersProcessor {
 		} else if (pd instanceof FileParameterDefinition) {
 			result = new ParameterConfig(pd, ParameterType.FILE);
 		} else {
-			result = UnsupportedParameterProcessor.getInstance().createParameterConfig(pd);
+			result = ParameterProcessors.UNSUPPORTED.getProcessor().createParameterConfig(pd);
 		}
 		return result;
 	}
@@ -62,7 +58,7 @@ public class InherentParameterProcessor extends AbstractParametersProcessor {
 			FileParameterValue filePv = (FileParameterValue) pv;
 			result = new ParameterInstance(pc, filePv == null ? null : filePv.getOriginalFileName());
 		} else {
-			result = UnsupportedParameterProcessor.getInstance().createParameterInstance(pd, pv);
+			result = ParameterProcessors.UNSUPPORTED.getProcessor().createParameterInstance(pd, pv);
 		}
 		return result;
 	}

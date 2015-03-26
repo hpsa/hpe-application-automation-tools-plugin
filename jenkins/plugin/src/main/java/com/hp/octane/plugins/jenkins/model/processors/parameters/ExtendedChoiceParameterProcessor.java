@@ -17,13 +17,9 @@ import java.util.Map;
  */
 
 public class ExtendedChoiceParameterProcessor extends AbstractParametersProcessor {
-	private static final ExtendedChoiceParameterProcessor instance = new ExtendedChoiceParameterProcessor();
-
-	private ExtendedChoiceParameterProcessor() {
-	}
-
-	public static ExtendedChoiceParameterProcessor getInstance() {
-		return instance;
+	@Override
+	public boolean isAppropriate(String className) {
+		return className.equals("com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoiceParameterDefinition");
 	}
 
 	@Override

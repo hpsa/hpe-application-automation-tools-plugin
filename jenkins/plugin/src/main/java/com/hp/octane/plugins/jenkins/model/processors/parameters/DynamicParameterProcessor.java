@@ -13,13 +13,9 @@ import hudson.model.ParameterValue;
  */
 
 public class DynamicParameterProcessor extends AbstractParametersProcessor {
-	private static final DynamicParameterProcessor instance = new DynamicParameterProcessor();
-
-	private DynamicParameterProcessor() {
-	}
-
-	public static DynamicParameterProcessor getInstance() {
-		return instance;
+	@Override
+	public boolean isAppropriate(String className) {
+		return className.startsWith("com.seitenbau.jenkins.plugins.dynamicparameter");
 	}
 
 	@Override

@@ -78,7 +78,7 @@ public class RestUtils {
 
 		status = httpClient.executeMethod(putMethod);
 
-		if (status == 401) {
+		if (status == 401 || status == 307) {
 			System.out.println("seems like login needed...");
 			login(url, username, password);
 			put(url, path, username, password, body);
