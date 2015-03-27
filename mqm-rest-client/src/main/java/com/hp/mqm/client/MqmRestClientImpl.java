@@ -1,7 +1,7 @@
 package com.hp.mqm.client;
 
+import com.hp.mqm.client.exception.AuthenticationException;
 import com.hp.mqm.client.exception.FileNotFoundException;
-import com.hp.mqm.client.exception.InvalidCredentialsException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
 import org.apache.commons.io.IOUtils;
@@ -19,39 +19,23 @@ import java.io.InputStream;
 
 public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestClient {
 
-    private static final String URI_PUSH_TEST_RESULT_PUSH = "tb/build-push";
-    private static final String URI_DOMAIN_PROJECT_CHECK = "defects?query=%7Bid%5B0%5D%7D";
+    private static final String URI_PUSH_TEST_RESULT_PUSH = "test-results/v1";
 
+    /**
+     * Constructor for AbstractMqmRestClient.
+     * @param connectionConfig MQM connection configuration, Fields 'location', 'domain', 'project' and 'clientType' must not be null or empty.
+     */
     MqmRestClientImpl(MqmConnectionConfig connectionConfig) {
         super(connectionConfig);
     }
 
     @Override
-    public boolean checkCredentials() {
+    public boolean checkLogin() {
         try {
             login();
             return true;
-        } catch (InvalidCredentialsException e) {
+        } catch (AuthenticationException e) {
             return false;
-        }
-    }
-
-    // the simplest implementation because we do not know if domain and project will be exists in future
-    public boolean checkDomainAndProject() {
-        RequestBuilder requestBuilder = RequestBuilder.get(createRestUri(URI_DOMAIN_PROJECT_CHECK));
-
-        CloseableHttpResponse response = null;
-        try {
-            response = execute(requestBuilder.build());
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                return true;
-            } else {
-                return false;
-            }
-        } catch (IOException e) {
-            throw new RequestErrorException("Domain and project check failed", e);
-        } finally {
-            HttpClientUtils.closeQuietly(response);
         }
     }
 
@@ -62,7 +46,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 
     @Override
     public void postTestResult(InputStream testResultReportStream) {
-        RequestBuilder requestBuilder = RequestBuilder.post(createRestUri(URI_PUSH_TEST_RESULT_PUSH))
+        RequestBuilder requestBuilder = RequestBuilder.post(createProjectApiUri(URI_PUSH_TEST_RESULT_PUSH))
                 .setEntity(new InputStreamEntity(testResultReportStream, ContentType.APPLICATION_XML));
 
         CloseableHttpResponse response = null;

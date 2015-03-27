@@ -2,7 +2,6 @@ package com.hp.mqm.client;
 
 import com.hp.mqm.client.exception.AuthenticationErrorException;
 import com.hp.mqm.client.exception.AuthenticationException;
-import com.hp.mqm.client.exception.InvalidCredentialsException;
 import com.hp.mqm.client.exception.RequestException;
 import org.junit.Assert;
 import org.junit.Test;
@@ -22,8 +21,10 @@ public class MqmRestClientImplTest {
     private static final String PROXY_HOST = ConnectionProperties.getProxyHost();
     private static final Integer PROXY_PORT = ConnectionProperties.getProxyPort();
 
+    private static final String CLIENT_TYPE = "test";
+
     public static final MqmConnectionConfig connectionConfig = new MqmConnectionConfig(
-            LOCATION, DOMAIN, PROJECT, USERNAME, PASSWORD, PROXY_HOST, PROXY_PORT
+            LOCATION, DOMAIN, PROJECT, USERNAME, PASSWORD, CLIENT_TYPE, PROXY_HOST, PROXY_PORT
     );
 
     @Test
@@ -34,12 +35,12 @@ public class MqmRestClientImplTest {
 
         // bad credentials
         MqmConnectionConfig badConnectionConfig = new MqmConnectionConfig(
-                LOCATION, DOMAIN, PROJECT, USERNAME, "xxxbadxxxpasswordxxx", PROXY_HOST, PROXY_PORT);
+                LOCATION, DOMAIN, PROJECT, USERNAME, "xxxbadxxxpasswordxxx", CLIENT_TYPE, PROXY_HOST, PROXY_PORT);
         client = new MqmRestClientImpl(badConnectionConfig);
         try {
             client.login();
             fail("Login should failed because of bad credentials.");
-        } catch (InvalidCredentialsException e) {
+        } catch (AuthenticationException e) {
             Assert.assertNotNull(e);
         } finally {
             client.release();
@@ -47,7 +48,7 @@ public class MqmRestClientImplTest {
 
         // bad location
         badConnectionConfig = new MqmConnectionConfig(
-                "http://invalidaddress", DOMAIN, PROJECT, USERNAME, "xxxbadxxxpasswordxxx", PROXY_HOST, PROXY_PORT);
+                "http://invalidaddress", DOMAIN, PROJECT, USERNAME, "xxxbadxxxpasswordxxx", CLIENT_TYPE, PROXY_HOST, PROXY_PORT);
         client = new MqmRestClientImpl(badConnectionConfig);
         try {
             client.login();
@@ -58,22 +59,22 @@ public class MqmRestClientImplTest {
     }
 
     @Test
-    public void testCheckCredentials() {
+    public void testCheckLogin() {
         MqmRestClientImpl client = new MqmRestClientImpl(connectionConfig);
-        Assert.assertTrue(client.checkCredentials());
+        Assert.assertTrue(client.checkLogin());
 
         // bad credentials
         MqmConnectionConfig badConnectionConfig = new MqmConnectionConfig(
-                LOCATION, DOMAIN, PROJECT, USERNAME, "xxxbadxxxpasswordxxx", PROXY_HOST, PROXY_PORT);
+                LOCATION, DOMAIN, PROJECT, USERNAME, "xxxbadxxxpasswordxxx", CLIENT_TYPE, PROXY_HOST, PROXY_PORT);
         client = new MqmRestClientImpl(badConnectionConfig);
-        Assert.assertFalse(client.checkCredentials());
+        Assert.assertFalse(client.checkLogin());
 
         // bad location
         badConnectionConfig = new MqmConnectionConfig(
-                "http://invalidaddress", DOMAIN, PROJECT, USERNAME, "xxxbadxxxpasswordxxx", PROXY_HOST, PROXY_PORT);
+                "http://invalidaddress", DOMAIN, PROJECT, USERNAME, "xxxbadxxxpasswordxxx", CLIENT_TYPE, PROXY_HOST, PROXY_PORT);
         client = new MqmRestClientImpl(badConnectionConfig);
         try {
-            Assert.assertFalse(client.checkCredentials());
+            Assert.assertFalse(client.checkLogin());
             fail();
         } catch (AuthenticationErrorException e) {
             Assert.assertNotNull(e);
@@ -87,7 +88,7 @@ public class MqmRestClientImplTest {
         client.release();
 
         MqmConnectionConfig badConnectionConfig = new MqmConnectionConfig(
-                LOCATION, DOMAIN, PROJECT, USERNAME, "xxxbadxxxpasswordxxx", PROXY_HOST, PROXY_PORT);
+                LOCATION, DOMAIN, PROJECT, USERNAME, "xxxbadxxxpasswordxxx", CLIENT_TYPE, PROXY_HOST, PROXY_PORT);
         client = new MqmRestClientImpl(badConnectionConfig);
         try {
             client.checkDomainAndProject();
@@ -110,14 +111,14 @@ public class MqmRestClientImplTest {
 
         // bad domain
         MqmConnectionConfig badConnectionConfig = new MqmConnectionConfig(
-                LOCATION, "BadDomain123", PROJECT, USERNAME, PASSWORD, PROXY_HOST, PROXY_PORT);
+                LOCATION, "BadDomain123", PROJECT, USERNAME, PASSWORD, CLIENT_TYPE, PROXY_HOST, PROXY_PORT);
         client = new MqmRestClientImpl(badConnectionConfig);
         Assert.assertFalse(client.checkDomainAndProject());
         client.release();
 
         // bad project
         badConnectionConfig = new MqmConnectionConfig(
-                LOCATION, DOMAIN, "BadProject123", USERNAME, PASSWORD, PROXY_HOST, PROXY_PORT);
+                LOCATION, DOMAIN, "BadProject123", USERNAME, PASSWORD, CLIENT_TYPE, PROXY_HOST, PROXY_PORT);
         client = new MqmRestClientImpl(badConnectionConfig);
         Assert.assertFalse(client.checkDomainAndProject());
         client.release();
@@ -134,7 +135,7 @@ public class MqmRestClientImplTest {
         }
 
         // invalid payload
-        stream = new ByteArrayInputStream("<testRResult></testRResult>".getBytes("utf-8"));
+        stream = new ByteArrayInputStream("<testResult><build><test duration=\"hola\"></build></testResult>".getBytes("utf-8"));
         try {
             client.postTestResult(stream);
             fail();

@@ -4,7 +4,7 @@ package com.hp.octane.plugins.jenkins.client;
 
 import com.hp.mqm.client.MqmRestClient;
 
-public interface MqmRestClientFactory {
+public interface JenkinsMqmRestClientFactory {
 
     MqmRestClient create(String location, String domain, String project, String username, String password);
 

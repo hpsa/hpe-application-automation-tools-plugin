@@ -4,12 +4,12 @@ package com.hp.octane.plugins.jenkins.tests;
 
 import com.google.inject.Inject;
 import com.hp.mqm.client.MqmRestClient;
+import com.hp.mqm.client.exception.AuthenticationException;
 import com.hp.mqm.client.exception.FileNotFoundException;
-import com.hp.mqm.client.exception.InvalidCredentialsException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
-import com.hp.octane.plugins.jenkins.client.MqmRestClientFactory;
-import com.hp.octane.plugins.jenkins.client.MqmRestClientFactoryImpl;
+import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
+import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactoryImpl;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationService;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
@@ -37,7 +37,7 @@ public class TestDispatcher extends AsyncPeriodicWork {
 
     private TestResultQueue queue;
 
-    private MqmRestClientFactory clientFactory;
+    private JenkinsMqmRestClientFactory clientFactory;
 
     public TestDispatcher() {
         super("MQM Test Dispatcher");
@@ -69,12 +69,12 @@ public class TestDispatcher extends AsyncPeriodicWork {
 
         try {
             if (!client.checkDomainAndProject()) {
-                logger.warning("Invalid domain, project. Pending test results can't be submitted");
+                logger.warning("Invalid domain or project. Pending test results can't be submitted");
                 retryModel.failure();
                 return;
             }
-        } catch (InvalidCredentialsException e) {
-            logger.log(Level.WARNING, "Could not authenticate because of invalid credentials, pending test results can't be submitted", e);
+        } catch (AuthenticationException e) {
+            logger.log(Level.WARNING, "Authentication failed, pending test results can't be submitted", e);
             retryModel.failure();
             return;
         } catch (RequestException e) {
@@ -107,7 +107,7 @@ public class TestDispatcher extends AsyncPeriodicWork {
                     // TODO: janotav: try again later
                 }
             } catch (FileNotFoundException e) {
-                logger.log(Level.WARNING, "Failed to submit test results [" + build.getProject().getName() + "#" + build.getNumber() + "]", e);
+                logger.log(Level.WARNING, "Failed to submit test results [" + build.getProject().getName() + "#" + build.getNumber() + "]. Test result file not found.", e);
             }
         }
 
@@ -118,6 +118,9 @@ public class TestDispatcher extends AsyncPeriodicWork {
         try {
             client.postTestResult(resultFile);
         } catch (RequestException e) {
+            logger.log(Level.WARNING, "Failed to submit test results [" + build.getProject().getName() + "#" + build.getNumber() + "]", e);
+            return false;
+        } catch (RequestErrorException e) {
             logger.log(Level.WARNING, "Failed to submit test results [" + build.getProject().getName() + "#" + build.getNumber() + "]", e);
             return false;
         }
@@ -134,7 +137,7 @@ public class TestDispatcher extends AsyncPeriodicWork {
     }
 
     @Inject
-    public void setMqmRestClientFactory(MqmRestClientFactoryImpl clientFactory) {
+    public void setMqmRestClientFactory(JenkinsMqmRestClientFactoryImpl clientFactory) {
         this.clientFactory = clientFactory;
     }
 
@@ -146,7 +149,7 @@ public class TestDispatcher extends AsyncPeriodicWork {
     /*
      * To be used in tests only.
      */
-    public void _setMqmRestClientFactory(MqmRestClientFactory clientFactory) {
+    public void _setMqmRestClientFactory(JenkinsMqmRestClientFactory clientFactory) {
         this.clientFactory = clientFactory;
     }
 

@@ -12,29 +12,20 @@ import java.io.InputStream;
  * <p/>
  *
  * <p>
- * Because client cares about login automatically all methods except {@link #release()} can throw:
- * <ul>
- *   <li>
- *      {@link com.hp.mqm.client.exception.InvalidCredentialsException} for invalid credentials
- *  </li>
- *   <li>
- *      {@link com.hp.mqm.client.exception.AuthenticationException} in case authentication failed and
- *  </li>
- *  <li>
- *      {@link com.hp.mqm.client.exception.AuthenticationErrorException} in case of IO error or error in the HTTP protocol
- *      during authentication.
- *  </li>
- * <ul/>
+ * Because client cares about login automatically all methods except {@link #release()} can
+ * throw {@link com.hp.mqm.client.exception.AuthenticationException} in case authentication failed and
+ * {@link com.hp.mqm.client.exception.AuthenticationErrorException} in case of IO error or error in the HTTP protocol
+ * during authentication.
  * </p>
  *
  */
 public interface MqmRestClient {
 
     /**
-     * Checks credentials and returns true if credentials are valid and vice versa.
-     * @return true if credentials are valid and vice versa
+     * Tries login and when it fails, it returns true.
+     * @return true if login passes and vice versa
      */
-    boolean checkCredentials();
+    boolean checkLogin();
 
     /**
      * Checks if domain and project exists.

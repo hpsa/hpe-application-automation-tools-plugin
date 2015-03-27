@@ -6,9 +6,8 @@ import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.AuthenticationException;
-import com.hp.mqm.client.exception.InvalidCredentialsException;
 import com.hp.octane.plugins.jenkins.ExtensionUtil;
-import com.hp.octane.plugins.jenkins.client.MqmRestClientFactory;
+import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
 import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleBuild;
@@ -36,7 +35,7 @@ public class TestDispatcherTest {
 
     private TestQueue queue;
     private TestDispatcher testDispatcher;
-    private MqmRestClientFactory clientFactory;
+    private JenkinsMqmRestClientFactory clientFactory;
     private MqmRestClient restClient;
     private RetryModel retryModel;
 
@@ -53,7 +52,7 @@ public class TestDispatcherTest {
     @Before
     public void init() throws Exception {
         restClient = Mockito.mock(MqmRestClient.class);
-        clientFactory = Mockito.mock(MqmRestClientFactory.class);
+        clientFactory = Mockito.mock(JenkinsMqmRestClientFactory.class);
         Mockito.when(clientFactory.create(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(restClient);
 
         testDispatcher = ExtensionUtil.getInstance(rule, TestDispatcher.class);
@@ -87,12 +86,12 @@ public class TestDispatcherTest {
         mockRestClient(restClient, true, true, true);
         FreeStyleBuild build = executeBuild();
         waitForTicks(5);
-        verifyRestClient(restClient, build, true, true, true);
+        verifyRestClient(restClient, build, true);
 
         mockRestClient(restClient, true, true, true);
         FreeStyleBuild build2 = executeBuild();
         waitForTicks(5);
-        verifyRestClient(restClient, build2, true, true, true);
+        verifyRestClient(restClient, build2, true);
         Assert.assertEquals(0, queue.size());
     }
 
@@ -119,7 +118,7 @@ public class TestDispatcherTest {
         FreeStyleBuild build = executeBuild();
         waitForTicks(5);
 
-        verifyRestClient(restClient, build, false, false, false);
+        verifyRestClient(restClient, build, false);
         Mockito.reset(restClient);
 
         executeBuild();
@@ -136,7 +135,7 @@ public class TestDispatcherTest {
         FreeStyleBuild build = executeBuild();
         waitForTicks(5);
 
-        verifyRestClient(restClient, build, true, false, false);
+        verifyRestClient(restClient, build, false);
         Mockito.reset(restClient);
 
         executeBuild();
@@ -153,7 +152,7 @@ public class TestDispatcherTest {
         FreeStyleBuild build = executeBuild();
         waitForTicks(5);
 
-        verifyRestClient(restClient, build, true, true, false);
+        verifyRestClient(restClient, build, false);
         Mockito.reset(restClient);
 
         executeBuild();
@@ -170,12 +169,12 @@ public class TestDispatcherTest {
         FreeStyleBuild build = executeBuild();
         waitForTicks(5);
 
-        verifyRestClient(restClient, build, true, true, true);
+        verifyRestClient(restClient, build, true);
         mockRestClient(restClient, true, true, true);
         FreeStyleBuild build2 = executeBuild();
         waitForTicks(5);
 
-        verifyRestClient(restClient, build2, true, true, true);
+        verifyRestClient(restClient, build2, true);
         Assert.assertEquals(0, queue.size());
     }
 
@@ -205,9 +204,7 @@ public class TestDispatcherTest {
 
     private void mockRestClient(MqmRestClient restClient, boolean login, boolean session, boolean project) throws IOException {
         Mockito.reset(restClient);
-        if (!login) {
-            Mockito.when(restClient.checkDomainAndProject()).thenThrow(new InvalidCredentialsException());
-        } else if (!session) {
+        if (!login || !session) {
             Mockito.when(restClient.checkDomainAndProject()).thenThrow(new AuthenticationException());
         } else {
             Mockito.when(restClient.checkDomainAndProject()).thenReturn(project);
@@ -217,7 +214,7 @@ public class TestDispatcherTest {
         }
     }
 
-    private void verifyRestClient(MqmRestClient restClient, AbstractBuild build, boolean session, boolean project, boolean body) throws IOException {
+    private void verifyRestClient(MqmRestClient restClient, AbstractBuild build, boolean body) throws IOException {
         Mockito.verify(restClient).checkDomainAndProject();
         if (body) {
             Mockito.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));

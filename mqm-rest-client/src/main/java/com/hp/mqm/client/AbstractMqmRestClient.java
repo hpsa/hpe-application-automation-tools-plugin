@@ -2,11 +2,11 @@ package com.hp.mqm.client;
 
 import com.hp.mqm.client.exception.AuthenticationErrorException;
 import com.hp.mqm.client.exception.AuthenticationException;
-import com.hp.mqm.client.exception.InvalidCredentialsException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -40,27 +40,41 @@ public abstract class AbstractMqmRestClient {
     private static final String URI_CREATE_SESSION = "rest/site-session";
     private static final String URI_LOGOUT = "authentication-point/logout";
 
-    private static final String BASE_REST_URI = "rest/domains/{0}/projects/{1}";
+    private static final String URI_DOMAIN_PROJECT_CHECK = "defects?query=%7Bid%5B0%5D%7D";
+
+    private static final String PROJECT_REST_URI = "rest/domains/{0}/projects/{1}";
+    private static final String PROJECT_API_URI = "api/domains/{0}/projects/{1}";
+
+    private static final String URI_PARAM_ENCODING = "UTF-8";
 
     public static final int DEFAULT_CONNECTION_TIMEOUT = 20000; // in milliseconds
     public static final int DEFAULT_SO_TIMEOUT = 40000; // in milliseconds
 
     private final CloseableHttpClient httpClient;
-
     private final String location;
     private final String domain;
     private final String project;
+    private final String clientType;
     private final String username;
+
     private final String password;
 
     private boolean alreadyLoggedIn = false;
 
-    private String encoding = "UTF-8";
-
-    public AbstractMqmRestClient(MqmConnectionConfig connectionConfig) {
+    /**
+     * Constructor for AbstractMqmRestClient.
+     * @param connectionConfig MQM connection configuration, Fields 'location', 'domain', 'project' and 'clientType' must not be null or empty.
+     */
+    protected AbstractMqmRestClient(MqmConnectionConfig connectionConfig) {
+        checkNotEmpty("Parameter 'location' must not be null or empty.", connectionConfig.getLocation());
+        checkNotEmpty("Parameter 'domain' must not be null or empty.", connectionConfig.getDomain());
+        checkNotEmpty("Parameter 'project' must not be null or empty.", connectionConfig.getProject());
+        checkNotEmpty("Parameter 'clientType' must not be null or empty.", connectionConfig.getClientType());
         this.location = connectionConfig.getLocation();
         this.domain = connectionConfig.getDomain();
         this.project = connectionConfig.getProject();
+        this.clientType = connectionConfig.getClientType();
+
         this.username = connectionConfig.getUsername();
         this.password = connectionConfig.getPassword();
 
@@ -97,6 +111,25 @@ public abstract class AbstractMqmRestClient {
                     ((UsernamePasswordProxyCredentials) credentials).getPassword());
         } else {
             throw new IllegalStateException("Unsupported proxy credentials type " + credentials.getClass().getName());
+        }
+    }
+
+    // the simplest implementation because we do not know if domain and project will exist in future
+    public boolean checkDomainAndProject() {
+        RequestBuilder requestBuilder = RequestBuilder.get(createProjectRestUri(URI_DOMAIN_PROJECT_CHECK));
+
+        CloseableHttpResponse response = null;
+        try {
+            response = execute(requestBuilder.build());
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (IOException e) {
+            throw new RequestErrorException("Domain and project check failed", e);
+        } finally {
+            HttpClientUtils.closeQuietly(response);
         }
     }
 
@@ -137,9 +170,7 @@ public abstract class AbstractMqmRestClient {
         CloseableHttpResponse response = null;
         try {
             response = httpClient.execute(post);
-            if (response.getStatusLine().getStatusCode() == 401) {
-                throw new InvalidCredentialsException("Invalid credentials");
-            } else if (response.getStatusLine().getStatusCode() != 200) {
+            if (response.getStatusLine().getStatusCode() != 200) {
                 throw new AuthenticationException("Authentication failed: code=" + response.getStatusLine().getStatusCode() + "; reason=" + response.getStatusLine().getReasonPhrase());
             }
         } catch (IOException e) {
@@ -179,8 +210,8 @@ public abstract class AbstractMqmRestClient {
         Document document = new Document();
         Element root = new Element("session-parameters");
         document.setRootElement(root);
-        root.addContent(new Element("client-type").setText("octane-jenkins-plugin"));
-        root.addContent(new Element("time-out").setText("6"));
+        root.addContent(new Element("client-type").setText(clientType));
+        root.addContent(new Element("time-out").setText("6")); // TODO What this timeout means? Should it configurable?
         return new XMLOutputter().outputString(document);
     }
 
@@ -188,49 +219,73 @@ public abstract class AbstractMqmRestClient {
      * Creates absolute URI given by relative path from MQM application context (template). It resolves all placeholders
      * in template according to their order in params. All parameters are URI encoded before they are used for template resolving.
      *
-     * @param template URI template of relative path (template should not starts with '/') from MQM application context.
+     * @param template URI template of relative path (template must not starts with '/') from MQM application context. Special characters
+     *                 which need to be encoded must be already encoded in template.
      *                 Example: test/{0}?id={1}
-     * @param params   not encoded parameters of template. Example: ["J Unit", "123"]
+     * @param params   not encoded parameters of template. Objects are converted to string by its toString() method.
+     *                 Example: ["J Unit", 123]
      * @return absolute URI of endpoint with all parameters which are URI encoded. Example: http://mqm.hp.com/qcbin/test/J%20Unit?id=123
      */
-    protected URI createBaseUri(String template, String... params) {
+    protected URI createBaseUri(String template, Object... params) {
         String result = location + "/" + resolveTemplate(template, params);
         return URI.create(result);
     }
 
     /**
-     * Creates absolute URI given by relative path from REST URI context (template). It resolves all placeholders
+     * Creates absolute URI given by relative path from project URI leading by 'api'. It resolves all placeholders
      * in template according to their order in params. All parameters are URI encoded before they are used for template resolving.
      *
-     * @param template URI template of relative path (template should not starts with '/') from REST URI context.
+     * @param template URI template of relative path (template must not starts with '/') from REST URI context. Special characters
+     *                 which need to be encoded must be already encoded in template.
      *                 Example: test/{0}?id={1}
-     * @param params   not encoded parameters of template. Example: ["J Unit", "123"]
+     * @param params   not encoded parameters of template. Objects are converted to string by its toString() method.
+     *                 Example: ["J Unit", 123]
      * @return absolute URI of endpoint with all parameters which are URI encoded. Example: http://mqm.hp.com/qcbin/domains/DEFAULT/projects/MAIN/rest/test/J%20Unit?id=123
      */
-    protected URI createRestUri(String template, String... params) {
-        return URI.create(createBaseUri(BASE_REST_URI, domain, project).toString() + "/" + resolveTemplate(template, params));
+    protected URI createProjectRestUri(String template, Object... params) {
+        return createProjectUri(PROJECT_REST_URI, template, params);
     }
 
-    private String resolveTemplate(String template, String... params) {
+    /**
+     * Creates absolute URI given by relative path from project URI leading by 'rest'. It resolves all placeholders
+     * in template according to their order in params. All parameters are URI encoded before they are used for template resolving.
+     *
+     * @param template URI template of relative path (template must not starts with '/') from REST URI context. Special characters
+     *                 which need to be encoded must be already encoded in template.
+     *                 Example: test/{0}?id={1}
+     * @param params   not encoded parameters of template. Objects are converted to string by its toString() method.
+     *                 Example: ["J Unit", 123]
+     * @return absolute URI of endpoint with all parameters which are URI encoded. Example: http://mqm.hp.com/qcbin/domains/DEFAULT/projects/MAIN/rest/test/J%20Unit?id=123
+     */
+    protected URI createProjectApiUri(String template, Object... params) {
+        return createProjectUri(PROJECT_API_URI, template, params);
+    }
+
+    protected URI createProjectUri(String projectPartTemplate, String template, Object... params) {
+        return URI.create(createBaseUri(projectPartTemplate, domain, project).toString() + "/" + resolveTemplate(template, params));
+    }
+
+    /**
+     * Resolves all placeholders in template according to their order in params. All parameters are URI encoded before
+     * they are used for template resolving.
+     * This method works properly only if method {@link #encodeParam(String)} encodes parameters correctly (replace '{' and '}' by some other character(s)).
+     * @param template URI template
+     * @param params URI parameters
+     * @return resolved URI template
+     */
+    private String resolveTemplate(String template, Object... params) {
         String result = template;
         for (int i = 0; i < params.length; i++) {
-            result = result.replaceAll(Pattern.quote("{" + i + "}"), encodeParam(params[i]));
+            result = result.replaceAll(Pattern.quote("{" + i + "}"), encodeParam(params[i] == null ? "" : params[i].toString()));
         }
         return result;
     }
 
     private String encodeParam(String param) {
-        if (param == null) {
-            return null;
-        }
-        if (encoding == null) {
-            return param;
-        } else {
-            try {
-                return URLEncoder.encode(param, encoding).replace("+", "%20");
-            } catch (UnsupportedEncodingException e) {
-                throw new IllegalStateException("Unsupported encoding used for URI parameter encoding.", e);
-            }
+        try {
+            return URLEncoder.encode(param, URI_PARAM_ENCODING).replace("+", "%20");
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalStateException("Unsupported encoding used for URI parameter encoding.", e);
         }
     }
 
@@ -274,6 +329,12 @@ public abstract class AbstractMqmRestClient {
     private void doFirstLogin() {
         if (!alreadyLoggedIn) {
             login();
+        }
+    }
+
+    private void checkNotEmpty(String msg, String value) {
+        if (value == null || value.isEmpty()) {
+            throw new IllegalArgumentException(msg);
         }
     }
 

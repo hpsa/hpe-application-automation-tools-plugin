@@ -7,6 +7,8 @@ public class MqmConnectionConfig {
     private String project;
     private String username;
     private String password;
+    private String clientType;
+
     private String proxyHost;
     private Integer proxyPort;
     private ProxyCredentials proxyCredentials;
@@ -14,18 +16,16 @@ public class MqmConnectionConfig {
     private Integer defaultConnectionTimeout;
     private Integer defaultConnectionRequestTimeout;
 
-    public MqmConnectionConfig() {
-    }
-
-    public MqmConnectionConfig(String location, String domain, String project, String username, String password) {
+    public MqmConnectionConfig(String location, String domain, String project, String username, String password, String clientType) {
         this.location = location;
         this.domain = domain;
         this.project = project;
         this.username = username;
         this.password = password;
+        this.clientType = clientType;
     }
 
-    public MqmConnectionConfig(String location, String domain, String project, String username, String password, String proxyHost, Integer proxyPort) {
+    MqmConnectionConfig(String location, String domain, String project, String username, String password, String clientType, String proxyHost, Integer proxyPort) {
         this.location = location;
         this.domain = domain;
         this.project = project;
@@ -33,6 +33,7 @@ public class MqmConnectionConfig {
         this.password = password;
         this.proxyHost = proxyHost;
         this.proxyPort = proxyPort;
+        this.clientType = clientType;
     }
 
     public void setLocation(String location) {
@@ -53,6 +54,14 @@ public class MqmConnectionConfig {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getClientType() {
+        return clientType;
+    }
+
+    public void setClientType(String clientType) {
+        this.clientType = clientType;
     }
 
     public void setProxyHost(String proxyHost) {

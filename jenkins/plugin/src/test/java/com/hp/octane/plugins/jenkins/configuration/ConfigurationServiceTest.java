@@ -7,7 +7,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.octane.plugins.jenkins.ExtensionUtil;
 import com.hp.octane.plugins.jenkins.Messages;
-import com.hp.octane.plugins.jenkins.client.MqmRestClientFactory;
+import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import hudson.util.FormValidation;
 import org.junit.Assert;
 import org.junit.Before;
@@ -22,13 +22,13 @@ public class ConfigurationServiceTest {
     final public JenkinsRule rule = new JenkinsRule();
 
     private ConfigurationService configurationService;
-    private MqmRestClientFactory clientFactory;
+    private JenkinsMqmRestClientFactory clientFactory;
     private MqmRestClient client;
 
     @Before
     public void init() throws Exception {
         client = Mockito.mock(MqmRestClient.class);
-        clientFactory = Mockito.mock(MqmRestClientFactory.class);
+        clientFactory = Mockito.mock(JenkinsMqmRestClientFactory.class);
         configurationService = ExtensionUtil.getInstance(rule, ConfigurationService.class);
         configurationService._setMqmRestClientFactory(clientFactory);
 
@@ -72,20 +72,20 @@ public class ConfigurationServiceTest {
     public void testCheckConfiguration() {
         Mockito.when(clientFactory.create("http://localhost:8088/", "domain1", "project1", "username1", "password1")).thenReturn(client);
 
-        Mockito.when(client.checkCredentials()).thenReturn(true);
+        Mockito.when(client.checkLogin()).thenReturn(true);
         Mockito.when(client.checkDomainAndProject()).thenReturn(true);
 
         FormValidation validation = configurationService.checkConfiguration("http://localhost:8088/", "domain1", "project1", "username1", "password1");
         Assert.assertEquals(FormValidation.Kind.OK, validation.kind);
         Assert.assertTrue(validation.getMessage().contains("Connection successful"));
 
-        Mockito.when(client.checkCredentials()).thenReturn(false);
+        Mockito.when(client.checkLogin()).thenReturn(false);
 
         validation = configurationService.checkConfiguration("http://localhost:8088/", "domain1", "project1", "username1", "password1");
         Assert.assertEquals(FormValidation.Kind.ERROR, validation.kind);
         Assert.assertTrue(validation.getMessage().contains(Messages.InvalidCredentials()));
 
-        Mockito.when(client.checkCredentials()).thenReturn(true);
+        Mockito.when(client.checkLogin()).thenReturn(true);
         Mockito.when(client.checkDomainAndProject()).thenReturn(false);
 
         validation = configurationService.checkConfiguration("http://localhost:8088/", "domain1", "project1", "username1", "password1");

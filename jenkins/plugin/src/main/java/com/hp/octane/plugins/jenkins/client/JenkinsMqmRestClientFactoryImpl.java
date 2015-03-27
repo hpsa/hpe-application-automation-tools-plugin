@@ -17,11 +17,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Extension
-public class MqmRestClientFactoryImpl implements MqmRestClientFactory {
+public class JenkinsMqmRestClientFactoryImpl implements JenkinsMqmRestClientFactory {
+
+    private static final String CLIENT_TYPE = "octane-jenkins-plugin";
 
     @Override
     public MqmRestClient create(String location, String domain, String project, String username, String password) {
-        MqmConnectionConfig clientConfig = new MqmConnectionConfig(location, domain, project, username, password);
+        MqmConnectionConfig clientConfig = new MqmConnectionConfig(location, domain, project, username, password, CLIENT_TYPE);
         URL locationUrl = null;
         try {
             locationUrl = new URL(clientConfig.getLocation());
