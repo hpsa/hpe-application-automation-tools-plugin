@@ -157,7 +157,7 @@ public abstract class AbstractMqmRestClient {
             }
             alreadyLoggedIn = false;
         } catch (IOException e) {
-            throw new RequestErrorException("Error occurs during logout", e);
+            throw new RequestErrorException("Error occurred during logout", e);
         } finally {
             HttpClientUtils.closeQuietly(response);
         }
@@ -174,7 +174,7 @@ public abstract class AbstractMqmRestClient {
                 throw new AuthenticationException("Authentication failed: code=" + response.getStatusLine().getStatusCode() + "; reason=" + response.getStatusLine().getReasonPhrase());
             }
         } catch (IOException e) {
-            throw new AuthenticationErrorException("Error occurs during authentication", e);
+            throw new AuthenticationErrorException("Error occurred during authentication", e);
         } finally {
             HttpClientUtils.closeQuietly(response);
         }
