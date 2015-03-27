@@ -25,8 +25,8 @@ import javax.annotation.Nonnull;
 @Extension
 public final class RunListenerImpl extends RunListener<Run> {
 
-    @Inject
-    private TestListener testListener;
+	@Inject
+	private TestListener testListener;
 
 	@Override
 	@SuppressWarnings("unchecked")
@@ -65,14 +65,17 @@ public final class RunListenerImpl extends RunListener<Run> {
 			CIEventFinished event = new CIEventFinished(
 					build.getProject().getName(),
 					build.getNumber(),
+					build.getStartTimeInMillis(),
+					build.getEstimatedDuration(),
+					CIEventCausesFactory.processCauses(build.getCauses()),
+					AbstractParametersProcessor.getInstances(build),
 					result,
 					build.getDuration(),
-					SCMDataFactory.create(build),
-					CIEventCausesFactory.processCauses(build.getCauses())
+					SCMDataFactory.create(build)
 			);
 			EventDispatcher.dispatchEvent(event);
 
-            testListener.processBuild(build);
-        }
+			testListener.processBuild(build);
+		}
 	}
 }

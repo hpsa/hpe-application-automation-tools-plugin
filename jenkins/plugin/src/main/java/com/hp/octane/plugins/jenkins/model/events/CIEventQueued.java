@@ -13,7 +13,7 @@ import org.kohsuke.stapler.export.ExportedBean;
  */
 
 @ExportedBean
-public final class CIEventQueued extends CIEventBase {
+public class CIEventQueued extends CIEventBase {
 	public CIEventQueued(String project, CIEventCauseBase[] causes) {
 		super(project, causes);
 	}

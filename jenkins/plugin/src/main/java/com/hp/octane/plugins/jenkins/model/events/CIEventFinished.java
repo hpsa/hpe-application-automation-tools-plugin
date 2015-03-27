@@ -1,5 +1,6 @@
 package com.hp.octane.plugins.jenkins.model.events;
 
+import com.hp.octane.plugins.jenkins.model.api.ParameterInstance;
 import com.hp.octane.plugins.jenkins.model.snapshots.SnapshotResult;
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCauseBase;
 import com.hp.octane.plugins.jenkins.model.scm.SCMData;
@@ -15,15 +16,22 @@ import org.kohsuke.stapler.export.ExportedBean;
  */
 
 @ExportedBean
-public final class CIEventFinished extends CIEventBase {
-	private int number;
+public final class CIEventFinished extends CIEventStarted {
 	private SnapshotResult result;
 	private long duration;
 	private SCMData scmData;
 
-	public CIEventFinished(String project, int number, SnapshotResult result, long duration, SCMData scmData, CIEventCauseBase[] causes) {
-		super(project, causes);
-		this.number = number;
+	public CIEventFinished(
+			String project,
+			int number,
+			long startTime,
+			long estimatedDuration,
+			CIEventCauseBase[] causes,
+			ParameterInstance[] parameters,
+			SnapshotResult result,
+			long duration,
+			SCMData scmData) {
+		super(project, number, startTime, estimatedDuration, causes, parameters);
 		this.result = result;
 		this.duration = duration;
 		this.scmData = scmData;
@@ -32,11 +40,6 @@ public final class CIEventFinished extends CIEventBase {
 	@Override
 	CIEventType provideEventType() {
 		return CIEventType.FINISHED;
-	}
-
-	@Exported(inline = true)
-	public int getNumber() {
-		return number;
 	}
 
 	@Exported(inline = true)

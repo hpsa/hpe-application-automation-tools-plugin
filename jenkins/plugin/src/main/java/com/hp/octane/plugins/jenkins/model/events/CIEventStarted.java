@@ -14,7 +14,7 @@ import org.kohsuke.stapler.export.ExportedBean;
  */
 
 @ExportedBean
-public final class CIEventStarted extends CIEventBase {
+public class CIEventStarted extends CIEventQueued {
 	private int number;
 	private long startTime;
 	private long estimatedDuration;
