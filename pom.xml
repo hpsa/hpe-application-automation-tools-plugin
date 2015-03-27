@@ -9,8 +9,7 @@
 
     <modules>
         <module>jenkins</module>
-        <module>mqm-rest-client</module>
-        <module>mqm-rest-client-test</module>
+        <module>mqm-client</module>
     </modules>
 
 </project>
