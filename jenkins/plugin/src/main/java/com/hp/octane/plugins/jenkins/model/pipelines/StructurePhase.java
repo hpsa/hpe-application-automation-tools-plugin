@@ -21,7 +21,11 @@ public final class StructurePhase extends AbstractPhase<StructureItem> {
 		super(name, blocking);
 		StructureItem[] tmp = new StructureItem[items.size()];
 		for (int i = 0; i < tmp.length; i++) {
-			tmp[i] = new StructureItem(items.get(i));
+			if (items.get(i) != null) {
+				tmp[i] = new StructureItem(items.get(i));
+			} else {
+				System.out.println("One of referenced jobs is null, your Jenkins config probably broken, skipping this job...");
+			}
 		}
 		super.setItems(tmp);
 	}
