@@ -21,6 +21,7 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.mockito.InOrder;
 import org.mockito.Mockito;
 
 import java.io.File;
@@ -166,17 +167,65 @@ public class TestDispatcherTest {
 
     @Test
     public void testDispatcherBodyFailure() throws Exception {
-        mockRestClient(restClient, true, true, true, 500);
+        // body post fails for the first time, succeeds afterwards
+
+        Mockito.when(restClient.login()).thenReturn(true);
+        Mockito.when(restClient.createSession()).thenReturn(true);
+        Mockito.when(restClient.checkDomainAndProject()).thenReturn(true);
+        Mockito.when(restClient.post(Mockito.eq("/tb/build-push"), Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq("application/xml"))).thenReturn(500).thenReturn(201);
+        InOrder order = Mockito.inOrder(restClient);
+
         FreeStyleBuild build = executeBuild();
         waitForTicks(5);
 
-        verifyRestClient(restClient, build, true, true, true);
-        mockRestClient(restClient, true, true, true, 201);
-        FreeStyleBuild build2 = executeBuild();
+        order.verify(restClient).login();
+        order.verify(restClient).createSession();
+        order.verify(restClient).checkDomainAndProject();
+        order.verify(restClient).post("/tb/build-push", new File(build.getRootDir(), "mqmTests.xml"), "application/xml");
+        order.verify(restClient).login();
+        order.verify(restClient).createSession();
+        order.verify(restClient).checkDomainAndProject();
+        order.verify(restClient).post("/tb/build-push", new File(build.getRootDir(), "mqmTests.xml"), "application/xml");
+
+        Mockito.verify(restClient, Mockito.times(2)).login();
+        Mockito.verify(restClient, Mockito.times(2)).createSession();
+        Mockito.verify(restClient, Mockito.times(2)).checkDomainAndProject();
+        Mockito.verify(restClient, Mockito.times(2)).post("/tb/build-push", new File(build.getRootDir(), "mqmTests.xml"), "application/xml");
+        Mockito.verifyNoMoreInteractions(restClient);
+
+        Assert.assertEquals(0, queue.size());
+        Assert.assertEquals(0, queue.getDiscards());
+
+        // body post fails for two consecutive times
+
+        Mockito.reset(restClient);
+        Mockito.when(restClient.login()).thenReturn(true);
+        Mockito.when(restClient.createSession()).thenReturn(true);
+        Mockito.when(restClient.checkDomainAndProject()).thenReturn(true);
+        Mockito.when(restClient.post(Mockito.eq("/tb/build-push"), Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq("application/xml"))).thenReturn(500).thenReturn(500);
+
+        order = Mockito.inOrder(restClient);
+
+        build = executeBuild();
         waitForTicks(5);
 
-        verifyRestClient(restClient, build2, true, true, true);
+        order.verify(restClient).login();
+        order.verify(restClient).createSession();
+        order.verify(restClient).checkDomainAndProject();
+        order.verify(restClient).post("/tb/build-push", new File(build.getRootDir(), "mqmTests.xml"), "application/xml");
+        order.verify(restClient).login();
+        order.verify(restClient).createSession();
+        order.verify(restClient).checkDomainAndProject();
+        order.verify(restClient).post("/tb/build-push", new File(build.getRootDir(), "mqmTests.xml"), "application/xml");
+
+        Mockito.verify(restClient, Mockito.times(2)).login();
+        Mockito.verify(restClient, Mockito.times(2)).createSession();
+        Mockito.verify(restClient, Mockito.times(2)).checkDomainAndProject();
+        Mockito.verify(restClient, Mockito.times(2)).post("/tb/build-push", new File(build.getRootDir(), "mqmTests.xml"), "application/xml");
+        Mockito.verifyNoMoreInteractions(restClient);
+
         Assert.assertEquals(0, queue.size());
+        Assert.assertEquals(1, queue.getDiscards());
     }
 
     private void waitForTicks(int n) throws InterruptedException {
@@ -229,16 +278,33 @@ public class TestDispatcherTest {
 
         private LinkedList<QueueItem> queue = new LinkedList<QueueItem>();
         private long ticks;
+        private int discard;
 
         @Override
-        public synchronized boolean isEmpty() {
+        public synchronized QueueItem peekFirst() {
             ++ticks;
-            return queue.isEmpty();
+            if (!queue.isEmpty()) {
+                return queue.getFirst();
+            } else {
+                return null;
+            }
         }
 
         @Override
-        public synchronized QueueItem removeFirst() {
-            return queue.removeFirst();
+        public synchronized boolean failed() {
+            QueueItem item = queue.removeFirst();
+            if (item.failCount++ < 1) {
+                queue.add(item);
+                return true;
+            } else {
+                ++discard;
+                return false;
+            }
+        }
+
+        @Override
+        public synchronized void remove() {
+            queue.removeFirst();
         }
 
         @Override
@@ -258,6 +324,10 @@ public class TestDispatcherTest {
 
         public synchronized long getTicks() {
             return ticks;
+        }
+
+        public synchronized int getDiscards() {
+            return discard;
         }
     }
 
