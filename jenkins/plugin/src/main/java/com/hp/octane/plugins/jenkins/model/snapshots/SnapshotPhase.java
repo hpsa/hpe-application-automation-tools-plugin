@@ -29,12 +29,16 @@ public final class SnapshotPhase extends AbstractPhase<SnapshotItem> {
 		StructureItem[] structures = structurePhase.getItems();
 		SnapshotItem[] tmp = new SnapshotItem[structures.length];
 		for (int i = 0; i < tmp.length; i++) {
-			tmpBuilds = invokedBuilds == null ? null : invokedBuilds.get(structures[i].getName());
-			if (tmpBuilds == null || tmpBuilds.size() == 0) {
-				tmp[i] = new SnapshotItem((AbstractProject) Jenkins.getInstance().getItem(structures[i].getName()));
+			if (structures[i] != null) {
+				tmpBuilds = invokedBuilds == null ? null : invokedBuilds.get(structures[i].getName());
+				if (tmpBuilds == null || tmpBuilds.size() == 0) {
+					tmp[i] = new SnapshotItem((AbstractProject) Jenkins.getInstance().getItem(structures[i].getName()));
+				} else {
+					tmp[i] = new SnapshotItem(tmpBuilds.get(0));
+					tmpBuilds.remove(0);
+				}
 			} else {
-				tmp[i] = new SnapshotItem(tmpBuilds.get(0));
-				tmpBuilds.remove(0);
+				System.out.println("One of referenced jobs is null, your Jenkins config probably broken, skipping the build info for this job...");
 			}
 		}
 		super.setItems(tmp);

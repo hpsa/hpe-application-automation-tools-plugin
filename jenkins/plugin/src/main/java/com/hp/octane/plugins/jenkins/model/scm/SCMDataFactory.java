@@ -64,38 +64,40 @@ public final class SCMDataFactory {
 			tmpType = SCMType.GIT;
 			scmGit = (GitSCM) project.getScm();
 			buildData = scmGit.getBuildData(build);
-			buildCommitRev = buildData.getLastBuiltRevision();
-			repoUris = buildData.getRemoteUrls();
-			if (!repoUris.iterator().hasNext()) return null;
-			tmpRepo = new SCMRepositoryData(
-					tmpType,
-					repoUris.iterator().next(),
-					buildCommitRev.getSha1String(),
-					buildCommitRev.getBranches().iterator().hasNext() ? buildCommitRev.getBranches().iterator().next().getName() : null
-			);
-			for (ChangeLogSet.Entry change : changes) {
-				if (change instanceof GitChangeSet) {
-					gitChange = (GitChangeSet) change;
-					tmpCommit = new SCMCommit(
-							gitChange.getId(),
-							gitChange.getComment().trim(),
-							gitChange.getTimestamp()
-					);
-					tmpCommit.setUser(
-							gitChange.getAuthor().getId(),
-							gitChange.getAuthorName(),
-							gitChange.getAuthor().getProperty(Mailer.UserProperty.class).getAddress()
-					);
-					for (GitChangeSet.Path item : gitChange.getAffectedFiles()) {
-						tmpCommit.addChange(
-								item.getEditType().getName(),
-								item.getPath()
+			if (buildData != null) {
+				buildCommitRev = buildData.getLastBuiltRevision();
+				repoUris = buildData.getRemoteUrls();
+				if (!repoUris.iterator().hasNext()) return null;
+				tmpRepo = new SCMRepositoryData(
+						tmpType,
+						repoUris.iterator().next(),
+						buildCommitRev.getSha1String(),
+						buildCommitRev.getBranches().iterator().hasNext() ? buildCommitRev.getBranches().iterator().next().getName() : null
+				);
+				for (ChangeLogSet.Entry change : changes) {
+					if (change instanceof GitChangeSet) {
+						gitChange = (GitChangeSet) change;
+						tmpCommit = new SCMCommit(
+								gitChange.getId(),
+								gitChange.getComment().trim(),
+								gitChange.getTimestamp()
 						);
+						tmpCommit.setUser(
+								gitChange.getAuthor().getId(),
+								gitChange.getAuthorName(),
+								gitChange.getAuthor().getProperty(Mailer.UserProperty.class).getAddress()
+						);
+						for (GitChangeSet.Path item : gitChange.getAffectedFiles()) {
+							tmpCommit.addChange(
+									item.getEditType().getName(),
+									item.getPath()
+							);
+						}
+						tmpRepo.addCommit(tmpCommit);
 					}
-					tmpRepo.addCommit(tmpCommit);
 				}
+				repositories.add(tmpRepo);
 			}
-			repositories.add(tmpRepo);
 		}
 		return new SCMData(repositories);
 	}
