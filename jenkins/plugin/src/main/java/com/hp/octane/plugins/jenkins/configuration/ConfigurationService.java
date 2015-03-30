@@ -43,7 +43,7 @@ public class ConfigurationService {
                 return FormValidation.errorWithMarkup(markup("red", Messages.ConnectionDomainProjectInvalid()));
             }
         } catch (RequestErrorException e) {
-            logger.log(Level.WARNING, "Domain nad project check failed due to communication problem.", e);
+            logger.log(Level.WARNING, "Domain and project check failed due to communication problem.", e);
             return FormValidation.errorWithMarkup(markup("red", Messages.ConnectionFailure()));
         }
         return FormValidation.okWithMarkup(markup("green", Messages.ConnectionSuccess()));

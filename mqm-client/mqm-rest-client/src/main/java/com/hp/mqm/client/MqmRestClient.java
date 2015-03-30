@@ -1,10 +1,11 @@
 package com.hp.mqm.client;
 
 import java.io.File;
-import java.io.InputStream;
 
 /**
- * Client for connection to MQM public API. It wraps whole http communication with MQM server.
+ * Client for connection to MQM public API. It wraps whole http communication with MQM server. Client handles login automatically but
+ * when client is not intended to use anymore, method {@link #release()} must be called. Method {@link #release()} should be invoked also
+ * when client is not intended to use for a long time.
  *
  * <p>
  * All methods can throw {@link com.hp.mqm.client.exception.RequestException} when unexpected result is returned from
@@ -12,7 +13,7 @@ import java.io.InputStream;
  * <p/>
  *
  * <p>
- * Because client cares about login automatically all methods except {@link #release()} can
+ * Because client cares about login automatically all methods (except {@link #release()}) can
  * throw {@link com.hp.mqm.client.exception.AuthenticationException} in case authentication failed and
  * {@link com.hp.mqm.client.exception.AuthenticationErrorException} in case of IO error or error in the HTTP protocol
  * during authentication.
@@ -38,20 +39,23 @@ public interface MqmRestClient {
      * Also divide extra large test results into smaller parts which will be posted individually
      * (multiple invocation of this method) to avoid HTTP request timeout.
      * <p/>
-     * InputStream is automatically closed after all data are read.
-     * @param testResultReportStream input stream with test results in MQM XML format.
+     * InputStream obtained from InputStreamSource is automatically closed after all data are read.
+     * @param inputStreamSource input stream source with test results in MQM XML format.
      */
-    void postTestResult(InputStream testResultReportStream);
+    void postTestResult(InputStreamSource inputStreamSource);
 
     /**
      * Posts test results to MQM. Divide extra large test results into smaller files which will be posted individually
      * (multiple invocation of this method) to avoid HTTP request timeout.
      * @param  testResultReport XML file with test reports
+     * @throws com.hp.mqm.client.exception.FileNotFoundException
      */
     void postTestResult(File testResultReport);
 
     /**
-     * This method should be called when client is not needed. It performs logout and releases all system resources if it is necessary.
+     * This method should be called when client is not needed or it should not be used for a long time. It performs
+     * logout and releases all system resources if it is necessary. After invocation of {@link #release()} you can still
+     * invoke any client method (but client will need to do authentication, create session, etc.).
      */
     void release();
 }

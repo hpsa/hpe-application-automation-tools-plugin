@@ -4,6 +4,8 @@ import com.hp.mqm.client.exception.AuthenticationErrorException;
 import com.hp.mqm.client.exception.AuthenticationException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -38,7 +40,7 @@ public abstract class AbstractMqmRestClient {
 
     private static final String URI_AUTHENTICATION = "authentication-point/alm-authenticate";
     private static final String URI_CREATE_SESSION = "rest/site-session";
-    private static final String URI_LOGOUT = "authentication-point/logout";
+    static final String URI_LOGOUT = "authentication-point/logout";
 
     private static final String URI_DOMAIN_PROJECT_CHECK = "defects?query=%7Bid%5B0%5D%7D";
 
@@ -59,7 +61,7 @@ public abstract class AbstractMqmRestClient {
 
     private final String password;
 
-    private boolean alreadyLoggedIn = false;
+    private volatile boolean alreadyLoggedIn = false;
 
     /**
      * Constructor for AbstractMqmRestClient.
@@ -138,7 +140,7 @@ public abstract class AbstractMqmRestClient {
      *
      * @throws AuthenticationException when authentication failed
      */
-    protected void login() {
+    protected synchronized void login() {
         authenticate();
         createSession();
         alreadyLoggedIn = true;
@@ -147,7 +149,7 @@ public abstract class AbstractMqmRestClient {
     /**
      * Logout from MQM.
      */
-    protected void logout() {
+    protected synchronized void logout() {
         RequestBuilder requestBuilder = RequestBuilder.get(createBaseUri(URI_LOGOUT));
         CloseableHttpResponse response = null;
         try {
@@ -291,9 +293,21 @@ public abstract class AbstractMqmRestClient {
 
     /**
      * Invokes {@link org.apache.http.client.HttpClient#execute(org.apache.http.client.methods.HttpUriRequest)}
-     * with given request and does login if it is necessary.
+     * with given request and it does login if it is necessary.
+     * <p>
+     *     Method does not support request with non-repeatable entity (see {@link HttpEntity#isRepeatable()}).
+     * </p>
+     * @param request which should be executed
+     * @return response for given request
+     * @throws IllegalArgumentException when request entity is not repeatable
      */
     protected CloseableHttpResponse execute(HttpUriRequest request) throws IOException {
+        if (request instanceof HttpEntityEnclosingRequest) {
+            HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
+            if (!entity.isRepeatable()) {
+                throw new IllegalArgumentException("MqmRestClient does not support non-repeatable entity (entity.isRepeatable() must be true).");
+            }
+        }
         doFirstLogin();
         CloseableHttpResponse response = httpClient.execute(request);
         if (isLoginNecessary(response)) { // if request fails with 401 do login and execute request again
@@ -306,20 +320,37 @@ public abstract class AbstractMqmRestClient {
     /**
      * Invokes {@link org.apache.http.client.HttpClient#execute(org.apache.http.client.methods.HttpUriRequest, org.apache.http.client.ResponseHandler)}
      * with given request and does login if it is necessary.
+     * <p>
+     *     Method does not support request with non-repeatable entity (see {@link HttpEntity#isRepeatable()}).
+     * </p>
+     * @param request which should be executed
+     * @return response for given request
+     * @throws IllegalArgumentException when request entity is not repeatable
      */
     protected <T> T execute(final HttpUriRequest request, final ResponseHandler<? extends T> responseHandler) throws IOException {
         doFirstLogin();
-        return httpClient.execute(request, new ResponseHandler<T>() {
+        final BooleanReference loginNecessary = new BooleanReference();
+        loginNecessary.value = false;
+        T result = httpClient.execute(request, new ResponseHandler<T>() {
             @Override
             public T handleResponse(HttpResponse response) throws IOException {
                 if (isLoginNecessary(response)) {
-                    login();
-                    return httpClient.execute(request, responseHandler);
-
+                    loginNecessary.value = true;
+                    return null;
                 }
                 return responseHandler.handleResponse(response);
             }
         });
+        if (loginNecessary.value) {
+            login();
+            result = httpClient.execute(request, new ResponseHandler<T>() {
+                @Override
+                public T handleResponse(HttpResponse response) throws IOException {
+                    return responseHandler.handleResponse(response);
+                }
+            });
+        }
+        return result;
     }
 
     private boolean isLoginNecessary(HttpResponse response) {
@@ -336,6 +367,10 @@ public abstract class AbstractMqmRestClient {
         if (value == null || value.isEmpty()) {
             throw new IllegalArgumentException(msg);
         }
+    }
+
+    private static class BooleanReference {
+        public boolean value;
     }
 
 }

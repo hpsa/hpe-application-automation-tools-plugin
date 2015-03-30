@@ -2,12 +2,24 @@ package com.hp.mqm.client;
 
 import com.hp.mqm.client.exception.AuthenticationErrorException;
 import com.hp.mqm.client.exception.AuthenticationException;
+import com.hp.mqm.client.exception.FileNotFoundException;
 import com.hp.mqm.client.exception.RequestException;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.RequestBuilder;
+import org.apache.http.client.utils.HttpClientUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
 
 import static org.junit.Assert.fail;
 
@@ -23,14 +35,27 @@ public class MqmRestClientImplTest {
 
     private static final String CLIENT_TYPE = "test";
 
-    public static final MqmConnectionConfig connectionConfig = new MqmConnectionConfig(
-            LOCATION, DOMAIN, PROJECT, USERNAME, PASSWORD, CLIENT_TYPE, PROXY_HOST, PROXY_PORT
-    );
+    public static final MqmConnectionConfig connectionConfig;
+
+    static {
+        connectionConfig = new MqmConnectionConfig(
+                LOCATION, DOMAIN, PROJECT, USERNAME, PASSWORD, CLIENT_TYPE, PROXY_HOST, PROXY_PORT
+        );
+        connectionConfig.setProxyCredentials(new UsernamePasswordProxyCredentials(ConnectionProperties.getProxyUsername(), ConnectionProperties.getProxyPassword()));
+    }
 
     @Test
-    public void testLoginLogout() {
+    public void testLoginLogout() throws InterruptedException {
         MqmRestClientImpl client = new MqmRestClientImpl(connectionConfig);
         client.login();
+        client.logout();
+
+        // login twice should not cause exception
+        client.login();
+        client.login();
+
+        // logout twice should not cause exception
+        client.logout();
         client.logout();
 
         // bad credentials
@@ -82,19 +107,73 @@ public class MqmRestClientImplTest {
     }
 
     @Test
-    public void testAutoLogin() {
+    public void testExecute_autoLogin() throws IOException {
+        final String uri = LOCATION + "/rest/domains/" + DOMAIN + "/projects/" + PROJECT + "/defects?query=%7Bid%5B0%5D%7D";
         MqmRestClientImpl client = new MqmRestClientImpl(connectionConfig);
-        Assert.assertTrue(client.checkDomainAndProject());
-        client.release();
 
         MqmConnectionConfig badConnectionConfig = new MqmConnectionConfig(
                 LOCATION, DOMAIN, PROJECT, USERNAME, "xxxbadxxxpasswordxxx", CLIENT_TYPE, PROXY_HOST, PROXY_PORT);
-        client = new MqmRestClientImpl(badConnectionConfig);
+        MqmRestClientImpl invalidClient = new MqmRestClientImpl(badConnectionConfig);
+
+        // test method execute
+        CloseableHttpResponse response = null;
+        loginLogout(client);
         try {
-            client.checkDomainAndProject();
+            response = client.execute(RequestBuilder.get(uri).build());
+            Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        } finally {
+            HttpClientUtils.closeQuietly(response);
+            client.release();
+        }
+
+        try {
+            response = invalidClient.execute(RequestBuilder.get(uri).build());
             fail();
         } catch (AuthenticationException e) {
             Assert.assertNotNull(e);
+        } finally {
+            HttpClientUtils.closeQuietly(response);
+            client.release();
+        }
+
+        // test method execute with response handler
+        loginLogout(client);
+        try {
+            int status = client.execute(RequestBuilder.get(uri).build(), new ResponseHandler<Integer>() {
+                @Override
+                public Integer handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+                    return response.getStatusLine().getStatusCode();
+                }
+            });
+            Assert.assertEquals(HttpStatus.SC_OK, status);
+        } finally {
+            HttpClientUtils.closeQuietly(response);
+            client.release();
+        }
+
+        try {
+            int status = invalidClient.execute(RequestBuilder.get(uri).build(), new ResponseHandler<Integer>() {
+                @Override
+                public Integer handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+                    return response.getStatusLine().getStatusCode();
+                }
+            });
+            fail();
+        } catch (AuthenticationException e) {
+            Assert.assertNotNull(e);
+        } finally {
+            HttpClientUtils.closeQuietly(response);
+            client.release();
+        }
+    }
+
+    private void loginLogout(MqmRestClientImpl client) throws IOException {
+        client.login();
+        CloseableHttpResponse response = null;
+        try {
+            response = client.execute(RequestBuilder.get(LOCATION + "/" + AbstractMqmRestClient.URI_LOGOUT).build());
+        } finally {
+            HttpClientUtils.closeQuietly(response);
         }
     }
 
@@ -125,21 +204,62 @@ public class MqmRestClientImplTest {
     }
 
     @Test
-    public void testPostTestResult() throws UnsupportedEncodingException {
+    public void testPostTestResult() throws UnsupportedEncodingException, URISyntaxException {
         MqmRestClientImpl client = new MqmRestClientImpl(connectionConfig);
-        ByteArrayInputStream stream = new ByteArrayInputStream("<testResult></testResult>".getBytes("utf-8"));
+        final File testResults = new File(this.getClass().getResource("TestResults.xml").toURI());
         try {
-            client.postTestResult(stream);
+            client.postTestResult(testResults);
+        } finally {
+            client.release();
+        }
+        try {
+            client.postTestResult(new InputStreamSource() {
+                @Override
+                public InputStream getInputStream() {
+                    try {
+                        return new FileInputStream(testResults);
+                    } catch (java.io.FileNotFoundException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            });
         } finally {
             client.release();
         }
 
         // invalid payload
-        stream = new ByteArrayInputStream("<testResult><build><test duration=\"hola\"></build></testResult>".getBytes("utf-8"));
+        final File testResults2 = new File(this.getClass().getResource("TestResults2.xml").toURI());
         try {
-            client.postTestResult(stream);
+            client.postTestResult(testResults2);
             fail();
         } catch (RequestException e) {
+            Assert.assertNotNull(e);
+        } finally {
+            client.release();
+        }
+        try {
+            client.postTestResult(new InputStreamSource() {
+                @Override
+                public InputStream getInputStream() {
+                    try {
+                        return new FileInputStream(testResults);
+                    } catch (java.io.FileNotFoundException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            });
+        } catch (RequestException e) {
+            Assert.assertNotNull(e);
+        } finally {
+            client.release();
+        }
+
+        // test "file does not exist"
+        final File file = new File("abcdefghchijklmn.xml");
+        try {
+            client.postTestResult(file);
+            fail();
+        } catch (FileNotFoundException e) {
             Assert.assertNotNull(e);
         } finally {
             client.release();
