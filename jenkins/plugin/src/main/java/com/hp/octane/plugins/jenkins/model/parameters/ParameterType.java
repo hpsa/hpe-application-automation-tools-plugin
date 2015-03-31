@@ -18,7 +18,7 @@ public enum ParameterType {
 
 	private String value;
 
-	private ParameterType(String value) {
+	ParameterType(String value) {
 		this.value = value;
 	}
 

@@ -16,7 +16,7 @@ public enum SnapshotStatus {
 
 	private String value;
 
-	private SnapshotStatus(String value) {
+	SnapshotStatus(String value) {
 		this.value = value;
 	}
 

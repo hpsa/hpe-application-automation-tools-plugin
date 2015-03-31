@@ -15,7 +15,7 @@ public enum CIEventType {
 
 	private String value;
 
-	private CIEventType(String value) {
+	CIEventType(String value) {
 		this.value = value;
 	}
 

@@ -14,7 +14,7 @@ public enum SCMType {
 
 	private String value;
 
-	private SCMType(String status) {
+	SCMType(String status) {
 		this.value = status;
 	}
 

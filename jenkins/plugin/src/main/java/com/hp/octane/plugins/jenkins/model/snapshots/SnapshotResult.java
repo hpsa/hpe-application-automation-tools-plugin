@@ -17,7 +17,7 @@ public enum SnapshotResult {
 
 	private String value;
 
-	private SnapshotResult(String value) {
+	SnapshotResult(String value) {
 		this.value = value;
 	}
 
