@@ -35,6 +35,6 @@ public class NodeLabelParameterProcessor extends AbstractParametersProcessor {
 
 	@Override
 	public ParameterInstance createParameterInstance(ParameterDefinition pd, ParameterValue pv) {
-		return new ParameterInstance(createParameterConfig(pd), pv.getValue());
+		return new ParameterInstance(createParameterConfig(pd), pv);
 	}
 }

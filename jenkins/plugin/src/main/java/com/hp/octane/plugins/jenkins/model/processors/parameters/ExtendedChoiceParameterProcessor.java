@@ -41,6 +41,6 @@ public class ExtendedChoiceParameterProcessor extends AbstractParametersProcesso
 	@Override
 	public ParameterInstance createParameterInstance(ParameterDefinition pd, ParameterValue pv) {
 		ExtendedChoiceParameterValue extValue = (ExtendedChoiceParameterValue) pv;
-		return new ParameterInstance(createParameterConfig(pd), extValue.getValue());
+		return new ParameterInstance(createParameterConfig(pd), extValue);
 	}
 }

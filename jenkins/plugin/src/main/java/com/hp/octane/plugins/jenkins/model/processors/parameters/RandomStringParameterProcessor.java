@@ -28,6 +28,6 @@ public class RandomStringParameterProcessor extends AbstractParametersProcessor 
 	public ParameterInstance createParameterInstance(ParameterDefinition pd, ParameterValue pv) {
 		RandomStringParameterDefinition randomPd = (RandomStringParameterDefinition) pd;
 		RandomStringParameterValue randomPv = (RandomStringParameterValue) pv;
-		return new ParameterInstance(createParameterConfig(pd), randomPv.value);
+		return new ParameterInstance(createParameterConfig(pd), randomPv);
 	}
 }

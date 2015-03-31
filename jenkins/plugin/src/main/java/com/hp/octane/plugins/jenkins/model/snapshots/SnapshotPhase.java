@@ -1,6 +1,5 @@
 package com.hp.octane.plugins.jenkins.model.snapshots;
 
-import com.hp.octane.plugins.jenkins.model.api.AbstractItem;
 import com.hp.octane.plugins.jenkins.model.api.AbstractPhase;
 import com.hp.octane.plugins.jenkins.model.pipelines.StructureItem;
 import com.hp.octane.plugins.jenkins.model.pipelines.StructurePhase;

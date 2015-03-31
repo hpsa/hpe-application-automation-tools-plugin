@@ -22,6 +22,6 @@ public class UnsupportedParameterProcessor extends AbstractParametersProcessor {
 
 	@Override
 	public ParameterInstance createParameterInstance(ParameterDefinition pd, ParameterValue pv) {
-		return new ParameterInstance(createParameterConfig(pd), null);
+		return new ParameterInstance(createParameterConfig(pd));
 	}
 }

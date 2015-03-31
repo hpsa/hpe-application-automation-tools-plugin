@@ -45,18 +45,20 @@ public class InherentParameterProcessor extends AbstractParametersProcessor {
 		ParameterInstance result;
 		ParameterConfig pc = createParameterConfig(pd);
 		if (pd instanceof BooleanParameterDefinition) {
-			result = new ParameterInstance(pc, pv.getValue());
+			result = new ParameterInstance(pc, pv);
 		} else if (pd instanceof TextParameterDefinition) {
-			result = new ParameterInstance(pc, pv.getValue());
+			result = new ParameterInstance(pc, pv);
 		} else if (pd instanceof StringParameterDefinition) {
-			result = new ParameterInstance(pc, pv.getValue());
+			result = new ParameterInstance(pc, pv);
 		} else if (pd instanceof ChoiceParameterDefinition) {
-			result = new ParameterInstance(pc, pv.getValue());
+			result = new ParameterInstance(pc, pv);
 		} else if (pd instanceof PasswordParameterDefinition) {
 			result = new ParameterInstance(pc, "");
 		} else if (pd instanceof FileParameterDefinition) {
 			FileParameterValue filePv = (FileParameterValue) pv;
-			result = new ParameterInstance(pc, filePv == null ? null : filePv.getOriginalFileName());
+			result = filePv != null ?
+					new ParameterInstance(pc, filePv.getOriginalFileName()) :
+					new ParameterInstance(pc);
 		} else {
 			result = ParameterProcessors.UNSUPPORTED.getProcessor().createParameterInstance(pd, pv);
 		}
