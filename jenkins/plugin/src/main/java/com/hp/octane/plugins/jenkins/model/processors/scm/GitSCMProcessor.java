@@ -1,5 +1,9 @@
-package com.hp.octane.plugins.jenkins.model.scm;
+package com.hp.octane.plugins.jenkins.model.processors.scm;
 
+import com.hp.octane.plugins.jenkins.model.scm.SCMCommit;
+import com.hp.octane.plugins.jenkins.model.scm.SCMData;
+import com.hp.octane.plugins.jenkins.model.scm.SCMRepositoryData;
+import com.hp.octane.plugins.jenkins.model.scm.SCMType;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.plugins.git.GitChangeSet;
@@ -16,38 +20,42 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Created with IntelliJ IDEA.
- * User: gullery
- * Date: 15/10/14
- * Time: 14:55
- * To change this template use File | Settings | File Templates.
+ * Created by gullery on 31/03/2015.
  */
 
-public final class SCMDataFactory {
-
-	static public SCMData create(AbstractProject project) {
-		ArrayList<SCMRepositoryData> repositories = new ArrayList<SCMRepositoryData>();
-		GitSCM scmGit;
-		SCMType tmpType;
-		SCMRepositoryData tmpRepo;
-		List<UserRemoteConfig> remoteConfigs;
-		if (project.getScm() instanceof NullSCM) return null;
-		if (project.getScm() instanceof GitSCM) {
-			tmpType = SCMType.GIT;
-			scmGit = (GitSCM) project.getScm();
-			remoteConfigs = scmGit.getUserRemoteConfigs();
-			for (UserRemoteConfig remoteConfig : remoteConfigs) {
-				tmpRepo = new SCMRepositoryData(
-						tmpType,
-						remoteConfig.getUrl()
-				);
-				repositories.add(tmpRepo);
-			}
-		}
-		return new SCMData(repositories);
+public class GitSCMProcessor extends AbstractSCMProcessor {
+	GitSCMProcessor() {
 	}
 
-	static public SCMData create(AbstractBuild build) {
+	@Override
+	public boolean isAppropriate(String className) {
+		return className.equals("hudson.plugins.git.GitSCM");
+	}
+
+//	@Override
+//	public SCMData getSCMConfiguration(AbstractProject project) {
+//		ArrayList<SCMRepositoryData> repositories = new ArrayList<SCMRepositoryData>();
+//		GitSCM scmGit;
+//		SCMType tmpType;
+//		SCMRepositoryData tmpRepo;
+//		List<UserRemoteConfig> remoteConfigs;
+//		if (project.getScm() instanceof GitSCM) {
+//			tmpType = SCMType.GIT;
+//			scmGit = (GitSCM) project.getScm();
+//			remoteConfigs = scmGit.getUserRemoteConfigs();
+//			for (UserRemoteConfig remoteConfig : remoteConfigs) {
+//				tmpRepo = new SCMRepositoryData(
+//						tmpType,
+//						remoteConfig.getUrl()
+//				);
+//				repositories.add(tmpRepo);
+//			}
+//		}
+//		return new SCMData(repositories);
+//	}
+
+	@Override
+	public SCMData getSCMChanges(AbstractBuild build) {
 		ArrayList<SCMRepositoryData> repositories = new ArrayList<SCMRepositoryData>();
 		AbstractProject project = build.getProject();
 		GitSCM scmGit;
@@ -59,7 +67,6 @@ public final class SCMDataFactory {
 		Revision buildCommitRev;
 		Set<String> repoUris;
 		GitChangeSet gitChange;
-		if (project.getScm() instanceof NullSCM) return null;
 		if (project.getScm() instanceof GitSCM) {
 			tmpType = SCMType.GIT;
 			scmGit = (GitSCM) project.getScm();

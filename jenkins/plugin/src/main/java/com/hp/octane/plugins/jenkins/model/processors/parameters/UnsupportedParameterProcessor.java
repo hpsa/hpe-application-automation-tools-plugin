@@ -10,6 +10,9 @@ import hudson.model.ParameterValue;
  */
 
 public class UnsupportedParameterProcessor extends AbstractParametersProcessor {
+	UnsupportedParameterProcessor() {
+	}
+
 	@Override
 	public boolean isAppropriate(String className) {
 		return true;

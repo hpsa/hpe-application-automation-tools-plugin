@@ -12,6 +12,9 @@ import java.util.ArrayList;
  */
 
 public class InherentParameterProcessor extends AbstractParametersProcessor {
+	InherentParameterProcessor() {
+	}
+
 	@Override
 	public boolean isAppropriate(String className) {
 		return className.startsWith("hudson.model");
@@ -35,7 +38,7 @@ public class InherentParameterProcessor extends AbstractParametersProcessor {
 		} else if (pd instanceof FileParameterDefinition) {
 			result = new ParameterConfig(pd, ParameterType.FILE);
 		} else {
-			result = ParameterProcessors.UNSUPPORTED.getProcessor().createParameterConfig(pd);
+			result = new UnsupportedParameterProcessor().createParameterConfig(pd);
 		}
 		return result;
 	}
@@ -60,7 +63,7 @@ public class InherentParameterProcessor extends AbstractParametersProcessor {
 					new ParameterInstance(pc, filePv.getOriginalFileName()) :
 					new ParameterInstance(pc);
 		} else {
-			result = ParameterProcessors.UNSUPPORTED.getProcessor().createParameterInstance(pd, pv);
+			result = new UnsupportedParameterProcessor().createParameterInstance(pd, pv);
 		}
 		return result;
 	}

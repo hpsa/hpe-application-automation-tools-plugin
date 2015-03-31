@@ -7,6 +7,7 @@ import hudson.model.ParameterDefinition;
 import hudson.model.ParameterValue;
 import org.jvnet.jenkins.plugins.nodelabelparameter.LabelParameterDefinition;
 import org.jvnet.jenkins.plugins.nodelabelparameter.NodeParameterDefinition;
+import org.jvnet.jenkins.plugins.nodelabelparameter.parameterizedtrigger.NodeLabelBuildParameter;
 
 import java.util.ArrayList;
 
@@ -15,6 +16,9 @@ import java.util.ArrayList;
  */
 
 public class NodeLabelParameterProcessor extends AbstractParametersProcessor {
+	NodeLabelParameterProcessor() {
+	}
+
 	@Override
 	public boolean isAppropriate(String className) {
 		return className.startsWith("org.jvnet.jenkins.plugins.nodelabelparameter");

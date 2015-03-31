@@ -2,9 +2,9 @@ package com.hp.octane.plugins.jenkins.notifications;
 
 import com.google.inject.Inject;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.AbstractParametersProcessor;
+import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessors;
 import com.hp.octane.plugins.jenkins.model.snapshots.SnapshotResult;
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCausesFactory;
-import com.hp.octane.plugins.jenkins.model.scm.SCMDataFactory;
 import com.hp.octane.plugins.jenkins.model.events.CIEventFinished;
 import com.hp.octane.plugins.jenkins.model.events.CIEventStarted;
 import com.hp.octane.plugins.jenkins.tests.TestListener;
@@ -71,7 +71,9 @@ public final class RunListenerImpl extends RunListener<Run> {
 					AbstractParametersProcessor.getInstances(build),
 					result,
 					build.getDuration(),
-					SCMDataFactory.create(build)
+					SCMProcessors
+							.getAppropriate(build.getProject().getScm().getClass().getName())
+							.getSCMChanges(build)
 			);
 			EventDispatcher.dispatchEvent(event);
 

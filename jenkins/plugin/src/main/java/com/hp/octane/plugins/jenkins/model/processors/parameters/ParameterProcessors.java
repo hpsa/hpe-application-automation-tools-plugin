@@ -18,10 +18,6 @@ public enum ParameterProcessors {
 		this.processor = processor;
 	}
 
-	public AbstractParametersProcessor getProcessor() {
-		return processor;
-	}
-
 	public static AbstractParametersProcessor getAppropriate(String className) {
 		for (ParameterProcessors p : values()) {
 			if (p.processor.isAppropriate(className)) {
