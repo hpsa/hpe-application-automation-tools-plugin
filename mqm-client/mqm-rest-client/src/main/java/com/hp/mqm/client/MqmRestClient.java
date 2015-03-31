@@ -3,9 +3,8 @@ package com.hp.mqm.client;
 import java.io.File;
 
 /**
- * Client for connection to MQM public API. It wraps whole http communication with MQM server. Client handles login automatically but
- * when client is not intended to use anymore, method {@link #release()} must be called. Method {@link #release()} should be invoked also
- * when client is not intended to use for a long time.
+ * Client for connection to MQM public API. It wraps whole http communication with MQM server. Client handles login automatically.
+ * When client is not intended to use anymore or for a long time, method {@link #release()} must be called.
  *
  * <p>
  * All methods can throw {@link com.hp.mqm.client.exception.RequestException} when unexpected result is returned from
@@ -14,25 +13,13 @@ import java.io.File;
  *
  * <p>
  * Because client cares about login automatically all methods (except {@link #release()}) can
- * throw {@link com.hp.mqm.client.exception.AuthenticationException} in case authentication failed and
- * {@link com.hp.mqm.client.exception.AuthenticationErrorException} in case of IO error or error in the HTTP protocol
- * during authentication.
+ * throw {@link com.hp.mqm.client.exception.LoginException} (as a special case of RequestException) in case authentication failure and
+ * {@link com.hp.mqm.client.exception.LoginErrorException} (as a special case of RequestErrorException) in case of IO error or
+ * error in the HTTP protocol during authentication.
  * </p>
  *
  */
-public interface MqmRestClient {
-
-    /**
-     * Tries login and when it fails, it returns true.
-     * @return true if login passes and vice versa
-     */
-    boolean checkLogin();
-
-    /**
-     * Checks if domain and project exists.
-     * @return true if domain and project exist
-     */
-    boolean checkDomainAndProject();
+public interface MqmRestClient extends BaseMqmRestClient {
 
     /**
      * Posts test results to MQM. Test results can be large data and therefore be aware to keep it in memory.
@@ -52,10 +39,4 @@ public interface MqmRestClient {
      */
     void postTestResult(File testResultReport);
 
-    /**
-     * This method should be called when client is not needed or it should not be used for a long time. It performs
-     * logout and releases all system resources if it is necessary. After invocation of {@link #release()} you can still
-     * invoke any client method (but client will need to do authentication, create session, etc.).
-     */
-    void release();
 }

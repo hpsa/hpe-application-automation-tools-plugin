@@ -6,6 +6,8 @@ import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.AuthenticationException;
+import com.hp.mqm.client.exception.DomainProjectNotExistException;
+import com.hp.mqm.client.exception.SessionCreationException;
 import com.hp.octane.plugins.jenkins.ExtensionUtil;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
@@ -104,7 +106,7 @@ public class TestDispatcherTest {
         queue.add(Arrays.asList(build, build2, build3));
         waitForTicks(10);
 
-        Mockito.verify(restClient).checkDomainAndProject();
+        Mockito.verify(restClient).tryToConnectProject();
         Mockito.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
         Mockito.verify(restClient).postTestResult(new File(build2.getRootDir(), "mqmTests.xml"));
         Mockito.verify(restClient).postTestResult(new File(build3.getRootDir(), "mqmTests.xml"));
@@ -204,18 +206,19 @@ public class TestDispatcherTest {
 
     private void mockRestClient(MqmRestClient restClient, boolean login, boolean session, boolean project) throws IOException {
         Mockito.reset(restClient);
-        if (!login || !session) {
-            Mockito.when(restClient.checkDomainAndProject()).thenThrow(new AuthenticationException());
+        if (!login ) {
+            Mockito.doThrow(new AuthenticationException()).when(restClient).tryToConnectProject();
+        } else if (!session) {
+            Mockito.doThrow(new SessionCreationException()).when(restClient).tryToConnectProject();
+        } else if (!project) {
+            Mockito.doThrow(new DomainProjectNotExistException()).when(restClient).tryToConnectProject();
         } else {
-            Mockito.when(restClient.checkDomainAndProject()).thenReturn(project);
-            if (project) {
-                Mockito.doNothing().when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()));
-            }
+            Mockito.doNothing().when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()));
         }
     }
 
     private void verifyRestClient(MqmRestClient restClient, AbstractBuild build, boolean body) throws IOException {
-        Mockito.verify(restClient).checkDomainAndProject();
+        Mockito.verify(restClient).tryToConnectProject();
         if (body) {
             Mockito.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
         }

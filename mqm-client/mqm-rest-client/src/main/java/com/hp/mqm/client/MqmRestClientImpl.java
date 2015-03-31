@@ -1,6 +1,5 @@
 package com.hp.mqm.client;
 
-import com.hp.mqm.client.exception.AuthenticationException;
 import com.hp.mqm.client.exception.FileNotFoundException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
@@ -26,21 +25,6 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
      */
     MqmRestClientImpl(MqmConnectionConfig connectionConfig) {
         super(connectionConfig);
-    }
-
-    @Override
-    public boolean checkLogin() {
-        try {
-            login();
-            return true;
-        } catch (AuthenticationException e) {
-            return false;
-        }
-    }
-
-    @Override
-    public void release() {
-        logout();
     }
 
     @Override

@@ -4,7 +4,10 @@ package com.hp.octane.plugins.jenkins.configuration;
 
 import com.google.inject.Inject;
 import com.hp.mqm.client.MqmRestClient;
+import com.hp.mqm.client.exception.AuthenticationException;
+import com.hp.mqm.client.exception.DomainProjectNotExistException;
 import com.hp.mqm.client.exception.RequestErrorException;
+import com.hp.mqm.client.exception.SessionCreationException;
 import com.hp.octane.plugins.jenkins.Messages;
 import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
@@ -31,19 +34,15 @@ public class ConfigurationService {
     public FormValidation checkConfiguration(String location, String domain, String project, String username, String password) {
         MqmRestClient client = clientFactory.create(location, domain, project, username, password);
         try {
-            if (!client.checkLogin()) {
-                return FormValidation.errorWithMarkup(markup("red", Messages.InvalidCredentials()));
-            }
+            client.tryToConnectProject();
+        } catch (AuthenticationException e) {
+            return FormValidation.errorWithMarkup(markup("red", Messages.AuthenticationFailure()));
+        } catch (SessionCreationException e) {
+            return FormValidation.errorWithMarkup(markup("red", Messages.SessionCreationFailure()));
+        } catch (DomainProjectNotExistException e) {
+            return FormValidation.errorWithMarkup(markup("red", Messages.ConnectionDomainProjectInvalid()));
         } catch (RequestErrorException e) {
-            logger.log(Level.WARNING, "Login check failed due to communication problem.", e);
-            return FormValidation.errorWithMarkup(markup("red", Messages.ConnectionFailure()));
-        }
-        try {
-            if (!client.checkDomainAndProject()) {
-                return FormValidation.errorWithMarkup(markup("red", Messages.ConnectionDomainProjectInvalid()));
-            }
-        } catch (RequestErrorException e) {
-            logger.log(Level.WARNING, "Domain and project check failed due to communication problem.", e);
+            logger.log(Level.WARNING, "Connection check failed due to communication problem.", e);
             return FormValidation.errorWithMarkup(markup("red", Messages.ConnectionFailure()));
         }
         return FormValidation.okWithMarkup(markup("green", Messages.ConnectionSuccess()));

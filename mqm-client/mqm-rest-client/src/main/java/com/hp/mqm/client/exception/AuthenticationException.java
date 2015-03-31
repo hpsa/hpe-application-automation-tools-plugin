@@ -1,9 +1,6 @@
 package com.hp.mqm.client.exception;
 
-/**
- * Exception is thrown when authentication failed.
- */
-public class AuthenticationException extends RequestException {
+public class AuthenticationException extends LoginException {
 
     public AuthenticationException() {
     }
@@ -19,4 +16,5 @@ public class AuthenticationException extends RequestException {
     public AuthenticationException(Throwable cause) {
         super(cause);
     }
+
 }

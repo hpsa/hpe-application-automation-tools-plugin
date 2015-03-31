@@ -4,7 +4,8 @@ package com.hp.octane.plugins.jenkins.tests;
 
 import com.google.inject.Inject;
 import com.hp.mqm.client.MqmRestClient;
-import com.hp.mqm.client.exception.AuthenticationException;
+import com.hp.mqm.client.exception.DomainProjectNotExistException;
+import com.hp.mqm.client.exception.LoginException;
 import com.hp.mqm.client.exception.FileNotFoundException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
@@ -68,13 +69,13 @@ public class TestDispatcher extends AsyncPeriodicWork {
                 configuration.password);
 
         try {
-            if (!client.checkDomainAndProject()) {
-                logger.warning("Invalid domain or project. Pending test results can't be submitted");
-                retryModel.failure();
-                return;
-            }
-        } catch (AuthenticationException e) {
-            logger.log(Level.WARNING, "Authentication failed, pending test results can't be submitted", e);
+            client.tryToConnectProject();
+        } catch (DomainProjectNotExistException e) {
+            logger.log(Level.WARNING, "Invalid domain or project. Pending test results can't be submitted", e);
+            retryModel.failure();
+            return;
+        } catch (LoginException e) {
+            logger.log(Level.WARNING, "Login failed, pending test results can't be submitted", e);
             retryModel.failure();
             return;
         } catch (RequestException e) {

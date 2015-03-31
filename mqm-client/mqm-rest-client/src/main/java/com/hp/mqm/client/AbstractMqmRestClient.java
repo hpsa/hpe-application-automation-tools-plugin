@@ -1,9 +1,11 @@
 package com.hp.mqm.client;
 
-import com.hp.mqm.client.exception.AuthenticationErrorException;
 import com.hp.mqm.client.exception.AuthenticationException;
+import com.hp.mqm.client.exception.DomainProjectNotExistException;
+import com.hp.mqm.client.exception.LoginErrorException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
+import com.hp.mqm.client.exception.SessionCreationException;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
@@ -36,7 +38,7 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.regex.Pattern;
 
-public abstract class AbstractMqmRestClient {
+public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 
     private static final String URI_AUTHENTICATION = "authentication-point/alm-authenticate";
     private static final String URI_CREATE_SESSION = "rest/site-session";
@@ -116,29 +118,10 @@ public abstract class AbstractMqmRestClient {
         }
     }
 
-    // the simplest implementation because we do not know if domain and project will exist in future
-    public boolean checkDomainAndProject() {
-        RequestBuilder requestBuilder = RequestBuilder.get(createProjectRestUri(URI_DOMAIN_PROJECT_CHECK));
-
-        CloseableHttpResponse response = null;
-        try {
-            response = execute(requestBuilder.build());
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                return true;
-            } else {
-                return false;
-            }
-        } catch (IOException e) {
-            throw new RequestErrorException("Domain and project check failed", e);
-        } finally {
-            HttpClientUtils.closeQuietly(response);
-        }
-    }
-
     /**
      * Login to MQM with given credentials and create QC session.
      *
-     * @throws AuthenticationException when authentication failed
+     * @throws com.hp.mqm.client.exception.LoginException when authentication failed
      */
     protected synchronized void login() {
         authenticate();
@@ -165,6 +148,10 @@ public abstract class AbstractMqmRestClient {
         }
     }
 
+    public void release() {
+        logout();
+    }
+
     private void authenticate() {
         HttpPost post = new HttpPost(createBaseUri(URI_AUTHENTICATION));
         post.setEntity(new StringEntity(createAuthenticationXml(), ContentType.create("application/xml", "UTF-8")));
@@ -176,7 +163,7 @@ public abstract class AbstractMqmRestClient {
                 throw new AuthenticationException("Authentication failed: code=" + response.getStatusLine().getStatusCode() + "; reason=" + response.getStatusLine().getReasonPhrase());
             }
         } catch (IOException e) {
-            throw new AuthenticationErrorException("Error occurred during authentication", e);
+            throw new LoginErrorException("Error occurred during authentication", e);
         } finally {
             HttpClientUtils.closeQuietly(response);
         }
@@ -190,10 +177,10 @@ public abstract class AbstractMqmRestClient {
         try {
             response = httpClient.execute(requestBuilder.build());
             if (response.getStatusLine().getStatusCode() != 201) {
-                throw new AuthenticationException("Session creation failed: code=" + response.getStatusLine().getStatusCode() + "; reason=" + response.getStatusLine().getReasonPhrase());
+                throw new SessionCreationException("Session creation failed: code=" + response.getStatusLine().getStatusCode() + "; reason=" + response.getStatusLine().getReasonPhrase());
             }
         } catch (IOException e) {
-            throw new AuthenticationErrorException("Session creation failed", e);
+            throw new LoginErrorException("Session creation failed", e);
         } finally {
             HttpClientUtils.closeQuietly(response);
         }
@@ -215,6 +202,29 @@ public abstract class AbstractMqmRestClient {
         root.addContent(new Element("client-type").setText(clientType));
         root.addContent(new Element("time-out").setText("6")); // TODO What this timeout means? Should it configurable?
         return new XMLOutputter().outputString(document);
+    }
+
+    @Override
+    public void tryToConnectProject() {
+        login();
+        checkDomainAndProject();
+    }
+
+    // the simplest implementation because we do not know if domain and project will exist in future
+    private void checkDomainAndProject() {
+        RequestBuilder requestBuilder = RequestBuilder.get(createProjectRestUri(URI_DOMAIN_PROJECT_CHECK));
+
+        CloseableHttpResponse response = null;
+        try {
+            response = execute(requestBuilder.build());
+            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+                throw new DomainProjectNotExistException("Cannot connect to given project.");
+            }
+        } catch (IOException e) {
+            throw new RequestErrorException("Domain and project check failed", e);
+        } finally {
+            HttpClientUtils.closeQuietly(response);
+        }
     }
 
     /**
