@@ -36,10 +36,13 @@ public class ConfigurationService {
         try {
             client.tryToConnectProject();
         } catch (AuthenticationException e) {
+            logger.log(Level.WARNING, "Authentication failed.", e);
             return FormValidation.errorWithMarkup(markup("red", Messages.AuthenticationFailure()));
         } catch (SessionCreationException e) {
+            logger.log(Level.WARNING, "Session creation failed.", e);
             return FormValidation.errorWithMarkup(markup("red", Messages.SessionCreationFailure()));
         } catch (DomainProjectNotExistException e) {
+            logger.log(Level.WARNING, "Domain and project validation failed.", e);
             return FormValidation.errorWithMarkup(markup("red", Messages.ConnectionDomainProjectInvalid()));
         } catch (RequestErrorException e) {
             logger.log(Level.WARNING, "Connection check failed due to communication problem.", e);
