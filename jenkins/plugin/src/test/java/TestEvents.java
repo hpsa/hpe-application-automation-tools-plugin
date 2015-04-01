@@ -12,6 +12,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.*;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.recipes.WithTimeout;
 import org.kohsuke.stapler.export.Exported;
 
 import javax.servlet.ServletException;
@@ -120,6 +121,7 @@ public class TestEvents {
 	}
 
 	@Test
+	@WithTimeout(360)
 	public void testEventsA() throws Exception {
 		FreeStyleProject p = rule.createFreeStyleProject(projectName);
 		JenkinsRule.WebClient client = rule.createWebClient();
