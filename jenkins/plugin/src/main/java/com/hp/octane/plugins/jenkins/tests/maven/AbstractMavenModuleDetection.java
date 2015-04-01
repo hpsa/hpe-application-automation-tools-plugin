@@ -59,15 +59,15 @@ public abstract class AbstractMavenModuleDetection implements ModuleDetection {
             FilePath pomPath = new FilePath(parentPath, "pom.xml");
             if (pomPath.exists()) {
                 // we found a nested pom directory
-                return parentPath.getRemote().substring(rootDir.getRemote().length() + 1);
+                return parentPath.getRemote().substring(rootDir.getRemote().length());
             }
             filePath = parentPath;
         }
         // no other pom found in nested directories
-        return pomDir.getRemote().substring(rootDir.getRemote().length() + 1);
+        return pomDir.getRemote().substring(rootDir.getRemote().length());
     }
 
     private String normalize(String path) {
-        return path.replace("\\", "/");
+        return path.replace("\\", "/").replaceFirst("^/", "");
     }
 }

@@ -9,7 +9,6 @@ import hudson.FilePath;
 import hudson.model.AbstractBuild;
 
 import javax.xml.stream.XMLStreamException;
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -26,26 +25,31 @@ public class TestListener {
     public void processBuild(AbstractBuild build) {
         FilePath resultPath = new FilePath(new FilePath(build.getRootDir()), TEST_RESULT_FILE);
         TestResultXmlWriter resultWriter = new TestResultXmlWriter(resultPath, build);
+        boolean success = true;
         try {
             for (MqmTestsExtension ext: MqmTestsExtension.all()) {
                 try {
                     if (ext.supports(build)) {
                         resultWriter.add(ext.getTestResults(build));
                     }
-                } catch (IOException e) {
-                    logger.log(Level.SEVERE, "Error processing test results in " + ext.getClass().getName(), e);
                 } catch (InterruptedException e) {
                     logger.log(Level.SEVERE, "Interrupted processing test results in " + ext.getClass().getName(), e);
                     Thread.currentThread().interrupt();
+                    success = false;
                     break;
-                } catch (XMLStreamException e) {
-                    throw new RuntimeException(e);
+                } catch (Exception e) {
+                    // extensibility involved: catch both checked and RuntimeExceptions
+                    logger.log(Level.SEVERE, "Error processing test results in " + ext.getClass().getName(), e);
+                    success = false;
+                    break;
                 }
             }
         } finally {
             try {
                 resultWriter.close();
-                queue.add(build.getProject().getName(), build.getNumber());
+                if (success) {
+                    queue.add(build.getProject().getName(), build.getNumber());
+                }
             } catch (XMLStreamException e) {
                 logger.log(Level.SEVERE, "Error processing test results", e);
             }

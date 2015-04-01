@@ -28,7 +28,7 @@ public class TestDispatcher extends AsyncPeriodicWork {
 
     private static Logger logger = Logger.getLogger(TestDispatcher.class.getName());
 
-    private static final String TEST_RESULT_PUSH_ENDPOINT = "/tb/build-push";
+    private static final String TEST_RESULT_PUSH_ENDPOINT = "/test-results/v1";
 
     @Inject
     private RetryModel retryModel;

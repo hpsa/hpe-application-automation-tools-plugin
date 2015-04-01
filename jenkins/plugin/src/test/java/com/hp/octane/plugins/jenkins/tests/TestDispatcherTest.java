@@ -107,9 +107,9 @@ public class TestDispatcherTest {
         Mockito.verify(restClient).login();
         Mockito.verify(restClient).createSession();
         Mockito.verify(restClient).checkDomainAndProject();
-        Mockito.verify(restClient).post("/tb/build-push", new File(build.getRootDir(), "mqmTests.xml"), "application/xml");
-        Mockito.verify(restClient).post("/tb/build-push", new File(build2.getRootDir(), "mqmTests.xml"), "application/xml");
-        Mockito.verify(restClient).post("/tb/build-push", new File(build3.getRootDir(), "mqmTests.xml"), "application/xml");
+        Mockito.verify(restClient).post("/test-results/v1", new File(build.getRootDir(), "mqmTests.xml"), "application/xml");
+        Mockito.verify(restClient).post("/test-results/v1", new File(build2.getRootDir(), "mqmTests.xml"), "application/xml");
+        Mockito.verify(restClient).post("/test-results/v1", new File(build3.getRootDir(), "mqmTests.xml"), "application/xml");
         Mockito.verifyNoMoreInteractions(restClient);
         Assert.assertEquals(0, queue.size());
     }
@@ -172,7 +172,7 @@ public class TestDispatcherTest {
         Mockito.when(restClient.login()).thenReturn(true);
         Mockito.when(restClient.createSession()).thenReturn(true);
         Mockito.when(restClient.checkDomainAndProject()).thenReturn(true);
-        Mockito.when(restClient.post(Mockito.eq("/tb/build-push"), Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq("application/xml"))).thenReturn(500).thenReturn(201);
+        Mockito.when(restClient.post(Mockito.eq("/test-results/v1"), Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq("application/xml"))).thenReturn(500).thenReturn(201);
         InOrder order = Mockito.inOrder(restClient);
 
         FreeStyleBuild build = executeBuild();
@@ -181,16 +181,16 @@ public class TestDispatcherTest {
         order.verify(restClient).login();
         order.verify(restClient).createSession();
         order.verify(restClient).checkDomainAndProject();
-        order.verify(restClient).post("/tb/build-push", new File(build.getRootDir(), "mqmTests.xml"), "application/xml");
+        order.verify(restClient).post("/test-results/v1", new File(build.getRootDir(), "mqmTests.xml"), "application/xml");
         order.verify(restClient).login();
         order.verify(restClient).createSession();
         order.verify(restClient).checkDomainAndProject();
-        order.verify(restClient).post("/tb/build-push", new File(build.getRootDir(), "mqmTests.xml"), "application/xml");
+        order.verify(restClient).post("/test-results/v1", new File(build.getRootDir(), "mqmTests.xml"), "application/xml");
 
         Mockito.verify(restClient, Mockito.times(2)).login();
         Mockito.verify(restClient, Mockito.times(2)).createSession();
         Mockito.verify(restClient, Mockito.times(2)).checkDomainAndProject();
-        Mockito.verify(restClient, Mockito.times(2)).post("/tb/build-push", new File(build.getRootDir(), "mqmTests.xml"), "application/xml");
+        Mockito.verify(restClient, Mockito.times(2)).post("/test-results/v1", new File(build.getRootDir(), "mqmTests.xml"), "application/xml");
         Mockito.verifyNoMoreInteractions(restClient);
 
         Assert.assertEquals(0, queue.size());
@@ -202,7 +202,7 @@ public class TestDispatcherTest {
         Mockito.when(restClient.login()).thenReturn(true);
         Mockito.when(restClient.createSession()).thenReturn(true);
         Mockito.when(restClient.checkDomainAndProject()).thenReturn(true);
-        Mockito.when(restClient.post(Mockito.eq("/tb/build-push"), Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq("application/xml"))).thenReturn(500).thenReturn(500);
+        Mockito.when(restClient.post(Mockito.eq("/test-results/v1"), Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq("application/xml"))).thenReturn(500).thenReturn(500);
 
         order = Mockito.inOrder(restClient);
 
@@ -212,16 +212,16 @@ public class TestDispatcherTest {
         order.verify(restClient).login();
         order.verify(restClient).createSession();
         order.verify(restClient).checkDomainAndProject();
-        order.verify(restClient).post("/tb/build-push", new File(build.getRootDir(), "mqmTests.xml"), "application/xml");
+        order.verify(restClient).post("/test-results/v1", new File(build.getRootDir(), "mqmTests.xml"), "application/xml");
         order.verify(restClient).login();
         order.verify(restClient).createSession();
         order.verify(restClient).checkDomainAndProject();
-        order.verify(restClient).post("/tb/build-push", new File(build.getRootDir(), "mqmTests.xml"), "application/xml");
+        order.verify(restClient).post("/test-results/v1", new File(build.getRootDir(), "mqmTests.xml"), "application/xml");
 
         Mockito.verify(restClient, Mockito.times(2)).login();
         Mockito.verify(restClient, Mockito.times(2)).createSession();
         Mockito.verify(restClient, Mockito.times(2)).checkDomainAndProject();
-        Mockito.verify(restClient, Mockito.times(2)).post("/tb/build-push", new File(build.getRootDir(), "mqmTests.xml"), "application/xml");
+        Mockito.verify(restClient, Mockito.times(2)).post("/test-results/v1", new File(build.getRootDir(), "mqmTests.xml"), "application/xml");
         Mockito.verifyNoMoreInteractions(restClient);
 
         Assert.assertEquals(0, queue.size());
@@ -257,7 +257,7 @@ public class TestDispatcherTest {
         Mockito.when(restClient.login()).thenReturn(login);
         Mockito.when(restClient.createSession()).thenReturn(session);
         Mockito.when(restClient.checkDomainAndProject()).thenReturn(project);
-        Mockito.when(restClient.post(Mockito.eq("/tb/build-push"), Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq("application/xml"))).thenReturn(code);
+        Mockito.when(restClient.post(Mockito.eq("/test-results/v1"), Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq("application/xml"))).thenReturn(code);
     }
 
     private void verifyRestClient(MqmRestClient restClient, AbstractBuild build, boolean session, boolean project, boolean body) throws IOException {
@@ -269,7 +269,7 @@ public class TestDispatcherTest {
             Mockito.verify(restClient).checkDomainAndProject();
         }
         if (body) {
-            Mockito.verify(restClient).post("/tb/build-push", new File(build.getRootDir(), "mqmTests.xml"), "application/xml");
+            Mockito.verify(restClient).post("/test-results/v1", new File(build.getRootDir(), "mqmTests.xml"), "application/xml");
         }
         Mockito.verifyNoMoreInteractions(restClient);
     }
