@@ -1,0 +1,17 @@
+# Logs
+logs
+*.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+.settings
+.project
+
+# IDE generated files
+.idea/
+*.iml
+**/target
+**/work
+target

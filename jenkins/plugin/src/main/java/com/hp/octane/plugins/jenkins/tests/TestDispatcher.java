@@ -3,10 +3,15 @@
 package com.hp.octane.plugins.jenkins.tests;
 
 import com.google.inject.Inject;
-import com.hp.octane.plugins.jenkins.client.MqmRestClientFactory;
-import com.hp.octane.plugins.jenkins.client.MqmRestClientFactoryImpl;
+import com.hp.mqm.client.MqmRestClient;
+import com.hp.mqm.client.exception.DomainProjectNotExistException;
+import com.hp.mqm.client.exception.LoginException;
+import com.hp.mqm.client.exception.FileNotFoundException;
+import com.hp.mqm.client.exception.RequestErrorException;
+import com.hp.mqm.client.exception.RequestException;
+import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
+import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactoryImpl;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
-import com.hp.octane.plugins.jenkins.client.MqmRestClient;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationService;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import hudson.Extension;
@@ -28,14 +33,14 @@ public class TestDispatcher extends AsyncPeriodicWork {
 
     private static Logger logger = Logger.getLogger(TestDispatcher.class.getName());
 
-    private static final String TEST_RESULT_PUSH_ENDPOINT = "/test-results/v1";
+    private static final String TEST_RESULT_PUSH_ENDPOINT = "/tb/build-push";
 
     @Inject
     private RetryModel retryModel;
 
     private TestResultQueue queue;
 
-    private MqmRestClientFactory clientFactory;
+    private JenkinsMqmRestClientFactory clientFactory;
 
     public TestDispatcher() {
         super("MQM Test Dispatcher");
@@ -60,31 +65,44 @@ public class TestDispatcher extends AsyncPeriodicWork {
                     return;
                 }
 
-                logger.info("There are pending test results, connecting to the MQM server");
-                client = clientFactory.create(
-                        configuration.location,
-                        configuration.domain,
-                        configuration.project,
-                        configuration.username,
-                        configuration.password);
-                if (!client.login()) {
-                    logger.warning("Could not authenticate, pending test results can't be submitted");
-                    retryModel.failure();
-                    return;
-                }
-                if (!client.createSession()) {
-                    logger.warning("Could not create session, pending test results can't be submitted");
-                    retryModel.failure();
-                    return;
-                }
-                if (!client.checkDomainAndProject()) {
-                    logger.warning("Could not validate domain and project, pending test results can't be submitted");
-                    retryModel.failure();
-                    return;
-                }
-                retryModel.success();
-            }
+        ServerConfiguration configuration = ConfigurationService.getServerConfiguration();
+        if (StringUtils.isEmpty(configuration.location)) {
+            logger.warning("There are pending test results, but MQM server location is not specified, results can't be submitted");
+            return;
+        }
 
+        logger.info("There are pending test results, connecting to the MQM server");
+        MqmRestClient client = clientFactory.create(
+                configuration.location,
+                configuration.domain,
+                configuration.project,
+                configuration.username,
+                configuration.password);
+
+        try {
+            client.tryToConnectProject();
+        } catch (DomainProjectNotExistException e) {
+            logger.log(Level.WARNING, "Invalid domain or project. Pending test results can't be submitted", e);
+            retryModel.failure();
+            return;
+        } catch (LoginException e) {
+            logger.log(Level.WARNING, "Login failed, pending test results can't be submitted", e);
+            retryModel.failure();
+            return;
+        } catch (RequestException e) {
+            logger.log(Level.WARNING, "Problem with communication with MQM server. Pending test results can't be submitted", e);
+            retryModel.failure();
+            return;
+        } catch (RequestErrorException e) {
+            logger.log(Level.WARNING, "Connection problem, pending test results can't be submitted", e);
+            retryModel.failure();
+            return;
+        }
+
+        retryModel.success();
+
+        while (!queue.isEmpty()) {
+            TestResultQueue.QueueItem item = queue.removeFirst();
             AbstractProject project = (AbstractProject) Jenkins.getInstance().getItem(item.projectName);
             if (project == null) {
                 logger.warning("Project [" + item.projectName + "] no longer exists, pending test results can't be submitted");
@@ -110,18 +128,18 @@ public class TestDispatcher extends AsyncPeriodicWork {
                 client = null;
             }
         }
+
     }
 
     private boolean pushTestResults(MqmRestClient client, AbstractBuild build) {
         File resultFile = new File(build.getRootDir(), TestListener.TEST_RESULT_FILE);
         try {
-            int code = client.post(TEST_RESULT_PUSH_ENDPOINT, resultFile, "application/xml");
-            if (code != 201) {
-                logger.log(Level.WARNING, "Failed to submit test results [" + build.getProject().getName() + "#" + build.getNumber()  + "]: code=" + code);
-                return false;
-            }
-        } catch (IOException e) {
-            logger.log(Level.WARNING, "Failed to submit test results [" + build.getProject().getName() + "#" + build.getNumber()  + "]", e);
+            client.postTestResult(resultFile);
+        } catch (RequestException e) {
+            logger.log(Level.WARNING, "Failed to submit test results [" + build.getProject().getName() + "#" + build.getNumber() + "]", e);
+            return false;
+        } catch (RequestErrorException e) {
+            logger.log(Level.WARNING, "Failed to submit test results [" + build.getProject().getName() + "#" + build.getNumber() + "]", e);
             return false;
         }
         return true;
@@ -137,7 +155,7 @@ public class TestDispatcher extends AsyncPeriodicWork {
     }
 
     @Inject
-    public void setMqmRestClientFactory(MqmRestClientFactoryImpl clientFactory) {
+    public void setMqmRestClientFactory(JenkinsMqmRestClientFactoryImpl clientFactory) {
         this.clientFactory = clientFactory;
     }
 
@@ -149,7 +167,7 @@ public class TestDispatcher extends AsyncPeriodicWork {
     /*
      * To be used in tests only.
      */
-    public void _setMqmRestClientFactory(MqmRestClientFactory clientFactory) {
+    public void _setMqmRestClientFactory(JenkinsMqmRestClientFactory clientFactory) {
         this.clientFactory = clientFactory;
     }
 
