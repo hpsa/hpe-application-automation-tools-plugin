@@ -15,14 +15,14 @@ import java.util.ArrayList;
 
 @ExportedBean
 public class SCMData {
-	private ArrayList<SCMRepositoryData> repositories;
+	private ArrayList<SCMRepository> repositories;
 
-	public SCMData(ArrayList<SCMRepositoryData> repositories) {
+	public SCMData(ArrayList<SCMRepository> repositories) {
 		this.repositories = repositories;
 	}
 
 	@Exported(inline = true)
-	public SCMRepositoryData[] getRepositories() {
-		return repositories.toArray(new SCMRepositoryData[repositories.size()]);
+	public SCMRepository[] getRepositories() {
+		return repositories.toArray(new SCMRepository[repositories.size()]);
 	}
 }

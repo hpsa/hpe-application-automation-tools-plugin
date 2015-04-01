@@ -1,22 +1,16 @@
 package com.hp.octane.plugins.jenkins.model.processors.scm;
 
-import com.hp.octane.plugins.jenkins.model.scm.SCMCommit;
-import com.hp.octane.plugins.jenkins.model.scm.SCMData;
-import com.hp.octane.plugins.jenkins.model.scm.SCMRepositoryData;
-import com.hp.octane.plugins.jenkins.model.scm.SCMType;
+import com.hp.octane.plugins.jenkins.model.scm.*;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.plugins.git.GitChangeSet;
 import hudson.plugins.git.GitSCM;
 import hudson.plugins.git.Revision;
-import hudson.plugins.git.UserRemoteConfig;
 import hudson.plugins.git.util.BuildData;
 import hudson.scm.ChangeLogSet;
-import hudson.scm.NullSCM;
 import hudson.tasks.Mailer;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -32,35 +26,15 @@ public class GitSCMProcessor extends AbstractSCMProcessor {
 		return className.equals("hudson.plugins.git.GitSCM");
 	}
 
-//	@Override
-//	public SCMData getSCMConfiguration(AbstractProject project) {
-//		ArrayList<SCMRepositoryData> repositories = new ArrayList<SCMRepositoryData>();
-//		GitSCM scmGit;
-//		SCMType tmpType;
-//		SCMRepositoryData tmpRepo;
-//		List<UserRemoteConfig> remoteConfigs;
-//		if (project.getScm() instanceof GitSCM) {
-//			tmpType = SCMType.GIT;
-//			scmGit = (GitSCM) project.getScm();
-//			remoteConfigs = scmGit.getUserRemoteConfigs();
-//			for (UserRemoteConfig remoteConfig : remoteConfigs) {
-//				tmpRepo = new SCMRepositoryData(
-//						tmpType,
-//						remoteConfig.getUrl()
-//				);
-//				repositories.add(tmpRepo);
-//			}
-//		}
-//		return new SCMData(repositories);
-//	}
-
 	@Override
 	public SCMData getSCMChanges(AbstractBuild build) {
-		ArrayList<SCMRepositoryData> repositories = new ArrayList<SCMRepositoryData>();
+		ArrayList<SCMRepository> repositories = new ArrayList<SCMRepository>();
 		AbstractProject project = build.getProject();
 		GitSCM scmGit;
 		SCMType tmpType;
-		SCMRepositoryData tmpRepo;
+		SCMRepository tmpRepo;
+		SCMConfiguration tmpConfiguration;
+		ArrayList<SCMCommit> tmpCommits;
 		SCMCommit tmpCommit;
 		ChangeLogSet<ChangeLogSet.Entry> changes = build.getChangeSet();
 		BuildData buildData;
@@ -75,12 +49,13 @@ public class GitSCMProcessor extends AbstractSCMProcessor {
 				buildCommitRev = buildData.getLastBuiltRevision();
 				repoUris = buildData.getRemoteUrls();
 				if (!repoUris.iterator().hasNext()) return null;
-				tmpRepo = new SCMRepositoryData(
+				tmpConfiguration = new SCMConfiguration(
 						tmpType,
 						repoUris.iterator().next(),
-						buildCommitRev.getSha1String(),
-						buildCommitRev.getBranches().iterator().hasNext() ? buildCommitRev.getBranches().iterator().next().getName() : null
+						buildCommitRev.getBranches().iterator().hasNext() ? buildCommitRev.getBranches().iterator().next().getName() : null,
+						buildCommitRev.getSha1String()
 				);
+				tmpCommits = new ArrayList<SCMCommit>();
 				for (ChangeLogSet.Entry change : changes) {
 					if (change instanceof GitChangeSet) {
 						gitChange = (GitChangeSet) change;
@@ -100,9 +75,10 @@ public class GitSCMProcessor extends AbstractSCMProcessor {
 									item.getPath()
 							);
 						}
-						tmpRepo.addCommit(tmpCommit);
+						tmpCommits.add(tmpCommit);
 					}
 				}
+				tmpRepo = new SCMRepository(tmpConfiguration, tmpCommits.toArray(new SCMCommit[tmpCommits.size()]));
 				repositories.add(tmpRepo);
 			}
 		}

@@ -5,7 +5,6 @@ package com.hp.octane.plugins.jenkins.configuration;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.hp.octane.plugins.jenkins.ExtensionUtil;
-import com.hp.octane.plugins.jenkins.model.scm.SCMRepositoryData;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;

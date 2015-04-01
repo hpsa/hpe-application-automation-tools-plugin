@@ -6,6 +6,7 @@ import hudson.model.AbstractBuild;
 /**
  * Created by gullery on 31/03/2015.
  */
+
 public abstract class AbstractSCMProcessor {
 	public abstract boolean isAppropriate(String className);
 
