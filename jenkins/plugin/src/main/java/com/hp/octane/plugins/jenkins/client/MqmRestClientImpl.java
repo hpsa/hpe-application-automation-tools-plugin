@@ -116,7 +116,7 @@ public class MqmRestClientImpl implements MqmRestClient {
 
     @Override
     public int post(String projectPath, File file, String contentType) throws IOException {
-        PostMethod method = new PostMethod(projectPrefix() + "/" + projectPath);
+        PostMethod method = new PostMethod(apiProjectPrefix() + "/" + projectPath);
         try {
             method.setRequestEntity(new FileRequestEntity(file, contentType));
             return httpClient.executeMethod(method);
@@ -127,6 +127,10 @@ public class MqmRestClientImpl implements MqmRestClient {
 
     private String projectPrefix() {
         return location + "/rest/domains/" + domain + "/projects/" + project;
+    }
+
+    private String apiProjectPrefix() {
+        return location + "/api/domains/" + domain + "/projects/" + project;
     }
 
     private String createAuthenticationXml() {
