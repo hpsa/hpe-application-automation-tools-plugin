@@ -101,7 +101,7 @@ public class JUnitResultsTest {
             String testSignature = test(testResult);
             Assert.assertTrue("Not found: " + testSignature + " in " + copy, copy.remove(testSignature));
         }
-        Assert.assertTrue(copy.isEmpty());
+        Assert.assertTrue(copy.toString(), copy.isEmpty());
     }
 
     private static String test(TestResult testResult) {
