@@ -7,6 +7,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.AuthenticationException;
 import com.hp.mqm.client.exception.DomainProjectNotExistException;
+import com.hp.mqm.client.exception.RequestException;
 import com.hp.mqm.client.exception.SessionCreationException;
 import com.hp.octane.plugins.jenkins.ExtensionUtil;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
@@ -170,28 +171,18 @@ public class TestDispatcherTest {
     public void testDispatcherBodyFailure() throws Exception {
         // body post fails for the first time, succeeds afterwards
 
-        Mockito.when(restClient.login()).thenReturn(true);
-        Mockito.when(restClient.createSession()).thenReturn(true);
-        Mockito.when(restClient.checkDomainAndProject()).thenReturn(true);
-        Mockito.when(restClient.post(Mockito.eq("/test-results/v1"), Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq("application/xml"))).thenReturn(500).thenReturn(201);
+        Mockito.doNothing().when(restClient).tryToConnectProject();
+        Mockito.doThrow(new RequestException("fails")).doNothing().when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()));
         InOrder order = Mockito.inOrder(restClient);
 
         FreeStyleBuild build = executeBuild();
         waitForTicks(5);
 
-        order.verify(restClient).login();
-        order.verify(restClient).createSession();
-        order.verify(restClient).checkDomainAndProject();
-        order.verify(restClient).post("/test-results/v1", new File(build.getRootDir(), "mqmTests.xml"), "application/xml");
-        order.verify(restClient).login();
-        order.verify(restClient).createSession();
-        order.verify(restClient).checkDomainAndProject();
-        order.verify(restClient).post("/test-results/v1", new File(build.getRootDir(), "mqmTests.xml"), "application/xml");
+        order.verify(restClient).tryToConnectProject();
+        order.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
 
-        Mockito.verify(restClient, Mockito.times(2)).login();
-        Mockito.verify(restClient, Mockito.times(2)).createSession();
-        Mockito.verify(restClient, Mockito.times(2)).checkDomainAndProject();
-        Mockito.verify(restClient, Mockito.times(2)).post("/test-results/v1", new File(build.getRootDir(), "mqmTests.xml"), "application/xml");
+        Mockito.verify(restClient, Mockito.times(2)).tryToConnectProject();
+        Mockito.verify(restClient, Mockito.times(2)).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
         Mockito.verifyNoMoreInteractions(restClient);
 
         Assert.assertEquals(0, queue.size());
@@ -200,29 +191,21 @@ public class TestDispatcherTest {
         // body post fails for two consecutive times
 
         Mockito.reset(restClient);
-        Mockito.when(restClient.login()).thenReturn(true);
-        Mockito.when(restClient.createSession()).thenReturn(true);
-        Mockito.when(restClient.checkDomainAndProject()).thenReturn(true);
-        Mockito.when(restClient.post(Mockito.eq("/test-results/v1"), Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq("application/xml"))).thenReturn(500).thenReturn(500);
+        Mockito.doNothing().when(restClient).tryToConnectProject();
+        Mockito.doThrow(new RequestException("fails")).doThrow(new RequestException("fails")).when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()));
 
         order = Mockito.inOrder(restClient);
 
         build = executeBuild();
         waitForTicks(5);
 
-        order.verify(restClient).login();
-        order.verify(restClient).createSession();
-        order.verify(restClient).checkDomainAndProject();
-        order.verify(restClient).post("/test-results/v1", new File(build.getRootDir(), "mqmTests.xml"), "application/xml");
-        order.verify(restClient).login();
-        order.verify(restClient).createSession();
-        order.verify(restClient).checkDomainAndProject();
-        order.verify(restClient).post("/test-results/v1", new File(build.getRootDir(), "mqmTests.xml"), "application/xml");
+        order.verify(restClient).tryToConnectProject();
+        order.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
+        order.verify(restClient).tryToConnectProject();
+        order.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
 
-        Mockito.verify(restClient, Mockito.times(2)).login();
-        Mockito.verify(restClient, Mockito.times(2)).createSession();
-        Mockito.verify(restClient, Mockito.times(2)).checkDomainAndProject();
-        Mockito.verify(restClient, Mockito.times(2)).post("/test-results/v1", new File(build.getRootDir(), "mqmTests.xml"), "application/xml");
+        Mockito.verify(restClient, Mockito.times(2)).tryToConnectProject();
+        Mockito.verify(restClient, Mockito.times(2)).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
         Mockito.verifyNoMoreInteractions(restClient);
 
         Assert.assertEquals(0, queue.size());
@@ -270,7 +253,6 @@ public class TestDispatcherTest {
         Mockito.verify(restClient).tryToConnectProject();
         if (body) {
             Mockito.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
-            Mockito.verify(restClient).post("/test-results/v1", new File(build.getRootDir(), "mqmTests.xml"), "application/xml");
         }
         Mockito.verifyNoMoreInteractions(restClient);
     }

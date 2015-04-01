@@ -94,7 +94,7 @@ public class ConfigurationServiceTest {
 
         validation = configurationService.checkConfiguration("http://localhost:8088/", "domain1", "project1", "username1", "password1");
         Assert.assertEquals(FormValidation.Kind.ERROR, validation.kind);
-        Assert.assertTrue(validation.getMessage().contains(Messages.ConnectionDomainProjectInvalid()));
+        Assert.assertTrue(validation.getMessage().contains(Messages.SessionCreationFailure()));
 
         // domain project does not exists
         Mockito.doThrow(new DomainProjectNotExistException()).when(client).tryToConnectProject();

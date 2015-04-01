@@ -5,8 +5,8 @@ package com.hp.octane.plugins.jenkins.tests;
 import com.google.inject.Inject;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.DomainProjectNotExistException;
-import com.hp.mqm.client.exception.LoginException;
 import com.hp.mqm.client.exception.FileNotFoundException;
+import com.hp.mqm.client.exception.LoginException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
@@ -32,8 +32,6 @@ import java.util.logging.Logger;
 public class TestDispatcher extends AsyncPeriodicWork {
 
     private static Logger logger = Logger.getLogger(TestDispatcher.class.getName());
-
-    private static final String TEST_RESULT_PUSH_ENDPOINT = "/tb/build-push";
 
     @Inject
     private RetryModel retryModel;
@@ -65,44 +63,35 @@ public class TestDispatcher extends AsyncPeriodicWork {
                     return;
                 }
 
-        ServerConfiguration configuration = ConfigurationService.getServerConfiguration();
-        if (StringUtils.isEmpty(configuration.location)) {
-            logger.warning("There are pending test results, but MQM server location is not specified, results can't be submitted");
-            return;
-        }
+                logger.info("There are pending test results, connecting to the MQM server");
+                client = clientFactory.create(
+                        configuration.location,
+                        configuration.domain,
+                        configuration.project,
+                        configuration.username,
+                        configuration.password);
+                try {
+                    client.tryToConnectProject();
+                } catch (DomainProjectNotExistException e) {
+                    logger.log(Level.WARNING, "Invalid domain or project. Pending test results can't be submitted", e);
+                    retryModel.failure();
+                    return;
+                } catch (LoginException e) {
+                    logger.log(Level.WARNING, "Login failed, pending test results can't be submitted", e);
+                    retryModel.failure();
+                    return;
+                } catch (RequestException e) {
+                    logger.log(Level.WARNING, "Problem with communication with MQM server. Pending test results can't be submitted", e);
+                    retryModel.failure();
+                    return;
+                } catch (RequestErrorException e) {
+                    logger.log(Level.WARNING, "Connection problem, pending test results can't be submitted", e);
+                    retryModel.failure();
+                    return;
+                }
+                retryModel.success();
+            }
 
-        logger.info("There are pending test results, connecting to the MQM server");
-        MqmRestClient client = clientFactory.create(
-                configuration.location,
-                configuration.domain,
-                configuration.project,
-                configuration.username,
-                configuration.password);
-
-        try {
-            client.tryToConnectProject();
-        } catch (DomainProjectNotExistException e) {
-            logger.log(Level.WARNING, "Invalid domain or project. Pending test results can't be submitted", e);
-            retryModel.failure();
-            return;
-        } catch (LoginException e) {
-            logger.log(Level.WARNING, "Login failed, pending test results can't be submitted", e);
-            retryModel.failure();
-            return;
-        } catch (RequestException e) {
-            logger.log(Level.WARNING, "Problem with communication with MQM server. Pending test results can't be submitted", e);
-            retryModel.failure();
-            return;
-        } catch (RequestErrorException e) {
-            logger.log(Level.WARNING, "Connection problem, pending test results can't be submitted", e);
-            retryModel.failure();
-            return;
-        }
-
-        retryModel.success();
-
-        while (!queue.isEmpty()) {
-            TestResultQueue.QueueItem item = queue.removeFirst();
             AbstractProject project = (AbstractProject) Jenkins.getInstance().getItem(item.projectName);
             if (project == null) {
                 logger.warning("Project [" + item.projectName + "] no longer exists, pending test results can't be submitted");
@@ -117,18 +106,22 @@ public class TestDispatcher extends AsyncPeriodicWork {
                 continue;
             }
 
-            if (pushTestResults(client, build)) {
-                logger.info("Successfully pushed test results of build [" + item.projectName + "#" + item.buildNumber + "]");
-                queue.remove();
-            } else {
-                logger.warning("Failed to push test results of build [" + item.projectName + "#" + item.buildNumber + "]");
-                if (!queue.failed()) {
-                    logger.warning("Maximum number of attempts reached, operation will not be re-attempted for this build");
+            try {
+                if (pushTestResults(client, build)) {
+                    logger.info("Successfully pushed test results of build [" + item.projectName + "#" + item.buildNumber + "]");
+                    queue.remove();
+                } else {
+                    logger.warning("Failed to push test results of build [" + item.projectName + "#" + item.buildNumber + "]");
+                    if (!queue.failed()) {
+                        logger.warning("Maximum number of attempts reached, operation will not be re-attempted for this build");
+                    }
+                    client = null;
                 }
-                client = null;
+            } catch (FileNotFoundException e) {
+                logger.warning("File no longer exists, failed to push test results of build [" + item.projectName + "#" + item.buildNumber + "]");
+                queue.remove();
             }
         }
-
     }
 
     private boolean pushTestResults(MqmRestClient client, AbstractBuild build) {
