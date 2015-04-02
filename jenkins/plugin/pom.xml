@@ -12,7 +12,9 @@
 	<name>HP MQM Integration</name>
 	<version>1.0-SNAPSHOT</version>
 	<packaging>hpi</packaging>
-
+	<properties>
+		<baseNexusURL>http://mydtbld0051.isr.hp.com:8081/nexus</baseNexusURL>
+	</properties>
 	<dependencies>
         <dependency>
             <groupId>com.squareup</groupId>
@@ -133,27 +135,26 @@
             </plugin>
         </plugins>
     </build>
-
+	
 	<distributionManagement>
 		<snapshotRepository>
 			<id>mqm-snapshots</id>
 			<name>Snapshot repository</name>
-			<url>http://mydtbld0051.isr.hp.com:8081/nexus/content/repositories/mqm-snapshots</url>
+			<url>${baseNexusURL}/content/repositories/mqm-snapshots</url>
 		</snapshotRepository>
 	</distributionManagement>
 
 	<repositories>
 		<repository>
-			<id>repo.jenkins-ci.org</id>
-			<url>http://repo.jenkins-ci.org/public/</url>
+			<id>mqm-public</id>
+			<url>${baseNexusURL}/content/repositories/mqm-public</url>
 		</repository>
 	</repositories>
 
 	<pluginRepositories>
 		<pluginRepository>
-			<id>repo.jenkins-ci.org</id>
-			<url>http://repo.jenkins-ci.org/public/</url>
+			<id>mqm-public</id>
+			<url>${baseNexusURL}/content/repositories/mqm-public</url>
 		</pluginRepository>
 	</pluginRepositories>
-
 </project>

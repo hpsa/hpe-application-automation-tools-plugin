@@ -6,9 +6,12 @@
 
     <groupId>com.hp.mqm</groupId>
     <artifactId>mqm-client</artifactId>
-    <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-
+	<parent>
+		<groupId>com.hp.mqm</groupId>
+		<artifactId>indi-integrations-root</artifactId>
+		<version>1.0-SNAPSHOT</version>
+	</parent>
     <modules>
         <module>mqm-rest-client</module>
         <module>mqm-rest-client-test</module>

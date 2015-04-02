@@ -6,10 +6,33 @@
     <artifactId>indi-integrations-root</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-
+	<properties>
+		<baseNexusURL>http://mydtbld0051.isr.hp.com:8081/nexus</baseNexusURL>
+	</properties>
     <modules>
         <module>jenkins</module>
         <module>mqm-client</module>
     </modules>
+	
+	<distributionManagement>
+		<snapshotRepository>
+			<id>mqm-snapshots</id>
+			<name>Snapshot repository</name>
+			<url>${baseNexusURL}/content/repositories/mqm-snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
 
+	<repositories>
+		<repository>
+			<id>mqm-public</id>
+			<url>${baseNexusURL}/content/repositories/mqm-public</url>
+		</repository>
+	</repositories>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>mqm-public</id>
+			<url>${baseNexusURL}/content/repositories/mqm-public</url>
+		</pluginRepository>
+	</pluginRepositories>
 </project>
