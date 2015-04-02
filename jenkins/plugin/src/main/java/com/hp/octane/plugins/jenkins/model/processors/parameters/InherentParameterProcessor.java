@@ -16,11 +16,6 @@ public class InherentParameterProcessor extends AbstractParametersProcessor {
 	}
 
 	@Override
-	public boolean isAppropriate(String className) {
-		return className.startsWith("hudson.model");
-	}
-
-	@Override
 	public ParameterConfig createParameterConfig(ParameterDefinition pd) {
 		ParameterConfig result;
 		if (pd instanceof BooleanParameterDefinition) {

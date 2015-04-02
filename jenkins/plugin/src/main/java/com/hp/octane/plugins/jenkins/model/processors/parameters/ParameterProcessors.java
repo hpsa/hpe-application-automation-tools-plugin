@@ -5,25 +5,32 @@ package com.hp.octane.plugins.jenkins.model.processors.parameters;
  */
 
 public enum ParameterProcessors {
-	//	DYNAMIC(new DynamicParameterProcessor()),
-	EXTENDED(new ExtendedChoiceParameterProcessor()),
-	INHERENT(new InherentParameterProcessor()),
-	NODE_LABEL(new NodeLabelParameterProcessor()),
-	RANDOM_STRING(new RandomStringParameterProcessor()),
-	UNSUPPORTED(new UnsupportedParameterProcessor());
+	//	DYNAMIC("com.seitenbau.jenkins.plugins.dynamicparameter", DynamicParameterProcessor.class),
+	EXTENDED("com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoiceParameterDefinition", ExtendedChoiceParameterProcessor.class),
+	INHERENT("hudson.model", InherentParameterProcessor.class),
+	NODE_LABEL("org.jvnet.jenkins.plugins.nodelabelparameter", NodeLabelParameterProcessor.class),
+	RANDOM_STRING("hudson.plugins.random_string_parameter.RandomStringParameterDefinition", RandomStringParameterProcessor.class);
 
-	private AbstractParametersProcessor processor;
+	private String targetPluginClassName;
+	private Class<? extends AbstractParametersProcessor> processorClass;
 
-	ParameterProcessors(AbstractParametersProcessor processor) {
-		this.processor = processor;
+	ParameterProcessors(String targetPluginClassName, Class<? extends AbstractParametersProcessor> processorClass) {
+		this.targetPluginClassName = targetPluginClassName;
+		this.processorClass = processorClass;
 	}
 
 	public static AbstractParametersProcessor getAppropriate(String className) {
 		for (ParameterProcessors p : values()) {
-			if (p.processor.isAppropriate(className)) {
-				return p.processor;
+			if (p.targetPluginClassName.startsWith(className)) {
+				try {
+					return p.processorClass.newInstance();
+				} catch (InstantiationException e) {
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					e.printStackTrace();
+				}
 			}
 		}
-		return UNSUPPORTED.processor;
+		return new UnsupportedParameterProcessor();
 	}
 }

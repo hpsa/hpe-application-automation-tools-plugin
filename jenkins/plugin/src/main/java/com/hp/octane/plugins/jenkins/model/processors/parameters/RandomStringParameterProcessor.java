@@ -17,11 +17,6 @@ public class RandomStringParameterProcessor extends AbstractParametersProcessor 
 	}
 
 	@Override
-	public boolean isAppropriate(String className) {
-		return className.equals("hudson.plugins.random_string_parameter.RandomStringParameterDefinition");
-	}
-
-	@Override
 	public ParameterConfig createParameterConfig(ParameterDefinition pd) {
 		RandomStringParameterDefinition randomPd = (RandomStringParameterDefinition) pd;
 		return new ParameterConfig(pd, ParameterType.STRING);

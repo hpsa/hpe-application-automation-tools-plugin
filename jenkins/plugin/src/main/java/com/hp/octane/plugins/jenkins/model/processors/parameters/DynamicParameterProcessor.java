@@ -17,11 +17,6 @@ public class DynamicParameterProcessor extends AbstractParametersProcessor {
 	}
 
 	@Override
-	public boolean isAppropriate(String className) {
-		return className.startsWith("com.seitenbau.jenkins.plugins.dynamicparameter");
-	}
-
-	@Override
 	public ParameterConfig createParameterConfig(ParameterDefinition pd) {
 		if (pd instanceof StringParameterDefinition) {
 			StringParameterDefinition stringPd = (StringParameterDefinition) pd;

@@ -22,11 +22,6 @@ public class GitSCMProcessor extends AbstractSCMProcessor {
 	}
 
 	@Override
-	public boolean isAppropriate(String className) {
-		return className.equals("hudson.plugins.git.GitSCM");
-	}
-
-	@Override
 	public SCMData getSCMChanges(AbstractBuild build) {
 		ArrayList<SCMRepository> repositories = new ArrayList<SCMRepository>();
 		AbstractProject project = build.getProject();

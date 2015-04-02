@@ -20,11 +20,6 @@ public class NodeLabelParameterProcessor extends AbstractParametersProcessor {
 	}
 
 	@Override
-	public boolean isAppropriate(String className) {
-		return className.startsWith("org.jvnet.jenkins.plugins.nodelabelparameter");
-	}
-
-	@Override
 	public ParameterConfig createParameterConfig(ParameterDefinition pd) {
 		if (pd instanceof NodeParameterDefinition) {
 			NodeParameterDefinition nodePd = (NodeParameterDefinition) pd;

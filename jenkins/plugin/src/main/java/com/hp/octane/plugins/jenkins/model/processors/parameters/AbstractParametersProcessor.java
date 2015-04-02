@@ -77,8 +77,6 @@ public abstract class AbstractParametersProcessor {
 		return result;
 	}
 
-	public abstract boolean isAppropriate(String className);
-
 	public abstract ParameterConfig createParameterConfig(ParameterDefinition pd);
 
 	public abstract ParameterInstance createParameterInstance(ParameterDefinition pd, ParameterValue pv);
