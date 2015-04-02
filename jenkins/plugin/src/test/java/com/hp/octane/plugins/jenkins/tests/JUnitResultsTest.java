@@ -3,9 +3,10 @@
 package com.hp.octane.plugins.jenkins.tests;
 
 import hudson.maven.MavenModuleSet;
-import hudson.maven.MavenModuleSetBuild;
-import hudson.model.FreeStyleBuild;
+import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
 import hudson.model.FreeStyleProject;
+import hudson.model.Result;
 import hudson.tasks.Maven;
 import hudson.tasks.junit.JUnitResultArchiver;
 import org.junit.Assert;
@@ -49,7 +50,7 @@ public class JUnitResultsTest {
         project.getBuildersList().add(new Maven("install", mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
         project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
         project.setScm(new CopyResourceSCM("/helloWorldRoot"));
-        FreeStyleBuild build = project.scheduleBuild2(0).get();
+        AbstractBuild build = runAndCheckBuild(project);
 
         matchTests(new File(build.getRootDir(), "mqmTests.xml"), helloWorldTests, helloWorld2Tests);
     }
@@ -61,7 +62,7 @@ public class JUnitResultsTest {
         project.getBuildersList().add(new Maven("install", mavenInstallation.getName(), "subFolder/helloWorld/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
         project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
         project.setScm(new CopyResourceSCM("/helloWorldRoot", "subFolder"));
-        FreeStyleBuild build = project.scheduleBuild2(0).get();
+        AbstractBuild build = runAndCheckBuild(project);
 
         matchTests(new File(build.getRootDir(), "mqmTests.xml"), subFolderHelloWorldTests);
     }
@@ -74,7 +75,7 @@ public class JUnitResultsTest {
         project.getBuildersList().add(new Maven("install", mavenInstallation.getName(), "helloWorld2/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
         project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
         project.setScm(new CopyResourceSCM("/helloWorldRoot"));
-        FreeStyleBuild build = project.scheduleBuild2(0).get();
+        AbstractBuild build = runAndCheckBuild(project);
 
         matchTests(new File(build.getRootDir(), "mqmTests.xml"), helloWorldTests, helloWorld2Tests);
     }
@@ -87,7 +88,7 @@ public class JUnitResultsTest {
         project.setGoals("install -Dmaven.test.failure.ignore=true");
         project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
         project.setScm(new CopyResourceSCM("/helloWorldRoot"));
-        MavenModuleSetBuild build = project.scheduleBuild2(0).get();
+        AbstractBuild build = runAndCheckBuild(project);
 
         matchTests(new File(build.getRootDir(), "mqmTests.xml"), helloWorldTests, helloWorld2Tests);
     }
@@ -102,6 +103,12 @@ public class JUnitResultsTest {
             Assert.assertTrue("Not found: " + testSignature + " in " + copy, copy.remove(testSignature));
         }
         Assert.assertTrue(copy.toString(), copy.isEmpty());
+    }
+
+    private AbstractBuild runAndCheckBuild(AbstractProject project) throws Exception {
+        AbstractBuild build = (AbstractBuild) project.scheduleBuild2(0).get();
+        Assert.assertTrue("Build status: " + build.getResult(), build.getResult().isBetterOrEqualTo(Result.UNSTABLE));
+        return build;
     }
 
     private static String test(TestResult testResult) {
