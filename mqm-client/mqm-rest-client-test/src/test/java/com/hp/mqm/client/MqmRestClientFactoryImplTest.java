@@ -1,7 +1,9 @@
 package com.hp.mqm.client;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore
 public class MqmRestClientFactoryImplTest {
 
     @Test
