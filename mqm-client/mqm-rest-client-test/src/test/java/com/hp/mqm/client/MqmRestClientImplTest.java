@@ -14,6 +14,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -25,6 +26,7 @@ import java.net.URISyntaxException;
 
 import static org.junit.Assert.fail;
 
+@Ignore
 public class MqmRestClientImplTest {
 
     private static final String LOCATION = ConnectionProperties.getLocation();
