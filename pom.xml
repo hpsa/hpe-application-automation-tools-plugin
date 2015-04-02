@@ -1,15 +1,68 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+	<modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.hp.mqm</groupId>
-    <artifactId>indi-integrations-root</artifactId>
-    <version>1.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
+	<groupId>com.hp.mqm</groupId>
+	<artifactId>indi-integrations-root</artifactId>
+	<version>1.0-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	<properties>
+		<baseNexusURL>http://mydtbld0051.isr.hp.com:8081/nexus</baseNexusURL>
+		<maven.compiler.plugin.version>3.1</maven.compiler.plugin.version>
+		<jdk.version>1.6</jdk.version>
+		<httpclient.version>4.4</httpclient.version>
+		<commons-io.version>2.4</commons-io.version>
+		<jdom.version>1.1</jdom.version>
+		<junit.version>4.12</junit.version>
+	</properties>
+	<modules>
+		<module>jenkins</module>
+		<module>mqm-client</module>
+	</modules>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpclient</artifactId>
+				<version>${httpclient.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>commons-io</groupId>
+				<artifactId>commons-io</artifactId>
+				<version>${commons-io.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>jdom</groupId>
+				<artifactId>jdom</artifactId>
+				<version>${jdom.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>${junit.version}</version>
+				<scope>test</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+	<distributionManagement>
+		<snapshotRepository>
+			<id>mqm-snapshots</id>
+			<name>Snapshot repository</name>
+			<url>${baseNexusURL}/content/repositories/mqm-snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
 
-    <modules>
-        <module>jenkins</module>
-        <module>mqm-client</module>
-    </modules>
+	<repositories>
+		<repository>
+			<id>mqm-public</id>
+			<url>${baseNexusURL}/content/repositories/mqm-public</url>
+		</repository>
+	</repositories>
 
+	<pluginRepositories>
+		<pluginRepository>
+			<id>mqm-public</id>
+			<url>${baseNexusURL}/content/repositories/mqm-public</url>
+		</pluginRepository>
+	</pluginRepositories>
 </project>
