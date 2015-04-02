@@ -17,7 +17,7 @@ public enum SCMProcessors {
 
 	public static AbstractSCMProcessor getAppropriate(String className) {
 		for (SCMProcessors p : values()) {
-			if (p.targetPluginClassName.startsWith(className))
+			if (className.startsWith(p.targetPluginClassName))
 				try {
 					return p.processorClass.newInstance();
 				} catch (InstantiationException e) {

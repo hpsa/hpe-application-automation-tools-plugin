@@ -3,6 +3,7 @@ package com.hp.octane.plugins.jenkins.model.pipelines;
 import com.hp.octane.plugins.jenkins.model.api.AbstractItem;
 import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.AbstractParametersProcessor;
+import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import hudson.model.AbstractProject;
 import org.kohsuke.stapler.export.ExportedBean;
 
@@ -18,7 +19,7 @@ import org.kohsuke.stapler.export.ExportedBean;
 public final class StructureItem extends AbstractItem<ParameterConfig, StructurePhase> {
 	public StructureItem(AbstractProject project) {
 		super(project);
-		setParameters(AbstractParametersProcessor.getConfigs(project));
+		setParameters(ParameterProcessors.getConfigs(project));
 		setInternals(super.getFlowProcessor().getInternals());
 		setPostBuilds(super.getFlowProcessor().getPostBuilds());
 	}

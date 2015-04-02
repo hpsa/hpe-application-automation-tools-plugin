@@ -2,6 +2,7 @@ package com.hp.octane.plugins.jenkins.notifications;
 
 import com.google.inject.Inject;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.AbstractParametersProcessor;
+import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessors;
 import com.hp.octane.plugins.jenkins.model.snapshots.SnapshotResult;
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCausesFactory;
@@ -39,7 +40,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 					build.getStartTimeInMillis(),
 					build.getEstimatedDuration(),
 					CIEventCausesFactory.processCauses(build.getCauses()),
-					AbstractParametersProcessor.getInstances(build)
+					ParameterProcessors.getInstances(build)
 			);
 			EventDispatcher.dispatchEvent(event);
 		}
@@ -68,7 +69,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 					build.getStartTimeInMillis(),
 					build.getEstimatedDuration(),
 					CIEventCausesFactory.processCauses(build.getCauses()),
-					AbstractParametersProcessor.getInstances(build),
+					ParameterProcessors.getInstances(build),
 					result,
 					build.getDuration(),
 					SCMProcessors

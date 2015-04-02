@@ -5,6 +5,7 @@ import com.hp.octane.plugins.jenkins.model.causes.CIEventCauseBase;
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCausesFactory;
 import com.hp.octane.plugins.jenkins.model.pipelines.*;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.AbstractParametersProcessor;
+import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import com.hp.octane.plugins.jenkins.model.processors.scm.GitSCMProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessors;
 import com.hp.octane.plugins.jenkins.model.scm.SCMData;
@@ -66,7 +67,7 @@ public final class SnapshotItem extends AbstractItem<ParameterInstance, Snapshot
 				.getAppropriate(build.getProject().getScm().getClass().getName())
 				.getSCMChanges(build);
 
-		setParameters(AbstractParametersProcessor.getInstances(build));
+		setParameters(ParameterProcessors.getInstances(build));
 
 		StructurePhase[] tmpStructurePhasesInternals = super.getFlowProcessor().getInternals();
 		StructurePhase[] tmpStructurePhasesPostBuilds = super.getFlowProcessor().getPostBuilds();
