@@ -87,7 +87,7 @@
         </dependency>
 
         <!-- This dependency must be explicitly defined here because HPI plugin tries to optimize dependencies.
-        It does not add http client and its dependencies to plugin package because of possible reuse from optional plugin dependency -->
+        It does not add http client and its dependencies to plugin package because of possible reuse of optional plugin dependency -->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
