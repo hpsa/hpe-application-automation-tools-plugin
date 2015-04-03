@@ -5,21 +5,27 @@ package com.hp.octane.plugins.jenkins.model.processors.scm;
  */
 
 public enum SCMProcessors {
-	GIT(new GitSCMProcessor()),
-	UNSUPPORTED(new UnsupportedSCMProcessor());
+	GIT("hudson.plugins.git.GitSCM", GitSCMProcessor.class);
 
-	private AbstractSCMProcessor processor;
+	private String targetPluginClassName;
+	private Class<? extends AbstractSCMProcessor> processorClass;
 
-	SCMProcessors(AbstractSCMProcessor processor) {
-		this.processor = processor;
+	SCMProcessors(String targetPluginClassName, Class<? extends AbstractSCMProcessor> processorClass) {
+		this.targetPluginClassName = targetPluginClassName;
+		this.processorClass = processorClass;
 	}
 
 	public static AbstractSCMProcessor getAppropriate(String className) {
 		for (SCMProcessors p : values()) {
-			if (p.processor.isAppropriate(className)) {
-				return p.processor;
-			}
+			if (className.startsWith(p.targetPluginClassName))
+				try {
+					return p.processorClass.newInstance();
+				} catch (InstantiationException e) {
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					e.printStackTrace();
+				}
 		}
-		return UNSUPPORTED.processor;
+		return new UnsupportedSCMProcessor();
 	}
 }

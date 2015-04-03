@@ -12,11 +12,6 @@ public class UnsupportedSCMProcessor extends AbstractSCMProcessor {
 	}
 
 	@Override
-	public boolean isAppropriate(String className) {
-		return true;
-	}
-
-	@Override
 	public SCMData getSCMChanges(AbstractBuild build) {
 		return null;
 	}

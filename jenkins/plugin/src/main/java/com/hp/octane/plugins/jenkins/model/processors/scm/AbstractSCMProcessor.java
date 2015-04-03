@@ -8,7 +8,5 @@ import hudson.model.AbstractBuild;
  */
 
 public abstract class AbstractSCMProcessor {
-	public abstract boolean isAppropriate(String className);
-
 	public abstract SCMData getSCMChanges(AbstractBuild build);
 }

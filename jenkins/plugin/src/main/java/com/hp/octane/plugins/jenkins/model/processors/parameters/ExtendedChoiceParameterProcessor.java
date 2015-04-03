@@ -21,11 +21,6 @@ public class ExtendedChoiceParameterProcessor extends AbstractParametersProcesso
 	}
 
 	@Override
-	public boolean isAppropriate(String className) {
-		return className.equals("com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoiceParameterDefinition");
-	}
-
-	@Override
 	public ParameterConfig createParameterConfig(ParameterDefinition pd) {
 		ExtendedChoiceParameterDefinition extChoice = (ExtendedChoiceParameterDefinition) pd;
 		Map<String, String> choicesMap;

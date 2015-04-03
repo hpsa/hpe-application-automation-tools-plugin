@@ -3,6 +3,7 @@ package com.hp.octane.plugins.jenkins.actions;
 import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
 import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.AbstractParametersProcessor;
+import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import com.hp.octane.plugins.jenkins.notifications.EventDispatcher;
 import hudson.Extension;
 import hudson.model.AbstractProject;
@@ -129,7 +130,7 @@ public class PluginActions implements RootAction {
 				tmpConfig = new ProjectConfig();
 				tmpConfig.setName(name);
 				if (areParametersNeeded) {
-					tmpConfig.setParameters(AbstractParametersProcessor.getConfigs(tmpProject));
+					tmpConfig.setParameters(ParameterProcessors.getConfigs(tmpProject));
 				}
 				list.add(tmpConfig);
 			}

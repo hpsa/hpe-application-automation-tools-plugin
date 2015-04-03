@@ -14,11 +14,6 @@ public class UnsupportedParameterProcessor extends AbstractParametersProcessor {
 	}
 
 	@Override
-	public boolean isAppropriate(String className) {
-		return true;
-	}
-
-	@Override
 	public ParameterConfig createParameterConfig(ParameterDefinition pd) {
 		return new ParameterConfig(pd);
 	}
