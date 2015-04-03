@@ -10,8 +10,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.RequestBuilder;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -175,10 +174,10 @@ public class MqmRestClientImplTest {
         MqmRestClientImpl invalidClient = new MqmRestClientImpl(badConnectionConfig);
 
         // test method execute
-        CloseableHttpResponse response = null;
+        HttpResponse response = null;
         loginLogout(client);
         try {
-            response = client.execute(RequestBuilder.get(uri).build());
+            response = client.execute(new HttpGet(uri));
             Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
         } finally {
             HttpClientUtils.closeQuietly(response);
@@ -186,7 +185,7 @@ public class MqmRestClientImplTest {
         }
 
         try {
-            response = invalidClient.execute(RequestBuilder.get(uri).build());
+            response = invalidClient.execute(new HttpGet(uri));
             fail();
         } catch (LoginException e) {
             Assert.assertNotNull(e);
@@ -198,7 +197,7 @@ public class MqmRestClientImplTest {
         // test method execute with response handler
         loginLogout(client);
         try {
-            int status = client.execute(RequestBuilder.get(uri).build(), new ResponseHandler<Integer>() {
+            int status = client.execute(new HttpGet(uri), new ResponseHandler<Integer>() {
                 @Override
                 public Integer handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
                     return response.getStatusLine().getStatusCode();
@@ -211,7 +210,7 @@ public class MqmRestClientImplTest {
         }
 
         try {
-            int status = invalidClient.execute(RequestBuilder.get(uri).build(), new ResponseHandler<Integer>() {
+            int status = invalidClient.execute(new HttpGet(uri), new ResponseHandler<Integer>() {
                 @Override
                 public Integer handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
                     return response.getStatusLine().getStatusCode();
@@ -228,9 +227,9 @@ public class MqmRestClientImplTest {
 
     private void loginLogout(MqmRestClientImpl client) throws IOException {
         client.login();
-        CloseableHttpResponse response = null;
+        HttpResponse response = null;
         try {
-            response = client.execute(RequestBuilder.get(LOCATION + "/" + AbstractMqmRestClient.URI_LOGOUT).build());
+            response = client.execute(new HttpGet(LOCATION + "/" + AbstractMqmRestClient.URI_LOGOUT));
         } finally {
             HttpClientUtils.closeQuietly(response);
         }
