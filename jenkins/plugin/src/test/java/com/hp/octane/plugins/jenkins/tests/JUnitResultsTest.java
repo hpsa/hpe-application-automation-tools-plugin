@@ -102,12 +102,14 @@ public class JUnitResultsTest {
             String testSignature = test(testResult);
             Assert.assertTrue("Not found: " + testSignature + " in " + copy, copy.remove(testSignature));
         }
-        Assert.assertTrue(copy.toString(), copy.isEmpty());
+        Assert.assertTrue("More tests expected: " + copy.toString(), copy.isEmpty());
     }
 
     private AbstractBuild runAndCheckBuild(AbstractProject project) throws Exception {
         AbstractBuild build = (AbstractBuild) project.scheduleBuild2(0).get();
-        Assert.assertTrue("Build status: " + build.getResult(), build.getResult().isBetterOrEqualTo(Result.UNSTABLE));
+        if (!build.getResult().isBetterOrEqualTo(Result.UNSTABLE)) { // avoid expensive build.getLog() until condition is met
+            Assert.fail("Build status: " + build.getResult() + ", log follows:\n" + build.getLog());
+        }
         return build;
     }
 
