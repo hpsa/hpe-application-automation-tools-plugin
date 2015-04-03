@@ -50,7 +50,7 @@ public class TestDispatcherTest {
 
     @BeforeClass
     public static void initClass() {
-        System.setProperty("MQM.TestDispatcher.Period", "100");
+        System.setProperty("MQM.TestDispatcher.Period", "1000");
     }
 
     @Before
@@ -218,7 +218,7 @@ public class TestDispatcherTest {
             current = queue.getTicks();
         }
         long target = current + n;
-        for (int i = 0; i < 500; i++) {
+        for (int i = 0; i < 2000; i++) {
             synchronized (queue) {
                 current = queue.getTicks();
                 if (current >= target) {
