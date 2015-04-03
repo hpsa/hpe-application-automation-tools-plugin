@@ -86,15 +86,6 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- This dependency must be explicitly defined here because HPI plugin tries to optimize dependencies.
-        It does not add http client and its dependencies to plugin package because of possible reuse of optional plugin dependency -->
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <!-- Version of http client must be same as version used in mqm-rest-client. -->
-            <version>4.4</version>
-        </dependency>
-
 		<!--Internals-->
         
         <dependency>

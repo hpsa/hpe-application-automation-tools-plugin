@@ -4,10 +4,10 @@ import com.hp.mqm.client.exception.FileNotFoundException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
 import com.hp.mqm.client.internal.InputStreamSourceEntity;
+import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.FileEntity;
@@ -29,20 +29,20 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 
     @Override
     public void postTestResult(InputStreamSource inputStreamSource) {
-        RequestBuilder requestBuilder = RequestBuilder.post(createProjectApiUri(URI_PUSH_TEST_RESULT_PUSH))
-                .setEntity(new InputStreamSourceEntity(inputStreamSource, ContentType.APPLICATION_XML));
-        postTestResult(requestBuilder.build());
+        HttpPost request = new HttpPost(createProjectApiUri(URI_PUSH_TEST_RESULT_PUSH));
+        request.setEntity(new InputStreamSourceEntity(inputStreamSource, ContentType.APPLICATION_XML));
+        postTestResult(request);
     }
 
     @Override
     public void postTestResult(File testResultReport) {
-        RequestBuilder requestBuilder = RequestBuilder.post(createProjectApiUri(URI_PUSH_TEST_RESULT_PUSH))
-                .setEntity(new FileEntity(testResultReport, ContentType.APPLICATION_XML));
-        postTestResult(requestBuilder.build());
+        HttpPost request = new HttpPost(createProjectApiUri(URI_PUSH_TEST_RESULT_PUSH));
+        request.setEntity(new FileEntity(testResultReport, ContentType.APPLICATION_XML));
+        postTestResult(request);
     }
 
     private void postTestResult(HttpUriRequest request) {
-        CloseableHttpResponse response = null;
+        HttpResponse response = null;
         try {
             response = execute(request);
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_CREATED) {

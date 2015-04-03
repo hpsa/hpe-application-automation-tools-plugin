@@ -10,6 +10,8 @@ import java.io.OutputStream;
 
 public class InputStreamSourceEntity extends AbstractHttpEntity {
 
+    private int OUTPUT_BUFFER_SIZE = 2048;
+
     private InputStreamSource inputStreamSource;
     private final long length;
 

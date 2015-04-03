@@ -14,19 +14,16 @@ import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.client.utils.HttpClientUtils;
+import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.CoreConnectionPNames;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.output.XMLOutputter;
@@ -54,7 +51,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
     public static final int DEFAULT_CONNECTION_TIMEOUT = 20000; // in milliseconds
     public static final int DEFAULT_SO_TIMEOUT = 40000; // in milliseconds
 
-    private final CloseableHttpClient httpClient;
+    private final DefaultHttpClient httpClient;
     private final String location;
     private final String domain;
     private final String project;
@@ -82,31 +79,24 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
         this.username = connectionConfig.getUsername();
         this.password = connectionConfig.getPassword();
 
-        RequestConfig.Builder requestConfigBuilder = RequestConfig.custom();
-        // default timeouts
-        if (connectionConfig.getDefaultConnectionRequestTimeout() != null) {
-            requestConfigBuilder.setConnectionRequestTimeout(connectionConfig.getDefaultConnectionRequestTimeout());
-        }
-        requestConfigBuilder.setConnectTimeout(connectionConfig.getDefaultConnectionTimeout() != null ?
+        httpClient = new DefaultHttpClient();
+
+        httpClient.getParams().setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, connectionConfig.getDefaultConnectionTimeout() != null ?
                 connectionConfig.getDefaultConnectionTimeout() : DEFAULT_CONNECTION_TIMEOUT);
-        requestConfigBuilder.setSocketTimeout(connectionConfig.getDefaultSocketTimeout() != null ?
+        httpClient.getParams().setIntParameter(CoreConnectionPNames.SO_TIMEOUT, connectionConfig.getDefaultSocketTimeout() != null ?
                 connectionConfig.getDefaultSocketTimeout() : DEFAULT_SO_TIMEOUT);
 
-        HttpClientBuilder clientBuilder = HttpClientBuilder.create().setDefaultRequestConfig(requestConfigBuilder.build());
         // proxy setting
         if (connectionConfig.getProxyHost() != null && !connectionConfig.getProxyHost().isEmpty()) {
-            clientBuilder.setProxy(new HttpHost(connectionConfig.getProxyHost(), connectionConfig.getProxyPort()));
+            HttpHost proxy = new HttpHost(connectionConfig.getProxyHost(), connectionConfig.getProxyPort());
+            httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
 
             if (connectionConfig.getProxyCredentials() != null) {
                 AuthScope proxyAuthScope = new AuthScope(connectionConfig.getProxyHost(), connectionConfig.getProxyPort());
                 Credentials credentials = proxyCredentialsToCredentials(connectionConfig.getProxyCredentials());
-                CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-                credentialsProvider.setCredentials(proxyAuthScope, credentials);
-                clientBuilder.setDefaultCredentialsProvider(credentialsProvider);
+                httpClient.getCredentialsProvider().setCredentials(proxyAuthScope, credentials);
             }
         }
-
-        httpClient = clientBuilder.build();
     }
 
     private Credentials proxyCredentialsToCredentials(ProxyCredentials credentials) {
@@ -133,10 +123,10 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
      * Logout from MQM.
      */
     protected synchronized void logout() {
-        RequestBuilder requestBuilder = RequestBuilder.get(createBaseUri(URI_LOGOUT));
-        CloseableHttpResponse response = null;
+        HttpUriRequest request = new HttpGet(createBaseUri(URI_LOGOUT));
+        HttpResponse response = null;
         try {
-            response = httpClient.execute(requestBuilder.build());
+            response = httpClient.execute(request);
             if (response.getStatusLine().getStatusCode() != 200) {
                 throw new RequestException("Logout failed: code=" + response.getStatusLine().getStatusCode() + "; reason=" + response.getStatusLine().getReasonPhrase());
             }
@@ -156,7 +146,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
         HttpPost post = new HttpPost(createBaseUri(URI_AUTHENTICATION));
         post.setEntity(new StringEntity(createAuthenticationXml(), ContentType.create("application/xml", "UTF-8")));
 
-        CloseableHttpResponse response = null;
+        HttpResponse response = null;
         try {
             response = httpClient.execute(post);
             if (response.getStatusLine().getStatusCode() != 200) {
@@ -170,12 +160,12 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
     }
 
     private void createSession() {
-        RequestBuilder requestBuilder = RequestBuilder.post(createBaseUri(URI_CREATE_SESSION));
-        requestBuilder.setEntity(new StringEntity(createSessionXml(), ContentType.create("application/xml", Charset.forName("UTF-8"))));
+        HttpPost request = new HttpPost(createBaseUri(URI_CREATE_SESSION));
+        request.setEntity(new StringEntity(createSessionXml(), ContentType.create("application/xml", Charset.forName("UTF-8"))));
 
-        CloseableHttpResponse response = null;
+        HttpResponse response = null;
         try {
-            response = httpClient.execute(requestBuilder.build());
+            response = httpClient.execute(request);
             if (response.getStatusLine().getStatusCode() != 201) {
                 throw new SessionCreationException("Session creation failed: code=" + response.getStatusLine().getStatusCode() + "; reason=" + response.getStatusLine().getReasonPhrase());
             }
@@ -212,11 +202,10 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 
     // the simplest implementation because we do not know if domain and project will exist in future
     private void checkDomainAndProject() {
-        RequestBuilder requestBuilder = RequestBuilder.get(createProjectRestUri(URI_DOMAIN_PROJECT_CHECK));
-
-        CloseableHttpResponse response = null;
+        HttpGet request = new HttpGet(createProjectRestUri(URI_DOMAIN_PROJECT_CHECK));
+        HttpResponse response = null;
         try {
-            response = execute(requestBuilder.build());
+            response = execute(request);
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                 throw new DomainProjectNotExistException("Cannot connect to given project.");
             }
@@ -311,7 +300,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
      * @return response for given request
      * @throws IllegalArgumentException when request entity is not repeatable
      */
-    protected CloseableHttpResponse execute(HttpUriRequest request) throws IOException {
+    protected HttpResponse execute(HttpUriRequest request) throws IOException {
         if (request instanceof HttpEntityEnclosingRequest) {
             HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
             if (!entity.isRepeatable()) {
@@ -319,7 +308,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
             }
         }
         doFirstLogin();
-        CloseableHttpResponse response = httpClient.execute(request);
+        HttpResponse response = httpClient.execute(request);
         if (isLoginNecessary(response)) { // if request fails with 401 do login and execute request again
             login();
             response = httpClient.execute(request);
