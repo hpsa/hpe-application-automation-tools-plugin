@@ -139,6 +139,11 @@ public class TestDispatcher extends AsyncPeriodicWork {
     }
 
     @Override
+    protected Level getNormalLoggingLevel() {
+        return Level.FINE;
+    }
+
+    @Override
     public long getRecurrencePeriod() {
         String value = System.getProperty("MQM.TestDispatcher.Period");
         if (!StringUtils.isEmpty(value)) {
