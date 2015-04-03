@@ -25,7 +25,7 @@ public class TestListener {
     public void processBuild(AbstractBuild build) {
         FilePath resultPath = new FilePath(new FilePath(build.getRootDir()), TEST_RESULT_FILE);
         TestResultXmlWriter resultWriter = new TestResultXmlWriter(resultPath, build);
-        boolean success = true;
+        boolean success = false;
         try {
             for (MqmTestsExtension ext: MqmTestsExtension.all()) {
                 try {
@@ -35,15 +35,14 @@ public class TestListener {
                 } catch (InterruptedException e) {
                     logger.log(Level.SEVERE, "Interrupted processing test results in " + ext.getClass().getName(), e);
                     Thread.currentThread().interrupt();
-                    success = false;
-                    break;
+                    return;
                 } catch (Exception e) {
                     // extensibility involved: catch both checked and RuntimeExceptions
                     logger.log(Level.SEVERE, "Error processing test results in " + ext.getClass().getName(), e);
-                    success = false;
-                    break;
+                    return;
                 }
             }
+            success = true;
         } finally {
             try {
                 resultWriter.close();
