@@ -47,7 +47,7 @@ public class JUnitResultsTest {
     public void testJUnitResults() throws Exception {
         FreeStyleProject project = rule.createFreeStyleProject(projectName);
         Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
-        project.getBuildersList().add(new Maven("install", mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
+        project.getBuildersList().add(new Maven("test", mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
         project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
         project.setScm(new CopyResourceSCM("/helloWorldRoot"));
         AbstractBuild build = runAndCheckBuild(project);
@@ -59,7 +59,7 @@ public class JUnitResultsTest {
     public void testJUnitResultsPom() throws Exception {
         FreeStyleProject project = rule.createFreeStyleProject(projectName);
         Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
-        project.getBuildersList().add(new Maven("install", mavenInstallation.getName(), "subFolder/helloWorld/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
+        project.getBuildersList().add(new Maven("test", mavenInstallation.getName(), "subFolder/helloWorld/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
         project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
         project.setScm(new CopyResourceSCM("/helloWorldRoot", "subFolder"));
         AbstractBuild build = runAndCheckBuild(project);
@@ -71,8 +71,8 @@ public class JUnitResultsTest {
     public void testJUnitResultsTwoPoms() throws Exception {
         FreeStyleProject project = rule.createFreeStyleProject(projectName);
         Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
-        project.getBuildersList().add(new Maven("install", mavenInstallation.getName(), "helloWorld/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
-        project.getBuildersList().add(new Maven("install", mavenInstallation.getName(), "helloWorld2/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
+        project.getBuildersList().add(new Maven("test", mavenInstallation.getName(), "helloWorld/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
+        project.getBuildersList().add(new Maven("test", mavenInstallation.getName(), "helloWorld2/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
         project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
         project.setScm(new CopyResourceSCM("/helloWorldRoot"));
         AbstractBuild build = runAndCheckBuild(project);
@@ -85,7 +85,7 @@ public class JUnitResultsTest {
         MavenModuleSet project = rule.createMavenProject(projectName);
         Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
         project.setMaven(mavenInstallation.getName());
-        project.setGoals("install -Dmaven.test.failure.ignore=true");
+        project.setGoals("test -Dmaven.test.failure.ignore=true");
         project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
         project.setScm(new CopyResourceSCM("/helloWorldRoot"));
         AbstractBuild build = runAndCheckBuild(project);
