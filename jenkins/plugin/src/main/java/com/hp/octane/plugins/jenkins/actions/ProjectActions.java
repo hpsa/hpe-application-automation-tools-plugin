@@ -50,7 +50,11 @@ public class ProjectActions extends TransientProjectActionFactory {
 		}
 
 		public void doRun(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
-			project.doBuildWithParameters(req, res, null);
+			if (project.isParameterized()) {
+				project.doBuildWithParameters(req, res, null);
+			} else {
+				project.doBuild(req, res, null);
+			}
 		}
 	}
 
