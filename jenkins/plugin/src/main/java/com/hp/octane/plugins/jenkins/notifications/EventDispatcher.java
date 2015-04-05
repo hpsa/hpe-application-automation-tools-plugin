@@ -25,7 +25,7 @@ import java.util.logging.Logger;
 
 public final class EventDispatcher {
 	private static final int MAX_SEND_RETRIES = 7;
-	private static final int INITIAL_RETRY_PAUSE = 273;
+	private static final int INITIAL_RETRY_PAUSE = 2739;
 	private static final int BREATH_PAUSE = 137;
 
 	private static final Logger logger = Logger.getLogger(EventDispatcher.class.getName());
@@ -80,7 +80,7 @@ public final class EventDispatcher {
 				@Override
 				public void run() {
 					int status;
-					int suspendTime = CUSTOM_INITIAL_RETRY_PAUSE;
+					int pauseInterval = CUSTOM_INITIAL_RETRY_PAUSE;
 					List<CIEventBase> localList;
 					while (!shuttingDown) {
 						try {
@@ -93,7 +93,7 @@ public final class EventDispatcher {
 								if (status == 200) {
 									eventsList.clear(localList);
 									failedRetries = 0;
-									suspendTime = CUSTOM_INITIAL_RETRY_PAUSE;
+									pauseInterval = CUSTOM_INITIAL_RETRY_PAUSE;
 								} else {
 									lastErrorNote = "push to MQM server failed; status: " + status;
 									lastErrorTime = new Date();
@@ -103,8 +103,8 @@ public final class EventDispatcher {
 										eventsList.clear();
 									//	shuttingDown = true;
 									} else {
-										Thread.sleep(suspendTime * 1000);
-										suspendTime *= 2;
+										Thread.sleep(pauseInterval);
+										pauseInterval *= 2;
 									}
 								}
 								logger.info("done; " + eventsList.size() + " more event/s is/are in queue for '" + url + "'");
