@@ -1,6 +1,5 @@
 package com.hp.octane.plugins.jenkins.notifications;
 
-import com.hp.octane.plugins.jenkins.configuration.ConfigurationService;
 import com.hp.octane.plugins.jenkins.configuration.RestUtils;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jenkins.model.events.CIEventBase;
@@ -14,6 +13,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -24,11 +24,21 @@ import java.util.List;
  */
 
 public final class EventDispatcher {
+	private static final int MAX_SEND_RETRIES = 7;
+	private static final int INITIAL_RETRY_PAUSE = 273;
+	private static final int BREATH_PAUSE = 137;
+
+	private static final Logger logger = Logger.getLogger(EventDispatcher.class.getName());
+
+	private static final List<Client> clients = new ArrayList<Client>();
 
 	@ExportedBean
 	public static class Client {
 		private final EventsList eventsList = new EventsList();
 		private Thread executor;
+		private int CUSTOM_MAX_SEND_RETRIES;
+		private int CUSTOM_INITIAL_RETRY_PAUSE;
+		private int CUSTOM_BREATH_PAUSE;
 		private boolean shuttingDown;
 		private int failedRetries;
 		private String password;
@@ -52,6 +62,9 @@ public final class EventDispatcher {
 		}
 
 		public Client(String url, String domain, String project, String username, String password) {
+			this.CUSTOM_MAX_SEND_RETRIES = MAX_SEND_RETRIES;
+			this.CUSTOM_INITIAL_RETRY_PAUSE = INITIAL_RETRY_PAUSE;
+			this.CUSTOM_BREATH_PAUSE = BREATH_PAUSE;
 			this.url = url;
 			this.domain = domain;
 			this.project = project;
@@ -67,12 +80,12 @@ public final class EventDispatcher {
 				@Override
 				public void run() {
 					int status;
-					int suspendTime = 3;
+					int suspendTime = CUSTOM_INITIAL_RETRY_PAUSE;
 					List<CIEventBase> localList;
 					while (!shuttingDown) {
 						try {
 							if (eventsList.size() > 0) {
-								System.out.println("Pushing " + eventsList.size() + " event/s to '" + url + "'...");
+								logger.info("pushing " + eventsList.size() + " event/s to '" + url + "'...");
 								localList = new ArrayList<CIEventBase>(eventsList.getEvents());
 								Writer w = new StringWriter();
 								new ModelBuilder().get(EventsList.class).writeTo(eventsList, Flavor.JSON.createDataWriter(localList, w));
@@ -80,41 +93,41 @@ public final class EventDispatcher {
 								if (status == 200) {
 									eventsList.clear(localList);
 									failedRetries = 0;
-									suspendTime = 3;
+									suspendTime = CUSTOM_INITIAL_RETRY_PAUSE;
 								} else {
-									lastErrorNote = "push to MQM server failed with status " + status;
+									lastErrorNote = "push to MQM server failed; status: " + status;
 									lastErrorTime = new Date();
 									failedRetries++;
-									System.out.println("Push to '" + url + "' failed with status '" + status + "'; total fails: " + failedRetries);
-									if (failedRetries >= MAX_PUSH_RETRIES) {
+									logger.severe("push to '" + url + "' failed; status: '" + status + "'; total fails: " + failedRetries);
+									if (failedRetries >= CUSTOM_MAX_SEND_RETRIES) {
 										eventsList.clear();
-										//	shuttingDown = true;
+									//	shuttingDown = true;
 									} else {
 										Thread.sleep(suspendTime * 1000);
-										//	suspendTime *= 2;
+										suspendTime *= 2;
 									}
 								}
-								System.out.println("Done, " + eventsList.size() + " is/are in queue of '" + url + "'");
+								logger.info("done; " + eventsList.size() + " more event/s is/are in queue for '" + url + "'");
 							} else {
-								Thread.sleep(137);
+								Thread.sleep(CUSTOM_BREATH_PAUSE);
 							}
 						} catch (Exception e) {
-							lastErrorNote = "push to MQM server failed with exception '" + e.getMessage() + "'";
+							lastErrorNote = "push to MQM server failed; exception: '" + e.getMessage() + "'";
 							lastErrorTime = new Date();
 							failedRetries++;
-							System.out.println("Push to '" + url + "' failed with exception '" + e.getMessage() + "'; total fails: " + failedRetries);
-							if (failedRetries >= MAX_PUSH_RETRIES) {
+							logger.severe("push to '" + url + "' failed; exception: '" + e.getMessage() + "'; total fails: " + failedRetries);
+							if (failedRetries >= CUSTOM_MAX_SEND_RETRIES) {
 								eventsList.clear();
-								//	shuttingDown = true;
+							//	shuttingDown = true;
 							}
 						}
 					}
-					System.out.println("Events client for '" + url + "' shuts down");
+					logger.info("events client for '" + url + "' shuts down");
 				}
 			});
 			executor.setDaemon(true);
 			executor.start();
-			System.out.println("New thread started for events client at '" + this.url + "'");
+			logger.info("new events client initialized for '" + this.url + "'");
 		}
 
 		public void dispose() {
@@ -122,7 +135,7 @@ public final class EventDispatcher {
 			try {
 				executor.join();
 			} catch (InterruptedException ie) {
-				System.out.println(ie.getMessage());
+				logger.severe(ie.getMessage());
 			}
 		}
 
@@ -134,9 +147,6 @@ public final class EventDispatcher {
 			return "/api/domains/" + domain + "/projects/" + project + "/cia/events";
 		}
 	}
-
-	private static final int MAX_PUSH_RETRIES = 3;
-	private static final List<Client> clients = new ArrayList<Client>();
 
 	public static void updateClient(ServerConfiguration conf) {
 		updateClient(conf, null);
