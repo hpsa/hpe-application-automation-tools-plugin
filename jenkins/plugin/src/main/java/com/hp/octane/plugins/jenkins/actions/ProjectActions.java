@@ -15,6 +15,8 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created with IntelliJ IDEA.
@@ -51,7 +53,7 @@ public class ProjectActions extends TransientProjectActionFactory {
 		}
 
 		public void doRun(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
-			project.doBuild(req, res, new TimeDuration(1));
+			project.doBuildWithParameters(req, res, null);
 		}
 	}
 
