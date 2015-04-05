@@ -6,7 +6,6 @@ import hudson.model.AbstractProject;
 import hudson.model.Action;
 import hudson.model.ProminentProjectAction;
 import hudson.model.TransientProjectActionFactory;
-import jenkins.util.TimeDuration;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.export.Flavor;
@@ -15,8 +14,6 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created with IntelliJ IDEA.
