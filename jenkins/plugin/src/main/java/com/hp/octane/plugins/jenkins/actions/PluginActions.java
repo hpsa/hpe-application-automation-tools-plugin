@@ -1,8 +1,7 @@
 package com.hp.octane.plugins.jenkins.actions;
 
-import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
+import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
-import com.hp.octane.plugins.jenkins.model.processors.parameters.AbstractParametersProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import com.hp.octane.plugins.jenkins.notifications.EventDispatcher;
 import hudson.Extension;
@@ -35,11 +34,13 @@ public class PluginActions implements RootAction {
 	@ExportedBean
 	public static final class ServerInfo {
 		private String instanceId;
+		private Long instanceIdFrom;
 		private String url;
 		private final String type = "jenkins";
 
 		public ServerInfo() {
-			this.instanceId = ServerIdentity.getIdentity();
+			this.instanceId = Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity();
+			this.instanceIdFrom = Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentityFrom();
 			String serverUrl = Jenkins.getInstance().getRootUrl();
 			if (serverUrl != null && serverUrl.endsWith("/"))
 				serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
@@ -49,6 +50,11 @@ public class PluginActions implements RootAction {
 		@Exported(inline = true)
 		public String getInstanceId() {
 			return instanceId;
+		}
+
+		@Exported(inline = true)
+		public Long getInstanceIdFrom() {
+			return instanceIdFrom;
 		}
 
 		@Exported(inline = true)

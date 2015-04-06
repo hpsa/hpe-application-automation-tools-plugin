@@ -101,7 +101,7 @@ public final class EventDispatcher {
 									logger.severe("push to '" + url + "' failed; status: '" + status + "'; total fails: " + failedRetries);
 									if (failedRetries >= CUSTOM_MAX_SEND_RETRIES) {
 										eventsList.clear();
-									//	shuttingDown = true;
+										//	shuttingDown = true;
 									} else {
 										Thread.sleep(pauseInterval);
 										pauseInterval *= 2;
@@ -118,7 +118,7 @@ public final class EventDispatcher {
 							logger.severe("push to '" + url + "' failed; exception: '" + e.getMessage() + "'; total fails: " + failedRetries);
 							if (failedRetries >= CUSTOM_MAX_SEND_RETRIES) {
 								eventsList.clear();
-							//	shuttingDown = true;
+								//	shuttingDown = true;
 							}
 						}
 					}
@@ -162,7 +162,11 @@ public final class EventDispatcher {
 					}
 				}
 			}
-			if (conf != null && conf.location != null && conf.domain != null && conf.project != null && conf.username != null && conf.password != null) {
+			if (conf != null &&
+					conf.location != null && !conf.location.equals("") &&
+					conf.domain != null && !conf.domain.equals("") &&
+					conf.project != null && !conf.project.equals("") &&
+					conf.username != null && !conf.username.equals("") && conf.password != null) {
 				updateClient(conf.location, conf.domain, conf.project, conf.username, conf.password);
 			}
 		}

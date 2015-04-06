@@ -23,6 +23,7 @@ import org.kohsuke.stapler.StaplerRequest;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Date;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -32,6 +33,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 	private static Logger logger = Logger.getLogger(OctanePlugin.class.getName());
 
 	private String identity;
+	private Long identityFrom;
 
 	private String location;
 	private String domain;
@@ -43,11 +45,19 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 		return identity;
 	}
 
+	public Long getIdentityFrom() {
+		return identityFrom;
+	}
+
 	@Override
 	public void postInitialize() throws IOException {
 		load();
-		if (identity == null) {
+		if (identity == null || identity.equals("")) {
 			this.identity = UUID.randomUUID().toString();
+			save();
+		}
+		if (identityFrom == null || identityFrom == 0) {
+			this.identityFrom = new Date().getTime();
 			save();
 		}
 
