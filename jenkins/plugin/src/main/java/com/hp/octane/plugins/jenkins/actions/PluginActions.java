@@ -168,7 +168,6 @@ public class PluginActions implements RootAction {
 		res.serveExposedBean(req, new ProjectsList(areParametersNeeded), Flavor.JSON);
 	}
 
-	//  TODO: remove once available in core part of the plugin
 	public void doConfig(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
 		String body = "";
 		JSONObject inputJSON;
@@ -191,5 +190,6 @@ public class PluginActions implements RootAction {
 			System.out.println("Accepted events-client config request for '" + url + "', '" + domain + "', '" + project + "'");
 			EventDispatcher.updateClient(url, domain, project, username, password);
 		}
+		EventDispatcher.wakeUpClients();
 	}
 }

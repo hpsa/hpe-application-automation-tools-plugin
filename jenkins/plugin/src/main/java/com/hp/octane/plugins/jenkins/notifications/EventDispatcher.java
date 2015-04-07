@@ -192,6 +192,14 @@ public final class EventDispatcher {
 		if (!client.isActive()) client.activate();
 	}
 
+	public static void wakeUpClients() {
+		synchronized (clients) {
+			for (Client c : clients) {
+				if (!c.isActive()) c.activate();
+			}
+		}
+	}
+
 	public static void dispatchEvent(CIEventBase event) {
 		for (Client c : clients) {
 			if (c.isActive()) {
