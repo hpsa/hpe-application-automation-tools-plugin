@@ -35,13 +35,15 @@ public final class EventDispatcher {
 	@ExportedBean
 	public static class Client {
 		private final EventsList eventsList = new EventsList();
+		private final Object locker = new Object();
 		private Thread executor;
+
 		private int CUSTOM_MAX_SEND_RETRIES;
 		private int CUSTOM_INITIAL_RETRY_PAUSE;
 		private int CUSTOM_BREATH_PAUSE;
 		private boolean shuttingDown;
 		private int failedRetries;
-		private String password;
+		private int pauseInterval;
 
 		@Exported(inline = true)
 		public String url;
@@ -55,6 +57,7 @@ public final class EventDispatcher {
 		public Date lastErrorTime;
 		@Exported(inline = true)
 		public String username;
+		private String password;
 
 		@Exported(inline = true)
 		public boolean isActive() {
@@ -72,75 +75,78 @@ public final class EventDispatcher {
 			this.password = password;
 		}
 
-		public void activate() {
-			eventsList.clear();
-			shuttingDown = false;
-			failedRetries = 0;
-			executor = new Thread(new Runnable() {
-				@Override
-				public void run() {
-					int status;
-					int pauseInterval = CUSTOM_INITIAL_RETRY_PAUSE;
-					List<CIEventBase> localList;
-					while (!shuttingDown) {
-						try {
-							if (eventsList.size() > 0) {
-								logger.info("pushing " + eventsList.size() + " event/s to '" + url + "'...");
-								localList = new ArrayList<CIEventBase>(eventsList.getEvents());
-								Writer w = new StringWriter();
-								new ModelBuilder().get(EventsList.class).writeTo(eventsList, Flavor.JSON.createDataWriter(localList, w));
-								status = RestUtils.put(url, buildUrl(), username, password, w.toString());
-								if (status == 200) {
-									eventsList.clear(localList);
-									failedRetries = 0;
-									pauseInterval = CUSTOM_INITIAL_RETRY_PAUSE;
-								} else {
-									lastErrorNote = "push to MQM server failed; status: " + status;
-									lastErrorTime = new Date();
-									failedRetries++;
-									logger.severe("push to '" + url + "' failed; status: '" + status + "'; total fails: " + failedRetries);
-									if (failedRetries >= CUSTOM_MAX_SEND_RETRIES) {
-										eventsList.clear();
-										//	shuttingDown = true;
-									} else {
-										Thread.sleep(pauseInterval);
-										pauseInterval *= 2;
-									}
-								}
-								logger.info("done; " + eventsList.size() + " more event/s is/are in queue for '" + url + "'");
-							} else {
-								Thread.sleep(CUSTOM_BREATH_PAUSE);
-							}
-						} catch (Exception e) {
-							lastErrorNote = "push to MQM server failed; exception: '" + e.getMessage() + "'";
-							lastErrorTime = new Date();
-							failedRetries++;
-							logger.severe("push to '" + url + "' failed; exception: '" + e.getMessage() + "'; total fails: " + failedRetries);
-							if (failedRetries >= CUSTOM_MAX_SEND_RETRIES) {
-								eventsList.clear();
-								//	shuttingDown = true;
-							}
-						}
-					}
-					logger.info("events client for '" + url + "' shuts down");
-				}
-			});
-			executor.setDaemon(true);
-			executor.start();
-			logger.info("new events client initialized for '" + this.url + "'");
+		public int pushEvent(CIEventBase event) {
+			return eventsList.add(event);
 		}
 
-		public void dispose() {
-			shuttingDown = true;
-			try {
-				executor.join();
-			} catch (InterruptedException ie) {
-				logger.severe(ie.getMessage());
+		//  TODO: there can be a race condition between suspension and activation; this can be fair case, yet further revision is needed
+		private void activate() {
+			resetCounters();
+			if (executor == null || !executor.isAlive()) {
+				synchronized (locker) {
+					if (executor == null || !executor.isAlive()) {
+						executor = new Thread(new Runnable() {
+							@Override
+							public void run() {
+								int status;
+								List<CIEventBase> localList;
+								while (!shuttingDown) {
+									try {
+										if (eventsList.size() > 0) {
+											logger.info("pushing " + eventsList.size() + " event/s to '" + url + "'...");
+											localList = new ArrayList<CIEventBase>(eventsList.getEvents());
+											Writer w = new StringWriter();
+											new ModelBuilder().get(EventsList.class).writeTo(eventsList, Flavor.JSON.createDataWriter(localList, w));
+											status = RestUtils.put(url, buildUrl(), username, password, w.toString());
+											if (status == 200) {
+												eventsList.clear(localList);
+												resetCounters();
+											} else {
+												lastErrorNote = "push to MQM server failed; status: " + status;
+												lastErrorTime = new Date();
+												failedRetries++;
+												logger.severe("push to '" + url + "' failed; status: '" + status + "'; total fails: " + failedRetries);
+												if (failedRetries >= CUSTOM_MAX_SEND_RETRIES) {
+													suspend();
+												} else {
+													Thread.sleep(pauseInterval);
+													pauseInterval *= 2;
+												}
+											}
+											logger.info("done; " + eventsList.size() + " more event/s is/are in queue for '" + url + "'");
+										} else {
+											Thread.sleep(CUSTOM_BREATH_PAUSE);
+										}
+									} catch (Exception e) {
+										lastErrorNote = "push to MQM server failed; exception: '" + e.getMessage() + "'";
+										lastErrorTime = new Date();
+										failedRetries++;
+										logger.severe("push to '" + url + "' failed; exception: '" + e.getMessage() + "'; total fails: " + failedRetries);
+										if (failedRetries >= CUSTOM_MAX_SEND_RETRIES) {
+											suspend();
+										}
+									}
+								}
+								logger.info("events client for '" + url + "' shuts down");
+							}
+						});
+						executor.setDaemon(true);
+						executor.start();
+						logger.info("new events client initialized for '" + this.url + "'");
+					}
+				}
 			}
 		}
 
-		public int pushEvent(CIEventBase event) {
-			return eventsList.add(event);
+		private void suspend() {
+			eventsList.clear();
+			shuttingDown = true;
+		}
+
+		private void resetCounters() {
+			shuttingDown = false;
+			failedRetries = 0;
+			pauseInterval = CUSTOM_INITIAL_RETRY_PAUSE;
 		}
 
 		private String buildUrl() {
@@ -189,22 +195,20 @@ public final class EventDispatcher {
 				clients.add(client);
 			}
 		}
-		if (!client.isActive()) client.activate();
+		client.activate();
 	}
 
 	public static void wakeUpClients() {
 		synchronized (clients) {
 			for (Client c : clients) {
-				if (!c.isActive()) c.activate();
+				c.activate();
 			}
 		}
 	}
 
 	public static void dispatchEvent(CIEventBase event) {
 		for (Client c : clients) {
-			if (c.isActive()) {
-				c.pushEvent(event);
-			}
+			if (c.isActive()) c.pushEvent(event);
 		}
 	}
 

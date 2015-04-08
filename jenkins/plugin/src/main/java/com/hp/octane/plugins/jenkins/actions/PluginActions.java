@@ -175,20 +175,22 @@ public class PluginActions implements RootAction {
 		int length;
 		while ((length = req.getInputStream().read(buffer)) > 0) body += new String(buffer, 0, length);
 
-		inputJSON = JSONObject.fromObject(body);
-		String url;
-		String domain;
-		String project;
-		String username;
-		String password;
-		if (inputJSON.containsKey("type") && inputJSON.getString("type").equals("events-client")) {
-			url = inputJSON.getString("url");
-			domain = inputJSON.getString("domain");
-			project = inputJSON.getString("project");
-			username = inputJSON.getString("username");
-			password = inputJSON.getString("password");
-			System.out.println("Accepted events-client config request for '" + url + "', '" + domain + "', '" + project + "'");
-			EventDispatcher.updateClient(url, domain, project, username, password);
+		if (body.length() > 0) {
+			inputJSON = JSONObject.fromObject(body);
+			String url;
+			String domain;
+			String project;
+			String username;
+			String password;
+			if (inputJSON.containsKey("type") && inputJSON.getString("type").equals("events-client")) {
+				url = inputJSON.getString("url");
+				domain = inputJSON.getString("domain");
+				project = inputJSON.getString("project");
+				username = inputJSON.getString("username");
+				password = inputJSON.getString("password");
+				System.out.println("Accepted events-client config request for '" + url + "', '" + domain + "', '" + project + "'");
+				EventDispatcher.updateClient(url, domain, project, username, password);
+			}
 		}
 		EventDispatcher.wakeUpClients();
 	}
