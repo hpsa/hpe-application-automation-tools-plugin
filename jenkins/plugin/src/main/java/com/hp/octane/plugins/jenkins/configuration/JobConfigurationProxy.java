@@ -8,6 +8,8 @@ import net.sf.json.JSONObject;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 public class JobConfigurationProxy {
 
@@ -18,6 +20,22 @@ public class JobConfigurationProxy {
     }
 
     @JavaScriptMethod
+    public JSONObject storeJobConfigurationOnServer(JSONObject jobConfiguration) throws IOException {
+        try {
+            Thread.sleep(1500);
+        } catch (InterruptedException e) {
+        }
+
+        JSONArray errors = new JSONArray();
+        errors.add("Unknown tag");
+
+        JSONObject result = new JSONObject();
+        result.put("errors", errors);
+        result.put("config", jobConfiguration);
+        return result;
+    }
+
+    @JavaScriptMethod
     public JSONObject loadJobConfigurationFromServer() throws IOException {
         try {
             Thread.sleep(1500);
@@ -25,46 +43,89 @@ public class JobConfigurationProxy {
         }
         JSONObject ret = new JSONObject();
 
+        ret.put("buildTypeId", 1);
+
+        JSONArray pipelines = new JSONArray();
+
+        JSONObject pipeline1 = new JSONObject();
+        pipeline1.put("id", 1);
+        pipeline1.put("name", "First Pipeline");
+        pipeline1.put("releaseId", "2");
+        pipeline1.put("isRoot", true);
+        pipeline1.put("noPush", false);
+        JSONArray tags = new JSONArray();
+        tags.add(tag(1, "Browser", 1, "Chrome"));
+        tags.add(tag(2, "DB", 5, "MSSQL"));
+        pipeline1.put("tags", tags);
+        pipelines.add(pipeline1);
+
+        JSONObject pipeline2 = new JSONObject();
+        pipeline2.put("id", 2);
+        pipeline2.put("name", "Second Pipeline");
+        pipeline2.put("releaseId", "1");
+        pipeline2.put("isRoot", false);
+        pipeline2.put("noPush", false);
+        JSONArray tags2 = new JSONArray();
+        tags2.add(tag(1, "Browser", 1, "Firefox"));
+        pipeline2.put("tags", tags2);
+        pipelines.add(pipeline2);
+
+        ret.put("pipelines", pipelines);
+
         JSONObject releases = new JSONObject();
         releases.put("1", "First");
         releases.put("2", "Second");
         ret.put("releases", releases);
-        ret.put("release", "2");
 
-        JSONObject tagTypes = new JSONObject();
-        tagTypes.put("1", "Browser");
-        tagTypes.put("2", "DB");
-        tagTypes.put("3", "System");
-        tagTypes.put("4", "Environment");
-        ret.put("tagTypes", tagTypes);
-
-        JSONObject allTags = new JSONObject();
-        allTags.put("1", tag(1, "Chrome"));
-        allTags.put("2", tag(1, "Firefox"));
-        allTags.put("3", tag(1, "IE"));
-        allTags.put("4", tag(2, "Oracle"));
-        allTags.put("5", tag(2, "MSSQL"));
-        allTags.put("6", tag(3, "Windows"));
-        allTags.put("7", tag(3, "Linux"));
-        allTags.put("8", tag(3, "HP-UX"));
-        allTags.put("9", tag(4, "Dev"));
-        allTags.put("10", tag(4, "QA"));
-        allTags.put("11", tag(4, "Staging"));
-        allTags.put("12", tag(4, "Production"));
-        ret.put("allTags", allTags);
-
-        JSONArray selectedTags = new JSONArray();
-        selectedTags.add(1);
-        selectedTags.add(4);
-        ret.put("selectedTags", selectedTags);
+        JSONArray availableTags = new JSONArray();
+        availableTags.add(tagType(1, "Browser", Arrays.asList(
+                tag(1, "Chrome"),
+                tag(2, "Firefox"),
+                tag(3, "IE"))));
+        availableTags.add(tagType(2, "DB", Arrays.asList(
+                tag(4, "Oracle"),
+                tag(5, "MSSQL"))));
+        availableTags.add(tagType(3, "System", Arrays.asList(
+                tag(6, "Windows"),
+                tag(7, "Linux"),
+                tag(8, "HP-UX"))));
+        availableTags.add(tagType(4, "Environment", Arrays.asList(
+                tag(9, "Dev"),
+                tag(10, "QA"),
+                tag(11, "Staging"),
+                tag(12, "Production"))));
+        ret.put("availableTags", availableTags);
 
         return ret;
     }
 
-    private JSONObject tag(int type, String name) {
+    private JSONObject tag(int tagId, String value) {
         JSONObject tag = new JSONObject();
-        tag.put("type", String.valueOf(type));
-        tag.put("name", name);
+        tag.put("tagId", String.valueOf(tagId));
+        tag.put("tagName", value);
         return tag;
+    }
+
+    private JSONObject tag(int typeId, String typeName, int tagId, String value) {
+        JSONObject tag = tag(tagId, value);
+        tag.put("tagTypeId", String.valueOf(typeId));
+        tag.put("tagTypeName", typeName);
+        return tag;
+    }
+
+    private void fillTagType(JSONObject target, int typeId, String typeName) {
+        target.put("tagTypeId", String.valueOf(typeId));
+        target.put("tagTypeName", typeName);
+    }
+
+    private JSONObject tagType(int typeId, String typeName, List<JSONObject> tags) {
+        JSONObject result = new JSONObject();
+        fillTagType(result, typeId, typeName);
+        JSONArray values = new JSONArray();
+        for (JSONObject tag: tags) {
+            values.add(tag);
+        }
+        result.put("values", values);
+        return result;
     }
 }

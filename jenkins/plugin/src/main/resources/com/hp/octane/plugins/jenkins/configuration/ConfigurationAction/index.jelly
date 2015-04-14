@@ -4,121 +4,21 @@
     <l:main-panel>
       <st:bind var="proxy" value="${it.proxy}"/>
 
-      <div id="mqm_configuration_status">
-        <h3>Retrieving configuration from server</h3>
+      <!--<st:adjunct includes="lib.octane.configure"/>-->
+      <!--TODO: janotav: for development only -->
+      <script src="/jenkins/scripts/configure.js"/>
+
+      <div id="mqm_configuration_progress" style="display: none">
+        <h3/>
         <t:progressBar pos="-1" />
       </div>
 
-      <div id="mqm_configuration_result" style="visibility:hidden">
-        <form>
-          Release: <select id="release"/>
-          <br/>
-          <div id="assignedTags">Tags: </div>
-          <div id="availableTagsSection">
-            Add Tag:
-            <select id="availableTagTypes" onchange="updateAvailableTags()"/>
-            <select id="availableTags"/>
-            <button onclick="addSelectedTag(); return false;">Add</button>
-          </div>
-        </form>
-      </div>
+      <div id="mqm_configuration_view"/>
 
       <script>
-        var allTags, tagTypes;
-
-        var availableTagTypesElement = document.getElementById('availableTagTypes');
-        var availableTagsElement = document.getElementById('availableTags');
-        var releaseElement = document.getElementById('release');
-        var assignedTagsElement = document.getElementById('assignedTags');
-        var availableTagsSectionElement = document.getElementById('availableTagsSection');
-
-        var selectedTags = [];
-        var counter = 0;
-
-        function addSelectedTag() {
-          var selectedOption = availableTagsElement.options[availableTagsElement.selectedIndex];
-          addTag(selectedOption.value);
-          var selectedTypeOption = availableTagTypesElement.options[availableTagTypesElement.selectedIndex];
-          selectedTypeOption.remove();
-          updateAvailableTags();
-          return true;
-        }
-
-        function addTag(selectedTagId) {
-          var element = document.createElement("span");
-          element.id = "tag" + (++counter);
-          var theTag = allTags[selectedTagId];
-          element.innerHTML = theTag.name + ' <a href="javascript:removeTag(' + selectedTagId + ', ' + theTag.type + ', \'' + element.id + '\');" title="Remove">(-)</a> ';
-          element.title = tagTypes[theTag.type];
-          assignedTagsElement.appendChild(element);
-          selectedTags.push(selectedTagId);
-        }
-
-        function removeTag(tagId, tagTypeId, divId) {
-          document.getElementById(divId).remove();
-          addAvailableTagType(tagTypeId);
-          updateAvailableTags();
-          selectedTags.splice(selectedTags.indexOf(tagId), 1);
-        }
-
-        function updateAvailableTags() {
-          // TODO: janotav: move JS out of jelly to avoid encoding issues
-          if (availableTagTypesElement.selectedIndex &lt; 0) {
-            availableTagsSectionElement.style.visibility = 'hidden';
-            return;
-          }
-
-          availableTagsSectionElement.style.visibility = 'visible';
-          var selectedTagTypeId = availableTagTypesElement.options[availableTagTypesElement.selectedIndex].value;
-          availableTagsElement.options.length = 0;
-
-          for (var tagId in allTags) {
-            if (!allTags.hasOwnProperty(tagId)) {
-              continue;
-            }
-            if (allTags[tagId].type == selectedTagTypeId) {
-              availableTagsElement.appendChild(new Option(allTags[tagId].name, tagId));
-            }
-          }
-        }
-
-        function addAvailableTagType(tagTypeId) {
-          availableTagTypesElement.appendChild(new Option(tagTypes[tagTypeId], tagTypeId));
-        }
-
-        proxy.loadJobConfigurationFromServer(function (t) {
-          document.getElementById('mqm_configuration_status').remove();
-          document.getElementById('mqm_configuration_result').style.visibility = 'visible';
-          var jobConfiguration = t.responseObject();
-
-          for (var releaseId in jobConfiguration.releases) {
-            releaseElement.appendChild(new Option(jobConfiguration.releases[releaseId], releaseId, (jobConfiguration.release == releaseId)));
-          }
-
-          allTags = jobConfiguration.allTags;
-          tagTypes = jobConfiguration.tagTypes;
-
-          // TODO: janotav: rewrite
-          function isAnyTagOfTypeSelected(tagTypeId) {
-            return selectedTags.some(function (selectedTag) {
-                return (allTags[selectedTag].type == tagTypeId);
-              });
-          }
-
-          jobConfiguration.selectedTags.forEach(function (selectedTag) {
-            addTag(selectedTag);
-          });
-
-          for (var tagTypeId in tagTypes) {
-            if (!tagTypes.hasOwnProperty(tagTypeId)) {
-              continue;
-            }
-            if (!isAnyTagOfTypeSelected(tagTypeId)) {
-              addAvailableTagType(tagTypeId);
-            }
-          }
-          updateAvailableTags();
-        });
+        var target = document.getElementById("mqm_configuration_view");
+        var progress = document.getElementById("mqm_configuration_progress");
+        octane_job_configuration(target, progress, proxy).configure();
       </script>
     </l:main-panel>
   </l:layout>
