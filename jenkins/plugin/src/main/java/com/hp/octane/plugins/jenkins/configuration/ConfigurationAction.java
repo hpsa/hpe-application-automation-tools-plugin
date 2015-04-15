@@ -5,8 +5,10 @@ package com.hp.octane.plugins.jenkins.configuration;
 import com.hp.octane.plugins.jenkins.Messages;
 import hudson.model.AbstractProject;
 import hudson.model.Action;
+import hudson.model.Item;
+import org.kohsuke.stapler.StaplerProxy;
 
-public class ConfigurationAction implements Action {
+public class ConfigurationAction implements Action, StaplerProxy {
 
     final public AbstractProject owner;
     final public JobConfigurationProxy proxy;
@@ -18,7 +20,7 @@ public class ConfigurationAction implements Action {
 
     @Override
     public String getIconFileName() {
-        return "setting.png";
+        return owner.getACL().hasPermission(Item.CONFIGURE)? "setting.png": null;
     }
 
     @Override
@@ -29,5 +31,11 @@ public class ConfigurationAction implements Action {
     @Override
     public String getUrlName() {
         return "mqmConfiguration";
+    }
+
+    @Override
+    public Object getTarget() {
+        owner.getACL().checkPermission(Item.CONFIGURE);
+        return this;
     }
 }
