@@ -2,12 +2,17 @@
 
 package com.hp.octane.plugins.jenkins.configuration;
 
+import com.hp.octane.plugins.jenkins.model.pipelines.StructureItem;
 import hudson.model.AbstractProject;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
+import org.kohsuke.stapler.export.Flavor;
+import org.kohsuke.stapler.export.ModelBuilder;
 
 import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.Arrays;
 import java.util.List;
 
@@ -21,13 +26,17 @@ public class JobConfigurationProxy {
 
     @JavaScriptMethod
     public JSONObject storeJobConfigurationOnServer(JSONObject jobConfiguration) throws IOException {
+//        StructureItem structureItem = new StructureItem(project);
+//        Writer w = new StringWriter();
+//        new ModelBuilder().get(StructureItem.class).writeTo(structureItem, Flavor.JSON.createDataWriter(structureItem, w));
+
         try {
             Thread.sleep(1500);
         } catch (InterruptedException e) {
         }
 
         JSONArray errors = new JSONArray();
-        errors.add("Unknown tag");
+//        errors.add("Unknown tag");
 
         JSONObject result = new JSONObject();
         result.put("errors", errors);
