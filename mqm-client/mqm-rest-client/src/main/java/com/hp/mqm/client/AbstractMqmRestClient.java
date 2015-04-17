@@ -310,6 +310,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
         doFirstLogin();
         HttpResponse response = httpClient.execute(request);
         if (isLoginNecessary(response)) { // if request fails with 401 do login and execute request again
+            HttpClientUtils.closeQuietly(response);
             login();
             response = httpClient.execute(request);
         }

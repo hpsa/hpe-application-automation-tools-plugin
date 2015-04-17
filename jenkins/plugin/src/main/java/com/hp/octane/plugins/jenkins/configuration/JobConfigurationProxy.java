@@ -2,19 +2,29 @@
 
 package com.hp.octane.plugins.jenkins.configuration;
 
-import com.hp.octane.plugins.jenkins.model.pipelines.StructureItem;
+import com.hp.mqm.client.MqmRestClient;
+import com.hp.mqm.client.model.JobConfiguration;
+import com.hp.mqm.client.model.Pipeline;
+import com.hp.mqm.client.model.Release;
+import com.hp.mqm.client.model.Taxonomy;
+import com.hp.mqm.client.model.TaxonomyType;
+import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
+import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
+import hudson.ExtensionList;
 import hudson.model.AbstractProject;
+import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.apache.commons.collections.map.MultiValueMap;
+import org.apache.commons.lang.StringUtils;
+import org.junit.Assert;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
-import org.kohsuke.stapler.export.Flavor;
-import org.kohsuke.stapler.export.ModelBuilder;
 
 import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class JobConfigurationProxy {
 
@@ -46,64 +56,72 @@ public class JobConfigurationProxy {
 
     @JavaScriptMethod
     public JSONObject loadJobConfigurationFromServer() throws IOException {
-        try {
-            Thread.sleep(1500);
-        } catch (InterruptedException e) {
+        ServerConfiguration configuration = ConfigurationService.getServerConfiguration();
+        if (StringUtils.isEmpty(configuration.location)) {
+            throw new RuntimeException("Not configured");
         }
-        JSONObject ret = new JSONObject();
 
-        ret.put("buildTypeId", 1);
+        ExtensionList<JenkinsMqmRestClientFactory> items = Jenkins.getInstance().getExtensionList(JenkinsMqmRestClientFactory.class);
+        Assert.assertEquals(1, items.size());
+        JenkinsMqmRestClientFactory clientFactory = items.get(0);
+
+        MqmRestClient client = clientFactory.create(
+                configuration.location,
+                configuration.domain,
+                configuration.project,
+                configuration.username,
+                configuration.password);
+        client.tryToConnectProject();
+
+        JobConfiguration jobConfiguration = client.getJobConfiguration(ServerIdentity.getIdentity(), project.getName());
+
+        JSONObject ret = new JSONObject();
+        ret.put("jobId", jobConfiguration.getJobId());
+
+        boolean isRoot = jobConfiguration.isPipelineRoot();
+        String jobName = jobConfiguration.getJobName();
 
         JSONArray pipelines = new JSONArray();
+        for(Pipeline relatedPipeline: jobConfiguration.getRelatedPipelines()) {
+            JSONObject pipeline = new JSONObject();
+            pipeline.put("id", relatedPipeline.getId());
+            pipeline.put("name", relatedPipeline.getName());
+            pipeline.put("releaseId", relatedPipeline.getReleaseId());
+            pipeline.put("releaseName", relatedPipeline.getReleaseName());
+            pipeline.put("isRoot", isRoot && jobName.equals(relatedPipeline.getRootJobName()));
+            // TODO: janotav: flag not present
+            pipeline.put("noPush", false);
 
-        JSONObject pipeline1 = new JSONObject();
-        pipeline1.put("id", 1);
-        pipeline1.put("name", "First Pipeline");
-        pipeline1.put("releaseId", "2");
-        pipeline1.put("isRoot", true);
-        pipeline1.put("noPush", false);
-        JSONArray tags = new JSONArray();
-        tags.add(tag(1, "Browser", 1, "Chrome"));
-        tags.add(tag(2, "DB", 5, "MSSQL"));
-        pipeline1.put("tags", tags);
-        pipelines.add(pipeline1);
-
-        JSONObject pipeline2 = new JSONObject();
-        pipeline2.put("id", 2);
-        pipeline2.put("name", "Second Pipeline");
-        pipeline2.put("releaseId", "1");
-        pipeline2.put("isRoot", false);
-        pipeline2.put("noPush", false);
-        JSONArray tags2 = new JSONArray();
-        tags2.add(tag(1, "Browser", 1, "Firefox"));
-        pipeline2.put("tags", tags2);
-        pipelines.add(pipeline2);
-
+            JSONArray taxonomyTags = new JSONArray();
+            for(Taxonomy taxonomy: relatedPipeline.getTaxonomies()) {
+                taxonomyTags.add(tag(taxonomy.getTaxonomyTypeId(), taxonomy.getTaxonomyTypeName(), taxonomy.getId(), taxonomy.getName()));
+            }
+            // TODO: janotav: mock data (real data not present yet)
+            taxonomyTags.add(tag(1001, "Browser", 1001, "Chrome"));
+            taxonomyTags.add(tag(1002, "DB", 1005, "MSSQL"));
+            pipeline.put("taxonomyTags", taxonomyTags);
+            pipelines.add(pipeline);
+        }
         ret.put("pipelines", pipelines);
 
         JSONObject releases = new JSONObject();
-        releases.put("1", "First");
-        releases.put("2", "Second");
+        for (Release release: client.getReleases(null, 0, 50).getItems()) {
+            releases.put(String.valueOf(release.getId()), release.getName());
+        }
         ret.put("releases", releases);
 
-        JSONArray availableTags = new JSONArray();
-        availableTags.add(tagType(1, "Browser", Arrays.asList(
-                tag(1, "Chrome"),
-                tag(2, "Firefox"),
-                tag(3, "IE"))));
-        availableTags.add(tagType(2, "DB", Arrays.asList(
-                tag(4, "Oracle"),
-                tag(5, "MSSQL"))));
-        availableTags.add(tagType(3, "System", Arrays.asList(
-                tag(6, "Windows"),
-                tag(7, "Linux"),
-                tag(8, "HP-UX"))));
-        availableTags.add(tagType(4, "Environment", Arrays.asList(
-                tag(9, "Dev"),
-                tag(10, "QA"),
-                tag(11, "Staging"),
-                tag(12, "Production"))));
-        ret.put("availableTags", availableTags);
+        JSONArray allTaxonomies = new JSONArray();
+        MultiValueMap multiMap = new MultiValueMap();
+        List<Taxonomy> taxonomies = client.getTaxonomies(null, 0, 50).getItems();
+        for (Taxonomy taxonomy: taxonomies) {
+            multiMap.put(taxonomy.getTaxonomyTypeId(), tag(taxonomy.getId(), taxonomy.getName()));
+        }
+        List<TaxonomyType> taxonomyTypes = client.getTaxonomyTypes(null, 0, 50).getItems();
+        for (TaxonomyType taxonomyType: taxonomyTypes) {
+            Collection<JSONObject> tags = multiMap.getCollection(taxonomyType.getId());
+            allTaxonomies.add(tagType(taxonomyType.getId(), taxonomyType.getName(), tags == null? Collections.<JSONObject>emptyList(): tags));
+        }
+        ret.put("taxonomies", allTaxonomies);
 
         return ret;
     }
@@ -127,7 +145,7 @@ public class JobConfigurationProxy {
         target.put("tagTypeName", typeName);
     }
 
-    private JSONObject tagType(int typeId, String typeName, List<JSONObject> tags) {
+    private JSONObject tagType(int typeId, String typeName, Collection<JSONObject> tags) {
         JSONObject result = new JSONObject();
         fillTagType(result, typeId, typeName);
         JSONArray values = new JSONArray();

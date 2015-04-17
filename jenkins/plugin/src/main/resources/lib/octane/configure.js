@@ -45,7 +45,7 @@ function octane_job_configuration(target, progress, proxy) {
         var applyButton = $("<input type='button' value='Apply'>");
 
         var tagTypes = {};
-        jobConfiguration.availableTags.forEach(function (tagType) {
+        jobConfiguration.taxonomies.forEach(function (tagType) {
             tagTypes[tagType.tagTypeId] = tagType;
         });
 
@@ -56,8 +56,8 @@ function octane_job_configuration(target, progress, proxy) {
         function renderPipeline(pipeline) {
 
             function firstTag() {
-                if (jobConfiguration.availableTags.length > 0) {
-                    var firstTagType = jobConfiguration.availableTags[0];
+                if (jobConfiguration.taxonomies.length > 0) {
+                    var firstTagType = jobConfiguration.taxonomies[0];
                     if (firstTagType.values.length > 0) {
                         var firstTag = firstTagType.values[0];
                         return {
@@ -86,7 +86,7 @@ function octane_job_configuration(target, progress, proxy) {
                 tags.append(container);
 
                 tagTypeSelect = $("<select>");
-                jobConfiguration.availableTags.forEach(function (tagType) {
+                jobConfiguration.taxonomies.forEach(function (tagType) {
                     tagTypeSelect.append(new Option(tagType.tagTypeName, tagType.tagTypeId));
                 });
                 tagTypeSelect.val(tag.tagTypeId);
@@ -112,7 +112,7 @@ function octane_job_configuration(target, progress, proxy) {
                 var index = container.index();
                 remove.click(function () {
                     apply.push(function () {
-                        pipeline.tags[index] = null;
+                        pipeline.taxonomyTags[index] = null;
                     });
                     dirty.push(function () {
                         return true; // tag was removed
@@ -192,7 +192,7 @@ function octane_job_configuration(target, progress, proxy) {
             pipelineDiv.append("Tags: ").append($("<br>"));
             var tags = $("<div>");
             pipelineDiv.append(tags);
-            pipeline.tags.forEach(addTag);
+            pipeline.taxonomyTags.forEach(addTag);
 
             if (firstTag()) {
                 var add = $("<input type='button' value='Add'>");
@@ -200,7 +200,7 @@ function octane_job_configuration(target, progress, proxy) {
                     var first = firstTag();
                     addTag(first);
                     apply.push(function () {
-                        pipeline.tags.push(first);
+                        pipeline.taxonomyTags.push(first);
                     });
                     dirty.push(function () {
                         return true; // there is new tag
@@ -287,9 +287,9 @@ function octane_job_configuration(target, progress, proxy) {
         }
 
         function removeEmptyTags(pipeline) {
-            for (var i = 0; i < pipeline.tags.length; i++) {
-                if (pipeline.tags[i] == null) {
-                    pipeline.tags.splice(i--, 1);
+            for (var i = 0; i < pipeline.taxonomyTags.length; i++) {
+                if (pipeline.taxonomyTags[i] == null) {
+                    pipeline.taxonomyTags.splice(i--, 1);
                 }
             }
         }
