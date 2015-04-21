@@ -93,6 +93,20 @@ public class JUnitResultsTest {
         matchTests(new File(build.getRootDir(), "mqmTests.xml"), helloWorldTests, helloWorld2Tests);
     }
 
+    @Test
+    public void testJUnitResultsLegacySubfolder() throws Exception {
+        MavenModuleSet project = rule.createMavenProject(projectName);
+        Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
+        project.setMaven(mavenInstallation.getName());
+        project.setRootPOM("subFolder/helloWorld/pom.xml");
+        project.setGoals("test -Dmaven.test.failure.ignore=true");
+        project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
+        project.setScm(new CopyResourceSCM("/helloWorldRoot", "subFolder"));
+        AbstractBuild build = runAndCheckBuild(project);
+
+        matchTests(new File(build.getRootDir(), "mqmTests.xml"), subFolderHelloWorldTests);
+    }
+
     private void matchTests(File mqmTestsXml, Set<String> ... expectedTests) {
         Set<String> copy = new HashSet<String>();
         for (Set<String> expected: expectedTests) {
