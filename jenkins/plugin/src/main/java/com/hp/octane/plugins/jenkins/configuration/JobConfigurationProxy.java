@@ -30,7 +30,6 @@ import org.kohsuke.stapler.export.ModelBuilder;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -71,7 +70,7 @@ public class JobConfigurationProxy {
             return error("Unable to create pipeline");
         } catch (ClientException e) {
             logger.log(Level.WARNING, "Failed to create pipeline", e);
-            return error("Unable to create pipeline");
+            return error(e.getMessage());
         }
         return result;
     }
@@ -92,7 +91,7 @@ public class JobConfigurationProxy {
             return error("Unable to update pipeline");
         } catch (ClientException e) {
             logger.log(Level.WARNING, "Failed to update pipeline", e);
-            return error("Unable to update pipeline");
+            return error(e.getMessage());
         }
 
         return result;
@@ -105,68 +104,71 @@ public class JobConfigurationProxy {
             client = createClient();
         } catch (ClientException e) {
             logger.log(Level.WARNING, "MQM server connection failed", e);
-            return error("Problem connecting to the MQM server, check your configuration");
+            return error(e.getMessage());
         }
 
-        JobConfiguration jobConfiguration;
+        JSONObject ret = new JSONObject();
+        JSONArray pipelines = new JSONArray();
+
         try {
-            jobConfiguration = client.getJobConfiguration(ServerIdentity.getIdentity(), project.getName());
+            try {
+                JobConfiguration jobConfiguration = client.getJobConfiguration(ServerIdentity.getIdentity(), project.getName());
+                ret.put("jobId", jobConfiguration.getJobId());
+                String jobName = jobConfiguration.getJobName();
+                boolean isRoot = jobConfiguration.isPipelineRoot();
+                for(Pipeline relatedPipeline: jobConfiguration.getRelatedPipelines()) {
+                    JSONObject pipeline = new JSONObject();
+                    pipeline.put("id", relatedPipeline.getId());
+                    pipeline.put("name", relatedPipeline.getName());
+                    pipeline.put("releaseId", relatedPipeline.getReleaseId());
+                    pipeline.put("releaseName", relatedPipeline.getReleaseName());
+                    pipeline.put("isRoot", isRoot && relatedPipeline.getRootJobName().equals(jobName));
+
+                    JSONArray taxonomyTags = new JSONArray();
+                    for(Taxonomy taxonomy: relatedPipeline.getTaxonomies()) {
+                        taxonomyTags.add(tag(taxonomy.getTaxonomyTypeId(), taxonomy.getTaxonomyTypeName(), taxonomy.getId(), taxonomy.getName()));
+                    }
+                    pipeline.put("taxonomyTags", taxonomyTags);
+                    pipelines.add(pipeline);
+                }
+            } catch (RequestException e) {
+                // TODO: janotav: remove catch once server is fixed
+            }
+
+            ret.put("pipelines", pipelines);
+
+            JSONObject releases = new JSONObject();
+            for (Release release: client.queryReleases(null, 0, 50).getItems()) {
+                releases.put(String.valueOf(release.getId()), release.getName());
+            }
+            ret.put("releases", releases);
+
+            JSONArray allTaxonomies = new JSONArray();
+            MultiValueMap multiMap = new MultiValueMap();
+            List<Taxonomy> taxonomies = client.queryTaxonomies(null, null, 0, 50).getItems();
+            for (Taxonomy taxonomy: taxonomies) {
+                multiMap.put(taxonomy.getTaxonomyTypeId(), tag(taxonomy.getId(), taxonomy.getName()));
+            }
+            List<TaxonomyType> taxonomyTypes = client.queryTaxonomyTypes(null, 0, 50).getItems();
+            for (TaxonomyType taxonomyType: taxonomyTypes) {
+                Collection<JSONObject> tags = multiMap.getCollection(taxonomyType.getId());
+                allTaxonomies.add(tagType(taxonomyType.getId(), taxonomyType.getName(), tags == null? Collections.<JSONObject>emptyList(): tags));
+            }
+            ret.put("taxonomies", allTaxonomies);
+
         } catch (RequestException e) {
-            // TODO: janotav: should be returned by the server???
-            jobConfiguration = new JobConfiguration(null, project.getName(), true, new ArrayList<Pipeline>());
+            logger.log(Level.WARNING, "Failed to retrieve job configuration", e);
+            return error("Unable to retrieve job configuration");
         } catch (RequestErrorException e) {
             logger.log(Level.WARNING, "Failed to retrieve job configuration", e);
             return error("Unable to retrieve job configuration");
-        }
-        client.release();
-
-        JSONObject ret = new JSONObject();
-        ret.put("jobId", jobConfiguration.getJobId());
-
-        boolean isRoot = jobConfiguration.isPipelineRoot();
-        String jobName = jobConfiguration.getJobName();
-
-        JSONArray pipelines = new JSONArray();
-        for(Pipeline relatedPipeline: jobConfiguration.getRelatedPipelines()) {
-            JSONObject pipeline = new JSONObject();
-            pipeline.put("id", relatedPipeline.getId());
-            pipeline.put("name", relatedPipeline.getName());
-            pipeline.put("releaseId", relatedPipeline.getReleaseId());
-            pipeline.put("releaseName", relatedPipeline.getReleaseName());
-            pipeline.put("isRoot", isRoot && jobName.equals(relatedPipeline.getRootJobName()));
-            // TODO: janotav: flag not present
-            pipeline.put("noPush", false);
-
-            JSONArray taxonomyTags = new JSONArray();
-            for(Taxonomy taxonomy: relatedPipeline.getTaxonomies()) {
-                taxonomyTags.add(tag(taxonomy.getTaxonomyTypeId(), taxonomy.getTaxonomyTypeName(), taxonomy.getId(), taxonomy.getName()));
+        } finally {
+            try {
+                client.release();
+            } catch (Exception e) {
+                // TODO: janotav: introduce releaseQuietly
             }
-            // TODO: janotav: mock data (real data not present yet)
-            taxonomyTags.add(tag(1001, "Browser", 1001, "Chrome"));
-            taxonomyTags.add(tag(1002, "DB", 1005, "MSSQL"));
-            pipeline.put("taxonomyTags", taxonomyTags);
-            pipelines.add(pipeline);
         }
-        ret.put("pipelines", pipelines);
-
-        JSONObject releases = new JSONObject();
-        for (Release release: client.queryReleases(null, 0, 50).getItems()) {
-            releases.put(String.valueOf(release.getId()), release.getName());
-        }
-        ret.put("releases", releases);
-
-        JSONArray allTaxonomies = new JSONArray();
-        MultiValueMap multiMap = new MultiValueMap();
-        List<Taxonomy> taxonomies = client.queryTaxonomies(null, null, 0, 50).getItems();
-        for (Taxonomy taxonomy: taxonomies) {
-            multiMap.put(taxonomy.getTaxonomyTypeId(), tag(taxonomy.getId(), taxonomy.getName()));
-        }
-        List<TaxonomyType> taxonomyTypes = client.queryTaxonomyTypes(null, 0, 50).getItems();
-        for (TaxonomyType taxonomyType: taxonomyTypes) {
-            Collection<JSONObject> tags = multiMap.getCollection(taxonomyType.getId());
-            allTaxonomies.add(tagType(taxonomyType.getId(), taxonomyType.getName(), tags == null? Collections.<JSONObject>emptyList(): tags));
-        }
-        ret.put("taxonomies", allTaxonomies);
 
         return ret;
     }

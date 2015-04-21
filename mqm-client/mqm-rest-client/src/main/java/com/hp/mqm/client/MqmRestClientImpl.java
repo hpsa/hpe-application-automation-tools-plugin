@@ -39,7 +39,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 
     private static final String URI_PUSH_TEST_RESULT_PUSH = "test-results/v1";
     private static final String URI_SERVER_JOB_CONFIG = "cia/servers/{0}/jobconfig/{1}";
-    private static final String URI_RELEASES = "releases" + PAGING_FRAGMENT;
+    private static final String URI_RELEASES = "releases-mqm" + PAGING_FRAGMENT;
     private static final String URI_TAXONOMIES = "taxonomys" + PAGING_FRAGMENT; // TODO: janotav: typo on server should be fixed
     private static final String URI_TAXONOMY_TYPES = "taxonomy-types" + PAGING_FRAGMENT;
     private static final String URI_PIPELINES = "cia/pipelines?fetchStructure=false";
