@@ -6,14 +6,14 @@ import java.util.List;
 
 final public class Pipeline {
 
-    final private int id;
+    final private Integer id;
     final private String name;
     final private int releaseId;
     final private String releaseName;
     final private String rootJobName;
     final private List<Taxonomy> taxonomies;
 
-    public Pipeline(int id, String name, int releaseId, String releaseName, String rootJobName, List<Taxonomy> taxonomies) {
+    public Pipeline(Integer id, String name, int releaseId, String releaseName, String rootJobName, List<Taxonomy> taxonomies) {
         this.id = id;
         this.name = name;
         this.releaseId = releaseId;
@@ -22,7 +22,7 @@ final public class Pipeline {
         this.taxonomies = taxonomies;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 

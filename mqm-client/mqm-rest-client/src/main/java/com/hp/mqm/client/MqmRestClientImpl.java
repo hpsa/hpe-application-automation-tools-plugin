@@ -18,10 +18,12 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.FileEntity;
+import org.apache.http.entity.StringEntity;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,14 +35,15 @@ import java.util.List;
 public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestClient {
 
     private static final String PAGING_FRAGMENT = "?offset={0}&limit={1}";
-    private static final String FILTERING_FRAGMENT = "&query=%22({2}%3D%27{3}%27)%22";
+    private static final String FILTERING_FRAGMENT = "&query={2}";
 
     private static final String URI_PUSH_TEST_RESULT_PUSH = "test-results/v1";
     private static final String URI_SERVER_JOB_CONFIG = "cia/servers/{0}/jobconfig/{1}";
     private static final String URI_RELEASES = "releases" + PAGING_FRAGMENT;
     private static final String URI_TAXONOMIES = "taxonomys" + PAGING_FRAGMENT; // TODO: janotav: typo on server should be fixed
     private static final String URI_TAXONOMY_TYPES = "taxonomy-types" + PAGING_FRAGMENT;
-
+    private static final String URI_PIPELINES = "cia/pipelines?fetchStructure=false";
+    private static final String URI_PIPELINES_METADATA = "cia/pipelines/{0}/metadata";
 
     /**
      * Constructor for AbstractMqmRestClient.
@@ -77,21 +80,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
             JSONObject jsonObject = JSONObject.fromObject(json);
             List<Pipeline> pipelines = new LinkedList<Pipeline>();
             for (JSONObject relatedPipeline: getJSONObjectCollection(jsonObject, "relatedPipelines")) {
-                List<Taxonomy> taxonomies = new LinkedList<Taxonomy>();
-                for (JSONObject taxonomy: getJSONObjectCollection(relatedPipeline, "taxonomyTags")) {
-                    // TODO: janotav: key names to be specified
-                    taxonomies.add(new Taxonomy(taxonomy.getInt("id"),
-                            taxonomy.getInt("parentId"),
-                            taxonomy.getString("value"),
-                            taxonomy.getString("parentValue")));
-                }
-                pipelines.add(new Pipeline(relatedPipeline.getInt("pipelineId"),
-                        relatedPipeline.getString("pipelineName"),
-                        relatedPipeline.getInt("releaseId"),
-                        // TODO: janotav: releaseName not defined
-                        "Name of " + relatedPipeline.getInt("releaseId"),
-                        relatedPipeline.getString("rootJobName"),
-                        taxonomies));
+                pipelines.add(toPipeline(relatedPipeline));
             }
             return new JobConfiguration(jsonObject.getInt("jobId"),
                     jsonObject.getString("jobName"),
@@ -104,55 +93,126 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
         }
     }
 
+    @Override
+    public int createPipeline(String pipelineName, int releaseId, String structureJson, String serverJson) {
+        HttpPost request = new HttpPost(createProjectApiUri(URI_PIPELINES));
+        JSONObject pipelineObject = new JSONObject();
+        pipelineObject.put("name", pipelineName);
+        pipelineObject.put("releaseId", releaseId);
+        pipelineObject.put("server", JSONObject.fromObject(serverJson));
+        pipelineObject.put("structure", JSONObject.fromObject(structureJson));
+        request.setEntity(new StringEntity(pipelineObject.toString(), ContentType.APPLICATION_JSON));
+        HttpResponse response = null;
+        try {
+            response = execute(request);
+            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_CREATED) {
+                throw new RequestException("Pipeline creation failed with status code " + response.getStatusLine().getStatusCode() + " and reason " + response.getStatusLine().getReasonPhrase());
+            }
+            String json = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
+            JSONObject jsonObject = JSONObject.fromObject(json);
+            return jsonObject.getInt("id");
+        } catch (IOException e) {
+            throw new RequestErrorException("Cannot post test results to MQM.", e);
+        } finally {
+            HttpClientUtils.closeQuietly(response);
+        }
+    }
+
+    @Override
+    public void updatePipelineMetadata(int pipelineId, String pipelineName, int releaseId) {
+        HttpPut request = new HttpPut(createProjectApiUri(URI_PIPELINES_METADATA, pipelineId));
+        JSONObject pipelineObject = new JSONObject();
+        pipelineObject.put("pipelineId", pipelineId);
+        pipelineObject.put("name", pipelineName);
+        pipelineObject.put("releaseId", releaseId);
+        request.setEntity(new StringEntity(pipelineObject.toString(), ContentType.APPLICATION_JSON));
+        HttpResponse response = null;
+        try {
+            response = execute(request);
+            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+                throw new RequestException("Pipeline update failed with status code " + response.getStatusLine().getStatusCode() + " and reason " + response.getStatusLine().getReasonPhrase());
+            }
+        } catch (IOException e) {
+            throw new RequestErrorException("Cannot update pipeline metadata.", e);
+        } finally {
+            HttpClientUtils.closeQuietly(response);
+        }
+    }
+
+    private Pipeline toPipeline(JSONObject pipelineObject) {
+        List<Taxonomy> taxonomies = new LinkedList<Taxonomy>();
+        for (JSONObject taxonomy: getJSONObjectCollection(pipelineObject, "taxonomyTags")) {
+            // TODO: janotav: key names to be specified
+            taxonomies.add(new Taxonomy(taxonomy.getInt("id"),
+                    taxonomy.getInt("parentId"),
+                    taxonomy.getString("value"),
+                    taxonomy.getString("parentValue")));
+        }
+        return new Pipeline(pipelineObject.getInt("pipelineId"),
+                pipelineObject.getString("pipelineName"),
+                pipelineObject.getInt("releaseId"),
+                // TODO: janotav: releaseName not defined
+                "Name of " + pipelineObject.getInt("releaseId"),
+                pipelineObject.getString("rootJobName"),
+                taxonomies);
+    }
+
     private static Collection<JSONObject> getJSONObjectCollection(JSONObject object, String key) {
         JSONArray array = object.getJSONArray(key);
         return (Collection<JSONObject>)array.subList(0, array.size());
     }
 
-    private URI getEntityURI(String collection, String filterKey, String filterValue, int offset, int limit) {
-        if (!StringUtils.isEmpty(filterValue)) {
-            return createProjectApiUri(collection + FILTERING_FRAGMENT, offset, limit, filterKey, escapeQueryValue(filterValue));
+    private URI getEntityURI(String collection, List<String> conditions, int offset, int limit) {
+        if (!conditions.isEmpty()) {
+            StringBuffer expr = new StringBuffer();
+            for (String condition: conditions) {
+                if (expr.length() > 0) {
+                    expr.append(";");
+                }
+                expr.append(condition);
+            }
+            return createProjectApiUri(collection + FILTERING_FRAGMENT, offset, limit, "\"" + expr.toString() + "\"");
         } else {
             return createProjectApiUri(collection, offset, limit);
         }
     }
 
     @Override
-    public PagedList<Release> getReleases(String name, int offset, int limit) {
-        return getEntities(getEntityURI(URI_RELEASES, "name", name, offset, limit), offset, new EntityFactory<Release>() {
-            @Override
-            public Release create(JSONObject entityObject) {
-                return new Release(entityObject.getInt("id"), entityObject.getString("name"));
-            }
-        });
+    public PagedList<Release> queryReleases(String name, int offset, int limit) {
+        List<String> conditions = new LinkedList<String>();
+        if (!StringUtils.isEmpty(name)) {
+            conditions.add(condition("name", "*" + name + "*"));
+        }
+        return getEntities(getEntityURI(URI_RELEASES, conditions, offset, limit), offset, new ReleaseEntityFactory());
     }
 
     @Override
-    public PagedList<Taxonomy> getTaxonomies(String name, int offset, int limit) {
-        return getEntities(getEntityURI(URI_TAXONOMIES, "name", name, offset, limit), offset, new EntityFactory<Taxonomy>() {
-            @Override
-            public Taxonomy create(JSONObject entityObject) {
-                return new Taxonomy(
-                        entityObject.getInt("id"),
-                        entityObject.getInt("taxonomy-type-id"),
-                        entityObject.getString("name"),
-                        null);
-            }
-        });
+    public PagedList<Taxonomy> queryTaxonomies(Integer taxonomyTypeId, String name, int offset, int limit) {
+        List<String> conditions = new LinkedList<String>();
+        if (!StringUtils.isEmpty(name)) {
+            conditions.add(condition("name", "*" + name + "*"));
+        }
+        if (taxonomyTypeId != null) {
+            conditions.add(condition("taxonomy-type-id", String.valueOf(taxonomyTypeId)));
+        }
+        return getEntities(getEntityURI(URI_TAXONOMIES, conditions, offset, limit), offset, new TaxonomyEntityFactory());
     }
 
     @Override
-    public PagedList<TaxonomyType> getTaxonomyTypes(String name, int offset, int limit) {
-        return getEntities(getEntityURI(URI_TAXONOMY_TYPES, "name", name, offset, limit), offset, new EntityFactory<TaxonomyType>() {
-            @Override
-            public TaxonomyType create(JSONObject entityObject) {
-                return new TaxonomyType(entityObject.getInt("id"), entityObject.getString("name"));
-            }
-        });
+    public PagedList<TaxonomyType> queryTaxonomyTypes(String name, int offset, int limit) {
+        List<String> conditions = new LinkedList<String>();
+        if (!StringUtils.isEmpty(name)) {
+            conditions.add(condition("name", "*" + name + "*"));
+        }
+        return getEntities(getEntityURI(URI_TAXONOMY_TYPES, conditions, offset, limit), offset, new TaxonomyTypeEntityFactory());
+    }
+
+    private String condition(String name, String value) {
+        return name + "='" + escapeQueryValue(value) + "'";
     }
 
     private static String escapeQueryValue(String value) {
-        return value.replaceAll("([\"'])", "\\\\$1");
+        return value.replaceAll("(\\\\)", "$1$1").replaceAll("([\"'])", "\\\\$1");
     }
 
     private <E> PagedList<E> getEntities(URI uri, int offset, EntityFactory<E> factory) {
@@ -191,6 +251,34 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
             throw new RequestErrorException("Cannot post test results to MQM.", e);
         } finally {
             HttpClientUtils.closeQuietly(response);
+        }
+    }
+
+    private static class TaxonomyEntityFactory implements EntityFactory<Taxonomy> {
+
+        @Override
+        public Taxonomy create(JSONObject entityObject) {
+            return new Taxonomy(
+                    entityObject.getInt("id"),
+                    entityObject.getInt("taxonomy-type-id"),
+                    entityObject.getString("name"),
+                    null);
+        }
+    }
+
+    private static class TaxonomyTypeEntityFactory implements EntityFactory<TaxonomyType> {
+
+        @Override
+        public TaxonomyType create(JSONObject entityObject) {
+            return new TaxonomyType(entityObject.getInt("id"), entityObject.getString("name"));
+        }
+    }
+
+    private static class ReleaseEntityFactory implements EntityFactory<Release> {
+
+        @Override
+        public Release create(JSONObject entityObject) {
+            return new Release(entityObject.getInt("id"), entityObject.getString("name"));
         }
     }
 

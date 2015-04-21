@@ -13,8 +13,16 @@ function octane_job_configuration(target, progress, proxy) {
         progressFunc("Retrieving configuration from server");
         proxy.loadJobConfigurationFromServer(function (t) {
             progressFunc();
-            var jobConfiguration = t.responseObject();
-            renderConfiguration(jobConfiguration);
+            var response = t.responseObject();
+            if (response.errors) {
+                response.errors.forEach(function (error) {
+                    var errorDiv = $("<div class='error'><font color='red'><b/></font></div>");
+                    errorDiv.find("b").text(error);
+                    $(target).append(errorDiv);
+                });
+            } else {
+                renderConfiguration(response);
+            }
         });
     }
 
@@ -53,7 +61,7 @@ function octane_job_configuration(target, progress, proxy) {
         var apply = [];
         var dirty = [];
 
-        function renderPipeline(pipeline) {
+        function renderPipeline(pipeline, saveFunc, saveCallback) {
 
             function firstTag() {
                 if (jobConfiguration.taxonomies.length > 0) {
@@ -128,7 +136,7 @@ function octane_job_configuration(target, progress, proxy) {
             dirty.length = 0;
 
             applyButton.unbind('click').click(function() {
-                saveConfiguration(pipeline);
+                saveConfiguration(pipeline, saveFunc, saveCallback);
             });
 
             pipelineDiv.empty();
@@ -175,7 +183,7 @@ function octane_job_configuration(target, progress, proxy) {
                     pipeline.releaseId = select.val();
                 });
                 dirty.push(function () {
-                    return pipeline.releaseId !== select.val();
+                    return pipeline.releaseId != select.val();
                 });
                 pipelineDiv.append(select).append($("<br>"));
             } else {
@@ -212,24 +220,39 @@ function octane_job_configuration(target, progress, proxy) {
 
         var CONFIRMATION = "There are unsaved changes, if you continue they will be discarded. Continue?";
         var pipelineSelect;
+        var saveFunc, saveCallback;
 
         if (jobConfiguration.pipelines.length == 0) {
+            saveFunc = function (pipeline, callback) {
+                proxy.createPipelineOnServer(pipeline, callback);
+            };
+            saveCallback = function (pipeline, response) {
+                pipeline.id = response.id;
+                renderConfiguration(jobConfiguration, pipeline.id);
+            };
             var createPipelineDiv = $("<div>No pipeline is currently defined for this job<br/></div>");
             var createPipelineButton = $("<input type='button' value='Create Pipeline'>");
             createPipelineButton.click(function () {
                 pipelineDiv.empty();
                 var pipeline = {
+                    id: null,
                     isRoot: true,
                     noPush: false,
-                    tags: []
+                    taxonomyTags: []
                 };
                 jobConfiguration.pipelines.push(pipeline);
-                renderPipeline(pipeline);
+                renderPipeline(pipeline, saveFunc, saveCallback);
                 buttons.append(applyButton);
             });
             createPipelineDiv.append(createPipelineButton);
             pipelineDiv.append(createPipelineDiv);
         } else {
+            saveFunc = function (pipeline, callback) {
+                proxy.updatePipelineOnSever(pipeline, callback);
+            };
+            saveCallback = function (pipeline, response) {
+                renderConfiguration(jobConfiguration, pipeline.id);
+            };
             var selectedIndex = 0;
             if (jobConfiguration.pipelines.length > 1) {
                 pipelineSelect = $("<select>");
@@ -245,12 +268,12 @@ function octane_job_configuration(target, progress, proxy) {
                         }
                     }
                     lastSelected = $(pipelineSelect).find("option:selected");
-                    renderPipeline(jobConfiguration.pipelines[pipelineSelect[0].selectedIndex]);
+                    renderPipeline(jobConfiguration.pipelines[pipelineSelect[0].selectedIndex], saveFunc, saveCallback);
                 });
                 result.prepend(pipelineSelect);
                 selectedIndex = pipelineSelect[0].selectedIndex;
             }
-            renderPipeline(jobConfiguration.pipelines[selectedIndex]);
+            renderPipeline(jobConfiguration.pipelines[selectedIndex], saveFunc, saveCallback);
             buttons.append(applyButton);
         }
 
@@ -294,7 +317,7 @@ function octane_job_configuration(target, progress, proxy) {
             }
         }
 
-        function saveConfiguration(pipeline) {
+        function saveConfiguration(pipeline, saveFunc, saveCallback) {
             if (!validateFields()) {
                 return;
             }
@@ -303,17 +326,17 @@ function octane_job_configuration(target, progress, proxy) {
 
             status.empty();
             progressFunc("Storing configuration on server");
-            proxy.storeJobConfigurationOnServer(jobConfiguration, function (t) {
+            saveFunc(pipeline, function (t) {
                 progressFunc();
                 var response = t.responseObject();
-                if (response.errors.length > 0) {
+                if (response.errors) {
                     response.errors.forEach(function (error) {
                         var errorDiv = $("<div class='error'><font color='red'><b/></font></div>");
                         errorDiv.find("b").text(error);
                         status.append(errorDiv);
                     });
                 } else {
-                    renderConfiguration(response.config, pipeline.id);
+                    saveCallback(pipeline, response);
                 }
             });
         }

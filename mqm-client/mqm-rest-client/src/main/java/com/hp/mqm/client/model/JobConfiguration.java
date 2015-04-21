@@ -6,19 +6,19 @@ import java.util.List;
 
 final public class JobConfiguration {
 
-    final private int jobId;
+    final private Integer jobId;
     final private String jobName;
     final private boolean pipelineRoot;
     final private List<Pipeline> relatedPipelines;
 
-    public JobConfiguration(int jobId, String jobName, boolean pipelineRoot, List<Pipeline> relatedPipelines) {
+    public JobConfiguration(Integer jobId, String jobName, boolean pipelineRoot, List<Pipeline> relatedPipelines) {
         this.jobId = jobId;
         this.jobName = jobName;
         this.pipelineRoot = pipelineRoot;
         this.relatedPipelines = relatedPipelines;
     }
 
-    public int getJobId() {
+    public Integer getJobId() {
         return jobId;
     }
 

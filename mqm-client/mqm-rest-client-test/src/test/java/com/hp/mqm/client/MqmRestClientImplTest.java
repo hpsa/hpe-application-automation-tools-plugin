@@ -322,23 +322,38 @@ public class MqmRestClientImplTest {
     }
 
     @Test
-    public void testGetReleases() {
+    public void testQueryReleases() {
         MqmRestClientImpl client = new MqmRestClientImpl(connectionConfig);
-        PagedList<Release> releases = client.getReleases(null, 0, 100);
+        PagedList<Release> releases = client.queryReleases(null, 0, 100);
+        System.out.println(releases);
+
+        releases = client.queryReleases("a", 0, 100);
         System.out.println(releases);
     }
 
     @Test
-    public void testGetTaxonomies() {
+    public void testQueryTaxonomies() {
         MqmRestClientImpl client = new MqmRestClientImpl(connectionConfig);
-        PagedList<Taxonomy> taxonomies = client.getTaxonomies(null, 0, 100);
+        PagedList<Taxonomy> taxonomies = client.queryTaxonomies(null, null, 0, 100);
         System.out.println(taxonomies);
+
+        taxonomies = client.queryTaxonomies(1001, null, 0, 100);
+        System.out.println(taxonomies.getItems());
+
+        taxonomies = client.queryTaxonomies(null, "r", 0, 100);
+        System.out.println(taxonomies.getItems());
+
+        taxonomies = client.queryTaxonomies(1001, "r", 0, 100);
+        System.out.println(taxonomies.getItems());
     }
 
     @Test
-    public void testGetTaxonomyTypes() {
+    public void testQueryTaxonomyTypes() {
         MqmRestClientImpl client = new MqmRestClientImpl(connectionConfig);
-        PagedList<TaxonomyType> taxonomyTypes = client.getTaxonomyTypes(null, 0, 100);
-        System.out.println(taxonomyTypes);
+        PagedList<TaxonomyType> taxonomyTypes = client.queryTaxonomyTypes(null, 0, 100);
+        System.out.println(taxonomyTypes.getItems());
+
+        taxonomyTypes = client.queryTaxonomyTypes("e", 0, 100);
+        System.out.println(taxonomyTypes.getItems());
     }
 }

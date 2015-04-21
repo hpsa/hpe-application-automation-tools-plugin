@@ -3,13 +3,18 @@
 package com.hp.octane.plugins.jenkins.configuration;
 
 import com.hp.mqm.client.MqmRestClient;
+import com.hp.mqm.client.exception.RequestErrorException;
+import com.hp.mqm.client.exception.RequestException;
 import com.hp.mqm.client.model.JobConfiguration;
 import com.hp.mqm.client.model.Pipeline;
 import com.hp.mqm.client.model.Release;
 import com.hp.mqm.client.model.Taxonomy;
 import com.hp.mqm.client.model.TaxonomyType;
+import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
+import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
+import com.hp.octane.plugins.jenkins.model.pipelines.StructureItem;
 import hudson.ExtensionList;
 import hudson.model.AbstractProject;
 import jenkins.model.Jenkins;
@@ -19,61 +24,101 @@ import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
+import org.kohsuke.stapler.export.Flavor;
+import org.kohsuke.stapler.export.Model;
+import org.kohsuke.stapler.export.ModelBuilder;
 
 import java.io.IOException;
+import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class JobConfigurationProxy {
 
+    private final static Logger logger = Logger.getLogger(JobConfigurationProxy.class.getName());
+
     final private AbstractProject project;
+    final private RetryModel retryModel;
 
     public JobConfigurationProxy(AbstractProject project) {
         this.project = project;
+        this.retryModel = getExtension(RetryModel.class);
     }
 
     @JavaScriptMethod
-    public JSONObject storeJobConfigurationOnServer(JSONObject jobConfiguration) throws IOException {
-//        StructureItem structureItem = new StructureItem(project);
-//        Writer w = new StringWriter();
-//        new ModelBuilder().get(StructureItem.class).writeTo(structureItem, Flavor.JSON.createDataWriter(structureItem, w));
+    public JSONObject createPipelineOnServer(JSONObject pipelineObject) throws IOException {
+        JSONObject result = new JSONObject();
+
+        StructureItem structureItem = new StructureItem(project);
+        PluginActions.ServerInfo serverInfo = new PluginActions.ServerInfo();
+        try {
+            MqmRestClient client = createClient();
+            int pipelineId = client.createPipeline(pipelineObject.getString("name"),
+                    pipelineObject.getInt("releaseId"),
+                    toString(structureItem),
+                    toString(serverInfo));
+            result.put("id", pipelineId);
+            client.release();
+        } catch (RequestException e) {
+            logger.log(Level.WARNING, "Failed to create pipeline", e);
+            return error("Unable to create pipeline");
+        } catch (RequestErrorException e) {
+            logger.log(Level.WARNING, "Failed to create pipeline", e);
+            return error("Unable to create pipeline");
+        } catch (ClientException e) {
+            logger.log(Level.WARNING, "Failed to create pipeline", e);
+            return error("Unable to create pipeline");
+        }
+        return result;
+    }
+
+    @JavaScriptMethod
+    public JSONObject updatePipelineOnSever(JSONObject pipelineObject) throws IOException {
+        JSONObject result = new JSONObject();
 
         try {
-            Thread.sleep(1500);
-        } catch (InterruptedException e) {
+            MqmRestClient client = createClient();
+            client.updatePipelineMetadata(pipelineObject.getInt("id"), pipelineObject.getString("name"), pipelineObject.getInt("releaseId"));
+            client.release();
+        } catch (RequestException e) {
+            logger.log(Level.WARNING, "Failed to update pipeline", e);
+            return error("Unable to update pipeline");
+        } catch (RequestErrorException e) {
+            logger.log(Level.WARNING, "Failed to update pipeline", e);
+            return error("Unable to update pipeline");
+        } catch (ClientException e) {
+            logger.log(Level.WARNING, "Failed to update pipeline", e);
+            return error("Unable to update pipeline");
         }
 
-        JSONArray errors = new JSONArray();
-//        errors.add("Unknown tag");
-
-        JSONObject result = new JSONObject();
-        result.put("errors", errors);
-        result.put("config", jobConfiguration);
         return result;
     }
 
     @JavaScriptMethod
     public JSONObject loadJobConfigurationFromServer() throws IOException {
-        ServerConfiguration configuration = ConfigurationService.getServerConfiguration();
-        if (StringUtils.isEmpty(configuration.location)) {
-            throw new RuntimeException("Not configured");
+        MqmRestClient client;
+        try {
+            client = createClient();
+        } catch (ClientException e) {
+            logger.log(Level.WARNING, "MQM server connection failed", e);
+            return error("Problem connecting to the MQM server, check your configuration");
         }
 
-        ExtensionList<JenkinsMqmRestClientFactory> items = Jenkins.getInstance().getExtensionList(JenkinsMqmRestClientFactory.class);
-        Assert.assertEquals(1, items.size());
-        JenkinsMqmRestClientFactory clientFactory = items.get(0);
-
-        MqmRestClient client = clientFactory.create(
-                configuration.location,
-                configuration.domain,
-                configuration.project,
-                configuration.username,
-                configuration.password);
-        client.tryToConnectProject();
-
-        JobConfiguration jobConfiguration = client.getJobConfiguration(ServerIdentity.getIdentity(), project.getName());
+        JobConfiguration jobConfiguration;
+        try {
+            jobConfiguration = client.getJobConfiguration(ServerIdentity.getIdentity(), project.getName());
+        } catch (RequestException e) {
+            // TODO: janotav: should be returned by the server???
+            jobConfiguration = new JobConfiguration(null, project.getName(), true, new ArrayList<Pipeline>());
+        } catch (RequestErrorException e) {
+            logger.log(Level.WARNING, "Failed to retrieve job configuration", e);
+            return error("Unable to retrieve job configuration");
+        }
+        client.release();
 
         JSONObject ret = new JSONObject();
         ret.put("jobId", jobConfiguration.getJobId());
@@ -105,18 +150,18 @@ public class JobConfigurationProxy {
         ret.put("pipelines", pipelines);
 
         JSONObject releases = new JSONObject();
-        for (Release release: client.getReleases(null, 0, 50).getItems()) {
+        for (Release release: client.queryReleases(null, 0, 50).getItems()) {
             releases.put(String.valueOf(release.getId()), release.getName());
         }
         ret.put("releases", releases);
 
         JSONArray allTaxonomies = new JSONArray();
         MultiValueMap multiMap = new MultiValueMap();
-        List<Taxonomy> taxonomies = client.getTaxonomies(null, 0, 50).getItems();
+        List<Taxonomy> taxonomies = client.queryTaxonomies(null, null, 0, 50).getItems();
         for (Taxonomy taxonomy: taxonomies) {
             multiMap.put(taxonomy.getTaxonomyTypeId(), tag(taxonomy.getId(), taxonomy.getName()));
         }
-        List<TaxonomyType> taxonomyTypes = client.getTaxonomyTypes(null, 0, 50).getItems();
+        List<TaxonomyType> taxonomyTypes = client.queryTaxonomyTypes(null, 0, 50).getItems();
         for (TaxonomyType taxonomyType: taxonomyTypes) {
             Collection<JSONObject> tags = multiMap.getCollection(taxonomyType.getId());
             allTaxonomies.add(tagType(taxonomyType.getId(), taxonomyType.getName(), tags == null? Collections.<JSONObject>emptyList(): tags));
@@ -154,5 +199,66 @@ public class JobConfigurationProxy {
         }
         result.put("values", values);
         return result;
+    }
+
+    private JSONObject error(String message) {
+        JSONObject result = new JSONObject();
+        JSONArray errors = new JSONArray();
+        errors.add(message);
+        result.put("errors", errors);
+        return result;
+    }
+
+    private MqmRestClient createClient() throws ClientException {
+        ServerConfiguration configuration = ConfigurationService.getServerConfiguration();
+        if (StringUtils.isEmpty(configuration.location)) {
+            throw new ClientException("MQM server not configured");
+        }
+
+        if (retryModel.isQuietPeriod()) {
+            throw new ClientException("MQM server not connected");
+        }
+
+        JenkinsMqmRestClientFactory clientFactory = getExtension(JenkinsMqmRestClientFactory.class);
+        MqmRestClient client = clientFactory.create(
+                configuration.location,
+                configuration.domain,
+                configuration.project,
+                configuration.username,
+                configuration.password);
+        try {
+            client.tryToConnectProject();
+        } catch (RequestException e) {
+            logger.log(Level.WARNING, "MQM server connection failed", e);
+            retryModel.failure();
+            throw new ClientException("Connection to MQM server failed");
+        } catch (RequestErrorException e) {
+            logger.log(Level.WARNING, "MQM server connection failed", e);
+            retryModel.failure();
+            throw new ClientException("Connection to MQM server failed");
+        }
+        retryModel.success();
+        return client;
+    }
+
+    private static <T> T getExtension(Class<T> clazz) {
+        ExtensionList<T> items = Jenkins.getInstance().getExtensionList(clazz);
+        Assert.assertEquals(1, items.size());
+        return items.get(0);
+    }
+
+    private static <T> String toString(T bean) throws IOException {
+        StringWriter writer = new StringWriter();
+        Model<T> model = new ModelBuilder().get((Class<T>)bean.getClass());
+        model.writeTo(bean, Flavor.JSON.createDataWriter(bean, writer));
+        return writer.toString();
+    }
+
+    private static class ClientException extends Exception {
+
+        public ClientException(String message) {
+            super(message);
+        }
+
     }
 }
