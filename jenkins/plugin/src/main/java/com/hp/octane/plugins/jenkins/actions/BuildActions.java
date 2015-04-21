@@ -53,7 +53,9 @@ public class BuildActions extends TransientActionFactory<AbstractBuild> {
 		}
 
 		public void doSnapshot(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
-			res.serveExposedBean(req, new SnapshotItem(build), Flavor.JSON);
+			String metaonlyParam = req.getParameter("metaonly");
+			boolean metaonly = metaonlyParam != null && metaonlyParam.equals("true");
+			res.serveExposedBean(req, new SnapshotItem(build, metaonly), Flavor.JSON);
 		}
 	}
 

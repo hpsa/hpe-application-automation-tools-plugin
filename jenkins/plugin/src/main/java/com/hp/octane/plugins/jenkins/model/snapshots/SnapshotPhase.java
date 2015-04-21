@@ -31,9 +31,9 @@ public final class SnapshotPhase extends AbstractPhase<SnapshotItem> {
 			if (structures[i] != null) {
 				tmpBuilds = invokedBuilds == null ? null : invokedBuilds.get(structures[i].getName());
 				if (tmpBuilds == null || tmpBuilds.size() == 0) {
-					tmp[i] = new SnapshotItem((AbstractProject) Jenkins.getInstance().getItem(structures[i].getName()));
+					tmp[i] = new SnapshotItem((AbstractProject) Jenkins.getInstance().getItem(structures[i].getName()), false);
 				} else {
-					tmp[i] = new SnapshotItem(tmpBuilds.get(0));
+					tmp[i] = new SnapshotItem(tmpBuilds.get(0), false);
 					tmpBuilds.remove(0);
 				}
 			} else {

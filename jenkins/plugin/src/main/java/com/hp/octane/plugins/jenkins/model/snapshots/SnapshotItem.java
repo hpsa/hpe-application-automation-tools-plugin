@@ -39,7 +39,7 @@ public final class SnapshotItem extends AbstractItem<ParameterInstance, Snapshot
 	private SCMData scmData = null;
 
 	@SuppressWarnings("unchecked")
-	public SnapshotItem(AbstractBuild build) {
+	public SnapshotItem(AbstractBuild build, boolean metaOnly) {
 		super(build.getProject());
 
 		number = build.getNumber();
@@ -69,21 +69,24 @@ public final class SnapshotItem extends AbstractItem<ParameterInstance, Snapshot
 
 		setParameters(ParameterProcessors.getInstances(build));
 
-		StructurePhase[] tmpStructurePhasesInternals = super.getFlowProcessor().getInternals();
-		StructurePhase[] tmpStructurePhasesPostBuilds = super.getFlowProcessor().getPostBuilds();
-		ArrayList<String> invokeesNames = new ArrayList<String>();
-		appendInvokeesNames(invokeesNames, tmpStructurePhasesInternals);
-		appendInvokeesNames(invokeesNames, tmpStructurePhasesPostBuilds);
-		HashMap<String, ArrayList<AbstractBuild>> invokedBuilds = getInvokedBuilds(build, invokeesNames);
-
-		setInternals(inflatePhases(tmpStructurePhasesInternals, invokedBuilds));
-		setPostBuilds(inflatePhases(tmpStructurePhasesPostBuilds, invokedBuilds));
+		if (!metaOnly) {
+			StructurePhase[] tmpStructurePhasesInternals = super.getFlowProcessor().getInternals();
+			StructurePhase[] tmpStructurePhasesPostBuilds = super.getFlowProcessor().getPostBuilds();
+			ArrayList<String> invokeesNames = new ArrayList<String>();
+			appendInvokeesNames(invokeesNames, tmpStructurePhasesInternals);
+			appendInvokeesNames(invokeesNames, tmpStructurePhasesPostBuilds);
+			HashMap<String, ArrayList<AbstractBuild>> invokedBuilds = getInvokedBuilds(build, invokeesNames);
+			setInternals(inflatePhases(tmpStructurePhasesInternals, invokedBuilds));
+			setPostBuilds(inflatePhases(tmpStructurePhasesPostBuilds, invokedBuilds));
+		}
 	}
 
-	public SnapshotItem(AbstractProject project) {
+	public SnapshotItem(AbstractProject project, boolean metaOnly) {
 		super(project);
-		setInternals(inflatePhases(super.getFlowProcessor().getInternals(), null));
-		setPostBuilds(inflatePhases(super.getFlowProcessor().getPostBuilds(), null));
+		if (!metaOnly) {
+			setInternals(inflatePhases(super.getFlowProcessor().getInternals(), null));
+			setPostBuilds(inflatePhases(super.getFlowProcessor().getPostBuilds(), null));
+		}
 	}
 
 	@Exported(inline = true)
