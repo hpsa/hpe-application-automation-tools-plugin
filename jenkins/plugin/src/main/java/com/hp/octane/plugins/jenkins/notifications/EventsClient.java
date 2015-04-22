@@ -83,16 +83,17 @@ public class EventsClient {
 									try {
 										Thread.sleep(DATA_SEND_INTERVAL);
 									} catch (InterruptedException ie) {
-										logger.severe("worker thread of events client was interrupted; the client shuts down");
+										logger.severe("EVENTS: worker thread of events client was interrupted; the client shuts down");
 										suspend();
 									}
 								}
 							}
+							logger.severe("EVENTS: worker thread of events client shuts down");
 						}
 					});
 					worker.setDaemon(true);
 					worker.start();
-					logger.info("new events client initialized for '" + this.url + "'");
+					logger.info("EVENTS: new events client initialized for '" + this.url + "'");
 				}
 			}
 		}
@@ -118,30 +119,30 @@ public class EventsClient {
 		try {
 			new ModelBuilder().get(EventsList.class).writeTo(snapshot, Flavor.JSON.createDataWriter(snapshot, w));
 			requestBody = w.toString();
-			logger.info("sending " + snapshot.getEvents().size() + " event/s to '" + url + "'...");
+			logger.info("EVENTS: sending " + snapshot.getEvents().size() + " event/s to '" + url + "'...");
 			while (failedRetries < MAX_SEND_RETRIES) {
 				if (restClient.putEvents(requestBody)) {
 					events.removeAll(snapshot.getEvents());
-					logger.info("... done, left to send " + events.size() + " events");
+					logger.info("EVENTS: ... done, left to send " + events.size() + " events");
 					resetCounters();
 					break;
 				} else {
-					lastErrorNote = "push to MQM server failed";
+					lastErrorNote = "EVENTS: push to MQM server failed";
 					lastErrorTime = new Date();
 					failedRetries++;
-					logger.severe("push to '" + url + "' failed; total fails: " + failedRetries);
+					logger.severe("EVENTS: push to '" + url + "' failed; total fails: " + failedRetries);
 					Thread.sleep(pauseInterval *= 2);
 				}
 			}
 			if (failedRetries == MAX_SEND_RETRIES) {
-				logger.severe("max number of retries reached");
+				logger.severe("EVENTS: max number of retries reached");
 				result = false;
 			}
 		} catch (IOException ioe) {
-			logger.severe("failed to serialize snapshot of " + snapshot.getEvents().size() + " events; dropping them all");
+			logger.severe("EVENTS: failed to serialize snapshot of " + snapshot.getEvents().size() + " events; dropping them all");
 			events.removeAll(snapshot.getEvents());
 		} catch (InterruptedException ie) {
-			logger.severe("failed to serialize snapshot of " + snapshot.getEvents().size() + " events; dropping them all");
+			logger.severe("EVENTS: failed to serialize snapshot of " + snapshot.getEvents().size() + " events; dropping them all");
 			result = false;
 		}
 		return result;
