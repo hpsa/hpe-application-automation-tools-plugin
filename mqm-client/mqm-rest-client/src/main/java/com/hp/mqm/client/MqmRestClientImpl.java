@@ -40,10 +40,11 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
     private static final String URI_PUSH_TEST_RESULT_PUSH = "test-results/v1";
     private static final String URI_SERVER_JOB_CONFIG = "cia/servers/{0}/jobconfig/{1}";
     private static final String URI_RELEASES = "releases-mqm" + PAGING_FRAGMENT;
-    private static final String URI_TAXONOMIES = "taxonomys" + PAGING_FRAGMENT; // TODO: janotav: typo on server should be fixed
+    private static final String URI_TAXONOMIES = "taxonomies" + PAGING_FRAGMENT;
     private static final String URI_TAXONOMY_TYPES = "taxonomy-types" + PAGING_FRAGMENT;
     private static final String URI_PIPELINES = "cia/pipelines?fetchStructure=false";
     private static final String URI_PIPELINES_METADATA = "cia/pipelines/{0}/metadata";
+    private static final String URI_PIPELINES_TAGS = "cia/pipelines/{0}/jobconfig/{1}";
 
     /**
      * Constructor for AbstractMqmRestClient.
@@ -82,10 +83,14 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
             for (JSONObject relatedPipeline: getJSONObjectCollection(jsonObject, "relatedPipelines")) {
                 pipelines.add(toPipeline(relatedPipeline));
             }
-            return new JobConfiguration(jsonObject.getInt("jobId"),
-                    jsonObject.getString("jobName"),
-                    jsonObject.getBoolean("isPipelineRoot"),
-                    pipelines);
+            if (jsonObject.containsKey("jobId")) {
+                return new JobConfiguration(jsonObject.getInt("jobId"),
+                        jsonObject.getString("jobName"),
+                        jsonObject.getBoolean("isPipelineRoot"),
+                        pipelines);
+            } else {
+                return new JobConfiguration(jsonObject.getBoolean("isPipelineRoot"), pipelines);
+            }
         } catch (IOException e) {
             throw new RequestErrorException("Cannot retrieve job configuration from MQM.", e);
         } finally {
@@ -130,7 +135,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
         try {
             response = execute(request);
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                throw new RequestException("Pipeline update failed with status code " + response.getStatusLine().getStatusCode() + " and reason " + response.getStatusLine().getReasonPhrase());
+                throw new RequestException("Pipeline metadata update failed with status code " + response.getStatusLine().getStatusCode() + " and reason " + response.getStatusLine().getReasonPhrase());
             }
         } catch (IOException e) {
             throw new RequestErrorException("Cannot update pipeline metadata.", e);
@@ -139,14 +144,52 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
         }
     }
 
+    @Override
+    public void updatePipelineTags(String serverIdentity, String jobName, int pipelineId, List<Taxonomy> taxonomies) {
+        HttpPost request = new HttpPost(createProjectApiUri(URI_PIPELINES_TAGS, serverIdentity, jobName));
+
+        JSONObject pipelineObject = new JSONObject();
+        pipelineObject.put("pipelineId", pipelineId);
+
+        JSONArray pipelines = new JSONArray();
+        pipelines.add(pipelineObject);
+
+        JSONArray taxonomiesArray = new JSONArray();
+        for (Taxonomy taxonomy: taxonomies) {
+            JSONObject taxonomyObject = new JSONObject();
+            taxonomyObject.put("id", taxonomy.getId());
+            taxonomiesArray.add(taxonomyObject);
+        }
+
+        JSONArray tagsArray = new JSONArray();
+        // TODO: janotav: not implemented
+
+        JSONObject pipelinesObject = pipelineObject;
+        pipelineObject.put("pipelines", pipelines);
+        pipelineObject.put("taxonomies", taxonomiesArray);
+        pipelineObject.put("tags", tagsArray);
+
+        request.setEntity(new StringEntity(pipelinesObject.toString(), ContentType.APPLICATION_JSON));
+        HttpResponse response = null;
+        try {
+            response = execute(request);
+            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_CREATED) {
+                throw new RequestException("Pipeline tags update failed with status code " + response.getStatusLine().getStatusCode() + " and reason " + response.getStatusLine().getReasonPhrase());
+            }
+        } catch (IOException e) {
+            throw new RequestErrorException("Cannot update pipeline tags.", e);
+        } finally {
+            HttpClientUtils.closeQuietly(response);
+        }
+    }
+
     private Pipeline toPipeline(JSONObject pipelineObject) {
         List<Taxonomy> taxonomies = new LinkedList<Taxonomy>();
         for (JSONObject taxonomy: getJSONObjectCollection(pipelineObject, "taxonomyTags")) {
-            // TODO: janotav: key names to be specified
-            taxonomies.add(new Taxonomy(taxonomy.getInt("id"),
-                    taxonomy.getInt("parentId"),
-                    taxonomy.getString("value"),
-                    taxonomy.getString("parentValue")));
+            taxonomies.add(new Taxonomy(taxonomy.getInt("taxonomyId"),
+                    taxonomy.getInt("taxonomyTypeId"),
+                    taxonomy.getString("taxonomyValue"),
+                    taxonomy.getString("taxonomyType"))); // TODO: janotav: naming not symmetric
         }
         return new Pipeline(pipelineObject.getInt("pipelineId"),
                 pipelineObject.getString("pipelineName"),

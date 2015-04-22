@@ -7,6 +7,7 @@ import com.hp.mqm.client.model.Taxonomy;
 import com.hp.mqm.client.model.TaxonomyType;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Client for connection to MQM public API. It wraps whole http communication with MQM server. Client handles login automatically.
@@ -58,4 +59,7 @@ public interface MqmRestClient extends BaseMqmRestClient {
     int createPipeline(String pipelineName, int releaseId, String structureJson, String serverJson);
 
     void updatePipelineMetadata(int pipelineId, String pipelineName, int releaseId);
+
+    void updatePipelineTags(String serverIdentity, String jobName, int pipelineId, List<Taxonomy> taxonomies);
+
 }

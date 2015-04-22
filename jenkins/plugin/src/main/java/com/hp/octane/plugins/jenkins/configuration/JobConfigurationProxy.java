@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -81,7 +82,20 @@ public class JobConfigurationProxy {
 
         try {
             MqmRestClient client = createClient();
-            client.updatePipelineMetadata(pipelineObject.getInt("id"), pipelineObject.getString("name"), pipelineObject.getInt("releaseId"));
+            int pipelineId = pipelineObject.getInt("id");
+            client.updatePipelineMetadata(pipelineId, pipelineObject.getString("name"), pipelineObject.getInt("releaseId"));
+
+            LinkedList<Taxonomy> taxonomies = new LinkedList<Taxonomy>();
+            JSONArray taxonomyTags = pipelineObject.getJSONArray("taxonomyTags");
+            for (JSONObject jsonObject: toCollection(taxonomyTags)) {
+                taxonomies.add(new Taxonomy(
+                        jsonObject.getInt("tagId"),
+                        jsonObject.getInt("tagTypeId"),
+                        jsonObject.getString("tagName"),
+                        jsonObject.getString("tagTypeName")));
+            }
+
+            client.updatePipelineTags(ServerIdentity.getIdentity(), project.getName(), pipelineId, taxonomies);
             client.release();
         } catch (RequestException e) {
             logger.log(Level.WARNING, "Failed to update pipeline", e);
@@ -111,28 +125,24 @@ public class JobConfigurationProxy {
         JSONArray pipelines = new JSONArray();
 
         try {
-            try {
-                JobConfiguration jobConfiguration = client.getJobConfiguration(ServerIdentity.getIdentity(), project.getName());
-                ret.put("jobId", jobConfiguration.getJobId());
-                String jobName = jobConfiguration.getJobName();
-                boolean isRoot = jobConfiguration.isPipelineRoot();
-                for(Pipeline relatedPipeline: jobConfiguration.getRelatedPipelines()) {
-                    JSONObject pipeline = new JSONObject();
-                    pipeline.put("id", relatedPipeline.getId());
-                    pipeline.put("name", relatedPipeline.getName());
-                    pipeline.put("releaseId", relatedPipeline.getReleaseId());
-                    pipeline.put("releaseName", relatedPipeline.getReleaseName());
-                    pipeline.put("isRoot", isRoot && relatedPipeline.getRootJobName().equals(jobName));
+            JobConfiguration jobConfiguration = client.getJobConfiguration(ServerIdentity.getIdentity(), project.getName());
+            ret.put("jobId", jobConfiguration.getJobId());
+            String jobName = jobConfiguration.getJobName();
+            boolean isRoot = jobConfiguration.isPipelineRoot();
+            for(Pipeline relatedPipeline: jobConfiguration.getRelatedPipelines()) {
+                JSONObject pipeline = new JSONObject();
+                pipeline.put("id", relatedPipeline.getId());
+                pipeline.put("name", relatedPipeline.getName());
+                pipeline.put("releaseId", relatedPipeline.getReleaseId());
+                pipeline.put("releaseName", relatedPipeline.getReleaseName());
+                pipeline.put("isRoot", isRoot && relatedPipeline.getRootJobName().equals(jobName));
 
-                    JSONArray taxonomyTags = new JSONArray();
-                    for(Taxonomy taxonomy: relatedPipeline.getTaxonomies()) {
-                        taxonomyTags.add(tag(taxonomy.getTaxonomyTypeId(), taxonomy.getTaxonomyTypeName(), taxonomy.getId(), taxonomy.getName()));
-                    }
-                    pipeline.put("taxonomyTags", taxonomyTags);
-                    pipelines.add(pipeline);
+                JSONArray taxonomyTags = new JSONArray();
+                for(Taxonomy taxonomy: relatedPipeline.getTaxonomies()) {
+                    taxonomyTags.add(tag(taxonomy.getTaxonomyTypeId(), taxonomy.getTaxonomyTypeName(), taxonomy.getId(), taxonomy.getName()));
                 }
-            } catch (RequestException e) {
-                // TODO: janotav: remove catch once server is fixed
+                pipeline.put("taxonomyTags", taxonomyTags);
+                pipelines.add(pipeline);
             }
 
             ret.put("pipelines", pipelines);
@@ -171,6 +181,10 @@ public class JobConfigurationProxy {
         }
 
         return ret;
+    }
+
+    private static Collection<JSONObject> toCollection(JSONArray array) {
+        return (Collection<JSONObject>)array.subList(0, array.size());
     }
 
     private JSONObject tag(int tagId, String value) {

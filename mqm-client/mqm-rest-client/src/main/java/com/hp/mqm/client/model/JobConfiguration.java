@@ -11,9 +11,16 @@ final public class JobConfiguration {
     final private boolean pipelineRoot;
     final private List<Pipeline> relatedPipelines;
 
-    public JobConfiguration(Integer jobId, String jobName, boolean pipelineRoot, List<Pipeline> relatedPipelines) {
+    public JobConfiguration(int jobId, String jobName, boolean pipelineRoot, List<Pipeline> relatedPipelines) {
         this.jobId = jobId;
         this.jobName = jobName;
+        this.pipelineRoot = pipelineRoot;
+        this.relatedPipelines = relatedPipelines;
+    }
+
+    public JobConfiguration(boolean pipelineRoot, List<Pipeline> relatedPipelines) {
+        this.jobId = null;
+        this.jobName = null;
         this.pipelineRoot = pipelineRoot;
         this.relatedPipelines = relatedPipelines;
     }
