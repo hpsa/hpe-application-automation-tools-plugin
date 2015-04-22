@@ -88,14 +88,21 @@ public class JobConfigurationProxy {
             LinkedList<Taxonomy> taxonomies = new LinkedList<Taxonomy>();
             JSONArray taxonomyTags = pipelineObject.getJSONArray("taxonomyTags");
             for (JSONObject jsonObject: toCollection(taxonomyTags)) {
+                Integer tagId = jsonObject.containsKey("tagId")? jsonObject.getInt("tagId"): null;
+                Integer tagTypeId = jsonObject.containsKey("tagTypeId")? jsonObject.getInt("tagTypeId"): null;
                 taxonomies.add(new Taxonomy(
-                        jsonObject.getInt("tagId"),
-                        jsonObject.getInt("tagTypeId"),
+                        tagId,
+                        tagTypeId,
                         jsonObject.getString("tagName"),
                         jsonObject.getString("tagTypeName")));
             }
 
-            client.updatePipelineTags(ServerIdentity.getIdentity(), project.getName(), pipelineId, taxonomies);
+            Pipeline pipeline = client.updatePipelineTags(ServerIdentity.getIdentity(), project.getName(), pipelineId, taxonomies);
+            JSONArray pipelineTaxonomies = new JSONArray();
+            for (Taxonomy taxonomy: pipeline.getTaxonomies()) {
+                pipelineTaxonomies.add(tag(taxonomy.getTaxonomyTypeId(), taxonomy.getTaxonomyTypeName(), taxonomy.getId(), taxonomy.getName()));
+            }
+            result.put("taxonomies", pipelineTaxonomies);
             client.release();
         } catch (RequestException e) {
             logger.log(Level.WARNING, "Failed to update pipeline", e);

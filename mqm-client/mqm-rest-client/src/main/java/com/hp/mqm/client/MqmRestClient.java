@@ -2,6 +2,7 @@ package com.hp.mqm.client;
 
 import com.hp.mqm.client.model.PagedList;
 import com.hp.mqm.client.model.JobConfiguration;
+import com.hp.mqm.client.model.Pipeline;
 import com.hp.mqm.client.model.Release;
 import com.hp.mqm.client.model.Taxonomy;
 import com.hp.mqm.client.model.TaxonomyType;
@@ -60,6 +61,6 @@ public interface MqmRestClient extends BaseMqmRestClient {
 
     void updatePipelineMetadata(int pipelineId, String pipelineName, int releaseId);
 
-    void updatePipelineTags(String serverIdentity, String jobName, int pipelineId, List<Taxonomy> taxonomies);
+    Pipeline updatePipelineTags(String serverIdentity, String jobName, int pipelineId, List<Taxonomy> taxonomies);
 
 }

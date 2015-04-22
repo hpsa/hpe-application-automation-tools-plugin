@@ -145,29 +145,46 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
     }
 
     @Override
-    public void updatePipelineTags(String serverIdentity, String jobName, int pipelineId, List<Taxonomy> taxonomies) {
+    public Pipeline updatePipelineTags(String serverIdentity, String jobName, int pipelineId, List<Taxonomy> taxonomies) {
         HttpPost request = new HttpPost(createProjectApiUri(URI_PIPELINES_TAGS, serverIdentity, jobName));
 
         JSONObject pipelineObject = new JSONObject();
         pipelineObject.put("pipelineId", pipelineId);
 
-        JSONArray pipelines = new JSONArray();
-        pipelines.add(pipelineObject);
-
         JSONArray taxonomiesArray = new JSONArray();
         for (Taxonomy taxonomy: taxonomies) {
             JSONObject taxonomyObject = new JSONObject();
-            taxonomyObject.put("id", taxonomy.getId());
+            if (taxonomy.getId() != null) {
+                taxonomyObject.put("id", taxonomy.getId());
+                taxonomiesArray.add(taxonomyObject);
+                continue;
+            }
+            if (StringUtils.isEmpty(taxonomy.getName())) {
+                throw new IllegalArgumentException("Either taxonomy id or name needs to be specified");
+            }
+            taxonomyObject.put("name", taxonomy.getName());
+            if (taxonomy.getTaxonomyTypeId() != null) {
+                taxonomyObject.put("typeId", taxonomy.getTaxonomyTypeId());
+                taxonomiesArray.add(taxonomyObject);
+                continue;
+            }
+            if (StringUtils.isEmpty(taxonomy.getTaxonomyTypeName())) {
+                throw new IllegalArgumentException("Either taxonomy typeId or typeName needs to be specified");
+            }
+            taxonomyObject.put("typeName", taxonomy.getTaxonomyTypeName());
             taxonomiesArray.add(taxonomyObject);
         }
+        pipelineObject.put("taxonomies", taxonomiesArray);
 
         JSONArray tagsArray = new JSONArray();
         // TODO: janotav: not implemented
-
-        JSONObject pipelinesObject = pipelineObject;
-        pipelineObject.put("pipelines", pipelines);
-        pipelineObject.put("taxonomies", taxonomiesArray);
         pipelineObject.put("tags", tagsArray);
+
+        JSONArray pipelines = new JSONArray();
+        pipelines.add(pipelineObject);
+
+        JSONObject pipelinesObject = new JSONObject();
+        pipelinesObject.put("pipelines", pipelines);
 
         request.setEntity(new StringEntity(pipelinesObject.toString(), ContentType.APPLICATION_JSON));
         HttpResponse response = null;
@@ -176,6 +193,17 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_CREATED) {
                 throw new RequestException("Pipeline tags update failed with status code " + response.getStatusLine().getStatusCode() + " and reason " + response.getStatusLine().getReasonPhrase());
             }
+            String json = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
+            JSONObject jsonObject = JSONObject.fromObject(json);
+
+            for (JSONObject relatedPipeline: getJSONObjectCollection(jsonObject, "relatedPipelines")) {
+                Pipeline pipeline = toPipeline(relatedPipeline);
+                if (pipeline.getId() == pipelineId) {
+                    return pipeline;
+                }
+            }
+
+            throw new RequestException("Updated pipeline not found in the response");
         } catch (IOException e) {
             throw new RequestErrorException("Cannot update pipeline tags.", e);
         } finally {

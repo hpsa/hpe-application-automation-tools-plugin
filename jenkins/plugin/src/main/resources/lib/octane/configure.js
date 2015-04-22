@@ -8,6 +8,8 @@ function octane_job_configuration(target, progress, proxy) {
         }
     }
 
+    var originalUnload = window.onbeforeunload;
+
     var $ = jQuery;
     function configure() {
         progressFunc("Retrieving configuration from server");
@@ -79,19 +81,70 @@ function octane_job_configuration(target, progress, proxy) {
                 return undefined;
             }
 
+            function firstTagType() {
+                if (jobConfiguration.taxonomies.length > 0) {
+                    var firstTagType = jobConfiguration.taxonomies[0];
+                    return {
+                        tagTypeId: firstTagType.tagTypeId,
+                        tagTypeName: firstTagType.tagTypeName
+                    };
+                }
+                return undefined;
+            }
+
+            var firstTagValue = firstTag();
+            var firstTagTypeValue = firstTagType();
+
             function addTag(tag) {
                 var tagTypeSelect, tagSelect;
+                var tagTypeEdit, tagEdit;
 
                 function loadTagValues() {
                     tagSelect.empty();
                     var tagTypeId = tagTypeSelect.val();
-                    tagTypes[tagTypeId].values.forEach(function (tag) {
-                        tagSelect.append(new Option(tag.tagName, tag.tagId));
-                    });
+                    if (tagTypeId) {
+                        tagTypes[tagTypeId].values.forEach(function (tag) {
+                            tagSelect.append(new Option(tag.tagName, tag.tagId));
+                        });
+                    }
                 }
 
                 var container = $("<div>");
                 tags.append(container);
+
+                var addKindSelect = $("<select>");
+                var kindSwitchFunc = [];
+
+                if (firstTagValue) {
+                    addKindSelect.append(new Option("Existing Tag", kindSwitchFunc.length));
+                    kindSwitchFunc.push(function () {
+                        tagTypeSelect.show();
+                        tagTypeEdit.hide();
+                        tagSelect.show();
+                        tagEdit.hide();
+                    });
+                }
+                if (firstTagTypeValue) {
+                    addKindSelect.append(new Option("New Tag", kindSwitchFunc.length));
+                    kindSwitchFunc.push(function () {
+                        tagTypeSelect.show();
+                        tagTypeEdit.hide();
+                        tagSelect.hide();
+                        tagEdit.show();
+                    });
+                }
+                addKindSelect.append(new Option("New Tag Type", kindSwitchFunc.length));
+                kindSwitchFunc.push(function () {
+                    tagTypeSelect.hide();
+                    tagTypeEdit.show();
+                    tagSelect.hide();
+                    tagEdit.show();
+                });
+
+                addKindSelect.change(function () {
+                    kindSwitchFunc[Number(addKindSelect.val())]();
+                });
+                container.append(addKindSelect).append($("<br>"));
 
                 tagTypeSelect = $("<select>");
                 jobConfiguration.taxonomies.forEach(function (tagType) {
@@ -101,16 +154,34 @@ function octane_job_configuration(target, progress, proxy) {
                 tagTypeSelect.change(loadTagValues);
                 container.append(tagTypeSelect);
 
+                tagTypeEdit = $("<input type='text' placeholder='Tag Type'>");
+                container.append(tagTypeEdit);
+
                 tagSelect = $("<select>");
                 loadTagValues();
                 tagSelect.val(tag.tagId);
                 container.append(tagSelect);
 
+                tagEdit = $("<input type='text' placeholder='Tag'>");
+                container.append(tagEdit);
+
+                kindSwitchFunc[0]();
+
                 apply.push(function () {
-                    tag.tagId = tagSelect.val();
-                    tag.tagName = $(tagSelect).find("option:selected").text();
-                    tag.tagTypeId = tagTypeSelect.val();
-                    tag.tagTypeName = $(tagTypeSelect).find("option:selected").text();
+                    if (tagSelect.is(':visible')) {
+                        tag.tagId = tagSelect.val();
+                        tag.tagName = tagSelect.find("option:selected").text();
+                    } else {
+                        tag.tagId = undefined;
+                        tag.tagName = tagEdit.val();
+                    }
+                    if (tagTypeSelect.is(':visible')) {
+                        tag.tagTypeId = tagTypeSelect.val();
+                        tag.tagTypeName = tagTypeSelect.find("option:selected").text();
+                    } else {
+                        tag.tagTypeId = undefined;
+                        tag.tagTypeName = tagTypeEdit.val();
+                    }
                 });
                 dirty.push(function () {
                     return tag.tagId !== tagSelect.val();
@@ -128,7 +199,7 @@ function octane_job_configuration(target, progress, proxy) {
                     container.remove();
                 });
                 container.append(remove);
-                container.append($("<br>"));
+                container.append($("<br>")).append($("<hr width='400' align='left'>"));
             }
 
             validators.length = 0;
@@ -185,16 +256,6 @@ function octane_job_configuration(target, progress, proxy) {
                 dirty.push(function () {
                     return pipeline.releaseId != select.val();
                 });
-                pipelineDiv.append(select).append($("<br>"));
-            } else {
-                var noPush = $("<input type='checkbox'>");
-                apply.push(function () {
-                    pipeline.noPush = noPush.prop('checked');
-                });
-                dirty.push(function () {
-                    return pipeline.noPush !== noPush.prop('checked');
-                });
-                pipelineDiv.append(noPush).append("Don't push test results").append($("<br>"));
             }
 
             pipelineDiv.append("Tags: ").append($("<br>"));
@@ -202,20 +263,24 @@ function octane_job_configuration(target, progress, proxy) {
             pipelineDiv.append(tags);
             pipeline.taxonomyTags.forEach(addTag);
 
-            if (firstTag()) {
-                var add = $("<input type='button' value='Add'>");
-                add.click(function () {
-                    var first = firstTag();
-                    addTag(first);
-                    apply.push(function () {
-                        pipeline.taxonomyTags.push(first);
-                    });
-                    dirty.push(function () {
-                        return true; // there is new tag
-                    });
+            var add = $("<input type='button' value='Add'>");
+            add.click(function () {
+                var first = firstTag();
+                if (!first) {
+                    first = firstTagType();
+                }
+                if (!first) {
+                    first = {};
+                }
+                addTag(first);
+                apply.push(function () {
+                    pipeline.taxonomyTags.push(first);
                 });
-                pipelineDiv.append(add);
-            }
+                dirty.push(function () {
+                    return true; // there is new tag
+                });
+            });
+            pipelineDiv.append(add);
         }
 
         var CONFIRMATION = "There are unsaved changes, if you continue they will be discarded. Continue?";
@@ -237,7 +302,6 @@ function octane_job_configuration(target, progress, proxy) {
                 var pipeline = {
                     id: null,
                     isRoot: true,
-                    noPush: false,
                     taxonomyTags: []
                 };
                 jobConfiguration.pipelines.push(pipeline);
@@ -251,6 +315,31 @@ function octane_job_configuration(target, progress, proxy) {
                 proxy.updatePipelineOnSever(pipeline, callback);
             };
             saveCallback = function (pipeline, response) {
+                pipeline.taxonomyTags = response.taxonomies;
+
+                // merge newly created taxonomies with the existing ones in order to appear in drop-downs
+                pipeline.taxonomyTags.forEach(function (taxonomy) {
+                    var type = tagTypes[taxonomy.tagTypeId];
+                    if (!type) {
+                        type = {
+                            tagTypeId: taxonomy.tagTypeId,
+                            tagTypeName: taxonomy.tagTypeName,
+                            values: []
+                        };
+                        jobConfiguration.taxonomies.push(type);
+                        tagTypes[type.tagTypeId] = type;
+                    }
+                    var matchTag = function (tag) {
+                        return tag.tagId == taxonomy.tagId;
+                    };
+                    if (!type.values.some(matchTag)) {
+                        type.values.push({
+                            tagId: taxonomy.tagId,
+                            tagName: taxonomy.tagName
+                        });
+                    }
+                });
+
                 renderConfiguration(jobConfiguration, pipeline.id);
             };
             var selectedIndex = 0;
@@ -277,13 +366,16 @@ function octane_job_configuration(target, progress, proxy) {
             buttons.append(applyButton);
         }
 
-        var originalUnload = window.onbeforeunload;
         window.onbeforeunload = function() {
             if (dirtyFields()) {
                 return CONFIRMATION;
             } else {
                 // keep original check just in case there is another dirty data (shouldn't be)
-                return originalUnload();
+                if (typeof originalUnload !== 'undefined') {
+                    return originalUnload();
+                } else {
+                    return undefined;
+                }
             }
         };
 
