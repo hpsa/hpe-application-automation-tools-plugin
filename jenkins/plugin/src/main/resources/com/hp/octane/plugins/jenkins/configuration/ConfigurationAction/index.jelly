@@ -4,9 +4,7 @@
     <l:main-panel>
       <st:bind var="proxy" value="${it.proxy}"/>
 
-      <!--<st:adjunct includes="lib.octane.configure"/>-->
-      <!--TODO: janotav: for development only -->
-      <script src="/jenkins/scripts/configure.js"/>
+      <st:adjunct includes="lib.octane.configure"/>
 
       <div id="mqm_configuration_progress" style="display: none">
         <h3/>
