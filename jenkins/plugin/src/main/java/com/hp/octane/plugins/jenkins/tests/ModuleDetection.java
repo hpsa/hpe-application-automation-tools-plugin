@@ -5,12 +5,13 @@ package com.hp.octane.plugins.jenkins.tests;
 import hudson.FilePath;
 
 import java.io.IOException;
+import java.io.Serializable;
 
-public interface ModuleDetection {
+public interface ModuleDetection extends Serializable {
 
     String getModule(FilePath resultFile) throws IOException, InterruptedException;
 
-    public class Default implements ModuleDetection {
+    class Default implements ModuleDetection {
 
         @Override
         public String getModule(FilePath resultFile) throws IOException, InterruptedException {
