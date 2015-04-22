@@ -7,7 +7,7 @@ import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationListener;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationService;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
-import com.hp.octane.plugins.jenkins.notifications.EventDispatcher;
+import com.hp.octane.plugins.jenkins.notifications.EventsDispatcher;
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.Plugin;
@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -61,7 +62,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 			save();
 		}
 
-		EventDispatcher.updateClient(getServerConfiguration());
+		EventsDispatcher.getExtensionInstance().updateClient(getServerConfiguration());
 	}
 
 	@Override

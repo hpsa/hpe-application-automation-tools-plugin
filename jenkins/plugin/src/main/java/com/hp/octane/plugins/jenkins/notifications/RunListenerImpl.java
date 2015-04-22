@@ -1,7 +1,6 @@
 package com.hp.octane.plugins.jenkins.notifications;
 
 import com.google.inject.Inject;
-import com.hp.octane.plugins.jenkins.model.processors.parameters.AbstractParametersProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessors;
 import com.hp.octane.plugins.jenkins.model.snapshots.SnapshotResult;
@@ -12,8 +11,11 @@ import com.hp.octane.plugins.jenkins.tests.TestListener;
 import hudson.Extension;
 import hudson.model.*;
 import hudson.model.listeners.RunListener;
+import jenkins.model.Jenkins;
 
 import javax.annotation.Nonnull;
+import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -25,6 +27,7 @@ import javax.annotation.Nonnull;
 
 @Extension
 public final class RunListenerImpl extends RunListener<Run> {
+	private static Logger logger = Logger.getLogger(RunListenerImpl.class.getName());
 
 	@Inject
 	private TestListener testListener;
@@ -42,7 +45,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 					CIEventCausesFactory.processCauses(build.getCauses()),
 					ParameterProcessors.getInstances(build)
 			);
-			EventDispatcher.dispatchEvent(event);
+			EventsDispatcher.getExtensionInstance().dispatchEvent(event);
 		}
 	}
 
@@ -76,7 +79,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 							.getAppropriate(build.getProject().getScm().getClass().getName())
 							.getSCMChanges(build)
 			);
-			EventDispatcher.dispatchEvent(event);
+			EventsDispatcher.getExtensionInstance().dispatchEvent(event);
 
 			testListener.processBuild(build);
 		}

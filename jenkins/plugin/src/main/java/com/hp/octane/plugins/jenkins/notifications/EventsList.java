@@ -6,36 +6,19 @@ import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
  * Created by gullery on 15/02/2015.
  */
+
 @ExportedBean
 public class EventsList {
-	private final List<CIEventBase> events = new ArrayList<CIEventBase>();
+	private List<CIEventBase> events;
 
-	public int add(CIEventBase event) {
-		synchronized (events) {
-			events.add(event);
-		}
-		return events.size();
-	}
-
-	public void clear() {
-		synchronized (events) {
-			events.clear();
-		}
-	}
-
-	public void clear(List<CIEventBase> sent) {
-		synchronized (events) {
-			events.removeAll(sent);
-		}
-	}
-
-	public int size() {
-		return events.size();
+	public EventsList(List<CIEventBase> events) {
+		this.events = Collections.unmodifiableList(new ArrayList<CIEventBase>(events));
 	}
 
 	@Exported(inline = true)
