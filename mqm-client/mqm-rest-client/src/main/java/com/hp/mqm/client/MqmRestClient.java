@@ -1,6 +1,13 @@
 package com.hp.mqm.client;
 
+import com.hp.mqm.client.model.PagedList;
+import com.hp.mqm.client.model.JobConfiguration;
+import com.hp.mqm.client.model.Release;
+import com.hp.mqm.client.model.Taxonomy;
+import com.hp.mqm.client.model.TaxonomyType;
+
 import java.io.File;
+import java.util.List;
 
 /**
  * Client for connection to MQM public API. It wraps whole http communication with MQM server. Client handles login automatically.
@@ -31,14 +38,29 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 */
 	void postTestResult(InputStreamSource inputStreamSource);
 
-	/**
-	 * Posts test results to MQM. Divide extra large test results into smaller files which will be posted individually
-	 * (multiple invocation of this method) to avoid HTTP request timeout.
-	 *
-	 * @param testResultReport XML file with test reports
-	 * @throws com.hp.mqm.client.exception.FileNotFoundException
-	 */
-	void postTestResult(File testResultReport);
+    /**
+     * Posts test results to MQM. Divide extra large test results into smaller files which will be posted individually
+     * (multiple invocation of this method) to avoid HTTP request timeout.
+     * @param  testResultReport XML file with test reports
+     * @throws com.hp.mqm.client.exception.FileNotFoundException
+     */
+    void postTestResult(File testResultReport);
+
+    // TODO: janotav: add javadoc
+
+    JobConfiguration getJobConfiguration(String serverIdentity, String jobName);
+
+    PagedList<Release> queryReleases(String name, int offset, int limit);
+
+    PagedList<Taxonomy> queryTaxonomies(Integer taxonomyTypeId, String name, int offset, int limit);
+
+    PagedList<TaxonomyType> queryTaxonomyTypes(String name, int offset, int limit);
+
+    int createPipeline(String pipelineName, int releaseId, String structureJson, String serverJson);
+
+    void updatePipelineMetadata(int pipelineId, String pipelineName, int releaseId);
+
+    void updatePipelineTags(String serverIdentity, String jobName, int pipelineId, List<Taxonomy> taxonomies);
 
 	/**
 	 * Posts events list to MQM.
