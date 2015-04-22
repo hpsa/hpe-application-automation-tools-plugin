@@ -14,6 +14,7 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpGet;
@@ -27,12 +28,14 @@ import org.apache.http.entity.StringEntity;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.Logger;
 import java.net.URI;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
 public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestClient {
+	private static final Logger logger = Logger.getLogger(MqmRestClientImpl.class.getName());
 
     private static final String PAGING_FRAGMENT = "?offset={0}&limit={1}";
     private static final String FILTERING_FRAGMENT = "&query={2}";
@@ -45,28 +48,30 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
     private static final String URI_PIPELINES = "cia/pipelines?fetchStructure=false";
     private static final String URI_PIPELINES_METADATA = "cia/pipelines/{0}/metadata";
     private static final String URI_PIPELINES_TAGS = "cia/pipelines/{0}/jobconfig/{1}";
+	private static final String URI_PUT_EVENTS = "cia/events";
 
-    /**
-     * Constructor for AbstractMqmRestClient.
-     * @param connectionConfig MQM connection configuration, Fields 'location', 'domain', 'project' and 'clientType' must not be null or empty.
-     */
-    MqmRestClientImpl(MqmConnectionConfig connectionConfig) {
-        super(connectionConfig);
-    }
+	/**
+	 * Constructor for AbstractMqmRestClient.
+	 *
+	 * @param connectionConfig MQM connection configuration, Fields 'location', 'domain', 'project' and 'clientType' must not be null or empty.
+	 */
+	MqmRestClientImpl(MqmConnectionConfig connectionConfig) {
+		super(connectionConfig);
+	}
 
-    @Override
-    public void postTestResult(InputStreamSource inputStreamSource) {
-        HttpPost request = new HttpPost(createProjectApiUri(URI_PUSH_TEST_RESULT_PUSH));
-        request.setEntity(new InputStreamSourceEntity(inputStreamSource, ContentType.APPLICATION_XML));
-        postTestResult(request);
-    }
+	@Override
+	public void postTestResult(InputStreamSource inputStreamSource) {
+		HttpPost request = new HttpPost(createProjectApiUri(URI_PUSH_TEST_RESULT_PUSH));
+		request.setEntity(new InputStreamSourceEntity(inputStreamSource, ContentType.APPLICATION_XML));
+		postTestResult(request);
+	}
 
-    @Override
-    public void postTestResult(File testResultReport) {
-        HttpPost request = new HttpPost(createProjectApiUri(URI_PUSH_TEST_RESULT_PUSH));
-        request.setEntity(new FileEntity(testResultReport, ContentType.APPLICATION_XML));
-        postTestResult(request);
-    }
+	@Override
+	public void postTestResult(File testResultReport) {
+		HttpPost request = new HttpPost(createProjectApiUri(URI_PUSH_TEST_RESULT_PUSH));
+		request.setEntity(new FileEntity(testResultReport, ContentType.APPLICATION_XML));
+		postTestResult(request);
+	}
 
     @Override
     public JobConfiguration getJobConfiguration(String serverIdentity, String jobName) {
@@ -323,6 +328,27 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
         } finally {
             HttpClientUtils.closeQuietly(response);
         }
+    }
+
+    @Override
+    public boolean putEvents(String eventsJSON) {
+        HttpPut request = new HttpPut(createProjectApiUri(URI_PUT_EVENTS));
+        request.setEntity(new StringEntity(eventsJSON, ContentType.APPLICATION_JSON));
+        HttpResponse response = null;
+        boolean result = true;
+        try {
+            response = execute(request);
+            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+                logger.severe("put request failed while sending events: " + response.getStatusLine().getStatusCode());
+                result = false;
+            }
+        } catch (Exception e) {
+            logger.severe("put request failed while sending events" + e.getClass().getName());
+            result = false;
+        } finally {
+            HttpClientUtils.closeQuietly(response);
+        }
+        return result;
     }
 
     private static class TaxonomyEntityFactory implements EntityFactory<Taxonomy> {

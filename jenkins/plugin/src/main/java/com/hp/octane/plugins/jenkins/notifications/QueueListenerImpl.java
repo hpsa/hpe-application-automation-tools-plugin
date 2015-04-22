@@ -6,6 +6,10 @@ import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.Queue;
 import hudson.model.queue.QueueListener;
+import jenkins.model.Jenkins;
+
+import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -17,6 +21,7 @@ import hudson.model.queue.QueueListener;
 
 @Extension
 public final class QueueListenerImpl extends QueueListener {
+	private static Logger logger = Logger.getLogger(QueueListenerImpl.class.getName());
 
 	@Override
 	public void onEnterWaiting(Queue.WaitingItem wi) {
@@ -28,7 +33,7 @@ public final class QueueListenerImpl extends QueueListener {
 					project.getName(),
 					CIEventCausesFactory.processCauses(wi.getCauses())
 			);
-			EventDispatcher.dispatchEvent(event);
+			EventsDispatcher.getExtensionInstance().dispatchEvent(event);
 		}
 	}
 

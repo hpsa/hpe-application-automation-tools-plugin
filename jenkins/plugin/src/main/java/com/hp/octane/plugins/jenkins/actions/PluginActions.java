@@ -3,12 +3,15 @@ package com.hp.octane.plugins.jenkins.actions;
 import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
-import com.hp.octane.plugins.jenkins.notifications.EventDispatcher;
+import com.hp.octane.plugins.jenkins.notifications.EventsClient;
+import com.hp.octane.plugins.jenkins.notifications.EventsDispatcher;
 import hudson.Extension;
+import hudson.ExtensionList;
 import hudson.model.AbstractProject;
 import hudson.model.RootAction;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
+import org.jenkins_ci.plugins.run_condition.BuildStepRunner;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.export.Exported;
@@ -92,8 +95,8 @@ public class PluginActions implements RootAction {
 		}
 
 		@Exported(inline = true)
-		public List<EventDispatcher.Client> getEventsClients() {
-			return EventDispatcher.getStatus();
+		public List<EventsClient> getEventsClients() {
+			return EventsDispatcher.getExtensionInstance().getStatus();
 		}
 	}
 
@@ -168,6 +171,7 @@ public class PluginActions implements RootAction {
 		res.serveExposedBean(req, new ProjectsList(areParametersNeeded), Flavor.JSON);
 	}
 
+	//  TODO: this method should be revised once config API is formalized
 	public void doConfig(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
 		String body = "";
 		JSONObject inputJSON;
@@ -189,9 +193,9 @@ public class PluginActions implements RootAction {
 				username = inputJSON.getString("username");
 				password = inputJSON.getString("password");
 				System.out.println("Accepted events-client config request for '" + url + "', '" + domain + "', '" + project + "'");
-				EventDispatcher.updateClient(url, domain, project, username, password);
+				EventsDispatcher.getExtensionInstance().updateClient(url, domain, project, username, password);
 			}
 		}
-		EventDispatcher.wakeUpClients();
+		EventsDispatcher.getExtensionInstance().wakeUpClients();
 	}
 }
