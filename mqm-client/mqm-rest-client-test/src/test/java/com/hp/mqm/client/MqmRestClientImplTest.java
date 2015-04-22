@@ -6,6 +6,11 @@ import com.hp.mqm.client.exception.FileNotFoundException;
 import com.hp.mqm.client.exception.LoginErrorException;
 import com.hp.mqm.client.exception.LoginException;
 import com.hp.mqm.client.exception.RequestException;
+import com.hp.mqm.client.model.JobConfiguration;
+import com.hp.mqm.client.model.PagedList;
+import com.hp.mqm.client.model.Release;
+import com.hp.mqm.client.model.Taxonomy;
+import com.hp.mqm.client.model.TaxonomyType;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
@@ -22,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
+import java.util.List;
 
 import static org.junit.Assert.fail;
 
@@ -44,7 +50,9 @@ public class MqmRestClientImplTest {
         connectionConfig = new MqmConnectionConfig(
                 LOCATION, DOMAIN, PROJECT, USERNAME, PASSWORD, CLIENT_TYPE, PROXY_HOST, PROXY_PORT
         );
-        connectionConfig.setProxyCredentials(new UsernamePasswordProxyCredentials(ConnectionProperties.getProxyUsername(), ConnectionProperties.getProxyPassword()));
+        if (ConnectionProperties.getProxyUsername() != null) {
+            connectionConfig.setProxyCredentials(new UsernamePasswordProxyCredentials(ConnectionProperties.getProxyUsername(), ConnectionProperties.getProxyPassword()));
+        }
     }
 
     @Test
@@ -81,6 +89,9 @@ public class MqmRestClientImplTest {
         try {
             client.login();
             fail("Login should failed because of bad credentials.");
+        } catch (LoginException e) {
+            // when proxied
+            Assert.assertNotNull(e);
         } catch (LoginErrorException e) {
             Assert.assertNotNull(e);
         }
@@ -115,6 +126,9 @@ public class MqmRestClientImplTest {
         try {
             client.tryToConnectProject();
             fail();
+        } catch (LoginException e) {
+            // when proxied
+            Assert.assertNotNull(e);
         } catch (LoginErrorException e) {
             Assert.assertNotNull(e);
         }
@@ -296,5 +310,50 @@ public class MqmRestClientImplTest {
         } finally {
             client.release();
         }
+    }
+
+    // TODO: janotav: write proper tests
+
+    @Test
+    public void testGetJobConfiguration() {
+        MqmRestClientImpl client = new MqmRestClientImpl(connectionConfig);
+        JobConfiguration jobConfiguration = client.getJobConfiguration("bf5dcb07-3d9c-4bf8-9521-fde3f73cda33", "foo");
+        System.out.println(jobConfiguration.getJobName());
+    }
+
+    @Test
+    public void testQueryReleases() {
+        MqmRestClientImpl client = new MqmRestClientImpl(connectionConfig);
+        PagedList<Release> releases = client.queryReleases(null, 0, 100);
+        System.out.println(releases);
+
+        releases = client.queryReleases("a", 0, 100);
+        System.out.println(releases);
+    }
+
+    @Test
+    public void testQueryTaxonomies() {
+        MqmRestClientImpl client = new MqmRestClientImpl(connectionConfig);
+        PagedList<Taxonomy> taxonomies = client.queryTaxonomies(null, null, 0, 100);
+        System.out.println(taxonomies);
+
+        taxonomies = client.queryTaxonomies(1001, null, 0, 100);
+        System.out.println(taxonomies.getItems());
+
+        taxonomies = client.queryTaxonomies(null, "r", 0, 100);
+        System.out.println(taxonomies.getItems());
+
+        taxonomies = client.queryTaxonomies(1001, "r", 0, 100);
+        System.out.println(taxonomies.getItems());
+    }
+
+    @Test
+    public void testQueryTaxonomyTypes() {
+        MqmRestClientImpl client = new MqmRestClientImpl(connectionConfig);
+        PagedList<TaxonomyType> taxonomyTypes = client.queryTaxonomyTypes(null, 0, 100);
+        System.out.println(taxonomyTypes.getItems());
+
+        taxonomyTypes = client.queryTaxonomyTypes("e", 0, 100);
+        System.out.println(taxonomyTypes.getItems());
     }
 }
