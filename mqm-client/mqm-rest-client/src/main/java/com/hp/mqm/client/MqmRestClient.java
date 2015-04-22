@@ -63,7 +63,7 @@ public interface MqmRestClient extends BaseMqmRestClient {
     void updatePipelineTags(String serverIdentity, String jobName, int pipelineId, List<Taxonomy> taxonomies);
 
 	/**
-	 * Posts events list to MQM.
+	 * Sends events list to MQM [PUT request].
 	 * Data expected to be serialized in JSON form by the consumer.
 	 * No exception is expected to be thrown.
 	 *

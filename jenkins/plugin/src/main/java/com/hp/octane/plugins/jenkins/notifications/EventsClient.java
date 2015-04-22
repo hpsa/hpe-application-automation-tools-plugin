@@ -30,8 +30,8 @@ public class EventsClient {
 	private Thread worker;
 	private MqmRestClient restClient;
 
-	private int MAX_SEND_RETRIES = 7;
-	private int INITIAL_RETRY_PAUSE = 2739;
+	private int MAX_SEND_RETRIES = 4;
+	private int INITIAL_RETRY_PAUSE = 1739;
 	private int DATA_SEND_INTERVAL = 1373;
 	private boolean shuttingDown;
 	private int failedRetries;
@@ -127,11 +127,11 @@ public class EventsClient {
 					resetCounters();
 					break;
 				} else {
-					lastErrorNote = "EVENTS: push to MQM server failed";
+					lastErrorNote = "EVENTS: send to MQM server failed";
 					lastErrorTime = new Date();
 					failedRetries++;
-					logger.severe("EVENTS: push to '" + url + "' failed; total fails: " + failedRetries);
-					Thread.sleep(pauseInterval *= 2);
+					logger.severe("EVENTS: send to '" + url + "' failed; total fails: " + failedRetries);
+					if (failedRetries < MAX_SEND_RETRIES) Thread.sleep(pauseInterval *= 2);
 				}
 			}
 			if (failedRetries == MAX_SEND_RETRIES) {

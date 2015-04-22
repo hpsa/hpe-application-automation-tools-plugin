@@ -306,10 +306,6 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
     public boolean putEvents(String eventsJSON) {
         HttpPut request = new HttpPut(createProjectApiUri(URI_PUT_EVENTS));
         request.setEntity(new StringEntity(eventsJSON, ContentType.APPLICATION_JSON));
-        return putEvents(request);
-    }
-
-    private boolean putEvents(HttpUriRequest request) {
         HttpResponse response = null;
         boolean result = true;
         try {
@@ -326,7 +322,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
         }
         return result;
     }
-    
+
     private static class TaxonomyEntityFactory implements EntityFactory<Taxonomy> {
 
         @Override
