@@ -118,107 +118,62 @@ function octane_job_configuration(target, progress, proxy) {
                 var container = $("<div>");
                 tags.append(container);
 
-                var addKindSelect = $("<select>");
-                var kindSwitchFunc = [];
-
-                function kindSwitch(showTagTypeSelect, showTagSelect) {
-                    if (showTagTypeSelect) {
-                        tagTypeSelect.show();
-                        tagTypeEdit.hide();
-                    } else {
-                        tagTypeSelect.hide();
-                        tagTypeEdit.show();
-                    }
-                    if (showTagSelect) {
-                        tagSelect.show();
-                        tagEdit.hide();
-                    } else {
-                        tagSelect.hide();
-                        tagEdit.show();
-                    }
-                    validationAreaTagType.hide();
-                    validationAreaTag.hide();
-                }
-
-                if (firstTagValue) {
-                    addKindSelect.append(new Option("Existing Tag", kindSwitchFunc.length));
-                    kindSwitchFunc.push(function () {
-                        kindSwitch(true, true);
+                if (tag.tagTypeId) {
+                    tagTypeSelect = $("<select>");
+                    jobConfiguration.taxonomies.forEach(function (tagType) {
+                        tagTypeSelect.append(new Option(tagType.tagTypeName, tagType.tagTypeId));
+                    });
+                    tagTypeSelect.val(tag.tagTypeId);
+                    tagTypeSelect.change(loadTagValues);
+                    container.append(tagTypeSelect);
+                    apply.push(function () {
+                        tag.tagTypeId = tagTypeSelect.val();
+                        tag.tagTypeName = tagTypeSelect.find("option:selected").text();
+                    });
+                } else {
+                    tagTypeEdit = $("<input type='text' placeholder='Tag Type'>");
+                    var validationAreaTagType = $("<div class='validation-error-area'>");
+                    addInputWithValidation(tagTypeEdit, container, "Tag Type name must be specified", {
+                        "area": validationAreaTagType,
+                        "validate": newTagTypeValidation(tagTypeEdit)
+                    });
+                    apply.push(function () {
+                        tag.tagTypeId = undefined;
+                        tag.tagTypeName = tagTypeEdit.val();
+                    });
+                    dirty.push(function () {
+                        return true;
                     });
                 }
-                if (firstTagTypeValue) {
-                    addKindSelect.append(new Option("New Tag", kindSwitchFunc.length));
-                    kindSwitchFunc.push(function () {
-                        kindSwitch(true, false);
+
+                if (tag.tagId) {
+                    tagSelect = $("<select>");
+                    loadTagValues();
+                    tagSelect.val(tag.tagId);
+                    container.append(tagSelect);
+                    apply.push(function () {
+                        tag.tagId = tagSelect.val();
+                        tag.tagName = tagSelect.find("option:selected").text();
+                    });
+                    dirty.push(function () {
+                        return tag.tagId !== tagSelect.val();
+                    });
+                } else {
+                    tagEdit = $("<input type='text' placeholder='Tag'>");
+                    var validationAreaTag = $("<div class='validation-error-area'>");
+                    addInputWithValidation(tagEdit, container, "Tag name must be specified", {
+                        "area": validationAreaTag,
+                        "validate": newTagValidation(tagTypeSelect, tagEdit)
+                    });
+                    apply.push(function () {
+                        tag.tagId = undefined;
+                        tag.tagName = tagEdit.val();
                     });
                 }
-                addKindSelect.append(new Option("New Tag Type", kindSwitchFunc.length));
-                kindSwitchFunc.push(function () {
-                    kindSwitch(false, false);
-                });
-
-                addKindSelect.change(function () {
-                    kindSwitchFunc[Number(addKindSelect.val())]();
-                });
-                container.append(addKindSelect).append($("<br>"));
-
-                tagTypeSelect = $("<select>");
-                jobConfiguration.taxonomies.forEach(function (tagType) {
-                    tagTypeSelect.append(new Option(tagType.tagTypeName, tagType.tagTypeId));
-                });
-                tagTypeSelect.val(tag.tagTypeId);
-                tagTypeSelect.change(loadTagValues);
-                container.append(tagTypeSelect);
-
-                tagTypeEdit = $("<input type='text' placeholder='Tag Type'>");
-                var validationAreaTagType = $("<div class='validation-error-area'>");
-                addInputWithValidation(tagTypeEdit, container, "Tag Type name must be specified", {
-                    "area": validationAreaTagType,
-                    "validate": newTagTypeValidation(tagTypeEdit)
-                });
-
-                dirty.push(function () {
-                    // must be new or editing existing (drop-downs are shown when configuration is loaded)
-                    return tagTypeEdit.is(':visible') || tagEdit.is(':visible');
-                });
-
-                tagSelect = $("<select>");
-                loadTagValues();
-                tagSelect.val(tag.tagId);
-                container.append(tagSelect);
-
-                tagEdit = $("<input type='text' placeholder='Tag'>");
-                var validationAreaTag = $("<div class='validation-error-area'>");
-                addInputWithValidation(tagEdit, container, "Tag name must be specified", {
-                    "area": validationAreaTag,
-                    "validate": newTagValidation(tagTypeSelect, tagEdit)
-                });
 
                 // put validation area bellow both input fields
                 container.append(validationAreaTagType);
                 container.append(validationAreaTag);
-
-                kindSwitchFunc[0]();
-
-                apply.push(function () {
-                    if (tagSelect.is(':visible')) {
-                        tag.tagId = tagSelect.val();
-                        tag.tagName = tagSelect.find("option:selected").text();
-                    } else {
-                        tag.tagId = undefined;
-                        tag.tagName = tagEdit.val();
-                    }
-                    if (tagTypeSelect.is(':visible')) {
-                        tag.tagTypeId = tagTypeSelect.val();
-                        tag.tagTypeName = tagTypeSelect.find("option:selected").text();
-                    } else {
-                        tag.tagTypeId = undefined;
-                        tag.tagTypeName = tagTypeEdit.val();
-                    }
-                });
-                dirty.push(function () {
-                    return tag.tagId !== tagSelect.val();
-                });
 
                 var remove = $("<input type='button' value='Remove'>");
                 remove.click(function () {
@@ -279,14 +234,29 @@ function octane_job_configuration(target, progress, proxy) {
             pipelineDiv.append(tags);
             pipeline.taxonomyTags.forEach(addTag);
 
+            var addKindSelect = $("<select>");
+            if (firstTagValue) {
+                addKindSelect.append(new Option("Existing Tag", 0));
+            }
+            if (firstTagTypeValue) {
+                addKindSelect.append(new Option("New Tag", 1));
+            }
+            addKindSelect.append(new Option("New Tag Type", 2));
+            pipelineDiv.append(addKindSelect);
+
             var add = $("<input type='button' value='Add'>");
             add.click(function () {
-                var first = firstTag();
-                if (!first) {
-                    first = firstTagType();
-                }
-                if (!first) {
-                    first = {};
+                var first;
+                switch (addKindSelect.val()) {
+                    case '0':
+                        first = firstTag();
+                        break;
+                    case '1':
+                        first = firstTagType();
+                        break;
+                    case '2':
+                        first = {};
+
                 }
                 pipeline.taxonomyTags.push(first);
                 addTag(first);
@@ -428,7 +398,7 @@ function octane_job_configuration(target, progress, proxy) {
                     }
                 }
 
-                if (tagTypeSelect.is(':visible')) {
+                if (tagTypeSelect) {
                     var tagType = tagTypes[tagTypeSelect.val()];
                     tagType.values.some(matchTag);
                 }
@@ -480,7 +450,7 @@ function octane_job_configuration(target, progress, proxy) {
 
             return function() {
                 target.empty();
-                if (input.is(':visible')) {
+                if (input) {
                     if (!input.val()) {
                         showError(message);
                         return false;
