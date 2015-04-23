@@ -14,7 +14,6 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpGet;
@@ -49,6 +48,8 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
     private static final String URI_PIPELINES_METADATA = "cia/pipelines/{0}/metadata";
     private static final String URI_PIPELINES_TAGS = "cia/pipelines/{0}/jobconfig/{1}";
 	private static final String URI_PUT_EVENTS = "cia/events";
+
+    private static final String HEADER_ACCEPT = "Accept";
 
 	/**
 	 * Constructor for AbstractMqmRestClient.
@@ -136,6 +137,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
         pipelineObject.put("name", pipelineName);
         pipelineObject.put("releaseId", releaseId);
         request.setEntity(new StringEntity(pipelineObject.toString(), ContentType.APPLICATION_JSON));
+        request.setHeader(HEADER_ACCEPT, ContentType.APPLICATION_JSON.getMimeType());
         HttpResponse response = null;
         try {
             response = execute(request);
@@ -192,6 +194,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
         pipelinesObject.put("pipelines", pipelines);
 
         request.setEntity(new StringEntity(pipelinesObject.toString(), ContentType.APPLICATION_JSON));
+        request.setHeader(HEADER_ACCEPT, ContentType.APPLICATION_JSON.getMimeType());
         HttpResponse response = null;
         try {
             response = execute(request);

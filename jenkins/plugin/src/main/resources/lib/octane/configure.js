@@ -271,6 +271,7 @@ function octane_job_configuration(target, progress, proxy) {
                 dirty.push(function () {
                     return pipeline.releaseId != select.val();
                 });
+                pipelineDiv.append(select).append($("<br>"));
             }
 
             pipelineDiv.append("Tags: ").append($("<br>"));
@@ -384,7 +385,7 @@ function octane_job_configuration(target, progress, proxy) {
                 return CONFIRMATION;
             } else {
                 // keep original check just in case there is another dirty data (shouldn't be)
-                if (typeof originalUnload !== 'undefined') {
+                if (typeof originalUnload === 'function') {
                     return originalUnload();
                 } else {
                     return undefined;
