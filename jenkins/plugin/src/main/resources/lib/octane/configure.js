@@ -87,16 +87,21 @@ function octane_job_configuration(target, progress, proxy) {
             function addTag(tag) {
 
                 var container;
-
-                container = groupBy[tag.tagTypeName];
-                if (typeof container !== 'object') {
+                var group = groupBy[tag.tagTypeName];
+                if (typeof group !== 'object') {
                     container = $("<div>");
                     var groupSpan = $("<span>");
                     groupSpan.text(tag.tagTypeName + ": ");
                     container.append(groupSpan);
-                    groupBy[tag.tagTypeName] = container;
+                    group = {
+                        target: container,
+                        count: 0
+                    };
+                    groupBy[tag.tagTypeName] = group;
                     tags.append(container);
                 }
+                container = group.target;
+                group.count++;
 
                 var tagSpan = $("<span>");
                 tagSpan.text(tag.tagName);
@@ -111,6 +116,13 @@ function octane_job_configuration(target, progress, proxy) {
                     });
                     tagSpan.remove();
                     remove.remove();
+                    if (--group.count == 0) {
+                        container.remove();
+                        delete groupBy[tag.tagTypeName];
+                    }
+                    if (tag.tagId) {
+                        addSelect.find("option[value='" + tag.tagId + "']").prop('disabled', false);
+                    }
                 });
                 container.append(remove);
             }
