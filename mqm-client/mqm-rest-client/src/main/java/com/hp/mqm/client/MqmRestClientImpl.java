@@ -346,7 +346,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
                 result = false;
             }
         } catch (Exception e) {
-            logger.severe("put request failed while sending events" + e.getClass().getName());
+            logger.severe("put request failed while sending events: " + e.getClass().getName());
             result = false;
         } finally {
             HttpClientUtils.closeQuietly(response);

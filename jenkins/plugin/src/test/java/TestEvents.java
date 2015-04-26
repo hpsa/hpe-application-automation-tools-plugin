@@ -2,7 +2,6 @@ import com.gargoylesoftware.htmlunit.HttpMethod;
 import com.gargoylesoftware.htmlunit.WebRequestSettings;
 import com.gargoylesoftware.htmlunit.WebResponse;
 import com.hp.octane.plugins.jenkins.actions.PluginActions;
-import com.hp.octane.plugins.jenkins.model.events.CIEventBase;
 import com.hp.octane.plugins.jenkins.model.events.CIEventType;
 import hudson.model.FreeStyleProject;
 import org.eclipse.jetty.server.Request;
@@ -13,16 +12,13 @@ import org.json.JSONObject;
 import org.junit.*;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.recipes.WithTimeout;
-import org.kohsuke.stapler.export.Exported;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.logging.Logger;
 
 import static org.junit.Assert.*;
@@ -56,14 +52,18 @@ public class TestEvents {
 			String body = "";
 			byte[] buffer;
 			int len;
-			if (request.getPathInfo().equals("/qcbin/api/domains/DOMAIN/projects/PROJECT/cia/events")) {
+			if (request.getPathInfo().equals("/qcbin/authentication-point/alm-authenticate")) {
+				response.setStatus(HttpServletResponse.SC_OK);
+			} else if (request.getPathInfo().equals("/qcbin/rest/site-session")) {
+				response.setStatus(HttpServletResponse.SC_CREATED);
+			} else if (request.getPathInfo().equals("/qcbin/api/domains/DOMAIN/projects/PROJECT/cia/events")) {
 				buffer = new byte[1024];
 				while ((len = request.getInputStream().read(buffer, 0, 1024)) > 0) {
 					body += new String(buffer, 0, len);
 				}
 				eventLists.add(new JSONObject(body));
+				response.setStatus(HttpServletResponse.SC_OK);
 			}
-			response.setStatus(HttpServletResponse.SC_OK);
 			baseRequest.setHandled(true);
 		}
 
@@ -159,6 +159,6 @@ public class TestEvents {
 				}
 			}
 		}
-		//assertEquals(0, eventsOrder.size());
+		assertEquals(0, eventsOrder.size());
 	}
 }

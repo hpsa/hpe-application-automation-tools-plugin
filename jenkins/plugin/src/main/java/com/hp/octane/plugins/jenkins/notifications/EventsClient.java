@@ -139,10 +139,10 @@ public class EventsClient {
 				result = false;
 			}
 		} catch (IOException ioe) {
-			logger.severe("EVENTS: failed to serialize snapshot of " + snapshot.getEvents().size() + " events; dropping them all");
+			logger.severe("EVENTS: failed to send snapshot of " + snapshot.getEvents().size() + " events: " + ioe.getMessage() + "; dropping them all");
 			events.removeAll(snapshot.getEvents());
 		} catch (InterruptedException ie) {
-			logger.severe("EVENTS: failed to serialize snapshot of " + snapshot.getEvents().size() + " events; dropping them all");
+			logger.severe("EVENTS: failed to send snapshot of " + snapshot.getEvents().size() + " events: " + ie.getMessage() + "; dropping them all");
 			result = false;
 		}
 		return result;
