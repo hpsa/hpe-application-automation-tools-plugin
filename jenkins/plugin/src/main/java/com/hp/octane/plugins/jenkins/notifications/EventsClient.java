@@ -30,7 +30,7 @@ public class EventsClient {
 	private Thread worker;
 	private MqmRestClient restClient;
 
-	private int MAX_SEND_RETRIES = 4;
+	private int MAX_SEND_RETRIES = 7;
 	private int INITIAL_RETRY_PAUSE = 1739;
 	private int DATA_SEND_INTERVAL = 1373;
 	private boolean shuttingDown;
