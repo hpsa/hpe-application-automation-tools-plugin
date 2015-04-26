@@ -11,6 +11,7 @@ import hudson.tasks.Publisher;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -21,6 +22,8 @@ import java.util.List;
  */
 
 public abstract class AbstractProjectProcessor {
+	private static final Logger logger = Logger.getLogger(AbstractProjectProcessor.class.getName());
+
 	private ArrayList<StructurePhase> internals = new ArrayList<StructurePhase>();
 	private ArrayList<StructurePhase> postBuilds = new ArrayList<StructurePhase>();
 
@@ -40,7 +43,7 @@ public abstract class AbstractProjectProcessor {
 			if (builderProcessor != null) {
 				internals.addAll(builderProcessor.getPhases());
 			} else {
-				System.out.println("not yet supported build (internal) action: " + builder.getClass().getName());
+				logger.info("not yet supported build (internal) action: " + builder.getClass().getName());
 				//  TODO: probably we need to add the support for more stuff like:
 				//      org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder
 				//      org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder
@@ -62,7 +65,7 @@ public abstract class AbstractProjectProcessor {
 			if (builderProcessor != null) {
 				postBuilds.addAll(builderProcessor.getPhases());
 			} else {
-				System.out.println("not yet supported publisher (post build) action: " + publisher.getClass().getName());
+				logger.info("not yet supported publisher (post build) action: " + publisher.getClass().getName());
 			}
 		}
 	}

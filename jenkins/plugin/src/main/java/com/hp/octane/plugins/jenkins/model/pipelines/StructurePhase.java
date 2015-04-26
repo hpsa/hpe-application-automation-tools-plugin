@@ -6,6 +6,7 @@ import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -17,6 +18,8 @@ import java.util.List;
 
 @ExportedBean
 public final class StructurePhase extends AbstractPhase<StructureItem> {
+	private static final Logger logger = Logger.getLogger(StructurePhase.class.getName());
+
 	public StructurePhase(String name, boolean blocking, List<AbstractProject> items) {
 		super(name, blocking);
 		StructureItem[] tmp = new StructureItem[items.size()];
@@ -24,7 +27,7 @@ public final class StructurePhase extends AbstractPhase<StructureItem> {
 			if (items.get(i) != null) {
 				tmp[i] = new StructureItem(items.get(i));
 			} else {
-				System.out.println("One of referenced jobs is null, your Jenkins config probably broken, skipping this job...");
+				logger.warning("One of referenced jobs is null, your Jenkins config probably broken, skipping this job...");
 			}
 		}
 		super.setItems(tmp);

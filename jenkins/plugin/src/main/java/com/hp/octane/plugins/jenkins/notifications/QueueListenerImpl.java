@@ -6,7 +6,6 @@ import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.Queue;
 import hudson.model.queue.QueueListener;
-import jenkins.model.Jenkins;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -56,7 +55,7 @@ public final class QueueListenerImpl extends QueueListener {
 		AbstractProject project;
 		if (li.task instanceof AbstractProject) {
 			project = (AbstractProject) li.task;
-			System.out.println(project.getName() + " left queue");
+			logger.info(project.getName() + " left queue");
 		}
 	}
 }

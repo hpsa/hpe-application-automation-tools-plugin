@@ -23,6 +23,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.logging.Logger;
 
 import static org.junit.Assert.*;
 
@@ -35,6 +36,8 @@ import static org.junit.Assert.*;
  */
 
 public class TestEvents {
+	private static final Logger logger = Logger.getLogger(TestEvents.class.getName());
+
 	final private String projectName = "root-job";
 	final private int DEFAULT_TESTING_SERVER_PORT = 9999;
 
@@ -78,7 +81,7 @@ public class TestEvents {
 		try {
 			if (p != null) testingServerPort = Integer.parseInt(p);
 		} catch (NumberFormatException nfe) {
-			System.out.println("Bad port number format, default port will be used: " + testingServerPort);
+			logger.info("Bad port number format, default port will be used: " + testingServerPort);
 		}
 	}
 
@@ -101,7 +104,7 @@ public class TestEvents {
 		json.put("password", "");
 		req.setRequestBody(json.toString());
 		WebResponse res = client.loadWebResponse(req);
-		System.out.println("Configuration submitted with result: " + res.getStatusMessage() + "; testing server will run on port " + testingServerPort);
+		logger.info("Configuration submitted with result: " + res.getStatusMessage() + "; testing server will run on port " + testingServerPort);
 	}
 
 	private void killServer() throws Exception {

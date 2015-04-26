@@ -11,6 +11,7 @@ import org.kohsuke.stapler.export.ExportedBean;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -22,6 +23,8 @@ import java.util.HashMap;
 
 @ExportedBean
 public final class SnapshotPhase extends AbstractPhase<SnapshotItem> {
+	private static final Logger logger = Logger.getLogger(SnapshotPhase.class.getName());
+
 	public SnapshotPhase(StructurePhase structurePhase, HashMap<String, ArrayList<AbstractBuild>> invokedBuilds) {
 		super(structurePhase.getName(), structurePhase.getBlocking());
 		ArrayList<AbstractBuild> tmpBuilds;
@@ -37,7 +40,7 @@ public final class SnapshotPhase extends AbstractPhase<SnapshotItem> {
 					tmpBuilds.remove(0);
 				}
 			} else {
-				System.out.println("One of referenced jobs is null, your Jenkins config probably broken, skipping the build info for this job...");
+				logger.warning("One of referenced jobs is null, your Jenkins config probably broken, skipping the build info for this job...");
 			}
 		}
 		super.setItems(tmp);

@@ -22,6 +22,7 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -33,6 +34,7 @@ import java.util.List;
 
 @Extension
 public class PluginActions implements RootAction {
+	private static final Logger logger = Logger.getLogger(PluginActions.class.getName());
 
 	@ExportedBean
 	public static final class ServerInfo {
@@ -192,7 +194,7 @@ public class PluginActions implements RootAction {
 				project = inputJSON.getString("project");
 				username = inputJSON.getString("username");
 				password = inputJSON.getString("password");
-				System.out.println("Accepted events-client config request for '" + url + "', '" + domain + "', '" + project + "'");
+				logger.info("Accepted events-client config request for '" + url + "', '" + domain + "', '" + project + "'");
 				EventsDispatcher.getExtensionInstance().updateClient(url, domain, project, username, password);
 			}
 		}
