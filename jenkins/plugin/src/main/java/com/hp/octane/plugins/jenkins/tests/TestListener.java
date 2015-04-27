@@ -26,11 +26,13 @@ public class TestListener {
         FilePath resultPath = new FilePath(new FilePath(build.getRootDir()), TEST_RESULT_FILE);
         TestResultXmlWriter resultWriter = new TestResultXmlWriter(resultPath, build);
         boolean success = false;
+        boolean hasTests = false;
         try {
             for (MqmTestsExtension ext: MqmTestsExtension.all()) {
                 try {
                     if (ext.supports(build)) {
                         resultWriter.add(ext.getTestResults(build));
+                        hasTests = true;
                     }
                 } catch (InterruptedException e) {
                     logger.log(Level.SEVERE, "Interrupted processing test results in " + ext.getClass().getName(), e);
@@ -46,7 +48,7 @@ public class TestListener {
         } finally {
             try {
                 resultWriter.close();
-                if (success) {
+                if (success && hasTests) {
                     queue.add(build.getProject().getName(), build.getNumber());
                 }
             } catch (XMLStreamException e) {
