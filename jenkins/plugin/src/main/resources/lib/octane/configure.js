@@ -286,8 +286,9 @@ function octane_job_configuration(target, progress, proxy) {
                             tagTypeName: tagType.tagTypeName
                         };
                         tagTypeInput.val(tagType.tagTypeName);
-                        tagTypeInput.prop('disabled', 'disabled');
-                        tagTypeInput.css('display', 'inline');
+                        tagTypeInput.hide();
+                        tagTypeSpan.text(tagType.tagTypeName + ": ");
+                        tagTypeSpan.css('display', 'inline');
                         tagInput.val("");
                         tagInput.attr('placeholder', 'Tag');
                         tagInput.css('display', 'inline');
@@ -295,14 +296,15 @@ function octane_job_configuration(target, progress, proxy) {
                         addedTag = {};
                         tagTypeInput.val("");
                         tagTypeInput.attr('placeholder', 'Tag Type');
-                        tagTypeInput.prop('disabled', false);
                         tagTypeInput.css('display', 'inline');
+                        tagTypeSpan.hide();
                         tagInput.val("");
                         tagInput.attr('placeholder', 'Tag');
                         tagInput.css('display', 'inline');
                     } else {
                         addedTag = allTags[val];
                         tagTypeInput.hide();
+                        tagTypeSpan.hide();
                         tagInput.hide();
                     }
                     validationAreaTagType.empty();
@@ -322,6 +324,9 @@ function octane_job_configuration(target, progress, proxy) {
                 tagTypeInput.hide();
                 tagTypeInput.blur(validateInput(validationAreaTagType, newTagTypeValidation(tagTypeInput)));
                 selectDiv.append(tagTypeInput);
+                var tagTypeSpan = $("<span>");
+                tagTypeSpan.hide();
+                selectDiv.append(tagTypeSpan);
                 var tagInput = $("<input type='text'>");
                 tagInput.hide();
                 tagInput.blur(validateInput(validationAreaTag, newTagValidation(tagTypeInput, tagInput, pipeline.taxonomyTags)));
@@ -357,6 +362,7 @@ function octane_job_configuration(target, progress, proxy) {
                     });
                     $(defaultOption).prop('selected', 'selected');
                     tagTypeInput.hide();
+                    tagTypeSpan.hide();
                     tagInput.hide();
                 });
                 selectDiv.append(add);
