@@ -109,11 +109,8 @@ public class JobConfigurationProxy {
             }
 
             Pipeline pipeline = client.updatePipelineTags(ServerIdentity.getIdentity(), project.getName(), pipelineId, taxonomies);
-            JSONArray pipelineTaxonomies = new JSONArray();
-            for (Taxonomy taxonomy: pipeline.getTaxonomies()) {
-                pipelineTaxonomies.add(tag(taxonomy));
-            }
-            result.put("taxonomies", pipelineTaxonomies);
+            addTags(result, pipeline);
+
             client.release();
         } catch (RequestException e) {
             logger.log(Level.WARNING, "Failed to update pipeline", e);
@@ -155,11 +152,7 @@ public class JobConfigurationProxy {
                 pipeline.put("releaseName", relatedPipeline.getReleaseName());
                 pipeline.put("isRoot", isRoot && relatedPipeline.getRootJobName().equals(jobName));
 
-                JSONArray taxonomyTags = new JSONArray();
-                for (Taxonomy taxonomy: relatedPipeline.getTaxonomies()) {
-                    taxonomyTags.add(tag(taxonomy));
-                }
-                pipeline.put("taxonomyTags", taxonomyTags);
+                addTags(pipeline, relatedPipeline);
 
                 Map<String, List<FieldValue>> valuesByField = new HashMap<String, List<FieldValue>>();
                 for (Field field: fields) {
@@ -240,6 +233,39 @@ public class JobConfigurationProxy {
         }
 
         return ret;
+    }
+
+    private void addTags(JSONObject result, Pipeline pipeline) {
+        JSONArray pipelineTaxonomies = new JSONArray();
+        for (Taxonomy taxonomy: pipeline.getTaxonomies()) {
+            pipelineTaxonomies.add(tag(taxonomy));
+        }
+        result.put("taxonomyTags", pipelineTaxonomies);
+
+        Map<String, List<FieldValue>> valuesByField = new HashMap<String, List<FieldValue>>();
+        for (Field field: fields) {
+            valuesByField.put(field.getLogicalListName(), new LinkedList<FieldValue>());
+        }
+        for (Field field: pipeline.getFields()) {
+            valuesByField.get(field.getLogicalListName()).add(new FieldValue(field.getId(), field.getValue()));
+        }
+        JSONArray fieldTags = new JSONArray();
+        for (Field field: fields) {
+            List<FieldValue> values = valuesByField.get(field.getLogicalListName());
+            JSONArray valuesArray = new JSONArray();
+            for (FieldValue value: values) {
+                valuesArray.add(fieldValue(value.getId(), value.getName()));
+            }
+            JSONObject fieldObject = new JSONObject();
+            fieldObject.put("logicalListName", field.getLogicalListName());
+            fieldObject.put("listId", field.getListId());
+            fieldObject.put("listName", field.getListName());
+            fieldObject.put("values", valuesArray);
+            fieldObject.put("extensible", field.isExtensible());
+            fieldObject.put("multiValue", field.isMultiValue());
+            fieldTags.add(fieldObject);
+        }
+        result.put("fieldTags", fieldTags);
     }
 
     private JSONObject fieldValue(int id, String name) {

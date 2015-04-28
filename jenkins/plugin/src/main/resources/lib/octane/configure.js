@@ -91,9 +91,10 @@ function octane_job_configuration(target, progress, proxy) {
 
             function addField(field) {
                 var fieldSpan = $("<span>");
-                fieldSpan.text(field.listName);
+                fieldSpan.text(field.listName + ": ");
                 fields.append(fieldSpan);
                 var fieldValueSelect = $("<select>");
+                var currentValue = [];
                 if (field.multiValue) {
                     fieldValueSelect.attr('multiple', 'multiple');
                 } else {
@@ -103,13 +104,48 @@ function octane_job_configuration(target, progress, proxy) {
                     var selected = field.values.some(function (value) {
                         return value.id === fieldValue.id;
                     });
+                    if (selected) {
+                        currentValue.push(fieldValue.id);
+                    }
                     fieldValueSelect.append(new Option(fieldValue.name, fieldValue.id, selected));
                 });
                 fields.append(fieldValueSelect);
+                dirty.push(function () {
+                    var options = fieldValueSelect.find("option:selected");
+                    if (options.length != currentValue.length) {
+                        return true;
+                    }
+                    var selectedValue = {};
+                    options.each(function (index, option) {
+                        selectedValue[option.value] = true;
+                    });
+                    return currentValue.some(function (item) {
+                        return !selectedValue[item];
+                    });
+                });
+                apply.push(function () {
+                    field.values = [];
+                    fieldValueSelect.find("option:selected").each(function (index, option) {
+                        if (option.value < 0) {
+                            // not specified
+                        } else if (option.value == 0) {
+                            // new value
+                            field.values.push({
+                                name: newValueInput.val()
+                            });
+                        } else {
+                            field.values.push({
+                                id: option.value,
+                                name: option.text
+                            });
+                        }
+                    });
+                });
+                var newValueInput;
                 if (field.extensible) {
                     var newValueOption = $(new Option("(New Value...)", 0));
                     fieldValueSelect.append(newValueOption);
-                    var newValueInput = $("<input>");
+                    newValueInput = $("<input>");
                     var validationArea = $("<div class='validation-error-area'>");
                     newValueInput.blur(validateInput(validationArea, newFieldValueValidation(newValueInput, fieldValueSelect)));
                     newValueInput.hide();
@@ -226,11 +262,9 @@ function octane_job_configuration(target, progress, proxy) {
             pipelineDiv.append(tags);
             pipeline.taxonomyTags.forEach(addTag);
 
-            pipelineDiv.append(buttons);
-
             var selectDiv = $("<div>");
             var addSelect = $("<select>");
-            var defaultOption = new Option("Choose...", "default", true);
+            var defaultOption = new Option("Add Tag...", "default", true);
             $(defaultOption).prop('disabled', 'disabled');
             addSelect.append(defaultOption);
             jobConfiguration.taxonomies.forEach(function (tagType) {
@@ -335,6 +369,8 @@ function octane_job_configuration(target, progress, proxy) {
             // put validation area bellow both input fields
             selectDiv.append(validationAreaTagType);
             selectDiv.append(validationAreaTag);
+
+            pipelineDiv.append(buttons);
         }
 
         var CONFIRMATION = "There are unsaved changes, if you continue they will be discarded. Continue?";
@@ -368,7 +404,8 @@ function octane_job_configuration(target, progress, proxy) {
                 proxy.updatePipelineOnSever(pipeline, callback);
             };
             saveCallback = function (pipeline, response) {
-                pipeline.taxonomyTags = response.taxonomies;
+                pipeline.taxonomyTags = response.taxonomyTags;
+                pipeline.fieldTags = response.fieldTags;
 
                 // merge newly created taxonomies with the existing ones in order to appear in drop-downs
                 pipeline.taxonomyTags.forEach(function (taxonomy) {
@@ -392,6 +429,8 @@ function octane_job_configuration(target, progress, proxy) {
                         });
                     }
                 });
+
+                // TODO: janotav: merge newly created fields
 
                 renderConfiguration(jobConfiguration, pipeline.id);
             };
