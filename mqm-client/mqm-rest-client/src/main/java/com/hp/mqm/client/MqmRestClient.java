@@ -1,5 +1,6 @@
 package com.hp.mqm.client;
 
+import com.hp.mqm.client.model.ListItem;
 import com.hp.mqm.client.model.PagedList;
 import com.hp.mqm.client.model.JobConfiguration;
 import com.hp.mqm.client.model.Pipeline;
@@ -56,6 +57,8 @@ public interface MqmRestClient extends BaseMqmRestClient {
     PagedList<Taxonomy> queryTaxonomies(Integer taxonomyTypeId, String name, int offset, int limit);
 
     PagedList<TaxonomyType> queryTaxonomyTypes(String name, int offset, int limit);
+
+    PagedList<ListItem> queryListItems(int listId, String name, int offset, int limit);
 
     int createPipeline(String pipelineName, int releaseId, String structureJson, String serverJson);
 

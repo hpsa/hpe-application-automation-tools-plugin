@@ -12,14 +12,17 @@ final public class Pipeline {
     final private String releaseName;
     final private String rootJobName;
     final private List<Taxonomy> taxonomies;
+    final private List<Field> fields;
 
-    public Pipeline(int id, String name, int releaseId, String releaseName, String rootJobName, List<Taxonomy> taxonomies) {
+    public Pipeline(int id, String name, int releaseId, String releaseName, String rootJobName,
+                    List<Taxonomy> taxonomies, List<Field> fields) {
         this.id = id;
         this.name = name;
         this.releaseId = releaseId;
         this.releaseName = releaseName;
         this.rootJobName = rootJobName;
         this.taxonomies = taxonomies;
+        this.fields = fields;
     }
 
     public int getId() {
@@ -44,5 +47,9 @@ final public class Pipeline {
 
     public List<Taxonomy> getTaxonomies() {
         return taxonomies;
+    }
+
+    public List<Field> getFields() {
+        return fields;
     }
 }

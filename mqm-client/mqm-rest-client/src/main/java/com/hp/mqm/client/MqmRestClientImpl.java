@@ -4,7 +4,9 @@ import com.hp.mqm.client.exception.FileNotFoundException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
 import com.hp.mqm.client.internal.InputStreamSourceEntity;
+import com.hp.mqm.client.model.Field;
 import com.hp.mqm.client.model.JobConfiguration;
+import com.hp.mqm.client.model.ListItem;
 import com.hp.mqm.client.model.PagedList;
 import com.hp.mqm.client.model.Pipeline;
 import com.hp.mqm.client.model.Release;
@@ -42,6 +44,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
     private static final String URI_PUSH_TEST_RESULT_PUSH = "test-results/v1";
     private static final String URI_SERVER_JOB_CONFIG = "cia/servers/{0}/jobconfig/{1}";
     private static final String URI_RELEASES = "releases-mqm" + PAGING_FRAGMENT;
+    private static final String URI_LIST_ITEMS = "mqm-list-items" + PAGING_FRAGMENT;
     private static final String URI_TAXONOMIES = "taxonomies" + PAGING_FRAGMENT;
     private static final String URI_TAXONOMY_TYPES = "taxonomy-types" + PAGING_FRAGMENT;
     private static final String URI_PIPELINES = "cia/pipelines?fetchStructure=false";
@@ -227,13 +230,23 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
                     taxonomy.getString("taxonomyValue"),
                     taxonomy.getString("taxonomyType"))); // TODO: janotav: naming not symmetric
         }
+        List<Field> fields = new LinkedList<Field>();
+        for (JSONObject field: getJSONObjectCollection(pipelineObject, "tags")) {
+            fields.add(new Field(field.getInt("id"),
+                    field.getString("value"),
+                    field.getInt("listId"),
+                    field.getString("listName"),
+                    field.getString("logicalListName"),
+                    field.getBoolean("extensible"),
+                    field.getBoolean("multiValue")));
+        }
         return new Pipeline(pipelineObject.getInt("pipelineId"),
                 pipelineObject.getString("pipelineName"),
                 pipelineObject.getInt("releaseId"),
                 // TODO: janotav: releaseName not defined
                 "Name of " + pipelineObject.getInt("releaseId"),
                 pipelineObject.getString("rootJobName"),
-                taxonomies);
+                taxonomies, fields);
     }
 
     private static Collection<JSONObject> getJSONObjectCollection(JSONObject object, String key) {
@@ -284,6 +297,16 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
             conditions.add(condition("name", "*" + name + "*"));
         }
         return getEntities(getEntityURI(URI_TAXONOMY_TYPES, conditions, offset, limit), offset, new TaxonomyTypeEntityFactory());
+    }
+
+    @Override
+    public PagedList<ListItem> queryListItems(int listId, String name, int offset, int limit) {
+        List<String> conditions = new LinkedList<String>();
+        if (!StringUtils.isEmpty(name)) {
+            conditions.add(condition("name", "*" + name + "*"));
+        }
+        conditions.add(condition("parent-id", String.valueOf(listId)));
+        return getEntities(getEntityURI(URI_LIST_ITEMS, conditions, offset, limit), offset, new ListItemEntityFactory());
     }
 
     private String condition(String name, String value) {
@@ -352,6 +375,16 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
             HttpClientUtils.closeQuietly(response);
         }
         return result;
+    }
+
+    private static class ListItemEntityFactory implements EntityFactory<ListItem> {
+
+        @Override
+        public ListItem create(JSONObject entityObject) {
+            return new ListItem(
+                    entityObject.getInt("id"),
+                    entityObject.getString("name"));
+        }
     }
 
     private static class TaxonomyEntityFactory implements EntityFactory<Taxonomy> {

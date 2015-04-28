@@ -76,6 +76,11 @@ function octane_job_configuration(target, progress, proxy) {
             });
         });
 
+        var fieldTypes = {};
+        jobConfiguration.fields.forEach(function (fieldType) {
+            fieldTypes[fieldType.logicalListName] = fieldType;
+        });
+
         var validators = [];
         var apply = [];
         var dirty = [];
@@ -83,6 +88,49 @@ function octane_job_configuration(target, progress, proxy) {
         function renderPipeline(pipeline, saveFunc, saveCallback) {
 
             var groupBy = {};
+
+            function addField(field) {
+                var fieldSpan = $("<span>");
+                fieldSpan.text(field.listName);
+                fields.append(fieldSpan);
+                var fieldValueSelect = $("<select>");
+                if (field.multiValue) {
+                    fieldValueSelect.attr('multiple', 'multiple');
+                } else {
+                    fieldValueSelect.append(new Option("(Not Specified)", -1));
+                }
+                fieldTypes[field.logicalListName].values.forEach(function (fieldValue) {
+                    var selected = field.values.some(function (value) {
+                        return value.id === fieldValue.id;
+                    });
+                    fieldValueSelect.append(new Option(fieldValue.name, fieldValue.id, selected));
+                });
+                fields.append(fieldValueSelect);
+                if (field.extensible) {
+                    var newValueOption = $(new Option("(New Value...)", 0));
+                    fieldValueSelect.append(newValueOption);
+                    var newValueInput = $("<input>");
+                    var validationArea = $("<div class='validation-error-area'>");
+                    newValueInput.blur(validateInput(validationArea, newFieldValueValidation(newValueInput, fieldValueSelect)));
+                    newValueInput.hide();
+                    fields.append(newValueInput);
+                    addInputWithValidation(newValueInput, fields, "Value must be specified", {
+                        area: validationArea,
+                        check: newFieldValueValidation(newValueInput, fieldValueSelect)
+                    });
+
+                    fieldValueSelect.change(function () {
+                        validationArea.empty();
+                        if (fieldValueSelect.val() == 0) {
+                            newValueInput.css('display', 'inline');
+                        } else {
+                            newValueInput.hide();
+                        }
+                    });
+                    fields.append(validationArea);
+                }
+                fields.append($("<br>"));
+            }
 
             function addTag(tag) {
 
@@ -167,6 +215,11 @@ function octane_job_configuration(target, progress, proxy) {
                 });
                 pipelineDiv.append(select).append($("<br>"));
             }
+
+            pipelineDiv.append("Fields: ").append($("<br>"));
+            var fields = $("<div>");
+            pipelineDiv.append(fields);
+            pipeline.fieldTags.forEach(addField);
 
             pipelineDiv.append("Tags: ").append($("<br>"));
             var tags = $("<div>");
@@ -441,6 +494,37 @@ function octane_job_configuration(target, progress, proxy) {
             };
         }
 
+        function newFieldValueValidation(newValueInput, valueSelect) {
+            return function () {
+                var error = undefined;
+
+                function matchValue(item) {
+                    if (caseInsensitiveStringEquals(item, newValueInput.val())) {
+                        error = "Value " + item + " is already defined";
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+
+                if (valueSelect.val() != '0') {
+                    return;
+                }
+
+                if (!newValueInput.val()) {
+                    return "Value must be specified";
+                }
+
+                var values = [];
+                valueSelect.find("option").each(function (index, option) {
+                    values.push(option.text);
+                });
+
+                values.some(matchValue);
+                return error;
+            };
+        }
+
         function newTagTypeValidation(tagTypeInput) {
             return function () {
                 var error = undefined;
@@ -463,7 +547,7 @@ function octane_job_configuration(target, progress, proxy) {
             };
         }
 
-        function addInputWithValidation(input, target, message) {
+        function addInputWithValidation(input, target, message, options_opt) {
             function emptyCheck() {
                 if (!input.val()) {
                     return message;
@@ -471,10 +555,15 @@ function octane_job_configuration(target, progress, proxy) {
                     return false;
                 }
             }
+            var options = options_opt || {};
+            var check = options.check || emptyCheck;
+            var validationArea = options.area;
             target.append(input);
-            var validationArea = $("<div class='validation-error-area'>");
-            target.append(validationArea);
-            var validate = validateInput(validationArea, emptyCheck);
+            if (!validationArea) {
+                validationArea = $("<div class='validation-error-area'>");
+                target.append(validationArea);
+            }
+            var validate = validateInput(validationArea, check);
             input.blur(validate);
             validators.push(validate);
             validationArea.hide();

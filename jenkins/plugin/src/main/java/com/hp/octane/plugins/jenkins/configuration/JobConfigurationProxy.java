@@ -5,7 +5,9 @@ package com.hp.octane.plugins.jenkins.configuration;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
+import com.hp.mqm.client.model.Field;
 import com.hp.mqm.client.model.JobConfiguration;
+import com.hp.mqm.client.model.ListItem;
 import com.hp.mqm.client.model.Pipeline;
 import com.hp.mqm.client.model.Release;
 import com.hp.mqm.client.model.Taxonomy;
@@ -30,16 +32,25 @@ import org.kohsuke.stapler.export.ModelBuilder;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class JobConfigurationProxy {
 
     private final static Logger logger = Logger.getLogger(JobConfigurationProxy.class.getName());
+
+    // TODO: janotav: this needs to be defined MQM server-side
+    private static List<Field> fields = Arrays.asList(
+            new Field(null, null, 311, "Framework", "hp.qc.test-framework", true, false),
+            new Field(null, null, 296, "Testing Tool Type", "hp.qc.test-tool-type", true, false),
+            new Field(null, null, 345, "Test Type", "hp.qc.test-new-type", false, true));
 
     final private AbstractProject project;
     final private RetryModel retryModel;
@@ -100,7 +111,7 @@ public class JobConfigurationProxy {
             Pipeline pipeline = client.updatePipelineTags(ServerIdentity.getIdentity(), project.getName(), pipelineId, taxonomies);
             JSONArray pipelineTaxonomies = new JSONArray();
             for (Taxonomy taxonomy: pipeline.getTaxonomies()) {
-                pipelineTaxonomies.add(tag(taxonomy.getTaxonomyTypeId(), taxonomy.getTaxonomyTypeName(), taxonomy.getId(), taxonomy.getName()));
+                pipelineTaxonomies.add(tag(taxonomy));
             }
             result.put("taxonomies", pipelineTaxonomies);
             client.release();
@@ -145,10 +156,36 @@ public class JobConfigurationProxy {
                 pipeline.put("isRoot", isRoot && relatedPipeline.getRootJobName().equals(jobName));
 
                 JSONArray taxonomyTags = new JSONArray();
-                for(Taxonomy taxonomy: relatedPipeline.getTaxonomies()) {
-                    taxonomyTags.add(tag(taxonomy.getTaxonomyTypeId(), taxonomy.getTaxonomyTypeName(), taxonomy.getId(), taxonomy.getName()));
+                for (Taxonomy taxonomy: relatedPipeline.getTaxonomies()) {
+                    taxonomyTags.add(tag(taxonomy));
                 }
                 pipeline.put("taxonomyTags", taxonomyTags);
+
+                Map<String, List<FieldValue>> valuesByField = new HashMap<String, List<FieldValue>>();
+                for (Field field: fields) {
+                    valuesByField.put(field.getLogicalListName(), new LinkedList<FieldValue>());
+                }
+                for (Field field: relatedPipeline.getFields()) {
+                    valuesByField.get(field.getLogicalListName()).add(new FieldValue(field.getId(), field.getValue()));
+                }
+                JSONArray fieldTags = new JSONArray();
+                for (Field field: fields) {
+                    List<FieldValue> values = valuesByField.get(field.getLogicalListName());
+                    JSONArray valuesArray = new JSONArray();
+                    for (FieldValue value: values) {
+                        valuesArray.add(fieldValue(value.getId(), value.getName()));
+                    }
+                    JSONObject fieldObject = new JSONObject();
+                    fieldObject.put("logicalListName", field.getLogicalListName());
+                    fieldObject.put("listId", field.getListId());
+                    fieldObject.put("listName", field.getListName());
+                    fieldObject.put("values", valuesArray);
+                    fieldObject.put("extensible", field.isExtensible());
+                    fieldObject.put("multiValue", field.isMultiValue());
+                    fieldTags.add(fieldObject);
+                }
+                pipeline.put("fieldTags", fieldTags);
+
                 pipelines.add(pipeline);
             }
 
@@ -169,10 +206,25 @@ public class JobConfigurationProxy {
             List<TaxonomyType> taxonomyTypes = client.queryTaxonomyTypes(null, 0, 50).getItems();
             for (TaxonomyType taxonomyType: taxonomyTypes) {
                 Collection<JSONObject> tags = multiMap.getCollection(taxonomyType.getId());
-                allTaxonomies.add(tagType(taxonomyType.getId(), taxonomyType.getName(), tags == null? Collections.<JSONObject>emptyList(): tags));
+                allTaxonomies.add(tagType(taxonomyType.getId(), taxonomyType.getName(), tags == null ? Collections.<JSONObject>emptyList() : tags));
             }
             ret.put("taxonomies", allTaxonomies);
 
+            JSONArray allFields = new JSONArray();
+            for (Field field: fields) {
+                List<ListItem> items = client.queryListItems(field.getListId(), null, 0, 50).getItems();
+                JSONArray array = new JSONArray();
+                for (ListItem item: items) {
+                    array.add(fieldValue(item.getId(), item.getName()));
+                }
+                JSONObject fieldObj = new JSONObject();
+                fieldObj.put("logicalListName", field.getLogicalListName());
+                fieldObj.put("values", array);
+                allFields.add(fieldObj);
+            }
+            ret.put("fields", allFields);
+
+            client.release();
         } catch (RequestException e) {
             logger.log(Level.WARNING, "Failed to retrieve job configuration", e);
             return error("Unable to retrieve job configuration");
@@ -190,6 +242,13 @@ public class JobConfigurationProxy {
         return ret;
     }
 
+    private JSONObject fieldValue(int id, String name) {
+        JSONObject result = new JSONObject();
+        result.put("id", id);
+        result.put("name", name);
+        return result;
+    }
+
     private static Collection<JSONObject> toCollection(JSONArray array) {
         return (Collection<JSONObject>)array.subList(0, array.size());
     }
@@ -201,10 +260,10 @@ public class JobConfigurationProxy {
         return tag;
     }
 
-    private JSONObject tag(int typeId, String typeName, int tagId, String value) {
-        JSONObject tag = tag(tagId, value);
-        tag.put("tagTypeId", String.valueOf(typeId));
-        tag.put("tagTypeName", typeName);
+    private JSONObject tag(Taxonomy taxonomy) {
+        JSONObject tag = tag(taxonomy.getId(), taxonomy.getName());
+        tag.put("tagTypeId", String.valueOf(taxonomy.getTaxonomyTypeId()));
+        tag.put("tagTypeName", taxonomy.getTaxonomyTypeName());
         return tag;
     }
 
@@ -275,6 +334,25 @@ public class JobConfigurationProxy {
         Model<T> model = new ModelBuilder().get((Class<T>)bean.getClass());
         model.writeTo(bean, Flavor.JSON.createDataWriter(bean, writer));
         return writer.toString();
+    }
+
+    private static class FieldValue {
+
+        private int id;
+        private String name;
+
+        private FieldValue(int id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        public int getId() {
+            return id;
+        }
+
+        public String getName() {
+            return name;
+        }
     }
 
     private static class ClientException extends Exception {
