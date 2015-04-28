@@ -57,9 +57,6 @@ function octane_job_configuration(target, progress, proxy) {
         var status = $("<div>");
         buttons.append(status);
 
-        var applyButton = $("<input type='button' value='Apply'>");
-        buttons.append(applyButton);
-
         var tagTypes = {};
         var allTags = {};
         var tagTypesByName = {};
@@ -215,10 +212,6 @@ function octane_job_configuration(target, progress, proxy) {
             apply.length = 0;
             dirty.length = 0;
 
-            applyButton.unbind('click').click(function() {
-                saveConfiguration(pipeline, saveFunc, saveCallback);
-            });
-
             pipelineDiv.empty();
             pipelineDiv.append("Pipeline: ");
             if (pipeline.isRoot) {
@@ -252,124 +245,135 @@ function octane_job_configuration(target, progress, proxy) {
                 pipelineDiv.append(select).append($("<br>"));
             }
 
-            pipelineDiv.append("Fields: ").append($("<br>"));
-            var fields = $("<div>");
-            pipelineDiv.append(fields);
-            pipeline.fieldTags.forEach(addField);
+            var applyButton;
+            if (pipeline.id != null) {
+                pipelineDiv.append("Fields: ").append($("<br>"));
+                var fields = $("<div>");
+                pipelineDiv.append(fields);
+                pipeline.fieldTags.forEach(addField);
 
-            pipelineDiv.append("Tags: ").append($("<br>"));
-            var tags = $("<div>");
-            pipelineDiv.append(tags);
-            pipeline.taxonomyTags.forEach(addTag);
+                pipelineDiv.append("Tags: ").append($("<br>"));
+                var tags = $("<div>");
+                pipelineDiv.append(tags);
+                pipeline.taxonomyTags.forEach(addTag);
 
-            var selectDiv = $("<div>");
-            var addSelect = $("<select>");
-            var defaultOption = new Option("Add Tag...", "default", true);
-            $(defaultOption).prop('disabled', 'disabled');
-            addSelect.append(defaultOption);
-            jobConfiguration.taxonomies.forEach(function (tagType) {
-                var group = $("<optgroup>");
-                group.attr('label', tagType.tagTypeName);
-                tagTypes[tagType.tagTypeId].values.forEach(function (tag) {
-                    group.append(new Option(tag.tagName, tag.tagId));
+                var selectDiv = $("<div>");
+                var addSelect = $("<select>");
+                var defaultOption = new Option("Add Tag...", "default", true);
+                $(defaultOption).prop('disabled', 'disabled');
+                addSelect.append(defaultOption);
+                jobConfiguration.taxonomies.forEach(function (tagType) {
+                    var group = $("<optgroup>");
+                    group.attr('label', tagType.tagTypeName);
+                    tagTypes[tagType.tagTypeId].values.forEach(function (tag) {
+                        group.append(new Option(tag.tagName, tag.tagId));
+                    });
+                    group.append(new Option("New value...", -tagType.tagTypeId));
+                    addSelect.append(group);
                 });
-                group.append(new Option("New value...", -tagType.tagTypeId));
+                var group = $("<optgroup>");
+                group.attr('label', "New type...");
+                group.append(new Option("New value...", 0));
                 addSelect.append(group);
-            });
-            var group = $("<optgroup>");
-            group.attr('label', "New type...");
-            group.append(new Option("New value...", 0));
-            addSelect.append(group);
-            var addedTag;
-            addSelect.change(function () {
-                add.prop('disabled', false);
-                var val = addSelect.val();
-                if (val < 0) {
-                    var tagType = tagTypes[-val];
-                    addedTag = {
-                        tagTypeId: tagType.tagTypeId,
-                        tagTypeName: tagType.tagTypeName
-                    };
-                    tagTypeInput.val(tagType.tagTypeName);
-                    tagTypeInput.prop('disabled', 'disabled');
-                    tagTypeInput.css('display', 'inline');
-                    tagInput.val("");
-                    tagInput.attr('placeholder', 'Tag');
-                    tagInput.css('display', 'inline');
-                } else if (val == 0) {
-                    addedTag = {};
-                    tagTypeInput.val("");
-                    tagTypeInput.attr('placeholder', 'Tag Type');
-                    tagTypeInput.prop('disabled', false);
-                    tagTypeInput.css('display', 'inline');
-                    tagInput.val("");
-                    tagInput.attr('placeholder', 'Tag');
-                    tagInput.css('display', 'inline');
-                } else {
-                    addedTag = allTags[val];
+                var addedTag;
+                addSelect.change(function () {
+                    add.prop('disabled', false);
+                    var val = addSelect.val();
+                    if (val < 0) {
+                        var tagType = tagTypes[-val];
+                        addedTag = {
+                            tagTypeId: tagType.tagTypeId,
+                            tagTypeName: tagType.tagTypeName
+                        };
+                        tagTypeInput.val(tagType.tagTypeName);
+                        tagTypeInput.prop('disabled', 'disabled');
+                        tagTypeInput.css('display', 'inline');
+                        tagInput.val("");
+                        tagInput.attr('placeholder', 'Tag');
+                        tagInput.css('display', 'inline');
+                    } else if (val == 0) {
+                        addedTag = {};
+                        tagTypeInput.val("");
+                        tagTypeInput.attr('placeholder', 'Tag Type');
+                        tagTypeInput.prop('disabled', false);
+                        tagTypeInput.css('display', 'inline');
+                        tagInput.val("");
+                        tagInput.attr('placeholder', 'Tag');
+                        tagInput.css('display', 'inline');
+                    } else {
+                        addedTag = allTags[val];
+                        tagTypeInput.hide();
+                        tagInput.hide();
+                    }
+                    validationAreaTagType.empty();
+                    validationAreaTag.empty();
+                });
+                selectDiv.append(addSelect);
+                pipelineDiv.append(selectDiv);
+
+                pipeline.taxonomyTags.forEach(function (tag) {
+                    addSelect.find("option[value='"+tag.tagId+"']").prop('disabled', 'disabled');
+                });
+
+                var validationAreaTagType = $("<div class='validation-error-area'>");
+                var validationAreaTag = $("<div class='validation-error-area'>");
+
+                var tagTypeInput = $("<input type='text'>");
+                tagTypeInput.hide();
+                tagTypeInput.blur(validateInput(validationAreaTagType, newTagTypeValidation(tagTypeInput)));
+                selectDiv.append(tagTypeInput);
+                var tagInput = $("<input type='text'>");
+                tagInput.hide();
+                tagInput.blur(validateInput(validationAreaTag, newTagValidation(tagTypeInput, tagInput, pipeline.taxonomyTags)));
+                selectDiv.append(tagInput);
+
+                var add = $("<input type='button' value='Add'>");
+                add.prop('disabled', 'disabled');
+                add.click(function () {
+                    var validationOk = true;
+                    if (!addedTag.tagTypeId) {
+                        addedTag.tagTypeName = tagTypeInput.val();
+                        if (!validateInput(validationAreaTagType, newTagTypeValidation(tagTypeInput))()) {
+                            validationOk = false;
+                        }
+                    }
+                    if (!addedTag.tagId) {
+                        addedTag.tagName = tagInput.val();
+                        if (!validateInput(validationAreaTag, newTagValidation(tagTypeInput, tagInput, pipeline.taxonomyTags))()) {
+                            validationOk = false;
+                        }
+                    }
+                    if (!validationOk) {
+                        return;
+                    }
+                    pipeline.taxonomyTags.push(addedTag);
+                    addTag(addedTag);
+                    if (addedTag.tagId) {
+                        addSelect.find("option:selected").prop('disabled', 'disabled');
+                    }
+                    addedTag = undefined;
+                    dirty.push(function () {
+                        return true; // there is new tag
+                    });
+                    $(defaultOption).prop('selected', 'selected');
                     tagTypeInput.hide();
                     tagInput.hide();
-                }
-                validationAreaTagType.empty();
-                validationAreaTag.empty();
-            });
-            selectDiv.append(addSelect);
-            pipelineDiv.append(selectDiv);
-
-            pipeline.taxonomyTags.forEach(function (tag) {
-                addSelect.find("option[value='"+tag.tagId+"']").prop('disabled', 'disabled');
-            });
-
-            var validationAreaTagType = $("<div class='validation-error-area'>");
-            var validationAreaTag = $("<div class='validation-error-area'>");
-
-            var tagTypeInput = $("<input type='text'>");
-            tagTypeInput.hide();
-            tagTypeInput.blur(validateInput(validationAreaTagType, newTagTypeValidation(tagTypeInput)));
-            selectDiv.append(tagTypeInput);
-            var tagInput = $("<input type='text'>");
-            tagInput.hide();
-            tagInput.blur(validateInput(validationAreaTag, newTagValidation(tagTypeInput, tagInput, pipeline.taxonomyTags)));
-            selectDiv.append(tagInput);
-
-            var add = $("<input type='button' value='Add'>");
-            add.prop('disabled', 'disabled');
-            add.click(function () {
-                var validationOk = true;
-                if (!addedTag.tagTypeId) {
-                    addedTag.tagTypeName = tagTypeInput.val();
-                    if (!validateInput(validationAreaTagType, newTagTypeValidation(tagTypeInput))()) {
-                        validationOk = false;
-                    }
-                }
-                if (!addedTag.tagId) {
-                    addedTag.tagName = tagInput.val();
-                    if (!validateInput(validationAreaTag, newTagValidation(tagTypeInput, tagInput, pipeline.taxonomyTags))()) {
-                        validationOk = false;
-                    }
-                }
-                if (!validationOk) {
-                    return;
-                }
-                pipeline.taxonomyTags.push(addedTag);
-                addTag(addedTag);
-                if (addedTag.tagId) {
-                    addSelect.find("option:selected").prop('disabled', 'disabled');
-                }
-                addedTag = undefined;
-                dirty.push(function () {
-                    return true; // there is new tag
                 });
-                $(defaultOption).prop('selected', 'selected');
-                tagTypeInput.hide();
-                tagInput.hide();
+                selectDiv.append(add);
+
+                // put validation area bellow both input fields
+                selectDiv.append(validationAreaTagType);
+                selectDiv.append(validationAreaTag);
+
+                applyButton = $("<input type='button' value='Apply'>");
+            } else {
+                applyButton = $("<input type='button' value='Create'>");
+            }
+
+            applyButton.unbind('click').click(function() {
+                saveConfiguration(pipeline, saveFunc, saveCallback);
             });
-            selectDiv.append(add);
-
-            // put validation area bellow both input fields
-            selectDiv.append(validationAreaTagType);
-            selectDiv.append(validationAreaTag);
-
+            buttons.append(applyButton);
             pipelineDiv.append(buttons);
         }
 
@@ -391,9 +395,7 @@ function octane_job_configuration(target, progress, proxy) {
                 pipelineDiv.empty();
                 var pipeline = {
                     id: null,
-                    isRoot: true,
-                    taxonomyTags: [],
-                    fieldTags: []
+                    isRoot: true
                 };
                 jobConfiguration.pipelines.push(pipeline);
                 renderPipeline(pipeline, saveFunc, saveCallback);
