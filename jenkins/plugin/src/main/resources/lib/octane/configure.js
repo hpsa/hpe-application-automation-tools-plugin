@@ -96,13 +96,22 @@ function octane_job_configuration(target, progress, proxy) {
                     fieldValueSelect.attr('multiple', 'multiple');
                 } else {
                     fieldValueSelect.append(new Option("(Not Specified)", -1));
+                    currentValue[0] = -1;
                 }
                 fieldTypes[field.logicalListName].values.forEach(function (fieldValue) {
-                    var selected = field.values.some(function (value) {
-                        return value.id === fieldValue.id;
-                    });
-                    if (selected) {
-                        currentValue.push(fieldValue.id);
+                    var selected;
+                    if (field.multiValue) {
+                        selected = field.values.some(function (value) {
+                            return value.id === fieldValue.id;
+                        });
+                        if (selected) {
+                            currentValue.push(fieldValue.id);
+                        }
+                    } else {
+                        selected = field.values.length > 0 && field.values[0].id == fieldValue.id;
+                        if (selected) {
+                            currentValue[0] = fieldValue.id;
+                        }
                     }
                     fieldValueSelect.append(new Option(fieldValue.name, fieldValue.id, selected));
                 });
