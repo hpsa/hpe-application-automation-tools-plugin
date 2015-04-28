@@ -3,7 +3,7 @@ function octane_job_configuration(target, progress, proxy) {
     if (typeof jQuery === 'undefined') {
         return {
             configure: function() {
-                target.innerHTML = "JQuery plugin must be installed and enabled <a href=" + rootURL + "/pluginManager>Plugin Manager</a>";
+                target.innerHTML = "JQuery plugin must be installed and enabled in <a href=" + rootURL + "/pluginManager>Plugin Manager</a>";
             }
         }
     }
