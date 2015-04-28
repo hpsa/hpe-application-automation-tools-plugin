@@ -392,7 +392,8 @@ function octane_job_configuration(target, progress, proxy) {
                 var pipeline = {
                     id: null,
                     isRoot: true,
-                    taxonomyTags: []
+                    taxonomyTags: [],
+                    fieldTags: []
                 };
                 jobConfiguration.pipelines.push(pipeline);
                 renderPipeline(pipeline, saveFunc, saveCallback);
