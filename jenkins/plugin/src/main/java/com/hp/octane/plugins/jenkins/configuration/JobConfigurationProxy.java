@@ -73,6 +73,7 @@ public class JobConfigurationProxy {
                     toString(structureItem),
                     toString(serverInfo));
             result.put("id", pipelineId);
+            addFieldTags(result, null);
             client.release();
         } catch (RequestException e) {
             logger.log(Level.WARNING, "Failed to create pipeline", e);
@@ -241,13 +242,18 @@ public class JobConfigurationProxy {
             pipelineTaxonomies.add(tag(taxonomy));
         }
         result.put("taxonomyTags", pipelineTaxonomies);
+        addFieldTags(result, pipeline);
+    }
 
+    private void addFieldTags(JSONObject result, Pipeline pipeline) {
         Map<String, List<FieldValue>> valuesByField = new HashMap<String, List<FieldValue>>();
         for (Field field: fields) {
             valuesByField.put(field.getLogicalListName(), new LinkedList<FieldValue>());
         }
-        for (Field field: pipeline.getFields()) {
-            valuesByField.get(field.getLogicalListName()).add(new FieldValue(field.getId(), field.getValue()));
+        if (pipeline != null) {
+            for (Field field: pipeline.getFields()) {
+                valuesByField.get(field.getLogicalListName()).add(new FieldValue(field.getId(), field.getValue()));
+            }
         }
         JSONArray fieldTags = new JSONArray();
         for (Field field: fields) {
@@ -266,7 +272,7 @@ public class JobConfigurationProxy {
             fieldTags.add(fieldObject);
         }
         result.put("fieldTags", fieldTags);
-    }
+   }
 
     private JSONObject fieldValue(int id, String name) {
         JSONObject result = new JSONObject();
