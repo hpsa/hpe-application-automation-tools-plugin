@@ -393,6 +393,7 @@ function octane_job_configuration(target, progress, proxy) {
             };
             saveCallback = function (pipeline, response) {
                 pipeline.id = response.id;
+                pipeline.fieldTags = response.fieldTags;
                 renderConfiguration(jobConfiguration, pipeline.id);
             };
             var createPipelineDiv = $("<div>No pipeline is currently defined for this job<br/></div>");
@@ -401,7 +402,9 @@ function octane_job_configuration(target, progress, proxy) {
                 pipelineDiv.empty();
                 var pipeline = {
                     id: null,
-                    isRoot: true
+                    isRoot: true,
+                    fieldTags: [],
+                    taxonomyTags: []
                 };
                 jobConfiguration.pipelines.push(pipeline);
                 renderPipeline(pipeline, saveFunc, saveCallback);
