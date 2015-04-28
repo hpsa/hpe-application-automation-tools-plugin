@@ -54,6 +54,8 @@ public class TaskExecutionThreadMock implements Runnable {
         }
 
 
+        String finishStatus;
+        String taskResult = "";
         //Response handling
         if (task.getResponseBackendPoint() != null) {
             // if have callback - call the callback
@@ -69,14 +71,18 @@ public class TaskExecutionThreadMock implements Runnable {
             // we give to Apps, that the callback will be called after all the send/gets are called
             mockService.joinAllPreviousThreads();
             if(result != null) {
-                mockService.setTaskResult(new OpbTaskResultMockImpl(task.getId(), null, result.getTaskFinishStatus().name(), result.getTaskResult()));
-
+                finishStatus = result.getTaskFinishStatus().name();
+                taskResult = result.getTaskResult();
                 if(TaskFinishStatus.FAILED.name().equalsIgnoreCase(result.getTaskFinishStatus().name())) {
                     haveFailed = true;
                 }
-                taskResponseCallback.response(new OpbResultCallbackStatus(task.getId(), result.getTaskFinishStatus().name(), !haveFailed, result.getTaskResult()),
+                taskResponseCallback.response(new OpbResultCallbackStatus(task.getId(), finishStatus, !haveFailed, taskResult),
                         new OpbDataInfoMockImpl(task, new OpbDataServiceMock()), new ContextLoggersMock());
+                mockService.setTaskResult(new OpbTaskResultMockImpl(task.getId(), null, finishStatus, taskResult));
+            } else {
+                mockService.setTaskResult(new OpbTaskResultMockImpl(task.getId(), null, TaskFinishStatus.FAILED.name(), taskResult));
             }
         }
+
     }
 }

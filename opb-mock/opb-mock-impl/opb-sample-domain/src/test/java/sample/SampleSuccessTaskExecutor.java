@@ -31,6 +31,7 @@ public class SampleSuccessTaskExecutor implements TaskExecutor {
     private final static String DATA_OUT_VALUE = "Data Out Sample";
 
     private final static String OK = "OK";
+    private final static String FAILED_MESSAGE = "Me failed";
 
     private final static String CREDS_USER = "alm";
     private final static String CREDS_PASS = "alm";
@@ -46,17 +47,13 @@ public class SampleSuccessTaskExecutor implements TaskExecutor {
         Assert.assertNotNull(endpoint);
         Assert.assertNotNull(endpoint.getName());
         Assert.assertNotNull(endpoint.getCredentialsId());
-        Assert.assertNotNull(endpoint.getProperties());
 
         Properties taskParameters = taskMetadata.getTaskParameters();
         boolean testingFailure = false;
         if (taskParameters.size() == 0) {
             // test the failure flow
             testingFailure = true;
-            throw new RuntimeException("Params missing.");
         }
-        testingFailure = false;
-
         Assert.assertEquals(taskParameters.size(), 1);
         Assert.assertTrue(taskMetadata.getTaskParameters().keySet().contains(TASK_PARAMS_KEY));
         Assert.assertTrue(taskMetadata.getTaskParameters().values().contains(TASK_PARAMS_VALUE));
@@ -67,7 +64,7 @@ public class SampleSuccessTaskExecutor implements TaskExecutor {
             executorAPI.sendData(executorAPI.getFactory().createTaskOutputData(DATA_IN_VALUE.getBytes(Charset.forName("UTF-8"))), params);
             // report progress
             executorAPI.reportTaskProgress(executorAPI.getFactory().createTaskProgress("in progress..", 50, null));
-            TaskInputId dataId = executorAPI.prepareData();
+            TaskInputId dataId = executorAPI.prepareData(params);
             // Get data
             TaskInputData dataFromMqm = executorAPI.getPreparedData(dataId);
             Assert.assertEquals(DATA_OUT_VALUE, new String(dataFromMqm.getData()));
@@ -95,9 +92,15 @@ public class SampleSuccessTaskExecutor implements TaskExecutor {
         logger.isDebugEnabled(getClass());
 
         // the result will be returned in the result callback
-        return executorAPI.getFactory().createTaskExecutionResult(
-                TaskFinishStatus.SUCCESS,
-                OK);
+        if(testingFailure) {
+            return executorAPI.getFactory().createTaskExecutionResult(
+                    TaskFinishStatus.FAILED,
+                    FAILED_MESSAGE);
+        } else {
+            return executorAPI.getFactory().createTaskExecutionResult(
+                    TaskFinishStatus.SUCCESS,
+                    OK);
+        }
     }
 
     @Override

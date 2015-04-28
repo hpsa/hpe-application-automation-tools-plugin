@@ -13,6 +13,6 @@
     <packaging>pom</packaging>
     <modules>
         <module>opb-sample-domain</module>
-        <module>opb-mock-impl-temp</module>
+        <module>opb-mock-loopback-impl</module>
     </modules>
 </project>

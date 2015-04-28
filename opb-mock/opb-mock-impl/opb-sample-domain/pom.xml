@@ -14,7 +14,7 @@
     <dependencies>
         <dependency>
             <groupId>com.hp.mqm</groupId>
-            <artifactId>opb-mock-impl-temp</artifactId>
+            <artifactId>opb-mock-loopback-impl</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

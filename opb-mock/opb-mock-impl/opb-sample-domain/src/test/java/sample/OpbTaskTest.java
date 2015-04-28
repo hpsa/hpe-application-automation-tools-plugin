@@ -1,5 +1,6 @@
 package sample;
 
+import com.hp.mqm.opb.TaskFinishStatus;
 import com.hp.mqm.opb.loopback.mock.OpbLoopbackContext;
 import com.hp.mqm.opb.loopback.mock.callback.SampleIncomingDataCallback;
 import com.hp.mqm.opb.loopback.mock.callback.SampleOutgoingDataCallback;
@@ -7,11 +8,14 @@ import com.hp.mqm.opb.loopback.mock.callback.SampleResponseCallback;
 import com.hp.mqm.opb.loopback.mock.service.entities.OpbAgentMockImpl;
 import com.hp.mqm.opb.loopback.mock.service.entities.OpbEndpointMockImpl;
 import com.hp.mqm.opb.service.TaskPriority;
+import com.hp.mqm.opb.service.TaskResult;
+import com.hp.mqm.opb.service.TaskResultStatus;
 import com.hp.mqm.opb.service.api.OpbServiceApi;
 import com.hp.mqm.opb.service.api.OpbTaskConfiguration;
 import com.hp.mqm.opb.service.api.entities.OpbAgent;
 import com.hp.mqm.opb.service.api.entities.OpbEndpoint;
 import com.hp.mqm.opb.service.api.entities.OpbTask;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -88,6 +92,8 @@ public class OpbTaskTest {
         taskId = opbService.submitTask(task);
         // wait for all the threads to exit
         runner.joinAllThreads();
+        TaskResult result = opbService.getTaskResult(taskId);
+        Assert.assertEquals(TaskResultStatus.SUCCESS, result.getTaskResultStatus());
     }
 
     @Test
@@ -96,7 +102,7 @@ public class OpbTaskTest {
         OpbServiceApi opbService = getOpbService();
 
         OpbTask task = opbService.getObjectFactory().createTask(TASK_DESCRIPTION, TASK_NAME, opbEndpoint.getId(), agent.getGuid(),
-                SampleFailedTaskExecutor.class.getCanonicalName(), new OpbTaskConfiguration(
+                SampleSuccessTaskExecutor.class.getCanonicalName(), new OpbTaskConfiguration(
                         TaskPriority.REGULAR,
                         1,
                         SampleIncomingDataCallback.class,
@@ -105,15 +111,16 @@ public class OpbTaskTest {
 
         // add task result callback, called when the task finishes execution on the agent (optional)
         Map<String, String> params = new HashMap<>();
-        params.put(TASK_PARAMS_KEY, TASK_PARAMS_VALUE);
+        //params are empty to fail the test
         task.setParameters(params);
 
         // submit the task (asynchronous)
 
         taskId = opbService.submitTask(task);
-
         // wait for all the threads to exit
         runner.joinAllThreads();
+        TaskResult result = opbService.getTaskResult(taskId);
+        Assert.assertEquals(TaskResultStatus.FAILED, result.getTaskResultStatus());
     }
 }
 

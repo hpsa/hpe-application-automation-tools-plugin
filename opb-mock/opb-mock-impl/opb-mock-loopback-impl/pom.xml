@@ -9,8 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>opb-mock-impl-temp</artifactId>
-
+    <artifactId>opb-mock-loopback-impl</artifactId>
     <dependencies>
         <dependency>
             <groupId>com.hp.mqm</groupId>
@@ -22,7 +21,6 @@
             <artifactId>opb-executor-api</artifactId>
             <version>${project.version}</version>
         </dependency>
-
         <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>

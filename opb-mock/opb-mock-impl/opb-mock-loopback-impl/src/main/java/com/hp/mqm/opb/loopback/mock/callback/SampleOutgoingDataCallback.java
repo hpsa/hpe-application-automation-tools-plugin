@@ -18,11 +18,16 @@ public class SampleOutgoingDataCallback implements OutgoingDataCallback {
     @Override
     public OpbDataContainer dataOutToAgent(Integer taskId, Map<String, String> params, ContextLoggers callbackLoggers) {
         callbackLoggers.getDetailedLogger().info("Sample Outgoing Data Callback params " + params);
-        int rundNumRange = Integer.parseInt(params.get("RandRange"));
+        int rundNumRange = 10;
+        if(params.get("RandRange") != null) {
+            rundNumRange = Integer.parseInt(params.get("RandRange"));
+        }
+
         Random rand = new Random();
         Integer randNum = rand.nextInt(rundNumRange) + 1;
         byte[] data = randNum.toString().getBytes();
 
+        data = "Data Out Sample".getBytes();
         return new OpbDataContainerMockImpl(params, data.length, new ByteArrayInputStream(data));
     }
 }

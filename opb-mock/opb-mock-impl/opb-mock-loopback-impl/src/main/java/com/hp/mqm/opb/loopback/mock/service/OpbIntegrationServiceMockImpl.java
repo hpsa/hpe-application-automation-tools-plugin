@@ -26,10 +26,7 @@ import com.hp.mqm.opb.service.utils.SizeLimitationsUtils;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * User: Gil Adjiashvili
@@ -95,7 +92,7 @@ public class OpbIntegrationServiceMockImpl implements OpbServiceApi {
 
         OpbEndpoint opbEndpoint = endpointMap.get(task.getEndpointId());
         Endpoint endpoint = new EndpointMock(opbEndpoint);
-        TaskMetadata metadata = new TaskMetadataMockImpl(new TaskId(task.getId(), task.getGuid()), task.getType(), task.getDescription(), endpoint, null);
+        TaskMetadata metadata = new TaskMetadataMockImpl(new TaskId(task.getId(), task.getGuid()), task.getType(), task.getDescription(), endpoint, convertParametersToProperties(task.getParameters()));
         TaskExecutor executor = getTaskExecutor(task);
         if (executor == null) {
             throw new RuntimeException("Executor for task: " + task.getType() + " not found.");
@@ -107,6 +104,12 @@ public class OpbIntegrationServiceMockImpl implements OpbServiceApi {
         thread.setDaemon(false);
         thread.start();
         return task.getId();
+    }
+
+    private Properties convertParametersToProperties(Map<String, String> parameters) {
+        Properties props = new Properties();
+        props.putAll(parameters);
+        return props;
     }
 
     @Override
