@@ -80,7 +80,7 @@ function octane_job_configuration(target, progress, proxy) {
 
         var validators = [];
         var apply = [];
-        var dirty = [];
+        var dirtyFlag;
 
         function renderPipeline(pipeline, saveFunc, saveCallback) {
 
@@ -91,44 +91,19 @@ function octane_job_configuration(target, progress, proxy) {
                 fieldSpan.text(field.listName + ": ");
                 fields.append(fieldSpan);
                 var fieldValueSelect = $("<select>");
-                var currentValue = [];
                 if (field.multiValue) {
                     fieldValueSelect.attr('multiple', 'multiple');
                 } else {
                     fieldValueSelect.append(new Option("(Not Specified)", -1));
-                    currentValue[0] = -1;
                 }
                 fieldTypes[field.logicalListName].values.forEach(function (fieldValue) {
-                    var selected;
-                    if (field.multiValue) {
-                        selected = field.values.some(function (value) {
-                            return value.id === fieldValue.id;
-                        });
-                        if (selected) {
-                            currentValue.push(fieldValue.id);
-                        }
-                    } else {
-                        selected = field.values.length > 0 && field.values[0].id == fieldValue.id;
-                        if (selected) {
-                            currentValue[0] = fieldValue.id;
-                        }
-                    }
+                    var selected = field.values.some(function (value) {
+                        return value.id === fieldValue.id;
+                    });
                     fieldValueSelect.append(new Option(fieldValue.name, fieldValue.id, selected));
                 });
                 fields.append(fieldValueSelect);
-                dirty.push(function () {
-                    var options = fieldValueSelect.find("option:selected");
-                    if (options.length != currentValue.length) {
-                        return true;
-                    }
-                    var selectedValue = {};
-                    options.each(function (index, option) {
-                        selectedValue[option.value] = true;
-                    });
-                    return currentValue.some(function (item) {
-                        return !selectedValue[item];
-                    });
-                });
+                enableDirtySelectCheck(fieldValueSelect);
                 apply.push(function () {
                     field.values = [];
                     fieldValueSelect.find("option:selected").each(function (index, option) {
@@ -198,12 +173,10 @@ function octane_job_configuration(target, progress, proxy) {
                 container.append(tagSpan);
 
                 var remove = $("<input type='button' value='X'>");
+                enableDirtyButtonCheck(remove);
                 remove.click(function () {
                     var index = pipeline.taxonomyTags.indexOf(tag);
                     pipeline.taxonomyTags.splice(index, 1);
-                    dirty.push(function () {
-                        return true; // tag was removed
-                    });
                     tagSpan.remove();
                     remove.remove();
                     if (--group.count == 0) {
@@ -219,7 +192,7 @@ function octane_job_configuration(target, progress, proxy) {
 
             validators.length = 0;
             apply.length = 0;
-            dirty.length = 0;
+            clearDirty();
 
             pipelineDiv.empty();
             pipelineDiv.append("Pipeline: ");
@@ -229,9 +202,7 @@ function octane_job_configuration(target, progress, proxy) {
                 apply.push(function() {
                     pipeline.name = input.val();
                 });
-                dirty.push(function () {
-                    return pipeline.name !== input.val();
-                });
+                enableDirtyInputCheck(input);
                 addInputWithValidation(input, pipelineDiv, "Pipeline name must be specified");
             } else {
                 pipelineDiv.append(pipeline.name);
@@ -248,9 +219,7 @@ function octane_job_configuration(target, progress, proxy) {
                 apply.push(function () {
                     pipeline.releaseId = select.val();
                 });
-                dirty.push(function () {
-                    return pipeline.releaseId != select.val();
-                });
+                enableDirtySelectCheck(select);
                 pipelineDiv.append(select).append($("<br>"));
             }
 
@@ -369,9 +338,7 @@ function octane_job_configuration(target, progress, proxy) {
                         addSelect.find("option:selected").prop('disabled', 'disabled');
                     }
                     addedTag = undefined;
-                    dirty.push(function () {
-                        return true; // there is new tag
-                    });
+                    makeDirty();
                     $(defaultOption).prop('selected', 'selected');
                     tagTypeInput.hide();
                     tagTypeSpan.hide();
@@ -379,6 +346,7 @@ function octane_job_configuration(target, progress, proxy) {
                     add.hide();
                 };
                 add.click(doAdd);
+                enableDirtyButtonCheck(add);
                 selectDiv.append(add);
 
                 // put validation area bellow both input fields
@@ -468,7 +436,7 @@ function octane_job_configuration(target, progress, proxy) {
                 });
                 var lastSelected = $(pipelineSelect).find("option:selected");
                 pipelineSelect.change(function () {
-                    if (dirtyFields()) {
+                    if (isDirty()) {
                         if (!window.confirm(CONFIRMATION)) {
                             lastSelected.attr("selected", true);
                             return;
@@ -484,7 +452,7 @@ function octane_job_configuration(target, progress, proxy) {
         }
 
         window.onbeforeunload = function() {
-            if (dirtyFields()) {
+            if (isDirty()) {
                 return CONFIRMATION;
             } else {
                 // keep original check just in case there is another dirty data (shouldn't be)
@@ -496,10 +464,28 @@ function octane_job_configuration(target, progress, proxy) {
             }
         };
 
-        function dirtyFields() {
-            return dirty.some(function (func) {
-                return func()
-            });
+        function makeDirty() {
+            dirtyFlag = true;
+        }
+
+        function clearDirty() {
+            dirtyFlag = false;
+        }
+
+        function isDirty() {
+            return dirtyFlag;
+        }
+
+        function enableDirtySelectCheck(select) {
+            select.on('change', makeDirty);
+        }
+
+        function enableDirtyInputCheck(input) {
+            input.on('input', makeDirty);
+        }
+
+        function enableDirtyButtonCheck(button) {
+            button.on('click', makeDirty);
         }
 
         function validateFields() {
@@ -677,6 +663,7 @@ function octane_job_configuration(target, progress, proxy) {
                     response.errors.forEach(validationError);
                 } else {
                     saveCallback(pipeline, response);
+                    clearDirty();
                 }
             });
         }
