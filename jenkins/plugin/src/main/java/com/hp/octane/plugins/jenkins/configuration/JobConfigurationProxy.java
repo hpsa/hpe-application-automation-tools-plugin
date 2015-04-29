@@ -6,6 +6,7 @@ import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
 import com.hp.mqm.client.model.Field;
+import com.hp.mqm.client.model.FieldMetadata;
 import com.hp.mqm.client.model.JobConfiguration;
 import com.hp.mqm.client.model.ListItem;
 import com.hp.mqm.client.model.Pipeline;
@@ -32,7 +33,6 @@ import org.kohsuke.stapler.export.ModelBuilder;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,12 +45,6 @@ import java.util.logging.Logger;
 public class JobConfigurationProxy {
 
     private final static Logger logger = Logger.getLogger(JobConfigurationProxy.class.getName());
-
-    // TODO: janotav: this needs to be defined MQM server-side
-    private static List<Field> fields = Arrays.asList(
-            new Field(null, null, 311, "Framework", "hp.qc.test-framework", true, false),
-            new Field(null, null, 296, "Testing Tool Type", "hp.qc.test-tool-type", true, false),
-            new Field(null, null, 345, "Test Type", "hp.qc.test-new-type", false, true));
 
     final private AbstractProject project;
     final private RetryModel retryModel;
@@ -73,7 +67,10 @@ public class JobConfigurationProxy {
                     toString(structureItem),
                     toString(serverInfo));
             result.put("id", pipelineId);
-            addFieldTags(result, null);
+            // TODO: janotav: fields not provided
+//            addFieldTags(result, null);
+            result.put("fieldTags", new JSONArray());
+
             client.release();
         } catch (RequestException e) {
             logger.log(Level.WARNING, "Failed to create pipeline", e);
@@ -109,8 +106,26 @@ public class JobConfigurationProxy {
                         jsonObject.getString("tagTypeName")));
             }
 
-            Pipeline pipeline = client.updatePipelineTags(ServerIdentity.getIdentity(), project.getName(), pipelineId, taxonomies);
-            addTags(result, pipeline);
+            LinkedList<Field> fields = new LinkedList<Field>();
+            JSONArray fieldTags = pipelineObject.getJSONArray("fieldTags");
+            for (JSONObject jsonObject: toCollection(fieldTags)) {
+                for(JSONObject value: toCollection(jsonObject.getJSONArray("values"))) {
+                    Integer id;
+                    if (value.containsKey("id")) {
+                        id = value.getInt("id");
+                    } else {
+                        id = null;
+                    }
+                    fields.add(new Field(id,
+                            value.getString("name"),
+                            jsonObject.getInt("listId"),
+                            jsonObject.getString("listName"),
+                            jsonObject.getString("logicalListName")));
+                }
+            }
+
+            Pipeline pipeline = client.updatePipelineTags(ServerIdentity.getIdentity(), project.getName(), pipelineId, taxonomies, fields);
+            addTaxonomyTags(result, pipeline);
 
             client.release();
         } catch (RequestException e) {
@@ -145,6 +160,7 @@ public class JobConfigurationProxy {
             ret.put("jobId", jobConfiguration.getJobId());
             String jobName = jobConfiguration.getJobName();
             boolean isRoot = jobConfiguration.isPipelineRoot();
+            List<FieldMetadata> fields = jobConfiguration.getFieldMetadata();
             for(Pipeline relatedPipeline: jobConfiguration.getRelatedPipelines()) {
                 JSONObject pipeline = new JSONObject();
                 pipeline.put("id", relatedPipeline.getId());
@@ -153,17 +169,17 @@ public class JobConfigurationProxy {
                 pipeline.put("releaseName", relatedPipeline.getReleaseName());
                 pipeline.put("isRoot", isRoot && relatedPipeline.getRootJobName().equals(jobName));
 
-                addTags(pipeline, relatedPipeline);
+                addTags(pipeline, relatedPipeline, fields);
 
                 Map<String, List<FieldValue>> valuesByField = new HashMap<String, List<FieldValue>>();
-                for (Field field: fields) {
+                for (FieldMetadata field: fields) {
                     valuesByField.put(field.getLogicalListName(), new LinkedList<FieldValue>());
                 }
                 for (Field field: relatedPipeline.getFields()) {
-                    valuesByField.get(field.getLogicalListName()).add(new FieldValue(field.getId(), field.getValue()));
+                    valuesByField.get(field.getParentLogicalName()).add(new FieldValue(field.getId(), field.getName()));
                 }
                 JSONArray fieldTags = new JSONArray();
-                for (Field field: fields) {
+                for (FieldMetadata field: fields) {
                     List<FieldValue> values = valuesByField.get(field.getLogicalListName());
                     JSONArray valuesArray = new JSONArray();
                     for (FieldValue value: values) {
@@ -205,7 +221,7 @@ public class JobConfigurationProxy {
             ret.put("taxonomies", allTaxonomies);
 
             JSONArray allFields = new JSONArray();
-            for (Field field: fields) {
+            for (FieldMetadata field: fields) {
                 List<ListItem> items = client.queryListItems(field.getListId(), null, 0, 50).getItems();
                 JSONArray array = new JSONArray();
                 for (ListItem item: items) {
@@ -236,30 +252,34 @@ public class JobConfigurationProxy {
         return ret;
     }
 
-    private void addTags(JSONObject result, Pipeline pipeline) {
+    private void addTags(JSONObject result, Pipeline pipeline, List<FieldMetadata> fields) {
+        addTaxonomyTags(result, pipeline);
+        addFieldTags(result, pipeline, fields);
+    }
+
+    private void addTaxonomyTags(JSONObject result, Pipeline pipeline) {
         JSONArray pipelineTaxonomies = new JSONArray();
         for (Taxonomy taxonomy: pipeline.getTaxonomies()) {
             pipelineTaxonomies.add(tag(taxonomy));
         }
         result.put("taxonomyTags", pipelineTaxonomies);
-        addFieldTags(result, pipeline);
     }
 
-    private void addFieldTags(JSONObject result, Pipeline pipeline) {
+    private void addFieldTags(JSONObject result, Pipeline pipeline, List<FieldMetadata> fields) {
+        JSONArray fieldTags = new JSONArray();
         Map<String, List<FieldValue>> valuesByField = new HashMap<String, List<FieldValue>>();
-        for (Field field: fields) {
+        for (FieldMetadata field : fields) {
             valuesByField.put(field.getLogicalListName(), new LinkedList<FieldValue>());
         }
         if (pipeline != null) {
-            for (Field field: pipeline.getFields()) {
-                valuesByField.get(field.getLogicalListName()).add(new FieldValue(field.getId(), field.getValue()));
+            for (Field field : pipeline.getFields()) {
+                valuesByField.get(field.getParentLogicalName()).add(new FieldValue(field.getId(), field.getName()));
             }
         }
-        JSONArray fieldTags = new JSONArray();
-        for (Field field: fields) {
+        for (FieldMetadata field : fields) {
             List<FieldValue> values = valuesByField.get(field.getLogicalListName());
             JSONArray valuesArray = new JSONArray();
-            for (FieldValue value: values) {
+            for (FieldValue value : values) {
                 valuesArray.add(fieldValue(value.getId(), value.getName()));
             }
             JSONObject fieldObject = new JSONObject();

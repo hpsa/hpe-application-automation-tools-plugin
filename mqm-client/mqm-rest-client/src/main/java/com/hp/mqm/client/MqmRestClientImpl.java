@@ -5,6 +5,7 @@ import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
 import com.hp.mqm.client.internal.InputStreamSourceEntity;
 import com.hp.mqm.client.model.Field;
+import com.hp.mqm.client.model.FieldMetadata;
 import com.hp.mqm.client.model.JobConfiguration;
 import com.hp.mqm.client.model.ListItem;
 import com.hp.mqm.client.model.PagedList;
@@ -93,10 +94,13 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
                 pipelines.add(toPipeline(relatedPipeline));
             }
             if (jsonObject.containsKey("jobId")) {
+                JSONObject metadata = jsonObject.getJSONObject("metadata");
+                List<FieldMetadata> fieldsMetadata = getFieldsMetadata(metadata);
                 return new JobConfiguration(jsonObject.getInt("jobId"),
                         jsonObject.getString("jobName"),
                         jsonObject.getBoolean("isPipelineRoot"),
-                        pipelines);
+                        pipelines,
+                        fieldsMetadata);
             } else {
                 return new JobConfiguration(jsonObject.getBoolean("isPipelineRoot"), pipelines);
             }
@@ -155,7 +159,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
     }
 
     @Override
-    public Pipeline updatePipelineTags(String serverIdentity, String jobName, int pipelineId, List<Taxonomy> taxonomies) {
+    public Pipeline updatePipelineTags(String serverIdentity, String jobName, int pipelineId, List<Taxonomy> taxonomies, List<Field> fields) {
         HttpPost request = new HttpPost(createProjectApiUri(URI_PIPELINES_TAGS, serverIdentity, jobName));
 
         JSONObject pipelineObject = new JSONObject();
@@ -187,7 +191,16 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
         pipelineObject.put("taxonomies", taxonomiesArray);
 
         JSONArray tagsArray = new JSONArray();
-        // TODO: janotav: not implemented
+        for (Field field: fields) {
+            JSONObject fieldObject = new JSONObject();
+            if (field.getId() != null) {
+                fieldObject.put("id", field.getId());
+            } else {
+                fieldObject.put("parentId", field.getParentId());
+                fieldObject.put("name", field.getName());
+            }
+            tagsArray.add(fieldObject);
+        }
         pipelineObject.put("tags", tagsArray);
 
         JSONArray pipelines = new JSONArray();
@@ -222,6 +235,31 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
         }
     }
 
+    private List<FieldMetadata> getFieldsMetadata(JSONObject metadata ) {
+        List<FieldMetadata> fields = new LinkedList<FieldMetadata>();
+        for (JSONObject fieldObject: getJSONObjectCollection(metadata, "lists")) {
+            fields.add(toFieldMetadata(fieldObject));
+        }
+        return fields;
+    }
+
+    private Field toField(JSONObject field) {
+        return new Field(field.getInt("id"),
+                field.getString("name"),
+                field.getInt("parentId"),
+                field.getString("parentName"),
+                field.getString("parentLogicalName"));
+    }
+
+    private FieldMetadata toFieldMetadata(JSONObject field) {
+        return new FieldMetadata(
+                field.getInt("id"),
+                field.getString("name"),
+                field.getString("logicalName"),
+                field.getBoolean("openList"),
+                field.getBoolean("multiValueList"));
+    }
+
     private Pipeline toPipeline(JSONObject pipelineObject) {
         List<Taxonomy> taxonomies = new LinkedList<Taxonomy>();
         for (JSONObject taxonomy: getJSONObjectCollection(pipelineObject, "taxonomyTags")) {
@@ -232,13 +270,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
         }
         List<Field> fields = new LinkedList<Field>();
         for (JSONObject field: getJSONObjectCollection(pipelineObject, "tags")) {
-            fields.add(new Field(field.getInt("id"),
-                    field.getString("name"),
-                    field.getInt("parentId"),
-                    field.getString("parentName"),
-                    field.getString("parentLogicalName"),
-                    field.getBoolean("extensible"),
-                    field.getBoolean("multiValue")));
+            fields.add(toField(field));
         }
         return new Pipeline(pipelineObject.getInt("pipelineId"),
                 pipelineObject.getString("pipelineName"),

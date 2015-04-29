@@ -5,48 +5,36 @@ package com.hp.mqm.client.model;
 final public class Field {
 
     private final Integer id;
-    private final String value;
-    private final int listId;
-    private final String listName;
-    private final String logicalListName;
-    private final boolean extensible;
-    private final boolean multiValue;
+    private final String name;
+    private final int parentId;
+    private final String parentName;
+    private final String parentLogicalName;
 
-    public Field(Integer id, String value, int listId, String listName, String logicalListName, boolean extensible, boolean multiValue) {
+    public Field(Integer id, String name, int parentId, String parentName, String parentLogicalName) {
         this.id = id;
-        this.value = value;
-        this.listId = listId;
-        this.listName = listName;
-        this.logicalListName = logicalListName;
-        this.extensible = extensible;
-        this.multiValue = multiValue;
+        this.name = name;
+        this.parentId = parentId;
+        this.parentName = parentName;
+        this.parentLogicalName = parentLogicalName;
     }
 
     public Integer getId() {
         return id;
     }
 
-    public String getValue() {
-        return value;
+    public String getName() {
+        return name;
     }
 
-    public int getListId() {
-        return listId;
+    public int getParentId() {
+        return parentId;
     }
 
-    public String getListName() {
-        return listName;
+    public String getParentName() {
+        return parentName;
     }
 
-    public String getLogicalListName() {
-        return logicalListName;
-    }
-
-    public boolean isExtensible() {
-        return extensible;
-    }
-
-    public boolean isMultiValue() {
-        return multiValue;
+    public String getParentLogicalName() {
+        return parentLogicalName;
     }
 }

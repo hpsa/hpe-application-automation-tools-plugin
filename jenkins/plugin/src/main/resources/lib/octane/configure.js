@@ -116,7 +116,7 @@ function octane_job_configuration(target, progress, proxy) {
                             });
                         } else {
                             field.values.push({
-                                id: option.value,
+                                id: Number(option.value),
                                 name: option.text
                             });
                         }
@@ -399,7 +399,6 @@ function octane_job_configuration(target, progress, proxy) {
             };
             saveCallback = function (pipeline, response) {
                 pipeline.taxonomyTags = response.taxonomyTags;
-                pipeline.fieldTags = response.fieldTags;
 
                 // merge newly created taxonomies with the existing ones in order to appear in drop-downs
                 pipeline.taxonomyTags.forEach(function (taxonomy) {
@@ -424,7 +423,22 @@ function octane_job_configuration(target, progress, proxy) {
                     }
                 });
 
-                // TODO: janotav: merge newly created fields
+                // merge newly created field values with existing ones in order to appear in drop-downs
+                // TODO: janotav: validate this code when adding new values is implemented on the server
+                pipeline.fieldTags.forEach(function (receivedField) {
+                    var fieldType = fieldTypes[receivedField.logicalListName];
+                    receivedField.values.forEach(function (receivedFieldValue) {
+                        var matchFiledValue = function(value) {
+                            return value.id == receivedFieldValue.id;
+                        };
+                        if (!fieldType.values.some(matchFiledValue)) {
+                            fieldType.values.push({
+                                id: receivedFieldValue.id,
+                                name: receivedFieldValue.name
+                            });
+                        }
+                    });
+                });
 
                 renderConfiguration(jobConfiguration, pipeline.id);
             };
