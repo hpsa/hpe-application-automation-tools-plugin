@@ -286,7 +286,6 @@ function octane_job_configuration(target, progress, proxy) {
                 addSelect.append(group);
                 var addedTag;
                 addSelect.change(function () {
-                    add.prop('disabled', false);
                     var val = addSelect.val();
                     if (val < 0) {
                         var tagType = tagTypes[-val];
@@ -301,6 +300,7 @@ function octane_job_configuration(target, progress, proxy) {
                         tagInput.val("");
                         tagInput.attr('placeholder', 'Tag');
                         tagInput.css('display', 'inline');
+                        add.css('display', 'inline');
                     } else if (val == 0) {
                         addedTag = {};
                         tagTypeInput.val("");
@@ -310,11 +310,14 @@ function octane_job_configuration(target, progress, proxy) {
                         tagInput.val("");
                         tagInput.attr('placeholder', 'Tag');
                         tagInput.css('display', 'inline');
+                        add.css('display', 'inline');
                     } else {
                         addedTag = allTags[val];
                         tagTypeInput.hide();
                         tagTypeSpan.hide();
                         tagInput.hide();
+                        add.hide();
+                        doAdd();
                     }
                     validationAreaTagType.empty();
                     validationAreaTag.empty();
@@ -342,8 +345,8 @@ function octane_job_configuration(target, progress, proxy) {
                 selectDiv.append(tagInput);
 
                 var add = $("<input type='button' value='Add'>");
-                add.prop('disabled', 'disabled');
-                add.click(function () {
+                add.hide();
+                var doAdd = function () {
                     var validationOk = true;
                     if (!addedTag.tagTypeId) {
                         addedTag.tagTypeName = tagTypeInput.val();
@@ -373,7 +376,9 @@ function octane_job_configuration(target, progress, proxy) {
                     tagTypeInput.hide();
                     tagTypeSpan.hide();
                     tagInput.hide();
-                });
+                    add.hide();
+                };
+                add.click(doAdd);
                 selectDiv.append(add);
 
                 // put validation area bellow both input fields

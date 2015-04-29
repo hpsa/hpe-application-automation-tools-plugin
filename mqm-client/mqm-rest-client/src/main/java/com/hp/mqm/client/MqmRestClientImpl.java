@@ -233,10 +233,10 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
         List<Field> fields = new LinkedList<Field>();
         for (JSONObject field: getJSONObjectCollection(pipelineObject, "tags")) {
             fields.add(new Field(field.getInt("id"),
-                    field.getString("value"),
-                    field.getInt("listId"),
-                    field.getString("listName"),
-                    field.getString("logicalListName"),
+                    field.getString("name"),
+                    field.getInt("parentId"),
+                    field.getString("parentName"),
+                    field.getString("parentLogicalName"),
                     field.getBoolean("extensible"),
                     field.getBoolean("multiValue")));
         }
