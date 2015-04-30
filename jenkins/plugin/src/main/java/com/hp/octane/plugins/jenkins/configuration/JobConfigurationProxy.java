@@ -127,6 +127,19 @@ public class JobConfigurationProxy {
             Pipeline pipeline = client.updatePipelineTags(ServerIdentity.getIdentity(), project.getName(), pipelineId, taxonomies, fields);
             addTaxonomyTags(result, pipeline);
 
+            // we can't add full fieldTags (we don't have metadata), pass what we have and let the client handle it
+            JSONArray fieldsArray = new JSONArray();
+            for (Field field: pipeline.getFields()) {
+                JSONObject fieldObject = new JSONObject();
+                fieldObject.put("id", field.getId());
+                fieldObject.put("parentId", field.getParentId());
+                fieldObject.put("name", field.getName());
+                fieldObject.put("parentName", field.getParentName());
+                fieldObject.put("parentLogicalName", field.getParentLogicalName());
+                fieldsArray.add(fieldObject);
+            }
+            result.put("fields", fieldsArray);
+
             client.release();
         } catch (RequestException e) {
             logger.log(Level.WARNING, "Failed to update pipeline", e);

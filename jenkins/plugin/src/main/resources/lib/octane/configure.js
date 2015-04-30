@@ -180,20 +180,26 @@ function octane_job_configuration(target, progress, proxy) {
                 });
 
                 // merge newly created field values with existing ones in order to appear in drop-downs
-                // TODO: janotav: validate this code when adding new values is implemented on the server
-                pipeline.fieldTags.forEach(function (receivedField) {
-                    var fieldType = fieldTypes[receivedField.logicalListName];
-                    receivedField.values.forEach(function (receivedFieldValue) {
-                        var matchFiledValue = function(value) {
-                            return value.id == receivedFieldValue.id;
-                        };
-                        if (!fieldType.values.some(matchFiledValue)) {
-                            fieldType.values.push({
-                                id: receivedFieldValue.id,
-                                name: receivedFieldValue.name
-                            });
-                        }
-                    });
+                response.fields.forEach(function (receivedField) {
+                    var fieldType = fieldTypes[receivedField.parentLogicalName];
+                    var matchFiledValue = function(value) {
+                        return value.id == receivedField.id;
+                    };
+                    if (!fieldType.values.some(matchFiledValue)) {
+                        fieldType.values.push({
+                            id: receivedField.id,
+                            name: receivedField.name
+                        });
+                        pipeline.fieldTags.forEach(function (fieldTag) {
+                            if (fieldTag.logicalListName === fieldType.logicalListName) {
+                                fieldTag.values.forEach(function (value) {
+                                    if (!value.id && value.name === receivedField.name) {
+                                        value.id = receivedField.id;
+                                    }
+                                });
+                            }
+                        });
+                    }
                 });
 
                 renderConfiguration(jobConfiguration, pipeline.id);
