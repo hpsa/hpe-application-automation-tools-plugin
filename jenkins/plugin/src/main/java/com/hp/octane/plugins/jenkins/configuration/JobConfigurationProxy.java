@@ -67,9 +67,6 @@ public class JobConfigurationProxy {
                     toString(structureItem),
                     toString(serverInfo));
             result.put("id", pipelineId);
-            // TODO: janotav: fields not provided
-//            addFieldTags(result, null);
-            result.put("fieldTags", new JSONArray());
 
             client.release();
         } catch (RequestException e) {
@@ -242,6 +239,10 @@ public class JobConfigurationProxy {
                 }
                 JSONObject fieldObj = new JSONObject();
                 fieldObj.put("logicalListName", field.getLogicalListName());
+                fieldObj.put("listId", field.getListId());
+                fieldObj.put("listName", field.getListName());
+                fieldObj.put("extensible", field.isExtensible());
+                fieldObj.put("multiValue", field.isMultiValue());
                 fieldObj.put("values", array);
                 allFields.add(fieldObj);
             }

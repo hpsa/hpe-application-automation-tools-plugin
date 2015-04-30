@@ -93,16 +93,16 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
             for (JSONObject relatedPipeline: getJSONObjectCollection(jsonObject, "relatedPipelines")) {
                 pipelines.add(toPipeline(relatedPipeline));
             }
+            JSONObject metadata = jsonObject.getJSONObject("metadata");
+            List<FieldMetadata> fieldsMetadata = getFieldsMetadata(metadata);
             if (jsonObject.containsKey("jobId")) {
-                JSONObject metadata = jsonObject.getJSONObject("metadata");
-                List<FieldMetadata> fieldsMetadata = getFieldsMetadata(metadata);
                 return new JobConfiguration(jsonObject.getInt("jobId"),
                         jsonObject.getString("jobName"),
                         jsonObject.getBoolean("isPipelineRoot"),
                         pipelines,
                         fieldsMetadata);
             } else {
-                return new JobConfiguration(jsonObject.getBoolean("isPipelineRoot"), pipelines);
+                return new JobConfiguration(jsonObject.getBoolean("isPipelineRoot"), pipelines, fieldsMetadata);
             }
         } catch (IOException e) {
             throw new RequestErrorException("Cannot retrieve job configuration from MQM.", e);

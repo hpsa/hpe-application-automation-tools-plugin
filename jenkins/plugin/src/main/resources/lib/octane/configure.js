@@ -138,7 +138,19 @@ function octane_job_configuration(target, progress, proxy) {
 
             function createPipelineCallback(pipeline, response) {
                 pipeline.id = response.id;
-                pipeline.fieldTags = response.fieldTags;
+
+                // fill pipeline fieldTags based on metadata received in initial load
+                pipeline.fieldTags = [];
+                jobConfiguration.fields.forEach(function (fieldType) {
+                    pipeline.fieldTags.push({
+                        logicalListName: fieldType.logicalListName,
+                        listId: fieldType.listId,
+                        listName: fieldType.listName,
+                        extensible: fieldType.extensible,
+                        multiValue: fieldType.multiValue,
+                        values: [] // assumption: nothing is pre-selected
+                    });
+                });
                 renderConfiguration(jobConfiguration, pipeline.id);
             }
 
