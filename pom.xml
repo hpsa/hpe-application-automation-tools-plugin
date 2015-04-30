@@ -10,7 +10,7 @@
 		<baseNexusURL>http://mydtbld0051.isr.hp.com:8081/nexus</baseNexusURL>
 		<maven.compiler.plugin.version>3.1</maven.compiler.plugin.version>
 		<jdk.version>1.6</jdk.version>
-        <!-- if you change http client version then change version of http client also in octane-jenkins-plugin -->
+		<!-- if you change http client version then change version of http client also in octane-jenkins-plugin -->
 		<httpclient.version>4.2.5</httpclient.version>
 		<commons-io.version>2.4</commons-io.version>
 		<commons.lang.version>2.3</commons.lang.version>
@@ -22,6 +22,22 @@
 		<module>mqm-client</module>
 		<module>opb-mock</module>
 	</modules>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.sonatype.plugins</groupId>
+				<artifactId>nexus-staging-maven-plugin</artifactId>
+				<version>1.5.1</version>
+				<extensions>true</extensions>
+				<configuration>
+					<serverId>stage-indi</serverId>
+					<stagingProfileId>3f945a89b73e3c</stagingProfileId>
+					<buildPromotionProfileId>fccb50be7d1a</buildPromotionProfileId>
+					<nexusUrl>${baseNexusURL}/</nexusUrl>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
@@ -52,6 +68,11 @@
 			<id>mqm-snapshots</id>
 			<name>Snapshot repository</name>
 			<url>${baseNexusURL}/content/repositories/mqm-snapshots</url>
+		</snapshotRepository>
+		<snapshotRepository>
+			<id>mqm-prod</id>
+			<name>Prod repository</name>
+			<url>${baseNexusURL}/content/repositories/mqm-prod</url>
 		</snapshotRepository>
 	</distributionManagement>
 
