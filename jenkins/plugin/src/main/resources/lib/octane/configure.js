@@ -80,9 +80,124 @@ function octane_job_configuration(target, progress, proxy) {
 
         var validators = [];
         var apply = [];
-        var dirty = [];
+        var dirtyFlag;
 
-        function renderPipeline(pipeline, saveFunc, saveCallback) {
+        function initialize() {
+            validators.length = 0;
+            apply.length = 0;
+            clearDirty();
+
+            pipelineDiv.empty();
+        }
+
+        function addApplyButton(caption, pipeline, func, callback) {
+            var applyButton = $("<input type='button'>");
+            applyButton.prop('value', caption);
+            applyButton.unbind('click').click(function() {
+                saveConfiguration(pipeline, func, callback);
+            });
+            buttons.append(applyButton);
+            pipelineDiv.append(buttons);
+        }
+
+        function renderPipelineMetadata(pipeline) {
+            pipelineDiv.append("Pipeline: ");
+            if (pipeline.isRoot) {
+                var input = $("<input type='text' placeholder='Pipeline name'>");
+                input.attr("value", pipeline.name);
+                apply.push(function() {
+                    pipeline.name = input.val();
+                });
+                enableDirtyInputCheck(input);
+                addInputWithValidation(input, pipelineDiv, "Pipeline name must be specified");
+            } else {
+                pipelineDiv.append(pipeline.name);
+            }
+
+            pipelineDiv.append($("<br>"));
+
+            if (pipeline.isRoot) {
+                pipelineDiv.append("Release: ");
+                var select = $("<select>");
+                for (var releaseId in jobConfiguration.releases) {
+                    select.append(new Option(jobConfiguration.releases[releaseId], releaseId, (pipeline.releaseId === releaseId)));
+                }
+                apply.push(function () {
+                    pipeline.releaseId = select.val();
+                });
+                enableDirtySelectCheck(select);
+                pipelineDiv.append(select).append($("<br>"));
+            }
+        }
+
+        function renderNewPipeline(pipeline) {
+
+            function createPipelineFunc(pipeline, callback) {
+                proxy.createPipelineOnServer(pipeline, callback);
+            }
+
+            function createPipelineCallback(pipeline, response) {
+                pipeline.id = response.id;
+                pipeline.fieldTags = response.fieldTags;
+                renderConfiguration(jobConfiguration, pipeline.id);
+            }
+
+            initialize();
+            renderPipelineMetadata(pipeline);
+            addApplyButton('Create', pipeline, createPipelineFunc, createPipelineCallback);
+        }
+
+        function renderExistingPipeline(pipeline) {
+
+            function saveFunc(pipeline, callback) {
+                proxy.updatePipelineOnSever(pipeline, callback);
+            }
+
+            function saveCallback(pipeline, response) {
+                pipeline.taxonomyTags = response.taxonomyTags;
+
+                // merge newly created taxonomies with the existing ones in order to appear in drop-downs
+                pipeline.taxonomyTags.forEach(function (taxonomy) {
+                    var type = tagTypes[taxonomy.tagTypeId];
+                    if (!type) {
+                        type = {
+                            tagTypeId: taxonomy.tagTypeId,
+                            tagTypeName: taxonomy.tagTypeName,
+                            values: []
+                        };
+                        jobConfiguration.taxonomies.push(type);
+                        tagTypes[type.tagTypeId] = type;
+                    }
+                    var matchTag = function (tag) {
+                        return tag.tagId == taxonomy.tagId;
+                    };
+                    if (!type.values.some(matchTag)) {
+                        type.values.push({
+                            tagId: taxonomy.tagId,
+                            tagName: taxonomy.tagName
+                        });
+                    }
+                });
+
+                // merge newly created field values with existing ones in order to appear in drop-downs
+                // TODO: janotav: validate this code when adding new values is implemented on the server
+                pipeline.fieldTags.forEach(function (receivedField) {
+                    var fieldType = fieldTypes[receivedField.logicalListName];
+                    receivedField.values.forEach(function (receivedFieldValue) {
+                        var matchFiledValue = function(value) {
+                            return value.id == receivedFieldValue.id;
+                        };
+                        if (!fieldType.values.some(matchFiledValue)) {
+                            fieldType.values.push({
+                                id: receivedFieldValue.id,
+                                name: receivedFieldValue.name
+                            });
+                        }
+                    });
+                });
+
+                renderConfiguration(jobConfiguration, pipeline.id);
+            }
 
             var groupBy = {};
 
@@ -91,7 +206,6 @@ function octane_job_configuration(target, progress, proxy) {
                 fieldSpan.text(field.listName + ": ");
                 fields.append(fieldSpan);
                 var fieldValueSelect = $("<select>");
-                var currentValue = [];
                 if (field.multiValue) {
                     fieldValueSelect.attr('multiple', 'multiple');
                 } else {
@@ -101,25 +215,10 @@ function octane_job_configuration(target, progress, proxy) {
                     var selected = field.values.some(function (value) {
                         return value.id === fieldValue.id;
                     });
-                    if (selected) {
-                        currentValue.push(fieldValue.id);
-                    }
                     fieldValueSelect.append(new Option(fieldValue.name, fieldValue.id, selected));
                 });
                 fields.append(fieldValueSelect);
-                dirty.push(function () {
-                    var options = fieldValueSelect.find("option:selected");
-                    if (options.length != currentValue.length) {
-                        return true;
-                    }
-                    var selectedValue = {};
-                    options.each(function (index, option) {
-                        selectedValue[option.value] = true;
-                    });
-                    return currentValue.some(function (item) {
-                        return !selectedValue[item];
-                    });
-                });
+                enableDirtySelectCheck(fieldValueSelect);
                 apply.push(function () {
                     field.values = [];
                     fieldValueSelect.find("option:selected").each(function (index, option) {
@@ -132,7 +231,7 @@ function octane_job_configuration(target, progress, proxy) {
                             });
                         } else {
                             field.values.push({
-                                id: option.value,
+                                id: Number(option.value),
                                 name: option.text
                             });
                         }
@@ -189,12 +288,10 @@ function octane_job_configuration(target, progress, proxy) {
                 container.append(tagSpan);
 
                 var remove = $("<input type='button' value='X'>");
+                enableDirtyButtonCheck(remove);
                 remove.click(function () {
                     var index = pipeline.taxonomyTags.indexOf(tag);
                     pipeline.taxonomyTags.splice(index, 1);
-                    dirty.push(function () {
-                        return true; // tag was removed
-                    });
                     tagSpan.remove();
                     remove.remove();
                     if (--group.count == 0) {
@@ -208,194 +305,144 @@ function octane_job_configuration(target, progress, proxy) {
                 container.append(remove);
             }
 
-            validators.length = 0;
-            apply.length = 0;
-            dirty.length = 0;
+            initialize();
+            renderPipelineMetadata(pipeline);
 
-            pipelineDiv.empty();
-            pipelineDiv.append("Pipeline: ");
-            if (pipeline.isRoot) {
-                var input = $("<input type='text' placeholder='Pipeline name'>");
-                input.attr("value", pipeline.name);
-                apply.push(function() {
-                    pipeline.name = input.val();
-                });
-                dirty.push(function () {
-                    return pipeline.name !== input.val();
-                });
-                addInputWithValidation(input, pipelineDiv, "Pipeline name must be specified");
-            } else {
-                pipelineDiv.append(pipeline.name);
-            }
+            pipelineDiv.append("Fields: ").append($("<br>"));
+            var fields = $("<div>");
+            pipelineDiv.append(fields);
+            pipeline.fieldTags.forEach(addField);
 
-            pipelineDiv.append($("<br>"));
+            pipelineDiv.append("Tags: ").append($("<br>"));
+            var tags = $("<div>");
+            pipelineDiv.append(tags);
+            pipeline.taxonomyTags.forEach(addTag);
 
-            if (pipeline.isRoot) {
-                pipelineDiv.append("Release: ");
-                var select = $("<select>");
-                for (var releaseId in jobConfiguration.releases) {
-                    select.append(new Option(jobConfiguration.releases[releaseId], releaseId, (pipeline.releaseId === releaseId)));
-                }
-                apply.push(function () {
-                    pipeline.releaseId = select.val();
-                });
-                dirty.push(function () {
-                    return pipeline.releaseId != select.val();
-                });
-                pipelineDiv.append(select).append($("<br>"));
-            }
-
-            var applyButton;
-            if (pipeline.id != null) {
-                pipelineDiv.append("Fields: ").append($("<br>"));
-                var fields = $("<div>");
-                pipelineDiv.append(fields);
-                pipeline.fieldTags.forEach(addField);
-
-                pipelineDiv.append("Tags: ").append($("<br>"));
-                var tags = $("<div>");
-                pipelineDiv.append(tags);
-                pipeline.taxonomyTags.forEach(addTag);
-
-                var selectDiv = $("<div>");
-                var addSelect = $("<select>");
-                var defaultOption = new Option("Add Tag...", "default", true);
-                $(defaultOption).prop('disabled', 'disabled');
-                addSelect.append(defaultOption);
-                jobConfiguration.taxonomies.forEach(function (tagType) {
-                    var group = $("<optgroup>");
-                    group.attr('label', tagType.tagTypeName);
-                    tagTypes[tagType.tagTypeId].values.forEach(function (tag) {
-                        group.append(new Option(tag.tagName, tag.tagId));
-                    });
-                    group.append(new Option("New value...", -tagType.tagTypeId));
-                    addSelect.append(group);
-                });
+            var selectDiv = $("<div>");
+            var addSelect = $("<select>");
+            var defaultOption = new Option("Add Tag...", "default", true);
+            $(defaultOption).prop('disabled', 'disabled');
+            addSelect.append(defaultOption);
+            jobConfiguration.taxonomies.forEach(function (tagType) {
                 var group = $("<optgroup>");
-                group.attr('label', "New type...");
-                group.append(new Option("New value...", 0));
+                group.attr('label', tagType.tagTypeName);
+                tagTypes[tagType.tagTypeId].values.forEach(function (tag) {
+                    group.append(new Option(tag.tagName, tag.tagId));
+                });
+                group.append(new Option("New value...", -tagType.tagTypeId));
                 addSelect.append(group);
-                var addedTag;
-                addSelect.change(function () {
-                    add.prop('disabled', false);
-                    var val = addSelect.val();
-                    if (val < 0) {
-                        var tagType = tagTypes[-val];
-                        addedTag = {
-                            tagTypeId: tagType.tagTypeId,
-                            tagTypeName: tagType.tagTypeName
-                        };
-                        tagTypeInput.val(tagType.tagTypeName);
-                        tagTypeInput.hide();
-                        tagTypeSpan.text(tagType.tagTypeName + ": ");
-                        tagTypeSpan.css('display', 'inline');
-                        tagInput.val("");
-                        tagInput.attr('placeholder', 'Tag');
-                        tagInput.css('display', 'inline');
-                    } else if (val == 0) {
-                        addedTag = {};
-                        tagTypeInput.val("");
-                        tagTypeInput.attr('placeholder', 'Tag Type');
-                        tagTypeInput.css('display', 'inline');
-                        tagTypeSpan.hide();
-                        tagInput.val("");
-                        tagInput.attr('placeholder', 'Tag');
-                        tagInput.css('display', 'inline');
-                    } else {
-                        addedTag = allTags[val];
-                        tagTypeInput.hide();
-                        tagTypeSpan.hide();
-                        tagInput.hide();
-                    }
-                    validationAreaTagType.empty();
-                    validationAreaTag.empty();
-                });
-                selectDiv.append(addSelect);
-                pipelineDiv.append(selectDiv);
-
-                pipeline.taxonomyTags.forEach(function (tag) {
-                    addSelect.find("option[value='"+tag.tagId+"']").prop('disabled', 'disabled');
-                });
-
-                var validationAreaTagType = $("<div class='validation-error-area'>");
-                var validationAreaTag = $("<div class='validation-error-area'>");
-
-                var tagTypeInput = $("<input type='text'>");
-                tagTypeInput.hide();
-                tagTypeInput.blur(validateInput(validationAreaTagType, newTagTypeValidation(tagTypeInput)));
-                selectDiv.append(tagTypeInput);
-                var tagTypeSpan = $("<span>");
-                tagTypeSpan.hide();
-                selectDiv.append(tagTypeSpan);
-                var tagInput = $("<input type='text'>");
-                tagInput.hide();
-                tagInput.blur(validateInput(validationAreaTag, newTagValidation(tagTypeInput, tagInput, pipeline.taxonomyTags)));
-                selectDiv.append(tagInput);
-
-                var add = $("<input type='button' value='Add'>");
-                add.prop('disabled', 'disabled');
-                add.click(function () {
-                    var validationOk = true;
-                    if (!addedTag.tagTypeId) {
-                        addedTag.tagTypeName = tagTypeInput.val();
-                        if (!validateInput(validationAreaTagType, newTagTypeValidation(tagTypeInput))()) {
-                            validationOk = false;
-                        }
-                    }
-                    if (!addedTag.tagId) {
-                        addedTag.tagName = tagInput.val();
-                        if (!validateInput(validationAreaTag, newTagValidation(tagTypeInput, tagInput, pipeline.taxonomyTags))()) {
-                            validationOk = false;
-                        }
-                    }
-                    if (!validationOk) {
-                        return;
-                    }
-                    pipeline.taxonomyTags.push(addedTag);
-                    addTag(addedTag);
-                    if (addedTag.tagId) {
-                        addSelect.find("option:selected").prop('disabled', 'disabled');
-                    }
-                    addedTag = undefined;
-                    dirty.push(function () {
-                        return true; // there is new tag
-                    });
-                    $(defaultOption).prop('selected', 'selected');
+            });
+            var group = $("<optgroup>");
+            group.attr('label', "New type...");
+            group.append(new Option("New value...", 0));
+            addSelect.append(group);
+            var addedTag;
+            addSelect.change(function () {
+                var val = addSelect.val();
+                if (val < 0) {
+                    var tagType = tagTypes[-val];
+                    addedTag = {
+                        tagTypeId: tagType.tagTypeId,
+                        tagTypeName: tagType.tagTypeName
+                    };
+                    tagTypeInput.val(tagType.tagTypeName);
+                    tagTypeInput.hide();
+                    tagTypeSpan.text(tagType.tagTypeName + ": ");
+                    tagTypeSpan.css('display', 'inline');
+                    tagInput.val("");
+                    tagInput.attr('placeholder', 'Tag');
+                    tagInput.css('display', 'inline');
+                    add.css('display', 'inline');
+                } else if (val == 0) {
+                    addedTag = {};
+                    tagTypeInput.val("");
+                    tagTypeInput.attr('placeholder', 'Tag Type');
+                    tagTypeInput.css('display', 'inline');
+                    tagTypeSpan.hide();
+                    tagInput.val("");
+                    tagInput.attr('placeholder', 'Tag');
+                    tagInput.css('display', 'inline');
+                    add.css('display', 'inline');
+                } else {
+                    addedTag = allTags[val];
                     tagTypeInput.hide();
                     tagTypeSpan.hide();
                     tagInput.hide();
-                });
-                selectDiv.append(add);
-
-                // put validation area bellow both input fields
-                selectDiv.append(validationAreaTagType);
-                selectDiv.append(validationAreaTag);
-
-                applyButton = $("<input type='button' value='Apply'>");
-            } else {
-                applyButton = $("<input type='button' value='Create'>");
-            }
-
-            applyButton.unbind('click').click(function() {
-                saveConfiguration(pipeline, saveFunc, saveCallback);
+                    add.hide();
+                    doAdd();
+                }
+                validationAreaTagType.empty();
+                validationAreaTag.empty();
             });
-            buttons.append(applyButton);
-            pipelineDiv.append(buttons);
+            selectDiv.append(addSelect);
+            pipelineDiv.append(selectDiv);
+
+            pipeline.taxonomyTags.forEach(function (tag) {
+                addSelect.find("option[value='"+tag.tagId+"']").prop('disabled', 'disabled');
+            });
+
+            var validationAreaTagType = $("<div class='validation-error-area'>");
+            var validationAreaTag = $("<div class='validation-error-area'>");
+
+            var tagTypeInput = $("<input type='text'>");
+            tagTypeInput.hide();
+            tagTypeInput.blur(validateInput(validationAreaTagType, newTagTypeValidation(tagTypeInput)));
+            selectDiv.append(tagTypeInput);
+            var tagTypeSpan = $("<span>");
+            tagTypeSpan.hide();
+            selectDiv.append(tagTypeSpan);
+            var tagInput = $("<input type='text'>");
+            tagInput.hide();
+            tagInput.blur(validateInput(validationAreaTag, newTagValidation(tagTypeInput, tagInput, pipeline.taxonomyTags)));
+            selectDiv.append(tagInput);
+
+            var add = $("<input type='button' value='Add'>");
+            add.hide();
+            var doAdd = function () {
+                var validationOk = true;
+                if (!addedTag.tagTypeId) {
+                    addedTag.tagTypeName = tagTypeInput.val();
+                    if (!validateInput(validationAreaTagType, newTagTypeValidation(tagTypeInput))()) {
+                        validationOk = false;
+                    }
+                }
+                if (!addedTag.tagId) {
+                    addedTag.tagName = tagInput.val();
+                    if (!validateInput(validationAreaTag, newTagValidation(tagTypeInput, tagInput, pipeline.taxonomyTags))()) {
+                        validationOk = false;
+                    }
+                }
+                if (!validationOk) {
+                    return;
+                }
+                pipeline.taxonomyTags.push(addedTag);
+                addTag(addedTag);
+                if (addedTag.tagId) {
+                    addSelect.find("option:selected").prop('disabled', 'disabled');
+                }
+                addedTag = undefined;
+                makeDirty();
+                $(defaultOption).prop('selected', 'selected');
+                tagTypeInput.hide();
+                tagTypeSpan.hide();
+                tagInput.hide();
+                add.hide();
+            };
+            add.click(doAdd);
+            enableDirtyButtonCheck(add);
+            selectDiv.append(add);
+
+            // put validation area bellow both input fields
+            selectDiv.append(validationAreaTagType);
+            selectDiv.append(validationAreaTag);
+
+            addApplyButton('Apply', pipeline, saveFunc, saveCallback);
         }
 
         var CONFIRMATION = "There are unsaved changes, if you continue they will be discarded. Continue?";
         var pipelineSelect;
-        var saveFunc, saveCallback;
 
         if (jobConfiguration.pipelines.length == 0) {
-            saveFunc = function (pipeline, callback) {
-                proxy.createPipelineOnServer(pipeline, callback);
-            };
-            saveCallback = function (pipeline, response) {
-                pipeline.id = response.id;
-                pipeline.fieldTags = response.fieldTags;
-                renderConfiguration(jobConfiguration, pipeline.id);
-            };
             var createPipelineDiv = $("<div>No pipeline is currently defined for this job<br/></div>");
             var createPipelineButton = $("<input type='button' value='Create Pipeline'>");
             createPipelineButton.click(function () {
@@ -407,45 +454,12 @@ function octane_job_configuration(target, progress, proxy) {
                     taxonomyTags: []
                 };
                 jobConfiguration.pipelines.push(pipeline);
-                renderPipeline(pipeline, saveFunc, saveCallback);
+
+                renderNewPipeline(pipeline);
             });
             createPipelineDiv.append(createPipelineButton);
             pipelineDiv.append(createPipelineDiv);
         } else {
-            saveFunc = function (pipeline, callback) {
-                proxy.updatePipelineOnSever(pipeline, callback);
-            };
-            saveCallback = function (pipeline, response) {
-                pipeline.taxonomyTags = response.taxonomyTags;
-                pipeline.fieldTags = response.fieldTags;
-
-                // merge newly created taxonomies with the existing ones in order to appear in drop-downs
-                pipeline.taxonomyTags.forEach(function (taxonomy) {
-                    var type = tagTypes[taxonomy.tagTypeId];
-                    if (!type) {
-                        type = {
-                            tagTypeId: taxonomy.tagTypeId,
-                            tagTypeName: taxonomy.tagTypeName,
-                            values: []
-                        };
-                        jobConfiguration.taxonomies.push(type);
-                        tagTypes[type.tagTypeId] = type;
-                    }
-                    var matchTag = function (tag) {
-                        return tag.tagId == taxonomy.tagId;
-                    };
-                    if (!type.values.some(matchTag)) {
-                        type.values.push({
-                            tagId: taxonomy.tagId,
-                            tagName: taxonomy.tagName
-                        });
-                    }
-                });
-
-                // TODO: janotav: merge newly created fields
-
-                renderConfiguration(jobConfiguration, pipeline.id);
-            };
             var selectedIndex = 0;
             if (jobConfiguration.pipelines.length > 1) {
                 pipelineSelect = $("<select>");
@@ -454,23 +468,23 @@ function octane_job_configuration(target, progress, proxy) {
                 });
                 var lastSelected = $(pipelineSelect).find("option:selected");
                 pipelineSelect.change(function () {
-                    if (dirtyFields()) {
+                    if (isDirty()) {
                         if (!window.confirm(CONFIRMATION)) {
                             lastSelected.attr("selected", true);
                             return;
                         }
                     }
                     lastSelected = $(pipelineSelect).find("option:selected");
-                    renderPipeline(jobConfiguration.pipelines[pipelineSelect[0].selectedIndex], saveFunc, saveCallback);
+                    renderExistingPipeline(jobConfiguration.pipelines[pipelineSelect[0].selectedIndex]);
                 });
                 result.prepend(pipelineSelect);
                 selectedIndex = pipelineSelect[0].selectedIndex;
             }
-            renderPipeline(jobConfiguration.pipelines[selectedIndex], saveFunc, saveCallback);
+            renderExistingPipeline(jobConfiguration.pipelines[selectedIndex]);
         }
 
         window.onbeforeunload = function() {
-            if (dirtyFields()) {
+            if (isDirty()) {
                 return CONFIRMATION;
             } else {
                 // keep original check just in case there is another dirty data (shouldn't be)
@@ -482,10 +496,28 @@ function octane_job_configuration(target, progress, proxy) {
             }
         };
 
-        function dirtyFields() {
-            return dirty.some(function (func) {
-                return func()
-            });
+        function makeDirty() {
+            dirtyFlag = true;
+        }
+
+        function clearDirty() {
+            dirtyFlag = false;
+        }
+
+        function isDirty() {
+            return dirtyFlag;
+        }
+
+        function enableDirtySelectCheck(select) {
+            select.on('change', makeDirty);
+        }
+
+        function enableDirtyInputCheck(input) {
+            input.on('input', makeDirty);
+        }
+
+        function enableDirtyButtonCheck(button) {
+            button.on('click', makeDirty);
         }
 
         function validateFields() {
@@ -663,6 +695,7 @@ function octane_job_configuration(target, progress, proxy) {
                     response.errors.forEach(validationError);
                 } else {
                     saveCallback(pipeline, response);
+                    clearDirty();
                 }
             });
         }

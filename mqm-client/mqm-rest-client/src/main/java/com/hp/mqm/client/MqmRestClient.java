@@ -1,5 +1,6 @@
 package com.hp.mqm.client;
 
+import com.hp.mqm.client.model.Field;
 import com.hp.mqm.client.model.ListItem;
 import com.hp.mqm.client.model.PagedList;
 import com.hp.mqm.client.model.JobConfiguration;
@@ -64,7 +65,7 @@ public interface MqmRestClient extends BaseMqmRestClient {
 
     void updatePipelineMetadata(int pipelineId, String pipelineName, int releaseId);
 
-    Pipeline updatePipelineTags(String serverIdentity, String jobName, int pipelineId, List<Taxonomy> taxonomies);
+    Pipeline updatePipelineTags(String serverIdentity, String jobName, int pipelineId, List<Taxonomy> taxonomies, List<Field> fields);
 
 	/**
 	 * Sends events list to MQM [PUT request].
