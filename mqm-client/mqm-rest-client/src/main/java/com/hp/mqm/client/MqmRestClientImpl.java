@@ -266,7 +266,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
             taxonomies.add(new Taxonomy(taxonomy.getInt("taxonomyId"),
                     taxonomy.getInt("taxonomyTypeId"),
                     taxonomy.getString("taxonomyValue"),
-                    taxonomy.getString("taxonomyType"))); // TODO: janotav: naming not symmetric
+                    taxonomy.getString("taxonomyType")));
         }
         List<Field> fields = new LinkedList<Field>();
         for (JSONObject field: getJSONObjectCollection(pipelineObject, "tags")) {
@@ -275,8 +275,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
         return new Pipeline(pipelineObject.getInt("pipelineId"),
                 pipelineObject.getString("pipelineName"),
                 pipelineObject.getInt("releaseId"),
-                // TODO: janotav: releaseName not defined
-                "Name of " + pipelineObject.getInt("releaseId"),
+                pipelineObject.getString("releaseName"),
                 pipelineObject.getString("rootJobName"),
                 taxonomies, fields);
     }
