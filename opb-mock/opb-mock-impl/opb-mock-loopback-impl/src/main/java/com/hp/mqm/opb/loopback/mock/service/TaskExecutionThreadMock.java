@@ -12,9 +12,9 @@ import com.hp.mqm.opb.loopback.mock.service.logging.ContextLoggersMockImpl;
 import com.hp.mqm.opb.service.api.callback.OpbResultCallbackStatus;
 import com.hp.mqm.opb.service.api.callback.TaskResponseCallback;
 import com.hp.mqm.opb.service.api.entities.OpbTask;
+import org.apache.commons.io.IOUtils;
 
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 
 /**
  * User: Gil Adjiashvili Date: 4/18/13
@@ -82,12 +82,16 @@ public class TaskExecutionThreadMock implements Runnable {
                 }
 
                 OpbDataService opbDataServiceMock = new OpbDataServiceMock();
+                String fileUuid = "";
                 if(task.getParameters() != null) {
                     byte[] data = task.getParameters().toString().getBytes();
-                    opbDataServiceMock.storeData(task, new ByteArrayInputStream(data)); //store anything in mock db or repository
+                    fileUuid = opbDataServiceMock.storeData(task, new ByteArrayInputStream(data)); //store anything in mock db or repository
                 }
                 taskResponseCallback.response(new OpbResultCallbackStatus(task.getId(), finishStatus, !haveFailed, taskResult),
                         new OpbDataInfoMockImpl(task, opbDataServiceMock), new ContextLoggersMockImpl());
+
+                IOUtils.closeQuietly(opbDataServiceMock.getDataContainer(task, fileUuid).getDataInputStream());
+
                 mockService.setTaskResult(new OpbTaskResultMockImpl(task.getId(), null, finishStatus, taskResult));
             } else {
                 mockService.setTaskResult(new OpbTaskResultMockImpl(task.getId(), null, TaskFinishStatus.FAILED.name(), taskResult));
