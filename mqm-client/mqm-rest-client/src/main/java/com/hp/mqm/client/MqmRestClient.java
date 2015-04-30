@@ -49,6 +49,15 @@ public interface MqmRestClient extends BaseMqmRestClient {
      */
     void postTestResult(File testResultReport);
 
+    /**
+     * Retrieve job configuration from MQM server. If given job doesn't participate in any pipeline, "empty"
+     * object is returned (never null).
+     *
+     * @param serverIdentity server identifier
+     * @param jobName job name
+     * @return job configuration
+     */
+
     // TODO: janotav: add javadoc
 
     JobConfiguration getJobConfiguration(String serverIdentity, String jobName);

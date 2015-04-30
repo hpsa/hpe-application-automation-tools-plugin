@@ -8,9 +8,11 @@ import com.hp.mqm.client.exception.LoginException;
 import com.hp.mqm.client.exception.RequestException;
 import com.hp.mqm.client.model.JobConfiguration;
 import com.hp.mqm.client.model.PagedList;
+import com.hp.mqm.client.model.Pipeline;
 import com.hp.mqm.client.model.Release;
 import com.hp.mqm.client.model.Taxonomy;
 import com.hp.mqm.client.model.TaxonomyType;
+import net.sf.json.JSONObject;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
@@ -27,7 +29,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
-import java.util.List;
+import java.util.UUID;
 
 import static org.junit.Assert.fail;
 
@@ -213,7 +215,7 @@ public class MqmRestClientImplTest {
         try {
             int status = client.execute(new HttpGet(uri), new ResponseHandler<Integer>() {
                 @Override
-                public Integer handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+                public Integer handleResponse(HttpResponse response) throws IOException {
                     return response.getStatusLine().getStatusCode();
                 }
             });
@@ -226,7 +228,7 @@ public class MqmRestClientImplTest {
         try {
             int status = invalidClient.execute(new HttpGet(uri), new ResponseHandler<Integer>() {
                 @Override
-                public Integer handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+                public Integer handleResponse(HttpResponse response) throws IOException {
                     return response.getStatusLine().getStatusCode();
                 }
             });
@@ -315,10 +317,47 @@ public class MqmRestClientImplTest {
     // TODO: janotav: write proper tests
 
     @Test
-    public void testGetJobConfiguration() {
+    public void testGetJobConfiguration() throws IOException {
+        String serverIdentity = UUID.randomUUID().toString();
+        long timestamp = System.currentTimeMillis();
+        String jobName = "Job" + timestamp;
+
         MqmRestClientImpl client = new MqmRestClientImpl(connectionConfig);
-        JobConfiguration jobConfiguration = client.getJobConfiguration("bf5dcb07-3d9c-4bf8-9521-fde3f73cda33", "foo");
-        System.out.println(jobConfiguration.getJobName());
+
+        // there should be no pipeline
+        JobConfiguration jobConfiguration = client.getJobConfiguration(serverIdentity, jobName);
+        Assert.assertNull(jobConfiguration.getJobId());
+        Assert.assertNull(jobConfiguration.getJobName());
+        Assert.assertFalse(jobConfiguration.isPipelineRoot());
+        Assert.assertTrue(jobConfiguration.getRelatedPipelines().isEmpty());
+        Assert.assertTrue(jobConfiguration.getFieldMetadata().isEmpty());
+
+        // create release and pipeline
+        TestSupportClient testSupportClient = new TestSupportClient(connectionConfig);
+        String releaseName = "Release" + timestamp;
+        Release release = testSupportClient.createRelease(releaseName);
+        String pipelineName = "Pipeline" + timestamp;
+        JSONObject  server = ResourceUtils.readJson("server.json");
+        server.put("instanceId", serverIdentity);
+        server.put("url", "http://localhost:8080/jenkins"+timestamp);
+        JSONObject structure = ResourceUtils.readJson("structure.json");
+        structure.put("name", jobName);
+        int pipelineId = client.createPipeline(pipelineName, release.getId(), structure.toString(), server.toString());
+        Assert.assertTrue(pipelineId > 0);
+
+        // verify job configuration
+        jobConfiguration = client.getJobConfiguration(serverIdentity, jobName);
+        Assert.assertNotNull(jobConfiguration.getJobId());
+        Assert.assertEquals(jobName, jobConfiguration.getJobName());
+        Assert.assertTrue(jobConfiguration.isPipelineRoot());
+        Assert.assertEquals(1, jobConfiguration.getRelatedPipelines().size());
+        Pipeline pipeline = jobConfiguration.getRelatedPipelines().get(0);
+        Assert.assertEquals(pipelineName, pipeline.getName());
+        Assert.assertEquals(releaseName, pipeline.getReleaseName());
+        Assert.assertEquals(jobName, pipeline.getRootJobName());
+        Assert.assertTrue(pipeline.getTaxonomies().isEmpty());
+        Assert.assertTrue(pipeline.getFields().isEmpty());
+        Assert.assertTrue(jobConfiguration.getFieldMetadata().size() > 0);
     }
 
     @Test
