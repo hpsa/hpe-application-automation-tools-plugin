@@ -14,5 +14,6 @@
     <modules>
         <module>opb-sample-domain</module>
         <module>opb-mock-loopback-impl</module>
+        <module>opb-sample-server</module>
     </modules>
 </project>

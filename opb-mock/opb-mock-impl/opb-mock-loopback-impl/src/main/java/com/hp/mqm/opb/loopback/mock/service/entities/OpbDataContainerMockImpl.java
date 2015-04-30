@@ -21,6 +21,7 @@ public class OpbDataContainerMockImpl implements OpbDataContainer {
         this.stream = stream;
         this.size = size;
     }
+
     @Override
     public long getDataSize() {
         return size;

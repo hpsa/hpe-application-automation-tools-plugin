@@ -1,9 +1,9 @@
 package service;
 
-import agent.SampleTaskExecutor;
 import callback.SampleIncomingDataCallback;
 import callback.SampleOutgoingDataCallback;
 import callback.SampleResponseCallback;
+import com.hp.mqm.opb.loopback.mock.ConstantsShared;
 import com.hp.mqm.opb.loopback.mock.OpbLoopbackContext;
 import com.hp.mqm.opb.loopback.mock.service.entities.OpbAgentMockImpl;
 import com.hp.mqm.opb.loopback.mock.service.entities.OpbEndpointMockImpl;
@@ -14,6 +14,7 @@ import com.hp.mqm.opb.service.api.OpbTaskConfiguration;
 import com.hp.mqm.opb.service.api.entities.OpbAgent;
 import com.hp.mqm.opb.service.api.entities.OpbEndpoint;
 import com.hp.mqm.opb.service.api.entities.OpbTask;
+import com.sun.xml.internal.bind.v2.runtime.reflect.opt.Const;
 
 
 import java.util.HashMap;
@@ -22,11 +23,7 @@ import java.util.Map;
 public class SampleService {
 
     private OpbLoopbackContext opbLoopbackContext;
-    public static final String CREDS_NAME = "myCreds";
-    public static final String CREDS_ID = "1";
-    final static Integer OPB_ENDPOINT_ID = 101;
-    final static Integer OPB_AGENT_ID = 201;
-    final static String OPB_AGENT_GUID = "1121-1113-2242-3533";
+
 
     OpbAgent agent;
     OpbEndpoint endPoint;
@@ -45,9 +42,9 @@ public class SampleService {
         // the opbLoopbackContext sets up the mocks
         opbLoopbackContext = OpbLoopbackContext.initContext();
         // optionally register credentials, they can be retrieved on the Agent side
-        opbLoopbackContext.registerCredentials(CREDS_ID, CREDS_NAME, "alm", "alm", null);
-        agent = new OpbAgentMockImpl(OPB_AGENT_ID, OPB_AGENT_GUID);
-        endPoint = new OpbEndpointMockImpl(OPB_ENDPOINT_ID, OPB_AGENT_ID);
+        opbLoopbackContext.registerCredentials(ConstantsShared.CREDS_ID, ConstantsShared.CREDS_NAME, "alm", "alm", null);
+        agent = new OpbAgentMockImpl(ConstantsShared.OPB_AGENT_ID, ConstantsShared.OPB_AGENT_GUID);
+        endPoint = new OpbEndpointMockImpl(ConstantsShared.OPB_ENDPOINT_ID, ConstantsShared.OPB_AGENT_ID);
         opbLoopbackContext.addEndPoint(endPoint);
     }
 
@@ -67,7 +64,7 @@ public class SampleService {
         OpbServiceApi opbService = getOpbService();
         //create task
         OpbTask task = opbService.getObjectFactory().createTask("Sync task", "Sync", endPoint.getId(), agent.getGuid(),
-                SampleTaskExecutor.class.getCanonicalName(), new OpbTaskConfiguration(
+                ConstantsShared.SAMPLE_TASK_EXECUTOR, new OpbTaskConfiguration(
                         TaskPriority.REGULAR,
                         1,
                         SampleIncomingDataCallback.class,

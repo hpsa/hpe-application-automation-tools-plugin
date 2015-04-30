@@ -2,7 +2,9 @@ package com.hp.mqm.opb.loopback.mock.service;
 import com.hp.mqm.opb.loopback.mock.service.entities.OpbDataContainerMockImpl;
 import com.hp.mqm.opb.loopback.mock.service.logging.ContextLoggersMockImpl;
 import com.hp.mqm.opb.service.api.callback.IncomingDataCallback;
+import com.hp.mqm.opb.service.api.callback.OpbDataContainer;
 import com.hp.mqm.opb.service.api.entities.OpbTask;
+import org.apache.commons.io.IOUtils;
 
 import java.io.ByteArrayInputStream;
 import java.util.Map;
@@ -51,8 +53,9 @@ public class IncomingDataThreadMock implements Runnable {
             throw new RuntimeException(e);
         }
 
-        incomingDataCallBackClass.dataInFromAgent(task.getId(), new OpbDataContainerMockImpl(parameters, data.length, new ByteArrayInputStream(data)) , new ContextLoggersMockImpl());
-
+        OpbDataContainer opbDataContainer = new OpbDataContainerMockImpl(parameters, data.length, new ByteArrayInputStream(data));
+        incomingDataCallBackClass.dataInFromAgent(task.getId(), opbDataContainer , new ContextLoggersMockImpl());
+        IOUtils.closeQuietly(opbDataContainer.getDataInputStream());
         // makes sure the callback is called AFTER all the send/get data threads exit, this is a guarantee
         // we give to Apps, that the callback will be called after all the send/gets are called
         mockService.joinAllPreviousThreads();

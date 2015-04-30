@@ -46,7 +46,7 @@ public class ExecutorAPIMockImpl implements ExecutorAPI {
 
     @Override
     public FutureSendResult sendData(TaskOutputData taskOutputData, Map<String, String> parameters, boolean persistent) throws TaskCancelledException {
-        return null;
+        return sendData(taskOutputData, parameters);
     }
 
     @Override
@@ -56,7 +56,7 @@ public class ExecutorAPIMockImpl implements ExecutorAPI {
 
     @Override
     public FutureSendResult sendData(TaskOutputData taskOutputData, boolean persistent) throws TaskCancelledException {
-        return null;
+        return sendData(taskOutputData, null);
     }
 
     @Override

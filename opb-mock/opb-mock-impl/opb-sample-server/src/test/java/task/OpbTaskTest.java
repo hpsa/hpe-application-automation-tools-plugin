@@ -1,4 +1,4 @@
-package sample.task;
+package task;
 
 import callback.SampleIncomingDataCallback;
 import callback.SampleOutgoingDataCallback;

@@ -13,6 +13,6 @@
     <packaging>pom</packaging>
     <modules>
         <module>opb-executor</module>
-        <module>opb-shared-api</module>
+        <module>opb-platform-shared</module>
     </modules>
 </project>

@@ -4,6 +4,7 @@ import com.hp.mqm.opb.TaskExecutionResult;
 import com.hp.mqm.opb.TaskFinishStatus;
 import com.hp.mqm.opb.domain.TaskExecutor;
 import com.hp.mqm.opb.domain.TaskMetadata;
+import com.hp.mqm.opb.loopback.mock.internal.OpbDataService;
 import com.hp.mqm.opb.loopback.mock.internal.OpbDataServiceMock;
 import com.hp.mqm.opb.loopback.mock.service.entities.OpbDataInfoMockImpl;
 import com.hp.mqm.opb.loopback.mock.service.entities.OpbTaskResultMockImpl;
@@ -11,6 +12,9 @@ import com.hp.mqm.opb.loopback.mock.service.logging.ContextLoggersMockImpl;
 import com.hp.mqm.opb.service.api.callback.OpbResultCallbackStatus;
 import com.hp.mqm.opb.service.api.callback.TaskResponseCallback;
 import com.hp.mqm.opb.service.api.entities.OpbTask;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 
 /**
  * User: Gil Adjiashvili Date: 4/18/13
@@ -76,8 +80,14 @@ public class TaskExecutionThreadMock implements Runnable {
                 if(TaskFinishStatus.FAILED.name().equalsIgnoreCase(result.getTaskFinishStatus().name())) {
                     haveFailed = true;
                 }
+
+                OpbDataService opbDataServiceMock = new OpbDataServiceMock();
+                if(task.getParameters() != null) {
+                    byte[] data = task.getParameters().toString().getBytes();
+                    opbDataServiceMock.storeData(task, new ByteArrayInputStream(data)); //store anything in mock db or repository
+                }
                 taskResponseCallback.response(new OpbResultCallbackStatus(task.getId(), finishStatus, !haveFailed, taskResult),
-                        new OpbDataInfoMockImpl(task, new OpbDataServiceMock()), new ContextLoggersMockImpl());
+                        new OpbDataInfoMockImpl(task, opbDataServiceMock), new ContextLoggersMockImpl());
                 mockService.setTaskResult(new OpbTaskResultMockImpl(task.getId(), null, finishStatus, taskResult));
             } else {
                 mockService.setTaskResult(new OpbTaskResultMockImpl(task.getId(), null, TaskFinishStatus.FAILED.name(), taskResult));

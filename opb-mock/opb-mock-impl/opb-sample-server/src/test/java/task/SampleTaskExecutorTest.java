@@ -1,5 +1,6 @@
-package sample.task;
+package task;
 
+import com.hp.mqm.opb.loopback.mock.ConstantsShared;
 import com.hp.mqm.opb.ExecutorAPI;
 import com.hp.mqm.opb.TaskExecutionResult;
 import com.hp.mqm.opb.TaskFinishStatus;
@@ -60,6 +61,7 @@ public class SampleTaskExecutorTest implements TaskExecutor {
         AgentLogger logger = new AgentLoggerMockImpl();
         Map<String, String> params = new HashMap<>();
         params.put(TASK_PARAMS_KEY, TASK_PARAMS_VALUE);
+        params.put(ConstantsShared.DATA_OUT_PARAMS, DATA_OUT_VALUE);
         try {
             executorAPI.sendData(executorAPI.getFactory().createTaskOutputData(DATA_IN_VALUE.getBytes(Charset.forName("UTF-8"))), params);
             // report progress

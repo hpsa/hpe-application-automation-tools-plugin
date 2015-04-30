@@ -9,8 +9,8 @@ import com.hp.mqm.opb.api.TaskInputId;
 import com.hp.mqm.opb.api.TaskOutputData;
 import com.hp.mqm.opb.domain.TaskExecutor;
 import com.hp.mqm.opb.domain.TaskMetadata;
+import com.hp.mqm.opb.loopback.mock.ConstantsShared;
 import com.hp.mqm.opb.service.logging.ContextLoggers;
-import service.SampleService;
 
 import java.nio.charset.Charset;
 import java.util.HashMap;
@@ -27,13 +27,13 @@ public class SampleTaskExecutor implements TaskExecutor {
         Map<String, String> parameters = new HashMap<>();
         parameters.put("key1", "val1");
         parameters.put("key2", "val2");
-        parameters.put("RandRange", "40");
+        parameters.put(ConstantsShared.RAND_PARAM, "40");
 
         try {
 
             // Get credentials, same ones that were created during setup
             System.out.println("AGENT: Get Credentials");
-            EndpointCredentials credentials = executorAPI.getCredentials(SampleService.CREDS_NAME);
+            EndpointCredentials credentials = executorAPI.getCredentials(ConstantsShared.CREDS_NAME);
             System.out.println("AGENT: Got credentials: " + " Id: " + credentials.getId() + " Name: " + credentials.getName());
 
             executorAPI.reportTaskProgress(executorAPI.getFactory().createTaskProgress(

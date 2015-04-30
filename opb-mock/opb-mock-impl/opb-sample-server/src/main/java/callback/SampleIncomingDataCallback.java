@@ -24,8 +24,7 @@ public class SampleIncomingDataCallback implements IncomingDataCallback {
             callbackLoggers.getDetailedLogger().info("Sample Incoming Data Callback, got data: " + IOUtils.toString(dataContainer.getDataInputStream()));
         } catch (IOException e) {
             e.printStackTrace();
-        } finally {
-            IOUtils.closeQuietly(dataContainer.getDataInputStream());
+            throw new RuntimeException(e);
         }
     }
 }
