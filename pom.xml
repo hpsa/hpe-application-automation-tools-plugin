@@ -69,11 +69,6 @@
 			<name>Snapshot repository</name>
 			<url>${baseNexusURL}/content/repositories/mqm-snapshots</url>
 		</snapshotRepository>
-		<snapshotRepository>
-			<id>mqm-prod</id>
-			<name>Prod repository</name>
-			<url>${baseNexusURL}/content/repositories/mqm-prod</url>
-		</snapshotRepository>
 	</distributionManagement>
 
 	<repositories>
