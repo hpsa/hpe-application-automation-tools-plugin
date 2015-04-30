@@ -1,9 +1,10 @@
-package sample;
+package service;
 
+import agent.SampleTaskExecutor;
+import callback.SampleIncomingDataCallback;
+import callback.SampleOutgoingDataCallback;
+import callback.SampleResponseCallback;
 import com.hp.mqm.opb.loopback.mock.OpbLoopbackContext;
-import com.hp.mqm.opb.loopback.mock.callback.SampleIncomingDataCallback;
-import com.hp.mqm.opb.loopback.mock.callback.SampleOutgoingDataCallback;
-import com.hp.mqm.opb.loopback.mock.callback.SampleResponseCallback;
 import com.hp.mqm.opb.loopback.mock.service.entities.OpbAgentMockImpl;
 import com.hp.mqm.opb.loopback.mock.service.entities.OpbEndpointMockImpl;
 import com.hp.mqm.opb.service.TaskPriority;
@@ -13,6 +14,7 @@ import com.hp.mqm.opb.service.api.OpbTaskConfiguration;
 import com.hp.mqm.opb.service.api.entities.OpbAgent;
 import com.hp.mqm.opb.service.api.entities.OpbEndpoint;
 import com.hp.mqm.opb.service.api.entities.OpbTask;
+
 
 import java.util.HashMap;
 import java.util.Map;

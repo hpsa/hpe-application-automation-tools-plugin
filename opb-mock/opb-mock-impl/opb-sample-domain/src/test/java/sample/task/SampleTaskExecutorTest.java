@@ -1,4 +1,4 @@
-package sample;
+package sample.task;
 
 import com.hp.mqm.opb.ExecutorAPI;
 import com.hp.mqm.opb.TaskExecutionResult;
@@ -20,7 +20,7 @@ import java.util.Properties;
  *
  */
 
-public class SampleSuccessTaskExecutor implements TaskExecutor {
+public class SampleTaskExecutorTest implements TaskExecutor {
     private final static String TASK_NAME = "getALMDomains";
     private final static String TASK_DESCRIPTION = "getting ALM domains task";
 

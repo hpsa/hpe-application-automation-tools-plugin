@@ -1,10 +1,9 @@
-package sample;
+package sample.task;
 
-import com.hp.mqm.opb.TaskFinishStatus;
+import callback.SampleIncomingDataCallback;
+import callback.SampleOutgoingDataCallback;
+import callback.SampleResponseCallback;
 import com.hp.mqm.opb.loopback.mock.OpbLoopbackContext;
-import com.hp.mqm.opb.loopback.mock.callback.SampleIncomingDataCallback;
-import com.hp.mqm.opb.loopback.mock.callback.SampleOutgoingDataCallback;
-import com.hp.mqm.opb.loopback.mock.callback.SampleResponseCallback;
 import com.hp.mqm.opb.loopback.mock.service.entities.OpbAgentMockImpl;
 import com.hp.mqm.opb.loopback.mock.service.entities.OpbEndpointMockImpl;
 import com.hp.mqm.opb.service.TaskPriority;
@@ -78,7 +77,7 @@ public class OpbTaskTest {
         // create task
         OpbServiceApi opbService = getOpbService();
         OpbTask task = opbService.getObjectFactory().createTask(TASK_DESCRIPTION, TASK_NAME, opbEndpoint.getId(), agent.getGuid(),
-                SampleSuccessTaskExecutor.class.getCanonicalName(), new OpbTaskConfiguration(
+                SampleTaskExecutorTest.class.getCanonicalName(), new OpbTaskConfiguration(
                         TaskPriority.REGULAR,
                         1,
                         SampleIncomingDataCallback.class,
@@ -102,7 +101,7 @@ public class OpbTaskTest {
         OpbServiceApi opbService = getOpbService();
 
         OpbTask task = opbService.getObjectFactory().createTask(TASK_DESCRIPTION, TASK_NAME, opbEndpoint.getId(), agent.getGuid(),
-                SampleSuccessTaskExecutor.class.getCanonicalName(), new OpbTaskConfiguration(
+                SampleTaskExecutorTest.class.getCanonicalName(), new OpbTaskConfiguration(
                         TaskPriority.REGULAR,
                         1,
                         SampleIncomingDataCallback.class,

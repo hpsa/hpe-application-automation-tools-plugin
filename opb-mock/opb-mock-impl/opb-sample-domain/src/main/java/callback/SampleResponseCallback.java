@@ -1,4 +1,4 @@
-package com.hp.mqm.opb.loopback.mock.callback;
+package callback;
 
 import com.hp.mqm.opb.service.api.callback.OpbDataInfo;
 import com.hp.mqm.opb.service.api.callback.OpbResultCallbackStatus;

@@ -7,7 +7,7 @@ import com.hp.mqm.opb.domain.TaskExecutor;
 import com.hp.mqm.opb.domain.TaskMetadata;
 import com.hp.mqm.opb.loopback.mock.agent.ExecutorAPIMockImpl;
 import com.hp.mqm.opb.loopback.mock.agent.TaskMetadataMockImpl;
-import com.hp.mqm.opb.loopback.mock.callback.SampleOutgoingDataCallback;
+import com.hp.mqm.opb.service.api.callback.OutgoingDataCallback;
 import com.hp.mqm.opb.loopback.mock.service.entities.FutureSendResultMockImpl;
 import com.hp.mqm.opb.loopback.mock.service.entities.OpbObjectFactoryMockImpl;
 import com.hp.mqm.opb.loopback.mock.service.logging.ContextLoggersMock;
@@ -220,9 +220,9 @@ public class OpbIntegrationServiceMockImpl implements OpbServiceApi {
         if(task.getOutgoingBackendPoint() == null) {
             return null;
         }
-        SampleOutgoingDataCallback sampleOutgoingDataCallback;
+        OutgoingDataCallback sampleOutgoingDataCallback;
         try {
-            sampleOutgoingDataCallback = (SampleOutgoingDataCallback) Class.forName(task.getOutgoingBackendPoint()).newInstance();
+            sampleOutgoingDataCallback = (OutgoingDataCallback) Class.forName(task.getOutgoingBackendPoint()).newInstance();
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
             e.printStackTrace();
             throw new RuntimeException(e);

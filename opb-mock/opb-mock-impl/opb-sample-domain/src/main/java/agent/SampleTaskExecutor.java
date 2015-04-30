@@ -1,4 +1,4 @@
-package sample;
+package agent;
 
 import com.hp.mqm.opb.ExecutorAPI;
 import com.hp.mqm.opb.TaskExecutionResult;
@@ -10,6 +10,7 @@ import com.hp.mqm.opb.api.TaskOutputData;
 import com.hp.mqm.opb.domain.TaskExecutor;
 import com.hp.mqm.opb.domain.TaskMetadata;
 import com.hp.mqm.opb.service.logging.ContextLoggers;
+import service.SampleService;
 
 import java.nio.charset.Charset;
 import java.util.HashMap;
