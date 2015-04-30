@@ -9,7 +9,7 @@ import com.hp.mqm.opb.service.logging.ContextUserLogger;
  * Created by ginni on 21/04/2015.
  *
  */
-public class ContextLoggersMock implements ContextLoggers {
+public class ContextLoggersMockImpl implements ContextLoggers {
     ContextDetailedLogger contextDetailedLogger = new MockContextDetailedLogger();
     ContextUserLogger contextUserLogger = new MockContextUserLogger();
 

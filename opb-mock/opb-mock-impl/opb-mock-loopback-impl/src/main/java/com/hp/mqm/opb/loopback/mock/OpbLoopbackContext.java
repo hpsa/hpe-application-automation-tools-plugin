@@ -2,7 +2,7 @@ package com.hp.mqm.opb.loopback.mock;
 
 import com.hp.mqm.opb.api.EndpointCredentials;
 import com.hp.mqm.opb.loopback.mock.agent.ExecutorAPIMockImpl;
-import com.hp.mqm.opb.loopback.mock.service.OpbIntegrationServiceMockImpl;
+import com.hp.mqm.opb.loopback.mock.service.OpbServiceMockImpl;
 import com.hp.mqm.opb.service.api.OpbServiceApi;
 import com.hp.mqm.opb.service.api.entities.OpbEndpoint;
 
@@ -21,7 +21,7 @@ public class OpbLoopbackContext {
     private long outgoingDataDelayIntervalMillis = DEFAULT_DELAY_MILLIS;
 
     private Map<String, EndpointCredentials> credentials;
-    private OpbIntegrationServiceMockImpl opbService;
+    private OpbServiceMockImpl opbService;
 
     public static OpbLoopbackContext initContext() {
         return new OpbLoopbackContext();
@@ -64,7 +64,7 @@ public class OpbLoopbackContext {
 
     public OpbServiceApi getOpbService() {
         ExecutorAPIMockImpl executorAPI = new ExecutorAPIMockImpl();
-        opbService = new OpbIntegrationServiceMockImpl(executorAPI,
+        opbService = new OpbServiceMockImpl(executorAPI,
                 endPointMap, executeTaskDelayIntervalMillis, incomingDataDelayIntervalMillis, outgoingDataDelayIntervalMillis);
         executorAPI.setIntegrationService(opbService);
         executorAPI.setCredentials(credentials);

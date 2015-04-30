@@ -9,8 +9,7 @@ import com.hp.mqm.opb.loopback.mock.agent.ExecutorAPIMockImpl;
 import com.hp.mqm.opb.loopback.mock.agent.TaskMetadataMockImpl;
 import com.hp.mqm.opb.service.api.callback.OutgoingDataCallback;
 import com.hp.mqm.opb.loopback.mock.service.entities.FutureSendResultMockImpl;
-import com.hp.mqm.opb.loopback.mock.service.entities.OpbObjectFactoryMockImpl;
-import com.hp.mqm.opb.loopback.mock.service.logging.ContextLoggersMock;
+import com.hp.mqm.opb.loopback.mock.service.logging.ContextLoggersMockImpl;
 import com.hp.mqm.opb.service.FailedResult;
 import com.hp.mqm.opb.service.TaskResult;
 import com.hp.mqm.opb.service.TaskResultStatus;
@@ -32,7 +31,7 @@ import java.util.*;
  * User: Gil Adjiashvili
  * Date: 4/10/13
  */
-public class OpbIntegrationServiceMockImpl implements OpbServiceApi {
+public class OpbServiceMockImpl implements OpbServiceApi {
 
     private final ExecutorAPIMockImpl executionApi;
 
@@ -48,11 +47,11 @@ public class OpbIntegrationServiceMockImpl implements OpbServiceApi {
     private List<Thread> dataInThreads;
     private Thread executionThread;
 
-    public OpbIntegrationServiceMockImpl(ExecutorAPIMockImpl executionApi,
-                                         Map<Integer, OpbEndpoint> endpointMap,
-                                         long executeSleepIntervalMillis,
-                                         long sendDataSleepIntervalMillis,
-                                         long getDataSleepIntervalMillis) {
+    public OpbServiceMockImpl(ExecutorAPIMockImpl executionApi,
+                              Map<Integer, OpbEndpoint> endpointMap,
+                              long executeSleepIntervalMillis,
+                              long sendDataSleepIntervalMillis,
+                              long getDataSleepIntervalMillis) {
         this.executionApi = executionApi;
         this.endpointMap = endpointMap;
         this.executeSleepIntervalMillis = executeSleepIntervalMillis;
@@ -228,7 +227,7 @@ public class OpbIntegrationServiceMockImpl implements OpbServiceApi {
             throw new RuntimeException(e);
         }
 
-        OpbDataContainer dataContainer = sampleOutgoingDataCallback.dataOutToAgent(task.getId(), parameters, new ContextLoggersMock());
+        OpbDataContainer dataContainer = sampleOutgoingDataCallback.dataOutToAgent(task.getId(), parameters, new ContextLoggersMockImpl());
         // check that the data sent is not too big
         if (dataContainer.getDataSize() > SizeLimitationsUtils.MAX_SIZE_OF_GET_DATA) {
             throw new RuntimeException("Size of get data at one time cannot exceed: " + SizeLimitationsUtils.MAX_SIZE_OF_GET_DATA + " bytes.");

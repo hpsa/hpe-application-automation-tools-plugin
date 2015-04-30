@@ -6,7 +6,7 @@ import com.hp.mqm.opb.TaskFinishStatus;
 import com.hp.mqm.opb.api.*;
 import com.hp.mqm.opb.domain.TaskExecutor;
 import com.hp.mqm.opb.domain.TaskMetadata;
-import com.hp.mqm.opb.loopback.mock.service.entities.AgentLoggerMockImpl;
+import com.hp.mqm.opb.loopback.mock.service.logging.AgentLoggerMockImpl;
 import com.hp.mqm.opb.service.logging.ContextLoggers;
 import org.junit.Assert;
 

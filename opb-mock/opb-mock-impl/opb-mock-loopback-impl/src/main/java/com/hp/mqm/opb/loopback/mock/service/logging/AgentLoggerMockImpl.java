@@ -1,4 +1,4 @@
-package com.hp.mqm.opb.loopback.mock.service.entities;
+package com.hp.mqm.opb.loopback.mock.service.logging;
 
 import com.hp.mqm.opb.api.AgentLogger;
 

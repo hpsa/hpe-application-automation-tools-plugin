@@ -4,7 +4,6 @@ import com.hp.mqm.opb.service.FailedResult;
 import com.hp.mqm.opb.service.TaskResult;
 import com.hp.mqm.opb.service.api.entities.OpbEndpointType;
 import com.hp.mqm.opb.service.api.entities.OpbTask;
-import com.hp.mqm.opb.service.api.entities.OpbTaskProgress;
 import com.hp.mqm.opb.service.api.scheduler.OpbTaskSchedulerAPI;
 
 import java.util.List;
@@ -81,19 +80,6 @@ public interface OpbServiceApi {
      * @param percentage
      */
     void updateTaskProgress(int taskId, String status, String description, int percentage);
-
-    /**
-     * Get task progresses by task ID
-     * 
-     * @param taskId
-     *            task id
-     * @param pageSize
-     *            page size
-     * @param startIndex
-     *            start index
-     * @return {@link PageResult<OpbTaskProgress>}
-     */
-   // PageResult<OpbTaskProgress> getTaskProgresses(int taskId, int pageSize, int startIndex);
 
     /**
      * Mark an opb task is cancelled.

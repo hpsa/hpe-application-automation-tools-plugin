@@ -1,5 +1,6 @@
-package com.hp.mqm.opb.loopback.mock.service.entities;
+package com.hp.mqm.opb.loopback.mock.service;
 
+import com.hp.mqm.opb.loopback.mock.service.entities.OpbTaskMockImpl;
 import com.hp.mqm.opb.service.api.OpbObjectFactory;
 import com.hp.mqm.opb.service.api.OpbTaskConfiguration;
 import com.hp.mqm.opb.service.api.callback.OpbDataContainer;

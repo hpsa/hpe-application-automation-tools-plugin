@@ -5,7 +5,7 @@ import com.hp.mqm.opb.ExecutorApiFactory;
 import com.hp.mqm.opb.ExecutorException;
 import com.hp.mqm.opb.FutureSendResult;
 import com.hp.mqm.opb.api.*;
-import com.hp.mqm.opb.loopback.mock.service.OpbIntegrationServiceMockImpl;
+import com.hp.mqm.opb.loopback.mock.service.OpbServiceMockImpl;
 import com.hp.mqm.opb.loopback.mock.service.entities.FutureSendResultMockImpl;
 import com.hp.mqm.opb.service.api.entities.OpbTask;
 import com.hp.mqm.opb.service.utils.SizeLimitationsUtils;
@@ -23,7 +23,7 @@ import java.util.UUID;
  */
 public class ExecutorAPIMockImpl implements ExecutorAPI {
 
-    private OpbIntegrationServiceMockImpl integrationService;
+    private OpbServiceMockImpl integrationService;
     private OpbTask myTask;
     private Map<String, EndpointCredentials> credentials;
     private Map<String, Map<String, String>> savedGetDataParams;
@@ -40,7 +40,7 @@ public class ExecutorAPIMockImpl implements ExecutorAPI {
         return myTask;
     }
 
-    public void setIntegrationService(OpbIntegrationServiceMockImpl integrationService) {
+    public void setIntegrationService(OpbServiceMockImpl integrationService) {
         this.integrationService = integrationService;
     }
 

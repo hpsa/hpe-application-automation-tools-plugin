@@ -7,7 +7,7 @@ import com.hp.mqm.opb.domain.TaskMetadata;
 import com.hp.mqm.opb.loopback.mock.internal.OpbDataServiceMock;
 import com.hp.mqm.opb.loopback.mock.service.entities.OpbDataInfoMockImpl;
 import com.hp.mqm.opb.loopback.mock.service.entities.OpbTaskResultMockImpl;
-import com.hp.mqm.opb.loopback.mock.service.logging.ContextLoggersMock;
+import com.hp.mqm.opb.loopback.mock.service.logging.ContextLoggersMockImpl;
 import com.hp.mqm.opb.service.api.callback.OpbResultCallbackStatus;
 import com.hp.mqm.opb.service.api.callback.TaskResponseCallback;
 import com.hp.mqm.opb.service.api.entities.OpbTask;
@@ -17,13 +17,13 @@ import com.hp.mqm.opb.service.api.entities.OpbTask;
  */
 public class TaskExecutionThreadMock implements Runnable {
 
-    private OpbIntegrationServiceMockImpl mockService;
+    private OpbServiceMockImpl mockService;
     private OpbTask task;
     private TaskMetadata metadata;
     private TaskExecutor executor;
 
     TaskExecutionThreadMock(
-            OpbIntegrationServiceMockImpl mockService,
+            OpbServiceMockImpl mockService,
             OpbTask task,
             TaskMetadata metadata,
             TaskExecutor executor) {
@@ -77,7 +77,7 @@ public class TaskExecutionThreadMock implements Runnable {
                     haveFailed = true;
                 }
                 taskResponseCallback.response(new OpbResultCallbackStatus(task.getId(), finishStatus, !haveFailed, taskResult),
-                        new OpbDataInfoMockImpl(task, new OpbDataServiceMock()), new ContextLoggersMock());
+                        new OpbDataInfoMockImpl(task, new OpbDataServiceMock()), new ContextLoggersMockImpl());
                 mockService.setTaskResult(new OpbTaskResultMockImpl(task.getId(), null, finishStatus, taskResult));
             } else {
                 mockService.setTaskResult(new OpbTaskResultMockImpl(task.getId(), null, TaskFinishStatus.FAILED.name(), taskResult));
