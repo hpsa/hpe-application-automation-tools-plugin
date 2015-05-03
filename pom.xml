@@ -20,7 +20,7 @@
 	<modules>
 		<module>jenkins</module>
 		<module>mqm-client</module>
-		<module>opb-mock</module>
+		<!--<module>opb-mock</module>-->
 	</modules>
 	<build>
 		<plugins>
