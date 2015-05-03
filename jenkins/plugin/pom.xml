@@ -153,6 +153,18 @@
                     </execution>
                 </executions>
             </plugin>
+			<plugin>
+				<groupId>org.sonatype.plugins</groupId>
+				<artifactId>nexus-staging-maven-plugin</artifactId>
+				<version>1.5.1</version>
+				<extensions>true</extensions>
+				<configuration>
+					<serverId>stage-indi</serverId>
+					<stagingProfileId>3f945a89b73e3c</stagingProfileId>
+					<buildPromotionProfileId>fccb50be7d1a</buildPromotionProfileId>
+					<nexusUrl>${baseNexusURL}/</nexusUrl>
+				</configuration>
+			</plugin>
         </plugins>
     </build>
 	
