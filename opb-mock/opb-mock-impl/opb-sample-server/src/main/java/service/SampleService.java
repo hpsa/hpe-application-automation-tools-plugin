@@ -14,7 +14,6 @@ import com.hp.mqm.opb.service.api.OpbTaskConfiguration;
 import com.hp.mqm.opb.service.api.entities.OpbAgent;
 import com.hp.mqm.opb.service.api.entities.OpbEndpoint;
 import com.hp.mqm.opb.service.api.entities.OpbTask;
-import com.sun.xml.internal.bind.v2.runtime.reflect.opt.Const;
 
 
 import java.util.HashMap;
