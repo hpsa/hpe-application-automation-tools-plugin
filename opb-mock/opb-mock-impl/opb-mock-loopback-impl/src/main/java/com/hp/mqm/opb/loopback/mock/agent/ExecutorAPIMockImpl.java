@@ -80,7 +80,7 @@ public class ExecutorAPIMockImpl implements ExecutorAPI {
 
     @Override
     public TaskInputId prepareData() {
-        return prepareData(new HashMap<>());
+        return prepareData(new HashMap<String, String>());
     }
 
     @Override

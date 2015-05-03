@@ -64,6 +64,7 @@ public class OpbTaskTest {
         opbEndpoint.setName("ALM");
         opbEndpoint.setCredentialsId(credentialsId);
         opbEndpoint.setDescription("Description");
+        opbEndpoint.setAgentId(agentId);
         return opbEndpoint;
     }
 

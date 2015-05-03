@@ -39,7 +39,7 @@ public class SampleTaskExecutor implements TaskExecutor {
             executorAPI.reportTaskProgress(executorAPI.getFactory().createTaskProgress(
                     "Report task progress: begin processing",
                     20,
-                    new HashMap<>()));
+                    new HashMap<String, String>()));
             // Get data - synchronous
             TaskInputId id = executorAPI.prepareData(parameters);
             System.out.println("AGENT: Get Prepared Data");
@@ -72,7 +72,7 @@ public class SampleTaskExecutor implements TaskExecutor {
             executorAPI.reportTaskProgress(executorAPI.getFactory().createTaskProgress(
                     "Report task progress: after send output ",
                     80,
-                    new HashMap<>()));
+                    new HashMap<String, String>()));
 
 
             // the result string will be returned in the result callback in case it was specified (probably some JSON, domain code specific)
