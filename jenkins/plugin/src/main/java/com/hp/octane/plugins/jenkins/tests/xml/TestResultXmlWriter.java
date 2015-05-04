@@ -39,7 +39,7 @@ public class TestResultXmlWriter {
             writer.writeAttribute("class", item.getClassName());
             writer.writeAttribute("name", item.getTestName());
             writer.writeAttribute("duration", String.valueOf(item.getDuration()));
-            writer.writeAttribute("status", item.getResult().name());
+            writer.writeAttribute("status", item.getResult().toPrettyName());
             writer.writeEndElement();
         }
     }

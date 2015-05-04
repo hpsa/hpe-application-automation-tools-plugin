@@ -44,7 +44,7 @@ public class TestResultIterator implements Iterator<TestResult> {
                             String className = element.getAttributeByName(new QName("class")).getValue();
                             String testName  = element.getAttributeByName(new QName("name")).getValue();
                             long duration = Long.valueOf(element.getAttributeByName(new QName("duration")).getValue());
-                            TestResultStatus status = TestResultStatus.valueOf(element.getAttributeByName(new QName("status")).getValue());
+                            TestResultStatus status = TestResultStatus.fromPrettyName(element.getAttributeByName(new QName("status")).getValue());
                             items.add(new TestResult(moduleName, packageName, className, testName, status, duration));
                         }
                     }

@@ -133,6 +133,6 @@ public class JUnitResultsTest {
     }
 
     private static String test(String moduleName, String packageName, String className, String testName, TestResultStatus status) {
-        return moduleName + "#" + packageName + "#" + className + "#" + testName + "#" + status.name() + "#";
+        return moduleName + "#" + packageName + "#" + className + "#" + testName + "#" + status.toPrettyName() + "#";
     }
 }
