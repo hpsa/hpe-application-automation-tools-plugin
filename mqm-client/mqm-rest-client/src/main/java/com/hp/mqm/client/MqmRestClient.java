@@ -57,24 +57,104 @@ public interface MqmRestClient extends BaseMqmRestClient {
      * @param jobName job name
      * @return job configuration
      */
-
-    // TODO: janotav: add javadoc
-
     JobConfiguration getJobConfiguration(String serverIdentity, String jobName);
 
-    PagedList<Release> queryReleases(String name, int offset, int limit);
-
-    PagedList<Taxonomy> queryTaxonomies(Integer taxonomyTypeId, String name, int offset, int limit);
-
-    PagedList<TaxonomyType> queryTaxonomyTypes(String name, int offset, int limit);
-
-    PagedList<ListItem> queryListItems(int listId, String name, int offset, int limit);
-
+    /**
+     * Create pipeline on the MQM server.
+     *
+     * @param pipelineName name of the pipeline
+     * @param releaseId release the pipeline will belong to
+     * @param structureJson pipeline descriptor (structure defined by Jenkins Insight)
+     * @param serverJson server descriptor (structure defined by Jenkins Insight)
+     * @return created pipeline id
+     */
     int createPipeline(String pipelineName, int releaseId, String structureJson, String serverJson);
 
-    void updatePipelineMetadata(int pipelineId, String pipelineName, int releaseId);
+    /**
+     * Update pipeline metadata on the MQM server.
+     * <p>
+     *
+     * Either <code>pipelineName</code> or <code>releaseId</code> can be null. In that case, the value isn't updated.
+     * <p>
+     *
+     * @param pipelineId pipeline ID
+     * @param pipelineName new pipeline name (can be null)
+     * @param releaseId new release ID (can be null)
+     */
+    void updatePipelineMetadata(int pipelineId, String pipelineName, Integer releaseId);
 
+    /**
+     * Update tags associated with the pipeline. Both "taxonomy" and "field" tags are updated.
+     * <p>
+     *
+     * Tags specified with this call replace any existing tags currently specified for given pipeline. Both taxonomy and
+     * field tags can have null IDs, in which case they are first created on the server and then associated to the
+     * pipeline.
+     * <p>
+     *
+     * @param serverIdentity identity of the server
+     * @param jobName name of the job
+     * @param pipelineId pipeline ID
+     * @param taxonomies list of "taxonomy" tags associated with the pipeline
+     * @param fields list of "fields" tags associated with the pipeline
+     * @return pipeline structure
+     */
     Pipeline updatePipelineTags(String serverIdentity, String jobName, int pipelineId, List<Taxonomy> taxonomies, List<Field> fields);
+
+    /**
+     * Query releases matching given name filter (using contains semantics).
+     * <p>
+     *
+     * If <code>name</code> is not specified or empty, all releases are returned.
+     * <p>
+     *
+     * @param name release name filter (can be null or empty)
+     * @param offset paging offset
+     * @param limit paging limit
+     * @return releases matching given name
+     */
+    PagedList<Release> queryReleases(String name, int offset, int limit);
+
+    /**
+     * Query taxonomies matching given name filter (using contains semantics) and taxonomy type.
+     * <p>
+     *
+     * If <code>name</code> is not specified or empty, all taxonomies are considered.
+     *
+     * If <code>taxonomyTypeId</code> is specified, only taxonomies of given type are considered.
+     *
+     * @param taxonomyTypeId taxonomy type (can be null)
+     * @param name taxonomy name filter (can be null or empty)
+     * @param offset paging offset
+     * @param limit paging limit
+     * @return taxonomies matching given name and type
+     */
+    PagedList<Taxonomy> queryTaxonomies(Integer taxonomyTypeId, String name, int offset, int limit);
+
+    /**
+     * Query taxonomy types matching given name filter (using contains semantics).
+     *
+     * If <code>name</code> is not specified or empty, all taxonomy types are considered.
+     *
+     * @param name taxonomy type name filter (can be null or empty)
+     * @param offset paging offset
+     * @param limit paging limit
+     * @return taxonomy types matching given name filter
+     */
+    PagedList<TaxonomyType> queryTaxonomyTypes(String name, int offset, int limit);
+
+    /**
+     * Query list for items matching given name (using contains semantics).
+     *
+     * If <code>name</code> is not specified or empty, all items are considered.
+     *
+     * @param listId list id
+     * @param name item name filter (can be null or empty)
+     * @param offset paging offset
+     * @param limit paging limit
+     * @return list items matching given name filter
+     */
+    PagedList<ListItem> queryListItems(int listId, String name, int offset, int limit);
 
 	/**
 	 * Sends events list to MQM [PUT request].

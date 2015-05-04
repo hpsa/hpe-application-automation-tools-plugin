@@ -137,12 +137,16 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
     }
 
     @Override
-    public void updatePipelineMetadata(int pipelineId, String pipelineName, int releaseId) {
+    public void updatePipelineMetadata(int pipelineId, String pipelineName, Integer releaseId) {
         HttpPut request = new HttpPut(createProjectApiUri(URI_PIPELINES_METADATA, pipelineId));
         JSONObject pipelineObject = new JSONObject();
         pipelineObject.put("pipelineId", pipelineId);
-        pipelineObject.put("name", pipelineName);
-        pipelineObject.put("releaseId", releaseId);
+        if (pipelineName != null) {
+            pipelineObject.put("name", pipelineName);
+        }
+        if (releaseId != null) {
+            pipelineObject.put("releaseId", releaseId);
+        }
         request.setEntity(new StringEntity(pipelineObject.toString(), ContentType.APPLICATION_JSON));
         request.setHeader(HEADER_ACCEPT, ContentType.APPLICATION_JSON.getMimeType());
         HttpResponse response = null;
