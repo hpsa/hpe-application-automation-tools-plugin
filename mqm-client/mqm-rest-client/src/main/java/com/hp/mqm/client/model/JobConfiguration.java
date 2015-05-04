@@ -2,7 +2,6 @@
 
 package com.hp.mqm.client.model;
 
-import java.util.Collections;
 import java.util.List;
 
 final public class JobConfiguration {
@@ -21,12 +20,12 @@ final public class JobConfiguration {
         this.fieldMetadata = fieldMetadata;
     }
 
-    public JobConfiguration(boolean pipelineRoot, List<Pipeline> relatedPipelines) {
+    public JobConfiguration(boolean pipelineRoot, List<Pipeline> relatedPipelines, List<FieldMetadata> fieldMetadata) {
         this.jobId = null;
         this.jobName = null;
         this.pipelineRoot = pipelineRoot;
         this.relatedPipelines = relatedPipelines;
-        this.fieldMetadata = Collections.emptyList();
+        this.fieldMetadata = fieldMetadata;
     }
 
     public Integer getJobId() {
