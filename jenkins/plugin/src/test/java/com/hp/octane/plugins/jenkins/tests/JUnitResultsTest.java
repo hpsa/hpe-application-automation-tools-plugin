@@ -52,7 +52,7 @@ public class JUnitResultsTest {
         project.setScm(new CopyResourceSCM("/helloWorldRoot"));
         AbstractBuild build = runAndCheckBuild(project);
 
-        matchTests(new File(build.getRootDir(), "mqmTests.xml"), helloWorldTests, helloWorld2Tests);
+        matchTests(build, helloWorldTests, helloWorld2Tests);
     }
 
     @Test
@@ -64,7 +64,7 @@ public class JUnitResultsTest {
         project.setScm(new CopyResourceSCM("/helloWorldRoot", "subFolder"));
         AbstractBuild build = runAndCheckBuild(project);
 
-        matchTests(new File(build.getRootDir(), "mqmTests.xml"), subFolderHelloWorldTests);
+        matchTests(build, subFolderHelloWorldTests);
     }
 
     @Test
@@ -77,7 +77,7 @@ public class JUnitResultsTest {
         project.setScm(new CopyResourceSCM("/helloWorldRoot"));
         AbstractBuild build = runAndCheckBuild(project);
 
-        matchTests(new File(build.getRootDir(), "mqmTests.xml"), helloWorldTests, helloWorld2Tests);
+        matchTests(build, helloWorldTests, helloWorld2Tests);
     }
 
     @Test
@@ -90,7 +90,7 @@ public class JUnitResultsTest {
         project.setScm(new CopyResourceSCM("/helloWorldRoot"));
         AbstractBuild build = runAndCheckBuild(project);
 
-        matchTests(new File(build.getRootDir(), "mqmTests.xml"), helloWorldTests, helloWorld2Tests);
+        matchTests(build, helloWorldTests, helloWorld2Tests);
     }
 
     @Test
@@ -104,10 +104,11 @@ public class JUnitResultsTest {
         project.setScm(new CopyResourceSCM("/helloWorldRoot", "subFolder"));
         AbstractBuild build = runAndCheckBuild(project);
 
-        matchTests(new File(build.getRootDir(), "mqmTests.xml"), subFolderHelloWorldTests);
+        matchTests(build, subFolderHelloWorldTests);
     }
 
-    private void matchTests(File mqmTestsXml, Set<String> ... expectedTests) {
+    private void matchTests(AbstractBuild build, Set<String> ... expectedTests) {
+        File mqmTestsXml = new File(build.getRootDir(), "mqmTests.xml");
         Set<String> copy = new HashSet<String>();
         for (Set<String> expected: expectedTests) {
             copy.addAll(expected);
@@ -115,6 +116,7 @@ public class JUnitResultsTest {
         for(TestResult testResult: new TestResultIterable(mqmTestsXml)) {
             String testSignature = test(testResult);
             Assert.assertTrue("Not found: " + testSignature + " in " + copy, copy.remove(testSignature));
+            Assert.assertEquals("Start time differs", build.getStartTimeInMillis(), testResult.getStarted());
         }
         Assert.assertTrue("More tests expected: " + copy.toString(), copy.isEmpty());
     }

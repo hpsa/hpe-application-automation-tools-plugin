@@ -12,14 +12,16 @@ final public class TestResult implements Serializable {
     private final String testName;
     private final TestResultStatus result;
     private final long duration;
+    private final long started;
 
-    public TestResult(String moduleName, String packageName, String className, String testName, TestResultStatus result, long duration) {
+    public TestResult(String moduleName, String packageName, String className, String testName, TestResultStatus result, long duration, long started) {
         this.moduleName = moduleName;
         this.packageName = packageName;
         this.className = className;
         this.testName = testName;
         this.result = result;
         this.duration = duration;
+        this.started = started;
     }
 
     public String getModuleName() {
@@ -44,5 +46,9 @@ final public class TestResult implements Serializable {
 
     public long getDuration() {
         return duration;
+    }
+
+    public long getStarted() {
+        return started;
     }
 }

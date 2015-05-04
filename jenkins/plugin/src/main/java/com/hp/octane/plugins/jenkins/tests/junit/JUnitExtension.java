@@ -71,10 +71,12 @@ public class JUnitExtension extends MqmTestsExtension {
         private final FilePath report;
         private FilePath filePath;
         private List<ModuleDetection> moduleDetection;
+        private long buildStarted;
 
         public GetJUnitTestResults(AbstractBuild<?, ?> build, FilePath report) throws IOException, InterruptedException {
             this.report = report;
             this.filePath = new FilePath(build.getRootDir()).createTempFile(getClass().getSimpleName(), null);
+            this.buildStarted = build.getStartTimeInMillis();
 
             moduleDetection = Arrays.asList(
                     new FreeStyleModuleDetection(build),
@@ -183,7 +185,7 @@ public class JUnitExtension extends MqmTestsExtension {
                     String localName = element.getName().getLocalPart();
 
                     if ("case".equals(localName)) { // NON-NLS
-                        addItem(new TestResult(moduleName, packageName, className, testName, status, duration));
+                        addItem(new TestResult(moduleName, packageName, className, testName, status, duration, buildStarted));
                     }
                 }
             }
