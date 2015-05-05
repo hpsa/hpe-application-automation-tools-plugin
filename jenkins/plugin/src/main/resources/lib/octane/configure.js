@@ -49,13 +49,14 @@ function octane_job_configuration(target, progress, proxy) {
         var result = $(target);
         result.empty();
 
+        var outerDiv = $("<div class='mqm'>");
+        result.append(outerDiv);
+
         var pipelineDiv = $("<div>");
-        result.append(pipelineDiv);
+        outerDiv.append(pipelineDiv);
 
         var buttons = $("<div>");
-
         var status = $("<div>");
-        buttons.append(status);
 
         var tagTypes = {};
         var allTags = {};
@@ -91,8 +92,10 @@ function octane_job_configuration(target, progress, proxy) {
         }
 
         function addApplyButton(caption, pipeline, func, callback) {
-            var applyButton = $("<input type='button'>");
-            applyButton.prop('value', caption);
+            buttons.empty();
+            buttons.append(status);
+            var applyButton = $("<button>");
+            applyButton.text(caption);
             applyButton.unbind('click').click(function() {
                 saveConfiguration(pipeline, func, callback);
             });
@@ -101,32 +104,52 @@ function octane_job_configuration(target, progress, proxy) {
         }
 
         function renderPipelineMetadata(pipeline) {
-            pipelineDiv.append("Pipeline: ");
+            var table = $("<table class='ui-block'><tbody><tr/></tbody></table>");
+            pipelineDiv.append(table);
+            var tbody = table.find("tbody");
+            var tr = tbody.find("tr");
+
+            var tdPipeline = $("<td class='setting-name'><label for='pipeline-name'>Pipeline:</label></td>");
+            tr.append(tdPipeline);
+
             if (pipeline.isRoot) {
-                var input = $("<input type='text' placeholder='Pipeline name'>");
+                var tdPipelineInput = $("<td class='setting-main' colspan='2'><input id='pipeline-name' type='text' placeholder='Pipeline name' class='setting-input'/><div class='validation-error-area'/></td>");
+                tr.append(tdPipelineInput);
+
+                var input = tdPipelineInput.find("input");
                 input.attr("value", pipeline.name);
+                var area = tdPipelineInput.find("div");
+
                 apply.push(function() {
                     pipeline.name = input.val();
                 });
                 enableDirtyInputCheck(input);
-                addInputWithValidation(input, pipelineDiv, "Pipeline name must be specified");
+                enableInputValidation(input, "Pipeline name must be specified", area);
             } else {
-                pipelineDiv.append(pipeline.name);
+                var tdPipelineName = $("<td class='setting-main' colspan='2'/>");
+                tr.append(tdPipelineName);
+
+                tdPipelineName.append(pipeline.name);
             }
 
-            pipelineDiv.append($("<br>"));
-
             if (pipeline.isRoot) {
-                pipelineDiv.append("Release: ");
+                var trRelease = $("<tr><td class='setting-name'><label for='pipeline-release'>Release:</label>");
+                tbody.append(trRelease);
+
+                var tdReleaseSelect = $("<td class='setting-main'>");
+                trRelease.append(tdReleaseSelect);
+
                 var select = $("<select>");
                 for (var releaseId in jobConfiguration.releases) {
-                    select.append(new Option(jobConfiguration.releases[releaseId], releaseId, (pipeline.releaseId === releaseId)));
+                    select.append($("<option>").text(jobConfiguration.releases[releaseId]).val(releaseId).attr('selected', (pipeline.releaseId === releaseId)));
                 }
                 apply.push(function () {
                     pipeline.releaseId = select.val();
                 });
-                enableDirtySelectCheck(select);
-                pipelineDiv.append(select).append($("<br>"));
+                enableDirtyChangeCheck(select);
+                tdReleaseSelect.append(select);
+
+                trRelease.append($("<td class='setting-new'/>"));
             }
         }
 
@@ -220,23 +243,38 @@ function octane_job_configuration(target, progress, proxy) {
             var groupBy = {};
 
             function addField(field) {
-                var fieldSpan = $("<span>");
-                fieldSpan.text(field.listName + ": ");
-                fields.append(fieldSpan);
+                var tr = $("<tr>");
+                fieldsTbody.append(tr);
+
+                var tdName = $("<td class='setting-name'>");
+                tr.append(tdName);
+
+                var label = $("<label>");
+                label.prop('for', field.logicalListName);
+                label.text(field.listName + ":");
+                tdName.append(label);
+
+                var tdSelect = $("<td class='setting-main'>");
+                tr.append(tdSelect);
+
                 var fieldValueSelect = $("<select>");
+                tdSelect.append(fieldValueSelect);
+
+                fieldValueSelect.prop('name', field.logicalListName);
+                fieldValueSelect.prop('id', field.logicalListName);
                 if (field.multiValue) {
                     fieldValueSelect.attr('multiple', 'multiple');
+                    tdSelect.prop('colspan', 2);
                 } else {
-                    fieldValueSelect.append(new Option("(Not Specified)", -1));
+                    fieldValueSelect.append($("<option value='-1'>-- Not specified --</option>"));
                 }
                 fieldTypes[field.logicalListName].values.forEach(function (fieldValue) {
                     var selected = field.values.some(function (value) {
                         return value.id === fieldValue.id;
                     });
-                    fieldValueSelect.append(new Option(fieldValue.name, fieldValue.id, selected));
+                    fieldValueSelect.append($("<option>").text(fieldValue.name).val(fieldValue.id).attr('selected', selected));
                 });
-                fields.append(fieldValueSelect);
-                enableDirtySelectCheck(fieldValueSelect);
+                enableDirtyChangeCheck(fieldValueSelect);
                 apply.push(function () {
                     field.values = [];
                     fieldValueSelect.find("option:selected").each(function (index, option) {
@@ -255,17 +293,28 @@ function octane_job_configuration(target, progress, proxy) {
                         }
                     });
                 });
-                var newValueInput;
                 if (field.extensible) {
-                    var newValueOption = $(new Option("(New Value...)", 0));
+                    var newValueOption = $("<option value='0'>New value...</option>");
                     fieldValueSelect.append(newValueOption);
-                    newValueInput = $("<input>");
+
+                    var tdAdd = $("<td class='setting-add'>");
+                    tr.append(tdAdd);
+
+                    var newValueInput = $("<input type='text' class='setting-input'>");
+                    tdAdd.append(newValueInput);
+
+                    var trArea = $("<tr><td/></tr>");
+                    fieldsTbody.append(trArea);
+
+                    var tdArea = $("<td class='setting-main' colspan='2'>");
+                    trArea.append(tdArea);
+
                     var validationArea = $("<div class='validation-error-area'>");
+                    tdArea.append(validationArea);
+
                     newValueInput.blur(validateInput(validationArea, newFieldValueValidation(newValueInput, fieldValueSelect)));
                     newValueInput.hide();
-                    fields.append(newValueInput);
-                    addInputWithValidation(newValueInput, fields, "Value must be specified", {
-                        area: validationArea,
+                    enableInputValidation(newValueInput, "Value must be specified", validationArea, {
                         check: newFieldValueValidation(newValueInput, fieldValueSelect)
                     });
 
@@ -277,82 +326,88 @@ function octane_job_configuration(target, progress, proxy) {
                             newValueInput.hide();
                         }
                     });
-                    fields.append(validationArea);
                 }
-                fields.append($("<br>"));
             }
 
             function addTag(tag) {
 
-                var container;
+                var tagTd;
                 var group = groupBy[tag.tagTypeName];
                 if (typeof group !== 'object') {
-                    container = $("<div>");
-                    var groupSpan = $("<span>");
-                    groupSpan.text(tag.tagTypeName + ": ");
-                    container.append(groupSpan);
+                    var tagTr = $("<tr><td class='setting-name'><label/></td>");
+                    tagsTbody.append(tagTr);
+                    tagTr.find("label").text(tag.tagTypeName + ":");
+                    tagTd = $("<td class='setting-main' colspan='2'/>");
+                    tagTr.append(tagTd);
                     group = {
-                        target: container,
+                        tr: tagTr,
+                        td: tagTd,
                         count: 0
                     };
                     groupBy[tag.tagTypeName] = group;
-                    tags.append(container);
                 }
-                container = group.target;
+                tagTd = group.td;
                 group.count++;
 
-                var tagSpan = $("<span>");
-                tagSpan.text(tag.tagName);
-                container.append(tagSpan);
-
-                var remove = $("<input type='button' value='X'>");
-                enableDirtyButtonCheck(remove);
-                remove.click(function () {
+                var tagDiv = $("<div class='tag'><span/><a class='remove' href='javascript:void(0)'>X</a></div>");
+                tagTd.append(tagDiv).append(" ");
+                tagDiv.find("span").text(tag.tagName);
+                var anchor = tagDiv.find("a");
+                enableDirtyClickCheck(anchor);
+                anchor.on("click", function() {
                     var index = pipeline.taxonomyTags.indexOf(tag);
                     pipeline.taxonomyTags.splice(index, 1);
-                    tagSpan.remove();
-                    remove.remove();
+                    tagDiv.remove();
                     if (--group.count == 0) {
-                        container.remove();
+                        tagTr.remove();
                         delete groupBy[tag.tagTypeName];
-                    }
+                    }                               i
                     if (tag.tagId) {
                         addSelect.find("option[value='" + tag.tagId + "']").prop('disabled', false);
                     }
                 });
-                container.append(remove);
             }
 
             initialize();
             renderPipelineMetadata(pipeline);
 
-            pipelineDiv.append("Fields: ").append($("<br>"));
-            var fields = $("<div>");
-            pipelineDiv.append(fields);
+            pipelineDiv.append($("<h4>Fields</h4>"));
+            var fieldsTable = $("<table class='ui-block'><tbody/></table>");
+            pipelineDiv.append(fieldsTable);
+            var fieldsTbody = fieldsTable.find("tbody");
             pipeline.fieldTags.forEach(addField);
 
-            pipelineDiv.append("Tags: ").append($("<br>"));
-            var tags = $("<div>");
-            pipelineDiv.append(tags);
+            pipelineDiv.append($("<h4>Tags</h4>"));
+            var tagsTable = $("<table class='ui-block'><tbody/></table>");
+            pipelineDiv.append(tagsTable);
+            var tagsTbody = tagsTable.find("tbody");
             pipeline.taxonomyTags.forEach(addTag);
 
-            var selectDiv = $("<div>");
+            var addTagTable = $("<table class='ui-block'><tbody/></table>");
+            pipelineDiv.append(addTagTable);
+            var addTagTbody = addTagTable.find("tbody");
+
+            var tagSelectTr = $("<tr>");
+            addTagTbody.append(tagSelectTr);
+            var tagSelectTd = $("<td>");
+            tagSelectTr.append(tagSelectTd);
             var addSelect = $("<select>");
-            var defaultOption = new Option("Add Tag...", "default", true);
-            $(defaultOption).prop('disabled', 'disabled');
+            tagSelectTd.append(addSelect);
+            var defaultOption = $("<option value='default' selected>Add Tag...</option>");
+            defaultOption.prop('disabled', 'disabled');
             addSelect.append(defaultOption);
             jobConfiguration.taxonomies.forEach(function (tagType) {
                 var group = $("<optgroup>");
                 group.attr('label', tagType.tagTypeName);
                 tagTypes[tagType.tagTypeId].values.forEach(function (tag) {
-                    group.append(new Option(tag.tagName, tag.tagId));
+                    group.append($("<option>").text(tag.tagName).val(tag.tagId));
                 });
-                group.append(new Option("New value...", -tagType.tagTypeId));
+                group.append($("<option>New value...</option>").val(-tagType.tagTypeId));
                 addSelect.append(group);
             });
             var group = $("<optgroup>");
             group.attr('label', "New type...");
-            group.append(new Option("New value...", 0));
+            group.append($("<option value='0'>New value...</option>"));
             addSelect.append(group);
             var addedTag;
             addSelect.change(function () {
@@ -392,8 +447,6 @@ function octane_job_configuration(target, progress, proxy) {
                 validationAreaTagType.empty();
                 validationAreaTag.empty();
             });
-            selectDiv.append(addSelect);
-            pipelineDiv.append(selectDiv);
 
             pipeline.taxonomyTags.forEach(function (tag) {
                 addSelect.find("option[value='"+tag.tagId+"']").prop('disabled', 'disabled');
@@ -402,19 +455,24 @@ function octane_job_configuration(target, progress, proxy) {
             var validationAreaTagType = $("<div class='validation-error-area'>");
             var validationAreaTag = $("<div class='validation-error-area'>");
 
-            var tagTypeInput = $("<input type='text'>");
+            var tagTypeInputTd = $("<td class='setting-name'>");
+            tagSelectTr.append(tagTypeInputTd);
+            var tagTypeInput = $("<input type='text' class='setting-input'>");
+            tagTypeInputTd.append(tagTypeInput);
             tagTypeInput.hide();
             tagTypeInput.blur(validateInput(validationAreaTagType, newTagTypeValidation(tagTypeInput)));
-            selectDiv.append(tagTypeInput);
             var tagTypeSpan = $("<span>");
             tagTypeSpan.hide();
-            selectDiv.append(tagTypeSpan);
-            var tagInput = $("<input type='text'>");
+            tagTypeInputTd.append(tagTypeSpan);
+
+            var tagInputTd = $("<td>");
+            tagSelectTr.append(tagInputTd);
+            var tagInput = $("<input type='text' class='setting-input'>");
+            tagInputTd.append(tagInput);
             tagInput.hide();
             tagInput.blur(validateInput(validationAreaTag, newTagValidation(tagTypeInput, tagInput, pipeline.taxonomyTags)));
-            selectDiv.append(tagInput);
 
-            var add = $("<input type='button' value='Add'>");
+            var add = $("<button>Add</button>");
             add.hide();
             var doAdd = function () {
                 var validationOk = true;
@@ -440,29 +498,38 @@ function octane_job_configuration(target, progress, proxy) {
                 }
                 addedTag = undefined;
                 makeDirty();
-                $(defaultOption).prop('selected', 'selected');
+                defaultOption.prop('selected', 'selected');
                 tagTypeInput.hide();
                 tagTypeSpan.hide();
                 tagInput.hide();
                 add.hide();
             };
             add.click(doAdd);
-            enableDirtyButtonCheck(add);
-            selectDiv.append(add);
+            enableDirtyClickCheck(add);
+            var tagAddTd = $("<td>");
+            tagSelectTr.append(tagAddTd);
+            tagAddTd.append(add);
 
             // put validation area bellow both input fields
-            selectDiv.append(validationAreaTagType);
-            selectDiv.append(validationAreaTag);
+            var tagValidationTr = $("<tr>");
+            addTagTbody.append(tagValidationTr);
+            tagValidationTr.append($("<td>"));
+            var tagValidationTd = $("<td colspan='2'>");
+            tagValidationTr.append(tagValidationTd);
+
+            tagValidationTd.append(validationAreaTagType);
+            tagValidationTd.append(validationAreaTag);
 
             addApplyButton('Apply', pipeline, saveFunc, saveCallback);
         }
 
         var CONFIRMATION = "There are unsaved changes, if you continue they will be discarded. Continue?";
-        var pipelineSelect;
 
         if (jobConfiguration.pipelines.length == 0) {
-            var createPipelineDiv = $("<div>No pipeline is currently defined for this job<br/></div>");
-            var createPipelineButton = $("<input type='button' value='Create Pipeline'>");
+            var createPipelineDiv = $("<div><h2>No Pipeline</h2><div class='mqm'><p>No pipeline is currently defined for this job</p><button>Create Pipeline</button></div></div>");
+            pipelineDiv.append(createPipelineDiv);
+            var createPipelineButton = createPipelineDiv.find("button");
+            createPipelineDiv.find("div.mqm").append(createPipelineButton);
             createPipelineButton.click(function () {
                 pipelineDiv.empty();
                 var pipeline = {
@@ -473,16 +540,16 @@ function octane_job_configuration(target, progress, proxy) {
                 };
                 jobConfiguration.pipelines.push(pipeline);
 
+                result.prepend($("<h2>Create Pipeline</h2>"));
                 renderNewPipeline(pipeline);
             });
-            createPipelineDiv.append(createPipelineButton);
-            pipelineDiv.append(createPipelineDiv);
         } else {
             var selectedIndex = 0;
             if (jobConfiguration.pipelines.length > 1) {
-                pipelineSelect = $("<select>");
+                var pipelineSelect = $("<select>");
+                outerDiv.prepend(pipelineSelect);
                 jobConfiguration.pipelines.forEach(function (pipeline) {
-                    pipelineSelect.append(new Option(pipeline.name, pipeline.id, (pipeline.id === pipelineId)));
+                    pipelineSelect.append($("<option>").text(pipeline.name).val(pipeline.id).attr('selected', (pipeline.id === pipelineId)));
                 });
                 var lastSelected = $(pipelineSelect).find("option:selected");
                 pipelineSelect.change(function () {
@@ -495,9 +562,9 @@ function octane_job_configuration(target, progress, proxy) {
                     lastSelected = $(pipelineSelect).find("option:selected");
                     renderExistingPipeline(jobConfiguration.pipelines[pipelineSelect[0].selectedIndex]);
                 });
-                result.prepend(pipelineSelect);
                 selectedIndex = pipelineSelect[0].selectedIndex;
             }
+            result.prepend($("<h2>Edit Pipeline</h2>"));
             renderExistingPipeline(jobConfiguration.pipelines[selectedIndex]);
         }
 
@@ -526,7 +593,7 @@ function octane_job_configuration(target, progress, proxy) {
             return dirtyFlag;
         }
 
-        function enableDirtySelectCheck(select) {
+        function enableDirtyChangeCheck(select) {
             select.on('change', makeDirty);
         }
 
@@ -534,7 +601,7 @@ function octane_job_configuration(target, progress, proxy) {
             input.on('input', makeDirty);
         }
 
-        function enableDirtyButtonCheck(button) {
+        function enableDirtyClickCheck(button) {
             button.on('click', makeDirty);
         }
 
@@ -648,7 +715,7 @@ function octane_job_configuration(target, progress, proxy) {
             };
         }
 
-        function addInputWithValidation(input, target, message, options_opt) {
+        function enableInputValidation(input, message, validationArea, options_opt) {
             function emptyCheck() {
                 if (!input.val()) {
                     return message;
@@ -658,12 +725,6 @@ function octane_job_configuration(target, progress, proxy) {
             }
             var options = options_opt || {};
             var check = options.check || emptyCheck;
-            var validationArea = options.area;
-            target.append(input);
-            if (!validationArea) {
-                validationArea = $("<div class='validation-error-area'>");
-                target.append(validationArea);
-            }
             var validate = validateInput(validationArea, check);
             input.blur(validate);
             validators.push(validate);
