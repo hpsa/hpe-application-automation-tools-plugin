@@ -17,19 +17,17 @@ import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import hudson.Extension;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-import hudson.model.AsyncPeriodicWork;
 import hudson.model.TaskListener;
 import hudson.util.TimeUnit2;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @Extension
-public class TestDispatcher extends AsyncPeriodicWork {
+public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
 
     private static Logger logger = Logger.getLogger(TestDispatcher.class.getName());
 
@@ -45,7 +43,7 @@ public class TestDispatcher extends AsyncPeriodicWork {
     }
 
     @Override
-    protected void execute(TaskListener listener) throws IOException, InterruptedException {
+    protected void doExecute(TaskListener listener) {
         if (queue.peekFirst() == null) {
             return;
         }
@@ -115,12 +113,24 @@ public class TestDispatcher extends AsyncPeriodicWork {
                     if (!queue.failed()) {
                         logger.warning("Maximum number of attempts reached, operation will not be re-attempted for this build");
                     }
+                    releaseClient(client);
                     client = null;
                 }
             } catch (FileNotFoundException e) {
                 logger.warning("File no longer exists, failed to push test results of build [" + item.projectName + "#" + item.buildNumber + "]");
                 queue.remove();
             }
+        }
+        if (client != null) {
+            releaseClient(client);
+        }
+    }
+
+    private void releaseClient(MqmRestClient client) {
+        try {
+            client.release();
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Unable to release client session", e);
         }
     }
 
