@@ -39,6 +39,10 @@ public class JUnitResultsTest {
         subFolderHelloWorldTests.add(test("subFolder/helloWorld", "hello", "HelloWorldTest", "testTwo", TestResultStatus.FAILED));
         subFolderHelloWorldTests.add(test("subFolder/helloWorld", "hello", "HelloWorldTest", "testThree", TestResultStatus.SKIPPED));
     }
+    private static Set<String> uftTests = new HashSet<String>();
+    static {
+        uftTests.add(test("", "All-Tests", "<None>", "subfolder/CalculatorPlusNextGen", TestResultStatus.FAILED));
+    }
 
     @Rule
     final public JenkinsRule rule = new JenkinsRule();
@@ -105,6 +109,16 @@ public class JUnitResultsTest {
         AbstractBuild build = runAndCheckBuild(project);
 
         matchTests(build, subFolderHelloWorldTests);
+    }
+
+    @Test
+    public void testJUnitResultsWorkspaceStripping() throws Exception {
+        FreeStyleProject project = rule.createFreeStyleProject(projectName);
+        project.getPublishersList().add(new TestCustomJUnitArchiver("UFT_results.xml"));
+        project.setScm(new CopyResourceSCM("/UFT"));
+        AbstractBuild build = runAndCheckBuild(project);
+
+        matchTests(build, uftTests);
     }
 
     private void matchTests(AbstractBuild build, Set<String> ... expectedTests) {

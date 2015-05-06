@@ -72,11 +72,13 @@ public class JUnitExtension extends MqmTestsExtension {
         private FilePath filePath;
         private List<ModuleDetection> moduleDetection;
         private long buildStarted;
+        private FilePath workspace;
 
         public GetJUnitTestResults(AbstractBuild<?, ?> build, FilePath report) throws IOException, InterruptedException {
             this.report = report;
             this.filePath = new FilePath(build.getRootDir()).createTempFile(getClass().getSimpleName(), null);
             this.buildStarted = build.getStartTimeInMillis();
+            this.workspace = build.getWorkspace();
 
             moduleDetection = Arrays.asList(
                     new FreeStyleModuleDetection(build),
@@ -167,6 +169,11 @@ public class JUnitExtension extends MqmTestsExtension {
                         }
                     } else if ("testName".equals(localName)) { // NON-NLS
                         testName = readNextValue();
+                        if (testName.startsWith(workspace.getRemote())) {
+                            // if workspace is prefix of the method name, cut it off
+                            // currently this handling is needed for UFT tests
+                            testName = testName.substring(workspace.getRemote().length()).replaceAll("^[/\\\\]", "");
+                        }
                     } else if ("duration".equals(localName)) { // NON-NLS
                         duration = parseTime(readNextValue());
                     } else if ("skipped".equals(localName)) { // NON-NLS
