@@ -399,6 +399,12 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
         boolean result = true;
         try {
             response = execute(request);
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_TEMPORARY_REDIRECT) {
+                // ad-hoc handling as requested by Jenkins Insight team
+                HttpClientUtils.closeQuietly(response);
+                login();
+                response = execute(request);
+            }
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                 logger.severe("put request failed while sending events: " + response.getStatusLine().getStatusCode());
                 result = false;
