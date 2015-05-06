@@ -90,12 +90,12 @@ public class TestDispatcherTest {
         mockRestClient(restClient, true, true, true);
         FreeStyleBuild build = executeBuild();
         waitForTicks(5);
-        verifyRestClient(restClient, build, true);
+        verifyRestClient(restClient, build, true, true);
 
         mockRestClient(restClient, true, true, true);
         FreeStyleBuild build2 = executeBuild();
         waitForTicks(5);
-        verifyRestClient(restClient, build2, true);
+        verifyRestClient(restClient, build2, true, true);
         Assert.assertEquals(0, queue.size());
     }
 
@@ -112,6 +112,7 @@ public class TestDispatcherTest {
         Mockito.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
         Mockito.verify(restClient).postTestResult(new File(build2.getRootDir(), "mqmTests.xml"));
         Mockito.verify(restClient).postTestResult(new File(build3.getRootDir(), "mqmTests.xml"));
+        Mockito.verify(restClient).release();
         Mockito.verifyNoMoreInteractions(restClient);
         Assert.assertEquals(0, queue.size());
     }
@@ -122,7 +123,7 @@ public class TestDispatcherTest {
         FreeStyleBuild build = executeBuild();
         waitForTicks(5);
 
-        verifyRestClient(restClient, build, false);
+        verifyRestClient(restClient, build, false, false);
         Mockito.reset(restClient);
 
         executeBuild();
@@ -139,7 +140,7 @@ public class TestDispatcherTest {
         FreeStyleBuild build = executeBuild();
         waitForTicks(5);
 
-        verifyRestClient(restClient, build, false);
+        verifyRestClient(restClient, build, false, false);
         Mockito.reset(restClient);
 
         executeBuild();
@@ -156,7 +157,7 @@ public class TestDispatcherTest {
         FreeStyleBuild build = executeBuild();
         waitForTicks(5);
 
-        verifyRestClient(restClient, build, false);
+        verifyRestClient(restClient, build, false, false);
         Mockito.reset(restClient);
 
         executeBuild();
@@ -180,9 +181,11 @@ public class TestDispatcherTest {
 
         order.verify(restClient).tryToConnectProject();
         order.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
+        order.verify(restClient).release();
 
         Mockito.verify(restClient, Mockito.times(2)).tryToConnectProject();
         Mockito.verify(restClient, Mockito.times(2)).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
+        Mockito.verify(restClient, Mockito.times(2)).release();
         Mockito.verifyNoMoreInteractions(restClient);
 
         Assert.assertEquals(0, queue.size());
@@ -201,11 +204,14 @@ public class TestDispatcherTest {
 
         order.verify(restClient).tryToConnectProject();
         order.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
+        order.verify(restClient).release();
         order.verify(restClient).tryToConnectProject();
         order.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
+        order.verify(restClient).release();
 
         Mockito.verify(restClient, Mockito.times(2)).tryToConnectProject();
         Mockito.verify(restClient, Mockito.times(2)).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
+        Mockito.verify(restClient, Mockito.times(2)).release();
         Mockito.verifyNoMoreInteractions(restClient);
 
         Assert.assertEquals(0, queue.size());
@@ -249,10 +255,13 @@ public class TestDispatcherTest {
         }
     }
 
-    private void verifyRestClient(MqmRestClient restClient, AbstractBuild build, boolean body) throws IOException {
+    private void verifyRestClient(MqmRestClient restClient, AbstractBuild build, boolean body, boolean release) throws IOException {
         Mockito.verify(restClient).tryToConnectProject();
         if (body) {
             Mockito.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
+        }
+        if (release) {
+            Mockito.verify(restClient).release();
         }
         Mockito.verifyNoMoreInteractions(restClient);
     }
