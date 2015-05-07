@@ -406,18 +406,18 @@ function octane_job_configuration(target, progress, proxy) {
                 tagTypes[tagType.tagTypeId].values.forEach(function (tag) {
                     group.append($("<option>").text(tag.tagName).val(tag.tagId));
                 });
-                group.append($("<option>New value...</option>").val(-tagType.tagTypeId));
+                group.append($("<option>New value...</option>").val(tagTypeValue(tagType.tagTypeId)));
                 addSelect.append(group);
             });
             var group = $("<optgroup>");
             group.attr('label', "New type...");
-            group.append($("<option value='0'>New value...</option>"));
+            group.append($("<option value='newTagType'>New value...</option>"));
             addSelect.append(group);
             var addedTag;
             addSelect.change(function () {
                 var val = addSelect.val();
                 if (val < 0) {
-                    var tagType = tagTypes[-val];
+                    var tagType = tagTypes[tagTypeValue(val)];
                     addedTag = {
                         tagTypeId: tagType.tagTypeId,
                         tagTypeName: tagType.tagTypeName
@@ -430,7 +430,7 @@ function octane_job_configuration(target, progress, proxy) {
                     tagInput.attr('placeholder', 'Tag');
                     tagInput.css('display', 'inline');
                     add.css('display', 'inline');
-                } else if (val == 0) {
+                } else if (val == 'newTagType') {
                     addedTag = {};
                     tagTypeInput.val("");
                     tagTypeInput.attr('placeholder', 'Tag Type');
@@ -590,6 +590,11 @@ function octane_job_configuration(target, progress, proxy) {
                 }
             }
         };
+
+        function tagTypeValue(n) {
+            // mapping to ensure negative value (solve the "0" tag type ID)
+            return -(Number(n)+1);
+        }
 
         function makeDirty() {
             dirtyFlag = true;
@@ -751,14 +756,18 @@ function octane_job_configuration(target, progress, proxy) {
             }
 
             return function() {
-                target.empty();
                 var error = conditionFunc();
-                if (error) {
-                    showError(error);
-                    return false;
-                }
-                target.hide();
-                return true;
+                // workaround: prevent the click event from being lost due to onblur event,
+                // currently no better solution seems to be available
+                setTimeout(function() {
+                    target.empty();
+                    if (error) {
+                        showError(error);
+                    } else {
+                        target.hide();
+                    }
+                }, 100);
+                return !error;
             };
         }
 
