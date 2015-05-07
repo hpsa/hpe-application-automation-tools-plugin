@@ -49,11 +49,8 @@ function octane_job_configuration(target, progress, proxy) {
         var result = $(target);
         result.empty();
 
-        var outerDiv = $("<div class='mqm'>");
-        result.append(outerDiv);
-
-        var pipelineDiv = $("<div>");
-        outerDiv.append(pipelineDiv);
+        var pipelineDiv = $("<div class='mqm'>");
+        result.append(pipelineDiv);
 
         var buttons = $("<div>");
         var status = $("<div>");
@@ -103,11 +100,18 @@ function octane_job_configuration(target, progress, proxy) {
             pipelineDiv.append(buttons);
         }
 
-        function renderPipelineMetadata(pipeline) {
+        function renderPipelineMetadata(pipeline, pipelineSelector) {
             var table = $("<table class='ui-block'><tbody><tr/></tbody></table>");
             pipelineDiv.append(table);
             var tbody = table.find("tbody");
             var tr = tbody.find("tr");
+
+            if (pipelineSelector) {
+                // put the pipeline selector at the top of the table
+                tbody.prepend(pipelineSelector.tr);
+                // need to reapply event listener
+                pipelineSelector.apply();
+            }
 
             var tdPipeline = $("<td class='setting-name'><label for='pipeline-name'>Pipeline:</label></td>");
             tr.append(tdPipeline);
@@ -182,7 +186,7 @@ function octane_job_configuration(target, progress, proxy) {
             addApplyButton('Create', pipeline, createPipelineFunc, createPipelineCallback);
         }
 
-        function renderExistingPipeline(pipeline) {
+        function renderExistingPipeline(pipeline, pipelineSelector) {
 
             function saveFunc(pipeline, callback) {
                 proxy.updatePipelineOnSever(pipeline, callback);
@@ -361,7 +365,7 @@ function octane_job_configuration(target, progress, proxy) {
                     if (--group.count == 0) {
                         tagTr.remove();
                         delete groupBy[tag.tagTypeName];
-                    }                               i
+                    }
                     if (tag.tagId) {
                         addSelect.find("option[value='" + tag.tagId + "']").prop('disabled', false);
                     }
@@ -369,7 +373,7 @@ function octane_job_configuration(target, progress, proxy) {
             }
 
             initialize();
-            renderPipelineMetadata(pipeline);
+            renderPipelineMetadata(pipeline, pipelineSelector);
 
             pipelineDiv.append($("<h4>Fields</h4>"));
             var fieldsTable = $("<table class='ui-block'><tbody/></table>");
@@ -545,27 +549,33 @@ function octane_job_configuration(target, progress, proxy) {
             });
         } else {
             var selectedIndex = 0;
+            var pipelineSelector = undefined;
             if (jobConfiguration.pipelines.length > 1) {
-                var pipelineSelect = $("<select>");
-                outerDiv.prepend(pipelineSelect);
+                var selectPipelineRow = $("<tr><td/><td class='setting-main'><select/><br/><br/></td><td class='setting-new'></td></tr>");
+                var pipelineSelect = selectPipelineRow.find("select");
                 jobConfiguration.pipelines.forEach(function (pipeline) {
                     pipelineSelect.append($("<option>").text(pipeline.name).val(pipeline.id).attr('selected', (pipeline.id === pipelineId)));
                 });
                 var lastSelected = $(pipelineSelect).find("option:selected");
-                pipelineSelect.change(function () {
-                    if (isDirty()) {
-                        if (!window.confirm(CONFIRMATION)) {
-                            lastSelected.attr("selected", true);
-                            return;
-                        }
+                pipelineSelector = {
+                    tr: selectPipelineRow,
+                    apply: function () {
+                        pipelineSelect.change(function () {
+                            if (isDirty()) {
+                                if (!window.confirm(CONFIRMATION)) {
+                                    lastSelected.attr("selected", true);
+                                    return;
+                                }
+                            }
+                            lastSelected = $(pipelineSelect).find("option:selected");
+                            renderExistingPipeline(jobConfiguration.pipelines[pipelineSelect[0].selectedIndex], pipelineSelector);
+                        });
                     }
-                    lastSelected = $(pipelineSelect).find("option:selected");
-                    renderExistingPipeline(jobConfiguration.pipelines[pipelineSelect[0].selectedIndex]);
-                });
+                };
                 selectedIndex = pipelineSelect[0].selectedIndex;
             }
             result.prepend($("<h2>Edit Pipeline</h2>"));
-            renderExistingPipeline(jobConfiguration.pipelines[selectedIndex]);
+            renderExistingPipeline(jobConfiguration.pipelines[selectedIndex], pipelineSelector);
         }
 
         window.onbeforeunload = function() {
