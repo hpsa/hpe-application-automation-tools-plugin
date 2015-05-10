@@ -11,7 +11,9 @@
 		<version>1.0-SNAPSHOT</version>
 	</parent>
 	<properties>
-		<serverUrl>http://localhost:${env.JETTY_PORT}/qcbin</serverUrl>
+		<DEPLOY_TARGET>localhost</DEPLOY_TARGET>
+		<JETTY_PORT>8081</JETTY_PORT>
+		<serverUrl>http://${DEPLOY_TARGET}:${JETTY_PORT}/qcbin</serverUrl>
 		<saUser>sa</saUser>
 		<projectUserName>restuser</projectUserName>
 		<domain>UNITEST</domain>
