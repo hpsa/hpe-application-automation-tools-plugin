@@ -36,6 +36,7 @@
             **/opb-tests/**,
             **/NotificationEmail.java
 		</sonar.exclusions>
+		<skipTests>true</skipTests>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -195,7 +196,7 @@
 					<version>${surefire.version}</version>
 					<configuration>
 						<argLine>${surefireArgLine}</argLine>
-						<skipTests>false</skipTests>
+						<skipTests>${skipTests}</skipTests>
 						<testFailureIgnore>true</testFailureIgnore>
 					</configuration>
 				</plugin>

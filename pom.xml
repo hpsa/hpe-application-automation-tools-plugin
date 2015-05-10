@@ -19,7 +19,7 @@
 
 		<surefire.version>2.18.1</surefire.version>
 		<jacoco.version>0.7.4.201502262128</jacoco.version>
-
+		<skipTests>true</skipTests>
 		<!-- SONAR STUFF -->
 		<sonar.jacoco.reportPath>${jacoco.report.path}/${jacoco.report.filename}</sonar.jacoco.reportPath>
 
@@ -67,7 +67,7 @@
 					<version>${surefire.version}</version>
 					<configuration>
 						<argLine>${surefireArgLine}</argLine>
-						<skipTests>false</skipTests>
+						<skipTests>${skipTests}</skipTests>
 						<testFailureIgnore>true</testFailureIgnore>
 					</configuration>
 				</plugin>
