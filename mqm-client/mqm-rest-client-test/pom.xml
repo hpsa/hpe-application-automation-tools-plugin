@@ -124,6 +124,10 @@
 									<argLine>${failsafe.argline}</argLine>
 									<systemPropertyVariables>
 										<mqm.location>${serverUrl}</mqm.location>
+										<mqm.domain>${domain}</mqm.domain>
+										<mqm.project>${project}</mqm.project>
+										<mqm.user>${projectUserName}</mqm.user>
+										<mqm.password>${projectUserPassword}</mqm.password>
 									</systemPropertyVariables>
 								</configuration>
 							</execution>

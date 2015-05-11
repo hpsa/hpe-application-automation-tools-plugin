@@ -23,7 +23,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -38,7 +37,6 @@ import java.util.UUID;
 
 import static org.junit.Assert.fail;
 
-@Ignore
 public class MqmRestClientImplTest {
 
     private static final String LOCATION = ConnectionProperties.getLocation();
