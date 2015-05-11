@@ -77,9 +77,7 @@ public class TestDispatcherTest {
         // server needs to be configured in order for the processing to happen
         HtmlPage configPage = rule.createWebClient().goTo("configure");
         HtmlForm form = configPage.getFormByName("config");
-        form.getInputByName("_.location").setValueAttribute("http://localhost:8008/");
-        form.getInputByName("_.domain").setValueAttribute("domain");
-        form.getInputByName("_.project").setValueAttribute("project");
+        form.getInputByName("_.uiLocation").setValueAttribute("http://localhost:8008/qcbin/ui/?workspace-id=1001&p=domain/project");
         form.getInputByName("_.username").setValueAttribute("username");
         form.getInputByName("_.password").setValueAttribute("password");
         rule.submit(form);

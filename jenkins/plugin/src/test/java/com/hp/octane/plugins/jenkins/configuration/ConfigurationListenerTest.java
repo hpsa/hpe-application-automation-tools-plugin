@@ -27,9 +27,7 @@ public class ConfigurationListenerTest {
 		HtmlPage configPage = rule.createWebClient().goTo("configure");
 		HtmlForm form = configPage.getFormByName("config");
 
-		form.getInputByName("_.location").setValueAttribute("http://localhost:8008");
-		form.getInputByName("_.domain").setValueAttribute("domain");
-		form.getInputByName("_.project").setValueAttribute("project");
+		form.getInputByName("_.uiLocation").setValueAttribute("http://localhost:8008/qcbin/ui/?workspace-id=1001&p=domain/project#/pipeline-management/live");
 		form.getInputByName("_.username").setValueAttribute("username");
 		form.getInputByName("_.password").setValueAttribute("password");
 		rule.submit(form);
@@ -40,10 +38,10 @@ public class ConfigurationListenerTest {
 		List<ServerConfiguration> confs = listener.getConfigurationsChange();
 		Assert.assertNotNull(confs);
 		Assert.assertEquals(2, confs.size());
-		Assert.assertEquals("http://localhost:8008", confs.get(0).location);
-		Assert.assertEquals("project", confs.get(0).project);
+		Assert.assertEquals("http://localhost:8008/qcbin", confs.get(0).location);
+		Assert.assertEquals("username", confs.get(0).username);
 		Assert.assertNull(confs.get(1).location);
-		Assert.assertNull(confs.get(1).project);
+		Assert.assertNull(confs.get(1).username);
 	}
 
 	@Test
@@ -58,17 +56,17 @@ public class ConfigurationListenerTest {
 		Assert.assertEquals(1, listener.getCount());
 
 		// increased when configuration changes
-		form.getInputByName("_.project").setValueAttribute("project2");
+		form.getInputByName("_.username").setValueAttribute("username2");
 		rule.submit(form);
 		Assert.assertEquals(2, listener.getCount());
 
 		List<ServerConfiguration> confs = listener.getConfigurationsChange();
 		Assert.assertNotNull(confs);
 		Assert.assertEquals(2, confs.size());
-		Assert.assertEquals("http://localhost:8008", confs.get(0).location);
-		Assert.assertEquals("project2", confs.get(0).project);
-		Assert.assertEquals("http://localhost:8008", confs.get(1).location);
-		Assert.assertEquals("project", confs.get(1).project);
+		Assert.assertEquals("http://localhost:8008/qcbin", confs.get(0).location);
+		Assert.assertEquals("username2", confs.get(0).username);
+		Assert.assertEquals("http://localhost:8008/qcbin", confs.get(1).location);
+		Assert.assertEquals("username", confs.get(1).username);
 	}
 
 	@TestExtension

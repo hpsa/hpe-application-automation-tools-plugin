@@ -15,7 +15,14 @@ import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactoryImpl;
 import hudson.Extension;
 import hudson.util.FormValidation;
 import jenkins.model.Jenkins;
+import org.apache.commons.lang.StringUtils;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
 
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -24,11 +31,47 @@ public class ConfigurationService {
 
     private final static Logger logger = Logger.getLogger(ConfigurationService.class.getName());
 
+    private static final String PARAM_DOMAIN_PROJECT = "p"; // NON-NLS
+
     private JenkinsMqmRestClientFactory clientFactory;
 
     public static ServerConfiguration getServerConfiguration() {
         OctanePlugin octanePlugin = Jenkins.getInstance().getPlugin(OctanePlugin.class);
         return octanePlugin.getServerConfiguration();
+    }
+
+    public static MqmProject parseUiLocation(String uiLocation) throws FormValidation {
+        try {
+            URL url = new URL(uiLocation);
+            String location;
+            int contextPos = uiLocation.indexOf("/qcbin/ui");
+            if (contextPos < 0) {
+                // guessing the future
+                contextPos = uiLocation.indexOf("/mqm/ui");
+                if (contextPos < 0) {
+                    throw FormValidation.errorWithMarkup(markup("red", Messages.ApplicationContextNotFound()));
+                } else {
+                    location = uiLocation.substring(0, contextPos + 4);
+                }
+            } else {
+                location = uiLocation.substring(0, contextPos + 6);
+            }
+            List<NameValuePair> params = URLEncodedUtils.parse(url.toURI(), "UTF-8");
+            for (NameValuePair param: params) {
+                if (param.getName().equals(PARAM_DOMAIN_PROJECT)) {
+                    String[] domainAndProject = param.getValue().split("/");
+                    if (domainAndProject.length != 2 || StringUtils.isEmpty(domainAndProject[0]) || StringUtils.isEmpty(domainAndProject[1])) {
+                        throw FormValidation.errorWithMarkup(markup("red", Messages.UnexpectedDomainProject()));
+                    }
+                    return new MqmProject(location, domainAndProject[0], domainAndProject[1]);
+                }
+            }
+            throw FormValidation.errorWithMarkup(markup("red", Messages.MissingDomainProject()));
+        } catch (MalformedURLException e) {
+            throw FormValidation.errorWithMarkup(markup("red", Messages.ConfigurationUrInvalid()));
+        } catch (URISyntaxException e) {
+            throw FormValidation.errorWithMarkup(markup("red", Messages.ConfigurationUrInvalid()));
+        }
     }
 
     public FormValidation checkConfiguration(String location, String domain, String project, String username, String password) {

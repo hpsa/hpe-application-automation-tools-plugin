@@ -6,6 +6,7 @@ import com.google.inject.Inject;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationListener;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationService;
+import com.hp.octane.plugins.jenkins.configuration.MqmProject;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jenkins.notifications.EventsDispatcher;
 import hudson.Extension;
@@ -21,10 +22,7 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -36,11 +34,14 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 	private String identity;
 	private Long identityFrom;
 
+	private String uiLocation;
+	private String username;
+	private String password;
+
+	// inferred from uiLocation
 	private String location;
 	private String domain;
 	private String project;
-	private String username;
-	private String password;
 
 	public String getIdentity() {
 		return identity;
@@ -79,6 +80,10 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 				getPassword());
 	}
 
+	private String getUiLocation() {
+		return uiLocation;
+	}
+
 	private String getLocation() {
 		return location;
 	}
@@ -101,11 +106,22 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 
 	private void configurePlugin(JSONObject formData) throws IOException {
 		ServerConfiguration oldConfiguration = getServerConfiguration();
-		location = (String) formData.get("location");
-		domain = (String) formData.get("domain");
-		project = (String) formData.get("project");
+		String uiLocation = (String) formData.get("uiLocation");
+
+		this.uiLocation = uiLocation;
 		username = (String) formData.get("username");
 		password = Scrambler.scramble((String) formData.get("password"));
+		try {
+			MqmProject mqmProject = ConfigurationService.parseUiLocation(uiLocation);
+			location = mqmProject.getLocation();
+			domain = mqmProject.getDomain();
+			project = mqmProject.getProject();
+		} catch (FormValidation ex) {
+			// consider plugin unconfigured
+			location = null;
+			domain = null;
+			project = null;
+		}
 
 		ServerConfiguration newConfiguration = getServerConfiguration();
 		if (!oldConfiguration.equals(newConfiguration)) {
@@ -152,44 +168,32 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 			}
 		}
 
-		public FormValidation doCheckLocation(@QueryParameter String value) {
+		public FormValidation doCheckUiLocation(@QueryParameter String value) {
 			if (value.isEmpty()) {
 				return FormValidation.error(Messages.ConfigurationUrlNotSpecified());
 			}
 			try {
-				new URL(value);
+				ConfigurationService.parseUiLocation(value);
 				return FormValidation.ok();
-			} catch (MalformedURLException e) {
-				return FormValidation.error(Messages.ConfigurationUrInvalid());
+			} catch (FormValidation ex) {
+				return ex;
 			}
 		}
 
-		public FormValidation doCheckDomain(@QueryParameter String value) {
-			if (value.isEmpty()) {
-				return FormValidation.error(Messages.ConfigurationDomainNotSpecified());
-			} else {
-				return FormValidation.ok();
-			}
-		}
-
-		public FormValidation doCheckProject(@QueryParameter String value) {
-			if (value.isEmpty()) {
-				return FormValidation.error(Messages.ConfigurationProjectNotSpecified());
-			} else {
-				return FormValidation.ok();
-			}
-		}
-
-		public FormValidation doTestGlobalConnection(@QueryParameter("location") String location,
-		                                             @QueryParameter("domain") String domain,
-		                                             @QueryParameter("project") String project,
+		public FormValidation doTestGlobalConnection(@QueryParameter("uiLocation") String uiLocation,
 		                                             @QueryParameter("username") String username,
 		                                             @QueryParameter("password") String password) {
-			FormValidation validation = configurationService.checkConfiguration(location, domain, project, username, password);
+			MqmProject mqmProject;
+			try {
+				mqmProject = ConfigurationService.parseUiLocation(uiLocation);
+			} catch (FormValidation ex) {
+				// location syntactically incorrect, no need to check connectivity
+				return ex;
+			}
+			FormValidation validation = configurationService.checkConfiguration(mqmProject.getLocation(),
+					mqmProject.getDomain(), mqmProject.getProject(), username, password);
 			if (validation.kind == FormValidation.Kind.OK &&
-					location.equals(octanePlugin.getLocation()) &&
-					domain.equals(octanePlugin.getDomain()) &&
-					project.equals(octanePlugin.getProject()) &&
+					uiLocation.equals(octanePlugin.getUiLocation()) &&
 					username.equals(octanePlugin.getUsername()) &&
 					password.equals(octanePlugin.getPassword())) {
 				retryModel.success();
@@ -200,6 +204,10 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 		@Override
 		public String getDisplayName() {
 			return Messages.PluginName();
+		}
+
+		public String getUiLocation() {
+			return octanePlugin.getUiLocation();
 		}
 
 		public String getLocation() {

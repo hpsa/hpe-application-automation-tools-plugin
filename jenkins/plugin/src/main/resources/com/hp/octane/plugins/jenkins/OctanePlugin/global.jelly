@@ -5,14 +5,8 @@
             <f:nested>
                 <table width="100%">
                     <f:entry title="${%global.config.location.title}"
-                             description="${%global.config.location.description}">
-                        <f:textbox field="location" />
-                    </f:entry>
-                    <f:entry title="${%global.config.domain.title}" description="${%global.config.domain.description}">
-                        <f:textbox field="domain" />
-                    </f:entry>
-                    <f:entry title="${%global.config.project.title}" description="${%global.config.project.description}">
-                        <f:textbox field="project" />
+                             description="${%global.config.location.description}" help="/plugin/octane-jenkins-plugin/help/uiLocation.html">
+                        <f:textbox field="uiLocation" />
                     </f:entry>
                     <f:entry title="${%global.config.username.title}" description="${%global.config.username.description}">
                         <f:textbox field="username" />
@@ -21,7 +15,7 @@
                         <f:password field="password" />
                     </f:entry>
                     <f:validateButton title="${%global.config.test.connection}" progress="${%global.config.test.connection.progress}"
-                        method="testGlobalConnection" with="location,domain,project,username,password" />
+                        method="testGlobalConnection" with="uiLocation,username,password" />
                 </table>
             </f:nested>
         </f:entry>
