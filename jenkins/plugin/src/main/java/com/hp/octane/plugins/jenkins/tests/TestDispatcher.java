@@ -15,14 +15,22 @@ import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationService;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import hudson.Extension;
+import hudson.FilePath;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.TaskListener;
 import hudson.util.TimeUnit2;
 import jenkins.model.Jenkins;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.time.DateFormatUtils;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -30,6 +38,8 @@ import java.util.logging.Logger;
 public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
 
     private static Logger logger = Logger.getLogger(TestDispatcher.class.getName());
+
+    public static final String TEST_AUDIT_FILE = "mqmTests_audit.json";
 
     @Inject
     private RetryModel retryModel;
@@ -43,7 +53,7 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
     }
 
     @Override
-    protected void doExecute(TaskListener listener) {
+    protected void doExecute(TaskListener listener) throws IOException, InterruptedException {
         if (queue.peekFirst() == null) {
             return;
         }
@@ -52,10 +62,11 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
             return;
         }
         MqmRestClient client = null;
+        ServerConfiguration configuration = null;
         TestResultQueue.QueueItem item;
         while ((item = queue.peekFirst()) != null) {
             if (client == null) {
-                ServerConfiguration configuration = ConfigurationService.getServerConfiguration();
+                configuration = ConfigurationService.getServerConfiguration();
                 if (StringUtils.isEmpty(configuration.location)) {
                     logger.warning("There are pending test results, but MQM server location is not specified, results can't be submitted");
                     return;
@@ -108,6 +119,7 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
                 if (pushTestResults(client, build)) {
                     logger.info("Successfully pushed test results of build [" + item.projectName + "#" + item.buildNumber + "]");
                     queue.remove();
+                    audit(configuration, build, true);
                 } else {
                     logger.warning("Failed to push test results of build [" + item.projectName + "#" + item.buildNumber + "]");
                     if (!queue.failed()) {
@@ -115,6 +127,7 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
                     }
                     releaseClient(client);
                     client = null;
+                    audit(configuration, build, false);
                 }
             } catch (FileNotFoundException e) {
                 logger.warning("File no longer exists, failed to push test results of build [" + item.projectName + "#" + item.buildNumber + "]");
@@ -146,6 +159,26 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
             return false;
         }
         return true;
+    }
+
+    private void audit(ServerConfiguration configuration, AbstractBuild build, boolean success) throws IOException, InterruptedException {
+        FilePath auditFile = new FilePath(new File(build.getRootDir(), TEST_AUDIT_FILE));
+        JSONArray audit;
+        if (auditFile.exists()) {
+            InputStream is = auditFile.read();
+            audit = JSONArray.fromObject(IOUtils.toString(is, "UTF-8"));
+            IOUtils.closeQuietly(is);
+        } else {
+            audit = new JSONArray();
+        }
+        JSONObject event = new JSONObject();
+        event.put("success", success);
+        event.put("date", DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.format(new Date()));
+        event.put("location", configuration.location);
+        event.put("domain", configuration.domain);
+        event.put("project", configuration.project);
+        audit.add(event);
+        auditFile.write(audit.toString(), "UTF-8");
     }
 
     @Override

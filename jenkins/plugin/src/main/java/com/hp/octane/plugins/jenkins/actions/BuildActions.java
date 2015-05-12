@@ -1,6 +1,7 @@
 package com.hp.octane.plugins.jenkins.actions;
 
 import com.hp.octane.plugins.jenkins.model.snapshots.SnapshotItem;
+import com.hp.octane.plugins.jenkins.tests.TestApi;
 import hudson.Extension;
 import hudson.model.*;
 import jenkins.model.RunAction2;
@@ -56,6 +57,10 @@ public class BuildActions extends TransientActionFactory<AbstractBuild> {
 			String metaonlyParam = req.getParameter("metaonly");
 			boolean metaonly = metaonlyParam != null && metaonlyParam.equals("true");
 			res.serveExposedBean(req, new SnapshotItem(build, metaonly), Flavor.JSON);
+		}
+
+		public TestApi getTests() {
+			return new TestApi(build);
 		}
 	}
 
