@@ -12,6 +12,9 @@ import com.hp.octane.plugins.jenkins.tests.TestResultStatus;
 import com.hp.octane.plugins.jenkins.tests.maven.MavenSetModuleDetection;
 import hudson.Extension;
 import hudson.FilePath;
+import hudson.maven.MavenBuild;
+import hudson.maven.MavenModule;
+import hudson.maven.MavenModuleSetBuild;
 import hudson.model.AbstractBuild;
 import hudson.remoting.VirtualChannel;
 import hudson.tasks.test.AbstractTestResultAction;
@@ -33,7 +36,9 @@ import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 @Extension
@@ -59,23 +64,45 @@ public class JUnitExtension extends MqmTestsExtension {
         FilePath resultFile = new FilePath(build.getRootDir()).child(JUNIT_RESULT_XML);
         if (resultFile.exists()) {
             logger.fine("JUnit result report found");
-            FilePath filePath = build.getWorkspace().act(new GetJUnitTestResults(build, resultFile));
+            FilePath filePath = build.getWorkspace().act(new GetJUnitTestResults(build, Arrays.asList(resultFile)));
             return new ObjectStreamIterator<TestResult>(filePath, true);
         } else {
+            //avoid java.lang.NoClassDefFoundError when maven plugin is not present
+            if ("hudson.maven.MavenModuleSetBuild".equals(build.getClass().getName())) {
+                logger.fine("MavenModuleSetBuild detected, looking for results in maven modules");
+
+                List<FilePath> resultFiles = new LinkedList<FilePath>();
+                Map<MavenModule, MavenBuild> moduleLastBuilds = ((MavenModuleSetBuild) build).getModuleLastBuilds();
+                for (MavenBuild mavenBuild: moduleLastBuilds.values()) {
+                    AbstractTestResultAction action = mavenBuild.getAction(AbstractTestResultAction.class);
+                    if (action != null) {
+                        FilePath moduleResultFile = new FilePath(mavenBuild.getRootDir()).child(JUNIT_RESULT_XML);
+                        if (moduleResultFile.exists()) {
+                            logger.fine("Found results in " + mavenBuild.getFullDisplayName());
+                            resultFiles.add(moduleResultFile);
+                        }
+                    }
+                }
+                if (!resultFiles.isEmpty()) {
+                    FilePath filePath = build.getWorkspace().act(new GetJUnitTestResults(build, resultFiles));
+                    return new ObjectStreamIterator<TestResult>(filePath, true);
+                }
+            }
+            logger.fine("No JUnit result report found");
             return Collections.<TestResult>emptyList().iterator();
         }
     }
 
     private static class GetJUnitTestResults implements FilePath.FileCallable<FilePath>  {
 
-        private final FilePath report;
+        private final List<FilePath> reports;
         private FilePath filePath;
         private List<ModuleDetection> moduleDetection;
         private long buildStarted;
         private FilePath workspace;
 
-        public GetJUnitTestResults(AbstractBuild<?, ?> build, FilePath report) throws IOException, InterruptedException {
-            this.report = report;
+        public GetJUnitTestResults(AbstractBuild<?, ?> build, List<FilePath> reports) throws IOException, InterruptedException {
+            this.reports = reports;
             this.filePath = new FilePath(build.getRootDir()).createTempFile(getClass().getSimpleName(), null);
             this.buildStarted = build.getStartTimeInMillis();
             this.workspace = build.getWorkspace();
@@ -93,9 +120,11 @@ public class JUnitExtension extends MqmTestsExtension {
             ObjectOutputStream oos = new ObjectOutputStream(bos);
 
             try {
-                JUnitXmlIterator iterator = new JUnitXmlIterator(report.read());
-                while (iterator.hasNext()) {
-                    oos.writeObject(iterator.next());
+                for (FilePath report: reports) {
+                    JUnitXmlIterator iterator = new JUnitXmlIterator(report.read());
+                    while (iterator.hasNext()) {
+                        oos.writeObject(iterator.next());
+                    }
                 }
             } catch (XMLStreamException e) {
                 throw new IOException(e);

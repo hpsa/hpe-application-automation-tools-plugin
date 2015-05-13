@@ -92,6 +92,18 @@ public class JUnitResultsTest {
     }
 
     @Test
+    public void testJUnitResultsLegacyWithoutJUnitArchiver() throws Exception {
+        MavenModuleSet project = rule.createMavenProject(projectName);
+        Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
+        project.setMaven(mavenInstallation.getName());
+        project.setGoals("test -Dmaven.test.failure.ignore=true");
+        project.setScm(new CopyResourceSCM("/helloWorldRoot"));
+        AbstractBuild build = TestUtils.runAndCheckBuild(project);
+
+        matchTests(build, TestUtils.helloWorldTests, helloWorld2Tests);
+    }
+
+    @Test
     public void testJUnitResultsLegacySubfolder() throws Exception {
         MavenModuleSet project = rule.createMavenProject(projectName);
         Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
