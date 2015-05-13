@@ -4,17 +4,15 @@ package com.hp.octane.plugins.jenkins.tests;
 
 import hudson.maven.MavenModuleSet;
 import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
 import hudson.model.FreeStyleProject;
-import hudson.model.Result;
 import hudson.tasks.Maven;
 import hudson.tasks.junit.JUnitResultArchiver;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -22,26 +20,22 @@ public class JUnitResultsTest {
 
     final private static String projectName = "junit-job";
 
-    private static Set<String> helloWorldTests = new HashSet<String>();
+    public static Set<String> helloWorld2Tests = new HashSet<String>();
     static {
-        helloWorldTests.add(test("helloWorld", "hello", "HelloWorldTest", "testOne", TestResultStatus.PASSED));
-        helloWorldTests.add(test("helloWorld", "hello", "HelloWorldTest", "testTwo", TestResultStatus.FAILED));
-        helloWorldTests.add(test("helloWorld", "hello", "HelloWorldTest", "testThree", TestResultStatus.SKIPPED));
+        helloWorld2Tests.add(TestUtils.testSignature("helloWorld2", "hello", "HelloWorld2Test", "testOnce", TestResultStatus.PASSED));
+        helloWorld2Tests.add(TestUtils.testSignature("helloWorld2", "hello", "HelloWorld2Test", "testDoce", TestResultStatus.PASSED));
     }
-    private static Set<String> helloWorld2Tests = new HashSet<String>();
-    static {
-        helloWorld2Tests.add(test("helloWorld2", "hello", "HelloWorld2Test", "testOnce", TestResultStatus.PASSED));
-        helloWorld2Tests.add(test("helloWorld2", "hello", "HelloWorld2Test", "testDoce", TestResultStatus.PASSED));
-    }
+
     private static Set<String> subFolderHelloWorldTests = new HashSet<String>();
     static {
-        subFolderHelloWorldTests.add(test("subFolder/helloWorld", "hello", "HelloWorldTest", "testOne", TestResultStatus.PASSED));
-        subFolderHelloWorldTests.add(test("subFolder/helloWorld", "hello", "HelloWorldTest", "testTwo", TestResultStatus.FAILED));
-        subFolderHelloWorldTests.add(test("subFolder/helloWorld", "hello", "HelloWorldTest", "testThree", TestResultStatus.SKIPPED));
+        subFolderHelloWorldTests.add(TestUtils.testSignature("subFolder/helloWorld", "hello", "HelloWorldTest", "testOne", TestResultStatus.PASSED));
+        subFolderHelloWorldTests.add(TestUtils.testSignature("subFolder/helloWorld", "hello", "HelloWorldTest", "testTwo", TestResultStatus.FAILED));
+        subFolderHelloWorldTests.add(TestUtils.testSignature("subFolder/helloWorld", "hello", "HelloWorldTest", "testThree", TestResultStatus.SKIPPED));
     }
+
     private static Set<String> uftTests = new HashSet<String>();
     static {
-        uftTests.add(test("", "All-Tests", "<None>", "subfolder/CalculatorPlusNextGen", TestResultStatus.FAILED));
+        uftTests.add(TestUtils.testSignature("", "All-Tests", "<None>", "subfolder/CalculatorPlusNextGen", TestResultStatus.FAILED));
     }
 
     @Rule
@@ -54,9 +48,9 @@ public class JUnitResultsTest {
         project.getBuildersList().add(new Maven("test", mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
         project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
         project.setScm(new CopyResourceSCM("/helloWorldRoot"));
-        AbstractBuild build = runAndCheckBuild(project);
+        AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
-        matchTests(build, helloWorldTests, helloWorld2Tests);
+        matchTests(build, TestUtils.helloWorldTests, helloWorld2Tests);
     }
 
     @Test
@@ -66,7 +60,7 @@ public class JUnitResultsTest {
         project.getBuildersList().add(new Maven("test", mavenInstallation.getName(), "subFolder/helloWorld/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
         project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
         project.setScm(new CopyResourceSCM("/helloWorldRoot", "subFolder"));
-        AbstractBuild build = runAndCheckBuild(project);
+        AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
         matchTests(build, subFolderHelloWorldTests);
     }
@@ -79,9 +73,9 @@ public class JUnitResultsTest {
         project.getBuildersList().add(new Maven("test", mavenInstallation.getName(), "helloWorld2/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
         project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
         project.setScm(new CopyResourceSCM("/helloWorldRoot"));
-        AbstractBuild build = runAndCheckBuild(project);
+        AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
-        matchTests(build, helloWorldTests, helloWorld2Tests);
+        matchTests(build, TestUtils.helloWorldTests, helloWorld2Tests);
     }
 
     @Test
@@ -92,9 +86,9 @@ public class JUnitResultsTest {
         project.setGoals("test -Dmaven.test.failure.ignore=true");
         project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
         project.setScm(new CopyResourceSCM("/helloWorldRoot"));
-        AbstractBuild build = runAndCheckBuild(project);
+        AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
-        matchTests(build, helloWorldTests, helloWorld2Tests);
+        matchTests(build, TestUtils.helloWorldTests, helloWorld2Tests);
     }
 
     @Test
@@ -106,7 +100,7 @@ public class JUnitResultsTest {
         project.setGoals("test -Dmaven.test.failure.ignore=true");
         project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
         project.setScm(new CopyResourceSCM("/helloWorldRoot", "subFolder"));
-        AbstractBuild build = runAndCheckBuild(project);
+        AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
         matchTests(build, subFolderHelloWorldTests);
     }
@@ -116,39 +110,13 @@ public class JUnitResultsTest {
         FreeStyleProject project = rule.createFreeStyleProject(projectName);
         project.getPublishersList().add(new TestCustomJUnitArchiver("UFT_results.xml"));
         project.setScm(new CopyResourceSCM("/UFT"));
-        AbstractBuild build = runAndCheckBuild(project);
+        AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
         matchTests(build, uftTests);
     }
 
-    private void matchTests(AbstractBuild build, Set<String> ... expectedTests) {
+    private void matchTests(AbstractBuild build, Set<String> ... expectedTests) throws FileNotFoundException {
         File mqmTestsXml = new File(build.getRootDir(), "mqmTests.xml");
-        Set<String> copy = new HashSet<String>();
-        for (Set<String> expected: expectedTests) {
-            copy.addAll(expected);
-        }
-        for(TestResult testResult: new TestResultIterable(mqmTestsXml)) {
-            String testSignature = test(testResult);
-            Assert.assertTrue("Not found: " + testSignature + " in " + copy, copy.remove(testSignature));
-            Assert.assertEquals("Start time differs", build.getStartTimeInMillis(), testResult.getStarted());
-        }
-        Assert.assertTrue("More tests expected: " + copy.toString(), copy.isEmpty());
-    }
-
-    private AbstractBuild runAndCheckBuild(AbstractProject project) throws Exception {
-        AbstractBuild build = (AbstractBuild) project.scheduleBuild2(0).get();
-        if (!build.getResult().isBetterOrEqualTo(Result.UNSTABLE)) { // avoid expensive build.getLog() until condition is met
-            Assert.fail("Build status: " + build.getResult() + ", log follows:\n" + build.getLog());
-        }
-        return build;
-    }
-
-    private static String test(TestResult testResult) {
-        return test(testResult.getModuleName(), testResult.getPackageName(), testResult.getClassName(),
-                testResult.getTestName(), testResult.getResult());
-    }
-
-    private static String test(String moduleName, String packageName, String className, String testName, TestResultStatus status) {
-        return moduleName + "#" + packageName + "#" + className + "#" + testName + "#" + status.toPrettyName() + "#";
+        TestUtils.matchTests(new TestResultIterable(mqmTestsXml), build.getStartTimeInMillis(), expectedTests);
     }
 }

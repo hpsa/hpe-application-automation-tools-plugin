@@ -10,23 +10,22 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.Reader;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
 
 public class TestResultIterator implements Iterator<TestResult> {
 
-    private FileReader fileReader;
+    private Reader input;
     private XMLEventReader reader;
     private LinkedList<TestResult> items = new LinkedList<TestResult>();
     private boolean closed;
 
-    public TestResultIterator(File file) throws FileNotFoundException, XMLStreamException {
-        fileReader = new FileReader(file);
-        reader = XMLInputFactory.newInstance().createXMLEventReader(fileReader);
+    public TestResultIterator(Reader input) throws FileNotFoundException, XMLStreamException {
+        this.input = input;
+        reader = XMLInputFactory.newInstance().createXMLEventReader(input);
     }
 
     @Override
@@ -51,7 +50,7 @@ public class TestResultIterator implements Iterator<TestResult> {
                     }
                 } else {
                     closed = true;
-                    IOUtils.closeQuietly(fileReader);
+                    IOUtils.closeQuietly(input);
                     reader.close();
                 }
             }

@@ -19,8 +19,7 @@ public class TestListener {
 
     private static Logger logger = Logger.getLogger(TestListener.class.getName());
 
-    @Inject
-    private TestResultQueueImpl queue;
+    private TestResultQueue queue;
 
     public void processBuild(AbstractBuild build) {
         FilePath resultPath = new FilePath(new FilePath(build.getRootDir()), TEST_RESULT_FILE);
@@ -55,5 +54,17 @@ public class TestListener {
                 logger.log(Level.SEVERE, "Error processing test results", e);
             }
         }
+    }
+
+    @Inject
+    public void setTestResultQueue(TestResultQueueImpl queue) {
+        this.queue = queue;
+    }
+
+    /*
+     * To be used in tests only.
+     */
+    public void _setTestResultQueue(TestResultQueue queue) {
+        this.queue = queue;
     }
 }

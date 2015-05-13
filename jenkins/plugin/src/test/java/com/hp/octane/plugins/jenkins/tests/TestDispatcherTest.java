@@ -36,8 +36,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedList;
 import java.util.concurrent.ExecutionException;
 
 public class TestDispatcherTest {
@@ -68,7 +66,7 @@ public class TestDispatcherTest {
         testDispatcher._setMqmRestClientFactory(clientFactory);
         queue = new TestQueue();
         testDispatcher._setTestResultQueue(queue);
-        waitForTicks(1); // needed to avoid occasional interaction with the client we just overrode (race condition)
+        queue.waitForTicks(1); // needed to avoid occasional interaction with the client we just overrode (race condition)
 
         retryModel = ExtensionUtil.getInstance(rule, RetryModel.class);
         retryModel.success();
@@ -92,13 +90,13 @@ public class TestDispatcherTest {
     public void testDispatcher() throws Exception {
         mockRestClient(restClient, true, true, true);
         FreeStyleBuild build = executeBuild();
-        waitForTicks(5);
+        queue.waitForTicks(5);
         verifyRestClient(restClient, build, true, true);
         verifyAudit(build, true);
 
         mockRestClient(restClient, true, true, true);
         FreeStyleBuild build2 = executeBuild();
-        waitForTicks(5);
+        queue.waitForTicks(5);
         verifyRestClient(restClient, build2, true, true);
         verifyAudit(build2, true);
         Assert.assertEquals(0, queue.size());
@@ -111,7 +109,7 @@ public class TestDispatcherTest {
         FreeStyleBuild build2 = project.scheduleBuild2(0).get();
         FreeStyleBuild build3 = project.scheduleBuild2(0).get();
         queue.add(Arrays.asList(build, build2, build3));
-        waitForTicks(10);
+        queue.waitForTicks(10);
 
         Mockito.verify(restClient).tryToConnectProject();
         Mockito.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
@@ -130,14 +128,14 @@ public class TestDispatcherTest {
     public void testDispatcherLoginFailure() throws Exception {
         mockRestClient(restClient, false, true, true);
         FreeStyleBuild build = executeBuild();
-        waitForTicks(5);
+        queue.waitForTicks(5);
 
         verifyRestClient(restClient, build, false, false);
         verifyAudit(build);
         Mockito.reset(restClient);
 
         executeBuild();
-        waitForTicks(5);
+        queue.waitForTicks(5);
 
         // in quiet period
         Mockito.verifyNoMoreInteractions(restClient);
@@ -148,14 +146,14 @@ public class TestDispatcherTest {
     public void testDispatcherSessionFailure() throws Exception {
         mockRestClient(restClient, true, false, true);
         FreeStyleBuild build = executeBuild();
-        waitForTicks(5);
+        queue.waitForTicks(5);
 
         verifyRestClient(restClient, build, false, false);
         verifyAudit(build);
         Mockito.reset(restClient);
 
         executeBuild();
-        waitForTicks(5);
+        queue.waitForTicks(5);
 
         // in quiet period
         Mockito.verifyNoMoreInteractions(restClient);
@@ -166,14 +164,14 @@ public class TestDispatcherTest {
     public void testDispatcherProjectFailure() throws Exception {
         mockRestClient(restClient, true, true, false);
         FreeStyleBuild build = executeBuild();
-        waitForTicks(5);
+        queue.waitForTicks(5);
 
         verifyRestClient(restClient, build, false, false);
         verifyAudit(build);
         Mockito.reset(restClient);
 
         executeBuild();
-        waitForTicks(5);
+        queue.waitForTicks(5);
 
         // in quiet period
         Mockito.verifyNoMoreInteractions(restClient);
@@ -189,7 +187,7 @@ public class TestDispatcherTest {
         InOrder order = Mockito.inOrder(restClient);
 
         FreeStyleBuild build = executeBuild();
-        waitForTicks(5);
+        queue.waitForTicks(5);
 
         order.verify(restClient).tryToConnectProject();
         order.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
@@ -213,7 +211,7 @@ public class TestDispatcherTest {
         order = Mockito.inOrder(restClient);
 
         build = executeBuild();
-        waitForTicks(5);
+        queue.waitForTicks(5);
 
         order.verify(restClient).tryToConnectProject();
         order.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
@@ -230,24 +228,6 @@ public class TestDispatcherTest {
 
         Assert.assertEquals(0, queue.size());
         Assert.assertEquals(1, queue.getDiscards());
-    }
-
-    private void waitForTicks(int n) throws InterruptedException {
-        long current;
-        synchronized (queue) {
-            current = queue.getTicks();
-        }
-        long target = current + n;
-        for (int i = 0; i < 2000; i++) {
-            synchronized (queue) {
-                current = queue.getTicks();
-                if (current >= target) {
-                    return;
-                }
-            }
-            Thread.sleep(10);
-        }
-        Assert.fail("Timed out: ticks: expected=" + target + "; actual=" + current);
     }
 
     private FreeStyleBuild executeBuild() throws ExecutionException, InterruptedException {
@@ -301,63 +281,6 @@ public class TestDispatcherTest {
             Mockito.verify(restClient).release();
         }
         Mockito.verifyNoMoreInteractions(restClient);
-    }
-
-    private static class TestQueue implements TestResultQueue {
-
-        private LinkedList<QueueItem> queue = new LinkedList<QueueItem>();
-        private long ticks;
-        private int discard;
-
-        @Override
-        public synchronized QueueItem peekFirst() {
-            ++ticks;
-            if (!queue.isEmpty()) {
-                return queue.getFirst();
-            } else {
-                return null;
-            }
-        }
-
-        @Override
-        public synchronized boolean failed() {
-            QueueItem item = queue.removeFirst();
-            if (item.failCount++ < 1) {
-                queue.add(item);
-                return true;
-            } else {
-                ++discard;
-                return false;
-            }
-        }
-
-        @Override
-        public synchronized void remove() {
-            queue.removeFirst();
-        }
-
-        @Override
-        public synchronized void add(String projectName, int buildNumber) {
-            queue.add(new QueueItem(projectName, buildNumber));
-        }
-
-        public synchronized void add(Collection<? extends AbstractBuild> builds) {
-            for (AbstractBuild build: builds) {
-                queue.add(new QueueItem(build.getProject().getName(), build.getNumber()));
-            }
-        }
-
-        private synchronized int size() {
-            return queue.size();
-        }
-
-        public synchronized long getTicks() {
-            return ticks;
-        }
-
-        public synchronized int getDiscards() {
-            return discard;
-        }
     }
 
     private static class MqmTestsFileMatcher extends BaseMatcher<File> {
