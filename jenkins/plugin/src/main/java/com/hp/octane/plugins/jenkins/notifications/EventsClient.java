@@ -28,7 +28,9 @@ public class EventsClient {
 	private final List<CIEventBase> events = Collections.synchronizedList(new ArrayList<CIEventBase>());
 	private final Object locker = new Object();
 	private Thread worker;
-	private MqmRestClient restClient;
+
+	//  TODO: needs redesign, or client should be reusable or no relogin etc logic is needed (each time new login is a performance killer though)
+	private JenkinsMqmRestClientFactory restClientFactory;
 
 	private int MAX_SEND_RETRIES = 7;
 	private int INITIAL_RETRY_PAUSE = 1739;
@@ -55,13 +57,14 @@ public class EventsClient {
 		this.project = project;
 		this.username = username;
 		this.password = password;
-		restClient = clientFactory.create(
-				this.url,
-				this.domain,
-				this.project,
-				this.username,
-				this.password
-		);
+		restClientFactory = clientFactory;
+//		restClient = clientFactory.create(
+//				this.url,
+//				this.domain,
+//				this.project,
+//				this.username,
+//				this.password
+//		);
 	}
 
 	public void pushEvent(CIEventBase event) {
@@ -77,21 +80,20 @@ public class EventsClient {
 						@Override
 						public void run() {
 							while (!shuttingDown) {
-								if (events.size() > 0) {
-									if (!sendData()) suspend();
-								} else {
-									try {
-										Thread.sleep(DATA_SEND_INTERVAL);
-									} catch (InterruptedException ie) {
-										logger.severe("EVENTS: worker thread of events client was interrupted; the client shuts down");
-										suspend();
+								try {
+									if (events.size() > 0) {
+										if (!sendData()) suspend();
 									}
+									Thread.sleep(DATA_SEND_INTERVAL);
+								} catch (Exception e) {
+									logger.severe("EVENTS: Exception while events sending: " + e.getMessage());
 								}
 							}
 							logger.severe("EVENTS: worker thread of events client shuts down");
 						}
 					});
 					worker.setDaemon(true);
+					worker.setName("EventsClientWorker");
 					worker.start();
 					logger.info("EVENTS: new events client initialized for '" + this.url + "'");
 				}
@@ -115,6 +117,7 @@ public class EventsClient {
 		EventsList snapshot = new EventsList(events);
 		String requestBody;
 		boolean result = true;
+		MqmRestClient restClient = restClientFactory.create(url, domain, project, username, password);
 
 		try {
 			new ModelBuilder().get(EventsList.class).writeTo(snapshot, Flavor.JSON.createDataWriter(snapshot, w));
