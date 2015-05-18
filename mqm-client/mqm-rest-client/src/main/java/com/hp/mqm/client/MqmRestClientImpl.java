@@ -30,6 +30,9 @@ import org.apache.http.entity.StringEntity;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 import java.net.URI;
 import java.util.Collection;
@@ -39,21 +42,25 @@ import java.util.List;
 public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestClient {
 	private static final Logger logger = Logger.getLogger(MqmRestClientImpl.class.getName());
 
-    private static final String PAGING_FRAGMENT = "?offset={0}&limit={1}";
-    private static final String FILTERING_FRAGMENT = "&query={2}";
+    private static final String WORKSPACE_FRAGMENT = "workspace-id={workspace}";
+    private static final String PAGING_FRAGMENT = "offset={offset}&limit={limit}";
+    private static final String FILTERING_FRAGMENT = "query={query}";
 
     private static final String URI_PUSH_TEST_RESULT_PUSH = "test-results/v1";
-    private static final String URI_SERVER_JOB_CONFIG = "cia/servers/{0}/jobconfig/{1}";
-    private static final String URI_RELEASES = "releases-mqm" + PAGING_FRAGMENT;
-    private static final String URI_LIST_ITEMS = "mqm-list-items" + PAGING_FRAGMENT;
-    private static final String URI_TAXONOMIES = "taxonomies" + PAGING_FRAGMENT;
-    private static final String URI_TAXONOMY_TYPES = "taxonomy-types" + PAGING_FRAGMENT;
+    private static final String URI_SERVER_JOB_CONFIG = "cia/servers/{server}/jobconfig/{job}";
+    private static final String URI_RELEASES = "releases-mqm?" + WORKSPACE_FRAGMENT + "&" + PAGING_FRAGMENT;
+    private static final String URI_LIST_ITEMS = "mqm-list-items?" + WORKSPACE_FRAGMENT + "&" + PAGING_FRAGMENT;
+    private static final String URI_TAXONOMIES = "taxonomies?" + WORKSPACE_FRAGMENT + "&" + PAGING_FRAGMENT;
+    private static final String URI_TAXONOMY_TYPES = "taxonomy-types?" + WORKSPACE_FRAGMENT + "&" + PAGING_FRAGMENT;
     private static final String URI_PIPELINES = "cia/pipelines?fetchStructure=false";
-    private static final String URI_PIPELINES_METADATA = "cia/pipelines/{0}/metadata";
-    private static final String URI_PIPELINES_TAGS = "cia/pipelines/{0}/jobconfig/{1}";
+    private static final String URI_PIPELINES_METADATA = "cia/pipelines/{pipeline}/metadata";
+    private static final String URI_PIPELINES_TAGS = "cia/pipelines/{server}/jobconfig/{job}?" + WORKSPACE_FRAGMENT;
 	private static final String URI_PUT_EVENTS = "cia/events";
 
     private static final String HEADER_ACCEPT = "Accept";
+
+    // currently default workspace is always used
+    private static int DEFAULT_WORKSPACE = 1001;
 
 	/**
 	 * Constructor for AbstractMqmRestClient.
@@ -80,7 +87,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 
     @Override
     public JobConfiguration getJobConfiguration(String serverIdentity, String jobName) {
-        HttpGet request = new HttpGet(createProjectApiUri(URI_SERVER_JOB_CONFIG, serverIdentity, jobName));
+        HttpGet request = new HttpGet(createProjectApiUriMap(URI_SERVER_JOB_CONFIG, serverParams(serverIdentity, jobName, DEFAULT_WORKSPACE)));
         HttpResponse response = null;
         try {
             response = execute(request);
@@ -138,7 +145,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 
     @Override
     public void updatePipelineMetadata(int pipelineId, String pipelineName, Integer releaseId) {
-        HttpPut request = new HttpPut(createProjectApiUri(URI_PIPELINES_METADATA, pipelineId));
+        HttpPut request = new HttpPut(createProjectApiUriMap(URI_PIPELINES_METADATA, Collections.singletonMap("pipeline", pipelineId)));
         JSONObject pipelineObject = new JSONObject();
         pipelineObject.put("pipelineId", pipelineId);
         if (pipelineName != null) {
@@ -164,7 +171,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 
     @Override
     public Pipeline updatePipelineTags(String serverIdentity, String jobName, int pipelineId, List<Taxonomy> taxonomies, List<Field> fields) {
-        HttpPost request = new HttpPost(createProjectApiUri(URI_PIPELINES_TAGS, serverIdentity, jobName));
+        HttpPost request = new HttpPost(createProjectApiUriMap(URI_PIPELINES_TAGS, serverParams(serverIdentity, jobName, DEFAULT_WORKSPACE)));
 
         JSONObject pipelineObject = new JSONObject();
         pipelineObject.put("pipelineId", pipelineId);
@@ -290,6 +297,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
     }
 
     private URI getEntityURI(String collection, List<String> conditions, int offset, int limit) {
+        Map<String, Object> params = pagingParams(offset, limit, DEFAULT_WORKSPACE);
         if (!conditions.isEmpty()) {
             StringBuffer expr = new StringBuffer();
             for (String condition: conditions) {
@@ -298,9 +306,10 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
                 }
                 expr.append(condition);
             }
-            return createProjectApiUri(collection + FILTERING_FRAGMENT, offset, limit, "\"" + expr.toString() + "\"");
+            params.put("query", "\"" + expr.toString() + "\"");
+            return createProjectApiUriMap(collection + "&" + FILTERING_FRAGMENT, params);
         } else {
-            return createProjectApiUri(collection, offset, limit);
+            return createProjectApiUriMap(collection, params);
         }
     }
 
@@ -416,6 +425,22 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
             HttpClientUtils.closeQuietly(response);
         }
         return result;
+    }
+
+    private Map<String, Object> pagingParams(int offset, int limit, int workspaceId) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("offset", offset);
+        params.put("limit", limit);
+        params.put("workspace", workspaceId);
+        return params;
+    }
+
+    private Map<String, Object> serverParams(String serverIdentity, String jobName, int workspaceId) {
+        HashMap<String, Object> params = new HashMap<String, Object>();
+        params.put("server", serverIdentity);
+        params.put("job", jobName);
+        params.put("workspace", workspaceId);
+        return params;
     }
 
     private static class ListItemEntityFactory implements EntityFactory<ListItem> {

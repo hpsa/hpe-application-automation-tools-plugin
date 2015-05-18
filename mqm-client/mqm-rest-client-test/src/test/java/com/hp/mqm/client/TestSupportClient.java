@@ -16,12 +16,15 @@ import org.apache.http.entity.StringEntity;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Collections;
 
 public class TestSupportClient extends AbstractMqmRestClient {
 
-    private static final String URI_RELEASES = "releases-mqm";
-    private static final String URI_TAXONOMY_TYPES = "taxonomy-types";
-    private static final String URI_TAXONOMIES = "taxonomies";
+    private static final String WORKSPACE_FRAGMENT= "?workspace-id={workspace}";
+
+    private static final String URI_RELEASES = "releases-mqm" + WORKSPACE_FRAGMENT;
+    private static final String URI_TAXONOMY_TYPES = "taxonomy-types" + WORKSPACE_FRAGMENT;
+    private static final String URI_TAXONOMIES = "taxonomies" + WORKSPACE_FRAGMENT;
 
     protected TestSupportClient(MqmConnectionConfig connectionConfig) {
         super(connectionConfig);
@@ -53,7 +56,7 @@ public class TestSupportClient extends AbstractMqmRestClient {
     }
 
     private JSONObject postEntity(String uri, JSONObject entityObject) throws IOException {
-        HttpPost request = new HttpPost(createProjectApiUri(uri));
+        HttpPost request = new HttpPost(createProjectApiUriMap(uri, Collections.singletonMap("workspace", 1001)));
         request.setEntity(new StringEntity(entityObject.toString(), ContentType.APPLICATION_JSON));
         HttpResponse response = null;
         try {

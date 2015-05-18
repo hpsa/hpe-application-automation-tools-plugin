@@ -33,6 +33,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
@@ -228,7 +230,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
      * @return absolute URI of endpoint with all parameters which are URI encoded. Example: http://mqm.hp.com/qcbin/test/J%20Unit?id=123
      */
     protected URI createBaseUri(String template, Object... params) {
-        String result = location + "/" + resolveTemplate(template, params);
+        String result = location + "/" + resolveTemplate(template, asMap(params));
         return URI.create(result);
     }
 
@@ -244,11 +246,11 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
      * @return absolute URI of endpoint with all parameters which are URI encoded. Example: http://mqm.hp.com/qcbin/domains/DEFAULT/projects/MAIN/rest/test/J%20Unit?id=123
      */
     protected URI createProjectRestUri(String template, Object... params) {
-        return createProjectUri(PROJECT_REST_URI, template, params);
+        return createProjectUri(PROJECT_REST_URI, template, asMap(params));
     }
 
     /**
-     * Creates absolute URI given by relative path from project URI leading by 'rest'. It resolves all placeholders
+     * Creates absolute URI given by relative path from project URI leading by 'api'. It resolves all placeholders
      * in template according to their order in params. All parameters are URI encoded before they are used for template resolving.
      *
      * @param template URI template of relative path (template must not starts with '/') from REST URI context. Special characters
@@ -259,10 +261,23 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
      * @return absolute URI of endpoint with all parameters which are URI encoded. Example: http://mqm.hp.com/qcbin/domains/DEFAULT/projects/MAIN/rest/test/J%20Unit?id=123
      */
     protected URI createProjectApiUri(String template, Object... params) {
+        return createProjectUri(PROJECT_API_URI, template, asMap(params));
+    }
+
+    /**
+     * Creates absolute URI given by relative path from project URI leading by 'api'. It resolves all placeholders
+     * in template. All parameters are URI encoded before they are used for template resolving.
+     *
+     * @param template URI template of relative path (template must not starts with '/') from REST URI context. Special characters
+     *                 which need to be encoded must be already encoded in template.
+     * @param params   not encoded parameters of template. Objects are converted to string by its toString() method.
+     * @return absolute URI of endpoint with all parameters which are URI encoded
+     */
+    protected URI createProjectApiUriMap(String template, Map<String, ?> params) {
         return createProjectUri(PROJECT_API_URI, template, params);
     }
 
-    protected URI createProjectUri(String projectPartTemplate, String template, Object... params) {
+    protected URI createProjectUri(String projectPartTemplate, String template, Map<String, ?> params) {
         return URI.create(createBaseUri(projectPartTemplate, domain, project).toString() + "/" + resolveTemplate(template, params));
     }
 
@@ -274,12 +289,21 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
      * @param params URI parameters
      * @return resolved URI template
      */
-    private String resolveTemplate(String template, Object... params) {
+    private String resolveTemplate(String template, Map<String, ?> params) {
         String result = template;
-        for (int i = 0; i < params.length; i++) {
-            result = result.replaceAll(Pattern.quote("{" + i + "}"), encodeParam(params[i] == null ? "" : params[i].toString()));
+        for (String param: params.keySet()) {
+            Object value = params.get(param);
+            result = result.replaceAll(Pattern.quote("{" + param + "}"), encodeParam(value == null ? "" : value.toString()));
         }
         return result;
+    }
+
+    private Map<String, Object> asMap(Object... params) {
+        Map<String, Object> map = new HashMap<String, Object>();
+        for (int i = 0; i < params.length; i++) {
+            map.put(String.valueOf(i), params[i]);
+        }
+        return map;
     }
 
     private String encodeParam(String param) {
