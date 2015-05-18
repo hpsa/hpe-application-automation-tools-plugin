@@ -288,7 +288,7 @@ public class MqmRestClientImplTest {
         }
 
         // invalid payload
-        final File testResults2 = new File(this.getClass().getResource("TestResults2.xml").toURI());
+        final File testResults2 = new File(this.getClass().getResource("TestResults2.xmlx").toURI());
         try {
             client.postTestResult(testResults2);
             fail();
