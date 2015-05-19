@@ -15,9 +15,11 @@
 		<JETTY_PORT>8081</JETTY_PORT>
 		<serverUrl>http://${DEPLOY_TARGET}:${JETTY_PORT}/qcbin</serverUrl>
 		<saUser>sa</saUser>
-		<projectUserName>restuser</projectUserName>
 		<domain>UNITEST</domain>
-		<project>resttest</project>
+		<project></project>
+		<projectUserName></projectUserName>
+		<projectUserPassword></projectUserPassword>
+		
 		<overwrite>true</overwrite>
 		<include.tests>**/*Test.java</include.tests>
 	</properties>
@@ -62,42 +64,6 @@
 	</build>
 	<profiles>
 		<profile>
-			<!-- Creates a project-->
-			<id>create-project</id>
-			<activation>
-				<activeByDefault>false</activeByDefault>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>com.hp.maven.plugins.alm</groupId>
-						<artifactId>rest-create-project</artifactId>
-						<version>1.0.8.1</version>
-						<executions>
-							<execution>
-								<id>clean-create</id>
-								<phase>pre-integration-test</phase>
-								<goals>
-									<goal>create-project</goal>
-								</goals>
-								<configuration>
-									<serverUrl>${serverUrl}</serverUrl>
-									<saUser>${saUser}</saUser>
-									<projectUserName>${projectUserName}</projectUserName>
-									<projectUserPassword>${projectUserPassword}</projectUserPassword>
-									<domain>${domain}</domain>
-									<project>${project}</project>
-									<overwrite>${overwrite}</overwrite>
-									<extensions>${extensions}</extensions>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-		
-		<profile>
 			<!--runs the integration tests -->
 			<id>itest</id>
 			<activation>
@@ -110,7 +76,7 @@
 						<version>${failsafe.version}</version>
 						<executions>
 							<execution>
-								<id>creation-of-schema</id>
+								<id>integration-test</id>
 								<phase>integration-test</phase>
 								<goals>
 									<goal>integration-test</goal>
