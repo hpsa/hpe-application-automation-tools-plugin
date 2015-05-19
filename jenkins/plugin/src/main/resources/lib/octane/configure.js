@@ -144,11 +144,11 @@ function octane_job_configuration(target, progress, proxy) {
                 trRelease.append(tdReleaseSelect);
 
                 var select = $("<select>");
-                for (var releaseId in jobConfiguration.releases) {
-                    select.append($("<option>").text(jobConfiguration.releases[releaseId]).val(releaseId).attr('selected', (pipeline.releaseId === releaseId)));
-                }
+                $.each(jobConfiguration.releases, function (releaseId) {
+                    select.append($("<option>").text(jobConfiguration.releases[releaseId]).val(releaseId).attr('selected', (pipeline.releaseId === Number(releaseId))));
+                });
                 apply.push(function () {
-                    pipeline.releaseId = select.val();
+                    pipeline.releaseId = Number(select.val());
                 });
                 enableDirtyChangeCheck(select);
                 tdReleaseSelect.append(select);
