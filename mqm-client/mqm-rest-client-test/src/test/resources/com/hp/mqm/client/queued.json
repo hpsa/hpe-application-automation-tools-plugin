@@ -1,0 +1,21 @@
+{
+  "events": [
+    {
+      "causes": [
+        {
+          "type": "user",
+          "userId": null,
+          "userName": "anonymous"
+        }
+      ],
+      "eventType": "queued",
+      "project": "foo"
+    }
+  ],
+  "server": {
+    "instanceId": "61a89463-7b77-45f3-b630-614993d29163",
+    "instanceIdFrom": 1430911121937,
+    "type": "jenkins",
+    "url": "http://localhost:8080/jenkins"
+  }
+}

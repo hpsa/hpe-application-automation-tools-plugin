@@ -6,6 +6,10 @@ import com.hp.mqm.client.exception.LoginErrorException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
 import com.hp.mqm.client.exception.SessionCreationException;
+import com.hp.mqm.client.model.PagedList;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
@@ -33,7 +37,10 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -48,10 +55,15 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
     private static final String PROJECT_REST_URI = "rest/domains/{0}/projects/{1}";
     private static final String PROJECT_API_URI = "api/domains/{0}/projects/{1}";
 
+    private static final String FILTERING_FRAGMENT = "query={query}";
+
     private static final String URI_PARAM_ENCODING = "UTF-8";
 
     public static final int DEFAULT_CONNECTION_TIMEOUT = 20000; // in milliseconds
     public static final int DEFAULT_SO_TIMEOUT = 40000; // in milliseconds
+
+    // currently default workspace is always used
+    static int DEFAULT_WORKSPACE = 1001;
 
     private final DefaultHttpClient httpClient;
     private final String location;
@@ -377,6 +389,62 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
         return result;
     }
 
+    protected <E> PagedList<E> getEntities(URI uri, int offset, EntityFactory<E> factory) {
+        HttpGet request = new HttpGet(uri);
+        HttpResponse response = null;
+        try {
+            response = execute(request);
+            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+                throw new RequestException("Entity retrieval failed with status code " + response.getStatusLine().getStatusCode() + " and reason " + response.getStatusLine().getReasonPhrase());
+            }
+            String entitiesJson = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
+            JSONObject entities = JSONObject.fromObject(entitiesJson);
+
+            LinkedList<E> items = new LinkedList<E>();
+            for (JSONObject entityObject: getJSONObjectCollection(entities, "data")) {
+                items.add(factory.create(entityObject.toString()));
+            }
+            return new PagedList<E>(items, offset, entities.getInt("total-count"));
+        } catch (IOException e) {
+            throw new RequestErrorException("Cannot retrieve entities from MQM.", e);
+        } finally {
+            HttpClientUtils.closeQuietly(response);
+        }
+    }
+
+    protected URI getEntityURI(String collection, List<String> conditions, int offset, int limit) {
+        Map<String, Object> params = pagingParams(offset, limit, DEFAULT_WORKSPACE);
+        if (!conditions.isEmpty()) {
+            StringBuffer expr = new StringBuffer();
+            for (String condition: conditions) {
+                if (expr.length() > 0) {
+                    expr.append(";");
+                }
+                expr.append(condition);
+            }
+            params.put("query", "\"" + expr.toString() + "\"");
+            return createProjectApiUriMap(collection + "&" + FILTERING_FRAGMENT, params);
+        } else {
+            return createProjectApiUriMap(collection, params);
+        }
+    }
+
+    protected String condition(String name, String value) {
+        return name + "='" + escapeQueryValue(value) + "'";
+    }
+
+    private static String escapeQueryValue(String value) {
+        return value.replaceAll("(\\\\)", "$1$1").replaceAll("([\"'])", "\\\\$1");
+    }
+
+    private Map<String, Object> pagingParams(int offset, int limit, int workspaceId) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("offset", offset);
+        params.put("limit", limit);
+        params.put("workspace", workspaceId);
+        return params;
+    }
+
     private boolean isLoginNecessary(HttpResponse response) {
         return response.getStatusLine().getStatusCode() == 401;
     }
@@ -397,4 +465,14 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
         public boolean value;
     }
 
+    static Collection<JSONObject> getJSONObjectCollection(JSONObject object, String key) {
+        JSONArray array = object.getJSONArray(key);
+        return (Collection<JSONObject>)array.subList(0, array.size());
+    }
+
+    interface EntityFactory<E> {
+
+        E create(String json);
+
+    }
 }

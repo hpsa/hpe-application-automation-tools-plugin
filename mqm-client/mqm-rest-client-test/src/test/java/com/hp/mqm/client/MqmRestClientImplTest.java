@@ -15,7 +15,9 @@ import com.hp.mqm.client.model.Pipeline;
 import com.hp.mqm.client.model.Release;
 import com.hp.mqm.client.model.Taxonomy;
 import com.hp.mqm.client.model.TaxonomyType;
+import com.hp.mqm.client.model.TestRun;
 import net.sf.json.JSONObject;
+import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.ResponseHandler;
@@ -29,7 +31,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.util.LinkedList;
 import java.util.List;
@@ -50,6 +51,12 @@ public class MqmRestClientImplTest {
     private static final String CLIENT_TYPE = "test";
 
     public static final MqmConnectionConfig connectionConfig;
+
+    public enum JIEventType {
+        QUEUED,
+        STARTED,
+        FINISHED;
+    }
 
     static {
         connectionConfig = new MqmConnectionConfig(
@@ -264,14 +271,47 @@ public class MqmRestClientImplTest {
     }
 
     @Test
-    public void testPostTestResult() throws UnsupportedEncodingException, URISyntaxException {
+    public void testPostTestResult() throws IOException, URISyntaxException, InterruptedException {
         MqmRestClientImpl client = new MqmRestClientImpl(connectionConfig);
-        final File testResults = new File(this.getClass().getResource("TestResults.xml").toURI());
+
+        String serverIdentity = UUID.randomUUID().toString();
+        long timestamp = System.currentTimeMillis();
+        String jobName = "Job" + timestamp;
+
+        // create release and pipeline
+        String releaseName = "Release" + timestamp;
+        Release release = testSupportClient.createRelease(releaseName);
+        String pipelineName = "Pipeline" + timestamp;
+        final JSONObject server = ResourceUtils.readJson("server.json");
+        server.put("instanceId", serverIdentity);
+        server.put("url", "http://localhost:8080/jenkins"+timestamp);
+        JSONObject structure = ResourceUtils.readJson("structure.json");
+        structure.put("name", jobName);
+        int pipelineId = client.createPipeline(pipelineName, release.getId(), structure.toString(), server.toString());
+        Assert.assertTrue(pipelineId > 0);
+        Thread.sleep(1000);
+
+        putJenkinsInsightEvent(jobName, server, JIEventType.QUEUED, 0);
+        putJenkinsInsightEvent(jobName, server, JIEventType.STARTED, 1000);
+        putJenkinsInsightEvent(jobName, server, JIEventType.FINISHED, 1000);
+
+        String testResultsXml = ResourceUtils.readContent("TestResults.xml")
+                .replaceAll("%%%SERVER_IDENTITY%%%", serverIdentity)
+                .replaceAll("%%%TIMESTAMP%%%", String.valueOf(timestamp))
+                .replaceAll("%%%JOB_NAME%%%", jobName);
+        final File testResults = File.createTempFile(getClass().getSimpleName(), "");
+        testResults.deleteOnExit();
+        FileUtils.write(testResults, testResultsXml);
         try {
             client.postTestResult(testResults);
         } finally {
             client.release();
         }
+
+        PagedList<TestRun> pagedList = testSupportClient.queryTestRuns("testOne" + timestamp, 0, 50);
+        Assert.assertEquals(1, pagedList.getItems().size());
+        Assert.assertEquals("testOne" + timestamp, pagedList.getItems().get(0).getName());
+
         try {
             client.postTestResult(new InputStreamSource() {
                 @Override
@@ -313,6 +353,7 @@ public class MqmRestClientImplTest {
         } finally {
             client.release();
         }
+        testResults.delete();
 
         // test "file does not exist"
         final File file = new File("abcdefghchijklmn.xml");
@@ -628,5 +669,15 @@ public class MqmRestClientImplTest {
         }
         Assert.fail("Field not found");
         throw new IllegalStateException();
+    }
+
+    private void putJenkinsInsightEvent(String jobName, JSONObject server, JIEventType type, long delay) throws IOException, InterruptedException {
+        JSONObject queued = ResourceUtils.readJson(type.name().toLowerCase() + ".json");
+        queued.getJSONArray("events").getJSONObject(0).put("project", jobName);
+        queued.put("server", server);
+        client.putEvents(queued.toString());
+        if (delay > 0) {
+            Thread.sleep(delay);
+        }
     }
 }

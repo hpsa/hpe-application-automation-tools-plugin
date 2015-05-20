@@ -34,8 +34,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
-import java.net.URI;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -44,7 +42,6 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 
     private static final String WORKSPACE_FRAGMENT = "workspace-id={workspace}";
     private static final String PAGING_FRAGMENT = "offset={offset}&limit={limit}";
-    private static final String FILTERING_FRAGMENT = "query={query}";
 
     private static final String URI_PUSH_TEST_RESULT_PUSH = "test-results/v1";
     private static final String URI_SERVER_JOB_CONFIG = "cia/servers/{server}/jobconfig/{job}";
@@ -58,9 +55,6 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	private static final String URI_PUT_EVENTS = "cia/events";
 
     private static final String HEADER_ACCEPT = "Accept";
-
-    // currently default workspace is always used
-    private static int DEFAULT_WORKSPACE = 1001;
 
 	/**
 	 * Constructor for AbstractMqmRestClient.
@@ -291,28 +285,6 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
                 taxonomies, fields);
     }
 
-    private static Collection<JSONObject> getJSONObjectCollection(JSONObject object, String key) {
-        JSONArray array = object.getJSONArray(key);
-        return (Collection<JSONObject>)array.subList(0, array.size());
-    }
-
-    private URI getEntityURI(String collection, List<String> conditions, int offset, int limit) {
-        Map<String, Object> params = pagingParams(offset, limit, DEFAULT_WORKSPACE);
-        if (!conditions.isEmpty()) {
-            StringBuffer expr = new StringBuffer();
-            for (String condition: conditions) {
-                if (expr.length() > 0) {
-                    expr.append(";");
-                }
-                expr.append(condition);
-            }
-            params.put("query", "\"" + expr.toString() + "\"");
-            return createProjectApiUriMap(collection + "&" + FILTERING_FRAGMENT, params);
-        } else {
-            return createProjectApiUriMap(collection, params);
-        }
-    }
-
     @Override
     public PagedList<Release> queryReleases(String name, int offset, int limit) {
         List<String> conditions = new LinkedList<String>();
@@ -351,37 +323,6 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
         }
         conditions.add(condition("parent-id", String.valueOf(listId)));
         return getEntities(getEntityURI(URI_LIST_ITEMS, conditions, offset, limit), offset, new ListItemEntityFactory());
-    }
-
-    private String condition(String name, String value) {
-        return name + "='" + escapeQueryValue(value) + "'";
-    }
-
-    private static String escapeQueryValue(String value) {
-        return value.replaceAll("(\\\\)", "$1$1").replaceAll("([\"'])", "\\\\$1");
-    }
-
-    private <E> PagedList<E> getEntities(URI uri, int offset, EntityFactory<E> factory) {
-        HttpGet request = new HttpGet(uri);
-        HttpResponse response = null;
-        try {
-            response = execute(request);
-            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                throw new RequestException("Entity retrieval failed with status code " + response.getStatusLine().getStatusCode() + " and reason " + response.getStatusLine().getReasonPhrase());
-            }
-            String entitiesJson = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
-            JSONObject entities = JSONObject.fromObject(entitiesJson);
-
-            LinkedList<E> items = new LinkedList<E>();
-            for (JSONObject entityObject: getJSONObjectCollection(entities, "data")) {
-                items.add(factory.create(entityObject));
-            }
-            return new PagedList<E>(items, offset, entities.getInt("total-count"));
-        } catch (IOException e) {
-            throw new RequestErrorException("Cannot retrieve entities from MQM.", e);
-        } finally {
-            HttpClientUtils.closeQuietly(response);
-        }
     }
 
     private void postTestResult(HttpUriRequest request) {
@@ -427,14 +368,6 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
         return result;
     }
 
-    private Map<String, Object> pagingParams(int offset, int limit, int workspaceId) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("offset", offset);
-        params.put("limit", limit);
-        params.put("workspace", workspaceId);
-        return params;
-    }
-
     private Map<String, Object> serverParams(String serverIdentity, String jobName, int workspaceId) {
         HashMap<String, Object> params = new HashMap<String, Object>();
         params.put("server", serverIdentity);
@@ -443,20 +376,20 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
         return params;
     }
 
-    private static class ListItemEntityFactory implements EntityFactory<ListItem> {
+    private static class ListItemEntityFactory extends AbstractEntityFactory<ListItem> {
 
         @Override
-        public ListItem create(JSONObject entityObject) {
+        public ListItem doCreate(JSONObject entityObject) {
             return new ListItem(
                     entityObject.getInt("id"),
                     entityObject.getString("name"));
         }
     }
 
-    private static class TaxonomyEntityFactory implements EntityFactory<Taxonomy> {
+    private static class TaxonomyEntityFactory extends AbstractEntityFactory<Taxonomy> {
 
         @Override
-        public Taxonomy create(JSONObject entityObject) {
+        public Taxonomy doCreate(JSONObject entityObject) {
             return new Taxonomy(
                     entityObject.getInt("id"),
                     entityObject.getInt("taxonomy-type-id"),
@@ -465,25 +398,31 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
         }
     }
 
-    private static class TaxonomyTypeEntityFactory implements EntityFactory<TaxonomyType> {
+    private static class TaxonomyTypeEntityFactory extends AbstractEntityFactory<TaxonomyType> {
 
         @Override
-        public TaxonomyType create(JSONObject entityObject) {
+        public TaxonomyType doCreate(JSONObject entityObject) {
             return new TaxonomyType(entityObject.getInt("id"), entityObject.getString("name"));
         }
     }
 
-    private static class ReleaseEntityFactory implements EntityFactory<Release> {
+    private static class ReleaseEntityFactory extends AbstractEntityFactory<Release> {
 
         @Override
-        public Release create(JSONObject entityObject) {
+        public Release doCreate(JSONObject entityObject) {
             return new Release(entityObject.getInt("id"), entityObject.getString("name"));
         }
     }
 
-    private interface EntityFactory<E> {
+    private static abstract class AbstractEntityFactory<E> implements EntityFactory<E> {
 
-        E create(JSONObject entityObject);
+        @Override
+        public E create(String json) {
+            JSONObject jsonObject = JSONObject.fromObject(json);
+            return doCreate(jsonObject);
+        }
+
+        public abstract E doCreate(JSONObject entityObject);
 
     }
 }

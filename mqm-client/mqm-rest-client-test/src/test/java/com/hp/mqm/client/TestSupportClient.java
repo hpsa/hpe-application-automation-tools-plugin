@@ -2,11 +2,14 @@
 
 package com.hp.mqm.client;
 
+import com.hp.mqm.client.model.PagedList;
 import com.hp.mqm.client.model.Release;
 import com.hp.mqm.client.model.Taxonomy;
 import com.hp.mqm.client.model.TaxonomyType;
+import com.hp.mqm.client.model.TestRun;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpPost;
@@ -17,12 +20,15 @@ import org.apache.http.entity.StringEntity;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 public class TestSupportClient extends AbstractMqmRestClient {
 
     private static final String WORKSPACE_FRAGMENT= "?workspace-id={workspace}";
 
     private static final String URI_RELEASES = "releases-mqm" + WORKSPACE_FRAGMENT;
+    private static final String URI_TEST_RUN = "test-runs" + WORKSPACE_FRAGMENT;
     private static final String URI_TAXONOMY_TYPES = "taxonomy-types" + WORKSPACE_FRAGMENT;
     private static final String URI_TAXONOMIES = "taxonomies" + WORKSPACE_FRAGMENT;
 
@@ -55,6 +61,14 @@ public class TestSupportClient extends AbstractMqmRestClient {
         return new Taxonomy(resultObject.getInt("id"), resultObject.getInt("taxonomy-type-id"), resultObject.getString("name"), null);
     }
 
+    public PagedList<TestRun> queryTestRuns(String name, int offset, int limit) {
+        List<String> conditions = new LinkedList<String>();
+        if (!StringUtils.isEmpty(name)) {
+            conditions.add(condition("name", "*" + name + "*"));
+        }
+        return getEntities(getEntityURI(URI_TEST_RUN, conditions, offset, limit), offset, new TestRunEntityFactory());
+    }
+
     private JSONObject postEntity(String uri, JSONObject entityObject) throws IOException {
         HttpPost request = new HttpPost(createProjectApiUriMap(uri, Collections.singletonMap("workspace", 1001)));
         request.setEntity(new StringEntity(entityObject.toString(), ContentType.APPLICATION_JSON));
@@ -70,6 +84,17 @@ public class TestSupportClient extends AbstractMqmRestClient {
             return JSONObject.fromObject(new String(result.toByteArray(), "UTF-8"));
         } finally {
             HttpClientUtils.closeQuietly(response);
+        }
+    }
+
+    private static class TestRunEntityFactory implements EntityFactory<TestRun> {
+
+        @Override
+        public TestRun create(String json) {
+            JSONObject entityObject = JSONObject.fromObject(json);
+            return new TestRun(
+                    entityObject.getInt("id"),
+                    entityObject.getString("name"));
         }
     }
 }

@@ -1,0 +1,25 @@
+{
+  "events": [
+    {
+      "causes": [
+        {
+          "type": "user",
+          "userId": null,
+          "userName": "anonymous"
+        }
+      ],
+      "eventType": "started",
+      "project": "foo",
+      "estimatedDuration": 2670,
+      "number": 1,
+      "parameters": [],
+      "startTime": 1431952499998
+    }
+  ],
+  "server": {
+    "instanceId": "61a89463-7b77-45f3-b630-614993d29163",
+    "instanceIdFrom": 1430911121937,
+    "type": "jenkins",
+    "url": "http://localhost:8080/jenkins"
+  }
+}
