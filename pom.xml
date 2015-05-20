@@ -48,20 +48,6 @@
 		<!--<module>opb-mock</module>-->
 	</modules>
 	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.sonatype.plugins</groupId>
-				<artifactId>nexus-staging-maven-plugin</artifactId>
-				<version>1.5.1</version>
-				<extensions>true</extensions>
-				<configuration>
-					<serverId>stage-indi</serverId>
-					<stagingProfileId>3f945a89b73e3c</stagingProfileId>
-					<buildPromotionProfileId>fccb50be7d1a</buildPromotionProfileId>
-					<nexusUrl>${baseNexusURL}/</nexusUrl>
-				</configuration>
-			</plugin>
-		</plugins>
 		<pluginManagement>
 			<plugins>
 				<plugin>
@@ -151,14 +137,45 @@
 				</pluginManagement>
 			</build>
 		</profile>
+		<profile>
+			<id>full</id>
+			<distributionManagement>
+				<snapshotRepository>
+					<id>mqm-latest</id>
+					<name>Latest repository</name>
+					<url>${baseNexusURL}/content/repositories/mqm-latest</url>
+				</snapshotRepository>
+			</distributionManagement>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.sonatype.plugins</groupId>
+						<artifactId>nexus-staging-maven-plugin</artifactId>
+						<version>1.5.1</version>
+						<extensions>true</extensions>
+						<configuration>
+							<serverId>stage-indi</serverId>
+							<stagingProfileId>3f945a89b73e3c</stagingProfileId>
+							<buildPromotionProfileId>fccb50be7d1a</buildPromotionProfileId>
+							<nexusUrl>${baseNexusURL}/</nexusUrl>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>quick</id>
+			<distributionManagement>
+				<snapshotRepository>
+					<id>mqm-snapshots</id>
+					<name>Snapshot repository</name>
+					<url>${baseNexusURL}/content/repositories/mqm-snapshots</url>
+				</snapshotRepository>
+			</distributionManagement>
+		</profile>
 	</profiles>
-	<distributionManagement>
-		<snapshotRepository>
-			<id>mqm-snapshots</id>
-			<name>Snapshot repository</name>
-			<url>${baseNexusURL}/content/repositories/mqm-snapshots</url>
-		</snapshotRepository>
-	</distributionManagement>
+	
+
 
 	<repositories>
 		<repository>
