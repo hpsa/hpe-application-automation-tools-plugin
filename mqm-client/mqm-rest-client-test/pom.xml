@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>com.hp.mqm</groupId>
 		<artifactId>mqm-client</artifactId>
-		<version>12.50.12-SNAPSHOT</version>
+		<version>12.50.13-SNAPSHOT</version>
 	</parent>
 	<properties>
 		<DEPLOY_TARGET>localhost</DEPLOY_TARGET>
@@ -28,7 +28,7 @@
 		<dependency>
 			<groupId>com.hp.mqm</groupId>
 			<artifactId>mqm-rest-client</artifactId>
-			<version>12.50.12-SNAPSHOT</version>
+			<version>12.50.13-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
