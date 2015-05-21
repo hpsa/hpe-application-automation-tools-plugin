@@ -2,6 +2,7 @@ package com.hp.octane.plugins.jenkins.model.causes;
 
 import hudson.model.Cause;
 import hudson.triggers.SCMTrigger;
+import hudson.triggers.TimerTrigger;
 
 import java.util.List;
 
@@ -25,6 +26,8 @@ public final class CIEventCausesFactory {
 				tmpCause = causes.get(i);
 				if (tmpCause instanceof SCMTrigger.SCMTriggerCause) {
 					result[i] = new CIEventSCMCause();
+				} else if (tmpCause instanceof TimerTrigger.TimerTriggerCause) {
+					result[i] = new CIEventTimerCause();
 				} else if (tmpCause instanceof Cause.UserIdCause) {
 					tmpUserCause = (Cause.UserIdCause) tmpCause;
 					result[i] = new CIEventUserCause(tmpUserCause.getUserId(), tmpUserCause.getUserName());
@@ -35,6 +38,8 @@ public final class CIEventCausesFactory {
 							tmpUpstreamCause.getUpstreamBuild(),
 							processCauses(tmpUpstreamCause.getUpstreamCauses())
 					);
+				} else {
+					result[i] = new CIEventUndefinedCause();
 				}
 			}
 		}

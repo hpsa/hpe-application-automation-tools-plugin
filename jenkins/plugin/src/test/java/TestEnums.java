@@ -20,10 +20,12 @@ public class TestEnums {
 
 	@Test
 	public void testCIEventCauseType() {
-		assertEquals(CIEventCauseType.values().length, 3);
+		assertEquals(CIEventCauseType.values().length, 5);
 		assertEquals(CIEventCauseType.SCM.toString(), "scm");
 		assertEquals(CIEventCauseType.USER.toString(), "user");
+		assertEquals(CIEventCauseType.TIMER.toString(), "timer");
 		assertEquals(CIEventCauseType.UPSTREAM.toString(), "upstream");
+		assertEquals(CIEventCauseType.UNDEFINED.toString(), "undefined");
 		assertEquals(CIEventCauseType.getByValue("scm"), CIEventCauseType.SCM);
 	}
 
