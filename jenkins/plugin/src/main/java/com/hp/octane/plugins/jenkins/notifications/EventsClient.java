@@ -35,6 +35,7 @@ public class EventsClient {
 	private int MAX_SEND_RETRIES = 7;
 	private int INITIAL_RETRY_PAUSE = 1739;
 	private int DATA_SEND_INTERVAL = 1373;
+	private int DATA_SEND_INTERVAL_IN_SUSPEND = 1000 * 60 * 2;
 	private boolean shuttingDown;
 	private int failedRetries;
 	private int pauseInterval;
@@ -58,13 +59,6 @@ public class EventsClient {
 		this.username = username;
 		this.password = password;
 		restClientFactory = clientFactory;
-//		restClient = clientFactory.create(
-//				this.url,
-//				this.domain,
-//				this.project,
-//				this.username,
-//				this.password
-//		);
 	}
 
 	public void pushEvent(CIEventBase event) {
@@ -89,7 +83,7 @@ public class EventsClient {
 									logger.severe("EVENTS: Exception while events sending: " + e.getMessage());
 								}
 							}
-							logger.severe("EVENTS: worker thread of events client shuts down");
+							logger.info("EVENTS: worker thread of events client shuts down");
 						}
 					});
 					worker.setDaemon(true);
@@ -103,7 +97,13 @@ public class EventsClient {
 
 	void suspend() {
 		events.clear();
-		shuttingDown = true;
+		try {
+			failedRetries = MAX_SEND_RETRIES - 1;
+			Thread.sleep(DATA_SEND_INTERVAL_IN_SUSPEND);
+		} catch (Exception e) {
+			logger.warning("EVENTS: suspension period was interrupted: " + e.getMessage());
+		}
+		//shuttingDown = true;
 	}
 
 	private void resetCounters() {
