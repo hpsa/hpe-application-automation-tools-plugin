@@ -26,7 +26,8 @@ public class EventsClient {
 	private static final Logger logger = Logger.getLogger(EventsClient.class.getName());
 
 	private final List<CIEventBase> events = Collections.synchronizedList(new ArrayList<CIEventBase>());
-	private final Object locker = new Object();
+	private final Object init_locker = new Object();
+	private final Object wait_locker = new Object();
 	private Thread worker;
 
 	//  TODO: needs redesign, or client should be reusable or no relogin etc logic is needed (each time new login is a performance killer though)
@@ -68,7 +69,7 @@ public class EventsClient {
 	void activate() {
 		resetCounters();
 		if (worker == null || !worker.isAlive()) {
-			synchronized (locker) {
+			synchronized (init_locker) {
 				if (worker == null || !worker.isAlive()) {
 					worker = new Thread(new Runnable() {
 						@Override
@@ -100,8 +101,8 @@ public class EventsClient {
 		try {
 			failedRetries = MAX_SEND_RETRIES - 1;
 			logger.info("EVENTS: entering suspension period for " + DATA_SEND_INTERVAL_IN_SUSPEND + "ms");
-			synchronized (locker) {
-				locker.wait(DATA_SEND_INTERVAL_IN_SUSPEND);
+			synchronized (wait_locker) {
+				wait_locker.wait(DATA_SEND_INTERVAL_IN_SUSPEND);
 			}
 			logger.info("EVENTS: suspension over, back to normal");
 		} catch (Exception e) {
@@ -114,9 +115,9 @@ public class EventsClient {
 		shuttingDown = false;
 		failedRetries = 0;
 		pauseInterval = INITIAL_RETRY_PAUSE;
-		synchronized (locker) {
+		synchronized (wait_locker) {
 			if (worker != null && worker.getState() == Thread.State.TIMED_WAITING) {
-				locker.notify();
+				wait_locker.notify();
 			}
 		}
 	}
@@ -143,6 +144,7 @@ public class EventsClient {
 					lastErrorTime = new Date();
 					failedRetries++;
 					logger.severe("EVENTS: send to '" + url + "' failed; total fails: " + failedRetries);
+					//  TODO: refactor the below sleep to timed wait on wait_locker, as in suspend
 					if (failedRetries < MAX_SEND_RETRIES) Thread.sleep(pauseInterval *= 2);
 				}
 			}
