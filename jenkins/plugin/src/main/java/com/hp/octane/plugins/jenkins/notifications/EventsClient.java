@@ -99,7 +99,11 @@ public class EventsClient {
 		events.clear();
 		try {
 			failedRetries = MAX_SEND_RETRIES - 1;
-			Thread.sleep(DATA_SEND_INTERVAL_IN_SUSPEND);
+			logger.info("EVENTS: entering suspension period for " + DATA_SEND_INTERVAL_IN_SUSPEND + "ms");
+			synchronized (locker) {
+				locker.wait(DATA_SEND_INTERVAL_IN_SUSPEND);
+			}
+			logger.info("EVENTS: suspension over, back to normal");
 		} catch (Exception e) {
 			logger.warning("EVENTS: suspension period was interrupted: " + e.getMessage());
 		}
@@ -110,6 +114,11 @@ public class EventsClient {
 		shuttingDown = false;
 		failedRetries = 0;
 		pauseInterval = INITIAL_RETRY_PAUSE;
+		synchronized (locker) {
+			if (worker != null && worker.getState() == Thread.State.TIMED_WAITING) {
+				locker.notify();
+			}
+		}
 	}
 
 	private boolean sendData() {
