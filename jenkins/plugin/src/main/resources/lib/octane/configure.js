@@ -128,7 +128,7 @@ function octane_job_configuration(target, progress, proxy) {
                     if (!input.val()) {
                         return "Pipeline name must be specified";
                     }
-                    if (!input.val().match(/^[a-z0-9 _]+$/i)) {
+                    if (!input.val().match(/^[a-z0-9 _-]+$/i)) {
                         return "Pipeline name contains invalid characters";
                     }
                     return false;
