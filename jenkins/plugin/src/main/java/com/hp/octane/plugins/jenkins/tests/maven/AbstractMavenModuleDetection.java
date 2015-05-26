@@ -13,7 +13,7 @@ import java.util.List;
 public abstract class AbstractMavenModuleDetection implements ModuleDetection {
 
     protected FilePath rootDir;
-    private List<FilePath> pomDirs;
+    protected List<FilePath> pomDirs;
 
     public AbstractMavenModuleDetection(AbstractBuild build) {
         rootDir = build.getWorkspace();
