@@ -25,15 +25,19 @@ import java.util.logging.Logger;
 public class EventsClient {
 	private static final Logger logger = Logger.getLogger(EventsClient.class.getName());
 
+	private static final class WaitMonitor {
+		volatile boolean released;
+	}
+
 	private final List<CIEventBase> events = Collections.synchronizedList(new ArrayList<CIEventBase>());
-	private final Object init_locker = new Object();
-	private final Object wait_locker = new Object();
+	private final Object initLocker = new Object();
+	private final WaitMonitor waitMonitor = new WaitMonitor();
 	private Thread worker;
 
 	//  TODO: needs redesign, or client should be reusable or no relogin etc logic is needed (each time new login is a performance killer though)
 	private JenkinsMqmRestClientFactory restClientFactory;
 
-	private int MAX_SEND_RETRIES = 7;
+	private int MAX_SEND_RETRIES = 2;
 	private int INITIAL_RETRY_PAUSE = 1739;
 	private int DATA_SEND_INTERVAL = 1373;
 	private int DATA_SEND_INTERVAL_IN_SUSPEND = 1000 * 60 * 2;
@@ -69,7 +73,7 @@ public class EventsClient {
 	void activate() {
 		resetCounters();
 		if (worker == null || !worker.isAlive()) {
-			synchronized (init_locker) {
+			synchronized (initLocker) {
 				if (worker == null || !worker.isAlive()) {
 					worker = new Thread(new Runnable() {
 						@Override
@@ -98,16 +102,8 @@ public class EventsClient {
 
 	void suspend() {
 		events.clear();
-		try {
-			failedRetries = MAX_SEND_RETRIES - 1;
-			logger.info("EVENTS: entering suspension period for " + DATA_SEND_INTERVAL_IN_SUSPEND + "ms");
-			synchronized (wait_locker) {
-				wait_locker.wait(DATA_SEND_INTERVAL_IN_SUSPEND);
-			}
-			logger.info("EVENTS: suspension over, back to normal");
-		} catch (Exception e) {
-			logger.warning("EVENTS: suspension period was interrupted: " + e.getMessage());
-		}
+		failedRetries = MAX_SEND_RETRIES - 1;
+		doBreakableWait(DATA_SEND_INTERVAL_IN_SUSPEND);
 		//shuttingDown = true;
 	}
 
@@ -115,9 +111,10 @@ public class EventsClient {
 		shuttingDown = false;
 		failedRetries = 0;
 		pauseInterval = INITIAL_RETRY_PAUSE;
-		synchronized (wait_locker) {
+		synchronized (waitMonitor) {
 			if (worker != null && worker.getState() == Thread.State.TIMED_WAITING) {
-				wait_locker.notify();
+				waitMonitor.released = true;
+				waitMonitor.notify();
 			}
 		}
 	}
@@ -144,8 +141,9 @@ public class EventsClient {
 					lastErrorTime = new Date();
 					failedRetries++;
 					logger.severe("EVENTS: send to '" + url + "' failed; total fails: " + failedRetries);
-					//  TODO: refactor the below sleep to timed wait on wait_locker, as in suspend
-					if (failedRetries < MAX_SEND_RETRIES) Thread.sleep(pauseInterval *= 2);
+					if (failedRetries < MAX_SEND_RETRIES) {
+						doBreakableWait(pauseInterval *= 2);
+					}
 				}
 			}
 			if (failedRetries == MAX_SEND_RETRIES) {
@@ -155,11 +153,28 @@ public class EventsClient {
 		} catch (IOException ioe) {
 			logger.severe("EVENTS: failed to send snapshot of " + snapshot.getEvents().size() + " events: " + ioe.getMessage() + "; dropping them all");
 			events.removeAll(snapshot.getEvents());
-		} catch (InterruptedException ie) {
-			logger.severe("EVENTS: failed to send snapshot of " + snapshot.getEvents().size() + " events: " + ie.getMessage() + "; dropping them all");
-			result = false;
 		}
 		return result;
+	}
+
+	private void doBreakableWait(long timeout) {
+		logger.info("EVENTS: entering waiting period of " + timeout + "ms");
+		long waitStart = new Date().getTime();
+		synchronized (waitMonitor) {
+			waitMonitor.released = false;
+			while (!waitMonitor.released && new Date().getTime() - waitStart < timeout) {
+				try {
+					waitMonitor.wait(timeout);
+				} catch (InterruptedException ie) {
+					logger.warning("EVENTS: waiting period was interrupted: " + ie.getMessage());
+				}
+			}
+			if (waitMonitor.released) {
+				logger.info("EVENTS: pause finished on demand");
+			} else {
+				logger.info("EVENTS: pause finished timely");
+			}
+		}
 	}
 
 	@Exported(inline = true)
