@@ -117,18 +117,30 @@ function octane_job_configuration(target, progress, proxy) {
             tr.append(tdPipeline);
 
             if (pipeline.isRoot) {
-                var tdPipelineInput = $("<td class='setting-main' colspan='2'><input id='pipeline-name' type='text' placeholder='Pipeline name' class='setting-input'/><div class='validation-error-area'/></td>");
+                var tdPipelineInput = $("<td class='setting-main' colspan='2'><input id='pipeline-name' type='text' placeholder='Pipeline name' class='setting-input' maxlength='50'/><div class='validation-error-area'/></td>");
                 tr.append(tdPipelineInput);
 
                 var input = tdPipelineInput.find("input");
                 input.attr("value", pipeline.name);
                 var area = tdPipelineInput.find("div");
 
+                var pipelineNameValidation = function() {
+                    if (!input.val()) {
+                        return "Pipeline name must be specified";
+                    }
+                    if (!input.val().match(/^[a-z0-9 _]+$/i)) {
+                        return "Pipeline name contains invalid characters";
+                    }
+                    return false;
+                };
+
                 apply.push(function() {
                     pipeline.name = input.val();
                 });
                 enableDirtyInputCheck(input);
-                enableInputValidation(input, "Pipeline name must be specified", area);
+                enableInputValidation(input, "", area, {
+                    check: pipelineNameValidation
+                });
             } else {
                 var tdPipelineName = $("<td class='setting-main' colspan='2'/>");
                 tr.append(tdPipelineName);

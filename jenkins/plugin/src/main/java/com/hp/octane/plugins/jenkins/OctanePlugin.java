@@ -18,6 +18,8 @@ import hudson.util.FormValidation;
 import hudson.util.Scrambler;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
+import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -47,6 +49,17 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 		return identity;
 	}
 
+	// identity should not be changed under normal circumstances; this functionality is provided in order to simplify
+	// test automation
+	public void setIdentity(String identity) throws IOException {
+		if (StringUtils.isEmpty(identity)) {
+			throw new IllegalArgumentException("Empty identity is not allowed");
+		}
+		this.identity = identity;
+		this.identityFrom = new Date().getTime();
+		save();
+	}
+
 	public Long getIdentityFrom() {
 		return identityFrom;
 	}
@@ -54,9 +67,8 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 	@Override
 	public void postInitialize() throws IOException {
 		load();
-		if (identity == null || identity.equals("")) {
-			this.identity = UUID.randomUUID().toString();
-			save();
+		if (StringUtils.isEmpty(identity)) {
+			setIdentity(UUID.randomUUID().toString());
 		}
 		if (identityFrom == null || identityFrom == 0) {
 			this.identityFrom = new Date().getTime();
@@ -104,13 +116,13 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 		return Scrambler.descramble(password);
 	}
 
-	private void configurePlugin(JSONObject formData) throws IOException {
+	public void configurePlugin(String uiLocation, String username, String password) throws IOException {
 		ServerConfiguration oldConfiguration = getServerConfiguration();
-		String uiLocation = (String) formData.get("uiLocation");
+		String oldUiLocation = this.uiLocation;
 
 		this.uiLocation = uiLocation;
-		username = (String) formData.get("username");
-		password = Scrambler.scramble((String) formData.get("password"));
+		this.username = username;
+		this.password = Scrambler.scramble(password);
 		try {
 			MqmProject mqmProject = ConfigurationService.parseUiLocation(uiLocation);
 			location = mqmProject.getLocation();
@@ -127,6 +139,9 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 		if (!oldConfiguration.equals(newConfiguration)) {
 			save();
 			fireOnChanged(newConfiguration, oldConfiguration);
+		} else if (!ObjectUtils.equals(uiLocation, oldUiLocation)) {
+			// no change in actual connection parameters, only user interfacing value has changed
+			save();
 		}
 	}
 
@@ -161,7 +176,10 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 		@Override
 		public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
 			try {
-				octanePlugin.configurePlugin(formData.getJSONObject("mqm")); // NON-NLS
+				JSONObject mqmData = formData.getJSONObject("mqm"); // NON-NLS
+				octanePlugin.configurePlugin((String) mqmData.get("uiLocation"), // NON-NLS
+						(String) mqmData.get("username"), // NON-NLS
+						(String) mqmData.get("password")); // NON-NLS
 				return true;
 			} catch (IOException e) {
 				throw new FormException(e, Messages.ConfigurationSaveFailed());

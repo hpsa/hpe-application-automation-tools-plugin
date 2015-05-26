@@ -1,17 +1,16 @@
 package com.hp.octane.plugins.jenkins.actions;
 
 import com.hp.octane.plugins.jenkins.OctanePlugin;
+import com.hp.octane.plugins.jenkins.configuration.ConfigApi;
 import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import com.hp.octane.plugins.jenkins.notifications.EventsClient;
 import com.hp.octane.plugins.jenkins.notifications.EventsDispatcher;
 import hudson.Extension;
-import hudson.ExtensionList;
 import hudson.model.AbstractProject;
 import hudson.model.RootAction;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
-import org.jenkins_ci.plugins.run_condition.BuildStepRunner;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.export.Exported;
@@ -171,6 +170,10 @@ public class PluginActions implements RootAction {
 			areParametersNeeded = false;
 		}
 		res.serveExposedBean(req, new ProjectsList(areParametersNeeded), Flavor.JSON);
+	}
+
+	public ConfigApi getConfiguration() {
+		return new ConfigApi();
 	}
 
 	//  TODO: this method should be revised once config API is formalized
