@@ -608,9 +608,9 @@ public class MqmRestClientImplTest {
 
     @Test
     public void testQueryListItems() {
-        PagedList<ListItem> toolTypeList = client.queryListItems(0, "Testing Tool Type", 0, 100);
+        PagedList<ListItem> toolTypeList = client.queryListItems(0, "Testing Tool", 0, 100);
         Assert.assertEquals(1, toolTypeList.getItems().size());
-        Assert.assertEquals("Testing Tool Type", toolTypeList.getItems().get(0).getName());
+        Assert.assertEquals("Testing Tool", toolTypeList.getItems().get(0).getName());
 
         PagedList<ListItem> items = client.queryListItems(toolTypeList.getItems().get(0).getId(), null, 0, 100);
         Assert.assertTrue(items.getItems().size() > 0);
