@@ -2,9 +2,12 @@
 
 package com.hp.octane.plugins.jenkins.tests;
 
+import hudson.Launcher;
 import hudson.maven.MavenModuleSet;
 import hudson.model.AbstractBuild;
+import hudson.model.BuildListener;
 import hudson.model.FreeStyleProject;
+import hudson.tasks.Builder;
 import hudson.tasks.Maven;
 import hudson.tasks.junit.JUnitResultArchiver;
 import org.junit.Rule;
@@ -13,6 +16,7 @@ import org.jvnet.hudson.test.JenkinsRule;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -127,8 +131,35 @@ public class JUnitResultsTest {
         matchTests(build, uftTests);
     }
 
+    @Test
+    public void testJUnitResultsFreeStyleModule() throws Exception {
+        // this scenario simulates FreeStyle project with maven executed via shell (by not using Maven builder directly)
+
+        FreeStyleProject project = rule.createFreeStyleProject(projectName);
+        Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
+        project.getBuildersList().add(new MyMaven("test", mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
+        project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
+        project.setScm(new CopyResourceSCM("/helloWorldRoot"));
+        AbstractBuild build = TestUtils.runAndCheckBuild(project);
+
+        matchTests(build, TestUtils.helloWorldTests, helloWorld2Tests);
+    }
+
     private void matchTests(AbstractBuild build, Set<String> ... expectedTests) throws FileNotFoundException {
         File mqmTestsXml = new File(build.getRootDir(), "mqmTests.xml");
         TestUtils.matchTests(new TestResultIterable(mqmTestsXml), build.getStartTimeInMillis(), expectedTests);
+    }
+
+    private static class MyMaven extends Builder {
+
+        private Maven builder;
+
+        public MyMaven(String targets, String name, String pom, String properties, String jvmOptions) {
+            this.builder = new Maven(targets, name, pom, properties, jvmOptions);
+        }
+
+        public boolean perform(AbstractBuild<?,?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
+            return builder.perform(build, launcher, listener);
+        }
     }
 }
