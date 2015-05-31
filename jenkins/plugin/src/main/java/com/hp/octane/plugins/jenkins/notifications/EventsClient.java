@@ -33,11 +33,12 @@ public class EventsClient {
 	private final Object initLocker = new Object();
 	private final WaitMonitor waitMonitor = new WaitMonitor();
 	private Thread worker;
+	volatile boolean paused;
 
 	//  TODO: needs redesign, or client should be reusable or no relogin etc logic is needed (each time new login is a performance killer though)
 	private JenkinsMqmRestClientFactory restClientFactory;
 
-	private int MAX_SEND_RETRIES = 2;
+	private int MAX_SEND_RETRIES = 7;
 	private int INITIAL_RETRY_PAUSE = 1739;
 	private int DATA_SEND_INTERVAL = 1373;
 	private int DATA_SEND_INTERVAL_IN_SUSPEND = 1000 * 60 * 2;
@@ -162,6 +163,7 @@ public class EventsClient {
 		long waitStart = new Date().getTime();
 		synchronized (waitMonitor) {
 			waitMonitor.released = false;
+			paused = true;
 			while (!waitMonitor.released && new Date().getTime() - waitStart < timeout) {
 				try {
 					waitMonitor.wait(timeout);
@@ -169,6 +171,7 @@ public class EventsClient {
 					logger.warning("EVENTS: waiting period was interrupted: " + ie.getMessage());
 				}
 			}
+			paused = false;
 			if (waitMonitor.released) {
 				logger.info("EVENTS: pause finished on demand");
 			} else {
@@ -210,5 +213,10 @@ public class EventsClient {
 	@Exported(inline = true)
 	public boolean isActive() {
 		return worker != null && worker.isAlive();
+	}
+
+	@Exported(inline = true)
+	public boolean isPaused() {
+		return paused;
 	}
 }
