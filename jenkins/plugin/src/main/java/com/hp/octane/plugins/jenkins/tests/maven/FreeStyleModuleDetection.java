@@ -18,6 +18,7 @@ public class FreeStyleModuleDetection extends AbstractMavenModuleDetection {
 
     protected void addPomDirectories(AbstractBuild build) {
         if (build.getProject() instanceof FreeStyleProject) {
+            boolean unknownBuilder = false;
             for (Builder builder: ((FreeStyleProject) build.getProject()).getBuilders()) {
                 if (builder instanceof Maven) {
                     Maven maven = (Maven) builder;
@@ -34,7 +35,14 @@ public class FreeStyleModuleDetection extends AbstractMavenModuleDetection {
                         }
                     }
                     addPomDirectory(rootDir);
+                } else {
+                    unknownBuilder = true;
                 }
+            }
+            if (unknownBuilder && !pomDirs.contains(rootDir)) {
+                // attempt to support shell and batch executions too
+                // simply assume there is top-level pom file for any non-maven builder
+                addPomDirectory(rootDir);
             }
         }
     }

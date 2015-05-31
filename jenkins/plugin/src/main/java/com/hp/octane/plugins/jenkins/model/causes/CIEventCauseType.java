@@ -11,7 +11,9 @@ package com.hp.octane.plugins.jenkins.model.causes;
 public enum CIEventCauseType {
 	SCM("scm"),
 	USER("user"),
-	UPSTREAM("upstream");
+	TIMER("timer"),
+	UPSTREAM("upstream"),
+	UNDEFINED("undefined");
 
 	private String value;
 
@@ -30,6 +32,6 @@ public enum CIEventCauseType {
 				return v;
 			}
 		}
-		throw new RuntimeException("No CIEventCauseType matches '" + value + "'");
+		return UNDEFINED;
 	}
 }
