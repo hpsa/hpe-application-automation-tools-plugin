@@ -83,15 +83,6 @@ public class RetryModelTest {
         Assert.assertEquals(1, testEventPublisher.getResumeCount());
     }
 
-    @Test
-    public void testRetryModelSuspend() {
-        testEventPublisher.setSuspended(false);
-        Assert.assertFalse(retryModel.isEventSuspended());
-
-        testEventPublisher.setSuspended(true);
-        Assert.assertTrue(retryModel.isEventSuspended());
-    }
-
     private static class TestTimeProvider implements RetryModel.TimeProvider {
 
         private long time = System.currentTimeMillis();
@@ -105,5 +96,4 @@ public class RetryModelTest {
             return time;
         }
     }
-
 }

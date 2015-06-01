@@ -2,13 +2,13 @@
 
 package com.hp.octane.plugins.jenkins.client;
 
-public class TestEventPublisher implements RetryModel.EventPublisher {
+public class TestEventPublisher implements EventPublisher {
 
     private boolean suspended;
     private int resumeCount;
 
     @Override
-    public boolean isSuspended() {
+    public boolean isSuspended(String location, String domain, String project) {
         return suspended;
     }
 

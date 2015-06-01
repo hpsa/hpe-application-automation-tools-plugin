@@ -4,21 +4,15 @@ package com.hp.octane.plugins.jenkins.client;
 
 import com.hp.octane.plugins.jenkins.notifications.EventsClient;
 import com.hp.octane.plugins.jenkins.notifications.EventsDispatcher;
+import hudson.Extension;
 
-import java.util.List;
-
-class JenkinsInsightEventPublisher implements RetryModel.EventPublisher {
+@Extension
+public class JenkinsInsightEventPublisher implements EventPublisher {
 
     @Override
-    public boolean isSuspended() {
-        List<EventsClient> status = EventsDispatcher.getExtensionInstance().getStatus();
-        synchronized (status) { // accessing internal structure, synchronization is mandatory
-            if (status.isEmpty()) {
-                return true;
-            }
-            EventsClient eventsClient = status.get(0);
-            return !eventsClient.isActive() || eventsClient.isPaused();
-        }
+    public boolean isSuspended(String location, String domain, String project) {
+        EventsClient client = EventsDispatcher.getExtensionInstance().getClient(location, domain, project);
+        return client == null || client.isSuspended();
     }
 
     @Override

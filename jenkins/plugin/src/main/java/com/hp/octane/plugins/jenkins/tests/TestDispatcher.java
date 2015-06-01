@@ -9,6 +9,8 @@ import com.hp.mqm.client.exception.FileNotFoundException;
 import com.hp.mqm.client.exception.LoginException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
+import com.hp.octane.plugins.jenkins.client.EventPublisher;
+import com.hp.octane.plugins.jenkins.client.JenkinsInsightEventPublisher;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactoryImpl;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
@@ -48,6 +50,8 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
 
     private JenkinsMqmRestClientFactory clientFactory;
 
+    private EventPublisher eventPublisher;
+
     public TestDispatcher() {
         super("MQM Test Dispatcher");
     }
@@ -61,10 +65,6 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
             logger.info("There are pending test results, but we are in quiet period");
             return;
         }
-        if (retryModel.isEventSuspended()) {
-            logger.info("There are pending test results, but event dispatching is suspended");
-            return;
-        }
         MqmRestClient client = null;
         ServerConfiguration configuration = null;
         TestResultQueue.QueueItem item;
@@ -75,7 +75,10 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
                     logger.warning("There are pending test results, but MQM server location is not specified, results can't be submitted");
                     return;
                 }
-
+                if (eventPublisher.isSuspended(configuration.location, configuration.domain, configuration.project)) {
+                    logger.warning("There are pending test results, but event dispatching is suspended");
+                    return;
+                }
                 logger.info("There are pending test results, connecting to the MQM server");
                 client = clientFactory.create(
                         configuration.location,
@@ -209,6 +212,11 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
         this.queue = queue;
     }
 
+    @Inject
+    public void setEventPublisher(JenkinsInsightEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
+    }
+
     /*
      * To be used in tests only.
      */
@@ -229,4 +237,12 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
     public void _setRetryModel(RetryModel retryModel) {
         this.retryModel = retryModel;
     }
+
+    /*
+     * To be used in tests only.
+     */
+    public void _setEventPublisher(EventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
+    }
+
 }

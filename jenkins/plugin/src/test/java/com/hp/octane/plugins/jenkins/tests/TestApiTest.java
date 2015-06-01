@@ -51,8 +51,10 @@ public class TestApiTest {
         testListener._setTestResultQueue(queue);
         queue.waitForTicks(1); // needed to avoid occasional interaction with the client we just overrode (race condition)
 
-        RetryModel retryModel = new RetryModel(new TestEventPublisher());
+        TestEventPublisher testEventPublisher = new TestEventPublisher();
+        RetryModel retryModel = new RetryModel(testEventPublisher);
         testDispatcher._setRetryModel(retryModel);
+        testDispatcher._setEventPublisher(testEventPublisher);
 
         // server needs to be configured in order for the processing to happen
         HtmlPage configPage = rule.createWebClient().goTo("configure");
