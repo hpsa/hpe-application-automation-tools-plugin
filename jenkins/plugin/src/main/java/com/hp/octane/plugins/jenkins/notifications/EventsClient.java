@@ -219,4 +219,8 @@ public class EventsClient {
 	public boolean isPaused() {
 		return paused;
 	}
+
+	public boolean isSuspended() {
+		return !isActive() || isPaused();
+	}
 }

@@ -88,13 +88,30 @@ public final class EventsDispatcher {
 	}
 
 	public void dispatchEvent(CIEventBase event) {
-		for (EventsClient c : clients) {
-			if (c.isActive()) c.pushEvent(event);
+		synchronized (clients) {
+			for (EventsClient c : clients) {
+				if (c.isActive()) c.pushEvent(event);
+			}
 		}
 	}
 
 	public List<EventsClient> getStatus() {
-		return clients;
+		return new ArrayList<EventsClient>(clients);
+	}
+
+	public EventsClient getClient(String location, String domain, String project) {
+		EventsClient result = null;
+		synchronized (clients) {
+			for (EventsClient c : clients) {
+				if (c.getUrl() != null && c.getUrl().equals(location) &&
+						c.getDomain() != null && c.getDomain().equals(domain) &&
+						c.getProject() != null && c.getProject().equals(project)) {
+					result = c;
+					break;
+				}
+			}
+		}
+		return result;
 	}
 
 	@Inject
