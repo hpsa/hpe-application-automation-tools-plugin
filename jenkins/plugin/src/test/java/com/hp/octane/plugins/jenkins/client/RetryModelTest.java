@@ -11,10 +11,12 @@ public class RetryModelTest {
 
     private RetryModel retryModel;
     private TestTimeProvider testTimeProvider;
+    private TestEventPublisher testEventPublisher;
 
     @Before
     public void init() {
-        retryModel = new RetryModel();
+        testEventPublisher = new TestEventPublisher();
+        retryModel = new RetryModel(testEventPublisher);
         testTimeProvider = new TestTimeProvider();
         retryModel.setTimeProvider(testTimeProvider);
     }
@@ -75,8 +77,19 @@ public class RetryModelTest {
         Assert.assertTrue(retryModel.isQuietPeriod());
         testTimeProvider.addOffset(TimeUnit2.SECONDS.toMillis(25));
         Assert.assertTrue(retryModel.isQuietPeriod());
+        Assert.assertEquals(0, testEventPublisher.getResumeCount());
         retryModel.success();
         Assert.assertFalse(retryModel.isQuietPeriod());
+        Assert.assertEquals(1, testEventPublisher.getResumeCount());
+    }
+
+    @Test
+    public void testRetryModelSuspend() {
+        testEventPublisher.setSuspended(false);
+        Assert.assertFalse(retryModel.isEventSuspended());
+
+        testEventPublisher.setSuspended(true);
+        Assert.assertTrue(retryModel.isEventSuspended());
     }
 
     private static class TestTimeProvider implements RetryModel.TimeProvider {
@@ -92,4 +105,5 @@ public class RetryModelTest {
             return time;
         }
     }
+
 }

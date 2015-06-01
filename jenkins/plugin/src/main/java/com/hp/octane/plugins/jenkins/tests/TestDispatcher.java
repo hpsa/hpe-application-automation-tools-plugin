@@ -61,6 +61,10 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
             logger.info("There are pending test results, but we are in quiet period");
             return;
         }
+        if (retryModel.isEventSuspended()) {
+            logger.info("There are pending test results, but event dispatching is suspended");
+            return;
+        }
         MqmRestClient client = null;
         ServerConfiguration configuration = null;
         TestResultQueue.QueueItem item;
@@ -217,5 +221,12 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
      */
     public void _setTestResultQueue(TestResultQueue queue) {
         this.queue = queue;
+    }
+
+    /*
+     * To be used in tests only.
+     */
+    public void _setRetryModel(RetryModel retryModel) {
+        this.retryModel = retryModel;
     }
 }

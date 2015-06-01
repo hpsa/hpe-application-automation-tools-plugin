@@ -21,14 +21,30 @@ public class RetryModel implements ConfigurationListener {
     private int periodIndex;
 
     private TimeProvider timeProvider = new SystemTimeProvider();
+    private EventPublisher eventPublisher = new JenkinsInsightEventPublisher();
 
     @Inject
     public RetryModel() {
-        success();
+        doSuccess();
+    }
+
+    /**
+     * To be used by tests only.
+     */
+    public RetryModel(EventPublisher eventPublisher) {
+        this();
+        this.eventPublisher = eventPublisher;
     }
 
     public synchronized boolean isQuietPeriod() {
         return timeProvider.getTime() < boundary;
+    }
+
+    /**
+     * @return true if event mechanism is either not active or paused
+     */
+    public boolean isEventSuspended() {
+        return eventPublisher.isSuspended();
     }
 
     public synchronized void failure() {
@@ -38,14 +54,19 @@ public class RetryModel implements ConfigurationListener {
         boundary = timeProvider.getTime() + QUIET_PERIOD[periodIndex];
     }
 
-    public synchronized void success() {
+    public void success() {
+        doSuccess();
+        eventPublisher.resume();
+    }
+
+    private synchronized void doSuccess() {
         periodIndex = -1;
         boundary = 0;
     }
 
     @Override
     public void onChanged(ServerConfiguration conf, ServerConfiguration oldConf) {
-        success();
+        doSuccess();
     }
 
     /**
@@ -66,6 +87,14 @@ public class RetryModel implements ConfigurationListener {
     interface TimeProvider {
 
         long getTime();
+
+    }
+
+    interface EventPublisher {
+
+        boolean isSuspended();
+
+        void resume();
 
     }
 }

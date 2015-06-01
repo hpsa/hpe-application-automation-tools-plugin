@@ -9,6 +9,7 @@ import com.hp.mqm.client.MqmRestClient;
 import com.hp.octane.plugins.jenkins.ExtensionUtil;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
+import com.hp.octane.plugins.jenkins.client.TestEventPublisher;
 import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleProject;
 import hudson.tasks.Maven;
@@ -28,7 +29,6 @@ public class TestApiTest {
 
     private JenkinsMqmRestClientFactory clientFactory;
     private MqmRestClient restClient;
-    private RetryModel retryModel;
     private TestQueue queue;
     private TestDispatcher testDispatcher;
     private AbstractBuild build;
@@ -51,8 +51,8 @@ public class TestApiTest {
         testListener._setTestResultQueue(queue);
         queue.waitForTicks(1); // needed to avoid occasional interaction with the client we just overrode (race condition)
 
-        retryModel = ExtensionUtil.getInstance(rule, RetryModel.class);
-        retryModel.success();
+        RetryModel retryModel = new RetryModel(new TestEventPublisher());
+        testDispatcher._setRetryModel(retryModel);
 
         // server needs to be configured in order for the processing to happen
         HtmlPage configPage = rule.createWebClient().goTo("configure");

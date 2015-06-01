@@ -12,6 +12,7 @@ import com.hp.mqm.client.exception.SessionCreationException;
 import com.hp.octane.plugins.jenkins.ExtensionUtil;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
+import com.hp.octane.plugins.jenkins.client.TestEventPublisher;
 import hudson.FilePath;
 import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleBuild;
@@ -44,7 +45,7 @@ public class TestDispatcherTest {
     private TestDispatcher testDispatcher;
     private JenkinsMqmRestClientFactory clientFactory;
     private MqmRestClient restClient;
-    private RetryModel retryModel;
+    private TestEventPublisher testEventPublisher;
 
     @Rule
     final public JenkinsRule rule = new JenkinsRule();
@@ -68,8 +69,9 @@ public class TestDispatcherTest {
         testDispatcher._setTestResultQueue(queue);
         queue.waitForTicks(1); // needed to avoid occasional interaction with the client we just overrode (race condition)
 
-        retryModel = ExtensionUtil.getInstance(rule, RetryModel.class);
-        retryModel.success();
+        testEventPublisher = new TestEventPublisher();
+        RetryModel retryModel = new RetryModel(testEventPublisher);
+        testDispatcher._setRetryModel(retryModel);
 
         project = rule.createFreeStyleProject("TestDispatcher");
         Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
@@ -228,6 +230,19 @@ public class TestDispatcherTest {
 
         Assert.assertEquals(0, queue.size());
         Assert.assertEquals(1, queue.getDiscards());
+    }
+
+    @Test
+    public void testDispatcherSuspended() throws Exception {
+        testEventPublisher.setSuspended(true);
+
+        executeBuild();
+
+        queue.waitForTicks(2);
+
+        // events suspended
+        Mockito.verifyNoMoreInteractions(restClient);
+        Assert.assertEquals(1, queue.size());
     }
 
     private FreeStyleBuild executeBuild() throws ExecutionException, InterruptedException {
