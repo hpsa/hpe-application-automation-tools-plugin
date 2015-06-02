@@ -394,7 +394,7 @@ function octane_job_configuration(target, progress, proxy) {
             var fieldsTbody = fieldsTable.find("tbody");
             pipeline.fieldTags.forEach(addField);
 
-            pipelineDiv.append($("<h4>Tags</h4>"));
+            pipelineDiv.append($("<h4>Environment</h4>"));
             var tagsTable = $("<table class='ui-block'><tbody/></table>");
             pipelineDiv.append(tagsTable);
             var tagsTbody = tagsTable.find("tbody");
