@@ -9,7 +9,6 @@
 		<groupId>com.hp.mqm</groupId>
 		<artifactId>mqm-client</artifactId>
 		<version>12.50.14-SNAPSHOT</version>
-		<relativePath/>
 	</parent>
 	<properties>
 		<DEPLOY_TARGET>localhost</DEPLOY_TARGET>
