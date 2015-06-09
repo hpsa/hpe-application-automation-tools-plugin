@@ -5,7 +5,6 @@
 	<groupId>com.hp.mqm</groupId>
 	<artifactId>mqm-rest-client-test</artifactId>
 	<name>MQM REST Client - Integration Tests</name>
-	<relativePath/>
 	<parent>
 		<groupId>com.hp.mqm</groupId>
 		<artifactId>mqm-client</artifactId>
