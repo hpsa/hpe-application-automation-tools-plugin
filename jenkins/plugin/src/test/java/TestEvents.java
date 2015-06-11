@@ -100,8 +100,8 @@ public class TestEvents {
 		json.put("url", "http://localhost:" + testingServerPort + "/qcbin");
 		json.put("domain", "DOMAIN");
 		json.put("project", "PROJECT");
-		json.put("username", "");
-		json.put("password", "");
+		json.put("username", "some");
+		json.put("password", "pass");
 		req.setRequestBody(json.toString());
 		WebResponse res = client.loadWebResponse(req);
 		logger.info("Configuration submitted with result: " + res.getStatusMessage() + "; testing server will run on port " + testingServerPort);
