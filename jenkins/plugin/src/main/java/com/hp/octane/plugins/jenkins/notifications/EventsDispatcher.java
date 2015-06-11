@@ -10,6 +10,7 @@ import jenkins.model.Jenkins;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -21,6 +22,8 @@ import java.util.List;
 
 @Extension
 public final class EventsDispatcher {
+	private static final Logger logger = Logger.getLogger(EventsClient.class.getName());
+
 	private static EventsDispatcher extensionInstance;
 	private JenkinsMqmRestClientFactory clientFactory;
 	private final List<EventsClient> clients = new ArrayList<EventsClient>();
@@ -44,7 +47,7 @@ public final class EventsDispatcher {
 
 	public void updateClient(ServerConfiguration conf, ServerConfiguration oldConf) {
 		synchronized (clients) {
-			if (oldConf != null && !conf.location.equals(oldConf.location)) {
+			if (oldConf != null && conf.location != null && !conf.location.equals(oldConf.location)) {
 				for (EventsClient client : clients) {
 					if (client.getUrl().equals(oldConf.location)) {
 						clients.remove(client);
@@ -58,11 +61,13 @@ public final class EventsDispatcher {
 					conf.project != null && !conf.project.equals("") &&
 					conf.username != null && !conf.username.equals("") && conf.password != null) {
 				updateClient(conf.location, conf.domain, conf.project, conf.username, conf.password);
+			} else {
+				logger.warning("bad configuration encountered, events client is not updated");
 			}
 		}
 	}
 
-	public void updateClient(String url, String domain, String project, String username, String password) {
+	private void updateClient(String url, String domain, String project, String username, String password) {
 		EventsClient client = null;
 		synchronized (clients) {
 			for (EventsClient c : clients) {

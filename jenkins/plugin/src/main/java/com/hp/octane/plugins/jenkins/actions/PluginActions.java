@@ -2,6 +2,7 @@ package com.hp.octane.plugins.jenkins.actions;
 
 import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.configuration.ConfigApi;
+import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import com.hp.octane.plugins.jenkins.notifications.EventsClient;
@@ -182,6 +183,7 @@ public class PluginActions implements RootAction {
 		JSONObject inputJSON;
 		byte[] buffer = new byte[1024];
 		int length;
+		ServerConfiguration conf;
 		while ((length = req.getInputStream().read(buffer)) > 0) body += new String(buffer, 0, length);
 
 		if (body.length() > 0) {
@@ -192,13 +194,14 @@ public class PluginActions implements RootAction {
 			String username;
 			String password;
 			if (inputJSON.containsKey("type") && inputJSON.getString("type").equals("events-client")) {
-				url = inputJSON.getString("url");
-				domain = inputJSON.getString("domain");
-				project = inputJSON.getString("project");
-				username = inputJSON.getString("username");
-				password = inputJSON.getString("password");
+				url = inputJSON.containsKey("url") ? inputJSON.getString("url") : null;
+				domain = inputJSON.containsKey("domain") ? inputJSON.getString("domain") : null;
+				project = inputJSON.containsKey("project") ? inputJSON.getString("project") : null;
+				username = inputJSON.containsKey("username") ? inputJSON.getString("username") : null;
+				password = inputJSON.containsKey("password") ? inputJSON.getString("password") : null;
 				logger.info("Accepted events-client config request for '" + url + "', '" + domain + "', '" + project + "'");
-				EventsDispatcher.getExtensionInstance().updateClient(url, domain, project, username, password);
+				conf = new ServerConfiguration(url, domain, project, username, password);
+				EventsDispatcher.getExtensionInstance().updateClient(conf);
 			}
 		}
 		EventsDispatcher.getExtensionInstance().wakeUpClients();
