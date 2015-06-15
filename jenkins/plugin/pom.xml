@@ -10,7 +10,7 @@
 
 	<artifactId>alm-nextgen-integration</artifactId>
 	<name>HP ALM NextGen Integration</name>
-	<version>1.0-SNAPSHOT</version>
+	<version>12.50.14-SNAPSHOT</version>
 	<packaging>hpi</packaging>
 	<properties>
 		<baseNexusURL>http://mydtbld0051.isr.hp.com:8081/nexus</baseNexusURL>
@@ -120,7 +120,7 @@
 		<dependency>
 			<groupId>com.hp.mqm</groupId>
 			<artifactId>mqm-rest-client</artifactId>
-			<version>12.50.13-SNAPSHOT</version>
+			<version>12.50.14-SNAPSHOT</version>
 		</dependency>
 		<!-- Following two dependencies must be explicitly defined because HPI plugin does not package
              libraries which are in core (in this case in maven-plugin) -->
