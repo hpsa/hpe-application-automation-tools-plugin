@@ -42,6 +42,7 @@ public class GitSCMProcessor extends AbstractSCMProcessor {
 			buildData = scmGit.getBuildData(build);
 			if (buildData != null) {
 				buildCommitRev = buildData.getLastBuiltRevision();
+				if (buildCommitRev == null || buildCommitRev.getBranches() == null) return null;
 				repoUris = buildData.getRemoteUrls();
 				if (!repoUris.iterator().hasNext()) return null;
 				tmpConfiguration = new SCMConfiguration(

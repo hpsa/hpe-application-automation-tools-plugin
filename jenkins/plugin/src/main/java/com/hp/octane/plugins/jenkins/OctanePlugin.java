@@ -130,6 +130,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 			project = mqmProject.getProject();
 		} catch (FormValidation ex) {
 			// consider plugin unconfigured
+			logger.warning("invalid configuration submitted; processing failed with error: " + ex.getMessage());
 			location = null;
 			domain = null;
 			project = null;
