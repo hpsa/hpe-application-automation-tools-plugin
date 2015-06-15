@@ -31,6 +31,9 @@ public class TestSupportClient extends AbstractMqmRestClient {
     private static final String URI_TEST_RUN = "test-runs" + WORKSPACE_FRAGMENT;
     private static final String URI_TAXONOMY_TYPES = "taxonomy-types" + WORKSPACE_FRAGMENT;
     private static final String URI_TAXONOMIES = "taxonomies" + WORKSPACE_FRAGMENT;
+    private static final String URI_CI_SERVERS = "ci-servers" + WORKSPACE_FRAGMENT;
+    private static final String URI_CI_JOBS = "ci-jobs" + WORKSPACE_FRAGMENT;
+    private static final String URI_BUILDS = "builds" + WORKSPACE_FRAGMENT;
 
     protected TestSupportClient(MqmConnectionConfig connectionConfig) {
         super(connectionConfig);
@@ -87,6 +90,29 @@ public class TestSupportClient extends AbstractMqmRestClient {
         }
     }
 
+    public boolean checkBuild(String serverIdentity, String jobName, int number) {
+        List<String> serverConditions = new LinkedList<String>();
+        serverConditions.add(condition("identity", serverIdentity));
+        PagedList<JSONObject> servers = getEntities(getEntityURI(URI_CI_SERVERS, serverConditions, 0, 1), 0, new JsonEntityFactory());
+        if (servers.getItems().isEmpty()) {
+            return false;
+        }
+
+        List<String> jobConditions = new LinkedList<String>();
+        jobConditions.add(condition("server-id", String.valueOf(servers.getItems().get(0).getInt("id"))));
+        jobConditions.add(condition("name", jobName));
+        PagedList<JSONObject> jobs = getEntities(getEntityURI(URI_CI_JOBS, jobConditions, 0, 1), 0, new JsonEntityFactory());
+        if(jobs.getItems().isEmpty()) {
+            return false;
+        }
+
+        List<String> buildConditions = new LinkedList<String>();
+        buildConditions.add(condition("ci-job-id", String.valueOf(jobs.getItems().get(0).getInt("id"))));
+        buildConditions.add(condition("name", String.valueOf(number)));
+        PagedList<JSONObject> builds = getEntities(getEntityURI(URI_BUILDS, buildConditions, 0, 1), 0, new JsonEntityFactory());
+        return !builds.getItems().isEmpty();
+    }
+
     private static class TestRunEntityFactory implements EntityFactory<TestRun> {
 
         @Override
@@ -95,6 +121,14 @@ public class TestSupportClient extends AbstractMqmRestClient {
             return new TestRun(
                     entityObject.getInt("id"),
                     entityObject.getString("name"));
+        }
+    }
+
+    private static class JsonEntityFactory implements EntityFactory<JSONObject> {
+
+        @Override
+        public JSONObject create(String json) {
+            return JSONObject.fromObject(json);
         }
     }
 }

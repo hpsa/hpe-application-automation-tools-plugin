@@ -293,7 +293,16 @@ public class MqmRestClientImplTest {
 
         putJenkinsInsightEvent(jobName, server, JIEventType.QUEUED, 0);
         putJenkinsInsightEvent(jobName, server, JIEventType.STARTED, 1000);
-        putJenkinsInsightEvent(jobName, server, JIEventType.FINISHED, 5000);
+        putJenkinsInsightEvent(jobName, server, JIEventType.FINISHED, 1000);
+
+        boolean buildExists = false;
+        for (int i = 0; i < 30; i++) {
+            if ((buildExists = testSupportClient.checkBuild(serverIdentity, jobName, 1))) {
+                break;
+            }
+            Thread.sleep(1000);
+        }
+        Assert.assertTrue("JI build not created", buildExists);
 
         String testResultsXml = ResourceUtils.readContent("TestResults.xml")
                 .replaceAll("%%%SERVER_IDENTITY%%%", serverIdentity)
