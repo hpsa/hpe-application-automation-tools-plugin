@@ -410,7 +410,7 @@ function octane_job_configuration(target, progress, proxy) {
             tagSelectTr.append(tagSelectTd);
             var addSelect = $("<select>");
             tagSelectTd.append(addSelect);
-            var defaultOption = $("<option value='default' selected>Add Tag...</option>");
+            var defaultOption = $("<option value='default' selected>Add Environment...</option>");
             defaultOption.prop('disabled', 'disabled');
             addSelect.append(defaultOption);
             jobConfiguration.taxonomies.forEach(function (tagType) {
@@ -440,17 +440,17 @@ function octane_job_configuration(target, progress, proxy) {
                     tagTypeSpan.text(tagType.tagTypeName + ": ");
                     tagTypeSpan.css('display', 'inline');
                     tagInput.val("");
-                    tagInput.attr('placeholder', 'Tag');
+                    tagInput.attr('placeholder', 'Environment');
                     tagInput.css('display', 'inline');
                     add.css('display', 'inline');
                 } else if (val == 'newTagType') {
                     addedTag = {};
                     tagTypeInput.val("");
-                    tagTypeInput.attr('placeholder', 'Tag Type');
+                    tagTypeInput.attr('placeholder', 'Environment Type');
                     tagTypeInput.css('display', 'inline');
                     tagTypeSpan.hide();
                     tagInput.val("");
-                    tagInput.attr('placeholder', 'Tag');
+                    tagInput.attr('placeholder', 'Environment');
                     tagInput.css('display', 'inline');
                     add.css('display', 'inline');
                 } else {
@@ -655,7 +655,7 @@ function octane_job_configuration(target, progress, proxy) {
 
                 function matchTag(tag) {
                     if (caseInsensitiveStringEquals(tag.tagName, tagInput.val())) {
-                        error = "Tag " + tagType.tagTypeName + ":" + tag.tagName + " is already defined";
+                        error = "Environment " + tagType.tagTypeName + ":" + tag.tagName + " is already defined";
                         return true;
                     } else {
                         return false;
@@ -665,7 +665,7 @@ function octane_job_configuration(target, progress, proxy) {
                 function matchAddedTag(tag) {
                     if (caseInsensitiveStringEquals(tag.tagName, tagInput.val()) &&
                             caseInsensitiveStringEquals(tag.tagTypeName, tagTypeInput.val())) {
-                        error = "Tag " + tag.tagTypeName + ":" + tag.tagName + " is already added";
+                        error = "Environment " + tag.tagTypeName + ":" + tag.tagName + " is already added";
                         return true;
                     } else {
                         return false;
@@ -673,7 +673,7 @@ function octane_job_configuration(target, progress, proxy) {
                 }
 
                 if (!tagInput.val()) {
-                    return "Tag must be specified";
+                    return "Environment must be specified";
                 }
 
                 var tagType = tagTypesByName[tagTypeInput.val()];
@@ -727,7 +727,7 @@ function octane_job_configuration(target, progress, proxy) {
 
                 function matchTagType(tagType) {
                     if (caseInsensitiveStringEquals(tagType.tagTypeName, tagTypeInput.val())) {
-                        error = "Tag Type " + tagType.tagTypeName + " is already defined";
+                        error = "Environment Type " + tagType.tagTypeName + " is already defined";
                         return true;
                     } else {
                         return false;
@@ -735,7 +735,7 @@ function octane_job_configuration(target, progress, proxy) {
                 }
 
                 if (!tagTypeInput.val()) {
-                    return "Tag type must be specified";
+                    return "Environment type must be specified";
                 }
 
                 jobConfiguration.taxonomies.some(matchTagType);
