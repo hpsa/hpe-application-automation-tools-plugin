@@ -2,19 +2,18 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.hp.mqm</groupId>
-    <artifactId>mqm-client</artifactId>
-    <packaging>pom</packaging>
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>mqm-client</artifactId>
+	<packaging>pom</packaging>
 	<parent>
 		<groupId>com.hp.mqm</groupId>
 		<artifactId>indi-integrations-root</artifactId>
 		<version>12.50.14-SNAPSHOT</version>
 	</parent>
-    <modules>
-        <module>mqm-rest-client</module>
-        <module>mqm-rest-client-test</module>
-    </modules>
+	<modules>
+		<module>mqm-rest-client</module>
+		<module>mqm-rest-client-test</module>
+	</modules>
 
 </project>

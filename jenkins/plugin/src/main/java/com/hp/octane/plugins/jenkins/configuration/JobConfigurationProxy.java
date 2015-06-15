@@ -219,7 +219,7 @@ public class JobConfigurationProxy {
 
             JSONArray allTaxonomies = new JSONArray();
             MultiValueMap multiMap = new MultiValueMap();
-            List<Taxonomy> taxonomies = client.queryTaxonomies(null, null, 0, 50).getItems();
+            List<Taxonomy> taxonomies = client.queryTaxonomies(null, null, 0, 100).getItems();
             for (Taxonomy taxonomy: taxonomies) {
                 multiMap.put(taxonomy.getTaxonomyTypeId(), tag(taxonomy.getId(), taxonomy.getName()));
             }

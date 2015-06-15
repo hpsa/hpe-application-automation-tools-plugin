@@ -1,15 +1,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
 
+	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.jenkins-ci.plugins</groupId>
 		<artifactId>plugin</artifactId>
 		<version>1.580.2</version>
 	</parent>
 
-	<artifactId>octane-jenkins-plugin</artifactId>
-	<name>HP MQM Integration</name>
+	<artifactId>alm-nextgen-integration</artifactId>
+	<name>HP ALM NextGen Integration</name>
 	<version>12.50.14-SNAPSHOT</version>
 	<packaging>hpi</packaging>
 	<properties>
@@ -27,14 +27,14 @@
 		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
 		<sonar.forceAnalysis>true</sonar.forceAnalysis>
 		<sonar.exclusions>
-            **/src/test/**/*.java,
-            **/*JSON.java,
-            **/json/**,
-            **/Json.java,
-            **/*Json*.java,
-            **/JsonTest.java,
-            **/opb-tests/**,
-            **/NotificationEmail.java
+			**/src/test/**/*.java,
+			**/*JSON.java,
+			**/json/**,
+			**/Json.java,
+			**/*Json*.java,
+			**/JsonTest.java,
+			**/opb-tests/**,
+			**/NotificationEmail.java
 		</sonar.exclusions>
 		<skipTests>true</skipTests>
 	</properties>
@@ -289,7 +289,7 @@
 			</distributionManagement>
 		</profile>
 	</profiles>
-	
+
 
 	<repositories>
 		<repository>
