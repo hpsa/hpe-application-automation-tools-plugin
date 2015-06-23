@@ -280,7 +280,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
         return new Pipeline(pipelineObject.getInt("pipelineId"),
                 pipelineObject.getString("pipelineName"),
                 pipelineObject.getInt("releaseId"),
-                pipelineObject.getString("releaseName"),
+                pipelineObject.optString("releaseName"),
                 pipelineObject.getString("rootJobName"),
                 taxonomies, fields);
     }

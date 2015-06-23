@@ -157,6 +157,7 @@ function octane_job_configuration(target, progress, proxy) {
                 trRelease.append(tdReleaseSelect);
 
                 var select = $("<select>");
+                select.append($("<option>").text("-- Not specified --").val(-1).attr('selected', (pipeline.releaseId === -1)));
                 $.each(jobConfiguration.releases, function (releaseId) {
                     select.append($("<option>").text(jobConfiguration.releases[releaseId]).val(releaseId).attr('selected', (pipeline.releaseId === Number(releaseId))));
                 });

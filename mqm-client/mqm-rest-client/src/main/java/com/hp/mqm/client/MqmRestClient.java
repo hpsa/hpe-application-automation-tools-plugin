@@ -63,7 +63,7 @@ public interface MqmRestClient extends BaseMqmRestClient {
      * Create pipeline on the MQM server.
      *
      * @param pipelineName name of the pipeline
-     * @param releaseId release the pipeline will belong to
+     * @param releaseId release the pipeline will belong to (-1 if no release is associated)
      * @param structureJson pipeline descriptor (structure defined by Jenkins Insight)
      * @param serverJson server descriptor (structure defined by Jenkins Insight)
      * @return created pipeline id
@@ -75,6 +75,9 @@ public interface MqmRestClient extends BaseMqmRestClient {
      * <p>
      *
      * Either <code>pipelineName</code> or <code>releaseId</code> can be null. In that case, the value isn't updated.
+     * <p>
+     *
+     * In order to dissociate pipeline from release, <code>releaseId</code> value -1 needs to be specified.
      * <p>
      *
      * @param pipelineId pipeline ID
