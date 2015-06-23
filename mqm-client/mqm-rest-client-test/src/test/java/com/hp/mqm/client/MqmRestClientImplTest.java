@@ -478,6 +478,15 @@ public class MqmRestClientImplTest {
         Assert.assertEquals(release.getId(), pipeline.getReleaseId());
         Assert.assertEquals(release.getName(), pipeline.getReleaseName());
         Assert.assertEquals(pipelineName, pipeline.getName());
+
+        // clear release update
+        client.updatePipelineMetadata(pipelineId, null, -1);
+        jobConfiguration = client.getJobConfiguration(serverIdentity, jobName);
+        Assert.assertEquals(1, jobConfiguration.getRelatedPipelines().size());
+        pipeline = jobConfiguration.getRelatedPipelines().get(0);
+        Assert.assertEquals(-1, pipeline.getReleaseId());
+        Assert.assertEquals("", pipeline.getReleaseName());
+        Assert.assertEquals(pipelineName, pipeline.getName());
     }
 
     @Test
