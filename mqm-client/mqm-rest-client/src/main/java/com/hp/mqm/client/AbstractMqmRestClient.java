@@ -415,7 +415,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
     protected URI getEntityURI(String collection, List<String> conditions, int offset, int limit) {
         Map<String, Object> params = pagingParams(offset, limit, DEFAULT_WORKSPACE);
         if (!conditions.isEmpty()) {
-            StringBuffer expr = new StringBuffer();
+            StringBuilder expr = new StringBuilder();
             for (String condition: conditions) {
                 if (expr.length() > 0) {
                     expr.append(";");
