@@ -1,12 +1,14 @@
 package com.hp.mqm.client;
 
+import com.hp.mqm.client.exception.SharedSpaceNotExistException;
+
 public interface BaseMqmRestClient {
 
     /**
      * Tries login and when it passes it tries to connect to project.
      * @throws com.hp.mqm.client.exception.AuthenticationException when authentication fails
      * @throws com.hp.mqm.client.exception.SessionCreationException when session creation fails
-     * @throws com.hp.mqm.client.exception.DomainProjectNotExistException when domain, project pair does not exist
+     * @throws SharedSpaceNotExistException when domain, project pair does not exist
      * @throws com.hp.mqm.client.exception.LoginErrorException in case of IO error or error in the HTTP protocol
      * during login (authentication or session creation)
      * @throws com.hp.mqm.client.exception.RequestErrorException in case of IO error or error in the HTTP protocol

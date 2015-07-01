@@ -6,6 +6,6 @@ import com.hp.mqm.client.MqmRestClient;
 
 public interface JenkinsMqmRestClientFactory {
 
-    MqmRestClient create(String location, String domain, String project, String username, String password);
+    MqmRestClient create(String location, String sharedSpace, String username, String password);
 
 }

@@ -1,7 +1,7 @@
 package com.hp.mqm.client;
 
 import com.hp.mqm.client.exception.AuthenticationException;
-import com.hp.mqm.client.exception.DomainProjectNotExistException;
+import com.hp.mqm.client.exception.SharedSpaceNotExistException;
 import com.hp.mqm.client.exception.FileNotFoundException;
 import com.hp.mqm.client.exception.LoginErrorException;
 import com.hp.mqm.client.exception.LoginException;
@@ -178,7 +178,7 @@ public class MqmRestClientImplTest {
         try {
             client.tryToConnectProject();
             fail();
-        } catch (DomainProjectNotExistException e) {
+        } catch (SharedSpaceNotExistException e) {
             Assert.assertNotNull(e);
         } finally {
             client.release();
@@ -192,7 +192,7 @@ public class MqmRestClientImplTest {
         try {
             client.tryToConnectProject();
             fail();
-        } catch (DomainProjectNotExistException e) {
+        } catch (SharedSpaceNotExistException e) {
             Assert.assertNotNull(e);
         } finally {
             client.release();

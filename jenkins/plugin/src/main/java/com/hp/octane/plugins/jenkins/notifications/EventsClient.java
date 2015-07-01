@@ -2,6 +2,7 @@ package com.hp.octane.plugins.jenkins.notifications;
 
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
+import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jenkins.model.events.CIEventBase;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
@@ -46,25 +47,17 @@ public class EventsClient {
 	private int failedRetries;
 	private int pauseInterval;
 
-	private String url;
-	private String domain;
-	private String project;
+	private ServerConfiguration mqmConfig;
 	private String lastErrorNote;
 	private Date lastErrorTime;
-	private String username;
-	private String password;
 
-	public EventsClient(String url, String domain, String project, String username, String password, JenkinsMqmRestClientFactory clientFactory) {
-		update(url, domain, project, username, password, clientFactory);
+	public EventsClient(ServerConfiguration mqmConfig, JenkinsMqmRestClientFactory clientFactory) {
+		this.mqmConfig = mqmConfig;
+		this.restClientFactory = clientFactory;
 	}
 
-	public void update(String url, String domain, String project, String username, String password, JenkinsMqmRestClientFactory clientFactory) {
-		this.url = url;
-		this.domain = domain;
-		this.project = project;
-		this.username = username;
-		this.password = password;
-		restClientFactory = clientFactory;
+	public void update(ServerConfiguration mqmConfig) {
+		this.mqmConfig = mqmConfig;
 	}
 
 	public void pushEvent(CIEventBase event) {
@@ -95,7 +88,7 @@ public class EventsClient {
 					worker.setDaemon(true);
 					worker.setName("EventsClientWorker");
 					worker.start();
-					logger.info("EVENTS: new events client initialized for '" + this.url + "'");
+					logger.info("EVENTS: new events client initialized for '" + this.mqmConfig.location + "'");
 				}
 			}
 		}
@@ -125,12 +118,17 @@ public class EventsClient {
 		EventsList snapshot = new EventsList(events);
 		String requestBody;
 		boolean result = true;
-		MqmRestClient restClient = restClientFactory.create(url, domain, project, username, password);
+		MqmRestClient restClient = restClientFactory.create(
+				mqmConfig.location,
+				mqmConfig.sharedSpace,
+				mqmConfig.username,
+				mqmConfig.password
+		);
 
 		try {
 			new ModelBuilder().get(EventsList.class).writeTo(snapshot, Flavor.JSON.createDataWriter(snapshot, w));
 			requestBody = w.toString();
-			logger.info("EVENTS: sending " + snapshot.getEvents().size() + " event/s to '" + url + "'...");
+			logger.info("EVENTS: sending " + snapshot.getEvents().size() + " event/s to '" + mqmConfig.location + "'...");
 			while (failedRetries < MAX_SEND_RETRIES) {
 				if (restClient.putEvents(requestBody)) {
 					events.removeAll(snapshot.getEvents());
@@ -141,7 +139,7 @@ public class EventsClient {
 					lastErrorNote = "EVENTS: send to MQM server failed";
 					lastErrorTime = new Date();
 					failedRetries++;
-					logger.severe("EVENTS: send to '" + url + "' failed; total fails: " + failedRetries);
+					logger.severe("EVENTS: send to '" + mqmConfig.location + "' failed; total fails: " + failedRetries);
 					if (failedRetries < MAX_SEND_RETRIES) {
 						doBreakableWait(pauseInterval *= 2);
 					}
@@ -181,23 +179,18 @@ public class EventsClient {
 	}
 
 	@Exported(inline = true)
-	public String getUrl() {
-		return url;
+	public String getLocation() {
+		return mqmConfig.location;
 	}
 
 	@Exported(inline = true)
-	public String getDomain() {
-		return domain;
-	}
-
-	@Exported(inline = true)
-	public String getProject() {
-		return project;
+	public String getSharedSpace() {
+		return mqmConfig.sharedSpace;
 	}
 
 	@Exported(inline = true)
 	public String getUsername() {
-		return username;
+		return mqmConfig.username;
 	}
 
 	@Exported(inline = true)

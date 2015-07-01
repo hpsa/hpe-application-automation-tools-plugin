@@ -370,8 +370,7 @@ public class JobConfigurationProxy {
         JenkinsMqmRestClientFactory clientFactory = getExtension(JenkinsMqmRestClientFactory.class);
         MqmRestClient client = clientFactory.create(
                 configuration.location,
-                configuration.domain,
-                configuration.project,
+                configuration.sharedSpace,
                 configuration.username,
                 configuration.password);
         try {

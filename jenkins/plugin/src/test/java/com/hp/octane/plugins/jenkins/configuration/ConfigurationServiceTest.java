@@ -6,7 +6,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.AuthenticationException;
-import com.hp.mqm.client.exception.DomainProjectNotExistException;
+import com.hp.mqm.client.exception.SharedSpaceNotExistException;
 import com.hp.mqm.client.exception.SessionCreationException;
 import com.hp.octane.plugins.jenkins.ExtensionUtil;
 import com.hp.octane.plugins.jenkins.Messages;
@@ -93,10 +93,10 @@ public class ConfigurationServiceTest {
         Assert.assertTrue(validation.getMessage().contains(Messages.SessionCreationFailure()));
 
         // domain project does not exists
-        Mockito.doThrow(new DomainProjectNotExistException()).when(client).tryToConnectProject();
+        Mockito.doThrow(new SharedSpaceNotExistException()).when(client).tryToConnectProject();
 
         validation = configurationService.checkConfiguration("http://localhost:8088/", "domain1", "project1", "username1", "password1");
         Assert.assertEquals(FormValidation.Kind.ERROR, validation.kind);
-        Assert.assertTrue(validation.getMessage().contains(Messages.ConnectionDomainProjectInvalid()));
+        Assert.assertTrue(validation.getMessage().contains(Messages.ConnectionSharedSpaceInvalid()));
     }
 }

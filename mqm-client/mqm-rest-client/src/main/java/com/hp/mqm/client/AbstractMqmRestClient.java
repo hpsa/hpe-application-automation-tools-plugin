@@ -1,7 +1,7 @@
 package com.hp.mqm.client;
 
 import com.hp.mqm.client.exception.AuthenticationException;
-import com.hp.mqm.client.exception.DomainProjectNotExistException;
+import com.hp.mqm.client.exception.SharedSpaceNotExistException;
 import com.hp.mqm.client.exception.LoginErrorException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
@@ -67,8 +67,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 
     private final DefaultHttpClient httpClient;
     private final String location;
-    private final String domain;
-    private final String project;
+    private final String sharedSpace;
     private final String clientType;
     private final String username;
 
@@ -82,12 +81,10 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
      */
     protected AbstractMqmRestClient(MqmConnectionConfig connectionConfig) {
         checkNotEmpty("Parameter 'location' must not be null or empty.", connectionConfig.getLocation());
-        checkNotEmpty("Parameter 'domain' must not be null or empty.", connectionConfig.getDomain());
-        checkNotEmpty("Parameter 'project' must not be null or empty.", connectionConfig.getProject());
+        checkNotEmpty("Parameter 'sharedSpace' must not be null or empty.", connectionConfig.getSharedSpace());
         checkNotEmpty("Parameter 'clientType' must not be null or empty.", connectionConfig.getClientType());
         this.location = connectionConfig.getLocation();
-        this.domain = connectionConfig.getDomain();
-        this.project = connectionConfig.getProject();
+        this.sharedSpace = connectionConfig.getSharedSpace();
         this.clientType = connectionConfig.getClientType();
 
         this.username = connectionConfig.getUsername();
@@ -221,7 +218,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
         try {
             response = execute(request);
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                throw new DomainProjectNotExistException("Cannot connect to given project.");
+                throw new SharedSpaceNotExistException("Cannot connect to given project.");
             }
         } catch (IOException e) {
             throw new RequestErrorException("Domain and project check failed", e);
@@ -290,7 +287,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
     }
 
     protected URI createProjectUri(String projectPartTemplate, String template, Map<String, ?> params) {
-        return URI.create(createBaseUri(projectPartTemplate, domain, project).toString() + "/" + resolveTemplate(template, params));
+        return URI.create(createBaseUri(projectPartTemplate, sharedSpace).toString() + "/" + resolveTemplate(template, params));
     }
 
     /**

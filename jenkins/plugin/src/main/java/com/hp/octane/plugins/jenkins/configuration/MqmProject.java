@@ -4,13 +4,11 @@ package com.hp.octane.plugins.jenkins.configuration;
 
 final public class MqmProject {
     private final String location;
-    private final String domain;
-    private final String project;
+    private final String sharedSpace;
 
-    public MqmProject(String location, String domain, String project) {
+    public MqmProject(String location, String sharedSpace) {
         this.location = location;
-        this.domain = domain;
-        this.project = project;
+        this.sharedSpace = sharedSpace;
     }
 
     public String getLocation() {
@@ -18,10 +16,6 @@ final public class MqmProject {
     }
 
     public String getDomain() {
-        return domain;
-    }
-
-    public String getProject() {
-        return project;
+        return sharedSpace;
     }
 }

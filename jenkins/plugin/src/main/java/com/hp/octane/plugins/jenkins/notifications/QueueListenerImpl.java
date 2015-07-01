@@ -32,7 +32,8 @@ public final class QueueListenerImpl extends QueueListener {
 					project.getName(),
 					CIEventCausesFactory.processCauses(wi.getCauses())
 			);
-			EventsDispatcher.getExtensionInstance().dispatchEvent(event);
+			//  REMARK: temporary decided to not send QUEUED event
+			//EventsDispatcher.getExtensionInstance().dispatchEvent(event);
 		}
 	}
 

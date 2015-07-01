@@ -128,33 +128,33 @@ public class TestEvents {
 	public void testEventsA() throws Exception {
 		FreeStyleProject p = rule.createFreeStyleProject(projectName);
 		JenkinsRule.WebClient client = rule.createWebClient();
-		assertEquals(p.getBuilds().toArray().length, 0);
+		assertEquals(0, p.getBuilds().toArray().length);
 		Utils.buildProject(client, p);
 		while (p.getLastBuild() == null || p.getLastBuild().isBuilding()) {
 			Thread.sleep(1000);
 		}
-		assertEquals(p.getBuilds().toArray().length, 1);
+		assertEquals(1, p.getBuilds().toArray().length);
 		Thread.sleep(5000);
 
-		ArrayList<CIEventType> eventsOrder = new ArrayList<CIEventType>(Arrays.asList(CIEventType.QUEUED, CIEventType.STARTED, CIEventType.FINISHED));
+		ArrayList<CIEventType> eventsOrder = new ArrayList<CIEventType>(Arrays.asList(CIEventType.STARTED, CIEventType.FINISHED));
 		ArrayList<JSONObject> eventLists = eventsHandler.getResults();
 		JSONObject tmp;
 		JSONArray events;
 		for (JSONObject l : eventLists) {
-			assertEquals(l.length(), 2);
+			assertEquals(2, l.length());
 
 			assertFalse(l.isNull("server"));
 			tmp = l.getJSONObject("server");
-			assertEquals(tmp.getString("url"), new PluginActions.ServerInfo().getUrl());
-			assertEquals(tmp.getString("type"), new PluginActions.ServerInfo().getType());
-			assertEquals(tmp.getString("instanceId"), new PluginActions.ServerInfo().getInstanceId());
+			assertEquals(new PluginActions.ServerInfo().getUrl(), tmp.getString("url"));
+			assertEquals(new PluginActions.ServerInfo().getType(), tmp.getString("type"));
+			assertEquals(new PluginActions.ServerInfo().getInstanceId(), tmp.getString("instanceId"));
 
 			assertFalse(l.isNull("events"));
 			events = l.getJSONArray("events");
 			for (int i = 0; i < events.length(); i++) {
 				tmp = events.getJSONObject(i);
 				if (tmp.getString("project").equals("root-job")) {
-					assertEquals(CIEventType.getByValue(tmp.getString("eventType")), eventsOrder.get(0));
+					assertEquals(eventsOrder.get(0), CIEventType.getByValue(tmp.getString("eventType")));
 					eventsOrder.remove(0);
 				}
 			}

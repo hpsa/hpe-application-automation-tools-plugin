@@ -3,8 +3,7 @@ package com.hp.mqm.client;
 public class MqmConnectionConfig {
 
     private String location;
-    private String domain;
-    private String project;
+    private String sharedSpace;
     private String username;
     private String password;
     private String clientType;
@@ -16,19 +15,17 @@ public class MqmConnectionConfig {
     private Integer defaultConnectionTimeout;
     private Integer defaultConnectionRequestTimeout;
 
-    public MqmConnectionConfig(String location, String domain, String project, String username, String password, String clientType) {
+    public MqmConnectionConfig(String location, String sharedSpace, String username, String password, String clientType) {
         this.location = location;
-        this.domain = domain;
-        this.project = project;
+        this.sharedSpace = sharedSpace;
         this.username = username;
         this.password = password;
         this.clientType = clientType;
     }
 
-    MqmConnectionConfig(String location, String domain, String project, String username, String password, String clientType, String proxyHost, Integer proxyPort) {
+    MqmConnectionConfig(String location, String sharedSpace, String username, String password, String clientType, String proxyHost, Integer proxyPort) {
         this.location = location;
-        this.domain = domain;
-        this.project = project;
+        this.sharedSpace = sharedSpace;
         this.username = username;
         this.password = password;
         this.proxyHost = proxyHost;
@@ -40,12 +37,8 @@ public class MqmConnectionConfig {
         this.location = location;
     }
 
-    public void setDomain(String domain) {
-        this.domain = domain;
-    }
-
-    public void setProject(String project) {
-        this.project = project;
+    public void setSharedSpace(String sharedSpace) {
+        this.sharedSpace = sharedSpace;
     }
 
     public void setUsername(String username) {
@@ -76,12 +69,8 @@ public class MqmConnectionConfig {
         return location;
     }
 
-    public String getDomain() {
-        return domain;
-    }
-
-    public String getProject() {
-        return project;
+    public String getSharedSpace() {
+        return sharedSpace;
     }
 
     public String getUsername() {

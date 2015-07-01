@@ -42,8 +42,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 
 	// inferred from uiLocation
 	private String location;
-	private String domain;
-	private String project;
+	private String sharedSpace;
 
 	public String getIdentity() {
 		return identity;
@@ -86,8 +85,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 	public ServerConfiguration getServerConfiguration() {
 		return new ServerConfiguration(
 				getLocation(),
-				getDomain(),
-				getProject(),
+				getSharedSpace(),
 				getUsername(),
 				getPassword());
 	}
@@ -100,12 +98,8 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 		return location;
 	}
 
-	private String getDomain() {
-		return domain;
-	}
-
-	private String getProject() {
-		return project;
+	private String getSharedSpace() {
+		return sharedSpace;
 	}
 
 	private String getUsername() {
@@ -126,14 +120,12 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 		try {
 			MqmProject mqmProject = ConfigurationService.parseUiLocation(uiLocation);
 			location = mqmProject.getLocation();
-			domain = mqmProject.getDomain();
-			project = mqmProject.getProject();
+			sharedSpace = mqmProject.getDomain();
 		} catch (FormValidation ex) {
 			// consider plugin unconfigured
 			logger.warning("invalid configuration submitted; processing failed with error: " + ex.getMessage());
 			location = null;
-			domain = null;
-			project = null;
+			sharedSpace = null;
 		}
 
 		ServerConfiguration newConfiguration = getServerConfiguration();
@@ -210,7 +202,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 				return ex;
 			}
 			FormValidation validation = configurationService.checkConfiguration(mqmProject.getLocation(),
-					mqmProject.getDomain(), mqmProject.getProject(), username, password);
+					mqmProject.getDomain(), username, password);
 			if (validation.kind == FormValidation.Kind.OK &&
 					uiLocation.equals(octanePlugin.getUiLocation()) &&
 					username.equals(octanePlugin.getUsername()) &&
@@ -233,12 +225,8 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 			return octanePlugin.getLocation();
 		}
 
-		public String getDomain() {
-			return octanePlugin.getDomain();
-		}
-
-		public String getProject() {
-			return octanePlugin.getProject();
+		public String getSharedSpace() {
+			return octanePlugin.getSharedSpace();
 		}
 
 		public String getUsername() {

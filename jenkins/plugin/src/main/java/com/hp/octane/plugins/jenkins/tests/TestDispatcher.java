@@ -4,7 +4,7 @@ package com.hp.octane.plugins.jenkins.tests;
 
 import com.google.inject.Inject;
 import com.hp.mqm.client.MqmRestClient;
-import com.hp.mqm.client.exception.DomainProjectNotExistException;
+import com.hp.mqm.client.exception.SharedSpaceNotExistException;
 import com.hp.mqm.client.exception.FileNotFoundException;
 import com.hp.mqm.client.exception.LoginException;
 import com.hp.mqm.client.exception.RequestErrorException;
@@ -75,21 +75,20 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
                     logger.warning("There are pending test results, but MQM server location is not specified, results can't be submitted");
                     return;
                 }
-                if (eventPublisher.isSuspended(configuration.location, configuration.domain, configuration.project)) {
+                if (eventPublisher.isSuspended(configuration.location, configuration.sharedSpace)) {
                     logger.warning("There are pending test results, but event dispatching is suspended");
                     return;
                 }
                 logger.info("There are pending test results, connecting to the MQM server");
                 client = clientFactory.create(
                         configuration.location,
-                        configuration.domain,
-                        configuration.project,
+                        configuration.sharedSpace,
                         configuration.username,
                         configuration.password);
                 try {
                     client.tryToConnectProject();
-                } catch (DomainProjectNotExistException e) {
-                    logger.log(Level.WARNING, "Invalid domain or project. Pending test results can't be submitted", e);
+                } catch (SharedSpaceNotExistException e) {
+                    logger.log(Level.WARNING, "Invalid shared space. Pending test results can't be submitted", e);
                     retryModel.failure();
                     return;
                 } catch (LoginException e) {
@@ -182,8 +181,7 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
         event.put("success", success);
         event.put("date", DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.format(new Date()));
         event.put("location", configuration.location);
-        event.put("domain", configuration.domain);
-        event.put("project", configuration.project);
+        event.put("sharedSpace", configuration.sharedSpace);
         audit.add(event);
         auditFile.write(audit.toString(), "UTF-8");
     }

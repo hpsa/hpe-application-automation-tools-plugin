@@ -186,24 +186,23 @@ public class PluginActions implements RootAction {
 		ServerConfiguration conf;
 		while ((length = req.getInputStream().read(buffer)) > 0) body += new String(buffer, 0, length);
 
-		if (body.length() > 0) {
-			inputJSON = JSONObject.fromObject(body);
-			String url;
-			String domain;
-			String project;
-			String username;
-			String password;
-			if (inputJSON.containsKey("type") && inputJSON.getString("type").equals("events-client")) {
-				url = inputJSON.containsKey("url") ? inputJSON.getString("url") : null;
-				domain = inputJSON.containsKey("domain") ? inputJSON.getString("domain") : null;
-				project = inputJSON.containsKey("project") ? inputJSON.getString("project") : null;
-				username = inputJSON.containsKey("username") ? inputJSON.getString("username") : null;
-				password = inputJSON.containsKey("password") ? inputJSON.getString("password") : null;
-				logger.info("Accepted events-client config request for '" + url + "', '" + domain + "', '" + project + "'");
-				conf = new ServerConfiguration(url, domain, project, username, password);
-				EventsDispatcher.getExtensionInstance().updateClient(conf);
-			}
-		}
+//		if (body.length() > 0) {
+//			inputJSON = JSONObject.fromObject(body);
+//			String url;
+//			String sharedSpace;
+//			String project;
+//			String username;
+//			String password;
+//			if (inputJSON.containsKey("type") && inputJSON.getString("type").equals("events-client")) {
+//				url = inputJSON.containsKey("url") ? inputJSON.getString("url") : null;
+//				sharedSpace = inputJSON.containsKey("sharedSpace") ? inputJSON.getString("sharedSpace") : null;
+//				username = inputJSON.containsKey("username") ? inputJSON.getString("username") : null;
+//				password = inputJSON.containsKey("password") ? inputJSON.getString("password") : null;
+//				logger.info("Accepted events-client config request for '" + url + "', '" + sharedSpace + "'");
+//				conf = new ServerConfiguration(url, sharedSpace, username, password);
+//				EventsDispatcher.getExtensionInstance().updateClient(conf);
+//			}
+//		}
 		EventsDispatcher.getExtensionInstance().wakeUpClients();
 	}
 }

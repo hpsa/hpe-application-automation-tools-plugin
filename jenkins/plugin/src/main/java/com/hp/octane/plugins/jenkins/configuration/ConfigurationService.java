@@ -5,7 +5,7 @@ package com.hp.octane.plugins.jenkins.configuration;
 import com.google.inject.Inject;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.AuthenticationException;
-import com.hp.mqm.client.exception.DomainProjectNotExistException;
+import com.hp.mqm.client.exception.SharedSpaceNotExistException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.SessionCreationException;
 import com.hp.octane.plugins.jenkins.Messages;
@@ -59,11 +59,11 @@ public class ConfigurationService {
             List<NameValuePair> params = URLEncodedUtils.parse(url.toURI(), "UTF-8");
             for (NameValuePair param: params) {
                 if (param.getName().equals(PARAM_DOMAIN_PROJECT)) {
-                    String[] domainAndProject = param.getValue().split("/");
-                    if (domainAndProject.length != 2 || StringUtils.isEmpty(domainAndProject[0]) || StringUtils.isEmpty(domainAndProject[1])) {
-                        throw FormValidation.errorWithMarkup(markup("red", Messages.UnexpectedDomainProject()));
+                    String sharedSpace = param.getValue();
+                    if (StringUtils.isEmpty(sharedSpace)) {
+                        throw FormValidation.errorWithMarkup(markup("red", Messages.UnexpectedSharedSpace()));
                     }
-                    return new MqmProject(location, domainAndProject[0], domainAndProject[1]);
+                    return new MqmProject(location, sharedSpace);
                 }
             }
             throw FormValidation.errorWithMarkup(markup("red", Messages.MissingDomainProject()));
@@ -74,8 +74,8 @@ public class ConfigurationService {
         }
     }
 
-    public FormValidation checkConfiguration(String location, String domain, String project, String username, String password) {
-        MqmRestClient client = clientFactory.create(location, domain, project, username, password);
+    public FormValidation checkConfiguration(String location, String sharedSpace, String username, String password) {
+        MqmRestClient client = clientFactory.create(location, sharedSpace, username, password);
         try {
             client.tryToConnectProject();
         } catch (AuthenticationException e) {
@@ -84,9 +84,9 @@ public class ConfigurationService {
         } catch (SessionCreationException e) {
             logger.log(Level.WARNING, "Session creation failed.", e);
             return FormValidation.errorWithMarkup(markup("red", Messages.SessionCreationFailure()));
-        } catch (DomainProjectNotExistException e) {
-            logger.log(Level.WARNING, "Domain and project validation failed.", e);
-            return FormValidation.errorWithMarkup(markup("red", Messages.ConnectionDomainProjectInvalid()));
+        } catch (SharedSpaceNotExistException e) {
+            logger.log(Level.WARNING, "Shared Space validation failed.", e);
+            return FormValidation.errorWithMarkup(markup("red", Messages.ConnectionSharedSpaceInvalid()));
         } catch (RequestErrorException e) {
             logger.log(Level.WARNING, "Connection check failed due to communication problem.", e);
             return FormValidation.errorWithMarkup(markup("red", Messages.ConnectionFailure()));

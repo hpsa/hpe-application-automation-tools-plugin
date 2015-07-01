@@ -6,7 +6,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.AuthenticationException;
-import com.hp.mqm.client.exception.DomainProjectNotExistException;
+import com.hp.mqm.client.exception.SharedSpaceNotExistException;
 import com.hp.mqm.client.exception.RequestException;
 import com.hp.mqm.client.exception.SessionCreationException;
 import com.hp.octane.plugins.jenkins.ExtensionUtil;
@@ -282,7 +282,7 @@ public class TestDispatcherTest {
         } else if (!session) {
             Mockito.doThrow(new SessionCreationException()).when(restClient).tryToConnectProject();
         } else if (!project) {
-            Mockito.doThrow(new DomainProjectNotExistException()).when(restClient).tryToConnectProject();
+            Mockito.doThrow(new SharedSpaceNotExistException()).when(restClient).tryToConnectProject();
         } else {
             Mockito.doNothing().when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()));
         }
