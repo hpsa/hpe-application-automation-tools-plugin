@@ -48,7 +48,6 @@ public class TestResultXmlWriter {
     public void close() throws XMLStreamException {
         if (outputStream != null) {
             writer.writeEndElement(); // tests
-            writer.writeEndElement(); // build
             writer.writeEndElement(); // testResult
             writer.writeEndDocument();
             writer.close();
@@ -67,6 +66,7 @@ public class TestResultXmlWriter {
             writer.writeAttribute("server", ServerIdentity.getIdentity());
             writer.writeAttribute("buildType", build.getProject().getName());
             writer.writeAttribute("buildSid", String.valueOf(build.getNumber()));
+            writer.writeEndElement(); // build
             writer.writeStartElement("tests");
         }
     }
