@@ -44,13 +44,13 @@ public class ConfigApi {
 		} else {
 			uiLocation = configuration.getString("uiLocation");
 		}
-		try {
-			// validate location format
-			ConfigurationService.parseUiLocation(uiLocation);
-		} catch (FormValidation ex) {
-			res.sendError(400, ex.getMessage());
-			return;
-		}
+//		try {
+//			// validate location format
+//			ConfigurationService.parseUiLocation(uiLocation);
+//		} catch (FormValidation ex) {
+//			res.sendError(400, ex.getMessage());
+//			return;
+//		}
 		String username, password;
 		if (!configuration.containsKey("username")) {
 			// when username is not provided, use existing credentials (password can be overridden later)

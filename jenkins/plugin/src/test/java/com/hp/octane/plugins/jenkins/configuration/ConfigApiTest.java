@@ -63,7 +63,7 @@ public class ConfigApiTest {
         request.setRequestBody(config.toString());
         Page page = cli.getPage(request);
         config = JSONObject.fromObject(page.getWebResponse().getContentAsString());
-        checkConfig(config, "http://localhost:8088/qcbin", "domain1", "project1", "username1", "password1");
+        checkConfig(config, "http://localhost:8088/qcbin", "domain1", "username1", "password1");
         Assert.assertEquals(ServerIdentity.getIdentity(), config.getString("serverIdentity"));
 
         // location, domain and project, no credentials
@@ -74,7 +74,7 @@ public class ConfigApiTest {
         request.setRequestBody(config.toString());
         page = cli.getPage(request);
         config = JSONObject.fromObject(page.getWebResponse().getContentAsString());
-        checkConfig(config, "http://localhost:8888/qcbin", "domain2", "project2", "username1", "password1");
+        checkConfig(config, "http://localhost:8888/qcbin", "domain2", "username1", "password1");
         Assert.assertEquals(ServerIdentity.getIdentity(), config.getString("serverIdentity"));
 
         // location, domain, project and username without password
@@ -86,7 +86,7 @@ public class ConfigApiTest {
         request.setRequestBody(config.toString());
         page = cli.getPage(request);
         config = JSONObject.fromObject(page.getWebResponse().getContentAsString());
-        checkConfig(config, "http://localhost:8882/qcbin", "domain3", "project3", "username3", "");
+        checkConfig(config, "http://localhost:8882/qcbin", "domain3", "username3", "");
         Assert.assertEquals(ServerIdentity.getIdentity(), config.getString("serverIdentity"));
 
         // uiLocation and identity
@@ -96,7 +96,7 @@ public class ConfigApiTest {
         request.setRequestBody(config.toString());
         page = cli.getPage(request);
         config = JSONObject.fromObject(page.getWebResponse().getContentAsString());
-        checkConfig(config, "http://localhost:8881/qcbin", "domain4", "project4", "username3", "");
+        checkConfig(config, "http://localhost:8881/qcbin", "domain4", "username3", "");
         Assert.assertEquals("2d2fa955-1d13-4d8c-947f-ab11c72bf850", config.getString("serverIdentity"));
         Assert.assertEquals("2d2fa955-1d13-4d8c-947f-ab11c72bf850", ServerIdentity.getIdentity());
 
@@ -110,17 +110,15 @@ public class ConfigApiTest {
         }
     }
 
-    private void checkConfig(JSONObject config, String location, String domain, String project, String username, String password) {
+    private void checkConfig(JSONObject config, String location, String sharedSpace, String username, String password) {
         // check values returned
         Assert.assertEquals(location, config.getString("location"));
-        Assert.assertEquals(domain, config.getString("domain"));
-        Assert.assertEquals(project, config.getString("project"));
+        Assert.assertEquals(sharedSpace, config.getString("sharedSpace"));
         Assert.assertEquals(username, config.getString("username"));
         // check values stored
         ServerConfiguration serverConfiguration = ConfigurationService.getServerConfiguration();
         Assert.assertEquals(location, serverConfiguration.location);
-        Assert.assertEquals(domain, serverConfiguration.domain);
-        Assert.assertEquals(project, serverConfiguration.project);
+        Assert.assertEquals(sharedSpace, serverConfiguration.sharedSpace);
         Assert.assertEquals(username, serverConfiguration.username);
         Assert.assertEquals(password, serverConfiguration.password);
     }

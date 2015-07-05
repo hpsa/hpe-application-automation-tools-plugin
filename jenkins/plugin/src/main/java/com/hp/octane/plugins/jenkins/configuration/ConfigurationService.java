@@ -66,7 +66,7 @@ public class ConfigurationService {
                     return new MqmProject(location, sharedSpace);
                 }
             }
-            throw FormValidation.errorWithMarkup(markup("red", Messages.MissingDomainProject()));
+            throw FormValidation.errorWithMarkup(markup("red", Messages.MissingSharedSpace()));
         } catch (MalformedURLException e) {
             throw FormValidation.errorWithMarkup(markup("red", Messages.ConfigurationUrInvalid()));
         } catch (URISyntaxException e) {
