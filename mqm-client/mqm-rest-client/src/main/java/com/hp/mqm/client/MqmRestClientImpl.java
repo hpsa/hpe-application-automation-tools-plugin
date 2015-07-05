@@ -43,7 +43,8 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
     private static final String WORKSPACE_FRAGMENT = "workspace-id={workspace}";
     private static final String PAGING_FRAGMENT = "offset={offset}&limit={limit}";
 
-    private static final String URI_PUSH_TEST_RESULT_PUSH = "test-results/v1";
+    //TODO: v2 will be removed after change on the server
+    private static final String URI_PUSH_TEST_RESULT_PUSH = "test-results/v2";
     private static final String URI_SERVER_JOB_CONFIG = "cia/servers/{server}/jobconfig/{job}";
     private static final String URI_RELEASES = "releases-mqm?" + WORKSPACE_FRAGMENT + "&" + PAGING_FRAGMENT;
     private static final String URI_LIST_ITEMS = "mqm-list-items?" + WORKSPACE_FRAGMENT + "&" + PAGING_FRAGMENT;
