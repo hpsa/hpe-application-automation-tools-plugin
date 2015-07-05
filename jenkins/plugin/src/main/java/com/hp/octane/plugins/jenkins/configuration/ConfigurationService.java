@@ -31,7 +31,7 @@ public class ConfigurationService {
 
     private final static Logger logger = Logger.getLogger(ConfigurationService.class.getName());
 
-    private static final String PARAM_DOMAIN_PROJECT = "p"; // NON-NLS
+    private static final String PARAM_SHARED_SPACE = "p"; // NON-NLS
 
     private JenkinsMqmRestClientFactory clientFactory;
 
@@ -44,7 +44,7 @@ public class ConfigurationService {
         try {
             URL url = new URL(uiLocation);
             String location;
-            int contextPos = uiLocation.indexOf("/qcbin/ui");
+            int contextPos = uiLocation.indexOf("/ui");
             if (contextPos < 0) {
                 // guessing the future
                 contextPos = uiLocation.indexOf("/mqm/ui");
@@ -54,11 +54,11 @@ public class ConfigurationService {
                     location = uiLocation.substring(0, contextPos + 4);
                 }
             } else {
-                location = uiLocation.substring(0, contextPos + 6);
+                location = uiLocation.substring(0, contextPos);
             }
             List<NameValuePair> params = URLEncodedUtils.parse(url.toURI(), "UTF-8");
             for (NameValuePair param: params) {
-                if (param.getName().equals(PARAM_DOMAIN_PROJECT)) {
+                if (param.getName().equals(PARAM_SHARED_SPACE)) {
                     String sharedSpace = param.getValue();
                     if (StringUtils.isEmpty(sharedSpace)) {
                         throw FormValidation.errorWithMarkup(markup("red", Messages.UnexpectedSharedSpace()));

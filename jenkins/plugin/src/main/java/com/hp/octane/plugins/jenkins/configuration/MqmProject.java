@@ -15,7 +15,7 @@ final public class MqmProject {
         return location;
     }
 
-    public String getDomain() {
+    public String getSharedSpace() {
         return sharedSpace;
     }
 }

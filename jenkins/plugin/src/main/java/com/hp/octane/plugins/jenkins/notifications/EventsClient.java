@@ -42,7 +42,7 @@ public class EventsClient {
 	private int MAX_SEND_RETRIES = 7;
 	private int INITIAL_RETRY_PAUSE = 1739;
 	private int DATA_SEND_INTERVAL = 1373;
-	private int DATA_SEND_INTERVAL_IN_SUSPEND = 1000 * 60 * 2;
+	private int DATA_SEND_INTERVAL_IN_SUSPEND = 10 * 60 * 2;
 	private boolean shuttingDown;
 	private int failedRetries;
 	private int pauseInterval;
@@ -54,6 +54,7 @@ public class EventsClient {
 	public EventsClient(ServerConfiguration mqmConfig, JenkinsMqmRestClientFactory clientFactory) {
 		this.mqmConfig = mqmConfig;
 		this.restClientFactory = clientFactory;
+		activate();
 	}
 
 	public void update(ServerConfiguration mqmConfig) {

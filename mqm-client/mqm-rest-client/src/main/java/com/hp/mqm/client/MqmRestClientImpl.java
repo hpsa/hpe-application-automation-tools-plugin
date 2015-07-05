@@ -53,7 +53,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
     private static final String URI_PIPELINES = "cia/pipelines?fetchStructure=false";
     private static final String URI_PIPELINES_METADATA = "cia/pipelines/{pipeline}/metadata";
     private static final String URI_PIPELINES_TAGS = "cia/pipelines/{server}/jobconfig/{job}?" + WORKSPACE_FRAGMENT;
-	private static final String URI_PUT_EVENTS = "cia/events";
+	private static final String URI_PUT_EVENTS = "analytics/ci/events";
 
     private static final String HEADER_ACCEPT = "Accept";
 
@@ -344,7 +344,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 
     @Override
     public boolean putEvents(String eventsJSON) {
-        HttpPut request = new HttpPut(createProjectApiUri(URI_PUT_EVENTS));
+        HttpPut request = new HttpPut(createSharedSpaceInternalApiUri(URI_PUT_EVENTS));
         request.setEntity(new StringEntity(eventsJSON, ContentType.APPLICATION_JSON));
         HttpResponse response = null;
         boolean result = true;

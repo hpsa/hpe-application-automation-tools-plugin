@@ -120,7 +120,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 		try {
 			MqmProject mqmProject = ConfigurationService.parseUiLocation(uiLocation);
 			location = mqmProject.getLocation();
-			sharedSpace = mqmProject.getDomain();
+			sharedSpace = mqmProject.getSharedSpace();
 		} catch (FormValidation ex) {
 			// consider plugin unconfigured
 			logger.warning("invalid configuration submitted; processing failed with error: " + ex.getMessage());
@@ -202,7 +202,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 				return ex;
 			}
 			FormValidation validation = configurationService.checkConfiguration(mqmProject.getLocation(),
-					mqmProject.getDomain(), username, password);
+					mqmProject.getSharedSpace(), username, password);
 			if (validation.kind == FormValidation.Kind.OK &&
 					uiLocation.equals(octanePlugin.getUiLocation()) &&
 					username.equals(octanePlugin.getUsername()) &&
