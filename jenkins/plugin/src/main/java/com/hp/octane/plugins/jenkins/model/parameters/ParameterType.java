@@ -9,7 +9,7 @@ package com.hp.octane.plugins.jenkins.model.parameters;
  */
 
 public enum ParameterType {
-	UNAVAILABLE("unavailable"),
+	UNDEFINED("undefined"),
 	PASSWORD("password"),
 	BOOLEAN("boolean"),
 	STRING("string"),
@@ -28,11 +28,13 @@ public enum ParameterType {
 	}
 
 	public static ParameterType getByValue(String value) {
+		ParameterType result = UNDEFINED;
 		for (ParameterType i : values()) {
 			if (i.value.equals(value)) {
-				return i;
+				result = i;
+				break;
 			}
 		}
-		throw new RuntimeException("No ParameterType matches '" + value + "'");
+		return result;
 	}
 }

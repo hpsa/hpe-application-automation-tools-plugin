@@ -140,7 +140,7 @@ public class EventsClient {
 					lastErrorNote = "EVENTS: send to MQM server failed";
 					lastErrorTime = new Date();
 					failedRetries++;
-					logger.severe("EVENTS: send to '" + mqmConfig.location + "' failed; total fails: " + failedRetries);
+
 					if (failedRetries < MAX_SEND_RETRIES) {
 						doBreakableWait(pauseInterval *= 2);
 					}
