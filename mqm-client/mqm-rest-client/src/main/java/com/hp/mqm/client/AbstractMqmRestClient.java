@@ -277,8 +277,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 
 	protected URI createSharedSpaceInternalApiUri(String template) {
 		String uri = location + "/" +
-				"internal-api/" +
-//				resolveTemplate(SHARED_SPACE_INTERNAL_API_URI, asMap(new String[]{sharedSpace})) + "/" +
+				resolveTemplate(SHARED_SPACE_INTERNAL_API_URI, asMap(new String[]{sharedSpace})) + "/" +
 				template;
 		return URI.create(uri);
 	}
