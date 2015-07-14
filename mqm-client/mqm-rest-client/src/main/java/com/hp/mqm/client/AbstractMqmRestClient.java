@@ -37,11 +37,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
@@ -209,8 +205,8 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 
 	@Override
 	public void tryToConnectProject() {
-		login();
-		checkDomainAndProject();
+//		login();
+//		checkDomainAndProject();
 	}
 
 	// the simplest implementation because we do not know if domain and project will exist in future
@@ -275,11 +271,8 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 		return createProjectUri(PROJECT_API_URI, template, asMap(params));
 	}
 
-	protected URI createSharedSpaceInternalApiUri(String template) {
-		String uri = location + "/" +
-				resolveTemplate(SHARED_SPACE_INTERNAL_API_URI, asMap(new String[]{sharedSpace})) + "/" +
-				template;
-		return URI.create(uri);
+	protected URI createSharedSpaceInternalApiUri(String template, Object... params) {
+		return createProjectUri(SHARED_SPACE_INTERNAL_API_URI, template, asMap(params));
 	}
 
 	/**
