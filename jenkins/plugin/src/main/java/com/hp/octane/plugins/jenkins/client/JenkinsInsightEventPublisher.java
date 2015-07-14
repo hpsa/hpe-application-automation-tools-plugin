@@ -2,8 +2,8 @@
 
 package com.hp.octane.plugins.jenkins.client;
 
-import com.hp.octane.plugins.jenkins.notifications.EventsClient;
-import com.hp.octane.plugins.jenkins.notifications.EventsDispatcher;
+import com.hp.octane.plugins.jenkins.events.EventsClient;
+import com.hp.octane.plugins.jenkins.events.EventsDispatcher;
 import hudson.Extension;
 
 @Extension

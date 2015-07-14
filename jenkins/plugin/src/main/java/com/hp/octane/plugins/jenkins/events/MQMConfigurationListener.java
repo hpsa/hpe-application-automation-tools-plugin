@@ -1,11 +1,9 @@
-package com.hp.octane.plugins.jenkins.notifications;
+package com.hp.octane.plugins.jenkins.events;
 
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationListener;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import hudson.Extension;
-import jenkins.model.Jenkins;
 
-import java.util.List;
 import java.util.logging.Logger;
 
 /**

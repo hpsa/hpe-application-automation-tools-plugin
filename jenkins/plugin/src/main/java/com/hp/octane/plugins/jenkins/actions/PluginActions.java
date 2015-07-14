@@ -5,8 +5,8 @@ import com.hp.octane.plugins.jenkins.configuration.ConfigApi;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
-import com.hp.octane.plugins.jenkins.notifications.EventsClient;
-import com.hp.octane.plugins.jenkins.notifications.EventsDispatcher;
+import com.hp.octane.plugins.jenkins.events.EventsClient;
+import com.hp.octane.plugins.jenkins.events.EventsDispatcher;
 import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.RootAction;
@@ -36,20 +36,37 @@ import java.util.logging.Logger;
 public class PluginActions implements RootAction {
 	private static final Logger logger = Logger.getLogger(PluginActions.class.getName());
 
+	//  [YG] probably move the instance ID related things to Plugin Info, since it's not belongs to the Jenkins core
 	@ExportedBean
 	public static final class ServerInfo {
+		private static final String type = "jenkins";
+		private static final String version = Jenkins.VERSION;
+		private String url;
 		private String instanceId;
 		private Long instanceIdFrom;
-		private String url;
-		private final String type = "jenkins";
 
 		public ServerInfo() {
-			this.instanceId = Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity();
-			this.instanceIdFrom = Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentityFrom();
 			String serverUrl = Jenkins.getInstance().getRootUrl();
 			if (serverUrl != null && serverUrl.endsWith("/"))
 				serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
 			this.url = serverUrl;
+			this.instanceId = Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity();
+			this.instanceIdFrom = Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentityFrom();
+		}
+
+		@Exported(inline = true)
+		public String getType() {
+			return type;
+		}
+
+		@Exported(inline = true)
+		public String getVersion() {
+			return version;
+		}
+
+		@Exported(inline = true)
+		public String getUrl() {
+			return url;
 		}
 
 		@Exported(inline = true)
@@ -61,21 +78,11 @@ public class PluginActions implements RootAction {
 		public Long getInstanceIdFrom() {
 			return instanceIdFrom;
 		}
-
-		@Exported(inline = true)
-		public String getUrl() {
-			return url;
-		}
-
-		@Exported(inline = true)
-		public String getType() {
-			return type;
-		}
 	}
 
 	@ExportedBean
 	public static final class PluginInfo {
-		private final String version = "1.0.0";
+		private static final String version = "1.0.0";
 
 		@Exported(inline = true)
 		public String getVersion() {
