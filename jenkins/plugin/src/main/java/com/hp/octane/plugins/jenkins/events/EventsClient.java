@@ -1,4 +1,4 @@
-package com.hp.octane.plugins.jenkins.notifications;
+package com.hp.octane.plugins.jenkins.events;
 
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;

@@ -1,4 +1,4 @@
-package com.hp.octane.plugins.jenkins.notifications;
+package com.hp.octane.plugins.jenkins.events;
 
 import com.google.inject.Inject;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
@@ -11,10 +11,8 @@ import com.hp.octane.plugins.jenkins.tests.TestListener;
 import hudson.Extension;
 import hudson.model.*;
 import hudson.model.listeners.RunListener;
-import jenkins.model.Jenkins;
 
 import javax.annotation.Nonnull;
-import java.util.List;
 import java.util.logging.Logger;
 
 /**

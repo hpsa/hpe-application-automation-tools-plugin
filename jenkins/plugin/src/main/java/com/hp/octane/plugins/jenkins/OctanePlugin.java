@@ -8,7 +8,7 @@ import com.hp.octane.plugins.jenkins.configuration.ConfigurationListener;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationService;
 import com.hp.octane.plugins.jenkins.configuration.MqmProject;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
-import com.hp.octane.plugins.jenkins.notifications.EventsDispatcher;
+import com.hp.octane.plugins.jenkins.events.EventsDispatcher;
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.Plugin;

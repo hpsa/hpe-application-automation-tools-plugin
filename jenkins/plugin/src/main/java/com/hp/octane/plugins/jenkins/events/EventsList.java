@@ -1,4 +1,4 @@
-package com.hp.octane.plugins.jenkins.notifications;
+package com.hp.octane.plugins.jenkins.events;
 
 import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import com.hp.octane.plugins.jenkins.model.events.CIEventBase;
