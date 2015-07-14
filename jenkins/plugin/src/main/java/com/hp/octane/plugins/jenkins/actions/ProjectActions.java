@@ -3,10 +3,10 @@ package com.hp.octane.plugins.jenkins.actions;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationAction;
 import com.hp.octane.plugins.jenkins.model.pipelines.StructureItem;
 import hudson.Extension;
-import hudson.model.AbstractProject;
-import hudson.model.Action;
-import hudson.model.ProminentProjectAction;
-import hudson.model.TransientProjectActionFactory;
+import hudson.model.*;
+import hudson.security.ACL;
+import org.acegisecurity.context.SecurityContext;
+import org.acegisecurity.context.SecurityContextImpl;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.export.Flavor;
@@ -51,11 +51,13 @@ public class ProjectActions extends TransientProjectActionFactory {
 		}
 
 		public void doRun(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
+			//SecurityContext context = ACL.impersonate(User.get("gullerya").impersonate());
 			if (project.isParameterized()) {
 				project.doBuildWithParameters(req, res, null);
 			} else {
 				project.doBuild(req, res, null);
 			}
+			//ACL.impersonate(context.getAuthentication());
 		}
 	}
 
