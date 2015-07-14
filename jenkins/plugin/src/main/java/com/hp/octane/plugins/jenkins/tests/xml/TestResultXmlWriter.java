@@ -4,6 +4,7 @@ package com.hp.octane.plugins.jenkins.tests.xml;
 
 import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
 import com.hp.octane.plugins.jenkins.tests.TestResult;
+import com.hp.octane.plugins.jenkins.tests.detection.ResultFields;
 import hudson.FilePath;
 import hudson.model.AbstractBuild;
 import org.apache.commons.io.IOUtils;
@@ -19,6 +20,7 @@ public class TestResultXmlWriter {
 
     private FilePath targetPath;
     private AbstractBuild build;
+    private ResultFields resultFields;
 
     private XMLStreamWriter writer;
     private OutputStream outputStream;
@@ -26,6 +28,10 @@ public class TestResultXmlWriter {
     public TestResultXmlWriter(FilePath targetPath, AbstractBuild build) {
         this.targetPath = targetPath;
         this.build = build;
+    }
+
+    public void setResultFields(final ResultFields resultFields) {
+        this.resultFields = resultFields;
     }
 
     public void add(Iterator<TestResult> items) throws InterruptedException, XMLStreamException, IOException {
@@ -67,7 +73,27 @@ public class TestResultXmlWriter {
             writer.writeAttribute("buildType", build.getProject().getName());
             writer.writeAttribute("buildSid", String.valueOf(build.getNumber()));
             writer.writeEndElement(); // build
+            writeFields();
             writer.writeStartElement("tests");
+        }
+    }
+
+    private void writeFields() throws XMLStreamException {
+        if (resultFields != null) {
+            writer.writeStartElement("fields");
+            writeField("Framework", resultFields.getFramework());
+            writeField("Test Level", resultFields.getTestLevel());
+            writeField("Testing Tool", resultFields.getTestingTool());
+            writer.writeEndElement();
+        }
+    }
+
+    private void writeField(String type, String value) throws XMLStreamException {
+        if (value != null) {
+            writer.writeStartElement("field");
+            writer.writeAttribute("type", type);
+            writer.writeAttribute("value", value);
+            writer.writeEndElement();
         }
     }
 
