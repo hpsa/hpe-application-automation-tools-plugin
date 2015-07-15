@@ -45,7 +45,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 
 	//TODO: v2 will be removed after change on the server
 	private static final String URI_PUSH_TEST_RESULT_PUSH = "test-results/v2";
-	private static final String URI_SERVER_JOB_CONFIG = "analytics/ci/contexts/servers/{0}/jobs/{1}";
+	private static final String URI_SERVER_JOB_CONFIG = "analytics/ci/servers/{0}/jobs/{1}/configuration";
 	private static final String URI_RELEASES = "releases-mqm?" + WORKSPACE_FRAGMENT + "&" + PAGING_FRAGMENT;
 	private static final String URI_LIST_ITEMS = "mqm-list-items?" + WORKSPACE_FRAGMENT + "&" + PAGING_FRAGMENT;
 	private static final String URI_TAXONOMIES = "taxonomies?" + WORKSPACE_FRAGMENT + "&" + PAGING_FRAGMENT;

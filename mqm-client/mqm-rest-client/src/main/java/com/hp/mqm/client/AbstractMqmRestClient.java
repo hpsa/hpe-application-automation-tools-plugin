@@ -400,7 +400,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 				throw new RequestException("Entity retrieval failed with status code " + response.getStatusLine().getStatusCode() + " and reason " + response.getStatusLine().getReasonPhrase());
 			}
 			String entitiesJson = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
-			JSONObject entities = JSONObject.fromObject(entitiesJson);
+			JSONObject entities =  JSONObject.fromObject(entitiesJson);
 
 			LinkedList<E> items = new LinkedList<E>();
 			for (JSONObject entityObject : getJSONObjectCollection(entities, "data")) {
