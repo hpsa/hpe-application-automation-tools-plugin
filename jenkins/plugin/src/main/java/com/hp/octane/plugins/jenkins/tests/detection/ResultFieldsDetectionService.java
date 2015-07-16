@@ -20,7 +20,10 @@ public class ResultFieldsDetectionService {
                 if (fields != null) {
                     return fields;
                 }
-            } catch (Exception e) {
+            } catch (InterruptedException e) {
+                logger.log(Level.SEVERE, "Interrupted during running of detection service: " + ext.getClass().getName(), e);
+                Thread.currentThread().interrupt();
+            }catch (Exception e) {
                 logger.log(Level.SEVERE, "Error during running of detection service: " + ext.getClass().getName(), e);
             }
         }
