@@ -248,7 +248,7 @@ public class JobConfigurationProxy {
             }
             ret.put("fields", allFields);
 
-            client.release();
+            //client.release();
         } catch (RequestException e) {
             logger.log(Level.WARNING, "Failed to retrieve job configuration", e);
             return error("Unable to retrieve job configuration");
