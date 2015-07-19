@@ -41,7 +41,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 
 	//TODO: v2 will be removed after change on the server
 	private static final String URI_PUSH_TEST_RESULT_PUSH = "test-results/v2";
-	private static final String URI_SERVER_JOB_CONFIG = "analytics/ci/servers/{0}/jobs/{1}/configuration";
+	private static final String URI_JOB_CONFIGURATION = "analytics/ci/servers/{0}/jobs/{1}/configuration";
 	private static final String URI_RELEASES = "releases-mqm?" + WORKSPACE_FRAGMENT + "&" + PAGING_FRAGMENT;
 	private static final String URI_LIST_ITEMS = "mqm-list-items?" + WORKSPACE_FRAGMENT + "&" + PAGING_FRAGMENT;
 	private static final String URI_TAXONOMIES = "taxonomies?" + WORKSPACE_FRAGMENT + "&" + PAGING_FRAGMENT;
@@ -78,7 +78,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 
 	@Override
 	public JobConfiguration getJobConfiguration(String serverIdentity, String jobName) {
-		HttpGet request = new HttpGet(createSharedSpaceInternalApiUri(URI_SERVER_JOB_CONFIG, serverIdentity, jobName));
+		HttpGet request = new HttpGet(createSharedSpaceInternalApiUri(URI_JOB_CONFIGURATION, serverIdentity, jobName));
 		HttpResponse response = null;
 		try {
 			response = execute(request);
@@ -115,11 +115,13 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	}
 
 	@Override
-	public int createPipeline(String pipelineName, int releaseId, String structureJson, String serverJson) {
-		HttpPost request = new HttpPost(createProjectApiUri(URI_PIPELINES));
+	public int createPipeline(String serverIdentity, String projectName, String pipelineName, long workspaceId, long releaseId, String structureJson, String serverJson) {
+		HttpPost request = new HttpPost(createSharedSpaceInternalApiUri(URI_JOB_CONFIGURATION, serverIdentity, projectName));
 		JSONObject pipelineObject = new JSONObject();
+		pipelineObject.put("type", "pipeline");
 		pipelineObject.put("name", pipelineName);
-		pipelineObject.put("releaseId", releaseId);
+		pipelineObject.put("workspaceId", releaseId <= 0 ? null : releaseId);
+		pipelineObject.put("releaseId", releaseId <= 0 ? null : releaseId);
 		pipelineObject.put("server", JSONObject.fromObject(serverJson));
 		pipelineObject.put("structure", JSONObject.fromObject(structureJson));
 		request.setEntity(new StringEntity(pipelineObject.toString(), ContentType.APPLICATION_JSON));
