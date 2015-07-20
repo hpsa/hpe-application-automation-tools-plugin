@@ -120,7 +120,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		JSONObject pipelineObject = new JSONObject();
 		pipelineObject.put("type", "pipeline");
 		pipelineObject.put("name", pipelineName);
-		pipelineObject.put("workspaceId", releaseId <= 0 ? null : releaseId);
+		pipelineObject.put("workspaceId", workspaceId <= 0 ? null : workspaceId);
 		pipelineObject.put("releaseId", releaseId <= 0 ? null : releaseId);
 		pipelineObject.put("server", JSONObject.fromObject(serverJson));
 		pipelineObject.put("structure", JSONObject.fromObject(structureJson));
