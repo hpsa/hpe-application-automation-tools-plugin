@@ -148,7 +148,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	}
 
 	public void release() {
-		logout();
+		//logout();
 	}
 
 	private void authenticate() {

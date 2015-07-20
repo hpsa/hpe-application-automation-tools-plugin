@@ -120,7 +120,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		JSONObject pipelineObject = new JSONObject();
 		pipelineObject.put("type", "pipeline");
 		pipelineObject.put("name", pipelineName);
-		pipelineObject.put("workspaceId", workspaceId <= 0 ? null : workspaceId);
+		pipelineObject.put("workspaceId", workspaceId <= 0 ? 1002L : workspaceId);
 		pipelineObject.put("releaseId", releaseId <= 0 ? null : releaseId);
 		pipelineObject.put("server", JSONObject.fromObject(serverJson));
 		pipelineObject.put("structure", JSONObject.fromObject(structureJson));
@@ -133,7 +133,8 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 			}
 			String json = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
 			JSONObject jsonObject = JSONObject.fromObject(json);
-			return jsonObject.getInt("id");
+			//return jsonObject.getInt("id");
+			return 0;
 		} catch (IOException e) {
 			throw new RequestErrorException("Cannot post test results to MQM.", e);
 		} finally {
