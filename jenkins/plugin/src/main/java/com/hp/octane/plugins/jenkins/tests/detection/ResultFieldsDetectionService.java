@@ -13,7 +13,7 @@ public class ResultFieldsDetectionService {
 
     private static Logger logger = Logger.getLogger(ResultFieldsDetectionService.class.getName());
 
-    public ResultFields getDetectedFields(AbstractBuild build) {
+    public ResultFields getDetectedFields(AbstractBuild build) throws InterruptedException {
         for (ResultFieldsDetectionExtension ext : ResultFieldsDetectionExtension.all()) {
             try {
                 ResultFields fields = ext.detect(build);
@@ -22,8 +22,8 @@ public class ResultFieldsDetectionService {
                 }
             } catch (InterruptedException e) {
                 logger.log(Level.SEVERE, "Interrupted during running of detection service: " + ext.getClass().getName(), e);
-                Thread.currentThread().interrupt();
-            }catch (Exception e) {
+                throw e;
+            } catch (Exception e) {
                 logger.log(Level.SEVERE, "Error during running of detection service: " + ext.getClass().getName(), e);
             }
         }

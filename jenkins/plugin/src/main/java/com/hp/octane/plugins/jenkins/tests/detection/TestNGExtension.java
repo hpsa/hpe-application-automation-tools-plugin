@@ -14,6 +14,7 @@ import org.apache.tools.ant.types.FileSet;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,11 @@ public class TestNGExtension  extends ResultFieldsDetectionExtension {
     private static String TESTNG = "TestNG";
 
     private static String TESTNG_RESULT_FILE = "testng-results.xml";
+
+    private static final List<String> supportedReportFileLocations = Arrays.asList(
+            "target/surefire-reports/" + TESTNG_RESULT_FILE,
+            "target/failsafe-reports/" + TESTNG_RESULT_FILE
+    );
 
     /**
      * Basically, the detection is based on finding the <code>testng-results.xml</code> file in the workspace.
@@ -84,11 +90,11 @@ public class TestNGExtension  extends ResultFieldsDetectionExtension {
         AbstractTestResultAction action = mavenBuild.getAction(AbstractTestResultAction.class);
         //try finding only if the maven build includes tests
         if (action != null) {
-            //for maven jobs, only default reports locations for surefire and failsafe are supported
-            FilePath testNgSurefire = new FilePath(mavenBuild.getWorkspace(), "target/surefire-reports").child(TESTNG_RESULT_FILE);
-            FilePath testNgFailsafe = new FilePath(mavenBuild.getWorkspace(), "target/failsafe-reports").child(TESTNG_RESULT_FILE);
-            if (testNgSurefire.exists() || testNgFailsafe.exists()) {
-                return true;
+            for (String locationInWorkspace : supportedReportFileLocations) {
+                FilePath reportFile = new FilePath(mavenBuild.getWorkspace(), locationInWorkspace);
+                if (reportFile.exists()) {
+                    return true;
+                }
             }
         }
         return false;
