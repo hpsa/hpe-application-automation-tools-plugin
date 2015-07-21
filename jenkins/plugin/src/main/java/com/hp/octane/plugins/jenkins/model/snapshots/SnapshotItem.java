@@ -131,7 +131,7 @@ public final class SnapshotItem extends AbstractItem<ParameterInstance, Snapshot
 
 	private void appendInvokeesNames(ArrayList<String> list, StructurePhase[] phases) {
 		for (StructurePhase phase : phases) {
-			for (StructureItem item : phase.getItems()) {
+			for (StructureItem item : phase.getJobs()) {
 				if (!list.contains(item.getName())) list.add(item.getName());
 			}
 		}
