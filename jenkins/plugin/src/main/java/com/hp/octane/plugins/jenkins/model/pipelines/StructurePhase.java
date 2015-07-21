@@ -33,8 +33,8 @@ public final class StructurePhase extends AbstractPhase<StructureItem> {
 		super.setItems(tmp);
 	}
 
-	@Exported(inline = true, name = "jobs")
-	public StructureItem[] getItems() {
+	@Exported(inline = true)
+	public StructureItem[] getJobs() {
 		return super.getItems();
 	}
 }

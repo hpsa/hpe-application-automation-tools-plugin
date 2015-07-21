@@ -28,7 +28,7 @@ public final class SnapshotPhase extends AbstractPhase<SnapshotItem> {
 	public SnapshotPhase(StructurePhase structurePhase, HashMap<String, ArrayList<AbstractBuild>> invokedBuilds) {
 		super(structurePhase.getName(), structurePhase.getBlocking());
 		ArrayList<AbstractBuild> tmpBuilds;
-		StructureItem[] structures = structurePhase.getItems();
+		StructureItem[] structures = structurePhase.getJobs();
 		SnapshotItem[] tmp = new SnapshotItem[structures.length];
 		for (int i = 0; i < tmp.length; i++) {
 			if (structures[i] != null) {
@@ -46,8 +46,8 @@ public final class SnapshotPhase extends AbstractPhase<SnapshotItem> {
 		super.setItems(tmp);
 	}
 
-	@Exported(inline = true, name = "builds")
-	public SnapshotItem[] getItems() {
+	@Exported(inline = true)
+	public SnapshotItem[] getBuilds() {
 		return super.getItems();
 	}
 }
