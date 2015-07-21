@@ -1,0 +1,39 @@
+<atlassian-plugin key="${project.groupId}.${project.artifactId}" name="${project.name}" plugins-version="2">
+    <plugin-info>
+        <description>${project.description}</description>
+        <version>${project.version}</version>
+        <vendor name="${project.organization.name}" url="${project.organization.url}" />
+        <param name="plugin-icon">images/pluginIcon.png</param>
+        <param name="plugin-logo">images/pluginLogo.png</param>
+    </plugin-info>
+
+    <!-- add our i18n resource -->
+    <resource type="i18n" name="i18n" location="hp.application.automation"/>
+    
+    <!-- add our web resources -->
+    <web-resource key="hp.application.automation-resources" name="hp.application.automation Web Resources">
+        <dependency>com.atlassian.auiplugin:ajs</dependency>
+        
+        <resource type="download" name="hp.application.automation.css" location="/css/hp.application.automation.css"/>
+        <resource type="download" name="hp.application.automation.js" location="/js/hp.application.automation.js"/>
+        <resource type="download" name="images/" location="/images"/>
+
+        <context>hp.application.automation</context>
+    </web-resource>
+    
+    <!-- publish our component -->
+    <component key="hp.application.automation.bamboo.plugin.component" class="com.hp.application.automation.bamboo.plugin.PluginComponentImpl" public="true">
+        <interface>com.hp.application.automation.bamboo.plugin.PluginComponent</interface>
+    </component>
+    
+    <!-- import from the product container -->
+    <component-import key="com.atlassian.sal.api.ApplicationProperties" interface="com.atlassian.sal.api.ApplicationProperties" />
+	       
+	<taskType 
+		name="HP ALM Lab Manager Environment Preparation" 
+		class="com.hp.application.automation.bamboo.tasks.AlmLabEnvPrepare" 
+		key="com.hp.application.automation.bamboo.tasks.AlmLabEnvPrepare">
+      <configuration class="com.hp.application.automation.bamboo.tasks.AlmLabEnvPrepareTaskConfigurator"/>
+      <resource type="freemarker" name="edit" location="AlmLabEnvPrepareEdit.ftl"/>
+      <!--<resource type="download" name="icon" location="icon.png"/>-->
+    </taskType>  </atlassian-plugin>
