@@ -10,9 +10,12 @@ import org.acegisecurity.context.SecurityContextImpl;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.export.Flavor;
+import org.kohsuke.stapler.export.ModelBuilder;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
 
