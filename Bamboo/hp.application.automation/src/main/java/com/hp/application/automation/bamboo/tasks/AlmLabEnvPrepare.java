@@ -26,7 +26,7 @@ public class AlmLabEnvPrepare implements TaskType {
     @java.lang.Override
     public TaskResult execute(@NotNull final TaskContext taskContext) throws TaskException
     {
-        final BuildLogger buildLogger = taskContext.getBuildLogger();
+/*        final BuildLogger buildLogger = taskContext.getBuildLogger();
 //        return TaskResultBuilder.create(taskContext).success().build();
 		
 		Properties mergedProperties = new Properties();
@@ -87,14 +87,14 @@ public class AlmLabEnvPrepare implements TaskType {
 		} catch (InterruptedException e1) {
 			buildLogger.addErrorLogEntry(ioe.getMessage(), e1);
 			return TaskResultBuilder.create(taskContext).failedWithError().build();
-		}
+		}*/
 		
 		return TaskResultBuilder.create(taskContext).success().build();
     }
 	
-	private String extractBinaryResource(final pathToExtract, final String resourceName, String resourceName)
+	private String extractBinaryResource(final String pathToExtract, final String resourceName)
 	{
-		InputStream stream = null;
+		/*InputStream stream = null;
         OutputStream resStreamOut = null;
         try {
         	stream = AlmLabEnvPrepare.class.getResourceAsStream(internalPath);
@@ -114,14 +114,17 @@ public class AlmLabEnvPrepare implements TaskType {
         } finally {
             stream.close();
             resStreamOut.close();
-        }
+        }*/
+		
+		return "";
 	}
 	
 	public static int run(String launcherPath)
 	{
-		String args = {launcherPath, "arg1", "-paramfile", }; 
-	    Process p = Runtime.getRuntime().exec(args);
+		//String args = {launcherPath, "arg1", "-paramfile", }; 
+	    //Process p = Runtime.getRuntime().exec(args);
         
-	    return p.waitFor();
+	    //return p.waitFor();
+		return 0;
 	}
 }
