@@ -118,8 +118,8 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	public int createPipeline(String serverIdentity, String projectName, String pipelineName, long workspaceId, long releaseId, String structureJson, String serverJson) {
 		HttpPost request = new HttpPost(createSharedSpaceInternalApiUri(URI_JOB_CONFIGURATION, serverIdentity, projectName));
 		JSONObject pipelineObject = new JSONObject();
-		pipelineObject.put("type", "pipeline");
-		pipelineObject.put("name", pipelineName);
+		pipelineObject.put("contextEntityType", "pipeline");
+		pipelineObject.put("contextEntityName", pipelineName);
 		pipelineObject.put("workspaceId", workspaceId <= 0 ? 1002L : workspaceId);
 		pipelineObject.put("releaseId", releaseId <= 0 ? null : releaseId);
 		pipelineObject.put("server", JSONObject.fromObject(serverJson));
