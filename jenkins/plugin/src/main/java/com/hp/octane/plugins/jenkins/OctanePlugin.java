@@ -7,6 +7,8 @@ import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationListener;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationService;
 import com.hp.octane.plugins.jenkins.configuration.MqmProject;
+import com.hp.octane.plugins.jenkins.configuration.PredefinedConfiguration;
+import com.hp.octane.plugins.jenkins.configuration.PredefinedConfigurationUnmarshaller;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jenkins.events.EventsDispatcher;
 import hudson.Extension;
@@ -23,7 +25,10 @@ import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Date;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -74,6 +79,22 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 			this.identityFrom = new Date().getTime();
 			save();
 		}
+
+        // once the global configuration is saved in UI, all values are initialized
+        if (uiLocation == null) {
+            URL configurationFileURL = new URL(getWrapper().baseResourceURL + "predefinedConfiguration.xml");
+            File configurationFile;
+            try {
+                configurationFile = new File(configurationFileURL.toURI());
+            } catch (URISyntaxException e) {
+                throw new RuntimeException("Unable to convert path of the predefined server configuration file");
+            }
+            if (configurationFile.canRead()) {
+                PredefinedConfiguration predefinedConfiguration =
+                        PredefinedConfigurationUnmarshaller.getExtensionInstance().unmarshall(configurationFile);
+                configurePlugin(predefinedConfiguration.getUiLocation(), null, null);
+            }
+        }
 
 		EventsDispatcher.getExtensionInstance().updateClient(getServerConfiguration());
 	}

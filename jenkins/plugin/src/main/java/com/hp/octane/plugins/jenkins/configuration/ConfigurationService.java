@@ -47,7 +47,7 @@ public class ConfigurationService {
             int contextPos = uiLocation.indexOf("/qcbin/ui");
             if (contextPos < 0) {
                 // guessing the future
-                contextPos = uiLocation.indexOf("/mqm/ui");
+                contextPos = uiLocation.indexOf("/ui");
                 if (contextPos < 0) {
                     throw FormValidation.errorWithMarkup(markup("red", Messages.ApplicationContextNotFound()));
                 } else {
