@@ -877,12 +877,12 @@ function octane_job_configuration(target, progress, proxy) {
 
     //if option includes meta info, it should have another css style
     function formatSelect2Option(option) {
-        if (option.hasOwnProperty('newValue') && option.newValue) {
-            var ret = $('<span title="Will let you create new environment in MQM"> ' +
-            '<img src="http://icons.iconarchive.com/icons/rafiqul-hassan/blogger/16/Plus-icon.png"/><span style="margin: 3px"/>' +
-            option.text + '</span>');
-            return ret;
-        }
+        //if (option.hasOwnProperty('newValue') && option.newValue) {
+        //    var ret = $('<span title="Will let you create new environment in MQM"> ' +
+        //    '<img src="http://icons.iconarchive.com/icons/rafiqul-hassan/blogger/16/Plus-icon.png"/><span style="margin: 3px"/>' +
+        //    option.text + '</span>');
+        //    return ret;
+        //}
         if (option.hasOwnProperty('warning') && option.warning) {
             var ret = $('<span style="color: orange; font-style: italic">' + option.text + '</span>');
             return ret;
