@@ -10,6 +10,8 @@ function octane_job_configuration(target, progress, proxy) {
 
     var originalUnload = window.onbeforeunload;
 
+    var fieldSelectors = [];
+
     var $ = jQuery;
 
     function caseInsensitiveStringEquals(left, right) {
@@ -61,14 +63,6 @@ function octane_job_configuration(target, progress, proxy) {
         jobConfiguration.taxonomies.forEach(function (tagType) {
             tagTypes[tagType.tagTypeId] = tagType;
             tagTypesByName[tagType.tagTypeName] = tagType;
-            tagType.values.forEach(function (tag) {
-                allTags[tag.tagId] = {
-                    tagId: tag.tagId,
-                    tagName: tag.tagName,
-                    tagTypeId: tagType.tagTypeId,
-                    tagTypeName: tagType.tagTypeName
-                };
-            });
         });
 
         var fieldTypes = {};
@@ -158,15 +152,16 @@ function octane_job_configuration(target, progress, proxy) {
 
                 var select = $("<select>");
                 select.append($("<option>").text("-- Not specified --").val(-1).attr('selected', (pipeline.releaseId === -1)));
-                $.each(jobConfiguration.releases, function (releaseId) {
-                    select.append($("<option>").text(jobConfiguration.releases[releaseId]).val(releaseId).attr('selected', (pipeline.releaseId === Number(releaseId))));
-                });
+                if (pipeline.id !== null && pipeline.releaseId !== -1) {
+                    select.append($("<option>").text(pipeline.releaseName).val(pipeline.releaseId).attr('selected', 'true'));
+                }
                 apply.push(function () {
                     pipeline.releaseId = Number(select.val());
+                    pipeline.releaseName = select.find(":selected").text();
                 });
                 enableDirtyChangeCheck(select);
                 tdReleaseSelect.append(select);
-
+                select.prop('id', 'releaseSelect');
                 trRelease.append($("<td class='setting-new'/>"));
             }
         }
@@ -221,38 +216,39 @@ function octane_job_configuration(target, progress, proxy) {
                         jobConfiguration.taxonomies.push(type);
                         tagTypes[type.tagTypeId] = type;
                     }
-                    var matchTag = function (tag) {
-                        return tag.tagId == taxonomy.tagId;
-                    };
-                    if (!type.values.some(matchTag)) {
-                        type.values.push({
-                            tagId: taxonomy.tagId,
-                            tagName: taxonomy.tagName
-                        });
-                    }
+                    //var matchTag = function (tag) {
+                    //    return tag.tagId == taxonomy.tagId;
+                    //};
+                    //if (!type.values.some(matchTag)) {
+                    //    type.values.push({
+                    //        tagId: taxonomy.tagId,
+                    //        tagName: taxonomy.tagName
+                    //    });
+                    //}
                 });
 
                 // merge newly created field values with existing ones in order to appear in drop-downs
                 response.fields.forEach(function (receivedField) {
-                    var fieldType = fieldTypes[receivedField.parentLogicalName];
-                    var matchFiledValue = function(value) {
-                        return value.id == receivedField.id;
-                    };
-                    if (!fieldType.values.some(matchFiledValue)) {
-                        fieldType.values.push({
-                            id: receivedField.id,
-                            name: receivedField.name
-                        });
-                        pipeline.fieldTags.forEach(function (fieldTag) {
-                            if (fieldTag.logicalListName === fieldType.logicalListName) {
-                                fieldTag.values.forEach(function (value) {
-                                    if (!value.id && value.name === receivedField.name) {
-                                        value.id = receivedField.id;
-                                    }
-                                });
-                            }
-                        });
-                    }
+                    //var fieldType = fieldTypes[receivedField.parentLogicalName];
+                    $(jq(receivedField['parentLogicalName'])).val(receivedField.id).text(receivedField.name);
+                    //var matchFiledValue = function(value) {
+                    //    return value.id == receivedField.id;
+                    //};
+                    //if (!fieldType.values.some(matchFiledValue)) {
+                    //    fieldType.values.push({
+                    //        id: receivedField.id,
+                    //        name: receivedField.name
+                    //    });
+                    //    pipeline.fieldTags.forEach(function (fieldTag) {
+                    //        if (fieldTag.logicalListName === fieldType.logicalListName) {
+                    //            fieldTag.values.forEach(function (value) {
+                    //                if (!value.id && value.name === receivedField.name) {
+                    //                    value.id = receivedField.id;
+                    //                }
+                    //            });
+                    //        }
+                    //    });
+                    //}
                 });
 
                 renderConfiguration(jobConfiguration, pipeline.id);
@@ -280,17 +276,16 @@ function octane_job_configuration(target, progress, proxy) {
 
                 fieldValueSelect.prop('name', field.logicalListName);
                 fieldValueSelect.prop('id', field.logicalListName);
+                fieldSelectors.push({listId: field.listId, name: field.logicalListName, multiValue: field.multiValue});
                 if (field.multiValue) {
                     fieldValueSelect.attr('multiple', 'multiple');
                     tdSelect.prop('colspan', 2);
                 } else {
                     fieldValueSelect.append($("<option value='-1'>-- Not specified --</option>"));
                 }
-                fieldTypes[field.logicalListName].values.forEach(function (fieldValue) {
-                    var selected = field.values.some(function (value) {
-                        return value.id === fieldValue.id;
-                    });
-                    fieldValueSelect.append($("<option>").text(fieldValue.name).val(fieldValue.id).attr('selected', selected));
+                // showing pre-selected values, if there are any
+                field.values.forEach(function (fieldSelectedValue) {
+                    fieldValueSelect.append($("<option>").text(fieldSelectedValue.name).val(fieldSelectedValue.id).attr('selected', 'true'));
                 });
                 enableDirtyChangeCheck(fieldValueSelect);
                 apply.push(function () {
@@ -340,6 +335,7 @@ function octane_job_configuration(target, progress, proxy) {
                         validationArea.empty();
                         if (fieldValueSelect.val() == 0) {
                             newValueInput.css('display', 'inline');
+                            newValueInput.val($(jqClass('select2-search__field')).last().val());
                         } else {
                             newValueInput.hide();
                         }
@@ -411,22 +407,11 @@ function octane_job_configuration(target, progress, proxy) {
             tagSelectTr.append(tagSelectTd);
             var addSelect = $("<select>");
             tagSelectTd.append(addSelect);
+            addSelect.css('width', '300px');
+            addSelect.prop('id','taxonomySelect');
             var defaultOption = $("<option value='default' selected>Add Environment...</option>");
             defaultOption.prop('disabled', 'disabled');
             addSelect.append(defaultOption);
-            jobConfiguration.taxonomies.forEach(function (tagType) {
-                var group = $("<optgroup>");
-                group.attr('label', tagType.tagTypeName);
-                tagTypes[tagType.tagTypeId].values.forEach(function (tag) {
-                    group.append($("<option>").text(tag.tagName).val(tag.tagId));
-                });
-                group.append($("<option>New value...</option>").val(tagTypeValue(tagType.tagTypeId)));
-                addSelect.append(group);
-            });
-            var group = $("<optgroup>");
-            group.attr('label', "New type...");
-            group.append($("<option value='newTagType'>New value...</option>"));
-            addSelect.append(group);
             var addedTag;
             addSelect.change(function () {
                 var val = addSelect.val();
@@ -464,10 +449,6 @@ function octane_job_configuration(target, progress, proxy) {
                 }
                 validationAreaTagType.empty();
                 validationAreaTag.empty();
-            });
-
-            pipeline.taxonomyTags.forEach(function (tag) {
-                addSelect.find("option[value='"+tag.tagId+"']").prop('disabled', 'disabled');
             });
 
             var validationAreaTagType = $("<div class='validation-error-area'>");
@@ -560,6 +541,7 @@ function octane_job_configuration(target, progress, proxy) {
 
                 result.prepend($("<h2>Create Pipeline</h2>"));
                 renderNewPipeline(pipeline);
+                covertSelectorsToSelect2(pipeline);
             });
         } else {
             var selectedIndex = 0;
@@ -590,6 +572,7 @@ function octane_job_configuration(target, progress, proxy) {
             }
             result.prepend($("<h2>Edit Pipeline</h2>"));
             renderExistingPipeline(jobConfiguration.pipelines[selectedIndex], pipelineSelector);
+            covertSelectorsToSelect2(jobConfiguration.pipelines[selectedIndex]);
         }
 
         window.onbeforeunload = function() {
@@ -811,6 +794,110 @@ function octane_job_configuration(target, progress, proxy) {
                 }
             });
         }
+
+        function covertSelectorsToSelect2(pipeline) {
+            $("document").ready(function() {
+                $("#taxonomySelect").select2({
+                    ajax: {
+                        dataType: 'json',
+                        delay: 250,
+                        transport: function (params, success, failure) {
+                            var term = "";
+                            if (params.data.hasOwnProperty("q") && params.data.q !== undefined) {term = params.data.q;}
+                            proxy.searchTaxonomies(term, pipeline.taxonomyTags, (function (data) {
+                                queryToMqmCallback(data, success, failure)
+                            }));
+                        },
+                        processResults: function (data, page) {
+                            //resetting the values of known tags to values that have been retrieved from server
+                            allTags = data.allTags;
+                            tagTypesByName = data.tagTypesByName;
+                            return {
+                                results: data.select2Input
+                            };
+                        },
+                        cache: true
+                    },
+                    templateResult: formatSelect2Option
+                    //minimumInputLength: 1
+                });
+
+                $("#releaseSelect").select2({
+                    ajax: {
+                        dataType: 'json',
+                        delay: 250,
+                        transport: function (params, success, failure) {
+                            var term = "";
+                            if (params.data.hasOwnProperty("q") && params.data.q !== undefined) {term = params.data.q;}
+                            proxy.searchReleases(term, (function (data) {
+                                queryToMqmCallback(data, success, failure)
+                            }));
+                        },
+                        cache: true
+                    },
+                    templateResult: formatSelect2Option
+                });
+
+                fieldSelectors.forEach(createFieldsSelect2);
+            });
+        }
+    }
+
+    function createFieldsSelect2(selector) {
+        $(jq(selector.name)).select2({
+            ajax: {
+                dataType: 'json',
+                delay: 250,
+                transport: function (params, success, failure) {
+                    var term = "";
+                    if (params.data.hasOwnProperty("q") && params.data.q !== undefined) {term = params.data.q;}
+                    proxy.searchListItems(selector.listId, term, selector.multiValue, (function (data) {
+                        queryToMqmCallback(data, success, failure)
+                    }));
+                },
+                cache: true
+            },
+            templateResult: formatSelect2Option
+        });
+    }
+
+    function queryToMqmCallback(data, success, failure) {
+        var response = data.responseObject();
+        if (response.errors) {
+            response.errors.forEach(function(error) {
+                var errorDiv = $("<div class='error'><font color='red'><b/></font></div>");
+                errorDiv.find("b").text(error);
+                $(target).append(errorDiv);
+            });
+            failure();
+        } else {
+            success(data.responseJSON);
+        }
+    }
+
+    //if option includes meta info, it should have another css style
+    function formatSelect2Option(option) {
+        if (option.hasOwnProperty('newValue') && option.newValue) {
+            var ret = $('<span title="Will let you create new environment in MQM"> ' +
+            '<img src="http://icons.iconarchive.com/icons/rafiqul-hassan/blogger/16/Plus-icon.png"/><span style="margin: 3px"/>' +
+            option.text + '</span>');
+            return ret;
+        }
+        if (option.hasOwnProperty('warning') && option.warning) {
+            var ret = $('<span style="color: orange; font-style: italic">' + option.text + '</span>');
+            return ret;
+        }
+        return option.text;
+    }
+
+    //jquery escaping special characters - used for searching elements
+    function jq( myid ) {
+        return "#" + myid.replace( /(:|\.|\[|\]|,)/g, "\\$1" );
+    }
+
+    //jquery escaping special characters - used for searching elements
+    function jqClass(className) {
+        return "." + className.replace( /(:|\.|\[|\]|,)/g, "\\$1" );
     }
 
     return {

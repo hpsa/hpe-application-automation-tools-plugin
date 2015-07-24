@@ -9,6 +9,7 @@ import com.hp.mqm.client.model.Field;
 import com.hp.mqm.client.model.FieldMetadata;
 import com.hp.mqm.client.model.JobConfiguration;
 import com.hp.mqm.client.model.ListItem;
+import com.hp.mqm.client.model.PagedList;
 import com.hp.mqm.client.model.Pipeline;
 import com.hp.mqm.client.model.Release;
 import com.hp.mqm.client.model.Taxonomy;
@@ -23,7 +24,6 @@ import hudson.model.AbstractProject;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
@@ -33,14 +33,19 @@ import org.kohsuke.stapler.export.ModelBuilder;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 public class JobConfigurationProxy {
 
@@ -211,39 +216,21 @@ public class JobConfigurationProxy {
 
             ret.put("pipelines", pipelines);
 
-            JSONObject releases = new JSONObject();
-            for (Release release: client.queryReleases(null, 0, 50).getItems()) {
-                releases.put(String.valueOf(release.getId()), release.getName());
-            }
-            ret.put("releases", releases);
-
             JSONArray allTaxonomies = new JSONArray();
-            MultiValueMap multiMap = new MultiValueMap();
-            List<Taxonomy> taxonomies = client.queryTaxonomies(null, null, 0, 100).getItems();
-            for (Taxonomy taxonomy: taxonomies) {
-                multiMap.put(taxonomy.getTaxonomyTypeId(), tag(taxonomy.getId(), taxonomy.getName()));
-            }
             List<TaxonomyType> taxonomyTypes = client.queryTaxonomyTypes(null, 0, 50).getItems();
             for (TaxonomyType taxonomyType: taxonomyTypes) {
-                Collection<JSONObject> tags = multiMap.getCollection(taxonomyType.getId());
-                allTaxonomies.add(tagType(taxonomyType.getId(), taxonomyType.getName(), tags == null ? Collections.<JSONObject>emptyList() : tags));
+                allTaxonomies.add(tagType(taxonomyType.getId(), taxonomyType.getName()));
             }
             ret.put("taxonomies", allTaxonomies);
 
             JSONArray allFields = new JSONArray();
             for (FieldMetadata field: fields) {
-                List<ListItem> items = client.queryListItems(field.getListId(), null, 0, 50).getItems();
-                JSONArray array = new JSONArray();
-                for (ListItem item: items) {
-                    array.add(fieldValue(item.getId(), item.getName()));
-                }
                 JSONObject fieldObj = new JSONObject();
                 fieldObj.put("logicalListName", field.getLogicalListName());
                 fieldObj.put("listId", field.getListId());
                 fieldObj.put("listName", field.getListName());
                 fieldObj.put("extensible", field.isExtensible());
                 fieldObj.put("multiValue", field.isMultiValue());
-                fieldObj.put("values", array);
                 allFields.add(fieldObj);
             }
             ret.put("fields", allFields);
@@ -264,6 +251,300 @@ public class JobConfigurationProxy {
         }
 
         return ret;
+    }
+
+    @JavaScriptMethod
+    public JSONObject searchListItems(int listId, String term, boolean multiValue) {
+        int defaultSize = 10;
+        String notSpecified = "-- Not specified --";
+        JSONObject ret = new JSONObject();
+
+        MqmRestClient client;
+        try {
+            client = createClient();
+        } catch (ClientException e) {
+            logger.log(Level.WARNING, "MQM server connection failed", e);
+            return error(e.getMessage());
+        }
+        try {
+
+            PagedList<ListItem> listItemPagedList = client.queryListItems(listId, term, 0, defaultSize);
+            List<ListItem> listItems = listItemPagedList.getItems();
+            boolean moreResults = listItemPagedList.getTotalCount() > defaultSize;
+
+            JSONArray retArray = new JSONArray();
+            if (moreResults) {
+                retArray.add(createMoreResultsJson());
+            }
+
+            if (!multiValue) {
+                String quotedTerm = Pattern.quote(term.toLowerCase());
+                if (Pattern.matches(".+" + quotedTerm + ".+", notSpecified.toLowerCase())) {
+                    JSONObject notSpecifiedItemJson = new JSONObject();
+                    notSpecifiedItemJson.put("id", -1);
+                    notSpecifiedItemJson.put("text", notSpecified);
+                    retArray.add(notSpecifiedItemJson);
+                }
+            }
+
+            for (ListItem item : listItems) {
+                JSONObject itemJson = new JSONObject();
+                itemJson.put("id", item.getId());
+                itemJson.put("text", item.getName());
+                retArray.add(itemJson);
+            }
+            if (!multiValue) {
+                //if exactly one item matches, we do not want to bother user with "new value" item
+                if ((listItems.size() != 1) || (!listItems.get(0).getName().toLowerCase().equals(term.toLowerCase()))) {
+                    retArray.add(createNewValueJson("0"));
+                }
+            }
+
+            ret.put("results", retArray);
+            client.release();
+        } catch (RequestException e) {
+            logger.log(Level.WARNING, "Failed to retrieve list items", e);
+            return error("Unable to retrieve job configuration");
+        } catch (RequestErrorException e) {
+            logger.log(Level.WARNING, "Failed to retrieve list items", e);
+            return error("Unable to retrieve list items");
+        } finally {
+            try {
+                client.release();
+            } catch (Exception e) {
+            }
+        }
+        return ret;
+    }
+
+    @JavaScriptMethod
+    public JSONObject searchReleases(String term) {
+        int defaultSize = 5;
+        JSONObject ret = new JSONObject();
+
+        MqmRestClient client;
+        try {
+            client = createClient();
+        } catch (ClientException e) {
+            logger.log(Level.WARNING, "MQM server connection failed", e);
+            return error(e.getMessage());
+        }
+        try {
+            PagedList<Release> releasePagedList = client.queryReleases(term, 0, defaultSize);
+            List<Release> releases = releasePagedList.getItems();
+            boolean moreResults = releasePagedList.getTotalCount() > defaultSize;
+
+            JSONArray retArray = new JSONArray();
+            if (moreResults) {
+                retArray.add(createMoreResultsJson());
+            }
+            for (Release release : releases) {
+                JSONObject relJson = new JSONObject();
+                relJson.put("id", release.getId());
+                relJson.put("text", release.getName());
+                retArray.add(relJson);
+            }
+            ret.put("results", retArray);
+
+            client.release();
+        } catch (RequestException e) {
+            logger.log(Level.WARNING, "Failed to retrieve releases", e);
+            return error("Unable to retrieve job configuration");
+        } catch (RequestErrorException e) {
+            logger.log(Level.WARNING, "Failed to retrieve releases", e);
+            return error("Unable to retrieve taxonomies");
+        } finally {
+            try {
+                client.release();
+            } catch (Exception e) {
+            }
+        }
+        return ret;
+    }
+
+    @JavaScriptMethod
+    public JSONObject searchTaxonomies(String term, JSONArray pipelineTaxonomies) {
+        int defaultSize = 10;
+        JSONObject ret = new JSONObject();
+
+        MqmRestClient client;
+        try {
+            client = createClient();
+        } catch (ClientException e) {
+            logger.log(Level.WARNING, "MQM server connection failed", e);
+            return error(e.getMessage());
+        }
+        try {
+
+            //currently existing taxonomies on pipeline -> we need to show these options as disabled
+            List<Taxonomy> pipelineTaxonomiesList = new LinkedList<Taxonomy>();
+            for (int i = 0; i < pipelineTaxonomies.size(); i++) {
+                JSONObject pipelineTaxonomy = pipelineTaxonomies.getJSONObject(i);
+                pipelineTaxonomiesList.add(new Taxonomy(
+                        Integer.parseInt(pipelineTaxonomy.getString("tagId")),
+                        Integer.parseInt(pipelineTaxonomy.getString("tagTypeId")),
+                        pipelineTaxonomy.getString("tagName"),
+                        pipelineTaxonomy.getString("tagTypeName")));
+            }
+
+            PagedList<TaxonomyType> taxonomyTypePagedList = client.queryTaxonomyTypes(term, 0, defaultSize);
+            final List<TaxonomyType> taxonomyTypes = taxonomyTypePagedList.getItems();
+            boolean moreResults = taxonomyTypePagedList.getTotalCount() > defaultSize;
+
+            Map<TaxonomyType, Set<Taxonomy>> taxonomyMap = new HashMap<TaxonomyType, Set<Taxonomy>>();
+            //if term matches any taxonomy type, then load all taxonomies for this type
+            if (!taxonomyTypes.isEmpty()) {
+                for (TaxonomyType type : taxonomyTypes) {
+                    PagedList<Taxonomy> taxonomiesForTypePagedList = client.queryTaxonomies(type.getId(), null, 0, defaultSize);
+                    moreResults = moreResults || taxonomiesForTypePagedList.getTotalCount() > defaultSize;
+                    List<Taxonomy> taxonomiesForType = taxonomiesForTypePagedList.getItems();
+
+                    Set<Taxonomy> taxonomiesForTypeSet = new LinkedHashSet<Taxonomy>();
+                    for (Taxonomy taxonomy : taxonomiesForType) {
+                            taxonomiesForTypeSet.add(new Taxonomy(taxonomy.getId(), type.getId(), taxonomy.getName(), type.getName()));
+                    }
+                    taxonomyMap.put(type, taxonomiesForTypeSet);
+                }
+            }
+
+            //load taxonomies which matches term
+            PagedList<Taxonomy> taxonomyPagedList = client.queryTaxonomies(null, term, 0, defaultSize);
+            moreResults = moreResults || taxonomyPagedList.getTotalCount() > defaultSize;
+            final List<Taxonomy> taxonomyList = taxonomyPagedList.getItems();
+
+            if ( !taxonomyList.isEmpty() ) {
+                final List<TaxonomyType> allTaxonomyTypes = client.queryTaxonomyTypes(null, 0, 100).getItems(); // don't expect more than 100 types
+
+                Integer taxonomyTypeIdCache = null;
+                TaxonomyType typeCache = null;
+                for (Taxonomy taxonomy : taxonomyList) {
+
+                    //getting taxonomyType name and ID for taxonomy, currently, we have only ID
+                    if ( !taxonomy.getTaxonomyTypeId().equals(taxonomyTypeIdCache)) {
+                        for (TaxonomyType type : allTaxonomyTypes) {
+                            if (type.getId() == taxonomy.getTaxonomyTypeId()) {
+                                taxonomyTypeIdCache = type.getId();
+                                typeCache = type;
+                                break;
+                            }
+                        }
+                    }
+                    Taxonomy enhancedTaxonomy = new Taxonomy(taxonomy.getId(), taxonomy.getTaxonomyTypeId(), taxonomy.getName(), typeCache.getName());
+
+                    if (taxonomyMap.containsKey(typeCache)) {
+                        taxonomyMap.get(typeCache).add(enhancedTaxonomy);
+                    } else {
+                        taxonomyMap.put(typeCache, new HashSet<Taxonomy>(Arrays.asList(enhancedTaxonomy)));
+                    }
+                }
+            }
+
+            //writing result json
+            JSONArray select2InputArray = new JSONArray();
+            JSONObject allTags = new JSONObject();
+            JSONObject tagTypesByName = new JSONObject();
+
+            //show warning, that there is more results and user should filter more specific
+            if (moreResults) {
+                select2InputArray.add(createMoreResultsJson());
+            }
+
+            for (Entry<TaxonomyType, Set<Taxonomy>> taxonomyType : taxonomyMap.entrySet()) {
+                JSONArray childrenArray = new JSONArray();
+
+                JSONObject optgroup = new JSONObject();
+                optgroup.put("text", taxonomyType.getKey().getName());
+
+                //for tagTypesByName
+                JSONObject tagTypeByName = new JSONObject();
+                tagTypeByName.put("tagTypeId", taxonomyType.getKey().getId());
+                tagTypeByName.put("tagTypeName", taxonomyType.getKey().getName());
+                JSONArray tagTypeByNameValues = new JSONArray();
+
+                for (Taxonomy tax : taxonomyType.getValue()) {
+                    //creating input format for select2, so that this structure does not have to be refactored in javascript
+                    JSONObject taxonomyJson = new JSONObject();
+                    taxonomyJson.put("id", tax.getId());
+                    taxonomyJson.put("text", tax.getName());
+                    taxonomyJson.put("value", tax.getId());
+                    if (pipelineTaxonomiesList.contains(tax)) {
+                        taxonomyJson.put("disabled", "disabled");
+                    }
+                    childrenArray.add(taxonomyJson);
+
+                    //for allTags - adding tag into table of selected ones
+                    JSONObject tagObject = new JSONObject();
+                    tagObject.put("tagId", tax.getId());
+                    tagObject.put("tagName", tax.getName());
+                    tagObject.put("tagTypeId", tax.getTaxonomyTypeId());
+                    tagObject.put("tagTypeName", tax.getTaxonomyTypeName());
+                    allTags.put(String.valueOf(tax.getId()), tagObject);
+
+                    //for tagTypesByName
+                    JSONObject tagTypeByNameValue = new JSONObject();
+                    tagTypeByNameValue.put("tagId", tax.getId());
+                    tagTypeByNameValue.put("tagName", tax.getName());
+                    tagTypeByNameValues.add(tagTypeByNameValue);
+                }
+                //New value.. for current type
+                JSONObject newValueJson = createNewValueJson(String.valueOf(tagTypeValue(taxonomyType.getKey().getId())));
+                childrenArray.add(newValueJson);
+
+                optgroup.put("children", childrenArray);
+                select2InputArray.add(optgroup);
+                tagTypeByName.put("values", tagTypeByNameValues);
+                tagTypesByName.put(taxonomyType.getKey().getName(), tagTypeByName);
+            }
+
+            // New type... New value...
+            JSONObject optgroup = new JSONObject();
+            optgroup.put("text", "New type...");
+            JSONObject newValueJson = createNewValueJson("newTagType");
+            JSONArray childrenArray = new JSONArray();
+            childrenArray.add(newValueJson);
+            optgroup.put("children", childrenArray);
+            select2InputArray.add(optgroup);
+
+            ret.put("select2Input", select2InputArray);
+            ret.put("allTags", allTags);
+            ret.put("tagTypesByName", tagTypesByName);
+
+            client.release();
+        } catch (RequestException e) {
+            logger.log(Level.WARNING, "Failed to retrieve environments", e);
+            return error("Unable to retrieve job configuration");
+        } catch (RequestErrorException e) {
+            logger.log(Level.WARNING, "Failed to retrieve environments", e);
+            return error("Unable to retrieve environments");
+        } finally {
+            try {
+                client.release();
+            } catch (Exception e) {
+            }
+        }
+        return ret;
+    }
+
+    private JSONObject createMoreResultsJson() {
+        JSONObject moreResultsJson = new JSONObject();
+        moreResultsJson.put("id", "more results found");
+        moreResultsJson.put("text", "Too many results, please be more specific in filtering");
+        moreResultsJson.put("warning", "true");
+        moreResultsJson.put("disabled", "disabled");
+        return moreResultsJson;
+    }
+
+    private JSONObject createNewValueJson(String id) {
+        JSONObject newValueJson = new JSONObject();
+        newValueJson.put("id", id);
+        newValueJson.put("text", "New value...");
+        newValueJson.put("newValue", "true");
+        return newValueJson;
+    }
+
+    private int tagTypeValue(int n) {
+        // mapping to ensure negative value (solve the "0" tag type ID)
+        return -(n+1);
     }
 
     private void addTags(JSONObject result, Pipeline pipeline, List<FieldMetadata> fields) {
@@ -338,14 +619,9 @@ public class JobConfigurationProxy {
         target.put("tagTypeName", typeName);
     }
 
-    private JSONObject tagType(int typeId, String typeName, Collection<JSONObject> tags) {
+    private JSONObject tagType(int typeId, String typeName) {
         JSONObject result = new JSONObject();
         fillTagType(result, typeId, typeName);
-        JSONArray values = new JSONArray();
-        for (JSONObject tag: tags) {
-            values.add(tag);
-        }
-        result.put("values", values);
         return result;
     }
 
