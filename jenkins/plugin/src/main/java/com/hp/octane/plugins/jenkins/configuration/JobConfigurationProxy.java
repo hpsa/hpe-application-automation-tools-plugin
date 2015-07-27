@@ -98,8 +98,8 @@ public class JobConfigurationProxy {
 			LinkedList<Taxonomy> taxonomies = new LinkedList<Taxonomy>();
 			JSONArray taxonomyTags = pipelineObject.getJSONArray("taxonomyTags");
 			for (JSONObject jsonObject : toCollection(taxonomyTags)) {
-				Integer tagId = jsonObject.containsKey("tagId") ? jsonObject.getInt("tagId") : null;
-				Integer tagTypeId = jsonObject.containsKey("tagTypeId") ? jsonObject.getInt("tagTypeId") : null;
+				Long tagId = jsonObject.containsKey("tagId") ? jsonObject.getLong("tagId") : null;
+				Long tagTypeId = jsonObject.containsKey("tagTypeId") ? jsonObject.getLong("tagTypeId") : null;
 				taxonomies.add(new Taxonomy(
 						tagId,
 						tagTypeId,
@@ -180,8 +180,8 @@ public class JobConfigurationProxy {
 				pipeline.put("id", relatedPipeline.getId());
 				pipeline.put("name", relatedPipeline.getName());
 				pipeline.put("releaseId", relatedPipeline.getReleaseId());
-				pipeline.put("releaseName", relatedPipeline.getReleaseName());
-				pipeline.put("isRoot", isRoot && relatedPipeline.getRootJobName().equals(jobName));
+//				pipeline.put("releaseName", relatedPipeline.getReleaseName());
+//				pipeline.put("isRoot", isRoot && relatedPipeline.getRootJobName().equals(jobName));
 
 				addTags(pipeline, relatedPipeline, fields);
 
@@ -323,7 +323,7 @@ public class JobConfigurationProxy {
 		return (Collection<JSONObject>) array.subList(0, array.size());
 	}
 
-	private JSONObject tag(int tagId, String value) {
+	private JSONObject tag(Long tagId, String value) {
 		JSONObject tag = new JSONObject();
 		tag.put("tagId", String.valueOf(tagId));
 		tag.put("tagName", value);

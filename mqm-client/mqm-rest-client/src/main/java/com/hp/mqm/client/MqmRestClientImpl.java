@@ -14,6 +14,7 @@ import com.hp.mqm.client.model.Release;
 import com.hp.mqm.client.model.Taxonomy;
 import com.hp.mqm.client.model.TaxonomyType;
 import net.sf.json.JSONArray;
+import net.sf.json.JSONNull;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -294,7 +295,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		return new Pipeline(pipelineObject.getLong("contextEntityId"),
 				pipelineObject.getString("contextEntityName"),
 				pipelineObject.getLong("workspaceId"),
-				pipelineObject.has("releaseId") && pipelineObject.get("releaseId") != null ? pipelineObject.getLong("releaseId") : null,
+				pipelineObject.has("releaseId") && !pipelineObject.get("releaseId").equals(JSONNull.getInstance()) ? pipelineObject.getLong("releaseId") : null,
 				taxonomies, fields);
 	}
 
