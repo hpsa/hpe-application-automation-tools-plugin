@@ -14,6 +14,8 @@ import java.util.Properties;
 import java.util.stream.Stream;
 import java.util.Date;
 import java.lang.Runtime;
+import java.net.URI;
+import java.net.URL;
 import java.lang.Process;
 import java.text.Format;
 import java.text.SimpleDateFormat;
@@ -84,14 +86,17 @@ public abstract class AbstractLauncherTask implements TaskType {
 		String launcherPath = "";
 		String aborterPath = "";
 		try {
-			String error = extractBinaryResource(wd, HpToolsLauncher_SCRIPT_NAME, launcherPath); 
+			String error = extractBinaryResource(wd, HpToolsLauncher_SCRIPT_NAME);
+			launcherPath = (new File(wd, HpToolsLauncher_SCRIPT_NAME)).getAbsolutePath();
+			
 			if (error != "")
 			{
 				buildLogger.addErrorLogEntry(error);
 				return TaskResultBuilder.create(taskContext).failedWithError().build();
 			}
 	
-			error = extractBinaryResource(wd, HpToolsAborter_SCRIPT_NAME, aborterPath); 
+			error = extractBinaryResource(wd, HpToolsAborter_SCRIPT_NAME); 
+			aborterPath = (new File(wd, HpToolsAborter_SCRIPT_NAME)).getAbsolutePath();			
 			if (error != "")
 			{
 				buildLogger.addErrorLogEntry(error);
@@ -135,33 +140,36 @@ public abstract class AbstractLauncherTask implements TaskType {
 		return TaskResultBuilder.create(taskContext).success().build();
     }
 	
-	private String extractBinaryResource(final File pathToExtract, final String resourceName, String resourcePath) throws IOException	{
+	private String extractBinaryResource(final File pathToExtract, final String resourceName) throws IOException	{
 		InputStream stream = null;
         OutputStream resStreamOut = null;
         try {
-            String jarFolder = new File(AlmLabEnvPrepareTask.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()).getParentFile().getPath().replace('\\', '/');
-            resourcePath = jarFolder + "/" + "com/hp/application/automation/tbamboo/resources/" + resourceName; 
+        	
+        	String resourcePath = "/" + resourceName;
+        	stream = this.getClass().getResourceAsStream(resourcePath);
 
-            stream = AlmLabEnvPrepareTask.class.getResourceAsStream(resourcePath);
-            if(stream == null) {
+        	if(stream == null) {
                 return "Cannot get resource \"" + resourcePath + "\" from Jar file.";
             }
 
             int readBytes;
             byte[] buffer = new byte[4096];
             File resultPath = new File(pathToExtract, resourceName);
-            resourcePath = resultPath.getAbsolutePath();
             resStreamOut = new FileOutputStream(resultPath);
+            
             while ((readBytes = stream.read(buffer)) > 0) {
                 resStreamOut.write(buffer, 0, readBytes);
             }
+            
         } catch (Exception ex) {
-        	resourcePath = "";
             return ex.getMessage();
-        } finally {
+        }
+        
+        finally {
             stream.close();
             resStreamOut.close();
         }
+        
         return "";
 	}
 	
