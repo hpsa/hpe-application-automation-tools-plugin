@@ -1,11 +1,14 @@
 package com.hp.application.automation.bamboo.tasks;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
+import com.atlassian.bamboo.configuration.ConfigurationMap;
 import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.task.TaskException;
 import com.atlassian.bamboo.task.TaskResult;
 import com.atlassian.bamboo.task.TaskResultBuilder;
 import com.atlassian.bamboo.task.TaskType;
+import com.ctc.wstx.util.StringUtil;
+
 import org.jetbrains.annotations.NotNull;
 import java.util.Properties;
 import java.util.stream.Stream;
@@ -21,33 +24,49 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public class AlmLabEnvPrepare implements TaskType {
+public abstract class AbstractLauncherTask implements TaskType {
 	private final static String HpToolsLauncher_SCRIPT_NAME = "HpToolsLauncher.exe";
 	private final static String HpToolsAborter_SCRIPT_NAME = "HpToolsAborter.exe";
-	private String ParamFileName = "ApiRun.txt";
 
+	protected abstract Properties getTaskProperties(final TaskContext taskContext) throws Exception;
+	
 	@NotNull
     @java.lang.Override
-    public TaskResult execute(@NotNull final TaskContext taskContext) throws TaskException
-    {
+    public TaskResult execute(@NotNull final TaskContext taskContext) throws TaskException {
         final BuildLogger buildLogger = taskContext.getBuildLogger();
+//		return TaskResultBuilder.create(taskContext).success().build();
 		
 		Properties mergedProperties = new Properties();
+		try
+		{
+			Properties customTaskProperties = getTaskProperties(taskContext);
+			if (customTaskProperties != null)
+			{
+				mergedProperties.putAll(customTaskProperties);
+			}
+		}
+		catch (Exception e) {
+			buildLogger.addErrorLogEntry(e.getMessage());
+			return TaskResultBuilder.create(taskContext).failedWithError().build();
+		}
 
-		Date now = new Date();
 		Format formatter = new SimpleDateFormat("ddMMyyyyHHmmssSSS");
-		String time = formatter.format(now);
-
-		this.ParamFileName = "props" + time + ".txt";
+		Date time = new Date();
+		String paramFileName = "props" + formatter.format(time) + ".txt";
+		String resultsFileName = "Results" + time + ".xml";
 
 		mergedProperties.put("runType", RunType.FileSystem.toString());
-		mergedProperties.put("resultsFilename", "Results" + time + ".xml");
+		mergedProperties.put("resultsFilename", resultsFileName);
 
-		File wd = taskContext.getWorkingDirectory();
-
-		buildLogger.addErrorLogEntry(wd.getAbsolutePath());
+		final ConfigurationMap map = taskContext.getConfigurationMap();
 		
-		File paramsFile = new File(wd, this.ParamFileName);
+		File wd = taskContext.getWorkingDirectory();
+//		buildLogger.addErrorLogEntry("||||||" + wd.getAbsolutePath());
+//    	String v1 = map.get(AbstractLauncherTaskConfigurator.BUILD_WORKING_DIR);
+//	    buildLogger.addBuildLogEntry("||||||" + v1);
+//		return TaskResultBuilder.create(taskContext).success().build();
+		
+		File paramsFile = new File(wd, paramFileName);
 		if (paramsFile.exists()){
 			paramsFile.delete();
 		}
@@ -84,7 +103,7 @@ public class AlmLabEnvPrepare implements TaskType {
 			return TaskResultBuilder.create(taskContext).failedWithError().build();
 		}
 		try {
-			int retCode = run(launcherPath, this.ParamFileName);
+			int retCode = run(launcherPath, paramFileName);
 			if (retCode == 3)
 			{
 				throw new InterruptedException();
@@ -101,14 +120,14 @@ public class AlmLabEnvPrepare implements TaskType {
 		catch (InterruptedException e) {
 			buildLogger.addErrorLogEntry("Abborted by user. Aborting process.");
 			try {
-				run(aborterPath, this.ParamFileName);
+				run(aborterPath, paramFileName);
 			}
 			catch (IOException ioe) {
 				buildLogger.addErrorLogEntry(ioe.getMessage(), ioe);
 				return TaskResultBuilder.create(taskContext).failedWithError().build();
 			}
-			catch (InterruptedException e1) {
-				buildLogger.addErrorLogEntry(e1.getMessage(), e1);
+			catch (InterruptedException ie) {
+				buildLogger.addErrorLogEntry(ie.getMessage(), ie);
 				return TaskResultBuilder.create(taskContext).failedWithError().build();
 			}
 		}
@@ -120,10 +139,10 @@ public class AlmLabEnvPrepare implements TaskType {
 		InputStream stream = null;
         OutputStream resStreamOut = null;
         try {
-            String jarFolder = new File(AlmLabEnvPrepare.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()).getParentFile().getPath().replace('\\', '/');
+            String jarFolder = new File(AlmLabEnvPrepareTask.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()).getParentFile().getPath().replace('\\', '/');
             resourcePath = jarFolder + "/" + "com/hp/application/automation/tbamboo/resources/" + resourceName; 
 
-            stream = AlmLabEnvPrepare.class.getResourceAsStream(resourcePath);
+            stream = AlmLabEnvPrepareTask.class.getResourceAsStream(resourcePath);
             if(stream == null) {
                 return "Cannot get resource \"" + resourcePath + "\" from Jar file.";
             }
@@ -147,9 +166,9 @@ public class AlmLabEnvPrepare implements TaskType {
 	}
 	
 	private int run(String launcherPath, String paramFile) throws IOException, InterruptedException {
-		String args[] = {launcherPath, "arg1", "-paramfile", paramFile}; 
+		String args[] = {launcherPath, "-paramfile", paramFile}; 
 	    Process p = Runtime.getRuntime().exec(args);
-        
+
 	    return p.waitFor();
 	}
 }
