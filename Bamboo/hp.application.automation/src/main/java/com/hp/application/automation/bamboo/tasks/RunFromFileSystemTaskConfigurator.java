@@ -62,16 +62,7 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 		context.put(TESTS_PATH, taskDefinition.getConfiguration().get(TESTS_PATH));
 		context.put(TIMEOUT, taskDefinition.getConfiguration().get(TIMEOUT));
 	}
-
-	@Override
-	public void populateContextForView(@NotNull final Map<String, Object> context, @NotNull final TaskDefinition taskDefinition)
-	{
-		super.populateContextForView(context, taskDefinition);
-
-		context.put(TESTS_PATH, taskDefinition.getConfiguration().get(TESTS_PATH));
-		context.put(TIMEOUT, taskDefinition.getConfiguration().get(TIMEOUT));
-	}
-
+	
 	public void setTextProvider(final TextProvider textProvider)
 	{
 		this.textProvider = textProvider;
