@@ -88,9 +88,13 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 			String json = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
 			JSONObject jsonObject = JSONObject.fromObject(json);
 			List<Pipeline> pipelines = new LinkedList<Pipeline>();
-			for (JSONObject relatedPipeline : getJSONObjectCollection(jsonObject, "data")) {
-				if (relatedPipeline.has("contextEntityType") && relatedPipeline.get("contextEntityType").equals("pipeline")) {
-					pipelines.add(toPipeline(relatedPipeline));
+			for (JSONObject relatedContext : getJSONObjectCollection(jsonObject, "data")) {
+				if (!relatedContext.has("contextEntityType") || relatedContext.get("contextEntityType") == null) {
+					logger.severe("context block lack of context entity type");
+				} else if (relatedContext.get("contextEntityType").equals("pipeline")) {
+					pipelines.add(toPipeline(relatedContext));
+				} else {
+					logger.info("context type '" + relatedContext.get("contextEntityType") + "' is not supported");
 				}
 			}
 			List<FieldMetadata> fieldsMetadata = new LinkedList<FieldMetadata>();
@@ -274,12 +278,12 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		List<Taxonomy> taxonomies = new LinkedList<Taxonomy>();
 		List<Field> fields = new LinkedList<Field>();
 
-		if (pipelineObject.has("taxonomyTags")) {
-			for (JSONObject taxonomy : getJSONObjectCollection(pipelineObject, "taxonomyTags")) {
-				taxonomies.add(new Taxonomy(taxonomy.getInt("taxonomyId"),
-						taxonomy.getInt("taxonomyTypeId"),
-						taxonomy.getString("taxonomyValue"),
-						taxonomy.getString("taxonomyType")));
+		if (pipelineObject.has("taxonomies")) {
+			for (JSONObject taxonomy : getJSONObjectCollection(pipelineObject, "taxonomies")) {
+				taxonomies.add(new Taxonomy(taxonomy.getLong("id"),
+						taxonomy.getJSONObject("parent").getLong("id"),
+						taxonomy.getString("name"),
+						taxonomy.getJSONObject("parent").getString("name")));
 			}
 		}
 		if (pipelineObject.has("tags")) {
@@ -287,11 +291,10 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 				fields.add(toField(field));
 			}
 		}
-		return new Pipeline(pipelineObject.getInt("contextEntityId"),
+		return new Pipeline(pipelineObject.getLong("contextEntityId"),
 				pipelineObject.getString("contextEntityName"),
-				pipelineObject.optInt("releaseId"),
-				pipelineObject.optString("releaseName"),
-				pipelineObject.optString("rootJobName"),
+				pipelineObject.getLong("workspaceId"),
+				pipelineObject.has("releaseId") && pipelineObject.get("releaseId") != null ? pipelineObject.getLong("releaseId") : null,
 				taxonomies, fields);
 	}
 
@@ -405,8 +408,8 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		@Override
 		public Taxonomy doCreate(JSONObject entityObject) {
 			return new Taxonomy(
-					entityObject.getInt("id"),
-					entityObject.getInt("taxonomy-type-id"),
+					entityObject.getLong("id"),
+					entityObject.getLong("taxonomy-type-id"),
 					entityObject.getString("name"),
 					null);
 		}

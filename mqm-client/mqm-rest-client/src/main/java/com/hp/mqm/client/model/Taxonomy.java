@@ -4,23 +4,23 @@ package com.hp.mqm.client.model;
 
 final public class Taxonomy {
 
-    final private Integer id;
-    final private Integer taxonomyTypeId;
+    final private Long id;
+    final private Long taxonomyTypeId;
     final private String name;
     final private String taxonomyTypeName;
 
-    public Taxonomy(Integer id, Integer taxonomyTypeId, String name, String taxonomyTypeName) {
+    public Taxonomy(Long id, Long taxonomyTypeId, String name, String taxonomyTypeName) {
         this.id = id;
         this.taxonomyTypeId = taxonomyTypeId;
         this.name = name;
         this.taxonomyTypeName = taxonomyTypeName;
     }
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public Integer getTaxonomyTypeId() {
+    public Long getTaxonomyTypeId() {
         return taxonomyTypeId;
     }
 
