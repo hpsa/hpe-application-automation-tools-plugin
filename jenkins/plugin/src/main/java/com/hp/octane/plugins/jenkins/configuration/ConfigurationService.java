@@ -51,7 +51,7 @@ public class ConfigurationService {
                 if (contextPos < 0) {
                     throw FormValidation.errorWithMarkup(markup("red", Messages.ApplicationContextNotFound()));
                 } else {
-                    location = uiLocation.substring(0, contextPos + 4);
+                    location = uiLocation.substring(0, contextPos);
                 }
             } else {
                 location = uiLocation.substring(0, contextPos + 6);

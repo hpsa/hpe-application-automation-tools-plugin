@@ -82,10 +82,10 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 
         // once the global configuration is saved in UI, all values are initialized
         if (uiLocation == null) {
-            URL configurationFileURL = new URL(getWrapper().baseResourceURL + "predefinedConfiguration.xml");
             File configurationFile;
             try {
-                configurationFile = new File(configurationFileURL.toURI());
+                File resourceDirectory = new File(getWrapper().baseResourceURL.toURI());
+                configurationFile = new File(resourceDirectory, "predefinedConfiguration.xml");
             } catch (URISyntaxException e) {
                 throw new RuntimeException("Unable to convert path of the predefined server configuration file");
             }

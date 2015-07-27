@@ -15,7 +15,7 @@ public final class PredefinedConfigurationUnmarshaller {
     private static PredefinedConfigurationUnmarshaller extensionInstance;
     private static Unmarshaller jaxbUnmarshaller;
 
-    public static PredefinedConfigurationUnmarshaller getExtensionInstance() {
+    public static synchronized PredefinedConfigurationUnmarshaller getExtensionInstance() {
         List<PredefinedConfigurationUnmarshaller> extensions;
         if (extensionInstance == null) {
             extensions = Jenkins.getInstance().getExtensionList(PredefinedConfigurationUnmarshaller.class);
