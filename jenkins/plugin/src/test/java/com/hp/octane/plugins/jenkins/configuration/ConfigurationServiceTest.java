@@ -38,7 +38,7 @@ public class ConfigurationServiceTest {
 		HtmlPage configPage = rule.createWebClient().goTo("configure");
 		HtmlForm form = configPage.getFormByName("config");
 
-		form.getInputByName("_.uiLocation").setValueAttribute("http://localhost:8008/qcbin/ui/?workspace-id=1001&p=domain/project#/pipeline-management/live");
+		form.getInputByName("_.uiLocation").setValueAttribute("http://localhost:8008/ui/?p=1001");
 		form.getInputByName("_.username").setValueAttribute("username");
 		form.getInputByName("_.password").setValueAttribute("password");
 		rule.submit(form);
@@ -47,8 +47,8 @@ public class ConfigurationServiceTest {
 	@Test
 	public void testGetServerConfiguration() throws Exception {
 		ServerConfiguration configuration = ConfigurationService.getServerConfiguration();
-		Assert.assertEquals("http://localhost:8008/qcbin", configuration.location);
-		Assert.assertEquals("sharedSpace", configuration.sharedSpace);
+		Assert.assertEquals("http://localhost:8008", configuration.location);
+		Assert.assertEquals("1001", configuration.sharedSpace);
 		Assert.assertEquals("username", configuration.username);
 		Assert.assertEquals("password", configuration.password);
 	}
@@ -68,33 +68,33 @@ public class ConfigurationServiceTest {
 	@Test
 	@SuppressWarnings("ThrowableResultOfMethodCallIgnored")
 	public void testCheckConfiguration() {
-		Mockito.when(clientFactory.create("http://localhost:8088/", "domain1", "username1", "password1")).thenReturn(client);
+		Mockito.when(clientFactory.create("http://localhost:8088/", "1001", "username1", "password1")).thenReturn(client);
 
 		// valid configuration
 		Mockito.doNothing().when(client).tryToConnectProject();
 
-		FormValidation validation = configurationService.checkConfiguration("http://localhost:8088/", "domain1", "username1", "password1");
+		FormValidation validation = configurationService.checkConfiguration("http://localhost:8088/", "1001", "username1", "password1");
 		Assert.assertEquals(FormValidation.Kind.OK, validation.kind);
 		Assert.assertTrue(validation.getMessage().contains("Connection successful"));
 
 		// authentication failed
 		Mockito.doThrow(new AuthenticationException()).when(client).tryToConnectProject();
 
-		validation = configurationService.checkConfiguration("http://localhost:8088/", "domain1", "username1", "password1");
+		validation = configurationService.checkConfiguration("http://localhost:8088/", "1001", "username1", "password1");
 		Assert.assertEquals(FormValidation.Kind.ERROR, validation.kind);
 		Assert.assertTrue(validation.getMessage().contains(Messages.AuthenticationFailure()));
 
 		// cannot create session
 		Mockito.doThrow(new SessionCreationException()).when(client).tryToConnectProject();
 
-		validation = configurationService.checkConfiguration("http://localhost:8088/", "domain1", "username1", "password1");
+		validation = configurationService.checkConfiguration("http://localhost:8088/", "1001", "username1", "password1");
 		Assert.assertEquals(FormValidation.Kind.ERROR, validation.kind);
 		Assert.assertTrue(validation.getMessage().contains(Messages.SessionCreationFailure()));
 
 		// domain project does not exists
 		Mockito.doThrow(new SharedSpaceNotExistException()).when(client).tryToConnectProject();
 
-		validation = configurationService.checkConfiguration("http://localhost:8088/", "domain1", "username1", "password1");
+		validation = configurationService.checkConfiguration("http://localhost:8088/", "1001", "username1", "password1");
 		Assert.assertEquals(FormValidation.Kind.ERROR, validation.kind);
 		Assert.assertTrue(validation.getMessage().contains(Messages.ConnectionSharedSpaceInvalid()));
 	}
