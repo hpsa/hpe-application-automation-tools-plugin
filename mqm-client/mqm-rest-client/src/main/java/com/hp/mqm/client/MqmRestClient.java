@@ -88,7 +88,7 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * @param pipelineName new pipeline name (can be null)
 	 * @param releaseId    new release ID (can be null)
 	 */
-	void updatePipelineMetadata(int pipelineId, String pipelineName, Long releaseId);
+	void updatePipelineMetadata(Long pipelineId, String pipelineName, Long releaseId);
 
 	/**
 	 * Update tags associated with the pipeline. Both "taxonomy" and "field" tags are updated.
@@ -106,7 +106,7 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * @param fields         list of "fields" tags associated with the pipeline
 	 * @return pipeline structure
 	 */
-	Pipeline updatePipelineTags(String serverIdentity, String jobName, int pipelineId, List<Taxonomy> taxonomies, List<Field> fields);
+	Pipeline updatePipelineTags(String serverIdentity, String jobName, long pipelineId, List<Taxonomy> taxonomies, List<Field> fields);
 
 	/**
 	 * Query releases matching given name filter (using contains semantics).

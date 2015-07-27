@@ -92,8 +92,8 @@ public class JobConfigurationProxy {
 
 		try {
 			MqmRestClient client = createClient();
-			int pipelineId = pipelineObject.getInt("id");
-			client.updatePipelineMetadata(pipelineId, pipelineObject.getString("name"), pipelineObject.getInt("releaseId"));
+			long pipelineId = pipelineObject.getLong("id");
+			client.updatePipelineMetadata(pipelineId, pipelineObject.getString("name"), pipelineObject.getLong("releaseId"));
 
 			LinkedList<Taxonomy> taxonomies = new LinkedList<Taxonomy>();
 			JSONArray taxonomyTags = pipelineObject.getJSONArray("taxonomyTags");
@@ -337,12 +337,12 @@ public class JobConfigurationProxy {
 		return tag;
 	}
 
-	private void fillTagType(JSONObject target, int typeId, String typeName) {
+	private void fillTagType(JSONObject target, long typeId, String typeName) {
 		target.put("tagTypeId", String.valueOf(typeId));
 		target.put("tagTypeName", typeName);
 	}
 
-	private JSONObject tagType(int typeId, String typeName, Collection<JSONObject> tags) {
+	private JSONObject tagType(long typeId, String typeName, Collection<JSONObject> tags) {
 		JSONObject result = new JSONObject();
 		fillTagType(result, typeId, typeName);
 		JSONArray values = new JSONArray();

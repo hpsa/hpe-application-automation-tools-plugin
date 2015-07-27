@@ -434,7 +434,7 @@ public class MqmRestClientImplTest {
 		server.put("url", "http://localhost:8080/jenkins" + timestamp);
 		JSONObject structure = ResourceUtils.readJson("structure.json");
 		structure.put("name", jobName);
-		int pipelineId = client.createPipeline("", jobName, pipelineName, 1001L, release.getId(), structure.toString(), server.toString());
+		long pipelineId = client.createPipeline("", jobName, pipelineName, 1001L, release.getId(), structure.toString(), server.toString());
 		Assert.assertTrue(pipelineId > 0);
 
 		Release release2 = testSupportClient.createRelease(releaseName + "New");
@@ -442,7 +442,7 @@ public class MqmRestClientImplTest {
 		JobConfiguration jobConfiguration = client.getJobConfiguration(serverIdentity, jobName);
 		Assert.assertEquals(1, jobConfiguration.getRelatedPipelines().size());
 		Pipeline pipeline = jobConfiguration.getRelatedPipelines().get(0);
-		Assert.assertEquals(release2.getId(), pipeline.getReleaseId());
+		Assert.assertEquals((long) release2.getId(), (long) pipeline.getReleaseId());
 		Assert.assertEquals(pipelineName + "New", pipeline.getName());
 
 		// no release ID update
@@ -450,7 +450,7 @@ public class MqmRestClientImplTest {
 		jobConfiguration = client.getJobConfiguration(serverIdentity, jobName);
 		Assert.assertEquals(1, jobConfiguration.getRelatedPipelines().size());
 		pipeline = jobConfiguration.getRelatedPipelines().get(0);
-		Assert.assertEquals(release2.getId(), pipeline.getReleaseId());
+		Assert.assertEquals((long) release2.getId(), (long) pipeline.getReleaseId());
 		Assert.assertEquals(pipelineName, pipeline.getName());
 
 		// no pipeline name update
@@ -458,7 +458,7 @@ public class MqmRestClientImplTest {
 		jobConfiguration = client.getJobConfiguration(serverIdentity, jobName);
 		Assert.assertEquals(1, jobConfiguration.getRelatedPipelines().size());
 		pipeline = jobConfiguration.getRelatedPipelines().get(0);
-		Assert.assertEquals(release.getId(), pipeline.getReleaseId());
+		Assert.assertEquals((long) release.getId(), (long) pipeline.getReleaseId());
 		Assert.assertEquals(pipelineName, pipeline.getName());
 
 		// clear release update

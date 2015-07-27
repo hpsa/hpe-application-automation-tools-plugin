@@ -148,7 +148,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	}
 
 	@Override
-	public void updatePipelineMetadata(int pipelineId, String pipelineName, Long releaseId) {
+	public void updatePipelineMetadata(Long pipelineId, String pipelineName, Long releaseId) {
 		HttpPut request = new HttpPut(createProjectApiUriMap(URI_PIPELINES_METADATA, Collections.singletonMap("pipeline", pipelineId)));
 		JSONObject pipelineObject = new JSONObject();
 		pipelineObject.put("pipelineId", pipelineId);
@@ -174,7 +174,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	}
 
 	@Override
-	public Pipeline updatePipelineTags(String serverIdentity, String jobName, int pipelineId, List<Taxonomy> taxonomies, List<Field> fields) {
+	public Pipeline updatePipelineTags(String serverIdentity, String jobName, long pipelineId, List<Taxonomy> taxonomies, List<Field> fields) {
 		HttpPost request = new HttpPost(createProjectApiUriMap(URI_PIPELINES_TAGS, serverParams(serverIdentity, jobName, DEFAULT_WORKSPACE)));
 
 		JSONObject pipelineObject = new JSONObject();
