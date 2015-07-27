@@ -44,7 +44,7 @@ public class TestSupportClient extends AbstractMqmRestClient {
         releaseObject.put("name", name);
 
         JSONObject resultObject = postEntity(URI_RELEASES, releaseObject);
-        return new Release(resultObject.getInt("id"), resultObject.getString("name"));
+        return new Release(resultObject.getLong("id"), resultObject.getString("name"));
     }
 
     public TaxonomyType createTaxonomyType(String name) throws IOException {
@@ -52,16 +52,16 @@ public class TestSupportClient extends AbstractMqmRestClient {
         taxonomyTypeObject.put("name", name);
 
         JSONObject resultObject = postEntity(URI_TAXONOMY_TYPES, taxonomyTypeObject);
-        return new TaxonomyType(resultObject.getInt("id"), resultObject.getString("name"));
+        return new TaxonomyType(resultObject.getLong("id"), resultObject.getString("name"));
     }
 
-    public Taxonomy createTaxonomy(int typeId, String name) throws IOException {
+    public Taxonomy createTaxonomy(Long typeId, String name) throws IOException {
         JSONObject taxonomyObject = ResourceUtils.readJson("taxonomy.json");
         taxonomyObject.put("taxonomy-type-id", typeId);
         taxonomyObject.put("name", name);
 
         JSONObject resultObject = postEntity(URI_TAXONOMIES, taxonomyObject);
-        return new Taxonomy(resultObject.getInt("id"), resultObject.getInt("taxonomy-type-id"), resultObject.getString("name"), null);
+        return new Taxonomy(resultObject.getLong("id"), resultObject.getLong("taxonomy-type-id"), resultObject.getString("name"), null);
     }
 
     public PagedList<TestRun> queryTestRuns(String name, int offset, int limit) {

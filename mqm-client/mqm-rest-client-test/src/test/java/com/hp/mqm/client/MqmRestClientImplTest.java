@@ -274,7 +274,7 @@ public class MqmRestClientImplTest {
 		server.put("url", "http://localhost:8080/jenkins" + timestamp);
 		JSONObject structure = ResourceUtils.readJson("structure.json");
 		structure.put("name", jobName);
-		int pipelineId = client.createPipeline(pipelineName, release.getId(), structure.toString(), server.toString());
+		int pipelineId = client.createPipeline("", jobName, pipelineName, 1001L, release.getId(), structure.toString(), server.toString());
 		Assert.assertTrue(pipelineId > 0);
 		Thread.sleep(1000);
 
@@ -386,7 +386,7 @@ public class MqmRestClientImplTest {
 		server.put("url", "http://localhost:8080/jenkins" + timestamp);
 		JSONObject structure = ResourceUtils.readJson("structure.json");
 		structure.put("name", jobName);
-		int pipelineId = client.createPipeline(pipelineName, release.getId(), structure.toString(), server.toString());
+		int pipelineId = client.createPipeline("", jobName, pipelineName, 1001L, release.getId(), structure.toString(), server.toString());
 		Assert.assertTrue(pipelineId > 0);
 
 		// verify job configuration
@@ -397,8 +397,6 @@ public class MqmRestClientImplTest {
 		Assert.assertEquals(1, jobConfiguration.getRelatedPipelines().size());
 		Pipeline pipeline = jobConfiguration.getRelatedPipelines().get(0);
 		Assert.assertEquals(pipelineName, pipeline.getName());
-		Assert.assertEquals(releaseName, pipeline.getReleaseName());
-		Assert.assertEquals(jobName, pipeline.getRootJobName());
 		Assert.assertTrue(pipeline.getTaxonomies().isEmpty());
 		Assert.assertTrue(pipeline.getFields().isEmpty());
 		Assert.assertTrue(jobConfiguration.getFieldMetadata().size() > 0);
@@ -418,7 +416,7 @@ public class MqmRestClientImplTest {
 		server.put("url", "http://localhost:8080/jenkins" + timestamp);
 		JSONObject structure = ResourceUtils.readJson("structure.json");
 		structure.put("name", jobName);
-		int pipelineId = client.createPipeline(pipelineName, release.getId(), structure.toString(), server.toString());
+		int pipelineId = client.createPipeline("", jobName, pipelineName, 1001L, release.getId(), structure.toString(), server.toString());
 		Assert.assertTrue(pipelineId > 0);
 	}
 
@@ -436,7 +434,7 @@ public class MqmRestClientImplTest {
 		server.put("url", "http://localhost:8080/jenkins" + timestamp);
 		JSONObject structure = ResourceUtils.readJson("structure.json");
 		structure.put("name", jobName);
-		int pipelineId = client.createPipeline(pipelineName, release.getId(), structure.toString(), server.toString());
+		int pipelineId = client.createPipeline("", jobName, pipelineName, 1001L, release.getId(), structure.toString(), server.toString());
 		Assert.assertTrue(pipelineId > 0);
 
 		Release release2 = testSupportClient.createRelease(releaseName + "New");
@@ -445,7 +443,6 @@ public class MqmRestClientImplTest {
 		Assert.assertEquals(1, jobConfiguration.getRelatedPipelines().size());
 		Pipeline pipeline = jobConfiguration.getRelatedPipelines().get(0);
 		Assert.assertEquals(release2.getId(), pipeline.getReleaseId());
-		Assert.assertEquals(release2.getName(), pipeline.getReleaseName());
 		Assert.assertEquals(pipelineName + "New", pipeline.getName());
 
 		// no release ID update
@@ -454,7 +451,6 @@ public class MqmRestClientImplTest {
 		Assert.assertEquals(1, jobConfiguration.getRelatedPipelines().size());
 		pipeline = jobConfiguration.getRelatedPipelines().get(0);
 		Assert.assertEquals(release2.getId(), pipeline.getReleaseId());
-		Assert.assertEquals(release2.getName(), pipeline.getReleaseName());
 		Assert.assertEquals(pipelineName, pipeline.getName());
 
 		// no pipeline name update
@@ -463,16 +459,14 @@ public class MqmRestClientImplTest {
 		Assert.assertEquals(1, jobConfiguration.getRelatedPipelines().size());
 		pipeline = jobConfiguration.getRelatedPipelines().get(0);
 		Assert.assertEquals(release.getId(), pipeline.getReleaseId());
-		Assert.assertEquals(release.getName(), pipeline.getReleaseName());
 		Assert.assertEquals(pipelineName, pipeline.getName());
 
 		// clear release update
-		client.updatePipelineMetadata(pipelineId, null, -1);
+		client.updatePipelineMetadata(pipelineId, null, -1L);
 		jobConfiguration = client.getJobConfiguration(serverIdentity, jobName);
 		Assert.assertEquals(1, jobConfiguration.getRelatedPipelines().size());
 		pipeline = jobConfiguration.getRelatedPipelines().get(0);
-		Assert.assertEquals(-1, pipeline.getReleaseId());
-		Assert.assertEquals("", pipeline.getReleaseName());
+		Assert.assertEquals(-1, (long) pipeline.getReleaseId());
 		Assert.assertEquals(pipelineName, pipeline.getName());
 	}
 
@@ -490,7 +484,7 @@ public class MqmRestClientImplTest {
 		server.put("url", "http://localhost:8080/jenkins" + timestamp);
 		JSONObject structure = ResourceUtils.readJson("structure.json");
 		structure.put("name", jobName);
-		int pipelineId = client.createPipeline(pipelineName, release.getId(), structure.toString(), server.toString());
+		int pipelineId = client.createPipeline("", jobName, pipelineName, 1001L, release.getId(), structure.toString(), server.toString());
 		Assert.assertTrue(pipelineId > 0);
 
 		JobConfiguration jobConfiguration = client.getJobConfiguration(serverIdentity, jobName);

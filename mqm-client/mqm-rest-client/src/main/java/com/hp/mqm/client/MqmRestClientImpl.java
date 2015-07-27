@@ -148,7 +148,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	}
 
 	@Override
-	public void updatePipelineMetadata(int pipelineId, String pipelineName, Integer releaseId) {
+	public void updatePipelineMetadata(int pipelineId, String pipelineName, Long releaseId) {
 		HttpPut request = new HttpPut(createProjectApiUriMap(URI_PIPELINES_METADATA, Collections.singletonMap("pipeline", pipelineId)));
 		JSONObject pipelineObject = new JSONObject();
 		pipelineObject.put("pipelineId", pipelineId);
@@ -310,7 +310,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	}
 
 	@Override
-	public PagedList<Taxonomy> queryTaxonomies(Integer taxonomyTypeId, String name, int offset, int limit) {
+	public PagedList<Taxonomy> queryTaxonomies(Long taxonomyTypeId, String name, int offset, int limit) {
 		List<String> conditions = new LinkedList<String>();
 		if (!StringUtils.isEmpty(name)) {
 			conditions.add(condition("name", "*" + name + "*"));
@@ -420,7 +420,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 
 		@Override
 		public TaxonomyType doCreate(JSONObject entityObject) {
-			return new TaxonomyType(entityObject.getInt("id"), entityObject.getString("name"));
+			return new TaxonomyType(entityObject.getLong("id"), entityObject.getString("name"));
 		}
 	}
 
@@ -428,7 +428,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 
 		@Override
 		public Release doCreate(JSONObject entityObject) {
-			return new Release(entityObject.getInt("id"), entityObject.getString("name"));
+			return new Release(entityObject.getLong("id"), entityObject.getString("name"));
 		}
 	}
 

@@ -88,7 +88,7 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * @param pipelineName new pipeline name (can be null)
 	 * @param releaseId    new release ID (can be null)
 	 */
-	void updatePipelineMetadata(int pipelineId, String pipelineName, Integer releaseId);
+	void updatePipelineMetadata(int pipelineId, String pipelineName, Long releaseId);
 
 	/**
 	 * Update tags associated with the pipeline. Both "taxonomy" and "field" tags are updated.
@@ -136,7 +136,7 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * @param limit          paging limit
 	 * @return taxonomies matching given name and type
 	 */
-	PagedList<Taxonomy> queryTaxonomies(Integer taxonomyTypeId, String name, int offset, int limit);
+	PagedList<Taxonomy> queryTaxonomies(Long taxonomyTypeId, String name, int offset, int limit);
 
 	/**
 	 * Query taxonomy types matching given name filter (using contains semantics).
