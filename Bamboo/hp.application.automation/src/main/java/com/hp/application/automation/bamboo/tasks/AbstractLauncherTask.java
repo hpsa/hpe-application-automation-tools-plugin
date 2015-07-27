@@ -36,7 +36,6 @@ public abstract class AbstractLauncherTask implements TaskType {
     @java.lang.Override
     public TaskResult execute(@NotNull final TaskContext taskContext) throws TaskException {
         final BuildLogger buildLogger = taskContext.getBuildLogger();
-//		return TaskResultBuilder.create(taskContext).success().build();
 		
 		Properties mergedProperties = new Properties();
 		try
@@ -63,10 +62,6 @@ public abstract class AbstractLauncherTask implements TaskType {
 		final ConfigurationMap map = taskContext.getConfigurationMap();
 		
 		File wd = taskContext.getWorkingDirectory();
-//		buildLogger.addErrorLogEntry("||||||" + wd.getAbsolutePath());
-//    	String v1 = map.get(AbstractLauncherTaskConfigurator.BUILD_WORKING_DIR);
-//	    buildLogger.addBuildLogEntry("||||||" + v1);
-//		return TaskResultBuilder.create(taskContext).success().build();
 		
 		File paramsFile = new File(wd, paramFileName);
 		if (paramsFile.exists()){
