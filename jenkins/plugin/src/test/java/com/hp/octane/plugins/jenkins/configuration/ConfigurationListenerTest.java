@@ -27,7 +27,7 @@ public class ConfigurationListenerTest {
 		HtmlPage configPage = rule.createWebClient().goTo("configure");
 		HtmlForm form = configPage.getFormByName("config");
 
-		form.getInputByName("_.uiLocation").setValueAttribute("http://localhost:8008/qcbin/ui/?workspace-id=1001&p=domain/project#/pipeline-management/live");
+		form.getInputByName("_.uiLocation").setValueAttribute("http://localhost:8008/ui/?p=1001");
 		form.getInputByName("_.username").setValueAttribute("username");
 		form.getInputByName("_.password").setValueAttribute("password");
 		rule.submit(form);
@@ -38,7 +38,7 @@ public class ConfigurationListenerTest {
 		List<ServerConfiguration> confs = listener.getConfigurationsChange();
 		Assert.assertNotNull(confs);
 		Assert.assertEquals(2, confs.size());
-		Assert.assertEquals("http://localhost:8008/qcbin", confs.get(0).location);
+		Assert.assertEquals("http://localhost:8008", confs.get(0).location);
 		Assert.assertEquals("username", confs.get(0).username);
 		Assert.assertNull(confs.get(1).location);
 		Assert.assertNull(confs.get(1).username);
@@ -63,9 +63,9 @@ public class ConfigurationListenerTest {
 		List<ServerConfiguration> confs = listener.getConfigurationsChange();
 		Assert.assertNotNull(confs);
 		Assert.assertEquals(2, confs.size());
-		Assert.assertEquals("http://localhost:8008/qcbin", confs.get(0).location);
+		Assert.assertEquals("http://localhost:8008", confs.get(0).location);
 		Assert.assertEquals("username2", confs.get(0).username);
-		Assert.assertEquals("http://localhost:8008/qcbin", confs.get(1).location);
+		Assert.assertEquals("http://localhost:8008", confs.get(1).location);
 		Assert.assertEquals("username", confs.get(1).username);
 	}
 

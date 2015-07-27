@@ -83,7 +83,7 @@ public class TestDispatcherTest {
         // server needs to be configured in order for the processing to happen
         HtmlPage configPage = rule.createWebClient().goTo("configure");
         HtmlForm form = configPage.getFormByName("config");
-        form.getInputByName("_.uiLocation").setValueAttribute("http://localhost:8008/qcbin/ui/?workspace-id=1001&p=domain/project");
+        form.getInputByName("_.uiLocation").setValueAttribute("http://localhost:8008/ui/?p=1001");
         form.getInputByName("_.username").setValueAttribute("username");
         form.getInputByName("_.password").setValueAttribute("password");
         rule.submit(form);
@@ -267,9 +267,8 @@ public class TestDispatcherTest {
         Assert.assertEquals(statuses.length, audits.size());
         for (int i = 0; i < statuses.length; i++) {
             JSONObject audit = audits.getJSONObject(i);
-            Assert.assertEquals("http://localhost:8008/qcbin", audit.getString("location"));
-            Assert.assertEquals("domain", audit.getString("domain"));
-            Assert.assertEquals("project", audit.getString("project"));
+            Assert.assertEquals("http://localhost:8008", audit.getString("location"));
+            Assert.assertEquals("1001", audit.getString("sharedSpace"));
             Assert.assertEquals(statuses[i], audit.getBoolean("success"));
             Assert.assertNotNull(audit.getString("date"));
         }

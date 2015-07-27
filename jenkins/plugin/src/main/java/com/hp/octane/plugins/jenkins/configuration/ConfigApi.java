@@ -18,8 +18,10 @@ import org.kohsuke.stapler.interceptor.RequirePOST;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.util.logging.Logger;
 
 public class ConfigApi {
+	private static final Logger logger = Logger.getLogger(ConfigApi.class.getName());
 
 	public void doRead(StaplerRequest req, StaplerResponse res) throws ServletException, IOException {
 		checkPermission();

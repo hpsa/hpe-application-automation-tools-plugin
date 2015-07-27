@@ -56,7 +56,7 @@ public class TestEvents {
 				response.setStatus(HttpServletResponse.SC_OK);
 			} else if (request.getPathInfo().equals("/qcbin/rest/site-session")) {
 				response.setStatus(HttpServletResponse.SC_CREATED);
-			} else if (request.getPathInfo().equals("/qcbin/api/domains/DOMAIN/projects/PROJECT/cia/events")) {
+			} else if (request.getPathInfo().equals("/internal-api/shared_spaces/1001/analytics/ci/events")) {
 				buffer = new byte[1024];
 				while ((len = request.getInputStream().read(buffer, 0, 1024)) > 0) {
 					body += new String(buffer, 0, len);
@@ -94,17 +94,15 @@ public class TestEvents {
 
 	private void configEventsClient() throws Exception {
 		JenkinsRule.WebClient client = rule.createWebClient();
-		WebRequestSettings req = new WebRequestSettings(client.createCrumbedUrl("octane/config"), HttpMethod.POST);
+		WebRequestSettings req = new WebRequestSettings(client.createCrumbedUrl("octane/configuration/save"), HttpMethod.POST);
 		JSONObject json = new JSONObject();
-		json.put("type", "events-client");
-		json.put("url", "http://localhost:" + testingServerPort + "/qcbin");
-		json.put("domain", "DOMAIN");
-		json.put("project", "PROJECT");
+		json.put("location", "http://localhost:" + testingServerPort);
+		json.put("sharedSpace", "1001");
 		json.put("username", "some");
 		json.put("password", "pass");
 		req.setRequestBody(json.toString());
 		WebResponse res = client.loadWebResponse(req);
-		logger.info("Configuration submitted with result: " + res.getStatusMessage() + "; testing server will run on port " + testingServerPort);
+		logger.info("Configuration submitted and responded with result: " + res.getStatusMessage() + "; testing server will run on port " + testingServerPort);
 	}
 
 	private void killServer() throws Exception {
