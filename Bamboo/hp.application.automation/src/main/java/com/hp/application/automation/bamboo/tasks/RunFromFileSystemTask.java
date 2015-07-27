@@ -17,7 +17,6 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
 
     @java.lang.Override
 	protected Properties getTaskProperties(final TaskContext taskContext) throws Exception {
-
     	Properties result = new Properties();
         
     	final ConfigurationMap map = taskContext.getConfigurationMap();        
