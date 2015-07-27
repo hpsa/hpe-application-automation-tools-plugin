@@ -14,8 +14,8 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 
 	private TextProvider textProvider;
 
-	private static final String TESTS_PATH = "testPathInput";
-	private static final String TIMEOUT = "timeoutInput";
+	public static final String TESTS_PATH = "testPathInput";
+	public static final String TIMEOUT = "timeoutInput";
 
 	public Map<String, String> generateTaskConfigMap(@NotNull final ActionParametersMap params, @Nullable final TaskDefinition previousTaskDefinition)
 	{
