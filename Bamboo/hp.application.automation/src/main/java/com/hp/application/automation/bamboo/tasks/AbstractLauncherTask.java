@@ -106,13 +106,13 @@ public abstract class AbstractLauncherTask implements TaskType {
 			return TaskResultBuilder.create(taskContext).failedWithError().build();
 		}
 		try {
-			int retCode = run(launcherPath, paramFileName);
+			int retCode = run(wd, launcherPath, paramsFile.getAbsolutePath());
 			buildLogger.addBuildLogEntry("********** " + Integer.toString(retCode));
 			if (retCode == 3)
 			{
 				throw new InterruptedException();
 			}
-			else if (retCode > 0)
+			else if (retCode != 0)
 			{
 				return TaskResultBuilder.create(taskContext).failed().build();
 			}
@@ -124,7 +124,7 @@ public abstract class AbstractLauncherTask implements TaskType {
 		catch (InterruptedException e) {
 			buildLogger.addErrorLogEntry("Abborted by user. Aborting process.");
 			try {
-				run(aborterPath, paramFileName);
+				run(wd, aborterPath, paramsFile.getAbsolutePath());
 			}
 			catch (IOException ioe) {
 				buildLogger.addErrorLogEntry(ioe.getMessage(), ioe);
@@ -172,10 +172,17 @@ public abstract class AbstractLauncherTask implements TaskType {
         return "";
 	}
 	
-	private int run(String launcherPath, String paramFile) throws IOException, InterruptedException {
+	private int run1(String launcherPath, String paramFile) throws IOException, InterruptedException {
 		String args[] = {launcherPath, "-paramfile", paramFile}; 
 	    Process p = Runtime.getRuntime().exec(args);
 
+	    return p.waitFor();
+	}
+
+	private int run(File workingDirectory, String launcherPath, String paramFile) throws IOException, InterruptedException {
+		ProcessBuilder builder = new ProcessBuilder(launcherPath, "-paramfile", paramFile);
+		builder.directory(workingDirectory);
+		Process p = builder.start();
 	    return p.waitFor();
 	}
 }
