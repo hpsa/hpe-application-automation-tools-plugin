@@ -32,9 +32,9 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
     		testNames = tests.split(splitMarker);
     	}
         
-        for(int i=0; i<testNames.length; i++)
+        for(int i=0; i < testNames.length; i++)
         {
-        	result.setProperty("Test"+i, testNames[i]);
+        	result.setProperty("Test"+(i+1), testNames[i]);
         }
         
         String timeout = map.get(RunFromFileSystemTaskConfigurator.TIMEOUT);

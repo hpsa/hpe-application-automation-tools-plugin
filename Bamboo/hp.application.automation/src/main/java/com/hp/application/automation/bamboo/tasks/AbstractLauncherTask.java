@@ -54,7 +54,7 @@ public abstract class AbstractLauncherTask implements TaskType {
 		Format formatter = new SimpleDateFormat("ddMMyyyyHHmmssSSS");
 		Date time = new Date();
 		String paramFileName = "props" + formatter.format(time) + ".txt";
-		String resultsFileName = "Results" + time + ".xml";
+		String resultsFileName = "Results" + formatter.format(time) + ".xml";
 
 		mergedProperties.put("runType", RunType.FileSystem.toString());
 		mergedProperties.put("resultsFilename", resultsFileName);
@@ -83,6 +83,7 @@ public abstract class AbstractLauncherTask implements TaskType {
 		try {
 			String error = extractBinaryResource(wd, HpToolsLauncher_SCRIPT_NAME);
 			launcherPath = (new File(wd, HpToolsLauncher_SCRIPT_NAME)).getAbsolutePath();
+			buildLogger.addBuildLogEntry("********** " + launcherPath);
 			
 			if (error != "")
 			{
@@ -92,6 +93,8 @@ public abstract class AbstractLauncherTask implements TaskType {
 	
 			error = extractBinaryResource(wd, HpToolsAborter_SCRIPT_NAME); 
 			aborterPath = (new File(wd, HpToolsAborter_SCRIPT_NAME)).getAbsolutePath();			
+			buildLogger.addBuildLogEntry("********** " + aborterPath);
+			buildLogger.addBuildLogEntry("********** " + error);
 			if (error != "")
 			{
 				buildLogger.addErrorLogEntry(error);
@@ -104,6 +107,7 @@ public abstract class AbstractLauncherTask implements TaskType {
 		}
 		try {
 			int retCode = run(launcherPath, paramFileName);
+			buildLogger.addBuildLogEntry("********** " + Integer.toString(retCode));
 			if (retCode == 3)
 			{
 				throw new InterruptedException();
