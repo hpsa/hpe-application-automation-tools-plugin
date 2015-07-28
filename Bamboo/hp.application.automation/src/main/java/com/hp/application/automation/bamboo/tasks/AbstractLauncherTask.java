@@ -56,7 +56,6 @@ public abstract class AbstractLauncherTask implements TaskType {
 		String paramFileName = "props" + formatter.format(time) + ".txt";
 		String resultsFileName = "Results" + formatter.format(time) + ".xml";
 
-		mergedProperties.put("runType", RunType.FileSystem.toString());
 		mergedProperties.put("resultsFilename", resultsFileName);
 
 		final ConfigurationMap map = taskContext.getConfigurationMap();
@@ -85,7 +84,7 @@ public abstract class AbstractLauncherTask implements TaskType {
 			launcherPath = (new File(wd, HpToolsLauncher_SCRIPT_NAME)).getAbsolutePath();
 			buildLogger.addBuildLogEntry("********** " + launcherPath);
 			
-			if (error != "")
+			if (!error.isEmpty())
 			{
 				buildLogger.addErrorLogEntry(error);
 				return TaskResultBuilder.create(taskContext).failedWithError().build();
@@ -95,7 +94,7 @@ public abstract class AbstractLauncherTask implements TaskType {
 			aborterPath = (new File(wd, HpToolsAborter_SCRIPT_NAME)).getAbsolutePath();			
 			buildLogger.addBuildLogEntry("********** " + aborterPath);
 			buildLogger.addBuildLogEntry("********** " + error);
-			if (error != "")
+			if (!error.isEmpty())
 			{
 				buildLogger.addErrorLogEntry(error);
 				return TaskResultBuilder.create(taskContext).failedWithError().build();
@@ -165,8 +164,10 @@ public abstract class AbstractLauncherTask implements TaskType {
         }
         
         finally {
-            stream.close();
-            resStreamOut.close();
+			if (stream != null) {
+				stream.close();
+				resStreamOut.close();
+			}
         }
         
         return "";

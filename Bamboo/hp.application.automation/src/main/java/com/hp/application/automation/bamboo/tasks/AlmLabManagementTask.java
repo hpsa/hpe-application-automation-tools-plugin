@@ -12,7 +12,9 @@ import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityDefaultsHelper;
 import org.jetbrains.annotations.NotNull;
 
-public class AlmLabManagementTask implements TaskType {
+import java.util.Properties;
+
+public class AlmLabManagementTask extends AbstractLauncherTask {
 
 	private final TestCollationService _testCollationService;
 	private final CapabilityContext _capabilityContext;
@@ -21,8 +23,34 @@ public class AlmLabManagementTask implements TaskType {
 		_testCollationService = testCollationService;
 		_capabilityContext = capabilityContext;
 	}
-	
-	@NotNull
+
+    @Override
+    protected Properties getTaskProperties(TaskContext taskContext) throws Exception {
+
+        final ConfigurationMap map = taskContext.getConfigurationMap();
+        LauncherParamsBuilder builder = new LauncherParamsBuilder();
+
+        builder.setRunType(RunType.Alm);
+
+        builder.setAlmServerUrl(map.get(AlmLabManagementTaskConfigurator.ALM_SERVER_PARAM));
+        builder.setAlmUserName(map.get(AlmLabManagementTaskConfigurator.USER_NAME_PARAM));
+        builder.setAlmPassword(map.get(AlmLabManagementTaskConfigurator.PASSWORD_PARAM));
+        builder.setAlmDomain(map.get(AlmLabManagementTaskConfigurator.DOMAIN_PARAM));
+        builder.setAlmProject(map.get(AlmLabManagementTaskConfigurator.PROJECT_NAME_PARAM));
+        /*
+        builder.set(AlmLabManagementTaskConfigurator.TEST_ID_PARAM));
+        builder.setAlmServerUrl(map.get(AlmLabManagementTaskConfigurator.DESCRIPTION_PARAM));
+        builder.setAlmServerUrl(map.get(AlmLabManagementTaskConfigurator.DURATION_PARAM));
+        builder.setAlmServerUrl(map.get(AlmLabManagementTaskConfigurator.ENVIROMENT_ID_PARAM));
+        builder.setAlmServerUrl(map.get(AlmLabManagementTaskConfigurator.USE_SDA_PARAM));
+        builder.setAlmServerUrl(map.get(AlmLabManagementTaskConfigurator.UI_CONFIG_BEAN_PARAM));
+        builder.setAlmServerUrl(map.get(AlmLabManagementTaskConfigurator.RUN_TYPE_ITEMS_PARAM));
+        */
+        return builder.getProperties();
+    }
+
+    /*
+    @NotNull
     @java.lang.Override
     public TaskResult execute(@NotNull final TaskContext taskContext) throws TaskException
     {
@@ -51,5 +79,5 @@ public class AlmLabManagementTask implements TaskType {
         
         return TaskResultBuilder.create(taskContext).checkTestFailures().build();
     }
-	
+	*/
 }

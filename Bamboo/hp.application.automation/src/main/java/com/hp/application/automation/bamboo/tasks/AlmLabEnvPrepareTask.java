@@ -8,18 +8,30 @@ import com.atlassian.bamboo.task.TaskResult;
 import com.atlassian.bamboo.task.TaskResultBuilder;
 import com.atlassian.bamboo.task.TaskType;
 import org.jetbrains.annotations.NotNull;
+import com.atlassian.bamboo.configuration.ConfigurationMap;
 
 public class AlmLabEnvPrepareTask extends AbstractLauncherTask {
 //public class AlmLabEnvPrepareTask implements TaskType {
 
     @java.lang.Override
 	protected Properties getTaskProperties(final TaskContext taskContext) throws Exception {
-    	return null;
+    	final ConfigurationMap map = taskContext.getConfigurationMap();        
+    	LauncherParamsBuilder builder = new LauncherParamsBuilder();
+
+		builder.setRunType(RunType.Alm);
+		builder.setAlmServerUrl(map.get(AlmLabEnvPrepareTaskConfigurator.ALM_SERVER));
+		builder.setAlmDomain(map.get(AlmLabEnvPrepareTaskConfigurator.DOMAIN));
+		builder.setAlmProject(map.get(AlmLabEnvPrepareTaskConfigurator.PROJECT));
+		builder.setAlmUserName(map.get(AlmLabEnvPrepareTaskConfigurator.USER_NAME));
+		builder.setAlmPassword(map.get(AlmLabEnvPrepareTaskConfigurator.PASSWORD));
+		/*
+		TODO: pass those arguments
+		builder.setAlmServerUrl(map.get(AlmLabEnvPrepareTaskConfigurator.PATH_TO_JSON_FILE));
+		builder.setAlmServerUrl(map.get(AlmLabEnvPrepareTaskConfigurator.ASSIGN_ENV_CONF_ID));
+		builder.setAlmServerUrl(map.get(AlmLabEnvPrepareTaskConfigurator.ENV_CONFIG));
+		builder.setAlmServerUrl(map.get(AlmLabEnvPrepareTaskConfigurator.ENV_CONF_VALUE));
+		*/
+    	return builder.getProperties();
 	}
-    
-//	@NotNull
-//    @java.lang.Override
-//    public TaskResult execute(@NotNull final TaskContext taskContext) throws TaskException {
-//		return TaskResultBuilder.create(taskContext).success().build();
-//	}
+
 }

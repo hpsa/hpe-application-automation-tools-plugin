@@ -17,9 +17,13 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
 
     @java.lang.Override
 	protected Properties getTaskProperties(final TaskContext taskContext) throws Exception {
-    	Properties result = new Properties();
-        
     	final ConfigurationMap map = taskContext.getConfigurationMap();        
+    	LauncherParamsBuilder builder = new LauncherParamsBuilder(); 
+   	
+    	builder.setRunType(RunType.FileSystem);
+        String timeout = map.get(RunFromFileSystemTaskConfigurator.TIMEOUT);
+        builder.setPerScenarioTimeOut(timeout);
+
     	String splitMarker = "\n";
     	String tests = map.get(RunFromFileSystemTaskConfigurator.TESTS_PATH);
     	String[] testNames;
@@ -34,14 +38,8 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
         
         for(int i=0; i < testNames.length; i++)
         {
-        	result.setProperty("Test"+(i+1), testNames[i]);
+        	builder.setTest(i, testNames[i]);
         }
-        
-        String timeout = map.get(RunFromFileSystemTaskConfigurator.TIMEOUT);
-        
-        
-        result.setProperty("PerScenarioTimeOut", timeout);
-        
-    	return result;
+    	return builder.getProperties();
 	}
 }
