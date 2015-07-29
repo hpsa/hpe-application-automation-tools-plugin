@@ -10,6 +10,8 @@ import com.atlassian.bamboo.task.TaskType;
 import com.ctc.wstx.util.StringUtil;
 
 import org.jetbrains.annotations.NotNull;
+
+import java.io.*;
 import java.util.Properties;
 import java.util.stream.Stream;
 import java.util.Date;
@@ -19,12 +21,6 @@ import java.net.URL;
 import java.lang.Process;
 import java.text.Format;
 import java.text.SimpleDateFormat;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.FileOutputStream;
-import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 public abstract class AbstractLauncherTask implements TaskType {
 	private final static String HpToolsLauncher_SCRIPT_NAME = "HpToolsLauncher.exe";
@@ -105,7 +101,7 @@ public abstract class AbstractLauncherTask implements TaskType {
 			return TaskResultBuilder.create(taskContext).failedWithError().build();
 		}
 		try {
-			int retCode = run(wd, launcherPath, paramsFile.getAbsolutePath());
+			int retCode = run(wd, launcherPath, paramsFile.getAbsolutePath(), buildLogger);
 			buildLogger.addBuildLogEntry("********** " + Integer.toString(retCode));
 			if (retCode == 3)
 			{
@@ -123,7 +119,7 @@ public abstract class AbstractLauncherTask implements TaskType {
 		catch (InterruptedException e) {
 			buildLogger.addErrorLogEntry("Abborted by user. Aborting process.");
 			try {
-				run(wd, aborterPath, paramsFile.getAbsolutePath());
+				run(wd, aborterPath, paramsFile.getAbsolutePath(), buildLogger);
 			}
 			catch (IOException ioe) {
 				buildLogger.addErrorLogEntry(ioe.getMessage(), ioe);
@@ -173,17 +169,24 @@ public abstract class AbstractLauncherTask implements TaskType {
         return "";
 	}
 	
-	private int run1(String launcherPath, String paramFile) throws IOException, InterruptedException {
-		String args[] = {launcherPath, "-paramfile", paramFile}; 
-	    Process p = Runtime.getRuntime().exec(args);
+	private int run(File workingDirectory, String launcherPath, String paramFile, BuildLogger logger) throws IOException, InterruptedException {
+		try
+		{
+			ProcessBuilder builder = new ProcessBuilder(launcherPath, "-paramfile", paramFile);
+			builder.directory(workingDirectory);
 
-	    return p.waitFor();
-	}
-
-	private int run(File workingDirectory, String launcherPath, String paramFile) throws IOException, InterruptedException {
-		ProcessBuilder builder = new ProcessBuilder(launcherPath, "-paramfile", paramFile);
-		builder.directory(workingDirectory);
-		Process p = builder.start();
-	    return p.waitFor();
+			Process p = builder.start();
+			String line;
+			BufferedReader output = new BufferedReader(new InputStreamReader(p.getInputStream()));
+			while ((line = output.readLine()) != null) {
+				logger.addBuildLogEntry(line);
+			}
+			output.close();
+			return p.waitFor();
+		}
+		catch (Throwable t) {
+			logger.addBuildLogEntry(t.getMessage());
+			return -1;
+		}
 	}
 }
