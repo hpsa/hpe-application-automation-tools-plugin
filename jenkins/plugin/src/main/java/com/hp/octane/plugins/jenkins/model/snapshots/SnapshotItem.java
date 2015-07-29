@@ -18,6 +18,7 @@ import org.kohsuke.stapler.export.ExportedBean;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -29,6 +30,8 @@ import java.util.List;
 
 @ExportedBean
 public final class SnapshotItem extends AbstractItem<ParameterInstance, SnapshotPhase> {
+	private static final Logger logger = Logger.getLogger(SnapshotItem.class.getName());
+
 	private Integer number = null;
 	private CIEventCauseBase[] causes = null;
 	private SnapshotStatus status = SnapshotStatus.UNAVAILABLE;
@@ -132,7 +135,11 @@ public final class SnapshotItem extends AbstractItem<ParameterInstance, Snapshot
 	private void appendInvokeesNames(ArrayList<String> list, StructurePhase[] phases) {
 		for (StructurePhase phase : phases) {
 			for (StructureItem item : phase.getJobs()) {
-				if (!list.contains(item.getName())) list.add(item.getName());
+				if (item != null) {
+					if (!list.contains(item.getName())) list.add(item.getName());
+				} else {
+					logger.severe("null referenced project encountered; considering it as corrupted configuration and skipping");
+				}
 			}
 		}
 	}

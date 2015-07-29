@@ -8,6 +8,8 @@ import hudson.tasks.Builder;
 import jenkins.model.Jenkins;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -18,12 +20,20 @@ import java.util.ArrayList;
  */
 
 public class MultiJobBuilderProcessor extends AbstractBuilderProcessor {
+	private static final Logger logger = Logger.getLogger(MultiJobBuilderProcessor.class.getName());
+
 	public MultiJobBuilderProcessor(Builder builder) {
 		MultiJobBuilder b = (MultiJobBuilder) builder;
 		super.phases = new ArrayList<StructurePhase>();
-		ArrayList<AbstractProject> items = new ArrayList<AbstractProject>();
+		List<AbstractProject> items = new ArrayList<AbstractProject>();
+		AbstractProject tmpProject;
 		for (PhaseJobsConfig config : b.getPhaseJobs()) {
-			items.add((AbstractProject) Jenkins.getInstance().getItem(config.getJobName()));
+			tmpProject = (AbstractProject) Jenkins.getInstance().getItem(config.getJobName());
+			if (tmpProject != null) {
+				items.add(tmpProject);
+			} else {
+				logger.severe("project named '" + config.getJobName() + "' not found; considering this as corrupted configuration and skipping the project");
+			}
 		}
 		super.phases.add(new StructurePhase(b.getPhaseName(), true, items));
 	}
