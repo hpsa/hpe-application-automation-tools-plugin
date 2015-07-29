@@ -6,7 +6,7 @@
     <parent>
         <artifactId>indi-integrations-root</artifactId>
         <groupId>com.hp.mqm</groupId>
-        <version>12.50.17-SNAPSHOT</version>
+        <version>12.50.18-SNAPSHOT</version>
     </parent>
 
     <artifactId>collection-tool</artifactId>
