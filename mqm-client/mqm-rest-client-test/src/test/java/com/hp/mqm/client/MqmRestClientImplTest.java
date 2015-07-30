@@ -696,6 +696,35 @@ public class MqmRestClientImplTest {
 		Assert.assertEquals(taxonomyType.getName(), taxonomyTypes.getItems().get(0).getName());
 	}
 
+    @Test
+    public void testQueryTaxonomies_merged() throws IOException {
+        long timestamp = System.currentTimeMillis();
+        String typeName = "TaxonomyType" + timestamp;
+        TaxonomyType taxonomyType = testSupportClient.createTaxonomyType(typeName, WORKSPACE);
+        Taxonomy taxonomy = testSupportClient.createTaxonomy(taxonomyType.getId(), "Taxonomy" + timestamp, WORKSPACE);
+
+        PagedList<Taxonomy> taxonomies = client.queryTaxonomies(null, WORKSPACE, 0, 100);
+        Assert.assertTrue(taxonomies.getItems().size() > 0);
+
+        taxonomies = client.queryTaxonomies("Taxonomy" + timestamp, WORKSPACE, 0, 100);
+        Assert.assertEquals(1, taxonomies.getItems().size());
+        Assert.assertEquals(taxonomy.getName(), taxonomies.getItems().get(0).getName());
+
+        taxonomies = client.queryTaxonomies(String.valueOf(timestamp), WORKSPACE, 0, 100);
+        List<Taxonomy> items = new ArrayList<Taxonomy>(taxonomies.getItems());
+        Collections.sort(items, new Comparator<Taxonomy>() {
+            @Override
+            public int compare(Taxonomy left, Taxonomy right) {
+                return (int)(left.getId() - right.getId());
+            }
+        });
+        Assert.assertEquals(2, items.size());
+        Assert.assertEquals(taxonomyType.getName(), items.get(0).getName());
+        Assert.assertEquals(taxonomyType.getId(), items.get(0).getId());
+        Assert.assertEquals(taxonomy.getName(), items.get(1).getName());
+        Assert.assertEquals(taxonomy.getId(), items.get(1).getId());
+    }
+
 	@Test
     @Ignore // pending server-side support for list_root.id cross-filter
 	public void testQueryListItems() {

@@ -2,6 +2,7 @@
 
 package com.hp.mqm.client.model;
 
+@Deprecated
 final public class TaxonomyType {
 
     final private Long id;

@@ -138,9 +138,10 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * If <code>name</code> is not specified or empty, all releases are returned.
 	 * <p/>
 	 *
-	 * @param name   release name filter (can be null or empty)
-	 * @param offset paging offset
-	 * @param limit  paging limit
+	 * @param name          release name filter (can be null or empty)
+     * @param workspaceId   workspace
+	 * @param offset        paging offset
+	 * @param limit         paging limit
 	 * @return releases matching given name
 	 */
 	PagedList<Release> queryReleases(String name, long workspaceId, int offset, int limit);
@@ -155,10 +156,13 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 *
 	 * @param taxonomyTypeId taxonomy type (can be null)
 	 * @param name           taxonomy name filter (can be null or empty)
+     * @param workspaceId    workspace
 	 * @param offset         paging offset
 	 * @param limit          paging limit
 	 * @return taxonomies matching given name and type
+     * @deprecated use {@link #queryTaxonomies(String, long, int, int)} instead
 	 */
+    @Deprecated
 	PagedList<Taxonomy> queryTaxonomies(Long taxonomyTypeId, String name, long workspaceId, int offset, int limit);
 
 	/**
@@ -166,22 +170,40 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * <p/>
 	 * If <code>name</code> is not specified or empty, all taxonomy types are considered.
 	 *
-	 * @param name   taxonomy type name filter (can be null or empty)
-	 * @param offset paging offset
-	 * @param limit  paging limit
+	 * @param name          taxonomy type name filter (can be null or empty)
+     * @param workspaceId   workspace
+	 * @param offset        paging offset
+	 * @param limit         paging limit
 	 * @return taxonomy types matching given name filter
+     * @deprecated use {@link #queryTaxonomies(String, long, int, int)} instead
 	 */
+    @Deprecated
 	PagedList<TaxonomyType> queryTaxonomyTypes(String name, long workspaceId, int offset, int limit);
+
+    /**
+     * Query taxonomies (including categories) matching given name (using contains semantics).
+     * <p/>
+     * <p/>
+     * If <code>name</code> is not specified or empty, all taxonomies are considered.
+     *
+     * @param name          taxonomy name filter (can be null or empty)
+     * @param workspaceId   workspace
+     * @param offset        paging offset
+     * @param limit         paging limit
+     * @return taxonomies matching given name and type
+     */
+    PagedList<Taxonomy> queryTaxonomies(String name, long workspaceId, int offset, int limit);
 
 	/**
 	 * Query list for items matching given name (using contains semantics).
 	 * <p/>
 	 * If <code>name</code> is not specified or empty, all items are considered.
 	 *
-	 * @param listId list id
-	 * @param name   item name filter (can be null or empty)
-	 * @param offset paging offset
-	 * @param limit  paging limit
+	 * @param listId        list id
+	 * @param name          item name filter (can be null or empty)
+     * @param workspaceId   workspace
+	 * @param offset        paging offset
+	 * @param limit         paging limit
 	 * @return list items matching given name filter
 	 */
 	PagedList<ListItem> queryListItems(int listId, String name, long workspaceId, int offset, int limit);

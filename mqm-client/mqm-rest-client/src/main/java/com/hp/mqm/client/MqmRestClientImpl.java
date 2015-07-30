@@ -32,7 +32,8 @@ import org.apache.http.entity.StringEntity;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Logger;
 
 public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestClient {
@@ -329,6 +330,15 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	}
 
     @Override
+    public PagedList<Taxonomy> queryTaxonomies(String name, long workspaceId, int offset, int limit) {
+        List<String> conditions = new LinkedList<String>();
+        if (!StringUtils.isEmpty(name)) {
+            conditions.add(condition("name", "*" + name + "*") + "||" + condition("taxonomy_root.name", "*" + name + "*"));
+        }
+        return getEntities(getEntityURI(URI_TAXONOMY_NODES, conditions, workspaceId, offset, limit), offset, new TaxonomyEntityFactory());
+    }
+
+    @Override
 	public PagedList<ListItem> queryListItems(int listId, String name, long workspaceId, int offset, int limit) {
 		List<String> conditions = new LinkedList<String>();
 		if (!StringUtils.isEmpty(name)) {
@@ -381,14 +391,6 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		return result;
 	}
 
-	private Map<String, Object> serverParams(String serverIdentity, String jobName, int workspaceId) {
-		HashMap<String, Object> params = new HashMap<String, Object>();
-		params.put("server", serverIdentity);
-		params.put("job", jobName);
-		params.put("workspace", workspaceId);
-		return params;
-	}
-
 	private static class ListItemEntityFactory extends AbstractEntityFactory<ListItem> {
 
 		@Override
@@ -403,11 +405,20 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 
 		@Override
 		public Taxonomy doCreate(JSONObject entityObject) {
-			return new Taxonomy(
-					entityObject.getLong("id"),
-					entityObject.getJSONObject("taxonomy_root").getLong("id"),
-					entityObject.getString("name"),
-					null);
+            JSONObject taxonomy_root = entityObject.optJSONObject("taxonomy_root");
+            if (taxonomy_root != null) {
+                return new Taxonomy(
+                        entityObject.getLong("id"),
+                        taxonomy_root.getLong("id"),
+                        entityObject.getString("name"),
+                        taxonomy_root.getString("name"));
+            } else {
+                return new Taxonomy(
+                        entityObject.getLong("id"),
+                        null,
+                        entityObject.getString("name"),
+                        null);
+            }
 		}
 	}
 
