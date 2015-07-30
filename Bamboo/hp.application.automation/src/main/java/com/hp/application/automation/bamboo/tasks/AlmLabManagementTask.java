@@ -7,9 +7,14 @@ import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.task.TaskException;
 import com.atlassian.bamboo.task.TaskResult;
 import com.atlassian.bamboo.task.TaskResultBuilder;
-import com.atlassian.bamboo.task.TaskType;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
-import com.atlassian.bamboo.v2.build.agent.capability.CapabilityDefaultsHelper;
+import com.hp.application.automation.tools.common.model.CdaDetails;
+import com.hp.application.automation.tools.common.model.SseModel;
+import com.hp.application.automation.tools.common.rest.RestClient;
+import com.hp.application.automation.tools.common.result.model.junit.Testsuites;
+import com.hp.application.automation.tools.common.sdk.Args;
+import com.hp.application.automation.tools.common.sdk.ConsoleLogger;
+import com.hp.application.automation.tools.common.sdk.RunManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Properties;
@@ -49,7 +54,7 @@ public class AlmLabManagementTask extends AbstractLauncherTask {
         return builder.getProperties();
     }
 
-    /*
+
     @NotNull
     @java.lang.Override
     public TaskResult execute(@NotNull final TaskContext taskContext) throws TaskException
@@ -74,10 +79,54 @@ public class AlmLabManagementTask extends AbstractLauncherTask {
         buildLogger.addBuildLogEntry("Enviroment Configuration ID: " + map.get(AlmLabManagementTaskConfigurator.ENVIROMENT_ID_PARAM));
         buildLogger.addBuildLogEntry("Use SDA: " + map.get(AlmLabManagementTaskConfigurator.USE_SDA_PARAM));
 
+
+        RunManager runManager = new RunManager();
+
+        SseModel model = new SseModel(
+                almServer
+              , map.get(AlmLabManagementTaskConfigurator.USER_NAME_PARAM)
+              , map.get(AlmLabManagementTaskConfigurator.PASSWORD_PARAM)
+              , map.get(AlmLabManagementTaskConfigurator.DOMAIN_PARAM)
+              , map.get(AlmLabManagementTaskConfigurator.PROJECT_NAME_PARAM)
+              , SseModel.TEST_SET
+              , map.get(AlmLabManagementTaskConfigurator.TEST_ID_PARAM)
+              , map.get(AlmLabManagementTaskConfigurator.DURATION_PARAM)
+              , map.get(AlmLabManagementTaskConfigurator.DESCRIPTION_PARAM)
+              , null
+              , map.get(AlmLabManagementTaskConfigurator.ENVIROMENT_ID_PARAM)
+              , new CdaDetails("Deploy", "testCDA", "Deprovision"));
+
+        Args args = new Args(
+            model.getAlmServerUrl(),
+            model.getAlmDomain(),
+            model.getAlmProject(),
+            model.getAlmUserName(),
+            model.getAlmPassword(),
+            model.getRunType(),
+            model.getAlmEntityId(),
+            model.getTimeslotDuration(),
+            model.getDescription(),
+            model.getPostRunAction(),
+            model.getEnvironmentConfigurationId(),
+            model.getCdaDetails());
+
+        RestClient restClient =
+                new RestClient(
+                        args.getUrl(),
+                        args.getDomain(),
+                        args.getProject(),
+                        args.getUsername());
+
+        try {
+            Testsuites ret = runManager.execute(restClient, args, new ConsoleLogger());
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+
         //final String testFilePattern = "*.txt";         
         //_testCollationService.collateTestResults(taskContext, testFilePattern, new TestResultsReportCollector(), true);
         
         return TaskResultBuilder.create(taskContext).checkTestFailures().build();
     }
-	*/
 }

@@ -20,11 +20,11 @@ public class SseModel {
     public static final String COLLATE = "Collate";
     public static final String COLLATE_ANALYZE = "CollateAndAnalyze";
     public static final String DO_NOTHING = "DoNothing";
-/*
+
     private final String _almServerName;
     private String _almServerUrl;
     private final String _almUserName;
-    private final SecretContainer _almPassword;
+    private final String _almPassword;
     private final String _almDomain;
     private final String _almProject;
     private final String _timeslotDuration;
@@ -58,7 +58,7 @@ public class SseModel {
             _postRunActionCollateAnalyze,
             _postRunActionDoNothing);
     
-    @DataBoundConstructor
+    //@DataBoundConstructor
     public SseModel(
             String almServerName,
             String almUserName,
@@ -79,7 +79,7 @@ public class SseModel {
         _timeslotDuration = timeslotDuration;
         _almEntityId = almEntityId;
         _almUserName = almUserName;
-        _almPassword = setPassword(almPassword);
+        _almPassword = almPassword;
         _runType = runType;
         _description = description;
         _postRunAction = postRunAction;
@@ -87,14 +87,14 @@ public class SseModel {
         _cdaDetails = cdaDetails;
         
     }
-    
+    /*
     protected SecretContainer setPassword(String almPassword) {
         
         SecretContainer secretContainer = new SecretContainerImpl();
         secretContainer.initialize(almPassword);
         
         return secretContainer;
-    }
+    }*/
     
     public String getAlmServerName() {
         
@@ -118,7 +118,7 @@ public class SseModel {
     
     public String getAlmPassword() {
         
-        return _almPassword.toString();
+        return _almPassword;
     }
     
     public String getAlmDomain() {
@@ -179,5 +179,4 @@ public class SseModel {
         
         return _postRunAction;
     }
-    */
 }
