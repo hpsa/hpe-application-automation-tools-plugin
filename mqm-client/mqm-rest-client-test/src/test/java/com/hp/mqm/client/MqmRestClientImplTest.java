@@ -25,6 +25,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -32,6 +33,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -42,6 +46,7 @@ public class MqmRestClientImplTest {
 
 	private static final String LOCATION = ConnectionProperties.getLocation();
 	private static final String SHARED_SPACE = ConnectionProperties.getSharedSpace();
+    private static final long WORKSPACE = ConnectionProperties.getWorkspaceId();
 	private static final String USERNAME = ConnectionProperties.getUsername();
 	private static final String PASSWORD = ConnectionProperties.getPassword();
 	private static final String PROXY_HOST = ConnectionProperties.getProxyHost();
@@ -267,14 +272,14 @@ public class MqmRestClientImplTest {
 
 		// create release and pipeline
 		String releaseName = "Release" + timestamp;
-		Release release = testSupportClient.createRelease(releaseName);
+		Release release = testSupportClient.createRelease(releaseName, WORKSPACE);
 		String pipelineName = "Pipeline" + timestamp;
 		final JSONObject server = ResourceUtils.readJson("server.json");
 		server.put("instanceId", serverIdentity);
 		server.put("url", "http://localhost:8080/jenkins" + timestamp);
 		JSONObject structure = ResourceUtils.readJson("structure.json");
 		structure.put("name", jobName);
-		int pipelineId = client.createPipeline("", jobName, pipelineName, 1001L, release.getId(), structure.toString(), server.toString());
+		long pipelineId = client.createPipeline("", jobName, pipelineName, WORKSPACE, release.getId(), structure.toString(), server.toString());
 		Assert.assertTrue(pipelineId > 0);
 		Thread.sleep(1000);
 
@@ -304,7 +309,7 @@ public class MqmRestClientImplTest {
 			client.release();
 		}
 
-		PagedList<TestRun> pagedList = testSupportClient.queryTestRuns("testOne" + timestamp, 0, 50);
+		PagedList<TestRun> pagedList = testSupportClient.queryTestRuns("testOne" + timestamp, WORKSPACE, 0, 50);
 		Assert.assertEquals(1, pagedList.getItems().size());
 		Assert.assertEquals("testOne" + timestamp, pagedList.getItems().get(0).getName());
 
@@ -371,35 +376,28 @@ public class MqmRestClientImplTest {
 
 		// there should be no pipeline
 		JobConfiguration jobConfiguration = client.getJobConfiguration(serverIdentity, jobName);
-		Assert.assertNull(jobConfiguration.getJobId());
-		Assert.assertNull(jobConfiguration.getJobName());
-		Assert.assertFalse(jobConfiguration.isPipelineRoot());
 		Assert.assertTrue(jobConfiguration.getRelatedPipelines().isEmpty());
-		Assert.assertTrue(jobConfiguration.getFieldMetadata().size() > 0);
 
 		// create release and pipeline
 		String releaseName = "Release" + timestamp;
-		Release release = testSupportClient.createRelease(releaseName);
+		Release release = testSupportClient.createRelease(releaseName, WORKSPACE);
 		String pipelineName = "Pipeline" + timestamp;
 		JSONObject server = ResourceUtils.readJson("server.json");
 		server.put("instanceId", serverIdentity);
 		server.put("url", "http://localhost:8080/jenkins" + timestamp);
 		JSONObject structure = ResourceUtils.readJson("structure.json");
 		structure.put("name", jobName);
-		int pipelineId = client.createPipeline("", jobName, pipelineName, 1001L, release.getId(), structure.toString(), server.toString());
+		long pipelineId = client.createPipeline(serverIdentity, jobName, pipelineName, WORKSPACE, release.getId(), structure.toString(), server.toString());
 		Assert.assertTrue(pipelineId > 0);
 
 		// verify job configuration
 		jobConfiguration = client.getJobConfiguration(serverIdentity, jobName);
-		Assert.assertNotNull(jobConfiguration.getJobId());
-		Assert.assertEquals(jobName, jobConfiguration.getJobName());
-		Assert.assertTrue(jobConfiguration.isPipelineRoot());
 		Assert.assertEquals(1, jobConfiguration.getRelatedPipelines().size());
 		Pipeline pipeline = jobConfiguration.getRelatedPipelines().get(0);
 		Assert.assertEquals(pipelineName, pipeline.getName());
+        Assert.assertTrue(pipeline.isPipelineRoot());
 		Assert.assertTrue(pipeline.getTaxonomies().isEmpty());
 		Assert.assertTrue(pipeline.getFields().isEmpty());
-		Assert.assertTrue(jobConfiguration.getFieldMetadata().size() > 0);
 	}
 
 	@Test
@@ -409,14 +407,14 @@ public class MqmRestClientImplTest {
 		String jobName = "Job" + timestamp;
 
 		String releaseName = "Release" + timestamp;
-		Release release = testSupportClient.createRelease(releaseName);
+		Release release = testSupportClient.createRelease(releaseName, WORKSPACE);
 		String pipelineName = "Pipeline" + timestamp;
 		JSONObject server = ResourceUtils.readJson("server.json");
 		server.put("instanceId", serverIdentity);
 		server.put("url", "http://localhost:8080/jenkins" + timestamp);
 		JSONObject structure = ResourceUtils.readJson("structure.json");
 		structure.put("name", jobName);
-		int pipelineId = client.createPipeline("", jobName, pipelineName, 1001L, release.getId(), structure.toString(), server.toString());
+		long pipelineId = client.createPipeline(serverIdentity, jobName, pipelineName, WORKSPACE, release.getId(), structure.toString(), server.toString());
 		Assert.assertTrue(pipelineId > 0);
 	}
 
@@ -427,18 +425,18 @@ public class MqmRestClientImplTest {
 		String jobName = "Job" + timestamp;
 
 		String releaseName = "Release" + timestamp;
-		Release release = testSupportClient.createRelease(releaseName);
+		Release release = testSupportClient.createRelease(releaseName, WORKSPACE);
 		String pipelineName = "Pipeline" + timestamp;
 		JSONObject server = ResourceUtils.readJson("server.json");
 		server.put("instanceId", serverIdentity);
 		server.put("url", "http://localhost:8080/jenkins" + timestamp);
 		JSONObject structure = ResourceUtils.readJson("structure.json");
 		structure.put("name", jobName);
-		long pipelineId = client.createPipeline("", jobName, pipelineName, 1001L, release.getId(), structure.toString(), server.toString());
+		long pipelineId = client.createPipeline(serverIdentity, jobName, pipelineName, WORKSPACE, release.getId(), structure.toString(), server.toString());
 		Assert.assertTrue(pipelineId > 0);
 
-		Release release2 = testSupportClient.createRelease(releaseName + "New");
-		client.updatePipelineMetadata(pipelineId, pipelineName + "New", release2.getId());
+		Release release2 = testSupportClient.createRelease(releaseName + "New", WORKSPACE);
+		client.updatePipelineMetadata(serverIdentity, jobName, pipelineId, pipelineName + "New", release2.getId());
 		JobConfiguration jobConfiguration = client.getJobConfiguration(serverIdentity, jobName);
 		Assert.assertEquals(1, jobConfiguration.getRelatedPipelines().size());
 		Pipeline pipeline = jobConfiguration.getRelatedPipelines().get(0);
@@ -446,7 +444,7 @@ public class MqmRestClientImplTest {
 		Assert.assertEquals(pipelineName + "New", pipeline.getName());
 
 		// no release ID update
-		client.updatePipelineMetadata(pipelineId, pipelineName, null);
+		client.updatePipelineMetadata(serverIdentity, jobName, pipelineId, pipelineName, null);
 		jobConfiguration = client.getJobConfiguration(serverIdentity, jobName);
 		Assert.assertEquals(1, jobConfiguration.getRelatedPipelines().size());
 		pipeline = jobConfiguration.getRelatedPipelines().get(0);
@@ -454,7 +452,7 @@ public class MqmRestClientImplTest {
 		Assert.assertEquals(pipelineName, pipeline.getName());
 
 		// no pipeline name update
-		client.updatePipelineMetadata(pipelineId, null, release.getId());
+		client.updatePipelineMetadata(serverIdentity, jobName, pipelineId, null, release.getId());
 		jobConfiguration = client.getJobConfiguration(serverIdentity, jobName);
 		Assert.assertEquals(1, jobConfiguration.getRelatedPipelines().size());
 		pipeline = jobConfiguration.getRelatedPipelines().get(0);
@@ -462,11 +460,11 @@ public class MqmRestClientImplTest {
 		Assert.assertEquals(pipelineName, pipeline.getName());
 
 		// clear release update
-		client.updatePipelineMetadata(pipelineId, null, -1L);
+		client.updatePipelineMetadata(serverIdentity, jobName, pipelineId, null, -1L);
 		jobConfiguration = client.getJobConfiguration(serverIdentity, jobName);
 		Assert.assertEquals(1, jobConfiguration.getRelatedPipelines().size());
 		pipeline = jobConfiguration.getRelatedPipelines().get(0);
-		Assert.assertEquals(-1, (long) pipeline.getReleaseId());
+		Assert.assertNull(pipeline.getReleaseId());
 		Assert.assertEquals(pipelineName, pipeline.getName());
 	}
 
@@ -477,18 +475,18 @@ public class MqmRestClientImplTest {
 		String jobName = "Job" + timestamp;
 
 		String releaseName = "Release" + timestamp;
-		Release release = testSupportClient.createRelease(releaseName);
+		Release release = testSupportClient.createRelease(releaseName, WORKSPACE);
 		String pipelineName = "Pipeline" + timestamp;
 		JSONObject server = ResourceUtils.readJson("server.json");
 		server.put("instanceId", serverIdentity);
 		server.put("url", "http://localhost:8080/jenkins" + timestamp);
 		JSONObject structure = ResourceUtils.readJson("structure.json");
 		structure.put("name", jobName);
-		int pipelineId = client.createPipeline("", jobName, pipelineName, 1001L, release.getId(), structure.toString(), server.toString());
+		long pipelineId = client.createPipeline("", jobName, pipelineName, WORKSPACE, release.getId(), structure.toString(), server.toString());
 		Assert.assertTrue(pipelineId > 0);
 
 		JobConfiguration jobConfiguration = client.getJobConfiguration(serverIdentity, jobName);
-		List<FieldMetadata> fieldMetadata = jobConfiguration.getFieldMetadata();
+		List<FieldMetadata> fieldMetadata = null; //TODO: jobConfiguration.getFieldMetadata();
 		int frameworkId = getListIdByLogicalName(fieldMetadata, "hp.qc.test-framework");
 		int toolTypeId = getListIdByLogicalName(fieldMetadata, "hp.qc.test-tool-type");
 		int testTypeId = getListIdByLogicalName(fieldMetadata, "hp.qc.test-new-type");
@@ -561,12 +559,12 @@ public class MqmRestClientImplTest {
 	public void testQueryReleases() throws IOException {
 		long timestamp = System.currentTimeMillis();
 		String releaseName = "Release" + timestamp;
-		Release release = testSupportClient.createRelease(releaseName);
+		Release release = testSupportClient.createRelease(releaseName, WORKSPACE);
 
-		PagedList<Release> releases = client.queryReleases(null, 0, 100);
+		PagedList<Release> releases = client.queryReleases(null, WORKSPACE, 0, 100);
 		Assert.assertTrue(releases.getItems().size() > 0);
 
-		releases = client.queryReleases(releaseName, 0, 100);
+		releases = client.queryReleases(releaseName, WORKSPACE, 0, 100);
 		Assert.assertEquals(1, releases.getItems().size());
 		Assert.assertEquals(release.getId(), releases.getItems().get(0).getId());
 		Assert.assertEquals(release.getName(), releases.getItems().get(0).getName());
@@ -576,8 +574,8 @@ public class MqmRestClientImplTest {
 	public void testQueryTaxonomies() throws IOException {
 		long timestamp = System.currentTimeMillis();
 		String typeName = "TaxonomyType" + timestamp;
-		TaxonomyType taxonomyType = testSupportClient.createTaxonomyType(typeName);
-		Taxonomy taxonomy = testSupportClient.createTaxonomy(taxonomyType.getId(), "Taxonomy" + timestamp);
+		TaxonomyType taxonomyType = testSupportClient.createTaxonomyType(typeName, WORKSPACE);
+		Taxonomy taxonomy = testSupportClient.createTaxonomy(taxonomyType.getId(), "Taxonomy" + timestamp, WORKSPACE);
 
 		PagedList<Taxonomy> taxonomies = client.queryTaxonomies(null, null, 0, 100);
 		Assert.assertTrue(taxonomies.getItems().size() > 0);
@@ -595,7 +593,7 @@ public class MqmRestClientImplTest {
 	public void testQueryTaxonomyTypes() throws IOException {
 		long timestamp = System.currentTimeMillis();
 		String typeName = "TaxonomyType" + timestamp;
-		TaxonomyType taxonomyType = testSupportClient.createTaxonomyType(typeName);
+		TaxonomyType taxonomyType = testSupportClient.createTaxonomyType(typeName, WORKSPACE);
 
 		PagedList<TaxonomyType> taxonomyTypes = client.queryTaxonomyTypes(null, 0, 100);
 		Assert.assertTrue(taxonomyTypes.getItems().size() > 0);
@@ -606,36 +604,30 @@ public class MqmRestClientImplTest {
 	}
 
 	@Test
+    @Ignore // pending server-side support for list_root.id cross-filter
 	public void testQueryListItems() {
-		PagedList<ListItem> toolTypeList = client.queryListItems(0, "Testing Tool", 0, 100);
+		PagedList<ListItem> toolTypeList = client.queryListItems(0, "Testing_Tool_Type", WORKSPACE, 0, 100);
 		Assert.assertEquals(1, toolTypeList.getItems().size());
-		Assert.assertEquals("Testing Tool", toolTypeList.getItems().get(0).getName());
+		Assert.assertEquals("Testing_Tool_Type", toolTypeList.getItems().get(0).getName());
 
-		PagedList<ListItem> items = client.queryListItems(toolTypeList.getItems().get(0).getId(), null, 0, 100);
+		PagedList<ListItem> items = client.queryListItems(toolTypeList.getItems().get(0).getId(), null, WORKSPACE, 0, 100);
 		Assert.assertTrue(items.getItems().size() > 0);
 
 		// get longest name to ensure single match of the contains operator
-		String name = getLongestItemName(items.getItems());
+        ArrayList<ListItem> list = new ArrayList<ListItem>(items.getItems());
+        Collections.sort(list, new Comparator<ListItem>() {
+            @Override
+            public int compare(ListItem left, ListItem right) {
+                return right.getName().length() - left.getName().length();
+            }
+        });
 
-		items = client.queryListItems(toolTypeList.getItems().get(0).getId(), name, 0, 100);
+		items = client.queryListItems(toolTypeList.getItems().get(0).getId(), list.get(0).getName(), WORKSPACE, 0, 100);
 		Assert.assertEquals(1, items.getItems().size());
 	}
 
-	private String getLongestItemName(List<ListItem> items) {
-		if (items.isEmpty()) {
-			Assert.fail("No item found");
-		}
-		String name = "";
-		for (ListItem item : items) {
-			if (item.getName().length() > name.length()) {
-				name = item.getName();
-			}
-		}
-		return name;
-	}
-
 	private int getListItemIdByName(int listId, String name) {
-		List<ListItem> items = client.queryListItems(listId, name, 0, 1).getItems();
+		List<ListItem> items = client.queryListItems(listId, name, WORKSPACE, 0, 1).getItems();
 		Assert.assertEquals(1, items.size());
 		return items.get(0).getId();
 	}

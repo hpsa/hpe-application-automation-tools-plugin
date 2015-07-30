@@ -72,7 +72,9 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * @param serverJson     server descriptor (structure defined by Jenkins Insight)
 	 * @return created pipeline id
 	 */
-	int createPipeline(String serverIdentity, String projectName, String pipelineName, long workspaceId, long releaseId, String structureJson, String serverJson);
+	long createPipeline(String serverIdentity, String projectName, String pipelineName, long workspaceId, long releaseId, String structureJson, String serverJson);
+
+    // TODO: updatePipelineMetadata and updatePipelineTags should be merged and return updated pipeline
 
 	/**
 	 * Update pipeline metadata on the MQM server.
@@ -88,7 +90,7 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * @param pipelineName new pipeline name (can be null)
 	 * @param releaseId    new release ID (can be null)
 	 */
-	void updatePipelineMetadata(Long pipelineId, String pipelineName, Long releaseId);
+	void updatePipelineMetadata(String serverIdentity, String projectName, long pipelineId, String pipelineName, Long releaseId);
 
 	/**
 	 * Update tags associated with the pipeline. Both "taxonomy" and "field" tags are updated.
@@ -120,7 +122,7 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * @param limit  paging limit
 	 * @return releases matching given name
 	 */
-	PagedList<Release> queryReleases(String name, int offset, int limit);
+	PagedList<Release> queryReleases(String name, long workspaceId, int offset, int limit);
 
 	/**
 	 * Query taxonomies matching given name filter (using contains semantics) and taxonomy type.
@@ -161,7 +163,7 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * @param limit  paging limit
 	 * @return list items matching given name filter
 	 */
-	PagedList<ListItem> queryListItems(int listId, String name, int offset, int limit);
+	PagedList<ListItem> queryListItems(int listId, String name, long workspaceId, int offset, int limit);
 
 	/**
 	 * Sends events list to MQM [PUT request].

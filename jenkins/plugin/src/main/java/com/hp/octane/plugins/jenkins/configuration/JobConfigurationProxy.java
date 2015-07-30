@@ -62,7 +62,7 @@ public class JobConfigurationProxy {
 		PluginActions.ServerInfo serverInfo = new PluginActions.ServerInfo();
 		try {
 			MqmRestClient client = createClient();
-			int pipelineId = client.createPipeline(
+			long pipelineId = client.createPipeline(
 					ServerIdentity.getIdentity(),
 					project.getName(),
 					pipelineObject.getString("name"),
@@ -93,7 +93,7 @@ public class JobConfigurationProxy {
 		try {
 			MqmRestClient client = createClient();
 			long pipelineId = pipelineObject.getLong("id");
-			client.updatePipelineMetadata(pipelineId, pipelineObject.getString("name"), pipelineObject.getLong("releaseId"));
+			client.updatePipelineMetadata(ServerIdentity.getIdentity(), project.getName(), pipelineId, pipelineObject.getString("name"), pipelineObject.getLong("releaseId"));
 
 			LinkedList<Taxonomy> taxonomies = new LinkedList<Taxonomy>();
 			JSONArray taxonomyTags = pipelineObject.getJSONArray("taxonomyTags");
@@ -171,43 +171,40 @@ public class JobConfigurationProxy {
 
 		try {
 			JobConfiguration jobConfiguration = client.getJobConfiguration(ServerIdentity.getIdentity(), project.getName());
-			ret.put("jobId", jobConfiguration.getJobId());
-			String jobName = jobConfiguration.getJobName();
-			boolean isRoot = jobConfiguration.isPipelineRoot();
-			List<FieldMetadata> fields = jobConfiguration.getFieldMetadata();
+//			List<FieldMetadata> fields = jobConfiguration.getFieldMetadata();
 			for (Pipeline relatedPipeline : jobConfiguration.getRelatedPipelines()) {
 				JSONObject pipeline = new JSONObject();
 				pipeline.put("id", relatedPipeline.getId());
 				pipeline.put("name", relatedPipeline.getName());
 				pipeline.put("releaseId", relatedPipeline.getReleaseId());
 //				pipeline.put("releaseName", relatedPipeline.getReleaseName());
-//				pipeline.put("isRoot", isRoot && relatedPipeline.getRootJobName().equals(jobName));
+				pipeline.put("isRoot", relatedPipeline.isPipelineRoot());
 
-				addTags(pipeline, relatedPipeline, fields);
+//				addTags(pipeline, relatedPipeline, fields);
 
 				Map<String, List<FieldValue>> valuesByField = new HashMap<String, List<FieldValue>>();
-				for (FieldMetadata field : fields) {
-					valuesByField.put(field.getLogicalListName(), new LinkedList<FieldValue>());
-				}
+//				for (FieldMetadata field : fields) {
+//					valuesByField.put(field.getLogicalListName(), new LinkedList<FieldValue>());
+//				}
 				for (Field field : relatedPipeline.getFields()) {
 					valuesByField.get(field.getParentLogicalName()).add(new FieldValue(field.getId(), field.getName()));
 				}
 				JSONArray fieldTags = new JSONArray();
-				for (FieldMetadata field : fields) {
-					List<FieldValue> values = valuesByField.get(field.getLogicalListName());
-					JSONArray valuesArray = new JSONArray();
-					for (FieldValue value : values) {
-						valuesArray.add(fieldValue(value.getId(), value.getName()));
-					}
-					JSONObject fieldObject = new JSONObject();
-					fieldObject.put("logicalListName", field.getLogicalListName());
-					fieldObject.put("listId", field.getListId());
-					fieldObject.put("listName", field.getListName());
-					fieldObject.put("values", valuesArray);
-					fieldObject.put("extensible", field.isExtensible());
-					fieldObject.put("multiValue", field.isMultiValue());
-					fieldTags.add(fieldObject);
-				}
+//				for (FieldMetadata field : fields) {
+//					List<FieldValue> values = valuesByField.get(field.getLogicalListName());
+//					JSONArray valuesArray = new JSONArray();
+//					for (FieldValue value : values) {
+//						valuesArray.add(fieldValue(value.getId(), value.getName()));
+//					}
+//					JSONObject fieldObject = new JSONObject();
+//					fieldObject.put("logicalListName", field.getLogicalListName());
+//					fieldObject.put("listId", field.getListId());
+//					fieldObject.put("listName", field.getListName());
+//					fieldObject.put("values", valuesArray);
+//					fieldObject.put("extensible", field.isExtensible());
+//					fieldObject.put("multiValue", field.isMultiValue());
+//					fieldTags.add(fieldObject);
+//				}
 				pipeline.put("fieldTags", fieldTags);
 
 				pipelines.add(pipeline);
@@ -216,7 +213,7 @@ public class JobConfigurationProxy {
 			ret.put("pipelines", pipelines);
 
 			JSONObject releases = new JSONObject();
-			for (Release release : client.queryReleases(null, 0, 50).getItems()) {
+			for (Release release : client.queryReleases(null, 1001l, 0, 50).getItems()) {
 				releases.put(String.valueOf(release.getId()), release.getName());
 			}
 			ret.put("releases", releases);
@@ -235,21 +232,21 @@ public class JobConfigurationProxy {
 			ret.put("taxonomies", allTaxonomies);
 
 			JSONArray allFields = new JSONArray();
-			for (FieldMetadata field : fields) {
-				List<ListItem> items = client.queryListItems(field.getListId(), null, 0, 50).getItems();
-				JSONArray array = new JSONArray();
-				for (ListItem item : items) {
-					array.add(fieldValue(item.getId(), item.getName()));
-				}
-				JSONObject fieldObj = new JSONObject();
-				fieldObj.put("logicalListName", field.getLogicalListName());
-				fieldObj.put("listId", field.getListId());
-				fieldObj.put("listName", field.getListName());
-				fieldObj.put("extensible", field.isExtensible());
-				fieldObj.put("multiValue", field.isMultiValue());
-				fieldObj.put("values", array);
-				allFields.add(fieldObj);
-			}
+//			for (FieldMetadata field : fields) {
+//				List<ListItem> items = client.queryListItems(field.getListId(), null, 0, 50).getItems();
+//				JSONArray array = new JSONArray();
+//				for (ListItem item : items) {
+//					array.add(fieldValue(item.getId(), item.getName()));
+//				}
+//				JSONObject fieldObj = new JSONObject();
+//				fieldObj.put("logicalListName", field.getLogicalListName());
+//				fieldObj.put("listId", field.getListId());
+//				fieldObj.put("listName", field.getListName());
+//				fieldObj.put("extensible", field.isExtensible());
+//				fieldObj.put("multiValue", field.isMultiValue());
+//				fieldObj.put("values", array);
+//				allFields.add(fieldObj);
+//			}
 			ret.put("fields", allFields);
 
 			//client.release();

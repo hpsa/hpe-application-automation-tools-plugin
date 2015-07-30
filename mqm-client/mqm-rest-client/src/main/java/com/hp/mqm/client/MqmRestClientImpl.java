@@ -14,6 +14,7 @@ import com.hp.mqm.client.model.Release;
 import com.hp.mqm.client.model.Taxonomy;
 import com.hp.mqm.client.model.TaxonomyType;
 import net.sf.json.JSONArray;
+import net.sf.json.JSONException;
 import net.sf.json.JSONNull;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
@@ -43,12 +44,11 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	//TODO: v2 will be removed after change on the server
 	private static final String URI_PUSH_TEST_RESULT_PUSH = "test-results/v2";
 	private static final String URI_JOB_CONFIGURATION = "analytics/ci/servers/{0}/jobs/{1}/configuration";
-	private static final String URI_RELEASES = "releases-mqm?" + WORKSPACE_FRAGMENT + "&" + PAGING_FRAGMENT;
-	private static final String URI_LIST_ITEMS = "mqm-list-items?" + WORKSPACE_FRAGMENT + "&" + PAGING_FRAGMENT;
+	private static final String URI_RELEASES = "releases?" + PAGING_FRAGMENT;
+	private static final String URI_LIST_ITEMS = "list_nodes?" + PAGING_FRAGMENT;
 	private static final String URI_TAXONOMIES = "taxonomies?" + WORKSPACE_FRAGMENT + "&" + PAGING_FRAGMENT;
 	private static final String URI_TAXONOMY_TYPES = "taxonomy-types?" + WORKSPACE_FRAGMENT + "&" + PAGING_FRAGMENT;
 	private static final String URI_PIPELINES = "cia/pipelines?fetchStructure=false";
-	private static final String URI_PIPELINES_METADATA = "cia/pipelines/{pipeline}/metadata";
 	private static final String URI_PIPELINES_TAGS = "cia/pipelines/{server}/jobconfig/{job}?" + WORKSPACE_FRAGMENT;
 	private static final String URI_PUT_EVENTS = "analytics/ci/events";
 
@@ -87,31 +87,20 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 				throw new RequestException("Job configuration retrieval failed with status code " + response.getStatusLine().getStatusCode() + " and reason " + response.getStatusLine().getReasonPhrase());
 			}
 			String json = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
-			JSONObject jsonObject = JSONObject.fromObject(json);
-			List<Pipeline> pipelines = new LinkedList<Pipeline>();
-			for (JSONObject relatedContext : getJSONObjectCollection(jsonObject, "data")) {
-				if (!relatedContext.has("contextEntityType") || relatedContext.get("contextEntityType") == null) {
-					logger.severe("context block lack of context entity type");
-				} else if (relatedContext.get("contextEntityType").equals("pipeline")) {
-					pipelines.add(toPipeline(relatedContext));
-				} else {
-					logger.info("context type '" + relatedContext.get("contextEntityType") + "' is not supported");
-				}
-			}
-			List<FieldMetadata> fieldsMetadata = new LinkedList<FieldMetadata>();
-			if (jsonObject.has("metadata")) {
-				JSONObject metadata = jsonObject.getJSONObject("metadata");
-				fieldsMetadata = getFieldsMetadata(metadata);
-			}
-			if (jsonObject.has("jobId")) {
-				return new JobConfiguration(jsonObject.getInt("jobId"),
-						jsonObject.getString("jobName"),
-						jsonObject.getBoolean("isPipelineRoot"),
-						pipelines,
-						fieldsMetadata);
-			} else {
-				return new JobConfiguration(jsonObject.optBoolean("isPipelineRoot"), pipelines, fieldsMetadata);
-			}
+            try {
+                JSONObject jsonObject = JSONObject.fromObject(json);
+                List<Pipeline> pipelines = new LinkedList<Pipeline>();
+                for (JSONObject relatedContext : getJSONObjectCollection(jsonObject, "data")) {
+                    if ("pipeline".equals(relatedContext.getString("contextEntityType"))) {
+                        pipelines.add(toPipeline(relatedContext));
+                    } else {
+                        logger.info("Context type '" + relatedContext.get("contextEntityType") + "' is not supported");
+                    }
+                }
+                return new JobConfiguration(pipelines);
+            } catch (JSONException e) {
+                throw new RequestException("Failed to obtain job configuration", e);
+            }
 		} catch (IOException e) {
 			throw new RequestErrorException("Cannot retrieve job configuration from MQM.", e);
 		} finally {
@@ -120,7 +109,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	}
 
 	@Override
-	public int createPipeline(String serverIdentity, String projectName, String pipelineName, long workspaceId, long releaseId, String structureJson, String serverJson) {
+	public long createPipeline(String serverIdentity, String projectName, String pipelineName, long workspaceId, long releaseId, String structureJson, String serverJson) {
 		HttpPost request = new HttpPost(createSharedSpaceInternalApiUri(URI_JOB_CONFIGURATION, serverIdentity, projectName));
 		JSONObject pipelineObject = new JSONObject();
 		pipelineObject.put("contextEntityType", "pipeline");
@@ -137,28 +126,56 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 				throw new RequestException("Pipeline creation failed with status code " + response.getStatusLine().getStatusCode() + " and reason " + response.getStatusLine().getReasonPhrase());
 			}
 			String json = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
-			JSONObject jsonObject = JSONObject.fromObject(json);
-			//return jsonObject.getInt("id");
-			return 0;
+			try {
+				for (JSONObject item : getJSONObjectCollection(JSONObject.fromObject(json), "data")) {
+					if (!"pipeline".equals(item.getString("contextEntityType"))) {
+						continue;
+					}
+					if (!item.getBoolean("pipelineRoot")) {
+						continue;
+					}
+					if (!pipelineName.equals(item.getString("contextEntityName"))) {
+						continue;
+					}
+					if (workspaceId != item.getLong("workspaceId")) {
+						continue;
+					}
+					return item.getLong("contextEntityId");
+				}
+				throw new RequestException("Failed to obtain pipeline id: created item not found");
+			} catch (JSONException e) {
+				throw new RequestException("Failed to obtain pipeline id", e);
+			}
 		} catch (IOException e) {
-			throw new RequestErrorException("Cannot post test results to MQM.", e);
+			throw new RequestErrorException("Cannot create pipeline in MQM.", e);
 		} finally {
 			HttpClientUtils.closeQuietly(response);
 		}
 	}
 
 	@Override
-	public void updatePipelineMetadata(Long pipelineId, String pipelineName, Long releaseId) {
-		HttpPut request = new HttpPut(createProjectApiUriMap(URI_PIPELINES_METADATA, Collections.singletonMap("pipeline", pipelineId)));
-		JSONObject pipelineObject = new JSONObject();
-		pipelineObject.put("pipelineId", pipelineId);
-		if (pipelineName != null) {
-			pipelineObject.put("name", pipelineName);
-		}
-		if (releaseId != null) {
-			pipelineObject.put("releaseId", releaseId);
-		}
-		request.setEntity(new StringEntity(pipelineObject.toString(), ContentType.APPLICATION_JSON));
+	public void updatePipelineMetadata(String serverIdentity, String projectName, long pipelineId, String pipelineName, Long releaseId) {
+		HttpPut request = new HttpPut(createSharedSpaceInternalApiUri(URI_JOB_CONFIGURATION, serverIdentity, projectName));
+
+        JSONObject pipelineObject = new JSONObject();
+        pipelineObject.put("contextEntityType", "pipeline");
+        pipelineObject.put("contextEntityId", pipelineId);
+        if (pipelineName != null) {
+            pipelineObject.put("contextEntityName", pipelineName);
+        }
+        if (releaseId != null) {
+            if (releaseId == -1) {
+                pipelineObject.put("releaseId", JSONNull.getInstance());
+            } else  {
+                pipelineObject.put("releaseId", releaseId);
+            }
+        }
+        JSONArray data = new JSONArray();
+        data.add(pipelineObject);
+        JSONObject payload = new JSONObject();
+        payload.put("data", data);
+
+		request.setEntity(new StringEntity(payload.toString(), ContentType.APPLICATION_JSON));
 		request.setHeader(HEADER_ACCEPT, ContentType.APPLICATION_JSON.getMimeType());
 		HttpResponse response = null;
 		try {
@@ -294,19 +311,19 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		}
 		return new Pipeline(pipelineObject.getLong("contextEntityId"),
 				pipelineObject.getString("contextEntityName"),
+                pipelineObject.getBoolean("pipelineRoot"),
 				pipelineObject.getLong("workspaceId"),
 				pipelineObject.has("releaseId") && !pipelineObject.get("releaseId").equals(JSONNull.getInstance()) ? pipelineObject.getLong("releaseId") : null,
 				taxonomies, fields);
 	}
 
 	@Override
-	public PagedList<Release> queryReleases(String name, int offset, int limit) {
+	public PagedList<Release> queryReleases(String name, long workspaceId, int offset, int limit) {
 		List<String> conditions = new LinkedList<String>();
 		if (!StringUtils.isEmpty(name)) {
 			conditions.add(condition("name", "*" + name + "*"));
 		}
-		return new PagedList<Release>(new ArrayList<Release>(), 0, 0);
-		//return getEntities(getEntityURI(URI_RELEASES, conditions, offset, limit), offset, new ReleaseEntityFactory());
+		return getEntities(getEntityURI(URI_RELEASES, conditions, workspaceId, offset, limit), offset, new ReleaseEntityFactory());
 	}
 
 	@Override
@@ -333,14 +350,13 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	}
 
 	@Override
-	public PagedList<ListItem> queryListItems(int listId, String name, int offset, int limit) {
+	public PagedList<ListItem> queryListItems(int listId, String name, long workspaceId, int offset, int limit) {
 		List<String> conditions = new LinkedList<String>();
 		if (!StringUtils.isEmpty(name)) {
 			conditions.add(condition("name", "*" + name + "*"));
 		}
-		conditions.add(condition("parent-id", String.valueOf(listId)));
-		return new PagedList<ListItem>(new ArrayList<ListItem>(), 0, 0);
-		//return getEntities(getEntityURI(URI_LIST_ITEMS, conditions, offset, limit), offset, new ListItemEntityFactory());
+		conditions.add(condition("list_root.id", String.valueOf(listId)));
+		return getEntities(getEntityURI(URI_LIST_ITEMS, conditions, workspaceId, offset, limit), offset, new ListItemEntityFactory());
 	}
 
 	private void postTestResult(HttpUriRequest request) {
