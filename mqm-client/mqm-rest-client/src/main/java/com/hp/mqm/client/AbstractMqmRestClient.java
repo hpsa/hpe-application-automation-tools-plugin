@@ -56,6 +56,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	private static final String WORKSPACE_API_URI = SHARED_SPACE_API_URI + "/workspaces/{1}";
 
 	private static final String FILTERING_FRAGMENT = "query={query}";
+    private static final String PAGING_FRAGMENT = "offset={offset}&limit={limit}";
 
 	private static final String URI_PARAM_ENCODING = "UTF-8";
 
@@ -449,15 +450,15 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 			}
 			params.put("query", "\"" + expr.toString() + "\"");
             if (workspaceId != null) {
-                return createWorkspaceApiUriMap(collection + "&" + FILTERING_FRAGMENT, workspaceId, params);
+                return createWorkspaceApiUriMap(collection + "?" + PAGING_FRAGMENT + "&" + FILTERING_FRAGMENT, workspaceId, params);
             } else {
-                return createSharedSpaceApiUriMap(collection + "&" + FILTERING_FRAGMENT, params);
+                return createSharedSpaceApiUriMap(collection + "?" + PAGING_FRAGMENT + "&" + FILTERING_FRAGMENT, params);
             }
 		} else {
             if (workspaceId != null) {
-                return createWorkspaceApiUriMap(collection, workspaceId, params);
+                return createWorkspaceApiUriMap(collection + "?" + PAGING_FRAGMENT, workspaceId, params);
             } else {
-                return createSharedSpaceApiUriMap(collection, params);
+                return createSharedSpaceApiUriMap(collection + "?" + PAGING_FRAGMENT, params);
             }
 		}
 	}

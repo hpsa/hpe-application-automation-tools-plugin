@@ -26,15 +26,12 @@ import java.util.List;
 
 public class TestSupportClient extends AbstractMqmRestClient {
 
-    private static final String WORKSPACE_FRAGMENT= "?workspace-id={workspace}";
-
     private static final String URI_RELEASES = "releases";
-    private static final String URI_TEST_RUN = "test-runs" + WORKSPACE_FRAGMENT;
-    private static final String URI_TAXONOMY_TYPES = "taxonomy-types" + WORKSPACE_FRAGMENT;
-    private static final String URI_TAXONOMIES = "taxonomies" + WORKSPACE_FRAGMENT;
-    private static final String URI_CI_SERVERS = "ci-servers" + WORKSPACE_FRAGMENT;
-    private static final String URI_CI_JOBS = "ci-jobs" + WORKSPACE_FRAGMENT;
-    private static final String URI_BUILDS = "builds" + WORKSPACE_FRAGMENT;
+    private static final String URI_TEST_RUN = "runs";
+    private static final String URI_CI_SERVERS = "ci_servers";
+    private static final String URI_CI_JOBS = "ci_jobs";
+    private static final String URI_BUILDS = "builds";
+    private static final String URI_TAXONOMY_NODES = "taxonomy_nodes";
 
     protected TestSupportClient(MqmConnectionConfig connectionConfig) {
         super(connectionConfig);
@@ -52,17 +49,17 @@ public class TestSupportClient extends AbstractMqmRestClient {
         JSONObject taxonomyTypeObject = ResourceUtils.readJson("taxonomyType.json");
         taxonomyTypeObject.put("name", name);
 
-        JSONObject resultObject = postEntity(URI_TAXONOMY_TYPES, workspaceId, taxonomyTypeObject);
+        JSONObject resultObject = postEntity(URI_TAXONOMY_NODES, workspaceId, taxonomyTypeObject);
         return new TaxonomyType(resultObject.getLong("id"), resultObject.getString("name"));
     }
 
     public Taxonomy createTaxonomy(Long typeId, String name, long workspaceId) throws IOException {
         JSONObject taxonomyObject = ResourceUtils.readJson("taxonomy.json");
-        taxonomyObject.put("taxonomy-type-id", typeId);
+        taxonomyObject.getJSONObject("taxonomy_root").put("id", typeId);
         taxonomyObject.put("name", name);
 
-        JSONObject resultObject = postEntity(URI_TAXONOMIES, workspaceId, taxonomyObject);
-        return new Taxonomy(resultObject.getLong("id"), resultObject.getLong("taxonomy-type-id"), resultObject.getString("name"), null);
+        JSONObject resultObject = postEntity(URI_TAXONOMY_NODES, workspaceId, taxonomyObject);
+        return new Taxonomy(resultObject.getLong("id"), resultObject.getJSONObject("taxonomy_root").getLong("id"), resultObject.getString("name"), null);
     }
 
     public PagedList<TestRun> queryTestRuns(String name, long workspaceId, int offset, int limit) {

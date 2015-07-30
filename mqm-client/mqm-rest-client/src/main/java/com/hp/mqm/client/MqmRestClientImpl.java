@@ -12,6 +12,7 @@ import com.hp.mqm.client.model.PagedList;
 import com.hp.mqm.client.model.Pipeline;
 import com.hp.mqm.client.model.Release;
 import com.hp.mqm.client.model.Taxonomy;
+import com.hp.mqm.client.model.TaxonomyNode;
 import com.hp.mqm.client.model.TaxonomyType;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONException;
@@ -39,18 +40,14 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	private static final Logger logger = Logger.getLogger(MqmRestClientImpl.class.getName());
 
 	private static final String WORKSPACE_FRAGMENT = "workspace-id={workspace}";
-	private static final String PAGING_FRAGMENT = "offset={offset}&limit={limit}";
 
-	//TODO: v2 will be removed after change on the server
-	private static final String URI_PUSH_TEST_RESULT_PUSH = "test-results/v2";
+	private static final String URI_PUSH_TEST_RESULT_PUSH = "test-results";
 	private static final String URI_JOB_CONFIGURATION = "analytics/ci/servers/{0}/jobs/{1}/configuration";
-	private static final String URI_RELEASES = "releases?" + PAGING_FRAGMENT;
-	private static final String URI_LIST_ITEMS = "list_nodes?" + PAGING_FRAGMENT;
-	private static final String URI_TAXONOMIES = "taxonomies?" + WORKSPACE_FRAGMENT + "&" + PAGING_FRAGMENT;
-	private static final String URI_TAXONOMY_TYPES = "taxonomy-types?" + WORKSPACE_FRAGMENT + "&" + PAGING_FRAGMENT;
-	private static final String URI_PIPELINES = "cia/pipelines?fetchStructure=false";
+	private static final String URI_RELEASES = "releases";
+	private static final String URI_LIST_ITEMS = "list_nodes";
 	private static final String URI_PIPELINES_TAGS = "cia/pipelines/{server}/jobconfig/{job}?" + WORKSPACE_FRAGMENT;
 	private static final String URI_PUT_EVENTS = "analytics/ci/events";
+    private static final String URI_TAXONOMY_NODES = "taxonomy_nodes";
 
 	private static final String HEADER_ACCEPT = "Accept";
 
@@ -327,29 +324,29 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	}
 
 	@Override
-	public PagedList<Taxonomy> queryTaxonomies(Long taxonomyTypeId, String name, int offset, int limit) {
+	public PagedList<Taxonomy> queryTaxonomies(Long taxonomyTypeId, String name, long workspaceId, int offset, int limit) {
 		List<String> conditions = new LinkedList<String>();
 		if (!StringUtils.isEmpty(name)) {
 			conditions.add(condition("name", "*" + name + "*"));
 		}
 		if (taxonomyTypeId != null) {
-			conditions.add(condition("taxonomy-type-id", String.valueOf(taxonomyTypeId)));
+			conditions.add(condition("taxonomy_root.id", String.valueOf(taxonomyTypeId)));
 		}
-		return new PagedList<Taxonomy>(new ArrayList<Taxonomy>(), 0, 0);
-		//return getEntities(getEntityURI(URI_TAXONOMIES, conditions, offset, limit), offset, new TaxonomyEntityFactory());
+        conditions.add(condition("subtype", "taxonomy_item_node"));
+		return getEntities(getEntityURI(URI_TAXONOMY_NODES, conditions, workspaceId, offset, limit), offset, new TaxonomyEntityFactory());
 	}
 
 	@Override
-	public PagedList<TaxonomyType> queryTaxonomyTypes(String name, int offset, int limit) {
+	public PagedList<TaxonomyType> queryTaxonomyTypes(String name, long workspaceId, int offset, int limit) {
 		List<String> conditions = new LinkedList<String>();
 		if (!StringUtils.isEmpty(name)) {
 			conditions.add(condition("name", "*" + name + "*"));
 		}
-		return new PagedList<TaxonomyType>(new ArrayList<TaxonomyType>(), 0, 0);
-		//return getEntities(getEntityURI(URI_TAXONOMY_TYPES, conditions, offset, limit), offset, new TaxonomyTypeEntityFactory());
+        conditions.add(condition("subtype", "taxonomy_category_node"));
+		return getEntities(getEntityURI(URI_TAXONOMY_NODES, conditions, workspaceId, offset, limit), offset, new TaxonomyTypeEntityFactory());
 	}
 
-	@Override
+    @Override
 	public PagedList<ListItem> queryListItems(int listId, String name, long workspaceId, int offset, int limit) {
 		List<String> conditions = new LinkedList<String>();
 		if (!StringUtils.isEmpty(name)) {
@@ -363,7 +360,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		HttpResponse response = null;
 		try {
 			response = execute(request);
-			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_CREATED) {
+			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_ACCEPTED) {
 				throw new RequestException("Test result posting failed with status code " + response.getStatusLine().getStatusCode() + " and reason " + response.getStatusLine().getReasonPhrase());
 			}
 		} catch (java.io.FileNotFoundException e) {
@@ -426,7 +423,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		public Taxonomy doCreate(JSONObject entityObject) {
 			return new Taxonomy(
 					entityObject.getLong("id"),
-					entityObject.getLong("taxonomy-type-id"),
+					entityObject.getJSONObject("taxonomy_root").getLong("id"),
 					entityObject.getString("name"),
 					null);
 		}

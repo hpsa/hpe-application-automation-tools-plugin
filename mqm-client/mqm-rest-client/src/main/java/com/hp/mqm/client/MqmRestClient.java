@@ -7,6 +7,7 @@ import com.hp.mqm.client.model.JobConfiguration;
 import com.hp.mqm.client.model.Pipeline;
 import com.hp.mqm.client.model.Release;
 import com.hp.mqm.client.model.Taxonomy;
+import com.hp.mqm.client.model.TaxonomyNode;
 import com.hp.mqm.client.model.TaxonomyType;
 
 import java.io.File;
@@ -138,7 +139,7 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * @param limit          paging limit
 	 * @return taxonomies matching given name and type
 	 */
-	PagedList<Taxonomy> queryTaxonomies(Long taxonomyTypeId, String name, int offset, int limit);
+	PagedList<Taxonomy> queryTaxonomies(Long taxonomyTypeId, String name, long workspaceId, int offset, int limit);
 
 	/**
 	 * Query taxonomy types matching given name filter (using contains semantics).
@@ -150,7 +151,7 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * @param limit  paging limit
 	 * @return taxonomy types matching given name filter
 	 */
-	PagedList<TaxonomyType> queryTaxonomyTypes(String name, int offset, int limit);
+	PagedList<TaxonomyType> queryTaxonomyTypes(String name, long workspaceId, int offset, int limit);
 
 	/**
 	 * Query list for items matching given name (using contains semantics).
