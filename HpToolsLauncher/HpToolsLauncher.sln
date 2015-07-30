@@ -10,8 +10,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HpToolsLauncherTests", "HpToolsLauncherTests\HpToolsLauncherTests.csproj", "{A1DAB8E0-DAB0-40F8-AA44-B5B4C2913301}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LRAnalysisLauncher", "..\LRAnalysisLauncher\LRAnalysisLauncher.csproj", "{49496A5D-3FD7-437E-9649-1E2CE2BA6838}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HpToolsAborter", "..\HpToolsAborter\HpToolsAborter.csproj", "{2DFF94C6-A748-4749-B716-6D8DFB936D43}"

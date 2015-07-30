@@ -16,6 +16,7 @@ import hudson.util.ArgumentListBuilder;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URL;
+import org.kohsuke.stapler.DataBoundConstructor;
 
 public class AlmToolsUtils {
     
@@ -28,7 +29,6 @@ public class AlmToolsUtils {
         
         ArgumentListBuilder args = new ArgumentListBuilder();
         PrintStream out = listener.getLogger();
-        
         // Use script to run the cmdLine and get the console output
         args.add(file);
         args.add("-paramfile");

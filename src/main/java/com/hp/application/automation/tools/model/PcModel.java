@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.kohsuke.stapler.DataBoundConstructor;
-
+import hudson.util.Secret;
 public class PcModel {
 
     public static final String    COLLATE         = "Collate Results";

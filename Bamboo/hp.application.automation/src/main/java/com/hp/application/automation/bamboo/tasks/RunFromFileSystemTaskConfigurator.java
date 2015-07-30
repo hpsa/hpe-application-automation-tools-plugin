@@ -1,16 +1,22 @@
 package com.hp.application.automation.bamboo.tasks;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.task.AbstractTaskConfigurator;
 import com.atlassian.bamboo.task.TaskDefinition;
+import com.atlassian.bamboo.task.TaskRequirementSupport;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
+import com.atlassian.bamboo.v2.build.agent.capability.Requirement;
+import com.atlassian.bamboo.v2.build.agent.capability.RequirementImpl;
 import com.atlassian.struts.TextProvider;
 import com.atlassian.util.concurrent.NotNull;
 import com.atlassian.util.concurrent.Nullable;
 import org.apache.commons.lang.StringUtils; 
 
-public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfigurator {
+public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfigurator implements TaskRequirementSupport {
 
 	private TextProvider textProvider;
 
@@ -66,5 +72,14 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 	public void setTextProvider(final TextProvider textProvider)
 	{
 		this.textProvider = textProvider;
-	}   
+	}
+
+	@org.jetbrains.annotations.NotNull
+	@Override
+	public Set<Requirement> calculateRequirements(@NotNull TaskDefinition taskDefinition) {
+		RequirementImpl uftReq = new RequirementImpl("UFT", false, "installed");
+		Set<Requirement> result = new HashSet<Requirement>();
+		result.add(uftReq);
+		return result;
+	}
 }
