@@ -1,5 +1,4 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HpToolsLauncher", "HpToolsLauncher.csproj", "{11BC441C-87A6-41B9-82AE-1F2F606AF45E}"
 EndProject
@@ -9,6 +8,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Local.testsettings = Local.testsettings
 		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HpToolsLauncherTests", "HpToolsLauncherTests\HpToolsLauncherTests.csproj", "{A1DAB8E0-DAB0-40F8-AA44-B5B4C2913301}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LRAnalysisLauncher", "..\LRAnalysisLauncher\LRAnalysisLauncher.csproj", "{49496A5D-3FD7-437E-9649-1E2CE2BA6838}"
 EndProject
