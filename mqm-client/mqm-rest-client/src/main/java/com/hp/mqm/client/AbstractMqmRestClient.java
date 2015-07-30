@@ -208,22 +208,22 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	}
 
 	@Override
-	public void tryToConnectProject() {
+	public void tryToConnectSharedSpace() {
 //		login();
-//		checkDomainAndProject();
+        checkSharedSpace();
 	}
 
 	// the simplest implementation because we do not know if domain and project will exist in future
-	private void checkDomainAndProject() {
-		HttpGet request = new HttpGet(createProjectRestUri(URI_DOMAIN_PROJECT_CHECK));
+	private void checkSharedSpace() {
+		HttpGet request = new HttpGet(createSharedSpaceApiUri(""));
 		HttpResponse response = null;
 		try {
 			response = execute(request);
 			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-				throw new SharedSpaceNotExistException("Cannot connect to given project.");
+				throw new SharedSpaceNotExistException("Cannot connect to given shared space.");
 			}
 		} catch (IOException e) {
-			throw new RequestErrorException("Domain and project check failed", e);
+			throw new RequestErrorException("Shared space check failed", e);
 		} finally {
 			HttpClientUtils.closeQuietly(response);
 		}

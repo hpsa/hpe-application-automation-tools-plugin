@@ -7,7 +7,6 @@ import com.hp.mqm.client.model.JobConfiguration;
 import com.hp.mqm.client.model.Pipeline;
 import com.hp.mqm.client.model.Release;
 import com.hp.mqm.client.model.Taxonomy;
-import com.hp.mqm.client.model.TaxonomyNode;
 import com.hp.mqm.client.model.TaxonomyType;
 
 import java.io.File;
@@ -68,14 +67,12 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * @param projectName    root job name
 	 * @param pipelineName   name of the pipeline
 	 * @param workspaceId    workspace ID that the pipeline should be assigned to
-	 * @param releaseId      release the pipeline will belong to (-1 if no release is associated)
+	 * @param releaseId      release the pipeline will belong to
 	 * @param structureJson  pipeline descriptor (structure defined by Jenkins Insight)
 	 * @param serverJson     server descriptor (structure defined by Jenkins Insight)
 	 * @return created pipeline id
 	 */
-	long createPipeline(String serverIdentity, String projectName, String pipelineName, long workspaceId, long releaseId, String structureJson, String serverJson);
-
-    // TODO: updatePipelineMetadata and updatePipelineTags should be merged and return updated pipeline
+	Pipeline createPipeline(String serverIdentity, String projectName, String pipelineName, long workspaceId, Long releaseId, String structureJson, String serverJson);
 
 	/**
 	 * Update pipeline metadata on the MQM server.
@@ -86,11 +83,14 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * <p/>
 	 * In order to dissociate pipeline from release, <code>releaseId</code> value -1 needs to be specified.
 	 * <p/>
+     *
+     * @deprecated use {@link #updatePipeline(String, String, Pipeline)} instead
 	 *
 	 * @param pipelineId   pipeline ID
 	 * @param pipelineName new pipeline name (can be null)
 	 * @param releaseId    new release ID (can be null)
 	 */
+    @Deprecated
 	void updatePipelineMetadata(String serverIdentity, String projectName, long pipelineId, String pipelineName, Long releaseId);
 
 	/**
@@ -101,6 +101,8 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * field tags can have null IDs, in which case they are first created on the server and then associated to the
 	 * pipeline.
 	 * <p/>
+     *
+     * @deprecated use {@link #updatePipeline(String, String, Pipeline)} instead
 	 *
 	 * @param serverIdentity identity of the server
 	 * @param jobName        name of the job
@@ -109,7 +111,25 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * @param fields         list of "fields" tags associated with the pipeline
 	 * @return pipeline structure
 	 */
+    @Deprecated
 	Pipeline updatePipelineTags(String serverIdentity, String jobName, long pipelineId, List<Taxonomy> taxonomies, List<Field> fields);
+
+    /**
+     * Update pipeline metadata on the MQM server.
+     * <p/>
+     * <p/>
+     * Either <code>pipeline.*</code> value can be null (except for id). In that case, the value isn't updated.
+     * <p/>
+     * It is not possible to update the <code>pipeline.root</code> flag (value is ignored if specified).
+     * <p/>
+     * In order to dissociate pipeline from release, <code>releaseId</code> value -1 needs to be specified.
+     * <p/>
+     *
+     * @param serverIdentity identity of the server
+     * @param jobName        name of the job
+     * @param pipeline      pipeline structure
+     */
+    Pipeline updatePipeline(String serverIdentity, String jobName, Pipeline pipeline);
 
 	/**
 	 * Query releases matching given name filter (using contains semantics).

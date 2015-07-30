@@ -6,25 +6,23 @@ import java.util.List;
 
 final public class Pipeline {
 
-	final private Long id;
-	final private String name;
-	final private boolean pipelineRoot;
-	final private Long workspaceId;
-	final private Long releaseId;
-	final private List<Taxonomy> taxonomies;
-	final private List<Field> fields;
+	private long id;
+	private String name;
+	private Boolean root;
+	private Long releaseId;
+	private List<Taxonomy> taxonomies;
+	private List<Field> fields;
 
-	public Pipeline(Long id, String name, boolean pipelineRoot, Long workspaceId,  Long releaseId, List<Taxonomy> taxonomies, List<Field> fields) {
+	public Pipeline(long id, String name, Boolean root, Long releaseId, List<Taxonomy> taxonomies, List<Field> fields) {
 		this.id = id;
 		this.name = name;
-		this.pipelineRoot = pipelineRoot;
-		this.workspaceId = workspaceId;
+		this.root = root;
 		this.releaseId = releaseId;
 		this.taxonomies = taxonomies;
 		this.fields = fields;
 	}
 
-	public Long getId() {
+	public long getId() {
 		return id;
 	}
 
@@ -32,23 +30,31 @@ final public class Pipeline {
 		return name;
 	}
 
-	public Long getWorkspaceId() {
-		return workspaceId;
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	public Long getReleaseId() {
 		return releaseId;
 	}
 
+	public void setReleaseId(Long releaseId) {
+		this.releaseId = releaseId;
+	}
+
 	public List<Taxonomy> getTaxonomies() {
 		return taxonomies;
+	}
+
+	public void setTaxonomies(List<Taxonomy> taxonomies) {
+		this.taxonomies = taxonomies;
 	}
 
 	public List<Field> getFields() {
 		return fields;
 	}
 
-	public boolean isPipelineRoot() {
-		return pipelineRoot;
+	public Boolean isRoot() {
+		return root;
 	}
 }

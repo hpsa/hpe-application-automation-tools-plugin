@@ -8,7 +8,6 @@ import com.hp.mqm.client.exception.RequestException;
 import com.hp.mqm.client.model.Field;
 import com.hp.mqm.client.model.FieldMetadata;
 import com.hp.mqm.client.model.JobConfiguration;
-import com.hp.mqm.client.model.ListItem;
 import com.hp.mqm.client.model.Pipeline;
 import com.hp.mqm.client.model.Release;
 import com.hp.mqm.client.model.Taxonomy;
@@ -69,7 +68,7 @@ public class JobConfigurationProxy {
 					pipelineObject.optLong("workspaceId"),
 					pipelineObject.optLong("releaseId"),
 					toString(structureItem),
-					toString(serverInfo));
+					toString(serverInfo)).getId();
 			result.put("id", pipelineId);
 
 			client.release();
@@ -178,7 +177,7 @@ public class JobConfigurationProxy {
 				pipeline.put("name", relatedPipeline.getName());
 				pipeline.put("releaseId", relatedPipeline.getReleaseId());
 //				pipeline.put("releaseName", relatedPipeline.getReleaseName());
-				pipeline.put("isRoot", relatedPipeline.isPipelineRoot());
+				pipeline.put("isRoot", relatedPipeline.isRoot());
 
 //				addTags(pipeline, relatedPipeline, fields);
 
@@ -220,11 +219,11 @@ public class JobConfigurationProxy {
 
 			JSONArray allTaxonomies = new JSONArray();
 			MultiValueMap multiMap = new MultiValueMap();
-			List<Taxonomy> taxonomies = client.queryTaxonomies(null, null, 0, 100).getItems();
+			List<Taxonomy> taxonomies = client.queryTaxonomies(null, null, 1001l, 0, 100).getItems();
 			for (Taxonomy taxonomy : taxonomies) {
 				multiMap.put(taxonomy.getTaxonomyTypeId(), tag(taxonomy.getId(), taxonomy.getName()));
 			}
-			List<TaxonomyType> taxonomyTypes = client.queryTaxonomyTypes(null, 0, 50).getItems();
+			List<TaxonomyType> taxonomyTypes = client.queryTaxonomyTypes(null, 1001l, 0, 50).getItems();
 			for (TaxonomyType taxonomyType : taxonomyTypes) {
 				Collection<JSONObject> tags = multiMap.getCollection(taxonomyType.getId());
 				allTaxonomies.add(tagType(taxonomyType.getId(), taxonomyType.getName(), tags == null ? Collections.<JSONObject>emptyList() : tags));
@@ -375,7 +374,7 @@ public class JobConfigurationProxy {
 				configuration.username,
 				configuration.password);
 		try {
-			client.tryToConnectProject();
+			client.tryToConnectSharedSpace();
 		} catch (RequestException e) {
 			logger.log(Level.WARNING, "MQM server connection failed", e);
 			retryModel.failure();

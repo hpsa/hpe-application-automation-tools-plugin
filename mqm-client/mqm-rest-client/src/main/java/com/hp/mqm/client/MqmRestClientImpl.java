@@ -12,7 +12,6 @@ import com.hp.mqm.client.model.PagedList;
 import com.hp.mqm.client.model.Pipeline;
 import com.hp.mqm.client.model.Release;
 import com.hp.mqm.client.model.Taxonomy;
-import com.hp.mqm.client.model.TaxonomyNode;
 import com.hp.mqm.client.model.TaxonomyType;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONException;
@@ -106,13 +105,13 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	}
 
 	@Override
-	public long createPipeline(String serverIdentity, String projectName, String pipelineName, long workspaceId, long releaseId, String structureJson, String serverJson) {
+	public Pipeline createPipeline(String serverIdentity, String projectName, String pipelineName, long workspaceId, Long releaseId, String structureJson, String serverJson) {
 		HttpPost request = new HttpPost(createSharedSpaceInternalApiUri(URI_JOB_CONFIGURATION, serverIdentity, projectName));
 		JSONObject pipelineObject = new JSONObject();
 		pipelineObject.put("contextEntityType", "pipeline");
 		pipelineObject.put("contextEntityName", pipelineName);
-		pipelineObject.put("workspaceId", workspaceId <= 0 ? 1002L : workspaceId);
-		pipelineObject.put("releaseId", releaseId <= 0 ? null : releaseId);
+		pipelineObject.put("workspaceId", workspaceId);
+		pipelineObject.put("releaseId", releaseId);
 		pipelineObject.put("server", JSONObject.fromObject(serverJson));
 		pipelineObject.put("structure", JSONObject.fromObject(structureJson));
 		request.setEntity(new StringEntity(pipelineObject.toString(), ContentType.APPLICATION_JSON));
@@ -123,26 +122,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 				throw new RequestException("Pipeline creation failed with status code " + response.getStatusLine().getStatusCode() + " and reason " + response.getStatusLine().getReasonPhrase());
 			}
 			String json = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
-			try {
-				for (JSONObject item : getJSONObjectCollection(JSONObject.fromObject(json), "data")) {
-					if (!"pipeline".equals(item.getString("contextEntityType"))) {
-						continue;
-					}
-					if (!item.getBoolean("pipelineRoot")) {
-						continue;
-					}
-					if (!pipelineName.equals(item.getString("contextEntityName"))) {
-						continue;
-					}
-					if (workspaceId != item.getLong("workspaceId")) {
-						continue;
-					}
-					return item.getLong("contextEntityId");
-				}
-				throw new RequestException("Failed to obtain pipeline id: created item not found");
-			} catch (JSONException e) {
-				throw new RequestException("Failed to obtain pipeline id", e);
-			}
+            return getPipelineByName(json, pipelineName, workspaceId);
 		} catch (IOException e) {
 			throw new RequestErrorException("Cannot create pipeline in MQM.", e);
 		} finally {
@@ -152,119 +132,122 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 
 	@Override
 	public void updatePipelineMetadata(String serverIdentity, String projectName, long pipelineId, String pipelineName, Long releaseId) {
-		HttpPut request = new HttpPut(createSharedSpaceInternalApiUri(URI_JOB_CONFIGURATION, serverIdentity, projectName));
+        updatePipeline(serverIdentity, projectName, new Pipeline(pipelineId, pipelineName, null, releaseId, null, null));
+	}
+
+	@Override
+	public Pipeline updatePipelineTags(String serverIdentity, String jobName, long pipelineId, List<Taxonomy> taxonomies, List<Field> fields) {
+        return updatePipeline(serverIdentity, jobName, new Pipeline(pipelineId, null, null, null, taxonomies, fields));
+	}
+
+    @Override
+    public Pipeline updatePipeline(String serverIdentity, String jobName, Pipeline pipeline) {
+        HttpPut request = new HttpPut(createSharedSpaceInternalApiUri(URI_JOB_CONFIGURATION, serverIdentity, jobName));
 
         JSONObject pipelineObject = new JSONObject();
         pipelineObject.put("contextEntityType", "pipeline");
-        pipelineObject.put("contextEntityId", pipelineId);
-        if (pipelineName != null) {
-            pipelineObject.put("contextEntityName", pipelineName);
+        pipelineObject.put("contextEntityId", pipeline.getId());
+        if (pipeline.getName() != null) {
+            pipelineObject.put("contextEntityName", pipeline.getName());
         }
-        if (releaseId != null) {
-            if (releaseId == -1) {
+        if (pipeline.getReleaseId() != null) {
+            if (pipeline.getReleaseId() == -1) {
                 pipelineObject.put("releaseId", JSONNull.getInstance());
             } else  {
-                pipelineObject.put("releaseId", releaseId);
+                pipelineObject.put("releaseId", pipeline.getReleaseId());
             }
+        }
+        if (pipeline.getTaxonomies() != null) {
+            JSONArray taxonomies = taxonomiesArray(pipeline.getTaxonomies());
+            pipelineObject.put("taxonomies", taxonomies);
         }
         JSONArray data = new JSONArray();
         data.add(pipelineObject);
         JSONObject payload = new JSONObject();
         payload.put("data", data);
 
-		request.setEntity(new StringEntity(payload.toString(), ContentType.APPLICATION_JSON));
-		request.setHeader(HEADER_ACCEPT, ContentType.APPLICATION_JSON.getMimeType());
-		HttpResponse response = null;
-		try {
-			response = execute(request);
-			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-				throw new RequestException("Pipeline metadata update failed with status code " + response.getStatusLine().getStatusCode() + " and reason " + response.getStatusLine().getReasonPhrase());
-			}
-		} catch (IOException e) {
-			throw new RequestErrorException("Cannot update pipeline metadata.", e);
-		} finally {
-			HttpClientUtils.closeQuietly(response);
-		}
-	}
+        request.setEntity(new StringEntity(payload.toString(), ContentType.APPLICATION_JSON));
+        request.setHeader(HEADER_ACCEPT, ContentType.APPLICATION_JSON.getMimeType());
+        HttpResponse response = null;
+        try {
+            response = execute(request);
+            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+                throw new RequestException("Pipeline update failed with status code " + response.getStatusLine().getStatusCode() + " and reason " + response.getStatusLine().getReasonPhrase());
+            }
+            String json = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
+            return getPipelineById(json, pipeline.getId());
+        } catch (IOException e) {
+            throw new RequestErrorException("Cannot update pipeline.", e);
+        } finally {
+            HttpClientUtils.closeQuietly(response);
+        }
+    }
 
-	@Override
-	public Pipeline updatePipelineTags(String serverIdentity, String jobName, long pipelineId, List<Taxonomy> taxonomies, List<Field> fields) {
-		HttpPost request = new HttpPost(createProjectApiUriMap(URI_PIPELINES_TAGS, serverParams(serverIdentity, jobName, DEFAULT_WORKSPACE)));
+    private JSONArray taxonomiesArray(List<Taxonomy> taxonomies) {
+        JSONArray ret = new JSONArray();
+        for (Taxonomy taxonomy: taxonomies) {
+            JSONObject t = new JSONObject();
+            if (taxonomy.getId() != null) {
+                t.put("id", taxonomy.getId());
+            }
+            if (taxonomy.getName() != null) {
+                t.put("name", taxonomy.getName());
+            }
+            JSONObject parent = new JSONObject();
+            if (taxonomy.getTaxonomyTypeId() != null) {
+                parent.put("id", taxonomy.getTaxonomyTypeId());
+            }
+            if (taxonomy.getTaxonomyTypeName() != null) {
+                parent.put("name", taxonomy.getTaxonomyTypeName());
+            }
+            parent.put("parent", JSONNull.getInstance());
+            t.put("parent", parent);
+            ret.add(t);
+        }
+        return ret;
+    }
 
-		JSONObject pipelineObject = new JSONObject();
-		pipelineObject.put("pipelineId", pipelineId);
+    private Pipeline getPipelineByName(String json, String pipelineName, long workspaceId) {
+        try {
+            for (JSONObject item : getJSONObjectCollection(JSONObject.fromObject(json), "data")) {
+                if (!"pipeline".equals(item.getString("contextEntityType"))) {
+                    continue;
+                }
+                if (!item.getBoolean("pipelineRoot")) {
+                    continue;
+                }
+                if (!pipelineName.equals(item.getString("contextEntityName"))) {
+                    continue;
+                }
+                if (workspaceId != item.getLong("workspaceId")) {
+                    continue;
+                }
+                return toPipeline(item);
+            }
+            throw new RequestException("Failed to obtain pipeline: item not found");
+        } catch (JSONException e) {
+            throw new RequestException("Failed to obtain pipeline", e);
+        }
+    }
 
-		JSONArray taxonomiesArray = new JSONArray();
-		for (Taxonomy taxonomy : taxonomies) {
-			JSONObject taxonomyObject = new JSONObject();
-			if (taxonomy.getId() != null) {
-				taxonomyObject.put("id", taxonomy.getId());
-				taxonomiesArray.add(taxonomyObject);
-				continue;
-			}
-			if (StringUtils.isEmpty(taxonomy.getName())) {
-				throw new IllegalArgumentException("Either taxonomy id or name needs to be specified");
-			}
-			taxonomyObject.put("name", taxonomy.getName());
-			if (taxonomy.getTaxonomyTypeId() != null) {
-				taxonomyObject.put("typeId", taxonomy.getTaxonomyTypeId());
-				taxonomiesArray.add(taxonomyObject);
-				continue;
-			}
-			if (StringUtils.isEmpty(taxonomy.getTaxonomyTypeName())) {
-				throw new IllegalArgumentException("Either taxonomy typeId or typeName needs to be specified");
-			}
-			taxonomyObject.put("typeName", taxonomy.getTaxonomyTypeName());
-			taxonomiesArray.add(taxonomyObject);
-		}
-		pipelineObject.put("taxonomies", taxonomiesArray);
+    private Pipeline getPipelineById(String json, long pipelineId) {
+        try {
+            for (JSONObject item : getJSONObjectCollection(JSONObject.fromObject(json), "data")) {
+                if (!"pipeline".equals(item.getString("contextEntityType"))) {
+                    continue;
+                }
+                if (pipelineId != item.getLong("contextEntityId")) {
+                    continue;
+                }
+                return toPipeline(item);
+            }
+            throw new RequestException("Failed to obtain pipeline: item not found");
+        } catch (JSONException e) {
+            throw new RequestException("Failed to obtain pipeline", e);
+        }
+    }
 
-		JSONArray tagsArray = new JSONArray();
-		for (Field field : fields) {
-			JSONObject fieldObject = new JSONObject();
-			if (field.getId() != null) {
-				fieldObject.put("id", field.getId());
-			} else {
-				fieldObject.put("parentId", field.getParentId());
-				fieldObject.put("name", field.getName());
-			}
-			tagsArray.add(fieldObject);
-		}
-		pipelineObject.put("tags", tagsArray);
-
-		JSONArray pipelines = new JSONArray();
-		pipelines.add(pipelineObject);
-
-		JSONObject pipelinesObject = new JSONObject();
-		pipelinesObject.put("pipelines", pipelines);
-
-		request.setEntity(new StringEntity(pipelinesObject.toString(), ContentType.APPLICATION_JSON));
-		request.setHeader(HEADER_ACCEPT, ContentType.APPLICATION_JSON.getMimeType());
-		HttpResponse response = null;
-		try {
-			response = execute(request);
-			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_CREATED) {
-				throw new RequestException("Pipeline tags update failed with status code " + response.getStatusLine().getStatusCode() + " and reason " + response.getStatusLine().getReasonPhrase());
-			}
-			String json = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
-			JSONObject jsonObject = JSONObject.fromObject(json);
-
-			for (JSONObject relatedPipeline : getJSONObjectCollection(jsonObject, "relatedPipelines")) {
-				Pipeline pipeline = toPipeline(relatedPipeline);
-				if (pipeline.getId() == pipelineId) {
-					return pipeline;
-				}
-			}
-
-			throw new RequestException("Updated pipeline not found in the response");
-		} catch (IOException e) {
-			throw new RequestErrorException("Cannot update pipeline tags.", e);
-		} finally {
-			HttpClientUtils.closeQuietly(response);
-		}
-	}
-
-	private List<FieldMetadata> getFieldsMetadata(JSONObject metadata) {
+    private List<FieldMetadata> getFieldsMetadata(JSONObject metadata) {
 		List<FieldMetadata> fields = new LinkedList<FieldMetadata>();
 		for (JSONObject fieldObject : getJSONObjectCollection(metadata, "lists")) {
 			fields.add(toFieldMetadata(fieldObject));
@@ -309,7 +292,6 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		return new Pipeline(pipelineObject.getLong("contextEntityId"),
 				pipelineObject.getString("contextEntityName"),
                 pipelineObject.getBoolean("pipelineRoot"),
-				pipelineObject.getLong("workspaceId"),
 				pipelineObject.has("releaseId") && !pipelineObject.get("releaseId").equals(JSONNull.getInstance()) ? pipelineObject.getLong("releaseId") : null,
 				taxonomies, fields);
 	}
