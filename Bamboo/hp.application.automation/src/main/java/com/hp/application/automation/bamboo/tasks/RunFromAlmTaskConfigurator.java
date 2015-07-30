@@ -19,13 +19,16 @@ public class RunFromAlmTaskConfigurator extends AbstractTaskConfigurator {
 	private UIConfigSupport uiConfigBean;
 
 	private static final String UI_CONFIG_BEAN_PARAM = "uiConfigBean";
-	private static final String ALM_SERVER = "almServer";
-	private static final String USER_NAME = "userName";
-	private static final String PASSWORD = "password";
-	private static final String DOMAIN = "domain";
-	private static final String PROJECT = "project";
-	private static final String TESTS_PATH = "testPathInput";
-	private static final String TIMEOUT = "timeoutInput";
+	public static final String ALM_SERVER = "almServer";
+	public static final String USER_NAME = "userName";
+	public static final String PASSWORD = "password";
+	public static final String DOMAIN = "domain";
+	public static final String PROJECT = "projectName";
+	public static final String TESTS_PATH = "testPathInput";
+	public static final String TIMEOUT = "timeoutInput";
+	public static final String RUN_MODE = "runMode";
+	public static final String TESTING_TOOL_HOST = "testingToolHost";
+	public static final String DEFAULT_TIMEOUT = "-1";
 	
 
 	public Map<String, String> generateTaskConfigMap(@NotNull final ActionParametersMap params, @Nullable final TaskDefinition previousTaskDefinition)
@@ -39,6 +42,8 @@ public class RunFromAlmTaskConfigurator extends AbstractTaskConfigurator {
 	    config.put(PROJECT, params.getString(PROJECT));
 		config.put(TESTS_PATH, params.getString(TESTS_PATH));
 		config.put(TIMEOUT, params.getString(TIMEOUT));
+		config.put(RUN_MODE, params.getString(RUN_MODE));
+		config.put(TESTING_TOOL_HOST, params.getString(TESTING_TOOL_HOST));
 
 		return config;
 	}
@@ -84,7 +89,8 @@ public class RunFromAlmTaskConfigurator extends AbstractTaskConfigurator {
 
 	private void populateContextForLists(@NotNull final Map<String, Object> context)
 	{
-		context.put(UI_CONFIG_BEAN_PARAM, uiConfigBean);	    
+		context.put(UI_CONFIG_BEAN_PARAM, uiConfigBean);
+		context.put(RUN_MODE, getRunModes());
 	} 
 	
 	@Override
@@ -111,5 +117,16 @@ public class RunFromAlmTaskConfigurator extends AbstractTaskConfigurator {
 	public void setUIConfigBean(final UIConfigSupport uiConfigBean)
 	{
 		this.uiConfigBean = uiConfigBean;
+	}
+
+	private Map<String, String> getRunModes()
+	{
+		Map<String, String> runTypesMap = new HashMap<String, String>();
+		runTypesMap.put("1", "a");
+		//runTypesMap.put("1", AlmRunMode.RUN_LOCAL.toString());
+		runTypesMap.put("2", AlmRunMode.RUN_REMOTE.toString());
+		runTypesMap.put("3", AlmRunMode.RUN_PLANNED_HOST.toString());
+
+		return runTypesMap;
 	}
 }

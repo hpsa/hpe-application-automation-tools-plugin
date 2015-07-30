@@ -2,6 +2,9 @@
 [@ww.textfield labelKey="Alm.userNameInputLbl" name="userName" required='true'/]
 [@ww.password labelKey="Alm.passwordInputLbl" name="password" showPassword="false"/]
 [@ww.textfield labelKey="Alm.domainInputLbl" name="domain" required='true'/]
-[@ww.textfield labelKey="Alm.projectInputLbl" name="project" required='true'/]
+[@ww.textfield labelKey="Alm.projectInputLbl" name="projectName" required='true'/]
 [@ww.textarea labelKey="Alm.testsPathInputLbl" name="testPathInput" required='true' rows="4"/]
 [@ww.textfield labelKey="Alm.timelineInputLbl" name="timeoutInput"/]
+
+[@ww.select name="runMode" labelKey="Alm.runModeInputLbl" list="getRunModes()" emptyOption="false"/]
+[@ww.textfield labelKey="Alm.testingToolHostInputLbl" name="testingToolHost" required='false'/]

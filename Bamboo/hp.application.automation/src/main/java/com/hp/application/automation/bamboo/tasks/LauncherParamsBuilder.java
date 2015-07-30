@@ -40,10 +40,21 @@ public class LauncherParamsBuilder {
 		properties.put("almUserName", almUserName);
 	}
 
-	//TODO: encryption
 	public void setAlmPassword(String almPassword)
 	{
-		properties.put("almPassword", almPassword);
+		String encAlmPass;
+		try {
+
+			encAlmPass =
+					EncryptionUtils.Encrypt(
+							almPassword,
+							EncryptionUtils.getSecretKey());
+
+			properties.put("almPassword", encAlmPass);
+
+		} catch (Exception e) {
+
+		}
 	}
 	
 	public void setAlmDomain(String almDomain)
@@ -70,7 +81,17 @@ public class LauncherParamsBuilder {
 	{
 		properties.put("TestSet"+index, testSet);
 	}
-	
+
+	public void setAlmTestSet(String testSets)
+	{
+		properties.put("almTestSets", testSets);
+	}
+
+	public void setAlmRunHost(String host)
+	{
+		properties.put("almRunHost", host);
+	}
+
 	public void setTest(int index, String test)
 	{
 		properties.put("Test"+index, test);
