@@ -14,7 +14,7 @@
         <url>http://www.example.com/</url>
     </organization>
 
-    <name>hp.application.automation</name>
+    <name>HP Application UFT Bamboo Plugin</name>
     <description>This is the bamboo:hp.application.automation plugin for Atlassian Bamboo.</description>
     <packaging>atlassian-plugin</packaging>
 
