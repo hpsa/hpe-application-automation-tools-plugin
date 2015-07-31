@@ -1,4 +1,4 @@
-Enter file contents herepackage com.hp.application.automation.tools.results;
+package com.hp.application.automation.tools.results;
 
 
 import hudson.model.Action;
