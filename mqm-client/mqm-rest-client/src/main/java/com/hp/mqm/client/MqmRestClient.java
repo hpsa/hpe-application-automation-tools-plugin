@@ -7,7 +7,6 @@ import com.hp.mqm.client.model.JobConfiguration;
 import com.hp.mqm.client.model.Pipeline;
 import com.hp.mqm.client.model.Release;
 import com.hp.mqm.client.model.Taxonomy;
-import com.hp.mqm.client.model.TaxonomyType;
 
 import java.io.File;
 import java.util.List;
@@ -152,9 +151,9 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * <p/>
 	 * If <code>name</code> is not specified or empty, all taxonomies are considered.
 	 * <p/>
-	 * If <code>taxonomyTypeId</code> is specified, only taxonomies of given type are considered.
+	 * If <code>taxonomyRootId</code> is specified, only taxonomies of given type are considered.
 	 *
-	 * @param taxonomyTypeId taxonomy type (can be null)
+	 * @param taxonomyRootId taxonomy type (can be null)
 	 * @param name           taxonomy name filter (can be null or empty)
      * @param workspaceId    workspace
 	 * @param offset         paging offset
@@ -163,7 +162,7 @@ public interface MqmRestClient extends BaseMqmRestClient {
      * @deprecated use {@link #queryTaxonomies(String, long, int, int)} instead
 	 */
     @Deprecated
-	PagedList<Taxonomy> queryTaxonomies(Long taxonomyTypeId, String name, long workspaceId, int offset, int limit);
+	PagedList<Taxonomy> queryTaxonomyItems(Long taxonomyRootId, String name, long workspaceId, int offset, int limit);
 
 	/**
 	 * Query taxonomy types matching given name filter (using contains semantics).
@@ -178,7 +177,7 @@ public interface MqmRestClient extends BaseMqmRestClient {
      * @deprecated use {@link #queryTaxonomies(String, long, int, int)} instead
 	 */
     @Deprecated
-	PagedList<TaxonomyType> queryTaxonomyTypes(String name, long workspaceId, int offset, int limit);
+	PagedList<Taxonomy> queryTaxonomyCategories(String name, long workspaceId, int offset, int limit);
 
     /**
      * Query taxonomies (including categories) matching given name (using contains semantics).

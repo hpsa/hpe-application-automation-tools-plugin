@@ -14,7 +14,6 @@ import com.hp.mqm.client.model.PagedList;
 import com.hp.mqm.client.model.Pipeline;
 import com.hp.mqm.client.model.Release;
 import com.hp.mqm.client.model.Taxonomy;
-import com.hp.mqm.client.model.TaxonomyType;
 import com.hp.mqm.client.model.TestRun;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.FileUtils;
@@ -293,7 +292,7 @@ public class MqmRestClientImplTest {
 
 		boolean buildExists = false;
 		for (int i = 0; i < 30; i++) {
-			if ((buildExists = testSupportClient.checkBuild(serverIdentity, jobName, 1))) {
+			if ((buildExists = testSupportClient.checkBuild(serverIdentity, jobName, 1, WORKSPACE))) {
 				break;
 			}
 			Thread.sleep(1000);
@@ -582,8 +581,10 @@ public class MqmRestClientImplTest {
         pipeline.setReleaseId(release2.getId());
 
         List<Taxonomy> taxonomies = new LinkedList<Taxonomy>();
-        taxonomies.add(new Taxonomy(null, null, "Chrome" + timestamp, "Browser" + timestamp));
+        taxonomies.add(new Taxonomy(null, "Chrome" + timestamp, new Taxonomy(null, "Browser" + timestamp, null)));
         pipeline.setTaxonomies(taxonomies);
+
+        // TODO: add field tags when available
 
         // update name, release, assign new tags
 
@@ -593,22 +594,22 @@ public class MqmRestClientImplTest {
         Assert.assertEquals(1, updatedPipeline.getTaxonomies().size());
         Taxonomy taxonomy = updatedPipeline.getTaxonomies().get(0);
         Assert.assertNotNull(taxonomy.getId());
-        Assert.assertNotNull(taxonomy.getTaxonomyTypeId());
+        Assert.assertNotNull(taxonomy.getRoot().getId());
         Assert.assertEquals("Chrome" + timestamp, taxonomy.getName());
-        Assert.assertEquals("Browser" + timestamp, taxonomy.getTaxonomyTypeName());
+        Assert.assertEquals("Browser" + timestamp, taxonomy.getRoot().getName());
 
         Pipeline updatedPipeline2 = getSinglePipeline(serverIdentity, jobName);
         Assert.assertEquals(pipelineName + "New", updatedPipeline2.getName());
         Assert.assertEquals(release2.getId(), updatedPipeline2.getReleaseId());
         Taxonomy taxonomy2 = updatedPipeline2.getTaxonomies().get(0);
         Assert.assertNotNull(taxonomy2.getId());
-        Assert.assertNotNull(taxonomy2.getTaxonomyTypeId());
+        Assert.assertNotNull(taxonomy2.getRoot().getId());
         Assert.assertEquals("Chrome" + timestamp, taxonomy2.getName());
-        Assert.assertEquals("Browser" + timestamp, taxonomy2.getTaxonomyTypeName());
+        Assert.assertEquals("Browser" + timestamp, taxonomy2.getRoot().getName());
 
         taxonomies.clear();
         taxonomies.add(taxonomy);
-        taxonomies.add(new Taxonomy(null, taxonomy.getTaxonomyTypeId(), "Firefox" + timestamp, "Browser" + timestamp));
+        taxonomies.add(new Taxonomy(null, "Firefox" + timestamp, new Taxonomy(taxonomy.getRoot().getId(), "Browser" + timestamp, null)));
         pipeline.setTaxonomies(taxonomies);
 
         // assign both anew and existing tags
@@ -616,27 +617,21 @@ public class MqmRestClientImplTest {
         Assert.assertEquals(2, updatedPipeline.getTaxonomies().size());
         taxonomy2 = getTaxonomyByName(updatedPipeline.getTaxonomies(), "Firefox" + timestamp);
         Assert.assertNotNull(taxonomy2.getId());
-        Assert.assertEquals(taxonomy.getTaxonomyTypeId(), taxonomy2.getTaxonomyTypeId());
+        Assert.assertEquals(taxonomy.getRoot().getId(), taxonomy2.getRoot().getId());
         Assert.assertEquals("Firefox" + timestamp, taxonomy2.getName());
-        Assert.assertEquals("Browser" + timestamp, taxonomy2.getTaxonomyTypeName());
+        Assert.assertEquals("Browser" + timestamp, taxonomy2.getRoot().getName());
         Taxonomy taxonomy3 = getTaxonomyByName(updatedPipeline.getTaxonomies(), "Chrome" + timestamp);
-        Assert.assertEquals(taxonomy.getId(), taxonomy3.getId());
-        Assert.assertEquals(taxonomy.getTaxonomyTypeId(), taxonomy3.getTaxonomyTypeId());
-        Assert.assertEquals(taxonomy.getName(), taxonomy3.getName());
-        Assert.assertEquals(taxonomy.getTaxonomyTypeName(), taxonomy3.getTaxonomyTypeName());
+        assertTaxonomyEquals(taxonomy, taxonomy3);
 
         updatedPipeline2 = getSinglePipeline(serverIdentity, jobName);
         Assert.assertEquals(2, updatedPipeline2.getTaxonomies().size());
         taxonomy2 = getTaxonomyByName(updatedPipeline2.getTaxonomies(), "Firefox" + timestamp);
         Assert.assertNotNull(taxonomy2.getId());
-        Assert.assertEquals(taxonomy.getTaxonomyTypeId(), taxonomy2.getTaxonomyTypeId());
+        Assert.assertEquals(taxonomy.getRoot().getId(), taxonomy2.getRoot().getId());
         Assert.assertEquals("Firefox" + timestamp, taxonomy2.getName());
-        Assert.assertEquals("Browser" + timestamp, taxonomy2.getTaxonomyTypeName());
+        Assert.assertEquals("Browser" + timestamp, taxonomy2.getRoot().getName());
         taxonomy3 = getTaxonomyByName(updatedPipeline2.getTaxonomies(), "Chrome" + timestamp);
-        Assert.assertEquals(taxonomy.getId(), taxonomy3.getId());
-        Assert.assertEquals(taxonomy.getTaxonomyTypeId(), taxonomy3.getTaxonomyTypeId());
-        Assert.assertEquals(taxonomy.getName(), taxonomy3.getName());
-        Assert.assertEquals(taxonomy.getTaxonomyTypeName(), taxonomy3.getTaxonomyTypeName());
+        assertTaxonomyEquals(taxonomy, taxonomy3);
 
         // unset release
         pipeline.setReleaseId(-1l);
@@ -664,44 +659,45 @@ public class MqmRestClientImplTest {
 
 	@Test
     @Ignore // pending server-side support for taxonomy_root.id cross-filter
-	public void testQueryTaxonomies() throws IOException {
+	public void testQueryTaxonomyItems() throws IOException {
 		long timestamp = System.currentTimeMillis();
 		String typeName = "TaxonomyType" + timestamp;
-		TaxonomyType taxonomyType = testSupportClient.createTaxonomyType(typeName, WORKSPACE);
-		Taxonomy taxonomy = testSupportClient.createTaxonomy(taxonomyType.getId(), "Taxonomy" + timestamp, WORKSPACE);
+		Taxonomy taxonomyType = testSupportClient.createTaxonomyCategory(typeName, WORKSPACE);
+		Taxonomy taxonomy = testSupportClient.createTaxonomyItem(taxonomyType.getId(), "Taxonomy" + timestamp, WORKSPACE);
 
-		PagedList<Taxonomy> taxonomies = client.queryTaxonomies(null, null, WORKSPACE, 0, 100);
+		PagedList<Taxonomy> taxonomies = client.queryTaxonomyItems(null, null, WORKSPACE, 0, 100);
 		Assert.assertTrue(taxonomies.getItems().size() > 0);
 
-		taxonomies = client.queryTaxonomies(taxonomyType.getId(), null, WORKSPACE, 0, 100);
+		taxonomies = client.queryTaxonomyItems(taxonomyType.getId(), null, WORKSPACE, 0, 100);
 		Assert.assertEquals(1, taxonomies.getItems().size());
 		Assert.assertEquals(taxonomy.getName(), taxonomies.getItems().get(0).getName());
 
-		taxonomies = client.queryTaxonomies(taxonomyType.getId(), taxonomy.getName(), WORKSPACE, 0, 100);
+		taxonomies = client.queryTaxonomyItems(taxonomyType.getId(), taxonomy.getName(), WORKSPACE, 0, 100);
 		Assert.assertEquals(1, taxonomies.getItems().size());
 		Assert.assertEquals(taxonomy.getName(), taxonomies.getItems().get(0).getName());
 	}
 
 	@Test
-	public void testQueryTaxonomyTypes() throws IOException {
+	public void testQueryTaxonomyCategories() throws IOException {
 		long timestamp = System.currentTimeMillis();
 		String typeName = "TaxonomyType" + timestamp;
-		TaxonomyType taxonomyType = testSupportClient.createTaxonomyType(typeName, WORKSPACE);
+		Taxonomy taxonomyType = testSupportClient.createTaxonomyCategory(typeName, WORKSPACE);
 
-		PagedList<TaxonomyType> taxonomyTypes = client.queryTaxonomyTypes(null, WORKSPACE, 0, 100);
+		PagedList<Taxonomy> taxonomyTypes = client.queryTaxonomyCategories(null, WORKSPACE, 0, 100);
 		Assert.assertTrue(taxonomyTypes.getItems().size() > 0);
 
-		taxonomyTypes = client.queryTaxonomyTypes(taxonomyType.getName(), WORKSPACE, 0, 100);
+		taxonomyTypes = client.queryTaxonomyCategories(taxonomyType.getName(), WORKSPACE, 0, 100);
 		Assert.assertEquals(1, taxonomyTypes.getItems().size());
 		Assert.assertEquals(taxonomyType.getName(), taxonomyTypes.getItems().get(0).getName());
 	}
 
     @Test
-    public void testQueryTaxonomies_merged() throws IOException {
+	@Ignore // pending server-side support for taxonomy_root.name cross-filter
+    public void testQueryTaxonomies() throws IOException {
         long timestamp = System.currentTimeMillis();
         String typeName = "TaxonomyType" + timestamp;
-        TaxonomyType taxonomyType = testSupportClient.createTaxonomyType(typeName, WORKSPACE);
-        Taxonomy taxonomy = testSupportClient.createTaxonomy(taxonomyType.getId(), "Taxonomy" + timestamp, WORKSPACE);
+        Taxonomy taxonomyType = testSupportClient.createTaxonomyCategory(typeName, WORKSPACE);
+        Taxonomy taxonomy = testSupportClient.createTaxonomyItem(taxonomyType.getId(), "Taxonomy" + timestamp, WORKSPACE);
 
         PagedList<Taxonomy> taxonomies = client.queryTaxonomies(null, WORKSPACE, 0, 100);
         Assert.assertTrue(taxonomies.getItems().size() > 0);
@@ -710,7 +706,7 @@ public class MqmRestClientImplTest {
         Assert.assertEquals(1, taxonomies.getItems().size());
         Assert.assertEquals(taxonomy.getName(), taxonomies.getItems().get(0).getName());
 
-        taxonomies = client.queryTaxonomies(String.valueOf(timestamp), WORKSPACE, 0, 100);
+        taxonomies = client.queryTaxonomies("TaxonomyType" + timestamp, WORKSPACE, 0, 100);
         List<Taxonomy> items = new ArrayList<Taxonomy>(taxonomies.getItems());
         Collections.sort(items, new Comparator<Taxonomy>() {
             @Override
@@ -799,4 +795,14 @@ public class MqmRestClientImplTest {
 			Thread.sleep(delay);
 		}
 	}
+
+    private void assertTaxonomyEquals(Taxonomy left, Taxonomy right) {
+        Assert.assertEquals(left.getId(), right.getId());
+        Assert.assertEquals(left.getName(), right.getName());
+        if (left.getRoot() != null && right.getRoot() != null) {
+            assertTaxonomyEquals(left.getRoot(), right.getRoot());
+        } else {
+            Assert.assertEquals(left.getRoot(), right.getRoot());
+        }
+    }
 }

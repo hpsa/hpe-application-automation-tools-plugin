@@ -5,7 +5,6 @@ package com.hp.mqm.client;
 import com.hp.mqm.client.model.PagedList;
 import com.hp.mqm.client.model.Release;
 import com.hp.mqm.client.model.Taxonomy;
-import com.hp.mqm.client.model.TaxonomyType;
 import com.hp.mqm.client.model.TestRun;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -20,7 +19,6 @@ import org.apache.http.entity.StringEntity;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -30,7 +28,7 @@ public class TestSupportClient extends AbstractMqmRestClient {
     private static final String URI_TEST_RUN = "runs";
     private static final String URI_CI_SERVERS = "ci_servers";
     private static final String URI_CI_JOBS = "ci_jobs";
-    private static final String URI_BUILDS = "builds";
+    private static final String URI_BUILDS = "ci_builds";
     private static final String URI_TAXONOMY_NODES = "taxonomy_nodes";
 
     protected TestSupportClient(MqmConnectionConfig connectionConfig) {
@@ -45,21 +43,22 @@ public class TestSupportClient extends AbstractMqmRestClient {
         return new Release(resultObject.getLong("id"), resultObject.getString("name"));
     }
 
-    public TaxonomyType createTaxonomyType(String name, long workspaceId) throws IOException {
+    public Taxonomy createTaxonomyCategory(String name, long workspaceId) throws IOException {
         JSONObject taxonomyTypeObject = ResourceUtils.readJson("taxonomyType.json");
         taxonomyTypeObject.put("name", name);
 
         JSONObject resultObject = postEntity(URI_TAXONOMY_NODES, workspaceId, taxonomyTypeObject);
-        return new TaxonomyType(resultObject.getLong("id"), resultObject.getString("name"));
+        return new Taxonomy(resultObject.getLong("id"), resultObject.getString("name"), null);
     }
 
-    public Taxonomy createTaxonomy(Long typeId, String name, long workspaceId) throws IOException {
+    public Taxonomy createTaxonomyItem(Long typeId, String name, long workspaceId) throws IOException {
         JSONObject taxonomyObject = ResourceUtils.readJson("taxonomy.json");
         taxonomyObject.getJSONObject("taxonomy_root").put("id", typeId);
         taxonomyObject.put("name", name);
 
         JSONObject resultObject = postEntity(URI_TAXONOMY_NODES, workspaceId, taxonomyObject);
-        return new Taxonomy(resultObject.getLong("id"), resultObject.getJSONObject("taxonomy_root").getLong("id"), resultObject.getString("name"), null);
+        return new Taxonomy(resultObject.getLong("id"), resultObject.getString("name"),
+                new Taxonomy(resultObject.getJSONObject("taxonomy_root").getLong("id"), resultObject.getJSONObject("taxonomy_root").getString("name"), null));
     }
 
     public PagedList<TestRun> queryTestRuns(String name, long workspaceId, int offset, int limit) {
@@ -93,16 +92,16 @@ public class TestSupportClient extends AbstractMqmRestClient {
         }
     }
 
-    public boolean checkBuild(String serverIdentity, String jobName, int number) {
+    public boolean checkBuild(String serverIdentity, String jobName, int number, long workspaceId) {
         List<String> serverConditions = new LinkedList<String>();
-        serverConditions.add(condition("identity", serverIdentity));
+        serverConditions.add(condition("instance_id", serverIdentity));
         PagedList<JSONObject> servers = getEntities(getEntityURI(URI_CI_SERVERS, serverConditions, null, 0, 1), 0, new JsonEntityFactory());
         if (servers.getItems().isEmpty()) {
             return false;
         }
 
         List<String> jobConditions = new LinkedList<String>();
-        jobConditions.add(condition("server-id", String.valueOf(servers.getItems().get(0).getInt("id"))));
+        jobConditions.add(condition("ci_server", servers.getItems().get(0).getInt("id")));
         jobConditions.add(condition("name", jobName));
         PagedList<JSONObject> jobs = getEntities(getEntityURI(URI_CI_JOBS, jobConditions, null, 0, 1), 0, new JsonEntityFactory());
         if(jobs.getItems().isEmpty()) {
@@ -110,9 +109,9 @@ public class TestSupportClient extends AbstractMqmRestClient {
         }
 
         List<String> buildConditions = new LinkedList<String>();
-        buildConditions.add(condition("ci-job-id", String.valueOf(jobs.getItems().get(0).getInt("id"))));
-        buildConditions.add(condition("name", String.valueOf(number)));
-        PagedList<JSONObject> builds = getEntities(getEntityURI(URI_BUILDS, buildConditions, null, 0, 1), 0, new JsonEntityFactory());
+        buildConditions.add(condition("ci_job", jobs.getItems().get(0).getInt("id")));
+        buildConditions.add(condition("number", String.valueOf(number)));
+        PagedList<JSONObject> builds = getEntities(getEntityURI(URI_BUILDS, buildConditions, workspaceId, 0, 1), 0, new JsonEntityFactory());
         return !builds.getItems().isEmpty();
     }
 

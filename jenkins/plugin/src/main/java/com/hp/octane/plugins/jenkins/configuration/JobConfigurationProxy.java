@@ -11,7 +11,6 @@ import com.hp.mqm.client.model.JobConfiguration;
 import com.hp.mqm.client.model.Pipeline;
 import com.hp.mqm.client.model.Release;
 import com.hp.mqm.client.model.Taxonomy;
-import com.hp.mqm.client.model.TaxonomyType;
 import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
@@ -97,13 +96,8 @@ public class JobConfigurationProxy {
 			LinkedList<Taxonomy> taxonomies = new LinkedList<Taxonomy>();
 			JSONArray taxonomyTags = pipelineObject.getJSONArray("taxonomyTags");
 			for (JSONObject jsonObject : toCollection(taxonomyTags)) {
-				Long tagId = jsonObject.containsKey("tagId") ? jsonObject.getLong("tagId") : null;
-				Long tagTypeId = jsonObject.containsKey("tagTypeId") ? jsonObject.getLong("tagTypeId") : null;
-				taxonomies.add(new Taxonomy(
-						tagId,
-						tagTypeId,
-						jsonObject.getString("tagName"),
-						jsonObject.getString("tagTypeName")));
+				taxonomies.add(new Taxonomy(jsonObject.optLong("tagId"), jsonObject.getString("tagName"),
+						new Taxonomy(jsonObject.optLong("tagTypeId"), jsonObject.getString("tagTypeName"), null)));
 			}
 
 			LinkedList<Field> fields = new LinkedList<Field>();
@@ -219,12 +213,12 @@ public class JobConfigurationProxy {
 
 			JSONArray allTaxonomies = new JSONArray();
 			MultiValueMap multiMap = new MultiValueMap();
-			List<Taxonomy> taxonomies = client.queryTaxonomies(null, null, 1001l, 0, 100).getItems();
+			List<Taxonomy> taxonomies = client.queryTaxonomyItems(null, null, 1001l, 0, 100).getItems();
 			for (Taxonomy taxonomy : taxonomies) {
-				multiMap.put(taxonomy.getTaxonomyTypeId(), tag(taxonomy.getId(), taxonomy.getName()));
+				multiMap.put(taxonomy.getRoot().getId(), tag(taxonomy.getId(), taxonomy.getName()));
 			}
-			List<TaxonomyType> taxonomyTypes = client.queryTaxonomyTypes(null, 1001l, 0, 50).getItems();
-			for (TaxonomyType taxonomyType : taxonomyTypes) {
+			List<Taxonomy> taxonomyTypes = client.queryTaxonomyCategories(null, 1001l, 0, 50).getItems();
+			for (Taxonomy taxonomyType : taxonomyTypes) {
 				Collection<JSONObject> tags = multiMap.getCollection(taxonomyType.getId());
 				allTaxonomies.add(tagType(taxonomyType.getId(), taxonomyType.getName(), tags == null ? Collections.<JSONObject>emptyList() : tags));
 			}
@@ -328,8 +322,8 @@ public class JobConfigurationProxy {
 
 	private JSONObject tag(Taxonomy taxonomy) {
 		JSONObject tag = tag(taxonomy.getId(), taxonomy.getName());
-		tag.put("tagTypeId", String.valueOf(taxonomy.getTaxonomyTypeId()));
-		tag.put("tagTypeName", taxonomy.getTaxonomyTypeName());
+		tag.put("tagTypeId", String.valueOf(taxonomy.getRoot().getId()));
+		tag.put("tagTypeName", taxonomy.getRoot().getName());
 		return tag;
 	}
 

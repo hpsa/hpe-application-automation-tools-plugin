@@ -467,6 +467,10 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 		return name + "='" + escapeQueryValue(value) + "'";
 	}
 
+	protected String condition(String name, int value) {
+		return name + "=" + value;
+	}
+
 	private static String escapeQueryValue(String value) {
 		return value.replaceAll("(\\\\)", "$1$1").replaceAll("([\"'])", "\\\\$1");
 	}
