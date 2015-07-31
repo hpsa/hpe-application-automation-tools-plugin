@@ -114,6 +114,7 @@ public class RunFromAlmTaskConfigurator extends AbstractTaskConfigurator {
 		context.put(TESTS_PATH, configuration.get(TESTS_PATH));
 		context.put(TIMEOUT, configuration.get(TIMEOUT));
 		context.put(RUN_MODE, configuration.get(RUN_MODE));
+		context.put(TESTING_TOOL_HOST, configuration.get(TESTING_TOOL_HOST));
 		
 		populateContextForLists(context);
 	}
