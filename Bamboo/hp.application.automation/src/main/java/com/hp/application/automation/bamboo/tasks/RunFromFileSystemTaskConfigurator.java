@@ -16,7 +16,7 @@ import com.atlassian.util.concurrent.NotNull;
 import com.atlassian.util.concurrent.Nullable;
 import org.apache.commons.lang.StringUtils; 
 
-public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfigurator implements TaskRequirementSupport {
+public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfigurator {
 
 	private TextProvider textProvider;
 
@@ -72,14 +72,5 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 	public void setTextProvider(final TextProvider textProvider)
 	{
 		this.textProvider = textProvider;
-	}
-
-	@org.jetbrains.annotations.NotNull
-	@Override
-	public Set<Requirement> calculateRequirements(@NotNull TaskDefinition taskDefinition) {
-		RequirementImpl uftReq = new RequirementImpl(CapabilityUftDefaultsHelper.CAPABILITY_UFT, true, ".*");
-		Set<Requirement> result = new HashSet<Requirement>();
-		result.add(uftReq);
-		return result;
 	}
 }
