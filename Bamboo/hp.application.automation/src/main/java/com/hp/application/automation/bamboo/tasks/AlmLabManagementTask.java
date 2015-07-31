@@ -6,9 +6,11 @@ import com.atlassian.bamboo.build.test.TestReportProvider;
 import com.atlassian.bamboo.configuration.ConfigurationMap;
 import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
+import com.hp.application.automation.tools.common.SSEException;
 import com.hp.application.automation.tools.common.model.CdaDetails;
 import com.hp.application.automation.tools.common.model.SseModel;
 import com.hp.application.automation.tools.common.rest.RestClient;
+import com.hp.application.automation.tools.common.result.ResultSerializer;
 import com.hp.application.automation.tools.common.result.model.junit.Testsuites;
 import com.hp.application.automation.tools.common.sdk.Args;
 import com.hp.application.automation.tools.common.sdk.ConsoleLogger;
@@ -81,18 +83,27 @@ public class AlmLabManagementTask implements TaskType {
                 }
             };
 
-            Testsuites ret = runManager.execute(restClient, args, logger);
+            Testsuites result = runManager.execute(restClient, args, logger);
+
+            ResultSerializer.saveResults(result, taskContext.getWorkingDirectory().getPath(), logger);
 
         }
         catch (InterruptedException e)
         {
             e.printStackTrace();
+            return TaskResultBuilder.create(taskContext).failed().build();
+        }
+        catch (SSEException e)
+        {
+            return TaskResultBuilder.create(taskContext).failed().build();
         }
 
-
+//taskContext.getWorkingDirectory().
         //final String testFilePattern = "*.txt";         
         //_testCollationService.collateTestResults(taskContext, testFilePattern, new TestResultsReportCollector(), true);
 
-        return TaskResultBuilder.create(taskContext).checkTestFailures().build();
+
+
+        return TaskResultBuilder.create(taskContext).success().build();
     }
 }
