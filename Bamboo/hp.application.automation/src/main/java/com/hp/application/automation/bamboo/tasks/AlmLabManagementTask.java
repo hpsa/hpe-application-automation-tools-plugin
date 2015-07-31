@@ -2,11 +2,9 @@ package com.hp.application.automation.bamboo.tasks;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.build.test.TestCollationService;
+import com.atlassian.bamboo.build.test.TestReportProvider;
 import com.atlassian.bamboo.configuration.ConfigurationMap;
-import com.atlassian.bamboo.task.TaskContext;
-import com.atlassian.bamboo.task.TaskException;
-import com.atlassian.bamboo.task.TaskResult;
-import com.atlassian.bamboo.task.TaskResultBuilder;
+import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.hp.application.automation.tools.common.model.CdaDetails;
 import com.hp.application.automation.tools.common.model.SseModel;
@@ -14,12 +12,14 @@ import com.hp.application.automation.tools.common.rest.RestClient;
 import com.hp.application.automation.tools.common.result.model.junit.Testsuites;
 import com.hp.application.automation.tools.common.sdk.Args;
 import com.hp.application.automation.tools.common.sdk.ConsoleLogger;
+import com.hp.application.automation.tools.common.sdk.Logger;
 import com.hp.application.automation.tools.common.sdk.RunManager;
+import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Properties;
 
-public class AlmLabManagementTask extends AbstractLauncherTask {
+public class AlmLabManagementTask implements TaskType {
 
 	private final TestCollationService _testCollationService;
 	private final CapabilityContext _capabilityContext;
@@ -28,32 +28,6 @@ public class AlmLabManagementTask extends AbstractLauncherTask {
 		_testCollationService = testCollationService;
 		_capabilityContext = capabilityContext;
 	}
-
-    @Override
-    protected Properties getTaskProperties(TaskContext taskContext) throws Exception {
-
-        final ConfigurationMap map = taskContext.getConfigurationMap();
-        LauncherParamsBuilder builder = new LauncherParamsBuilder();
-
-        builder.setRunType(RunType.Alm);
-
-        builder.setAlmServerUrl(map.get(AlmLabManagementTaskConfigurator.ALM_SERVER_PARAM));
-        builder.setAlmUserName(map.get(AlmLabManagementTaskConfigurator.USER_NAME_PARAM));
-        builder.setAlmPassword(map.get(AlmLabManagementTaskConfigurator.PASSWORD_PARAM));
-        builder.setAlmDomain(map.get(AlmLabManagementTaskConfigurator.DOMAIN_PARAM));
-        builder.setAlmProject(map.get(AlmLabManagementTaskConfigurator.PROJECT_NAME_PARAM));
-        /*
-        builder.set(AlmLabManagementTaskConfigurator.TEST_ID_PARAM));
-        builder.setAlmServerUrl(map.get(AlmLabManagementTaskConfigurator.DESCRIPTION_PARAM));
-        builder.setAlmServerUrl(map.get(AlmLabManagementTaskConfigurator.DURATION_PARAM));
-        builder.setAlmServerUrl(map.get(AlmLabManagementTaskConfigurator.ENVIROMENT_ID_PARAM));
-        builder.setAlmServerUrl(map.get(AlmLabManagementTaskConfigurator.USE_SDA_PARAM));
-        builder.setAlmServerUrl(map.get(AlmLabManagementTaskConfigurator.UI_CONFIG_BEAN_PARAM));
-        builder.setAlmServerUrl(map.get(AlmLabManagementTaskConfigurator.RUN_TYPE_ITEMS_PARAM));
-        */
-        return builder.getProperties();
-    }
-
 
     @NotNull
     @java.lang.Override
@@ -65,50 +39,31 @@ public class AlmLabManagementTask extends AbstractLauncherTask {
         
         final String almServer = map.get(AlmLabManagementTaskConfigurator.ALM_SERVER_PARAM);
         final String almServerPath = _capabilityContext.getCapabilityValue(AlmServerCapabilityHelper.GetCapabilityKey(almServer));
-        
-        buildLogger.addBuildLogEntry("ALM Server: " + almServer);
-        buildLogger.addBuildLogEntry("ALM Server Path: " + almServerPath);
-        buildLogger.addBuildLogEntry("User name: " + map.get(AlmLabManagementTaskConfigurator.USER_NAME_PARAM));
-        buildLogger.addBuildLogEntry("Password: " + map.get(AlmLabManagementTaskConfigurator.PASSWORD_PARAM));
-        buildLogger.addBuildLogEntry("Domain: " + map.get(AlmLabManagementTaskConfigurator.DOMAIN_PARAM));
-        buildLogger.addBuildLogEntry("Project: " + map.get(AlmLabManagementTaskConfigurator.PROJECT_NAME_PARAM));
-        buildLogger.addBuildLogEntry("Run Type: " + map.get(AlmLabManagementTaskConfigurator.RUN_TYPE_PARAM));
-        buildLogger.addBuildLogEntry("Test Set/Build Verification Suite ID: " + map.get(AlmLabManagementTaskConfigurator.TEST_ID_PARAM));
-        buildLogger.addBuildLogEntry("Description: " + map.get(AlmLabManagementTaskConfigurator.DESCRIPTION_PARAM));
-        buildLogger.addBuildLogEntry("Timeslot Duration: " + map.get(AlmLabManagementTaskConfigurator.DURATION_PARAM));
-        buildLogger.addBuildLogEntry("Enviroment Configuration ID: " + map.get(AlmLabManagementTaskConfigurator.ENVIROMENT_ID_PARAM));
-        buildLogger.addBuildLogEntry("Use SDA: " + map.get(AlmLabManagementTaskConfigurator.USE_SDA_PARAM));
-
 
         RunManager runManager = new RunManager();
 
-        SseModel model = new SseModel(
-                almServer
-              , map.get(AlmLabManagementTaskConfigurator.USER_NAME_PARAM)
-              , map.get(AlmLabManagementTaskConfigurator.PASSWORD_PARAM)
-              , map.get(AlmLabManagementTaskConfigurator.DOMAIN_PARAM)
-              , map.get(AlmLabManagementTaskConfigurator.PROJECT_NAME_PARAM)
-              , SseModel.TEST_SET
-              , map.get(AlmLabManagementTaskConfigurator.TEST_ID_PARAM)
-              , map.get(AlmLabManagementTaskConfigurator.DURATION_PARAM)
-              , map.get(AlmLabManagementTaskConfigurator.DESCRIPTION_PARAM)
-              , null
-              , map.get(AlmLabManagementTaskConfigurator.ENVIROMENT_ID_PARAM)
-              , new CdaDetails("Deploy", "testCDA", "Deprovision"));
+        CdaDetails cdaDetails = null;
+        boolean useCda = BooleanUtils.toBoolean(map.get(AlmLabManagementTaskConfigurator.USE_SDA_PARAM));
+        if(useCda)
+        {
+            cdaDetails = new CdaDetails(map.get(AlmLabManagementTaskConfigurator.DEPLOYMENT_ACTION_PARAM),
+                                        map.get(AlmLabManagementTaskConfigurator.DEPOYED_ENVIROMENT_NAME_PARAM),
+                                        map.get(AlmLabManagementTaskConfigurator.DEPROVISIONING_ACTION_PARAM));
+        }
 
         Args args = new Args(
-            model.getAlmServerUrl(),
-            model.getAlmDomain(),
-            model.getAlmProject(),
-            model.getAlmUserName(),
-            model.getAlmPassword(),
-            model.getRunType(),
-            model.getAlmEntityId(),
-            model.getTimeslotDuration(),
-            model.getDescription(),
-            model.getPostRunAction(),
-            model.getEnvironmentConfigurationId(),
-            model.getCdaDetails());
+                almServerPath,
+                map.get(AlmLabManagementTaskConfigurator.DOMAIN_PARAM),
+                map.get(AlmLabManagementTaskConfigurator.PROJECT_NAME_PARAM),
+                map.get(AlmLabManagementTaskConfigurator.USER_NAME_PARAM),
+                map.get(AlmLabManagementTaskConfigurator.PASSWORD_PARAM),
+                map.get(AlmLabManagementTaskConfigurator.RUN_TYPE_PARAM),
+                map.get(AlmLabManagementTaskConfigurator.TEST_ID_PARAM),
+                map.get(AlmLabManagementTaskConfigurator.DURATION_PARAM),
+                map.get(AlmLabManagementTaskConfigurator.DESCRIPTION_PARAM),
+                null,
+                map.get(AlmLabManagementTaskConfigurator.ENVIROMENT_ID_PARAM),
+                cdaDetails);
 
         RestClient restClient =
                 new RestClient(
@@ -117,16 +72,27 @@ public class AlmLabManagementTask extends AbstractLauncherTask {
                         args.getProject(),
                         args.getUsername());
 
-        try {
-            Testsuites ret = runManager.execute(restClient, args, new ConsoleLogger());
-        } catch (InterruptedException e) {
+        try
+        {
+            Logger logger = new Logger() {
+
+                public void log(String message) {
+                    buildLogger.addBuildLogEntry(message);
+                }
+            };
+
+            Testsuites ret = runManager.execute(restClient, args, logger);
+
+        }
+        catch (InterruptedException e)
+        {
             e.printStackTrace();
         }
 
 
         //final String testFilePattern = "*.txt";         
         //_testCollationService.collateTestResults(taskContext, testFilePattern, new TestResultsReportCollector(), true);
-        
+
         return TaskResultBuilder.create(taskContext).checkTestFailures().build();
     }
 }

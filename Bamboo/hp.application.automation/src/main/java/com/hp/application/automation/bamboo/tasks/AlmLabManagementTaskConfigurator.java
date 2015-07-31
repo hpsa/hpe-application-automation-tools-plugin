@@ -6,6 +6,9 @@ import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
 import com.atlassian.bamboo.ww2.actions.build.admin.create.UIConfigBean;
 import com.atlassian.bamboo.ww2.actions.build.admin.create.UIConfigSupport;
+import com.hp.application.automation.tools.common.model.CdaDetails;
+import com.hp.application.automation.tools.common.model.EnumDescription;
+import com.hp.application.automation.tools.common.model.SseModel;
 import com.opensymphony.xwork2.*;
 
 import org.apache.commons.lang.*;
@@ -28,9 +31,15 @@ public class AlmLabManagementTaskConfigurator extends AbstractTaskConfigurator
 	public static final String DURATION_PARAM = "duration";
 	public static final String ENVIROMENT_ID_PARAM = "enviromentId";
 	public static final String USE_SDA_PARAM = "useSda";
+	public static final String DEPLOYMENT_ACTION_PARAM = "deploymentAction";
+	public static final String DEPOYED_ENVIROMENT_NAME_PARAM = "deployedEnvironmentName";
+	public static final String DEPROVISIONING_ACTION_PARAM = "deprovisioningAction";
+
 	public static final String UI_CONFIG_BEAN_PARAM = "uiConfigBean";
 	public static final String RUN_TYPE_ITEMS_PARAM = "runTypeItems";
-	
+	public static final String DEPLOYMENT_ACTION_ITEMS_PARAM = "deploymentActionItems";
+	public static final String DEPROVISIONING_ACTION_ITEMS_PARAM = "deprovisioningActionItems";
+
 	private static final String RUN_TYPE_TEST_SET_STRING = "AlmLabManagementTask.runType.item.testSet";
 	private static final String RUN_TYPE_BUILD_VERIFICATION_SUITE_STRING = "AlmLabManagementTask.runType.item.buildVerificationSuite";
 	
@@ -69,6 +78,9 @@ public class AlmLabManagementTaskConfigurator extends AbstractTaskConfigurator
 	    config.put(DURATION_PARAM, params.getString(DURATION_PARAM));
 	    config.put(ENVIROMENT_ID_PARAM, params.getString(ENVIROMENT_ID_PARAM));
 	    config.put(USE_SDA_PARAM, params.getString(USE_SDA_PARAM));
+		config.put(DEPLOYMENT_ACTION_PARAM, params.getString((DEPLOYMENT_ACTION_PARAM)));
+		config.put(DEPOYED_ENVIROMENT_NAME_PARAM, params.getString((DEPOYED_ENVIROMENT_NAME_PARAM)));
+		config.put(DEPROVISIONING_ACTION_PARAM, params.getString((DEPROVISIONING_ACTION_PARAM)));
 	     	    
 	    return config;
 	}
@@ -148,6 +160,9 @@ public class AlmLabManagementTaskConfigurator extends AbstractTaskConfigurator
 	    context.put(DURATION_PARAM, taskDefinition.getConfiguration().get(DURATION_PARAM));
 	    context.put(ENVIROMENT_ID_PARAM, taskDefinition.getConfiguration().get(ENVIROMENT_ID_PARAM));
 	    context.put(USE_SDA_PARAM, taskDefinition.getConfiguration().get(USE_SDA_PARAM));
+		context.put(DEPLOYMENT_ACTION_PARAM, taskDefinition.getConfiguration().get((DEPLOYMENT_ACTION_PARAM)));
+		context.put(DEPOYED_ENVIROMENT_NAME_PARAM, taskDefinition.getConfiguration().get((DEPOYED_ENVIROMENT_NAME_PARAM)));
+		context.put(DEPROVISIONING_ACTION_PARAM, taskDefinition.getConfiguration().get((DEPROVISIONING_ACTION_PARAM)));
 	    
 	    populateContextForLists(context);
 	}
@@ -161,14 +176,43 @@ public class AlmLabManagementTaskConfigurator extends AbstractTaskConfigurator
 	{
 		context.put(UI_CONFIG_BEAN_PARAM, _uiConfigBean);	    
 	    context.put(RUN_TYPE_ITEMS_PARAM, getRunTypes());
+		context.put(DEPLOYMENT_ACTION_ITEMS_PARAM, getDeploymentActions());
+		context.put(DEPROVISIONING_ACTION_ITEMS_PARAM, getDeprovisioningActions());
 	} 
 	
 	private Map<String, String> getRunTypes()
 	{
 		Map<String, String> runTypesMap = new HashMap<String, String>();
-		runTypesMap.put("1", _textProvider.getText(RUN_TYPE_TEST_SET_STRING));
-		runTypesMap.put("2", _textProvider.getText(RUN_TYPE_BUILD_VERIFICATION_SUITE_STRING));
+
+		for (EnumDescription description : SseModel.getRunTypes())
+		{
+			runTypesMap.put(description.getValue(), description.getDescription());
+		}
 	    
 	    return runTypesMap;
+	}
+
+	private Map<String, String> getDeploymentActions()
+	{
+		Map<String, String> deploymentActionsMap = new HashMap<String, String>();
+
+		for (EnumDescription description : CdaDetails.getDeploymentActions())
+		{
+			deploymentActionsMap.put(description.getValue(), description.getDescription());
+		}
+
+		return deploymentActionsMap;
+	}
+
+	private Map<String, String> getDeprovisioningActions()
+	{
+		Map<String, String> deprovisioningActionMap = new HashMap<String, String>();
+
+		for (EnumDescription description : CdaDetails.getDeprovisioningActions())
+		{
+			deprovisioningActionMap.put(description.getValue(), description.getDescription());
+		}
+
+		return deprovisioningActionMap;
 	}
 }

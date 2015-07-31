@@ -11,3 +11,6 @@
 [@ww.textfield labelKey="AlmLabManagementTask.duration" name="duration" required='true'/]
 [@ww.textfield labelKey="AlmLabManagementTask.enviromentId" name="enviromentId"/]
 [@ww.checkbox labelKey="AlmLabManagementTask.useSda" name="useSda"/]
+[@ww.select labelKey="AlmLabManagementTask.deploymentAction" name="deploymentAction" list="deploymentActionItems"  emptyOption="false"/]
+[@ww.textfield labelKey="AlmLabManagementTask.deployedEnvironmentName" name="deployedEnvironmentName"/]
+[@ww.select labelKey="AlmLabManagementTask.deprovisioningAction" name="deprovisioningAction" list="deprovisioningActionItems" emptyOption="false"/]
