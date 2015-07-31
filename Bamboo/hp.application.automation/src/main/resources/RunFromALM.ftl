@@ -6,5 +6,8 @@
 [@ww.textarea labelKey="Alm.testsPathInputLbl" name="testPathInput" required='true' rows="4"/]
 [@ww.textfield labelKey="Alm.timelineInputLbl" name="timeoutInput"/]
 
-[@ww.select labelKey="Alm.runModeInputLbl" name="runMode" list="runModeItems" emptyOption="false"/]
-[@ww.textfield labelKey="Alm.testingToolHostInputLbl" name="testingToolHost" required='false'/]
+[@ww.checkbox labelKey='Alm.advancedLbl' name='AdvancedOption' toggle='true' /]
+[@ui.bambooSection dependsOn='AdvancedOption' showOn='true']
+    [@ww.select labelKey="Alm.runModeInputLbl" name="runMode" list="runModeItems" emptyOption="false"/]
+    [@ww.textfield labelKey="Alm.testingToolHostInputLbl" name="testingToolHost" required='false'/]
+[/@ui.bambooSection]
