@@ -2,16 +2,20 @@ package com.hp.application.automation.bamboo.tasks;
 
 import java.util.Properties;
 
+import com.atlassian.bamboo.build.test.TestCollationService;
 import com.atlassian.bamboo.configuration.ConfigurationMap;
 import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
+import org.jetbrains.annotations.NotNull;
 
 
 public class RunFromAlmTask extends AbstractLauncherTask {
 
 	private final CapabilityContext _capabilityContext;
 
-	public RunFromAlmTask(CapabilityContext capabilityContext){
+	public RunFromAlmTask(CapabilityContext capabilityContext, @NotNull final TestCollationService testCollationService)
+	{
+		super(testCollationService);
 		_capabilityContext = capabilityContext;
 	}
 

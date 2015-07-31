@@ -2,6 +2,7 @@ package com.hp.application.automation.bamboo.tasks;
 
 import java.util.Properties;
 
+import com.atlassian.bamboo.build.test.TestCollationService;
 import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.task.TaskException;
 import com.atlassian.bamboo.task.TaskResult;
@@ -12,6 +13,11 @@ import com.atlassian.bamboo.configuration.ConfigurationMap;
 
 public class AlmLabEnvPrepareTask extends AbstractLauncherTask {
 //public class AlmLabEnvPrepareTask implements TaskType {
+
+	public AlmLabEnvPrepareTask(@NotNull final TestCollationService testCollationService)
+	{
+		super(testCollationService);
+	}
 
     @java.lang.Override
 	protected Properties getTaskProperties(final TaskContext taskContext) throws Exception {

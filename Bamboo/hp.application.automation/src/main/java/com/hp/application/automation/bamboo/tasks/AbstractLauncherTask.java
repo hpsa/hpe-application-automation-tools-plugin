@@ -1,6 +1,7 @@
 package com.hp.application.automation.bamboo.tasks;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
+import com.atlassian.bamboo.build.test.TestCollationService;
 import com.atlassian.bamboo.configuration.ConfigurationMap;
 import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.task.TaskException;
@@ -25,6 +26,13 @@ import java.text.SimpleDateFormat;
 public abstract class AbstractLauncherTask implements TaskType {
 	private final static String HpToolsLauncher_SCRIPT_NAME = "HpToolsLauncher.exe";
 	private final static String HpToolsAborter_SCRIPT_NAME = "HpToolsAborter.exe";
+
+	private final TestCollationService _testCollationService;
+
+	public AbstractLauncherTask(@NotNull final TestCollationService testCollationService)
+	{
+		_testCollationService = testCollationService;
+	}
 
 	protected abstract Properties getTaskProperties(final TaskContext taskContext) throws Exception;
 	
@@ -130,8 +138,10 @@ public abstract class AbstractLauncherTask implements TaskType {
 				return TaskResultBuilder.create(taskContext).failedWithError().build();
 			}
 		}
-		
-		return TaskResultBuilder.create(taskContext).success().build();
+
+		TestResultHelper.CollateResults(_testCollationService, taskContext);
+
+		return TaskResultBuilder.create(taskContext).checkTestFailures().build();
     }
 	
 	private String extractBinaryResource(final File pathToExtract, final String resourceName) throws IOException	{

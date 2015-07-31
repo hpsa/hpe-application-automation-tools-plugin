@@ -1,5 +1,6 @@
 package com.hp.application.automation.bamboo.tasks;
 
+import com.atlassian.bamboo.build.test.TestCollationService;
 import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.task.TaskException;
 import com.atlassian.bamboo.task.TaskResult;
@@ -14,6 +15,11 @@ import java.util.Properties;
 import org.jetbrains.annotations.NotNull;
 
 public class RunFromFileSystemTask extends AbstractLauncherTask {
+
+	public RunFromFileSystemTask(@NotNull final TestCollationService testCollationService)
+	{
+		super(testCollationService);
+	}
 
     @java.lang.Override
 	protected Properties getTaskProperties(final TaskContext taskContext) throws Exception {
