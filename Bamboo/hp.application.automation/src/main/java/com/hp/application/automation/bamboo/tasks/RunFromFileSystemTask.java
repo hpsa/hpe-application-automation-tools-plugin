@@ -1,6 +1,10 @@
 package com.hp.application.automation.bamboo.tasks;
 
+import com.atlassian.bamboo.build.BuildRequestResultImpl;
+import com.atlassian.bamboo.build.artifact.AbstractArtifactManager;
+import com.atlassian.bamboo.build.artifact.ArtifactManager;
 import com.atlassian.bamboo.build.test.TestCollationService;
+import com.atlassian.bamboo.plan.PlanResultKey;
 import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.task.TaskException;
 import com.atlassian.bamboo.task.TaskResult;
@@ -16,9 +20,13 @@ import org.jetbrains.annotations.NotNull;
 
 public class RunFromFileSystemTask extends AbstractLauncherTask {
 
-	public RunFromFileSystemTask(@NotNull final TestCollationService testCollationService)
+	private final ArtifactManager _artifactManager;
+
+	public RunFromFileSystemTask(@NotNull final TestCollationService testCollationService, @NotNull ArtifactManager artifactManager)
 	{
 		super(testCollationService);
+
+		_artifactManager = artifactManager;
 	}
 
     @java.lang.Override
@@ -47,5 +55,13 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
         	builder.setTest(i+1, testNames[i]);
         }
     	return builder.getProperties();
+	}
+
+	@Override
+	protected void resultCollated()
+	{
+		//TODO: Mary try to use this method for publish artifacts.
+		// Also add combobox to File System Task UI with options as in Jenkins
+		//_artifactManager.publish()
 	}
 }

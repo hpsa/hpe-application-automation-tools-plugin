@@ -35,7 +35,12 @@ public abstract class AbstractLauncherTask implements TaskType {
 	}
 
 	protected abstract Properties getTaskProperties(final TaskContext taskContext) throws Exception;
-	
+
+	protected void resultCollated()
+	{
+
+	}
+
 	@NotNull
     @java.lang.Override
     public TaskResult execute(@NotNull final TaskContext taskContext) throws TaskException {
@@ -140,6 +145,8 @@ public abstract class AbstractLauncherTask implements TaskType {
 		}
 
 		TestResultHelper.CollateResults(_testCollationService, taskContext);
+
+		resultCollated();
 
 		return TaskResultBuilder.create(taskContext).checkTestFailures().build();
     }
