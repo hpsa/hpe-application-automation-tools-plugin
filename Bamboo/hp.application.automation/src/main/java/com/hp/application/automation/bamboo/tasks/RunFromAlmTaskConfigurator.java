@@ -1,9 +1,6 @@
 package com.hp.application.automation.bamboo.tasks;
 
-import java.util.HashMap;
-import java.util.Map;
 import com.atlassian.bamboo.collections.ActionParametersMap;
-import com.atlassian.bamboo.task.AbstractTaskConfigurator;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
 import com.atlassian.bamboo.ww2.actions.build.admin.create.UIConfigSupport;
@@ -12,7 +9,10 @@ import com.atlassian.util.concurrent.NotNull;
 import com.atlassian.util.concurrent.Nullable;
 import org.apache.commons.lang.StringUtils;
 
-public class RunFromAlmTaskConfigurator extends AbstractTaskConfigurator {
+import java.util.HashMap;
+import java.util.Map;
+
+public class RunFromAlmTaskConfigurator extends AbstractUftTaskConfigurator {
 
 	private TextProvider textProvider;
 	private UIConfigSupport uiConfigBean;
