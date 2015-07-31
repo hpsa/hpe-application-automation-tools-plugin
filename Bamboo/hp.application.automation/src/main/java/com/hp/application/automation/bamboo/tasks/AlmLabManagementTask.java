@@ -98,12 +98,8 @@ public class AlmLabManagementTask implements TaskType {
             return TaskResultBuilder.create(taskContext).failed().build();
         }
 
-//taskContext.getWorkingDirectory().
-        //final String testFilePattern = "*.txt";         
-        //_testCollationService.collateTestResults(taskContext, testFilePattern, new TestResultsReportCollector(), true);
+        TestResultHelper.CollateResults(_testCollationService, taskContext);
 
-
-
-        return TaskResultBuilder.create(taskContext).success().build();
+        return TaskResultBuilder.create(taskContext).checkTestFailures().build();
     }
 }

@@ -6,7 +6,9 @@ import com.hp.application.automation.tools.common.sdk.Logger;
 
 
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -59,6 +61,16 @@ public final class ResultSerializer {
 
             throw new SSEException(message);
         }
+    }
+
+    public static Testsuites Deserialize(File file) throws JAXBException
+    {
+        JAXBContext jaxbContext = JAXBContext.newInstance(Testsuites.class);
+
+        Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
+        Testsuites testsuites = (Testsuites)jaxbUnmarshaller.unmarshal(file);
+
+        return testsuites;
     }
 
     private static String getFullFilePath(String workingDirectoryPath, String fileName)
