@@ -5,7 +5,7 @@ import java.util.Properties;
 import com.atlassian.bamboo.configuration.ConfigurationMap;
 import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
-import com.atlassian.core.util.StringUtils;
+
 
 public class RunFromAlmTask extends AbstractLauncherTask {
 
@@ -30,8 +30,22 @@ public class RunFromAlmTask extends AbstractLauncherTask {
 		builder.setAlmPassword(map.get(RunFromAlmTaskConfigurator.PASSWORD));
 		builder.setAlmDomain(map.get(RunFromAlmTaskConfigurator.DOMAIN));
 		builder.setAlmProject(map.get(RunFromAlmTaskConfigurator.PROJECT));
-		builder.setAlmRunMode(AlmRunMode.RUN_LOCAL);
-		builder.setAlmRunHost("");
+
+		String runMode = map.get(RunFromAlmTaskConfigurator.RUN_MODE);
+		if(runMode.equals(RunFromAlmTaskConfigurator.RUN_LOCALLY_PARAMETER))
+		{
+			builder.setAlmRunMode(AlmRunMode.RUN_LOCAL);
+		}
+		else if(runMode.equals(RunFromAlmTaskConfigurator.RUN_ON_PLANNED_HOST_PARAMETER))
+		{
+			builder.setAlmRunMode(AlmRunMode.RUN_PLANNED_HOST);
+		}
+		else if(runMode.equals(RunFromAlmTaskConfigurator.RUN_REMOTELY_PARAMETER))
+		{
+			builder.setAlmRunMode(AlmRunMode.RUN_REMOTE);
+		}
+
+		builder.setAlmRunHost(map.get(RunFromAlmTaskConfigurator.TESTING_TOOL_HOST));
 
 		String timeout = map.get(RunFromAlmTaskConfigurator.TIMEOUT);
 		if (org.apache.commons.lang.StringUtils.isEmpty(timeout)) {

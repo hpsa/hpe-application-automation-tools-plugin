@@ -6,5 +6,5 @@
 [@ww.textarea labelKey="Alm.testsPathInputLbl" name="testPathInput" required='true' rows="4"/]
 [@ww.textfield labelKey="Alm.timelineInputLbl" name="timeoutInput"/]
 
-[@ww.select name="runMode" labelKey="Alm.runModeInputLbl" list="getRunModes()" emptyOption="false"/]
+[@ww.select labelKey="Alm.runModeInputLbl" name="runMode" list="runModeItems" emptyOption="false"/]
 [@ww.textfield labelKey="Alm.testingToolHostInputLbl" name="testingToolHost" required='false'/]

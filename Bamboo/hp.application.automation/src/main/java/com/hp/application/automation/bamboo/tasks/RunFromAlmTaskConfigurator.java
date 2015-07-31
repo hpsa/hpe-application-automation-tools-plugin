@@ -12,7 +12,6 @@ import com.atlassian.util.concurrent.NotNull;
 import com.atlassian.util.concurrent.Nullable;
 import org.apache.commons.lang.StringUtils;
 
-
 public class RunFromAlmTaskConfigurator extends AbstractTaskConfigurator {
 
 	private TextProvider textProvider;
@@ -27,9 +26,16 @@ public class RunFromAlmTaskConfigurator extends AbstractTaskConfigurator {
 	public static final String TESTS_PATH = "testPathInput";
 	public static final String TIMEOUT = "timeoutInput";
 	public static final String RUN_MODE = "runMode";
+	public static final String RUN_MODE_PARAMETER = "runModeItems";
 	public static final String TESTING_TOOL_HOST = "testingToolHost";
 	public static final String DEFAULT_TIMEOUT = "-1";
-	
+	public static final String RUN_LOCALLY_LBL = "Alm.runLocallyLbl";
+	public static final String RUN_ON_PLANNED_HOST_LBL = "Alm.runOnPlannedHostLbl";
+	public static final String RUN_REMOTELY_LBL = "Alm.runRemotelyLbl";
+
+	public static final String RUN_LOCALLY_PARAMETER = "1";
+	public static final String RUN_ON_PLANNED_HOST_PARAMETER = "2";
+	public static final String RUN_REMOTELY_PARAMETER = "3";
 
 	public Map<String, String> generateTaskConfigMap(@NotNull final ActionParametersMap params, @Nullable final TaskDefinition previousTaskDefinition)
 	{
@@ -90,7 +96,7 @@ public class RunFromAlmTaskConfigurator extends AbstractTaskConfigurator {
 	private void populateContextForLists(@NotNull final Map<String, Object> context)
 	{
 		context.put(UI_CONFIG_BEAN_PARAM, uiConfigBean);
-		context.put(RUN_MODE, getRunModes());
+		context.put(RUN_MODE_PARAMETER, getRunModes());
 	} 
 	
 	@Override
@@ -98,13 +104,16 @@ public class RunFromAlmTaskConfigurator extends AbstractTaskConfigurator {
 	{
 		super.populateContextForEdit(context, taskDefinition);
 
-	    context.put(ALM_SERVER, taskDefinition.getConfiguration().get(ALM_SERVER));
-	    context.put(USER_NAME, taskDefinition.getConfiguration().get(USER_NAME));
-	    context.put(PASSWORD, taskDefinition.getConfiguration().get(PASSWORD));
-	    context.put(DOMAIN, taskDefinition.getConfiguration().get(DOMAIN));
-	    context.put(PROJECT, taskDefinition.getConfiguration().get(PROJECT));
-		context.put(TESTS_PATH, taskDefinition.getConfiguration().get(TESTS_PATH));
-		context.put(TIMEOUT, taskDefinition.getConfiguration().get(TIMEOUT));
+		Map<String, String> configuration = taskDefinition.getConfiguration();
+
+	    context.put(ALM_SERVER, configuration.get(ALM_SERVER));
+	    context.put(USER_NAME, configuration.get(USER_NAME));
+	    context.put(PASSWORD, configuration.get(PASSWORD));
+	    context.put(DOMAIN, configuration.get(DOMAIN));
+	    context.put(PROJECT, configuration.get(PROJECT));
+		context.put(TESTS_PATH, configuration.get(TESTS_PATH));
+		context.put(TIMEOUT, configuration.get(TIMEOUT));
+		context.put(RUN_MODE, configuration.get(RUN_MODE));
 		
 		populateContextForLists(context);
 	}
@@ -122,10 +131,10 @@ public class RunFromAlmTaskConfigurator extends AbstractTaskConfigurator {
 	private Map<String, String> getRunModes()
 	{
 		Map<String, String> runTypesMap = new HashMap<String, String>();
-		runTypesMap.put("1", "a");
-		//runTypesMap.put("1", AlmRunMode.RUN_LOCAL.toString());
-		runTypesMap.put("2", AlmRunMode.RUN_REMOTE.toString());
-		runTypesMap.put("3", AlmRunMode.RUN_PLANNED_HOST.toString());
+
+		runTypesMap.put(RUN_LOCALLY_PARAMETER, this.textProvider.getText(RUN_LOCALLY_LBL));
+		runTypesMap.put(RUN_ON_PLANNED_HOST_PARAMETER, this.textProvider.getText(RUN_ON_PLANNED_HOST_LBL));
+		runTypesMap.put(RUN_REMOTELY_PARAMETER, this.textProvider.getText(RUN_REMOTELY_LBL));
 
 		return runTypesMap;
 	}
