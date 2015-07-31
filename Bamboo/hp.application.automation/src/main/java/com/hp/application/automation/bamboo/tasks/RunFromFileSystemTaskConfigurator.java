@@ -77,7 +77,7 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 	@org.jetbrains.annotations.NotNull
 	@Override
 	public Set<Requirement> calculateRequirements(@NotNull TaskDefinition taskDefinition) {
-		RequirementImpl uftReq = new RequirementImpl("UFT", false, "installed");
+		RequirementImpl uftReq = new RequirementImpl(CapabilityUftDefaultsHelper.CAPABILITY_UFT, true, ".*");
 		Set<Requirement> result = new HashSet<Requirement>();
 		result.add(uftReq);
 		return result;

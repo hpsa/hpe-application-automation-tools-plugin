@@ -1,67 +1,47 @@
 package com.hp.application.automation.bamboo.tasks;
-
 /**
  * Created by schernikov on 7/29/2015.
  */
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
+import com.sun.jna.platform.win32.Advapi32Util;
+import com.sun.jna.platform.win32.WinReg;
 
 public class WindowsRegistry {
 
-    /**
-     * @param location path in the registry
-     * @param key registry key
-     * @return registry value or null if not found
-     */
-    public static final String readRegistry(String location, String key){
+    private static final boolean IsX64()
+    {
+        String arch = System.getProperty("os.arch");
+        if(arch == null) {
+            return false;
+        }
+        return arch.contains("64");
+    }
+
+    private static final String softwareKey = "SOFTWARE\\";
+    private static final String wow6432prefix = "SOFTWARE\\WOW6432NODE\\";
+    private static final String GetArchKeyName(String key)
+    {
+        String keyUpper = key.toUpperCase();
+        if(IsX64() && !keyUpper.startsWith(wow6432prefix) && keyUpper.startsWith(softwareKey))
+        {
+            String newKey = wow6432prefix+key.substring(softwareKey.length());
+            return newKey;
+        }
+        else
+        {
+            return key;
+        }
+    }
+
+    public static final String readHKLMString(String key, String value) {
         try {
-            // Run reg query, then read output with StreamReader (internal class)
-            Process process = Runtime.getRuntime().exec("reg query " +
-                    '"'+ location + "\" /v " + "\""+key+"\"");
-
-            StreamReader reader = new StreamReader(process.getInputStream());
-            reader.start();
-            process.waitFor();
-            reader.join();
-            String output = reader.getResult();
-
-            // Output has the following format:
-            // \n<Version information>\n\n<key>\t<registry type>\t<value>
-            if( ! output.contains("\t")){
-                return null;
-            }
-
-            // Parse out the value
-            String[] parsed = output.split("\t");
-            return parsed[parsed.length-1];
+            String newKey = GetArchKeyName(key);
+            String result = Advapi32Util.registryGetStringValue(WinReg.HKEY_LOCAL_MACHINE, newKey, value);
+            return result;
         }
-        catch (Exception e) {
-            return null;
-        }
-
-    }
-
-    static class StreamReader extends Thread {
-        private InputStream is;
-        private StringWriter sw= new StringWriter();
-
-        public StreamReader(InputStream is) {
-            this.is = is;
-        }
-
-        public void run() {
-            try {
-                int c;
-                while ((c = is.read()) != -1)
-                    sw.write(c);
-            }
-            catch (IOException e) {
-            }
-        }
-
-        public String getResult() {
-            return sw.toString();
+        catch (Throwable e)
+        {
+            return "";
         }
     }
+
 }

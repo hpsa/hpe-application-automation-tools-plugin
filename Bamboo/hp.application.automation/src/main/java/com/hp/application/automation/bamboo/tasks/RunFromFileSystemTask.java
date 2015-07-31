@@ -38,7 +38,7 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
         
         for(int i=0; i < testNames.length; i++)
         {
-        	builder.setTest(i, testNames[i]);
+        	builder.setTest(i+1, testNames[i]);
         }
     	return builder.getProperties();
 	}
