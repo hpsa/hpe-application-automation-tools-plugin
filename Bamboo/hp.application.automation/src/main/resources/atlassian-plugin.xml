@@ -29,7 +29,7 @@
     <!-- import from the product container -->
     <component-import key="com.atlassian.sal.api.ApplicationProperties" interface="com.atlassian.sal.api.ApplicationProperties" />
 	 
-	<executable 
+	<executable
      key="hpAlmServer" 
      nameKey="hpAlmServer.executableName" 
      pathHelpKey="hpAlmServer.executableHelpPath"/>  
@@ -40,9 +40,9 @@
 		key="com.hp.application.automation.bamboo.tasks.AlmLabEnvPrepareTask">
       <description>Execute AUT Environment preparation using HP ALM Lab Management</description>
       <category name="test"/>
-      <executable 
-     	key="hpAlmServer" 
-     	nameKey="hpAlmServer.executableName" 
+      <executable
+     	key="hpAlmServer"
+     	nameKey="hpAlmServer.executableName"
      	pathHelpKey="hpAlmServer.executableHelpPath"/>
       <configuration class="com.hp.application.automation.bamboo.tasks.AlmLabEnvPrepareTaskConfigurator"/>
       <resource 
@@ -71,6 +71,8 @@
       <description>Execute HP tests from file system</description>
       <category name="test"/>
       <configuration class="com.hp.application.automation.bamboo.tasks.RunFromFileSystemTaskConfigurator"/>
+      <!-- <executable key="HP.HP Unified Functional Testing" nameKey="HP.UFT.executable.name"/> -->
+      <capabilityDefaultsHelper class="com.hp.application.automation.bamboo.tasks.CapabilityUftDefaultsHelper"/>
       <resource 
       	type="freemarker" 
       	name="edit" 
