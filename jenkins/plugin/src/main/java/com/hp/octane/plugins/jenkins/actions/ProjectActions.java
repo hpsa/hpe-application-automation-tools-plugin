@@ -59,11 +59,15 @@ public class ProjectActions extends TransientProjectActionFactory {
             List<Run> result = project.getLastBuildsOverThreshold(numberOfBuilds, Result.FAILURE); // get last five build with result that better or equal failure
             for (int i = 0; i < result.size(); i++) {
 
-                buildHistory.addBuild(result.get(i).getResult().toString(), String.valueOf(result.get(i).getNumber()), result.get(i).getTimestampString());
+                buildHistory.addBuild(result.get(i).getResult().toString(), String.valueOf(result.get(i).getNumber()), result.get(i).getTimestampString(),String.valueOf(result.get(i).getStartTimeInMillis()), String.valueOf(result.get(i).getDuration()));
             }
             Run lastSuccessfulBuild = project.getLastSuccessfulBuild();
             if (lastSuccessfulBuild != null) {
-                buildHistory.addLastSuccesfullBuild(lastSuccessfulBuild.getResult().toString(), String.valueOf(lastSuccessfulBuild.getNumber()), lastSuccessfulBuild.getTimestampString());
+                buildHistory.addLastSuccesfullBuild(lastSuccessfulBuild.getResult().toString(), String.valueOf(lastSuccessfulBuild.getNumber()), lastSuccessfulBuild.getTimestampString(),String.valueOf(lastSuccessfulBuild.getStartTimeInMillis()),  String.valueOf(lastSuccessfulBuild.getDuration()));
+            }
+            Run lastBuild = project.getLastBuild();
+            if (lastBuild != null) {
+                buildHistory.addLastBuild(lastBuild.getResult().toString(), String.valueOf(lastBuild.getNumber()), lastBuild.getTimestampString(),String.valueOf(lastBuild.getStartTimeInMillis()), String.valueOf(lastBuild.getDuration()));
             }
             res.serveExposedBean(req, buildHistory, Flavor.JSON);
         }
