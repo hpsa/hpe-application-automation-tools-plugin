@@ -53,6 +53,8 @@ public class ConfigApi {
 //			res.sendError(400, ex.getMessage());
 //			return;
 //		}
+		Boolean abridged = configuration.containsKey("abridged") && configuration.getBoolean("abridged");
+
 		String username, password;
 		if (!configuration.containsKey("username")) {
 			// when username is not provided, use existing credentials (password can be overridden later)
@@ -68,7 +70,7 @@ public class ConfigApi {
 			password = configuration.getString("password");
 		}
 		OctanePlugin octanePlugin = Jenkins.getInstance().getPlugin(OctanePlugin.class);
-		octanePlugin.configurePlugin(uiLocation, username, password);
+		octanePlugin.configurePlugin(uiLocation, abridged, username, password);
 		String serverIdentity = (String) configuration.get("serverIdentity");
 		if (!StringUtils.isEmpty(serverIdentity)) {
 			octanePlugin.setIdentity(serverIdentity);

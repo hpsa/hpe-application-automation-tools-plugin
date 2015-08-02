@@ -8,11 +8,9 @@ import com.hp.mqm.client.exception.RequestException;
 import com.hp.mqm.client.model.Field;
 import com.hp.mqm.client.model.FieldMetadata;
 import com.hp.mqm.client.model.JobConfiguration;
-import com.hp.mqm.client.model.ListItem;
 import com.hp.mqm.client.model.Pipeline;
 import com.hp.mqm.client.model.Release;
 import com.hp.mqm.client.model.Taxonomy;
-import com.hp.mqm.client.model.TaxonomyType;
 import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
@@ -62,14 +60,14 @@ public class JobConfigurationProxy {
 		PluginActions.ServerInfo serverInfo = new PluginActions.ServerInfo();
 		try {
 			MqmRestClient client = createClient();
-			int pipelineId = client.createPipeline(
+			long pipelineId = client.createPipeline(
 					ServerIdentity.getIdentity(),
 					project.getName(),
 					pipelineObject.getString("name"),
 					pipelineObject.optLong("workspaceId"),
 					pipelineObject.optLong("releaseId"),
 					toString(structureItem),
-					toString(serverInfo));
+					toString(serverInfo)).getId();
 			result.put("id", pipelineId);
 
 			client.release();
@@ -93,18 +91,13 @@ public class JobConfigurationProxy {
 		try {
 			MqmRestClient client = createClient();
 			long pipelineId = pipelineObject.getLong("id");
-			client.updatePipelineMetadata(pipelineId, pipelineObject.getString("name"), pipelineObject.getLong("releaseId"));
+			client.updatePipelineMetadata(ServerIdentity.getIdentity(), project.getName(), pipelineId, pipelineObject.getString("name"), pipelineObject.getLong("releaseId"));
 
 			LinkedList<Taxonomy> taxonomies = new LinkedList<Taxonomy>();
 			JSONArray taxonomyTags = pipelineObject.getJSONArray("taxonomyTags");
 			for (JSONObject jsonObject : toCollection(taxonomyTags)) {
-				Long tagId = jsonObject.containsKey("tagId") ? jsonObject.getLong("tagId") : null;
-				Long tagTypeId = jsonObject.containsKey("tagTypeId") ? jsonObject.getLong("tagTypeId") : null;
-				taxonomies.add(new Taxonomy(
-						tagId,
-						tagTypeId,
-						jsonObject.getString("tagName"),
-						jsonObject.getString("tagTypeName")));
+				taxonomies.add(new Taxonomy(jsonObject.optLong("tagId"), jsonObject.getString("tagName"),
+						new Taxonomy(jsonObject.optLong("tagTypeId"), jsonObject.getString("tagTypeName"), null)));
 			}
 
 			LinkedList<Field> fields = new LinkedList<Field>();
@@ -171,43 +164,40 @@ public class JobConfigurationProxy {
 
 		try {
 			JobConfiguration jobConfiguration = client.getJobConfiguration(ServerIdentity.getIdentity(), project.getName());
-			ret.put("jobId", jobConfiguration.getJobId());
-			String jobName = jobConfiguration.getJobName();
-			boolean isRoot = jobConfiguration.isPipelineRoot();
-			List<FieldMetadata> fields = jobConfiguration.getFieldMetadata();
+//			List<FieldMetadata> fields = jobConfiguration.getFieldMetadata();
 			for (Pipeline relatedPipeline : jobConfiguration.getRelatedPipelines()) {
 				JSONObject pipeline = new JSONObject();
 				pipeline.put("id", relatedPipeline.getId());
 				pipeline.put("name", relatedPipeline.getName());
 				pipeline.put("releaseId", relatedPipeline.getReleaseId());
 //				pipeline.put("releaseName", relatedPipeline.getReleaseName());
-//				pipeline.put("isRoot", isRoot && relatedPipeline.getRootJobName().equals(jobName));
+				pipeline.put("isRoot", relatedPipeline.isRoot());
 
-				addTags(pipeline, relatedPipeline, fields);
+//				addTags(pipeline, relatedPipeline, fields);
 
 				Map<String, List<FieldValue>> valuesByField = new HashMap<String, List<FieldValue>>();
-				for (FieldMetadata field : fields) {
-					valuesByField.put(field.getLogicalListName(), new LinkedList<FieldValue>());
-				}
+//				for (FieldMetadata field : fields) {
+//					valuesByField.put(field.getLogicalListName(), new LinkedList<FieldValue>());
+//				}
 				for (Field field : relatedPipeline.getFields()) {
 					valuesByField.get(field.getParentLogicalName()).add(new FieldValue(field.getId(), field.getName()));
 				}
 				JSONArray fieldTags = new JSONArray();
-				for (FieldMetadata field : fields) {
-					List<FieldValue> values = valuesByField.get(field.getLogicalListName());
-					JSONArray valuesArray = new JSONArray();
-					for (FieldValue value : values) {
-						valuesArray.add(fieldValue(value.getId(), value.getName()));
-					}
-					JSONObject fieldObject = new JSONObject();
-					fieldObject.put("logicalListName", field.getLogicalListName());
-					fieldObject.put("listId", field.getListId());
-					fieldObject.put("listName", field.getListName());
-					fieldObject.put("values", valuesArray);
-					fieldObject.put("extensible", field.isExtensible());
-					fieldObject.put("multiValue", field.isMultiValue());
-					fieldTags.add(fieldObject);
-				}
+//				for (FieldMetadata field : fields) {
+//					List<FieldValue> values = valuesByField.get(field.getLogicalListName());
+//					JSONArray valuesArray = new JSONArray();
+//					for (FieldValue value : values) {
+//						valuesArray.add(fieldValue(value.getId(), value.getName()));
+//					}
+//					JSONObject fieldObject = new JSONObject();
+//					fieldObject.put("logicalListName", field.getLogicalListName());
+//					fieldObject.put("listId", field.getListId());
+//					fieldObject.put("listName", field.getListName());
+//					fieldObject.put("values", valuesArray);
+//					fieldObject.put("extensible", field.isExtensible());
+//					fieldObject.put("multiValue", field.isMultiValue());
+//					fieldTags.add(fieldObject);
+//				}
 				pipeline.put("fieldTags", fieldTags);
 
 				pipelines.add(pipeline);
@@ -216,40 +206,40 @@ public class JobConfigurationProxy {
 			ret.put("pipelines", pipelines);
 
 			JSONObject releases = new JSONObject();
-			for (Release release : client.queryReleases(null, 0, 50).getItems()) {
+			for (Release release : client.queryReleases(null, 1001l, 0, 50).getItems()) {
 				releases.put(String.valueOf(release.getId()), release.getName());
 			}
 			ret.put("releases", releases);
 
 			JSONArray allTaxonomies = new JSONArray();
 			MultiValueMap multiMap = new MultiValueMap();
-			List<Taxonomy> taxonomies = client.queryTaxonomies(null, null, 0, 100).getItems();
+			List<Taxonomy> taxonomies = client.queryTaxonomyItems(null, null, 1001l, 0, 100).getItems();
 			for (Taxonomy taxonomy : taxonomies) {
-				multiMap.put(taxonomy.getTaxonomyTypeId(), tag(taxonomy.getId(), taxonomy.getName()));
+				multiMap.put(taxonomy.getRoot().getId(), tag(taxonomy.getId(), taxonomy.getName()));
 			}
-			List<TaxonomyType> taxonomyTypes = client.queryTaxonomyTypes(null, 0, 50).getItems();
-			for (TaxonomyType taxonomyType : taxonomyTypes) {
+			List<Taxonomy> taxonomyTypes = client.queryTaxonomyCategories(null, 1001l, 0, 50).getItems();
+			for (Taxonomy taxonomyType : taxonomyTypes) {
 				Collection<JSONObject> tags = multiMap.getCollection(taxonomyType.getId());
 				allTaxonomies.add(tagType(taxonomyType.getId(), taxonomyType.getName(), tags == null ? Collections.<JSONObject>emptyList() : tags));
 			}
 			ret.put("taxonomies", allTaxonomies);
 
 			JSONArray allFields = new JSONArray();
-			for (FieldMetadata field : fields) {
-				List<ListItem> items = client.queryListItems(field.getListId(), null, 0, 50).getItems();
-				JSONArray array = new JSONArray();
-				for (ListItem item : items) {
-					array.add(fieldValue(item.getId(), item.getName()));
-				}
-				JSONObject fieldObj = new JSONObject();
-				fieldObj.put("logicalListName", field.getLogicalListName());
-				fieldObj.put("listId", field.getListId());
-				fieldObj.put("listName", field.getListName());
-				fieldObj.put("extensible", field.isExtensible());
-				fieldObj.put("multiValue", field.isMultiValue());
-				fieldObj.put("values", array);
-				allFields.add(fieldObj);
-			}
+//			for (FieldMetadata field : fields) {
+//				List<ListItem> items = client.queryListItems(field.getListId(), null, 0, 50).getItems();
+//				JSONArray array = new JSONArray();
+//				for (ListItem item : items) {
+//					array.add(fieldValue(item.getId(), item.getName()));
+//				}
+//				JSONObject fieldObj = new JSONObject();
+//				fieldObj.put("logicalListName", field.getLogicalListName());
+//				fieldObj.put("listId", field.getListId());
+//				fieldObj.put("listName", field.getListName());
+//				fieldObj.put("extensible", field.isExtensible());
+//				fieldObj.put("multiValue", field.isMultiValue());
+//				fieldObj.put("values", array);
+//				allFields.add(fieldObj);
+//			}
 			ret.put("fields", allFields);
 
 			//client.release();
@@ -332,8 +322,8 @@ public class JobConfigurationProxy {
 
 	private JSONObject tag(Taxonomy taxonomy) {
 		JSONObject tag = tag(taxonomy.getId(), taxonomy.getName());
-		tag.put("tagTypeId", String.valueOf(taxonomy.getTaxonomyTypeId()));
-		tag.put("tagTypeName", taxonomy.getTaxonomyTypeName());
+		tag.put("tagTypeId", String.valueOf(taxonomy.getRoot().getId()));
+		tag.put("tagTypeName", taxonomy.getRoot().getName());
 		return tag;
 	}
 
@@ -378,7 +368,7 @@ public class JobConfigurationProxy {
 				configuration.username,
 				configuration.password);
 		try {
-			client.tryToConnectProject();
+			client.tryToConnectSharedSpace();
 		} catch (RequestException e) {
 			logger.log(Level.WARNING, "MQM server connection failed", e);
 			retryModel.failure();

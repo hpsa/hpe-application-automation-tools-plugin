@@ -52,7 +52,11 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	private static final String PROJECT_API_URI = "api/shared_spaces/{0}";
 	private static final String SHARED_SPACE_INTERNAL_API_URI = "internal-api/shared_spaces/{0}";
 
+	private static final String SHARED_SPACE_API_URI = "api/shared_spaces/{0}";
+	private static final String WORKSPACE_API_URI = SHARED_SPACE_API_URI + "/workspaces/{1}";
+
 	private static final String FILTERING_FRAGMENT = "query={query}";
+    private static final String PAGING_FRAGMENT = "offset={offset}&limit={limit}";
 
 	private static final String URI_PARAM_ENCODING = "UTF-8";
 
@@ -204,22 +208,22 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	}
 
 	@Override
-	public void tryToConnectProject() {
+	public void tryToConnectSharedSpace() {
 //		login();
-//		checkDomainAndProject();
+        checkSharedSpace();
 	}
 
 	// the simplest implementation because we do not know if domain and project will exist in future
-	private void checkDomainAndProject() {
-		HttpGet request = new HttpGet(createProjectRestUri(URI_DOMAIN_PROJECT_CHECK));
+	private void checkSharedSpace() {
+		HttpGet request = new HttpGet(createSharedSpaceApiUri(""));
 		HttpResponse response = null;
 		try {
 			response = execute(request);
 			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-				throw new SharedSpaceNotExistException("Cannot connect to given project.");
+				throw new SharedSpaceNotExistException("Cannot connect to given shared space.");
 			}
 		} catch (IOException e) {
-			throw new RequestErrorException("Domain and project check failed", e);
+			throw new RequestErrorException("Shared space check failed", e);
 		} finally {
 			HttpClientUtils.closeQuietly(response);
 		}
@@ -271,8 +275,20 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 		return createProjectUri(PROJECT_API_URI, template, asMap(params));
 	}
 
-	protected URI createSharedSpaceInternalApiUri(String template, Object... params) {
-		return createProjectUri(SHARED_SPACE_INTERNAL_API_URI, template, asMap(params));
+    protected URI createSharedSpaceApiUri(String template, Object... params) {
+        return createSharedSpaceApiUriMap(template, asMap(params));
+    }
+
+    protected URI createSharedSpaceApiUriMap(String template, Map<String, ?> params) {
+        return URI.create(createBaseUri(SHARED_SPACE_API_URI, sharedSpace).toString() + "/" + resolveTemplate(template, params));
+    }
+
+    protected URI createSharedSpaceInternalApiUri(String template, Object... params) {
+        return createSharedSpaceInternalApiUriMap(template, asMap(params));
+    }
+
+	protected URI createSharedSpaceInternalApiUriMap(String template, Map<String, ?> params) {
+        return URI.create(createBaseUri(SHARED_SPACE_INTERNAL_API_URI, sharedSpace).toString() + "/" + resolveTemplate(template, params));
 	}
 
 	/**
@@ -286,6 +302,14 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	 */
 	protected URI createProjectApiUriMap(String template, Map<String, ?> params) {
 		return createProjectUri(PROJECT_API_URI, template, params);
+	}
+
+	protected URI createWorkspaceApiUri(String template, long workspaceId) {
+		return createWorkspaceApiUriMap(template, workspaceId, Collections.<String, Object>emptyMap());
+	}
+
+	protected URI createWorkspaceApiUriMap(String template, long workspaceId, Map<String, ?> params) {
+		return URI.create(createBaseUri(WORKSPACE_API_URI, sharedSpace, workspaceId).toString() + "/" + resolveTemplate(template, params));
 	}
 
 	protected URI createProjectUri(String projectPartTemplate, String template, Map<String, ?> params) {
@@ -406,7 +430,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 			for (JSONObject entityObject : getJSONObjectCollection(entities, "data")) {
 				items.add(factory.create(entityObject.toString()));
 			}
-			return new PagedList<E>(items, offset, entities.getInt("total-count"));
+			return new PagedList<E>(items, offset, entities.getInt("total_count"));
 		} catch (IOException e) {
 			throw new RequestErrorException("Cannot retrieve entities from MQM.", e);
 		} finally {
@@ -414,8 +438,8 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 		}
 	}
 
-	protected URI getEntityURI(String collection, List<String> conditions, int offset, int limit) {
-		Map<String, Object> params = pagingParams(offset, limit, DEFAULT_WORKSPACE);
+	protected URI getEntityURI(String collection, List<String> conditions, Long workspaceId, int offset, int limit) {
+		Map<String, Object> params = pagingParams(offset, limit);
 		if (!conditions.isEmpty()) {
 			StringBuilder expr = new StringBuilder();
 			for (String condition : conditions) {
@@ -425,9 +449,17 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 				expr.append(condition);
 			}
 			params.put("query", "\"" + expr.toString() + "\"");
-			return createProjectApiUriMap(collection + "&" + FILTERING_FRAGMENT, params);
+            if (workspaceId != null) {
+                return createWorkspaceApiUriMap(collection + "?" + PAGING_FRAGMENT + "&" + FILTERING_FRAGMENT, workspaceId, params);
+            } else {
+                return createSharedSpaceApiUriMap(collection + "?" + PAGING_FRAGMENT + "&" + FILTERING_FRAGMENT, params);
+            }
 		} else {
-			return createProjectApiUriMap(collection, params);
+            if (workspaceId != null) {
+                return createWorkspaceApiUriMap(collection + "?" + PAGING_FRAGMENT, workspaceId, params);
+            } else {
+                return createSharedSpaceApiUriMap(collection + "?" + PAGING_FRAGMENT, params);
+            }
 		}
 	}
 
@@ -435,15 +467,18 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 		return name + "='" + escapeQueryValue(value) + "'";
 	}
 
+	protected String condition(String name, int value) {
+		return name + "=" + value;
+	}
+
 	private static String escapeQueryValue(String value) {
 		return value.replaceAll("(\\\\)", "$1$1").replaceAll("([\"'])", "\\\\$1");
 	}
 
-	private Map<String, Object> pagingParams(int offset, int limit, int workspaceId) {
+	private Map<String, Object> pagingParams(int offset, int limit) {
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("offset", offset);
 		params.put("limit", limit);
-		params.put("workspace", workspaceId);
 		return params;
 	}
 

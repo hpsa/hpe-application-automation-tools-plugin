@@ -10,6 +10,10 @@ public class ConnectionProperties {
 		return getStringValue("mqm.sharedSpace", "DEFAULT");
 	}
 
+	public static long getWorkspaceId() {
+		return getIntValue("mqm.workspace", 1001);
+	}
+
 	public static String getUsername() {
 		return getStringValue("mqm.user", "admin");
 	}

@@ -7,7 +7,6 @@ import com.hp.mqm.client.model.JobConfiguration;
 import com.hp.mqm.client.model.Pipeline;
 import com.hp.mqm.client.model.Release;
 import com.hp.mqm.client.model.Taxonomy;
-import com.hp.mqm.client.model.TaxonomyType;
 
 import java.io.File;
 import java.util.List;
@@ -67,12 +66,12 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * @param projectName    root job name
 	 * @param pipelineName   name of the pipeline
 	 * @param workspaceId    workspace ID that the pipeline should be assigned to
-	 * @param releaseId      release the pipeline will belong to (-1 if no release is associated)
+	 * @param releaseId      release the pipeline will belong to
 	 * @param structureJson  pipeline descriptor (structure defined by Jenkins Insight)
 	 * @param serverJson     server descriptor (structure defined by Jenkins Insight)
 	 * @return created pipeline id
 	 */
-	int createPipeline(String serverIdentity, String projectName, String pipelineName, long workspaceId, long releaseId, String structureJson, String serverJson);
+	Pipeline createPipeline(String serverIdentity, String projectName, String pipelineName, long workspaceId, Long releaseId, String structureJson, String serverJson);
 
 	/**
 	 * Update pipeline metadata on the MQM server.
@@ -83,12 +82,15 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * <p/>
 	 * In order to dissociate pipeline from release, <code>releaseId</code> value -1 needs to be specified.
 	 * <p/>
+     *
+     * @deprecated use {@link #updatePipeline(String, String, Pipeline)} instead
 	 *
 	 * @param pipelineId   pipeline ID
 	 * @param pipelineName new pipeline name (can be null)
 	 * @param releaseId    new release ID (can be null)
 	 */
-	void updatePipelineMetadata(Long pipelineId, String pipelineName, Long releaseId);
+    @Deprecated
+	void updatePipelineMetadata(String serverIdentity, String projectName, long pipelineId, String pipelineName, Long releaseId);
 
 	/**
 	 * Update tags associated with the pipeline. Both "taxonomy" and "field" tags are updated.
@@ -98,6 +100,8 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * field tags can have null IDs, in which case they are first created on the server and then associated to the
 	 * pipeline.
 	 * <p/>
+     *
+     * @deprecated use {@link #updatePipeline(String, String, Pipeline)} instead
 	 *
 	 * @param serverIdentity identity of the server
 	 * @param jobName        name of the job
@@ -106,7 +110,25 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * @param fields         list of "fields" tags associated with the pipeline
 	 * @return pipeline structure
 	 */
+    @Deprecated
 	Pipeline updatePipelineTags(String serverIdentity, String jobName, long pipelineId, List<Taxonomy> taxonomies, List<Field> fields);
+
+    /**
+     * Update pipeline metadata on the MQM server.
+     * <p/>
+     * <p/>
+     * Either <code>pipeline.*</code> value can be null (except for id). In that case, the value isn't updated.
+     * <p/>
+     * It is not possible to update the <code>pipeline.root</code> flag (value is ignored if specified).
+     * <p/>
+     * In order to dissociate pipeline from release, <code>releaseId</code> value -1 needs to be specified.
+     * <p/>
+     *
+     * @param serverIdentity identity of the server
+     * @param jobName        name of the job
+     * @param pipeline      pipeline structure
+     */
+    Pipeline updatePipeline(String serverIdentity, String jobName, Pipeline pipeline);
 
 	/**
 	 * Query releases matching given name filter (using contains semantics).
@@ -115,12 +137,13 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * If <code>name</code> is not specified or empty, all releases are returned.
 	 * <p/>
 	 *
-	 * @param name   release name filter (can be null or empty)
-	 * @param offset paging offset
-	 * @param limit  paging limit
+	 * @param name          release name filter (can be null or empty)
+     * @param workspaceId   workspace
+	 * @param offset        paging offset
+	 * @param limit         paging limit
 	 * @return releases matching given name
 	 */
-	PagedList<Release> queryReleases(String name, int offset, int limit);
+	PagedList<Release> queryReleases(String name, long workspaceId, int offset, int limit);
 
 	/**
 	 * Query taxonomies matching given name filter (using contains semantics) and taxonomy type.
@@ -128,40 +151,61 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * <p/>
 	 * If <code>name</code> is not specified or empty, all taxonomies are considered.
 	 * <p/>
-	 * If <code>taxonomyTypeId</code> is specified, only taxonomies of given type are considered.
+	 * If <code>taxonomyRootId</code> is specified, only taxonomies of given type are considered.
 	 *
-	 * @param taxonomyTypeId taxonomy type (can be null)
+	 * @param taxonomyRootId taxonomy type (can be null)
 	 * @param name           taxonomy name filter (can be null or empty)
+     * @param workspaceId    workspace
 	 * @param offset         paging offset
 	 * @param limit          paging limit
 	 * @return taxonomies matching given name and type
+     * @deprecated use {@link #queryTaxonomies(String, long, int, int)} instead
 	 */
-	PagedList<Taxonomy> queryTaxonomies(Long taxonomyTypeId, String name, int offset, int limit);
+    @Deprecated
+	PagedList<Taxonomy> queryTaxonomyItems(Long taxonomyRootId, String name, long workspaceId, int offset, int limit);
 
 	/**
 	 * Query taxonomy types matching given name filter (using contains semantics).
 	 * <p/>
 	 * If <code>name</code> is not specified or empty, all taxonomy types are considered.
 	 *
-	 * @param name   taxonomy type name filter (can be null or empty)
-	 * @param offset paging offset
-	 * @param limit  paging limit
+	 * @param name          taxonomy type name filter (can be null or empty)
+     * @param workspaceId   workspace
+	 * @param offset        paging offset
+	 * @param limit         paging limit
 	 * @return taxonomy types matching given name filter
+     * @deprecated use {@link #queryTaxonomies(String, long, int, int)} instead
 	 */
-	PagedList<TaxonomyType> queryTaxonomyTypes(String name, int offset, int limit);
+    @Deprecated
+	PagedList<Taxonomy> queryTaxonomyCategories(String name, long workspaceId, int offset, int limit);
+
+    /**
+     * Query taxonomies (including categories) matching given name (using contains semantics).
+     * <p/>
+     * <p/>
+     * If <code>name</code> is not specified or empty, all taxonomies are considered.
+     *
+     * @param name          taxonomy name filter (can be null or empty)
+     * @param workspaceId   workspace
+     * @param offset        paging offset
+     * @param limit         paging limit
+     * @return taxonomies matching given name and type
+     */
+    PagedList<Taxonomy> queryTaxonomies(String name, long workspaceId, int offset, int limit);
 
 	/**
 	 * Query list for items matching given name (using contains semantics).
 	 * <p/>
 	 * If <code>name</code> is not specified or empty, all items are considered.
 	 *
-	 * @param listId list id
-	 * @param name   item name filter (can be null or empty)
-	 * @param offset paging offset
-	 * @param limit  paging limit
+	 * @param listId        list id
+	 * @param name          item name filter (can be null or empty)
+     * @param workspaceId   workspace
+	 * @param offset        paging offset
+	 * @param limit         paging limit
 	 * @return list items matching given name filter
 	 */
-	PagedList<ListItem> queryListItems(int listId, String name, int offset, int limit);
+	PagedList<ListItem> queryListItems(int listId, String name, long workspaceId, int offset, int limit);
 
 	/**
 	 * Sends events list to MQM [PUT request].

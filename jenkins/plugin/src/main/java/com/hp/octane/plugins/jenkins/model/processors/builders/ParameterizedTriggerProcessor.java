@@ -10,7 +10,9 @@ import hudson.tasks.Builder;
 import hudson.tasks.Publisher;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -21,12 +23,21 @@ import java.util.List;
  */
 
 public class ParameterizedTriggerProcessor extends AbstractBuilderProcessor {
+	private static final Logger logger = Logger.getLogger(ParameterizedTriggerProcessor.class.getName());
+
 	public ParameterizedTriggerProcessor(Builder builder, AbstractProject project, String phasesName) {
 		TriggerBuilder b = (TriggerBuilder) builder;
 		super.phases = new ArrayList<StructurePhase>();
 		List<AbstractProject> items;
 		for (BlockableBuildTriggerConfig config : b.getConfigs()) {
 			items = config.getProjectList(project.getParent(), null);
+			for (Iterator<AbstractProject> iterator = items.iterator(); iterator.hasNext();) {
+				AbstractProject next = iterator.next();
+				if (next == null) {
+					iterator.remove();
+					logger.severe("encountered null project reference; considering it as corrupted configuration and skipping");
+				}
+			}
 			super.phases.add(new StructurePhase(phasesName, config.getBlock() != null, items));
 		}
 	}
@@ -37,6 +48,13 @@ public class ParameterizedTriggerProcessor extends AbstractBuilderProcessor {
 		List<AbstractProject> items;
 		for (BuildTriggerConfig config : t.getConfigs()) {
 			items = config.getProjectList(project.getParent(), null);
+			for (Iterator<AbstractProject> iterator = items.iterator(); iterator.hasNext();) {
+				AbstractProject next = iterator.next();
+				if (next == null) {
+					iterator.remove();
+					logger.severe("encountered null project reference; considering it as corrupted configuration and skipping");
+				}
+			}
 			super.phases.add(new StructurePhase(phasesName, false, items));
 		}
 	}

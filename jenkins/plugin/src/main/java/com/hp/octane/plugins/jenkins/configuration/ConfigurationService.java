@@ -77,7 +77,7 @@ public class ConfigurationService {
     public FormValidation checkConfiguration(String location, String sharedSpace, String username, String password) {
         MqmRestClient client = clientFactory.create(location, sharedSpace, username, password);
         try {
-            client.tryToConnectProject();
+            client.tryToConnectSharedSpace();
         } catch (AuthenticationException e) {
             logger.log(Level.WARNING, "Authentication failed.", e);
             return FormValidation.errorWithMarkup(markup("red", Messages.AuthenticationFailure()));
@@ -85,7 +85,7 @@ public class ConfigurationService {
             logger.log(Level.WARNING, "Session creation failed.", e);
             return FormValidation.errorWithMarkup(markup("red", Messages.SessionCreationFailure()));
         } catch (SharedSpaceNotExistException e) {
-            logger.log(Level.WARNING, "Shared Space validation failed.", e);
+            logger.log(Level.WARNING, "Shared space validation failed.", e);
             return FormValidation.errorWithMarkup(markup("red", Messages.ConnectionSharedSpaceInvalid()));
         } catch (RequestErrorException e) {
             logger.log(Level.WARNING, "Connection check failed due to communication problem.", e);

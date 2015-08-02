@@ -37,6 +37,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 	private Long identityFrom;
 
 	private String uiLocation;
+	private Boolean abridged;
 	private String username;
 	private String password;
 
@@ -48,6 +49,14 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 		return identity;
 	}
 
+	public Long getIdentityFrom() {
+		return identityFrom;
+	}
+
+	public Boolean getAbridged() {
+		return abridged;
+	}
+
 	// identity should not be changed under normal circumstances; this functionality is provided in order to simplify
 	// test automation
 	public void setIdentity(String identity) throws IOException {
@@ -57,10 +66,6 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 		this.identity = identity;
 		this.identityFrom = new Date().getTime();
 		save();
-	}
-
-	public Long getIdentityFrom() {
-		return identityFrom;
 	}
 
 	@Override
@@ -85,6 +90,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 	public ServerConfiguration getServerConfiguration() {
 		return new ServerConfiguration(
 				getLocation(),
+				getAbridged(),
 				getSharedSpace(),
 				getUsername(),
 				getPassword());
@@ -110,11 +116,12 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 		return Scrambler.descramble(password);
 	}
 
-	public void configurePlugin(String uiLocation, String username, String password) throws IOException {
+	public void configurePlugin(String uiLocation, Boolean abridged, String username, String password) throws IOException {
 		ServerConfiguration oldConfiguration = getServerConfiguration();
 		String oldUiLocation = this.uiLocation;
 
 		this.uiLocation = uiLocation;
+		this.abridged = abridged;
 		this.username = username;
 		this.password = Scrambler.scramble(password);
 		try {
@@ -170,9 +177,10 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 		public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
 			try {
 				JSONObject mqmData = formData.getJSONObject("mqm"); // NON-NLS
-				octanePlugin.configurePlugin((String) mqmData.get("uiLocation"), // NON-NLS
-						(String) mqmData.get("username"), // NON-NLS
-						(String) mqmData.get("password")); // NON-NLS
+				octanePlugin.configurePlugin(mqmData.getString("uiLocation"), // NON-NLS
+						mqmData.getBoolean("abridged"), // NON-NLS
+						mqmData.getString("username"), // NON-NLS
+						mqmData.getString("password")); // NON-NLS
 				return true;
 			} catch (IOException e) {
 				throw new FormException(e, Messages.ConfigurationSaveFailed());
@@ -223,6 +231,10 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 
 		public String getLocation() {
 			return octanePlugin.getLocation();
+		}
+
+		public Boolean getAbridged() {
+			return octanePlugin.getAbridged();
 		}
 
 		public String getSharedSpace() {

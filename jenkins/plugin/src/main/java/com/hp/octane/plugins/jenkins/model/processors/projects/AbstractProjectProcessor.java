@@ -24,8 +24,8 @@ import java.util.logging.Logger;
 public abstract class AbstractProjectProcessor {
 	private static final Logger logger = Logger.getLogger(AbstractProjectProcessor.class.getName());
 
-	private ArrayList<StructurePhase> internals = new ArrayList<StructurePhase>();
-	private ArrayList<StructurePhase> postBuilds = new ArrayList<StructurePhase>();
+	private List<StructurePhase> internals = new ArrayList<StructurePhase>();
+	private List<StructurePhase> postBuilds = new ArrayList<StructurePhase>();
 
 	protected void processBuilders(List<Builder> builders, AbstractProject project) {
 		this.processBuilders(builders, project, "");
