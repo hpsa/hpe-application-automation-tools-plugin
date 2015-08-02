@@ -14,6 +14,9 @@
                     <f:entry title="${%global.config.password.title}" description="${%global.config.password.description}">
                         <f:password field="password" />
                     </f:entry>
+                    <f:entry title="${%global.config.abridged.title}" description="${%global.config.abridged.description}">
+                        <f:checkbox field="abridged" />
+                    </f:entry>
                     <f:validateButton title="${%global.config.test.connection}" progress="${%global.config.test.connection.progress}"
                         method="testGlobalConnection" with="uiLocation,username,password" />
                 </table>
