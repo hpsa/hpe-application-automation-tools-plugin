@@ -5,10 +5,7 @@
 
 package com.hp.application.automation.tools.results;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -34,13 +31,16 @@ import hudson.tasks.junit.TestResultAction;
 import hudson.tasks.test.TestResultAggregator;
 import hudson.tasks.test.TestResultProjectAction;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import org.apache.tools.ant.DirectoryScanner;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -67,6 +67,7 @@ import com.hp.application.automation.tools.run.PcBuilder;
 public class RunResultRecorder extends Recorder implements Serializable, MatrixAggregatable {
 
     private static final long serialVersionUID = 1L;
+    private static final String REPORTMETADATE_XML = "report_metadata.xml";
     private final ResultsPublisherModel _resultsPublisherModel;
 
     @DataBoundConstructor
@@ -201,6 +202,36 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         }
 
         return true;
+    }
+
+    private void writeReportMetaData2XML(List<ReportMetaData> htmlReportsInfo, String xmlFile) throws IOException, ParserConfigurationException {
+
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = dbf.newDocumentBuilder();
+        Document doc = builder.newDocument();
+        Element root = doc.createElement("reports_data");
+        doc.appendChild(root);
+
+        for (ReportMetaData htmlReportInfo : htmlReportsInfo)
+        {
+            String disPlayName = htmlReportInfo.getDisPlayName();
+            String urlName = htmlReportInfo.getUrlName();
+            String resourceURL = htmlReportInfo.getResourceURL();
+            String dateTime = htmlReportInfo.getDateTime();
+            String status = htmlReportInfo.getStatus();
+            String isHtmlReport = htmlReportInfo.getIsHtmlReport()? "true":"false";
+            Element elmReport = doc.createElement("report");
+            elmReport.setAttribute("disPlayName", disPlayName);
+            elmReport.setAttribute("urlName", urlName);
+            elmReport.setAttribute("resourceURL",resourceURL);
+            elmReport.setAttribute("dateTime", dateTime);
+            elmReport.setAttribute("status", status);
+            elmReport.setAttribute("isHtmlreport", isHtmlReport);
+            root.appendChild(elmReport);
+
+        }
+
+        write2XML(doc, xmlFile);
     }
 
     private Boolean collectAndPrepareHtmlReports(AbstractBuild build, BuildListener listener, List<ReportMetaData> htmlReportsInfo) throws IOException, InterruptedException {
@@ -436,6 +467,10 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 collectAndPrepareHtmlReports(build, listener, ReportInfoToCollect);
             }
 
+            //serialize report metadata
+            File reportMetaDataXmlFile = new File(artifactsDir.getParent(), REPORTMETADATE_XML);
+            String reportMetaDataXml = reportMetaDataXmlFile.getAbsolutePath();
+            writeReportMetaData2XML(ReportInfoToCollect, reportMetaDataXml);
 
             listener.getLogger().println("Adding a report action to the current build.");
             try {
@@ -446,7 +481,8 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
                 //HtmlBuildReportAction reportAction = new HtmlBuildReportAction(build, listener, dateTime);
 
-                HtmlBuildReportAction reportAction = new HtmlBuildReportAction(build, listener, ReportInfoToCollect);
+                //HtmlBuildReportAction reportAction = new HtmlBuildReportAction(build, listener, ReportInfoToCollect);
+                HtmlBuildReportAction reportAction = new HtmlBuildReportAction(build);
                 //HtmlBuildReportAction reportAction = new HtmlBuildReportAction(build, listener);
 //                final long buildTime = build.getTimestamp().getTimeInMillis();
 //                DirectoryScanner ds = new DirectoryScanner();
@@ -470,7 +506,25 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         }
     }
 
+    private void write2XML(Document document,String filename)
+    {
+        try {
+            document.normalize();
 
+            TransformerFactory tFactory = TransformerFactory.newInstance();
+            Transformer transformer = tFactory.newTransformer();
+            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+
+            DOMSource source = new DOMSource(document);
+            PrintWriter pw = new PrintWriter(new FileOutputStream(filename));
+            StreamResult result = new StreamResult(pw);
+            transformer.transform(source, result);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
     /*
      * if we have a directory with file name "file.zip" we will return
      * "file_1.zip";

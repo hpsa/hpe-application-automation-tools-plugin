@@ -8,7 +8,16 @@ import hudson.model.Run;
 //import hudson.model.ProminentProjectAction;
 import hudson.remoting.Channel;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -19,28 +28,29 @@ import java.util.List;
 public class HtmlBuildReportAction implements Action {
     //private HtmlPublisherTarget actualHtmlPublisherTarget;
 
+    private static final String REPORTMETADATE_XML = "report_metadata.xml";
+
     private AbstractBuild build;
-    private BuildListener listener;
+    //private BuildListener listener;
+    private List<ReportMetaData> reportMetaDataList = new ArrayList<ReportMetaData>();
 
-    //private String dateTime;
 
-    private List<ReportMetaData> reportMetaData;
+    //public HtmlBuildReportAction(AbstractBuild<?, ?> build, BuildListener listener, List<ReportMetaData> reportMetaData)
+    //NOTE: if parameter has BuildListener, the build cannot be serilize normally.
 
-    public HtmlBuildReportAction(AbstractBuild<?, ?> build, BuildListener listener, List<ReportMetaData> reportMetaData) {
+    public HtmlBuildReportAction(AbstractBuild<?, ?> build) {
         //super(actualHtmlPublisherTarget);
         this.build = build;
-        this.listener = listener;
-        this.reportMetaData = reportMetaData;
+
+        File reportMetaData_XML = new File(build.getArtifactsDir().getParent(), REPORTMETADATE_XML);
+        if (reportMetaData_XML.exists())
+        {
+            readReportFromXMLFile(reportMetaData_XML.getAbsolutePath(),this.reportMetaDataList );
+        }
+
     }
 
-    public HtmlBuildReportAction(AbstractBuild<?, ?> build, BuildListener listener) {
-        //super(actualHtmlPublisherTarget);
-        this.build = build;
-        this.listener = listener;
-        //this.dateTime = dateTime;
-    }
-
-    public final AbstractBuild<?, ?> getOwner() {
+    public final AbstractBuild<?, ?> getBuild() {
         return build;
     }
 
@@ -56,7 +66,7 @@ public class HtmlBuildReportAction implements Action {
 
         File reportFile = new File(new File(run.getArtifactsDir(), "UFTReport"), "index.html");
 
-        listener.getLogger().println("HtmlReportFile: " + reportFile.toString());
+        //listener.getLogger().println("HtmlReportFile: " + reportFile.toString());
         return reportFile;
     }
 
@@ -86,7 +96,44 @@ public class HtmlBuildReportAction implements Action {
 
     // other property of the report
     public List<ReportMetaData> getAllReports(){
-        return this.reportMetaData;
+        return this.reportMetaDataList;
+    }
+
+
+    private void readReportFromXMLFile(String filename, List<ReportMetaData> listReport)
+    {
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = null;
+        Document doc = null;
+        try {
+            builder = dbf.newDocumentBuilder();
+            doc = builder.parse(filename);
+        }
+        catch (Exception e) {
+        }
+
+        Element root = doc.getDocumentElement();
+        NodeList reportList = root.getElementsByTagName("report");
+        for (int i = 0; i < reportList.getLength(); i++)
+        {
+            ReportMetaData reportmetadata = new ReportMetaData();
+            Element report = (Element) reportList.item(i);
+            String disPlayName = report.getAttribute("disPlayName");
+            String urlName = report.getAttribute("urlName");
+            String resourceURL = report.getAttribute("resourceURL");
+            String dateTime = report.getAttribute("dateTime");
+            String status = report.getAttribute("status");
+            String isHtmlreport = report.getAttribute("isHtmlreport");
+
+            reportmetadata.setDisPlayName(disPlayName);
+            reportmetadata.setUrlName(urlName);
+            reportmetadata.setResourceURL(resourceURL);
+            reportmetadata.setDateTime(dateTime);
+            reportmetadata.setStatus(status);
+            reportmetadata.setIsHtmlReport( isHtmlreport.equals("true") ? true: false);
+            listReport.add(reportmetadata);
+
+        }
     }
 //
 //    /**
