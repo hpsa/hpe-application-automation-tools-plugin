@@ -20,6 +20,7 @@ final public class TaxonomyType {
         return name;
     }
 
+    //TODO: remove equals - please do not use equals and hashCode - this is temporary solution
     @Override
     public boolean equals(final Object o) {
         if (this == o) {

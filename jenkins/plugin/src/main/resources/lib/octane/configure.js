@@ -204,7 +204,7 @@ function octane_job_configuration(target, progress, proxy) {
             function saveCallback(pipeline, response) {
                 pipeline.taxonomyTags = response.taxonomyTags;
 
-                // merge newly created taxonomies with the existing ones in order to appear in drop-downs
+                // locally store newly created taxonomy type - only for validations purpose
                 pipeline.taxonomyTags.forEach(function (taxonomy) {
                     var type = tagTypes[taxonomy.tagTypeId];
                     if (!type) {
@@ -216,39 +216,20 @@ function octane_job_configuration(target, progress, proxy) {
                         jobConfiguration.taxonomies.push(type);
                         tagTypes[type.tagTypeId] = type;
                     }
-                    //var matchTag = function (tag) {
-                    //    return tag.tagId == taxonomy.tagId;
-                    //};
-                    //if (!type.values.some(matchTag)) {
-                    //    type.values.push({
-                    //        tagId: taxonomy.tagId,
-                    //        tagName: taxonomy.tagName
-                    //    });
-                    //}
                 });
 
-                // merge newly created field values with existing ones in order to appear in drop-downs
+                // set ids of newly created field tags
                 response.fields.forEach(function (receivedField) {
-                    //var fieldType = fieldTypes[receivedField.parentLogicalName];
-                    $(jq(receivedField['parentLogicalName'])).val(receivedField.id).text(receivedField.name);
-                    //var matchFiledValue = function(value) {
-                    //    return value.id == receivedField.id;
-                    //};
-                    //if (!fieldType.values.some(matchFiledValue)) {
-                    //    fieldType.values.push({
-                    //        id: receivedField.id,
-                    //        name: receivedField.name
-                    //    });
-                    //    pipeline.fieldTags.forEach(function (fieldTag) {
-                    //        if (fieldTag.logicalListName === fieldType.logicalListName) {
-                    //            fieldTag.values.forEach(function (value) {
-                    //                if (!value.id && value.name === receivedField.name) {
-                    //                    value.id = receivedField.id;
-                    //                }
-                    //            });
-                    //        }
-                    //    });
-                    //}
+                    var fieldType = fieldTypes[receivedField.parentLogicalName];
+                    pipeline.fieldTags.forEach(function (fieldTag) {
+                        if (fieldTag.logicalListName === fieldType.logicalListName) {
+                            fieldTag.values.forEach(function (value) {
+                                if (!value.id && value.name === receivedField.name) {
+                                    value.id = receivedField.id;
+                                }
+                            });
+                        }
+                    });
                 });
 
                 renderConfiguration(jobConfiguration, pipeline.id);
@@ -346,9 +327,10 @@ function octane_job_configuration(target, progress, proxy) {
             function addTag(tag) {
 
                 var tagTd;
+                var tagTr;
                 var group = groupBy[tag.tagTypeName];
                 if (typeof group !== 'object') {
-                    var tagTr = $("<tr><td class='setting-name'><label/></td>");
+                    tagTr = $("<tr><td class='setting-name'><label/></td>");
                     tagsTbody.append(tagTr);
                     tagTr.find("label").text(tag.tagTypeName + ":");
                     tagTd = $("<td class='setting-main' colspan='2'/>");
@@ -361,6 +343,7 @@ function octane_job_configuration(target, progress, proxy) {
                     groupBy[tag.tagTypeName] = group;
                 }
                 tagTd = group.td;
+                tagTr = group.tr;
                 group.count++;
 
                 var tagDiv = $("<div class='tag'><span/><a class='remove' href='javascript:void(0)'>X</a></div>");
@@ -415,7 +398,9 @@ function octane_job_configuration(target, progress, proxy) {
             var addedTag;
             addSelect.change(function () {
                 var val = addSelect.val();
-                if (val < 0) {
+                if (val === null) {
+                    return;
+                } else if (val < 0) {
                     var tagType = tagTypes[tagTypeValue(val)];
                     addedTag = {
                         tagTypeId: tagType.tagTypeId,
@@ -425,17 +410,20 @@ function octane_job_configuration(target, progress, proxy) {
                     tagTypeInput.hide();
                     tagTypeSpan.text(tagType.tagTypeName + ": ");
                     tagTypeSpan.css('display', 'inline');
-                    tagInput.val("");
+                    tagInput.val($(jqClass('select2-search__field')).last().val()); //prefilled value for new taxonomy
+                    tagInput.attr('title', 'Environment');
                     tagInput.attr('placeholder', 'Environment');
                     tagInput.css('display', 'inline');
                     add.css('display', 'inline');
                 } else if (val == 'newTagType') {
                     addedTag = {};
                     tagTypeInput.val("");
+                    tagTypeInput.attr('title', 'Environment Type');
                     tagTypeInput.attr('placeholder', 'Environment Type');
                     tagTypeInput.css('display', 'inline');
                     tagTypeSpan.hide();
-                    tagInput.val("");
+                    tagInput.val($(jqClass('select2-search__field')).last().val()); //prefilled value for new taxonomy
+                    tagInput.attr('title', 'Environment');
                     tagInput.attr('placeholder', 'Environment');
                     tagInput.css('display', 'inline');
                     add.css('display', 'inline');
@@ -497,11 +485,11 @@ function octane_job_configuration(target, progress, proxy) {
                 }
                 addedTag = undefined;
                 makeDirty();
-                defaultOption.prop('selected', 'selected');
                 tagTypeInput.hide();
                 tagTypeSpan.hide();
                 tagInput.hide();
                 add.hide();
+                addSelect.val("default").trigger("change");
             };
             add.click(doAdd);
             enableDirtyClickCheck(add);
@@ -871,6 +859,12 @@ function octane_job_configuration(target, progress, proxy) {
             });
             failure();
         } else {
+            //workaround for IE on Jenkins with Jquery 1.7.2 , not necessary for JQuery 1.11.2-0
+            //select2 input box is loosing focus after refreshing items
+            setTimeout(function() {
+                $(jqClass('select2-search__field')).last().focus();
+            }, 100);
+            //end of workaround
             success(data.responseJSON);
         }
     }

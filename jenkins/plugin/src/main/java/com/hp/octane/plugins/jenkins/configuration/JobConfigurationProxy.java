@@ -14,6 +14,7 @@ import com.hp.mqm.client.model.Pipeline;
 import com.hp.mqm.client.model.Release;
 import com.hp.mqm.client.model.Taxonomy;
 import com.hp.mqm.client.model.TaxonomyType;
+import com.hp.octane.plugins.jenkins.Messages;
 import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
@@ -53,6 +54,8 @@ public class JobConfigurationProxy {
 
     final private AbstractProject project;
     final private RetryModel retryModel;
+
+    private static final String NOT_SPECIFIED = "-- Not specified --";
 
     public JobConfigurationProxy(AbstractProject project) {
         this.project = project;
@@ -256,7 +259,6 @@ public class JobConfigurationProxy {
     @JavaScriptMethod
     public JSONObject searchListItems(int listId, String term, boolean multiValue) {
         int defaultSize = 10;
-        String notSpecified = "-- Not specified --";
         JSONObject ret = new JSONObject();
 
         MqmRestClient client;
@@ -270,7 +272,7 @@ public class JobConfigurationProxy {
 
             PagedList<ListItem> listItemPagedList = client.queryListItems(listId, term, 0, defaultSize);
             List<ListItem> listItems = listItemPagedList.getItems();
-            boolean moreResults = listItemPagedList.getTotalCount() > defaultSize;
+            boolean moreResults = listItemPagedList.getTotalCount() > listItems.size();
 
             JSONArray retArray = new JSONArray();
             if (moreResults) {
@@ -279,10 +281,10 @@ public class JobConfigurationProxy {
 
             if (!multiValue) {
                 String quotedTerm = Pattern.quote(term.toLowerCase());
-                if (Pattern.matches(".+" + quotedTerm + ".+", notSpecified.toLowerCase())) {
+                if (Pattern.matches(".*" + quotedTerm + ".*", NOT_SPECIFIED.toLowerCase())) {
                     JSONObject notSpecifiedItemJson = new JSONObject();
                     notSpecifiedItemJson.put("id", -1);
-                    notSpecifiedItemJson.put("text", notSpecified);
+                    notSpecifiedItemJson.put("text", NOT_SPECIFIED);
                     retArray.add(notSpecifiedItemJson);
                 }
             }
@@ -332,12 +334,21 @@ public class JobConfigurationProxy {
         try {
             PagedList<Release> releasePagedList = client.queryReleases(term, 0, defaultSize);
             List<Release> releases = releasePagedList.getItems();
-            boolean moreResults = releasePagedList.getTotalCount() > defaultSize;
+            boolean moreResults = releasePagedList.getTotalCount() > releases.size();
 
             JSONArray retArray = new JSONArray();
             if (moreResults) {
                 retArray.add(createMoreResultsJson());
             }
+
+            String quotedTerm = Pattern.quote(term.toLowerCase());
+            if (Pattern.matches(".*" + quotedTerm + ".*", NOT_SPECIFIED.toLowerCase())) {
+                JSONObject notSpecifiedItemJson = new JSONObject();
+                notSpecifiedItemJson.put("id", -1);
+                notSpecifiedItemJson.put("text", NOT_SPECIFIED);
+                retArray.add(notSpecifiedItemJson);
+            }
+
             for (Release release : releases) {
                 JSONObject relJson = new JSONObject();
                 relJson.put("id", release.getId());
@@ -380,24 +391,25 @@ public class JobConfigurationProxy {
             List<Taxonomy> pipelineTaxonomiesList = new LinkedList<Taxonomy>();
             for (int i = 0; i < pipelineTaxonomies.size(); i++) {
                 JSONObject pipelineTaxonomy = pipelineTaxonomies.getJSONObject(i);
-                pipelineTaxonomiesList.add(new Taxonomy(
-                        Integer.parseInt(pipelineTaxonomy.getString("tagId")),
-                        Integer.parseInt(pipelineTaxonomy.getString("tagTypeId")),
-                        pipelineTaxonomy.getString("tagName"),
-                        pipelineTaxonomy.getString("tagTypeName")));
+                if (pipelineTaxonomy.containsKey("tagId") && pipelineTaxonomy.containsKey("tagTypeId")) {   // we need to compare only taxonomies which already exist on server
+                    pipelineTaxonomiesList.add(new Taxonomy(Integer.parseInt(pipelineTaxonomy.getString("tagId")),
+                            Integer.parseInt(pipelineTaxonomy.getString("tagTypeId")),
+                            pipelineTaxonomy.getString("tagName"),
+                            pipelineTaxonomy.getString("tagTypeName")));
+                }
             }
 
             PagedList<TaxonomyType> taxonomyTypePagedList = client.queryTaxonomyTypes(term, 0, defaultSize);
             final List<TaxonomyType> taxonomyTypes = taxonomyTypePagedList.getItems();
-            boolean moreResults = taxonomyTypePagedList.getTotalCount() > defaultSize;
+            boolean moreResults = taxonomyTypePagedList.getTotalCount() > taxonomyTypes.size();
 
             Map<TaxonomyType, Set<Taxonomy>> taxonomyMap = new HashMap<TaxonomyType, Set<Taxonomy>>();
             //if term matches any taxonomy type, then load all taxonomies for this type
             if (!taxonomyTypes.isEmpty()) {
                 for (TaxonomyType type : taxonomyTypes) {
                     PagedList<Taxonomy> taxonomiesForTypePagedList = client.queryTaxonomies(type.getId(), null, 0, defaultSize);
-                    moreResults = moreResults || taxonomiesForTypePagedList.getTotalCount() > defaultSize;
                     List<Taxonomy> taxonomiesForType = taxonomiesForTypePagedList.getItems();
+                    moreResults = moreResults || taxonomiesForTypePagedList.getTotalCount() > taxonomiesForType.size();
 
                     Set<Taxonomy> taxonomiesForTypeSet = new LinkedHashSet<Taxonomy>();
                     for (Taxonomy taxonomy : taxonomiesForType) {
@@ -409,8 +421,8 @@ public class JobConfigurationProxy {
 
             //load taxonomies which matches term
             PagedList<Taxonomy> taxonomyPagedList = client.queryTaxonomies(null, term, 0, defaultSize);
-            moreResults = moreResults || taxonomyPagedList.getTotalCount() > defaultSize;
             final List<Taxonomy> taxonomyList = taxonomyPagedList.getItems();
+            moreResults = moreResults || taxonomyPagedList.getTotalCount() > taxonomyList.size();
 
             if ( !taxonomyList.isEmpty() ) {
                 final List<TaxonomyType> allTaxonomyTypes = client.queryTaxonomyTypes(null, 0, 100).getItems(); // don't expect more than 100 types
@@ -527,8 +539,8 @@ public class JobConfigurationProxy {
 
     private JSONObject createMoreResultsJson() {
         JSONObject moreResultsJson = new JSONObject();
-        moreResultsJson.put("id", "more results found");
-        moreResultsJson.put("text", "Too many results, please be more specific in filtering");
+        moreResultsJson.put("id", "moreResultsFound");
+        moreResultsJson.put("text", Messages.TooManyResults());
         moreResultsJson.put("warning", "true");
         moreResultsJson.put("disabled", "disabled");
         return moreResultsJson;
