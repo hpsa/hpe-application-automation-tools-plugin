@@ -82,12 +82,8 @@ public class PluginActions implements RootAction {
 
 	@ExportedBean
 	public static final class PluginInfo {
-		private static final String version = "1.0.0";
-		private Boolean abridged;
-
-		public PluginInfo() {
-			this.abridged = Jenkins.getInstance().getPlugin(OctanePlugin.class).getAbridged();
-		}
+		private final String version = Jenkins.getInstance().getPlugin(OctanePlugin.class).getWrapper().getVersion();
+		private final Boolean abridged = Jenkins.getInstance().getPlugin(OctanePlugin.class).getAbridged();
 
 		@Exported(inline = true)
 		public String getVersion() {
@@ -192,34 +188,5 @@ public class PluginActions implements RootAction {
 
 	public ConfigApi getConfiguration() {
 		return new ConfigApi();
-	}
-
-	//  TODO: this method should be revised once config API is formalized
-	public void doConfig(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
-		String body = "";
-		JSONObject inputJSON;
-		byte[] buffer = new byte[1024];
-		int length;
-		ServerConfiguration conf;
-		while ((length = req.getInputStream().read(buffer)) > 0) body += new String(buffer, 0, length);
-
-//		if (body.length() > 0) {
-//			inputJSON = JSONObject.fromObject(body);
-//			String url;
-//			String sharedSpace;
-//			String project;
-//			String username;
-//			String password;
-//			if (inputJSON.containsKey("type") && inputJSON.getString("type").equals("events-client")) {
-//				url = inputJSON.containsKey("url") ? inputJSON.getString("url") : null;
-//				sharedSpace = inputJSON.containsKey("sharedSpace") ? inputJSON.getString("sharedSpace") : null;
-//				username = inputJSON.containsKey("username") ? inputJSON.getString("username") : null;
-//				password = inputJSON.containsKey("password") ? inputJSON.getString("password") : null;
-//				logger.info("Accepted events-client config request for '" + url + "', '" + sharedSpace + "'");
-//				conf = new ServerConfiguration(url, sharedSpace, username, password);
-//				EventsDispatcher.getExtensionInstance().updateClient(conf);
-//			}
-//		}
-		EventsDispatcher.getExtensionInstance().wakeUpClients();
 	}
 }
