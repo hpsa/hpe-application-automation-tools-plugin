@@ -3,6 +3,7 @@ package com.hp.octane.plugins.jenkins.events;
 import com.google.inject.Inject;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactoryImpl;
+import com.hp.octane.plugins.jenkins.configuration.ConfigurationListener;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jenkins.model.events.CIEventBase;
 import hudson.Extension;
@@ -21,7 +22,7 @@ import java.util.logging.Logger;
  */
 
 @Extension
-public final class EventsDispatcher {
+public final class EventsDispatcher implements ConfigurationListener {
 	private static final Logger logger = Logger.getLogger(EventsClient.class.getName());
 
 	private static EventsDispatcher extensionInstance;
@@ -107,5 +108,10 @@ public final class EventsDispatcher {
 	@Inject
 	public void setMqmRestClientFactory(JenkinsMqmRestClientFactoryImpl clientFactory) {
 		this.clientFactory = clientFactory;
+	}
+
+	@Override
+	public void onChanged(ServerConfiguration conf, ServerConfiguration oldConf) {
+		updateClient(conf, oldConf);
 	}
 }
