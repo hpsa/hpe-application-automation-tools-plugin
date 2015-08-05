@@ -96,7 +96,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
             if (configurationFile.canRead()) {
                 PredefinedConfiguration predefinedConfiguration =
                         PredefinedConfigurationUnmarshaller.getExtensionInstance().unmarshall(configurationFile);
-                configurePlugin(predefinedConfiguration.getUiLocation(), null, null);
+                configurePlugin(predefinedConfiguration.getUiLocation(), abridged, null, null);
             }
         }
 
