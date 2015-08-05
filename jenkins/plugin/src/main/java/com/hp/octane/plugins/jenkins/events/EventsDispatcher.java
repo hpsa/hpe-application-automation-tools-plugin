@@ -3,6 +3,7 @@ package com.hp.octane.plugins.jenkins.events;
 import com.google.inject.Inject;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactoryImpl;
+import com.hp.octane.plugins.jenkins.configuration.ConfigurationListener;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jenkins.model.events.CIEventBase;
 import hudson.Extension;
@@ -21,17 +22,16 @@ import java.util.logging.Logger;
  */
 
 @Extension
-public final class EventsDispatcher {
-	private static final Logger logger = Logger.getLogger(EventsClient.class.getName());
+public final class EventsDispatcher implements ConfigurationListener {
+	private static final Logger logger = Logger.getLogger(EventsDispatcher.class.getName());
 
 	private static EventsDispatcher extensionInstance;
 	private JenkinsMqmRestClientFactory clientFactory;
 	private final List<EventsClient> clients = new ArrayList<EventsClient>();
 
 	public static EventsDispatcher getExtensionInstance() {
-		List<EventsDispatcher> extensions;
 		if (extensionInstance == null) {
-			extensions = Jenkins.getInstance().getExtensionList(EventsDispatcher.class);
+			List<EventsDispatcher> extensions = Jenkins.getInstance().getExtensionList(EventsDispatcher.class);
 			if (extensions.isEmpty()) {
 				throw new RuntimeException("Events Dispatcher was not initialized properly");
 			} else {
@@ -107,5 +107,10 @@ public final class EventsDispatcher {
 	@Inject
 	public void setMqmRestClientFactory(JenkinsMqmRestClientFactoryImpl clientFactory) {
 		this.clientFactory = clientFactory;
+	}
+
+	@Override
+	public void onChanged(ServerConfiguration conf, ServerConfiguration oldConf) {
+		updateClient(conf, oldConf);
 	}
 }
