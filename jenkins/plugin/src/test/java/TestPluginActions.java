@@ -3,6 +3,7 @@ import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
 import com.hp.octane.plugins.jenkins.model.parameters.ParameterType;
 import hudson.model.*;
+import jenkins.model.Jenkins;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Rule;
@@ -102,15 +103,16 @@ public class TestPluginActions {
 
 		assertTrue(body.has("server"));
 		tmp = body.getJSONObject("server");
+		assertEquals("jenkins", tmp.getString("type"));
+		assertEquals(Jenkins.VERSION, tmp.getString("version"));
+		assertEquals(rule.getInstance().getRootUrl(), tmp.getString("url") + "/");
 		assertFalse(tmp.isNull("instanceId"));
-		assertEquals(tmp.getString("url") + "/", rule.getInstance().getRootUrl());
-		assertEquals(tmp.getString("type"), "jenkins");
 		//  TODO: extend the test deeper
 
 		assertTrue(body.has("plugin"));
 		tmp = body.getJSONObject("plugin");
-		assertNotEquals(tmp.getString("version"), "");
-		//  TODO: extent the test deeper
+		assertFalse(tmp.getString("version").isEmpty());
+		//assertFalse(tmp.isNull("abridged"));
 
 		assertTrue(body.has("eventsClients"));
 		//  TODO: extent the test deeper

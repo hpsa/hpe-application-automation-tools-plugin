@@ -5,8 +5,8 @@ import com.hp.octane.plugins.jenkins.configuration.ConfigApi;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
-import com.hp.octane.plugins.jenkins.notifications.EventsClient;
-import com.hp.octane.plugins.jenkins.notifications.EventsDispatcher;
+import com.hp.octane.plugins.jenkins.events.EventsClient;
+import com.hp.octane.plugins.jenkins.events.EventsDispatcher;
 import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.RootAction;
@@ -36,20 +36,37 @@ import java.util.logging.Logger;
 public class PluginActions implements RootAction {
 	private static final Logger logger = Logger.getLogger(PluginActions.class.getName());
 
+	//  [YG] probably move the instance ID related things to Plugin Info, since it's not belongs to the Jenkins core
 	@ExportedBean
 	public static final class ServerInfo {
+		private static final String type = "jenkins";
+		private static final String version = Jenkins.VERSION;
+		private String url;
 		private String instanceId;
 		private Long instanceIdFrom;
-		private String url;
-		private final String type = "jenkins";
 
 		public ServerInfo() {
-			this.instanceId = Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity();
-			this.instanceIdFrom = Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentityFrom();
 			String serverUrl = Jenkins.getInstance().getRootUrl();
 			if (serverUrl != null && serverUrl.endsWith("/"))
 				serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
 			this.url = serverUrl;
+			this.instanceId = Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity();
+			this.instanceIdFrom = Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentityFrom();
+		}
+
+		@Exported(inline = true)
+		public String getType() {
+			return type;
+		}
+
+		@Exported(inline = true)
+		public String getVersion() {
+			return version;
+		}
+
+		@Exported(inline = true)
+		public String getUrl() {
+			return url;
 		}
 
 		@Exported(inline = true)
@@ -61,25 +78,21 @@ public class PluginActions implements RootAction {
 		public Long getInstanceIdFrom() {
 			return instanceIdFrom;
 		}
-
-		@Exported(inline = true)
-		public String getUrl() {
-			return url;
-		}
-
-		@Exported(inline = true)
-		public String getType() {
-			return type;
-		}
 	}
 
 	@ExportedBean
 	public static final class PluginInfo {
-		private final String version = "1.0.0";
+		private final String version = Jenkins.getInstance().getPlugin(OctanePlugin.class).getWrapper().getVersion();
+		private final Boolean abridged = Jenkins.getInstance().getPlugin(OctanePlugin.class).getAbridged();
 
 		@Exported(inline = true)
 		public String getVersion() {
 			return version;
+		}
+
+		@Exported(inline = true)
+		public Boolean getAbridged() {
+			return abridged;
 		}
 	}
 
@@ -175,35 +188,5 @@ public class PluginActions implements RootAction {
 
 	public ConfigApi getConfiguration() {
 		return new ConfigApi();
-	}
-
-	//  TODO: this method should be revised once config API is formalized
-	public void doConfig(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
-		String body = "";
-		JSONObject inputJSON;
-		byte[] buffer = new byte[1024];
-		int length;
-		ServerConfiguration conf;
-		while ((length = req.getInputStream().read(buffer)) > 0) body += new String(buffer, 0, length);
-
-		if (body.length() > 0) {
-			inputJSON = JSONObject.fromObject(body);
-			String url;
-			String domain;
-			String project;
-			String username;
-			String password;
-			if (inputJSON.containsKey("type") && inputJSON.getString("type").equals("events-client")) {
-				url = inputJSON.containsKey("url") ? inputJSON.getString("url") : null;
-				domain = inputJSON.containsKey("domain") ? inputJSON.getString("domain") : null;
-				project = inputJSON.containsKey("project") ? inputJSON.getString("project") : null;
-				username = inputJSON.containsKey("username") ? inputJSON.getString("username") : null;
-				password = inputJSON.containsKey("password") ? inputJSON.getString("password") : null;
-				logger.info("Accepted events-client config request for '" + url + "', '" + domain + "', '" + project + "'");
-				conf = new ServerConfiguration(url, domain, project, username, password);
-				EventsDispatcher.getExtensionInstance().updateClient(conf);
-			}
-		}
-		EventsDispatcher.getExtensionInstance().wakeUpClients();
 	}
 }

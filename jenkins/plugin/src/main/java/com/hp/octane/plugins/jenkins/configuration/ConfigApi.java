@@ -18,118 +18,113 @@ import org.kohsuke.stapler.interceptor.RequirePOST;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.util.logging.Logger;
 
 public class ConfigApi {
+	private static final Logger logger = Logger.getLogger(ConfigApi.class.getName());
 
-    public void doRead(StaplerRequest req, StaplerResponse res) throws ServletException, IOException {
-        checkPermission();
-        res.serveExposedBean(req, getConfiguration(), Flavor.JSON);
-    }
+	public void doRead(StaplerRequest req, StaplerResponse res) throws ServletException, IOException {
+		checkPermission();
+		res.serveExposedBean(req, getConfiguration(), Flavor.JSON);
+	}
 
-    @RequirePOST
-    public void doSave(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
-        checkPermission();
+	@RequirePOST
+	public void doSave(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
+		checkPermission();
 
-        JSONObject configuration = JSONObject.fromObject(IOUtils.toString(req.getInputStream()));
-        String uiLocation;
-        if (!configuration.containsKey("uiLocation")) {
-            // allow per-partes project specification
-            String location = (String) configuration.get("location");
-            String domain = (String) configuration.get("domain");
-            String project = (String) configuration.get("project");
-            if (StringUtils.isEmpty(location) || StringUtils.isEmpty(domain) || StringUtils.isEmpty(project)) {
-                res.sendError(400, "Either (uiLocation) or (location, domain and project) must be specified");
-                return;
-            }
-            uiLocation = location.replaceAll("/$", "") + "/ui?p=" + domain + "/" + project;
-        } else {
-            uiLocation = configuration.getString("uiLocation");
-        }
-        try {
-            // validate location format
-            ConfigurationService.parseUiLocation(uiLocation);
-        } catch (FormValidation ex) {
-            res.sendError(400, ex.getMessage());
-            return;
-        }
-        String username, password;
-        if (!configuration.containsKey("username")) {
-            // when username is not provided, use existing credentials (password can be overridden later)
-            ServerConfiguration serverConfiguration = ConfigurationService.getServerConfiguration();
-            username = serverConfiguration.username;
-            password = serverConfiguration.password;
-        } else {
-            // when username is provided, clear password unless provided later
-            username = configuration.getString("username");
-            password = "";
-        }
-        if (configuration.containsKey("password")) {
-            password = configuration.getString("password");
-        }
-        OctanePlugin octanePlugin = Jenkins.getInstance().getPlugin(OctanePlugin.class);
-        octanePlugin.configurePlugin(uiLocation, username, password);
-        String serverIdentity = (String) configuration.get("serverIdentity");
-        if (!StringUtils.isEmpty(serverIdentity)) {
-            octanePlugin.setIdentity(serverIdentity);
-        }
+		JSONObject configuration = JSONObject.fromObject(IOUtils.toString(req.getInputStream()));
+		String uiLocation;
+		if (!configuration.containsKey("uiLocation")) {
+			// allow per-partes project specification
+			String location = (String) configuration.get("location");
+			String sharedSpace = (String) configuration.get("sharedSpace");
+			if (StringUtils.isEmpty(location) || StringUtils.isEmpty(sharedSpace)) {
+				res.sendError(400, "Either (uiLocation) or (location, sharedSpace and project) must be specified");
+				return;
+			}
+			uiLocation = location.replaceAll("/$", "") + "/ui?p=" + sharedSpace;
+		} else {
+			uiLocation = configuration.getString("uiLocation");
+		}
+//		try {
+//			// validate location format
+//			ConfigurationService.parseUiLocation(uiLocation);
+//		} catch (FormValidation ex) {
+//			res.sendError(400, ex.getMessage());
+//			return;
+//		}
+		Boolean abridged = configuration.containsKey("abridged") && configuration.getBoolean("abridged");
 
-        res.serveExposedBean(req, getConfiguration(), Flavor.JSON);
-    }
+		String username, password;
+		if (!configuration.containsKey("username")) {
+			// when username is not provided, use existing credentials (password can be overridden later)
+			ServerConfiguration serverConfiguration = ConfigurationService.getServerConfiguration();
+			username = serverConfiguration.username;
+			password = serverConfiguration.password;
+		} else {
+			// when username is provided, clear password unless provided later
+			username = configuration.getString("username");
+			password = "";
+		}
+		if (configuration.containsKey("password")) {
+			password = configuration.getString("password");
+		}
+		OctanePlugin octanePlugin = Jenkins.getInstance().getPlugin(OctanePlugin.class);
+		octanePlugin.configurePlugin(uiLocation, abridged, username, password);
+		String serverIdentity = (String) configuration.get("serverIdentity");
+		if (!StringUtils.isEmpty(serverIdentity)) {
+			octanePlugin.setIdentity(serverIdentity);
+		}
 
-    private void checkPermission() {
-        Jenkins.getInstance().getACL().checkPermission(Jenkins.ADMINISTER);
-    }
+		res.serveExposedBean(req, getConfiguration(), Flavor.JSON);
+	}
 
-    private Configuration getConfiguration() {
-        ServerConfiguration serverConfiguration = ConfigurationService.getServerConfiguration();
-        return new Configuration(
-                serverConfiguration.location,
-                serverConfiguration.domain,
-                serverConfiguration.project,
-                serverConfiguration.username,
-                ServerIdentity.getIdentity());
-    }
+	private void checkPermission() {
+		Jenkins.getInstance().getACL().checkPermission(Jenkins.ADMINISTER);
+	}
 
-    @ExportedBean
-    public static final class Configuration {
+	private Configuration getConfiguration() {
+		ServerConfiguration serverConfiguration = ConfigurationService.getServerConfiguration();
+		return new Configuration(
+				serverConfiguration.location,
+				serverConfiguration.sharedSpace,
+				serverConfiguration.username,
+				ServerIdentity.getIdentity());
+	}
 
-        private String location;
-        private String domain;
-        private String project;
-        private String username;
-        private String serverIdentity;
+	@ExportedBean
+	public static final class Configuration {
 
-        public Configuration(String location, String domain, String project, String username, String serverIdentity) {
-            this.location = location;
-            this.domain = domain;
-            this.project = project;
-            this.username = username;
-            this.serverIdentity = serverIdentity;
-        }
+		private String location;
+		private String sharedSpace;
+		private String username;
+		private String serverIdentity;
 
-        @Exported(inline = true)
-        public String getLocation() {
-            return location;
-        }
+		public Configuration(String location, String sharedSpace, String username, String serverIdentity) {
+			this.location = location;
+			this.sharedSpace = sharedSpace;
+			this.username = username;
+			this.serverIdentity = serverIdentity;
+		}
 
-        @Exported(inline = true)
-        public String getDomain() {
-            return domain;
-        }
+		@Exported(inline = true)
+		public String getLocation() {
+			return location;
+		}
 
-        @Exported(inline = true)
-        public String getProject() {
-            return project;
-        }
+		@Exported(inline = true)
+		public String getSharedSpace() {
+			return sharedSpace;
+		}
 
-        @Exported(inline = true)
-        public String getUsername() {
-            return username;
-        }
+		@Exported(inline = true)
+		public String getUsername() {
+			return username;
+		}
 
-        @Exported(inline = true)
-        public String getServerIdentity() {
-            return serverIdentity;
-        }
-    }
+		@Exported(inline = true)
+		public String getServerIdentity() {
+			return serverIdentity;
+		}
+	}
 }

@@ -2,16 +2,16 @@
 
 package com.hp.octane.plugins.jenkins.client;
 
-import com.hp.octane.plugins.jenkins.notifications.EventsClient;
-import com.hp.octane.plugins.jenkins.notifications.EventsDispatcher;
+import com.hp.octane.plugins.jenkins.events.EventsClient;
+import com.hp.octane.plugins.jenkins.events.EventsDispatcher;
 import hudson.Extension;
 
 @Extension
 public class JenkinsInsightEventPublisher implements EventPublisher {
 
     @Override
-    public boolean isSuspended(String location, String domain, String project) {
-        EventsClient client = EventsDispatcher.getExtensionInstance().getClient(location, domain, project);
+    public boolean isSuspended(String location, String sharedSpace) {
+        EventsClient client = EventsDispatcher.getExtensionInstance().getClient(location, sharedSpace);
         return client == null || client.isSuspended();
     }
 

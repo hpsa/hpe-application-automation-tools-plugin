@@ -1,4 +1,4 @@
-package com.hp.octane.plugins.jenkins.notifications;
+package com.hp.octane.plugins.jenkins.events;
 
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCausesFactory;
 import com.hp.octane.plugins.jenkins.model.events.CIEventQueued;
@@ -7,7 +7,6 @@ import hudson.model.AbstractProject;
 import hudson.model.Queue;
 import hudson.model.queue.QueueListener;
 
-import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -32,7 +31,8 @@ public final class QueueListenerImpl extends QueueListener {
 					project.getName(),
 					CIEventCausesFactory.processCauses(wi.getCauses())
 			);
-			EventsDispatcher.getExtensionInstance().dispatchEvent(event);
+			//  REMARK: temporary decided to not send QUEUED event
+			//EventsDispatcher.getExtensionInstance().dispatchEvent(event);
 		}
 	}
 

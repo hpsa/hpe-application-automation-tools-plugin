@@ -7,8 +7,10 @@ import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationListener;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationService;
 import com.hp.octane.plugins.jenkins.configuration.MqmProject;
+import com.hp.octane.plugins.jenkins.configuration.PredefinedConfiguration;
+import com.hp.octane.plugins.jenkins.configuration.PredefinedConfigurationUnmarshaller;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
-import com.hp.octane.plugins.jenkins.notifications.EventsDispatcher;
+import com.hp.octane.plugins.jenkins.events.EventsDispatcher;
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.Plugin;
@@ -23,7 +25,10 @@ import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Date;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -37,16 +42,24 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 	private Long identityFrom;
 
 	private String uiLocation;
+	private Boolean abridged;
 	private String username;
 	private String password;
 
 	// inferred from uiLocation
 	private String location;
-	private String domain;
-	private String project;
+	private String sharedSpace;
 
 	public String getIdentity() {
 		return identity;
+	}
+
+	public Long getIdentityFrom() {
+		return identityFrom;
+	}
+
+	public Boolean getAbridged() {
+		return abridged;
 	}
 
 	// identity should not be changed under normal circumstances; this functionality is provided in order to simplify
@@ -60,10 +73,6 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 		save();
 	}
 
-	public Long getIdentityFrom() {
-		return identityFrom;
-	}
-
 	@Override
 	public void postInitialize() throws IOException {
 		load();
@@ -74,6 +83,22 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 			this.identityFrom = new Date().getTime();
 			save();
 		}
+
+        // once the global configuration is saved in UI, all values are initialized
+        if (uiLocation == null) {
+            File configurationFile;
+            try {
+                File resourceDirectory = new File(getWrapper().baseResourceURL.toURI());
+                configurationFile = new File(resourceDirectory, "predefinedConfiguration.xml");
+            } catch (URISyntaxException e) {
+                throw new RuntimeException("Unable to convert path of the predefined server configuration file");
+            }
+            if (configurationFile.canRead()) {
+                PredefinedConfiguration predefinedConfiguration =
+                        PredefinedConfigurationUnmarshaller.getExtensionInstance().unmarshall(configurationFile);
+                configurePlugin(predefinedConfiguration.getUiLocation(), null, null);
+            }
+        }
 
 		EventsDispatcher.getExtensionInstance().updateClient(getServerConfiguration());
 	}
@@ -86,8 +111,8 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 	public ServerConfiguration getServerConfiguration() {
 		return new ServerConfiguration(
 				getLocation(),
-				getDomain(),
-				getProject(),
+				getAbridged(),
+				getSharedSpace(),
 				getUsername(),
 				getPassword());
 	}
@@ -100,12 +125,8 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 		return location;
 	}
 
-	private String getDomain() {
-		return domain;
-	}
-
-	private String getProject() {
-		return project;
+	private String getSharedSpace() {
+		return sharedSpace;
 	}
 
 	private String getUsername() {
@@ -116,24 +137,23 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 		return Scrambler.descramble(password);
 	}
 
-	public void configurePlugin(String uiLocation, String username, String password) throws IOException {
+	public void configurePlugin(String uiLocation, Boolean abridged, String username, String password) throws IOException {
 		ServerConfiguration oldConfiguration = getServerConfiguration();
 		String oldUiLocation = this.uiLocation;
 
 		this.uiLocation = uiLocation;
+		this.abridged = abridged;
 		this.username = username;
 		this.password = Scrambler.scramble(password);
 		try {
 			MqmProject mqmProject = ConfigurationService.parseUiLocation(uiLocation);
 			location = mqmProject.getLocation();
-			domain = mqmProject.getDomain();
-			project = mqmProject.getProject();
+			sharedSpace = mqmProject.getSharedSpace();
 		} catch (FormValidation ex) {
 			// consider plugin unconfigured
 			logger.warning("invalid configuration submitted; processing failed with error: " + ex.getMessage());
 			location = null;
-			domain = null;
-			project = null;
+			sharedSpace = null;
 		}
 
 		ServerConfiguration newConfiguration = getServerConfiguration();
@@ -178,9 +198,10 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 		public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
 			try {
 				JSONObject mqmData = formData.getJSONObject("mqm"); // NON-NLS
-				octanePlugin.configurePlugin((String) mqmData.get("uiLocation"), // NON-NLS
-						(String) mqmData.get("username"), // NON-NLS
-						(String) mqmData.get("password")); // NON-NLS
+				octanePlugin.configurePlugin(mqmData.getString("uiLocation"), // NON-NLS
+						mqmData.getBoolean("abridged"), // NON-NLS
+						mqmData.getString("username"), // NON-NLS
+						mqmData.getString("password")); // NON-NLS
 				return true;
 			} catch (IOException e) {
 				throw new FormException(e, Messages.ConfigurationSaveFailed());
@@ -210,7 +231,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 				return ex;
 			}
 			FormValidation validation = configurationService.checkConfiguration(mqmProject.getLocation(),
-					mqmProject.getDomain(), mqmProject.getProject(), username, password);
+					mqmProject.getSharedSpace(), username, password);
 			if (validation.kind == FormValidation.Kind.OK &&
 					uiLocation.equals(octanePlugin.getUiLocation()) &&
 					username.equals(octanePlugin.getUsername()) &&
@@ -233,12 +254,12 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 			return octanePlugin.getLocation();
 		}
 
-		public String getDomain() {
-			return octanePlugin.getDomain();
+		public Boolean getAbridged() {
+			return octanePlugin.getAbridged();
 		}
 
-		public String getProject() {
-			return octanePlugin.getProject();
+		public String getSharedSpace() {
+			return octanePlugin.getSharedSpace();
 		}
 
 		public String getUsername() {

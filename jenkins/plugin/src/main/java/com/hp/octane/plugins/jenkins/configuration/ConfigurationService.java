@@ -5,7 +5,7 @@ package com.hp.octane.plugins.jenkins.configuration;
 import com.google.inject.Inject;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.AuthenticationException;
-import com.hp.mqm.client.exception.DomainProjectNotExistException;
+import com.hp.mqm.client.exception.SharedSpaceNotExistException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.SessionCreationException;
 import com.hp.octane.plugins.jenkins.Messages;
@@ -31,7 +31,7 @@ public class ConfigurationService {
 
     private final static Logger logger = Logger.getLogger(ConfigurationService.class.getName());
 
-    private static final String PARAM_DOMAIN_PROJECT = "p"; // NON-NLS
+    private static final String PARAM_SHARED_SPACE = "p"; // NON-NLS
 
     private JenkinsMqmRestClientFactory clientFactory;
 
@@ -44,29 +44,29 @@ public class ConfigurationService {
         try {
             URL url = new URL(uiLocation);
             String location;
-            int contextPos = uiLocation.indexOf("/qcbin/ui");
+            int contextPos = uiLocation.indexOf("/ui");
             if (contextPos < 0) {
                 // guessing the future
-                contextPos = uiLocation.indexOf("/mqm/ui");
+                contextPos = uiLocation.indexOf("/ui");
                 if (contextPos < 0) {
                     throw FormValidation.errorWithMarkup(markup("red", Messages.ApplicationContextNotFound()));
                 } else {
-                    location = uiLocation.substring(0, contextPos + 4);
+                    location = uiLocation.substring(0, contextPos);
                 }
             } else {
-                location = uiLocation.substring(0, contextPos + 6);
+                location = uiLocation.substring(0, contextPos);
             }
             List<NameValuePair> params = URLEncodedUtils.parse(url.toURI(), "UTF-8");
             for (NameValuePair param: params) {
-                if (param.getName().equals(PARAM_DOMAIN_PROJECT)) {
-                    String[] domainAndProject = param.getValue().split("/");
-                    if (domainAndProject.length != 2 || StringUtils.isEmpty(domainAndProject[0]) || StringUtils.isEmpty(domainAndProject[1])) {
-                        throw FormValidation.errorWithMarkup(markup("red", Messages.UnexpectedDomainProject()));
+                if (param.getName().equals(PARAM_SHARED_SPACE)) {
+                    String sharedSpace = param.getValue();
+                    if (StringUtils.isEmpty(sharedSpace)) {
+                        throw FormValidation.errorWithMarkup(markup("red", Messages.UnexpectedSharedSpace()));
                     }
-                    return new MqmProject(location, domainAndProject[0], domainAndProject[1]);
+                    return new MqmProject(location, sharedSpace);
                 }
             }
-            throw FormValidation.errorWithMarkup(markup("red", Messages.MissingDomainProject()));
+            throw FormValidation.errorWithMarkup(markup("red", Messages.MissingSharedSpace()));
         } catch (MalformedURLException e) {
             throw FormValidation.errorWithMarkup(markup("red", Messages.ConfigurationUrInvalid()));
         } catch (URISyntaxException e) {
@@ -74,19 +74,19 @@ public class ConfigurationService {
         }
     }
 
-    public FormValidation checkConfiguration(String location, String domain, String project, String username, String password) {
-        MqmRestClient client = clientFactory.create(location, domain, project, username, password);
+    public FormValidation checkConfiguration(String location, String sharedSpace, String username, String password) {
+        MqmRestClient client = clientFactory.create(location, sharedSpace, username, password);
         try {
-            client.tryToConnectProject();
+            client.tryToConnectSharedSpace();
         } catch (AuthenticationException e) {
             logger.log(Level.WARNING, "Authentication failed.", e);
             return FormValidation.errorWithMarkup(markup("red", Messages.AuthenticationFailure()));
         } catch (SessionCreationException e) {
             logger.log(Level.WARNING, "Session creation failed.", e);
             return FormValidation.errorWithMarkup(markup("red", Messages.SessionCreationFailure()));
-        } catch (DomainProjectNotExistException e) {
-            logger.log(Level.WARNING, "Domain and project validation failed.", e);
-            return FormValidation.errorWithMarkup(markup("red", Messages.ConnectionDomainProjectInvalid()));
+        } catch (SharedSpaceNotExistException e) {
+            logger.log(Level.WARNING, "Shared space validation failed.", e);
+            return FormValidation.errorWithMarkup(markup("red", Messages.ConnectionSharedSpaceInvalid()));
         } catch (RequestErrorException e) {
             logger.log(Level.WARNING, "Connection check failed due to communication problem.", e);
             return FormValidation.errorWithMarkup(markup("red", Messages.ConnectionFailure()));

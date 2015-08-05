@@ -6,7 +6,9 @@ import hudson.tasks.BuildTrigger;
 import hudson.tasks.Publisher;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -17,10 +19,19 @@ import java.util.List;
  */
 
 public class BuildTriggerProcessor extends AbstractBuilderProcessor {
+	private static final Logger logger = Logger.getLogger(BuildTriggerProcessor.class.getName());
+
 	public BuildTriggerProcessor(Publisher publisher, AbstractProject project) {
 		BuildTrigger t = (BuildTrigger) publisher;
 		super.phases = new ArrayList<StructurePhase>();
 		List<AbstractProject> items = t.getChildProjects(project.getParent());
+		for (Iterator<AbstractProject> iterator = items.iterator(); iterator.hasNext();) {
+			AbstractProject next = iterator.next();
+			if (next == null) {
+				iterator.remove();
+				logger.severe("encountered null project reference; considering it as corrupted configuration and skipping");
+			}
+		}
 		super.phases.add(new StructurePhase("downstream", false, items));
 	}
 }

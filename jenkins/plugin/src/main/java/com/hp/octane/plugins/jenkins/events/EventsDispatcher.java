@@ -1,8 +1,9 @@
-package com.hp.octane.plugins.jenkins.notifications;
+package com.hp.octane.plugins.jenkins.events;
 
 import com.google.inject.Inject;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactoryImpl;
+import com.hp.octane.plugins.jenkins.configuration.ConfigurationListener;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jenkins.model.events.CIEventBase;
 import hudson.Extension;
@@ -21,7 +22,7 @@ import java.util.logging.Logger;
  */
 
 @Extension
-public final class EventsDispatcher {
+public final class EventsDispatcher implements ConfigurationListener {
 	private static final Logger logger = Logger.getLogger(EventsClient.class.getName());
 
 	private static EventsDispatcher extensionInstance;
@@ -46,42 +47,28 @@ public final class EventsDispatcher {
 	}
 
 	public void updateClient(ServerConfiguration conf, ServerConfiguration oldConf) {
-		synchronized (clients) {
-			if (oldConf != null && conf.location != null && !conf.location.equals(oldConf.location)) {
+		boolean updated = false;
+		if (conf == null || conf.password == null ||
+				conf.location == null || conf.location.equals("") ||
+				conf.sharedSpace == null || conf.sharedSpace.equals("") ||
+				conf.username == null || conf.username.equals("")) {
+			logger.warning("bad configuration encountered, events client is not updated");
+		} else {
+			synchronized (clients) {
 				for (EventsClient client : clients) {
-					if (client.getUrl().equals(oldConf.location)) {
-						clients.remove(client);
+					if (client.getLocation().equals(conf.location) &&
+							client.getSharedSpace().equals(conf.sharedSpace)) {
+						client.update(conf);
+						client.activate();
+						updated = true;
 						break;
 					}
 				}
-			}
-			if (conf != null &&
-					conf.location != null && !conf.location.equals("") &&
-					conf.domain != null && !conf.domain.equals("") &&
-					conf.project != null && !conf.project.equals("") &&
-					conf.username != null && !conf.username.equals("") && conf.password != null) {
-				updateClient(conf.location, conf.domain, conf.project, conf.username, conf.password);
-			} else {
-				logger.warning("bad configuration encountered, events client is not updated");
-			}
-		}
-	}
-
-	private void updateClient(String url, String domain, String project, String username, String password) {
-		EventsClient client = null;
-		synchronized (clients) {
-			for (EventsClient c : clients) {
-				if (c.getUrl().equals(url)) {
-					client = c;
-					client.update(url, domain, project, username, password, clientFactory);
+				if (!updated) {
+					clients.add(new EventsClient(conf, clientFactory));
 				}
 			}
-			if (client == null) {
-				client = new EventsClient(url, domain, project, username, password, clientFactory);
-				clients.add(client);
-			}
 		}
-		client.activate();
 	}
 
 	public void wakeUpClients() {
@@ -104,13 +91,12 @@ public final class EventsDispatcher {
 		return new ArrayList<EventsClient>(clients);
 	}
 
-	public EventsClient getClient(String location, String domain, String project) {
+	public EventsClient getClient(String location, String sharedSpace) {
 		EventsClient result = null;
 		synchronized (clients) {
 			for (EventsClient c : clients) {
-				if (c.getUrl() != null && c.getUrl().equals(location) &&
-						c.getDomain() != null && c.getDomain().equals(domain) &&
-						c.getProject() != null && c.getProject().equals(project)) {
+				if (c.getLocation() != null && c.getLocation().equals(location) &&
+						c.getSharedSpace() != null && c.getSharedSpace().equals(sharedSpace)) {
 					result = c;
 					break;
 				}
@@ -122,5 +108,10 @@ public final class EventsDispatcher {
 	@Inject
 	public void setMqmRestClientFactory(JenkinsMqmRestClientFactoryImpl clientFactory) {
 		this.clientFactory = clientFactory;
+	}
+
+	@Override
+	public void onChanged(ServerConfiguration conf, ServerConfiguration oldConf) {
+		updateClient(conf, oldConf);
 	}
 }

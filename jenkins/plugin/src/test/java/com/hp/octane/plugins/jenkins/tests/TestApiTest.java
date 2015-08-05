@@ -41,7 +41,7 @@ public class TestApiTest {
         restClient = Mockito.mock(MqmRestClient.class);
 
         clientFactory = Mockito.mock(JenkinsMqmRestClientFactory.class);
-        Mockito.when(clientFactory.create(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(restClient);
+        Mockito.when(clientFactory.create(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(restClient);
 
         testDispatcher = ExtensionUtil.getInstance(rule, TestDispatcher.class);
         testDispatcher._setMqmRestClientFactory(clientFactory);
@@ -59,7 +59,7 @@ public class TestApiTest {
         // server needs to be configured in order for the processing to happen
         HtmlPage configPage = rule.createWebClient().goTo("configure");
         HtmlForm form = configPage.getFormByName("config");
-        form.getInputByName("_.uiLocation").setValueAttribute("http://localhost:8008/qcbin/ui/?workspace-id=1001&p=domain/project");
+        form.getInputByName("_.uiLocation").setValueAttribute("http://localhost:8008/ui/?p=1001");
         form.getInputByName("_.username").setValueAttribute("username");
         form.getInputByName("_.password").setValueAttribute("password");
         rule.submit(form);
@@ -90,9 +90,8 @@ public class TestApiTest {
         Assert.assertEquals(1, audits.size());
         JSONObject audit = audits.getJSONObject(0);
         Assert.assertTrue(audit.getBoolean("success"));
-        Assert.assertEquals("http://localhost:8008/qcbin", audit.getString("location"));
-        Assert.assertEquals("domain", audit.getString("domain"));
-        Assert.assertEquals("project", audit.getString("project"));
+        Assert.assertEquals("http://localhost:8008", audit.getString("location"));
+        Assert.assertEquals("1001", audit.getString("sharedSpace"));
         Assert.assertNotNull(audit.getString("date"));
     }
 }

@@ -1,4 +1,4 @@
-package com.hp.octane.plugins.jenkins.notifications;
+package com.hp.octane.plugins.jenkins.events;
 
 import hudson.Extension;
 import hudson.model.Item;

@@ -22,8 +22,8 @@ public class JenkinsMqmRestClientFactoryImpl implements JenkinsMqmRestClientFact
     private static final String CLIENT_TYPE = "octane-jenkins-plugin";
 
     @Override
-    public MqmRestClient create(String location, String domain, String project, String username, String password) {
-        MqmConnectionConfig clientConfig = new MqmConnectionConfig(location, domain, project, username, password, CLIENT_TYPE);
+    public MqmRestClient create(String location, String sharedSpace, String username, String password) {
+        MqmConnectionConfig clientConfig = new MqmConnectionConfig(location, sharedSpace, username, password, CLIENT_TYPE);
         URL locationUrl = null;
         try {
             locationUrl = new URL(clientConfig.getLocation());

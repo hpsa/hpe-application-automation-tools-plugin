@@ -4,15 +4,15 @@ package com.hp.mqm.client.model;
 
 final public class Release {
 
-    final private int id;
+    final private Long id;
     final private String name;
 
-    public Release(int id, String name) {
+    public Release(Long id, String name) {
         this.id = id;
         this.name = name;
     }
 
-    public int getId() {
+    public Long getId() {
         return id;
     }
 

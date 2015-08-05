@@ -1,5 +1,9 @@
 {
-  "type": "taxonomy",
+  "subtype": "taxonomy_item_node",
+  "type": "taxonomy_node",
   "name": "MyName",
-  "taxonomy-type-id": 0
+  "taxonomy_root": {
+    "id": 0,
+    "type": "taxonomy_category_node"
+  }
 }

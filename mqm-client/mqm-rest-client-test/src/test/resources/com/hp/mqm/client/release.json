@@ -1,8 +1,7 @@
 {
-  "type": "release-mqm",
-  "end-date": "2013-01-31",
-  "workspace-id": null,
+  "type": "release",
+  "end_date": "2013-01-31",
   "name": "MyRelease",
   "description": null,
-  "start-date": "2013-01-01"
+  "start_date": "2013-01-01"
 }

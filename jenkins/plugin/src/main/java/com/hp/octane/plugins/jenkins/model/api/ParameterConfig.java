@@ -20,7 +20,7 @@ public class ParameterConfig {
 	private List<Object> choices;
 
 	public ParameterConfig(ParameterDefinition pd) {
-		this(pd, ParameterType.UNAVAILABLE, null, null);
+		this(pd, ParameterType.UNKNOWN, null, null);
 	}
 
 	public ParameterConfig(ParameterDefinition pd, ParameterType type) {
@@ -36,7 +36,7 @@ public class ParameterConfig {
 		this.name = pd.getName();
 		this.type = type;
 		this.description = pd.getDescription();
-		if (type != ParameterType.UNAVAILABLE) {
+		if (type != ParameterType.UNKNOWN) {
 			if (defaultValue != null || type == ParameterType.PASSWORD) {
 				this.defaultValue = defaultValue;
 			} else {

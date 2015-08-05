@@ -4,32 +4,26 @@ package com.hp.mqm.client.model;
 
 final public class Taxonomy {
 
-    final private Integer id;
-    final private Integer taxonomyTypeId;
+    final private Long id;
     final private String name;
-    final private String taxonomyTypeName;
+    final private Taxonomy root;
 
-    public Taxonomy(Integer id, Integer taxonomyTypeId, String name, String taxonomyTypeName) {
+    public Taxonomy(Long id, String name, Taxonomy root) {
         this.id = id;
-        this.taxonomyTypeId = taxonomyTypeId;
         this.name = name;
-        this.taxonomyTypeName = taxonomyTypeName;
+        this.root = root;
     }
 
-    public Integer getId() {
+    public Long getId() {
         return id;
-    }
-
-    public Integer getTaxonomyTypeId() {
-        return taxonomyTypeId;
     }
 
     public String getName() {
         return name;
     }
 
-    public String getTaxonomyTypeName() {
-        return taxonomyTypeName;
+    public Taxonomy getRoot() {
+        return root;
     }
 
     //TODO: remove equals - please do not use equals and hashCode - this is temporary solution

@@ -6,7 +6,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.AuthenticationException;
-import com.hp.mqm.client.exception.DomainProjectNotExistException;
+import com.hp.mqm.client.exception.SharedSpaceNotExistException;
 import com.hp.mqm.client.exception.RequestException;
 import com.hp.mqm.client.exception.SessionCreationException;
 import com.hp.octane.plugins.jenkins.ExtensionUtil;
@@ -61,7 +61,7 @@ public class TestDispatcherTest {
     public void init() throws Exception {
         restClient = Mockito.mock(MqmRestClient.class);
         clientFactory = Mockito.mock(JenkinsMqmRestClientFactory.class);
-        Mockito.when(clientFactory.create(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(restClient);
+        Mockito.when(clientFactory.create(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(restClient);
 
         testDispatcher = ExtensionUtil.getInstance(rule, TestDispatcher.class);
         testDispatcher._setMqmRestClientFactory(clientFactory);
@@ -83,7 +83,7 @@ public class TestDispatcherTest {
         // server needs to be configured in order for the processing to happen
         HtmlPage configPage = rule.createWebClient().goTo("configure");
         HtmlForm form = configPage.getFormByName("config");
-        form.getInputByName("_.uiLocation").setValueAttribute("http://localhost:8008/qcbin/ui/?workspace-id=1001&p=domain/project");
+        form.getInputByName("_.uiLocation").setValueAttribute("http://localhost:8008/ui/?p=1001");
         form.getInputByName("_.username").setValueAttribute("username");
         form.getInputByName("_.password").setValueAttribute("password");
         rule.submit(form);
@@ -114,7 +114,7 @@ public class TestDispatcherTest {
         queue.add(Arrays.asList(build, build2, build3));
         queue.waitForTicks(10);
 
-        Mockito.verify(restClient).tryToConnectProject();
+        Mockito.verify(restClient).tryToConnectSharedSpace();
         Mockito.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
         Mockito.verify(restClient).postTestResult(new File(build2.getRootDir(), "mqmTests.xml"));
         Mockito.verify(restClient).postTestResult(new File(build3.getRootDir(), "mqmTests.xml"));
@@ -185,18 +185,18 @@ public class TestDispatcherTest {
     public void testDispatcherBodyFailure() throws Exception {
         // body post fails for the first time, succeeds afterwards
 
-        Mockito.doNothing().when(restClient).tryToConnectProject();
+        Mockito.doNothing().when(restClient).tryToConnectSharedSpace();
         Mockito.doThrow(new RequestException("fails")).doNothing().when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()));
         InOrder order = Mockito.inOrder(restClient);
 
         FreeStyleBuild build = executeBuild();
         queue.waitForTicks(5);
 
-        order.verify(restClient).tryToConnectProject();
+        order.verify(restClient).tryToConnectSharedSpace();
         order.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
         order.verify(restClient).release();
 
-        Mockito.verify(restClient, Mockito.times(2)).tryToConnectProject();
+        Mockito.verify(restClient, Mockito.times(2)).tryToConnectSharedSpace();
         Mockito.verify(restClient, Mockito.times(2)).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
         Mockito.verify(restClient, Mockito.times(2)).release();
         Mockito.verifyNoMoreInteractions(restClient);
@@ -208,7 +208,7 @@ public class TestDispatcherTest {
         // body post fails for two consecutive times
 
         Mockito.reset(restClient);
-        Mockito.doNothing().when(restClient).tryToConnectProject();
+        Mockito.doNothing().when(restClient).tryToConnectSharedSpace();
         Mockito.doThrow(new RequestException("fails")).doThrow(new RequestException("fails")).when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()));
 
         order = Mockito.inOrder(restClient);
@@ -216,14 +216,14 @@ public class TestDispatcherTest {
         build = executeBuild();
         queue.waitForTicks(5);
 
-        order.verify(restClient).tryToConnectProject();
+        order.verify(restClient).tryToConnectSharedSpace();
         order.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
         order.verify(restClient).release();
-        order.verify(restClient).tryToConnectProject();
+        order.verify(restClient).tryToConnectSharedSpace();
         order.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
         order.verify(restClient).release();
 
-        Mockito.verify(restClient, Mockito.times(2)).tryToConnectProject();
+        Mockito.verify(restClient, Mockito.times(2)).tryToConnectSharedSpace();
         Mockito.verify(restClient, Mockito.times(2)).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
         Mockito.verify(restClient, Mockito.times(2)).release();
         Mockito.verifyNoMoreInteractions(restClient);
@@ -267,9 +267,8 @@ public class TestDispatcherTest {
         Assert.assertEquals(statuses.length, audits.size());
         for (int i = 0; i < statuses.length; i++) {
             JSONObject audit = audits.getJSONObject(i);
-            Assert.assertEquals("http://localhost:8008/qcbin", audit.getString("location"));
-            Assert.assertEquals("domain", audit.getString("domain"));
-            Assert.assertEquals("project", audit.getString("project"));
+            Assert.assertEquals("http://localhost:8008", audit.getString("location"));
+            Assert.assertEquals("1001", audit.getString("sharedSpace"));
             Assert.assertEquals(statuses[i], audit.getBoolean("success"));
             Assert.assertNotNull(audit.getString("date"));
         }
@@ -278,18 +277,18 @@ public class TestDispatcherTest {
     private void mockRestClient(MqmRestClient restClient, boolean login, boolean session, boolean project) throws IOException {
         Mockito.reset(restClient);
         if (!login ) {
-            Mockito.doThrow(new AuthenticationException()).when(restClient).tryToConnectProject();
+            Mockito.doThrow(new AuthenticationException()).when(restClient).tryToConnectSharedSpace();
         } else if (!session) {
-            Mockito.doThrow(new SessionCreationException()).when(restClient).tryToConnectProject();
+            Mockito.doThrow(new SessionCreationException()).when(restClient).tryToConnectSharedSpace();
         } else if (!project) {
-            Mockito.doThrow(new DomainProjectNotExistException()).when(restClient).tryToConnectProject();
+            Mockito.doThrow(new SharedSpaceNotExistException()).when(restClient).tryToConnectSharedSpace();
         } else {
             Mockito.doNothing().when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()));
         }
     }
 
     private void verifyRestClient(MqmRestClient restClient, AbstractBuild build, boolean body, boolean release) throws IOException {
-        Mockito.verify(restClient).tryToConnectProject();
+        Mockito.verify(restClient).tryToConnectSharedSpace();
         if (body) {
             Mockito.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
         }
