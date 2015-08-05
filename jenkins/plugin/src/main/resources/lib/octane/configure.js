@@ -60,10 +60,6 @@ function octane_job_configuration(target, progress, proxy) {
         var tagTypes = {};
         var allTags = {};
         var tagTypesByName = {};
-        jobConfiguration.taxonomies.forEach(function (tagType) {
-            tagTypes[tagType.tagTypeId] = tagType;
-            tagTypesByName[tagType.tagTypeName] = tagType;
-        });
 
         var fieldTypes = {};
         jobConfiguration.fields.forEach(function (fieldType) {
@@ -203,20 +199,6 @@ function octane_job_configuration(target, progress, proxy) {
 
             function saveCallback(pipeline, response) {
                 pipeline.taxonomyTags = response.taxonomyTags;
-
-                // locally store newly created taxonomy type - only for validations purpose
-                pipeline.taxonomyTags.forEach(function (taxonomy) {
-                    var type = tagTypes[taxonomy.tagTypeId];
-                    if (!type) {
-                        type = {
-                            tagTypeId: taxonomy.tagTypeId,
-                            tagTypeName: taxonomy.tagTypeName,
-                            values: []
-                        };
-                        jobConfiguration.taxonomies.push(type);
-                        tagTypes[type.tagTypeId] = type;
-                    }
-                });
 
                 // set ids of newly created field tags
                 response.fields.forEach(function (receivedField) {
@@ -398,7 +380,7 @@ function octane_job_configuration(target, progress, proxy) {
             var addedTag;
             addSelect.change(function () {
                 var val = addSelect.val();
-                if (val === null) {
+                if (val === null || val === "default") {    //JQuery 1.7.2 receives "default", JQuery 1.11.2 receives null when this is called: addSelect.val("default").trigger("change")
                     return;
                 } else if (val < 0) {
                     var tagType = tagTypes[tagTypeValue(val)];
@@ -485,11 +467,14 @@ function octane_job_configuration(target, progress, proxy) {
                 }
                 addedTag = undefined;
                 makeDirty();
+                defaultOption.prop('selected', 'selected');
                 tagTypeInput.hide();
                 tagTypeSpan.hide();
                 tagInput.hide();
                 add.hide();
-                addSelect.val("default").trigger("change");
+                setTimeout(function() {
+                    addSelect.val("default").trigger("change"); //set "Add environment..." as selected option
+                }, 100);
             };
             add.click(doAdd);
             enableDirtyClickCheck(add);
@@ -710,7 +695,7 @@ function octane_job_configuration(target, progress, proxy) {
                     return "Environment type must be specified";
                 }
 
-                jobConfiguration.taxonomies.some(matchTagType);
+                Object.values(tagTypes).some(matchTagType);
                 return error;
             };
         }
@@ -800,6 +785,7 @@ function octane_job_configuration(target, progress, proxy) {
                             //resetting the values of known tags to values that have been retrieved from server
                             allTags = data.allTags;
                             tagTypesByName = data.tagTypesByName;
+                            tagTypes = data.tagTypes;
                             return {
                                 results: data.select2Input
                             };

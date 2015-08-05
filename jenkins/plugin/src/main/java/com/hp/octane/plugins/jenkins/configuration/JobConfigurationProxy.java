@@ -219,13 +219,6 @@ public class JobConfigurationProxy {
 
             ret.put("pipelines", pipelines);
 
-            JSONArray allTaxonomies = new JSONArray();
-            List<TaxonomyType> taxonomyTypes = client.queryTaxonomyTypes(null, 0, 50).getItems();
-            for (TaxonomyType taxonomyType: taxonomyTypes) {
-                allTaxonomies.add(tagType(taxonomyType.getId(), taxonomyType.getName()));
-            }
-            ret.put("taxonomies", allTaxonomies);
-
             JSONArray allFields = new JSONArray();
             for (FieldMetadata field: fields) {
                 JSONObject fieldObj = new JSONObject();
@@ -455,6 +448,7 @@ public class JobConfigurationProxy {
             JSONArray select2InputArray = new JSONArray();
             JSONObject allTags = new JSONObject();
             JSONObject tagTypesByName = new JSONObject();
+            JSONObject tagTypes = new JSONObject();
 
             //show warning, that there is more results and user should filter more specific
             if (moreResults) {
@@ -468,9 +462,9 @@ public class JobConfigurationProxy {
                 optgroup.put("text", taxonomyType.getKey().getName());
 
                 //for tagTypesByName
-                JSONObject tagTypeByName = new JSONObject();
-                tagTypeByName.put("tagTypeId", taxonomyType.getKey().getId());
-                tagTypeByName.put("tagTypeName", taxonomyType.getKey().getName());
+                JSONObject tagType = new JSONObject();
+                tagType.put("tagTypeId", taxonomyType.getKey().getId());
+                tagType.put("tagTypeName", taxonomyType.getKey().getName());
                 JSONArray tagTypeByNameValues = new JSONArray();
 
                 for (Taxonomy tax : taxonomyType.getValue()) {
@@ -504,8 +498,9 @@ public class JobConfigurationProxy {
 
                 optgroup.put("children", childrenArray);
                 select2InputArray.add(optgroup);
-                tagTypeByName.put("values", tagTypeByNameValues);
-                tagTypesByName.put(taxonomyType.getKey().getName(), tagTypeByName);
+                tagType.put("values", tagTypeByNameValues);
+                tagTypesByName.put(taxonomyType.getKey().getName(), tagType);
+                tagTypes.put(String.valueOf(taxonomyType.getKey().getId()), tagType);
             }
 
             // New type... New value...
@@ -520,6 +515,7 @@ public class JobConfigurationProxy {
             ret.put("select2Input", select2InputArray);
             ret.put("allTags", allTags);
             ret.put("tagTypesByName", tagTypesByName);
+            ret.put("tagTypes", tagTypes);
 
             client.release();
         } catch (RequestException e) {
