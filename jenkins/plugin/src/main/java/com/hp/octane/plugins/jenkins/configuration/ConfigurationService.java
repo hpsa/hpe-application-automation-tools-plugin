@@ -47,11 +47,11 @@ public class ConfigurationService {
             int contextPos = uiLocation.indexOf("/ui");
             if (contextPos < 0) {
                 // guessing the future
-                contextPos = uiLocation.indexOf("/mqm/ui");
+                contextPos = uiLocation.indexOf("/ui");
                 if (contextPos < 0) {
                     throw FormValidation.errorWithMarkup(markup("red", Messages.ApplicationContextNotFound()));
                 } else {
-                    location = uiLocation.substring(0, contextPos + 4);
+                    location = uiLocation.substring(0, contextPos);
                 }
             } else {
                 location = uiLocation.substring(0, contextPos);
