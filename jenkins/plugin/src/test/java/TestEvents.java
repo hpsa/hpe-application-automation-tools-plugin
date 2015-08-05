@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
 
 import static org.junit.Assert.*;
@@ -134,8 +135,8 @@ public class TestEvents {
 		assertEquals(1, p.getBuilds().toArray().length);
 		Thread.sleep(5000);
 
-		ArrayList<CIEventType> eventsOrder = new ArrayList<CIEventType>(Arrays.asList(CIEventType.STARTED, CIEventType.FINISHED));
-		ArrayList<JSONObject> eventLists = eventsHandler.getResults();
+		List<CIEventType> eventsOrder = new ArrayList<CIEventType>(Arrays.asList(CIEventType.STARTED, CIEventType.FINISHED));
+		List<JSONObject> eventLists = eventsHandler.getResults();
 		JSONObject tmp;
 		JSONArray events;
 		for (JSONObject l : eventLists) {
@@ -150,6 +151,7 @@ public class TestEvents {
 			assertFalse(l.isNull("events"));
 			events = l.getJSONArray("events");
 			for (int i = 0; i < events.length(); i++) {
+				logger.info(events.getJSONObject(i).toString());
 				tmp = events.getJSONObject(i);
 				if (tmp.getString("project").equals("root-job")) {
 					assertEquals(eventsOrder.get(0), CIEventType.getByValue(tmp.getString("eventType")));
