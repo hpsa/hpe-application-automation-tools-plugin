@@ -112,7 +112,7 @@ public class TestPluginActions {
 		assertTrue(body.has("plugin"));
 		tmp = body.getJSONObject("plugin");
 		assertFalse(tmp.getString("version").isEmpty());
-		assertFalse(tmp.isNull("abridged"));
+		//assertFalse(tmp.isNull("abridged"));
 
 		assertTrue(body.has("eventsClients"));
 		//  TODO: extent the test deeper
