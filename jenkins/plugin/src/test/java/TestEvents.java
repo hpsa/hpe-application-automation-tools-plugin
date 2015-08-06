@@ -129,6 +129,11 @@ public class TestEvents {
 	public void testEventsA() throws Exception {
 		FreeStyleProject p = rule.createFreeStyleProject(projectName);
 		JenkinsRule.WebClient client = rule.createWebClient();
+
+		WebRequestSettings req = new WebRequestSettings(client.createCrumbedUrl("octane/status"), HttpMethod.GET);
+		WebResponse res = client.loadWebResponse(req);
+		assertEquals("", res.getContentAsString());
+
 		assertEquals(0, p.getBuilds().toArray().length);
 		Utils.buildProject(client, p);
 		while (p.getLastBuild() == null || p.getLastBuild().isBuilding()) {
