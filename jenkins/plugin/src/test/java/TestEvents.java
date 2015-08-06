@@ -50,6 +50,8 @@ public class TestEvents {
 
 		@Override
 		public void handle(String s, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+			logger.info("ServerMock accepted: " + baseRequest.getMethod() + " - " + baseRequest.getPathInfo());
+
 			String body = "";
 			byte[] buffer;
 			int len;
