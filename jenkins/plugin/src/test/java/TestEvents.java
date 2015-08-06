@@ -46,7 +46,7 @@ public class TestEvents {
 	public final JenkinsRule rule = new JenkinsRule();
 
 	private static final class EventsHandler extends AbstractHandler {
-		private final ArrayList<JSONObject> eventLists = new ArrayList<JSONObject>();
+		private final List<JSONObject> eventLists = new ArrayList<JSONObject>();
 
 		@Override
 		public void handle(String s, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
@@ -68,7 +68,7 @@ public class TestEvents {
 			baseRequest.setHandled(true);
 		}
 
-		public ArrayList<JSONObject> getResults() {
+		public List<JSONObject> getResults() {
 			return eventLists;
 		}
 
@@ -150,6 +150,7 @@ public class TestEvents {
 
 			assertFalse(l.isNull("events"));
 			events = l.getJSONArray("events");
+			logger.info("Events number: " + events.length());
 			for (int i = 0; i < events.length(); i++) {
 				logger.info(events.getJSONObject(i).toString());
 				tmp = events.getJSONObject(i);
