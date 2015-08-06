@@ -46,10 +46,12 @@ public class TestEvents {
 	public final JenkinsRule rule = new JenkinsRule();
 
 	private static final class EventsHandler extends AbstractHandler {
-		private final ArrayList<JSONObject> eventLists = new ArrayList<JSONObject>();
+		private final List<JSONObject> eventLists = new ArrayList<JSONObject>();
 
 		@Override
 		public void handle(String s, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+			logger.info("ServerMock accepted: " + baseRequest.getMethod() + " - " + baseRequest.getPathInfo());
+
 			String body = "";
 			byte[] buffer;
 			int len;
@@ -68,7 +70,7 @@ public class TestEvents {
 			baseRequest.setHandled(true);
 		}
 
-		public ArrayList<JSONObject> getResults() {
+		public List<JSONObject> getResults() {
 			return eventLists;
 		}
 
@@ -127,6 +129,11 @@ public class TestEvents {
 	public void testEventsA() throws Exception {
 		FreeStyleProject p = rule.createFreeStyleProject(projectName);
 		JenkinsRule.WebClient client = rule.createWebClient();
+
+		WebRequestSettings req = new WebRequestSettings(client.createCrumbedUrl("octane/status"), HttpMethod.GET);
+		WebResponse res = client.loadWebResponse(req);
+		assertEquals("", res.getContentAsString());
+
 		assertEquals(0, p.getBuilds().toArray().length);
 		Utils.buildProject(client, p);
 		while (p.getLastBuild() == null || p.getLastBuild().isBuilding()) {
@@ -151,7 +158,6 @@ public class TestEvents {
 			assertFalse(l.isNull("events"));
 			events = l.getJSONArray("events");
 			for (int i = 0; i < events.length(); i++) {
-				logger.info(events.getJSONObject(i).toString());
 				tmp = events.getJSONObject(i);
 				if (tmp.getString("project").equals("root-job")) {
 					assertEquals(eventsOrder.get(0), CIEventType.getByValue(tmp.getString("eventType")));
