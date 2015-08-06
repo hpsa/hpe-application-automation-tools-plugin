@@ -150,9 +150,7 @@ public class TestEvents {
 
 			assertFalse(l.isNull("events"));
 			events = l.getJSONArray("events");
-			logger.info("Events number: " + events.length());
 			for (int i = 0; i < events.length(); i++) {
-				logger.info(events.getJSONObject(i).toString());
 				tmp = events.getJSONObject(i);
 				if (tmp.getString("project").equals("root-job")) {
 					assertEquals(eventsOrder.get(0), CIEventType.getByValue(tmp.getString("eventType")));
