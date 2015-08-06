@@ -538,6 +538,7 @@ function octane_job_configuration(target, progress, proxy) {
                             }
                             lastSelected = $(pipelineSelect).find("option:selected");
                             renderExistingPipeline(jobConfiguration.pipelines[pipelineSelect[0].selectedIndex], pipelineSelector);
+                            covertSelectorsToSelect2(jobConfiguration.pipelines[pipelineSelect[0].selectedIndex]);
                         });
                     }
                 };
