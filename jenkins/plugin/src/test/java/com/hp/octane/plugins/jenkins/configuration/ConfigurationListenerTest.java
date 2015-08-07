@@ -27,7 +27,7 @@ public class ConfigurationListenerTest {
 		HtmlPage configPage = rule.createWebClient().goTo("configure");
 		HtmlForm form = configPage.getFormByName("config");
 
-		form.getInputByName("_.uiLocation").setValueAttribute("http://localhost:8008/ui/?p=1001");
+		form.getInputByName("_.uiLocation").setValueAttribute("http://localhost:8008/ui/?p=1001/1002");
 		form.getInputByName("_.username").setValueAttribute("username");
 		form.getInputByName("_.password").setValueAttribute("password");
 		rule.submit(form);
