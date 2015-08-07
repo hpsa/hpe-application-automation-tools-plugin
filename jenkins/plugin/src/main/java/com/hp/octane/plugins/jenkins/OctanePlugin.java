@@ -93,9 +93,9 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
             } catch (URISyntaxException e) {
                 logger.log(Level.WARNING, "Unable to convert path of the predefined server configuration file", e);
             }
-            if (configurationFile != null && configurationFile.canRead() && PredefinedConfigurationUnmarshaller.getExtensionInstance() != null) {
-                PredefinedConfiguration predefinedConfiguration =
-                        PredefinedConfigurationUnmarshaller.getExtensionInstance().unmarshall(configurationFile);
+            PredefinedConfigurationUnmarshaller predefinedConfigurationUnmarshaller = PredefinedConfigurationUnmarshaller.getExtensionInstance();
+            if (configurationFile != null && configurationFile.canRead() && predefinedConfigurationUnmarshaller != null) {
+                PredefinedConfiguration predefinedConfiguration = predefinedConfigurationUnmarshaller.unmarshall(configurationFile);
                 if (predefinedConfiguration != null) {
                     configurePlugin(predefinedConfiguration.getUiLocation(), abridged, null, null);
                 }
