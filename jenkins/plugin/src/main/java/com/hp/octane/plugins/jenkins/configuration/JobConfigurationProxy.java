@@ -8,6 +8,7 @@ import com.hp.mqm.client.exception.RequestException;
 import com.hp.mqm.client.model.Field;
 import com.hp.mqm.client.model.FieldMetadata;
 import com.hp.mqm.client.model.JobConfiguration;
+import com.hp.mqm.client.model.ListItem;
 import com.hp.mqm.client.model.PagedList;
 import com.hp.mqm.client.model.Pipeline;
 import com.hp.mqm.client.model.Release;
@@ -35,7 +36,6 @@ import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -72,7 +72,7 @@ public class JobConfigurationProxy {
 					ServerIdentity.getIdentity(),
 					project.getName(),
 					pipelineObject.getString("name"),
-					pipelineObject.optLong("workspaceId"),
+					1001l, // pipelineObject.optLong("workspaceId"),
 					pipelineObject.optLong("releaseId"),
                     toString(structureItem),
 					toString(serverInfo)).getId();
@@ -259,7 +259,7 @@ public class JobConfigurationProxy {
         }
         try {
 
-            PagedList<ListItem> listItemPagedList = client.queryListItems(listId, term, 0, defaultSize);
+            PagedList<ListItem> listItemPagedList = client.queryListItems(listId, term, 1002l, 0, defaultSize);
             List<ListItem> listItems = listItemPagedList.getItems();
             boolean moreResults = listItemPagedList.getTotalCount() > listItems.size();
 
@@ -321,7 +321,7 @@ public class JobConfigurationProxy {
             return error(e.getMessage());
         }
         try {
-            PagedList<Release> releasePagedList = client.queryReleases(term, 0, defaultSize);
+            PagedList<Release> releasePagedList = client.queryReleases(term, 1002l, 0, defaultSize);
             List<Release> releases = releasePagedList.getItems();
             boolean moreResults = releasePagedList.getTotalCount() > releases.size();
 
@@ -377,65 +377,29 @@ public class JobConfigurationProxy {
         try {
 
             //currently existing taxonomies on pipeline -> we need to show these options as disabled
-            List<Taxonomy> pipelineTaxonomiesList = new LinkedList<Taxonomy>();
+            List<Long> pipelineTaxonomiesList = new LinkedList<Long>();
             for (int i = 0; i < pipelineTaxonomies.size(); i++) {
                 JSONObject pipelineTaxonomy = pipelineTaxonomies.getJSONObject(i);
                 if (pipelineTaxonomy.containsKey("tagId") && pipelineTaxonomy.containsKey("tagTypeId")) {   // we need to compare only taxonomies which already exist on server
-                    pipelineTaxonomiesList.add(new Taxonomy(Integer.parseInt(pipelineTaxonomy.getString("tagId")),
-                            Integer.parseInt(pipelineTaxonomy.getString("tagTypeId")),
-                            pipelineTaxonomy.getString("tagName"),
-                            pipelineTaxonomy.getString("tagTypeName")));
+                    pipelineTaxonomiesList.add(pipelineTaxonomy.getLong("tagId"));
                 }
             }
+            //retrieving taxonomies from server
+            PagedList<Taxonomy> foundTaxonomies = client.queryTaxonomies(term, 1002l, 0, defaultSize);
+            final List<Taxonomy> foundTaxonomiesList = foundTaxonomies.getItems();
+            boolean moreResults = foundTaxonomies.getTotalCount() > foundTaxonomiesList.size();
 
-            PagedList<TaxonomyType> taxonomyTypePagedList = client.queryTaxonomyTypes(term, 0, defaultSize);
-            final List<TaxonomyType> taxonomyTypes = taxonomyTypePagedList.getItems();
-            boolean moreResults = taxonomyTypePagedList.getTotalCount() > taxonomyTypes.size();
-
-            Map<TaxonomyType, Set<Taxonomy>> taxonomyMap = new HashMap<TaxonomyType, Set<Taxonomy>>();
-            //if term matches any taxonomy type, then load all taxonomies for this type
-            if (!taxonomyTypes.isEmpty()) {
-                for (TaxonomyType type : taxonomyTypes) {
-                    PagedList<Taxonomy> taxonomiesForTypePagedList = client.queryTaxonomies(type.getId(), null, 0, defaultSize);
-                    List<Taxonomy> taxonomiesForType = taxonomiesForTypePagedList.getItems();
-                    moreResults = moreResults || taxonomiesForTypePagedList.getTotalCount() > taxonomiesForType.size();
-
-                    Set<Taxonomy> taxonomiesForTypeSet = new LinkedHashSet<Taxonomy>();
-                    for (Taxonomy taxonomy : taxonomiesForType) {
-                            taxonomiesForTypeSet.add(new Taxonomy(taxonomy.getId(), type.getId(), taxonomy.getName(), type.getName()));
-                    }
-                    taxonomyMap.put(type, taxonomiesForTypeSet);
-                }
-            }
-
-            //load taxonomies which matches term
-            PagedList<Taxonomy> taxonomyPagedList = client.queryTaxonomies(null, term, 0, defaultSize);
-            final List<Taxonomy> taxonomyList = taxonomyPagedList.getItems();
-            moreResults = moreResults || taxonomyPagedList.getTotalCount() > taxonomyList.size();
-
-            if ( !taxonomyList.isEmpty() ) {
-                final List<TaxonomyType> allTaxonomyTypes = client.queryTaxonomyTypes(null, 0, 100).getItems(); // don't expect more than 100 types
-
-                Integer taxonomyTypeIdCache = null;
-                TaxonomyType typeCache = null;
-                for (Taxonomy taxonomy : taxonomyList) {
-
-                    //getting taxonomyType name and ID for taxonomy, currently, we have only ID
-                    if ( !taxonomy.getTaxonomyTypeId().equals(taxonomyTypeIdCache)) {
-                        for (TaxonomyType type : allTaxonomyTypes) {
-                            if (type.getId() == taxonomy.getTaxonomyTypeId()) {
-                                taxonomyTypeIdCache = type.getId();
-                                typeCache = type;
-                                break;
-                            }
-                        }
-                    }
-                    Taxonomy enhancedTaxonomy = new Taxonomy(taxonomy.getId(), taxonomy.getTaxonomyTypeId(), taxonomy.getName(), typeCache.getName());
-
-                    if (taxonomyMap.containsKey(typeCache)) {
-                        taxonomyMap.get(typeCache).add(enhancedTaxonomy);
+            //creating map <TaxonomyCategoryID : Set<Taxonomy>>
+            // for easier creating result JSON
+            Map<Long, Set<Taxonomy>> taxonomyMap = new HashMap<Long, Set<Taxonomy>>();
+            Map<Long, String> taxonomyCategories = new HashMap<Long, String>();
+            for (Taxonomy taxonomy : foundTaxonomiesList) {
+                if (taxonomy.getRoot() != null) {
+                    if (taxonomyMap.containsKey(taxonomy.getRoot().getId())) {
+                        taxonomyMap.get(taxonomy.getRoot().getId()).add(taxonomy);
                     } else {
-                        taxonomyMap.put(typeCache, new HashSet<Taxonomy>(Arrays.asList(enhancedTaxonomy)));
+                        taxonomyMap.put(taxonomy.getRoot().getId(), new LinkedHashSet<Taxonomy>(Arrays.asList(taxonomy)));
+                        taxonomyCategories.put(taxonomy.getRoot().getId(), taxonomy.getRoot().getName());
                     }
                 }
             }
@@ -446,21 +410,23 @@ public class JobConfigurationProxy {
             JSONObject tagTypesByName = new JSONObject();
             JSONObject tagTypes = new JSONObject();
 
-            //show warning, that there is more results and user should filter more specific
+            //show warning, that there are more results and user should filter more specific
             if (moreResults) {
                 select2InputArray.add(createMoreResultsJson());
             }
 
-            for (Entry<TaxonomyType, Set<Taxonomy>> taxonomyType : taxonomyMap.entrySet()) {
+            for (Entry<Long, Set<Taxonomy>> taxonomyType : taxonomyMap.entrySet()) {
+                Long tagTypeId = taxonomyType.getKey();
+                String tagTypeName = taxonomyCategories.get(tagTypeId);
                 JSONArray childrenArray = new JSONArray();
 
                 JSONObject optgroup = new JSONObject();
-                optgroup.put("text", taxonomyType.getKey().getName());
+                optgroup.put("text", tagTypeName);
 
                 //for tagTypesByName
-                JSONObject tagType = new JSONObject();
-                tagType.put("tagTypeId", taxonomyType.getKey().getId());
-                tagType.put("tagTypeName", taxonomyType.getKey().getName());
+                JSONObject tagTypeJson = new JSONObject();
+                tagTypeJson.put("tagTypeId", tagTypeId);
+                tagTypeJson.put("tagTypeName", tagTypeName);
                 JSONArray tagTypeByNameValues = new JSONArray();
 
                 for (Taxonomy tax : taxonomyType.getValue()) {
@@ -469,7 +435,7 @@ public class JobConfigurationProxy {
                     taxonomyJson.put("id", tax.getId());
                     taxonomyJson.put("text", tax.getName());
                     taxonomyJson.put("value", tax.getId());
-                    if (pipelineTaxonomiesList.contains(tax)) {
+                    if (pipelineTaxonomiesList.contains(tax.getId())) {
                         taxonomyJson.put("disabled", "disabled");
                     }
                     childrenArray.add(taxonomyJson);
@@ -478,8 +444,8 @@ public class JobConfigurationProxy {
                     JSONObject tagObject = new JSONObject();
                     tagObject.put("tagId", tax.getId());
                     tagObject.put("tagName", tax.getName());
-                    tagObject.put("tagTypeId", tax.getTaxonomyTypeId());
-                    tagObject.put("tagTypeName", tax.getTaxonomyTypeName());
+                    tagObject.put("tagTypeId", tax.getRoot().getId());
+                    tagObject.put("tagTypeName", tax.getRoot().getName());
                     allTags.put(String.valueOf(tax.getId()), tagObject);
 
                     //for tagTypesByName
@@ -489,14 +455,14 @@ public class JobConfigurationProxy {
                     tagTypeByNameValues.add(tagTypeByNameValue);
                 }
                 //New value.. for current type
-                JSONObject newValueJson = createNewValueJson(String.valueOf(tagTypeValue(taxonomyType.getKey().getId())));
+                JSONObject newValueJson = createNewValueJson(Long.toString(tagTypeValue(tagTypeId)));
                 childrenArray.add(newValueJson);
 
                 optgroup.put("children", childrenArray);
                 select2InputArray.add(optgroup);
-                tagType.put("values", tagTypeByNameValues);
-                tagTypesByName.put(taxonomyType.getKey().getName(), tagType);
-                tagTypes.put(String.valueOf(taxonomyType.getKey().getId()), tagType);
+                tagTypeJson.put("values", tagTypeByNameValues);
+                tagTypesByName.put(tagTypeName, tagTypeJson);
+                tagTypes.put(Long.toString(tagTypeId), tagTypeJson);
             }
 
             // New type... New value...
@@ -512,6 +478,7 @@ public class JobConfigurationProxy {
             ret.put("allTags", allTags);
             ret.put("tagTypesByName", tagTypesByName);
             ret.put("tagTypes", tagTypes);
+            ret.put("more", moreResults);
 
             client.release();
         } catch (RequestException e) {
@@ -546,7 +513,7 @@ public class JobConfigurationProxy {
         return newValueJson;
     }
 
-    private int tagTypeValue(int n) {
+    private long tagTypeValue(long n) {
         // mapping to ensure negative value (solve the "0" tag type ID)
         return -(n+1);
     }
