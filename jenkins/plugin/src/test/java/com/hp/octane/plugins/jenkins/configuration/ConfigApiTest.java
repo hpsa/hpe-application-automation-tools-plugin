@@ -27,7 +27,7 @@ public class ConfigApiTest {
     public void init() throws Exception {
         HtmlPage configPage = rule.createWebClient().goTo("configure");
         HtmlForm form = configPage.getFormByName("config");
-        form.getInputByName("_.uiLocation").setValueAttribute("http://localhost:8008/ui/?p=1001");
+        form.getInputByName("_.uiLocation").setValueAttribute("http://localhost:8008/ui/?p=1001/1002");
         form.getInputByName("_.username").setValueAttribute("username");
         form.getInputByName("_.password").setValueAttribute("password");
         rule.submit(form);
@@ -52,7 +52,7 @@ public class ConfigApiTest {
         WebRequestSettings request = new WebRequestSettings(url);
         request.setHttpMethod(HttpMethod.POST);
 
-        // basic scenario: location, domain, project and credentials
+        // basic scenario: location, shared space and credentials
         JSONObject config = new JSONObject();
         config.put("location", "http://localhost:8088");
         config.put("sharedSpace", "1001");
@@ -64,7 +64,7 @@ public class ConfigApiTest {
         checkConfig(config, "http://localhost:8088", "1001", "username1", "password1");
         Assert.assertEquals(ServerIdentity.getIdentity(), config.getString("serverIdentity"));
 
-        // location, domain and project, no credentials
+        // location, shared space, no credentials
         config = new JSONObject();
         config.put("location", "http://localhost:8888");
         config.put("sharedSpace", "1002");
@@ -74,7 +74,7 @@ public class ConfigApiTest {
         checkConfig(config, "http://localhost:8888", "1002", "username1", "password1");
         Assert.assertEquals(ServerIdentity.getIdentity(), config.getString("serverIdentity"));
 
-        // location, domain, project and username without password
+        // location, shared space and username without password
         config = new JSONObject();
         config.put("location", "http://localhost:8882");
         config.put("sharedSpace", "1003");
@@ -87,7 +87,7 @@ public class ConfigApiTest {
 
         // uiLocation and identity
         config = new JSONObject();
-        config.put("uiLocation", "http://localhost:8881/ui?p=1001");
+        config.put("uiLocation", "http://localhost:8881/ui?p=1001/1002");
         config.put("serverIdentity", "2d2fa955-1d13-4d8c-947f-ab11c72bf850");
         request.setRequestBody(config.toString());
         page = cli.getPage(request);

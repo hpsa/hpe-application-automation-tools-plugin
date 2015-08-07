@@ -39,20 +39,20 @@ public class ConfigApi {
 			String location = (String) configuration.get("location");
 			String sharedSpace = (String) configuration.get("sharedSpace");
 			if (StringUtils.isEmpty(location) || StringUtils.isEmpty(sharedSpace)) {
-				res.sendError(400, "Either (uiLocation) or (location, sharedSpace and project) must be specified");
+				res.sendError(400, "Either (uiLocation) or (location and shared space) must be specified");
 				return;
 			}
 			uiLocation = location.replaceAll("/$", "") + "/ui?p=" + sharedSpace;
 		} else {
 			uiLocation = configuration.getString("uiLocation");
 		}
-//		try {
-//			// validate location format
-//			ConfigurationService.parseUiLocation(uiLocation);
-//		} catch (FormValidation ex) {
-//			res.sendError(400, ex.getMessage());
-//			return;
-//		}
+		try {
+			// validate location format
+			ConfigurationService.parseUiLocation(uiLocation);
+		} catch (FormValidation ex) {
+			res.sendError(400, ex.getMessage());
+			return;
+		}
 		Boolean abridged = configuration.containsKey("abridged") && configuration.getBoolean("abridged");
 
 		String username, password;
@@ -88,6 +88,7 @@ public class ConfigApi {
 		return new Configuration(
 				serverConfiguration.location,
 				serverConfiguration.sharedSpace,
+				serverConfiguration.abridged,
 				serverConfiguration.username,
 				ServerIdentity.getIdentity());
 	}
@@ -97,12 +98,14 @@ public class ConfigApi {
 
 		private String location;
 		private String sharedSpace;
+		private Boolean abridged;
 		private String username;
 		private String serverIdentity;
 
-		public Configuration(String location, String sharedSpace, String username, String serverIdentity) {
+		public Configuration(String location, String sharedSpace, Boolean abridged, String username, String serverIdentity) {
 			this.location = location;
 			this.sharedSpace = sharedSpace;
+			this.abridged = abridged;
 			this.username = username;
 			this.serverIdentity = serverIdentity;
 		}
@@ -125,6 +128,11 @@ public class ConfigApi {
 		@Exported(inline = true)
 		public String getServerIdentity() {
 			return serverIdentity;
+		}
+
+		@Exported(inline = true)
+		public Boolean isAbridged() {
+			return abridged;
 		}
 	}
 }
