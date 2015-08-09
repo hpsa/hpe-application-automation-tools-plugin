@@ -125,8 +125,9 @@ public class EventsTest {
 		killServer();
 	}
 
+	//  TODO:
 	@Test
-	@Ignore
+	//@Ignore
 	public void testEventsA() throws Exception {
 		FreeStyleProject p = rule.createFreeStyleProject(projectName);
 		JenkinsRule.WebClient client = rule.createWebClient();
@@ -134,6 +135,7 @@ public class EventsTest {
 		configEventsClient(client);
 		WebRequestSettings req = new WebRequestSettings(client.createCrumbedUrl("octane/status"), HttpMethod.GET);
 		WebResponse res = client.loadWebResponse(req);
+		logger.info("Plugin status: " + res.getContentAsString());
 
 		assertEquals(0, p.getBuilds().toArray().length);
 		Utils.buildProject(client, p);
