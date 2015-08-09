@@ -127,7 +127,7 @@ public class EventsTest {
 
 	//  TODO:
 	@Test
-	//@Ignore
+	@Ignore
 	public void testEventsA() throws Exception {
 		FreeStyleProject p = rule.createFreeStyleProject(projectName);
 		JenkinsRule.WebClient client = rule.createWebClient();
