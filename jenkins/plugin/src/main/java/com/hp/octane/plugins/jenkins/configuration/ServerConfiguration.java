@@ -5,12 +5,12 @@ package com.hp.octane.plugins.jenkins.configuration;
 final public class ServerConfiguration {
 
 	public String location;
-	public Boolean abridged;
+	public boolean abridged;
 	public String sharedSpace;
 	public String username;
 	public String password;
 
-	public ServerConfiguration(String location, Boolean abridged, String sharedSpace, String username, String password) {
+	public ServerConfiguration(String location, boolean abridged, String sharedSpace, String username, String password) {
 		this.location = location;
 		this.abridged = abridged;
 		this.sharedSpace = sharedSpace;
@@ -26,7 +26,7 @@ final public class ServerConfiguration {
 		ServerConfiguration that = (ServerConfiguration) o;
 
 		if (location != null ? !location.equals(that.location) : that.location != null) return false;
-		if (abridged != null ? !abridged.equals(that.abridged) : that.abridged != null) return false;
+		if (abridged != that.abridged) return false;
 		if (sharedSpace != null ? !sharedSpace.equals(that.sharedSpace) : that.sharedSpace != null) return false;
 		if (password != null ? !password.equals(that.password) : that.password != null) return false;
 		if (username != null ? !username.equals(that.username) : that.username != null) return false;
@@ -37,7 +37,7 @@ final public class ServerConfiguration {
 	@Override
 	public int hashCode() {
 		int result = location != null ? location.hashCode() : 0;
-		result = 31 * result + (abridged != null ? abridged.hashCode() : 0);
+		result = 31 * result + (abridged ? Boolean.TRUE : Boolean.FALSE).hashCode();
 		result = 31 * result + (sharedSpace != null ? sharedSpace.hashCode() : 0);
 		result = 31 * result + (username != null ? username.hashCode() : 0);
 		result = 31 * result + (password != null ? password.hashCode() : 0);
