@@ -9,7 +9,7 @@ import org.jvnet.hudson.test.JenkinsRule;
  * To change this template use File | Settings | File Templates.
  */
 
-public class TestBuildActionsMultiJob {
+public class BuildActionsMatrixTest {
 	final private String projectName = "root-job";
 
 	@Rule

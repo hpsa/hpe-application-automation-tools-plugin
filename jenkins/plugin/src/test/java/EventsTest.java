@@ -11,7 +11,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.*;
 import org.jvnet.hudson.test.JenkinsRule;
-import org.jvnet.hudson.test.recipes.WithTimeout;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -32,11 +31,14 @@ import static org.junit.Assert.*;
  * To change this template use File | Settings | File Templates.
  */
 
-public class TestEvents {
-	private static final Logger logger = Logger.getLogger(TestEvents.class.getName());
+public class EventsTest {
+	private static final Logger logger = Logger.getLogger(EventsTest.class.getName());
 
 	static final private String projectName = "root-job";
 	static final private int DEFAULT_TESTING_SERVER_PORT = 9999;
+	static final private String sharedSpaceId = "1007";
+	static final private String username = "some";
+	static final private String password = "pass";
 
 	static private Server server;
 	static private int testingServerPort = DEFAULT_TESTING_SERVER_PORT;
@@ -55,11 +57,12 @@ public class TestEvents {
 			String body = "";
 			byte[] buffer;
 			int len;
+			//  TODO: fix those when auth is back in game
 			if (request.getPathInfo().equals("/qcbin/authentication-point/alm-authenticate")) {
 				response.setStatus(HttpServletResponse.SC_OK);
 			} else if (request.getPathInfo().equals("/qcbin/rest/site-session")) {
 				response.setStatus(HttpServletResponse.SC_CREATED);
-			} else if (request.getPathInfo().equals("/internal-api/shared_spaces/1001/analytics/ci/events")) {
+			} else if (request.getPathInfo().equals("/internal-api/shared_spaces/" + sharedSpaceId + "/analytics/ci/events")) {
 				buffer = new byte[1024];
 				while ((len = request.getInputStream().read(buffer, 0, 1024)) > 0) {
 					body += new String(buffer, 0, len);
@@ -79,7 +82,7 @@ public class TestEvents {
 		}
 	}
 
-	public TestEvents() {
+	public EventsTest() {
 		String p = System.getProperty("testingServerPort");
 		try {
 			if (p != null) testingServerPort = Integer.parseInt(p);
@@ -99,9 +102,9 @@ public class TestEvents {
 		WebRequestSettings req = new WebRequestSettings(client.createCrumbedUrl("octane/configuration/save"), HttpMethod.POST);
 		JSONObject json = new JSONObject();
 		json.put("location", "http://localhost:" + testingServerPort);
-		json.put("sharedSpace", "1007");
-		json.put("username", "some");
-		json.put("password", "pass");
+		json.put("sharedSpace", sharedSpaceId);
+		json.put("username", username);
+		json.put("password", password);
 		req.setRequestBody(json.toString());
 		WebResponse res = client.loadWebResponse(req);
 		logger.info("Configuration submitted and responded with result: " + res.getStatusMessage() + "; testing server will run on port " + testingServerPort);
@@ -131,7 +134,6 @@ public class TestEvents {
 		configEventsClient(client);
 		WebRequestSettings req = new WebRequestSettings(client.createCrumbedUrl("octane/status"), HttpMethod.GET);
 		WebResponse res = client.loadWebResponse(req);
-		logger.info(res.getContentAsString());
 
 		assertEquals(0, p.getBuilds().toArray().length);
 		Utils.buildProject(client, p);
