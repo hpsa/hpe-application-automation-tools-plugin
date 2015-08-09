@@ -28,8 +28,8 @@ final public class ServerConfiguration {
 		if (location != null ? !location.equals(that.location) : that.location != null) return false;
 		if (abridged != that.abridged) return false;
 		if (sharedSpace != null ? !sharedSpace.equals(that.sharedSpace) : that.sharedSpace != null) return false;
-		if (password != null ? !password.equals(that.password) : that.password != null) return false;
 		if (username != null ? !username.equals(that.username) : that.username != null) return false;
+		if (password != null ? !password.equals(that.password) : that.password != null) return false;
 
 		return true;
 	}

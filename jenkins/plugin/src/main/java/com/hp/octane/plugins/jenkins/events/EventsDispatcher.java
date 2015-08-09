@@ -35,6 +35,8 @@ public final class EventsDispatcher implements ConfigurationListener {
 			extensions = Jenkins.getInstance().getExtensionList(EventsDispatcher.class);
 			if (extensions.isEmpty()) {
 				throw new RuntimeException("Events Dispatcher was not initialized properly");
+			} else if (extensions.size() > 1) {
+				throw new RuntimeException("Events Dispatcher expected to be singleton, found " + extensions.size() + " instances");
 			} else {
 				extensionInstance = extensions.get(0);
 			}
@@ -62,6 +64,7 @@ public final class EventsDispatcher implements ConfigurationListener {
 				}
 				if (!updated) {
 					clients.add(new EventsClient(conf, clientFactory));
+					logger.info("EVENTS: new client added, total of clients " + clients.size());
 				}
 			}
 		}
