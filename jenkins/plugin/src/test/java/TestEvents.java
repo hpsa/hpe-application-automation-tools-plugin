@@ -35,12 +35,12 @@ import static org.junit.Assert.*;
 public class TestEvents {
 	private static final Logger logger = Logger.getLogger(TestEvents.class.getName());
 
-	final private String projectName = "root-job";
-	final private int DEFAULT_TESTING_SERVER_PORT = 9999;
+	static final private String projectName = "root-job";
+	static final private int DEFAULT_TESTING_SERVER_PORT = 9999;
 
-	private Server server;
-	private EventsHandler eventsHandler;
-	private int testingServerPort = DEFAULT_TESTING_SERVER_PORT;
+	static private Server server;
+	static private int testingServerPort = DEFAULT_TESTING_SERVER_PORT;
+	static private EventsHandler eventsHandler;
 
 	@Rule
 	public final JenkinsRule rule = new JenkinsRule();
@@ -88,14 +88,14 @@ public class TestEvents {
 		}
 	}
 
-	private void raiseServer() throws Exception {
+	static private void raiseServer() throws Exception {
 		eventsHandler = new EventsHandler();
 		server = new Server(testingServerPort);
 		server.setHandler(eventsHandler);
 		server.start();
 	}
 
-	private void configEventsClient(JenkinsRule.WebClient client) throws Exception {
+	static private void configEventsClient(JenkinsRule.WebClient client) throws Exception {
 		WebRequestSettings req = new WebRequestSettings(client.createCrumbedUrl("octane/configuration/save"), HttpMethod.POST);
 		JSONObject json = new JSONObject();
 		json.put("location", "http://localhost:" + testingServerPort);
@@ -107,24 +107,23 @@ public class TestEvents {
 		logger.info("Configuration submitted and responded with result: " + res.getStatusMessage() + "; testing server will run on port " + testingServerPort);
 	}
 
-	private void killServer() throws Exception {
+	static private void killServer() throws Exception {
 		server.stop();
 		server.destroy();
 	}
 
 	@BeforeClass
-	public void beforeEach() throws Exception {
+	static public void beforeClass() throws Exception {
 		raiseServer();
 	}
 
 	@AfterClass
-	public void afterEach() throws Exception {
+	static public void afterClass() throws Exception {
 		killServer();
 	}
 
 	@Test
 	@Ignore
-	@WithTimeout(360)
 	public void testEventsA() throws Exception {
 		FreeStyleProject p = rule.createFreeStyleProject(projectName);
 		JenkinsRule.WebClient client = rule.createWebClient();
