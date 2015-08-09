@@ -43,10 +43,6 @@ public final class EventsDispatcher implements ConfigurationListener {
 	}
 
 	public void updateClient(ServerConfiguration conf) {
-		updateClient(conf, null);
-	}
-
-	public void updateClient(ServerConfiguration conf, ServerConfiguration oldConf) {
 		boolean updated = false;
 		if (conf == null || conf.password == null ||
 				conf.location == null || conf.location.equals("") ||
@@ -112,6 +108,6 @@ public final class EventsDispatcher implements ConfigurationListener {
 
 	@Override
 	public void onChanged(ServerConfiguration conf, ServerConfiguration oldConf) {
-		updateClient(conf, oldConf);
+		updateClient(conf);
 	}
 }
