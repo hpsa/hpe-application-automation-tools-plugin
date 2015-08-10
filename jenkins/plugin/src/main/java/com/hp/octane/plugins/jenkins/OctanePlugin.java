@@ -42,7 +42,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 	private Long identityFrom;
 
 	private String uiLocation;
-	private Boolean abridged;
+	private boolean abridged;
 	private String username;
 	private String password;
 
@@ -58,7 +58,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 		return identityFrom;
 	}
 
-	public Boolean getAbridged() {
+	public boolean getAbridged() {
 		return abridged;
 	}
 

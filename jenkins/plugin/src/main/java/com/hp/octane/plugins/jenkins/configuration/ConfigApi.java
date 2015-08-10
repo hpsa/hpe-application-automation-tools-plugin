@@ -53,7 +53,7 @@ public class ConfigApi {
 			res.sendError(400, ex.getMessage());
 			return;
 		}
-		Boolean abridged = configuration.containsKey("abridged") && configuration.getBoolean("abridged");
+		boolean abridged = configuration.containsKey("abridged") ? configuration.getBoolean("abridged") : true;
 
 		String username, password;
 		if (!configuration.containsKey("username")) {

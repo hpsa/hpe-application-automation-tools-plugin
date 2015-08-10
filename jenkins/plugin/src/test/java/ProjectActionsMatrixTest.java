@@ -29,7 +29,7 @@ import static org.junit.Assert.assertTrue;
  * To change this template use File | Settings | File Templates.
  */
 
-public class TestProjectActionsMatrix {
+public class ProjectActionsMatrixTest {
 	final private String projectName = "root-job";
 
 	@Rule

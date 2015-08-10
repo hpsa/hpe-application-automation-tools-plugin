@@ -52,13 +52,15 @@ public class EventsClient {
 	private Date lastErrorTime;
 
 	public EventsClient(ServerConfiguration mqmConfig, JenkinsMqmRestClientFactory clientFactory) {
-		this.mqmConfig = mqmConfig;
+		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.abridged, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
 		this.restClientFactory = clientFactory;
 		activate();
+		logger.info("EVENTS: new events client initialized for '" + this.mqmConfig.location + "'");
 	}
 
 	public void update(ServerConfiguration mqmConfig) {
-		this.mqmConfig = mqmConfig;
+		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.abridged, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
+		logger.info("EVENTS: events client updated for '" + this.mqmConfig.location + "'");
 	}
 
 	public void pushEvent(CIEventBase event) {
@@ -89,7 +91,6 @@ public class EventsClient {
 					worker.setDaemon(true);
 					worker.setName("EventsClientWorker");
 					worker.start();
-					logger.info("EVENTS: new events client initialized for '" + this.mqmConfig.location + "'");
 				}
 			}
 		}

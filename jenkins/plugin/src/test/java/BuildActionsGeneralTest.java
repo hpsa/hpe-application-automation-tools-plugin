@@ -18,7 +18,7 @@ import static org.junit.Assert.assertTrue;
  * To change this template use File | Settings | File Templates.
  */
 
-public class TestBuildActionsGeneral {
+public class BuildActionsGeneralTest {
 	final private String projectName = "root-job";
 
 	@Rule

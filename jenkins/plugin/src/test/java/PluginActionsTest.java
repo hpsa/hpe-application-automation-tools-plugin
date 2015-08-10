@@ -24,7 +24,7 @@ import static org.junit.Assert.*;
  * To change this template use File | Settings | File Templates.
  */
 
-public class TestPluginActions {
+public class PluginActionsTest {
 	final private String projectName = "root-job";
 
 	@Rule

@@ -5,10 +5,7 @@ package com.hp.octane.plugins.jenkins.configuration;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.hp.octane.plugins.jenkins.ExtensionUtil;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.TestExtension;
 
@@ -17,8 +14,8 @@ import java.util.List;
 
 public class ConfigurationListenerTest {
 
-	@Rule
-	final public JenkinsRule rule = new JenkinsRule();
+	@ClassRule
+	static final public JenkinsRule rule = new JenkinsRule();
 
 	private TestConfigurationListener listener;
 
@@ -27,7 +24,7 @@ public class ConfigurationListenerTest {
 		HtmlPage configPage = rule.createWebClient().goTo("configure");
 		HtmlForm form = configPage.getFormByName("config");
 
-		form.getInputByName("_.uiLocation").setValueAttribute("http://localhost:8008/ui/?p=1001/1002");
+		form.getInputByName("_.uiLocation").setValueAttribute("http://localhost:8028/ui/?p=1001/1002");
 		form.getInputByName("_.username").setValueAttribute("username");
 		form.getInputByName("_.password").setValueAttribute("password");
 		rule.submit(form);
@@ -38,7 +35,7 @@ public class ConfigurationListenerTest {
 		List<ServerConfiguration> confs = listener.getConfigurationsChange();
 		Assert.assertNotNull(confs);
 		Assert.assertEquals(2, confs.size());
-		Assert.assertEquals("http://localhost:8008", confs.get(0).location);
+		Assert.assertEquals("http://localhost:8028", confs.get(0).location);
 		Assert.assertEquals("username", confs.get(0).username);
 		Assert.assertNull(confs.get(1).location);
 		Assert.assertNull(confs.get(1).username);
@@ -63,9 +60,9 @@ public class ConfigurationListenerTest {
 		List<ServerConfiguration> confs = listener.getConfigurationsChange();
 		Assert.assertNotNull(confs);
 		Assert.assertEquals(2, confs.size());
-		Assert.assertEquals("http://localhost:8008", confs.get(0).location);
+		Assert.assertEquals("http://localhost:8028", confs.get(0).location);
 		Assert.assertEquals("username2", confs.get(0).username);
-		Assert.assertEquals("http://localhost:8008", confs.get(1).location);
+		Assert.assertEquals("http://localhost:8028", confs.get(1).location);
 		Assert.assertEquals("username", confs.get(1).username);
 	}
 
