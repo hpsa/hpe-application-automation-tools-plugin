@@ -37,6 +37,7 @@ namespace LRAnalysisLauncher
             AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(CurrentDomain_AssemblyResolve);
         }
         //args: lrr location, lra location, html report location
+        [STAThread]
         static int Main(string[] args)
         {
             Console.WriteLine("starting analysis launcher");

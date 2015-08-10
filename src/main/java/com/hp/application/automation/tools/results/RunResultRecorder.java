@@ -27,21 +27,26 @@ import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
 import hudson.tasks.junit.TestResult;
 import hudson.tasks.junit.TestResultAction;
+import hudson.tasks.junit.CaseResult;
 import hudson.tasks.test.TestResultAggregator;
 import hudson.tasks.test.TestResultProjectAction;
 
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.tools.ant.DirectoryScanner;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.w3c.dom.Document;
@@ -67,6 +72,11 @@ import com.hp.application.automation.tools.run.PcBuilder;
 public class RunResultRecorder extends Recorder implements Serializable, MatrixAggregatable {
     
     private static final long serialVersionUID = 1L;
+    private static final String PERFORMANCE_REPORT_FOLDER = "PerformanceReport";
+    private static final String IE_REPORT_FOLDER = "IE";
+    private static final String HTML_REPORT_FOLDER = "HTML";
+    private static final String INDEX_HTML_NAME = "index.html";
+    private static final String REPORT_INDEX_NAME = "report.index";
     private final ResultsPublisherModel _resultsPublisherModel;
     
     @DataBoundConstructor
@@ -122,12 +132,13 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             listener.getLogger().println("RunResultRecorder: no results xml File provided");
             return true;
         }
-        
+
+        TestResult result = null;
         try {
             final long buildTime = build.getTimestamp().getTimeInMillis();
             final long nowMaster = System.currentTimeMillis();
             
-            TestResult result = build.getWorkspace().act(new FileCallable<TestResult>() {
+            result = build.getWorkspace().act(new FileCallable<TestResult>() {
                 
                 private static final long serialVersionUID = 1L;
                 
@@ -190,7 +201,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         build.getActions().add(action);
         
         try {
-            archiveTestsReport(build, listener, fileSystemResultNames);
+            archiveTestsReport(build, listener, fileSystemResultNames, result);
         } catch (ParserConfigurationException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -199,13 +210,24 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             e.printStackTrace();
         }
         
+        File artifactsDir = build.getArtifactsDir();
+        if (artifactsDir.exists()) {
+            File reportDirectory = new File(artifactsDir.getParent(), PERFORMANCE_REPORT_FOLDER);
+            if (reportDirectory.exists()) {
+                File htmlIndexFile = new File(reportDirectory, INDEX_HTML_NAME);
+                if (htmlIndexFile.exists())
+                    build.getActions().add(new PerformanceReportAction(build));
+            }
+        }
+        
         return true;
     }
     
     private void archiveTestsReport(
             AbstractBuild<?, ?> build,
             BuildListener listener,
-            List<String> resultFiles) throws ParserConfigurationException, SAXException,
+            List<String> resultFiles,
+            TestResult testResult) throws ParserConfigurationException, SAXException,
             IOException, InterruptedException {
         
         if ((resultFiles == null) || (resultFiles.size() == 0)) {
@@ -214,6 +236,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         
         ArrayList<String> zipFileNames = new ArrayList<String>();
         ArrayList<FilePath> reportFolders = new ArrayList<FilePath>();
+        List<String> reportNames = new ArrayList<String>();
         
         listener.getLogger().println(
                 "Report archiving mode is set to: "
@@ -279,6 +302,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                     String archiveTestResultMode =
                             _resultsPublisherModel.getArchiveTestResultsMode();
                     boolean archiveTestResult = false;
+                    boolean createHtmlReport = false;
                     
                     if (archiveTestResultMode.equals(ResultsPublisherModel.alwaysArchiveResults.getValue())) {
                         archiveTestResult = true;
@@ -288,6 +312,9 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                         } else if (archiveTestResultMode.equals(ResultsPublisherModel.dontArchiveResults.getValue())) {
                             archiveTestResult = false;
                         }
+                    } else if (archiveTestResultMode.equals(ResultsPublisherModel.CreateHtmlReportResults.getValue())) {
+                        archiveTestResult = true;
+                        createHtmlReport = true;
                     }
                     
                     if (archiveTestResult) {
@@ -331,11 +358,112 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                                     "No report folder was found in: " + reportFolderPath);
                         }
                     }
+                    
+                    if (createHtmlReport) {
+                        File testFolderPathFile = new File(testFolderPath);
+                        FilePath testFolderFilePath = new FilePath(projectWS.getChannel(), reportFolderPath);
+                        FilePath srcDirectoryFilePath = new FilePath(testFolderFilePath, HTML_REPORT_FOLDER);
+                        if (srcDirectoryFilePath.exists()) {
+                            FilePath srcFilePath = new FilePath(srcDirectoryFilePath, IE_REPORT_FOLDER);
+                            if (srcFilePath.exists()) {
+                                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                                srcFilePath.zip(baos);
+                                File reportDirectory = new File(artifactsDir.getParent(), PERFORMANCE_REPORT_FOLDER);
+                                if (!reportDirectory.exists())
+                                    reportDirectory.mkdir();
+                                ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+                                FilePath reportDirectoryFilePath = new FilePath(reportDirectory);
+                                FilePath tmpZipFile = new FilePath(reportDirectoryFilePath, "tmp.zip");
+                                tmpZipFile.copyFrom(bais);
+                                bais.close();
+                                baos.close();
+                                tmpZipFile.unzip(reportDirectoryFilePath);
+                                FileUtils.moveDirectory(new File(reportDirectory, IE_REPORT_FOLDER), new File(reportDirectory, testFolderPathFile.getName()));
+                                tmpZipFile.delete();
+                                reportNames.add(testFolderPathFile.getName());
+                                outputReportFiles(reportNames, reportDirectory, testResult);
+                            }
+                        }
+                    }
                 }
             }
         }
     }
-    
+
+    private void outputReportFiles(List<String> reportNames, File reportDirectory, TestResult testResult) throws IOException {
+
+        if (reportNames.size() <= 0)
+            return;
+        File htmlIndexFile = new File(reportDirectory, INDEX_HTML_NAME);
+        BufferedWriter writer = new BufferedWriter(new FileWriter(htmlIndexFile));
+        writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n");
+        writer.write("<HTML><HEAD>\n");
+        writer.write("<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">\n");
+        writer.write("<TITLE>Performance Report</TITLE>\n");
+        writer.write("</HEAD>\n");
+        writer.write("<BODY>\n");
+        writer.write("<table style=\"font-size:15px;width:100%;max-width:100%;border-left:1px solid #DDD;border-right:1px solid #DDD;border-bottom:1px solid #DDD;\">\n");
+        writer.write("<tr style=\"background-color: #F1F1F1;\"><th style=\"padding:8px;line-height:1.42857;vertical-align:top;border-top:1px solid #DDD;\">Name</th></tr>\n");
+        boolean rolling = true;
+        for (String report : reportNames) {
+            if (rolling) {
+                writer.write(String.format("<tr style=\"background-color: #FFF;\"><td style=\"padding:8px;line-height:1.42857;vertical-align:top;border-top:1px solid #DDD;\"><a href=\"./%s/HTML.html\">%s</a></td></tr>\n", report, report));
+                rolling = false;
+            } else {
+                writer.write(String.format("<tr style=\"background-color: #F1F1F1;\"><td style=\"padding:8px;line-height:1.42857;vertical-align:top;border-top:1px solid #DDD;\"><a href=\"./%s/HTML.html\">%s</a></td></tr>\n", report, report));
+                rolling = true;
+            }
+        }
+        writer.write("</table>\n");
+        writer.write("</BODY>\n");
+        writer.flush();
+        writer.close();
+
+        File indexFile = new File(reportDirectory, REPORT_INDEX_NAME);
+        writer = new BufferedWriter(new FileWriter(indexFile));
+
+        Iterator<CaseResult> resultIterator = null;
+        if ((testResult != null) && (testResult.getSuites().size() > 0)) {
+            resultIterator = testResult.getSuites().iterator().next().getCases().iterator();//get the first
+        }
+        for (String report : reportNames) {
+            CaseResult caseResult = null;
+            if ((resultIterator != null) && resultIterator.hasNext())
+                caseResult = resultIterator.next();
+            if (caseResult == null)
+                writer.write(report + "\t##\t##\t##\n");
+            else {
+                int iDuration = (int) caseResult.getDuration();
+                String duration = "";
+                if ((iDuration / 86400) > 0) {
+                    duration += String.format("%dday ", iDuration / 86400);
+                    iDuration = iDuration % 86400;
+                }
+                if ((iDuration / 3600) > 0) {
+                    duration += String.format("%02dhr ", iDuration / 3600);
+                    iDuration = iDuration % 3600;
+                } else if (!duration.isEmpty()) {
+                    duration += "00hr ";
+                }
+                if ((iDuration / 60) > 0) {
+                    duration += String.format("%02dmin ", iDuration / 60);
+                    iDuration = iDuration % 60;
+                } else if (!duration.isEmpty()) {
+                    duration += "00min ";
+                }
+                duration += String.format("%02dsec", iDuration);
+                
+                writer.write(
+                        String.format("%s\t%s\t%d\t%d\n", 
+                                report, 
+                                duration, 
+                                caseResult.getPassCount(), 
+                                caseResult.getFailCount()));
+            }
+        }
+        writer.flush();
+        writer.close();
+    }
    
     /*
      * if we have a directory with file name "file.zip" we will return
