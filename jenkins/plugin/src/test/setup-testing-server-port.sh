@@ -1,12 +1,11 @@
 #!/bin/bash
 
-for (( p = 8888; p <= 8999; p++ ))
+for (( p = 9000; p <= 11999; p++ ))
 do
         n=$(netstat -an | grep $p)
         if [ "$n" == "" ]
         then
+                echo $p
                 break
         fi
 done
-
-echo $p
