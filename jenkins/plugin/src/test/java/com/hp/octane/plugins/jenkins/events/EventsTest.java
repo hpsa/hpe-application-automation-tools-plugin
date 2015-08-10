@@ -1,6 +1,9 @@
+package com.hp.octane.plugins.jenkins.events;
+
 import com.gargoylesoftware.htmlunit.HttpMethod;
 import com.gargoylesoftware.htmlunit.WebRequestSettings;
 import com.gargoylesoftware.htmlunit.WebResponse;
+import com.hp.octane.plugins.jenkins.ExtensionUtil;
 import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import com.hp.octane.plugins.jenkins.model.events.CIEventType;
 import hudson.model.FreeStyleProject;
@@ -11,14 +14,15 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.*;
 import org.jvnet.hudson.test.JenkinsRule;
-import org.jvnet.hudson.test.recipes.WithTimeout;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.awt.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
 
 import static org.junit.Assert.*;
@@ -31,32 +35,38 @@ import static org.junit.Assert.*;
  * To change this template use File | Settings | File Templates.
  */
 
-public class TestEvents {
-	private static final Logger logger = Logger.getLogger(TestEvents.class.getName());
+public class EventsTest {
+	private static final Logger logger = Logger.getLogger(EventsTest.class.getName());
 
-	final private String projectName = "root-job";
-	final private int DEFAULT_TESTING_SERVER_PORT = 9999;
+	static final private String projectName = "root-job-events-case";
+	static final private int DEFAULT_TESTING_SERVER_PORT = 9999;
+	static final private String sharedSpaceId = "1007";
+	static final private String username = "some";
+	static final private String password = "pass";
 
-	private Server server;
-	private EventsHandler eventsHandler;
-	private int testingServerPort = DEFAULT_TESTING_SERVER_PORT;
+	static private Server server;
+	static private int testingServerPort = DEFAULT_TESTING_SERVER_PORT;
+	static private EventsHandler eventsHandler;
 
-	@Rule
-	public final JenkinsRule rule = new JenkinsRule();
+	@ClassRule
+	static public final JenkinsRule rule = new JenkinsRule();
 
 	private static final class EventsHandler extends AbstractHandler {
-		private final ArrayList<JSONObject> eventLists = new ArrayList<JSONObject>();
+		private final List<JSONObject> eventLists = new ArrayList<JSONObject>();
 
 		@Override
 		public void handle(String s, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+			logger.info("EVENTS TEST: server mock requested: " + baseRequest.getMethod() + " " + baseRequest.getPathInfo());
+
 			String body = "";
 			byte[] buffer;
 			int len;
+			//  TODO: fix those when auth is back in game
 			if (request.getPathInfo().equals("/qcbin/authentication-point/alm-authenticate")) {
 				response.setStatus(HttpServletResponse.SC_OK);
 			} else if (request.getPathInfo().equals("/qcbin/rest/site-session")) {
 				response.setStatus(HttpServletResponse.SC_CREATED);
-			} else if (request.getPathInfo().equals("/internal-api/shared_spaces/1001/analytics/ci/events")) {
+			} else if (request.getPathInfo().equals("/internal-api/shared_spaces/" + sharedSpaceId + "/analytics/ci/events")) {
 				buffer = new byte[1024];
 				while ((len = request.getInputStream().read(buffer, 0, 1024)) > 0) {
 					body += new String(buffer, 0, len);
@@ -67,7 +77,7 @@ public class TestEvents {
 			baseRequest.setHandled(true);
 		}
 
-		public ArrayList<JSONObject> getResults() {
+		public List<JSONObject> getResults() {
 			return eventLists;
 		}
 
@@ -76,68 +86,74 @@ public class TestEvents {
 		}
 	}
 
-	public TestEvents() {
+	public EventsTest() {
 		String p = System.getProperty("testingServerPort");
 		try {
 			if (p != null) testingServerPort = Integer.parseInt(p);
 		} catch (NumberFormatException nfe) {
-			logger.info("Bad port number format, default port will be used: " + testingServerPort);
+			logger.info("EVENTS TEST: bad port number format, default port will be used: " + testingServerPort);
 		}
 	}
 
-	private void raiseServer() throws Exception {
+	static private void configEventsClient(JenkinsRule.WebClient client) throws Exception {
+		WebRequestSettings req = new WebRequestSettings(client.createCrumbedUrl("octane/configuration/save"), HttpMethod.POST);
+		JSONObject json = new JSONObject();
+		json.put("location", "http://localhost:" + testingServerPort);
+		json.put("sharedSpace", sharedSpaceId);
+		json.put("username", username);
+		json.put("password", password);
+		req.setRequestBody(json.toString());
+		logger.info("EVENTS TEST: submitting configuration to '" + client.getContextPath() + "'...");
+		WebResponse res = client.loadWebResponse(req);
+		logger.info("EVENTS TEST: configuration submitted and responded with result: " + res.getStatusMessage() + "; testing server will run on port " + testingServerPort);
+
+		req = new WebRequestSettings(client.createCrumbedUrl("octane/status"), HttpMethod.GET);
+		res = client.loadWebResponse(req);
+		//  TODO: add validation on plugin status data
+		logger.info("EVENTS TEST: plugin status of '" + client.getContextPath() + "': " + res.getContentAsString());
+	}
+
+	@BeforeClass
+	static public void beforeClass() throws Exception {
 		eventsHandler = new EventsHandler();
 		server = new Server(testingServerPort);
 		server.setHandler(eventsHandler);
 		server.start();
 	}
 
-	private void configEventsClient() throws Exception {
-		JenkinsRule.WebClient client = rule.createWebClient();
-		WebRequestSettings req = new WebRequestSettings(client.createCrumbedUrl("octane/configuration/save"), HttpMethod.POST);
-		JSONObject json = new JSONObject();
-		json.put("location", "http://localhost:" + testingServerPort);
-		json.put("sharedSpace", "1001");
-		json.put("username", "some");
-		json.put("password", "pass");
-		req.setRequestBody(json.toString());
-		WebResponse res = client.loadWebResponse(req);
-		logger.info("Configuration submitted and responded with result: " + res.getStatusMessage() + "; testing server will run on port " + testingServerPort);
-	}
-
-	private void killServer() throws Exception {
+	@AfterClass
+	static public void afterClass() throws Exception {
 		server.stop();
 		server.destroy();
 	}
 
-	@Before
-	public void beforeEach() throws Exception {
-		raiseServer();
-		configEventsClient();
-	}
-
-	@After
-	public void afterEach() throws Exception {
-		killServer();
-	}
-
 	@Test
-	@WithTimeout(360)
+	@Ignore
 	public void testEventsA() throws Exception {
 		FreeStyleProject p = rule.createFreeStyleProject(projectName);
 		JenkinsRule.WebClient client = rule.createWebClient();
+
+		configEventsClient(client);
+
+		EventsDispatcher eventsDispatcher = ExtensionUtil.getInstance(rule, EventsDispatcher.class);
+		assertEquals(1, eventsDispatcher.getStatus().size());
+		assertEquals("http://localhost:" + testingServerPort, eventsDispatcher.getStatus().get(0).getLocation());
+		assertEquals(1, rule.jenkins.getTopLevelItemNames().size());
+		assertTrue(rule.jenkins.getTopLevelItemNames().contains(projectName));
+
 		assertEquals(0, p.getBuilds().toArray().length);
-		Utils.buildProject(client, p);
+		p.scheduleBuild(0, null);
 		while (p.getLastBuild() == null || p.getLastBuild().isBuilding()) {
 			Thread.sleep(1000);
 		}
 		assertEquals(1, p.getBuilds().toArray().length);
 		Thread.sleep(5000);
 
-		ArrayList<CIEventType> eventsOrder = new ArrayList<CIEventType>(Arrays.asList(CIEventType.STARTED, CIEventType.FINISHED));
-		ArrayList<JSONObject> eventLists = eventsHandler.getResults();
+		List<CIEventType> eventsOrder = new ArrayList<CIEventType>(Arrays.asList(CIEventType.STARTED, CIEventType.FINISHED));
+		List<JSONObject> eventLists = eventsHandler.getResults();
 		JSONObject tmp;
 		JSONArray events;
+		logger.info("EVENTS TEST: server mock received " + eventLists.size() + " events");
 		for (JSONObject l : eventLists) {
 			assertEquals(2, l.length());
 

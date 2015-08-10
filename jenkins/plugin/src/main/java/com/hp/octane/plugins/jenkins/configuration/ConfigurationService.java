@@ -46,24 +46,20 @@ public class ConfigurationService {
             String location;
             int contextPos = uiLocation.indexOf("/ui");
             if (contextPos < 0) {
-                // guessing the future
-                contextPos = uiLocation.indexOf("/mqm/ui");
-                if (contextPos < 0) {
-                    throw FormValidation.errorWithMarkup(markup("red", Messages.ApplicationContextNotFound()));
-                } else {
-                    location = uiLocation.substring(0, contextPos + 4);
-                }
+                throw FormValidation.errorWithMarkup(markup("red", Messages.ApplicationContextNotFound()));
             } else {
                 location = uiLocation.substring(0, contextPos);
             }
             List<NameValuePair> params = URLEncodedUtils.parse(url.toURI(), "UTF-8");
             for (NameValuePair param: params) {
                 if (param.getName().equals(PARAM_SHARED_SPACE)) {
-                    String sharedSpace = param.getValue();
-                    if (StringUtils.isEmpty(sharedSpace)) {
+                    String[] sharedSpaceAndWorkspace = param.getValue().split("/");
+                    // we are relaxed and allow parameter without workspace in order not to force user to makeup
+                    // workspace value when configuring manually or via config API and not via copy & paste
+                    if (sharedSpaceAndWorkspace.length < 1 || StringUtils.isEmpty(sharedSpaceAndWorkspace[0])) {
                         throw FormValidation.errorWithMarkup(markup("red", Messages.UnexpectedSharedSpace()));
                     }
-                    return new MqmProject(location, sharedSpace);
+                    return new MqmProject(location, sharedSpaceAndWorkspace[0]);
                 }
             }
             throw FormValidation.errorWithMarkup(markup("red", Messages.MissingSharedSpace()));

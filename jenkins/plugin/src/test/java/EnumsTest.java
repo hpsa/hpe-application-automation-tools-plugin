@@ -16,7 +16,7 @@ import static org.junit.Assert.assertEquals;
  * To change this template use File | Settings | File Templates.
  */
 
-public class TestEnums {
+public class EnumsTest {
 
 	@Test
 	public void testCIEventCauseType() {

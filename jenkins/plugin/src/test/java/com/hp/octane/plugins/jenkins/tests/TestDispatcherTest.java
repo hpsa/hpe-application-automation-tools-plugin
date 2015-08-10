@@ -83,7 +83,7 @@ public class TestDispatcherTest {
         // server needs to be configured in order for the processing to happen
         HtmlPage configPage = rule.createWebClient().goTo("configure");
         HtmlForm form = configPage.getFormByName("config");
-        form.getInputByName("_.uiLocation").setValueAttribute("http://localhost:8008/ui/?p=1001");
+        form.getInputByName("_.uiLocation").setValueAttribute("http://localhost:8008/ui/?p=1001/1002");
         form.getInputByName("_.username").setValueAttribute("username");
         form.getInputByName("_.password").setValueAttribute("password");
         rule.submit(form);
@@ -164,7 +164,7 @@ public class TestDispatcherTest {
     }
 
     @Test
-    public void testDispatcherProjectFailure() throws Exception {
+    public void testDispatcherSharedSpaceFailure() throws Exception {
         mockRestClient(restClient, true, true, false);
         FreeStyleBuild build = executeBuild();
         queue.waitForTicks(5);
@@ -274,13 +274,13 @@ public class TestDispatcherTest {
         }
     }
 
-    private void mockRestClient(MqmRestClient restClient, boolean login, boolean session, boolean project) throws IOException {
+    private void mockRestClient(MqmRestClient restClient, boolean login, boolean session, boolean sharedSpace) throws IOException {
         Mockito.reset(restClient);
         if (!login ) {
             Mockito.doThrow(new AuthenticationException()).when(restClient).tryToConnectSharedSpace();
         } else if (!session) {
             Mockito.doThrow(new SessionCreationException()).when(restClient).tryToConnectSharedSpace();
-        } else if (!project) {
+        } else if (!sharedSpace) {
             Mockito.doThrow(new SharedSpaceNotExistException()).when(restClient).tryToConnectSharedSpace();
         } else {
             Mockito.doNothing().when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()));

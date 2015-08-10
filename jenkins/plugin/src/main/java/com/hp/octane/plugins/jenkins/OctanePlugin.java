@@ -7,6 +7,8 @@ import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationListener;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationService;
 import com.hp.octane.plugins.jenkins.configuration.MqmProject;
+import com.hp.octane.plugins.jenkins.configuration.PredefinedConfiguration;
+import com.hp.octane.plugins.jenkins.configuration.PredefinedConfigurationUnmarshaller;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jenkins.events.EventsDispatcher;
 import hudson.Extension;
@@ -23,7 +25,10 @@ import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Date;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -37,7 +42,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 	private Long identityFrom;
 
 	private String uiLocation;
-	private Boolean abridged;
+	private boolean abridged;
 	private String username;
 	private String password;
 
@@ -53,7 +58,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 		return identityFrom;
 	}
 
-	public Boolean getAbridged() {
+	public boolean getAbridged() {
 		return abridged;
 	}
 
@@ -78,6 +83,24 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 			this.identityFrom = new Date().getTime();
 			save();
 		}
+
+        // once the global configuration is saved in UI, all values are initialized
+        if (uiLocation == null) {
+            File configurationFile = null;
+            try {
+                File resourceDirectory = new File(getWrapper().baseResourceURL.toURI());
+                configurationFile = new File(resourceDirectory, "predefinedConfiguration.xml");
+            } catch (URISyntaxException e) {
+                logger.log(Level.WARNING, "Unable to convert path of the predefined server configuration file", e);
+            }
+            PredefinedConfigurationUnmarshaller predefinedConfigurationUnmarshaller = PredefinedConfigurationUnmarshaller.getExtensionInstance();
+            if (configurationFile != null && configurationFile.canRead() && predefinedConfigurationUnmarshaller != null) {
+                PredefinedConfiguration predefinedConfiguration = predefinedConfigurationUnmarshaller.unmarshall(configurationFile);
+                if (predefinedConfiguration != null) {
+                    configurePlugin(predefinedConfiguration.getUiLocation(), abridged, null, null);
+                }
+            }
+        }
 
 		EventsDispatcher.getExtensionInstance().updateClient(getServerConfiguration());
 	}

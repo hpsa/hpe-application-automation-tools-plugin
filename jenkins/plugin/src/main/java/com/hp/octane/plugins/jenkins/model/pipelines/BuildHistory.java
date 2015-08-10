@@ -1,5 +1,6 @@
 package com.hp.octane.plugins.jenkins.model.pipelines;
 
+import com.hp.octane.plugins.jenkins.model.scm.SCMData;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
@@ -25,6 +26,7 @@ public class BuildHistory {
         private String time;
         private String startTime;
         private String duration;
+        private SCMData scmData;
 
 
         Build(String status, String number, String time) {
@@ -33,12 +35,13 @@ public class BuildHistory {
             this.time = time;
         }
 
-        public Build(String status, String number, String time, String startTime, String duration) {
+        public Build(String status, String number, String time, String startTime, String duration,SCMData scmData) {
             this.status = status;
             this.number = number;
             this.time = time;
             this.startTime = startTime;
             this.duration = duration;
+            this.scmData = scmData;
         }
 
         @Exported(inline = true)
@@ -77,6 +80,10 @@ public class BuildHistory {
         public String getDuration() {
             return duration;
         }
+        @Exported(inline = true)
+        public SCMData getScmData() {
+            return scmData;
+        }
     }
 
     public BuildHistory() {
@@ -85,16 +92,16 @@ public class BuildHistory {
         this.lastBuild = null;
     }
 
-    public void addBuild(String status, String number, String time, String startTime, String duration) {
-        builds.add(new Build(status, number, time, startTime, duration));
+    public void addBuild(String status, String number, String time, String startTime, String duration,SCMData scmData) {
+        builds.add(new Build(status, number, time, startTime, duration,scmData));
     }
 
-    public void addLastSuccesfullBuild(String status, String number, String time, String startTime, String duration) {
-        lastSuccesfullBuild = new Build(status, number, time, startTime, duration);
+    public void addLastSuccesfullBuild(String status, String number, String time, String startTime, String duration,SCMData scmData) {
+        lastSuccesfullBuild = new Build(status, number, time, startTime, duration, scmData);
     }
 
-    public void addLastBuild(String status, String number, String time, String startTime, String duration) {
-        lastBuild = new Build(status, number, time, startTime, duration);
+    public void addLastBuild(String status, String number, String time, String startTime, String duration,SCMData scmData) {
+        lastBuild = new Build(status, number, time, startTime, duration,scmData);
     }
 
 

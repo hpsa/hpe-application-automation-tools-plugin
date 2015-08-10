@@ -4,6 +4,7 @@
     <l:main-panel>
       <st:bind var="proxy" value="${it.proxy}"/>
 
+      <st:adjunct includes="lib.select2.select2-min"/>
       <st:adjunct includes="lib.octane.ui"/>
       <st:adjunct includes="lib.octane.configure"/>
 

@@ -17,27 +17,29 @@ import org.xml.sax.SAXException;
 import java.io.IOException;
 import java.util.Arrays;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Created with IntelliJ IDEA.
  * User: gullery
  * Date: 13/01/15
- * Time: 11:39
+ * Time: 11:42
  * To change this template use File | Settings | File Templates.
  */
 
-public class TestProjectActionsFreeStyle {
+public class ProjectActionsMavenTest {
 	final private String projectName = "root-job";
 
 	@Rule
 	final public JenkinsRule rule = new JenkinsRule();
 
-	//  Structure test: free-style, no params, no children
+	//  Structure test: maven, no params, no children
 	//
 	@Test
-	public void testStructureFreeStyleNoParamsNoChildren() throws IOException, SAXException {
-		rule.createFreeStyleProject(projectName);
+	public void testStructureMavenNoParamsNoChildren() throws IOException, SAXException {
+		rule.createMavenProject(projectName);
 
 		JenkinsRule.WebClient client = rule.createWebClient();
 		Page page;
@@ -63,11 +65,26 @@ public class TestProjectActionsFreeStyle {
 		assertEquals(tmpArray.length(), 0);
 	}
 
-	//  Structure test: free-style, with params, no children
+	@Test
+	/**
+	 * @info
+	 * try to approach jenkins_url/job/projectName/octane/run url and verify it triggers new build
+	 */
+	public void testDoRun() throws IOException, SAXException, InterruptedException {
+		MavenModuleSet p = rule.createMavenProject(projectName);
+		JenkinsRule.WebClient client = rule.createWebClient();
+		client.goTo("job/" + projectName + "/octane/run", "");
+		while (p.getLastBuild() == null || p.getLastBuild().isBuilding()) {
+			Thread.sleep(1000);
+		}
+		assertEquals(p.getBuilds().toArray().length, 1);
+	}
+
+	//  Structure test: maven, with params, no children
 	//
 	@Test
-	public void testStructureFreeStyleWithParamsNoChildren() throws IOException, SAXException {
-		FreeStyleProject p = rule.createFreeStyleProject(projectName);
+	public void testStructureMavenWithParamsNoChildren() throws IOException, SAXException {
+		MavenModuleSet p = rule.createMavenProject(projectName);
 		ParametersDefinitionProperty params = new ParametersDefinitionProperty(Arrays.asList(
 				(ParameterDefinition) new BooleanParameterDefinition("ParamA", true, "bool"),
 				(ParameterDefinition) new StringParameterDefinition("ParamB", "str", "string"),
@@ -146,22 +163,21 @@ public class TestProjectActionsFreeStyle {
 		assertEquals(tmpArray.length(), 0);
 	}
 
-	//  Structure test: free-style, with params, with children
+	//  Structure test: maven, with params, with children
 	//
 	@Test
-	public void testStructureFreeStyleWithParamsWithChildren() throws IOException, SAXException {
-		FreeStyleProject p = rule.createFreeStyleProject(projectName);
+	public void testStructureMavenWithParamsWithChildren() throws IOException, SAXException {
+		MavenModuleSet p = rule.createMavenProject(projectName);
 		FreeStyleProject p1 = rule.createFreeStyleProject("jobA");
 		MatrixProject p2 = rule.createMatrixProject("jobB");
 		FreeStyleProject p3 = rule.createFreeStyleProject("jobC");
-		MavenModuleSet p4 = rule.createMavenProject("jobD");
-		CustomProject p5 = rule.getInstance().createProject(CustomProject.class, "jobE");
+		MatrixProject p4 = rule.createMatrixProject("jobD");
 		ParametersDefinitionProperty params = new ParametersDefinitionProperty(Arrays.asList(
 				(ParameterDefinition) new BooleanParameterDefinition("ParamA", true, "bool"),
 				(ParameterDefinition) new StringParameterDefinition("ParamB", "str", "string")
 		));
 		p.addProperty(params);
-		p.getBuildersList().add(new TriggerBuilder(Arrays.asList(
+		p.getPrebuilders().add(new TriggerBuilder(Arrays.asList(
 				new BlockableBuildTriggerConfig("jobA, jobB", new BlockingBehaviour(
 						Result.FAILURE,
 						Result.UNSTABLE,
@@ -169,9 +185,10 @@ public class TestProjectActionsFreeStyle {
 				), Arrays.asList(new AbstractBuildParameters[0])),
 				new BlockableBuildTriggerConfig("jobC,jobD", null, Arrays.asList(new AbstractBuildParameters[0]))
 		)));
-		p.getBuildersList().add(new Shell(""));
-		p.getBuildersList().add(new TriggerBuilder(Arrays.asList(
-				new BlockableBuildTriggerConfig("jobA, jobB, jobE", new BlockingBehaviour(
+		p.getPrebuilders().add(new Shell(""));
+		p.getPostbuilders().add(new Shell(""));
+		p.getPostbuilders().add(new TriggerBuilder(Arrays.asList(
+				new BlockableBuildTriggerConfig("jobA, jobB", new BlockingBehaviour(
 						Result.FAILURE,
 						Result.UNSTABLE,
 						Result.FAILURE
@@ -179,10 +196,10 @@ public class TestProjectActionsFreeStyle {
 				new BlockableBuildTriggerConfig("jobC,jobD", null, Arrays.asList(new AbstractBuildParameters[0]))
 		)));
 		p.getPublishersList().add(new BuildTrigger("jobA, jobB", Result.SUCCESS));
+		p.getPublishersList().add(new Fingerprinter(""));
 		p.getPublishersList().add(new hudson.plugins.parameterizedtrigger.BuildTrigger(Arrays.asList(
 				new BuildTriggerConfig("jobC,jobD", ResultCondition.ALWAYS, false, null)
 		)));
-		p.getPublishersList().add(new Fingerprinter(""));
 
 		JenkinsRule.WebClient client = rule.createWebClient();
 		Page page;
@@ -225,7 +242,7 @@ public class TestProjectActionsFreeStyle {
 
 		tmpPhase = tmpArray.getJSONObject(0);
 		assertEquals(tmpPhase.length(), 3);
-		assertEquals(tmpPhase.getString("name"), "");
+		assertEquals(tmpPhase.getString("name"), "pre-maven");
 		assertEquals(tmpPhase.getBoolean("blocking"), true);
 		tmpJobs = tmpPhase.getJSONArray("jobs");
 		assertEquals(tmpJobs.length(), 2);
@@ -244,7 +261,7 @@ public class TestProjectActionsFreeStyle {
 
 		tmpPhase = tmpArray.getJSONObject(1);
 		assertEquals(tmpPhase.length(), 3);
-		assertEquals(tmpPhase.getString("name"), "");
+		assertEquals(tmpPhase.getString("name"), "pre-maven");
 		assertEquals(tmpPhase.getBoolean("blocking"), false);
 		tmpJobs = tmpPhase.getJSONArray("jobs");
 		assertEquals(tmpJobs.length(), 2);
@@ -263,10 +280,10 @@ public class TestProjectActionsFreeStyle {
 
 		tmpPhase = tmpArray.getJSONObject(2);
 		assertEquals(tmpPhase.length(), 3);
-		assertEquals(tmpPhase.getString("name"), "");
+		assertEquals(tmpPhase.getString("name"), "post-maven");
 		assertEquals(tmpPhase.getBoolean("blocking"), true);
 		tmpJobs = tmpPhase.getJSONArray("jobs");
-		assertEquals(tmpJobs.length(), 3);
+		assertEquals(tmpJobs.length(), 2);
 		tmpJob = tmpJobs.getJSONObject(0);
 		assertEquals(tmpJob.length(), 4);
 		assertEquals(tmpJob.getString("name"), "jobA");
@@ -279,16 +296,10 @@ public class TestProjectActionsFreeStyle {
 		assertEquals(tmpJob.getJSONArray("parameters").length(), 0);
 		assertEquals(tmpJob.getJSONArray("phasesInternal").length(), 0);
 		assertEquals(tmpJob.getJSONArray("phasesPostBuild").length(), 0);
-		tmpJob = tmpJobs.getJSONObject(2);
-		assertEquals(tmpJob.length(), 4);
-		assertEquals(tmpJob.getString("name"), "jobE");
-		assertEquals(tmpJob.getJSONArray("parameters").length(), 0);
-		assertEquals(tmpJob.getJSONArray("phasesInternal").length(), 0);
-		assertEquals(tmpJob.getJSONArray("phasesPostBuild").length(), 0);
 
 		tmpPhase = tmpArray.getJSONObject(3);
 		assertEquals(tmpPhase.length(), 3);
-		assertEquals(tmpPhase.getString("name"), "");
+		assertEquals(tmpPhase.getString("name"), "post-maven");
 		assertEquals(tmpPhase.getBoolean("blocking"), false);
 		tmpJobs = tmpPhase.getJSONArray("jobs");
 		assertEquals(tmpJobs.length(), 2);
