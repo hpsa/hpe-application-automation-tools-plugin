@@ -416,7 +416,7 @@ namespace HpToolsLauncher.TestRunners
 
             ProcessStartInfo analysisRunner = new ProcessStartInfo();
             analysisRunner.FileName = ANALYSIS_LAUNCHER;
-            analysisRunner.Arguments = lrrLocation + " " + lraLocation + " " + htmlLocation;
+            analysisRunner.Arguments = "\"" + lrrLocation + "\" \"" + lraLocation + "\" \"" + htmlLocation + "\"";
             analysisRunner.UseShellExecute = false;
             analysisRunner.RedirectStandardOutput = true;
 
