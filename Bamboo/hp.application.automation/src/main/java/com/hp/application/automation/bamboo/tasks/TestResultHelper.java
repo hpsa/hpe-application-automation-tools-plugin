@@ -84,13 +84,13 @@ public final class TestResultHelper
         testCollationService.collateTestResults(taskContext, TEST_REPORT_FILE_PATTERNS, new XmlTestResultsReportCollector());
     }
 
-    public static Collection<String> getTestResultsPathes(@NotNull File results, ResultTypeFilter filter, @NotNull Logger logger)
+    public static Collection<String> getTestResultsPathes(@NotNull File results, ResultTypeFilter filter, @NotNull final BuildLogger logger)
     {
         Collection<String> resultsFolders = new ArrayList<String>();
 
         if(!results.exists())
         {
-            logger.log("Test results file (" + results.getName() + ") was not found.");
+            logger.addBuildLogEntry("Test results file (" + results.getName() + ") was not found.");
             return resultsFolders;
         }
 
@@ -111,7 +111,7 @@ public final class TestResultHelper
         }
         catch (JAXBException ex)
         {
-            logger.log("Test results file (" + results.getName() + ") has invalid format.");
+            logger.addBuildLogEntry("Test results file (" + results.getName() + ") has invalid format.");
         }
 
         return resultsFolders;

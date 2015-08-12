@@ -19,14 +19,12 @@ import org.jetbrains.annotations.Nullable;
 public class RunFromFileSystemTask extends AbstractLauncherTask {
 
 	private final ArtifactManager _artifactManager;
-	private final BuildLoggerManager _buildLoggerManager;
 
-	public RunFromFileSystemTask(@NotNull final TestCollationService testCollationService, @NotNull ArtifactManager artifactManager, @NotNull BuildLoggerManager buildLoggerManager)
+	public RunFromFileSystemTask(@NotNull final TestCollationService testCollationService, @NotNull ArtifactManager artifactManager)
 	{
 		super(testCollationService);
 
 		_artifactManager = artifactManager;
-		_buildLoggerManager = buildLoggerManager;
 	}
 
     @java.lang.Override
@@ -65,14 +63,8 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
 		if(resultsFilter != null)
 		{
 			final BuildLogger buildLogger = taskContext.getBuildLogger();
-			Logger logger = new Logger() {
-				@Override
-				public void log(String message) {
-					buildLogger.addBuildLogEntry(message);
-				}
-			};
 
-			Collection<String> resultsPathes = TestResultHelper.getTestResultsPathes(getResultsFile(), resultsFilter, logger);
+			Collection<String> resultsPathes = TestResultHelper.getTestResultsPathes(getResultsFile(), resultsFilter, buildLogger);
 			TestResultHelper.publishArtifacts(taskContext, _artifactManager, resultsPathes, buildLogger);
 		}
 	}
