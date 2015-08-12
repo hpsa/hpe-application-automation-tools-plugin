@@ -60,15 +60,38 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
 	@Override
 	protected void uploadArtifacts(final TaskContext taskContext)
 	{
-		final BuildLogger buildLogger = taskContext.getBuildLogger();
-		Logger logger = new Logger() {
-			@Override
-			public void log(String message) {
-				buildLogger.addBuildLogEntry(message);
-			}
-		};
+		TestResultHelper.ResultTypeFilter resultsFilter = getResultTypeFilter(taskContext);
 
-		Collection<String> resultsPathes = TestResultHelper.getTestResultsPathes(getResultsFile(), TestResultHelper.ResultTypeFilter.All, logger);
-		TestResultHelper.publishArtifacts(taskContext, _artifactManager, resultsPathes, buildLogger);
+		if(resultsFilter != null)
+		{
+			final BuildLogger buildLogger = taskContext.getBuildLogger();
+			Logger logger = new Logger() {
+				@Override
+				public void log(String message) {
+					buildLogger.addBuildLogEntry(message);
+				}
+			};
+
+			Collection<String> resultsPathes = TestResultHelper.getTestResultsPathes(getResultsFile(), resultsFilter, logger);
+			TestResultHelper.publishArtifacts(taskContext, _artifactManager, resultsPathes, buildLogger);
+		}
+	}
+
+	@Nullable
+	private TestResultHelper.ResultTypeFilter getResultTypeFilter(final TaskContext taskContext)
+	{
+		String publishMode = taskContext.getConfigurationMap().get(RunFromFileSystemTaskConfigurator.PUBLISH_MODE_PARAM);
+
+		if(publishMode.equals(RunFromFileSystemTaskConfigurator.PUBLISH_MODE_FAILED_VALUE))
+		{
+			return TestResultHelper.ResultTypeFilter.FAILED;
+		}
+
+		if(publishMode.equals(RunFromFileSystemTaskConfigurator.PUBLISH_MODE_ALWAYS_VALUE))
+		{
+			return TestResultHelper.ResultTypeFilter.All;
+		}
+
+		return null;
 	}
 }

@@ -33,6 +33,10 @@ public final class TestResultHelper
 {
     private static final String TEST_REPORT_FILE_PATTERNS = "*.xml";
 
+    private static final String TEST_STATUS_PASSED = "pass";
+    private static final String TEST_STATUS_FAIL = "fail";
+
+
     public enum ResultTypeFilter {All, SUCCESSFUL, FAILED }
 
     private static class ResultInfoItem
@@ -150,12 +154,12 @@ public final class TestResultHelper
 
         String status = testcase.getStatus();
 
-        if(filter == ResultTypeFilter.SUCCESSFUL && status.equals(JUnitTestCaseStatus.PASS))
+        if(filter == ResultTypeFilter.SUCCESSFUL && status.equals(TEST_STATUS_PASSED))
         {
             return true;
         }
 
-        if(filter == ResultTypeFilter.FAILED && (status.equals(JUnitTestCaseStatus.FAILURE) || status.equals(JUnitTestCaseStatus.ERROR)))
+        if(filter == ResultTypeFilter.FAILED && status.equals(TEST_STATUS_FAIL))
         {
             return true;
         }

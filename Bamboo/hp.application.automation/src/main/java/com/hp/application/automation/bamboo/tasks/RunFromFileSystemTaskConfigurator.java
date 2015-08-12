@@ -1,16 +1,12 @@
 package com.hp.application.automation.bamboo.tasks;
 
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import com.atlassian.bamboo.collections.ActionParametersMap;
-import com.atlassian.bamboo.task.AbstractTaskConfigurator;
 import com.atlassian.bamboo.task.TaskDefinition;
-import com.atlassian.bamboo.task.TaskRequirementSupport;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
-import com.atlassian.bamboo.v2.build.agent.capability.Requirement;
-import com.atlassian.bamboo.v2.build.agent.capability.RequirementImpl;
+import com.atlassian.bamboo.ww2.actions.build.admin.create.UIConfigSupport;
 import com.atlassian.struts.TextProvider;
 import com.atlassian.util.concurrent.NotNull;
 import com.atlassian.util.concurrent.Nullable;
@@ -18,10 +14,22 @@ import org.apache.commons.lang.StringUtils;
 
 public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfigurator {
 
-	private TextProvider textProvider;
+	private TextProvider _textProvider;
 
 	public static final String TESTS_PATH = "testPathInput";
 	public static final String TIMEOUT = "timeoutInput";
+
+	public static final String PUBLISH_MODE_ALWAYS_STRING = "RunFromFileSystemTask.publishMode.always";
+	public static final String PUBLISH_MODE_FAILED_STRING = "RunFromFileSystemTask.publishMode.failed";
+	public static final String PUBLISH_MODE_NEWER_STRING = "RunFromFileSystemTask.publishMode.never";
+
+	public static final String PUBLISH_MODE_PARAM = "publishMode";
+	public static final String PUBLISH_MODE_ITEMS_PARAM = "publishModeItems";
+
+	public static final String PUBLISH_MODE_ALWAYS_VALUE = "always";
+	public static final String PUBLISH_MODE_FAILED_VALUE = "failed";
+	public static final String PUBLISH_MODE_NEVER_VALUE = "never";
+
 
 	public Map<String, String> generateTaskConfigMap(@NotNull final ActionParametersMap params, @Nullable final TaskDefinition previousTaskDefinition)
 	{
@@ -29,6 +37,7 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 
 		config.put(TESTS_PATH, params.getString(TESTS_PATH));
 		config.put(TIMEOUT, params.getString(TIMEOUT));
+		config.put(PUBLISH_MODE_PARAM, params.getString(PUBLISH_MODE_PARAM));
 
 		return config;
 	}
@@ -42,14 +51,14 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 
 		if (StringUtils.isEmpty(pathParameter))
 		{
-			errorCollection.addError(TESTS_PATH, textProvider.getText("RunFromFileSystemTaskConfigurator.error.testsPathIsEmpty"));
+			errorCollection.addError(TESTS_PATH, _textProvider.getText("RunFromFileSystemTaskConfigurator.error.testsPathIsEmpty"));
 		}
 
 		if(!StringUtils.isEmpty(timeoutParameter))
 		{   	 
-			if (!StringUtils.isNumeric(timeoutParameter) || Integer.parseInt(timeoutParameter) <0 | Integer.parseInt(timeoutParameter) > 30)
+			if (!StringUtils.isNumeric(timeoutParameter) || Integer.parseInt(timeoutParameter) < 0 | Integer.parseInt(timeoutParameter) > 30)
 			{
-				errorCollection.addError(TIMEOUT, textProvider.getText("RunFromFileSystemTaskConfigurator.error.timeoutIsNotCorrect"));
+				errorCollection.addError(TIMEOUT, _textProvider.getText("RunFromFileSystemTaskConfigurator.error.timeoutIsNotCorrect"));
 			} 	   
 		} 
 	}
@@ -58,6 +67,10 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 	public void populateContextForCreate(@NotNull final Map<String, Object> context)
 	{
 		super.populateContextForCreate(context);
+
+		context.put(PUBLISH_MODE_PARAM, PUBLISH_MODE_FAILED_VALUE);
+
+		populateContextForLists(context);
 	}
 
 	@Override
@@ -67,10 +80,29 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 
 		context.put(TESTS_PATH, taskDefinition.getConfiguration().get(TESTS_PATH));
 		context.put(TIMEOUT, taskDefinition.getConfiguration().get(TIMEOUT));
+		context.put(PUBLISH_MODE_PARAM, taskDefinition.getConfiguration().get(PUBLISH_MODE_PARAM));
+
+		populateContextForLists(context);
 	}
 	
-	public void setTextProvider(final TextProvider textProvider)
+	public void set_textProvider(final TextProvider textProvider)
 	{
-		this.textProvider = textProvider;
+		this._textProvider = textProvider;
+	}
+
+	private void populateContextForLists(@org.jetbrains.annotations.NotNull final Map<String, Object> context)
+	{
+		context.put(PUBLISH_MODE_ITEMS_PARAM, getPublishModes());
+	}
+
+	private Map<String, String> getPublishModes()
+	{
+		Map<String, String> publishModesMap = new HashMap<String, String>();
+
+		publishModesMap.put(PUBLISH_MODE_FAILED_VALUE, _textProvider.getText(PUBLISH_MODE_FAILED_STRING));
+		publishModesMap.put(PUBLISH_MODE_ALWAYS_VALUE, _textProvider.getText(PUBLISH_MODE_ALWAYS_STRING));
+		publishModesMap.put(PUBLISH_MODE_NEVER_VALUE, _textProvider.getText(PUBLISH_MODE_NEWER_STRING));
+
+		return publishModesMap;
 	}
 }
