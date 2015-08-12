@@ -3,6 +3,7 @@ package com.hp.application.automation.bamboo.tasks;
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
+import com.atlassian.bamboo.utils.i18n.I18nBean;
 import com.atlassian.bamboo.ww2.actions.build.admin.create.UIConfigSupport;
 import com.atlassian.struts.TextProvider;
 import com.atlassian.util.concurrent.NotNull;
@@ -14,7 +15,6 @@ import java.util.Map;
 
 public class RunFromAlmTaskConfigurator extends AbstractUftTaskConfigurator {
 
-	private TextProvider textProvider;
 	private UIConfigSupport uiConfigBean;
 
 	private static final String UI_CONFIG_BEAN_PARAM = "uiConfigBean";
@@ -57,6 +57,8 @@ public class RunFromAlmTaskConfigurator extends AbstractUftTaskConfigurator {
 	public void validate(@NotNull final ActionParametersMap params, @NotNull final ErrorCollection errorCollection)
 	{
 		super.validate(params, errorCollection);
+
+		I18nBean textProvider = getI18nBean();
 
 	    if (StringUtils.isEmpty(params.getString(ALM_SERVER))) {
 	        errorCollection.addError(ALM_SERVER, textProvider.getText("Alm.error.ALMServerIsEmpty"));
@@ -118,12 +120,7 @@ public class RunFromAlmTaskConfigurator extends AbstractUftTaskConfigurator {
 		
 		populateContextForLists(context);
 	}
-	
-	public void setTextProvider(final TextProvider textProvider)
-	{
-		this.textProvider = textProvider;
-	}   
-	
+
 	public void setUIConfigBean(final UIConfigSupport uiConfigBean)
 	{
 		this.uiConfigBean = uiConfigBean;
@@ -133,9 +130,11 @@ public class RunFromAlmTaskConfigurator extends AbstractUftTaskConfigurator {
 	{
 		Map<String, String> runTypesMap = new HashMap<String, String>();
 
-		runTypesMap.put(RUN_LOCALLY_PARAMETER, this.textProvider.getText(RUN_LOCALLY_LBL));
-		runTypesMap.put(RUN_ON_PLANNED_HOST_PARAMETER, this.textProvider.getText(RUN_ON_PLANNED_HOST_LBL));
-		runTypesMap.put(RUN_REMOTELY_PARAMETER, this.textProvider.getText(RUN_REMOTELY_LBL));
+		I18nBean textProvider = getI18nBean();
+
+		runTypesMap.put(RUN_LOCALLY_PARAMETER, textProvider.getText(RUN_LOCALLY_LBL));
+		runTypesMap.put(RUN_ON_PLANNED_HOST_PARAMETER, textProvider.getText(RUN_ON_PLANNED_HOST_LBL));
+		runTypesMap.put(RUN_REMOTELY_PARAMETER, textProvider.getText(RUN_REMOTELY_LBL));
 
 		return runTypesMap;
 	}

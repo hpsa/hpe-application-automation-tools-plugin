@@ -6,15 +6,14 @@ import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.task.AbstractTaskConfigurator;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
+import com.atlassian.bamboo.utils.i18n.I18nBean;
 import com.atlassian.bamboo.ww2.actions.build.admin.create.UIConfigSupport;
-import com.atlassian.struts.TextProvider;
 import com.atlassian.util.concurrent.NotNull;
 import com.atlassian.util.concurrent.Nullable;
 import org.apache.commons.lang.StringUtils;
 
 public class AlmLabEnvPrepareTaskConfigurator extends AbstractTaskConfigurator {
 
-	private TextProvider textProvider;
 	private UIConfigSupport uiConfigBean;
 
 	public static final String UI_CONFIG_BEAN_PARAM = "uiConfigBean";
@@ -50,6 +49,8 @@ public class AlmLabEnvPrepareTaskConfigurator extends AbstractTaskConfigurator {
 
 	public void validate(@NotNull final ActionParametersMap params, @NotNull final ErrorCollection errorCollection) {
 		super.validate(params, errorCollection);
+
+		I18nBean textProvider = getI18nBean();
 
 		if (StringUtils.isEmpty(params.getString(ALM_SERVER))) {
 			errorCollection.addError(ALM_SERVER, textProvider.getText("AlmLabEnvPrepareTask.error.almServerIsEmpty"));
@@ -92,10 +93,12 @@ public class AlmLabEnvPrepareTaskConfigurator extends AbstractTaskConfigurator {
 	private void populateContextForLists(@NotNull final Map<String, Object> context) {
 		context.put(UI_CONFIG_BEAN_PARAM, uiConfigBean);
 
+		I18nBean textProvider = getI18nBean();
+
 		Map<String, String> runTypesMap = new HashMap<String, String>();
-		runTypesMap.put(NONE_INDEX, this.textProvider.getText("AlmLabEnvPrepareTask.noneConfigInputLbl"));
-		runTypesMap.put("2", this.textProvider.getText("AlmLabEnvPrepareTask.createNewConfInputLbl"));
-		runTypesMap.put("3", this.textProvider.getText("AlmLabEnvPrepareTask.useAnExistingConfInputLbl"));
+		runTypesMap.put(NONE_INDEX, textProvider.getText("AlmLabEnvPrepareTask.noneConfigInputLbl"));
+		runTypesMap.put("2", textProvider.getText("AlmLabEnvPrepareTask.createNewConfInputLbl"));
+		runTypesMap.put("3", textProvider.getText("AlmLabEnvPrepareTask.useAnExistingConfInputLbl"));
 
 		context.put(ENV_CONF_ITEMS, runTypesMap);
 	}
@@ -111,10 +114,6 @@ public class AlmLabEnvPrepareTaskConfigurator extends AbstractTaskConfigurator {
 		context.put(ASSIGN_ENV_CONF_ID, taskDefinition.getConfiguration().get(ASSIGN_ENV_CONF_ID));
 		context.put(ENV_CONFIG, taskDefinition.getConfiguration().get(ENV_CONFIG));
 		context.put(ENV_CONF_VALUE, taskDefinition.getConfiguration().get(ENV_CONF_VALUE));
-	}
-
-	public void setTextProvider(final TextProvider textProvider) {
-		this.textProvider = textProvider;
 	}
 
 	public void setUiConfigBean(final UIConfigSupport uiConfigBean) {

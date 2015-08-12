@@ -2,18 +2,17 @@ package com.hp.application.automation.bamboo.tasks;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
-import com.atlassian.struts.TextProvider;
+import com.atlassian.bamboo.utils.i18n.I18nBean;
 import com.atlassian.util.concurrent.NotNull;
 import com.atlassian.util.concurrent.Nullable;
 import org.apache.commons.lang.StringUtils; 
 
 public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfigurator {
-
-	private TextProvider _textProvider;
 
 	public static final String TESTS_PATH = "testPathInput";
 	public static final String TIMEOUT = "timeoutInput";
@@ -48,16 +47,18 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 		final String pathParameter = params.getString(TESTS_PATH);
 		final String timeoutParameter = params.getString(TIMEOUT);
 
+		I18nBean textProvider = getI18nBean();
+
 		if (StringUtils.isEmpty(pathParameter))
 		{
-			errorCollection.addError(TESTS_PATH, _textProvider.getText("RunFromFileSystemTaskConfigurator.error.testsPathIsEmpty"));
+			errorCollection.addError(TESTS_PATH, textProvider.getText("RunFromFileSystemTaskConfigurator.error.testsPathIsEmpty"));
 		}
 
 		if(!StringUtils.isEmpty(timeoutParameter))
 		{   	 
 			if (!StringUtils.isNumeric(timeoutParameter) || Integer.parseInt(timeoutParameter) < 0 | Integer.parseInt(timeoutParameter) > 30)
 			{
-				errorCollection.addError(TIMEOUT, _textProvider.getText("RunFromFileSystemTaskConfigurator.error.timeoutIsNotCorrect"));
+				errorCollection.addError(TIMEOUT, textProvider.getText("RunFromFileSystemTaskConfigurator.error.timeoutIsNotCorrect"));
 			} 	   
 		} 
 	}
@@ -83,11 +84,6 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 
 		populateContextForLists(context);
 	}
-	
-	public void set_textProvider(final TextProvider textProvider)
-	{
-		this._textProvider = textProvider;
-	}
 
 	private void populateContextForLists(@org.jetbrains.annotations.NotNull final Map<String, Object> context)
 	{
@@ -98,9 +94,11 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 	{
 		Map<String, String> publishModesMap = new HashMap<String, String>();
 
-		publishModesMap.put(PUBLISH_MODE_FAILED_VALUE, _textProvider.getText(PUBLISH_MODE_FAILED_STRING));
-		publishModesMap.put(PUBLISH_MODE_ALWAYS_VALUE, _textProvider.getText(PUBLISH_MODE_ALWAYS_STRING));
-		publishModesMap.put(PUBLISH_MODE_NEVER_VALUE, _textProvider.getText(PUBLISH_MODE_NEVER_STRING));
+		I18nBean textProvider = getI18nBean();
+
+		publishModesMap.put(PUBLISH_MODE_FAILED_VALUE, textProvider.getText(PUBLISH_MODE_FAILED_STRING));
+		publishModesMap.put(PUBLISH_MODE_ALWAYS_VALUE, textProvider.getText(PUBLISH_MODE_ALWAYS_STRING));
+		publishModesMap.put(PUBLISH_MODE_NEVER_VALUE, textProvider.getText(PUBLISH_MODE_NEVER_STRING));
 
 		return publishModesMap;
 	}

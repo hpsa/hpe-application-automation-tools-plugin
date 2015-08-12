@@ -4,12 +4,11 @@ import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.task.AbstractTaskConfigurator;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
-import com.atlassian.bamboo.ww2.actions.build.admin.create.UIConfigBean;
+import com.atlassian.bamboo.utils.i18n.I18nBean;
 import com.atlassian.bamboo.ww2.actions.build.admin.create.UIConfigSupport;
 import com.hp.application.automation.tools.common.model.CdaDetails;
 import com.hp.application.automation.tools.common.model.EnumDescription;
 import com.hp.application.automation.tools.common.model.SseModel;
-import com.opensymphony.xwork2.*;
 
 import org.apache.commons.lang.*;
 import org.jetbrains.annotations.*;
@@ -51,14 +50,12 @@ public class AlmLabManagementTaskConfigurator extends AbstractTaskConfigurator
 	private static final String DURATION_REQIRED_STRING = "AlmLabManagementTask.duration.required";
 	private static final String DURATION_MINIMUM_STRING = "AlmLabManagementTask.duration.minimum";
 	private static final String DURATION_INVALID_FORMAT_STRING = "AlmLabManagementTask.duration.invalidFormat";
-	
-	private TextProvider _textProvider;
-	
-	protected UIConfigSupport _uiConfigBean;
+
+	protected UIConfigSupport uiConfigBean;
 	
 	public void setUiConfigBean(final UIConfigSupport uiConfigBean)
 	{
-		this._uiConfigBean = uiConfigBean;
+		this.uiConfigBean = uiConfigBean;
 	}
 	
 	@NotNull
@@ -89,35 +86,37 @@ public class AlmLabManagementTaskConfigurator extends AbstractTaskConfigurator
 	public void validate(@NotNull final ActionParametersMap params, @NotNull final ErrorCollection errorCollection)
 	{
 	    super.validate(params, errorCollection);
-	    
+
+		I18nBean textProvider = getI18nBean();
+
 	    String almServer = params.getString(ALM_SERVER_PARAM);
 	    if(StringUtils.isEmpty(almServer)){
-	    	errorCollection.addError(ALM_SERVER_PARAM, _textProvider.getText(ALM_SERVER_REQUIRED_STRING));
+	    	errorCollection.addError(ALM_SERVER_PARAM, textProvider.getText(ALM_SERVER_REQUIRED_STRING));
 	    }
 	 
 	    String userName = params.getString(USER_NAME_PARAM);
 	    if(StringUtils.isEmpty(userName)){
-	    	errorCollection.addError(USER_NAME_PARAM, _textProvider.getText(USER_NAME_REQUIRED_STRING));
+	    	errorCollection.addError(USER_NAME_PARAM, textProvider.getText(USER_NAME_REQUIRED_STRING));
 	    }
 	    
 	    String domain = params.getString(DOMAIN_PARAM);
 	    if(StringUtils.isEmpty(domain)){
-	    	errorCollection.addError(DOMAIN_PARAM, _textProvider.getText(DOMAIN_REQUIRED_STRING));
+	    	errorCollection.addError(DOMAIN_PARAM, textProvider.getText(DOMAIN_REQUIRED_STRING));
 	    }
 	    
 	    String projectName = params.getString(PROJECT_NAME_PARAM);
 	    if(StringUtils.isEmpty(projectName)){
-	    	errorCollection.addError(PROJECT_NAME_PARAM, _textProvider.getText(PROJECT_NAME_REQIRED_STRING));
+	    	errorCollection.addError(PROJECT_NAME_PARAM, textProvider.getText(PROJECT_NAME_REQIRED_STRING));
 	    }
 	    
 	    String testId = params.getString(TEST_ID_PARAM);
 	    if(StringUtils.isEmpty(testId)){
-	    	errorCollection.addError(TEST_ID_PARAM, _textProvider.getText(TEST_ID_REQIRED_STRING));
+	    	errorCollection.addError(TEST_ID_PARAM, textProvider.getText(TEST_ID_REQIRED_STRING));
 	    }
 	    
 	    String duration = params.getString(DURATION_PARAM);
 	    if(StringUtils.isEmpty(duration)){
-	    	errorCollection.addError(DURATION_PARAM, _textProvider.getText(DURATION_REQIRED_STRING));
+	    	errorCollection.addError(DURATION_PARAM, textProvider.getText(DURATION_REQIRED_STRING));
 	    }
 	    else
 	    {
@@ -126,12 +125,12 @@ public class AlmLabManagementTaskConfigurator extends AbstractTaskConfigurator
 	    		int durationInt = Integer.parseInt(duration);
 	    		if(durationInt < 30)
 	    		{
-	    			errorCollection.addError(DURATION_PARAM, _textProvider.getText(DURATION_MINIMUM_STRING));
+	    			errorCollection.addError(DURATION_PARAM, textProvider.getText(DURATION_MINIMUM_STRING));
 	    		}
 	    	}
 	    	catch(NumberFormatException ex)
 	    	{
-	    		errorCollection.addError(DURATION_PARAM, _textProvider.getText(DURATION_INVALID_FORMAT_STRING));
+	    		errorCollection.addError(DURATION_PARAM, textProvider.getText(DURATION_INVALID_FORMAT_STRING));
 	    	}
 	    }	    
 	}
@@ -166,15 +165,10 @@ public class AlmLabManagementTaskConfigurator extends AbstractTaskConfigurator
 	    
 	    populateContextForLists(context);
 	}
-	
-	public void setTextProvider(final TextProvider textProvider)
-    {
-        this._textProvider = textProvider;
-    }
-	
+
 	private void populateContextForLists(@NotNull final Map<String, Object> context)
 	{
-		context.put(UI_CONFIG_BEAN_PARAM, _uiConfigBean);	    
+		context.put(UI_CONFIG_BEAN_PARAM, uiConfigBean);
 	    context.put(RUN_TYPE_ITEMS_PARAM, getRunTypes());
 		context.put(DEPLOYMENT_ACTION_ITEMS_PARAM, getDeploymentActions());
 		context.put(DEPROVISIONING_ACTION_ITEMS_PARAM, getDeprovisioningActions());
