@@ -6,7 +6,6 @@ import java.util.Map;
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
-import com.atlassian.bamboo.ww2.actions.build.admin.create.UIConfigSupport;
 import com.atlassian.struts.TextProvider;
 import com.atlassian.util.concurrent.NotNull;
 import com.atlassian.util.concurrent.Nullable;
@@ -21,7 +20,7 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 
 	public static final String PUBLISH_MODE_ALWAYS_STRING = "RunFromFileSystemTask.publishMode.always";
 	public static final String PUBLISH_MODE_FAILED_STRING = "RunFromFileSystemTask.publishMode.failed";
-	public static final String PUBLISH_MODE_NEWER_STRING = "RunFromFileSystemTask.publishMode.never";
+	public static final String PUBLISH_MODE_NEVER_STRING = "RunFromFileSystemTask.publishMode.never";
 
 	public static final String PUBLISH_MODE_PARAM = "publishMode";
 	public static final String PUBLISH_MODE_ITEMS_PARAM = "publishModeItems";
@@ -101,7 +100,7 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 
 		publishModesMap.put(PUBLISH_MODE_FAILED_VALUE, _textProvider.getText(PUBLISH_MODE_FAILED_STRING));
 		publishModesMap.put(PUBLISH_MODE_ALWAYS_VALUE, _textProvider.getText(PUBLISH_MODE_ALWAYS_STRING));
-		publishModesMap.put(PUBLISH_MODE_NEVER_VALUE, _textProvider.getText(PUBLISH_MODE_NEWER_STRING));
+		publishModesMap.put(PUBLISH_MODE_NEVER_VALUE, _textProvider.getText(PUBLISH_MODE_NEVER_STRING));
 
 		return publishModesMap;
 	}
