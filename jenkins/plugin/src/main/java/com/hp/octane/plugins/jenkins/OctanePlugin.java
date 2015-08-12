@@ -28,7 +28,6 @@ import org.kohsuke.stapler.StaplerRequest;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.Date;
 import java.util.UUID;
 import java.util.logging.Level;

@@ -1,10 +1,11 @@
 package com.hp.octane.plugins.jenkins.actions;
 
-import com.hp.octane.plugins.jenkins.model.scm.JGitTest;
 import com.hp.octane.plugins.jenkins.model.snapshots.SnapshotItem;
 import com.hp.octane.plugins.jenkins.tests.TestApi;
 import hudson.Extension;
-import hudson.model.*;
+import hudson.model.AbstractBuild;
+import hudson.model.Action;
+import hudson.model.Run;
 import jenkins.model.RunAction2;
 import jenkins.model.TransientActionFactory;
 import org.kohsuke.stapler.StaplerRequest;
@@ -13,7 +14,6 @@ import org.kohsuke.stapler.export.Flavor;
 
 import javax.annotation.Nonnull;
 import javax.servlet.ServletException;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;

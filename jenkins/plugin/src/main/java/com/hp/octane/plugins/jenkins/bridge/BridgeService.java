@@ -39,5 +39,4 @@ public class BridgeService implements ConfigurationListener {
 		//  if abridged - add task poller
 		//  if not - remove task poller if exists
 	}
-
 }
