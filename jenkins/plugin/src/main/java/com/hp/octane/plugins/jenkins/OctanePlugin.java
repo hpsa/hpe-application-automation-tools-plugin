@@ -3,6 +3,7 @@
 package com.hp.octane.plugins.jenkins;
 
 import com.google.inject.Inject;
+import com.hp.octane.plugins.jenkins.bridge.BridgesService;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationListener;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationService;
@@ -102,6 +103,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
         }
 
 		EventsDispatcher.getExtensionInstance().updateClient(getServerConfiguration());
+		BridgesService.getExtensionInstance().updateBridge(getServerConfiguration());
 	}
 
 	@Override
