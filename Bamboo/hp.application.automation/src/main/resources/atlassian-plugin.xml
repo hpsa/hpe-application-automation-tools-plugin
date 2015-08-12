@@ -91,5 +91,4 @@
       	name="edit" 
       	location="RunFromALM.ftl"/>
     </taskType>
-    
 </atlassian-plugin>

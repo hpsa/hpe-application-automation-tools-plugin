@@ -8,17 +8,12 @@ import com.atlassian.bamboo.task.TaskException;
 import com.atlassian.bamboo.task.TaskResult;
 import com.atlassian.bamboo.task.TaskResultBuilder;
 import com.atlassian.bamboo.task.TaskType;
-import com.ctc.wstx.util.StringUtil;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.util.Properties;
-import java.util.stream.Stream;
 import java.util.Date;
-import java.lang.Runtime;
-import java.net.URI;
-import java.net.URL;
 import java.lang.Process;
 import java.text.Format;
 import java.text.SimpleDateFormat;
@@ -29,6 +24,12 @@ public abstract class AbstractLauncherTask implements TaskType {
 
 	private final TestCollationService _testCollationService;
 
+	private File _resultsFile;
+	public File getResultsFile()
+	{
+		return _resultsFile;
+	}
+
 	public AbstractLauncherTask(@NotNull final TestCollationService testCollationService)
 	{
 		_testCollationService = testCollationService;
@@ -36,7 +37,7 @@ public abstract class AbstractLauncherTask implements TaskType {
 
 	protected abstract Properties getTaskProperties(final TaskContext taskContext) throws Exception;
 
-	protected void resultCollated()
+	protected void uploadArtifacts(final TaskContext taskContext)
 	{
 
 	}
@@ -70,6 +71,8 @@ public abstract class AbstractLauncherTask implements TaskType {
 		final ConfigurationMap map = taskContext.getConfigurationMap();
 		
 		File wd = taskContext.getWorkingDirectory();
+
+		this._resultsFile = new File(wd, resultsFileName);
 		
 		File paramsFile = new File(wd, paramFileName);
 		if (paramsFile.exists()){
@@ -122,7 +125,7 @@ public abstract class AbstractLauncherTask implements TaskType {
 			}
 			else if (retCode != 0)
 			{
-				return TaskResultBuilder.create(taskContext).failed().build();
+				return collateResults(taskContext);
 			}
 		} 
 		catch (IOException ioe) {
@@ -144,11 +147,7 @@ public abstract class AbstractLauncherTask implements TaskType {
 			}
 		}
 
-		TestResultHelper.CollateResults(_testCollationService, taskContext);
-
-		resultCollated();
-
-		return TaskResultBuilder.create(taskContext).checkTestFailures().build();
+		return collateResults(taskContext);
     }
 	
 	private String extractBinaryResource(final File pathToExtract, final String resourceName) throws IOException	{
@@ -204,6 +203,20 @@ public abstract class AbstractLauncherTask implements TaskType {
 		catch (Throwable t) {
 			logger.addBuildLogEntry(t.getMessage());
 			return -1;
+		}
+	}
+
+	private TaskResult collateResults(@NotNull final TaskContext taskContext)
+	{
+		try
+		{
+			TestResultHelper.CollateResults(_testCollationService, taskContext);
+			uploadArtifacts(taskContext);
+			return TaskResultBuilder.create(taskContext).checkTestFailures().build();
+		}
+		catch (Exception ex)
+		{
+			return TaskResultBuilder.create(taskContext).failed().build();
 		}
 	}
 }

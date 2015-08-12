@@ -1,32 +1,32 @@
 package com.hp.application.automation.bamboo.tasks;
 
-import com.atlassian.bamboo.build.BuildRequestResultImpl;
-import com.atlassian.bamboo.build.artifact.AbstractArtifactManager;
+import com.atlassian.bamboo.build.BuildLoggerManager;
 import com.atlassian.bamboo.build.artifact.ArtifactManager;
 import com.atlassian.bamboo.build.test.TestCollationService;
-import com.atlassian.bamboo.plan.PlanResultKey;
-import com.atlassian.bamboo.task.TaskContext;
-import com.atlassian.bamboo.task.TaskException;
-import com.atlassian.bamboo.task.TaskResult;
-import com.atlassian.bamboo.task.TaskResultBuilder;
-import com.atlassian.bamboo.task.TaskType;
+import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.configuration.ConfigurationMap;
 
-import java.util.LinkedList;
-import java.util.Properties;
+import java.io.File;
+import java.util.*;
 
+import com.atlassian.bamboo.v2.build.BuildContext;
+import com.hp.application.automation.tools.common.sdk.Logger;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class RunFromFileSystemTask extends AbstractLauncherTask {
 
 	private final ArtifactManager _artifactManager;
+	private final BuildLoggerManager _buildLoggerManager;
 
-	public RunFromFileSystemTask(@NotNull final TestCollationService testCollationService, @NotNull ArtifactManager artifactManager)
+	public RunFromFileSystemTask(@NotNull final TestCollationService testCollationService, @NotNull ArtifactManager artifactManager, @NotNull BuildLoggerManager buildLoggerManager)
 	{
 		super(testCollationService);
 
 		_artifactManager = artifactManager;
+		_buildLoggerManager = buildLoggerManager;
 	}
 
     @java.lang.Override
@@ -58,10 +58,17 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
 	}
 
 	@Override
-	protected void resultCollated()
+	protected void uploadArtifacts(final TaskContext taskContext)
 	{
-		//TODO: Mary try to use this method for publish artifacts.
-		// Also add combobox to File System Task UI with options as in Jenkins
-		//_artifactManager.publish()
+		final BuildLogger buildLogger = taskContext.getBuildLogger();
+		Logger logger = new Logger() {
+			@Override
+			public void log(String message) {
+				buildLogger.addBuildLogEntry(message);
+			}
+		};
+
+		Collection<String> resultsPathes = TestResultHelper.getTestResultsPathes(getResultsFile(), TestResultHelper.ResultTypeFilter.All, logger);
+		TestResultHelper.publishArtifacts(taskContext, _artifactManager, resultsPathes, buildLogger);
 	}
 }
