@@ -48,6 +48,7 @@ namespace LRAnalysisLauncher
         }
 //        static StreamWriter writer = new StreamWriter(new FileStream("c:\\AnalysisLauncherOutput.txt", FileMode.OpenOrCreate, FileAccess.Write));
         //args: lrr location, lra location, html report location
+        [STAThread]
         static int Main(string[] args)
         {
             
