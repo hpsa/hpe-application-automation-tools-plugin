@@ -21,6 +21,8 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 	public static final String PUBLISH_MODE_FAILED_STRING = "RunFromFileSystemTask.publishMode.failed";
 	public static final String PUBLISH_MODE_NEVER_STRING = "RunFromFileSystemTask.publishMode.never";
 
+	public static final String ARTIFACT_NAME_FORMAT_STRING = "RunFromFileSystemTask.artifactNameFormat";
+
 	public static final String PUBLISH_MODE_PARAM = "publishMode";
 	public static final String PUBLISH_MODE_ITEMS_PARAM = "publishModeItems";
 

@@ -11,6 +11,7 @@ import java.io.File;
 import java.util.*;
 
 import com.atlassian.bamboo.v2.build.BuildContext;
+import com.atlassian.struts.TextProvider;
 import com.hp.application.automation.tools.common.sdk.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -19,12 +20,14 @@ import org.jetbrains.annotations.Nullable;
 public class RunFromFileSystemTask extends AbstractLauncherTask {
 
 	private final ArtifactManager _artifactManager;
+	private final TextProvider _textProvider;
 
-	public RunFromFileSystemTask(@NotNull final TestCollationService testCollationService, @NotNull ArtifactManager artifactManager)
+	public RunFromFileSystemTask(@NotNull final TestCollationService testCollationService, @NotNull ArtifactManager artifactManager, @NotNull TextProvider textProvider)
 	{
 		super(testCollationService);
 
 		_artifactManager = artifactManager;
+		_textProvider = textProvider;
 	}
 
     @java.lang.Override
@@ -63,9 +66,11 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
 		if(resultsFilter != null)
 		{
 			final BuildLogger buildLogger = taskContext.getBuildLogger();
+			final String resultNameFormat = _textProvider.getText(RunFromFileSystemTaskConfigurator.ARTIFACT_NAME_FORMAT_STRING);
 
 			Collection<String> resultsPathes = TestResultHelper.getTestResultsPathes(getResultsFile(), resultsFilter, buildLogger);
-			TestResultHelper.publishArtifacts(taskContext, _artifactManager, resultsPathes, buildLogger);
+			TestResultHelper.publishArtifacts(taskContext, _artifactManager, resultsPathes, resultNameFormat, buildLogger);
+
 		}
 	}
 

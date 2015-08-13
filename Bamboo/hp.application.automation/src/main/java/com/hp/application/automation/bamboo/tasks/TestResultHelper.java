@@ -65,10 +65,10 @@ public final class TestResultHelper
             return _zipFile;
         }
 
-        public ResultInfoItem(String testName, File sourceDir, File zipFile)
+        public ResultInfoItem(String testName, File sourceDir, File zipFile, String resultNameFormat)
         {
             _testName = testName;
-            _resultName = testName + " Result";
+            _resultName = String.format(resultNameFormat, testName);
             _sourceDir = sourceDir;
             _zipFile = zipFile;
         }
@@ -117,11 +117,11 @@ public final class TestResultHelper
         return resultsFolders;
     }
 
-    public static void publishArtifacts(@NotNull final TaskContext taskContext, final ArtifactManager artifactManager, Collection<String> reportDirectories, @NotNull BuildLogger logger)
+    public static void publishArtifacts(@NotNull final TaskContext taskContext, final ArtifactManager artifactManager, Collection<String> reportDirectories, @NotNull String resultNameFormat, @NotNull BuildLogger logger)
     {
         File workingDirectory = taskContext.getWorkingDirectory();
 
-        Collection<ResultInfoItem> resultInfoItems = getResultInfoItems(workingDirectory, reportDirectories);
+        Collection<ResultInfoItem> resultInfoItems = getResultInfoItems(workingDirectory, reportDirectories, resultNameFormat);
         zipResults(resultInfoItems, logger);
 
         BuildContext buildContext = taskContext.getBuildContext();
@@ -167,7 +167,7 @@ public final class TestResultHelper
         return false;
     }
 
-    private static Collection<ResultInfoItem> getResultInfoItems(File destDir, Collection<String> resultDirs)
+    private static Collection<ResultInfoItem> getResultInfoItems(File destDir, Collection<String> resultDirs, String resultNameFormat)
     {
         Collection<ResultInfoItem> resultItems = new ArrayList<ResultInfoItem>();
 
@@ -178,7 +178,7 @@ public final class TestResultHelper
             String resultsArchiveName = testName + "_Result.zip";
             File zipResults = new File(destDir, resultsArchiveName);
 
-            ResultInfoItem resultItem = new ResultInfoItem(testName, resultsDir, zipResults);
+            ResultInfoItem resultItem = new ResultInfoItem(testName, resultsDir, zipResults, resultNameFormat);
             resultItems.add(resultItem);
         }
 
