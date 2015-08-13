@@ -5,6 +5,12 @@
 
 package com.hp.application.automation.tools.results;
 
+import java.io.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+
+import com.hp.application.automation.tools.common.Pair;
 import hudson.AbortException;
 import hudson.Extension;
 import hudson.FilePath;
@@ -45,6 +51,11 @@ import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.tools.ant.DirectoryScanner;
@@ -77,6 +88,8 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
     private static final String HTML_REPORT_FOLDER = "HTML";
     private static final String INDEX_HTML_NAME = "index.html";
     private static final String REPORT_INDEX_NAME = "report.index";
+	private static final String REPORTMETADATE_XML = "report_metadata.xml";
+	
     private final ResultsPublisherModel _resultsPublisherModel;
     
     @DataBoundConstructor
@@ -223,6 +236,84 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         return true;
     }
     
+private void writeReportMetaData2XML(List<ReportMetaData> htmlReportsInfo, String xmlFile) throws IOException, ParserConfigurationException {
+
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = dbf.newDocumentBuilder();
+        Document doc = builder.newDocument();
+        Element root = doc.createElement("reports_data");
+        doc.appendChild(root);
+
+        for (ReportMetaData htmlReportInfo : htmlReportsInfo)
+        {
+            String disPlayName = htmlReportInfo.getDisPlayName();
+            String urlName = htmlReportInfo.getUrlName();
+            String resourceURL = htmlReportInfo.getResourceURL();
+            String dateTime = htmlReportInfo.getDateTime();
+            String status = htmlReportInfo.getStatus();
+            String isHtmlReport = htmlReportInfo.getIsHtmlReport()? "true":"false";
+            Element elmReport = doc.createElement("report");
+            elmReport.setAttribute("disPlayName", disPlayName);
+            elmReport.setAttribute("urlName", urlName);
+            elmReport.setAttribute("resourceURL",resourceURL);
+            elmReport.setAttribute("dateTime", dateTime);
+            elmReport.setAttribute("status", status);
+            elmReport.setAttribute("isHtmlreport", isHtmlReport);
+            root.appendChild(elmReport);
+
+        }
+
+        write2XML(doc, xmlFile);
+    }
+
+    private Boolean collectAndPrepareHtmlReports(AbstractBuild build, BuildListener listener, List<ReportMetaData> htmlReportsInfo) throws IOException, InterruptedException {
+        //Project<?, ?> project = RuntimeUtils.cast(build.getProject());
+        //File reportDir = new File(build.getRootDir(), "UFTReport");
+        File reportDir = new File(build.getArtifactsDir(), "UFTReport");
+
+        FilePath rootTarget = new FilePath(reportDir);
+
+        for (ReportMetaData htmlReportInfo : htmlReportsInfo) {
+
+            //make sure it's a html report
+            if(!htmlReportInfo.getIsHtmlReport())
+            {
+                continue;
+            }
+            String htmlReportDir = htmlReportInfo.getFolderPath(); //C:\UFTTest\GuiTest1\Report
+
+            listener.getLogger().println("collectAndPrepareHtmlReports, collecting:" + htmlReportDir);
+
+            //copy to the subdirs of master
+            FilePath source = new FilePath(build.getWorkspace(), htmlReportDir);
+            String testFullName = htmlReportInfo.getDisPlayName();  //like "C:\UFTTest\GuiTest1"
+            File testFileFullName = new File(testFullName);
+            String testName = testFileFullName.getName();  //like GuiTest1
+            String dest = testName;
+            FilePath targetPath = new FilePath(rootTarget, dest);  //target path is something like "C:\Program Files (x86)\Jenkins\jobs\testAction\builds\35\archive\UFTReport\GuiTest1"
+            listener.getLogger().println("copying html report, source: " + source.getRemote() + " target: " + targetPath.getRemote());
+            source.copyRecursiveTo(targetPath);
+
+            //just test some url value
+//            String buildurl = build.getUrl();  //like "job/testAction/46/"
+//            listener.getLogger().println("build url is: " + buildurl);
+//
+//            String rootUrl = Hudson.getInstance().getRootUrl();  //http://localhost:8080/
+//            listener.getLogger().println("root url is: " + rootUrl);
+            //end -test some url value
+
+            //fill in the urlName of this report. we need a network path not a FS path
+            String resourceUrl = htmlReportInfo.getResourceURL();
+            String urlName = resourceUrl + "/run_results.html"; //like artifact/UFTReport/GuiTest1/run_results.html
+
+            listener.getLogger().println("set the report urlName to " + urlName);
+            htmlReportInfo.setUrlName(urlName);
+
+        }
+
+        return true;
+    }
+	
     private void archiveTestsReport(
             AbstractBuild<?, ?> build,
             BuildListener listener,
@@ -269,7 +360,9 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
         for (String resultsFilePath : resultFiles) {
             FilePath resultsFile = projectWS.child(resultsFilePath);
-            
+
+            List<ReportMetaData> ReportInfoToCollect = new ArrayList<ReportMetaData>();
+
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
             
@@ -278,6 +371,8 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             
             Node testSuiteNode = doc.getElementsByTagName("testsuite").item(0);
             NodeList testCasesNodes = ((Element) testSuiteNode).getElementsByTagName("testcase");
+
+            boolean reportIsHtml = false;
             
             for (int i = 0; i < testCasesNodes.getLength(); i++) {
                 
@@ -290,11 +385,17 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                     if (!eElement.hasAttribute("report")) {
                         continue;
                     }
-                    
-                    String reportFolderPath = eElement.getAttribute("report");
-                    String testFolderPath = eElement.getAttribute("name");
-                    String testStatus = eElement.getAttribute("status");
-                    
+
+
+                    String reportFolderPath = eElement.getAttribute("report"); //e.g. "C:\UFTTest\GuiTest1\Report"
+                    String testFolderPath = eElement.getAttribute("name"); //e.g. "C:\UFTTest\GuiTest1"
+                    String testStatus = eElement.getAttribute("status");  //e.g. "pass"
+
+
+                    Node nodeSystemInfo = eElement.getElementsByTagName("system-out").item(0);
+                    String sysinfo = nodeSystemInfo.getFirstChild().getNodeValue();
+                    String testDateTime = sysinfo.substring(0,19); //like "21/07/2015 11:52:50";
+
                     FilePath reportFolder = new FilePath(projectWS.getChannel(), reportFolderPath);
                     
                     reportFolders.add(reportFolder);
@@ -304,6 +405,29 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                     boolean archiveTestResult = false;
                     boolean createHtmlReport = false;
                     
+                    //check for the new html report
+                    FilePath htmlReport = new FilePath(reportFolder, "run_results.html");
+                    if (htmlReport.exists()) {
+                        reportIsHtml = true;
+                        String htmlReportDir = reportFolder.getRemote();
+
+                        ReportMetaData reportMetaData = new ReportMetaData();
+                        reportMetaData.setFolderPath(htmlReportDir);
+                        reportMetaData.setDisPlayName(testFolderPath);
+                        reportMetaData.setIsHtmlReport(true);
+                        reportMetaData.setDateTime(testDateTime);
+                        reportMetaData.setStatus(testStatus);
+
+                        File testFileFullName = new File(testFolderPath);
+                        String testName = testFileFullName.getName();
+                        String resourceUrl = "artifact/UFTReport/" + testName;
+                        reportMetaData.setResourceURL(resourceUrl);
+                        //don't know reportMetaData's URL path yet, we will generate it later.
+                        ReportInfoToCollect.add(reportMetaData);
+
+                        listener.getLogger().println("add html report info to ReportInfoToCollect: " + "[date]" + testDateTime);
+                    }
+
                     if (archiveTestResultMode.equals(ResultsPublisherModel.alwaysArchiveResults.getValue())) {
                         archiveTestResult = true;
                     } else if (archiveTestResultMode.equals(ResultsPublisherModel.ArchiveFailedTestsResults.getValue())) {
@@ -317,8 +441,9 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                         createHtmlReport = true;
                     }
                     
-                    if (archiveTestResult) {
-                        
+                    
+                    if (archiveTestResult && !reportIsHtml) {
+
                         if (reportFolder.exists()) {
                             
                             FilePath testFolder =
@@ -353,6 +478,18 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                             outstr.close();
                             instr.close();
                             
+                            //add to Report list
+                            ReportMetaData reportMetaData = new ReportMetaData();
+                            reportMetaData.setIsHtmlReport(false);
+                            //reportMetaData.setFolderPath(htmlReportDir); //no need for RRV
+                            reportMetaData.setDisPlayName(testFolderPath);
+                            String zipFileUrlName = "artifact/" + zipFileName;
+                            reportMetaData.setUrlName(zipFileUrlName);    //for RRV, the file url and resource url are the same.
+                            reportMetaData.setResourceURL(zipFileUrlName);
+                            reportMetaData.setDateTime(testDateTime);
+                            reportMetaData.setStatus(testStatus);
+                            ReportInfoToCollect.add(reportMetaData);
+
                         } else {
                             listener.getLogger().println(
                                     "No report folder was found in: " + reportFolderPath);
@@ -385,6 +522,29 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                             }
                         }
                     }
+                }
+            }
+
+            if (reportIsHtml && !ReportInfoToCollect.isEmpty()){
+
+                listener.getLogger().println("begin to collectAndPrepareHtmlReports");
+                collectAndPrepareHtmlReports(build, listener, ReportInfoToCollect);
+            }
+
+            if (!ReportInfoToCollect.isEmpty()) {
+                //serialize report metadata
+                File reportMetaDataXmlFile = new File(artifactsDir.getParent(), REPORTMETADATE_XML);
+                String reportMetaDataXml = reportMetaDataXmlFile.getAbsolutePath();
+                writeReportMetaData2XML(ReportInfoToCollect, reportMetaDataXml);
+
+                //Add UFT report action
+                try {
+                    listener.getLogger().println("Adding a report action to the current build.");
+                    HtmlBuildReportAction reportAction = new HtmlBuildReportAction(build);
+                    build.getActions().add(reportAction);
+
+                } catch (Exception ex) {
+                    listener.getLogger().println("a problem adding action: " + ex.toString());
                 }
             }
         }
@@ -465,6 +625,26 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         writer.close();
     }
    
+    private void write2XML(Document document,String filename)
+    {
+        try {
+            document.normalize();
+
+            TransformerFactory tFactory = TransformerFactory.newInstance();
+            Transformer transformer = tFactory.newTransformer();
+            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+
+            DOMSource source = new DOMSource(document);
+            PrintWriter pw = new PrintWriter(new FileOutputStream(filename));
+            StreamResult result = new StreamResult(pw);
+            transformer.transform(source, result);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
     /*
      * if we have a directory with file name "file.zip" we will return
      * "file_1.zip";
