@@ -156,7 +156,7 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
     private boolean pushTestResults(MqmRestClient client, AbstractBuild build) {
         File resultFile = new File(build.getRootDir(), TestListener.TEST_RESULT_FILE);
         try {
-            client.postTestResult(resultFile);
+            client.postTestResult(resultFile, false);
         } catch (RequestException e) {
             logger.log(Level.WARNING, "Failed to submit test results [" + build.getProject().getName() + "#" + build.getNumber() + "]", e);
             return false;

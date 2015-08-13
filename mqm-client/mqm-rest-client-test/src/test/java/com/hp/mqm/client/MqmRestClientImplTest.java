@@ -14,6 +14,7 @@ import com.hp.mqm.client.model.PagedList;
 import com.hp.mqm.client.model.Pipeline;
 import com.hp.mqm.client.model.Release;
 import com.hp.mqm.client.model.Taxonomy;
+import com.hp.mqm.client.model.TestResultStatus;
 import com.hp.mqm.client.model.TestRun;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.FileUtils;
@@ -307,7 +308,18 @@ public class MqmRestClientImplTest {
 		testResults.deleteOnExit();
 		FileUtils.write(testResults, testResultsXml);
 		try {
-			client.postTestResult(testResults);
+            // TODO: prepare tests that fail on skipErrors=false and later execute them with skipErrors=true
+			long id = client.postTestResult(testResults, false);
+            String status = "";
+            for (int i = 0; i < 30; i++) {
+                TestResultStatus testResultStatus = client.getTestResultStatus(id);
+                status = testResultStatus.getStatus();
+                if ("success".equals(status)) {
+                    break;
+                }
+                Thread.sleep(1000);
+            }
+            Assert.assertEquals("Publish not finished successfully", "success", status);
 		} finally {
 			client.release();
 		}
@@ -326,7 +338,7 @@ public class MqmRestClientImplTest {
 						throw new RuntimeException(e);
 					}
 				}
-			});
+			}, false);
 		} finally {
 			client.release();
 		}
@@ -334,7 +346,7 @@ public class MqmRestClientImplTest {
 		// invalid payload
 		final File testResults2 = new File(this.getClass().getResource("TestResults2.xmlx").toURI());
 		try {
-			client.postTestResult(testResults2);
+			client.postTestResult(testResults2, false);
 			fail();
 		} catch (RequestException e) {
 			Assert.assertNotNull(e);
@@ -351,7 +363,7 @@ public class MqmRestClientImplTest {
 						throw new RuntimeException(e);
 					}
 				}
-			});
+			}, false);
 		} catch (RequestException e) {
 			Assert.assertNotNull(e);
 		} finally {
@@ -362,7 +374,7 @@ public class MqmRestClientImplTest {
 		// test "file does not exist"
 		final File file = new File("abcdefghchijklmn.xml");
 		try {
-			client.postTestResult(file);
+			client.postTestResult(file, false);
 			fail();
 		} catch (FileNotFoundException e) {
 			Assert.assertNotNull(e);
@@ -439,7 +451,7 @@ public class MqmRestClientImplTest {
 		Assert.assertTrue(pipelineId > 0);
 
 		Release release2 = testSupportClient.createRelease(releaseName + "New", WORKSPACE);
-		client.updatePipelineMetadata(serverIdentity, jobName, pipelineId, pipelineName + "New", release2.getId());
+		client.updatePipelineMetadata(serverIdentity, jobName, pipelineId, pipelineName + "New", WORKSPACE, release2.getId());
 		JobConfiguration jobConfiguration = client.getJobConfiguration(serverIdentity, jobName);
 		Assert.assertEquals(1, jobConfiguration.getRelatedPipelines().size());
 		Pipeline pipeline = jobConfiguration.getRelatedPipelines().get(0);
@@ -447,7 +459,7 @@ public class MqmRestClientImplTest {
 		Assert.assertEquals(pipelineName + "New", pipeline.getName());
 
 		// no release ID update
-		client.updatePipelineMetadata(serverIdentity, jobName, pipelineId, pipelineName, null);
+		client.updatePipelineMetadata(serverIdentity, jobName, pipelineId, pipelineName, WORKSPACE, null);
 		jobConfiguration = client.getJobConfiguration(serverIdentity, jobName);
 		Assert.assertEquals(1, jobConfiguration.getRelatedPipelines().size());
 		pipeline = jobConfiguration.getRelatedPipelines().get(0);
@@ -455,7 +467,7 @@ public class MqmRestClientImplTest {
 		Assert.assertEquals(pipelineName, pipeline.getName());
 
 		// no pipeline name update
-		client.updatePipelineMetadata(serverIdentity, jobName, pipelineId, null, release.getId());
+		client.updatePipelineMetadata(serverIdentity, jobName, pipelineId, null, WORKSPACE, release.getId());
 		jobConfiguration = client.getJobConfiguration(serverIdentity, jobName);
 		Assert.assertEquals(1, jobConfiguration.getRelatedPipelines().size());
 		pipeline = jobConfiguration.getRelatedPipelines().get(0);
@@ -463,7 +475,7 @@ public class MqmRestClientImplTest {
 		Assert.assertEquals(pipelineName, pipeline.getName());
 
 		// clear release update
-		client.updatePipelineMetadata(serverIdentity, jobName, pipelineId, null, -1L);
+		client.updatePipelineMetadata(serverIdentity, jobName, pipelineId, null, WORKSPACE, -1L);
 		jobConfiguration = client.getJobConfiguration(serverIdentity, jobName);
 		Assert.assertEquals(1, jobConfiguration.getRelatedPipelines().size());
 		pipeline = jobConfiguration.getRelatedPipelines().get(0);

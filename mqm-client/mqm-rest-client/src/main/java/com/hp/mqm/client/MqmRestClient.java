@@ -7,6 +7,7 @@ import com.hp.mqm.client.model.JobConfiguration;
 import com.hp.mqm.client.model.Pipeline;
 import com.hp.mqm.client.model.Release;
 import com.hp.mqm.client.model.Taxonomy;
+import com.hp.mqm.client.model.TestResultStatus;
 
 import java.io.File;
 import java.util.List;
@@ -37,17 +38,28 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * InputStream obtained from InputStreamSource is automatically closed after all data are read.
 	 *
 	 * @param inputStreamSource input stream source with test results in MQM XML format.
+	 * @param skipErrors try to continue if non-fatal issue occurs
+	 * @return id of the post operation
 	 */
-	void postTestResult(InputStreamSource inputStreamSource);
+	long postTestResult(InputStreamSource inputStreamSource, boolean skipErrors);
 
 	/**
 	 * Posts test results to MQM. Divide extra large test results into smaller files which will be posted individually
 	 * (multiple invocation of this method) to avoid HTTP request timeout.
 	 *
 	 * @param testResultReport XML file with test reports
+	 * @param skipErrors try to continue if non-fatal issue occurs
 	 * @throws com.hp.mqm.client.exception.FileNotFoundException
 	 */
-	void postTestResult(File testResultReport);
+	long postTestResult(File testResultReport, boolean skipErrors);
+
+	/**
+	 * Get status of the test result post operation
+	 *
+	 * @param id of the post operation
+	 * @return operation status
+	 */
+	TestResultStatus getTestResultStatus(long id);
 
 	/**
 	 * Retrieve job configuration from MQM server. If given job doesn't participate in any pipeline, "empty"
@@ -87,10 +99,11 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 *
 	 * @param pipelineId   pipeline ID
 	 * @param pipelineName new pipeline name (can be null)
+	 * @param workspaceId  workspace ID
 	 * @param releaseId    new release ID (can be null)
 	 */
     @Deprecated
-	void updatePipelineMetadata(String serverIdentity, String projectName, long pipelineId, String pipelineName, Long releaseId);
+	void updatePipelineMetadata(String serverIdentity, String projectName, long pipelineId, String pipelineName, long workspaceId, Long releaseId);
 
 	/**
 	 * Update tags associated with the pipeline. Both "taxonomy" and "field" tags are updated.
@@ -106,12 +119,13 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * @param serverIdentity identity of the server
 	 * @param jobName        name of the job
 	 * @param pipelineId     pipeline ID
+     * @param workspaceId    workspace ID
 	 * @param taxonomies     list of "taxonomy" tags associated with the pipeline
 	 * @param fields         list of "fields" tags associated with the pipeline
 	 * @return pipeline structure
 	 */
     @Deprecated
-	Pipeline updatePipelineTags(String serverIdentity, String jobName, long pipelineId, List<Taxonomy> taxonomies, List<Field> fields);
+	Pipeline updatePipelineTags(String serverIdentity, String jobName, long pipelineId, long workspaceId, List<Taxonomy> taxonomies, List<Field> fields);
 
     /**
      * Update pipeline metadata on the MQM server.
