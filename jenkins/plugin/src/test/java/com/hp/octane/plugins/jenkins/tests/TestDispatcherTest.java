@@ -115,9 +115,9 @@ public class TestDispatcherTest {
         queue.waitForTicks(10);
 
         Mockito.verify(restClient).tryToConnectSharedSpace();
-        Mockito.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
-        Mockito.verify(restClient).postTestResult(new File(build2.getRootDir(), "mqmTests.xml"));
-        Mockito.verify(restClient).postTestResult(new File(build3.getRootDir(), "mqmTests.xml"));
+        Mockito.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
+        Mockito.verify(restClient).postTestResult(new File(build2.getRootDir(), "mqmTests.xml"), false);
+        Mockito.verify(restClient).postTestResult(new File(build3.getRootDir(), "mqmTests.xml"), false);
         Mockito.verify(restClient).release();
         Mockito.verifyNoMoreInteractions(restClient);
         Assert.assertEquals(0, queue.size());
@@ -186,18 +186,18 @@ public class TestDispatcherTest {
         // body post fails for the first time, succeeds afterwards
 
         Mockito.doNothing().when(restClient).tryToConnectSharedSpace();
-        Mockito.doThrow(new RequestException("fails")).doNothing().when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()));
+        Mockito.doThrow(new RequestException("fails")).doReturn(1l).when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq(false));
         InOrder order = Mockito.inOrder(restClient);
 
         FreeStyleBuild build = executeBuild();
         queue.waitForTicks(5);
 
         order.verify(restClient).tryToConnectSharedSpace();
-        order.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
+        order.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
         order.verify(restClient).release();
 
         Mockito.verify(restClient, Mockito.times(2)).tryToConnectSharedSpace();
-        Mockito.verify(restClient, Mockito.times(2)).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
+        Mockito.verify(restClient, Mockito.times(2)).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
         Mockito.verify(restClient, Mockito.times(2)).release();
         Mockito.verifyNoMoreInteractions(restClient);
         verifyAudit(build, false, true);
@@ -209,7 +209,7 @@ public class TestDispatcherTest {
 
         Mockito.reset(restClient);
         Mockito.doNothing().when(restClient).tryToConnectSharedSpace();
-        Mockito.doThrow(new RequestException("fails")).doThrow(new RequestException("fails")).when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()));
+        Mockito.doThrow(new RequestException("fails")).doThrow(new RequestException("fails")).when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq(false));
 
         order = Mockito.inOrder(restClient);
 
@@ -217,14 +217,14 @@ public class TestDispatcherTest {
         queue.waitForTicks(5);
 
         order.verify(restClient).tryToConnectSharedSpace();
-        order.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
+        order.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
         order.verify(restClient).release();
         order.verify(restClient).tryToConnectSharedSpace();
-        order.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
+        order.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
         order.verify(restClient).release();
 
         Mockito.verify(restClient, Mockito.times(2)).tryToConnectSharedSpace();
-        Mockito.verify(restClient, Mockito.times(2)).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
+        Mockito.verify(restClient, Mockito.times(2)).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
         Mockito.verify(restClient, Mockito.times(2)).release();
         Mockito.verifyNoMoreInteractions(restClient);
         verifyAudit(build, false, false);
@@ -270,6 +270,9 @@ public class TestDispatcherTest {
             Assert.assertEquals("http://localhost:8008", audit.getString("location"));
             Assert.assertEquals("1001", audit.getString("sharedSpace"));
             Assert.assertEquals(statuses[i], audit.getBoolean("success"));
+            if (statuses[i]) {
+                Assert.assertEquals(1l, audit.getLong("id"));
+            }
             Assert.assertNotNull(audit.getString("date"));
         }
     }
@@ -283,14 +286,14 @@ public class TestDispatcherTest {
         } else if (!sharedSpace) {
             Mockito.doThrow(new SharedSpaceNotExistException()).when(restClient).tryToConnectSharedSpace();
         } else {
-            Mockito.doNothing().when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()));
+            Mockito.doReturn(1l).when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq(false));
         }
     }
 
     private void verifyRestClient(MqmRestClient restClient, AbstractBuild build, boolean body, boolean release) throws IOException {
         Mockito.verify(restClient).tryToConnectSharedSpace();
         if (body) {
-            Mockito.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"));
+            Mockito.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
         }
         if (release) {
             Mockito.verify(restClient).release();
