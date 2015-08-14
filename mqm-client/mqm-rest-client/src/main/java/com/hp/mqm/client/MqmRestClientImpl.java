@@ -83,7 +83,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
         try {
             response = execute(request);
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                throw new RequestException("Result status retrieval failed with status code " + response.getStatusLine().getStatusCode() + " and reason " + response.getStatusLine().getReasonPhrase() + " [" + tryParseMessage(response) + "]");
+                throw createRequestException("Result status retrieval failed", response);
             }
             String json = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
             JSONObject jsonObject = JSONObject.fromObject(json);
@@ -110,7 +110,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		try {
 			response = execute(request);
 			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-				throw new RequestException("Job configuration retrieval failed with status code " + response.getStatusLine().getStatusCode() + " and reason " + response.getStatusLine().getReasonPhrase());
+				throw createRequestException("Job configuration retrieval failed", response);
 			}
 			String json = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
             try {
@@ -149,7 +149,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		try {
 			response = execute(request);
 			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_CREATED) {
-				throw new RequestException("Pipeline creation failed with status code " + response.getStatusLine().getStatusCode() + " and reason " + response.getStatusLine().getReasonPhrase());
+				throw createRequestException("Pipeline creation failed", response);
 			}
 			String json = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
             return getPipelineByName(json, pipelineName, workspaceId);
@@ -203,7 +203,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
         try {
             response = execute(request);
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                throw new RequestException("Pipeline update failed with status code " + response.getStatusLine().getStatusCode() + " and reason " + response.getStatusLine().getReasonPhrase());
+                throw createRequestException("Pipeline update failed", response);
             }
             String json = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
             return getPipelineById(json, pipeline.getId());
@@ -291,10 +291,18 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
         }
     }
 
+    private RequestException createRequestException(String message, HttpResponse response) {
+        return new RequestException(message + "; status code " + response.getStatusLine().getStatusCode() + " and reason " + response.getStatusLine().getReasonPhrase() + " [" + tryParseMessage(response) + "]");
+    }
+
     private String tryParseMessage(HttpResponse response) {
         try {
             String json = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
             JSONObject jsonObject = JSONObject.fromObject(json);
+            if (jsonObject.has("error_code") && jsonObject.has("description")) {
+                // exception response
+                return jsonObject.getString("description");
+            }
             if (jsonObject.has("message")) {
                 return jsonObject.getString("message");
             }
@@ -411,7 +419,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		try {
 			response = execute(request);
 			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_ACCEPTED) {
-				throw new RequestException("Test result posting failed with status code " + response.getStatusLine().getStatusCode() + " and reason " + response.getStatusLine().getReasonPhrase() + " [" + tryParseMessage(response) + "]");
+                throw createRequestException("Test result post failed", response);
 			}
             String json = IOUtils.toString(response.getEntity().getContent());
             JSONObject jsonObject =  JSONObject.fromObject(json);
