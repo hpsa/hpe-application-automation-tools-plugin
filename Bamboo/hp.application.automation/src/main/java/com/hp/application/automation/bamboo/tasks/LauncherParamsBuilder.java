@@ -1,5 +1,7 @@
 package com.hp.application.automation.bamboo.tasks;
 
+import com.hp.application.automation.tools.common.EncryptionUtils;
+
 import java.util.Properties;
 
 /*

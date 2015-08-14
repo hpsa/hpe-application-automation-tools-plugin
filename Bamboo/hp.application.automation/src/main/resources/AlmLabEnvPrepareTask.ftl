@@ -39,16 +39,12 @@
    </fieldset>
 
     <table id="paramTable">
-        [#if almParams?has_content]
             [#list almParams as prm]
              <tr>
                   <td><input type="Button" class="Button" onclick="javascript: delRow(this)" value="Delete"></td>
                    <td>[@newALMParam paramType =prm.almParamSourceType paramName=prm.almParamName paramValue=prm.almParamValue/]</td>
              </tr>
             [/#list]
-        [#else]
-            <div class="line">No logs found.</div>
-        [/#if]
     </table>
 
     <div class="buttons-container">

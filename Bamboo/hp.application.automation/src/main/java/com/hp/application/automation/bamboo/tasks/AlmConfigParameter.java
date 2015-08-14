@@ -10,6 +10,7 @@ public class AlmConfigParameter implements Serializable {
     private String almParamSourceType;
     private String almParamName;
     private String almParamValue;
+    private Boolean almParamOnlyFirst;
 
     public AlmConfigParameter(String almParamSourceType, String almParamName, String almParamValue) {
         this.almParamSourceType = almParamSourceType;
@@ -48,5 +49,13 @@ public class AlmConfigParameter implements Serializable {
 
     public void setAlmParamValue(String almParamValue) {
         this.almParamValue = almParamValue;
+    }
+
+    public Boolean getAlmParamOnlyFirst() {
+        return almParamOnlyFirst;
+    }
+
+    public void setAlmParamOnlyFirst(Boolean almParamOnlyFirst) {
+        this.almParamOnlyFirst = almParamOnlyFirst;
     }
 }
