@@ -425,7 +425,7 @@ namespace HpToolsLauncher.TestRunners
 
         private void generateAnalysisReport(TestRunResults runDesc)
         {
-            string lrrLocation = Path.Combine(runDesc.ReportLocation, _controller_result_dir, _controller_result_dir + ".lrr");
+            string lrrLocation = Path.Combine(runDesc.ReportLocation, LRR_FOLDER, LRR_FOLDER + ".lrr");
             string lraLocation = Path.Combine(runDesc.ReportLocation, LRA_FOLDER, LRA_FOLDER + ".lra");
             string htmlLocation = Path.Combine(runDesc.ReportLocation, HTML_FOLDER, HTML_FOLDER + ".html");
 
@@ -448,13 +448,8 @@ namespace HpToolsLauncher.TestRunners
                 runner.BeginErrorReadLine();
                 Stopwatch analysisStopWatch = Stopwatch.StartNew();
 
-                string result = "";
-                while (true)
-                {
-                    result += runner.StandardOutput.ReadToEnd();
-                    if (runner.WaitForExit(_pollingInterval * 1000) || analysisStopWatch.Elapsed > _perScenarioTimeOutMinutes)
-                        break;
-                }
+                while (!runner.WaitForExit(_pollingInterval * 1000) && analysisStopWatch.Elapsed < _perScenarioTimeOutMinutes) ;
+
                 analysisStopWatch.Stop();
                 runner.CancelOutputRead();
                 runner.CancelErrorRead();
@@ -476,12 +471,13 @@ namespace HpToolsLauncher.TestRunners
                     ConsoleWriter.WriteErrLine(runDesc.ErrorDesc);
                     runDesc.TestState = TestState.Error;
                 }
-                if (result.Length > 0)
-                {
-                    ConsoleWriter.WriteLine(Resources.LrAnlysisResults);
-                    ConsoleWriter.WriteLine("");
-                    ConsoleWriter.WriteLine(result);
-                }
+                //using (StreamReader reader = runner.StandardOutput)
+                //{
+                //    string result = reader.ReadToEnd();
+                //    ConsoleWriter.WriteLine(Resources.LrAnlysisResults);
+                //    ConsoleWriter.WriteLine("");
+                //    ConsoleWriter.WriteLine(result);
+                //}
 
             }
             else
