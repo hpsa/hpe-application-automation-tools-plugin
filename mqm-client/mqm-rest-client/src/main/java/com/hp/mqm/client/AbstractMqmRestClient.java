@@ -63,9 +63,6 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	public static final int DEFAULT_CONNECTION_TIMEOUT = 20000; // in milliseconds
 	public static final int DEFAULT_SO_TIMEOUT = 40000; // in milliseconds
 
-	// currently default workspace is always used
-	static int DEFAULT_WORKSPACE = 1001;
-
 	private final DefaultHttpClient httpClient;
 	private final String location;
 	private final String sharedSpace;

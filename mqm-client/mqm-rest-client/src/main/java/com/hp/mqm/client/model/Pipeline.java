@@ -9,14 +9,16 @@ final public class Pipeline {
 	private long id;
 	private String name;
 	private Boolean root;
+	private long workspaceId;
 	private Long releaseId;
 	private List<Taxonomy> taxonomies;
 	private List<Field> fields;
 
-	public Pipeline(long id, String name, Boolean root, Long releaseId, List<Taxonomy> taxonomies, List<Field> fields) {
+	public Pipeline(long id, String name, Boolean root, long workspaceId, Long releaseId, List<Taxonomy> taxonomies, List<Field> fields) {
 		this.id = id;
 		this.name = name;
 		this.root = root;
+		this.workspaceId = workspaceId;
 		this.releaseId = releaseId;
 		this.taxonomies = taxonomies;
 		this.fields = fields;
@@ -32,6 +34,10 @@ final public class Pipeline {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public long getWorkspaceId() {
+		return workspaceId;
 	}
 
 	public Long getReleaseId() {

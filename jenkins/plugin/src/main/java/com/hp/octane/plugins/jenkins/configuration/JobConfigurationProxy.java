@@ -99,7 +99,7 @@ public class JobConfigurationProxy {
         try {
             MqmRestClient client = createClient();
 			long pipelineId = pipelineObject.getLong("id");
-			client.updatePipelineMetadata(ServerIdentity.getIdentity(), project.getName(), pipelineId, pipelineObject.getString("name"), pipelineObject.getLong("releaseId"));
+			client.updatePipelineMetadata(ServerIdentity.getIdentity(), project.getName(), pipelineId, pipelineObject.getString("name"), pipelineObject.getLong("workspaceId"), pipelineObject.getLong("releaseId"));
 
             LinkedList<Taxonomy> taxonomies = new LinkedList<Taxonomy>();
             JSONArray taxonomyTags = pipelineObject.getJSONArray("taxonomyTags");
@@ -126,8 +126,8 @@ public class JobConfigurationProxy {
                 }
             }
 
-            Pipeline pipeline = client.updatePipelineTags(ServerIdentity.getIdentity(), project.getName(), pipelineId, taxonomies, fields);
-            addTaxonomyTags(result, pipeline);
+			Pipeline pipeline = client.updatePipelineTags(ServerIdentity.getIdentity(), project.getName(), pipelineId, pipelineObject.getLong("workspaceId"), taxonomies, fields);
+			addTaxonomyTags(result, pipeline);
 
             // we can't add full fieldTags (we don't have metadata), pass what we have and let the client handle it
             JSONArray fieldsArray = new JSONArray();

@@ -12,18 +12,19 @@ import com.hp.mqm.client.model.PagedList;
 import com.hp.mqm.client.model.Pipeline;
 import com.hp.mqm.client.model.Release;
 import com.hp.mqm.client.model.Taxonomy;
+import com.hp.mqm.client.model.TestResultStatus;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONException;
 import net.sf.json.JSONNull;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.FileEntity;
@@ -31,14 +32,23 @@ import org.apache.http.entity.StringEntity;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestClient {
 	private static final Logger logger = Logger.getLogger(MqmRestClientImpl.class.getName());
 
-	private static final String URI_PUSH_TEST_RESULT_PUSH = "test-results";
+    public static final String DATETIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ";
+
+	private static final String PREFIX_CI = "analytics/ci/";
+
+	private static final String URI_TEST_RESULT_PUSH = PREFIX_CI + "test-results";
+	private static final String URI_TEST_RESULT_STATUS = PREFIX_CI + "test-results/{0}";
 	private static final String URI_JOB_CONFIGURATION = "analytics/ci/servers/{0}/jobs/{1}/configuration";
 	private static final String URI_RELEASES = "releases";
 	private static final String URI_LIST_ITEMS = "list_nodes";
@@ -57,17 +67,40 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	}
 
 	@Override
-	public void postTestResult(InputStreamSource inputStreamSource) {
-		HttpPost request = new HttpPost(createProjectApiUri(URI_PUSH_TEST_RESULT_PUSH));
-		request.setEntity(new InputStreamSourceEntity(inputStreamSource, ContentType.APPLICATION_XML));
-		postTestResult(request);
+	public long postTestResult(InputStreamSource inputStreamSource, boolean skipErrors) {
+		return postTestResult(new InputStreamSourceEntity(inputStreamSource, ContentType.APPLICATION_XML));
 	}
 
 	@Override
-	public void postTestResult(File testResultReport) {
-		HttpPost request = new HttpPost(createProjectApiUri(URI_PUSH_TEST_RESULT_PUSH));
-		request.setEntity(new FileEntity(testResultReport, ContentType.APPLICATION_XML));
-		postTestResult(request);
+	public long postTestResult(File testResultReport, boolean skipErrors) {
+		return postTestResult(new FileEntity(testResultReport, ContentType.APPLICATION_XML));
+	}
+
+	@Override
+	public TestResultStatus getTestResultStatus(long id) {
+		HttpGet request = new HttpGet(createSharedSpaceInternalApiUri(URI_TEST_RESULT_STATUS, id));
+        HttpResponse response = null;
+        try {
+            response = execute(request);
+            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+                throw new RequestException("Result status retrieval failed with status code " + response.getStatusLine().getStatusCode() + " and reason " + response.getStatusLine().getReasonPhrase() + " [" + tryParseMessage(response) + "]");
+            }
+            String json = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
+            JSONObject jsonObject = JSONObject.fromObject(json);
+            Date until = null;
+            if (jsonObject.has("until")) {
+                try {
+                    until = parseDatetime(jsonObject.getString("until"));
+                } catch (ParseException e) {
+                    throw new RequestException("Cannot obtain status", e);
+                }
+            }
+            return new TestResultStatus(jsonObject.getString("status"), until);
+        } catch (IOException e) {
+            throw new RequestErrorException("Cannot obtain status.", e);
+        } finally {
+            HttpClientUtils.closeQuietly(response);
+        }
 	}
 
 	@Override
@@ -128,13 +161,13 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	}
 
 	@Override
-	public void updatePipelineMetadata(String serverIdentity, String projectName, long pipelineId, String pipelineName, Long releaseId) {
-        updatePipeline(serverIdentity, projectName, new Pipeline(pipelineId, pipelineName, null, releaseId, null, null));
+	public void updatePipelineMetadata(String serverIdentity, String projectName, long pipelineId, String pipelineName, long workspaceId, Long releaseId) {
+        updatePipeline(serverIdentity, projectName, new Pipeline(pipelineId, pipelineName, null, workspaceId, releaseId, null, null));
 	}
 
 	@Override
-	public Pipeline updatePipelineTags(String serverIdentity, String jobName, long pipelineId, List<Taxonomy> taxonomies, List<Field> fields) {
-        return updatePipeline(serverIdentity, jobName, new Pipeline(pipelineId, null, null, null, taxonomies, fields));
+	public Pipeline updatePipelineTags(String serverIdentity, String jobName, long pipelineId, long workspaceId, List<Taxonomy> taxonomies, List<Field> fields) {
+        return updatePipeline(serverIdentity, jobName, new Pipeline(pipelineId, null, null, workspaceId, null, taxonomies, fields));
 	}
 
     @Override
@@ -144,6 +177,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
         JSONObject pipelineObject = new JSONObject();
         pipelineObject.put("contextEntityType", "pipeline");
         pipelineObject.put("contextEntityId", pipeline.getId());
+        pipelineObject.put("workspaceId", pipeline.getWorkspaceId());
         if (pipeline.getName() != null) {
             pipelineObject.put("contextEntityName", pipeline.getName());
         }
@@ -178,6 +212,10 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
         } finally {
             HttpClientUtils.closeQuietly(response);
         }
+    }
+
+    private Date parseDatetime(String datetime) throws ParseException {
+        return new SimpleDateFormat(DATETIME_FORMAT).parse(datetime);
     }
 
     private JSONArray taxonomiesArray(List<Taxonomy> taxonomies) {
@@ -253,6 +291,21 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
         }
     }
 
+    private String tryParseMessage(HttpResponse response) {
+        try {
+            String json = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
+            JSONObject jsonObject = JSONObject.fromObject(json);
+            if (jsonObject.has("message")) {
+                return jsonObject.getString("message");
+            }
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Unable to determine failure message: ", e);
+        } catch (JSONException e) {
+            logger.log(Level.SEVERE, "Unable to determine failure message: ", e);
+        }
+        return "";
+    }
+
     private List<FieldMetadata> getFieldsMetadata(JSONObject metadata) {
 		List<FieldMetadata> fields = new LinkedList<FieldMetadata>();
 		for (JSONObject fieldObject : getJSONObjectCollection(metadata, "lists")) {
@@ -295,6 +348,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		return new Pipeline(pipelineObject.getLong("contextEntityId"),
 				pipelineObject.getString("contextEntityName"),
                 pipelineObject.getBoolean("pipelineRoot"),
+                pipelineObject.getLong("workspaceId"),
 				pipelineObject.has("releaseId") && !pipelineObject.get("releaseId").equals(JSONNull.getInstance()) ? pipelineObject.getLong("releaseId") : null,
 				taxonomies, fields);
 	}
@@ -350,15 +404,19 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		return getEntities(getEntityURI(URI_LIST_ITEMS, conditions, workspaceId, offset, limit), offset, new ListItemEntityFactory());
 	}
 
-	private void postTestResult(HttpUriRequest request) {
+	private long postTestResult(HttpEntity entity) {
+        HttpPost request = new HttpPost(createSharedSpaceInternalApiUri(URI_TEST_RESULT_PUSH));
+        request.setEntity(entity);
 		HttpResponse response = null;
 		try {
 			response = execute(request);
-			// TODO: temporarily allow SC_CREATED, until server is fixed
-			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_ACCEPTED && response.getStatusLine().getStatusCode() != HttpStatus.SC_CREATED) {
-				throw new RequestException("Test result posting failed with status code " + response.getStatusLine().getStatusCode() + " and reason " + response.getStatusLine().getReasonPhrase());
+			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_ACCEPTED) {
+				throw new RequestException("Test result posting failed with status code " + response.getStatusLine().getStatusCode() + " and reason " + response.getStatusLine().getReasonPhrase() + " [" + tryParseMessage(response) + "]");
 			}
-		} catch (java.io.FileNotFoundException e) {
+            String json = IOUtils.toString(response.getEntity().getContent());
+            JSONObject jsonObject =  JSONObject.fromObject(json);
+            return jsonObject.getLong("id");
+        } catch (java.io.FileNotFoundException e) {
 			throw new FileNotFoundException("Cannot find test result file.", e);
 		} catch (IOException e) {
 			throw new RequestErrorException("Cannot post test results to MQM.", e);
@@ -367,7 +425,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		}
 	}
 
-	@Override
+    @Override
 	public boolean putEvents(String eventsJSON) {
 		HttpPut request = new HttpPut(createSharedSpaceInternalApiUri(URI_PUT_EVENTS));
 		request.setEntity(new StringEntity(eventsJSON, ContentType.APPLICATION_JSON));

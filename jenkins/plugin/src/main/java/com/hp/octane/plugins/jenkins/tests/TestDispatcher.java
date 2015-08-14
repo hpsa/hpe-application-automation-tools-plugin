@@ -122,10 +122,10 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
             }
 
             try {
-                if (pushTestResults(client, build)) {
+                Long id = pushTestResults(client, build);
+                if (id != null) {
                     logger.info("Successfully pushed test results of build [" + item.projectName + "#" + item.buildNumber + "]");
                     queue.remove();
-                    audit(configuration, build, true);
                 } else {
                     logger.warning("Failed to push test results of build [" + item.projectName + "#" + item.buildNumber + "]");
                     if (!queue.failed()) {
@@ -133,8 +133,8 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
                     }
                     releaseClient(client);
                     client = null;
-                    audit(configuration, build, false);
                 }
+                audit(configuration, build, id);
             } catch (FileNotFoundException e) {
                 logger.warning("File no longer exists, failed to push test results of build [" + item.projectName + "#" + item.buildNumber + "]");
                 queue.remove();
@@ -153,21 +153,19 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
         }
     }
 
-    private boolean pushTestResults(MqmRestClient client, AbstractBuild build) {
+    private Long pushTestResults(MqmRestClient client, AbstractBuild build) {
         File resultFile = new File(build.getRootDir(), TestListener.TEST_RESULT_FILE);
         try {
-            client.postTestResult(resultFile);
+            return client.postTestResult(resultFile, false);
         } catch (RequestException e) {
             logger.log(Level.WARNING, "Failed to submit test results [" + build.getProject().getName() + "#" + build.getNumber() + "]", e);
-            return false;
         } catch (RequestErrorException e) {
             logger.log(Level.WARNING, "Failed to submit test results [" + build.getProject().getName() + "#" + build.getNumber() + "]", e);
-            return false;
         }
-        return true;
+        return null;
     }
 
-    private void audit(ServerConfiguration configuration, AbstractBuild build, boolean success) throws IOException, InterruptedException {
+    private void audit(ServerConfiguration configuration, AbstractBuild build, Long id) throws IOException, InterruptedException {
         FilePath auditFile = new FilePath(new File(build.getRootDir(), TEST_AUDIT_FILE));
         JSONArray audit;
         if (auditFile.exists()) {
@@ -178,7 +176,8 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
             audit = new JSONArray();
         }
         JSONObject event = new JSONObject();
-        event.put("success", success);
+        event.put("id", id);
+        event.put("success", id != null);
         event.put("date", DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.format(new Date()));
         event.put("location", configuration.location);
         event.put("sharedSpace", configuration.sharedSpace);
