@@ -425,7 +425,7 @@ namespace HpToolsLauncher.TestRunners
 
         private void generateAnalysisReport(TestRunResults runDesc)
         {
-            string lrrLocation = Path.Combine(runDesc.ReportLocation, _controller_result_dir, _controller_result_dir + ".lrr");
+            string lrrLocation = Path.Combine(runDesc.ReportLocation, LRR_FOLDER, LRR_FOLDER + ".lrr");
             string lraLocation = Path.Combine(runDesc.ReportLocation, LRA_FOLDER, LRA_FOLDER + ".lra");
             string htmlLocation = Path.Combine(runDesc.ReportLocation, HTML_FOLDER, HTML_FOLDER + ".html");
 
