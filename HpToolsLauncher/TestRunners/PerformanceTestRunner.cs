@@ -452,7 +452,7 @@ namespace HpToolsLauncher.TestRunners
                 while (true)
                 {
                     result += runner.StandardOutput.ReadToEnd();
-                    if (runner.WaitForExit(_pollingInterval * 1000) || analysisStopWatch.Elapsed >= _perScenarioTimeOut)
+                    if (runner.WaitForExit(_pollingInterval * 1000) || analysisStopWatch.Elapsed > _perScenarioTimeOutMinutes)
                         break;
                 }
                 analysisStopWatch.Stop();
