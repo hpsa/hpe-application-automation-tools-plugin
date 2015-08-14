@@ -37,6 +37,7 @@ namespace LRAnalysisLauncher
             AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(CurrentDomain_AssemblyResolve);
         }
         //args: lrr location, lra location, html report location
+        [STAThread]
         static int Main(string[] args)
         {
             Console.WriteLine("starting analysis launcher");
@@ -106,7 +107,7 @@ namespace LRAnalysisLauncher
                         if (a.Measurement.Equals(SlaMeasurement.PercentileTRT))
                         {
                             SlaPercentileRuleResult b = slaResult.TransactionRules.PercentileRules[iCounter];
-                            elem = xmlDoc.CreateElement(b.RuleName);
+                            elem = xmlDoc.CreateElement(b.RuleName.Replace(" ", "_"));    //no white space in the element name
                             Console.WriteLine("Transaction Name : " + b.TransactionName);
                             elem.SetAttribute("TransactionName", b.TransactionName.ToString());
                             Console.WriteLine("Percentile : " + b.Percentage);
@@ -130,7 +131,7 @@ namespace LRAnalysisLauncher
                         }
                         else
                         {
-                            elem = xmlDoc.CreateElement(a.RuleName);
+                            elem = xmlDoc.CreateElement(a.RuleName.Replace(" ", "_"));    //no white space in the element name
                             elem.SetAttribute("FullName", a.RuleUiName);
                             Console.WriteLine("Full Name : " + a.RuleUiName);
                             Console.WriteLine("Measurement : " + a.Measurement);
@@ -160,7 +161,7 @@ namespace LRAnalysisLauncher
                         if (a.Measurement.Equals(SlaMeasurement.AverageTRT))
                          {
                         SlaTransactionTimeRangeRuleResult b = slaResult.TransactionRules.TimeRangeRules[iCounter];
-                            rule = xmlDoc.CreateElement(b.RuleName);
+                            rule = xmlDoc.CreateElement(b.RuleName.Replace(" ", "_"));      //no white space in the element name
                             Console.WriteLine("Transaction Name: " + b.TransactionName);
                             rule.SetAttribute("TransactionName", b.TransactionName);
                             Console.WriteLine("Full Name : " + b.RuleUiName);
@@ -202,7 +203,7 @@ namespace LRAnalysisLauncher
                          }
                         else
                         {
-                            rule = xmlDoc.CreateElement(a.RuleName);
+                            rule = xmlDoc.CreateElement(a.RuleName.Replace(" ", "_"));  //no white space in the element name
                             Console.WriteLine("Full Name : " + a.RuleUiName);
                             rule.SetAttribute("FullName", a.RuleUiName);
                             Console.WriteLine("Measurement : " + a.Measurement);

@@ -416,7 +416,7 @@ namespace HpToolsLauncher.TestRunners
 
             ProcessStartInfo analysisRunner = new ProcessStartInfo();
             analysisRunner.FileName = ANALYSIS_LAUNCHER;
-            analysisRunner.Arguments = lrrLocation + " " + lraLocation + " " + htmlLocation;
+            analysisRunner.Arguments = "\"" + lrrLocation + "\" \"" + lraLocation + "\" \"" + htmlLocation + "\"";
             analysisRunner.UseShellExecute = false;
             analysisRunner.RedirectStandardOutput = true;
 
@@ -425,8 +425,13 @@ namespace HpToolsLauncher.TestRunners
             {
                 Stopwatch analysisStopWatch = Stopwatch.StartNew();
 
-                while (!runner.WaitForExit(_pollingInterval * 1000) && analysisStopWatch.Elapsed < _perScenarioTimeOut) ;
-
+                string result = "";
+                while (true)
+                {
+                    result += runner.StandardOutput.ReadToEnd();
+                    if (runner.WaitForExit(_pollingInterval * 1000) || analysisStopWatch.Elapsed >= _perScenarioTimeOut)
+                        break;
+                }
                 analysisStopWatch.Stop();
                 if (analysisStopWatch.Elapsed > _perScenarioTimeOut)
                 {
@@ -445,9 +450,8 @@ namespace HpToolsLauncher.TestRunners
                     ConsoleWriter.WriteErrLine(runDesc.ErrorDesc);
                     runDesc.TestState = TestState.Error;
                 }
-                using (StreamReader reader = runner.StandardOutput)
+                if (result.Length > 0)
                 {
-                    string result = reader.ReadToEnd();
                     ConsoleWriter.WriteLine(Resources.LrAnlysisResults);
                     ConsoleWriter.WriteLine("");
                     ConsoleWriter.WriteLine(result);
