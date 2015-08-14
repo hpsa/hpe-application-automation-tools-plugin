@@ -5,6 +5,12 @@
 
 package com.hp.application.automation.tools.results;
 
+import java.io.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+
+import com.hp.application.automation.tools.common.Pair;
 import hudson.AbortException;
 import hudson.Extension;
 import hudson.FilePath;
@@ -32,7 +38,13 @@ import hudson.tasks.junit.CaseResult;
 import hudson.tasks.test.TestResultAggregator;
 import hudson.tasks.test.TestResultProjectAction;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -40,6 +52,11 @@ import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
@@ -73,8 +90,10 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
     private static final String HTML_REPORT_FOLDER = "HTML";
     private static final String INDEX_HTML_NAME = "index.html";
     private static final String REPORT_INDEX_NAME = "report.index";
-    private static final String TRANSACTION_SUMMARY_FOLDER = "TransactionSummary";
-    private static final String TRANSACTION_REPORT_NAME = "Report3";
+	private static final String REPORTMETADATE_XML = "report_metadata.xml";
+	private static final String TRANSACTION_SUMMARY_FOLDER = "TransactionSummary";
+	private static final String TRANSACTION_REPORT_NAME = "Report3";
+	
     private final ResultsPublisherModel _resultsPublisherModel;
     
     @DataBoundConstructor
@@ -216,8 +235,8 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 if (htmlIndexFile.exists())
                     build.getActions().add(new PerformanceReportAction(build));
             }
-
-            File summaryDirectory = new File(artifactsDir.getParent(), TRANSACTION_SUMMARY_FOLDER);
+			
+			File summaryDirectory = new File(artifactsDir.getParent(), TRANSACTION_SUMMARY_FOLDER);
             if (summaryDirectory.exists()) {
                 File htmlIndexFile = new File(summaryDirectory, INDEX_HTML_NAME);
                 if (htmlIndexFile.exists())
@@ -228,6 +247,84 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         return true;
     }
     
+private void writeReportMetaData2XML(List<ReportMetaData> htmlReportsInfo, String xmlFile) throws IOException, ParserConfigurationException {
+
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = dbf.newDocumentBuilder();
+        Document doc = builder.newDocument();
+        Element root = doc.createElement("reports_data");
+        doc.appendChild(root);
+
+        for (ReportMetaData htmlReportInfo : htmlReportsInfo)
+        {
+            String disPlayName = htmlReportInfo.getDisPlayName();
+            String urlName = htmlReportInfo.getUrlName();
+            String resourceURL = htmlReportInfo.getResourceURL();
+            String dateTime = htmlReportInfo.getDateTime();
+            String status = htmlReportInfo.getStatus();
+            String isHtmlReport = htmlReportInfo.getIsHtmlReport()? "true":"false";
+            Element elmReport = doc.createElement("report");
+            elmReport.setAttribute("disPlayName", disPlayName);
+            elmReport.setAttribute("urlName", urlName);
+            elmReport.setAttribute("resourceURL",resourceURL);
+            elmReport.setAttribute("dateTime", dateTime);
+            elmReport.setAttribute("status", status);
+            elmReport.setAttribute("isHtmlreport", isHtmlReport);
+            root.appendChild(elmReport);
+
+        }
+
+        write2XML(doc, xmlFile);
+    }
+
+    private Boolean collectAndPrepareHtmlReports(AbstractBuild build, BuildListener listener, List<ReportMetaData> htmlReportsInfo) throws IOException, InterruptedException {
+        //Project<?, ?> project = RuntimeUtils.cast(build.getProject());
+        //File reportDir = new File(build.getRootDir(), "UFTReport");
+        File reportDir = new File(build.getArtifactsDir(), "UFTReport");
+
+        FilePath rootTarget = new FilePath(reportDir);
+
+        for (ReportMetaData htmlReportInfo : htmlReportsInfo) {
+
+            //make sure it's a html report
+            if(!htmlReportInfo.getIsHtmlReport())
+            {
+                continue;
+            }
+            String htmlReportDir = htmlReportInfo.getFolderPath(); //C:\UFTTest\GuiTest1\Report
+
+            listener.getLogger().println("collectAndPrepareHtmlReports, collecting:" + htmlReportDir);
+
+            //copy to the subdirs of master
+            FilePath source = new FilePath(build.getWorkspace(), htmlReportDir);
+            String testFullName = htmlReportInfo.getDisPlayName();  //like "C:\UFTTest\GuiTest1"
+            File testFileFullName = new File(testFullName);
+            String testName = testFileFullName.getName();  //like GuiTest1
+            String dest = testName;
+            FilePath targetPath = new FilePath(rootTarget, dest);  //target path is something like "C:\Program Files (x86)\Jenkins\jobs\testAction\builds\35\archive\UFTReport\GuiTest1"
+            listener.getLogger().println("copying html report, source: " + source.getRemote() + " target: " + targetPath.getRemote());
+            source.copyRecursiveTo(targetPath);
+
+            //just test some url value
+//            String buildurl = build.getUrl();  //like "job/testAction/46/"
+//            listener.getLogger().println("build url is: " + buildurl);
+//
+//            String rootUrl = Hudson.getInstance().getRootUrl();  //http://localhost:8080/
+//            listener.getLogger().println("root url is: " + rootUrl);
+            //end -test some url value
+
+            //fill in the urlName of this report. we need a network path not a FS path
+            String resourceUrl = htmlReportInfo.getResourceURL();
+            String urlName = resourceUrl + "/run_results.html"; //like artifact/UFTReport/GuiTest1/run_results.html
+
+            listener.getLogger().println("set the report urlName to " + urlName);
+            htmlReportInfo.setUrlName(urlName);
+
+        }
+
+        return true;
+    }
+	
     private void archiveTestsReport(
             AbstractBuild<?, ?> build,
             BuildListener listener,
@@ -242,7 +339,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         ArrayList<String> zipFileNames = new ArrayList<String>();
         ArrayList<FilePath> reportFolders = new ArrayList<FilePath>();
         List<String> reportNames = new ArrayList<String>();
-        
+
         listener.getLogger().println(
                 "Report archiving mode is set to: "
                         + _resultsPublisherModel.getArchiveTestResultsMode());
@@ -274,16 +371,18 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
         for (String resultsFilePath : resultFiles) {
             FilePath resultsFile = projectWS.child(resultsFilePath);
-            
+
+            List<ReportMetaData> ReportInfoToCollect = new ArrayList<ReportMetaData>();
+
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
             
             Document doc = dBuilder.parse(resultsFile.read());
-            doc.getDocumentElement().normalize();
-            
+            doc.getDocumentElement().normalize();            
+			
             Node testSuiteNode = doc.getElementsByTagName("testsuite").item(0);
-            Element testSuiteElement = (Element) testSuiteNode;
-            if(testSuiteElement.hasAttribute("name") && testSuiteElement.getAttribute("name").endsWith(".lrs")) {
+			Element testSuiteElement = (Element) testSuiteNode;
+            if(testSuiteElement.hasAttribute("name") && testSuiteElement.getAttribute("name").endsWith(".lrs")) {		//LR test
                 NodeList testSuiteNodes = doc.getElementsByTagName("testsuite");
                 for (int i = 0; i < testSuiteNodes.getLength(); i++) {
                     testSuiteNode = testSuiteNodes.item(i);
@@ -322,44 +421,161 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                         createTransactionSummary(reportFolder, testFolderPath, artifactsDir, reportNames, testResult);
                     }
                 }
-            } else {
-                NodeList testCasesNodes = ((Element) testSuiteNode).getElementsByTagName("testcase");
+            } else {		//UFT Test  
+				boolean reportIsHtml = false;			
+				NodeList testCasesNodes = ((Element) testSuiteNode).getElementsByTagName("testcase");
+				for (int i = 0; i < testCasesNodes.getLength(); i++) {
+					
+					Node nNode = testCasesNodes.item(i);
+					
+					if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+						
+						Element eElement = (Element) nNode;
+						
+						if (!eElement.hasAttribute("report")) {
+							continue;
+						}
 
-                for (int i = 0; i < testCasesNodes.getLength(); i++) {
 
-                    Node nNode = testCasesNodes.item(i);
+						String reportFolderPath = eElement.getAttribute("report"); //e.g. "C:\UFTTest\GuiTest1\Report"
+						String testFolderPath = eElement.getAttribute("name"); //e.g. "C:\UFTTest\GuiTest1"
+						String testStatus = eElement.getAttribute("status");  //e.g. "pass"
 
-                    if (nNode.getNodeType() == Node.ELEMENT_NODE) {
 
-                        Element eElement = (Element) nNode;
+						Node nodeSystemInfo = eElement.getElementsByTagName("system-out").item(0);
+						String sysinfo = nodeSystemInfo.getFirstChild().getNodeValue();
+						String testDateTime = sysinfo.substring(0,19); //like "21/07/2015 11:52:50";
 
-                        if (!eElement.hasAttribute("report")) {
-                            continue;
-                        }
+						FilePath reportFolder = new FilePath(projectWS.getChannel(), reportFolderPath);
+						
+						reportFolders.add(reportFolder);
+						
+						String archiveTestResultMode =
+								_resultsPublisherModel.getArchiveTestResultsMode();
+						boolean archiveTestResult = false;
+						boolean createHtmlReport = false;
+						
+						//check for the new html report
+						FilePath htmlReport = new FilePath(reportFolder, "run_results.html");
+						if (htmlReport.exists()) {
+							reportIsHtml = true;
+							String htmlReportDir = reportFolder.getRemote();
 
-                        String reportFolderPath = eElement.getAttribute("report");
-                        String testFolderPath = eElement.getAttribute("name");
-                        String testStatus = eElement.getAttribute("status");
+							ReportMetaData reportMetaData = new ReportMetaData();
+							reportMetaData.setFolderPath(htmlReportDir);
+							reportMetaData.setDisPlayName(testFolderPath);
+							reportMetaData.setIsHtmlReport(true);
+							reportMetaData.setDateTime(testDateTime);
+							reportMetaData.setStatus(testStatus);
 
-                        FilePath reportFolder = new FilePath(projectWS.getChannel(), reportFolderPath);
-                        reportFolders.add(reportFolder);
+							File testFileFullName = new File(testFolderPath);
+							String testName = testFileFullName.getName();
+							String resourceUrl = "artifact/UFTReport/" + testName;
+							reportMetaData.setResourceURL(resourceUrl);
+							//don't know reportMetaData's URL path yet, we will generate it later.
+							ReportInfoToCollect.add(reportMetaData);
 
-                        FilePath testFolder =
-                                new FilePath(projectWS.getChannel(), testFolderPath);
-                        String zipFileName =
-                                getUniqueZipFileNameInFolder(zipFileNames, testFolder.getName());
-                        FilePath archivedFile =
-                                new FilePath(new FilePath(artifactsDir), zipFileName);
+							listener.getLogger().println("add html report info to ReportInfoToCollect: " + "[date]" + testDateTime);
+						}
 
-                        if (archiveFolder(reportFolder, testStatus, archivedFile, listener))
-                            zipFileNames.add(zipFileName);
-                    }
-                }
-            }
-        }
+						if (archiveTestResultMode.equals(ResultsPublisherModel.alwaysArchiveResults.getValue())) {
+							archiveTestResult = true;
+						} else if (archiveTestResultMode.equals(ResultsPublisherModel.ArchiveFailedTestsResults.getValue())) {
+							if (testStatus.equals("fail")) {
+								archiveTestResult = true;
+							} else if (archiveTestResultMode.equals(ResultsPublisherModel.dontArchiveResults.getValue())) {
+								archiveTestResult = false;
+							}
+						} else if (archiveTestResultMode.equals(ResultsPublisherModel.CreateHtmlReportResults.getValue())) {
+							archiveTestResult = true;
+							createHtmlReport = true;
+						}
+						
+						
+						if (archiveTestResult && !reportIsHtml) {
+
+							if (reportFolder.exists()) {
+								
+								FilePath testFolder =
+										new FilePath(projectWS.getChannel(), testFolderPath);
+								
+								String zipFileName =
+										getUniqueZipFileNameInFolder(zipFileNames, testFolder.getName());
+								zipFileNames.add(zipFileName);
+								
+								listener.getLogger().println(
+										"Zipping report folder: " + reportFolderPath);
+								
+								ByteArrayOutputStream outstr = new ByteArrayOutputStream();
+								reportFolder.zip(outstr);
+								
+								/*
+								 * I did't use copyRecursiveTo or copyFrom due to
+								 * bug in
+								 * jekins:https://issues.jenkins-ci.org/browse
+								 * /JENKINS-9189 //(which is cleaimed to have been
+								 * fixed, but not. So I zip the folder to stream and
+								 * copy it to the master.
+								 */
+
+								ByteArrayInputStream instr =
+										new ByteArrayInputStream(outstr.toByteArray());
+								
+								FilePath archivedFile =
+										new FilePath(new FilePath(artifactsDir), zipFileName);
+								archivedFile.copyFrom(instr);
+								
+								outstr.close();
+								instr.close();
+								
+								//add to Report list
+								ReportMetaData reportMetaData = new ReportMetaData();
+								reportMetaData.setIsHtmlReport(false);
+								//reportMetaData.setFolderPath(htmlReportDir); //no need for RRV
+								reportMetaData.setDisPlayName(testFolderPath);
+								String zipFileUrlName = "artifact/" + zipFileName;
+								reportMetaData.setUrlName(zipFileUrlName);    //for RRV, the file url and resource url are the same.
+								reportMetaData.setResourceURL(zipFileUrlName);
+								reportMetaData.setDateTime(testDateTime);
+								reportMetaData.setStatus(testStatus);
+								ReportInfoToCollect.add(reportMetaData);
+
+							} else {
+								listener.getLogger().println(
+										"No report folder was found in: " + reportFolderPath);
+							}
+						}                    
+						
+					}
+				}
+
+				if (reportIsHtml && !ReportInfoToCollect.isEmpty()){
+
+					listener.getLogger().println("begin to collectAndPrepareHtmlReports");
+					collectAndPrepareHtmlReports(build, listener, ReportInfoToCollect);
+				}
+
+				if (!ReportInfoToCollect.isEmpty()) {
+					//serialize report metadata
+					File reportMetaDataXmlFile = new File(artifactsDir.getParent(), REPORTMETADATE_XML);
+					String reportMetaDataXml = reportMetaDataXmlFile.getAbsolutePath();
+					writeReportMetaData2XML(ReportInfoToCollect, reportMetaDataXml);
+
+					//Add UFT report action
+					try {
+						listener.getLogger().println("Adding a report action to the current build.");
+						HtmlBuildReportAction reportAction = new HtmlBuildReportAction(build);
+						build.getActions().add(reportAction);
+
+					} catch (Exception ex) {
+						listener.getLogger().println("a problem adding action: " + ex.toString());
+					}
+				}
+			}
+		}
     }
 
-    private boolean archiveFolder(FilePath reportFolder,
+	private boolean archiveFolder(FilePath reportFolder,
                                   String testStatus,
                                   FilePath archivedFile,
                                   BuildListener listener) throws IOException, InterruptedException {
@@ -484,12 +700,12 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         }
 
     }
-
+	
     private void outputReportFiles(List<String> reportNames, File reportDirectory, TestResult testResult, boolean tranSummary) throws IOException {
 
         if (reportNames.size() <= 0)
             return;
-        String title = (tranSummary) ? "Transaction Summary" : "Performance Report";
+		String title = (tranSummary) ? "Transaction Summary" : "Performance Report";
         String htmlFileName = (tranSummary) ? (TRANSACTION_REPORT_NAME + ".html") : "HTML.html";
         File htmlIndexFile = new File(reportDirectory, INDEX_HTML_NAME);
         BufferedWriter writer = new BufferedWriter(new FileWriter(htmlIndexFile));
@@ -519,18 +735,18 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         File indexFile = new File(reportDirectory, REPORT_INDEX_NAME);
         writer = new BufferedWriter(new FileWriter(indexFile));
 
-        Iterator<SuiteResult> resultIterator = null;
+        Iterator<CaseResult> resultIterator = null;
         if ((testResult != null) && (testResult.getSuites().size() > 0)) {
-            resultIterator = testResult.getSuites().iterator();//get the first
+            resultIterator = testResult.getSuites().iterator().next().getCases().iterator();//get the first
         }
         for (String report : reportNames) {
-            SuiteResult suiteResult = null;
+            CaseResult caseResult = null;
             if ((resultIterator != null) && resultIterator.hasNext())
-                suiteResult = resultIterator.next();
-            if (suiteResult == null)
+                caseResult = resultIterator.next();
+            if (caseResult == null)
                 writer.write(report + "\t##\t##\t##\n");
             else {
-                int iDuration = (int) suiteResult.getDuration();
+                int iDuration = (int) caseResult.getDuration();
                 String duration = "";
                 if ((iDuration / 86400) > 0) {
                     duration += String.format("%dday ", iDuration / 86400);
@@ -549,23 +765,37 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                     duration += "00min ";
                 }
                 duration += String.format("%02dsec", iDuration);
-
-                int suitePassCount = 0;
-                int suiteFailCount = 0;
-                for (CaseResult caseResult : suiteResult.getCases()) {
-                    suitePassCount += caseResult.getPassCount();
-                    suiteFailCount += caseResult.getFailCount();
-                }
+                
                 writer.write(
-                        String.format("%s\t%s\t%d\t%d\n",
-                                report,
-                                duration,
-                                suitePassCount,
-                                suiteFailCount));
+                        String.format("%s\t%s\t%d\t%d\n", 
+                                report, 
+                                duration, 
+                                caseResult.getPassCount(), 
+                                caseResult.getFailCount()));
             }
         }
         writer.flush();
         writer.close();
+    }
+   
+    private void write2XML(Document document,String filename)
+    {
+        try {
+            document.normalize();
+
+            TransformerFactory tFactory = TransformerFactory.newInstance();
+            Transformer transformer = tFactory.newTransformer();
+            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+
+            DOMSource source = new DOMSource(document);
+            PrintWriter pw = new PrintWriter(new FileOutputStream(filename));
+            StreamResult result = new StreamResult(pw);
+            transformer.transform(source, result);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     /*
