@@ -1,19 +1,14 @@
 package com.hp.application.automation.bamboo.tasks;
 
-import com.atlassian.bamboo.build.BuildLoggerManager;
 import com.atlassian.bamboo.build.artifact.ArtifactManager;
 import com.atlassian.bamboo.build.test.TestCollationService;
 import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.configuration.ConfigurationMap;
 
-import java.io.File;
 import java.util.*;
 
-import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.struts.TextProvider;
-import com.hp.application.automation.tools.common.sdk.Logger;
-import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,9 +63,8 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
 			final BuildLogger buildLogger = taskContext.getBuildLogger();
 			final String resultNameFormat = _textProvider.getText(RunFromFileSystemTaskConfigurator.ARTIFACT_NAME_FORMAT_STRING);
 
-			Collection<String> resultsPathes = TestResultHelper.getTestResultsPathes(getResultsFile(), resultsFilter, buildLogger);
-			TestResultHelper.publishArtifacts(taskContext, _artifactManager, resultsPathes, resultNameFormat, buildLogger);
-
+			Collection<ResultInfoItem> resultsPathes = TestResultHelper.getTestResults(getResultsFile(), resultsFilter, resultNameFormat, taskContext.getWorkingDirectory(), buildLogger);
+			TestResultHelper.publishArtifacts(taskContext, _artifactManager, resultsPathes, buildLogger);
 		}
 	}
 

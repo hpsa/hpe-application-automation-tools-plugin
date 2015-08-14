@@ -36,43 +36,7 @@ public final class TestResultHelper
     private static final String TEST_STATUS_PASSED = "pass";
     private static final String TEST_STATUS_FAIL = "fail";
 
-
     public enum ResultTypeFilter {All, SUCCESSFUL, FAILED }
-
-    private static class ResultInfoItem
-    {
-        private String _testName;
-        public String getTestName()
-        {
-            return _testName;
-        }
-
-        private String _resultName;
-        public String getResultName()
-        {
-            return _resultName;
-        }
-
-        private File _sourceDir;
-        public File getSourceDir()
-        {
-            return _sourceDir;
-        }
-
-        private File _zipFile;
-        public File getZipFile()
-        {
-            return _zipFile;
-        }
-
-        public ResultInfoItem(String testName, File sourceDir, File zipFile, String resultNameFormat)
-        {
-            _testName = testName;
-            _resultName = String.format(resultNameFormat, testName);
-            _sourceDir = sourceDir;
-            _zipFile = zipFile;
-        }
-    }
 
     private TestResultHelper()
     {
@@ -84,14 +48,15 @@ public final class TestResultHelper
         testCollationService.collateTestResults(taskContext, TEST_REPORT_FILE_PATTERNS, new XmlTestResultsReportCollector());
     }
 
-    public static Collection<String> getTestResultsPathes(@NotNull File results, ResultTypeFilter filter, @NotNull final BuildLogger logger)
+    public static Collection<ResultInfoItem> getTestResults(@NotNull File results, ResultTypeFilter filter
+            ,@NotNull final String resultArtifactNameFormat, @NotNull final File outputDir, @NotNull final BuildLogger logger)
     {
-        Collection<String> resultsFolders = new ArrayList<String>();
+        Collection<ResultInfoItem> resultItems = new ArrayList<ResultInfoItem>();
 
         if(!results.exists())
         {
             logger.addBuildLogEntry("Test results file (" + results.getName() + ") was not found.");
-            return resultsFolders;
+            return resultItems;
         }
 
         try
@@ -104,7 +69,13 @@ public final class TestResultHelper
                 {
                     if(isInFilter(testcase, filter))
                     {
-                        resultsFolders.add(testcase.getReport());
+                        String testName = getTestName(new File(testcase.getName()));
+                        File reportDir = new File(testcase.getReport());
+                        File reportZipFile = new File(outputDir, testName + "_Result.zip");
+                        String resultArtifactName = String.format(resultArtifactNameFormat, testName);
+
+                        ResultInfoItem resultItem = new ResultInfoItem(testName, reportDir, reportZipFile, resultArtifactName);
+                        resultItems.add(resultItem);
                     }
                 }
             }
@@ -114,15 +85,12 @@ public final class TestResultHelper
             logger.addBuildLogEntry("Test results file (" + results.getName() + ") has invalid format.");
         }
 
-        return resultsFolders;
+        return resultItems;
     }
 
-    public static void publishArtifacts(@NotNull final TaskContext taskContext, final ArtifactManager artifactManager, Collection<String> reportDirectories, @NotNull String resultNameFormat, @NotNull BuildLogger logger)
+    public static void publishArtifacts(@NotNull final TaskContext taskContext, final ArtifactManager artifactManager, Collection<ResultInfoItem> reportItems, @NotNull BuildLogger logger)
     {
-        File workingDirectory = taskContext.getWorkingDirectory();
-
-        Collection<ResultInfoItem> resultInfoItems = getResultInfoItems(workingDirectory, reportDirectories, resultNameFormat);
-        zipResults(resultInfoItems, logger);
+        zipResults(reportItems, logger);
 
         BuildContext buildContext = taskContext.getBuildContext();
 
@@ -132,7 +100,7 @@ public final class TestResultHelper
 
         SecureToken securityToken = SecureToken.create();
 
-        for(ResultInfoItem resultItem : resultInfoItems)
+        for(ResultInfoItem resultItem : reportItems)
         {
             ArtifactDefinitionContextImpl artifact = new ArtifactDefinitionContextImpl(securityToken);
             artifact.setName(resultItem.getResultName());
@@ -143,6 +111,11 @@ public final class TestResultHelper
 
             artifactManager.publish(logger, planResultKey, checkoutDir, artifact, config, 1);
         }
+    }
+
+    private static String getTestName(File test)
+    {
+        return test.getName();
     }
 
     private static boolean isInFilter(Testcase testcase, ResultTypeFilter filter)
@@ -165,29 +138,6 @@ public final class TestResultHelper
         }
 
         return false;
-    }
-
-    private static Collection<ResultInfoItem> getResultInfoItems(File destDir, Collection<String> resultDirs, String resultNameFormat)
-    {
-        Collection<ResultInfoItem> resultItems = new ArrayList<ResultInfoItem>();
-
-        for(String dir : resultDirs)
-        {
-            File resultsDir = new File(dir);
-            String testName = getTestName(resultsDir);
-            String resultsArchiveName = testName + "_Result.zip";
-            File zipResults = new File(destDir, resultsArchiveName);
-
-            ResultInfoItem resultItem = new ResultInfoItem(testName, resultsDir, zipResults, resultNameFormat);
-            resultItems.add(resultItem);
-        }
-
-        return resultItems;
-    }
-
-    private static String getTestName(File resultDir)
-    {
-        return resultDir.getParentFile().getName();
     }
 
     private static void zipResults(Collection<ResultInfoItem> resultInfoItems, BuildLogger logger)
