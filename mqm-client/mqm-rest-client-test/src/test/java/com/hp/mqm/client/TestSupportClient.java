@@ -95,7 +95,7 @@ public class TestSupportClient extends AbstractMqmRestClient {
     public boolean checkBuild(String serverIdentity, String jobName, int number, long workspaceId) {
         List<String> serverConditions = new LinkedList<String>();
         serverConditions.add(condition("instance_id", serverIdentity));
-        PagedList<JSONObject> servers = getEntities(getEntityURI(URI_CI_SERVERS, serverConditions, null, 0, 1), 0, new JsonEntityFactory());
+        PagedList<JSONObject> servers = getEntities(getEntityURI(URI_CI_SERVERS, serverConditions, workspaceId, 0, 1), 0, new JsonEntityFactory());
         if (servers.getItems().isEmpty()) {
             return false;
         }
@@ -103,7 +103,7 @@ public class TestSupportClient extends AbstractMqmRestClient {
         List<String> jobConditions = new LinkedList<String>();
         jobConditions.add(condition("ci_server", servers.getItems().get(0).getInt("id")));
         jobConditions.add(condition("name", jobName));
-        PagedList<JSONObject> jobs = getEntities(getEntityURI(URI_CI_JOBS, jobConditions, null, 0, 1), 0, new JsonEntityFactory());
+        PagedList<JSONObject> jobs = getEntities(getEntityURI(URI_CI_JOBS, jobConditions, workspaceId, 0, 1), 0, new JsonEntityFactory());
         if(jobs.getItems().isEmpty()) {
             return false;
         }
