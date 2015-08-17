@@ -4,9 +4,9 @@ import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import org.kohsuke.stapler.export.Exported;
 
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 /**
@@ -17,11 +17,11 @@ import java.util.logging.Logger;
 
 public class Bridge {
 	private static final Logger logger = Logger.getLogger(Bridge.class.getName());
+	private static int CONCURRENT_CONNECTIONS = 1;
 
-	private final Object initLocker = new Object();
-	private ExecutorService executors = Executors.newFixedThreadPool(5);
-	private Thread worker;
-	private boolean shuttingDown;
+	private ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5);
+	private ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(9);
+	private volatile AtomicInteger openedConnections = new AtomicInteger(0);
 
 	private ServerConfiguration mqmConfig;
 	private JenkinsMqmRestClientFactory restClientFactory;
@@ -29,20 +29,26 @@ public class Bridge {
 	public Bridge(ServerConfiguration mqmConfig, JenkinsMqmRestClientFactory clientFactory) {
 		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.abridged, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
 		this.restClientFactory = clientFactory;
-		connect();
-		logger.info("BRIDGE: new bridge initialized for '" + this.mqmConfig.location + "'");
+		if (this.mqmConfig.abridged && openedConnections.get() < CONCURRENT_CONNECTIONS) connect();
+		logger.info("BRIDGE: new bridge initialized for '" + this.mqmConfig.location + "', state: " + (this.mqmConfig.abridged ? "abridged" : "direct") + " connectivity");
 	}
 
 	private void connect() {
-		executors.execute(new Runnable() {
+		connectivityExecutors.execute(new Runnable() {
 			@Override
 			public void run() {
 				try {
-					//String taskBody = RESTClientTMP.get(mqmConfig.location + "/internal-api/shared_spaces/" + mqmConfig.sharedSpace + "/analytics/ci/task", null);
+					openedConnections.incrementAndGet();
+					String taskBody = RESTClientTMP.get(mqmConfig.location + "/internal-api/shared_spaces/" + mqmConfig.sharedSpace + "/analytics/ci/task", null);
+					openedConnections.decrementAndGet();
+					if (taskBody != null && !taskBody.isEmpty()) {
+						taskProcessingExecutors.execute(new TaskProcessor(taskBody));
+					}
 					//  parse the task, execute and post the result
 					connect();
 				} catch (Exception e) {
-					//  TODO: handle the exception
+					openedConnections.decrementAndGet();
+					logger.severe("connection to MQM Server interrupted: " + e.getMessage());
 					connect();
 				}
 			}
@@ -51,7 +57,8 @@ public class Bridge {
 
 	public void update(ServerConfiguration mqmConfig) {
 		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.abridged, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
-		logger.info("BRIDGE: updated for '" + this.mqmConfig.location + "'");
+		if (mqmConfig.abridged && openedConnections.get() < CONCURRENT_CONNECTIONS) connect();
+		logger.info("BRIDGE: updated for '" + this.mqmConfig.location + "', state: " + (this.mqmConfig.abridged ? "abridged" : "direct") + " connectivity");
 	}
 
 	@Exported(inline = true)
