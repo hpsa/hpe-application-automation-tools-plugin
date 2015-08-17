@@ -61,7 +61,9 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
 		if(resultsFilter != null)
 		{
 			final BuildLogger buildLogger = taskContext.getBuildLogger();
-			final String resultNameFormat = _textProvider.getText(RunFromFileSystemTaskConfigurator.ARTIFACT_NAME_FORMAT_STRING);
+			//TODO: Use format from resources. TextProvider returns null on remote agents.
+			//final String resultNameFormat = _textProvider.getText(RunFromFileSystemTaskConfigurator.ARTIFACT_NAME_FORMAT_STRING);
+			final String resultNameFormat = "%s Result";
 
 			Collection<ResultInfoItem> resultsPathes = TestResultHelper.getTestResults(getResultsFile(), resultsFilter, resultNameFormat, taskContext.getWorkingDirectory(), buildLogger);
 			TestResultHelper.publishArtifacts(taskContext, _artifactManager, resultsPathes, buildLogger);
