@@ -92,7 +92,7 @@ public class AUTEnvironmentBuilderPerformer {
             String autEnvironmentId) {
 
         String autEnvironmentConfigurationId =
-                autEnvironmentManager.shouldUseExistingConfiguration(model)
+                        autEnvironmentManager.shouldUseExistingConfiguration(model)
                         ? model.getExistingAutEnvConfId()
                         : autEnvironmentManager.createNewAutEnvironmentConfiguration(
                         autEnvironmentId,
@@ -109,7 +109,6 @@ public class AUTEnvironmentBuilderPerformer {
             String autEnvironmentConfigurationId,
             String parametersRootFolderId) {
 
-        //List<AutEnvironmentParameterModel> autEnvironmentParameters = model.getAutEnvironmentParameters();
         List<AutEnvironmentParameterModel> confParams = model.getAutEnvironmentParameters();
         if (confParams == null || confParams.size() == 0) {
             logger.log("There's no AUT Environment parameters to assign for this build...");

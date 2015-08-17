@@ -7,10 +7,20 @@ public class AutEnvironmentParameterModel {
 
     private final String name;
     private final String value;
-    private final String paramType;
+    private final AutEnvironmentParameterType paramType;
     private final boolean shouldGetOnlyFirstValueFromJson;
 
-    public AutEnvironmentParameterModel(String name, String value, String paramType, boolean shouldGetOnlyFirstValueFromJson) {
+    private String resolvedValue;
+
+    public String getResolvedValue() {
+        return resolvedValue;
+    }
+
+    public void setResolvedValue(String resolvedValue) {
+        this.resolvedValue = resolvedValue;
+    }
+
+    public AutEnvironmentParameterModel(String name, String value, AutEnvironmentParameterType paramType, boolean shouldGetOnlyFirstValueFromJson) {
         this.name = name;
         this.value = value;
         this.paramType = paramType;
@@ -25,7 +35,7 @@ public class AutEnvironmentParameterModel {
         return value;
     }
 
-    public String getParamType() {
+    public AutEnvironmentParameterType getParamType() {
         return paramType;
     }
 

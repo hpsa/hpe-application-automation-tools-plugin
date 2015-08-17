@@ -32,8 +32,7 @@ public class AUTEnvironmentParametersManager {
 
     private Map<String, AUTEnvironmnentParameter> parameters;
     private List<AutEnvironmentParameterModel> parametersToAssign;
-    
-  //  private VariableResolver<String> buildVariableResolver;
+
     private String pathToJsonFile;
     
     public AUTEnvironmentParametersManager(
@@ -41,7 +40,6 @@ public class AUTEnvironmentParametersManager {
             List<AutEnvironmentParameterModel> parametersToAssign,
             String parametersRootFolderId,
             String autEnvironmentConfigurationId,
-           // VariableResolver<String> buildVariableResolver,
             String pathToJsonFile,
             Logger logger) {
         
@@ -50,7 +48,6 @@ public class AUTEnvironmentParametersManager {
         this.parametersToAssign = parametersToAssign;
         this.parametersRootFolderId = parametersRootFolderId;
         this.autEnvironmentConfigurationId = autEnvironmentConfigurationId;
-       // this.buildVariableResolver = buildVariableResolver;
         this.pathToJsonFile = pathToJsonFile;
     }
     
@@ -185,12 +182,12 @@ public class AUTEnvironmentParametersManager {
         JsonHandler jsonHandler = new JsonHandler(logger);
         
         for (AutEnvironmentParameterModel parameter : parametersToAssign) {
+
             String resolvedValue = "";
-            switch (AutEnvironmentParameterType.get(parameter.getParamType())) {
+            switch (parameter.getParamType()) {
             
                 case ENVIRONMENT:
-                    ///TODO
-                    resolvedValue = parameter.getValue();//buildVariableResolver.resolve(parameter.getValue());
+                    resolvedValue = parameter.getValue();
                     break;
                 case EXTERNAL:
                     if (shouldLoadJsonObject) {
@@ -211,7 +208,7 @@ public class AUTEnvironmentParametersManager {
                     break;
             }
             
-            //parameter.setResolvedValue(resolvedValue);
+            parameter.setResolvedValue(resolvedValue);
         }
         
     }
@@ -222,9 +219,10 @@ public class AUTEnvironmentParametersManager {
                 new ArrayList<AUTEnvironmnentParameter>();
         for (AutEnvironmentParameterModel parameterByModel : parametersToAssign) {
             String parameterPathByModel = parameterByModel.getName();
+
             for (AUTEnvironmnentParameter parameter : parameters.values()) {
                 if (parameterPathByModel.equalsIgnoreCase(parameter.getFullPath())) {
-                    String resolvedValue = "";//parameterByModel.getResolvedValue(); ///TODO
+                    String resolvedValue = parameterByModel.getResolvedValue();
                     parameter.setValue(resolvedValue);
                     logger.log(String.format(
                             "Parameter: [%s] of type: [%s] will get the value: [%s] ",

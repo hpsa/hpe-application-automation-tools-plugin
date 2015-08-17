@@ -31,6 +31,10 @@ public class AlmLabEnvPrepareTaskConfigurator extends AbstractTaskConfigurator {
 	public static final String PATH_TO_JSON_FILE = "pathToJSONFile";
 	public static final String ASSIGN_ENV_CONF_ID = "assignAUTEnvConfIDto";
 
+	public static final String ENV_ALM_PARAMETERS_TYPE_ENV = "ALMParamTypeEnv";
+	public static final String ENV_ALM_PARAMETERS_TYPE_JSON = "ALMParamTypeJson";
+	public static final String ENV_ALM_PARAMETERS_TYPE_MAN = "ALMParamTypeManual";
+
 	//lists and maps for contrals with collections
 	private static final String ENV_ALM_CONFIGS_OPTION = "ALMConfigOptions";
 	private static final String ENV_ALM_CONFIG_PATTERN_OPTION_NEW = "ALMConfUseNew";
@@ -38,9 +42,6 @@ public class AlmLabEnvPrepareTaskConfigurator extends AbstractTaskConfigurator {
 
 	private static final Map ENV_ALM_CONFIG_OPTIONS = new HashMap();
 	private static final String ENV_ALM_PARAMETERS_TYPE = "almParamTypes";
-	private static final String ENV_ALM_PARAMETERS_TYPE_ENV = "ALMParamTypeEnv";
-	private static final String ENV_ALM_PARAMETERS_TYPE_JSON = "ALMParamTypeJson";
-	private static final String ENV_ALM_PARAMETERS_TYPE_MAN = "ALMParamTypeManual";
 
 	private static final String ENV_ALM_PARAMETERS_NAME = "almParamName";
 	private static final String ENV_ALM_PARAMETERS_VALUE = "almParamValue";

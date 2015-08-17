@@ -6,14 +6,11 @@ import java.util.List;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.build.test.TestCollationService;
-import com.atlassian.bamboo.task.TaskContext;
-import com.atlassian.bamboo.task.TaskException;
-import com.atlassian.bamboo.task.TaskResult;
-import com.atlassian.bamboo.task.TaskResultBuilder;
-import com.atlassian.bamboo.task.TaskType;
+import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.hp.application.automation.tools.common.model.AutEnvironmentConfigModel;
 import com.hp.application.automation.tools.common.model.AutEnvironmentParameterModel;
+import com.hp.application.automation.tools.common.model.AutEnvironmentParameterType;
 import com.hp.application.automation.tools.common.rest.RestClient;
 import com.hp.application.automation.tools.common.sdk.Logger;
 import com.hp.application.automation.tools.common.sdk.AUTEnvironmentBuilderPerformer;
@@ -35,6 +32,7 @@ public class AlmLabEnvPrepareTask implements TaskType {
 
 		final BuildLogger buildLogger = taskContext.getBuildLogger();
 		ConfigurationMap confMap = taskContext.getConfigurationMap();
+		TaskState state = TaskState.SUCCESS;
 
 		String almServer = confMap.get(AlmLabEnvPrepareTaskConfigurator.ALM_SERVER);
 		String domain = confMap.get(AlmLabEnvPrepareTaskConfigurator.DOMAIN);
@@ -46,10 +44,12 @@ public class AlmLabEnvPrepareTask implements TaskType {
 		List<AutEnvironmentParameterModel> autEnvironmentParameters = new ArrayList<AutEnvironmentParameterModel>();
 		for(AlmConfigParameter prm: AlmLabEnvPrepareTaskConfigurator.fetchAlmParametersFromContext(confMap))
 		{
+			AutEnvironmentParameterType type = convertType(prm.getAlmParamSourceType());
+
 			autEnvironmentParameters.add(
 					new AutEnvironmentParameterModel(prm.getAlmParamName(),
 							prm.getAlmParamValue(),
-							prm.getAlmParamSourceType(),
+							type,
 							prm.getAlmParamOnlyFirst()));
 		}
 
@@ -88,13 +88,29 @@ public class AlmLabEnvPrepareTask implements TaskType {
 
 
 		} catch (InterruptedException e) {
-			//build.setResult(Result.ABORTED);
-			//throw e;
+			state = TaskState.ERROR;
 		} catch (Throwable cause) {
-			//build.setResult(Result.FAILURE);
+			state = TaskState.FAILED;
 		}
 
-		return TaskResultBuilder.create(taskContext).checkTestFailures().build();
+		TaskResultBuilder result = TaskResultBuilder.create(taskContext);
+		result.setState(state);
+
+		return result.build();
+	}
+
+	private AutEnvironmentParameterType convertType(String sourceType) {
+
+		if(sourceType.equals(AlmLabEnvPrepareTaskConfigurator.ENV_ALM_PARAMETERS_TYPE_ENV))
+				return AutEnvironmentParameterType.ENVIRONMENT;
+
+		if(sourceType.equals(AlmLabEnvPrepareTaskConfigurator.ENV_ALM_PARAMETERS_TYPE_JSON))
+				return AutEnvironmentParameterType.EXTERNAL;
+
+		if(sourceType.equals(AlmLabEnvPrepareTaskConfigurator.ENV_ALM_PARAMETERS_TYPE_MAN))
+				return AutEnvironmentParameterType.USER_DEFINED;
+
+		return AutEnvironmentParameterType.UNDEFINED;
 	}
 
 }
