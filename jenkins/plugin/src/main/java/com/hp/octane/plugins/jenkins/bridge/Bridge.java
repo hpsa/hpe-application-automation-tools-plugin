@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 /**
  * Created by gullery on 12/08/2015.
  * <p/>
- * This class encompasses functionality managing connection to a single abridged client (server)
+ * This class encompasses functionality of managing connection/s to a single abridged client (MQM Server)
  */
 
 public class Bridge {
@@ -37,12 +37,13 @@ public class Bridge {
 		connectivityExecutors.execute(new Runnable() {
 			@Override
 			public void run() {
+				String taskJSON = null;
 				try {
 					openedConnections.incrementAndGet();
-					String taskBody = RESTClientTMP.get(mqmConfig.location + "/internal-api/shared_spaces/" + mqmConfig.sharedSpace + "/analytics/ci/task", null);
+					//taskJSON = RESTClientTMP.get(mqmConfig.location + "/internal-api/shared_spaces/" + mqmConfig.sharedSpace + "/analytics/ci/servers/{}/task", null);
 					openedConnections.decrementAndGet();
-					if (taskBody != null && !taskBody.isEmpty()) {
-						taskProcessingExecutors.execute(new TaskProcessor(taskBody));
+					if (taskJSON != null && !taskJSON.isEmpty()) {
+						taskProcessingExecutors.execute(new TaskProcessor(taskJSON));
 					}
 					//  parse the task, execute and post the result
 					connect();
