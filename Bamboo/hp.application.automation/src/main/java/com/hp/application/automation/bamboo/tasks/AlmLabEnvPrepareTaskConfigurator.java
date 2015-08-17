@@ -20,10 +20,10 @@ public class AlmLabEnvPrepareTaskConfigurator extends AbstractTaskConfigurator {
 
 	//shared constants
 	public static final String ALM_SERVER = "almServer";
-	public static final String USER_NAME = "userName";
-	public static final String PASSWORD = "password";
+	public static final String USER_NAME = "almUserName";
+	public static final String PASSWORD = "almUserPassword";
 	public static final String DOMAIN = "domain";
-	public static final String PROJECT = "project";
+	public static final String PROJECT = "almProject";
 
 	public static final String AUT_ENV_ID = "AUTEnvID";
 	public static final String AUT_ENV_NEW_CONFIG_NAME = "AUTConfName";
@@ -79,13 +79,21 @@ public class AlmLabEnvPrepareTaskConfigurator extends AbstractTaskConfigurator {
 
 		int countNumber = namesArr.length;
 
-		for(int i=0; i<countNumber; ++i) {
+		for(int i=0, chk=0; i<countNumber; ++i) {
 
 			if(StringUtils.isEmpty(namesArr[i]) || StringUtils.isEmpty(valuesArr[i]))
 				continue;
 
 			StringJoiner sj = new StringJoiner("&;");
 			sj.add(typesArr[i]).add(namesArr[i]).add(valuesArr[i]);
+			if(typesArr[i].equals(PATH_TO_JSON_FILE))
+			{
+				sj.add(chkOnlyFirstArr[chk]);
+				chk++;
+			}
+			else
+				sj.add("false");
+
 			config.put("alm_param_" + i, sj.toString());
 		}
 
@@ -189,7 +197,7 @@ public class AlmLabEnvPrepareTaskConfigurator extends AbstractTaskConfigurator {
 			if(key.startsWith("alm_param_"))
 			{
 				String[] arr = context.get(key).split("&;");
-				almParams.add(new AlmConfigParameter(arr[0], arr[1], arr[2]));
+				almParams.add(new AlmConfigParameter(arr[0], arr[1], arr[2], arr[3]));
 			}
 		}
 

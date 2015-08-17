@@ -5,17 +5,18 @@ import java.io.Serializable;
 /**
  * Created by mprilepina on 14/08/2015.
  */
-public class AlmConfigParameter implements Serializable {
+    public class AlmConfigParameter implements Serializable {
 
     private String almParamSourceType;
     private String almParamName;
     private String almParamValue;
     private Boolean almParamOnlyFirst;
 
-    public AlmConfigParameter(String almParamSourceType, String almParamName, String almParamValue) {
+    public AlmConfigParameter(String almParamSourceType, String almParamName, String almParamValue, String almParamOnlyFirst) {
         this.almParamSourceType = almParamSourceType;
         this.almParamName = almParamName;
         this.almParamValue = almParamValue;
+        this.almParamOnlyFirst = Boolean.parseBoolean(almParamOnlyFirst);
     }
 
     public AlmConfigParameter(AlmConfigParameter configParams) {

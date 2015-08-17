@@ -14,17 +14,17 @@
 
 [@ww.select labelKey="AlmLabEnvPrepareTask.almServerInputLbl" name="almServer"
     list=uiConfigBean.getExecutableLabels('hpAlmServer') extraUtility=addExecutableLink/]
-[@ww.textfield labelKey="AlmLabEnvPrepareTask.userNameInputLbl" name="userName"/]
-[@ww.password labelKey="AlmLabEnvPrepareTask.passwordInputLbl" name="password" showPassword="false"/]
-[@ww.textfield labelKey="AlmLabEnvPrepareTask.domainInputLbl" name="domain"/]
-[@ww.textfield labelKey="AlmLabEnvPrepareTask.projectInputLbl" name="project"/]
+[@ww.textfield labelKey="AlmLabEnvPrepareTask.userNameInputLbl" name="almUserName" required='true' required='true'/]
+[@ww.password labelKey="AlmLabEnvPrepareTask.passwordInputLbl" name="almUserPassword" showPassword="false"/]
+[@ww.textfield labelKey="AlmLabEnvPrepareTask.domainInputLbl" name="domain" required='true'/]
+[@ww.textfield labelKey="AlmLabEnvPrepareTask.projectInputLbl" name="almProject" required='true'/]
 
 <div class="field-group">
     [@ww.radio labelKey='AlmLabEnvPrepareTask.AUTEnvConfInputLbl' name='ALMConfigOptions'
             listKey='key' listValue='value' toggle='true'
             list=ALMConfigOptionsMap ]
      [/@ww.radio]
-     [@ww.textfield labelKey="AlmLabEnvPrepareTask.AUTEnvIDInputLbl" name="AUTEnvID"/]
+     [@ww.textfield labelKey="AlmLabEnvPrepareTask.AUTEnvIDInputLbl" name="AUTEnvID" required='true'/]
      [@ui.bambooSection dependsOn='ALMConfigOptions' showOn='ALMConfUseNew']
        [@ww.textfield labelKey="AlmLabEnvPrepareTask.createNewConfInputLbl" name="AUTConfName"/]
      [/@ui.bambooSection]
