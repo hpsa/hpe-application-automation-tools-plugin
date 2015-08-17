@@ -4,6 +4,9 @@ import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import org.kohsuke.stapler.export.Exported;
 
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 /**
@@ -16,6 +19,7 @@ public class Bridge {
 	private static final Logger logger = Logger.getLogger(Bridge.class.getName());
 
 	private final Object initLocker = new Object();
+	private ExecutorService executors = Executors.newFixedThreadPool(5);
 	private Thread worker;
 	private boolean shuttingDown;
 
@@ -25,35 +29,24 @@ public class Bridge {
 	public Bridge(ServerConfiguration mqmConfig, JenkinsMqmRestClientFactory clientFactory) {
 		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.abridged, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
 		this.restClientFactory = clientFactory;
-		activate();
+		connect();
 		logger.info("BRIDGE: new bridge initialized for '" + this.mqmConfig.location + "'");
 	}
 
-	void activate() {
-		shuttingDown = false;
-		if (worker == null || !worker.isAlive()) {
-			synchronized (initLocker) {
-				if (worker == null || !worker.isAlive()) {
-					worker = new Thread(new Runnable() {
-						@Override
-						public void run() {
-							while (!shuttingDown) {
-								try {
-									//  do the actual call to
-									//  yet grab another thread and send new connection immediately
-								} catch (Exception e) {
-									logger.severe("BRIDGE: Exception while bridge connection: " + e.getMessage());
-								}
-							}
-							logger.info("BRIDGE: worker thread of bridge shuts down");
-						}
-					});
-					worker.setDaemon(true);
-					worker.setName("BridgeWorker");
-					worker.start();
+	private void connect() {
+		executors.execute(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					//String taskBody = RESTClientTMP.get(mqmConfig.location + "/internal-api/shared_spaces/" + mqmConfig.sharedSpace + "/analytics/ci/task", null);
+					//  parse the task, execute and post the result
+					connect();
+				} catch (Exception e) {
+					//  TODO: handle the exception
+					connect();
 				}
 			}
-		}
+		});
 	}
 
 	public void update(ServerConfiguration mqmConfig) {

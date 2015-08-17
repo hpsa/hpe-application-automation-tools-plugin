@@ -52,7 +52,6 @@ public class BridgesService implements ConfigurationListener {
 					if (bridge.getLocation().equals(conf.location) &&
 							bridge.getSharedSpace().equals(conf.sharedSpace)) {
 						bridge.update(conf);
-						bridge.activate();
 						updated = true;
 						break;
 					}
