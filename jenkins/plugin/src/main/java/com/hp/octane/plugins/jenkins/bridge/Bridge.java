@@ -1,5 +1,7 @@
 package com.hp.octane.plugins.jenkins.bridge;
 
+import com.hp.octane.plugins.jenkins.OctanePlugin;
+import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import org.kohsuke.stapler.export.Exported;
@@ -40,7 +42,9 @@ public class Bridge {
 				String taskJSON = null;
 				try {
 					openedConnections.incrementAndGet();
-					//taskJSON = RESTClientTMP.get(mqmConfig.location + "/internal-api/shared_spaces/" + mqmConfig.sharedSpace + "/analytics/ci/servers/{}/task", null);
+					taskJSON = RESTClientTMP.get(mqmConfig.location +
+							"/internal-api/shared_spaces/" + mqmConfig.sharedSpace +
+							"/analytics/ci/servers/" + new PluginActions.ServerInfo().getInstanceId() + "/task", null);
 					openedConnections.decrementAndGet();
 					if (taskJSON != null && !taskJSON.isEmpty()) {
 						taskProcessingExecutors.execute(new TaskProcessor(taskJSON));
