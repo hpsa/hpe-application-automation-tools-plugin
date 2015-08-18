@@ -49,8 +49,6 @@ public class AlmLabEnvPrepareTaskConfigurator extends AbstractTaskConfigurator {
 
 	private static final List<AlmConfigParameter> almParams = new ArrayList();
 
-	private static  final String testVal = "lova you";
-
 	public AlmLabEnvPrepareTaskConfigurator() {
 		System.out.print("con");
 	}
