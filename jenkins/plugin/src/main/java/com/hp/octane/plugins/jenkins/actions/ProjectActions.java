@@ -66,11 +66,12 @@ public class ProjectActions extends TransientProjectActionFactory {
                         .getSCMChanges(abstractBuild);
                 buildHistory.addBuild(result.get(i).getResult().toString(), String.valueOf(result.get(i).getNumber()), result.get(i).getTimestampString(),String.valueOf(result.get(i).getStartTimeInMillis()), String.valueOf(result.get(i).getDuration()),smData);
             }
+            SCMData smData = null;
             AbstractBuild lastSuccessfulBuild = (AbstractBuild)project.getLastSuccessfulBuild();
-            SCMData smData = SCMProcessors
-                    .getAppropriate(lastSuccessfulBuild.getProject().getScm().getClass().getName())
-                    .getSCMChanges(lastSuccessfulBuild);
             if (lastSuccessfulBuild != null) {
+                 smData = SCMProcessors
+                        .getAppropriate(lastSuccessfulBuild.getProject().getScm().getClass().getName())
+                        .getSCMChanges(lastSuccessfulBuild);
                 buildHistory.addLastSuccesfullBuild(lastSuccessfulBuild.getResult().toString(), String.valueOf(lastSuccessfulBuild.getNumber()), lastSuccessfulBuild.getTimestampString(),String.valueOf(lastSuccessfulBuild.getStartTimeInMillis()),  String.valueOf(lastSuccessfulBuild.getDuration()),smData);
             }
             AbstractBuild lastBuild =  (AbstractBuild)project.getLastBuild();
