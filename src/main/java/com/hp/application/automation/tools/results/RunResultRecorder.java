@@ -687,12 +687,22 @@ private void writeReportMetaData2XML(List<ReportMetaData> htmlReportsInfo, Strin
 
             FilePath dstReportPath = new FilePath(testDirectory);
             File dir = new File(htmlReportPath.toURI());
-            FileFilter fileFilter = new WildcardFileFilter(TRANSACTION_REPORT_NAME + ".*");
-            List<FilePath> files = htmlReportPath.list(fileFilter);
-            for (Iterator i = files.iterator(); i.hasNext(); ) {
+            FileFilter reportFileFilter = new WildcardFileFilter(TRANSACTION_REPORT_NAME + ".*");
+            List<FilePath> reporFiles = htmlReportPath.list(reportFileFilter);
+            for (Iterator i = reporFiles.iterator(); i.hasNext(); ) {
                 FilePath fileToCopy = (FilePath) i.next();
                 FilePath dstFilePath = new FilePath(dstReportPath, fileToCopy.getName());
                 fileToCopy.copyTo(dstFilePath);
+            }
+            FilePath cssFilePath = new FilePath(htmlReportPath, "Properties.css");
+            if (cssFilePath.exists()) {
+                FilePath dstFilePath = new FilePath(dstReportPath, cssFilePath.getName());
+                cssFilePath.copyTo(dstFilePath);
+            }
+            FilePath pngFilePath = new FilePath(htmlReportPath, "tbic_toexcel.png");
+            if (pngFilePath.exists()) {
+                FilePath dstFilePath = new FilePath(dstReportPath, pngFilePath.getName());
+                pngFilePath.copyTo(dstFilePath);
             }
 
             outputReportFiles(reportNames, reportDirectory, testResult, true);
@@ -735,18 +745,18 @@ private void writeReportMetaData2XML(List<ReportMetaData> htmlReportsInfo, Strin
         File indexFile = new File(reportDirectory, REPORT_INDEX_NAME);
         writer = new BufferedWriter(new FileWriter(indexFile));
 
-        Iterator<CaseResult> resultIterator = null;
+        Iterator<SuiteResult> resultIterator = null;
         if ((testResult != null) && (testResult.getSuites().size() > 0)) {
-            resultIterator = testResult.getSuites().iterator().next().getCases().iterator();//get the first
+            resultIterator = testResult.getSuites().iterator();//get the first
         }
         for (String report : reportNames) {
-            CaseResult caseResult = null;
+            SuiteResult suitResult = null;
             if ((resultIterator != null) && resultIterator.hasNext())
-                caseResult = resultIterator.next();
-            if (caseResult == null)
+                suitResult = resultIterator.next();
+            if (suitResult == null)
                 writer.write(report + "\t##\t##\t##\n");
             else {
-                int iDuration = (int) caseResult.getDuration();
+                int iDuration = (int) suitResult.getDuration();
                 String duration = "";
                 if ((iDuration / 86400) > 0) {
                     duration += String.format("%dday ", iDuration / 86400);
@@ -765,13 +775,19 @@ private void writeReportMetaData2XML(List<ReportMetaData> htmlReportsInfo, Strin
                     duration += "00min ";
                 }
                 duration += String.format("%02dsec", iDuration);
-                
+
+                int iPassCount = 0, iFailCount = 0;
+                for (Iterator i = suitResult.getCases().iterator(); i.hasNext(); ) {
+                    CaseResult caseResult = (CaseResult)i.next();
+                    iPassCount += caseResult.getPassCount();
+                    iFailCount += caseResult.getFailCount();
+                }
                 writer.write(
                         String.format("%s\t%s\t%d\t%d\n", 
                                 report, 
-                                duration, 
-                                caseResult.getPassCount(), 
-                                caseResult.getFailCount()));
+                                duration,
+                                iPassCount,
+                                iFailCount));
             }
         }
         writer.flush();
