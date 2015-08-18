@@ -303,9 +303,6 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
                 // exception response
                 return jsonObject.getString("description");
             }
-            if (jsonObject.has("message")) {
-                return jsonObject.getString("message");
-            }
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Unable to determine failure message: ", e);
         } catch (JSONException e) {
@@ -422,7 +419,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
                 throw createRequestException("Test result post failed", response);
 			}
             String json = IOUtils.toString(response.getEntity().getContent());
-            JSONObject jsonObject =  JSONObject.fromObject(json);
+            JSONObject jsonObject = JSONObject.fromObject(json);
             return jsonObject.getLong("id");
         } catch (java.io.FileNotFoundException e) {
 			throw new FileNotFoundException("Cannot find test result file.", e);
