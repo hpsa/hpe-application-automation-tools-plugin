@@ -81,7 +81,7 @@ public class TestDefaultExternalEntityUploadServiceImpl {
 	}
 	
 	public static void main(String[] argc) {
-		testJunit(109);
+		testJunit(110);
 		//testtestNG(107);
 		//testnunit(108);
 	}
