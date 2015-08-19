@@ -60,26 +60,34 @@ public class ProjectActions extends TransientProjectActionFactory {
             }
             List<Run> result = project.getLastBuildsOverThreshold(numberOfBuilds, Result.FAILURE); // get last five build with result that better or equal failure
             for (int i = 0; i < result.size(); i++) {
-                AbstractBuild abstractBuild =  (AbstractBuild)result.get(i);
-                SCMData smData = SCMProcessors
-                        .getAppropriate(abstractBuild.getProject().getScm().getClass().getName())
-                        .getSCMChanges(abstractBuild);
-                buildHistory.addBuild(result.get(i).getResult().toString(), String.valueOf(result.get(i).getNumber()), result.get(i).getTimestampString(),String.valueOf(result.get(i).getStartTimeInMillis()), String.valueOf(result.get(i).getDuration()),smData);
+
+                AbstractBuild abstractBuild = (AbstractBuild) result.get(i);
+                if (abstractBuild != null) {
+                    SCMData smData = SCMProcessors
+                            .getAppropriate(abstractBuild.getProject().getScm().getClass().getName())
+                            .getSCMChanges(abstractBuild);
+                    buildHistory.addBuild(abstractBuild.getResult().toString(), String.valueOf(abstractBuild.getNumber()), abstractBuild.getTimestampString(), String.valueOf(abstractBuild.getStartTimeInMillis()), String.valueOf(abstractBuild.getDuration()), smData);
+                }
             }
             SCMData smData = null;
-            AbstractBuild lastSuccessfulBuild = (AbstractBuild)project.getLastSuccessfulBuild();
+            AbstractBuild lastSuccessfulBuild = (AbstractBuild) project.getLastSuccessfulBuild();
             if (lastSuccessfulBuild != null) {
-                 smData = SCMProcessors
+                smData = SCMProcessors
                         .getAppropriate(lastSuccessfulBuild.getProject().getScm().getClass().getName())
                         .getSCMChanges(lastSuccessfulBuild);
-                buildHistory.addLastSuccesfullBuild(lastSuccessfulBuild.getResult().toString(), String.valueOf(lastSuccessfulBuild.getNumber()), lastSuccessfulBuild.getTimestampString(),String.valueOf(lastSuccessfulBuild.getStartTimeInMillis()),  String.valueOf(lastSuccessfulBuild.getDuration()),smData);
+                buildHistory.addLastSuccesfullBuild(lastSuccessfulBuild.getResult().toString(), String.valueOf(lastSuccessfulBuild.getNumber()), lastSuccessfulBuild.getTimestampString(), String.valueOf(lastSuccessfulBuild.getStartTimeInMillis()), String.valueOf(lastSuccessfulBuild.getDuration()), smData);
             }
-            AbstractBuild lastBuild =  (AbstractBuild)project.getLastBuild();
+            AbstractBuild lastBuild = (AbstractBuild) project.getLastBuild();
             if (lastBuild != null) {
-                 smData = SCMProcessors
+                smData = SCMProcessors
                         .getAppropriate(lastBuild.getProject().getScm().getClass().getName())
                         .getSCMChanges(lastBuild);
-                buildHistory.addLastBuild(lastBuild.getResult().toString(), String.valueOf(lastBuild.getNumber()), lastBuild.getTimestampString(),String.valueOf(lastBuild.getStartTimeInMillis()), String.valueOf(lastBuild.getDuration()),smData);
+                if (lastBuild.getResult() == null) {
+                    buildHistory.addLastBuild("building", String.valueOf(lastBuild.getNumber()), lastBuild.getTimestampString(), String.valueOf(lastBuild.getStartTimeInMillis()), String.valueOf(lastBuild.getDuration()), smData);
+                } else {
+                    buildHistory.addLastBuild(lastBuild.getResult().toString(), String.valueOf(lastBuild.getNumber()), lastBuild.getTimestampString(), String.valueOf(lastBuild.getStartTimeInMillis()), String.valueOf(lastBuild.getDuration()), smData);
+                }
+
             }
             res.serveExposedBean(req, buildHistory, Flavor.JSON);
         }
