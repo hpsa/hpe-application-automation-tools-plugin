@@ -47,9 +47,11 @@ public class Bridge {
 							"/analytics/ci/servers/" + new PluginActions.ServerInfo().getInstanceId() + "/task", null);
 					openedConnections.decrementAndGet();
 					if (taskJSON != null && !taskJSON.isEmpty()) {
-						taskProcessingExecutors.execute(new TaskProcessor(taskJSON));
+						taskProcessingExecutors.execute(new TaskProcessor(
+								taskJSON,
+								mqmConfig.location + "/internal-api/shared_spaces/" + mqmConfig.sharedSpace + "/analytics/ci/servers/" + new PluginActions.ServerInfo().getInstanceId() + "/task"
+						));
 					}
-					//  parse the task, execute and post the result
 					connect();
 				} catch (Exception e) {
 					openedConnections.decrementAndGet();
