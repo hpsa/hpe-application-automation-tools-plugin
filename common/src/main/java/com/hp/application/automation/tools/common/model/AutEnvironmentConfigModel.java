@@ -15,8 +15,9 @@ public class AutEnvironmentConfigModel {
     private final String almProject;
 
     private final boolean useExistingAutEnvConf;
-    private final String existingAutEnvConfId;
-    private final String newAutEnvConfName;
+
+    private final String autEnvID;
+    private final String autEnvConf;
 
     private final String pathToJsonFile;
     private List<AutEnvironmentParameterModel> autEnvironmentParameters;
@@ -28,8 +29,8 @@ public class AutEnvironmentConfigModel {
                                      String almDomain,
                                      String almProject,
                                      boolean useExistingAutEnvConf,
-                                     String existingAutEnvConfId,
-                                     String newAutEnvConfName,
+                                     String autEnvID,
+                                     String envConf,
                                      String pathToJsonFile,
                                      List<AutEnvironmentParameterModel> autEnvironmentParameters){
         this.almServerName = almServerName;
@@ -38,8 +39,8 @@ public class AutEnvironmentConfigModel {
         this.almDomain = almDomain;
         this.almProject = almProject;
         this.useExistingAutEnvConf = useExistingAutEnvConf;
-        this.existingAutEnvConfId = existingAutEnvConfId;
-        this.newAutEnvConfName = newAutEnvConfName;
+        this.autEnvID = autEnvID;
+        this.autEnvConf = envConf;
         this.pathToJsonFile = pathToJsonFile;
         this.almServerUrl = almServerUrl;
         this.autEnvironmentParameters = autEnvironmentParameters;
@@ -73,13 +74,14 @@ public class AutEnvironmentConfigModel {
         return useExistingAutEnvConf;
     }
 
-    public String getExistingAutEnvConfId() {
-        return existingAutEnvConfId;
+    public String getAutEnvID() {
+        return autEnvID;
     }
 
-    public String getNewAutEnvConfName() {
-        return newAutEnvConfName;
+    public String getAutEnvConf() {
+        return autEnvConf;
     }
+
 
     public List<AutEnvironmentParameterModel> getAutEnvironmentParameters() {
         return autEnvironmentParameters;

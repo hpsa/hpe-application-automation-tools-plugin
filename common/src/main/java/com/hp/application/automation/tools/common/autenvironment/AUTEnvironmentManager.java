@@ -53,7 +53,7 @@ public class AUTEnvironmentManager {
             }
             
             Map<String, String> autEnvironment = entities.get(0);
-            parametersRootFolderId =
+            parametersRootFolderId = //autEnvironment == null ? null : autEnvironment.get("parent-id");
                     autEnvironment == null ? null : autEnvironment.get("root-app-param-folder-id");
         } catch (Throwable e) {
             logger.log(String.format("Failed to parse response: %s", response));
@@ -68,9 +68,9 @@ public class AUTEnvironmentManager {
         
         String newConfigurationName =
                 autEnvironmentModel.isUseExistingAutEnvConf()
-                        || StringUtils.isNullOrEmpty(autEnvironmentModel.getNewAutEnvConfName())
+                        || StringUtils.isNullOrEmpty(autEnvironmentModel.getAutEnvConf())
                         ? createTempConfigurationName()
-                        : autEnvironmentModel.getNewAutEnvConfName();
+                        : autEnvironmentModel.getAutEnvConf();
         return createNewAutEnvironmentConfiguration(autEnvironmentId, newConfigurationName);
         
     }
@@ -104,7 +104,7 @@ public class AUTEnvironmentManager {
     public boolean shouldUseExistingConfiguration(AutEnvironmentConfigModel autEnvironmentModel) {
         
         return autEnvironmentModel.isUseExistingAutEnvConf()
-               && isAutEnvironmentConfigurationExists(autEnvironmentModel.getExistingAutEnvConfId());
+               && isAutEnvironmentConfigurationExists(autEnvironmentModel.getAutEnvConf());
 
     }
 

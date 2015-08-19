@@ -79,7 +79,7 @@ public class AUTEnvironmentBuilderPerformer {
 
     private void performAutOperations() {
 
-        String autEnvironmentId = model.getExistingAutEnvConfId();
+        String autEnvironmentId = model.getAutEnvID();
         AUTEnvironmentManager autEnvironmentManager = new AUTEnvironmentManager(client, logger);
         String parametersRootFolderId = autEnvironmentManager.getParametersRootFolderIdByAutEnvId(autEnvironmentId);
         String autEnvironmentConfigurationId = getAutEnvironmentConfigurationId(autEnvironmentManager, autEnvironmentId);
@@ -93,10 +93,8 @@ public class AUTEnvironmentBuilderPerformer {
 
         String autEnvironmentConfigurationId =
                         autEnvironmentManager.shouldUseExistingConfiguration(model)
-                        ? model.getExistingAutEnvConfId()
-                        : autEnvironmentManager.createNewAutEnvironmentConfiguration(
-                        autEnvironmentId,
-                        model);
+                        ? model.getAutEnvConf()
+                        : autEnvironmentManager.createNewAutEnvironmentConfiguration(autEnvironmentId, model);
 
         if (StringUtils.isNullOrEmpty(autEnvironmentConfigurationId)) {
             throw new SSEException("There's no AUT Environment Configuration in order to proceed");

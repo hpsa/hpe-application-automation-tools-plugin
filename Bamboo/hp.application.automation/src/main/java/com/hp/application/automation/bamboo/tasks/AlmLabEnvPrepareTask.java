@@ -40,6 +40,9 @@ public class AlmLabEnvPrepareTask implements TaskType {
 		String userName = confMap.get(AlmLabEnvPrepareTaskConfigurator.USER_NAME);
 
 		boolean useExistingAutEnvConf = AlmLabEnvPrepareTaskConfigurator.useExistingConfiguration(confMap);
+		String configuration = useExistingAutEnvConf ?
+								confMap.get(AlmLabEnvPrepareTaskConfigurator.AUT_ENV_EXIST_CONFIG_ID):
+								confMap.get(AlmLabEnvPrepareTaskConfigurator.AUT_ENV_NEW_CONFIG_NAME);
 
 		List<AutEnvironmentParameterModel> autEnvironmentParameters = new ArrayList<AutEnvironmentParameterModel>();
 		for(AlmConfigParameter prm: AlmLabEnvPrepareTaskConfigurator.fetchAlmParametersFromContext(confMap))
@@ -70,7 +73,7 @@ public class AlmLabEnvPrepareTask implements TaskType {
 				project,
 				useExistingAutEnvConf,
 				confMap.get(AlmLabEnvPrepareTaskConfigurator.AUT_ENV_ID),
-				confMap.get(AlmLabEnvPrepareTaskConfigurator.AUT_ENV_NEW_CONFIG_NAME),
+				configuration,
 				confMap.get(AlmLabEnvPrepareTaskConfigurator.PATH_TO_JSON_FILE),
 				autEnvironmentParameters);
 
@@ -86,6 +89,9 @@ public class AlmLabEnvPrepareTask implements TaskType {
 			AUTEnvironmentBuilderPerformer performer = new AUTEnvironmentBuilderPerformer(restClient, logger, autEnvModel);
 			performer.start();
 
+			String output = confMap.get(AlmLabEnvPrepareTaskConfigurator.OUTPUT_CONFIGID);
+
+			//assignOutputValue(build, performer, autEnvModel.getOutputParameter(), logger);
 
 		} catch (InterruptedException e) {
 			state = TaskState.ERROR;

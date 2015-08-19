@@ -26,7 +26,8 @@ public class AlmLabEnvPrepareTaskConfigurator extends AbstractTaskConfigurator {
 	public static final String PROJECT = "almProject";
 
 	public static final String AUT_ENV_ID = "AUTEnvID";
-	public static final String AUT_ENV_NEW_CONFIG_NAME = "AUTConfName";
+	public static final String AUT_ENV_NEW_CONFIG_NAME = "NewAUTConfName";
+	public static final String AUT_ENV_EXIST_CONFIG_ID = "AUTConfName";
 
 	public static final String PATH_TO_JSON_FILE = "pathToJSONFile";
 	public static final String ASSIGN_ENV_CONF_ID = "assignAUTEnvConfIDto";
@@ -34,6 +35,8 @@ public class AlmLabEnvPrepareTaskConfigurator extends AbstractTaskConfigurator {
 	public static final String ENV_ALM_PARAMETERS_TYPE_ENV = "ALMParamTypeEnv";
 	public static final String ENV_ALM_PARAMETERS_TYPE_JSON = "ALMParamTypeJson";
 	public static final String ENV_ALM_PARAMETERS_TYPE_MAN = "ALMParamTypeManual";
+
+	public static final String  OUTPUT_CONFIGID= "outEnvID";
 
 	//lists and maps for contrals with collections
 	private static final String ENV_ALM_CONFIGS_OPTION = "ALMConfigOptions";
@@ -49,10 +52,6 @@ public class AlmLabEnvPrepareTaskConfigurator extends AbstractTaskConfigurator {
 
 	private static final List<AlmConfigParameter> almParams = new ArrayList();
 
-	public AlmLabEnvPrepareTaskConfigurator() {
-		System.out.print("con");
-	}
-
 	public Map<String, String> generateTaskConfigMap(@NotNull final ActionParametersMap params,
 			@Nullable final TaskDefinition previousTaskDefinition) {
 		final Map<String, String> config = super.generateTaskConfigMap(params, previousTaskDefinition);
@@ -65,9 +64,11 @@ public class AlmLabEnvPrepareTaskConfigurator extends AbstractTaskConfigurator {
 
 		config.put(ENV_ALM_CONFIGS_OPTION, params.getString(ENV_ALM_CONFIGS_OPTION));
 		config.put(AUT_ENV_NEW_CONFIG_NAME, params.getString(AUT_ENV_NEW_CONFIG_NAME));
+		config.put(AUT_ENV_EXIST_CONFIG_ID, params.getString(AUT_ENV_EXIST_CONFIG_ID));
 		config.put(AUT_ENV_ID, params.getString(AUT_ENV_ID));
 		config.put(PATH_TO_JSON_FILE, params.getString(PATH_TO_JSON_FILE));
 		config.put(ASSIGN_ENV_CONF_ID, params.getString(ASSIGN_ENV_CONF_ID));
+		config.put(OUTPUT_CONFIGID, params.getString(OUTPUT_CONFIGID));
 
 		//parse params
 
@@ -118,10 +119,17 @@ public class AlmLabEnvPrepareTaskConfigurator extends AbstractTaskConfigurator {
 			errorCollection.addError(PROJECT, textProvider.getText("AlmLabEnvPrepareTask.error.projectIsEmpty"));
 		}
 
-		if(params.getString(ENV_ALM_CONFIGS_OPTION).equals(ENV_ALM_CONFIG_PATTERN_OPTION_NEW) &&
-									StringUtils.isEmpty(params.getString(AUT_ENV_NEW_CONFIG_NAME))) {
-			errorCollection.addError(AUT_ENV_NEW_CONFIG_NAME, textProvider.getText("AlmLabEnvPrepareTask.error.assignAUTEnvConfValueIsNotAssigned"));
-		}
+		if(params.getString(ENV_ALM_CONFIGS_OPTION).equals(ENV_ALM_CONFIG_PATTERN_OPTION_NEW))
+		{
+			if(StringUtils.isEmpty(params.getString(AUT_ENV_NEW_CONFIG_NAME))) {
+				errorCollection.addError(AUT_ENV_NEW_CONFIG_NAME, textProvider.getText("AlmLabEnvPrepareTask.error.assignAUTEnvConfValueIsNotAssigned"));
+			}
+		}else
+			{
+				if(StringUtils.isEmpty(params.getString(AUT_ENV_EXIST_CONFIG_ID))) {
+					errorCollection.addError(AUT_ENV_EXIST_CONFIG_ID, textProvider.getText("AlmLabEnvPrepareTask.error.assignAUTEnvConfValueIsNotAssigned"));
+				}
+			}
 	}
 
 	@Override
@@ -154,8 +162,8 @@ public class AlmLabEnvPrepareTaskConfigurator extends AbstractTaskConfigurator {
 		context.put("ALMConfigOptionsMap", ENV_ALM_CONFIG_OPTIONS);
 
 		Map<String, String> paramTypes = new HashMap<String, String>();
-		paramTypes.put(ENV_ALM_PARAMETERS_TYPE_JSON, textProvider.getText("AlmLabEnvPrepareTask.Parameter.Type.FromJSON"));
 		paramTypes.put(ENV_ALM_PARAMETERS_TYPE_ENV, textProvider.getText("AlmLabEnvPrepareTask.Parameter.Type.Environment"));
+		paramTypes.put(ENV_ALM_PARAMETERS_TYPE_JSON, textProvider.getText("AlmLabEnvPrepareTask.Parameter.Type.FromJSON"));
 		paramTypes.put(ENV_ALM_PARAMETERS_TYPE_MAN, textProvider.getText("AlmLabEnvPrepareTask.Parameter.Type.Manual"));
 
 		context.put("ALMParamsTypes", paramTypes);
@@ -174,10 +182,12 @@ public class AlmLabEnvPrepareTaskConfigurator extends AbstractTaskConfigurator {
 
 		context.put(ENV_ALM_CONFIGS_OPTION, configuration.get(ENV_ALM_CONFIGS_OPTION));
 		context.put(AUT_ENV_NEW_CONFIG_NAME, configuration.get(AUT_ENV_NEW_CONFIG_NAME));
+		context.put(AUT_ENV_EXIST_CONFIG_ID, configuration.get(AUT_ENV_EXIST_CONFIG_ID));
 		context.put(AUT_ENV_ID, configuration.get(AUT_ENV_ID));
 
 		context.put(PATH_TO_JSON_FILE, configuration.get(PATH_TO_JSON_FILE));
 		context.put(ASSIGN_ENV_CONF_ID, configuration.get(ASSIGN_ENV_CONF_ID));
+		context.put(OUTPUT_CONFIGID, configuration.get(OUTPUT_CONFIGID));
 
 		List<AlmConfigParameter> almParams = fetchAlmParametersFromContext(configuration);
 		context.put("almParams", almParams);

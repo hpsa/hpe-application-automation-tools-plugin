@@ -18,16 +18,21 @@
 [@ww.password labelKey="AlmLabEnvPrepareTask.passwordInputLbl" name="almUserPassword" showPassword="false"/]
 [@ww.textfield labelKey="AlmLabEnvPrepareTask.domainInputLbl" name="domain" required='true'/]
 [@ww.textfield labelKey="AlmLabEnvPrepareTask.projectInputLbl" name="almProject" required='true'/]
+[@ww.textfield labelKey="AlmLabEnvPrepareTask.AUTEnvIDInputLbl" name="AUTEnvID" required='true'/]
 
 <div class="field-group">
     [@ww.radio labelKey='AlmLabEnvPrepareTask.AUTEnvConfInputLbl' name='ALMConfigOptions'
             listKey='key' listValue='value' toggle='true'
             list=ALMConfigOptionsMap ]
      [/@ww.radio]
-     [@ww.textfield labelKey="AlmLabEnvPrepareTask.AUTEnvIDInputLbl" name="AUTEnvID" required='true'/]
-     [@ui.bambooSection dependsOn='ALMConfigOptions' showOn='ALMConfUseNew']
-       [@ww.textfield labelKey="AlmLabEnvPrepareTask.createNewConfInputLbl" name="AUTConfName"/]
-     [/@ui.bambooSection]
+
+    [@ui.bambooSection dependsOn='ALMConfigOptions' showOn='ALMConfUseNew']
+            [@ww.textfield labelKey="AlmLabEnvPrepareTask.createNewConfInputLbl" name="NewAUTConfName" required='true'/]
+            [@ww.textfield labelKey="AlmLabEnvPrepareTask.assignAUTEnvConfIDtoInputLbl" name="outEnvID"/]
+    [/@ui.bambooSection]
+    [@ui.bambooSection dependsOn='ALMConfigOptions' showOn='ALMConfUseExist']
+            [@ww.textfield labelKey="AlmLabEnvPrepareTask.useAnExistingConfInputLbl" name="AUTConfName" required='true'/]
+    [/@ui.bambooSection]
 
 </div>
 
