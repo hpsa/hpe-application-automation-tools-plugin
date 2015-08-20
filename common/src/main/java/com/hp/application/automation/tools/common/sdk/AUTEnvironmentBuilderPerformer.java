@@ -83,6 +83,7 @@ public class AUTEnvironmentBuilderPerformer {
         AUTEnvironmentManager autEnvironmentManager = new AUTEnvironmentManager(client, logger);
         String parametersRootFolderId = autEnvironmentManager.getParametersRootFolderIdByAutEnvId(autEnvironmentId);
         String autEnvironmentConfigurationId = getAutEnvironmentConfigurationId(autEnvironmentManager, autEnvironmentId);
+        model.setCurrentConfigID(autEnvironmentConfigurationId);
 
         assignValuesToAutParameters(autEnvironmentConfigurationId, parametersRootFolderId);
     }

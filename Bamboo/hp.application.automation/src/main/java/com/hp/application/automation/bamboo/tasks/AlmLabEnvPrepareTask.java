@@ -5,9 +5,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
-import com.atlassian.bamboo.build.test.TestCollationService;
 import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
+import com.atlassian.bamboo.variable.VariableDefinitionManager;
+import com.hp.application.automation.tools.common.StringUtils;
 import com.hp.application.automation.tools.common.model.AutEnvironmentConfigModel;
 import com.hp.application.automation.tools.common.model.AutEnvironmentParameterModel;
 import com.hp.application.automation.tools.common.model.AutEnvironmentParameterType;
@@ -19,13 +20,15 @@ import com.atlassian.bamboo.configuration.ConfigurationMap;
 
 public class AlmLabEnvPrepareTask implements TaskType {
 
-	private final TestCollationService _testCollationService;
-	private final CapabilityContext _capabilityContext;
+	private final VariableService variableService;
+	private final CapabilityContext capabilityContext;
 
-	public AlmLabEnvPrepareTask(@NotNull final TestCollationService testCollationService, CapabilityContext capabilityContext)	{
-		this._testCollationService = testCollationService;
-		this._capabilityContext = capabilityContext;
+	public AlmLabEnvPrepareTask(VariableDefinitionManager variableDefinitionManager, CapabilityContext  capabilityContext)
+	{
+		this.variableService = new VariableService(variableDefinitionManager);
+		this.capabilityContext = capabilityContext;
 	}
+
 
 	@NotNull
 	public TaskResult execute(@NotNull TaskContext taskContext) throws TaskException {
@@ -56,13 +59,14 @@ public class AlmLabEnvPrepareTask implements TaskType {
 							prm.getAlmParamOnlyFirst()));
 		}
 
-		String almServerPath = this._capabilityContext.getCapabilityValue(AlmServerCapabilityHelper.GetCapabilityKey(almServer));
+		String almServerPath = this.capabilityContext.getCapabilityValue(AlmServerCapabilityHelper.GetCapabilityKey(almServer));
 
 		RestClient restClient = new RestClient(
 				almServerPath,
 				domain,
 				project,
 				userName);
+
 
 		AutEnvironmentConfigModel autEnvModel = new AutEnvironmentConfigModel(
 				almServerPath,
@@ -89,9 +93,13 @@ public class AlmLabEnvPrepareTask implements TaskType {
 			AUTEnvironmentBuilderPerformer performer = new AUTEnvironmentBuilderPerformer(restClient, logger, autEnvModel);
 			performer.start();
 
-			String output = confMap.get(AlmLabEnvPrepareTaskConfigurator.OUTPUT_CONFIGID);
+			String outputConfig = confMap.get(AlmLabEnvPrepareTaskConfigurator.OUTPUT_CONFIGID);
 
-			//assignOutputValue(build, performer, autEnvModel.getOutputParameter(), logger);
+			if (!StringUtils.isNullOrEmpty(outputConfig)) {
+
+				String confId = autEnvModel.getCurrentConfigID();
+				variableService.saveGlobalVariable(outputConfig, confId);
+			}
 
 		} catch (InterruptedException e) {
 			state = TaskState.ERROR;

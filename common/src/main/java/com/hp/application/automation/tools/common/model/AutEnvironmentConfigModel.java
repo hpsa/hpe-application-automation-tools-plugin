@@ -22,6 +22,8 @@ public class AutEnvironmentConfigModel {
     private final String pathToJsonFile;
     private List<AutEnvironmentParameterModel> autEnvironmentParameters;
 
+    private String currentConfigID;
+
     public AutEnvironmentConfigModel(String almServerUrl,
                                      String almServerName,
                                      String almUserName,
@@ -90,4 +92,14 @@ public class AutEnvironmentConfigModel {
     public String getPathToJsonFile() {
         return pathToJsonFile;
     }
+
+
+    public String getCurrentConfigID() {
+        return currentConfigID;
+    }
+
+    public void setCurrentConfigID(String currentConfigID) {
+        this.currentConfigID = currentConfigID;
+    }
+
 }
