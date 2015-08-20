@@ -82,7 +82,7 @@ public class TestApiTest {
     @Test
     public void testAudit() throws Exception {
         // make sure dispatcher logic was executed
-        queue.waitForTicks(2);
+        queue.waitForTicks(3);
 
         JenkinsRule.WebClient cli = rule.createWebClient();
         Page auditLog = cli.goTo("job/test-api-test/" + build.getNumber() + "/octane/tests/audit", "application/json");
