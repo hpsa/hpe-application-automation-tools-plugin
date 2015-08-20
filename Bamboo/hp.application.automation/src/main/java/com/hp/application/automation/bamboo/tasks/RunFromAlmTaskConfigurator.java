@@ -15,9 +15,6 @@ import java.util.Map;
 
 public class RunFromAlmTaskConfigurator extends AbstractUftTaskConfigurator {
 
-	private UIConfigSupport uiConfigBean;
-
-	private static final String UI_CONFIG_BEAN_PARAM = "uiConfigBean";
 	public static final String ALM_SERVER = "almServer";
 	public static final String USER_NAME = "userName";
 	public static final String PASSWORD = "password";
@@ -97,7 +94,6 @@ public class RunFromAlmTaskConfigurator extends AbstractUftTaskConfigurator {
 
 	private void populateContextForLists(@NotNull final Map<String, Object> context)
 	{
-		context.put(UI_CONFIG_BEAN_PARAM, uiConfigBean);
 		context.put(RUN_MODE_PARAMETER, getRunModes());
 	} 
 	
@@ -119,11 +115,6 @@ public class RunFromAlmTaskConfigurator extends AbstractUftTaskConfigurator {
 		context.put(TESTING_TOOL_HOST, configuration.get(TESTING_TOOL_HOST));
 		
 		populateContextForLists(context);
-	}
-
-	public void setUIConfigBean(final UIConfigSupport uiConfigBean)
-	{
-		this.uiConfigBean = uiConfigBean;
 	}
 
 	private Map<String, String> getRunModes()

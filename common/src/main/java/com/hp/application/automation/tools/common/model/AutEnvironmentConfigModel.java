@@ -7,7 +7,6 @@ import java.util.List;
  */
 public class AutEnvironmentConfigModel {
 
-    private final String almServerName;
     private String almServerUrl;
     private final String almUserName;
     private final String almPassword;
@@ -25,7 +24,6 @@ public class AutEnvironmentConfigModel {
     private String currentConfigID;
 
     public AutEnvironmentConfigModel(String almServerUrl,
-                                     String almServerName,
                                      String almUserName,
                                      String almPassword,
                                      String almDomain,
@@ -35,7 +33,6 @@ public class AutEnvironmentConfigModel {
                                      String envConf,
                                      String pathToJsonFile,
                                      List<AutEnvironmentParameterModel> autEnvironmentParameters){
-        this.almServerName = almServerName;
         this.almUserName = almUserName;
         this.almPassword = almPassword;
         this.almDomain = almDomain;
@@ -46,10 +43,6 @@ public class AutEnvironmentConfigModel {
         this.pathToJsonFile = pathToJsonFile;
         this.almServerUrl = almServerUrl;
         this.autEnvironmentParameters = autEnvironmentParameters;
-    }
-
-    public String getAlmServerName() {
-        return almServerName;
     }
 
     public String getAlmServerUrl() {

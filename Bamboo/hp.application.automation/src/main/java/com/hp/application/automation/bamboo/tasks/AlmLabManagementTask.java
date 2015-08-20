@@ -39,8 +39,7 @@ public class AlmLabManagementTask implements TaskType {
 
         final ConfigurationMap map = taskContext.getConfigurationMap();
         
-        final String almServer = map.get(AlmLabManagementTaskConfigurator.ALM_SERVER_PARAM);
-        final String almServerPath = _capabilityContext.getCapabilityValue(AlmServerCapabilityHelper.GetCapabilityKey(almServer));
+        final String almServerPath = map.get(AlmLabManagementTaskConfigurator.ALM_SERVER_PARAM);
 
         RunManager runManager = new RunManager();
 

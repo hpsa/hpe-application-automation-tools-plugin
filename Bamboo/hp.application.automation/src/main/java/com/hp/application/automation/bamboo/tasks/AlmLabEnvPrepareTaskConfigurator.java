@@ -15,7 +15,6 @@ import org.apache.commons.lang.StringUtils;
 
 public class AlmLabEnvPrepareTaskConfigurator extends AbstractTaskConfigurator {
 
-	private UIConfigSupport uiConfigBean;
 	private static final String UI_CONFIG_BEAN_PARAM = "uiConfigBean";
 
 	//shared constants
@@ -151,8 +150,6 @@ public class AlmLabEnvPrepareTaskConfigurator extends AbstractTaskConfigurator {
 	}
 
 	private void populateContextForLists(@NotNull final Map<String, Object> context) {
-		context.put(UI_CONFIG_BEAN_PARAM, uiConfigBean);
-
 		I18nBean textProvider = getI18nBean();
 
 		if(ENV_ALM_CONFIG_OPTIONS.isEmpty()) {
@@ -191,10 +188,6 @@ public class AlmLabEnvPrepareTaskConfigurator extends AbstractTaskConfigurator {
 
 		List<AlmConfigParameter> almParams = fetchAlmParametersFromContext(configuration);
 		context.put("almParams", almParams);
-	}
-
-	public void setUiConfigBean(final UIConfigSupport uiConfigBean) {
-		this.uiConfigBean = uiConfigBean;
 	}
 
 	public static List<AlmConfigParameter> fetchAlmParametersFromContext(@NotNull final Map<String, String> context) {

@@ -12,8 +12,7 @@
      <div>
 [/#macro]
 
-[@ww.select labelKey="AlmLabEnvPrepareTask.almServerInputLbl" name="almServer"
-    list=uiConfigBean.getExecutableLabels('hpAlmServer') extraUtility=addExecutableLink/]
+[@ww.textfield labelKey="AlmLabEnvPrepareTask.almServerInputLbl" name="almServer" required='true'/]
 [@ww.textfield labelKey="AlmLabEnvPrepareTask.userNameInputLbl" name="almUserName" required='true' required='true'/]
 [@ww.password labelKey="AlmLabEnvPrepareTask.passwordInputLbl" name="almUserPassword" showPassword="false"/]
 [@ww.textfield labelKey="AlmLabEnvPrepareTask.domainInputLbl" name="domain" required='true'/]

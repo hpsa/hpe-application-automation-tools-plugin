@@ -1,6 +1,6 @@
 [#-- @ftlvariable name="uiConfigBean" type="com.atlassian.bamboo.ww2.actions.build.admin.create.UIConfigSupport" --]
 
-[@ww.select labelKey="AlmLabManagementTask.almServer" name="almServer" list=uiConfigBean.getExecutableLabels('hpAlmServer') extraUtility=addExecutableLink/]
+[@ww.textfield labelKey="AlmLabManagementTask.almServer" name="almServer" required='true'/]
 [@ww.textfield labelKey="AlmLabManagementTask.userName" name="userName" required='true'/]
 [@ww.textfield labelKey="AlmLabManagementTask.password" name="password"/]
 [@ww.textfield labelKey="AlmLabManagementTask.domain" name="domain" required='true'/]

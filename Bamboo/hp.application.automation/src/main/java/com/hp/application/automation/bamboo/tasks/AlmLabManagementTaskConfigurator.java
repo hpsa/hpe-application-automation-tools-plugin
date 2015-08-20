@@ -39,9 +39,6 @@ public class AlmLabManagementTaskConfigurator extends AbstractTaskConfigurator
 	public static final String DEPLOYMENT_ACTION_ITEMS_PARAM = "deploymentActionItems";
 	public static final String DEPROVISIONING_ACTION_ITEMS_PARAM = "deprovisioningActionItems";
 
-	private static final String RUN_TYPE_TEST_SET_STRING = "AlmLabManagementTask.runType.item.testSet";
-	private static final String RUN_TYPE_BUILD_VERIFICATION_SUITE_STRING = "AlmLabManagementTask.runType.item.buildVerificationSuite";
-	
 	private static final String ALM_SERVER_REQUIRED_STRING = "AlmLabManagementTask.almServer.required";
 	private static final String USER_NAME_REQUIRED_STRING = "AlmLabManagementTask.userName.required";
 	private static final String DOMAIN_REQUIRED_STRING = "AlmLabManagementTask.domain.required";
@@ -51,13 +48,6 @@ public class AlmLabManagementTaskConfigurator extends AbstractTaskConfigurator
 	private static final String DURATION_MINIMUM_STRING = "AlmLabManagementTask.duration.minimum";
 	private static final String DURATION_INVALID_FORMAT_STRING = "AlmLabManagementTask.duration.invalidFormat";
 
-	protected UIConfigSupport uiConfigBean;
-	
-	public void setUiConfigBean(final UIConfigSupport uiConfigBean)
-	{
-		this.uiConfigBean = uiConfigBean;
-	}
-	
 	@NotNull
     @Override
 	public Map<String, String> generateTaskConfigMap(@NotNull final ActionParametersMap params, @Nullable final TaskDefinition previousTaskDefinition)
@@ -168,7 +158,6 @@ public class AlmLabManagementTaskConfigurator extends AbstractTaskConfigurator
 
 	private void populateContextForLists(@NotNull final Map<String, Object> context)
 	{
-		context.put(UI_CONFIG_BEAN_PARAM, uiConfigBean);
 	    context.put(RUN_TYPE_ITEMS_PARAM, getRunTypes());
 		context.put(DEPLOYMENT_ACTION_ITEMS_PARAM, getDeploymentActions());
 		context.put(DEPROVISIONING_ACTION_ITEMS_PARAM, getDeprovisioningActions());

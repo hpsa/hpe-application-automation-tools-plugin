@@ -26,8 +26,7 @@ public class RunFromAlmTask extends AbstractLauncherTask {
 
 		builder.setRunType(RunType.Alm);
 
-		final String almServer = map.get(RunFromAlmTaskConfigurator.ALM_SERVER);
-		final String almServerPath = _capabilityContext.getCapabilityValue(AlmServerCapabilityHelper.GetCapabilityKey(almServer));
+		final String almServerPath = map.get(RunFromAlmTaskConfigurator.ALM_SERVER);
 		builder.setAlmServerUrl(almServerPath);
 
 		builder.setAlmUserName(map.get(RunFromAlmTaskConfigurator.USER_NAME));

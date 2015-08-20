@@ -37,7 +37,6 @@ public class AlmLabEnvPrepareTask implements TaskType {
 		ConfigurationMap confMap = taskContext.getConfigurationMap();
 		TaskState state = TaskState.SUCCESS;
 
-		String almServer = confMap.get(AlmLabEnvPrepareTaskConfigurator.ALM_SERVER);
 		String domain = confMap.get(AlmLabEnvPrepareTaskConfigurator.DOMAIN);
 		String project = confMap.get(AlmLabEnvPrepareTaskConfigurator.PROJECT);
 		String userName = confMap.get(AlmLabEnvPrepareTaskConfigurator.USER_NAME);
@@ -59,7 +58,7 @@ public class AlmLabEnvPrepareTask implements TaskType {
 							prm.getAlmParamOnlyFirst()));
 		}
 
-		String almServerPath = this.capabilityContext.getCapabilityValue(AlmServerCapabilityHelper.GetCapabilityKey(almServer));
+		String almServerPath = confMap.get(AlmLabEnvPrepareTaskConfigurator.ALM_SERVER);
 
 		RestClient restClient = new RestClient(
 				almServerPath,
@@ -70,7 +69,6 @@ public class AlmLabEnvPrepareTask implements TaskType {
 
 		AutEnvironmentConfigModel autEnvModel = new AutEnvironmentConfigModel(
 				almServerPath,
-				almServer,
 				userName,
 				confMap.get(AlmLabEnvPrepareTaskConfigurator.PASSWORD),
 				domain,
