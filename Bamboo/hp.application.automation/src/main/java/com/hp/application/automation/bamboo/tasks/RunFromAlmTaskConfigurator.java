@@ -4,8 +4,6 @@ import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
 import com.atlassian.bamboo.utils.i18n.I18nBean;
-import com.atlassian.bamboo.ww2.actions.build.admin.create.UIConfigSupport;
-import com.atlassian.struts.TextProvider;
 import com.atlassian.util.concurrent.NotNull;
 import com.atlassian.util.concurrent.Nullable;
 import org.apache.commons.lang.StringUtils;

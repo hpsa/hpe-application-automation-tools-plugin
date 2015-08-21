@@ -1,7 +1,11 @@
 package com.hp.application.automation.bamboo.tasks;
 
 import com.hp.application.automation.tools.common.EncryptionUtils;
+import com.hp.application.automation.tools.common.StringUtils;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
 /*
@@ -20,8 +24,10 @@ import java.util.Properties;
  */
 public class LauncherParamsBuilder {
 
+	private final List<String> requiredParameters = Arrays.asList("almRunHost");
+
 	private Properties properties;
-	
+
 	public LauncherParamsBuilder()
 	{
 		properties = new Properties();
@@ -29,17 +35,30 @@ public class LauncherParamsBuilder {
 	
 	public void setRunType(RunType runType)
 	{
-		properties.put("runType", runType.toString());
+		setParamValue("runType", runType.toString());
 	}
 
 	public void setAlmServerUrl(String almServerUrl)
 	{
-		properties.put("almServerUrl", almServerUrl);
+		setParamValue("almServerUrl", almServerUrl);
 	}
-	
+
+	private void setParamValue(String paramName, String paramValue) {
+
+		if(StringUtils.isNullOrEmpty(paramValue)) {
+			if(!requiredParameters.contains(paramName))
+				properties.remove(paramName);
+			else
+				properties.put(paramName, "");
+		}
+		else {
+			properties.put(paramName, paramValue);
+		}
+	}
+
 	public void setAlmUserName(String almUserName)
 	{
-		properties.put("almUserName", almUserName);
+		setParamValue("almUserName", almUserName);
 	}
 
 	public void setAlmPassword(String almPassword)
@@ -61,49 +80,49 @@ public class LauncherParamsBuilder {
 	
 	public void setAlmDomain(String almDomain)
 	{
-		properties.put("almDomain", almDomain);
+		setParamValue("almDomain", almDomain);
 	}
 	
 	public void setAlmProject(String almProject)
 	{
-		properties.put("almProject", almProject);
+		setParamValue("almProject", almProject);
 	}
 	
 	public void setAlmRunMode(AlmRunMode almRunMode)
 	{
-		properties.put("almRunMode", almRunMode.toString());
+		properties.put("almRunMode", almRunMode != null ? almRunMode.toString() : "");
 	}
 	
 	public void setAlmTimeout(String almTimeout)
 	{
-		properties.put("almTimeout", almTimeout);
+		setParamValue("almTimeout", almTimeout);
 	}
 	
 	public void setTestSet(int index, String testSet)
 	{
-		properties.put("TestSet"+index, testSet);
+		setParamValue("TestSet" + index, testSet);
 	}
 
 	public void setAlmTestSet(String testSets)
 	{
-		properties.put("almTestSets", testSets);
+		setParamValue("almTestSets", testSets);
 	}
 
 	public void setAlmRunHost(String host)
 	{
-		properties.put("almRunHost", host);
+		setParamValue("almRunHost", host);
 	}
 
 	public void setTest(int index, String test)
 	{
-		properties.put("Test"+index, test);
+		setParamValue("Test" + index, test);
 	}
 
 	public void setPerScenarioTimeOut(String perScenarioTimeOut)
 	{
-		properties.put("PerScenarioTimeOut", perScenarioTimeOut);
+		setParamValue("PerScenarioTimeOut", perScenarioTimeOut);
 	}
-	
+
 	public Properties getProperties()
 	{
 		return properties;

@@ -8,35 +8,35 @@ import java.io.File;
 
 public class ResultInfoItem
 {
-    private String _testName;
+    private String testName;
     public String getTestName()
     {
-        return _testName;
+        return testName;
     }
 
-    private String _resultName;
+    private String resultName;
     public String getResultName()
     {
-        return _resultName;
+        return resultName;
     }
 
-    private File _sourceDir;
+    private File sourceDir;
     public File getSourceDir()
     {
-        return _sourceDir;
+        return sourceDir;
     }
 
-    private File _zipFile;
+    private File zipFile;
     public File getZipFile()
     {
-        return _zipFile;
+        return zipFile;
     }
 
     public ResultInfoItem(String testName, File sourceDir, File zipFile, String resultName)
     {
-        _testName = testName;
-        _resultName = resultName;
-        _sourceDir = sourceDir;
-        _zipFile = zipFile;
+        this.testName = testName;
+        this.resultName = resultName;
+        this.sourceDir = sourceDir;
+        this.zipFile = zipFile;
     }
 }

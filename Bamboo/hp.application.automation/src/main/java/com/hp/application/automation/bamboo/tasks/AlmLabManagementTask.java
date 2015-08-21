@@ -2,33 +2,25 @@ package com.hp.application.automation.bamboo.tasks;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.build.test.TestCollationService;
-import com.atlassian.bamboo.build.test.TestReportProvider;
 import com.atlassian.bamboo.configuration.ConfigurationMap;
 import com.atlassian.bamboo.task.*;
-import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.hp.application.automation.tools.common.SSEException;
 import com.hp.application.automation.tools.common.model.CdaDetails;
-import com.hp.application.automation.tools.common.model.SseModel;
 import com.hp.application.automation.tools.common.rest.RestClient;
 import com.hp.application.automation.tools.common.result.ResultSerializer;
 import com.hp.application.automation.tools.common.result.model.junit.Testsuites;
 import com.hp.application.automation.tools.common.sdk.Args;
-import com.hp.application.automation.tools.common.sdk.ConsoleLogger;
 import com.hp.application.automation.tools.common.sdk.Logger;
 import com.hp.application.automation.tools.common.sdk.RunManager;
 import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Properties;
-
 public class AlmLabManagementTask implements TaskType {
 
-	private final TestCollationService _testCollationService;
-	private final CapabilityContext _capabilityContext;
+	private final TestCollationService testCollationService;
 	
-	public AlmLabManagementTask(TestCollationService testCollationService, CapabilityContext capabilityContext){
-		_testCollationService = testCollationService;
-		_capabilityContext = capabilityContext;
+	public AlmLabManagementTask(TestCollationService testCollationService){
+		this.testCollationService = testCollationService;
 	}
 
     @NotNull
@@ -97,7 +89,7 @@ public class AlmLabManagementTask implements TaskType {
             return TaskResultBuilder.create(taskContext).failed().build();
         }
 
-        TestResultHelper.CollateResults(_testCollationService, taskContext);
+        TestResultHelper.CollateResults(testCollationService, taskContext);
 
         return TaskResultBuilder.create(taskContext).checkTestFailures().build();
     }

@@ -14,14 +14,14 @@ import org.jetbrains.annotations.Nullable;
 
 public class RunFromFileSystemTask extends AbstractLauncherTask {
 
-	private final ArtifactManager _artifactManager;
+	private final ArtifactManager artifactManager;
 	private final TextProvider _textProvider;
 
 	public RunFromFileSystemTask(@NotNull final TestCollationService testCollationService, @NotNull ArtifactManager artifactManager, @NotNull TextProvider textProvider)
 	{
 		super(testCollationService);
 
-		_artifactManager = artifactManager;
+		this.artifactManager = artifactManager;
 		_textProvider = textProvider;
 	}
 
@@ -66,7 +66,7 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
 			final String resultNameFormat = "%s Result";
 
 			Collection<ResultInfoItem> resultsPathes = TestResultHelper.getTestResults(getResultsFile(), resultsFilter, resultNameFormat, taskContext.getWorkingDirectory(), buildLogger);
-			TestResultHelper.publishArtifacts(taskContext, _artifactManager, resultsPathes, buildLogger);
+			TestResultHelper.publishArtifacts(taskContext, artifactManager, resultsPathes, buildLogger);
 		}
 	}
 
