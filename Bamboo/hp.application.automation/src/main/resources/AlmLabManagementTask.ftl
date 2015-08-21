@@ -1,8 +1,7 @@
 [#-- @ftlvariable name="uiConfigBean" type="com.atlassian.bamboo.ww2.actions.build.admin.create.UIConfigSupport" --]
-
 [@ww.textfield labelKey="AlmLabManagementTask.almServer" name="almServer" required='true'/]
 [@ww.textfield labelKey="AlmLabManagementTask.userName" name="userName" required='true'/]
-[@ww.textfield labelKey="AlmLabManagementTask.password" name="password"/]
+[@ww.textfield labelKey="AlmLabManagementTask.password" name="password" showPassword="false"/]
 [@ww.textfield labelKey="AlmLabManagementTask.domain" name="domain" required='true'/]
 [@ww.textfield labelKey="AlmLabManagementTask.projectName" name="projectName" required='true'/]
 [@ww.select labelKey="AlmLabManagementTask.runType" name="runType" list="runTypeItems" emptyOption="false"/]

@@ -22,17 +22,17 @@ public abstract class AbstractLauncherTask implements TaskType {
 	private final static String HpToolsLauncher_SCRIPT_NAME = "HpToolsLauncher.exe";
 	private final static String HpToolsAborter_SCRIPT_NAME = "HpToolsAborter.exe";
 
-	private final TestCollationService _testCollationService;
+	private final TestCollationService testCollationService;
 
-	private File _resultsFile;
+	private File resultsFile;
 	public File getResultsFile()
 	{
-		return _resultsFile;
+		return resultsFile;
 	}
 
 	public AbstractLauncherTask(@NotNull final TestCollationService testCollationService)
 	{
-		_testCollationService = testCollationService;
+		this.testCollationService = testCollationService;
 	}
 
 	protected abstract Properties getTaskProperties(final TaskContext taskContext) throws Exception;
@@ -72,7 +72,7 @@ public abstract class AbstractLauncherTask implements TaskType {
 		
 		File wd = taskContext.getWorkingDirectory();
 
-		this._resultsFile = new File(wd, resultsFileName);
+		this.resultsFile = new File(wd, resultsFileName);
 		
 		File paramsFile = new File(wd, paramFileName);
 		if (paramsFile.exists()){
@@ -210,7 +210,7 @@ public abstract class AbstractLauncherTask implements TaskType {
 	{
 		try
 		{
-			TestResultHelper.CollateResults(_testCollationService, taskContext);
+			TestResultHelper.CollateResults(testCollationService, taskContext);
 			uploadArtifacts(taskContext);
 			return TaskResultBuilder.create(taskContext).checkTestFailures().build();
 		}
