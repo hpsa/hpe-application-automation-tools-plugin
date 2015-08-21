@@ -47,7 +47,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 
 	private static final String PREFIX_CI = "analytics/ci/";
 
-	private static final String URI_TEST_RESULT_PUSH = PREFIX_CI + "test-results";
+	private static final String URI_TEST_RESULT_PUSH = PREFIX_CI + "test-results?skip-errors={0}";
 	private static final String URI_TEST_RESULT_STATUS = PREFIX_CI + "test-results/{0}";
 	private static final String URI_JOB_CONFIGURATION = "analytics/ci/servers/{0}/jobs/{1}/configuration";
 	private static final String URI_RELEASES = "releases";
@@ -68,12 +68,12 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 
 	@Override
 	public long postTestResult(InputStreamSource inputStreamSource, boolean skipErrors) {
-		return postTestResult(new InputStreamSourceEntity(inputStreamSource, ContentType.APPLICATION_XML));
+		return postTestResult(new InputStreamSourceEntity(inputStreamSource, ContentType.APPLICATION_XML), skipErrors);
 	}
 
 	@Override
 	public long postTestResult(File testResultReport, boolean skipErrors) {
-		return postTestResult(new FileEntity(testResultReport, ContentType.APPLICATION_XML));
+		return postTestResult(new FileEntity(testResultReport, ContentType.APPLICATION_XML), skipErrors);
 	}
 
 	@Override
@@ -229,9 +229,9 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
     private Taxonomy toTaxonomy(JSONObject t) {
         JSONObject parent = t.optJSONObject("parent");
         if (parent != null) {
-            return new Taxonomy(t.getLong("id"), t.getString("name"), toTaxonomy(parent));
+            return new Taxonomy(t.getLong("id"), t.optString("name"), toTaxonomy(parent));
         } else {
-            return new Taxonomy(t.getLong("id"), t.getString("name"), null);
+            return new Taxonomy(t.getLong("id"), t.optString("name"), null);
         }
     }
 
@@ -409,8 +409,8 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		return getEntities(getEntityURI(URI_LIST_ITEMS, conditions, workspaceId, offset, limit), offset, new ListItemEntityFactory());
 	}
 
-	private long postTestResult(HttpEntity entity) {
-        HttpPost request = new HttpPost(createSharedSpaceInternalApiUri(URI_TEST_RESULT_PUSH));
+	private long postTestResult(HttpEntity entity, boolean skipErrors) {
+		HttpPost request = new HttpPost(createSharedSpaceInternalApiUri(URI_TEST_RESULT_PUSH, skipErrors));
         request.setEntity(entity);
 		HttpResponse response = null;
 		try {

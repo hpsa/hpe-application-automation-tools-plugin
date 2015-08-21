@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testResult>
+    <build server="server" buildType="buildType" buildSid="1"/>
+    <tests>
+        <test module="helloModule" package="helloPackage" class="HelloWorldTest" name="helloName" duration="2" status="Passed" started="1431527285551" />
+    </tests>
+</testResult>
