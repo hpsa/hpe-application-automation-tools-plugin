@@ -40,16 +40,14 @@ public class PluginActions implements RootAction {
 		private static final String type = "jenkins";
 		private static final String version = Jenkins.VERSION;
 		private String url;
-		private String instanceId;
-		private Long instanceIdFrom;
+		private String instanceId = Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity();
+		private Long instanceIdFrom = Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentityFrom();
 
 		public ServerInfo() {
 			String serverUrl = Jenkins.getInstance().getRootUrl();
 			if (serverUrl != null && serverUrl.endsWith("/"))
 				serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
 			this.url = serverUrl;
-			this.instanceId = Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity();
-			this.instanceIdFrom = Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentityFrom();
 		}
 
 		@Exported(inline = true)
@@ -81,7 +79,7 @@ public class PluginActions implements RootAction {
 	@ExportedBean
 	public static final class PluginInfo {
 		private final String version = Jenkins.getInstance().getPlugin(OctanePlugin.class).getWrapper().getVersion();
-		private final Boolean abridged = Jenkins.getInstance().getPlugin(OctanePlugin.class).getAbridged();
+		private final boolean abridged = Jenkins.getInstance().getPlugin(OctanePlugin.class).getAbridged();
 
 		@Exported(inline = true)
 		public String getVersion() {
@@ -89,7 +87,7 @@ public class PluginActions implements RootAction {
 		}
 
 		@Exported(inline = true)
-		public Boolean getAbridged() {
+		public boolean getAbridged() {
 			return abridged;
 		}
 	}

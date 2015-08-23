@@ -13,6 +13,7 @@ import hudson.model.ProminentProjectAction;
 import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.TransientProjectActionFactory;
+import hudson.model.User;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.export.Flavor;
