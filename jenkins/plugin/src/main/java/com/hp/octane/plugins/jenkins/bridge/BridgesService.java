@@ -49,8 +49,7 @@ public class BridgesService implements ConfigurationListener {
 		} else {
 			synchronized (bridges) {
 				for (Bridge bridge : bridges) {
-					if (bridge.getLocation().equals(conf.location) &&
-							bridge.getSharedSpace().equals(conf.sharedSpace)) {
+					if (bridge.getLocation().equals(conf.location) && bridge.getSharedSpace().equals(conf.sharedSpace)) {
 						bridge.update(conf);
 						updated = true;
 						break;

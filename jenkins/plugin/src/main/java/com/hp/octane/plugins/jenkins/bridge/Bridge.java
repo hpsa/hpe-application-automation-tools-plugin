@@ -1,6 +1,5 @@
 package com.hp.octane.plugins.jenkins.bridge;
 
-import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
@@ -31,15 +30,21 @@ public class Bridge {
 	public Bridge(ServerConfiguration mqmConfig, JenkinsMqmRestClientFactory clientFactory) {
 		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.abridged, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
 		this.restClientFactory = clientFactory;
-		if (this.mqmConfig.abridged && openedConnections.get() < CONCURRENT_CONNECTIONS) connect();
+		if (this.mqmConfig.abridged) connect();
 		logger.info("BRIDGE: new bridge initialized for '" + this.mqmConfig.location + "', state: " + (this.mqmConfig.abridged ? "abridged" : "direct") + " connectivity");
+	}
+
+	public void update(ServerConfiguration mqmConfig) {
+		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.abridged, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
+		if (mqmConfig.abridged && openedConnections.get() < CONCURRENT_CONNECTIONS) connect();
+		logger.info("BRIDGE: updated for '" + this.mqmConfig.location + "', state: " + (this.mqmConfig.abridged ? "abridged" : "direct") + " connectivity");
 	}
 
 	private void connect() {
 		connectivityExecutors.execute(new Runnable() {
 			@Override
 			public void run() {
-				String taskJSON = null;
+				String taskJSON;
 				try {
 					openedConnections.incrementAndGet();
 					taskJSON = RESTClientTMP.get(mqmConfig.location +
@@ -52,20 +57,17 @@ public class Bridge {
 								mqmConfig.location + "/internal-api/shared_spaces/" + mqmConfig.sharedSpace + "/analytics/ci/servers/" + new PluginActions.ServerInfo().getInstanceId() + "/task"
 						));
 					}
-					connect();
-				} catch (Exception e) {
+					if (mqmConfig.abridged) connect();
+				} catch (RESTClientTMP.TemporaryException te) {
 					openedConnections.decrementAndGet();
-					logger.severe("connection to MQM Server interrupted: " + e.getMessage());
-					connect();
+					logger.severe("connection to MQM Server temporary failed: " + te.getMessage());
+					if (mqmConfig.abridged) connect();
+				} catch (RESTClientTMP.FatalException fe) {
+					openedConnections.decrementAndGet();
+					logger.severe("connection to MQM Server fatally failed: " + fe.getMessage());
 				}
 			}
 		});
-	}
-
-	public void update(ServerConfiguration mqmConfig) {
-		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.abridged, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
-		if (mqmConfig.abridged && openedConnections.get() < CONCURRENT_CONNECTIONS) connect();
-		logger.info("BRIDGE: updated for '" + this.mqmConfig.location + "', state: " + (this.mqmConfig.abridged ? "abridged" : "direct") + " connectivity");
 	}
 
 	@Exported(inline = true)

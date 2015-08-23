@@ -6,6 +6,8 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 
+import java.io.IOException;
+import java.net.ConnectException;
 import java.util.Map;
 
 /**
@@ -22,8 +24,10 @@ public class RESTClientTMP {
 		try {
 			client.executeMethod(getMethod);
 			return getMethod.getResponseBodyAsString();
-		} catch (Exception e) {
-			throw new RuntimeException("request failed", e);
+		} catch (ConnectException ce) {
+			throw new TemporaryException("temporary fail", ce);
+		} catch (IOException ioe) {
+			throw new FatalException("fatal fail", ioe);
 		} finally {
 			getMethod.releaseConnection();
 		}
@@ -43,6 +47,18 @@ public class RESTClientTMP {
 			throw new RuntimeException("request failed", e);
 		} finally {
 			putMethod.releaseConnection();
+		}
+	}
+
+	static class FatalException extends RuntimeException {
+		FatalException(String message, Throwable cause) {
+			super(message, cause);
+		}
+	}
+
+	static class TemporaryException extends RuntimeException {
+		TemporaryException(String message, Throwable cause) {
+			super(message, cause);
 		}
 	}
 }
