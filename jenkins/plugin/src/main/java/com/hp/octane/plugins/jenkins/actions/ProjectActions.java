@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created with IntelliJ IDEA.
@@ -66,30 +67,40 @@ public class ProjectActions extends TransientProjectActionFactory {
             }
             List<Run> result = project.getLastBuildsOverThreshold(numberOfBuilds, Result.FAILURE); // get last five build with result that better or equal failure
             for (int i = 0; i < result.size(); i++) {
-                AbstractBuild abstractBuild =  (AbstractBuild)result.get(i);
-                SCMData smData = SCMProcessors
-                        .getAppropriate(abstractBuild.getProject().getScm().getClass().getName())
-                        .getSCMChanges(abstractBuild);
-                buildHistory.addBuild(result.get(i).getResult().toString(), String.valueOf(result.get(i).getNumber()), result.get(i).getTimestampString(),String.valueOf(result.get(i).getStartTimeInMillis()), String.valueOf(result.get(i).getDuration()),smData);
+
+                AbstractBuild abstractBuild = (AbstractBuild) result.get(i);
+                if (abstractBuild != null) {
+                    SCMData smData = SCMProcessors
+                            .getAppropriate(abstractBuild.getProject().getScm().getClass().getName())
+                            .getSCMChanges(abstractBuild);
+                    Set<User> users = abstractBuild.getCulprits();
+                    buildHistory.addBuild(abstractBuild.getResult().toString(), String.valueOf(abstractBuild.getNumber()), abstractBuild.getTimestampString(), String.valueOf(abstractBuild.getStartTimeInMillis()), String.valueOf(abstractBuild.getDuration()), smData, users);
+                }
             }
             SCMData smData = null;
-            AbstractBuild lastSuccessfulBuild = (AbstractBuild)project.getLastSuccessfulBuild();
+            AbstractBuild lastSuccessfulBuild = (AbstractBuild) project.getLastSuccessfulBuild();
             if (lastSuccessfulBuild != null) {
-                 smData = SCMProcessors
+                smData = SCMProcessors
                         .getAppropriate(lastSuccessfulBuild.getProject().getScm().getClass().getName())
                         .getSCMChanges(lastSuccessfulBuild);
-                buildHistory.addLastSuccesfullBuild(lastSuccessfulBuild.getResult().toString(), String.valueOf(lastSuccessfulBuild.getNumber()), lastSuccessfulBuild.getTimestampString(),String.valueOf(lastSuccessfulBuild.getStartTimeInMillis()),  String.valueOf(lastSuccessfulBuild.getDuration()),smData);
+                Set<User> users = lastSuccessfulBuild.getCulprits();
+                buildHistory.addLastSuccesfullBuild(lastSuccessfulBuild.getResult().toString(), String.valueOf(lastSuccessfulBuild.getNumber()), lastSuccessfulBuild.getTimestampString(), String.valueOf(lastSuccessfulBuild.getStartTimeInMillis()), String.valueOf(lastSuccessfulBuild.getDuration()), smData, users);
             }
-            AbstractBuild lastBuild =  (AbstractBuild)project.getLastBuild();
+            AbstractBuild lastBuild = (AbstractBuild) project.getLastBuild();
             if (lastBuild != null) {
-                 smData = SCMProcessors
+                smData = SCMProcessors
                         .getAppropriate(lastBuild.getProject().getScm().getClass().getName())
                         .getSCMChanges(lastBuild);
-                buildHistory.addLastBuild(lastBuild.getResult().toString(), String.valueOf(lastBuild.getNumber()), lastBuild.getTimestampString(),String.valueOf(lastBuild.getStartTimeInMillis()), String.valueOf(lastBuild.getDuration()),smData);
+                Set<User> users = lastBuild.getCulprits();
+                if (lastBuild.getResult() == null) {
+                    buildHistory.addLastBuild("building", String.valueOf(lastBuild.getNumber()), lastBuild.getTimestampString(), String.valueOf(lastBuild.getStartTimeInMillis()), String.valueOf(lastBuild.getDuration()), smData, users);
+                } else {
+                    buildHistory.addLastBuild(lastBuild.getResult().toString(), String.valueOf(lastBuild.getNumber()), lastBuild.getTimestampString(), String.valueOf(lastBuild.getStartTimeInMillis()), String.valueOf(lastBuild.getDuration()), smData, users);
+                }
+
             }
             res.serveExposedBean(req, buildHistory, Flavor.JSON);
         }
-
 
         public void doRun(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
             //SecurityContext context = ACL.impersonate(User.get("gullerya").impersonate());

@@ -314,7 +314,7 @@ public class MqmRestClientImplTest {
             for (int i = 0; i < 30; i++) {
                 TestResultStatus testResultStatus = client.getTestResultStatus(id);
                 status = testResultStatus.getStatus();
-                if ("success".equals(status)) {
+                if (!"running".equals(status) && !"queued".equals(status)) {
                     break;
                 }
                 Thread.sleep(1000);
@@ -755,6 +755,19 @@ public class MqmRestClientImplTest {
 		items = client.queryListItems(toolTypeList.getItems().get(0).getId(), list.get(0).getName(), WORKSPACE, 0, 100);
 		Assert.assertEquals(1, items.getItems().size());
 	}
+
+    @Test
+    public void testGetTestResultStatus() throws IOException {
+        String testResultsXml = ResourceUtils.readContent("TestResults2.xml");
+        File testResults = File.createTempFile(getClass().getSimpleName(), "");
+        testResults.deleteOnExit();
+        FileUtils.write(testResults, testResultsXml);
+        long id = client.postTestResult(testResults, false);
+        TestResultStatus resultStatus = client.getTestResultStatus(id);
+        Assert.assertTrue("queued".equals(resultStatus.getStatus()) ||
+                "running".equals(resultStatus.getStatus()) ||
+                "failed".equals(resultStatus.getStatus()));
+    }
 
     private Pipeline getSinglePipeline(String serverIdentity, String jobName) {
         JobConfiguration jobConfiguration = client.getJobConfiguration(serverIdentity, jobName);

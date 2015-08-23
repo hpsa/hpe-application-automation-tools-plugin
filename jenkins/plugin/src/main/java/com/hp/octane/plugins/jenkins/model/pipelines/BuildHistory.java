@@ -1,10 +1,12 @@
 package com.hp.octane.plugins.jenkins.model.pipelines;
 
 import com.hp.octane.plugins.jenkins.model.scm.SCMData;
+import hudson.model.User;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
 import java.util.ArrayList;
+import java.util.Set;
 
 /**
  * Created with IntelliJ IDEA.
@@ -27,6 +29,7 @@ public class BuildHistory {
         private String startTime;
         private String duration;
         private SCMData scmData;
+        private Set<User> culprits;
 
 
         Build(String status, String number, String time) {
@@ -35,13 +38,14 @@ public class BuildHistory {
             this.time = time;
         }
 
-        public Build(String status, String number, String time, String startTime, String duration,SCMData scmData) {
+        public Build(String status, String number, String time, String startTime, String duration,SCMData scmData ,Set<User> culprits) {
             this.status = status;
             this.number = number;
             this.time = time;
             this.startTime = startTime;
             this.duration = duration;
             this.scmData = scmData;
+            this.culprits=culprits;
         }
 
         @Exported(inline = true)
@@ -84,6 +88,10 @@ public class BuildHistory {
         public SCMData getScmData() {
             return scmData;
         }
+        @Exported(inline = true)
+        public Set<User> getCulprits() {
+            return culprits;
+        }
     }
 
     public BuildHistory() {
@@ -92,16 +100,16 @@ public class BuildHistory {
         this.lastBuild = null;
     }
 
-    public void addBuild(String status, String number, String time, String startTime, String duration,SCMData scmData) {
-        builds.add(new Build(status, number, time, startTime, duration,scmData));
+    public void addBuild(String status, String number, String time, String startTime, String duration,SCMData scmData , Set<User> culprits) {
+        builds.add(new Build(status, number, time, startTime, duration,scmData,culprits));
     }
 
-    public void addLastSuccesfullBuild(String status, String number, String time, String startTime, String duration,SCMData scmData) {
-        lastSuccesfullBuild = new Build(status, number, time, startTime, duration, scmData);
+    public void addLastSuccesfullBuild(String status, String number, String time, String startTime, String duration,SCMData scmData , Set<User> culprits) {
+        lastSuccesfullBuild = new Build(status, number, time, startTime, duration, scmData,culprits);
     }
 
-    public void addLastBuild(String status, String number, String time, String startTime, String duration,SCMData scmData) {
-        lastBuild = new Build(status, number, time, startTime, duration,scmData);
+    public void addLastBuild(String status, String number, String time, String startTime, String duration,SCMData scmData , Set<User> culprits) {
+        lastBuild = new Build(status, number, time, startTime, duration,scmData,culprits);
     }
 
 
