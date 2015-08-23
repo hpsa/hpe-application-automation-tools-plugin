@@ -484,6 +484,54 @@ namespace HpToolsLauncher
             return drive.DriveType == DriveType.Network;
         }
 
+        public static bool IsLeanFTRunning()
+        {
+            bool bRet = false;
+            Process[] procArray = Process.GetProcessesByName("LFTRuntime");   // Hardcoded temporarily since LeanFT does not store the process name anywhere
+            if (procArray.Length != 0)
+            {
+                bRet = true;
+            }
+            return bRet;
+        }
+
+        public static bool IsSprinterRunning()
+        {
+            RegistryKey key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey("SOFTWARE\\Hewlett-Packard\\Manual Runner\\Process");
+            if (key == null)
+                return false;
+
+            var arrayName = key.GetSubKeyNames();
+            if (arrayName.Length == 0)
+                return false;
+            foreach (string s in arrayName)
+            {
+                Process[] sprinterProcArray = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(s));
+                if ( sprinterProcArray.Length != 0 )
+                    return true;
+                
+            }
+            return false;
+        }
+
+        public static bool CanUftProcessStart(out string reason)
+        {
+            //Close UFT when some of the Sprinter processes is running
+            if (IsSprinterRunning())
+            {
+                reason = Resources.UFT_Sprinter_Running;
+                return false;
+            }
+
+            //Close UFT when LeanFT engine is running
+            if (IsLeanFTRunning())
+            {
+                reason = Resources.UFT_LeanFT_Running;
+                return false;
+            }
+            reason = string.Empty;
+            return true;
+        }
 
         #region Report Related
 
