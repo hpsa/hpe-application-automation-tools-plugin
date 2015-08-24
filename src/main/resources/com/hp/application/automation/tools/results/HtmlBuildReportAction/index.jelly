@@ -43,7 +43,7 @@
        <p>
        <table border="1" cellpadding="0" cellspacing="0" frame="vsides above bottom" >
          <tr>
-             <th class = "topNormalCell"></th>
+             <th class = "topNormalCell">Type</th>
              <th class = "topNormalCell">Report name</th>
              <th class = "topNormalCell">Timestamp</th>
              <th class = "topNormalCell">Status</th>
@@ -54,24 +54,24 @@
            <tr>
              <j:choose>
                 <j:when test="${s.isHtmlReport}">
-                    <td class = "bodycell"><img src="${rootURL}/plugin/hp-application-automation-tools-plugin/icons/16x16/html_report.png" alt="Html_report"/></td>
+                    <td class = "bodycell" align = "center"><img src="${rootURL}/plugin/hp-application-automation-tools-plugin/icons/16x16/html_report.png" alt="Html_report" title="Html Report"/></td>
+                    <td class = "bodycell"><a href="../${s.urlName}" target="_blank">${s.disPlayName}</a></td>
                 </j:when>
                 <j:otherwise>
-                    <td class = "bodycell"><img src="${rootURL}/plugin/hp-application-automation-tools-plugin/icons/16x16/rrv_report.png" alt="RRV_report"/></td>
+                    <td class = "bodycell" align = "center"><img src="${rootURL}/plugin/hp-application-automation-tools-plugin/icons/16x16/rrv_report.png" alt="RRV_report" title="RRV"/></td>
+                    <td class = "bodycell"><a href="../${s.urlName}">${s.disPlayName}</a></td>
                 </j:otherwise>
              </j:choose>
-
-             <td class = "bodycell"><a href="../${s.urlName}">${s.disPlayName}</a></td>
 
              <td class = "bodycell">${s.dateTime}</td>
 
              <j:set var="status" value="${s.status}" />
              <j:choose>
                 <j:when test="${status=='pass'}">
-                    <td class = "bodycell"><img src="${rootURL}/plugin/hp-application-automation-tools-plugin/icons/16x16/passed.png" alt="Passed"/></td>
+                    <td class = "bodycell" align = "center"><img src="${rootURL}/plugin/hp-application-automation-tools-plugin/icons/16x16/passed.png" alt="Passed"/></td>
                 </j:when>
                 <j:otherwise>
-                    <td class = "bodycell"><img src="${rootURL}/plugin/hp-application-automation-tools-plugin/icons/16x16/failed.png" alt="Failed"/></td>
+                    <td class = "bodycell" align = "center"><img src="${rootURL}/plugin/hp-application-automation-tools-plugin/icons/16x16/failed.png" alt="Failed"/></td>
                 </j:otherwise>
              </j:choose>
 
