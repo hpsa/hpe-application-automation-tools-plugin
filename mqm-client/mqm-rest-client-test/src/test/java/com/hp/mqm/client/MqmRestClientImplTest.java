@@ -28,10 +28,12 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -784,6 +786,30 @@ public class MqmRestClientImplTest {
         Assert.assertTrue("queued".equals(resultStatus.getStatus()) ||
                 "running".equals(resultStatus.getStatus()) ||
                 "failed".equals(resultStatus.getStatus()));
+    }
+
+    @Test
+    public void testGetTestResultLog() throws IOException, InterruptedException {
+        String testResultsXml = ResourceUtils.readContent("TestResults2.xml");
+        File testResults = File.createTempFile(getClass().getSimpleName(), "");
+        testResults.deleteOnExit();
+        FileUtils.write(testResults, testResultsXml);
+        long id = client.postTestResult(testResults, false);
+        assertPublishResult(id, "failed");
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        client.getTestResultLog(id, new LogOutput() {
+            @Override
+            public OutputStream getOutputStream() throws IOException {
+                return baos;
+            }
+            @Override
+            public void setContentType(String contentType) {
+                Assert.assertEquals("text/plain", contentType);
+            }
+        });
+        String body = baos.toString("UTF-8");
+        Assert.assertTrue(body.contains("status: failed\n"));
+        Assert.assertTrue(body.contains("\n\nBuild reference {server: server; buildType: buildType; buildSid: 1} not resolved\n"));
     }
 
     private Pipeline getSinglePipeline(String serverIdentity, String jobName) {

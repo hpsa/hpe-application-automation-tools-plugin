@@ -40,7 +40,7 @@ public class BuildActionsGeneralTest {
 	public void testOctaneActionsClass() throws Exception {
 		FreeStyleProject p = rule.createFreeStyleProject(projectName);
 		AbstractBuild b = rule.buildAndAssertSuccess(p);
-		BuildActions.OctaneBuildActions octaneActions = new BuildActions.OctaneBuildActions(b);
+		BuildActions.OctaneBuildActions octaneActions = new BuildActions.OctaneBuildActions(b, null);
 		assertEquals(octaneActions.getIconFileName(), null);
 		assertEquals(octaneActions.getDisplayName(), null);
 		assertEquals(octaneActions.getUrlName(), "octane");
