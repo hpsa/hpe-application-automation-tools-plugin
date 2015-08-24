@@ -12,6 +12,8 @@ import java.util.Map;
 
 /**
  * Created by gullery on 12/08/2015.
+ * <p/>
+ * This class and all it's content to be removed once MQMRestClient migration finalized
  */
 
 public class RESTClientTMP {

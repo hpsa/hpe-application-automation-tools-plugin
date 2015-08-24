@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 /**
  * Created by gullery on 17/08/2015.
  * <p/>
- * This class is a Tasks Processor definition to be run in separate thread
+ * This class is a Tasks Processor for abridged connectivity and to be run in separate thread
  */
 
 public class TaskProcessor implements Runnable {
@@ -24,11 +24,26 @@ public class TaskProcessor implements Runnable {
 
 	@Override
 	public void run() {
-		if (task.getString("method").toLowerCase().equals("get")) {
-			Map<String, String> headers = new HashMap<String, String>();
-			headers.put("accept", "application/json");
-			String resultBody = RESTClientTMP.get(task.getString("url"), headers);
-			RESTClientTMP.put(baseURL + "/" + task.getString("id") + "/result", 200, null, resultBody);
+		String url = task.getString("url");
+		Map<String, String> headers = task.containsKey("headers") ? buildHeadersMap(task.getJSONObject("headers")) : null;
+		String resultBody;
+		if (task.getString("method").equals("GET")) {
+			resultBody = RESTClientTMP.get(url, headers);
+		} else if (task.getString("method").equals("PUT")) {
+			//  add suppord for PUT method
+			resultBody = "not available";
+		} else if (task.getString("method").equals("POST")) {
+			//  add support for POST method
+			resultBody = "not available";
+		} else {
+			resultBody = "not supported method";
 		}
+		RESTClientTMP.put(baseURL + "/" + task.getString("id") + "/result", 200, null, resultBody);
+	}
+
+	private Map<String, String> buildHeadersMap(JSONObject json) {
+		Map<String, String> result = new HashMap<String, String>();
+		result.put("accept", "application/json");
+		return result;
 	}
 }
