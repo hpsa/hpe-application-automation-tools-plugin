@@ -91,7 +91,7 @@ public class HtmlBuildReportAction implements Action {
     public String getIconFileName() {
 
         //return reportFile().exists() ? "graph.gif" : null;
-        return "graph.gif";
+        return "/plugin/hp-application-automation-tools-plugin/icons/24x24/uft_report.png";
     }
 
     // other property of the report

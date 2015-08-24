@@ -247,7 +247,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         return true;
     }
     
-private void writeReportMetaData2XML(List<ReportMetaData> htmlReportsInfo, String xmlFile) throws IOException, ParserConfigurationException {
+    private void writeReportMetaData2XML(List<ReportMetaData> htmlReportsInfo, String xmlFile) throws IOException, ParserConfigurationException {
 
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = dbf.newDocumentBuilder();
@@ -297,9 +297,9 @@ private void writeReportMetaData2XML(List<ReportMetaData> htmlReportsInfo, Strin
 
             //copy to the subdirs of master
             FilePath source = new FilePath(build.getWorkspace(), htmlReportDir);
-            String testFullName = htmlReportInfo.getDisPlayName();  //like "C:\UFTTest\GuiTest1"
-            File testFileFullName = new File(testFullName);
-            String testName = testFileFullName.getName();  //like GuiTest1
+            String testName = htmlReportInfo.getDisPlayName();  //like "GuiTest1"
+            //File testFileFullName = new File(testFullName);
+            //String testName = testFileFullName.getName();  //like GuiTest1
             String dest = testName;
             FilePath targetPath = new FilePath(rootTarget, dest);  //target path is something like "C:\Program Files (x86)\Jenkins\jobs\testAction\builds\35\archive\UFTReport\GuiTest1"
             listener.getLogger().println("copying html report, source: " + source.getRemote() + " target: " + targetPath.getRemote());
@@ -457,13 +457,14 @@ private void writeReportMetaData2XML(List<ReportMetaData> htmlReportsInfo, Strin
 						
 						//check for the new html report
 						FilePath htmlReport = new FilePath(reportFolder, "run_results.html");
+                        FilePath rrvReport = new FilePath(reportFolder, "Results.xml");
 						if (htmlReport.exists()) {
 							reportIsHtml = true;
 							String htmlReportDir = reportFolder.getRemote();
 
 							ReportMetaData reportMetaData = new ReportMetaData();
 							reportMetaData.setFolderPath(htmlReportDir);
-							reportMetaData.setDisPlayName(testFolderPath);
+                            //reportMetaData.setDisPlayName(testFolderPath);
 							reportMetaData.setIsHtmlReport(true);
 							reportMetaData.setDateTime(testDateTime);
 							reportMetaData.setStatus(testStatus);
@@ -472,7 +473,8 @@ private void writeReportMetaData2XML(List<ReportMetaData> htmlReportsInfo, Strin
 							String testName = testFileFullName.getName();
 							String resourceUrl = "artifact/UFTReport/" + testName;
 							reportMetaData.setResourceURL(resourceUrl);
-							//don't know reportMetaData's URL path yet, we will generate it later.
+                            reportMetaData.setDisPlayName(testName); // use the name, not the full path
+                            //don't know reportMetaData's URL path yet, we will generate it later.
 							ReportInfoToCollect.add(reportMetaData);
 
 							listener.getLogger().println("add html report info to ReportInfoToCollect: " + "[date]" + testDateTime);
@@ -492,7 +494,7 @@ private void writeReportMetaData2XML(List<ReportMetaData> htmlReportsInfo, Strin
 						}
 						
 						
-						if (archiveTestResult && !reportIsHtml) {
+						if (archiveTestResult && rrvReport.exists()) {
 
 							if (reportFolder.exists()) {
 								
@@ -507,7 +509,8 @@ private void writeReportMetaData2XML(List<ReportMetaData> htmlReportsInfo, Strin
 										"Zipping report folder: " + reportFolderPath);
 								
 								ByteArrayOutputStream outstr = new ByteArrayOutputStream();
-								reportFolder.zip(outstr);
+
+                                reportFolder.zip(outstr, new RRVFileFilter());
 								
 								/*
 								 * I did't use copyRecursiveTo or copyFrom due to
@@ -532,7 +535,9 @@ private void writeReportMetaData2XML(List<ReportMetaData> htmlReportsInfo, Strin
 								ReportMetaData reportMetaData = new ReportMetaData();
 								reportMetaData.setIsHtmlReport(false);
 								//reportMetaData.setFolderPath(htmlReportDir); //no need for RRV
-								reportMetaData.setDisPlayName(testFolderPath);
+                                File testFileFullName = new File(testFolderPath);
+                                String testName = testFileFullName.getName();
+								reportMetaData.setDisPlayName(testName);  // use the name, not the full path
 								String zipFileUrlName = "artifact/" + zipFileName;
 								reportMetaData.setUrlName(zipFileUrlName);    //for RRV, the file url and resource url are the same.
 								reportMetaData.setResourceURL(zipFileUrlName);
@@ -883,5 +888,36 @@ private void writeReportMetaData2XML(List<ReportMetaData> htmlReportsInfo, Strin
             
             return ResultsPublisherModel.archiveModes;
         }
+    }
+
+    public class RRVFileFilter implements FileFilter{
+        //"Act*;Icons;Resources;CountersMonitorResults.txt;*.xls;GeneralInfo.ini;InstallNewReport.html;Results.qtp;Results.xml";
+        private final String[] excludedFilenames =
+                new String[] {"run_results.xml","run_results.html", "diffcompare", "Resources"};
+        private final String[] excludedDirnames =
+                new String[] {"diffcompare", "Resources", "CheckPoints", "Snapshots"};
+        public boolean accept(File file)
+        {
+            boolean bRet = true;
+
+            for (String filename : excludedFilenames) {
+                if (file.getName().equals(filename)){
+                    bRet = false;
+                    break;
+                }
+            }
+
+            if( bRet )
+            {
+                for (String parentname : excludedDirnames) {
+                    if (file.getParent().contains(parentname)) {
+                        bRet = false;
+                        break;
+                    }
+                }
+            }
+            return bRet;
+        }
+
     }
 }
