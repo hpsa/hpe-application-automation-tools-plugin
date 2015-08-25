@@ -9,6 +9,7 @@ import com.hp.mqm.client.exception.SharedSpaceNotExistException;
 import com.hp.mqm.client.model.PagedList;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -37,7 +38,6 @@ import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -164,7 +164,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
         HttpPost post = new HttpPost(createBaseUri(URI_AUTHENTICATION));
         String authorizationString = HEADER_VALUE_BASIC_AUTH +
                 (username != null ? username : "") + ":" + (password != null ? password : "");
-        post.setHeader(HEADER_NAME_AUTHORIZATION, Base64.getEncoder().encodeToString(authorizationString.getBytes(StandardCharsets.UTF_8)));
+        post.setHeader(HEADER_NAME_AUTHORIZATION, Base64.encodeBase64String(authorizationString.getBytes(StandardCharsets.UTF_8)));
 
         HttpResponse response = null;
         try {
