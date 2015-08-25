@@ -1,17 +1,16 @@
 package com.hp.mqm.client;
 
 import com.hp.mqm.client.exception.AuthenticationException;
-import com.hp.mqm.client.exception.SharedSpaceNotExistException;
 import com.hp.mqm.client.exception.LoginErrorException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
 import com.hp.mqm.client.exception.SessionCreationException;
+import com.hp.mqm.client.exception.SharedSpaceNotExistException;
 import com.hp.mqm.client.model.PagedList;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -37,14 +36,23 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 
-	private static final String URI_AUTHENTICATION = "authentication-point/alm-authenticate";
+	private static final String URI_AUTHENTICATION = "authentication/sign_in";
 	private static final String URI_CREATE_SESSION = "rest/site-session";
-	static final String URI_LOGOUT = "authentication-point/logout";
+    private static final String HEADER_NAME_AUTHORIZATION = "Authorization";
+    private static final String HEADER_VALUE_BASIC_AUTH = "Basic ";
+    static final String URI_LOGOUT = "authentication/sign_out";
 
 	private static final String URI_DOMAIN_PROJECT_CHECK = "defects?query=%7Bid%5B0%5D%7D";
 
@@ -125,7 +133,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	 */
 	protected synchronized void login() {
 		authenticate();
-		createSession();
+//		createSession();
 		alreadyLoggedIn = true;
 	}
 
@@ -133,7 +141,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	 * Logout from MQM.
 	 */
 	protected synchronized void logout() {
-		HttpUriRequest request = new HttpGet(createBaseUri(URI_LOGOUT));
+		HttpUriRequest request = new HttpPost(createBaseUri(URI_LOGOUT));
 		HttpResponse response = null;
 		try {
 			response = httpClient.execute(request);
@@ -153,21 +161,23 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	}
 
 	private void authenticate() {
-//        HttpPost post = new HttpPost(createBaseUri(URI_AUTHENTICATION));
-//        post.setEntity(new StringEntity(createAuthenticationXml(), ContentType.create("application/xml", "UTF-8")));
-//
-//        HttpResponse response = null;
-//        try {
-//            response = httpClient.execute(post);
-//            if (response.getStatusLine().getStatusCode() != 200) {
-//                throw new AuthenticationException("Authentication failed: code=" + response.getStatusLine().getStatusCode() + "; reason=" + response.getStatusLine().getReasonPhrase());
-//            }
-//        } catch (IOException e) {
-//            throw new LoginErrorException("Error occurred during authentication", e);
-//        } finally {
-//            HttpClientUtils.closeQuietly(response);
-//        }
-	}
+        HttpPost post = new HttpPost(createBaseUri(URI_AUTHENTICATION));
+        String authorizationString = HEADER_VALUE_BASIC_AUTH +
+                (username != null ? username : "") + ":" + (password != null ? password : "");
+        post.setHeader(HEADER_NAME_AUTHORIZATION, Base64.getEncoder().encodeToString(authorizationString.getBytes(StandardCharsets.UTF_8)));
+
+        HttpResponse response = null;
+        try {
+            response = httpClient.execute(post);
+            if (response.getStatusLine().getStatusCode() != 200) {
+                throw new AuthenticationException("Authentication failed: code=" + response.getStatusLine().getStatusCode() + "; reason=" + response.getStatusLine().getReasonPhrase());
+            }
+        } catch (IOException e) {
+            throw new LoginErrorException("Error occurred during authentication", e);
+        } finally {
+            HttpClientUtils.closeQuietly(response);
+        }
+    }
 
 	private void createSession() {
 		HttpPost request = new HttpPost(createBaseUri(URI_CREATE_SESSION));
@@ -184,15 +194,6 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 		} finally {
 			HttpClientUtils.closeQuietly(response);
 		}
-	}
-
-	private String createAuthenticationXml() {
-		Document document = new Document();
-		Element root = new Element("alm-authentication");
-		document.setRootElement(root);
-		root.addContent(new Element("user").setText(username != null ? username : ""));
-		root.addContent(new Element("password").setText(password != null ? password : ""));
-		return new XMLOutputter().outputString(document);
 	}
 
 	private String createSessionXml() {
