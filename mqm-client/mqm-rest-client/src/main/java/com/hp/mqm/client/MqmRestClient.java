@@ -56,10 +56,18 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	/**
 	 * Get status of the test result post operation
 	 *
-	 * @param id of the post operation
+	 * @param id ID of the post operation
 	 * @return operation status
 	 */
 	TestResultStatus getTestResultStatus(long id);
+
+	/**
+	 * Get (error) log associated with the test result post operation
+	 *
+	 * @param id ID of the post operation
+	 * @param output structure to receive the log
+	 */
+	void getTestResultLog(long id, LogOutput output);
 
 	/**
 	 * Retrieve job configuration from MQM server. If given job doesn't participate in any pipeline, "empty"

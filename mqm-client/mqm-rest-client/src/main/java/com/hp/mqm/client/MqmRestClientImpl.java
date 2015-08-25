@@ -32,6 +32,7 @@ import org.apache.http.entity.StringEntity;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -49,6 +50,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 
 	private static final String URI_TEST_RESULT_PUSH = PREFIX_CI + "test-results?skip-errors={0}";
 	private static final String URI_TEST_RESULT_STATUS = PREFIX_CI + "test-results/{0}";
+	private static final String URI_TEST_RESULT_LOG = URI_TEST_RESULT_STATUS + "/log";
 	private static final String URI_JOB_CONFIGURATION = "analytics/ci/servers/{0}/jobs/{1}/configuration";
 	private static final String URI_RELEASES = "releases";
 	private static final String URI_LIST_ITEMS = "list_nodes";
@@ -98,6 +100,26 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
             return new TestResultStatus(jsonObject.getString("status"), until);
         } catch (IOException e) {
             throw new RequestErrorException("Cannot obtain status.", e);
+        } finally {
+            HttpClientUtils.closeQuietly(response);
+        }
+	}
+
+	@Override
+	public void getTestResultLog(long id, LogOutput output) {
+        HttpGet request = new HttpGet(createSharedSpaceInternalApiUri(URI_TEST_RESULT_LOG, id));
+        HttpResponse response = null;
+        try {
+            response = execute(request);
+            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+                throw createRequestException("Log retrieval failed", response);
+            }
+            output.setContentType(response.getFirstHeader("Content-type").getValue());
+            InputStream is = response.getEntity().getContent();
+            IOUtils.copy(is, output.getOutputStream());
+            IOUtils.closeQuietly(is);
+        } catch (IOException e) {
+            throw new RequestErrorException("Cannot obtain log.", e);
         } finally {
             HttpClientUtils.closeQuietly(response);
         }

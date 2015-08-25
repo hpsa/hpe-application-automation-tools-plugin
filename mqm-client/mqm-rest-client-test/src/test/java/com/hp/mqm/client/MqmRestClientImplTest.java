@@ -28,10 +28,12 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -266,7 +268,6 @@ public class MqmRestClientImplTest {
 	}
 
 	@Test
-    @Ignore // end-to-end flow not working
 	public void testPostTestResult() throws IOException, URISyntaxException, InterruptedException {
 		MqmRestClientImpl client = new MqmRestClientImpl(connectionConfig);
 
@@ -308,18 +309,8 @@ public class MqmRestClientImplTest {
 		testResults.deleteOnExit();
 		FileUtils.write(testResults, testResultsXml);
 		try {
-            // TODO: prepare tests that fail on skipErrors=false and later execute them with skipErrors=true
 			long id = client.postTestResult(testResults, false);
-            String status = "";
-            for (int i = 0; i < 30; i++) {
-                TestResultStatus testResultStatus = client.getTestResultStatus(id);
-                status = testResultStatus.getStatus();
-                if (!"running".equals(status) && !"queued".equals(status)) {
-                    break;
-                }
-                Thread.sleep(1000);
-            }
-            Assert.assertEquals("Publish not finished successfully", "success", status);
+            assertPublishResult(id, "success");
 		} finally {
 			client.release();
 		}
@@ -328,8 +319,10 @@ public class MqmRestClientImplTest {
 		Assert.assertEquals(1, pagedList.getItems().size());
 		Assert.assertEquals("testOne" + timestamp, pagedList.getItems().get(0).getName());
 
+        // try to re-push the same content using InputStreamSource
+
 		try {
-			client.postTestResult(new InputStreamSource() {
+            long id = client.postTestResult(new InputStreamSource() {
 				@Override
 				public InputStream getInputStream() {
 					try {
@@ -339,9 +332,35 @@ public class MqmRestClientImplTest {
 					}
 				}
 			}, false);
+            assertPublishResult(id, "success");
 		} finally {
 			client.release();
 		}
+
+		// try content that fails unless skip-errors is specified
+
+        String testResultsErrorXml = ResourceUtils.readContent("TestResultsError.xml")
+                .replaceAll("%%%SERVER_IDENTITY%%%", serverIdentity)
+                .replaceAll("%%%TIMESTAMP%%%", String.valueOf(timestamp))
+                .replaceAll("%%%JOB_NAME%%%", jobName);
+        final File testResultsError = File.createTempFile(getClass().getSimpleName(), "");
+        testResults.deleteOnExit();
+        FileUtils.write(testResultsError, testResultsErrorXml);
+        try {
+            long id = client.postTestResult(testResultsError, false);
+            assertPublishResult(id, "failed");
+        } finally {
+            client.release();
+        }
+
+        // and verify that if succeeds partially with skip-errors=true
+
+        try {
+            long id = client.postTestResult(testResultsError, true);
+            assertPublishResult(id, "warning");
+        } finally {
+            client.release();
+        }
 
 		// invalid payload
 		final File testResults2 = new File(this.getClass().getResource("TestResults2.xmlx").toURI());
@@ -769,6 +788,30 @@ public class MqmRestClientImplTest {
                 "failed".equals(resultStatus.getStatus()));
     }
 
+    @Test
+    public void testGetTestResultLog() throws IOException, InterruptedException {
+        String testResultsXml = ResourceUtils.readContent("TestResults2.xml");
+        File testResults = File.createTempFile(getClass().getSimpleName(), "");
+        testResults.deleteOnExit();
+        FileUtils.write(testResults, testResultsXml);
+        long id = client.postTestResult(testResults, false);
+        assertPublishResult(id, "failed");
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        client.getTestResultLog(id, new LogOutput() {
+            @Override
+            public OutputStream getOutputStream() throws IOException {
+                return baos;
+            }
+            @Override
+            public void setContentType(String contentType) {
+                Assert.assertEquals("text/plain", contentType);
+            }
+        });
+        String body = baos.toString("UTF-8");
+        Assert.assertTrue(body.contains("status: failed\n"));
+        Assert.assertTrue(body.contains("\n\nBuild reference {server: server; buildType: buildType; buildSid: 1} not resolved\n"));
+    }
+
     private Pipeline getSinglePipeline(String serverIdentity, String jobName) {
         JobConfiguration jobConfiguration = client.getJobConfiguration(serverIdentity, jobName);
         Assert.assertEquals(1, jobConfiguration.getRelatedPipelines().size());
@@ -830,4 +873,17 @@ public class MqmRestClientImplTest {
             Assert.assertEquals(left.getRoot(), right.getRoot());
         }
     }
+
+	private void assertPublishResult(long id, String expectedStatus) throws InterruptedException {
+		String status = "";
+		for (int i = 0; i < 100; i++) {
+			TestResultStatus testResultStatus = client.getTestResultStatus(id);
+			status = testResultStatus.getStatus();
+			if (!"running".equals(status) && !"queued".equals(status)) {
+				break;
+			}
+			Thread.sleep(100);
+		}
+		Assert.assertEquals("Publish not finished with expected status", expectedStatus, status);
+	}
 }

@@ -177,7 +177,7 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
         }
         JSONObject event = new JSONObject();
         event.put("id", id);
-        event.put("success", id != null);
+        event.put("pushed", id != null);
         event.put("date", DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.format(new Date()));
         event.put("location", configuration.location);
         event.put("sharedSpace", configuration.sharedSpace);

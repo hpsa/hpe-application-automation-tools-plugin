@@ -5,8 +5,10 @@ package com.hp.octane.plugins.jenkins.tests;
 import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.hp.mqm.client.LogOutput;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.octane.plugins.jenkins.ExtensionUtil;
+import com.hp.octane.plugins.jenkins.actions.BuildActions;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.client.TestEventPublisher;
@@ -17,31 +19,53 @@ import hudson.tasks.junit.JUnitResultArchiver;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+import org.xml.sax.SAXException;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.io.StringReader;
 
 public class TestApiTest {
 
-    private JenkinsMqmRestClientFactory clientFactory;
-    private MqmRestClient restClient;
-    private TestQueue queue;
-    private TestDispatcher testDispatcher;
-    private AbstractBuild build;
+    private static JenkinsMqmRestClientFactory clientFactory;
+    private static MqmRestClient restClient;
+    private static TestQueue queue;
+    private static TestDispatcher testDispatcher;
+    private static AbstractBuild build;
+    private static JenkinsRule.WebClient client;
 
-    @Rule
-    final public JenkinsRule rule = new JenkinsRule();
+    @ClassRule
+    final public static JenkinsRule rule = new JenkinsRule();
 
-    @Before
-    public void init() throws Exception {
+    @BeforeClass
+    public static void init() throws Exception {
         restClient = Mockito.mock(MqmRestClient.class);
+        Mockito.when(restClient.postTestResult(Mockito.<File>any(), Mockito.eq(false))).thenReturn(10001l);
+        Mockito.doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
+                LogOutput logOutput = (LogOutput) invocationOnMock.getArguments()[1];
+                logOutput.setContentType("text/plain");
+                OutputStream os = logOutput.getOutputStream();
+                os.write("This is the log".getBytes("UTF-8"));
+                os.flush();
+                return null;
+            }
+        }).when(restClient).getTestResultLog(Mockito.eq(10001l), Mockito.<LogOutput>any());
 
         clientFactory = Mockito.mock(JenkinsMqmRestClientFactory.class);
         Mockito.when(clientFactory.create(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(restClient);
+
+        BuildActions buildActions = ExtensionUtil.getInstance(rule, BuildActions.class);
+        buildActions._setMqmRestClientFactory(clientFactory);
 
         testDispatcher = ExtensionUtil.getInstance(rule, TestDispatcher.class);
         testDispatcher._setMqmRestClientFactory(clientFactory);
@@ -70,28 +94,35 @@ public class TestApiTest {
         project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
         project.setScm(new CopyResourceSCM("/helloWorldRoot"));
         build = TestUtils.runAndCheckBuild(project);
+
+        // make sure dispatcher logic was executed
+        queue.waitForTicks(3);
+
+        client = rule.createWebClient();
     }
 
     @Test
     public void testXml() throws Exception {
-        JenkinsRule.WebClient cli = rule.createWebClient();
-        Page testResults = cli.goTo("job/test-api-test/" + build.getNumber() + "/octane/tests/xml", "application/xml");
+        Page testResults = client.goTo("job/test-api-test/" + build.getNumber() + "/octane/tests/xml", "application/xml");
         TestUtils.matchTests(new TestResultIterable(new StringReader(testResults.getWebResponse().getContentAsString())), build.getStartTimeInMillis(), TestUtils.helloWorldTests);
     }
 
     @Test
     public void testAudit() throws Exception {
-        // make sure dispatcher logic was executed
-        queue.waitForTicks(3);
-
-        JenkinsRule.WebClient cli = rule.createWebClient();
-        Page auditLog = cli.goTo("job/test-api-test/" + build.getNumber() + "/octane/tests/audit", "application/json");
+        Page auditLog = client.goTo("job/test-api-test/" + build.getNumber() + "/octane/tests/audit", "application/json");
         JSONArray audits = JSONArray.fromObject(auditLog.getWebResponse().getContentAsString());
         Assert.assertEquals(1, audits.size());
         JSONObject audit = audits.getJSONObject(0);
-        Assert.assertTrue(audit.getBoolean("success"));
+        Assert.assertEquals(10001l, audit.getLong("id"));
+        Assert.assertTrue(audit.getBoolean("pushed"));
         Assert.assertEquals("http://localhost:8008", audit.getString("location"));
         Assert.assertEquals("1001", audit.getString("sharedSpace"));
         Assert.assertNotNull(audit.getString("date"));
+    }
+
+    @Test
+    public void testLog() throws InterruptedException, IOException, SAXException {
+        Page publishLog = client.goTo("job/test-api-test/" + build.getNumber() + "/octane/tests/log", "text/plain");
+        Assert.assertEquals("This is the log", publishLog.getWebResponse().getContentAsString());
     }
 }
