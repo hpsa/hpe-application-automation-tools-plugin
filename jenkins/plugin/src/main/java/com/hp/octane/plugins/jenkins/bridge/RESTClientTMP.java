@@ -11,6 +11,7 @@ import org.apache.commons.httpclient.methods.StringRequestEntity;
 
 import java.io.IOException;
 import java.net.ConnectException;
+import java.net.SocketException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,6 +37,8 @@ public class RESTClientTMP {
 			return getMethod.getResponseBodyAsString();
 		} catch (ConnectException ce) {
 			throw new TemporaryException("temporary fail", ce);
+		} catch (SocketException se) {
+			throw new TemporaryException("temporary fail", se);
 		} catch (IOException ioe) {
 			throw new FatalException("fatal fail", ioe);
 		} finally {

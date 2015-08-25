@@ -53,7 +53,7 @@ public class Bridge {
 					taskJSON = RESTClientTMP.getTask(mqmConfig.location +
 							"/internal-api/shared_spaces/" + mqmConfig.sharedSpace +
 							"/analytics/ci/servers/" + new PluginActions.ServerInfo().getInstanceId() + "/task", null);
-					logger.info("BRIDGE: back from '" + mqmConfig.location + "' with " + (taskJSON == null || taskJSON.isEmpty() ? " no " : "") + " task");
+					logger.info("BRIDGE: back from '" + mqmConfig.location + "' with " + (taskJSON == null || taskJSON.isEmpty() ? "no task" : "task"));
 					openedConnections.decrementAndGet();
 					if (taskJSON != null && !taskJSON.isEmpty()) {
 						JSONObject task = JSONObject.fromObject(taskJSON);
@@ -67,6 +67,11 @@ public class Bridge {
 				} catch (RESTClientTMP.TemporaryException te) {
 					openedConnections.decrementAndGet();
 					logger.severe("BRIDGE: connection to MQM Server temporary failed: " + te.getMessage());
+					try {
+						Thread.sleep(500);
+					} catch (InterruptedException ie) {
+						logger.info("interrupted while breathing on temporary exception, continue to re-connect...");
+					}
 					if (mqmConfig.abridged) connect();
 				} catch (RESTClientTMP.FatalException fe) {
 					openedConnections.decrementAndGet();
