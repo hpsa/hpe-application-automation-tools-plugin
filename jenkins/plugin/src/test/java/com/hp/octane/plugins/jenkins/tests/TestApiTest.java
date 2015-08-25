@@ -114,7 +114,7 @@ public class TestApiTest {
         Assert.assertEquals(1, audits.size());
         JSONObject audit = audits.getJSONObject(0);
         Assert.assertEquals(10001l, audit.getLong("id"));
-        Assert.assertTrue(audit.getBoolean("success"));
+        Assert.assertTrue(audit.getBoolean("pushed"));
         Assert.assertEquals("http://localhost:8008", audit.getString("location"));
         Assert.assertEquals("1001", audit.getString("sharedSpace"));
         Assert.assertNotNull(audit.getString("date"));
