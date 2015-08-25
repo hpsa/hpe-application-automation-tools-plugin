@@ -17,8 +17,8 @@ public class TaskProcessor implements Runnable {
 	private final JSONObject task;
 	private final String baseURL;
 
-	TaskProcessor(String taskJSON, String baseURL) {
-		task = JSONObject.fromObject(taskJSON);
+	TaskProcessor(JSONObject task, String baseURL) {
+		this.task = task;
 		this.baseURL = baseURL;
 	}
 
@@ -26,19 +26,15 @@ public class TaskProcessor implements Runnable {
 	public void run() {
 		String url = task.getString("url");
 		Map<String, String> headers = task.containsKey("headers") ? buildHeadersMap(task.getJSONObject("headers")) : null;
-		String resultBody;
+		RESTClientTMP.LoopbackResponse response = null;
 		if (task.getString("method").equals("GET")) {
-			resultBody = RESTClientTMP.get(url, headers);
+			response = RESTClientTMP.loopbackGet(url, headers);
 		} else if (task.getString("method").equals("PUT")) {
-			//  add suppord for PUT method
-			resultBody = "not available";
+			response = RESTClientTMP.loopbackPut(url, headers, task.getString("body"));
 		} else if (task.getString("method").equals("POST")) {
-			//  add support for POST method
-			resultBody = "not available";
-		} else {
-			resultBody = "not supported method";
+			response = RESTClientTMP.loopbackPost(url, headers, task.getString("body"));
 		}
-		RESTClientTMP.put(baseURL + "/" + task.getString("id") + "/result", 200, null, resultBody);
+		RESTClientTMP.putTaskResult(baseURL + "/" + task.getString("id") + "/result", response);
 	}
 
 	private Map<String, String> buildHeadersMap(JSONObject json) {

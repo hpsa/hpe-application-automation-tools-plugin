@@ -3,6 +3,7 @@ package com.hp.octane.plugins.jenkins.bridge;
 import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
+import net.sf.json.JSONObject;
 import org.kohsuke.stapler.export.Exported;
 
 import java.util.concurrent.ExecutorService;
@@ -45,26 +46,31 @@ public class Bridge {
 			@Override
 			public void run() {
 				String taskJSON;
+				int totalConnections;
 				try {
-					openedConnections.incrementAndGet();
-					taskJSON = RESTClientTMP.get(mqmConfig.location +
+					totalConnections = openedConnections.incrementAndGet();
+					logger.info("BRIDGE: connecting to '" + mqmConfig.location + "'...; total connections: " + totalConnections);
+					taskJSON = RESTClientTMP.getTask(mqmConfig.location +
 							"/internal-api/shared_spaces/" + mqmConfig.sharedSpace +
 							"/analytics/ci/servers/" + new PluginActions.ServerInfo().getInstanceId() + "/task", null);
+					logger.info("BRIDGE: back from '" + mqmConfig.location + "' with " + (taskJSON == null || taskJSON.isEmpty() ? " no " : "") + " task");
 					openedConnections.decrementAndGet();
 					if (taskJSON != null && !taskJSON.isEmpty()) {
+						JSONObject task = JSONObject.fromObject(taskJSON);
+						logger.info("BRIDGE: received task '" + task.getString("id") + "'; delegating to task processor...");
 						taskProcessingExecutors.execute(new TaskProcessor(
-								taskJSON,
+								task,
 								mqmConfig.location + "/internal-api/shared_spaces/" + mqmConfig.sharedSpace + "/analytics/ci/servers/" + new PluginActions.ServerInfo().getInstanceId() + "/task"
 						));
 					}
 					if (mqmConfig.abridged) connect();
 				} catch (RESTClientTMP.TemporaryException te) {
 					openedConnections.decrementAndGet();
-					logger.severe("connection to MQM Server temporary failed: " + te.getMessage());
+					logger.severe("BRIDGE: connection to MQM Server temporary failed: " + te.getMessage());
 					if (mqmConfig.abridged) connect();
 				} catch (RESTClientTMP.FatalException fe) {
 					openedConnections.decrementAndGet();
-					logger.severe("connection to MQM Server fatally failed: " + fe.getMessage());
+					logger.severe("BRIDGE: connection to MQM Server fatally failed: " + fe.getMessage());
 				}
 			}
 		});

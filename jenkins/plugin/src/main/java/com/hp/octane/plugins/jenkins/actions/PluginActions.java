@@ -79,16 +79,10 @@ public class PluginActions implements RootAction {
 	@ExportedBean
 	public static final class PluginInfo {
 		private final String version = Jenkins.getInstance().getPlugin(OctanePlugin.class).getWrapper().getVersion();
-		private final boolean abridged = Jenkins.getInstance().getPlugin(OctanePlugin.class).getAbridged();
 
 		@Exported(inline = true)
 		public String getVersion() {
 			return version;
-		}
-
-		@Exported(inline = true)
-		public boolean getAbridged() {
-			return abridged;
 		}
 	}
 

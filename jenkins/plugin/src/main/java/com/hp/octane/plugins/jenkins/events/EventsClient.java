@@ -196,6 +196,11 @@ public class EventsClient {
 	}
 
 	@Exported(inline = true)
+	public boolean isAbridged() {
+		return mqmConfig.abridged;
+	}
+
+	@Exported(inline = true)
 	public String getLastErrorNote() {
 		return lastErrorNote;
 	}
