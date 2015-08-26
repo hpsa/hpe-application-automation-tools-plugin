@@ -57,7 +57,6 @@ public class Bridge {
 					openedConnections.decrementAndGet();
 					if (taskJSON != null && !taskJSON.isEmpty()) {
 						JSONObject task = JSONObject.fromObject(taskJSON);
-						logger.info("BRIDGE: received task '" + task.getString("id") + "'; delegating to task processor...");
 						taskProcessingExecutors.execute(new TaskProcessor(
 								task,
 								mqmConfig.location + "/internal-api/shared_spaces/" + mqmConfig.sharedSpace + "/analytics/ci/servers/" + new PluginActions.ServerInfo().getInstanceId() + "/task"
