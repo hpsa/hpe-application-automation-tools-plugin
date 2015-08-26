@@ -284,7 +284,7 @@ namespace HpToolsLauncher
                         {
                             int intTimoutInSeconds = 0;
                             int.TryParse(strTimoutInSeconds, out intTimoutInSeconds);
-                            timeout = TimeSpan.FromMinutes(intTimoutInSeconds);
+                            timeout = TimeSpan.FromSeconds(intTimoutInSeconds);
                         }
                     }
                     ConsoleWriter.WriteLine("Launcher timeout is " + timeout.ToString(@"dd\:\:hh\:mm\:ss"));
