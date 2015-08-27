@@ -34,6 +34,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -797,19 +799,33 @@ public class MqmRestClientImplTest {
         long id = client.postTestResult(testResults, false);
         assertPublishResult(id, "failed");
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        client.getTestResultLog(id, new LogOutput() {
-            @Override
-            public OutputStream getOutputStream() throws IOException {
-                return baos;
-            }
-            @Override
-            public void setContentType(String contentType) {
-                Assert.assertEquals("text/plain", contentType);
-            }
-        });
+        client.getTestResultLog(id, new SimpleLog(baos));
         String body = baos.toString("UTF-8");
         Assert.assertTrue(body.contains("status: failed\n"));
         Assert.assertTrue(body.contains("\n\nBuild reference {server: server; buildType: buildType; buildSid: 1} not resolved\n"));
+    }
+
+    @Test
+    public void testErrorHandling() {
+        try {
+            client.getTestResultStatus(1234567890l);
+            Assert.fail("should have failed");
+        } catch (RequestException e) {
+            Assert.assertEquals("Result status retrieval failed; error code: testbox.not_found; description: QueueItem id=1234567890 does not exist", e.getMessage());
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            Assert.assertTrue(sw.toString().contains("Caused by: com.hp.mqm.testbox.exception.ItemNotFoundException: QueueItem id=1234567890 does not exist"));
+        }
+
+        try {
+            client.getTestResultLog(1234567890l, new SimpleLog(new ByteArrayOutputStream()));
+            Assert.fail("should have failed");
+        } catch (RequestException e) {
+            Assert.assertEquals("Log retrieval failed; error code: testbox.not_found; description: QueueItem id=1234567890 does not exist", e.getMessage());
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            Assert.assertTrue(sw.toString().contains("Caused by: com.hp.mqm.testbox.exception.ItemNotFoundException: QueueItem id=1234567890 does not exist"));
+        }
     }
 
     private Pipeline getSinglePipeline(String serverIdentity, String jobName) {
@@ -886,4 +902,22 @@ public class MqmRestClientImplTest {
 		}
 		Assert.assertEquals("Publish not finished with expected status", expectedStatus, status);
 	}
+
+    private static class SimpleLog implements LogOutput {
+
+        private ByteArrayOutputStream baos;
+
+        private SimpleLog(ByteArrayOutputStream baos) {
+            this.baos = baos;
+        }
+
+        @Override
+        public OutputStream getOutputStream() throws IOException {
+            return baos;
+        }
+        @Override
+        public void setContentType(String contentType) {
+            Assert.assertEquals("text/plain", contentType);
+        }
+    }
 }

@@ -1,8 +1,10 @@
 package com.hp.mqm.client;
 
+import com.hp.mqm.client.exception.ExceptionStackTraceParser;
 import com.hp.mqm.client.exception.FileNotFoundException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
+import com.hp.mqm.client.exception.ServerException;
 import com.hp.mqm.client.internal.InputStreamSourceEntity;
 import com.hp.mqm.client.model.Field;
 import com.hp.mqm.client.model.FieldMetadata;
@@ -314,23 +316,44 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
     }
 
     private RequestException createRequestException(String message, HttpResponse response) {
-        return new RequestException(message + "; status code " + response.getStatusLine().getStatusCode() + " and reason " + response.getStatusLine().getReasonPhrase() + " [" + tryParseMessage(response) + "]");
-    }
-
-    private String tryParseMessage(HttpResponse response) {
+        String description = null;
+        String stackTrace = null;
+        String errorCode = null;
         try {
             String json = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
             JSONObject jsonObject = JSONObject.fromObject(json);
             if (jsonObject.has("error_code") && jsonObject.has("description")) {
                 // exception response
-                return jsonObject.getString("description");
+                errorCode = jsonObject.getString("error_code");
+                description = jsonObject.getString("description");
+                // stack trace may not be present in production
+                stackTrace = jsonObject.optString("stack_trace");
             }
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Unable to determine failure message: ", e);
         } catch (JSONException e) {
             logger.log(Level.SEVERE, "Unable to determine failure message: ", e);
         }
-        return "";
+
+        ServerException cause = null;
+        if (!StringUtils.isEmpty(stackTrace)) {
+            try {
+                Throwable parsedException = ExceptionStackTraceParser.parseException(stackTrace);
+                cause = new ServerException("Exception thrown on server, see cause", parsedException);
+            } catch (RuntimeException e) {
+                // the parser is best-effort code, don't fail if anything goes wrong
+                logger.log(Level.SEVERE, "Unable to parse server stacktrace: ", e);
+            }
+        }
+        int statusCode = response.getStatusLine().getStatusCode();
+        String reason = response.getStatusLine().getReasonPhrase();
+        if (!StringUtils.isEmpty(errorCode)) {
+            return new RequestException(message + "; error code: " + errorCode + "; description: " + description,
+                    description, errorCode, statusCode, reason, cause);
+        } else {
+            return new RequestException(message + "; status code " + statusCode + "; reason " + reason,
+                    description, errorCode, statusCode, reason, cause);
+        }
     }
 
     private List<FieldMetadata> getFieldsMetadata(JSONObject metadata) {
