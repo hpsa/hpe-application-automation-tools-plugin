@@ -28,6 +28,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import static org.junit.Assert.fail;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -45,8 +46,6 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
-
-import static org.junit.Assert.fail;
 
 public class MqmRestClientImplTest {
 
@@ -843,22 +842,6 @@ public class MqmRestClientImplTest {
         Assert.assertEquals(1, jobConfiguration.getRelatedPipelines().size());
         return jobConfiguration.getRelatedPipelines().get(0);
     }
-
-	private int getListItemIdByName(int listId, String name) {
-		List<ListItem> items = client.queryListItems(listId, name, WORKSPACE, 0, 1).getItems();
-		Assert.assertEquals(1, items.size());
-		return items.get(0).getId();
-	}
-
-	private int getListIdByLogicalName(List<FieldMetadata> metadata, String name) {
-		for (FieldMetadata field : metadata) {
-			if (name.equals(field.getLogicalListName())) {
-				return field.getListId();
-			}
-		}
-		Assert.fail("Field not found");
-		throw new IllegalStateException();
-	}
 
 	private Taxonomy getTaxonomyByName(List<Taxonomy> taxonomies, String name) {
 		for (Taxonomy taxonomy : taxonomies) {
