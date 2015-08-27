@@ -4,15 +4,16 @@ import com.hp.mqm.client.exception.FileNotFoundException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
 import com.hp.mqm.client.internal.InputStreamSourceEntity;
-import com.hp.mqm.client.model.Field;
 import com.hp.mqm.client.model.FieldMetadata;
 import com.hp.mqm.client.model.JobConfiguration;
+import com.hp.mqm.client.model.ListField;
 import com.hp.mqm.client.model.ListItem;
 import com.hp.mqm.client.model.PagedList;
 import com.hp.mqm.client.model.Pipeline;
 import com.hp.mqm.client.model.Release;
 import com.hp.mqm.client.model.Taxonomy;
 import com.hp.mqm.client.model.TestResultStatus;
+import com.hp.mqm.client.model.Workspace;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONException;
 import net.sf.json.JSONNull;
@@ -34,9 +35,13 @@ import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -51,11 +56,16 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	private static final String URI_TEST_RESULT_STATUS = PREFIX_CI + "test-results/{0}";
 	private static final String URI_JOB_CONFIGURATION = "analytics/ci/servers/{0}/jobs/{1}/configuration";
 	private static final String URI_RELEASES = "releases";
+	private static final String URI_WORKSPACES = "workspaces";
 	private static final String URI_LIST_ITEMS = "list_nodes";
+	private static final String URI_METADATA_FIELDS = "metadata/fields";
 	private static final String URI_PUT_EVENTS = "analytics/ci/events";
     private static final String URI_TAXONOMY_NODES = "taxonomy_nodes";
 
 	private static final String HEADER_ACCEPT = "Accept";
+
+	private static final int DEFAULT_OFFSET = 0;
+	private static final int DEFAULT_LIMIT = 100;
 
 	/**
 	 * Constructor for AbstractMqmRestClient.
@@ -160,15 +170,6 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		}
 	}
 
-	@Override
-	public void updatePipelineMetadata(String serverIdentity, String projectName, long pipelineId, String pipelineName, long workspaceId, Long releaseId) {
-        updatePipeline(serverIdentity, projectName, new Pipeline(pipelineId, pipelineName, null, workspaceId, releaseId, null, null));
-	}
-
-	@Override
-	public Pipeline updatePipelineTags(String serverIdentity, String jobName, long pipelineId, long workspaceId, List<Taxonomy> taxonomies, List<Field> fields) {
-        return updatePipeline(serverIdentity, jobName, new Pipeline(pipelineId, null, null, workspaceId, null, taxonomies, fields));
-	}
 
     @Override
     public Pipeline updatePipeline(String serverIdentity, String jobName, Pipeline pipeline) {
@@ -192,6 +193,12 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
             JSONArray taxonomies = taxonomiesArray(pipeline.getTaxonomies());
             pipelineObject.put("taxonomies", taxonomies);
         }
+
+		if (pipeline.getFields() != null) {
+			JSONObject listFields = listFieldsObject(pipeline.getFields());
+			pipelineObject.put("listFields", listFields);
+		}
+
         JSONArray data = new JSONArray();
         data.add(pipelineObject);
         JSONObject payload = new JSONObject();
@@ -226,21 +233,76 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
         return ret;
     }
 
+	private JSONObject listFieldsObject(List<ListField> fields) {
+		JSONObject ret = new JSONObject();
+		for (ListField field : fields) {
+			putListField(ret, field);
+		}
+		return ret;
+	}
+
+	private void putListField(JSONObject ret, ListField listField) {
+		JSONArray valArray = new JSONArray();
+		for (ListItem value : listField.getValues()) {
+			JSONObject val = new JSONObject();
+			if (value.getId() != null) {
+				val.put("id", value.getId());
+			} else {
+				val.put("name", value.getName());
+			}
+			valArray.add(val);
+		}
+		ret.put(listField.getName(), valArray);
+	}
+
+//	private JSONObject listFieldsObject(List<Field> fields) {
+//		JSONObject ret = new JSONObject();
+//		for (Field field : fields) {
+//			putListField(ret, field);
+//		}
+//		return ret;
+//	}
+
+//	private void putListField(JSONObject ret, Field field) {
+//		JSONObject fieldJson = new JSONObject();
+//		if (field.getId() != null) {
+//			if (field.getId() != -1) {
+//				fieldJson.put("id", field.getId());
+//			} else {
+//				//id of -1 value means unassigning the value => return empty array
+//				ret.put(field.getParentName(), new JSONArray());
+//				return;
+//			}
+//		} else {
+//			fieldJson.put("name", field.getName());
+//		}
+//
+//		if (ret.has(field.getParentName())) {
+//			JSONArray tmp = ret.getJSONArray(field.getParentName());
+//			tmp.add(fieldJson);
+//		} else {
+//			JSONArray tmp = new JSONArray();
+//			tmp.add(fieldJson);
+//			ret.put(field.getParentName(), tmp);
+//		}
+//	}
+
     private Taxonomy toTaxonomy(JSONObject t) {
         JSONObject parent = t.optJSONObject("parent");
+		String name = t.has("name") ? t.getString("name") : null;
         if (parent != null) {
-            return new Taxonomy(t.getLong("id"), t.getString("name"), toTaxonomy(parent));
+            return new Taxonomy(t.getLong("id"), name, toTaxonomy(parent));
         } else {
-            return new Taxonomy(t.getLong("id"), t.getString("name"), null);
+            return new Taxonomy(t.getLong("id"), name, null);
         }
     }
 
     private JSONObject fromTaxonomy(Taxonomy taxonomy) {
         JSONObject t = new JSONObject();
-        if (taxonomy.getId() != null) {
+        if (taxonomy.getId() != null && taxonomy.getId() != 0) {
             t.put("id", taxonomy.getId());
         }
-        if (taxonomy.getName() != null) {
+        if (taxonomy.getName() != null) {	//todo seems that name can be ommited in case that id exists
             t.put("name", taxonomy.getName());
         }
         if (taxonomy.getRoot() != null) {
@@ -306,43 +368,40 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
         return "";
     }
 
-    private List<FieldMetadata> getFieldsMetadata(JSONObject metadata) {
-		List<FieldMetadata> fields = new LinkedList<FieldMetadata>();
-		for (JSONObject fieldObject : getJSONObjectCollection(metadata, "lists")) {
-			fields.add(toFieldMetadata(fieldObject));
+	private ListItem toListItem(JSONObject field) {
+		Long id = null;
+		String name = null;
+		if (field.has("id")) {
+			id = field.getLong("id");
 		}
-		return fields;
-	}
-
-	private Field toField(JSONObject field) {
-		return new Field(field.getInt("id"),
-				field.getString("name"),
-				field.getInt("parentId"),
-				field.getString("parentName"),
-				field.getString("parentLogicalName"));
-	}
-
-	private FieldMetadata toFieldMetadata(JSONObject field) {
-		return new FieldMetadata(
-				field.getInt("id"),
-				field.getString("name"),
-				field.getString("logicalName"),
-				field.getBoolean("openList"),
-				field.getBoolean("multiValueList"));
+		if (field.has("name")) {
+			name = field.getString("name");
+		}
+		return new ListItem(id, name, null);
 	}
 
 	private Pipeline toPipeline(JSONObject pipelineObject) {
 		List<Taxonomy> taxonomies = new LinkedList<Taxonomy>();
-		List<Field> fields = new LinkedList<Field>();
+		List<ListField> fields = new LinkedList<ListField>();
 
 		if (pipelineObject.has("taxonomies")) {
 			for (JSONObject taxonomy : getJSONObjectCollection(pipelineObject, "taxonomies")) {
                 taxonomies.add(toTaxonomy(taxonomy));
 			}
 		}
-		if (pipelineObject.has("tags")) {
-			for (JSONObject field : getJSONObjectCollection(pipelineObject, "tags")) {
-				fields.add(toField(field));
+
+		if (pipelineObject.has("listFields")) {
+			JSONObject listFields = pipelineObject.getJSONObject("listFields");
+			Iterator<?> keys = listFields.keys();
+			while (keys.hasNext()) {
+				String key = (String)keys.next();
+				if (listFields.get(key) instanceof JSONArray ) {
+					List<ListItem> fieldValues = new LinkedList<ListItem>();
+					for (JSONObject field : getJSONObjectCollection(listFields, key)) {
+						fieldValues.add(toListItem(field));
+					}
+					fields.add(new ListField(key, fieldValues));
+				}
 			}
 		}
 		return new Pipeline(pipelineObject.getLong("contextEntityId"),
@@ -350,6 +409,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
                 pipelineObject.getBoolean("pipelineRoot"),
                 pipelineObject.getLong("workspaceId"),
 				pipelineObject.has("releaseId") && !pipelineObject.get("releaseId").equals(JSONNull.getInstance()) ? pipelineObject.getLong("releaseId") : null,
+				pipelineObject.has("releaseName") && !pipelineObject.get("releaseName").equals(JSONNull.getInstance()) ? pipelineObject.getString("releaseName") : null,
 				taxonomies, fields);
 	}
 
@@ -360,6 +420,49 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 			conditions.add(condition("name", "*" + name + "*"));
 		}
 		return getEntities(getEntityURI(URI_RELEASES, conditions, workspaceId, offset, limit), offset, new ReleaseEntityFactory());
+	}
+
+	@Override
+	public Release getRelease(long releaseId, long workspaceId) {
+		int offset = 0;
+		int limit = 1;
+		List<String> conditions = new LinkedList<String>();
+		conditions.add(condition("id", String.valueOf(releaseId)));
+
+		List<Release> releases = getEntities(getEntityURI(URI_RELEASES, conditions, workspaceId, offset, limit), offset, new ReleaseEntityFactory()).getItems();
+		if (releases.size() != 1) {
+			return null;
+		}
+		return releases.get(0);
+	}
+
+	@Override
+	public PagedList<Workspace> queryWorkspaces(String name, int offset, int limit) {
+		List<String> conditions = new LinkedList<String>();
+		if (!StringUtils.isEmpty(name)) {
+			conditions.add(condition("name", "*" + name + "*"));
+		}
+		return getEntities(getEntityURI(URI_WORKSPACES, conditions, null, offset, limit), offset, new WorkspaceEntityFactory());
+	}
+
+	@Override
+	public List<Workspace> getWorkspaces(List<Long> workspaceIds) {
+		if (workspaceIds == null || workspaceIds.size() == 0) {
+			return new LinkedList<Workspace>();
+		}
+		if (workspaceIds.size() > DEFAULT_LIMIT) {
+			throw new IllegalArgumentException("List of workspaceIds is too long. Only " + DEFAULT_LIMIT + " values are allowed.");
+		}
+
+		Set<Long> workspaceIdsSet = new LinkedHashSet<Long>(workspaceIds);
+		StringBuilder conditionBuilder = new StringBuilder();
+		for (Long workspaceId : workspaceIdsSet) {
+			if (conditionBuilder.length() > 0) {
+				conditionBuilder.append("||");
+			}
+			conditionBuilder.append("id=" + Long.toString(workspaceId));
+		}
+		return getEntities(getEntityURI(URI_WORKSPACES, Arrays.asList(conditionBuilder.toString()), null, DEFAULT_OFFSET, DEFAULT_LIMIT), DEFAULT_OFFSET, new WorkspaceEntityFactory()).getItems();
 	}
 
 	@Override
@@ -394,14 +497,74 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
         return getEntities(getEntityURI(URI_TAXONOMY_NODES, conditions, workspaceId, offset, limit), offset, new TaxonomyEntityFactory());
     }
 
+	@Override
+	public List<Taxonomy> getTaxonomies(List<Long> taxonomyIds, long workspaceId) {
+		if (taxonomyIds == null || taxonomyIds.size() == 0) {
+			return new LinkedList<Taxonomy>();
+		}
+		if (taxonomyIds.size() > DEFAULT_LIMIT) {
+			throw new IllegalArgumentException("List of taxonomyIds is too long. Only " + DEFAULT_LIMIT + " values are allowed.");
+		}
+
+		Set<Long> taxonomyIdsSet = new LinkedHashSet<Long>(taxonomyIds);
+		StringBuilder conditionBuilder = new StringBuilder();
+		for (Long taxonomyId : taxonomyIdsSet) {
+			if (conditionBuilder.length() > 0) {
+				conditionBuilder.append("||");
+			}
+			conditionBuilder.append("id=" + Long.toString(taxonomyId));
+		}
+		return getEntities(getEntityURI(URI_TAXONOMY_NODES, Arrays.asList(conditionBuilder.toString()), workspaceId, DEFAULT_OFFSET, DEFAULT_LIMIT), DEFAULT_OFFSET, new TaxonomyEntityFactory()).getItems();
+	}
+
     @Override
-	public PagedList<ListItem> queryListItems(int listId, String name, long workspaceId, int offset, int limit) {
+	public PagedList<ListItem> queryListItems(long listId, String name, long workspaceId, int offset, int limit) {
 		List<String> conditions = new LinkedList<String>();
 		if (!StringUtils.isEmpty(name)) {
 			conditions.add(condition("name", "*" + name + "*"));
 		}
-		conditions.add(condition("list_root.id", String.valueOf(listId)));
+		//todo uncomment this condition once cross filters work
+//		conditions.add(condition("list_root.id", String.valueOf(listId)));
 		return getEntities(getEntityURI(URI_LIST_ITEMS, conditions, workspaceId, offset, limit), offset, new ListItemEntityFactory());
+	}
+
+	@Override
+	public List<ListItem> getListItems(List<Long> itemIds, long workspaceId) {
+		if (itemIds == null || itemIds.size() == 0) {
+			return new LinkedList<ListItem>();
+		}
+		if (itemIds.size() > DEFAULT_LIMIT) {
+			throw new IllegalArgumentException("List of itemIds is too long. Only " + DEFAULT_LIMIT + " values are allowed.");
+		}
+
+		Set<Long> itemIdsSet = new LinkedHashSet<Long>(itemIds);
+		StringBuilder conditionBuilder = new StringBuilder();
+		for (Long itemId : itemIdsSet) {
+			if (conditionBuilder.length() > 0) {
+				conditionBuilder.append("||");
+			}
+			conditionBuilder.append("id=" + Long.toString(itemId));
+		}
+		return getEntities(getEntityURI(URI_LIST_ITEMS, Arrays.asList(conditionBuilder.toString()), workspaceId, DEFAULT_OFFSET, DEFAULT_LIMIT), DEFAULT_OFFSET, new ListItemEntityFactory()).getItems();
+	}
+
+	@Override
+	public List<FieldMetadata> getFieldsMetadata(long workspaceId) {
+		List<FieldMetadata> ret = new LinkedList<FieldMetadata>();
+
+		List<String> conditions = new LinkedList<String>();
+		conditions.add(condition("entity_name", "pipeline_node"));
+
+		//loading all metadata fields
+		PagedList<FieldMetadata> allFieldMetadata = getEntities(getEntityURI(URI_METADATA_FIELDS, conditions, workspaceId, DEFAULT_OFFSET, DEFAULT_LIMIT), DEFAULT_OFFSET, new FieldMetadataFactory());
+
+		//filtering metadata fields to only values which we are interested in
+		for (FieldMetadata fieldMetadata : allFieldMetadata.getItems()){
+			if (fieldMetadata.isValid()) {
+				ret.add(fieldMetadata);
+			}
+		}
+		return ret;
 	}
 
 	private long postTestResult(HttpEntity entity) {
@@ -456,9 +619,12 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 
 		@Override
 		public ListItem doCreate(JSONObject entityObject) {
-			return new ListItem(
-					entityObject.getInt("id"),
-					entityObject.getString("name"));
+			JSONObject list_root = entityObject.optJSONObject("list_root");
+			if (list_root != null) {
+				return new ListItem(entityObject.getLong("id"), entityObject.getString("name"), doCreate(list_root));
+			} else {
+				return new ListItem(entityObject.getLong("id"), entityObject.getString("name"), null);
+			}
 		}
 	}
 
@@ -466,7 +632,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 
 		@Override
 		public Taxonomy doCreate(JSONObject entityObject) {
-            JSONObject taxonomy_root = entityObject.optJSONObject("taxonomy_root");
+            JSONObject taxonomy_root = entityObject.optJSONObject("category");
             if (taxonomy_root != null) {
                 return new Taxonomy(entityObject.getLong("id"), entityObject.getString("name"), doCreate(taxonomy_root));
             } else {
@@ -483,7 +649,66 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		}
 	}
 
-	private static abstract class AbstractEntityFactory<E> implements EntityFactory<E> {
+	private static class WorkspaceEntityFactory extends AbstractEntityFactory<Workspace> {
+
+		@Override
+		public Workspace doCreate(JSONObject entityObject) {
+			return new Workspace(entityObject.getLong("id"), entityObject.getString("name"));
+		}
+	}
+
+	private static class FieldMetadataFactory extends AbstractEntityFactory<FieldMetadata> {
+
+		@Override
+		public FieldMetadata doCreate(JSONObject entityObject) {
+			String name = null;
+			String label = null;
+			String logicalName = null;
+			boolean multiple = false;
+			boolean isExtensible = false;
+			int order = 0;
+
+			int mandatoryElementsFound = 0;
+
+			if (entityObject.has("field_features")) {
+				JSONArray fieldFeaturesArray = entityObject.getJSONArray("field_features");
+				for (int i=0; i<fieldFeaturesArray.size(); i++) {
+					JSONObject fieldFeature = fieldFeaturesArray.getJSONObject(i);
+					if (fieldFeature.has("name") && fieldFeature.getString("name").equals("pipeline_tagging") && fieldFeature.has("extensibility") && fieldFeature.has("order")) {
+						order = fieldFeature.getInt("order");
+						isExtensible = fieldFeature.getBoolean("extensibility");
+						mandatoryElementsFound++;
+						break;
+					}
+				}
+			}
+			if (entityObject.has("name") && entityObject.has("label")) {
+				name = entityObject.getString("name");
+				label = entityObject.getString("label");
+				mandatoryElementsFound++;
+			}
+			if (entityObject.has("field_type_data")) {
+				JSONObject fieldTypeData = entityObject.getJSONObject("field_type_data");
+
+				if (fieldTypeData.has("multiple") && fieldTypeData.has("target")) {
+					multiple = fieldTypeData.getBoolean("multiple");
+
+					JSONObject target = fieldTypeData.getJSONObject("target");
+					if (target.has("logical_name")) {
+						logicalName = target.getString("logical_name");
+						mandatoryElementsFound++;
+					}
+				}
+			}
+			if (mandatoryElementsFound != 3) {
+				return new FieldMetadata(null, null, null, false, false, 0);
+			}
+
+			return new FieldMetadata(name, label, logicalName, isExtensible, multiple, order);
+		}
+	}
+
+	static abstract class AbstractEntityFactory<E> implements EntityFactory<E> {
 
 		@Override
 		public E create(String json) {

@@ -4,19 +4,25 @@ package com.hp.mqm.client.model;
 
 final public class ListItem {
 
-    private final int id;
+    private final Long id;
     private final String name;
+    private final ListItem root;
 
-    public ListItem(int id, String name) {
+    public ListItem(Long id, String name, ListItem root) {
         this.id = id;
         this.name = name;
+        this.root = root;
     }
 
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
     public String getName() {
         return name;
+    }
+
+    public ListItem getRoot() {
+        return root;
     }
 }

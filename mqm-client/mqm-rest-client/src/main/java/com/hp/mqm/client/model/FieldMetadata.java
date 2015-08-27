@@ -4,22 +4,24 @@ package com.hp.mqm.client.model;
 
 final public class FieldMetadata {
 
-    private final int listId;
     private final String listName;
+    private final String name;
     private final String logicalListName;
     private final boolean extensible;
     private final boolean multiValue;
+    private final int order;
 
-    public FieldMetadata(int listId, String listName, String logicalListName, boolean extensible, boolean multiValue) {
-        this.listId = listId;
+    public FieldMetadata(String name, String listName, String logicalListName, boolean extensible, boolean multiValue, int order) {
+        this.name = name;
         this.listName = listName;
         this.logicalListName = logicalListName;
         this.extensible = extensible;
         this.multiValue = multiValue;
+        this.order = order;
     }
 
-    public int getListId() {
-        return listId;
+    public String getName() {
+        return name;
     }
 
     public String getListName() {
@@ -36,5 +38,15 @@ final public class FieldMetadata {
 
     public boolean isMultiValue() {
         return multiValue;
+    }
+
+    public int getOrder() {
+        return order;
+    }
+
+    public boolean isValid() {
+        return this.listName != null &&
+                this.name != null &&
+                this.logicalListName != null;
     }
 }
