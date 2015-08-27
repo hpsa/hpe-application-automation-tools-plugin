@@ -1,9 +1,14 @@
 package com.hp.octane.plugins.jenkins.actions;
 
+import com.google.inject.Inject;
+import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
+import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactoryImpl;
 import com.hp.octane.plugins.jenkins.model.snapshots.SnapshotItem;
 import com.hp.octane.plugins.jenkins.tests.TestApi;
 import hudson.Extension;
-import hudson.model.*;
+import hudson.model.AbstractBuild;
+import hudson.model.Action;
+import hudson.model.Run;
 import jenkins.model.RunAction2;
 import jenkins.model.TransientActionFactory;
 import org.kohsuke.stapler.StaplerRequest;
@@ -27,13 +32,17 @@ import java.util.Collection;
 @Extension
 public class BuildActions extends TransientActionFactory<AbstractBuild> {
 
+	private JenkinsMqmRestClientFactory clientFactory;
+
 	static final public class OctaneBuildActions implements RunAction2 {
 
 		AbstractBuild build;
+        JenkinsMqmRestClientFactory clientFactory;
 
-		public OctaneBuildActions(AbstractBuild b) {
+		public OctaneBuildActions(AbstractBuild b, JenkinsMqmRestClientFactory clientFactory) {
 			build = b;
-		}
+            this.clientFactory = clientFactory;
+        }
 
 		public void onAttached(Run<?, ?> run) {
 		}
@@ -54,13 +63,15 @@ public class BuildActions extends TransientActionFactory<AbstractBuild> {
 		}
 
 		public void doSnapshot(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
+			//JGitTest.readRepo(build.getWorkspace().getRemote());
+
 			String metaonlyParam = req.getParameter("metaonly");
 			boolean metaonly = metaonlyParam != null && metaonlyParam.equals("true");
 			res.serveExposedBean(req, new SnapshotItem(build, metaonly), Flavor.JSON);
 		}
 
 		public TestApi getTests() {
-			return new TestApi(build);
+			return new TestApi(build, clientFactory);
 		}
 	}
 
@@ -73,7 +84,19 @@ public class BuildActions extends TransientActionFactory<AbstractBuild> {
 	@Nonnull
 	public Collection<? extends Action> createFor(@Nonnull AbstractBuild build) {
 		ArrayList<Action> actions = new ArrayList<Action>();
-		actions.add(new OctaneBuildActions(build));
+		actions.add(new OctaneBuildActions(build, clientFactory));
 		return actions;
 	}
+
+    @Inject
+    public void setMqmRestClientFactory(JenkinsMqmRestClientFactoryImpl clientFactory) {
+        this.clientFactory = clientFactory;
+    }
+
+    /*
+     * To be used in tests only.
+     */
+    public void _setMqmRestClientFactory(JenkinsMqmRestClientFactory clientFactory) {
+        this.clientFactory = clientFactory;
+    }
 }

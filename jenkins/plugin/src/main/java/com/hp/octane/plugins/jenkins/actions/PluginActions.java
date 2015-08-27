@@ -2,7 +2,6 @@ package com.hp.octane.plugins.jenkins.actions;
 
 import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.configuration.ConfigApi;
-import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import com.hp.octane.plugins.jenkins.events.EventsClient;
@@ -11,7 +10,6 @@ import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.RootAction;
 import jenkins.model.Jenkins;
-import net.sf.json.JSONObject;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.export.Exported;
@@ -42,16 +40,14 @@ public class PluginActions implements RootAction {
 		private static final String type = "jenkins";
 		private static final String version = Jenkins.VERSION;
 		private String url;
-		private String instanceId;
-		private Long instanceIdFrom;
+		private String instanceId = Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity();
+		private Long instanceIdFrom = Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentityFrom();
 
 		public ServerInfo() {
 			String serverUrl = Jenkins.getInstance().getRootUrl();
 			if (serverUrl != null && serverUrl.endsWith("/"))
 				serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
 			this.url = serverUrl;
-			this.instanceId = Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity();
-			this.instanceIdFrom = Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentityFrom();
 		}
 
 		@Exported(inline = true)
@@ -83,16 +79,10 @@ public class PluginActions implements RootAction {
 	@ExportedBean
 	public static final class PluginInfo {
 		private final String version = Jenkins.getInstance().getPlugin(OctanePlugin.class).getWrapper().getVersion();
-		private final Boolean abridged = Jenkins.getInstance().getPlugin(OctanePlugin.class).getAbridged();
 
 		@Exported(inline = true)
 		public String getVersion() {
 			return version;
-		}
-
-		@Exported(inline = true)
-		public Boolean getAbridged() {
-			return abridged;
 		}
 	}
 

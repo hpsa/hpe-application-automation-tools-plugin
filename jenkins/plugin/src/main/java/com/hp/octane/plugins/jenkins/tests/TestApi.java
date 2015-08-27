@@ -2,9 +2,16 @@
 
 package com.hp.octane.plugins.jenkins.tests;
 
+import com.hp.mqm.client.LogOutput;
+import com.hp.mqm.client.MqmRestClient;
+import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
+import com.hp.octane.plugins.jenkins.configuration.ConfigurationService;
+import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import hudson.FilePath;
 import hudson.model.AbstractBuild;
 import hudson.model.Item;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
@@ -14,13 +21,16 @@ import javax.servlet.ServletException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 public class TestApi {
 
     private AbstractBuild build;
+    private JenkinsMqmRestClientFactory clientFactory;
 
-    public TestApi(AbstractBuild build) {
+    public TestApi(AbstractBuild build, JenkinsMqmRestClientFactory clientFactory) {
         this.build = build;
+        this.clientFactory = clientFactory;
     }
 
     public void doAudit(StaplerRequest req, StaplerResponse res) throws IOException, ServletException, InterruptedException {
@@ -34,6 +44,18 @@ public class TestApi {
         serveFile(res, TestListener.TEST_RESULT_FILE, Flavor.XML);
     }
 
+    public void doLog(StaplerRequest req, final StaplerResponse res) throws IOException, ServletException, InterruptedException {
+        build.getACL().checkPermission(Item.READ);
+        FilePath auditFile = new FilePath(new File(build.getRootDir(), TestDispatcher.TEST_AUDIT_FILE));
+        JSONArray audit = JSONArray.fromObject(auditFile.readToString());
+        JSONObject lastAudit = audit.getJSONObject(audit.size() - 1);
+        long id = lastAudit.getLong("id");
+        ServerConfiguration configuration = ConfigurationService.getServerConfiguration();
+        MqmRestClient restClient = clientFactory.create(configuration.location, configuration.sharedSpace, configuration.username, configuration.password);
+        res.setStatus(200);
+        restClient.getTestResultLog(id, new JenkinsLogOutput(res));
+    }
+
     private void serveFile(StaplerResponse res, String relativePath, Flavor flavor) throws IOException, InterruptedException {
         res.setStatus(200);
         res.setContentType(flavor.contentType);
@@ -41,5 +63,24 @@ public class TestApi {
         InputStream is = file.read();
         IOUtils.copy(is, res.getOutputStream());
         IOUtils.closeQuietly(is);
+    }
+
+    private static class JenkinsLogOutput implements LogOutput {
+
+        private StaplerResponse res;
+
+        JenkinsLogOutput(StaplerResponse res) {
+            this.res = res;
+        }
+
+        @Override
+        public OutputStream getOutputStream() throws IOException {
+            return res.getOutputStream();
+        }
+
+        @Override
+        public void setContentType(String contentType) {
+            res.setContentType(contentType);
+        }
     }
 }

@@ -23,16 +23,15 @@ import java.util.logging.Logger;
 
 @Extension
 public final class EventsDispatcher implements ConfigurationListener {
-	private static final Logger logger = Logger.getLogger(EventsClient.class.getName());
+	private static final Logger logger = Logger.getLogger(EventsDispatcher.class.getName());
 
 	private static EventsDispatcher extensionInstance;
 	private JenkinsMqmRestClientFactory clientFactory;
 	private final List<EventsClient> clients = new ArrayList<EventsClient>();
 
 	public static EventsDispatcher getExtensionInstance() {
-		List<EventsDispatcher> extensions;
 		if (extensionInstance == null) {
-			extensions = Jenkins.getInstance().getExtensionList(EventsDispatcher.class);
+			List<EventsDispatcher> extensions = Jenkins.getInstance().getExtensionList(EventsDispatcher.class);
 			if (extensions.isEmpty()) {
 				throw new RuntimeException("Events Dispatcher was not initialized properly");
 			} else if (extensions.size() > 1) {

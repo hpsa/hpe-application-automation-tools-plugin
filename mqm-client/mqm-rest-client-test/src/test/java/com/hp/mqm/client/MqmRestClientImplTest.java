@@ -28,12 +28,15 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import static org.junit.Assert.fail;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,6 +45,8 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
+
+import static org.junit.Assert.fail;
 
 public class MqmRestClientImplTest {
 
@@ -267,7 +272,6 @@ public class MqmRestClientImplTest {
 	}
 
 	@Test
-    @Ignore // end-to-end flow not working
 	public void testPostTestResult() throws IOException, URISyntaxException, InterruptedException {
 		MqmRestClientImpl client = new MqmRestClientImpl(connectionConfig);
 
@@ -309,18 +313,8 @@ public class MqmRestClientImplTest {
 		testResults.deleteOnExit();
 		FileUtils.write(testResults, testResultsXml);
 		try {
-            // TODO: prepare tests that fail on skipErrors=false and later execute them with skipErrors=true
 			long id = client.postTestResult(testResults, false);
-            String status = "";
-            for (int i = 0; i < 30; i++) {
-                TestResultStatus testResultStatus = client.getTestResultStatus(id);
-                status = testResultStatus.getStatus();
-                if ("success".equals(status)) {
-                    break;
-                }
-                Thread.sleep(1000);
-            }
-            Assert.assertEquals("Publish not finished successfully", "success", status);
+            assertPublishResult(id, "success");
 		} finally {
 			client.release();
 		}
@@ -329,8 +323,10 @@ public class MqmRestClientImplTest {
 		Assert.assertEquals(1, pagedList.getItems().size());
 		Assert.assertEquals("testOne" + timestamp, pagedList.getItems().get(0).getName());
 
+        // try to re-push the same content using InputStreamSource
+
 		try {
-			client.postTestResult(new InputStreamSource() {
+            long id = client.postTestResult(new InputStreamSource() {
 				@Override
 				public InputStream getInputStream() {
 					try {
@@ -340,9 +336,35 @@ public class MqmRestClientImplTest {
 					}
 				}
 			}, false);
+            assertPublishResult(id, "success");
 		} finally {
 			client.release();
 		}
+
+		// try content that fails unless skip-errors is specified
+
+        String testResultsErrorXml = ResourceUtils.readContent("TestResultsError.xml")
+                .replaceAll("%%%SERVER_IDENTITY%%%", serverIdentity)
+                .replaceAll("%%%TIMESTAMP%%%", String.valueOf(timestamp))
+                .replaceAll("%%%JOB_NAME%%%", jobName);
+        final File testResultsError = File.createTempFile(getClass().getSimpleName(), "");
+        testResults.deleteOnExit();
+        FileUtils.write(testResultsError, testResultsErrorXml);
+        try {
+            long id = client.postTestResult(testResultsError, false);
+            assertPublishResult(id, "failed");
+        } finally {
+            client.release();
+        }
+
+        // and verify that if succeeds partially with skip-errors=true
+
+        try {
+            long id = client.postTestResult(testResultsError, true);
+            assertPublishResult(id, "warning");
+        } finally {
+            client.release();
+        }
 
 		// invalid payload
 		final File testResults2 = new File(this.getClass().getResource("TestResults2.xmlx").toURI());
@@ -640,11 +662,11 @@ public class MqmRestClientImplTest {
         taxonomies = client.queryTaxonomies("TaxonomyType" + timestamp, WORKSPACE, 0, 100);
         List<Taxonomy> items = new ArrayList<Taxonomy>(taxonomies.getItems());
         Collections.sort(items, new Comparator<Taxonomy>() {
-            @Override
-            public int compare(Taxonomy left, Taxonomy right) {
-                return (int)(left.getId() - right.getId());
-            }
-        });
+			@Override
+			public int compare(Taxonomy left, Taxonomy right) {
+				return (int) (left.getId() - right.getId());
+			}
+		});
         Assert.assertEquals(2, items.size());
         Assert.assertEquals(taxonomyType.getName(), items.get(0).getName());
         Assert.assertEquals(taxonomyType.getId(), items.get(0).getId());
@@ -764,12 +786,79 @@ public class MqmRestClientImplTest {
 			Assert.assertTrue(supportedMetadataFields.contains(fieldsMetadata.getName()));
 		}
 	}
+	
+    @Test
+    public void testGetTestResultStatus() throws IOException {
+        String testResultsXml = ResourceUtils.readContent("TestResults2.xml");
+        File testResults = File.createTempFile(getClass().getSimpleName(), "");
+        testResults.deleteOnExit();
+        FileUtils.write(testResults, testResultsXml);
+        long id = client.postTestResult(testResults, false);
+		TestResultStatus resultStatus = client.getTestResultStatus(id);
+		Assert.assertTrue("queued".equals(resultStatus.getStatus()) ||
+				"running".equals(resultStatus.getStatus()) ||
+                "failed".equals(resultStatus.getStatus()));
+    }
+
+    @Test
+    public void testGetTestResultLog() throws IOException, InterruptedException {
+        String testResultsXml = ResourceUtils.readContent("TestResults2.xml");
+        File testResults = File.createTempFile(getClass().getSimpleName(), "");
+        testResults.deleteOnExit();
+        FileUtils.write(testResults, testResultsXml);
+        long id = client.postTestResult(testResults, false);
+        assertPublishResult(id, "failed");
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        client.getTestResultLog(id, new SimpleLog(baos));
+        String body = baos.toString("UTF-8");
+        Assert.assertTrue(body.contains("status: failed\n"));
+        Assert.assertTrue(body.contains("\n\nBuild reference {server: server; buildType: buildType; buildSid: 1} not resolved\n"));
+    }
+
+    @Test
+    public void testErrorHandling() {
+        try {
+            client.getTestResultStatus(1234567890l);
+            Assert.fail("should have failed");
+        } catch (RequestException e) {
+			Assert.assertEquals("Result status retrieval failed; error code: testbox.not_found; description: QueueItem id=1234567890 does not exist", e.getMessage());
+			StringWriter sw = new StringWriter();
+			e.printStackTrace(new PrintWriter(sw));
+            Assert.assertTrue(sw.toString().contains("Caused by: com.hp.mqm.testbox.exception.ItemNotFoundException: QueueItem id=1234567890 does not exist"));
+		}
+
+		try {
+			client.getTestResultLog(1234567890l, new SimpleLog(new ByteArrayOutputStream()));
+            Assert.fail("should have failed");
+        } catch (RequestException e) {
+            Assert.assertEquals("Log retrieval failed; error code: testbox.not_found; description: QueueItem id=1234567890 does not exist", e.getMessage());
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            Assert.assertTrue(sw.toString().contains("Caused by: com.hp.mqm.testbox.exception.ItemNotFoundException: QueueItem id=1234567890 does not exist"));
+        }
+    }
 
     private Pipeline getSinglePipeline(String serverIdentity, String jobName) {
         JobConfiguration jobConfiguration = client.getJobConfiguration(serverIdentity, jobName);
         Assert.assertEquals(1, jobConfiguration.getRelatedPipelines().size());
         return jobConfiguration.getRelatedPipelines().get(0);
     }
+
+	private int getListItemIdByName(int listId, String name) {
+		List<ListItem> items = client.queryListItems(listId, name, WORKSPACE, 0, 1).getItems();
+		Assert.assertEquals(1, items.size());
+		return items.get(0).getId();
+	}
+
+	private int getListIdByLogicalName(List<FieldMetadata> metadata, String name) {
+		for (FieldMetadata field : metadata) {
+			if (name.equals(field.getLogicalListName())) {
+				return field.getListId();
+			}
+		}
+		Assert.fail("Field not found");
+		throw new IllegalStateException();
+	}
 
 	private Taxonomy getTaxonomyByName(List<Taxonomy> taxonomies, String name) {
 		for (Taxonomy taxonomy : taxonomies) {
@@ -799,6 +888,37 @@ public class MqmRestClientImplTest {
             assertTaxonomyEquals(left.getRoot(), right.getRoot());
         } else {
             Assert.assertEquals(left.getRoot(), right.getRoot());
+        }
+    }
+
+	private void assertPublishResult(long id, String expectedStatus) throws InterruptedException {
+		String status = "";
+		for (int i = 0; i < 100; i++) {
+			TestResultStatus testResultStatus = client.getTestResultStatus(id);
+			status = testResultStatus.getStatus();
+			if (!"running".equals(status) && !"queued".equals(status)) {
+				break;
+			}
+			Thread.sleep(100);
+		}
+		Assert.assertEquals("Publish not finished with expected status", expectedStatus, status);
+	}
+
+    private static class SimpleLog implements LogOutput {
+
+        private ByteArrayOutputStream baos;
+
+        private SimpleLog(ByteArrayOutputStream baos) {
+            this.baos = baos;
+        }
+
+        @Override
+        public OutputStream getOutputStream() throws IOException {
+            return baos;
+        }
+        @Override
+        public void setContentType(String contentType) {
+            Assert.assertEquals("text/plain", contentType);
         }
     }
 }

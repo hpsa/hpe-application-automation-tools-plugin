@@ -1,8 +1,10 @@
 package com.hp.mqm.client;
 
+import com.hp.mqm.client.exception.ExceptionStackTraceParser;
 import com.hp.mqm.client.exception.FileNotFoundException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
+import com.hp.mqm.client.exception.ServerException;
 import com.hp.mqm.client.internal.InputStreamSourceEntity;
 import com.hp.mqm.client.model.FieldMetadata;
 import com.hp.mqm.client.model.JobConfiguration;
@@ -33,6 +35,7 @@ import org.apache.http.entity.StringEntity;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -52,8 +55,9 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 
 	private static final String PREFIX_CI = "analytics/ci/";
 
-	private static final String URI_TEST_RESULT_PUSH = PREFIX_CI + "test-results";
+	private static final String URI_TEST_RESULT_PUSH = PREFIX_CI + "test-results?skip-errors={0}";
 	private static final String URI_TEST_RESULT_STATUS = PREFIX_CI + "test-results/{0}";
+	private static final String URI_TEST_RESULT_LOG = URI_TEST_RESULT_STATUS + "/log";
 	private static final String URI_JOB_CONFIGURATION = "analytics/ci/servers/{0}/jobs/{1}/configuration";
 	private static final String URI_RELEASES = "releases";
 	private static final String URI_WORKSPACES = "workspaces";
@@ -78,12 +82,12 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 
 	@Override
 	public long postTestResult(InputStreamSource inputStreamSource, boolean skipErrors) {
-		return postTestResult(new InputStreamSourceEntity(inputStreamSource, ContentType.APPLICATION_XML));
+		return postTestResult(new InputStreamSourceEntity(inputStreamSource, ContentType.APPLICATION_XML), skipErrors);
 	}
 
 	@Override
 	public long postTestResult(File testResultReport, boolean skipErrors) {
-		return postTestResult(new FileEntity(testResultReport, ContentType.APPLICATION_XML));
+		return postTestResult(new FileEntity(testResultReport, ContentType.APPLICATION_XML), skipErrors);
 	}
 
 	@Override
@@ -93,7 +97,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
         try {
             response = execute(request);
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                throw new RequestException("Result status retrieval failed with status code " + response.getStatusLine().getStatusCode() + " and reason " + response.getStatusLine().getReasonPhrase() + " [" + tryParseMessage(response) + "]");
+                throw createRequestException("Result status retrieval failed", response);
             }
             String json = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
             JSONObject jsonObject = JSONObject.fromObject(json);
@@ -114,13 +118,33 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	}
 
 	@Override
+	public void getTestResultLog(long id, LogOutput output) {
+        HttpGet request = new HttpGet(createSharedSpaceInternalApiUri(URI_TEST_RESULT_LOG, id));
+        HttpResponse response = null;
+        try {
+            response = execute(request);
+            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+                throw createRequestException("Log retrieval failed", response);
+            }
+            output.setContentType(response.getFirstHeader("Content-type").getValue());
+            InputStream is = response.getEntity().getContent();
+            IOUtils.copy(is, output.getOutputStream());
+            IOUtils.closeQuietly(is);
+        } catch (IOException e) {
+            throw new RequestErrorException("Cannot obtain log.", e);
+        } finally {
+            HttpClientUtils.closeQuietly(response);
+        }
+	}
+
+	@Override
 	public JobConfiguration getJobConfiguration(String serverIdentity, String jobName) {
 		HttpGet request = new HttpGet(createSharedSpaceInternalApiUri(URI_JOB_CONFIGURATION, serverIdentity, jobName));
 		HttpResponse response = null;
 		try {
 			response = execute(request);
 			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-				throw new RequestException("Job configuration retrieval failed with status code " + response.getStatusLine().getStatusCode() + " and reason " + response.getStatusLine().getReasonPhrase());
+				throw createRequestException("Job configuration retrieval failed", response);
 			}
 			String json = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
             try {
@@ -159,7 +183,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		try {
 			response = execute(request);
 			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_CREATED) {
-				throw new RequestException("Pipeline creation failed with status code " + response.getStatusLine().getStatusCode() + " and reason " + response.getStatusLine().getReasonPhrase());
+				throw createRequestException("Pipeline creation failed", response);
 			}
 			String json = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
             return getPipelineByName(json, pipelineName, workspaceId);
@@ -210,7 +234,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
         try {
             response = execute(request);
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                throw new RequestException("Pipeline update failed with status code " + response.getStatusLine().getStatusCode() + " and reason " + response.getStatusLine().getReasonPhrase());
+                throw createRequestException("Pipeline update failed", response);
             }
             String json = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
             return getPipelineById(json, pipeline.getId());
@@ -353,19 +377,45 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
         }
     }
 
-    private String tryParseMessage(HttpResponse response) {
+    private RequestException createRequestException(String message, HttpResponse response) {
+        String description = null;
+        String stackTrace = null;
+        String errorCode = null;
         try {
             String json = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
             JSONObject jsonObject = JSONObject.fromObject(json);
-            if (jsonObject.has("message")) {
-                return jsonObject.getString("message");
+            if (jsonObject.has("error_code") && jsonObject.has("description")) {
+                // exception response
+                errorCode = jsonObject.getString("error_code");
+                description = jsonObject.getString("description");
+                // stack trace may not be present in production
+                stackTrace = jsonObject.optString("stack_trace");
             }
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Unable to determine failure message: ", e);
         } catch (JSONException e) {
             logger.log(Level.SEVERE, "Unable to determine failure message: ", e);
         }
-        return "";
+
+        ServerException cause = null;
+        if (!StringUtils.isEmpty(stackTrace)) {
+            try {
+                Throwable parsedException = ExceptionStackTraceParser.parseException(stackTrace);
+                cause = new ServerException("Exception thrown on server, see cause", parsedException);
+            } catch (RuntimeException e) {
+                // the parser is best-effort code, don't fail if anything goes wrong
+                logger.log(Level.SEVERE, "Unable to parse server stacktrace: ", e);
+            }
+        }
+        int statusCode = response.getStatusLine().getStatusCode();
+        String reason = response.getStatusLine().getReasonPhrase();
+        if (!StringUtils.isEmpty(errorCode)) {
+            return new RequestException(message + "; error code: " + errorCode + "; description: " + description,
+                    description, errorCode, statusCode, reason, cause);
+        } else {
+            return new RequestException(message + "; status code " + statusCode + "; reason " + reason,
+                    description, errorCode, statusCode, reason, cause);
+        }
     }
 
 	private ListItem toListItem(JSONObject field) {
@@ -527,7 +577,6 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 //		conditions.add(condition("list_root.id", String.valueOf(listId)));
 		return getEntities(getEntityURI(URI_LIST_ITEMS, conditions, workspaceId, offset, limit), offset, new ListItemEntityFactory());
 	}
-
 	@Override
 	public List<ListItem> getListItems(List<Long> itemIds, long workspaceId) {
 		if (itemIds == null || itemIds.size() == 0) {
@@ -567,17 +616,17 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		return ret;
 	}
 
-	private long postTestResult(HttpEntity entity) {
-        HttpPost request = new HttpPost(createSharedSpaceInternalApiUri(URI_TEST_RESULT_PUSH));
+	private long postTestResult(HttpEntity entity, boolean skipErrors) {
+		HttpPost request = new HttpPost(createSharedSpaceInternalApiUri(URI_TEST_RESULT_PUSH, skipErrors));
         request.setEntity(entity);
 		HttpResponse response = null;
 		try {
 			response = execute(request);
 			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_ACCEPTED) {
-				throw new RequestException("Test result posting failed with status code " + response.getStatusLine().getStatusCode() + " and reason " + response.getStatusLine().getReasonPhrase() + " [" + tryParseMessage(response) + "]");
+                throw createRequestException("Test result post failed", response);
 			}
             String json = IOUtils.toString(response.getEntity().getContent());
-            JSONObject jsonObject =  JSONObject.fromObject(json);
+            JSONObject jsonObject = JSONObject.fromObject(json);
             return jsonObject.getLong("id");
         } catch (java.io.FileNotFoundException e) {
 			throw new FileNotFoundException("Cannot find test result file.", e);

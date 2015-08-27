@@ -3,6 +3,7 @@
 package com.hp.octane.plugins.jenkins;
 
 import com.google.inject.Inject;
+import com.hp.octane.plugins.jenkins.bridge.BridgesService;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationListener;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationService;
@@ -28,7 +29,6 @@ import org.kohsuke.stapler.StaplerRequest;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.Date;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -103,6 +103,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
         }
 
 		EventsDispatcher.getExtensionInstance().updateClient(getServerConfiguration());
+		BridgesService.getExtensionInstance().updateBridge(getServerConfiguration());
 	}
 
 	@Override
@@ -139,7 +140,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 		return Scrambler.descramble(password);
 	}
 
-	public void configurePlugin(String uiLocation, Boolean abridged, String username, String password) throws IOException {
+	public void configurePlugin(String uiLocation, boolean abridged, String username, String password) throws IOException {
 		ServerConfiguration oldConfiguration = getServerConfiguration();
 		String oldUiLocation = this.uiLocation;
 
@@ -201,7 +202,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 			try {
 				JSONObject mqmData = formData.getJSONObject("mqm"); // NON-NLS
 				octanePlugin.configurePlugin(mqmData.getString("uiLocation"), // NON-NLS
-						mqmData.getBoolean("abridged"), // NON-NLS
+						mqmData.has("abridged") && mqmData.getBoolean("abridged"), // NON-NLS
 						mqmData.getString("username"), // NON-NLS
 						mqmData.getString("password")); // NON-NLS
 				return true;
