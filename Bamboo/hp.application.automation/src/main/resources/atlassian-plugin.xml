@@ -28,27 +28,22 @@
     
     <!-- import from the product container -->
     <component-import key="com.atlassian.sal.api.ApplicationProperties" interface="com.atlassian.sal.api.ApplicationProperties" />
-	 
-	<executable
-     key="hpAlmServer" 
-     nameKey="hpAlmServer.executableName" 
-     pathHelpKey="hpAlmServer.executableHelpPath"/>  
-         
+
 	<taskType 
-		name="HP ALM Lab Management Environment Preparation" 
+		name="HP ALM Lab Management Environment Preparation"
 		class="com.hp.application.automation.bamboo.tasks.AlmLabEnvPrepareTask" 
 		key="com.hp.application.automation.bamboo.tasks.AlmLabEnvPrepareTask">
       <description>Execute AUT Environment preparation using HP ALM Lab Management</description>
       <category name="test"/>
-      <executable
-     	key="hpAlmServer"
-     	nameKey="hpAlmServer.executableName"
-     	pathHelpKey="hpAlmServer.executableHelpPath"/>
       <configuration class="com.hp.application.automation.bamboo.tasks.AlmLabEnvPrepareTaskConfigurator"/>
       <resource 
       	type="freemarker" 
       	name="edit" 
       	location="AlmLabEnvPrepareTask.ftl"/>
+      <resource
+        type="download"
+        name="icon"
+        location="images/alm_lab_preperation.png"/>
     </taskType>
     
     <taskType 
@@ -62,6 +57,10 @@
       	type="freemarker" 
       	name="edit" 
       	location="AlmLabManagementTask.ftl"/>
+      <resource
+        type="download"
+        name="icon"
+        location="images/alm_lab_exe.png"/>
     </taskType>
     
     <taskType 
@@ -77,6 +76,10 @@
       	type="freemarker" 
       	name="edit" 
       	location="RunFromFileSystemTask.ftl"/>
+      <resource
+        type="download"
+        name="icon"
+        location="images/execute_file_system.png"/>
     </taskType>
     
     <taskType 
@@ -90,5 +93,9 @@
       	type="freemarker" 
       	name="edit" 
       	location="RunFromALM.ftl"/>
+      <resource
+        type="download"
+        name="icon"
+        location="images/execute_alm.png"/>
     </taskType>
 </atlassian-plugin>
