@@ -4,7 +4,6 @@ import net.sf.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -18,8 +17,8 @@ public class TaskProcessor implements Runnable {
 	private final JSONObject task;
 	private final String baseURL;
 
-	TaskProcessor(JSONObject task, String baseURL) {
-		this.task = task;
+	TaskProcessor(String task, String baseURL) {
+		this.task = JSONObject.fromObject(task);
 		this.baseURL = baseURL;
 	}
 

@@ -3,7 +3,6 @@ package com.hp.octane.plugins.jenkins.bridge;
 import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
-import net.sf.json.JSONObject;
 import org.kohsuke.stapler.export.Exported;
 
 import java.util.concurrent.ExecutorService;
@@ -55,14 +54,13 @@ public class Bridge {
 							"/analytics/ci/servers/" + new PluginActions.ServerInfo().getInstanceId() + "/task", null);
 					logger.info("BRIDGE: back from '" + mqmConfig.location + "' with " + (taskJSON == null || taskJSON.isEmpty() ? "no task" : "task"));
 					openedConnections.decrementAndGet();
+					if (mqmConfig.abridged && openedConnections.get() < CONCURRENT_CONNECTIONS) connect();
 					if (taskJSON != null && !taskJSON.isEmpty()) {
-						JSONObject task = JSONObject.fromObject(taskJSON);
 						taskProcessingExecutors.execute(new TaskProcessor(
-								task,
+								taskJSON,
 								mqmConfig.location + "/internal-api/shared_spaces/" + mqmConfig.sharedSpace + "/analytics/ci/servers/" + new PluginActions.ServerInfo().getInstanceId() + "/task"
 						));
 					}
-					if (mqmConfig.abridged) connect();
 				} catch (RESTClientTMP.TemporaryException te) {
 					openedConnections.decrementAndGet();
 					logger.severe("BRIDGE: connection to MQM Server temporary failed: " + te.getMessage());
@@ -71,7 +69,7 @@ public class Bridge {
 					} catch (InterruptedException ie) {
 						logger.info("interrupted while breathing on temporary exception, continue to re-connect...");
 					}
-					if (mqmConfig.abridged) connect();
+					if (mqmConfig.abridged && openedConnections.get() < CONCURRENT_CONNECTIONS) connect();
 				} catch (RESTClientTMP.FatalException fe) {
 					openedConnections.decrementAndGet();
 					logger.severe("BRIDGE: connection to MQM Server fatally failed: " + fe.getMessage());
