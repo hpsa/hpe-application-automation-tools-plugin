@@ -21,7 +21,7 @@
     width: 97%;
 }
 #paramTable{
-width:100%;
+    width:100%;
 }
 </style>
 
@@ -45,72 +45,65 @@ width:100%;
 [@ww.textfield labelKey="AlmLabEnvPrepareTask.domainInputLbl" name="domain" required='true'/]
 [@ww.textfield labelKey="AlmLabEnvPrepareTask.projectInputLbl" name="almProject" required='true'/]
 <div class="control">
-[@ww.textfield labelKey="AlmLabEnvPrepareTask.AUTEnvIDInputLbl" name="AUTEnvID" required='true'/]
+    [@ww.textfield labelKey="AlmLabEnvPrepareTask.AUTEnvIDInputLbl" name="AUTEnvID" required='true'/]
 </div>
-<div class="helpIcon" onclick="javascript: toggle_visibility('AlmLabEnvPrepareTask.toolTip.AUTEnvID');">?
-</div>
+<div class="helpIcon" onclick="javascript: toggle_visibility('AlmLabEnvPrepareTask.toolTip.AUTEnvID');">?</div>
 <div id ="AlmLabEnvPrepareTask.toolTip.AUTEnvID" class="toolTip">
     [@ww.text name='AlmLabEnvPrepareTask.toolTip.AUTEnvID'/]
 </div>
 <div>
-    [@ww.radio labelKey='AlmLabEnvPrepareTask.AUTEnvConfInputLbl' name='ALMConfigOptions'
-            listKey='key' listValue='value' toggle='true'
-            list=ALMConfigOptionsMap ]
-     [/@ww.radio]
+[@ww.radio labelKey='AlmLabEnvPrepareTask.AUTEnvConfInputLbl' name='ALMConfigOptions'
+        listKey='key' listValue='value' toggle='true'
+        list=ALMConfigOptionsMap ]
+ [/@ww.radio]
 
-    [@ui.bambooSection dependsOn='ALMConfigOptions' showOn='ALMConfUseNew']
-            [@ww.textfield labelKey="AlmLabEnvPrepareTask.createNewConfInputLbl" name="NewAUTConfName" required='true'/]
-            <div class="control">
-                [@ww.textfield labelKey="AlmLabEnvPrepareTask.assignAUTEnvConfIDtoInputLbl" name="outEnvID"/]
-            </div>
-            <div class="helpIcon" onclick="javascript: toggle_visibility('AlmLabEnvPrepareTask.toolTip.AUTEnvConfID');">?
-            </div>
-            <div id ="AlmLabEnvPrepareTask.toolTip.AUTEnvConfID" class="toolTip">
-                [@ww.text name='AlmLabEnvPrepareTask.toolTip.AUTEnvConfID'/]
-            </div>
-    [/@ui.bambooSection]
-    [@ui.bambooSection dependsOn='ALMConfigOptions' showOn='ALMConfUseExist']
-            [@ww.textfield labelKey="AlmLabEnvPrepareTask.useAnExistingConfInputLbl" name="AUTConfName" required='true'/]
-    [/@ui.bambooSection]
+[@ui.bambooSection dependsOn='ALMConfigOptions' showOn='ALMConfUseNew']
+        [@ww.textfield labelKey="AlmLabEnvPrepareTask.createNewConfInputLbl" name="NewAUTConfName" required='true'/]
+        <div class="control">
+            [@ww.textfield labelKey="AlmLabEnvPrepareTask.assignAUTEnvConfIDtoInputLbl" name="outEnvID"/]
+        </div>
+        <div class="helpIcon" onclick="javascript: toggle_visibility('AlmLabEnvPrepareTask.toolTip.AUTEnvConfID');">?</div>
+        <div id ="AlmLabEnvPrepareTask.toolTip.AUTEnvConfID" class="toolTip">
+            [@ww.text name='AlmLabEnvPrepareTask.toolTip.AUTEnvConfID'/]
+        </div>
+[/@ui.bambooSection]
+[@ui.bambooSection dependsOn='ALMConfigOptions' showOn='ALMConfUseExist']
+        [@ww.textfield labelKey="AlmLabEnvPrepareTask.useAnExistingConfInputLbl" name="AUTConfName" required='true'/]
+[/@ui.bambooSection]
 
 </div>
 
 <div class="control">
-[@ww.textfield labelKey="AlmLabEnvPrepareTask.pathToJSONFileInputLbl" name="pathToJSONFile"/]
+    [@ww.textfield labelKey="AlmLabEnvPrepareTask.pathToJSONFileInputLbl" name="pathToJSONFile"/]
 </div>
-<div class="helpIcon" onclick="javascript: toggle_visibility('AlmLabEnvPrepareTask.toolTip.JSONPath');">?
-</div>
+<div class="helpIcon" onclick="javascript: toggle_visibility('AlmLabEnvPrepareTask.toolTip.JSONPath');">?</div>
 <div id ="AlmLabEnvPrepareTask.toolTip.JSONPath" class="toolTip">
     [@ww.text name='AlmLabEnvPrepareTask.toolTip.JSONPath'/]
 </div>
 
-<div>
-   <fieldset style="display: none;">
-        [@newALMParam /]
-   </fieldset>
+<fieldset style="display: none;">
+    [@newALMParam /]
+</fieldset>
 
-    <table id="paramTable">
-            [#list almParams as prm]
-             <tr>
-                  <td><input type="Button" class="Button" onclick="javascript: delRow(this)" value="Delete"></td>
-                   <td>[@newALMParam paramType =prm.almParamSourceType paramName=prm.almParamName paramValue=prm.almParamValue/]</td>
-             </tr>
-            [/#list]
-    </table>
+<table id="paramTable">
+    [#list almParams as prm]
+     <tr>
+          <td><input type="Button" class="Button" onclick="javascript: delRow(this)" value="[@ww.text name='AlmLabEnvPrepareTask.btn.Delete'/]"></td>
+          <td>[@newALMParam paramType =prm.almParamSourceType paramName=prm.almParamName paramValue=prm.almParamValue/]</td>
+     </tr>
+    [/#list]
+</table>
 
-    <div class="buttons-container">
-        <div class="buttons">
-            <button class="aui-button aui-button-primary" type="button" onclick="javascript: addNewALMParam()"> Add parameters </button>
-        </div>
+<div class="buttons-container">
+    <div class="buttons">
+        <button class="aui-button aui-button-primary" type="button" onclick="javascript: addNewALMParam()">
+            [@ww.text name='AlmLabEnvPrepareTask.btn.AddParameters'/]
+        </button>
     </div>
 </div>
 
-
 <script  type="text/javascript">
            function addNewALMParam() {
-
-               console.log("console.log");
-
                var divTemplate = document.getElementById('ParamTemplate');
                var table = document.getElementById('paramTable');
 
@@ -118,7 +111,7 @@ width:100%;
                var td1 = document.createElement("TD");
                var td2 = document.createElement("TD");
 
-               var strHtml5 = "<INPUT TYPE=\"Button\" CLASS=\"Button\" onClick=\"javascript: delRow(this)\" VALUE=\"Delete\">";
+               var strHtml5 = "<INPUT TYPE=\"Button\" CLASS=\"Button\" onClick=\"javascript: delRow(this)\" VALUE=\"[@ww.text name='AlmLabEnvPrepareTask.btn.Delete'/]\">";
                td1.innerHTML = strHtml5;
 
                var divClone = divTemplate.cloneNode(true);
@@ -142,6 +135,5 @@ width:100%;
                    e.style.display = 'none';
                else
                    e.style.display = 'block';
-               console.log(e.property("innerHtml"));
            }
 </script>

@@ -27,8 +27,7 @@
 <div class="control">
     [@ww.select labelKey="RunFromFileSystemTask.publishMode" name="publishMode" list="publishModeItems" emptyOption="false"/]
 </div>
-<div class="helpIcon" onclick="javascript: toggle_visibility('RunFromFileSystemTaskConfigurator.toolTip.viewResults');">?
-</div>
+<div class="helpIcon" onclick="javascript: toggle_visibility('RunFromFileSystemTaskConfigurator.toolTip.viewResults');">?</div>
 <div id ="RunFromFileSystemTaskConfigurator.toolTip.viewResults" class="toolTip">
     [@ww.text name='RunFromFileSystemTaskConfigurator.toolTip.viewResults'/]
 </div>

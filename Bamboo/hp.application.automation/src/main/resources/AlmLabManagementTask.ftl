@@ -38,17 +38,15 @@
 [@ww.textfield labelKey="AlmLabManagementTask.duration" name="duration" required='true'/]
 
 <div class="control">
-[@ww.textfield labelKey="AlmLabManagementTask.enviromentId" name="enviromentId"/]
+    [@ww.textfield labelKey="AlmLabManagementTask.enviromentId" name="enviromentId"/]
 </div>
-<div class="helpIcon" onclick="javascript: toggle_visibility('AlmLabManagementTask.toolTip.enviromentId');">?
-</div>
+<div class="helpIcon" onclick="javascript: toggle_visibility('AlmLabManagementTask.toolTip.enviromentId');">?</div>
 <div id ="AlmLabManagementTask.toolTip.enviromentId" class="toolTip">
     [@ww.text name='AlmLabManagementTask.toolTip.enviromentId'/]
 </div>
 
-<br/>
 <div class="CDAcheckBox">
-[@ww.checkbox labelKey="AlmLabManagementTask.useSda" name="useSda" toggle='true'/]
+    [@ww.checkbox labelKey="AlmLabManagementTask.useSda" name="useSda" toggle='true'/]
 </div>
 [@ui.bambooSection dependsOn='useSda' showOn='true']
     [@ww.select labelKey="AlmLabManagementTask.deploymentAction" name="deploymentAction" list="deploymentActionItems"  emptyOption="false"/]
