@@ -432,12 +432,16 @@ public class MqmRestClientImplTest {
 		Assert.assertEquals(1, jobConfiguration.getRelatedPipelines().size());
 		Pipeline pipeline = jobConfiguration.getRelatedPipelines().get(0);
 		Assert.assertEquals(pipelineName, pipeline.getName());
+		Assert.assertEquals(WORKSPACE, pipeline.getWorkspaceId());
         Assert.assertTrue(pipeline.isRoot());
 		Assert.assertTrue(pipeline.getTaxonomies().isEmpty());
 		Assert.assertTrue(!pipeline.getFields().isEmpty());
 		for (ListField field : pipeline.getFields()) {
 			Assert.assertTrue(field.getValues().isEmpty());
 		}
+		Assert.assertEquals(1, jobConfiguration.getWorkspacePipelinesMap().size());
+		Assert.assertEquals(Long.valueOf(WORKSPACE), jobConfiguration.getWorkspacePipelinesMap().keySet().iterator().next());
+		Assert.assertEquals(pipeline, jobConfiguration.getWorkspacePipelinesMap().get(WORKSPACE).get(0));
 	}
 
 	@Test
@@ -490,6 +494,7 @@ public class MqmRestClientImplTest {
         Pipeline updatedPipeline = client.updatePipeline(serverIdentity, jobName, pipeline);
         Assert.assertEquals(pipelineName + "New", updatedPipeline.getName());
         Assert.assertEquals(release2.getId(), updatedPipeline.getReleaseId());
+		Assert.assertEquals(WORKSPACE, updatedPipeline.getWorkspaceId());
         Assert.assertEquals(1, updatedPipeline.getTaxonomies().size());
         Taxonomy taxonomy = updatedPipeline.getTaxonomies().get(0);
         Assert.assertNotNull(taxonomy.getId());
@@ -840,6 +845,7 @@ public class MqmRestClientImplTest {
     private Pipeline getSinglePipeline(String serverIdentity, String jobName) {
         JobConfiguration jobConfiguration = client.getJobConfiguration(serverIdentity, jobName);
         Assert.assertEquals(1, jobConfiguration.getRelatedPipelines().size());
+		Assert.assertEquals(1, jobConfiguration.getWorkspacePipelinesMap().keySet().size());
         return jobConfiguration.getRelatedPipelines().get(0);
     }
 

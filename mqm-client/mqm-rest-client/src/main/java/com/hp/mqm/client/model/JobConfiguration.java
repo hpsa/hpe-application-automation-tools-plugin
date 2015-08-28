@@ -20,17 +20,10 @@ final public class JobConfiguration {
         return relatedPipelines;
     }
 
-    public List<Long> getRelatedWorkspaceIds() {
-        List<Long> workspaceIds = new LinkedList<Long>();
-        for (Pipeline pipeline : relatedPipelines) {
-            workspaceIds.add(pipeline.getWorkspaceId());
-        }
-        return workspaceIds;
-    }
-
-    public Map<Long, List<Pipeline>> getRelatedPipelinesMap() {
+    //map of related workspaces and pipelines related to that workspace <workspaceId, List<Pipeline>>
+    public Map<Long, List<Pipeline>> getWorkspacePipelinesMap() {
         Map<Long, List<Pipeline>> ret = new HashMap<Long, List<Pipeline>>();
-        for(Pipeline pipeline : relatedPipelines) {
+        for (Pipeline pipeline : relatedPipelines) {
             if (ret.containsKey(pipeline.getWorkspaceId())) {
                 ret.get(pipeline.getWorkspaceId()).add(pipeline);
             } else {

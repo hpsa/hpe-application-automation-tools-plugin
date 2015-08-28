@@ -551,7 +551,9 @@ function octane_job_configuration(target, progress, proxy) {
             var selectWorkspaceDiv = $("<div class='mutton rpos' id='select-workspace-div'><label class='workspace-select' for='workspace-select'>Workspace:</label><select/></div>");
             var workspaceSelect = selectWorkspaceDiv.find("select");
 
-            Object.values(jobConfiguration.workspaces).forEach(function (workspace) {
+            //sort workspaces by name to show in UI
+            var sortedWorkspaces = sortByName(Object.values(jobConfiguration.workspaces));
+            sortedWorkspaces.forEach(function (workspace) {
                 workspaceSelect.append($("<option>").text(workspace.name).val(workspace.id).attr('selected', (workspace.id === selectedWorkspaceId)));
             });
 
@@ -561,7 +563,10 @@ function octane_job_configuration(target, progress, proxy) {
                     if (Object.keys(jobConfiguration.workspaces[selectedWorkspaceId].pipelines).length > 1) {
                         var selectPipelineRow = $("<tr><td/><td class='setting-main'><select/><br/><br/></td><td class='setting-new'></td></tr>");
                         var pipelineSelect = selectPipelineRow.find("select");
-                        Object.values(jobConfiguration.workspaces[selectedWorkspaceId].pipelines).forEach(function (pipeline) {
+
+                        //sort pipelines by name to show in UI
+                        var sortedPipelines = sortByName(Object.values(jobConfiguration.workspaces[selectedWorkspaceId].pipelines));
+                        sortedPipelines.forEach(function (pipeline) {
                             pipelineSelect.append($("<option>").text(pipeline.name).val(pipeline.id).attr('selected', (pipeline.id === selectedPipelineId)));
                         });
                         var lastSelectedPipeline = $(pipelineSelect).find("option:selected");
@@ -606,7 +611,7 @@ function octane_job_configuration(target, progress, proxy) {
                 }
                 selectedWorkspaceId = workspaceSelect.val();
                 lastSelectedWorkspace = $(workspaceSelect).find("option:selected");
-                var currentPipeline = Object.values(jobConfiguration.workspaces[selectedWorkspaceId].pipelines)[0];
+                var currentPipeline = sortByName(Object.values(jobConfiguration.workspaces[selectedWorkspaceId].pipelines))[0];
 
                 progressFunc("Retrieving configuration from server");
                 proxy.loadWorkspaceConfiguration(currentPipeline, function (t) {
@@ -645,6 +650,13 @@ function octane_job_configuration(target, progress, proxy) {
                 }
             }
         };
+
+        function sortByName(array) {
+            array.sort(function(o1, o2) {
+                return o1.name.localeCompare(o2.name);
+            });
+            return array;
+        }
 
         function tagTypeValue(n) {
             // mapping to ensure negative value (solve the "0" tag type ID)

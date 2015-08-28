@@ -36,6 +36,8 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -44,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -83,8 +86,11 @@ public class JobConfigurationProxy {
             }
             //WORKAROUND END
 
-            JSONObject pipelineJSON = toPipelineJSON(createdPipeline, workspaces.get(0));
+            JSONObject pipelineJSON = fromPipeline(createdPipeline, workspaces.get(0));
+            //WORKAROUND BEGIN
+            //all metadata have to be loaded in separate REST calls for this pipeline: releaseName, taxonomyNames and listFieldNames are not returned from configuration API
             enrichPipeline(pipelineJSON, client);
+            //WORKAROUND END
             result.put("pipeline", pipelineJSON);
 
             JSONArray fieldsMetadata = getFieldMetadata(createdPipeline.getWorkspaceId(), client);
@@ -146,8 +152,12 @@ public class JobConfigurationProxy {
                 throw new ClientException("WorkspaceName could not be retrieved for workspaceId: " + pipeline.getWorkspaceId());
             }
             //WORKAROUND END
-            JSONObject pipelineJSON = toPipelineJSON(pipeline, workspaces.get(0));
+
+            JSONObject pipelineJSON = fromPipeline(pipeline, workspaces.get(0));
+            //WORKAROUND BEGIN
+            //all metadata have to be loaded in separate REST calls for this pipeline: releaseName, taxonomyNames and listFieldNames are not returned from configuration API
             enrichPipeline(pipelineJSON, client);
+            //WORKAROUND END
             result.put("pipeline", pipelineJSON);
 
             client.release();
@@ -177,57 +187,72 @@ public class JobConfigurationProxy {
 
         JSONObject ret = new JSONObject();
         JSONObject workspaces = new JSONObject();
-        JSONArray pipelines = new JSONArray();
-
+        JSONArray fieldsMetadata = new JSONArray();
         try {
             JobConfiguration jobConfiguration = client.getJobConfiguration(ServerIdentity.getIdentity(), project.getName());
-            Map<Long, String> relatedWorkspaces = new HashMap<Long, String>();
 
-            //WORKAROUND BEGIN
-            //getting workspaceName - because the workspaceName is not returned from configuration API
-            if (jobConfiguration.getRelatedPipelines().size() > 0) {
-                List<Workspace> workspaceList = client.getWorkspaces(jobConfiguration.getRelatedWorkspaceIds());
+            if (!jobConfiguration.getWorkspacePipelinesMap().isEmpty()) {
+                Map<Long, List<Pipeline>> workspacesMap = jobConfiguration.getWorkspacePipelinesMap();
+                //WORKAROUND BEGIN
+                //getting workspaceName - because the workspaceName is not returned from configuration API
+                Map<Long, String> relatedWorkspaces = new HashMap<Long, String>();
+                List<Workspace> workspaceList = client.getWorkspaces(new LinkedList<Long>(workspacesMap.keySet()));
                 for (Workspace workspace : workspaceList) {
                     relatedWorkspaces.put(workspace.getId(), workspace.getName());
                 }
-            }
-            //WORKAROUND END
+                //WORKAROUND END
 
-//			List<FieldMetadata> fields = jobConfiguration.getFieldMetadata();
-            for(Pipeline relatedPipeline: jobConfiguration.getRelatedPipelines()) {
-                Workspace relatedWorkspace = new Workspace(relatedPipeline.getWorkspaceId(), relatedWorkspaces.get(relatedPipeline.getWorkspaceId()));
-                JSONObject pipeline = toPipelineJSON(relatedPipeline, relatedWorkspace);
+                Map<Workspace, List<Pipeline>> sortedWorkspacesMap = new TreeMap<Workspace, List<Pipeline>>(new Comparator<Workspace>() {
+                    @Override
+                    public int compare(final Workspace w1, final Workspace w2) {
+                        return w1.getName().compareTo(w2.getName());
+                    }
+                });
+                Comparator<Pipeline> pipelineComparator = new Comparator<Pipeline>() {
+                    @Override
+                    public int compare(final Pipeline p1, final Pipeline p2) {
+                        return p1.getName().compareTo(p2.getName());
+                    }
+                };
 
-                if (workspaces.has(String.valueOf(relatedWorkspace.getId()))) {
-                    JSONObject workspaceObject = workspaces.getJSONObject(String.valueOf(relatedWorkspace.getId()));
-                    JSONObject tmpPipelines = workspaceObject.getJSONObject("pipelines");
-                    tmpPipelines.put(String.valueOf(relatedPipeline.getId()), pipeline);
-                } else {
-                    JSONObject workspaceObject = new JSONObject();
-                    workspaceObject.put("id", relatedWorkspace.getId());
-                    workspaceObject.put("name", relatedWorkspace.getName());
+                //create workspaces JSON Object
+                for (Entry<Long, List<Pipeline>> workspacePipelines : workspacesMap.entrySet()) {
+                    Workspace relatedWorkspace = new Workspace(workspacePipelines.getKey(), relatedWorkspaces.get(workspacePipelines.getKey()));
+                    JSONObject relatedPipelinesJSON = new JSONObject();
 
-                    JSONObject tmpPipelines = new JSONObject();
-                    tmpPipelines.put(String.valueOf(relatedPipeline.getId()), pipeline);
-                    workspaceObject.put("pipelines", tmpPipelines);
-                    workspaces.put(String.valueOf(relatedWorkspace.getId()), workspaceObject);
+                    for (Pipeline relatedPipeline : workspacePipelines.getValue()) {
+                        JSONObject pipelineJSON = fromPipeline(relatedPipeline, relatedWorkspace);
+                        relatedPipelinesJSON.put(String.valueOf(relatedPipeline.getId()), pipelineJSON);
+                    }
+                    JSONObject workspaceJSON = new JSONObject();
+                    workspaceJSON.put("id", relatedWorkspace.getId());
+                    workspaceJSON.put("name", relatedWorkspace.getName());
+                    workspaceJSON.put("pipelines", relatedPipelinesJSON);
+                    workspaces.put(String.valueOf(relatedWorkspace.getId()), workspaceJSON);
+
+                    //inserting this workspace into sortedMap (sorted by workspaceName and by pipelineName, so that we can pick first workspace and its first pipeline as preselected values
+                    LinkedList<Pipeline> workspacePipelinesList = new LinkedList<Pipeline>(workspacePipelines.getValue());
+                    Collections.sort(workspacePipelinesList, pipelineComparator);
+                    sortedWorkspacesMap.put(relatedWorkspace, workspacePipelinesList);
                 }
-            }
-            ret.put("workspaces", workspaces);
 
-            JSONArray fieldsMetadata = new JSONArray();
-            //create currentPipeline JSON Object
-            if (jobConfiguration.getRelatedWorkspaceIds().size() > 0) {
-                long preSelectedWorkspaceId = jobConfiguration.getRelatedWorkspaceIds().get(0);
-                Workspace preSelectedWorkspace = new Workspace(preSelectedWorkspaceId, relatedWorkspaces.get(preSelectedWorkspaceId));
+                //create currentPipeline JSON Object
+                //currently the first pipeline in the first workspace is picked
+                Workspace preSelectedWorkspace = sortedWorkspacesMap.keySet().iterator().next();
+                Pipeline preSelectedPipeline = sortedWorkspacesMap.get(preSelectedWorkspace).get(0);
+                JSONObject preSelectedPipelineJSON = fromPipeline(preSelectedPipeline, preSelectedWorkspace);
 
-                fieldsMetadata = getFieldMetadata(preSelectedWorkspaceId, client);
-
-                Pipeline preSelectedPipeline = jobConfiguration.getRelatedPipelinesMap().get(preSelectedWorkspaceId).get(0);
-                JSONObject preSelectedPipelineJSON = toPipelineJSON(preSelectedPipeline, preSelectedWorkspace);
+                //WORKAROUND BEGIN
+                //all metadata have to be loaded in separate REST calls for this pipeline: releaseName, taxonomyNames and listFieldNames are not returned from configuration API
                 enrichPipeline(preSelectedPipelineJSON, client);
+                //WORKAROUND END
                 ret.put("currentPipeline", preSelectedPipelineJSON);
+
+                //retrieving metadata fields for preselected workspace
+                fieldsMetadata = getFieldMetadata(preSelectedWorkspace.getId(), client);
             }
+
+            ret.put("workspaces", workspaces);
             ret.put("fieldsMetadata", fieldsMetadata);
 
 			//client.release();
@@ -267,11 +292,11 @@ public class JobConfigurationProxy {
             ret.put("pipeline", pipelineJSON);
 
         } catch (RequestException e) {
-            logger.log(Level.WARNING, "Failed to retrieve job configuration", e);
-            return error("Unable to retrieve job configuration");
+            logger.log(Level.WARNING, "Failed to retrieve metadata for workspace", e);
+            return error("Unable to retrieve metadata for workspace");
         } catch (RequestErrorException e) {
-            logger.log(Level.WARNING, "Failed to retrieve job configuration", e);
-            return error("Unable to retrieve job configuration");
+            logger.log(Level.WARNING, "Failed to retrieve metadata for workspace", e);
+            return error("Unable to retrieve metadata for workspace");
         } finally {
             try {
                 client.release();
@@ -282,7 +307,7 @@ public class JobConfigurationProxy {
         return ret;
     }
 
-    private JSONObject toPipelineJSON(final Pipeline pipeline, Workspace relatedWorkspace) {
+    private JSONObject fromPipeline(final Pipeline pipeline, Workspace relatedWorkspace) {
         JSONObject pipelineJSON = new JSONObject();
         pipelineJSON.put("id", pipeline.getId());
         pipelineJSON.put("name", pipeline.getName());
@@ -291,7 +316,7 @@ public class JobConfigurationProxy {
         pipelineJSON.put("workspaceId", relatedWorkspace.getId());
         pipelineJSON.put("workspaceName", relatedWorkspace.getName());
         addTaxonomyTags(pipelineJSON, pipeline);
-        addFieldTags(pipelineJSON, pipeline);
+        addFields(pipelineJSON, pipeline);
 
         return pipelineJSON;
     }
@@ -312,11 +337,11 @@ public class JobConfigurationProxy {
             ret.put("pipeline", pipelineJSON);
 
         } catch (RequestException e) {
-            logger.log(Level.WARNING, "Failed to retrieve job configuration", e);
-            return error("Unable to retrieve job configuration");
+            logger.log(Level.WARNING, "Failed to retrieve metadata for pipeline", e);
+            return error("Unable to retrieve metadata for pipeline");
         } catch (RequestErrorException e) {
-            logger.log(Level.WARNING, "Failed to retrieve job configuration", e);
-            return error("Unable to retrieve job configuration");
+            logger.log(Level.WARNING, "Failed to retrieve metadata for pipeline", e);
+            return error("Unable to retrieve metadata for pipeline");
         } finally {
             try {
                 client.release();
@@ -398,15 +423,15 @@ public class JobConfigurationProxy {
 
     private JSONArray getFieldMetadata(final long workspaceId, MqmRestClient client) {
         JSONArray fieldMetadataArray = new JSONArray();
-        List<FieldMetadata> supportedFieldMetadata = client.getFieldsMetadata(workspaceId);
+        List<FieldMetadata> metadataList = client.getFieldsMetadata(workspaceId);
 
-        for (FieldMetadata fieldMetadata : supportedFieldMetadata) {
-            fieldMetadataArray.add(fieldMetadata(fieldMetadata));
+        for (FieldMetadata fieldMetadata : metadataList) {
+            fieldMetadataArray.add(fromFieldMetadata(fieldMetadata));
         }
         return fieldMetadataArray;
     }
 
-    private JSONObject fieldMetadata(FieldMetadata fieldMetadata) {
+    private JSONObject fromFieldMetadata(FieldMetadata fieldMetadata) {
         JSONObject fieldMetadataJSON = new JSONObject();
         fieldMetadataJSON.put("name", fieldMetadata.getName());
         fieldMetadataJSON.put("listName", fieldMetadata.getListName());
@@ -568,7 +593,7 @@ public class JobConfigurationProxy {
             client.release();
         } catch (RequestException e) {
             logger.log(Level.WARNING, "Failed to retrieve workspaces", e);
-            return error("Unable to retrieve job configuration");
+            return error("Unable to retrieve workspaces");
         } catch (RequestErrorException e) {
             logger.log(Level.WARNING, "Failed to retrieve workspaces", e);
             return error("Unable to retrieve workspaces");
@@ -745,17 +770,17 @@ public class JobConfigurationProxy {
         result.put("taxonomyTags", pipelineTaxonomies);
     }
 
-    private void addFieldTags(JSONObject result, Pipeline pipeline) {
-        JSONObject fieldTags = new JSONObject();
+    private void addFields(JSONObject result, Pipeline pipeline) {
+        JSONObject listFields = new JSONObject();
 
         for (ListField field : pipeline.getFields()) {
-            JSONArray assignedValuesArray = createFieldTagJSON(field);
-            fieldTags.put(field.getName(), assignedValuesArray);
+            JSONArray assignedValuesArray = listFieldValues(field);
+            listFields.put(field.getName(), assignedValuesArray);
         }
-        result.put("fields", fieldTags);
+        result.put("fields", listFields);
     }
 
-    private JSONArray createFieldTagJSON(ListField field) {
+    private JSONArray listFieldValues(ListField field) {
         JSONArray ret = new JSONArray();
 
         for (ListItem item : field.getValues()) {
@@ -767,13 +792,6 @@ public class JobConfigurationProxy {
             ret.add(value);
         }
         return ret;
-    }
-
-    private JSONObject fieldValue(long id, String name) {
-        JSONObject result = new JSONObject();
-        result.put("id", id);
-        result.put("name", name);
-        return result;
     }
 
     private static Collection<JSONObject> toCollection(JSONArray array) {
