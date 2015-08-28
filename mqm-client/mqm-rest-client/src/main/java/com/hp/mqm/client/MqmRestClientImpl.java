@@ -469,7 +469,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		if (!StringUtils.isEmpty(name)) {
 			conditions.add(condition("name", "*" + name + "*"));
 		}
-		return getEntities(getEntityURI(URI_RELEASES, conditions, workspaceId, offset, limit), offset, new ReleaseEntityFactory());
+		return getEntities(getEntityURI(URI_RELEASES, conditions, workspaceId, offset, limit, "name"), offset, new ReleaseEntityFactory());
 	}
 
 	@Override
@@ -479,7 +479,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		List<String> conditions = new LinkedList<String>();
 		conditions.add(condition("id", String.valueOf(releaseId)));
 
-		List<Release> releases = getEntities(getEntityURI(URI_RELEASES, conditions, workspaceId, offset, limit), offset, new ReleaseEntityFactory()).getItems();
+		List<Release> releases = getEntities(getEntityURI(URI_RELEASES, conditions, workspaceId, offset, limit, null), offset, new ReleaseEntityFactory()).getItems();
 		if (releases.size() != 1) {
 			return null;
 		}
@@ -492,7 +492,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		if (!StringUtils.isEmpty(name)) {
 			conditions.add(condition("name", "*" + name + "*"));
 		}
-		return getEntities(getEntityURI(URI_WORKSPACES, conditions, null, offset, limit), offset, new WorkspaceEntityFactory());
+		return getEntities(getEntityURI(URI_WORKSPACES, conditions, null, offset, limit, "name"), offset, new WorkspaceEntityFactory());
 	}
 
 	@Override
@@ -512,7 +512,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 			}
 			conditionBuilder.append("id=" + Long.toString(workspaceId));
 		}
-		return getEntities(getEntityURI(URI_WORKSPACES, Arrays.asList(conditionBuilder.toString()), null, DEFAULT_OFFSET, DEFAULT_LIMIT), DEFAULT_OFFSET, new WorkspaceEntityFactory()).getItems();
+		return getEntities(getEntityURI(URI_WORKSPACES, Arrays.asList(conditionBuilder.toString()), null, DEFAULT_OFFSET, DEFAULT_LIMIT, null), DEFAULT_OFFSET, new WorkspaceEntityFactory()).getItems();
 	}
 
 	@Override
@@ -525,7 +525,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 			conditions.add(condition("taxonomy_root.id", String.valueOf(taxonomyRootId)));
 		}
         conditions.add(condition("subtype", "taxonomy_item_node"));
-		return getEntities(getEntityURI(URI_TAXONOMY_NODES, conditions, workspaceId, offset, limit), offset, new TaxonomyEntityFactory());
+		return getEntities(getEntityURI(URI_TAXONOMY_NODES, conditions, workspaceId, offset, limit, null), offset, new TaxonomyEntityFactory());
 	}
 
 	@Override
@@ -535,7 +535,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 			conditions.add(condition("name", "*" + name + "*"));
 		}
         conditions.add(condition("subtype", "taxonomy_category_node"));
-		return getEntities(getEntityURI(URI_TAXONOMY_NODES, conditions, workspaceId, offset, limit), offset, new TaxonomyEntityFactory());
+		return getEntities(getEntityURI(URI_TAXONOMY_NODES, conditions, workspaceId, offset, limit, null), offset, new TaxonomyEntityFactory());
 	}
 
     @Override
@@ -544,7 +544,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
         if (!StringUtils.isEmpty(name)) {
             conditions.add(condition("name", "*" + name + "*") + "||" + condition("taxonomy_root.name", "*" + name + "*"));
         }
-        return getEntities(getEntityURI(URI_TAXONOMY_NODES, conditions, workspaceId, offset, limit), offset, new TaxonomyEntityFactory());
+        return getEntities(getEntityURI(URI_TAXONOMY_NODES, conditions, workspaceId, offset, limit, null), offset, new TaxonomyEntityFactory());
     }
 
 	@Override
@@ -564,7 +564,8 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 			}
 			conditionBuilder.append("id=" + Long.toString(taxonomyId));
 		}
-		return getEntities(getEntityURI(URI_TAXONOMY_NODES, Arrays.asList(conditionBuilder.toString()), workspaceId, DEFAULT_OFFSET, DEFAULT_LIMIT), DEFAULT_OFFSET, new TaxonomyEntityFactory()).getItems();
+		return getEntities(getEntityURI(URI_TAXONOMY_NODES, Arrays.asList(conditionBuilder.toString()), workspaceId, DEFAULT_OFFSET, DEFAULT_LIMIT,
+                null), DEFAULT_OFFSET, new TaxonomyEntityFactory()).getItems();
 	}
 
     @Override
@@ -575,7 +576,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		}
 		//todo uncomment this condition once cross filters work
 //		conditions.add(condition("list_root.id", String.valueOf(listId)));
-		return getEntities(getEntityURI(URI_LIST_ITEMS, conditions, workspaceId, offset, limit), offset, new ListItemEntityFactory());
+		return getEntities(getEntityURI(URI_LIST_ITEMS, conditions, workspaceId, offset, limit, null), offset, new ListItemEntityFactory());
 	}
 	@Override
 	public List<ListItem> getListItems(List<Long> itemIds, long workspaceId) {
@@ -594,7 +595,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 			}
 			conditionBuilder.append("id=" + Long.toString(itemId));
 		}
-		return getEntities(getEntityURI(URI_LIST_ITEMS, Arrays.asList(conditionBuilder.toString()), workspaceId, DEFAULT_OFFSET, DEFAULT_LIMIT), DEFAULT_OFFSET, new ListItemEntityFactory()).getItems();
+		return getEntities(getEntityURI(URI_LIST_ITEMS, Arrays.asList(conditionBuilder.toString()), workspaceId, DEFAULT_OFFSET, DEFAULT_LIMIT, null), DEFAULT_OFFSET, new ListItemEntityFactory()).getItems();
 	}
 
 	@Override
@@ -605,7 +606,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		conditions.add(condition("entity_name", "pipeline_node"));
 
 		//loading all metadata fields
-		PagedList<FieldMetadata> allFieldMetadata = getEntities(getEntityURI(URI_METADATA_FIELDS, conditions, workspaceId, DEFAULT_OFFSET, DEFAULT_LIMIT), DEFAULT_OFFSET, new FieldMetadataFactory());
+		PagedList<FieldMetadata> allFieldMetadata = getEntities(getEntityURI(URI_METADATA_FIELDS, conditions, workspaceId, DEFAULT_OFFSET, DEFAULT_LIMIT, null), DEFAULT_OFFSET, new FieldMetadataFactory());
 
 		//filtering metadata fields to only values which we are interested in
 		for (FieldMetadata fieldMetadata : allFieldMetadata.getItems()){
