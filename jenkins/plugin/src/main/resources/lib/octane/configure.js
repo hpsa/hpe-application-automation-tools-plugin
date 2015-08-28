@@ -253,7 +253,7 @@ function octane_job_configuration(target, progress, proxy) {
 
                 fieldValueSelect.prop('name', field.logicalListName);
                 fieldValueSelect.prop('id', field.logicalListName);
-                fieldSelectors.push({listId: field.listId, name: field.logicalListName, multiValue: field.multiValue});
+                fieldSelectors.push({listId: field.listId, name: field.logicalListName, multiValue: field.multiValue, extensible: field.extensible});
                 if (field.multiValue) {
                     fieldValueSelect.attr('multiple', 'multiple');
                     tdSelect.prop('colspan', 2);
@@ -548,7 +548,7 @@ function octane_job_configuration(target, progress, proxy) {
             selectedWorkspaceId = jobConfiguration.currentPipeline.workspaceId;
             var pipelineSelector = undefined;
 
-            var selectWorkspaceDiv = $("<div class='mutton rpos' id='select-workspace-div'><label for='workspace-select'>Workspace:</label><select/></div>");
+            var selectWorkspaceDiv = $("<div class='mutton rpos' id='select-workspace-div'><label class='workspace-select' for='workspace-select'>Workspace:</label><select/></div>");
             var workspaceSelect = selectWorkspaceDiv.find("select");
 
             Object.values(jobConfiguration.workspaces).forEach(function (workspace) {
@@ -872,7 +872,7 @@ function octane_job_configuration(target, progress, proxy) {
                             var term = "";
                             if (params.data.hasOwnProperty("q") && params.data.q !== undefined) {term = params.data.q;}
                             var listId = 0;
-                            proxy.searchListItems(listId, term, pipeline.workspaceId, selector.multiValue, (function (data) { //todo send proper listId or listLogicalName
+                            proxy.searchListItems(listId, term, pipeline.workspaceId, selector.multiValue, selector.extensible, (function (data) { //todo send proper listId or listLogicalName
                                 queryToMqmCallback(data, success, failure)
                             }));
                         },

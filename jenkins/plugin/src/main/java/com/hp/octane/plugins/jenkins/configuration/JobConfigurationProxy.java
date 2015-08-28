@@ -418,7 +418,7 @@ public class JobConfigurationProxy {
     }
 
     @JavaScriptMethod
-    public JSONObject searchListItems(int listId, String term, long workspaceId, boolean multiValue) {
+    public JSONObject searchListItems(int listId, String term, long workspaceId, boolean multiValue, boolean extensible) {
         int defaultSize = 10;
         JSONObject ret = new JSONObject();
 
@@ -456,6 +456,7 @@ public class JobConfigurationProxy {
                 itemJson.put("text", item.getName());
                 retArray.add(itemJson);
             }
+            // we shall use "if (extensible){}" on following line, but we do not have UI ready for the case: multiValue = true & extensible = true
             if (!multiValue) {
                 //if exactly one item matches, we do not want to bother user with "new value" item
                 if ((listItems.size() != 1) || (!listItems.get(0).getName().toLowerCase().equals(term.toLowerCase()))) {
