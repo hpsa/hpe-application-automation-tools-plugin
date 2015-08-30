@@ -659,7 +659,8 @@ namespace HpToolsLauncher
 
                 string[] resultFiles = Directory.GetFiles(runDesc.ReportLocation, "Results.xml", SearchOption.TopDirectoryOnly);
                 if (resultFiles.Length == 0)
-                    resultFiles = Directory.GetFiles(Path.Combine(runDesc.ReportLocation, "Report"), "Results.xml", SearchOption.TopDirectoryOnly);
+                    resultFiles = Directory.GetFiles(runDesc.ReportLocation, "run_results.xml", SearchOption.TopDirectoryOnly);
+                    //resultFiles = Directory.GetFiles(Path.Combine(runDesc.ReportLocation, "Report"), "Results.xml", SearchOption.TopDirectoryOnly);
 
                 if (resultFiles != null && resultFiles.Length > 0)
                     return GetTestStateFromUFTReport(runDesc, resultFiles);
@@ -737,21 +738,40 @@ namespace HpToolsLauncher
         {
             TestState finalState = TestState.Unknown;
             desc = "";
-
+            var status = "";
             var doc = new XmlDocument { PreserveWhitespace = true };
             doc.Load(resultsFileFullPath);
-            var testStatusPathNode = doc.SelectSingleNode("//Report/Doc/NodeArgs");
-            if (testStatusPathNode == null)
+            string strFileName = Path.GetFileName(resultsFileFullPath);
+            if( strFileName.Equals("run_results.xml"))
             {
-                desc = string.Format(Resources.XmlNodeNotExistError, "//Report/Doc/NodeArgs");
-                finalState = TestState.Error;
+                XmlNodeList rNodeList = doc.SelectNodes("/Results/ReportNode/Data");
+                if (rNodeList == null)
+                {
+                    desc = string.Format(Resources.XmlNodeNotExistError, "/Results/ReportNode/Data");
+                    finalState = TestState.Error;
+                }
+                
+                var node = rNodeList.Item(0);
+                XmlNode resultNode = ((XmlElement)node).GetElementsByTagName("Result").Item(0);
+
+                status = resultNode.InnerText;
+
             }
+            else
+            {
+                var testStatusPathNode = doc.SelectSingleNode("//Report/Doc/NodeArgs");
+                if (testStatusPathNode == null)
+                {
+                    desc = string.Format(Resources.XmlNodeNotExistError, "//Report/Doc/NodeArgs");
+                    finalState = TestState.Error;
+                }
 
-            if (!testStatusPathNode.Attributes["status"].Specified)
-                finalState = TestState.Unknown;
+                if (!testStatusPathNode.Attributes["status"].Specified)
+                    finalState = TestState.Unknown;
 
-            var status = testStatusPathNode.Attributes["status"].Value;
-
+                status = testStatusPathNode.Attributes["status"].Value;
+            }
+            
             var result = (TestResult)Enum.Parse(typeof(TestResult), status);
             if (result == TestResult.Passed || result == TestResult.Done)
             {
