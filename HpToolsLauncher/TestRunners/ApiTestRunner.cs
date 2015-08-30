@@ -133,10 +133,10 @@ namespace HpToolsLauncher
             else
             {
                 runDesc.ReportLocation = Path.Combine(runDesc.ReportLocation, "Report");
-                if (!File.Exists(Path.Combine(runDesc.ReportLocation, "Results.xml")))
+                if (!File.Exists(Path.Combine(runDesc.ReportLocation, "Results.xml")) && !File.Exists(Path.Combine(runDesc.ReportLocation, "run_results.html")))
                 {
                     runDesc.TestState = TestState.Error;
-                    runDesc.ErrorDesc = "No Results.xml file found";
+                    runDesc.ErrorDesc = "No Results.xml or run_results.html file found";
                 }
             }
 			//File.Delete(paramsFilePath);
