@@ -105,11 +105,7 @@ public class ProjectActions extends TransientProjectActionFactory {
 
         public void doRun(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
             //SecurityContext context = ACL.impersonate(User.get("gullerya").impersonate());
-            if (project.isParameterized()) {
-                project.doBuildWithParameters(req, res, null);
-            } else {
-                project.doBuild(req, res, null);
-            }
+            project.doBuild(req, res, null);
             //ACL.impersonate(context.getAuthentication());
         }
     }

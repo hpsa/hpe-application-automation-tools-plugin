@@ -4,6 +4,7 @@ import net.sf.json.JSONObject;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
+import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
@@ -103,11 +104,22 @@ public class RESTClientTMP {
 	static LoopbackResponse loopbackPost(String url, Map<String, String> headers, String body) {
 		HttpClient client = new HttpClient();
 		PostMethod postMethod = new PostMethod(url);
+		String contentType = null;
 		try {
-			if (headers != null)
-				for (Map.Entry<String, String> entry : headers.entrySet())
+			if (headers != null) {
+				for (Map.Entry<String, String> entry : headers.entrySet()) {
 					postMethod.setRequestHeader(entry.getKey(), entry.getValue());
-			postMethod.setRequestEntity(new StringRequestEntity(body, "application/json", "utf-8"));
+					if (entry.getKey().toLowerCase().equals("content-type")) {
+						contentType = entry.getValue();
+					}
+				}
+			}
+			postMethod.setRequestEntity(
+					new StringRequestEntity(
+							body,
+							contentType == null ? "application/x-www-form-urlencoded" : contentType,
+							null)
+			);
 			client.executeMethod(postMethod);
 			return new LoopbackResponse(postMethod);
 		} catch (ConnectException ce) {
