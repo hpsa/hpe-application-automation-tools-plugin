@@ -195,11 +195,12 @@ public class TestNGExtensionTest {
             temporaryFolder.newFile(filePath);
         }
 
-        boolean found = extension.findTestNgResultsFile(temporaryFolder.getRoot(), pathsToXmls);
+        TestNGExtension.TestNgResultsFileFinder testNgFinder = new TestNGExtension.TestNgResultsFileFinder(null);
+        boolean found = testNgFinder.findTestNgResultsFile(temporaryFolder.getRoot(), pathsToXmls);
         Assert.assertFalse(found);
 
         temporaryFolder.newFile("target/baz/qux/testng-results.xml");
-        found = extension.findTestNgResultsFile(temporaryFolder.getRoot(), pathsToXmls);
+        found = testNgFinder.findTestNgResultsFile(temporaryFolder.getRoot(), pathsToXmls);
         Assert.assertTrue(found);
     }
 
