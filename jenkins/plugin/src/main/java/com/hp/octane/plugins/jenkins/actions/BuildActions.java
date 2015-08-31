@@ -6,7 +6,9 @@ import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactoryImpl;
 import com.hp.octane.plugins.jenkins.model.snapshots.SnapshotItem;
 import com.hp.octane.plugins.jenkins.tests.TestApi;
 import hudson.Extension;
-import hudson.model.*;
+import hudson.model.AbstractBuild;
+import hudson.model.Action;
+import hudson.model.Run;
 import jenkins.model.RunAction2;
 import jenkins.model.TransientActionFactory;
 import org.kohsuke.stapler.StaplerRequest;
@@ -61,6 +63,8 @@ public class BuildActions extends TransientActionFactory<AbstractBuild> {
 		}
 
 		public void doSnapshot(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
+			//JGitTest.readRepo(build.getWorkspace().getRemote());
+
 			String metaonlyParam = req.getParameter("metaonly");
 			boolean metaonly = metaonlyParam != null && metaonlyParam.equals("true");
 			res.serveExposedBean(req, new SnapshotItem(build, metaonly), Flavor.JSON);

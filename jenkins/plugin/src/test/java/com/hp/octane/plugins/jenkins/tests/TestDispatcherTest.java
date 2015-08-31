@@ -269,7 +269,7 @@ public class TestDispatcherTest {
             JSONObject audit = audits.getJSONObject(i);
             Assert.assertEquals("http://localhost:8008", audit.getString("location"));
             Assert.assertEquals("1001", audit.getString("sharedSpace"));
-            Assert.assertEquals(statuses[i], audit.getBoolean("success"));
+            Assert.assertEquals(statuses[i], audit.getBoolean("pushed"));
             if (statuses[i]) {
                 Assert.assertEquals(1l, audit.getLong("id"));
             }
