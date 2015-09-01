@@ -4,8 +4,11 @@ import hudson.FilePath;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
+import java.nio.file.*;
 
+import hudson.console.HyperlinkNote;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.ClientProtocolException;
 
@@ -124,7 +127,7 @@ public class PcClient {
         logger.println("Failed to get run report");
         return null;
     }
-        
+
     public boolean logout() {
         if (!loggedIn)
             return true;
@@ -166,4 +169,57 @@ public class PcClient {
         }
         return null;
     }
+
+    public void addRunToTrendReport(int runId, String trendReportId){
+
+       TrendReportRequest trRequest = new TrendReportRequest(model.getAlmProject(), runId, null);
+       logger.println("Adding run: " + runId + " to trend report: " + trendReportId);
+        try {
+            restProxy.updateTrendReport(trendReportId, trRequest);
+            logger.println("Run: " + runId + " was added to trend report: " + trendReportId);
+        }
+        catch (PcException e) {
+            logger.println("Failed to add run to trend report: " + e.getMessage());
+        }
+        catch (IOException e) {
+            logger.println("Failed to add run to trend report: Problem connecting to PC Server");
+        }
+
+
+    }
+
+    public boolean downloadTrendReportAsPdf(String trendReportId, String directory) throws PcException {
+
+
+        try {
+            logger.println("Downloading trend report: " + trendReportId + " in PDF format");
+            InputStream in = restProxy.getTrendingPDF(trendReportId);
+            File dir = new File(directory);
+            if(!dir.exists()){
+                dir.mkdirs();
+            }
+            String filePath = directory + IOUtils.DIR_SEPARATOR + "trendReport" + trendReportId + ".pdf";
+            Path destination = Paths.get(filePath);
+            Files.copy(in, destination, StandardCopyOption.REPLACE_EXISTING);
+            logger.println("Trend report: " + trendReportId + " was successfully downloaded");
+        }
+        catch (Exception e) {
+
+            logger.println("Failed to download trend report: " + e.getMessage());
+            throw new PcException(e.getMessage());
+        }
+
+        return true;
+
+    }
+
+    public void publishTrendReport(String filePath, String trendReportId){
+
+        if (filePath == null){return;}
+
+        logger.println(
+                HyperlinkNote.encodeTo(filePath, "View trend report " + trendReportId));
+
+    }
+
 }
