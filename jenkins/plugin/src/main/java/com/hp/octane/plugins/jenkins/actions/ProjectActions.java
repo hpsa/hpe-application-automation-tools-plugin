@@ -144,8 +144,8 @@ public class ProjectActions extends TransientProjectActionFactory {
 			while (req.getInputStream().read(buffer, 0, buffer.length) > 0)
 				bodyText += new String(buffer);
 
-			JSONObject bodyJSON = JSONObject.fromObject(bodyText);
-			if (bodyJSON != null) {
+			if (!bodyText.isEmpty()) {
+				JSONObject bodyJSON = JSONObject.fromObject(bodyText);
 
 				//  delay
 				if (bodyJSON.has("delay") && bodyJSON.get("delay") != null) {

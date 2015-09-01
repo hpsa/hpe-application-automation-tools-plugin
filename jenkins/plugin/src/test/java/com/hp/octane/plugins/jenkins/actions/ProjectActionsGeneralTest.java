@@ -1,3 +1,5 @@
+package com.hp.octane.plugins.jenkins.actions;
+
 import com.hp.octane.plugins.jenkins.actions.ProjectActions;
 import hudson.model.Action;
 import hudson.model.FreeStyleProject;

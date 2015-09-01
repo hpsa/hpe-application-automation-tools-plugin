@@ -1,3 +1,5 @@
+package com.hp.octane.plugins.jenkins.actions;
+
 import com.gargoylesoftware.htmlunit.Page;
 import com.hp.octane.plugins.jenkins.model.parameters.ParameterType;
 import hudson.matrix.MatrixProject;
@@ -25,21 +27,21 @@ import static org.junit.Assert.assertTrue;
  * Created with IntelliJ IDEA.
  * User: gullery
  * Date: 13/01/15
- * Time: 11:41
+ * Time: 11:42
  * To change this template use File | Settings | File Templates.
  */
 
-public class ProjectActionsMatrixTest {
+public class ProjectActionsMavenTest {
 	final private String projectName = "root-job";
 
 	@Rule
 	final public JenkinsRule rule = new JenkinsRule();
 
-	//  Structure test: matrix, no params, no children
+	//  Structure test: maven, no params, no children
 	//
 	@Test
-	public void testStructureMatrixNoParamsNoChildren() throws IOException, SAXException {
-		rule.createMatrixProject(projectName);
+	public void testStructureMavenNoParamsNoChildren() throws IOException, SAXException {
+		rule.createMavenProject(projectName);
 
 		JenkinsRule.WebClient client = rule.createWebClient();
 		Page page;
@@ -65,16 +67,27 @@ public class ProjectActionsMatrixTest {
 		assertEquals(tmpArray.length(), 0);
 	}
 
-	//  Structure test: matrix, with params, no children
+	@Test
+	public void testDoRun() throws IOException, SAXException, InterruptedException {
+		MavenModuleSet p = rule.createMavenProject(projectName);
+		JenkinsRule.WebClient client = rule.createWebClient();
+		client.goTo("job/" + projectName + "/octane/run", "");
+		while (p.getLastBuild() == null || p.getLastBuild().isBuilding()) {
+			Thread.sleep(1000);
+		}
+		assertEquals(p.getBuilds().toArray().length, 1);
+	}
+
+	//  Structure test: maven, with params, no children
 	//
 	@Test
-	public void testStructureMatrixWithParamsNoChildren() throws IOException, SAXException {
-		MatrixProject p = rule.createMatrixProject(projectName);
+	public void testStructureMavenWithParamsNoChildren() throws IOException, SAXException {
+		MavenModuleSet p = rule.createMavenProject(projectName);
 		ParametersDefinitionProperty params = new ParametersDefinitionProperty(Arrays.asList(
 				(ParameterDefinition) new BooleanParameterDefinition("ParamA", true, "bool"),
 				(ParameterDefinition) new StringParameterDefinition("ParamB", "str", "string"),
 				(ParameterDefinition) new TextParameterDefinition("ParamC", "txt", "text"),
-				(ParameterDefinition) new ChoiceParameterDefinition("ParamD", new String[]{"1", "2", "3"}, "choice"),
+				(ParameterDefinition) new ChoiceParameterDefinition("ParamD", new String[]{"one", "two", "three"}, "choice"),
 				(ParameterDefinition) new FileParameterDefinition("ParamE", "file param")
 		));
 		p.addProperty(params);
@@ -124,12 +137,12 @@ public class ProjectActionsMatrixTest {
 		assertEquals(tmpParam.getString("name"), "ParamD");
 		assertEquals(tmpParam.getString("type"), ParameterType.STRING.toString());
 		assertEquals(tmpParam.getString("description"), "choice");
-		assertEquals(tmpParam.getString("defaultValue"), "1");
+		assertEquals(tmpParam.getString("defaultValue"), "one");
 		assertNotNull(tmpParam.get("choices"));
 		assertEquals(tmpParam.getJSONArray("choices").length(), 3);
-		assertEquals(tmpParam.getJSONArray("choices").get(0), "1");
-		assertEquals(tmpParam.getJSONArray("choices").get(1), "2");
-		assertEquals(tmpParam.getJSONArray("choices").get(2), "3");
+		assertEquals(tmpParam.getJSONArray("choices").get(0), "one");
+		assertEquals(tmpParam.getJSONArray("choices").get(1), "two");
+		assertEquals(tmpParam.getJSONArray("choices").get(2), "three");
 
 		tmpParam = tmpArray.getJSONObject(4);
 		assertEquals(tmpParam.length(), 5);
@@ -148,22 +161,21 @@ public class ProjectActionsMatrixTest {
 		assertEquals(tmpArray.length(), 0);
 	}
 
-	//  Structure test: matrix, with params, with children
+	//  Structure test: maven, with params, with children
 	//
 	@Test
-	public void testStructureMatrixWithParamsWithChildren() throws IOException, SAXException {
-		MatrixProject p = rule.createMatrixProject(projectName);
+	public void testStructureMavenWithParamsWithChildren() throws IOException, SAXException {
+		MavenModuleSet p = rule.createMavenProject(projectName);
 		FreeStyleProject p1 = rule.createFreeStyleProject("jobA");
 		MatrixProject p2 = rule.createMatrixProject("jobB");
 		FreeStyleProject p3 = rule.createFreeStyleProject("jobC");
-		MavenModuleSet p4 = rule.createMavenProject("jobD");
-		CustomProject p5 = rule.getInstance().createProject(CustomProject.class, "jobE");
+		MatrixProject p4 = rule.createMatrixProject("jobD");
 		ParametersDefinitionProperty params = new ParametersDefinitionProperty(Arrays.asList(
 				(ParameterDefinition) new BooleanParameterDefinition("ParamA", true, "bool"),
 				(ParameterDefinition) new StringParameterDefinition("ParamB", "str", "string")
 		));
 		p.addProperty(params);
-		p.getBuildersList().add(new TriggerBuilder(Arrays.asList(
+		p.getPrebuilders().add(new TriggerBuilder(Arrays.asList(
 				new BlockableBuildTriggerConfig("jobA, jobB", new BlockingBehaviour(
 						Result.FAILURE,
 						Result.UNSTABLE,
@@ -171,9 +183,18 @@ public class ProjectActionsMatrixTest {
 				), Arrays.asList(new AbstractBuildParameters[0])),
 				new BlockableBuildTriggerConfig("jobC,jobD", null, Arrays.asList(new AbstractBuildParameters[0]))
 		)));
-		p.getBuildersList().add(new Shell(""));
+		p.getPrebuilders().add(new Shell(""));
+		p.getPostbuilders().add(new Shell(""));
+		p.getPostbuilders().add(new TriggerBuilder(Arrays.asList(
+				new BlockableBuildTriggerConfig("jobA, jobB", new BlockingBehaviour(
+						Result.FAILURE,
+						Result.UNSTABLE,
+						Result.FAILURE
+				), Arrays.asList(new AbstractBuildParameters[0])),
+				new BlockableBuildTriggerConfig("jobC,jobD", null, Arrays.asList(new AbstractBuildParameters[0]))
+		)));
+		p.getPublishersList().add(new BuildTrigger("jobA, jobB", Result.SUCCESS));
 		p.getPublishersList().add(new Fingerprinter(""));
-		p.getPublishersList().add(new BuildTrigger("jobA, jobB, JobE", Result.SUCCESS));
 		p.getPublishersList().add(new hudson.plugins.parameterizedtrigger.BuildTrigger(Arrays.asList(
 				new BuildTriggerConfig("jobC,jobD", ResultCondition.ALWAYS, false, null)
 		)));
@@ -215,11 +236,11 @@ public class ProjectActionsMatrixTest {
 
 		assertTrue(body.has("phasesInternal"));
 		tmpArray = body.getJSONArray("phasesInternal");
-		assertEquals(tmpArray.length(), 2);
+		assertEquals(tmpArray.length(), 4);
 
 		tmpPhase = tmpArray.getJSONObject(0);
 		assertEquals(tmpPhase.length(), 3);
-		assertEquals(tmpPhase.getString("name"), "");
+		assertEquals(tmpPhase.getString("name"), "pre-maven");
 		assertEquals(tmpPhase.getBoolean("blocking"), true);
 		tmpJobs = tmpPhase.getJSONArray("jobs");
 		assertEquals(tmpJobs.length(), 2);
@@ -238,7 +259,45 @@ public class ProjectActionsMatrixTest {
 
 		tmpPhase = tmpArray.getJSONObject(1);
 		assertEquals(tmpPhase.length(), 3);
-		assertEquals(tmpPhase.getString("name"), "");
+		assertEquals(tmpPhase.getString("name"), "pre-maven");
+		assertEquals(tmpPhase.getBoolean("blocking"), false);
+		tmpJobs = tmpPhase.getJSONArray("jobs");
+		assertEquals(tmpJobs.length(), 2);
+		tmpJob = tmpJobs.getJSONObject(0);
+		assertEquals(tmpJob.length(), 4);
+		assertEquals(tmpJob.getString("name"), "jobC");
+		assertEquals(tmpJob.getJSONArray("parameters").length(), 0);
+		assertEquals(tmpJob.getJSONArray("phasesInternal").length(), 0);
+		assertEquals(tmpJob.getJSONArray("phasesPostBuild").length(), 0);
+		tmpJob = tmpJobs.getJSONObject(1);
+		assertEquals(tmpJob.length(), 4);
+		assertEquals(tmpJob.getString("name"), "jobD");
+		assertEquals(tmpJob.getJSONArray("parameters").length(), 0);
+		assertEquals(tmpJob.getJSONArray("phasesInternal").length(), 0);
+		assertEquals(tmpJob.getJSONArray("phasesPostBuild").length(), 0);
+
+		tmpPhase = tmpArray.getJSONObject(2);
+		assertEquals(tmpPhase.length(), 3);
+		assertEquals(tmpPhase.getString("name"), "post-maven");
+		assertEquals(tmpPhase.getBoolean("blocking"), true);
+		tmpJobs = tmpPhase.getJSONArray("jobs");
+		assertEquals(tmpJobs.length(), 2);
+		tmpJob = tmpJobs.getJSONObject(0);
+		assertEquals(tmpJob.length(), 4);
+		assertEquals(tmpJob.getString("name"), "jobA");
+		assertEquals(tmpJob.getJSONArray("parameters").length(), 0);
+		assertEquals(tmpJob.getJSONArray("phasesInternal").length(), 0);
+		assertEquals(tmpJob.getJSONArray("phasesPostBuild").length(), 0);
+		tmpJob = tmpJobs.getJSONObject(1);
+		assertEquals(tmpJob.length(), 4);
+		assertEquals(tmpJob.getString("name"), "jobB");
+		assertEquals(tmpJob.getJSONArray("parameters").length(), 0);
+		assertEquals(tmpJob.getJSONArray("phasesInternal").length(), 0);
+		assertEquals(tmpJob.getJSONArray("phasesPostBuild").length(), 0);
+
+		tmpPhase = tmpArray.getJSONObject(3);
+		assertEquals(tmpPhase.length(), 3);
+		assertEquals(tmpPhase.getString("name"), "post-maven");
 		assertEquals(tmpPhase.getBoolean("blocking"), false);
 		tmpJobs = tmpPhase.getJSONArray("jobs");
 		assertEquals(tmpJobs.length(), 2);
@@ -264,7 +323,7 @@ public class ProjectActionsMatrixTest {
 		assertEquals(tmpPhase.getString("name"), "downstream");
 		assertEquals(tmpPhase.getBoolean("blocking"), false);
 		tmpJobs = tmpPhase.getJSONArray("jobs");
-		assertEquals(tmpJobs.length(), 3);
+		assertEquals(tmpJobs.length(), 2);
 		tmpJob = tmpJobs.getJSONObject(0);
 		assertEquals(tmpJob.length(), 4);
 		assertEquals(tmpJob.getString("name"), "jobA");
@@ -274,12 +333,6 @@ public class ProjectActionsMatrixTest {
 		tmpJob = tmpJobs.getJSONObject(1);
 		assertEquals(tmpJob.length(), 4);
 		assertEquals(tmpJob.getString("name"), "jobB");
-		assertEquals(tmpJob.getJSONArray("parameters").length(), 0);
-		assertEquals(tmpJob.getJSONArray("phasesInternal").length(), 0);
-		assertEquals(tmpJob.getJSONArray("phasesPostBuild").length(), 0);
-		tmpJob = tmpJobs.getJSONObject(2);
-		assertEquals(tmpJob.length(), 4);
-		assertEquals(tmpJob.getString("name"), "jobE");
 		assertEquals(tmpJob.getJSONArray("parameters").length(), 0);
 		assertEquals(tmpJob.getJSONArray("phasesInternal").length(), 0);
 		assertEquals(tmpJob.getJSONArray("phasesPostBuild").length(), 0);
