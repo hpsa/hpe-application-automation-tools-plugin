@@ -510,8 +510,10 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 								
 								ByteArrayOutputStream outstr = new ByteArrayOutputStream();
 
-                                reportFolder.zip(outstr, new RRVFileFilter());
-								
+                                //don't use FileFilter for zip, or it will cause bug when files are on slave
+                                //reportFolder.zip(outstr, new RRVFileFilter());
+                                reportFolder.zip(outstr);
+                                
 								/*
 								 * I did't use copyRecursiveTo or copyFrom due to
 								 * bug in
@@ -527,7 +529,8 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 								FilePath archivedFile =
 										new FilePath(new FilePath(artifactsDir), zipFileName);
 								archivedFile.copyFrom(instr);
-								
+                                listener.getLogger().println(
+                                        "copy from slave to master: " + archivedFile);
 								outstr.close();
 								instr.close();
 								
