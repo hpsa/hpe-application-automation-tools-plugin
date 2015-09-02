@@ -37,10 +37,12 @@ import org.kohsuke.stapler.export.Flavor;
 
 import javax.servlet.ServletException;
 import javax.xml.bind.DatatypeConverter;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -135,8 +137,10 @@ public class ProjectActions extends TransientProjectActionFactory {
 
 			String bodyText = "";
 			byte[] buffer = new byte[1024];
-			while (req.getInputStream().read(buffer, 0, buffer.length) > 0)
-				bodyText += new String(buffer);
+			int readLen;
+			while ((readLen = req.getInputStream().read(buffer)) > 0) {
+				bodyText += new String(buffer, 0, readLen);
+			}
 
 			if (!bodyText.isEmpty()) {
 				JSONObject bodyJSON = JSONObject.fromObject(bodyText);
