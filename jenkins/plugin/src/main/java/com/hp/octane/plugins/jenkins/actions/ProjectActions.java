@@ -171,40 +171,42 @@ public class ProjectActions extends TransientProjectActionFactory {
 		private List<ParameterValue> createParameters(JSONArray paramsJSON) {
 			List<ParameterValue> result = new ArrayList<ParameterValue>();
 			ParameterValue tmpValue;
-			ParametersDefinitionProperty paramsDefs = (ParametersDefinitionProperty) project.getProperty(ParametersDefinitionProperty.class);
-			for (ParameterDefinition paramDef : paramsDefs.getParameterDefinitions()) {
-				for (int i = 0; i < paramsJSON.size(); i++) {
-					JSONObject paramJSON = paramsJSON.getJSONObject(i);
-					if (paramJSON.has("name") && paramJSON.get("name") != null && paramJSON.get("name").equals(paramDef.getName())) {
-						tmpValue = null;
-						switch (ParameterType.getByValue(paramJSON.getString("type"))) {
-							case FILE:
-								try {
-									FileItemFactory fif = new DiskFileItemFactory();
-									FileItem fi = fif.createItem(paramJSON.getString("name"), "text/plain", false, paramJSON.getString("file"));
-									fi.getOutputStream().write(paramJSON.getString("value").getBytes());
-									tmpValue = new FileParameterValue(paramJSON.getString("name"), fi);
-								} catch (IOException ioe) {
-									logger.warning("failed to process file parameter");
-								}
-								break;
-							case NUMBER:
-								tmpValue = new StringParameterValue(paramJSON.getString("name"), paramJSON.get("value").toString());
-								break;
-							case STRING:
-								tmpValue = new StringParameterValue(paramJSON.getString("name"), paramJSON.getString("value"));
-								break;
-							case BOOLEAN:
-								tmpValue = new BooleanParameterValue(paramJSON.getString("name"), paramJSON.getBoolean("value"));
-								break;
-							case PASSWORD:
-								tmpValue = new PasswordParameterValue(paramJSON.getString("name"), paramJSON.getString("value"));
-								break;
-							default:
-								break;
+			ParametersDefinitionProperty paramsDefProperty = (ParametersDefinitionProperty) project.getProperty(ParametersDefinitionProperty.class);
+			if (paramsDefProperty != null) {
+				for (ParameterDefinition paramDef : paramsDefProperty.getParameterDefinitions()) {
+					for (int i = 0; i < paramsJSON.size(); i++) {
+						JSONObject paramJSON = paramsJSON.getJSONObject(i);
+						if (paramJSON.has("name") && paramJSON.get("name") != null && paramJSON.get("name").equals(paramDef.getName())) {
+							tmpValue = null;
+							switch (ParameterType.getByValue(paramJSON.getString("type"))) {
+								case FILE:
+									try {
+										FileItemFactory fif = new DiskFileItemFactory();
+										FileItem fi = fif.createItem(paramJSON.getString("name"), "text/plain", false, paramJSON.getString("file"));
+										fi.getOutputStream().write(paramJSON.getString("value").getBytes());
+										tmpValue = new FileParameterValue(paramJSON.getString("name"), fi);
+									} catch (IOException ioe) {
+										logger.warning("failed to process file parameter");
+									}
+									break;
+								case NUMBER:
+									tmpValue = new StringParameterValue(paramJSON.getString("name"), paramJSON.get("value").toString());
+									break;
+								case STRING:
+									tmpValue = new StringParameterValue(paramJSON.getString("name"), paramJSON.getString("value"));
+									break;
+								case BOOLEAN:
+									tmpValue = new BooleanParameterValue(paramJSON.getString("name"), paramJSON.getBoolean("value"));
+									break;
+								case PASSWORD:
+									tmpValue = new PasswordParameterValue(paramJSON.getString("name"), paramJSON.getString("value"));
+									break;
+								default:
+									break;
+							}
+							if (tmpValue != null) result.add(tmpValue);
+							break;
 						}
-						if (tmpValue != null) result.add(tmpValue);
-						break;
 					}
 				}
 			}
