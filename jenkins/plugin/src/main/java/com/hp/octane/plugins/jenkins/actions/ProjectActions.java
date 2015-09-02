@@ -28,6 +28,7 @@ import hudson.model.StringParameterValue;
 import hudson.model.TransientProjectActionFactory;
 import hudson.model.User;
 import hudson.security.Permission;
+import hudson.util.FormValidation;
 import jenkins.model.ParameterizedJobMixIn;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -39,12 +40,14 @@ import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.export.Flavor;
 
 import javax.servlet.ServletException;
+import javax.xml.bind.DatatypeConverter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -183,7 +186,7 @@ public class ProjectActions extends TransientProjectActionFactory {
 									try {
 										FileItemFactory fif = new DiskFileItemFactory();
 										FileItem fi = fif.createItem(paramJSON.getString("name"), "text/plain", false, paramJSON.getString("file"));
-										fi.getOutputStream().write(paramJSON.getString("value").getBytes());
+										fi.getOutputStream().write(DatatypeConverter.parseBase64Binary(paramJSON.getString("value")));
 										tmpValue = new FileParameterValue(paramJSON.getString("name"), fi);
 									} catch (IOException ioe) {
 										logger.warning("failed to process file parameter");
