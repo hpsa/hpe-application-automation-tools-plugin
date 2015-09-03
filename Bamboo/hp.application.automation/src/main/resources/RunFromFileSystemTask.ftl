@@ -20,10 +20,27 @@
     margin-bottom: 1em;
     width: 97%;
 }
+hr{
+    clear:both;
+    border:none;
+}
 </style>
-
-[@ww.textarea labelKey="RunFromFileSystemTaskConfigurator.testsPathInputLbl" name="testPathInput" required='true' rows="4"/]
-[@ww.textfield labelKey="RunFromFileSystemTaskConfigurator.timelineInputLbl" name="timeoutInput"/]
+<div class="control">
+    [@ww.textarea labelKey="RunFromFileSystemTaskConfigurator.testsPathInputLbl" name="testPathInput" required='true' rows="4"/]
+</div>
+<div class="helpIcon" onclick="javascript: toggle_visibility('RunFromFileSystemTaskConfigurator.toolTip.tests');">?</div>
+<div id ="RunFromFileSystemTaskConfigurator.toolTip.tests" class="toolTip">
+    [@ww.text name='RunFromFileSystemTaskConfigurator.toolTip.tests'/]
+</div>
+<hr>
+<div class="control">
+    [@ww.textfield labelKey="RunFromFileSystemTaskConfigurator.timelineInputLbl" name="timeoutInput"/]
+</div>
+<div class="helpIcon" onclick="javascript: toggle_visibility('RunFromFileSystemTaskConfigurator.toolTip.timeOut');">?</div>
+<div id ="RunFromFileSystemTaskConfigurator.toolTip.timeOut" class="toolTip">
+    [@ww.text name='RunFromFileSystemTaskConfigurator.toolTip.timeOut'/]
+</div>
+<hr>
 <div class="control">
     [@ww.select labelKey="RunFromFileSystemTask.publishMode" name="publishMode" list="publishModeItems" emptyOption="false"/]
 </div>
