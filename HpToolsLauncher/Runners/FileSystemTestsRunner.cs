@@ -65,7 +65,7 @@ namespace HpToolsLauncher
             }
 
             _timeout = timeout;
-            ConsoleWriter.WriteLine("FileSystemTestRunner timeout is " + _timeout );
+            ConsoleWriter.WriteLine("FileSystemTestRunner timeout is " + _timeout.ToString(@"dd\:\:hh\:mm\:ss"));
             _stopwatch = Stopwatch.StartNew();
 
             _pollingInterval = ControllerPollingInterval;

@@ -287,7 +287,7 @@ namespace HpToolsLauncher
                             timeout = TimeSpan.FromSeconds(intTimoutInSeconds);
                         }
                     }
-                    ConsoleWriter.WriteLine("Launcher timeout is " + timeout.ToString(@"dd\:\:hh\:mm\:ss"));
+                    //ConsoleWriter.WriteLine("Launcher timeout is " + timeout.ToString(@"dd\:\:hh\:mm\:ss"));
 
                     //LR specific values:
                     //default values are set by JAVA code, in com.hp.application.automation.tools.model.RunFromFileSystemModel.java
@@ -309,7 +309,7 @@ namespace HpToolsLauncher
                             ConsoleWriter.WriteLine("PerScenarioTimeout: "+perScenarioTimeOutMinutes+" minutes");
                         }
                     }
-                    ConsoleWriter.WriteLine("PerScenarioTimeout: " + perScenarioTimeOutMinutes.ToString(@"dd\:\:hh\:mm\:ss") + " minutes");
+                    //ConsoleWriter.WriteLine("PerScenarioTimeout: " + perScenarioTimeOutMinutes.ToString(@"dd\:\:hh\:mm\:ss") + " minutes");
 
                     char[] delim = { '\n' };
                     List<string> ignoreErrorStrings = new List<string>();

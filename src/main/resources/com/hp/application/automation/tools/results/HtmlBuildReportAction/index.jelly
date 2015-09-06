@@ -54,7 +54,7 @@
            <tr>
              <j:choose>
                 <j:when test="${s.isHtmlReport}">
-                    <td class = "bodycell" align = "center"><img src="${rootURL}/plugin/hp-application-automation-tools-plugin/icons/16x16/html_report.png" alt="Html_report" title="Html Report"/></td>
+                    <td class = "bodycell" align = "center"><img src="${rootURL}/plugin/hp-application-automation-tools-plugin/icons/16x16/html_report.png" alt="Html_report" title="HTML Report"/></td>
                     <td class = "bodycell"><a href="../${s.urlName}" target="_blank">${s.disPlayName}</a></td>
                 </j:when>
                 <j:otherwise>
