@@ -145,7 +145,7 @@ namespace LRAnalysisLauncher
                             log("status : " + b.Status);
                             elem.AppendChild(xmlDoc.CreateTextNode(b.Status.ToString()));
 
-                            if (!b.Status.Equals(SlaRuleStatus.Passed)) // 0 = failed
+                            if (b.Status.Equals(SlaRuleStatus.Failed)) // 0 = failed
                             {
                                 iPassed = (int)Launcher.ExitCodeEnum.Failed;
                             }
@@ -165,7 +165,7 @@ namespace LRAnalysisLauncher
                             log("status : " + a.Status);
                             elem.AppendChild(xmlDoc.CreateTextNode(a.Status.ToString()));
 
-                            if (!a.Status.Equals(SlaRuleStatus.Passed)) // 0 = failed
+                            if (a.Status.Equals(SlaRuleStatus.Failed)) // 0 = failed
                             {
                                 iPassed = (int)Launcher.ExitCodeEnum.Failed;
                             }
@@ -219,7 +219,7 @@ namespace LRAnalysisLauncher
                             rule.AppendChild(timeRanges);
                            log("status : " + b.Status);
                             rule.AppendChild(xmlDoc.CreateTextNode(b.Status.ToString()));
-                            if (!b.Status.Equals(SlaRuleStatus.Passed)) // 0 = failed
+                            if (b.Status.Equals(SlaRuleStatus.Failed)) // 0 = failed
                             {
                                 iPassed = (int)Launcher.ExitCodeEnum.Failed;
                             }
@@ -260,7 +260,7 @@ namespace LRAnalysisLauncher
                             rule.AppendChild(timeRanges);
                             log("status : " + a.Status);
                             rule.AppendChild(xmlDoc.CreateTextNode(a.Status.ToString()));
-                            if (!a.Status.Equals(SlaRuleStatus.Passed))
+                            if (a.Status.Equals(SlaRuleStatus.Failed))
                             {
                                 iPassed = (int)Launcher.ExitCodeEnum.Failed;
                             }
@@ -284,6 +284,17 @@ namespace LRAnalysisLauncher
                 }
                 log("closing analysis session");
                 session.Close();
+            }
+            catch (TypeInitializationException ex)
+            {
+                if (ex.InnerException is UnauthorizedAccessException)
+                    log("UnAuthorizedAccessException: Please check the account privilege of current user, LoadRunner tests should be run by administrators.");
+                else
+                {
+                    log(ex.Message);
+                    log(ex.StackTrace);
+                }
+                return (int)Launcher.ExitCodeEnum.Aborted;
             }
             catch (Exception e)
             {
