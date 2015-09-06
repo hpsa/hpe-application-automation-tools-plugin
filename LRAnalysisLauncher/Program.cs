@@ -285,6 +285,17 @@ namespace LRAnalysisLauncher
                 log("closing analysis session");
                 session.Close();
             }
+            catch (TypeInitializationException ex)
+            {
+                if (ex.InnerException is UnauthorizedAccessException)
+                    log("UnAuthorizedAccessException: Please check the account privilege of current user, LoadRunner tests should be run by administrators.");
+                else
+                {
+                    log(ex.Message);
+                    log(ex.StackTrace);
+                }
+                return (int)Launcher.ExitCodeEnum.Aborted;
+            }
             catch (Exception e)
             {
                 log(e.Message);
