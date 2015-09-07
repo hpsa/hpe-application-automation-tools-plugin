@@ -466,6 +466,10 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 		}
 	}
 
+	protected String conditionRef(String name, long id) {
+		return name + "={id=" + id + "}";
+	}
+
 	protected String condition(String name, String value) {
 		return name + "='" + escapeQueryValue(value) + "'";
 	}

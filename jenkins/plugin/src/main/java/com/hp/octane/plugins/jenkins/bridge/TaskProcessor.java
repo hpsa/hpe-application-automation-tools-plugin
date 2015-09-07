@@ -28,15 +28,18 @@ public class TaskProcessor implements Runnable {
 		String method = task.getString("method");
 		String url = task.getString("url");
 		Map<String, String> headers = task.containsKey("headers") ? buildHeadersMap(task.getJSONObject("headers")) : null;
+		String body;
 		logger.info("BRIDGE: processing task '" + id + "': " + method + " " + url);
 
 		RESTClientTMP.LoopbackResponse response = null;
 		if (method.equals("GET")) {
 			response = RESTClientTMP.loopbackGet(url, headers);
 		} else if (method.equals("PUT")) {
-			response = RESTClientTMP.loopbackPut(url, headers, task.getString("body"));
+			body = obtainBody();
+			response = RESTClientTMP.loopbackPut(url, headers, body);
 		} else if (method.equals("POST")) {
-			response = RESTClientTMP.loopbackPost(url, headers, task.getString("body"));
+			body = obtainBody();
+			response = RESTClientTMP.loopbackPost(url, headers, body);
 		}
 		RESTClientTMP.putTaskResult(baseURL + "/" + id + "/result", response);
 	}
@@ -44,6 +47,16 @@ public class TaskProcessor implements Runnable {
 	private Map<String, String> buildHeadersMap(JSONObject json) {
 		Map<String, String> result = new HashMap<String, String>();
 		for (Object key : json.keySet()) result.put((String) key, json.getString((String) key));
+		return result;
+	}
+
+	private String obtainBody() {
+		String result;
+		if (task.containsKey("body") && task.get("body") != null) {
+			result = task.getString("body");
+		} else {
+			result = "";
+		}
 		return result;
 	}
 }

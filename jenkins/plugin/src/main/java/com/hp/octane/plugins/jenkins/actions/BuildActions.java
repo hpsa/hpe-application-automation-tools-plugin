@@ -20,6 +20,7 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -31,6 +32,7 @@ import java.util.Collection;
 
 @Extension
 public class BuildActions extends TransientActionFactory<AbstractBuild> {
+	private static final Logger logger = Logger.getLogger(BuildActions.class.getName());
 
 	private JenkinsMqmRestClientFactory clientFactory;
 

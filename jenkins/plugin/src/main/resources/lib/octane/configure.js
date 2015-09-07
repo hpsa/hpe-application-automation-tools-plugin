@@ -161,7 +161,7 @@ function octane_job_configuration(target, progress, proxy) {
                 var tdPipelineName = $("<td class='setting-main' colspan='2'/>");
                 tr.append(tdPipelineName);
 
-                tdPipelineName.append(pipeline.name);
+                tdPipelineName.append(pipeline.name); // CODE REVIEW Johnny: Is this from XSS, shouldn't we use text instead of append?
             }
 
             if (pipeline.isRoot) {

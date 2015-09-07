@@ -43,9 +43,9 @@ public class ResultFieldsXmlReader {
                         String value = element.getAttributeByName(new QName("value")).getValue();
                         if (type.equals("Framework")) {
                             resultFields.setFramework(value);
-                        } else if (type.equals("Testing Tool")) {
+                        } else if (type.equals("Testing_Tool_Type")) {
                             resultFields.setTestingTool(value);
-                        } else if (type.equals("Test Level")) {
+                        } else if (type.equals("Test_Level")) {
                             resultFields.setTestLevel(value);
                         }
                     }

@@ -82,8 +82,8 @@ public class TestResultXmlWriter {
         if (resultFields != null) {
             writer.writeStartElement("fields");
             writeField("Framework", resultFields.getFramework());
-            writeField("Test Level", resultFields.getTestLevel());
-            writeField("Testing Tool", resultFields.getTestingTool());
+            writeField("Test_Level", resultFields.getTestLevel());
+            writeField("Testing_Tool_Type", resultFields.getTestingTool());
             writer.writeEndElement();
         }
     }

@@ -7,10 +7,13 @@ import hudson.maven.MavenBuild;
 import hudson.maven.MavenModule;
 import hudson.maven.MavenModuleSetBuild;
 import hudson.model.AbstractBuild;
+import hudson.remoting.VirtualChannel;
 import hudson.tasks.junit.JUnitResultArchiver;
 import hudson.tasks.test.AbstractTestResultAction;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.types.FileSet;
+import org.jenkinsci.remoting.Role;
+import org.jenkinsci.remoting.RoleChecker;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,23 +50,14 @@ public class TestNGExtension  extends ResultFieldsDetectionExtension {
      */
     @Override
     public ResultFields detect(final AbstractBuild build) throws IOException, InterruptedException {
-        File workspace = new File(build.getWorkspace().toURI());
 
         final List<Object> publishers = build.getProject().getPublishersList().toList();
         for (Object publisher : publishers) {
             if ("hudson.tasks.junit.JUnitResultArchiver".equals(publisher.getClass().getName())) {
                 JUnitResultArchiver junit = (JUnitResultArchiver) publisher;
                 String testResultsPattern = junit.getTestResults();
-
-                FileSet fs = Util.createFileSet(workspace, testResultsPattern);
-                DirectoryScanner ds = fs.getDirectoryScanner();
-                String[] includedFiles = ds.getIncludedFiles();
-                File baseDir = ds.getBasedir();
-
-                if (includedFiles.length > 0) {
-                    if (findTestNgResultsFile(baseDir, includedFiles)) {
-                        return new ResultFields(TESTNG, null, null);
-                    }
+                if (build.getWorkspace().act(new TestNgResultsFileFinder(testResultsPattern))) {
+                    return new ResultFields(TESTNG, null, null);
                 }
             }
         }
@@ -89,30 +83,73 @@ public class TestNGExtension  extends ResultFieldsDetectionExtension {
     boolean findTestNgResultsFile(MavenBuild mavenBuild) throws IOException, InterruptedException {
         AbstractTestResultAction action = mavenBuild.getAction(AbstractTestResultAction.class);
         //try finding only if the maven build includes tests
-        if (action != null) {
-            for (String locationInWorkspace : supportedReportFileLocations) {
-                FilePath reportFile = new FilePath(mavenBuild.getWorkspace(), locationInWorkspace);
-                if (reportFile.exists()) {
-                    return true;
-                }
-            }
+        if (action != null && mavenBuild.getWorkspace().act(new TestNgResultsFileMavenFinder())) {
+            return true;
         }
         return false;
     }
 
-    boolean findTestNgResultsFile(File baseDir, String[] includedFiles) throws IOException, InterruptedException {
-        Set<FilePath> directoryCache = new LinkedHashSet<FilePath>();
+    public static class TestNgResultsFileFinder implements FilePath.FileCallable<Boolean> {
 
-        for (String path : includedFiles) {
-            FilePath file = new FilePath(baseDir).child(path);
-            if (file.exists() && !directoryCache.contains(file.getParent())) {
-                directoryCache.add(file.getParent());
-                FilePath testNgResulsFile = new FilePath(file.getParent(), TESTNG_RESULT_FILE);
-                if (testNgResulsFile.exists()) {
+        private String testResultsPattern;
+
+        public TestNgResultsFileFinder(String testResultsPattern) {
+            this.testResultsPattern = testResultsPattern;
+        }
+
+        @Override
+        public Boolean invoke(File workspace, VirtualChannel virtualChannel) throws IOException, InterruptedException {
+            FileSet fs = Util.createFileSet(workspace, testResultsPattern);
+            DirectoryScanner ds = fs.getDirectoryScanner();
+            String[] includedFiles = ds.getIncludedFiles();
+            File baseDir = ds.getBasedir();
+
+            if (includedFiles.length > 0) {
+                if (findTestNgResultsFile(baseDir, includedFiles)) {
                     return true;
                 }
             }
+            return false;
         }
-        return false;
+
+        @Override
+        public void checkRoles(RoleChecker roleChecker) throws SecurityException {
+            roleChecker.check(this, Role.UNKNOWN);
+        }
+
+        boolean findTestNgResultsFile(File baseDir, String[] includedFiles) throws IOException, InterruptedException {
+            Set<FilePath> directoryCache = new LinkedHashSet<FilePath>();
+
+            for (String path : includedFiles) {
+                FilePath file = new FilePath(baseDir).child(path);
+                if (file.exists() && !directoryCache.contains(file.getParent())) {
+                    directoryCache.add(file.getParent());
+                    FilePath testNgResulsFile = new FilePath(file.getParent(), TESTNG_RESULT_FILE);
+                    if (testNgResulsFile.exists()) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+    }
+
+    public static class TestNgResultsFileMavenFinder implements FilePath.FileCallable<Boolean> {
+
+        @Override
+        public Boolean invoke(File workspace, VirtualChannel virtualChannel) throws IOException, InterruptedException {
+            for (String locationInWorkspace : supportedReportFileLocations) {
+                File reportFile = new File(workspace, locationInWorkspace);
+                if (reportFile.exists()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public void checkRoles(RoleChecker roleChecker) throws SecurityException {
+            roleChecker.check(this, Role.UNKNOWN);
+        }
     }
 }
