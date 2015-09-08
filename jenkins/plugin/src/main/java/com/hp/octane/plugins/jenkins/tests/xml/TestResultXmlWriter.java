@@ -3,6 +3,7 @@
 package com.hp.octane.plugins.jenkins.tests.xml;
 
 import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
+import com.hp.octane.plugins.jenkins.tests.build.BuildHandlerUtils;
 import com.hp.octane.plugins.jenkins.tests.TestResult;
 import com.hp.octane.plugins.jenkins.tests.detection.ResultFields;
 import hudson.FilePath;
@@ -70,7 +71,7 @@ public class TestResultXmlWriter {
             writer.writeStartElement("testResult");
             writer.writeStartElement("build");
             writer.writeAttribute("server", ServerIdentity.getIdentity());
-            writer.writeAttribute("buildType", build.getProject().getName());
+            writer.writeAttribute("buildType", BuildHandlerUtils.getBuildType(build));
             writer.writeAttribute("buildSid", String.valueOf(build.getNumber()));
             writer.writeEndElement(); // build
             writeFields();

@@ -107,7 +107,7 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
                 retryModel.success();
             }
 
-            AbstractProject project = (AbstractProject) Jenkins.getInstance().getItem(item.projectName);
+            AbstractProject project = (AbstractProject) Jenkins.getInstance().getItemByFullName(item.projectName);
             if (project == null) {
                 logger.warning("Project [" + item.projectName + "] no longer exists, pending test results can't be submitted");
                 queue.remove();
