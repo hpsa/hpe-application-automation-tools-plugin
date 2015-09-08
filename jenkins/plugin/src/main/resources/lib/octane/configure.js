@@ -161,7 +161,7 @@ function octane_job_configuration(target, progress, proxy) {
                 var tdPipelineName = $("<td class='setting-main' colspan='2'/>");
                 tr.append(tdPipelineName);
 
-                tdPipelineName.append(pipeline.name); // CODE REVIEW Johnny: Is this from XSS, shouldn't we use text instead of append?
+                tdPipelineName.text(pipeline.name);
             }
 
             if (pipeline.isRoot) {
@@ -178,7 +178,6 @@ function octane_job_configuration(target, progress, proxy) {
                 }
                 apply.push(function () {
                     pipeline.releaseId = Number(select.val());
-                    pipeline.releaseName = select.find(":selected").text();
                 });
                 enableDirtyChangeCheck(select);
                 tdReleaseSelect.append(select);
