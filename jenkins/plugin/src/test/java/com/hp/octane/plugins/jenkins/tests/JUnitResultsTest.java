@@ -177,7 +177,7 @@ public class JUnitResultsTest {
         MatrixProject matrixProject = rule.createMatrixProject(projectName);
         matrixProject.setAxes(new AxisList(new Axis("OS", "Linux", "Windows")));
         Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
-        matrixProject.getBuildersList().add(new Maven("install", mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
+        matrixProject.getBuildersList().add(new Maven("test", mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
         matrixProject.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
         matrixProject.setScm(new CopyResourceSCM("/helloWorldRoot"));
 
