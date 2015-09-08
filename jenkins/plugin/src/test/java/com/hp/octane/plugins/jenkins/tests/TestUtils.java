@@ -36,12 +36,15 @@ public class TestUtils {
         return moduleName + "#" + packageName + "#" + className + "#" + testName + "#" + status.toPrettyName() + "#";
     }
 
-    public static void matchTests(TestResultIterable testResultIterable, long started, Set<String>... expectedTests) {
+    public static void matchTests(TestResultIterable testResultIterable, String buildType, long started, Set<String>... expectedTests) {
         Set<String> copy = new HashSet<String>();
         for (Set<String> expected: expectedTests) {
             copy.addAll(expected);
         }
-        for(TestResult testResult: testResultIterable) {
+        TestResultIterator it = testResultIterable.iterator();
+        Assert.assertEquals(buildType, it.getBuildType());
+        while(it.hasNext()) {
+            TestResult testResult = it.next();
             String testSignature = TestUtils.testSignature(testResult);
             Assert.assertTrue("Not found: " + testSignature + " in " + copy, copy.remove(testSignature));
             Assert.assertEquals("Start time differs", started, testResult.getStarted());

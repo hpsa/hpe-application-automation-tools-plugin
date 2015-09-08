@@ -14,6 +14,11 @@ import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.client.TestEventPublisher;
 import hudson.FilePath;
+import hudson.matrix.Axis;
+import hudson.matrix.AxisList;
+import hudson.matrix.MatrixBuild;
+import hudson.matrix.MatrixProject;
+import hudson.matrix.MatrixRun;
 import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
@@ -244,6 +249,32 @@ public class TestDispatcherTest {
         // events suspended
         Mockito.verifyNoMoreInteractions(restClient);
         Assert.assertEquals(1, queue.size());
+    }
+
+    @Test
+    public void testDispatchMatrixBuild() throws Exception {
+        MatrixProject matrixProject = rule.createMatrixProject("TestDispatcherMatrix");
+        matrixProject.setAxes(new AxisList(new Axis("OS", "Linux", "Windows")));
+        Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
+        matrixProject.getBuildersList().add(new Maven("install", mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
+        matrixProject.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
+        matrixProject.setScm(new CopyResourceSCM("/helloWorldRoot"));
+
+        mockRestClient(restClient, true, true, true);
+        MatrixBuild matrixBuild = matrixProject.scheduleBuild2(0).get();
+        for (MatrixRun run: matrixBuild.getExactRuns()) {
+            queue.add("TestDispatcherMatrix/" + run.getParent().getName(), run.getNumber());
+        }
+        queue.waitForTicks(5);
+        Mockito.verify(restClient).tryToConnectSharedSpace();
+        for (MatrixRun run: matrixBuild.getExactRuns()) {
+            Mockito.verify(restClient).postTestResult(new File(run.getRootDir(), "mqmTests.xml"), false);
+            verifyAudit(run, true);
+        }
+        Mockito.verify(restClient).release();
+        Mockito.verifyNoMoreInteractions(restClient);
+
+        Assert.assertEquals(0, queue.size());
     }
 
     private FreeStyleBuild executeBuild() throws ExecutionException, InterruptedException {

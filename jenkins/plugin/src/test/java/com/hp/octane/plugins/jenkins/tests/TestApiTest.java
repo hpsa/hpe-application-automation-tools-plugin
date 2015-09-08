@@ -104,7 +104,7 @@ public class TestApiTest {
     @Test
     public void testXml() throws Exception {
         Page testResults = client.goTo("job/test-api-test/" + build.getNumber() + "/octane/tests/xml", "application/xml");
-        TestUtils.matchTests(new TestResultIterable(new StringReader(testResults.getWebResponse().getContentAsString())), build.getStartTimeInMillis(), TestUtils.helloWorldTests);
+        TestUtils.matchTests(new TestResultIterable(new StringReader(testResults.getWebResponse().getContentAsString())), "test-api-test", build.getStartTimeInMillis(), TestUtils.helloWorldTests);
     }
 
     @Test

@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.Reader;
-import java.util.Iterator;
 
 public class TestResultIterable implements Iterable<TestResult> {
 
@@ -22,7 +21,7 @@ public class TestResultIterable implements Iterable<TestResult> {
     }
 
     @Override
-    public Iterator<TestResult> iterator() {
+    public TestResultIterator iterator() {
         try {
             return new TestResultIterator(reader);
         } catch (FileNotFoundException e) {
