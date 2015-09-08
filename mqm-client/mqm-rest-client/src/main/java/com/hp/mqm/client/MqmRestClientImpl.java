@@ -279,38 +279,6 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		ret.put(listField.getName(), valArray);
 	}
 
-//	private JSONObject listFieldsObject(List<Field> fields) {
-//		JSONObject ret = new JSONObject();
-//		for (Field field : fields) {
-//			putListField(ret, field);
-//		}
-//		return ret;
-//	}
-
-//	private void putListField(JSONObject ret, Field field) {
-//		JSONObject fieldJson = new JSONObject();
-//		if (field.getId() != null) {
-//			if (field.getId() != -1) {
-//				fieldJson.put("id", field.getId());
-//			} else {
-//				//id of -1 value means unassigning the value => return empty array
-//				ret.put(field.getParentName(), new JSONArray());
-//				return;
-//			}
-//		} else {
-//			fieldJson.put("name", field.getName());
-//		}
-//
-//		if (ret.has(field.getParentName())) {
-//			JSONArray tmp = ret.getJSONArray(field.getParentName());
-//			tmp.add(fieldJson);
-//		} else {
-//			JSONArray tmp = new JSONArray();
-//			tmp.add(fieldJson);
-//			ret.put(field.getParentName(), tmp);
-//		}
-//	}
-
     private Taxonomy toTaxonomy(JSONObject t) {
         JSONObject parent = t.optJSONObject("parent");
 		String name = t.has("name") ? t.getString("name") : null;
@@ -458,9 +426,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 				pipelineObject.getString("contextEntityName"),
                 pipelineObject.getBoolean("pipelineRoot"),
                 pipelineObject.getLong("workspaceId"),
-				pipelineObject.has("releaseId") && !pipelineObject.get("releaseId").equals(JSONNull.getInstance()) ? pipelineObject.getLong("releaseId") : null,
-				pipelineObject.has("releaseName") && !pipelineObject.get("releaseName").equals(JSONNull.getInstance()) ? pipelineObject.getString("releaseName") : null,
-				taxonomies, fields);
+				pipelineObject.has("releaseId") && !pipelineObject.get("releaseId").equals(JSONNull.getInstance()) ? pipelineObject.getLong("releaseId") : null, taxonomies, fields);
 	}
 
 	@Override

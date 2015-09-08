@@ -142,7 +142,7 @@ public class JobConfigurationProxy {
             }
 
             Pipeline pipeline = client.updatePipeline(ServerIdentity.getIdentity(), project.getName(),
-                    new Pipeline(pipelineId, pipelineObject.getString("name"), null, pipelineObject.getLong("workspaceId"), pipelineObject.getLong("releaseId"), null, taxonomies, fields));
+                    new Pipeline(pipelineId, pipelineObject.getString("name"), null, pipelineObject.getLong("workspaceId"), pipelineObject.getLong("releaseId"), taxonomies, fields));
 
             //WORKAROUND BEGIN
             //getting workspaceName - because the workspaceName is not returned from configuration API
