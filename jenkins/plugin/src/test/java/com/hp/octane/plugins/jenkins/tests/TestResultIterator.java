@@ -22,6 +22,7 @@ public class TestResultIterator implements Iterator<TestResult> {
     private XMLEventReader reader;
     private LinkedList<TestResult> items = new LinkedList<TestResult>();
     private boolean closed;
+    private String buildType;
 
     public TestResultIterator(Reader input) throws FileNotFoundException, XMLStreamException {
         this.input = input;
@@ -46,6 +47,8 @@ public class TestResultIterator implements Iterator<TestResult> {
                             TestResultStatus status = TestResultStatus.fromPrettyName(element.getAttributeByName(new QName("status")).getValue());
                             long started = Long.valueOf(element.getAttributeByName(new QName("started")).getValue());
                             items.add(new TestResult(moduleName, packageName, className, testName, status, duration, started));
+                        } else if ("build".equals(localName)) {
+                            buildType = element.getAttributeByName(new QName("buildType")).getValue();
                         }
                     }
                 } else {
@@ -71,5 +74,10 @@ public class TestResultIterator implements Iterator<TestResult> {
     @Override
     public void remove() {
         throw new UnsupportedOperationException();
+    }
+
+    public String getBuildType() {
+        hasNext();
+        return buildType;
     }
 }

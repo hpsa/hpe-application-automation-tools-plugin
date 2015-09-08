@@ -3,6 +3,7 @@
 package com.hp.octane.plugins.jenkins.tests;
 
 import com.google.inject.Inject;
+import com.hp.octane.plugins.jenkins.tests.build.BuildHandlerUtils;
 import com.hp.octane.plugins.jenkins.tests.detection.ResultFieldsDetectionService;
 import com.hp.octane.plugins.jenkins.tests.detection.ResultFields;
 import com.hp.octane.plugins.jenkins.tests.xml.TestResultXmlWriter;
@@ -11,6 +12,7 @@ import hudson.FilePath;
 import hudson.model.AbstractBuild;
 
 import javax.xml.stream.XMLStreamException;
+import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -41,8 +43,11 @@ public class TestListener {
                             resultWriter.setResultFields(resultFields);
                             detectionRun = true;
                         }
-                        resultWriter.add(ext.getTestResults(build));
-                        hasTests = true;
+                        Iterator<TestResult> testResults = ext.getTestResults(build);
+                        if (testResults.hasNext()) {
+                            resultWriter.add(testResults);
+                            hasTests = true;
+                        }
                     }
                 } catch (InterruptedException e) {
                     logger.log(Level.SEVERE, "Interrupted processing test results in " + ext.getClass().getName(), e);
@@ -59,7 +64,10 @@ public class TestListener {
             try {
                 resultWriter.close();
                 if (success && hasTests) {
-                    queue.add(build.getProject().getName(), build.getNumber());
+                    String projectFullName = BuildHandlerUtils.getProjectFullName(build);
+                    if (projectFullName != null) {
+                        queue.add(projectFullName, build.getNumber());
+                    }
                 }
             } catch (XMLStreamException e) {
                 logger.log(Level.SEVERE, "Error processing test results", e);

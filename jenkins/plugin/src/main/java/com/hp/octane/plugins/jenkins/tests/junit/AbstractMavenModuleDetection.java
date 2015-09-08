@@ -1,8 +1,7 @@
 // (C) Copyright 2003-2015 Hewlett-Packard Development Company, L.P.
 
-package com.hp.octane.plugins.jenkins.tests.maven;
+package com.hp.octane.plugins.jenkins.tests.junit;
 
-import com.hp.octane.plugins.jenkins.tests.ModuleDetection;
 import hudson.FilePath;
 import hudson.model.AbstractBuild;
 

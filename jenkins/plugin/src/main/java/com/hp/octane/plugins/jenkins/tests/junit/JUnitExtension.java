@@ -2,14 +2,11 @@
 
 package com.hp.octane.plugins.jenkins.tests.junit;
 
-import com.hp.octane.plugins.jenkins.tests.ModuleDetection;
 import com.hp.octane.plugins.jenkins.tests.xml.AbstractXmlIterator;
 import com.hp.octane.plugins.jenkins.tests.MqmTestsExtension;
-import com.hp.octane.plugins.jenkins.tests.maven.FreeStyleModuleDetection;
 import com.hp.octane.plugins.jenkins.tests.impl.ObjectStreamIterator;
 import com.hp.octane.plugins.jenkins.tests.TestResult;
 import com.hp.octane.plugins.jenkins.tests.TestResultStatus;
-import com.hp.octane.plugins.jenkins.tests.maven.MavenSetModuleDetection;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.maven.MavenBuild;
@@ -108,7 +105,7 @@ public class JUnitExtension extends MqmTestsExtension {
             this.workspace = build.getWorkspace();
 
             moduleDetection = Arrays.asList(
-                    new FreeStyleModuleDetection(build),
+                    new MavenBuilderModuleDetection(build),
                     new MavenSetModuleDetection(build),
                     new ModuleDetection.Default());
         }
