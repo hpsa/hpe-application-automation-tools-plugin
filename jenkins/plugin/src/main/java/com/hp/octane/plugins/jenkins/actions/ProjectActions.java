@@ -168,10 +168,12 @@ public class ProjectActions extends TransientProjectActionFactory {
 
 		private List<ParameterValue> createParameters(JSONArray paramsJSON) {
 			List<ParameterValue> result = new ArrayList<ParameterValue>();
+			boolean parameterHandled;
 			ParameterValue tmpValue;
 			ParametersDefinitionProperty paramsDefProperty = (ParametersDefinitionProperty) project.getProperty(ParametersDefinitionProperty.class);
 			if (paramsDefProperty != null) {
 				for (ParameterDefinition paramDef : paramsDefProperty.getParameterDefinitions()) {
+					parameterHandled = false;
 					for (int i = 0; i < paramsJSON.size(); i++) {
 						JSONObject paramJSON = paramsJSON.getJSONObject(i);
 						if (paramJSON.has("name") && paramJSON.get("name") != null && paramJSON.get("name").equals(paramDef.getName())) {
@@ -202,9 +204,15 @@ public class ProjectActions extends TransientProjectActionFactory {
 								default:
 									break;
 							}
-							if (tmpValue != null) result.add(tmpValue);
+							if (tmpValue != null) {
+								result.add(tmpValue);
+								parameterHandled = true;
+							}
 							break;
 						}
+					}
+					if (!parameterHandled) {
+						result.add(paramDef.getDefaultParameterValue());
 					}
 				}
 			}
