@@ -508,7 +508,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
     public PagedList<Taxonomy> queryTaxonomies(String name, long workspaceId, int offset, int limit) {
         List<String> conditions = new LinkedList<String>();
         if (!StringUtils.isEmpty(name)) {
-            conditions.add(condition("name", "*" + name + "*") + "||" + crossFilterCondition("category", "name", "*" + name + "*"));
+            conditions.add(condition("name", "*" + name + "*") + "||" + conditionRef("category", "name", "*" + name + "*"));
         }
         return getEntities(getEntityURI(URI_TAXONOMY_NODES, conditions, workspaceId, offset, limit, null), offset, new TaxonomyEntityFactory());
     }
@@ -541,7 +541,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 			conditions.add(condition("name", "*" + name + "*"));
 		}
         if (!StringUtils.isEmpty(logicalListName)) {
-            conditions.add(crossFilterCondition("list_root", "logical_name", logicalListName));
+            conditions.add(conditionRef("list_root", "logical_name", logicalListName));
         }
 		return getEntities(getEntityURI(URI_LIST_ITEMS, conditions, workspaceId, offset, limit, null), offset, new ListItemEntityFactory());
 	}

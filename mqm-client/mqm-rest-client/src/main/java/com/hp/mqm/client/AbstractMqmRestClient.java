@@ -66,7 +66,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 
 	private static final String FILTERING_FRAGMENT = "query={query}";
     private static final String PAGING_FRAGMENT = "offset={offset}&limit={limit}";
-    private static final String ORDER_BY_FRAGMENT = "order-by={order}";
+    private static final String ORDER_BY_FRAGMENT = "order_by={order}";
 
 	private static final String URI_PARAM_ENCODING = "UTF-8";
 
@@ -470,8 +470,8 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 		return name + "={id=" + id + "}";
 	}
 
-	protected String crossFilterCondition(String field, String crossField, String value) {
-		return field + "={" + condition(crossField, value) + "}";
+	protected String conditionRef(String name, String refName, String value) {
+		return name + "={" + condition(refName, value) + "}";
 	}
 
 	protected String condition(String name, String value) {
