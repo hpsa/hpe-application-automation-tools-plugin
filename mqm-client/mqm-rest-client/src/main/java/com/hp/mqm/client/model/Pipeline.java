@@ -62,6 +62,10 @@ final public class Pipeline {
 		return fields;
 	}
 
+	public void setFields(List<ListField> fields) {
+		this.fields = fields;
+	}
+
 	public Boolean isRoot() {
 		return root;
 	}

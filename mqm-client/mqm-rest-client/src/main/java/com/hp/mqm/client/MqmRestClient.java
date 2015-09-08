@@ -216,14 +216,14 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * <p/>
 	 * If <code>name</code> is not specified or empty, all items are considered.
 	 *
-	 * @param listId        list id
+	 * @param logicalListName        logical name of a list to search in
 	 * @param name          item name filter (can be null or empty)
      * @param workspaceId   workspace
 	 * @param offset        paging offset
 	 * @param limit         paging limit
 	 * @return list items matching given name filter
 	 */
-	PagedList<ListItem> queryListItems(long listId, String name, long workspaceId, int offset, int limit);
+	PagedList<ListItem> queryListItems(String logicalListName, String name, long workspaceId, int offset, int limit);
 
 	/**
 	 * Get listItems of given IDs in given workspace

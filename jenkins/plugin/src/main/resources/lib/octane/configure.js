@@ -253,7 +253,7 @@ function octane_job_configuration(target, progress, proxy) {
 
                 fieldValueSelect.prop('name', field.logicalListName);
                 fieldValueSelect.prop('id', field.logicalListName);
-                fieldSelectors.push({listId: field.listId, name: field.logicalListName, multiValue: field.multiValue, extensible: field.extensible});
+                fieldSelectors.push({name: field.logicalListName, logicalListName: field.logicalListName, multiValue: field.multiValue, extensible: field.extensible});
                 if (field.multiValue) {
                     fieldValueSelect.attr('multiple', 'multiple');
                     tdSelect.prop('colspan', 2);
@@ -884,7 +884,7 @@ function octane_job_configuration(target, progress, proxy) {
                             var term = "";
                             if (params.data.hasOwnProperty("q") && params.data.q !== undefined) {term = params.data.q;}
                             var listId = 0;
-                            proxy.searchListItems(listId, term, pipeline.workspaceId, selector.multiValue, selector.extensible, (function (data) { //todo send proper listId or listLogicalName
+                            proxy.searchListItems(selector.logicalListName, term, pipeline.workspaceId, selector.multiValue, selector.extensible, (function (data) {
                                 queryToMqmCallback(data, success, failure)
                             }));
                         },

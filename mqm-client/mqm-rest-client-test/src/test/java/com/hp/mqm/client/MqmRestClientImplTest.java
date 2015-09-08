@@ -463,7 +463,6 @@ public class MqmRestClientImplTest {
 	}
 
     @Test
-	@Ignore // test needs to be rewritten - server now only returns IDs
     public void testUpdatePipeline() throws IOException {
         String serverIdentity = UUID.randomUUID().toString();
         long timestamp = System.currentTimeMillis();
@@ -485,10 +484,14 @@ public class MqmRestClientImplTest {
         pipeline.setReleaseId(release2.getId());
 
         List<Taxonomy> taxonomies = new LinkedList<Taxonomy>();
-        taxonomies.add(new Taxonomy(null, "Chrome" + timestamp, new Taxonomy(null, "Browser" + timestamp, null)));
+		Taxonomy chrome = new Taxonomy(null, "Chrome" + timestamp, new Taxonomy(null, "Browser" + timestamp, null));
+        taxonomies.add(chrome);
         pipeline.setTaxonomies(taxonomies);
 
-        // TODO: add field tags when available
+		List<ListField> listFields = new LinkedList<ListField>();
+		ListField testFramework = new ListField("test_framework", Arrays.asList(getSingleListItem("JUnit")));
+		listFields.add(testFramework);
+		pipeline.setFields(listFields);
 
         // update name, release, assign new tags
 
@@ -499,44 +502,46 @@ public class MqmRestClientImplTest {
         Assert.assertEquals(1, updatedPipeline.getTaxonomies().size());
         Taxonomy taxonomy = updatedPipeline.getTaxonomies().get(0);
         Assert.assertNotNull(taxonomy.getId());
-        Assert.assertNotNull(taxonomy.getRoot().getId());
-        Assert.assertEquals("Chrome" + timestamp, taxonomy.getName());
-        Assert.assertEquals("Browser" + timestamp, taxonomy.getRoot().getName());
+		assertTaxonomies(Arrays.asList(taxonomy.getId()), Arrays.asList(chrome));
+		assertListFields(pipeline.getFields(), updatedPipeline.getFields());
 
         Pipeline updatedPipeline2 = getSinglePipeline(serverIdentity, jobName);
         Assert.assertEquals(pipelineName + "New", updatedPipeline2.getName());
         Assert.assertEquals(release2.getId(), updatedPipeline2.getReleaseId());
         Taxonomy taxonomy2 = updatedPipeline2.getTaxonomies().get(0);
         Assert.assertNotNull(taxonomy2.getId());
-        Assert.assertNotNull(taxonomy2.getRoot().getId());
-        Assert.assertEquals("Chrome" + timestamp, taxonomy2.getName());
-        Assert.assertEquals("Browser" + timestamp, taxonomy2.getRoot().getName());
+		assertTaxonomies(Arrays.asList(taxonomy2.getId()), Arrays.asList(chrome));
 
         taxonomies.clear();
         taxonomies.add(taxonomy);
-        taxonomies.add(new Taxonomy(null, "Firefox" + timestamp, new Taxonomy(taxonomy.getRoot().getId(), "Browser" + timestamp, null)));
+		Taxonomy firefox = new Taxonomy(null, "Firefox" + timestamp, new Taxonomy(taxonomy.getRoot().getId(), "Browser" + timestamp, null));
+        taxonomies.add(firefox);
         pipeline.setTaxonomies(taxonomies);
+
+		listFields.clear();
+		listFields.add(testFramework);
+		ListField testType = new ListField("test_type", Arrays.asList(getSingleListItem("Sanity"), getSingleListItem("End to End")));
+		listFields.add(testType);
+		pipeline.setFields(listFields);
 
         // assign both anew and existing tags
         updatedPipeline = client.updatePipeline(serverIdentity, jobName, pipeline);
         Assert.assertEquals(2, updatedPipeline.getTaxonomies().size());
-        taxonomy2 = getTaxonomyByName(updatedPipeline.getTaxonomies(), "Firefox" + timestamp);
-        Assert.assertNotNull(taxonomy2.getId());
-        Assert.assertEquals(taxonomy.getRoot().getId(), taxonomy2.getRoot().getId());
-        Assert.assertEquals("Firefox" + timestamp, taxonomy2.getName());
-        Assert.assertEquals("Browser" + timestamp, taxonomy2.getRoot().getName());
-        Taxonomy taxonomy3 = getTaxonomyByName(updatedPipeline.getTaxonomies(), "Chrome" + timestamp);
-        assertTaxonomyEquals(taxonomy, taxonomy3);
+        taxonomy2 = updatedPipeline.getTaxonomies().get(0);
+        Taxonomy taxonomy3 = updatedPipeline.getTaxonomies().get(1);
+		Assert.assertNotNull(taxonomy2.getId());
+		Assert.assertNotNull(taxonomy3.getId());
+		assertTaxonomies(Arrays.asList(taxonomy2.getId(), taxonomy3.getId()), Arrays.asList(chrome, firefox));
+		assertListFields(pipeline.getFields(), updatedPipeline.getFields());
 
         updatedPipeline2 = getSinglePipeline(serverIdentity, jobName);
         Assert.assertEquals(2, updatedPipeline2.getTaxonomies().size());
-        taxonomy2 = getTaxonomyByName(updatedPipeline2.getTaxonomies(), "Firefox" + timestamp);
-        Assert.assertNotNull(taxonomy2.getId());
-        Assert.assertEquals(taxonomy.getRoot().getId(), taxonomy2.getRoot().getId());
-        Assert.assertEquals("Firefox" + timestamp, taxonomy2.getName());
-        Assert.assertEquals("Browser" + timestamp, taxonomy2.getRoot().getName());
-        taxonomy3 = getTaxonomyByName(updatedPipeline2.getTaxonomies(), "Chrome" + timestamp);
-        assertTaxonomyEquals(taxonomy, taxonomy3);
+		taxonomy2 = updatedPipeline2.getTaxonomies().get(0);
+		taxonomy3 = updatedPipeline2.getTaxonomies().get(1);
+		Assert.assertNotNull(taxonomy2.getId());
+		Assert.assertNotNull(taxonomy3.getId());
+		assertTaxonomies(Arrays.asList(taxonomy2.getId(), taxonomy3.getId()), Arrays.asList(chrome, firefox));
+		assertListFields(pipeline.getFields(), updatedPipeline2.getFields());
 
         // unset release
         pipeline.setReleaseId(-1l);
@@ -650,7 +655,6 @@ public class MqmRestClientImplTest {
 	}
 
     @Test
-	@Ignore // pending server-side support for taxonomy_root.name cross-filter
     public void testQueryTaxonomies() throws IOException {
         long timestamp = System.currentTimeMillis();
         String typeName = "TaxonomyType" + timestamp;
@@ -716,25 +720,24 @@ public class MqmRestClientImplTest {
 	}
 
 	@Test
-    @Ignore // pending server-side support for list_root.id cross-filter
 	public void testQueryListItems() {
-		PagedList<ListItem> toolTypeList = client.queryListItems(0, "Testing_Tool_Type", WORKSPACE, 0, 100);
+		PagedList<ListItem> toolTypeList = client.queryListItems(null, "Testing_Tool_Type", WORKSPACE, 0, 100);
 		Assert.assertEquals(1, toolTypeList.getItems().size());
 		Assert.assertEquals("Testing_Tool_Type", toolTypeList.getItems().get(0).getName());
 
-		PagedList<ListItem> items = client.queryListItems(toolTypeList.getItems().get(0).getId(), null, WORKSPACE, 0, 100);
+		PagedList<ListItem> items = client.queryListItems(toolTypeList.getItems().get(0).getLogicalName(), null, WORKSPACE, 0, 100);
 		Assert.assertTrue(items.getItems().size() > 0);
 
 		// get longest name to ensure single match of the contains operator
         ArrayList<ListItem> list = new ArrayList<ListItem>(items.getItems());
         Collections.sort(list, new Comparator<ListItem>() {
-            @Override
-            public int compare(ListItem left, ListItem right) {
-                return right.getName().length() - left.getName().length();
-            }
-        });
+			@Override
+			public int compare(ListItem left, ListItem right) {
+				return right.getName().length() - left.getName().length();
+			}
+		});
 
-		items = client.queryListItems(toolTypeList.getItems().get(0).getId(), list.get(0).getName(), WORKSPACE, 0, 100);
+		items = client.queryListItems(toolTypeList.getItems().get(0).getLogicalName(), list.get(0).getName(), WORKSPACE, 0, 100);
 		Assert.assertEquals(1, items.getItems().size());
 	}
 
@@ -817,7 +820,7 @@ public class MqmRestClientImplTest {
         client.getTestResultLog(id, new SimpleLog(baos));
         String body = baos.toString("UTF-8");
         Assert.assertTrue(body.contains("status: failed\n"));
-        Assert.assertTrue(body.contains("\n\nBuild reference {server: server; buildType: buildType; buildSid: 1} not resolved\n"));
+		Assert.assertTrue(body.contains("\n\nBuild reference {server: server; buildType: buildType; buildSid: 1} not resolved\n"));
     }
 
     @Test
@@ -850,16 +853,11 @@ public class MqmRestClientImplTest {
         return jobConfiguration.getRelatedPipelines().get(0);
     }
 
-	private Taxonomy getTaxonomyByName(List<Taxonomy> taxonomies, String name) {
-		for (Taxonomy taxonomy : taxonomies) {
-			if (name.equals(taxonomy.getName())) {
-				return taxonomy;
-			}
-		}
-		Assert.fail("Taxonomy not found");
-		throw new IllegalStateException();
+	private ListItem getSingleListItem(String name) {
+		List<ListItem> listItems = testSupportClient.queryListItems(name, WORKSPACE, 0, 10).getItems();
+		Assert.assertEquals(1, listItems.size());
+		return listItems.get(0);
 	}
-
 
 	private void putJenkinsInsightEvent(String jobName, JSONObject server, JIEventType type, long delay) throws IOException, InterruptedException {
 		JSONObject queued = ResourceUtils.readJson(type.name().toLowerCase() + ".json");
@@ -871,15 +869,60 @@ public class MqmRestClientImplTest {
 		}
 	}
 
-    private void assertTaxonomyEquals(Taxonomy left, Taxonomy right) {
-        Assert.assertEquals(left.getId(), right.getId());
-        Assert.assertEquals(left.getName(), right.getName());
-        if (left.getRoot() != null && right.getRoot() != null) {
-            assertTaxonomyEquals(left.getRoot(), right.getRoot());
-        } else {
-            Assert.assertEquals(left.getRoot(), right.getRoot());
-        }
-    }
+	private void assertTaxonomies(List<Long> ids, List<Taxonomy> taxonomies) {
+		List<Taxonomy> foundTaxonomies = client.getTaxonomies(ids, WORKSPACE);
+		Assert.assertEquals(ids.size(), foundTaxonomies.size());
+		int matched = 0;
+
+		for (Taxonomy taxonomy : foundTaxonomies) {
+			for (Taxonomy tax : taxonomies) {
+				if (tax.getName().equals(taxonomy.getName()) && tax.getRoot().getName().equals(taxonomy.getRoot().getName())) {
+					matched++;
+				}
+			}
+		}
+		Assert.assertEquals(ids.size(), matched);
+	}
+
+	private void assertListFields(List<ListField> expectedFields, List<ListField> actualFields) {
+		int matched = 0;
+		for (ListField actual : actualFields) {
+			boolean expectedFound = false;
+			for (ListField expected : expectedFields) {
+				if (actual.getName().equals(expected.getName())) {
+					Assert.assertNotNull(actual.getValues());
+					Assert.assertEquals(expected.getValues().size(), actual.getValues().size());
+
+					List<Long> ids = new LinkedList<Long>();
+					for (ListItem item : actual.getValues()) {
+						ids.add(item.getId());
+					}
+					assertListFieldValues(ids, expected.getValues());
+					expectedFound = true;
+					matched++;
+				}
+			}
+			if (!expectedFound) {	//if there is no expected ListField, assert, that the actual has empty values
+				Assert.assertTrue(actual.getValues().isEmpty());
+			}
+		}
+		Assert.assertEquals(expectedFields.size(), matched);
+	}
+
+	private void assertListFieldValues(List<Long> ids, List<ListItem> listItems) {
+		List<ListItem> foundItems = client.getListItems(ids, WORKSPACE);
+		Assert.assertEquals(ids.size(), foundItems.size());
+		int matched = 0;
+
+		for (ListItem item : foundItems) {
+			for (ListItem listItem : listItems) {
+				if (listItem.getName().equals(item.getName())) {
+					matched++;
+				}
+			}
+		}
+		Assert.assertEquals(ids.size(), matched);
+	}
 
 	private void assertPublishResult(long id, String expectedStatus) throws InterruptedException {
 		String status = "";

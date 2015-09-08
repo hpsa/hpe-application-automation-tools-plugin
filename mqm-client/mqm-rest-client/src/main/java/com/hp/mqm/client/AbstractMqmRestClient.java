@@ -470,6 +470,10 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 		return name + "={id=" + id + "}";
 	}
 
+	protected String crossFilterCondition(String field, String crossField, String value) {
+		return field + "={" + condition(crossField, value) + "}";
+	}
+
 	protected String condition(String name, String value) {
 		return name + "='" + escapeQueryValue(value) + "'";
 	}

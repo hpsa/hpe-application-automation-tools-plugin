@@ -160,9 +160,9 @@ public class TestSupportClient extends AbstractMqmRestClient {
             JSONObject entityObject = JSONObject.fromObject(json);
             JSONObject list_root = entityObject.optJSONObject("list_root");
             if (list_root != null) {
-                return new ListItem(entityObject.getLong("id"), entityObject.getString("name"), create(list_root.toString()));
+                return new ListItem(entityObject.getLong("id"), entityObject.getString("logical_name"), entityObject.getString("name"), create(list_root.toString()));
             } else {
-                return new ListItem(entityObject.getLong("id"), entityObject.getString("name"), null);
+                return new ListItem(entityObject.getLong("id"), entityObject.getString("logical_name"), entityObject.getString("name"), null);
             }
         }
     }

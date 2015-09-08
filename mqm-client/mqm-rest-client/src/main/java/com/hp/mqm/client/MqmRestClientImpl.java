@@ -427,7 +427,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		if (field.has("name")) {
 			name = field.getString("name");
 		}
-		return new ListItem(id, name, null);
+		return new ListItem(id, null, name, null);
 	}
 
 	private Pipeline toPipeline(JSONObject pipelineObject) {
@@ -542,7 +542,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
     public PagedList<Taxonomy> queryTaxonomies(String name, long workspaceId, int offset, int limit) {
         List<String> conditions = new LinkedList<String>();
         if (!StringUtils.isEmpty(name)) {
-            conditions.add(condition("name", "*" + name + "*") + "||" + condition("taxonomy_root.name", "*" + name + "*"));
+            conditions.add(condition("name", "*" + name + "*") + "||" + crossFilterCondition("category", "name", "*" + name + "*"));
         }
         return getEntities(getEntityURI(URI_TAXONOMY_NODES, conditions, workspaceId, offset, limit, null), offset, new TaxonomyEntityFactory());
     }
@@ -569,13 +569,14 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	}
 
     @Override
-	public PagedList<ListItem> queryListItems(long listId, String name, long workspaceId, int offset, int limit) {
+	public PagedList<ListItem> queryListItems(String logicalListName, String name, long workspaceId, int offset, int limit) {
 		List<String> conditions = new LinkedList<String>();
 		if (!StringUtils.isEmpty(name)) {
 			conditions.add(condition("name", "*" + name + "*"));
 		}
-		//todo uncomment this condition once cross filters work
-//		conditions.add(condition("list_root.id", String.valueOf(listId)));
+        if (!StringUtils.isEmpty(logicalListName)) {
+            conditions.add(crossFilterCondition("list_root", "logical_name", logicalListName));
+        }
 		return getEntities(getEntityURI(URI_LIST_ITEMS, conditions, workspaceId, offset, limit, null), offset, new ListItemEntityFactory());
 	}
 	@Override
@@ -671,9 +672,9 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		public ListItem doCreate(JSONObject entityObject) {
 			JSONObject list_root = entityObject.optJSONObject("list_root");
 			if (list_root != null) {
-				return new ListItem(entityObject.getLong("id"), entityObject.getString("name"), doCreate(list_root));
+				return new ListItem(entityObject.getLong("id"), entityObject.getString("logical_name"), entityObject.getString("name"), doCreate(list_root));
 			} else {
-				return new ListItem(entityObject.getLong("id"), entityObject.getString("name"), null);
+				return new ListItem(entityObject.getLong("id"), entityObject.getString("logical_name"), entityObject.getString("name"), null);
 			}
 		}
 	}

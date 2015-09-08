@@ -136,7 +136,7 @@ public class JobConfigurationProxy {
                     } else {
                         id = null;
                     }
-                    assignedValues.add(new ListItem(id, value.getString("name"), null));
+                    assignedValues.add(new ListItem(id, null, value.getString("name"), null));
                 }
                 fields.add(new ListField(jsonObject.getString("name"), assignedValues));
             }
@@ -443,7 +443,7 @@ public class JobConfigurationProxy {
     }
 
     @JavaScriptMethod
-    public JSONObject searchListItems(int listId, String term, long workspaceId, boolean multiValue, boolean extensible) {
+    public JSONObject searchListItems(String logicalListName, String term, long workspaceId, boolean multiValue, boolean extensible) {
         int defaultSize = 10;
         JSONObject ret = new JSONObject();
 
@@ -456,7 +456,7 @@ public class JobConfigurationProxy {
         }
         try {
 
-            PagedList<ListItem> listItemPagedList = client.queryListItems(listId, term, workspaceId, 0, defaultSize);
+            PagedList<ListItem> listItemPagedList = client.queryListItems(logicalListName, term, workspaceId, 0, defaultSize);
             List<ListItem> listItems = listItemPagedList.getItems();
             boolean moreResults = listItemPagedList.getTotalCount() > listItems.size();
 
