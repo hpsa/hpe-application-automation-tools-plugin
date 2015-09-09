@@ -27,8 +27,14 @@ function octane_job_configuration(target, progress, proxy) {
             if (response.errors) {
                 response.errors.forEach(function (error) {
                     var errorDiv = $("<div class='error'><font color='red'><b/></font></div>");
-                    errorDiv.find("b").text(error);
+                    errorDiv.find("b").text(error.message);
                     $(target).append(errorDiv);
+                    if (error.hasOwnProperty("url") && error.hasOwnProperty("label")) {
+                        var errorLink = $("<div class='error-link'><a></a><div>");
+                        errorLink.find("a").text(error.label);
+                        errorLink.find("a").attr("href", rootURL + error.url);
+                        $(target).append(errorLink);
+                    }
                 });
             } else {
                 renderConfiguration(response);

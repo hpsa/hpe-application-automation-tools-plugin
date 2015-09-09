@@ -105,7 +105,7 @@ public class JobConfigurationProxy {
             return error("Unable to create pipeline");
         } catch (ClientException e) {
             logger.log(Level.WARNING, "Failed to create pipeline", e);
-            return error(e.getMessage());
+            return error(e.getMessage(), e.getLink());
         }
         return result;
     }
@@ -169,7 +169,7 @@ public class JobConfigurationProxy {
             return error("Unable to update pipeline");
         } catch (ClientException e) {
             logger.log(Level.WARNING, "Failed to update pipeline", e);
-            return error(e.getMessage());
+            return error(e.getMessage(), e.getLink());
         }
 
         return result;
@@ -182,7 +182,7 @@ public class JobConfigurationProxy {
             client = createClient();
         } catch (ClientException e) {
             logger.log(Level.WARNING, "MQM server connection failed", e);
-            return error(e.getMessage());
+            return error(e.getMessage(), e.getLink());
         }
 
         JSONObject ret = new JSONObject();
@@ -281,7 +281,7 @@ public class JobConfigurationProxy {
             client = createClient();
         } catch (ClientException e) {
             logger.log(Level.WARNING, "MQM server connection failed", e);
-            return error(e.getMessage());
+            return error(e.getMessage(), e.getLink());
         }
 
         try {
@@ -329,7 +329,7 @@ public class JobConfigurationProxy {
             client = createClient();
         } catch (ClientException e) {
             logger.log(Level.WARNING, "MQM server connection failed", e);
-            return error(e.getMessage());
+            return error(e.getMessage(), e.getLink());
         }
 
         try {
@@ -452,7 +452,7 @@ public class JobConfigurationProxy {
             client = createClient();
         } catch (ClientException e) {
             logger.log(Level.WARNING, "MQM server connection failed", e);
-            return error(e.getMessage());
+            return error(e.getMessage(), e.getLink());
         }
         try {
 
@@ -516,7 +516,7 @@ public class JobConfigurationProxy {
             client = createClient();
         } catch (ClientException e) {
             logger.log(Level.WARNING, "MQM server connection failed", e);
-            return error(e.getMessage());
+            return error(e.getMessage(), e.getLink());
         }
         try {
             PagedList<Release> releasePagedList = client.queryReleases(term, workspaceId, 0, defaultSize);
@@ -570,7 +570,7 @@ public class JobConfigurationProxy {
             client = createClient();
         } catch (ClientException e) {
             logger.log(Level.WARNING, "MQM server connection failed", e);
-            return error(e.getMessage());
+            return error(e.getMessage(), e.getLink());
         }
         try {
             PagedList<Workspace> workspacePagedList = client.queryWorkspaces(term, 0, defaultSize);
@@ -616,7 +616,7 @@ public class JobConfigurationProxy {
             client = createClient();
         } catch (ClientException e) {
             logger.log(Level.WARNING, "MQM server connection failed", e);
-            return error(e.getMessage());
+            return error(e.getMessage(), e.getLink());
         }
         try {
 
@@ -815,9 +815,19 @@ public class JobConfigurationProxy {
     }
 
     private JSONObject error(String message) {
+        return error(message, null);
+    }
+
+    private JSONObject error(String message, ExceptionLink exceptionLink) {
         JSONObject result = new JSONObject();
         JSONArray errors = new JSONArray();
-        errors.add(message);
+        JSONObject error = new JSONObject();
+        error.put("message", message);
+        if (exceptionLink != null) {
+            error.put("url", exceptionLink.getUrl());
+            error.put("label", exceptionLink.getLabel());
+        }
+        errors.add(error);
         result.put("errors", errors);
         return result;
     }
@@ -825,11 +835,13 @@ public class JobConfigurationProxy {
     private MqmRestClient createClient() throws ClientException {
         ServerConfiguration configuration = ConfigurationService.getServerConfiguration();
         if (StringUtils.isEmpty(configuration.location)) {
-            throw new ClientException("MQM server not configured");
+            String label = "Please configure MQM server here";
+            throw new ClientException("MQM server not configured", new ExceptionLink("/configure", label));
         }
 
         if (retryModel.isQuietPeriod()) {
-            throw new ClientException("MQM server not connected");
+            String label = "Please validate your configuration settings here";
+            throw new ClientException("MQM server not connected", new ExceptionLink("/configure", label));
         }
 
         JenkinsMqmRestClientFactory clientFactory = getExtension(JenkinsMqmRestClientFactory.class);
@@ -868,9 +880,38 @@ public class JobConfigurationProxy {
 
     private static class ClientException extends Exception {
 
+        private ExceptionLink link;
+
         public ClientException(String message) {
-            super(message);
+            this(message, null);
         }
 
+        public ClientException(String message, ExceptionLink link) {
+            super(message);
+            this.link = link;
+        }
+
+        public ExceptionLink getLink() {
+            return link;
+        }
+    }
+
+    private static class ExceptionLink {
+
+        private String url;
+        private String label;
+
+        public ExceptionLink(String url, String label) {
+            this.url = url;
+            this.label = label;
+        }
+
+        public String getUrl() {
+            return url;
+        }
+
+        public String getLabel() {
+            return label;
+        }
     }
 }

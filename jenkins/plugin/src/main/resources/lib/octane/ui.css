@@ -25,6 +25,10 @@ body {
 .mqm .error {
 	margin: 5px 0;
 }
+.error-link {
+	padding-left: 20px;
+	padding-top: 10px;
+}
 .mqm button::-moz-focus-inner,
 .mqm input::-moz-focus-inner,
 .mqm select::-moz-focus-inner {
