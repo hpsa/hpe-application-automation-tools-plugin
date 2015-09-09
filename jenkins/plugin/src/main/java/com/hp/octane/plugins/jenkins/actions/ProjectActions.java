@@ -1,6 +1,5 @@
 package com.hp.octane.plugins.jenkins.actions;
 
-import com.hp.octane.plugins.jenkins.configuration.ConfigurationAction;
 import com.hp.octane.plugins.jenkins.model.parameters.ParameterType;
 import com.hp.octane.plugins.jenkins.model.pipelines.BuildHistory;
 import com.hp.octane.plugins.jenkins.model.pipelines.StructureItem;
@@ -241,7 +240,6 @@ public class ProjectActions extends TransientProjectActionFactory {
 	public Collection<? extends Action> createFor(AbstractProject project) {
 		ArrayList<Action> actions = new ArrayList<Action>();
 		actions.add(new OctaneProjectActions(project));
-		actions.add(new ConfigurationAction(project));
 		return actions;
 	}
 }
