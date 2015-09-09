@@ -300,13 +300,13 @@ namespace HpToolsLauncher
                     if (_ciParams.ContainsKey("PerScenarioTimeOut"))
                     {
                         string strTimoutInMinutes = _ciParams["PerScenarioTimeOut"];
-                        ConsoleWriter.WriteLine("reading PerScenarioTimeout: "+strTimoutInMinutes);
+                        //ConsoleWriter.WriteLine("reading PerScenarioTimeout: "+strTimoutInMinutes);
                         if (strTimoutInMinutes.Trim() != "-1")
                         {
                             int intTimoutInMinutes = 0;
                             if (int.TryParse(strTimoutInMinutes, out intTimoutInMinutes))
                                 perScenarioTimeOutMinutes = TimeSpan.FromMinutes(intTimoutInMinutes);
-                            ConsoleWriter.WriteLine("PerScenarioTimeout: "+perScenarioTimeOutMinutes+" minutes");
+                            //ConsoleWriter.WriteLine("PerScenarioTimeout: "+perScenarioTimeOutMinutes+" minutes");
                         }
                     }
                     //ConsoleWriter.WriteLine("PerScenarioTimeout: " + perScenarioTimeOutMinutes.ToString(@"dd\:\:hh\:mm\:ss") + " minutes");
