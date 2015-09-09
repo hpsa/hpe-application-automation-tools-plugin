@@ -12,9 +12,9 @@ final public class Pipeline {
 	private long workspaceId;
 	private Long releaseId;
 	private List<Taxonomy> taxonomies;
-	private List<Field> fields;
+	private List<ListField> fields;
 
-	public Pipeline(long id, String name, Boolean root, long workspaceId, Long releaseId, List<Taxonomy> taxonomies, List<Field> fields) {
+	public Pipeline(long id, String name, Boolean root, long workspaceId, Long releaseId, List<Taxonomy> taxonomies, List<ListField> fields) {
 		this.id = id;
 		this.name = name;
 		this.root = root;
@@ -56,8 +56,12 @@ final public class Pipeline {
 		this.taxonomies = taxonomies;
 	}
 
-	public List<Field> getFields() {
+	public List<ListField> getFields() {
 		return fields;
+	}
+
+	public void setFields(List<ListField> fields) {
+		this.fields = fields;
 	}
 
 	public Boolean isRoot() {
