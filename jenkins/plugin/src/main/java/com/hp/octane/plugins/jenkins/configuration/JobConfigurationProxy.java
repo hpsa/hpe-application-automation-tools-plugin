@@ -56,13 +56,14 @@ public class JobConfigurationProxy {
     private final static Logger logger = Logger.getLogger(JobConfigurationProxy.class.getName());
 
     final private AbstractProject project;
-    final private RetryModel retryModel;
+    private RetryModel retryModel;
 
     private static final String NOT_SPECIFIED = "-- Not specified --";
 
     public JobConfigurationProxy(AbstractProject project) {
+        // ConfigurationActionFactory/ConfigurationAction bypasses the caching mechanism, make sure only simple
+        // assignment is performed in the constructor
         this.project = project;
-        this.retryModel = getExtension(RetryModel.class);
     }
 
     @JavaScriptMethod
@@ -839,6 +840,8 @@ public class JobConfigurationProxy {
             throw new ClientException("MQM server not configured", new ExceptionLink("/configure", label));
         }
 
+        RetryModel retryModel = getRetryModel();
+
         if (retryModel.isQuietPeriod()) {
             String label = "Please validate your configuration settings here";
             throw new ClientException("MQM server not connected", new ExceptionLink("/configure", label));
@@ -863,6 +866,13 @@ public class JobConfigurationProxy {
         }
         retryModel.success();
         return client;
+    }
+
+    private RetryModel getRetryModel() {
+        if (retryModel == null) {
+            retryModel = getExtension(RetryModel.class);
+        }
+        return retryModel;
     }
 
     private static <T> T getExtension(Class<T> clazz) {
