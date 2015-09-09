@@ -76,7 +76,7 @@ public enum ParameterProcessors {
 				pv = null;
 
 				for (int j = 0; j < parametersValues.size(); j++) {
-					if (parametersValues.get(j).getName().equals(pd.getName())) {
+					if (parametersValues.get(j) != null && parametersValues.get(j).getName().equals(pd.getName())) {
 						pv = parametersValues.get(j);
 						parametersValues.remove(j);
 						break;

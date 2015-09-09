@@ -13,6 +13,7 @@ import hudson.model.Action;
 import hudson.model.BooleanParameterValue;
 import hudson.model.BuildAuthorizationToken;
 import hudson.model.Cause;
+import hudson.model.FileParameterDefinition;
 import hudson.model.FileParameterValue;
 import hudson.model.Job;
 import hudson.model.ParameterDefinition;
@@ -212,11 +213,27 @@ public class ProjectActions extends TransientProjectActionFactory {
 						}
 					}
 					if (!parameterHandled) {
-						result.add(paramDef.getDefaultParameterValue());
+						if (paramDef instanceof FileParameterDefinition) {
+							FileItemFactory fif = new DiskFileItemFactory();
+							FileItem fi = fif.createItem(paramDef.getName(), "text/plain", false, "");
+							try {
+								fi.getOutputStream().write(new byte[0]);
+							} catch (IOException ioe) {
+								logger.severe("failed to create default value for file parameter '" + paramDef.getName() + "'");
+							}
+							tmpValue = new FileParameterValue(paramDef.getName(), fi);
+							result.add(tmpValue);
+						} else {
+							result.add(paramDef.getDefaultParameterValue());
+						}
 					}
 				}
 			}
 			return result;
+		}
+
+		private void completeLackParameterWithDefaults() {
+			//  TODO:
 		}
 	}
 
