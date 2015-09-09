@@ -1,13 +1,14 @@
 package com.hp.mqm.client;
 
-import com.hp.mqm.client.model.Field;
+import com.hp.mqm.client.model.FieldMetadata;
+import com.hp.mqm.client.model.JobConfiguration;
 import com.hp.mqm.client.model.ListItem;
 import com.hp.mqm.client.model.PagedList;
-import com.hp.mqm.client.model.JobConfiguration;
 import com.hp.mqm.client.model.Pipeline;
 import com.hp.mqm.client.model.Release;
 import com.hp.mqm.client.model.Taxonomy;
 import com.hp.mqm.client.model.TestResultStatus;
+import com.hp.mqm.client.model.Workspace;
 
 import java.io.File;
 import java.util.List;
@@ -93,48 +94,6 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 */
 	Pipeline createPipeline(String serverIdentity, String projectName, String pipelineName, long workspaceId, Long releaseId, String structureJson, String serverJson);
 
-	/**
-	 * Update pipeline metadata on the MQM server.
-	 * <p/>
-	 * <p/>
-	 * Either <code>pipelineName</code> or <code>releaseId</code> can be null. In that case, the value isn't updated.
-	 * <p/>
-	 * <p/>
-	 * In order to dissociate pipeline from release, <code>releaseId</code> value -1 needs to be specified.
-	 * <p/>
-     *
-     * @deprecated use {@link #updatePipeline(String, String, Pipeline)} instead
-	 *
-	 * @param pipelineId   pipeline ID
-	 * @param pipelineName new pipeline name (can be null)
-	 * @param workspaceId  workspace ID
-	 * @param releaseId    new release ID (can be null)
-	 */
-    @Deprecated
-	void updatePipelineMetadata(String serverIdentity, String projectName, long pipelineId, String pipelineName, long workspaceId, Long releaseId);
-
-	/**
-	 * Update tags associated with the pipeline. Both "taxonomy" and "field" tags are updated.
-	 * <p/>
-	 * <p/>
-	 * Tags specified with this call replace any existing tags currently specified for given pipeline. Both taxonomy and
-	 * field tags can have null IDs, in which case they are first created on the server and then associated to the
-	 * pipeline.
-	 * <p/>
-     *
-     * @deprecated use {@link #updatePipeline(String, String, Pipeline)} instead
-	 *
-	 * @param serverIdentity identity of the server
-	 * @param jobName        name of the job
-	 * @param pipelineId     pipeline ID
-     * @param workspaceId    workspace ID
-	 * @param taxonomies     list of "taxonomy" tags associated with the pipeline
-	 * @param fields         list of "fields" tags associated with the pipeline
-	 * @return pipeline structure
-	 */
-    @Deprecated
-	Pipeline updatePipelineTags(String serverIdentity, String jobName, long pipelineId, long workspaceId, List<Taxonomy> taxonomies, List<Field> fields);
-
     /**
      * Update pipeline metadata on the MQM server.
      * <p/>
@@ -166,6 +125,35 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * @return releases matching given name
 	 */
 	PagedList<Release> queryReleases(String name, long workspaceId, int offset, int limit);
+
+	/**
+	 * Get release of given ID in given workspace
+	 * @param releaseId
+	 * @param workspaceId
+	 * @return release, null if release does not exist
+	 */
+	Release getRelease(long releaseId, long workspaceId);
+
+	/**
+	 * Query workspaces matching given name filter (using contains semantics).
+	 * <p/>
+	 * <p/>
+	 * If <code>name</code> is not specified or empty, all workspaces are returned.
+	 * <p/>
+	 *
+	 * @param name          workspace name filter (can be null or empty)
+	 * @param offset        paging offset
+	 * @param limit         paging limit
+	 * @return workspaces matching given name
+	 */
+	PagedList<Workspace> queryWorkspaces(String name, int offset, int limit);
+
+	/**
+	 * Get workspaces of given IDs
+	 * @param workspaceIds		list of workspaceIds - maximum size of list is 100 values
+	 * @return workspaces matching given IDs
+	 */
+	List<Workspace> getWorkspaces(List<Long> workspaceIds);
 
 	/**
 	 * Query taxonomies matching given name filter (using contains semantics) and taxonomy type.
@@ -216,18 +204,41 @@ public interface MqmRestClient extends BaseMqmRestClient {
     PagedList<Taxonomy> queryTaxonomies(String name, long workspaceId, int offset, int limit);
 
 	/**
+	 * Get taxonomies with given IDs
+	 * @param taxonomyIds 	list of taxonomyIds - maximum size of list is 100 values
+	 * @param workspaceId	workspace
+	 * @return taxonomies matching given IDs
+	 */
+	List<Taxonomy> getTaxonomies(List<Long> taxonomyIds, long workspaceId);
+
+	/**
 	 * Query list for items matching given name (using contains semantics).
 	 * <p/>
 	 * If <code>name</code> is not specified or empty, all items are considered.
 	 *
-	 * @param listId        list id
+	 * @param logicalListName        logical name of a list to search in
 	 * @param name          item name filter (can be null or empty)
      * @param workspaceId   workspace
 	 * @param offset        paging offset
 	 * @param limit         paging limit
 	 * @return list items matching given name filter
 	 */
-	PagedList<ListItem> queryListItems(int listId, String name, long workspaceId, int offset, int limit);
+	PagedList<ListItem> queryListItems(String logicalListName, String name, long workspaceId, int offset, int limit);
+
+	/**
+	 * Get listItems of given IDs in given workspace
+	 * @param itemIds
+	 * @param workspaceId
+	 * @return
+	 */
+	List<ListItem> getListItems(List<Long> itemIds, long workspaceId);
+
+	/**
+	 * Get metadata fields of given workspace
+	 * @param workspaceId
+	 * @return metadata fields which are supported (has field_features: pipeline_tagging)
+	 */
+	List<FieldMetadata> getFieldsMetadata(long workspaceId);
 
 	/**
 	 * Sends events list to MQM [PUT request].

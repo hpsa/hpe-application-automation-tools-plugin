@@ -57,14 +57,10 @@ function octane_job_configuration(target, progress, proxy) {
         var buttons = $("<div>");
         var status = $("<div>");
 
+        var selectedWorkspaceId;
         var tagTypes = {};
         var allTags = {};
         var tagTypesByName = {};
-
-        var fieldTypes = {};
-        jobConfiguration.fields.forEach(function (fieldType) {
-            fieldTypes[fieldType.logicalListName] = fieldType;
-        });
 
         var validators = [];
         var apply = [];
@@ -96,11 +92,40 @@ function octane_job_configuration(target, progress, proxy) {
             var tbody = table.find("tbody");
             var tr = tbody.find("tr");
 
-            if (pipelineSelector) {
-                // put the pipeline selector at the top of the table
-                tbody.prepend(pipelineSelector.tr);
-                // need to reapply event listener
-                pipelineSelector.apply();
+            if (pipeline.id === null) { //rendering workspace selector - only for creating new pipeline
+                var trWorkspace = $("<tr><td class='setting-name'><label for='pipeline-workspace'>Workspace:</label></td></tr>");
+                tbody.append(trWorkspace);
+
+                var tdWorkspaceSelect = $("<td class='setting-main'>");
+                trWorkspace.append(tdWorkspaceSelect);
+                var workspaceSelect = $("<select>");
+                tdWorkspaceSelect.append(workspaceSelect);
+                workspaceSelect.prop('id', 'workspaceSelect');
+
+                var area = $("<div class='validation-error-area' id='workspace-selector-validation-area'/>");
+                tdWorkspaceSelect.append(area);
+
+                workspaceSelect.change(function () {
+                    selectedWorkspaceId = workspaceSelect.val();
+                    $(jq("workspace-selector-validation-area")).hide();
+                    trRelease.css('visibility', 'visible');
+                });
+
+                var isWorkspaceUndefined = function() {
+                    if (!workspaceSelect.val()) {
+                        return "Workspace must be selected";
+                    }
+                    return false;
+                };
+
+                enableInputValidation(workspaceSelect, "", area, {
+                    check: isWorkspaceUndefined
+                });
+                apply.push(function () {
+                    pipeline.workspaceId = workspaceSelect.val();
+                });
+            } else {
+                pipelineSelector.renderIfNecessary(tbody, pipeline.id);
             }
 
             var tdPipeline = $("<td class='setting-name'><label for='pipeline-name'>Pipeline:</label></td>");
@@ -136,7 +161,7 @@ function octane_job_configuration(target, progress, proxy) {
                 var tdPipelineName = $("<td class='setting-main' colspan='2'/>");
                 tr.append(tdPipelineName);
 
-                tdPipelineName.append(pipeline.name); // CODE REVIEW Johnny: Is this from XSS, shouldn't we use text instead of append?
+                tdPipelineName.text(pipeline.name);
             }
 
             if (pipeline.isRoot) {
@@ -147,18 +172,20 @@ function octane_job_configuration(target, progress, proxy) {
                 trRelease.append(tdReleaseSelect);
 
                 var select = $("<select>");
-                select.append($("<option>").text("-- Not specified --").val(-1).attr('selected', (pipeline.releaseId === -1)));
-                if (pipeline.id !== null && pipeline.releaseId !== -1) {
+                select.append($("<option>").text("-- Not specified --").val(-1).attr('selected', !isReleaseSpecified(pipeline)));
+                if (pipeline.id !== null && isReleaseSpecified(pipeline)) {
                     select.append($("<option>").text(pipeline.releaseName).val(pipeline.releaseId).attr('selected', 'true'));
                 }
                 apply.push(function () {
                     pipeline.releaseId = Number(select.val());
-                    pipeline.releaseName = select.find(":selected").text();
                 });
                 enableDirtyChangeCheck(select);
                 tdReleaseSelect.append(select);
                 select.prop('id', 'releaseSelect');
                 trRelease.append($("<td class='setting-new'/>"));
+                if (pipeline.id == null) {
+                    trRelease.css('visibility', 'hidden');
+                }
             }
         }
 
@@ -169,21 +196,20 @@ function octane_job_configuration(target, progress, proxy) {
             }
 
             function createPipelineCallback(pipeline, response) {
-                pipeline.id = response.id;
+                jobConfiguration.currentPipeline = response.pipeline;
+                jobConfiguration.fieldsMetadata = response.fieldsMetadata;
 
-                // fill pipeline fieldTags based on metadata received in initial load
-                pipeline.fieldTags = [];
-                jobConfiguration.fields.forEach(function (fieldType) {
-                    pipeline.fieldTags.push({
-                        logicalListName: fieldType.logicalListName,
-                        listId: fieldType.listId,
-                        listName: fieldType.listName,
-                        extensible: fieldType.extensible,
-                        multiValue: fieldType.multiValue,
-                        values: [] // assumption: nothing is pre-selected
-                    });
-                });
-                renderConfiguration(jobConfiguration, pipeline.id);
+                //inserting newly created pipeline properly into workspaces object
+                var workspacePipelines = {};
+                workspacePipelines[jobConfiguration.currentPipeline.id] = jobConfiguration.currentPipeline;
+
+                jobConfiguration.workspaces = {};
+                jobConfiguration.workspaces[jobConfiguration.currentPipeline.workspaceId] = {
+                    id: jobConfiguration.currentPipeline.workspaceId,
+                    name: jobConfiguration.currentPipeline.workspaceName,
+                    pipelines: workspacePipelines
+                };
+                renderConfiguration(jobConfiguration, jobConfiguration.currentPipeline.id);
             }
 
             initialize();
@@ -198,21 +224,8 @@ function octane_job_configuration(target, progress, proxy) {
             }
 
             function saveCallback(pipeline, response) {
-                pipeline.taxonomyTags = response.taxonomyTags;
-
-                // set ids of newly created field tags
-                response.fields.forEach(function (receivedField) {
-                    var fieldType = fieldTypes[receivedField.parentLogicalName];
-                    pipeline.fieldTags.forEach(function (fieldTag) {
-                        if (fieldTag.logicalListName === fieldType.logicalListName) {
-                            fieldTag.values.forEach(function (value) {
-                                if (!value.id && value.name === receivedField.name) {
-                                    value.id = receivedField.id;
-                                }
-                            });
-                        }
-                    });
-                });
+                jobConfiguration.currentPipeline = response.pipeline;
+                jobConfiguration.workspaces[response.pipeline.workspaceId].pipelines[response.pipeline.id] = response.pipeline;
 
                 renderConfiguration(jobConfiguration, pipeline.id);
             }
@@ -239,7 +252,7 @@ function octane_job_configuration(target, progress, proxy) {
 
                 fieldValueSelect.prop('name', field.logicalListName);
                 fieldValueSelect.prop('id', field.logicalListName);
-                fieldSelectors.push({listId: field.listId, name: field.logicalListName, multiValue: field.multiValue});
+                fieldSelectors.push({name: field.logicalListName, logicalListName: field.logicalListName, multiValue: field.multiValue, extensible: field.extensible});
                 if (field.multiValue) {
                     fieldValueSelect.attr('multiple', 'multiple');
                     tdSelect.prop('colspan', 2);
@@ -270,9 +283,6 @@ function octane_job_configuration(target, progress, proxy) {
                     });
                 });
                 if (field.extensible) {
-                    var newValueOption = $("<option value='0'>New value...</option>");
-                    fieldValueSelect.append(newValueOption);
-
                     var tdAdd = $("<td class='setting-add'>");
                     tr.append(tdAdd);
 
@@ -350,10 +360,27 @@ function octane_job_configuration(target, progress, proxy) {
             initialize();
             renderPipelineMetadata(pipeline, pipelineSelector);
 
+            //merging fields with fieldsMetadata => fieldTags
+            pipeline.fieldTags = [];
+            jobConfiguration.fieldsMetadata.forEach(function (fieldMetadata) {
+                pipeline.fieldTags.push($.extend(true, {}, fieldMetadata)); //creating deep copy of fieldsMetadata so that the original metadata are not affected by the merge
+            });
+
+            pipeline.fieldTags.forEach(function(fieldMetadata) {
+                fieldMetadata.values = [];
+                if (pipeline.fields[fieldMetadata.name]) {
+                    pipeline.fields[fieldMetadata.name].forEach(function (field) {
+                        fieldMetadata.values.push({id: field.id, name: field.name});
+                    });
+                }
+            });
             pipelineDiv.append($("<h4>Fields</h4>"));
             var fieldsTable = $("<table class='ui-block'><tbody/></table>");
             pipelineDiv.append(fieldsTable);
             var fieldsTbody = fieldsTable.find("tbody");
+            pipeline.fieldTags.sort(function(a, b) {
+                return parseInt(a.order) - parseInt(b.order);
+            });
             pipeline.fieldTags.forEach(addField);
 
             pipelineDiv.append($("<h4>Environment</h4>"));
@@ -497,7 +524,7 @@ function octane_job_configuration(target, progress, proxy) {
 
         var CONFIRMATION = "There are unsaved changes, if you continue they will be discarded. Continue?";
 
-        if (jobConfiguration.pipelines.length == 0) {
+        if (!jobConfiguration.hasOwnProperty("currentPipeline")) {
             var createPipelineDiv = $("<div><h2>No Pipeline</h2><div class='mqm'><p>No pipeline is currently defined for this job</p><button>Create Pipeline</button></div></div>");
             pipelineDiv.append(createPipelineDiv);
             var createPipelineButton = createPipelineDiv.find("button");
@@ -510,43 +537,104 @@ function octane_job_configuration(target, progress, proxy) {
                     fieldTags: [],
                     taxonomyTags: []
                 };
-                jobConfiguration.pipelines.push(pipeline);
+                jobConfiguration.currentPipeline = pipeline;
 
                 result.prepend($("<h2>Create Pipeline</h2>"));
                 renderNewPipeline(pipeline);
                 covertSelectorsToSelect2(pipeline);
             });
         } else {
-            var selectedIndex = 0;
+            selectedWorkspaceId = jobConfiguration.currentPipeline.workspaceId;
             var pipelineSelector = undefined;
-            if (jobConfiguration.pipelines.length > 1) {
-                var selectPipelineRow = $("<tr><td/><td class='setting-main'><select/><br/><br/></td><td class='setting-new'></td></tr>");
-                var pipelineSelect = selectPipelineRow.find("select");
-                jobConfiguration.pipelines.forEach(function (pipeline) {
-                    pipelineSelect.append($("<option>").text(pipeline.name).val(pipeline.id).attr('selected', (pipeline.id === pipelineId)));
-                });
-                var lastSelected = $(pipelineSelect).find("option:selected");
-                pipelineSelector = {
-                    tr: selectPipelineRow,
-                    apply: function () {
+
+            var selectWorkspaceDiv = $("<div class='mutton rpos' id='select-workspace-div'><label class='workspace-select' for='workspace-select'>Workspace:</label><select/></div>");
+            var workspaceSelect = selectWorkspaceDiv.find("select");
+
+            //sort workspaces by name to show in UI
+            var sortedWorkspaces = sortByName(Object.values(jobConfiguration.workspaces));
+            sortedWorkspaces.forEach(function (workspace) {
+                workspaceSelect.append($("<option>").text(workspace.name).val(workspace.id).attr('selected', (workspace.id === selectedWorkspaceId)));
+            });
+
+            var lastSelectedWorkspace = $(workspaceSelect).find("option:selected");
+            pipelineSelector = {
+                renderIfNecessary: function (target, selectedPipelineId) {
+                    if (Object.keys(jobConfiguration.workspaces[selectedWorkspaceId].pipelines).length > 1) {
+                        var selectPipelineRow = $("<tr><td/><td class='setting-main'><select/><br/><br/></td><td class='setting-new'></td></tr>");
+                        var pipelineSelect = selectPipelineRow.find("select");
+
+                        //sort pipelines by name to show in UI
+                        var sortedPipelines = sortByName(Object.values(jobConfiguration.workspaces[selectedWorkspaceId].pipelines));
+                        sortedPipelines.forEach(function (pipeline) {
+                            pipelineSelect.append($("<option>").text(pipeline.name).val(pipeline.id).attr('selected', (pipeline.id === selectedPipelineId)));
+                        });
+                        var lastSelectedPipeline = $(pipelineSelect).find("option:selected");
+                        target.prepend(selectPipelineRow);
                         pipelineSelect.change(function () {
                             if (isDirty()) {
                                 if (!window.confirm(CONFIRMATION)) {
-                                    lastSelected.attr("selected", true);
+                                    lastSelectedPipeline.attr("selected", true);
                                     return;
                                 }
                             }
-                            lastSelected = $(pipelineSelect).find("option:selected");
-                            renderExistingPipeline(jobConfiguration.pipelines[pipelineSelect[0].selectedIndex], pipelineSelector);
-                            covertSelectorsToSelect2(jobConfiguration.pipelines[pipelineSelect[0].selectedIndex]);
+                            lastSelectedPipeline = $(pipelineSelect).find("option:selected");
+                            var currentPipeline = jobConfiguration.workspaces[selectedWorkspaceId].pipelines[lastSelectedPipeline.val()];
+
+                            progressFunc("Retrieving configuration from server");
+                            proxy.enrichPipeline(currentPipeline, function (t) {
+                                progressFunc();
+                                var response = t.responseObject();
+                                if (response.errors) {
+                                    response.errors.forEach(function (error) {
+                                        var errorDiv = $("<div class='error'><font color='red'><b/></font></div>");
+                                        errorDiv.find("b").text(error);
+                                        $(target).append(errorDiv);
+                                    });
+                                } else {
+                                    jobConfiguration.currentPipeline = response.pipeline;
+                                    renderExistingPipeline(jobConfiguration.currentPipeline, pipelineSelector);
+                                    covertSelectorsToSelect2(jobConfiguration.currentPipeline);
+                                }
+                            });
+
                         });
                     }
-                };
-                selectedIndex = pipelineSelect[0].selectedIndex;
-            }
+                }
+            };
+            workspaceSelect.change(function () {
+                if (isDirty()) {
+                    if (!window.confirm(CONFIRMATION)) {
+                        lastSelectedWorkspace.attr("selected", true);
+                        return;
+                    }
+                }
+                selectedWorkspaceId = workspaceSelect.val();
+                lastSelectedWorkspace = $(workspaceSelect).find("option:selected");
+                var currentPipeline = sortByName(Object.values(jobConfiguration.workspaces[selectedWorkspaceId].pipelines))[0];
+
+                progressFunc("Retrieving configuration from server");
+                proxy.loadWorkspaceConfiguration(currentPipeline, function (t) {
+                    progressFunc();
+                    var response = t.responseObject();
+                    if (response.errors) {
+                        response.errors.forEach(function (error) {
+                            var errorDiv = $("<div class='error'><font color='red'><b/></font></div>");
+                            errorDiv.find("b").text(error);
+                            $(target).append(errorDiv);
+                        });
+                    } else {
+                        jobConfiguration.currentPipeline = response.pipeline;
+                        jobConfiguration.fieldsMetadata = response.fieldsMetadata;
+                        renderExistingPipeline(jobConfiguration.currentPipeline, pipelineSelector);
+                        covertSelectorsToSelect2(jobConfiguration.currentPipeline);
+                    }
+                });
+            });
+
+            result.prepend(selectWorkspaceDiv);
             result.prepend($("<h2>Edit Pipeline</h2>"));
-            renderExistingPipeline(jobConfiguration.pipelines[selectedIndex], pipelineSelector);
-            covertSelectorsToSelect2(jobConfiguration.pipelines[selectedIndex]);
+            renderExistingPipeline(jobConfiguration.currentPipeline, pipelineSelector);
+            covertSelectorsToSelect2(jobConfiguration.currentPipeline);
         }
 
         window.onbeforeunload = function() {
@@ -562,9 +650,24 @@ function octane_job_configuration(target, progress, proxy) {
             }
         };
 
+        function sortByName(array) {
+            array.sort(function(o1, o2) {
+                return o1.name.localeCompare(o2.name);
+            });
+            return array;
+        }
+
         function tagTypeValue(n) {
             // mapping to ensure negative value (solve the "0" tag type ID)
             return -(Number(n)+1);
+        }
+
+        function isReleaseSpecified(pipeline) {
+            if (pipeline.hasOwnProperty("releaseId") && pipeline.releaseId !== -1) {
+                return true;
+            } else {
+                return false;
+            }
         }
 
         function makeDirty() {
@@ -770,6 +873,26 @@ function octane_job_configuration(target, progress, proxy) {
         }
 
         function covertSelectorsToSelect2(pipeline) {
+
+            function createFieldsSelect2(selector) {
+                $(jq(selector.name)).select2({
+                    ajax: {
+                        dataType: 'json',
+                        delay: 250,
+                        transport: function (params, success, failure) {
+                            var term = "";
+                            if (params.data.hasOwnProperty("q") && params.data.q !== undefined) {term = params.data.q;}
+                            var listId = 0;
+                            proxy.searchListItems(selector.logicalListName, term, pipeline.workspaceId, selector.multiValue, selector.extensible, (function (data) {
+                                queryToMqmCallback(data, success, failure)
+                            }));
+                        },
+                        cache: true
+                    },
+                    templateResult: formatSelect2Option
+                });
+            }
+
             $("document").ready(function() {
                 $("#taxonomySelect").select2({
                     ajax: {
@@ -778,7 +901,7 @@ function octane_job_configuration(target, progress, proxy) {
                         transport: function (params, success, failure) {
                             var term = "";
                             if (params.data.hasOwnProperty("q") && params.data.q !== undefined) {term = params.data.q;}
-                            proxy.searchTaxonomies(term, pipeline.taxonomyTags, (function (data) {
+                            proxy.searchTaxonomies(term, pipeline.workspaceId, pipeline.taxonomyTags, (function (data) {
                                 queryToMqmCallback(data, success, failure)
                             }));
                         },
@@ -803,8 +926,31 @@ function octane_job_configuration(target, progress, proxy) {
                         delay: 250,
                         transport: function (params, success, failure) {
                             var term = "";
+                            var tmpWorkspaceId;
                             if (params.data.hasOwnProperty("q") && params.data.q !== undefined) {term = params.data.q;}
-                            proxy.searchReleases(term, (function (data) {
+                            if (!pipeline.id) {
+                                tmpWorkspaceId = selectedWorkspaceId;
+                            } else {
+                                tmpWorkspaceId = pipeline.workspaceId;
+                            }
+                            proxy.searchReleases(term, tmpWorkspaceId, (function (data) {
+                                queryToMqmCallback(data, success, failure)
+                            }));
+                        },
+                        cache: true
+                    },
+                    templateResult: formatSelect2Option
+                });
+
+                $("#workspaceSelect").select2({
+                    placeholder: 'Select a workspace',
+                    ajax: {
+                        dataType: 'json',
+                        delay: 250,
+                        transport: function (params, success, failure) {
+                            var term = "";
+                            if (params.data.hasOwnProperty("q") && params.data.q !== undefined) {term = params.data.q;}
+                            proxy.searchWorkspaces(term, (function (data) {
                                 queryToMqmCallback(data, success, failure)
                             }));
                         },
@@ -816,24 +962,6 @@ function octane_job_configuration(target, progress, proxy) {
                 fieldSelectors.forEach(createFieldsSelect2);
             });
         }
-    }
-
-    function createFieldsSelect2(selector) {
-        $(jq(selector.name)).select2({
-            ajax: {
-                dataType: 'json',
-                delay: 250,
-                transport: function (params, success, failure) {
-                    var term = "";
-                    if (params.data.hasOwnProperty("q") && params.data.q !== undefined) {term = params.data.q;}
-                    proxy.searchListItems(selector.listId, term, selector.multiValue, (function (data) {
-                        queryToMqmCallback(data, success, failure)
-                    }));
-                },
-                cache: true
-            },
-            templateResult: formatSelect2Option
-        });
     }
 
     function queryToMqmCallback(data, success, failure) {

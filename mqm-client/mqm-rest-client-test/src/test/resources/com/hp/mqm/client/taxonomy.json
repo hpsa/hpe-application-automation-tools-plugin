@@ -2,7 +2,7 @@
   "subtype": "taxonomy_item_node",
   "type": "taxonomy_node",
   "name": "MyName",
-  "taxonomy_root": {
+  "category": {
     "id": 0,
     "type": "taxonomy_category_node"
   }

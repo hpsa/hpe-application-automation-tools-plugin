@@ -4,6 +4,7 @@ package com.hp.octane.plugins.jenkins.tests;
 
 import com.hp.mqm.client.LogOutput;
 import com.hp.mqm.client.MqmRestClient;
+import com.hp.mqm.client.exception.RequestException;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationService;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
@@ -47,19 +48,44 @@ public class TestApi {
     public void doLog(StaplerRequest req, final StaplerResponse res) throws IOException, ServletException, InterruptedException {
         build.getACL().checkPermission(Item.READ);
         FilePath auditFile = new FilePath(new File(build.getRootDir(), TestDispatcher.TEST_AUDIT_FILE));
+        if (!auditFile.exists()) {
+            res.sendError(404, "Audit file is not present, log information is not available");
+            return;
+        }
         JSONArray audit = JSONArray.fromObject(auditFile.readToString());
         JSONObject lastAudit = audit.getJSONObject(audit.size() - 1);
+        if (!lastAudit.getBoolean("pushed")) {
+            res.sendError(404, "Last audited push didn't succeed, log information is not available");
+            return;
+        }
         long id = lastAudit.getLong("id");
         ServerConfiguration configuration = ConfigurationService.getServerConfiguration();
+        String location = lastAudit.getString("location");
+        if (!location.equals(configuration.location)) {
+            res.sendError(404, "Server configuration has changed, log information is not available");
+            return;
+        }
         MqmRestClient restClient = clientFactory.create(configuration.location, configuration.sharedSpace, configuration.username, configuration.password);
         res.setStatus(200);
-        restClient.getTestResultLog(id, new JenkinsLogOutput(res));
+        try {
+            restClient.getTestResultLog(id, new JenkinsLogOutput(res));
+        } catch (RequestException e) {
+            if ("testbox.not_found".equals(e.getErrorCode())) {
+                res.sendError(404, "Log information is not available. It either expired or shared space was re-created on the server.");
+                return;
+            }
+            throw e;
+        }
     }
 
     private void serveFile(StaplerResponse res, String relativePath, Flavor flavor) throws IOException, InterruptedException {
+        FilePath file = new FilePath(new File(build.getRootDir(), relativePath));
+        if (!file.exists()) {
+            res.sendError(404, "Information not available");
+            return;
+        }
         res.setStatus(200);
         res.setContentType(flavor.contentType);
-        FilePath file = new FilePath(new File(build.getRootDir(), relativePath));
         InputStream is = file.read();
         IOUtils.copy(is, res.getOutputStream());
         IOUtils.closeQuietly(is);

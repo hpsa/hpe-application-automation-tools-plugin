@@ -11,6 +11,7 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -65,6 +66,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 
 	private static final String FILTERING_FRAGMENT = "query={query}";
     private static final String PAGING_FRAGMENT = "offset={offset}&limit={limit}";
+    private static final String ORDER_BY_FRAGMENT = "order_by={order}";
 
 	private static final String URI_PARAM_ENCODING = "UTF-8";
 
@@ -436,8 +438,10 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 		}
 	}
 
-	protected URI getEntityURI(String collection, List<String> conditions, Long workspaceId, int offset, int limit) {
+	protected URI getEntityURI(String collection, List<String> conditions, Long workspaceId, int offset, int limit, String orderBy) {
 		Map<String, Object> params = pagingParams(offset, limit);
+		StringBuilder template = new StringBuilder(collection + "?" + PAGING_FRAGMENT);
+
 		if (!conditions.isEmpty()) {
 			StringBuilder expr = new StringBuilder();
 			for (String condition : conditions) {
@@ -447,22 +451,27 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 				expr.append(condition);
 			}
 			params.put("query", "\"" + expr.toString() + "\"");
-            if (workspaceId != null) {
-                return createWorkspaceApiUriMap(collection + "?" + PAGING_FRAGMENT + "&" + FILTERING_FRAGMENT, workspaceId, params);
-            } else {
-                return createSharedSpaceApiUriMap(collection + "?" + PAGING_FRAGMENT + "&" + FILTERING_FRAGMENT, params);
-            }
+			template.append("&" + FILTERING_FRAGMENT);
+		}
+
+		if (!StringUtils.isEmpty(orderBy)) {
+			params.put("order", orderBy);
+			template.append("&" + ORDER_BY_FRAGMENT);
+		}
+
+		if (workspaceId != null) {
+			return createWorkspaceApiUriMap(template.toString(), workspaceId, params);
 		} else {
-            if (workspaceId != null) {
-                return createWorkspaceApiUriMap(collection + "?" + PAGING_FRAGMENT, workspaceId, params);
-            } else {
-                return createSharedSpaceApiUriMap(collection + "?" + PAGING_FRAGMENT, params);
-            }
+			return createSharedSpaceApiUriMap(template.toString(), params);
 		}
 	}
 
 	protected String conditionRef(String name, long id) {
 		return name + "={id=" + id + "}";
+	}
+
+	protected String conditionRef(String name, String refName, String value) {
+		return name + "={" + condition(refName, value) + "}";
 	}
 
 	protected String condition(String name, String value) {
