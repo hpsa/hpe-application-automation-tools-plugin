@@ -6,7 +6,6 @@ import java.util.List;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.task.*;
-import com.atlassian.bamboo.v2.build.agent.capability.CapabilityContext;
 import com.atlassian.bamboo.variable.VariableDefinitionManager;
 import com.hp.application.automation.tools.common.StringUtils;
 import com.hp.application.automation.tools.common.model.AutEnvironmentConfigModel;
@@ -21,12 +20,10 @@ import com.atlassian.bamboo.configuration.ConfigurationMap;
 public class AlmLabEnvPrepareTask implements TaskType {
 
 	private final VariableService variableService;
-	private final CapabilityContext capabilityContext;
 
-	public AlmLabEnvPrepareTask(VariableDefinitionManager variableDefinitionManager, CapabilityContext  capabilityContext)
+	public AlmLabEnvPrepareTask(VariableDefinitionManager variableDefinitionManager)
 	{
 		this.variableService = new VariableService(variableDefinitionManager);
-		this.capabilityContext = capabilityContext;
 	}
 
 

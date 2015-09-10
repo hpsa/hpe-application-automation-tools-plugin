@@ -65,7 +65,7 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
 			//final String resultNameFormat = _textProvider.getText(RunFromFileSystemTaskConfigurator.ARTIFACT_NAME_FORMAT_STRING);
 			final String resultNameFormat = "%s Result";
 
-			Collection<ResultInfoItem> resultsPathes = TestResultHelper.getTestResults(getResultsFile(), resultsFilter, resultNameFormat, taskContext.getWorkingDirectory(), buildLogger);
+			Collection<ResultInfoItem> resultsPathes = TestResultHelper.getTestResults(getResultsFile(), resultsFilter, resultNameFormat, taskContext, buildLogger);
 			TestResultHelper.publishArtifacts(taskContext, artifactManager, resultsPathes, buildLogger);
 		}
 	}

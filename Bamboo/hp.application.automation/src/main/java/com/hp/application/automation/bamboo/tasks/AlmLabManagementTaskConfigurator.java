@@ -47,6 +47,8 @@ public class AlmLabManagementTaskConfigurator extends AbstractTaskConfigurator
 	private static final String DURATION_REQIRED_STRING = "AlmLabManagementTask.duration.required";
 	private static final String DURATION_MINIMUM_STRING = "AlmLabManagementTask.duration.minimum";
 	private static final String DURATION_INVALID_FORMAT_STRING = "AlmLabManagementTask.duration.invalidFormat";
+	public static final String TASK_NAME_VALUE = "AlmLabManagementTask.taskName";
+	private static final String TASK_NAME = "taskName";
 
 	@NotNull
     @Override
@@ -68,7 +70,8 @@ public class AlmLabManagementTaskConfigurator extends AbstractTaskConfigurator
 		config.put(DEPLOYMENT_ACTION_PARAM, params.getString((DEPLOYMENT_ACTION_PARAM)));
 		config.put(DEPOYED_ENVIROMENT_NAME_PARAM, params.getString((DEPOYED_ENVIROMENT_NAME_PARAM)));
 		config.put(DEPROVISIONING_ACTION_PARAM, params.getString((DEPROVISIONING_ACTION_PARAM)));
-	     	    
+		config.put(TASK_NAME, getI18nBean().getText(TASK_NAME_VALUE));
+
 	    return config;
 	}
 	

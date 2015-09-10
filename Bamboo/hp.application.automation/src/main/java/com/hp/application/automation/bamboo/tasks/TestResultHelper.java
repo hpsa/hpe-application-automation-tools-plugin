@@ -7,19 +7,15 @@ import com.atlassian.bamboo.plan.PlanResultKey;
 import com.atlassian.bamboo.plan.artifact.ArtifactDefinitionContextImpl;
 import com.atlassian.bamboo.security.SecureToken;
 import com.atlassian.bamboo.task.TaskContext;
-import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.util.concurrent.NotNull;
 import com.google.common.collect.Maps;
 import com.hp.application.automation.tools.common.result.ResultSerializer;
-import com.hp.application.automation.tools.common.result.model.junit.JUnitTestCaseStatus;
 import com.hp.application.automation.tools.common.result.model.junit.Testcase;
 import com.hp.application.automation.tools.common.result.model.junit.Testsuite;
 import com.hp.application.automation.tools.common.result.model.junit.Testsuites;
 import com.hp.application.automation.tools.common.sdk.DirectoryZipHelper;
-import com.hp.application.automation.tools.common.sdk.Logger;
 import org.apache.commons.lang.StringUtils;
-import org.jetbrains.annotations.Nullable;
 
 import javax.xml.bind.JAXBException;
 import java.io.File;
@@ -35,6 +31,7 @@ public final class TestResultHelper
 
     private static final String TEST_STATUS_PASSED = "pass";
     private static final String TEST_STATUS_FAIL = "fail";
+    private static final String TASK_NAME = "taskName";
 
     public enum ResultTypeFilter {All, SUCCESSFUL, FAILED }
 
@@ -49,7 +46,7 @@ public final class TestResultHelper
     }
 
     public static Collection<ResultInfoItem> getTestResults(@NotNull File results, ResultTypeFilter filter
-            ,@NotNull final String resultArtifactNameFormat, @NotNull final File outputDir, @NotNull final BuildLogger logger)
+            ,@NotNull final String resultArtifactNameFormat, @NotNull final TaskContext taskContext, @NotNull final BuildLogger logger)
     {
         Collection<ResultInfoItem> resultItems = new ArrayList<ResultInfoItem>();
 
@@ -71,7 +68,9 @@ public final class TestResultHelper
                     {
                         String testName = getTestName(new File(testcase.getName()));
                         File reportDir = new File(testcase.getReport());
-                        File reportZipFile = new File(outputDir, testName + "_Result.zip");
+                        File zipFileFolder = new File(getZipFilePath(taskContext));
+                        zipFileFolder.mkdirs();
+                        File reportZipFile = new File(zipFileFolder, testName + ".zip");
                         String resultArtifactName = String.format(resultArtifactNameFormat, testName);
 
                         ResultInfoItem resultItem = new ResultInfoItem(testName, reportDir, reportZipFile, resultArtifactName);
@@ -86,6 +85,14 @@ public final class TestResultHelper
         }
 
         return resultItems;
+    }
+
+    private static String getZipFilePath(TaskContext taskContext)
+    {
+        StringBuilder fileName = new StringBuilder(taskContext.getWorkingDirectory().toString());
+        String taskName = taskContext.getConfigurationMap().get(TASK_NAME);
+        fileName.append("\\"+taskContext.getBuildContext().getBuildNumber()).append("\\").append(String.format("%03d", taskContext.getId())).append(" "+taskName+"\\");
+        return fileName.toString();
     }
 
     public static void publishArtifacts(@NotNull final TaskContext taskContext, final ArtifactManager artifactManager, Collection<ResultInfoItem> reportItems, @NotNull BuildLogger logger)
