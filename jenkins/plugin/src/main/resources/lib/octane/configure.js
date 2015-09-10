@@ -25,15 +25,23 @@ function octane_job_configuration(target, progress, proxy) {
             progressFunc();
             var response = t.responseObject();
             if (response.errors) {
-                response.errors.forEach(function (error) {
-                    var errorDiv = $("<div class='error'><font color='red'><b/></font></div>");
-                    errorDiv.find("b").text(error);
-                    $(target).append(errorDiv);
-                });
+                response.errors.forEach(renderError);
             } else {
                 renderConfiguration(response);
             }
         });
+    }
+
+    function renderError(error) {
+        var errorDiv = $("<div class='error'><font color='red'><b/></font></div>");
+        errorDiv.find("b").text(error.message);
+        $(target).append(errorDiv);
+        if (error.hasOwnProperty("url") && error.hasOwnProperty("label")) {
+            var errorLink = $("<div class='error-link'><a></a><div>");
+            errorLink.find("a").text(error.label);
+            errorLink.find("a").attr("href", rootURL + error.url);
+            $(target).append(errorLink);
+        }
     }
 
     function progressFunc(msg) {
@@ -585,11 +593,7 @@ function octane_job_configuration(target, progress, proxy) {
                                 progressFunc();
                                 var response = t.responseObject();
                                 if (response.errors) {
-                                    response.errors.forEach(function (error) {
-                                        var errorDiv = $("<div class='error'><font color='red'><b/></font></div>");
-                                        errorDiv.find("b").text(error);
-                                        $(target).append(errorDiv);
-                                    });
+                                    response.errors.forEach(renderError);
                                 } else {
                                     jobConfiguration.currentPipeline = response.pipeline;
                                     renderExistingPipeline(jobConfiguration.currentPipeline, pipelineSelector);
@@ -617,11 +621,7 @@ function octane_job_configuration(target, progress, proxy) {
                     progressFunc();
                     var response = t.responseObject();
                     if (response.errors) {
-                        response.errors.forEach(function (error) {
-                            var errorDiv = $("<div class='error'><font color='red'><b/></font></div>");
-                            errorDiv.find("b").text(error);
-                            $(target).append(errorDiv);
-                        });
+                        response.errors.forEach(renderError);
                     } else {
                         jobConfiguration.currentPipeline = response.pipeline;
                         jobConfiguration.fieldsMetadata = response.fieldsMetadata;
@@ -847,7 +847,7 @@ function octane_job_configuration(target, progress, proxy) {
 
         function validationError(error) {
             var errorDiv = $("<div class='error'><font color='red'><b/></font></div>");
-            errorDiv.find("b").text(error);
+            errorDiv.find("b").text(error.message);
             status.append(errorDiv);
         }
 
@@ -967,11 +967,7 @@ function octane_job_configuration(target, progress, proxy) {
     function queryToMqmCallback(data, success, failure) {
         var response = data.responseObject();
         if (response.errors) {
-            response.errors.forEach(function(error) {
-                var errorDiv = $("<div class='error'><font color='red'><b/></font></div>");
-                errorDiv.find("b").text(error);
-                $(target).append(errorDiv);
-            });
+            response.errors.forEach(renderError);
             failure();
         } else {
             //workaround for IE on Jenkins with Jquery 1.7.2 , not necessary for JQuery 1.11.2-0
