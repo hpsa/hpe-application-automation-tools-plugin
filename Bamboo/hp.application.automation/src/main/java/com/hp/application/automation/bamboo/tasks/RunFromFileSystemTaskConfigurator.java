@@ -31,6 +31,9 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 	public static final String PUBLISH_MODE_NEVER_VALUE = "never";
 	public static final String TASK_NAME_VALUE = "RunFromFileSystemTaskConfigurator.taskName";
 	private static final String TASK_NAME = "taskName";
+	private static final String TASK_ID_CONTROL = "RunFromFileSystemTaskConfigurator.taskId";
+	private static final String TASK_ID_LBL = "RunFromFileSystemTaskConfigurator.taskIdLbl";
+
 
 	public Map<String, String> generateTaskConfigMap(@NotNull final ActionParametersMap params, @Nullable final TaskDefinition previousTaskDefinition)
 	{
@@ -85,6 +88,7 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 		context.put(TESTS_PATH, taskDefinition.getConfiguration().get(TESTS_PATH));
 		context.put(TIMEOUT, taskDefinition.getConfiguration().get(TIMEOUT));
 		context.put(PUBLISH_MODE_PARAM, taskDefinition.getConfiguration().get(PUBLISH_MODE_PARAM));
+		context.put(TASK_ID_CONTROL, getI18nBean().getText(TASK_ID_LBL) + new Long(taskDefinition.getId()).toString());
 
 		populateContextForLists(context);
 	}

@@ -26,6 +26,10 @@ hr{
 }
 </style>
 <div class="control">
+    [@ww.textfield name="RunFromFileSystemTaskConfigurator.taskId" disabled="true"/]
+</div>
+<hr>
+<div class="control">
     [@ww.textarea labelKey="RunFromFileSystemTaskConfigurator.testsPathInputLbl" name="testPathInput" required='true' rows="4"/]
 </div>
 <div class="helpIcon" onclick="javascript: toggle_visibility('RunFromFileSystemTaskConfigurator.toolTip.tests');">?</div>
