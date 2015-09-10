@@ -447,7 +447,12 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 
 		List<Release> releases = getEntities(getEntityURI(URI_RELEASES, conditions, workspaceId, offset, limit, null), offset, new ReleaseEntityFactory()).getItems();
 		if (releases.size() != 1) {
-			return null;
+            if (releases.size() == 0) {
+                return null;
+            }
+            if (releases.size() > 1) {
+                throw new RequestException("More than one releases returned for releaseId: " + releaseId + " in workspaceId: " + workspaceId);
+            }
 		}
 		return releases.get(0);
 	}
@@ -479,29 +484,6 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 			conditionBuilder.append("id=" + Long.toString(workspaceId));
 		}
 		return getEntities(getEntityURI(URI_WORKSPACES, Arrays.asList(conditionBuilder.toString()), null, DEFAULT_OFFSET, DEFAULT_LIMIT, null), DEFAULT_OFFSET, new WorkspaceEntityFactory()).getItems();
-	}
-
-	@Override
-	public PagedList<Taxonomy> queryTaxonomyItems(Long taxonomyRootId, String name, long workspaceId, int offset, int limit) {
-		List<String> conditions = new LinkedList<String>();
-		if (!StringUtils.isEmpty(name)) {
-			conditions.add(condition("name", "*" + name + "*"));
-		}
-		if (taxonomyRootId != null) {
-			conditions.add(condition("taxonomy_root.id", String.valueOf(taxonomyRootId)));
-		}
-        conditions.add(condition("subtype", "taxonomy_item_node"));
-		return getEntities(getEntityURI(URI_TAXONOMY_NODES, conditions, workspaceId, offset, limit, null), offset, new TaxonomyEntityFactory());
-	}
-
-	@Override
-	public PagedList<Taxonomy> queryTaxonomyCategories(String name, long workspaceId, int offset, int limit) {
-		List<String> conditions = new LinkedList<String>();
-		if (!StringUtils.isEmpty(name)) {
-			conditions.add(condition("name", "*" + name + "*"));
-		}
-        conditions.add(condition("subtype", "taxonomy_category_node"));
-		return getEntities(getEntityURI(URI_TAXONOMY_NODES, conditions, workspaceId, offset, limit, null), offset, new TaxonomyEntityFactory());
 	}
 
     @Override

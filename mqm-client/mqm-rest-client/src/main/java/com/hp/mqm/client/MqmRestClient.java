@@ -155,40 +155,6 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 */
 	List<Workspace> getWorkspaces(List<Long> workspaceIds);
 
-	/**
-	 * Query taxonomies matching given name filter (using contains semantics) and taxonomy type.
-	 * <p/>
-	 * <p/>
-	 * If <code>name</code> is not specified or empty, all taxonomies are considered.
-	 * <p/>
-	 * If <code>taxonomyRootId</code> is specified, only taxonomies of given type are considered.
-	 *
-	 * @param taxonomyRootId taxonomy type (can be null)
-	 * @param name           taxonomy name filter (can be null or empty)
-     * @param workspaceId    workspace
-	 * @param offset         paging offset
-	 * @param limit          paging limit
-	 * @return taxonomies matching given name and type
-     * @deprecated use {@link #queryTaxonomies(String, long, int, int)} instead
-	 */
-    @Deprecated
-	PagedList<Taxonomy> queryTaxonomyItems(Long taxonomyRootId, String name, long workspaceId, int offset, int limit);
-
-	/**
-	 * Query taxonomy types matching given name filter (using contains semantics).
-	 * <p/>
-	 * If <code>name</code> is not specified or empty, all taxonomy types are considered.
-	 *
-	 * @param name          taxonomy type name filter (can be null or empty)
-     * @param workspaceId   workspace
-	 * @param offset        paging offset
-	 * @param limit         paging limit
-	 * @return taxonomy types matching given name filter
-     * @deprecated use {@link #queryTaxonomies(String, long, int, int)} instead
-	 */
-    @Deprecated
-	PagedList<Taxonomy> queryTaxonomyCategories(String name, long workspaceId, int offset, int limit);
-
     /**
      * Query taxonomies (including categories) matching given name (using contains semantics).
      * <p/>

@@ -74,8 +74,16 @@ public class JobConfigurationProxy {
         StructureItem structureItem = new StructureItem(project);
         PluginActions.ServerInfo serverInfo = new PluginActions.ServerInfo();
         Long releaseId = pipelineObject.getLong("releaseId") != -1 ? pipelineObject.getLong("releaseId") : null;
+
+        MqmRestClient client;
         try {
-            MqmRestClient client = createClient();
+            client = createClient();
+        } catch (ClientException e) {
+            logger.log(Level.WARNING, PRODUCT_NAME + " connection failed", e);
+            return error(e.getMessage(), e.getLink());
+        }
+
+        try {
             Pipeline createdPipeline = client.createPipeline(ServerIdentity.getIdentity(), project.getName(), pipelineObject.getString("name"), pipelineObject.getLong("workspaceId"), releaseId,
                     toString(structureItem), toString(serverInfo));
 
@@ -83,7 +91,6 @@ public class JobConfigurationProxy {
             //getting workspaceName - because the workspaceName is not returned from configuration API
             List<Workspace> workspaces = client.getWorkspaces(Arrays.asList(createdPipeline.getWorkspaceId()));
             if (workspaces.size() != 1 ) {
-                client.release();
                 throw new ClientException("WorkspaceName could not be retrieved for workspaceId: " + createdPipeline.getWorkspaceId());
             }
             //WORKAROUND END
@@ -98,7 +105,6 @@ public class JobConfigurationProxy {
             JSONArray fieldsMetadata = getFieldMetadata(createdPipeline.getWorkspaceId(), client);
             result.put("fieldsMetadata", fieldsMetadata);
 
-            client.release();
         } catch (RequestException e) {
             logger.log(Level.WARNING, "Failed to create pipeline", e);
             return error("Unable to create pipeline");
@@ -108,6 +114,8 @@ public class JobConfigurationProxy {
         } catch (ClientException e) {
             logger.log(Level.WARNING, "Failed to create pipeline", e);
             return error(e.getMessage(), e.getLink());
+        } finally {
+            client.releaseQuietly();
         }
         return result;
     }
@@ -116,8 +124,14 @@ public class JobConfigurationProxy {
     public JSONObject updatePipelineOnSever(JSONObject pipelineObject) throws IOException {
         JSONObject result = new JSONObject();
 
+        MqmRestClient client;
         try {
-            MqmRestClient client = createClient();
+            client = createClient();
+        } catch (ClientException e) {
+            logger.log(Level.WARNING, PRODUCT_NAME + " connection failed", e);
+            return error(e.getMessage(), e.getLink());
+        }
+        try {
 			long pipelineId = pipelineObject.getLong("id");
 
             LinkedList<Taxonomy> taxonomies = new LinkedList<Taxonomy>();
@@ -150,7 +164,6 @@ public class JobConfigurationProxy {
             //getting workspaceName - because the workspaceName is not returned from configuration API
             List<Workspace> workspaces = client.getWorkspaces(Arrays.asList(pipeline.getWorkspaceId()));
             if (workspaces.size() != 1 ) {
-                client.release();
                 throw new ClientException("WorkspaceName could not be retrieved for workspaceId: " + pipeline.getWorkspaceId());
             }
             //WORKAROUND END
@@ -162,7 +175,6 @@ public class JobConfigurationProxy {
             //WORKAROUND END
             result.put("pipeline", pipelineJSON);
 
-            client.release();
         } catch (RequestException e) {
             logger.log(Level.WARNING, "Failed to update pipeline", e);
             return error("Unable to update pipeline");
@@ -172,6 +184,8 @@ public class JobConfigurationProxy {
         } catch (ClientException e) {
             logger.log(Level.WARNING, "Failed to update pipeline", e);
             return error(e.getMessage(), e.getLink());
+        } finally {
+            client.releaseQuietly();
         }
 
         return result;
@@ -257,7 +271,6 @@ public class JobConfigurationProxy {
             ret.put("workspaces", workspaces);
             ret.put("fieldsMetadata", fieldsMetadata);
 
-			//client.release();
         } catch (RequestException e) {
             logger.log(Level.WARNING, "Failed to retrieve job configuration", e);
             return error("Unable to retrieve job configuration");
@@ -265,11 +278,7 @@ public class JobConfigurationProxy {
             logger.log(Level.WARNING, "Failed to retrieve job configuration", e);
             return error("Unable to retrieve job configuration");
         } finally {
-            try {
-                client.release();
-            } catch (Exception e) {
-                // TODO: janotav: introduce releaseQuietly
-            }
+            client.releaseQuietly();
         }
 
         return ret;
@@ -300,11 +309,7 @@ public class JobConfigurationProxy {
             logger.log(Level.WARNING, "Failed to retrieve metadata for workspace", e);
             return error("Unable to retrieve metadata for workspace");
         } finally {
-            try {
-                client.release();
-            } catch (Exception e) {
-
-            }
+            client.releaseQuietly();
         }
         return ret;
     }
@@ -345,11 +350,7 @@ public class JobConfigurationProxy {
             logger.log(Level.WARNING, "Failed to retrieve metadata for pipeline", e);
             return error("Unable to retrieve metadata for pipeline");
         } finally {
-            try {
-                client.release();
-            } catch (Exception e) {
-
-            }
+            client.releaseQuietly();
         }
         return ret;
     }
@@ -492,7 +493,6 @@ public class JobConfigurationProxy {
             }
 
             ret.put("results", retArray);
-            client.release();
         } catch (RequestException e) {
             logger.log(Level.WARNING, "Failed to retrieve list items", e);
             return error("Unable to retrieve job configuration");
@@ -500,10 +500,7 @@ public class JobConfigurationProxy {
             logger.log(Level.WARNING, "Failed to retrieve list items", e);
             return error("Unable to retrieve list items");
         } finally {
-            try {
-                client.release();
-            } catch (Exception e) {
-            }
+            client.releaseQuietly();
         }
         return ret;
     }
@@ -546,7 +543,6 @@ public class JobConfigurationProxy {
             }
             ret.put("results", retArray);
 
-            client.release();
         } catch (RequestException e) {
             logger.log(Level.WARNING, "Failed to retrieve releases", e);
             return error("Unable to retrieve job configuration");
@@ -554,10 +550,7 @@ public class JobConfigurationProxy {
             logger.log(Level.WARNING, "Failed to retrieve releases", e);
             return error("Unable to retrieve taxonomies");
         } finally {
-            try {
-                client.release();
-            } catch (Exception e) {
-            }
+            client.releaseQuietly();
         }
         return ret;
     }
@@ -592,7 +585,6 @@ public class JobConfigurationProxy {
             }
             ret.put("results", retArray);
 
-            client.release();
         } catch (RequestException e) {
             logger.log(Level.WARNING, "Failed to retrieve workspaces", e);
             return error("Unable to retrieve workspaces");
@@ -600,10 +592,7 @@ public class JobConfigurationProxy {
             logger.log(Level.WARNING, "Failed to retrieve workspaces", e);
             return error("Unable to retrieve workspaces");
         } finally {
-            try {
-                client.release();
-            } catch (Exception e) {
-            }
+            client.releaseQuietly();
         }
         return ret;
     }
@@ -726,7 +715,6 @@ public class JobConfigurationProxy {
             ret.put("tagTypes", tagTypes);
             ret.put("more", moreResults);
 
-            client.release();
         } catch (RequestException e) {
             logger.log(Level.WARNING, "Failed to retrieve environments", e);
             return error("Unable to retrieve job configuration");
@@ -734,10 +722,7 @@ public class JobConfigurationProxy {
             logger.log(Level.WARNING, "Failed to retrieve environments", e);
             return error("Unable to retrieve environments");
         } finally {
-            try {
-                client.release();
-            } catch (Exception e) {
-            }
+            client.releaseQuietly();
         }
         return ret;
     }

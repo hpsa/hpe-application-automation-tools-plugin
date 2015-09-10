@@ -580,6 +580,12 @@ public class MqmRestClientImplTest {
 	}
 
 	@Test
+	public void testGetReleaseNotFound() throws IOException {
+		Release rel = client.getRelease(-1, WORKSPACE);	//release with id -1 shall not exist
+		Assert.assertNull(rel);
+	}
+
+	@Test
 	public void testQueryWorkspaces() throws IOException {
 		long timestamp = System.currentTimeMillis();
 		String workspaceName = "Workspace" + timestamp;
@@ -618,40 +624,6 @@ public class MqmRestClientImplTest {
 		Assert.assertEquals(workspace1.getId(), items.get(0).getId());
 		Assert.assertEquals(workspace2.getName(), items.get(1).getName());
 		Assert.assertEquals(workspace2.getId(), items.get(1).getId());
-	}
-
-	@Test
-    @Ignore // pending server-side support for taxonomy_root.id cross-filter
-	public void testQueryTaxonomyItems() throws IOException {
-		long timestamp = System.currentTimeMillis();
-		String typeName = "TaxonomyType" + timestamp;
-		Taxonomy taxonomyType = testSupportClient.createTaxonomyCategory(typeName, WORKSPACE);
-		Taxonomy taxonomy = testSupportClient.createTaxonomyItem(taxonomyType.getId(), "Taxonomy" + timestamp, WORKSPACE);
-
-		PagedList<Taxonomy> taxonomies = client.queryTaxonomyItems(null, null, WORKSPACE, 0, 100);
-		Assert.assertTrue(taxonomies.getItems().size() > 0);
-
-		taxonomies = client.queryTaxonomyItems(taxonomyType.getId(), null, WORKSPACE, 0, 100);
-		Assert.assertEquals(1, taxonomies.getItems().size());
-		Assert.assertEquals(taxonomy.getName(), taxonomies.getItems().get(0).getName());
-
-		taxonomies = client.queryTaxonomyItems(taxonomyType.getId(), taxonomy.getName(), WORKSPACE, 0, 100);
-		Assert.assertEquals(1, taxonomies.getItems().size());
-		Assert.assertEquals(taxonomy.getName(), taxonomies.getItems().get(0).getName());
-	}
-
-	@Test
-	public void testQueryTaxonomyCategories() throws IOException {
-		long timestamp = System.currentTimeMillis();
-		String typeName = "TaxonomyType" + timestamp;
-		Taxonomy taxonomyType = testSupportClient.createTaxonomyCategory(typeName, WORKSPACE);
-
-		PagedList<Taxonomy> taxonomyTypes = client.queryTaxonomyCategories(null, WORKSPACE, 0, 100);
-		Assert.assertTrue(taxonomyTypes.getItems().size() > 0);
-
-		taxonomyTypes = client.queryTaxonomyCategories(taxonomyType.getName(), WORKSPACE, 0, 100);
-		Assert.assertEquals(1, taxonomyTypes.getItems().size());
-		Assert.assertEquals(taxonomyType.getName(), taxonomyTypes.getItems().get(0).getName());
 	}
 
     @Test

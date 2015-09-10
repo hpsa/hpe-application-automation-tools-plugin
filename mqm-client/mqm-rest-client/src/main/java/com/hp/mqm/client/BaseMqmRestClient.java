@@ -24,4 +24,9 @@ public interface BaseMqmRestClient {
      * invoke any client method (but client will need to do authentication, create session, etc.).
      */
     void release();
+
+    /**
+     * Equivalent to @link #release}, except any exceptions are ignored. Exceptions are logged only.
+     */
+    void releaseQuietly();
 }

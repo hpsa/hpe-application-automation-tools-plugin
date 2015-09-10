@@ -45,6 +45,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
@@ -160,6 +162,14 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 
 	public void release() {
 		//logout();
+	}
+
+	public void releaseQuietly() {
+		try {
+			release();
+		} catch (Exception e) {
+			Logger.getLogger(AbstractMqmRestClient.class.getName()).log(Level.WARNING, "Failed to release client", e);
+		}
 	}
 
 	private void authenticate() {
