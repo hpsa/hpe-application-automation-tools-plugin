@@ -27,13 +27,12 @@ public class HpTasksArtifactRegistrator {
         if (job == null || !(job instanceof DefaultJob))
             return;
 
-        DefaultJob defaultJob = (DefaultJob)job;
-        Job j = (Job)defaultJob;
-        final String ARTIFACT_NAME = this.i18nBean.getText("AllTasksArtifactDefinitionLabel");
-        final String ARTIFACT_COPY_PATTERN = "**";
-        if (null == artifactDefinitionManager.findArtifactDefinition(j, ARTIFACT_NAME)) {
-            ArtifactDefinitionImpl artifactDefinition = new ArtifactDefinitionImpl(ARTIFACT_NAME, "${bamboo.buildNumber}", ARTIFACT_COPY_PATTERN);
-            artifactDefinition.setProducerJob(j);
+        Job defaultJob = (Job)job;
+        String name = this.i18nBean.getText("AllTasksArtifactDefinitionLabel");
+        String ARTIFACT_COPY_PATTERN = "**";
+        if (null == artifactDefinitionManager.findArtifactDefinition(defaultJob, name)) {
+            ArtifactDefinitionImpl artifactDefinition = new ArtifactDefinitionImpl(name, "${bamboo.buildNumber}", ARTIFACT_COPY_PATTERN);
+            artifactDefinition.setProducerJob(defaultJob);
             artifactDefinitionManager.saveArtifactDefinition(artifactDefinition);
         }
     }
