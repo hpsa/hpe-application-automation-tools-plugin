@@ -58,6 +58,7 @@ public class JobConfigurationProxy {
     final private AbstractProject project;
     private RetryModel retryModel;
 
+    private static final String PRODUCT_NAME = Messages.ServerName();
     private static final String NOT_SPECIFIED = "-- Not specified --";
 
     public JobConfigurationProxy(AbstractProject project) {
@@ -182,7 +183,7 @@ public class JobConfigurationProxy {
         try {
             client = createClient();
         } catch (ClientException e) {
-            logger.log(Level.WARNING, "MQM server connection failed", e);
+            logger.log(Level.WARNING, PRODUCT_NAME + " connection failed", e);
             return error(e.getMessage(), e.getLink());
         }
 
@@ -281,7 +282,7 @@ public class JobConfigurationProxy {
         try {
             client = createClient();
         } catch (ClientException e) {
-            logger.log(Level.WARNING, "MQM server connection failed", e);
+            logger.log(Level.WARNING, PRODUCT_NAME + " connection failed", e);
             return error(e.getMessage(), e.getLink());
         }
 
@@ -329,7 +330,7 @@ public class JobConfigurationProxy {
         try {
             client = createClient();
         } catch (ClientException e) {
-            logger.log(Level.WARNING, "MQM server connection failed", e);
+            logger.log(Level.WARNING, PRODUCT_NAME + " connection failed", e);
             return error(e.getMessage(), e.getLink());
         }
 
@@ -452,7 +453,7 @@ public class JobConfigurationProxy {
         try {
             client = createClient();
         } catch (ClientException e) {
-            logger.log(Level.WARNING, "MQM server connection failed", e);
+            logger.log(Level.WARNING, PRODUCT_NAME + " connection failed", e);
             return error(e.getMessage(), e.getLink());
         }
         try {
@@ -516,7 +517,7 @@ public class JobConfigurationProxy {
         try {
             client = createClient();
         } catch (ClientException e) {
-            logger.log(Level.WARNING, "MQM server connection failed", e);
+            logger.log(Level.WARNING, PRODUCT_NAME + " connection failed", e);
             return error(e.getMessage(), e.getLink());
         }
         try {
@@ -570,7 +571,7 @@ public class JobConfigurationProxy {
         try {
             client = createClient();
         } catch (ClientException e) {
-            logger.log(Level.WARNING, "MQM server connection failed", e);
+            logger.log(Level.WARNING, PRODUCT_NAME + " connection failed", e);
             return error(e.getMessage(), e.getLink());
         }
         try {
@@ -616,7 +617,7 @@ public class JobConfigurationProxy {
         try {
             client = createClient();
         } catch (ClientException e) {
-            logger.log(Level.WARNING, "MQM server connection failed", e);
+            logger.log(Level.WARNING, PRODUCT_NAME + " connection failed", e);
             return error(e.getMessage(), e.getLink());
         }
         try {
@@ -836,15 +837,15 @@ public class JobConfigurationProxy {
     private MqmRestClient createClient() throws ClientException {
         ServerConfiguration configuration = ConfigurationService.getServerConfiguration();
         if (StringUtils.isEmpty(configuration.location)) {
-            String label = "Please configure MQM server here";
-            throw new ClientException("MQM server not configured", new ExceptionLink("/configure", label));
+            String label = "Please configure server here";
+            throw new ClientException(PRODUCT_NAME + " not configured", new ExceptionLink("/configure", label));
         }
 
         RetryModel retryModel = getRetryModel();
 
         if (retryModel.isQuietPeriod()) {
             String label = "Please validate your configuration settings here";
-            throw new ClientException("MQM server not connected", new ExceptionLink("/configure", label));
+            throw new ClientException(PRODUCT_NAME + " not connected", new ExceptionLink("/configure", label));
         }
 
         JenkinsMqmRestClientFactory clientFactory = getExtension(JenkinsMqmRestClientFactory.class);
@@ -856,13 +857,13 @@ public class JobConfigurationProxy {
         try {
 			client.tryToConnectSharedSpace();
         } catch (RequestException e) {
-            logger.log(Level.WARNING, "MQM server connection failed", e);
+            logger.log(Level.WARNING, PRODUCT_NAME + " connection failed", e);
             retryModel.failure();
-            throw new ClientException("Connection to MQM server failed");
+            throw new ClientException("Connection to "+ PRODUCT_NAME + " failed");
         } catch (RequestErrorException e) {
-            logger.log(Level.WARNING, "MQM server connection failed", e);
+            logger.log(Level.WARNING, PRODUCT_NAME + " connection failed", e);
             retryModel.failure();
-            throw new ClientException("Connection to MQM server failed");
+            throw new ClientException("Connection to "+ PRODUCT_NAME + " failed");
         }
         retryModel.success();
         return client;
