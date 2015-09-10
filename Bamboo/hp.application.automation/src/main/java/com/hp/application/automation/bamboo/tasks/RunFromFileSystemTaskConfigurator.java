@@ -3,6 +3,7 @@ package com.hp.application.automation.bamboo.tasks;
 import java.util.HashMap;
 import java.util.Map;
 import com.atlassian.bamboo.collections.ActionParametersMap;
+import com.atlassian.bamboo.plan.artifact.ArtifactDefinitionManager;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
 import com.atlassian.bamboo.utils.i18n.I18nBean;
@@ -32,6 +33,11 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 	private static final String TASK_ID_CONTROL = "RunFromFileSystemTaskConfigurator.taskId";
 	private static final String TASK_ID_LBL = "RunFromFileSystemTaskConfigurator.taskIdLbl";
 
+	private ArtifactDefinitionManager artifactDefinitionManager;
+
+	public void setArtifactDefinitionManager(ArtifactDefinitionManager artifactDefinitionManager){
+		this.artifactDefinitionManager = artifactDefinitionManager;
+	}
 
 	public Map<String, String> generateTaskConfigMap(@NotNull final ActionParametersMap params, @Nullable final TaskDefinition previousTaskDefinition)
 	{
@@ -70,7 +76,8 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 
 	@Override
 	public void populateContextForCreate(@NotNull final Map<String, Object> context) {
-		(new HpTasksArtifactRegistrator()).registerCommonArtifact(context.get("plan"));
+
+		(new HpTasksArtifactRegistrator()).registerCommonArtifact(context.get("plan"), getI18nBean(), this.artifactDefinitionManager);
 
 		super.populateContextForCreate(context);
 

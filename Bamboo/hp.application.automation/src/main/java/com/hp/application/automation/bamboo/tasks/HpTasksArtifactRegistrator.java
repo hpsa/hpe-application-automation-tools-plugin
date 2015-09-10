@@ -10,25 +10,13 @@ import com.atlassian.bamboo.utils.i18n.I18nBean;
  * Created by ybobrik on 9/10/2015.
  */
 public class HpTasksArtifactRegistrator {
-
-    private I18nBean i18nBean;
-    private ArtifactDefinitionManager artifactDefinitionManager;
-
-    public void setI18nBean(I18nBean i18nBean){
-        this.i18nBean = i18nBean;
-    }
-
-    public void setArtifactDefinitionManager(ArtifactDefinitionManager artifactDefinitionManager){
-        this.artifactDefinitionManager = artifactDefinitionManager;
-    }
-
-    public void registerCommonArtifact(Object job)
+    public void registerCommonArtifact(Object job, I18nBean i18nBean, ArtifactDefinitionManager artifactDefinitionManager)
     {
-        if (job == null || !(job instanceof DefaultJob))
+        if (job == null || !(job instanceof DefaultJob) || i18nBean == null || artifactDefinitionManager == null)
             return;
 
         Job defaultJob = (Job)job;
-        String name = this.i18nBean.getText("AllTasksArtifactDefinitionLabel");
+        String name = i18nBean.getText("AllTasksArtifactDefinitionLabel");
         String ARTIFACT_COPY_PATTERN = "**";
         if (null == artifactDefinitionManager.findArtifactDefinition(defaultJob, name)) {
             ArtifactDefinitionImpl artifactDefinition = new ArtifactDefinitionImpl(name, "${bamboo.buildNumber}", ARTIFACT_COPY_PATTERN);
