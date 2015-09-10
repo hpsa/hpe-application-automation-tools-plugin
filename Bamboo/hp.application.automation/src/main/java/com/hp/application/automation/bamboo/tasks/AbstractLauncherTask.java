@@ -2,6 +2,7 @@ package com.hp.application.automation.bamboo.tasks;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.build.test.TestCollationService;
+import com.atlassian.bamboo.build.test.TestCollectionResultBuilder;
 import com.atlassian.bamboo.configuration.ConfigurationMap;
 import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.task.TaskException;

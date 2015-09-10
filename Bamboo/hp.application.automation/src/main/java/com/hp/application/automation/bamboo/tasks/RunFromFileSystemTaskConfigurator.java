@@ -2,15 +2,13 @@ package com.hp.application.automation.bamboo.tasks;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
 import com.atlassian.bamboo.utils.i18n.I18nBean;
 import com.atlassian.util.concurrent.NotNull;
 import com.atlassian.util.concurrent.Nullable;
-import org.apache.commons.lang.StringUtils; 
+import org.apache.commons.lang.StringUtils;
 
 public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfigurator {
 
@@ -67,12 +65,13 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 			{
 				errorCollection.addError(TIMEOUT, textProvider.getText("RunFromFileSystemTaskConfigurator.error.timeoutIsNotCorrect"));
 			} 	   
-		} 
+		}
 	}
 
 	@Override
-	public void populateContextForCreate(@NotNull final Map<String, Object> context)
-	{
+	public void populateContextForCreate(@NotNull final Map<String, Object> context) {
+		(new HpTasksArtifactRegistrator()).registerCommonArtifact(context.get("plan"));
+
 		super.populateContextForCreate(context);
 
 		context.put(PUBLISH_MODE_PARAM, PUBLISH_MODE_FAILED_VALUE);
