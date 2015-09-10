@@ -87,7 +87,7 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 		context.put(TESTS_PATH, taskDefinition.getConfiguration().get(TESTS_PATH));
 		context.put(TIMEOUT, taskDefinition.getConfiguration().get(TIMEOUT));
 		context.put(PUBLISH_MODE_PARAM, taskDefinition.getConfiguration().get(PUBLISH_MODE_PARAM));
-		context.put(TASK_ID_CONTROL, getI18nBean().getText(TASK_ID_LBL) + new Long(taskDefinition.getId()).toString());
+		context.put(TASK_ID_CONTROL, getI18nBean().getText(TASK_ID_LBL) + String.format("%03d",new Long(taskDefinition.getId())));
 
 		populateContextForLists(context);
 	}
