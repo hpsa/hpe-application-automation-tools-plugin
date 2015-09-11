@@ -29,7 +29,6 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 	public static final String PUBLISH_MODE_FAILED_VALUE = "failed";
 	public static final String PUBLISH_MODE_NEVER_VALUE = "never";
 	public static final String TASK_NAME_VALUE = "RunFromFileSystemTaskConfigurator.taskName";
-	private static final String TASK_NAME = "taskName";
 	private static final String TASK_ID_CONTROL = "RunFromFileSystemTaskConfigurator.taskId";
 	private static final String TASK_ID_LBL = "RunFromFileSystemTaskConfigurator.taskIdLbl";
 
@@ -46,7 +45,7 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 		config.put(TESTS_PATH, params.getString(TESTS_PATH));
 		config.put(TIMEOUT, params.getString(TIMEOUT));
 		config.put(PUBLISH_MODE_PARAM, params.getString(PUBLISH_MODE_PARAM));
-		config.put(TASK_NAME, getI18nBean().getText(TASK_NAME_VALUE));
+		config.put(CommonTaskConfigurationProperties.TASK_NAME, getI18nBean().getText(TASK_NAME_VALUE));
 
 		return config;
 	}

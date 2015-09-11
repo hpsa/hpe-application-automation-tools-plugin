@@ -32,8 +32,6 @@ public class RunFromAlmTaskConfigurator extends AbstractUftTaskConfigurator {
 	public static final String RUN_ON_PLANNED_HOST_PARAMETER = "2";
 	public static final String RUN_REMOTELY_PARAMETER = "3";
 	public static final String TASK_NAME_VALUE = "Alm.taskName";
-	private static final String TASK_NAME = "taskName";
-
 
 	public Map<String, String> generateTaskConfigMap(@NotNull final ActionParametersMap params, @Nullable final TaskDefinition previousTaskDefinition)
 	{
@@ -48,7 +46,7 @@ public class RunFromAlmTaskConfigurator extends AbstractUftTaskConfigurator {
 		config.put(TIMEOUT, params.getString(TIMEOUT));
 		config.put(RUN_MODE, params.getString(RUN_MODE));
 		config.put(TESTING_TOOL_HOST, params.getString(TESTING_TOOL_HOST));
-		config.put(TASK_NAME, getI18nBean().getText(TASK_NAME_VALUE));
+		config.put(CommonTaskConfigurationProperties.TASK_NAME, getI18nBean().getText(TASK_NAME_VALUE));
 
 		return config;
 	}

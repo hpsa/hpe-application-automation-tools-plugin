@@ -5,7 +5,6 @@ import com.atlassian.bamboo.task.AbstractTaskConfigurator;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
 import com.atlassian.bamboo.utils.i18n.I18nBean;
-import com.atlassian.bamboo.ww2.actions.build.admin.create.UIConfigSupport;
 import com.hp.application.automation.tools.common.model.CdaDetails;
 import com.hp.application.automation.tools.common.model.EnumDescription;
 import com.hp.application.automation.tools.common.model.SseModel;
@@ -18,7 +17,6 @@ import java.util.Map;
 
 public class AlmLabManagementTaskConfigurator extends AbstractTaskConfigurator
 {
-	
 	public static final String ALM_SERVER_PARAM = "almServer";
 	public static final String USER_NAME_PARAM = "userName";
 	public static final String PASSWORD_PARAM = "password";
@@ -48,7 +46,6 @@ public class AlmLabManagementTaskConfigurator extends AbstractTaskConfigurator
 	private static final String DURATION_MINIMUM_STRING = "AlmLabManagementTask.duration.minimum";
 	private static final String DURATION_INVALID_FORMAT_STRING = "AlmLabManagementTask.duration.invalidFormat";
 	public static final String TASK_NAME_VALUE = "AlmLabManagementTask.taskName";
-	private static final String TASK_NAME = "taskName";
 
 	@NotNull
     @Override
@@ -70,7 +67,7 @@ public class AlmLabManagementTaskConfigurator extends AbstractTaskConfigurator
 		config.put(DEPLOYMENT_ACTION_PARAM, params.getString((DEPLOYMENT_ACTION_PARAM)));
 		config.put(DEPOYED_ENVIROMENT_NAME_PARAM, params.getString((DEPOYED_ENVIROMENT_NAME_PARAM)));
 		config.put(DEPROVISIONING_ACTION_PARAM, params.getString((DEPROVISIONING_ACTION_PARAM)));
-		config.put(TASK_NAME, getI18nBean().getText(TASK_NAME_VALUE));
+		config.put(CommonTaskConfigurationProperties.TASK_NAME, getI18nBean().getText(TASK_NAME_VALUE));
 
 	    return config;
 	}

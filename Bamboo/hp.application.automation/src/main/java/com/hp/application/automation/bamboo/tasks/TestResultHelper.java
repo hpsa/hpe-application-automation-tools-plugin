@@ -31,7 +31,6 @@ public final class TestResultHelper
 
     private static final String TEST_STATUS_PASSED = "pass";
     private static final String TEST_STATUS_FAIL = "fail";
-    private static final String TASK_NAME = "taskName";
 
     public enum ResultTypeFilter {All, SUCCESSFUL, FAILED }
 
@@ -90,7 +89,7 @@ public final class TestResultHelper
     private static String getZipFilePath(TaskContext taskContext)
     {
         StringBuilder fileName = new StringBuilder(taskContext.getWorkingDirectory().toString());
-        String taskName = taskContext.getConfigurationMap().get(TASK_NAME);
+        String taskName = taskContext.getConfigurationMap().get(CommonTaskConfigurationProperties.TASK_NAME);
         fileName.append("\\"+taskContext.getBuildContext().getBuildNumber()).append("\\").append(String.format("%03d", taskContext.getId())).append(" "+taskName+"\\");
         return fileName.toString();
     }
