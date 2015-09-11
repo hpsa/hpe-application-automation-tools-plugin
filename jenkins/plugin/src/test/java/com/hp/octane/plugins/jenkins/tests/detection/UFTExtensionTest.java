@@ -8,6 +8,7 @@ import hudson.model.FreeStyleProject;
 import hudson.scm.SubversionSCM;
 import hudson.tasks.Ant;
 import hudson.tasks.Maven;
+import hudson.tasks.junit.JUnitResultArchiver;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -81,6 +82,7 @@ public class UFTExtensionTest {
         SubversionSCM scm = new SubversionSCM("http://localhost:8083/svn/selenium/branches/uft");
         project.setScm(scm);
         project.getBuildersList().add(new RunFromFileBuilder("Calculator", "2000", "", "", ""));
+        project.getPublishersList().add(new JUnitResultArchiver("Results*.xml"));
         //this will actually run the UFT test
         AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
