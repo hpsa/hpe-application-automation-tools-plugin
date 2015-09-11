@@ -94,31 +94,6 @@ public final class TestResultHelper
         return fileName.toString();
     }
 
-    public static void publishArtifacts(@NotNull final TaskContext taskContext, final ArtifactManager artifactManager, Collection<ResultInfoItem> reportItems, @NotNull BuildLogger logger)
-    {
-        zipResults(reportItems, logger);
-
-        BuildContext buildContext = taskContext.getBuildContext();
-
-        final PlanResultKey planResultKey = buildContext.getPlanResultKey();
-        File checkoutDir = getCheckoutDirectory(buildContext);
-        Map<String, String> config = Maps.newHashMap();
-
-        SecureToken securityToken = SecureToken.create();
-
-        for(ResultInfoItem resultItem : reportItems)
-        {
-            ArtifactDefinitionContextImpl artifact = new ArtifactDefinitionContextImpl(securityToken);
-            artifact.setName(resultItem.getResultName());
-            artifact.setLocation("\\");
-            artifact.setCopyPattern(resultItem.getZipFile().getName());
-
-            buildContext.getArtifactContext().getDefinitionContexts().add(artifact);
-
-            artifactManager.publish(logger, planResultKey, checkoutDir, artifact, config, 1);
-        }
-    }
-
     private static String getTestName(File test)
     {
         return test.getName();
@@ -146,7 +121,7 @@ public final class TestResultHelper
         return false;
     }
 
-    private static void zipResults(Collection<ResultInfoItem> resultInfoItems, BuildLogger logger)
+    public static void zipResults(Collection<ResultInfoItem> resultInfoItems, BuildLogger logger)
     {
         for(ResultInfoItem resultItem : resultInfoItems)
         {
