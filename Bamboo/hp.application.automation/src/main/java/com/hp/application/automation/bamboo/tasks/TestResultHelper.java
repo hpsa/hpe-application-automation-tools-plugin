@@ -1,15 +1,10 @@
 package com.hp.application.automation.bamboo.tasks;
 
-import com.atlassian.bamboo.build.artifact.ArtifactManager;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.build.test.TestCollationService;
-import com.atlassian.bamboo.plan.PlanResultKey;
-import com.atlassian.bamboo.plan.artifact.ArtifactDefinitionContextImpl;
-import com.atlassian.bamboo.security.SecureToken;
 import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.util.concurrent.NotNull;
-import com.google.common.collect.Maps;
 import com.hp.application.automation.tools.common.result.ResultSerializer;
 import com.hp.application.automation.tools.common.result.model.junit.Testcase;
 import com.hp.application.automation.tools.common.result.model.junit.Testsuite;
@@ -33,6 +28,8 @@ public final class TestResultHelper
     private static final String TEST_STATUS_FAIL = "fail";
 
     public enum ResultTypeFilter {All, SUCCESSFUL, FAILED }
+
+    public static final String HP_UFT_PREFIX = "HP_UFT_Build_";
 
     private TestResultHelper()
     {
@@ -90,7 +87,8 @@ public final class TestResultHelper
     {
         StringBuilder fileName = new StringBuilder(taskContext.getWorkingDirectory().toString());
         String taskName = taskContext.getConfigurationMap().get(CommonTaskConfigurationProperties.TASK_NAME);
-        fileName.append("\\"+taskContext.getBuildContext().getBuildNumber()).append("\\").append(String.format("%03d", taskContext.getId())).append(" "+taskName+"\\");
+        fileName.append("\\").append(getBuildRunPath(taskContext)).append("\\")
+                .append(String.format("%03d", taskContext.getId())).append(" "+taskName+"\\");
         return fileName.toString();
     }
 
@@ -148,4 +146,9 @@ public final class TestResultHelper
         }
         return null;
     }
+
+    public static String getBuildRunPath(TaskContext taskContext){
+        return HP_UFT_PREFIX + taskContext.getBuildContext().getBuildNumber();
+    }
+
 }

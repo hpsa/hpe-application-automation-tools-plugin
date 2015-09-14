@@ -17,7 +17,7 @@ public class HpTasksArtifactRegistrator {
 
         Job defaultJob = (Job)job;
         String name = i18nBean.getText("AllTasksArtifactDefinitionLabel");
-        String ARTIFACT_COPY_PATTERN = "${bamboo.buildNumber}/**";
+        String ARTIFACT_COPY_PATTERN = TestResultHelper.HP_UFT_PREFIX + "${bamboo.buildNumber}/**";
         if (null == artifactDefinitionManager.findArtifactDefinition(defaultJob, name)) {
             ArtifactDefinitionImpl artifactDefinition = new ArtifactDefinitionImpl(name, "", ARTIFACT_COPY_PATTERN);
             artifactDefinition.setProducerJob(defaultJob);
