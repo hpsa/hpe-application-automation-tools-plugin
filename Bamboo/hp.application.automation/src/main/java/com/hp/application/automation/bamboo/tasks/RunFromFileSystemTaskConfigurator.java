@@ -2,8 +2,11 @@ package com.hp.application.automation.bamboo.tasks;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import com.atlassian.bamboo.build.Job;
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.plan.artifact.ArtifactDefinitionManager;
+import com.atlassian.bamboo.task.BuildTaskRequirementSupport;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
 import com.atlassian.bamboo.utils.i18n.I18nBean;
@@ -11,7 +14,7 @@ import com.atlassian.util.concurrent.NotNull;
 import com.atlassian.util.concurrent.Nullable;
 import org.apache.commons.lang.StringUtils;
 
-public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfigurator {
+public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfigurator implements BuildTaskRequirementSupport {
 
 	public static final String TESTS_PATH = "testPathInput";
 	public static final String TIMEOUT = "timeoutInput";
@@ -33,6 +36,8 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 	private static final String TASK_ID_LBL = "RunFromFileSystemTaskConfigurator.taskIdLbl";
 
 	private ArtifactDefinitionManager artifactDefinitionManager;
+	private Job job;
+	//private I18nBean i18nBean;
 
 	public void setArtifactDefinitionManager(ArtifactDefinitionManager artifactDefinitionManager){
 		this.artifactDefinitionManager = artifactDefinitionManager;
@@ -71,18 +76,36 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 				errorCollection.addError(TIMEOUT, textProvider.getText("RunFromFileSystemTaskConfigurator.error.timeoutIsNotCorrect"));
 			} 	   
 		}
+
+		/*if (!errorCollection.hasAnyErrors() && this.job != null){
+		}*/
 	}
 
 	@Override
 	public void populateContextForCreate(@NotNull final Map<String, Object> context) {
-
-		(new HpTasksArtifactRegistrator()).registerCommonArtifact(context.get("plan"), getI18nBean(), this.artifactDefinitionManager);
-
 		super.populateContextForCreate(context);
+
+		try
+		{
+			this.job = (Job) context.get("plan");
+			//HpTasksArtifactRegistrator r = new HpTasksArtifactRegistrator();
+			//r.registerCommonArtifact((Job) context.get("plan"), /*getI18nBean(),*/ this.artifactDefinitionManager);
+		}
+		catch (Exception e)
+		{
+		}
 
 		context.put(PUBLISH_MODE_PARAM, PUBLISH_MODE_FAILED_VALUE);
 
 		populateContextForLists(context);
+
+		HpTasksArtifactRegistrator r = new HpTasksArtifactRegistrator();
+		try {
+			r.registerCommonArtifact(this.job, /*getI18nBean(),*/ this.artifactDefinitionManager);
+		}
+		catch(Exception e)
+		{
+		}
 	}
 
 	@Override
