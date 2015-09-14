@@ -275,6 +275,6 @@ public class TestNGExtensionTest {
     private ResultFields readResultFields(AbstractBuild build) throws FileNotFoundException, XMLStreamException {
         File mqmTestsXml = new File(build.getRootDir(), "mqmTests.xml");
         ResultFieldsXmlReader xmlReader = new ResultFieldsXmlReader(new FileReader(mqmTestsXml));
-        return xmlReader.readTestFields();
+        return xmlReader.readXml().getResultFields();
     }
 }

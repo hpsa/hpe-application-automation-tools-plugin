@@ -2,11 +2,14 @@
 
 package com.hp.octane.plugins.jenkins.tests.junit;
 
-import com.hp.octane.plugins.jenkins.tests.xml.AbstractXmlIterator;
+import com.google.inject.Inject;
 import com.hp.octane.plugins.jenkins.tests.MqmTestsExtension;
-import com.hp.octane.plugins.jenkins.tests.impl.ObjectStreamIterator;
 import com.hp.octane.plugins.jenkins.tests.TestResult;
 import com.hp.octane.plugins.jenkins.tests.TestResultStatus;
+import com.hp.octane.plugins.jenkins.tests.detection.ResultFields;
+import com.hp.octane.plugins.jenkins.tests.detection.ResultFieldsDetectionService;
+import com.hp.octane.plugins.jenkins.tests.impl.TestResultIterator;
+import com.hp.octane.plugins.jenkins.tests.xml.AbstractXmlIterator;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.maven.MavenBuild;
@@ -31,8 +34,6 @@ import java.io.OutputStream;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +46,9 @@ public class JUnitExtension extends MqmTestsExtension {
 
     private static final String JUNIT_RESULT_XML = "junitResult.xml"; // NON-NLS
 
+    @Inject
+    ResultFieldsDetectionService resultFieldsDetectionService;
+
     public boolean supports(AbstractBuild<?, ?> build) throws IOException, InterruptedException {
         if (build.getAction(AbstractTestResultAction.class) != null) {
             logger.fine("AbstractTestResultAction found, JUnit results expected");
@@ -56,13 +60,14 @@ public class JUnitExtension extends MqmTestsExtension {
     }
 
     @Override
-    public Iterator<TestResult> getTestResults(AbstractBuild<?, ?> build) throws IOException, InterruptedException {
+    public TestResultIterator getTestResults(AbstractBuild<?, ?> build) throws IOException, InterruptedException {
         logger.fine("Collecting JUnit results");
         FilePath resultFile = new FilePath(build.getRootDir()).child(JUNIT_RESULT_XML);
         if (resultFile.exists()) {
             logger.fine("JUnit result report found");
-            FilePath filePath = build.getWorkspace().act(new GetJUnitTestResults(build, Arrays.asList(resultFile)));
-            return new ObjectStreamIterator<TestResult>(filePath, true);
+            ResultFields detectedFields = resultFieldsDetectionService.getDetectedFields(build);
+            FilePath filePath = build.getWorkspace().act(new GetJUnitTestResults(build, Arrays.asList(resultFile), detectedFields));
+            return new TestResultIterator(filePath, true, detectedFields);
         } else {
             //avoid java.lang.NoClassDefFoundError when maven plugin is not present
             if ("hudson.maven.MavenModuleSetBuild".equals(build.getClass().getName())) {
@@ -81,12 +86,13 @@ public class JUnitExtension extends MqmTestsExtension {
                     }
                 }
                 if (!resultFiles.isEmpty()) {
-                    FilePath filePath = build.getWorkspace().act(new GetJUnitTestResults(build, resultFiles));
-                    return new ObjectStreamIterator<TestResult>(filePath, true);
+                    ResultFields detectedFields = resultFieldsDetectionService.getDetectedFields(build);
+                    FilePath filePath = build.getWorkspace().act(new GetJUnitTestResults(build, resultFiles, detectedFields));
+                    return new TestResultIterator(filePath, true, detectedFields);
                 }
             }
             logger.fine("No JUnit result report found");
-            return Collections.<TestResult>emptyList().iterator();
+            return null;
         }
     }
 
@@ -97,12 +103,14 @@ public class JUnitExtension extends MqmTestsExtension {
         private List<ModuleDetection> moduleDetection;
         private long buildStarted;
         private FilePath workspace;
+        private ResultFields detectedFields;
 
-        public GetJUnitTestResults(AbstractBuild<?, ?> build, List<FilePath> reports) throws IOException, InterruptedException {
+        public GetJUnitTestResults(AbstractBuild<?, ?> build, List<FilePath> reports, ResultFields detectedFields) throws IOException, InterruptedException {
             this.reports = reports;
             this.filePath = new FilePath(build.getRootDir()).createTempFile(getClass().getSimpleName(), null);
             this.buildStarted = build.getStartTimeInMillis();
             this.workspace = build.getWorkspace();
+            this.detectedFields = detectedFields;
 
             moduleDetection = Arrays.asList(
                     new MavenBuilderModuleDetection(build),
@@ -118,7 +126,7 @@ public class JUnitExtension extends MqmTestsExtension {
 
             try {
                 for (FilePath report: reports) {
-                    JUnitXmlIterator iterator = new JUnitXmlIterator(report.read());
+                    JUnitXmlIterator iterator = new JUnitXmlIterator(report.read(), detectedFields);
                     while (iterator.hasNext()) {
                         oos.writeObject(iterator.next());
                     }
@@ -154,6 +162,7 @@ public class JUnitExtension extends MqmTestsExtension {
 
         private class JUnitXmlIterator extends AbstractXmlIterator<TestResult> {
 
+            private final ResultFields resultFields;
             private String moduleName;
             private String packageName;
             private String className;
@@ -161,8 +170,9 @@ public class JUnitExtension extends MqmTestsExtension {
             private long duration;
             private TestResultStatus status;
 
-            public JUnitXmlIterator(InputStream read) throws XMLStreamException {
+            public JUnitXmlIterator(InputStream read, ResultFields resultFields) throws XMLStreamException {
                 super(read);
+                this.resultFields = resultFields;
             }
 
             @Override
@@ -218,10 +228,29 @@ public class JUnitExtension extends MqmTestsExtension {
                     String localName = element.getName().getLocalPart();
 
                     if ("case".equals(localName)) { // NON-NLS
-                        addItem(new TestResult(moduleName, packageName, className, testName, status, duration, buildStarted));
+                        if (isUFT()) {
+                            //workaround only for UFT - we do not want packageName="All-Tests" and className="&lt;None>" as it comes from JUnit report
+                            addItem(new TestResult(moduleName, "", "", testName, status, duration, buildStarted));
+                        } else {
+                            addItem(new TestResult(moduleName, packageName, className, testName, status, duration, buildStarted));
+                        }
                     }
                 }
             }
+
+            private boolean isUFT() {
+                if (resultFields == null) {
+                    return false;
+                }
+                return resultFields.equals(new ResultFields("UFT", "UFT", null));
+            }
         }
+    }
+
+    /*
+     * To be used in tests only.
+     */
+    public void _setResultFieldsDetectionService(ResultFieldsDetectionService detectionService) {
+        this.resultFieldsDetectionService = detectionService;
     }
 }

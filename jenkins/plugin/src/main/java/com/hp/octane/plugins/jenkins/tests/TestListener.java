@@ -3,16 +3,14 @@
 package com.hp.octane.plugins.jenkins.tests;
 
 import com.google.inject.Inject;
+import com.hp.octane.plugins.jenkins.tests.impl.TestResultIterator;
 import com.hp.octane.plugins.jenkins.tests.build.BuildHandlerUtils;
-import com.hp.octane.plugins.jenkins.tests.detection.ResultFieldsDetectionService;
-import com.hp.octane.plugins.jenkins.tests.detection.ResultFields;
 import com.hp.octane.plugins.jenkins.tests.xml.TestResultXmlWriter;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.model.AbstractBuild;
 
 import javax.xml.stream.XMLStreamException;
-import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,26 +23,17 @@ public class TestListener {
 
     private TestResultQueue queue;
 
-    @Inject
-    private ResultFieldsDetectionService resultFieldsDetectionService;
-
     public void processBuild(AbstractBuild build) {
         FilePath resultPath = new FilePath(new FilePath(build.getRootDir()), TEST_RESULT_FILE);
         TestResultXmlWriter resultWriter = new TestResultXmlWriter(resultPath, build);
         boolean success = false;
         boolean hasTests = false;
-        boolean detectionRun = false;
         try {
             for (MqmTestsExtension ext: MqmTestsExtension.all()) {
                 try {
                     if (ext.supports(build)) {
-                        if (!detectionRun) {
-                            ResultFields resultFields = resultFieldsDetectionService.getDetectedFields(build);
-                            resultWriter.setResultFields(resultFields);
-                            detectionRun = true;
-                        }
-                        Iterator<TestResult> testResults = ext.getTestResults(build);
-                        if (testResults.hasNext()) {
+                        TestResultIterator testResults = ext.getTestResults(build);
+                        if (testResults != null && testResults.hasNext()) {
                             resultWriter.add(testResults);
                             hasTests = true;
                         }
@@ -85,9 +74,5 @@ public class TestListener {
      */
     public void _setTestResultQueue(TestResultQueue queue) {
         this.queue = queue;
-    }
-
-    public void _setTestFieldsDetectionService(ResultFieldsDetectionService detectionService) {
-        this.resultFieldsDetectionService = detectionService;
     }
 }

@@ -2,19 +2,19 @@
 
 package com.hp.octane.plugins.jenkins.tests;
 
+import com.hp.octane.plugins.jenkins.tests.impl.TestResultIterator;
 import hudson.ExtensionList;
 import hudson.ExtensionPoint;
 import hudson.model.AbstractBuild;
 import hudson.model.Hudson;
 
 import java.io.IOException;
-import java.util.Iterator;
 
 public abstract class MqmTestsExtension implements ExtensionPoint {
 
     public abstract boolean supports(AbstractBuild<?, ?> build) throws IOException, InterruptedException;
 
-    public abstract Iterator<TestResult> getTestResults(AbstractBuild<?, ?> build) throws IOException, InterruptedException;
+    public abstract TestResultIterator getTestResults(AbstractBuild<?, ?> build) throws IOException, InterruptedException;
 
     public static ExtensionList<MqmTestsExtension> all() {
         return Hudson.getInstance().getExtensionList(MqmTestsExtension.class);

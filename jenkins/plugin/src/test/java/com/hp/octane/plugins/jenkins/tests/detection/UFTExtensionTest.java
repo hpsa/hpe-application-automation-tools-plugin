@@ -3,6 +3,8 @@ package com.hp.octane.plugins.jenkins.tests.detection;
 import com.hp.application.automation.tools.run.RunFromAlmBuilder;
 import com.hp.application.automation.tools.run.RunFromFileBuilder;
 import com.hp.octane.plugins.jenkins.tests.TestUtils;
+import com.hp.octane.plugins.jenkins.tests.detection.ResultFieldsXmlReader.TestAttributes;
+import com.hp.octane.plugins.jenkins.tests.detection.ResultFieldsXmlReader.TestResultContainer;
 import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleProject;
 import hudson.scm.SubversionSCM;
@@ -11,7 +13,6 @@ import hudson.tasks.Maven;
 import hudson.tasks.junit.JUnitResultArchiver;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -19,6 +20,7 @@ import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.FileReader;
+import java.util.List;
 
 public class UFTExtensionTest {
 
@@ -74,7 +76,7 @@ public class UFTExtensionTest {
         assertUFTFields(fields);
     }
 
-    @Ignore
+//    @Ignore
     @Test
     public void testUFTEndToEnd() throws Exception {
         FreeStyleProject project = rule.createFreeStyleProject(projectName);
@@ -88,8 +90,9 @@ public class UFTExtensionTest {
 
         File mqmTestsXml = new File(build.getRootDir(), "mqmTests.xml");
         ResultFieldsXmlReader xmlReader = new ResultFieldsXmlReader(new FileReader(mqmTestsXml));
-        ResultFields fields = xmlReader.readTestFields();
-        assertUFTFields(fields);
+        TestResultContainer container = xmlReader.readXml();
+        assertUFTFields(container.getResultFields());
+        assertUFTTestAttributes(container.getTestAttributes());
     }
 
     private void assertUFTFields(ResultFields fields) {
@@ -97,5 +100,14 @@ public class UFTExtensionTest {
         Assert.assertEquals("UFT", fields.getFramework());
         Assert.assertEquals("UFT", fields.getTestingTool());
         Assert.assertNull(fields.getTestLevel());
+    }
+
+    private void assertUFTTestAttributes(List<TestAttributes> testAttributes) {
+        for (TestAttributes test : testAttributes) {
+            Assert.assertTrue(test.getModuleName().isEmpty());
+            Assert.assertTrue(test.getPackageName().isEmpty());
+            Assert.assertTrue(test.getClassName().isEmpty());
+            Assert.assertTrue(!test.getTestName().isEmpty());
+        }
     }
 }
