@@ -5,10 +5,11 @@ package com.hp.octane.plugins.jenkins.tests.junit;
 import com.google.inject.Inject;
 import com.hp.octane.plugins.jenkins.tests.MqmTestsExtension;
 import com.hp.octane.plugins.jenkins.tests.TestResult;
+import com.hp.octane.plugins.jenkins.tests.TestResultContainer;
 import com.hp.octane.plugins.jenkins.tests.TestResultStatus;
 import com.hp.octane.plugins.jenkins.tests.detection.ResultFields;
 import com.hp.octane.plugins.jenkins.tests.detection.ResultFieldsDetectionService;
-import com.hp.octane.plugins.jenkins.tests.impl.TestResultIterator;
+import com.hp.octane.plugins.jenkins.tests.impl.ObjectStreamIterator;
 import com.hp.octane.plugins.jenkins.tests.xml.AbstractXmlIterator;
 import hudson.Extension;
 import hudson.FilePath;
@@ -60,14 +61,14 @@ public class JUnitExtension extends MqmTestsExtension {
     }
 
     @Override
-    public TestResultIterator getTestResults(AbstractBuild<?, ?> build) throws IOException, InterruptedException {
+    public TestResultContainer getTestResults(AbstractBuild<?, ?> build) throws IOException, InterruptedException {
         logger.fine("Collecting JUnit results");
         FilePath resultFile = new FilePath(build.getRootDir()).child(JUNIT_RESULT_XML);
         if (resultFile.exists()) {
             logger.fine("JUnit result report found");
             ResultFields detectedFields = resultFieldsDetectionService.getDetectedFields(build);
             FilePath filePath = build.getWorkspace().act(new GetJUnitTestResults(build, Arrays.asList(resultFile), detectedFields));
-            return new TestResultIterator(filePath, true, detectedFields);
+            return new TestResultContainer(new ObjectStreamIterator<TestResult>(filePath, true), detectedFields);
         } else {
             //avoid java.lang.NoClassDefFoundError when maven plugin is not present
             if ("hudson.maven.MavenModuleSetBuild".equals(build.getClass().getName())) {
@@ -88,7 +89,7 @@ public class JUnitExtension extends MqmTestsExtension {
                 if (!resultFiles.isEmpty()) {
                     ResultFields detectedFields = resultFieldsDetectionService.getDetectedFields(build);
                     FilePath filePath = build.getWorkspace().act(new GetJUnitTestResults(build, resultFiles, detectedFields));
-                    return new TestResultIterator(filePath, true, detectedFields);
+                    return new TestResultContainer(new ObjectStreamIterator<TestResult>(filePath, true), detectedFields);
                 }
             }
             logger.fine("No JUnit result report found");

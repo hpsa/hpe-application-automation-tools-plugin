@@ -3,7 +3,6 @@
 package com.hp.octane.plugins.jenkins.tests;
 
 import com.google.inject.Inject;
-import com.hp.octane.plugins.jenkins.tests.impl.TestResultIterator;
 import com.hp.octane.plugins.jenkins.tests.build.BuildHandlerUtils;
 import com.hp.octane.plugins.jenkins.tests.xml.TestResultXmlWriter;
 import hudson.Extension;
@@ -32,9 +31,9 @@ public class TestListener {
             for (MqmTestsExtension ext: MqmTestsExtension.all()) {
                 try {
                     if (ext.supports(build)) {
-                        TestResultIterator testResults = ext.getTestResults(build);
-                        if (testResults != null && testResults.hasNext()) {
-                            resultWriter.add(testResults);
+                        TestResultContainer testResultContainer = ext.getTestResults(build);
+                        if (testResultContainer != null && testResultContainer.getIterator().hasNext()) {
+                            resultWriter.add(testResultContainer);
                             hasTests = true;
                         }
                     }

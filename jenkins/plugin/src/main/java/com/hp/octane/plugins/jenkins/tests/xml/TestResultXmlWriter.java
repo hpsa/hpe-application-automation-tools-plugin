@@ -2,9 +2,9 @@
 
 package com.hp.octane.plugins.jenkins.tests.xml;
 
-import com.hp.octane.plugins.jenkins.tests.impl.TestResultIterator;
 import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
 import com.hp.octane.plugins.jenkins.tests.TestResult;
+import com.hp.octane.plugins.jenkins.tests.TestResultContainer;
 import com.hp.octane.plugins.jenkins.tests.build.BuildHandlerUtils;
 import com.hp.octane.plugins.jenkins.tests.detection.ResultFields;
 import hudson.FilePath;
@@ -16,6 +16,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Iterator;
 
 public class TestResultXmlWriter {
 
@@ -31,8 +32,9 @@ public class TestResultXmlWriter {
         this.build = build;
     }
 
-    public void add(TestResultIterator items) throws InterruptedException, XMLStreamException, IOException {
-        resultFields = items.getResultFields();
+    public void add(TestResultContainer container) throws InterruptedException, XMLStreamException, IOException {
+        Iterator<TestResult> items = container.getIterator();
+        resultFields = container.getResultFields();
         initialize();
 
         while (items.hasNext()) {
