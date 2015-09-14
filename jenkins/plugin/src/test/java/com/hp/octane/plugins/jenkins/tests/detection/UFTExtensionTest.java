@@ -13,6 +13,7 @@ import hudson.tasks.Maven;
 import hudson.tasks.junit.JUnitResultArchiver;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -76,7 +77,7 @@ public class UFTExtensionTest {
         assertUFTFields(fields);
     }
 
-//    @Ignore
+    @Ignore
     @Test
     public void testUFTEndToEnd() throws Exception {
         FreeStyleProject project = rule.createFreeStyleProject(projectName);
