@@ -22,6 +22,7 @@ import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.TaskListener;
 import hudson.util.TimeUnit2;
+import jenkins.YesNoMaybe;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -36,7 +37,13 @@ import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-@Extension
+/**
+ * Marked as not supporting dynamic loading: AsyncPeriodicWork collects tasks during server startup. Possible workaround
+ * is to schedule the period task manually after the installation, however, there is no nice & bullet proof mechanism to
+ * find out if plugin is initialized regularly or dynamically. To simplify the matter, simply indicate that installation
+ * is required.
+ */
+@Extension(dynamicLoadable = YesNoMaybe.NO)
 public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
 
     private static Logger logger = Logger.getLogger(TestDispatcher.class.getName());
