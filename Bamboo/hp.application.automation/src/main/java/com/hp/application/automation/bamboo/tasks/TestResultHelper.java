@@ -56,6 +56,8 @@ public final class TestResultHelper
         {
             Testsuites testsuites = ResultSerializer.Deserialize(results);
 
+            Map<String, Integer> testNames = new HashMap<String, Integer>();
+
             for (Testsuite testsuite : testsuites.getTestsuite())
             {
                 for (Testcase testcase : testsuite.getTestcase())
@@ -63,10 +65,20 @@ public final class TestResultHelper
                     if(isInFilter(testcase, filter))
                     {
                         String testName = getTestName(new File(testcase.getName()));
+                        if(!testNames.containsKey(testName)){
+                            testNames.put(testName, 0);
+                        }
+                        testNames.put(testName, testNames.get(testName) + 1);
+
+                        StringBuilder fileNameSuffix = new StringBuilder();
+                        Integer fileNameEntriesAmount = testNames.get(testName);
+                        if(fileNameEntriesAmount>1){
+                            fileNameSuffix.append("_").append(fileNameEntriesAmount);
+                        }
                         File reportDir = new File(testcase.getReport());
-                        File zipFileFolder = new File(getZipFilePath(taskContext));
+                        File zipFileFolder = new File(getOutputFilePath(taskContext));
                         zipFileFolder.mkdirs();
-                        File reportZipFile = new File(zipFileFolder, testName + ".zip");
+                        File reportZipFile = new File(zipFileFolder, testName + fileNameSuffix + ".zip");
                         String resultArtifactName = String.format(resultArtifactNameFormat, testName);
 
                         ResultInfoItem resultItem = new ResultInfoItem(testName, reportDir, reportZipFile, resultArtifactName);
@@ -83,12 +95,12 @@ public final class TestResultHelper
         return resultItems;
     }
 
-    private static String getZipFilePath(TaskContext taskContext)
+    private static String getOutputFilePath(TaskContext taskContext)
     {
         StringBuilder fileName = new StringBuilder(taskContext.getWorkingDirectory().toString());
         String taskName = taskContext.getConfigurationMap().get(CommonTaskConfigurationProperties.TASK_NAME);
-        fileName.append("\\").append(getBuildRunPath(taskContext)).append("\\")
-                .append(String.format("%03d", taskContext.getId())).append(" "+taskName+"\\");
+        fileName.append("\\").append(HP_UFT_PREFIX).append(taskContext.getBuildContext().getBuildNumber())
+                .append("\\").append(String.format("%03d", taskContext.getId())).append(" "+taskName+"\\");
         return fileName.toString();
     }
 
