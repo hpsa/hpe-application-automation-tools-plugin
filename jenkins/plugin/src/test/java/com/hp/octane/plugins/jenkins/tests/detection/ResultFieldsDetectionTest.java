@@ -2,8 +2,8 @@ package com.hp.octane.plugins.jenkins.tests.detection;
 
 import com.hp.octane.plugins.jenkins.ExtensionUtil;
 import com.hp.octane.plugins.jenkins.tests.CopyResourceSCM;
-import com.hp.octane.plugins.jenkins.tests.TestListener;
 import com.hp.octane.plugins.jenkins.tests.TestUtils;
+import com.hp.octane.plugins.jenkins.tests.junit.JUnitExtension;
 import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleProject;
 import hudson.tasks.Maven;
@@ -33,9 +33,9 @@ public class ResultFieldsDetectionTest {
     @Before
     public void setUp() throws Exception {
         project = rule.createFreeStyleProject("junit - job");
-        TestListener testListener = ExtensionUtil.getInstance(rule, TestListener.class);
+        JUnitExtension junitExtension = ExtensionUtil.getInstance(rule, JUnitExtension.class);
         detectionService = Mockito.mock(ResultFieldsDetectionService.class);
-        testListener._setTestFieldsDetectionService(detectionService);
+        junitExtension._setResultFieldsDetectionService(detectionService);
 
         Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
         project.getBuildersList().add(new Maven("test", mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
@@ -64,7 +64,7 @@ public class ResultFieldsDetectionTest {
 
         File mqmTestsXml = new File(build.getRootDir(), "mqmTests.xml");
         ResultFieldsXmlReader xmlReader = new ResultFieldsXmlReader(new FileReader(mqmTestsXml));
-        ResultFields resultFields = xmlReader.readTestFields();
+        ResultFields resultFields = xmlReader.readXml().getResultFields();
 
         Assert.assertNotNull(resultFields);
         Assert.assertEquals("HOLA", resultFields.getFramework());
@@ -80,7 +80,7 @@ public class ResultFieldsDetectionTest {
 
         File mqmTestsXml = new File(build.getRootDir(), "mqmTests.xml");
         ResultFieldsXmlReader xmlReader = new ResultFieldsXmlReader(new FileReader(mqmTestsXml));
-        ResultFields resultFields = xmlReader.readTestFields();
+        ResultFields resultFields = xmlReader.readXml().getResultFields();;
 
         Assert.assertNull(resultFields.getFramework());
         Assert.assertNull(resultFields.getTestingTool());
@@ -95,7 +95,7 @@ public class ResultFieldsDetectionTest {
 
         File mqmTestsXml = new File(build.getRootDir(), "mqmTests.xml");
         ResultFieldsXmlReader xmlReader = new ResultFieldsXmlReader(new FileReader(mqmTestsXml));
-        ResultFields resultFields = xmlReader.readTestFields();
+        ResultFields resultFields = xmlReader.readXml().getResultFields();;
 
         Assert.assertNull(resultFields.getFramework());
         Assert.assertNull(resultFields.getTestingTool());
@@ -112,7 +112,7 @@ public class ResultFieldsDetectionTest {
 
         File mqmTestsXml = new File(build.getRootDir(), "mqmTests.xml");
         ResultFieldsXmlReader xmlReader = new ResultFieldsXmlReader(new FileReader(mqmTestsXml));
-        ResultFields resultFields = xmlReader.readTestFields();
+        ResultFields resultFields = xmlReader.readXml().getResultFields();;
 
         Assert.assertNull(resultFields.getFramework());
         Assert.assertNull(resultFields.getTestingTool());

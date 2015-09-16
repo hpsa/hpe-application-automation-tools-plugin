@@ -8,13 +8,19 @@ import hudson.model.AbstractBuild;
 import hudson.model.Hudson;
 
 import java.io.IOException;
-import java.util.Iterator;
 
 public abstract class MqmTestsExtension implements ExtensionPoint {
 
     public abstract boolean supports(AbstractBuild<?, ?> build) throws IOException, InterruptedException;
 
-    public abstract Iterator<TestResult> getTestResults(AbstractBuild<?, ?> build) throws IOException, InterruptedException;
+    /**
+     *
+     * @param build build to find test results for
+     * @return instance of {@link TestResultContainer} or null, when no test results found
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    public abstract TestResultContainer getTestResults(AbstractBuild<?, ?> build) throws IOException, InterruptedException;
 
     public static ExtensionList<MqmTestsExtension> all() {
         return Hudson.getInstance().getExtensionList(MqmTestsExtension.class);

@@ -3,8 +3,9 @@
 package com.hp.octane.plugins.jenkins.tests.xml;
 
 import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
-import com.hp.octane.plugins.jenkins.tests.build.BuildHandlerUtils;
 import com.hp.octane.plugins.jenkins.tests.TestResult;
+import com.hp.octane.plugins.jenkins.tests.TestResultContainer;
+import com.hp.octane.plugins.jenkins.tests.build.BuildHandlerUtils;
 import com.hp.octane.plugins.jenkins.tests.detection.ResultFields;
 import hudson.FilePath;
 import hudson.model.AbstractBuild;
@@ -21,7 +22,6 @@ public class TestResultXmlWriter {
 
     private FilePath targetPath;
     private AbstractBuild build;
-    private ResultFields resultFields;
 
     private XMLStreamWriter writer;
     private OutputStream outputStream;
@@ -31,12 +31,9 @@ public class TestResultXmlWriter {
         this.build = build;
     }
 
-    public void setResultFields(final ResultFields resultFields) {
-        this.resultFields = resultFields;
-    }
-
-    public void add(Iterator<TestResult> items) throws InterruptedException, XMLStreamException, IOException {
-        initialize();
+    public void add(TestResultContainer container) throws InterruptedException, XMLStreamException, IOException {
+        Iterator<TestResult> items = container.getIterator();
+        initialize(container.getResultFields());
 
         while (items.hasNext()) {
             TestResult item = items.next();
@@ -62,7 +59,7 @@ public class TestResultXmlWriter {
         }
     }
 
-    private void initialize() throws IOException, InterruptedException, XMLStreamException {
+    private void initialize(ResultFields resultFields) throws IOException, InterruptedException, XMLStreamException {
         if (outputStream == null) {
             outputStream = targetPath.write();
             writer = possiblyCreateIndentingWriter(XMLOutputFactory.newInstance().createXMLStreamWriter(outputStream));
@@ -74,12 +71,12 @@ public class TestResultXmlWriter {
             writer.writeAttribute("buildType", BuildHandlerUtils.getBuildType(build));
             writer.writeAttribute("buildSid", String.valueOf(build.getNumber()));
             writer.writeEndElement(); // build
-            writeFields();
+            writeFields(resultFields);
             writer.writeStartElement("tests");
         }
     }
 
-    private void writeFields() throws XMLStreamException {
+    private void writeFields(ResultFields resultFields) throws XMLStreamException {
         if (resultFields != null) {
             writer.writeStartElement("fields");
             writeField("Framework", resultFields.getFramework());
