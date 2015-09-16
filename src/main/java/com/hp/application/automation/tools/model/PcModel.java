@@ -22,11 +22,13 @@ public class PcModel {
     private final PostRunAction    postRunAction;
     private final boolean          vudsMode;
     private final String           description;
+    private final boolean          addRunToTrendReport;
+    private final String trendReportId;
 
     @DataBoundConstructor
     public PcModel(String pcServerName, String almUserName, String almPassword, String almDomain, String almProject,
-            String testId, String testInstanceId, String timeslotDurationHours, String timeslotDurationMinutes,
-            PostRunAction postRunAction, boolean vudsMode, String description) {
+                   String testId, String testInstanceId, String timeslotDurationHours, String timeslotDurationMinutes,
+                   PostRunAction postRunAction, boolean vudsMode, String description, boolean addRunToTrendReport, String trendReportId) {
 
         this.pcServerName = pcServerName;
         this.almUserName = almUserName;
@@ -39,6 +41,8 @@ public class PcModel {
         this.postRunAction = postRunAction;
         this.vudsMode = vudsMode;
         this.description = description;
+        this.addRunToTrendReport = addRunToTrendReport;
+        this.trendReportId = trendReportId;
     }
 
     protected SecretContainer setPassword(String almPassword) {
@@ -103,6 +107,8 @@ public class PcModel {
         return this.description;
     }
 
+
+
     public static List<PostRunAction> getPostRunActions() {
         return Arrays.asList(PostRunAction.values());
     }
@@ -124,4 +130,12 @@ public class PcModel {
         		timeslotDuration, postRunAction.getValue(), vudsModeString);
     }
 
+
+    public String getTrendReportId() {
+        return trendReportId;
+    }
+
+    public boolean isAddRunToTrendReport() {
+        return addRunToTrendReport;
+    }
 }
