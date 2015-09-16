@@ -24,9 +24,12 @@ hr{
     clear:both;
     border:none;
 }
+.control{
+    width:500px;
+}
 </style>
 <div class="control">
-    [@ww.textfield name="RunFromFileSystemTaskConfigurator.taskId" disabled="true"/]
+    [@ww.textfield name="RunFromFileSystemTask.taskId" disabled="true"/]
 </div>
 <hr>
 <div class="control">
@@ -54,6 +57,11 @@ hr{
 </div>
 
 <script  type="text/javascript">
+    var customWidth = "500px";
+    document.getElementById('timeoutInput').style.maxWidth=customWidth;
+    document.getElementById('testPathInput').style.maxWidth=customWidth;
+    document.getElementById('publishMode').style.maxWidth=customWidth;
+
     function toggle_visibility(id) {
         var e = document.getElementById(id);
         if(e.style.display == 'block')
