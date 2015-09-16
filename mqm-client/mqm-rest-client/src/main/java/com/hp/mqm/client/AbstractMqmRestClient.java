@@ -1,13 +1,16 @@
 package com.hp.mqm.client;
 
 import com.hp.mqm.client.exception.AuthenticationException;
+import com.hp.mqm.client.exception.ExceptionStackTraceParser;
 import com.hp.mqm.client.exception.LoginErrorException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
+import com.hp.mqm.client.exception.ServerException;
 import com.hp.mqm.client.exception.SessionCreationException;
 import com.hp.mqm.client.exception.SharedSpaceNotExistException;
 import com.hp.mqm.client.model.PagedList;
 import net.sf.json.JSONArray;
+import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
@@ -50,6 +53,7 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
+    private static final Logger logger = Logger.getLogger(AbstractMqmRestClient.class.getName());
 
 	private static final String URI_AUTHENTICATION = "authentication/sign_in";
 	private static final String URI_CREATE_SESSION = "rest/site-session";
@@ -431,7 +435,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 		try {
 			response = execute(request);
 			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-				throw new RequestException("Entity retrieval failed with status code " + response.getStatusLine().getStatusCode() + " and reason " + response.getStatusLine().getReasonPhrase());
+                throw createRequestException("Entity retrieval failed", response);
 			}
 			String entitiesJson = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
 			JSONObject entities =  JSONObject.fromObject(entitiesJson);
@@ -473,6 +477,47 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 			return createWorkspaceApiUriMap(template.toString(), workspaceId, params);
 		} else {
 			return createSharedSpaceApiUriMap(template.toString(), params);
+		}
+	}
+
+	protected RequestException createRequestException(String message, HttpResponse response) {
+		String description = null;
+		String stackTrace = null;
+		String errorCode = null;
+		try {
+			String json = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
+			JSONObject jsonObject = JSONObject.fromObject(json);
+			if (jsonObject.has("error_code") && jsonObject.has("description")) {
+				// exception response
+				errorCode = jsonObject.getString("error_code");
+				description = jsonObject.getString("description");
+				// stack trace may not be present in production
+				stackTrace = jsonObject.optString("stack_trace");
+			}
+		} catch (IOException e) {
+			logger.log(Level.SEVERE, "Unable to determine failure message: ", e);
+		} catch (JSONException e) {
+			logger.log(Level.SEVERE, "Unable to determine failure message: ", e);
+		}
+
+		ServerException cause = null;
+		if (!StringUtils.isEmpty(stackTrace)) {
+			try {
+				Throwable parsedException = ExceptionStackTraceParser.parseException(stackTrace);
+				cause = new ServerException("Exception thrown on server, see cause", parsedException);
+			} catch (RuntimeException e) {
+				// the parser is best-effort code, don't fail if anything goes wrong
+				logger.log(Level.SEVERE, "Unable to parse server stacktrace: ", e);
+			}
+		}
+		int statusCode = response.getStatusLine().getStatusCode();
+		String reason = response.getStatusLine().getReasonPhrase();
+		if (!StringUtils.isEmpty(errorCode)) {
+			return new RequestException(message + "; error code: " + errorCode + "; description: " + description,
+					description, errorCode, statusCode, reason, cause);
+		} else {
+			return new RequestException(message + "; status code " + statusCode + "; reason " + reason,
+					description, errorCode, statusCode, reason, cause);
 		}
 	}
 

@@ -137,7 +137,7 @@ public class TestSupportClient extends AbstractMqmRestClient {
 
         List<String> buildConditions = new LinkedList<String>();
         buildConditions.add(conditionRef("ci_job", jobs.getItems().get(0).getInt("id")));
-        buildConditions.add(condition("number", String.valueOf(number)));
+        buildConditions.add(condition("name", String.valueOf(number)));
         PagedList<JSONObject> builds = getEntities(getEntityURI(URI_BUILDS, buildConditions, workspaceId, 0, 1, null), 0, new JsonEntityFactory());
         return !builds.getItems().isEmpty();
     }
