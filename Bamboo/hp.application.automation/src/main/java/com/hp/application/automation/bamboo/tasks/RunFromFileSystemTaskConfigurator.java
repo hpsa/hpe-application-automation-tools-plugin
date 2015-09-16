@@ -31,9 +31,9 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 	public static final String PUBLISH_MODE_ALWAYS_VALUE = "always";
 	public static final String PUBLISH_MODE_FAILED_VALUE = "failed";
 	public static final String PUBLISH_MODE_NEVER_VALUE = "never";
-	public static final String TASK_NAME_VALUE = "RunFromFileSystemTaskConfigurator.taskName";
-	private static final String TASK_ID_CONTROL = "RunFromFileSystemTaskConfigurator.taskId";
-	private static final String TASK_ID_LBL = "RunFromFileSystemTaskConfigurator.taskIdLbl";
+	public static final String TASK_NAME_VALUE = "RunFromFileSystemTask.taskName";
+	private static final String TASK_ID_CONTROL = "RunFromFileSystemTask.taskId";
+	private static final String TASK_ID_LBL = "CommonTask.taskIdLbl";
 
 	private ArtifactDefinitionManager artifactDefinitionManager;
 	private Job job;

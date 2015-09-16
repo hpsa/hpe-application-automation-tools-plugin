@@ -146,21 +146,4 @@ public final class TestResultHelper
             }
         }
     }
-
-    private static File getCheckoutDirectory(BuildContext buildContext) {
-        Iterator<Long> repoIdIterator = buildContext.getRelevantRepositoryIds().iterator();
-        if (repoIdIterator.hasNext()) {
-            long repoId = repoIdIterator.next();
-            String checkoutLocation = buildContext.getCheckoutLocation().get(repoId);
-            if (StringUtils.isNotBlank(checkoutLocation)) {
-                return new File(checkoutLocation);
-            }
-        }
-        return null;
-    }
-
-    public static String getBuildRunPath(TaskContext taskContext){
-        return HP_UFT_PREFIX + taskContext.getBuildContext().getBuildNumber();
-    }
-
 }
