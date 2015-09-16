@@ -67,7 +67,7 @@ public class JUnitExtension extends MqmTestsExtension {
         if (resultFile.exists()) {
             logger.fine("JUnit result report found");
             ResultFields detectedFields = resultFieldsDetectionService.getDetectedFields(build);
-            FilePath filePath = build.getWorkspace().act(new GetJUnitTestResults(build, Arrays.asList(resultFile), detectedFields));
+            FilePath filePath = build.getWorkspace().act(new GetJUnitTestResults(build, Arrays.asList(resultFile), shallStripPackageAndClass(detectedFields)));
             return new TestResultContainer(new ObjectStreamIterator<TestResult>(filePath, true), detectedFields);
         } else {
             //avoid java.lang.NoClassDefFoundError when maven plugin is not present
@@ -88,13 +88,20 @@ public class JUnitExtension extends MqmTestsExtension {
                 }
                 if (!resultFiles.isEmpty()) {
                     ResultFields detectedFields = resultFieldsDetectionService.getDetectedFields(build);
-                    FilePath filePath = build.getWorkspace().act(new GetJUnitTestResults(build, resultFiles, detectedFields));
+                    FilePath filePath = build.getWorkspace().act(new GetJUnitTestResults(build, resultFiles, shallStripPackageAndClass(detectedFields)));
                     return new TestResultContainer(new ObjectStreamIterator<TestResult>(filePath, true), detectedFields);
                 }
             }
             logger.fine("No JUnit result report found");
             return null;
         }
+    }
+
+    private boolean shallStripPackageAndClass(ResultFields resultFields) {
+        if (resultFields == null) {
+            return false;
+        }
+        return resultFields.equals(new ResultFields("UFT", "UFT", null));
     }
 
     private static class GetJUnitTestResults implements FilePath.FileCallable<FilePath>  {
@@ -104,14 +111,14 @@ public class JUnitExtension extends MqmTestsExtension {
         private List<ModuleDetection> moduleDetection;
         private long buildStarted;
         private FilePath workspace;
-        private ResultFields detectedFields;
+        private boolean stripPackageAndClass;
 
-        public GetJUnitTestResults(AbstractBuild<?, ?> build, List<FilePath> reports, ResultFields detectedFields) throws IOException, InterruptedException {
+        public GetJUnitTestResults(AbstractBuild<?, ?> build, List<FilePath> reports, boolean stripPackageAndClass) throws IOException, InterruptedException {
             this.reports = reports;
             this.filePath = new FilePath(build.getRootDir()).createTempFile(getClass().getSimpleName(), null);
             this.buildStarted = build.getStartTimeInMillis();
             this.workspace = build.getWorkspace();
-            this.detectedFields = detectedFields;
+            this.stripPackageAndClass = stripPackageAndClass;
 
             moduleDetection = Arrays.asList(
                     new MavenBuilderModuleDetection(build),
@@ -127,7 +134,7 @@ public class JUnitExtension extends MqmTestsExtension {
 
             try {
                 for (FilePath report: reports) {
-                    JUnitXmlIterator iterator = new JUnitXmlIterator(report.read(), detectedFields);
+                    JUnitXmlIterator iterator = new JUnitXmlIterator(report.read(), stripPackageAndClass);
                     while (iterator.hasNext()) {
                         oos.writeObject(iterator.next());
                     }
@@ -163,7 +170,7 @@ public class JUnitExtension extends MqmTestsExtension {
 
         private class JUnitXmlIterator extends AbstractXmlIterator<TestResult> {
 
-            private final ResultFields resultFields;
+            private boolean stripPackageAndClass;
             private String moduleName;
             private String packageName;
             private String className;
@@ -171,9 +178,9 @@ public class JUnitExtension extends MqmTestsExtension {
             private long duration;
             private TestResultStatus status;
 
-            public JUnitXmlIterator(InputStream read, ResultFields resultFields) throws XMLStreamException {
+            public JUnitXmlIterator(InputStream read, boolean stripPackageAndClass) throws XMLStreamException {
                 super(read);
-                this.resultFields = resultFields;
+                this.stripPackageAndClass = stripPackageAndClass;
             }
 
             @Override
@@ -229,7 +236,7 @@ public class JUnitExtension extends MqmTestsExtension {
                     String localName = element.getName().getLocalPart();
 
                     if ("case".equals(localName)) { // NON-NLS
-                        if (isUFT()) {
+                        if (stripPackageAndClass) {
                             //workaround only for UFT - we do not want packageName="All-Tests" and className="&lt;None>" as it comes from JUnit report
                             addItem(new TestResult(moduleName, "", "", testName, status, duration, buildStarted));
                         } else {
@@ -237,13 +244,6 @@ public class JUnitExtension extends MqmTestsExtension {
                         }
                     }
                 }
-            }
-
-            private boolean isUFT() {
-                if (resultFields == null) {
-                    return false;
-                }
-                return resultFields.equals(new ResultFields("UFT", "UFT", null));
             }
         }
     }

@@ -22,7 +22,6 @@ public class TestResultXmlWriter {
 
     private FilePath targetPath;
     private AbstractBuild build;
-    private ResultFields resultFields;
 
     private XMLStreamWriter writer;
     private OutputStream outputStream;
@@ -34,8 +33,7 @@ public class TestResultXmlWriter {
 
     public void add(TestResultContainer container) throws InterruptedException, XMLStreamException, IOException {
         Iterator<TestResult> items = container.getIterator();
-        resultFields = container.getResultFields();
-        initialize();
+        initialize(container.getResultFields());
 
         while (items.hasNext()) {
             TestResult item = items.next();
@@ -61,7 +59,7 @@ public class TestResultXmlWriter {
         }
     }
 
-    private void initialize() throws IOException, InterruptedException, XMLStreamException {
+    private void initialize(ResultFields resultFields) throws IOException, InterruptedException, XMLStreamException {
         if (outputStream == null) {
             outputStream = targetPath.write();
             writer = possiblyCreateIndentingWriter(XMLOutputFactory.newInstance().createXMLStreamWriter(outputStream));
@@ -73,12 +71,12 @@ public class TestResultXmlWriter {
             writer.writeAttribute("buildType", BuildHandlerUtils.getBuildType(build));
             writer.writeAttribute("buildSid", String.valueOf(build.getNumber()));
             writer.writeEndElement(); // build
-            writeFields();
+            writeFields(resultFields);
             writer.writeStartElement("tests");
         }
     }
 
-    private void writeFields() throws XMLStreamException {
+    private void writeFields(ResultFields resultFields) throws XMLStreamException {
         if (resultFields != null) {
             writer.writeStartElement("fields");
             writeField("Framework", resultFields.getFramework());
