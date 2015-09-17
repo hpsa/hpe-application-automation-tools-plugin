@@ -100,7 +100,7 @@ public final class TestResultHelper
         StringBuilder fileName = new StringBuilder(taskContext.getWorkingDirectory().toString());
         String taskName = taskContext.getConfigurationMap().get(CommonTaskConfigurationProperties.TASK_NAME);
         fileName.append("\\").append(HP_UFT_PREFIX).append(taskContext.getBuildContext().getBuildNumber())
-                .append("\\").append(String.format("%03d", taskContext.getId())).append(" "+taskName+"\\");
+                .append("\\").append(String.format("%03d", taskContext.getId())).append("_"+taskName+"\\");
         return fileName.toString();
     }
 
