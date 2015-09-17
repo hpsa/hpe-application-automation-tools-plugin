@@ -5,14 +5,17 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>bamboo</groupId>
+    <groupId>com.atlassian.plugins.bamboo</groupId>
     <artifactId>hp.application.automation</artifactId>
+    <!--<artifactId>hp.application.automation.bamboo</artifactId>-->
     <version>1.0</version>
 
     <organization>
-        <name>Example Company</name>
-        <url>http://www.example.com/</url>
+        <name>HP Software</name>
+        <url>http://www.hp.com/</url>
     </organization>
+
+    <!--<url></url>-->
 
     <name>HP Application UFT Bamboo Plugin</name>
     <description>This is the bamboo:hp.application.automation plugin for Atlassian Bamboo.</description>
