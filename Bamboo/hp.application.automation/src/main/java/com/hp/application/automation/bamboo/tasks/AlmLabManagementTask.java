@@ -18,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 public class AlmLabManagementTask implements TaskType {
 
 	private final TestCollationService testCollationService;
+    private final String LINK_SEARCH_FILTER = "run report for run id";
 	
 	public AlmLabManagementTask(TestCollationService testCollationService){
 		this.testCollationService = testCollationService;
@@ -90,6 +91,7 @@ public class AlmLabManagementTask implements TaskType {
         }
 
         TestResultHelper.CollateResults(testCollationService, taskContext);
+        TestResultHelper.AddALMArtifacts(taskContext, LINK_SEARCH_FILTER);
 
         return TaskResultBuilder.create(taskContext).checkTestFailures().build();
     }

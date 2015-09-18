@@ -32,12 +32,6 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 	private static final String TASK_ID_CONTROL = "RunFromFileSystemTask.taskId";
 	private static final String TASK_ID_LBL = "CommonTask.taskIdLbl";
 
-	private ArtifactDefinitionManager artifactDefinitionManager;
-
-	public void setArtifactDefinitionManager(ArtifactDefinitionManager artifactDefinitionManager){
-		this.artifactDefinitionManager = artifactDefinitionManager;
-	}
-
 	public Map<String, String> generateTaskConfigMap(@NotNull final ActionParametersMap params, @Nullable final TaskDefinition previousTaskDefinition)
 	{
 		final Map<String, String> config = super.generateTaskConfigMap(params, previousTaskDefinition);
@@ -75,8 +69,6 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 
 	@Override
 	public void populateContextForCreate(@NotNull final Map<String, Object> context) {
-
-		(new HpTasksArtifactRegistrator()).registerCommonArtifact(context.get("plan"), getI18nBean(), this.artifactDefinitionManager);
 
 		super.populateContextForCreate(context);
 
