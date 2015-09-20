@@ -13,13 +13,12 @@
 	<properties>
 		<DEPLOY_TARGET>localhost</DEPLOY_TARGET>
 		<JETTY_PORT>8081</JETTY_PORT>
-		<serverUrl>http://${DEPLOY_TARGET}:${JETTY_PORT}/qcbin</serverUrl>
+		<serverUrl>http://${DEPLOY_TARGET}:${JETTY_PORT}/</serverUrl>
 		<saUser>sa</saUser>
-		<domain>UNITEST</domain>
-		<project></project>
 		<projectUserName></projectUserName>
 		<projectUserPassword></projectUserPassword>
-		
+		<workspaceName></workspaceName>
+		<sharedspaceName></sharedspaceName>
 		<overwrite>true</overwrite>
 		<include.tests>**/*Test.java</include.tests>
 	</properties>
@@ -90,10 +89,10 @@
 									<argLine>${failsafe.argline}</argLine>
 									<systemPropertyVariables>
 										<mqm.location>${serverUrl}</mqm.location>
-										<mqm.domain>${domain}</mqm.domain>
-										<mqm.project>${project}</mqm.project>
 										<mqm.user>${projectUserName}</mqm.user>
 										<mqm.password>${projectUserPassword}</mqm.password>
+										<mqm.workspace>${workspaceName}</mqm.workspace>
+										<mqm.sharedSpace>${sharedspaceName}</mqm.sharedSpace>
 									</systemPropertyVariables>
 								</configuration>
 							</execution>
