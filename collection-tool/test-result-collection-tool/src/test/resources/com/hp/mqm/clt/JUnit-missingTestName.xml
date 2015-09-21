@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuite tests="5" failures="0" name="com.examples.example.SampleClass" time="0.056" errors="0" skipped="2">
+    <properties>
+        <property name="java.runtime.name" value="Java(TM) SE Runtime Environment"/>
+        <property name="java.vm.vendor" value="Oracle Corporation"/>
+        <property name="java.vendor.url" value="http://java.oracle.com/"/>
+        <property name="guice.disable.misplaced.annotation.check" value="true"/>
+        <property name="java.vm.name" value="Java HotSpot(TM) 64-Bit Server VM"/>
+        <property name="file.encoding.pkg" value="sun.io"/>
+        <property name="user.script" value=""/>
+        <property name="user.country" value="US"/>
+        <property name="sun.java.launcher" value="SUN_STANDARD"/>
+        <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+        <property name="file.separator" value="\"/>
+        <property name="java.vendor.url.bug" value="http://bugreport.sun.com/bugreport/"/>
+        <property name="sun.cpu.endian" value="little"/>
+        <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
+    </properties>
+    <testcase classname="com.examples.example.SampleClass" name="testOne" time="0.002"/>
+    <testcase classname="com.examples.example.SampleClass" name="testTwo" time="0.005">
+        <skipped/>
+    </testcase>
+    <testcase classname="com.examples.example.SampleClass" name="testThree" time="0.005">
+        <skipped/>
+    </testcase>
+    <testcase classname="com.examples.example.SampleClass" time="0"/>
+    <testcase classname="com.examples.example.SampleClass" name="" time="0"/>
+</testsuite>

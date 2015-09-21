@@ -1,22 +1,26 @@
 package com.hp.mqm.clt;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.List;
 import java.util.Properties;
 
 public class Settings {
 
+    private static final String DEFAULT_CONFIG_FILENAME = "config.properties";
+
     private static final String PROP_SERVER = "server";
-    private static final String PROP_DOMAIN = "domain";
-    private static final String PROP_PROJECT = "project";
+    private static final String PROP_SHARED_SPACE = "sharedspace";
     private static final String PROP_WORKSPACE = "workspace";
     private static final String PROP_USER = "user";
     private static final String PROP_PASSWORD_FILE = "passwordFile";
 
     private String server;
-    private String domain;
-    private String project;
+    private Integer sharedspace;
     private Integer workspace;
 
     private String user;
@@ -41,14 +45,26 @@ public class Settings {
 
     private List<String> fileNames;
 
-    public void load(String filename) throws IOException {
+    private DefaultConfigFilenameProvider defaultConfigFilenameProvider = new ImplDefaultConfigFilenameProvider();
+
+    public void load(String filename) throws IOException, URISyntaxException {
+        File propertiesFile = null;
+        URL defaultConfigFile = getClass().getResource(defaultConfigFilenameProvider.getDefaultConfigFilename());
+        if (filename != null) {
+            propertiesFile = new File(filename);
+        } else if (defaultConfigFile != null) {
+            propertiesFile = new File(defaultConfigFile.toURI());
+        }
+        if (propertiesFile == null || !propertiesFile.canRead()) {
+            return;
+        }
+
         Properties properties = new Properties();
-        InputStream inputStream = getClass().getResourceAsStream(filename);
+        InputStream inputStream = new FileInputStream(propertiesFile);
         properties.load(inputStream);
         inputStream.close();
         server = properties.getProperty(PROP_SERVER);
-        domain = properties.getProperty(PROP_DOMAIN);
-        project = properties.getProperty(PROP_PROJECT);
+        sharedspace = properties.getProperty(PROP_SHARED_SPACE) != null ? Integer.valueOf(properties.getProperty(PROP_SHARED_SPACE)) : null;
         workspace = properties.getProperty(PROP_WORKSPACE) != null ? Integer.valueOf(properties.getProperty(PROP_WORKSPACE)) : null;
         user = properties.getProperty(PROP_USER);
         passwordFile = properties.getProperty(PROP_PASSWORD_FILE);
@@ -62,20 +78,12 @@ public class Settings {
         this.server = server;
     }
 
-    public String getDomain() {
-        return domain;
+    public Integer getSharedspace() {
+        return sharedspace;
     }
 
-    public void setDomain(String domain) {
-        this.domain = domain;
-    }
-
-    public String getProject() {
-        return project;
-    }
-
-    public void setProject(String project) {
-        this.project = project;
+    public void setSharedspace(Integer sharedspace) {
+        this.sharedspace = sharedspace;
     }
 
     public Integer getWorkspace() {
@@ -212,5 +220,25 @@ public class Settings {
 
     public void setFileNames(List<String> fileNames) {
         this.fileNames = fileNames;
+    }
+
+    /**
+     * To be used by tests only.
+     */
+    public void setDefaultConfigFilenameProvider(DefaultConfigFilenameProvider defaultConfigFilenameProvider) {
+        this.defaultConfigFilenameProvider = defaultConfigFilenameProvider;
+    }
+
+    private static class ImplDefaultConfigFilenameProvider implements DefaultConfigFilenameProvider {
+        @Override
+        public String getDefaultConfigFilename() {
+            return DEFAULT_CONFIG_FILENAME;
+        }
+    }
+
+    public interface DefaultConfigFilenameProvider {
+
+        String getDefaultConfigFilename();
+
     }
 }
