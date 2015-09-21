@@ -28,14 +28,14 @@ public class Bridge {
 	private JenkinsMqmRestClientFactory restClientFactory;
 
 	public Bridge(ServerConfiguration mqmConfig, JenkinsMqmRestClientFactory clientFactory) {
-		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.abridged, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
+		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.abridged, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password,mqmConfig.impersonatedUser);
 		this.restClientFactory = clientFactory;
 		if (this.mqmConfig.abridged) connect();
 		logger.info("BRIDGE: new bridge initialized for '" + this.mqmConfig.location + "', state: " + (this.mqmConfig.abridged ? "abridged" : "direct") + " connectivity");
 	}
 
 	public void update(ServerConfiguration mqmConfig) {
-		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.abridged, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
+		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.abridged, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password,mqmConfig.impersonatedUser);
 		if (mqmConfig.abridged && openedConnections.get() < CONCURRENT_CONNECTIONS) connect();
 		logger.info("BRIDGE: updated for '" + this.mqmConfig.location + "', state: " + (this.mqmConfig.abridged ? "abridged" : "direct") + " connectivity");
 	}

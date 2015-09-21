@@ -55,6 +55,8 @@ public class ConfigApi {
 		}
 		boolean abridged = configuration.containsKey("abridged") ? configuration.getBoolean("abridged") : true;
 
+		String impersonatedUser = configuration.getString("impersonatedUser");
+
 		String username, password;
 		if (!configuration.containsKey("username")) {
 			// when username is not provided, use existing credentials (password can be overridden later)
@@ -70,7 +72,7 @@ public class ConfigApi {
 			password = configuration.getString("password");
 		}
 		OctanePlugin octanePlugin = Jenkins.getInstance().getPlugin(OctanePlugin.class);
-		octanePlugin.configurePlugin(uiLocation, abridged, username, password);
+		octanePlugin.configurePlugin(uiLocation, abridged, username, password,impersonatedUser);
 		String serverIdentity = (String) configuration.get("serverIdentity");
 		if (!StringUtils.isEmpty(serverIdentity)) {
 			octanePlugin.setIdentity(serverIdentity);
@@ -90,6 +92,7 @@ public class ConfigApi {
 				serverConfiguration.sharedSpace,
 				serverConfiguration.abridged,
 				serverConfiguration.username,
+				serverConfiguration.impersonatedUser,
 				ServerIdentity.getIdentity());
 	}
 
@@ -101,18 +104,26 @@ public class ConfigApi {
 		private Boolean abridged;
 		private String username;
 		private String serverIdentity;
+		private String impersonatedUser;
 
-		public Configuration(String location, String sharedSpace, Boolean abridged, String username, String serverIdentity) {
+
+		public Configuration(String location, String sharedSpace, Boolean abridged, String username, String impersonatedUser,String serverIdentity) {
 			this.location = location;
 			this.sharedSpace = sharedSpace;
 			this.abridged = abridged;
 			this.username = username;
+			this.impersonatedUser = impersonatedUser;
 			this.serverIdentity = serverIdentity;
 		}
 
 		@Exported(inline = true)
 		public String getLocation() {
 			return location;
+		}
+
+		@Exported(inline = true)
+		public String getImpersonatedUser() {
+			return impersonatedUser;
 		}
 
 		@Exported(inline = true)
