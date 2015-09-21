@@ -113,51 +113,49 @@ public class ProjectActions extends TransientProjectActionFactory {
         public void doRun(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
             SecurityContext context = null;
             String user = Jenkins.getInstance().getPlugin(OctanePlugin.class).getImpersonatedUser();
-            User jenkinsUser = User.get(user, false);
-            if (jenkinsUser != null) {
 
-                context = ACL.impersonate(User.get(user).impersonate());
-                BuildAuthorizationToken.checkPermission((Job) project, project.getAuthToken(), req, res);
-
-                int delay = project.getQuietPeriod();
-                ParametersAction parametersAction = new ParametersAction();
-
-                String bodyText = "";
-                byte[] buffer = new byte[1024];
-                int readLen;
-                while ((readLen = req.getInputStream().read(buffer)) > 0) {
-                    bodyText += new String(buffer, 0, readLen);
-                }
-
-                if (!bodyText.isEmpty()) {
-                    JSONObject bodyJSON = JSONObject.fromObject(bodyText);
-
-                    //  delay
-                    if (bodyJSON.has("delay") && bodyJSON.get("delay") != null) {
-                        delay = bodyJSON.getInt("delay");
-                    }
-
-                    //  parameters
-                    if (bodyJSON.has("parameters") && bodyJSON.get("parameters") != null) {
-                        JSONArray paramsJSON = bodyJSON.getJSONArray("parameters");
-                        parametersAction = new ParametersAction(createParameters(paramsJSON));
-                    }
-                }
-                boolean success = project.scheduleBuild(delay, new Cause.RemoteCause(req.getRemoteHost(), "octane driven execution"), parametersAction);
-                if (success) {
-                    res.setStatus(201);
-                } else {
-                    res.setStatus(500);
-                }
-                if (user != null) {
-                    ACL.impersonate(context.getAuthentication());
-                }
-            } else {
-                logger.severe("MQM Plugin is configured with impersonated user as '" + user + "' but such user does not exist");
-                res.setStatus(501);
+            if (!user.equalsIgnoreCase("")) {
+                User jenkinsUser = User.get(user, false);
+                context = ACL.impersonate(jenkinsUser.impersonate());
             }
 
+            BuildAuthorizationToken.checkPermission((Job) project, project.getAuthToken(), req, res);
+
+            int delay = project.getQuietPeriod();
+            ParametersAction parametersAction = new ParametersAction();
+
+            String bodyText = "";
+            byte[] buffer = new byte[1024];
+            int readLen;
+            while ((readLen = req.getInputStream().read(buffer)) > 0) {
+                bodyText += new String(buffer, 0, readLen);
+            }
+
+            if (!bodyText.isEmpty()) {
+                JSONObject bodyJSON = JSONObject.fromObject(bodyText);
+
+                //  delay
+                if (bodyJSON.has("delay") && bodyJSON.get("delay") != null) {
+                    delay = bodyJSON.getInt("delay");
+                }
+
+                //  parameters
+                if (bodyJSON.has("parameters") && bodyJSON.get("parameters") != null) {
+                    JSONArray paramsJSON = bodyJSON.getJSONArray("parameters");
+                    parametersAction = new ParametersAction(createParameters(paramsJSON));
+                }
+            }
+            boolean success = project.scheduleBuild(delay, new Cause.RemoteCause(req.getRemoteHost(), "octane driven execution"), parametersAction);
+            if (success) {
+                res.setStatus(201);
+            } else {
+                res.setStatus(500);
+            }
+            if (context != null) {
+                ACL.impersonate(context.getAuthentication());
+            }
         }
+
 
         private List<ParameterValue> createParameters(JSONArray paramsJSON) {
             List<ParameterValue> result = new ArrayList<ParameterValue>();
@@ -227,6 +225,7 @@ public class ProjectActions extends TransientProjectActionFactory {
         private void completeLackParameterWithDefaults() {
             //  TODO:
         }
+
     }
 
     @Override
