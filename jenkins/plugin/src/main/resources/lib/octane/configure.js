@@ -330,9 +330,9 @@ function octane_job_configuration(target, progress, proxy) {
                 var tagTr;
                 var group = groupBy[tag.tagTypeName];
                 if (typeof group !== 'object') {
-                    tagTr = $("<tr><td class='setting-name'><label/></td>");
+                    tagTr = $("<tr><td class='setting-name'></td>");
                     tagsTbody.append(tagTr);
-                    tagTr.find("label").text(tag.tagTypeName + ":");
+                    tagTr.find("td").text(tag.tagTypeName + ":").attr("title", tag.tagTypeName);
                     tagTd = $("<td class='setting-main' colspan='2'/>");
                     tagTr.append(tagTd);
                     group = {
@@ -348,7 +348,7 @@ function octane_job_configuration(target, progress, proxy) {
 
                 var tagDiv = $("<div class='tag'><span/><a class='remove' href='javascript:void(0)'>X</a></div>");
                 tagTd.append(tagDiv).append(" ");
-                tagDiv.find("span").text(tag.tagName);
+                tagDiv.find("span").text(tag.tagName).attr("title", tag.tagName);
                 var anchor = tagDiv.find("a");
                 enableDirtyClickCheck(anchor);
                 anchor.on("click", function() {
@@ -555,7 +555,7 @@ function octane_job_configuration(target, progress, proxy) {
             selectedWorkspaceId = jobConfiguration.currentPipeline.workspaceId;
             var pipelineSelector = undefined;
 
-            var selectWorkspaceDiv = $("<div class='mutton rpos' id='select-workspace-div'><label class='workspace-select' for='workspace-select'>Workspace:</label><select/></div>");
+            var selectWorkspaceDiv = $("<div class='mutton rpos' id='select-workspace-div'><label for='workspace-select'>Workspace:</label><select/></div>");
             var workspaceSelect = selectWorkspaceDiv.find("select");
 
             //sort workspaces by name to show in UI
