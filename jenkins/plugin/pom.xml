@@ -127,20 +127,6 @@
 			<artifactId>mqm-rest-client</artifactId>
 			<version>12.50.22-SNAPSHOT</version>
 		</dependency>
-		<!-- Following two dependencies must be explicitly defined because HPI plugin does not package
-             libraries which are in core (in this case in maven-plugin) -->
-		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpclient</artifactId>
-			<!-- version must be same as in org.jenkins-ci.main:maven-plugin -->
-			<version>4.2.5</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpcore</artifactId>
-			<!-- version must be same as in org.jenkins-ci.main:maven-plugin -->
-			<version>4.2.4</version>
-		</dependency>
 
 		<!--Test-->
 
