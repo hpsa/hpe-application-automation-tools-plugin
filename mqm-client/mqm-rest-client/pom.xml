@@ -14,14 +14,6 @@
 			<groupId>com.hp.mqm.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
 		</dependency>
-        <dependency>
-            <groupId>com.hp.mqm.httpcomponents</groupId>
-            <artifactId>httpcore</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-         </dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
