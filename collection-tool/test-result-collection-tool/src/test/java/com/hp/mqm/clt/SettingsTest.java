@@ -18,7 +18,6 @@ public class SettingsTest {
         assertEquals(Integer.valueOf(1001), settings.getSharedspace());
         assertEquals(Integer.valueOf(1002), settings.getWorkspace());
         assertEquals("admin", settings.getUser());
-        assertEquals("password.txt", settings.getPasswordFile());
     }
 
     @Test
@@ -29,7 +28,6 @@ public class SettingsTest {
         assertNull(settings.getSharedspace());
         assertNull(settings.getWorkspace());
         assertNull(settings.getUser());
-        assertNull(settings.getPasswordFile());
 
         settings.setDefaultConfigFilenameProvider(new TestDefaultConfigFilenameProvider());
         settings.load(null);
@@ -37,7 +35,6 @@ public class SettingsTest {
         assertEquals(Integer.valueOf(1011), settings.getSharedspace());
         assertEquals(Integer.valueOf(1012), settings.getWorkspace());
         assertEquals("user", settings.getUser());
-        assertNull(settings.getPasswordFile());
     }
 
     private class TestDefaultConfigFilenameProvider implements Settings.DefaultConfigFilenameProvider {

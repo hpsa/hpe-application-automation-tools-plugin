@@ -4,6 +4,8 @@ import com.hp.mqm.clt.tests.TestResult;
 import com.hp.mqm.clt.tests.TestResultStatus;
 import org.apache.commons.lang.StringUtils;
 
+import javax.xml.bind.DatatypeConverter;
+import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.EndElement;
@@ -20,8 +22,9 @@ public class JUnitXmlIterator extends AbstractXmlIterator<TestResult> {
     private String packageName;
     private String className;
     private String testName;
-    private long duration;
     private TestResultStatus status;
+    private long duration;
+    private long started;
 
     public JUnitXmlIterator(InputStream read) throws XMLStreamException {
         super(read);
@@ -32,12 +35,15 @@ public class JUnitXmlIterator extends AbstractXmlIterator<TestResult> {
         if (event instanceof StartElement) {
             StartElement element = (StartElement) event;
             String localName = element.getName().getLocalPart();
-            if ("testcase".equals(localName)) { // NON-NLS
+            if ("testsuite".equals(localName)) { // NON-NLS
+                Attribute timestamp = element.getAttributeByName(new QName("timestamp")); // NON-NLS
+                started = (timestamp == null) ? 0 : parseDateTime(timestamp.getValue());
+            } else if ("testcase".equals(localName)) { // NON-NLS
                 packageName = "";
                 className = "";
                 testName = "";
-                duration = 0;
                 status = TestResultStatus.PASSED;
+                duration = 0;
 
                 Iterator iterator = element.getAttributes();
                 while (iterator.hasNext()) {
@@ -62,9 +68,19 @@ public class JUnitXmlIterator extends AbstractXmlIterator<TestResult> {
             String localName = element.getName().getLocalPart();
 
             if ("testcase".equals(localName) && StringUtils.isNotEmpty(testName)) { // NON-NLS
-                addItem(new TestResult(packageName, className, testName, status, duration));
+                addItem(new TestResult(packageName, className, testName, status, duration, started));
             }
         }
+    }
+
+    private long parseDateTime(String dateTimeString) {
+        try {
+            // Should be in ISO 8601 format
+            return DatatypeConverter.parseDateTime(dateTimeString).getTimeInMillis();
+        } catch (IllegalArgumentException e) {
+            System.out.println("Unable to parse the timestamp: " + dateTimeString);
+        }
+        return 0;
     }
 
     private long parseTime(String timeString) {

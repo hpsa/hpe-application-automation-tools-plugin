@@ -8,11 +8,14 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.io.FileUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 public class CliParser {
@@ -33,7 +36,7 @@ public class CliParser {
         options.addOption(Option.builder("o").longOpt("output-file").desc("output to file").hasArg().argName("FILE").build());
         options.addOption(Option.builder("c").longOpt("config-file").desc("configuration file").hasArg().argName("FILE").build());
 
-        options.addOption(Option.builder("e").longOpt("server").desc("server").hasArg().argName("URL").build());
+        options.addOption(Option.builder("s").longOpt("server").desc("server").hasArg().argName("URL").build());
         options.addOption(Option.builder("d").longOpt("shared-space").desc("shared space").hasArg().argName("ID").type(Integer.class).build());
         options.addOption(Option.builder("w").longOpt("workspace").desc("workspace").hasArg().argName("ID").type(Integer.class).build());
 
@@ -50,12 +53,7 @@ public class CliParser {
         options.addOption(Option.builder("a").longOpt("product-area").desc("product area").hasArg().argName("ID").type(Integer.class).build());
         options.addOption(Option.builder("q").longOpt("requirement").desc("requirement").hasArg().argName("ID").type(Integer.class).build());
 
-        options.addOption(Option.builder("b").longOpt("build-server").desc("build server identity").hasArg().argName("UUID").build());
-        options.addOption(Option.builder("j").longOpt("build-job").desc("build job sid").hasArg().argName("SID").build());
-        options.addOption(Option.builder("n").longOpt("build-number").desc("build number").hasArg().argName("NUMBER").build());
-        options.addOption(Option.builder("s").longOpt("build-status").desc("build status").hasArg().argName("STATUS").build());
-
-        argsWithSingleOccurrence.addAll(Arrays.asList("c", "e", "d", "o", "w", "p", "password-file", "r", "a", "q", "b", "j", "n", "s"));
+        argsWithSingleOccurrence.addAll(Arrays.asList("o", "c", "s", "d", "w", "u", "p", "password-file", "r", "a", "q"));
     }
 
     public void parse(String[] args) {
@@ -74,7 +72,11 @@ public class CliParser {
             }
 
             if (!areCmdArgsValid(cmd)) {
-                // error message was printed inside the method (has arg context)
+                System.exit(ReturnCode.FAILURE.getReturnCode());
+            }
+
+            Settings settings = new Settings();
+            if (!addInputFilesToSettings(cmd, settings)) {
                 System.exit(ReturnCode.FAILURE.getReturnCode());
             }
 
@@ -83,7 +85,6 @@ public class CliParser {
             if (cmd.hasOption("c")) {
                 filename = cmd.getOptionValue("c");
             }
-            Settings settings = new Settings();
             try {
                 settings.load(filename);
             } catch (IOException e) {
@@ -109,16 +110,16 @@ public class CliParser {
                 settings.setWorkspace((Integer) cmd.getParsedOptionValue("w"));
             }
 
-            if (cmd.hasOption("p")) {
-                if (cmd.getOptionValue("p") != null) {
-                    settings.setPassword(cmd.getOptionValue("p"));
-                } else {
-                    settings.setPassword(new String(System.console().readPassword()));
-                }
+            if (cmd.hasOption("u")) {
+                settings.setUser(cmd.getOptionValue("u"));
             }
 
-            if (cmd.hasOption("password-file")) {
-                settings.setPasswordFile(cmd.getOptionValue("password-file"));
+            if (cmd.hasOption("p")) {
+                settings.setPassword(cmd.getOptionValue("p"));
+            } else if (cmd.hasOption("password-file")) {
+                settings.setPassword(FileUtils.readFileToString(new File(cmd.getOptionValue("password-file"))));
+            } else {
+                settings.setPassword(new String(System.console().readPassword()));
             }
 
             if (cmd.hasOption("t")) {
@@ -141,41 +142,46 @@ public class CliParser {
                 settings.setRequirement((Integer) cmd.getParsedOptionValue("q"));
             }
 
-            if (cmd.hasOption("b")) {
-                settings.setBuildServer(cmd.getOptionValue("b"));
-            }
-
-            if (cmd.hasOption("j")) {
-                settings.setBuildJob(cmd.getOptionValue("j"));
-            }
-
-            if (cmd.hasOption("n")) {
-                settings.setBuildNumber(cmd.getOptionValue("n"));
-            }
-
-            if (cmd.hasOption("s")) {
-                settings.setBuildStatus(cmd.getOptionValue("s"));
-            }
-
             settings.setFileNames(cmd.getArgList());
 
             if(!areSettingsValid(settings)) {
-                // error message was printed inside the method (has settings context)
                 System.exit(ReturnCode.FAILURE.getReturnCode());
             }
 
         } catch (ParseException e) {
             printHelp();
             System.exit(ReturnCode.FAILURE.getReturnCode());
+        } catch (IOException e) {
+            System.out.println("Can not read the password file");
+            System.exit(ReturnCode.FAILURE.getReturnCode());
         }
     }
 
-    private boolean areCmdArgsValid(CommandLine cmd) {
-        if (cmd.getArgList().size() < 2) {
+    private boolean addInputFilesToSettings(CommandLine cmd, Settings settings) {
+        List<String> argList = cmd.getArgList();
+        if (argList.size() < 2) {
             System.out.println("At least one XML file must be specified");
             return false;
         }
 
+        List<String> inputFiles = new LinkedList<String>();
+        for (int i = 1; i < argList.size(); i++) {
+            String inputFile = argList.get(i);
+            if (!inputFiles.contains(inputFile) && new File(inputFile).canRead()) {
+                inputFiles.add(inputFile);
+            }
+        }
+
+        if (inputFiles.isEmpty()) {
+            System.out.println("No valid XML files with tests to push");
+            return false;
+        }
+
+        settings.setFileNames(inputFiles);
+        return true;
+    }
+
+    private boolean areCmdArgsValid(CommandLine cmd) {
         for(String arg : argsWithSingleOccurrence) {
             if (cmd.getOptionProperties(arg).size() > 1) {
                 System.out.println("Invalid multiple occurrence of argument: " + arg);
@@ -184,6 +190,25 @@ public class CliParser {
         }
 
         if (!isTagFormatValid(cmd, "t") || !isTagFormatValid(cmd, "f")) {
+            return false;
+        }
+
+        String configurationFile = cmd.getOptionValue("c");
+        if (configurationFile != null && !new File(configurationFile).canRead()) {
+            System.out.println("Can not read the configuration file: " + configurationFile);
+            return false;
+        }
+
+        String passwordFile = cmd.getOptionValue("password-file");
+        if (passwordFile != null && !new File(passwordFile).canRead()) {
+            System.out.println("Can not read the password file: " + passwordFile);
+            return false;
+        }
+
+
+       String outputFile = cmd.getOptionValue("o");
+        if (outputFile != null && !new File(outputFile).canWrite()) {
+            System.out.println("Can not write to the output file: " + outputFile);
             return false;
         }
 

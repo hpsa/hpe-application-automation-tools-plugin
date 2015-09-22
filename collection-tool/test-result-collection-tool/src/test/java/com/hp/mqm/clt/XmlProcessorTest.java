@@ -2,7 +2,6 @@ package com.hp.mqm.clt;
 
 import com.hp.mqm.clt.tests.TestResult;
 import com.hp.mqm.clt.tests.TestResultStatus;
-import com.hp.mqm.clt.xml.TestResultXmlWriter;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -15,6 +14,7 @@ import javax.xml.stream.XMLStreamException;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.LinkedList;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -28,6 +28,9 @@ public class XmlProcessorTest {
     @Rule
     public final SystemOutRule systemOutRule = new SystemOutRule();
 
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
     @Test
     public void testXmlProcessor_minimalAcceptedJUnitFormat() throws URISyntaxException {
         // Public API requires at least testName, duration and status fields to be filled for every test
@@ -35,10 +38,10 @@ public class XmlProcessorTest {
         List<TestResult> testResults = xmlProcessor.processJUnitXmlFile(new File(getClass().getResource("JUnit-minimalAccepted.xml").toURI()));
         Assert.assertNotNull(testResults);
         Assert.assertEquals(testResults.size(), 4);
-        AssertTestResult(testResults.get(0), "", "", "testName", TestResultStatus.PASSED, 0);
-        AssertTestResult(testResults.get(1), "", "", "testNameSkipped", TestResultStatus.SKIPPED, 0);
-        AssertTestResult(testResults.get(2), "", "", "testNameFailed", TestResultStatus.FAILED, 0);
-        AssertTestResult(testResults.get(3), "", "", "testNameWithError", TestResultStatus.FAILED, 0);
+        AssertTestResult(testResults.get(0), "", "", "testName", TestResultStatus.PASSED, 0, 0);
+        AssertTestResult(testResults.get(1), "", "", "testNameSkipped", TestResultStatus.SKIPPED, 0, 0);
+        AssertTestResult(testResults.get(2), "", "", "testNameFailed", TestResultStatus.FAILED, 0, 0);
+        AssertTestResult(testResults.get(3), "", "", "testNameWithError", TestResultStatus.FAILED, 0, 0);
     }
 
     @Test
@@ -47,9 +50,9 @@ public class XmlProcessorTest {
         List<TestResult> testResults = xmlProcessor.processJUnitXmlFile(new File(getClass().getResource("JUnit-missingTestName.xml").toURI()));
         Assert.assertNotNull(testResults);
         Assert.assertEquals(testResults.size(), 3);
-        AssertTestResult(testResults.get(0), "com.examples.example", "SampleClass", "testOne", TestResultStatus.PASSED, 2);
-        AssertTestResult(testResults.get(1), "com.examples.example", "SampleClass", "testTwo", TestResultStatus.SKIPPED, 5);
-        AssertTestResult(testResults.get(2), "com.examples.example", "SampleClass", "testThree", TestResultStatus.SKIPPED, 5);
+        AssertTestResult(testResults.get(0), "com.examples.example", "SampleClass", "testOne", TestResultStatus.PASSED, 2, 1442737332000L);
+        AssertTestResult(testResults.get(1), "com.examples.example", "SampleClass", "testTwo", TestResultStatus.SKIPPED, 5, 1442737332000L);
+        AssertTestResult(testResults.get(2), "com.examples.example", "SampleClass", "testThree", TestResultStatus.SKIPPED, 5, 1442737332000L);
     }
 
     @Test
@@ -59,7 +62,7 @@ public class XmlProcessorTest {
         exit.checkAssertionAfterwards(new Assertion() {
             @Override
             public void checkAssertion() throws Exception {
-                Assert.assertTrue(systemOutRule.getLog().contains("Unable to parse JUnit XML file"));
+                Assert.assertTrue(systemOutRule.getLog().contains("Unable to process JUnit XML file"));
             }
         });
         XmlProcessor xmlProcessor = new XmlProcessor();
@@ -81,11 +84,12 @@ public class XmlProcessorTest {
     }
 
     private void AssertTestResult(TestResult testResult, String packageName, String className,
-                                 String testName, TestResultStatus result, long duration) {
+                                 String testName, TestResultStatus result, long duration, long started) {
         Assert.assertEquals(testResult.getPackageName(), packageName);
         Assert.assertEquals(testResult.getClassName(), className);
         Assert.assertEquals(testResult.getTestName(), testName);
         Assert.assertEquals(testResult.getResult(), result);
         Assert.assertEquals(testResult.getDuration(), duration);
+        Assert.assertEquals(testResult.getStarted(), started);
     }
 }

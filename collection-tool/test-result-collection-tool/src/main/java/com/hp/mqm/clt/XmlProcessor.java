@@ -2,6 +2,7 @@ package com.hp.mqm.clt;
 
 import com.hp.mqm.clt.tests.TestResult;
 import com.hp.mqm.clt.xml.JUnitXmlIterator;
+import com.hp.mqm.clt.xml.TestResultXmlWriter;
 import org.apache.commons.io.IOUtils;
 
 import javax.xml.stream.XMLStreamException;
@@ -15,7 +16,8 @@ public class XmlProcessor {
 
     public List<TestResult> processJUnitXmlFile(File junitXmlFile) {
         if (junitXmlFile == null || !junitXmlFile.canRead()) {
-            System.out.println("Can not read the JUnit file: " + junitXmlFile.getName());
+            String fileNameInfo = (junitXmlFile == null) ? "" : ": " + junitXmlFile.getName();
+            System.out.println("Can not read the JUnit file" + fileNameInfo);
             System.exit(ReturnCode.FAILURE.getReturnCode());
         }
 

@@ -1,11 +1,14 @@
 package com.hp.mqm.clt;
 
+import org.apache.commons.codec.binary.Base64;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Properties;
 
@@ -25,10 +28,8 @@ public class Settings {
 
     private String user;
     private String password;
-    private String passwordFile;
 
     private boolean internal = false;
-    private String configFile;
     private String outputFile;
 
     private List<String> tags;
@@ -37,11 +38,6 @@ public class Settings {
     private Integer release;
     private Integer productArea;
     private Integer requirement;
-
-    private String buildServer;
-    private String buildJob;
-    private String buildNumber;
-    private String buildStatus;
 
     private List<String> fileNames;
 
@@ -67,7 +63,6 @@ public class Settings {
         sharedspace = properties.getProperty(PROP_SHARED_SPACE) != null ? Integer.valueOf(properties.getProperty(PROP_SHARED_SPACE)) : null;
         workspace = properties.getProperty(PROP_WORKSPACE) != null ? Integer.valueOf(properties.getProperty(PROP_WORKSPACE)) : null;
         user = properties.getProperty(PROP_USER);
-        passwordFile = properties.getProperty(PROP_PASSWORD_FILE);
     }
 
     public String getServer() {
@@ -103,19 +98,11 @@ public class Settings {
     }
 
     public String getPassword() {
-        return password;
+        return (password == null) ? null : new String(Base64.decodeBase64(password), StandardCharsets.UTF_8);
     }
 
     public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getPasswordFile() {
-        return passwordFile;
-    }
-
-    public void setPasswordFile(String passwordFile) {
-        this.passwordFile = passwordFile;
+        this.password = (password == null) ? null : Base64.encodeBase64String(password.getBytes(StandardCharsets.UTF_8));
     }
 
     public boolean isInternal() {
@@ -124,14 +111,6 @@ public class Settings {
 
     public void setInternal(boolean internal) {
         this.internal = internal;
-    }
-
-    public String getConfigFile() {
-        return configFile;
-    }
-
-    public void setConfigFile(String configFile) {
-        this.configFile = configFile;
     }
 
     public String getOutputFile() {
@@ -180,38 +159,6 @@ public class Settings {
 
     public void setRequirement(Integer requirement) {
         this.requirement = requirement;
-    }
-
-    public String getBuildServer() {
-        return buildServer;
-    }
-
-    public void setBuildServer(String buildServer) {
-        this.buildServer = buildServer;
-    }
-
-    public String getBuildJob() {
-        return buildJob;
-    }
-
-    public void setBuildJob(String buildJob) {
-        this.buildJob = buildJob;
-    }
-
-    public String getBuildNumber() {
-        return buildNumber;
-    }
-
-    public void setBuildNumber(String buildNumber) {
-        this.buildNumber = buildNumber;
-    }
-
-    public String getBuildStatus() {
-        return buildStatus;
-    }
-
-    public void setBuildStatus(String buildStatus) {
-        this.buildStatus = buildStatus;
     }
 
     public List<String> getFileNames() {
