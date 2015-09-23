@@ -3,7 +3,6 @@ package com.hp.application.automation.bamboo.tasks;
 import java.util.HashMap;
 import java.util.Map;
 import com.atlassian.bamboo.collections.ActionParametersMap;
-import com.atlassian.bamboo.plan.artifact.ArtifactDefinitionManager;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
 import com.atlassian.bamboo.utils.i18n.I18nBean;
@@ -85,7 +84,7 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 		context.put(TESTS_PATH, taskDefinition.getConfiguration().get(TESTS_PATH));
 		context.put(TIMEOUT, taskDefinition.getConfiguration().get(TIMEOUT));
 		context.put(PUBLISH_MODE_PARAM, taskDefinition.getConfiguration().get(PUBLISH_MODE_PARAM));
-		context.put(TASK_ID_CONTROL, getI18nBean().getText(TASK_ID_LBL) + String.format("%03d",new Long(taskDefinition.getId())));
+		context.put(TASK_ID_CONTROL, getI18nBean().getText(TASK_ID_LBL) + String.format("%03d",taskDefinition.getId()));
 
 		populateContextForLists(context);
 	}

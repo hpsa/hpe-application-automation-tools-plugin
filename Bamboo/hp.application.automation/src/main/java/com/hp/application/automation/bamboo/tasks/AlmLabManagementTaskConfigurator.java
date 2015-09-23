@@ -26,13 +26,12 @@ public class AlmLabManagementTaskConfigurator extends AbstractTaskConfigurator
 	public static final String TEST_ID_PARAM = "testId";
 	public static final String DESCRIPTION_PARAM = "description";
 	public static final String DURATION_PARAM = "duration";
-	public static final String ENVIROMENT_ID_PARAM = "enviromentId";
+	public static final String ENVIRONMENT_ID_PARAM = "enviromentId";
 	public static final String USE_SDA_PARAM = "useSda";
 	public static final String DEPLOYMENT_ACTION_PARAM = "deploymentAction";
-	public static final String DEPOYED_ENVIROMENT_NAME_PARAM = "deployedEnvironmentName";
+	public static final String DEPLOYED_ENVIRONMENT_NAME = "deployedEnvironmentName";
 	public static final String DEPROVISIONING_ACTION_PARAM = "deprovisioningAction";
 
-	public static final String UI_CONFIG_BEAN_PARAM = "uiConfigBean";
 	public static final String RUN_TYPE_ITEMS_PARAM = "runTypeItems";
 	public static final String DEPLOYMENT_ACTION_ITEMS_PARAM = "deploymentActionItems";
 	public static final String DEPROVISIONING_ACTION_ITEMS_PARAM = "deprovisioningActionItems";
@@ -40,9 +39,9 @@ public class AlmLabManagementTaskConfigurator extends AbstractTaskConfigurator
 	private static final String ALM_SERVER_REQUIRED_STRING = "AlmLabManagementTask.almServer.required";
 	private static final String USER_NAME_REQUIRED_STRING = "AlmLabManagementTask.userName.required";
 	private static final String DOMAIN_REQUIRED_STRING = "AlmLabManagementTask.domain.required";
-	private static final String PROJECT_NAME_REQIRED_STRING = "AlmLabManagementTask.projectName.required";
-	private static final String TEST_ID_REQIRED_STRING = "AlmLabManagementTask.testId.required";
-	private static final String DURATION_REQIRED_STRING = "AlmLabManagementTask.duration.required";
+	private static final String PROJECT_NAME_REQUIRED_STRING = "AlmLabManagementTask.projectName.required";
+	private static final String TEST_ID_REQUIRED_STRING = "AlmLabManagementTask.testId.required";
+	private static final String DURATION_REQUIRED_STRING = "AlmLabManagementTask.duration.required";
 	private static final String DURATION_MINIMUM_STRING = "AlmLabManagementTask.duration.minimum";
 	private static final String DURATION_INVALID_FORMAT_STRING = "AlmLabManagementTask.duration.invalidFormat";
 	public static final String TASK_NAME_VALUE = "AlmLabManagementTask.taskName";
@@ -62,10 +61,10 @@ public class AlmLabManagementTaskConfigurator extends AbstractTaskConfigurator
 	    config.put(TEST_ID_PARAM, params.getString(TEST_ID_PARAM));
 	    config.put(DESCRIPTION_PARAM, params.getString(DESCRIPTION_PARAM));
 	    config.put(DURATION_PARAM, params.getString(DURATION_PARAM));
-	    config.put(ENVIROMENT_ID_PARAM, params.getString(ENVIROMENT_ID_PARAM));
+	    config.put(ENVIRONMENT_ID_PARAM, params.getString(ENVIRONMENT_ID_PARAM));
 	    config.put(USE_SDA_PARAM, params.getString(USE_SDA_PARAM));
 		config.put(DEPLOYMENT_ACTION_PARAM, params.getString((DEPLOYMENT_ACTION_PARAM)));
-		config.put(DEPOYED_ENVIROMENT_NAME_PARAM, params.getString((DEPOYED_ENVIROMENT_NAME_PARAM)));
+		config.put(DEPLOYED_ENVIRONMENT_NAME, params.getString((DEPLOYED_ENVIRONMENT_NAME)));
 		config.put(DEPROVISIONING_ACTION_PARAM, params.getString((DEPROVISIONING_ACTION_PARAM)));
 		config.put(CommonTaskConfigurationProperties.TASK_NAME, getI18nBean().getText(TASK_NAME_VALUE));
 
@@ -96,17 +95,17 @@ public class AlmLabManagementTaskConfigurator extends AbstractTaskConfigurator
 	    
 	    String projectName = params.getString(PROJECT_NAME_PARAM);
 	    if(StringUtils.isEmpty(projectName)){
-	    	errorCollection.addError(PROJECT_NAME_PARAM, textProvider.getText(PROJECT_NAME_REQIRED_STRING));
+	    	errorCollection.addError(PROJECT_NAME_PARAM, textProvider.getText(PROJECT_NAME_REQUIRED_STRING));
 	    }
 	    
 	    String testId = params.getString(TEST_ID_PARAM);
 	    if(StringUtils.isEmpty(testId)){
-	    	errorCollection.addError(TEST_ID_PARAM, textProvider.getText(TEST_ID_REQIRED_STRING));
+	    	errorCollection.addError(TEST_ID_PARAM, textProvider.getText(TEST_ID_REQUIRED_STRING));
 	    }
 	    
 	    String duration = params.getString(DURATION_PARAM);
 	    if(StringUtils.isEmpty(duration)){
-	    	errorCollection.addError(DURATION_PARAM, textProvider.getText(DURATION_REQIRED_STRING));
+	    	errorCollection.addError(DURATION_PARAM, textProvider.getText(DURATION_REQUIRED_STRING));
 	    }
 	    else
 	    {
@@ -131,7 +130,7 @@ public class AlmLabManagementTaskConfigurator extends AbstractTaskConfigurator
 		super.populateContextForCreate(context);
 		
 		populateContextForLists(context);		
-	};
+	}
 	
 	@Override
 	public void populateContextForEdit(@NotNull final Map<String, Object> context, @NotNull final TaskDefinition taskDefinition)
@@ -147,10 +146,10 @@ public class AlmLabManagementTaskConfigurator extends AbstractTaskConfigurator
 	    context.put(TEST_ID_PARAM, taskDefinition.getConfiguration().get(TEST_ID_PARAM));
 	    context.put(DESCRIPTION_PARAM, taskDefinition.getConfiguration().get(DESCRIPTION_PARAM));
 	    context.put(DURATION_PARAM, taskDefinition.getConfiguration().get(DURATION_PARAM));
-	    context.put(ENVIROMENT_ID_PARAM, taskDefinition.getConfiguration().get(ENVIROMENT_ID_PARAM));
+	    context.put(ENVIRONMENT_ID_PARAM, taskDefinition.getConfiguration().get(ENVIRONMENT_ID_PARAM));
 	    context.put(USE_SDA_PARAM, taskDefinition.getConfiguration().get(USE_SDA_PARAM));
 		context.put(DEPLOYMENT_ACTION_PARAM, taskDefinition.getConfiguration().get((DEPLOYMENT_ACTION_PARAM)));
-		context.put(DEPOYED_ENVIROMENT_NAME_PARAM, taskDefinition.getConfiguration().get((DEPOYED_ENVIROMENT_NAME_PARAM)));
+		context.put(DEPLOYED_ENVIRONMENT_NAME, taskDefinition.getConfiguration().get((DEPLOYED_ENVIRONMENT_NAME)));
 		context.put(DEPROVISIONING_ACTION_PARAM, taskDefinition.getConfiguration().get((DEPROVISIONING_ACTION_PARAM)));
 	    
 	    populateContextForLists(context);

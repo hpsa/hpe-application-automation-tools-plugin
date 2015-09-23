@@ -9,7 +9,7 @@ import com.atlassian.util.concurrent.Nullable;
 import java.util.Map;
 
 public class AbstractLauncherTaskConfigurator extends AbstractUftTaskConfigurator {
-	public static final String BUILD_WORKING_DIR = "bamboo.agentId";
+	private static final String BUILD_WORKING_DIR = "bamboo.agentId";
 
 	private ArtifactDefinitionManager artifactDefinitionManager;
 

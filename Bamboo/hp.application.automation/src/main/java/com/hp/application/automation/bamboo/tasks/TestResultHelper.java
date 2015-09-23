@@ -4,6 +4,7 @@ import com.atlassian.bamboo.build.LogEntry;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.build.test.TestCollationService;
 import com.atlassian.bamboo.task.TaskContext;
+import com.atlassian.bamboo.utils.i18n.I18nBean;
 import com.atlassian.util.concurrent.NotNull;
 import com.google.common.collect.Lists;
 import com.hp.application.automation.tools.common.result.ResultSerializer;
@@ -16,7 +17,6 @@ import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.List;
 
 /**
  * Created by dsinelnikov on 7/31/2015.
@@ -27,9 +27,9 @@ public final class TestResultHelper
     private static final String TEST_STATUS_PASSED = "pass";
     private static final String TEST_STATUS_FAIL = "fail";
     public static final String HP_UFT_PREFIX = "HP_UFT_Build_";
-    public enum ResultTypeFilter {All, SUCCESSFUL, FAILED }
+    public enum ResultTypeFilter {All, FAILED }
     private static final String RUN_LOG_FILE_NAME = "RunLog";
-    private static final String CAN_NOT_SAVE_RUN_LOG_MESSAGE = ResourceManager.getText("Alm.error.canNotSaveTheRunLog");
+    private static final String CAN_NOT_SAVE_RUN_LOG_MESSAGE = "Alm.error.canNotSaveTheRunLog";
     private static final String RUN_LOG_HTML_TEXT =
         "<!DOCTYPE html>\n" +
             "<html>\n" +
@@ -49,6 +49,7 @@ public final class TestResultHelper
             "</html>";
     private static final String ALM_RUN_RESULTS_LINK_PARAMETER = "ALM_RUN_RESULTS_LINK_PARAMETER";
     private static List<String> savedALMRunLogPaths = new ArrayList<String>();
+    private static int currentBuildNumber;
 
     private TestResultHelper()
     {
@@ -57,8 +58,6 @@ public final class TestResultHelper
 
     public static void CollateResults(@NotNull final TestCollationService testCollationService,@NotNull final TaskContext taskContext)
     {
-        taskContext.getBuildLogger().addBuildLogEntry("TEST_REPORT_FILE_PATTERNS is :"+TEST_REPORT_FILE_PATTERNS);
-        taskContext.getBuildLogger().addBuildLogEntry("new XmlTestResultsReportCollector() is :"+new XmlTestResultsReportCollector());
         testCollationService.collateTestResults(taskContext, TEST_REPORT_FILE_PATTERNS, new XmlTestResultsReportCollector());
     }
 
@@ -75,11 +74,11 @@ public final class TestResultHelper
 
         try
         {
-            Testsuites testsuites = ResultSerializer.Deserialize(results);
+            Testsuites testSuites = ResultSerializer.Deserialize(results);
 
             Map<String, Integer> testNames = new HashMap<String, Integer>();
 
-            for (Testsuite testsuite : testsuites.getTestsuite())
+            for (Testsuite testsuite : testSuites.getTestsuite())
             {
                 for (Testcase testcase : testsuite.getTestcase())
                 {
@@ -121,7 +120,8 @@ public final class TestResultHelper
         StringBuilder fileName = new StringBuilder(taskContext.getWorkingDirectory().toString());
         String taskName = taskContext.getConfigurationMap().get(CommonTaskConfigurationProperties.TASK_NAME);
         fileName.append("\\").append(HP_UFT_PREFIX).append(taskContext.getBuildContext().getBuildNumber())
-                .append("\\").append(String.format("%03d", taskContext.getId())).append("_" + taskName + "\\");
+                .append("\\").append(String.format("%03d", taskContext.getId())).append("_")
+                .append(taskName).append("\\");
         return fileName.toString();
     }
 
@@ -138,11 +138,6 @@ public final class TestResultHelper
         }
 
         String status = testcase.getStatus();
-
-        if(filter == ResultTypeFilter.SUCCESSFUL && status.equals(TEST_STATUS_PASSED))
-        {
-            return true;
-        }
 
         if(filter == ResultTypeFilter.FAILED && status.equals(TEST_STATUS_FAIL))
         {
@@ -171,7 +166,6 @@ public final class TestResultHelper
     //is used for Run from Alm Lab Management task
     private static String findRequiredStringFromLog(TaskContext taskContext, String searchFilter)
     {
-        String taskBuildNumber = new Integer(taskContext.getBuildContext().getBuildNumber()).toString();
         BuildLogger logger = taskContext.getBuildLogger();
         List<LogEntry> buildLog = Lists.reverse(logger.getBuildLog());
         for(LogEntry logEntry: buildLog){
@@ -181,7 +175,7 @@ public final class TestResultHelper
                 if(pathBegin > -1)
                 {
                     log=log.substring(pathBegin);
-                    if(!savedALMRunLogPaths.contains(taskBuildNumber+log)){
+                    if(!savedALMRunLogPaths.contains(log)){
                         return log;
                     }
                 }
@@ -193,7 +187,6 @@ public final class TestResultHelper
     //is used for Run from Alm task
     private static List<String> findRequiredStringsFromLog(TaskContext taskContext, String searchFilter)
     {
-        String taskBuildNumber = new Integer(taskContext.getBuildContext().getBuildNumber()).toString();
         BuildLogger logger = taskContext.getBuildLogger();
         List<LogEntry> buildLog = Lists.reverse(logger.getBuildLog());
         List<String> results = new ArrayList<String>();
@@ -204,7 +197,7 @@ public final class TestResultHelper
                 if(pathBegin > -1)
                 {
                    String result = log.substring(pathBegin);
-                    if(!results.contains(result) && !savedALMRunLogPaths.contains(taskBuildNumber+result)){
+                    if(!results.contains(result) && !savedALMRunLogPaths.contains(result)){
                         results.add(result);
                     }
                 }
@@ -215,45 +208,46 @@ public final class TestResultHelper
 
     private static void clearSavedALMRunLogPaths(TaskContext taskContext)
     {
-        String taskBuildNumber = new Integer(taskContext.getBuildContext().getBuildNumber()).toString();
+        int taskBuildNumber = taskContext.getBuildContext().getBuildNumber();
 
-        if(savedALMRunLogPaths.size()>0&& !savedALMRunLogPaths.get(savedALMRunLogPaths.size()-1).startsWith(taskBuildNumber))
+        if(savedALMRunLogPaths.size() > 0 && taskBuildNumber != currentBuildNumber)
         {
             savedALMRunLogPaths.clear();
         }
+        currentBuildNumber=taskBuildNumber;
     }
 
-    protected static void AddALMArtifacts(final TaskContext taskContext, String linkSearchFilter)
+    protected static void AddALMArtifacts(final TaskContext taskContext, String linkSearchFilter, I18nBean i18nBean)
     {
         clearSavedALMRunLogPaths(taskContext);
         String taskName = taskContext.getConfigurationMap().get(CommonTaskConfigurationProperties.TASK_NAME);
 
-        if(taskName.equals(ResourceManager.getText(AlmLabManagementTaskConfigurator.TASK_NAME_VALUE))) {
+        if(taskName.equals(i18nBean.getText(AlmLabManagementTaskConfigurator.TASK_NAME_VALUE))) {
             String taskRunLogPath = findRequiredStringFromLog(taskContext, linkSearchFilter);
             if (com.hp.application.automation.tools.common.StringUtils.isNullOrEmpty(taskRunLogPath)) {
-                taskContext.getBuildLogger().addErrorLogEntry(CAN_NOT_SAVE_RUN_LOG_MESSAGE);
+                taskContext.getBuildLogger().addErrorLogEntry(i18nBean.getText(CAN_NOT_SAVE_RUN_LOG_MESSAGE));
                 return;
             }
 
-            createResultFile(taskContext, taskRunLogPath, ".*processRunId=");
+            createResultFile(taskContext, taskRunLogPath, ".*processRunId=", i18nBean);
         }
-        else if(taskName.equals(ResourceManager.getText(RunFromAlmTaskConfigurator.TASK_NAME_VALUE))){
+        else if(taskName.equals(i18nBean.getText(RunFromAlmTaskConfigurator.TASK_NAME_VALUE))){
             List<String> links = findRequiredStringsFromLog(taskContext, linkSearchFilter);
-            Integer linksAmount = new Integer (links.size());
+            Integer linksAmount = links.size();
             if (linksAmount.equals(0)) {
-                taskContext.getBuildLogger().addErrorLogEntry(CAN_NOT_SAVE_RUN_LOG_MESSAGE);
+                taskContext.getBuildLogger().addErrorLogEntry(i18nBean.getText(CAN_NOT_SAVE_RUN_LOG_MESSAGE));
                 return;
             }
 
             for (String link : links) {
-                createResultFile(taskContext, link, ".*EntityID=");
+                createResultFile(taskContext, link, ".*EntityID=",i18nBean);
             }
         }
     }
-    private static void createResultFile(TaskContext taskContext, String link, String idFilter){
-        Integer taskBuildNumber = taskContext.getBuildContext().getBuildNumber();
 
-        savedALMRunLogPaths.add(taskBuildNumber + link);
+    private static void createResultFile(TaskContext taskContext, String link, String idFilter, I18nBean i18nBean){
+
+        savedALMRunLogPaths.add(link);
         String RunReportFileId = link.replaceAll(idFilter, "");
 
         if(com.hp.application.automation.tools.common.StringUtils.isNullOrEmpty(RunReportFileId))
@@ -269,7 +263,7 @@ public final class TestResultHelper
             FileUtils.writeStringToFile(resultFile, parameterizedResultsHtmlText);
         }
         catch(Exception ex){
-            taskContext.getBuildLogger().addErrorLogEntry(CAN_NOT_SAVE_RUN_LOG_MESSAGE);
+            taskContext.getBuildLogger().addErrorLogEntry(i18nBean.getText(CAN_NOT_SAVE_RUN_LOG_MESSAGE));
         }
     }
 }

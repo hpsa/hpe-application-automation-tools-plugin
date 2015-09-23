@@ -4,6 +4,8 @@ import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.build.test.TestCollationService;
 import com.atlassian.bamboo.configuration.ConfigurationMap;
 import com.atlassian.bamboo.task.*;
+import com.atlassian.bamboo.utils.i18n.I18nBean;
+import com.atlassian.bamboo.utils.i18n.I18nBeanFactory;
 import com.hp.application.automation.tools.common.SSEException;
 import com.hp.application.automation.tools.common.model.CdaDetails;
 import com.hp.application.automation.tools.common.rest.RestClient;
@@ -19,9 +21,11 @@ public class AlmLabManagementTask implements TaskType {
 
 	private final TestCollationService testCollationService;
     private final String LINK_SEARCH_FILTER = "run report for run id";
+    private static I18nBean i18nBean;
 	
-	public AlmLabManagementTask(TestCollationService testCollationService){
+	public AlmLabManagementTask(TestCollationService testCollationService, @NotNull I18nBeanFactory i18nBeanFactory){
 		this.testCollationService = testCollationService;
+        i18nBean = i18nBeanFactory.getI18nBean();
 	}
 
     @NotNull
@@ -41,7 +45,7 @@ public class AlmLabManagementTask implements TaskType {
         if(useCda)
         {
             cdaDetails = new CdaDetails(map.get(AlmLabManagementTaskConfigurator.DEPLOYMENT_ACTION_PARAM),
-                                        map.get(AlmLabManagementTaskConfigurator.DEPOYED_ENVIROMENT_NAME_PARAM),
+                                        map.get(AlmLabManagementTaskConfigurator.DEPLOYED_ENVIRONMENT_NAME),
                                         map.get(AlmLabManagementTaskConfigurator.DEPROVISIONING_ACTION_PARAM));
         }
 
@@ -56,7 +60,7 @@ public class AlmLabManagementTask implements TaskType {
                 map.get(AlmLabManagementTaskConfigurator.DURATION_PARAM),
                 map.get(AlmLabManagementTaskConfigurator.DESCRIPTION_PARAM),
                 null,
-                map.get(AlmLabManagementTaskConfigurator.ENVIROMENT_ID_PARAM),
+                map.get(AlmLabManagementTaskConfigurator.ENVIRONMENT_ID_PARAM),
                 cdaDetails);
 
         RestClient restClient =
@@ -91,7 +95,7 @@ public class AlmLabManagementTask implements TaskType {
         }
 
         TestResultHelper.CollateResults(testCollationService, taskContext);
-        TestResultHelper.AddALMArtifacts(taskContext, LINK_SEARCH_FILTER);
+        TestResultHelper.AddALMArtifacts(taskContext, LINK_SEARCH_FILTER, i18nBean);
 
         return TaskResultBuilder.create(taskContext).checkTestFailures().build();
     }

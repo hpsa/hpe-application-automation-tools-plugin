@@ -8,15 +8,19 @@ import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.task.TaskException;
 import com.atlassian.bamboo.task.TaskResult;
 import com.atlassian.bamboo.task.TaskResultBuilder;
+import com.atlassian.bamboo.utils.i18n.I18nBean;
+import com.atlassian.bamboo.utils.i18n.I18nBeanFactory;
 import org.jetbrains.annotations.NotNull;
 
 public class RunFromAlmTask extends AbstractLauncherTask {
 
 	private final String LINK_SEARCH_FILTER = "EntityID=";
+	private static I18nBean i18nBean;
 
-	public RunFromAlmTask(@NotNull final TestCollationService testCollationService)
+	public RunFromAlmTask(@NotNull final TestCollationService testCollationService, @NotNull I18nBeanFactory i18nBeanFactory)
 	{
 		super(testCollationService);
+		i18nBean = i18nBeanFactory.getI18nBean();
 	}
 
     @java.lang.Override
@@ -80,7 +84,7 @@ public class RunFromAlmTask extends AbstractLauncherTask {
 	public TaskResult execute(@NotNull final TaskContext taskContext) throws TaskException
 	{
 		super.execute(taskContext);
-		TestResultHelper.AddALMArtifacts(taskContext, LINK_SEARCH_FILTER);
+		TestResultHelper.AddALMArtifacts(taskContext, LINK_SEARCH_FILTER, i18nBean);
 		return TaskResultBuilder.create(taskContext).checkTestFailures().build();
 	}
 }

@@ -5,7 +5,6 @@ import com.atlassian.bamboo.task.AbstractTaskConfigurator;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
 import com.atlassian.bamboo.utils.i18n.I18nBean;
-import com.atlassian.bamboo.ww2.actions.build.admin.create.UIConfigSupport;
 import com.atlassian.util.concurrent.NotNull;
 import com.atlassian.util.concurrent.Nullable;
 
@@ -14,8 +13,6 @@ import java.util.*;
 import org.apache.commons.lang.StringUtils;
 
 public class AlmLabEnvPrepareTaskConfigurator extends AbstractTaskConfigurator {
-
-	private static final String UI_CONFIG_BEAN_PARAM = "uiConfigBean";
 
 	//shared constants
 	public static final String ALM_SERVER = "almServer";
@@ -37,7 +34,7 @@ public class AlmLabEnvPrepareTaskConfigurator extends AbstractTaskConfigurator {
 
 	public static final String  OUTPUT_CONFIGID= "outEnvID";
 
-	//lists and maps for contrals with collections
+	//lists and maps for controls with collections
 	private static final String ENV_ALM_CONFIGS_OPTION = "ALMConfigOptions";
 	private static final String ENV_ALM_CONFIG_PATTERN_OPTION_NEW = "ALMConfUseNew";
 	private static final String ENV_ALM_CONFIG_PATTERN_OPTION_EXIST = "ALMConfUseExist";
@@ -48,8 +45,6 @@ public class AlmLabEnvPrepareTaskConfigurator extends AbstractTaskConfigurator {
 	private static final String ENV_ALM_PARAMETERS_NAME = "almParamName";
 	private static final String ENV_ALM_PARAMETERS_VALUE = "almParamValue";
 	private static final String ENV_ALM_PARAMETERS_ONLYFIRST = "almParamOnlyFirst";
-
-	private static final List<AlmConfigParameter> almParams = new ArrayList();
 
 	public Map<String, String> generateTaskConfigMap(@NotNull final ActionParametersMap params,
 			@Nullable final TaskDefinition previousTaskDefinition) {
@@ -76,7 +71,10 @@ public class AlmLabEnvPrepareTaskConfigurator extends AbstractTaskConfigurator {
 		String[] valuesArr = params.getStringArray(ENV_ALM_PARAMETERS_VALUE);
 		String[] chkOnlyFirstArr = params.getStringArray(ENV_ALM_PARAMETERS_ONLYFIRST);
 
-		int countNumber = namesArr.length;
+		int countNumber = 0;
+		if(namesArr != null){
+			countNumber = namesArr.length;
+		}
 
 		for(int i=0, chk=0; i<countNumber; ++i) {
 
@@ -118,7 +116,7 @@ public class AlmLabEnvPrepareTaskConfigurator extends AbstractTaskConfigurator {
 			errorCollection.addError(PROJECT, textProvider.getText("AlmLabEnvPrepareTask.error.projectIsEmpty"));
 		}
 
-		if(params.getString(ENV_ALM_CONFIGS_OPTION).equals(ENV_ALM_CONFIG_PATTERN_OPTION_NEW))
+		if(ENV_ALM_CONFIG_PATTERN_OPTION_NEW.equals(params.getString(ENV_ALM_CONFIGS_OPTION)))
 		{
 			if(StringUtils.isEmpty(params.getString(AUT_ENV_NEW_CONFIG_NAME))) {
 				errorCollection.addError(AUT_ENV_NEW_CONFIG_NAME, textProvider.getText("AlmLabEnvPrepareTask.error.assignAUTEnvConfValueIsNotAssigned"));

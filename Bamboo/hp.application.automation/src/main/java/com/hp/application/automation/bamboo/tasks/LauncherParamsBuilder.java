@@ -3,7 +3,6 @@ package com.hp.application.automation.bamboo.tasks;
 import com.hp.application.automation.tools.common.EncryptionUtils;
 import com.hp.application.automation.tools.common.StringUtils;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;

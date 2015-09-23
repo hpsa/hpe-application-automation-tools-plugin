@@ -1,6 +1,5 @@
 package com.hp.application.automation.bamboo.tasks;
 
-import com.atlassian.bamboo.build.artifact.ArtifactManager;
 import com.atlassian.bamboo.build.test.TestCollationService;
 import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.build.logger.BuildLogger;
@@ -8,21 +7,19 @@ import com.atlassian.bamboo.configuration.ConfigurationMap;
 
 import java.util.*;
 
-import com.atlassian.struts.TextProvider;
+import com.atlassian.bamboo.utils.i18n.I18nBean;
+import com.atlassian.bamboo.utils.i18n.I18nBeanFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class RunFromFileSystemTask extends AbstractLauncherTask {
 
-	private final ArtifactManager artifactManager;
-	private final TextProvider _textProvider;
+	private I18nBean i18nBean;
 
-	public RunFromFileSystemTask(@NotNull final TestCollationService testCollationService, @NotNull ArtifactManager artifactManager, @NotNull TextProvider textProvider)
+	public RunFromFileSystemTask(@NotNull final TestCollationService testCollationService, @NotNull I18nBeanFactory i18nBeanFactory)
 	{
 		super(testCollationService);
-
-		this.artifactManager = artifactManager;
-		_textProvider = textProvider;
+		i18nBean = i18nBeanFactory.getI18nBean();
 	}
 
     @java.lang.Override
@@ -61,10 +58,10 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
 		if(resultsFilter != null)
 		{
 			final BuildLogger buildLogger = taskContext.getBuildLogger();
-			final String resultNameFormat = ResourceManager.getText(RunFromFileSystemTaskConfigurator.ARTIFACT_NAME_FORMAT_STRING);
+			final String resultNameFormat = i18nBean.getText(RunFromFileSystemTaskConfigurator.ARTIFACT_NAME_FORMAT_STRING);
 
-			Collection<ResultInfoItem> resultsPathes = TestResultHelper.getTestResults(getResultsFile(), resultsFilter, resultNameFormat, taskContext, buildLogger);
-			TestResultHelper.zipResults(resultsPathes, buildLogger);
+			Collection<ResultInfoItem> resultsPaths = TestResultHelper.getTestResults(getResultsFile(), resultsFilter, resultNameFormat, taskContext, buildLogger);
+			TestResultHelper.zipResults(resultsPaths, buildLogger);
 		}
 	}
 
