@@ -1,6 +1,7 @@
 package com.hp.application.automation.bamboo.tasks;
 
 import com.atlassian.bamboo.collections.ActionParametersMap;
+import com.atlassian.bamboo.plan.artifact.ArtifactDefinitionManager;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
 import com.atlassian.bamboo.utils.i18n.I18nBean;
@@ -33,6 +34,16 @@ public class RunFromAlmTaskConfigurator extends AbstractUftTaskConfigurator {
 	public static final String RUN_REMOTELY_PARAMETER = "3";
 	public static final String TASK_NAME_VALUE = "Alm.taskName";
 
+	private ArtifactDefinitionManager artifactDefinitionManager;
+
+	private static RunFromAlmTaskConfigurator instance;
+	public RunFromAlmTaskConfigurator(){
+		instance = this;
+	}
+
+	public void setArtifactDefinitionManager(ArtifactDefinitionManager artifactDefinitionManager){
+		this.artifactDefinitionManager = artifactDefinitionManager;
+	}
 	public Map<String, String> generateTaskConfigMap(@NotNull final ActionParametersMap params, @Nullable final TaskDefinition previousTaskDefinition)
 	{
 		final Map<String, String> config = super.generateTaskConfigMap(params, previousTaskDefinition);
@@ -87,6 +98,7 @@ public class RunFromAlmTaskConfigurator extends AbstractUftTaskConfigurator {
 	@Override
 	public void populateContextForCreate(@NotNull final Map<String, Object> context)
 	{
+		(new HpTasksArtifactRegistrator()).registerCommonArtifact(context.get("plan"), getI18nBean(), this.artifactDefinitionManager);
 		super.populateContextForCreate(context);
 		
 		populateContextForLists(context);
@@ -128,5 +140,16 @@ public class RunFromAlmTaskConfigurator extends AbstractUftTaskConfigurator {
 		runTypesMap.put(RUN_REMOTELY_PARAMETER, textProvider.getText(RUN_REMOTELY_LBL));
 
 		return runTypesMap;
+	}
+
+	public static String getResourceString(@NotNull String resourceString){
+		if(instance == null){
+			instance = new RunFromAlmTaskConfigurator();
+		}
+		I18nBean i18nBean = instance.getI18nBean();
+		if(i18nBean!= null){
+			return i18nBean.getText(resourceString);
+		}
+		return "";
 	}
 }

@@ -46,6 +46,7 @@ public abstract class AbstractLauncherTask implements TaskType {
 	@NotNull
     @java.lang.Override
     public TaskResult execute(@NotNull final TaskContext taskContext) throws TaskException {
+		ResourceManager.getText(RunFromAlmTaskConfigurator.USER_NAME);
         final BuildLogger buildLogger = taskContext.getBuildLogger();
 		
 		Properties mergedProperties = new Properties();
@@ -118,14 +119,15 @@ public abstract class AbstractLauncherTask implements TaskType {
 			return TaskResultBuilder.create(taskContext).failedWithError().build();
 		}
 		try {
-			int retCode = run(wd, launcherPath, paramsFile.getAbsolutePath(), buildLogger);
+			Integer retCode = run(wd, launcherPath, paramsFile.getAbsolutePath(), buildLogger);
 			buildLogger.addBuildLogEntry("********** " + Integer.toString(retCode));
-			if (retCode == 3)
+			if (retCode != null && retCode.equals(3))
 			{
 				throw new InterruptedException();
 			}
-			else if (retCode != 0)
+			else if (retCode != null && retCode.equals(0))
 			{
+				ResourceManager.getText(RunFromAlmTaskConfigurator.USER_NAME);
 				return collateResults(taskContext);
 			}
 		} 
@@ -211,6 +213,7 @@ public abstract class AbstractLauncherTask implements TaskType {
 	{
 		try
 		{
+			ResourceManager.getText(RunFromAlmTaskConfigurator.USER_NAME);
 			TestResultHelper.CollateResults(testCollationService, taskContext);
 			uploadArtifacts(taskContext);
 			return TaskResultBuilder.create(taskContext).checkTestFailures().build();

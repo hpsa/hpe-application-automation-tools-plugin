@@ -12,7 +12,6 @@ import com.hp.application.automation.tools.common.result.model.junit.Testsuite;
 import com.hp.application.automation.tools.common.result.model.junit.Testsuites;
 import com.hp.application.automation.tools.common.sdk.DirectoryZipHelper;
 import org.apache.commons.io.FileUtils;
-
 import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.IOException;
@@ -30,7 +29,7 @@ public final class TestResultHelper
     public static final String HP_UFT_PREFIX = "HP_UFT_Build_";
     public enum ResultTypeFilter {All, SUCCESSFUL, FAILED }
     private static final String RUN_LOG_FILE_NAME = "RunLog";
-    private static final String CAN_NOT_SAVE_RUN_LOG_MESSAGE = "Alm.error.canNotSaveTheRunLog";
+    private static final String CAN_NOT_SAVE_RUN_LOG_MESSAGE = ResourceManager.getText("Alm.error.canNotSaveTheRunLog");
     private static final String RUN_LOG_HTML_TEXT =
         "<!DOCTYPE html>\n" +
             "<html>\n" +
@@ -58,6 +57,8 @@ public final class TestResultHelper
 
     public static void CollateResults(@NotNull final TestCollationService testCollationService,@NotNull final TaskContext taskContext)
     {
+        taskContext.getBuildLogger().addBuildLogEntry("TEST_REPORT_FILE_PATTERNS is :"+TEST_REPORT_FILE_PATTERNS);
+        taskContext.getBuildLogger().addBuildLogEntry("new XmlTestResultsReportCollector() is :"+new XmlTestResultsReportCollector());
         testCollationService.collateTestResults(taskContext, TEST_REPORT_FILE_PATTERNS, new XmlTestResultsReportCollector());
     }
 
@@ -166,8 +167,11 @@ public final class TestResultHelper
             }
         }
     }
+
+    //is used for Run from Alm Lab Management task
     private static String findRequiredStringFromLog(TaskContext taskContext, String searchFilter)
     {
+        String taskBuildNumber = new Integer(taskContext.getBuildContext().getBuildNumber()).toString();
         BuildLogger logger = taskContext.getBuildLogger();
         List<LogEntry> buildLog = Lists.reverse(logger.getBuildLog());
         for(LogEntry logEntry: buildLog){
@@ -176,11 +180,37 @@ public final class TestResultHelper
                 int pathBegin = log.indexOf("http");
                 if(pathBegin > -1)
                 {
-                    return log.substring(pathBegin);
+                    log=log.substring(pathBegin);
+                    if(!savedALMRunLogPaths.contains(taskBuildNumber+log)){
+                        return log;
+                    }
                 }
             }
         }
         return null;
+    }
+
+    //is used for Run from Alm task
+    private static List<String> findRequiredStringsFromLog(TaskContext taskContext, String searchFilter)
+    {
+        String taskBuildNumber = new Integer(taskContext.getBuildContext().getBuildNumber()).toString();
+        BuildLogger logger = taskContext.getBuildLogger();
+        List<LogEntry> buildLog = Lists.reverse(logger.getBuildLog());
+        List<String> results = new ArrayList<String>();
+        for(LogEntry logEntry: buildLog){
+            String log = logEntry.getLog();
+            if(log.contains(searchFilter)) {
+                int pathBegin = log.indexOf("td:");
+                if(pathBegin > -1)
+                {
+                   String result = log.substring(pathBegin);
+                    if(!results.contains(result) && !savedALMRunLogPaths.contains(taskBuildNumber+result)){
+                        results.add(result);
+                    }
+                }
+            }
+        }
+        return results;
     }
 
     private static void clearSavedALMRunLogPaths(TaskContext taskContext)
@@ -193,26 +223,39 @@ public final class TestResultHelper
         }
     }
 
-    protected static void AddALMArtifacts(final TaskContext taskContext, String linkSearchFilter){
-
+    protected static void AddALMArtifacts(final TaskContext taskContext, String linkSearchFilter)
+    {
         clearSavedALMRunLogPaths(taskContext);
+        String taskName = taskContext.getConfigurationMap().get(CommonTaskConfigurationProperties.TASK_NAME);
 
+        if(taskName.equals(ResourceManager.getText(AlmLabManagementTaskConfigurator.TASK_NAME_VALUE))) {
+            String taskRunLogPath = findRequiredStringFromLog(taskContext, linkSearchFilter);
+            if (com.hp.application.automation.tools.common.StringUtils.isNullOrEmpty(taskRunLogPath)) {
+                taskContext.getBuildLogger().addErrorLogEntry(CAN_NOT_SAVE_RUN_LOG_MESSAGE);
+                return;
+            }
+
+            createResultFile(taskContext, taskRunLogPath, ".*processRunId=");
+        }
+        else if(taskName.equals(ResourceManager.getText(RunFromAlmTaskConfigurator.TASK_NAME_VALUE))){
+            List<String> links = findRequiredStringsFromLog(taskContext, linkSearchFilter);
+            Integer linksAmount = new Integer (links.size());
+            if (linksAmount.equals(0)) {
+                taskContext.getBuildLogger().addErrorLogEntry(CAN_NOT_SAVE_RUN_LOG_MESSAGE);
+                return;
+            }
+
+            for (String link : links) {
+                createResultFile(taskContext, link, ".*EntityID=");
+            }
+        }
+    }
+    private static void createResultFile(TaskContext taskContext, String link, String idFilter){
         Integer taskBuildNumber = taskContext.getBuildContext().getBuildNumber();
-        String taskRunLogPath = findRequiredStringFromLog(taskContext, linkSearchFilter);
-        if(com.hp.application.automation.tools.common.StringUtils.isNullOrEmpty(taskRunLogPath)){
-            taskContext.getBuildLogger().addErrorLogEntry(CAN_NOT_SAVE_RUN_LOG_MESSAGE);
-            return;
-        }
 
-        if(savedALMRunLogPaths.contains(taskBuildNumber+taskRunLogPath))
-        {
-            taskContext.getBuildLogger().addErrorLogEntry(CAN_NOT_SAVE_RUN_LOG_MESSAGE);
-            return;
-        }
+        savedALMRunLogPaths.add(taskBuildNumber + link);
+        String RunReportFileId = link.replaceAll(idFilter, "");
 
-        savedALMRunLogPaths.add(taskBuildNumber+taskRunLogPath);
-
-        String RunReportFileId = taskRunLogPath.replaceAll(".*processRunId=", "");
         if(com.hp.application.automation.tools.common.StringUtils.isNullOrEmpty(RunReportFileId))
         {
             return;
@@ -220,8 +263,8 @@ public final class TestResultHelper
         String RunReportFileName = RUN_LOG_FILE_NAME+RunReportFileId+".html";
         String workingDirectory = getOutputFilePath(taskContext);
         File resultFile = new File(workingDirectory+"/"+RunReportFileName);
-        taskRunLogPath = "\""+taskRunLogPath+"\"";
-        String parameterizedResultsHtmlText = RUN_LOG_HTML_TEXT.replaceAll(ALM_RUN_RESULTS_LINK_PARAMETER, taskRunLogPath);
+        link = "\""+link+"\"";
+        String parameterizedResultsHtmlText = RUN_LOG_HTML_TEXT.replaceAll(ALM_RUN_RESULTS_LINK_PARAMETER, link);
         try {
             FileUtils.writeStringToFile(resultFile, parameterizedResultsHtmlText);
         }

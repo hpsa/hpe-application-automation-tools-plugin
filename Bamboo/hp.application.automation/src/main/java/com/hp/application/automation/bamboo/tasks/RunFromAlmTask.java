@@ -5,10 +5,14 @@ import java.util.Properties;
 import com.atlassian.bamboo.build.test.TestCollationService;
 import com.atlassian.bamboo.configuration.ConfigurationMap;
 import com.atlassian.bamboo.task.TaskContext;
+import com.atlassian.bamboo.task.TaskException;
+import com.atlassian.bamboo.task.TaskResult;
+import com.atlassian.bamboo.task.TaskResultBuilder;
 import org.jetbrains.annotations.NotNull;
 
-
 public class RunFromAlmTask extends AbstractLauncherTask {
+
+	private final String LINK_SEARCH_FILTER = "EntityID=";
 
 	public RunFromAlmTask(@NotNull final TestCollationService testCollationService)
 	{
@@ -57,8 +61,7 @@ public class RunFromAlmTask extends AbstractLauncherTask {
 		String almTestSets = map.get(RunFromAlmTaskConfigurator.TESTS_PATH);
 		if (!org.apache.commons.lang.StringUtils.isEmpty(almTestSets)) {
 
-			String[] testSetsArr = almTestSets.replaceAll("\r", "").split(
-					"\n");
+			String[] testSetsArr = almTestSets.replaceAll("\r", "").split(splitMarker);
 
 			int i = 1;
 
@@ -71,5 +74,13 @@ public class RunFromAlmTask extends AbstractLauncherTask {
 		}
 		return builder.getProperties();
 	}
-    
+
+	@NotNull
+	@java.lang.Override
+	public TaskResult execute(@NotNull final TaskContext taskContext) throws TaskException
+	{
+		super.execute(taskContext);
+		TestResultHelper.AddALMArtifacts(taskContext, LINK_SEARCH_FILTER);
+		return TaskResultBuilder.create(taskContext).checkTestFailures().build();
+	}
 }
