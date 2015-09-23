@@ -84,7 +84,7 @@ public class RunFromAlmTask extends AbstractLauncherTask {
 	public TaskResult execute(@NotNull final TaskContext taskContext) throws TaskException
 	{
 		super.execute(taskContext);
-		TestResultHelper.AddALMArtifacts(taskContext, LINK_SEARCH_FILTER, i18nBean);
+		TestResultHelperAlm.AddALMArtifacts(taskContext, LINK_SEARCH_FILTER, i18nBean);
 		return TaskResultBuilder.create(taskContext).checkTestFailures().build();
 	}
 }

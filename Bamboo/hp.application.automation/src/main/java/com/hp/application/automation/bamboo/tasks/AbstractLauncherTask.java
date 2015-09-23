@@ -2,6 +2,7 @@ package com.hp.application.automation.bamboo.tasks;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.build.test.TestCollationService;
+import com.atlassian.bamboo.configuration.ConfigurationMap;
 import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.task.TaskException;
 import com.atlassian.bamboo.task.TaskResult;
@@ -35,7 +36,7 @@ public abstract class AbstractLauncherTask implements TaskType {
 
 	protected abstract Properties getTaskProperties(final TaskContext taskContext) throws Exception;
 
-	protected void uploadArtifacts(final TaskContext taskContext)
+	protected void PrepareArtifacts(final TaskContext taskContext)
 	{
 
 	}
@@ -207,7 +208,7 @@ public abstract class AbstractLauncherTask implements TaskType {
 		try
 		{
 			TestResultHelper.CollateResults(testCollationService, taskContext);
-			uploadArtifacts(taskContext);
+			PrepareArtifacts(taskContext);
 			return TaskResultBuilder.create(taskContext).checkTestFailures().build();
 		}
 		catch (Exception ex)

@@ -38,6 +38,7 @@ public class RunFromAlmTaskConfigurator extends AbstractUftTaskConfigurator {
 	public void setArtifactDefinitionManager(ArtifactDefinitionManager artifactDefinitionManager){
 		this.artifactDefinitionManager = artifactDefinitionManager;
 	}
+
 	public Map<String, String> generateTaskConfigMap(@NotNull final ActionParametersMap params, @Nullable final TaskDefinition previousTaskDefinition)
 	{
 		final Map<String, String> config = super.generateTaskConfigMap(params, previousTaskDefinition);

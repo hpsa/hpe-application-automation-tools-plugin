@@ -78,15 +78,13 @@ public final class TestRusultsHelperFileSystem {
         {
             logger.addBuildLogEntry("Test results file (" + results.getName() + ") has invalid format.");
         }
-        File resultFile = new File(getOutputFilePath(taskContext), "report.html");
-        String parameterizedResultsHtmlText = "<HTML><BODY>Some text</BODY></HTML>";
-        try {
-            org.apache.commons.io.FileUtils.writeStringToFile(resultFile, parameterizedResultsHtmlText);
-        }
-        catch(Exception e) {
-        }
 
         return resultItems;
+    }
+
+    private static String getTestName(File test)
+    {
+        return test.getName();
     }
 
     private static boolean isInFilter(Testcase testcase, ResultTypeFilter filter)
@@ -111,12 +109,7 @@ public final class TestRusultsHelperFileSystem {
         return false;
     }
 
-    private static String getTestName(File test)
-    {
-        return test.getName();
-    }
-
-    public static void zipResults(Collection<ResultInfoItem> resultInfoItems, BuildLogger logger)
+    /*public static void zipResults(Collection<ResultInfoItem> resultInfoItems, BuildLogger logger)
     {
         for(ResultInfoItem resultItem : resultInfoItems)
         {
@@ -130,5 +123,5 @@ public final class TestRusultsHelperFileSystem {
                 logger.addBuildLogEntry(ex.getMessage());
             }
         }
-    }
+    }*/
 }

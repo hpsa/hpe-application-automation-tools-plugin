@@ -1,18 +1,28 @@
-package com.hp.application.automation.bamboo.tasks;
+package com.hpe.application.automation.bamboo.tasks;
 
 import com.atlassian.bamboo.build.artifact.ArtifactManager;
 import com.atlassian.bamboo.build.test.TestCollationService;
 import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.configuration.ConfigurationMap;
+
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import com.atlassian.bamboo.utils.i18n.I18nBean;
 import com.atlassian.bamboo.utils.i18n.I18nBeanFactory;
+import com.atlassian.struts.TextProvider;
+import com.hpe.application.automation.tools.common.sdk.DirectoryZipHelper;
+import org.apache.commons.io.FileUtils;
+import org.apache.velocity.texen.util.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jfree.io.FileUtilities;
 
 public class RunFromFileSystemTask extends AbstractLauncherTask {
 
+	private final String RESULT_HTML_REPORT_FILE_NAME = "run_results.html";
+	private final String HTML_REPORT_FILE_NAME = "Report.html";
 	private I18nBean i18nBean;
 
 	public RunFromFileSystemTask(@NotNull final TestCollationService testCollationService, @NotNull I18nBeanFactory i18nBeanFactory)
@@ -50,17 +60,76 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
 	}
 
 	@Override
-	protected void uploadArtifacts(final TaskContext taskContext)
+	protected void PrepareArtifacts(final TaskContext taskContext)
 	{
 		TestRusultsHelperFileSystem.ResultTypeFilter resultsFilter = getResultTypeFilter(taskContext);
 
-		if(resultsFilter != null)
+		if(resultsFilter == null)
 		{
-			final BuildLogger buildLogger = taskContext.getBuildLogger();
-			final String resultNameFormat = i18nBean.getText(RunFromFileSystemTaskConfigurator.ARTIFACT_NAME_FORMAT_STRING);
+			return;
+		}
+		final BuildLogger buildLogger = taskContext.getBuildLogger();
+		final String resultNameFormat = ResourceManager.getText(RunFromFileSystemTaskConfigurator.ARTIFACT_NAME_FORMAT_STRING);
 
-			Collection<ResultInfoItem> resultsPaths = TestResultHelper.getTestResults(getResultsFile(), resultsFilter, resultNameFormat, taskContext, buildLogger);
-			TestRusultsHelperFileSystem.zipResults(resultsPaths, buildLogger);
+		Collection<ResultInfoItem> resultsPathes = TestRusultsHelperFileSystem.getTestResults(getResultsFile(), resultsFilter, resultNameFormat, taskContext, buildLogger);
+
+		for(ResultInfoItem resultItem : resultsPathes)
+		{
+			String dir = resultItem.getSourceDir().getPath();
+			File f = new File(dir, RESULT_HTML_REPORT_FILE_NAME);
+			if (f.exists())
+			{
+				createReportHtml(resultItem, buildLogger);
+			}
+			else {
+				zipResult(resultItem, buildLogger);
+			}
+		}
+		//TestRusultsHelperFileSystem.zipResults(resultsPathes, buildLogger);
+	}
+
+	private void zipResult(ResultInfoItem resultItem, BuildLogger logger)
+	{
+		try {
+			DirectoryZipHelper.zipFolder(resultItem.getSourceDir().getPath(), resultItem.getZipFile().getPath());
+		} catch (IOException ex) {
+			logger.addBuildLogEntry(ex.getMessage());
+		} catch (Exception ex) {
+			logger.addBuildLogEntry(ex.getMessage());
+		}
+	}
+
+	private void createReportHtml(ResultInfoItem resultItem, BuildLogger logger)
+	{
+		File contentDir = resultItem.getSourceDir();
+		if (contentDir == null || !contentDir.isDirectory()) {
+			return;
+		}
+		File parentDir = contentDir.getParentFile();
+		if (parentDir == null || !parentDir.isDirectory()){
+			return;
+		}
+		String content =
+			"<!DOCTYPE html>\n" +
+					"<html>\n" +
+					"    <head>\n" +
+					"        <title>Test</title>\n" +
+					"        <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n" +
+					"        <script type=\"text/javascript\">\n" +
+					"        function codeAddress() {\n" +
+					"            window.location = \"file:./" + contentDir.getName() + "/" + RESULT_HTML_REPORT_FILE_NAME + "\";\n" +
+					"        }\n" +
+					"        window.onload = codeAddress;\n" +
+					"        </script>\n" +
+					"    </head>\n" +
+					"    <body>\n" +
+					"   \n" +
+					"    </body>\n" +
+					"</html>";
+
+		try {
+			FileUtils.writeStringToFile(new File(parentDir, HTML_REPORT_FILE_NAME), content);
+		} catch (IOException e) {
 		}
 	}
 

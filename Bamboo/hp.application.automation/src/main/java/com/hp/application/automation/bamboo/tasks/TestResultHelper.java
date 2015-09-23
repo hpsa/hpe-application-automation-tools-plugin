@@ -1,18 +1,15 @@
 package com.hp.application.automation.bamboo.tasks;
 
-import com.atlassian.bamboo.build.LogEntry;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.build.test.TestCollationService;
 import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.utils.i18n.I18nBean;
 import com.atlassian.util.concurrent.NotNull;
-import com.google.common.collect.Lists;
 import com.hp.application.automation.tools.common.result.ResultSerializer;
 import com.hp.application.automation.tools.common.result.model.junit.Testcase;
 import com.hp.application.automation.tools.common.result.model.junit.Testsuite;
 import com.hp.application.automation.tools.common.result.model.junit.Testsuites;
 import com.hp.application.automation.tools.common.sdk.DirectoryZipHelper;
-import org.apache.commons.io.FileUtils;
 import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.IOException;
@@ -49,6 +46,7 @@ public final class TestResultHelper
     private static final String ALM_RUN_RESULTS_LINK_PARAMETER = "ALM_RUN_RESULTS_LINK_PARAMETER";
     private static List<String> savedALMRunLogPaths = new ArrayList<String>();
     private static int currentBuildNumber;
+    public enum ResultTypeFilter {All, SUCCESSFUL, FAILED }
 
     private TestResultHelper()
     {
@@ -73,11 +71,11 @@ public final class TestResultHelper
 
         try
         {
-            Testsuites testSuites = ResultSerializer.Deserialize(results);
+            Testsuites testsuites = ResultSerializer.Deserialize(results);
 
             Map<String, Integer> testNames = new HashMap<String, Integer>();
 
-            for (Testsuite testsuite : testSuites.getTestsuite())
+            for (Testsuite testsuite : testsuites.getTestsuite())
             {
                 for (Testcase testcase : testsuite.getTestcase())
                 {
