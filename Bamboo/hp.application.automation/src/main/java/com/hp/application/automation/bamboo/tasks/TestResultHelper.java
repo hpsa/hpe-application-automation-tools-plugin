@@ -24,7 +24,6 @@ import java.util.*;
 public final class TestResultHelper
 {
     private static final String TEST_REPORT_FILE_PATTERNS = "*.xml";
-    private static final String TEST_STATUS_PASSED = "pass";
     private static final String TEST_STATUS_FAIL = "fail";
     public static final String HP_UFT_PREFIX = "HP_UFT_Build_";
     public enum ResultTypeFilter {All, FAILED }

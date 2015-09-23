@@ -4,9 +4,7 @@ import com.atlassian.bamboo.build.test.TestCollationService;
 import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.configuration.ConfigurationMap;
-
 import java.util.*;
-
 import com.atlassian.bamboo.utils.i18n.I18nBean;
 import com.atlassian.bamboo.utils.i18n.I18nBeanFactory;
 import org.jetbrains.annotations.NotNull;

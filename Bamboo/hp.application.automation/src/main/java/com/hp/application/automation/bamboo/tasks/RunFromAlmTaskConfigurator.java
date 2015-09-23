@@ -28,18 +28,12 @@ public class RunFromAlmTaskConfigurator extends AbstractUftTaskConfigurator {
 	public static final String RUN_LOCALLY_LBL = "Alm.runLocallyLbl";
 	public static final String RUN_ON_PLANNED_HOST_LBL = "Alm.runOnPlannedHostLbl";
 	public static final String RUN_REMOTELY_LBL = "Alm.runRemotelyLbl";
-
 	public static final String RUN_LOCALLY_PARAMETER = "1";
 	public static final String RUN_ON_PLANNED_HOST_PARAMETER = "2";
 	public static final String RUN_REMOTELY_PARAMETER = "3";
 	public static final String TASK_NAME_VALUE = "Alm.taskName";
 
 	private ArtifactDefinitionManager artifactDefinitionManager;
-
-	private static RunFromAlmTaskConfigurator instance;
-	public RunFromAlmTaskConfigurator(){
-		instance = this;
-	}
 
 	public void setArtifactDefinitionManager(ArtifactDefinitionManager artifactDefinitionManager){
 		this.artifactDefinitionManager = artifactDefinitionManager;
@@ -140,16 +134,5 @@ public class RunFromAlmTaskConfigurator extends AbstractUftTaskConfigurator {
 		runTypesMap.put(RUN_REMOTELY_PARAMETER, textProvider.getText(RUN_REMOTELY_LBL));
 
 		return runTypesMap;
-	}
-
-	public static String getResourceString(@NotNull String resourceString){
-		if(instance == null){
-			instance = new RunFromAlmTaskConfigurator();
-		}
-		I18nBean i18nBean = instance.getI18nBean();
-		if(i18nBean!= null){
-			return i18nBean.getText(resourceString);
-		}
-		return "";
 	}
 }
