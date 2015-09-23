@@ -17,6 +17,8 @@ import com.hp.application.automation.tools.common.sdk.RunManager;
 import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
+import static com.hp.application.automation.bamboo.tasks.TestResultHelperAlm.AddALMArtifacts;
+
 public class AlmLabManagementTask implements TaskType {
 
 	private final TestCollationService testCollationService;
@@ -95,7 +97,7 @@ public class AlmLabManagementTask implements TaskType {
         }
 
         TestResultHelper.CollateResults(testCollationService, taskContext);
-        TestResultHelper.AddALMArtifacts(taskContext, LINK_SEARCH_FILTER, i18nBean);
+        AddALMArtifacts(taskContext, LINK_SEARCH_FILTER, i18nBean);
 
         return TaskResultBuilder.create(taskContext).checkTestFailures().build();
     }

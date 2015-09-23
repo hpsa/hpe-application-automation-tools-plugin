@@ -1,5 +1,6 @@
 package com.hp.application.automation.bamboo.tasks;
 
+import com.atlassian.bamboo.build.artifact.ArtifactManager;
 import com.atlassian.bamboo.build.test.TestCollationService;
 import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.build.logger.BuildLogger;
@@ -51,7 +52,7 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
 	@Override
 	protected void uploadArtifacts(final TaskContext taskContext)
 	{
-		TestResultHelper.ResultTypeFilter resultsFilter = getResultTypeFilter(taskContext);
+		TestRusultsHelperFileSystem.ResultTypeFilter resultsFilter = getResultTypeFilter(taskContext);
 
 		if(resultsFilter != null)
 		{
@@ -59,23 +60,23 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
 			final String resultNameFormat = i18nBean.getText(RunFromFileSystemTaskConfigurator.ARTIFACT_NAME_FORMAT_STRING);
 
 			Collection<ResultInfoItem> resultsPaths = TestResultHelper.getTestResults(getResultsFile(), resultsFilter, resultNameFormat, taskContext, buildLogger);
-			TestResultHelper.zipResults(resultsPaths, buildLogger);
+			TestRusultsHelperFileSystem.zipResults(resultsPaths, buildLogger);
 		}
 	}
 
 	@Nullable
-	private TestResultHelper.ResultTypeFilter getResultTypeFilter(final TaskContext taskContext)
+	private TestRusultsHelperFileSystem.ResultTypeFilter getResultTypeFilter(final TaskContext taskContext)
 	{
 		String publishMode = taskContext.getConfigurationMap().get(RunFromFileSystemTaskConfigurator.PUBLISH_MODE_PARAM);
 
 		if(publishMode.equals(RunFromFileSystemTaskConfigurator.PUBLISH_MODE_FAILED_VALUE))
 		{
-			return TestResultHelper.ResultTypeFilter.FAILED;
+			return TestRusultsHelperFileSystem.ResultTypeFilter.FAILED;
 		}
 
 		if(publishMode.equals(RunFromFileSystemTaskConfigurator.PUBLISH_MODE_ALWAYS_VALUE))
 		{
-			return TestResultHelper.ResultTypeFilter.All;
+			return TestRusultsHelperFileSystem.ResultTypeFilter.All;
 		}
 
 		return null;
