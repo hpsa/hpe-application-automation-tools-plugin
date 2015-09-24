@@ -38,7 +38,7 @@
         <resource type="download" name="hp.application.automation.js" location="/js/hp.application.automation.js"/>
         <resource type="download" name="images/" location="/images"/>
 
-        <context>hp.application.automation</context>
+        <context>hp.application.automation.bamboo</context>
     </web-resource>
     
     <!-- publish our component -->
