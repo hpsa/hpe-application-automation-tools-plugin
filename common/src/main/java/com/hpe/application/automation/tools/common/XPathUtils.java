@@ -22,7 +22,6 @@
 
 package com.hpe.application.automation.tools.common;
 
-import com.hp.application.automation.tools.common.SSEException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;

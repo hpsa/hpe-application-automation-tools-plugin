@@ -20,7 +20,7 @@
  THE SOFTWARE.
  */
 
-package com.hpeapplication.automation.tools.common.sdk.request;
+package com.hpe.application.automation.tools.common.sdk.request;
 
 import com.hpe.application.automation.tools.common.sdk.Client;
 
