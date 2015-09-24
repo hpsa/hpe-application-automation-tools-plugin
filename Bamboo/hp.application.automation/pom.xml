@@ -6,7 +6,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.atlassian.plugins.bamboo</groupId>
-    <artifactId>hp.application.automation</artifactId>
+    <artifactId>hpe.application.automation.bamboo</artifactId>
     <!--<artifactId>hp.application.automation.bamboo</artifactId>-->
     <version>1.0</version>
 
@@ -64,7 +64,7 @@
 
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>hp-application-automation-tools-common</artifactId>
+            <artifactId>hpe-application-automation-tools-common</artifactId>
             <version>3.0.8-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>

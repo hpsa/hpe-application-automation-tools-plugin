@@ -19,18 +19,18 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  */
-package com.hp.application.automation.bamboo.tasks;
+package com.hpe.application.automation.bamboo.tasks;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.build.test.TestCollationService;
 import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.util.concurrent.NotNull;
-import com.hp.application.automation.tools.common.result.ResultSerializer;
-import com.hp.application.automation.tools.common.result.model.junit.Testcase;
-import com.hp.application.automation.tools.common.result.model.junit.Testsuite;
-import com.hp.application.automation.tools.common.result.model.junit.Testsuites;
-import com.hp.application.automation.tools.common.sdk.DirectoryZipHelper;
+import com.hpe.application.automation.tools.common.result.ResultSerializer;
+import com.hpe.application.automation.tools.common.result.model.junit.Testcase;
+import com.hpe.application.automation.tools.common.result.model.junit.Testsuite;
+import com.hpe.application.automation.tools.common.result.model.junit.Testsuites;
+import com.hpe.application.automation.tools.common.sdk.DirectoryZipHelper;
 import org.apache.commons.lang.StringUtils;
 import javax.xml.bind.JAXBException;
 import java.io.File;

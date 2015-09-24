@@ -38,12 +38,12 @@
         <resource type="download" name="hp.application.automation.js" location="/js/hp.application.automation.js"/>
         <resource type="download" name="images/" location="/images"/>
 
-        <context>hp.application.automation.bamboo</context>
+        <context>hp.application.automation</context>
     </web-resource>
     
     <!-- publish our component -->
-    <component key="hp.application.automation.bamboo.plugin.component" class="com.hp.application.automation.bamboo.plugin.PluginComponentImpl" public="true">
-        <interface>com.hp.application.automation.bamboo.plugin.PluginComponent</interface>
+    <component key="hp.application.automation.bamboo.plugin.component" class="com.hpe.application.automation.bamboo.plugin.PluginComponentImpl" public="true">
+        <interface>com.hpe.application.automation.bamboo.plugin.PluginComponent</interface>
     </component>
     
     <!-- import from the product container -->
@@ -51,11 +51,11 @@
 
 	<taskType 
 		name="HP ALM Lab Management Environment Preparation"
-		class="com.hp.application.automation.bamboo.tasks.AlmLabEnvPrepareTask" 
-		key="com.hp.application.automation.bamboo.tasks.AlmLabEnvPrepareTask">
+		class="com.hpe.application.automation.bamboo.tasks.AlmLabEnvPrepareTask"
+		key="com.hpe.application.automation.bamboo.tasks.AlmLabEnvPrepareTask">
       <description>Execute AUT Environment preparation using HP ALM Lab Management</description>
       <category name="test"/>
-      <configuration class="com.hp.application.automation.bamboo.tasks.AlmLabEnvPrepareTaskConfigurator"/>
+      <configuration class="com.hpe.application.automation.bamboo.tasks.AlmLabEnvPrepareTaskConfigurator"/>
       <resource 
       	type="freemarker" 
       	name="edit" 
@@ -68,11 +68,11 @@
     
     <taskType 
     	name="HP ALM Lab Management" 
-    	class="com.hp.application.automation.bamboo.tasks.AlmLabManagementTask"
-    	key="com.hp.application.automation.bamboo.tasks.AlmLabManagementTask">
+    	class="com.hpe.application.automation.bamboo.tasks.AlmLabManagementTask"
+    	key="com.hpe.application.automation.bamboo.tasks.AlmLabManagementTask">
       <description>Execute HP tests using HP ALM Lab Management</description>
       <category name="test"/>
-      <configuration class="com.hp.application.automation.bamboo.tasks.AlmLabManagementTaskConfigurator"/>
+      <configuration class="com.hpe.application.automation.bamboo.tasks.AlmLabManagementTaskConfigurator"/>
       <resource 
       	type="freemarker" 
       	name="edit" 
@@ -85,13 +85,13 @@
     
     <taskType 
     	name="HP File System Execution" 
-    	class="com.hp.application.automation.bamboo.tasks.RunFromFileSystemTask"
-    	key="com.hp.application.automation.bamboo.tasks.RunFromFileSystemTask">
+    	class="com.hpe.application.automation.bamboo.tasks.RunFromFileSystemTask"
+    	key="com.hpe.application.automation.bamboo.tasks.RunFromFileSystemTask">
       <description>Execute HP tests from file system</description>
       <category name="test"/>
-      <configuration class="com.hp.application.automation.bamboo.tasks.RunFromFileSystemTaskConfigurator"/>
+      <configuration class="com.hpe.application.automation.bamboo.tasks.RunFromFileSystemTaskConfigurator"/>
       <!-- <executable key="HP.HP Unified Functional Testing" nameKey="HP.UFT.executable.name"/> -->
-      <capabilityDefaultsHelper class="com.hp.application.automation.bamboo.tasks.CapabilityUftDefaultsHelper"/>
+      <capabilityDefaultsHelper class="com.hpe.application.automation.bamboo.tasks.CapabilityUftDefaultsHelper"/>
       <resource 
       	type="freemarker" 
       	name="edit" 
@@ -104,11 +104,11 @@
     
     <taskType 
     	name="HP ALM Execution" 
-    	class="com.hp.application.automation.bamboo.tasks.RunFromAlmTask"
-    	key="com.hp.application.automation.bamboo.tasks.RunFromAlmTask">
+    	class="com.hpe.application.automation.bamboo.tasks.RunFromAlmTask"
+    	key="com.hpe.application.automation.bamboo.tasks.RunFromAlmTask">
       <description>Execute HP tests from ALM</description>
       <category name="test"/>
-      <configuration class="com.hp.application.automation.bamboo.tasks.RunFromAlmTaskConfigurator"/>
+      <configuration class="com.hpe.application.automation.bamboo.tasks.RunFromAlmTaskConfigurator"/>
       <resource 
       	type="freemarker" 
       	name="edit" 
