@@ -31,6 +31,12 @@ public class ParameterConfig {
 		this(pd, type, defaultValue, null);
 	}
 
+  public ParameterConfig(String name,ParameterType  type) {
+    this.name = name;
+    this.type = type;
+    this.description = "";
+  }
+
 	public ParameterConfig(ParameterDefinition pd, ParameterType type, Object defaultValue, List<Object> choices) {
 		ParameterValue tmp;
 		this.name = pd.getName();
