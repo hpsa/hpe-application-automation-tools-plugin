@@ -20,7 +20,7 @@
  THE SOFTWARE.
  */
 
-package com.hp.application.automation.tools.common;
+package com.hpe.application.automation.tools.common;
 
 public class SSEException extends RuntimeException {
     

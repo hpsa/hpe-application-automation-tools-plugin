@@ -69,25 +69,21 @@ public class RestClient implements Client {
         _webuiPrefix = getPrefixUrl("webui/alm", domain, project);
     }
     
-    @Override
     public String build(String suffix) {
         
         return String.format("%1$s%2$s", _serverUrl, suffix);
     }
     
-    @Override
     public String buildRestRequest(String suffix) {
         
         return String.format("%1$s/%2$s", _restPrefix, suffix);
     }
     
-    @Override
     public String buildWebUIRequest(String suffix) {
         
         return String.format("%1$s/%2$s", _webuiPrefix, suffix);
     }
     
-    @Override
     public Response httpGet(
             String url,
             String queryString,
@@ -104,7 +100,6 @@ public class RestClient implements Client {
         return ret;
     }
     
-    @Override
     public Response httpPost(
             String url,
             byte[] data,
@@ -137,7 +132,6 @@ public class RestClient implements Client {
         return ret;
     }
     
-    @Override
     public String getServerUrl() {
         
         return _serverUrl;
@@ -318,7 +312,6 @@ public class RestClient implements Client {
         return ret.toString();
     }
     
-    @Override
     public String getUsername() {
         
         return _username;
