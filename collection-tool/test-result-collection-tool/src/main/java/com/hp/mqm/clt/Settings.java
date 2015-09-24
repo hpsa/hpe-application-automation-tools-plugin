@@ -20,7 +20,6 @@ public class Settings {
     private static final String PROP_SHARED_SPACE = "sharedspace";
     private static final String PROP_WORKSPACE = "workspace";
     private static final String PROP_USER = "user";
-    private static final String PROP_PASSWORD_FILE = "passwordFile";
 
     private String server;
     private Integer sharedspace;

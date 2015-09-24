@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.text.ParseException;
+import java.util.Date;
 import java.util.Iterator;
 
 public class JUnitXmlIterator extends AbstractXmlIterator<TestResult> {
@@ -24,7 +25,8 @@ public class JUnitXmlIterator extends AbstractXmlIterator<TestResult> {
     private String testName;
     private TestResultStatus status;
     private long duration;
-    private long started;
+    private long currentTime = new Date().getTime();
+    private Long timestamp;
 
     public JUnitXmlIterator(InputStream read) throws XMLStreamException {
         super(read);
@@ -36,8 +38,8 @@ public class JUnitXmlIterator extends AbstractXmlIterator<TestResult> {
             StartElement element = (StartElement) event;
             String localName = element.getName().getLocalPart();
             if ("testsuite".equals(localName)) { // NON-NLS
-                Attribute timestamp = element.getAttributeByName(new QName("timestamp")); // NON-NLS
-                started = (timestamp == null) ? 0 : parseDateTime(timestamp.getValue());
+                Attribute timestampAttribute = element.getAttributeByName(new QName("timestamp")); // NON-NLS
+                timestamp = (timestampAttribute == null) ? null : parseDateTime(timestampAttribute.getValue());
             } else if ("testcase".equals(localName)) { // NON-NLS
                 packageName = "";
                 className = "";
@@ -68,19 +70,22 @@ public class JUnitXmlIterator extends AbstractXmlIterator<TestResult> {
             String localName = element.getName().getLocalPart();
 
             if ("testcase".equals(localName) && StringUtils.isNotEmpty(testName)) { // NON-NLS
-                addItem(new TestResult(packageName, className, testName, status, duration, started));
+                addItem(new TestResult(packageName, className, testName, status, duration,
+                        (timestamp != null) ? timestamp : currentTime));
+            } else if ("testsuite".equals(localName)) {
+                timestamp = null;
             }
         }
     }
 
-    private long parseDateTime(String dateTimeString) {
+    private Long parseDateTime(String dateTimeString) {
         try {
             // Should be in ISO 8601 format
             return DatatypeConverter.parseDateTime(dateTimeString).getTimeInMillis();
         } catch (IllegalArgumentException e) {
             System.out.println("Unable to parse the timestamp: " + dateTimeString);
         }
-        return 0;
+        return null;
     }
 
     private long parseTime(String timeString) {

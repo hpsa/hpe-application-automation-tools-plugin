@@ -36,7 +36,7 @@ public class XmlProcessor {
             System.out.println("Unable to process JUnit XML file, XML stream exception has occurred: " + e.getMessage());
             System.exit(ReturnCode.FAILURE.getReturnCode());
         } catch (InterruptedException e) {
-            System.out.println("Unable to process JUnit XML file, process was interrupted: " + e.getMessage());
+            System.out.println("Unable to process JUnit XML file, thread was interrupted: " + e.getMessage());
             System.exit(ReturnCode.FAILURE.getReturnCode());
         } finally {
             if (fis != null) {
@@ -48,7 +48,34 @@ public class XmlProcessor {
             System.out.println("No valid test results to push");
             System.exit(ReturnCode.FAILURE.getReturnCode());
         }
-
         return testResults;
+    }
+
+    public void writeTestResults(List<TestResult> testResults, Settings settings, File targetPath) {
+        if (targetPath == null || !targetPath.canWrite()) {
+            String fileNameInfo = (targetPath == null) ? "" : ": " + targetPath.getName();
+            System.out.println("Can not write test results to file" + fileNameInfo);
+            System.exit(ReturnCode.FAILURE.getReturnCode());
+        }
+        TestResultXmlWriter testResultXmlWriter = new TestResultXmlWriter(targetPath);
+        try {
+            testResultXmlWriter.add(testResults, settings);
+        } catch (InterruptedException e) {
+            System.out.println("Unable to process test results, thread was interrupted: " + e.getMessage());
+            System.exit(ReturnCode.FAILURE.getReturnCode());
+        } catch (XMLStreamException e) {
+            System.out.println("\"Unable to process test results, XML stream exception has occurred: " + e.getMessage());
+            System.exit(ReturnCode.FAILURE.getReturnCode());
+        } catch (IOException e) {
+            System.out.println("Unable to process test results: " + e.getMessage());
+            System.exit(ReturnCode.FAILURE.getReturnCode());
+        } finally {
+            try {
+                testResultXmlWriter.close();
+            } catch (XMLStreamException e) {
+                System.out.println("Can not close the XML file" + e.getMessage());
+                System.exit(ReturnCode.FAILURE.getReturnCode());
+            }
+        }
     }
 }
