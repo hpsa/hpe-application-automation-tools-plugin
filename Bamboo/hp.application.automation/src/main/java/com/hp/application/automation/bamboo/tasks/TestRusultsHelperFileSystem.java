@@ -7,12 +7,9 @@ import com.hp.application.automation.tools.common.result.ResultSerializer;
 import com.hp.application.automation.tools.common.result.model.junit.Testcase;
 import com.hp.application.automation.tools.common.result.model.junit.Testsuite;
 import com.hp.application.automation.tools.common.result.model.junit.Testsuites;
-import com.hp.application.automation.tools.common.sdk.DirectoryZipHelper;
-import org.codehaus.plexus.util.FileUtils;
 
 import javax.xml.bind.JAXBException;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -24,8 +21,7 @@ import static com.hp.application.automation.bamboo.tasks.TestResultHelper.getOut
  * Created by ybobrik on 9/18/2015.
  */
 public final class TestRusultsHelperFileSystem {
-    public enum ResultTypeFilter {All, SUCCESSFUL, FAILED }
-    private static final String TEST_STATUS_PASSED = "pass";
+    public enum ResultTypeFilter {All, FAILED }
     private static final String TEST_STATUS_FAIL = "fail";
 
     public static Collection<ResultInfoItem> getTestResults(@NotNull File results, ResultTypeFilter filter
@@ -95,11 +91,6 @@ public final class TestRusultsHelperFileSystem {
         }
 
         String status = testcase.getStatus();
-
-        if(filter == ResultTypeFilter.SUCCESSFUL && status.equals(TEST_STATUS_PASSED))
-        {
-            return true;
-        }
 
         if(filter == ResultTypeFilter.FAILED && status.equals(TEST_STATUS_FAIL))
         {

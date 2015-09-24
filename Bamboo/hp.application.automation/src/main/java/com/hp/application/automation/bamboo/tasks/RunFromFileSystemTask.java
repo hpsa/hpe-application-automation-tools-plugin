@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.*;
 import com.atlassian.bamboo.utils.i18n.I18nBean;
 import com.atlassian.bamboo.utils.i18n.I18nBeanFactory;
+import com.hpe.application.automation.tools.common.sdk.DirectoryZipHelper;
 import com.atlassian.struts.TextProvider;
 import com.hpe.application.automation.tools.common.sdk.DirectoryZipHelper;
 import org.apache.commons.io.FileUtils;
@@ -69,7 +70,7 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
 			return;
 		}
 		final BuildLogger buildLogger = taskContext.getBuildLogger();
-		final String resultNameFormat = ResourceManager.getText(RunFromFileSystemTaskConfigurator.ARTIFACT_NAME_FORMAT_STRING);
+		final String resultNameFormat = i18nBean.getText(RunFromFileSystemTaskConfigurator.ARTIFACT_NAME_FORMAT_STRING);
 
 		Collection<ResultInfoItem> resultsPathes = TestRusultsHelperFileSystem.getTestResults(getResultsFile(), resultsFilter, resultNameFormat, taskContext, buildLogger);
 
@@ -79,7 +80,7 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
 			File f = new File(dir, RESULT_HTML_REPORT_FILE_NAME);
 			if (f.exists())
 			{
-				createReportHtml(resultItem, buildLogger);
+				prepareHtmlArtifact(resultItem, taskContext, buildLogger);
 			}
 			else {
 				zipResult(resultItem, buildLogger);
@@ -88,7 +89,7 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
 		//TestRusultsHelperFileSystem.zipResults(resultsPathes, buildLogger);
 	}
 
-	private void zipResult(ResultInfoItem resultItem, BuildLogger logger)
+	private void zipResult(final ResultInfoItem resultItem, final BuildLogger logger)
 	{
 		try {
 			DirectoryZipHelper.zipFolder(resultItem.getSourceDir().getPath(), resultItem.getZipFile().getPath());
@@ -99,16 +100,25 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
 		}
 	}
 
-	private void createReportHtml(ResultInfoItem resultItem, BuildLogger logger)
+	private void prepareHtmlArtifact(ResultInfoItem resultItem, final TaskContext taskContext, BuildLogger logger)
 	{
 		File contentDir = resultItem.getSourceDir();
 		if (contentDir == null || !contentDir.isDirectory()) {
 			return;
 		}
-		File parentDir = contentDir.getParentFile();
-		if (parentDir == null || !parentDir.isDirectory()){
+		File destPath = new File(TestResultHelper.getOutputFilePath(taskContext), resultItem.getTestName());
+		if (!destPath.exists() && !destPath.isDirectory()){
+			destPath.mkdirs();
+		}
+
+		try {
+			FileUtils.copyDirectoryToDirectory(contentDir, destPath);
+		}
+		catch (Exception e){
+			logger.addBuildLogEntry(e.getMessage());
 			return;
 		}
+
 		String content =
 			"<!DOCTYPE html>\n" +
 					"<html>\n" +
@@ -117,7 +127,10 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
 					"        <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n" +
 					"        <script type=\"text/javascript\">\n" +
 					"        function codeAddress() {\n" +
-					"            window.location = \"file:./" + contentDir.getName() + "/" + RESULT_HTML_REPORT_FILE_NAME + "\";\n" +
+					"		 	var currentUrl = window.location;\n" +
+					"		 	currentUrl.replace(\"" + HTML_REPORT_FILE_NAME + "\", \"" + contentDir.getName() + "/" + RESULT_HTML_REPORT_FILE_NAME + "\");\n" +
+					"		 	window.alert(currentUrl);\n" +
+					"        	window.location = currentUrl;\n" +
 					"        }\n" +
 					"        window.onload = codeAddress;\n" +
 					"        </script>\n" +
@@ -128,7 +141,7 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
 					"</html>";
 
 		try {
-			FileUtils.writeStringToFile(new File(parentDir, HTML_REPORT_FILE_NAME), content);
+			FileUtils.writeStringToFile(new File(destPath, HTML_REPORT_FILE_NAME), content);
 		} catch (IOException e) {
 		}
 	}
