@@ -1,6 +1,5 @@
 package com.hpe.application.automation.bamboo.tasks;
 
-import com.atlassian.bamboo.build.artifact.ArtifactManager;
 import com.atlassian.bamboo.build.test.TestCollationService;
 import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.build.logger.BuildLogger;
@@ -12,13 +11,9 @@ import java.util.*;
 import com.atlassian.bamboo.utils.i18n.I18nBean;
 import com.atlassian.bamboo.utils.i18n.I18nBeanFactory;
 import com.hpe.application.automation.tools.common.sdk.DirectoryZipHelper;
-import com.atlassian.struts.TextProvider;
-import com.hpe.application.automation.tools.common.sdk.DirectoryZipHelper;
 import org.apache.commons.io.FileUtils;
-import org.apache.velocity.texen.util.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jfree.io.FileUtilities;
 
 public class RunFromFileSystemTask extends AbstractLauncherTask {
 
@@ -127,9 +122,9 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
 					"        <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n" +
 					"        <script type=\"text/javascript\">\n" +
 					"        function codeAddress() {\n" +
-					"		 	var currentUrl = window.location;\n" +
-					"		 	currentUrl.replace(\"" + HTML_REPORT_FILE_NAME + "\", \"" + contentDir.getName() + "/" + RESULT_HTML_REPORT_FILE_NAME + "\");\n" +
-					"		 	window.alert(currentUrl);\n" +
+					"		 	var currentUrl = window.location.toString();\n" +
+					"			var replaceString = '" + contentDir.getName() + "/" + RESULT_HTML_REPORT_FILE_NAME + "';\n" +
+					"		 	currentUrl = currentUrl.replace('" + HTML_REPORT_FILE_NAME + "', replaceString);\n" +
 					"        	window.location = currentUrl;\n" +
 					"        }\n" +
 					"        window.onload = codeAddress;\n" +
