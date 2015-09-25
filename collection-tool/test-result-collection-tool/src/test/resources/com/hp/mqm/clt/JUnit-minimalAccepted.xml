@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuite>
-    <testcase name="testName"/>
-    <testcase name="testNameSkipped">
+<testsuite name="minimalAccepted" tests="4" errors="1" skipped="1" failures="1">
+    <testcase name="testName" time="0.001"/>
+    <testcase name="testNameSkipped" time="0.002">
         <skipped/>
     </testcase>
-    <testcase name="testNameFailed">
-        <failure/>
+    <testcase name="testNameFailed" time="0.003">
+        <failure type="java.lang.NullPointerException"/>
     </testcase>
-    <testcase name="testNameWithError">
-        <error/>
+    <testcase name="testNameWithError" time="0.004">
+        <error type="java.lang.AssertionError"/>
     </testcase>
 </testsuite>

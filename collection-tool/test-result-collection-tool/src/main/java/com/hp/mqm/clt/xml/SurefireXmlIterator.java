@@ -2,15 +2,16 @@ package com.hp.mqm.clt.xml;
 
 import com.hp.mqm.clt.tests.TestResult;
 import com.hp.mqm.clt.tests.TestResultStatus;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 
-import javax.xml.bind.DatatypeConverter;
-import javax.xml.namespace.QName;
+import javax.xml.bind.ValidationException;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.DecimalFormat;
@@ -18,7 +19,7 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.Iterator;
 
-public class JUnitXmlIterator extends AbstractXmlIterator<TestResult> {
+public class SurefireXmlIterator extends AbstractXmlIterator<TestResult> {
 
     private String packageName;
     private String className;
@@ -26,10 +27,13 @@ public class JUnitXmlIterator extends AbstractXmlIterator<TestResult> {
     private TestResultStatus status;
     private long duration;
     private long currentTime = new Date().getTime();
-    private Long timestamp;
 
-    public JUnitXmlIterator(InputStream read) throws XMLStreamException {
-        super(read);
+    public SurefireXmlIterator(File surefireXmlFile) throws XMLStreamException, ValidationException, IOException {
+        super(surefireXmlFile);
+        InputStream in = getClass().getResourceAsStream("surefire-test-report.xsd");
+        String xsdSchema = IOUtils.toString(in, "UTF-8");
+        IOUtils.closeQuietly(in);
+        validateSecureXML(xsdSchema);
     }
 
     @Override
@@ -37,10 +41,7 @@ public class JUnitXmlIterator extends AbstractXmlIterator<TestResult> {
         if (event instanceof StartElement) {
             StartElement element = (StartElement) event;
             String localName = element.getName().getLocalPart();
-            if ("testsuite".equals(localName)) { // NON-NLS
-                Attribute timestampAttribute = element.getAttributeByName(new QName("timestamp")); // NON-NLS
-                timestamp = (timestampAttribute == null) ? null : parseDateTime(timestampAttribute.getValue());
-            } else if ("testcase".equals(localName)) { // NON-NLS
+            if ("testcase".equals(localName)) { // NON-NLS
                 packageName = "";
                 className = "";
                 testName = "";
@@ -61,6 +62,7 @@ public class JUnitXmlIterator extends AbstractXmlIterator<TestResult> {
             } else if ("skipped".equals(localName)) { // NON-NLS
                 status = TestResultStatus.SKIPPED;
             } else if ("failure".equals(localName)) { // NON-NLS
+                // This should cover the rerunFailure as well
                 status = TestResultStatus.FAILED;
             } else if ("error".equals(localName)) { // NON-NLS
                 status = TestResultStatus.FAILED;
@@ -70,22 +72,9 @@ public class JUnitXmlIterator extends AbstractXmlIterator<TestResult> {
             String localName = element.getName().getLocalPart();
 
             if ("testcase".equals(localName) && StringUtils.isNotEmpty(testName)) { // NON-NLS
-                addItem(new TestResult(packageName, className, testName, status, duration,
-                        (timestamp != null) ? timestamp : currentTime));
-            } else if ("testsuite".equals(localName)) {
-                timestamp = null;
+                addItem(new TestResult(packageName, className, testName, status, duration,currentTime));
             }
         }
-    }
-
-    private Long parseDateTime(String dateTimeString) {
-        try {
-            // Should be in ISO 8601 format
-            return DatatypeConverter.parseDateTime(dateTimeString).getTimeInMillis();
-        } catch (IllegalArgumentException e) {
-            System.out.println("Unable to parse the timestamp: " + dateTimeString);
-        }
-        return null;
     }
 
     private long parseTime(String timeString) {

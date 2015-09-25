@@ -29,6 +29,7 @@ public class Settings {
     private String password;
 
     private boolean internal = false;
+    private boolean skipErrors = false;
     private String outputFile;
 
     private List<String> tags;
@@ -110,6 +111,14 @@ public class Settings {
 
     public void setInternal(boolean internal) {
         this.internal = internal;
+    }
+
+    public boolean isSkipErrors() {
+        return skipErrors;
+    }
+
+    public void setSkipErrors(boolean skipErrors) {
+        this.skipErrors = skipErrors;
     }
 
     public String getOutputFile() {

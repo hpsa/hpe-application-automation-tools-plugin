@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<testsuites>
-    <testsuite timestamp="2015-02-20T10:20:12">
-        <testcase classname="com.examples.example.SampleClass" name="testOne" time="0.002"/>
-    </testsuite>
-    <testsuite>
-        <testcase classname="com.examples.example.SampleClass2" name="testTwo" time="0.004"/>
-    </testsuite>
-</testsuites>

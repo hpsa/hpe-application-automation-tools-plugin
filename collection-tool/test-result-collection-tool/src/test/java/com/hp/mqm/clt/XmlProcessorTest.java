@@ -3,7 +3,7 @@ package com.hp.mqm.clt;
 import com.hp.mqm.clt.tests.TestResult;
 import com.hp.mqm.clt.tests.TestResultStatus;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -42,46 +42,32 @@ public class XmlProcessorTest {
         // Public API requires at least testName, duration, started and status fields to be filled for every test
         XmlProcessor xmlProcessor = new XmlProcessor();
         Date beforeProcessing = new Date();
-        List<TestResult> testResults = xmlProcessor.processJUnitXmlFile(new File(getClass().getResource("JUnit-minimalAccepted.xml").toURI()));
+        List<TestResult> testResults = xmlProcessor.processSurefireTestReport(new File(getClass().getResource("JUnit-minimalAccepted.xml").toURI()));
         Date afterProcessing = new Date();
         Assert.assertNotNull(testResults);
         Assert.assertEquals(4, testResults.size());
         assertTestResult(testResults.get(0), "", "", "testName", TestResultStatus.PASSED,
-                0, beforeProcessing.getTime(), afterProcessing.getTime());
+                1, beforeProcessing.getTime(), afterProcessing.getTime());
         assertTestResult(testResults.get(1), "", "", "testNameSkipped", TestResultStatus.SKIPPED,
-                0, beforeProcessing.getTime(), afterProcessing.getTime());
+                2, beforeProcessing.getTime(), afterProcessing.getTime());
         assertTestResult(testResults.get(2), "", "", "testNameFailed", TestResultStatus.FAILED,
-                0, beforeProcessing.getTime(), afterProcessing.getTime());
+                3, beforeProcessing.getTime(), afterProcessing.getTime());
         assertTestResult(testResults.get(3), "", "", "testNameWithError", TestResultStatus.FAILED,
-                0, beforeProcessing.getTime(), afterProcessing.getTime());
+                4, beforeProcessing.getTime(), afterProcessing.getTime());
     }
 
     @Test
     public void testXmlProcessor_testMissingTestName() throws URISyntaxException, IOException, XMLStreamException, InterruptedException {
+        systemOutRule.enableLog();
+        exit.expectSystemExitWithStatus(1);
+        exit.checkAssertionAfterwards(new Assertion() {
+            @Override
+            public void checkAssertion() throws Exception {
+                Assert.assertTrue(systemOutRule.getLog().contains("Unable to process Surefire XML file"));
+            }
+        });
         XmlProcessor xmlProcessor = new XmlProcessor();
-        List<TestResult> testResults = xmlProcessor.processJUnitXmlFile(new File(getClass().getResource("JUnit-missingTestName.xml").toURI()));
-        Assert.assertNotNull(testResults);
-        Assert.assertEquals(3, testResults.size());
-        assertTestResult(testResults.get(0), "com.examples.example", "SampleClass", "testOne", TestResultStatus.PASSED,
-                2, 1442737332000L, 1442737332000L);
-        assertTestResult(testResults.get(1), "com.examples.example", "SampleClass", "testTwo", TestResultStatus.SKIPPED,
-                5, 1442737332000L, 1442737332000L);
-        assertTestResult(testResults.get(2), "com.examples.example", "SampleClass", "testThree", TestResultStatus.SKIPPED,
-                5, 1442737332000L, 1442737332000L);
-    }
-
-    @Test
-    public void testXmlProcessor_multipleTestSuites() throws URISyntaxException, IOException, XMLStreamException, InterruptedException {
-        XmlProcessor xmlProcessor = new XmlProcessor();
-        Date beforeProcessing = new Date();
-        List<TestResult> testResults = xmlProcessor.processJUnitXmlFile(new File(getClass().getResource("JUnit-multipleTestSuites.xml").toURI()));
-        Date afterProcessing = new Date();
-        Assert.assertNotNull(testResults);
-        Assert.assertEquals(2, testResults.size());
-        assertTestResult(testResults.get(0), "com.examples.example", "SampleClass", "testOne", TestResultStatus.PASSED,
-                2, 1424424012000L, 1424424012000L);
-        assertTestResult(testResults.get(1), "com.examples.example", "SampleClass2", "testTwo", TestResultStatus.PASSED,
-                4, beforeProcessing.getTime(), afterProcessing.getTime());
+        xmlProcessor.processSurefireTestReport(new File(getClass().getResource("JUnit-missingTestName.xml").toURI()));
     }
 
     @Test
@@ -91,11 +77,11 @@ public class XmlProcessorTest {
         exit.checkAssertionAfterwards(new Assertion() {
             @Override
             public void checkAssertion() throws Exception {
-                Assert.assertTrue(systemOutRule.getLog().contains("Unable to process JUnit XML file"));
+                Assert.assertTrue(systemOutRule.getLog().contains("Unable to process Surefire XML file"));
             }
         });
         XmlProcessor xmlProcessor = new XmlProcessor();
-        xmlProcessor.processJUnitXmlFile(new File(getClass().getResource("JUnit-unclosedElement.xml").toURI()));
+        xmlProcessor.processSurefireTestReport(new File(getClass().getResource("JUnit-unclosedElement.xml").toURI()));
     }
 
     @Test
@@ -105,21 +91,22 @@ public class XmlProcessorTest {
         exit.checkAssertionAfterwards(new Assertion() {
             @Override
             public void checkAssertion() throws Exception {
-                Assert.assertTrue(systemOutRule.getLog().contains("Can not read the JUnit file: fileDoesNotExist.xml"));
+                Assert.assertTrue(systemOutRule.getLog().contains("Can not read the Surefire XML file: fileDoesNotExist.xml"));
             }
         });
         XmlProcessor xmlProcessor = new XmlProcessor();
-        xmlProcessor.processJUnitXmlFile(new File("fileDoesNotExist.xml"));
+        xmlProcessor.processSurefireTestReport(new File("fileDoesNotExist.xml"));
     }
 
     @Test
     public void testXmlProcessor_writeXml() throws URISyntaxException, IOException, XMLStreamException {
         File targetFile = temporaryFolder.newFile();
+        long currentTime = new Date().getTime();
         XmlProcessor xmlProcessor = new XmlProcessor();
         List<TestResult> testResults = new LinkedList<TestResult>();
-        testResults.add(new TestResult("com.examples.example", "SampleClass", "testOne", TestResultStatus.PASSED, 2, 0));
-        testResults.add(new TestResult("com.examples.example", "SampleClass", "testTwo", TestResultStatus.SKIPPED, 5, 0));
-        testResults.add(new TestResult("com.examples.example", "SampleClass", "testThree", TestResultStatus.SKIPPED, 5, 0));
+        testResults.add(new TestResult("com.examples.example", "SampleClass", "testOne", TestResultStatus.PASSED, 2, currentTime));
+        testResults.add(new TestResult("com.examples.example", "SampleClass", "testTwo", TestResultStatus.SKIPPED, 5, currentTime));
+        testResults.add(new TestResult("com.examples.example", "SampleClass", "testThree", TestResultStatus.SKIPPED, 5, currentTime));
         List<String> tags = new LinkedList<String>();
         tags.add("OS:Linux");
         tags.add("DB:Oracle");

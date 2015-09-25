@@ -33,6 +33,7 @@ public class CliParser {
         options.addOption("v", "version", false, "show version");
 
         options.addOption("i", "internal", false, "internal test result public API xml format");
+        options.addOption("e", "skip-errors", false, "skip errors on the server side");
         options.addOption(Option.builder("o").longOpt("output-file").desc("output to file").hasArg().argName("FILE").build());
         options.addOption(Option.builder("c").longOpt("config-file").desc("configuration file").hasArg().argName("FILE").build());
 
@@ -99,7 +100,15 @@ public class CliParser {
             }
 
             if (cmd.hasOption("e")) {
-                settings.setServer(cmd.getOptionValue("e"));
+                settings.setSkipErrors(true);
+            }
+
+            if (cmd.hasOption("o")) {
+                settings.setOutputFile(cmd.getOptionValue("o"));
+            }
+
+            if (cmd.hasOption("s")) {
+                settings.setServer(cmd.getOptionValue("s"));
             }
 
             if (cmd.hasOption("d")) {
