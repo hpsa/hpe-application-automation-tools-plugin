@@ -1,4 +1,4 @@
-package com.hp.application.automation.tools.common;
+package com.hpe.application.automation.tools.common;
 
 public interface Func<TResult> {
     
