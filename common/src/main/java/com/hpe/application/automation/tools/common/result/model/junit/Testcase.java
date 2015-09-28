@@ -8,6 +8,7 @@
 package com.hpe.application.automation.tools.common.result.model.junit;
 
 import javax.xml.bind.annotation.*;
+import java.lang.*;
 import java.util.ArrayList;
 import java.util.List;
 
