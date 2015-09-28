@@ -23,9 +23,6 @@ package com.hpe.application.automation.bamboo.tasks;
 
 import java.io.Serializable;
 
-/**
- * Created by mprilepina on 14/08/2015.
- */
     public class AlmConfigParameter implements Serializable {
 
     private String almParamSourceType;

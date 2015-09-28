@@ -312,7 +312,6 @@ public class RestClient implements Client {
         return ret.toString();
     }
     
-    @Override
     public String getUsername() {
         
         return _username;
