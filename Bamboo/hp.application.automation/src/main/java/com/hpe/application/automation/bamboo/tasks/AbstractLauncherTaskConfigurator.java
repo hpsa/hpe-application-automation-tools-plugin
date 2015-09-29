@@ -21,6 +21,7 @@
  */
 package com.hpe.application.automation.bamboo.tasks;
 
+import com.atlassian.bamboo.build.Job;
 import com.atlassian.bamboo.collections.ActionParametersMap;
 import com.atlassian.bamboo.plan.artifact.ArtifactDefinitionManager;
 import com.atlassian.bamboo.task.TaskDefinition;
@@ -60,6 +61,6 @@ public class AbstractLauncherTaskConfigurator extends AbstractUftTaskConfigurato
 	{
 		super.populateContextForCreate(context);
 
-		(new HpTasksArtifactRegistrator()).registerCommonArtifact(context.get("plan"), getI18nBean(), this.artifactDefinitionManager);
+		(new HpTasksArtifactRegistrator()).registerCommonArtifact((Job)context.get("plan"), getI18nBean(), this.artifactDefinitionManager);
 	}
 }

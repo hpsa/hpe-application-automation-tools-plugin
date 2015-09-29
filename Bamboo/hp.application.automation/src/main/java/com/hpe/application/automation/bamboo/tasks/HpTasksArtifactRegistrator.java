@@ -29,17 +29,16 @@ import com.atlassian.bamboo.utils.i18n.I18nBean;
 import com.atlassian.util.concurrent.NotNull;
 
 public class HpTasksArtifactRegistrator {
-    public void registerCommonArtifact(@NotNull Object job, @NotNull  I18nBean i18nBean, @NotNull ArtifactDefinitionManager artifactDefinitionManager)
+    public void registerCommonArtifact(@NotNull Job job, @NotNull  I18nBean i18nBean, @NotNull ArtifactDefinitionManager artifactDefinitionManager)
     {
-        if (job == null || !(job instanceof DefaultJob) || i18nBean == null || artifactDefinitionManager == null)
+        if (job == null || i18nBean == null || artifactDefinitionManager == null)
             return;
 
-        Job defaultJob = (Job)job;
         String name = i18nBean.getText("AllTasksArtifactDefinitionLabel");
         String ARTIFACT_COPY_PATTERN = TestResultHelper.HP_UFT_PREFIX + "${bamboo.buildNumber}/**";
-        if (null == artifactDefinitionManager.findArtifactDefinition(defaultJob, name)) {
+        if (null == artifactDefinitionManager.findArtifactDefinition(job, name)) {
             ArtifactDefinitionImpl artifactDefinition = new ArtifactDefinitionImpl(name, "", ARTIFACT_COPY_PATTERN);
-            artifactDefinition.setProducerJob(defaultJob);
+            artifactDefinition.setProducerJob(job);
             artifactDefinitionManager.saveArtifactDefinition(artifactDefinition);
         }
     }
