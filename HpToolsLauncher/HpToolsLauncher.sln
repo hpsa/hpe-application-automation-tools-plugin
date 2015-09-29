@@ -1,5 +1,4 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HpToolsLauncher", "HpToolsLauncher.csproj", "{11BC441C-87A6-41B9-82AE-1F2F606AF45E}"
 EndProject
