@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.text.ParseException;
-import java.util.Date;
 import java.util.Iterator;
 
 public class SurefireXmlIterator extends AbstractXmlIterator<TestResult> {
@@ -26,7 +25,7 @@ public class SurefireXmlIterator extends AbstractXmlIterator<TestResult> {
     private String testName;
     private TestResultStatus status;
     private long duration;
-    private long currentTime = new Date().getTime();
+    private long currentTime = System.currentTimeMillis();
 
     public SurefireXmlIterator(File surefireXmlFile) throws XMLStreamException, ValidationException, IOException {
         super(surefireXmlFile);
@@ -72,7 +71,7 @@ public class SurefireXmlIterator extends AbstractXmlIterator<TestResult> {
             String localName = element.getName().getLocalPart();
 
             if ("testcase".equals(localName) && StringUtils.isNotEmpty(testName)) { // NON-NLS
-                addItem(new TestResult(packageName, className, testName, status, duration,currentTime));
+                addItem(new TestResult(packageName, className, testName, status, duration, currentTime));
             }
         }
     }

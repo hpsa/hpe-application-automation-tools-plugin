@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testResult>
+    <releaseRef id="%%%RELEASE_REF%%%" />
+    <tests>
+        <test package="com.examples.example" class="SampleClass" name="testTwo%%%TIMESTAMP%%%" status="Passed" duration="2" started="1443096986850" />
+    </tests>
+</testResult>

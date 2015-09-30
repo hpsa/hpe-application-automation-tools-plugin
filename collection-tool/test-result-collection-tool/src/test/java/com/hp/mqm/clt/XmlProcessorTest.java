@@ -20,7 +20,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -41,19 +40,19 @@ public class XmlProcessorTest {
     public void testXmlProcessor_minimalAcceptedJUnitFormat() throws URISyntaxException {
         // Public API requires at least testName, duration, started and status fields to be filled for every test
         XmlProcessor xmlProcessor = new XmlProcessor();
-        Date beforeProcessing = new Date();
+        long beforeProcessing = System.currentTimeMillis();
         List<TestResult> testResults = xmlProcessor.processSurefireTestReport(new File(getClass().getResource("JUnit-minimalAccepted.xml").toURI()));
-        Date afterProcessing = new Date();
+        long afterProcessing = System.currentTimeMillis();
         Assert.assertNotNull(testResults);
         Assert.assertEquals(4, testResults.size());
         assertTestResult(testResults.get(0), "", "", "testName", TestResultStatus.PASSED,
-                1, beforeProcessing.getTime(), afterProcessing.getTime());
+                1, beforeProcessing, afterProcessing);
         assertTestResult(testResults.get(1), "", "", "testNameSkipped", TestResultStatus.SKIPPED,
-                2, beforeProcessing.getTime(), afterProcessing.getTime());
+                2, beforeProcessing, afterProcessing);
         assertTestResult(testResults.get(2), "", "", "testNameFailed", TestResultStatus.FAILED,
-                3, beforeProcessing.getTime(), afterProcessing.getTime());
+                3, beforeProcessing, afterProcessing);
         assertTestResult(testResults.get(3), "", "", "testNameWithError", TestResultStatus.FAILED,
-                4, beforeProcessing.getTime(), afterProcessing.getTime());
+                4, beforeProcessing, afterProcessing);
     }
 
     @Test
@@ -101,7 +100,7 @@ public class XmlProcessorTest {
     @Test
     public void testXmlProcessor_writeXml() throws URISyntaxException, IOException, XMLStreamException {
         File targetFile = temporaryFolder.newFile();
-        long currentTime = new Date().getTime();
+        long currentTime = System.currentTimeMillis();
         XmlProcessor xmlProcessor = new XmlProcessor();
         List<TestResult> testResults = new LinkedList<TestResult>();
         testResults.add(new TestResult("com.examples.example", "SampleClass", "testOne", TestResultStatus.PASSED, 2, currentTime));
