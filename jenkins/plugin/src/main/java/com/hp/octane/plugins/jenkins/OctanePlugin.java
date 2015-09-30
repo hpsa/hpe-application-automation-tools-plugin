@@ -14,6 +14,7 @@ import hudson.model.Describable;
 import hudson.model.Descriptor;
 import hudson.util.FormValidation;
 import hudson.util.Scrambler;
+import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.ObjectUtils;
@@ -39,13 +40,15 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
     private String uiLocation;
     private boolean abridged;
     private String username;
-    private String password;
+    private Secret secretPassword;
     private String impersonatedUser;
 
     // inferred from uiLocation
     private String location;
     private String sharedSpace;
 
+    // deprecated, replaced by secretPassword
+    private String password;
 
     public String getIdentity() {
         return identity;
@@ -79,6 +82,12 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
         }
         if (identityFrom == null || identityFrom == 0) {
             this.identityFrom = new Date().getTime();
+            save();
+        }
+        if (!StringUtils.isEmpty(password) && secretPassword == null) {
+            // migrate from password to secret password
+            secretPassword = Secret.fromString(Scrambler.descramble(password));
+            password = null;
             save();
         }
 
@@ -136,7 +145,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
     }
 
     private String getPassword() {
-        return Scrambler.descramble(password);
+        return Secret.toString(secretPassword);
     }
 
     public String getImpersonatedUser() {
@@ -150,7 +159,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
         this.uiLocation = uiLocation;
         this.abridged = abridged;
         this.username = username;
-        this.password = Scrambler.scramble(password);
+        this.secretPassword = Secret.fromString(password);
         this.impersonatedUser = impersonatedUser;
         try {
             MqmProject mqmProject = ConfigurationService.parseUiLocation(uiLocation);
