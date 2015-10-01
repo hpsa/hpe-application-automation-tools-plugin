@@ -117,8 +117,8 @@ public class ProjectActions extends TransientProjectActionFactory {
 			if (user != null && !user.isEmpty()) {
 				User jenkinsUser = User.get(user, false);
 				context = ACL.impersonate(jenkinsUser.impersonate());
-				BuildAuthorizationToken.checkPermission((Job) project, project.getAuthToken(), req, res);
 			}
+			BuildAuthorizationToken.checkPermission((Job) project, project.getAuthToken(), req, res);
 
 			int delay = project.getQuietPeriod();
 			ParametersAction parametersAction = new ParametersAction();
