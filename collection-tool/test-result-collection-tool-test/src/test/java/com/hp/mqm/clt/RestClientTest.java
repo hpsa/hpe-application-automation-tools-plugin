@@ -14,6 +14,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import javax.xml.bind.ValidationException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -83,7 +84,7 @@ public class RestClientTest {
 	}
 
     @Test
-    public void testPostTestResult() throws IOException, URISyntaxException, InterruptedException {
+    public void testPostTestResult() throws IOException, URISyntaxException, InterruptedException, ValidationException {
         RestClient client = new RestClient(testClientSettings);
         long timestamp = System.currentTimeMillis();
 
@@ -125,7 +126,7 @@ public class RestClientTest {
     }
 
     @Test
-	public void testPostTestResult_skipErrors() throws IOException, URISyntaxException, InterruptedException {
+	public void testPostTestResult_skipErrors() throws IOException, URISyntaxException, InterruptedException, ValidationException {
 		RestClient client = new RestClient(testClientSettings);
 		long timestamp = System.currentTimeMillis();
 

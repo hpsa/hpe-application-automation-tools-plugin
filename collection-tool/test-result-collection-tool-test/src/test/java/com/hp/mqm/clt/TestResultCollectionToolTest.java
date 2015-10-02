@@ -44,7 +44,7 @@ public class TestResultCollectionToolTest {
     }
 
     @Test
-    public void testPostTestResult() throws IOException, URISyntaxException, InterruptedException {
+    public void testCollectAndPushTestResults_junit() throws IOException, URISyntaxException, InterruptedException {
         long timestamp = System.currentTimeMillis();
         String typeName = "TaxonomyType" + timestamp;
         Taxonomy taxonomyType = testSupportClient.createTaxonomyCategory(typeName);
@@ -87,6 +87,36 @@ public class TestResultCollectionToolTest {
         Assert.assertEquals(1, testRun.getTaxonomies().size());
         Assert.assertEquals(taxonomy.getId(), testRun.getTaxonomies().get(0).getId());
     }
+
+    @Test
+    public void testCollectAndPushTestResults_internal() throws IOException, URISyntaxException, InterruptedException {
+        long timestamp = System.currentTimeMillis();
+        String junitXml1 = ResourceUtils.readContent("publicApi.xmlx")
+                .replaceAll("%%%TIMESTAMP%%%", String.valueOf(timestamp));
+        final File junit1 = temporaryFolder.newFile();
+        FileUtils.write(junit1, junitXml1);
+        String junitXml2 = ResourceUtils.readContent("publicApi.xml")
+                .replaceAll("%%%TIMESTAMP%%%", String.valueOf(timestamp));
+        final File junit2 = temporaryFolder.newFile();
+        FileUtils.write(junit2, junitXml2);
+
+        List<String> fileNames = new LinkedList<String>();
+        fileNames.add(junit1.getPath());
+        fileNames.add(junit2.getPath());
+        testClientSettings.setFileNames(fileNames);
+        testClientSettings.setInternal(true);
+        TestResultCollectionTool testResultCollectionTool = new TestResultCollectionTool(testClientSettings);
+        testResultCollectionTool.collectAndPushTestResults();
+
+        PagedList<TestRun> pagedList = testSupportClient.queryTestRuns("testOne" + timestamp, 0, 50);
+        Assert.assertEquals(0, pagedList.getItems().size());
+
+        pagedList = testSupportClient.queryTestRuns("testTwo" + timestamp, 0, 50);
+        Assert.assertEquals(1, pagedList.getItems().size());
+        TestRun testRun = pagedList.getItems().get(0);
+        Assert.assertEquals("testTwo" + timestamp, testRun.getName());
+    }
+
 
     private Settings getDefaultSettings() {
         Settings settings = new Settings();

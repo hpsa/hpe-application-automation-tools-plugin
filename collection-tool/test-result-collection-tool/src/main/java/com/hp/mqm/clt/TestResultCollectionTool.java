@@ -5,6 +5,7 @@ import com.hp.mqm.clt.tests.TestResultPushStatus;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.entity.FileEntity;
 
+import javax.xml.bind.ValidationException;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
@@ -29,7 +30,6 @@ public class TestResultCollectionTool {
 
     public void collectAndPushTestResults() {
         List<File> publicApiXMLs = new LinkedList<File>();
-        File tempOutputFile = null; // TODO rename
         if (settings.isInternal()) {
             for (String fileName : settings.getFileNames()) {
                 publicApiXMLs.add(new File(fileName));
@@ -39,32 +39,41 @@ public class TestResultCollectionTool {
             System.out.println("JUnit report(s) were saved to the output file");
             System.exit(ReturnCode.SUCCESS.getReturnCode());
         } else {
+            File publicApiTempXML = null;
             try {
-                tempOutputFile = File.createTempFile("testResult.xml", null);
-                tempOutputFile.deleteOnExit();
+                publicApiTempXML = File.createTempFile("testResult.xml", null);
+                publicApiTempXML.deleteOnExit();
             } catch (IOException e) {
                 System.out.println("Can not create temp file for test result");
                 System.exit(ReturnCode.FAILURE.getReturnCode());
             }
-            processSurefireReports(tempOutputFile);
-            publicApiXMLs.add(tempOutputFile);
+            processSurefireReports(publicApiTempXML);
+            publicApiXMLs.add(publicApiTempXML);
         }
 
         client = new RestClient(settings);
         try {
             for (File publicApiXML : publicApiXMLs) {
-                lastPushedTestResultId = client.postTestResult(new FileEntity(publicApiXML));
+                try {
+                    lastPushedTestResultId = client.postTestResult(new FileEntity(publicApiXML));
+                } catch (ValidationException e) {
+                    System.out.println("Test result was not pushed - please check if the supplied file '" +
+                            publicApiXML.getName() + "' is in a valid public API format (internal option was set)");
+                    continue;
+                }
                 validatePublishResult();
             }
         } catch (IOException e) {
             releaseClient();
             System.out.println("Unable to push test result: " + e.getMessage());
             System.exit(ReturnCode.FAILURE.getReturnCode());
+        } catch (RuntimeException e) {
+            releaseClient();
+            System.out.println("Unable to push test result: " + e.getMessage());
+            System.exit(ReturnCode.FAILURE.getReturnCode());
         } finally {
             releaseClient();
         }
-
-        System.out.println("Test result(s) were successfully pushed");
     }
 
     private void releaseClient() {
@@ -96,8 +105,10 @@ public class TestResultCollectionTool {
             allowedPublishResults.add("warning");
         }
         if (!allowedPublishResults.contains(publishResult)) {
-            System.out.println("Unsuccessful test result push with status: " + publishResult);
-            System.exit(ReturnCode.FAILURE.getReturnCode());
+            System.out.println("Test result with ID " + lastPushedTestResultId + " was not pushed - " +
+                    "please check if all references (e.g. release id) are correct or try to set skip-errors option");
+        } else {
+            System.out.println("Test result with ID " + lastPushedTestResultId + " was successfully pushed");
         }
     }
 

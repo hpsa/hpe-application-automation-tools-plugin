@@ -38,6 +38,9 @@ public class XmlProcessor {
         } catch (ValidationException e) {
             System.out.println("Unable to process Surefire XML file, XSD validation was not successful: " + e.getMessage());
             System.exit(ReturnCode.FAILURE.getReturnCode());
+        } catch (RuntimeException e) {
+            System.out.println("Unable to process Surefire XML file, XSD validation was not successful: " + e.getMessage());
+            System.exit(ReturnCode.FAILURE.getReturnCode());
         }
 
         if (testResults.isEmpty()) {

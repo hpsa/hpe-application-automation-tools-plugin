@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<testResult>
+    <tests>
+        <test package="com.examples.example" class="SampleClass" name="testTwo%%%TIMESTAMP%%%" status="Passed" duration="2" started="1443096986850" />
+    </tests>
+</testResult>

@@ -16,6 +16,7 @@ import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
+import javax.xml.bind.ValidationException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -63,13 +64,17 @@ public class RestClient {
         httpClient = HttpClients.custom().setDefaultRequestConfig(requestConfig).build();
     }
 
-    public long postTestResult(HttpEntity entity) throws IOException {
+    public long postTestResult(HttpEntity entity) throws IOException, ValidationException {
         HttpPost request = new HttpPost(createWorkspaceApiUri(URI_TEST_RESULT_PUSH, settings.isSkipErrors()));
         request.setEntity(entity);
         CloseableHttpResponse response = null;
         try {
             response = execute(request);
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_ACCEPTED) {
+                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_BAD_REQUEST && settings.isInternal()) {
+                    // Error was probably caused by XSD validation failure
+                    throw new ValidationException("Test result XML was refused by server");
+                }
                 throw new RuntimeException("Test result post failed: " + response.getStatusLine().getStatusCode());
             }
             String json = IOUtils.toString(response.getEntity().getContent());
