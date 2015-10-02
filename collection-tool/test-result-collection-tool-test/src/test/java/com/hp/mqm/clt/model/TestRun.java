@@ -2,14 +2,21 @@
 
 package com.hp.mqm.clt.model;
 
+import java.util.List;
+
 final public class TestRun {
 
     final private Integer id;
     final private String name;
+    final private Release release;
 
-    public TestRun(Integer id, String name) {
+    final private List<Taxonomy> taxonomies;
+
+    public TestRun(Integer id, String name, Release release, List<Taxonomy> taxonomies) {
         this.id = id;
         this.name = name;
+        this.release = release;
+        this.taxonomies = taxonomies;
     }
 
     public Integer getId() {
@@ -18,5 +25,13 @@ final public class TestRun {
 
     public String getName() {
         return name;
+    }
+
+    public List<Taxonomy> getTaxonomies() {
+        return taxonomies;
+    }
+
+    public Release getRelease() {
+        return release;
     }
 }

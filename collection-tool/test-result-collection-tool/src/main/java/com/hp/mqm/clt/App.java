@@ -4,6 +4,8 @@ public class App {
 
     public static void main(String[] args) {
         CliParser cliParser = new CliParser();
-        cliParser.parse(args);
+        Settings settings = cliParser.parse(args);
+        TestResultCollectionTool testResultCollectionTool = new TestResultCollectionTool(settings);
+        testResultCollectionTool.collectAndPushTestResults();
     }
 }

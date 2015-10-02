@@ -4,7 +4,7 @@ package com.hp.mqm.clt;
 
 import com.hp.mqm.clt.model.PagedList;
 import com.hp.mqm.clt.model.Release;
-import com.hp.mqm.clt.model.TestResultStatus;
+import com.hp.mqm.clt.model.Taxonomy;
 import com.hp.mqm.clt.model.TestRun;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -21,10 +21,7 @@ import org.apache.http.entity.StringEntity;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -34,13 +31,11 @@ public class TestSupportClient extends RestClient {
 
     private static final String URI_RELEASES = "releases";
     private static final String URI_TEST_RUN = "runs";
-    private static final String URI_TEST_RESULT_STATUS = "test-results/{0}";
+    private static final String URI_TAXONOMY_NODES = "taxonomy_nodes";
 
     private static final String FILTERING_FRAGMENT = "query={query}";
     private static final String PAGING_FRAGMENT = "offset={offset}&limit={limit}";
     private static final String ORDER_BY_FRAGMENT = "order_by={order}";
-
-    public static final String DATETIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ";
 
     protected TestSupportClient(Settings settings) {
         super(settings);
@@ -52,6 +47,24 @@ public class TestSupportClient extends RestClient {
 
         JSONObject resultObject = postEntity(URI_RELEASES, releaseObject);
         return new Release(resultObject.getLong("id"), resultObject.getString("name"));
+    }
+
+    public Taxonomy createTaxonomyCategory(String name) throws IOException {
+        JSONObject taxonomyTypeObject = ResourceUtils.readJson("taxonomyType.json");
+        taxonomyTypeObject.put("name", name);
+
+        JSONObject resultObject = postEntity(URI_TAXONOMY_NODES, taxonomyTypeObject);
+        return new Taxonomy(resultObject.getLong("id"), resultObject.getString("name"), null);
+    }
+
+    public Taxonomy createTaxonomyItem(Long typeId, String name) throws IOException {
+        JSONObject taxonomyObject = ResourceUtils.readJson("taxonomy.json");
+        taxonomyObject.getJSONObject("category").put("id", typeId);
+        taxonomyObject.put("name", name);
+
+        JSONObject resultObject = postEntity(URI_TAXONOMY_NODES, taxonomyObject);
+        return new Taxonomy(resultObject.getLong("id"), resultObject.getString("name"),
+                new Taxonomy(resultObject.getJSONObject("category").getLong("id"), resultObject.getJSONObject("category").getString("name"), null));
     }
 
     public PagedList<TestRun> queryTestRuns(String name, int offset, int limit) {
@@ -109,32 +122,6 @@ public class TestSupportClient extends RestClient {
         }
     }
 
-    public TestResultStatus getTestResultStatus(long id) {
-        HttpGet request = new HttpGet(createWorkspaceApiUri(URI_TEST_RESULT_STATUS, id));
-        CloseableHttpResponse response = null;
-        try {
-            response = execute(request);
-            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                throw new RuntimeException("Result status retrieval failed");
-            }
-            String json = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
-            JSONObject jsonObject = JSONObject.fromObject(json);
-            Date until = null;
-            if (jsonObject.has("until")) {
-                try {
-                    until = parseDatetime(jsonObject.getString("until"));
-                } catch (ParseException e) {
-                    throw new RuntimeException("Cannot obtain status", e);
-                }
-            }
-            return new TestResultStatus(jsonObject.getString("status"), until);
-        } catch (IOException e) {
-            throw new RuntimeException("Cannot obtain status.", e);
-        } finally {
-            HttpClientUtils.closeQuietly(response);
-        }
-    }
-
     protected URI getEntityURI(String collection, List<String> conditions, int offset, int limit, String orderBy) {
         Map<String, Object> params = pagingParams(offset, limit);
         StringBuilder template = new StringBuilder(collection + "?" + PAGING_FRAGMENT);
@@ -167,7 +154,54 @@ public class TestSupportClient extends RestClient {
             JSONObject entityObject = JSONObject.fromObject(json);
             return new TestRun(
                     entityObject.getInt("id"),
-                    entityObject.getString("name"));
+                    entityObject.getString("name"),
+                    getRelease(entityObject),
+                    getTaxonomies(entityObject));
+        }
+
+        private Release getRelease(JSONObject entityObject) {
+            JSONObject release = entityObject.getJSONObject("release");
+            if (release != null && !release.isEmpty()) {
+                ReleaseEntityFactory factory = new ReleaseEntityFactory();
+                return factory.create(release.toString());
+            }
+            return null;
+        }
+
+        private List<Taxonomy> getTaxonomies(JSONObject entityObject) {
+            JSONObject taxonomies = entityObject.getJSONObject("taxonomies");
+            if (taxonomies != null && !taxonomies.isEmpty()) {
+                TaxonomyEntityFactory factory = new TaxonomyEntityFactory();
+                List<Taxonomy> items = new LinkedList<Taxonomy>();
+                for (JSONObject taxonomy : getJSONObjectCollection(taxonomies, "data")) {
+                    items.add(factory.create(taxonomy.toString()));
+                }
+                return (items.isEmpty()) ? null : items;
+            }
+            return null;
+        }
+    }
+
+    private static class TaxonomyEntityFactory implements EntityFactory<Taxonomy> {
+
+        @Override
+        public Taxonomy create(String json) {
+            JSONObject entityObject = JSONObject.fromObject(json);
+            JSONObject taxonomy_root = entityObject.optJSONObject("category");
+            if (taxonomy_root != null) {
+                return new Taxonomy(entityObject.getLong("id"), entityObject.getString("name"), create(taxonomy_root.toString()));
+            } else {
+                return new Taxonomy(entityObject.getLong("id"), entityObject.getString("name"), null);
+            }
+        }
+    }
+
+    private static class ReleaseEntityFactory implements EntityFactory<Release> {
+
+        @Override
+        public Release create(String json) {
+            JSONObject entityObject = JSONObject.fromObject(json);
+            return new Release(entityObject.getLong("id"), entityObject.getString("name"));
         }
     }
 
@@ -188,10 +222,6 @@ public class TestSupportClient extends RestClient {
     static Collection<JSONObject> getJSONObjectCollection(JSONObject object, String key) {
         JSONArray array = object.getJSONArray(key);
         return (Collection<JSONObject>) array.subList(0, array.size());
-    }
-
-    private Date parseDatetime(String datetime) throws ParseException {
-        return new SimpleDateFormat(DATETIME_FORMAT).parse(datetime);
     }
 
     interface EntityFactory<E> {

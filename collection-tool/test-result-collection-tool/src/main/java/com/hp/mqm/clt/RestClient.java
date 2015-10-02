@@ -1,5 +1,6 @@
 package com.hp.mqm.clt;
 
+import com.hp.mqm.clt.tests.TestResultPushStatus;
 import net.sf.json.JSONObject;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
@@ -8,6 +9,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.HttpClientUtils;
@@ -19,6 +21,9 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -34,8 +39,11 @@ public class RestClient {
     private static final String WORKSPACE_API_URI = SHARED_SPACE_API_URI + "/workspaces/{1}";
 
     private static final String URI_TEST_RESULT_PUSH = "test-results?skip-errors={0}";
+    private static final String URI_TEST_RESULT_STATUS = "test-results/{0}";
 
     private static final String URI_PARAM_ENCODING = "UTF-8";
+
+    public static final String DATETIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ";
 
     public static final int DEFAULT_CONNECTION_TIMEOUT = 20000; // in milliseconds
     public static final int DEFAULT_SO_TIMEOUT = 40000; // in milliseconds
@@ -69,9 +77,35 @@ public class RestClient {
             return jsonObject.getLong("id");
         } finally {
             HttpClientUtils.closeQuietly(response);
-            release();
         }
     }
+
+    public TestResultPushStatus getTestResultStatus(long id) {
+        HttpGet request = new HttpGet(createWorkspaceApiUri(URI_TEST_RESULT_STATUS, id));
+        CloseableHttpResponse response = null;
+        try {
+            response = execute(request);
+            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+                throw new RuntimeException("Result status retrieval failed");
+            }
+            String json = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
+            JSONObject jsonObject = JSONObject.fromObject(json);
+            Date until = null;
+            if (jsonObject.has("until")) {
+                try {
+                    until = parseDatetime(jsonObject.getString("until"));
+                } catch (ParseException e) {
+                    throw new RuntimeException("Cannot obtain status", e);
+                }
+            }
+            return new TestResultPushStatus(jsonObject.getString("status"), until);
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot obtain status.", e);
+        } finally {
+            HttpClientUtils.closeQuietly(response);
+        }
+    }
+
     protected CloseableHttpResponse execute(HttpUriRequest request) throws IOException {
         CloseableHttpResponse response = httpClient.execute(request);
         if (isLoginNecessary(response)) { // if request fails with 401 do login and execute request again
@@ -156,6 +190,10 @@ public class RestClient {
         } catch (UnsupportedEncodingException e) {
             throw new IllegalStateException("Unsupported encoding used for URI parameter encoding.", e);
         }
+    }
+
+    private Date parseDatetime(String datetime) throws ParseException {
+        return new SimpleDateFormat(DATETIME_FORMAT).parse(datetime);
     }
 
     private Map<String, Object> asMap(Object... params) {

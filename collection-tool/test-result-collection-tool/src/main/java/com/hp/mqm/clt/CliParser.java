@@ -57,7 +57,8 @@ public class CliParser {
         argsWithSingleOccurrence.addAll(Arrays.asList("o", "c", "s", "d", "w", "u", "p", "password-file", "r", "a", "q"));
     }
 
-    public void parse(String[] args) {
+    public Settings parse(String[] args) {
+        Settings settings = new Settings();
         CommandLineParser parser = new DefaultParser();
         try {
             CommandLine cmd = parser.parse(options, args);
@@ -76,7 +77,6 @@ public class CliParser {
                 System.exit(ReturnCode.FAILURE.getReturnCode());
             }
 
-            Settings settings = new Settings();
             if (!addInputFilesToSettings(cmd, settings)) {
                 System.exit(ReturnCode.FAILURE.getReturnCode());
             }
@@ -164,6 +164,7 @@ public class CliParser {
             System.out.println("Can not read the password file");
             System.exit(ReturnCode.FAILURE.getReturnCode());
         }
+        return settings;
     }
 
     private boolean addInputFilesToSettings(CommandLine cmd, Settings settings) {
@@ -214,8 +215,12 @@ public class CliParser {
             return false;
         }
 
+        String outputFile = cmd.getOptionValue("o");
+        if (cmd.hasOption("i") && outputFile != null) {
+            System.out.println("Invalid argument combination: provided XML files should already be in public API format");
+            return false;
+        }
 
-       String outputFile = cmd.getOptionValue("o");
         if (outputFile != null && !new File(outputFile).canWrite()) {
             System.out.println("Can not write to the output file: " + outputFile);
             return false;
@@ -240,23 +245,29 @@ public class CliParser {
     }
 
     private boolean areSettingsValid(Settings settings) {
-        if (settings.getServer() == null) {
-            System.out.println("Mandatory setting 'server' was not specified in the CLI arguments or configuration file");
+        if (!isSettingPresent(settings.getServer(), "server")) {
             return false;
         }
 
-        if (settings.getSharedspace() == null) {
-            System.out.println("Mandatory setting 'sharedspace' was not specified in the CLI arguments or configuration file");
+        if (!isSettingPresent(settings.getSharedspace(), "sharedspace")) {
             return false;
         }
 
-        if (settings.getWorkspace() == null) {
-            System.out.println("Mandatory setting 'workspace' was not specified in the CLI arguments or configuration file");
+        if (!isSettingPresent(settings.getWorkspace(), "workspace")) {
             return false;
         }
 
         return true;
     }
+
+    boolean isSettingPresent(Object setting, String settingName) {
+        if (setting == null) {
+            System.out.println("Mandatory setting '" + settingName + "' was not specified in the CLI arguments or configuration file");
+            return false;
+        }
+        return true;
+    }
+
 
     private void printVersion() {
         System.out.println(HEADER);

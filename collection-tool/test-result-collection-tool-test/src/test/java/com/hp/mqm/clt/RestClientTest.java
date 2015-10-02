@@ -1,7 +1,7 @@
 package com.hp.mqm.clt;
 
 import com.hp.mqm.clt.model.PagedList;
-import com.hp.mqm.clt.model.TestResultStatus;
+import com.hp.mqm.clt.tests.TestResultPushStatus;
 import com.hp.mqm.clt.model.TestRun;
 import org.apache.commons.io.FileUtils;
 import org.apache.http.entity.ContentType;
@@ -109,13 +109,12 @@ public class RestClientTest {
             client.release();
         }
 
-        String testResultsXml = ResourceUtils.readContent("TestResult.xml")
+        String testResultXml = ResourceUtils.readContent("TestResult.xml")
                 .replaceAll("%%%TIMESTAMP%%%", String.valueOf(timestamp));
-        final File testResults = temporaryFolder.newFile();
-        testResults.deleteOnExit();
-        FileUtils.write(testResults, testResultsXml);
+        final File testResult = temporaryFolder.newFile();
+        FileUtils.write(testResult, testResultXml);
         try {
-            long id = client.postTestResult(new FileEntity(testResults, ContentType.APPLICATION_XML));
+            long id = client.postTestResult(new FileEntity(testResult, ContentType.APPLICATION_XML));
             assertPublishResult(id, "success");
         } finally {
             client.release();
@@ -131,14 +130,13 @@ public class RestClientTest {
 		long timestamp = System.currentTimeMillis();
 
         // try content that fails unless skip-errors is specified
-		String testResultsXmlInvalidRelease = ResourceUtils.readContent("TestResultWithRelease.xml")
+		String testResultXmlInvalidRelease = ResourceUtils.readContent("TestResultWithRelease.xml")
 				.replaceAll("%%%RELEASE_REF%%%", String.valueOf(Integer.MAX_VALUE))
 				.replaceAll("%%%TIMESTAMP%%%", String.valueOf(timestamp));
-		final File testResultsInvalidRelease = temporaryFolder.newFile();
-        testResultsInvalidRelease.deleteOnExit();
-		FileUtils.write(testResultsInvalidRelease, testResultsXmlInvalidRelease);
+		final File testResultInvalidRelease = temporaryFolder.newFile();
+		FileUtils.write(testResultInvalidRelease, testResultXmlInvalidRelease);
 		try {
-			long id = client.postTestResult(new FileEntity(testResultsInvalidRelease, ContentType.APPLICATION_XML));
+			long id = client.postTestResult(new FileEntity(testResultInvalidRelease, ContentType.APPLICATION_XML));
             assertPublishResult(id, "failed");
 		} finally {
 			client.release();
@@ -150,7 +148,7 @@ public class RestClientTest {
         // push the same content, but with skip-errors set to true
         testClientSettings.setSkipErrors(true);
         try {
-            long id = client.postTestResult(new FileEntity(testResultsInvalidRelease, ContentType.APPLICATION_XML));
+            long id = client.postTestResult(new FileEntity(testResultInvalidRelease, ContentType.APPLICATION_XML));
             assertPublishResult(id, "warning");
         } finally {
             client.release();
@@ -164,8 +162,8 @@ public class RestClientTest {
 	private void assertPublishResult(long id, String expectedStatus) throws InterruptedException {
 		String status = "";
 		for (int i = 0; i < 100; i++) {
-			TestResultStatus testResultStatus = testSupportClient.getTestResultStatus(id);
-			status = testResultStatus.getStatus();
+			TestResultPushStatus testResultPushStatus = testSupportClient.getTestResultStatus(id);
+			status = testResultPushStatus.getStatus();
 			if (!"running".equals(status) && !"queued".equals(status)) {
 				break;
 			}

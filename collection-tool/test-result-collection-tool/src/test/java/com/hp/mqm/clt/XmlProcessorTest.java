@@ -80,7 +80,7 @@ public class XmlProcessorTest {
             }
         });
         XmlProcessor xmlProcessor = new XmlProcessor();
-        xmlProcessor.processSurefireTestReport(new File(getClass().getResource("JUnit-unclosedElement.xml").toURI()));
+        xmlProcessor.processSurefireTestReport(new File(getClass().getResource("JUnit-unclosedElement.xmlx").toURI()));
     }
 
     @Test

@@ -1,0 +1,9 @@
+{
+  "subtype": "taxonomy_item_node",
+  "type": "taxonomy_node",
+  "name": "MyName",
+  "category": {
+    "id": 0,
+    "type": "taxonomy_category_node"
+  }
+}
