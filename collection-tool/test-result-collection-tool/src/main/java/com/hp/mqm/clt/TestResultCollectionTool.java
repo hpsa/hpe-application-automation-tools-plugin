@@ -2,7 +2,7 @@ package com.hp.mqm.clt;
 
 import com.hp.mqm.clt.tests.TestResult;
 import com.hp.mqm.clt.tests.TestResultPushStatus;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.entity.FileEntity;
 
 import javax.xml.bind.ValidationException;

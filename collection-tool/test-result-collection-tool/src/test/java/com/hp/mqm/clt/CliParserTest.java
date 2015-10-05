@@ -49,7 +49,7 @@ public class CliParserTest {
     public void testArgs_missingArgument() throws ParseException {
         CommandLineParser parser = new DefaultParser();
         try {
-            parser.parse(options, new String[]{"abc", "-i", "-d"});
+            parser.parse(options, new String[]{"-i", "-d"});
             Assert.fail();
         } catch (MissingArgumentException e) {
             Assert.assertEquals("Missing argument for option: d", e.getMessage());
@@ -60,7 +60,7 @@ public class CliParserTest {
     public void testArgs_invalidOption() throws ParseException {
         CommandLineParser parser = new DefaultParser();
         try {
-            parser.parse(options, new String[]{"abc", "-i", "-xyz"});
+            parser.parse(options, new String[]{"-i", "-xyz"});
             Assert.fail();
         } catch (UnrecognizedOptionException e) {
             Assert.assertEquals("Unrecognized option: -xyz", e.getMessage());
@@ -70,7 +70,7 @@ public class CliParserTest {
     @Test
     public void testArgs_invalidIntegerValue() throws ParseException {
         CommandLineParser parser = new DefaultParser();
-        CommandLine commandLine = parser.parse(options, new String[]{"abc", "-i", "-r", "invalidIntegerValue"});
+        CommandLine commandLine = parser.parse(options, new String[]{"-i", "-r", "invalidIntegerValue"});
         Assert.assertTrue(commandLine.hasOption("r"));
         Assert.assertNull(commandLine.getParsedOptionValue("r"));
     }
@@ -82,11 +82,11 @@ public class CliParserTest {
         argsValidation.setAccessible(true);
         CommandLineParser parser = new DefaultParser();
 
-        CommandLine cmdArgs = parser.parse(options, new String[]{"abc",  "-i", "-w", "1002", "publicApi.xml"});
+        CommandLine cmdArgs = parser.parse(options, new String[]{ "-i", "-w", "1002", "publicApi.xml"});
         Boolean result = (Boolean) argsValidation.invoke(cliParser, cmdArgs);
         Assert.assertTrue(result);
 
-        cmdArgs = parser.parse(options, new String[]{"abc", "-i", "-q", "1002", "publicApi.xml"});
+        cmdArgs = parser.parse(options, new String[]{"-i", "-q", "1002", "publicApi.xml"});
         result = (Boolean) argsValidation.invoke(cliParser, cmdArgs);
         Assert.assertFalse(result);
     }
@@ -98,11 +98,11 @@ public class CliParserTest {
         argsValidation.setAccessible(true);
         CommandLineParser parser = new DefaultParser();
 
-        CommandLine cmdArgs = parser.parse(options, new String[]{"abc",  "-r", "1", "test.xml"});
+        CommandLine cmdArgs = parser.parse(options, new String[]{ "-r", "1", "test.xml"});
         Boolean result = (Boolean) argsValidation.invoke(cliParser, cmdArgs);
         Assert.assertTrue(result);
 
-        cmdArgs = parser.parse(options, new String[]{"abc", "-r", "1", "-r", "2", "test.xml"});
+        cmdArgs = parser.parse(options, new String[]{"-r", "1", "-r", "2", "test.xml"});
         result = (Boolean) argsValidation.invoke(cliParser, cmdArgs);
         Assert.assertFalse(result);
     }
@@ -114,19 +114,18 @@ public class CliParserTest {
         inputFilesValidation.setAccessible(true);
         CommandLineParser parser = new DefaultParser();
 
-        CommandLine cmdArgs = parser.parse(options, new String[]{"abc", "test.xml"});
+        CommandLine cmdArgs = parser.parse(options, new String[]{"test.xml"});
         Settings settings = new Settings();
         Boolean result = (Boolean) inputFilesValidation.invoke(cliParser, cmdArgs, settings);
-        Assert.assertNotNull(result);
         Assert.assertFalse(result);
         Assert.assertNull(settings.getFileNames());
 
-        cmdArgs = parser.parse(options, new String[]{"abc"});
+        cmdArgs = parser.parse(options, new String[]{});
         result = (Boolean) inputFilesValidation.invoke(cliParser, cmdArgs, settings);
         Assert.assertFalse(result);
         Assert.assertNull(settings.getFileNames());
 
-        cmdArgs = parser.parse(options, new String[]{"abc", getClass().getResource("JUnit-minimalAccepted.xml").toURI().getPath(),
+        cmdArgs = parser.parse(options, new String[]{getClass().getResource("JUnit-minimalAccepted.xml").toURI().getPath(),
                 getClass().getResource("JUnit-missingTestName.xml").toURI().getPath(),
                 getClass().getResource("JUnit-missingTestName.xml").toURI().getPath()});
         result = (Boolean) inputFilesValidation.invoke(cliParser, cmdArgs, settings);
@@ -145,19 +144,19 @@ public class CliParserTest {
         argsValidation.setAccessible(true);
         CommandLineParser parser = new DefaultParser();
 
-        CommandLine cmdArgs = parser.parse(options, new String[]{"abc", "-t", "OS:Linux", "test.xml"});
+        CommandLine cmdArgs = parser.parse(options, new String[]{"-t", "OS:Linux", "test.xml"});
         Boolean result = (Boolean) argsValidation.invoke(cliParser, cmdArgs);
         Assert.assertTrue(result);
 
-        cmdArgs = parser.parse(options, new String[]{"abc", "-t", "OS:", "test.xml"});
+        cmdArgs = parser.parse(options, new String[]{"-t", "OS:", "test.xml"});
         result = (Boolean) argsValidation.invoke(cliParser, cmdArgs);
         Assert.assertFalse(result);
 
-        cmdArgs = parser.parse(options, new String[]{"abc", "-f", "OS::Linux", "test.xml"});
+        cmdArgs = parser.parse(options, new String[]{"-f", "OS::Linux", "test.xml"});
         result = (Boolean) argsValidation.invoke(cliParser, cmdArgs);
         Assert.assertFalse(result);
 
-        cmdArgs = parser.parse(options, new String[]{"abc", "-f", ":", "test.xml"});
+        cmdArgs = parser.parse(options, new String[]{"-f", ":", "test.xml"});
         result = (Boolean) argsValidation.invoke(cliParser, cmdArgs);
         Assert.assertFalse(result);
     }
@@ -170,13 +169,13 @@ public class CliParserTest {
         argsValidation.setAccessible(true);
         CommandLineParser parser = new DefaultParser();
 
-        CommandLine cmdArgs = parser.parse(options, new String[]{"abc", "--password-file",
+        CommandLine cmdArgs = parser.parse(options, new String[]{"--password-file",
                 getClass().getResource("testPasswordFile").toURI().getPath(),
                 getClass().getResource("JUnit-minimalAccepted.xml").toURI().getPath()});
         Boolean result = (Boolean) argsValidation.invoke(cliParser, cmdArgs);
         Assert.assertTrue(result);
 
-        cmdArgs = parser.parse(options, new String[]{"abc", "--password-file",
+        cmdArgs = parser.parse(options, new String[]{"--password-file",
                 "invalidPasswordFile",
                 getClass().getResource("JUnit-minimalAccepted.xml").toURI().getPath()});
         result = (Boolean) argsValidation.invoke(cliParser, cmdArgs);

@@ -1,7 +1,6 @@
 package com.hp.mqm.clt;
 
 import com.hp.mqm.clt.tests.TestResultPushStatus;
-import net.sf.json.JSONObject;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
@@ -15,6 +14,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.json.JSONObject;
 
 import javax.xml.bind.ValidationException;
 import java.io.IOException;
@@ -78,7 +78,7 @@ public class RestClient {
                 throw new RuntimeException("Test result post failed: " + response.getStatusLine().getStatusCode());
             }
             String json = IOUtils.toString(response.getEntity().getContent());
-            JSONObject jsonObject = JSONObject.fromObject(json);
+            JSONObject jsonObject = new JSONObject(json);
             return jsonObject.getLong("id");
         } finally {
             HttpClientUtils.closeQuietly(response);
@@ -94,7 +94,7 @@ public class RestClient {
                 throw new RuntimeException("Result status retrieval failed");
             }
             String json = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
-            JSONObject jsonObject = JSONObject.fromObject(json);
+            JSONObject jsonObject = new JSONObject(json);
             Date until = null;
             if (jsonObject.has("until")) {
                 try {

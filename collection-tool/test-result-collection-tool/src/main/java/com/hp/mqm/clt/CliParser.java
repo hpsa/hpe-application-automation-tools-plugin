@@ -76,10 +76,12 @@ public class CliParser {
             }
 
             if (!areCmdArgsValid(cmd)) {
+                printHelp();
                 System.exit(ReturnCode.FAILURE.getReturnCode());
             }
 
             if (!addInputFilesToSettings(cmd, settings)) {
+                printHelp();
                 System.exit(ReturnCode.FAILURE.getReturnCode());
             }
 
@@ -130,6 +132,7 @@ public class CliParser {
             } else if (cmd.hasOption("password-file")) {
                 settings.setPassword(FileUtils.readFileToString(new File(cmd.getOptionValue("password-file"))));
             } else {
+                System.out.println("Please enter your password if it's required and hit enter: ");
                 settings.setPassword(new String(System.console().readPassword()));
             }
 
@@ -171,14 +174,13 @@ public class CliParser {
 
     private boolean addInputFilesToSettings(CommandLine cmd, Settings settings) {
         List<String> argList = cmd.getArgList();
-        if (argList.size() < 2) {
+        if (argList.isEmpty()) {
             System.out.println("At least one XML file must be specified");
             return false;
         }
 
         List<String> inputFiles = new LinkedList<String>();
-        for (int i = 1; i < argList.size(); i++) {
-            String inputFile = argList.get(i);
+        for (String inputFile : argList) {
             if (!inputFiles.contains(inputFile) && new File(inputFile).canRead()) {
                 inputFiles.add(inputFile);
             }
