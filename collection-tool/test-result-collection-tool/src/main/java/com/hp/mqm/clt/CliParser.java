@@ -27,6 +27,7 @@ public class CliParser {
 
     private Options options = new Options();
     private LinkedList<String> argsWithSingleOccurrence = new LinkedList<String>();
+    private LinkedList<String> argsRestrictedForInternal = new LinkedList<String>();
 
     public CliParser() {
         options.addOption("h", "help", false, "show this help");
@@ -55,6 +56,7 @@ public class CliParser {
         options.addOption(Option.builder("q").longOpt("requirement").desc("requirement").hasArg().argName("ID").type(Integer.class).build());
 
         argsWithSingleOccurrence.addAll(Arrays.asList("o", "c", "s", "d", "w", "u", "p", "password-file", "r", "a", "q"));
+        argsRestrictedForInternal.addAll(Arrays.asList("o", "t", "f", "r", "a", "q"));
     }
 
     public Settings parse(String[] args) {
@@ -192,10 +194,20 @@ public class CliParser {
     }
 
     private boolean areCmdArgsValid(CommandLine cmd) {
-        for(String arg : argsWithSingleOccurrence) {
+        for (String arg : argsWithSingleOccurrence) {
             if (cmd.getOptionProperties(arg).size() > 1) {
                 System.out.println("Invalid multiple occurrence of argument: " + arg);
                 return false;
+            }
+        }
+
+        if (cmd.hasOption("i")) {
+            for (String arg : argsRestrictedForInternal) {
+                if (cmd.hasOption(arg)) {
+                    System.out.println("Invalid argument combination for internal mode '"
+                            + arg + "': provided XML files should be in public API format");
+                    return false;
+                }
             }
         }
 
@@ -216,11 +228,6 @@ public class CliParser {
         }
 
         String outputFile = cmd.getOptionValue("o");
-        if (cmd.hasOption("i") && outputFile != null) {
-            System.out.println("Invalid argument combination: provided XML files should already be in public API format");
-            return false;
-        }
-
         if (outputFile != null && !new File(outputFile).canWrite()) {
             System.out.println("Can not write to the output file: " + outputFile);
             return false;

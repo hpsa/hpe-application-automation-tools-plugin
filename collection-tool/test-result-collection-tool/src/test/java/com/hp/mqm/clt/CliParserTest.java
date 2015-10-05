@@ -76,6 +76,22 @@ public class CliParserTest {
     }
 
     @Test
+    public void testArgs_invalidInternalCombination() throws NoSuchMethodException, ParseException, InvocationTargetException, IllegalAccessException {
+        CliParser cliParser = new CliParser();
+        Method argsValidation = cliParser.getClass().getDeclaredMethod("areCmdArgsValid", CommandLine.class);
+        argsValidation.setAccessible(true);
+        CommandLineParser parser = new DefaultParser();
+
+        CommandLine cmdArgs = parser.parse(options, new String[]{"abc",  "-i", "-w", "1002", "publicApi.xml"});
+        Boolean result = (Boolean) argsValidation.invoke(cliParser, cmdArgs);
+        Assert.assertTrue(result);
+
+        cmdArgs = parser.parse(options, new String[]{"abc", "-i", "-q", "1002", "publicApi.xml"});
+        result = (Boolean) argsValidation.invoke(cliParser, cmdArgs);
+        Assert.assertFalse(result);
+    }
+
+    @Test
          public void testArgs_duplicates() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, ParseException {
         CliParser cliParser = new CliParser();
         Method argsValidation = cliParser.getClass().getDeclaredMethod("areCmdArgsValid", CommandLine.class);

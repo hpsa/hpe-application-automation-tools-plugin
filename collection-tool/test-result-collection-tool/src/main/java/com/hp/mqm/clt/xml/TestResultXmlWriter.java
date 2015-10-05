@@ -91,7 +91,7 @@ public class TestResultXmlWriter {
     private void writeTypeValueArray(String elementName, String fieldName, List<String> typeValueArray) throws XMLStreamException {
         writer.writeStartElement(elementName);
         for (String typeValueField : typeValueArray) {
-            // Array values were already validated - are in TYPE:VALUE format
+            // Array values were validated - are in TYPE:VALUE format
             writeTypeValueField(fieldName, parseFieldType(typeValueField), parseFieldValue(typeValueField));
         }
         writer.writeEndElement();
