@@ -156,8 +156,6 @@ public class CliParser {
                 settings.setRequirement((Integer) cmd.getParsedOptionValue("q"));
             }
 
-            settings.setFileNames(cmd.getArgList());
-
             if(!areSettingsValid(settings)) {
                 System.exit(ReturnCode.FAILURE.getReturnCode());
             }
