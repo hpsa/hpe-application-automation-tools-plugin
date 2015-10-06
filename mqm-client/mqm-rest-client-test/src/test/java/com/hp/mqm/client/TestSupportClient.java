@@ -12,12 +12,12 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.utils.HttpClientUtils;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
+import com.hp.mqm.org.apache.http.HttpResponse;
+import com.hp.mqm.org.apache.http.HttpStatus;
+import com.hp.mqm.org.apache.http.client.methods.HttpPost;
+import com.hp.mqm.org.apache.http.client.utils.HttpClientUtils;
+import com.hp.mqm.org.apache.http.entity.ContentType;
+import com.hp.mqm.org.apache.http.entity.StringEntity;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

@@ -52,14 +52,14 @@ public class EventsClient {
 	private Date lastErrorTime;
 
 	public EventsClient(ServerConfiguration mqmConfig, JenkinsMqmRestClientFactory clientFactory) {
-		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.abridged, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
+		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.abridged, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password,mqmConfig.impersonatedUser);
 		this.restClientFactory = clientFactory;
 		activate();
 		logger.info("EVENTS: new events client initialized for '" + this.mqmConfig.location + "'");
 	}
 
 	public void update(ServerConfiguration mqmConfig) {
-		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.abridged, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
+		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.abridged, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password,mqmConfig.impersonatedUser);
 		logger.info("EVENTS: events client updated for '" + this.mqmConfig.location + "'");
 	}
 
@@ -125,6 +125,7 @@ public class EventsClient {
 				mqmConfig.sharedSpace,
 				mqmConfig.username,
 				mqmConfig.password
+
 		);
 
 		try {
@@ -198,6 +199,11 @@ public class EventsClient {
 	@Exported(inline = true)
 	public boolean isAbridged() {
 		return mqmConfig.abridged;
+	}
+
+	@Exported(inline = true)
+	public String getImpersonatedUser() {
+		return mqmConfig.impersonatedUser;
 	}
 
 	@Exported(inline = true)

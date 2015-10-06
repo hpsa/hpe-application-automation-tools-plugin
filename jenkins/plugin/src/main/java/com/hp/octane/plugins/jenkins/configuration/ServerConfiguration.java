@@ -9,13 +9,15 @@ final public class ServerConfiguration {
 	public String sharedSpace;
 	public String username;
 	public String password;
+	public String impersonatedUser;
 
-	public ServerConfiguration(String location, boolean abridged, String sharedSpace, String username, String password) {
+	public ServerConfiguration(String location, boolean abridged, String sharedSpace, String username, String password,String impersonatedUser) {
 		this.location = location;
 		this.abridged = abridged;
 		this.sharedSpace = sharedSpace;
 		this.username = username;
 		this.password = password;
+		this.impersonatedUser=impersonatedUser;
 	}
 
 	@Override
@@ -30,6 +32,7 @@ final public class ServerConfiguration {
 		if (sharedSpace != null ? !sharedSpace.equals(that.sharedSpace) : that.sharedSpace != null) return false;
 		if (username != null ? !username.equals(that.username) : that.username != null) return false;
 		if (password != null ? !password.equals(that.password) : that.password != null) return false;
+		if (impersonatedUser != null ? !impersonatedUser.equals(that.impersonatedUser) : that.impersonatedUser != null) return false;
 
 		return true;
 	}
@@ -41,6 +44,7 @@ final public class ServerConfiguration {
 		result = 31 * result + (sharedSpace != null ? sharedSpace.hashCode() : 0);
 		result = 31 * result + (username != null ? username.hashCode() : 0);
 		result = 31 * result + (password != null ? password.hashCode() : 0);
+		result = 31 * result + (impersonatedUser != null ? impersonatedUser.hashCode() : 0);
 		return result;
 	}
 }

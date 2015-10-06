@@ -1,33 +1,18 @@
 package com.hp.octane.plugins.jenkins.actions;
 
+import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.model.parameters.ParameterType;
 import com.hp.octane.plugins.jenkins.model.pipelines.BuildHistory;
 import com.hp.octane.plugins.jenkins.model.pipelines.StructureItem;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessors;
 import com.hp.octane.plugins.jenkins.model.scm.SCMData;
 import hudson.Extension;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.Action;
-import hudson.model.BooleanParameterValue;
-import hudson.model.BuildAuthorizationToken;
-import hudson.model.Cause;
-import hudson.model.FileParameterDefinition;
-import hudson.model.FileParameterValue;
-import hudson.model.Job;
-import hudson.model.ParameterDefinition;
-import hudson.model.ParameterValue;
-import hudson.model.ParametersAction;
-import hudson.model.ParametersDefinitionProperty;
-import hudson.model.PasswordParameterValue;
-import hudson.model.ProminentProjectAction;
-import hudson.model.Result;
-import hudson.model.Run;
-import hudson.model.StringParameterValue;
-import hudson.model.TransientProjectActionFactory;
-import hudson.model.User;
+import hudson.model.*;
+import hudson.security.ACL;
+import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.acegisecurity.context.SecurityContext;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
@@ -37,12 +22,10 @@ import org.kohsuke.stapler.export.Flavor;
 
 import javax.servlet.ServletException;
 import javax.xml.bind.DatatypeConverter;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Scanner;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -128,8 +111,13 @@ public class ProjectActions extends TransientProjectActionFactory {
 
 		//  TODO:   limit to POST only?
 		public void doRun(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
-			//SecurityContext context = ACL.impersonate(User.get("gullerya").impersonate());
+			SecurityContext context = null;
+			String user = Jenkins.getInstance().getPlugin(OctanePlugin.class).getImpersonatedUser();
 
+			if (user != null && !user.isEmpty()) {
+				User jenkinsUser = User.get(user, false);
+				context = ACL.impersonate(jenkinsUser.impersonate());
+			}
 			BuildAuthorizationToken.checkPermission((Job) project, project.getAuthToken(), req, res);
 
 			int delay = project.getQuietPeriod();
@@ -162,8 +150,9 @@ public class ProjectActions extends TransientProjectActionFactory {
 			} else {
 				res.setStatus(500);
 			}
-
-			//ACL.impersonate(context.getAuthentication());
+			if (context != null) {
+				ACL.impersonate(context.getAuthentication());
+			}
 		}
 
 		private List<ParameterValue> createParameters(JSONArray paramsJSON) {
@@ -234,6 +223,7 @@ public class ProjectActions extends TransientProjectActionFactory {
 		private void completeLackParameterWithDefaults() {
 			//  TODO:
 		}
+
 	}
 
 	@Override

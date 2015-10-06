@@ -15,23 +15,23 @@ import net.sf.json.JSONObject;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.Credentials;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.utils.HttpClientUtils;
-import org.apache.http.conn.params.ConnRoutePNames;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.CoreConnectionPNames;
+import com.hp.mqm.org.apache.http.HttpEntity;
+import com.hp.mqm.org.apache.http.HttpHost;
+import com.hp.mqm.org.apache.http.HttpResponse;
+import com.hp.mqm.org.apache.http.HttpStatus;
+import com.hp.mqm.org.apache.http.auth.AuthScope;
+import com.hp.mqm.org.apache.http.auth.Credentials;
+import com.hp.mqm.org.apache.http.auth.UsernamePasswordCredentials;
+import com.hp.mqm.org.apache.http.client.ResponseHandler;
+import com.hp.mqm.org.apache.http.client.methods.HttpGet;
+import com.hp.mqm.org.apache.http.client.methods.HttpPost;
+import com.hp.mqm.org.apache.http.client.methods.HttpUriRequest;
+import com.hp.mqm.org.apache.http.client.utils.HttpClientUtils;
+import com.hp.mqm.org.apache.http.conn.params.ConnRoutePNames;
+import com.hp.mqm.org.apache.http.entity.ContentType;
+import com.hp.mqm.org.apache.http.entity.StringEntity;
+import com.hp.mqm.org.apache.http.impl.client.DefaultHttpClient;
+import com.hp.mqm.org.apache.http.params.CoreConnectionPNames;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.output.XMLOutputter;
@@ -365,7 +365,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	}
 
 	/**
-	 * Invokes {@link org.apache.http.client.HttpClient#execute(org.apache.http.client.methods.HttpUriRequest)}
+	 * Invokes {@link com.hp.mqm.org.apache.http.client.HttpClient#execute(com.hp.mqm.org.apache.http.client.methods.HttpUriRequest)}
 	 * with given request and it does login if it is necessary.
 	 * <p>
 	 * Method does not support request with non-repeatable entity (see {@link HttpEntity#isRepeatable()}).
@@ -393,7 +393,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	}
 
 	/**
-	 * Invokes {@link org.apache.http.client.HttpClient#execute(org.apache.http.client.methods.HttpUriRequest, org.apache.http.client.ResponseHandler)}
+	 * Invokes {@link com.hp.mqm.org.apache.http.client.HttpClient#execute(com.hp.mqm.org.apache.http.client.methods.HttpUriRequest, com.hp.mqm.org.apache.http.client.ResponseHandler)}
 	 * with given request and does login if it is necessary.
 	 * <p>
 	 * Method does not support request with non-repeatable entity (see {@link HttpEntity#isRepeatable()}).
