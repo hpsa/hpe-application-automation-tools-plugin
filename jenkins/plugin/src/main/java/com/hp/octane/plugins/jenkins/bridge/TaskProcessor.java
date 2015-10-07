@@ -17,8 +17,8 @@ public class TaskProcessor implements Runnable {
 	private final JSONObject task;
 	private final String baseURL;
 
-	TaskProcessor(String task, String baseURL) {
-		this.task = JSONObject.fromObject(task);
+	TaskProcessor(JSONObject task, String baseURL) {
+		this.task = task;
 		this.baseURL = baseURL;
 	}
 
