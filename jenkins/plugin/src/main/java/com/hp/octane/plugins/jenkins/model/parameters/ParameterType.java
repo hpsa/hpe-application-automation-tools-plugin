@@ -14,7 +14,8 @@ public enum ParameterType {
 	BOOLEAN("boolean"),
 	STRING("string"),
 	NUMBER("number"),
-	FILE("file");
+	FILE("file"),
+  AXIS("axis");
 
 	private String value;
 
