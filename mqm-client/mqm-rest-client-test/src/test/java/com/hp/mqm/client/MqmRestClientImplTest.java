@@ -463,6 +463,7 @@ public class MqmRestClientImplTest {
 	}
 
     @Test
+	@Ignore // disabled until defect #2556 is fixed
     public void testUpdatePipeline() throws IOException {
         String serverIdentity = UUID.randomUUID().toString();
         long timestamp = System.currentTimeMillis();
