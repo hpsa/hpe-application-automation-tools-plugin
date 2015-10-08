@@ -9,8 +9,12 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.UnrecognizedOptionException;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -18,6 +22,9 @@ import java.net.URISyntaxException;
 import java.util.List;
 
 public class CliParserTest {
+
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     Options options;
 
@@ -72,7 +79,12 @@ public class CliParserTest {
         CommandLineParser parser = new DefaultParser();
         CommandLine commandLine = parser.parse(options, new String[]{"-i", "-r", "invalidIntegerValue"});
         Assert.assertTrue(commandLine.hasOption("r"));
-        Assert.assertNull(commandLine.getParsedOptionValue("r"));
+        try {
+            commandLine.getParsedOptionValue("r");
+            Assert.fail();
+        } catch (ParseException e){
+            Assert.assertEquals("For input string: \"invalidIntegerValue\"", e.getMessage());
+        }
     }
 
     @Test
@@ -203,5 +215,21 @@ public class CliParserTest {
         settings.setWorkspace(1002);
         result = (Boolean) settingsValidation.invoke(cliParser, settings);
         Assert.assertTrue(result);
+    }
+
+    @Test
+    public void testParser_outputFile() throws IOException, URISyntaxException {
+        CliParser cliParser = new CliParser();
+        File outputFile = new File(temporaryFolder.newFolder(), "testResults.xml");
+        Settings settings = cliParser.parse(new String[]{"--started", "123456", "-a", "2",
+                "--output-file", outputFile.getPath(),
+                "-c", getClass().getResource("test.properties").toURI().getPath(),
+                getClass().getResource("JUnit-minimalAccepted.xml").toURI().getPath()});
+        Assert.assertEquals(Long.valueOf(123456), settings.getStarted());
+        Assert.assertTrue(outputFile.canWrite());
+        Assert.assertEquals("http://localhost:8080/qcbin", settings.getServer());
+        Assert.assertEquals(Integer.valueOf(1001), settings.getSharedspace());
+        Assert.assertEquals(Integer.valueOf(1002), settings.getWorkspace());
+        Assert.assertEquals("admin", settings.getUser());
     }
 }

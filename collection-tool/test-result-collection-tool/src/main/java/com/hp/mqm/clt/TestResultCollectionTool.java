@@ -116,7 +116,7 @@ public class TestResultCollectionTool {
         List<TestResult> testResults = new LinkedList<TestResult>();
         XmlProcessor xmlProcessor = new XmlProcessor();
         for (String fileName : settings.getFileNames()) {
-            testResults.addAll(xmlProcessor.processSurefireTestReport(new File(fileName)));
+            testResults.addAll(xmlProcessor.processSurefireTestReport(new File(fileName), settings.getStarted()));
         }
         xmlProcessor.writeTestResults(testResults, settings, outputFile);
     }

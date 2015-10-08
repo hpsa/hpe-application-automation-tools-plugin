@@ -40,19 +40,13 @@ public class XmlProcessorTest {
     public void testXmlProcessor_minimalAcceptedJUnitFormat() throws URISyntaxException {
         // Public API requires at least testName, duration, started and status fields to be filled for every test
         XmlProcessor xmlProcessor = new XmlProcessor();
-        long beforeProcessing = System.currentTimeMillis();
-        List<TestResult> testResults = xmlProcessor.processSurefireTestReport(new File(getClass().getResource("JUnit-minimalAccepted.xml").toURI()));
-        long afterProcessing = System.currentTimeMillis();
+        List<TestResult> testResults = xmlProcessor.processSurefireTestReport(new File(getClass().getResource("JUnit-minimalAccepted.xml").toURI()), 1444291726L);
         Assert.assertNotNull(testResults);
         Assert.assertEquals(4, testResults.size());
-        assertTestResult(testResults.get(0), "", "", "testName", TestResultStatus.PASSED,
-                1, beforeProcessing, afterProcessing);
-        assertTestResult(testResults.get(1), "", "", "testNameSkipped", TestResultStatus.SKIPPED,
-                2, beforeProcessing, afterProcessing);
-        assertTestResult(testResults.get(2), "", "", "testNameFailed", TestResultStatus.FAILED,
-                3, beforeProcessing, afterProcessing);
-        assertTestResult(testResults.get(3), "", "", "testNameWithError", TestResultStatus.FAILED,
-                4, beforeProcessing, afterProcessing);
+        assertTestResult(testResults.get(0), "", "", "testName", TestResultStatus.PASSED, 1, 1444291726L);
+        assertTestResult(testResults.get(1), "", "", "testNameSkipped", TestResultStatus.SKIPPED, 2, 1444291726L);
+        assertTestResult(testResults.get(2), "", "", "testNameFailed", TestResultStatus.FAILED, 3, 1444291726L);
+        assertTestResult(testResults.get(3), "", "", "testNameWithError", TestResultStatus.FAILED, 4, 1444291726L);
     }
 
     @Test
@@ -66,7 +60,7 @@ public class XmlProcessorTest {
             }
         });
         XmlProcessor xmlProcessor = new XmlProcessor();
-        xmlProcessor.processSurefireTestReport(new File(getClass().getResource("JUnit-missingTestName.xml").toURI()));
+        xmlProcessor.processSurefireTestReport(new File(getClass().getResource("JUnit-missingTestName.xml").toURI()), null);
     }
 
     @Test
@@ -80,7 +74,7 @@ public class XmlProcessorTest {
             }
         });
         XmlProcessor xmlProcessor = new XmlProcessor();
-        xmlProcessor.processSurefireTestReport(new File(getClass().getResource("JUnit-unclosedElement.xmlx").toURI()));
+        xmlProcessor.processSurefireTestReport(new File(getClass().getResource("JUnit-unclosedElement.xmlx").toURI()), null);
     }
 
     @Test
@@ -94,7 +88,7 @@ public class XmlProcessorTest {
             }
         });
         XmlProcessor xmlProcessor = new XmlProcessor();
-        xmlProcessor.processSurefireTestReport(new File("fileDoesNotExist.xml"));
+        xmlProcessor.processSurefireTestReport(new File("fileDoesNotExist.xml"), null);
     }
 
     @Test
@@ -133,14 +127,13 @@ public class XmlProcessorTest {
     }
 
     private void assertTestResult(TestResult testResult, String packageName, String className, String testName,
-                                  TestResultStatus result, long duration, long startedLowerBound, long startedUpperBound) {
+                                  TestResultStatus result, long duration, long started) {
         Assert.assertEquals(packageName, testResult.getPackageName());
         Assert.assertEquals(className, testResult.getClassName());
         Assert.assertEquals(testName, testResult.getTestName());
         Assert.assertEquals(result, testResult.getResult());
         Assert.assertEquals(duration, testResult.getDuration());
-        Assert.assertTrue(testResult.getStarted() >= startedLowerBound);
-        Assert.assertTrue(testResult.getStarted() <= startedUpperBound);
+        Assert.assertEquals(started, testResult.getStarted());
     }
 
     private void assertXml(List<TestResult> expectedTestResults, Set<XmlElement> expectedElements, File xmlFile) throws FileNotFoundException, XMLStreamException {

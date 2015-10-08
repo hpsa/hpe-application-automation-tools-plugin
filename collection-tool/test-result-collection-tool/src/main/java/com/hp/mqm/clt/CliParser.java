@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 
 public class CliParser {
 
-    private static final String CMD_LINE_SYNTAX = "push-result [OPTIONS]... FILE [FILE]...";
+    private static final String CMD_LINE_SYNTAX = "java -jar test-result-collection-tool.jar [OPTIONS]... FILE [FILE]...\n";
     private static final String HEADER = "HP Lifecycle Management Test Result Collection Tool";
     private static final String FOOTER = "";
     private static final String VERSION = "1.0";
@@ -39,8 +39,8 @@ public class CliParser {
         options.addOption(Option.builder("c").longOpt("config-file").desc("configuration file").hasArg().argName("FILE").build());
 
         options.addOption(Option.builder("s").longOpt("server").desc("server").hasArg().argName("URL").build());
-        options.addOption(Option.builder("d").longOpt("shared-space").desc("shared space").hasArg().argName("ID").type(Integer.class).build());
-        options.addOption(Option.builder("w").longOpt("workspace").desc("workspace").hasArg().argName("ID").type(Integer.class).build());
+        options.addOption(Option.builder("d").longOpt("shared-space").desc("shared space").hasArg().argName("ID").type(Number.class).build());
+        options.addOption(Option.builder("w").longOpt("workspace").desc("workspace").hasArg().argName("ID").type(Number.class).build());
 
         options.addOption(Option.builder("u").longOpt("user").desc("username").hasArg().argName("USERNAME").build());
         OptionGroup passGroup = new OptionGroup();
@@ -48,12 +48,13 @@ public class CliParser {
         passGroup.addOption(Option.builder().longOpt("password-file").desc("file with password").hasArg().argName("FILE").build());
         options.addOptionGroup(passGroup);
 
-        options.addOption(Option.builder("t").longOpt("tag").desc("tag").hasArg().argName("VALUE").build());
-        options.addOption(Option.builder("f").longOpt("field").desc("field tag").hasArg().argName("VALUE").build());
+        options.addOption(Option.builder("t").longOpt("tag").desc("tag").hasArg().argName("TYPE:VALUE").build());
+        options.addOption(Option.builder("f").longOpt("field").desc("field tag").hasArg().argName("TYPE:VALUE").build());
 
-        options.addOption(Option.builder("r").longOpt("release").desc("release").hasArg().argName("ID").type(Integer.class).build());
-        options.addOption(Option.builder("a").longOpt("product-area").desc("product area").hasArg().argName("ID").type(Integer.class).build());
-        options.addOption(Option.builder("q").longOpt("requirement").desc("requirement").hasArg().argName("ID").type(Integer.class).build());
+        options.addOption(Option.builder("r").longOpt("release").desc("release").hasArg().argName("ID").type(Number.class).build());
+        options.addOption(Option.builder("a").longOpt("product-area").desc("product area").hasArg().argName("ID").type(Number.class).build());
+        options.addOption(Option.builder("q").longOpt("requirement").desc("requirement").hasArg().argName("ID").type(Number.class).build());
+        options.addOption(Option.builder().longOpt("started").desc("started time in millis").hasArg().argName("TIMESTAMP").type(Number.class).build());
 
         argsWithSingleOccurrence.addAll(Arrays.asList("o", "c", "s", "d", "w", "u", "p", "password-file", "r", "a", "q"));
         argsRestrictedForInternal.addAll(Arrays.asList("o", "t", "f", "r", "a", "q"));
@@ -116,24 +117,26 @@ public class CliParser {
             }
 
             if (cmd.hasOption("d")) {
-                settings.setSharedspace((Integer) cmd.getParsedOptionValue("d"));
+                settings.setSharedspace(((Long) cmd.getParsedOptionValue("d")).intValue());
             }
 
             if (cmd.hasOption("w")) {
-                settings.setWorkspace((Integer) cmd.getParsedOptionValue("w"));
+                settings.setWorkspace(((Long) cmd.getParsedOptionValue("w")).intValue());
             }
 
             if (cmd.hasOption("u")) {
                 settings.setUser(cmd.getOptionValue("u"));
             }
 
-            if (cmd.hasOption("p")) {
-                settings.setPassword(cmd.getOptionValue("p"));
-            } else if (cmd.hasOption("password-file")) {
-                settings.setPassword(FileUtils.readFileToString(new File(cmd.getOptionValue("password-file"))));
-            } else {
-                System.out.println("Please enter your password if it's required and hit enter: ");
-                settings.setPassword(new String(System.console().readPassword()));
+            if (settings.getOutputFile() == null) {
+                if (cmd.hasOption("p")) {
+                    settings.setPassword(cmd.getOptionValue("p"));
+                } else if (cmd.hasOption("password-file")) {
+                    settings.setPassword(FileUtils.readFileToString(new File(cmd.getOptionValue("password-file"))));
+                } else {
+                    System.out.println("Please enter your password if it's required and hit enter: ");
+                    settings.setPassword(new String(System.console().readPassword()));
+                }
             }
 
             if (cmd.hasOption("t")) {
@@ -145,15 +148,19 @@ public class CliParser {
             }
 
             if (cmd.hasOption("r")) {
-                settings.setRelease((Integer) cmd.getParsedOptionValue("r"));
+                settings.setRelease(((Long) cmd.getParsedOptionValue("r")).intValue());
+            }
+
+            if (cmd.hasOption("started")) {
+                settings.setStarted((Long) cmd.getParsedOptionValue("started"));
             }
 
             if (cmd.hasOption("a")) {
-                settings.setProductArea((Integer) cmd.getParsedOptionValue("a"));
+                settings.setProductArea(((Long) cmd.getParsedOptionValue("a")).intValue());
             }
 
             if (cmd.hasOption("q")) {
-                settings.setRequirement((Integer) cmd.getParsedOptionValue("q"));
+                settings.setRequirement(((Long) cmd.getParsedOptionValue("q")).intValue());
             }
 
             if(!areSettingsValid(settings)) {
@@ -227,12 +234,25 @@ public class CliParser {
             return false;
         }
 
-        String outputFile = cmd.getOptionValue("o");
-        if (outputFile != null && !new File(outputFile).canWrite()) {
-            System.out.println("Can not write to the output file: " + outputFile);
-            return false;
+        String outputFilePath = cmd.getOptionValue("o");
+        if (outputFilePath != null) {
+            File outputFile = new File(outputFilePath);
+            if (!outputFile.exists()) {
+                try {
+                    if (!outputFile.createNewFile()) {
+                        System.out.println("Can not create the output file: " + outputFile.getName());
+                        return false;
+                    }
+                } catch (IOException e) {
+                    System.out.println("Can not create the output file: " + outputFile.getName());
+                    return false;
+                }
+            }
+            if (!outputFile.canWrite()) {
+                System.out.println("Can not write to the output file: " + outputFile.getName());
+                return false;
+            }
         }
-
         return true;
     }
 
@@ -252,15 +272,15 @@ public class CliParser {
     }
 
     private boolean areSettingsValid(Settings settings) {
-        if (!isSettingPresent(settings.getServer(), "server")) {
+        if (settings.getOutputFile() == null && !isSettingPresent(settings.getServer(), "server")) {
             return false;
         }
 
-        if (!isSettingPresent(settings.getSharedspace(), "sharedspace")) {
+        if (settings.getOutputFile() == null && !isSettingPresent(settings.getSharedspace(), "sharedspace")) {
             return false;
         }
 
-        if (!isSettingPresent(settings.getWorkspace(), "workspace")) {
+        if (settings.getOutputFile() == null && !isSettingPresent(settings.getWorkspace(), "workspace")) {
             return false;
         }
 

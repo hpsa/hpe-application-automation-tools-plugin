@@ -25,14 +25,15 @@ public class SurefireXmlIterator extends AbstractXmlIterator<TestResult> {
     private String testName;
     private TestResultStatus status;
     private long duration;
-    private long currentTime = System.currentTimeMillis();
+    private long started;
 
-    public SurefireXmlIterator(File surefireXmlFile) throws XMLStreamException, ValidationException, IOException {
+    public SurefireXmlIterator(File surefireXmlFile, Long started) throws XMLStreamException, ValidationException, IOException {
         super(surefireXmlFile);
         InputStream in = getClass().getResourceAsStream("surefire-test-report.xsd");
         String xsdSchema = IOUtils.toString(in, "UTF-8");
         IOUtils.closeQuietly(in);
         validateSecureXML(xsdSchema);
+        this.started = (started == null) ? System.currentTimeMillis() : started;
     }
 
     @Override
@@ -71,7 +72,7 @@ public class SurefireXmlIterator extends AbstractXmlIterator<TestResult> {
             String localName = element.getName().getLocalPart();
 
             if ("testcase".equals(localName) && StringUtils.isNotEmpty(testName)) { // NON-NLS
-                addItem(new TestResult(packageName, className, testName, status, duration, currentTime));
+                addItem(new TestResult(packageName, className, testName, status, duration, started));
             }
         }
     }

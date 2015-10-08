@@ -13,7 +13,7 @@ import java.util.List;
 
 public class XmlProcessor {
 
-    public List<TestResult> processSurefireTestReport(File surefireTestReport) {
+    public List<TestResult> processSurefireTestReport(File surefireTestReport, Long started) {
         if (surefireTestReport == null || !surefireTestReport.canRead()) {
             String fileNameInfo = (surefireTestReport == null) ? "" : ": " + surefireTestReport.getName();
             System.out.println("Can not read the Surefire XML file" + fileNameInfo);
@@ -22,7 +22,7 @@ public class XmlProcessor {
 
         List<TestResult> testResults = new LinkedList<TestResult>();
         try {
-            SurefireXmlIterator iterator = new SurefireXmlIterator(surefireTestReport);
+            SurefireXmlIterator iterator = new SurefireXmlIterator(surefireTestReport, started);
             while (iterator.hasNext()) {
                 testResults.add(iterator.next());
             }

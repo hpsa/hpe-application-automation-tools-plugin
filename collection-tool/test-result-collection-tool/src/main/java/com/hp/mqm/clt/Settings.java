@@ -38,6 +38,7 @@ public class Settings {
     private Integer release;
     private Integer productArea;
     private Integer requirement;
+    private Long started;
 
     private List<String> fileNames;
 
@@ -167,6 +168,14 @@ public class Settings {
 
     public void setRequirement(Integer requirement) {
         this.requirement = requirement;
+    }
+
+    public Long getStarted() {
+        return started;
+    }
+
+    public void setStarted(Long started) {
+        this.started = started;
     }
 
     public List<String> getFileNames() {
