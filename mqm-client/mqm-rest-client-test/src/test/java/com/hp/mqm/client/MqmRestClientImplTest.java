@@ -17,6 +17,7 @@ import com.hp.mqm.client.model.Taxonomy;
 import com.hp.mqm.client.model.TestResultStatus;
 import com.hp.mqm.client.model.TestRun;
 import com.hp.mqm.client.model.Workspace;
+import com.hp.mqm.org.apache.http.client.methods.HttpPost;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.FileUtils;
 import com.hp.mqm.org.apache.http.HttpResponse;
@@ -184,7 +185,7 @@ public class MqmRestClientImplTest {
 
 		// bad domain
 		badConnectionConfig = new MqmConnectionConfig(
-				LOCATION, "BadDomain123", USERNAME, PASSWORD, CLIENT_TYPE, PROXY_HOST, PROXY_PORT);
+				LOCATION, "BadSharedSpace123", USERNAME, PASSWORD, CLIENT_TYPE, PROXY_HOST, PROXY_PORT);
 		client = new MqmRestClientImpl(badConnectionConfig);
 		try {
 			client.tryToConnectSharedSpace();
@@ -200,8 +201,7 @@ public class MqmRestClientImplTest {
 	@Test
     @Ignore // pending server-side authentication
 	public void testExecute_autoLogin() throws IOException {
-		//  TODO: this should do the ping against workspaces
-		final String uri = LOCATION + "/api/shared_spaces/" + SHARED_SPACE + "/workspace/1234567/defects?query=%7Bid%5B0%5D%7D";
+		final String uri = LOCATION + "/api/shared_spaces/" + SHARED_SPACE + "/workspaces/" + WORKSPACE + "/defects?query=%22id=0%22";
 		MqmRestClientImpl client = new MqmRestClientImpl(connectionConfig);
 
 		MqmConnectionConfig badConnectionConfig = new MqmConnectionConfig(
@@ -264,7 +264,7 @@ public class MqmRestClientImplTest {
 		client.login();
 		HttpResponse response = null;
 		try {
-			response = client.execute(new HttpGet(LOCATION + "/" + AbstractMqmRestClient.URI_LOGOUT));
+			response = client.execute(new HttpPost(LOCATION + "/" + AbstractMqmRestClient.URI_LOGOUT));
 		} finally {
 			HttpClientUtils.closeQuietly(response);
 		}
