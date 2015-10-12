@@ -115,10 +115,12 @@ public class RunFromAlmTaskConfigurator extends AbstractUftTaskConfigurator {
 	@Override
 	public void populateContextForCreate(@NotNull final Map<String, Object> context)
 	{
-		(new HpTasksArtifactRegistrator()).registerCommonArtifact((Job)context.get("plan"), getI18nBean(), this.artifactDefinitionManager);
+		(new HpTasksArtifactRegistrator()).registerCommonArtifact((Job) context.get("plan"), getI18nBean(), this.artifactDefinitionManager);
 		super.populateContextForCreate(context);
-		
+
 		populateContextForLists(context);
+		//Default run mode value must be run locally
+		context.put(RUN_MODE, RUN_LOCALLY_PARAMETER);
 	}
 
 	private void populateContextForLists(@NotNull final Map<String, Object> context)
@@ -152,6 +154,7 @@ public class RunFromAlmTaskConfigurator extends AbstractUftTaskConfigurator {
 
 		I18nBean textProvider = getI18nBean();
 
+		//Don't change run types adding order. It's used for task creation.
 		runTypesMap.put(RUN_LOCALLY_PARAMETER, textProvider.getText(RUN_LOCALLY_LBL));
 		runTypesMap.put(RUN_ON_PLANNED_HOST_PARAMETER, textProvider.getText(RUN_ON_PLANNED_HOST_LBL));
 		runTypesMap.put(RUN_REMOTELY_PARAMETER, textProvider.getText(RUN_REMOTELY_LBL));
