@@ -8,14 +8,22 @@
 	</parent>
 
 	<artifactId>hp-application-automation-tools-plugin</artifactId>
-    <version>3.0.8-SNAPSHOT</version>
+    <version>4.0-SNAPSHOT</version>
 	<packaging>hpi</packaging>
 	<name>HP Application Automation Tools</name>
 	<description>Allowing to run HP testing tools tests: Unified Functional Testing, QuickTest Professional, Service
         Test and Performance Center
 	</description>
 	<url>https://wiki.jenkins-ci.org/display/JENKINS/HP+Application+Automation+Tools</url>
-
+	
+	<licenses>
+		<license>
+			<name>MIT License</name>
+			<url>http://www.opensource.org/licenses/mit-license.php</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>	
+	
 	<properties>
 		<msbuild.exe>C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe</msbuild.exe>
 		<msbuild.configuration>Release</msbuild.configuration>
