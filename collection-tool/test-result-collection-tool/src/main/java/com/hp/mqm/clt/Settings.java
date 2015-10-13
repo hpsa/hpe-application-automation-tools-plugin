@@ -45,19 +45,13 @@ public class Settings {
     private DefaultConfigFilenameProvider defaultConfigFilenameProvider = new ImplDefaultConfigFilenameProvider();
 
     public void load(String filename) throws IOException, URISyntaxException {
-        File propertiesFile = null;
-        URL defaultConfigFile = getClass().getResource(defaultConfigFilenameProvider.getDefaultConfigFilename());
-        if (filename != null) {
-            propertiesFile = new File(filename);
-        } else if (defaultConfigFile != null) {
-            propertiesFile = new File(defaultConfigFile.toURI());
-        }
-        if (propertiesFile == null || !propertiesFile.canRead()) {
+        File configFile = new File((filename != null) ? filename : defaultConfigFilenameProvider.getDefaultConfigFilename());
+        if (!configFile.isFile() || !configFile.canRead()) {
             return;
         }
 
         Properties properties = new Properties();
-        InputStream inputStream = new FileInputStream(propertiesFile);
+        InputStream inputStream = new FileInputStream(configFile);
         properties.load(inputStream);
         inputStream.close();
         server = properties.getProperty(PROP_SERVER);

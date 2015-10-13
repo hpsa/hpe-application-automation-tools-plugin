@@ -41,7 +41,7 @@ public class SettingsTest {
 
         @Override
         public String getDefaultConfigFilename() {
-            return "testDefault.properties";
+            return getClass().getResource("testDefault.properties").getPath();
         }
     }
 }
