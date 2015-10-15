@@ -31,18 +31,18 @@
     <resource type="i18n" name="english language" location="english"/>
     
     <!-- add our web resources -->
-    <web-resource key="hp.application.automation-resources" name="hp.application.automation Web Resources">
+    <web-resource key="hpe.application.automation-resources" name="hpe.application.automation Web Resources">
         <dependency>com.atlassian.auiplugin:ajs</dependency>
         
-        <resource type="download" name="hp.application.automation.css" location="/css/hp.application.automation.css"/>
-        <resource type="download" name="hp.application.automation.js" location="/js/hp.application.automation.js"/>
+        <resource type="download" name="hpe.application.automation.css" location="/css/hpe.application.automation.css"/>
+        <resource type="download" name="hpe.application.automation.js" location="/js/hpe.application.automation.js"/>
         <resource type="download" name="images/" location="/images"/>
 
         <context>hp.application.automation</context>
     </web-resource>
     
     <!-- publish our component -->
-    <component key="hp.application.automation.bamboo.plugin.component" class="com.hpe.application.automation.bamboo.plugin.PluginComponentImpl" public="true">
+    <component key="hpe.application.automation.bamboo.plugin.component" class="com.hpe.application.automation.bamboo.plugin.PluginComponentImpl" public="true">
         <interface>com.hpe.application.automation.bamboo.plugin.PluginComponent</interface>
     </component>
     
