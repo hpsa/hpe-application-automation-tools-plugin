@@ -43,7 +43,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 					CIEventCausesFactory.processCauses(build.getCauses()),
 					ParameterProcessors.getInstances(build)
 			);
-			EventsDispatcher.getExtensionInstance().dispatchEvent(event);
+			EventsService.getExtensionInstance().dispatchEvent(event);
 		}
 	}
 
@@ -77,7 +77,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 							.getAppropriate(build.getProject().getScm().getClass().getName())
 							.getSCMChanges(build)
 			);
-			EventsDispatcher.getExtensionInstance().dispatchEvent(event);
+			EventsService.getExtensionInstance().dispatchEvent(event);
 
 			testListener.processBuild(build);
 		}

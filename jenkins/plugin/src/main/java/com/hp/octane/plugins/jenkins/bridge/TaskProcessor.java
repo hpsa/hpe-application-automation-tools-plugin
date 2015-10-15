@@ -1,5 +1,9 @@
 package com.hp.octane.plugins.jenkins.bridge;
 
+import com.hp.mqm.client.MqmRestClient;
+import com.hp.octane.plugins.jenkins.actions.PluginActions;
+import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
+import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import net.sf.json.JSONObject;
 
 import java.util.HashMap;
@@ -15,11 +19,13 @@ import java.util.logging.Logger;
 public class TaskProcessor implements Runnable {
 	private static final Logger logger = Logger.getLogger(TaskProcessor.class.getName());
 	private final JSONObject task;
-	private final String baseURL;
+	private final JenkinsMqmRestClientFactory clientFactory;
+	private final ServerConfiguration mqmConfiguration;
 
-	TaskProcessor(JSONObject task, String baseURL) {
+	TaskProcessor(JSONObject task, JenkinsMqmRestClientFactory clientFactory, ServerConfiguration mqmConfiguration) {
 		this.task = task;
-		this.baseURL = baseURL;
+		this.clientFactory = clientFactory;
+		this.mqmConfiguration = mqmConfiguration;
 	}
 
 	@Override
@@ -31,17 +37,39 @@ public class TaskProcessor implements Runnable {
 		String body;
 		logger.info("BRIDGE: processing task '" + id + "': " + method + " " + url);
 
-		RESTClientTMP.LoopbackResponse response = null;
-		if (method.equals("GET")) {
-			response = RESTClientTMP.loopbackGet(url, headers);
-		} else if (method.equals("PUT")) {
-			body = obtainBody();
-			response = RESTClientTMP.loopbackPut(url, headers, body);
-		} else if (method.equals("POST")) {
-			body = obtainBody();
-			response = RESTClientTMP.loopbackPost(url, headers, body);
+		LoopBackRestService.LoopBackResponse response;
+		try {
+			if (method.equals("GET")) {
+				response = LoopBackRestService.loopBackGet(url, headers);
+			} else if (method.equals("PUT")) {
+				body = obtainBody();
+				response = LoopBackRestService.loopBackPut(url, headers, body);
+			} else if (method.equals("POST")) {
+				body = obtainBody();
+				response = LoopBackRestService.loopBackPost(url, headers, body);
+			} else {
+				response = new LoopBackRestService.LoopBackResponse(415, null, "");
+			}
+		} catch (Exception e) {
+			logger.severe("BRIDGE: failed to process task '" + id + "', returning 500:" + e.getMessage());
+			response = new LoopBackRestService.LoopBackResponse(500, null, e.getMessage());
 		}
-		RESTClientTMP.putTaskResult(baseURL + "/" + id + "/result", response);
+
+		MqmRestClient restClient = clientFactory.create(
+				mqmConfiguration.location,
+				mqmConfiguration.sharedSpace,
+				mqmConfiguration.username,
+				mqmConfiguration.password);
+		JSONObject json = new JSONObject();
+		json.put("statusCode", response.statusCode);
+		json.put("headers", response.headers);
+		json.put("body", response.body);
+
+		int submitStatus = restClient.putAbridgedResult(
+				new PluginActions.ServerInfo().getInstanceId(),
+				id,
+				json.toString());
+		logger.info("BRIDGE: result for task '" + id + "' submitted with status " + submitStatus);
 	}
 
 	private Map<String, String> buildHeadersMap(JSONObject json) {

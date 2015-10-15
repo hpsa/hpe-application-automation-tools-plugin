@@ -6,7 +6,7 @@ import com.google.inject.Inject;
 import com.hp.octane.plugins.jenkins.bridge.BridgesService;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.configuration.*;
-import com.hp.octane.plugins.jenkins.events.EventsDispatcher;
+import com.hp.octane.plugins.jenkins.events.EventsService;
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.Plugin;
@@ -109,7 +109,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
             }
         }
 
-        EventsDispatcher.getExtensionInstance().updateClient(getServerConfiguration());
+        EventsService.getExtensionInstance().updateClient(getServerConfiguration());
         BridgesService.getExtensionInstance().updateBridge(getServerConfiguration());
     }
 

@@ -3,7 +3,7 @@
 package com.hp.octane.plugins.jenkins.client;
 
 import com.hp.octane.plugins.jenkins.events.EventsClient;
-import com.hp.octane.plugins.jenkins.events.EventsDispatcher;
+import com.hp.octane.plugins.jenkins.events.EventsService;
 import hudson.Extension;
 
 @Extension
@@ -11,12 +11,12 @@ public class JenkinsInsightEventPublisher implements EventPublisher {
 
     @Override
     public boolean isSuspended(String location, String sharedSpace) {
-        EventsClient client = EventsDispatcher.getExtensionInstance().getClient(location, sharedSpace);
+        EventsClient client = EventsService.getExtensionInstance().getClient(location, sharedSpace);
         return client == null || client.isSuspended();
     }
 
     @Override
     public void resume() {
-        EventsDispatcher.getExtensionInstance().wakeUpClients();
+        EventsService.getExtensionInstance().wakeUpClients();
     }
 }
