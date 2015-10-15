@@ -1,0 +1,21 @@
+<atlassian-plugin-marketing>
+    <compatibility>
+        <product name="bamboo" min="5.9"/>
+    </compatibility>
+    <logo image="images/hp_automation_app_for_bamboo_logo2.png"/>
+    <banner image="images/Banner1120x548.png"/>
+    <highlights>
+        <highlight image="images/HighlightScreenshot1840x900a.jpg" cropped="images/CroppedHighlight580x330a.jpg"/>
+        <highlight image="images/HighlightScreenshot1840x900b.jpg" cropped="images/CroppedHighlight580x330b.jpg"/>
+        <highlight image="images/HighlightScreenshot1840x900c.jpg" cropped="images/CroppedHighlight580x330c.jpg"/>
+        <highlight image="images/HighlightScreenshot1840x900d.jpg" cropped="images/CroppedHighlight580x330d.jpg"/>
+        <highlight image="images/HighlightScreenshot1840x900e.jpg" cropped="images/CroppedHighlight580x330e.jpg"/>
+    </highlights>
+    <screenshots>
+        <screenshot image="images/HighlightScreenshot1840x900a.jpg"/>
+        <screenshot image="images/HighlightScreenshot1840x900b.jpg"/>
+        <screenshot image="images/HighlightScreenshot1840x900c.jpg"/>
+        <screenshot image="images/HighlightScreenshot1840x900d.jpg"/>
+        <screenshot image="images/HighlightScreenshot1840x900e.jpg"/>
+    </screenshots>
+</atlassian-plugin-marketing>
