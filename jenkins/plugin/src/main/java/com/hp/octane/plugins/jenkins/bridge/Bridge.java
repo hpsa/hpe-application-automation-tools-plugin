@@ -4,11 +4,11 @@ import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
 import org.kohsuke.stapler.export.Exported;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
@@ -22,9 +22,9 @@ public class Bridge {
 	private static final Logger logger = Logger.getLogger(Bridge.class.getName());
 	private static int CONCURRENT_CONNECTIONS = 1;
 
-	private ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5);
-	private ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30);
-	private volatile AtomicInteger openedConnections = new AtomicInteger(0);
+	private ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
+	private ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30, new AbridgedTasksExecutorsFactory());
+	private AtomicInteger openedConnections = new AtomicInteger(0);
 
 	private ServerConfiguration mqmConfig;
 	private JenkinsMqmRestClientFactory restClientFactory;
@@ -60,9 +60,9 @@ public class Bridge {
 						connect();
 					}
 					dispatchTasks(taskJSON);
-				} catch (RESTClientTMP.TemporaryException te) {
+				} catch (Exception e) {
 					openedConnections.decrementAndGet();
-					logger.severe("BRIDGE: connection to MQM Server temporary failed: " + te.getMessage());
+					logger.severe("BRIDGE: connection to MQM Server temporary failed: " + e.getMessage());
 					try {
 						Thread.sleep(500);
 					} catch (InterruptedException ie) {
@@ -71,9 +71,6 @@ public class Bridge {
 					if (mqmConfig.abridged && openedConnections.get() < CONCURRENT_CONNECTIONS) {
 						connect();
 					}
-				} catch (RESTClientTMP.FatalException fe) {
-					openedConnections.decrementAndGet();
-					logger.severe("BRIDGE: connection to MQM Server fatally failed: " + fe.getMessage());
 				}
 			}
 		});
@@ -109,5 +106,27 @@ public class Bridge {
 	@Exported(inline = true)
 	public String getUsername() {
 		return mqmConfig.username;
+	}
+
+	private static final class AbridgedConnectivityExecutorsFactory implements ThreadFactory {
+
+		@Override
+		public Thread newThread(Runnable runnable) {
+			Thread result = new Thread(runnable);
+			result.setName("AbridgedConnectivityThread-" + result.getId());
+			result.setDaemon(true);
+			return result;
+		}
+	}
+
+	private static final class AbridgedTasksExecutorsFactory implements ThreadFactory {
+
+		@Override
+		public Thread newThread(Runnable runnable) {
+			Thread result = new Thread(runnable);
+			result.setName("AbridgedTasksExecutorsFactory-" + result.getId());
+			result.setDaemon(true);
+			return result;
+		}
 	}
 }
