@@ -18,7 +18,7 @@
     <!--<url></url>-->
 
     <name>HP Application UFT Bamboo Plugin</name>
-    <description>This is the bamboo:hp.application.automation plugin for Atlassian Bamboo.</description>
+    <description>Using this plugin designed to work with UFT, you can run UFT tests of your application as a build task. These tests can be stored on the file system or ALM, will run automatically as a task in the build process.</description>
     <packaging>atlassian-plugin</packaging>
 
     <properties>
