@@ -37,7 +37,6 @@ import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -60,6 +59,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 
 	private static final String SHARED_SPACE_API_URI = "api/shared_spaces/{0}";
 	private static final String WORKSPACE_API_URI = SHARED_SPACE_API_URI + "/workspaces/{1}";
+	private static final String WORKSPACE_INTERNAL_API_URI = SHARED_SPACE_INTERNAL_API_URI + "/workspaces/{1}";
 
 	private static final String FILTERING_FRAGMENT = "query={query}";
     private static final String PAGING_FRAGMENT = "offset={offset}&limit={limit}";
@@ -268,8 +268,13 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 		return createProjectUri(PROJECT_API_URI, template, params);
 	}
 
-	protected URI createWorkspaceApiUri(String template, long workspaceId) {
-		return createWorkspaceApiUriMap(template, workspaceId, Collections.<String, Object>emptyMap());
+    // don't remove (used in test-support)
+	protected URI createWorkspaceInternalApiUriMap(String template, long workspaceId, Object ... params) {
+		return URI.create(createBaseUri(WORKSPACE_INTERNAL_API_URI, sharedSpace, workspaceId).toString() + "/" + resolveTemplate(template, asMap(params)));
+	}
+
+	protected URI createWorkspaceApiUri(String template, long workspaceId, Object ... params) {
+		return createWorkspaceApiUriMap(template, workspaceId, asMap(params));
 	}
 
 	protected URI createWorkspaceApiUriMap(String template, long workspaceId, Map<String, ?> params) {
