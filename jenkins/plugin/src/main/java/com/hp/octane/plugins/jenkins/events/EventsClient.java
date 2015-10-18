@@ -52,14 +52,14 @@ public class EventsClient {
 	private Date lastErrorTime;
 
 	public EventsClient(ServerConfiguration mqmConfig, JenkinsMqmRestClientFactory clientFactory) {
-		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.abridged, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password,mqmConfig.impersonatedUser);
+		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.abridged, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password, mqmConfig.impersonatedUser);
 		this.restClientFactory = clientFactory;
 		activate();
 		logger.info("EVENTS: new events client initialized for '" + this.mqmConfig.location + "'");
 	}
 
 	public void update(ServerConfiguration mqmConfig) {
-		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.abridged, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password,mqmConfig.impersonatedUser);
+		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.abridged, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password, mqmConfig.impersonatedUser);
 		logger.info("EVENTS: events client updated for '" + this.mqmConfig.location + "'");
 	}
 
@@ -124,9 +124,7 @@ public class EventsClient {
 				mqmConfig.location,
 				mqmConfig.sharedSpace,
 				mqmConfig.username,
-				mqmConfig.password
-
-		);
+				mqmConfig.password);
 
 		try {
 			new ModelBuilder().get(EventsList.class).writeTo(snapshot, Flavor.JSON.createDataWriter(snapshot, w));

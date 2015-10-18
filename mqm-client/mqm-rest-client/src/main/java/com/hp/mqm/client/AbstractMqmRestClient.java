@@ -6,7 +6,6 @@ import com.hp.mqm.client.exception.LoginErrorException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
 import com.hp.mqm.client.exception.ServerException;
-import com.hp.mqm.client.exception.SessionCreationException;
 import com.hp.mqm.client.exception.SharedSpaceNotExistException;
 import com.hp.mqm.client.model.PagedList;
 import net.sf.json.JSONArray;
@@ -16,6 +15,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import com.hp.mqm.org.apache.http.HttpEntity;
+import com.hp.mqm.org.apache.http.HttpEntityEnclosingRequest;
 import com.hp.mqm.org.apache.http.HttpHost;
 import com.hp.mqm.org.apache.http.HttpResponse;
 import com.hp.mqm.org.apache.http.HttpStatus;
@@ -28,19 +28,13 @@ import com.hp.mqm.org.apache.http.client.methods.HttpPost;
 import com.hp.mqm.org.apache.http.client.methods.HttpUriRequest;
 import com.hp.mqm.org.apache.http.client.utils.HttpClientUtils;
 import com.hp.mqm.org.apache.http.conn.params.ConnRoutePNames;
-import com.hp.mqm.org.apache.http.entity.ContentType;
-import com.hp.mqm.org.apache.http.entity.StringEntity;
 import com.hp.mqm.org.apache.http.impl.client.DefaultHttpClient;
 import com.hp.mqm.org.apache.http.params.CoreConnectionPNames;
-import org.jdom.Document;
-import org.jdom.Element;
-import org.jdom.output.XMLOutputter;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
@@ -56,14 +50,11 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
     private static final Logger logger = Logger.getLogger(AbstractMqmRestClient.class.getName());
 
 	private static final String URI_AUTHENTICATION = "authentication/sign_in";
-	private static final String URI_CREATE_SESSION = "rest/site-session";
     private static final String HEADER_NAME_AUTHORIZATION = "Authorization";
     private static final String HEADER_VALUE_BASIC_AUTH = "Basic ";
+	private static final String HEADER_CLIENT_TYPE = "HPE_CLIENT_TYPE";
     static final String URI_LOGOUT = "authentication/sign_out";
 
-	private static final String URI_DOMAIN_PROJECT_CHECK = "defects?query=%7Bid%5B0%5D%7D";
-
-	private static final String PROJECT_REST_URI = "rest/shared_spaces/{0}";
 	private static final String PROJECT_API_URI = "api/shared_spaces/{0}";
 	private static final String SHARED_SPACE_INTERNAL_API_URI = "internal-api/shared_spaces/{0}";
 
@@ -141,7 +132,6 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	 */
 	protected synchronized void login() {
 		authenticate();
-//		createSession();
 		alreadyLoggedIn = true;
 	}
 
@@ -150,6 +140,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	 */
 	protected synchronized void logout() {
 		HttpUriRequest request = new HttpPost(createBaseUri(URI_LOGOUT));
+        addClientTypeHeader(request);
 		HttpResponse response = null;
 		try {
 			response = httpClient.execute(request);
@@ -165,14 +156,14 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	}
 
 	public void release() {
-		//logout();
+		logout();
 	}
 
 	public void releaseQuietly() {
 		try {
 			release();
 		} catch (Exception e) {
-			Logger.getLogger(AbstractMqmRestClient.class.getName()).log(Level.WARNING, "Failed to release client", e);
+			logger.log(Level.WARNING, "Failed to release client", e);
 		}
 	}
 
@@ -181,6 +172,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
         String authorizationString = HEADER_VALUE_BASIC_AUTH +
                 (username != null ? username : "") + ":" + (password != null ? password : "");
         post.setHeader(HEADER_NAME_AUTHORIZATION, Base64.encodeBase64String(authorizationString.getBytes(StandardCharsets.UTF_8)));
+        addClientTypeHeader(post);
 
         HttpResponse response = null;
         try {
@@ -195,39 +187,12 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
         }
     }
 
-	private void createSession() {
-		HttpPost request = new HttpPost(createBaseUri(URI_CREATE_SESSION));
-		request.setEntity(new StringEntity(createSessionXml(), ContentType.create("application/xml", Charset.forName("UTF-8"))));
-
-		HttpResponse response = null;
-		try {
-			response = httpClient.execute(request);
-			if (response.getStatusLine().getStatusCode() != 201) {
-				throw new SessionCreationException("Session creation failed: code=" + response.getStatusLine().getStatusCode() + "; reason=" + response.getStatusLine().getReasonPhrase());
-			}
-		} catch (IOException e) {
-			throw new LoginErrorException("Session creation failed", e);
-		} finally {
-			HttpClientUtils.closeQuietly(response);
-		}
-	}
-
-	private String createSessionXml() {
-		Document document = new Document();
-		Element root = new Element("session-parameters");
-		document.setRootElement(root);
-		root.addContent(new Element("client-type").setText(clientType));
-		root.addContent(new Element("time-out").setText("6")); // TODO What this timeout means? Should it configurable?
-		return new XMLOutputter().outputString(document);
-	}
-
 	@Override
 	public void tryToConnectSharedSpace() {
-//		login();
+		login();
         checkSharedSpace();
 	}
 
-	// the simplest implementation because we do not know if domain and project will exist in future
 	private void checkSharedSpace() {
 		HttpGet request = new HttpGet(createSharedSpaceApiUri(""));
 		HttpResponse response = null;
@@ -257,21 +222,6 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	protected URI createBaseUri(String template, Object... params) {
 		String result = location + "/" + resolveTemplate(template, asMap(params));
 		return URI.create(result);
-	}
-
-	/**
-	 * Creates absolute URI given by relative path from project URI leading by 'api'. It resolves all placeholders
-	 * in template according to their order in params. All parameters are URI encoded before they are used for template resolving.
-	 *
-	 * @param template URI template of relative path (template must not starts with '/') from REST URI context. Special characters
-	 *                 which need to be encoded must be already encoded in template.
-	 *                 Example: test/{0}?id={1}
-	 * @param params   not encoded parameters of template. Objects are converted to string by its toString() method.
-	 *                 Example: ["J Unit", 123]
-	 * @return absolute URI of endpoint with all parameters which are URI encoded. Example: http://mqm.hp.com/qcbin/domains/DEFAULT/projects/MAIN/rest/test/J%20Unit?id=123
-	 */
-	protected URI createProjectRestUri(String template, Object... params) {
-		return createProjectUri(PROJECT_REST_URI, template, asMap(params));
 	}
 
 	/**
@@ -376,13 +326,14 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	 * @throws IllegalArgumentException when request entity is not repeatable
 	 */
 	protected HttpResponse execute(HttpUriRequest request) throws IOException {
-//		if (request instanceof HttpEntityEnclosingRequest) {
-//			HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
-//			if (!entity.isRepeatable()) {
-//				throw new IllegalArgumentException("MqmRestClient does not support non-repeatable entity (entity.isRepeatable() must be true).");
-//			}
-//		}
-//		doFirstLogin();
+		if (request instanceof HttpEntityEnclosingRequest) {
+			HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
+			if (entity != null && !entity.isRepeatable()) {
+				throw new IllegalArgumentException("MqmRestClient does not support non-repeatable entity (entity.isRepeatable() must be true).");
+			}
+		}
+		doFirstLogin();
+        addClientTypeHeader(request);
 		HttpResponse response = httpClient.execute(request);
 		if (isLoginNecessary(response)) { // if request fails with 401 do login and execute request again
 			HttpClientUtils.closeQuietly(response);
@@ -405,26 +356,27 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	 */
 	protected <T> T execute(final HttpUriRequest request, final ResponseHandler<? extends T> responseHandler) throws IOException {
 		doFirstLogin();
+        addClientTypeHeader(request);
 		final BooleanReference loginNecessary = new BooleanReference();
 		loginNecessary.value = false;
 		T result = httpClient.execute(request, new ResponseHandler<T>() {
-			@Override
-			public T handleResponse(HttpResponse response) throws IOException {
-				if (isLoginNecessary(response)) {
-					loginNecessary.value = true;
-					return null;
-				}
-				return responseHandler.handleResponse(response);
-			}
-		});
+            @Override
+            public T handleResponse(HttpResponse response) throws IOException {
+                if (isLoginNecessary(response)) {
+                    loginNecessary.value = true;
+                    return null;
+                }
+                return responseHandler.handleResponse(response);
+            }
+        });
 		if (loginNecessary.value) {
 			login();
 			result = httpClient.execute(request, new ResponseHandler<T>() {
-				@Override
-				public T handleResponse(HttpResponse response) throws IOException {
-					return responseHandler.handleResponse(response);
-				}
-			});
+                @Override
+                public T handleResponse(HttpResponse response) throws IOException {
+                    return responseHandler.handleResponse(response);
+                }
+            });
 		}
 		return result;
 	}
@@ -547,6 +499,12 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 		params.put("limit", limit);
 		return params;
 	}
+
+    private void addClientTypeHeader(HttpUriRequest request) {
+        if (request.getFirstHeader(HEADER_CLIENT_TYPE) == null) {
+            request.addHeader(HEADER_CLIENT_TYPE, clientType);
+        }
+    }
 
 	private boolean isLoginNecessary(HttpResponse response) {
 		return response.getStatusLine().getStatusCode() == 401;

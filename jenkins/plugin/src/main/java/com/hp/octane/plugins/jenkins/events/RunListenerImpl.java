@@ -69,10 +69,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 					CIEventCausesFactory.processCauses(build.getCauses()),
 					ParameterProcessors.getInstances(build)
 			);
-      ParameterInstance[] parameters = event.getParameters();
-      for(int i = 0 ; i < parameters.length; i++) {
-        logger.info("%%%%%%%%%%%%%%% Project Parameter:"+parameters[i].getName() + ":"+parameters[i].getValue());
-      }
+			EventsService.getExtensionInstance().dispatchEvent(event);
 		}
     if(event != null) {
       EventsDispatcher.getExtensionInstance().dispatchEvent(event);
@@ -128,7 +125,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 							.getAppropriate(build.getProject().getScm().getClass().getName())
 							.getSCMChanges(build)
 			);
-			EventsDispatcher.getExtensionInstance().dispatchEvent(event);
+			EventsService.getExtensionInstance().dispatchEvent(event);
 
 			testListener.processBuild(build);
 		}
