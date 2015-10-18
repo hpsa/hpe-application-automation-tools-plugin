@@ -7,7 +7,6 @@ import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import net.sf.json.JSONArray;
 import org.kohsuke.stapler.export.Exported;
 
-import java.net.SocketTimeoutException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
