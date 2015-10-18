@@ -16,13 +16,15 @@ import org.kohsuke.stapler.export.ExportedBean;
 @ExportedBean
 public class CIEventStarted extends CIEventQueued {
 	private int number;
+	private int subNumber;
 	private long startTime;
 	private long estimatedDuration;
 	private ParameterInstance[] parameters;
 
-	public CIEventStarted(String project, int number, long startTime, long estimatedDuration, CIEventCauseBase[] causes, ParameterInstance[] parameters) {
-		super(project, causes);
+	public CIEventStarted(String project,int number, int subNumber, long startTime, long estimatedDuration, CIEventCauseBase[] causes, ParameterInstance[] parameters) {
+		super(project,causes);
 		this.number = number;
+    this.subNumber = subNumber;
 		this.startTime = startTime;
 		this.estimatedDuration = estimatedDuration;
 		this.parameters = parameters;
@@ -39,6 +41,11 @@ public class CIEventStarted extends CIEventQueued {
 	}
 
 	@Exported(inline = true)
+	public int getSubNumber() {
+		return subNumber;
+	}
+
+	@Exported(inline = true)
 	public long getStartTime() {
 		return startTime;
 	}
@@ -52,4 +59,6 @@ public class CIEventStarted extends CIEventQueued {
 	public ParameterInstance[] getParameters() {
 		return parameters;
 	}
+
+
 }
