@@ -40,9 +40,6 @@ public final class RunListenerImpl extends RunListener<Run> {
     CIEventStarted event = null;
     if(r.getParent() instanceof MatrixConfiguration){
       AbstractBuild build = (AbstractBuild) r;
-      logger.info("######################## OnStarted SubBuild "+build.getProject().getName() +
-        ",Build Number:"+build.getNumber()+
-        ", Parent Name:"+((MatrixRun) r).getParentBuild().getParent().getName()+" Parent Number:"+((MatrixRun) r).getParentBuild().getNumber());
       event = new CIEventStarted(
         ((MatrixRun) r).getParentBuild().getParent().getName(),
         ((MatrixRun) r).getParentBuild().getNumber(),
@@ -52,14 +49,9 @@ public final class RunListenerImpl extends RunListener<Run> {
         CIEventCausesFactory.processCauses(((MatrixRun) r).getParentBuild().getCauses()),
         ParameterProcessors.getInstances(build)
       );
-
-      ParameterInstance[] parameters = event.getParameters();
-      for(int i = 0 ; i < parameters.length; i++) {
-        logger.info("%%%%%%%%%%%%%%% SubProject Parameter:"+parameters[i].getName() + ":"+parameters[i].getValue());
-      }
+      EventsService.getExtensionInstance().dispatchEvent(event);
     }else  if (r instanceof AbstractBuild) {
 			AbstractBuild build = (AbstractBuild) r;
-      logger.info(">>>>>>>>>>>>>>>>>>>>>>>>>>> OnStarted Build "+build.getProject().getName());
 			event = new CIEventStarted(
 					build.getProject().getName(),
 					build.getNumber(),
@@ -71,9 +63,6 @@ public final class RunListenerImpl extends RunListener<Run> {
 			);
 			EventsService.getExtensionInstance().dispatchEvent(event);
 		}
-    if(event != null) {
-      EventsDispatcher.getExtensionInstance().dispatchEvent(event);
-    }
 	}
 
 
