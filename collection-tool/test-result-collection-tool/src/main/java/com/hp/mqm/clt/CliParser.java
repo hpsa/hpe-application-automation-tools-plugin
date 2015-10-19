@@ -53,9 +53,11 @@ public class CliParser {
 
         options.addOption(Option.builder("r").longOpt("release").desc("release").hasArg().argName("ID").type(Number.class).build());
         options.addOption(Option.builder("a").longOpt("product-area").desc("product area").hasArg().argName("ID").type(Number.class).build());
+        // CODE REVIEW, Johnny, 16Oct2015 - requirement is incorrect name, in MQM a backlog item is used (confirm with Mirek)
         options.addOption(Option.builder("q").longOpt("requirement").desc("requirement").hasArg().argName("ID").type(Number.class).build());
         options.addOption(Option.builder().longOpt("started").desc("started time in millis").hasArg().argName("TIMESTAMP").type(Number.class).build());
 
+        // CODE REVIEW, Johnny, 16Oct2015 - allow multiple occurrences for 'a' and 'q' options
         argsWithSingleOccurrence.addAll(Arrays.asList("o", "c", "s", "d", "w", "u", "p", "password-file", "r", "a", "q"));
         argsRestrictedForInternal.addAll(Arrays.asList("o", "t", "f", "r", "a", "q"));
     }
@@ -93,6 +95,10 @@ public class CliParser {
             }
             try {
                 settings.load(filename);
+                // CODE REVIEW, Johnny, 19Oct2015 - you should inform user that loading of settings failed but the
+                // call of settings.load() method just returns in some cases; for example it can happen that user deletes
+                // accidentally his default configuration file, now there's no user he can know that that is the cause
+                // of problem
             } catch (IOException e) {
                 System.out.println("Can not read from properties file " + filename);
                 System.exit(ReturnCode.FAILURE.getReturnCode());
@@ -132,6 +138,8 @@ public class CliParser {
                 if (cmd.hasOption("p")) {
                     settings.setPassword(cmd.getOptionValue("p"));
                 } else if (cmd.hasOption("password-file")) {
+                    // CODE REVIEW, Johnny, 19Oct2015 - please handle the exceptions locally not at the bottom, the path to
+                    // password file might be missing or invalid or file not readable, etc.
                     settings.setPassword(FileUtils.readFileToString(new File(cmd.getOptionValue("password-file"))));
                 } else {
                     System.out.println("Please enter your password if it's required and hit enter: ");
@@ -156,14 +164,16 @@ public class CliParser {
             }
 
             if (cmd.hasOption("a")) {
+                // CODE REVIEW, Johnny, 19Oct2015 - allow multiple product areas
                 settings.setProductArea(((Long) cmd.getParsedOptionValue("a")).intValue());
             }
 
             if (cmd.hasOption("q")) {
+                // CODE REVIEW, Johnny, 19Oct2015 - allow multiple backlog items
                 settings.setRequirement(((Long) cmd.getParsedOptionValue("q")).intValue());
             }
 
-            if(!areSettingsValid(settings)) {
+            if (!areSettingsValid(settings)) {
                 System.exit(ReturnCode.FAILURE.getReturnCode());
             }
 
@@ -171,6 +181,7 @@ public class CliParser {
             printHelp();
             System.exit(ReturnCode.FAILURE.getReturnCode());
         } catch (IOException e) {
+            // CODE REVIEW, Johnny, 19Oct2015 - handle locally not here
             System.out.println("Can not read the password file");
             System.exit(ReturnCode.FAILURE.getReturnCode());
         }
@@ -180,6 +191,7 @@ public class CliParser {
     private boolean addInputFilesToSettings(CommandLine cmd, Settings settings) {
         List<String> argList = cmd.getArgList();
         if (argList.isEmpty()) {
+            // CODE REVIEW, Johnny, 19Oct2015 - consider changing to 'specified as input for push'
             System.out.println("At least one XML file must be specified");
             return false;
         }
@@ -187,11 +199,16 @@ public class CliParser {
         List<String> inputFiles = new LinkedList<String>();
         for (String inputFile : argList) {
             if (!inputFiles.contains(inputFile) && new File(inputFile).canRead()) {
+                // CODE REVIEW, Johnny, 19Oct2015 - report which files we are unable to read; consider failing in that case
+                // user might be led into thinking that all files were handed over for processing
                 inputFiles.add(inputFile);
             }
         }
 
         if (inputFiles.isEmpty()) {
+            // CODE REVIEW, Johnny, 16Oct2015 - misleading message; at this point you do not know anything about
+            // the file(s )nature - whether it is etc. - so what you can just say is that there are no valid or
+            // readable files at input containing tests to push
             System.out.println("No valid XML files with tests to push");
             return false;
         }
@@ -203,6 +220,7 @@ public class CliParser {
     private boolean areCmdArgsValid(CommandLine cmd) {
         for (String arg : argsWithSingleOccurrence) {
             if (cmd.getOptionProperties(arg).size() > 1) {
+                // CODE REVIEW, Johnny, 19Oct2015 - add that 'only single occurrence is allowed'
                 System.out.println("Invalid multiple occurrence of argument: " + arg);
                 return false;
             }
@@ -211,6 +229,9 @@ public class CliParser {
         if (cmd.hasOption("i")) {
             for (String arg : argsRestrictedForInternal) {
                 if (cmd.hasOption(arg)) {
+                    // CODE REVIEW, Johnny, 19Oct2015 - misleading message, remove the second part and just say that
+                    // for internal mode the argument is invalid; you can say at this point nothing about the provided
+                    // tests report files
                     System.out.println("Invalid argument combination for internal mode '"
                             + arg + "': provided XML files should be in public API format");
                     return false;
@@ -223,13 +244,13 @@ public class CliParser {
         }
 
         String configurationFile = cmd.getOptionValue("c");
-        if (configurationFile != null && !new File(configurationFile).canRead()) {
+        if (configurationFile != null && !(new File(configurationFile).canRead())) {
             System.out.println("Can not read the configuration file: " + configurationFile);
             return false;
         }
 
         String passwordFile = cmd.getOptionValue("password-file");
-        if (passwordFile != null && !new File(passwordFile).canRead()) {
+        if (passwordFile != null && !(new File(passwordFile).canRead())) {
             System.out.println("Can not read the password file: " + passwordFile);
             return false;
         }
@@ -240,15 +261,18 @@ public class CliParser {
             if (!outputFile.exists()) {
                 try {
                     if (!outputFile.createNewFile()) {
+                        // CODE REVIEW, Johnny, 19Oct2015 - perhaps report the outputFilePath instead of just the name
                         System.out.println("Can not create the output file: " + outputFile.getName());
                         return false;
                     }
                 } catch (IOException e) {
+                    // CODE REVIEW, Johnny, 19Oct2015 - perhaps report the outputFilePath instead of just the name
                     System.out.println("Can not create the output file: " + outputFile.getName());
                     return false;
                 }
             }
             if (!outputFile.canWrite()) {
+                // CODE REVIEW, Johnny, 19Oct2015 - perhaps report the outputFilePath instead of just the name
                 System.out.println("Can not write to the output file: " + outputFile.getName());
                 return false;
             }
@@ -261,8 +285,11 @@ public class CliParser {
         if (tags == null) {
             return true;
         }
+        // CODE REVIEW, Johnny, 19Oct2015 - consult with Mirek with regards to localization, this is very probably
+        // good for this release, but I can imagine it will have to be relaxed once we for example start to support
+        // languages like French (and all their funny characters)
         Pattern pattern = Pattern.compile("^\\w+:\\w+$");
-        for(String tag : tags) {
+        for (String tag : tags) {
             if (!pattern.matcher(tag).matches()) {
                 System.out.println("Tag and field tag arguments must be in TYPE:VALUE format: " + tag);
                 return false;

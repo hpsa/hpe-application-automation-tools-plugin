@@ -36,7 +36,9 @@ public class Settings {
     private List<String> fields;
 
     private Integer release;
+    // CODE REVIEW, Johnny, 19Oct2015 - allow multiple product areas
     private Integer productArea;
+    // CODE REVIEW, Johnny, 19Oct2015 - allow multiple backlog items
     private Integer requirement;
     private Long started;
 
@@ -44,6 +46,7 @@ public class Settings {
 
     private DefaultConfigFilenameProvider defaultConfigFilenameProvider = new ImplDefaultConfigFilenameProvider();
 
+    // CODE REVIEW, Johnny, 1*Oct2015 - when the URISyntaxException is thrown?
     public void load(String filename) throws IOException, URISyntaxException {
         File configFile = new File((filename != null) ? filename : defaultConfigFilenameProvider.getDefaultConfigFilename());
         if (!configFile.isFile() || !configFile.canRead()) {

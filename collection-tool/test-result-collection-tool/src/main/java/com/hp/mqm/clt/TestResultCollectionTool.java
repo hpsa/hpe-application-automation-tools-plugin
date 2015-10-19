@@ -24,6 +24,7 @@ public class TestResultCollectionTool {
         this.settings = settings;
     }
 
+    // CODE REVIEW, Johnny, 19Oct2015 - unused method, remove
     public long getLastPushedTestResultId() {
         return lastPushedTestResultId;
     }
@@ -57,8 +58,12 @@ public class TestResultCollectionTool {
                 try {
                     lastPushedTestResultId = client.postTestResult(new FileEntity(publicApiXML));
                 } catch (ValidationException e) {
+                    // CODE REVIEW, Johnny, 19Oct2015 - consider giving the full path to file as for example the temp
+                    // file needed for non-internal reports will not be easy to found
                     System.out.println("Test result was not pushed - please check if the supplied file '" +
                             publicApiXML.getName() + "' is in a valid public API format (internal option was set)");
+                    // CODE REVIEW, Johnny, 19Oct2015 - above - misleading message, publicApiXMLs also contains converted
+                    // JUnit reports - so this validation exception is not thrown only in case when internal option is set
                     continue;
                 }
                 validatePublishResult();
@@ -96,6 +101,8 @@ public class TestResultCollectionTool {
             System.exit(ReturnCode.FAILURE.getReturnCode());
         }
         if (StringUtils.isEmpty(publishResult)) {
+            // CODE REVIEW, Johnny, 19Oct2015 - id does not tell much, user must know which file was successfully pushed
+            // and which failed; also applies to messages below
             System.out.println("Unable to verify publish result of the last push with ID: " + lastPushedTestResultId);
         }
 
@@ -112,6 +119,11 @@ public class TestResultCollectionTool {
         }
     }
 
+    // CODE REVIEW, Johnny, 19Oct2015 - this merging of all JUnit reports in single file is potentially dangerous
+    // talk to Rado or Vojta - consider the case when two or more reports contain runs of the same subset of tests
+    // with different status; also consider that history table will not contain the full history if duplicates
+    // are removed on server-side, user might rely on ordering on input files at cmd line arguments; this behavior
+    // should be at least documented
     private void processSurefireReports(File outputFile) {
         List<TestResult> testResults = new LinkedList<TestResult>();
         XmlProcessor xmlProcessor = new XmlProcessor();

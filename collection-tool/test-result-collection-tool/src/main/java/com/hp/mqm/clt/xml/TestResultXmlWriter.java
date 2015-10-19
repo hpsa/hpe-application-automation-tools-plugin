@@ -75,9 +75,11 @@ public class TestResultXmlWriter {
             writer.writeEndElement(); // releaseRef
         }
         if (settings.getRequirement() != null) {
+            // CODE REVIEW, Johnny, 19Oct2015 - support multiple backlog items
             writeRefField("backlogItems", "backlogItemRef", settings.getRequirement());
         }
         if (settings.getProductArea() != null) {
+            // CODE REVIEW, Johnny, 19Oct2015 - support multiple product areas
             writeRefField("productAreas", "productAreaRef", settings.getProductArea());
         }
         if (settings.getFields() != null) {
@@ -92,11 +94,11 @@ public class TestResultXmlWriter {
         writer.writeStartElement(elementName);
         for (String typeValueField : typeValueArray) {
             // Array values were validated - are in TYPE:VALUE format
+            // CODE REVIEW, Johnny, 19Oct2015 - why not simply splitting the string by ':'? See String.split javadoc)
             writeTypeValueField(fieldName, parseFieldType(typeValueField), parseFieldValue(typeValueField));
         }
         writer.writeEndElement();
     }
-
 
     private void writeTypeValueField(String fieldName, String type, String value) throws XMLStreamException {
         writer.writeStartElement(fieldName);
@@ -132,6 +134,7 @@ public class TestResultXmlWriter {
     }
 
     // TODO: check if there is public mechanism yet
+    // CODE REVIEW, Johnny, 19Oct2015 - left over TODO comment
     private XMLStreamWriter possiblyCreateIndentingWriter(XMLStreamWriter writer) {
         try {
             Class<?> clazz = Class.forName("com.sun.xml.txw2.output.IndentingXMLStreamWriter");

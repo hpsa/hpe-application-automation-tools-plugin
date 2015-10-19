@@ -7,7 +7,7 @@ public enum ReturnCode {
 
     private int returnCode;
 
-    private ReturnCode(int returnCode) {
+    ReturnCode(int returnCode) {
         this.returnCode = returnCode;
     }
 
