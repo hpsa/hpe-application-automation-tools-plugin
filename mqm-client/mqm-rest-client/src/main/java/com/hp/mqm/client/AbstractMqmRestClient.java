@@ -169,10 +169,9 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 
 	private void authenticate() {
         HttpPost post = new HttpPost(createBaseUri(URI_AUTHENTICATION));
-        String authorizationString = HEADER_VALUE_BASIC_AUTH +
-                (username != null ? username : "") + ":" + (password != null ? password : "");
-        post.setHeader(HEADER_NAME_AUTHORIZATION, Base64.encodeBase64String(authorizationString.getBytes(StandardCharsets.UTF_8)));
-        addClientTypeHeader(post);
+        String authorizationString = (username != null ? username : "") + ":" + (password != null ? password : "");
+        post.setHeader(HEADER_NAME_AUTHORIZATION, HEADER_VALUE_BASIC_AUTH + Base64.encodeBase64String(authorizationString.getBytes(StandardCharsets.UTF_8)));
+		addClientTypeHeader(post);
 
         HttpResponse response = null;
         try {
@@ -190,7 +189,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	@Override
 	public void tryToConnectSharedSpace() {
 		login();
-        checkSharedSpace();
+		checkSharedSpace();
 	}
 
 	private void checkSharedSpace() {
@@ -244,7 +243,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
     }
 
     protected URI createSharedSpaceApiUriMap(String template, Map<String, ?> params) {
-        return URI.create(createBaseUri(SHARED_SPACE_API_URI, sharedSpace).toString() + "/" + resolveTemplate(template, params));
+		return URI.create(createBaseUri(SHARED_SPACE_API_URI, sharedSpace).toString() + "/" + resolveTemplate(template, params));
     }
 
     protected URI createSharedSpaceInternalApiUri(String template, Object... params) {
