@@ -45,4 +45,16 @@ public final class CIEventCausesFactory {
 		}
 		return result;
 	}
+  public static CIEventCauseBase[] processMatrixCauses(List<Cause> causes) {
+    CIEventCauseBase[]  result = CIEventCausesFactory.processCauses(causes);
+//    CIEventCauseBase[]  filteredResult = null;
+//    if(result.length > 0) {
+//      filteredResult = new CIEventCauseBase[result.length];
+//    }
+//
+//    for(int i = 0 ; i < result.length;  i++) {
+//      filteredResult[i] = result.
+//    }
+    return result;
+  }
 }

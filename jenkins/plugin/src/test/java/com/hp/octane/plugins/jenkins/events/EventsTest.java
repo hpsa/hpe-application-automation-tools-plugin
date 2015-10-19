@@ -18,7 +18,6 @@ import org.jvnet.hudson.test.JenkinsRule;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.awt.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -134,9 +133,9 @@ public class EventsTest {
 
 		configEventsClient(client);
 
-		EventsDispatcher eventsDispatcher = ExtensionUtil.getInstance(rule, EventsDispatcher.class);
-		assertEquals(1, eventsDispatcher.getStatus().size());
-		assertEquals("http://localhost:" + testingServerPort, eventsDispatcher.getStatus().get(0).getLocation());
+		EventsService eventsService = ExtensionUtil.getInstance(rule, EventsService.class);
+		assertEquals(1, eventsService.getStatus().size());
+		assertEquals("http://localhost:" + testingServerPort, eventsService.getStatus().get(0).getLocation());
 		assertEquals(1, rule.jenkins.getTopLevelItemNames().size());
 		assertTrue(rule.jenkins.getTopLevelItemNames().contains(projectName));
 

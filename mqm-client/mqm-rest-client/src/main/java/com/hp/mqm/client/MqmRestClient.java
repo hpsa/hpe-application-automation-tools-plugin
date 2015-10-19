@@ -11,7 +11,9 @@ import com.hp.mqm.client.model.TestResultStatus;
 import com.hp.mqm.client.model.Workspace;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Client for connection to MQM public API. It wraps whole http communication with MQM server. Client handles login automatically.
@@ -39,7 +41,7 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * InputStream obtained from InputStreamSource is automatically closed after all data are read.
 	 *
 	 * @param inputStreamSource input stream source with test results in MQM XML format.
-	 * @param skipErrors try to continue if non-fatal issue occurs
+	 * @param skipErrors        try to continue if non-fatal issue occurs
 	 * @return id of the post operation
 	 */
 	long postTestResult(InputStreamSource inputStreamSource, boolean skipErrors);
@@ -49,7 +51,7 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * (multiple invocation of this method) to avoid HTTP request timeout.
 	 *
 	 * @param testResultReport XML file with test reports
-	 * @param skipErrors try to continue if non-fatal issue occurs
+	 * @param skipErrors       try to continue if non-fatal issue occurs
 	 * @throws com.hp.mqm.client.exception.FileNotFoundException
 	 */
 	long postTestResult(File testResultReport, boolean skipErrors);
@@ -65,7 +67,7 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	/**
 	 * Get (error) log associated with the test result post operation
 	 *
-	 * @param id ID of the post operation
+	 * @param id     ID of the post operation
 	 * @param output structure to receive the log
 	 */
 	void getTestResultLog(long id, LogOutput output);
@@ -94,22 +96,22 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 */
 	Pipeline createPipeline(String serverIdentity, String projectName, String pipelineName, long workspaceId, Long releaseId, String structureJson, String serverJson);
 
-    /**
-     * Update pipeline metadata on the MQM server.
-     * <p/>
-     * <p/>
-     * Either <code>pipeline.*</code> value can be null (except for id). In that case, the value isn't updated.
-     * <p/>
-     * It is not possible to update the <code>pipeline.root</code> flag (value is ignored if specified).
-     * <p/>
-     * In order to dissociate pipeline from release, <code>releaseId</code> value -1 needs to be specified.
-     * <p/>
-     *
-     * @param serverIdentity identity of the server
-     * @param jobName        name of the job
-     * @param pipeline      pipeline structure
-     */
-    Pipeline updatePipeline(String serverIdentity, String jobName, Pipeline pipeline);
+	/**
+	 * Update pipeline metadata on the MQM server.
+	 * <p/>
+	 * <p/>
+	 * Either <code>pipeline.*</code> value can be null (except for id). In that case, the value isn't updated.
+	 * <p/>
+	 * It is not possible to update the <code>pipeline.root</code> flag (value is ignored if specified).
+	 * <p/>
+	 * In order to dissociate pipeline from release, <code>releaseId</code> value -1 needs to be specified.
+	 * <p/>
+	 *
+	 * @param serverIdentity identity of the server
+	 * @param jobName        name of the job
+	 * @param pipeline       pipeline structure
+	 */
+	Pipeline updatePipeline(String serverIdentity, String jobName, Pipeline pipeline);
 
 	/**
 	 * Query releases matching given name filter (using contains semantics).
@@ -118,16 +120,17 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * If <code>name</code> is not specified or empty, all releases are returned.
 	 * <p/>
 	 *
-	 * @param name          release name filter (can be null or empty)
-     * @param workspaceId   workspace
-	 * @param offset        paging offset
-	 * @param limit         paging limit
+	 * @param name        release name filter (can be null or empty)
+	 * @param workspaceId workspace
+	 * @param offset      paging offset
+	 * @param limit       paging limit
 	 * @return releases matching given name
 	 */
 	PagedList<Release> queryReleases(String name, long workspaceId, int offset, int limit);
 
 	/**
 	 * Get release of given ID in given workspace
+	 *
 	 * @param releaseId
 	 * @param workspaceId
 	 * @return release, null if release does not exist
@@ -141,38 +144,40 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * If <code>name</code> is not specified or empty, all workspaces are returned.
 	 * <p/>
 	 *
-	 * @param name          workspace name filter (can be null or empty)
-	 * @param offset        paging offset
-	 * @param limit         paging limit
+	 * @param name   workspace name filter (can be null or empty)
+	 * @param offset paging offset
+	 * @param limit  paging limit
 	 * @return workspaces matching given name
 	 */
 	PagedList<Workspace> queryWorkspaces(String name, int offset, int limit);
 
 	/**
 	 * Get workspaces of given IDs
-	 * @param workspaceIds		list of workspaceIds - maximum size of list is 100 values
+	 *
+	 * @param workspaceIds list of workspaceIds - maximum size of list is 100 values
 	 * @return workspaces matching given IDs
 	 */
 	List<Workspace> getWorkspaces(List<Long> workspaceIds);
 
-    /**
-     * Query taxonomies (including categories) matching given name (using contains semantics).
-     * <p/>
-     * <p/>
-     * If <code>name</code> is not specified or empty, all taxonomies are considered.
-     *
-     * @param name          taxonomy name filter (can be null or empty)
-     * @param workspaceId   workspace
-     * @param offset        paging offset
-     * @param limit         paging limit
-     * @return taxonomies matching given name and type
-     */
-    PagedList<Taxonomy> queryTaxonomies(String name, long workspaceId, int offset, int limit);
+	/**
+	 * Query taxonomies (including categories) matching given name (using contains semantics).
+	 * <p/>
+	 * <p/>
+	 * If <code>name</code> is not specified or empty, all taxonomies are considered.
+	 *
+	 * @param name        taxonomy name filter (can be null or empty)
+	 * @param workspaceId workspace
+	 * @param offset      paging offset
+	 * @param limit       paging limit
+	 * @return taxonomies matching given name and type
+	 */
+	PagedList<Taxonomy> queryTaxonomies(String name, long workspaceId, int offset, int limit);
 
 	/**
 	 * Get taxonomies with given IDs
-	 * @param taxonomyIds 	list of taxonomyIds - maximum size of list is 100 values
-	 * @param workspaceId	workspace
+	 *
+	 * @param taxonomyIds list of taxonomyIds - maximum size of list is 100 values
+	 * @param workspaceId workspace
 	 * @return taxonomies matching given IDs
 	 */
 	List<Taxonomy> getTaxonomies(List<Long> taxonomyIds, long workspaceId);
@@ -182,17 +187,18 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * <p/>
 	 * If <code>name</code> is not specified or empty, all items are considered.
 	 *
-	 * @param logicalListName        logical name of a list to search in
-	 * @param name          item name filter (can be null or empty)
-     * @param workspaceId   workspace
-	 * @param offset        paging offset
-	 * @param limit         paging limit
+	 * @param logicalListName logical name of a list to search in
+	 * @param name            item name filter (can be null or empty)
+	 * @param workspaceId     workspace
+	 * @param offset          paging offset
+	 * @param limit           paging limit
 	 * @return list items matching given name filter
 	 */
 	PagedList<ListItem> queryListItems(String logicalListName, String name, long workspaceId, int offset, int limit);
 
 	/**
 	 * Get listItems of given IDs in given workspace
+	 *
 	 * @param itemIds
 	 * @param workspaceId
 	 * @return
@@ -201,6 +207,7 @@ public interface MqmRestClient extends BaseMqmRestClient {
 
 	/**
 	 * Get metadata fields of given workspace
+	 *
 	 * @param workspaceId
 	 * @return metadata fields which are supported (has field_features: pipeline_tagging)
 	 */
@@ -215,4 +222,22 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * @return notifies the consumer about the final result of an action
 	 */
 	boolean putEvents(String eventsJSON);
+
+	/**
+	 * Retrieves tasks from service working in Abridged Connectivity Mode
+	 *
+	 * @param serverIdentity identity of the server
+	 * @return
+	 */
+	String getAbridgedTasks(String serverIdentity);
+
+	/**
+	 * Sends Result of the Abridged Task Invocation
+	 *
+	 * @param serverIdentity
+	 * @param taskId
+	 * @param contentJSON
+	 * @return status code
+	 */
+	int putAbridgedResult(String serverIdentity, String taskId, String contentJSON);
 }

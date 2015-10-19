@@ -5,7 +5,7 @@ import com.hp.octane.plugins.jenkins.configuration.ConfigApi;
 import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import com.hp.octane.plugins.jenkins.events.EventsClient;
-import com.hp.octane.plugins.jenkins.events.EventsDispatcher;
+import com.hp.octane.plugins.jenkins.events.EventsService;
 import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.RootAction;
@@ -101,7 +101,7 @@ public class PluginActions implements RootAction {
 
 		@Exported(inline = true)
 		public List<EventsClient> getEventsClients() {
-			return EventsDispatcher.getExtensionInstance().getStatus();
+			return EventsService.getExtensionInstance().getStatus();
 		}
 	}
 

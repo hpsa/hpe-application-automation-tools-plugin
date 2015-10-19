@@ -25,7 +25,7 @@ public class BridgesService implements ConfigurationListener {
 
 	private static BridgesService extensionInstance;
 	private JenkinsMqmRestClientFactory clientFactory;
-	private final List<Bridge> bridges = new ArrayList<Bridge>();
+	private final List<BridgeClient> bridgeClients = new ArrayList<BridgeClient>();
 
 	public static BridgesService getExtensionInstance() {
 		if (extensionInstance == null) {
@@ -47,17 +47,17 @@ public class BridgesService implements ConfigurationListener {
 				conf.username == null || conf.username.equals("")) {
 			logger.warning("bad configuration encountered, bridge is not updated");
 		} else {
-			synchronized (bridges) {
-				for (Bridge bridge : bridges) {
-					if (bridge.getLocation().equals(conf.location) && bridge.getSharedSpace().equals(conf.sharedSpace)) {
-						bridge.update(conf);
+			synchronized (bridgeClients) {
+				for (BridgeClient bridgeClient : bridgeClients) {
+					if (bridgeClient.getLocation().equals(conf.location) && bridgeClient.getSharedSpace().equals(conf.sharedSpace)) {
+						bridgeClient.update(conf);
 						updated = true;
 						break;
 					}
 				}
 				if (!updated) {
-					bridges.add(new Bridge(conf, clientFactory));
-					logger.info("BRIDGE: new bridge added, total of bridges " + bridges.size());
+					bridgeClients.add(new BridgeClient(conf, clientFactory));
+					logger.info("BRIDGE: new bridge added, total of bridges " + bridgeClients.size());
 				}
 			}
 		}
