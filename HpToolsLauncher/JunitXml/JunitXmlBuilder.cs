@@ -5,6 +5,7 @@
 
 using System.IO;
 using System.Xml.Serialization;
+using System.Xml;
 
 namespace HpToolsLauncher
 {
@@ -39,7 +40,7 @@ namespace HpToolsLauncher
         {
             _testSuites = new testsuites();
 
-            testsuite ts = new testsuite
+            testsuite uftts = new testsuite
             {
                 errors = results.NumErrors.ToString(),
                 tests = results.NumTests.ToString(),
@@ -49,18 +50,19 @@ namespace HpToolsLauncher
             };
             foreach (TestRunResults testRes in results.TestRuns)
             {
-                testcase tc;
                 if (testRes.TestType == TestType.LoadRunner.ToString())
                 {
-                    tc = CreateXmlFromLRRunResults(testRes);
+                    testsuite lrts = CreateXmlFromLRRunResults(testRes);
+                    _testSuites.AddTestsuite(lrts);
                 }
                 else
                 {
-                    tc = CreateXmlFromUFTRunResults(testRes);
+                    testcase ufttc = CreateXmlFromUFTRunResults(testRes);
+                    uftts.AddTestCase(ufttc);
                 }
-                ts.AddTestCase(tc);
             }
-            _testSuites.AddTestsuite(ts);
+            if(uftts.testcase.Length > 0)
+                _testSuites.AddTestsuite(uftts);
 
             if (File.Exists(XmlName))
                 File.Delete(XmlName);
@@ -71,10 +73,54 @@ namespace HpToolsLauncher
             }
         }
 
-        private testcase CreateXmlFromLRRunResults(TestRunResults testRes)
+        private testsuite CreateXmlFromLRRunResults(TestRunResults testRes)
         {
-            return CreateXmlFromUFTRunResults(testRes);
-            
+            testsuite lrts = new testsuite();
+            int totalTests = 0, totalFailures = 0, totalErrors = 0;
+
+            string resultFileFullPath = testRes.ReportLocation + "\\SLA.xml";
+            if (File.Exists(resultFileFullPath))
+            {
+                try
+                {
+                    XmlDocument xdoc = new XmlDocument();
+                    xdoc.Load(resultFileFullPath);
+
+                    foreach (XmlNode childNode in xdoc.DocumentElement.ChildNodes)
+                    {
+                        if (childNode.Attributes != null && childNode.Attributes["FullName"] != null)
+                        {
+                            testRes.TestGroup = testRes.TestPath;
+                            testcase lrtc = CreateXmlFromUFTRunResults(testRes);
+                            lrtc.name = childNode.Attributes["FullName"].Value;
+                            if (childNode.InnerText.ToLowerInvariant().Contains("failed"))
+                            {
+                                lrtc.status = "fail";
+                                totalFailures++;
+                            }
+                            else if (childNode.InnerText.ToLowerInvariant().Contains("passed"))
+                            {
+                                lrtc.status = "pass";
+                                lrtc.error = new error[] { };
+                            }
+                            totalErrors += lrtc.error.Length;
+                            lrts.AddTestCase(lrtc);
+                            totalTests++;
+                        }
+                    }
+                }
+                catch (System.Xml.XmlException)
+                {
+
+                }
+            }
+
+            lrts.name = testRes.TestPath;
+            lrts.tests = totalTests.ToString();
+            lrts.errors = totalErrors.ToString();
+            lrts.failures = totalFailures.ToString();
+            lrts.time = testRes.Runtime.TotalSeconds.ToString();
+            return lrts;
         }
 
         private testcase CreateXmlFromUFTRunResults(TestRunResults testRes)

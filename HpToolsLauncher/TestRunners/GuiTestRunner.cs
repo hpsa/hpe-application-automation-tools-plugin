@@ -74,6 +74,16 @@ namespace HpToolsLauncher
                 return runDesc;
             }
 
+            string reason = string.Empty;
+            if (!Helper.CanUftProcessStart(out reason))
+            {
+                runDesc.TestState = TestState.Error;
+                runDesc.ErrorDesc = reason;
+                ConsoleWriter.WriteErrLine(runDesc.ErrorDesc);
+                Environment.ExitCode = (int)Launcher.ExitCodeEnum.Failed;
+                return runDesc;
+            }
+
             try
             {
                 ChangeDCOMSettingToInteractiveUser();
