@@ -49,6 +49,8 @@ public class XmlProcessor {
         }
 
         if (testResults.isEmpty()) {
+            // CODE REVIEW, Johnny, 19Oct2015 - report also which file does not contain the tests or has wrong formatting
+            // in case of multiple files this information might be important for user
             System.out.println("No valid test results to push");
             System.exit(ReturnCode.FAILURE.getReturnCode());
         }
