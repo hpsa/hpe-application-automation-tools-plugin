@@ -40,7 +40,7 @@ public class BridgesService implements ConfigurationListener {
 	}
 
 	public void updateBridge(ServerConfiguration conf) {
-		boolean updated = false;
+		boolean existing = false;
 		if (conf == null || conf.password == null ||
 				conf.location == null || conf.location.equals("") ||
 				conf.sharedSpace == null || conf.sharedSpace.equals("") ||
@@ -51,11 +51,11 @@ public class BridgesService implements ConfigurationListener {
 				for (BridgeClient bridgeClient : bridgeClients) {
 					if (bridgeClient.getLocation().equals(conf.location) && bridgeClient.getSharedSpace().equals(conf.sharedSpace)) {
 						bridgeClient.update(conf);
-						updated = true;
+						existing = true;
 						break;
 					}
 				}
-				if (!updated) {
+				if (!existing) {
 					bridgeClients.add(new BridgeClient(conf, clientFactory));
 					logger.info("BRIDGE: new bridge added, total of bridges " + bridgeClients.size());
 				}
