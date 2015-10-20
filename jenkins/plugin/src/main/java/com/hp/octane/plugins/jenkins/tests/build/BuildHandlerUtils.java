@@ -6,13 +6,13 @@ import hudson.model.AbstractBuild;
 
 public class BuildHandlerUtils {
 
-    public static String getBuildType(AbstractBuild<?, ?> build) {
+    public static BuildTypeDescriptor getBuildType(AbstractBuild<?, ?> build) {
         for (BuildHandlerExtension ext: BuildHandlerExtension.all()) {
             if (ext.supports(build)) {
                 return ext.getBuildType(build);
             }
         }
-        return build.getProject().getName();
+        return new BuildTypeDescriptor(build.getProject().getName(), "");
     }
 
     public static String getProjectFullName(AbstractBuild<?, ?> build) {

@@ -11,8 +11,7 @@ public abstract class BuildHandlerExtension implements ExtensionPoint {
 
     public abstract boolean supports(AbstractBuild<?, ?> build);
 
-    // TODO: when sub-job is introduced into the API, this method needs to return both buildType and subJob
-    public abstract String getBuildType(AbstractBuild<?, ?> build);
+    public abstract BuildTypeDescriptor getBuildType(AbstractBuild<?, ?> build);
 
     public abstract String getProjectFullName(AbstractBuild<?, ?> build);
 

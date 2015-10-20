@@ -8,6 +8,7 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import java.io.FileNotFoundException;
@@ -23,6 +24,7 @@ public class TestResultIterator implements Iterator<TestResult> {
     private LinkedList<TestResult> items = new LinkedList<TestResult>();
     private boolean closed;
     private String buildType;
+    private String subType;
 
     public TestResultIterator(Reader input) throws FileNotFoundException, XMLStreamException {
         this.input = input;
@@ -49,6 +51,10 @@ public class TestResultIterator implements Iterator<TestResult> {
                             items.add(new TestResult(moduleName, packageName, className, testName, status, duration, started));
                         } else if ("build".equals(localName)) {
                             buildType = element.getAttributeByName(new QName("buildType")).getValue();
+                            Attribute subType = element.getAttributeByName(new QName("subType"));
+                            if (subType != null) {
+                                this.subType = subType.getValue();
+                            }
                         }
                     }
                 } else {
@@ -79,5 +85,10 @@ public class TestResultIterator implements Iterator<TestResult> {
     public String getBuildType() {
         hasNext();
         return buildType;
+    }
+
+    public String getSubType() {
+        hasNext();
+        return subType;
     }
 }
