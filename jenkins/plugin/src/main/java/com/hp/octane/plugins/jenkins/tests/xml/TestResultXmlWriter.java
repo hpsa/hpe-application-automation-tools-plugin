@@ -6,10 +6,12 @@ import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
 import com.hp.octane.plugins.jenkins.tests.TestResult;
 import com.hp.octane.plugins.jenkins.tests.TestResultContainer;
 import com.hp.octane.plugins.jenkins.tests.build.BuildHandlerUtils;
+import com.hp.octane.plugins.jenkins.tests.build.BuildTypeDescriptor;
 import com.hp.octane.plugins.jenkins.tests.detection.ResultFields;
 import hudson.FilePath;
 import hudson.model.AbstractBuild;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -68,7 +70,11 @@ public class TestResultXmlWriter {
             writer.writeStartElement("testResult");
             writer.writeStartElement("build");
             writer.writeAttribute("server", ServerIdentity.getIdentity());
-            writer.writeAttribute("buildType", BuildHandlerUtils.getBuildType(build));
+            BuildTypeDescriptor descriptor = BuildHandlerUtils.getBuildType(build);
+            writer.writeAttribute("buildType", descriptor.getBuildType());
+            if (!StringUtils.isEmpty(descriptor.getSubType())) {
+                writer.writeAttribute("subType", descriptor.getSubType());
+            }
             writer.writeAttribute("buildSid", String.valueOf(build.getNumber()));
             writer.writeEndElement(); // build
             writeFields(resultFields);
