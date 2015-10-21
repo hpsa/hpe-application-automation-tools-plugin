@@ -1,6 +1,7 @@
 package com.hp.mqm.clt;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -20,13 +21,20 @@ public class Settings {
     private static final String PROP_SHARED_SPACE = "sharedspace";
     private static final String PROP_WORKSPACE = "workspace";
     private static final String PROP_USER = "user";
+    private static final String PROP_PROXY_HOST = "proxyhost";
+    private static final String PROP_PROXY_PORT = "proxyport";
+    private static final String PROP_PROXY_USER = "proxyuser";
 
     private String server;
     private Integer sharedspace;
     private Integer workspace;
-
     private String user;
     private String password;
+
+    private String proxyHost;
+    private Integer proxyPort;
+    private String proxyUser;
+    private String proxyPassword;
 
     private boolean internal = false;
     private boolean skipErrors = false;
@@ -61,6 +69,11 @@ public class Settings {
         sharedspace = properties.getProperty(PROP_SHARED_SPACE) != null ? Integer.valueOf(properties.getProperty(PROP_SHARED_SPACE)) : null;
         workspace = properties.getProperty(PROP_WORKSPACE) != null ? Integer.valueOf(properties.getProperty(PROP_WORKSPACE)) : null;
         user = properties.getProperty(PROP_USER);
+        proxyHost = properties.getProperty(PROP_PROXY_HOST);
+        if (StringUtils.isNotEmpty(properties.getProperty(PROP_PROXY_PORT))) {
+            proxyPort = Integer.valueOf(properties.getProperty(PROP_PROXY_PORT));
+        }
+        proxyUser = properties.getProperty(PROP_PROXY_USER);
     }
 
     public String getServer() {
@@ -101,6 +114,38 @@ public class Settings {
 
     public void setPassword(String password) {
         this.password = (password == null) ? null : Base64.encodeBase64String(password.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public String getProxyHost() {
+        return proxyHost;
+    }
+
+    public void setProxyHost(String proxyHost) {
+        this.proxyHost = proxyHost;
+    }
+
+    public Integer getProxyPort() {
+        return proxyPort;
+    }
+
+    public void setProxyPort(Integer proxyPort) {
+        this.proxyPort = proxyPort;
+    }
+
+    public String getProxyUser() {
+        return proxyUser;
+    }
+
+    public void setProxyUser(String proxyUser) {
+        this.proxyUser = proxyUser;
+    }
+
+    public String getProxyPassword() {
+        return (proxyPassword == null) ? null : new String(Base64.decodeBase64(proxyPassword), StandardCharsets.UTF_8);
+    }
+
+    public void setProxyPassword(String proxyPassword) {
+        this.proxyPassword = (proxyPassword == null) ? null : Base64.encodeBase64String(proxyPassword.getBytes(StandardCharsets.UTF_8));
     }
 
     public boolean isInternal() {

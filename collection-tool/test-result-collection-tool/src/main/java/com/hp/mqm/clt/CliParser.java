@@ -9,6 +9,7 @@ import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,6 +49,15 @@ public class CliParser {
         passGroup.addOption(Option.builder().longOpt("password-file").desc("file with password").hasArg().argName("FILE").build());
         options.addOptionGroup(passGroup);
 
+        options.addOption(Option.builder().longOpt("proxy-host").desc("proxy host").hasArg().argName("HOSTNAME").build());
+        options.addOption(Option.builder().longOpt("proxy-port").desc("proxy port").hasArg().argName("PORT").type(Number.class).build());
+        options.addOption(Option.builder().longOpt("proxy-user").desc("proxy username").hasArg().argName("USERNAME").build());
+
+        OptionGroup proxyPassGroup = new OptionGroup();
+        proxyPassGroup.addOption(Option.builder().longOpt("proxy-password").desc("proxy password").hasArg().argName("PASSWORD").optionalArg(true).build());
+        proxyPassGroup.addOption(Option.builder().longOpt("proxy-password-file").desc("file with proxy password").hasArg().argName("FILE").build());
+        options.addOptionGroup(proxyPassGroup);
+
         options.addOption(Option.builder("t").longOpt("tag").desc("tag").hasArg().argName("TYPE:VALUE").build());
         options.addOption(Option.builder("f").longOpt("field").desc("field tag").hasArg().argName("TYPE:VALUE").build());
 
@@ -58,7 +68,8 @@ public class CliParser {
         options.addOption(Option.builder().longOpt("started").desc("started time in millis").hasArg().argName("TIMESTAMP").type(Number.class).build());
 
         // CODE REVIEW, Johnny, 16Oct2015 - allow multiple occurrences for 'a' and 'q' options
-        argsWithSingleOccurrence.addAll(Arrays.asList("o", "c", "s", "d", "w", "u", "p", "password-file", "r", "a", "q"));
+        argsWithSingleOccurrence.addAll(Arrays.asList("o", "c", "s", "d", "w", "u", "p", "password-file", "r", "a", "q", "started",
+                "proxy-host", "proxy-port", "proxy-user", "proxy-password", "proxy-password-file"));
         argsRestrictedForInternal.addAll(Arrays.asList("o", "t", "f", "r", "a", "q"));
     }
 
@@ -105,6 +116,9 @@ public class CliParser {
             } catch (URISyntaxException e) {
                 System.out.println("Can not convert file to URI " + filename);
                 System.exit(ReturnCode.FAILURE.getReturnCode());
+            } catch (NumberFormatException e) {
+                System.out.println("Can not convert string from properties file to integer: " + e.getMessage());
+                System.exit(ReturnCode.FAILURE.getReturnCode());
             }
             if (cmd.hasOption("i")) {
                 settings.setInternal(true);
@@ -144,6 +158,29 @@ public class CliParser {
                 } else {
                     System.out.println("Please enter your password if it's required and hit enter: ");
                     settings.setPassword(new String(System.console().readPassword()));
+                }
+            }
+
+            if (cmd.hasOption("proxy-host")) {
+                settings.setProxyHost(cmd.getOptionValue("proxy-host"));
+            }
+
+            if (cmd.hasOption("proxy-port")) {
+                settings.setProxyPort(((Long) cmd.getParsedOptionValue("proxy-port")).intValue());
+            }
+
+            if (cmd.hasOption("proxy-user")) {
+                settings.setProxyUser(cmd.getOptionValue("proxy-user"));
+            }
+
+            if (settings.getOutputFile() == null && StringUtils.isNotEmpty(settings.getProxyUser())) {
+                if (cmd.hasOption("proxy-password")) {
+                    settings.setProxyPassword(cmd.getOptionValue("proxy-password"));
+                } else if (cmd.hasOption("proxy-password-file")) {
+                    settings.setProxyPassword(FileUtils.readFileToString(new File(cmd.getOptionValue("proxy-password-file"))));
+                } else {
+                    System.out.println("Please enter your proxy password if it's required and hit enter: ");
+                    settings.setProxyPassword(new String(System.console().readPassword()));
                 }
             }
 
@@ -255,6 +292,12 @@ public class CliParser {
             return false;
         }
 
+        String proxyPasswordFile = cmd.getOptionValue("proxy-password-file");
+        if (proxyPasswordFile != null && !new File(proxyPasswordFile).canRead()) {
+            System.out.println("Can not read the proxy password file: " + passwordFile);
+            return false;
+        }
+
         String outputFilePath = cmd.getOptionValue("o");
         if (outputFilePath != null) {
             File outputFile = new File(outputFilePath);
@@ -299,18 +342,30 @@ public class CliParser {
     }
 
     private boolean areSettingsValid(Settings settings) {
-        if (settings.getOutputFile() == null && !isSettingPresent(settings.getServer(), "server")) {
-            return false;
-        }
+        if (settings.getOutputFile() == null) {
+            // Server access is required
+            if (!isSettingPresent(settings.getServer(), "server")) {
+                return false;
+            }
 
-        if (settings.getOutputFile() == null && !isSettingPresent(settings.getSharedspace(), "sharedspace")) {
-            return false;
-        }
+            if (!isSettingPresent(settings.getSharedspace(), "sharedspace")) {
+                return false;
+            }
 
-        if (settings.getOutputFile() == null && !isSettingPresent(settings.getWorkspace(), "workspace")) {
-            return false;
-        }
+            if (!isSettingPresent(settings.getWorkspace(), "workspace")) {
+                return false;
+            }
 
+            if (settings.getProxyHost() != null && settings.getProxyPort() == null) {
+                System.out.println("Proxy port was not specified for proxy host: " + settings.getProxyHost());
+                return false;
+            }
+
+            if (settings.getProxyPassword() != null && settings.getProxyUser() == null) {
+                System.out.println("Proxy user name was not specified for proxy password");
+                return false;
+            }
+        }
         return true;
     }
 

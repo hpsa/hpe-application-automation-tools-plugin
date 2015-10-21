@@ -3,16 +3,23 @@ package com.hp.mqm.clt;
 import com.hp.mqm.clt.tests.TestResultPushStatus;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.HttpClientUtils;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.json.JSONObject;
 
@@ -59,11 +66,24 @@ public class RestClient {
     public RestClient(Settings settings) {
         this.settings = settings;
 
-        RequestConfig requestConfig = RequestConfig.custom()
+        HttpClientBuilder httpClientBuilder = HttpClients.custom();
+        RequestConfig.Builder requestConfigBuilder = RequestConfig.custom()
                 .setSocketTimeout(DEFAULT_SO_TIMEOUT)
-                .setConnectTimeout(DEFAULT_CONNECTION_TIMEOUT)
-                .build();
-        httpClient = HttpClients.custom().setDefaultRequestConfig(requestConfig).build();
+                .setConnectTimeout(DEFAULT_CONNECTION_TIMEOUT);
+
+        // proxy setting
+        if (StringUtils.isNotEmpty(settings.getProxyHost())) {
+            HttpHost proxy = new HttpHost(settings.getProxyHost(), settings.getProxyPort());
+            requestConfigBuilder.setProxy(proxy);
+            if (settings.getProxyUser() != null) {
+                CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+                credentialsProvider.setCredentials(
+                        new AuthScope(settings.getProxyHost(), settings.getProxyPort()),
+                        new UsernamePasswordCredentials(settings.getProxyUser(), settings.getProxyPassword()));
+                httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
+            }
+        }
+        httpClient = httpClientBuilder.setDefaultRequestConfig(requestConfigBuilder.build()).build();
     }
 
     public long postTestResult(HttpEntity entity) throws IOException, ValidationException {

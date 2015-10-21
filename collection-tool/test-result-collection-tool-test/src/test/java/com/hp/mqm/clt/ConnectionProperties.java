@@ -22,6 +22,22 @@ public class ConnectionProperties {
 		return getStringValue("mqm.password", "changeit");
 	}
 
+    public static String getProxyHost() {
+        return getStringValue("mqm.proxyHost", null);
+    }
+
+    public static Integer getProxyPort() {
+        return getIntValue("mqm.proxyPort", null);
+    }
+
+    public static String getProxyUsername() {
+        return getStringValue("mqm.proxyUsername", null);
+    }
+
+    public static String getProxyPassword() {
+        return getStringValue("mqm.proxyPassword", null);
+    }
+
 	private static Integer getIntValue(String propName, Integer defaultValue) {
 		String value = System.getProperty(propName);
 		return value != null ? Integer.valueOf(value) : defaultValue;
