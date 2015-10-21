@@ -28,6 +28,8 @@ public class TestResultCollectionToolTest {
     private static final int WORKSPACE = ConnectionProperties.getWorkspaceId();
 	private static final String USERNAME = ConnectionProperties.getUsername();
 	private static final String PASSWORD = ConnectionProperties.getPassword();
+    private static final String PROXY_HOST = ConnectionProperties.getProxyHost();
+    private static final Integer PROXY_PORT = ConnectionProperties.getProxyPort();
 
 	private Settings testClientSettings;
 	private TestSupportClient testSupportClient;
@@ -125,6 +127,12 @@ public class TestResultCollectionToolTest {
         settings.setWorkspace(WORKSPACE);
         settings.setUser(USERNAME);
         settings.setPassword(PASSWORD);
+        settings.setProxyHost(PROXY_HOST);
+        settings.setProxyPort(PROXY_PORT);
+        if (ConnectionProperties.getProxyUsername() != null) {
+            settings.setProxyUser(ConnectionProperties.getProxyUsername());
+            settings.setProxyPassword(ConnectionProperties.getProxyPassword());
+        }
         return settings;
     }
 }
