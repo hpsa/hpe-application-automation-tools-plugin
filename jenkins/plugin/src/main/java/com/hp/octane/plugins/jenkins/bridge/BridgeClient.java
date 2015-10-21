@@ -71,7 +71,7 @@ public class BridgeClient {
 					openedConnections.decrementAndGet();
 					logger.severe("BRIDGE: connection to MQM Server temporary failed: " + e.getMessage());
 					try {
-						Thread.sleep(500);
+						Thread.sleep(1000);
 					} catch (InterruptedException ie) {
 						logger.info("interrupted while breathing on temporary exception, continue to re-connect...");
 					}
