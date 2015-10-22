@@ -57,7 +57,7 @@ public class BridgesService implements ConfigurationListener {
 				}
 				if (!existing) {
 					bridgeClients.add(new BridgeClient(conf, clientFactory));
-					logger.info("BRIDGE: new bridge added, total of bridges " + bridgeClients.size());
+					logger.info("BRIDGE: new bridge configuration added; total: " + bridgeClients.size());
 				}
 			}
 		}

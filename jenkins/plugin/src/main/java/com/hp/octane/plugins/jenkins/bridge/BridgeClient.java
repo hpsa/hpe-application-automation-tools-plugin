@@ -1,12 +1,14 @@
 package com.hp.octane.plugins.jenkins.bridge;
 
 import com.hp.mqm.client.MqmRestClient;
+import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import net.sf.json.JSONArray;
 import org.kohsuke.stapler.export.Exported;
 
+import javax.annotation.Nonnull;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -31,17 +33,17 @@ public class BridgeClient {
 	private ServerConfiguration mqmConfiguration;
 	private JenkinsMqmRestClientFactory restClientFactory;
 
-	public BridgeClient(ServerConfiguration mqmConfiguration, JenkinsMqmRestClientFactory clientFactory) {
-		this.mqmConfiguration = new ServerConfiguration(mqmConfiguration.location, mqmConfiguration.abridged, mqmConfiguration.sharedSpace, mqmConfiguration.username, mqmConfiguration.password, mqmConfiguration.impersonatedUser);
-		this.restClientFactory = clientFactory;
+	public BridgeClient(ServerConfiguration mqmConfig, JenkinsMqmRestClientFactory clientFactory) {
+		mqmConfiguration = new ServerConfiguration(mqmConfig.location, mqmConfig.abridged, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password, mqmConfig.impersonatedUser);
+		restClientFactory = clientFactory;
 		if (this.mqmConfiguration.abridged) connect();
-		logger.info("BRIDGE: new bridge initialized for '" + this.mqmConfiguration.location + "', state: " + (this.mqmConfiguration.abridged ? "abridged" : "direct") + " connectivity");
+		logger.info("BRIDGE: new bridge initialized for '" + mqmConfiguration.location + "' (SP: " + mqmConfiguration.sharedSpace + "), state: " + (mqmConfiguration.abridged ? "abridged" : "direct") + " connectivity");
 	}
 
 	public void update(ServerConfiguration mqmConfig) {
-		this.mqmConfiguration = new ServerConfiguration(mqmConfig.location, mqmConfig.abridged, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password, mqmConfig.impersonatedUser);
+		mqmConfiguration = new ServerConfiguration(mqmConfig.location, mqmConfig.abridged, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password, mqmConfig.impersonatedUser);
 		if (mqmConfig.abridged && openedConnections.get() < CONCURRENT_CONNECTIONS) connect();
-		logger.info("BRIDGE: updated for '" + this.mqmConfiguration.location + "', state: " + (this.mqmConfiguration.abridged ? "abridged" : "direct") + " connectivity");
+		logger.info("BRIDGE: updated for '" + mqmConfiguration.location + "' (SP: " + mqmConfiguration.sharedSpace + "), state: " + (mqmConfiguration.abridged ? "abridged" : "direct") + " connectivity");
 	}
 
 	private void connect() {
@@ -52,14 +54,14 @@ public class BridgeClient {
 				int totalConnections;
 				try {
 					totalConnections = openedConnections.incrementAndGet();
-					logger.info("BRIDGE: connecting to '" + mqmConfiguration.location + "'...; total connections [including new one]: " + totalConnections);
+					logger.info("BRIDGE: connecting to '" + mqmConfiguration.location + "' (SP: " + mqmConfiguration.sharedSpace + ")...; total connections [including new one]: " + totalConnections);
 					MqmRestClient restClient = restClientFactory.create(
 							mqmConfiguration.location,
 							mqmConfiguration.sharedSpace,
 							mqmConfiguration.username,
 							mqmConfiguration.password);
-					tasksJSON = restClient.getAbridgedTasks(serverInstanceId);
-					logger.info("BRIDGE: back from '" + mqmConfiguration.location + "' with " + (tasksJSON == null || tasksJSON.isEmpty() ? "no tasks" : "some tasks"));
+					tasksJSON = restClient.getAbridgedTasks(serverInstanceId, new PluginActions.ServerInfo().getUrl());
+					logger.info("BRIDGE: back from '" + mqmConfiguration.location + "' (SP: " + mqmConfiguration.sharedSpace + ") with " + (tasksJSON == null || tasksJSON.isEmpty() ? "no tasks" : "some tasks"));
 					openedConnections.decrementAndGet();
 					if (mqmConfiguration.abridged && openedConnections.get() < CONCURRENT_CONNECTIONS) {
 						connect();
@@ -117,7 +119,7 @@ public class BridgeClient {
 	private static final class AbridgedConnectivityExecutorsFactory implements ThreadFactory {
 
 		@Override
-		public Thread newThread(Runnable runnable) {
+		public Thread newThread(@Nonnull Runnable runnable) {
 			Thread result = new Thread(runnable);
 			result.setName("AbridgedConnectivityThread-" + result.getId());
 			result.setDaemon(true);
@@ -128,7 +130,7 @@ public class BridgeClient {
 	private static final class AbridgedTasksExecutorsFactory implements ThreadFactory {
 
 		@Override
-		public Thread newThread(Runnable runnable) {
+		public Thread newThread(@Nonnull Runnable runnable) {
 			Thread result = new Thread(runnable);
 			result.setName("AbridgedTasksExecutorsFactory-" + result.getId());
 			result.setDaemon(true);

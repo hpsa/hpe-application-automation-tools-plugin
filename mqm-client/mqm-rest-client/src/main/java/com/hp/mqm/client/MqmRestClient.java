@@ -226,18 +226,19 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	/**
 	 * Retrieves tasks from service working in Abridged Connectivity Mode
 	 *
-	 * @param serverIdentity identity of the server
+	 * @param selfIdentity identity of the server
+	 * @param selfLocation location of
 	 * @return
 	 */
-	String getAbridgedTasks(String serverIdentity);
+	String getAbridgedTasks(String selfIdentity, String selfLocation);
 
 	/**
 	 * Sends Result of the Abridged Task Invocation
 	 *
-	 * @param serverIdentity
+	 * @param selfIdentity
 	 * @param taskId
 	 * @param contentJSON
 	 * @return status code
 	 */
-	int putAbridgedResult(String serverIdentity, String taskId, String contentJSON);
+	int putAbridgedResult(String selfIdentity, String taskId, String contentJSON);
 }

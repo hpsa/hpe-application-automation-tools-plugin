@@ -63,7 +63,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	private static final String URI_LIST_ITEMS = "list_nodes";
 	private static final String URI_METADATA_FIELDS = "metadata/fields";
 	private static final String URI_PUT_EVENTS = "analytics/ci/events";
-	private static final String URI_GET_ABRIDGED_TASKS = "analytics/ci/servers/{0}/tasks";
+	private static final String URI_GET_ABRIDGED_TASKS = "analytics/ci/servers/{0}/tasks?self-url={1}";
 	private static final String URI_PUT_ABRIDGED_RESULT = "analytics/ci/servers/{0}/tasks/{1}/result";
 	private static final String URI_TAXONOMY_NODES = "taxonomy_nodes";
 
@@ -577,11 +577,11 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	}
 
 	@Override
-	public String getAbridgedTasks(String serverIdentity) {
+	public String getAbridgedTasks(String selfIdentity, String selfLocation) {
 		HttpGet request;
 		HttpResponse response = null;
 		try {
-			request = new HttpGet(createSharedSpaceInternalApiUri(URI_GET_ABRIDGED_TASKS, serverIdentity));
+			request = new HttpGet(createSharedSpaceInternalApiUri(URI_GET_ABRIDGED_TASKS, selfIdentity, selfLocation));
 			response = execute(request);
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 				return IOUtils.toString(response.getEntity().getContent(), "UTF-8");
@@ -602,11 +602,11 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	}
 
 	@Override
-	public int putAbridgedResult(String serverIdentity, String taskId, String contentJSON) {
+	public int putAbridgedResult(String selfIdentity, String taskId, String contentJSON) {
 		HttpPut request;
 		HttpResponse response = null;
 		try {
-			request = new HttpPut(createSharedSpaceInternalApiUri(URI_PUT_ABRIDGED_RESULT, serverIdentity, taskId));
+			request = new HttpPut(createSharedSpaceInternalApiUri(URI_PUT_ABRIDGED_RESULT, selfIdentity, taskId));
 			request.setEntity(new StringEntity(contentJSON, ContentType.APPLICATION_JSON));
 			response = execute(request);
 			return response.getStatusLine().getStatusCode();
