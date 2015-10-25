@@ -42,12 +42,14 @@ public class PluginActions implements RootAction {
 		private String url;
 		private String instanceId = Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity();
 		private Long instanceIdFrom = Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentityFrom();
+        private long sendingTime;
 
 		public ServerInfo() {
 			String serverUrl = Jenkins.getInstance().getRootUrl();
 			if (serverUrl != null && serverUrl.endsWith("/"))
 				serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
 			this.url = serverUrl;
+            this.sendingTime = System.currentTimeMillis();
 		}
 
 		@Exported(inline = true)
@@ -74,7 +76,12 @@ public class PluginActions implements RootAction {
 		public Long getInstanceIdFrom() {
 			return instanceIdFrom;
 		}
-	}
+
+        @Exported(inline = true)
+        public long getSendingTime() {
+            return sendingTime;
+        }
+    }
 
 	@ExportedBean
 	public static final class PluginInfo {
