@@ -1,6 +1,7 @@
 package com.hp.octane.plugins.jenkins.bridge;
 
 import com.hp.mqm.client.MqmRestClient;
+import com.hp.mqm.client.exception.AuthenticationException;
 import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
@@ -68,6 +69,17 @@ public class BridgeClient {
 					}
 					if (tasksJSON != null && !tasksJSON.isEmpty()) {
 						dispatchTasks(tasksJSON);
+					}
+				} catch (AuthenticationException ae) {
+					openedConnections.decrementAndGet();
+					logger.severe("BRIDGE: connection to MQM Server temporary failed: authentication error");
+					try {
+						Thread.sleep(20000);
+					} catch (InterruptedException ie) {
+						logger.info("interrupted while breathing on temporary exception, continue to re-connect...");
+					}
+					if (mqmConfiguration.abridged && openedConnections.get() < CONCURRENT_CONNECTIONS) {
+						connect();
 					}
 				} catch (Exception e) {
 					openedConnections.decrementAndGet();

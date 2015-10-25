@@ -1,5 +1,6 @@
 package com.hp.mqm.client;
 
+import com.hp.mqm.client.exception.AuthenticationException;
 import com.hp.mqm.client.exception.FileNotFoundException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
@@ -588,6 +589,8 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 			} else {
 				if (response.getStatusLine().getStatusCode() == HttpStatus.SC_REQUEST_TIMEOUT) {
 					logger.info("expected timeout disconnection on retrieval of abridged tasks");
+				} else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
+					throw new AuthenticationException();
 				} else {
 					logger.info("unexpected response with status " + response.getStatusLine().getStatusCode());
 				}
