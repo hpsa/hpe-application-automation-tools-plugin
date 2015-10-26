@@ -294,7 +294,7 @@ function octane_job_configuration(target, progress, proxy) {
                     var tdAdd = $("<td class='setting-add'>");
                     tr.append(tdAdd);
 
-                    var newValueInput = $("<input type='text' class='setting-input' maxlength='70'>");
+                    var newValueInput = $("<input type='text' class='setting-input' maxlength='70' style ='width: 150px;'>");
                     tdAdd.append(newValueInput);
 
                     var trArea = $("<tr><td/></tr>");
