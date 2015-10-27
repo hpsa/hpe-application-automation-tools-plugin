@@ -271,6 +271,7 @@ public class MqmRestClientImplTest {
 	}
 
 	@Test
+	@Ignore // ignored until defect #2919 is fixed
 	public void testPostTestResult() throws IOException, URISyntaxException, InterruptedException {
 		MqmRestClientImpl client = new MqmRestClientImpl(connectionConfig);
 
