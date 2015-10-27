@@ -20,6 +20,7 @@ import hudson.model.FreeStyleProject;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
@@ -30,8 +31,8 @@ import java.util.Collections;
 
 public class TestResultXmlWriterTest {
 
-    @ClassRule
-    final static public JenkinsRule jenkins = new JenkinsRule();
+    @Rule
+    final public JenkinsRule jenkins = new JenkinsRule();
 
     private TestResultContainer container;
 

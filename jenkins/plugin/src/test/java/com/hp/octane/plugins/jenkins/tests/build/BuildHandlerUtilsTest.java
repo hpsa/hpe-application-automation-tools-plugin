@@ -16,6 +16,7 @@ import hudson.model.FreeStyleProject;
 import hudson.tasks.Maven;
 import org.junit.Assert;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
@@ -23,8 +24,8 @@ import java.util.HashMap;
 
 public class BuildHandlerUtilsTest {
 
-    @ClassRule
-    final static public JenkinsRule jenkins = new JenkinsRule();
+    @Rule
+    final public JenkinsRule jenkins = new JenkinsRule();
 
     @Test
     public void testMatrixBuildType() throws Exception {

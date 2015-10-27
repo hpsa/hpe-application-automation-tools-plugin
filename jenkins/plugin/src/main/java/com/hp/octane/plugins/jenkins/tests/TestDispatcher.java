@@ -82,7 +82,7 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
                     logger.warning("There are pending test results, but MQM server location is not specified, results can't be submitted");
                     return;
                 }
-                if (eventPublisher.isSuspended(configuration.location, configuration.sharedSpace)) {
+                if (eventPublisher.isSuspended()) {
                     logger.warning("There are pending test results, but event dispatching is suspended");
                     return;
                 }

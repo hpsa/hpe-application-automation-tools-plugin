@@ -20,6 +20,8 @@ import java.util.logging.Logger;
 
 /**
  * Created by gullery on 21/04/2015.
+ * <p/>
+ * Event Client is a service of dispatching events to a single MQM Server Context (server : sharedspace)
  */
 
 @ExportedBean
@@ -60,6 +62,7 @@ public class EventsClient {
 
 	public void update(ServerConfiguration mqmConfig) {
 		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.abridged, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password, mqmConfig.impersonatedUser);
+		activate();
 		logger.info("EVENTS: events client updated for '" + this.mqmConfig.location + "'");
 	}
 

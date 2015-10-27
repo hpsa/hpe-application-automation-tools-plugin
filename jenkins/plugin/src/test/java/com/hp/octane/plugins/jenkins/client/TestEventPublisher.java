@@ -8,7 +8,7 @@ public class TestEventPublisher implements EventPublisher {
     private int resumeCount;
 
     @Override
-    public boolean isSuspended(String location, String sharedSpace) {
+    public boolean isSuspended() {
         return suspended;
     }
 

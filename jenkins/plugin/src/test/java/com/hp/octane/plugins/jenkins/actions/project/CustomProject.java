@@ -1,4 +1,4 @@
-package com.hp.octane.plugins.jenkins.actions;
+package com.hp.octane.plugins.jenkins.actions.project;
 
 import hudson.Extension;
 import hudson.model.*;

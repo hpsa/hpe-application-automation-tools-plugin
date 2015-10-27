@@ -9,7 +9,7 @@ import com.hp.octane.plugins.jenkins.model.events.CIEventBase;
 import hudson.Extension;
 import jenkins.model.Jenkins;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -27,15 +27,15 @@ public final class EventsService implements ConfigurationListener {
 
 	private static EventsService extensionInstance;
 	private JenkinsMqmRestClientFactory clientFactory;
-	private final List<EventsClient> clients = new ArrayList<EventsClient>();
+	private EventsClient eventsClient;
 
 	public static EventsService getExtensionInstance() {
 		if (extensionInstance == null) {
 			List<EventsService> extensions = Jenkins.getInstance().getExtensionList(EventsService.class);
 			if (extensions.isEmpty()) {
-				throw new RuntimeException("Events Dispatcher was not initialized properly");
+				throw new RuntimeException("EVENTS: events service was not initialized properly");
 			} else if (extensions.size() > 1) {
-				throw new RuntimeException("Events Dispatcher expected to be singleton, found " + extensions.size() + " instances");
+				throw new RuntimeException("EVENTS: events service expected to be singleton, found " + extensions.size() + " instances");
 			} else {
 				extensionInstance = extensions.get(0);
 			}
@@ -44,63 +44,42 @@ public final class EventsService implements ConfigurationListener {
 	}
 
 	public void updateClient(ServerConfiguration conf) {
-		boolean updated = false;
 		if (conf == null || conf.password == null ||
 				conf.location == null || conf.location.equals("") ||
 				conf.sharedSpace == null || conf.sharedSpace.equals("") ||
 				conf.username == null || conf.username.equals("")) {
-			logger.warning("bad configuration encountered, events client is not updated");
+			logger.warning("EVENTS: bad configuration encountered, events client will not be " + (eventsClient == null ? "created" : "updated"));
 		} else {
-			synchronized (clients) {
-				for (EventsClient client : clients) {
-					if (client.getLocation().equals(conf.location) &&
-							client.getSharedSpace().equals(conf.sharedSpace)) {
-						client.update(conf);
-						client.activate();
-						updated = true;
-						break;
-					}
-				}
-				if (!updated) {
-					clients.add(new EventsClient(conf, clientFactory));
-					logger.info("EVENTS: new client added, total of clients " + clients.size());
-				}
+			if (eventsClient != null) {
+				eventsClient.update(conf);
+			} else {
+				eventsClient = new EventsClient(conf, clientFactory);
 			}
 		}
 	}
 
-	public void wakeUpClients() {
-		synchronized (clients) {
-			for (EventsClient c : clients) {
-				c.activate();
-			}
+	public void wakeUpClient() {
+		if (eventsClient != null) {
+			eventsClient.activate();
 		}
 	}
 
 	public void dispatchEvent(CIEventBase event) {
-		synchronized (clients) {
-			for (EventsClient c : clients) {
-				if (c.isActive()) c.pushEvent(event);
-			}
+		if (eventsClient != null) {
+			eventsClient.pushEvent(event);
 		}
 	}
 
 	public List<EventsClient> getStatus() {
-		return new ArrayList<EventsClient>(clients);
+		if (eventsClient != null) {
+			return Collections.singletonList(eventsClient);
+		} else {
+			return Collections.emptyList();
+		}
 	}
 
-	public EventsClient getClient(String location, String sharedSpace) {
-		EventsClient result = null;
-		synchronized (clients) {
-			for (EventsClient c : clients) {
-				if (c.getLocation() != null && c.getLocation().equals(location) &&
-						c.getSharedSpace() != null && c.getSharedSpace().equals(sharedSpace)) {
-					result = c;
-					break;
-				}
-			}
-		}
-		return result;
+	public EventsClient getClient() {
+		return eventsClient;
 	}
 
 	@Inject

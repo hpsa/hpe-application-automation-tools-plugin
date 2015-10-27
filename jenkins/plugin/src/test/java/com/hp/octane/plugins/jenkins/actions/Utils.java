@@ -1,3 +1,5 @@
+package com.hp.octane.plugins.jenkins.actions;
+
 import hudson.model.AbstractProject;
 import hudson.tasks.BatchFile;
 import hudson.tasks.CommandInterpreter;
@@ -16,7 +18,7 @@ import java.io.IOException;
  */
 
 public class Utils {
-	static CommandInterpreter getSleepScript(int seconds) {
+	public static CommandInterpreter getSleepScript(int seconds) {
 		if (Configuration.OS.getCurrent() == Configuration.OS.WINDOWS) {
 			return new BatchFile("ping -n " + seconds + " 127.0.0.1 >nul");
 		} else if (Configuration.OS.getCurrent() == Configuration.OS.LINUX) {
@@ -26,11 +28,11 @@ public class Utils {
 		}
 	}
 
-	static void buildProject(JenkinsRule.WebClient client, AbstractProject project) throws IOException, SAXException {
+	public static void buildProject(JenkinsRule.WebClient client, AbstractProject project) throws IOException, SAXException {
 		client.goTo("job/" + project.getName() + "/build", "");
 	}
 
-	static void buildProjectWithParams(JenkinsRule.WebClient client, AbstractProject project, String params) throws IOException, SAXException {
+	public static void buildProjectWithParams(JenkinsRule.WebClient client, AbstractProject project, String params) throws IOException, SAXException {
 		client.goTo("job/" + project.getName() + "/buildWithParameters?" + params, "");
 	}
 }

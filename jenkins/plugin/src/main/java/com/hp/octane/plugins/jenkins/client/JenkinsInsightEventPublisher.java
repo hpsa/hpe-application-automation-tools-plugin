@@ -10,13 +10,13 @@ import hudson.Extension;
 public class JenkinsInsightEventPublisher implements EventPublisher {
 
     @Override
-    public boolean isSuspended(String location, String sharedSpace) {
-        EventsClient client = EventsService.getExtensionInstance().getClient(location, sharedSpace);
+    public boolean isSuspended() {
+        EventsClient client = EventsService.getExtensionInstance().getClient();
         return client == null || client.isSuspended();
     }
 
     @Override
     public void resume() {
-        EventsService.getExtensionInstance().wakeUpClients();
+        EventsService.getExtensionInstance().wakeUpClient();
     }
 }

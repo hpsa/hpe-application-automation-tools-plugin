@@ -1,3 +1,5 @@
+package com.hp.octane.plugins.jenkins.actions;
+
 /**
  * Created with IntelliJ IDEA.
  * User: gullery
