@@ -24,32 +24,29 @@ public class TestResultCollectionTool {
         this.settings = settings;
     }
 
-    // CODE REVIEW, Johnny, 19Oct2015 - unused method, remove
-    public long getLastPushedTestResultId() {
-        return lastPushedTestResultId;
-    }
-
     public void collectAndPushTestResults() {
         List<File> publicApiXMLs = new LinkedList<File>();
         if (settings.isInternal()) {
-            for (String fileName : settings.getFileNames()) {
+            for (String fileName : settings.getInputXmlFileNames()) {
                 publicApiXMLs.add(new File(fileName));
             }
         } else if (settings.getOutputFile() != null) {
-            processSurefireReports(new File(settings.getOutputFile()));
-            System.out.println("JUnit report(s) were saved to the output file");
+            processJunitReport(new File(settings.getInputXmlFileNames().get(0)), new File(settings.getOutputFile()));
+            System.out.println("JUnit report was saved to the output file");
             System.exit(ReturnCode.SUCCESS.getReturnCode());
         } else {
-            File publicApiTempXML = null;
-            try {
-                publicApiTempXML = File.createTempFile("testResult.xml", null);
-                publicApiTempXML.deleteOnExit();
-            } catch (IOException e) {
-                System.out.println("Can not create temp file for test result");
-                System.exit(ReturnCode.FAILURE.getReturnCode());
+            for (String fileName : settings.getInputXmlFileNames()) {
+                File publicApiTempXML = null;
+                try {
+                    publicApiTempXML = File.createTempFile("testResult.xml", null);
+                    publicApiTempXML.deleteOnExit();
+                } catch (IOException e) {
+                    System.out.println("Can not create temp file for test result");
+                    System.exit(ReturnCode.FAILURE.getReturnCode());
+                }
+                processJunitReport(new File(fileName), publicApiTempXML);
+                publicApiXMLs.add(publicApiTempXML);
             }
-            processSurefireReports(publicApiTempXML);
-            publicApiXMLs.add(publicApiTempXML);
         }
 
         client = new RestClient(settings);
@@ -60,8 +57,8 @@ public class TestResultCollectionTool {
                 } catch (ValidationException e) {
                     // CODE REVIEW, Johnny, 19Oct2015 - consider giving the full path to file as for example the temp
                     // file needed for non-internal reports will not be easy to found
-                    System.out.println("Test result was not pushed - please check if the supplied file '" +
-                            publicApiXML.getName() + "' is in a valid public API format (internal option was set)");
+                    System.out.println("Test result was not pushed for XML file '" + publicApiXML.getAbsolutePath() + "'");
+                    System.out.println(e.getMessage());
                     // CODE REVIEW, Johnny, 19Oct2015 - above - misleading message, publicApiXMLs also contains converted
                     // JUnit reports - so this validation exception is not thrown only in case when internal option is set
                     continue;
@@ -119,17 +116,10 @@ public class TestResultCollectionTool {
         }
     }
 
-    // CODE REVIEW, Johnny, 19Oct2015 - this merging of all JUnit reports in single file is potentially dangerous
-    // talk to Rado or Vojta - consider the case when two or more reports contain runs of the same subset of tests
-    // with different status; also consider that history table will not contain the full history if duplicates
-    // are removed on server-side, user might rely on ordering on input files at cmd line arguments; this behavior
-    // should be at least documented
-    private void processSurefireReports(File outputFile) {
-        List<TestResult> testResults = new LinkedList<TestResult>();
+    private void processJunitReport(File junitReport, File outputFile) {
         XmlProcessor xmlProcessor = new XmlProcessor();
-        for (String fileName : settings.getFileNames()) {
-            testResults.addAll(xmlProcessor.processSurefireTestReport(new File(fileName), settings.getStarted()));
-        }
+        List<TestResult> testResults = new LinkedList<TestResult>();
+        testResults.addAll(xmlProcessor.processJunitTestReport(junitReport, settings.getStarted()));
         xmlProcessor.writeTestResults(testResults, settings, outputFile);
     }
 

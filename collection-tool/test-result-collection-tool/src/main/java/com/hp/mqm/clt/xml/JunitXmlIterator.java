@@ -18,7 +18,7 @@ import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.Iterator;
 
-public class SurefireXmlIterator extends AbstractXmlIterator<TestResult> {
+public class JunitXmlIterator extends AbstractXmlIterator<TestResult> {
 
     private String packageName;
     private String className;
@@ -27,12 +27,8 @@ public class SurefireXmlIterator extends AbstractXmlIterator<TestResult> {
     private long duration;
     private long started;
 
-    public SurefireXmlIterator(File surefireXmlFile, Long started) throws XMLStreamException, ValidationException, IOException {
-        super(surefireXmlFile);
-        InputStream in = getClass().getResourceAsStream("surefire-test-report.xsd");
-        String xsdSchema = IOUtils.toString(in, "UTF-8");
-        IOUtils.closeQuietly(in);
-        validateSecureXML(xsdSchema);
+    public JunitXmlIterator(File junitXmlFile, Long started) throws XMLStreamException, ValidationException, IOException {
+        super(junitXmlFile);
         this.started = (started == null) ? System.currentTimeMillis() : started;
     }
 

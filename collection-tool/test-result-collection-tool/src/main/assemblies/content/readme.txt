@@ -22,7 +22,7 @@ Usage
  -o,--output-file <FILE>     output to file
  -p,--password <PASSWORD>    password
     --password-file <FILE>   file with password
- -q,--requirement <ID>       requirement
+ -b,--backlog-item <ID>      backlog item
  -r,--release <ID>           release
  -s,--server <URL>           server
     --started <TIMESTAMP>    started time in millis

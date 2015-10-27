@@ -58,19 +58,20 @@ public class CliParser {
         proxyPassGroup.addOption(Option.builder().longOpt("proxy-password-file").desc("file with proxy password").hasArg().argName("FILE").build());
         options.addOptionGroup(proxyPassGroup);
 
+        options.addOption(Option.builder().longOpt("check-status").desc("check test result status after push").build());
+        options.addOption(Option.builder().longOpt("check-status-timeout").desc("timeout for test result push status retrieval").hasArg().argName("SEC").build());
+
         options.addOption(Option.builder("t").longOpt("tag").desc("tag").hasArg().argName("TYPE:VALUE").build());
         options.addOption(Option.builder("f").longOpt("field").desc("field tag").hasArg().argName("TYPE:VALUE").build());
 
         options.addOption(Option.builder("r").longOpt("release").desc("release").hasArg().argName("ID").type(Number.class).build());
         options.addOption(Option.builder("a").longOpt("product-area").desc("product area").hasArg().argName("ID").type(Number.class).build());
-        // CODE REVIEW, Johnny, 16Oct2015 - requirement is incorrect name, in MQM a backlog item is used (confirm with Mirek)
-        options.addOption(Option.builder("q").longOpt("requirement").desc("requirement").hasArg().argName("ID").type(Number.class).build());
+        options.addOption(Option.builder("b").longOpt("backlog-item").desc("backlog-item").hasArg().argName("ID").type(Number.class).build());
         options.addOption(Option.builder().longOpt("started").desc("started time in millis").hasArg().argName("TIMESTAMP").type(Number.class).build());
 
-        // CODE REVIEW, Johnny, 16Oct2015 - allow multiple occurrences for 'a' and 'q' options
-        argsWithSingleOccurrence.addAll(Arrays.asList("o", "c", "s", "d", "w", "u", "p", "password-file", "r", "a", "q", "started",
-                "proxy-host", "proxy-port", "proxy-user", "proxy-password", "proxy-password-file"));
-        argsRestrictedForInternal.addAll(Arrays.asList("o", "t", "f", "r", "a", "q"));
+        argsWithSingleOccurrence.addAll(Arrays.asList("o", "c", "s", "d", "w", "u", "p", "password-file", "r", "started", "check-status",
+                "check-status-timeout", "proxy-host", "proxy-port", "proxy-user", "proxy-password", "proxy-password-file"));
+        argsRestrictedForInternal.addAll(Arrays.asList("o", "t", "f", "r", "a", "b", "started"));
     }
 
     public Settings parse(String[] args) {
@@ -201,13 +202,11 @@ public class CliParser {
             }
 
             if (cmd.hasOption("a")) {
-                // CODE REVIEW, Johnny, 19Oct2015 - allow multiple product areas
-                settings.setProductArea(((Long) cmd.getParsedOptionValue("a")).intValue());
+                settings.setProductAreas(cmd.getOptionValues("a"));
             }
 
-            if (cmd.hasOption("q")) {
-                // CODE REVIEW, Johnny, 19Oct2015 - allow multiple backlog items
-                settings.setRequirement(((Long) cmd.getParsedOptionValue("q")).intValue());
+            if (cmd.hasOption("b")) {
+                settings.setBacklogItems(cmd.getOptionValues("b"));
             }
 
             if (!areSettingsValid(settings)) {
@@ -227,12 +226,6 @@ public class CliParser {
 
     private boolean addInputFilesToSettings(CommandLine cmd, Settings settings) {
         List<String> argList = cmd.getArgList();
-        if (argList.isEmpty()) {
-            // CODE REVIEW, Johnny, 19Oct2015 - consider changing to 'specified as input for push'
-            System.out.println("At least one XML file must be specified");
-            return false;
-        }
-
         List<String> inputFiles = new LinkedList<String>();
         for (String inputFile : argList) {
             if (!inputFiles.contains(inputFile) && new File(inputFile).canRead()) {
@@ -250,15 +243,20 @@ public class CliParser {
             return false;
         }
 
-        settings.setFileNames(inputFiles);
+        settings.setInputXmlFileNames(inputFiles);
         return true;
     }
 
     private boolean areCmdArgsValid(CommandLine cmd) {
+        List<String> argList = cmd.getArgList();
+        if (argList.isEmpty()) {
+            System.out.println("At least one XML file must be specified as input for push");
+            return false;
+        }
+
         for (String arg : argsWithSingleOccurrence) {
             if (cmd.getOptionProperties(arg).size() > 1) {
-                // CODE REVIEW, Johnny, 19Oct2015 - add that 'only single occurrence is allowed'
-                System.out.println("Invalid multiple occurrence of argument: " + arg);
+                System.out.println("Only single occurrence is allowed for argument: '" + arg + "'");
                 return false;
             }
         }
@@ -266,11 +264,7 @@ public class CliParser {
         if (cmd.hasOption("i")) {
             for (String arg : argsRestrictedForInternal) {
                 if (cmd.hasOption(arg)) {
-                    // CODE REVIEW, Johnny, 19Oct2015 - misleading message, remove the second part and just say that
-                    // for internal mode the argument is invalid; you can say at this point nothing about the provided
-                    // tests report files
-                    System.out.println("Invalid argument combination for internal mode '"
-                            + arg + "': provided XML files should be in public API format");
+                    System.out.println("Invalid argument for internal mode: '" + arg + "'");
                     return false;
                 }
             }
@@ -300,23 +294,24 @@ public class CliParser {
 
         String outputFilePath = cmd.getOptionValue("o");
         if (outputFilePath != null) {
+            if (argList.size() != 1) {
+                System.out.println("Only single JUnit input file is allowed for output mode");
+                return false;
+            }
             File outputFile = new File(outputFilePath);
             if (!outputFile.exists()) {
                 try {
                     if (!outputFile.createNewFile()) {
-                        // CODE REVIEW, Johnny, 19Oct2015 - perhaps report the outputFilePath instead of just the name
-                        System.out.println("Can not create the output file: " + outputFile.getName());
+                        System.out.println("Can not create the output file: " + outputFile.getAbsolutePath());
                         return false;
                     }
                 } catch (IOException e) {
-                    // CODE REVIEW, Johnny, 19Oct2015 - perhaps report the outputFilePath instead of just the name
-                    System.out.println("Can not create the output file: " + outputFile.getName());
+                    System.out.println("Can not create the output file: " + outputFile.getAbsolutePath());
                     return false;
                 }
             }
             if (!outputFile.canWrite()) {
-                // CODE REVIEW, Johnny, 19Oct2015 - perhaps report the outputFilePath instead of just the name
-                System.out.println("Can not write to the output file: " + outputFile.getName());
+                System.out.println("Can not write to the output file: " + outputFile.getAbsolutePath());
                 return false;
             }
         }

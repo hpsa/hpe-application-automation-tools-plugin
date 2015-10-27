@@ -74,13 +74,11 @@ public class TestResultXmlWriter {
             writer.writeAttribute("id", String.valueOf(settings.getRelease()));
             writer.writeEndElement(); // releaseRef
         }
-        if (settings.getRequirement() != null) {
-            // CODE REVIEW, Johnny, 19Oct2015 - support multiple backlog items
-            writeRefField("backlogItems", "backlogItemRef", settings.getRequirement());
+        if (settings.getBacklogItems() != null) {
+            writeRefFields("backlogItems", "backlogItemRef", settings.getBacklogItems());
         }
-        if (settings.getProductArea() != null) {
-            // CODE REVIEW, Johnny, 19Oct2015 - support multiple product areas
-            writeRefField("productAreas", "productAreaRef", settings.getProductArea());
+        if (settings.getProductAreas() != null) {
+            writeRefFields("productAreas", "productAreaRef", settings.getProductAreas());
         }
         if (settings.getFields() != null) {
             writeTypeValueArray("fields", "field", settings.getFields());
@@ -107,11 +105,13 @@ public class TestResultXmlWriter {
         writer.writeEndElement();
     }
 
-    private void writeRefField(String elementName, String refName, Integer value) throws XMLStreamException {
+    private void writeRefFields(String elementName, String refName, List<Integer> values) throws XMLStreamException {
         writer.writeStartElement(elementName);
-        writer.writeStartElement(refName);
-        writer.writeAttribute("id", String.valueOf(value));
-        writer.writeEndElement();
+        for (Integer value : values) {
+            writer.writeStartElement(refName);
+            writer.writeAttribute("id", String.valueOf(value));
+            writer.writeEndElement();
+        }
         writer.writeEndElement();
     }
 

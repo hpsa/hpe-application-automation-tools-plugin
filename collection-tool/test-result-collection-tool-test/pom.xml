@@ -40,11 +40,8 @@
             <artifactId>junit</artifactId>
         </dependency>
         <dependency>
-            <!-- CODE REVIEW, Johnny, 16Oct2015 - consider moving this dependency to indi-integrations root pom, might be reusable -->
-            <!-- CODE REVIEW, Johnny, 16Oct2015 - make sure it does not break the custom http client we use for Jenkins plugin -->
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-            <version>4.5</version>
         </dependency>
     </dependencies>
 

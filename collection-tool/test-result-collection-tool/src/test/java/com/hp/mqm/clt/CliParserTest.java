@@ -98,13 +98,13 @@ public class CliParserTest {
         Boolean result = (Boolean) argsValidation.invoke(cliParser, cmdArgs);
         Assert.assertTrue(result);
 
-        cmdArgs = parser.parse(options, new String[]{"-i", "-q", "1002", "publicApi.xml"});
+        cmdArgs = parser.parse(options, new String[]{"-i", "-b", "1002", "publicApi.xml"});
         result = (Boolean) argsValidation.invoke(cliParser, cmdArgs);
         Assert.assertFalse(result);
     }
 
     @Test
-         public void testArgs_duplicates() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, ParseException {
+         public void testArgs_duplicates() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, ParseException, IOException {
         CliParser cliParser = new CliParser();
         Method argsValidation = cliParser.getClass().getDeclaredMethod("areCmdArgsValid", CommandLine.class);
         argsValidation.setAccessible(true);
@@ -117,10 +117,25 @@ public class CliParserTest {
         cmdArgs = parser.parse(options, new String[]{"-r", "1", "-r", "2", "test.xml"});
         result = (Boolean) argsValidation.invoke(cliParser, cmdArgs);
         Assert.assertFalse(result);
+
+        cmdArgs = parser.parse(options, new String[]{});
+        result = (Boolean) argsValidation.invoke(cliParser, cmdArgs);
+        Assert.assertFalse(result);
+
+        File outputFolder = temporaryFolder.newFolder();
+        cmdArgs = parser.parse(options, new String[]{"--output-file",
+                outputFolder.getPath() + File.separator + "testResults.xml", "JUnit1.xml", "JUnit2.xml"});
+        result = (Boolean) argsValidation.invoke(cliParser, cmdArgs);
+        Assert.assertFalse(result);
+
+        cmdArgs = parser.parse(options, new String[]{"--output-file",
+                outputFolder.getPath() + File.separator + "testResults.xml", "JUnit.xml"});
+        result = (Boolean) argsValidation.invoke(cliParser, cmdArgs);
+        Assert.assertTrue(result);
     }
 
     @Test
-    public void testArgs_inputFiles() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, ParseException, URISyntaxException {
+    public void testArgs_inputFiles() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, ParseException, URISyntaxException, IOException {
         CliParser cliParser = new CliParser();
         Method inputFilesValidation = cliParser.getClass().getDeclaredMethod("addInputFilesToSettings", CommandLine.class, Settings.class);
         inputFilesValidation.setAccessible(true);
@@ -130,19 +145,14 @@ public class CliParserTest {
         Settings settings = new Settings();
         Boolean result = (Boolean) inputFilesValidation.invoke(cliParser, cmdArgs, settings);
         Assert.assertFalse(result);
-        Assert.assertNull(settings.getFileNames());
-
-        cmdArgs = parser.parse(options, new String[]{});
-        result = (Boolean) inputFilesValidation.invoke(cliParser, cmdArgs, settings);
-        Assert.assertFalse(result);
-        Assert.assertNull(settings.getFileNames());
+        Assert.assertNull(settings.getInputXmlFileNames());
 
         cmdArgs = parser.parse(options, new String[]{getClass().getResource("JUnit-minimalAccepted.xml").toURI().getPath(),
                 getClass().getResource("JUnit-missingTestName.xml").toURI().getPath(),
                 getClass().getResource("JUnit-missingTestName.xml").toURI().getPath()});
         result = (Boolean) inputFilesValidation.invoke(cliParser, cmdArgs, settings);
         Assert.assertTrue(result);
-        List<String> fileNames = settings.getFileNames();
+        List<String> fileNames = settings.getInputXmlFileNames();
         Assert.assertNotNull(fileNames);
         Assert.assertEquals(2, fileNames.size());
         Assert.assertTrue(fileNames.get(0).contains("JUnit-minimalAccepted.xml"));

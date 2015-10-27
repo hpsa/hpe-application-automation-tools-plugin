@@ -11,6 +11,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -43,6 +44,7 @@ public class RestClient {
     private static final String URI_AUTHENTICATION = "authentication/sign_in";
     private static final String HEADER_NAME_AUTHORIZATION = "Authorization";
     private static final String HEADER_VALUE_BASIC_AUTH = "Basic ";
+    private static final String HEADER_CLIENT_TYPE = "HPE_CLIENT_TYPE"; // TODO rename ????
     static final String URI_LOGOUT = "authentication/sign_out";
 
     private static final String SHARED_SPACE_API_URI = "api/shared_spaces/{0}";
@@ -58,6 +60,8 @@ public class RestClient {
     public static final int DEFAULT_CONNECTION_TIMEOUT = 20000; // in milliseconds
     public static final int DEFAULT_SO_TIMEOUT = 40000; // in milliseconds
 
+    private static final String CLIENT_TYPE = "HPE_COLLECTION_TOOL";
+
     private CloseableHttpClient httpClient;
     private Settings settings;
 
@@ -68,6 +72,7 @@ public class RestClient {
 
         HttpClientBuilder httpClientBuilder = HttpClients.custom();
         RequestConfig.Builder requestConfigBuilder = RequestConfig.custom()
+                .setCookieSpec(CookieSpecs.STANDARD)
                 .setSocketTimeout(DEFAULT_SO_TIMEOUT)
                 .setConnectTimeout(DEFAULT_CONNECTION_TIMEOUT);
 
@@ -93,11 +98,18 @@ public class RestClient {
         try {
             response = execute(request);
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_ACCEPTED) {
+                String json = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
+                JSONObject jsonObject = new JSONObject(json);
+                String description = "";
+                if (jsonObject.has("description")) {
+                    description = ": " + jsonObject.getString("description");
+                }
                 if (response.getStatusLine().getStatusCode() == HttpStatus.SC_BAD_REQUEST && settings.isInternal()) {
                     // Error was probably caused by XSD validation failure
-                    throw new ValidationException("Test result XML was refused by server");
+                    throw new ValidationException("Test result XML was refused by server" + description);
                 }
-                throw new RuntimeException("Test result post failed: " + response.getStatusLine().getStatusCode());
+                throw new RuntimeException("Test result post failed with status code (" +
+                        response.getStatusLine().getStatusCode() + ")" + description);
             }
             String json = IOUtils.toString(response.getEntity().getContent());
             JSONObject jsonObject = new JSONObject(json);
@@ -134,6 +146,7 @@ public class RestClient {
     }
 
     protected CloseableHttpResponse execute(HttpUriRequest request) throws IOException {
+        addClientTypeHeader(request);
         CloseableHttpResponse response = httpClient.execute(request);
         if (isLoginNecessary(response)) { // if request fails with 401 do login and execute request again
             HttpClientUtils.closeQuietly(response);
@@ -154,9 +167,10 @@ public class RestClient {
 
     private void authenticate() throws IOException {
         HttpPost post = new HttpPost(createBaseUri(URI_AUTHENTICATION));
-        String authorizationString = HEADER_VALUE_BASIC_AUTH +
+        String authorizationString =
                 (settings.getUser() != null ? settings.getUser() : "") + ":" + (settings.getPassword() != null ? settings.getPassword() : "");
-        post.setHeader(HEADER_NAME_AUTHORIZATION, Base64.encodeBase64String(authorizationString.getBytes(StandardCharsets.UTF_8)));
+        post.setHeader(HEADER_NAME_AUTHORIZATION, HEADER_VALUE_BASIC_AUTH + Base64.encodeBase64String(authorizationString.getBytes(StandardCharsets.UTF_8)));
+        addClientTypeHeader(post);
 
         HttpResponse response = null;
         try {
@@ -175,11 +189,13 @@ public class RestClient {
 
     protected synchronized void logout() throws IOException {
         if (isLoggedIn) {
-            HttpUriRequest request = new HttpPost(createBaseUri(URI_LOGOUT));
+            HttpPost post = new HttpPost(createBaseUri(URI_LOGOUT));
+            addClientTypeHeader(post);
             HttpResponse response = null;
             try {
-                response = httpClient.execute(request);
-                if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+                response = httpClient.execute(post);
+                if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK
+                        && response.getStatusLine().getStatusCode() != HttpStatus.SC_MOVED_TEMPORARILY) { // required until defect #2919 is fixed
                     throw new RuntimeException("Logout failed: code=" + response.getStatusLine().getStatusCode() + "; reason=" + response.getStatusLine().getReasonPhrase());
                 }
                 isLoggedIn = false;
@@ -216,6 +232,12 @@ public class RestClient {
             return URLEncoder.encode(param, URI_PARAM_ENCODING).replace("+", "%20");
         } catch (UnsupportedEncodingException e) {
             throw new IllegalStateException("Unsupported encoding used for URI parameter encoding.", e);
+        }
+    }
+
+    private void addClientTypeHeader(HttpUriRequest request) {
+        if (request.getFirstHeader(HEADER_CLIENT_TYPE) == null) {
+            request.addHeader(HEADER_CLIENT_TYPE, CLIENT_TYPE);
         }
     }
 

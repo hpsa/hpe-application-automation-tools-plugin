@@ -1,5 +1,6 @@
 package com.hp.mqm.clt;
 
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 
@@ -8,8 +9,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
@@ -44,13 +45,11 @@ public class Settings {
     private List<String> fields;
 
     private Integer release;
-    // CODE REVIEW, Johnny, 19Oct2015 - allow multiple product areas
-    private Integer productArea;
-    // CODE REVIEW, Johnny, 19Oct2015 - allow multiple backlog items
-    private Integer requirement;
+    private List<Integer> productAreas;
+    private List<Integer> backlogItems;
     private Long started;
 
-    private List<String> fileNames;
+    private List<String> inputXmlFileNames;
 
     private DefaultConfigFilenameProvider defaultConfigFilenameProvider = new ImplDefaultConfigFilenameProvider();
 
@@ -196,20 +195,46 @@ public class Settings {
         this.release = release;
     }
 
-    public Integer getProductArea() {
-        return productArea;
+    public List<Integer> getProductAreas() {
+        return productAreas;
     }
 
-    public void setProductArea(Integer productArea) {
-        this.productArea = productArea;
+    public void setProductAreas(String[] productAreas) throws ParseException {
+        List<Integer> productAreasList = null;
+        if (productAreas != null && productAreas.length > 0) {
+            productAreasList = new LinkedList<Integer>();
+            for (String productArea : productAreas) {
+                Integer productAreaID;
+                try {
+                    productAreaID = Integer.parseInt(productArea);
+                } catch (NumberFormatException e) {
+                    throw new ParseException("Unable to parse string to product area ID: " + productArea);
+                }
+                productAreasList.add(productAreaID);
+            }
+        }
+        this.productAreas = productAreasList;
     }
 
-    public Integer getRequirement() {
-        return requirement;
+    public List<Integer> getBacklogItems() {
+        return backlogItems;
     }
 
-    public void setRequirement(Integer requirement) {
-        this.requirement = requirement;
+    public void setBacklogItems(String[] backlogItems) throws ParseException {
+        List<Integer> backlogItemsList = null;
+        if (backlogItems != null && backlogItems.length > 0) {
+            backlogItemsList = new LinkedList<Integer>();
+            for (String backlogItem : backlogItems) {
+                Integer backlogItemID;
+                try {
+                    backlogItemID = Integer.parseInt(backlogItem);
+                } catch (NumberFormatException e) {
+                    throw new ParseException("Unable to parse string to backlog item ID: " + backlogItem);
+                }
+                backlogItemsList.add(backlogItemID);
+            }
+        }
+        this.backlogItems = backlogItemsList;
     }
 
     public Long getStarted() {
@@ -220,12 +245,12 @@ public class Settings {
         this.started = started;
     }
 
-    public List<String> getFileNames() {
-        return fileNames;
+    public List<String> getInputXmlFileNames() {
+        return inputXmlFileNames;
     }
 
-    public void setFileNames(List<String> fileNames) {
-        this.fileNames = fileNames;
+    public void setInputXmlFileNames(List<String> inputXmlFileNames) {
+        this.inputXmlFileNames = inputXmlFileNames;
     }
 
     /**

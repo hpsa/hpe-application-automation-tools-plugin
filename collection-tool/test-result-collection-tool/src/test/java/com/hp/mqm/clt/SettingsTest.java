@@ -1,5 +1,6 @@
 package com.hp.mqm.clt;
 
+import org.apache.commons.cli.ParseException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -52,6 +53,42 @@ public class SettingsTest {
             Assert.fail();
         } catch (NumberFormatException e) {
             Assert.assertEquals("For input string: \"invalid-integer\"", e.getMessage());
+        }
+    }
+
+    @Test
+    public void testSettings_productAreas() throws ParseException {
+        Settings settings = new Settings();
+        Assert.assertNull(settings.getProductAreas());
+        settings.setProductAreas(new String[]{"1001"});
+        Assert.assertNotNull(settings.getProductAreas());
+        Assert.assertEquals(1, settings.getProductAreas().size());
+        Assert.assertEquals(Integer.valueOf(1001), settings.getProductAreas().get(0));
+        settings.setProductAreas(null);
+        Assert.assertNull(settings.getProductAreas());
+        try {
+            settings.setProductAreas(new String[]{"invalid-integer"});
+            Assert.fail();
+        } catch (ParseException e) {
+            Assert.assertEquals("Unable to parse string to product area ID: invalid-integer", e.getMessage());
+        }
+    }
+
+    @Test
+    public void testSettings_backlogItems() throws ParseException {
+        Settings settings = new Settings();
+        Assert.assertNull(settings.getBacklogItems());
+        settings.setBacklogItems(new String[]{"1001"});
+        Assert.assertNotNull(settings.getBacklogItems());
+        Assert.assertEquals(1, settings.getBacklogItems().size());
+        Assert.assertEquals(Integer.valueOf(1001), settings.getBacklogItems().get(0));
+        settings.setBacklogItems(null);
+        Assert.assertNull(settings.getBacklogItems());
+        try {
+            settings.setBacklogItems(new String[]{"invalid-integer"});
+            Assert.fail();
+        } catch (ParseException e) {
+            Assert.assertEquals("Unable to parse string to backlog item ID: invalid-integer", e.getMessage());
         }
     }
 

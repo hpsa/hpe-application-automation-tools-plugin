@@ -2,6 +2,7 @@ package com.hp.mqm.clt;
 
 import com.hp.mqm.clt.tests.TestResult;
 import com.hp.mqm.clt.tests.TestResultStatus;
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
@@ -40,7 +41,7 @@ public class XmlProcessorTest {
     public void testXmlProcessor_minimalAcceptedJUnitFormat() throws URISyntaxException {
         // Public API requires at least testName, duration, started and status fields to be filled for every test
         XmlProcessor xmlProcessor = new XmlProcessor();
-        List<TestResult> testResults = xmlProcessor.processSurefireTestReport(new File(getClass().getResource("JUnit-minimalAccepted.xml").toURI()), 1444291726L);
+        List<TestResult> testResults = xmlProcessor.processJunitTestReport(new File(getClass().getResource("JUnit-minimalAccepted.xml").toURI()), 1444291726L);
         Assert.assertNotNull(testResults);
         Assert.assertEquals(4, testResults.size());
         assertTestResult(testResults.get(0), "", "", "testName", TestResultStatus.PASSED, 1, 1444291726L);
@@ -51,16 +52,13 @@ public class XmlProcessorTest {
 
     @Test
     public void testXmlProcessor_testMissingTestName() throws URISyntaxException, IOException, XMLStreamException, InterruptedException {
-        systemOutRule.enableLog();
-        exit.expectSystemExitWithStatus(1);
-        exit.checkAssertionAfterwards(new Assertion() {
-            @Override
-            public void checkAssertion() throws Exception {
-                Assert.assertTrue(systemOutRule.getLog().contains("Unable to process Surefire XML file"));
-            }
-        });
         XmlProcessor xmlProcessor = new XmlProcessor();
-        xmlProcessor.processSurefireTestReport(new File(getClass().getResource("JUnit-missingTestName.xml").toURI()), null);
+        List<TestResult> testResults = xmlProcessor.processJunitTestReport(new File(getClass().getResource("JUnit-missingTestName.xml").toURI()), 1445937556462L);
+        Assert.assertNotNull(testResults);
+        Assert.assertEquals(3, testResults.size());
+        assertTestResult(testResults.get(0), "com.examples.example", "SampleClass", "testOne", TestResultStatus.PASSED, 2, 1445937556462L);
+        assertTestResult(testResults.get(1), "com.examples.example", "SampleClass", "testTwo", TestResultStatus.SKIPPED, 5, 1445937556462L);
+        assertTestResult(testResults.get(2), "com.examples.example", "SampleClass", "testThree", TestResultStatus.SKIPPED, 5, 1445937556462L);
     }
 
     @Test
@@ -70,11 +68,11 @@ public class XmlProcessorTest {
         exit.checkAssertionAfterwards(new Assertion() {
             @Override
             public void checkAssertion() throws Exception {
-                Assert.assertTrue(systemOutRule.getLog().contains("Unable to process Surefire XML file"));
+                Assert.assertTrue(systemOutRule.getLog().contains("Unable to process JUnit XML file"));
             }
         });
         XmlProcessor xmlProcessor = new XmlProcessor();
-        xmlProcessor.processSurefireTestReport(new File(getClass().getResource("JUnit-unclosedElement.xmlx").toURI()), null);
+        xmlProcessor.processJunitTestReport(new File(getClass().getResource("JUnit-unclosedElement.xmlx").toURI()), null);
     }
 
     @Test
@@ -84,15 +82,15 @@ public class XmlProcessorTest {
         exit.checkAssertionAfterwards(new Assertion() {
             @Override
             public void checkAssertion() throws Exception {
-                Assert.assertTrue(systemOutRule.getLog().contains("Can not read the Surefire XML file: fileDoesNotExist.xml"));
+                Assert.assertTrue(systemOutRule.getLog().contains("Can not read the JUnit XML file: fileDoesNotExist.xml"));
             }
         });
         XmlProcessor xmlProcessor = new XmlProcessor();
-        xmlProcessor.processSurefireTestReport(new File("fileDoesNotExist.xml"), null);
+        xmlProcessor.processJunitTestReport(new File("fileDoesNotExist.xml"), null);
     }
 
     @Test
-    public void testXmlProcessor_writeXml() throws URISyntaxException, IOException, XMLStreamException {
+    public void testXmlProcessor_writeXml() throws URISyntaxException, IOException, XMLStreamException, ParseException {
         File targetFile = temporaryFolder.newFile();
         long currentTime = System.currentTimeMillis();
         XmlProcessor xmlProcessor = new XmlProcessor();
@@ -109,9 +107,9 @@ public class XmlProcessorTest {
         Settings settings = new Settings();
         settings.setTags(tags);
         settings.setFields(fields);
-        settings.setProductArea(1001);
+        settings.setProductAreas(new String[]{"1001", "1002"});
         settings.setRelease(1010);
-        settings.setRequirement(1020);
+        settings.setBacklogItems(new String[]{"1020", "1021"});
 
         xmlProcessor.writeTestResults(testResults, settings, targetFile);
 
@@ -121,7 +119,9 @@ public class XmlProcessorTest {
         xmlElements.add(new XmlElement("field", "Framework", "TestNG"));
         xmlElements.add(new XmlElement("field", "Test_Level", "Unit Test"));
         xmlElements.add(new XmlElement("productAreaRef", "1001"));
+        xmlElements.add(new XmlElement("productAreaRef", "1002"));
         xmlElements.add(new XmlElement("backlogItemRef", "1020"));
+        xmlElements.add(new XmlElement("backlogItemRef", "1021"));
         xmlElements.add(new XmlElement("releaseRef", "1010"));
         assertXml(new LinkedList<TestResult>(testResults), xmlElements, targetFile);
     }

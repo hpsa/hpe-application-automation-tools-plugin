@@ -1,7 +1,7 @@
 package com.hp.mqm.clt;
 
 import com.hp.mqm.clt.tests.TestResult;
-import com.hp.mqm.clt.xml.SurefireXmlIterator;
+import com.hp.mqm.clt.xml.JunitXmlIterator;
 import com.hp.mqm.clt.xml.TestResultXmlWriter;
 
 import javax.xml.bind.ValidationException;
@@ -15,36 +15,36 @@ public class XmlProcessor {
 
     // CODE REVIEW, Johnny, 19Oct2015 - consult with Mirek - I would limit ourselves to Surefire only, all messages to
     // user should be generic and not mention Surefire, just 'JUnit report XML file'.
-    public List<TestResult> processSurefireTestReport(File surefireTestReport, Long started) {
-        if (surefireTestReport == null || !surefireTestReport.canRead()) {
-            String fileNameInfo = (surefireTestReport == null) ? "" : ": " + surefireTestReport.getName();
+    public List<TestResult> processJunitTestReport(File junitTestReport, Long started) {
+        if (junitTestReport == null || !junitTestReport.canRead()) {
+            String fileNameInfo = (junitTestReport == null) ? "" : ": " + junitTestReport.getName();
             // CODE REVIEW, Johnny, 19Oct2015 - consider writing out the full path to file, not just its name
-            System.out.println("Can not read the Surefire XML file" + fileNameInfo);
+            System.out.println("Can not read the JUnit XML file" + fileNameInfo);
             System.exit(ReturnCode.FAILURE.getReturnCode());
         }
 
         List<TestResult> testResults = new LinkedList<TestResult>();
         try {
-            SurefireXmlIterator iterator = new SurefireXmlIterator(surefireTestReport, started);
+            JunitXmlIterator iterator = new JunitXmlIterator(junitTestReport, started);
             while (iterator.hasNext()) {
                 testResults.add(iterator.next());
             }
         } catch (IOException e) {
             // CODE REVIEW, Johnny, 19Oct2015 - check whether the e.getMessage() includes the path to the file,
             // user should know processing of which file failed; also applies to System.outs below
-            System.out.println("Unable to process Surefire XML file: " + e.getMessage());
+            System.out.println("Unable to process JUnit XML file: " + e.getMessage());
             System.exit(ReturnCode.FAILURE.getReturnCode());
         } catch (XMLStreamException e) {
-            System.out.println("Unable to process Surefire XML file, XML stream exception has occurred: " + e.getMessage());
+            System.out.println("Unable to process JUnit XML file, XML stream exception has occurred: " + e.getMessage());
             System.exit(ReturnCode.FAILURE.getReturnCode());
         } catch (InterruptedException e) {
-            System.out.println("Unable to process Surefire XML file, thread was interrupted: " + e.getMessage());
+            System.out.println("Unable to process JUnit XML file, thread was interrupted: " + e.getMessage());
             System.exit(ReturnCode.FAILURE.getReturnCode());
         } catch (ValidationException e) {
-            System.out.println("Unable to process Surefire XML file, XSD validation was not successful: " + e.getMessage());
+            System.out.println("Unable to process JUnit XML file, XSD validation was not successful: " + e.getMessage());
             System.exit(ReturnCode.FAILURE.getReturnCode());
         } catch (RuntimeException e) {
-            System.out.println("Unable to process Surefire XML file, XSD validation was not successful: " + e.getMessage());
+            System.out.println("Unable to process JUnit XML file, XSD validation was not successful: " + e.getMessage());
             System.exit(ReturnCode.FAILURE.getReturnCode());
         }
 

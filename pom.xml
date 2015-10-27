@@ -11,10 +11,13 @@
 		<maven.compiler.plugin.version>3.1</maven.compiler.plugin.version>
 		<jdk.version>1.6</jdk.version>
 		<httpclient-hp.version>4.5.1-hp-1</httpclient-hp.version>
-		<commons-io.version>2.4</commons-io.version>
+        <httpclient.version>4.5.1</httpclient.version>
+        <commons-io.version>2.4</commons-io.version>
 		<commons.lang.version>2.3</commons.lang.version>
 		<commons-cli.version>1.3.1</commons-cli.version>
-		<jdom.version>1.1</jdom.version>
+        <commons-lang3.version>3.1</commons-lang3.version>
+        <json.version>20150729</json.version>
+        <jdom.version>1.1</jdom.version>
 		<junit.version>4.12</junit.version>
 
 		<surefire.version>2.18.1</surefire.version>
@@ -85,6 +88,21 @@
 				<artifactId>commons-cli</artifactId>
 				<version>${commons-cli.version}</version>
 			</dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons-lang3.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.json</groupId>
+                <artifactId>json</artifactId>
+                <version>${json.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>${httpclient.version}</version>
+            </dependency>
 			<dependency>
 				<groupId>junit</groupId>
 				<artifactId>junit</artifactId>
