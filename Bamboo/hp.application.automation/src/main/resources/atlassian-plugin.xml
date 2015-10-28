@@ -23,8 +23,12 @@
         <description>${project.description}</description>
         <version>${project.version}</version>
         <vendor name="${project.organization.name}" url="${project.organization.url}" />
+
         <param name="plugin-icon">images/pluginIcon.png</param>
         <param name="plugin-logo">images/pluginLogo.png</param>
+        <param name="plugin-banner">images/Banner1120x548.png</param>
+        <param name="vendor-icon">images/hp_icon.png</param>
+        <param name="vendor-logo">images/hp_logo.png</param>
     </plugin-info>
 
     <!-- add our i18n resource -->
