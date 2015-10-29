@@ -21,129 +21,129 @@ import java.io.IOException;
 import java.util.logging.Logger;
 
 public class ConfigApi {
-    private static final Logger logger = Logger.getLogger(ConfigApi.class.getName());
+	private static final Logger logger = Logger.getLogger(ConfigApi.class.getName());
 
-    public void doRead(StaplerRequest req, StaplerResponse res) throws ServletException, IOException {
-        checkPermission();
-        res.serveExposedBean(req, getConfiguration(), Flavor.JSON);
-    }
+	public void doRead(StaplerRequest req, StaplerResponse res) throws ServletException, IOException {
+		checkPermission();
+		res.serveExposedBean(req, getConfiguration(), Flavor.JSON);
+	}
 
-    @RequirePOST
-    public void doSave(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
-        checkPermission();
+	@RequirePOST
+	public void doSave(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
+		checkPermission();
 
-        JSONObject configuration = JSONObject.fromObject(IOUtils.toString(req.getInputStream()));
-        String uiLocation;
-        if (!configuration.containsKey("uiLocation")) {
-            // allow per-partes project specification
-            String location = (String) configuration.get("location");
-            String sharedSpace = (String) configuration.get("sharedSpace");
-            if (StringUtils.isEmpty(location) || StringUtils.isEmpty(sharedSpace)) {
-                res.sendError(400, "Either (uiLocation) or (location and shared space) must be specified");
-                return;
-            }
-            uiLocation = location.replaceAll("/$", "") + "/ui?p=" + sharedSpace;
-        } else {
-            uiLocation = configuration.getString("uiLocation");
-        }
-        try {
-            // validate location format
-            ConfigurationService.parseUiLocation(uiLocation);
-        } catch (FormValidation ex) {
-            res.sendError(400, ex.getMessage());
-            return;
-        }
-        boolean abridged = configuration.containsKey("abridged") ? configuration.getBoolean("abridged") : true;
+		JSONObject configuration = JSONObject.fromObject(IOUtils.toString(req.getInputStream()));
+		String uiLocation;
+		if (!configuration.containsKey("uiLocation")) {
+			// allow per-partes project specification
+			String location = (String) configuration.get("location");
+			String sharedSpace = (String) configuration.get("sharedSpace");
+			if (StringUtils.isEmpty(location) || StringUtils.isEmpty(sharedSpace)) {
+				res.sendError(400, "Either (uiLocation) or (location and shared space) must be specified");
+				return;
+			}
+			uiLocation = location.replaceAll("/$", "") + "/ui?p=" + sharedSpace;
+		} else {
+			uiLocation = configuration.getString("uiLocation");
+		}
+		try {
+			// validate location format
+			ConfigurationService.parseUiLocation(uiLocation);
+		} catch (FormValidation ex) {
+			res.sendError(400, ex.getMessage());
+			return;
+		}
+		boolean abridged = !configuration.containsKey("abridged") || configuration.getBoolean("abridged");
 
-        String impersonatedUser = configuration.containsKey("impersonatedUser") ? configuration.getString("impersonatedUser") : "";
+		String impersonatedUser = configuration.containsKey("impersonatedUser") ? configuration.getString("impersonatedUser") : "";
 
-        String username, password;
-        if (!configuration.containsKey("username")) {
-            // when username is not provided, use existing credentials (password can be overridden later)
-            ServerConfiguration serverConfiguration = ConfigurationService.getServerConfiguration();
-            username = serverConfiguration.username;
-            password = serverConfiguration.password;
-        } else {
-            // when username is provided, clear password unless provided later
-            username = configuration.getString("username");
-            password = "";
-        }
-        if (configuration.containsKey("password")) {
-            password = configuration.getString("password");
-        }
-        OctanePlugin octanePlugin = Jenkins.getInstance().getPlugin(OctanePlugin.class);
-        octanePlugin.configurePlugin(uiLocation, abridged, username, password, impersonatedUser);
-        String serverIdentity = (String) configuration.get("serverIdentity");
-        if (!StringUtils.isEmpty(serverIdentity)) {
-            octanePlugin.setIdentity(serverIdentity);
-        }
+		String username, password;
+		if (!configuration.containsKey("username")) {
+			// when username is not provided, use existing credentials (password can be overridden later)
+			ServerConfiguration serverConfiguration = ConfigurationService.getServerConfiguration();
+			username = serverConfiguration.username;
+			password = serverConfiguration.password;
+		} else {
+			// when username is provided, clear password unless provided later
+			username = configuration.getString("username");
+			password = "";
+		}
+		if (configuration.containsKey("password")) {
+			password = configuration.getString("password");
+		}
+		OctanePlugin octanePlugin = Jenkins.getInstance().getPlugin(OctanePlugin.class);
+		octanePlugin.configurePlugin(uiLocation, abridged, username, password, impersonatedUser);
+		String serverIdentity = (String) configuration.get("serverIdentity");
+		if (!StringUtils.isEmpty(serverIdentity)) {
+			octanePlugin.setIdentity(serverIdentity);
+		}
 
-        res.serveExposedBean(req, getConfiguration(), Flavor.JSON);
-    }
+		res.serveExposedBean(req, getConfiguration(), Flavor.JSON);
+	}
 
-    private void checkPermission() {
-        Jenkins.getInstance().getACL().checkPermission(Jenkins.ADMINISTER);
-    }
+	private void checkPermission() {
+		Jenkins.getInstance().getACL().checkPermission(Jenkins.ADMINISTER);
+	}
 
-    private Configuration getConfiguration() {
-        ServerConfiguration serverConfiguration = ConfigurationService.getServerConfiguration();
-        return new Configuration(
-                serverConfiguration.location,
-                serverConfiguration.sharedSpace,
-                serverConfiguration.abridged,
-                serverConfiguration.username,
-                serverConfiguration.impersonatedUser,
-                ServerIdentity.getIdentity());
-    }
+	private Configuration getConfiguration() {
+		ServerConfiguration serverConfiguration = ConfigurationService.getServerConfiguration();
+		return new Configuration(
+				serverConfiguration.location,
+				serverConfiguration.sharedSpace,
+				serverConfiguration.abridged,
+				serverConfiguration.username,
+				serverConfiguration.impersonatedUser,
+				ServerIdentity.getIdentity());
+	}
 
-    @ExportedBean
-    public static final class Configuration {
+	@ExportedBean
+	public static final class Configuration {
 
-        private String location;
-        private String sharedSpace;
-        private Boolean abridged;
-        private String username;
-        private String serverIdentity;
-        private String impersonatedUser;
+		private String location;
+		private String sharedSpace;
+		private Boolean abridged;
+		private String username;
+		private String serverIdentity;
+		private String impersonatedUser;
 
 
-        public Configuration(String location, String sharedSpace, Boolean abridged, String username, String impersonatedUser, String serverIdentity) {
-            this.location = location;
-            this.sharedSpace = sharedSpace;
-            this.abridged = abridged;
-            this.username = username;
-            this.impersonatedUser = impersonatedUser;
-            this.serverIdentity = serverIdentity;
-        }
+		public Configuration(String location, String sharedSpace, Boolean abridged, String username, String impersonatedUser, String serverIdentity) {
+			this.location = location;
+			this.sharedSpace = sharedSpace;
+			this.abridged = abridged;
+			this.username = username;
+			this.impersonatedUser = impersonatedUser;
+			this.serverIdentity = serverIdentity;
+		}
 
-        @Exported(inline = true)
-        public String getLocation() {
-            return location;
-        }
+		@Exported(inline = true)
+		public String getLocation() {
+			return location;
+		}
 
-        @Exported(inline = true)
-        public String getImpersonatedUser() {
-            return impersonatedUser;
-        }
+		@Exported(inline = true)
+		public String getImpersonatedUser() {
+			return impersonatedUser;
+		}
 
-        @Exported(inline = true)
-        public String getSharedSpace() {
-            return sharedSpace;
-        }
+		@Exported(inline = true)
+		public String getSharedSpace() {
+			return sharedSpace;
+		}
 
-        @Exported(inline = true)
-        public String getUsername() {
-            return username;
-        }
+		@Exported(inline = true)
+		public String getUsername() {
+			return username;
+		}
 
-        @Exported(inline = true)
-        public String getServerIdentity() {
-            return serverIdentity;
-        }
+		@Exported(inline = true)
+		public String getServerIdentity() {
+			return serverIdentity;
+		}
 
-        @Exported(inline = true)
-        public Boolean isAbridged() {
-            return abridged;
-        }
-    }
+		@Exported(inline = true)
+		public Boolean isAbridged() {
+			return abridged;
+		}
+	}
 }

@@ -57,7 +57,7 @@ public class BridgeClient {
 					logger.info("BRIDGE: connecting to '" + mqmConfiguration.location +
 							"' (SP: " + mqmConfiguration.sharedSpace +
 							"; instance ID: " + serverInstanceId +
-							"; self URL:" + new PluginActions.ServerInfo().getUrl() +
+							"; self URL: " + new PluginActions.ServerInfo().getUrl() +
 							")...; total connections [including new one]: " + totalConnections);
 					MqmRestClient restClient = restClientFactory.create(
 							mqmConfiguration.location,
