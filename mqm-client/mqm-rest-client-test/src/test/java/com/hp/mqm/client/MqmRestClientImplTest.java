@@ -103,7 +103,7 @@ public class MqmRestClientImplTest {
 
 		// bad credentials
 		MqmConnectionConfig badConnectionConfig = new MqmConnectionConfig(
-				LOCATION, SHARED_SPACE, "nonuser", "xxxbadxxxpasswordxxx", CLIENT_TYPE, PROXY_HOST, PROXY_PORT);
+				LOCATION, SHARED_SPACE, NONUSER, "xxxbadxxxpasswordxxx", CLIENT_TYPE, PROXY_HOST, PROXY_PORT);
 		client = new MqmRestClientImpl(badConnectionConfig);
 		try {
 			client.login();
