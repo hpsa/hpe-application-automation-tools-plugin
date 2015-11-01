@@ -35,8 +35,10 @@ public class RestClientTest {
 
 	private Settings testClientSettings;
 	private TestSupportClient testSupportClient;
+    public static final String NONUSER = "nonuser"; // special user that is rejected by the mock portal
 
-	@Before
+
+    @Before
 	public void init() {
 		testSupportClient = new TestSupportClient(getDefaultSettings());
         testClientSettings = getDefaultSettings();
@@ -48,7 +50,6 @@ public class RestClientTest {
     }
 
 	@Test
-    @Ignore // pending server-side authentication
 	public void testLoginLogout() throws InterruptedException, IOException {
 		RestClient client = new RestClient(testClientSettings);
 		client.login();
@@ -63,11 +64,12 @@ public class RestClientTest {
 		client.logout();
 
 		// bad credentials
+        testClientSettings.setUser(NONUSER);
         testClientSettings.setPassword("xxxbadxxxpasswordxxx");
 		try {
 			client.login();
 			Assert.fail("Login should failed because of bad credentials.");
-		} catch (IOException e) {
+		} catch (RuntimeException e) {
 			Assert.assertNotNull(e);
 		} finally {
 			client.release();

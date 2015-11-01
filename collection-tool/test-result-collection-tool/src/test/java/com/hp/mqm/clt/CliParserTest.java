@@ -148,7 +148,6 @@ public class CliParserTest {
         Assert.assertNull(settings.getInputXmlFileNames());
 
         cmdArgs = parser.parse(options, new String[]{getClass().getResource("JUnit-minimalAccepted.xml").toURI().getPath(),
-                getClass().getResource("JUnit-missingTestName.xml").toURI().getPath(),
                 getClass().getResource("JUnit-missingTestName.xml").toURI().getPath()});
         result = (Boolean) inputFilesValidation.invoke(cliParser, cmdArgs, settings);
         Assert.assertTrue(result);

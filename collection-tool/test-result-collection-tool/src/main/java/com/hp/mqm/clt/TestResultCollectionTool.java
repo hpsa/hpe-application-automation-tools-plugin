@@ -9,8 +9,10 @@ import javax.xml.bind.ValidationException;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class TestResultCollectionTool {
@@ -18,17 +20,15 @@ public class TestResultCollectionTool {
     private Settings settings;
     private RestClient client;
 
-    private long lastPushedTestResultId;
-
     public TestResultCollectionTool(Settings settings) {
         this.settings = settings;
     }
 
     public void collectAndPushTestResults() {
-        List<File> publicApiXMLs = new LinkedList<File>();
+        Map<File, String> publicApiXMLs = new LinkedHashMap<File, String>();
         if (settings.isInternal()) {
             for (String fileName : settings.getInputXmlFileNames()) {
-                publicApiXMLs.add(new File(fileName));
+                publicApiXMLs.put(new File(fileName), fileName);
             }
         } else if (settings.getOutputFile() != null) {
             processJunitReport(new File(settings.getInputXmlFileNames().get(0)), new File(settings.getOutputFile()));
@@ -45,25 +45,28 @@ public class TestResultCollectionTool {
                     System.exit(ReturnCode.FAILURE.getReturnCode());
                 }
                 processJunitReport(new File(fileName), publicApiTempXML);
-                publicApiXMLs.add(publicApiTempXML);
+                publicApiXMLs.put(publicApiTempXML, fileName);
             }
         }
 
         client = new RestClient(settings);
         try {
-            for (File publicApiXML : publicApiXMLs) {
+            for (Map.Entry<File, String> publicApiXML : publicApiXMLs.entrySet()) {
+                long testResultId;
                 try {
-                    lastPushedTestResultId = client.postTestResult(new FileEntity(publicApiXML));
+                    testResultId = client.postTestResult(new FileEntity(publicApiXML.getKey()));
                 } catch (ValidationException e) {
-                    // CODE REVIEW, Johnny, 19Oct2015 - consider giving the full path to file as for example the temp
-                    // file needed for non-internal reports will not be easy to found
-                    System.out.println("Test result was not pushed for XML file '" + publicApiXML.getAbsolutePath() + "'");
+                    // One invalid public API XML should not stop the whole process when supplied externally
+                    System.out.println("Test result from file '" + publicApiXML.getValue() + "' was not pushed"); // TODO message
                     System.out.println(e.getMessage());
-                    // CODE REVIEW, Johnny, 19Oct2015 - above - misleading message, publicApiXMLs also contains converted
-                    // JUnit reports - so this validation exception is not thrown only in case when internal option is set
                     continue;
                 }
-                validatePublishResult();
+                if (settings.isCheckResult()) {
+                    if (validatePublishResult(testResultId, publicApiXML.getValue())) {
+                    }
+                } else {
+                    System.out.println("Test result from file '" + publicApiXML.getValue() + "' was pushed to the server with ID " + testResultId);
+                }
             }
         } catch (IOException e) {
             releaseClient();
@@ -89,18 +92,17 @@ public class TestResultCollectionTool {
         }
     }
 
-    private void validatePublishResult() {
+    private boolean validatePublishResult(long testResultId, String fileName) {
         String publishResult = null;
         try {
-            publishResult = getPublishResult(lastPushedTestResultId);
+            publishResult = getPublishResult(testResultId);
         } catch (InterruptedException e) {
             System.out.println("Thread was interrupted: " + e.getMessage());
             System.exit(ReturnCode.FAILURE.getReturnCode());
         }
         if (StringUtils.isEmpty(publishResult)) {
-            // CODE REVIEW, Johnny, 19Oct2015 - id does not tell much, user must know which file was successfully pushed
-            // and which failed; also applies to messages below
-            System.out.println("Unable to verify publish result of the last push with ID: " + lastPushedTestResultId);
+            System.out.println("Unable to verify publish result of the last push from file '" + fileName + "' with ID: " + testResultId);
+            return false;
         }
 
         Set<String> allowedPublishResults = new HashSet<String>();
@@ -109,10 +111,12 @@ public class TestResultCollectionTool {
             allowedPublishResults.add("warning");
         }
         if (!allowedPublishResults.contains(publishResult)) {
-            System.out.println("Test result with ID " + lastPushedTestResultId + " was not pushed - " +
+            System.out.println("Test result from file '" + fileName + "' with ID " + testResultId + " was not pushed - " +
                     "please check if all references (e.g. release id) are correct or try to set skip-errors option");
+            return false;
         } else {
-            System.out.println("Test result with ID " + lastPushedTestResultId + " was successfully pushed");
+            System.out.println("Test result from file '" + fileName + "' with ID " + testResultId + " was successfully pushed");
+            return true;
         }
     }
 
@@ -125,7 +129,7 @@ public class TestResultCollectionTool {
 
     private String getPublishResult(long id) throws InterruptedException {
         String status = null;
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < settings.getCheckResultTimeout() * 10; i++) {
             TestResultPushStatus testResultPushStatus = client.getTestResultStatus(id);
             status = testResultPushStatus.getStatus();
             if (!"running".equals(status) && !"queued".equals(status)) {

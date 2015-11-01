@@ -25,7 +25,12 @@ public class SettingsTest {
     @Test
     public void testSettings_empty() throws IOException, URISyntaxException {
         Settings settings = new Settings();
-        settings.load(null);
+        try {
+            settings.load(null);
+            Assert.fail();
+        } catch (IllegalArgumentException e) {
+            Assert.assertEquals("Can not read the default configuration file: config.properties", e.getMessage());
+        }
         Assert.assertNull(settings.getServer());
         Assert.assertNull(settings.getSharedspace());
         Assert.assertNull(settings.getWorkspace());

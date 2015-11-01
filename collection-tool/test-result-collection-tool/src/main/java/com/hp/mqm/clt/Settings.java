@@ -37,6 +37,8 @@ public class Settings {
     private String proxyUser;
     private String proxyPassword;
 
+    private boolean checkResult = false;
+    private Integer checkResultTimeout;
     private boolean internal = false;
     private boolean skipErrors = false;
     private String outputFile;
@@ -53,11 +55,14 @@ public class Settings {
 
     private DefaultConfigFilenameProvider defaultConfigFilenameProvider = new ImplDefaultConfigFilenameProvider();
 
-    // CODE REVIEW, Johnny, 1*Oct2015 - when the URISyntaxException is thrown?
-    public void load(String filename) throws IOException, URISyntaxException {
+    public void load(String filename) throws IOException, IllegalArgumentException {
         File configFile = new File((filename != null) ? filename : defaultConfigFilenameProvider.getDefaultConfigFilename());
         if (!configFile.isFile() || !configFile.canRead()) {
-            return;
+            if (filename == null) {
+                throw new IllegalArgumentException("Can not read the default configuration file: " + defaultConfigFilenameProvider.getDefaultConfigFilename());
+            } else {
+                throw new IllegalArgumentException("Can not read the configuration file: " + filename);
+            }
         }
 
         Properties properties = new Properties();
@@ -145,6 +150,22 @@ public class Settings {
 
     public void setProxyPassword(String proxyPassword) {
         this.proxyPassword = (proxyPassword == null) ? null : Base64.encodeBase64String(proxyPassword.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public Integer getCheckResultTimeout() {
+        return checkResultTimeout;
+    }
+
+    public void setCheckResultTimeout(Integer checkResultTimeout) {
+        this.checkResultTimeout = checkResultTimeout;
+    }
+
+    public boolean isCheckResult() {
+        return checkResult;
+    }
+
+    public void setCheckResult(boolean checkResult) {
+        this.checkResult = checkResult;
     }
 
     public boolean isInternal() {

@@ -92,8 +92,8 @@ public class TestResultXmlWriter {
         writer.writeStartElement(elementName);
         for (String typeValueField : typeValueArray) {
             // Array values were validated - are in TYPE:VALUE format
-            // CODE REVIEW, Johnny, 19Oct2015 - why not simply splitting the string by ':'? See String.split javadoc)
-            writeTypeValueField(fieldName, parseFieldType(typeValueField), parseFieldValue(typeValueField));
+            String [] typeAndValue = typeValueField.split(":");
+            writeTypeValueField(fieldName, typeAndValue[0], typeAndValue[1]);
         }
         writer.writeEndElement();
     }
@@ -133,8 +133,6 @@ public class TestResultXmlWriter {
         }
     }
 
-    // TODO: check if there is public mechanism yet
-    // CODE REVIEW, Johnny, 19Oct2015 - left over TODO comment
     private XMLStreamWriter possiblyCreateIndentingWriter(XMLStreamWriter writer) {
         try {
             Class<?> clazz = Class.forName("com.sun.xml.txw2.output.IndentingXMLStreamWriter");

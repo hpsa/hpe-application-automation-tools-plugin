@@ -39,8 +39,6 @@ import java.util.regex.Pattern;
 
 public class RestClient {
 
-    // CODE REVIEW, Johnny, 19Oct2015 - verify the authentication mechanism with Vojta once the authentication API is
-    // consumed by Jenkins MQM REST client
     private static final String URI_AUTHENTICATION = "authentication/sign_in";
     private static final String HEADER_NAME_AUTHORIZATION = "Authorization";
     private static final String HEADER_VALUE_BASIC_AUTH = "Basic ";

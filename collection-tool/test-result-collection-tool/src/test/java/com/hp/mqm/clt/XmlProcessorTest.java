@@ -44,7 +44,7 @@ public class XmlProcessorTest {
         List<TestResult> testResults = xmlProcessor.processJunitTestReport(new File(getClass().getResource("JUnit-minimalAccepted.xml").toURI()), 1444291726L);
         Assert.assertNotNull(testResults);
         Assert.assertEquals(4, testResults.size());
-        assertTestResult(testResults.get(0), "", "", "testName", TestResultStatus.PASSED, 1, 1444291726L);
+        assertTestResult(testResults.get(0), "", "", "testName", TestResultStatus.PASSED, 0, 1444291726L);
         assertTestResult(testResults.get(1), "", "", "testNameSkipped", TestResultStatus.SKIPPED, 2, 1444291726L);
         assertTestResult(testResults.get(2), "", "", "testNameFailed", TestResultStatus.FAILED, 3, 1444291726L);
         assertTestResult(testResults.get(3), "", "", "testNameWithError", TestResultStatus.FAILED, 4, 1444291726L);
@@ -82,7 +82,7 @@ public class XmlProcessorTest {
         exit.checkAssertionAfterwards(new Assertion() {
             @Override
             public void checkAssertion() throws Exception {
-                Assert.assertTrue(systemOutRule.getLog().contains("Can not read the JUnit XML file: fileDoesNotExist.xml"));
+                Assert.assertTrue(systemOutRule.getLog().contains("Can not read the JUnit XML file:"));
             }
         });
         XmlProcessor xmlProcessor = new XmlProcessor();

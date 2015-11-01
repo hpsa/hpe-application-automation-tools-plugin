@@ -32,21 +32,21 @@ public class CliParser {
 
     public CliParser() {
         options.addOption("h", "help", false, "show this help");
-        options.addOption("v", "version", false, "show version");
+        options.addOption("v", "version", false, "show version of this tool");
 
-        options.addOption("i", "internal", false, "internal test result public API xml format");
+        options.addOption("i", "internal", false, "supplied xml files are in the internal xml format");
         options.addOption("e", "skip-errors", false, "skip errors on the server side");
-        options.addOption(Option.builder("o").longOpt("output-file").desc("output to file").hasArg().argName("FILE").build());
-        options.addOption(Option.builder("c").longOpt("config-file").desc("configuration file").hasArg().argName("FILE").build());
+        options.addOption(Option.builder("o").longOpt("output-file").desc("write output to file instead of pushing it to the server").hasArg().argName("FILE").build());
+        options.addOption(Option.builder("c").longOpt("config-file").desc("configuration file location").hasArg().argName("FILE").build());
 
-        options.addOption(Option.builder("s").longOpt("server").desc("server").hasArg().argName("URL").build());
-        options.addOption(Option.builder("d").longOpt("shared-space").desc("shared space").hasArg().argName("ID").type(Number.class).build());
-        options.addOption(Option.builder("w").longOpt("workspace").desc("workspace").hasArg().argName("ID").type(Number.class).build());
+        options.addOption(Option.builder("s").longOpt("server").desc("server url with protocol").hasArg().argName("URL").build());
+        options.addOption(Option.builder("d").longOpt("shared-space").desc("server shared space to push to").hasArg().argName("ID").type(Number.class).build());
+        options.addOption(Option.builder("w").longOpt("workspace").desc("server workspace to push to").hasArg().argName("ID").type(Number.class).build());
 
-        options.addOption(Option.builder("u").longOpt("user").desc("username").hasArg().argName("USERNAME").build());
+        options.addOption(Option.builder("u").longOpt("user").desc("server username").hasArg().argName("USERNAME").build());
         OptionGroup passGroup = new OptionGroup();
-        passGroup.addOption(Option.builder("p").longOpt("password").desc("password").hasArg().argName("PASSWORD").optionalArg(true).build());
-        passGroup.addOption(Option.builder().longOpt("password-file").desc("file with password").hasArg().argName("FILE").build());
+        passGroup.addOption(Option.builder("p").longOpt("password").desc("server password").hasArg().argName("PASSWORD").optionalArg(true).build());
+        passGroup.addOption(Option.builder().longOpt("password-file").desc("location of file with server password").hasArg().argName("FILE").build());
         options.addOptionGroup(passGroup);
 
         options.addOption(Option.builder().longOpt("proxy-host").desc("proxy host").hasArg().argName("HOSTNAME").build());
@@ -55,18 +55,18 @@ public class CliParser {
 
         OptionGroup proxyPassGroup = new OptionGroup();
         proxyPassGroup.addOption(Option.builder().longOpt("proxy-password").desc("proxy password").hasArg().argName("PASSWORD").optionalArg(true).build());
-        proxyPassGroup.addOption(Option.builder().longOpt("proxy-password-file").desc("file with proxy password").hasArg().argName("FILE").build());
+        proxyPassGroup.addOption(Option.builder().longOpt("proxy-password-file").desc("location of file with proxy password").hasArg().argName("FILE").build());
         options.addOptionGroup(proxyPassGroup);
 
-        options.addOption(Option.builder().longOpt("check-status").desc("check test result status after push").build());
-        options.addOption(Option.builder().longOpt("check-status-timeout").desc("timeout for test result push status retrieval").hasArg().argName("SEC").build());
+        options.addOption(Option.builder().longOpt("check-result").desc("check test result status after push").build());
+        options.addOption(Option.builder().longOpt("check-result-timeout").desc("timeout for test result push status retrieval").hasArg().argName("SEC").type(Number.class).build());
 
         options.addOption(Option.builder("t").longOpt("tag").desc("tag").hasArg().argName("TYPE:VALUE").build());
         options.addOption(Option.builder("f").longOpt("field").desc("field tag").hasArg().argName("TYPE:VALUE").build());
 
         options.addOption(Option.builder("r").longOpt("release").desc("release").hasArg().argName("ID").type(Number.class).build());
         options.addOption(Option.builder("a").longOpt("product-area").desc("product area").hasArg().argName("ID").type(Number.class).build());
-        options.addOption(Option.builder("b").longOpt("backlog-item").desc("backlog-item").hasArg().argName("ID").type(Number.class).build());
+        options.addOption(Option.builder("b").longOpt("backlog-item").desc("backlog item").hasArg().argName("ID").type(Number.class).build());
         options.addOption(Option.builder().longOpt("started").desc("started time in millis").hasArg().argName("TIMESTAMP").type(Number.class).build());
 
         argsWithSingleOccurrence.addAll(Arrays.asList("o", "c", "s", "d", "w", "u", "p", "password-file", "r", "started", "check-status",
@@ -107,20 +107,18 @@ public class CliParser {
             }
             try {
                 settings.load(filename);
-                // CODE REVIEW, Johnny, 19Oct2015 - you should inform user that loading of settings failed but the
-                // call of settings.load() method just returns in some cases; for example it can happen that user deletes
-                // accidentally his default configuration file, now there's no user he can know that that is the cause
-                // of problem
-            } catch (IOException e) {
-                System.out.println("Can not read from properties file " + filename);
-                System.exit(ReturnCode.FAILURE.getReturnCode());
-            } catch (URISyntaxException e) {
-                System.out.println("Can not convert file to URI " + filename);
-                System.exit(ReturnCode.FAILURE.getReturnCode());
             } catch (NumberFormatException e) {
                 System.out.println("Can not convert string from properties file to integer: " + e.getMessage());
                 System.exit(ReturnCode.FAILURE.getReturnCode());
+            } catch (IllegalArgumentException e) {
+                // Inform user that loading was not successful
+                // Configuration must be specified in arguments in this case
+                System.out.println(e.getMessage());
+            } catch (IOException e) {
+                System.out.println("Can not read from properties file: " + filename);
+                System.exit(ReturnCode.FAILURE.getReturnCode());
             }
+
             if (cmd.hasOption("i")) {
                 settings.setInternal(true);
             }
@@ -153,9 +151,12 @@ public class CliParser {
                 if (cmd.hasOption("p")) {
                     settings.setPassword(cmd.getOptionValue("p"));
                 } else if (cmd.hasOption("password-file")) {
-                    // CODE REVIEW, Johnny, 19Oct2015 - please handle the exceptions locally not at the bottom, the path to
-                    // password file might be missing or invalid or file not readable, etc.
-                    settings.setPassword(FileUtils.readFileToString(new File(cmd.getOptionValue("password-file"))));
+                    try {
+                        settings.setPassword(FileUtils.readFileToString(new File(cmd.getOptionValue("password-file"))));
+                    } catch (IOException e) {
+                        System.out.println("Can not read the password file: " + cmd.getOptionValue("password-file"));
+                        System.exit(ReturnCode.FAILURE.getReturnCode());
+                    }
                 } else {
                     System.out.println("Please enter your password if it's required and hit enter: ");
                     settings.setPassword(new String(System.console().readPassword()));
@@ -178,11 +179,24 @@ public class CliParser {
                 if (cmd.hasOption("proxy-password")) {
                     settings.setProxyPassword(cmd.getOptionValue("proxy-password"));
                 } else if (cmd.hasOption("proxy-password-file")) {
-                    settings.setProxyPassword(FileUtils.readFileToString(new File(cmd.getOptionValue("proxy-password-file"))));
+                    try {
+                        settings.setProxyPassword(FileUtils.readFileToString(new File(cmd.getOptionValue("proxy-password-file"))));
+                    } catch (IOException e) {
+                        System.out.println("Can not read the password file: " + cmd.getOptionValue("proxy-password-file"));
+                        System.exit(ReturnCode.FAILURE.getReturnCode());
+                    }
                 } else {
                     System.out.println("Please enter your proxy password if it's required and hit enter: ");
                     settings.setProxyPassword(new String(System.console().readPassword()));
                 }
+            }
+
+            if (cmd.hasOption("check-result")) {
+                settings.setCheckResult(true);
+            }
+
+            if (cmd.hasOption("check-result-timeout")) {
+                settings.setCheckResultTimeout(((Long) cmd.getParsedOptionValue("check-status-timeout")).intValue());
             }
 
             if (cmd.hasOption("t")) {
@@ -216,10 +230,6 @@ public class CliParser {
         } catch (ParseException e) {
             printHelp();
             System.exit(ReturnCode.FAILURE.getReturnCode());
-        } catch (IOException e) {
-            // CODE REVIEW, Johnny, 19Oct2015 - handle locally not here
-            System.out.println("Can not read the password file");
-            System.exit(ReturnCode.FAILURE.getReturnCode());
         }
         return settings;
     }
@@ -228,18 +238,19 @@ public class CliParser {
         List<String> argList = cmd.getArgList();
         List<String> inputFiles = new LinkedList<String>();
         for (String inputFile : argList) {
-            if (!inputFiles.contains(inputFile) && new File(inputFile).canRead()) {
-                // CODE REVIEW, Johnny, 19Oct2015 - report which files we are unable to read; consider failing in that case
-                // user might be led into thinking that all files were handed over for processing
-                inputFiles.add(inputFile);
+            if (!new File(inputFile).isFile()) {
+                System.out.println("Path '" + inputFile + "' does not lead to a file");
+                continue;
             }
+            if (!new File(inputFile).canRead()) {
+                System.out.println("File '" + inputFile + "' is not readable");
+                continue;
+            }
+            inputFiles.add(inputFile);
         }
 
         if (inputFiles.isEmpty()) {
-            // CODE REVIEW, Johnny, 16Oct2015 - misleading message; at this point you do not know anything about
-            // the file(s )nature - whether it is etc. - so what you can just say is that there are no valid or
-            // readable files at input containing tests to push
-            System.out.println("No valid XML files with tests to push");
+            System.out.println("No readable files with tests to push");
             return false;
         }
 
@@ -358,6 +369,11 @@ public class CliParser {
 
             if (settings.getProxyPassword() != null && settings.getProxyUser() == null) {
                 System.out.println("Proxy user name was not specified for proxy password");
+                return false;
+            }
+
+            if (settings.getCheckResultTimeout() != null && settings.getCheckResultTimeout() < 1) {
+                System.out.println("Timeout has to be positive integer");
                 return false;
             }
         }

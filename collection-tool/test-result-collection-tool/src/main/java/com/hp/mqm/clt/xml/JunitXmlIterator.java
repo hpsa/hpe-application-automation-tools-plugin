@@ -74,19 +74,11 @@ public class JunitXmlIterator extends AbstractXmlIterator<TestResult> {
     }
 
     private long parseTime(String timeString) {
-        // CODE REVIEW, Johnny, 19Oct2015 - mind localization - the thousands separator might differ among locales
-        String time = timeString.replace(",","");
         try {
-            float seconds = Float.parseFloat(time);
+            float seconds = Float.parseFloat(timeString);
             return (long) (seconds * 1000);
         } catch (NumberFormatException e) {
-            try {
-                // CODE REVIEW, Johnny, 19Oct2015 - no conversion to milliseconds here? is that intentional
-                // when will be this code used?
-                return new DecimalFormat().parse(time).longValue();
-            } catch (ParseException ex) {
-                System.out.println("Unable to parse test duration: " + timeString);
-            }
+            System.out.println("Unable to parse test duration: " + timeString);
         }
         return 0;
     }
