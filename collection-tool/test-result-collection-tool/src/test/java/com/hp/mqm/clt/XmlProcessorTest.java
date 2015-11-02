@@ -114,15 +114,15 @@ public class XmlProcessorTest {
         xmlProcessor.writeTestResults(testResults, settings, targetFile);
 
         Set<XmlElement> xmlElements = new HashSet<XmlElement>();
-        xmlElements.add(new XmlElement("tag", "OS", "Linux"));
-        xmlElements.add(new XmlElement("tag", "DB", "Oracle"));
-        xmlElements.add(new XmlElement("field", "Framework", "TestNG"));
-        xmlElements.add(new XmlElement("field", "Test_Level", "Unit Test"));
-        xmlElements.add(new XmlElement("productAreaRef", "1001"));
-        xmlElements.add(new XmlElement("productAreaRef", "1002"));
-        xmlElements.add(new XmlElement("backlogItemRef", "1020"));
-        xmlElements.add(new XmlElement("backlogItemRef", "1021"));
-        xmlElements.add(new XmlElement("releaseRef", "1010"));
+        xmlElements.add(new XmlElement("taxonomy", "OS", "Linux"));
+        xmlElements.add(new XmlElement("taxonomy", "DB", "Oracle"));
+        xmlElements.add(new XmlElement("test_field", "Framework", "TestNG"));
+        xmlElements.add(new XmlElement("test_field", "Test_Level", "Unit Test"));
+        xmlElements.add(new XmlElement("product_area_ref", "1001"));
+        xmlElements.add(new XmlElement("product_area_ref", "1002"));
+        xmlElements.add(new XmlElement("backlog_item_ref", "1020"));
+        xmlElements.add(new XmlElement("backlog_item_ref", "1021"));
+        xmlElements.add(new XmlElement("release_ref", "1010"));
         assertXml(new LinkedList<TestResult>(testResults), xmlElements, targetFile);
     }
 
@@ -152,17 +152,17 @@ public class XmlProcessorTest {
 
             if (xmlStreamReader.getEventType() == XMLStreamReader.START_ELEMENT) {
                 String localName = xmlStreamReader.getLocalName();
-                if ("tag".equals(localName)) {
+                if ("taxonomy".equals(localName)) {
                     assertElement(localName, false, xmlStreamReader, expectedElements);
-                } else if ("field".equals(localName)) {
+                } else if ("test_field".equals(localName)) {
                     assertElement(localName, false, xmlStreamReader, expectedElements);
-                } else if ("productAreaRef".equals(localName)) {
+                } else if ("product_area_ref".equals(localName)) {
                     assertElement(localName, true, xmlStreamReader, expectedElements);
-                } else if ("backlogItemRef".equals(localName)) {
+                } else if ("backlog_item_ref".equals(localName)) {
                     assertElement(localName, true, xmlStreamReader, expectedElements);
-                } else if ("releaseRef".equals(localName)) {
+                } else if ("release_ref".equals(localName)) {
                     assertElement(localName, true, xmlStreamReader, expectedElements);
-                } else if ("test".equals(localName)) {
+                } else if ("test_run".equals(localName)) {
                     assertXmlTest(xmlStreamReader, expectedTestResults);
                 }
             }
