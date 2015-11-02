@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuite name="JUnitSample1" tests="1" errors="0" skipped="0" failures="0">
+    <testcase name="sampleTest1%%%TIMESTAMP%%%" time="0.004"/>
+</testsuite>

@@ -1,110 +1,202 @@
 package com.hp.mqm.clt;
 
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionGroup;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.regex.Pattern;
 
 public class CliParser {
 
-    private static final String DEFAULT_CONFIG_FILE = "config.properties";
-
-    private static final String CMD_LINE_SYNTAX = "push-result [OPTIONS]... [FILE]...";
+    private static final String CMD_LINE_SYNTAX = "java -jar test-result-collection-tool.jar [OPTIONS]... FILE [FILE]...\n";
     private static final String HEADER = "HP Lifecycle Management Test Result Collection Tool";
     private static final String FOOTER = "";
     private static final String VERSION = "1.0";
 
     private Options options = new Options();
+    private LinkedList<String> argsWithSingleOccurrence = new LinkedList<String>();
+    private LinkedList<String> argsRestrictedForInternal = new LinkedList<String>();
 
     public CliParser() {
         options.addOption("h", "help", false, "show this help");
-        options.addOption("v", "version", false, "show version");
+        options.addOption("v", "version", false, "show version of this tool");
 
-        options.addOption("i", "internal", false, "internal test result public API xml format");
-        options.addOption(Option.builder("o").longOpt("output-file").desc("output to file").hasArg().argName("FILE").build());
-        options.addOption(Option.builder("c").longOpt("config-file").desc("configuration file").hasArg().argName("FILE").build());
+        options.addOption("i", "internal", false, "supplied xml files are in the internal xml format");
+        options.addOption("e", "skip-errors", false, "skip errors on the server side");
+        options.addOption(Option.builder("o").longOpt("output-file").desc("write output to file instead of pushing it to the server").hasArg().argName("FILE").build());
+        options.addOption(Option.builder("c").longOpt("config-file").desc("configuration file location").hasArg().argName("FILE").build());
 
-        options.addOption(Option.builder("e").longOpt("server").desc("server").hasArg().argName("URL").build());
-        options.addOption(Option.builder("d").longOpt("domain").desc("domain").hasArg().argName("DOMAIN").build());
-        options.addOption(Option.builder("o").longOpt("project").desc("project").hasArg().argName("PROJECT").build());
-        options.addOption(Option.builder("w").longOpt("workspace").desc("workspace").hasArg().argName("ID").type(Integer.class).build());
+        options.addOption(Option.builder("s").longOpt("server").desc("server url with protocol and port").hasArg().argName("URL:PORT").build());
+        options.addOption(Option.builder("d").longOpt("shared-space").desc("server shared space to push to").hasArg().argName("ID").type(Number.class).build());
+        options.addOption(Option.builder("w").longOpt("workspace").desc("server workspace to push to").hasArg().argName("ID").type(Number.class).build());
 
-        options.addOption(Option.builder("u").longOpt("user").desc("username").hasArg().argName("USERNAME").build());
+        options.addOption(Option.builder("u").longOpt("user").desc("server username").hasArg().argName("USERNAME").build());
         OptionGroup passGroup = new OptionGroup();
-        passGroup.addOption(Option.builder("p").longOpt("password").desc("password").hasArg().argName("PASSWORD").optionalArg(true).build());
-        passGroup.addOption(Option.builder().longOpt("password-file").desc("file with password").hasArg().argName("FILE").build());
+        passGroup.addOption(Option.builder("p").longOpt("password").desc("server password").hasArg().argName("PASSWORD").optionalArg(true).build());
+        passGroup.addOption(Option.builder().longOpt("password-file").desc("location of file with server password").hasArg().argName("FILE").build());
         options.addOptionGroup(passGroup);
 
-        options.addOption(Option.builder("t").longOpt("tag").desc("tag").hasArg().argName("VALUE").build());
-        options.addOption(Option.builder("f").longOpt("field").desc("field tag").hasArg().argName("VALUE").build());
+        options.addOption(Option.builder().longOpt("proxy-host").desc("proxy host").hasArg().argName("HOSTNAME").build());
+        options.addOption(Option.builder().longOpt("proxy-port").desc("proxy port").hasArg().argName("PORT").type(Number.class).build());
+        options.addOption(Option.builder().longOpt("proxy-user").desc("proxy username").hasArg().argName("USERNAME").build());
 
-        options.addOption(Option.builder("r").longOpt("release").desc("release").hasArg().argName("ID").type(Integer.class).build());
-        options.addOption(Option.builder("a").longOpt("product-area").desc("product area").hasArg().argName("ID").type(Integer.class).build());
-        options.addOption(Option.builder("q").longOpt("requirement").desc("requirement").hasArg().argName("ID").type(Integer.class).build());
+        OptionGroup proxyPassGroup = new OptionGroup();
+        proxyPassGroup.addOption(Option.builder().longOpt("proxy-password").desc("proxy password").hasArg().argName("PASSWORD").optionalArg(true).build());
+        proxyPassGroup.addOption(Option.builder().longOpt("proxy-password-file").desc("location of file with proxy password").hasArg().argName("FILE").build());
+        options.addOptionGroup(proxyPassGroup);
 
-        options.addOption(Option.builder("b").longOpt("build-server").desc("build server identity").hasArg().argName("UUID").build());
-        options.addOption(Option.builder("j").longOpt("build-job").desc("build job sid").hasArg().argName("SID").build());
-        options.addOption(Option.builder("n").longOpt("build-number").desc("build number").hasArg().argName("NUMBER").build());
-        options.addOption(Option.builder("s").longOpt("build-status").desc("build status").hasArg().argName("STATUS").build());
+        options.addOption(Option.builder().longOpt("check-result").desc("check test result status after push").build());
+        options.addOption(Option.builder().longOpt("check-result-timeout").desc("timeout for test result push status retrieval").hasArg().argName("SEC").type(Number.class).build());
+
+        options.addOption(Option.builder("t").longOpt("tag").desc("assign tag to test result").hasArg().argName("TYPE:VALUE").build());
+        options.addOption(Option.builder("f").longOpt("field").desc("assign field tag to test result").hasArg().argName("TYPE:VALUE").build());
+
+        options.addOption(Option.builder("r").longOpt("release").desc("assign release to test result").hasArg().argName("ID").type(Number.class).build());
+        options.addOption(Option.builder("a").longOpt("product-area").desc("assign the test result to product area").hasArg().argName("ID").type(Number.class).build());
+        options.addOption(Option.builder("b").longOpt("backlog-item").desc("assign the test result to backlog item").hasArg().argName("ID").type(Number.class).build());
+        options.addOption(Option.builder().longOpt("started").desc("started time in millis").hasArg().argName("TIMESTAMP").type(Number.class).build());
+
+        argsWithSingleOccurrence.addAll(Arrays.asList("o", "c", "s", "d", "w", "u", "p", "password-file", "r", "started", "check-status",
+                "check-status-timeout", "proxy-host", "proxy-port", "proxy-user", "proxy-password", "proxy-password-file"));
+        argsRestrictedForInternal.addAll(Arrays.asList("o", "t", "f", "r", "a", "b", "started"));
     }
 
-    public void parse(String[] args) {
+    public Settings parse(String[] args) {
+        Settings settings = new Settings();
         CommandLineParser parser = new DefaultParser();
         try {
             CommandLine cmd = parser.parse(options, args);
 
             if (cmd.hasOption("h")) {
                 printHelp();
-                System.exit(0);
+                System.exit(ReturnCode.SUCCESS.getReturnCode());
             }
 
             if (cmd.hasOption("v")) {
                 printVersion();
-                System.exit(0);
+                System.exit(ReturnCode.SUCCESS.getReturnCode());
+            }
+
+            if (!areCmdArgsValid(cmd)) {
+                printHelp();
+                System.exit(ReturnCode.FAILURE.getReturnCode());
+            }
+
+            if (!addInputFilesToSettings(cmd, settings)) {
+                printHelp();
+                System.exit(ReturnCode.FAILURE.getReturnCode());
             }
 
             // load config
-            String filename = DEFAULT_CONFIG_FILE;
+            String filename = null;
             if (cmd.hasOption("c")) {
                 filename = cmd.getOptionValue("c");
             }
-            Settings settings = new Settings();
-            settings.load(filename);
+            try {
+                settings.load(filename);
+            } catch (NumberFormatException e) {
+                System.out.println("Can not convert string from properties file to integer: " + e.getMessage());
+                System.exit(ReturnCode.FAILURE.getReturnCode());
+            } catch (IllegalArgumentException e) {
+                // Inform user that loading was not successful
+                // Configuration must be specified in arguments in this case
+                System.out.println(e.getMessage());
+            } catch (IOException e) {
+                System.out.println("Can not read from properties file: " + filename);
+                System.exit(ReturnCode.FAILURE.getReturnCode());
+            }
 
             if (cmd.hasOption("i")) {
                 settings.setInternal(true);
             }
 
             if (cmd.hasOption("e")) {
-                settings.setServer(cmd.getOptionValue("e"));
-            }
-
-            if (cmd.hasOption("d")) {
-                settings.setDomain(cmd.getOptionValue("d"));
+                settings.setSkipErrors(true);
             }
 
             if (cmd.hasOption("o")) {
-                settings.setProject(cmd.getOptionValue("o"));
+                settings.setOutputFile(cmd.getOptionValue("o"));
+            }
+
+            if (cmd.hasOption("s")) {
+                settings.setServer(cmd.getOptionValue("s"));
+            }
+
+            if (cmd.hasOption("d")) {
+                settings.setSharedspace(((Long) cmd.getParsedOptionValue("d")).intValue());
             }
 
             if (cmd.hasOption("w")) {
-                settings.setWorkspace((Integer) cmd.getParsedOptionValue("w"));
+                settings.setWorkspace(((Long) cmd.getParsedOptionValue("w")).intValue());
             }
 
-            if (cmd.hasOption("p")) {
-                if (cmd.getOptionValue("p") != null) {
+            if (cmd.hasOption("u")) {
+                settings.setUser(cmd.getOptionValue("u"));
+            }
+
+            if (settings.getOutputFile() == null) {
+                if (cmd.hasOption("p")) {
                     settings.setPassword(cmd.getOptionValue("p"));
+                } else if (cmd.hasOption("password-file")) {
+                    try {
+                        settings.setPassword(FileUtils.readFileToString(new File(cmd.getOptionValue("password-file"))));
+                    } catch (IOException e) {
+                        System.out.println("Can not read the password file: " + cmd.getOptionValue("password-file"));
+                        System.exit(ReturnCode.FAILURE.getReturnCode());
+                    }
                 } else {
+                    System.out.println("Please enter your password if it's required and hit enter: ");
                     settings.setPassword(new String(System.console().readPassword()));
                 }
             }
 
-            if (cmd.hasOption("password-file")) {
-                settings.setPasswordFile(cmd.getOptionValue("password-file"));
+            if (cmd.hasOption("proxy-host")) {
+                settings.setProxyHost(cmd.getOptionValue("proxy-host"));
+            }
+
+            if (cmd.hasOption("proxy-port")) {
+                settings.setProxyPort(((Long) cmd.getParsedOptionValue("proxy-port")).intValue());
+            }
+
+            if (cmd.hasOption("proxy-user")) {
+                settings.setProxyUser(cmd.getOptionValue("proxy-user"));
+            }
+
+            if (settings.getOutputFile() == null && StringUtils.isNotEmpty(settings.getProxyUser())) {
+                if (cmd.hasOption("proxy-password")) {
+                    settings.setProxyPassword(cmd.getOptionValue("proxy-password"));
+                } else if (cmd.hasOption("proxy-password-file")) {
+                    try {
+                        settings.setProxyPassword(FileUtils.readFileToString(new File(cmd.getOptionValue("proxy-password-file"))));
+                    } catch (IOException e) {
+                        System.out.println("Can not read the password file: " + cmd.getOptionValue("proxy-password-file"));
+                        System.exit(ReturnCode.FAILURE.getReturnCode());
+                    }
+                } else {
+                    System.out.println("Please enter your proxy password if it's required and hit enter: ");
+                    settings.setProxyPassword(new String(System.console().readPassword()));
+                }
+            }
+
+            if (cmd.hasOption("check-result")) {
+                settings.setCheckResult(true);
+            }
+
+            if (cmd.hasOption("check-result-timeout")) {
+                settings.setCheckResultTimeout(((Long) cmd.getParsedOptionValue("check-status-timeout")).intValue());
             }
 
             if (cmd.hasOption("t")) {
@@ -116,42 +208,186 @@ public class CliParser {
             }
 
             if (cmd.hasOption("r")) {
-                settings.setRelease((Integer) cmd.getParsedOptionValue("r"));
+                settings.setRelease(((Long) cmd.getParsedOptionValue("r")).intValue());
+            }
+
+            if (cmd.hasOption("started")) {
+                settings.setStarted((Long) cmd.getParsedOptionValue("started"));
             }
 
             if (cmd.hasOption("a")) {
-                settings.setProductArea((Integer) cmd.getParsedOptionValue("a"));
-            }
-
-            if (cmd.hasOption("q")) {
-                settings.setRequirement((Integer) cmd.getParsedOptionValue("q"));
+                settings.setProductAreas(cmd.getOptionValues("a"));
             }
 
             if (cmd.hasOption("b")) {
-                settings.setBuildServer(cmd.getOptionValue("b"));
+                settings.setBacklogItems(cmd.getOptionValues("b"));
             }
 
-            if (cmd.hasOption("j")) {
-                settings.setBuildJob(cmd.getOptionValue("j"));
+            if (!areSettingsValid(settings)) {
+                System.exit(ReturnCode.FAILURE.getReturnCode());
             }
-
-            if (cmd.hasOption("n")) {
-                settings.setBuildNumber(cmd.getOptionValue("n"));
-            }
-
-            if (cmd.hasOption("s")) {
-                settings.setBuildStatus(cmd.getOptionValue("s"));
-            }
-
-            settings.setFileNames(cmd.getArgList());
 
         } catch (ParseException e) {
             printHelp();
-            System.exit(0);
-        } catch (IOException e) {
-            // TODO: handle IO exception
+            System.exit(ReturnCode.FAILURE.getReturnCode());
         }
+        return settings;
     }
+
+    private boolean addInputFilesToSettings(CommandLine cmd, Settings settings) {
+        List<String> argList = cmd.getArgList();
+        List<String> inputFiles = new LinkedList<String>();
+        for (String inputFile : argList) {
+            if (!new File(inputFile).isFile()) {
+                System.out.println("Path '" + inputFile + "' does not lead to a file");
+                continue;
+            }
+            if (!new File(inputFile).canRead()) {
+                System.out.println("File '" + inputFile + "' is not readable");
+                continue;
+            }
+            inputFiles.add(inputFile);
+        }
+
+        if (inputFiles.isEmpty()) {
+            System.out.println("No readable files with tests to push");
+            return false;
+        }
+
+        settings.setInputXmlFileNames(inputFiles);
+        return true;
+    }
+
+    private boolean areCmdArgsValid(CommandLine cmd) {
+        List<String> argList = cmd.getArgList();
+        if (argList.isEmpty()) {
+            System.out.println("At least one XML file must be specified as input for push");
+            return false;
+        }
+
+        for (String arg : argsWithSingleOccurrence) {
+            if (cmd.getOptionProperties(arg).size() > 1) {
+                System.out.println("Only single occurrence is allowed for argument: '" + arg + "'");
+                return false;
+            }
+        }
+
+        if (cmd.hasOption("i")) {
+            for (String arg : argsRestrictedForInternal) {
+                if (cmd.hasOption(arg)) {
+                    System.out.println("Invalid argument for internal mode: '" + arg + "'");
+                    return false;
+                }
+            }
+        }
+
+        if (!isTagFormatValid(cmd, "t") || !isTagFormatValid(cmd, "f")) {
+            return false;
+        }
+
+        String configurationFile = cmd.getOptionValue("c");
+        if (configurationFile != null && !(new File(configurationFile).canRead())) {
+            System.out.println("Can not read the configuration file: " + configurationFile);
+            return false;
+        }
+
+        String passwordFile = cmd.getOptionValue("password-file");
+        if (passwordFile != null && !(new File(passwordFile).canRead())) {
+            System.out.println("Can not read the password file: " + passwordFile);
+            return false;
+        }
+
+        String proxyPasswordFile = cmd.getOptionValue("proxy-password-file");
+        if (proxyPasswordFile != null && !new File(proxyPasswordFile).canRead()) {
+            System.out.println("Can not read the proxy password file: " + passwordFile);
+            return false;
+        }
+
+        String outputFilePath = cmd.getOptionValue("o");
+        if (outputFilePath != null) {
+            if (argList.size() != 1) {
+                System.out.println("Only single JUnit input file is allowed for output mode");
+                return false;
+            }
+            File outputFile = new File(outputFilePath);
+            if (!outputFile.exists()) {
+                try {
+                    if (!outputFile.createNewFile()) {
+                        System.out.println("Can not create the output file: " + outputFile.getAbsolutePath());
+                        return false;
+                    }
+                } catch (IOException e) {
+                    System.out.println("Can not create the output file: " + outputFile.getAbsolutePath());
+                    return false;
+                }
+            }
+            if (!outputFile.canWrite()) {
+                System.out.println("Can not write to the output file: " + outputFile.getAbsolutePath());
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean isTagFormatValid(CommandLine cmd, String option) {
+        String[] tags = cmd.getOptionValues(option);
+        if (tags == null) {
+            return true;
+        }
+        // CODE REVIEW, Johnny, 19Oct2015 - consult with Mirek with regards to localization, this is very probably
+        // good for this release, but I can imagine it will have to be relaxed once we for example start to support
+        // languages like French (and all their funny characters)
+        Pattern pattern = Pattern.compile("^\\w+:\\w+$");
+        for (String tag : tags) {
+            if (!pattern.matcher(tag).matches()) {
+                System.out.println("Tag and field tag arguments must be in TYPE:VALUE format: " + tag);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean areSettingsValid(Settings settings) {
+        if (settings.getOutputFile() == null) {
+            // Server access is required
+            if (!isSettingPresent(settings.getServer(), "server")) {
+                return false;
+            }
+
+            if (!isSettingPresent(settings.getSharedspace(), "sharedspace")) {
+                return false;
+            }
+
+            if (!isSettingPresent(settings.getWorkspace(), "workspace")) {
+                return false;
+            }
+
+            if (settings.getProxyHost() != null && settings.getProxyPort() == null) {
+                System.out.println("Proxy port was not specified for proxy host: " + settings.getProxyHost());
+                return false;
+            }
+
+            if (settings.getProxyPassword() != null && settings.getProxyUser() == null) {
+                System.out.println("Proxy user name was not specified for proxy password");
+                return false;
+            }
+
+            if (settings.getCheckResultTimeout() != null && settings.getCheckResultTimeout() < 1) {
+                System.out.println("Timeout has to be positive integer");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    boolean isSettingPresent(Object setting, String settingName) {
+        if (setting == null) {
+            System.out.println("Mandatory setting '" + settingName + "' was not specified in the CLI arguments or configuration file");
+            return false;
+        }
+        return true;
+    }
+
 
     private void printVersion() {
         System.out.println(HEADER);

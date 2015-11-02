@@ -1,57 +1,83 @@
 package com.hp.mqm.clt;
 
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
 public class Settings {
 
+    private static final String DEFAULT_CONFIG_FILENAME = "config.properties";
+
     private static final String PROP_SERVER = "server";
-    private static final String PROP_DOMAIN = "domain";
-    private static final String PROP_PROJECT = "project";
+    private static final String PROP_SHARED_SPACE = "sharedspace";
     private static final String PROP_WORKSPACE = "workspace";
     private static final String PROP_USER = "user";
-    private static final String PROP_PASSWORD_FILE = "passwordFile";
+    private static final String PROP_PROXY_HOST = "proxyhost";
+    private static final String PROP_PROXY_PORT = "proxyport";
+    private static final String PROP_PROXY_USER = "proxyuser";
 
     private String server;
-    private String domain;
-    private String project;
+    private Integer sharedspace;
     private Integer workspace;
-
     private String user;
     private String password;
-    private String passwordFile;
 
+    private String proxyHost;
+    private Integer proxyPort;
+    private String proxyUser;
+    private String proxyPassword;
+
+    private boolean checkResult = false;
+    private Integer checkResultTimeout;
     private boolean internal = false;
-    private String configFile;
+    private boolean skipErrors = false;
     private String outputFile;
 
     private List<String> tags;
     private List<String> fields;
 
     private Integer release;
-    private Integer productArea;
-    private Integer requirement;
+    private List<Integer> productAreas;
+    private List<Integer> backlogItems;
+    private Long started;
 
-    private String buildServer;
-    private String buildJob;
-    private String buildNumber;
-    private String buildStatus;
+    private List<String> inputXmlFileNames;
 
-    private List<String> fileNames;
+    private DefaultConfigFilenameProvider defaultConfigFilenameProvider = new ImplDefaultConfigFilenameProvider();
 
-    public void load(String filename) throws IOException {
+    public void load(String filename) throws IOException, IllegalArgumentException {
+        File configFile = new File((filename != null) ? filename : defaultConfigFilenameProvider.getDefaultConfigFilename());
+        if (!configFile.isFile() || !configFile.canRead()) {
+            if (filename == null) {
+                throw new IllegalArgumentException("Can not read the default configuration file: " + defaultConfigFilenameProvider.getDefaultConfigFilename());
+            } else {
+                throw new IllegalArgumentException("Can not read the configuration file: " + filename);
+            }
+        }
+
         Properties properties = new Properties();
-        InputStream inputStream = getClass().getResourceAsStream(filename);
+        InputStream inputStream = new FileInputStream(configFile);
         properties.load(inputStream);
         inputStream.close();
         server = properties.getProperty(PROP_SERVER);
-        domain = properties.getProperty(PROP_DOMAIN);
-        project = properties.getProperty(PROP_PROJECT);
+        sharedspace = properties.getProperty(PROP_SHARED_SPACE) != null ? Integer.valueOf(properties.getProperty(PROP_SHARED_SPACE)) : null;
         workspace = properties.getProperty(PROP_WORKSPACE) != null ? Integer.valueOf(properties.getProperty(PROP_WORKSPACE)) : null;
         user = properties.getProperty(PROP_USER);
-        passwordFile = properties.getProperty(PROP_PASSWORD_FILE);
+        proxyHost = properties.getProperty(PROP_PROXY_HOST);
+        if (StringUtils.isNotEmpty(properties.getProperty(PROP_PROXY_PORT))) {
+            proxyPort = Integer.valueOf(properties.getProperty(PROP_PROXY_PORT));
+        }
+        proxyUser = properties.getProperty(PROP_PROXY_USER);
     }
 
     public String getServer() {
@@ -62,20 +88,12 @@ public class Settings {
         this.server = server;
     }
 
-    public String getDomain() {
-        return domain;
+    public Integer getSharedspace() {
+        return sharedspace;
     }
 
-    public void setDomain(String domain) {
-        this.domain = domain;
-    }
-
-    public String getProject() {
-        return project;
-    }
-
-    public void setProject(String project) {
-        this.project = project;
+    public void setSharedspace(Integer sharedspace) {
+        this.sharedspace = sharedspace;
     }
 
     public Integer getWorkspace() {
@@ -95,19 +113,59 @@ public class Settings {
     }
 
     public String getPassword() {
-        return password;
+        return (password == null) ? null : new String(Base64.decodeBase64(password), StandardCharsets.UTF_8);
     }
 
     public void setPassword(String password) {
-        this.password = password;
+        this.password = (password == null) ? null : Base64.encodeBase64String(password.getBytes(StandardCharsets.UTF_8));
     }
 
-    public String getPasswordFile() {
-        return passwordFile;
+    public String getProxyHost() {
+        return proxyHost;
     }
 
-    public void setPasswordFile(String passwordFile) {
-        this.passwordFile = passwordFile;
+    public void setProxyHost(String proxyHost) {
+        this.proxyHost = proxyHost;
+    }
+
+    public Integer getProxyPort() {
+        return proxyPort;
+    }
+
+    public void setProxyPort(Integer proxyPort) {
+        this.proxyPort = proxyPort;
+    }
+
+    public String getProxyUser() {
+        return proxyUser;
+    }
+
+    public void setProxyUser(String proxyUser) {
+        this.proxyUser = proxyUser;
+    }
+
+    public String getProxyPassword() {
+        return (proxyPassword == null) ? null : new String(Base64.decodeBase64(proxyPassword), StandardCharsets.UTF_8);
+    }
+
+    public void setProxyPassword(String proxyPassword) {
+        this.proxyPassword = (proxyPassword == null) ? null : Base64.encodeBase64String(proxyPassword.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public Integer getCheckResultTimeout() {
+        return checkResultTimeout;
+    }
+
+    public void setCheckResultTimeout(Integer checkResultTimeout) {
+        this.checkResultTimeout = checkResultTimeout;
+    }
+
+    public boolean isCheckResult() {
+        return checkResult;
+    }
+
+    public void setCheckResult(boolean checkResult) {
+        this.checkResult = checkResult;
     }
 
     public boolean isInternal() {
@@ -118,12 +176,12 @@ public class Settings {
         this.internal = internal;
     }
 
-    public String getConfigFile() {
-        return configFile;
+    public boolean isSkipErrors() {
+        return skipErrors;
     }
 
-    public void setConfigFile(String configFile) {
-        this.configFile = configFile;
+    public void setSkipErrors(boolean skipErrors) {
+        this.skipErrors = skipErrors;
     }
 
     public String getOutputFile() {
@@ -158,59 +216,81 @@ public class Settings {
         this.release = release;
     }
 
-    public Integer getProductArea() {
-        return productArea;
+    public List<Integer> getProductAreas() {
+        return productAreas;
     }
 
-    public void setProductArea(Integer productArea) {
-        this.productArea = productArea;
+    public void setProductAreas(String[] productAreas) throws ParseException {
+        List<Integer> productAreasList = null;
+        if (productAreas != null && productAreas.length > 0) {
+            productAreasList = new LinkedList<Integer>();
+            for (String productArea : productAreas) {
+                Integer productAreaID;
+                try {
+                    productAreaID = Integer.parseInt(productArea);
+                } catch (NumberFormatException e) {
+                    throw new ParseException("Unable to parse string to product area ID: " + productArea);
+                }
+                productAreasList.add(productAreaID);
+            }
+        }
+        this.productAreas = productAreasList;
     }
 
-    public Integer getRequirement() {
-        return requirement;
+    public List<Integer> getBacklogItems() {
+        return backlogItems;
     }
 
-    public void setRequirement(Integer requirement) {
-        this.requirement = requirement;
+    public void setBacklogItems(String[] backlogItems) throws ParseException {
+        List<Integer> backlogItemsList = null;
+        if (backlogItems != null && backlogItems.length > 0) {
+            backlogItemsList = new LinkedList<Integer>();
+            for (String backlogItem : backlogItems) {
+                Integer backlogItemID;
+                try {
+                    backlogItemID = Integer.parseInt(backlogItem);
+                } catch (NumberFormatException e) {
+                    throw new ParseException("Unable to parse string to backlog item ID: " + backlogItem);
+                }
+                backlogItemsList.add(backlogItemID);
+            }
+        }
+        this.backlogItems = backlogItemsList;
     }
 
-    public String getBuildServer() {
-        return buildServer;
+    public Long getStarted() {
+        return started;
     }
 
-    public void setBuildServer(String buildServer) {
-        this.buildServer = buildServer;
+    public void setStarted(Long started) {
+        this.started = started;
     }
 
-    public String getBuildJob() {
-        return buildJob;
+    public List<String> getInputXmlFileNames() {
+        return inputXmlFileNames;
     }
 
-    public void setBuildJob(String buildJob) {
-        this.buildJob = buildJob;
+    public void setInputXmlFileNames(List<String> inputXmlFileNames) {
+        this.inputXmlFileNames = inputXmlFileNames;
     }
 
-    public String getBuildNumber() {
-        return buildNumber;
+    /**
+     * To be used by tests only.
+     */
+    public void setDefaultConfigFilenameProvider(DefaultConfigFilenameProvider defaultConfigFilenameProvider) {
+        this.defaultConfigFilenameProvider = defaultConfigFilenameProvider;
     }
 
-    public void setBuildNumber(String buildNumber) {
-        this.buildNumber = buildNumber;
+    private static class ImplDefaultConfigFilenameProvider implements DefaultConfigFilenameProvider {
+        @Override
+        public String getDefaultConfigFilename() {
+            return DEFAULT_CONFIG_FILENAME;
+        }
     }
 
-    public String getBuildStatus() {
-        return buildStatus;
-    }
+    public interface DefaultConfigFilenameProvider {
 
-    public void setBuildStatus(String buildStatus) {
-        this.buildStatus = buildStatus;
-    }
+        String getDefaultConfigFilename();
 
-    public List<String> getFileNames() {
-        return fileNames;
-    }
-
-    public void setFileNames(List<String> fileNames) {
-        this.fileNames = fileNames;
     }
 }

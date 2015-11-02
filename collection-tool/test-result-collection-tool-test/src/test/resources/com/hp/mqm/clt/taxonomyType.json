@@ -1,0 +1,5 @@
+{
+  "subtype": "taxonomy_category_node",
+  "type": "taxonomy_node",
+  "name": "MyType"
+}
