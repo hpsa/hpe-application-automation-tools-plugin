@@ -32,7 +32,7 @@ public class TestResultXmlWriter {
 
         while (items.hasNext()) {
             TestResult item = items.next();
-            writer.writeStartElement("test");
+            writer.writeStartElement("test_run");
             writer.writeAttribute("package", item.getPackageName());
             writer.writeAttribute("class", item.getClassName());
             writer.writeAttribute("name", item.getTestName());
@@ -59,9 +59,9 @@ public class TestResultXmlWriter {
             writer = possiblyCreateIndentingWriter(XMLOutputFactory.newInstance().createXMLStreamWriter(outputStream));
             writer.writeStartDocument();
 
-            writer.writeStartElement("testResult");
+            writer.writeStartElement("test_result");
             writeFields(settings);
-            writer.writeStartElement("tests");
+            writer.writeStartElement("test_runs");
         }
     }
 
@@ -70,21 +70,21 @@ public class TestResultXmlWriter {
             return;
         }
         if (settings.getRelease() != null) {
-            writer.writeStartElement("releaseRef");
+            writer.writeStartElement("release_ref");
             writer.writeAttribute("id", String.valueOf(settings.getRelease()));
             writer.writeEndElement(); // releaseRef
         }
         if (settings.getBacklogItems() != null) {
-            writeRefFields("backlogItems", "backlogItemRef", settings.getBacklogItems());
+            writeRefFields("backlog_items", "backlog_item_ref", settings.getBacklogItems());
         }
         if (settings.getProductAreas() != null) {
-            writeRefFields("productAreas", "productAreaRef", settings.getProductAreas());
+            writeRefFields("product_areas", "product_area_ref", settings.getProductAreas());
         }
         if (settings.getFields() != null) {
-            writeTypeValueArray("fields", "field", settings.getFields());
+            writeTypeValueArray("test_fields", "test_field", settings.getFields());
         }
         if (settings.getTags() != null) {
-            writeTypeValueArray("tags", "tag", settings.getTags());
+            writeTypeValueArray("environment", "taxonomy", settings.getTags());
         }
     }
 
@@ -113,24 +113,6 @@ public class TestResultXmlWriter {
             writer.writeEndElement();
         }
         writer.writeEndElement();
-    }
-
-    private String parseFieldType(String field) {
-        int p = field.indexOf(":");
-        if (p > 0) {
-            return field.substring(0, p);
-        } else {
-            return null;
-        }
-    }
-
-    private String parseFieldValue(String field) {
-        int p = field.indexOf(":");
-        if (p > 0) {
-            return field.substring(p + 1);
-        } else {
-            return null;
-        }
     }
 
     private XMLStreamWriter possiblyCreateIndentingWriter(XMLStreamWriter writer) {
