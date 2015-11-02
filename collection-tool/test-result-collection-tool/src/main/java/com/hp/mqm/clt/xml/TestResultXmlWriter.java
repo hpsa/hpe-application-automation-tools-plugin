@@ -45,8 +45,8 @@ public class TestResultXmlWriter {
 
     public void close() throws XMLStreamException {
         if (outputStream != null) {
-            writer.writeEndElement(); // tests
-            writer.writeEndElement(); // testResult
+            writer.writeEndElement(); // test_runs
+            writer.writeEndElement(); // test_result
             writer.writeEndDocument();
             writer.close();
             IOUtils.closeQuietly(outputStream);
@@ -72,7 +72,7 @@ public class TestResultXmlWriter {
         if (settings.getRelease() != null) {
             writer.writeStartElement("release_ref");
             writer.writeAttribute("id", String.valueOf(settings.getRelease()));
-            writer.writeEndElement(); // releaseRef
+            writer.writeEndElement(); // release_ref
         }
         if (settings.getBacklogItems() != null) {
             writeRefFields("backlog_items", "backlog_item_ref", settings.getBacklogItems());
