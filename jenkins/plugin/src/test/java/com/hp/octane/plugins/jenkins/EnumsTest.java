@@ -1,3 +1,5 @@
+package com.hp.octane.plugins.jenkins;
+
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCauseType;
 import com.hp.octane.plugins.jenkins.model.events.CIEventType;
 import com.hp.octane.plugins.jenkins.model.parameters.ParameterType;
@@ -40,13 +42,14 @@ public class EnumsTest {
 
 	@Test
 	public void testParameterType() {
-		assertEquals(ParameterType.values().length, 6);
+		assertEquals(ParameterType.values().length, 7);
 		assertEquals(ParameterType.UNKNOWN.toString(), "unknown");
 		assertEquals(ParameterType.PASSWORD.toString(), "password");
 		assertEquals(ParameterType.BOOLEAN.toString(), "boolean");
 		assertEquals(ParameterType.STRING.toString(), "string");
 		assertEquals(ParameterType.NUMBER.toString(), "number");
 		assertEquals(ParameterType.FILE.toString(), "file");
+    assertEquals(ParameterType.AXIS.toString(), "axis");
 		assertEquals(ParameterType.getByValue("unavailable"), ParameterType.UNKNOWN);
 	}
 

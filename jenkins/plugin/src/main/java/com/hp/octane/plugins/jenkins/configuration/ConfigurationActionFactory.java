@@ -22,6 +22,10 @@ public class ConfigurationActionFactory extends TransientActionFactory<AbstractP
     @Nonnull
     @Override
     public Collection<? extends Action> createFor(@Nonnull AbstractProject project) {
+        // not sure if we need proper extensibility mechanism here: let's start small and extend if needed
+        if ("hudson.matrix.MatrixConfiguration".equals(project.getClass().getName())) {
+            return Collections.emptyList();
+        }
         return Collections.singleton(new ConfigurationAction(project));
     }
 }

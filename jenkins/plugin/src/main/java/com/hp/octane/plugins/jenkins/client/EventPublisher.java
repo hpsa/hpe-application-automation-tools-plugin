@@ -4,7 +4,7 @@ package com.hp.octane.plugins.jenkins.client;
 
 public interface EventPublisher {
 
-    boolean isSuspended(String location, String sharedSpace);
+    boolean isSuspended();
 
     void resume();
 

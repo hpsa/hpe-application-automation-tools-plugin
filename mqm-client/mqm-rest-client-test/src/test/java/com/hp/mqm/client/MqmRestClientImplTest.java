@@ -17,6 +17,7 @@ import com.hp.mqm.client.model.Taxonomy;
 import com.hp.mqm.client.model.TestResultStatus;
 import com.hp.mqm.client.model.TestRun;
 import com.hp.mqm.client.model.Workspace;
+import com.hp.mqm.org.apache.http.client.methods.HttpPost;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.FileUtils;
 import com.hp.mqm.org.apache.http.HttpResponse;
@@ -49,7 +50,7 @@ import java.util.UUID;
 
 public class MqmRestClientImplTest {
 
-	private static final String LOCATION = ConnectionProperties.getLocation();
+    private static final String LOCATION = ConnectionProperties.getLocation();
 	private static final String SHARED_SPACE = ConnectionProperties.getSharedSpace();
     private static final long WORKSPACE = ConnectionProperties.getWorkspaceId();
 	private static final String USERNAME = ConnectionProperties.getUsername();
@@ -60,8 +61,9 @@ public class MqmRestClientImplTest {
 	private static final String CLIENT_TYPE = "test";
 
 	public static final MqmConnectionConfig connectionConfig;
+    public static final String NONUSER = "nonuser"; // special user that is rejected by the mock portal
 
-	public enum JIEventType {
+    public enum JIEventType {
 		QUEUED,
 		STARTED,
 		FINISHED;
@@ -86,7 +88,6 @@ public class MqmRestClientImplTest {
 	}
 
 	@Test
-    @Ignore // pending server-side authentication
 	public void testLoginLogout() throws InterruptedException {
 		MqmRestClientImpl client = new MqmRestClientImpl(connectionConfig);
 		client.login();
@@ -102,7 +103,7 @@ public class MqmRestClientImplTest {
 
 		// bad credentials
 		MqmConnectionConfig badConnectionConfig = new MqmConnectionConfig(
-				LOCATION, SHARED_SPACE, USERNAME, "xxxbadxxxpasswordxxx", CLIENT_TYPE, PROXY_HOST, PROXY_PORT);
+				LOCATION, SHARED_SPACE, NONUSER, "xxxbadxxxpasswordxxx", CLIENT_TYPE, PROXY_HOST, PROXY_PORT);
 		client = new MqmRestClientImpl(badConnectionConfig);
 		try {
 			client.login();
@@ -110,7 +111,7 @@ public class MqmRestClientImplTest {
 		} catch (LoginException e) {
 			Assert.assertNotNull(e);
 		} finally {
-			client.release();
+			client.releaseQuietly();
 		}
 
 		// bad location
@@ -129,7 +130,6 @@ public class MqmRestClientImplTest {
 	}
 
 	@Test
-    @Ignore // pending server-side authentication
 	public void testTryToConnectSharedSpace() {
 		MqmRestClientImpl client = new MqmRestClientImpl(connectionConfig);
 		try {
@@ -140,7 +140,7 @@ public class MqmRestClientImplTest {
 
 		// bad credentials
 		MqmConnectionConfig badConnectionConfig = new MqmConnectionConfig(
-				LOCATION, SHARED_SPACE, USERNAME, "xxxbadxxxpasswordxxx", CLIENT_TYPE, PROXY_HOST, PROXY_PORT);
+				LOCATION, SHARED_SPACE, NONUSER, "xxxbadxxxpasswordxxx", CLIENT_TYPE, PROXY_HOST, PROXY_PORT);
 		client = new MqmRestClientImpl(badConnectionConfig);
 		try {
 			client.tryToConnectSharedSpace();
@@ -148,7 +148,7 @@ public class MqmRestClientImplTest {
 		} catch (AuthenticationException e) {
 			Assert.assertNotNull(e);
 		} finally {
-			client.release();
+			client.releaseQuietly();
 		}
 
 		// bad location
@@ -184,7 +184,7 @@ public class MqmRestClientImplTest {
 
 		// bad domain
 		badConnectionConfig = new MqmConnectionConfig(
-				LOCATION, "BadDomain123", USERNAME, PASSWORD, CLIENT_TYPE, PROXY_HOST, PROXY_PORT);
+				LOCATION, "BadSharedSpace123", USERNAME, PASSWORD, CLIENT_TYPE, PROXY_HOST, PROXY_PORT);
 		client = new MqmRestClientImpl(badConnectionConfig);
 		try {
 			client.tryToConnectSharedSpace();
@@ -198,14 +198,12 @@ public class MqmRestClientImplTest {
 	}
 
 	@Test
-    @Ignore // pending server-side authentication
 	public void testExecute_autoLogin() throws IOException {
-		//  TODO: this should do the ping against workspaces
-		final String uri = LOCATION + "/api/shared_spaces/" + SHARED_SPACE + "/workspace/1234567/defects?query=%7Bid%5B0%5D%7D";
+		final String uri = LOCATION + "/api/shared_spaces/" + SHARED_SPACE + "/workspaces/" + WORKSPACE + "/defects?query=%22id=0%22";
 		MqmRestClientImpl client = new MqmRestClientImpl(connectionConfig);
 
 		MqmConnectionConfig badConnectionConfig = new MqmConnectionConfig(
-				LOCATION, SHARED_SPACE, USERNAME, "xxxbadxxxpasswordxxx", CLIENT_TYPE, PROXY_HOST, PROXY_PORT);
+				LOCATION, SHARED_SPACE, NONUSER, "xxxbadxxxpasswordxxx", CLIENT_TYPE, PROXY_HOST, PROXY_PORT);
 		MqmRestClientImpl invalidClient = new MqmRestClientImpl(badConnectionConfig);
 
 		// test method execute
@@ -264,7 +262,7 @@ public class MqmRestClientImplTest {
 		client.login();
 		HttpResponse response = null;
 		try {
-			response = client.execute(new HttpGet(LOCATION + "/" + AbstractMqmRestClient.URI_LOGOUT));
+			response = client.execute(new HttpPost(LOCATION + "/" + AbstractMqmRestClient.URI_LOGOUT));
 		} finally {
 			HttpClientUtils.closeQuietly(response);
 		}
@@ -463,6 +461,7 @@ public class MqmRestClientImplTest {
 	}
 
     @Test
+	@Ignore // disabled until defect #2556 is fixed
     public void testUpdatePipeline() throws IOException {
         String serverIdentity = UUID.randomUUID().toString();
         long timestamp = System.currentTimeMillis();

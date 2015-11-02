@@ -6,7 +6,7 @@
     <parent>
         <artifactId>collection-tool</artifactId>
         <groupId>com.hp.mqm</groupId>
-        <version>12.50.22-SNAPSHOT</version>
+        <version>12.50.24-SNAPSHOT</version>
     </parent>
 
     <artifactId>test-result-collection-tool</artifactId>
@@ -55,6 +55,7 @@
                     <execution>
                         <configuration>
                             <mainClass>com.hp.mqm.clt.App</mainClass>
+                            <filename>test-result-collection-tool.one-jar.jar</filename>
                         </configuration>
                         <goals>
                             <goal>one-jar</goal>
@@ -70,6 +71,26 @@
                     <source>${jdk.version}</source>
                     <target>${jdk.version}</target>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.5.5</version>
+                <executions>
+                    <execution>
+                        <id>assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <descriptors>
+                                <descriptor>src/main/assemblies/test-result-collection-tool-assembly.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

@@ -8,7 +8,6 @@ import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import hudson.Extension;
 import jenkins.model.Jenkins;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -22,16 +21,19 @@ import java.util.logging.Logger;
 @Extension
 public class BridgesService implements ConfigurationListener {
 	private static final Logger logger = Logger.getLogger(BridgesService.class.getName());
+	private static final Object bridgeLocker = new Object();
 
 	private static BridgesService extensionInstance;
 	private JenkinsMqmRestClientFactory clientFactory;
-	private final List<Bridge> bridges = new ArrayList<Bridge>();
+	private BridgeClient bridgeClient;
 
 	public static BridgesService getExtensionInstance() {
 		if (extensionInstance == null) {
 			List<BridgesService> extensions = Jenkins.getInstance().getExtensionList(BridgesService.class);
 			if (extensions.isEmpty()) {
-				throw new RuntimeException("Bridge Service was not initialized properly");
+				throw new RuntimeException("BRIDGE: bridge service was not initialized properly");
+			} else if (extensions.size() > 1) {
+				throw new RuntimeException("BRIDGE: bridge service expected to be singleton, found " + extensions.size() + " instances");
 			} else {
 				extensionInstance = extensions.get(0);
 			}
@@ -40,24 +42,18 @@ public class BridgesService implements ConfigurationListener {
 	}
 
 	public void updateBridge(ServerConfiguration conf) {
-		boolean updated = false;
+		boolean existing = false;
 		if (conf == null || conf.password == null ||
 				conf.location == null || conf.location.equals("") ||
 				conf.sharedSpace == null || conf.sharedSpace.equals("") ||
 				conf.username == null || conf.username.equals("")) {
-			logger.warning("bad configuration encountered, bridge is not updated");
+			logger.warning("BRIDGE: bad configuration encountered, bridge will not be " + (bridgeClient == null ? "created" : "updated"));
 		} else {
-			synchronized (bridges) {
-				for (Bridge bridge : bridges) {
-					if (bridge.getLocation().equals(conf.location) && bridge.getSharedSpace().equals(conf.sharedSpace)) {
-						bridge.update(conf);
-						updated = true;
-						break;
-					}
-				}
-				if (!updated) {
-					bridges.add(new Bridge(conf, clientFactory));
-					logger.info("BRIDGE: new bridge added, total of bridges " + bridges.size());
+			synchronized (bridgeLocker) {
+				if (bridgeClient != null) {
+					bridgeClient.update(conf);
+				} else {
+					bridgeClient = new BridgeClient(conf, clientFactory);
 				}
 			}
 		}

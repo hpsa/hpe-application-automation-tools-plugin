@@ -1,3 +1,5 @@
+package com.hp.octane.plugins.jenkins.actions.build;
+
 import org.junit.Rule;
 import org.jvnet.hudson.test.JenkinsRule;
 
@@ -9,7 +11,7 @@ import org.jvnet.hudson.test.JenkinsRule;
  * To change this template use File | Settings | File Templates.
  */
 
-public class BuildActionsMultiJobTest {
+public class BuildActionsMatrixTest {
 	final private String projectName = "root-job";
 
 	@Rule

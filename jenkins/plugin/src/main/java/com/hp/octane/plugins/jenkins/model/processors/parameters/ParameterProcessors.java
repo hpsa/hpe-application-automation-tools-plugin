@@ -2,10 +2,13 @@ package com.hp.octane.plugins.jenkins.model.processors.parameters;
 
 import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
 import com.hp.octane.plugins.jenkins.model.api.ParameterInstance;
+import com.hp.octane.plugins.jenkins.model.parameters.ParameterType;
+import hudson.matrix.*;
 import hudson.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by gullery on 26/03/2015.
@@ -27,31 +30,36 @@ public enum ParameterProcessors {
 	}
 
 	public static ParameterConfig[] getConfigs(AbstractProject project) {
-		ParameterConfig[] result;
+		ArrayList<ParameterConfig> result = new ArrayList<ParameterConfig>();
+
 		List<ParameterDefinition> paramDefinitions;
 		ParameterDefinition pd;
 		String className;
 		AbstractParametersProcessor processor;
-
 		if (project.isParameterized()) {
-			paramDefinitions = ((ParametersDefinitionProperty) project.getProperty(ParametersDefinitionProperty.class)).getParameterDefinitions();
-			result = new ParameterConfig[paramDefinitions.size()];
-			for (int i = 0; i < result.length; i++) {
-				pd = paramDefinitions.get(i);
-				className = pd.getClass().getName();
-				processor = getAppropriate(className);
-				result[i] = processor.createParameterConfig(pd);
-			}
-		} else {
-			result = new ParameterConfig[0];
-		}
+      paramDefinitions = ((ParametersDefinitionProperty) project.getProperty(ParametersDefinitionProperty.class)).getParameterDefinitions();
+      for (int i = 0; i < paramDefinitions.size(); i++) {
+        pd = paramDefinitions.get(i);
+        className = pd.getClass().getName();
+        processor = getAppropriate(className);
+        result.add(processor.createParameterConfig(pd));
+      }
+    }
 
-		return result;
+    if(project instanceof MatrixProject) {
+      AxisList axisList = ((MatrixProject) project).getAxes();
+      for(Axis axis : axisList){
+        result.add(new ParameterConfig(axis.getName(), ParameterType.AXIS));
+      }
+    }
+    ParameterConfig[] params = new ParameterConfig[result.size()];
+		return result.toArray(params);
 	}
 
 	//  TODO: the below mapping between param configs and values based on param name uniqueness, beware!
 	public static ParameterInstance[] getInstances(AbstractBuild build) {
-		ParameterInstance[] result;
+		//ParameterInstance[] result;
+    List<ParameterInstance> result = new ArrayList<ParameterInstance>();
 		AbstractProject project = build.getProject();
 		List<ParameterDefinition> paramDefinitions;
 		ParameterDefinition pd;
@@ -67,10 +75,16 @@ public enum ParameterProcessors {
 		}
 		ParameterValue pv;
 
+    if(project instanceof MatrixConfiguration) {
+      Combination combination = ((MatrixConfiguration) project).getCombination();
+      for (Map.Entry<String,String> entry : combination.entrySet()) {
+        result.add(new ParameterInstance(new ParameterConfig(entry.getKey(), ParameterType.AXIS), entry.getValue()));
+      }
+    }
+
 		if (project.isParameterized()) {
 			paramDefinitions = ((ParametersDefinitionProperty) project.getProperty(ParametersDefinitionProperty.class)).getParameterDefinitions();
-			result = new ParameterInstance[paramDefinitions.size()];
-			for (int i = 0; i < result.length; i++) {
+			for (int i = 0; i < paramDefinitions.size(); i++) {
 				pd = paramDefinitions.get(i);
 				className = pd.getClass().getName();
 				pv = null;
@@ -83,13 +97,11 @@ public enum ParameterProcessors {
 					}
 				}
 				processor = getAppropriate(className);
-				result[i] = processor.createParameterInstance(pd, pv);
+				result.add(processor.createParameterInstance(pd, pv));
 			}
-		} else {
-			result = new ParameterInstance[0];
 		}
-
-		return result;
+    ParameterInstance[] params = new ParameterInstance[result.size()];
+    return result.toArray(params);
 	}
 
 	private static AbstractParametersProcessor getAppropriate(String className) {

@@ -15,8 +15,8 @@ public class MavenBuildExtension extends BuildHandlerExtension {
     }
 
     @Override
-    public String getBuildType(AbstractBuild<?, ?> build) {
-        return build.getRootBuild().getProject().getName();
+    public BuildTypeDescriptor getBuildType(AbstractBuild<?, ?> build) {
+        return new BuildTypeDescriptor(build.getRootBuild().getProject().getName(), "");
     }
 
     @Override

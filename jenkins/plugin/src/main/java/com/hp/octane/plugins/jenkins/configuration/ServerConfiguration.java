@@ -11,13 +11,13 @@ final public class ServerConfiguration {
 	public String password;
 	public String impersonatedUser;
 
-	public ServerConfiguration(String location, boolean abridged, String sharedSpace, String username, String password,String impersonatedUser) {
+	public ServerConfiguration(String location, boolean abridged, String sharedSpace, String username, String password, String impersonatedUser) {
 		this.location = location;
 		this.abridged = abridged;
 		this.sharedSpace = sharedSpace;
 		this.username = username;
 		this.password = password;
-		this.impersonatedUser=impersonatedUser;
+		this.impersonatedUser = impersonatedUser;
 	}
 
 	@Override
@@ -32,7 +32,8 @@ final public class ServerConfiguration {
 		if (sharedSpace != null ? !sharedSpace.equals(that.sharedSpace) : that.sharedSpace != null) return false;
 		if (username != null ? !username.equals(that.username) : that.username != null) return false;
 		if (password != null ? !password.equals(that.password) : that.password != null) return false;
-		if (impersonatedUser != null ? !impersonatedUser.equals(that.impersonatedUser) : that.impersonatedUser != null) return false;
+		if (impersonatedUser != null ? !impersonatedUser.equals(that.impersonatedUser) : that.impersonatedUser != null)
+			return false;
 
 		return true;
 	}

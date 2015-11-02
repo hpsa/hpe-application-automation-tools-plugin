@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 @Extension
 public class JenkinsMqmRestClientFactoryImpl implements JenkinsMqmRestClientFactory {
 
-    private static final String CLIENT_TYPE = "octane-jenkins-plugin";
+    private static final String CLIENT_TYPE = "HPE_JENKINS_PLUGIN";
 
     @Override
     public MqmRestClient create(String location, String sharedSpace, String username, String password) {

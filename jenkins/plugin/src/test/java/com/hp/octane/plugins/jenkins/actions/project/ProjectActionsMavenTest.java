@@ -1,4 +1,4 @@
-package com.hp.octane.plugins.jenkins.actions;
+package com.hp.octane.plugins.jenkins.actions.project;
 
 import com.gargoylesoftware.htmlunit.Page;
 import com.hp.octane.plugins.jenkins.model.parameters.ParameterType;

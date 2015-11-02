@@ -5,7 +5,7 @@ import com.hp.octane.plugins.jenkins.configuration.ConfigApi;
 import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import com.hp.octane.plugins.jenkins.events.EventsClient;
-import com.hp.octane.plugins.jenkins.events.EventsDispatcher;
+import com.hp.octane.plugins.jenkins.events.EventsService;
 import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.RootAction;
@@ -42,12 +42,14 @@ public class PluginActions implements RootAction {
 		private String url;
 		private String instanceId = Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity();
 		private Long instanceIdFrom = Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentityFrom();
+		private Long sendingTime;
 
 		public ServerInfo() {
 			String serverUrl = Jenkins.getInstance().getRootUrl();
 			if (serverUrl != null && serverUrl.endsWith("/"))
 				serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
 			this.url = serverUrl;
+			this.sendingTime = System.currentTimeMillis();
 		}
 
 		@Exported(inline = true)
@@ -73,6 +75,11 @@ public class PluginActions implements RootAction {
 		@Exported(inline = true)
 		public Long getInstanceIdFrom() {
 			return instanceIdFrom;
+		}
+
+		@Exported(inline = true)
+		public Long getSendingTime() {
+			return sendingTime;
 		}
 	}
 
@@ -101,7 +108,7 @@ public class PluginActions implements RootAction {
 
 		@Exported(inline = true)
 		public List<EventsClient> getEventsClients() {
-			return EventsDispatcher.getExtensionInstance().getStatus();
+			return EventsService.getExtensionInstance().getStatus();
 		}
 	}
 

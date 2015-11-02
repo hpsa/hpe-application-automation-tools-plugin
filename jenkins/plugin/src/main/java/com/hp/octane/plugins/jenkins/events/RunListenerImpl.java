@@ -1,6 +1,7 @@
 package com.hp.octane.plugins.jenkins.events;
 
 import com.google.inject.Inject;
+import com.hp.octane.plugins.jenkins.model.api.ParameterInstance;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessors;
 import com.hp.octane.plugins.jenkins.model.snapshots.SnapshotResult;
@@ -9,10 +10,13 @@ import com.hp.octane.plugins.jenkins.model.events.CIEventFinished;
 import com.hp.octane.plugins.jenkins.model.events.CIEventStarted;
 import com.hp.octane.plugins.jenkins.tests.TestListener;
 import hudson.Extension;
+import hudson.matrix.MatrixConfiguration;
+import hudson.matrix.MatrixRun;
 import hudson.model.*;
 import hudson.model.listeners.RunListener;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -33,23 +37,53 @@ public final class RunListenerImpl extends RunListener<Run> {
 	@Override
 	@SuppressWarnings("unchecked")
 	public void onStarted(Run r, TaskListener listener) {
-		if (r instanceof AbstractBuild) {
+    CIEventStarted event = null;
+    if(r.getParent() instanceof MatrixConfiguration){
+      AbstractBuild build = (AbstractBuild) r;
+      event = new CIEventStarted(
+        ((MatrixRun) r).getParentBuild().getParent().getName(),
+        ((MatrixRun) r).getParentBuild().getNumber(),
+        build.getNumber(),
+        build.getStartTimeInMillis(),
+        build.getEstimatedDuration(),
+        CIEventCausesFactory.processCauses(((MatrixRun) r).getParentBuild().getCauses()),
+        ParameterProcessors.getInstances(build)
+      );
+      EventsService.getExtensionInstance().dispatchEvent(event);
+    }else  if (r instanceof AbstractBuild) {
 			AbstractBuild build = (AbstractBuild) r;
-			CIEventStarted event = new CIEventStarted(
+			event = new CIEventStarted(
 					build.getProject().getName(),
 					build.getNumber(),
+          -1,
 					build.getStartTimeInMillis(),
 					build.getEstimatedDuration(),
 					CIEventCausesFactory.processCauses(build.getCauses()),
 					ParameterProcessors.getInstances(build)
 			);
-			EventsDispatcher.getExtensionInstance().dispatchEvent(event);
+			EventsService.getExtensionInstance().dispatchEvent(event);
 		}
 	}
+
+
+  private String getProjectName(Run r) {
+    if(r.getParent() instanceof MatrixConfiguration){
+      return ((MatrixRun) r).getParentBuild().getParent().getName();
+    }
+    return ((AbstractBuild)r).getProject().getName();
+  }
+
+  private List<Cause> listOfCauses(Run r) {
+    if(r.getParent() instanceof MatrixConfiguration){
+      return ((MatrixRun) r).getParentBuild().getCauses();
+    }
+    return r.getCauses();
+  }
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public void onCompleted(Run r, @Nonnull TaskListener listener) {
+
 		if (r instanceof AbstractBuild) {
 			AbstractBuild build = (AbstractBuild) r;
 			SnapshotResult result;
@@ -64,12 +98,15 @@ public final class RunListenerImpl extends RunListener<Run> {
 			} else {
 				result = SnapshotResult.UNAVAILABLE;
 			}
+
+
 			CIEventFinished event = new CIEventFinished(
-					build.getProject().getName(),
+          getProjectName(r),
 					build.getNumber(),
+          -1,
 					build.getStartTimeInMillis(),
 					build.getEstimatedDuration(),
-					CIEventCausesFactory.processCauses(build.getCauses()),
+   				CIEventCausesFactory.processCauses(listOfCauses(build)),
 					ParameterProcessors.getInstances(build),
 					result,
 					build.getDuration(),
@@ -77,7 +114,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 							.getAppropriate(build.getProject().getScm().getClass().getName())
 							.getSCMChanges(build)
 			);
-			EventsDispatcher.getExtensionInstance().dispatchEvent(event);
+			EventsService.getExtensionInstance().dispatchEvent(event);
 
 			testListener.processBuild(build);
 		}
