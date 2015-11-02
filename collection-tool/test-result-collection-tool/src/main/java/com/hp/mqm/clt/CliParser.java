@@ -39,7 +39,7 @@ public class CliParser {
         options.addOption(Option.builder("o").longOpt("output-file").desc("write output to file instead of pushing it to the server").hasArg().argName("FILE").build());
         options.addOption(Option.builder("c").longOpt("config-file").desc("configuration file location").hasArg().argName("FILE").build());
 
-        options.addOption(Option.builder("s").longOpt("server").desc("server url with protocol").hasArg().argName("URL").build());
+        options.addOption(Option.builder("s").longOpt("server").desc("server url with protocol and port").hasArg().argName("URL:PORT").build());
         options.addOption(Option.builder("d").longOpt("shared-space").desc("server shared space to push to").hasArg().argName("ID").type(Number.class).build());
         options.addOption(Option.builder("w").longOpt("workspace").desc("server workspace to push to").hasArg().argName("ID").type(Number.class).build());
 
@@ -61,12 +61,12 @@ public class CliParser {
         options.addOption(Option.builder().longOpt("check-result").desc("check test result status after push").build());
         options.addOption(Option.builder().longOpt("check-result-timeout").desc("timeout for test result push status retrieval").hasArg().argName("SEC").type(Number.class).build());
 
-        options.addOption(Option.builder("t").longOpt("tag").desc("tag").hasArg().argName("TYPE:VALUE").build());
-        options.addOption(Option.builder("f").longOpt("field").desc("field tag").hasArg().argName("TYPE:VALUE").build());
+        options.addOption(Option.builder("t").longOpt("tag").desc("assign tag to test result").hasArg().argName("TYPE:VALUE").build());
+        options.addOption(Option.builder("f").longOpt("field").desc("assign field tag to test result").hasArg().argName("TYPE:VALUE").build());
 
-        options.addOption(Option.builder("r").longOpt("release").desc("release").hasArg().argName("ID").type(Number.class).build());
-        options.addOption(Option.builder("a").longOpt("product-area").desc("product area").hasArg().argName("ID").type(Number.class).build());
-        options.addOption(Option.builder("b").longOpt("backlog-item").desc("backlog item").hasArg().argName("ID").type(Number.class).build());
+        options.addOption(Option.builder("r").longOpt("release").desc("assign release to test result").hasArg().argName("ID").type(Number.class).build());
+        options.addOption(Option.builder("a").longOpt("product-area").desc("assign the test result to product area").hasArg().argName("ID").type(Number.class).build());
+        options.addOption(Option.builder("b").longOpt("backlog-item").desc("assign the test result to backlog item").hasArg().argName("ID").type(Number.class).build());
         options.addOption(Option.builder().longOpt("started").desc("started time in millis").hasArg().argName("TIMESTAMP").type(Number.class).build());
 
         argsWithSingleOccurrence.addAll(Arrays.asList("o", "c", "s", "d", "w", "u", "p", "password-file", "r", "started", "check-status",
