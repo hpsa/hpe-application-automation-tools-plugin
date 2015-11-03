@@ -40,7 +40,7 @@ public class TestResultIterator implements Iterator<TestResult> {
                     if (event instanceof StartElement) {
                         StartElement element = (StartElement) event;
                         String localName = element.getName().getLocalPart();
-                        if ("test".equals(localName)) {
+                        if ("test_run".equals(localName)) {
                             String moduleName = element.getAttributeByName(new QName("module")).getValue();
                             String packageName = element.getAttributeByName(new QName("package")).getValue();
                             String className = element.getAttributeByName(new QName("class")).getValue();
