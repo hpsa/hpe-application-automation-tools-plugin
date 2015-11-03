@@ -50,8 +50,8 @@ public class TestResultIterator implements Iterator<TestResult> {
                             long started = Long.valueOf(element.getAttributeByName(new QName("started")).getValue());
                             items.add(new TestResult(moduleName, packageName, className, testName, status, duration, started));
                         } else if ("build".equals(localName)) {
-                            buildType = element.getAttributeByName(new QName("buildType")).getValue();
-                            Attribute subType = element.getAttributeByName(new QName("subType"));
+                            buildType = element.getAttributeByName(new QName("build_type")).getValue();
+                            Attribute subType = element.getAttributeByName(new QName("sub_type"));
                             if (subType != null) {
                                 this.subType = subType.getValue();
                             }

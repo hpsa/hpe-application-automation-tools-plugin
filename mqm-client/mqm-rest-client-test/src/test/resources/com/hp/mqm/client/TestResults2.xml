@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<testResult>
-    <build server="server" buildType="buildType" buildSid="1"/>
-    <tests>
-        <test module="helloModule" package="helloPackage" class="HelloWorldTest" name="helloName" duration="2" status="Passed" started="1431527285551" />
-    </tests>
-</testResult>
+<test_result>
+    <build server="server" build_type="build_type" build_sid="1"/>
+    <test_runs>
+        <test_run module="helloModule" package="helloPackage" class="HelloWorldTest" name="helloName" duration="2" status="Passed" started="1431527285551" />
+    </test_runs>
+</test_result>

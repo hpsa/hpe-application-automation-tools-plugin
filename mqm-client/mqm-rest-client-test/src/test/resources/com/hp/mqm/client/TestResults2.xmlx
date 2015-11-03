@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testResult>
+<test_result>
     <build>
-        <tests>
-            <test duration="hola"/>
-        </tests>
+        <test_runs>
+            <test_run duration="hola"/>
+        </test_runs>
     </build>

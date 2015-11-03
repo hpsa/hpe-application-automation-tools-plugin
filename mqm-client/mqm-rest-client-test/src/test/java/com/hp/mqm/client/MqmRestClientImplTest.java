@@ -791,7 +791,7 @@ public class MqmRestClientImplTest {
         client.getTestResultLog(id, new SimpleLog(baos));
         String body = baos.toString("UTF-8");
         Assert.assertTrue(body.contains("status: failed\n"));
-		Assert.assertTrue(body.contains("\n\nBuild reference {server: server; buildType: buildType; buildSid: 1} not resolved\n"));
+		Assert.assertTrue(body.contains("\n\nBuild reference {server: server; build_type: build_type; build_sid: 1} not resolved\n"));
     }
 
     @Test

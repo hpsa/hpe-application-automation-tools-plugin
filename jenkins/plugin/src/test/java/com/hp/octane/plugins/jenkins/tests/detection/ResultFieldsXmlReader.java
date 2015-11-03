@@ -35,12 +35,12 @@ public class ResultFieldsXmlReader {
                 if (event instanceof StartElement) {
                     StartElement element = (StartElement) event;
                     String localName = element.getName().getLocalPart();
-                    if ("fields".equals(localName)) {
+                    if ("test_fields".equals(localName)) {
                         fieldsElement = true;
                     }
-                    if ("field".equals(localName)) {
+                    if ("test_field".equals(localName)) {
                         if (!fieldsElement) {
-                            Assert.fail("<Field> element found, but surrounding element '<fields>' is missing in the XML file");
+                            Assert.fail("<test_field> element found, but surrounding element '<test_fields>' is missing in the XML file");
                         }
                         String type = element.getAttributeByName(new QName("type")).getValue();
                         String value = element.getAttributeByName(new QName("value")).getValue();
@@ -52,7 +52,7 @@ public class ResultFieldsXmlReader {
                             resultFields.setTestLevel(value);
                         }
                     }
-                    if ("test".equals(localName)) {
+                    if ("test_run".equals(localName)) {
                         String moduleName = element.getAttributeByName(new QName("module")).getValue();
                         String packageName = element.getAttributeByName(new QName("package")).getValue();
                         String className = element.getAttributeByName(new QName("class")).getValue();

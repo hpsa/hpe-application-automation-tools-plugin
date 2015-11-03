@@ -39,7 +39,7 @@ public class TestResultXmlWriter {
 
         while (items.hasNext()) {
             TestResult item = items.next();
-            writer.writeStartElement("test");
+            writer.writeStartElement("test_run");
             writer.writeAttribute("module", item.getModuleName());
             writer.writeAttribute("package", item.getPackageName());
             writer.writeAttribute("class", item.getClassName());
@@ -53,8 +53,8 @@ public class TestResultXmlWriter {
 
     public void close() throws XMLStreamException {
         if (outputStream != null) {
-            writer.writeEndElement(); // tests
-            writer.writeEndElement(); // testResult
+            writer.writeEndElement(); // test_runs
+            writer.writeEndElement(); // test_result
             writer.writeEndDocument();
             writer.close();
             IOUtils.closeQuietly(outputStream);
@@ -67,24 +67,24 @@ public class TestResultXmlWriter {
             writer = possiblyCreateIndentingWriter(XMLOutputFactory.newInstance().createXMLStreamWriter(outputStream));
             writer.writeStartDocument();
 
-            writer.writeStartElement("testResult");
+            writer.writeStartElement("test_result");
             writer.writeStartElement("build");
             writer.writeAttribute("server", ServerIdentity.getIdentity());
             BuildTypeDescriptor descriptor = BuildHandlerUtils.getBuildType(build);
-            writer.writeAttribute("buildType", descriptor.getBuildType());
+            writer.writeAttribute("build_type", descriptor.getBuildType());
             if (!StringUtils.isEmpty(descriptor.getSubType())) {
-                writer.writeAttribute("subType", descriptor.getSubType());
+                writer.writeAttribute("sub_type", descriptor.getSubType());
             }
-            writer.writeAttribute("buildSid", String.valueOf(build.getNumber()));
+            writer.writeAttribute("build_sid", String.valueOf(build.getNumber()));
             writer.writeEndElement(); // build
             writeFields(resultFields);
-            writer.writeStartElement("tests");
+            writer.writeStartElement("test_runs");
         }
     }
 
     private void writeFields(ResultFields resultFields) throws XMLStreamException {
         if (resultFields != null) {
-            writer.writeStartElement("fields");
+            writer.writeStartElement("test_fields");
             writeField("Framework", resultFields.getFramework());
             writeField("Test_Level", resultFields.getTestLevel());
             writeField("Testing_Tool_Type", resultFields.getTestingTool());
@@ -94,7 +94,7 @@ public class TestResultXmlWriter {
 
     private void writeField(String type, String value) throws XMLStreamException {
         if (value != null) {
-            writer.writeStartElement("field");
+            writer.writeStartElement("test_field");
             writer.writeAttribute("type", type);
             writer.writeAttribute("value", value);
             writer.writeEndElement();

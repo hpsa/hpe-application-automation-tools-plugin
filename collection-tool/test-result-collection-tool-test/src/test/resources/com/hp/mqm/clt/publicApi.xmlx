@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
-<testResult>
-    <releaseRef id="123456789123456789123456789123456789" />
-    <tests>
-        <test package="com.examples.example" class="SampleClassError" name="testOne%%%TIMESTAMP%%%" status="Passed" duration="4" started="1443096986852" />
-    </tests>
-</testResult>
+<test_result>
+    <release_ref id="123456789123456789123456789123456789" />
+    <test_runs>
+        <test_run package="com.examples.example" class="SampleClassError" name="testOne%%%TIMESTAMP%%%" status="Passed" duration="4" started="1443096986852" />
+    </test_runs>
+</test_result>

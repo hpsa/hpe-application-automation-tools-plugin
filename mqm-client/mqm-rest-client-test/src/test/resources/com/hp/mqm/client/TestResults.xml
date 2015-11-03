@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<testResult>
-    <build server="%%%SERVER_IDENTITY%%%" buildType="%%%JOB_NAME%%%" buildSid="1"/>
-    <tests>
-        <test module="helloModule" package="helloPackage" class="HelloWorldTest" name="testOne%%%TIMESTAMP%%%" duration="2" status="Passed" started="1431527285551" />
-    </tests>
-</testResult>
+<test_result>
+    <build server="%%%SERVER_IDENTITY%%%" build_type="%%%JOB_NAME%%%" build_sid="1"/>
+    <test_runs>
+        <test_run module="helloModule" package="helloPackage" class="HelloWorldTest" name="testOne%%%TIMESTAMP%%%" duration="2" status="Passed" started="1431527285551" />
+    </test_runs>
+</test_result>
