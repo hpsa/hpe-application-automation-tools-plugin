@@ -70,6 +70,7 @@ public class TestResultCollectionToolTest {
         testClientSettings.setInputXmlFileNames(fileNames);
         testClientSettings.setRelease(release.getId().intValue());
         testClientSettings.setTags(tags);
+        testClientSettings.setCheckResult(true);
         TestResultCollectionTool testResultCollectionTool = new TestResultCollectionTool(testClientSettings);
         testResultCollectionTool.collectAndPushTestResults();
 
