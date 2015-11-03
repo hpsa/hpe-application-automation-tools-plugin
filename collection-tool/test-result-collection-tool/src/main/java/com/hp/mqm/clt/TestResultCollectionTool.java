@@ -62,8 +62,7 @@ public class TestResultCollectionTool {
                     continue;
                 }
                 if (settings.isCheckResult()) {
-                    if (validatePublishResult(testResultId, publicApiXML.getValue())) {
-                    }
+                    validatePublishResult(testResultId, publicApiXML.getValue());
                 } else {
                     System.out.println("Test result from file '" + publicApiXML.getValue() + "' was pushed to the server with ID " + testResultId);
                 }
@@ -129,7 +128,8 @@ public class TestResultCollectionTool {
 
     private String getPublishResult(long id) throws InterruptedException {
         String status = null;
-        for (int i = 0; i < settings.getCheckResultTimeout() * 10; i++) {
+        int timeout = (settings.getCheckResultTimeout() != null) ? settings.getCheckResultTimeout() : 10;
+        for (int i = 0; i < timeout * 10; i++) {
             TestResultPushStatus testResultPushStatus = client.getTestResultStatus(id);
             status = testResultPushStatus.getStatus();
             if (!"running".equals(status) && !"queued".equals(status)) {
