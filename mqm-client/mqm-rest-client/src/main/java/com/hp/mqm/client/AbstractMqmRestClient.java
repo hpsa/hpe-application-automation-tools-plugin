@@ -51,7 +51,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	private static final String URI_AUTHENTICATION = "authentication/sign_in";
     private static final String HEADER_NAME_AUTHORIZATION = "Authorization";
     private static final String HEADER_VALUE_BASIC_AUTH = "Basic ";
-	private static final String HEADER_CLIENT_TYPE = "HPE_CLIENT_TYPE";
+	private static final String HEADER_CLIENT_TYPE = "HPECLIENTTYPE";
     static final String URI_LOGOUT = "authentication/sign_out";
 
 	private static final String PROJECT_API_URI = "api/shared_spaces/{0}";
