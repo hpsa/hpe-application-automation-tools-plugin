@@ -641,18 +641,13 @@ public class MqmRestClientImplTest {
 
         taxonomies = client.queryTaxonomies("TaxonomyType" + timestamp, WORKSPACE, 0, 100);
         List<Taxonomy> items = new ArrayList<Taxonomy>(taxonomies.getItems());
-        Collections.sort(items, new Comparator<Taxonomy>() {
-			@Override
-			public int compare(Taxonomy left, Taxonomy right) {
-				return (int) (left.getId() - right.getId());
-			}
-		});
-        Assert.assertEquals(2, items.size());
-        Assert.assertEquals(taxonomyType.getName(), items.get(0).getName());
-        Assert.assertEquals(taxonomyType.getId(), items.get(0).getId());
-        Assert.assertEquals(taxonomy.getName(), items.get(1).getName());
-        Assert.assertEquals(taxonomy.getId(), items.get(1).getId());
-    }
+
+        Assert.assertEquals(1, items.size());
+        Assert.assertEquals(taxonomy.getName(), items.get(0).getName());
+		Assert.assertEquals(taxonomy.getId(), items.get(0).getId());
+		Assert.assertEquals(taxonomyType.getName(), items.get(0).getRoot().getName());
+		Assert.assertEquals(taxonomyType.getId(), items.get(0).getRoot().getId());
+	}
 
 	@Test
 	public void testGetTaxonomies() throws IOException {

@@ -15,12 +15,6 @@ import com.hp.mqm.client.model.Release;
 import com.hp.mqm.client.model.Taxonomy;
 import com.hp.mqm.client.model.TestResultStatus;
 import com.hp.mqm.client.model.Workspace;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONException;
-import net.sf.json.JSONNull;
-import net.sf.json.JSONObject;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import com.hp.mqm.org.apache.http.HttpEntity;
 import com.hp.mqm.org.apache.http.HttpResponse;
 import com.hp.mqm.org.apache.http.HttpStatus;
@@ -31,11 +25,16 @@ import com.hp.mqm.org.apache.http.client.utils.HttpClientUtils;
 import com.hp.mqm.org.apache.http.entity.ContentType;
 import com.hp.mqm.org.apache.http.entity.FileEntity;
 import com.hp.mqm.org.apache.http.entity.StringEntity;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONException;
+import net.sf.json.JSONNull;
+import net.sf.json.JSONObject;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.SocketTimeoutException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -44,7 +43,6 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -450,8 +448,9 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	@Override
 	public PagedList<Taxonomy> queryTaxonomies(String name, long workspaceId, int offset, int limit) {
 		List<String> conditions = new LinkedList<String>();
+		conditions.add("!category={null}");
 		if (!StringUtils.isEmpty(name)) {
-			conditions.add(condition("name", "*" + name + "*") + "||" + conditionRef("category", "name", "*" + name + "*"));
+			conditions.add("(" + condition("name", "*" + name + "*") + "||" + conditionRef("category", "name", "*" + name + "*") + ")");
 		}
 		return getEntities(getEntityURI(URI_TAXONOMY_NODES, conditions, workspaceId, offset, limit, null), offset, new TaxonomyEntityFactory());
 	}

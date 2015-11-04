@@ -599,7 +599,7 @@ public class JobConfigurationProxy {
 
     @JavaScriptMethod
     public JSONObject searchTaxonomies(String term, long workspaceId, JSONArray pipelineTaxonomies) {
-        int defaultSize = 10;
+        int defaultSize = 20;
         JSONObject ret = new JSONObject();
 
         MqmRestClient client;
