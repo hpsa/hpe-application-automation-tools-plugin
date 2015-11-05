@@ -57,7 +57,7 @@ public class TestResultCollectionTool {
                     testResultId = client.postTestResult(new FileEntity(publicApiXML.getKey()));
                 } catch (ValidationException e) {
                     // One invalid public API XML should not stop the whole process when supplied externally
-                    System.out.println("Test result from file '" + publicApiXML.getValue() + "' was not pushed"); // TODO message
+                    System.out.println("Test result from file '" + publicApiXML.getValue() + "' was not pushed");
                     System.out.println(e.getMessage());
                     continue;
                 }

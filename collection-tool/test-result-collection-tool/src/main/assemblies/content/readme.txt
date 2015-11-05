@@ -4,14 +4,15 @@ README
 HP Lifecycle Management Test Result Collection Tool
 ---------------------------------------------------
 
-Test Result Collection Tool is command line tool for pushing test result 
-XML file(s) to MQM test result public API.
+The Test Result Collection Tool is a command line tool for pushing test 
+result XML files to the MQM test result API.
 
 Usage
 -----
 
  java -jar test-result-collection-tool.jar [OPTIONS]... FILE [FILE]...
-
+ 
+ OPTIONS:
  -a,--product-area <ID>            assign the test result to product area
  -b,--backlog-item <ID>            assign the test result to backlog item
  -c,--config-file <FILE>           configuration file location
@@ -22,8 +23,8 @@ Usage
  -e,--skip-errors                  skip errors on the server side
  -f,--field <TYPE:VALUE>           assign field tag to test result
  -h,--help                         show this help
- -i,--internal                     supplied xml files are in the internal
-                                   xml format
+ -i,--internal                     supplied XML files are in the API
+                                   internal XML format
  -o,--output-file <FILE>           write output to file instead of pushing
                                    it to the server
  -p,--password <PASSWORD>          server password
@@ -34,8 +35,8 @@ Usage
     --proxy-port <PORT>            proxy port
     --proxy-user <USERNAME>        proxy username
  -r,--release <ID>                 assign release to test result
- -s,--server <URL:PORT>            server url with protocol and port
-    --started <TIMESTAMP>          started time in millis
+ -s,--server <URL:PORT>            server URL with protocol and port
+    --started <TIMESTAMP>          start time in milliseconds
  -t,--tag <TYPE:VALUE>             assign tag to test result
  -u,--user <USERNAME>              server username
  -v,--version                      show version of this tool
@@ -44,11 +45,11 @@ Usage
 Configuration
 -------------
 
-In order to push test results to MQM server, this tool requires 
-specification of the server location (-s option), sharedspace ID (-d 
-option) and workspace ID (-w option), which can be
-specified directly as a command-line arguments or in a configuration file 
-as shown on the following example:
+To push test results to MQM server, this tool requires the server location 
+(-s option), sharedspace ID (-d option) and workspace ID (-w option). 
+This data can be passed as command-line arguments or in a configuration file. 
+
+Example configuration file:
 
     # Server URL with protocol and port
     server=http://myserver.hpe.com:8080
@@ -65,39 +66,37 @@ as shown on the following example:
     # Proxy username
     proxyuser=test
 
-Location of this configuration file can be manually specified as an 
-argument (-c option) or it can be automatically detected (when file with 
-configuration named 'config.properties'
-is placed in the same directory as this tool).
+If the configuration file is named 'config.properties' and is in same 
+directory as this tool, it is automatically detected. Otherwise, pass the 
+configuration file pathname as a command-line argument (-c option). 
 
-Taxonomy tags, field tags, product areas and backlog items can be 
-specified multiple times (e.g. -t "OS:Linux" -t "DB:Oracle"). If there is 
-an output file specified (--output-file option), this tool will write the 
-output XML (created from a single input JUnit report) to file instead of 
-pushing it to the server. No server or credential specification is 
-required in this case. If there is no command line specification of the 
-started time (--started option), current system time will be used in this 
-field for non-internal test results. Some server-side errors (e.g. invalid 
-release ID) can cause test result push failure even when the pushed XML is 
-well formatted. User can use a skip-errors flag (-e option) to push such a 
-test result anyway.
+Taxonomy tags, field tags, product areas and backlog items can be specified 
+more than once (e.g. -t "OS:Linux" -t "DB:Oracle"). 
+
+If an output file is specified (--output-file option), this tool writes 
+the output XML to a file instead of pushing it to the server. No server or 
+credential specification is required in this case.
+The output XML is created from a single input JUnit report.
+
+If there is no command line specification of the start time (--started 
+option), the current system time is used for JUnit test results. 
+
+Some server-side errors can cause test result push failure even when the 
+pushed XML is well formatted. You can use the skip-errors flag (-e option) to 
+force pushing such a test result.
 
 Password handling
 -----------------
 
-There are three ways, how to enter the password:
-
-1.  User is prompted to enter password to console
-
-2.  Password is entered directly to command line (--password option)
-
-3.  Password is entered from file (--password-file option)
+The password can be entered in the following ways:
+*  User is prompted to enter password on console
+*  Password is entered directly to command line (--password option)
+*  Password is entered from file (--password-file option)
 
 Supported test result formats
 -----------------------------
 
-This tool accepts JUnit test reports. This format is shown on the 
-following example:
+This tool accepts JUnit test reports. This format is shown in the following example:
 
     <!-- element encapsulating testcases -->
     <testsuite>
@@ -119,31 +118,33 @@ following example:
         </testcase>
     </testsuite>
 
-Additional information like release, taxonomy tags or field tags can be 
-set as command line arguments for JUnit test reports.
+Additional information like release, taxonomy tags, or field tags can 
+be set as command line arguments for JUnit test reports.
 
-User can also provide the test report in public API format for more 
-complex use cases. All additional parameters (release, taxonomy tags, 
-field tags,...) are set directly in the XML file in this case.
+You can also provide the test report in the API internal format by using 
+the -i or --internal option. If you use the API internal format, more parameters are 
+set in the XML file than are available in the JUnit test reports. For  
+example, release, taxonomy tags, field tags,and so on. The API internal  
+format is defined in testResult.xsd, on the MQM server.
 
 Examples
 --------
 
-1.  Server configuration is entered directly on the command line. User 
-    will be prompted to enter the password.
+1.  Server configuration is entered directly on the command line. 
+User is prompted to enter the password.
 
     java -jar test-result-collection-tool.jar -s "http://localhost:8080" 
         -d 1001 -w 1002 JUnit.xml
 
-2.  Configuration of the server is specified in a separate configuration 
-    file. Password is entered directly on the command line and tags will be
-    assigned to the test result generated from both JUnit files.
+2.  Configuration of the server is specified in a separate configuration  
+file. Password is entered directly on the command line and tags are assigned to 
+the test results generated from both JUnit files.
 
     java -jar test-result-collection-tool.jar -c someConfig.properties -p 
         "password" -t "OS:Linux" -t "DB:Oracle" JUnitOne.xml JUnitTwo.xml
 
-3.  Server configuration is automatically loaded from the 
-    'config.properties' file, which is placed in the same directory as this
-    tool. The input file is in a public API format.
+3.  Server configuration is automatically loaded from the 'config.properties' 
+file, which is placed in the same directory as this tool. See the format
+example above in the "Configuration" section.
 
     java -jar test-result-collection-tool.jar -i publicApi.xml
