@@ -8,17 +8,13 @@ import com.hp.mqm.client.exception.RequestException;
 import com.hp.mqm.client.exception.ServerException;
 import com.hp.mqm.client.exception.SharedSpaceNotExistException;
 import com.hp.mqm.client.model.PagedList;
+import com.hp.mqm.org.apache.http.*;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import com.hp.mqm.org.apache.http.HttpEntity;
-import com.hp.mqm.org.apache.http.HttpEntityEnclosingRequest;
-import com.hp.mqm.org.apache.http.HttpHost;
-import com.hp.mqm.org.apache.http.HttpResponse;
-import com.hp.mqm.org.apache.http.HttpStatus;
 import com.hp.mqm.org.apache.http.auth.AuthScope;
 import com.hp.mqm.org.apache.http.auth.Credentials;
 import com.hp.mqm.org.apache.http.auth.UsernamePasswordCredentials;
@@ -52,6 +48,10 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
     private static final String HEADER_NAME_AUTHORIZATION = "Authorization";
     private static final String HEADER_VALUE_BASIC_AUTH = "Basic ";
 	private static final String HEADER_CLIENT_TYPE = "HPECLIENTTYPE";
+	private static final String HPSSO_COOKIE_CSRF = "HPSSO_COOKIE_CSRF";
+	private static final String HPSSO_HEADER_CSRF = "HPSSO_HEADER_CSRF";
+
+
     static final String URI_LOGOUT = "authentication/sign_out";
 
 	private static final String PROJECT_API_URI = "api/shared_spaces/{0}";
@@ -77,6 +77,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	private final String username;
 
 	private final String password;
+  private static String XCRF_VALUE;
 
 	private volatile boolean alreadyLoggedIn = false;
 
@@ -92,6 +93,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 		this.location = connectionConfig.getLocation();
 		this.sharedSpace = connectionConfig.getSharedSpace();
 		this.clientType = connectionConfig.getClientType();
+
 
 		this.username = connectionConfig.getUsername();
 		this.password = connectionConfig.getPassword();
@@ -140,7 +142,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	 */
 	protected synchronized void logout() {
 		HttpUriRequest request = new HttpPost(createBaseUri(URI_LOGOUT));
-        addClientTypeHeader(request);
+    addRequestHeaders(request);
 		HttpResponse response = null;
 		try {
 			response = httpClient.execute(request);
@@ -167,11 +169,29 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 		}
 	}
 
+  private void handleCSRF(HttpResponse response) {
+    boolean isCSRF = false;
+    Header[] headers = response.getHeaders("Set-Cookie");
+    for(Header h : headers){
+      HeaderElement[] he = h.getElements();
+      for(HeaderElement e : he){
+        if(e.getName().equals(HPSSO_COOKIE_CSRF)){
+          XCRF_VALUE= e.getValue();
+          isCSRF = true;
+          break;
+        }
+      }
+      if(isCSRF){
+        break;
+      }
+    }
+  }
+
 	private void authenticate() {
         HttpPost post = new HttpPost(createBaseUri(URI_AUTHENTICATION));
         String authorizationString = (username != null ? username : "") + ":" + (password != null ? password : "");
         post.setHeader(HEADER_NAME_AUTHORIZATION, HEADER_VALUE_BASIC_AUTH + Base64.encodeBase64String(authorizationString.getBytes(StandardCharsets.UTF_8)));
-		addClientTypeHeader(post);
+        addRequestHeaders(post, true);
 
         HttpResponse response = null;
         try {
@@ -179,6 +199,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
             if (response.getStatusLine().getStatusCode() != 200) {
                 throw new AuthenticationException("Authentication failed: code=" + response.getStatusLine().getStatusCode() + "; reason=" + response.getStatusLine().getReasonPhrase());
             }
+          handleCSRF(response);
         } catch (IOException e) {
             throw new LoginErrorException("Error occurred during authentication", e);
         } finally {
@@ -269,7 +290,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 
     // don't remove (used in test-support)
 	protected URI createWorkspaceInternalApiUriMap(String template, long workspaceId, Object ... params) {
-		return URI.create(createBaseUri(WORKSPACE_INTERNAL_API_URI, sharedSpace, workspaceId).toString() + "/" + resolveTemplate(template, asMap(params)));
+    return URI.create(createBaseUri(WORKSPACE_INTERNAL_API_URI, sharedSpace, workspaceId).toString() + "/" + resolveTemplate(template, asMap(params)));
 	}
 
 	protected URI createWorkspaceApiUri(String template, long workspaceId, Object ... params) {
@@ -281,7 +302,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	}
 
 	protected URI createProjectUri(String projectPartTemplate, String template, Map<String, ?> params) {
-		return URI.create(createBaseUri(projectPartTemplate, sharedSpace).toString() + "/" + resolveTemplate(template, params));
+    return URI.create(createBaseUri(projectPartTemplate, sharedSpace).toString() + "/" + resolveTemplate(template, params));
 	}
 
 	/**
@@ -337,7 +358,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 			}
 		}
 		doFirstLogin();
-        addClientTypeHeader(request);
+        addRequestHeaders(request);
 		HttpResponse response = httpClient.execute(request);
 		if (isLoginNecessary(response)) { // if request fails with 401 do login and execute request again
 			HttpClientUtils.closeQuietly(response);
@@ -360,7 +381,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	 */
 	protected <T> T execute(final HttpUriRequest request, final ResponseHandler<? extends T> responseHandler) throws IOException {
 		doFirstLogin();
-        addClientTypeHeader(request);
+        addRequestHeaders(request);
 		final BooleanReference loginNecessary = new BooleanReference();
 		loginNecessary.value = false;
 		T result = httpClient.execute(request, new ResponseHandler<T>() {
@@ -504,11 +525,20 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 		return params;
 	}
 
-    private void addClientTypeHeader(HttpUriRequest request) {
-        if (request.getFirstHeader(HEADER_CLIENT_TYPE) == null) {
-            request.addHeader(HEADER_CLIENT_TYPE, clientType);
-        }
+  private void addRequestHeaders(HttpUriRequest request) {
+    addRequestHeaders(request, false);
+  }
+
+  private void addRequestHeaders(HttpUriRequest request, boolean isLogin) {
+    if (request.getFirstHeader(HEADER_CLIENT_TYPE) == null) {
+      request.addHeader(HEADER_CLIENT_TYPE, clientType);
     }
+    if (!isLogin) {
+      if (request.getFirstHeader(HPSSO_HEADER_CSRF) == null) {
+        request.addHeader(HPSSO_HEADER_CSRF, XCRF_VALUE);
+      }
+    }
+  }
 
 	private boolean isLoginNecessary(HttpResponse response) {
 		return response.getStatusLine().getStatusCode() == 401;
