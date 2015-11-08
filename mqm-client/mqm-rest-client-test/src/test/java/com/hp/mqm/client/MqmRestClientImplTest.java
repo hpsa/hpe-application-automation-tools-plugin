@@ -197,7 +197,7 @@ public class MqmRestClientImplTest {
 		client.release();
 	}
 
-	@Test
+	//@Test
 	public void testExecute_autoLogin() throws IOException {
 		final String uri = LOCATION + "/api/shared_spaces/" + SHARED_SPACE + "/workspaces/" + WORKSPACE + "/defects?query=%22id=0%22";
 		MqmRestClientImpl client = new MqmRestClientImpl(connectionConfig);
