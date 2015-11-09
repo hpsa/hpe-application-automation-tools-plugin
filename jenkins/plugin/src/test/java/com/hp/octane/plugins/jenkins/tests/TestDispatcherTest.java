@@ -291,7 +291,7 @@ public class TestDispatcherTest {
                 .when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq(false));
         FreeStyleBuild build = executeBuild();
         FreeStyleBuild build2 = executeBuild();
-        queue.waitForTicks(12);
+        queue.waitForTicks(15);
         Mockito.verify(restClient, Mockito.times(7)).tryToConnectSharedSpace();
         Mockito.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
         Mockito.verify(restClient, Mockito.times(6)).postTestResult(new File(build2.getRootDir(), "mqmTests.xml"), false);
