@@ -298,7 +298,7 @@ public class TestDispatcherTest {
         Mockito.verify(restClient, Mockito.times(7)).release();
         Mockito.verifyNoMoreInteractions(restClient);
         verifyAudit(build, true);
-        verifyAudit(build2, false, false, false, false, false, true);
+        verifyAudit(true, build2, false, false, false, false, false, true);
         Assert.assertEquals(0, queue.size());
     }
 
@@ -309,6 +309,10 @@ public class TestDispatcherTest {
     }
 
     private void verifyAudit(AbstractBuild build, boolean ... statuses) throws IOException, InterruptedException {
+        verifyAudit(false, build, statuses);
+    }
+
+    private void verifyAudit(boolean unavailableIfFailed, AbstractBuild build, boolean ... statuses) throws IOException, InterruptedException {
         FilePath auditFile = new FilePath(new File(build.getRootDir(), TestDispatcher.TEST_AUDIT_FILE));
         JSONArray audits;
         if (statuses.length > 0) {
@@ -328,6 +332,11 @@ public class TestDispatcherTest {
             Assert.assertEquals(statuses[i], audit.getBoolean("pushed"));
             if (statuses[i]) {
                 Assert.assertEquals(1l, audit.getLong("id"));
+            }
+            if (!statuses[i] && unavailableIfFailed) {
+                Assert.assertTrue(audit.getBoolean("temporarilyUnavailable"));
+            } else {
+                Assert.assertFalse(audit.containsKey("temporarilyUnavailable"));
             }
             Assert.assertNotNull(audit.getString("date"));
         }
