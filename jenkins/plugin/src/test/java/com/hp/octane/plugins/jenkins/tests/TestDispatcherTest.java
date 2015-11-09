@@ -9,6 +9,7 @@ import com.hp.mqm.client.exception.AuthenticationException;
 import com.hp.mqm.client.exception.SharedSpaceNotExistException;
 import com.hp.mqm.client.exception.RequestException;
 import com.hp.mqm.client.exception.SessionCreationException;
+import com.hp.mqm.client.exception.TemporarilyUnavailableException;
 import com.hp.octane.plugins.jenkins.ExtensionUtil;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
@@ -274,6 +275,30 @@ public class TestDispatcherTest {
         Mockito.verify(restClient).release();
         Mockito.verifyNoMoreInteractions(restClient);
 
+        Assert.assertEquals(0, queue.size());
+    }
+
+    @Test
+    public void testDispatcherTemporarilyUnavailable() throws Exception {
+        Mockito.reset(restClient);
+        Mockito.doReturn(1l)
+                .doThrow(new TemporarilyUnavailableException("Server busy"))
+                .doThrow(new TemporarilyUnavailableException("Server busy"))
+                .doThrow(new TemporarilyUnavailableException("Server busy"))
+                .doThrow(new TemporarilyUnavailableException("Server busy"))
+                .doThrow(new TemporarilyUnavailableException("Server busy"))
+                .doReturn(1l)
+                .when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq(false));
+        FreeStyleBuild build = executeBuild();
+        FreeStyleBuild build2 = executeBuild();
+        queue.waitForTicks(12);
+        Mockito.verify(restClient, Mockito.times(7)).tryToConnectSharedSpace();
+        Mockito.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
+        Mockito.verify(restClient, Mockito.times(6)).postTestResult(new File(build2.getRootDir(), "mqmTests.xml"), false);
+        Mockito.verify(restClient, Mockito.times(7)).release();
+        Mockito.verifyNoMoreInteractions(restClient);
+        verifyAudit(build, true);
+        verifyAudit(build2, false, false, false, false, false, true);
         Assert.assertEquals(0, queue.size());
     }
 
