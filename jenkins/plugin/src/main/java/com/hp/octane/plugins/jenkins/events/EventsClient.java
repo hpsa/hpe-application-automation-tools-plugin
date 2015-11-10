@@ -54,16 +54,30 @@ public class EventsClient {
 	private Date lastErrorTime;
 
 	public EventsClient(ServerConfiguration mqmConfig, JenkinsMqmRestClientFactory clientFactory) {
-		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.abridged, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password, mqmConfig.impersonatedUser);
+		this.mqmConfig = new ServerConfiguration(
+				mqmConfig.location,
+				mqmConfig.abridged,
+				mqmConfig.sharedSpace,
+				mqmConfig.username,
+				mqmConfig.password,
+				mqmConfig.impersonatedUser);
 		this.restClientFactory = clientFactory;
-		activate();
-		logger.info("EVENTS: new events client initialized for '" + this.mqmConfig.location + "'");
+		if (this.mqmConfig.location != null && !this.mqmConfig.location.isEmpty()) {
+			activate();
+			logger.info("EVENTS: client initialized for '" + this.mqmConfig.location + "' (SP: " + this.mqmConfig.sharedSpace + ")");
+		} else {
+			logger.info("EVENTS: client initialized in disconnected state");
+		}
 	}
 
-	public void update(ServerConfiguration mqmConfig) {
-		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.abridged, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password, mqmConfig.impersonatedUser);
-		activate();
-		logger.info("EVENTS: events client updated for '" + this.mqmConfig.location + "'");
+	public void update(ServerConfiguration newConfig) {
+		mqmConfig = new ServerConfiguration(newConfig.location, newConfig.abridged, newConfig.sharedSpace, newConfig.username, newConfig.password, newConfig.impersonatedUser);
+		if (mqmConfig.location != null && !mqmConfig.location.isEmpty()) {
+			activate();
+			logger.info("EVENTS: updated for '" + mqmConfig.location + "' (SP: " + mqmConfig.sharedSpace + ")");
+		} else {
+			logger.info("EVENTS: disabled by configuration change");
+		}
 	}
 
 	public void pushEvent(CIEventBase event) {

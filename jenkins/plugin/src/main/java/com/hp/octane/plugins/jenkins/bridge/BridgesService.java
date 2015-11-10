@@ -42,20 +42,10 @@ public class BridgesService implements ConfigurationListener {
 	}
 
 	public void updateBridge(ServerConfiguration conf) {
-		boolean existing = false;
-		if (conf == null || conf.password == null ||
-				conf.location == null || conf.location.equals("") ||
-				conf.sharedSpace == null || conf.sharedSpace.equals("") ||
-				conf.username == null || conf.username.equals("")) {
-			logger.warning("BRIDGE: bad configuration encountered, bridge will not be " + (bridgeClient == null ? "created" : "updated"));
+		if (bridgeClient != null) {
+			bridgeClient.update(conf);
 		} else {
-			synchronized (bridgeLocker) {
-				if (bridgeClient != null) {
-					bridgeClient.update(conf);
-				} else {
-					bridgeClient = new BridgeClient(conf, clientFactory);
-				}
-			}
+			bridgeClient = new BridgeClient(conf, clientFactory);
 		}
 	}
 

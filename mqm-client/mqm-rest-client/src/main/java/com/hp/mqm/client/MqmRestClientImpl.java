@@ -595,6 +595,8 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 					logger.info("expected timeout disconnection on retrieval of abridged tasks");
 				} else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
 					throw new AuthenticationException();
+				} else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_FOUND) {
+					throw new TemporarilyUnavailableException("");
 				} else {
 					logger.info("unexpected response with status " + response.getStatusLine().getStatusCode());
 				}

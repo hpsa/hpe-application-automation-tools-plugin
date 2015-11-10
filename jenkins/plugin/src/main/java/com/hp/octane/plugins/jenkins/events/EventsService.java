@@ -44,17 +44,10 @@ public final class EventsService implements ConfigurationListener {
 	}
 
 	public void updateClient(ServerConfiguration conf) {
-		if (conf == null || conf.password == null ||
-				conf.location == null || conf.location.equals("") ||
-				conf.sharedSpace == null || conf.sharedSpace.equals("") ||
-				conf.username == null || conf.username.equals("")) {
-			logger.warning("EVENTS: bad configuration encountered, events client will not be " + (eventsClient == null ? "created" : "updated"));
+		if (eventsClient != null) {
+			eventsClient.update(conf);
 		} else {
-			if (eventsClient != null) {
-				eventsClient.update(conf);
-			} else {
-				eventsClient = new EventsClient(conf, clientFactory);
-			}
+			eventsClient = new EventsClient(conf, clientFactory);
 		}
 	}
 

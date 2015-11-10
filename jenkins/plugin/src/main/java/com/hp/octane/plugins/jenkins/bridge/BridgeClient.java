@@ -2,6 +2,7 @@ package com.hp.octane.plugins.jenkins.bridge;
 
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.AuthenticationException;
+import com.hp.mqm.client.exception.TemporarilyUnavailableException;
 import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
@@ -30,20 +31,41 @@ public class BridgeClient {
 	private ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30, new AbridgedTasksExecutorsFactory());
 	private AtomicInteger openedConnections = new AtomicInteger(0);
 
-	private ServerConfiguration mqmConfiguration;
+	private ServerConfiguration mqmConfig;
 	private JenkinsMqmRestClientFactory restClientFactory;
 
 	public BridgeClient(ServerConfiguration mqmConfig, JenkinsMqmRestClientFactory clientFactory) {
-		mqmConfiguration = new ServerConfiguration(mqmConfig.location, mqmConfig.abridged, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password, mqmConfig.impersonatedUser);
+		this.mqmConfig = new ServerConfiguration(
+				mqmConfig.location,
+				mqmConfig.abridged,
+				mqmConfig.sharedSpace,
+				mqmConfig.username,
+				mqmConfig.password,
+				mqmConfig.impersonatedUser);
 		restClientFactory = clientFactory;
-		if (this.mqmConfiguration.abridged) connect();
-		logger.info("BRIDGE: new bridge initialized for '" + mqmConfiguration.location + "' (SP: " + mqmConfiguration.sharedSpace + "), state: " + (mqmConfiguration.abridged ? "abridged" : "direct") + " connectivity");
+		if (this.mqmConfig.location != null && !this.mqmConfig.location.isEmpty()) {
+			connect();
+			logger.info("BRIDGE: client initialized for '" + this.mqmConfig.location + "' (SP: " + this.mqmConfig.sharedSpace + ")");
+		} else {
+			logger.info("BRIDGE: client initialized in disconnected state");
+		}
 	}
 
-	public void update(ServerConfiguration mqmConfig) {
-		mqmConfiguration = new ServerConfiguration(mqmConfig.location, mqmConfig.abridged, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password, mqmConfig.impersonatedUser);
-		if (mqmConfig.abridged && openedConnections.get() < CONCURRENT_CONNECTIONS) connect();
-		logger.info("BRIDGE: updated for '" + mqmConfiguration.location + "' (SP: " + mqmConfiguration.sharedSpace + "), state: " + (mqmConfiguration.abridged ? "abridged" : "direct") + " connectivity");
+	public void update(ServerConfiguration newConfig) {
+		mqmConfig = new ServerConfiguration(
+				newConfig.location,
+				newConfig.abridged,
+				newConfig.sharedSpace,
+				newConfig.username,
+				newConfig.password,
+				newConfig.impersonatedUser);
+		//  TODO: disconnect current connection once async connectivity is possible
+		if (mqmConfig.location != null && !mqmConfig.location.isEmpty()) {
+			logger.info("BRIDGE: updated for '" + mqmConfig.location + "' (SP: " + mqmConfig.sharedSpace + ")");
+			connect();
+		} else {
+			logger.info("BRIDGE: disabled by configuration change");
+		}
 	}
 
 	private void connect() {
@@ -54,20 +76,20 @@ public class BridgeClient {
 				int totalConnections;
 				try {
 					totalConnections = openedConnections.incrementAndGet();
-					logger.info("BRIDGE: connecting to '" + mqmConfiguration.location +
-							"' (SP: " + mqmConfiguration.sharedSpace +
+					logger.info("BRIDGE: connecting to '" + mqmConfig.location +
+							"' (SP: " + mqmConfig.sharedSpace +
 							"; instance ID: " + serverInstanceId +
 							"; self URL: " + new PluginActions.ServerInfo().getUrl() +
 							")...; total connections [including new one]: " + totalConnections);
 					MqmRestClient restClient = restClientFactory.create(
-							mqmConfiguration.location,
-							mqmConfiguration.sharedSpace,
-							mqmConfiguration.username,
-							mqmConfiguration.password);
+							mqmConfig.location,
+							mqmConfig.sharedSpace,
+							mqmConfig.username,
+							mqmConfig.password);
 					tasksJSON = restClient.getAbridgedTasks(serverInstanceId, new PluginActions.ServerInfo().getUrl());
-					logger.info("BRIDGE: back from '" + mqmConfiguration.location + "' (SP: " + mqmConfiguration.sharedSpace + ") with " + (tasksJSON == null || tasksJSON.isEmpty() ? "no tasks" : "some tasks"));
+					logger.info("BRIDGE: back from '" + mqmConfig.location + "' (SP: " + mqmConfig.sharedSpace + ") with " + (tasksJSON == null || tasksJSON.isEmpty() ? "no tasks" : "some tasks"));
 					openedConnections.decrementAndGet();
-					if (mqmConfiguration.abridged && openedConnections.get() < CONCURRENT_CONNECTIONS) {
+					if (mqmConfig.abridged && openedConnections.get() < CONCURRENT_CONNECTIONS) {
 						connect();
 					}
 					if (tasksJSON != null && !tasksJSON.isEmpty()) {
@@ -81,7 +103,18 @@ public class BridgeClient {
 					} catch (InterruptedException ie) {
 						logger.info("interrupted while breathing on temporary exception, continue to re-connect...");
 					}
-					if (mqmConfiguration.abridged && openedConnections.get() < CONCURRENT_CONNECTIONS) {
+					if (mqmConfig.abridged && openedConnections.get() < CONCURRENT_CONNECTIONS) {
+						connect();
+					}
+				} catch (TemporarilyUnavailableException tue) {
+					openedConnections.decrementAndGet();
+					logger.severe("BRIDGE: connection to MQM Server temporary failed: resource not available");
+					try {
+						Thread.sleep(20000);
+					} catch (InterruptedException ie) {
+						logger.info("interrupted while breathing on temporary exception, continue to re-connect...");
+					}
+					if (mqmConfig.abridged && openedConnections.get() < CONCURRENT_CONNECTIONS) {
 						connect();
 					}
 				} catch (Exception e) {
@@ -92,7 +125,7 @@ public class BridgeClient {
 					} catch (InterruptedException ie) {
 						logger.info("interrupted while breathing on temporary exception, continue to re-connect...");
 					}
-					if (mqmConfiguration.abridged && openedConnections.get() < CONCURRENT_CONNECTIONS) {
+					if (mqmConfig.abridged && openedConnections.get() < CONCURRENT_CONNECTIONS) {
 						connect();
 					}
 				}
@@ -108,7 +141,7 @@ public class BridgeClient {
 				taskProcessingExecutors.execute(new TaskProcessor(
 						tasks.getJSONObject(i),
 						restClientFactory,
-						mqmConfiguration
+						mqmConfig
 				));
 			}
 		} catch (Exception e) {
@@ -118,17 +151,17 @@ public class BridgeClient {
 
 	@Exported(inline = true)
 	public String getLocation() {
-		return mqmConfiguration.location;
+		return mqmConfig.location;
 	}
 
 	@Exported(inline = true)
 	public String getSharedSpace() {
-		return mqmConfiguration.sharedSpace;
+		return mqmConfig.sharedSpace;
 	}
 
 	@Exported(inline = true)
 	public String getUsername() {
-		return mqmConfiguration.username;
+		return mqmConfig.username;
 	}
 
 	private static final class AbridgedConnectivityExecutorsFactory implements ThreadFactory {
