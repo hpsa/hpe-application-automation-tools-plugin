@@ -112,7 +112,7 @@
 	<f:block>
 		<div id="addRunToTrendReport" class="disabledLine">
 			<f:checkbox name="addRunToTrendReport" title="Add run to trend report with ID" checked="${instance.pcModel.addRunToTrendReport}" value="${instance.pcModel.addRunToTrendReport}"/>
-			<f:textbox  name="trendReportId" style="width:40px;height:12px;text-align:center;margin:10px" value="${instance.pcModel.trendReportId}"/>
+			<f:textbox  name="trendReportId" style="width:40px;height:24px;text-align:center;margin:10px" value="${instance.pcModel.trendReportId}"/>
 		</div>
 		<script>onPostRunActionLoad();</script>
 	</f:block>

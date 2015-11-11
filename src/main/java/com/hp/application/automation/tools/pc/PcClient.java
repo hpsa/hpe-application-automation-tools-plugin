@@ -113,7 +113,7 @@ public class PcClient {
                     File dir = new File(reportDirectory);
                     dir.mkdirs();
                     String reportArchiveFullPath = dir.getCanonicalPath() + IOUtils.DIR_SEPARATOR + PcBuilder.pcReportArchiveName;
-                    logger.println("Publishing run report");
+                    logger.println("Publishing analysis report");
                     restProxy.GetRunResultData(runId, result.getID(), reportArchiveFullPath);
                     FilePath fp = new FilePath(new File(reportArchiveFullPath));
                     fp.unzip(fp.getParent());

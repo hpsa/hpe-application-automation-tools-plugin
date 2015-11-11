@@ -191,20 +191,22 @@ public class PcBuilder extends Builder {
             response = pcClient.waitForRunCompletion(runId);
             if (response != null && RunState.get(response.getRunState()) == FINISHED) {
                 pcReportFile = pcClient.publishRunReport(runId, getReportDirectory(build));
+
+                // Adding the trend report section
+                if(pcModel.isAddRunToTrendReport() && pcModel.getTrendReportId() != null && RunState.get(response.getRunState()) != RUN_FAILURE){
+                    pcClient.addRunToTrendReport(this.runId, pcModel.getTrendReportId());
+                    pcClient.downloadTrendReportAsPdf(pcModel.getTrendReportId(), getTrendReportsDirectory(build));
+                    String reportUrlTemp = trendReportStructure.replaceFirst("%s/", "") + "/trendReport%s.pdf";
+                    String reportUrl = String.format(reportUrlTemp, artifactsResourceName, pcModel.getTrendReportId());
+
+                    pcClient.publishTrendReport(reportUrl, pcModel.getTrendReportId());
+                }
             } else  if (RunState.get(response.getRunState()).ordinal() > FINISHED.ordinal()) {
                 PcRunEventLog eventLog = pcClient.getRunEventLog(runId);                
                 eventLogString = buildEventLogString(eventLog);
             }
 
-            if(pcModel.isAddRunToTrendReport() && pcModel.getTrendReportId() != null){
-                pcClient.addRunToTrendReport(this.runId, pcModel.getTrendReportId());
-                pcClient.downloadTrendReportAsPdf(pcModel.getTrendReportId(), getTrendReportsDirectory(build));
-                String reportUrlTemp = trendReportStructure.replaceFirst("%s/", "") + "/trendReport%s.pdf";
-                String reportUrl = String.format(reportUrlTemp, artifactsResourceName, pcModel.getTrendReportId());
 
-                pcClient.publishTrendReport(reportUrl, pcModel.getTrendReportId());
-
-            }
 
         } catch (PcException e) {
             errorMessage = e.getMessage();
@@ -376,8 +378,8 @@ public class PcBuilder extends Builder {
         String urlPattern = getArtifactsUrlPattern(build);
         String viewUrl = String.format(urlPattern, pcReportFileName);
         String downloadUrl = String.format(urlPattern, "*zip*/pcRun" + runId);
-        logger.println(HyperlinkNote.encodeTo(viewUrl, "View report of run " + runId));
-        return String.format("View Report:\n%s\n\n\nDownload Report:\n%s", viewUrl, downloadUrl);
+        logger.println(HyperlinkNote.encodeTo(viewUrl, "View analysis report of run " + runId));
+        return String.format("View analysis report:\n%s\n\n\nDownload Report:\n%s", viewUrl, downloadUrl);
     }
     
     private String getArtifactsUrlPattern(AbstractBuild<?, ?> build) {
