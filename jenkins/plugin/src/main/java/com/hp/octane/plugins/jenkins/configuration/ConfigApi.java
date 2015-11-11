@@ -53,7 +53,6 @@ public class ConfigApi {
 			res.sendError(400, ex.getMessage());
 			return;
 		}
-		boolean abridged = !configuration.containsKey("abridged") || configuration.getBoolean("abridged");
 
 		String impersonatedUser = configuration.containsKey("impersonatedUser") ? configuration.getString("impersonatedUser") : "";
 
@@ -72,7 +71,7 @@ public class ConfigApi {
 			password = configuration.getString("password");
 		}
 		OctanePlugin octanePlugin = Jenkins.getInstance().getPlugin(OctanePlugin.class);
-		octanePlugin.configurePlugin(uiLocation, abridged, username, password, impersonatedUser);
+		octanePlugin.configurePlugin(uiLocation, username, password, impersonatedUser);
 		String serverIdentity = (String) configuration.get("serverIdentity");
 		if (!StringUtils.isEmpty(serverIdentity)) {
 			octanePlugin.setIdentity(serverIdentity);
@@ -90,7 +89,6 @@ public class ConfigApi {
 		return new Configuration(
 				serverConfiguration.location,
 				serverConfiguration.sharedSpace,
-				serverConfiguration.abridged,
 				serverConfiguration.username,
 				serverConfiguration.impersonatedUser,
 				ServerIdentity.getIdentity());
@@ -101,16 +99,14 @@ public class ConfigApi {
 
 		private String location;
 		private String sharedSpace;
-		private Boolean abridged;
 		private String username;
 		private String serverIdentity;
 		private String impersonatedUser;
 
 
-		public Configuration(String location, String sharedSpace, Boolean abridged, String username, String impersonatedUser, String serverIdentity) {
+		public Configuration(String location, String sharedSpace, String username, String impersonatedUser, String serverIdentity) {
 			this.location = location;
 			this.sharedSpace = sharedSpace;
-			this.abridged = abridged;
 			this.username = username;
 			this.impersonatedUser = impersonatedUser;
 			this.serverIdentity = serverIdentity;
@@ -139,11 +135,6 @@ public class ConfigApi {
 		@Exported(inline = true)
 		public String getServerIdentity() {
 			return serverIdentity;
-		}
-
-		@Exported(inline = true)
-		public Boolean isAbridged() {
-			return abridged;
 		}
 	}
 }

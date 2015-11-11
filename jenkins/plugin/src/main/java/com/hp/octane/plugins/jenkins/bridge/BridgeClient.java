@@ -37,7 +37,6 @@ public class BridgeClient {
 	public BridgeClient(ServerConfiguration mqmConfig, JenkinsMqmRestClientFactory clientFactory) {
 		this.mqmConfig = new ServerConfiguration(
 				mqmConfig.location,
-				mqmConfig.abridged,
 				mqmConfig.sharedSpace,
 				mqmConfig.username,
 				mqmConfig.password,
@@ -54,7 +53,6 @@ public class BridgeClient {
 	public void update(ServerConfiguration newConfig) {
 		mqmConfig = new ServerConfiguration(
 				newConfig.location,
-				newConfig.abridged,
 				newConfig.sharedSpace,
 				newConfig.username,
 				newConfig.password,
@@ -89,7 +87,7 @@ public class BridgeClient {
 					tasksJSON = restClient.getAbridgedTasks(serverInstanceId, new PluginActions.ServerInfo().getUrl());
 					logger.info("BRIDGE: back from '" + mqmConfig.location + "' (SP: " + mqmConfig.sharedSpace + ") with " + (tasksJSON == null || tasksJSON.isEmpty() ? "no tasks" : "some tasks"));
 					openedConnections.decrementAndGet();
-					if (mqmConfig.abridged && openedConnections.get() < CONCURRENT_CONNECTIONS) {
+					if (mqmConfig.location != null && !mqmConfig.location.isEmpty() && openedConnections.get() < CONCURRENT_CONNECTIONS) {
 						connect();
 					}
 					if (tasksJSON != null && !tasksJSON.isEmpty()) {
@@ -103,7 +101,7 @@ public class BridgeClient {
 					} catch (InterruptedException ie) {
 						logger.info("interrupted while breathing on temporary exception, continue to re-connect...");
 					}
-					if (mqmConfig.abridged && openedConnections.get() < CONCURRENT_CONNECTIONS) {
+					if (mqmConfig.location != null && !mqmConfig.location.isEmpty() && openedConnections.get() < CONCURRENT_CONNECTIONS) {
 						connect();
 					}
 				} catch (TemporarilyUnavailableException tue) {
@@ -114,7 +112,7 @@ public class BridgeClient {
 					} catch (InterruptedException ie) {
 						logger.info("interrupted while breathing on temporary exception, continue to re-connect...");
 					}
-					if (mqmConfig.abridged && openedConnections.get() < CONCURRENT_CONNECTIONS) {
+					if (mqmConfig.location != null && !mqmConfig.location.isEmpty() && openedConnections.get() < CONCURRENT_CONNECTIONS) {
 						connect();
 					}
 				} catch (Exception e) {
@@ -125,7 +123,7 @@ public class BridgeClient {
 					} catch (InterruptedException ie) {
 						logger.info("interrupted while breathing on temporary exception, continue to re-connect...");
 					}
-					if (mqmConfig.abridged && openedConnections.get() < CONCURRENT_CONNECTIONS) {
+					if (mqmConfig.location != null && !mqmConfig.location.isEmpty() && openedConnections.get() < CONCURRENT_CONNECTIONS) {
 						connect();
 					}
 				}
