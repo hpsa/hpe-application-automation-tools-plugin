@@ -41,6 +41,7 @@
 			var x = sender.selectedIndex;
 			var y = sender.options;
 			var addRunToTrendReport = document.getElementById('addRunToTrendReport');
+			//alert(y[x].value);
 			if (y[x].value === 'COLLATE_AND_ANALYZE'){
 				addRunToTrendReport.classList.remove("disabledLine");
 			}
@@ -52,7 +53,10 @@
 		
 		function onPostRunActionLoad(){
 			var postRunAction = document.getElementById('postRunAction');
-			isAddRunToTrendReportEnabled(postRunAction);
+			if(postRunAction != null){
+			    isAddRunToTrendReportEnabled(postRunAction);
+			}
+
 		}
 
 		</script>
@@ -106,11 +110,11 @@
 	</f:entry>
 
 	<f:block>
-		<div id="addRunToTrendReport">
+		<div id="addRunToTrendReport" class="disabledLine">
 			<f:checkbox name="addRunToTrendReport" title="Add run to trend report with ID" checked="${instance.pcModel.addRunToTrendReport}" value="${instance.pcModel.addRunToTrendReport}"/>
 			<f:textbox  name="trendReportId" style="width:40px;height:12px;text-align:center;margin:10px" value="${instance.pcModel.trendReportId}"/>
 		</div>
-		<script>onPostRunActionLoad()</script>
+		<script>onPostRunActionLoad();</script>
 	</f:block>
 
 	<f:block>
@@ -207,7 +211,6 @@
 	<f:optionalBlock title="Set step status according to SLA"
 		field="statusBySLA" name="pc.statusBySLA" checked="${instance.statusBySLA}"
 		inline="true" />
-	
-	
+
   
 </j:jelly>

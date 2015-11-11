@@ -112,22 +112,23 @@ public class PcModel {
     public static List<PostRunAction> getPostRunActions() {
         return Arrays.asList(PostRunAction.values());
     }
-    
+
     @Override
     public String toString() {
 
         return String.format("[PCServer='%s', User='%s', %s", runParamsToString().substring(1));
     }
-    
-    public String runParamsToString() {
-        
-        String vudsModeString = (vudsMode) ? ", VUDsMode='true'" : "";
-                
-        return String.format("[Domain='%s', Project='%s', TestID='%s', " +
-        		"TestInstanceID='%s', TimeslotDuration='%s', PostRunAction='%s'%s]",
 
-        		almDomain, almProject, testId, testInstanceId,  
-        		timeslotDuration, postRunAction.getValue(), vudsModeString);
+    public String runParamsToString() {
+
+        String vudsModeString = (vudsMode) ? ", VUDsMode='true'" : "";
+        String trendString = (addRunToTrendReport) ? String.format(", TrendReportID = '%s'",trendReportId) : "";
+
+        return String.format("[Domain='%s', Project='%s', TestID='%s', " +
+                        "TestInstanceID='%s', TimeslotDuration='%s', PostRunAction='%s'%s%s]",
+
+                almDomain, almProject, testId, testInstanceId,
+                timeslotDuration, postRunAction.getValue(), vudsModeString,trendString);
     }
 
 

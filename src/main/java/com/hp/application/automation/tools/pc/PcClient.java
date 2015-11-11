@@ -19,10 +19,10 @@ import com.hp.application.automation.tools.run.PcBuilder;
 public class PcClient {
 
     private PcModel model;
-	private PcRestProxy restProxy;
-	private boolean loggedIn;
-	private PrintStream logger;
-	
+    private PcRestProxy restProxy;
+    private boolean loggedIn;
+    private PrintStream logger;
+
     public PcClient(PcModel pcModel, PrintStream logger) {
         model = pcModel;
         restProxy = new PcRestProxy(model.getPcServerName(), model.getAlmDomain(), model.getAlmProject());
@@ -31,7 +31,7 @@ public class PcClient {
 
     public <T extends PcRestProxy> PcClient(PcModel pcModel, PrintStream logger, T proxy) {
         model = pcModel;
-        restProxy = proxy;        
+        restProxy = proxy;
         this.logger = logger;
     }
 
@@ -49,48 +49,48 @@ public class PcClient {
         return loggedIn;
     }
 
-	public boolean isLoggedIn() {
-	    
+    public boolean isLoggedIn() {
+
         return loggedIn;
     }
 
     public int startRun() throws NumberFormatException, ClientProtocolException, PcException, IOException {
-	    
-	        logger.println("Sending run request\n" + model.runParamsToString());
-	        PcRunResponse response = restProxy.startRun(Integer.parseInt(model.getTestId()), 
-                            	            Integer.parseInt(model.getTestInstanceId()),  
-                            	            model.getTimeslotDuration(), 
-                            	            model.getPostRunAction().getValue(), 
-                            	            model.isVudsMode());
-	        logger.println(String.format("\nRun started (TestID: %s, RunID: %s, TimeslotID: %s)\n", 
-                        response.getTestID(), response.getID(), response.getTimeslotID()));
-	        return response.getID();            
-	}
-	
+
+        logger.println("Sending run request:\n" + model.runParamsToString());
+        PcRunResponse response = restProxy.startRun(Integer.parseInt(model.getTestId()),
+                Integer.parseInt(model.getTestInstanceId()),
+                model.getTimeslotDuration(),
+                model.getPostRunAction().getValue(),
+                model.isVudsMode());
+        logger.println(String.format("\nRun started (TestID: %s, RunID: %s, TimeslotID: %s)\n",
+                response.getTestID(), response.getID(), response.getTimeslotID()));
+        return response.getID();
+    }
+
     public PcRunResponse waitForRunCompletion(int runId) throws InterruptedException, ClientProtocolException, PcException, IOException {
-        
+
         return waitForRunCompletion(runId, 5000);
     }
 
     public PcRunResponse waitForRunCompletion(int runId, int interval) throws InterruptedException, ClientProtocolException, PcException, IOException {
         RunState state = RunState.UNDEFINED;
         switch (model.getPostRunAction()) {
-        case DO_NOTHING:
-            state = RunState.BEFORE_COLLATING_RESULTS;
-            break;
-        case COLLATE:
-            state = RunState.BEFORE_CREATING_ANALYSIS_DATA;
-            break;
-        case COLLATE_AND_ANALYZE:
-            state = RunState.FINISHED;
-            break;
-        }       
+            case DO_NOTHING:
+                state = RunState.BEFORE_COLLATING_RESULTS;
+                break;
+            case COLLATE:
+                state = RunState.BEFORE_CREATING_ANALYSIS_DATA;
+                break;
+            case COLLATE_AND_ANALYZE:
+                state = RunState.FINISHED;
+                break;
+        }
         return waitForRunState(runId, state, interval);
     }
-    
+
     private PcRunResponse waitForRunState(int runId, RunState completionState, int interval) throws InterruptedException,
             ClientProtocolException, PcException, IOException {
-        
+
         PcRunResponse response = null;
         RunState lastState = RunState.UNDEFINED;
         do {
@@ -144,7 +144,7 @@ public class PcClient {
         logger.println(String.format("Logout %s", logoutSucceeded ? "succeeded" : "failed"));
         return logoutSucceeded;
     }
-    
+
     public boolean stopRun(int runId) {
         boolean stopRunSucceeded = false;
         try {
@@ -158,7 +158,7 @@ public class PcClient {
         logger.println(String.format("Stop run %s", stopRunSucceeded ? "succeeded" : "failed"));
         return stopRunSucceeded;
     }
-    
+
     public PcRunEventLog getRunEventLog(int runId){
         try {
             return restProxy.getRunEventLog(runId);
@@ -172,8 +172,8 @@ public class PcClient {
 
     public void addRunToTrendReport(int runId, String trendReportId){
 
-       TrendReportRequest trRequest = new TrendReportRequest(model.getAlmProject(), runId, null);
-       logger.println("Adding run: " + runId + " to trend report: " + trendReportId);
+        TrendReportRequest trRequest = new TrendReportRequest(model.getAlmProject(), runId, null);
+        logger.println("Adding run: " + runId + " to trend report: " + trendReportId);
         try {
             restProxy.updateTrendReport(trendReportId, trRequest);
             logger.println("Run: " + runId + " was added to trend report: " + trendReportId);
