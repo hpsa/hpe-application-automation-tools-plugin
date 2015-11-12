@@ -38,7 +38,6 @@ public class EventsClient {
 	private Thread worker;
 	volatile boolean paused;
 
-	//  TODO: needs redesign, or client should be reusable or no relogin etc logic is needed (each time new login is a performance killer though)
 	private JenkinsMqmRestClientFactory restClientFactory;
 
 	private int MAX_SEND_RETRIES = 7;
@@ -54,16 +53,29 @@ public class EventsClient {
 	private Date lastErrorTime;
 
 	public EventsClient(ServerConfiguration mqmConfig, JenkinsMqmRestClientFactory clientFactory) {
-		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.abridged, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password, mqmConfig.impersonatedUser);
+		this.mqmConfig = new ServerConfiguration(
+				mqmConfig.location,
+				mqmConfig.sharedSpace,
+				mqmConfig.username,
+				mqmConfig.password,
+				mqmConfig.impersonatedUser);
 		this.restClientFactory = clientFactory;
-		activate();
-		logger.info("EVENTS: new events client initialized for '" + this.mqmConfig.location + "'");
+		if (this.mqmConfig.location != null && !this.mqmConfig.location.isEmpty()) {
+			activate();
+			logger.info("EVENTS: client initialized for '" + this.mqmConfig.location + "' (SP: " + this.mqmConfig.sharedSpace + ")");
+		} else {
+			logger.info("EVENTS: client initialized in disconnected state");
+		}
 	}
 
-	public void update(ServerConfiguration mqmConfig) {
-		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.abridged, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password, mqmConfig.impersonatedUser);
-		activate();
-		logger.info("EVENTS: events client updated for '" + this.mqmConfig.location + "'");
+	public void update(ServerConfiguration newConfig) {
+		mqmConfig = new ServerConfiguration(newConfig.location, newConfig.sharedSpace, newConfig.username, newConfig.password, newConfig.impersonatedUser);
+		if (mqmConfig.location != null && !mqmConfig.location.isEmpty()) {
+			activate();
+			logger.info("EVENTS: updated for '" + mqmConfig.location + "' (SP: " + mqmConfig.sharedSpace + ")");
+		} else {
+			logger.info("EVENTS: disabled by configuration change");
+		}
 	}
 
 	public void pushEvent(CIEventBase event) {
@@ -195,11 +207,6 @@ public class EventsClient {
 	@Exported(inline = true)
 	public String getUsername() {
 		return mqmConfig.username;
-	}
-
-	@Exported(inline = true)
-	public boolean isAbridged() {
-		return mqmConfig.abridged;
 	}
 
 	@Exported(inline = true)

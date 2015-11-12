@@ -5,7 +5,12 @@ package com.hp.octane.plugins.jenkins;
 import com.google.inject.Inject;
 import com.hp.octane.plugins.jenkins.bridge.BridgesService;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
-import com.hp.octane.plugins.jenkins.configuration.*;
+import com.hp.octane.plugins.jenkins.configuration.ConfigurationListener;
+import com.hp.octane.plugins.jenkins.configuration.ConfigurationService;
+import com.hp.octane.plugins.jenkins.configuration.MqmProject;
+import com.hp.octane.plugins.jenkins.configuration.PredefinedConfiguration;
+import com.hp.octane.plugins.jenkins.configuration.PredefinedConfigurationUnmarshaller;
+import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jenkins.events.EventsService;
 import hudson.Extension;
 import hudson.ExtensionList;
@@ -38,7 +43,6 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 	private Long identityFrom;
 
 	private String uiLocation;
-	private boolean abridged;
 	private String username;
 	private Secret secretPassword;
 	private String impersonatedUser;
@@ -57,11 +61,6 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 	public Long getIdentityFrom() {
 		return identityFrom;
 	}
-
-	public boolean getAbridged() {
-		return abridged;
-	}
-
 
 	// identity should not be changed under normal circumstances; this functionality is provided in order to simplify
 	// test automation
@@ -104,7 +103,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 			if (configurationFile != null && configurationFile.canRead() && predefinedConfigurationUnmarshaller != null) {
 				PredefinedConfiguration predefinedConfiguration = predefinedConfigurationUnmarshaller.unmarshall(configurationFile);
 				if (predefinedConfiguration != null) {
-					configurePlugin(predefinedConfiguration.getUiLocation(), abridged, null, null, null);
+					configurePlugin(predefinedConfiguration.getUiLocation(), null, null, null);
 				}
 			}
 		}
@@ -121,7 +120,6 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 	public ServerConfiguration getServerConfiguration() {
 		return new ServerConfiguration(
 				getLocation(),
-				getAbridged(),
 				getSharedSpace(),
 				getUsername(),
 				getPassword(),
@@ -152,12 +150,11 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 		return impersonatedUser;
 	}
 
-	public void configurePlugin(String uiLocation, boolean abridged, String username, String password, String impersonatedUser) throws IOException {
+	public void configurePlugin(String uiLocation, String username, String password, String impersonatedUser) throws IOException {
 		ServerConfiguration oldConfiguration = getServerConfiguration();
 		String oldUiLocation = this.uiLocation;
 
 		this.uiLocation = uiLocation;
-		this.abridged = abridged;
 		this.username = username;
 		this.secretPassword = Secret.fromString(password);
 		this.impersonatedUser = impersonatedUser;
@@ -215,7 +212,6 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 			try {
 				JSONObject mqmData = formData.getJSONObject("mqm"); // NON-NLS
 				octanePlugin.configurePlugin(mqmData.getString("uiLocation"), // NON-NLS
-						!mqmData.has("abridged") || mqmData.getBoolean("abridged"), // NON-NLS
 						mqmData.getString("username"), // NON-NLS
 						mqmData.getString("password"), mqmData.getString("impersonatedUser")); // NON-NLS
 				return true;
@@ -271,10 +267,6 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 			return octanePlugin.getLocation();
 		}
 
-		public Boolean getAbridged() {
-			return octanePlugin.getAbridged();
-		}
-
 		public String getSharedSpace() {
 			return octanePlugin.getSharedSpace();
 		}
@@ -290,7 +282,5 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 		public String getImpersonatedUser() {
 			return octanePlugin.getImpersonatedUser();
 		}
-
-
 	}
 }

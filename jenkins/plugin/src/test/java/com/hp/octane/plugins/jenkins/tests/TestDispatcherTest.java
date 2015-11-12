@@ -9,6 +9,7 @@ import com.hp.mqm.client.exception.AuthenticationException;
 import com.hp.mqm.client.exception.SharedSpaceNotExistException;
 import com.hp.mqm.client.exception.RequestException;
 import com.hp.mqm.client.exception.SessionCreationException;
+import com.hp.mqm.client.exception.TemporarilyUnavailableException;
 import com.hp.octane.plugins.jenkins.ExtensionUtil;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
@@ -277,6 +278,30 @@ public class TestDispatcherTest {
         Assert.assertEquals(0, queue.size());
     }
 
+    @Test
+    public void testDispatcherTemporarilyUnavailable() throws Exception {
+        Mockito.reset(restClient);
+        Mockito.doReturn(1l)
+                .doThrow(new TemporarilyUnavailableException("Server busy"))
+                .doThrow(new TemporarilyUnavailableException("Server busy"))
+                .doThrow(new TemporarilyUnavailableException("Server busy"))
+                .doThrow(new TemporarilyUnavailableException("Server busy"))
+                .doThrow(new TemporarilyUnavailableException("Server busy"))
+                .doReturn(1l)
+                .when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq(false));
+        FreeStyleBuild build = executeBuild();
+        FreeStyleBuild build2 = executeBuild();
+        queue.waitForTicks(12);
+        Mockito.verify(restClient, Mockito.atMost(7)).tryToConnectSharedSpace();
+        Mockito.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
+        Mockito.verify(restClient, Mockito.times(6)).postTestResult(new File(build2.getRootDir(), "mqmTests.xml"), false);
+        Mockito.verify(restClient, Mockito.atMost(7)).release();
+        Mockito.verifyNoMoreInteractions(restClient);
+        verifyAudit(build, true);
+        verifyAudit(true, build2, false, false, false, false, false, true);
+        Assert.assertEquals(0, queue.size());
+    }
+
     private FreeStyleBuild executeBuild() throws ExecutionException, InterruptedException {
         FreeStyleBuild build = project.scheduleBuild2(0).get();
         queue.add(build.getProject().getName(), build.getNumber());
@@ -284,6 +309,10 @@ public class TestDispatcherTest {
     }
 
     private void verifyAudit(AbstractBuild build, boolean ... statuses) throws IOException, InterruptedException {
+        verifyAudit(false, build, statuses);
+    }
+
+    private void verifyAudit(boolean unavailableIfFailed, AbstractBuild build, boolean ... statuses) throws IOException, InterruptedException {
         FilePath auditFile = new FilePath(new File(build.getRootDir(), TestDispatcher.TEST_AUDIT_FILE));
         JSONArray audits;
         if (statuses.length > 0) {
@@ -303,6 +332,11 @@ public class TestDispatcherTest {
             Assert.assertEquals(statuses[i], audit.getBoolean("pushed"));
             if (statuses[i]) {
                 Assert.assertEquals(1l, audit.getLong("id"));
+            }
+            if (!statuses[i] && unavailableIfFailed) {
+                Assert.assertTrue(audit.getBoolean("temporarilyUnavailable"));
+            } else {
+                Assert.assertFalse(audit.containsKey("temporarilyUnavailable"));
             }
             Assert.assertNotNull(audit.getString("date"));
         }

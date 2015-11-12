@@ -9,6 +9,7 @@ import com.hp.mqm.client.exception.FileNotFoundException;
 import com.hp.mqm.client.exception.LoginException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
+import com.hp.mqm.client.exception.TemporarilyUnavailableException;
 import com.hp.octane.plugins.jenkins.client.EventPublisher;
 import com.hp.octane.plugins.jenkins.client.JenkinsInsightEventPublisher;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
@@ -129,7 +130,20 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
             }
 
             try {
-                Long id = pushTestResults(client, build);
+                Long id = null;
+                try {
+                    File resultFile = new File(build.getRootDir(), TestListener.TEST_RESULT_FILE);
+                    id = client.postTestResult(resultFile, false);
+                } catch (TemporarilyUnavailableException e) {
+                    logger.log(Level.WARNING, "Server temporarily unavailable, will try later", e);
+                    audit(configuration, build, null, true);
+                    break;
+                } catch (RequestException e) {
+                    logger.log(Level.WARNING, "Failed to submit test results [" + build.getProject().getName() + "#" + build.getNumber() + "]", e);
+                } catch (RequestErrorException e) {
+                    logger.log(Level.WARNING, "Failed to submit test results [" + build.getProject().getName() + "#" + build.getNumber() + "]", e);
+                }
+
                 if (id != null) {
                     logger.info("Successfully pushed test results of build [" + item.projectName + "#" + item.buildNumber + "]");
                     queue.remove();
@@ -141,7 +155,7 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
                     releaseClient(client);
                     client = null;
                 }
-                audit(configuration, build, id);
+                audit(configuration, build, id, false);
             } catch (FileNotFoundException e) {
                 logger.warning("File no longer exists, failed to push test results of build [" + item.projectName + "#" + item.buildNumber + "]");
                 queue.remove();
@@ -160,19 +174,7 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
         }
     }
 
-    private Long pushTestResults(MqmRestClient client, AbstractBuild build) {
-        File resultFile = new File(build.getRootDir(), TestListener.TEST_RESULT_FILE);
-        try {
-            return client.postTestResult(resultFile, false);
-        } catch (RequestException e) {
-            logger.log(Level.WARNING, "Failed to submit test results [" + build.getProject().getName() + "#" + build.getNumber() + "]", e);
-        } catch (RequestErrorException e) {
-            logger.log(Level.WARNING, "Failed to submit test results [" + build.getProject().getName() + "#" + build.getNumber() + "]", e);
-        }
-        return null;
-    }
-
-    private void audit(ServerConfiguration configuration, AbstractBuild build, Long id) throws IOException, InterruptedException {
+    private void audit(ServerConfiguration configuration, AbstractBuild build, Long id, boolean temporarilyUnavailable) throws IOException, InterruptedException {
         FilePath auditFile = new FilePath(new File(build.getRootDir(), TEST_AUDIT_FILE));
         JSONArray audit;
         if (auditFile.exists()) {
@@ -188,6 +190,9 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
         event.put("date", DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.format(new Date()));
         event.put("location", configuration.location);
         event.put("sharedSpace", configuration.sharedSpace);
+        if (temporarilyUnavailable) {
+            event.put("temporarilyUnavailable", true);
+        }
         audit.add(event);
         auditFile.write(audit.toString(), "UTF-8");
     }

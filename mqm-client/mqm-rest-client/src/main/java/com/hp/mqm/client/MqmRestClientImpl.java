@@ -4,6 +4,7 @@ import com.hp.mqm.client.exception.AuthenticationException;
 import com.hp.mqm.client.exception.FileNotFoundException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
+import com.hp.mqm.client.exception.TemporarilyUnavailableException;
 import com.hp.mqm.client.internal.InputStreamSourceEntity;
 import com.hp.mqm.client.model.FieldMetadata;
 import com.hp.mqm.client.model.JobConfiguration;
@@ -533,7 +534,11 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		HttpResponse response = null;
 		try {
 			response = execute(request);
-			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_ACCEPTED) {
+			int statusCode = response.getStatusLine().getStatusCode();
+			if (statusCode == HttpStatus.SC_SERVICE_UNAVAILABLE) {
+				throw new TemporarilyUnavailableException("Service not available");
+			}
+			if (statusCode != HttpStatus.SC_ACCEPTED) {
 				throw createRequestException("Test result post failed", response);
 			}
 			String json = IOUtils.toString(response.getEntity().getContent());
@@ -590,6 +595,8 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 					logger.info("expected timeout disconnection on retrieval of abridged tasks");
 				} else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
 					throw new AuthenticationException();
+				} else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_FOUND) {
+					throw new TemporarilyUnavailableException("");
 				} else {
 					logger.info("unexpected response with status " + response.getStatusLine().getStatusCode());
 				}

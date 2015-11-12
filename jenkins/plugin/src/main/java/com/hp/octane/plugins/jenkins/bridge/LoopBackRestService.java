@@ -9,6 +9,11 @@ import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,9 +26,11 @@ import java.util.Map;
 
 public class LoopBackRestService {
 	static LoopBackResponse loopBackGet(String url, Map<String, String> headers) throws RuntimeException {
-		HttpClient client = new HttpClient();
-		GetMethod getMethod = new GetMethod(url);
+		HttpClient client;
+		GetMethod getMethod = null;
 		try {
+			client = new HttpClient();
+			getMethod = new GetMethod(preProcessURL(url));
 			if (headers != null)
 				for (Map.Entry<String, String> entry : headers.entrySet())
 					getMethod.setRequestHeader(entry.getKey(), entry.getValue());
@@ -32,14 +39,18 @@ public class LoopBackRestService {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		} finally {
-			getMethod.releaseConnection();
+			if (getMethod != null) {
+				getMethod.releaseConnection();
+			}
 		}
 	}
 
 	static LoopBackResponse loopBackPut(String url, Map<String, String> headers, String body) throws RuntimeException {
-		HttpClient client = new HttpClient();
-		PutMethod putMethod = new PutMethod(url);
+		HttpClient client;
+		PutMethod putMethod = null;
 		try {
+			client = new HttpClient();
+			putMethod = new PutMethod(preProcessURL(url));
 			if (headers != null)
 				for (Map.Entry<String, String> entry : headers.entrySet())
 					putMethod.setRequestHeader(entry.getKey(), entry.getValue());
@@ -49,15 +60,19 @@ public class LoopBackRestService {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		} finally {
-			putMethod.releaseConnection();
+			if (putMethod != null) {
+				putMethod.releaseConnection();
+			}
 		}
 	}
 
 	static LoopBackResponse loopBackPost(String url, Map<String, String> headers, String body) throws RuntimeException {
-		HttpClient client = new HttpClient();
-		PostMethod postMethod = new PostMethod(url);
+		HttpClient client;
+		PostMethod postMethod = null;
 		String contentType = null;
 		try {
+			client = new HttpClient();
+			postMethod = new PostMethod(preProcessURL(url));
 			if (headers != null) {
 				for (Map.Entry<String, String> entry : headers.entrySet()) {
 					postMethod.setRequestHeader(entry.getKey(), entry.getValue());
@@ -77,8 +92,16 @@ public class LoopBackRestService {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		} finally {
-			postMethod.releaseConnection();
+			if (postMethod != null) {
+				postMethod.releaseConnection();
+			}
 		}
+	}
+
+	static private String preProcessURL(String input) throws MalformedURLException, URISyntaxException {
+		URL url = new URL(input);
+		URI uri = new URI(url.getProtocol(), url.getUserInfo(), url.getHost(), url.getPort(), url.getPath(), url.getQuery(), url.getRef());
+		return uri.toASCIIString();
 	}
 
 	static class LoopBackResponse {

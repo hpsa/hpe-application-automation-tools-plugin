@@ -101,7 +101,6 @@ public class EventsTest {
 		EventsService eventsService = ExtensionUtil.getInstance(rule, EventsService.class);
 		eventsService.updateClient(new ServerConfiguration(
 				"http://localhost:" + testingServerPort,
-				false,
 				sharedSpaceId,
 				username,
 				password,
