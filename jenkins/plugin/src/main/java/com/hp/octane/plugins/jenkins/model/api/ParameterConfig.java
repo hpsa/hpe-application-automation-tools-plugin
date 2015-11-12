@@ -31,10 +31,11 @@ public class ParameterConfig {
 		this(pd, type, defaultValue, null);
 	}
 
-  public ParameterConfig(String name,ParameterType  type) {
+  public ParameterConfig(String name,ParameterType  type, List<Object> choices) {
     this.name = name;
     this.type = type;
     this.description = "";
+    this.choices = choices;
   }
 
 	public ParameterConfig(ParameterDefinition pd, ParameterType type, Object defaultValue, List<Object> choices) {
