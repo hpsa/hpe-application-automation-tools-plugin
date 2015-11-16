@@ -7,6 +7,7 @@ import hudson.matrix.*;
 import hudson.model.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -49,7 +50,7 @@ public enum ParameterProcessors {
     if(project instanceof MatrixProject) {
       AxisList axisList = ((MatrixProject) project).getAxes();
       for(Axis axis : axisList){
-        result.add(new ParameterConfig(axis.getName(), ParameterType.AXIS));
+        result.add(new ParameterConfig(axis.getName(), ParameterType.AXIS, new ArrayList<Object>(axis.getValues())));
       }
     }
     ParameterConfig[] params = new ParameterConfig[result.size()];
@@ -78,7 +79,7 @@ public enum ParameterProcessors {
     if(project instanceof MatrixConfiguration) {
       Combination combination = ((MatrixConfiguration) project).getCombination();
       for (Map.Entry<String,String> entry : combination.entrySet()) {
-        result.add(new ParameterInstance(new ParameterConfig(entry.getKey(), ParameterType.AXIS), entry.getValue()));
+        result.add(new ParameterInstance(new ParameterConfig(entry.getKey(), ParameterType.AXIS, Collections.emptyList()), entry.getValue()));
       }
     }
 
