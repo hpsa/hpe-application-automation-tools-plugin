@@ -64,7 +64,7 @@ public final class SnapshotItem extends AbstractItem<ParameterInstance, Snapshot
 			result = SnapshotResult.UNSTABLE;
 		}
 		estimatedDuration = build.getEstimatedDuration();
-		startTime = build.getStartTimeInMillis();
+		startTime = timeInUTC(build.getStartTimeInMillis());
 		duration = build.getDuration();
 		scmData = SCMProcessors
 				.getAppropriate(build.getProject().getScm().getClass().getName())
@@ -181,5 +181,11 @@ public final class SnapshotItem extends AbstractItem<ParameterInstance, Snapshot
 			phases[i] = new SnapshotPhase(structures[i], invokedBuilds);
 		}
 		return phases;
+	}
+
+
+	private long timeInUTC(long input) {
+		return input;
+		//return input - Calendar.getInstance().getTimeZone().getRawOffset();
 	}
 }
