@@ -13,8 +13,9 @@ import java.util.List;
  * Time: 18:19
  * To change this template use File | Settings | File Templates.
  */
+
 public final class CIEventCausesFactory {
-	public static CIEventCauseBase[] processCauses(List<Cause> causes) {
+	public static CIEventCauseBase[] processCauses(List<? extends Cause> causes) {
 		Cause tmpCause;
 		CIEventCauseBase[] result = null;
 		Cause.UserIdCause tmpUserCause;
@@ -45,16 +46,4 @@ public final class CIEventCausesFactory {
 		}
 		return result;
 	}
-  public static CIEventCauseBase[] processMatrixCauses(List<Cause> causes) {
-    CIEventCauseBase[]  result = CIEventCausesFactory.processCauses(causes);
-//    CIEventCauseBase[]  filteredResult = null;
-//    if(result.length > 0) {
-//      filteredResult = new CIEventCauseBase[result.length];
-//    }
-//
-//    for(int i = 0 ; i < result.length;  i++) {
-//      filteredResult[i] = result.
-//    }
-    return result;
-  }
 }

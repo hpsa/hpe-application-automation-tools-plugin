@@ -15,7 +15,6 @@ import hudson.model.*;
 import hudson.model.listeners.RunListener;
 
 import javax.annotation.Nonnull;
-import java.util.Calendar;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -45,7 +44,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 					build.getNumber(),
 					timeInUTC(build.getStartTimeInMillis()),
 					build.getEstimatedDuration(),
-					CIEventCausesFactory.processCauses(((MatrixRun) r).getParentBuild().getCauses()),
+					CIEventCausesFactory.processCauses(extractCauses(build)),
 					ParameterProcessors.getInstances(build)
 			);
 			EventsService.getExtensionInstance().dispatchEvent(event);
@@ -57,7 +56,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 					-1,
 					timeInUTC(build.getStartTimeInMillis()),
 					build.getEstimatedDuration(),
-					CIEventCausesFactory.processCauses(build.getCauses()),
+					CIEventCausesFactory.processCauses(extractCauses(build)),
 					ParameterProcessors.getInstances(build)
 			);
 			EventsService.getExtensionInstance().dispatchEvent(event);
@@ -88,7 +87,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 					-1,
 					timeInUTC(build.getStartTimeInMillis()),
 					build.getEstimatedDuration(),
-					CIEventCausesFactory.processCauses(listOfCauses(build)),
+					CIEventCausesFactory.processCauses(extractCauses(build)),
 					ParameterProcessors.getInstances(build),
 					result,
 					build.getDuration(),
@@ -115,10 +114,11 @@ public final class RunListenerImpl extends RunListener<Run> {
 		return ((AbstractBuild) r).getProject().getName();
 	}
 
-	private List<Cause> listOfCauses(Run r) {
+	private List<? extends Cause> extractCauses(Run r) {
 		if (r.getParent() instanceof MatrixConfiguration) {
 			return ((MatrixRun) r).getParentBuild().getCauses();
+		} else {
+			return r.getCauses();
 		}
-		return r.getCauses();
 	}
 }
