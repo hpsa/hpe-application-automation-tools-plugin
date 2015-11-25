@@ -29,95 +29,96 @@ import java.util.logging.Logger;
 
 @Extension
 public final class RunListenerImpl extends RunListener<Run> {
-    private static Logger logger = Logger.getLogger(RunListenerImpl.class.getName());
+	private static Logger logger = Logger.getLogger(RunListenerImpl.class.getName());
 
-    @Inject
-    private TestListener testListener;
+	@Inject
+	private TestListener testListener;
 
-    @Override
-    public void onStarted(Run r, TaskListener listener) {
-        CIEventStarted event;
-        if (r.getParent() instanceof MatrixConfiguration) {
-            AbstractBuild build = (AbstractBuild) r;
-            event = new CIEventStarted(
-                    ((MatrixRun) r).getParentBuild().getParent().getName(),
-                    ((MatrixRun) r).getParentBuild().getNumber(),
-                    build.getNumber(),
-                    timeInUTC(build.getStartTimeInMillis()),
-                    build.getEstimatedDuration(),
-                    CIEventCausesFactory.processCauses(((MatrixRun) r).getParentBuild().getCauses()),
-                    ParameterProcessors.getInstances(build)
-            );
-            EventsService.getExtensionInstance().dispatchEvent(event);
-        } else if (r instanceof AbstractBuild) {
-            AbstractBuild build = (AbstractBuild) r;
-            event = new CIEventStarted(
-                    build.getProject().getName(),
-                    build.getNumber(),
-                    -1,
-                    timeInUTC(build.getStartTimeInMillis()),
-                    build.getEstimatedDuration(),
-                    CIEventCausesFactory.processCauses(build.getCauses()),
-                    ParameterProcessors.getInstances(build)
-            );
-            EventsService.getExtensionInstance().dispatchEvent(event);
-        }
-    }
+	@Override
+	public void onStarted(Run r, TaskListener listener) {
+		CIEventStarted event;
+		if (r.getParent() instanceof MatrixConfiguration) {
+			AbstractBuild build = (AbstractBuild) r;
+			event = new CIEventStarted(
+					((MatrixRun) r).getParentBuild().getParent().getName(),
+					((MatrixRun) r).getParentBuild().getNumber(),
+					build.getNumber(),
+					timeInUTC(build.getStartTimeInMillis()),
+					build.getEstimatedDuration(),
+					CIEventCausesFactory.processCauses(((MatrixRun) r).getParentBuild().getCauses()),
+					ParameterProcessors.getInstances(build)
+			);
+			EventsService.getExtensionInstance().dispatchEvent(event);
+		} else if (r instanceof AbstractBuild) {
+			AbstractBuild build = (AbstractBuild) r;
+			event = new CIEventStarted(
+					build.getProject().getName(),
+					build.getNumber(),
+					-1,
+					timeInUTC(build.getStartTimeInMillis()),
+					build.getEstimatedDuration(),
+					CIEventCausesFactory.processCauses(build.getCauses()),
+					ParameterProcessors.getInstances(build)
+			);
+			EventsService.getExtensionInstance().dispatchEvent(event);
+		}
+	}
 
-    @Override
-    public void onCompleted(Run r, @Nonnull TaskListener listener) {
+	@Override
+	public void onCompleted(Run r, @Nonnull TaskListener listener) {
 
-        if (r instanceof AbstractBuild) {
-            AbstractBuild build = (AbstractBuild) r;
-            SnapshotResult result;
-            if (build.getResult() == Result.SUCCESS) {
-                result = SnapshotResult.SUCCESS;
-            } else if (build.getResult() == Result.ABORTED) {
-                result = SnapshotResult.ABORTED;
-            } else if (build.getResult() == Result.FAILURE) {
-                result = SnapshotResult.FAILURE;
-            } else if (build.getResult() == Result.UNSTABLE) {
-                result = SnapshotResult.UNSTABLE;
-            } else {
-                result = SnapshotResult.UNAVAILABLE;
-            }
+		if (r instanceof AbstractBuild) {
+			AbstractBuild build = (AbstractBuild) r;
+			SnapshotResult result;
+			if (build.getResult() == Result.SUCCESS) {
+				result = SnapshotResult.SUCCESS;
+			} else if (build.getResult() == Result.ABORTED) {
+				result = SnapshotResult.ABORTED;
+			} else if (build.getResult() == Result.FAILURE) {
+				result = SnapshotResult.FAILURE;
+			} else if (build.getResult() == Result.UNSTABLE) {
+				result = SnapshotResult.UNSTABLE;
+			} else {
+				result = SnapshotResult.UNAVAILABLE;
+			}
 
-            CIEventFinished event = new CIEventFinished(
-                    getProjectName(r),
-                    build.getNumber(),
-                    -1,
-                    timeInUTC(build.getStartTimeInMillis()),
-                    build.getEstimatedDuration(),
-                    CIEventCausesFactory.processCauses(listOfCauses(build)),
-                    ParameterProcessors.getInstances(build),
-                    result,
-                    build.getDuration(),
-                    SCMProcessors
-                            .getAppropriate(build.getProject().getScm().getClass().getName())
-                            .getSCMChanges(build)
-            );
-            EventsService.getExtensionInstance().dispatchEvent(event);
+			CIEventFinished event = new CIEventFinished(
+					getProjectName(r),
+					build.getNumber(),
+					-1,
+					timeInUTC(build.getStartTimeInMillis()),
+					build.getEstimatedDuration(),
+					CIEventCausesFactory.processCauses(listOfCauses(build)),
+					ParameterProcessors.getInstances(build),
+					result,
+					build.getDuration(),
+					SCMProcessors
+							.getAppropriate(build.getProject().getScm().getClass().getName())
+							.getSCMChanges(build)
+			);
+			EventsService.getExtensionInstance().dispatchEvent(event);
 
-            testListener.processBuild(build);
-        }
-    }
+			testListener.processBuild(build);
+		}
+	}
 
-    private long timeInUTC(long input) {
-        return input;
-        //return input - Calendar.getInstance().getTimeZone().getRawOffset();
-    }
+	//  TODO: replace with the real method from Utils class
+	private long timeInUTC(long input) {
+		return input;
+		//return input - Calendar.getInstance().getTimeZone().getRawOffset();
+	}
 
-    private String getProjectName(Run r) {
-        if (r.getParent() instanceof MatrixConfiguration) {
-            return ((MatrixRun) r).getParentBuild().getParent().getName();
-        }
-        return ((AbstractBuild) r).getProject().getName();
-    }
+	private String getProjectName(Run r) {
+		if (r.getParent() instanceof MatrixConfiguration) {
+			return ((MatrixRun) r).getParentBuild().getParent().getName();
+		}
+		return ((AbstractBuild) r).getProject().getName();
+	}
 
-    private List<Cause> listOfCauses(Run r) {
-        if (r.getParent() instanceof MatrixConfiguration) {
-            return ((MatrixRun) r).getParentBuild().getCauses();
-        }
-        return r.getCauses();
-    }
+	private List<Cause> listOfCauses(Run r) {
+		if (r.getParent() instanceof MatrixConfiguration) {
+			return ((MatrixRun) r).getParentBuild().getCauses();
+		}
+		return r.getCauses();
+	}
 }
