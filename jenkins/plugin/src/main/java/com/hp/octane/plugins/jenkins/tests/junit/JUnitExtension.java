@@ -117,7 +117,7 @@ public class JUnitExtension extends MqmTestsExtension {
         public GetJUnitTestResults(AbstractBuild<?, ?> build, List<FilePath> reports, boolean stripPackageAndClass) throws IOException, InterruptedException {
             this.reports = reports;
             this.filePath = new FilePath(build.getRootDir()).createTempFile(getClass().getSimpleName(), null);
-            this.buildStarted = Utils.timestampInUTC(build.getStartTimeInMillis());
+            this.buildStarted = build.getStartTimeInMillis();
             this.workspace = build.getWorkspace();
             this.stripPackageAndClass = stripPackageAndClass;
 
