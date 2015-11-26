@@ -12,6 +12,7 @@ import com.hp.octane.plugins.jenkins.actions.BuildActions;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.client.TestEventPublisher;
+import com.hp.octane.plugins.jenkins.utils.Utils;
 import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleProject;
 import hudson.tasks.Maven;
@@ -105,7 +106,7 @@ public class TestApiTest {
     @Test
     public void testXml() throws Exception {
         Page testResults = client.goTo("job/test-api-test/" + build.getNumber() + "/octane/tests/xml", "application/xml");
-        TestUtils.matchTests(new TestResultIterable(new StringReader(testResults.getWebResponse().getContentAsString())), "test-api-test", build.getStartTimeInMillis(), TestUtils.helloWorldTests);
+        TestUtils.matchTests(new TestResultIterable(new StringReader(testResults.getWebResponse().getContentAsString())), "test-api-test", Utils.timestampInUTC(build.getStartTimeInMillis()), TestUtils.helloWorldTests);
     }
 
     @Test

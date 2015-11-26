@@ -24,7 +24,7 @@ public class CIEventStarted extends CIEventQueued {
 	public CIEventStarted(String project,int number, int subNumber, long startTime, long estimatedDuration, CIEventCauseBase[] causes, ParameterInstance[] parameters) {
 		super(project,causes);
 		this.number = number;
-    this.subNumber = subNumber;
+        this.subNumber = subNumber;
 		this.startTime = startTime;
 		this.estimatedDuration = estimatedDuration;
 		this.parameters = parameters;
