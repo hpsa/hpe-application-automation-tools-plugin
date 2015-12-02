@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
+import com.hp.application.automation.tools.results.parser.ReportParseException;
 import com.hp.application.automation.tools.results.parser.ReportParserManager;
 import com.hp.application.automation.tools.results.service.almentities.AlmCommonProperties;
 import com.hp.application.automation.tools.results.service.almentities.AlmEntity;
@@ -337,7 +338,7 @@ public class DefaultExternalEntityUploadServiceImpl implements
 							String testingTool, 
 							String subversion,
 							String jobName, 
-							String buildUrl){
+							String buildUrl) throws Exception{
 		
 		logger.log("INFO: Start to parse file: " +reportFilePath);
 		
@@ -345,31 +346,32 @@ public class DefaultExternalEntityUploadServiceImpl implements
 		
 		if(testsets == null) {
 			logger.log("Failed to parse file: " + reportFilePath);
+			throw new ReportParseException("Failed to parse file: " + reportFilePath);
 		} else  {
 			logger.log("INFO: parse resut file succeed.");
 		}
 		
 		if(testsets != null && testsets.size() >0 ) {
 			logger.log("INFO: Start to login to ALM Server.");
-			restTool.login();
+			if( restTool.login() ) {
 			
-			logger.log("INFO: Checking test folder...");
-			AlmTestFolder testFolder = createTestFolderPath(2, testFolderPath);
-			logger.log("INFO: Checking testset folder...");
-			AlmTestSetFolder testsetFolder = createTestSetFolderPath (0, testsetFolderPath);
-			if(testFolder != null && testsetFolder != null){
-				logger.log("INFO: Uploading ALM Entities...");
-				importExternalTestSet(
-						testsets, 
-						loginInfo.getUserName(), 
-						Integer.valueOf(testsetFolder.getId()), 
-						Integer.valueOf(testFolder.getId()), 
-						testingTool, 
-						subversion, 
-						jobName, 
-						buildUrl);
-			}			
-
+				logger.log("INFO: Checking test folder...");
+				AlmTestFolder testFolder = createTestFolderPath(2, testFolderPath);
+				logger.log("INFO: Checking testset folder...");
+				AlmTestSetFolder testsetFolder = createTestSetFolderPath (0, testsetFolderPath);
+				if(testFolder != null && testsetFolder != null){
+					logger.log("INFO: Uploading ALM Entities...");
+					importExternalTestSet(
+							testsets, 
+							loginInfo.getUserName(), 
+							Integer.valueOf(testsetFolder.getId()), 
+							Integer.valueOf(testFolder.getId()), 
+							testingTool, 
+							subversion, 
+							jobName, 
+							buildUrl);
+				}
+			} 
 		}
 	}
 	

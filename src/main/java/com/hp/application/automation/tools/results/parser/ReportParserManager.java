@@ -40,7 +40,9 @@ public class ReportParserManager {
 				testsets = reportParser.parseTestSets(in, testingFramework, testingTool);
 				break;
 			} catch (Exception e) {
+				
 				e.printStackTrace();
+				
 			}
 		}
 
