@@ -53,6 +53,8 @@ namespace HpToolsLauncher
             TimeSpan perScenarioTimeOutMinutes,
             List<string> ignoreErrorStrings,
             Dictionary<string, string> jenkinsEnvVariables,
+            string fsAppParamName,
+            string appIdentifier,
             bool useUFTLicense = false
             )
         {
@@ -117,6 +119,14 @@ namespace HpToolsLauncher
                         //if (source.TrimEnd().EndsWith(".mtb", StringComparison.CurrentCultureIgnoreCase))
                         {
                             testGroup = MtbxManager.Parse(source, _jenkinsEnvVariables, source);
+                            if (!string.IsNullOrEmpty(fsAppParamName) && !string.IsNullOrEmpty(appIdentifier))
+                            {
+                                var testParam = new TestParameterInfo() { Name = fsAppParamName, Type = "string", Value = appIdentifier };
+                                foreach(TestInfo testInfo in testGroup)
+                                {
+                                    testInfo.ParameterList.Add(testParam);
+                                }
+                            }
                         }
                     }
                 }
