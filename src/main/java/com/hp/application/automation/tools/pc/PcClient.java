@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.file.*;
+import java.util.ArrayList;
 
 import hudson.console.HyperlinkNote;
 import org.apache.commons.io.IOUtils;
@@ -176,7 +177,7 @@ public class PcClient {
         logger.println("Adding run: " + runId + " to trend report: " + trendReportId);
         try {
             restProxy.updateTrendReport(trendReportId, trRequest);
-            logger.println("Run: " + runId + " was added to trend report: " + trendReportId);
+            logger.println("Publishing run: " + runId + " on trend report: " + trendReportId);
         }
         catch (PcException e) {
             logger.println("Failed to add run to trend report: " + e.getMessage());
@@ -184,8 +185,39 @@ public class PcClient {
         catch (IOException e) {
             logger.println("Failed to add run to trend report: Problem connecting to PC Server");
         }
+    }
 
+    public void waitForRunToPublishOnTrendReport(int runId, String trendReportId) throws PcException,IOException,InterruptedException{
 
+        ArrayList<PcTrendedRun> trendReportMetaDataResultsList;
+        boolean publishEnded = false;
+        int counter = 0;
+
+        do {
+            trendReportMetaDataResultsList = restProxy.getTrendReportMetaData(trendReportId);
+
+            if (trendReportMetaDataResultsList.isEmpty())  break;
+
+            for (PcTrendedRun result : trendReportMetaDataResultsList) {
+
+                if (result.getRunID() != runId) continue;
+
+                if (result.getState().equals(PcBuilder.TRENDED) || result.getState().equals(PcBuilder.ERROR)){
+                    publishEnded = true;
+                    logger.println("Run: " + runId + " publishing status: "+ result.getState());
+                    break;
+                }else{
+                    Thread.sleep(5000);
+                    logger.println("Publishing...");
+                    counter++;
+                    if(counter >= 120){
+                        logger.println("Error: Publishing didn't ended after 10 minutes, aborting...");
+                        break;
+                    }
+                }
+             }
+
+        }while (!publishEnded );
     }
 
     public boolean downloadTrendReportAsPdf(String trendReportId, String directory) throws PcException {
@@ -216,10 +248,10 @@ public class PcClient {
     public void publishTrendReport(String filePath, String trendReportId){
 
         if (filePath == null){return;}
-
-        logger.println(
-                HyperlinkNote.encodeTo(filePath, "View trend report " + trendReportId));
+   //     return String.format( HyperlinkNote.encodeTo(filePath, "View trend report " + trendReportId));
+        logger.println( HyperlinkNote.encodeTo(filePath, "View trend report " + trendReportId));
 
     }
+
 
 }

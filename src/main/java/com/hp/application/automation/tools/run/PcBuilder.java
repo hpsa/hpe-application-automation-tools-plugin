@@ -44,6 +44,11 @@ public class PcBuilder extends Builder {
     public static final String pcReportArchiveName = "Reports.zip";
     public static final String pcReportFileName = "Report.html";
     private static final String RUNID_BUILD_VARIABLE = "HP_RUN_ID";
+
+    public static final String    TRENDED         = "Trended";
+    public static final String    PENDING         = "Pending";
+    public static final String    PUBLISHING      = "Publishing";
+    public static final String    ERROR           = "Error";
     
     private final PcModel pcModel;
     private final boolean statusBySLA;
@@ -51,6 +56,7 @@ public class PcBuilder extends Builder {
     private FilePath pcReportFile;
     private String junitResultsFileName;
     private PrintStream logger;
+  //  private boolean trendReportReady;
     
     @DataBoundConstructor
     public PcBuilder(
@@ -101,8 +107,18 @@ public class PcBuilder extends Builder {
             throws InterruptedException {
         
         Result resultStatus = Result.FAILURE;
+        //trendReportReady = false;
         logger = listener.getLogger();
-        Testsuites testsuites = execute(new PcClient(pcModel, logger), build);
+        PcClient pcClient =new PcClient(pcModel, logger);
+        Testsuites testsuites = execute(pcClient, build);
+
+//        // Create Trend Report
+//        if(trendReportReady){
+//            String reportUrlTemp = trendReportStructure.replaceFirst("%s/", "") + "/trendReport%s.pdf";
+//            String reportUrl = String.format(reportUrlTemp, artifactsResourceName, pcModel.getTrendReportId());
+//            pcClient.publishTrendReport(reportUrl, pcModel.getTrendReportId());
+//        }
+//        // End Create Trend Report
         
         FilePath resultsFilePath = build.getWorkspace().child(getJunitResultsFileName());
         resultStatus = createRunResults(resultsFilePath, testsuites);
@@ -181,6 +197,7 @@ public class PcBuilder extends Builder {
         PcRunResponse response = null;
         String errorMessage = "";
         String eventLogString = "";
+        boolean trendReportReady = false;
         try {
             runId = pcClient.startRun();
             
@@ -189,20 +206,21 @@ public class PcBuilder extends Builder {
             logger.print("Set " + RUNID_BUILD_VARIABLE + " Env Variable to " + runId + "\n");
             
             response = pcClient.waitForRunCompletion(runId);
+
+
             if (response != null && RunState.get(response.getRunState()) == FINISHED) {
                 pcReportFile = pcClient.publishRunReport(runId, getReportDirectory(build));
 
                 // Adding the trend report section
                 if(pcModel.isAddRunToTrendReport() && pcModel.getTrendReportId() != null && RunState.get(response.getRunState()) != RUN_FAILURE){
                     pcClient.addRunToTrendReport(this.runId, pcModel.getTrendReportId());
+                    pcClient.waitForRunToPublishOnTrendReport(this.runId, pcModel.getTrendReportId());
                     pcClient.downloadTrendReportAsPdf(pcModel.getTrendReportId(), getTrendReportsDirectory(build));
-                    String reportUrlTemp = trendReportStructure.replaceFirst("%s/", "") + "/trendReport%s.pdf";
-                    String reportUrl = String.format(reportUrlTemp, artifactsResourceName, pcModel.getTrendReportId());
-
-                    pcClient.publishTrendReport(reportUrl, pcModel.getTrendReportId());
+                    trendReportReady = true;
                 }
+
             } else  if (RunState.get(response.getRunState()).ordinal() > FINISHED.ordinal()) {
-                PcRunEventLog eventLog = pcClient.getRunEventLog(runId);                
+                PcRunEventLog eventLog = pcClient.getRunEventLog(runId);
                 eventLogString = buildEventLogString(eventLog);
             }
 
@@ -212,7 +230,10 @@ public class PcBuilder extends Builder {
             errorMessage = e.getMessage();
         }
 
-        return parsePcRunResponse(response, build, errorMessage, eventLogString);
+        Testsuites ret = new Testsuites();
+        parsePcRunResponse(ret,response, build, errorMessage, eventLogString);
+        parsePcTrendResponse(ret,pcClient,trendReportReady,pcModel.getTrendReportId(),runId);
+        return ret;
     }
     
     private String buildEventLogString(PcRunEventLog eventLog) {
@@ -314,24 +335,51 @@ public class PcBuilder extends Builder {
         return res.equals(FormValidation.ok());
     }
     
-    private Testsuites parsePcRunResponse(
+    private Testsuites parsePcRunResponse(Testsuites ret,
             PcRunResponse runResponse,
             AbstractBuild<?, ?> build,
             String errorMessage, String eventLogString) throws IOException, InterruptedException {
+
+        RunState runState = RunState.get(runResponse.getRunState());
+
         
-        Testsuites ret = new Testsuites();
+
         List<Testsuite> testSuites = ret.getTestsuite();
         Testsuite testSuite = new Testsuite();
         Testcase testCase = new Testcase();
         testCase.setClassname("Performance Tests.Test ID: " + runResponse.getTestID());
         testCase.setName("Run ID: " + runResponse.getID());
         testCase.setTime(String.valueOf(runResponse.getDuration() * 60));
-        if (pcReportFile != null && pcReportFile.exists())
+        if (pcReportFile != null && pcReportFile.exists() && runState == FINISHED)
             testCase.getSystemOut().add(getOutputForReportLinks(build));
         updateTestStatus(testCase, runResponse, errorMessage, eventLogString);
         testSuite.getTestcase().add(testCase);
         testSuites.add(testSuite);
-        
+
+        return ret;
+    }
+
+    private Testsuites parsePcTrendResponse(Testsuites ret,PcClient pcClient,boolean trendReportReady,String TrendReportID, int runID) throws IOException, InterruptedException {
+
+
+        // Create Trend Report
+        if(trendReportReady){
+            List<Testsuite> testSuites = ret.getTestsuite();
+            Testsuite testSuite = new Testsuite();
+            Testcase testCase = new Testcase();
+
+            String reportUrlTemp = trendReportStructure.replaceFirst("%s/", "") + "/trendReport%s.pdf";
+            String reportUrl = String.format(reportUrlTemp, artifactsResourceName, pcModel.getTrendReportId());
+
+            testCase.setClassname("Trend report publishing .Trend Report ID: " + TrendReportID);
+            testCase.setName("Run ID: " + runID);
+            pcClient.publishTrendReport(reportUrl, pcModel.getTrendReportId());
+            //testCase.setTime(String.valueOf(runResponse.getDuration() * 60));
+            testSuite.getTestcase().add(testCase);
+            testSuites.add(testSuite);
+        }
+        // End Create Trend Report
+
         return ret;
     }
     
@@ -380,6 +428,7 @@ public class PcBuilder extends Builder {
         String downloadUrl = String.format(urlPattern, "*zip*/pcRun" + runId);
         logger.println(HyperlinkNote.encodeTo(viewUrl, "View analysis report of run " + runId));
         return String.format("View analysis report:\n%s\n\n\nDownload Report:\n%s", viewUrl, downloadUrl);
+
     }
     
     private String getArtifactsUrlPattern(AbstractBuild<?, ?> build) {

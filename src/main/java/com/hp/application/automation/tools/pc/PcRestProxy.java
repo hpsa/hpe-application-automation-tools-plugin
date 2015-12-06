@@ -4,10 +4,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Array;
 import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -48,6 +50,7 @@ public class PcRestProxy {
     protected static final String        RESULTS_RESOURCE_NAME          = "Results";
     protected static final String        EVENTLOG_RESOURCE_NAME         = "EventLog";
     protected static final String        TREND_REPORT_RESOURCE_NAME     = "TrendReports";
+    protected static final String        TREND_REPORT_RESOURCE_SUFFIX     = "data";
     protected static final String        CONTENT_TYPE_XML               = "application/xml";
     static final String                  PC_API_XMLNS                   = "http://www.hp.com/PC/REST/API";
 	
@@ -140,21 +143,31 @@ public class PcRestProxy {
         return true;
     }
 
+
+    public ArrayList<PcTrendedRun> getTrendReportMetaData (String trendReportId) throws PcException, ClientProtocolException, IOException {
+        String getTrendReportMetaDataUrl = String.format(baseURL + "/%s/%s", TREND_REPORT_RESOURCE_NAME, trendReportId);
+        HttpGet getTrendReportMetaDataRequest = new HttpGet(getTrendReportMetaDataUrl);
+        HttpResponse response = executeRequest(getTrendReportMetaDataRequest);
+        String trendReportMetaData = IOUtils.toString(response.getEntity().getContent());
+        return PcTrendReportMetaData.xmlToObject(trendReportMetaData);
+    }
+
+
     public boolean updateTrendReport(String trendReportId, TrendReportRequest trendReportRequest) throws PcException, IOException {
 
         String updateTrendReportUrl = String.format(baseURL + "/%s/%s", TREND_REPORT_RESOURCE_NAME, trendReportId);
-        HttpPut updateTrendReportRequest = new HttpPut(updateTrendReportUrl);
+        HttpPost updateTrendReportRequest = new HttpPost(updateTrendReportUrl);
         updateTrendReportRequest.addHeader(HttpHeaders.CONTENT_TYPE, CONTENT_TYPE_XML);
         updateTrendReportRequest.setEntity(new StringEntity(trendReportRequest.objectToXML(), ContentType.APPLICATION_XML));
         executeRequest(updateTrendReportRequest);
-
         return true;
-
     }
+
+
 
     public InputStream getTrendingPDF(String trendReportId) throws IOException, PcException {
 
-        String getTrendReportUrl = String.format(baseURL + "/%s/%s", TREND_REPORT_RESOURCE_NAME, trendReportId);
+        String getTrendReportUrl = String.format(baseURL + "/%s/%s/%s", TREND_REPORT_RESOURCE_NAME, trendReportId,TREND_REPORT_RESOURCE_SUFFIX);
         HttpGet getTrendReportRequest = new HttpGet(getTrendReportUrl);
         executeRequest(getTrendReportRequest);
 
