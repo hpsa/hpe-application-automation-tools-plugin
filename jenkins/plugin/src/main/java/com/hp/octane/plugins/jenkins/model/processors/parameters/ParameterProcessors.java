@@ -110,7 +110,8 @@ public enum ParameterProcessors {
 					processor = getAppropriate(className);
 					result.add(processor.createParameterInstance(pd, pv));
 				} catch (Exception e) {
-					logger.severe("failed to process instance of parameter or type '" + className + "'");
+					logger.severe("failed to process instance of parameter or type '" + className + "', adding as unsupported");
+					result.add(new UnsupportedParameterProcessor().createParameterInstance(pd, pv));
 				}
 			}
 		}
