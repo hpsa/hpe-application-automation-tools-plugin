@@ -68,6 +68,50 @@ hr{
     [@ww.text name='RunFromFileSystemTaskConfigurator.toolTip.timeOut'/]
 </div>
 <hr>
+
+<div class="control">
+[@ww.textfield labelKey="RunFromFileSystemTaskConfigurator.mcServerURLInputLbl" name="mcServerURLInput"/]
+</div>
+<div class="helpIcon" onclick="javascript: toggle_visibility('RunFromFileSystemTaskConfigurator.toolTip.mcServerURL');">?</div>
+<div id ="RunFromFileSystemTaskConfigurator.toolTip.mcServerURL" class="toolTip">
+[@ww.text name='RunFromFileSystemTaskConfigurator.toolTip.mcServerURL'/]
+</div>
+<hr>
+<div class="control">
+[@ww.textfield labelKey="RunFromFileSystemTaskConfigurator.mcUserNameInputLbl" name="mcUserNameInput"/]
+</div>
+<div class="helpIcon" onclick="javascript: toggle_visibility('RunFromFileSystemTaskConfigurator.toolTip.mcUserName');">?</div>
+<div id ="RunFromFileSystemTaskConfigurator.toolTip.mcUserName" class="toolTip">
+[@ww.text name='RunFromFileSystemTaskConfigurator.toolTip.mcUserName'/]
+</div>
+<hr>
+<div class="control">
+[@ww.password labelKey="RunFromFileSystemTaskConfigurator.mcPasswordInputLbl" name="mcPasswordInput"/]
+</div>
+<div class="helpIcon" onclick="javascript: toggle_visibility('RunFromFileSystemTaskConfigurator.toolTip.mcPassword');">?</div>
+<div id ="RunFromFileSystemTaskConfigurator.toolTip.mcPassword" class="toolTip">
+[@ww.text name='RunFromFileSystemTaskConfigurator.toolTip.mcPassword'/]
+</div>
+<hr>
+<div class="control">
+[@ww.textfield labelKey="RunFromFileSystemTaskConfigurator.mcApplicationPathInputLbl" name="mcApplicationPathInput"/]
+</div>
+<div class="helpIcon" onclick="javascript: toggle_visibility('RunFromFileSystemTaskConfigurator.toolTip.mcApplicationPath');">?</div>
+<div id ="RunFromFileSystemTaskConfigurator.toolTip.mcApplicationPath" class="toolTip">
+[@ww.text name='RunFromFileSystemTaskConfigurator.toolTip.mcApplicationPath'/]
+</div>
+<hr>
+<div class="control">
+[@ww.textfield labelKey="RunFromFileSystemTaskConfigurator.mcApplicationIDKeyInputLbl" name="mcApplicationIDKeyInput"/]
+</div>
+<div class="helpIcon" onclick="javascript: toggle_visibility('RunFromFileSystemTaskConfigurator.toolTip.mcApplicationIDKey');">?</div>
+<div id ="RunFromFileSystemTaskConfigurator.toolTip.mcApplicationIDKey" class="toolTip">
+[@ww.text name='RunFromFileSystemTaskConfigurator.toolTip.mcApplicationIDKey'/]
+</div>
+<hr>
+
+
+
 <div class="control">
     [@ww.select labelKey="RunFromFileSystemTask.publishMode" name="publishMode" list="publishModeItems" emptyOption="false"/]
 </div>
@@ -81,6 +125,11 @@ hr{
     document.getElementById('timeoutInput').style.maxWidth=customWidth;
     document.getElementById('testPathInput').style.maxWidth=customWidth;
     document.getElementById('publishMode').style.maxWidth=customWidth;
+    document.getElementById('mcServerURLInput').style.maxWidth=customWidth;
+    document.getElementById('mcUserNameInput').style.maxWidth=customWidth;
+    document.getElementById('mcPasswordInput').style.maxWidth=customWidth;
+    document.getElementById('mcApplicationPathInput').style.maxWidth=customWidth;
+    document.getElementById('mcApplicationIDKeyInput').style.maxWidth=customWidth;
 
     function toggle_visibility(id) {
         var e = document.getElementById(id);

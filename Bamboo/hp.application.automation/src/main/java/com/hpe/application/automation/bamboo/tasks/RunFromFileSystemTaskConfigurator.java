@@ -39,6 +39,11 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 
 	public static final String TESTS_PATH = "testPathInput";
 	public static final String TIMEOUT = "timeoutInput";
+    public static final String MCSERVERURL = "mcServerURLInput";
+    public static final String MCUSERNAME = "mcUserNameInput";
+    public static final String MCPASSWORD = "mcPasswordInput";
+    public static final String MCAPPLICATIONPATH = "mcApplicationPathInput";
+    public static final String MCAPPLICATIONIDKEY = "mcApplicationIDKeyInput";
 
 	public static final String PUBLISH_MODE_ALWAYS_STRING = "RunFromFileSystemTask.publishMode.always";
 	public static final String PUBLISH_MODE_FAILED_STRING = "RunFromFileSystemTask.publishMode.failed";
@@ -70,6 +75,11 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 
 		config.put(TESTS_PATH, params.getString(TESTS_PATH));
 		config.put(TIMEOUT, params.getString(TIMEOUT));
+        config.put(MCSERVERURL, params.getString(MCSERVERURL));
+        config.put(MCUSERNAME, params.getString(MCUSERNAME));
+        config.put(MCPASSWORD, params.getString(MCPASSWORD));
+        config.put(MCAPPLICATIONPATH, params.getString(MCAPPLICATIONPATH));
+        config.put(MCAPPLICATIONIDKEY, params.getString(MCAPPLICATIONIDKEY));
 		config.put(PUBLISH_MODE_PARAM, params.getString(PUBLISH_MODE_PARAM));
 		config.put(CommonTaskConfigurationProperties.TASK_NAME, getI18nBean().getText(TASK_NAME_VALUE));
 
@@ -136,6 +146,11 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 
 		context.put(TESTS_PATH, taskDefinition.getConfiguration().get(TESTS_PATH));
 		context.put(TIMEOUT, taskDefinition.getConfiguration().get(TIMEOUT));
+		context.put(MCSERVERURL, taskDefinition.getConfiguration().get(MCSERVERURL));
+		context.put(MCUSERNAME, taskDefinition.getConfiguration().get(MCUSERNAME));
+		context.put(MCPASSWORD, taskDefinition.getConfiguration().get(MCPASSWORD));
+		context.put(MCAPPLICATIONPATH, taskDefinition.getConfiguration().get(MCAPPLICATIONPATH));
+		context.put(MCAPPLICATIONIDKEY, taskDefinition.getConfiguration().get(MCAPPLICATIONIDKEY));
 		context.put(PUBLISH_MODE_PARAM, taskDefinition.getConfiguration().get(PUBLISH_MODE_PARAM));
 		context.put(TASK_ID_CONTROL, getI18nBean().getText(TASK_ID_LBL) + String.format("%03d",new Long(taskDefinition.getId())));
 
