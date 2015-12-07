@@ -35,6 +35,8 @@ import com.hpe.application.automation.tools.common.sdk.DirectoryZipHelper;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import com.hpe.application.automation.tools.common.UploadApplication;
+import com.hpe.application.automation.tools.common.StringUtils;
 
 public class RunFromFileSystemTask extends AbstractLauncherTask {
 
@@ -57,6 +59,18 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
         String timeout = map.get(RunFromFileSystemTaskConfigurator.TIMEOUT);
         builder.setPerScenarioTimeOut(timeout);
 
+        String mcServerUrl = map.get(RunFromFileSystemTaskConfigurator.MCSERVERURL);
+        String mcUserName = map.get(RunFromFileSystemTaskConfigurator.MCUSERNAME);
+        String mcPassword = map.get(RunFromFileSystemTaskConfigurator.MCPASSWORD);
+        String mcAppPath = map.get(RunFromFileSystemTaskConfigurator.MCAPPLICATIONPATH);
+        String mcAppIdKey = map.get(RunFromFileSystemTaskConfigurator.MCAPPLICATIONIDKEY);
+        String mcAppIdentifierName = "";
+
+        if(!mcInfoCheck(mcServerUrl,mcUserName,mcAppPath,mcAppIdKey)){
+            UploadApplication app = new UploadApplication(mcServerUrl,mcUserName,mcPassword,mcAppPath);
+            mcAppIdentifierName = app.getAppIndentifier();
+        }
+
     	String splitMarker = "\n";
     	String tests = map.get(RunFromFileSystemTaskConfigurator.TESTS_PATH);
     	String[] testNames;
@@ -72,6 +86,12 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
         for(int i=0; i < testNames.length; i++)
         {
         	builder.setTest(i+1, testNames[i]);
+        }
+
+        if(!StringUtils.isNullOrEmpty(mcAppIdentifierName) && !StringUtils.isNullOrEmpty(mcAppIdKey))
+        {
+            builder.setFsAppParamName(mcAppIdKey);
+            builder.setIdentifierName(mcAppIdKey, mcAppIdentifierName);
         }
     	return builder.getProperties();
 	}
@@ -179,4 +199,8 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
 
 		return null;
 	}
+
+    private boolean mcInfoCheck(String mcUrl, String mcUserName, String mcAppPath, String mcAppIdKey){
+        return StringUtils.isNullOrEmpty(mcUrl) || StringUtils.isNullOrEmpty(mcUrl) || StringUtils.isNullOrEmpty(mcUserName) || StringUtils.isNullOrEmpty(mcAppPath) || StringUtils.isNullOrEmpty(mcAppIdKey);
+    }
 }
