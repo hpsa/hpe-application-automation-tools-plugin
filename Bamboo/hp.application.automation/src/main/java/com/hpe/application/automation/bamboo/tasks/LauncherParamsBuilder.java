@@ -143,11 +143,6 @@ public class LauncherParamsBuilder {
 		setParamValue("PerScenarioTimeOut", perScenarioTimeOut);
 	}
 
-    public void setAppIdentifierName(String appIdentifierName)
-    {
-        setParamValue("PerScenarioTimeOut", appIdentifierName);
-    }
-
     public void setFsAppParamName(String mcAppIDKey)
     {
         setParamValue("fsAppParamName", mcAppIDKey);
@@ -155,7 +150,7 @@ public class LauncherParamsBuilder {
 
     public void setIdentifierName(String mcAppIDKey, String identifierName)
     {
-        setParamValue(mcAppIDKey, mcAppIDKey);
+        setParamValue(mcAppIDKey, identifierName);
     }
 
 	public Properties getProperties()
