@@ -8,5 +8,5 @@ import hudson.model.AbstractBuild;
  */
 
 public abstract class AbstractSCMProcessor {
-	public abstract SCMData getSCMChanges(AbstractBuild build);
+	public abstract SCMData getSCMData(AbstractBuild build);
 }

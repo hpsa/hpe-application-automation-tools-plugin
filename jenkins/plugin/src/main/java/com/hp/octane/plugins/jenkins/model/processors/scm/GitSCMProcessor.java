@@ -3,81 +3,103 @@ package com.hp.octane.plugins.jenkins.model.processors.scm;
 import com.hp.octane.plugins.jenkins.model.scm.*;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
+import hudson.plugins.git.Branch;
 import hudson.plugins.git.GitChangeSet;
 import hudson.plugins.git.GitSCM;
-import hudson.plugins.git.Revision;
 import hudson.plugins.git.util.BuildData;
 import hudson.scm.ChangeLogSet;
-import hudson.tasks.Mailer;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  * Created by gullery on 31/03/2015.
  */
 
 public class GitSCMProcessor extends AbstractSCMProcessor {
+	private static final Logger logger = Logger.getLogger(GitSCMProcessor.class.getName());
+
 	GitSCMProcessor() {
 	}
 
 	@Override
-	public SCMData getSCMChanges(AbstractBuild build) {
-		ArrayList<SCMRepository> repositories = new ArrayList<SCMRepository>();
+	public SCMData getSCMData(AbstractBuild build) {
 		AbstractProject project = build.getProject();
+		SCMData result = null;
 		GitSCM scmGit;
-		SCMType tmpType;
-		SCMRepository tmpRepo;
-		SCMConfiguration tmpConfiguration;
+		SCMRepository scmRepository;
+		String builtCommitRevId = null;
 		ArrayList<SCMCommit> tmpCommits;
 		SCMCommit tmpCommit;
 		ChangeLogSet<ChangeLogSet.Entry> changes = build.getChangeSet();
 		BuildData buildData;
-		Revision buildCommitRev;
-		Set<String> repoUris;
-		GitChangeSet gitChange;
+		GitChangeSet commit;
+		Long tmpTime;
 		if (project.getScm() instanceof GitSCM) {
-			tmpType = SCMType.GIT;
 			scmGit = (GitSCM) project.getScm();
 			buildData = scmGit.getBuildData(build);
 			if (buildData != null) {
-				buildCommitRev = buildData.getLastBuiltRevision();
-				if (buildCommitRev == null || buildCommitRev.getBranches() == null) return null;
-				repoUris = buildData.getRemoteUrls();
-				if (!repoUris.iterator().hasNext()) return null;
-				tmpConfiguration = new SCMConfiguration(
-						tmpType,
-						repoUris.iterator().next(),
-						buildCommitRev.getBranches().iterator().hasNext() ? buildCommitRev.getBranches().iterator().next().getName() : null,
-						buildCommitRev.getSha1String()
-				);
+				scmRepository = getSCMRepository(scmGit, build);
+				if (buildData.getLastBuiltRevision() != null) {
+					builtCommitRevId = buildData.getLastBuiltRevision().getSha1String();
+				}
+
 				tmpCommits = new ArrayList<SCMCommit>();
-				for (ChangeLogSet.Entry change : changes) {
-					if (change instanceof GitChangeSet) {
-						gitChange = (GitChangeSet) change;
-						tmpCommit = new SCMCommit(
-								gitChange.getId(),
-								gitChange.getComment().trim(),
-								gitChange.getTimestamp()
-						);
-						tmpCommit.setUser(
-								gitChange.getAuthor().getId(),
-								gitChange.getAuthorName(),
-								gitChange.getAuthor().getProperty(Mailer.UserProperty.class).getAddress()
-						);
-						for (GitChangeSet.Path item : gitChange.getAffectedFiles()) {
-							tmpCommit.addChange(
-									item.getEditType().getName(),
-									item.getPath()
-							);
+				for (ChangeLogSet.Entry c : changes) {
+					if (c instanceof GitChangeSet) {
+						commit = (GitChangeSet) c;
+						tmpTime = null;
+						try {
+							tmpTime = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse(commit.getDate()).getTime();
+						} catch (ParseException pe) {
+							logger.severe("failed to parse commit time");
 						}
+						tmpCommit = new SCMCommit(
+								tmpTime,
+								commit.getAuthor().getId(),
+								commit.getCommitId(),
+								commit.getParentCommit(),
+								commit.getComment().trim()
+						);
+						//2015-12-10 00:44:06 +0200
+
+						//  [YG] Changes will be handled later
+//						for (GitChangeSet.Path item : commit.getAffectedFiles()) {
+//							tmpCommit.addChange(
+//									item.getEditType().getName(),
+//									item.getPath()
+//							);
+//						}
 						tmpCommits.add(tmpCommit);
 					}
 				}
-				tmpRepo = new SCMRepository(tmpConfiguration, tmpCommits.toArray(new SCMCommit[tmpCommits.size()]));
-				repositories.add(tmpRepo);
+
+				result = new SCMData(scmRepository, builtCommitRevId, tmpCommits.toArray(new SCMCommit[tmpCommits.size()]));
 			}
 		}
-		return new SCMData(repositories);
+		return result;
+	}
+
+	private SCMRepository getSCMRepository(GitSCM gitData, AbstractBuild build) {
+		SCMRepository result = null;
+		String url = null;
+		String branch = null;
+		if (gitData != null && gitData.getBuildData(build) != null) {
+			BuildData buildData = gitData.getBuildData(build);
+			if (!buildData.getRemoteUrls().isEmpty()) {
+				url = (String) buildData.getRemoteUrls().toArray()[0];
+			}
+			if (buildData.getLastBuiltRevision() != null && !buildData.getLastBuiltRevision().getBranches().isEmpty()) {
+				branch = ((Branch) buildData.getLastBuiltRevision().getBranches().toArray()[0]).getName();
+			}
+
+			result = new SCMRepository(
+					SCMType.GIT,
+					url,
+					branch);
+		}
+		return result;
 	}
 }

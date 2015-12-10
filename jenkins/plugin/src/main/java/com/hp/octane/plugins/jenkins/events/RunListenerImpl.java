@@ -93,7 +93,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 					build.getDuration(),
 					SCMProcessors
 							.getAppropriate(build.getProject().getScm().getClass().getName())
-							.getSCMChanges(build)
+							.getSCMData(build)
 			);
 			EventsService.getExtensionInstance().dispatchEvent(event);
 

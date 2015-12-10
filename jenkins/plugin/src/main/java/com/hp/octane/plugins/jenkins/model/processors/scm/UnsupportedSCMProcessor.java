@@ -12,7 +12,7 @@ public class UnsupportedSCMProcessor extends AbstractSCMProcessor {
 	}
 
 	@Override
-	public SCMData getSCMChanges(AbstractBuild build) {
+	public SCMData getSCMData(AbstractBuild build) {
 		return null;
 	}
 }
