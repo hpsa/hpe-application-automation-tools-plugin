@@ -330,7 +330,7 @@ public class PcBuilder extends Builder {
             }
         }
 
-        logger.println(res);
+        logger.println(res.toString().replace(": <div/>",""));
 
         return res.equals(FormValidation.ok());
     }
@@ -375,6 +375,7 @@ public class PcBuilder extends Builder {
             testCase.setName("Run ID: " + runID);
             pcClient.publishTrendReport(reportUrl, pcModel.getTrendReportId());
             //testCase.setTime(String.valueOf(runResponse.getDuration() * 60));
+            testCase.setStatus(JUnitTestCaseStatus.PASS);
             testSuite.getTestcase().add(testCase);
             testSuites.add(testSuite);
         }
@@ -398,8 +399,6 @@ public class PcBuilder extends Builder {
         else{
             testCase.setStatus(JUnitTestCaseStatus.PASS);
         }
-
-
     }
     
     private void setError(Testcase testCase, String message, String eventLog) {
