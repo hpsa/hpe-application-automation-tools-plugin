@@ -18,6 +18,9 @@ public class EventsList {
 	private List<CIEventBase> events;
 
 	public EventsList(List<CIEventBase> events) {
+		if (events == null) {
+			throw new IllegalArgumentException("EVENTS: events list MUST NOT be null");
+		}
 		this.events = Collections.unmodifiableList(new ArrayList<CIEventBase>(events));
 	}
 

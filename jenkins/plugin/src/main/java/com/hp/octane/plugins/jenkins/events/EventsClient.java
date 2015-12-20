@@ -12,6 +12,8 @@ import org.kohsuke.stapler.export.ModelBuilder;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -60,7 +62,7 @@ public class EventsClient {
 				mqmConfig.password,
 				mqmConfig.impersonatedUser);
 		this.restClientFactory = clientFactory;
-		if (this.mqmConfig.location != null && !this.mqmConfig.location.isEmpty()) {
+		if (isConnected()) {
 			activate();
 			logger.info("EVENTS: client initialized for '" + this.mqmConfig.location + "' (SP: " + this.mqmConfig.sharedSpace + ")");
 		} else {
@@ -70,7 +72,7 @@ public class EventsClient {
 
 	public void update(ServerConfiguration newConfig) {
 		mqmConfig = new ServerConfiguration(newConfig.location, newConfig.sharedSpace, newConfig.username, newConfig.password, newConfig.impersonatedUser);
-		if (mqmConfig.location != null && !mqmConfig.location.isEmpty()) {
+		if (isConnected()) {
 			activate();
 			logger.info("EVENTS: updated for '" + mqmConfig.location + "' (SP: " + mqmConfig.sharedSpace + ")");
 		} else {
@@ -236,5 +238,19 @@ public class EventsClient {
 
 	public boolean isSuspended() {
 		return !isActive() || isPaused();
+	}
+
+	public boolean isConnected() {
+		boolean result = false;
+		if (mqmConfig.location != null && !mqmConfig.location.isEmpty() &&
+				mqmConfig.sharedSpace != null && !mqmConfig.sharedSpace.isEmpty()) {
+			try {
+				URL tmp = new URL(mqmConfig.location);
+				result = true;
+			} catch (MalformedURLException mue) {
+				logger.warning("EVENTS: attempt to connect with malformed URL");
+			}
+		}
+		return result;
 	}
 }

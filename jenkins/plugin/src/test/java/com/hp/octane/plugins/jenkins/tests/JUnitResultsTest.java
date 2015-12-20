@@ -3,7 +3,6 @@
 package com.hp.octane.plugins.jenkins.tests;
 
 import com.hp.octane.plugins.jenkins.ExtensionUtil;
-import com.hp.octane.plugins.jenkins.utils.Utils;
 import hudson.Launcher;
 import hudson.matrix.Axis;
 import hudson.matrix.AxisList;
@@ -202,7 +201,7 @@ public class JUnitResultsTest {
 
     private void matchTests(AbstractBuild build, Set<String> ... expectedTests) throws FileNotFoundException {
         File mqmTestsXml = new File(build.getRootDir(), "mqmTests.xml");
-        TestUtils.matchTests(new TestResultIterable(mqmTestsXml), projectName, Utils.timestampInUTC(build.getStartTimeInMillis()), expectedTests);
+        TestUtils.matchTests(new TestResultIterable(mqmTestsXml), projectName, build.getStartTimeInMillis(), expectedTests);
     }
 
     private static class MyMaven extends Builder {

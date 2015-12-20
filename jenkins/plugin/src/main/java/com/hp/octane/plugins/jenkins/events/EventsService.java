@@ -58,7 +58,7 @@ public final class EventsService implements ConfigurationListener {
 	}
 
 	public void dispatchEvent(CIEventBase event) {
-		if (eventsClient != null) {
+		if (eventsClient != null && eventsClient.isConnected()) {
 			eventsClient.pushEvent(event);
 		}
 	}
