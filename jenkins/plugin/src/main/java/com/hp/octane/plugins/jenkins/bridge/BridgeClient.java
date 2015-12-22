@@ -99,7 +99,6 @@ public class BridgeClient {
 	void dispose() {
 		//  TODO: disconnect current connection once async connectivity is possible
 		shuttingDown = true;
-		connectivityExecutors.shutdownNow();
 	}
 
 	private void dispatchTasks(String tasksJSON) {
