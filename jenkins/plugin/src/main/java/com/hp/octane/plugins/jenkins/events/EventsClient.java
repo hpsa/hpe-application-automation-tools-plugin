@@ -35,8 +35,8 @@ public class EventsClient {
 	}
 
 	private final List<CIEventBase> events = Collections.synchronizedList(new ArrayList<CIEventBase>());
-	private final Object initLocker = new Object();
-	private final WaitMonitor waitMonitor = new WaitMonitor();
+	private final Object INIT_LOCKER = new Object();
+	private final WaitMonitor WAIT_MONITOR = new WaitMonitor();
 	private Thread worker;
 	volatile boolean paused;
 
@@ -46,38 +46,25 @@ public class EventsClient {
 	private int INITIAL_RETRY_PAUSE = 1739;
 	private int DATA_SEND_INTERVAL = 1373;
 	private int DATA_SEND_INTERVAL_IN_SUSPEND = 10 * 60 * 2;
-	private boolean shuttingDown;
 	private int failedRetries;
 	private int pauseInterval;
+	volatile private boolean shuttingDown;
 
 	private ServerConfiguration mqmConfig;
 	private String lastErrorNote;
 	private Date lastErrorTime;
 
 	public EventsClient(ServerConfiguration mqmConfig, JenkinsMqmRestClientFactory clientFactory) {
-		this.mqmConfig = new ServerConfiguration(
-				mqmConfig.location,
-				mqmConfig.sharedSpace,
-				mqmConfig.username,
-				mqmConfig.password,
-				mqmConfig.impersonatedUser);
+		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password, mqmConfig.impersonatedUser);
 		this.restClientFactory = clientFactory;
-		if (isConnected()) {
-			activate();
-			logger.info("EVENTS: client initialized for '" + this.mqmConfig.location + "' (SP: " + this.mqmConfig.sharedSpace + ")");
-		} else {
-			logger.info("EVENTS: client initialized in disconnected state");
-		}
+		activate();
+		logger.info("EVENTS: client initialized for '" + this.mqmConfig.location + "' (SP: " + this.mqmConfig.sharedSpace + ")");
 	}
 
 	public void update(ServerConfiguration newConfig) {
 		mqmConfig = new ServerConfiguration(newConfig.location, newConfig.sharedSpace, newConfig.username, newConfig.password, newConfig.impersonatedUser);
-		if (isConnected()) {
-			activate();
-			logger.info("EVENTS: updated for '" + mqmConfig.location + "' (SP: " + mqmConfig.sharedSpace + ")");
-		} else {
-			logger.info("EVENTS: disabled by configuration change");
-		}
+		activate();
+		logger.info("EVENTS: updated for '" + mqmConfig.location + "' (SP: " + mqmConfig.sharedSpace + ")");
 	}
 
 	public void pushEvent(CIEventBase event) {
@@ -87,7 +74,7 @@ public class EventsClient {
 	void activate() {
 		resetCounters();
 		if (worker == null || !worker.isAlive()) {
-			synchronized (initLocker) {
+			synchronized (INIT_LOCKER) {
 				if (worker == null || !worker.isAlive()) {
 					worker = new Thread(new Runnable() {
 						@Override
@@ -102,7 +89,7 @@ public class EventsClient {
 									logger.severe("EVENTS: Exception while events sending: " + e.getMessage());
 								}
 							}
-							logger.info("EVENTS: worker thread of events client shuts down");
+							logger.info("EVENTS: worker thread of events client stopped");
 						}
 					});
 					worker.setDaemon(true);
@@ -120,14 +107,30 @@ public class EventsClient {
 		//shuttingDown = true;
 	}
 
+	void dispose() {
+		events.clear();
+		if (worker != null) {
+			shuttingDown = true;
+			try {
+				worker.join();
+			} catch (InterruptedException ie) {
+				logger.warning("EVENTS: interruption happened while shutting down worker thread");
+			} finally {
+				if (worker.isAlive()) {
+					worker.interrupt();
+				}
+			}
+		}
+	}
+
 	private void resetCounters() {
 		shuttingDown = false;
 		failedRetries = 0;
 		pauseInterval = INITIAL_RETRY_PAUSE;
-		synchronized (waitMonitor) {
+		synchronized (WAIT_MONITOR) {
 			if (worker != null && worker.getState() == Thread.State.TIMED_WAITING) {
-				waitMonitor.released = true;
-				waitMonitor.notify();
+				WAIT_MONITOR.released = true;
+				WAIT_MONITOR.notify();
 			}
 		}
 	}
@@ -137,11 +140,7 @@ public class EventsClient {
 		EventsList snapshot = new EventsList(events);
 		String requestBody;
 		boolean result = true;
-		MqmRestClient restClient = restClientFactory.create(
-				mqmConfig.location,
-				mqmConfig.sharedSpace,
-				mqmConfig.username,
-				mqmConfig.password);
+		MqmRestClient restClient = restClientFactory.create(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
 
 		try {
 			new ModelBuilder().get(EventsList.class).writeTo(snapshot, Flavor.JSON.createDataWriter(snapshot, w));
@@ -177,18 +176,18 @@ public class EventsClient {
 	private void doBreakableWait(long timeout) {
 		logger.info("EVENTS: entering waiting period of " + timeout + "ms");
 		long waitStart = new Date().getTime();
-		synchronized (waitMonitor) {
-			waitMonitor.released = false;
+		synchronized (WAIT_MONITOR) {
+			WAIT_MONITOR.released = false;
 			paused = true;
-			while (!waitMonitor.released && new Date().getTime() - waitStart < timeout) {
+			while (!WAIT_MONITOR.released && new Date().getTime() - waitStart < timeout) {
 				try {
-					waitMonitor.wait(timeout);
+					WAIT_MONITOR.wait(timeout);
 				} catch (InterruptedException ie) {
 					logger.warning("EVENTS: waiting period was interrupted: " + ie.getMessage());
 				}
 			}
 			paused = false;
-			if (waitMonitor.released) {
+			if (WAIT_MONITOR.released) {
 				logger.info("EVENTS: pause finished on demand");
 			} else {
 				logger.info("EVENTS: pause finished timely");
@@ -238,19 +237,5 @@ public class EventsClient {
 
 	public boolean isSuspended() {
 		return !isActive() || isPaused();
-	}
-
-	public boolean isConnected() {
-		boolean result = false;
-		if (mqmConfig.location != null && !mqmConfig.location.isEmpty() &&
-				mqmConfig.sharedSpace != null && !mqmConfig.sharedSpace.isEmpty()) {
-			try {
-				URL tmp = new URL(mqmConfig.location);
-				result = true;
-			} catch (MalformedURLException mue) {
-				logger.warning("EVENTS: attempt to connect with malformed URL");
-			}
-		}
-		return result;
 	}
 }

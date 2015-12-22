@@ -8,6 +8,8 @@ import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import hudson.Extension;
 import jenkins.model.Jenkins;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -42,10 +44,18 @@ public class BridgesService implements ConfigurationListener {
 	}
 
 	public void updateBridge(ServerConfiguration conf) {
-		if (bridgeClient != null) {
-			bridgeClient.update(conf);
+		if (isConfigurationValid(conf)) {
+			if (bridgeClient != null) {
+				bridgeClient.update(conf);
+			} else {
+				bridgeClient = new BridgeClient(conf, clientFactory);
+			}
 		} else {
-			bridgeClient = new BridgeClient(conf, clientFactory);
+			if (bridgeClient != null) {
+				logger.info("BRIDGE: empty / non-valid configuration submitted, disposing bridge client");
+				bridgeClient.dispose();
+				bridgeClient = null;
+			}
 		}
 	}
 
@@ -57,5 +67,19 @@ public class BridgesService implements ConfigurationListener {
 	@Override
 	public void onChanged(ServerConfiguration conf, ServerConfiguration oldConf) {
 		updateBridge(conf);
+	}
+
+	private boolean isConfigurationValid(ServerConfiguration serverConfiguration) {
+		boolean result = false;
+		if (serverConfiguration.location != null && !serverConfiguration.location.isEmpty() &&
+				serverConfiguration.sharedSpace != null && !serverConfiguration.sharedSpace.isEmpty()) {
+			try {
+				URL tmp = new URL(serverConfiguration.location);
+				result = true;
+			} catch (MalformedURLException mue) {
+				logger.warning("EVENTS: configuration with malformed URL supplied");
+			}
+		}
+		return result;
 	}
 }
