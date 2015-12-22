@@ -23,7 +23,6 @@ import java.util.logging.Logger;
 @Extension
 public class BridgesService implements ConfigurationListener {
 	private static final Logger logger = Logger.getLogger(BridgesService.class.getName());
-	private static final Object bridgeLocker = new Object();
 
 	private static BridgesService extensionInstance;
 	private JenkinsMqmRestClientFactory clientFactory;
@@ -77,7 +76,7 @@ public class BridgesService implements ConfigurationListener {
 				URL tmp = new URL(serverConfiguration.location);
 				result = true;
 			} catch (MalformedURLException mue) {
-				logger.warning("EVENTS: configuration with malformed URL supplied");
+				logger.warning("BRIDGE: configuration with malformed URL supplied");
 			}
 		}
 		return result;
