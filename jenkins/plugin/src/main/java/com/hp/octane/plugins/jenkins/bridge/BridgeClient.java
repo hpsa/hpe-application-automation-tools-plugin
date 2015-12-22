@@ -25,11 +25,9 @@ import java.util.logging.Logger;
 public class BridgeClient {
 	private static final Logger logger = Logger.getLogger(BridgeClient.class.getName());
 	private static final String serverInstanceId = new PluginActions.ServerInfo().getInstanceId();
-	private static int CONCURRENT_CONNECTIONS = 1;
 
 	private ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
 	private ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30, new AbridgedTasksExecutorsFactory());
-	private AtomicInteger openedConnections = new AtomicInteger(0);
 	volatile private boolean shuttingDown = false;
 
 	private ServerConfiguration mqmConfig;
@@ -49,29 +47,24 @@ public class BridgeClient {
 	}
 
 	private void connect() {
-		if (!shuttingDown && openedConnections.get() < CONCURRENT_CONNECTIONS) {
+		if (!shuttingDown) {
 			connectivityExecutors.execute(new Runnable() {
 				@Override
 				public void run() {
 					String tasksJSON;
-					int totalConnections;
 					try {
-						totalConnections = openedConnections.incrementAndGet();
 						logger.info("BRIDGE: connecting to '" + mqmConfig.location +
 								"' (SP: " + mqmConfig.sharedSpace +
 								"; instance ID: " + serverInstanceId +
-								"; self URL: " + new PluginActions.ServerInfo().getUrl() +
-								")...; total connections [including new one]: " + totalConnections);
+								"; self URL: " + new PluginActions.ServerInfo().getUrl());
 						MqmRestClient restClient = restClientFactory.create(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
 						tasksJSON = restClient.getAbridgedTasks(serverInstanceId, new PluginActions.ServerInfo().getUrl());
 						logger.info("BRIDGE: back from '" + mqmConfig.location + "' (SP: " + mqmConfig.sharedSpace + ") with " + (tasksJSON == null || tasksJSON.isEmpty() ? "no tasks" : "some tasks"));
-						openedConnections.decrementAndGet();
 						connect();
 						if (tasksJSON != null && !tasksJSON.isEmpty()) {
 							dispatchTasks(tasksJSON);
 						}
 					} catch (AuthenticationException ae) {
-						openedConnections.decrementAndGet();
 						logger.severe("BRIDGE: connection to MQM Server temporary failed: authentication error");
 						try {
 							Thread.sleep(20000);
@@ -80,7 +73,6 @@ public class BridgeClient {
 						}
 						connect();
 					} catch (TemporarilyUnavailableException tue) {
-						openedConnections.decrementAndGet();
 						logger.severe("BRIDGE: connection to MQM Server temporary failed: resource not available");
 						try {
 							Thread.sleep(20000);
@@ -89,7 +81,6 @@ public class BridgeClient {
 						}
 						connect();
 					} catch (Exception e) {
-						openedConnections.decrementAndGet();
 						logger.severe("BRIDGE: connection to MQM Server temporary failed: " + e.getMessage());
 						try {
 							Thread.sleep(1000);
