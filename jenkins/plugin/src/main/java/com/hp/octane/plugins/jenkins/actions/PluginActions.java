@@ -112,6 +112,48 @@ public class PluginActions implements RootAction {
 		}
 	}
 
+	public String getIconFileName() {
+		return null;
+	}
+
+	public String getDisplayName() {
+		return null;
+	}
+
+	public String getUrlName() {
+		return "octane";
+	}
+
+	public void doStatus(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
+		res.serveExposedBean(req, new PluginStatus(), Flavor.JSON);
+	}
+
+	public void doProjects(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
+		if (req.getRestOfPath().isEmpty() && req.getMethod().equals("GET")) {
+			boolean areParametersNeeded = true;
+			if (req.getParameter("parameters") != null && req.getParameter("parameters").toLowerCase().equals("false")) {
+				areParametersNeeded = false;
+			}
+			res.serveExposedBean(req, new ProjectsList(areParametersNeeded), Flavor.JSON);
+		} else {
+			ProjectsRESTResource.instance.handle(req, res);
+		}
+	}
+
+	//  TODO: refactor to adjust to standard REST APIs flavor
+	public ConfigApi getConfiguration() {
+		return new ConfigApi();
+	}
+
+	@Deprecated
+	public void doJobs(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
+		boolean areParametersNeeded = true;
+		if (req.getParameter("parameters") != null && req.getParameter("parameters").toLowerCase().equals("false")) {
+			areParametersNeeded = false;
+		}
+		res.serveExposedBean(req, new ProjectsList(areParametersNeeded), Flavor.JSON);
+	}
+
 	@ExportedBean
 	public static final class ProjectConfig {
 		private String name;
@@ -157,33 +199,5 @@ public class PluginActions implements RootAction {
 			}
 			jobs = list.toArray(new ProjectConfig[list.size()]);
 		}
-	}
-
-	public String getIconFileName() {
-		return null;
-	}
-
-	public String getDisplayName() {
-		return null;
-	}
-
-	public String getUrlName() {
-		return "octane";
-	}
-
-	public void doStatus(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
-		res.serveExposedBean(req, new PluginStatus(), Flavor.JSON);
-	}
-
-	public void doJobs(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
-		boolean areParametersNeeded = true;
-		if (req.getParameter("parameters") != null && req.getParameter("parameters").toLowerCase().equals("false")) {
-			areParametersNeeded = false;
-		}
-		res.serveExposedBean(req, new ProjectsList(areParametersNeeded), Flavor.JSON);
-	}
-
-	public ConfigApi getConfiguration() {
-		return new ConfigApi();
 	}
 }
