@@ -21,7 +21,7 @@ public abstract class GeneralGetRequest extends GeneralRequest {
     @Override
     public Response perform() {
         
-        return client.httpGet(
+        return _client.httpGet(
                 getUrl(),
                 getQueryString(),
                 getHeaders(),

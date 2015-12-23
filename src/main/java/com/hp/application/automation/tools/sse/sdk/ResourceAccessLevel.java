@@ -1,9 +1,9 @@
 package com.hp.application.automation.tools.sse.sdk;
 
-import com.hp.application.automation.tools.rest.HttpHeaders;
+import com.hp.application.automation.tools.rest.RESTConstants;
 
 public enum ResourceAccessLevel {
-    PUBLIC(null), PROTECTED(HttpHeaders.PtaL), PRIVATE(HttpHeaders.PvaL);
+    PUBLIC(null), PROTECTED(RESTConstants.PtaL), PRIVATE(RESTConstants.PvaL);
     
     private String _headerName;
     

@@ -1,11 +1,10 @@
 package com.hp.application.automation.tools.sse.sdk.request;
 
+import com.hp.application.automation.tools.rest.RESTConstants;
+import com.hp.application.automation.tools.sse.sdk.Client;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import com.hp.application.automation.tools.rest.HttpHeaders;
-import com.hp.application.automation.tools.sse.common.RestXmlUtils;
-import com.hp.application.automation.tools.sse.sdk.Client;
 
 public class CreateSiteSessionRequest extends GeneralPostRequest {
 
@@ -17,14 +16,14 @@ public class CreateSiteSessionRequest extends GeneralPostRequest {
     @Override
     protected String getUrl() {
 
-        return client.build("rest/site-session");
+        return _client.build("rest/site-session");
     }
 
     @Override
     protected Map<String, String> getHeaders() {
 
         Map<String, String> ret = new HashMap<String, String>();
-        ret.put(HttpHeaders.CONTENT_TYPE, RestXmlUtils.TEXT_PLAIN);
+        ret.put(RESTConstants.CONTENT_TYPE, RESTConstants.TEXT_PLAIN);
 
         return ret;
     }
