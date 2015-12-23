@@ -559,6 +559,13 @@ namespace HpToolsLauncher
                 {
                     TestExecStatus testExecStatusObj = executionStatus[j];
 
+                    currentTest = targetTestSet.TSTestFactory[testExecStatusObj.TSTestId];
+                    if (currentTest == null)
+                    {
+                        ConsoleWriter.WriteLine(string.Format("currentTest is null for test.{0} during execution", j));
+                        continue;
+                    }
+
                     activeTestDesc = UpdateTestStatus(runDesc, targetTestSet, testExecStatusObj, true);
 
                     if (activeTestDesc.PrevTestState != activeTestDesc.TestState)
@@ -566,7 +573,7 @@ namespace HpToolsLauncher
                         TestState tstate = activeTestDesc.TestState;
                         if (tstate == TestState.Running)
                         {
-                            currentTest = targetTestSet.TSTestFactory[testExecStatusObj.TSTestId];
+                            //currentTest = targetTestSet.TSTestFactory[testExecStatusObj.TSTestId];
                             int testIndex = GetIdxByTestName(currentTest.Name, runDesc);
 
                             int prevRunId = GetTestRunId(currentTest);
@@ -659,11 +666,18 @@ namespace HpToolsLauncher
                     }
 
                     TestExecStatus testExecStatusObj = executionStatus[k];
+                    currentTest = targetTestSet.TSTestFactory[testExecStatusObj.TSTestId];
+                    if (currentTest == null)
+                    {
+                        ConsoleWriter.WriteLine(string.Format("currentTest is null for test.{0} after whole execution", k));
+                        continue;
+                    }
+
                     activeTestDesc = UpdateTestStatus(runDesc, targetTestSet, testExecStatusObj, false);
 
                     UpdateCounters(activeTestDesc, runDesc);
 
-                    currentTest = targetTestSet.TSTestFactory[testExecStatusObj.TSTestId];
+                    //currentTest = targetTestSet.TSTestFactory[testExecStatusObj.TSTestId];
 
                     string testPath = "Root\\" + tsFolderName + "\\" + tsName + "\\" + activeTestDesc.TestName;
 
@@ -837,6 +851,11 @@ namespace HpToolsLauncher
             {
                 //find the test for the given status object
                 currentTest = targetTestSet.TSTestFactory[testExecStatusObj.TSTestId];
+
+                if (currentTest == null)
+                {
+                    return qTest;
+                }
 
                 //find the test in our list
                 int testIndex = GetIdxByTestName(currentTest.Name, runResults);
