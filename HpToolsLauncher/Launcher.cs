@@ -331,8 +331,18 @@ namespace HpToolsLauncher
                         ConsoleWriter.WriteLine(Resources.LauncherNoValidTests);
                         return null;
                     }
+                    string fsAppParamName = "";
+                    string appIdentifier = "";
+                    if (_ciParams.ContainsKey("fsAppParamName"))
+                    {
+                        fsAppParamName = _ciParams["fsAppParamName"];
+                        if (_ciParams.ContainsKey(fsAppParamName))
+                        {
+                            appIdentifier = _ciParams[fsAppParamName];
+                        }
+                    }
 
-                    runner = new FileSystemTestsRunner(validTests, timeout, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables);
+                    runner = new FileSystemTestsRunner(validTests, timeout, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, fsAppParamName, appIdentifier);
 
                     break;
 

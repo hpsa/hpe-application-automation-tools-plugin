@@ -5,6 +5,8 @@
 
 package com.hp.application.automation.tools.run;
 
+import com.hp.application.automation.tools.model.MCServerSettingsModel;
+import com.hp.application.automation.tools.settings.MCServerSettingsBuilder;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
@@ -29,6 +31,8 @@ import java.net.URL;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.lang.StringUtils;
@@ -50,10 +54,10 @@ public class RunFromFileBuilder extends Builder {
 
 	@DataBoundConstructor
 	public RunFromFileBuilder(String fsTests, String fsTimeout, String controllerPollingInterval,
-			String perScenarioTimeOut, String ignoreErrorStrings) {
+			String perScenarioTimeOut, String ignoreErrorStrings, String mcServerName, String fsUserName, String fsPassword, String fsAppPath, String fsAppParamName) {
 
 		runFromFileModel = new RunFromFileSystemModel(fsTests, fsTimeout, controllerPollingInterval,
-				perScenarioTimeOut, ignoreErrorStrings);
+				perScenarioTimeOut, ignoreErrorStrings, mcServerName, fsUserName, fsPassword, fsAppPath, fsAppParamName);
 
 	}
 
@@ -65,6 +69,13 @@ public class RunFromFileBuilder extends Builder {
 	@Override
 	public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
 
+        // get the mc server settings
+        MCServerSettingsModel mcServerSettingsModel = getMCServerSettingsModel();
+
+        if (mcServerSettingsModel == null) {
+            listener.fatalError("An MC server is not defined. Go to Manage Jenkins->Configure System and define your MC server under Mobile Center");
+            return false;
+        }
 		EnvVars env = null;
 		try {
 			env = build.getEnvironment(listener);
@@ -77,10 +88,17 @@ public class RunFromFileBuilder extends Builder {
 			e2.printStackTrace();
 		}
 		VariableResolver<String> varResolver = build.getBuildVariableResolver();
-
+        String appName;
+        String appIdentifier;
+        String mcServerUrl = mcServerSettingsModel.getProperties().getProperty("mcServerUrl");
+        appIdentifier = runFromFileModel.getAppIndentifier(mcServerUrl);
 		// now merge them into one list
 		Properties mergedProperties = new Properties();
-
+        //add app identifier
+        if(!StringUtils.isEmpty(runFromFileModel.getFsAppParamName()) && !StringUtils.isEmpty(appIdentifier)){
+            mergedProperties.setProperty("fsAppParamName",runFromFileModel.getFsAppParamName());
+            mergedProperties.setProperty(runFromFileModel.getFsAppParamName(),appIdentifier);
+        }
 		mergedProperties.putAll(runFromFileModel.getProperties(env, varResolver));
 		int idx = 0;
 		for (String key : env.keySet()) {
@@ -200,6 +218,16 @@ public class RunFromFileBuilder extends Builder {
 
 	}
 
+    public MCServerSettingsModel getMCServerSettingsModel() {
+        for (MCServerSettingsModel mcServer : getDescriptor().getMcServers()) {
+            if (this.runFromFileModel != null
+                    && runFromFileModel.getMcServerName().equals(mcServer.getMcServerName())) {
+                return mcServer;
+            }
+        }
+        return null;
+    }
+
 	public RunFromFileSystemModel getRunFromFileModel() {
 		return runFromFileModel;
 	}
@@ -253,7 +281,17 @@ public class RunFromFileBuilder extends Builder {
 			}
 			return FormValidation.ok();
 		}
-		
+
+        public boolean hasMCServers() {
+            return Hudson.getInstance().getDescriptorByType(
+                    MCServerSettingsBuilder.MCDescriptorImpl.class).hasMCServers();
+        }
+
+        public MCServerSettingsModel[] getMcServers() {
+            return Hudson.getInstance().getDescriptorByType(
+                    MCServerSettingsBuilder.MCDescriptorImpl.class).getInstallations();
+        }
+
 		public FormValidation doCheckControllerPollingInterval(@QueryParameter String value){
 			if (StringUtils.isEmpty(value)){
 				return FormValidation.ok();
