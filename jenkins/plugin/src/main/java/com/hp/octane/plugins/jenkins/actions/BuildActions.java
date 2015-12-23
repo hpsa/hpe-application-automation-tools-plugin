@@ -65,8 +65,6 @@ public class BuildActions extends TransientActionFactory<AbstractBuild> {
 		}
 
 		public void doSnapshot(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
-			//JGitTest.readRepo(build.getWorkspace().getRemote());
-
 			String metaonlyParam = req.getParameter("metaonly");
 			boolean metaonly = metaonlyParam != null && metaonlyParam.equals("true");
 			res.serveExposedBean(req, new SnapshotItem(build, metaonly), Flavor.JSON);

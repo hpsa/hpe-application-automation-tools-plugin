@@ -1,4 +1,4 @@
-package com.hp.octane.plugins.jenkins.actions;
+package com.hp.octane.plugins.jenkins.rest;
 
 import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.model.parameters.ParameterType;
@@ -45,12 +45,15 @@ import java.util.logging.Logger;
 
 public class ProjectsRESTResource {
 	private static final Logger logger = Logger.getLogger(ProjectsRESTResource.class.getName());
-	static final ProjectsRESTResource instance = new ProjectsRESTResource();
+	public static final ProjectsRESTResource instance = new ProjectsRESTResource();
+
+	private static final String BUILDS_REST = "builds";
+	private static final String RUN_REST = "run";
 
 	private ProjectsRESTResource() {
 	}
 
-	void handle(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
+	public void handle(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
 		String[] path = req.getRestOfPath().split("/");
 		TopLevelItem item = Jenkins.getInstance().getItem(path[1]);
 		if (item == null || !(item instanceof AbstractProject)) {
@@ -58,9 +61,9 @@ public class ProjectsRESTResource {
 			res.getWriter().write("project '" + path[1] + "' not exists");
 		} else {
 			if (path.length > 2) {
-				if ("builds".equals(path[2])) {
+				if (BUILDS_REST.equals(path[2])) {
 					BuildsRESTResource.instance.handle((AbstractProject) item, path.length > 3 ? path[3] : null, req, res);
-				} else if ("run".equals(path[2])) {
+				} else if (RUN_REST.equals(path[2])) {
 					executeProject((AbstractProject) item, req, res);
 				} else {
 					res.setStatus(404);
@@ -72,7 +75,7 @@ public class ProjectsRESTResource {
 	}
 
 	private void serveProjectStructure(AbstractProject project, StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
-		if (req.getMethod().equals("GET")) {
+		if ("GET".equals(req.getMethod())) {
 			res.serveExposedBean(req, new StructureItem(project), Flavor.JSON);
 		} else {
 			res.setStatus(405);
@@ -80,7 +83,7 @@ public class ProjectsRESTResource {
 	}
 
 	private void executeProject(AbstractProject project, StaplerRequest req, StaplerResponse res) throws IOException {
-		if (req.getMethod().equals("POST")) {
+		if ("POST".equals(req.getMethod())) {
 			SecurityContext context = null;
 			String user = Jenkins.getInstance().getPlugin(OctanePlugin.class).getImpersonatedUser();
 

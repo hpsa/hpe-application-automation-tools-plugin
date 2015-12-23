@@ -6,6 +6,7 @@ import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import com.hp.octane.plugins.jenkins.events.EventsClient;
 import com.hp.octane.plugins.jenkins.events.EventsService;
+import com.hp.octane.plugins.jenkins.rest.ProjectsRESTResource;
 import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.RootAction;
