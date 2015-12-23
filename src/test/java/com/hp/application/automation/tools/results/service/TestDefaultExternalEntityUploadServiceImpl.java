@@ -4,7 +4,7 @@ package com.hp.application.automation.tools.results.service;
 public class TestDefaultExternalEntityUploadServiceImpl {
 
 	
-	private static void testJunit(int i){
+	private static void testJunit(int i) throws Exception{
 		AlmRestInfo loginInfo = new AlmRestInfo(
 				"http://localhost:8085/qcbin",
 				"DEFAULT",
@@ -29,7 +29,7 @@ public class TestDefaultExternalEntityUploadServiceImpl {
 		
 	}
 	
-	private static void testtestNG(int i){
+	private static void testtestNG(int i) throws Exception{
 		AlmRestInfo loginInfo = new AlmRestInfo(
 				"http://localhost:8085/qcbin",
 				"DEFAULT",
@@ -54,7 +54,7 @@ public class TestDefaultExternalEntityUploadServiceImpl {
 		System.out.println("total time:" + (end -start));		
 	}
 	
-	private static void testnunit(int i){
+	private static void testnunit(int i) throws Exception{
 		AlmRestInfo loginInfo = new AlmRestInfo(
 				"http://localhost:8085/qcbin",
 				"DEFAULT",
@@ -80,7 +80,7 @@ public class TestDefaultExternalEntityUploadServiceImpl {
 		System.out.println("total time:" + (end -start));	
 	}
 	
-	public static void main(String[] argc) {
+	public static void main(String[] argc) throws Exception{
 		testJunit(109);
 		//testtestNG(107);
 		//testnunit(108);

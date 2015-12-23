@@ -155,17 +155,21 @@ public class TestResultToALMUploader extends Recorder implements Serializable, M
     			AlmRestTool u = new AlmRestTool(loginInfo, logger);
     			logger.log("INFO: Start to upload "+fullpath);
     			IExternalEntityUploadService service = new DefaultExternalEntityUploadServiceImpl(u, logger );
-    			service.UploadExternalTestSet(loginInfo, 
-    											fullpath, 
-    											uploadTestResultToAlmModel.getAlmTestSetFolder(), 
-    											uploadTestResultToAlmModel.getAlmTestFolder(), 
-    											uploadTestResultToAlmModel.getTestingFramework(), 
-    											uploadTestResultToAlmModel.getTestingTool(), 
-    											String.valueOf(build.getNumber()),
-    											build.getParent().getDisplayName(),
-    											runUrl
-    											);
-    			logger.log("INFO: Uploaded "+fullpath + ".");
+    			try {
+	    			service.UploadExternalTestSet(loginInfo, 
+	    											fullpath, 
+	    											uploadTestResultToAlmModel.getAlmTestSetFolder(), 
+	    											uploadTestResultToAlmModel.getAlmTestFolder(), 
+	    											uploadTestResultToAlmModel.getTestingFramework(), 
+	    											uploadTestResultToAlmModel.getTestingTool(), 
+	    											String.valueOf(build.getNumber()),
+	    											build.getParent().getDisplayName(),
+	    											runUrl
+	    											);
+	    			logger.log("INFO: Uploaded "+fullpath + ".");
+    			} catch (Exception e) {
+    				logger.log("WARN: there's exception while uploading "+fullpath + ".");
+    			}
 
         	}
         }

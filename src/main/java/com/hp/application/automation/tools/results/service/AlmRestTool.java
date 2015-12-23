@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.hp.application.automation.tools.common.Pair;
+import com.hp.application.automation.tools.common.SSEException;
 import com.hp.application.automation.tools.rest.RestClient;
 import com.hp.application.automation.tools.results.service.almentities.AlmEntity;
 import com.hp.application.automation.tools.results.service.rest.CreateAlmEntityRequest;
@@ -57,7 +58,7 @@ public class AlmRestTool {
     
     
 	
-	public boolean login() {
+	public boolean login() throws Exception {
 
 		boolean ret = true;
         try {
@@ -74,6 +75,7 @@ public class AlmRestTool {
                     "Failed login to ALM Server URL: %s. Exception: %s",
                     almLoginInfo.getServerUrl(),
                     cause.getMessage()));
+            throw new AlmRestException (cause);
         }        
         return ret;
 	}
