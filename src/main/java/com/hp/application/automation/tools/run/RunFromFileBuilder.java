@@ -72,10 +72,6 @@ public class RunFromFileBuilder extends Builder {
         // get the mc server settings
         MCServerSettingsModel mcServerSettingsModel = getMCServerSettingsModel();
 
-        if (mcServerSettingsModel == null) {
-            listener.fatalError("An MC server is not defined. Go to Manage Jenkins->Configure System and define your MC server under Mobile Center");
-            return false;
-        }
 		EnvVars env = null;
 		try {
 			env = build.getEnvironment(listener);
@@ -88,10 +84,14 @@ public class RunFromFileBuilder extends Builder {
 			e2.printStackTrace();
 		}
 		VariableResolver<String> varResolver = build.getBuildVariableResolver();
-        String appName;
         String appIdentifier;
-        String mcServerUrl = mcServerSettingsModel.getProperties().getProperty("mcServerUrl");
-        appIdentifier = runFromFileModel.getAppIndentifier(mcServerUrl);
+        String mcServerUrl = "";
+        if(mcServerSettingsModel != null){
+            mcServerUrl = mcServerSettingsModel.getProperties().getProperty("mcServerUrl");
+            appIdentifier = runFromFileModel.getAppIndentifier(mcServerUrl);
+        }else{
+            appIdentifier = "";
+        }
 		// now merge them into one list
 		Properties mergedProperties = new Properties();
         //add app identifier
