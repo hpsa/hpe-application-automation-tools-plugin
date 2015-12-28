@@ -15,7 +15,7 @@ public class JacocoController {
     private static final String ERROR = "Unable to access JaCoCo Agent - " +
             "make sure that you use JaCoCo and version not lower than 0.6.2.";
     private final IAgent agent;
-    private boolean testStarted;
+    private boolean m_bTestStarted;
 
     private static JacocoController singleton;
 
@@ -41,17 +41,17 @@ public class JacocoController {
     }
 
     public synchronized void onTestStart(String name) {
-        if (testStarted) {
+        if (m_bTestStarted) {
             throw new JacocoControllerError("Looks like several tests executed in parallel" +
                     " in the same JVM, thus coverage per test can't be recorded correctly.");
         }
-        testStarted = true;
+        m_bTestStarted = true;
     }
 
     public synchronized void onTestFinish(String name) {
         // Dump coverage for test
         dump(name);
-        testStarted = false;
+        m_bTestStarted = false;
     }
 
     private void dump(String sessionId) {

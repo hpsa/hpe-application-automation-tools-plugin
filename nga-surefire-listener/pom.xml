@@ -29,12 +29,12 @@
             <scope>provided</scope>
         </dependency>
         <!--for NG TEST-->
-        <!--        <dependency>
-                    <groupId>org.testng</groupId>
-                    <artifactId>testng</artifactId>
-                    <version>6.8</version>
-                    <scope>provided</scope>
-                </dependency>-->
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>6.8</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
 </project>
