@@ -83,7 +83,7 @@ public class BuildsRESTResource {
 					}
 				} else if (COVERAGE_REST.equals(path[1])) {
 					if ("GET".equals(req.getMethod())) {
-						res.getWriter().write("serve coverage here");
+						res.getWriter().write("[]");
 					} else {
 						res.setStatus(405);
 					}
