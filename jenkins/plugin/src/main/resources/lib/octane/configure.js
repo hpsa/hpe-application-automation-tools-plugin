@@ -464,7 +464,9 @@ function octane_job_configuration(target, progress, proxy) {
             var tagTypeInput = $("<input type='text' class='setting-input'>");
             tagTypeInputTd.append(tagTypeInput);
             tagTypeInput.hide();
-            tagTypeInput.blur(validateInput(validationAreaTagType, newTagTypeValidation(tagTypeInput)));
+            tagTypeInput.blur(newTagTypeValidation(tagTypeInput, pipeline.workspaceId, function(error) {
+                doValidateTag(error, validationAreaTagType);
+            }));
             var tagTypeSpan = $("<span>");
             tagTypeSpan.hide();
             tagTypeInputTd.append(tagTypeSpan);
@@ -478,23 +480,7 @@ function octane_job_configuration(target, progress, proxy) {
 
             var add = $("<button>Add</button>");
             add.hide();
-            var doAdd = function () {
-                var validationOk = true;
-                if (!addedTag.tagTypeId) {
-                    addedTag.tagTypeName = tagTypeInput.val();
-                    if (!validateInput(validationAreaTagType, newTagTypeValidation(tagTypeInput))()) {
-                        validationOk = false;
-                    }
-                }
-                if (!addedTag.tagId) {
-                    addedTag.tagName = tagInput.val();
-                    if (!validateInput(validationAreaTag, newTagValidation(tagTypeInput, tagInput, pipeline.taxonomyTags))()) {
-                        validationOk = false;
-                    }
-                }
-                if (!validationOk) {
-                    return;
-                }
+            var doFinishValidation = function(){
                 pipeline.taxonomyTags.push(addedTag);
                 addTag(addedTag);
                 if (addedTag.tagId) {
@@ -510,6 +496,59 @@ function octane_job_configuration(target, progress, proxy) {
                 setTimeout(function() {
                     addSelect.val("default").trigger("change"); //set "Add environment..." as selected option
                 }, 100);
+            };
+            var doValidateTag = function(error, target ){
+                function showError(message) {
+                    var container = $("<div class='error'/>");
+                    container.html(message);
+                    target.append(container);
+                    target.show();
+                }
+
+                target.empty();
+                if (error) {
+                    showError(error);
+                } else {
+                    target.hide();
+                }
+
+            };
+            var doAdd = function () {
+                var validationTagTypeOk = null;
+                var validationTagOk = null;
+                if (!addedTag.tagTypeId) {
+                    addedTag.tagTypeName = tagTypeInput.val();
+
+                    newTagTypeValidation(tagTypeInput, pipeline.workspaceId, function(error) {
+
+                        doValidateTag(error, validationAreaTagType);
+                        validationTagTypeOk = typeof error === 'undefined';
+                        if (validationTagOk !== null) {
+                            if(validationTagTypeOk && validationTagOk){
+                                doFinishValidation();
+                            }
+                        }
+                    })();
+
+                }else{
+                    validationTagTypeOk = true;
+                }
+
+                if (!addedTag.tagId) {
+                    addedTag.tagName = tagInput.val();
+                    if (!validateInput(validationAreaTag, newTagValidation(tagTypeInput, tagInput, pipeline.taxonomyTags))()) {
+                        validationTagOk = false;
+                    }else{
+                        validationTagOk = true;
+                    }
+                    if (validationTagTypeOk !== null) {
+                        if(validationTagTypeOk && validationTagOk){
+                            doFinishValidation();
+                        }
+                    }
+
+                }
+
             };
             add.click(doAdd);
             enableDirtyClickCheck(add);
@@ -782,27 +821,47 @@ function octane_job_configuration(target, progress, proxy) {
             };
         }
 
-        function newTagTypeValidation(tagTypeInput) {
+        function newTagTypeValidation(tagTypeInput, workspaceId, callback) {
             return function () {
                 var error = undefined;
 
-                function matchTagType(tagType) {
-                    if (caseInsensitiveStringEquals(tagType.tagTypeName, tagTypeInput.val())) {
-                        error = "Environment Type " + tagType.tagTypeName + " is already defined";
-                        return true;
-                    } else {
-                        return false;
+                function searchTaxCallback(data) {
+                    var tagTypeSearch = [];
+                    var response = data.responseObject();
+
+                    function matchTagType(tagType) {
+                        if (caseInsensitiveStringEquals(tagType, tagTypeInput.val())) {
+                            error = "Environment Type " + tagType + " is already defined";
+                            return true;
+                        } else {
+                            return false;
+                        }
                     }
+
+                    if (response.errors) {
+                        response.errors.forEach(renderError);
+                        failure();
+                    } else {
+                        Object.keys(response.tagTypes).forEach(function(key) {
+                            tagTypeSearch.push(response.tagTypes[key].tagTypeName);
+                        });
+                        if(tagTypeSearch.length){
+                            tagTypeSearch.some(matchTagType);
+                        }
+
+                    }
+                    callback(error);
                 }
 
                 if (!tagTypeInput.val()) {
                     return "Environment type must be specified";
                 }
 
-                Object.values(tagTypes).some(matchTagType);
-                return error;
+                proxy.searchTaxonomies(tagTypeInput.val(), workspaceId, [], searchTaxCallback);
+
             };
         }
+
 
         function enableInputValidation(input, message, validationArea, options_opt) {
             function emptyCheck() {
