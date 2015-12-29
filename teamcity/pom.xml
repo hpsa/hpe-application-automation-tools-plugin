@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>teamcity-plugin-root</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+    <parent>
+        <groupId>com.hp.mqm</groupId>
+        <artifactId>indi-integrations-root</artifactId>
+        <version>12.50.27-SNAPSHOT</version>
+    </parent>
+
+  <properties>
+      <teamcity-version>9.1.5</teamcity-version>
+      <jackson-verison>1.9.2</jackson-verison>
+  </properties>
+  <repositories>
+    <repository>
+        <id>JetBrains</id>
+        <url>http://repository.jetbrains.com/all</url>
+    </repository>
+  </repositories>
+  <pluginRepositories>
+      <pluginRepository>
+          <id>JetBrains</id>
+          <url>http://repository.jetbrains.com/all</url>
+      </pluginRepository>
+  </pluginRepositories>
+  <build>
+      <pluginManagement>
+          <plugins>
+              <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-compiler-plugin</artifactId>
+                  <configuration>
+                      <source>1.6</source>
+                      <target>1.6</target>
+                  </configuration>
+              </plugin>
+              <plugin>
+                  <groupId>org.jetbrains.teamcity</groupId>
+                  <artifactId>teamcity-sdk-maven-plugin</artifactId>
+                  <version>RELEASE</version>
+                  <configuration>
+                      <!-- <teamcityDir>/path/to/tc/distro</teamcityDir> -->
+                  </configuration>
+              </plugin>
+          </plugins>
+      </pluginManagement>
+  </build>
+  <modules>
+    <module>plugin</module>
+    <module>build</module>
+  </modules>
+</project>
