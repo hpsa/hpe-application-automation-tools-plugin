@@ -3,8 +3,6 @@ package com.hp.octane.plugins.jenkins.model.scm;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
-import java.util.ArrayList;
-
 /**
  * Created with IntelliJ IDEA.
  * User: gullery
@@ -15,14 +13,28 @@ import java.util.ArrayList;
 
 @ExportedBean
 public class SCMData {
-	private ArrayList<SCMRepository> repositories;
+	private final SCMRepository repository;
+	private final String builtRevId;
+	private final SCMCommit[] commits;
 
-	public SCMData(ArrayList<SCMRepository> repositories) {
-		this.repositories = repositories;
+	public SCMData(SCMRepository repository, String builtRevId, SCMCommit[] commits) {
+		this.repository = repository;
+		this.builtRevId = builtRevId;
+		this.commits = commits;
 	}
 
 	@Exported(inline = true)
-	public SCMRepository[] getRepositories() {
-		return repositories.toArray(new SCMRepository[repositories.size()]);
+	public SCMRepository getRepository() {
+		return repository;
+	}
+
+	@Exported(inline = true)
+	public String getBuiltRevId() {
+		return builtRevId;
+	}
+
+	@Exported(inline = true)
+	public SCMCommit[] getCommits() {
+		return commits;
 	}
 }

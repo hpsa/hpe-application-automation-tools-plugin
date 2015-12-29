@@ -9,6 +9,8 @@ import com.hp.octane.plugins.jenkins.model.events.CIEventBase;
 import hudson.Extension;
 import jenkins.model.Jenkins;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
@@ -44,10 +46,18 @@ public final class EventsService implements ConfigurationListener {
 	}
 
 	public void updateClient(ServerConfiguration conf) {
-		if (eventsClient != null) {
-			eventsClient.update(conf);
+		if (isConfigurationValid(conf)) {
+			if (eventsClient != null) {
+				eventsClient.update(conf);
+			} else {
+				eventsClient = new EventsClient(conf, clientFactory);
+			}
 		} else {
-			eventsClient = new EventsClient(conf, clientFactory);
+			if (eventsClient != null) {
+				logger.info("EVENTS: empty / non-valid configuration submitted, disposing events client");
+				eventsClient.dispose();
+				eventsClient = null;
+			}
 		}
 	}
 
@@ -83,5 +93,19 @@ public final class EventsService implements ConfigurationListener {
 	@Override
 	public void onChanged(ServerConfiguration conf, ServerConfiguration oldConf) {
 		updateClient(conf);
+	}
+
+	private boolean isConfigurationValid(ServerConfiguration serverConfiguration) {
+		boolean result = false;
+		if (serverConfiguration.location != null && !serverConfiguration.location.isEmpty() &&
+				serverConfiguration.sharedSpace != null && !serverConfiguration.sharedSpace.isEmpty()) {
+			try {
+				URL tmp = new URL(serverConfiguration.location);
+				result = true;
+			} catch (MalformedURLException mue) {
+				logger.warning("EVENTS: configuration with malformed URL supplied");
+			}
+		}
+		return result;
 	}
 }

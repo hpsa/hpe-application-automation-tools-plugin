@@ -17,34 +17,6 @@ import java.util.ArrayList;
 public class SCMCommit {
 
 	@ExportedBean
-	public static class User {
-		private String nickName;
-		private String fullName;
-		private String email;
-
-		User(String nickName, String fullName, String email) {
-			this.nickName = nickName;
-			this.fullName = fullName;
-			this.email = email;
-		}
-
-		@Exported(inline = true)
-		public String getNickName() {
-			return nickName;
-		}
-
-		@Exported(inline = true)
-		public String getFullName() {
-			return fullName;
-		}
-
-		@Exported(inline = true)
-		public String getEmail() {
-			return email;
-		}
-	}
-
-	@ExportedBean
 	public static class Change {
 		private String type;
 		private String file;
@@ -65,22 +37,20 @@ public class SCMCommit {
 		}
 	}
 
-	private String id;
-	private String comment;
-	private long time;
-	private User user;
-	private ArrayList<Change> changes;
+	private final Long time;
+	private final String user;
+	private final String revId;
+	private final String parentRevId;
+	private final String comment;
+	private final ArrayList<Change> changes;
 
-	public SCMCommit(String id, String comment, long time) {
-		this.id = id;
-		this.comment = comment;
+	public SCMCommit(Long time, String user, String revId, String parentRevId, String comment) {
 		this.time = time;
-		this.user = null;
+		this.user = user;
+		this.revId = revId;
+		this.parentRevId = parentRevId;
+		this.comment = comment;
 		this.changes = new ArrayList<Change>();
-	}
-
-	public void setUser(String nickName, String fullName, String email) {
-		user = new User(nickName, fullName, email);
 	}
 
 	public void addChange(String type, String file) {
@@ -88,23 +58,28 @@ public class SCMCommit {
 	}
 
 	@Exported(inline = true)
-	public String getId() {
-		return id;
+	public Long getTime() {
+		return time;
+	}
+
+	@Exported(inline = true)
+	public String getUser() {
+		return user;
+	}
+
+	@Exported(inline = true)
+	public String getRevId() {
+		return revId;
+	}
+
+	@Exported(inline = true)
+	public String getParentRevId() {
+		return parentRevId;
 	}
 
 	@Exported(inline = true)
 	public String getComment() {
 		return comment;
-	}
-
-	@Exported(inline = true)
-	public long getTime() {
-		return time;
-	}
-
-	@Exported(inline = true)
-	public User getUser() {
-		return user;
 	}
 
 	@Exported(inline = true)

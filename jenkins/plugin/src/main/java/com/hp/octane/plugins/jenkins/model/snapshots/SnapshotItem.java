@@ -4,9 +4,7 @@ import com.hp.octane.plugins.jenkins.model.api.ParameterInstance;
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCauseBase;
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCausesFactory;
 import com.hp.octane.plugins.jenkins.model.pipelines.*;
-import com.hp.octane.plugins.jenkins.model.processors.parameters.AbstractParametersProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
-import com.hp.octane.plugins.jenkins.model.processors.scm.GitSCMProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessors;
 import com.hp.octane.plugins.jenkins.model.scm.SCMData;
 import com.hp.octane.plugins.jenkins.model.api.AbstractItem;
@@ -68,7 +66,7 @@ public final class SnapshotItem extends AbstractItem<ParameterInstance, Snapshot
 		duration = build.getDuration();
 		scmData = SCMProcessors
 				.getAppropriate(build.getProject().getScm().getClass().getName())
-				.getSCMChanges(build);
+				.getSCMData(build);
 
 		setParameters(ParameterProcessors.getInstances(build));
 

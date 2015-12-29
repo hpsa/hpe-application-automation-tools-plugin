@@ -585,11 +585,13 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	public String getAbridgedTasks(String selfIdentity, String selfLocation) {
 		HttpGet request;
 		HttpResponse response = null;
+		String responseBody;
 		try {
 			request = new HttpGet(createSharedSpaceInternalApiUri(URI_GET_ABRIDGED_TASKS, selfIdentity, selfLocation));
 			response = execute(request);
+			responseBody = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-				return IOUtils.toString(response.getEntity().getContent(), "UTF-8");
+				return responseBody;
 			} else {
 				if (response.getStatusLine().getStatusCode() == HttpStatus.SC_REQUEST_TIMEOUT) {
 					logger.info("expected timeout disconnection on retrieval of abridged tasks");
@@ -598,7 +600,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 				} else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_FOUND) {
 					throw new TemporarilyUnavailableException("");
 				} else {
-					logger.info("unexpected response with status " + response.getStatusLine().getStatusCode());
+					logger.info("unexpected response; status: " + response.getStatusLine().getStatusCode() + "; content: " + responseBody);
 				}
 				return null;
 			}

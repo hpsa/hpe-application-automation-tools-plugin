@@ -3,8 +3,6 @@ package com.hp.octane.plugins.jenkins.model.scm;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
-import java.util.ArrayList;
-
 /**
  * Created with IntelliJ IDEA.
  * User: gullery
@@ -15,21 +13,28 @@ import java.util.ArrayList;
 
 @ExportedBean
 public class SCMRepository {
-	private SCMConfiguration configuration;
-	private SCMCommit[] commits;
+	private final SCMType type;
+	private final String url;
+	private final String branch;
 
-	public SCMRepository(SCMConfiguration configuration, SCMCommit[] commits) {
-		this.configuration = configuration;
-		this.commits = commits == null ? new SCMCommit[0] : commits.clone();
+	public SCMRepository(SCMType type, String url, String branch) {
+		this.type = type;
+		this.url = url;
+		this.branch = branch;
 	}
 
 	@Exported(inline = true)
-	public SCMConfiguration getConfiguration() {
-		return configuration;
+	public String getType() {
+		return type.toString();
 	}
 
 	@Exported(inline = true)
-	public SCMCommit[] getCommits() {
-		return commits.clone();
+	public String getUrl() {
+		return url;
+	}
+
+	@Exported(inline = true)
+	public String getBranch() {
+		return branch;
 	}
 }

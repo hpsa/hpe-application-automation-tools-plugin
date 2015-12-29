@@ -25,110 +25,80 @@ import java.util.logging.Logger;
 public class BridgeClient {
 	private static final Logger logger = Logger.getLogger(BridgeClient.class.getName());
 	private static final String serverInstanceId = new PluginActions.ServerInfo().getInstanceId();
-	private static int CONCURRENT_CONNECTIONS = 1;
 
 	private ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
 	private ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30, new AbridgedTasksExecutorsFactory());
-	private AtomicInteger openedConnections = new AtomicInteger(0);
+	volatile private boolean shuttingDown = false;
 
 	private ServerConfiguration mqmConfig;
 	private JenkinsMqmRestClientFactory restClientFactory;
 
 	public BridgeClient(ServerConfiguration mqmConfig, JenkinsMqmRestClientFactory clientFactory) {
-		this.mqmConfig = new ServerConfiguration(
-				mqmConfig.location,
-				mqmConfig.sharedSpace,
-				mqmConfig.username,
-				mqmConfig.password,
-				mqmConfig.impersonatedUser);
+		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password, mqmConfig.impersonatedUser);
 		restClientFactory = clientFactory;
-		if (this.mqmConfig.location != null && !this.mqmConfig.location.isEmpty()) {
-			connect();
-			logger.info("BRIDGE: client initialized for '" + this.mqmConfig.location + "' (SP: " + this.mqmConfig.sharedSpace + ")");
-		} else {
-			logger.info("BRIDGE: client initialized in disconnected state");
-		}
+		connect();
+		logger.info("BRIDGE: client initialized for '" + this.mqmConfig.location + "' (SP: " + this.mqmConfig.sharedSpace + ")");
 	}
 
 	public void update(ServerConfiguration newConfig) {
-		mqmConfig = new ServerConfiguration(
-				newConfig.location,
-				newConfig.sharedSpace,
-				newConfig.username,
-				newConfig.password,
-				newConfig.impersonatedUser);
-		//  TODO: disconnect current connection once async connectivity is possible
-		if (mqmConfig.location != null && !mqmConfig.location.isEmpty()) {
-			logger.info("BRIDGE: updated for '" + mqmConfig.location + "' (SP: " + mqmConfig.sharedSpace + ")");
-			connect();
-		} else {
-			logger.info("BRIDGE: disabled by configuration change");
-		}
+		mqmConfig = new ServerConfiguration(newConfig.location, newConfig.sharedSpace, newConfig.username, newConfig.password, newConfig.impersonatedUser);
+		logger.info("BRIDGE: updated for '" + mqmConfig.location + "' (SP: " + mqmConfig.sharedSpace + ")");
+		connect();
 	}
 
 	private void connect() {
-		connectivityExecutors.execute(new Runnable() {
-			@Override
-			public void run() {
-				String tasksJSON;
-				int totalConnections;
-				try {
-					totalConnections = openedConnections.incrementAndGet();
-					logger.info("BRIDGE: connecting to '" + mqmConfig.location +
-							"' (SP: " + mqmConfig.sharedSpace +
-							"; instance ID: " + serverInstanceId +
-							"; self URL: " + new PluginActions.ServerInfo().getUrl() +
-							")...; total connections [including new one]: " + totalConnections);
-					MqmRestClient restClient = restClientFactory.create(
-							mqmConfig.location,
-							mqmConfig.sharedSpace,
-							mqmConfig.username,
-							mqmConfig.password);
-					tasksJSON = restClient.getAbridgedTasks(serverInstanceId, new PluginActions.ServerInfo().getUrl());
-					logger.info("BRIDGE: back from '" + mqmConfig.location + "' (SP: " + mqmConfig.sharedSpace + ") with " + (tasksJSON == null || tasksJSON.isEmpty() ? "no tasks" : "some tasks"));
-					openedConnections.decrementAndGet();
-					if (mqmConfig.location != null && !mqmConfig.location.isEmpty() && openedConnections.get() < CONCURRENT_CONNECTIONS) {
-						connect();
-					}
-					if (tasksJSON != null && !tasksJSON.isEmpty()) {
-						dispatchTasks(tasksJSON);
-					}
-				} catch (AuthenticationException ae) {
-					openedConnections.decrementAndGet();
-					logger.severe("BRIDGE: connection to MQM Server temporary failed: authentication error");
+		if (!shuttingDown) {
+			connectivityExecutors.execute(new Runnable() {
+				@Override
+				public void run() {
+					String tasksJSON;
 					try {
-						Thread.sleep(20000);
-					} catch (InterruptedException ie) {
-						logger.info("interrupted while breathing on temporary exception, continue to re-connect...");
-					}
-					if (mqmConfig.location != null && !mqmConfig.location.isEmpty() && openedConnections.get() < CONCURRENT_CONNECTIONS) {
+						logger.info("BRIDGE: connecting to '" + mqmConfig.location +
+								"' (SP: " + mqmConfig.sharedSpace +
+								"; instance ID: " + serverInstanceId +
+								"; self URL: " + new PluginActions.ServerInfo().getUrl());
+						MqmRestClient restClient = restClientFactory.create(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
+						tasksJSON = restClient.getAbridgedTasks(serverInstanceId, new PluginActions.ServerInfo().getUrl());
+						logger.info("BRIDGE: back from '" + mqmConfig.location + "' (SP: " + mqmConfig.sharedSpace + ") with " + (tasksJSON == null || tasksJSON.isEmpty() ? "no tasks" : "some tasks"));
 						connect();
-					}
-				} catch (TemporarilyUnavailableException tue) {
-					openedConnections.decrementAndGet();
-					logger.severe("BRIDGE: connection to MQM Server temporary failed: resource not available");
-					try {
-						Thread.sleep(20000);
-					} catch (InterruptedException ie) {
-						logger.info("interrupted while breathing on temporary exception, continue to re-connect...");
-					}
-					if (mqmConfig.location != null && !mqmConfig.location.isEmpty() && openedConnections.get() < CONCURRENT_CONNECTIONS) {
+						if (tasksJSON != null && !tasksJSON.isEmpty()) {
+							dispatchTasks(tasksJSON);
+						}
+					} catch (AuthenticationException ae) {
+						logger.severe("BRIDGE: connection to MQM Server temporary failed: authentication error");
+						try {
+							Thread.sleep(20000);
+						} catch (InterruptedException ie) {
+							logger.info("interrupted while breathing on temporary exception, continue to re-connect...");
+						}
 						connect();
-					}
-				} catch (Exception e) {
-					openedConnections.decrementAndGet();
-					logger.severe("BRIDGE: connection to MQM Server temporary failed: " + e.getMessage());
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException ie) {
-						logger.info("interrupted while breathing on temporary exception, continue to re-connect...");
-					}
-					if (mqmConfig.location != null && !mqmConfig.location.isEmpty() && openedConnections.get() < CONCURRENT_CONNECTIONS) {
+					} catch (TemporarilyUnavailableException tue) {
+						logger.severe("BRIDGE: connection to MQM Server temporary failed: resource not available");
+						try {
+							Thread.sleep(20000);
+						} catch (InterruptedException ie) {
+							logger.info("interrupted while breathing on temporary exception, continue to re-connect...");
+						}
+						connect();
+					} catch (Exception e) {
+						logger.severe("BRIDGE: connection to MQM Server temporary failed: " + e.getMessage());
+						try {
+							Thread.sleep(1000);
+						} catch (InterruptedException ie) {
+							logger.info("interrupted while breathing on temporary exception, continue to re-connect...");
+						}
 						connect();
 					}
 				}
-			}
-		});
+			});
+		} else if (shuttingDown) {
+			logger.info("BRIDGE: bridge client stopped");
+		}
+	}
+
+	void dispose() {
+		//  TODO: disconnect current connection once async connectivity is possible
+		shuttingDown = true;
 	}
 
 	private void dispatchTasks(String tasksJSON) {

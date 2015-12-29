@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<teamcity-plugin xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:schemas-jetbrains-com:teamcity-plugin-v1-xml">
+  <info>
+    <name>mqmPlugin</name>
+    <display-name>HPE MQM pipeline</display-name>
+    <version>1.0</version>
+    <description>enable you to see teamCity pipeline in MQM</description>
+    <download-url>Plugin download URL</download-url>
+    <email>Plugin author e-mail</email>
+    <vendor>
+      <name>HPE</name>
+      <url>@VendorURL@</url>
+      <logo>Plugin vendor logo URL</logo>
+    </vendor>
+  </info>
+  <deployment use-separate-classloader="true" />
+</teamcity-plugin>

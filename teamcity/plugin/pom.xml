@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>hp-lifecycle-management-teamcity-ci-plugin</artifactId>
+  <name>HP Lifecycle Management TeamCity CI Plugin</name>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+
+  <parent>
+    <artifactId>teamcity-plugin-root</artifactId>
+    <groupId>com.hp.mqm</groupId>
+    <version>1.0-SNAPSHOT</version>
+  </parent>
+
+
+  <dependencies>
+
+    <!-- start: taken from TeamCity\devPackage-->
+    <dependency>
+      <groupId>org.jetbrains.teamcity</groupId>
+      <artifactId>server-api</artifactId>
+      <version>${teamcity-version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jetbrains.teamcity</groupId>
+      <artifactId>server-web-api</artifactId>
+      <version>${teamcity-version}</version>
+      <type>war</type>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jetbrains.teamcity</groupId>
+      <artifactId>common-api</artifactId>
+      <version>${teamcity-version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+      <dependency>
+        <groupId>org.jetbrains.teamcity</groupId>
+        <artifactId>tests-support</artifactId>
+        <version>${teamcity-version}</version>
+        <scope>test</scope>
+      </dependency>
+
+    <!-- end: taken from TeamCity\devPackage-->
+
+    <!-- start: taken from JetBrains\IntelliJ IDEA 14.1.1\redist-->
+    <!--<dependency>-->
+      <!--<groupId>org.jetbrains.annotations</groupId>-->
+      <!--<artifactId>annotations</artifactId>-->
+      <!--<version>132.940</version>-->
+      <!--<scope>provided</scope>-->
+    <!--</dependency>-->
+    <!-- end: taken from JetBrains\IntelliJ IDEA 14.1.1\redist-->
+
+    <!--start: spring dependencies-->
+
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-webmvc</artifactId>
+      <version>RELEASE</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-web</artifactId>
+      <version>4.1.2.RELEASE</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!--end: spring dependencies-->
+
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>RELEASE</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.17</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-jaxrs</artifactId>
+      <version>${jackson-verison}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-mapper-asl</artifactId>
+      <version>${jackson-verison}</version>
+    </dependency>
+
+
+  </dependencies>
+
+</project>

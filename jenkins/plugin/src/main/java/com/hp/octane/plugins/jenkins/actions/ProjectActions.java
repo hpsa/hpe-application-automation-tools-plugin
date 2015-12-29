@@ -80,7 +80,7 @@ public class ProjectActions extends TransientProjectActionFactory {
                 if (abstractBuild != null) {
                     SCMData smData = SCMProcessors
                             .getAppropriate(abstractBuild.getProject().getScm().getClass().getName())
-                            .getSCMChanges(abstractBuild);
+                            .getSCMData(abstractBuild);
                     Set<User> users = abstractBuild.getCulprits();
                     buildHistory.addBuild(abstractBuild.getResult().toString(), String.valueOf(abstractBuild.getNumber()), abstractBuild.getTimestampString(), String.valueOf(abstractBuild.getStartTimeInMillis()), String.valueOf(abstractBuild.getDuration()), smData, users);
                 }
@@ -90,7 +90,7 @@ public class ProjectActions extends TransientProjectActionFactory {
             if (lastSuccessfulBuild != null) {
                 smData = SCMProcessors
                         .getAppropriate(lastSuccessfulBuild.getProject().getScm().getClass().getName())
-                        .getSCMChanges(lastSuccessfulBuild);
+                        .getSCMData(lastSuccessfulBuild);
                 Set<User> users = lastSuccessfulBuild.getCulprits();
                 buildHistory.addLastSuccesfullBuild(lastSuccessfulBuild.getResult().toString(), String.valueOf(lastSuccessfulBuild.getNumber()), lastSuccessfulBuild.getTimestampString(), String.valueOf(lastSuccessfulBuild.getStartTimeInMillis()), String.valueOf(lastSuccessfulBuild.getDuration()), smData, users);
             }
@@ -98,7 +98,7 @@ public class ProjectActions extends TransientProjectActionFactory {
             if (lastBuild != null) {
                 smData = SCMProcessors
                         .getAppropriate(lastBuild.getProject().getScm().getClass().getName())
-                        .getSCMChanges(lastBuild);
+                        .getSCMData(lastBuild);
                 Set<User> users = lastBuild.getCulprits();
                 if (lastBuild.getResult() == null) {
                     buildHistory.addLastBuild("building", String.valueOf(lastBuild.getNumber()), lastBuild.getTimestampString(), String.valueOf(lastBuild.getStartTimeInMillis()), String.valueOf(lastBuild.getDuration()), smData, users);

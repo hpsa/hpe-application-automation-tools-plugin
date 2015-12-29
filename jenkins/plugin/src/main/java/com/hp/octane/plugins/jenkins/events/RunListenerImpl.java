@@ -42,7 +42,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 					((MatrixRun) r).getParentBuild().getParent().getName(),
 					((MatrixRun) r).getParentBuild().getNumber(),
 					build.getNumber(),
-					timeInUTC(build.getStartTimeInMillis()),
+					build.getStartTimeInMillis(),
 					build.getEstimatedDuration(),
 					CIEventCausesFactory.processCauses(extractCauses(build)),
 					ParameterProcessors.getInstances(build)
@@ -54,7 +54,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 					build.getProject().getName(),
 					build.getNumber(),
 					-1,
-					timeInUTC(build.getStartTimeInMillis()),
+					build.getStartTimeInMillis(),
 					build.getEstimatedDuration(),
 					CIEventCausesFactory.processCauses(extractCauses(build)),
 					ParameterProcessors.getInstances(build)
@@ -85,7 +85,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 					getProjectName(r),
 					build.getNumber(),
 					-1,
-					timeInUTC(build.getStartTimeInMillis()),
+					build.getStartTimeInMillis(),
 					build.getEstimatedDuration(),
 					CIEventCausesFactory.processCauses(extractCauses(build)),
 					ParameterProcessors.getInstances(build),
@@ -93,18 +93,12 @@ public final class RunListenerImpl extends RunListener<Run> {
 					build.getDuration(),
 					SCMProcessors
 							.getAppropriate(build.getProject().getScm().getClass().getName())
-							.getSCMChanges(build)
+							.getSCMData(build)
 			);
 			EventsService.getExtensionInstance().dispatchEvent(event);
 
 			testListener.processBuild(build);
 		}
-	}
-
-	//  TODO: replace with the real method from Utils class
-	private long timeInUTC(long input) {
-		return input;
-		//return input - Calendar.getInstance().getTimeZone().getRawOffset();
 	}
 
 	private String getProjectName(Run r) {
