@@ -1,18 +1,14 @@
 package com.hp.octane.dto.coverage;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.hp.octane.api.JSONable;
-import com.hp.octane.serialization.SerializationService;
 
 /**
  * Created by gullery on 30/12/2015.
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class BuildCoverage implements JSONable {
-	private final TestCoverage[] testCoverages;
+public class BuildCoverage {
+	private TestCoverage[] testCoverages;
 
 	public BuildCoverage(TestCoverage[] testCoverages) {
 		if (testCoverages == null) {
@@ -23,11 +19,10 @@ public class BuildCoverage implements JSONable {
 	}
 
 	public TestCoverage[] getTestCoverages() {
-		return testCoverages.clone();
+		return testCoverages;
 	}
 
-	@JsonIgnore
-	public String toJSON() throws JsonProcessingException {
-		return SerializationService.getObjectMapper().writeValueAsString(this);
+	public void setTestCoverages(TestCoverage[] testCoverages) {
+		this.testCoverages = testCoverages;
 	}
 }

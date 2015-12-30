@@ -1,22 +1,18 @@
 package com.hp.octane.dto.coverage;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.hp.octane.api.JSONable;
-import com.hp.octane.serialization.SerializationService;
 
 /**
  * Created by gullery on 29/12/2015.
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class TestCoverage implements JSONable {
-	private final String testName;
-	private final String className;
-	private final String packageName;
-	private final String moduleName;
-	private final int[] lines;
+public class TestCoverage {
+	private String testName;
+	private String className;
+	private String packageName;
+	private String moduleName;
+	private int[] lines;
 
 	public TestCoverage(String testName, String className, String packageName, String moduleName, int[] lines) {
 		if (testName == null || testName.isEmpty()) {
@@ -32,38 +28,53 @@ public class TestCoverage implements JSONable {
 			throw new IllegalArgumentException("module name MUST NOT be null nor empty");
 		}
 		if (lines == null) {
-			throw new IllegalArgumentException("lines data MUST NOT be null");
+			throw new IllegalArgumentException("coverage data MUST NOT be null");
 		}
 
 		this.testName = testName;
 		this.className = className;
 		this.packageName = packageName;
 		this.moduleName = moduleName;
-		this.lines = lines;
+		this.lines = lines.clone();
 	}
 
 	public String getTestName() {
 		return testName;
 	}
 
+	public void setTestName(String testName) {
+		this.testName = testName;
+	}
+
 	public String getClassName() {
 		return className;
+	}
+
+	public void setClassName(String className) {
+		this.className = className;
 	}
 
 	public String getPackageName() {
 		return packageName;
 	}
 
+	public void setPackageName(String packageName) {
+		this.packageName = packageName;
+	}
+
 	public String getModuleName() {
 		return moduleName;
+	}
+
+	public void setModuleName(String moduleName) {
+		this.moduleName = moduleName;
 	}
 
 	public int[] getLines() {
 		return lines.clone();
 	}
 
-	@JsonIgnore
-	public String toJSON() throws JsonProcessingException {
-		return SerializationService.getObjectMapper().writeValueAsString(this);
+	public void setLines(int[] lines) {
+		this.lines = lines == null ? new int[0] : lines.clone();
 	}
 }
