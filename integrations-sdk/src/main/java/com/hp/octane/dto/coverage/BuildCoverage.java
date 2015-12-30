@@ -10,6 +10,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class BuildCoverage {
 	private TestCoverage[] testCoverages;
 
+	public BuildCoverage() {
+	}
+
 	public BuildCoverage(TestCoverage[] testCoverages) {
 		if (testCoverages == null) {
 			throw new IllegalArgumentException("coverage data MUST NOT be null");

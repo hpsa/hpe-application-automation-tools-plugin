@@ -14,6 +14,9 @@ public class TestCoverage {
 	private String moduleName;
 	private int[] lines;
 
+	public TestCoverage() {
+	}
+
 	public TestCoverage(String testName, String className, String packageName, String moduleName, int[] lines) {
 		if (testName == null || testName.isEmpty()) {
 			throw new IllegalArgumentException("test name MUST NOT be null nor empty");
