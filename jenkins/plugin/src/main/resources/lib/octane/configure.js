@@ -516,6 +516,7 @@ function octane_job_configuration(target, progress, proxy) {
             var doAdd = function () {
                 var validationTagTypeOk = null;
                 var validationTagOk = null;
+
                 if (!addedTag.tagTypeId) {
                     addedTag.tagTypeName = tagTypeInput.val();
 
@@ -547,6 +548,8 @@ function octane_job_configuration(target, progress, proxy) {
                         }
                     }
 
+                }else if(addedTag.tagId && addedTag.tagTypeId){
+                    doFinishValidation();
                 }
 
             };
@@ -856,7 +859,6 @@ function octane_job_configuration(target, progress, proxy) {
                 if (!tagTypeInput.val()) {
                     return "Environment type must be specified";
                 }
-
                 proxy.searchTaxonomies(tagTypeInput.val(), workspaceId, [], searchTaxCallback);
 
             };
