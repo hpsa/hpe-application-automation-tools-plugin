@@ -168,7 +168,7 @@ public class PcBuilder extends Builder {
     }
     
     private Testsuites execute(PcClient pcClient, AbstractBuild<?, ?> build)
-            throws InterruptedException {
+            throws InterruptedException,NullPointerException {
         try {
             if (!StringUtils.isBlank(pcModel.getDescription()))
                 logger.println("- - -\nTest description: " + pcModel.getDescription());
@@ -176,11 +176,13 @@ public class PcBuilder extends Builder {
                 return null;
 
             return run(pcClient, build);
-            
+
         } catch (InterruptedException e) {
             build.setResult(Result.ABORTED);
             pcClient.stopRun(runId);
             throw e;
+        } catch (NullPointerException e) {
+            logger.println("Error: Run could not start!");
         } catch (Exception e) {
             logger.println(e);
         } finally {
@@ -228,6 +230,7 @@ public class PcBuilder extends Builder {
 
         } catch (PcException e) {
             errorMessage = e.getMessage();
+            logger.println("Error: " + errorMessage);
         }
 
         Testsuites ret = new Testsuites();
@@ -342,7 +345,6 @@ public class PcBuilder extends Builder {
 
         RunState runState = RunState.get(runResponse.getRunState());
 
-        
 
         List<Testsuite> testSuites = ret.getTestsuite();
         Testsuite testSuite = new Testsuite();
@@ -355,7 +357,6 @@ public class PcBuilder extends Builder {
         updateTestStatus(testCase, runResponse, errorMessage, eventLogString);
         testSuite.getTestcase().add(testCase);
         testSuites.add(testSuite);
-
         return ret;
     }
 
