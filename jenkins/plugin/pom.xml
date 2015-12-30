@@ -125,7 +125,7 @@
         </dependency>
         <dependency>
             <groupId>com.hp.mqm</groupId>
-            <artifactId>integrations-commons</artifactId>
+            <artifactId>integrations-sdk</artifactId>
             <version>${project-version}</version>
         </dependency>
 
