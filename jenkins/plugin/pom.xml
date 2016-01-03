@@ -120,12 +120,12 @@
         <dependency>
             <groupId>com.hp.mqm</groupId>
             <artifactId>mqm-rest-client</artifactId>
-            <version>12.50.27-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.hp.mqm</groupId>
             <artifactId>integrations-sdk</artifactId>
-            <version>12.50.27-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
 
         <!--Test-->
