@@ -9,17 +9,17 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class FileCoverage {
 	private String file;
-	private int[] lines = new int[0];
+	private LineCoverage[] lines = new LineCoverage[0];
 
 	public FileCoverage() {
 	}
 
-	public FileCoverage(String file, int[] lines) {
+	public FileCoverage(String file, LineCoverage[] lines) {
 		if (file == null || file.isEmpty()) {
 			throw new IllegalArgumentException("file MUST NOT be null nor empty");
 		}
 		if (lines == null) {
-			throw new IllegalArgumentException("coverage lines MUST NOT be null");
+			throw new IllegalArgumentException("covered lines MUST NOT be null");
 		}
 
 		this.file = file;
@@ -34,11 +34,11 @@ public class FileCoverage {
 		this.file = file;
 	}
 
-	public int[] getLines() {
+	public LineCoverage[] getLines() {
 		return lines.clone();
 	}
 
-	public void setLines(int[] lines) {
-		this.lines = lines == null ? new int[0] : lines.clone();
+	public void setLines(LineCoverage[] lines) {
+		this.lines = lines == null ? new LineCoverage[0] : lines.clone();
 	}
 }

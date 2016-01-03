@@ -12,12 +12,12 @@ public class TestCoverage {
 	private String testClass;
 	private String testPackage;
 	private String testModule;
-	private FileCoverage[] coverages = new FileCoverage[0];
+	private FileCoverage[] locs = new FileCoverage[0];
 
 	public TestCoverage() {
 	}
 
-	public TestCoverage(String testName, String testClass, String testPackage, String testModule, FileCoverage[] coverages) {
+	public TestCoverage(String testName, String testClass, String testPackage, String testModule, FileCoverage[] locs) {
 		if (testName == null || testName.isEmpty()) {
 			throw new IllegalArgumentException("test name MUST NOT be null nor empty");
 		}
@@ -30,7 +30,7 @@ public class TestCoverage {
 		if (testModule == null || testModule.isEmpty()) {
 			throw new IllegalArgumentException("test module MUST NOT be null nor empty");
 		}
-		if (coverages == null) {
+		if (locs == null) {
 			throw new IllegalArgumentException("coverage data MUST NOT be null");
 		}
 
@@ -38,7 +38,7 @@ public class TestCoverage {
 		this.testClass = testClass;
 		this.testPackage = testPackage;
 		this.testModule = testModule;
-		this.coverages = coverages.clone();
+		this.locs = locs.clone();
 	}
 
 	public String getTestName() {
@@ -73,11 +73,11 @@ public class TestCoverage {
 		this.testModule = testModule;
 	}
 
-	public FileCoverage[] getCoverages() {
-		return coverages.clone();
+	public FileCoverage[] getLocs() {
+		return locs.clone();
 	}
 
-	public void setCoverages(FileCoverage[] coverages) {
-		this.coverages = coverages == null ? new FileCoverage[0] : coverages.clone();
+	public void setLocs(FileCoverage[] locs) {
+		this.locs = locs == null ? new FileCoverage[0] : locs.clone();
 	}
 }
