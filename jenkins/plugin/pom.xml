@@ -14,7 +14,6 @@
     <version>12.50.27-SNAPSHOT</version>
 
     <properties>
-        <project-version>12.50.27-SNAPSHOT</project-version>
         <baseNexusURL>http://mydtbld0051.isr.hp.com:8081/nexus</baseNexusURL>
         <surefire.version>2.18.1</surefire.version>
         <jacoco.version>0.7.4.201502262128</jacoco.version>
@@ -121,12 +120,12 @@
         <dependency>
             <groupId>com.hp.mqm</groupId>
             <artifactId>mqm-rest-client</artifactId>
-            <version>${project-version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.hp.mqm</groupId>
             <artifactId>integrations-sdk</artifactId>
-            <version>${project-version}</version>
+            <version>${project.version}</version>
         </dependency>
 
         <!--Test-->
