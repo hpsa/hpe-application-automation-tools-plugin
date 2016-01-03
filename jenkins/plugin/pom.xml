@@ -7,11 +7,11 @@
         <artifactId>plugin</artifactId>
         <version>1.580.2</version>
     </parent>
-    <artifactId>hp-lifecycle-management-ci-plugin</artifactId>
-    <packaging>hpi</packaging>
 
     <name>HP Lifecycle Management CI Plugin</name>
     <version>12.50.27-SNAPSHOT</version>
+    <artifactId>hp-lifecycle-management-ci-plugin</artifactId>
+    <packaging>hpi</packaging>
 
     <properties>
         <baseNexusURL>http://mydtbld0051.isr.hp.com:8081/nexus</baseNexusURL>
