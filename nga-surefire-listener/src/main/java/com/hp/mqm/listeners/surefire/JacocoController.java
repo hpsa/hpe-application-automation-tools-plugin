@@ -1,4 +1,4 @@
-package com.hp.mqm.listener.SurefireListener;
+package com.hp.mqm.listeners.surefire;
 
 import org.jacoco.agent.rt.IAgent;
 import org.jacoco.agent.rt.RT;

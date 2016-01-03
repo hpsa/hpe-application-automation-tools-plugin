@@ -1,8 +1,10 @@
-package com.hp.mqm.listener.SurefireListener;
+package com.hp.mqm.listeners.surefire;
 /**
  * Created by vaingart on 14/12/2015.
  */
 
+
+// com.hp.mqm-BandClassA-methodNkw (package-className-method)
 import org.junit.runner.Description;
 import org.junit.runner.Result;
 import org.junit.runner.notification.RunListener;
@@ -41,6 +43,15 @@ public class JUnitListener extends RunListener {
     public void testRunStarted(Description description) throws Exception {
         //logger.fine("JUnitListener: Test Run Started.");
         // create output directory
+        Paths.TARGET_DIRECTORY_PATH = System.getProperty("user.dir")
+                + File.separator + "target\\";
+        Paths.REPORT_DIRECTORY_PATH = Paths.TARGET_DIRECTORY_PATH
+                + Paths.REPORT_DIRECTORY_NAME;
+        /*for debug
+        PrintWriter writer = new PrintWriter("C:\\Users\\vaingart\\workspace" +
+                "\\hpdevops-discovery-demoapp\\paths.txt", "UTF-8");
+        writer.println(Paths.REPORT_DIRECTORY_PATH);
+        writer.close();*/
         File directory = new File(Paths.REPORT_DIRECTORY_PATH);
         if (!directory.exists()) {
             directory.mkdir();
@@ -63,8 +74,9 @@ public class JUnitListener extends RunListener {
     public void testFinished(Description description) {
         /*logger.fine("JUnitListener: Test (" + getName(description)
                 + ") Finished.");*/
-        String execFileName = description.getClassName() + "["
-                + description.getMethodName() + "]";
+        String execFileName = description.getTestClass().getPackage().getName()
+                + "-" + description.getTestClass().getSimpleName() + "-"
+                + description.getMethodName();
         jacoco.onTestFinish(execFileName); // dump results to test .exec file
 
     }

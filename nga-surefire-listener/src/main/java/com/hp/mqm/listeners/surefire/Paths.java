@@ -1,4 +1,4 @@
-package com.hp.mqm.listener.SurefireListener;
+package com.hp.mqm.listeners.surefire;
 
 /**
  * Created by vaingart on 27/12/2015.
