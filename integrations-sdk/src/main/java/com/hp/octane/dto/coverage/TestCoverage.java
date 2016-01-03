@@ -9,36 +9,36 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TestCoverage {
 	private String testName;
-	private String className;
-	private String packageName;
-	private String moduleName;
-	private int[] lines;
+	private String testClass;
+	private String testPackage;
+	private String testModule;
+	private FileCoverage[] coverages = new FileCoverage[0];
 
 	public TestCoverage() {
 	}
 
-	public TestCoverage(String testName, String className, String packageName, String moduleName, int[] lines) {
+	public TestCoverage(String testName, String testClass, String testPackage, String testModule, FileCoverage[] coverages) {
 		if (testName == null || testName.isEmpty()) {
 			throw new IllegalArgumentException("test name MUST NOT be null nor empty");
 		}
-		if (className == null || className.isEmpty()) {
-			throw new IllegalArgumentException("class name MUST NOT be null nor empty");
+		if (testClass == null || testClass.isEmpty()) {
+			throw new IllegalArgumentException("test class MUST NOT be null nor empty");
 		}
-		if (packageName == null || packageName.isEmpty()) {
-			throw new IllegalArgumentException("package name MUST NOT be null nor empty");
+		if (testPackage == null || testPackage.isEmpty()) {
+			throw new IllegalArgumentException("test package MUST NOT be null nor empty");
 		}
-		if (moduleName == null || moduleName.isEmpty()) {
-			throw new IllegalArgumentException("module name MUST NOT be null nor empty");
+		if (testModule == null || testModule.isEmpty()) {
+			throw new IllegalArgumentException("test module MUST NOT be null nor empty");
 		}
-		if (lines == null) {
+		if (coverages == null) {
 			throw new IllegalArgumentException("coverage data MUST NOT be null");
 		}
 
 		this.testName = testName;
-		this.className = className;
-		this.packageName = packageName;
-		this.moduleName = moduleName;
-		this.lines = lines.clone();
+		this.testClass = testClass;
+		this.testPackage = testPackage;
+		this.testModule = testModule;
+		this.coverages = coverages.clone();
 	}
 
 	public String getTestName() {
@@ -49,35 +49,35 @@ public class TestCoverage {
 		this.testName = testName;
 	}
 
-	public String getClassName() {
-		return className;
+	public String getTestClass() {
+		return testClass;
 	}
 
-	public void setClassName(String className) {
-		this.className = className;
+	public void setTestClass(String testClass) {
+		this.testClass = testClass;
 	}
 
-	public String getPackageName() {
-		return packageName;
+	public String getTestPackage() {
+		return testPackage;
 	}
 
-	public void setPackageName(String packageName) {
-		this.packageName = packageName;
+	public void setTestPackage(String testPackage) {
+		this.testPackage = testPackage;
 	}
 
-	public String getModuleName() {
-		return moduleName;
+	public String getTestModule() {
+		return testModule;
 	}
 
-	public void setModuleName(String moduleName) {
-		this.moduleName = moduleName;
+	public void setTestModule(String testModule) {
+		this.testModule = testModule;
 	}
 
-	public int[] getLines() {
-		return lines.clone();
+	public FileCoverage[] getCoverages() {
+		return coverages.clone();
 	}
 
-	public void setLines(int[] lines) {
-		this.lines = lines == null ? new int[0] : lines.clone();
+	public void setCoverages(FileCoverage[] coverages) {
+		this.coverages = coverages == null ? new FileCoverage[0] : coverages.clone();
 	}
 }
