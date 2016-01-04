@@ -7,14 +7,13 @@
         <artifactId>plugin</artifactId>
         <version>1.580.2</version>
     </parent>
-    <artifactId>hp-lifecycle-management-ci-plugin</artifactId>
-    <packaging>hpi</packaging>
 
     <name>HP Lifecycle Management CI Plugin</name>
     <version>12.50.27-SNAPSHOT</version>
+    <artifactId>hp-lifecycle-management-ci-plugin</artifactId>
+    <packaging>hpi</packaging>
 
     <properties>
-        <project-version>12.50.27-SNAPSHOT</project-version>
         <baseNexusURL>http://mydtbld0051.isr.hp.com:8081/nexus</baseNexusURL>
         <surefire.version>2.18.1</surefire.version>
         <jacoco.version>0.7.4.201502262128</jacoco.version>
@@ -121,12 +120,12 @@
         <dependency>
             <groupId>com.hp.mqm</groupId>
             <artifactId>mqm-rest-client</artifactId>
-            <version>${project-version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.hp.mqm</groupId>
             <artifactId>integrations-sdk</artifactId>
-            <version>${project-version}</version>
+            <version>${project.version}</version>
         </dependency>
 
         <!--Test-->
@@ -202,7 +201,7 @@
             </plugins>
         </pluginManagement>
     </build>
-    
+
     <profiles>
         <!-- This profile is for coverage unitests -->
         <profile>

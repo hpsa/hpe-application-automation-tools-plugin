@@ -527,6 +527,7 @@ function octane_job_configuration(target, progress, proxy) {
                         if (validationTagOk !== null) {
                             if(validationTagTypeOk && validationTagOk){
                                 doFinishValidation();
+
                             }
                         }
                     })();
