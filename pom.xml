@@ -50,7 +50,7 @@
         <module>jenkins</module>
         <module>mqm-client</module>
         <module>collection-tool</module>
-        <!--module>nga-surefire-listener</module-->
+        <module>nga-surefire-listener</module>
         <module>integrations-sdk</module>
     </modules>
     <build>
