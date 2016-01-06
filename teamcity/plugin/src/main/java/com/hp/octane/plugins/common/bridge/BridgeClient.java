@@ -25,7 +25,7 @@ import java.util.logging.Logger;
 public class BridgeClient {
     private static final Logger logger = Logger.getLogger(BridgeClient.class.getName());
     private static final String serverInstanceId = UUID.randomUUID().toString();//
-    private static final String ciLocation = "http://localhost:8090";//
+    private static final String ciLocation = "http://localhost:8888";//
 
     private ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
     private ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30, new AbridgedTasksExecutorsFactory());
