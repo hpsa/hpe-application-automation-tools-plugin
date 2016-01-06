@@ -103,8 +103,8 @@ public class PluginActions implements RootAction {
 		statusInfo.setPlugin(new PluginInfo(Jenkins.getInstance().getPlugin(OctanePlugin.class).getWrapper().getVersion()));
 		statusInfo.setServer(new com.hp.octane.dto.general.ServerInfo(
 				CIServerTypes.JENKINS,
-				Jenkins.VERSION,
-				getNormalizedSelfURL(),
+				Jenkins.getVersion().toString(),
+				Jenkins.getInstance().getRootUrl(),
 				Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity(),
 				Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentityFrom()
 		));
@@ -183,12 +183,5 @@ public class PluginActions implements RootAction {
 			}
 			jobs = list.toArray(new ProjectConfig[list.size()]);
 		}
-	}
-
-	private String getNormalizedSelfURL() {
-		String selfUrl = Jenkins.getInstance().getRootUrl();
-		if (selfUrl != null && selfUrl.endsWith("/"))
-			selfUrl = selfUrl.substring(0, selfUrl.length() - 1);
-		return selfUrl;
 	}
 }

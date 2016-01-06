@@ -21,7 +21,7 @@ public class ServerInfo {
 	public ServerInfo(CIServerTypes type, String version, String url, String instanceId, Long instanceIdFrom) {
 		this.type = type;
 		this.version = version;
-		this.url = url;
+		this.url = normalizeURL(url);
 		this.instanceId = instanceId;
 		this.instanceIdFrom = instanceIdFrom;
 	}
@@ -47,11 +47,7 @@ public class ServerInfo {
 	}
 
 	public void setUrl(String url) {
-		if (url != null && url.endsWith("/")) {
-			this.url = url.substring(0, url.length() - 1);
-		} else {
-			this.url = url;
-		}
+		this.url = normalizeURL(url);
 	}
 
 	public String getInstanceId() {
@@ -76,5 +72,15 @@ public class ServerInfo {
 
 	public void setSendingTime(Long sendingTime) {
 		this.sendingTime = sendingTime;
+	}
+
+	private String normalizeURL(String input) {
+		String result;
+		if (input != null && input.endsWith("/")) {
+			result = input.substring(0, input.length() - 1);
+		} else {
+			result = url;
+		}
+		return result;
 	}
 }
