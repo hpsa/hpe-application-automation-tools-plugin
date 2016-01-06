@@ -1,6 +1,8 @@
 package com.hp.octane.plugins.jenkins.actions.plugin;
 
 import com.gargoylesoftware.htmlunit.Page;
+import com.hp.octane.dto.general.CIServerTypes;
+import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
 import com.hp.octane.plugins.jenkins.model.parameters.ParameterType;
@@ -101,22 +103,20 @@ public class PluginActionsTest {
 		JSONObject body = new JSONObject(page.getWebResponse().getContentAsString());
 		JSONObject tmp;
 
-		assertEquals(body.length(), 3);
+		assertEquals(2, body.length());
 
 		assertTrue(body.has("server"));
 		tmp = body.getJSONObject("server");
-		assertEquals("jenkins", tmp.getString("type"));
+		assertEquals(CIServerTypes.JENKINS.value(), tmp.getString("type"));
 		assertEquals(Jenkins.VERSION, tmp.getString("version"));
 		assertEquals(rule.getInstance().getRootUrl(), tmp.getString("url") + "/");
-		assertFalse(tmp.isNull("instanceId"));
-		//  TODO: extend the test deeper
+		assertEquals(Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity(), tmp.get("instanceId"));
+		assertEquals(Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentityFrom(), (Long) tmp.getLong("instanceIdFrom"));
+		assertFalse(tmp.isNull("sendingTime"));
 
 		assertTrue(body.has("plugin"));
 		tmp = body.getJSONObject("plugin");
-		assertFalse(tmp.getString("version").isEmpty());
-
-		assertTrue(body.has("eventsClients"));
-		//  TODO: extent the test deeper
+		assertEquals(Jenkins.getInstance().getPlugin(OctanePlugin.class).getWrapper().getVersion(), tmp.getString("version"));
 	}
 
 	@Test

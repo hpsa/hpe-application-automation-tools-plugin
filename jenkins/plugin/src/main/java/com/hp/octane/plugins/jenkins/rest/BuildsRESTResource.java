@@ -83,6 +83,7 @@ public class BuildsRESTResource {
 					}
 				} else if (COVERAGE_REST.equals(path[1])) {
 					if ("GET".equals(req.getMethod())) {
+						res.setContentType("application/json");
 						res.getWriter().write("[]");
 					} else {
 						res.setStatus(405);

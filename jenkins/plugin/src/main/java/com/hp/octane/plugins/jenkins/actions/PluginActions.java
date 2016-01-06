@@ -108,6 +108,7 @@ public class PluginActions implements RootAction {
 				Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity(),
 				Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentityFrom()
 		));
+		res.setContentType("application/json");
 		res.getWriter().write(SerializationService.toJSON(statusInfo));
 	}
 
