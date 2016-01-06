@@ -56,6 +56,5 @@ public class StatusInfoTest {
 		assertEquals(SERVER_UUID_FROM, newStatus.getServer().getInstanceIdFrom());
 		assertEquals(SYNC_TIME, newStatus.getServer().getSendingTime());
 		assertEquals(EXPECTED_SERVER_URL, newStatus.getServer().getUrl());
-
 	}
 }

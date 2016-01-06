@@ -32,13 +32,12 @@ public enum CIServerTypes {
 		}
 
 		CIServerTypes result = UNKNOWN;
-
 		for (CIServerTypes v : values()) {
 			if (v.value.compareTo(value) == 0) {
-				return v;
+				result = v;
+				break;
 			}
 		}
-
 		return result;
 	}
 }

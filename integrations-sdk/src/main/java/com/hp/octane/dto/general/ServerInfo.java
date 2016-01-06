@@ -79,7 +79,7 @@ public class ServerInfo {
 		if (input != null && input.endsWith("/")) {
 			result = input.substring(0, input.length() - 1);
 		} else {
-			result = url;
+			result = input;
 		}
 		return result;
 	}
