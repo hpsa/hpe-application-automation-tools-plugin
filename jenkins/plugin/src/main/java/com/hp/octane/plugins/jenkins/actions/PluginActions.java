@@ -1,12 +1,14 @@
 package com.hp.octane.plugins.jenkins.actions;
 
+import com.hp.octane.dto.general.AggregatedStatusInfo;
+import com.hp.octane.dto.general.CIServerTypes;
+import com.hp.octane.dto.general.PluginInfo;
 import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.configuration.ConfigApi;
 import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
-import com.hp.octane.plugins.jenkins.events.EventsClient;
-import com.hp.octane.plugins.jenkins.events.EventsService;
 import com.hp.octane.plugins.jenkins.rest.ProjectsRESTResource;
+import com.hp.octane.serialization.SerializationService;
 import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.RootAction;
@@ -84,35 +86,6 @@ public class PluginActions implements RootAction {
 		}
 	}
 
-	@ExportedBean
-	public static final class PluginInfo {
-		private final String version = Jenkins.getInstance().getPlugin(OctanePlugin.class).getWrapper().getVersion();
-
-		@Exported(inline = true)
-		public String getVersion() {
-			return version;
-		}
-	}
-
-	//  TODO: probably add status collecting logic from all relevant services
-	@ExportedBean
-	public static final class PluginStatus {
-		@Exported(inline = true)
-		public ServerInfo getServer() {
-			return new ServerInfo();
-		}
-
-		@Exported(inline = true)
-		public PluginInfo getPlugin() {
-			return new PluginInfo();
-		}
-
-		@Exported(inline = true)
-		public List<EventsClient> getEventsClients() {
-			return EventsService.getExtensionInstance().getStatus();
-		}
-	}
-
 	public String getIconFileName() {
 		return null;
 	}
@@ -126,7 +99,16 @@ public class PluginActions implements RootAction {
 	}
 
 	public void doStatus(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
-		res.serveExposedBean(req, new PluginStatus(), Flavor.JSON);
+		AggregatedStatusInfo statusInfo = new AggregatedStatusInfo();
+		statusInfo.setPlugin(new PluginInfo(Jenkins.getInstance().getPlugin(OctanePlugin.class).getWrapper().getVersion()));
+		statusInfo.setServer(new com.hp.octane.dto.general.ServerInfo(
+				CIServerTypes.JENKINS,
+				Jenkins.VERSION,
+				getNormalizedSelfURL(),
+				Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity(),
+				Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentityFrom()
+		));
+		res.getWriter().write(SerializationService.toJSON(statusInfo));
 	}
 
 	public void doProjects(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
@@ -200,5 +182,12 @@ public class PluginActions implements RootAction {
 			}
 			jobs = list.toArray(new ProjectConfig[list.size()]);
 		}
+	}
+
+	private String getNormalizedSelfURL() {
+		String selfUrl = Jenkins.getInstance().getRootUrl();
+		if (selfUrl != null && selfUrl.endsWith("/"))
+			selfUrl = selfUrl.substring(0, selfUrl.length() - 1);
+		return selfUrl;
 	}
 }

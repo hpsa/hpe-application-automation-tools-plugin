@@ -1,9 +1,12 @@
 package com.hp.octane.dto.general;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * Created by gullery on 03/01/2016.
  */
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ServerInfo {
 	private CIServerTypes type;
 	private String version;
@@ -11,6 +14,17 @@ public class ServerInfo {
 	private String instanceId;
 	private Long instanceIdFrom;
 	private Long sendingTime = System.currentTimeMillis();
+
+	public ServerInfo() {
+	}
+
+	public ServerInfo(CIServerTypes type, String version, String url, String instanceId, Long instanceIdFrom) {
+		this.type = type;
+		this.version = version;
+		this.url = url;
+		this.instanceId = instanceId;
+		this.instanceIdFrom = instanceIdFrom;
+	}
 
 	public CIServerTypes getType() {
 		return type;

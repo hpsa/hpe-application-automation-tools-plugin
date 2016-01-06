@@ -65,7 +65,6 @@ public final class RunListenerImpl extends RunListener<Run> {
 
 	@Override
 	public void onCompleted(Run r, @Nonnull TaskListener listener) {
-
 		if (r instanceof AbstractBuild) {
 			AbstractBuild build = (AbstractBuild) r;
 			SnapshotResult result;

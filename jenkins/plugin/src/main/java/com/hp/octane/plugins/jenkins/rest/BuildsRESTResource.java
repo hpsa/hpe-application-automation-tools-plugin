@@ -56,7 +56,7 @@ public class BuildsRESTResource {
 		}
 	}
 
-	public void serveBuild(AbstractBuild build, String[] path, StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
+	private void serveBuild(AbstractBuild build, String[] path, StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
 		if (build == null) {
 			res.setStatus(404);
 		} else {
