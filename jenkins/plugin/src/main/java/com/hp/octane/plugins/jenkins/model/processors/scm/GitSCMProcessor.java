@@ -18,7 +18,7 @@ import java.util.logging.Logger;
  * Created by gullery on 31/03/2015.
  */
 
-public class GitSCMProcessor extends SCMProcessor {
+public class GitSCMProcessor implements SCMProcessor {
 	private static final Logger logger = Logger.getLogger(GitSCMProcessor.class.getName());
 
 	GitSCMProcessor() {
