@@ -2,12 +2,13 @@ package com.hp.octane.plugins.jetbrains.teamcity.factories;
 
 import com.hp.octane.plugins.jetbrains.teamcity.model.api.ProjectConfig;
 import com.hp.octane.plugins.jetbrains.teamcity.model.api.ProjectsList;
+import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.TreeItem;
 import jetbrains.buildServer.serverSide.ProjectManager;
-import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SBuildType;
 import jetbrains.buildServer.serverSide.SProject;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -15,21 +16,18 @@ import java.util.List;
  */
 public class TeamCityModelFactory implements ModelFactory {
 
-    private static TeamCityModelFactory instance =null;
+    private ProjectManager projectManager;
 
-    public static TeamCityModelFactory getInstance() {
-        if(instance == null) {
-            instance = new TeamCityModelFactory();
-        }
-        return instance;
+    public TeamCityModelFactory(ProjectManager projectManager) {
+        this.projectManager = projectManager;
     }
 
     @Override
-    public ProjectsList CreateProjectList(ProjectManager projectManager) {
+    public ProjectsList CreateProjectList() {
 
         List<ProjectConfig> list = new ArrayList<ProjectConfig>();
         List<String>ids = new ArrayList<String>();
-        //todo: change to project
+
         ProjectConfig buildConf;
         for (SProject project :  projectManager.getProjects()) {
 
@@ -37,17 +35,37 @@ public class TeamCityModelFactory implements ModelFactory {
             for (SBuildType buildType : buildTypes) {
                 if(!ids.contains(buildType.getInternalId())) {
                     ids.add(buildType.getInternalId());
-                    SBuild latestBuild = buildType.getLastChangesStartedBuild();
-                    if (latestBuild != null) {
-                        buildConf = new ProjectConfig(latestBuild.getBuildTypeName(), latestBuild.getBuildTypeExternalId());
-                        list.add(buildConf);
-                    }
+                    buildConf = new ProjectConfig(buildType.getName(), buildType.getExternalId());
+                    list.add(buildConf);
                 }
             }
         }
 
         ProjectConfig[] jobs = list.toArray(new ProjectConfig[list.size()]);
         return new ProjectsList(jobs);
+    }
+
+    @Override
+    public TreeItem createStructure(String buildConfigurationId) {
+        SBuildType root = projectManager.findBuildTypeByExternalId(buildConfigurationId);
+        TreeItem treeRoot =null;
+        if(root !=null) {
+            treeRoot = new TreeItem(root.getName(), root.getExternalId());
+            createPipelineStructure(treeRoot, root.getChildDependencies());
+
+        }else{
+            //should update the response?
+        }
+        return treeRoot;
+    }
+
+    private void createPipelineStructure(TreeItem treeRoot, Collection<SBuildType> dependencies){
+        if(dependencies ==null)return;
+        for(SBuildType build : dependencies){
+            TreeItem buildItem = new TreeItem(build.getName(),build.getExternalId());
+            treeRoot.addChild(buildItem);
+            createPipelineStructure(buildItem, build.getChildDependencies());
+        }
     }
 
 }
