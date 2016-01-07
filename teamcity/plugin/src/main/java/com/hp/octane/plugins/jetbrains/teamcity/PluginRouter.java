@@ -7,6 +7,8 @@ package com.hp.octane.plugins.jetbrains.teamcity;
 import com.hp.octane.plugins.jetbrains.teamcity.actions.BuildActionsController;
 import com.hp.octane.plugins.jetbrains.teamcity.actions.PluginActionsController;
 import com.hp.octane.plugins.jetbrains.teamcity.actions.ProjectActionsController;
+import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
+import com.hp.octane.plugins.jetbrains.teamcity.factories.TeamCityModelFactory;
 import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;
 import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.SBuildServer;
@@ -22,14 +24,15 @@ public class PluginRouter implements ServerExtension {
                         WebControllerManager webControllerManager) {
 
         server.registerExtension(ServerExtension.class, PLUGIN_NAME, this);
-
+//        server.addListener(new BuildEventListener());
+        ModelFactory modelFactory = new TeamCityModelFactory(projectManager);
         webControllerManager.registerController("/octane/jobs/**",
-                new PluginActionsController(server, projectManager, responsibilityFacade));
+                new PluginActionsController(server, projectManager, responsibilityFacade,modelFactory));
 
         webControllerManager.registerController("/octane/snapshot/**",
-                new BuildActionsController(server, projectManager, responsibilityFacade));
+                new BuildActionsController(server, projectManager, responsibilityFacade,modelFactory));
 
         webControllerManager.registerController("/octane/structure/**",
-                new ProjectActionsController(server, projectManager, responsibilityFacade));
+                new ProjectActionsController(server, projectManager, responsibilityFacade,modelFactory));
     }
 }
