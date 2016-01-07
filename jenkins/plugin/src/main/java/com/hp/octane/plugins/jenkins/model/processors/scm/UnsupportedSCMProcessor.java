@@ -7,7 +7,7 @@ import hudson.model.AbstractBuild;
  * Created by gullery on 31/03/2015.
  */
 
-public class UnsupportedSCMProcessor extends AbstractSCMProcessor {
+public class UnsupportedSCMProcessor extends SCMProcessor {
 	UnsupportedSCMProcessor() {
 	}
 
