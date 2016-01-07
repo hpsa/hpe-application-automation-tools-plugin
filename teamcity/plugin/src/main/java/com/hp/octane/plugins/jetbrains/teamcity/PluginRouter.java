@@ -24,7 +24,7 @@ public class PluginRouter implements ServerExtension {
                         WebControllerManager webControllerManager) {
 
         server.registerExtension(ServerExtension.class, PLUGIN_NAME, this);
-
+//        server.addListener(new BuildEventListener());
         ModelFactory modelFactory = new TeamCityModelFactory(projectManager);
         webControllerManager.registerController("/octane/jobs/**",
                 new PluginActionsController(server, projectManager, responsibilityFacade,modelFactory));

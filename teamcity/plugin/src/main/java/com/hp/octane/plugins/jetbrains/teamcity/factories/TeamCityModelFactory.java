@@ -7,9 +7,9 @@ import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.StructurePhase;
 import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.SBuildType;
 import jetbrains.buildServer.serverSide.SProject;
+import jetbrains.buildServer.serverSide.dependency.Dependency;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -52,7 +52,7 @@ public class TeamCityModelFactory implements ModelFactory {
         StructureItem treeRoot =null;
         if(root !=null) {
             treeRoot = new StructureItem(root.getName(), root.getExternalId());
-            createPipelineStructure(treeRoot, root.getChildDependencies());
+            createPipelineStructure(treeRoot, root.getDependencies());
 
         }else{
             //should update the response?
@@ -60,14 +60,15 @@ public class TeamCityModelFactory implements ModelFactory {
         return treeRoot;
     }
 
-    private void createPipelineStructure(StructureItem treeRoot, Collection<SBuildType> dependencies){
+    private void createPipelineStructure(StructureItem treeRoot, List<Dependency> dependencies) {
         if(dependencies ==null || dependencies.size() == 0)return;
         StructurePhase phase = new StructurePhase(true,"teamcity_dependencies");
-        for(SBuildType build : dependencies){
+        for(Dependency dependency : dependencies){
+            SBuildType build = dependency.getDependOn();
             StructureItem buildItem = new StructureItem(build.getName(),build.getExternalId());
             phase.addJob(buildItem);
             //treeRoot.addChild(buildItem);
-            createPipelineStructure(buildItem, build.getChildDependencies());
+            createPipelineStructure(buildItem, build.getDependencies());
         }
         treeRoot.addPhasesInternal(phase);
     }
