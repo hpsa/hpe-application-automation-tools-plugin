@@ -1,9 +1,13 @@
 package com.hp.octane.plugins.jenkins.actions.plugin;
 
 import com.gargoylesoftware.htmlunit.Page;
+import com.hp.octane.dto.general.CIServerTypes;
+import com.hp.octane.dto.projects.ProjectsList;
+import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
 import com.hp.octane.plugins.jenkins.model.parameters.ParameterType;
+import com.hp.octane.serialization.SerializationService;
 import hudson.model.*;
 import jenkins.model.Jenkins;
 import org.json.JSONArray;
@@ -33,60 +37,6 @@ public class PluginActionsTest {
 	final public JenkinsRule rule = new JenkinsRule();
 
 	@Test
-	public void testProjectsListClassNoParams() throws IOException {
-		PluginActions.ProjectsList projectsList = new PluginActions.ProjectsList(true);
-		assertEquals(projectsList.jobs.getClass(), PluginActions.ProjectConfig[].class);
-		assertEquals(projectsList.jobs.length, 0);
-
-		rule.createFreeStyleProject(projectName);
-		projectsList = new PluginActions.ProjectsList(true);
-		assertEquals(projectsList.jobs.length, 1);
-		assertEquals(projectsList.jobs[0].getName(), projectName);
-		assertEquals(projectsList.jobs[0].getParameters().getClass(), ParameterConfig[].class);
-		assertEquals(projectsList.jobs[0].getParameters().length, 0);
-	}
-
-	@Test
-	public void testProjectsListClassWithParams() throws IOException {
-		FreeStyleProject fsp;
-		ParameterConfig tmpConf;
-		PluginActions.ProjectsList projectsList = new PluginActions.ProjectsList(true);
-		assertEquals(projectsList.jobs.getClass(), PluginActions.ProjectConfig[].class);
-		assertEquals(projectsList.jobs.length, 0);
-
-		fsp = rule.createFreeStyleProject(projectName);
-		ParametersDefinitionProperty params = new ParametersDefinitionProperty(Arrays.asList(
-				(ParameterDefinition) new BooleanParameterDefinition("ParamA", true, "bool"),
-				(ParameterDefinition) new StringParameterDefinition("ParamB", "str", "string"),
-				(ParameterDefinition) new FileParameterDefinition("ParamC", "file param")
-		));
-		fsp.addProperty(params);
-
-		projectsList = new PluginActions.ProjectsList(true);
-		assertEquals(projectsList.jobs.length, 1);
-		assertEquals(projectsList.jobs[0].getName(), projectName);
-		assertEquals(projectsList.jobs[0].getParameters().length, 3);
-
-		tmpConf = projectsList.jobs[0].getParameters()[0];
-		assertEquals(tmpConf.getName(), "ParamA");
-		assertEquals(tmpConf.getType(), ParameterType.BOOLEAN.toString());
-		assertEquals(tmpConf.getDefaultValue(), true);
-		assertEquals(tmpConf.getDescription(), "bool");
-
-		tmpConf = projectsList.jobs[0].getParameters()[1];
-		assertEquals(tmpConf.getName(), "ParamB");
-		assertEquals(tmpConf.getType(), ParameterType.STRING.toString());
-		assertEquals(tmpConf.getDefaultValue(), "str");
-		assertEquals(tmpConf.getDescription(), "string");
-
-		tmpConf = projectsList.jobs[0].getParameters()[2];
-		assertEquals(tmpConf.getName(), "ParamC");
-		assertEquals(tmpConf.getType(), ParameterType.FILE.toString());
-		assertEquals(tmpConf.getDefaultValue(), "");
-		assertEquals(tmpConf.getDescription(), "file param");
-	}
-
-	@Test
 	public void testPluginActionsMethods() {
 		PluginActions pluginActions = new PluginActions();
 		assertEquals(pluginActions.getIconFileName(), null);
@@ -101,47 +51,44 @@ public class PluginActionsTest {
 		JSONObject body = new JSONObject(page.getWebResponse().getContentAsString());
 		JSONObject tmp;
 
-		assertEquals(body.length(), 3);
+		assertEquals(2, body.length());
 
 		assertTrue(body.has("server"));
 		tmp = body.getJSONObject("server");
-		assertEquals("jenkins", tmp.getString("type"));
+		assertEquals(CIServerTypes.JENKINS.value(), tmp.getString("type"));
 		assertEquals(Jenkins.VERSION, tmp.getString("version"));
 		assertEquals(rule.getInstance().getRootUrl(), tmp.getString("url") + "/");
-		assertFalse(tmp.isNull("instanceId"));
-		//  TODO: extend the test deeper
+		assertEquals(Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity(), tmp.get("instanceId"));
+		assertEquals(Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentityFrom(), (Long) tmp.getLong("instanceIdFrom"));
+		assertFalse(tmp.isNull("sendingTime"));
 
 		assertTrue(body.has("plugin"));
 		tmp = body.getJSONObject("plugin");
-		assertFalse(tmp.getString("version").isEmpty());
-
-		assertTrue(body.has("eventsClients"));
-		//  TODO: extent the test deeper
+		assertEquals(Jenkins.getInstance().getPlugin(OctanePlugin.class).getWrapper().getVersion(), tmp.getString("version"));
 	}
 
 	@Test
 	public void testPluginActions_REST_Jobs_NoParams() throws IOException, SAXException {
 		JenkinsRule.WebClient client = rule.createWebClient();
 		Page page;
-		JSONObject body;
-		JSONObject job;
-		JSONArray jobs;
 
 		page = client.goTo("octane/jobs", "application/json");
-		body = new JSONObject(page.getWebResponse().getContentAsString());
-		assertTrue(body.has("jobs"));
-		jobs = body.getJSONArray("jobs");
-		assertEquals(jobs.length(), 0);
+		ProjectsList response = SerializationService.fromJSON(page.getWebResponse().getContentAsString(), ProjectsList.class);
+
+		assertNotNull(response);
+		assertNotNull(response.getJobs());
+		assertEquals(0, response.getJobs().length);
 
 		rule.createFreeStyleProject(projectName);
 		page = client.goTo("octane/jobs", "application/json");
-		body = new JSONObject(page.getWebResponse().getContentAsString());
-		assertTrue(body.has("jobs"));
-		jobs = body.getJSONArray("jobs");
-		assertEquals(jobs.length(), 1);
-		job = jobs.getJSONObject(0);
-		assertEquals(job.getString("name"), projectName);
-		assertEquals(job.getJSONArray("parameters").length(), 0);
+		response = SerializationService.fromJSON(page.getWebResponse().getContentAsString(), ProjectsList.class);
+
+		assertNotNull(response);
+		assertNotNull(response.getJobs());
+		assertEquals(1, response.getJobs().length);
+		assertEquals(projectName, response.getJobs()[0].getName());
+		assertNotNull(response.getJobs()[0].getParameters());
+		assertEquals(0, response.getJobs()[0].getParameters().length);
 	}
 
 	@Test
@@ -153,10 +100,11 @@ public class PluginActionsTest {
 		JSONArray jobs;
 
 		page = client.goTo("octane/jobs", "application/json");
-		body = new JSONObject(page.getWebResponse().getContentAsString());
-		assertTrue(body.has("jobs"));
-		jobs = body.getJSONArray("jobs");
-		assertEquals(jobs.length(), 0);
+		ProjectsList response = SerializationService.fromJSON(page.getWebResponse().getContentAsString(), ProjectsList.class);
+
+		assertNotNull(response);
+		assertNotNull(response.getJobs());
+		assertEquals(0, response.getJobs().length);
 
 		fsp = rule.createFreeStyleProject(projectName);
 		ParametersDefinitionProperty params = new ParametersDefinitionProperty(Arrays.asList(
@@ -167,30 +115,34 @@ public class PluginActionsTest {
 		fsp.addProperty(params);
 
 		page = client.goTo("octane/jobs", "application/json");
-		body = new JSONObject(page.getWebResponse().getContentAsString());
-		assertTrue(body.has("jobs"));
-		jobs = body.getJSONArray("jobs");
-		assertEquals(jobs.length(), 1);
+		response = SerializationService.fromJSON(page.getWebResponse().getContentAsString(), ProjectsList.class);
+
+		assertNotNull(response);
+		assertNotNull(response.getJobs());
+		assertEquals(1, response.getJobs().length);
+		assertEquals(projectName, response.getJobs()[0].getName());
+		assertNotNull(response.getJobs()[0].getParameters());
+		assertEquals(3, response.getJobs()[0].getParameters().length);
 
 		//  Test ParamA
-		JSONObject paramBoolean = jobs.getJSONObject(0).getJSONArray("parameters").getJSONObject(0);
-		assertEquals("ParamA", paramBoolean.get("name"));
-		assertEquals(ParameterType.BOOLEAN.toString(), paramBoolean.get("type"));
-		assertEquals("bool", paramBoolean.get("description"));
-		assertEquals(true, paramBoolean.get("defaultValue"));
+		assertNotNull(response.getJobs()[0].getParameters()[0]);
+		assertEquals("ParamA", response.getJobs()[0].getParameters()[0].getName());
+		assertEquals(com.hp.octane.dto.parameters.ParameterType.BOOLEAN, response.getJobs()[0].getParameters()[0].getType());
+		assertEquals("bool", response.getJobs()[0].getParameters()[0].getDescription());
+		assertEquals(true, response.getJobs()[0].getParameters()[0].getDefaultValue());
 
 		//  Test ParamB
-		JSONObject paramString = jobs.getJSONObject(0).getJSONArray("parameters").getJSONObject(1);
-		assertEquals("ParamB", paramString.get("name"));
-		assertEquals(ParameterType.STRING.toString(), paramString.get("type"));
-		assertEquals("string", paramString.get("description"));
-		assertEquals("str", paramString.get("defaultValue"));
+		assertNotNull(response.getJobs()[0].getParameters()[1]);
+		assertEquals("ParamB", response.getJobs()[0].getParameters()[1].getName());
+		assertEquals(com.hp.octane.dto.parameters.ParameterType.STRING, response.getJobs()[0].getParameters()[1].getType());
+		assertEquals("string", response.getJobs()[0].getParameters()[1].getDescription());
+		assertEquals("str", response.getJobs()[0].getParameters()[1].getDefaultValue());
 
 		//  Test ParamC
-		JSONObject paramFile = jobs.getJSONObject(0).getJSONArray("parameters").getJSONObject(2);
-		assertEquals("ParamC", paramFile.get("name"));
-		assertEquals(ParameterType.FILE.toString(), paramFile.get("type"));
-		assertEquals("file param", paramFile.get("description"));
-		assertEquals("", paramFile.get("defaultValue"));
+		assertNotNull(response.getJobs()[0].getParameters()[2]);
+		assertEquals("ParamC", response.getJobs()[0].getParameters()[2].getName());
+		assertEquals(com.hp.octane.dto.parameters.ParameterType.FILE, response.getJobs()[0].getParameters()[2].getType());
+		assertEquals("file param", response.getJobs()[0].getParameters()[2].getDescription());
+		assertEquals("", response.getJobs()[0].getParameters()[2].getDefaultValue());
 	}
 }

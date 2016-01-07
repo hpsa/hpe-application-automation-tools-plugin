@@ -1,11 +1,14 @@
 package com.hp.octane.dto.general;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * Created by gullery on 03/01/2016.
  * <p/>
  * Description of Plugin Status
  */
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class AggregatedStatusInfo {
 	private ServerInfo server;
 	private PluginInfo plugin;
