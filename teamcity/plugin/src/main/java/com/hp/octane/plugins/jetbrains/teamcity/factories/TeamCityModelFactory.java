@@ -3,6 +3,7 @@ package com.hp.octane.plugins.jetbrains.teamcity.factories;
 import com.hp.octane.plugins.jetbrains.teamcity.model.api.ProjectConfig;
 import com.hp.octane.plugins.jetbrains.teamcity.model.api.ProjectsList;
 import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.TreeItem;
+import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.TreeItemContainer;
 import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.SBuildType;
 import jetbrains.buildServer.serverSide.SProject;
@@ -60,12 +61,15 @@ public class TeamCityModelFactory implements ModelFactory {
     }
 
     private void createPipelineStructure(TreeItem treeRoot, Collection<SBuildType> dependencies){
-        if(dependencies ==null)return;
+        if(dependencies ==null || dependencies.size() == 0)return;
+        TreeItemContainer treeItemContainer = new TreeItemContainer(true,"teamcity_dependencies");
         for(SBuildType build : dependencies){
             TreeItem buildItem = new TreeItem(build.getName(),build.getExternalId());
-            treeRoot.addChild(buildItem);
+            treeItemContainer.addJob(buildItem);
+            //treeRoot.addChild(buildItem);
             createPipelineStructure(buildItem, build.getChildDependencies());
         }
+        treeRoot.addPhasesInternal(treeItemContainer);
     }
 
 }

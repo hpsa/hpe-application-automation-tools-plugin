@@ -11,10 +11,10 @@ public class TreeItemContainer {
     private String name;
     List<TreeItem> jobs = new ArrayList<TreeItem>();
 
-    public TreeItemContainer(boolean blocking, String name, List<TreeItem> jobs) {
+    public TreeItemContainer(boolean blocking, String name) {
         this.blocking = blocking;
         this.name = name;
-        this.jobs = jobs;
+//        this.jobs = jobs;
     }
 
     public boolean isBlocking() {
@@ -27,5 +27,9 @@ public class TreeItemContainer {
 
     public List<TreeItem> getJobs() {
         return jobs;
+    }
+
+    public void addJob(TreeItem job){
+        jobs.add(job);
     }
 }

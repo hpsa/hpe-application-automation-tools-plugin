@@ -23,23 +23,18 @@ public class TreeItem {
         return id;
     }
 
-
-    public List<TreeItem> getChildren() {
-        return children;
-    }
-
-    public void addChild(TreeItem item){
-        this.children.add(item);
-    }
-
     public List<ParameterConfig> getParameters() {
         return parameters;
     }
 
     String name;
     String id;
-    List<TreeItem> children = new ArrayList<TreeItem>();
     List<ParameterConfig> parameters = new ArrayList<ParameterConfig>();
+
+    public void addPhasesInternal(TreeItemContainer phaseInternal) {
+        this.phasesInternal.add(phaseInternal);
+    }
+
 
     public List<TreeItemContainer> getPhasesInternal() {
         return phasesInternal;
