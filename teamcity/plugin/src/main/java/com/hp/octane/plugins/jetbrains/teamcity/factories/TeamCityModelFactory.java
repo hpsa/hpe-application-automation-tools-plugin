@@ -2,8 +2,8 @@ package com.hp.octane.plugins.jetbrains.teamcity.factories;
 
 import com.hp.octane.plugins.jetbrains.teamcity.model.api.ProjectConfig;
 import com.hp.octane.plugins.jetbrains.teamcity.model.api.ProjectsList;
-import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.TreeItem;
-import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.TreeItemContainer;
+import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.StructureItem;
+import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.StructurePhase;
 import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.SBuildType;
 import jetbrains.buildServer.serverSide.SProject;
@@ -47,11 +47,11 @@ public class TeamCityModelFactory implements ModelFactory {
     }
 
     @Override
-    public TreeItem createStructure(String buildConfigurationId) {
+    public StructureItem createStructure(String buildConfigurationId) {
         SBuildType root = projectManager.findBuildTypeByExternalId(buildConfigurationId);
-        TreeItem treeRoot =null;
+        StructureItem treeRoot =null;
         if(root !=null) {
-            treeRoot = new TreeItem(root.getName(), root.getExternalId());
+            treeRoot = new StructureItem(root.getName(), root.getExternalId());
             createPipelineStructure(treeRoot, root.getChildDependencies());
 
         }else{
@@ -60,16 +60,16 @@ public class TeamCityModelFactory implements ModelFactory {
         return treeRoot;
     }
 
-    private void createPipelineStructure(TreeItem treeRoot, Collection<SBuildType> dependencies){
+    private void createPipelineStructure(StructureItem treeRoot, Collection<SBuildType> dependencies){
         if(dependencies ==null || dependencies.size() == 0)return;
-        TreeItemContainer treeItemContainer = new TreeItemContainer(true,"teamcity_dependencies");
+        StructurePhase phase = new StructurePhase(true,"teamcity_dependencies");
         for(SBuildType build : dependencies){
-            TreeItem buildItem = new TreeItem(build.getName(),build.getExternalId());
-            treeItemContainer.addJob(buildItem);
+            StructureItem buildItem = new StructureItem(build.getName(),build.getExternalId());
+            phase.addJob(buildItem);
             //treeRoot.addChild(buildItem);
             createPipelineStructure(buildItem, build.getChildDependencies());
         }
-        treeRoot.addPhasesInternal(treeItemContainer);
+        treeRoot.addPhasesInternal(phase);
     }
 
 }

@@ -1,7 +1,7 @@
 package com.hp.octane.plugins.jetbrains.teamcity.actions;
 
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
-import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.TreeItem;
+import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.StructureItem;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.Utils;
 import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;
 import jetbrains.buildServer.serverSide.ProjectManager;
@@ -25,7 +25,7 @@ public class ProjectActionsController extends AbstractActionController {
     public ModelAndView handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws Exception {
 
         String buildConfigurationId = httpServletRequest.getParameter("id");
-        TreeItem treeRoot =  this.modelFactory.createStructure(buildConfigurationId);
+        StructureItem treeRoot =  this.modelFactory.createStructure(buildConfigurationId);
 
         if(treeRoot !=null) {
             Utils.updateResponse(treeRoot, httpServletRequest, httpServletResponse);

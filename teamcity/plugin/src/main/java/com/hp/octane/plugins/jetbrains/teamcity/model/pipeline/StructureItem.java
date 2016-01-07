@@ -8,9 +8,9 @@ import java.util.List;
 /**
  * Created by lazara on 06/01/2016.
  */
-public class TreeItem {
+public class StructureItem {
 
-    public TreeItem(String name, String externalId) {
+    public StructureItem(String name, String externalId) {
         this.name = name;
         this.id = externalId;
     }
@@ -31,15 +31,15 @@ public class TreeItem {
     String id;
     List<ParameterConfig> parameters = new ArrayList<ParameterConfig>();
 
-    public void addPhasesInternal(TreeItemContainer phaseInternal) {
+    public void addPhasesInternal(StructurePhase phaseInternal) {
         this.phasesInternal.add(phaseInternal);
     }
 
 
-    public List<TreeItemContainer> getPhasesInternal() {
+    public List<StructurePhase> getPhasesInternal() {
         return phasesInternal;
     }
 
-    List<TreeItemContainer> phasesInternal = new ArrayList<TreeItemContainer>();
+    List<StructurePhase> phasesInternal = new ArrayList<StructurePhase>();
 
 }

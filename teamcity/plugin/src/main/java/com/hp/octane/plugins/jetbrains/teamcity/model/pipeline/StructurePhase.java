@@ -6,12 +6,12 @@ import java.util.List;
 /**
  * Created by lazara on 06/01/2016.
  */
-public class TreeItemContainer {
+public class StructurePhase {
     private boolean blocking =false;
     private String name;
-    List<TreeItem> jobs = new ArrayList<TreeItem>();
+    List<StructureItem> jobs = new ArrayList<StructureItem>();
 
-    public TreeItemContainer(boolean blocking, String name) {
+    public StructurePhase(boolean blocking, String name) {
         this.blocking = blocking;
         this.name = name;
 //        this.jobs = jobs;
@@ -25,11 +25,11 @@ public class TreeItemContainer {
         return name;
     }
 
-    public List<TreeItem> getJobs() {
+    public List<StructureItem> getJobs() {
         return jobs;
     }
 
-    public void addJob(TreeItem job){
+    public void addJob(StructureItem job){
         jobs.add(job);
     }
 }
