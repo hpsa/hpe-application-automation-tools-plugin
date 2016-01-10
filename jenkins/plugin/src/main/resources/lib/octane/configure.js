@@ -464,7 +464,7 @@ function octane_job_configuration(target, progress, proxy) {
             var tagTypeInput = $("<input type='text' class='setting-input'>");
             tagTypeInputTd.append(tagTypeInput);
             tagTypeInput.hide();
-            tagTypeInput.blur(newTagTypeValidation(tagTypeInput, pipeline.workspaceId, function(error) {
+            tagTypeInput.blur(newTagTypeValidation(tagTypeInput, pipeline.workspaceId, pipeline.taxonomyTags, function(error) {
                 doValidateTag(error, validationAreaTagType);
             }));
             var tagTypeSpan = $("<span>");
@@ -520,7 +520,7 @@ function octane_job_configuration(target, progress, proxy) {
                 if (!addedTag.tagTypeId) {
                     addedTag.tagTypeName = tagTypeInput.val();
 
-                    newTagTypeValidation(tagTypeInput, pipeline.workspaceId, function(error) {
+                    newTagTypeValidation(tagTypeInput, pipeline.workspaceId, pipeline.taxonomyTags, function(error) {
 
                         doValidateTag(error, validationAreaTagType);
                         validationTagTypeOk = typeof error === 'undefined';
@@ -825,7 +825,7 @@ function octane_job_configuration(target, progress, proxy) {
             };
         }
 
-        function newTagTypeValidation(tagTypeInput, workspaceId, callback) {
+        function newTagTypeValidation(tagTypeInput, workspaceId, taxonomyTags, callback) {
             return function () {
                 var error = undefined;
 
@@ -841,6 +841,7 @@ function octane_job_configuration(target, progress, proxy) {
                             return false;
                         }
                     }
+}
 
                     if (response.errors) {
                         response.errors.forEach(renderError);
@@ -853,6 +854,14 @@ function octane_job_configuration(target, progress, proxy) {
                             tagTypeSearch.some(matchTagType);
                         }
 
+                    }
+
+                    if(!error){
+                        var tagTypeSearch2 = [];
+                        for (index = 0; index < taxonomyTags.length; ++index) {
+                            tagTypeSearch2.push(taxonomyTags[index].tagTypeName);
+                        }
+                        tagTypeSearch2.some(matchTagType);
                     }
                     callback(error);
                 }
