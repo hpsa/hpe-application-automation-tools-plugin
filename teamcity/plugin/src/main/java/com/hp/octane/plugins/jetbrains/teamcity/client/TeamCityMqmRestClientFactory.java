@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
  * Created by linsha on 03/01/2016.
  */
 public class TeamCityMqmRestClientFactory {
-    private static final String CLIENT_TYPE = "HPE_TEAMCITY_PLUGIN";
+    public static final String CLIENT_TYPE = "HPE_TEAMCITY_PLUGIN";
 
 
     public MqmRestClient create(String location, String sharedSpace, String username, String password) {

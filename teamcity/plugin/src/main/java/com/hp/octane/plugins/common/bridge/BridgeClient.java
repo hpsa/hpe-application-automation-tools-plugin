@@ -7,7 +7,10 @@ import com.hp.mqm.client.MqmRestClientImpl;
 import com.hp.mqm.client.UsernamePasswordProxyCredentials;
 import com.hp.mqm.client.exception.AuthenticationException;
 import com.hp.mqm.client.exception.TemporarilyUnavailableException;
+import com.hp.octane.plugins.common.bridge.tasks.CITaskService;
+import com.hp.octane.plugins.common.bridge.tasks.CITaskServiceFactory;
 import com.hp.octane.plugins.common.configuration.ServerConfiguration;
+import com.hp.octane.plugins.jetbrains.teamcity.DummyPluginConfiguration;
 import com.hp.octane.plugins.jetbrains.teamcity.client.TeamCityMqmRestClientFactory;
 import net.sf.json.JSONArray;
 import org.apache.commons.lang.StringUtils;
@@ -24,8 +27,8 @@ import java.util.logging.Logger;
 
 public class BridgeClient {
     private static final Logger logger = Logger.getLogger(BridgeClient.class.getName());
-    private static final String serverInstanceId = UUID.randomUUID().toString();//
-    private static final String ciLocation = "http://localhost:8888";//
+    private static final String serverInstanceId = DummyPluginConfiguration.identity;//UUID.randomUUID().toString();//
+    private static final String ciLocation = "http://localhost:8888/httpAuth";//
 
     private ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
     private ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30, new AbridgedTasksExecutorsFactory());
@@ -33,6 +36,7 @@ public class BridgeClient {
 
     private ServerConfiguration mqmConfig;
     private TeamCityMqmRestClientFactory restClientFactory;
+    private CITaskService ciTaskService = CITaskServiceFactory.create(TeamCityMqmRestClientFactory.CLIENT_TYPE);
 
     public BridgeClient(ServerConfiguration mqmConfig, TeamCityMqmRestClientFactory restClientFactory) {
         this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password, mqmConfig.impersonatedUser);
@@ -111,7 +115,8 @@ public class BridgeClient {
                 taskProcessingExecutors.execute(new TaskProcessor(
                         tasks.getJSONObject(i),
                         restClientFactory,
-                        mqmConfig
+                        mqmConfig,
+                        ciTaskService
                 ));
             }
         } catch (Exception e) {

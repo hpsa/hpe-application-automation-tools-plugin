@@ -1,7 +1,10 @@
 package com.hp.octane.plugins.common.bridge;
 
 import com.hp.mqm.client.MqmRestClient;
+import com.hp.octane.plugins.common.bridge.tasks.CITaskService;
+import com.hp.octane.plugins.common.bridge.tasks.CITaskServiceFactory;
 import com.hp.octane.plugins.common.configuration.ServerConfiguration;
+import com.hp.octane.plugins.jetbrains.teamcity.DummyPluginConfiguration;
 import com.hp.octane.plugins.jetbrains.teamcity.client.TeamCityMqmRestClientFactory;
 import net.sf.json.JSONObject;
 
@@ -20,11 +23,13 @@ public class TaskProcessor implements Runnable {
 	private final JSONObject task;
 	private final TeamCityMqmRestClientFactory clientFactory;
 	private final ServerConfiguration mqmConfiguration;
+	private final CITaskService ciTaskService;
 
-	TaskProcessor(JSONObject task, TeamCityMqmRestClientFactory clientFactory, ServerConfiguration mqmConfiguration) {
+	TaskProcessor(JSONObject task, TeamCityMqmRestClientFactory clientFactory, ServerConfiguration mqmConfiguration, CITaskService ciTaskService) {
 		this.task = task;
 		this.clientFactory = clientFactory;
 		this.mqmConfiguration = mqmConfiguration;
+		this.ciTaskService = ciTaskService;
 	}
 
 	@Override
@@ -33,26 +38,32 @@ public class TaskProcessor implements Runnable {
 		String method = task.getString("method");
 		String url = task.getString("url");
 		Map<String, String> headers = task.containsKey("headers") ? buildHeadersMap(task.getJSONObject("headers")) : null;
-		String body;
-		logger.info("BRIDGE: processing task '" + id + "': " + method + " " + url);
 
-		LoopBackRestService.LoopBackResponse response;
-		try {
-			if (method.equals("GET")) {
-				response = LoopBackRestService.loopBackGet(url, headers);
-			} else if (method.equals("PUT")) {
-				body = obtainBody();
-				response = LoopBackRestService.loopBackPut(url, headers, body);
-			} else if (method.equals("POST")) {
-				body = obtainBody();
-				response = LoopBackRestService.loopBackPost(url, headers, body);
-			} else {
-				response = new LoopBackRestService.LoopBackResponse(415, null, "");
-			}
-		} catch (Exception e) {
-			logger.severe("BRIDGE: failed to process task '" + id + "', returning 500:" + e.getMessage());
-			response = new LoopBackRestService.LoopBackResponse(500, null, e.getMessage());
+		logger.info("BRIDGE: processing task '" + id + "': " + method + " " + url);
+		String response = "Unknown Command";
+		if(url.contains("status")){
+			response = ciTaskService.getStatus();
+		}else if(url.contains("jobs")){
+			response = ciTaskService.getProjects(false);
 		}
+
+//		LoopBackRestService.LoopBackResponse response;
+//		try {
+//			if (method.equals("GET")) {
+//				response = LoopBackRestService.loopBackGet(url, headers);
+//			} else if (method.equals("PUT")) {
+//				body = obtainBody();
+//				response = LoopBackRestService.loopBackPut(url, headers, body);
+//			} else if (method.equals("POST")) {
+//				body = obtainBody();
+//				response = LoopBackRestService.loopBackPost(url, headers, body);
+//			} else {
+//				response = new LoopBackRestService.LoopBackResponse(415, null, "");
+//			}
+//		} catch (Exception e) {
+//			logger.severe("BRIDGE: failed to process task '" + id + "', returning 500:" + e.getMessage());
+//			response = new LoopBackRestService.LoopBackResponse(500, null, e.getMessage());
+//		}
 
 		MqmRestClient restClient = clientFactory.create(
 				mqmConfiguration.location,
@@ -60,12 +71,13 @@ public class TaskProcessor implements Runnable {
 				mqmConfiguration.username,
 				mqmConfiguration.password);
 		JSONObject json = new JSONObject();
-		json.put("statusCode", response.statusCode);
-		json.put("headers", response.headers);
-		json.put("body", response.body);
+		json.put("statusCode", 200);
+		json.put("headers", new HashMap<String, String>());
+		//json.put("body", response.body);
+		json.put("body", response);
 
 		int submitStatus = restClient.putAbridgedResult(
-				"uuid"/*new PluginActions.ServerInfo().getInstanceId()*/,
+				DummyPluginConfiguration.identity/*new PluginActions.ServerInfo().getInstanceId()*/,
 				id,
 				json.toString());
 		logger.info("BRIDGE: result for task '" + id + "' submitted with status " + submitStatus);
