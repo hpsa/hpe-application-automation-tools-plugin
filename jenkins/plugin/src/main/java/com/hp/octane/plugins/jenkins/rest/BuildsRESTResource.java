@@ -56,7 +56,7 @@ public class BuildsRESTResource {
 		}
 	}
 
-	public void serveBuild(AbstractBuild build, String[] path, StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
+	private void serveBuild(AbstractBuild build, String[] path, StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
 		if (build == null) {
 			res.setStatus(404);
 		} else {
@@ -83,6 +83,7 @@ public class BuildsRESTResource {
 					}
 				} else if (COVERAGE_REST.equals(path[1])) {
 					if ("GET".equals(req.getMethod())) {
+						res.setContentType("application/json");
 						res.getWriter().write("[]");
 					} else {
 						res.setStatus(405);

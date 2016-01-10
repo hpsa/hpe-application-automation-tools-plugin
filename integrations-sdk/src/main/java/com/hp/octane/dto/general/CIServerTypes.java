@@ -8,10 +8,10 @@ import com.fasterxml.jackson.annotation.JsonValue;
  */
 
 public enum CIServerTypes {
-	JENKINS("unavailable"),
-	TEAMCITY("executor"),
+	JENKINS("jenkins"),
+	TEAMCITY("teamcity"),
 	BAMBOO("bamboo"),
-	TFS("pipeline"),
+	TFS("tfs"),
 	UNKNOWN("unknown");
 
 	private String value;
@@ -32,13 +32,12 @@ public enum CIServerTypes {
 		}
 
 		CIServerTypes result = UNKNOWN;
-
 		for (CIServerTypes v : values()) {
 			if (v.value.compareTo(value) == 0) {
-				return v;
+				result = v;
+				break;
 			}
 		}
-
 		return result;
 	}
 }

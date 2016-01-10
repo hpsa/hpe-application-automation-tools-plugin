@@ -42,16 +42,18 @@ public class PluginRouter implements ServerExtension {
                         WebControllerManager webControllerManager) {
         logger.info("Init HPE MQM CI Plugin");
         server.registerExtension(ServerExtension.class, PLUGIN_NAME, this);
+//        server.addListener(new BuildEventListener());
+        ModelFactory modelFactory = new TeamCityModelFactory(projectManager);
 
 
         webControllerManager.registerController("/octane/jobs/**",
-                new PluginActionsController(server, projectManager, responsibilityFacade));
+                new PluginActionsController(server, projectManager, responsibilityFacade,modelFactory));
 
         webControllerManager.registerController("/octane/snapshot/**",
-                new BuildActionsController(server, projectManager, responsibilityFacade));
-
+                new BuildActionsController(server, projectManager, responsibilityFacade,modelFactory));
+        
         webControllerManager.registerController("/octane/structure/**",
-                new ProjectActionsController(server, projectManager, responsibilityFacade));
+                new ProjectActionsController(server, projectManager, responsibilityFacade,modelFactory));
         webControllerManager.registerController("/octane/status/**",
                 new StatusActionController(server, projectManager, responsibilityFacade));
         initiPlugin();

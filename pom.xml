@@ -51,7 +51,7 @@
         <module>teamcity</module>
         <module>mqm-client</module>
         <module>collection-tool</module>
-        <!--module>nga-surefire-listener</module-->
+        <module>nga-surefire-listener</module>
         <module>integrations-sdk</module>
 
     </modules>
@@ -96,11 +96,6 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
                 <version>${commons-lang3.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
-                <version>${jackson.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.json</groupId>

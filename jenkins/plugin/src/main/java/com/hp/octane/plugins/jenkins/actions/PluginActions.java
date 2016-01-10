@@ -1,12 +1,16 @@
 package com.hp.octane.plugins.jenkins.actions;
 
+import com.hp.octane.dto.general.AggregatedStatusInfo;
+import com.hp.octane.dto.general.CIServerTypes;
+import com.hp.octane.dto.general.PluginInfo;
+import com.hp.octane.dto.parameters.ParameterType;
+import com.hp.octane.dto.projects.ProjectsList;
 import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.configuration.ConfigApi;
 import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
-import com.hp.octane.plugins.jenkins.events.EventsClient;
-import com.hp.octane.plugins.jenkins.events.EventsService;
 import com.hp.octane.plugins.jenkins.rest.ProjectsRESTResource;
+import com.hp.octane.serialization.SerializationService;
 import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.RootAction;
@@ -15,7 +19,6 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
-import org.kohsuke.stapler.export.Flavor;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
@@ -84,35 +87,6 @@ public class PluginActions implements RootAction {
 		}
 	}
 
-	@ExportedBean
-	public static final class PluginInfo {
-		private final String version = Jenkins.getInstance().getPlugin(OctanePlugin.class).getWrapper().getVersion();
-
-		@Exported(inline = true)
-		public String getVersion() {
-			return version;
-		}
-	}
-
-	//  TODO: probably add status collecting logic from all relevant services
-	@ExportedBean
-	public static final class PluginStatus {
-		@Exported(inline = true)
-		public ServerInfo getServer() {
-			return new ServerInfo();
-		}
-
-		@Exported(inline = true)
-		public PluginInfo getPlugin() {
-			return new PluginInfo();
-		}
-
-		@Exported(inline = true)
-		public List<EventsClient> getEventsClients() {
-			return EventsService.getExtensionInstance().getStatus();
-		}
-	}
-
 	public String getIconFileName() {
 		return null;
 	}
@@ -126,7 +100,17 @@ public class PluginActions implements RootAction {
 	}
 
 	public void doStatus(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
-		res.serveExposedBean(req, new PluginStatus(), Flavor.JSON);
+		AggregatedStatusInfo statusInfo = new AggregatedStatusInfo();
+		statusInfo.setPlugin(new PluginInfo(Jenkins.getInstance().getPlugin(OctanePlugin.class).getWrapper().getVersion()));
+		statusInfo.setServer(new com.hp.octane.dto.general.ServerInfo(
+				CIServerTypes.JENKINS,
+				Jenkins.getVersion().toString(),
+				Jenkins.getInstance().getRootUrl(),
+				Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity(),
+				Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentityFrom()
+		));
+		res.setContentType("application/json");
+		res.getWriter().write(SerializationService.toJSON(statusInfo));
 	}
 
 	public void doProjects(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
@@ -135,7 +119,9 @@ public class PluginActions implements RootAction {
 			if (req.getParameter("parameters") != null && req.getParameter("parameters").toLowerCase().equals("false")) {
 				areParametersNeeded = false;
 			}
-			res.serveExposedBean(req, new ProjectsList(areParametersNeeded), Flavor.JSON);
+			ProjectsList result = getProjectsList(areParametersNeeded);
+			res.setContentType("application/json");
+			res.getWriter().write(SerializationService.toJSON(result));
 		} else {
 			ProjectsRESTResource.instance.handle(req, res);
 		}
@@ -152,53 +138,38 @@ public class PluginActions implements RootAction {
 		if (req.getParameter("parameters") != null && req.getParameter("parameters").toLowerCase().equals("false")) {
 			areParametersNeeded = false;
 		}
-		res.serveExposedBean(req, new ProjectsList(areParametersNeeded), Flavor.JSON);
+		ProjectsList result = getProjectsList(areParametersNeeded);
+		res.setContentType("application/json");
+		res.getWriter().write(SerializationService.toJSON(result));
 	}
 
-	@ExportedBean
-	public static final class ProjectConfig {
-		private String name;
-		private ParameterConfig[] parameters;
-
-		public void setName(String value) {
-			name = value;
-		}
-
-		@Exported(inline = true)
-		public String getName() {
-			return name;
-		}
-
-		public void setParameters(ParameterConfig[] parameters) {
-			this.parameters = parameters;
-		}
-
-		@Exported(inline = true)
-		public ParameterConfig[] getParameters() {
-			return parameters;
-		}
-	}
-
-	@ExportedBean
-	public static final class ProjectsList {
-		@Exported(inline = true)
-		public ProjectConfig[] jobs;
-
-		public ProjectsList(boolean areParametersNeeded) {
-			ProjectConfig tmpConfig;
-			AbstractProject tmpProject;
-			List<ProjectConfig> list = new ArrayList<ProjectConfig>();
-			List<String> itemNames = (List<String>) Jenkins.getInstance().getTopLevelItemNames();
-			for (String name : itemNames) {
-				tmpProject = (AbstractProject) Jenkins.getInstance().getItem(name);
-				tmpConfig = new ProjectConfig();
-				tmpConfig.setName(name);
-				if (areParametersNeeded) {
-					tmpConfig.setParameters(ParameterProcessors.getConfigs(tmpProject));
+	private ProjectsList getProjectsList(boolean areParametersNeeded) {
+		ProjectsList result = new ProjectsList();
+		ProjectsList.ProjectConfig tmpConfig;
+		AbstractProject tmpProject;
+		List<ProjectsList.ProjectConfig> list = new ArrayList<ProjectsList.ProjectConfig>();
+		List<String> itemNames = (List<String>) Jenkins.getInstance().getTopLevelItemNames();
+		for (String name : itemNames) {
+			tmpProject = (AbstractProject) Jenkins.getInstance().getItem(name);
+			tmpConfig = new ProjectsList.ProjectConfig();
+			tmpConfig.setName(name);
+			if (areParametersNeeded) {
+				ParameterConfig[] tmpList = ParameterProcessors.getConfigs(tmpProject);
+				List<com.hp.octane.dto.parameters.ParameterConfig> configs = new ArrayList<com.hp.octane.dto.parameters.ParameterConfig>();
+				for (ParameterConfig pc : tmpList) {
+					configs.add(new com.hp.octane.dto.parameters.ParameterConfig(
+							ParameterType.fromValue(pc.getType()),
+							pc.getName(),
+							pc.getDescription(),
+							pc.getDefaultValue(),
+							pc.getChoices() == null ? null : pc.getChoices().toArray(new Object[pc.getChoices().size()])
+					));
 				}
-				list.add(tmpConfig);
+				tmpConfig.setParameters(configs.toArray(new com.hp.octane.dto.parameters.ParameterConfig[configs.size()]));
 			}
-			jobs = list.toArray(new ProjectConfig[list.size()]);
+			list.add(tmpConfig);
 		}
+		result.setJobs(list.toArray(new ProjectsList.ProjectConfig[list.size()]));
+		return result;
 	}
 }

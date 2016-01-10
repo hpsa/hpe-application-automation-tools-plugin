@@ -36,7 +36,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
-
 	private static Logger logger = Logger.getLogger(OctanePlugin.class.getName());
 
 	private String identity;

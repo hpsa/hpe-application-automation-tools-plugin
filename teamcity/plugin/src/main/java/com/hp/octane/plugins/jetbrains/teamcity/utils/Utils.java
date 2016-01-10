@@ -14,6 +14,28 @@ import java.io.PrintWriter;
  */
 public class Utils {
 
+    public static void updateResponse( Object state, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        StringBuilder data = new StringBuilder();
+
+        //BuildConfigurationHolder state = (BuildConfigurationHolder)map.get("ViewState");
+
+        if (state != null) {
+            data.append(Utils.jacksonRendering(state));
+        }
+
+        String[] jsonp = request.getParameterValues("jsonp");
+
+        if (jsonp != null) {
+            data.insert(0, jsonp[0] + "(");
+            data.append(")\n");
+        } else {
+            data.append("\n");
+        }
+        PrintWriter writer = response.getWriter();
+        writer.write(data.toString());
+    }
     public static String jacksonRendering(Object obj){
         try {
             ObjectMapper mapper = new ObjectMapper();
