@@ -1,24 +1,16 @@
 package com.hp.octane.plugins.common.bridge;
 
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-import com.hp.mqm.client.MqmConnectionConfig;
 import com.hp.mqm.client.MqmRestClient;
-import com.hp.mqm.client.MqmRestClientImpl;
-import com.hp.mqm.client.UsernamePasswordProxyCredentials;
 import com.hp.mqm.client.exception.AuthenticationException;
 import com.hp.mqm.client.exception.TemporarilyUnavailableException;
 import com.hp.octane.plugins.common.bridge.tasks.CITaskService;
 import com.hp.octane.plugins.common.bridge.tasks.CITaskServiceFactory;
 import com.hp.octane.plugins.common.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jetbrains.teamcity.DummyPluginConfiguration;
-import com.hp.octane.plugins.jetbrains.teamcity.client.TeamCityMqmRestClientFactory;
+import com.hp.octane.plugins.jetbrains.teamcity.client.MqmRestClientFactory;
 import net.sf.json.JSONArray;
-import org.apache.commons.lang.StringUtils;
 
 import javax.annotation.Nonnull;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -35,12 +27,13 @@ public class BridgeClient {
     volatile private boolean shuttingDown = false;
 
     private ServerConfiguration mqmConfig;
-    private TeamCityMqmRestClientFactory restClientFactory;
-    private CITaskService ciTaskService = CITaskServiceFactory.create(TeamCityMqmRestClientFactory.CLIENT_TYPE);
+    private String ciType;
+    private CITaskService ciTaskService;
 
-    public BridgeClient(ServerConfiguration mqmConfig, TeamCityMqmRestClientFactory restClientFactory) {
+    public BridgeClient(ServerConfiguration mqmConfig,String ciType) {
         this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password, mqmConfig.impersonatedUser);
-        this.restClientFactory = restClientFactory;
+        this.ciType = ciType;
+        ciTaskService = CITaskServiceFactory.create(ciType);
         connect();
         logger.info("BRIDGE: client initialized for '" + this.mqmConfig.location + "' (SP: " + this.mqmConfig.sharedSpace + ")");
     }
@@ -62,7 +55,7 @@ public class BridgeClient {
                                 "' (SP: " + mqmConfig.sharedSpace +
                                 "; instance ID: " + serverInstanceId +
                                 "; self URL: " + ciLocation);//new PluginActions.ServerInfo().getUrl());
-                        MqmRestClient restClient = restClientFactory.create(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
+                        MqmRestClient restClient = MqmRestClientFactory.create(ciType, mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
 
                         tasksJSON = restClient.getAbridgedTasks(serverInstanceId, ciLocation/*new PluginActions.ServerInfo().getUrl()*/);
                         logger.info("BRIDGE: back from '" + mqmConfig.location + "' (SP: " + mqmConfig.sharedSpace + ") with " + (tasksJSON == null || tasksJSON.isEmpty() ? "no tasks" : "some tasks"));
@@ -114,7 +107,7 @@ public class BridgeClient {
             for (int i = 0; i < tasks.size(); i++) {
                 taskProcessingExecutors.execute(new TaskProcessor(
                         tasks.getJSONObject(i),
-                        restClientFactory,
+                        ciType,
                         mqmConfig,
                         ciTaskService
                 ));

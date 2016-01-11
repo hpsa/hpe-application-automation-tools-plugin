@@ -1,6 +1,7 @@
 package com.hp.octane.plugins.common.bridge.tasks;
 
 import com.hp.octane.plugins.jetbrains.teamcity.actions.StatusActionController;
+import com.hp.octane.plugins.jetbrains.teamcity.model.api.ProjectsList;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.Utils;
 
 /**
@@ -9,7 +10,10 @@ import com.hp.octane.plugins.jetbrains.teamcity.utils.Utils;
 public class TeamcityCITaskService implements CITaskService{
     @Override
     public String getProjects(boolean withParameters) {
+//        ProjectsList projectsList = modelFactory.CreateProjectList();
+//        Utils.updateResponse(projectsList,request,response);
         return null;
+
     }
 
     @Override

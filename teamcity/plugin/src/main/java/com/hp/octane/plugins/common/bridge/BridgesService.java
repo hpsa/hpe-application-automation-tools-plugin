@@ -2,10 +2,10 @@ package com.hp.octane.plugins.common.bridge;
 
 
 import com.hp.octane.plugins.common.configuration.ServerConfiguration;
-import com.hp.octane.plugins.jetbrains.teamcity.client.TeamCityMqmRestClientFactory;
+import com.hp.octane.plugins.jetbrains.teamcity.client.MqmRestClientFactory;
+
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -20,8 +20,9 @@ public class BridgesService{
 	private static final Logger logger = Logger.getLogger(BridgesService.class.getName());
 
 	private static BridgesService instance;
-	private TeamCityMqmRestClientFactory clientFactory;
+	//private MqmRestClientFactory clientFactory;
 	private BridgeClient bridgeClient;
+	private String ciType;
 
 	public static BridgesService getInstance() {
 		if (instance == null) {
@@ -35,7 +36,7 @@ public class BridgesService{
 			if (bridgeClient != null) {
 				bridgeClient.update(conf);
 			} else {
-				bridgeClient = new BridgeClient(conf, clientFactory);
+				bridgeClient = new BridgeClient(conf, ciType);
 			}
 		} else {
 			if (bridgeClient != null) {
@@ -47,8 +48,11 @@ public class BridgesService{
 	}
 
 //	@Inject
-	public void setMqmRestClientFactory(TeamCityMqmRestClientFactory clientFactory) {
-		this.clientFactory = clientFactory;
+//	public void setMqmRestClientFactory(TeamCityMqmRestClientFactory clientFactory) {
+//		this.clientFactory = clientFactory;
+//	}
+	public void setCIType(String ciType) {
+		this.ciType = ciType;
 	}
 
 //	@Override

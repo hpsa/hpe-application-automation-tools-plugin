@@ -10,7 +10,6 @@ import com.hp.octane.plugins.jetbrains.teamcity.actions.BuildActionsController;
 import com.hp.octane.plugins.jetbrains.teamcity.actions.PluginActionsController;
 import com.hp.octane.plugins.jetbrains.teamcity.actions.ProjectActionsController;
 import com.hp.octane.plugins.jetbrains.teamcity.actions.StatusActionController;
-import com.hp.octane.plugins.jetbrains.teamcity.client.TeamCityMqmRestClientFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.TeamCityModelFactory;
 import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;
@@ -27,22 +26,20 @@ import java.util.logging.Logger;
 public class PluginRouter implements ServerExtension {
     public static final String PLUGIN_NAME = PluginRouter.class.getSimpleName().toLowerCase();
     private static final Logger logger = Logger.getLogger(PluginRouter.class.getName());
+    private SBuildServer sBuildServer;
     private String identity;
     private Long identityFrom;
-//    private String uiLocation = "http://localhost:8080/ui?p=1001";
-//    private String username;
-//    private String password;
-//    private String impersonatedUser;
 
     // inferred from uiLocation
     private String location="http://localhost:8080";
-
+    private final String PLUGIN_TYPE = "HPE_TEAMCITY_PLUGIN";
 
     public PluginRouter(SBuildServer server,
                         ProjectManager projectManager,
                         BuildTypeResponsibilityFacade responsibilityFacade,
                         WebControllerManager webControllerManager) {
         logger.info("Init HPE MQM CI Plugin");
+        this.sBuildServer = server;
         server.registerExtension(ServerExtension.class, PLUGIN_NAME, this);
 //        server.addListener(new BuildEventListener());
         ModelFactory modelFactory = new TeamCityModelFactory(projectManager);
@@ -68,13 +65,14 @@ public class PluginRouter implements ServerExtension {
         if (DummyPluginConfiguration.identityFrom == null || DummyPluginConfiguration.identityFrom == 0) {
             DummyPluginConfiguration.identityFrom = new Date().getTime();
         }
-        BridgesService.getInstance().setMqmRestClientFactory(new TeamCityMqmRestClientFactory());
+        //BridgesService.getInstance().setMqmRestClientFactory(new TeamCityMqmRestClientFactory());
+        BridgesService.getInstance().setCIType(PLUGIN_TYPE);
         BridgesService.getInstance().updateBridge(getServerConfiguration());
     }
 
     public ServerConfiguration getServerConfiguration() {
         return new ServerConfiguration(
-                DummyPluginConfiguration.location,
+                DummyPluginConfiguration.location,//sBuildServer.getRootUrl(),
                 DummyPluginConfiguration.sharedSpace,
                 DummyPluginConfiguration.username,
                 DummyPluginConfiguration.password,
