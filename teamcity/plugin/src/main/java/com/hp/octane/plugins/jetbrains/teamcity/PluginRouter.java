@@ -10,7 +10,6 @@ import com.hp.octane.plugins.jetbrains.teamcity.actions.BuildActionsController;
 import com.hp.octane.plugins.jetbrains.teamcity.actions.PluginActionsController;
 import com.hp.octane.plugins.jetbrains.teamcity.actions.ProjectActionsController;
 import com.hp.octane.plugins.jetbrains.teamcity.actions.StatusActionController;
-import com.hp.octane.plugins.jetbrains.teamcity.client.TeamCityMqmRestClientFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.TeamCityModelFactory;
 import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;
@@ -36,7 +35,7 @@ public class PluginRouter implements ServerExtension {
 
     // inferred from uiLocation
     private String location="http://localhost:8080";
-
+    private final String PLUGIN_TYPE = "HPE_TEAMCITY_PLUGIN";
 
     public PluginRouter(SBuildServer server,
                         ProjectManager projectManager,
@@ -68,7 +67,8 @@ public class PluginRouter implements ServerExtension {
         if (DummyPluginConfiguration.identityFrom == null || DummyPluginConfiguration.identityFrom == 0) {
             DummyPluginConfiguration.identityFrom = new Date().getTime();
         }
-        BridgesService.getInstance().setMqmRestClientFactory(new TeamCityMqmRestClientFactory());
+        //BridgesService.getInstance().setMqmRestClientFactory(new TeamCityMqmRestClientFactory());
+        BridgesService.getInstance().setCIType(PLUGIN_TYPE);
         BridgesService.getInstance().updateBridge(getServerConfiguration());
     }
 
