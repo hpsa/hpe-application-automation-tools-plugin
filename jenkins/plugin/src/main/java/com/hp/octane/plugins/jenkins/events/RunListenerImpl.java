@@ -2,6 +2,7 @@ package com.hp.octane.plugins.jenkins.events;
 
 import com.google.inject.Inject;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
+import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessors;
 import com.hp.octane.plugins.jenkins.model.snapshots.SnapshotResult;
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCausesFactory;
@@ -80,6 +81,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 				result = SnapshotResult.UNAVAILABLE;
 			}
 
+			SCMProcessor scmProcessor = SCMProcessors.getAppropriate(build.getProject().getScm().getClass().getName());
 			CIEventFinished event = new CIEventFinished(
 					getProjectName(r),
 					build.getNumber(),
@@ -90,9 +92,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 					ParameterProcessors.getInstances(build),
 					result,
 					build.getDuration(),
-					SCMProcessors
-							.getAppropriate(build.getProject().getScm().getClass().getName())
-							.getSCMData(build)
+					scmProcessor == null ? null : scmProcessor.getSCMData(build)
 			);
 			EventsService.getExtensionInstance().dispatchEvent(event);
 
