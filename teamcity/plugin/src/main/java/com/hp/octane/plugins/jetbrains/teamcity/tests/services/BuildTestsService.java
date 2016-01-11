@@ -1,6 +1,7 @@
 package com.hp.octane.plugins.jetbrains.teamcity.tests.services;
 
 import com.hp.octane.plugins.jetbrains.teamcity.tests.model.TestResult;
+import com.hp.octane.plugins.jetbrains.teamcity.tests.model.TestResultStatus;
 import jetbrains.buildServer.serverSide.ServerExtension;
 
 import org.w3c.dom.Document;
@@ -52,7 +53,7 @@ public class BuildTestsService implements ServerExtension {
                 String className = "";
                 String testName = "";
                 long duration = 0;
-                //TestResultStatus status;
+                TestResultStatus status;
 
                 Node nNode = nList.item(i);
                 if (nNode.getNodeType() == Node.ELEMENT_NODE) {
@@ -60,7 +61,12 @@ public class BuildTestsService implements ServerExtension {
                     Element eElement = (Element) nNode;
                     duration = Long.valueOf(eElement.getAttribute("time"));
                     moduleName = surefireFile.getParentFile().getName();
-                    //new TestResult(moduleName, packageName, className, testName, status, duration, buildStarted);
+                    packageName = eElement.getAttribute("classname");
+                    int p = packageName.lastIndexOf(".");
+                    className = packageName.substring(p + 1);
+                    testName = eElement.getAttribute("name");
+                    eElement.getElementsByTagName("error").item(0);
+                    testList.add(new TestResult(moduleName, packageName, className, testName, null, duration, startingTime));
                 }
             }
         }catch (Exception e) {
