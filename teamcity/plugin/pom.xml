@@ -13,7 +13,9 @@
     <groupId>com.hp.mqm</groupId>
     <version>1.0-SNAPSHOT</version>
   </parent>
-
+  <properties>
+    <project-version>12.50.27-SNAPSHOT</project-version>
+  </properties>
 
   <dependencies>
 
@@ -99,6 +101,18 @@
       <version>${jackson-verison}</version>
     </dependency>
 
+    <!--Internals-->
+
+    <dependency>
+      <groupId>com.hp.mqm</groupId>
+      <artifactId>mqm-rest-client</artifactId>
+      <version>${project-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.hp.mqm</groupId>
+      <artifactId>integrations-sdk</artifactId>
+      <version>${project-version}</version>
+    </dependency>
 
   </dependencies>
 

@@ -12,6 +12,9 @@ import com.hp.mqm.org.apache.http.*;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
+//import org.apache.commons.codec.binary.Base64;
+
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -190,7 +193,15 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
     private void authenticate() {
         HttpPost post = new HttpPost(createBaseUri(URI_AUTHENTICATION));
         String authorizationString = (username != null ? username : "") + ":" + (password != null ? password : "");
-        post.setHeader(HEADER_NAME_AUTHORIZATION, HEADER_VALUE_BASIC_AUTH + Base64.encodeBase64String(authorizationString.getBytes(StandardCharsets.UTF_8)));
+        //Base64.class.getProtectionDomain().getCodeSource().getLocation()
+
+
+        //post.setHeader(HEADER_NAME_AUTHORIZATION, HEADER_VALUE_BASIC_AUTH + Base64.encodeBase64String(authorizationString.getBytes(StandardCharsets.UTF_8)));
+        post.setHeader(HEADER_NAME_AUTHORIZATION, HEADER_VALUE_BASIC_AUTH + java.util.Base64.getEncoder().encodeToString(authorizationString.getBytes(StandardCharsets.UTF_8)));
+
+        //post.setHeader(HEADER_NAME_AUTHORIZATION, HEADER_VALUE_BASIC_AUTH + MqmBase64.encode(authorizationString));
+
+      // post.setHeader(HEADER_NAME_AUTHORIZATION, HEADER_VALUE_BASIC_AUTH + "test@hp.com:test");
         addRequestHeaders(post, true);
 
         HttpResponse response = null;

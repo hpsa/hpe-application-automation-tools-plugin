@@ -132,12 +132,7 @@ public class ProjectsRESTResource {
 		int delay = project.getQuietPeriod();
 		ParametersAction parametersAction = new ParametersAction();
 
-		String bodyText = "";
-		byte[] buffer = new byte[1024];
-		int readLen;
-		while ((readLen = req.getInputStream().read(buffer)) > 0) {
-			bodyText += new String(buffer, 0, readLen);
-		}
+		String bodyText = RESTUtils.readBody(req);
 
 		if (!bodyText.isEmpty()) {
 			JSONObject bodyJSON = JSONObject.fromObject(bodyText);

@@ -7,12 +7,6 @@ import hudson.model.AbstractBuild;
  * Created by gullery on 31/03/2015.
  */
 
-public class UnsupportedSCMProcessor extends AbstractSCMProcessor {
-	UnsupportedSCMProcessor() {
-	}
-
-	@Override
-	public SCMData getSCMData(AbstractBuild build) {
-		return null;
-	}
+public interface SCMProcessor {
+	SCMData getSCMData(AbstractBuild build);
 }
