@@ -37,12 +37,15 @@ public class PluginRouter implements ServerExtension {
     // inferred from uiLocation
     private String location="http://localhost:8080";
 
-
     public PluginRouter(SBuildServer server,
                         ProjectManager projectManager,
                         BuildTypeResponsibilityFacade responsibilityFacade,
                         WebControllerManager webControllerManager) {
         logger.info("Init HPE MQM CI Plugin");
+        int a = 5;
+        a = a+3;
+        a++;
+        logger.info("ayellet");
         server.registerExtension(ServerExtension.class, PLUGIN_NAME, this);
 //        server.addListener(new BuildEventListener());
         ModelFactory modelFactory = new TeamCityModelFactory(projectManager);

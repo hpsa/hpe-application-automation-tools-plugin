@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jetbrains.teamcity.model.pipeline;
 
-import com.hp.octane.plugins.jetbrains.teamcity.model.api.ParameterConfig;
+import com.hp.octane.dto.parameters.ParameterConfig;
 
 import java.util.ArrayList;
 import java.util.List;

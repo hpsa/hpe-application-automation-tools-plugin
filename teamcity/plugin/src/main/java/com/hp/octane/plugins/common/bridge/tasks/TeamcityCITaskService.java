@@ -1,7 +1,7 @@
 package com.hp.octane.plugins.common.bridge.tasks;
 
 import com.hp.octane.plugins.jetbrains.teamcity.actions.StatusActionController;
-import com.hp.octane.plugins.jetbrains.teamcity.utils.Utils;
+import com.hp.octane.serialization.SerializationService;
 
 /**
  * Created by linsha on 07/01/2016.
@@ -15,7 +15,7 @@ public class TeamcityCITaskService implements CITaskService{
     @Override
     public String getStatus() {
         StringBuilder data = new StringBuilder();
-        data.append(Utils.jacksonRendering(new StatusActionController.PluginStatus()));
+        data.append(SerializationService.toJSON(new StatusActionController.PluginStatus()));
         return data.toString();
     }
 

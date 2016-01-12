@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="TC deploy run plugin" type="Remote" factoryName="Remote">
+    <option name="USE_SOCKET_TRANSPORT" value="true" />
+    <option name="SERVER_MODE" value="false" />
+    <option name="SHMEM_ADDRESS" value="javadebug" />
+    <option name="HOST" value="localhost" />
+    <option name="PORT" value="5000" />
+    <RunnerSettings RunnerId="Debug">
+      <option name="DEBUG_PORT" value="5000" />
+      <option name="LOCAL" value="false" />
+    </RunnerSettings>
+    <method>
+      <option name="Maven.BeforeRunTask" enabled="true" file="$PROJECT_DIR$/teamcity/pom.xml" goal="install -DdeployTeamCityPlugin=true" />
+    </method>
+  </configuration>
+</component>

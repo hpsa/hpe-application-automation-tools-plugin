@@ -1,9 +1,10 @@
 package com.hp.octane.plugins.jetbrains.teamcity.factories;
 
-import com.hp.octane.plugins.jetbrains.teamcity.model.api.ProjectConfig;
-import com.hp.octane.plugins.jetbrains.teamcity.model.api.ProjectsList;
+import com.hp.octane.dto.projects.ProjectsList;
+import com.hp.octane.dto.projects.ProjectsList.ProjectConfig;
 import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.StructureItem;
 import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.StructurePhase;
+import com.hp.octane.plugins.jetbrains.teamcity.model.snapshots.SnapshotItem;
 import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.SBuildType;
 import jetbrains.buildServer.serverSide.SProject;
@@ -26,6 +27,7 @@ public class TeamCityModelFactory implements ModelFactory {
     @Override
     public ProjectsList CreateProjectList() {
 
+        ProjectsList projectsList = new ProjectsList();
         List<ProjectConfig> list = new ArrayList<ProjectConfig>();
         List<String>ids = new ArrayList<String>();
 
@@ -36,14 +38,16 @@ public class TeamCityModelFactory implements ModelFactory {
             for (SBuildType buildType : buildTypes) {
                 if(!ids.contains(buildType.getInternalId())) {
                     ids.add(buildType.getInternalId());
-                    buildConf = new ProjectConfig(buildType.getName(), buildType.getExternalId());
+                    buildConf = new ProjectConfig();
+                    buildConf.setName(buildType.getName());
+                    buildConf.setId(buildType.getExternalId());
                     list.add(buildConf);
                 }
             }
         }
 
-        ProjectConfig[] jobs = list.toArray(new ProjectConfig[list.size()]);
-        return new ProjectsList(jobs);
+        projectsList.setJobs(list.toArray(new ProjectConfig[list.size()]));
+        return projectsList;
     }
 
     @Override
@@ -71,6 +75,17 @@ public class TeamCityModelFactory implements ModelFactory {
             createPipelineStructure(buildItem, build.getDependencies());
         }
         treeRoot.addPhasesInternal(phase);
+    }
+
+
+    @Override
+    public SnapshotItem createSnapshot(String buildConfigurationId, String buildNumber) {
+        SBuildType root = projectManager.findBuildTypeByExternalId(buildConfigurationId);
+
+        SnapshotItem snapshotRoot = new SnapshotItem();
+        snapshotRoot.setName(root.getName());
+        snapshotRoot.setId(root.getExternalId());
+        return snapshotRoot;
     }
 
 }
