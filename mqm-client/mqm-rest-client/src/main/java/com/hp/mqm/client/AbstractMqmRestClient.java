@@ -196,8 +196,8 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
         //Base64.class.getProtectionDomain().getCodeSource().getLocation()
 
 
-        //post.setHeader(HEADER_NAME_AUTHORIZATION, HEADER_VALUE_BASIC_AUTH + Base64.encodeBase64String(authorizationString.getBytes(StandardCharsets.UTF_8)));
-        post.setHeader(HEADER_NAME_AUTHORIZATION, HEADER_VALUE_BASIC_AUTH + java.util.Base64.getEncoder().encodeToString(authorizationString.getBytes(StandardCharsets.UTF_8)));
+        post.setHeader(HEADER_NAME_AUTHORIZATION, HEADER_VALUE_BASIC_AUTH + Base64.encodeBase64String(authorizationString.getBytes(StandardCharsets.UTF_8)));
+        //post.setHeader(HEADER_NAME_AUTHORIZATION, HEADER_VALUE_BASIC_AUTH + java.util.Base64.getEncoder().encodeToString(authorizationString.getBytes(StandardCharsets.UTF_8)));
 
         //post.setHeader(HEADER_NAME_AUTHORIZATION, HEADER_VALUE_BASIC_AUTH + MqmBase64.encode(authorizationString));
 
