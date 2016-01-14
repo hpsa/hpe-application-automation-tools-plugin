@@ -1,22 +1,30 @@
 package com.hp.octane.plugins.jetbrains.teamcity.tests.model;
 
-import java.util.Iterator;
 
+
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
+import java.util.List;
+
+@XmlRootElement(name = "test_result")
 public class TestResultContainer {
 
-    private Iterator<TestResult> iterator;
-    private ResultFields resultFields;
+    @XmlElement(name = "test_run")
+    @XmlElementWrapper(name = "test_runs")
+    private List<TestResult> testRuns;
+    //private ResultFields resultFields;
 
-    public TestResultContainer(Iterator<TestResult> iterator, ResultFields resultFields) {
-        this.iterator = iterator;
-        this.resultFields = resultFields;
+    public TestResultContainer(List<TestResult> testRuns){//, ResultFields resultFields) {
+        this.testRuns = testRuns;
+        //this.resultFields = resultFields;
     }
 
-    public Iterator<TestResult> getIterator() {
-        return iterator;
+    public List<TestResult> getTestRuns() {
+        return testRuns;
     }
 
-    public ResultFields getResultFields() {
-        return resultFields;
-    }
+//    public ResultFields getResultFields() {
+//        return resultFields;
+//    }
 }

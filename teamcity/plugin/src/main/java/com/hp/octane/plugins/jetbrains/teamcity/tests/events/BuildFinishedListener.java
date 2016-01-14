@@ -26,8 +26,6 @@ public class BuildFinishedListener extends BuildServerAdapter{
     @Override
     public void buildFinished(@NotNull SRunningBuild build) {
         String currPath = ((SecuredRunningBuild) build).getBuildFinishParameters ().get(TEAMCITY_BUILD_CHECKOUT_DIR);
-        //List<File> fileList = new ArrayList<File>();
-        //BuildTestsService.searchForDatFiles(new File(currPath), fileList);
         File destPath = build.getArtifactsDirectory();
         long buildTime = build.getStartDate().getTime();
 
