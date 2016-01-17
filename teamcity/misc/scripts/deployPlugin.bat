@@ -1,4 +1,6 @@
-set PLUGIN_PATH=C:\dev\indi-integrations\teamcity\target\hp-lifecycle-management-teamcity-ci-plugin.zip
+::copy the plug-in under TeamCity plugins directory and restart the server
+
+set PLUGIN_PATH=%~dp0\..\..\target\hp-lifecycle-management-teamcity-ci-plugin.zip
 set TEAMCITY_PLUGINS_DIR=C:\ProgramData\JetBrains\TeamCity\plugins
 
 xcopy %PLUGIN_PATH% %TEAMCITY_PLUGINS_DIR% /y
