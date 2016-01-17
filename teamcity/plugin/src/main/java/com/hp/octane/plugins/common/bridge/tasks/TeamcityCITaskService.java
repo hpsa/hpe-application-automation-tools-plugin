@@ -1,19 +1,25 @@
 package com.hp.octane.plugins.common.bridge.tasks;
 
+import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.actions.StatusActionController;
+import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
+import com.hp.octane.plugins.jetbrains.teamcity.factories.TeamCityModelFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.model.api.ProjectsList;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.Utils;
+import jetbrains.buildServer.serverSide.ProjectManager;
+import jetbrains.buildServer.serverSide.SBuildServer;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Created by linsha on 07/01/2016.
  */
 public class TeamcityCITaskService implements CITaskService{
+
     @Override
     public String getProjects(boolean withParameters) {
-//        ProjectsList projectsList = modelFactory.CreateProjectList();
-//        Utils.updateResponse(projectsList,request,response);
-        return null;
-
+        ModelFactory modelFactory = new TeamCityModelFactory(NGAPlugin.getInstance().getProjectManager());
+        ProjectsList projectsList = modelFactory.CreateProjectList();
+        return Utils.jacksonRendering(projectsList);
     }
 
     @Override
