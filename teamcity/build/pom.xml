@@ -100,7 +100,7 @@
                                     <goal>exec</goal>
                                 </goals>
                                 <configuration>
-                                    <executable>${basedir}/scripts/deployPlugin.bat</executable>
+                                    <executable>${basedir}/../misc/scripts/deployPlugin.bat</executable>
                                 </configuration>
                             </execution>
                         </executions>

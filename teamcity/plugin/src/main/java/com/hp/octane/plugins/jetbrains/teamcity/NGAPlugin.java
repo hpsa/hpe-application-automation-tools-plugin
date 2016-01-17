@@ -10,7 +10,6 @@ import com.hp.octane.plugins.jetbrains.teamcity.actions.BuildActionsController;
 import com.hp.octane.plugins.jetbrains.teamcity.actions.PluginActionsController;
 import com.hp.octane.plugins.jetbrains.teamcity.actions.ProjectActionsController;
 import com.hp.octane.plugins.jetbrains.teamcity.actions.StatusActionController;
-import com.hp.octane.plugins.jetbrains.teamcity.client.TeamCityMqmRestClientFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.TeamCityModelFactory;
 import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;

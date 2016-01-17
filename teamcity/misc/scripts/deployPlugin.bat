@@ -6,6 +6,3 @@ setx TEAMCITY_SERVER_OPTS "-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspen
 
 net stop TeamCity
 net start TeamCity
-
-net stop TCBuildAgent
-net start TCBuildAgent
