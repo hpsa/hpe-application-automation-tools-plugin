@@ -6,16 +6,18 @@ package com.hp.octane.plugins.jetbrains.teamcity;
 
 import com.hp.octane.plugins.common.bridge.BridgesService;
 import com.hp.octane.plugins.common.configuration.ServerConfiguration;
-import com.hp.octane.plugins.jetbrains.teamcity.actions.BuildActionsController;
-import com.hp.octane.plugins.jetbrains.teamcity.actions.PluginActionsController;
-import com.hp.octane.plugins.jetbrains.teamcity.actions.ProjectActionsController;
-import com.hp.octane.plugins.jetbrains.teamcity.actions.StatusActionController;
+import com.hp.octane.plugins.jetbrains.teamcity.actions.*;
+import com.hp.octane.plugins.jetbrains.teamcity.client.TeamCityMqmRestClientFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.TeamCityModelFactory;
+import com.hp.octane.plugins.jetbrains.teamcity.utils.Config;
 import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;
 import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.SBuildServer;
 import jetbrains.buildServer.serverSide.ServerExtension;
+import jetbrains.buildServer.serverSide.ServerPaths;
+import jetbrains.buildServer.serverSide.settings.ProjectSettingsManager;
+import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import jetbrains.buildServer.web.openapi.WebControllerManager;
 import org.apache.commons.lang.StringUtils;
 
@@ -81,6 +83,13 @@ public class NGAPlugin implements ServerExtension {
                 new ProjectActionsController(sBuildServer, projectManager, responsibilityFacade,modelFactory));
         webControllerManager.registerController("/octane/status/**",
                 new StatusActionController(sBuildServer, projectManager, responsibilityFacade));
+
+        webControllerManager.registerController("/octane/admin/**",
+                new AdminActionController(server, projectManager, responsibilityFacade,modelFactory,projectSettingsManager,descriptor ));
+
+        webControllerManager.registerController("/octane/userDetails/**",
+                new UserDetailsActionController(server, projectManager, responsibilityFacade,modelFactory,projectSettingsManager,descriptor ));
+
     }
 
     private void initOPB() {
