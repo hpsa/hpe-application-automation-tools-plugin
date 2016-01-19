@@ -3,7 +3,6 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>teamcity-plugin-root</artifactId>
-  <version>1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <parent>
         <artifactId>indi-integrations-root</artifactId>

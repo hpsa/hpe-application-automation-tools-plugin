@@ -28,7 +28,7 @@
         <dependency>
             <groupId>com.hp.mqm</groupId>
             <artifactId>test-result-collection-tool</artifactId>
-            <version>12.50.28-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>net.sf.json-lib</groupId>
