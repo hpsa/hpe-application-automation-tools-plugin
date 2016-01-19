@@ -3,8 +3,11 @@ package com.hp.octane.plugins.common.bridge;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.octane.plugins.common.bridge.tasks.CITaskService;
 import com.hp.octane.plugins.common.configuration.ServerConfiguration;
-import com.hp.octane.plugins.jetbrains.teamcity.DummyPluginConfiguration;
+// import com.hp.octane.plugins.jetbrains.teamcity.DummyPluginConfiguration;
+import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.client.MqmRestClientFactory;
+import com.hp.octane.plugins.jetbrains.teamcity.utils.Config;
+import com.hp.octane.plugins.jetbrains.teamcity.utils.ConfigManager;
 import net.sf.json.JSONObject;
 
 import java.util.HashMap;
@@ -58,8 +61,13 @@ public class TaskProcessor implements Runnable {
 		//json.put("body", response.body);
 		json.put("body", response);
 
+
+		NGAPlugin ngaPlugin = NGAPlugin.getInstance();
+		Config cfg = ngaPlugin.getConfig();
+
+
 		int submitStatus = restClient.putAbridgedResult(
-				DummyPluginConfiguration.identity/*new PluginActions.ServerInfo().getInstanceId()*/,
+				cfg.getIdentity()/*new PluginActions.ServerInfo().getInstanceId()*/,
 				id,
 				json.toString());
 		logger.info("BRIDGE: result for task '" + id + "' submitted with status " + submitStatus);

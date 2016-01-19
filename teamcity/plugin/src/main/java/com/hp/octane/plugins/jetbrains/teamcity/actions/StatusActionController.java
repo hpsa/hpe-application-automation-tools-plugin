@@ -1,7 +1,11 @@
 package com.hp.octane.plugins.jetbrains.teamcity.actions;
 
 import com.hp.octane.dto.general.PluginInfo;
-import com.hp.octane.plugins.jetbrains.teamcity.DummyPluginConfiguration;
+//import com.hp.octane.plugins.jetbrains.teamcity.DummyPluginConfiguration;
+//import com.hp.octane.plugins.jetbrains.teamcity.DummyPluginConfiguration;
+import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
+import com.hp.octane.plugins.jetbrains.teamcity.utils.Config;
+import com.hp.octane.plugins.jetbrains.teamcity.utils.ConfigManager;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.Utils;
 import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;
 import jetbrains.buildServer.serverSide.ProjectManager;
@@ -40,8 +44,12 @@ public class StatusActionController implements Controller {
         private static final String type = "teamcity";
         private static final String version = "9.1.5";
         private String url;
-        private String instanceId = DummyPluginConfiguration.identity;//Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity();
-        private Long instanceIdFrom = DummyPluginConfiguration.identityFrom;//Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentityFrom();
+
+        NGAPlugin ngaPlugin = NGAPlugin.getInstance();
+        Config cfg = ngaPlugin.getConfig();
+
+        private String instanceId = cfg.getIdentity();//Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity();
+        private Long instanceIdFrom = cfg.getIdentityFromAsLong();//Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentityFrom();
         private Long sendingTime;
 
         public ServerInfo() {
