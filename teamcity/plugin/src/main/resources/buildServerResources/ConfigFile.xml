@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<NGAconfig>
+    <identity></identity>
+    <identityFrom></identityFrom>
+    <uiLocation>http://localhost:8080/ui?p=2001</uiLocation>
+    <username>test@hp.com</username>
+    <secretPassword>ido</secretPassword>
+    <impersonatedUser></impersonatedUser>
+    <location>http://localhost.emea.hpqcorp.net:8080</location>
+    <sharedSpace>2001</sharedSpace>
+</NGAconfig>
+

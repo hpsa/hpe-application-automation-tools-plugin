@@ -32,7 +32,6 @@ public class NGAPlugin implements ServerExtension {
     private Long identityFrom;
 
     // inferred from uiLocation
-    private String location = "http://localhost:8080";
     private final String PLUGIN_TYPE = "HPE_TEAMCITY_PLUGIN";
 
     private SBuildServer sBuildServer;
