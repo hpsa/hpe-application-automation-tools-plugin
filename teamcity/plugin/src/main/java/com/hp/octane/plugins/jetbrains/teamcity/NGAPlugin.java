@@ -6,16 +6,17 @@ package com.hp.octane.plugins.jetbrains.teamcity;
 
 import com.hp.octane.plugins.common.bridge.BridgesService;
 import com.hp.octane.plugins.common.configuration.ServerConfiguration;
-import com.hp.octane.plugins.jetbrains.teamcity.actions.BuildActionsController;
-import com.hp.octane.plugins.jetbrains.teamcity.actions.PluginActionsController;
-import com.hp.octane.plugins.jetbrains.teamcity.actions.ProjectActionsController;
-import com.hp.octane.plugins.jetbrains.teamcity.actions.StatusActionController;
+import com.hp.octane.plugins.jetbrains.teamcity.actions.*;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.TeamCityModelFactory;
+import com.hp.octane.plugins.jetbrains.teamcity.utils.Config;
+import com.hp.octane.plugins.jetbrains.teamcity.utils.ConfigManager;
 import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;
 import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.SBuildServer;
 import jetbrains.buildServer.serverSide.ServerExtension;
+import jetbrains.buildServer.serverSide.settings.ProjectSettingsManager;
+import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import jetbrains.buildServer.web.openapi.WebControllerManager;
 import org.apache.commons.lang.StringUtils;
 
@@ -31,25 +32,44 @@ public class NGAPlugin implements ServerExtension {
     private Long identityFrom;
 
     // inferred from uiLocation
-    private String location="http://localhost:8080";
     private final String PLUGIN_TYPE = "HPE_TEAMCITY_PLUGIN";
 
     private SBuildServer sBuildServer;
     private ProjectManager projectManager;
     private BuildTypeResponsibilityFacade responsibilityFacade;
+
+
+
     private static NGAPlugin plugin;
+    private PluginDescriptor descriptor;
+
+
+
+    private Config config;
+    private ConfigManager configManager;
+    public static String getPluginName() {
+        return PLUGIN_NAME;
+    }
+
+
     public NGAPlugin(SBuildServer sBuildServer,
                      ProjectManager projectManager,
                      BuildTypeResponsibilityFacade responsibilityFacade,
-                     WebControllerManager webControllerManager) {
+                     WebControllerManager webControllerManager,
+                     ProjectSettingsManager projectSettingsManager,
+                     PluginDescriptor pluginDescriptor) {
         logger.info("Init HPE MQM CI Plugin");
         sBuildServer.registerExtension(ServerExtension.class, PLUGIN_NAME, this);
-        this.plugin =  this;
+        this.plugin = this;
+        descriptor = pluginDescriptor;
         this.sBuildServer = sBuildServer;
         this.projectManager = projectManager;
         this.responsibilityFacade = responsibilityFacade;
 //        server.addListener(new BuildEventListener());
-        registerControllers(webControllerManager, projectManager, sBuildServer);
+        registerControllers(webControllerManager, projectManager, sBuildServer, projectSettingsManager, pluginDescriptor);
+        configManager= ConfigManager.getInstance(descriptor,sBuildServer);
+        config = configManager.jaxbXMLToObject();
+
         initOPB();
     }
 
@@ -69,39 +89,66 @@ public class NGAPlugin implements ServerExtension {
         return plugin;
     }
 
-    private void registerControllers(WebControllerManager webControllerManager, ProjectManager projectManager,SBuildServer sBuildServer) {
+    private void registerControllers(WebControllerManager webControllerManager, ProjectManager projectManager, SBuildServer sBuildServer, ProjectSettingsManager projectSettingsManager, PluginDescriptor pluginDescriptor) {
         ModelFactory modelFactory = new TeamCityModelFactory(projectManager);
         webControllerManager.registerController("/octane/jobs/**",
-                new PluginActionsController(sBuildServer, projectManager, responsibilityFacade,modelFactory));
+                new PluginActionsController(sBuildServer, projectManager, responsibilityFacade, modelFactory));
 
         webControllerManager.registerController("/octane/snapshot/**",
-                new BuildActionsController(sBuildServer, projectManager, responsibilityFacade,modelFactory));
+                new BuildActionsController(sBuildServer, projectManager, responsibilityFacade, modelFactory));
 
         webControllerManager.registerController("/octane/structure/**",
-                new ProjectActionsController(sBuildServer, projectManager, responsibilityFacade,modelFactory));
+                new ProjectActionsController(sBuildServer, projectManager, responsibilityFacade, modelFactory));
         webControllerManager.registerController("/octane/status/**",
                 new StatusActionController(sBuildServer, projectManager, responsibilityFacade));
+
+        webControllerManager.registerController("/octane/admin/**",
+                new AdminActionController(sBuildServer, projectManager, responsibilityFacade, modelFactory, projectSettingsManager, pluginDescriptor));
+
+        webControllerManager.registerController("/octane/userDetails/**",
+                new UserDetailsActionController(sBuildServer, projectManager, responsibilityFacade, modelFactory, projectSettingsManager, pluginDescriptor));
+
     }
 
     private void initOPB() {
-        if (StringUtils.isEmpty(DummyPluginConfiguration.identity)) {
-            DummyPluginConfiguration.identity = UUID.randomUUID().toString();
+
+        String Identity = config.getIdentity();
+        if(Identity.equals("") || Identity.equals(null))
+        {
+            String newidentity = UUID.randomUUID().toString();      //creating the new parameters
+            String newidentityFrom = String.valueOf(new Date().getTime());
+            config.setIdentity(newidentity);                    // canging the parsms at the config object
+            config.setIdentityFrom(newidentityFrom);
+            configManager.jaxbObjectToXML(config);              // update the XML file
         }
-        if (DummyPluginConfiguration.identityFrom == null || DummyPluginConfiguration.identityFrom == 0) {
-            DummyPluginConfiguration.identityFrom = new Date().getTime();
-        }
-        //BridgesService.getInstance().setMqmRestClientFactory(new TeamCityMqmRestClientFactory());
+
         BridgesService.getInstance().setCIType(PLUGIN_TYPE);
         BridgesService.getInstance().updateBridge(getServerConfiguration());
     }
 
+
+
+    public Config getConfig() {
+        return config;
+    }
+
+
     public ServerConfiguration getServerConfiguration() {
+
         return new ServerConfiguration(
-                DummyPluginConfiguration.location,//sBuildServer.getRootUrl(),
+
+                config.getLocation(),
+                config.getSharedSpace(),
+                config.getUsername(),
+                config.getSecretPassword(),
+                ""
+              /*  DummyPluginConfiguration.location,//sBuildServer.getRootUrl(),
                 DummyPluginConfiguration.sharedSpace,
                 DummyPluginConfiguration.username,
                 DummyPluginConfiguration.password,
-                DummyPluginConfiguration.impersonatedUser);
+                DummyPluginConfiguration.impersonatedUser   */
+
+        );
     }
 
 }
