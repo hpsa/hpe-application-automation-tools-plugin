@@ -5,36 +5,32 @@ import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.Config;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.ConfigManager;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.Utils;
+import com.hp.octane.plugins.jetbrains.teamcity.DummyPluginConfiguration;
 import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;
 import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.SBuildServer;
-import jetbrains.buildServer.serverSide.TeamCityProperties;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.Controller;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.PrintWriter;
-import java.util.List;
 
 /**
  * Created by lazara on 27/12/2015.
  */
-public class StatusActionController implements Controller {
-    private final SBuildServer myServer;
-    private final ProjectManager projectManager;
-    private final BuildTypeResponsibilityFacade responsibilityFacade;
+public class StatusActionController extends AbstractActionController {
+//    private final SBuildServer myServer;
+//    private final ProjectManager projectManager;
+//    private final BuildTypeResponsibilityFacade responsibilityFacade;
 
     public StatusActionController(SBuildServer server, ProjectManager projectManager, BuildTypeResponsibilityFacade responsibilityFacade) {
-        this.myServer = server;
-        this.projectManager = projectManager;
-        this.responsibilityFacade = responsibilityFacade;
+            super(server,projectManager,responsibilityFacade,null);
+//        this.myServer = server;
+//        this.projectManager = projectManager;
+//        this.responsibilityFacade = responsibilityFacade;
     }
 
     @Override
-    public ModelAndView handleRequest(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        Utils.updateResponse(new PluginStatus(), request, response);
-        return null;
+    protected Object buildResults(HttpServletRequest request, HttpServletResponse response) {
+        return new PluginStatus();
     }
 
     //TODO:Add to common lib
@@ -51,7 +47,7 @@ public class StatusActionController implements Controller {
         private Long sendingTime;
 
         public ServerInfo() {
-            String serverUrl = "http://teamcity:8888/httpAuth";//Jenkins.getInstance().getRootUrl();
+            String serverUrl = DummyPluginConfiguration.myRootURL;
             if (serverUrl != null && serverUrl.endsWith("/"))
                 serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
             this.url = serverUrl;

@@ -2,11 +2,9 @@ package com.hp.octane.plugins.jetbrains.teamcity.actions;
 
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.model.snapshots.SnapshotItem;
-import com.hp.octane.plugins.jetbrains.teamcity.utils.Utils;
 import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;
 import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.SBuildServer;
-import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -23,11 +21,9 @@ public class BuildActionsController extends AbstractActionController {
     }
 
     @Override
-    public ModelAndView handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws Exception {
-        String buildConfigurationId = httpServletRequest.getParameter("id");
-        SnapshotItem snapshotItem = this.modelFactory.createSnapshot(buildConfigurationId,null);
-        Utils.updateResponse(snapshotItem, httpServletRequest, httpServletResponse);
-
-        return null;
+    protected Object buildResults(HttpServletRequest request, HttpServletResponse response) {
+        String buildConfigurationId = request.getParameter("id");
+        SnapshotItem snapshotItem = this.modelFactory.createSnapshot(buildConfigurationId);
+       return snapshotItem;
     }
 }

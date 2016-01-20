@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * Created by lazara on 06/01/2016.
  */
-public class StructureItem {
+public class StructureItem{
 
     public StructureItem(String name, String externalId) {
         this.name = name;
@@ -27,9 +27,9 @@ public class StructureItem {
         return parameters;
     }
 
-    String name;
-    String id;
-    List<ParameterConfig> parameters = new ArrayList<ParameterConfig>();
+    protected String name;
+    protected String id;
+    protected List<ParameterConfig> parameters = new ArrayList<ParameterConfig>();
 
     public void addPhasesInternal(StructurePhase phaseInternal) {
         this.phasesInternal.add(phaseInternal);

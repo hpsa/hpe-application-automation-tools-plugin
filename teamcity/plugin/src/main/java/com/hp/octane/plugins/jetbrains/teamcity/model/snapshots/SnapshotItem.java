@@ -1,27 +1,15 @@
 package com.hp.octane.plugins.jetbrains.teamcity.model.snapshots;
 
+import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.StructureItem;
+
 /**
  * Created by lazara on 12/01/2016.
  */
-public class SnapshotItem {
-    public SnapshotItem() {
-    }
+public class SnapshotItem extends StructureItem{
+    private String status;
 
-    public String getName() {
-
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
+    public SnapshotItem(String name, String id) {
+        super(name,id);
     }
 
     public Integer getNumber() {
@@ -56,8 +44,6 @@ public class SnapshotItem {
         this.duration = duration;
     }
 
-    private String name;
-    private String id;
     private Integer number = null;
 //    private CIEventCauseBase[] causes = null;
 //    private SnapshotStatus status = SnapshotStatus.UNAVAILABLE;
@@ -65,6 +51,14 @@ public class SnapshotItem {
     private Long estimatedDuration = null;
     private Long startTime = null;
     private Long duration = null;
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getStatus() {
+        return status;
+    }
 //    private SCMData scmData = null;
 
 

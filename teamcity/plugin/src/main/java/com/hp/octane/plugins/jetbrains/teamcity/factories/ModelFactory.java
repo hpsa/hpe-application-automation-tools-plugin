@@ -13,5 +13,5 @@ public interface ModelFactory {
 
     StructureItem createStructure(String buildConfigurationId);
 
-    SnapshotItem createSnapshot(String buildConfigurationId,String buildNumber);
+    SnapshotItem createSnapshot(String buildConfigurationId);
 }
