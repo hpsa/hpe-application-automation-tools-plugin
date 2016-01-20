@@ -1,5 +1,6 @@
 package com.hp.octane.api;
 
+import com.hp.nga.api.PluginInfoService;
 import org.junit.BeforeClass;
 import org.junit.Test;
 

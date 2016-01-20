@@ -11,12 +11,29 @@
 
     <artifactId>integrations-sdk</artifactId>
 
+    <properties>
+        <httpcore.version>4.4.4</httpcore.version>
+        <httpclient.version>4.5.1</httpclient.version>
+        <jackson.version>2.6.4</jackson.version>
+    </properties>
+
     <dependencies>
 
+        <!-- EXTERNAL -->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+            <version>${httpcore.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>${httpclient.version}</version>
+        </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.6.4</version>
+            <version>${jackson.version}</version>
         </dependency>
 
         <!-- TESTING -->
@@ -27,5 +44,26 @@
         </dependency>
 
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.4.3</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <minimizeJar>true</minimizeJar>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
