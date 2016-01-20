@@ -118,13 +118,13 @@
         <!--Internals-->
 
         <dependency>
-            <groupId>com.hp.mqm</groupId>
             <artifactId>mqm-rest-client</artifactId>
+            <groupId>com.hp.mqm</groupId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.hp.mqm</groupId>
             <artifactId>integrations-sdk</artifactId>
+            <groupId>com.hp.mqm</groupId>
             <version>${project.version}</version>
         </dependency>
 
