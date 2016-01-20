@@ -6,5 +6,5 @@ package com.hp.nga.api;
  * API definition of Projects Service
  */
 
-public abstract class ProjectsService {
+public abstract class ProjectsServiceProvider {
 }

@@ -6,6 +6,6 @@ package com.hp.nga.api;
  * API definition of Builds Service
  */
 
-public abstract class BuildsService {
+public abstract class BuildsServiceProvider {
 	public abstract SnapshotDTO getLatestSnapshot(String projectCiId, String buildCiId, boolean deepTree);
 }

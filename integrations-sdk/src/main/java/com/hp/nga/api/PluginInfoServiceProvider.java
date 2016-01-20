@@ -6,11 +6,11 @@ package com.hp.nga.api;
  * API definition of Plugin Info Service
  */
 
-public abstract class PluginInfoService {
+public abstract class PluginInfoServiceProvider {
 	private static final Object INSTANCE_LOCK = new Object();
-	private static volatile PluginInfoService instance;
+	private static volatile PluginInfoServiceProvider instance;
 
-	public PluginInfoService() {
+	public PluginInfoServiceProvider() {
 		synchronized (INSTANCE_LOCK) {
 			if (instance == null) {
 				instance = this;
@@ -20,7 +20,7 @@ public abstract class PluginInfoService {
 		}
 	}
 
-	public static PluginInfoService getInstance() {
+	public static PluginInfoServiceProvider getInstance() {
 		if (instance != null) {
 			return instance;
 		} else {
