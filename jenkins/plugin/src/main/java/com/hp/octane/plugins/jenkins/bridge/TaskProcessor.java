@@ -1,6 +1,9 @@
 package com.hp.octane.plugins.jenkins.bridge;
 
 import com.hp.mqm.client.MqmRestClient;
+import com.hp.nga.integrations.bridge.TaskRouter;
+import com.hp.nga.integrations.dto.rest.AbridgedResult;
+import com.hp.nga.integrations.dto.rest.AbridgedTask;
 import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
@@ -34,26 +37,35 @@ public class TaskProcessor implements Runnable {
 		String method = task.getString("method");
 		String url = task.getString("url");
 		Map<String, String> headers = task.containsKey("headers") ? buildHeadersMap(task.getJSONObject("headers")) : null;
-		String body;
+		String body = obtainBody();
 		logger.info("BRIDGE: processing task '" + id + "': " + method + " " + url);
 
-		LoopBackRestService.LoopBackResponse response;
-		try {
-			if (method.equals("GET")) {
-				response = LoopBackRestService.loopBackGet(url, headers);
-			} else if (method.equals("PUT")) {
-				body = obtainBody();
-				response = LoopBackRestService.loopBackPut(url, headers, body);
-			} else if (method.equals("POST")) {
-				body = obtainBody();
-				response = LoopBackRestService.loopBackPost(url, headers, body);
-			} else {
-				response = new LoopBackRestService.LoopBackResponse(415, null, "");
-			}
-		} catch (Exception e) {
-			logger.severe("BRIDGE: failed to process task '" + id + "', returning 500:" + e.getMessage());
-			response = new LoopBackRestService.LoopBackResponse(500, null, e.getMessage());
-		}
+		AbridgedTask abridgedTask = new AbridgedTask();
+		abridgedTask.setId(id);
+		abridgedTask.setMethod(method);
+		abridgedTask.setUrl(url);
+		abridgedTask.setHeaders(headers);
+		abridgedTask.setBody(body);
+		TaskRouter tmpNonLoopbackRouter = new TaskRouter(abridgedTask);
+		AbridgedResult abridgedResult = tmpNonLoopbackRouter.calculateResult();
+
+//		LoopBackRestService.LoopBackResponse response;
+//		try {
+//			if (method.equals("GET")) {
+//				response = LoopBackRestService.loopBackGet(url, headers);
+//			} else if (method.equals("PUT")) {
+//				body = obtainBody();
+//				response = LoopBackRestService.loopBackPut(url, headers, body);
+//			} else if (method.equals("POST")) {
+//				body = obtainBody();
+//				response = LoopBackRestService.loopBackPost(url, headers, body);
+//			} else {
+//				response = new LoopBackRestService.LoopBackResponse(415, null, "");
+//			}
+//		} catch (Exception e) {
+//			logger.severe("BRIDGE: failed to process task '" + id + "', returning 500:" + e.getMessage());
+//			response = new LoopBackRestService.LoopBackResponse(500, null, e.getMessage());
+//		}
 
 		MqmRestClient restClient = clientFactory.create(
 				mqmConfiguration.location,
@@ -61,9 +73,9 @@ public class TaskProcessor implements Runnable {
 				mqmConfiguration.username,
 				mqmConfiguration.password);
 		JSONObject json = new JSONObject();
-		json.put("statusCode", response.statusCode);
-		json.put("headers", response.headers);
-		json.put("body", response.body);
+		json.put("statusCode", abridgedResult.getStatus());
+		json.put("headers", abridgedResult.getHeaders());
+		json.put("body", abridgedResult.getBody());
 
 		int submitStatus = restClient.putAbridgedResult(
 				new PluginActions.ServerInfo().getInstanceId(),
