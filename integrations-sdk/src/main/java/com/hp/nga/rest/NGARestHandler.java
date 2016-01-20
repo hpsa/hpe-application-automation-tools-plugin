@@ -4,13 +4,13 @@ package com.hp.nga.rest;
  * Created by gullery on 07/01/2016.
  */
 
-public class NGARestHandlersome {
-	private static final NGARestHandlersome instance = new NGARestHandlersome();
+public class NGARestHandler {
+	private static final NGARestHandler instance = new NGARestHandler();
 
-	private NGARestHandlersome() {
+	private NGARestHandler() {
 	}
 
-	public static NGARestHandlersome getInstance() {
+	public static NGARestHandler getInstance() {
 		return instance;
 	}
 
