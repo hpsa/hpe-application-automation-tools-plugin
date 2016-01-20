@@ -10,12 +10,12 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
  * REST Client to provide connectivity to NGA Server - default implementation
  */
 
-public class NGARestClientServiceImpl implements NGARestClientService {
-	public static final NGARestClientService instance = new NGARestClientServiceImpl();
+public class NGARestServiceImpl implements NGARestService {
+	public static final NGARestService instance = new NGARestServiceImpl();
 
 	private final CloseableHttpClient defaultHttpClient;
 
-	private NGARestClientServiceImpl() {
+	private NGARestServiceImpl() {
 		PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
 		defaultHttpClient = HttpClients.custom()
 				.setConnectionManager(connectionManager)

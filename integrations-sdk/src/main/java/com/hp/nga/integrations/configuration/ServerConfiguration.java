@@ -5,6 +5,8 @@ import java.net.URL;
 
 /**
  * Created by gullery on 08/01/2016.
+ *
+ * NGA Server configuration descriptor
  */
 
 public class ServerConfiguration {

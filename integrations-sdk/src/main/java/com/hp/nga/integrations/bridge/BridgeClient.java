@@ -2,6 +2,7 @@ package com.hp.nga.integrations.bridge;
 
 import com.hp.nga.integrations.configuration.ServerConfiguration;
 import com.hp.nga.integrations.api.CIDataProvider;
+import com.hp.nga.integrations.dto.rest.AbridgedTask;
 import com.hp.nga.integrations.serialization.SerializationService;
 
 import java.util.concurrent.ExecutorService;
@@ -11,7 +12,7 @@ import java.util.logging.Logger;
 
 /**
  * Created by gullery on 12/08/2015.
- * <p/>
+ * <p>
  * This class encompasses functionality of managing connection/s to a single abridged client (MQM Server)
  */
 
@@ -23,17 +24,13 @@ public class BridgeClient {
 	private ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30, new AbridgedTasksExecutorsFactory());
 	volatile private boolean shuttingDown = false;
 
-	private ServerConfiguration config;
-
-	public BridgeClient(ServerConfiguration config) {
-		this.config = new ServerConfiguration(config.getUrl(), config.getSharedSpace(), config.getUsername(), config.getPassword());
+	public BridgeClient() {
 		connect();
-		logger.info("BRIDGE: client initialized for '" + this.config.getUrl() + "' (SP: " + this.config.getSharedSpace() + ")");
+//		logger.info("BRIDGE: client initialized for '" + this.config.getUrl() + "' (SP: " + this.config.getSharedSpace() + ")");
 	}
 
 	public void update(ServerConfiguration newConfig) {
-		config = new ServerConfiguration(newConfig);
-		logger.info("BRIDGE: updated for '" + config.getUrl() + "' (SP: " + config.getSharedSpace() + ")");
+//		logger.info("BRIDGE: updated for '" + config.getUrl() + "' (SP: " + config.getSharedSpace() + ")");
 		connect();
 	}
 
@@ -43,13 +40,13 @@ public class BridgeClient {
 				public void run() {
 					String tasksJSON = "";
 					try {
-						logger.info("BRIDGE: connecting to '" + config.getUrl() +
-								"' (SP: " + config.getSharedSpace() +
-								"; instance ID: " + serverInstanceId +
-								"; own URL: " + CIDataProvider.getInstance().getServerInfo().getUrl());
+//						logger.info("BRIDGE: connecting to '" + config.getUrl() +
+//								"' (SP: " + config.getSharedSpace() +
+//								"; instance ID: " + serverInstanceId +
+//								"; own URL: " + CIDataProvider.getInstance().getServerInfo().getUrl());
 //						MqmRestClient restClient = restClientFactory.create(config.getUrl(), config.getSharedSpace(), config.getUsername(), config.getPassword());
 //						tasksJSON = restClient.getAbridgedTasks(serverInstanceId, new PluginActions.ServerInfo().getUrl());
-						logger.info("BRIDGE: back from '" + config.getUrl() + "' (SP: " + config.getSharedSpace() + ") with " + (tasksJSON == null || tasksJSON.isEmpty() ? "no tasks" : "some tasks"));
+//						logger.info("BRIDGE: back from '" + config.getUrl() + "' (SP: " + config.getSharedSpace() + ") with " + (tasksJSON == null || tasksJSON.isEmpty() ? "no tasks" : "some tasks"));
 						connect();
 						if (tasksJSON != null && !tasksJSON.isEmpty()) {
 							dispatchTasks(tasksJSON);
@@ -89,7 +86,7 @@ public class BridgeClient {
 
 			logger.info("BRIDGE: going to process " + tasks.length + " tasks");
 			for (AbridgedTask task : tasks) {
-				taskProcessingExecutors.execute(new TaskProcessor(task, config));
+				taskProcessingExecutors.execute(new TaskProcessor(task));
 			}
 		} catch (Exception e) {
 			logger.severe("BRIDGE: failed to process tasks: " + e.getMessage());

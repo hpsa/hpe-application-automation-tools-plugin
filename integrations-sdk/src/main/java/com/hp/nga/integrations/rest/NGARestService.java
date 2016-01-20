@@ -6,6 +6,6 @@ package com.hp.nga.integrations.rest;
  * REST Client to provide connectivity to NGA Server - API definition
  */
 
-public interface NGARestClientService {
+public interface NGARestService {
 	NGARestClient obtainClient();
 }

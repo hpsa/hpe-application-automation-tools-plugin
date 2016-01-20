@@ -1,14 +1,13 @@
-package com.hp.nga.integrations.bridge;
+package com.hp.nga.integrations.dto.rest;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.hp.nga.integrations.rest.NGARequest;
 
 /**
  * Created by gullery on 08/01/2016.
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class AbridgedTask extends NGARequest {
+public class AbridgedResult extends NGAResponse {
 	private String id;
 
 	public String getId() {

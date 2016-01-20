@@ -1,4 +1,4 @@
-package com.hp.nga.integrations.rest;
+package com.hp.nga.integrations.dto.rest;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -10,26 +10,26 @@ import java.util.Map;
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class NGAResponse {
-	private int status;
+public class NGARequest {
+	private String url;
+	private String method;
 	private Map<String, String> headers;
 	private String body;
 
-	public NGAResponse() {
+	public String getUrl() {
+		return url;
 	}
 
-	public NGAResponse(int status, String body, Map<String, String> headers) {
-		this.status = status;
-		this.headers = headers;
-		this.body = body;
+	public void setUrl(String url) {
+		this.url = url;
 	}
 
-	public int getStatus() {
-		return status;
+	public String getMethod() {
+		return method;
 	}
 
-	public void setStatus(int status) {
-		this.status = status;
+	public void setMethod(String method) {
+		this.method = method;
 	}
 
 	@JsonInclude(JsonInclude.Include.NON_NULL)

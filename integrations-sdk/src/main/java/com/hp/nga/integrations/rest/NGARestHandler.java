@@ -1,5 +1,8 @@
 package com.hp.nga.integrations.rest;
 
+import com.hp.nga.integrations.dto.rest.NGARequest;
+import com.hp.nga.integrations.dto.rest.NGAResponse;
+
 /**
  * Created by gullery on 07/01/2016.
  */
