@@ -29,7 +29,7 @@ public class BridgeService {
 			if (bridgeClient != null) {
 				bridgeClient.update(config);
 			} else {
-				bridgeClient = new BridgeClient(config);
+				bridgeClient = new BridgeClient();
 			}
 		} else {
 			if (bridgeClient != null) {
