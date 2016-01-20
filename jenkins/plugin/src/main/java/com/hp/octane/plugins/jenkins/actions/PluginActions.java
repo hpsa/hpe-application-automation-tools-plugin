@@ -1,16 +1,16 @@
 package com.hp.octane.plugins.jenkins.actions;
 
-import com.hp.nga.dto.general.AggregatedStatusInfo;
-import com.hp.nga.dto.general.CIServerTypes;
-import com.hp.nga.dto.general.PluginInfo;
-import com.hp.nga.dto.parameters.ParameterType;
-import com.hp.nga.dto.projects.ProjectsList;
+import com.hp.nga.integrations.dto.general.AggregatedStatusInfo;
+import com.hp.nga.integrations.dto.general.CIServerTypes;
+import com.hp.nga.integrations.dto.general.PluginInfo;
+import com.hp.nga.integrations.dto.parameters.ParameterType;
+import com.hp.nga.integrations.dto.projects.ProjectsList;
 import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.configuration.ConfigApi;
 import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import com.hp.octane.plugins.jenkins.rest.ProjectsRESTResource;
-import com.hp.nga.serialization.SerializationService;
+import com.hp.nga.integrations.serialization.SerializationService;
 import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.RootAction;
@@ -102,7 +102,7 @@ public class PluginActions implements RootAction {
 	public void doStatus(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
 		AggregatedStatusInfo statusInfo = new AggregatedStatusInfo();
 		statusInfo.setPlugin(new PluginInfo(Jenkins.getInstance().getPlugin(OctanePlugin.class).getWrapper().getVersion()));
-		statusInfo.setServer(new com.hp.nga.dto.general.ServerInfo(
+		statusInfo.setServer(new com.hp.nga.integrations.dto.general.ServerInfo(
 				CIServerTypes.JENKINS,
 				Jenkins.getVersion().toString(),
 				Jenkins.getInstance().getRootUrl(),
@@ -155,9 +155,9 @@ public class PluginActions implements RootAction {
 			tmpConfig.setName(name);
 			if (areParametersNeeded) {
 				ParameterConfig[] tmpList = ParameterProcessors.getConfigs(tmpProject);
-				List<com.hp.nga.dto.parameters.ParameterConfig> configs = new ArrayList<com.hp.nga.dto.parameters.ParameterConfig>();
+				List<com.hp.nga.integrations.dto.parameters.ParameterConfig> configs = new ArrayList<com.hp.nga.integrations.dto.parameters.ParameterConfig>();
 				for (ParameterConfig pc : tmpList) {
-					configs.add(new com.hp.nga.dto.parameters.ParameterConfig(
+					configs.add(new com.hp.nga.integrations.dto.parameters.ParameterConfig(
 							ParameterType.fromValue(pc.getType()),
 							pc.getName(),
 							pc.getDescription(),
@@ -165,7 +165,7 @@ public class PluginActions implements RootAction {
 							pc.getChoices() == null ? null : pc.getChoices().toArray(new Object[pc.getChoices().size()])
 					));
 				}
-				tmpConfig.setParameters(configs.toArray(new com.hp.nga.dto.parameters.ParameterConfig[configs.size()]));
+				tmpConfig.setParameters(configs.toArray(new com.hp.nga.integrations.dto.parameters.ParameterConfig[configs.size()]));
 			}
 			list.add(tmpConfig);
 		}
