@@ -1,6 +1,5 @@
-package com.hp.octane.api;
+package com.hp.nga.api;
 
-import com.hp.nga.api.PluginInfoServiceProvider;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -25,20 +24,20 @@ public class PluginInfoServiceProviderTest {
 
 	@Test(expected = RuntimeException.class)
 	public void testA() {
-		com.hp.octane.api.PluginInfoServiceTest.PluginInfoServiceProviderImplATest implA = new com.hp.octane.api.PluginInfoServiceTest.PluginInfoServiceProviderImplATest();
-		com.hp.octane.api.PluginInfoServiceTest.PluginInfoServiceProviderImplATest implB = new com.hp.octane.api.PluginInfoServiceTest.PluginInfoServiceProviderImplATest();
+		PluginInfoServiceProviderTest.PluginInfoServiceProviderImplATest implA = new PluginInfoServiceProviderTest.PluginInfoServiceProviderImplATest();
+		PluginInfoServiceProviderTest.PluginInfoServiceProviderImplATest implB = new PluginInfoServiceProviderTest.PluginInfoServiceProviderImplATest();
 	}
 
 	@Test(expected = RuntimeException.class)
 	public void testB() {
-		com.hp.octane.api.PluginInfoServiceTest.PluginInfoServiceProviderImplATest implA = new com.hp.octane.api.PluginInfoServiceTest.PluginInfoServiceProviderImplATest();
-		implA = new com.hp.octane.api.PluginInfoServiceTest.PluginInfoServiceProviderImplATest();
+		PluginInfoServiceProviderTest.PluginInfoServiceProviderImplATest implA = new PluginInfoServiceProviderTest.PluginInfoServiceProviderImplATest();
+		implA = new PluginInfoServiceProviderTest.PluginInfoServiceProviderImplATest();
 	}
 
 	@Test(expected = RuntimeException.class)
 	public void testC() {
-		com.hp.octane.api.PluginInfoServiceTest.PluginInfoServiceProviderImplATest implA = new com.hp.octane.api.PluginInfoServiceTest.PluginInfoServiceProviderImplATest();
-		com.hp.octane.api.PluginInfoServiceTest.PluginInfoServiceProviderImplBTest implB = new com.hp.octane.api.PluginInfoServiceTest.PluginInfoServiceProviderImplBTest();
+		PluginInfoServiceProviderTest.PluginInfoServiceProviderImplATest implA = new PluginInfoServiceProviderTest.PluginInfoServiceProviderImplATest();
+		PluginInfoServiceProviderTest.PluginInfoServiceProviderImplBTest implB = new PluginInfoServiceProviderTest.PluginInfoServiceProviderImplBTest();
 	}
 
 	@Test

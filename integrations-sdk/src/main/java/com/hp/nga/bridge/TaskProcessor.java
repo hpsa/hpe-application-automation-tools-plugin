@@ -1,7 +1,6 @@
 package com.hp.nga.bridge;
 
 import com.hp.nga.configuration.ServerConfiguration;
-import com.hp.octane.dto.bridge.AbridgedResult;
 
 import java.util.logging.Logger;
 
