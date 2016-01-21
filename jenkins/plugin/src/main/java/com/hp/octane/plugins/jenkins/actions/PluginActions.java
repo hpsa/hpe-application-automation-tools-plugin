@@ -153,6 +153,7 @@ public class PluginActions implements RootAction {
 			tmpProject = (AbstractProject) Jenkins.getInstance().getItem(name);
 			tmpConfig = new ProjectsList.ProjectConfig();
 			tmpConfig.setName(name);
+			tmpConfig.setCiId(name);
 			if (areParametersNeeded) {
 				ParameterConfig[] tmpList = ParameterProcessors.getConfigs(tmpProject);
 				List<com.hp.nga.integrations.dto.parameters.ParameterConfig> configs = new ArrayList<com.hp.nga.integrations.dto.parameters.ParameterConfig>();

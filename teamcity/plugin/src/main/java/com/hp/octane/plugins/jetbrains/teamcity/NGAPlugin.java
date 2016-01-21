@@ -108,6 +108,9 @@ public class NGAPlugin implements ServerExtension {
         webControllerManager.registerController("/octane/userDetails/**",
                 new UserDetailsActionController(sBuildServer, projectManager, responsibilityFacade, modelFactory, projectSettingsManager, pluginDescriptor));
 
+        webControllerManager.registerController("/octane/testConnection/**",
+                new TestConnectionActionController(sBuildServer, projectManager, responsibilityFacade, modelFactory, projectSettingsManager, pluginDescriptor));
+
     }
 
     private void initOPB() {
@@ -136,17 +139,12 @@ public class NGAPlugin implements ServerExtension {
     public ServerConfiguration getServerConfiguration() {
 
         return new ServerConfiguration(
-
                 config.getLocation(),
                 config.getSharedSpace(),
                 config.getUsername(),
                 config.getSecretPassword(),
                 ""
-              /*  DummyPluginConfiguration.location,//sBuildServer.getRootUrl(),
-                DummyPluginConfiguration.sharedSpace,
-                DummyPluginConfiguration.username,
-                DummyPluginConfiguration.password,
-                DummyPluginConfiguration.impersonatedUser   */
+
 
         );
     }

@@ -1,29 +1,23 @@
 package com.hp.octane.plugins.jetbrains.teamcity.actions;
 
+        import com.hp.octane.plugins.common.bridge.BridgesService;
+        import com.hp.octane.plugins.common.configuration.ServerConfiguration;
         import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
-        import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
-        import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.StructureItem;
-        import com.hp.octane.plugins.jetbrains.teamcity.utils.Config;
-        import com.hp.octane.plugins.jetbrains.teamcity.utils.ConfigManager;
-        import com.hp.octane.plugins.jetbrains.teamcity.utils.Utils;
-        import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;
-        import jetbrains.buildServer.serverSide.ProjectManager;
-        import jetbrains.buildServer.serverSide.SBuildServer;
-        import jetbrains.buildServer.serverSide.ServerPaths;
-        import jetbrains.buildServer.serverSide.settings.ProjectSettings;
-        import jetbrains.buildServer.serverSide.settings.ProjectSettingsManager;
-        import jetbrains.buildServer.web.openapi.PluginDescriptor;
-        import org.jdom.Document;
-        import org.jdom.Element;
-        import org.jdom.JDOMException;
-        import org.jdom.input.SAXBuilder;
-        import org.springframework.beans.factory.annotation.Autowired;
-        import org.springframework.web.servlet.ModelAndView;
+import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
+import com.hp.octane.plugins.jetbrains.teamcity.utils.Config;
+import com.hp.octane.plugins.jetbrains.teamcity.utils.ConfigManager;
+import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;
+import jetbrains.buildServer.serverSide.ProjectManager;
+import jetbrains.buildServer.serverSide.SBuildServer;
+import jetbrains.buildServer.serverSide.settings.ProjectSettingsManager;
+import jetbrains.buildServer.web.openapi.PluginDescriptor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.servlet.ModelAndView;
 
-        import javax.servlet.http.HttpServletRequest;
-        import javax.servlet.http.HttpServletResponse;
-        import java.io.*;
-        import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.PrintWriter;
+import java.util.logging.Logger;
 
 /**
  * Created by gadiel on 14/01/2016.
@@ -60,32 +54,58 @@ public class AdminActionController extends AbstractActionController {
             // separating the sharedSpace from the uiLocation
             String sharedSpace;
             String uiLocation;
-            int start = url_str.indexOf("?p=");
+            int start = url_str.indexOf("p=");
             int end = (url_str.substring(start)).indexOf("/");
             if(end!=-1) {
-                System.out.println( "if");
-                sharedSpace = url_str.substring(start + 3, start + end);
+                sharedSpace = url_str.substring(start + 2, start + end);
                 uiLocation = url_str.substring(0,start+end);
             }
             else
             {
-                System.out.println( "else");
-                sharedSpace = url_str.substring(start + 3);
+                sharedSpace = url_str.substring(start + 2);
                 uiLocation=url_str;
             }
+
+            int index=0;
+            for(int i=0; i<url_str.length(); i++)
+                if ((url_str.charAt(i))==':')
+                    index = i;
+
+
+            String Location = url_str.substring(0,index+5);
+
+
             // updating the cfg file parameters
             cfg.setUsername(username);
             cfg.setSecretPassword(password);
             cfg.setUiLocation(uiLocation);
             cfg.setSharedSpace(sharedSpace);
+            cfg.setLocation(Location);
             cfgManager.jaxbObjectToXML(cfg);        // save the new parameters at the config file
-            writer.write("Updated successfully<br><br>"+cfgManager.printConfig());   // +cfgManager.printConfig() has to be removed. for debugging only
+
+
+            Config config = NGAPlugin.getInstance().getConfig();
+            ServerConfiguration serverConfiguration  = new ServerConfiguration(
+                    Location,
+                    sharedSpace,
+                    username,
+                    password,
+                    "");
+
+            BridgesService.getInstance().updateBridge(serverConfiguration);
+
+            writer.write("Updated successfully");   // add cfgManager.printConfig() here to print the config details
         }
         catch(Exception e)
         {
             writer.write(e.toString());
 
         }
+        return null;
+    }
+
+    @Override
+    protected Object buildResults(HttpServletRequest request, HttpServletResponse response){
         return null;
     }
 
