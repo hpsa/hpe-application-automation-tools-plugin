@@ -3,22 +3,26 @@ package com.hp.octane.plugins.jenkins.bridge;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.AuthenticationException;
 import com.hp.mqm.client.exception.TemporarilyUnavailableException;
+import com.hp.nga.integrations.bridge.TaskProcessor;
+import com.hp.nga.integrations.dto.rest.AbridgedResult;
+import com.hp.nga.integrations.dto.rest.AbridgedTask;
+import com.hp.nga.integrations.serialization.SerializationService;
 import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.kohsuke.stapler.export.Exported;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 /**
  * Created by gullery on 12/08/2015.
- * <p/>
+ * <p>
  * This class encompasses functionality of managing connection/s to a single abridged client (MQM Server)
  */
 
@@ -103,14 +107,31 @@ public class BridgeClient {
 
 	private void dispatchTasks(String tasksJSON) {
 		try {
-			JSONArray tasks = JSONArray.fromObject(tasksJSON);
-			logger.info("BRIDGE: going to process " + tasks.size() + " tasks");
-			for (int i = 0; i < tasks.size(); i++) {
-				taskProcessingExecutors.execute(new TaskProcessor(
-						tasks.getJSONObject(i),
-						restClientFactory,
-						mqmConfig
-				));
+			AbridgedTask[] tasks = SerializationService.fromJSON(tasksJSON, AbridgedTask[].class);
+			logger.info("BRIDGE: going to process " + tasks.length + " tasks");
+			for (final AbridgedTask task : tasks) {
+				taskProcessingExecutors.execute(new Runnable() {
+					@Override
+					public void run() {
+						TaskProcessor taskProcessor = new TaskProcessor(task);
+						AbridgedResult result = taskProcessor.execute();
+						MqmRestClient restClient = restClientFactory.create(
+								mqmConfig.location,
+								mqmConfig.sharedSpace,
+								mqmConfig.username,
+								mqmConfig.password);
+						JSONObject json = new JSONObject();
+						json.put("statusCode", result.getStatus());
+						json.put("headers", result.getHeaders());
+						json.put("body", result.getBody());
+
+						int submitStatus = restClient.putAbridgedResult(
+								new PluginActions.ServerInfo().getInstanceId(),
+								result.getId(),
+								json.toString());
+						logger.info("BRIDGE: result for task '" + result.getId() + "' submitted with status " + submitStatus);
+					}
+				});
 			}
 		} catch (Exception e) {
 			logger.severe("BRIDGE: failed to process tasks: " + e.getMessage());
