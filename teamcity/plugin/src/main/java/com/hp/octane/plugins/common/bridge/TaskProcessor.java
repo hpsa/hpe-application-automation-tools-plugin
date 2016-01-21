@@ -3,11 +3,9 @@ package com.hp.octane.plugins.common.bridge;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.octane.plugins.common.bridge.tasks.CITaskService;
 import com.hp.octane.plugins.common.configuration.ServerConfiguration;
-// import com.hp.octane.plugins.jetbrains.teamcity.DummyPluginConfiguration;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.client.MqmRestClientFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.Config;
-import com.hp.octane.plugins.jetbrains.teamcity.utils.ConfigManager;
 import net.sf.json.JSONObject;
 
 import java.util.HashMap;

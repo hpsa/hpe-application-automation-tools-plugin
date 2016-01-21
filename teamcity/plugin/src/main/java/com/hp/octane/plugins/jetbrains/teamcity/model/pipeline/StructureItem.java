@@ -28,9 +28,9 @@ public class StructureItem{
         return parameters;
     }
 
-    protected String name;
-    protected String id;
-    protected List<ParameterConfig> parameters = new ArrayList<ParameterConfig>();
+    String name;
+    String id;
+    List<ParameterConfig> parameters = new ArrayList<ParameterConfig>();
 
     public void addPhasesInternal(AbstractPhase phaseInternal) {
         this.phasesInternal.add(phaseInternal);

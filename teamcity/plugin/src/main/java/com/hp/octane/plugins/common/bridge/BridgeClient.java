@@ -21,7 +21,6 @@ import java.util.logging.Logger;
 
 public class BridgeClient {
     private static final Logger logger = Logger.getLogger(BridgeClient.class.getName());
- //    private static final String serverInstanceId = DummyPluginConfiguration.identity;//UUID.randomUUID().toString();//
     private static  String serverInstanceId;
     private static ConfigManager m_ConfigManager;
   //  private static final String serverInstanceId =
