@@ -1,7 +1,7 @@
 package com.hp.octane.plugins.jetbrains.teamcity.factories;
 
-import com.hp.octane.dto.projects.ProjectsList;
-import com.hp.octane.dto.projects.ProjectsList.ProjectConfig;
+import com.hp.nga.integrations.dto.projects.ProjectsList;
+import com.hp.nga.integrations.dto.projects.ProjectsList.ProjectConfig;
 import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.StructureItem;
 import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.StructurePhase;
 import com.hp.octane.plugins.jetbrains.teamcity.model.snapshots.SnapshotItem;

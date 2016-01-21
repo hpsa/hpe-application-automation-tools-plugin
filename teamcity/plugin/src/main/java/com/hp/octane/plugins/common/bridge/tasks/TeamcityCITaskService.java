@@ -1,13 +1,12 @@
 package com.hp.octane.plugins.common.bridge.tasks;
 
-import com.hp.octane.dto.projects.ProjectsList;
+import com.hp.nga.integrations.dto.projects.ProjectsList;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.actions.StatusActionController;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.TeamCityModelFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.StructureItem;
-import com.hp.octane.plugins.jetbrains.teamcity.utils.Utils;
-import com.hp.octane.serialization.SerializationService;
+import com.hp.nga.integrations.serialization.SerializationService;
 
 /**
  * Created by linsha on 07/01/2016.

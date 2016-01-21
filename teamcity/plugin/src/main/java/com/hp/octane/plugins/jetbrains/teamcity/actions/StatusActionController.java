@@ -1,8 +1,6 @@
 package com.hp.octane.plugins.jetbrains.teamcity.actions;
 
-import com.hp.octane.dto.general.PluginInfo;
-//import com.hp.octane.plugins.jetbrains.teamcity.DummyPluginConfiguration;
-//import com.hp.octane.plugins.jetbrains.teamcity.DummyPluginConfiguration;
+import com.hp.nga.integrations.dto.general.PluginInfo;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.Config;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.ConfigManager;

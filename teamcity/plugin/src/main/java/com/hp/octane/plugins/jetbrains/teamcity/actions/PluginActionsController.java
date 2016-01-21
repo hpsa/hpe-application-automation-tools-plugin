@@ -1,7 +1,7 @@
 package com.hp.octane.plugins.jetbrains.teamcity.actions;
 
 
-import com.hp.octane.dto.projects.ProjectsList;
+import com.hp.nga.integrations.dto.projects.ProjectsList;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.Utils;
 import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;
