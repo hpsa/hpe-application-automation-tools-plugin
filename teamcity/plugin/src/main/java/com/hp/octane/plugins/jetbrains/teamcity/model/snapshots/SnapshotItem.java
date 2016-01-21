@@ -1,5 +1,6 @@
 package com.hp.octane.plugins.jetbrains.teamcity.model.snapshots;
 
+import com.hp.octane.plugins.jetbrains.teamcity.model.causes.CIEventCauseBase;
 import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.StructureItem;
 
 /**
@@ -45,12 +46,20 @@ public class SnapshotItem extends StructureItem{
     }
 
     private Integer number = null;
-//    private CIEventCauseBase[] causes = null;
 //    private SnapshotStatus status = SnapshotStatus.UNAVAILABLE;
 //    private SnapshotResult result = SnapshotResult.UNAVAILABLE;
     private Long estimatedDuration = null;
     private Long startTime = null;
     private Long duration = null;
+    private CIEventCauseBase[] causes = null;
+
+    public CIEventCauseBase[] getCauses() {
+        return causes;
+    }
+
+    public void setCauses(CIEventCauseBase[] causes) {
+        this.causes = causes;
+    }
 
     public void setStatus(String status) {
         this.status = status;

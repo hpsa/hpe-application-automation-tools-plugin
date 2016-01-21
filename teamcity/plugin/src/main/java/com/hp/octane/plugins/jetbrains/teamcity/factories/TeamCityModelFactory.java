@@ -5,6 +5,7 @@ import com.hp.nga.integrations.dto.projects.ProjectsList.ProjectConfig;
 import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.StructureItem;
 import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.StructurePhase;
 import com.hp.octane.plugins.jetbrains.teamcity.model.snapshots.SnapshotItem;
+import com.hp.octane.plugins.jetbrains.teamcity.model.snapshots.SnapshotPhase;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.dependency.Dependency;
 
@@ -93,11 +94,11 @@ public class TeamCityModelFactory implements ModelFactory {
 
     private void createSnapshotPipeline(StructureItem treeRoot, List<Dependency> dependencies,SBuildType root) {
         if(dependencies ==null || dependencies.size() == 0)return;
-        StructurePhase phase = new StructurePhase(true,"teamcity_dependencies");
+        SnapshotPhase phase = new SnapshotPhase(true,"teamcity_dependencies");
         for(Dependency dependency : dependencies){
             SBuildType build = dependency.getDependOn();
             SnapshotItem snapshotItem = createSnapshotItem(build);
-            phase.addJob(snapshotItem);
+            phase.addBuilds(snapshotItem);
             createSnapshotPipeline(snapshotItem, build.getDependencies(),root);
         }
         treeRoot.addPhasesInternal(phase);

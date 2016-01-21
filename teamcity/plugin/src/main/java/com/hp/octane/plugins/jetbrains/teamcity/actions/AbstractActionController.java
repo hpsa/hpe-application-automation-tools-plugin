@@ -33,7 +33,12 @@ abstract class AbstractActionController implements Controller {
     }
 
     public  ModelAndView handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws Exception {
-        Utils.updateResponse(buildResults(httpServletRequest,httpServletResponse),httpServletRequest,httpServletResponse);
+        Object results = buildResults(httpServletRequest,httpServletResponse);
+
+        if(results!=null){
+            Utils.updateResponse(results, httpServletRequest, httpServletResponse);
+
+        }
         return null;
     }
 
