@@ -3,9 +3,6 @@ package com.hp.octane.plugins.jetbrains.teamcity.actions;
 import com.hp.nga.integrations.dto.general.PluginInfo;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.Config;
-import com.hp.octane.plugins.jetbrains.teamcity.utils.ConfigManager;
-import com.hp.octane.plugins.jetbrains.teamcity.utils.Utils;
-import com.hp.octane.plugins.jetbrains.teamcity.DummyPluginConfiguration;
 import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;
 import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.SBuildServer;
@@ -47,7 +44,7 @@ public class StatusActionController extends AbstractActionController {
         private Long sendingTime;
 
         public ServerInfo() {
-            String serverUrl = DummyPluginConfiguration.myRootURL;
+            String serverUrl = "http://locahost:8081";
             if (serverUrl != null && serverUrl.endsWith("/"))
                 serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
             this.url = serverUrl;
