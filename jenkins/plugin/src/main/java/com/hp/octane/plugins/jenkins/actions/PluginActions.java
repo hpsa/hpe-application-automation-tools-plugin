@@ -1,10 +1,13 @@
 package com.hp.octane.plugins.jenkins.actions;
 
+import com.hp.nga.integrations.bridge.NGATaskProcessor;
 import com.hp.nga.integrations.dto.general.AggregatedStatusInfo;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
 import com.hp.nga.integrations.dto.general.PluginInfo;
 import com.hp.nga.integrations.dto.parameters.ParameterType;
 import com.hp.nga.integrations.dto.projects.ProjectsList;
+import com.hp.nga.integrations.dto.rest.NGAResult;
+import com.hp.nga.integrations.dto.rest.NGATask;
 import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.configuration.ConfigApi;
 import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
@@ -24,6 +27,7 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 /**
@@ -99,48 +103,63 @@ public class PluginActions implements RootAction {
 		return "octane";
 	}
 
-	public void doStatus(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
-		AggregatedStatusInfo statusInfo = new AggregatedStatusInfo();
-		statusInfo.setPlugin(new PluginInfo(Jenkins.getInstance().getPlugin(OctanePlugin.class).getWrapper().getVersion()));
-		statusInfo.setServer(new com.hp.nga.integrations.dto.general.ServerInfo(
-				CIServerTypes.JENKINS,
-				Jenkins.getVersion().toString(),
-				Jenkins.getInstance().getRootUrl(),
-				Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity(),
-				Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentityFrom()
-		));
-		res.setContentType("application/json");
-		res.getWriter().write(SerializationService.toJSON(statusInfo));
-	}
+//	public void doStatus(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
+//		AggregatedStatusInfo statusInfo = new AggregatedStatusInfo();
+//		statusInfo.setPlugin(new PluginInfo(Jenkins.getInstance().getPlugin(OctanePlugin.class).getWrapper().getVersion()));
+//		statusInfo.setServer(new com.hp.nga.integrations.dto.general.ServerInfo(
+//				CIServerTypes.JENKINS,
+//				Jenkins.getVersion().toString(),
+//				Jenkins.getInstance().getRootUrl(),
+//				Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity(),
+//				Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentityFrom()
+//		));
+//		res.setContentType("application/json");
+//		res.getWriter().write(SerializationService.toJSON(statusInfo));
+//	}
+//
+//	public void doProjects(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
+//		if (req.getRestOfPath().isEmpty() && req.getMethod().equals("GET")) {
+//			boolean areParametersNeeded = true;
+//			if (req.getParameter("parameters") != null && req.getParameter("parameters").toLowerCase().equals("false")) {
+//				areParametersNeeded = false;
+//			}
+//			ProjectsList result = getProjectsList(areParametersNeeded);
+//			res.setContentType("application/json");
+//			res.getWriter().write(SerializationService.toJSON(result));
+//		} else {
+//			ProjectsRESTResource.instance.handle(req, res);
+//		}
+//	}
+//
+//	//  TODO: refactor to adjust to standard REST APIs flavor
+//	public ConfigApi getConfiguration() {
+//		return new ConfigApi();
+//	}
+//
+//	@Deprecated
+//	public void doJobs(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
+//		boolean areParametersNeeded = true;
+//		if (req.getParameter("parameters") != null && req.getParameter("parameters").toLowerCase().equals("false")) {
+//			areParametersNeeded = false;
+//		}
+//		ProjectsList result = getProjectsList(areParametersNeeded);
+//		res.setContentType("application/json");
+//		res.getWriter().write(SerializationService.toJSON(result));
+//	}
 
-	public void doProjects(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
-		if (req.getRestOfPath().isEmpty() && req.getMethod().equals("GET")) {
-			boolean areParametersNeeded = true;
-			if (req.getParameter("parameters") != null && req.getParameter("parameters").toLowerCase().equals("false")) {
-				areParametersNeeded = false;
-			}
-			ProjectsList result = getProjectsList(areParametersNeeded);
-			res.setContentType("application/json");
-			res.getWriter().write(SerializationService.toJSON(result));
-		} else {
-			ProjectsRESTResource.instance.handle(req, res);
+	public void doDynamic(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
+		NGATask ngaTask = new NGATask();
+		ngaTask.setId(UUID.randomUUID().toString());
+		ngaTask.setMethod(req.getMethod());
+		ngaTask.setUrl(req.getRequestURIWithQueryString());
+		ngaTask.setBody("");
+		NGATaskProcessor taskProcessor = new NGATaskProcessor(ngaTask);
+		NGAResult result = taskProcessor.execute();
+
+		res.setStatus(result.getStatus());
+		if (result.getBody() != null) {
+			res.getWriter().write(result.getBody());
 		}
-	}
-
-	//  TODO: refactor to adjust to standard REST APIs flavor
-	public ConfigApi getConfiguration() {
-		return new ConfigApi();
-	}
-
-	@Deprecated
-	public void doJobs(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
-		boolean areParametersNeeded = true;
-		if (req.getParameter("parameters") != null && req.getParameter("parameters").toLowerCase().equals("false")) {
-			areParametersNeeded = false;
-		}
-		ProjectsList result = getProjectsList(areParametersNeeded);
-		res.setContentType("application/json");
-		res.getWriter().write(SerializationService.toJSON(result));
 	}
 
 	private ProjectsList getProjectsList(boolean areParametersNeeded) {

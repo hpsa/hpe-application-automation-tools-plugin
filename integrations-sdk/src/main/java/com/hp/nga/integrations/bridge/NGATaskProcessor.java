@@ -53,7 +53,7 @@ public class NGATaskProcessor {
 			if (path.length == 1 && STATUS.equals(path[0])) {
 				executeStatusRequest(result);
 			} else if (path.length == 1 && path[0].startsWith(PROJECTS)) {
-				executeProjectsListRequest(result, path[0].contains("parameters=true"));
+				executeProjectsListRequest(result, !path[0].contains("parameters=false"));
 			} else if (path.length == 2 && PROJECTS.equals(path[0])) {
 				executePipelineRequest(result, path[1]);
 			} else if (path.length == 3 && PROJECTS.equals(path[0]) && RUN.equals(path[2])) {
