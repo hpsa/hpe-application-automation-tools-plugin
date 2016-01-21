@@ -2,7 +2,7 @@ package com.hp.nga.integrations.bridge;
 
 import com.hp.nga.integrations.configuration.ServerConfiguration;
 import com.hp.nga.integrations.api.CIDataProvider;
-import com.hp.nga.integrations.dto.rest.AbridgedTask;
+import com.hp.nga.integrations.dto.rest.NGATask;
 import com.hp.nga.integrations.serialization.SerializationService;
 
 import java.util.concurrent.ExecutorService;
@@ -82,10 +82,10 @@ public class BridgeClient {
 
 	private void dispatchTasks(String tasksJSON) {
 		try {
-			AbridgedTask[] tasks = SerializationService.fromJSON(tasksJSON, AbridgedTask[].class);
+			NGATask[] tasks = SerializationService.fromJSON(tasksJSON, NGATask[].class);
 
 			logger.info("BRIDGE: going to process " + tasks.length + " tasks");
-			for (AbridgedTask task : tasks) {
+			for (NGATask task : tasks) {
 				//taskProcessingExecutors.execute(new TaskProcessor(task));
 			}
 		} catch (Exception e) {

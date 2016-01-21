@@ -4,13 +4,12 @@ import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.AuthenticationException;
 import com.hp.mqm.client.exception.TemporarilyUnavailableException;
 import com.hp.nga.integrations.bridge.TaskProcessor;
-import com.hp.nga.integrations.dto.rest.AbridgedResult;
-import com.hp.nga.integrations.dto.rest.AbridgedTask;
+import com.hp.nga.integrations.dto.rest.NGAResult;
+import com.hp.nga.integrations.dto.rest.NGATask;
 import com.hp.nga.integrations.serialization.SerializationService;
 import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
-import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.export.Exported;
 
@@ -107,14 +106,14 @@ public class BridgeClient {
 
 	private void dispatchTasks(String tasksJSON) {
 		try {
-			AbridgedTask[] tasks = SerializationService.fromJSON(tasksJSON, AbridgedTask[].class);
+			NGATask[] tasks = SerializationService.fromJSON(tasksJSON, NGATask[].class);
 			logger.info("BRIDGE: going to process " + tasks.length + " tasks");
-			for (final AbridgedTask task : tasks) {
+			for (final NGATask task : tasks) {
 				taskProcessingExecutors.execute(new Runnable() {
 					@Override
 					public void run() {
 						TaskProcessor taskProcessor = new TaskProcessor(task);
-						AbridgedResult result = taskProcessor.execute();
+						NGAResult result = taskProcessor.execute();
 						MqmRestClient restClient = restClientFactory.create(
 								mqmConfig.location,
 								mqmConfig.sharedSpace,

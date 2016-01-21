@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class AbridgedTask extends NGARequest {
+public class NGAResult extends NGAResponse {
 	private String id;
 
 	public String getId() {

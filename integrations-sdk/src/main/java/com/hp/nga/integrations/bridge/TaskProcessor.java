@@ -3,8 +3,8 @@ package com.hp.nga.integrations.bridge;
 import com.hp.nga.integrations.api.CIDataProvider;
 import com.hp.nga.integrations.dto.general.AggregatedStatusInfo;
 import com.hp.nga.integrations.dto.projects.ProjectsList;
-import com.hp.nga.integrations.dto.rest.AbridgedResult;
-import com.hp.nga.integrations.dto.rest.AbridgedTask;
+import com.hp.nga.integrations.dto.rest.NGAResult;
+import com.hp.nga.integrations.dto.rest.NGATask;
 import com.hp.nga.integrations.serialization.SerializationService;
 
 import java.util.logging.Logger;
@@ -17,9 +17,9 @@ import java.util.logging.Logger;
 
 public class TaskProcessor {
 	private static final Logger logger = Logger.getLogger(TaskProcessor.class.getName());
-	private final AbridgedTask task;
+	private final NGATask task;
 
-	public TaskProcessor(AbridgedTask task) {
+	public TaskProcessor(NGATask task) {
 		if (task == null) {
 			throw new IllegalArgumentException("task MUST NOT be null");
 		}
@@ -27,11 +27,11 @@ public class TaskProcessor {
 		this.task = task;
 	}
 
-	public AbridgedResult execute() {
+	public NGAResult execute() {
 		logger.info("BRIDGE: processing task '" + task.getId() + "': " + task.getMethod() + " " + task.getUrl());
 
 		CIDataProvider dataProvider = CIDataProvider.getInstance();
-		AbridgedResult result = new AbridgedResult();
+		NGAResult result = new NGAResult();
 		result.setId(task.getId());
 		try {
 			if (task.getUrl().endsWith("status")) {
