@@ -1,9 +1,7 @@
 package com.hp.octane.plugins.jetbrains.teamcity.tests.events;
 
 import com.hp.octane.plugins.jetbrains.teamcity.tests.services.BuildTestsService;
-import jetbrains.buildServer.serverSide.BuildServerAdapter;
-import jetbrains.buildServer.serverSide.SBuildServer;
-import jetbrains.buildServer.serverSide.SRunningBuild;
+import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.impl.auth.SecuredRunningBuild;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,6 +26,9 @@ public class BuildFinishedListener extends BuildServerAdapter{
         String currPath = ((SecuredRunningBuild) build).getBuildFinishParameters ().get(TEAMCITY_BUILD_CHECKOUT_DIR);
         File destPath = build.getArtifactsDirectory();
         long buildTime = build.getStartDate().getTime();
+
+        BuildStatistics stats = build.getBuildStatistics(new BuildStatisticsOptions());
+        List<STestRun> tests = stats.getTests(null, BuildStatistics.Order.NATURAL_ASC);
 
         BuildTestsService.handleTestResult(currPath, destPath, buildTime);
     }
