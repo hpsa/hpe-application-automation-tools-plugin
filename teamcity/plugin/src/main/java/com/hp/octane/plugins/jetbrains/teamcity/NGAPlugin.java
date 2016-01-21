@@ -136,17 +136,12 @@ public class NGAPlugin implements ServerExtension {
     public ServerConfiguration getServerConfiguration() {
 
         return new ServerConfiguration(
-
                 config.getLocation(),
                 config.getSharedSpace(),
                 config.getUsername(),
                 config.getSecretPassword(),
                 ""
-              /*  DummyPluginConfiguration.location,//sBuildServer.getRootUrl(),
-                DummyPluginConfiguration.sharedSpace,
-                DummyPluginConfiguration.username,
-                DummyPluginConfiguration.password,
-                DummyPluginConfiguration.impersonatedUser   */
+
 
         );
     }

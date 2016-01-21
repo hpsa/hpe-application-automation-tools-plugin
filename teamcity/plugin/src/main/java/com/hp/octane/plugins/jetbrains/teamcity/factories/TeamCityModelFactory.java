@@ -38,7 +38,7 @@ public class TeamCityModelFactory implements ModelFactory {
                     ids.add(buildType.getInternalId());
                     buildConf = new ProjectConfig();
                     buildConf.setName(buildType.getName());
-                    buildConf.setId(buildType.getExternalId());
+                    buildConf.setCiId(buildType.getExternalId());
                     list.add(buildConf);
                 }
             }

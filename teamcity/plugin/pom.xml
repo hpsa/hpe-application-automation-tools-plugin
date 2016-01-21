@@ -14,7 +14,7 @@
         <version>12.50.28-SNAPSHOT</version>
     </parent>
     <properties>
-        <project-version>12.50.27-SNAPSHOT</project-version>
+        <project-version>12.50.28-SNAPSHOT</project-version>
     </properties>
 
     <dependencies>
@@ -91,6 +91,12 @@
         </dependency>
 
         <!--Internals-->
+
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.9</version>
+        </dependency>
 
         <dependency>
             <groupId>com.hp.mqm</groupId>

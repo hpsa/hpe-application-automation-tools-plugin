@@ -24,7 +24,7 @@ public class ProjectsList {
 	public static final class ProjectConfig {
 		private String name;
 		private ParameterConfig[] parameters;
-		private String id;
+		private String ciId;
 
 		public void setName(String value) {
 			name = value;
@@ -34,12 +34,12 @@ public class ProjectsList {
 			return name;
 		}
 
-		public void setId(String id){
-			this.id= id;
+		public void setCiId(String ciId){
+			this.ciId= ciId;
 		}
 
-		public String getId(){
-			return id;
+		public String getCiId(){
+			return ciId;
 		}
 
 		public void setParameters(ParameterConfig[] parameters) {

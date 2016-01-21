@@ -5,6 +5,8 @@ import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.actions.StatusActionController;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.TeamCityModelFactory;
+import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.StructureItem;
+import com.hp.octane.plugins.jetbrains.teamcity.utils.Utils;
 import com.hp.octane.serialization.SerializationService;
 
 /**
@@ -28,7 +30,9 @@ public class TeamcityCITaskService implements CITaskService{
 
     @Override
     public String getStructure(String id) {
-        return null;
+        ModelFactory modelFactory = new TeamCityModelFactory(NGAPlugin.getInstance().getProjectManager());
+        StructureItem treeRoot =  modelFactory.createStructure(id);
+        return SerializationService.toJSON(treeRoot);
     }
 
     @Override
