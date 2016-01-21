@@ -32,7 +32,7 @@ abstract class AbstractActionController implements Controller {
         this.modelFactory = modelFactory;
     }
 
-    public final ModelAndView handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws Exception {
+    public  ModelAndView handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws Exception {
         Utils.updateResponse(buildResults(httpServletRequest,httpServletResponse),httpServletRequest,httpServletResponse);
         return null;
     }
