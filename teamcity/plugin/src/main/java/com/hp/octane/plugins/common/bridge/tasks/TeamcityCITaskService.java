@@ -7,6 +7,7 @@ import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.TeamCityModelFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.StructureItem;
 import com.hp.nga.integrations.serialization.SerializationService;
+import com.hp.octane.plugins.jetbrains.teamcity.model.snapshots.SnapshotItem;
 
 /**
  * Created by linsha on 07/01/2016.
@@ -37,6 +38,8 @@ public class TeamcityCITaskService implements CITaskService{
 
     @Override
     public String getSnapshot(String id) {
-        return null;
+        ModelFactory modelFactory = new TeamCityModelFactory(NGAPlugin.getInstance().getProjectManager());
+        SnapshotItem snapshotItem = modelFactory.createSnapshot(id);
+        return SerializationService.toJSON(snapshotItem);
     }
 }
