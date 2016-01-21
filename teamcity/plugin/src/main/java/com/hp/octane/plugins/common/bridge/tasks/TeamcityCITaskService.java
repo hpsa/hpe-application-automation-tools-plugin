@@ -15,6 +15,7 @@ public class TeamcityCITaskService implements CITaskService{
 
     @Override
     public String getProjects(boolean withParameters) {
+        //test
         ModelFactory modelFactory = new TeamCityModelFactory(NGAPlugin.getInstance().getProjectManager());
         ProjectsList projectsList = modelFactory.CreateProjectList();
         return SerializationService.toJSON(projectsList);
