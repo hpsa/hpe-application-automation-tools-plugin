@@ -2,6 +2,7 @@ package com.hp.octane.plugins.jetbrains.teamcity.actions;
 
 import com.hp.mqm.client.MqmConnectionConfig;
 import com.hp.mqm.client.MqmRestClient;
+import com.hp.mqm.client.MqmRestClientFactory;
 import com.hp.mqm.client.exception.AuthenticationException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.SessionCreationException;
@@ -63,15 +64,21 @@ public class TestConnectionActionController extends AbstractActionController {
         }
         else
         {
-            sharedSpace = url_str.substring(start + 3);
+            sharedSpace = url_str.substring(start + 2);
             uiLocation=url_str;
         }
+        int index=0;
+        for(int i=0; i<url_str.length(); i++)
+            if ((url_str.charAt(i))==':')
+                index = i;
 
 
-        String returnString ="ok";
+        String Location = url_str.substring(0,index+5);
+
+        String returnString ="OK";
         PrintWriter writer;
-        MqmConnectionConfig clientConfig = new MqmConnectionConfig(uiLocation, sharedSpace, username, password, CLIENT_TYPE);
-        MqmRestClient client = com.hp.mqm.client.MqmRestClientFactory.create(clientConfig);
+       // MqmConnectionConfig clientConfig = new MqmConnectionConfig(Location, sharedSpace, username, password, CLIENT_TYPE);
+        MqmRestClient client = com.hp.octane.plugins.jetbrains.teamcity.client.MqmRestClientFactory.create(CLIENT_TYPE,Location, sharedSpace, username, password);
 
         try {
             client.tryToConnectSharedSpace();
@@ -99,6 +106,11 @@ public class TestConnectionActionController extends AbstractActionController {
         catch(IOException e){}
 
 
+        return null;
+    }
+
+    @Override
+    protected Object buildResults(HttpServletRequest request, HttpServletResponse response) {
         return null;
     }
 

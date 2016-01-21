@@ -62,18 +62,31 @@ public class AdminActionController extends AbstractActionController {
             }
             else
             {
-                sharedSpace = url_str.substring(start + 3);
+                sharedSpace = url_str.substring(start + 2);
                 uiLocation=url_str;
             }
+
+            int index=0;
+            for(int i=0; i<url_str.length(); i++)
+                if ((url_str.charAt(i))==':')
+                    index = i;
+
+
+            String Location = url_str.substring(0,index+5);
+
+
             // updating the cfg file parameters
             cfg.setUsername(username);
             cfg.setSecretPassword(password);
             cfg.setUiLocation(uiLocation);
             cfg.setSharedSpace(sharedSpace);
+            cfg.setLocation(Location);
             cfgManager.jaxbObjectToXML(cfg);        // save the new parameters at the config file
 
+
+            Config config = NGAPlugin.getInstance().getConfig();
             ServerConfiguration serverConfiguration  = new ServerConfiguration(
-                    uiLocation,
+                    Location,
                     sharedSpace,
                     username,
                     password,
