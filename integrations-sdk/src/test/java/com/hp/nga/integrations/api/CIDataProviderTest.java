@@ -3,6 +3,7 @@ package com.hp.nga.integrations.api;
 import com.hp.nga.integrations.dto.builds.SnapshotDTO;
 import com.hp.nga.integrations.dto.general.PluginInfo;
 import com.hp.nga.integrations.dto.general.ServerInfo;
+import com.hp.nga.integrations.dto.projects.ProjectsList;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -66,6 +67,11 @@ public class CIDataProviderTest {
 		}
 
 		@Override
+		public ProjectsList getProjectsList(boolean includeParameters) {
+			return null;
+		}
+
+		@Override
 		public SnapshotDTO getLatestSnapshot(String ciProjectId, String ciBuildId, boolean subTree) {
 			return null;
 		}
@@ -84,6 +90,11 @@ public class CIDataProviderTest {
 
 		@Override
 		public PluginInfo getPluginInfo() {
+			return null;
+		}
+
+		@Override
+		public ProjectsList getProjectsList(boolean includeParameters) {
 			return null;
 		}
 

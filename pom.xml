@@ -6,6 +6,7 @@
     <artifactId>indi-integrations-root</artifactId>
     <version>12.50.28-SNAPSHOT</version>
     <packaging>pom</packaging>
+
     <properties>
         <baseNexusURL>http://mydtbld0051.isr.hp.com:8081/nexus</baseNexusURL>
         <maven.compiler.plugin.version>3.1</maven.compiler.plugin.version>
@@ -20,6 +21,7 @@
         <json.version>20150729</json.version>
         <jdom.version>1.1</jdom.version>
         <junit.version>4.12</junit.version>
+        <easymock.version>3.4</easymock.version>
 
         <surefire.version>2.18.1</surefire.version>
         <failsafe.version>2.18.1</failsafe.version>
@@ -46,6 +48,7 @@
             **/NotificationEmail.java
         </sonar.exclusions>
     </properties>
+
     <modules>
         <module>jenkins</module>
         <module>teamcity</module>
@@ -54,8 +57,8 @@
         <module>nga-surefire-listener</module>
         <module>integrations-sdk</module>
         <module>integrations-dto</module>
-
     </modules>
+
     <build>
         <pluginManagement>
             <plugins>
@@ -108,12 +111,21 @@
                 <artifactId>httpclient</artifactId>
                 <version>${httpclient.version}</version>
             </dependency>
+
+            <!-- TESTING -->
             <dependency>
-                <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
+                <groupId>junit</groupId>
                 <version>${junit.version}</version>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+                <artifactId>easymock</artifactId>
+                <groupId>org.easymock</groupId>
+                <version>${easymock.version}</version>
+                <scope>test</scope>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 

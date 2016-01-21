@@ -3,7 +3,7 @@ package com.hp.octane.plugins.jenkins.bridge;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.AuthenticationException;
 import com.hp.mqm.client.exception.TemporarilyUnavailableException;
-import com.hp.nga.integrations.bridge.TaskProcessor;
+import com.hp.nga.integrations.bridge.NGATaskProcessor;
 import com.hp.nga.integrations.dto.rest.NGAResult;
 import com.hp.nga.integrations.dto.rest.NGATask;
 import com.hp.nga.integrations.serialization.SerializationService;
@@ -112,8 +112,8 @@ public class BridgeClient {
 				taskProcessingExecutors.execute(new Runnable() {
 					@Override
 					public void run() {
-						TaskProcessor taskProcessor = new TaskProcessor(task);
-						NGAResult result = taskProcessor.execute();
+						NGATaskProcessor NGATaskProcessor = new NGATaskProcessor(task);
+						NGAResult result = NGATaskProcessor.execute();
 						MqmRestClient restClient = restClientFactory.create(
 								mqmConfig.location,
 								mqmConfig.sharedSpace,

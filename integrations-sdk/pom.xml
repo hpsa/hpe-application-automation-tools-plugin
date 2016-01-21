@@ -27,20 +27,25 @@
 
         <!-- EXTERNAL -->
         <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpcore</artifactId>
+            <groupId>org.apache.httpcomponents</groupId>
             <version>${httpcore.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
+            <groupId>org.apache.httpcomponents</groupId>
             <version>${httpclient.version}</version>
         </dependency>
 
         <!-- TESTING -->
         <dependency>
-            <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+            <groupId>junit</groupId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <artifactId>easymock</artifactId>
+            <groupId>org.easymock</groupId>
             <scope>test</scope>
         </dependency>
 
