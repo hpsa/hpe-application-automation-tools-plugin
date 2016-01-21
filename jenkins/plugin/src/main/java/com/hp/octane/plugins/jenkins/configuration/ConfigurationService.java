@@ -35,7 +35,8 @@ public class ConfigurationService {
 
     private JenkinsMqmRestClientFactory clientFactory;
 
-    public static ServerConfiguration getServerConfiguration() {
+    public static ServerConfiguration getServerConfiguration()
+    {
         OctanePlugin octanePlugin = Jenkins.getInstance().getPlugin(OctanePlugin.class);
         return octanePlugin.getServerConfiguration();
     }
@@ -74,7 +75,8 @@ public class ConfigurationService {
         MqmRestClient client = clientFactory.create(location, sharedSpace, username, password);
         try {
             client.tryToConnectSharedSpace();
-        } catch (AuthenticationException e) {
+             }
+        catch (AuthenticationException e) {
             logger.log(Level.WARNING, "Authentication failed.", e);
             return FormValidation.errorWithMarkup(markup("red", Messages.AuthenticationFailure()));
         } catch (SessionCreationException e) {

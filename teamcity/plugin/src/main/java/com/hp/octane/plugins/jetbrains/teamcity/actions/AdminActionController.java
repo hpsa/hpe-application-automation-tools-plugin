@@ -1,5 +1,7 @@
 package com.hp.octane.plugins.jetbrains.teamcity.actions;
 
+        import com.hp.octane.plugins.common.bridge.BridgesService;
+        import com.hp.octane.plugins.common.configuration.ServerConfiguration;
         import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.Config;
@@ -52,16 +54,14 @@ public class AdminActionController extends AbstractActionController {
             // separating the sharedSpace from the uiLocation
             String sharedSpace;
             String uiLocation;
-            int start = url_str.indexOf("?p=");
+            int start = url_str.indexOf("p=");
             int end = (url_str.substring(start)).indexOf("/");
             if(end!=-1) {
-                System.out.println( "if");
-                sharedSpace = url_str.substring(start + 3, start + end);
+                sharedSpace = url_str.substring(start + 2, start + end);
                 uiLocation = url_str.substring(0,start+end);
             }
             else
             {
-                System.out.println( "else");
                 sharedSpace = url_str.substring(start + 3);
                 uiLocation=url_str;
             }
@@ -71,7 +71,17 @@ public class AdminActionController extends AbstractActionController {
             cfg.setUiLocation(uiLocation);
             cfg.setSharedSpace(sharedSpace);
             cfgManager.jaxbObjectToXML(cfg);        // save the new parameters at the config file
-            writer.write("Updated successfully<br><br>"+cfgManager.printConfig());   // +cfgManager.printConfig() has to be removed. for debugging only
+
+            ServerConfiguration serverConfiguration  = new ServerConfiguration(
+                    uiLocation,
+                    sharedSpace,
+                    username,
+                    password,
+                    "");
+
+            BridgesService.getInstance().updateBridge(serverConfiguration);
+
+            writer.write("Updated successfully");   // add cfgManager.printConfig() here to print the config details
         }
         catch(Exception e)
         {
