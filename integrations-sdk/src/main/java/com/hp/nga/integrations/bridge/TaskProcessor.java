@@ -2,6 +2,7 @@ package com.hp.nga.integrations.bridge;
 
 import com.hp.nga.integrations.api.CIDataProvider;
 import com.hp.nga.integrations.dto.general.AggregatedStatusInfo;
+import com.hp.nga.integrations.dto.projects.ProjectsList;
 import com.hp.nga.integrations.dto.rest.AbridgedResult;
 import com.hp.nga.integrations.dto.rest.AbridgedTask;
 import com.hp.nga.integrations.serialization.SerializationService;
@@ -40,7 +41,9 @@ public class TaskProcessor {
 				result.setStatus(200);
 				result.setBody(SerializationService.toJSON(status));
 			} else if (task.getUrl().contains("projects?parameters")) {
-				//  TODO: get jobs list
+				ProjectsList content = dataProvider.getProjectsList(task.getUrl().contains("parameters=true"));
+				result.setStatus(200);
+				result.setBody(SerializationService.toJSON(content));
 			} else if (task.getUrl().contains("projects/")) {
 				//  TODO: get job structure
 			} else if (task.getUrl().contains("/builds/")) {

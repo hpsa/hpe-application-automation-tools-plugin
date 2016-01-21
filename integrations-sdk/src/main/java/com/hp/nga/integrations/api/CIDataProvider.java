@@ -3,6 +3,7 @@ package com.hp.nga.integrations.api;
 import com.hp.nga.integrations.dto.builds.SnapshotDTO;
 import com.hp.nga.integrations.dto.general.PluginInfo;
 import com.hp.nga.integrations.dto.general.ServerInfo;
+import com.hp.nga.integrations.dto.projects.ProjectsList;
 
 /**
  * Created by gullery on 20/01/2016.
@@ -46,7 +47,8 @@ public abstract class CIDataProvider {
 	 */
 	public abstract PluginInfo getPluginInfo();
 
-	//  TODO: projects list
+	public abstract ProjectsList getProjectsList(boolean includeParameters);
+
 	//  TODO: project's structure
 	//  TODO: project's run
 	//  TODO: Almog's history API (TBR)

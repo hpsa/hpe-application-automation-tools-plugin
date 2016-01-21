@@ -86,7 +86,7 @@ public class BridgeClient {
 
 			logger.info("BRIDGE: going to process " + tasks.length + " tasks");
 			for (AbridgedTask task : tasks) {
-				taskProcessingExecutors.execute(new TaskProcessor(task));
+				//taskProcessingExecutors.execute(new TaskProcessor(task));
 			}
 		} catch (Exception e) {
 			logger.severe("BRIDGE: failed to process tasks: " + e.getMessage());

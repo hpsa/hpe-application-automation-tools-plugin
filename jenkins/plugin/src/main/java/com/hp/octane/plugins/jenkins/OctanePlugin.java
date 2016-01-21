@@ -12,6 +12,7 @@ import com.hp.octane.plugins.jenkins.configuration.PredefinedConfiguration;
 import com.hp.octane.plugins.jenkins.configuration.PredefinedConfigurationUnmarshaller;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jenkins.events.EventsService;
+import com.hp.octane.plugins.jenkins.providers.CIDataProviderImpl;
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.Plugin;
@@ -109,6 +110,8 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 
 		EventsService.getExtensionInstance().updateClient(getServerConfiguration());
 		BridgesService.getExtensionInstance().updateBridge(getServerConfiguration());
+
+		new CIDataProviderImpl();
 	}
 
 	@Override
