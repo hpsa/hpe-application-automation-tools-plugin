@@ -37,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.hpe.application.automation.tools.common.UploadApplication;
 import com.hpe.application.automation.tools.common.StringUtils;
+import org.apache.commons.lang.BooleanUtils;
 
 public class RunFromFileSystemTask extends AbstractLauncherTask {
 
@@ -59,18 +60,25 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
         String timeout = map.get(RunFromFileSystemTaskConfigurator.TIMEOUT);
         builder.setPerScenarioTimeOut(timeout);
 
-        String mcServerUrl = map.get(RunFromFileSystemTaskConfigurator.MCSERVERURL);
-        String mcUserName = map.get(RunFromFileSystemTaskConfigurator.MCUSERNAME);
-        String mcPassword = map.get(RunFromFileSystemTaskConfigurator.MCPASSWORD);
-        String mcAppPath = map.get(RunFromFileSystemTaskConfigurator.MCAPPLICATIONPATH);
-        String mcAppIdKey = map.get(RunFromFileSystemTaskConfigurator.MCAPPLICATIONIDKEY);
-        String mcAppIdentifierName = "";
-
-        if(!mcInfoCheck(mcServerUrl,mcUserName,mcAppPath,mcAppIdKey)){
-            UploadApplication app = new UploadApplication(mcServerUrl,mcUserName,mcPassword,mcAppPath);
-            mcAppIdentifierName = app.getAppIndentifier();
-        }
-
+		String mcAppIdentifierName = "";
+		boolean useMC = BooleanUtils.toBoolean(map.get(RunFromFileSystemTaskConfigurator.USE_MC_SETTINGS));
+		if(useMC){
+			String mcServerUrl = map.get(RunFromFileSystemTaskConfigurator.MCSERVERURL);
+			String mcUserName = map.get(RunFromFileSystemTaskConfigurator.MCUSERNAME);
+			String mcPassword = map.get(RunFromFileSystemTaskConfigurator.MCPASSWORD);
+			String mcAppPath = map.get(RunFromFileSystemTaskConfigurator.MCAPPLICATIONPATH);
+			String mcAppIdKey = map.get(RunFromFileSystemTaskConfigurator.MCAPPLICATIONIDKEY);
+			if(!mcInfoCheck(mcServerUrl,mcUserName,mcAppPath,mcAppIdKey)){
+				UploadApplication app = new UploadApplication(mcServerUrl,mcUserName,mcPassword,mcAppPath);
+				mcAppIdentifierName = app.getAppIndentifier();
+			}
+			if(!StringUtils.isNullOrEmpty(mcAppIdentifierName) && !StringUtils.isNullOrEmpty(mcAppIdKey))
+			{
+				builder.setFsAppParamName(mcAppIdKey);
+				builder.setIdentifierName(mcAppIdKey, mcAppIdentifierName);
+			}
+		}
+		
     	String splitMarker = "\n";
     	String tests = map.get(RunFromFileSystemTaskConfigurator.TESTS_PATH);
     	String[] testNames;
@@ -87,12 +95,7 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
         {
         	builder.setTest(i+1, testNames[i]);
         }
-
-        if(!StringUtils.isNullOrEmpty(mcAppIdentifierName) && !StringUtils.isNullOrEmpty(mcAppIdKey))
-        {
-            builder.setFsAppParamName(mcAppIdKey);
-            builder.setIdentifierName(mcAppIdKey, mcAppIdentifierName);
-        }
+        
     	return builder.getProperties();
 	}
 
