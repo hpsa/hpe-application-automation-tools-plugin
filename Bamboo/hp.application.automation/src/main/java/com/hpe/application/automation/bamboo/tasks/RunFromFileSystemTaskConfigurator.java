@@ -44,6 +44,7 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
     public static final String MCPASSWORD = "mcPasswordInput";
     public static final String MCAPPLICATIONPATH = "mcApplicationPathInput";
     public static final String MCAPPLICATIONIDKEY = "mcApplicationIDKeyInput";
+	public static final String USE_MC_SETTINGS = "useMC";
 
 	public static final String PUBLISH_MODE_ALWAYS_STRING = "RunFromFileSystemTask.publishMode.always";
 	public static final String PUBLISH_MODE_FAILED_STRING = "RunFromFileSystemTask.publishMode.failed";
@@ -75,6 +76,7 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 
 		config.put(TESTS_PATH, params.getString(TESTS_PATH));
 		config.put(TIMEOUT, params.getString(TIMEOUT));
+		config.put(USE_MC_SETTINGS, params.getString(USE_MC_SETTINGS));
         config.put(MCSERVERURL, params.getString(MCSERVERURL));
         config.put(MCUSERNAME, params.getString(MCUSERNAME));
         config.put(MCPASSWORD, params.getString(MCPASSWORD));
@@ -146,6 +148,7 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 
 		context.put(TESTS_PATH, taskDefinition.getConfiguration().get(TESTS_PATH));
 		context.put(TIMEOUT, taskDefinition.getConfiguration().get(TIMEOUT));
+		context.put(USE_MC_SETTINGS, taskDefinition.getConfiguration().get(USE_MC_SETTINGS));
 		context.put(MCSERVERURL, taskDefinition.getConfiguration().get(MCSERVERURL));
 		context.put(MCUSERNAME, taskDefinition.getConfiguration().get(MCUSERNAME));
 		context.put(MCPASSWORD, taskDefinition.getConfiguration().get(MCPASSWORD));

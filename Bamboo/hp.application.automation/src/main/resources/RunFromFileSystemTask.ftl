@@ -29,6 +29,12 @@
     cursor:pointer;
     margin:5px;
 }
+.control,.helpIcon, .toolTip, .MCcheckBox{
+    float:left;
+}
+.MCcheckBox{
+    width:100%
+}
 .control,.helpIcon, .toolTip{
     float:left;
 }
@@ -68,7 +74,18 @@ hr{
     [@ww.text name='RunFromFileSystemTaskConfigurator.toolTip.timeOut'/]
 </div>
 <hr>
-
+<div class="control">
+    [@ww.select labelKey="RunFromFileSystemTask.publishMode" name="publishMode" list="publishModeItems" emptyOption="false"/]
+</div>
+<div class="helpIcon" onclick="javascript: toggle_visibility('RunFromFileSystemTaskConfigurator.toolTip.viewResults');">?</div>
+<div id ="RunFromFileSystemTaskConfigurator.toolTip.viewResults" class="toolTip">
+    [@ww.text name='RunFromFileSystemTaskConfigurator.toolTip.viewResults'/]
+</div>
+<hr>
+<div class="MCcheckBox">
+    [@ww.checkbox labelKey="RunFromFileSystemTaskConfigurator.toolTip.useMC" name="useMC" toggle='true'/]
+</div>
+[@ui.bambooSection dependsOn='useMC' showOn='true']
 <div class="control">
 [@ww.textfield labelKey="RunFromFileSystemTaskConfigurator.mcServerURLInputLbl" name="mcServerURLInput"/]
 </div>
@@ -109,16 +126,7 @@ hr{
 [@ww.text name='RunFromFileSystemTaskConfigurator.toolTip.mcApplicationIDKey'/]
 </div>
 <hr>
-
-
-
-<div class="control">
-    [@ww.select labelKey="RunFromFileSystemTask.publishMode" name="publishMode" list="publishModeItems" emptyOption="false"/]
-</div>
-<div class="helpIcon" onclick="javascript: toggle_visibility('RunFromFileSystemTaskConfigurator.toolTip.viewResults');">?</div>
-<div id ="RunFromFileSystemTaskConfigurator.toolTip.viewResults" class="toolTip">
-    [@ww.text name='RunFromFileSystemTaskConfigurator.toolTip.viewResults'/]
-</div>
+[/@ui.bambooSection]
 
 <script  type="text/javascript">
     var customWidth = "500px";
