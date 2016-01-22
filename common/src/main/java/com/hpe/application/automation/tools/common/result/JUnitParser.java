@@ -198,7 +198,7 @@ public class JUnitParser {
             if (testcase.getStatus().equals(JUnitTestCaseStatus.ERROR)) {
                 String errorMessage = status;
                 if (errorMessage != null) {
-                    Error error = new Error();
+                    com.hpe.application.automation.tools.common.result.model.junit.Error error = new Error();
                     error.setMessage(String.format(
                             "Error: %s. %s",
                             errorMessage,

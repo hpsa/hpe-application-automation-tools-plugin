@@ -19,7 +19,6 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  */
-
 package com.hpe.application.automation.tools.common.sdk.request;
 
 import com.hpe.application.automation.tools.common.sdk.Response;
@@ -27,6 +26,9 @@ import com.hpe.application.automation.tools.common.sdk.Client;
 
 import java.util.Map;
 
+/**
+ * Created by barush on 29/10/2014.
+ */
 public abstract class GeneralRequest {
     
     protected final Client client;

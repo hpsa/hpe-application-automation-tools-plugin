@@ -39,9 +39,9 @@ public abstract class AbstractUftTaskConfigurator extends AbstractTaskConfigurat
     @NotNull
     @Override
     public Set<Requirement> calculateRequirements(TaskDefinition taskDefinition) {
-        return defineUftRequirement(taskDefinition);
+        return defineUftRequirement();
     }
-    public Set<Requirement> defineUftRequirement(TaskDefinition taskDefinition) {
+    private Set<Requirement> defineUftRequirement() {
         RequirementImpl uftReq = new RequirementImpl(CapabilityUftDefaultsHelper.CAPABILITY_UFT, true, ".*");
         Set<Requirement> result = new HashSet<Requirement>();
         result.add(uftReq);

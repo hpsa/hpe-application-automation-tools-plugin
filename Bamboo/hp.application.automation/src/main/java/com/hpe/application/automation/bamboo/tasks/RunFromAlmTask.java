@@ -26,14 +26,22 @@ import java.util.Properties;
 import com.atlassian.bamboo.build.test.TestCollationService;
 import com.atlassian.bamboo.configuration.ConfigurationMap;
 import com.atlassian.bamboo.task.TaskContext;
+import com.atlassian.bamboo.task.TaskException;
+import com.atlassian.bamboo.task.TaskResult;
+import com.atlassian.bamboo.task.TaskResultBuilder;
+import com.atlassian.bamboo.utils.i18n.I18nBean;
+import com.atlassian.bamboo.utils.i18n.I18nBeanFactory;
 import org.jetbrains.annotations.NotNull;
-
 
 public class RunFromAlmTask extends AbstractLauncherTask {
 
-	public RunFromAlmTask(@NotNull final TestCollationService testCollationService)
+	private final String LINK_SEARCH_FILTER = "EntityID=";
+	private static I18nBean i18nBean;
+
+	public RunFromAlmTask(@NotNull final TestCollationService testCollationService, @NotNull I18nBeanFactory i18nBeanFactory)
 	{
 		super(testCollationService);
+		i18nBean = i18nBeanFactory.getI18nBean();
 	}
 
     @java.lang.Override
@@ -78,8 +86,7 @@ public class RunFromAlmTask extends AbstractLauncherTask {
 		String almTestSets = map.get(RunFromAlmTaskConfigurator.TESTS_PATH);
 		if (!org.apache.commons.lang.StringUtils.isEmpty(almTestSets)) {
 
-			String[] testSetsArr = almTestSets.replaceAll("\r", "").split(
-					"\n");
+			String[] testSetsArr = almTestSets.replaceAll("\r", "").split(splitMarker);
 
 			int i = 1;
 
@@ -92,5 +99,13 @@ public class RunFromAlmTask extends AbstractLauncherTask {
 		}
 		return builder.getProperties();
 	}
-    
+
+	@NotNull
+	@java.lang.Override
+	public TaskResult execute(@NotNull final TaskContext taskContext) throws TaskException
+	{
+		super.execute(taskContext);
+		TestResultHelperAlm.AddALMArtifacts(taskContext, LINK_SEARCH_FILTER, i18nBean);
+		return TaskResultBuilder.create(taskContext).checkTestFailures().build();
+	}
 }

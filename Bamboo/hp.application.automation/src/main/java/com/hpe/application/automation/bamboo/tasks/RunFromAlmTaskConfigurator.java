@@ -21,7 +21,9 @@
  */
 package com.hpe.application.automation.bamboo.tasks;
 
+import com.atlassian.bamboo.build.Job;
 import com.atlassian.bamboo.collections.ActionParametersMap;
+import com.atlassian.bamboo.plan.artifact.ArtifactDefinitionManager;
 import com.atlassian.bamboo.task.TaskDefinition;
 import com.atlassian.bamboo.utils.error.ErrorCollection;
 import com.atlassian.bamboo.utils.i18n.I18nBean;
@@ -48,11 +50,16 @@ public class RunFromAlmTaskConfigurator extends AbstractUftTaskConfigurator {
 	public static final String RUN_LOCALLY_LBL = "Alm.runLocallyLbl";
 	public static final String RUN_ON_PLANNED_HOST_LBL = "Alm.runOnPlannedHostLbl";
 	public static final String RUN_REMOTELY_LBL = "Alm.runRemotelyLbl";
-
 	public static final String RUN_LOCALLY_PARAMETER = "1";
 	public static final String RUN_ON_PLANNED_HOST_PARAMETER = "2";
 	public static final String RUN_REMOTELY_PARAMETER = "3";
 	public static final String TASK_NAME_VALUE = "Alm.taskName";
+
+	private ArtifactDefinitionManager artifactDefinitionManager;
+
+	public void setArtifactDefinitionManager(ArtifactDefinitionManager artifactDefinitionManager){
+		this.artifactDefinitionManager = artifactDefinitionManager;
+	}
 
 	public Map<String, String> generateTaskConfigMap(@NotNull final ActionParametersMap params, @Nullable final TaskDefinition previousTaskDefinition)
 	{
@@ -108,9 +115,12 @@ public class RunFromAlmTaskConfigurator extends AbstractUftTaskConfigurator {
 	@Override
 	public void populateContextForCreate(@NotNull final Map<String, Object> context)
 	{
+		(new HpTasksArtifactRegistrator()).registerCommonArtifact((Job) context.get("plan"), getI18nBean(), this.artifactDefinitionManager);
 		super.populateContextForCreate(context);
-		
+
 		populateContextForLists(context);
+		//Default run mode value must be run locally
+		context.put(RUN_MODE, RUN_LOCALLY_PARAMETER);
 	}
 
 	private void populateContextForLists(@NotNull final Map<String, Object> context)
@@ -144,6 +154,7 @@ public class RunFromAlmTaskConfigurator extends AbstractUftTaskConfigurator {
 
 		I18nBean textProvider = getI18nBean();
 
+		//Don't change run types adding order. It's used for task creation.
 		runTypesMap.put(RUN_LOCALLY_PARAMETER, textProvider.getText(RUN_LOCALLY_LBL));
 		runTypesMap.put(RUN_ON_PLANNED_HOST_PARAMETER, textProvider.getText(RUN_ON_PLANNED_HOST_LBL));
 		runTypesMap.put(RUN_REMOTELY_PARAMETER, textProvider.getText(RUN_REMOTELY_LBL));

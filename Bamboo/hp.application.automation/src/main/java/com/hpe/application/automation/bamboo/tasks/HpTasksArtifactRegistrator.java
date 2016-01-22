@@ -21,17 +21,20 @@
  */
 package com.hpe.application.automation.bamboo.tasks;
 
+import com.atlassian.bamboo.build.DefaultJob;
 import com.atlassian.bamboo.build.Job;
 import com.atlassian.bamboo.plan.artifact.ArtifactDefinitionImpl;
 import com.atlassian.bamboo.plan.artifact.ArtifactDefinitionManager;
+import com.atlassian.bamboo.utils.i18n.I18nBean;
+import com.atlassian.util.concurrent.NotNull;
 
 public class HpTasksArtifactRegistrator {
-    public void registerCommonArtifact(Job job, /*I18nBean i18nBean,*/ ArtifactDefinitionManager artifactDefinitionManager)
+    public void registerCommonArtifact(@NotNull Job job, @NotNull  I18nBean i18nBean, @NotNull ArtifactDefinitionManager artifactDefinitionManager)
     {
-        if (job == null || /*i18nBean == null ||*/ artifactDefinitionManager == null)
+        if (job == null || i18nBean == null || artifactDefinitionManager == null)
             return;
 
-        String name = "HP UFT Test Results"; //i18nBean.getText("AllTasksArtifactDefinitionLabel");
+        String name = i18nBean.getText("AllTasksArtifactDefinitionLabel");
         String ARTIFACT_COPY_PATTERN = TestResultHelper.HP_UFT_PREFIX + "${bamboo.buildNumber}/**";
         if (null == artifactDefinitionManager.findArtifactDefinition(job, name)) {
             ArtifactDefinitionImpl artifactDefinition = new ArtifactDefinitionImpl(name, "", ARTIFACT_COPY_PATTERN);
