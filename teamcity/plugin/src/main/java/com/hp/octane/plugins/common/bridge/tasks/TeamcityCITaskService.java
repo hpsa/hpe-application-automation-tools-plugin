@@ -6,7 +6,7 @@ import com.hp.octane.plugins.jetbrains.teamcity.actions.StatusActionController;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.TeamCityModelFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.StructureItem;
-import com.hp.nga.integrations.serialization.SerializationService;
+import com.hp.nga.integrations.services.serialization.SerializationService;
 import com.hp.octane.plugins.jetbrains.teamcity.model.snapshots.SnapshotItem;
 
 /**

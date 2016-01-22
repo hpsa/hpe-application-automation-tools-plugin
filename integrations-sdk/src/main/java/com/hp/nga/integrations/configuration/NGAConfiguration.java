@@ -9,23 +9,23 @@ import java.net.URL;
  * NGA Server configuration descriptor
  */
 
-public class ServerConfiguration {
+public class NGAConfiguration {
 	private String url;
 	private Long sharedSpace;
 	private String username;
 	private String password;
 
-	public ServerConfiguration() {
+	public NGAConfiguration() {
 	}
 
-	public ServerConfiguration(String url, Long sharedSpace, String username, String password) {
+	public NGAConfiguration(String url, Long sharedSpace, String username, String password) {
 		this.url = url;
 		this.sharedSpace = sharedSpace;
 		this.username = username;
 		this.password = password;
 	}
 
-	public ServerConfiguration(ServerConfiguration config) {
+	public NGAConfiguration(NGAConfiguration config) {
 		this.url = config.url;
 		this.sharedSpace = config.sharedSpace;
 		this.username = config.username;

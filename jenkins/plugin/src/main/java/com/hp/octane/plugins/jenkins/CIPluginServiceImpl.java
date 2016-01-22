@@ -1,6 +1,7 @@
-package com.hp.octane.plugins.jenkins.providers;
+package com.hp.octane.plugins.jenkins;
 
-import com.hp.nga.integrations.api.CIDataProvider;
+import com.hp.nga.integrations.api.CIPluginService;
+import com.hp.nga.integrations.configuration.NGAConfiguration;
 import com.hp.nga.integrations.dto.builds.SnapshotDTO;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
 import com.hp.nga.integrations.dto.general.PluginInfo;
@@ -8,6 +9,7 @@ import com.hp.nga.integrations.dto.general.ServerInfo;
 import com.hp.nga.integrations.dto.parameters.ParameterType;
 import com.hp.nga.integrations.dto.projects.ProjectsList;
 import com.hp.octane.plugins.jenkins.OctanePlugin;
+import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import hudson.model.AbstractProject;
@@ -22,7 +24,7 @@ import java.util.List;
  * Jenkins CI Server oriented extension of CI Data Provider
  */
 
-public class CIDataProviderImpl extends CIDataProvider {
+public class CIPluginServiceImpl implements CIPluginService {
 	@Override
 	public ServerInfo getServerInfo() {
 		ServerInfo result = new ServerInfo();
@@ -43,6 +45,17 @@ public class CIDataProviderImpl extends CIDataProvider {
 	public PluginInfo getPluginInfo() {
 		PluginInfo result = new PluginInfo();
 		result.setVersion(Jenkins.getInstance().getPlugin(OctanePlugin.class).getWrapper().getVersion());
+		return result;
+	}
+
+	@Override
+	public NGAConfiguration getNGAConfiguration() {
+		NGAConfiguration result = new NGAConfiguration();
+		ServerConfiguration serverConfiguration = Jenkins.getInstance().getPlugin(OctanePlugin.class).getServerConfiguration();
+		result.setUrl(serverConfiguration.location);
+		result.setSharedSpace(Long.parseLong(serverConfiguration.sharedSpace));
+		result.setUsername(serverConfiguration.username);
+		result.setPassword(serverConfiguration.password);
 		return result;
 	}
 

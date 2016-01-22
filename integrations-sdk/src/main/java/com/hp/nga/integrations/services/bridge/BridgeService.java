@@ -1,6 +1,6 @@
-package com.hp.nga.integrations.bridge;
+package com.hp.nga.integrations.services.bridge;
 
-import com.hp.nga.integrations.configuration.ServerConfiguration;
+import com.hp.nga.integrations.configuration.NGAConfiguration;
 
 import java.util.logging.Logger;
 
@@ -24,7 +24,7 @@ public class BridgeService {
 		return instance;
 	}
 
-	public void updateBridge(ServerConfiguration config) {
+	public void updateBridge(NGAConfiguration config) {
 		if (config.isValid()) {
 			if (bridgeClient != null) {
 				bridgeClient.update(config);

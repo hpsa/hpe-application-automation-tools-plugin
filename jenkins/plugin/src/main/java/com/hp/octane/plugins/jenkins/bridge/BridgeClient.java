@@ -3,10 +3,11 @@ package com.hp.octane.plugins.jenkins.bridge;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.AuthenticationException;
 import com.hp.mqm.client.exception.TemporarilyUnavailableException;
-import com.hp.nga.integrations.bridge.NGATaskProcessor;
+import com.hp.nga.integrations.NGAPluginSDK;
+import com.hp.nga.integrations.services.bridge.NGATaskProcessor;
 import com.hp.nga.integrations.dto.rest.NGAResult;
 import com.hp.nga.integrations.dto.rest.NGATask;
-import com.hp.nga.integrations.serialization.SerializationService;
+import com.hp.nga.integrations.services.serialization.SerializationService;
 import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
@@ -27,7 +28,6 @@ import java.util.logging.Logger;
 
 public class BridgeClient {
 	private static final Logger logger = Logger.getLogger(BridgeClient.class.getName());
-	private static final String serverInstanceId = new PluginActions.ServerInfo().getInstanceId();
 
 	private ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
 	private ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30, new AbridgedTasksExecutorsFactory());
@@ -55,13 +55,14 @@ public class BridgeClient {
 				@Override
 				public void run() {
 					String tasksJSON;
+					NGAPluginSDK sdk = NGAPluginSDK.getInstance();
 					try {
 						logger.info("BRIDGE: connecting to '" + mqmConfig.location +
 								"' (SP: " + mqmConfig.sharedSpace +
-								"; instance ID: " + serverInstanceId +
+								"; instance ID: " + sdk.getCiPluginService().getServerInfo().getInstanceId() +
 								"; self URL: " + new PluginActions.ServerInfo().getUrl());
 						MqmRestClient restClient = restClientFactory.create(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
-						tasksJSON = restClient.getAbridgedTasks(serverInstanceId, new PluginActions.ServerInfo().getUrl());
+						tasksJSON = restClient.getAbridgedTasks(sdk.getCiPluginService().getServerInfo().getInstanceId(), new PluginActions.ServerInfo().getUrl());
 						logger.info("BRIDGE: back from '" + mqmConfig.location + "' (SP: " + mqmConfig.sharedSpace + ") with " + (tasksJSON == null || tasksJSON.isEmpty() ? "no tasks" : "some tasks"));
 						connect();
 						if (tasksJSON != null && !tasksJSON.isEmpty()) {

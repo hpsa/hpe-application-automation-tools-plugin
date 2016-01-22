@@ -1,6 +1,6 @@
 package com.hp.nga.integrations.dto.coverage;
 
-import com.hp.nga.integrations.serialization.SerializationService;
+import com.hp.nga.integrations.services.serialization.SerializationService;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

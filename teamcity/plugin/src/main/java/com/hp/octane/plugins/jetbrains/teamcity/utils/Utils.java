@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jetbrains.teamcity.utils;
 
-import com.hp.nga.integrations.serialization.SerializationService;
+import com.hp.nga.integrations.services.serialization.SerializationService;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

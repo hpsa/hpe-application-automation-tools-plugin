@@ -1,9 +1,9 @@
-package com.hp.nga.integrations.bridge;
+package com.hp.nga.integrations.services.bridge;
 
-import com.hp.nga.integrations.configuration.ServerConfiguration;
-import com.hp.nga.integrations.api.CIDataProvider;
+import com.hp.nga.integrations.configuration.NGAConfiguration;
+import com.hp.nga.integrations.dto.rest.NGAResult;
 import com.hp.nga.integrations.dto.rest.NGATask;
-import com.hp.nga.integrations.serialization.SerializationService;
+import com.hp.nga.integrations.services.serialization.SerializationService;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -18,7 +18,6 @@ import java.util.logging.Logger;
 
 public class BridgeClient {
 	private static final Logger logger = Logger.getLogger(BridgeClient.class.getName());
-	private static final String serverInstanceId = CIDataProvider.getInstance().getServerInfo().getInstanceId();
 
 	private ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
 	private ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30, new AbridgedTasksExecutorsFactory());
@@ -29,7 +28,7 @@ public class BridgeClient {
 //		logger.info("BRIDGE: client initialized for '" + this.config.getUrl() + "' (SP: " + this.config.getSharedSpace() + ")");
 	}
 
-	public void update(ServerConfiguration newConfig) {
+	public void update(NGAConfiguration newConfig) {
 //		logger.info("BRIDGE: updated for '" + config.getUrl() + "' (SP: " + config.getSharedSpace() + ")");
 		connect();
 	}
@@ -49,7 +48,7 @@ public class BridgeClient {
 //						logger.info("BRIDGE: back from '" + config.getUrl() + "' (SP: " + config.getSharedSpace() + ") with " + (tasksJSON == null || tasksJSON.isEmpty() ? "no tasks" : "some tasks"));
 						connect();
 						if (tasksJSON != null && !tasksJSON.isEmpty()) {
-							dispatchTasks(tasksJSON);
+							handleTasks(tasksJSON);
 						}
 //					} catch (AuthenticationException ae) {
 //						logger.severe("BRIDGE: connection to MQM Server temporary failed: authentication error");
@@ -80,13 +79,19 @@ public class BridgeClient {
 		shuttingDown = true;
 	}
 
-	private void dispatchTasks(String tasksJSON) {
+	private void handleTasks(String tasksJSON) {
 		try {
 			NGATask[] tasks = SerializationService.fromJSON(tasksJSON, NGATask[].class);
 
 			logger.info("BRIDGE: going to process " + tasks.length + " tasks");
-			for (NGATask task : tasks) {
-				//taskProcessingExecutors.execute(new TaskProcessor(task));
+			for (final NGATask task : tasks) {
+				taskProcessingExecutors.execute(new Runnable() {
+					public void run() {
+						NGATaskProcessor taskProcessor = new NGATaskProcessor(task);
+						NGAResult result = taskProcessor.execute();
+						//  TODO: post the result to NGA
+					}
+				});
 			}
 		} catch (Exception e) {
 			logger.severe("BRIDGE: failed to process tasks: " + e.getMessage());

@@ -1,4 +1,4 @@
-package com.hp.nga.integrations.rest;
+package com.hp.nga.integrations.services.rest;
 
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;

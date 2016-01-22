@@ -1,11 +1,12 @@
-package com.hp.nga.integrations.bridge;
+package com.hp.nga.integrations.services.bridge;
 
-import com.hp.nga.integrations.api.CIDataProvider;
+import com.hp.nga.integrations.NGAPluginSDK;
+import com.hp.nga.integrations.api.CIPluginService;
 import com.hp.nga.integrations.dto.general.AggregatedStatusInfo;
 import com.hp.nga.integrations.dto.projects.ProjectsList;
 import com.hp.nga.integrations.dto.rest.NGAResult;
 import com.hp.nga.integrations.dto.rest.NGATask;
-import com.hp.nga.integrations.serialization.SerializationService;
+import com.hp.nga.integrations.services.serialization.SerializationService;
 
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -74,15 +75,15 @@ public class NGATaskProcessor {
 	}
 
 	private void executeStatusRequest(NGAResult result) {
-		CIDataProvider dataProvider = CIDataProvider.getInstance();
+		CIPluginService dataProvider = NGAPluginSDK.getInstance().getCiPluginService();
 		AggregatedStatusInfo status = new AggregatedStatusInfo();
 		status.setServer(dataProvider.getServerInfo());
 		status.setPlugin(dataProvider.getPluginInfo());
 		result.setBody(SerializationService.toJSON(status));
 	}
 
-	private void executeProjectsListRequest(NGAResult result, boolean includingParametes) {
-		ProjectsList content = CIDataProvider.getInstance().getProjectsList(includingParametes);
+	private void executeProjectsListRequest(NGAResult result, boolean includingParameters) {
+		ProjectsList content = NGAPluginSDK.getInstance().getCiPluginService().getProjectsList(includingParameters);
 		result.setBody(SerializationService.toJSON(content));
 	}
 

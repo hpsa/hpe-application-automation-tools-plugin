@@ -1,19 +1,13 @@
 package com.hp.octane.plugins.jenkins.actions;
 
-import com.hp.nga.integrations.bridge.NGATaskProcessor;
-import com.hp.nga.integrations.dto.general.AggregatedStatusInfo;
-import com.hp.nga.integrations.dto.general.CIServerTypes;
-import com.hp.nga.integrations.dto.general.PluginInfo;
+import com.hp.nga.integrations.services.bridge.NGATaskProcessor;
 import com.hp.nga.integrations.dto.parameters.ParameterType;
 import com.hp.nga.integrations.dto.projects.ProjectsList;
 import com.hp.nga.integrations.dto.rest.NGAResult;
 import com.hp.nga.integrations.dto.rest.NGATask;
 import com.hp.octane.plugins.jenkins.OctanePlugin;
-import com.hp.octane.plugins.jenkins.configuration.ConfigApi;
 import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
-import com.hp.octane.plugins.jenkins.rest.ProjectsRESTResource;
-import com.hp.nga.integrations.serialization.SerializationService;
 import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.RootAction;

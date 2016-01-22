@@ -1,4 +1,4 @@
-package com.hp.nga.integrations.serialization;
+package com.hp.nga.integrations.services.serialization;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

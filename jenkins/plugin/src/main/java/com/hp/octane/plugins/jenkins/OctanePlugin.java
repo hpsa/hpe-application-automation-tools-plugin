@@ -3,6 +3,7 @@
 package com.hp.octane.plugins.jenkins;
 
 import com.google.inject.Inject;
+import com.hp.nga.integrations.NGAPluginSDK;
 import com.hp.octane.plugins.jenkins.bridge.BridgesService;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationListener;
@@ -12,7 +13,6 @@ import com.hp.octane.plugins.jenkins.configuration.PredefinedConfiguration;
 import com.hp.octane.plugins.jenkins.configuration.PredefinedConfigurationUnmarshaller;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jenkins.events.EventsService;
-import com.hp.octane.plugins.jenkins.providers.CIDataProviderImpl;
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.Plugin;
@@ -111,7 +111,9 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 		EventsService.getExtensionInstance().updateClient(getServerConfiguration());
 		BridgesService.getExtensionInstance().updateBridge(getServerConfiguration());
 
-		new CIDataProviderImpl();
+		NGAPluginSDK sdk = NGAPluginSDK.getInstance();
+		sdk.setCiPluginService(new CIPluginServiceImpl());
+		//  TODO: use sdk object here to init the server internal events and notify the sdk
 	}
 
 	@Override

@@ -1,4 +1,4 @@
-package com.hp.nga.integrations.rest;
+package com.hp.nga.integrations.services.rest;
 
 import com.hp.nga.integrations.dto.rest.NGARequest;
 import com.hp.nga.integrations.dto.rest.NGAResponse;
