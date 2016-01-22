@@ -337,7 +337,7 @@ public class DefaultExternalEntityUploadServiceImpl implements
 							String testingTool, 
 							String subversion,
 							String jobName, 
-							String buildUrl){
+							String buildUrl) throws ExternalEntityUploadException{
 		
 		logger.log("INFO: Start to parse file: " +reportFilePath);
 		
@@ -345,31 +345,36 @@ public class DefaultExternalEntityUploadServiceImpl implements
 		
 		if(testsets == null) {
 			logger.log("Failed to parse file: " + reportFilePath);
+			throw new ExternalEntityUploadException("Failed to parse file: " + reportFilePath);
 		} else  {
 			logger.log("INFO: parse resut file succeed.");
 		}
 		
 		if(testsets != null && testsets.size() >0 ) {
 			logger.log("INFO: Start to login to ALM Server.");
-			restTool.login();
-			
-			logger.log("INFO: Checking test folder...");
-			AlmTestFolder testFolder = createTestFolderPath(2, testFolderPath);
-			logger.log("INFO: Checking testset folder...");
-			AlmTestSetFolder testsetFolder = createTestSetFolderPath (0, testsetFolderPath);
-			if(testFolder != null && testsetFolder != null){
-				logger.log("INFO: Uploading ALM Entities...");
-				importExternalTestSet(
-						testsets, 
-						loginInfo.getUserName(), 
-						Integer.valueOf(testsetFolder.getId()), 
-						Integer.valueOf(testFolder.getId()), 
-						testingTool, 
-						subversion, 
-						jobName, 
-						buildUrl);
-			}			
-
+			try {
+				if( restTool.login() ) {
+				
+					logger.log("INFO: Checking test folder...");
+					AlmTestFolder testFolder = createTestFolderPath(2, testFolderPath);
+					logger.log("INFO: Checking testset folder...");
+					AlmTestSetFolder testsetFolder = createTestSetFolderPath (0, testsetFolderPath);
+					if(testFolder != null && testsetFolder != null){
+						logger.log("INFO: Uploading ALM Entities...");
+						importExternalTestSet(
+								testsets, 
+								loginInfo.getUserName(), 
+								Integer.valueOf(testsetFolder.getId()), 
+								Integer.valueOf(testFolder.getId()), 
+								testingTool, 
+								subversion, 
+								jobName, 
+								buildUrl);
+					}
+				}
+			} catch (Exception e) {
+				throw new ExternalEntityUploadException(e);
+			}
 		}
 	}
 	
