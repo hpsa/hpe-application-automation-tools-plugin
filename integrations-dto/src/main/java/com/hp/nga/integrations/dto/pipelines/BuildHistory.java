@@ -14,104 +14,134 @@ import java.util.Set;
  */
 
 public class BuildHistory {
-    private ArrayList<Build> builds;
-    private Build lastSuccesfullBuild;
-    private Build lastBuild;
+	private ArrayList<Build> builds;
+	private Build lastSuccesfullBuild;
+	private Build lastBuild;
 
-    public static class Build {
-        private String status;
-        private String number;
-        private String time;
-        private String startTime;
-        private String duration;
-        private SCMData scmData;
-        private Set<User> culprits;
+	public static class Build {
+		private String status;
+		private String number;
+		private String time;
+		private String startTime;
+		private String duration;
+		private SCMData scmData;
+		private Set<SCMUser> culprits;
 
 
-        Build(String status, String number, String time) {
-            this.status = status;
-            this.number = number;
-            this.time = time;
-        }
+		Build(String status, String number, String time) {
+			this.status = status;
+			this.number = number;
+			this.time = time;
+		}
 
-        public Build(String status, String number, String time, String startTime, String duration,SCMData scmData ,Set<User> culprits) {
-            this.status = status;
-            this.number = number;
-            this.time = time;
-            this.startTime = startTime;
-            this.duration = duration;
-            this.scmData = scmData;
-            this.culprits=culprits;
-        }
+		public Build(String status, String number, String time, String startTime, String duration, SCMData scmData, Set<SCMUser> culprits) {
+			this.status = status;
+			this.number = number;
+			this.time = time;
+			this.startTime = startTime;
+			this.duration = duration;
+			this.scmData = scmData;
+			this.culprits = culprits;
+		}
 
-        public String getStatus() {
-            return status;
-        }
+		public String getStatus() {
+			return status;
+		}
 
-        public void setStatus(String status) {
-            this.status = status;
-        }
+		public void setStatus(String status) {
+			this.status = status;
+		}
 
-        public String getNumber() {
-            return number;
-        }
+		public String getNumber() {
+			return number;
+		}
 
-        public void setNumber(String number) {
-            this.number = number;
-        }
+		public void setNumber(String number) {
+			this.number = number;
+		}
 
-        public String getTime() {
-            return time;
-        }
+		public String getTime() {
+			return time;
+		}
 
-        public void setTime(String time) {
-            this.time = time;
-        }
+		public void setTime(String time) {
+			this.time = time;
+		}
 
-        public String getStartTime() {
-            return startTime;
-        }
+		public String getStartTime() {
+			return startTime;
+		}
 
-        public String getDuration() {
-            return duration;
-        }
+		public String getDuration() {
+			return duration;
+		}
 
-        public SCMData getScmData() {
-            return scmData;
-        }
+		public SCMData getScmData() {
+			return scmData;
+		}
 
-        public Set<User> getCulprits() {
-            return culprits;
-        }
-    }
+		public Set<SCMUser> getCulprits() {
+			return culprits;
+		}
+	}
 
-    public BuildHistory() {
-        this.builds = new ArrayList<Build>();
-        this.lastSuccesfullBuild = null;
-        this.lastBuild = null;
-    }
+	public BuildHistory() {
+		this.builds = new ArrayList<Build>();
+		this.lastSuccesfullBuild = null;
+		this.lastBuild = null;
+	}
 
-    public void addBuild(String status, String number, String time, String startTime, String duration,SCMData scmData , Set<User> culprits) {
-        builds.add(new Build(status, number, time, startTime, duration,scmData,culprits));
-    }
+	public void addBuild(String status, String number, String time, String startTime, String duration, SCMData scmData, Set<SCMUser> culprits) {
+		builds.add(new Build(status, number, time, startTime, duration, scmData, culprits));
+	}
 
-    public void addLastSuccesfullBuild(String status, String number, String time, String startTime, String duration,SCMData scmData , Set<User> culprits) {
-        lastSuccesfullBuild = new Build(status, number, time, startTime, duration, scmData,culprits);
-    }
+	public void addLastSuccesfullBuild(String status, String number, String time, String startTime, String duration, SCMData scmData, Set<SCMUser> culprits) {
+		lastSuccesfullBuild = new Build(status, number, time, startTime, duration, scmData, culprits);
+	}
 
-    public void addLastBuild(String status, String number, String time, String startTime, String duration,SCMData scmData , Set<User> culprits) {
-        lastBuild = new Build(status, number, time, startTime, duration,scmData,culprits);
-    }
+	public void addLastBuild(String status, String number, String time, String startTime, String duration, SCMData scmData, Set<SCMUser> culprits) {
+		lastBuild = new Build(status, number, time, startTime, duration, scmData, culprits);
+	}
 
-    public Build getLastSuccesfullBuild() {
-        return lastSuccesfullBuild;
-    }
+	public Build getLastSuccesfullBuild() {
+		return lastSuccesfullBuild;
+	}
 
-    public Build[] getBuilds() {
-        return builds.toArray(new Build[builds.size()]);
-    }
+	public Build[] getBuilds() {
+		return builds.toArray(new Build[builds.size()]);
+	}
 
-    public Build getLastBuild() {
-        return lastBuild;
-    }
+	public Build getLastBuild() {
+		return lastBuild;
+	}
+
+	public static class SCMUser {
+		private String id;
+		private String fullName;
+		private String displayName;
+
+		public String getId() {
+			return id;
+		}
+
+		public void setId(String id) {
+			this.id = id;
+		}
+
+		public String getFullName() {
+			return fullName;
+		}
+
+		public void setFullName(String fullName) {
+			this.fullName = fullName;
+		}
+
+		public String getDisplayName() {
+			return displayName;
+		}
+
+		public void setDisplayName(String displayName) {
+			this.displayName = displayName;
+		}
+	}
 }

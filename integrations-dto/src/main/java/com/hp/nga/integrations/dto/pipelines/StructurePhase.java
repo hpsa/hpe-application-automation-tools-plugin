@@ -1,5 +1,7 @@
 package com.hp.nga.integrations.dto.pipelines;
 
+import com.hp.nga.integrations.dto.common.AbstractPhase;
+
 import java.util.logging.Logger;
 
 /**

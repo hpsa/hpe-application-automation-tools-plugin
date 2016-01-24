@@ -1,5 +1,7 @@
 package com.hp.nga.integrations.dto.snapshots;
 
+import com.hp.nga.integrations.dto.causes.CIEventCauseBase;
+import com.hp.nga.integrations.dto.common.AbstractItem;
 import com.hp.nga.integrations.dto.parameters.ParameterInstance;
 import com.hp.nga.integrations.dto.pipelines.StructureItem;
 import com.hp.nga.integrations.dto.pipelines.StructurePhase;

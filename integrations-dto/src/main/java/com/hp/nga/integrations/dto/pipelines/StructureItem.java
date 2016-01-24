@@ -1,5 +1,6 @@
 package com.hp.nga.integrations.dto.pipelines;
 
+import com.hp.nga.integrations.dto.common.AbstractItem;
 import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 
 /**
