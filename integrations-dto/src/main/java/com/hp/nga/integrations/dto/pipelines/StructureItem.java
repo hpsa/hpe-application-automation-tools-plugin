@@ -1,7 +1,8 @@
 package com.hp.nga.integrations.dto.pipelines;
 
-import com.hp.nga.integrations.dto.common.AbstractItem;
 import com.hp.nga.integrations.dto.parameters.ParameterConfig;
+
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -11,11 +12,41 @@ import com.hp.nga.integrations.dto.parameters.ParameterConfig;
  * To change this template use File | Settings | File Templates.
  */
 
-public final class StructureItem extends AbstractItem<ParameterConfig, StructurePhase> {
-	public StructureItem(AbstractProject project) {
-		super(project);
-		setParameters(ParameterProcessors.getConfigs(project));
-		setInternals(super.getFlowProcessor().getInternals());
-		setPostBuilds(super.getFlowProcessor().getPostBuilds());
+public final class StructureItem {
+	private String name;
+	private List<ParameterConfig> parameters;
+	private List<StructurePhase> internals;
+	private List<StructurePhase> postBuilds;
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public List<ParameterConfig> getParameters() {
+		return parameters;
+	}
+
+	public void setParameters(List<ParameterConfig> parameters) {
+		this.parameters = parameters;
+	}
+
+	public List<StructurePhase> getInternals() {
+		return internals;
+	}
+
+	public void setInternals(List<StructurePhase> internals) {
+		this.internals = internals;
+	}
+
+	public List<StructurePhase> getPostBuilds() {
+		return postBuilds;
+	}
+
+	public void setPostBuilds(List<StructurePhase> postBuilds) {
+		this.postBuilds = postBuilds;
 	}
 }

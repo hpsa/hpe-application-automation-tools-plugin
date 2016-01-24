@@ -1,8 +1,6 @@
 package com.hp.nga.integrations.dto.pipelines;
 
-import com.hp.nga.integrations.dto.common.AbstractPhase;
-
-import java.util.logging.Logger;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -12,23 +10,32 @@ import java.util.logging.Logger;
  * To change this template use File | Settings | File Templates.
  */
 
-public final class StructurePhase extends AbstractPhase<StructureItem> {
-	private static final Logger logger = Logger.getLogger(StructurePhase.class.getName());
+public final class StructurePhase {
+	private String name;
+	private boolean blocking;
+	private List<StructureItem> jobs;
 
-	public StructurePhase(String name, boolean blocking, List<AbstractProject> items) {
-		super(name, blocking);
-		StructureItem[] tmp = new StructureItem[items.size()];
-		for (int i = 0; i < tmp.length; i++) {
-			if (items.get(i) != null) {
-				tmp[i] = new StructureItem(items.get(i));
-			} else {
-				logger.warning("One of referenced jobs is null, your Jenkins config probably broken, skipping this job...");
-			}
-		}
-		super.setItems(tmp);
+	public String getName() {
+		return name;
 	}
 
-	public StructureItem[] getJobs() {
-		return super.getItems();
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public boolean isBlocking() {
+		return blocking;
+	}
+
+	public void setBlocking(boolean blocking) {
+		this.blocking = blocking;
+	}
+
+	public List<StructureItem> getJobs() {
+		return jobs;
+	}
+
+	public void setJobs(List<StructureItem> jobs) {
+		this.jobs = jobs;
 	}
 }
