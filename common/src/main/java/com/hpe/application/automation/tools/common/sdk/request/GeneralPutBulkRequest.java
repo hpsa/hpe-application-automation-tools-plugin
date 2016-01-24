@@ -19,7 +19,6 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  */
-
 package com.hpe.application.automation.tools.common.sdk.request;
 
 import com.hpe.application.automation.tools.common.rest.HttpHeaders;
@@ -32,6 +31,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Created by barush on 03/11/2014.
+ */
 public abstract class GeneralPutBulkRequest extends GeneralRequest {
     
     protected GeneralPutBulkRequest(Client client) {

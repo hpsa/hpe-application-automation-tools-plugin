@@ -26,8 +26,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
+import com.atlassian.bamboo.persistence.BambooTransactionHibernateTemplate;
 import com.atlassian.bamboo.task.*;
+import com.atlassian.bamboo.variable.VariableDefinitionHibernateDao;
 import com.atlassian.bamboo.variable.VariableDefinitionManager;
+import com.atlassian.bamboo.variable.VariableDefinitionManagerImpl;
 import com.hpe.application.automation.tools.common.StringUtils;
 import com.hpe.application.automation.tools.common.model.AutEnvironmentConfigModel;
 import com.hpe.application.automation.tools.common.model.AutEnvironmentParameterModel;
@@ -50,6 +53,7 @@ public class AlmLabEnvPrepareTask implements TaskType {
 
 	@NotNull
 	public TaskResult execute(@NotNull TaskContext taskContext) throws TaskException {
+
 
 		final BuildLogger buildLogger = taskContext.getBuildLogger();
 		ConfigurationMap confMap = taskContext.getConfigurationMap();

@@ -52,7 +52,9 @@ public class VariableService {
         } else { // does exist, find the existing VariableDefinition and update it
             long id = searchVar.getId();
             VariableDefinition updateVar = variableDefinitionManager.findVariableDefinition(id);
-            updateVar.setValue(value);
+            if(updateVar != null) {
+                updateVar.setValue(value);
+            }
             variableDefinitionManager.saveVariableDefinition(updateVar);
             return updateVar;
         }

@@ -19,15 +19,7 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  */
-
 package com.hpe.application.automation.tools.common;
-
-/***
- * 
- * @author Effi Bar-She'an
- * @author Dani Schreiber
- * 
- */
 
 public class RestXmlUtils {
     
