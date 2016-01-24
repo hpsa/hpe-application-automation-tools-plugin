@@ -3,15 +3,17 @@ package com.hp.octane.plugins.jetbrains.teamcity;
 /**
  * Created by linsha on 06/01/2016.
  */
+
+
 public class DummyPluginConfiguration {
-    public static String identity = "49849531-8f20-4d94-b49f-3f6864c97701";
+  /*  public static String identity = "49849531-8f20-4d94-b49f-3f6864c97701";
     public static String uiLocation = "http://localhost:8080/ui?p=2001";
     public static String username = "test@hp.com";
     public static String location = "http://localhost.emea.hpqcorp.net:8080";
     public static String password = "";
     public static String impersonatedUser;
     public static String sharedSpace = "2001";
-    public static Long identityFrom;
+    public static Long identityFrom;    */
 
 
 //    public String getLocation() {

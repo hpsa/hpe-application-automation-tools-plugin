@@ -2,13 +2,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.hp.mqm</groupId>
 	<artifactId>mqm-rest-client-test</artifactId>
 	<name>MQM REST Client - Integration Tests</name>
 	<parent>
 		<groupId>com.hp.mqm</groupId>
 		<artifactId>mqm-client</artifactId>
-		<version>12.50.27-SNAPSHOT</version>
+		<version>12.50.28-SNAPSHOT</version>
 	</parent>
 	<properties>
 		<DEPLOY_TARGET>localhost</DEPLOY_TARGET>
@@ -27,7 +26,7 @@
 		<dependency>
 			<groupId>com.hp.mqm</groupId>
 			<artifactId>mqm-rest-client</artifactId>
-			<version>12.50.27-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>

@@ -1,13 +1,12 @@
 package com.hp.octane.plugins.jenkins.actions.plugin;
 
 import com.gargoylesoftware.htmlunit.Page;
-import com.hp.octane.dto.general.CIServerTypes;
-import com.hp.octane.dto.projects.ProjectsList;
+import com.hp.nga.integrations.dto.general.CIServerTypes;
+import com.hp.nga.integrations.dto.projects.ProjectsList;
+import com.hp.nga.integrations.dto.parameters.ParameterType;
 import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.actions.PluginActions;
-import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
-import com.hp.octane.plugins.jenkins.model.parameters.ParameterType;
-import com.hp.octane.serialization.SerializationService;
+import com.hp.nga.integrations.serialization.SerializationService;
 import hudson.model.*;
 import jenkins.model.Jenkins;
 import org.json.JSONArray;
@@ -127,21 +126,21 @@ public class PluginActionsTest {
 		//  Test ParamA
 		assertNotNull(response.getJobs()[0].getParameters()[0]);
 		assertEquals("ParamA", response.getJobs()[0].getParameters()[0].getName());
-		assertEquals(com.hp.octane.dto.parameters.ParameterType.BOOLEAN, response.getJobs()[0].getParameters()[0].getType());
+		assertEquals(ParameterType.BOOLEAN, response.getJobs()[0].getParameters()[0].getType());
 		assertEquals("bool", response.getJobs()[0].getParameters()[0].getDescription());
 		assertEquals(true, response.getJobs()[0].getParameters()[0].getDefaultValue());
 
 		//  Test ParamB
 		assertNotNull(response.getJobs()[0].getParameters()[1]);
 		assertEquals("ParamB", response.getJobs()[0].getParameters()[1].getName());
-		assertEquals(com.hp.octane.dto.parameters.ParameterType.STRING, response.getJobs()[0].getParameters()[1].getType());
+		assertEquals(ParameterType.STRING, response.getJobs()[0].getParameters()[1].getType());
 		assertEquals("string", response.getJobs()[0].getParameters()[1].getDescription());
 		assertEquals("str", response.getJobs()[0].getParameters()[1].getDefaultValue());
 
 		//  Test ParamC
 		assertNotNull(response.getJobs()[0].getParameters()[2]);
 		assertEquals("ParamC", response.getJobs()[0].getParameters()[2].getName());
-		assertEquals(com.hp.octane.dto.parameters.ParameterType.FILE, response.getJobs()[0].getParameters()[2].getType());
+		assertEquals(ParameterType.FILE, response.getJobs()[0].getParameters()[2].getType());
 		assertEquals("file param", response.getJobs()[0].getParameters()[2].getDescription());
 		assertEquals("", response.getJobs()[0].getParameters()[2].getDefaultValue());
 	}

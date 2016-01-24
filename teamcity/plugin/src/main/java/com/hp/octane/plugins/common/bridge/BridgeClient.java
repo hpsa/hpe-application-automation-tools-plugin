@@ -6,8 +6,10 @@ import com.hp.mqm.client.exception.TemporarilyUnavailableException;
 import com.hp.octane.plugins.common.bridge.tasks.CITaskService;
 import com.hp.octane.plugins.common.bridge.tasks.CITaskServiceFactory;
 import com.hp.octane.plugins.common.configuration.ServerConfiguration;
-import com.hp.octane.plugins.jetbrains.teamcity.DummyPluginConfiguration;
+import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.client.MqmRestClientFactory;
+import com.hp.octane.plugins.jetbrains.teamcity.utils.Config;
+import com.hp.octane.plugins.jetbrains.teamcity.utils.ConfigManager;
 import net.sf.json.JSONArray;
 
 import javax.annotation.Nonnull;
@@ -19,8 +21,10 @@ import java.util.logging.Logger;
 
 public class BridgeClient {
     private static final Logger logger = Logger.getLogger(BridgeClient.class.getName());
-    private static final String serverInstanceId = DummyPluginConfiguration.identity;//UUID.randomUUID().toString();//
-    private static final String ciLocation = "http://localhost:8888/httpAuth";//
+    private static  String serverInstanceId;
+    private static ConfigManager m_ConfigManager;
+  //  private static final String serverInstanceId =
+    private static final String ciLocation = "http://locahost:8081";//
 
     private ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
     private ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30, new AbridgedTasksExecutorsFactory());
@@ -31,6 +35,11 @@ public class BridgeClient {
     private CITaskService ciTaskService;
 
     public BridgeClient(ServerConfiguration mqmConfig,String ciType) {
+
+        NGAPlugin ngaPlugin = NGAPlugin.getInstance();
+        Config cfg = ngaPlugin.getConfig();
+        serverInstanceId = cfg.getIdentity();
+
         this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password, mqmConfig.impersonatedUser);
         this.ciType = ciType;
         ciTaskService = CITaskServiceFactory.create(ciType);

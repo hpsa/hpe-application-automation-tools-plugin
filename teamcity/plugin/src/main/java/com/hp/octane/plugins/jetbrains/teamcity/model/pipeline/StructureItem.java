@@ -1,6 +1,7 @@
 package com.hp.octane.plugins.jetbrains.teamcity.model.pipeline;
 
-import com.hp.octane.plugins.jetbrains.teamcity.model.api.ParameterConfig;
+import com.hp.nga.integrations.dto.parameters.ParameterConfig;
+import com.hp.octane.plugins.jetbrains.teamcity.model.api.AbstractPhase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,7 +9,7 @@ import java.util.List;
 /**
  * Created by lazara on 06/01/2016.
  */
-public class StructureItem {
+public class StructureItem{
 
     public StructureItem(String name, String externalId) {
         this.name = name;
@@ -31,15 +32,15 @@ public class StructureItem {
     String id;
     List<ParameterConfig> parameters = new ArrayList<ParameterConfig>();
 
-    public void addPhasesInternal(StructurePhase phaseInternal) {
+    public void addPhasesInternal(AbstractPhase phaseInternal) {
         this.phasesInternal.add(phaseInternal);
     }
 
 
-    public List<StructurePhase> getPhasesInternal() {
+    public List<AbstractPhase> getPhasesInternal() {
         return phasesInternal;
     }
 
-    List<StructurePhase> phasesInternal = new ArrayList<StructurePhase>();
+    List<AbstractPhase> phasesInternal = new ArrayList<AbstractPhase>();
 
 }

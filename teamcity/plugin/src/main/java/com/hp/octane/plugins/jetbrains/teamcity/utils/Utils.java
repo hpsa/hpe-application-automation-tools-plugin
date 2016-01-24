@@ -1,12 +1,9 @@
 package com.hp.octane.plugins.jetbrains.teamcity.utils;
 
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
+import com.hp.nga.integrations.serialization.SerializationService;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.io.PrintWriter;
 
 /**
@@ -14,15 +11,15 @@ import java.io.PrintWriter;
  */
 public class Utils {
 
-    public static void updateResponse( Object state, HttpServletRequest request, HttpServletResponse response) throws Exception {
+    public static void updateResponse( Object result, HttpServletRequest request, HttpServletResponse response) throws Exception {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         StringBuilder data = new StringBuilder();
 
         //BuildConfigurationHolder state = (BuildConfigurationHolder)map.get("ViewState");
 
-        if (state != null) {
-            data.append(Utils.jacksonRendering(state));
+        if (result != null) {
+            data.append(SerializationService.toJSON(result));
         }
 
         String[] jsonp = request.getParameterValues("jsonp");
@@ -35,19 +32,5 @@ public class Utils {
         }
         PrintWriter writer = response.getWriter();
         writer.write(data.toString());
-    }
-    public static String jacksonRendering(Object obj){
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.enable(SerializationConfig.Feature.INDENT_OUTPUT);
-            String str = mapper.writeValueAsString(obj);
-            return str;
-        }catch (JsonParseException e){
-            e.printStackTrace();
-        }catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return null;
     }
 }
