@@ -2,11 +2,11 @@
 <NGAconfig>
     <identity></identity>
     <identityFrom></identityFrom>
-    <uiLocation>http://localhost:8080/ui?p=2001</uiLocation>
-    <username>test@hp.com</username>
-    <secretPassword>ido</secretPassword>
+    <uiLocation>http://localhost.emea.hpqcorp.net:8080/ui/?p=3001</uiLocation>
+    <username>i@a.com</username>
+    <secretPassword></secretPassword>
     <impersonatedUser></impersonatedUser>
     <location>http://localhost.emea.hpqcorp.net:8080</location>
-    <sharedSpace>2001</sharedSpace>
+    <sharedSpace>3001</sharedSpace>
 </NGAconfig>
 

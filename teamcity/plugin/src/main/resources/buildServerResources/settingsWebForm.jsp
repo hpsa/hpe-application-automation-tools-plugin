@@ -41,6 +41,34 @@
 
     </script>
 
+
+
+
+    <script>
+        function checkConnection() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (xhttp.readyState == 4 && xhttp.status == 200)
+                    message_box_div.innerHTML  = xhttp.responseText;
+                else
+                    message_box_div.innerHTML  = "Error"
+
+            };
+            var server= encodeURIComponent(document.getElementById("server").value);
+            var username = encodeURIComponent(document.getElementById("username1").value);
+            var password =encodeURIComponent(document.getElementById("password1").value);
+
+            var parameters = "server="+server+"&username1="+username+"&password1="+password;
+
+            xhttp.open("POST", "/octane/testConnection/", true)
+            xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+            xhttp.send(parameters)
+        }
+
+    </script>
+
+
+
 </head>
 <body>
 
@@ -92,7 +120,7 @@
 
                 <input type="button" value="Save" class="btn btn_primary submitButton "   onClick="saveParams()"  />
 
-                <input type="button" value="Test connection" class="btn btn_primary submitButton " id="testConnection"    />
+                <input type="button" value="Test connection" class="btn btn_primary submitButton " id="testConnection"  onClick="checkConnection()"  />
 
             </div>
         </div>

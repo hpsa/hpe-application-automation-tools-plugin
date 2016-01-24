@@ -46,11 +46,15 @@ public class TaskProcessor implements Runnable {
 			response = ciTaskService.getStatus();
 		}else if(url.contains("jobs")){
 			response = ciTaskService.getProjects(false);
-		}else if(url.contains("structure")){
+		}else if(url.contains("/structure")){
 			//String ciId = url.substring(/([^/]+)(?=/[^/]+/?$)/); url.indexOf("/job");
 			String ciId = url.substring(url.indexOf("/job")+5, url.indexOf("/octane"));
 			logger.info("BRIDGE: processing structure '" + ciId);
 			response = ciTaskService.getStructure(ciId);
+		}else if(url.contains("/live")){
+			String ciId = url.substring(url.indexOf("/job")+5, url.indexOf("/octane"));
+			logger.info("BRIDGE: processing live '" + ciId);
+			response = ciTaskService.getSnapshot(ciId);
 		}
 		MqmRestClient restClient = MqmRestClientFactory.create(
 				ciType,
