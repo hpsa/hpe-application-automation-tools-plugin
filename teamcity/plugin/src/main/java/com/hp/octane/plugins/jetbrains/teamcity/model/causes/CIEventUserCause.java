@@ -20,7 +20,7 @@ public class CIEventUserCause implements CIEventCauseBase {
 
 	@Override
 	public CIEventCauseType getType() {
-		return type;
+		return CIEventCauseType.USER;
 	}
 
 

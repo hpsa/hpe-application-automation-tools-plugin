@@ -1,5 +1,7 @@
 package com.hp.octane.plugins.jetbrains.teamcity.model.snapshots;
 
+import com.hp.nga.integrations.dto.builds.SnapshotNodeResult;
+import com.hp.nga.integrations.dto.builds.SnapshotNodeStatus;
 import com.hp.octane.plugins.jetbrains.teamcity.model.causes.CIEventCauseBase;
 import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.StructureItem;
 
@@ -7,7 +9,14 @@ import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.StructureItem;
  * Created by lazara on 12/01/2016.
  */
 public class SnapshotItem extends StructureItem{
-    private String status;
+
+    public SnapshotNodeStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(SnapshotNodeStatus status) {
+        this.status = status;
+    }
 
     public SnapshotItem(String name, String id) {
         super(name,id);
@@ -45,14 +54,6 @@ public class SnapshotItem extends StructureItem{
         this.duration = duration;
     }
 
-    private Integer number = null;
-//    private SnapshotStatus status = SnapshotStatus.UNAVAILABLE;
-//    private SnapshotResult result = SnapshotResult.UNAVAILABLE;
-    private Long estimatedDuration = null;
-    private Long startTime = null;
-    private Long duration = null;
-    private CIEventCauseBase[] causes = null;
-
     public CIEventCauseBase[] getCauses() {
         return causes;
     }
@@ -61,14 +62,31 @@ public class SnapshotItem extends StructureItem{
         this.causes = causes;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setResult(SnapshotNodeResult result) {
+        this.result = result;
     }
 
-    public String getStatus() {
-        return status;
+    public SnapshotNodeResult getResult() {
+        return result;
     }
-//    private SCMData scmData = null;
+
+
+    public String getScmData() {
+        return scmData;
+    }
+
+    public void setScmData(String scmData) {
+        this.scmData = scmData;
+    }
+
+    private String scmData = null;
+    private Integer number = null;
+    private Long estimatedDuration = null;
+    private Long startTime = null;
+    private Long duration = null;
+    private CIEventCauseBase[] causes = null;
+    private SnapshotNodeResult result;
+    private SnapshotNodeStatus status;
 
 
 }
