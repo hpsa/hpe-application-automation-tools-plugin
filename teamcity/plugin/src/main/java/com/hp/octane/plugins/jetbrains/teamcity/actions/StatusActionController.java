@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jetbrains.teamcity.actions;
 
-import com.hp.nga.integrations.dto.general.PluginInfo;
+import com.hp.nga.integrations.dto.general.PluginInfoDTO;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.Config;
 import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;
@@ -81,8 +81,8 @@ public class StatusActionController extends AbstractActionController {
             return new ServerInfo();
         }
 
-        public PluginInfo getPlugin() {
-            return new PluginInfo();
+        public PluginInfoDTO getPlugin() {
+            return new PluginInfoDTO();
         }
 
 //        public List<EventsClient> getEventsClients() {

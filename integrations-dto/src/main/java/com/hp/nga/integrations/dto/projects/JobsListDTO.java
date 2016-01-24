@@ -9,7 +9,7 @@ import com.hp.nga.integrations.dto.parameters.ParameterConfig;
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ProjectsList {
+public class JobsListDTO {
 	private ProjectConfig[] jobs = new ProjectConfig[0];
 
 	public void setJobs(ProjectConfig[] jobs) {

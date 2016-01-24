@@ -3,7 +3,7 @@ package com.hp.nga.integrations.services.bridge;
 import com.hp.nga.integrations.NGAPluginSDK;
 import com.hp.nga.integrations.api.CIPluginService;
 import com.hp.nga.integrations.dto.general.AggregatedStatusInfo;
-import com.hp.nga.integrations.dto.projects.ProjectsList;
+import com.hp.nga.integrations.dto.projects.JobsListDTO;
 import com.hp.nga.integrations.dto.rest.NGAResult;
 import com.hp.nga.integrations.dto.rest.NGATask;
 import com.hp.nga.integrations.services.serialization.SerializationService;
@@ -83,7 +83,7 @@ public class NGATaskProcessor {
 	}
 
 	private void executeProjectsListRequest(NGAResult result, boolean includingParameters) {
-		ProjectsList content = NGAPluginSDK.getInstance().getCiPluginService().getProjectsList(includingParameters);
+		JobsListDTO content = NGAPluginSDK.getInstance().getCiPluginService().getProjectsList(includingParameters);
 		result.setBody(SerializationService.toJSON(content));
 	}
 

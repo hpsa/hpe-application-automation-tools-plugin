@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.common.bridge.tasks;
 
-import com.hp.nga.integrations.dto.projects.ProjectsList;
+import com.hp.nga.integrations.dto.projects.JobsListDTO;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.actions.StatusActionController;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
@@ -18,8 +18,8 @@ public class TeamcityCITaskService implements CITaskService{
     public String getProjects(boolean withParameters) {
         //test
         ModelFactory modelFactory = new TeamCityModelFactory(NGAPlugin.getInstance().getProjectManager());
-        ProjectsList projectsList = modelFactory.CreateProjectList();
-        return SerializationService.toJSON(projectsList);
+        JobsListDTO jobsListDTO = modelFactory.CreateProjectList();
+        return SerializationService.toJSON(jobsListDTO);
     }
 
     @Override

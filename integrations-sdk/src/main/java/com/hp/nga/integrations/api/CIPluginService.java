@@ -1,10 +1,11 @@
 package com.hp.nga.integrations.api;
 
 import com.hp.nga.integrations.configuration.NGAConfiguration;
-import com.hp.nga.integrations.dto.builds.SnapshotDTO;
-import com.hp.nga.integrations.dto.general.PluginInfo;
-import com.hp.nga.integrations.dto.general.ServerInfo;
-import com.hp.nga.integrations.dto.projects.ProjectsList;
+import com.hp.nga.integrations.dto.general.PluginInfoDTO;
+import com.hp.nga.integrations.dto.general.ServerInfoDTO;
+import com.hp.nga.integrations.dto.pipelines.StructureItem;
+import com.hp.nga.integrations.dto.projects.JobsListDTO;
+import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
 
 /**
  * Created by gullery on 20/01/2016.
@@ -19,14 +20,14 @@ public interface CIPluginService {
 	 *
 	 * @return ServerInfo object; MUST NOT return null
 	 */
-	ServerInfo getServerInfo();
+	ServerInfoDTO getServerInfo();
 
 	/**
 	 * Provides Plugin's information
 	 *
 	 * @return PluginInfo object; MUST NOT return null
 	 */
-	PluginInfo getPluginInfo();
+	PluginInfoDTO getPluginInfo();
 
 	/**
 	 * Provides NGA Server configuration (managed by plugin implementation)
@@ -41,19 +42,26 @@ public interface CIPluginService {
 	 * @param includeParameters
 	 * @return ProjectList object holding the list of the projects
 	 */
-	ProjectsList getProjectsList(boolean includeParameters);
+	JobsListDTO getProjectsList(boolean includeParameters);
 
-	//  TODO: project's structure
+	/**
+	 * Provides Pipeline (structure) from the root CI Job
+	 *
+	 * @param rootCIJobId
+	 * @return
+	 */
+	StructureItem getPipeline(String rootCIJobId);
+
 	//  TODO: project's run
 	//  TODO: Almog's history API (TBR)
 
 	/**
-	 * Provisioning of Snapshot of the specified CI Build
+	 * Provides Snapshot of the specified CI Build
 	 *
-	 * @param ciProjectId
+	 * @param ciJobId
 	 * @param ciBuildId
 	 * @param subTree
 	 * @return
 	 */
-	SnapshotDTO getLatestSnapshot(String ciProjectId, String ciBuildId, boolean subTree);
+	SnapshotItem getSnapshotLatest(String ciJobId, String ciBuildId, boolean subTree);
 }

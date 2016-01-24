@@ -2,7 +2,7 @@ package com.hp.octane.plugins.jenkins.actions;
 
 import com.hp.nga.integrations.services.bridge.NGATaskProcessor;
 import com.hp.nga.integrations.dto.parameters.ParameterType;
-import com.hp.nga.integrations.dto.projects.ProjectsList;
+import com.hp.nga.integrations.dto.projects.JobsListDTO;
 import com.hp.nga.integrations.dto.rest.NGAResult;
 import com.hp.nga.integrations.dto.rest.NGATask;
 import com.hp.octane.plugins.jenkins.OctanePlugin;
@@ -156,15 +156,15 @@ public class PluginActions implements RootAction {
 		}
 	}
 
-	private ProjectsList getProjectsList(boolean areParametersNeeded) {
-		ProjectsList result = new ProjectsList();
-		ProjectsList.ProjectConfig tmpConfig;
+	private JobsListDTO getProjectsList(boolean areParametersNeeded) {
+		JobsListDTO result = new JobsListDTO();
+		JobsListDTO.ProjectConfig tmpConfig;
 		AbstractProject tmpProject;
-		List<ProjectsList.ProjectConfig> list = new ArrayList<ProjectsList.ProjectConfig>();
+		List<JobsListDTO.ProjectConfig> list = new ArrayList<JobsListDTO.ProjectConfig>();
 		List<String> itemNames = (List<String>) Jenkins.getInstance().getTopLevelItemNames();
 		for (String name : itemNames) {
 			tmpProject = (AbstractProject) Jenkins.getInstance().getItem(name);
-			tmpConfig = new ProjectsList.ProjectConfig();
+			tmpConfig = new JobsListDTO.ProjectConfig();
 			tmpConfig.setName(name);
 			tmpConfig.setCiId(name);
 			if (areParametersNeeded) {
@@ -183,7 +183,7 @@ public class PluginActions implements RootAction {
 			}
 			list.add(tmpConfig);
 		}
-		result.setJobs(list.toArray(new ProjectsList.ProjectConfig[list.size()]));
+		result.setJobs(list.toArray(new JobsListDTO.ProjectConfig[list.size()]));
 		return result;
 	}
 }

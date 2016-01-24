@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ServerInfo {
+public class ServerInfoDTO {
 	private CIServerTypes type;
 	private String version;
 	private String url;
@@ -15,10 +15,10 @@ public class ServerInfo {
 	private Long instanceIdFrom;
 	private Long sendingTime = System.currentTimeMillis();
 
-	public ServerInfo() {
+	public ServerInfoDTO() {
 	}
 
-	public ServerInfo(CIServerTypes type, String version, String url, String instanceId, Long instanceIdFrom) {
+	public ServerInfoDTO(CIServerTypes type, String version, String url, String instanceId, Long instanceIdFrom) {
 		this.type = type;
 		this.version = version;
 		this.url = normalizeURL(url);

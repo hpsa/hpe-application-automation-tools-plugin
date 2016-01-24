@@ -1,8 +1,8 @@
 package com.hp.octane.plugins.jetbrains.teamcity.factories;
 
 import com.hp.nga.integrations.dto.builds.SnapshotNodeStatus;
-import com.hp.nga.integrations.dto.projects.ProjectsList;
-import com.hp.nga.integrations.dto.projects.ProjectsList.ProjectConfig;
+import com.hp.nga.integrations.dto.projects.JobsListDTO;
+import com.hp.nga.integrations.dto.projects.JobsListDTO.ProjectConfig;
 import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.StructureItem;
 import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.StructurePhase;
 import com.hp.octane.plugins.jetbrains.teamcity.model.snapshots.SnapshotItem;
@@ -25,9 +25,9 @@ public class TeamCityModelFactory implements ModelFactory {
     }
 
     @Override
-    public ProjectsList CreateProjectList() {
+    public JobsListDTO CreateProjectList() {
 
-        ProjectsList projectsList = new ProjectsList();
+        JobsListDTO jobsListDTO = new JobsListDTO();
         List<ProjectConfig> list = new ArrayList<ProjectConfig>();
         List<String>ids = new ArrayList<String>();
 
@@ -46,8 +46,8 @@ public class TeamCityModelFactory implements ModelFactory {
             }
         }
 
-        projectsList.setJobs(list.toArray(new ProjectConfig[list.size()]));
-        return projectsList;
+        jobsListDTO.setJobs(list.toArray(new ProjectConfig[list.size()]));
+        return jobsListDTO;
     }
 
     @Override

@@ -7,13 +7,13 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PluginInfo {
+public class PluginInfoDTO {
 	private String version;
 
-	public PluginInfo() {
+	public PluginInfoDTO() {
 	}
 
-	public PluginInfo(String version) {
+	public PluginInfoDTO(String version) {
 		this.version = version;
 	}
 

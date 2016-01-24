@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jetbrains.teamcity.factories;
 
-import com.hp.nga.integrations.dto.projects.ProjectsList;
+import com.hp.nga.integrations.dto.projects.JobsListDTO;
 import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.StructureItem;
 import com.hp.octane.plugins.jetbrains.teamcity.model.snapshots.SnapshotItem;
 
@@ -9,7 +9,7 @@ import com.hp.octane.plugins.jetbrains.teamcity.model.snapshots.SnapshotItem;
  */
 public interface ModelFactory {
 
-    ProjectsList CreateProjectList();
+    JobsListDTO CreateProjectList();
 
     StructureItem createStructure(String buildConfigurationId);
 

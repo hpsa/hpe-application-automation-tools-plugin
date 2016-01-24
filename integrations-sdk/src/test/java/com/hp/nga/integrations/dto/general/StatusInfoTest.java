@@ -26,19 +26,19 @@ public class StatusInfoTest {
 	public void testA() {
 		AggregatedStatusInfo statusInfo = new AggregatedStatusInfo();
 
-		PluginInfo pluginInfo = new PluginInfo();
-		pluginInfo.setVersion(PLUGIN_VERSION);
+		PluginInfoDTO pluginInfoDTO = new PluginInfoDTO();
+		pluginInfoDTO.setVersion(PLUGIN_VERSION);
 
-		ServerInfo serverInfo = new ServerInfo();
-		serverInfo.setType(CIServerTypes.JENKINS);
-		serverInfo.setVersion(SERVER_VERION);
-		serverInfo.setInstanceId(SERVER_UUID);
-		serverInfo.setInstanceIdFrom(SERVER_UUID_FROM);
-		serverInfo.setSendingTime(SYNC_TIME);
-		serverInfo.setUrl(INPUT_SERVER_URL);
+		ServerInfoDTO serverInfoDTO = new ServerInfoDTO();
+		serverInfoDTO.setType(CIServerTypes.JENKINS);
+		serverInfoDTO.setVersion(SERVER_VERION);
+		serverInfoDTO.setInstanceId(SERVER_UUID);
+		serverInfoDTO.setInstanceIdFrom(SERVER_UUID_FROM);
+		serverInfoDTO.setSendingTime(SYNC_TIME);
+		serverInfoDTO.setUrl(INPUT_SERVER_URL);
 
-		statusInfo.setPlugin(pluginInfo);
-		statusInfo.setServer(serverInfo);
+		statusInfo.setPlugin(pluginInfoDTO);
+		statusInfo.setServer(serverInfoDTO);
 
 		String json = SerializationService.toJSON(statusInfo);
 
