@@ -9,7 +9,6 @@ package com.hp.octane.plugins.jetbrains.teamcity.model.causes;
  */
 
 public class CIEventUpstreamCause implements CIEventCauseBase {
-	private CIEventCauseType type = CIEventCauseType.UPSTREAM;
 
 	private String project;
 	private int number;
@@ -23,7 +22,7 @@ public class CIEventUpstreamCause implements CIEventCauseBase {
 
 	@Override
 	public CIEventCauseType getType() {
-		return type;
+		return CIEventCauseType.UPSTREAM;
 	}
 
 	public String getProject() {
