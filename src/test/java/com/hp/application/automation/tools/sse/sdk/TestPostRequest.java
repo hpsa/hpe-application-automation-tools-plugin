@@ -1,16 +1,15 @@
 package com.hp.application.automation.tools.sse.sdk;
 
-import java.util.Map;
-
-import org.junit.Assert;
-import org.junit.Test;
-
 import com.hp.application.automation.tools.rest.RestClient;
 import com.hp.application.automation.tools.sse.common.StringUtils;
 import com.hp.application.automation.tools.sse.common.TestCase;
 import com.hp.application.automation.tools.sse.sdk.request.PostRequest;
+import org.junit.Assert;
+import org.junit.Test;
 
-public class TestPostRequest implements TestCase {
+import java.util.Map;
+
+public class TestPostRequest extends TestCase {
     
     @Test
     public void testPostRequestException() {

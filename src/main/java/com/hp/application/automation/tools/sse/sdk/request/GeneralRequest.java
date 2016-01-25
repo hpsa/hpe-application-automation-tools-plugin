@@ -1,19 +1,20 @@
 package com.hp.application.automation.tools.sse.sdk.request;
 
-import java.util.Map;
-
 import com.hp.application.automation.tools.sse.sdk.Client;
 import com.hp.application.automation.tools.sse.sdk.Response;
+
+import java.util.Map;
 
 /**
  * Created by barush on 29/10/2014.
  */
 public abstract class GeneralRequest {
     
-    protected final Client client;
+    protected final Client _client;
     
     protected GeneralRequest(Client client) {
-        this.client = client;
+
+        _client = client;
     }
     
     public final Response execute() {
@@ -46,7 +47,6 @@ public abstract class GeneralRequest {
     
     protected String getUrl() {
         
-        return client.buildRestRequest(getSuffix());
+        return _client.buildRestRequest(getSuffix());
     }
-    
 }

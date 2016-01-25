@@ -1,16 +1,15 @@
 package com.hp.application.automation.tools.sse.sdk;
 
-import java.net.HttpURLConnection;
-import java.util.Map;
-
-import org.junit.Assert;
-import org.junit.Test;
-
 import com.hp.application.automation.tools.rest.RestClient;
 import com.hp.application.automation.tools.sse.common.TestCase;
 import com.hp.application.automation.tools.sse.sdk.handler.EventLogHandler;
+import org.junit.Assert;
+import org.junit.Test;
 
-public class TestEventLogHandler implements TestCase {
+import java.net.HttpURLConnection;
+import java.util.Map;
+
+public class TestEventLogHandler extends TestCase {
     
     String _expectedEventLogUrl =
             URL

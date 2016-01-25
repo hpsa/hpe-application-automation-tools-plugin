@@ -1,15 +1,14 @@
 package com.hp.application.automation.tools.results.service.rest;
 
+import com.hp.application.automation.tools.common.Pair;
+import com.hp.application.automation.tools.rest.RESTConstants;
+import com.hp.application.automation.tools.results.service.almentities.AlmEntity;
+import com.hp.application.automation.tools.sse.sdk.Client;
+import com.hp.application.automation.tools.sse.sdk.request.PostRequest;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.hp.application.automation.tools.common.Pair;
-import com.hp.application.automation.tools.rest.HttpHeaders;
-import com.hp.application.automation.tools.results.service.almentities.AlmEntity;
-import com.hp.application.automation.tools.sse.common.RestXmlUtils;
-import com.hp.application.automation.tools.sse.sdk.Client;
-import com.hp.application.automation.tools.sse.sdk.request.PostRequest;
 
 public class CreateAlmEntityRequest extends PostRequest {
 	
@@ -26,8 +25,8 @@ public class CreateAlmEntityRequest extends PostRequest {
     protected Map<String, String> getHeaders() {
 
         Map<String, String> ret = new HashMap<String, String>();
-        ret.put(HttpHeaders.CONTENT_TYPE, RestXmlUtils.APP_XML);
-        ret.put(HttpHeaders.ACCEPT, RestXmlUtils.APP_XML);
+        ret.put(RESTConstants.CONTENT_TYPE, RESTConstants.APP_XML);
+        ret.put(RESTConstants.ACCEPT, RESTConstants.APP_XML);
         ret.put(IGNORE_REQUIRED_FIELDS_VALIDATION, "Y");
         return ret;
     }
