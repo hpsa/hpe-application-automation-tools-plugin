@@ -284,43 +284,77 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
         FilePath rootTarget = new FilePath(reportDir);
 
-        for (ReportMetaData htmlReportInfo : htmlReportsInfo) {
+        try {
+            for (ReportMetaData htmlReportInfo : htmlReportsInfo) {
 
-            //make sure it's a html report
-            if(!htmlReportInfo.getIsHtmlReport())
-            {
-                continue;
-            }
-            String htmlReportDir = htmlReportInfo.getFolderPath(); //C:\UFTTest\GuiTest1\Report
+                //make sure it's a html report
+                if(!htmlReportInfo.getIsHtmlReport())
+                {
+                    continue;
+                }
+                String htmlReportDir = htmlReportInfo.getFolderPath(); //C:\UFTTest\GuiTest1\Report
 
-            listener.getLogger().println("collectAndPrepareHtmlReports, collecting:" + htmlReportDir);
+                listener.getLogger().println("collectAndPrepareHtmlReports, collecting:" + htmlReportDir);
 
-            //copy to the subdirs of master
-            FilePath source = new FilePath(build.getWorkspace(), htmlReportDir);
-            String testName = htmlReportInfo.getDisPlayName();  //like "GuiTest1"
-            //File testFileFullName = new File(testFullName);
-            //String testName = testFileFullName.getName();  //like GuiTest1
-            String dest = testName;
-            FilePath targetPath = new FilePath(rootTarget, dest);  //target path is something like "C:\Program Files (x86)\Jenkins\jobs\testAction\builds\35\archive\UFTReport\GuiTest1"
-            listener.getLogger().println("copying html report, source: " + source.getRemote() + " target: " + targetPath.getRemote());
-            source.copyRecursiveTo(targetPath);
+                //copy to the subdirs of master
+                FilePath source = new FilePath(build.getWorkspace(), htmlReportDir);
+                String testName = htmlReportInfo.getDisPlayName();  //like "GuiTest1"
+                //File testFileFullName = new File(testFullName);
+                //String testName = testFileFullName.getName();  //like GuiTest1
+                String dest = testName;
+                FilePath targetPath = new FilePath(rootTarget, dest);  //target path is something like "C:\Program Files (x86)\Jenkins\jobs\testAction\builds\35\archive\UFTReport\GuiTest1"
+                //listener.getLogger().println("copying html report, source: " + source.getRemote() + " target: " + targetPath.getRemote());
+                //source.copyRecursiveTo(targetPath);
 
-            //just test some url value
+                //zip copy and unzip
+                ByteArrayOutputStream outstr = new ByteArrayOutputStream();
+
+                //don't use FileFilter for zip, or it will cause bug when files are on slave
+                source.zip(outstr);
+                ByteArrayInputStream instr = new ByteArrayInputStream(outstr.toByteArray());
+
+                String zipFileName = "UFT_Report_HTML_tmp.zip";
+                FilePath archivedFile = new FilePath(rootTarget, zipFileName);
+
+                archivedFile.copyFrom(instr);
+
+                listener.getLogger().println("copy from slave to master: " + archivedFile);
+                outstr.close();
+                instr.close();
+
+                //unzip
+                archivedFile.unzip(rootTarget);
+                archivedFile.delete();
+
+                //now,all the files are in the C:\Program Files (x86)\Jenkins\jobs\testAction\builds\35\archive\UFTReport\Report
+                //we need to rename the above path to targetPath.
+                //So at last we got files in C:\Program Files (x86)\Jenkins\jobs\testAction\builds\35\archive\UFTReport\GuiTest
+
+                FilePath unzippedFolderPath = new FilePath(rootTarget, source.getName());  //C:\Program Files (x86)\Jenkins\jobs\testAction\builds\35\archive\UFTReport\Report
+                unzippedFolderPath.renameTo(targetPath);
+                //end zip copy and unzip
+
+                //just test some url value
 //            String buildurl = build.getUrl();  //like "job/testAction/46/"
 //            listener.getLogger().println("build url is: " + buildurl);
 //
 //            String rootUrl = Hudson.getInstance().getRootUrl();  //http://localhost:8080/
 //            listener.getLogger().println("root url is: " + rootUrl);
-            //end -test some url value
+                //end -test some url value
 
-            //fill in the urlName of this report. we need a network path not a FS path
-            String resourceUrl = htmlReportInfo.getResourceURL();
-            String urlName = resourceUrl + "/run_results.html"; //like artifact/UFTReport/GuiTest1/run_results.html
+                //fill in the urlName of this report. we need a network path not a FS path
+                String resourceUrl = htmlReportInfo.getResourceURL();
+                String urlName = resourceUrl + "/run_results.html"; //like artifact/UFTReport/GuiTest1/run_results.html
 
-            listener.getLogger().println("set the report urlName to " + urlName);
-            htmlReportInfo.setUrlName(urlName);
+                listener.getLogger().println("set the report urlName to " + urlName);
+                htmlReportInfo.setUrlName(urlName);
 
+            }
         }
+        catch(Exception ex) {
+            listener.getLogger().println("catch exception in collectAndPrepareHtmlReports: " + ex.toString());
+        }
+
 
         return true;
     }
