@@ -1,12 +1,11 @@
 package com.hp.octane.plugins.jenkins.actions;
 
-import com.hp.nga.integrations.services.bridge.NGATaskProcessor;
-import com.hp.nga.integrations.dto.parameters.ParameterType;
+import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 import com.hp.nga.integrations.dto.projects.JobsListDTO;
 import com.hp.nga.integrations.dto.rest.NGAResult;
 import com.hp.nga.integrations.dto.rest.NGATask;
+import com.hp.nga.integrations.services.bridge.NGATaskProcessor;
 import com.hp.octane.plugins.jenkins.OctanePlugin;
-import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import hudson.Extension;
 import hudson.model.AbstractProject;
@@ -168,15 +167,15 @@ public class PluginActions implements RootAction {
 			tmpConfig.setName(name);
 			tmpConfig.setCiId(name);
 			if (areParametersNeeded) {
-				ParameterConfig[] tmpList = ParameterProcessors.getConfigs(tmpProject);
+				List<ParameterConfig> tmpList = ParameterProcessors.getConfigs(tmpProject);
 				List<com.hp.nga.integrations.dto.parameters.ParameterConfig> configs = new ArrayList<com.hp.nga.integrations.dto.parameters.ParameterConfig>();
 				for (ParameterConfig pc : tmpList) {
 					configs.add(new com.hp.nga.integrations.dto.parameters.ParameterConfig(
-							ParameterType.fromValue(pc.getType()),
+							pc.getType(),
 							pc.getName(),
 							pc.getDescription(),
 							pc.getDefaultValue(),
-							pc.getChoices() == null ? null : pc.getChoices().toArray(new Object[pc.getChoices().size()])
+							pc.getChoices() == null ? null : pc.getChoices()
 					));
 				}
 				tmpConfig.setParameters(configs.toArray(new com.hp.nga.integrations.dto.parameters.ParameterConfig[configs.size()]));

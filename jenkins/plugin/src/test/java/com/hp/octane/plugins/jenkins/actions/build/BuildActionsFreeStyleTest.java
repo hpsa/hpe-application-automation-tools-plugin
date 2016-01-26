@@ -1,10 +1,10 @@
 package com.hp.octane.plugins.jenkins.actions.build;
 
 import com.gargoylesoftware.htmlunit.Page;
+import com.hp.nga.integrations.dto.parameters.ParameterType;
 import com.hp.nga.integrations.dto.snapshots.SnapshotResult;
 import com.hp.nga.integrations.dto.snapshots.SnapshotStatus;
 import com.hp.octane.plugins.jenkins.actions.Utils;
-import com.hp.octane.plugins.jenkins.model.parameters.ParameterType;
 import hudson.model.*;
 import hudson.plugins.parameterizedtrigger.*;
 import org.json.JSONArray;

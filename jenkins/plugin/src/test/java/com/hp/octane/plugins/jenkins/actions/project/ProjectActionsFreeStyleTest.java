@@ -1,7 +1,7 @@
 package com.hp.octane.plugins.jenkins.actions.project;
 
 import com.gargoylesoftware.htmlunit.Page;
-import com.hp.octane.plugins.jenkins.model.parameters.ParameterType;
+import com.hp.nga.integrations.dto.parameters.ParameterType;
 import hudson.matrix.MatrixProject;
 import hudson.maven.MavenModuleSet;
 import hudson.model.*;

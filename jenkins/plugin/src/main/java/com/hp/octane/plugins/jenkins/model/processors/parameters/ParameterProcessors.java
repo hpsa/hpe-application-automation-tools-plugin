@@ -1,19 +1,11 @@
 package com.hp.octane.plugins.jenkins.model.processors.parameters;
 
-import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
+import com.hp.nga.integrations.dto.parameters.ParameterConfig;
+import com.hp.nga.integrations.dto.parameters.ParameterType;
 import com.hp.octane.plugins.jenkins.model.api.ParameterInstance;
-import com.hp.octane.plugins.jenkins.model.parameters.ParameterType;
-import hudson.matrix.Axis;
-import hudson.matrix.AxisList;
-import hudson.matrix.Combination;
-import hudson.matrix.MatrixConfiguration;
-import hudson.matrix.MatrixProject;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.ParameterDefinition;
-import hudson.model.ParameterValue;
-import hudson.model.ParametersAction;
-import hudson.model.ParametersDefinitionProperty;
+import com.hp.octane.plugins.jenkins.model.pipelines.PipelinesFactory;
+import hudson.matrix.*;
+import hudson.model.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,7 +33,7 @@ public enum ParameterProcessors {
 		this.processorClass = processorClass;
 	}
 
-	public static ParameterConfig[] getConfigs(AbstractProject project) {
+	public static List<ParameterConfig> getConfigs(AbstractProject project) {
 		ArrayList<ParameterConfig> result = new ArrayList<ParameterConfig>();
 
 		List<ParameterDefinition> paramDefinitions;
@@ -61,11 +53,12 @@ public enum ParameterProcessors {
 		if (project instanceof MatrixProject) {
 			AxisList axisList = ((MatrixProject) project).getAxes();
 			for (Axis axis : axisList) {
-				result.add(new ParameterConfig(axis.getName(), ParameterType.AXIS, new ArrayList<Object>(axis.getValues())));
+				result.add(PipelinesFactory.createParameterConfig(axis.getName(), ParameterType.AXIS, new ArrayList<Object>(axis.getValues())));
 			}
 		}
-		ParameterConfig[] params = new ParameterConfig[result.size()];
-		return result.toArray(params);
+//		ParameterConfig[] params = new ParameterConfig[result.size()];
+//		return result.toArray(params);
+		return result;
 	}
 
 	//  TODO: the below mapping between param configs and values based on param name uniqueness, beware!
@@ -89,7 +82,7 @@ public enum ParameterProcessors {
 		if (project instanceof MatrixConfiguration) {
 			Combination combination = ((MatrixConfiguration) project).getCombination();
 			for (Map.Entry<String, String> entry : combination.entrySet()) {
-				result.add(new ParameterInstance(new ParameterConfig(entry.getKey(), ParameterType.AXIS, Collections.emptyList()), entry.getValue()));
+				result.add(new ParameterInstance(PipelinesFactory.createParameterConfig(entry.getKey(), ParameterType.AXIS, Collections.emptyList()), entry.getValue()));
 			}
 		}
 

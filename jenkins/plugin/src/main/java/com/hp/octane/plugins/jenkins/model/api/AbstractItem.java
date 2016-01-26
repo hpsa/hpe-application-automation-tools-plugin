@@ -1,5 +1,6 @@
 package com.hp.octane.plugins.jenkins.model.api;
 
+import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 import com.hp.octane.plugins.jenkins.model.processors.projects.AbstractProjectProcessor;
 import hudson.model.AbstractProject;
 import org.kohsuke.stapler.export.Exported;

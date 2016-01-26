@@ -1,13 +1,13 @@
 package com.hp.octane.plugins.jenkins.model.processors.parameters;
 
-import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
+import com.hp.nga.integrations.dto.parameters.ParameterConfig;
+import com.hp.nga.integrations.dto.parameters.ParameterType;
 import com.hp.octane.plugins.jenkins.model.api.ParameterInstance;
-import com.hp.octane.plugins.jenkins.model.parameters.ParameterType;
+import com.hp.octane.plugins.jenkins.model.pipelines.PipelinesFactory;
 import hudson.model.ParameterDefinition;
 import hudson.model.ParameterValue;
 import org.jvnet.jenkins.plugins.nodelabelparameter.LabelParameterDefinition;
 import org.jvnet.jenkins.plugins.nodelabelparameter.NodeParameterDefinition;
-import org.jvnet.jenkins.plugins.nodelabelparameter.parameterizedtrigger.NodeLabelBuildParameter;
 
 import java.util.ArrayList;
 
@@ -23,12 +23,12 @@ public class NodeLabelParameterProcessor extends AbstractParametersProcessor {
 	public ParameterConfig createParameterConfig(ParameterDefinition pd) {
 		if (pd instanceof NodeParameterDefinition) {
 			NodeParameterDefinition nodePd = (NodeParameterDefinition) pd;
-			return new ParameterConfig(pd, ParameterType.STRING, new ArrayList<Object>(nodePd.allowedSlaves));
+			return PipelinesFactory.createParameterConfig(pd, ParameterType.STRING, new ArrayList<Object>(nodePd.allowedSlaves));
 		} else if (pd instanceof LabelParameterDefinition) {
 			LabelParameterDefinition labelPd = (LabelParameterDefinition) pd;
-			return new ParameterConfig(pd, ParameterType.STRING);
+			return PipelinesFactory.createParameterConfig(pd, ParameterType.STRING);
 		} else {
-			return new ParameterConfig(pd);
+			return PipelinesFactory.createParameterConfig(pd);
 		}
 	}
 

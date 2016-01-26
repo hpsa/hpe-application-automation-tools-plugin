@@ -1,6 +1,7 @@
 package com.hp.octane.plugins.jenkins.model.processors.builders;
 
-import com.hp.octane.plugins.jenkins.model.pipelines.StructurePhase;
+import com.hp.nga.integrations.dto.pipelines.StructurePhase;
+import com.hp.octane.plugins.jenkins.model.pipelines.PipelinesFactory;
 import hudson.model.AbstractProject;
 import hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig;
 import hudson.plugins.parameterizedtrigger.BuildTrigger;
@@ -38,7 +39,9 @@ public class ParameterizedTriggerProcessor extends AbstractBuilderProcessor {
 					logger.severe("encountered null project reference; considering it as corrupted configuration and skipping");
 				}
 			}
-			super.phases.add(new StructurePhase(phasesName, config.getBlock() != null, items));
+//			super.phases.add(new StructurePhase(phasesName, config.getBlock() != null, items));
+			super.phases.add(PipelinesFactory.createStructurePhase(phasesName, config.getBlock() != null, items));
+
 		}
 	}
 
@@ -55,7 +58,9 @@ public class ParameterizedTriggerProcessor extends AbstractBuilderProcessor {
 					logger.severe("encountered null project reference; considering it as corrupted configuration and skipping");
 				}
 			}
-			super.phases.add(new StructurePhase(phasesName, false, items));
+//			super.phases.add(new StructurePhase(phasesName, false, items));
+			super.phases.add(PipelinesFactory.createStructurePhase(phasesName, false, items));
+
 		}
 	}
 }

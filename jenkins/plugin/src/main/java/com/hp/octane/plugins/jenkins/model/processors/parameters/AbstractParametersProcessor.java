@@ -1,11 +1,9 @@
 package com.hp.octane.plugins.jenkins.model.processors.parameters;
 
-import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
+import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 import com.hp.octane.plugins.jenkins.model.api.ParameterInstance;
-import hudson.model.*;
-
-import java.util.ArrayList;
-import java.util.List;
+import hudson.model.ParameterDefinition;
+import hudson.model.ParameterValue;
 
 /**
  * Created by gullery on 19/02/2015.

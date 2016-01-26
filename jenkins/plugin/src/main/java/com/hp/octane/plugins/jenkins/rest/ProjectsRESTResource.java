@@ -1,23 +1,9 @@
 package com.hp.octane.plugins.jenkins.rest;
 
+import com.hp.nga.integrations.dto.parameters.ParameterType;
 import com.hp.octane.plugins.jenkins.OctanePlugin;
-import com.hp.octane.plugins.jenkins.model.parameters.ParameterType;
-import com.hp.octane.plugins.jenkins.model.pipelines.StructureItem;
-import hudson.model.AbstractProject;
-import hudson.model.BooleanParameterValue;
-import hudson.model.BuildAuthorizationToken;
-import hudson.model.Cause;
-import hudson.model.FileParameterDefinition;
-import hudson.model.FileParameterValue;
-import hudson.model.Job;
-import hudson.model.ParameterDefinition;
-import hudson.model.ParameterValue;
-import hudson.model.ParametersAction;
-import hudson.model.ParametersDefinitionProperty;
-import hudson.model.PasswordParameterValue;
-import hudson.model.StringParameterValue;
-import hudson.model.TopLevelItem;
-import hudson.model.User;
+import com.hp.octane.plugins.jenkins.model.pipelines.PipelinesFactory;
+import hudson.model.*;
 import hudson.security.ACL;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
@@ -76,7 +62,7 @@ public class ProjectsRESTResource {
 
 	private void serveProjectStructure(AbstractProject project, StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
 		if ("GET".equals(req.getMethod())) {
-			res.serveExposedBean(req, new StructureItem(project), Flavor.JSON);
+			res.serveExposedBean(req, PipelinesFactory.createStructureItem(project)/*new StructureItem(project)*/, Flavor.JSON);
 		} else {
 			res.setStatus(405);
 		}
@@ -171,7 +157,7 @@ public class ProjectsRESTResource {
 					JSONObject paramJSON = paramsJSON.getJSONObject(i);
 					if (paramJSON.has("name") && paramJSON.get("name") != null && paramJSON.get("name").equals(paramDef.getName())) {
 						tmpValue = null;
-						switch (ParameterType.getByValue(paramJSON.getString("type"))) {
+						switch (ParameterType.fromValue(paramJSON.getString("type"))) {
 							case FILE:
 								try {
 									FileItemFactory fif = new DiskFileItemFactory();

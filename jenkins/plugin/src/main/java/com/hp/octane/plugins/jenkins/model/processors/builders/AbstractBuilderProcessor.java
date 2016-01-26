@@ -1,6 +1,7 @@
 package com.hp.octane.plugins.jenkins.model.processors.builders;
 
-import com.hp.octane.plugins.jenkins.model.pipelines.StructurePhase;
+
+import com.hp.nga.integrations.dto.pipelines.StructurePhase;
 
 import java.util.ArrayList;
 import java.util.List;

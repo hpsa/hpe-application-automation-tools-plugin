@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jenkins.model.processors.projects;
 
-import com.hp.octane.plugins.jenkins.model.pipelines.StructurePhase;
+import com.hp.nga.integrations.dto.pipelines.StructurePhase;
 import com.hp.octane.plugins.jenkins.model.processors.builders.AbstractBuilderProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.builders.BuildTriggerProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.builders.MultiJobBuilderProcessor;
@@ -70,12 +70,16 @@ public abstract class AbstractProjectProcessor {
 		}
 	}
 
-	public StructurePhase[] getInternals() {
-		return internals.toArray(new StructurePhase[internals.size()]);
+//	public StructurePhase[] getInternals() {
+//		return internals.toArray(new StructurePhase[internals.size()]);
+//	}
+
+	public List<StructurePhase> getInternals() {
+		return internals;
 	}
 
-	public StructurePhase[] getPostBuilds() {
-		return postBuilds.toArray(new StructurePhase[postBuilds.size()]);
+	public List<StructurePhase> getPostBuilds() {
+		return postBuilds;
 	}
 
 	public static AbstractProjectProcessor getFlowProcessor(AbstractProject project) {

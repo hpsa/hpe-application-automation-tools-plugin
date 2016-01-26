@@ -1,17 +1,17 @@
 package com.hp.octane.plugins.jenkins.model.snapshots;
 
 import com.hp.nga.integrations.dto.causes.CIEventCauseBase;
+import com.hp.nga.integrations.dto.pipelines.StructureItem;
+import com.hp.nga.integrations.dto.pipelines.StructurePhase;
+import com.hp.nga.integrations.dto.scm.SCMData;
 import com.hp.nga.integrations.dto.snapshots.SnapshotResult;
 import com.hp.nga.integrations.dto.snapshots.SnapshotStatus;
 import com.hp.octane.plugins.jenkins.model.api.AbstractItem;
 import com.hp.octane.plugins.jenkins.model.api.ParameterInstance;
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCausesFactory;
-import com.hp.octane.plugins.jenkins.model.pipelines.StructureItem;
-import com.hp.octane.plugins.jenkins.model.pipelines.StructurePhase;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessors;
-import com.hp.octane.plugins.jenkins.model.scm.SCMData;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Cause;
@@ -77,8 +77,8 @@ public final class SnapshotItem extends AbstractItem<ParameterInstance, Snapshot
 		setParameters(ParameterProcessors.getInstances(build));
 
 		if (!metaOnly) {
-			StructurePhase[] tmpStructurePhasesInternals = super.getFlowProcessor().getInternals();
-			StructurePhase[] tmpStructurePhasesPostBuilds = super.getFlowProcessor().getPostBuilds();
+			List<StructurePhase> tmpStructurePhasesInternals = super.getFlowProcessor().getInternals();
+			List<StructurePhase> tmpStructurePhasesPostBuilds = super.getFlowProcessor().getPostBuilds();
 			ArrayList<String> invokeesNames = new ArrayList<String>();
 			appendInvokeesNames(invokeesNames, tmpStructurePhasesInternals);
 			appendInvokeesNames(invokeesNames, tmpStructurePhasesPostBuilds);
@@ -136,7 +136,7 @@ public final class SnapshotItem extends AbstractItem<ParameterInstance, Snapshot
 		return scmData;
 	}
 
-	private void appendInvokeesNames(ArrayList<String> list, StructurePhase[] phases) {
+	private void appendInvokeesNames(ArrayList<String> list, List<StructurePhase> phases) {
 		for (StructurePhase phase : phases) {
 			for (StructureItem item : phase.getJobs()) {
 				if (item != null) {
@@ -179,10 +179,10 @@ public final class SnapshotItem extends AbstractItem<ParameterInstance, Snapshot
 		return result;
 	}
 
-	private SnapshotPhase[] inflatePhases(StructurePhase[] structures, HashMap<String, ArrayList<AbstractBuild>> invokedBuilds) {
-		SnapshotPhase[] phases = new SnapshotPhase[structures.length];
+	private SnapshotPhase[] inflatePhases(List<StructurePhase> structures, HashMap<String, ArrayList<AbstractBuild>> invokedBuilds) {
+		SnapshotPhase[] phases = new SnapshotPhase[structures.size()];
 		for (int i = 0; i < phases.length; i++) {
-			phases[i] = new SnapshotPhase(structures[i], invokedBuilds);
+			phases[i] = new SnapshotPhase(structures.get(i), invokedBuilds);
 		}
 		return phases;
 	}

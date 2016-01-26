@@ -1,11 +1,11 @@
 package com.hp.octane.plugins.jenkins.model.api;
 
-import com.hp.octane.plugins.jenkins.model.parameters.ParameterType;
+import com.hp.nga.integrations.dto.parameters.ParameterConfig;
+import com.hp.nga.integrations.dto.parameters.ParameterType;
 import hudson.model.ParameterValue;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -47,7 +47,7 @@ public class ParameterInstance extends ParameterConfig {
   public static String generateSubBuildName(ParameterInstance[] parameters){
     List<ParameterInstance> sortedList = new ArrayList<ParameterInstance>();
     for(ParameterInstance p : parameters) {
-      if(p.getType() == ParameterType.AXIS.toString()) {
+      if(p.getType().toString() == ParameterType.AXIS.toString()) {
         sortedList.add(p);
       }
     }
