@@ -1,10 +1,10 @@
 package com.hp.octane.plugins.jenkins.model.snapshots;
 
+import com.hp.nga.integrations.dto.causes.CIEventCauseBase;
 import com.hp.nga.integrations.dto.snapshots.SnapshotResult;
 import com.hp.nga.integrations.dto.snapshots.SnapshotStatus;
 import com.hp.octane.plugins.jenkins.model.api.AbstractItem;
 import com.hp.octane.plugins.jenkins.model.api.ParameterInstance;
-import com.hp.octane.plugins.jenkins.model.causes.CIEventCauseBase;
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCausesFactory;
 import com.hp.octane.plugins.jenkins.model.pipelines.StructureItem;
 import com.hp.octane.plugins.jenkins.model.pipelines.StructurePhase;

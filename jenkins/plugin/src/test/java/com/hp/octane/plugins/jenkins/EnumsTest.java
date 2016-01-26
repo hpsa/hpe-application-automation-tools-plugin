@@ -1,8 +1,8 @@
 package com.hp.octane.plugins.jenkins;
 
+import com.hp.nga.integrations.dto.causes.CIEventCauseType;
 import com.hp.nga.integrations.dto.snapshots.SnapshotResult;
 import com.hp.nga.integrations.dto.snapshots.SnapshotStatus;
-import com.hp.octane.plugins.jenkins.model.causes.CIEventCauseType;
 import com.hp.octane.plugins.jenkins.model.events.CIEventType;
 import com.hp.octane.plugins.jenkins.model.parameters.ParameterType;
 import com.hp.octane.plugins.jenkins.model.scm.SCMType;

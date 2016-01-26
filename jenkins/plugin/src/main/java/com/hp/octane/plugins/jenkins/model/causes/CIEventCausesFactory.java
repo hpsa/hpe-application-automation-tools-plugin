@@ -1,5 +1,6 @@
 package com.hp.octane.plugins.jenkins.model.causes;
 
+import com.hp.nga.integrations.dto.causes.*;
 import hudson.model.Cause;
 import hudson.triggers.SCMTrigger;
 import hudson.triggers.TimerTrigger;
