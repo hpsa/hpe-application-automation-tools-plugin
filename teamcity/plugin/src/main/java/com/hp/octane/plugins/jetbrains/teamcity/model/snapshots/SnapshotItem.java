@@ -1,7 +1,7 @@
 package com.hp.octane.plugins.jetbrains.teamcity.model.snapshots;
 
-import com.hp.nga.integrations.dto.builds.SnapshotNodeResult;
-import com.hp.nga.integrations.dto.builds.SnapshotNodeStatus;
+import com.hp.nga.integrations.dto.snapshots.SnapshotResult;
+import com.hp.nga.integrations.dto.snapshots.SnapshotStatus;
 import com.hp.octane.plugins.jetbrains.teamcity.model.causes.CIEventCauseBase;
 import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.StructureItem;
 
@@ -10,11 +10,11 @@ import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.StructureItem;
  */
 public class SnapshotItem extends StructureItem{
 
-    public SnapshotNodeStatus getStatus() {
+    public SnapshotStatus getStatus() {
         return status;
     }
 
-    public void setStatus(SnapshotNodeStatus status) {
+    public void setStatus(SnapshotStatus status) {
         this.status = status;
     }
 
@@ -62,11 +62,11 @@ public class SnapshotItem extends StructureItem{
         this.causes = causes;
     }
 
-    public void setResult(SnapshotNodeResult result) {
+    public void setResult(SnapshotResult result) {
         this.result = result;
     }
 
-    public SnapshotNodeResult getResult() {
+    public SnapshotResult getResult() {
         return result;
     }
 
@@ -85,8 +85,8 @@ public class SnapshotItem extends StructureItem{
     private Long startTime = null;
     private Long duration = null;
     private CIEventCauseBase[] causes = null;
-    private SnapshotNodeResult result;
-    private SnapshotNodeStatus status;
+    private SnapshotResult result;
+    private SnapshotStatus status;
 
 
 }

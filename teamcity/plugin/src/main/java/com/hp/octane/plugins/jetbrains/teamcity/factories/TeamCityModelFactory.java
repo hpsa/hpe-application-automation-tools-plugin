@@ -1,8 +1,8 @@
 package com.hp.octane.plugins.jetbrains.teamcity.factories;
 
-import com.hp.nga.integrations.dto.builds.SnapshotNodeStatus;
 import com.hp.nga.integrations.dto.projects.JobsListDTO;
 import com.hp.nga.integrations.dto.projects.JobsListDTO.ProjectConfig;
+import com.hp.nga.integrations.dto.snapshots.SnapshotStatus;
 import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.StructureItem;
 import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.StructurePhase;
 import com.hp.octane.plugins.jetbrains.teamcity.model.snapshots.SnapshotItem;
@@ -145,7 +145,7 @@ public class TeamCityModelFactory implements ModelFactory {
             snapshotItem.setNumber(Integer.parseInt(currentBuild.getBuildNumber()));
             snapshotItem.setStartTime(currentBuild.getClientStartDate().getTime()); //Returns the timestamp when the build was started on the build agent
             snapshotItem.setCauses(null);
-            snapshotItem.setStatus(SnapshotNodeStatus.FINISHED);
+            snapshotItem.setStatus(SnapshotStatus.FINISHED);
 
         }
         return snapshotItem;
@@ -172,7 +172,7 @@ public class TeamCityModelFactory implements ModelFactory {
             if (queuedBuild != null) {
                 snapshotItem = new SnapshotItem(build.getName(),build.getExternalId());
 
-                snapshotItem.setStatus(SnapshotNodeStatus.QUEUED);
+                snapshotItem.setStatus(SnapshotStatus.QUEUED);
             }
         }
         return snapshotItem;
@@ -205,7 +205,7 @@ public class TeamCityModelFactory implements ModelFactory {
             snapshotItem.setNumber(Integer.parseInt(currentBuild.getBuildNumber()));
             snapshotItem.setStartTime(currentBuild.getClientStartDate().getTime()); //Returns the timestamp when the build was started on the build agent
             snapshotItem.setCauses(null);
-            snapshotItem.setStatus(SnapshotNodeStatus.RUNNING);
+            snapshotItem.setStatus(SnapshotStatus.RUNNING);
             return snapshotItem;
         }
         return snapshotItem;
