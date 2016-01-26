@@ -1,9 +1,9 @@
 package com.hp.octane.plugins.jenkins.actions;
 
+import com.hp.nga.integrations.dto.pipelines.StructureItem;
 import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.model.parameters.ParameterType;
 import com.hp.octane.plugins.jenkins.model.pipelines.BuildHistory;
-import com.hp.octane.plugins.jenkins.model.pipelines.StructureItem;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessors;
 import com.hp.octane.plugins.jenkins.model.scm.SCMData;
@@ -61,10 +61,6 @@ public class ProjectActions extends TransientProjectActionFactory {
 
 		public String getUrlName() {
 			return "octane";
-		}
-
-		public void doStructure(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
-			res.serveExposedBean(req, new StructureItem(project), Flavor.JSON);
 		}
 
 		public void doHistory(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {

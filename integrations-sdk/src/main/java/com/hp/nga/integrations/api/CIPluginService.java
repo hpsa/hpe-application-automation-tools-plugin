@@ -59,9 +59,8 @@ public interface CIPluginService {
 	 * Provides Snapshot of the specified CI Build
 	 *
 	 * @param ciJobId
-	 * @param ciBuildId
 	 * @param subTree
 	 * @return
 	 */
-	SnapshotItem getSnapshotLatest(String ciJobId, String ciBuildId, boolean subTree);
+	SnapshotItem getSnapshotLatest(String ciJobId, boolean subTree);
 }

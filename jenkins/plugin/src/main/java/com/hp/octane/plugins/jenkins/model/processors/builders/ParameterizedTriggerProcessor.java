@@ -1,6 +1,8 @@
 package com.hp.octane.plugins.jenkins.model.processors.builders;
 
-import com.hp.octane.plugins.jenkins.model.pipelines.StructurePhase;
+import com.hp.nga.integrations.dto.pipelines.StructureItem;
+import com.hp.nga.integrations.dto.pipelines.StructurePhase;
+import com.hp.octane.plugins.jenkins.model.processors.projects.AbstractProjectProcessor;
 import hudson.model.AbstractProject;
 import hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig;
 import hudson.plugins.parameterizedtrigger.BuildTrigger;
@@ -10,6 +12,7 @@ import hudson.tasks.Builder;
 import hudson.tasks.Publisher;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
@@ -31,14 +34,18 @@ public class ParameterizedTriggerProcessor extends AbstractBuilderProcessor {
 		List<AbstractProject> items;
 		for (BlockableBuildTriggerConfig config : b.getConfigs()) {
 			items = config.getProjectList(project.getParent(), null);
-			for (Iterator<AbstractProject> iterator = items.iterator(); iterator.hasNext();) {
+			for (Iterator<AbstractProject> iterator = items.iterator(); iterator.hasNext(); ) {
 				AbstractProject next = iterator.next();
 				if (next == null) {
 					iterator.remove();
 					logger.severe("encountered null project reference; considering it as corrupted configuration and skipping");
 				}
 			}
-			super.phases.add(new StructurePhase(phasesName, config.getBlock() != null, items));
+			StructurePhase newPhase = new StructurePhase();
+			newPhase.setName(phasesName);
+			newPhase.setBlocking(config.getBlock() != null);
+			newPhase.setJobs(createSubJobs(items));
+			super.phases.add(newPhase);
 		}
 	}
 
@@ -48,14 +55,37 @@ public class ParameterizedTriggerProcessor extends AbstractBuilderProcessor {
 		List<AbstractProject> items;
 		for (BuildTriggerConfig config : t.getConfigs()) {
 			items = config.getProjectList(project.getParent(), null);
-			for (Iterator<AbstractProject> iterator = items.iterator(); iterator.hasNext();) {
+			for (Iterator<AbstractProject> iterator = items.iterator(); iterator.hasNext(); ) {
 				AbstractProject next = iterator.next();
 				if (next == null) {
 					iterator.remove();
 					logger.severe("encountered null project reference; considering it as corrupted configuration and skipping");
 				}
 			}
-			super.phases.add(new StructurePhase(phasesName, false, items));
+			StructurePhase newPhase = new StructurePhase();
+			newPhase.setName(phasesName);
+			newPhase.setBlocking(false);
+			newPhase.setJobs(createSubJobs(items));
+			super.phases.add(newPhase);
 		}
+	}
+
+
+	private List<StructureItem> createSubJobs(List<AbstractProject> projects) {
+		List<StructureItem> result = new ArrayList<StructureItem>();
+		StructureItem tmp;
+		AbstractProjectProcessor projectProcessor;
+		for (AbstractProject project : projects) {
+			if (project != null) {
+				tmp = new StructureItem();
+				tmp.setName(project.getName());
+				//  TODO: parameters
+				projectProcessor = AbstractProjectProcessor.getFlowProcessor(project);
+				tmp.setInternals(Arrays.asList(projectProcessor.getInternals()));
+				tmp.setPostBuilds(Arrays.asList(projectProcessor.getPostBuilds()));
+				result.add(tmp);
+			}
+		}
+		return result;
 	}
 }

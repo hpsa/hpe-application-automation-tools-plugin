@@ -14,12 +14,13 @@ import com.hp.mqm.client.model.Pipeline;
 import com.hp.mqm.client.model.Release;
 import com.hp.mqm.client.model.Taxonomy;
 import com.hp.mqm.client.model.Workspace;
+import com.hp.nga.integrations.dto.pipelines.StructureItem;
 import com.hp.octane.plugins.jenkins.Messages;
 import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
-import com.hp.octane.plugins.jenkins.model.pipelines.StructureItem;
+import com.hp.octane.plugins.jenkins.model.processors.projects.AbstractProjectProcessor;
 import hudson.ExtensionList;
 import hudson.model.AbstractProject;
 import jenkins.model.Jenkins;
@@ -71,7 +72,13 @@ public class JobConfigurationProxy {
     public JSONObject createPipelineOnServer(JSONObject pipelineObject) throws IOException {
         JSONObject result = new JSONObject();
 
-        StructureItem structureItem = new StructureItem(project);
+        StructureItem structureItem = new StructureItem();
+        structureItem.setName(project.getName());
+        //  TODO: parameters
+        AbstractProjectProcessor projectProcessor = AbstractProjectProcessor.getFlowProcessor(project);
+        structureItem.setInternals(Arrays.asList(projectProcessor.getInternals()));
+        structureItem.setPostBuilds(Arrays.asList(projectProcessor.getPostBuilds()));
+
         PluginActions.ServerInfo serverInfo = new PluginActions.ServerInfo();
         Long releaseId = pipelineObject.getLong("releaseId") != -1 ? pipelineObject.getLong("releaseId") : null;
 

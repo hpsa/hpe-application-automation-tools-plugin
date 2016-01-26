@@ -13,6 +13,7 @@ import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import hudson.model.AbstractProject;
+import hudson.model.TopLevelItem;
 import jenkins.model.Jenkins;
 
 import java.util.ArrayList;
@@ -92,11 +93,11 @@ public class CIPluginServiceImpl implements CIPluginService {
 
 	@Override
 	public StructureItem getPipeline(String rootCIJobId) {
-		return null;
+		return CIPipelinesService.getPipeline(rootCIJobId);
 	}
 
 	@Override
-	public SnapshotItem getSnapshotLatest(String ciJobId, String ciBuildId, boolean subTree) {
-		return null;
+	public SnapshotItem getSnapshotLatest(String ciJobId, boolean subTree) {
+		return CISnapshotsService.getSnapshotLatest(ciJobId, subTree);
 	}
 }
