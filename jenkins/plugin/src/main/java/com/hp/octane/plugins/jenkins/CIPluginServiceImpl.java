@@ -12,6 +12,7 @@ import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
+import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import jenkins.model.Jenkins;
 
@@ -108,6 +109,14 @@ public class CIPluginServiceImpl implements CIPluginService {
 
 	@Override
 	public SnapshotItem getSnapshotLatest(String ciJobId, String ciBuildId, boolean subTree) {
-		return null;
+
+		try {
+			ciJobId = URLDecoder.decode(ciJobId, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		AbstractProject project = (AbstractProject) Jenkins.getInstance().getItem(ciJobId);
+		AbstractBuild build = project.getBuild(ciBuildId);
+		return ModelFactory.createSnapshotItem(build, subTree);
 	}
 }

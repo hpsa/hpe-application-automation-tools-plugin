@@ -7,6 +7,7 @@ import com.hp.nga.integrations.dto.pipelines.StructureItem;
 import com.hp.nga.integrations.dto.projects.JobsListDTO;
 import com.hp.nga.integrations.dto.rest.NGAResult;
 import com.hp.nga.integrations.dto.rest.NGATask;
+import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
 import com.hp.nga.integrations.services.serialization.SerializationService;
 
 import java.util.logging.Logger;
@@ -61,7 +62,8 @@ public class NGATaskProcessor {
 			} else if (path.length == 3 && PROJECTS.equals(path[0]) && RUN.equals(path[2])) {
 				executeProjectRunRequest(result, path[1]);
 			} else if (path.length == 4 && PROJECTS.equals(path[0]) && BUILDS.equals(path[2])) {
-				executeSnapshotRequest(result, path[1], path[3]);
+				//TODO: in the future should take the last paramter from the request
+				executeSnapshotRequest(result, path[1], path[3],false);
 			} else if (path.length == 3 && PROJECTS.equals(path[0]) && HISTORY.equals(path[2])) {
 				executeHistoryRequest(result);
 			} else {
@@ -97,7 +99,9 @@ public class NGATaskProcessor {
 		//  TODO: here need to get body of the request as well
 	}
 
-	private void executeSnapshotRequest(NGAResult result, String projectId, String buildId) {
+	private void executeSnapshotRequest(NGAResult result, String projectId, String buildId,boolean subTree) {
+		SnapshotItem content = NGAPluginSDK.getInstance().getCiPluginService().getSnapshotLatest(projectId, buildId, false);
+		result.setBody(SerializationService.toJSON(content));
 	}
 
 	private void executeHistoryRequest(NGAResult result) {
