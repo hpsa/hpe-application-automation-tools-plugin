@@ -267,7 +267,9 @@ public class ModelFactory {
                 tmp = pd.getDefaultParameterValue();
                 parameterConfig.setDefaultValue(tmp == null ? "" : tmp.getValue());
             }
-            parameterConfig.setChoices(choices.toArray());
+            if(choices!=null) {
+                parameterConfig.setChoices(choices.toArray());
+            }
         }
 
         return parameterConfig;

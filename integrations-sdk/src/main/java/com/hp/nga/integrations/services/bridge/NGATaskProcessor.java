@@ -3,6 +3,7 @@ package com.hp.nga.integrations.services.bridge;
 import com.hp.nga.integrations.NGAPluginSDK;
 import com.hp.nga.integrations.api.CIPluginService;
 import com.hp.nga.integrations.dto.general.AggregatedStatusInfo;
+import com.hp.nga.integrations.dto.pipelines.StructureItem;
 import com.hp.nga.integrations.dto.projects.JobsListDTO;
 import com.hp.nga.integrations.dto.rest.NGAResult;
 import com.hp.nga.integrations.dto.rest.NGATask;
@@ -88,7 +89,8 @@ public class NGATaskProcessor {
 	}
 
 	private void executePipelineRequest(NGAResult result, String projectId) {
-
+		StructureItem content = NGAPluginSDK.getInstance().getCiPluginService().getPipeline(projectId);
+		result.setBody(SerializationService.toJSON(content));
 	}
 
 	private void executeProjectRunRequest(NGAResult result, String projectId) {
@@ -96,7 +98,6 @@ public class NGATaskProcessor {
 	}
 
 	private void executeSnapshotRequest(NGAResult result, String projectId, String buildId) {
-
 	}
 
 	private void executeHistoryRequest(NGAResult result) {
