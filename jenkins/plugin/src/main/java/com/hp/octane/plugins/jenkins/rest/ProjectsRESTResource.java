@@ -2,7 +2,7 @@ package com.hp.octane.plugins.jenkins.rest;
 
 import com.hp.nga.integrations.dto.parameters.ParameterType;
 import com.hp.octane.plugins.jenkins.OctanePlugin;
-import com.hp.octane.plugins.jenkins.model.pipelines.PipelinesFactory;
+import com.hp.octane.plugins.jenkins.model.pipelines.ModelFactory;
 import hudson.model.*;
 import hudson.security.ACL;
 import jenkins.model.Jenkins;
@@ -62,7 +62,7 @@ public class ProjectsRESTResource {
 
 	private void serveProjectStructure(AbstractProject project, StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
 		if ("GET".equals(req.getMethod())) {
-			res.serveExposedBean(req, PipelinesFactory.createStructureItem(project)/*new StructureItem(project)*/, Flavor.JSON);
+			res.serveExposedBean(req, ModelFactory.createStructureItem(project)/*new StructureItem(project)*/, Flavor.JSON);
 		} else {
 			res.setStatus(405);
 		}

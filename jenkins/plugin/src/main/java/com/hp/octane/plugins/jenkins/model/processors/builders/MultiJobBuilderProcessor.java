@@ -1,7 +1,7 @@
 package com.hp.octane.plugins.jenkins.model.processors.builders;
 
 import com.hp.nga.integrations.dto.pipelines.StructurePhase;
-import com.hp.octane.plugins.jenkins.model.pipelines.PipelinesFactory;
+import com.hp.octane.plugins.jenkins.model.pipelines.ModelFactory;
 import com.tikal.jenkins.plugins.multijob.MultiJobBuilder;
 import com.tikal.jenkins.plugins.multijob.PhaseJobsConfig;
 import hudson.model.AbstractProject;
@@ -37,7 +37,7 @@ public class MultiJobBuilderProcessor extends AbstractBuilderProcessor {
 			}
 		}
 //		super.phases.add(new StructurePhase(b.getPhaseName(), true, items));
-		super.phases.add(PipelinesFactory.createStructurePhase(b.getPhaseName(), true, items));
+		super.phases.add(ModelFactory.createStructurePhase(b.getPhaseName(), true, items));
 
 	}
 }

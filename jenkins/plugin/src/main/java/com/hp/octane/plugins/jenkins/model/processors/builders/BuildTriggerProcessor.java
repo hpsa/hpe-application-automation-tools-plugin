@@ -1,7 +1,7 @@
 package com.hp.octane.plugins.jenkins.model.processors.builders;
 
 import com.hp.nga.integrations.dto.pipelines.StructurePhase;
-import com.hp.octane.plugins.jenkins.model.pipelines.PipelinesFactory;
+import com.hp.octane.plugins.jenkins.model.pipelines.ModelFactory;
 import hudson.model.AbstractProject;
 import hudson.tasks.BuildTrigger;
 import hudson.tasks.Publisher;
@@ -34,7 +34,7 @@ public class BuildTriggerProcessor extends AbstractBuilderProcessor {
 			}
 		}
 //		super.phases.add(new StructurePhase("downstream", false, items));
-		super.phases.add(PipelinesFactory.createStructurePhase("downstream", false, items));
+		super.phases.add(ModelFactory.createStructurePhase("downstream", false, items));
 
 	}
 }

@@ -2,8 +2,8 @@ package com.hp.octane.plugins.jenkins.model.processors.parameters;
 
 import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 import com.hp.nga.integrations.dto.parameters.ParameterType;
-import com.hp.octane.plugins.jenkins.model.api.ParameterInstance;
-import com.hp.octane.plugins.jenkins.model.pipelines.PipelinesFactory;
+import com.hp.nga.integrations.dto.parameters.ParameterInstance;
+import com.hp.octane.plugins.jenkins.model.pipelines.ModelFactory;
 import hudson.matrix.*;
 import hudson.model.*;
 
@@ -53,7 +53,7 @@ public enum ParameterProcessors {
 		if (project instanceof MatrixProject) {
 			AxisList axisList = ((MatrixProject) project).getAxes();
 			for (Axis axis : axisList) {
-				result.add(PipelinesFactory.createParameterConfig(axis.getName(), ParameterType.AXIS, new ArrayList<Object>(axis.getValues())));
+				result.add(ModelFactory.createParameterConfig(axis.getName(), ParameterType.AXIS, new ArrayList<Object>(axis.getValues())));
 			}
 		}
 //		ParameterConfig[] params = new ParameterConfig[result.size()];
@@ -82,7 +82,7 @@ public enum ParameterProcessors {
 		if (project instanceof MatrixConfiguration) {
 			Combination combination = ((MatrixConfiguration) project).getCombination();
 			for (Map.Entry<String, String> entry : combination.entrySet()) {
-				result.add(new ParameterInstance(PipelinesFactory.createParameterConfig(entry.getKey(), ParameterType.AXIS, Collections.emptyList()), entry.getValue()));
+				result.add(new ParameterInstance(ModelFactory.createParameterConfig(entry.getKey(), ParameterType.AXIS, Collections.emptyList()), entry.getValue()));
 			}
 		}
 
@@ -110,6 +110,7 @@ public enum ParameterProcessors {
 		}
 
 		return result.toArray(new ParameterInstance[result.size()]);
+
 	}
 
 	private static AbstractParametersProcessor getAppropriate(String className) {

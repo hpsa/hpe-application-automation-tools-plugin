@@ -1,7 +1,5 @@
 package com.hp.nga.integrations.dto.snapshots;
 
-import com.hp.nga.integrations.dto.pipelines.StructureItem;
-
 import java.util.List;
 
 /**
@@ -15,7 +13,7 @@ import java.util.List;
 public final class SnapshotPhase {
 	private String name;
 	private boolean blocking;
-	private List<StructureItem> builds;
+	private List<SnapshotItem> builds;
 
 	public String getName() {
 		return name;
@@ -33,11 +31,11 @@ public final class SnapshotPhase {
 		this.blocking = blocking;
 	}
 
-	public List<StructureItem> getBuilds() {
+	public List<SnapshotItem> getBuilds() {
 		return builds;
 	}
 
-	public void setBuilds(List<StructureItem> builds) {
+	public void setBuilds(List<SnapshotItem> builds) {
 		this.builds = builds;
 	}
 }

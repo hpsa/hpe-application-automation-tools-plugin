@@ -12,7 +12,7 @@ import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
-import com.hp.octane.plugins.jenkins.model.pipelines.PipelinesFactory;
+import com.hp.octane.plugins.jenkins.model.pipelines.ModelFactory;
 import hudson.ExtensionList;
 import hudson.model.AbstractProject;
 import jenkins.model.Jenkins;
@@ -53,7 +53,7 @@ public class JobConfigurationProxy {
     public JSONObject createPipelineOnServer(JSONObject pipelineObject) throws IOException {
         JSONObject result = new JSONObject();
 
-        StructureItem structureItem = PipelinesFactory.createStructureItem(project);//new StructureItem(project);
+        StructureItem structureItem = ModelFactory.createStructureItem(project);//new StructureItem(project);
         PluginActions.ServerInfo serverInfo = new PluginActions.ServerInfo();
         Long releaseId = pipelineObject.getLong("releaseId") != -1 ? pipelineObject.getLong("releaseId") : null;
 

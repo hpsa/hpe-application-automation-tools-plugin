@@ -4,7 +4,7 @@ import com.hp.nga.integrations.dto.parameters.ParameterType;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.scm.SCMData;
 import com.hp.octane.plugins.jenkins.OctanePlugin;
-import com.hp.octane.plugins.jenkins.model.pipelines.PipelinesFactory;
+import com.hp.octane.plugins.jenkins.model.pipelines.ModelFactory;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessors;
 import hudson.Extension;
@@ -64,7 +64,7 @@ public class ProjectActions extends TransientProjectActionFactory {
 		}
 
 		public void doStructure(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
-			res.serveExposedBean(req, PipelinesFactory.createStructureItem(project)/*new StructureItem(project)*/, Flavor.JSON);
+			res.serveExposedBean(req, ModelFactory.createStructureItem(project)/*new StructureItem(project)*/, Flavor.JSON);
 		}
 
 		public void doHistory(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
@@ -87,7 +87,7 @@ public class ProjectActions extends TransientProjectActionFactory {
 						users = build.getCulprits();
 					}
 
-					buildHistory.addBuild(build.getResult().toString(), String.valueOf(build.getNumber()), build.getTimestampString(), String.valueOf(build.getStartTimeInMillis()), String.valueOf(build.getDuration()), scmData, PipelinesFactory.createScmUsersList(users));
+					buildHistory.addBuild(build.getResult().toString(), String.valueOf(build.getNumber()), build.getTimestampString(), String.valueOf(build.getStartTimeInMillis()), String.valueOf(build.getDuration()), scmData, ModelFactory.createScmUsersList(users));
 				}
 			}
 			AbstractBuild lastSuccessfulBuild = (AbstractBuild) project.getLastSuccessfulBuild();
@@ -98,7 +98,7 @@ public class ProjectActions extends TransientProjectActionFactory {
 					scmData = scmProcessor.getSCMData(lastSuccessfulBuild);
 					users = lastSuccessfulBuild.getCulprits();
 				}
-				buildHistory.addLastSuccesfullBuild(lastSuccessfulBuild.getResult().toString(), String.valueOf(lastSuccessfulBuild.getNumber()), lastSuccessfulBuild.getTimestampString(), String.valueOf(lastSuccessfulBuild.getStartTimeInMillis()), String.valueOf(lastSuccessfulBuild.getDuration()), scmData, PipelinesFactory.createScmUsersList(users));
+				buildHistory.addLastSuccesfullBuild(lastSuccessfulBuild.getResult().toString(), String.valueOf(lastSuccessfulBuild.getNumber()), lastSuccessfulBuild.getTimestampString(), String.valueOf(lastSuccessfulBuild.getStartTimeInMillis()), String.valueOf(lastSuccessfulBuild.getDuration()), scmData, ModelFactory.createScmUsersList(users));
 			}
 			AbstractBuild lastBuild = project.getLastBuild();
 			if (lastBuild != null) {
@@ -110,9 +110,9 @@ public class ProjectActions extends TransientProjectActionFactory {
 				}
 
 				if (lastBuild.getResult() == null) {
-					buildHistory.addLastBuild("building", String.valueOf(lastBuild.getNumber()), lastBuild.getTimestampString(), String.valueOf(lastBuild.getStartTimeInMillis()), String.valueOf(lastBuild.getDuration()), scmData, PipelinesFactory.createScmUsersList(users));
+					buildHistory.addLastBuild("building", String.valueOf(lastBuild.getNumber()), lastBuild.getTimestampString(), String.valueOf(lastBuild.getStartTimeInMillis()), String.valueOf(lastBuild.getDuration()), scmData, ModelFactory.createScmUsersList(users));
 				} else {
-					buildHistory.addLastBuild(lastBuild.getResult().toString(), String.valueOf(lastBuild.getNumber()), lastBuild.getTimestampString(), String.valueOf(lastBuild.getStartTimeInMillis()), String.valueOf(lastBuild.getDuration()), scmData, PipelinesFactory.createScmUsersList(users));
+					buildHistory.addLastBuild(lastBuild.getResult().toString(), String.valueOf(lastBuild.getNumber()), lastBuild.getTimestampString(), String.valueOf(lastBuild.getStartTimeInMillis()), String.valueOf(lastBuild.getDuration()), scmData, ModelFactory.createScmUsersList(users));
 				}
 			}
 			res.serveExposedBean(req, buildHistory, Flavor.JSON);

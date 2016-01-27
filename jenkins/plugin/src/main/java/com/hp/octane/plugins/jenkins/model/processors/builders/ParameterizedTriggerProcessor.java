@@ -1,7 +1,7 @@
 package com.hp.octane.plugins.jenkins.model.processors.builders;
 
 import com.hp.nga.integrations.dto.pipelines.StructurePhase;
-import com.hp.octane.plugins.jenkins.model.pipelines.PipelinesFactory;
+import com.hp.octane.plugins.jenkins.model.pipelines.ModelFactory;
 import hudson.model.AbstractProject;
 import hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig;
 import hudson.plugins.parameterizedtrigger.BuildTrigger;
@@ -40,7 +40,7 @@ public class ParameterizedTriggerProcessor extends AbstractBuilderProcessor {
 				}
 			}
 //			super.phases.add(new StructurePhase(phasesName, config.getBlock() != null, items));
-			super.phases.add(PipelinesFactory.createStructurePhase(phasesName, config.getBlock() != null, items));
+			super.phases.add(ModelFactory.createStructurePhase(phasesName, config.getBlock() != null, items));
 
 		}
 	}
@@ -59,7 +59,7 @@ public class ParameterizedTriggerProcessor extends AbstractBuilderProcessor {
 				}
 			}
 //			super.phases.add(new StructurePhase(phasesName, false, items));
-			super.phases.add(PipelinesFactory.createStructurePhase(phasesName, false, items));
+			super.phases.add(ModelFactory.createStructurePhase(phasesName, false, items));
 
 		}
 	}

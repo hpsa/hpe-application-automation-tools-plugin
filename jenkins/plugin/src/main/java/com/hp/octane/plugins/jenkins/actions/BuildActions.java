@@ -3,7 +3,7 @@ package com.hp.octane.plugins.jenkins.actions;
 import com.google.inject.Inject;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactoryImpl;
-import com.hp.octane.plugins.jenkins.model.snapshots.SnapshotItem;
+import com.hp.octane.plugins.jenkins.model.pipelines.ModelFactory;
 import com.hp.octane.plugins.jenkins.tests.TestApi;
 import hudson.Extension;
 import hudson.model.AbstractBuild;
@@ -67,7 +67,7 @@ public class BuildActions extends TransientActionFactory<AbstractBuild> {
 		public void doSnapshot(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
 			String metaonlyParam = req.getParameter("metaonly");
 			boolean metaonly = metaonlyParam != null && metaonlyParam.equals("true");
-			res.serveExposedBean(req, new SnapshotItem(build, metaonly), Flavor.JSON);
+			res.serveExposedBean(req, ModelFactory.createSnapshotItem(build, metaonly), Flavor.JSON);
 		}
 
 		public TestApi getTests() {

@@ -2,8 +2,8 @@ package com.hp.octane.plugins.jenkins.model.processors.parameters;
 
 import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 import com.hp.nga.integrations.dto.parameters.ParameterType;
-import com.hp.octane.plugins.jenkins.model.api.ParameterInstance;
-import com.hp.octane.plugins.jenkins.model.pipelines.PipelinesFactory;
+import com.hp.nga.integrations.dto.parameters.ParameterInstance;
+import com.hp.octane.plugins.jenkins.model.pipelines.ModelFactory;
 import com.seitenbau.jenkins.plugins.dynamicparameter.ChoiceParameterDefinition;
 import com.seitenbau.jenkins.plugins.dynamicparameter.StringParameterDefinition;
 import hudson.model.ParameterDefinition;
@@ -21,17 +21,17 @@ public class DynamicParameterProcessor extends AbstractParametersProcessor {
 	public ParameterConfig createParameterConfig(ParameterDefinition pd) {
 		if (pd instanceof StringParameterDefinition) {
 			StringParameterDefinition stringPd = (StringParameterDefinition) pd;
-			return PipelinesFactory.createParameterConfig(pd, ParameterType.STRING);
+			return ModelFactory.createParameterConfig(pd, ParameterType.STRING);
 		} else if (pd instanceof ChoiceParameterDefinition) {
 			ChoiceParameterDefinition choicePd = (ChoiceParameterDefinition) pd;
-			return PipelinesFactory.createParameterConfig(pd, ParameterType.STRING, null, choicePd.getChoices());
+			return ModelFactory.createParameterConfig(pd, ParameterType.STRING, null, choicePd.getChoices());
 		} else {
-			return PipelinesFactory.createParameterConfig(pd);
+			return ModelFactory.createParameterConfig(pd);
 		}
 	}
 
 	@Override
 	public ParameterInstance createParameterInstance(ParameterDefinition pd, ParameterValue pv) {
-		return new ParameterInstance(createParameterConfig(pd), pv);
+		return ModelFactory.createParameterInstance(createParameterConfig(pd), pv);
 	}
 }

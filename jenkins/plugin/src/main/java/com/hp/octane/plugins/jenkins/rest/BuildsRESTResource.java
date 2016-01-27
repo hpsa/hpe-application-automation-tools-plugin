@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jenkins.rest;
 
-import com.hp.octane.plugins.jenkins.model.snapshots.SnapshotItem;
+import com.hp.octane.plugins.jenkins.model.pipelines.ModelFactory;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import org.kohsuke.stapler.StaplerRequest;
@@ -64,7 +64,7 @@ public class BuildsRESTResource {
 				if ("GET".equals(req.getMethod())) {
 					String metaonlyParam = req.getParameter("metaonly");
 					boolean metaonly = metaonlyParam != null && metaonlyParam.equals("true");
-					res.serveExposedBean(req, new SnapshotItem(build, metaonly), Flavor.JSON);
+					res.serveExposedBean(req, ModelFactory.createSnapshotItem(build, metaonly), Flavor.JSON);
 				} else {
 					res.setStatus(405);
 				}
