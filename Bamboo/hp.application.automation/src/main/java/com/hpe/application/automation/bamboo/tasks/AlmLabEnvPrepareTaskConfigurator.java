@@ -67,6 +67,7 @@ public class AlmLabEnvPrepareTaskConfigurator extends AbstractTaskConfigurator {
 	private static final String ENV_ALM_PARAMETERS_VALUE = "almParamValue";
 	private static final String ENV_ALM_PARAMETERS_ONLYFIRST = "almParamOnlyFirst";
 
+	@NotNull
 	public Map<String, String> generateTaskConfigMap(@NotNull final ActionParametersMap params,
 			@Nullable final TaskDefinition previousTaskDefinition) {
 		final Map<String, String> config = super.generateTaskConfigMap(params, previousTaskDefinition);
@@ -92,32 +93,31 @@ public class AlmLabEnvPrepareTaskConfigurator extends AbstractTaskConfigurator {
 		String[] valuesArr = params.getStringArray(ENV_ALM_PARAMETERS_VALUE);
 		String[] chkOnlyFirstArr = params.getStringArray(ENV_ALM_PARAMETERS_ONLYFIRST);
 
-		int countNumber = 0;
-		if(namesArr != null){
-			countNumber = namesArr.length;
-		}
+		if(namesArr != null && typesArr != null && valuesArr != null){
+			for(int i = 0, chk = 0; i < Math.min(namesArr.length, typesArr.length); ++i) {
 
-		for(int i=0, chk=0; i<countNumber; ++i) {
+				if(StringUtils.isEmpty(namesArr[i]) || StringUtils.isEmpty(valuesArr[i]))
+					continue;
 
-			if(StringUtils.isEmpty(namesArr[i]) || StringUtils.isEmpty(valuesArr[i]))
-				continue;
+				String dlm = "&;";
+				String s = typesArr[i] + dlm + namesArr[i] + dlm + valuesArr[i];
 
-			StringJoiner sj = new StringJoiner("&;");
-			sj.add(typesArr[i]).add(namesArr[i]).add(valuesArr[i]);
-			if(typesArr[i].equals(PATH_TO_JSON_FILE))
-			{
-				sj.add(chkOnlyFirstArr[chk]);
-				chk++;
+				if(typesArr[i].equals(PATH_TO_JSON_FILE) && chkOnlyFirstArr != null && chkOnlyFirstArr.length > 0)
+				{
+					s += dlm + chkOnlyFirstArr[chk];
+					chk++;
+				}
+				else
+					s += dlm + "false";
+
+				config.put("alm_param_" + i, s);
 			}
-			else
-				sj.add("false");
-
-			config.put("alm_param_" + i, sj.toString());
 		}
 
 		return config;
 	}
 
+	@NotNull
 	public void validate(@NotNull final ActionParametersMap params, @NotNull final ErrorCollection errorCollection) {
 		super.validate(params, errorCollection);
 
