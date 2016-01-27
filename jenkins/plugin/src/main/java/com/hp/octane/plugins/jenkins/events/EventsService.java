@@ -1,11 +1,11 @@
 package com.hp.octane.plugins.jenkins.events;
 
 import com.google.inject.Inject;
+import com.hp.nga.integrations.dto.events.CIEventBase;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactoryImpl;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationListener;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
-import com.hp.octane.plugins.jenkins.model.events.CIEventBase;
 import hudson.Extension;
 import jenkins.model.Jenkins;
 

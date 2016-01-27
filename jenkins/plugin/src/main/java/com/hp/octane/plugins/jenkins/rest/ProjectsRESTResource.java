@@ -2,7 +2,7 @@ package com.hp.octane.plugins.jenkins.rest;
 
 import com.hp.nga.integrations.dto.parameters.ParameterType;
 import com.hp.octane.plugins.jenkins.OctanePlugin;
-import com.hp.octane.plugins.jenkins.model.pipelines.ModelFactory;
+import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import hudson.model.*;
 import hudson.security.ACL;
 import jenkins.model.Jenkins;

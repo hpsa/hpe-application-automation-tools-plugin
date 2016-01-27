@@ -1,7 +1,7 @@
 package com.hp.octane.plugins.jenkins.model.processors.builders;
 
 import com.hp.nga.integrations.dto.pipelines.StructurePhase;
-import com.hp.octane.plugins.jenkins.model.pipelines.ModelFactory;
+import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import com.tikal.jenkins.plugins.multijob.MultiJobBuilder;
 import com.tikal.jenkins.plugins.multijob.PhaseJobsConfig;
 import hudson.model.AbstractProject;

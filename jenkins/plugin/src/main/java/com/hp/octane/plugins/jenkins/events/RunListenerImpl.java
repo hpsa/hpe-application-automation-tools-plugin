@@ -1,10 +1,10 @@
 package com.hp.octane.plugins.jenkins.events;
 
 import com.google.inject.Inject;
+import com.hp.nga.integrations.dto.events.CIEventFinished;
+import com.hp.nga.integrations.dto.events.CIEventStarted;
 import com.hp.nga.integrations.dto.snapshots.SnapshotResult;
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCausesFactory;
-import com.hp.octane.plugins.jenkins.model.events.CIEventFinished;
-import com.hp.octane.plugins.jenkins.model.events.CIEventStarted;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessors;

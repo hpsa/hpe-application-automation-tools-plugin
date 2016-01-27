@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jenkins.rest;
 
-import com.hp.octane.plugins.jenkins.model.pipelines.ModelFactory;
+import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import org.kohsuke.stapler.StaplerRequest;

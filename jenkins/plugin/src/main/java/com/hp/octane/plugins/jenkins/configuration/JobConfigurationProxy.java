@@ -12,7 +12,7 @@ import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
-import com.hp.octane.plugins.jenkins.model.pipelines.ModelFactory;
+import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import hudson.ExtensionList;
 import hudson.model.AbstractProject;
 import jenkins.model.Jenkins;

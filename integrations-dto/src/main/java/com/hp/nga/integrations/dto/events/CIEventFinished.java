@@ -1,11 +1,9 @@
-package com.hp.octane.plugins.jenkins.model.events;
+package com.hp.nga.integrations.dto.events;
 
 import com.hp.nga.integrations.dto.causes.CIEventCauseBase;
+import com.hp.nga.integrations.dto.parameters.ParameterInstance;
 import com.hp.nga.integrations.dto.scm.SCMData;
 import com.hp.nga.integrations.dto.snapshots.SnapshotResult;
-import com.hp.nga.integrations.dto.parameters.ParameterInstance;
-import org.kohsuke.stapler.export.Exported;
-import org.kohsuke.stapler.export.ExportedBean;
 
 /**
  * Created with IntelliJ IDEA.
@@ -15,7 +13,6 @@ import org.kohsuke.stapler.export.ExportedBean;
  * To change this template use File | Settings | File Templates.
  */
 
-@ExportedBean
 public final class CIEventFinished extends CIEventStarted {
 	private SnapshotResult result;
 	private long duration;
@@ -43,17 +40,14 @@ public final class CIEventFinished extends CIEventStarted {
 		return CIEventType.FINISHED;
 	}
 
-	@Exported(inline = true)
 	public String getResult() {
 		return result.toString();
 	}
 
-	@Exported(inline = true)
 	public long getDuration() {
 		return duration;
 	}
 
-	@Exported(inline = true)
 	public SCMData getScmData() {
 		return scmData;
 	}

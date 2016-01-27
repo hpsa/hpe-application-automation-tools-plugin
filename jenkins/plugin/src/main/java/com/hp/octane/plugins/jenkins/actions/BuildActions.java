@@ -3,7 +3,7 @@ package com.hp.octane.plugins.jenkins.actions;
 import com.google.inject.Inject;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactoryImpl;
-import com.hp.octane.plugins.jenkins.model.pipelines.ModelFactory;
+import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import com.hp.octane.plugins.jenkins.tests.TestApi;
 import hudson.Extension;
 import hudson.model.AbstractBuild;

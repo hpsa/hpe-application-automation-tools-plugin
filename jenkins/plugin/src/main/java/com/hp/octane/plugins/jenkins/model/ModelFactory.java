@@ -1,4 +1,4 @@
-package com.hp.octane.plugins.jenkins.model.pipelines;
+package com.hp.octane.plugins.jenkins.model;
 
 import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 import com.hp.nga.integrations.dto.parameters.ParameterInstance;
@@ -126,57 +126,6 @@ public class ModelFactory {
         return snapshotItem;
     }
 
-//    private static final Logger logger = Logger.getLogger(SnapshotItem.class.getName());
-
-//    public SnapshotItem(AbstractBuild build, boolean metaOnly) {
-//        super(build.getProject());
-//
-//        SCMProcessor scmProcessor = SCMProcessors.getAppropriate(build.getProject().getScm().getClass().getName());
-//        number = build.getNumber();
-//        causes = CIEventCausesFactory.processCauses(build.getCauses());
-//        if (build.hasntStartedYet()) {
-//            status = SnapshotStatus.QUEUED;
-//        } else if (build.isBuilding()) {
-//            status = SnapshotStatus.RUNNING;
-//        } else {
-//            status = SnapshotStatus.FINISHED;
-//        }
-//        if (build.getResult() == Result.SUCCESS) {
-//            result = SnapshotResult.SUCCESS;
-//        } else if (build.getResult() == Result.ABORTED) {
-//            result = SnapshotResult.ABORTED;
-//        } else if (build.getResult() == Result.FAILURE) {
-//            result = SnapshotResult.FAILURE;
-//        } else if (build.getResult() == Result.UNSTABLE) {
-//            result = SnapshotResult.UNSTABLE;
-//        }
-//        estimatedDuration = build.getEstimatedDuration();
-//        startTime = timeInUTC(build.getStartTimeInMillis());
-//        duration = build.getDuration();
-//        scmData = scmProcessor == null ? null : scmProcessor.getSCMData(build);
-//
-//        setParameters(ParameterProcessors.getInstances(build));
-//
-//        if (!metaOnly) {
-//            List<StructurePhase> tmpStructurePhasesInternals = super.getFlowProcessor().getInternals();
-//            List<StructurePhase> tmpStructurePhasesPostBuilds = super.getFlowProcessor().getPostBuilds();
-//            ArrayList<String> invokeesNames = new ArrayList<String>();
-//            appendInvokeesNames(invokeesNames, tmpStructurePhasesInternals);
-//            appendInvokeesNames(invokeesNames, tmpStructurePhasesPostBuilds);
-//            HashMap<String, ArrayList<AbstractBuild>> invokedBuilds = getInvokedBuilds(build, invokeesNames);
-//            setInternals(inflatePhases(tmpStructurePhasesInternals, invokedBuilds));
-//            setPostBuilds(inflatePhases(tmpStructurePhasesPostBuilds, invokedBuilds));
-//        }
-//    }
-//
-//    public SnapshotItem(AbstractProject project, boolean metaOnly) {
-//        super(project);
-//        if (!metaOnly) {
-//            setInternals(inflatePhases(super.getFlowProcessor().getInternals(), null));
-//            setPostBuilds(inflatePhases(super.getFlowProcessor().getPostBuilds(), null));
-//        }
-//    }
-
     private static void appendInvokeesNames(ArrayList<String> list, List<StructurePhase> phases) {
         for (StructurePhase phase : phases) {
             for (StructureItem item : phase.getJobs()) {
@@ -235,7 +184,7 @@ public class ModelFactory {
     }
 
 
-    public static com.hp.nga.integrations.dto.snapshots.SnapshotPhase createSnapshotPhase(StructurePhase structurePhase, HashMap<String, ArrayList<AbstractBuild>> invokedBuilds) {
+    public static SnapshotPhase createSnapshotPhase(StructurePhase structurePhase, HashMap<String, ArrayList<AbstractBuild>> invokedBuilds) {
 
         com.hp.nga.integrations.dto.snapshots.SnapshotPhase snapshotPhase = new com.hp.nga.integrations.dto.snapshots.SnapshotPhase();
         snapshotPhase.setName(structurePhase.getName());
@@ -324,22 +273,12 @@ public class ModelFactory {
         return parameterConfig;
     }
 
-//    public static ParameterConfig createParameterConfig(ParameterConfig pc) {
-//        ParameterConfig parameterConfig = new ParameterConfig();
-//        parameterConfig.setName(pc.getName());
-//        parameterConfig.setType(pc.getType());
-//        parameterConfig.setDescription(pc.getDescription());
-//        parameterConfig.setChoices(pc.getChoices());
-//        parameterConfig.setDefaultValue(pc.getDefaultValue());
-//
-//        return parameterConfig;
-//    }
-
     /*****************************************************************/
 
     public static ParameterInstance createParameterInstance(ParameterConfig pc, ParameterValue value){
             return new ParameterInstance(pc,value == null ? null : value.getValue().toString());
     }
+
     public static String generateSubBuildName(ParameterInstance[] parameters){
         List<ParameterInstance> sortedList = new ArrayList<ParameterInstance>();
         for(ParameterInstance p : parameters) {

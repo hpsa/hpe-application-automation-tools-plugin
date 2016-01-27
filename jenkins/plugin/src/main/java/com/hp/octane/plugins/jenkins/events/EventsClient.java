@@ -1,9 +1,9 @@
 package com.hp.octane.plugins.jenkins.events;
 
 import com.hp.mqm.client.MqmRestClient;
+import com.hp.nga.integrations.dto.events.CIEventBase;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
-import com.hp.octane.plugins.jenkins.model.events.CIEventBase;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 import org.kohsuke.stapler.export.Flavor;
@@ -12,8 +12,6 @@ import org.kohsuke.stapler.export.ModelBuilder;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;

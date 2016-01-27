@@ -1,11 +1,11 @@
 package com.hp.octane.plugins.jenkins;
 
 import com.hp.nga.integrations.dto.causes.CIEventCauseType;
+import com.hp.nga.integrations.dto.events.CIEventType;
 import com.hp.nga.integrations.dto.parameters.ParameterType;
 import com.hp.nga.integrations.dto.scm.SCMType;
 import com.hp.nga.integrations.dto.snapshots.SnapshotResult;
 import com.hp.nga.integrations.dto.snapshots.SnapshotStatus;
-import com.hp.octane.plugins.jenkins.model.events.CIEventType;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

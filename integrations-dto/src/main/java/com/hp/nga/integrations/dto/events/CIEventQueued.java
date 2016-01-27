@@ -1,7 +1,6 @@
-package com.hp.octane.plugins.jenkins.model.events;
+package com.hp.nga.integrations.dto.events;
 
 import com.hp.nga.integrations.dto.causes.CIEventCauseBase;
-import org.kohsuke.stapler.export.ExportedBean;
 
 /**
  * Created with IntelliJ IDEA.
@@ -11,7 +10,6 @@ import org.kohsuke.stapler.export.ExportedBean;
  * To change this template use File | Settings | File Templates.
  */
 
-@ExportedBean
 public class CIEventQueued extends CIEventBase {
 	public CIEventQueued(String project, CIEventCauseBase[] causes) {
 		super(project, causes);

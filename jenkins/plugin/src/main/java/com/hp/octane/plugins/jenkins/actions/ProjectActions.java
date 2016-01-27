@@ -4,7 +4,7 @@ import com.hp.nga.integrations.dto.parameters.ParameterType;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.scm.SCMData;
 import com.hp.octane.plugins.jenkins.OctanePlugin;
-import com.hp.octane.plugins.jenkins.model.pipelines.ModelFactory;
+import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessors;
 import hudson.Extension;

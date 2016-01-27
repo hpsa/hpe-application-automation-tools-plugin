@@ -1,7 +1,7 @@
 package com.hp.octane.plugins.jenkins.events;
 
+import com.hp.nga.integrations.dto.events.CIEventBase;
 import com.hp.octane.plugins.jenkins.actions.PluginActions;
-import com.hp.octane.plugins.jenkins.model.events.CIEventBase;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 

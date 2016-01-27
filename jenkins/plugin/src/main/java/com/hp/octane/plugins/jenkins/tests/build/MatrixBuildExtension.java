@@ -3,7 +3,7 @@
 package com.hp.octane.plugins.jenkins.tests.build;
 
 import com.hp.nga.integrations.dto.parameters.ParameterInstance;
-import com.hp.octane.plugins.jenkins.model.pipelines.ModelFactory;
+import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import hudson.Extension;
 import hudson.model.AbstractBuild;

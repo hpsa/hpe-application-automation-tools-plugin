@@ -5,7 +5,7 @@ import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoicePara
 import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 import com.hp.nga.integrations.dto.parameters.ParameterType;
 import com.hp.nga.integrations.dto.parameters.ParameterInstance;
-import com.hp.octane.plugins.jenkins.model.pipelines.ModelFactory;
+import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import hudson.model.ParameterDefinition;
 import hudson.model.ParameterValue;
 

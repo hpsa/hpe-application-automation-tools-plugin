@@ -3,7 +3,7 @@ package com.hp.octane.plugins.jenkins.model.processors.parameters;
 import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 import com.hp.nga.integrations.dto.parameters.ParameterType;
 import com.hp.nga.integrations.dto.parameters.ParameterInstance;
-import com.hp.octane.plugins.jenkins.model.pipelines.ModelFactory;
+import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import hudson.model.ParameterDefinition;
 import hudson.model.ParameterValue;
 import hudson.plugins.random_string_parameter.RandomStringParameterDefinition;
