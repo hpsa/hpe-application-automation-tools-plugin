@@ -23,7 +23,7 @@ public class NGATaskProcessor {
 	private static final Logger logger = Logger.getLogger(NGATaskProcessor.class.getName());
 	private static final String OCTANE = "octane";
 	private static final String STATUS = "status";
-	private static final String PROJECTS = "projects";
+	private static final String JOBS = "jobs";
 	private static final String RUN = "run";
 	private static final String HISTORY = "history";
 	private static final String BUILDS = "builds";
@@ -55,16 +55,16 @@ public class NGATaskProcessor {
 		try {
 			if (path.length == 1 && STATUS.equals(path[0])) {
 				executeStatusRequest(result);
-			} else if (path.length == 1 && path[0].startsWith(PROJECTS)) {
+			} else if (path.length == 1 && path[0].startsWith(JOBS)) {
 				executeProjectsListRequest(result, !path[0].contains("parameters=false"));
-			} else if (path.length == 2 && PROJECTS.equals(path[0])) {
+			} else if (path.length == 2 && JOBS.equals(path[0])) {
 				executePipelineRequest(result, path[1]);
-			} else if (path.length == 3 && PROJECTS.equals(path[0]) && RUN.equals(path[2])) {
+			} else if (path.length == 3 && JOBS.equals(path[0]) && RUN.equals(path[2])) {
 				executeProjectRunRequest(result, path[1]);
-			} else if (path.length == 4 && PROJECTS.equals(path[0]) && BUILDS.equals(path[2])) {
+			} else if (path.length == 4 && JOBS.equals(path[0]) && BUILDS.equals(path[2])) {
 				//TODO: in the future should take the last paramter from the request
 				executeSnapshotRequest(result, path[1], path[3],false);
-			} else if (path.length == 3 && PROJECTS.equals(path[0]) && HISTORY.equals(path[2])) {
+			} else if (path.length == 3 && JOBS.equals(path[0]) && HISTORY.equals(path[2])) {
 				executeHistoryRequest(result);
 			} else {
 				result.setStatus(404);
