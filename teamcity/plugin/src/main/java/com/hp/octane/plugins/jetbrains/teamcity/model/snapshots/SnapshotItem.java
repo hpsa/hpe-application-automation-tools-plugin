@@ -1,27 +1,25 @@
 package com.hp.octane.plugins.jetbrains.teamcity.model.snapshots;
 
+import com.hp.nga.integrations.dto.builds.SnapshotNodeResult;
+import com.hp.nga.integrations.dto.builds.SnapshotNodeStatus;
+import com.hp.octane.plugins.jetbrains.teamcity.model.causes.CIEventCauseBase;
+import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.StructureItem;
+
 /**
  * Created by lazara on 12/01/2016.
  */
-public class SnapshotItem {
-    public SnapshotItem() {
+public class SnapshotItem extends StructureItem{
+
+    public SnapshotNodeStatus getStatus() {
+        return status;
     }
 
-    public String getName() {
-
-        return name;
+    public void setStatus(SnapshotNodeStatus status) {
+        this.status = status;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
+    public SnapshotItem(String name, String id) {
+        super(name,id);
     }
 
     public Integer getNumber() {
@@ -56,16 +54,39 @@ public class SnapshotItem {
         this.duration = duration;
     }
 
-    private String name;
-    private String id;
+    public CIEventCauseBase[] getCauses() {
+        return causes;
+    }
+
+    public void setCauses(CIEventCauseBase[] causes) {
+        this.causes = causes;
+    }
+
+    public void setResult(SnapshotNodeResult result) {
+        this.result = result;
+    }
+
+    public SnapshotNodeResult getResult() {
+        return result;
+    }
+
+
+    public String getScmData() {
+        return scmData;
+    }
+
+    public void setScmData(String scmData) {
+        this.scmData = scmData;
+    }
+
+    private String scmData = null;
     private Integer number = null;
-//    private CIEventCauseBase[] causes = null;
-//    private SnapshotStatus status = SnapshotStatus.UNAVAILABLE;
-//    private SnapshotResult result = SnapshotResult.UNAVAILABLE;
     private Long estimatedDuration = null;
     private Long startTime = null;
     private Long duration = null;
-//    private SCMData scmData = null;
+    private CIEventCauseBase[] causes = null;
+    private SnapshotNodeResult result;
+    private SnapshotNodeStatus status;
 
 
 }

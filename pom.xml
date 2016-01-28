@@ -53,6 +53,7 @@
         <module>collection-tool</module>
         <module>nga-surefire-listener</module>
         <module>integrations-sdk</module>
+        <module>integrations-dto</module>
 
     </modules>
     <build>

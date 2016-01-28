@@ -3,11 +3,9 @@ package com.hp.octane.plugins.common.bridge;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.octane.plugins.common.bridge.tasks.CITaskService;
 import com.hp.octane.plugins.common.configuration.ServerConfiguration;
-// import com.hp.octane.plugins.jetbrains.teamcity.DummyPluginConfiguration;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.client.MqmRestClientFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.Config;
-import com.hp.octane.plugins.jetbrains.teamcity.utils.ConfigManager;
 import net.sf.json.JSONObject;
 
 import java.util.HashMap;
@@ -48,6 +46,15 @@ public class TaskProcessor implements Runnable {
 			response = ciTaskService.getStatus();
 		}else if(url.contains("jobs")){
 			response = ciTaskService.getProjects(false);
+		}else if(url.contains("/structure")){
+			//String ciId = url.substring(/([^/]+)(?=/[^/]+/?$)/); url.indexOf("/job");
+			String ciId = url.substring(url.indexOf("/job")+5, url.indexOf("/octane"));
+			logger.info("BRIDGE: processing structure '" + ciId);
+			response = ciTaskService.getStructure(ciId);
+		}else if(url.contains("/live")){
+			String ciId = url.substring(url.indexOf("/job")+5, url.indexOf("/octane"));
+			logger.info("BRIDGE: processing live '" + ciId);
+			response = ciTaskService.getSnapshot(ciId);
 		}
 		MqmRestClient restClient = MqmRestClientFactory.create(
 				ciType,

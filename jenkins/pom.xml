@@ -9,7 +9,9 @@
 		<artifactId>indi-integrations-root</artifactId>
 		<version>12.50.28-SNAPSHOT</version>
 	</parent>
+
 	<modules>
 		<module>plugin</module>
 	</modules>
+
 </project>
