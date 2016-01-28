@@ -8,11 +8,11 @@
     <groupId>com.atlassian.plugins.bamboo</groupId>
     <artifactId>hpe.application.automation.bamboo</artifactId>
     <!--<artifactId>hp.application.automation.bamboo</artifactId>-->
-    <version>1.0</version>
+    <version>1.1</version>
 
     <organization>
         <name>HP Software</name>
-        <url>http://www.hp.com/</url>
+        <url>http://www.hpe.com/</url>
     </organization>
 
     <!--<url></url>-->

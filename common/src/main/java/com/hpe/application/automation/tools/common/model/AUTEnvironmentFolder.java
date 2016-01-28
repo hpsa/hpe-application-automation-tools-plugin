@@ -19,9 +19,11 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  */
-
 package com.hpe.application.automation.tools.common.model;
 
+/**
+ * Created by barush on 02/11/2014.
+ */
 public class AUTEnvironmentFolder {
     
     public final static String ALM_PARAMETER_FOLDER_ID_FIELD = "id";

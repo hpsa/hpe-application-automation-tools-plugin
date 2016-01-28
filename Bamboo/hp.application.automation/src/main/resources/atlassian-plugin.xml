@@ -54,7 +54,7 @@
     <component-import key="com.atlassian.sal.api.ApplicationProperties" interface="com.atlassian.sal.api.ApplicationProperties" />
 
 	<taskType 
-		name="HP ALM Lab Management Environment Preparation"
+		name="HP UFT ALM Lab Management Environment Preparation"
 		class="com.hpe.application.automation.bamboo.tasks.AlmLabEnvPrepareTask"
 		key="com.hpe.application.automation.bamboo.tasks.AlmLabEnvPrepareTask">
       <description>Execute AUT Environment preparation using HP ALM Lab Management</description>
@@ -71,10 +71,10 @@
     </taskType>
     
     <taskType 
-    	name="HP ALM Lab Management" 
+    	name="HP UFT ALM Lab Management"
     	class="com.hpe.application.automation.bamboo.tasks.AlmLabManagementTask"
     	key="com.hpe.application.automation.bamboo.tasks.AlmLabManagementTask">
-      <description>Execute HP tests using HP ALM Lab Management</description>
+      <description>Execute HP UFT tests using HP ALM Lab Management</description>
       <category name="test"/>
       <configuration class="com.hpe.application.automation.bamboo.tasks.AlmLabManagementTaskConfigurator"/>
       <resource 
@@ -88,10 +88,10 @@
     </taskType>
     
     <taskType 
-    	name="HP File System Execution" 
+    	name="HP UFT File System Execution"
     	class="com.hpe.application.automation.bamboo.tasks.RunFromFileSystemTask"
     	key="com.hpe.application.automation.bamboo.tasks.RunFromFileSystemTask">
-      <description>Execute HP tests from file system</description>
+      <description>Execute HP UFT tests from file system</description>
       <category name="test"/>
       <configuration class="com.hpe.application.automation.bamboo.tasks.RunFromFileSystemTaskConfigurator"/>
       <!-- <executable key="HP.HP Unified Functional Testing" nameKey="HP.UFT.executable.name"/> -->
@@ -107,10 +107,10 @@
     </taskType>
     
     <taskType 
-    	name="HP ALM Execution" 
+    	name="HP UFT ALM Execution"
     	class="com.hpe.application.automation.bamboo.tasks.RunFromAlmTask"
     	key="com.hpe.application.automation.bamboo.tasks.RunFromAlmTask">
-      <description>Execute HP tests from ALM</description>
+      <description>Execute HP UFT tests from ALM</description>
       <category name="test"/>
       <configuration class="com.hpe.application.automation.bamboo.tasks.RunFromAlmTaskConfigurator"/>
       <resource 

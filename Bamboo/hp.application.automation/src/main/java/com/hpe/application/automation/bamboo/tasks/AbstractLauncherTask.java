@@ -23,7 +23,6 @@ package com.hpe.application.automation.bamboo.tasks;
 
 import com.atlassian.bamboo.build.logger.BuildLogger;
 import com.atlassian.bamboo.build.test.TestCollationService;
-import com.atlassian.bamboo.configuration.ConfigurationMap;
 import com.atlassian.bamboo.task.TaskContext;
 import com.atlassian.bamboo.task.TaskException;
 import com.atlassian.bamboo.task.TaskResult;
@@ -44,7 +43,6 @@ public abstract class AbstractLauncherTask implements TaskType {
 	private final static String HpToolsAborter_SCRIPT_NAME = "HpToolsAborter.exe";
 
 	private final TestCollationService testCollationService;
-
 	private File resultsFile;
 	public File getResultsFile()
 	{
@@ -58,7 +56,7 @@ public abstract class AbstractLauncherTask implements TaskType {
 
 	protected abstract Properties getTaskProperties(final TaskContext taskContext) throws Exception;
 
-	protected void uploadArtifacts(final TaskContext taskContext)
+	protected void PrepareArtifacts(final TaskContext taskContext)
 	{
 
 	}
@@ -89,8 +87,6 @@ public abstract class AbstractLauncherTask implements TaskType {
 
 		mergedProperties.put("resultsFilename", resultsFileName);
 
-		final ConfigurationMap map = taskContext.getConfigurationMap();
-		
 		File wd = taskContext.getWorkingDirectory();
 
 		this.resultsFile = new File(wd, resultsFileName);
@@ -138,13 +134,13 @@ public abstract class AbstractLauncherTask implements TaskType {
 			return TaskResultBuilder.create(taskContext).failedWithError().build();
 		}
 		try {
-			int retCode = run(wd, launcherPath, paramsFile.getAbsolutePath(), buildLogger);
+			Integer retCode = run(wd, launcherPath, paramsFile.getAbsolutePath(), buildLogger);
 			buildLogger.addBuildLogEntry("********** " + Integer.toString(retCode));
-			if (retCode == 3)
+			if (retCode.equals(3))
 			{
 				throw new InterruptedException();
 			}
-			else if (retCode != 0)
+			else if (retCode.equals(0))
 			{
 				return collateResults(taskContext);
 			}
@@ -154,7 +150,7 @@ public abstract class AbstractLauncherTask implements TaskType {
 			return TaskResultBuilder.create(taskContext).failedWithError().build();
 		} 
 		catch (InterruptedException e) {
-			buildLogger.addErrorLogEntry("Abborted by user. Aborting process.");
+			buildLogger.addErrorLogEntry("Aborted by user. Aborting process.");
 			try {
 				run(wd, aborterPath, paramsFile.getAbsolutePath(), buildLogger);
 			}
@@ -232,7 +228,7 @@ public abstract class AbstractLauncherTask implements TaskType {
 		try
 		{
 			TestResultHelper.CollateResults(testCollationService, taskContext);
-			uploadArtifacts(taskContext);
+			PrepareArtifacts(taskContext);
 			return TaskResultBuilder.create(taskContext).checkTestFailures().build();
 		}
 		catch (Exception ex)

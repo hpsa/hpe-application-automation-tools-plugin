@@ -19,9 +19,11 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  */
-
 package com.hpe.application.automation.tools.common.model;
 
+/**
+ * Created by mprilepina on 14/08/2015.
+ */
 public enum AutEnvironmentParameterType {
     UNDEFINED(""), ENVIRONMENT("Environment"), EXTERNAL("From JSON"), USER_DEFINED("Manual");
 
