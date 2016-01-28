@@ -35,8 +35,8 @@ public class ModelFactory {
         structureItem.setParameters(ParameterProcessors.getConfigs(project));
 
         AbstractProjectProcessor projectProcessor = AbstractProjectProcessor.getFlowProcessor(project);
-        structureItem.setInternals(projectProcessor.getInternals());
-        structureItem.setPostBuilds(projectProcessor.getPostBuilds());
+        structureItem.setPhasesInternal(projectProcessor.getInternals());
+        structureItem.setPhasesPostBuild(projectProcessor.getPostBuilds());
 
         return structureItem;
     }
@@ -95,8 +95,8 @@ public class ModelFactory {
             appendInvokeesNames(invokeesNames, tmpStructurePhasesInternals);
             appendInvokeesNames(invokeesNames, tmpStructurePhasesPostBuilds);
             HashMap<String, ArrayList<AbstractBuild>> invokedBuilds = getInvokedBuilds(build, invokeesNames);
-            snapshotItem.setInternals((inflatePhases(tmpStructurePhasesInternals, invokedBuilds)));
-            snapshotItem.setPostBuilds(inflatePhases(tmpStructurePhasesPostBuilds, invokedBuilds));
+            snapshotItem.setPhasesInternal((inflatePhases(tmpStructurePhasesInternals, invokedBuilds)));
+            snapshotItem.setPhasesPostBuild(inflatePhases(tmpStructurePhasesPostBuilds, invokedBuilds));
         }
 
         snapshotItem.setName(build.getProject().getName());
@@ -120,8 +120,8 @@ public class ModelFactory {
         snapshotItem.setName(project.getName());
         if (!metaOnly) {
             AbstractProjectProcessor flowProcessor = AbstractProjectProcessor.getFlowProcessor(project);
-            snapshotItem.setPostBuilds(inflatePhases(flowProcessor.getPostBuilds(), null));
-            snapshotItem.setInternals(inflatePhases(flowProcessor.getInternals(), null));
+            snapshotItem.setPhasesPostBuild(inflatePhases(flowProcessor.getPostBuilds(), null));
+            snapshotItem.setPhasesInternal(inflatePhases(flowProcessor.getInternals(), null));
         }
         return snapshotItem;
     }

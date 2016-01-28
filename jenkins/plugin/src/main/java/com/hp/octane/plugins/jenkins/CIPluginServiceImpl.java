@@ -116,7 +116,7 @@ public class CIPluginServiceImpl implements CIPluginService {
 			e.printStackTrace();
 		}
 		AbstractProject project = (AbstractProject) Jenkins.getInstance().getItem(ciJobId);
-		AbstractBuild build = project.getBuild(ciBuildId);
+		AbstractBuild build = project.getLastBuild();
 		return ModelFactory.createSnapshotItem(build, subTree);
 	}
 }

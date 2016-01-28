@@ -70,7 +70,7 @@ public abstract class AbstractProjectProcessor {
 		}
 	}
 
-//	public StructurePhase[] getInternals() {
+//	public StructurePhase[] getPhasesInternal() {
 //		return internals.toArray(new StructurePhase[internals.size()]);
 //	}
 
