@@ -9,8 +9,10 @@ import com.hp.mqm.client.exception.ServerException;
 import com.hp.mqm.client.exception.SharedSpaceNotExistException;
 import com.hp.mqm.client.model.PagedList;
 import com.hp.mqm.org.apache.http.*;
+import com.hp.mqm.org.apache.http.client.CookieStore;
 import com.hp.mqm.org.apache.http.client.CredentialsProvider;
 import com.hp.mqm.org.apache.http.client.config.RequestConfig;
+import com.hp.mqm.org.apache.http.impl.client.BasicCookieStore;
 import com.hp.mqm.org.apache.http.impl.client.BasicCredentialsProvider;
 import com.hp.mqm.org.apache.http.impl.client.CloseableHttpClient;
 import com.hp.mqm.org.apache.http.impl.client.HttpClients;
@@ -74,6 +76,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	public static final int DEFAULT_SO_TIMEOUT = 40000; // in milliseconds
 
 	private CloseableHttpClient httpClient;
+	private CookieStore cookieStore;
 	private final String location;
 	private final String sharedSpace;
 	private final String clientType;
@@ -102,7 +105,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 		this.password = connectionConfig.getPassword();
 
 		PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
-
+		cookieStore = new BasicCookieStore();
 		cm.setMaxTotal(20);
 		cm.setDefaultMaxPerRoute(3);
 
@@ -125,6 +128,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 				httpClient = HttpClients.custom()
 						.setConnectionManager(cm).setDefaultCredentialsProvider(credsProvider)
 						.setDefaultRequestConfig(requestConfig)
+						.setDefaultCookieStore(cookieStore)
 						.build();
 //				httpClient.getParams().setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, connectionConfig.getDefaultConnectionTimeout() != null ?
 //						connectionConfig.getDefaultConnectionTimeout() : DEFAULT_CONNECTION_TIMEOUT);
@@ -137,6 +141,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 				httpClient = HttpClients.custom()
 						.setConnectionManager(cm)
 						.setDefaultRequestConfig(requestConfig)
+						.setDefaultCookieStore(cookieStore)
 						.build();
 			}
 		}else {
@@ -145,6 +150,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 					connectionConfig.getDefaultSocketTimeout() : DEFAULT_SO_TIMEOUT).build();
 			httpClient = HttpClients.custom().setConnectionManager(cm)
 					.setDefaultRequestConfig(requestConfig)
+					.setDefaultCookieStore(cookieStore)
 					.build();
 //			httpClient.getParams().setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, connectionConfig.getDefaultConnectionTimeout() != null ?
 //					connectionConfig.getDefaultConnectionTimeout() : DEFAULT_CONNECTION_TIMEOUT);
@@ -238,6 +244,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 
 		HttpResponse response = null;
 		try {
+			cookieStore.clear();
 			response = httpClient.execute(post);
 			if (response.getStatusLine().getStatusCode() != 200) {
 				throw new AuthenticationException("Authentication failed: code=" + response.getStatusLine().getStatusCode() + "; reason=" + response.getStatusLine().getReasonPhrase());
