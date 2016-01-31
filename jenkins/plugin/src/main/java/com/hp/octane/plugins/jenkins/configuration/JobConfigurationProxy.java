@@ -834,7 +834,7 @@ public class JobConfigurationProxy {
         }
 
         JenkinsMqmRestClientFactory clientFactory = getExtension(JenkinsMqmRestClientFactory.class);
-        MqmRestClient client = clientFactory.create(
+        MqmRestClient client = clientFactory.obtain(
                 configuration.location,
 				configuration.sharedSpace,
                 configuration.username,

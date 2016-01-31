@@ -55,7 +55,7 @@ public class TaskProcessor implements Runnable {
 			response = new LoopBackRestService.LoopBackResponse(500, null, e.getMessage());
 		}
 
-		MqmRestClient restClient = clientFactory.create(
+		MqmRestClient restClient = clientFactory.obtain(
 				mqmConfiguration.location,
 				mqmConfiguration.sharedSpace,
 				mqmConfiguration.username,

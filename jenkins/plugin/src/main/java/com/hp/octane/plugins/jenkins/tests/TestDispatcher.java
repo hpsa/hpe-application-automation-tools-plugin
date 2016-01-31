@@ -88,7 +88,7 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
                     return;
                 }
                 logger.info("There are pending test results, connecting to the MQM server");
-                client = clientFactory.create(
+                client = clientFactory.obtain(
                         configuration.location,
                         configuration.sharedSpace,
                         configuration.username,
