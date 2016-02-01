@@ -9,6 +9,5 @@ public class MqmRestClientFactoryImplTest {
         MqmRestClient client = new MqmRestClientImpl(MqmRestClientImplTest.connectionConfig);
         // test if client is initialized correctly
         client.tryToConnectSharedSpace();
-        client.release();
     }
 }

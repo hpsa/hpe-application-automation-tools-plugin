@@ -57,7 +57,6 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	private static final String HPSSO_HEADER_CSRF = "HPSSO_HEADER_CSRF";
 
 
-	static final String URI_LOGOUT = "authentication/sign_out";
 
 	private static final String PROJECT_API_URI = "api/shared_spaces/{0}";
 	private static final String SHARED_SPACE_INTERNAL_API_URI = "internal-api/shared_spaces/{0}";
@@ -85,7 +84,6 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	private final String password;
 	private String XCRF_VALUE;
 
-	//private volatile boolean alreadyLoggedIn = false;
 
 	/**
 	 * Constructor for AbstractMqmRestClient.
@@ -107,7 +105,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 		PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
 		cookieStore = new BasicCookieStore();
 		cm.setMaxTotal(20);
-		cm.setDefaultMaxPerRoute(3);
+		cm.setDefaultMaxPerRoute(20);
 
 
 		// proxy setting
@@ -130,11 +128,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 						.setDefaultRequestConfig(requestConfig)
 						.setDefaultCookieStore(cookieStore)
 						.build();
-//				httpClient.getParams().setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, connectionConfig.getDefaultConnectionTimeout() != null ?
-//						connectionConfig.getDefaultConnectionTimeout() : DEFAULT_CONNECTION_TIMEOUT);
-//				httpClient.getParams().setIntParameter(CoreConnectionPNames.SO_TIMEOUT, connectionConfig.getDefaultSocketTimeout() != null ?
-//						connectionConfig.getDefaultSocketTimeout() : DEFAULT_SO_TIMEOUT);
-//				httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+
 
 
 			}else {
@@ -152,10 +146,6 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 					.setDefaultRequestConfig(requestConfig)
 					.setDefaultCookieStore(cookieStore)
 					.build();
-//			httpClient.getParams().setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, connectionConfig.getDefaultConnectionTimeout() != null ?
-//					connectionConfig.getDefaultConnectionTimeout() : DEFAULT_CONNECTION_TIMEOUT);
-//			httpClient.getParams().setIntParameter(CoreConnectionPNames.SO_TIMEOUT, connectionConfig.getDefaultSocketTimeout() != null ?
-//					connectionConfig.getDefaultSocketTimeout() : DEFAULT_SO_TIMEOUT);
 		}
 
 	}
@@ -178,37 +168,8 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 		authenticate();
 	}
 
-	/**
-	 * Logout from MQM.
-	 */
-//	protected synchronized void logout() {
-//		HttpUriRequest request = new HttpPost(createBaseUri(URI_LOGOUT));
-//		addRequestHeaders(request);
-//		HttpResponse response = null;
-//		try {
-//			response = httpClient.execute(request);
-//			if (response.getStatusLine().getStatusCode() != 200) {
-//				throw new RequestException("Logout failed: code=" + response.getStatusLine().getStatusCode() + "; reason=" + response.getStatusLine().getReasonPhrase());
-//			}
-//			alreadyLoggedIn = false;
-//		} catch (IOException e) {
-//			throw new RequestErrorException("Error occurred during logout", e);
-//		} finally {
-//			HttpClientUtils.closeQuietly(response);
-//		}
-//	}
 
-	public void release() {
-//		logout();
-	}
 
-	public void releaseQuietly() {
-		try {
-			release();
-		} catch (Exception e) {
-			logger.log(Level.WARNING, "Failed to release client", e);
-		}
-	}
 
 	private void handleCSRF(HttpResponse response) {
 		boolean isCSRF = false;
@@ -231,15 +192,10 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	private void authenticate() {
 		HttpPost post = new HttpPost(createBaseUri(URI_AUTHENTICATION));
 		String authorizationString = (username != null ? username : "") + ":" + (password != null ? password : "");
-		//Base64.class.getProtectionDomain().getCodeSource().getLocation()
 
 
 		post.setHeader(HEADER_NAME_AUTHORIZATION, HEADER_VALUE_BASIC_AUTH + Base64.encodeBase64String(authorizationString.getBytes(StandardCharsets.UTF_8)));
-		//post.setHeader(HEADER_NAME_AUTHORIZATION, HEADER_VALUE_BASIC_AUTH + java.util.Base64.getEncoder().encodeToString(authorizationString.getBytes(StandardCharsets.UTF_8)));
 
-		//post.setHeader(HEADER_NAME_AUTHORIZATION, HEADER_VALUE_BASIC_AUTH + MqmBase64.encode(authorizationString));
-
-		// post.setHeader(HEADER_NAME_AUTHORIZATION, HEADER_VALUE_BASIC_AUTH + "test@hp.com:test");
 		addRequestHeaders(post, true);
 
 		HttpResponse response = null;
@@ -407,7 +363,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 				throw new IllegalArgumentException("MqmRestClient does not support non-repeatable entity (entity.isRepeatable() must be true).");
 			}
 		}
-		//doFirstLogin();
+
 		addRequestHeaders(request);
 		HttpResponse response = httpClient.execute(request);
 		if (isLoginNecessary(response)) { // if request fails with 401 do login and execute request again
@@ -430,7 +386,6 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	 * @throws IllegalArgumentException when request entity is not repeatable
 	 */
 	protected <T> T execute(final HttpUriRequest request, final ResponseHandler<? extends T> responseHandler) throws IOException {
-		//doFirstLogin();
 		addRequestHeaders(request);
 		final BooleanReference loginNecessary = new BooleanReference();
 		loginNecessary.value = false;
@@ -594,11 +549,6 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 		return response.getStatusLine().getStatusCode() == 401;
 	}
 
-//	private void doFirstLogin() {
-//		if (!alreadyLoggedIn) {
-//			login();
-//		}
-//	}
 
 	private void checkNotEmpty(String msg, String value) {
 		if (value == null || value.isEmpty()) {

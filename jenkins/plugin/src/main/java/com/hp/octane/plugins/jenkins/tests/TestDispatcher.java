@@ -152,7 +152,6 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
                     if (!queue.failed()) {
                         logger.warning("Maximum number of attempts reached, operation will not be re-attempted for this build");
                     }
-                    releaseClient(client);
                     client = null;
                 }
                 audit(configuration, build, id, false);
@@ -161,18 +160,8 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
                 queue.remove();
             }
         }
-        if (client != null) {
-            releaseClient(client);
-        }
     }
 
-    private void releaseClient(MqmRestClient client) {
-        try {
-            client.release();
-        } catch (Exception e) {
-            logger.log(Level.WARNING, "Unable to release client session", e);
-        }
-    }
 
     private void audit(ServerConfiguration configuration, AbstractBuild build, Long id, boolean temporarilyUnavailable) throws IOException, InterruptedException {
         FilePath auditFile = new FilePath(new File(build.getRootDir(), TEST_AUDIT_FILE));

@@ -91,15 +91,12 @@ public class MqmRestClientImplTest {
 	public void testLoginLogout() throws InterruptedException {
 		MqmRestClientImpl client = new MqmRestClientImpl(connectionConfig);
 		client.login();
-		//client.logout();
 
 		// login twice should not cause exception
 		client.login();
 		client.login();
 
-		// logout twice should not cause exception
-		//client.logout();
-		//client.logout();
+
 
 		// bad credentials
 		MqmConnectionConfig badConnectionConfig = new MqmConnectionConfig(
@@ -110,8 +107,6 @@ public class MqmRestClientImplTest {
 			fail("Login should failed because of bad credentials.");
 		} catch (LoginException e) {
 			Assert.assertNotNull(e);
-		} finally {
-			client.releaseQuietly();
 		}
 
 		// bad location
@@ -132,11 +127,8 @@ public class MqmRestClientImplTest {
 	@Test
 	public void testTryToConnectSharedSpace() {
 		MqmRestClientImpl client = new MqmRestClientImpl(connectionConfig);
-		try {
-			client.tryToConnectSharedSpace();
-		} finally {
-			client.release();
-		}
+		client.tryToConnectSharedSpace();
+
 
 		// bad credentials
 		MqmConnectionConfig badConnectionConfig = new MqmConnectionConfig(
@@ -147,8 +139,6 @@ public class MqmRestClientImplTest {
 			fail();
 		} catch (AuthenticationException e) {
 			Assert.assertNotNull(e);
-		} finally {
-			client.releaseQuietly();
 		}
 
 		// bad location
@@ -167,20 +157,13 @@ public class MqmRestClientImplTest {
 
 		client = new MqmRestClientImpl(connectionConfig);
 		client.login();
-		try {
-			client.tryToConnectSharedSpace();
-		} finally {
-			client.release();
-		}
+		client.tryToConnectSharedSpace();
+
 
 		// test autologin
-		try {
-			//client.logout();
-			client.tryToConnectSharedSpace();
-		} finally {
-			client.release();
-		}
-		client.release();
+
+		client.tryToConnectSharedSpace();
+
 
 		// bad domain
 		badConnectionConfig = new MqmConnectionConfig(
@@ -191,10 +174,7 @@ public class MqmRestClientImplTest {
 			fail();
 		} catch (SharedSpaceNotExistException e) {
 			Assert.assertNotNull(e);
-		} finally {
-			client.release();
 		}
-		client.release();
 	}
 
 	@Test
@@ -208,13 +188,12 @@ public class MqmRestClientImplTest {
 
 		// test method execute
 		HttpResponse response = null;
-		loginLogout(client);
+
 		try {
 			response = client.execute(new HttpGet(uri));
 			Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 		} finally {
 			HttpClientUtils.closeQuietly(response);
-			client.release();
 		}
 
 		try {
@@ -224,11 +203,9 @@ public class MqmRestClientImplTest {
 			Assert.assertNotNull(e);
 		} finally {
 			HttpClientUtils.closeQuietly(response);
-			client.release();
 		}
 
 		// test method execute with response handler
-		loginLogout(client);
 		try {
 			int status = client.execute(new HttpGet(uri), new ResponseHandler<Integer>() {
 				@Override
@@ -239,7 +216,6 @@ public class MqmRestClientImplTest {
 			Assert.assertEquals(HttpStatus.SC_OK, status);
 		} finally {
 			HttpClientUtils.closeQuietly(response);
-			client.release();
 		}
 
 		try {
@@ -252,17 +228,6 @@ public class MqmRestClientImplTest {
 			fail();
 		} catch (LoginException e) {
 			Assert.assertNotNull(e);
-		} finally {
-			HttpClientUtils.closeQuietly(response);
-			client.release();
-		}
-	}
-
-	private void loginLogout(MqmRestClientImpl client) throws IOException {
-		client.login();
-		HttpResponse response = null;
-		try {
-			response = client.execute(new HttpPost(LOCATION + "/" + AbstractMqmRestClient.URI_LOGOUT));
 		} finally {
 			HttpClientUtils.closeQuietly(response);
 		}
@@ -309,12 +274,10 @@ public class MqmRestClientImplTest {
 		final File testResults = File.createTempFile(getClass().getSimpleName(), "");
 		testResults.deleteOnExit();
 		FileUtils.write(testResults, testResultsXml);
-		try {
-			long id = client.postTestResult(testResults, false);
-            assertPublishResult(id, "success");
-		} finally {
-			client.release();
-		}
+
+		long id = client.postTestResult(testResults, false);
+		assertPublishResult(id, "success");
+
 
 		PagedList<TestRun> pagedList = testSupportClient.queryTestRuns("testOne" + timestamp, WORKSPACE, 0, 50);
 		Assert.assertEquals(1, pagedList.getItems().size());
@@ -322,21 +285,19 @@ public class MqmRestClientImplTest {
 
         // try to re-push the same content using InputStreamSource
 
-		try {
-            long id = client.postTestResult(new InputStreamSource() {
-				@Override
-				public InputStream getInputStream() {
-					try {
-						return new FileInputStream(testResults);
-					} catch (java.io.FileNotFoundException e) {
-						throw new RuntimeException(e);
-					}
+
+		id = client.postTestResult(new InputStreamSource() {
+			@Override
+			public InputStream getInputStream() {
+				try {
+					return new FileInputStream(testResults);
+				} catch (java.io.FileNotFoundException e) {
+					throw new RuntimeException(e);
 				}
-			}, false);
-            assertPublishResult(id, "success");
-		} finally {
-			client.release();
-		}
+			}
+		}, false);
+		assertPublishResult(id, "success");
+
 
 		// try content that fails unless skip-errors is specified
 
@@ -347,21 +308,17 @@ public class MqmRestClientImplTest {
         final File testResultsError = File.createTempFile(getClass().getSimpleName(), "");
         testResults.deleteOnExit();
         FileUtils.write(testResultsError, testResultsErrorXml);
-        try {
-            long id = client.postTestResult(testResultsError, false);
-            assertPublishResult(id, "failed");
-        } finally {
-            client.release();
-        }
+
+		id = client.postTestResult(testResultsError, false);
+		assertPublishResult(id, "failed");
+
 
         // and verify that if succeeds partially with skip-errors=true
 
-        try {
-            long id = client.postTestResult(testResultsError, true);
-            assertPublishResult(id, "warning");
-        } finally {
-            client.release();
-        }
+
+		id = client.postTestResult(testResultsError, true);
+		assertPublishResult(id, "warning");
+
 
 		// invalid payload
 		final File testResults2 = new File(this.getClass().getResource("TestResults2.xmlx").toURI());
@@ -370,8 +327,6 @@ public class MqmRestClientImplTest {
 			fail();
 		} catch (RequestException e) {
 			Assert.assertNotNull(e);
-		} finally {
-			client.release();
 		}
 		try {
 			client.postTestResult(new InputStreamSource() {
@@ -386,8 +341,6 @@ public class MqmRestClientImplTest {
 			}, false);
 		} catch (RequestException e) {
 			Assert.assertNotNull(e);
-		} finally {
-			client.release();
 		}
 		testResults.delete();
 
@@ -398,8 +351,6 @@ public class MqmRestClientImplTest {
 			fail();
 		} catch (FileNotFoundException e) {
 			Assert.assertNotNull(e);
-		} finally {
-			client.release();
 		}
 	}
 
