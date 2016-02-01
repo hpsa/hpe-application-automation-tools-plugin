@@ -140,7 +140,7 @@ public class EventsClient {
 		EventsList snapshot = new EventsList(events);
 		String requestBody;
 		boolean result = true;
-		MqmRestClient restClient = restClientFactory.create(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
+		MqmRestClient restClient = restClientFactory.obtain(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
 
 		try {
 			new ModelBuilder().get(EventsList.class).writeTo(snapshot, Flavor.JSON.createDataWriter(snapshot, w));

@@ -2,6 +2,7 @@ package com.hp.octane.plugins.jetbrains.teamcity.client;
 
 import com.hp.mqm.client.MqmConnectionConfig;
 import com.hp.mqm.client.MqmRestClient;
+import com.hp.mqm.client.MqmRestClientImpl;
 import com.hp.mqm.client.UsernamePasswordProxyCredentials;
 import org.apache.commons.lang.StringUtils;
 
@@ -23,7 +24,7 @@ public class MqmRestClientFactory {
         }
         configureProxy(clientType, locationUrl, clientConfig, username);
 
-        return com.hp.mqm.client.MqmRestClientFactory.create(clientConfig);
+        return new MqmRestClientImpl(clientConfig);
     }
 
     private static void configureProxy(String clientType, URL locationUrl, MqmConnectionConfig clientConfig, String username) {

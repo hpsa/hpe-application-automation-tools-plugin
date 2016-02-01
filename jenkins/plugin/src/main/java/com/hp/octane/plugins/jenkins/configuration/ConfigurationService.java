@@ -72,7 +72,7 @@ public class ConfigurationService {
     }
 
     public FormValidation checkConfiguration(String location, String sharedSpace, String username, String password) {
-        MqmRestClient client = clientFactory.create(location, sharedSpace, username, password);
+        MqmRestClient client = clientFactory.obtain(location, sharedSpace, username, password);
         try {
             client.tryToConnectSharedSpace();
              }
