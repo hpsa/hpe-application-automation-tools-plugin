@@ -9,10 +9,9 @@ package com.hp.octane.plugins.jetbrains.teamcity.model.causes;
  */
 
 public class CIEventSCMCause implements CIEventCauseBase {
-	private CIEventCauseType type = CIEventCauseType.SCM;
 
 	@Override
 	public CIEventCauseType getType() {
-		return type;
+		return CIEventCauseType.SCM;
 	}
 }

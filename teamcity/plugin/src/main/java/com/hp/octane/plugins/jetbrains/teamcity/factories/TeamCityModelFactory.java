@@ -1,5 +1,6 @@
 package com.hp.octane.plugins.jetbrains.teamcity.factories;
 
+import com.hp.nga.integrations.dto.builds.SnapshotNodeStatus;
 import com.hp.nga.integrations.dto.projects.ProjectsList;
 import com.hp.nga.integrations.dto.projects.ProjectsList.ProjectConfig;
 import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.StructureItem;
@@ -81,10 +82,11 @@ public class TeamCityModelFactory implements ModelFactory {
     @Override
     public SnapshotItem createSnapshot(String buildConfigurationId) {
         SBuildType root = projectManager.findBuildTypeByExternalId(buildConfigurationId);
+        //currentBuild.getTriggeredBy().getParameters().get("buildTypeId")
         SnapshotItem snapshotRoot = null;
         if(root !=null) {
-            snapshotRoot = createSnapshotItem(root);
-            createSnapshotPipeline(snapshotRoot, root.getDependencies(), root);
+            snapshotRoot = createSnapshotItem(root, root.getBuildTypeId());
+            createSnapshotPipeline(snapshotRoot, root.getDependencies(), root.getBuildTypeId());
 
         }else{
             //should update the response?
@@ -92,66 +94,121 @@ public class TeamCityModelFactory implements ModelFactory {
         return snapshotRoot;
     }
 
-    private void createSnapshotPipeline(StructureItem treeRoot, List<Dependency> dependencies,SBuildType root) {
+    private void createSnapshotPipeline(StructureItem treeRoot, List<Dependency> dependencies,String rootId) {
         if(dependencies ==null || dependencies.size() == 0)return;
         SnapshotPhase phase = new SnapshotPhase(true,"teamcity_dependencies");
         for(Dependency dependency : dependencies){
             SBuildType build = dependency.getDependOn();
-            SnapshotItem snapshotItem = createSnapshotItem(build);
+            SnapshotItem snapshotItem = createSnapshotItem(build,rootId);
             phase.addBuilds(snapshotItem);
-            createSnapshotPipeline(snapshotItem, build.getDependencies(),root);
+            createSnapshotPipeline(snapshotItem, build.getDependencies(),rootId);
         }
         treeRoot.addPhasesInternal(phase);
     }
 
-    private  SnapshotItem createSnapshotItem(SBuildType build){
-        SnapshotItem snapshotItem = new SnapshotItem(build.getName(),build.getExternalId());
-
+    private SnapshotItem createSnapshotItem(SBuildType build,String rootId){
         //option 1: the build is running now and need to retrieve the data from the running object
-        List<SRunningBuild> runningBuilds =build.getRunningBuilds();
-        SRunningBuild currentBuild = null;
-        for(SRunningBuild runningBuild : runningBuilds){
-            TriggeredBy trigger = runningBuild.getTriggeredBy();
-            currentBuild=runningBuild;
-        }
-        if(currentBuild!=null) {
-            snapshotItem.setDuration(currentBuild.getDuration());
-            snapshotItem.setEstimatedDuration(currentBuild.getDurationEstimate());
-            snapshotItem.setNumber(Integer.parseInt(currentBuild.getBuildNumber()));
-            snapshotItem.setStatus(currentBuild.getBuildStatus().getText());
-            snapshotItem.setStartTime(currentBuild.getClientStartDate().getTime()); //Returns the timestamp when the build was started on the build agent
-
+        SnapshotItem snapshotItem = createRunningBuild(build, rootId);
+        //option 2: the build in the queue
+        if(snapshotItem ==null){
+            snapshotItem = createQueueBuild(build, rootId);
         }
 
-        //option 2: the build not running now and need to get the data from the history object
-
+        if(snapshotItem ==null){
+            snapshotItem = createHistoryBuild(build,rootId);
+        }
         return snapshotItem;
     }
-//    @Override
-//    public SnapshotItem createSnapshot(String buildConfigurationId, String buildNumber) {
-//        SBuildType root = projectManager.findBuildTypeByExternalId(buildConfigurationId);
-//
-//        //option 1: the build is running now and need to retrieve the data from the running object
-//        List<SRunningBuild> runningBuilds =root.getRunningBuilds();
-//        SRunningBuild currentBuild = null;
-//        for(SRunningBuild runningBuild : runningBuilds){
-//            String currentPath = runningBuild.getCurrentPath();
-//            TriggeredBy trigger = runningBuild.getTriggeredBy();
-//            String status = runningBuild.getBuildStatus().getText();
-//            currentBuild=runningBuild;
-//            //trigger.getAsString()
-//        }
-//        SnapshotItem snapshotRoot = new SnapshotItem(root.getName(),root.getExternalId());
-//        if(currentBuild!=null) {
-////            snapshotRoot.setName(root.getName());
-////            snapshotRoot.setId(root.getExternalId());
-//            snapshotRoot.setDuration(currentBuild.getDuration());
-//            snapshotRoot.setEstimatedDuration(currentBuild.getDurationEstimate());
-//            snapshotRoot.setNumber(Integer.parseInt(currentBuild.getBuildNumber()));
-//        }
-//
-//        //option 2: the build not running now and need to get the data from the history object
-//        return snapshotRoot;
-//    }
+
+    private SnapshotItem createHistoryBuild(SBuildType build, String rootId) {
+        SnapshotItem snapshotItem =null;
+        SBuild currentBuild = null;
+
+        List<SFinishedBuild> finishedBuilds = build.getHistory();
+
+        if(build.getBuildTypeId().equalsIgnoreCase(rootId) && finishedBuilds.size()>0){
+            currentBuild = finishedBuilds.get(0);
+        }else{
+            for(SBuild runningBuild : finishedBuilds){
+                TriggeredBy trigger = runningBuild.getTriggeredBy();
+                if(trigger.getParameters().get("buildTypeId")!=null && rootId.equalsIgnoreCase(trigger.getParameters().get("buildTypeId"))){
+                    currentBuild=runningBuild;
+                    break;
+                }
+            }
+        }
+
+        if(currentBuild!=null){
+            snapshotItem = new SnapshotItem(build.getName(),build.getExternalId());
+            snapshotItem.setDuration(currentBuild.getDuration());
+            snapshotItem.setEstimatedDuration(null);
+            snapshotItem.setNumber(Integer.parseInt(currentBuild.getBuildNumber()));
+            snapshotItem.setStartTime(currentBuild.getClientStartDate().getTime()); //Returns the timestamp when the build was started on the build agent
+            snapshotItem.setCauses(null);
+            snapshotItem.setStatus(SnapshotNodeStatus.FINISHED);
+
+        }
+        return snapshotItem;
+    }
+
+    private SnapshotItem createQueueBuild(SBuildType build, String rootId) {
+        SnapshotItem snapshotItem = null;
+
+        if(build.isInQueue()) {
+            List<SQueuedBuild> queuedBuilds = build.getQueuedBuilds(null);
+            SQueuedBuild queuedBuild = null;
+            if(build.getBuildTypeId().equalsIgnoreCase(rootId) && queuedBuilds.size()>0) {
+                queuedBuild = queuedBuilds.get(0);
+            }else{
+                for (SQueuedBuild runningBuild : queuedBuilds) {
+                    TriggeredBy trigger = runningBuild.getTriggeredBy();
+                    if (rootId.equalsIgnoreCase(trigger.getParameters().get("buildTypeId"))) {
+                        queuedBuild = runningBuild;
+                        break;
+                    }
+                }
+            }
+
+            if (queuedBuild != null) {
+                snapshotItem = new SnapshotItem(build.getName(),build.getExternalId());
+
+                snapshotItem.setStatus(SnapshotNodeStatus.QUEUED);
+            }
+        }
+        return snapshotItem;
+    }
+
+    private SnapshotItem createRunningBuild(SBuildType build, String rootId) {
+
+        SnapshotItem snapshotItem =null;
+        SBuild currentBuild = null;
+
+        List<SRunningBuild> runningBuilds =build.getRunningBuilds();
+
+        if(build.getBuildTypeId().equalsIgnoreCase(rootId) && runningBuilds.size()>0) {
+            currentBuild = runningBuilds.get(0);
+        }else{
+            for(SBuild runningBuild : runningBuilds){
+                TriggeredBy trigger = runningBuild.getTriggeredBy();
+                if(rootId.equalsIgnoreCase(trigger.getParameters().get("buildTypeId"))){
+                    currentBuild=runningBuild;
+                    break;
+                }
+            }
+        }
+
+        if(currentBuild!=null) {
+            snapshotItem = new SnapshotItem(build.getName(),build.getExternalId());
+
+            snapshotItem.setDuration(currentBuild.getDuration());
+            snapshotItem.setEstimatedDuration(((SRunningBuild) currentBuild).getDurationEstimate());
+            snapshotItem.setNumber(Integer.parseInt(currentBuild.getBuildNumber()));
+            snapshotItem.setStartTime(currentBuild.getClientStartDate().getTime()); //Returns the timestamp when the build was started on the build agent
+            snapshotItem.setCauses(null);
+            snapshotItem.setStatus(SnapshotNodeStatus.RUNNING);
+            return snapshotItem;
+        }
+        return snapshotItem;
+    }
 
 }

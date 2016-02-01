@@ -10,10 +10,9 @@ package com.hp.octane.plugins.jetbrains.teamcity.model.causes;
 
 
 public class CIEventUndefinedCause implements CIEventCauseBase {
-	private CIEventCauseType type = CIEventCauseType.UNDEFINED;
 
 	@Override
 	public CIEventCauseType getType() {
-		return type;
+		return CIEventCauseType.UNDEFINED;
 	}
 }

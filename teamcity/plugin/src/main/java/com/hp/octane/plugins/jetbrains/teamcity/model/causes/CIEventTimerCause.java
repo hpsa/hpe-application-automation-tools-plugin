@@ -10,10 +10,9 @@ package com.hp.octane.plugins.jetbrains.teamcity.model.causes;
 
 
 public class CIEventTimerCause implements CIEventCauseBase {
-	private CIEventCauseType type = CIEventCauseType.TIMER;
 
 	@Override
 	public CIEventCauseType getType() {
-		return type;
+		return CIEventCauseType.TIMER;
 	}
 }
