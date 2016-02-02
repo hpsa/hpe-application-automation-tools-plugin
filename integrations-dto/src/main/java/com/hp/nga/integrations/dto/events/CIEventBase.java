@@ -1,10 +1,6 @@
-package com.hp.octane.plugins.jenkins.model.events;
+package com.hp.nga.integrations.dto.events;
 
-import com.hp.octane.plugins.jenkins.model.causes.*;
-import org.kohsuke.stapler.export.Exported;
-import org.kohsuke.stapler.export.ExportedBean;
-
-import java.util.List;
+import com.hp.nga.integrations.dto.causes.CIEventCauseBase;
 
 /**
  * Created with IntelliJ IDEA.
@@ -14,7 +10,6 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 
-@ExportedBean
 public abstract class CIEventBase {
 	abstract CIEventType provideEventType();
 
@@ -26,17 +21,14 @@ public abstract class CIEventBase {
 		this.causes = causes;
 	}
 
-	@Exported(inline = true)
 	public String getEventType() {
 		return provideEventType().toString();
 	}
 
-	@Exported(inline = true)
 	public String getProject() {
 		return project;
 	}
 
-	@Exported(inline = true)
 	public CIEventCauseBase[] getCauses() {
 		return causes;
 	}

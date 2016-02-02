@@ -5,17 +5,19 @@ import com.hp.nga.integrations.configuration.NGAConfiguration;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
 import com.hp.nga.integrations.dto.general.PluginInfoDTO;
 import com.hp.nga.integrations.dto.general.ServerInfoDTO;
-import com.hp.nga.integrations.dto.parameters.ParameterType;
+import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 import com.hp.nga.integrations.dto.pipelines.StructureItem;
 import com.hp.nga.integrations.dto.projects.JobsListDTO;
 import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
-import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
+import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
+import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-import hudson.model.TopLevelItem;
 import jenkins.model.Jenkins;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,6 +64,7 @@ public class CIPluginServiceImpl implements CIPluginService {
 
 	@Override
 	public JobsListDTO getProjectsList(boolean includeParameters) {
+
 		JobsListDTO result = new JobsListDTO();
 		JobsListDTO.ProjectConfig tmpConfig;
 		AbstractProject tmpProject;
@@ -71,16 +74,17 @@ public class CIPluginServiceImpl implements CIPluginService {
 			tmpProject = (AbstractProject) Jenkins.getInstance().getItem(name);
 			tmpConfig = new JobsListDTO.ProjectConfig();
 			tmpConfig.setName(name);
+			tmpConfig.setCiId(name);
 			if (includeParameters) {
-				ParameterConfig[] tmpList = ParameterProcessors.getConfigs(tmpProject);
+				List<ParameterConfig> tmpList = ParameterProcessors.getConfigs(tmpProject);
 				List<com.hp.nga.integrations.dto.parameters.ParameterConfig> configs = new ArrayList<com.hp.nga.integrations.dto.parameters.ParameterConfig>();
 				for (ParameterConfig pc : tmpList) {
 					configs.add(new com.hp.nga.integrations.dto.parameters.ParameterConfig(
-							ParameterType.fromValue(pc.getType()),
+							pc.getType(),
 							pc.getName(),
 							pc.getDescription(),
 							pc.getDefaultValue(),
-							pc.getChoices() == null ? null : pc.getChoices().toArray(new Object[pc.getChoices().size()])
+							pc.getChoices() == null ? null : pc.getChoices()
 					));
 				}
 				tmpConfig.setParameters(configs.toArray(new com.hp.nga.integrations.dto.parameters.ParameterConfig[configs.size()]));
@@ -93,11 +97,26 @@ public class CIPluginServiceImpl implements CIPluginService {
 
 	@Override
 	public StructureItem getPipeline(String rootCIJobId) {
-		return CIPipelinesService.getPipeline(rootCIJobId);
+
+		try {
+			rootCIJobId = URLDecoder.decode(rootCIJobId, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		AbstractProject project = (AbstractProject) Jenkins.getInstance().getItem(rootCIJobId);
+		return ModelFactory.createStructureItem(project);
 	}
 
 	@Override
-	public SnapshotItem getSnapshotLatest(String ciJobId, boolean subTree) {
-		return CISnapshotsService.getSnapshotLatest(ciJobId, subTree);
+	public SnapshotItem getSnapshotLatest(String ciJobId, String ciBuildId, boolean subTree) {
+
+		try {
+			ciJobId = URLDecoder.decode(ciJobId, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		AbstractProject project = (AbstractProject) Jenkins.getInstance().getItem(ciJobId);
+		AbstractBuild build = project.getLastBuild();
+		return ModelFactory.createSnapshotItem(build, subTree);
 	}
 }

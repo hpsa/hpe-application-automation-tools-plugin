@@ -28,8 +28,8 @@ public final class SnapshotItem {
 	private Long duration = null;
 	private SCMData scmData = null;
 	private List<ParameterInstance> parameters;
-	private List<SnapshotPhase> internals;
-	private List<SnapshotPhase> postBuilds;
+	private List<SnapshotPhase> phasesInternal;
+	private List<SnapshotPhase> phasesPostBuild;
 
 	public static Logger getLogger() {
 		return logger;
@@ -115,19 +115,19 @@ public final class SnapshotItem {
 		this.parameters = parameters;
 	}
 
-	public List<SnapshotPhase> getInternals() {
-		return internals;
+	public List<SnapshotPhase> getPhasesInternal() {
+		return phasesInternal;
 	}
 
-	public void setInternals(List<SnapshotPhase> internals) {
-		this.internals = internals;
+	public void setPhasesInternal(List<SnapshotPhase> phasesInternal) {
+		this.phasesInternal = phasesInternal;
 	}
 
-	public List<SnapshotPhase> getPostBuilds() {
-		return postBuilds;
+	public List<SnapshotPhase> getPhasesPostBuild() {
+		return phasesPostBuild;
 	}
 
-	public void setPostBuilds(List<SnapshotPhase> postBuilds) {
-		this.postBuilds = postBuilds;
+	public void setPhasesPostBuild(List<SnapshotPhase> phasesPostBuild) {
+		this.phasesPostBuild = phasesPostBuild;
 	}
 }

@@ -1,4 +1,4 @@
-package com.hp.nga.integrations.configuration;
+package com.hp.nga.integrations.services.configuration;
 
 import java.net.MalformedURLException;
 import java.net.URL;

@@ -1,8 +1,9 @@
 package com.hp.octane.plugins.jenkins.model.processors.parameters;
 
-import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
-import com.hp.octane.plugins.jenkins.model.api.ParameterInstance;
-import com.hp.octane.plugins.jenkins.model.parameters.*;
+import com.hp.nga.integrations.dto.parameters.ParameterConfig;
+import com.hp.nga.integrations.dto.parameters.ParameterType;
+import com.hp.nga.integrations.dto.parameters.ParameterInstance;
+import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import hudson.model.*;
 
 import java.util.ArrayList;
@@ -19,19 +20,19 @@ public class InherentParameterProcessor extends AbstractParametersProcessor {
 	public ParameterConfig createParameterConfig(ParameterDefinition pd) {
 		ParameterConfig result;
 		if (pd instanceof BooleanParameterDefinition) {
-			result = new ParameterConfig(pd, ParameterType.BOOLEAN);
+			result = ModelFactory.createParameterConfig(pd, ParameterType.BOOLEAN);
 		} else if (pd instanceof TextParameterDefinition) {
-			result = new ParameterConfig(pd, ParameterType.STRING);
+			result = ModelFactory.createParameterConfig(pd, ParameterType.STRING);
 		} else if (pd instanceof StringParameterDefinition) {
-			result = new ParameterConfig(pd, ParameterType.STRING);
+			result = ModelFactory.createParameterConfig(pd, ParameterType.STRING);
 		} else if (pd instanceof ChoiceParameterDefinition) {
 			ChoiceParameterDefinition choicePd = (ChoiceParameterDefinition) pd;
-			result = new ParameterConfig(pd, ParameterType.STRING, null, new ArrayList<Object>(choicePd.getChoices()));
+			result = ModelFactory.createParameterConfig(pd, ParameterType.STRING, null, new ArrayList<Object>(choicePd.getChoices()));
 		} else if (pd instanceof PasswordParameterDefinition) {
 			PasswordParameterDefinition passPd = (PasswordParameterDefinition) pd;
-			result = new ParameterConfig(pd, ParameterType.PASSWORD, passPd.getDefaultValue());
+			result = ModelFactory.createParameterConfig(pd, ParameterType.PASSWORD, passPd.getDefaultValue());
 		} else if (pd instanceof FileParameterDefinition) {
-			result = new ParameterConfig(pd, ParameterType.FILE);
+			result = ModelFactory.createParameterConfig(pd, ParameterType.FILE);
 		} else {
 			result = new UnsupportedParameterProcessor().createParameterConfig(pd);
 		}
@@ -43,13 +44,13 @@ public class InherentParameterProcessor extends AbstractParametersProcessor {
 		ParameterInstance result;
 		ParameterConfig pc = createParameterConfig(pd);
 		if (pd instanceof BooleanParameterDefinition) {
-			result = new ParameterInstance(pc, pv);
+			result = ModelFactory.createParameterInstance(pc, pv);
 		} else if (pd instanceof TextParameterDefinition) {
-			result = new ParameterInstance(pc, pv);
+			result = ModelFactory.createParameterInstance(pc, pv);
 		} else if (pd instanceof StringParameterDefinition) {
-			result = new ParameterInstance(pc, pv);
+			result = ModelFactory.createParameterInstance(pc, pv);
 		} else if (pd instanceof ChoiceParameterDefinition) {
-			result = new ParameterInstance(pc, pv);
+			result = ModelFactory.createParameterInstance(pc, pv);
 		} else if (pd instanceof PasswordParameterDefinition) {
 			result = new ParameterInstance(pc, "");
 		} else if (pd instanceof FileParameterDefinition) {

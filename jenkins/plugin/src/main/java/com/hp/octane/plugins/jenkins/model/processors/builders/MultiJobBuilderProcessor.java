@@ -1,8 +1,7 @@
 package com.hp.octane.plugins.jenkins.model.processors.builders;
 
-import com.hp.nga.integrations.dto.pipelines.StructureItem;
 import com.hp.nga.integrations.dto.pipelines.StructurePhase;
-import com.hp.octane.plugins.jenkins.model.processors.projects.AbstractProjectProcessor;
+import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import com.tikal.jenkins.plugins.multijob.MultiJobBuilder;
 import com.tikal.jenkins.plugins.multijob.PhaseJobsConfig;
 import hudson.model.AbstractProject;
@@ -10,7 +9,6 @@ import hudson.tasks.Builder;
 import jenkins.model.Jenkins;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -38,28 +36,8 @@ public class MultiJobBuilderProcessor extends AbstractBuilderProcessor {
 				logger.severe("project named '" + config.getJobName() + "' not found; considering this as corrupted configuration and skipping the project");
 			}
 		}
-		StructurePhase newPhase = new StructurePhase();
-		newPhase.setName(b.getPhaseName());
-		newPhase.setBlocking(true);
-		newPhase.setJobs(createSubJobs(items));
-		super.phases.add(newPhase);
-	}
+//		super.phases.add(new StructurePhase(b.getPhaseName(), true, items));
+		super.phases.add(ModelFactory.createStructurePhase(b.getPhaseName(), true, items));
 
-	private List<StructureItem> createSubJobs(List<AbstractProject> projects) {
-		List<StructureItem> result = new ArrayList<StructureItem>();
-		StructureItem tmp;
-		AbstractProjectProcessor projectProcessor;
-		for (AbstractProject project : projects) {
-			if (project != null) {
-				tmp = new StructureItem();
-				tmp.setName(project.getName());
-				//  TODO: parameters
-				projectProcessor = AbstractProjectProcessor.getFlowProcessor(project);
-				tmp.setInternals(Arrays.asList(projectProcessor.getInternals()));
-				tmp.setPostBuilds(Arrays.asList(projectProcessor.getPostBuilds()));
-				result.add(tmp);
-			}
-		}
-		return result;
 	}
 }

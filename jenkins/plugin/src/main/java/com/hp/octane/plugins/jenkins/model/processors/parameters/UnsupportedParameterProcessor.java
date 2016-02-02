@@ -1,7 +1,8 @@
 package com.hp.octane.plugins.jenkins.model.processors.parameters;
 
-import com.hp.octane.plugins.jenkins.model.api.ParameterConfig;
-import com.hp.octane.plugins.jenkins.model.api.ParameterInstance;
+import com.hp.nga.integrations.dto.parameters.ParameterConfig;
+import com.hp.nga.integrations.dto.parameters.ParameterInstance;
+import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import hudson.model.ParameterDefinition;
 import hudson.model.ParameterValue;
 
@@ -15,7 +16,7 @@ public class UnsupportedParameterProcessor extends AbstractParametersProcessor {
 
 	@Override
 	public ParameterConfig createParameterConfig(ParameterDefinition pd) {
-		return new ParameterConfig(pd);
+		return ModelFactory.createParameterConfig(pd);
 	}
 
 	@Override

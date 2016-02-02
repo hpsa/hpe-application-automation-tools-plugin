@@ -1,6 +1,9 @@
 package com.hp.octane.plugins.jenkins.model.processors.scm;
 
-import com.hp.octane.plugins.jenkins.model.scm.*;
+import com.hp.nga.integrations.dto.scm.SCMCommit;
+import com.hp.nga.integrations.dto.scm.SCMData;
+import com.hp.nga.integrations.dto.scm.SCMRepository;
+import com.hp.nga.integrations.dto.scm.SCMType;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.plugins.git.Branch;

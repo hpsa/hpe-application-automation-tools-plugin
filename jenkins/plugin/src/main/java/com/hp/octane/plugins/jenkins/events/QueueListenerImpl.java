@@ -1,7 +1,7 @@
 package com.hp.octane.plugins.jenkins.events;
 
+import com.hp.nga.integrations.dto.events.CIEventQueued;
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCausesFactory;
-import com.hp.octane.plugins.jenkins.model.events.CIEventQueued;
 import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.Queue;

@@ -1,12 +1,12 @@
 package com.hp.octane.plugins.jenkins.actions;
 
-import com.hp.nga.integrations.dto.pipelines.StructureItem;
+import com.hp.nga.integrations.dto.parameters.ParameterType;
+import com.hp.nga.integrations.dto.pipelines.BuildHistory;
+import com.hp.nga.integrations.dto.scm.SCMData;
 import com.hp.octane.plugins.jenkins.OctanePlugin;
-import com.hp.octane.plugins.jenkins.model.parameters.ParameterType;
-import com.hp.octane.plugins.jenkins.model.pipelines.BuildHistory;
+import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessors;
-import com.hp.octane.plugins.jenkins.model.scm.SCMData;
 import hudson.Extension;
 import hudson.model.*;
 import hudson.security.ACL;
@@ -63,6 +63,10 @@ public class ProjectActions extends TransientProjectActionFactory {
 			return "octane";
 		}
 
+		public void doStructure(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
+			res.serveExposedBean(req, ModelFactory.createStructureItem(project)/*new StructureItem(project)*/, Flavor.JSON);
+		}
+
 		public void doHistory(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
 			SCMData scmData;
 			Set<User> users;
@@ -82,7 +86,8 @@ public class ProjectActions extends TransientProjectActionFactory {
 						scmData = scmProcessor.getSCMData(build);
 						users = build.getCulprits();
 					}
-					buildHistory.addBuild(build.getResult().toString(), String.valueOf(build.getNumber()), build.getTimestampString(), String.valueOf(build.getStartTimeInMillis()), String.valueOf(build.getDuration()), scmData, users);
+
+					buildHistory.addBuild(build.getResult().toString(), String.valueOf(build.getNumber()), build.getTimestampString(), String.valueOf(build.getStartTimeInMillis()), String.valueOf(build.getDuration()), scmData, ModelFactory.createScmUsersList(users));
 				}
 			}
 			AbstractBuild lastSuccessfulBuild = (AbstractBuild) project.getLastSuccessfulBuild();
@@ -93,7 +98,7 @@ public class ProjectActions extends TransientProjectActionFactory {
 					scmData = scmProcessor.getSCMData(lastSuccessfulBuild);
 					users = lastSuccessfulBuild.getCulprits();
 				}
-				buildHistory.addLastSuccesfullBuild(lastSuccessfulBuild.getResult().toString(), String.valueOf(lastSuccessfulBuild.getNumber()), lastSuccessfulBuild.getTimestampString(), String.valueOf(lastSuccessfulBuild.getStartTimeInMillis()), String.valueOf(lastSuccessfulBuild.getDuration()), scmData, users);
+				buildHistory.addLastSuccesfullBuild(lastSuccessfulBuild.getResult().toString(), String.valueOf(lastSuccessfulBuild.getNumber()), lastSuccessfulBuild.getTimestampString(), String.valueOf(lastSuccessfulBuild.getStartTimeInMillis()), String.valueOf(lastSuccessfulBuild.getDuration()), scmData, ModelFactory.createScmUsersList(users));
 			}
 			AbstractBuild lastBuild = project.getLastBuild();
 			if (lastBuild != null) {
@@ -103,10 +108,11 @@ public class ProjectActions extends TransientProjectActionFactory {
 					scmData = scmProcessor.getSCMData(lastBuild);
 					users = lastBuild.getCulprits();
 				}
+
 				if (lastBuild.getResult() == null) {
-					buildHistory.addLastBuild("building", String.valueOf(lastBuild.getNumber()), lastBuild.getTimestampString(), String.valueOf(lastBuild.getStartTimeInMillis()), String.valueOf(lastBuild.getDuration()), scmData, users);
+					buildHistory.addLastBuild("building", String.valueOf(lastBuild.getNumber()), lastBuild.getTimestampString(), String.valueOf(lastBuild.getStartTimeInMillis()), String.valueOf(lastBuild.getDuration()), scmData, ModelFactory.createScmUsersList(users));
 				} else {
-					buildHistory.addLastBuild(lastBuild.getResult().toString(), String.valueOf(lastBuild.getNumber()), lastBuild.getTimestampString(), String.valueOf(lastBuild.getStartTimeInMillis()), String.valueOf(lastBuild.getDuration()), scmData, users);
+					buildHistory.addLastBuild(lastBuild.getResult().toString(), String.valueOf(lastBuild.getNumber()), lastBuild.getTimestampString(), String.valueOf(lastBuild.getStartTimeInMillis()), String.valueOf(lastBuild.getDuration()), scmData, ModelFactory.createScmUsersList(users));
 				}
 			}
 			res.serveExposedBean(req, buildHistory, Flavor.JSON);
@@ -204,7 +210,7 @@ public class ProjectActions extends TransientProjectActionFactory {
 						JSONObject paramJSON = paramsJSON.getJSONObject(i);
 						if (paramJSON.has("name") && paramJSON.get("name") != null && paramJSON.get("name").equals(paramDef.getName())) {
 							tmpValue = null;
-							switch (ParameterType.getByValue(paramJSON.getString("type"))) {
+							switch (ParameterType.fromValue(paramJSON.getString("type"))) {
 								case FILE:
 									try {
 										FileItemFactory fif = new DiskFileItemFactory();

@@ -1,4 +1,4 @@
-package com.hp.octane.plugins.jenkins.model.events;
+package com.hp.nga.integrations.dto.events;
 
 /**
  * Created with IntelliJ IDEA.

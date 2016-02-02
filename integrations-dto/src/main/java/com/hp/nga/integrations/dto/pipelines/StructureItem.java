@@ -15,8 +15,8 @@ import java.util.List;
 public final class StructureItem {
 	private String name;
 	private List<ParameterConfig> parameters;
-	private List<StructurePhase> internals;
-	private List<StructurePhase> postBuilds;
+	private List<StructurePhase> phasesInternal;
+	private List<StructurePhase> phasesPostBuild;
 
 	public String getName() {
 		return name;
@@ -34,19 +34,19 @@ public final class StructureItem {
 		this.parameters = parameters;
 	}
 
-	public List<StructurePhase> getInternals() {
-		return internals;
+	public List<StructurePhase> getPhasesInternal() {
+		return phasesInternal;
 	}
 
-	public void setInternals(List<StructurePhase> internals) {
-		this.internals = internals;
+	public void setPhasesInternal(List<StructurePhase> phasesInternal) {
+		this.phasesInternal = phasesInternal;
 	}
 
-	public List<StructurePhase> getPostBuilds() {
-		return postBuilds;
+	public List<StructurePhase> getPhasesPostBuild() {
+		return phasesPostBuild;
 	}
 
-	public void setPostBuilds(List<StructurePhase> postBuilds) {
-		this.postBuilds = postBuilds;
+	public void setPhasesPostBuild(List<StructurePhase> phasesPostBuild) {
+		this.phasesPostBuild = phasesPostBuild;
 	}
 }

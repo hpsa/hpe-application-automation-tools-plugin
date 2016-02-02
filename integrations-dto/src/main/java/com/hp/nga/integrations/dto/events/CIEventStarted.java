@@ -1,9 +1,7 @@
-package com.hp.octane.plugins.jenkins.model.events;
+package com.hp.nga.integrations.dto.events;
 
-import com.hp.octane.plugins.jenkins.model.api.ParameterInstance;
-import com.hp.octane.plugins.jenkins.model.causes.CIEventCauseBase;
-import org.kohsuke.stapler.export.Exported;
-import org.kohsuke.stapler.export.ExportedBean;
+import com.hp.nga.integrations.dto.causes.CIEventCauseBase;
+import com.hp.nga.integrations.dto.parameters.ParameterInstance;
 
 /**
  * Created with IntelliJ IDEA.
@@ -13,7 +11,6 @@ import org.kohsuke.stapler.export.ExportedBean;
  * To change this template use File | Settings | File Templates.
  */
 
-@ExportedBean
 public class CIEventStarted extends CIEventQueued {
 	private int number;
 	private int subNumber;
@@ -35,27 +32,22 @@ public class CIEventStarted extends CIEventQueued {
 		return CIEventType.STARTED;
 	}
 
-	@Exported(inline = true)
 	public int getNumber() {
 		return number;
 	}
 
-	@Exported(inline = true)
 	public int getSubNumber() {
 		return subNumber;
 	}
 
-	@Exported(inline = true)
 	public long getStartTime() {
 		return startTime;
 	}
 
-	@Exported(inline = true)
 	public long getEstimatedDuration() {
 		return estimatedDuration;
 	}
 
-	@Exported(inline = true)
 	public ParameterInstance[] getParameters() {
 		return parameters;
 	}

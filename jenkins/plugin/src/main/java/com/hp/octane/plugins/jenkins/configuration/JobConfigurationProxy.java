@@ -5,22 +5,14 @@ package com.hp.octane.plugins.jenkins.configuration;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
-import com.hp.mqm.client.model.FieldMetadata;
-import com.hp.mqm.client.model.JobConfiguration;
-import com.hp.mqm.client.model.ListField;
-import com.hp.mqm.client.model.ListItem;
-import com.hp.mqm.client.model.PagedList;
-import com.hp.mqm.client.model.Pipeline;
-import com.hp.mqm.client.model.Release;
-import com.hp.mqm.client.model.Taxonomy;
-import com.hp.mqm.client.model.Workspace;
+import com.hp.mqm.client.model.*;
 import com.hp.nga.integrations.dto.pipelines.StructureItem;
 import com.hp.octane.plugins.jenkins.Messages;
 import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
-import com.hp.octane.plugins.jenkins.model.processors.projects.AbstractProjectProcessor;
+import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import hudson.ExtensionList;
 import hudson.model.AbstractProject;
 import jenkins.model.Jenkins;
@@ -35,19 +27,8 @@ import org.kohsuke.stapler.export.ModelBuilder;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -72,13 +53,7 @@ public class JobConfigurationProxy {
     public JSONObject createPipelineOnServer(JSONObject pipelineObject) throws IOException {
         JSONObject result = new JSONObject();
 
-        StructureItem structureItem = new StructureItem();
-        structureItem.setName(project.getName());
-        //  TODO: parameters
-        AbstractProjectProcessor projectProcessor = AbstractProjectProcessor.getFlowProcessor(project);
-        structureItem.setInternals(Arrays.asList(projectProcessor.getInternals()));
-        structureItem.setPostBuilds(Arrays.asList(projectProcessor.getPostBuilds()));
-
+        StructureItem structureItem = ModelFactory.createStructureItem(project);//new StructureItem(project);
         PluginActions.ServerInfo serverInfo = new PluginActions.ServerInfo();
         Long releaseId = pipelineObject.getLong("releaseId") != -1 ? pipelineObject.getLong("releaseId") : null;
 

@@ -1,14 +1,12 @@
 package com.hp.octane.plugins.jenkins.model.processors.builders;
 
-import com.hp.nga.integrations.dto.pipelines.StructureItem;
 import com.hp.nga.integrations.dto.pipelines.StructurePhase;
-import com.hp.octane.plugins.jenkins.model.processors.projects.AbstractProjectProcessor;
+import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import hudson.model.AbstractProject;
 import hudson.tasks.BuildTrigger;
 import hudson.tasks.Publisher;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
@@ -35,28 +33,8 @@ public class BuildTriggerProcessor extends AbstractBuilderProcessor {
 				logger.severe("encountered null project reference; considering it as corrupted configuration and skipping");
 			}
 		}
-		StructurePhase newPhase = new StructurePhase();
-		newPhase.setName("downstream");
-		newPhase.setBlocking(false);
-		newPhase.setJobs(createSubJobs(items));
-		super.phases.add(newPhase);
-	}
+//		super.phases.add(new StructurePhase("downstream", false, items));
+		super.phases.add(ModelFactory.createStructurePhase("downstream", false, items));
 
-	private List<StructureItem> createSubJobs(List<AbstractProject> projects) {
-		List<StructureItem> result = new ArrayList<StructureItem>();
-		StructureItem tmp;
-		AbstractProjectProcessor projectProcessor;
-		for (AbstractProject project : projects) {
-			if (project != null) {
-				tmp = new StructureItem();
-				tmp.setName(project.getName());
-				//  TODO: parameters
-				projectProcessor = AbstractProjectProcessor.getFlowProcessor(project);
-				tmp.setInternals(Arrays.asList(projectProcessor.getInternals()));
-				tmp.setPostBuilds(Arrays.asList(projectProcessor.getPostBuilds()));
-				result.add(tmp);
-			}
-		}
-		return result;
 	}
 }
