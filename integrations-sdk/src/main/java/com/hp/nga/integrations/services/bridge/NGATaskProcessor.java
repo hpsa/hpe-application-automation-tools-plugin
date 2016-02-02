@@ -56,14 +56,19 @@ public class NGATaskProcessor {
 			if (path.length == 1 && STATUS.equals(path[0])) {
 				executeStatusRequest(result);
 			} else if (path.length == 1 && path[0].startsWith(JOBS)) {
-				executeProjectsListRequest(result, !path[0].contains("parameters=false"));
+				executeJobsListRequest(result, !path[0].contains("parameters=false"));
 			} else if (path.length == 2 && JOBS.equals(path[0])) {
 				executePipelineRequest(result, path[1]);
 			} else if (path.length == 3 && JOBS.equals(path[0]) && RUN.equals(path[2])) {
-				executeProjectRunRequest(result, path[1]);
+				executePipelineRunRequest(result, path[1], task.getBody());
 			} else if (path.length == 4 && JOBS.equals(path[0]) && BUILDS.equals(path[2])) {
-				//TODO: in the future should take the last paramter from the request
-				executeSnapshotRequest(result, path[1], path[3],false);
+				//TODO: in the future should take the last parameter from the request
+				boolean subTree = false;
+				if (LATEST.equals(path[3])) {
+					executeLatestSnapshotRequest(result, path[1], subTree);
+				} else {
+					result.setStatus(501);
+				}
 			} else if (path.length == 3 && JOBS.equals(path[0]) && HISTORY.equals(path[2])) {
 				executeHistoryRequest(result);
 			} else {
@@ -78,29 +83,30 @@ public class NGATaskProcessor {
 	}
 
 	private void executeStatusRequest(NGAResult result) {
-		CIPluginServices dataProvider = SDKFactory.getSDKServicesProvider().getCiPluginServices();
+		CIPluginServices dataProvider = SDKFactory.getCIPluginServices();
 		AggregatedStatusInfo status = new AggregatedStatusInfo();
 		status.setServer(dataProvider.getServerInfo());
 		status.setPlugin(dataProvider.getPluginInfo());
 		result.setBody(SerializationService.toJSON(status));
 	}
 
-	private void executeProjectsListRequest(NGAResult result, boolean includingParameters) {
-		JobsListDTO content = SDKFactory.getSDKServicesProvider().getCiPluginServices().getProjectsList(includingParameters);
+	private void executeJobsListRequest(NGAResult result, boolean includingParameters) {
+		JobsListDTO content = SDKFactory.getCIPluginServices().getJobsList(includingParameters);
 		result.setBody(SerializationService.toJSON(content));
 	}
 
-	private void executePipelineRequest(NGAResult result, String projectId) {
-		StructureItem content = SDKFactory.getSDKServicesProvider().getCiPluginServices().getPipeline(projectId);
+	private void executePipelineRequest(NGAResult result, String jobId) {
+		StructureItem content = SDKFactory.getCIPluginServices().getPipeline(jobId);
 		result.setBody(SerializationService.toJSON(content));
 	}
 
-	private void executeProjectRunRequest(NGAResult result, String projectId) {
-		//  TODO: here need to get body of the request as well
+	private void executePipelineRunRequest(NGAResult result, String jobId, String originalBody) {
+		int status = SDKFactory.getCIPluginServices().runPipeline(jobId, originalBody);
+		result.setStatus(status);
 	}
 
-	private void executeSnapshotRequest(NGAResult result, String projectId, String buildId,boolean subTree) {
-		SnapshotItem content = SDKFactory.getSDKServicesProvider().getCiPluginServices().getSnapshotLatest(projectId, buildId, false);
+	private void executeLatestSnapshotRequest(NGAResult result, String jobId, boolean subTree) {
+		SnapshotItem content = SDKFactory.getCIPluginServices().getSnapshotLatest(jobId, subTree);
 		result.setBody(SerializationService.toJSON(content));
 	}
 

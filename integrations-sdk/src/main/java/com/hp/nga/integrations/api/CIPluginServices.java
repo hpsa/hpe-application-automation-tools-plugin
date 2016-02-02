@@ -1,11 +1,14 @@
 package com.hp.nga.integrations.api;
 
+import com.hp.nga.integrations.dto.parameters.ParameterInstance;
 import com.hp.nga.integrations.services.configuration.NGAConfiguration;
 import com.hp.nga.integrations.dto.general.PluginInfoDTO;
 import com.hp.nga.integrations.dto.general.ServerInfoDTO;
 import com.hp.nga.integrations.dto.pipelines.StructureItem;
 import com.hp.nga.integrations.dto.projects.JobsListDTO;
 import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
+
+import java.util.List;
 
 /**
  * Created by gullery on 20/01/2016.
@@ -42,7 +45,7 @@ public interface CIPluginServices {
 	 * @param includeParameters
 	 * @return ProjectList object holding the list of the projects
 	 */
-	JobsListDTO getProjectsList(boolean includeParameters);
+	JobsListDTO getJobsList(boolean includeParameters);
 
 	/**
 	 * Provides Pipeline (structure) from the root CI Job
@@ -52,16 +55,23 @@ public interface CIPluginServices {
 	 */
 	StructureItem getPipeline(String rootCIJobId);
 
-	//  TODO: project's run
+	/**
+	 * Executes the Pipeline, running the root job
+	 *
+	 * @param ciJobId
+	 * @param originalBody
+	 * @return status of execution                              //  [YG]: TODO: this should be normalized in the SDK and not on the plugin level
+	 */
+	int runPipeline(String ciJobId, String originalBody);       //  [YG]: TODO: replace the body thing with parsed parameters/DTO
+
 	//  TODO: Almog's history API (TBR)
 
 	/**
 	 * Provides Snapshot of the specified CI Build
 	 *
 	 * @param ciJobId
-	 * @param buildId
 	 * @param subTree
 	 * @return
 	 */
-	SnapshotItem getSnapshotLatest(String ciJobId, String buildId, boolean subTree);
+	SnapshotItem getSnapshotLatest(String ciJobId, boolean subTree);
 }

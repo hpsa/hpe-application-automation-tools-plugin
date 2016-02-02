@@ -3,7 +3,6 @@
 package com.hp.octane.plugins.jenkins;
 
 import com.google.inject.Inject;
-import com.hp.nga.integrations.api.SDKServicesProvider;
 import com.hp.nga.integrations.services.SDKFactory;
 import com.hp.octane.plugins.jenkins.bridge.BridgesService;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
@@ -109,10 +108,10 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 			}
 		}
 
-		//  X Plugin will decide what's it's pattern to provide instance of the implementation
+		//  X Plugin will decide what's its pattern to provide instance/s of the implementation
 		SDKFactory.init(new CIPluginServicesImpl());
-		//  TODO: use sdk object here to init the server internal events and notify the sdk
-		SDKServicesProvider sdkServicesProvider = SDKFactory.getSDKServicesProvider();
+		//  X Plugin will consume SDK's services elsewhere in the following manner
+		//  EventsService eventsService = SDKFactory.getEventsService();
 
 		//  These ones, once will become part of the SDK, will be hidden from X Plugin and initialized in SDK internally
 		EventsService.getExtensionInstance().updateClient(getServerConfiguration());

@@ -57,7 +57,7 @@ public class BridgeClient {
 				@Override
 				public void run() {
 					String tasksJSON;
-					CIPluginServices pluginServices = SDKFactory.getSDKServicesProvider().getCiPluginServices();
+					CIPluginServices pluginServices = SDKFactory.getCIPluginServices();
 					try {
 						logger.info("BRIDGE: connecting to '" + mqmConfig.location +
 								"' (SP: " + mqmConfig.sharedSpace +

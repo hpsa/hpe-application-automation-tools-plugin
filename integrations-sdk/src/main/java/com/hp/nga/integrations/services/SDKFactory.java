@@ -1,7 +1,8 @@
 package com.hp.nga.integrations.services;
 
 import com.hp.nga.integrations.api.CIPluginServices;
-import com.hp.nga.integrations.api.SDKServicesProvider;
+import com.hp.nga.integrations.api.ConfigurationService;
+import com.hp.nga.integrations.api.EventsService;
 
 /**
  * Created by gullery on 22/01/2016.
@@ -10,9 +11,11 @@ import com.hp.nga.integrations.api.SDKServicesProvider;
  */
 
 public class SDKFactory {
-	private static final Object INIT_LOCK = new Object();
+	private static final Object INIT_CONFIGURATION_SERVICE_LOCK = new Object();
+	private static final Object INIT_EVENTS_SERVICE_LOCK = new Object();
 	private static CIPluginServices ciPluginServices;
-	private static SDKServicesProvider sdkServicesProvider;
+	private static ConfigurationService configurationService;
+	private static EventsService eventsService;
 
 	private SDKFactory() {
 	}
@@ -28,21 +31,37 @@ public class SDKFactory {
 		//  init rest client
 	}
 
-	public static SDKServicesProvider getSDKServicesProvider() {
+	public static CIPluginServices getCIPluginServices() {
+		return ciPluginServices;
+	}
+
+	public static ConfigurationService getConfigurationService() {
 		ensureInitialization();
-		if (sdkServicesProvider == null) {
-			synchronized (INIT_LOCK) {
-				if (sdkServicesProvider == null) {
-					sdkServicesProvider = new SDKServicesProviderImpl(ciPluginServices);
+		if (configurationService == null) {
+			synchronized (INIT_CONFIGURATION_SERVICE_LOCK) {
+				if (configurationService == null) {
+					configurationService = new ConfigurationServiceImpl();
 				}
 			}
 		}
-		return sdkServicesProvider;
+		return configurationService;
+	}
+
+	public static EventsService getEventsService() {
+		ensureInitialization();
+		if (eventsService == null) {
+			synchronized (INIT_EVENTS_SERVICE_LOCK) {
+				if (eventsService == null) {
+					eventsService = new EventsServiceImpl();
+				}
+			}
+		}
+		return eventsService;
 	}
 
 	private static void ensureInitialization() {
 		if (ciPluginServices == null) {
-			throw new IllegalStateException("SDK MUST be properly initialized prior to consumption");
+			throw new IllegalStateException("SDK MUST be initialized prior to services consumption");
 		}
 	}
 }
