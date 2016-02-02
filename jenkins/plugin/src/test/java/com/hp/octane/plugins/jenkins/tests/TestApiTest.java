@@ -8,7 +8,6 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.hp.mqm.client.LogOutput;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.octane.plugins.jenkins.ExtensionUtil;
-import com.hp.octane.plugins.jenkins.actions.BuildActions;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.client.TestEventPublisher;
@@ -21,7 +20,6 @@ import net.sf.json.JSONObject;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.mockito.Mockito;
@@ -64,9 +62,6 @@ public class TestApiTest {
 
 		clientFactory = Mockito.mock(JenkinsMqmRestClientFactory.class);
 		Mockito.when(clientFactory.obtain(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(restClient);
-
-		BuildActions buildActions = ExtensionUtil.getInstance(rule, BuildActions.class);
-		buildActions._setMqmRestClientFactory(clientFactory);
 
 		testDispatcher = ExtensionUtil.getInstance(rule, TestDispatcher.class);
 		testDispatcher._setMqmRestClientFactory(clientFactory);
