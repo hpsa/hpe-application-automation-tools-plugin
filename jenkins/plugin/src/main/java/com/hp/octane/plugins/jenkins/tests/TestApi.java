@@ -65,7 +65,7 @@ public class TestApi {
             res.sendError(404, "Server configuration has changed, log information is not available");
             return;
         }
-        MqmRestClient restClient = clientFactory.create(configuration.location, configuration.sharedSpace, configuration.username, configuration.password);
+        MqmRestClient restClient = clientFactory.obtain(configuration.location, configuration.sharedSpace, configuration.username, configuration.password);
         res.setStatus(200);
         try {
             restClient.getTestResultLog(id, new JenkinsLogOutput(res));

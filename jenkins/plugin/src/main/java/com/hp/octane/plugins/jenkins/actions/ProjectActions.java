@@ -10,6 +10,7 @@ import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessors;
 import hudson.Extension;
 import hudson.model.*;
 import hudson.security.ACL;
+import hudson.security.AccessDeniedException2;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -144,17 +145,17 @@ public class ProjectActions extends TransientProjectActionFactory {
 
 			try {
 				BuildAuthorizationToken.checkPermission((Job) project, project.getAuthToken(), req, res);
-			} catch (Exception e) {
-				logger.severe("CheckPermission failed to user: " + user);
-				if (user != null && !user.isEmpty()) {
+			}
+			catch(AccessDeniedException2 accessDeniedException){
+				logger.severe(accessDeniedException.getMessage());
+				if (user != null && !user.isEmpty()){
 					res.setStatus(403);
-				} else {
-					res.setStatus(404);
+				}else{
+					res.setStatus(405);
 				}
+
 				return;
 			}
-
-
 			doRunImpl(req, res, context);
 		}
 

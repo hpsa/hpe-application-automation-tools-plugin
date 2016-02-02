@@ -139,7 +139,7 @@ public class EventsClient {
 		EventsList eventsSnapshot = new EventsList(events);
 		String requestBody;
 		boolean result = true;
-		MqmRestClient restClient = restClientFactory.create(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
+		MqmRestClient restClient = restClientFactory.obtain(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
 
 		try {
 			requestBody = SerializationService.toJSON(eventsSnapshot);

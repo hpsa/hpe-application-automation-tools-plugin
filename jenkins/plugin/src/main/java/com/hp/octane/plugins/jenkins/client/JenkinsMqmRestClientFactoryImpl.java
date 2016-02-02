@@ -4,6 +4,7 @@ package com.hp.octane.plugins.jenkins.client;
 
 import com.hp.mqm.client.MqmConnectionConfig;
 import com.hp.mqm.client.MqmRestClient;
+import com.hp.mqm.client.MqmRestClientImpl;
 import com.hp.mqm.client.UsernamePasswordProxyCredentials;
 import hudson.Extension;
 import hudson.ProxyConfiguration;
@@ -20,9 +21,33 @@ import java.util.regex.Pattern;
 public class JenkinsMqmRestClientFactoryImpl implements JenkinsMqmRestClientFactory {
 
     private static final String CLIENT_TYPE = "HPE_JENKINS_PLUGIN";
+    private static MqmRestClient mqmRestClient;
 
     @Override
-    public MqmRestClient create(String location, String sharedSpace, String username, String password) {
+    public synchronized MqmRestClient obtain(String location, String sharedSpace, String username, String password) {
+        if(mqmRestClient == null) {
+            MqmConnectionConfig clientConfig = new MqmConnectionConfig(location, sharedSpace, username, password, CLIENT_TYPE);
+            URL locationUrl = null;
+            try {
+                locationUrl = new URL(clientConfig.getLocation());
+            } catch (MalformedURLException e) {
+                throw new IllegalArgumentException(e);
+            }
+            if (isProxyNeeded(locationUrl.getHost())) {
+                clientConfig.setProxyHost(getProxyHost());
+                clientConfig.setProxyPort(getProxyPort());
+                final String proxyUsername = getUsername();
+                if (!StringUtils.isEmpty(proxyUsername)) {
+                    clientConfig.setProxyCredentials(new UsernamePasswordProxyCredentials(username, getPassword()));
+                }
+            }
+            mqmRestClient = new MqmRestClientImpl(clientConfig);
+        }
+        return mqmRestClient;
+    }
+
+    @Override
+    public synchronized void updateMqmRestClient(String location, String sharedSpace, String username, String password){
         MqmConnectionConfig clientConfig = new MqmConnectionConfig(location, sharedSpace, username, password, CLIENT_TYPE);
         URL locationUrl = null;
         try {
@@ -38,7 +63,7 @@ public class JenkinsMqmRestClientFactoryImpl implements JenkinsMqmRestClientFact
                 clientConfig.setProxyCredentials(new UsernamePasswordProxyCredentials(username, getPassword()));
             }
         }
-        return com.hp.mqm.client.MqmRestClientFactory.create(clientConfig);
+        mqmRestClient = new MqmRestClientImpl(clientConfig);
     }
 
     private String getProxyHost() {

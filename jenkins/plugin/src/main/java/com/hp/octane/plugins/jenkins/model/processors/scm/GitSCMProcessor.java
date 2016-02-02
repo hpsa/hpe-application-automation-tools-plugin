@@ -39,7 +39,7 @@ public class GitSCMProcessor implements SCMProcessor {
 		ChangeLogSet<ChangeLogSet.Entry> changes = build.getChangeSet();
 		BuildData buildData;
 		GitChangeSet commit;
-		Long tmpTime;
+
 		if (project.getScm() instanceof GitSCM) {
 			scmGit = (GitSCM) project.getScm();
 			buildData = scmGit.getBuildData(build);
@@ -53,20 +53,13 @@ public class GitSCMProcessor implements SCMProcessor {
 				for (ChangeLogSet.Entry c : changes) {
 					if (c instanceof GitChangeSet) {
 						commit = (GitChangeSet) c;
-						tmpTime = null;
-						try {
-							tmpTime = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse(commit.getDate()).getTime();
-						} catch (ParseException pe) {
-							logger.severe("failed to parse commit time");
-						}
 						tmpCommit = new SCMCommit(
-								tmpTime,
+								commit.getTimestamp(),
 								commit.getAuthor().getId(),
 								commit.getCommitId(),
 								commit.getParentCommit(),
 								commit.getComment().trim()
 						);
-						//2015-12-10 00:44:06 +0200
 
 						//  [YG] Changes will be handled later
 //						for (GitChangeSet.Path item : commit.getAffectedFiles()) {

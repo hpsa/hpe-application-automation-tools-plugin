@@ -20,7 +20,7 @@ public class BridgesService{
 	private static final Logger logger = Logger.getLogger(BridgesService.class.getName());
 
 	private static BridgesService instance;
-	//private MqmRestClientFactory clientFactory;
+
 	private BridgeClient bridgeClient;
 	private String ciType;
 

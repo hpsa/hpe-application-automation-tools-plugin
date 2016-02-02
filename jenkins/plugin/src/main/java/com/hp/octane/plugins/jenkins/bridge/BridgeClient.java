@@ -29,6 +29,7 @@ import java.util.logging.Logger;
 
 public class BridgeClient {
 	private static final Logger logger = Logger.getLogger(BridgeClient.class.getName());
+	private static final String serverInstanceId = new PluginActions.ServerInfo().getInstanceId();
 
 	private ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
 	private ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30, new AbridgedTasksExecutorsFactory());
@@ -47,6 +48,7 @@ public class BridgeClient {
 	public void update(ServerConfiguration newConfig) {
 		mqmConfig = new ServerConfiguration(newConfig.location, newConfig.sharedSpace, newConfig.username, newConfig.password, newConfig.impersonatedUser);
 		logger.info("BRIDGE: updated for '" + mqmConfig.location + "' (SP: " + mqmConfig.sharedSpace + ")");
+		restClientFactory.updateMqmRestClient(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
 		connect();
 	}
 
@@ -62,7 +64,7 @@ public class BridgeClient {
 								"' (SP: " + mqmConfig.sharedSpace +
 								"; instance ID: " + pluginServices.getServerInfo().getInstanceId() +
 								"; self URL: " + new PluginActions.ServerInfo().getUrl());
-						MqmRestClient restClient = restClientFactory.create(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
+						MqmRestClient restClient = restClientFactory.obtain(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
 						tasksJSON = restClient.getAbridgedTasks(pluginServices.getServerInfo().getInstanceId(), new PluginActions.ServerInfo().getUrl());
 						logger.info("BRIDGE: back from '" + mqmConfig.location + "' (SP: " + mqmConfig.sharedSpace + ") with " + (tasksJSON == null || tasksJSON.isEmpty() ? "no tasks" : "some tasks"));
 						connect();
@@ -116,7 +118,7 @@ public class BridgeClient {
 					public void run() {
 						NGATaskProcessor NGATaskProcessor = new NGATaskProcessor(task);
 						NGAResult result = NGATaskProcessor.execute();
-						MqmRestClient restClient = restClientFactory.create(
+						MqmRestClient restClient = restClientFactory.obtain(
 								mqmConfig.location,
 								mqmConfig.sharedSpace,
 								mqmConfig.username,
