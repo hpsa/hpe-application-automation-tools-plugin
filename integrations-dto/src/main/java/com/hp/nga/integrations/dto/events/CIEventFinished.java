@@ -40,8 +40,8 @@ public final class CIEventFinished extends CIEventStarted {
 		return CIEventType.FINISHED;
 	}
 
-	public String getResult() {
-		return result.toString();
+	public SnapshotResult getResult() {
+		return result;
 	}
 
 	public long getDuration() {
