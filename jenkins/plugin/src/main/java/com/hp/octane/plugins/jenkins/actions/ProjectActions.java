@@ -63,10 +63,6 @@ public class ProjectActions extends TransientProjectActionFactory {
 			return "octane";
 		}
 
-		public void doStructure(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
-			res.serveExposedBean(req, ModelFactory.createStructureItem(project)/*new StructureItem(project)*/, Flavor.JSON);
-		}
-
 		public void doHistory(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
 			SCMData scmData;
 			Set<User> users;
