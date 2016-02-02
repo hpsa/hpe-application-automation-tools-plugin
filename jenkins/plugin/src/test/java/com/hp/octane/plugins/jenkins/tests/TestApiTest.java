@@ -63,7 +63,7 @@ public class TestApiTest {
 		}).when(restClient).getTestResultLog(Mockito.eq(10001l), Mockito.<LogOutput>any());
 
 		clientFactory = Mockito.mock(JenkinsMqmRestClientFactory.class);
-		Mockito.when(clientFactory.create(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(restClient);
+		Mockito.when(clientFactory.obtain(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(restClient);
 
 		BuildActions buildActions = ExtensionUtil.getInstance(rule, BuildActions.class);
 		buildActions._setMqmRestClientFactory(clientFactory);

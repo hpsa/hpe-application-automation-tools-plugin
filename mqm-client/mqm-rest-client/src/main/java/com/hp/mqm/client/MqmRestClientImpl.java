@@ -77,7 +77,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	 *
 	 * @param connectionConfig MQM connection configuration, Fields 'location', 'domain', 'project' and 'clientType' must not be null or empty.
 	 */
-	MqmRestClientImpl(MqmConnectionConfig connectionConfig) {
+	public MqmRestClientImpl(MqmConnectionConfig connectionConfig) {
 		super(connectionConfig);
 	}
 

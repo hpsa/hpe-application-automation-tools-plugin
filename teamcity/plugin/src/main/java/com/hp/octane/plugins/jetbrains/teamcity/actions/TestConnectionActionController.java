@@ -1,8 +1,6 @@
 package com.hp.octane.plugins.jetbrains.teamcity.actions;
 
-import com.hp.mqm.client.MqmConnectionConfig;
 import com.hp.mqm.client.MqmRestClient;
-import com.hp.mqm.client.MqmRestClientFactory;
 import com.hp.mqm.client.exception.AuthenticationException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.SessionCreationException;

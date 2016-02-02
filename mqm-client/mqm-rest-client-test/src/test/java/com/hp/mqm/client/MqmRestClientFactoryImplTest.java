@@ -6,9 +6,8 @@ public class MqmRestClientFactoryImplTest {
 
     @Test
     public void testCreate() {
-        MqmRestClient client = MqmRestClientFactory.create(MqmRestClientImplTest.connectionConfig);
+        MqmRestClient client = new MqmRestClientImpl(MqmRestClientImplTest.connectionConfig);
         // test if client is initialized correctly
         client.tryToConnectSharedSpace();
-        client.release();
     }
 }
