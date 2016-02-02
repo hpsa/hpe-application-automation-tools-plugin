@@ -3,7 +3,8 @@ package com.hp.octane.plugins.jenkins.bridge;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.AuthenticationException;
 import com.hp.mqm.client.exception.TemporarilyUnavailableException;
-import com.hp.nga.integrations.NGAPluginSDK;
+import com.hp.nga.integrations.api.CIPluginServices;
+import com.hp.nga.integrations.services.SDKFactory;
 import com.hp.nga.integrations.services.bridge.NGATaskProcessor;
 import com.hp.nga.integrations.dto.rest.NGAResult;
 import com.hp.nga.integrations.dto.rest.NGATask;
@@ -55,14 +56,14 @@ public class BridgeClient {
 				@Override
 				public void run() {
 					String tasksJSON;
-					NGAPluginSDK sdk = NGAPluginSDK.getInstance();
+					CIPluginServices pluginServices = SDKFactory.getSDKServicesProvider().getCiPluginServices();
 					try {
 						logger.info("BRIDGE: connecting to '" + mqmConfig.location +
 								"' (SP: " + mqmConfig.sharedSpace +
-								"; instance ID: " + sdk.getCiPluginService().getServerInfo().getInstanceId() +
+								"; instance ID: " + pluginServices.getServerInfo().getInstanceId() +
 								"; self URL: " + new PluginActions.ServerInfo().getUrl());
 						MqmRestClient restClient = restClientFactory.create(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
-						tasksJSON = restClient.getAbridgedTasks(sdk.getCiPluginService().getServerInfo().getInstanceId(), new PluginActions.ServerInfo().getUrl());
+						tasksJSON = restClient.getAbridgedTasks(pluginServices.getServerInfo().getInstanceId(), new PluginActions.ServerInfo().getUrl());
 						logger.info("BRIDGE: back from '" + mqmConfig.location + "' (SP: " + mqmConfig.sharedSpace + ") with " + (tasksJSON == null || tasksJSON.isEmpty() ? "no tasks" : "some tasks"));
 						connect();
 						if (tasksJSON != null && !tasksJSON.isEmpty()) {

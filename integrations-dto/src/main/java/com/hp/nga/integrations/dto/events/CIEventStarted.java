@@ -28,7 +28,7 @@ public class CIEventStarted extends CIEventQueued {
 	}
 
 	@Override
-	CIEventType provideEventType() {
+	public CIEventType getEventType() {
 		return CIEventType.STARTED;
 	}
 

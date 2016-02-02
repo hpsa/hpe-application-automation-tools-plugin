@@ -1,6 +1,6 @@
 package com.hp.nga.integrations.api;
 
-import com.hp.nga.integrations.configuration.NGAConfiguration;
+import com.hp.nga.integrations.services.configuration.NGAConfiguration;
 import com.hp.nga.integrations.dto.general.PluginInfoDTO;
 import com.hp.nga.integrations.dto.general.ServerInfoDTO;
 import com.hp.nga.integrations.dto.pipelines.StructureItem;
@@ -13,7 +13,7 @@ import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
  * Composite API of all the endpoints to be implemented by a hosting CI Plugin for NGA use cases
  */
 
-public interface CIPluginService {
+public interface CIPluginServices {
 
 	/**
 	 * Provides CI Server information
@@ -59,8 +59,9 @@ public interface CIPluginService {
 	 * Provides Snapshot of the specified CI Build
 	 *
 	 * @param ciJobId
+	 * @param buildId
 	 * @param subTree
 	 * @return
 	 */
-	SnapshotItem getSnapshotLatest(String ciJobId, boolean subTree);
+	SnapshotItem getSnapshotLatest(String ciJobId, String buildId, boolean subTree);
 }

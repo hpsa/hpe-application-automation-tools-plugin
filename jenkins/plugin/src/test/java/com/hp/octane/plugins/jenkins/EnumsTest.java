@@ -28,7 +28,7 @@ public class EnumsTest {
 		assertEquals(CIEventCauseType.TIMER.toString(), "timer");
 		assertEquals(CIEventCauseType.UPSTREAM.toString(), "upstream");
 		assertEquals(CIEventCauseType.UNDEFINED.toString(), "undefined");
-		assertEquals(CIEventCauseType.getByValue("scm"), CIEventCauseType.SCM);
+		assertEquals(CIEventCauseType.fromValue("scm"), CIEventCauseType.SCM);
 	}
 
 	@Test
@@ -37,7 +37,7 @@ public class EnumsTest {
 		assertEquals(CIEventType.QUEUED.toString(), "queued");
 		assertEquals(CIEventType.STARTED.toString(), "started");
 		assertEquals(CIEventType.FINISHED.toString(), "finished");
-		assertEquals(CIEventType.getByValue("queued"), CIEventType.QUEUED);
+		assertEquals(CIEventType.fromValue("queued"), CIEventType.QUEUED);
 	}
 
 	@Test
@@ -61,7 +61,7 @@ public class EnumsTest {
 		assertEquals(SnapshotResult.ABORTED.toString(), "aborted");
 		assertEquals(SnapshotResult.FAILURE.toString(), "failure");
 		assertEquals(SnapshotResult.SUCCESS.toString(), "success");
-		assertEquals(SnapshotResult.getByValue("unavailable"), SnapshotResult.UNAVAILABLE);
+		assertEquals(SnapshotResult.fromValue("unavailable"), SnapshotResult.UNAVAILABLE);
 	}
 
 	@Test
@@ -71,7 +71,7 @@ public class EnumsTest {
 		assertEquals(SnapshotStatus.QUEUED.toString(), "queued");
 		assertEquals(SnapshotStatus.RUNNING.toString(), "running");
 		assertEquals(SnapshotStatus.FINISHED.toString(), "finished");
-		assertEquals(SnapshotStatus.getByValue("unavailable"), SnapshotStatus.UNAVAILABLE);
+		assertEquals(SnapshotStatus.fromValue("unavailable"), SnapshotStatus.UNAVAILABLE);
 	}
 
 	@Test
@@ -79,6 +79,6 @@ public class EnumsTest {
 		assertEquals(SCMType.values().length, 2);
 		assertEquals(SCMType.UNSUPPORTED.toString(), "unsupported");
 		assertEquals(SCMType.GIT.toString(), "git");
-		assertEquals(SCMType.getByValue("unsupported"), SCMType.UNSUPPORTED);
+		assertEquals(SCMType.fromValue("unsupported"), SCMType.UNSUPPORTED);
 	}
 }

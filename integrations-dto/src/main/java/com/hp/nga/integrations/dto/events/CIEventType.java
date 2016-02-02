@@ -1,5 +1,8 @@
 package com.hp.nga.integrations.dto.events;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+
 /**
  * Created with IntelliJ IDEA.
  * User: gullery
@@ -9,6 +12,7 @@ package com.hp.nga.integrations.dto.events;
  */
 
 public enum CIEventType {
+	UNDEFINED("undefined"),
 	QUEUED("queued"),
 	STARTED("started"),
 	FINISHED("finished");
@@ -19,17 +23,24 @@ public enum CIEventType {
 		this.value = value;
 	}
 
-	@Override
-	public String toString() {
+	@JsonValue
+	public String value() {
 		return value;
 	}
 
-	public static CIEventType getByValue(String value) {
+	@JsonCreator
+	public static CIEventType fromValue(String value) {
+		if (value == null || value.isEmpty()) {
+			throw new IllegalArgumentException("value MUST NOT be null nor empty");
+		}
+
+		CIEventType result = UNDEFINED;
 		for (CIEventType v : values()) {
-			if (v.value.equals(value)) {
-				return v;
+			if (v.value.compareTo(value) == 0) {
+				result = v;
+				break;
 			}
 		}
-		throw new RuntimeException("No CIEventType matches '" + value + "'");
+		return result;
 	}
 }

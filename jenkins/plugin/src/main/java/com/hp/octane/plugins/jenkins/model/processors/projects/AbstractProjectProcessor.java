@@ -70,10 +70,6 @@ public abstract class AbstractProjectProcessor {
 		}
 	}
 
-//	public StructurePhase[] getPhasesInternal() {
-//		return internals.toArray(new StructurePhase[internals.size()]);
-//	}
-
 	public List<StructurePhase> getInternals() {
 		return internals;
 	}

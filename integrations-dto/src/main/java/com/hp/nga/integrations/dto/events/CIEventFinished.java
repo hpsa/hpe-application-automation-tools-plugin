@@ -36,7 +36,7 @@ public final class CIEventFinished extends CIEventStarted {
 	}
 
 	@Override
-	CIEventType provideEventType() {
+	public CIEventType getEventType() {
 		return CIEventType.FINISHED;
 	}
 

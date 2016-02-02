@@ -11,8 +11,6 @@ import com.hp.nga.integrations.dto.causes.CIEventCauseBase;
  */
 
 public abstract class CIEventBase {
-	abstract CIEventType provideEventType();
-
 	private String project;
 	private CIEventCauseBase[] causes;
 
@@ -21,9 +19,7 @@ public abstract class CIEventBase {
 		this.causes = causes;
 	}
 
-	public String getEventType() {
-		return provideEventType().toString();
-	}
+	public abstract CIEventType getEventType();
 
 	public String getProject() {
 		return project;

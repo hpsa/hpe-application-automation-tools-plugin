@@ -1,5 +1,8 @@
 package com.hp.nga.integrations.dto.snapshots;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+
 /**
  * Created with IntelliJ IDEA.
  * User: gullery
@@ -20,17 +23,24 @@ public enum SnapshotStatus {
 		this.value = value;
 	}
 
-	@Override
-	public String toString() {
+	@JsonValue
+	public String value() {
 		return value;
 	}
 
-	public static SnapshotStatus getByValue(String value) {
-		for (SnapshotStatus i : values()) {
-			if (i.value.equals(value)) {
-				return i;
+	@JsonCreator
+	public static SnapshotStatus fromValue(String value) {
+		if (value == null || value.isEmpty()) {
+			throw new IllegalArgumentException("value MUST NOT be null nor empty");
+		}
+
+		SnapshotStatus result = UNAVAILABLE;
+		for (SnapshotStatus v : values()) {
+			if (v.value.compareTo(value) == 0) {
+				result = v;
+				break;
 			}
 		}
-		throw new RuntimeException("No SnapshotStatus matches '" + value + "'");
+		return result;
 	}
 }

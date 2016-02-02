@@ -16,7 +16,7 @@ public class CIEventQueued extends CIEventBase {
 	}
 
 	@Override
-	CIEventType provideEventType() {
+	public CIEventType getEventType() {
 		return CIEventType.QUEUED;
 	}
 }

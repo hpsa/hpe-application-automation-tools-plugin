@@ -105,7 +105,7 @@ public class ModelFactory {
         snapshotItem.setDuration(build.getDuration());
         snapshotItem.setEstimatedDuration(build.getEstimatedDuration());
         snapshotItem.setScmData(scmProcessor == null ? null : scmProcessor.getSCMData(build));
-        snapshotItem.setStartTime(timeInUTC(build.getStartTimeInMillis()));
+        snapshotItem.setStartTime(build.getStartTimeInMillis());
         snapshotItem.setParameters(Arrays.asList(ParameterProcessors.getInstances(build)));
         snapshotItem.setResult(result);
         snapshotItem.setStatus(status);
@@ -176,13 +176,6 @@ public class ModelFactory {
         }
         return phases;
     }
-
-    //  TODO: replace with the real method from Utils class
-    private static long timeInUTC(long input) {
-        return input;
-        //return input - Calendar.getInstance().getTimeZone().getRawOffset();
-    }
-
 
     public static SnapshotPhase createSnapshotPhase(StructurePhase structurePhase, HashMap<String, ArrayList<AbstractBuild>> invokedBuilds) {
 

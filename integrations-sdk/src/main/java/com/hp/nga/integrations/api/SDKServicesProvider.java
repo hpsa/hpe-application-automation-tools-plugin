@@ -1,9 +1,8 @@
 package com.hp.nga.integrations.api;
 
-import com.hp.nga.integrations.api.ConfigurationService;
-import com.hp.nga.integrations.api.EventsService;
-
 public interface SDKServicesProvider {
+
+	CIPluginServices getCiPluginServices();
 
 	ConfigurationService getConfigurationService();
 

@@ -171,7 +171,7 @@ public class EventsTest {
 			for (int i = 0; i < events.length(); i++) {
 				tmp = events.getJSONObject(i);
 				if (tmp.getString("project").equals(projectName)) {
-					assertEquals(eventsOrder.get(0), CIEventType.getByValue(tmp.getString("eventType")));
+					assertEquals(eventsOrder.get(0), CIEventType.fromValue(tmp.getString("eventType")));
 					eventsOrder.remove(0);
 				}
 			}

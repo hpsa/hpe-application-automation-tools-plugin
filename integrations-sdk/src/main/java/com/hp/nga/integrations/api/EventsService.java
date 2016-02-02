@@ -1,7 +1,7 @@
 package com.hp.nga.integrations.api;
 
-/**
- * Created by gullery on 02/02/2016.
- */
+import com.hp.nga.integrations.dto.events.CIEventBase;
+
 public interface EventsService {
+	void submitEvent(CIEventBase event);
 }

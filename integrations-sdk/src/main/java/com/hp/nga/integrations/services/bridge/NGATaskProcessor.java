@@ -1,7 +1,7 @@
 package com.hp.nga.integrations.services.bridge;
 
-import com.hp.nga.integrations.NGAPluginSDK;
-import com.hp.nga.integrations.api.CIPluginService;
+import com.hp.nga.integrations.services.SDKFactory;
+import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.dto.general.AggregatedStatusInfo;
 import com.hp.nga.integrations.dto.pipelines.StructureItem;
 import com.hp.nga.integrations.dto.projects.JobsListDTO;
@@ -78,7 +78,7 @@ public class NGATaskProcessor {
 	}
 
 	private void executeStatusRequest(NGAResult result) {
-		CIPluginService dataProvider = NGAPluginSDK.getInstance().getCiPluginService();
+		CIPluginServices dataProvider = SDKFactory.getSDKServicesProvider().getCiPluginServices();
 		AggregatedStatusInfo status = new AggregatedStatusInfo();
 		status.setServer(dataProvider.getServerInfo());
 		status.setPlugin(dataProvider.getPluginInfo());
@@ -86,12 +86,12 @@ public class NGATaskProcessor {
 	}
 
 	private void executeProjectsListRequest(NGAResult result, boolean includingParameters) {
-		JobsListDTO content = NGAPluginSDK.getInstance().getCiPluginService().getProjectsList(includingParameters);
+		JobsListDTO content = SDKFactory.getSDKServicesProvider().getCiPluginServices().getProjectsList(includingParameters);
 		result.setBody(SerializationService.toJSON(content));
 	}
 
 	private void executePipelineRequest(NGAResult result, String projectId) {
-		StructureItem content = NGAPluginSDK.getInstance().getCiPluginService().getPipeline(projectId);
+		StructureItem content = SDKFactory.getSDKServicesProvider().getCiPluginServices().getPipeline(projectId);
 		result.setBody(SerializationService.toJSON(content));
 	}
 
@@ -100,7 +100,7 @@ public class NGATaskProcessor {
 	}
 
 	private void executeSnapshotRequest(NGAResult result, String projectId, String buildId,boolean subTree) {
-		SnapshotItem content = NGAPluginSDK.getInstance().getCiPluginService().getSnapshotLatest(projectId, buildId, false);
+		SnapshotItem content = SDKFactory.getSDKServicesProvider().getCiPluginServices().getSnapshotLatest(projectId, buildId, false);
 		result.setBody(SerializationService.toJSON(content));
 	}
 

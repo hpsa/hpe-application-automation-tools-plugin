@@ -1,24 +1,30 @@
 package com.hp.nga.integrations.services;
 
-import com.hp.nga.integrations.api.CIPluginService;
+import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.api.ConfigurationService;
 import com.hp.nga.integrations.api.EventsService;
 import com.hp.nga.integrations.api.SDKServicesProvider;
 
 class SDKServicesProviderImpl implements SDKServicesProvider {
+	private final CIPluginServices ciPluginServices;
 
-
-	SDKServicesProviderImpl(CIPluginService ciPluginService) {
-		if (ciPluginService == null) {
+	SDKServicesProviderImpl(CIPluginServices ciPluginServices) {
+		if (ciPluginServices == null) {
 			throw new IllegalArgumentException("plugins services provider MUST NOT be null");
 		}
+
+		this.ciPluginServices = ciPluginServices;
+	}
+
+	public CIPluginServices getCiPluginServices() {
+		return ciPluginServices;
 	}
 
 	public ConfigurationService getConfigurationService() {
-		return null;
+		return new ConfigurationServiceImpl(this);
 	}
 
 	public EventsService getEventsService() {
-		return null;
+		return new EventsServiceImpl();
 	}
 }

@@ -1,7 +1,7 @@
 package com.hp.octane.plugins.jenkins;
 
-import com.hp.nga.integrations.api.CIPluginService;
-import com.hp.nga.integrations.configuration.NGAConfiguration;
+import com.hp.nga.integrations.api.CIPluginServices;
+import com.hp.nga.integrations.services.configuration.NGAConfiguration;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
 import com.hp.nga.integrations.dto.general.PluginInfoDTO;
 import com.hp.nga.integrations.dto.general.ServerInfoDTO;
@@ -27,7 +27,7 @@ import java.util.List;
  * Jenkins CI Server oriented extension of CI Data Provider
  */
 
-public class CIPluginServiceImpl implements CIPluginService {
+public class CIPluginServicesImpl implements CIPluginServices {
 	@Override
 	public ServerInfoDTO getServerInfo() {
 		ServerInfoDTO result = new ServerInfoDTO();

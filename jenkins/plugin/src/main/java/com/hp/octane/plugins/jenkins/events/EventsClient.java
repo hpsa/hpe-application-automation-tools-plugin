@@ -2,6 +2,7 @@ package com.hp.octane.plugins.jenkins.events;
 
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.nga.integrations.dto.events.CIEventBase;
+import com.hp.nga.integrations.services.serialization.SerializationService;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import org.kohsuke.stapler.export.Exported;
@@ -135,18 +136,17 @@ public class EventsClient {
 
 	private boolean sendData() {
 		Writer w = new StringWriter();
-		EventsList snapshot = new EventsList(events);
+		EventsList eventsSnapshot = new EventsList(events);
 		String requestBody;
 		boolean result = true;
 		MqmRestClient restClient = restClientFactory.create(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
 
 		try {
-			new ModelBuilder().get(EventsList.class).writeTo(snapshot, Flavor.JSON.createDataWriter(snapshot, w));
-			requestBody = w.toString();
-			logger.info("EVENTS: sending " + snapshot.getEvents().size() + " event/s to '" + mqmConfig.location + "'...");
+			requestBody = SerializationService.toJSON(eventsSnapshot);
+			logger.info("EVENTS: sending " + eventsSnapshot.getEvents().size() + " event/s to '" + mqmConfig.location + "'...");
 			while (failedRetries < MAX_SEND_RETRIES) {
 				if (restClient.putEvents(requestBody)) {
-					events.removeAll(snapshot.getEvents());
+					events.removeAll(eventsSnapshot.getEvents());
 					logger.info("EVENTS: ... done, left to send " + events.size() + " events");
 					resetCounters();
 					break;
@@ -164,9 +164,9 @@ public class EventsClient {
 				logger.severe("EVENTS: max number of retries reached");
 				result = false;
 			}
-		} catch (IOException ioe) {
-			logger.severe("EVENTS: failed to send snapshot of " + snapshot.getEvents().size() + " events: " + ioe.getMessage() + "; dropping them all");
-			events.removeAll(snapshot.getEvents());
+		} catch (Exception e) {
+			logger.severe("EVENTS: failed to send snapshot of " + eventsSnapshot.getEvents().size() + " events: " + e.getMessage() + "; dropping them all");
+			events.removeAll(eventsSnapshot.getEvents());
 		}
 		return result;
 	}

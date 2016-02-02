@@ -1,6 +1,6 @@
 package com.hp.nga.integrations.services;
 
-import com.hp.nga.integrations.api.CIPluginService;
+import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.api.SDKServicesProvider;
 
 /**
@@ -11,18 +11,21 @@ import com.hp.nga.integrations.api.SDKServicesProvider;
 
 public class SDKFactory {
 	private static final Object INIT_LOCK = new Object();
-	private static CIPluginService ciPluginService;
+	private static CIPluginServices ciPluginServices;
 	private static SDKServicesProvider sdkServicesProvider;
 
 	private SDKFactory() {
 	}
 
-	public static synchronized void init(CIPluginService ciPluginService) {
-		if (ciPluginService == null) {
+	public static synchronized void init(CIPluginServices ciPluginServices) {
+		if (ciPluginServices == null) {
 			throw new IllegalArgumentException("SDK factory initialization failed: MUST be initialized with valid plugin services provider");
 		}
 
-		SDKFactory.ciPluginService = ciPluginService;
+		SDKFactory.ciPluginServices = ciPluginServices;
+		//  do init logic
+		//  init bridge
+		//  init rest client
 	}
 
 	public static SDKServicesProvider getSDKServicesProvider() {
@@ -30,7 +33,7 @@ public class SDKFactory {
 		if (sdkServicesProvider == null) {
 			synchronized (INIT_LOCK) {
 				if (sdkServicesProvider == null) {
-					sdkServicesProvider = new SDKServicesProviderImpl(ciPluginService);
+					sdkServicesProvider = new SDKServicesProviderImpl(ciPluginServices);
 				}
 			}
 		}
@@ -38,7 +41,7 @@ public class SDKFactory {
 	}
 
 	private static void ensureInitialization() {
-		if (ciPluginService == null) {
+		if (ciPluginServices == null) {
 			throw new IllegalStateException("SDK MUST be properly initialized prior to consumption");
 		}
 	}
