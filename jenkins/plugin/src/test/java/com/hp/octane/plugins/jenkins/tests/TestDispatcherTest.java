@@ -67,7 +67,7 @@ public class TestDispatcherTest {
     public void init() throws Exception {
         restClient = Mockito.mock(MqmRestClient.class);
         clientFactory = Mockito.mock(JenkinsMqmRestClientFactory.class);
-        Mockito.when(clientFactory.create(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(restClient);
+        Mockito.when(clientFactory.obtain(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(restClient);
 
         testDispatcher = ExtensionUtil.getInstance(rule, TestDispatcher.class);
         testDispatcher._setMqmRestClientFactory(clientFactory);
@@ -100,13 +100,13 @@ public class TestDispatcherTest {
         mockRestClient(restClient, true, true, true);
         FreeStyleBuild build = executeBuild();
         queue.waitForTicks(5);
-        verifyRestClient(restClient, build, true, true);
+        verifyRestClient(restClient, build, true);
         verifyAudit(build, true);
 
         mockRestClient(restClient, true, true, true);
         FreeStyleBuild build2 = executeBuild();
         queue.waitForTicks(5);
-        verifyRestClient(restClient, build2, true, true);
+        verifyRestClient(restClient, build2, true);
         verifyAudit(build2, true);
         Assert.assertEquals(0, queue.size());
     }
@@ -124,7 +124,6 @@ public class TestDispatcherTest {
         Mockito.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
         Mockito.verify(restClient).postTestResult(new File(build2.getRootDir(), "mqmTests.xml"), false);
         Mockito.verify(restClient).postTestResult(new File(build3.getRootDir(), "mqmTests.xml"), false);
-        Mockito.verify(restClient).release();
         Mockito.verifyNoMoreInteractions(restClient);
         Assert.assertEquals(0, queue.size());
 
@@ -139,7 +138,7 @@ public class TestDispatcherTest {
         FreeStyleBuild build = executeBuild();
         queue.waitForTicks(5);
 
-        verifyRestClient(restClient, build, false, false);
+        verifyRestClient(restClient, build, false);
         verifyAudit(build);
         Mockito.reset(restClient);
 
@@ -157,7 +156,7 @@ public class TestDispatcherTest {
         FreeStyleBuild build = executeBuild();
         queue.waitForTicks(5);
 
-        verifyRestClient(restClient, build, false, false);
+        verifyRestClient(restClient, build, false);
         verifyAudit(build);
         Mockito.reset(restClient);
 
@@ -175,7 +174,7 @@ public class TestDispatcherTest {
         FreeStyleBuild build = executeBuild();
         queue.waitForTicks(5);
 
-        verifyRestClient(restClient, build, false, false);
+        verifyRestClient(restClient, build, false);
         verifyAudit(build);
         Mockito.reset(restClient);
 
@@ -200,11 +199,9 @@ public class TestDispatcherTest {
 
         order.verify(restClient).tryToConnectSharedSpace();
         order.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
-        order.verify(restClient).release();
 
         Mockito.verify(restClient, Mockito.times(2)).tryToConnectSharedSpace();
         Mockito.verify(restClient, Mockito.times(2)).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
-        Mockito.verify(restClient, Mockito.times(2)).release();
         Mockito.verifyNoMoreInteractions(restClient);
         verifyAudit(build, false, true);
 
@@ -224,14 +221,11 @@ public class TestDispatcherTest {
 
         order.verify(restClient).tryToConnectSharedSpace();
         order.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
-        order.verify(restClient).release();
         order.verify(restClient).tryToConnectSharedSpace();
         order.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
-        order.verify(restClient).release();
 
         Mockito.verify(restClient, Mockito.times(2)).tryToConnectSharedSpace();
         Mockito.verify(restClient, Mockito.times(2)).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
-        Mockito.verify(restClient, Mockito.times(2)).release();
         Mockito.verifyNoMoreInteractions(restClient);
         verifyAudit(build, false, false);
 
@@ -272,7 +266,6 @@ public class TestDispatcherTest {
             Mockito.verify(restClient).postTestResult(new File(run.getRootDir(), "mqmTests.xml"), false);
             verifyAudit(run, true);
         }
-        Mockito.verify(restClient).release();
         Mockito.verifyNoMoreInteractions(restClient);
 
         Assert.assertEquals(0, queue.size());
@@ -295,7 +288,6 @@ public class TestDispatcherTest {
         Mockito.verify(restClient, Mockito.atMost(7)).tryToConnectSharedSpace();
         Mockito.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
         Mockito.verify(restClient, Mockito.times(6)).postTestResult(new File(build2.getRootDir(), "mqmTests.xml"), false);
-        Mockito.verify(restClient, Mockito.atMost(7)).release();
         Mockito.verifyNoMoreInteractions(restClient);
         verifyAudit(build, true);
         verifyAudit(true, build2, false, false, false, false, false, true);
@@ -355,14 +347,12 @@ public class TestDispatcherTest {
         }
     }
 
-    private void verifyRestClient(MqmRestClient restClient, AbstractBuild build, boolean body, boolean release) throws IOException {
+    private void verifyRestClient(MqmRestClient restClient, AbstractBuild build, boolean body) throws IOException {
         Mockito.verify(restClient).tryToConnectSharedSpace();
         if (body) {
             Mockito.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
         }
-        if (release) {
-            Mockito.verify(restClient).release();
-        }
+
         Mockito.verifyNoMoreInteractions(restClient);
     }
 
