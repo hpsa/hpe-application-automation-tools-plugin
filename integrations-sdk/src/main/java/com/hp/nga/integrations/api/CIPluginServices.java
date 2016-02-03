@@ -1,14 +1,12 @@
 package com.hp.nga.integrations.api;
 
-import com.hp.nga.integrations.dto.parameters.ParameterInstance;
-import com.hp.nga.integrations.services.configuration.NGAConfiguration;
 import com.hp.nga.integrations.dto.general.PluginInfoDTO;
 import com.hp.nga.integrations.dto.general.ServerInfoDTO;
+import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.StructureItem;
 import com.hp.nga.integrations.dto.projects.JobsListDTO;
 import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
-
-import java.util.List;
+import com.hp.nga.integrations.services.configuration.NGAConfiguration;
 
 /**
  * Created by gullery on 20/01/2016.
@@ -74,4 +72,6 @@ public interface CIPluginServices {
 	 * @return
 	 */
 	SnapshotItem getSnapshotLatest(String ciJobId, boolean subTree);
+
+	BuildHistory getHistoryPipeline(String ciJobId,String originalBody);
 }

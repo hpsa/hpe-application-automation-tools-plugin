@@ -1,5 +1,6 @@
 package com.hp.nga.integrations.services.bridge;
 
+import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.services.SDKFactory;
 import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.dto.general.AggregatedStatusInfo;
@@ -70,7 +71,7 @@ public class NGATaskProcessor {
 					result.setStatus(501);
 				}
 			} else if (path.length == 3 && JOBS.equals(path[0]) && HISTORY.equals(path[2])) {
-				executeHistoryRequest(result);
+				executeHistoryRequest(result, path[1]);
 			} else {
 				result.setStatus(404);
 			}
@@ -110,7 +111,9 @@ public class NGATaskProcessor {
 		result.setBody(SerializationService.toJSON(content));
 	}
 
-	private void executeHistoryRequest(NGAResult result) {
+	private void executeHistoryRequest(NGAResult result,String jobId) {
 
+		BuildHistory content = SDKFactory.getCIPluginServices().getHistoryPipeline(jobId);
+		result.setBody(SerializationService.toJSON(content));
 	}
 }
