@@ -54,7 +54,7 @@ public class TaskProcessor implements Runnable {
 		}else if(url.contains("/snapshot")){
 			String ciId = url.substring(url.indexOf("/job")+5, url.indexOf("/lastBuild"));
 			logger.info("BRIDGE: processing live '" + ciId);
-			response = ciTaskService.getSnapshot(ciId);
+			response = ciTaskService.getSnapshot("Test_Ayellet"/*ciId*/);
 		}
 		MqmRestClient restClient = MqmRestClientFactory.create(
 				ciType,

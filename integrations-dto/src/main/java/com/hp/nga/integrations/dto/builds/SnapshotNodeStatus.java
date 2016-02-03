@@ -1,5 +1,8 @@
 package com.hp.nga.integrations.dto.builds;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+
 /**
  * Created with IntelliJ IDEA.
  * User: gullery
@@ -33,5 +36,22 @@ public enum SnapshotNodeStatus {
 			}
 		}
 		return result;
+	}
+
+	@JsonValue
+	public String value() {
+		return value;
+	}
+
+	@JsonCreator
+	public static SnapshotNodeStatus fromValue(String value) {
+		if (value != null) {
+			for (SnapshotNodeStatus v : values()) {
+				if (v.value.equals(value)) {
+					return v;
+				}
+			}
+		}
+		return UNAVAILABLE;
 	}
 }
