@@ -197,7 +197,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 //			numberOfBuilds = Integer.valueOf(req.getParameter("numberOfBuilds"));
 //		}
 		//TODO : check if it works!!
-		if(!originalBody.isEmpty()){
+		if(originalBody!=null && !originalBody.isEmpty()){
 			JSONObject bodyJSON = JSONObject.fromObject(originalBody);
 			if(bodyJSON.has("numberOfBuilds")){
 				numberOfBuilds = bodyJSON.getInt("numberOfBuilds");
@@ -253,7 +253,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 		int delay = project.getQuietPeriod();
 		ParametersAction parametersAction = new ParametersAction();
 
-		if (!originalBody.isEmpty()) {
+		if (originalBody!=null && !originalBody.isEmpty()) {
 			JSONObject bodyJSON = JSONObject.fromObject(originalBody);
 
 			//  delay

@@ -28,7 +28,7 @@ public class NGATaskProcessor {
 	private static final String RUN = "run";
 	private static final String HISTORY = "history";
 	private static final String BUILDS = "builds";
-	private static final String LATEST = "latest";
+	private static final String LATEST = "lastBuild";
 
 	private final NGATask task;
 
@@ -71,7 +71,7 @@ public class NGATaskProcessor {
 					result.setStatus(501);
 				}
 			} else if (path.length == 3 && JOBS.equals(path[0]) && HISTORY.equals(path[2])) {
-				executeHistoryRequest(result, path[1]);
+				executeHistoryRequest(result, path[1], task.getBody());
 			} else {
 				result.setStatus(404);
 			}
@@ -111,9 +111,9 @@ public class NGATaskProcessor {
 		result.setBody(SerializationService.toJSON(content));
 	}
 
-	private void executeHistoryRequest(NGAResult result,String jobId) {
+	private void executeHistoryRequest(NGAResult result, String jobId, String originalBody) {
 
-		BuildHistory content = SDKFactory.getCIPluginServices().getHistoryPipeline(jobId);
+		BuildHistory content = SDKFactory.getCIPluginServices().getHistoryPipeline(jobId,originalBody);
 		result.setBody(SerializationService.toJSON(content));
 	}
 }
