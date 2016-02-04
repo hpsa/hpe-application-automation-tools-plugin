@@ -53,8 +53,8 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	private static final String HEADER_NAME_AUTHORIZATION = "Authorization";
 	private static final String HEADER_VALUE_BASIC_AUTH = "Basic ";
 	private static final String HEADER_CLIENT_TYPE = "HPECLIENTTYPE";
-//	private static final String HPSSO_COOKIE_CSRF = "HPSSO_COOKIE_CSRF";
-//	private static final String HPSSO_HEADER_CSRF = "HPSSO_HEADER_CSRF";
+	private static final String HPSSO_COOKIE_CSRF = "HPSSO_COOKIE_CSRF";
+	private static final String HPSSO_HEADER_CSRF = "HPSSO_HEADER_CSRF";
 
 	private static final String PROJECT_API_URI = "api/shared_spaces/{0}";
 	private static final String SHARED_SPACE_INTERNAL_API_URI = "internal-api/shared_spaces/{0}";
@@ -80,7 +80,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	private final String username;
 
 	private final String password;
-	//private String XCRF_VALUE;
+	private String XCRF_VALUE;
 
 
 	/**
@@ -168,24 +168,24 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 
 
 
-//
-//	private void handleCSRF(HttpResponse response) {
-//		boolean isCSRF = false;
-//		Header[] headers = response.getHeaders("Set-Cookie");
-//		for (Header h : headers) {
-//			HeaderElement[] he = h.getElements();
-//			for (HeaderElement e : he) {
-//				if (e.getName().equals(HPSSO_COOKIE_CSRF)) {
-//					XCRF_VALUE = e.getValue();
-//					isCSRF = true;
-//					break;
-//				}
-//			}
-//			if (isCSRF) {
-//				break;
-//			}
-//		}
-//	}
+
+	private void handleCSRF(HttpResponse response) {
+		boolean isCSRF = false;
+		Header[] headers = response.getHeaders("Set-Cookie");
+		for (Header h : headers) {
+			HeaderElement[] he = h.getElements();
+			for (HeaderElement e : he) {
+				if (e.getName().equals(HPSSO_COOKIE_CSRF)) {
+					XCRF_VALUE = e.getValue();
+					isCSRF = true;
+					break;
+				}
+			}
+			if (isCSRF) {
+				break;
+			}
+		}
+	}
 
 	private void authenticate() {
 		HttpPost post = new HttpPost(createBaseUri(URI_AUTHENTICATION));
@@ -203,7 +203,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 			if (response.getStatusLine().getStatusCode() != 200) {
 				throw new AuthenticationException("Authentication failed: code=" + response.getStatusLine().getStatusCode() + "; reason=" + response.getStatusLine().getReasonPhrase());
 			}
-//			handleCSRF(response);
+			handleCSRF(response);
 		} catch (IOException e) {
 			throw new LoginErrorException("Error occurred during authentication", e);
 		} finally {
@@ -536,11 +536,11 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 		if (request.getFirstHeader(HEADER_CLIENT_TYPE) == null) {
 			request.addHeader(HEADER_CLIENT_TYPE, clientType);
 		}
-//		if (!isLogin) {
-//			if (request.getFirstHeader(HPSSO_HEADER_CSRF) == null) {
-//				request.addHeader(HPSSO_HEADER_CSRF, XCRF_VALUE);
-//			}
-//		}
+		if (!isLogin) {
+			if (request.getFirstHeader(HPSSO_HEADER_CSRF) == null) {
+				request.addHeader(HPSSO_HEADER_CSRF, XCRF_VALUE);
+			}
+		}
 	}
 
 	private boolean isLoginNecessary(HttpResponse response) {
