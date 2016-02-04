@@ -62,16 +62,13 @@ public class BridgeClient {
 								"; instance ID: " + serverInstanceId +
 								"; self URL: " + new PluginActions.ServerInfo().getUrl());
 						MqmRestClient restClient = restClientFactory.obtain(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
-						tmpLoggingOut("Going for tasks to: " + mqmConfig.location + " " + mqmConfig.sharedSpace + " " + mqmConfig.username);
 						tasksJSON = restClient.getAbridgedTasks(serverInstanceId, new PluginActions.ServerInfo().getUrl());
-						tmpLoggingOut("Back OKAY: " + tasksJSON);
 						logger.info("BRIDGE: back from '" + mqmConfig.location + "' (SP: " + mqmConfig.sharedSpace + ") with " + (tasksJSON == null || tasksJSON.isEmpty() ? "no tasks" : "some tasks"));
 						connect();
 						if (tasksJSON != null && !tasksJSON.isEmpty()) {
 							dispatchTasks(tasksJSON);
 						}
 					} catch (AuthenticationException ae) {
-						tmpLoggingOut("Back with failure: " + ae);
 						logger.severe("BRIDGE: connection to MQM Server temporary failed: authentication error");
 						try {
 							Thread.sleep(20000);
@@ -80,7 +77,6 @@ public class BridgeClient {
 						}
 						connect();
 					} catch (TemporarilyUnavailableException tue) {
-						tmpLoggingOut("Back with failure: " + tue);
 						logger.severe("BRIDGE: connection to MQM Server temporary failed: resource not available");
 						try {
 							Thread.sleep(20000);
@@ -89,7 +85,6 @@ public class BridgeClient {
 						}
 						connect();
 					} catch (Exception e) {
-						tmpLoggingOut("Back with failure: " + e);
 						logger.severe("BRIDGE: connection to MQM Server temporary failed: " + e.getMessage());
 						try {
 							Thread.sleep(1000);
@@ -139,31 +134,6 @@ public class BridgeClient {
 	@Exported(inline = true)
 	public String getUsername() {
 		return mqmConfig.username;
-	}
-
-	private volatile boolean ngaLogDisabled = false;
-
-	private synchronized void tmpLoggingOut(String content) {
-		if (!ngaLogDisabled) {
-			File file = new File(Jenkins.getInstance().root, "userContent");
-			file = new File(file, "nga.log");
-			boolean exists = false;
-			try {
-				if (!file.exists()) {
-					exists = file.createNewFile();
-				} else {
-					exists = true;
-				}
-				if (exists) {
-					FileWriter fw = new FileWriter(file, true);
-					fw.write(new Date() + " - " + content + System.lineSeparator());
-					fw.close();
-				}
-			} catch (IOException ioe) {
-				logger.severe("failed to write NGA log");
-				ngaLogDisabled = true;
-			}
-		}
 	}
 
 	private static final class AbridgedConnectivityExecutorsFactory implements ThreadFactory {

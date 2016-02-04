@@ -14,12 +14,13 @@ import org.apache.commons.lang.StringUtils;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Extension
 public class JenkinsMqmRestClientFactoryImpl implements JenkinsMqmRestClientFactory {
-
+    private static final Logger logger = Logger.getLogger(JenkinsMqmRestClientFactoryImpl.class.getName());
     private static final String CLIENT_TYPE = "HPE_JENKINS_PLUGIN";
     private static MqmRestClient mqmRestClient;
 
@@ -27,7 +28,7 @@ public class JenkinsMqmRestClientFactoryImpl implements JenkinsMqmRestClientFact
     public synchronized MqmRestClient obtain(String location, String sharedSpace, String username, String password) {
         if(mqmRestClient == null) {
             MqmConnectionConfig clientConfig = new MqmConnectionConfig(location, sharedSpace, username, password, CLIENT_TYPE);
-            URL locationUrl = null;
+            URL locationUrl;
             try {
                 locationUrl = new URL(clientConfig.getLocation());
             } catch (MalformedURLException e) {
@@ -42,6 +43,7 @@ public class JenkinsMqmRestClientFactoryImpl implements JenkinsMqmRestClientFact
                 }
             }
             mqmRestClient = new MqmRestClientImpl(clientConfig);
+            logger.info("NGA REST Clint: initialized for " + location + " - " + sharedSpace + " - " + username);
         }
         return mqmRestClient;
     }
@@ -64,6 +66,7 @@ public class JenkinsMqmRestClientFactoryImpl implements JenkinsMqmRestClientFact
             }
         }
         mqmRestClient = new MqmRestClientImpl(clientConfig);
+        logger.info("NGA REST Clint: updated to " + location + " - " + sharedSpace + " - " + username);
     }
 
     private String getProxyHost() {
