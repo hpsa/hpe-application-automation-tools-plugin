@@ -48,21 +48,20 @@ import java.util.regex.Pattern;
 
 public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	private static final Logger logger = Logger.getLogger(AbstractMqmRestClient.class.getName());
-
+	private static final Object LOGIN_MONITOR = new Object();
 	private static final String URI_AUTHENTICATION = "authentication/sign_in";
 	private static final String HEADER_NAME_AUTHORIZATION = "Authorization";
 	private static final String HEADER_VALUE_BASIC_AUTH = "Basic ";
 	private static final String HEADER_CLIENT_TYPE = "HPECLIENTTYPE";
 	private static final String HPSSO_COOKIE_CSRF = "HPSSO_COOKIE_CSRF";
 	private static final String HPSSO_HEADER_CSRF = "HPSSO_HEADER_CSRF";
+	private String CSRF_TOKEN;
 
 	private static final String PROJECT_API_URI = "api/shared_spaces/{0}";
 	private static final String SHARED_SPACE_INTERNAL_API_URI = "internal-api/shared_spaces/{0}";
-
 	private static final String SHARED_SPACE_API_URI = "api/shared_spaces/{0}";
 	private static final String WORKSPACE_API_URI = SHARED_SPACE_API_URI + "/workspaces/{1}";
 	private static final String WORKSPACE_INTERNAL_API_URI = SHARED_SPACE_INTERNAL_API_URI + "/workspaces/{1}";
-
 	private static final String FILTERING_FRAGMENT = "query={query}";
 	private static final String PAGING_FRAGMENT = "offset={offset}&limit={limit}";
 	private static final String ORDER_BY_FRAGMENT = "order_by={order}";
@@ -78,10 +77,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	private final String sharedSpace;
 	private final String clientType;
 	private final String username;
-
 	private final String password;
-	private String XCRF_VALUE;
-
 
 	/**
 	 * Constructor for AbstractMqmRestClient.
@@ -128,15 +124,14 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 						.build();
 
 
-
-			}else {
+			} else {
 				httpClient = HttpClients.custom()
 						.setConnectionManager(cm)
 						.setDefaultRequestConfig(requestConfig)
 						.setDefaultCookieStore(cookieStore)
 						.build();
 			}
-		}else {
+		} else {
 			RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(connectionConfig.getDefaultConnectionTimeout() != null ?
 					connectionConfig.getDefaultConnectionTimeout() : DEFAULT_CONNECTION_TIMEOUT).setSocketTimeout(connectionConfig.getDefaultSocketTimeout() != null ?
 					connectionConfig.getDefaultSocketTimeout() : DEFAULT_SO_TIMEOUT).build();
@@ -167,8 +162,6 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	}
 
 
-
-
 	private void handleCSRF(HttpResponse response) {
 		boolean isCSRF = false;
 		Header[] headers = response.getHeaders("Set-Cookie");
@@ -176,7 +169,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 			HeaderElement[] he = h.getElements();
 			for (HeaderElement e : he) {
 				if (e.getName().equals(HPSSO_COOKIE_CSRF)) {
-					XCRF_VALUE = e.getValue();
+					CSRF_TOKEN = e.getValue();
 					isCSRF = true;
 					break;
 				}
@@ -190,10 +183,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	private void authenticate() {
 		HttpPost post = new HttpPost(createBaseUri(URI_AUTHENTICATION));
 		String authorizationString = (username != null ? username : "") + ":" + (password != null ? password : "");
-
-
 		post.setHeader(HEADER_NAME_AUTHORIZATION, HEADER_VALUE_BASIC_AUTH + Base64.encodeBase64String(authorizationString.getBytes(StandardCharsets.UTF_8)));
-
 		addRequestHeaders(post, true);
 
 		HttpResponse response = null;
@@ -364,49 +354,16 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 
 		addRequestHeaders(request);
 		HttpResponse response = httpClient.execute(request);
-		if (isLoginNecessary(response)) { // if request fails with 401 do login and execute request again
-			HttpClientUtils.closeQuietly(response);
-			login();
-			response = httpClient.execute(request);
+		if (isLoginNecessary(response)) {
+			synchronized (LOGIN_MONITOR) {
+				if (isLoginNecessary(response)) {
+					HttpClientUtils.closeQuietly(response);
+					login();
+					response = httpClient.execute(request);
+				}
+			}
 		}
 		return response;
-	}
-
-	/**
-	 * Invokes {@link com.hp.mqm.org.apache.http.client.HttpClient#execute(com.hp.mqm.org.apache.http.client.methods.HttpUriRequest, com.hp.mqm.org.apache.http.client.ResponseHandler)}
-	 * with given request and does login if it is necessary.
-	 * <p>
-	 * Method does not support request with non-repeatable entity (see {@link HttpEntity#isRepeatable()}).
-	 * </p>
-	 *
-	 * @param request which should be executed
-	 * @return response for given request
-	 * @throws IllegalArgumentException when request entity is not repeatable
-	 */
-	protected <T> T execute(final HttpUriRequest request, final ResponseHandler<? extends T> responseHandler) throws IOException {
-		addRequestHeaders(request);
-		final BooleanReference loginNecessary = new BooleanReference();
-		loginNecessary.value = false;
-		T result = httpClient.execute(request, new ResponseHandler<T>() {
-			@Override
-			public T handleResponse(HttpResponse response) throws IOException {
-				if (isLoginNecessary(response)) {
-					loginNecessary.value = true;
-					return null;
-				}
-				return responseHandler.handleResponse(response);
-			}
-		});
-		if (loginNecessary.value) {
-			login();
-			result = httpClient.execute(request, new ResponseHandler<T>() {
-				@Override
-				public T handleResponse(HttpResponse response) throws IOException {
-					return responseHandler.handleResponse(response);
-				}
-			});
-		}
-		return result;
 	}
 
 	protected <E> PagedList<E> getEntities(URI uri, int offset, EntityFactory<E> factory) {
@@ -538,7 +495,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 		}
 		if (!isLogin) {
 			if (request.getFirstHeader(HPSSO_HEADER_CSRF) == null) {
-				request.addHeader(HPSSO_HEADER_CSRF, XCRF_VALUE);
+				request.addHeader(HPSSO_HEADER_CSRF, CSRF_TOKEN);
 			}
 		}
 	}
