@@ -13,12 +13,11 @@ import javax.servlet.http.HttpServletResponse;
 public class PluginActionsController extends AbstractActionController {
 
     public PluginActionsController(final SBuildServer server, ProjectManager manager,
-                                   BuildTypeResponsibilityFacade descriptor, ModelFactory modelFactory) {
-        super(server, manager, descriptor, modelFactory);
+                                   BuildTypeResponsibilityFacade descriptor) {
     }
 
     @Override
     protected Object buildResults(HttpServletRequest request, HttpServletResponse response) {
-        return modelFactory.CreateProjectList();
+        return ModelFactory.CreateProjectList();
     }
 }

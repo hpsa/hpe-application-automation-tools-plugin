@@ -5,6 +5,8 @@ import com.hp.nga.integrations.dto.rest.NGAResult;
 import com.hp.nga.integrations.dto.rest.NGATask;
 import com.hp.nga.integrations.services.serialization.SerializationService;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -30,7 +32,30 @@ public class BridgeClient {
 
 	public void update(NGAConfiguration newConfig) {
 //		logger.info("BRIDGE: updated for '" + config.getUrl() + "' (SP: " + config.getSharedSpace() + ")");
-		connect();
+		if(isConfigurationValid(newConfig)){
+			//TODO: 1. update the rest client
+			connect();
+		}else{
+			/*
+				logger.info("BRIDGE: empty / non-valid configuration submitted, disposing bridge client");
+				bridgeClient.dispose();
+				bridgeClient = null;
+			* */
+		}
+	}
+
+	private boolean isConfigurationValid(NGAConfiguration serverConfiguration) {
+		boolean result = false;
+		if (serverConfiguration.getUrl() != null && !serverConfiguration.getUrl().isEmpty() &&
+				serverConfiguration.getSharedSpace() != null /*&&!serverConfiguration.getSharedSpace().isEmpty()*/) {
+			try {
+				URL tmp = new URL(serverConfiguration.getUrl());
+				result = true;
+			} catch (MalformedURLException mue) {
+				logger.warning("BRIDGE: configuration with malformed URL supplied");
+			}
+		}
+		return result;
 	}
 
 	private void connect() {

@@ -18,6 +18,8 @@ public final class StructureItem {
 	private List<StructurePhase> phasesInternal;
 	private List<StructurePhase> phasesPostBuild;
 
+	private String ciId;
+
 	public String getName() {
 		return name;
 	}
@@ -49,4 +51,10 @@ public final class StructureItem {
 	public void setPhasesPostBuild(List<StructurePhase> phasesPostBuild) {
 		this.phasesPostBuild = phasesPostBuild;
 	}
+
+	public void setCiId(String ciId) {
+		this.ciId = ciId;
+	}
+
+	public String getCiId() { return ciId;}
 }

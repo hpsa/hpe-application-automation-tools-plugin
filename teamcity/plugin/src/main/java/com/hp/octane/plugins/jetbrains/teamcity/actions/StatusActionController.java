@@ -1,8 +1,9 @@
 package com.hp.octane.plugins.jetbrains.teamcity.actions;
 
+import com.hp.nga.integrations.dto.general.CIServerTypes;
 import com.hp.nga.integrations.dto.general.PluginInfoDTO;
+import com.hp.nga.integrations.dto.general.ServerInfoDTO;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
-import com.hp.octane.plugins.jetbrains.teamcity.utils.Config;
 import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;
 import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.SBuildServer;
@@ -19,7 +20,6 @@ public class StatusActionController extends AbstractActionController {
 //    private final BuildTypeResponsibilityFacade responsibilityFacade;
 
     public StatusActionController(SBuildServer server, ProjectManager projectManager, BuildTypeResponsibilityFacade responsibilityFacade) {
-            super(server,projectManager,responsibilityFacade,null);
 //        this.myServer = server;
 //        this.projectManager = projectManager;
 //        this.responsibilityFacade = responsibilityFacade;
@@ -27,24 +27,37 @@ public class StatusActionController extends AbstractActionController {
 
     @Override
     protected Object buildResults(HttpServletRequest request, HttpServletResponse response) {
-        return new PluginStatus();
+
+        String version = "9.1.5";
+        String serverUrl = "http://localhost:8081";
+        if (serverUrl != null && serverUrl.endsWith("/")) {
+            serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
+        }
+
+
+        ServerInfoDTO serverInfoDTO = new ServerInfoDTO();
+        serverInfoDTO.setInstanceId(NGAPlugin.getInstance().getConfig().getIdentity());
+        serverInfoDTO.setInstanceIdFrom(NGAPlugin.getInstance().getConfig().getIdentityFromAsLong());
+        serverInfoDTO.setSendingTime(System.currentTimeMillis());
+        serverInfoDTO.setType(CIServerTypes.TEAMCITY);
+        serverInfoDTO.setUrl(serverUrl);
+        serverInfoDTO.setVersion(version);
+
+        return serverInfoDTO;
     }
 
     //TODO:Add to common lib
     public static final class ServerInfo {
-        private static final String type = "teamcity";
+        private static final CIServerTypes type = CIServerTypes.TEAMCITY;
         private static final String version = "9.1.5";
         private String url;
 
-        NGAPlugin ngaPlugin = NGAPlugin.getInstance();
-        Config cfg = ngaPlugin.getConfig();
-
-        private String instanceId = cfg.getIdentity();//Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity();
-        private Long instanceIdFrom = cfg.getIdentityFromAsLong();//Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentityFrom();
+        private String instanceId = NGAPlugin.getInstance().getConfig().getIdentity();//Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity();
+        private Long instanceIdFrom = NGAPlugin.getInstance().getConfig().getIdentityFromAsLong();//Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentityFrom();
         private Long sendingTime;
 
         public ServerInfo() {
-            String serverUrl = "http://locahost:8081";
+            String serverUrl = "http://localhost:8081";
             if (serverUrl != null && serverUrl.endsWith("/"))
                 serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
             this.url = serverUrl;
@@ -52,7 +65,7 @@ public class StatusActionController extends AbstractActionController {
         }
 
 
-        public String getType() {
+        public CIServerTypes getType() {
             return type;
         }
 

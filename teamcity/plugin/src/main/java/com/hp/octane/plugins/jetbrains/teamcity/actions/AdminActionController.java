@@ -1,9 +1,8 @@
 package com.hp.octane.plugins.jetbrains.teamcity.actions;
 
         import com.hp.octane.plugins.common.bridge.BridgesService;
-        import com.hp.octane.plugins.common.configuration.ServerConfiguration;
-        import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
-import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
+import com.hp.octane.plugins.common.configuration.ServerConfiguration;
+import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.Config;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.ConfigManager;
 import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;
@@ -30,8 +29,7 @@ public class AdminActionController extends AbstractActionController {
     PluginDescriptor m_descriptor;
 
     public AdminActionController(SBuildServer server, ProjectManager projectManager,
-                                    BuildTypeResponsibilityFacade responsibilityFacade, ModelFactory modelFactory,ProjectSettingsManager projectSettingsManager, PluginDescriptor descriptor) {
-        super(server,projectManager,responsibilityFacade,modelFactory);
+                                    BuildTypeResponsibilityFacade responsibilityFacade,ProjectSettingsManager projectSettingsManager, PluginDescriptor descriptor) {
         logger.info("AdminActionController");
         m_server = server;
         m_descriptor = descriptor;

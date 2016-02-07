@@ -2,7 +2,6 @@ package com.hp.octane.plugins.jetbrains.teamcity.actions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
-import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.Config;
 import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;
 import jetbrains.buildServer.serverSide.ProjectManager;
@@ -28,8 +27,7 @@ public class UserDetailsActionController extends AbstractActionController{
 
     Config m_config;
     public UserDetailsActionController(SBuildServer server, ProjectManager projectManager,
-                                 BuildTypeResponsibilityFacade responsibilityFacade, ModelFactory modelFactory, ProjectSettingsManager projectSettingsManager, PluginDescriptor descriptor) {
-        super(server,projectManager,responsibilityFacade,modelFactory);
+                                 BuildTypeResponsibilityFacade responsibilityFacade , ProjectSettingsManager projectSettingsManager, PluginDescriptor descriptor) {
         m_server = server;
         m_descriptor = descriptor;
     }

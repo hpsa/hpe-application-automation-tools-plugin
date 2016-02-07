@@ -4,11 +4,11 @@ package com.hp.octane.plugins.jetbrains.teamcity;
  * Created by lazara on 23/12/2015.
  */
 
-import com.hp.octane.plugins.common.bridge.BridgesService;
+import com.hp.nga.integrations.services.SDKFactory;
+import com.hp.nga.integrations.services.bridge.BridgeService;
+import com.hp.octane.plugins.CIPluginServicesImpl;
 import com.hp.octane.plugins.common.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jetbrains.teamcity.actions.*;
-import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
-import com.hp.octane.plugins.jetbrains.teamcity.factories.TeamCityModelFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.Config;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.ConfigManager;
 import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;
@@ -18,15 +18,19 @@ import jetbrains.buildServer.serverSide.ServerExtension;
 import jetbrains.buildServer.serverSide.settings.ProjectSettingsManager;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import jetbrains.buildServer.web.openapi.WebControllerManager;
-import org.apache.commons.lang.StringUtils;
 
 import java.util.Date;
 import java.util.UUID;
 import java.util.logging.Logger;
 
+//import com.hp.octane.plugins.common.bridge.BridgesService;
+
+//import com.hp.octane.plugins.common.bridge.BridgesService;
+
 public class NGAPlugin implements ServerExtension {
     public static final String PLUGIN_NAME = NGAPlugin.class.getSimpleName().toLowerCase();
     private static final Logger logger = Logger.getLogger(NGAPlugin.class.getName());
+    private final CIPluginServicesImpl ciPluginService;
 
     private String identity;
     private Long identityFrom;
@@ -37,7 +41,6 @@ public class NGAPlugin implements ServerExtension {
     private SBuildServer sBuildServer;
     private ProjectManager projectManager;
     private BuildTypeResponsibilityFacade responsibilityFacade;
-
 
 
     private static NGAPlugin plugin;
@@ -67,8 +70,18 @@ public class NGAPlugin implements ServerExtension {
         this.responsibilityFacade = responsibilityFacade;
 //        server.addListener(new BuildEventListener());
         registerControllers(webControllerManager, projectManager, sBuildServer, projectSettingsManager, pluginDescriptor);
-        configManager= ConfigManager.getInstance(descriptor,sBuildServer);
+        configManager= ConfigManager.getInstance(descriptor, sBuildServer);
         config = configManager.jaxbXMLToObject();
+        this.ciPluginService = new CIPluginServicesImpl();
+
+        //  X Plugin will decide what's its pattern to provide instance/s of the implementation
+        SDKFactory.init(ciPluginService);
+        //  X Plugin will consume SDK's services elsewhere in the following manner
+        //  EventsService eventsService = SDKFactory.getEventsService();
+
+        //  These ones, once will become part of the SDK, will be hidden from X Plugin and initialized in SDK internally
+//        EventsService.getExtensionInstance().updateClient(getServerConfiguration());
+//        BridgesService.getExtensionInstance().updateBridge(getServerConfiguration());
 
         initOPB();
     }
@@ -76,6 +89,7 @@ public class NGAPlugin implements ServerExtension {
     public SBuildServer getsBuildServer() {
         return sBuildServer;
     }
+
 
     public ProjectManager getProjectManager() {
         return projectManager;
@@ -90,26 +104,26 @@ public class NGAPlugin implements ServerExtension {
     }
 
     private void registerControllers(WebControllerManager webControllerManager, ProjectManager projectManager, SBuildServer sBuildServer, ProjectSettingsManager projectSettingsManager, PluginDescriptor pluginDescriptor) {
-        ModelFactory modelFactory = new TeamCityModelFactory(projectManager);
+
         webControllerManager.registerController("/octane/jobs/**",
-                new PluginActionsController(sBuildServer, projectManager, responsibilityFacade, modelFactory));
+                new PluginActionsController(sBuildServer, projectManager, responsibilityFacade));
 
         webControllerManager.registerController("/octane/snapshot/**",
-                new BuildActionsController(sBuildServer, projectManager, responsibilityFacade, modelFactory));
+                new BuildActionsController(sBuildServer, projectManager, responsibilityFacade));
 
         webControllerManager.registerController("/octane/structure/**",
-                new ProjectActionsController(sBuildServer, projectManager, responsibilityFacade, modelFactory));
+                new ProjectActionsController(sBuildServer, projectManager, responsibilityFacade));
         webControllerManager.registerController("/octane/status/**",
                 new StatusActionController(sBuildServer, projectManager, responsibilityFacade));
 
         webControllerManager.registerController("/octane/admin/**",
-                new AdminActionController(sBuildServer, projectManager, responsibilityFacade, modelFactory, projectSettingsManager, pluginDescriptor));
+                new AdminActionController(sBuildServer, projectManager, responsibilityFacade, projectSettingsManager, pluginDescriptor));
 
         webControllerManager.registerController("/octane/userDetails/**",
-                new UserDetailsActionController(sBuildServer, projectManager, responsibilityFacade, modelFactory, projectSettingsManager, pluginDescriptor));
+                new UserDetailsActionController(sBuildServer, projectManager, responsibilityFacade, projectSettingsManager, pluginDescriptor));
 
         webControllerManager.registerController("/octane/testConnection/**",
-                new TestConnectionActionController(sBuildServer, projectManager, responsibilityFacade, modelFactory, projectSettingsManager, pluginDescriptor));
+                new TestConnectionActionController(sBuildServer, projectManager, responsibilityFacade, projectSettingsManager, pluginDescriptor));
 
     }
 
@@ -125,8 +139,9 @@ public class NGAPlugin implements ServerExtension {
             configManager.jaxbObjectToXML(config);              // update the XML file
         }
 
-        BridgesService.getInstance().setCIType(PLUGIN_TYPE);
-        BridgesService.getInstance().updateBridge(getServerConfiguration());
+        BridgeService.getInstance().updateBridge(ciPluginService.getNGAConfiguration());
+//        BridgesService.getInstance().setCIType(PLUGIN_TYPE);
+ //       BridgesService.getInstance().updateBridge(getServerConfiguration());
     }
 
 

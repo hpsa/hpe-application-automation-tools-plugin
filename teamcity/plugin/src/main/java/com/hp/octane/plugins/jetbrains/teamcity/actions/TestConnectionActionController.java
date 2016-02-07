@@ -5,20 +5,16 @@ import com.hp.mqm.client.exception.AuthenticationException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.SessionCreationException;
 import com.hp.mqm.client.exception.SharedSpaceNotExistException;
-import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.Config;
 import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;
 import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.SBuildServer;
 import jetbrains.buildServer.serverSide.settings.ProjectSettingsManager;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
-
 import org.springframework.web.servlet.ModelAndView;
-
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.logging.Level;
@@ -38,8 +34,7 @@ public class TestConnectionActionController extends AbstractActionController {
     Config m_config;
 
     public TestConnectionActionController(SBuildServer server, ProjectManager projectManager,
-                                          BuildTypeResponsibilityFacade responsibilityFacade, ModelFactory modelFactory, ProjectSettingsManager projectSettingsManager, PluginDescriptor descriptor) {
-        super(server, projectManager, responsibilityFacade, modelFactory);
+                                          BuildTypeResponsibilityFacade responsibilityFacade, ProjectSettingsManager projectSettingsManager, PluginDescriptor descriptor) {
         m_server = server;
         m_descriptor = descriptor;
 

@@ -3,14 +3,16 @@ package com.hp.octane.plugins.common.bridge;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.AuthenticationException;
 import com.hp.mqm.client.exception.TemporarilyUnavailableException;
-import com.hp.octane.plugins.common.bridge.tasks.CITaskService;
-import com.hp.octane.plugins.common.bridge.tasks.CITaskServiceFactory;
+import com.hp.nga.integrations.dto.rest.NGAResult;
+import com.hp.nga.integrations.dto.rest.NGATask;
+import com.hp.nga.integrations.services.bridge.NGATaskProcessor;
+import com.hp.nga.integrations.services.serialization.SerializationService;
 import com.hp.octane.plugins.common.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.client.MqmRestClientFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.Config;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.ConfigManager;
-import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.ExecutorService;
@@ -24,7 +26,7 @@ public class BridgeClient {
     private static  String serverInstanceId;
     private static ConfigManager m_ConfigManager;
   //  private static final String serverInstanceId =
-    private static final String ciLocation = "http://locahost:8081";//
+    private static final String ciLocation = "http://localhost:8081";//
 
     private ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
     private ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30, new AbridgedTasksExecutorsFactory());
@@ -32,7 +34,7 @@ public class BridgeClient {
 
     private ServerConfiguration mqmConfig;
     private String ciType;
-    private CITaskService ciTaskService;
+//    private CITaskService ciTaskService;
 
     public BridgeClient(ServerConfiguration mqmConfig,String ciType) {
 
@@ -42,7 +44,7 @@ public class BridgeClient {
 
         this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password, mqmConfig.impersonatedUser);
         this.ciType = ciType;
-        ciTaskService = CITaskServiceFactory.create(ciType);
+//        ciTaskService = CITaskServiceFactory.create(ciType);
         connect();
         logger.info("BRIDGE: client initialized for '" + this.mqmConfig.location + "' (SP: " + this.mqmConfig.sharedSpace + ")");
     }
@@ -111,20 +113,58 @@ public class BridgeClient {
 
     private void dispatchTasks(String tasksJSON) {
         try {
-            JSONArray tasks = JSONArray.fromObject(tasksJSON);
-            logger.info("BRIDGE: going to process " + tasks.size() + " tasks");
-            for (int i = 0; i < tasks.size(); i++) {
-                taskProcessingExecutors.execute(new TaskProcessor(
-                        tasks.getJSONObject(i),
-                        ciType,
-                        mqmConfig,
-                        ciTaskService
-                ));
+            NGATask[] tasks = SerializationService.fromJSON(tasksJSON, NGATask[].class);
+            logger.info("BRIDGE: going to process " + tasks.length + " tasks");
+            for (final NGATask task : tasks) {
+                taskProcessingExecutors.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        NGATaskProcessor NGATaskProcessor = new NGATaskProcessor(task);
+                        NGAResult result = NGATaskProcessor.execute();
+                        MqmRestClient restClient = MqmRestClientFactory.create(
+                                ciType,
+                                mqmConfig.location,
+                                mqmConfig.sharedSpace,
+                                mqmConfig.username,
+                                mqmConfig.password);
+                        JSONObject json = new JSONObject();
+                        json.put("statusCode", result.getStatus());
+                        json.put("headers", result.getHeaders());
+                        json.put("body", result.getBody());
+
+                        Config cfg = NGAPlugin.getInstance().getConfig();
+                        int submitStatus = restClient.putAbridgedResult(
+                                cfg.getIdentity()/*new PluginActions.ServerInfo().getInstanceId()*/,
+                                result.getId(),
+                                json.toString());
+                        logger.info("BRIDGE: result for task '" + result.getId() + "' submitted with status " + submitStatus);
+
+                    }
+                });
             }
         } catch (Exception e) {
             logger.severe("BRIDGE: failed to process tasks: " + e.getMessage());
         }
     }
+
+//    private void dispatchTasks(String tasksJSON) {
+//
+//        try {
+//            JSONArray tasks = JSONArray.fromObject(tasksJSON);
+//            logger.info("BRIDGE: going to process " + tasks.size() + " tasks");
+//            for (int i = 0; i < tasks.size(); i++) {
+//                taskProcessingExecutors.execute(new TaskProcessor(
+//                        tasks.getJSONObject(i),
+//                        ciType,
+//                        mqmConfig,
+//                        ciTaskService
+//                ));
+//
+//            }
+//        } catch (Exception e) {
+//            logger.severe("BRIDGE: failed to process tasks: " + e.getMessage());
+//        }
+//    }
 
 
     public String getLocation() {

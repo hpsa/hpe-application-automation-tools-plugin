@@ -31,6 +31,9 @@ public final class SnapshotItem {
 	private List<SnapshotPhase> phasesInternal;
 	private List<SnapshotPhase> phasesPostBuild;
 
+
+	private String ciId;
+
 	public static Logger getLogger() {
 		return logger;
 	}
@@ -130,4 +133,9 @@ public final class SnapshotItem {
 	public void setPhasesPostBuild(List<SnapshotPhase> phasesPostBuild) {
 		this.phasesPostBuild = phasesPostBuild;
 	}
+
+	public void setCiId(String ciId) {
+		this.ciId = ciId;
+	}
+	public String getCiId() { return ciId;}
 }

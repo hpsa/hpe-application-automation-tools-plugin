@@ -32,6 +32,7 @@ public class ModelFactory {
 
         StructureItem structureItem = new StructureItem();
         structureItem.setName(project.getName());
+        structureItem.setCiId(project.getName());
         structureItem.setParameters(ParameterProcessors.getConfigs(project));
 
         AbstractProjectProcessor projectProcessor = AbstractProjectProcessor.getFlowProcessor(project);
@@ -100,6 +101,7 @@ public class ModelFactory {
         }
 
         snapshotItem.setName(build.getProject().getName());
+        snapshotItem.setCiId(build.getProject().getName());
         snapshotItem.setCauses(CIEventCausesFactory.processCauses(build.getCauses()));
         snapshotItem.setNumber(build.getNumber());
         snapshotItem.setDuration(build.getDuration());
@@ -118,6 +120,8 @@ public class ModelFactory {
         SnapshotItem snapshotItem = new SnapshotItem();
 
         snapshotItem.setName(project.getName());
+        snapshotItem.setCiId(project.getName());
+
         if (!metaOnly) {
             AbstractProjectProcessor flowProcessor = AbstractProjectProcessor.getFlowProcessor(project);
             snapshotItem.setPhasesPostBuild(inflatePhases(flowProcessor.getPostBuilds(), null));
