@@ -13,15 +13,15 @@ public class StructureItem{
 
     public StructureItem(String name, String externalId) {
         this.name = name;
-        this.id = externalId;
+        this.ciId = externalId;
     }
 
     public String getName() {
         return name;
     }
 
-    public String getId() {
-        return id;
+    public String getCiId() {
+        return ciId;
     }
 
     public List<ParameterConfig> getParameters() {
@@ -29,7 +29,7 @@ public class StructureItem{
     }
 
     String name;
-    String id;
+    String ciId;
     List<ParameterConfig> parameters = new ArrayList<ParameterConfig>();
 
     public void addPhasesInternal(AbstractPhase phaseInternal) {

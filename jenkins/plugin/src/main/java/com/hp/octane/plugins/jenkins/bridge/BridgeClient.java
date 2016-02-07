@@ -6,10 +6,15 @@ import com.hp.mqm.client.exception.TemporarilyUnavailableException;
 import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
+import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import org.kohsuke.stapler.export.Exported;
 
 import javax.annotation.Nonnull;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -17,7 +22,7 @@ import java.util.logging.Logger;
 
 /**
  * Created by gullery on 12/08/2015.
- * <p/>
+ * <p>
  * This class encompasses functionality of managing connection/s to a single abridged client (MQM Server)
  */
 

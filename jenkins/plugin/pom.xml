@@ -14,7 +14,7 @@
     <packaging>hpi</packaging>
 
     <properties>
-        <baseNexusURL>http://mydtbld0051.isr.hp.com:8081/nexus</baseNexusURL>
+        <baseNexusURL>http://mydtbld0051.hpeswlab.net:8081/nexus</baseNexusURL>
         <surefire.version>2.18.1</surefire.version>
         <jacoco.version>0.7.4.201502262128</jacoco.version>
 

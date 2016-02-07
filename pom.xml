@@ -7,7 +7,7 @@
     <version>12.50.29-SNAPSHOT</version>
     <packaging>pom</packaging>
     <properties>
-        <baseNexusURL>http://mydtbld0051.isr.hp.com:8081/nexus</baseNexusURL>
+        <baseNexusURL>http://mydtbld0051.hpeswlab.net:8081/nexus</baseNexusURL>
         <maven.compiler.plugin.version>3.1</maven.compiler.plugin.version>
         <jdk.version>1.6</jdk.version>
         <httpclient-hp.version>4.5.1-hp-1</httpclient-hp.version>

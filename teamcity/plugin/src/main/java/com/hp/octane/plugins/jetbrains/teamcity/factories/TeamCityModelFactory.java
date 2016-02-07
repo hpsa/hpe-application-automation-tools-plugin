@@ -1,5 +1,6 @@
 package com.hp.octane.plugins.jetbrains.teamcity.factories;
 
+import com.hp.nga.integrations.dto.builds.SnapshotNodeResult;
 import com.hp.nga.integrations.dto.builds.SnapshotNodeStatus;
 import com.hp.nga.integrations.dto.projects.ProjectsList;
 import com.hp.nga.integrations.dto.projects.ProjectsList.ProjectConfig;
@@ -7,6 +8,7 @@ import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.StructureItem;
 import com.hp.octane.plugins.jetbrains.teamcity.model.pipeline.StructurePhase;
 import com.hp.octane.plugins.jetbrains.teamcity.model.snapshots.SnapshotItem;
 import com.hp.octane.plugins.jetbrains.teamcity.model.snapshots.SnapshotPhase;
+import jetbrains.buildServer.messages.Status;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.dependency.Dependency;
 
@@ -146,9 +148,24 @@ public class TeamCityModelFactory implements ModelFactory {
             snapshotItem.setStartTime(currentBuild.getClientStartDate().getTime()); //Returns the timestamp when the build was started on the build agent
             snapshotItem.setCauses(null);
             snapshotItem.setStatus(SnapshotNodeStatus.FINISHED);
-
+            snapshotItem.setResult(mapResultStatus(currentBuild.getBuildStatus()));
         }
         return snapshotItem;
+    }
+
+    private SnapshotNodeResult mapResultStatus(Status status){
+            if(status.isFailed()){
+                return SnapshotNodeResult.FAILURE;
+            }else if(status.isSuccessful()){
+                return SnapshotNodeResult.SUCCESS;
+            }else if(status == Status.ERROR){
+                return SnapshotNodeResult.ABORTED;
+            }else if(status == Status.UNKNOWN){
+                return SnapshotNodeResult.UNAVAILABLE;
+            }else if(status == Status.WARNING){
+                return SnapshotNodeResult.UNSTABLE;
+            }
+        return SnapshotNodeResult.UNAVAILABLE;
     }
 
     private SnapshotItem createQueueBuild(SBuildType build, String rootId) {
