@@ -1,7 +1,9 @@
 package com.hp.octane.plugins.jetbrains.teamcity.actions;
 
+import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
-import com.hp.nga.integrations.dto.general.PluginInfo;
+import com.hp.nga.integrations.dto.general.IPluginInfo;
+import com.hp.nga.integrations.dto.general.IServerInfo;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;
 import jetbrains.buildServer.serverSide.ProjectManager;
@@ -33,8 +35,7 @@ public class StatusActionController extends AbstractActionController {
             serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
         }
 
-
-        com.hp.nga.integrations.dto.general.ServerInfo serverInfo = new com.hp.nga.integrations.dto.general.ServerInfo();
+        IServerInfo serverInfo = DTOFactory.createDTO(IServerInfo.class);
         serverInfo.setInstanceId(NGAPlugin.getInstance().getConfig().getIdentity());
         serverInfo.setInstanceIdFrom(NGAPlugin.getInstance().getConfig().getIdentityFromAsLong());
         serverInfo.setSendingTime(System.currentTimeMillis());
@@ -93,8 +94,8 @@ public class StatusActionController extends AbstractActionController {
             return new ServerInfo();
         }
 
-        public PluginInfo getPlugin() {
-            return new PluginInfo();
+        public IPluginInfo getPlugin() {
+            return DTOFactory.createDTO(IPluginInfo.class);
         }
 
 //        public List<EventsClient> getEventsClients() {

@@ -1,17 +1,15 @@
 package com.hp.octane.plugins.jetbrains.teamcity.factories;
 
+import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.pipelines.StructureItem;
-import com.hp.nga.integrations.dto.pipelines.StructureItemImpl;
 import com.hp.nga.integrations.dto.pipelines.StructurePhase;
 import com.hp.nga.integrations.dto.pipelines.StructurePhaseImpl;
 import com.hp.nga.integrations.dto.projects.JobsListDTO;
-import com.hp.nga.integrations.dto.projects.JobsListDTOImpl;
 import com.hp.nga.integrations.dto.projects.ProjectConfig;
 import com.hp.nga.integrations.dto.projects.ProjectConfigImpl;
 import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
-import com.hp.nga.integrations.dto.snapshots.SnapshotItemImpl;
-import com.hp.nga.integrations.dto.snapshots.SnapshotPhaseImpl;
 import com.hp.nga.integrations.dto.snapshots.SnapshotPhase;
+import com.hp.nga.integrations.dto.snapshots.SnapshotPhaseImpl;
 import com.hp.nga.integrations.dto.snapshots.SnapshotStatus;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import jetbrains.buildServer.serverSide.*;
@@ -27,7 +25,7 @@ public class ModelFactory { // {
 
     public static JobsListDTO CreateProjectList() {
 
-        JobsListDTO jobsListDTO = new JobsListDTOImpl();
+        JobsListDTO jobsListDTO = DTOFactory.createDTO(JobsListDTO.class);
         List<ProjectConfig> list = new ArrayList<ProjectConfig>();
         List<String>ids = new ArrayList<String>();
 
@@ -54,7 +52,7 @@ public class ModelFactory { // {
         SBuildType root = NGAPlugin.getInstance().getProjectManager().findBuildTypeByExternalId(buildConfigurationId);
         StructureItem treeRoot =null;
         if(root !=null) {
-            treeRoot = new StructureItemImpl();
+            treeRoot = DTOFactory.createDTO(StructureItem.class);
             treeRoot.setName(root.getName());
             treeRoot.setCiId(root.getExternalId());
             createPipelineStructure(treeRoot, root.getDependencies());
@@ -75,7 +73,7 @@ public class ModelFactory { // {
         List<StructureItem> structureItemList = new ArrayList<StructureItem>();
         for(Dependency dependency : dependencies){
             SBuildType build = dependency.getDependOn();
-            StructureItem buildItem = new StructureItemImpl();
+            StructureItem buildItem = DTOFactory.createDTO(StructureItem.class);
             buildItem.setName(build.getName());
             buildItem.setCiId(build.getExternalId());
             structureItemList.add(buildItem);
@@ -153,7 +151,7 @@ public class ModelFactory { // {
         }
 
         if(currentBuild!=null){
-            snapshotItem = new SnapshotItemImpl();
+            snapshotItem = DTOFactory.createDTO(SnapshotItem.class);
             snapshotItem.setName(build.getExtendedName());
             snapshotItem.setCiId(build.getExternalId());
             snapshotItem.setDuration(currentBuild.getDuration());
@@ -186,7 +184,7 @@ public class ModelFactory { // {
             }
 
             if (queuedBuild != null) {
-                snapshotItem = new SnapshotItemImpl();
+                snapshotItem = DTOFactory.createDTO(SnapshotItem.class);
                 snapshotItem.setName(build.getName());
                 snapshotItem.setCiId(build.getExternalId());
                 snapshotItem.setStatus(SnapshotStatus.QUEUED);
@@ -215,7 +213,7 @@ public class ModelFactory { // {
         }
 
         if(currentBuild!=null) {
-            snapshotItem = new SnapshotItemImpl();
+            snapshotItem = DTOFactory.createDTO(SnapshotItem.class);
             snapshotItem.setName(build.getName());
             snapshotItem.setCiId(build.getExternalId());
             snapshotItem.setDuration(currentBuild.getDuration());

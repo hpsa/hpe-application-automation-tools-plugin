@@ -10,6 +10,7 @@ import java.net.URL;
  */
 
 public class NGAConfiguration {
+
 	private String url;
 	private Long sharedSpace;
 	private String username;

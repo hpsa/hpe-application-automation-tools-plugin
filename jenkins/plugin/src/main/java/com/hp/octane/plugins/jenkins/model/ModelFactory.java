@@ -1,9 +1,13 @@
 package com.hp.octane.plugins.jenkins.model;
 
+import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 import com.hp.nga.integrations.dto.parameters.ParameterInstance;
 import com.hp.nga.integrations.dto.parameters.ParameterType;
-import com.hp.nga.integrations.dto.pipelines.*;
+import com.hp.nga.integrations.dto.pipelines.BuildHistory;
+import com.hp.nga.integrations.dto.pipelines.StructureItem;
+import com.hp.nga.integrations.dto.pipelines.StructurePhase;
+import com.hp.nga.integrations.dto.pipelines.StructurePhaseImpl;
 import com.hp.nga.integrations.dto.snapshots.*;
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCausesFactory;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
@@ -25,7 +29,7 @@ public class ModelFactory {
 
     public static StructureItem createStructureItem(AbstractProject project) {
 
-        StructureItem structureItem = new StructureItemImpl();
+        StructureItem structureItem = DTOFactory.createDTO(StructureItem.class);
         structureItem.setName(project.getName());
         structureItem.setCiId(project.getName());
         structureItem.setParameters(ParameterProcessors.getConfigs(project));
@@ -62,7 +66,7 @@ public class ModelFactory {
 
     public static SnapshotItem createSnapshotItem(AbstractBuild build, boolean metaOnly){
 
-        SnapshotItem snapshotItem = new SnapshotItemImpl();
+        SnapshotItem snapshotItem = DTOFactory.createDTO(SnapshotItem.class);
         SCMProcessor scmProcessor = SCMProcessors.getAppropriate(build.getProject().getScm().getClass().getName());
 
         SnapshotStatus status = SnapshotStatus.FINISHED;
@@ -112,7 +116,7 @@ public class ModelFactory {
 
 
     public static SnapshotItem createSnapshotItem(AbstractProject project, boolean metaOnly){
-        SnapshotItem snapshotItem = new SnapshotItemImpl();
+        SnapshotItem snapshotItem = DTOFactory.createDTO(SnapshotItem.class);
 
         snapshotItem.setName(project.getName());
         snapshotItem.setCiId(project.getName());

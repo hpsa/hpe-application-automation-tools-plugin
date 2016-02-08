@@ -8,10 +8,8 @@ import com.hp.nga.integrations.dto.general.IServerInfo;
 import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 import com.hp.nga.integrations.dto.parameters.ParameterType;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
-import com.hp.nga.integrations.dto.pipelines.BuildHistoryImpl;
 import com.hp.nga.integrations.dto.pipelines.StructureItem;
 import com.hp.nga.integrations.dto.projects.JobsListDTO;
-import com.hp.nga.integrations.dto.projects.JobsListDTOImpl;
 import com.hp.nga.integrations.dto.projects.ProjectConfig;
 import com.hp.nga.integrations.dto.projects.ProjectConfigImpl;
 import com.hp.nga.integrations.dto.scm.SCMData;
@@ -89,7 +87,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	@Override
 	public JobsListDTO getJobsList(boolean includeParameters) {
 
-		JobsListDTO result = new JobsListDTOImpl();
+		JobsListDTO result = DTOFactory.createDTO(JobsListDTO.class);
 		ProjectConfig tmpConfig;
 		AbstractProject tmpProject;
 		List<ProjectConfig> list = new ArrayList<ProjectConfig>();
@@ -196,7 +194,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 		SCMData scmData;
 		Set<User> users;
 		SCMProcessor scmProcessor = SCMProcessors.getAppropriate(project.getScm().getClass().getName());
-		BuildHistory buildHistory = new BuildHistoryImpl();
+		BuildHistory buildHistory = DTOFactory.createDTO(BuildHistory.class);
 		int numberOfBuilds = 5;
 //		if (req.getParameter("numberOfBuilds") != null) {
 //			numberOfBuilds = Integer.valueOf(req.getParameter("numberOfBuilds"));
