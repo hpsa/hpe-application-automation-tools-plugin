@@ -1,9 +1,10 @@
 package com.hp.octane.plugins.jenkins;
 
 import com.hp.nga.integrations.api.CIPluginServices;
+import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
-import com.hp.nga.integrations.dto.general.PluginInfo;
-import com.hp.nga.integrations.dto.general.ServerInfo;
+import com.hp.nga.integrations.dto.general.IPluginInfo;
+import com.hp.nga.integrations.dto.general.IServerInfo;
 import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 import com.hp.nga.integrations.dto.parameters.ParameterType;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
@@ -48,24 +49,24 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	private static final Logger logger = Logger.getLogger(CIPluginServicesImpl.class.getName());
 
 	@Override
-	public ServerInfo getServerInfo() {
-		ServerInfo result = new ServerInfo();
+	public IServerInfo getServerInfo() {
+		IServerInfo result = DTOFactory.createDTO(IServerInfo.class);
 		String serverUrl = Jenkins.getInstance().getRootUrl();
 		if (serverUrl != null && serverUrl.endsWith("/")) {
 			serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
 		}
-		result.setType(CIServerTypes.JENKINS);
-		result.setVersion(Jenkins.VERSION);
-		result.setUrl(serverUrl);
-		result.setInstanceId(Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity());
-		result.setInstanceIdFrom(Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentityFrom());
-		result.setSendingTime(System.currentTimeMillis());
+		result.setType(CIServerTypes.JENKINS)
+				.setVersion(Jenkins.VERSION)
+				.setUrl(serverUrl)
+				.setInstanceId(Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity())
+				.setInstanceIdFrom(Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentityFrom())
+				.setSendingTime(System.currentTimeMillis());
 		return result;
 	}
 
 	@Override
-	public PluginInfo getPluginInfo() {
-		PluginInfo result = new PluginInfo();
+	public IPluginInfo getPluginInfo() {
+		IPluginInfo result = DTOFactory.createDTO(IPluginInfo.class);
 		result.setVersion(Jenkins.getInstance().getPlugin(OctanePlugin.class).getWrapper().getVersion());
 		return result;
 	}
@@ -118,7 +119,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	public StructureItem getPipeline(String rootCIJobId) {
 
 		AbstractProject project = getProjectFromId(rootCIJobId);
-		if(project !=null){
+		if (project != null) {
 			return ModelFactory.createStructureItem(project);
 		}
 		return null;
@@ -154,7 +155,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 
 		try {
 			project = getProjectFromId(ciJobId);
-			if(project !=null)	{
+			if (project != null) {
 				project.checkPermission(Item.BUILD);
 			} else {
 				return 404;
@@ -178,7 +179,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	public SnapshotItem getSnapshotLatest(String ciJobId, boolean subTree) {
 
 		AbstractProject project = getProjectFromId(ciJobId);
-		if(project !=null) {
+		if (project != null) {
 			AbstractBuild build = project.getLastBuild();
 			return ModelFactory.createSnapshotItem(build, subTree);
 		}
@@ -186,7 +187,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	}
 
 	@Override
-	public BuildHistory getHistoryPipeline(String ciJobId,String originalBody) {
+	public BuildHistory getHistoryPipeline(String ciJobId, String originalBody) {
 		AbstractProject project = getProjectFromId(ciJobId);
 		SCMData scmData;
 		Set<User> users;
@@ -197,9 +198,9 @@ public class CIPluginServicesImpl implements CIPluginServices {
 //			numberOfBuilds = Integer.valueOf(req.getParameter("numberOfBuilds"));
 //		}
 		//TODO : check if it works!!
-		if(originalBody!=null && !originalBody.isEmpty()){
+		if (originalBody != null && !originalBody.isEmpty()) {
 			JSONObject bodyJSON = JSONObject.fromObject(originalBody);
-			if(bodyJSON.has("numberOfBuilds")){
+			if (bodyJSON.has("numberOfBuilds")) {
 				numberOfBuilds = bodyJSON.getInt("numberOfBuilds");
 			}
 		}
@@ -253,7 +254,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 		int delay = project.getQuietPeriod();
 		ParametersAction parametersAction = new ParametersAction();
 
-		if (originalBody!=null && !originalBody.isEmpty()) {
+		if (originalBody != null && !originalBody.isEmpty()) {
 			JSONObject bodyJSON = JSONObject.fromObject(originalBody);
 
 			//  delay
@@ -340,16 +341,16 @@ public class CIPluginServicesImpl implements CIPluginServices {
 		return result;
 	}
 
-	private AbstractProject getProjectFromId(String projectId){
+	private AbstractProject getProjectFromId(String projectId) {
 
-		if(projectId!=null) {
+		if (projectId != null) {
 			try {
 				projectId = URLDecoder.decode(projectId, "UTF-8");
 			} catch (UnsupportedEncodingException e) {
 				e.printStackTrace();
 			}
 			TopLevelItem item = Jenkins.getInstance().getItem(projectId);
-			if(item!=null && item instanceof  AbstractProject) {
+			if (item != null && item instanceof AbstractProject) {
 				AbstractProject project = (AbstractProject) item;
 				return project;
 			}

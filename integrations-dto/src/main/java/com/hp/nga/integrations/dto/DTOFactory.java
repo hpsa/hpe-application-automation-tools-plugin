@@ -15,12 +15,12 @@ public enum DTOFactory {
 	PLUGIN_INFO(IPluginInfo.class, PluginInfo.class),
 	SERVER_INFO(IServerInfo.class, ServerInfo.class);
 
-	Class type;
-	Class impl;
+	Class dtoInterface;
+	Class dtoImplementation;
 
 	DTOFactory(Class type, Class impl) {
-		this.type = type;
-		this.impl = impl;
+		dtoInterface = type;
+		dtoImplementation = impl;
 	}
 
 	public static <T> T createDTO(Class<T> targetType) {
@@ -33,9 +33,9 @@ public enum DTOFactory {
 
 		Object result = null;
 		for (DTOFactory type : values()) {
-			if (type.type.equals(targetType)) {
+			if (type.dtoInterface.equals(targetType)) {
 				try {
-					result = type.impl.newInstance();
+					result = type.dtoImplementation.newInstance();
 				} catch (Exception e) {
 					throw new RuntimeException("failed to instantiate DTO of type " + targetType);
 				}

@@ -1,9 +1,11 @@
 package com.hp.octane.plugins;
 
 import com.hp.nga.integrations.api.CIPluginServices;
+import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
+import com.hp.nga.integrations.dto.general.IPluginInfo;
+import com.hp.nga.integrations.dto.general.IServerInfo;
 import com.hp.nga.integrations.dto.general.PluginInfo;
-import com.hp.nga.integrations.dto.general.ServerInfo;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.StructureItem;
 import com.hp.nga.integrations.dto.projects.JobsListDTO;
@@ -23,31 +25,29 @@ import java.util.logging.Logger;
 
 public class CIPluginServicesImpl implements CIPluginServices {
 	private static final Logger logger = Logger.getLogger(CIPluginServicesImpl.class.getName());
-
 	private static final String pluginVersion = "9.1.5";
+
 	@Override
-	public ServerInfo getServerInfo() {
-
-
+	public IServerInfo getServerInfo() {
 		String serverUrl = "http://localhost:8081";
 		if (serverUrl != null && serverUrl.endsWith("/")) {
 			serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
 		}
 
-		ServerInfo serverInfo = new ServerInfo();
-		serverInfo.setInstanceId(NGAPlugin.getInstance().getConfig().getIdentity());
-		serverInfo.setInstanceIdFrom(NGAPlugin.getInstance().getConfig().getIdentityFromAsLong());
-		serverInfo.setSendingTime(System.currentTimeMillis());
-		serverInfo.setType(CIServerTypes.TEAMCITY);
-		serverInfo.setUrl(serverUrl);
-		serverInfo.setVersion(pluginVersion);
+		IServerInfo serverInfo = DTOFactory.createDTO(IServerInfo.class);
+		serverInfo.setInstanceId(NGAPlugin.getInstance().getConfig().getIdentity())
+				.setInstanceIdFrom(NGAPlugin.getInstance().getConfig().getIdentityFromAsLong())
+				.setSendingTime(System.currentTimeMillis())
+				.setType(CIServerTypes.TEAMCITY)
+				.setUrl(serverUrl)
+				.setVersion(pluginVersion);
 
 		return serverInfo;
 	}
 
 	@Override
-	public PluginInfo getPluginInfo() {
-		PluginInfo pluginInfo = new PluginInfo();
+	public IPluginInfo getPluginInfo() {
+		IPluginInfo pluginInfo = DTOFactory.createDTO(PluginInfo.class);
 		pluginInfo.setVersion(pluginVersion);
 		return pluginInfo;
 	}
@@ -61,7 +61,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 		ngaConfiguration.setUsername(config.getUsername());
 		ngaConfiguration.setPassword(config.getSecretPassword());
 		ngaConfiguration.setSharedSpace(Long.parseLong(config.getSharedSpace()));
-		return  ngaConfiguration;
+		return ngaConfiguration;
 	}
 
 	@Override
@@ -92,7 +92,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 
 	@Override
 	//TODO: implement: feel build history
-	public BuildHistory getHistoryPipeline(String ciJobId,String originalBody) {
+	public BuildHistory getHistoryPipeline(String ciJobId, String originalBody) {
 		return new BuildHistory();
 	}
 

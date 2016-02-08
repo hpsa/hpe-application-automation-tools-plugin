@@ -1,7 +1,7 @@
 package com.hp.nga.integrations.api;
 
-import com.hp.nga.integrations.dto.general.PluginInfo;
-import com.hp.nga.integrations.dto.general.ServerInfo;
+import com.hp.nga.integrations.dto.general.IPluginInfo;
+import com.hp.nga.integrations.dto.general.IServerInfo;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.StructureItem;
 import com.hp.nga.integrations.dto.projects.JobsListDTO;
@@ -21,14 +21,14 @@ public interface CIPluginServices {
 	 *
 	 * @return ServerInfo object; MUST NOT return null
 	 */
-	ServerInfo getServerInfo();
+	IServerInfo getServerInfo();
 
 	/**
 	 * Provides Plugin's information
 	 *
 	 * @return PluginInfo object; MUST NOT return null
 	 */
-	PluginInfo getPluginInfo();
+	IPluginInfo getPluginInfo();
 
 	/**
 	 * Provides NGA Server configuration (managed by plugin implementation)
@@ -73,5 +73,5 @@ public interface CIPluginServices {
 	 */
 	SnapshotItem getSnapshotLatest(String ciJobId, boolean subTree);
 
-	BuildHistory getHistoryPipeline(String ciJobId,String originalBody);
+	BuildHistory getHistoryPipeline(String ciJobId, String originalBody);
 }

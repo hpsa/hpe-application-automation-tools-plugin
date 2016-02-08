@@ -5,7 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
 import com.hp.nga.integrations.dto.general.IPluginInfo;
 import com.hp.nga.integrations.dto.general.IServerInfo;
+import com.hp.nga.integrations.dto.general.PluginInfo;
 import org.junit.Test;
+
+import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -34,8 +37,11 @@ public class DTOFactoryTest {
 			String jsonA = new ObjectMapper().writeValueAsString(pluginInfo);
 			String jsonB = new ObjectMapper().writeValueAsString(newRef);
 			assertEquals(jsonA, jsonB);
+			PluginInfo pluginInfoDes = new ObjectMapper().readValue(jsonA, PluginInfo.class);
 		} catch (JsonProcessingException jpe) {
 			fail("failed on serialization");
+		} catch (IOException ioe) {
+
 		}
 	}
 

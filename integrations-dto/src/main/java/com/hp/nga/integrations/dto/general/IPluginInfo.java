@@ -5,7 +5,6 @@ package com.hp.nga.integrations.dto.general;
  */
 
 public interface IPluginInfo {
-	Class<PluginInfo> CONCRETE = PluginInfo.class;
 
 	String getVersion();
 
