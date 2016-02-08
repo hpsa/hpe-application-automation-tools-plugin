@@ -1,9 +1,10 @@
 package com.hp.nga.integrations.services.bridge;
 
+import com.hp.nga.integrations.dto.DTOFactory;
+import com.hp.nga.integrations.dto.general.IAggregatedInfo;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.services.SDKFactory;
 import com.hp.nga.integrations.api.CIPluginServices;
-import com.hp.nga.integrations.dto.general.AggregatedStatusInfo;
 import com.hp.nga.integrations.dto.pipelines.StructureItem;
 import com.hp.nga.integrations.dto.projects.JobsListDTO;
 import com.hp.nga.integrations.dto.rest.NGAResult;
@@ -85,7 +86,7 @@ public class NGATaskProcessor {
 
 	private void executeStatusRequest(NGAResult result) {
 		CIPluginServices dataProvider = SDKFactory.getCIPluginServices();
-		AggregatedStatusInfo status = new AggregatedStatusInfo();
+		IAggregatedInfo status = DTOFactory.createDTO(IAggregatedInfo.class);
 		status.setServer(dataProvider.getServerInfo());
 		status.setPlugin(dataProvider.getPluginInfo());
 		result.setBody(SerializationService.toJSON(status));

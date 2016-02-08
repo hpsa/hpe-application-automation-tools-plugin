@@ -1,5 +1,7 @@
 package com.hp.nga.integrations.dto;
 
+import com.hp.nga.integrations.dto.general.AggregatedInfo;
+import com.hp.nga.integrations.dto.general.IAggregatedInfo;
 import com.hp.nga.integrations.dto.general.IPluginInfo;
 import com.hp.nga.integrations.dto.general.IServerInfo;
 import com.hp.nga.integrations.dto.general.PluginInfo;
@@ -13,7 +15,8 @@ import com.hp.nga.integrations.dto.general.ServerInfo;
 
 public enum DTOFactory {
 	PLUGIN_INFO(IPluginInfo.class, PluginInfo.class),
-	SERVER_INFO(IServerInfo.class, ServerInfo.class);
+	SERVER_INFO(IServerInfo.class, ServerInfo.class),
+	AGGREGATED_INFO(IAggregatedInfo.class, AggregatedInfo.class);
 
 	Class dtoInterface;
 	Class dtoImplementation;

@@ -9,23 +9,23 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class AggregatedStatusInfo {
-	private ServerInfo server;
-	private PluginInfo plugin;
+public class AggregatedInfo {
+	private IServerInfo server;
+	private IPluginInfo plugin;
 
-	public ServerInfo getServer() {
+	public IServerInfo getServer() {
 		return server;
 	}
 
-	public void setServer(ServerInfo server) {
+	public void setServer(IServerInfo server) {
 		this.server = server;
 	}
 
-	public PluginInfo getPlugin() {
+	public IPluginInfo getPlugin() {
 		return plugin;
 	}
 
-	public void setPlugin(PluginInfo plugin) {
+	public void setPlugin(IPluginInfo plugin) {
 		this.plugin = plugin;
 	}
 }

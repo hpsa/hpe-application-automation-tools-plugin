@@ -1,6 +1,6 @@
 package com.hp.nga.integrations.dto;
 
-import com.hp.nga.integrations.dto.general.AggregatedStatusInfo;
+import com.hp.nga.integrations.dto.general.AggregatedInfo;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
 import com.hp.nga.integrations.dto.general.PluginInfo;
 import com.hp.nga.integrations.dto.general.ServerInfo;
@@ -28,7 +28,7 @@ public class StatusInfoTest {
 
 	@Test
 	public void testA() {
-		AggregatedStatusInfo statusInfo = new AggregatedStatusInfo();
+		AggregatedInfo statusInfo = new AggregatedInfo();
 
 		PluginInfo pluginInfo = new PluginInfo();
 		pluginInfo.setVersion(PLUGIN_VERSION);
@@ -46,7 +46,7 @@ public class StatusInfoTest {
 
 		String json = SerializationService.toJSON(statusInfo);
 
-		AggregatedStatusInfo newStatus = SerializationService.fromJSON(json, AggregatedStatusInfo.class);
+		AggregatedInfo newStatus = SerializationService.fromJSON(json, AggregatedInfo.class);
 
 		assertNotNull(newStatus);
 
