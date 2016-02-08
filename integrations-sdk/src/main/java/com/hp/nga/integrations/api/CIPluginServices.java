@@ -1,7 +1,7 @@
 package com.hp.nga.integrations.api;
 
-import com.hp.nga.integrations.dto.general.PluginInfoDTO;
-import com.hp.nga.integrations.dto.general.ServerInfoDTO;
+import com.hp.nga.integrations.dto.general.PluginInfo;
+import com.hp.nga.integrations.dto.general.ServerInfo;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.StructureItem;
 import com.hp.nga.integrations.dto.projects.JobsListDTO;
@@ -21,14 +21,14 @@ public interface CIPluginServices {
 	 *
 	 * @return ServerInfo object; MUST NOT return null
 	 */
-	ServerInfoDTO getServerInfo();
+	ServerInfo getServerInfo();
 
 	/**
 	 * Provides Plugin's information
 	 *
 	 * @return PluginInfo object; MUST NOT return null
 	 */
-	PluginInfoDTO getPluginInfo();
+	PluginInfo getPluginInfo();
 
 	/**
 	 * Provides NGA Server configuration (managed by plugin implementation)

@@ -1,8 +1,7 @@
 package com.hp.octane.plugins.jetbrains.teamcity.actions;
 
 import com.hp.nga.integrations.dto.general.CIServerTypes;
-import com.hp.nga.integrations.dto.general.PluginInfoDTO;
-import com.hp.nga.integrations.dto.general.ServerInfoDTO;
+import com.hp.nga.integrations.dto.general.PluginInfo;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;
 import jetbrains.buildServer.serverSide.ProjectManager;
@@ -35,15 +34,15 @@ public class StatusActionController extends AbstractActionController {
         }
 
 
-        ServerInfoDTO serverInfoDTO = new ServerInfoDTO();
-        serverInfoDTO.setInstanceId(NGAPlugin.getInstance().getConfig().getIdentity());
-        serverInfoDTO.setInstanceIdFrom(NGAPlugin.getInstance().getConfig().getIdentityFromAsLong());
-        serverInfoDTO.setSendingTime(System.currentTimeMillis());
-        serverInfoDTO.setType(CIServerTypes.TEAMCITY);
-        serverInfoDTO.setUrl(serverUrl);
-        serverInfoDTO.setVersion(version);
+        com.hp.nga.integrations.dto.general.ServerInfo serverInfo = new com.hp.nga.integrations.dto.general.ServerInfo();
+        serverInfo.setInstanceId(NGAPlugin.getInstance().getConfig().getIdentity());
+        serverInfo.setInstanceIdFrom(NGAPlugin.getInstance().getConfig().getIdentityFromAsLong());
+        serverInfo.setSendingTime(System.currentTimeMillis());
+        serverInfo.setType(CIServerTypes.TEAMCITY);
+        serverInfo.setUrl(serverUrl);
+        serverInfo.setVersion(version);
 
-        return serverInfoDTO;
+        return serverInfo;
     }
 
     //TODO:Add to common lib
@@ -94,8 +93,8 @@ public class StatusActionController extends AbstractActionController {
             return new ServerInfo();
         }
 
-        public PluginInfoDTO getPlugin() {
-            return new PluginInfoDTO();
+        public PluginInfo getPlugin() {
+            return new PluginInfo();
         }
 
 //        public List<EventsClient> getEventsClients() {

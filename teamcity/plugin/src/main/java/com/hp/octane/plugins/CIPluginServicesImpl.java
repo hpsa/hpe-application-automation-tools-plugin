@@ -2,8 +2,8 @@ package com.hp.octane.plugins;
 
 import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
-import com.hp.nga.integrations.dto.general.PluginInfoDTO;
-import com.hp.nga.integrations.dto.general.ServerInfoDTO;
+import com.hp.nga.integrations.dto.general.PluginInfo;
+import com.hp.nga.integrations.dto.general.ServerInfo;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.StructureItem;
 import com.hp.nga.integrations.dto.projects.JobsListDTO;
@@ -26,7 +26,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 
 	private static final String pluginVersion = "9.1.5";
 	@Override
-	public ServerInfoDTO getServerInfo() {
+	public ServerInfo getServerInfo() {
 
 
 		String serverUrl = "http://localhost:8081";
@@ -34,22 +34,22 @@ public class CIPluginServicesImpl implements CIPluginServices {
 			serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
 		}
 
-		ServerInfoDTO serverInfoDTO = new ServerInfoDTO();
-		serverInfoDTO.setInstanceId(NGAPlugin.getInstance().getConfig().getIdentity());
-		serverInfoDTO.setInstanceIdFrom(NGAPlugin.getInstance().getConfig().getIdentityFromAsLong());
-		serverInfoDTO.setSendingTime(System.currentTimeMillis());
-		serverInfoDTO.setType(CIServerTypes.TEAMCITY);
-		serverInfoDTO.setUrl(serverUrl);
-		serverInfoDTO.setVersion(pluginVersion);
+		ServerInfo serverInfo = new ServerInfo();
+		serverInfo.setInstanceId(NGAPlugin.getInstance().getConfig().getIdentity());
+		serverInfo.setInstanceIdFrom(NGAPlugin.getInstance().getConfig().getIdentityFromAsLong());
+		serverInfo.setSendingTime(System.currentTimeMillis());
+		serverInfo.setType(CIServerTypes.TEAMCITY);
+		serverInfo.setUrl(serverUrl);
+		serverInfo.setVersion(pluginVersion);
 
-		return serverInfoDTO;
+		return serverInfo;
 	}
 
 	@Override
-	public PluginInfoDTO getPluginInfo() {
-		PluginInfoDTO pluginInfoDTO = new PluginInfoDTO();
-		pluginInfoDTO.setVersion(pluginVersion);
-		return pluginInfoDTO;
+	public PluginInfo getPluginInfo() {
+		PluginInfo pluginInfo = new PluginInfo();
+		pluginInfo.setVersion(pluginVersion);
+		return pluginInfo;
 	}
 
 	@Override

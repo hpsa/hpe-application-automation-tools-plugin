@@ -2,8 +2,8 @@ package com.hp.octane.plugins.jenkins;
 
 import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
-import com.hp.nga.integrations.dto.general.PluginInfoDTO;
-import com.hp.nga.integrations.dto.general.ServerInfoDTO;
+import com.hp.nga.integrations.dto.general.PluginInfo;
+import com.hp.nga.integrations.dto.general.ServerInfo;
 import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 import com.hp.nga.integrations.dto.parameters.ParameterType;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
@@ -48,8 +48,8 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	private static final Logger logger = Logger.getLogger(CIPluginServicesImpl.class.getName());
 
 	@Override
-	public ServerInfoDTO getServerInfo() {
-		ServerInfoDTO result = new ServerInfoDTO();
+	public ServerInfo getServerInfo() {
+		ServerInfo result = new ServerInfo();
 		String serverUrl = Jenkins.getInstance().getRootUrl();
 		if (serverUrl != null && serverUrl.endsWith("/")) {
 			serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
@@ -64,8 +64,8 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	}
 
 	@Override
-	public PluginInfoDTO getPluginInfo() {
-		PluginInfoDTO result = new PluginInfoDTO();
+	public PluginInfo getPluginInfo() {
+		PluginInfo result = new PluginInfo();
 		result.setVersion(Jenkins.getInstance().getPlugin(OctanePlugin.class).getWrapper().getVersion());
 		return result;
 	}

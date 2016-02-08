@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ServerInfoDTO {
+public class ServerInfo implements IServerInfo {
 	private CIServerTypes type;
 	private String version;
 	private String url;
@@ -15,10 +15,10 @@ public class ServerInfoDTO {
 	private Long instanceIdFrom;
 	private Long sendingTime = System.currentTimeMillis();
 
-	public ServerInfoDTO() {
+	public ServerInfo() {
 	}
 
-	public ServerInfoDTO(CIServerTypes type, String version, String url, String instanceId, Long instanceIdFrom) {
+	public ServerInfo(CIServerTypes type, String version, String url, String instanceId, Long instanceIdFrom) {
 		this.type = type;
 		this.version = version;
 		this.url = normalizeURL(url);
@@ -30,48 +30,54 @@ public class ServerInfoDTO {
 		return type;
 	}
 
-	public void setType(CIServerTypes type) {
+	public IServerInfo setType(CIServerTypes type) {
 		this.type = type;
+		return this;
 	}
 
 	public String getVersion() {
 		return version;
 	}
 
-	public void setVersion(String version) {
+	public IServerInfo setVersion(String version) {
 		this.version = version;
+		return this;
 	}
 
 	public String getUrl() {
 		return url;
 	}
 
-	public void setUrl(String url) {
+	public IServerInfo setUrl(String url) {
 		this.url = normalizeURL(url);
+		return this;
 	}
 
 	public String getInstanceId() {
 		return instanceId;
 	}
 
-	public void setInstanceId(String instanceId) {
+	public IServerInfo setInstanceId(String instanceId) {
 		this.instanceId = instanceId;
+		return this;
 	}
 
 	public Long getInstanceIdFrom() {
 		return instanceIdFrom;
 	}
 
-	public void setInstanceIdFrom(Long instanceIdFrom) {
+	public IServerInfo setInstanceIdFrom(Long instanceIdFrom) {
 		this.instanceIdFrom = instanceIdFrom;
+		return this;
 	}
 
 	public Long getSendingTime() {
 		return sendingTime;
 	}
 
-	public void setSendingTime(Long sendingTime) {
+	public IServerInfo setSendingTime(Long sendingTime) {
 		this.sendingTime = sendingTime;
+		return this;
 	}
 
 	private String normalizeURL(String input) {
