@@ -3,13 +3,8 @@ package com.hp.octane.plugins.jenkins.model;
 import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 import com.hp.nga.integrations.dto.parameters.ParameterInstance;
 import com.hp.nga.integrations.dto.parameters.ParameterType;
-import com.hp.nga.integrations.dto.pipelines.BuildHistory;
-import com.hp.nga.integrations.dto.pipelines.StructureItem;
-import com.hp.nga.integrations.dto.pipelines.StructurePhase;
-import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
-import com.hp.nga.integrations.dto.snapshots.SnapshotPhase;
-import com.hp.nga.integrations.dto.snapshots.SnapshotResult;
-import com.hp.nga.integrations.dto.snapshots.SnapshotStatus;
+import com.hp.nga.integrations.dto.pipelines.*;
+import com.hp.nga.integrations.dto.snapshots.*;
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCausesFactory;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import com.hp.octane.plugins.jenkins.model.processors.projects.AbstractProjectProcessor;
@@ -30,7 +25,7 @@ public class ModelFactory {
 
     public static StructureItem createStructureItem(AbstractProject project) {
 
-        StructureItem structureItem = new StructureItem();
+        StructureItem structureItem = new StructureItemImpl();
         structureItem.setName(project.getName());
         structureItem.setCiId(project.getName());
         structureItem.setParameters(ParameterProcessors.getConfigs(project));
@@ -44,7 +39,7 @@ public class ModelFactory {
 
     public static StructurePhase createStructurePhase(String name, boolean blocking, List<AbstractProject> items) {
 
-        StructurePhase structurePhase = new StructurePhase();
+        StructurePhase structurePhase = new StructurePhaseImpl();
         structurePhase.setName(name);
         structurePhase.setBlocking(blocking);
 
@@ -67,7 +62,7 @@ public class ModelFactory {
 
     public static SnapshotItem createSnapshotItem(AbstractBuild build, boolean metaOnly){
 
-        SnapshotItem snapshotItem = new SnapshotItem();
+        SnapshotItem snapshotItem = new SnapshotItemImpl();
         SCMProcessor scmProcessor = SCMProcessors.getAppropriate(build.getProject().getScm().getClass().getName());
 
         SnapshotStatus status = SnapshotStatus.FINISHED;
@@ -117,7 +112,7 @@ public class ModelFactory {
 
 
     public static SnapshotItem createSnapshotItem(AbstractProject project, boolean metaOnly){
-        SnapshotItem snapshotItem = new SnapshotItem();
+        SnapshotItem snapshotItem = new SnapshotItemImpl();
 
         snapshotItem.setName(project.getName());
         snapshotItem.setCiId(project.getName());
@@ -183,7 +178,7 @@ public class ModelFactory {
 
     public static SnapshotPhase createSnapshotPhase(StructurePhase structurePhase, HashMap<String, ArrayList<AbstractBuild>> invokedBuilds) {
 
-        com.hp.nga.integrations.dto.snapshots.SnapshotPhase snapshotPhase = new com.hp.nga.integrations.dto.snapshots.SnapshotPhase();
+        SnapshotPhase snapshotPhase = new SnapshotPhaseImpl();
         snapshotPhase.setName(structurePhase.getName());
         snapshotPhase.setBlocking(structurePhase.isBlocking());
 

@@ -8,8 +8,12 @@ import com.hp.nga.integrations.dto.general.IServerInfo;
 import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 import com.hp.nga.integrations.dto.parameters.ParameterType;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
+import com.hp.nga.integrations.dto.pipelines.BuildHistoryImpl;
 import com.hp.nga.integrations.dto.pipelines.StructureItem;
 import com.hp.nga.integrations.dto.projects.JobsListDTO;
+import com.hp.nga.integrations.dto.projects.JobsListDTOImpl;
+import com.hp.nga.integrations.dto.projects.ProjectConfig;
+import com.hp.nga.integrations.dto.projects.ProjectConfigImpl;
 import com.hp.nga.integrations.dto.scm.SCMData;
 import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
 import com.hp.nga.integrations.services.configuration.NGAConfiguration;
@@ -85,14 +89,14 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	@Override
 	public JobsListDTO getJobsList(boolean includeParameters) {
 
-		JobsListDTO result = new JobsListDTO();
-		JobsListDTO.ProjectConfig tmpConfig;
+		JobsListDTO result = new JobsListDTOImpl();
+		ProjectConfig tmpConfig;
 		AbstractProject tmpProject;
-		List<JobsListDTO.ProjectConfig> list = new ArrayList<JobsListDTO.ProjectConfig>();
+		List<ProjectConfig> list = new ArrayList<ProjectConfig>();
 		List<String> itemNames = (List<String>) Jenkins.getInstance().getTopLevelItemNames();
 		for (String name : itemNames) {
 			tmpProject = (AbstractProject) Jenkins.getInstance().getItem(name);
-			tmpConfig = new JobsListDTO.ProjectConfig();
+			tmpConfig = new ProjectConfigImpl();
 			tmpConfig.setName(name);
 			tmpConfig.setCiId(name);
 			if (includeParameters) {
@@ -111,7 +115,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 			}
 			list.add(tmpConfig);
 		}
-		result.setJobs(list.toArray(new JobsListDTO.ProjectConfig[list.size()]));
+		result.setJobs(list.toArray(new ProjectConfig[list.size()]));
 		return result;
 	}
 
@@ -192,7 +196,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 		SCMData scmData;
 		Set<User> users;
 		SCMProcessor scmProcessor = SCMProcessors.getAppropriate(project.getScm().getClass().getName());
-		BuildHistory buildHistory = new BuildHistory();
+		BuildHistory buildHistory = new BuildHistoryImpl();
 		int numberOfBuilds = 5;
 //		if (req.getParameter("numberOfBuilds") != null) {
 //			numberOfBuilds = Integer.valueOf(req.getParameter("numberOfBuilds"));

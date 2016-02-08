@@ -7,12 +7,16 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public interface JobsListDTO {
+public class JobsListDTOImpl implements JobsListDTO{
+	private ProjectConfig[] jobs = new ProjectConfig[0];
 
+	public void setJobs(ProjectConfig[] jobs) {
+		this.jobs = jobs == null ? new ProjectConfig[0] : jobs.clone();
+	}
 
-	public void setJobs(ProjectConfig[] jobs) ;
-
-	public ProjectConfig[] getJobs();
+	public ProjectConfig[] getJobs() {
+		return jobs.clone();
+	}
 
 //	@JsonIgnoreProperties(ignoreUnknown = true)
 //	public static final class ProjectConfig {

@@ -5,7 +5,6 @@ import com.hp.nga.integrations.dto.parameters.ParameterInstance;
 import com.hp.nga.integrations.dto.scm.SCMData;
 
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -15,127 +14,56 @@ import java.util.logging.Logger;
  * To change this template use File | Settings | File Templates.
  */
 
-public final class SnapshotItem {
-	private static final Logger logger = Logger.getLogger(SnapshotItem.class.getName());
+public interface SnapshotItem {
 
-	private String name;
-	private Integer number = null;
-	private CIEventCauseBase[] causes = null;
-	private SnapshotStatus status = SnapshotStatus.UNAVAILABLE;
-	private SnapshotResult result = SnapshotResult.UNAVAILABLE;
-	private Long estimatedDuration = null;
-	private Long startTime = null;
-	private Long duration = null;
-	private SCMData scmData = null;
-	private List<ParameterInstance> parameters;
-	private List<SnapshotPhase> phasesInternal;
-	private List<SnapshotPhase> phasesPostBuild;
+	public String getName();
 
+	public void setName(String name);
 
-	private String ciId;
+	public Integer getNumber();
 
-	public static Logger getLogger() {
-		return logger;
-	}
+	public void setNumber(Integer number);
 
-	public String getName() {
-		return name;
-	}
+	public CIEventCauseBase[] getCauses();
 
-	public void setName(String name) {
-		this.name = name;
-	}
+	public void setCauses(CIEventCauseBase[] causes);
 
-	public Integer getNumber() {
-		return number;
-	}
+	public SnapshotStatus getStatus();
 
-	public void setNumber(Integer number) {
-		this.number = number;
-	}
+	public void setStatus(SnapshotStatus status);
 
-	public CIEventCauseBase[] getCauses() {
-		return causes;
-	}
+	public SnapshotResult getResult();
 
-	public void setCauses(CIEventCauseBase[] causes) {
-		this.causes = causes;
-	}
+	public void setResult(SnapshotResult result);
 
-	public SnapshotStatus getStatus() {
-		return status;
-	}
+	public Long getEstimatedDuration();
 
-	public void setStatus(SnapshotStatus status) {
-		this.status = status;
-	}
+	public void setEstimatedDuration(Long estimatedDuration);
 
-	public SnapshotResult getResult() {
-		return result;
-	}
+	public Long getStartTime();
 
-	public void setResult(SnapshotResult result) {
-		this.result = result;
-	}
+	public void setStartTime(Long startTime);
 
-	public Long getEstimatedDuration() {
-		return estimatedDuration;
-	}
+	public Long getDuration();
 
-	public void setEstimatedDuration(Long estimatedDuration) {
-		this.estimatedDuration = estimatedDuration;
-	}
+	public void setDuration(Long duration);
 
-	public Long getStartTime() {
-		return startTime;
-	}
+	public SCMData getScmData();
 
-	public void setStartTime(Long startTime) {
-		this.startTime = startTime;
-	}
+	public void setScmData(SCMData scmData);
 
-	public Long getDuration() {
-		return duration;
-	}
+	public List<ParameterInstance> getParameters();
 
-	public void setDuration(Long duration) {
-		this.duration = duration;
-	}
+	public void setParameters(List<ParameterInstance> parameters);
 
-	public SCMData getScmData() {
-		return scmData;
-	}
+	public List<SnapshotPhase> getPhasesInternal();
 
-	public void setScmData(SCMData scmData) {
-		this.scmData = scmData;
-	}
+	public void setPhasesInternal(List<SnapshotPhase> phasesInternal);
 
-	public List<ParameterInstance> getParameters() {
-		return parameters;
-	}
+	public List<SnapshotPhase> getPhasesPostBuild();
 
-	public void setParameters(List<ParameterInstance> parameters) {
-		this.parameters = parameters;
-	}
+	public void setPhasesPostBuild(List<SnapshotPhase> phasesPostBuild);
 
-	public List<SnapshotPhase> getPhasesInternal() {
-		return phasesInternal;
-	}
-
-	public void setPhasesInternal(List<SnapshotPhase> phasesInternal) {
-		this.phasesInternal = phasesInternal;
-	}
-
-	public List<SnapshotPhase> getPhasesPostBuild() {
-		return phasesPostBuild;
-	}
-
-	public void setPhasesPostBuild(List<SnapshotPhase> phasesPostBuild) {
-		this.phasesPostBuild = phasesPostBuild;
-	}
-
-	public void setCiId(String ciId) {
-		this.ciId = ciId;
-	}
-	public String getCiId() { return ciId;}
+	public void setCiId(String ciId);
+	public String getCiId();
 }

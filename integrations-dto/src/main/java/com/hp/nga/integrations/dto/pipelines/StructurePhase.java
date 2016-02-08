@@ -10,32 +10,16 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 
-public final class StructurePhase {
-	private String name;
-	private boolean blocking;
-	private List<StructureItem> jobs;
+public interface StructurePhase {
 
-	public String getName() {
-		return name;
-	}
+	public String getName();
 
-	public void setName(String name) {
-		this.name = name;
-	}
+	public void setName(String name);
+	public boolean isBlocking();
 
-	public boolean isBlocking() {
-		return blocking;
-	}
+	public void setBlocking(boolean blocking);
 
-	public void setBlocking(boolean blocking) {
-		this.blocking = blocking;
-	}
+	public List<StructureItem> getJobs();
 
-	public List<StructureItem> getJobs() {
-		return jobs;
-	}
-
-	public void setJobs(List<StructureItem> jobs) {
-		this.jobs = jobs;
-	}
+	public void setJobs(List<StructureItem> jobs);
 }

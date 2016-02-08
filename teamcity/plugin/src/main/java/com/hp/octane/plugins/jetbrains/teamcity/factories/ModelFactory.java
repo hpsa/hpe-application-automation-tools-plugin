@@ -1,10 +1,16 @@
 package com.hp.octane.plugins.jetbrains.teamcity.factories;
 
 import com.hp.nga.integrations.dto.pipelines.StructureItem;
+import com.hp.nga.integrations.dto.pipelines.StructureItemImpl;
 import com.hp.nga.integrations.dto.pipelines.StructurePhase;
+import com.hp.nga.integrations.dto.pipelines.StructurePhaseImpl;
 import com.hp.nga.integrations.dto.projects.JobsListDTO;
-import com.hp.nga.integrations.dto.projects.JobsListDTO.ProjectConfig;
+import com.hp.nga.integrations.dto.projects.JobsListDTOImpl;
+import com.hp.nga.integrations.dto.projects.ProjectConfig;
+import com.hp.nga.integrations.dto.projects.ProjectConfigImpl;
 import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
+import com.hp.nga.integrations.dto.snapshots.SnapshotItemImpl;
+import com.hp.nga.integrations.dto.snapshots.SnapshotPhaseImpl;
 import com.hp.nga.integrations.dto.snapshots.SnapshotPhase;
 import com.hp.nga.integrations.dto.snapshots.SnapshotStatus;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
@@ -21,7 +27,7 @@ public class ModelFactory { // {
 
     public static JobsListDTO CreateProjectList() {
 
-        JobsListDTO jobsListDTO = new JobsListDTO();
+        JobsListDTO jobsListDTO = new JobsListDTOImpl();
         List<ProjectConfig> list = new ArrayList<ProjectConfig>();
         List<String>ids = new ArrayList<String>();
 
@@ -32,7 +38,7 @@ public class ModelFactory { // {
             for (SBuildType buildType : buildTypes) {
                 if(!ids.contains(buildType.getInternalId())) {
                     ids.add(buildType.getInternalId());
-                    buildConf = new ProjectConfig();
+                    buildConf = new ProjectConfigImpl();
                     buildConf.setName(buildType.getName());
                     buildConf.setCiId(buildType.getExternalId());
                     list.add(buildConf);
@@ -48,7 +54,7 @@ public class ModelFactory { // {
         SBuildType root = NGAPlugin.getInstance().getProjectManager().findBuildTypeByExternalId(buildConfigurationId);
         StructureItem treeRoot =null;
         if(root !=null) {
-            treeRoot = new StructureItem();
+            treeRoot = new StructureItemImpl();
             treeRoot.setName(root.getName());
             treeRoot.setCiId(root.getExternalId());
             createPipelineStructure(treeRoot, root.getDependencies());
@@ -61,7 +67,7 @@ public class ModelFactory { // {
 
     private static void createPipelineStructure(StructureItem treeRoot, List<Dependency> dependencies) {
         if(dependencies ==null || dependencies.size() == 0)return;
-        StructurePhase phase = new StructurePhase();
+        StructurePhase phase = new StructurePhaseImpl();
         phase.setName("teamcity_dependencies");
         phase.setBlocking(true);
         List<StructurePhase> structurePhaseList = new ArrayList<StructurePhase>();
@@ -69,7 +75,7 @@ public class ModelFactory { // {
         List<StructureItem> structureItemList = new ArrayList<StructureItem>();
         for(Dependency dependency : dependencies){
             SBuildType build = dependency.getDependOn();
-            StructureItem buildItem = new StructureItem();
+            StructureItem buildItem = new StructureItemImpl();
             buildItem.setName(build.getName());
             buildItem.setCiId(build.getExternalId());
             structureItemList.add(buildItem);
@@ -97,7 +103,7 @@ public class ModelFactory { // {
 
     private static void createSnapshotPipeline(SnapshotItem treeRoot, List<Dependency> dependencies,String rootId) {
         if(dependencies ==null || dependencies.size() == 0)return;
-        SnapshotPhase phase = new SnapshotPhase();
+        SnapshotPhase phase = new SnapshotPhaseImpl();
         phase.setBlocking(true);
         phase.setName("teamcity_dependencies");
         List<SnapshotPhase>snapshotPhaseList = new ArrayList<SnapshotPhase>();
@@ -147,7 +153,7 @@ public class ModelFactory { // {
         }
 
         if(currentBuild!=null){
-            snapshotItem = new SnapshotItem();
+            snapshotItem = new SnapshotItemImpl();
             snapshotItem.setName(build.getExtendedName());
             snapshotItem.setCiId(build.getExternalId());
             snapshotItem.setDuration(currentBuild.getDuration());
@@ -180,7 +186,7 @@ public class ModelFactory { // {
             }
 
             if (queuedBuild != null) {
-                snapshotItem = new SnapshotItem();
+                snapshotItem = new SnapshotItemImpl();
                 snapshotItem.setName(build.getName());
                 snapshotItem.setCiId(build.getExternalId());
                 snapshotItem.setStatus(SnapshotStatus.QUEUED);
@@ -209,7 +215,7 @@ public class ModelFactory { // {
         }
 
         if(currentBuild!=null) {
-            snapshotItem = new SnapshotItem();
+            snapshotItem = new SnapshotItemImpl();
             snapshotItem.setName(build.getName());
             snapshotItem.setCiId(build.getExternalId());
             snapshotItem.setDuration(currentBuild.getDuration());

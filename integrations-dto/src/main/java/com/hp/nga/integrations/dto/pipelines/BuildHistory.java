@@ -2,7 +2,6 @@ package com.hp.nga.integrations.dto.pipelines;
 
 import com.hp.nga.integrations.dto.scm.SCMData;
 
-import java.util.ArrayList;
 import java.util.Set;
 
 /**
@@ -13,10 +12,7 @@ import java.util.Set;
  * To change this template use File | Settings | File Templates.
  */
 
-public class BuildHistory {
-	private ArrayList<Build> builds;
-	private Build lastSuccesfullBuild;
-	private Build lastBuild;
+public interface BuildHistory {
 
 	public static class Build {
 		private String status;
@@ -85,35 +81,17 @@ public class BuildHistory {
 		}
 	}
 
-	public BuildHistory() {
-		this.builds = new ArrayList<Build>();
-		this.lastSuccesfullBuild = null;
-		this.lastBuild = null;
-	}
+	public void addBuild(String status, String number, String time, String startTime, String duration, SCMData scmData, Set<SCMUser> culprits);
 
-	public void addBuild(String status, String number, String time, String startTime, String duration, SCMData scmData, Set<SCMUser> culprits) {
-		builds.add(new Build(status, number, time, startTime, duration, scmData, culprits));
-	}
+	public void addLastSuccesfullBuild(String status, String number, String time, String startTime, String duration, SCMData scmData, Set<SCMUser> culprits);
 
-	public void addLastSuccesfullBuild(String status, String number, String time, String startTime, String duration, SCMData scmData, Set<SCMUser> culprits) {
-		lastSuccesfullBuild = new Build(status, number, time, startTime, duration, scmData, culprits);
-	}
+	public void addLastBuild(String status, String number, String time, String startTime, String duration, SCMData scmData, Set<SCMUser> culprits);
 
-	public void addLastBuild(String status, String number, String time, String startTime, String duration, SCMData scmData, Set<SCMUser> culprits) {
-		lastBuild = new Build(status, number, time, startTime, duration, scmData, culprits);
-	}
+	public Build getLastSuccesfullBuild();
 
-	public Build getLastSuccesfullBuild() {
-		return lastSuccesfullBuild;
-	}
+	public Build[] getBuilds();
 
-	public Build[] getBuilds() {
-		return builds.toArray(new Build[builds.size()]);
-	}
-
-	public Build getLastBuild() {
-		return lastBuild;
-	}
+	public Build getLastBuild();
 
 	public static class SCMUser {
 		private String id;

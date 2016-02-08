@@ -12,49 +12,26 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 
-public final class StructureItem {
-	private String name;
-	private List<ParameterConfig> parameters;
-	private List<StructurePhase> phasesInternal;
-	private List<StructurePhase> phasesPostBuild;
+public interface StructureItem {
 
-	private String ciId;
 
-	public String getName() {
-		return name;
-	}
+	public String getName();
 
-	public void setName(String name) {
-		this.name = name;
-	}
+	public void setName(String name) ;
 
-	public List<ParameterConfig> getParameters() {
-		return parameters;
-	}
+	public List<ParameterConfig> getParameters();
 
-	public void setParameters(List<ParameterConfig> parameters) {
-		this.parameters = parameters;
-	}
+	public void setParameters(List<ParameterConfig> parameters);
 
-	public List<StructurePhase> getPhasesInternal() {
-		return phasesInternal;
-	}
+	public List<StructurePhase> getPhasesInternal();
 
-	public void setPhasesInternal(List<StructurePhase> phasesInternal) {
-		this.phasesInternal = phasesInternal;
-	}
+	public void setPhasesInternal(List<StructurePhase> phasesInternal);
 
-	public List<StructurePhase> getPhasesPostBuild() {
-		return phasesPostBuild;
-	}
+	public List<StructurePhase> getPhasesPostBuild() ;
 
-	public void setPhasesPostBuild(List<StructurePhase> phasesPostBuild) {
-		this.phasesPostBuild = phasesPostBuild;
-	}
+	public void setPhasesPostBuild(List<StructurePhase> phasesPostBuild);
 
-	public void setCiId(String ciId) {
-		this.ciId = ciId;
-	}
+	public void setCiId(String ciId);
 
-	public String getCiId() { return ciId;}
+	public String getCiId() ;
 }

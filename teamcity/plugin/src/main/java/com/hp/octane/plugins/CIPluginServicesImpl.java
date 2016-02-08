@@ -7,6 +7,7 @@ import com.hp.nga.integrations.dto.general.IPluginInfo;
 import com.hp.nga.integrations.dto.general.IServerInfo;
 import com.hp.nga.integrations.dto.general.PluginInfo;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
+import com.hp.nga.integrations.dto.pipelines.BuildHistoryImpl;
 import com.hp.nga.integrations.dto.pipelines.StructureItem;
 import com.hp.nga.integrations.dto.projects.JobsListDTO;
 import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
@@ -92,8 +93,8 @@ public class CIPluginServicesImpl implements CIPluginServices {
 
 	@Override
 	//TODO: implement: feel build history
-	public BuildHistory getHistoryPipeline(String ciJobId, String originalBody) {
-		return new BuildHistory();
+	public BuildHistory getHistoryPipeline(String ciJobId,String originalBody) {
+		return new BuildHistoryImpl();
 	}
 
 }
