@@ -1,15 +1,15 @@
 package com.hp.nga.integrations.services.bridge;
 
+import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.general.IAggregatedInfo;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
-import com.hp.nga.integrations.services.SDKFactory;
-import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.dto.pipelines.StructureItem;
 import com.hp.nga.integrations.dto.projects.JobsListDTO;
 import com.hp.nga.integrations.dto.rest.NGAResult;
 import com.hp.nga.integrations.dto.rest.NGATask;
 import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
+import com.hp.nga.integrations.services.SDKFactory;
 import com.hp.nga.integrations.services.serialization.SerializationService;
 
 import java.util.logging.Logger;
@@ -77,6 +77,7 @@ public class NGATaskProcessor {
 				result.setStatus(404);
 			}
 		} catch (Exception e) {
+			logger.warning("can't execute the task\n"+e.getStackTrace());
 			result.setStatus(500);
 		}
 
