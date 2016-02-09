@@ -10,18 +10,17 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 
-public interface  SnapshotPhase {
+public interface SnapshotPhase {
 
+	String getName();
 
-	public String getName();
+	SnapshotPhase setName(String name);
 
-	public void setName(String name);
+	boolean isBlocking();
 
-	public boolean isBlocking();
+	SnapshotPhase setBlocking(boolean blocking);
 
-	public void setBlocking(boolean blocking);
+	List<SnapshotItem> getBuilds();
 
-	public List<SnapshotItem> getBuilds() ;
-
-	public void setBuilds(List<SnapshotItem> builds);
+	SnapshotPhase setBuilds(List<SnapshotItem> builds);
 }

@@ -14,7 +14,7 @@ import java.util.Set;
 
 public interface BuildHistory {
 
-	public static class Build {
+	class Build {
 		private String status;
 		private String number;
 		private String time;
@@ -81,19 +81,19 @@ public interface BuildHistory {
 		}
 	}
 
-	public void addBuild(String status, String number, String time, String startTime, String duration, SCMData scmData, Set<SCMUser> culprits);
+	void addBuild(String status, String number, String time, String startTime, String duration, SCMData scmData, Set<SCMUser> culprits);
 
-	public void addLastSuccesfullBuild(String status, String number, String time, String startTime, String duration, SCMData scmData, Set<SCMUser> culprits);
+	void addLastSuccesfullBuild(String status, String number, String time, String startTime, String duration, SCMData scmData, Set<SCMUser> culprits);
 
-	public void addLastBuild(String status, String number, String time, String startTime, String duration, SCMData scmData, Set<SCMUser> culprits);
+	void addLastBuild(String status, String number, String time, String startTime, String duration, SCMData scmData, Set<SCMUser> culprits);
 
-	public Build getLastSuccesfullBuild();
+	Build getLastSuccesfullBuild();
 
-	public Build[] getBuilds();
+	Build[] getBuilds();
 
-	public Build getLastBuild();
+	Build getLastBuild();
 
-	public static class SCMUser {
+	class SCMUser {
 		private String id;
 		private String fullName;
 		private String displayName;

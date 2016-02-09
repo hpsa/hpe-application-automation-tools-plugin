@@ -1,7 +1,7 @@
 package com.hp.nga.integrations.services;
 
 import com.hp.nga.integrations.api.ConfigurationService;
-import com.hp.nga.integrations.services.configuration.NGAConfiguration;
+import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
 
 class ConfigurationServiceImpl implements ConfigurationService {
 

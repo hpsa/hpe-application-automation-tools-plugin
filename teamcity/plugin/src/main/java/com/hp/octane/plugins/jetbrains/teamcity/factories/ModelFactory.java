@@ -4,9 +4,9 @@ import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.pipelines.StructureItem;
 import com.hp.nga.integrations.dto.pipelines.StructurePhase;
 import com.hp.nga.integrations.dto.pipelines.StructurePhaseImpl;
-import com.hp.nga.integrations.dto.projects.JobsList;
-import com.hp.nga.integrations.dto.projects.ProjectConfig;
-import com.hp.nga.integrations.dto.projects.ProjectConfigImpl;
+import com.hp.nga.integrations.dto.general.JobsList;
+import com.hp.nga.integrations.dto.general.JobConfig;
+import com.hp.nga.integrations.dto.general.JobConfigImpl;
 import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
 import com.hp.nga.integrations.dto.snapshots.SnapshotPhase;
 import com.hp.nga.integrations.dto.snapshots.SnapshotPhaseImpl;
@@ -26,17 +26,17 @@ public class ModelFactory { // {
     public static JobsList CreateProjectList() {
 
         JobsList jobsList = DTOFactory.createDTO(JobsList.class);
-        List<ProjectConfig> list = new ArrayList<ProjectConfig>();
+        List<JobConfig> list = new ArrayList<JobConfig>();
         List<String>ids = new ArrayList<String>();
 
-        ProjectConfig buildConf;
+        JobConfig buildConf;
         for (SProject project : NGAPlugin.getInstance().getProjectManager().getProjects()) {
 
             List<SBuildType> buildTypes = project.getBuildTypes();
             for (SBuildType buildType : buildTypes) {
                 if(!ids.contains(buildType.getInternalId())) {
                     ids.add(buildType.getInternalId());
-                    buildConf = new ProjectConfigImpl();
+                    buildConf = new JobConfigImpl();
                     buildConf.setName(buildType.getName());
                     buildConf.setCiId(buildType.getExternalId());
                     list.add(buildConf);
@@ -44,7 +44,7 @@ public class ModelFactory { // {
             }
         }
 
-        jobsList.setJobs(list.toArray(new ProjectConfig[list.size()]));
+        jobsList.setJobs(list.toArray(new JobConfig[list.size()]));
         return jobsList;
     }
 

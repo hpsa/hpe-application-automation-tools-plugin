@@ -15,9 +15,8 @@ import java.util.logging.Logger;
  * To change this template use File | Settings | File Templates.
  */
 
-public final class SnapshotItemImpl implements SnapshotItem{
-	private static final Logger logger = Logger.getLogger(SnapshotItemImpl.class.getName());
-
+public final class SnapshotItemImpl implements SnapshotItem {
+	private String ciId;
 	private String name;
 	private Integer number = null;
 	private CIEventCauseBase[] causes = null;
@@ -31,111 +30,120 @@ public final class SnapshotItemImpl implements SnapshotItem{
 	private List<SnapshotPhase> phasesInternal;
 	private List<SnapshotPhase> phasesPostBuild;
 
+	public String getCiId() {
+		return ciId;
+	}
 
-	private String ciId;
-
-	public static Logger getLogger() {
-		return logger;
+	public SnapshotItem setCiId(String ciId) {
+		this.ciId = ciId;
+		return this;
 	}
 
 	public String getName() {
 		return name;
 	}
 
-	public void setName(String name) {
+	public SnapshotItem setName(String name) {
 		this.name = name;
+		return this;
 	}
 
 	public Integer getNumber() {
 		return number;
 	}
 
-	public void setNumber(Integer number) {
+	public SnapshotItem setNumber(Integer number) {
 		this.number = number;
+		return this;
 	}
 
 	public CIEventCauseBase[] getCauses() {
 		return causes;
 	}
 
-	public void setCauses(CIEventCauseBase[] causes) {
+	public SnapshotItem setCauses(CIEventCauseBase[] causes) {
 		this.causes = causes;
+		return this;
 	}
 
 	public SnapshotStatus getStatus() {
 		return status;
 	}
 
-	public void setStatus(SnapshotStatus status) {
+	public SnapshotItem setStatus(SnapshotStatus status) {
 		this.status = status;
+		return this;
 	}
 
 	public SnapshotResult getResult() {
 		return result;
 	}
 
-	public void setResult(SnapshotResult result) {
+	public SnapshotItem setResult(SnapshotResult result) {
 		this.result = result;
+		return this;
 	}
 
 	public Long getEstimatedDuration() {
 		return estimatedDuration;
 	}
 
-	public void setEstimatedDuration(Long estimatedDuration) {
+	public SnapshotItem setEstimatedDuration(Long estimatedDuration) {
 		this.estimatedDuration = estimatedDuration;
+		return this;
 	}
 
 	public Long getStartTime() {
 		return startTime;
 	}
 
-	public void setStartTime(Long startTime) {
+	public SnapshotItem setStartTime(Long startTime) {
 		this.startTime = startTime;
+		return this;
 	}
 
 	public Long getDuration() {
 		return duration;
 	}
 
-	public void setDuration(Long duration) {
+	public SnapshotItem setDuration(Long duration) {
 		this.duration = duration;
+		return this;
 	}
 
 	public SCMData getScmData() {
 		return scmData;
 	}
 
-	public void setScmData(SCMData scmData) {
+	public SnapshotItem setScmData(SCMData scmData) {
 		this.scmData = scmData;
+		return this;
 	}
 
 	public List<ParameterInstance> getParameters() {
 		return parameters;
 	}
 
-	public void setParameters(List<ParameterInstance> parameters) {
+	public SnapshotItem setParameters(List<ParameterInstance> parameters) {
 		this.parameters = parameters;
+		return this;
 	}
 
 	public List<SnapshotPhase> getPhasesInternal() {
 		return phasesInternal;
 	}
 
-	public void setPhasesInternal(List<SnapshotPhase> phasesInternal) {
+	public SnapshotItem setPhasesInternal(List<SnapshotPhase> phasesInternal) {
 		this.phasesInternal = phasesInternal;
+		return this;
 	}
 
 	public List<SnapshotPhase> getPhasesPostBuild() {
 		return phasesPostBuild;
 	}
 
-	public void setPhasesPostBuild(List<SnapshotPhase> phasesPostBuild) {
+	public SnapshotItem setPhasesPostBuild(List<SnapshotPhase> phasesPostBuild) {
 		this.phasesPostBuild = phasesPostBuild;
+		return this;
 	}
-
-	public void setCiId(String ciId) {
-		this.ciId = ciId;
-	}
-	public String getCiId() { return ciId;}
 }

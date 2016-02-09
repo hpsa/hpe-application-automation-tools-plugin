@@ -10,7 +10,7 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 
-public final class StructurePhaseImpl implements StructurePhase{
+public final class StructurePhaseImpl implements StructurePhase {
 	private String name;
 	private boolean blocking;
 	private List<StructureItem> jobs;
@@ -19,23 +19,26 @@ public final class StructurePhaseImpl implements StructurePhase{
 		return name;
 	}
 
-	public void setName(String name) {
+	public StructurePhase setName(String name) {
 		this.name = name;
+		return this;
 	}
 
 	public boolean isBlocking() {
 		return blocking;
 	}
 
-	public void setBlocking(boolean blocking) {
+	public StructurePhase setBlocking(boolean blocking) {
 		this.blocking = blocking;
+		return this;
 	}
 
 	public List<StructureItem> getJobs() {
 		return jobs;
 	}
 
-	public void setJobs(List<StructureItem> jobs) {
+	public StructurePhase setJobs(List<StructureItem> jobs) {
 		this.jobs = jobs;
+		return this;
 	}
 }

@@ -23,7 +23,7 @@ public class DTOFactoryTest {
 
 	@Test
 	public void test_A() {
-		PluginInfo pluginInfo = DTOFactory.createDTO(PluginInfo.class);
+		PluginInfo pluginInfo = DTOFactory.instance.createDTO(PluginInfo.class);
 		assertNotNull(pluginInfo);
 		assertNull(pluginInfo.getVersion());
 
@@ -47,7 +47,7 @@ public class DTOFactoryTest {
 
 	@Test
 	public void test_B() {
-		ServerInfo serverInfo = DTOFactory.createDTO(ServerInfo.class);
+		ServerInfo serverInfo = DTOFactory.instance.createDTO(ServerInfo.class);
 		serverInfo
 				.setType(CIServerTypes.JENKINS)
 				.setInstanceId("instance id")
@@ -66,7 +66,7 @@ public class DTOFactoryTest {
 
 	@Test
 	public void test_C() {
-		PluginInfo pluginInfo = DTOFactory.createDTO(PluginInfo.class);
+		PluginInfo pluginInfo = DTOFactory.instance.createDTO(PluginInfo.class);
 		assertNotNull(pluginInfo);
 	}
 }

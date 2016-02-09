@@ -1,6 +1,6 @@
 package com.hp.nga.integrations.services.bridge;
 
-import com.hp.nga.integrations.services.configuration.NGAConfiguration;
+import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
 import com.hp.nga.integrations.dto.rest.NGAResult;
 import com.hp.nga.integrations.dto.rest.NGATask;
 import com.hp.nga.integrations.services.serialization.SerializationService;

@@ -4,9 +4,9 @@ import com.hp.nga.integrations.dto.general.PluginInfo;
 import com.hp.nga.integrations.dto.general.ServerInfo;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.StructureItem;
-import com.hp.nga.integrations.dto.projects.JobsList;
+import com.hp.nga.integrations.dto.general.JobsList;
 import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
-import com.hp.nga.integrations.services.configuration.NGAConfiguration;
+import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
 
 /**
  * Created by gullery on 20/01/2016.

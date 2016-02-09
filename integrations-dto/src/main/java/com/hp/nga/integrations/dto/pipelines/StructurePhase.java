@@ -12,14 +12,15 @@ import java.util.List;
 
 public interface StructurePhase {
 
-	public String getName();
+	String getName();
 
-	public void setName(String name);
-	public boolean isBlocking();
+	StructurePhase setName(String name);
 
-	public void setBlocking(boolean blocking);
+	boolean isBlocking();
 
-	public List<StructureItem> getJobs();
+	StructurePhase setBlocking(boolean blocking);
 
-	public void setJobs(List<StructureItem> jobs);
+	List<StructureItem> getJobs();
+
+	StructurePhase setJobs(List<StructureItem> jobs);
 }

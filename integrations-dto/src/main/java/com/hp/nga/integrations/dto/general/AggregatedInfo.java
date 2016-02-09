@@ -1,33 +1,17 @@
 package com.hp.nga.integrations.dto.general;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 /**
  * Created by gullery on 03/01/2016.
- * <p/>
+ * <p>
  * Description of Plugin Status
  */
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class AggregatedInfo implements IAggregatedInfo{
-	private ServerInfo server;
-	private PluginInfo plugin;
+public interface AggregatedInfo {
+	ServerInfo getServer();
 
-	public ServerInfo getServer() {
-		return server;
-	}
+	AggregatedInfo setServer(ServerInfo server);
 
-	public IAggregatedInfo setServer(ServerInfo server) {
-		this.server = server;
-		return this;
-	}
+	PluginInfo getPlugin();
 
-	public PluginInfo getPlugin() {
-		return plugin;
-	}
-
-	public IAggregatedInfo setPlugin(PluginInfo plugin) {
-		this.plugin = plugin;
-		return this;
-	}
+	AggregatedInfo setPlugin(PluginInfo plugin);
 }

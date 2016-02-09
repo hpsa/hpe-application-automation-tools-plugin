@@ -1,6 +1,6 @@
 package com.hp.nga.integrations.dto;
 
-import com.hp.nga.integrations.dto.general.AggregatedInfo;
+import com.hp.nga.integrations.dto.general.AggregatedInfoImpl;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
 import com.hp.nga.integrations.dto.general.*;
 import com.hp.nga.integrations.services.serialization.SerializationService;
@@ -27,25 +27,25 @@ public class StatusInfoTest {
 
 	@Test
 	public void testA() {
-		AggregatedInfo statusInfo = new AggregatedInfo();
+		AggregatedInfo statusInfo = DTOFactory.instance.createDTO(AggregatedInfo.class);
 
-		PluginInfo pluginInfo = DTOFactory.createDTO(PluginInfo.class);
-		pluginInfo.setVersion(PLUGIN_VERSION);
+		PluginInfo pluginInfo = DTOFactory.instance.createDTO(PluginInfo.class)
+				.setVersion(PLUGIN_VERSION);
 
-		ServerInfo serverInfo = DTOFactory.createDTO(ServerInfo.class);
-		serverInfo.setType(CIServerTypes.JENKINS);
-		serverInfo.setVersion(SERVER_VERION);
-		serverInfo.setInstanceId(SERVER_UUID);
-		serverInfo.setInstanceIdFrom(SERVER_UUID_FROM);
-		serverInfo.setSendingTime(SYNC_TIME);
-		serverInfo.setUrl(INPUT_SERVER_URL);
+		ServerInfo serverInfo = DTOFactory.instance.createDTO(ServerInfo.class)
+				.setType(CIServerTypes.JENKINS)
+				.setVersion(SERVER_VERION)
+				.setInstanceId(SERVER_UUID)
+				.setInstanceIdFrom(SERVER_UUID_FROM)
+				.setSendingTime(SYNC_TIME)
+				.setUrl(INPUT_SERVER_URL);
 
 		statusInfo.setPlugin(pluginInfo);
 		statusInfo.setServer(serverInfo);
 
 		String json = SerializationService.toJSON(statusInfo);
 
-		AggregatedInfo newStatus = SerializationService.fromJSON(json, AggregatedInfo.class);
+		AggregatedInfoImpl newStatus = SerializationService.fromJSON(json, AggregatedInfoImpl.class);
 
 		assertNotNull(newStatus);
 

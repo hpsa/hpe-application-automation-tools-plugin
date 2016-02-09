@@ -16,54 +16,55 @@ import java.util.List;
 
 public interface SnapshotItem {
 
-	public String getName();
+	String getCiId();
 
-	public void setName(String name);
+	SnapshotItem setCiId(String ciId);
 
-	public Integer getNumber();
+	String getName();
 
-	public void setNumber(Integer number);
+	SnapshotItem setName(String name);
 
-	public CIEventCauseBase[] getCauses();
+	Integer getNumber();
 
-	public void setCauses(CIEventCauseBase[] causes);
+	SnapshotItem setNumber(Integer number);
 
-	public SnapshotStatus getStatus();
+	CIEventCauseBase[] getCauses();
 
-	public void setStatus(SnapshotStatus status);
+	SnapshotItem setCauses(CIEventCauseBase[] causes);
 
-	public SnapshotResult getResult();
+	SnapshotStatus getStatus();
 
-	public void setResult(SnapshotResult result);
+	SnapshotItem setStatus(SnapshotStatus status);
 
-	public Long getEstimatedDuration();
+	SnapshotResult getResult();
 
-	public void setEstimatedDuration(Long estimatedDuration);
+	SnapshotItem setResult(SnapshotResult result);
 
-	public Long getStartTime();
+	Long getEstimatedDuration();
 
-	public void setStartTime(Long startTime);
+	SnapshotItem setEstimatedDuration(Long estimatedDuration);
 
-	public Long getDuration();
+	Long getStartTime();
 
-	public void setDuration(Long duration);
+	SnapshotItem setStartTime(Long startTime);
 
-	public SCMData getScmData();
+	Long getDuration();
 
-	public void setScmData(SCMData scmData);
+	SnapshotItem setDuration(Long duration);
 
-	public List<ParameterInstance> getParameters();
+	SCMData getScmData();
 
-	public void setParameters(List<ParameterInstance> parameters);
+	SnapshotItem setScmData(SCMData scmData);
 
-	public List<SnapshotPhase> getPhasesInternal();
+	List<ParameterInstance> getParameters();
 
-	public void setPhasesInternal(List<SnapshotPhase> phasesInternal);
+	SnapshotItem setParameters(List<ParameterInstance> parameters);
 
-	public List<SnapshotPhase> getPhasesPostBuild();
+	List<SnapshotPhase> getPhasesInternal();
 
-	public void setPhasesPostBuild(List<SnapshotPhase> phasesPostBuild);
+	SnapshotItem setPhasesInternal(List<SnapshotPhase> phasesInternal);
 
-	public void setCiId(String ciId);
-	public String getCiId();
+	List<SnapshotPhase> getPhasesPostBuild();
+
+	SnapshotItem setPhasesPostBuild(List<SnapshotPhase> phasesPostBuild);
 }

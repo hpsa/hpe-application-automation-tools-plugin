@@ -14,24 +14,23 @@ import java.util.List;
 
 public interface StructureItem {
 
+	String getCiId();
 
-	public String getName();
+	StructureItem setCiId(String ciId);
 
-	public void setName(String name) ;
+	String getName();
 
-	public List<ParameterConfig> getParameters();
+	StructureItem setName(String name);
 
-	public void setParameters(List<ParameterConfig> parameters);
+	List<ParameterConfig> getParameters();
 
-	public List<StructurePhase> getPhasesInternal();
+	StructureItem setParameters(List<ParameterConfig> parameters);
 
-	public void setPhasesInternal(List<StructurePhase> phasesInternal);
+	List<StructurePhase> getPhasesInternal();
 
-	public List<StructurePhase> getPhasesPostBuild() ;
+	StructureItem setPhasesInternal(List<StructurePhase> phasesInternal);
 
-	public void setPhasesPostBuild(List<StructurePhase> phasesPostBuild);
+	List<StructurePhase> getPhasesPostBuild();
 
-	public void setCiId(String ciId);
-
-	public String getCiId() ;
+	StructureItem setPhasesPostBuild(List<StructurePhase> phasesPostBuild);
 }

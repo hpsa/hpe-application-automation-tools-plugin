@@ -8,9 +8,9 @@ import com.hp.nga.integrations.dto.general.ServerInfo;
 import com.hp.nga.integrations.dto.general.PluginInfoImpl;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.StructureItem;
-import com.hp.nga.integrations.dto.projects.JobsList;
+import com.hp.nga.integrations.dto.general.JobsList;
 import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
-import com.hp.nga.integrations.services.configuration.NGAConfiguration;
+import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.Config;
@@ -56,10 +56,10 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	//TODO: implement..
 	public NGAConfiguration getNGAConfiguration() {
 		Config config = NGAPlugin.getInstance().getConfig();
-		NGAConfiguration ngaConfiguration = new NGAConfiguration();
+		NGAConfiguration ngaConfiguration = DTOFactory.createDTO(NGAConfiguration.class);
 		ngaConfiguration.setUrl(config.getUiLocation());
-		ngaConfiguration.setUsername(config.getUsername());
-		ngaConfiguration.setPassword(config.getSecretPassword());
+		ngaConfiguration.setClientId(config.getUsername());
+		ngaConfiguration.setApiKey(config.getSecretPassword());
 		ngaConfiguration.setSharedSpace(Long.parseLong(config.getSharedSpace()));
 		return ngaConfiguration;
 	}
@@ -92,8 +92,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 
 	@Override
 	//TODO: implement: feel build history
-	public BuildHistory getHistoryPipeline(String ciJobId,String originalBody) {
+	public BuildHistory getHistoryPipeline(String ciJobId, String originalBody) {
 		return DTOFactory.createDTO(BuildHistory.class);
 	}
-
 }

@@ -10,7 +10,7 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 
-public final class SnapshotPhaseImpl implements SnapshotPhase{
+public final class SnapshotPhaseImpl implements SnapshotPhase {
 	private String name;
 	private boolean blocking;
 	private List<SnapshotItem> builds;
@@ -19,23 +19,26 @@ public final class SnapshotPhaseImpl implements SnapshotPhase{
 		return name;
 	}
 
-	public void setName(String name) {
+	public SnapshotPhase setName(String name) {
 		this.name = name;
+		return this;
 	}
 
 	public boolean isBlocking() {
 		return blocking;
 	}
 
-	public void setBlocking(boolean blocking) {
+	public SnapshotPhase setBlocking(boolean blocking) {
 		this.blocking = blocking;
+		return this;
 	}
 
 	public List<SnapshotItem> getBuilds() {
 		return builds;
 	}
 
-	public void setBuilds(List<SnapshotItem> builds) {
+	public SnapshotPhase setBuilds(List<SnapshotItem> builds) {
 		this.builds = builds;
+		return this;
 	}
 }

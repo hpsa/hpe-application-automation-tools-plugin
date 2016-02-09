@@ -2,10 +2,10 @@ package com.hp.nga.integrations.services.bridge;
 
 import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.general.IAggregatedInfo;
+import com.hp.nga.integrations.dto.general.AggregatedInfo;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.StructureItem;
-import com.hp.nga.integrations.dto.projects.JobsList;
+import com.hp.nga.integrations.dto.general.JobsList;
 import com.hp.nga.integrations.dto.rest.NGAResult;
 import com.hp.nga.integrations.dto.rest.NGATask;
 import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 
 public class NGATaskProcessor {
 	private static final Logger logger = Logger.getLogger(NGATaskProcessor.class.getName());
-	private static final String OCTANE = "octane";
+	private static final String NGA = "nga";
 	private static final String STATUS = "status";
 	private static final String JOBS = "jobs";
 	private static final String RUN = "run";
@@ -40,8 +40,8 @@ public class NGATaskProcessor {
 		if (task.getUrl() == null || task.getUrl().isEmpty()) {
 			throw new IllegalArgumentException("task 'URL' MUST NOT be null nor empty");
 		}
-		if (!task.getUrl().contains(OCTANE)) {
-			throw new IllegalArgumentException("task 'URL' expected to contain '" + OCTANE + "'; wrong handler call?");
+		if (!task.getUrl().contains(NGA)) {
+			throw new IllegalArgumentException("task 'URL' expected to contain '" + NGA + "'; wrong handler call?");
 		}
 
 		this.task = task;
@@ -53,7 +53,7 @@ public class NGATaskProcessor {
 		NGAResult result = new NGAResult();
 		result.setId(task.getId());
 		result.setStatus(200);
-		String[] path = Pattern.compile("^.*" + OCTANE + "/?").matcher(task.getUrl()).replaceFirst("").split("/");
+		String[] path = Pattern.compile("^.*" + NGA + "/?").matcher(task.getUrl()).replaceFirst("").split("/");
 		try {
 			if (path.length == 1 && STATUS.equals(path[0])) {
 				executeStatusRequest(result);
@@ -77,7 +77,7 @@ public class NGATaskProcessor {
 				result.setStatus(404);
 			}
 		} catch (Exception e) {
-			logger.warning("can't execute the task\n"+e.getStackTrace());
+			logger.warning("can't execute the task\n" + e.getStackTrace());
 			result.setStatus(500);
 		}
 
@@ -87,9 +87,9 @@ public class NGATaskProcessor {
 
 	private void executeStatusRequest(NGAResult result) {
 		CIPluginServices dataProvider = SDKFactory.getCIPluginServices();
-		IAggregatedInfo status = DTOFactory.createDTO(IAggregatedInfo.class);
-		status.setServer(dataProvider.getServerInfo());
-		status.setPlugin(dataProvider.getPluginInfo());
+		AggregatedInfo status = DTOFactory.instance.createDTO(AggregatedInfo.class)
+				.setServer(dataProvider.getServerInfo())
+				.setPlugin(dataProvider.getPluginInfo());
 		result.setBody(SerializationService.toJSON(status));
 	}
 
@@ -115,7 +115,7 @@ public class NGATaskProcessor {
 
 	private void executeHistoryRequest(NGAResult result, String jobId, String originalBody) {
 
-		BuildHistory content = SDKFactory.getCIPluginServices().getHistoryPipeline(jobId,originalBody);
+		BuildHistory content = SDKFactory.getCIPluginServices().getHistoryPipeline(jobId, originalBody);
 		result.setBody(SerializationService.toJSON(content));
 	}
 }

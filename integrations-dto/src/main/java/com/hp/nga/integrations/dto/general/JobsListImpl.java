@@ -1,4 +1,4 @@
-package com.hp.nga.integrations.dto.projects;
+package com.hp.nga.integrations.dto.general;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -7,12 +7,16 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public interface JobsList {
+public class JobsListImpl implements JobsList {
+	private JobConfig[] jobs = new JobConfig[0];
 
+	public void setJobs(JobConfig[] jobs) {
+		this.jobs = jobs == null ? new JobConfig[0] : jobs.clone();
+	}
 
-	public void setJobs(ProjectConfig[] jobs) ;
-
-	public ProjectConfig[] getJobs();
+	public JobConfig[] getJobs() {
+		return jobs.clone();
+	}
 
 //	@JsonIgnoreProperties(ignoreUnknown = true)
 //	public static final class ProjectConfig {

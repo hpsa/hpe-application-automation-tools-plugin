@@ -9,12 +9,12 @@ import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 import com.hp.nga.integrations.dto.parameters.ParameterType;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.StructureItem;
-import com.hp.nga.integrations.dto.projects.JobsList;
-import com.hp.nga.integrations.dto.projects.ProjectConfig;
-import com.hp.nga.integrations.dto.projects.ProjectConfigImpl;
+import com.hp.nga.integrations.dto.general.JobsList;
+import com.hp.nga.integrations.dto.general.JobConfig;
+import com.hp.nga.integrations.dto.general.JobConfigImpl;
 import com.hp.nga.integrations.dto.scm.SCMData;
 import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
-import com.hp.nga.integrations.services.configuration.NGAConfiguration;
+import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
@@ -52,7 +52,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 
 	@Override
 	public ServerInfo getServerInfo() {
-		ServerInfo result = DTOFactory.createDTO(ServerInfo.class);
+		ServerInfo result = DTOFactory.instance.createDTO(ServerInfo.class);
 		String serverUrl = Jenkins.getInstance().getRootUrl();
 		if (serverUrl != null && serverUrl.endsWith("/")) {
 			serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
@@ -68,33 +68,33 @@ public class CIPluginServicesImpl implements CIPluginServices {
 
 	@Override
 	public PluginInfo getPluginInfo() {
-		PluginInfo result = DTOFactory.createDTO(PluginInfo.class);
+		PluginInfo result = DTOFactory.instance.createDTO(PluginInfo.class);
 		result.setVersion(Jenkins.getInstance().getPlugin(OctanePlugin.class).getWrapper().getVersion());
 		return result;
 	}
 
 	@Override
 	public NGAConfiguration getNGAConfiguration() {
-		NGAConfiguration result = new NGAConfiguration();
+		NGAConfiguration result = DTOFactory.instance.createDTO(NGAConfiguration.class);
 		ServerConfiguration serverConfiguration = Jenkins.getInstance().getPlugin(OctanePlugin.class).getServerConfiguration();
 		result.setUrl(serverConfiguration.location);
 		result.setSharedSpace(Long.parseLong(serverConfiguration.sharedSpace));
-		result.setUsername(serverConfiguration.username);
-		result.setPassword(serverConfiguration.password);
+		result.setClientId(serverConfiguration.username);
+		result.setApiKey(serverConfiguration.password);
 		return result;
 	}
 
 	@Override
 	public JobsList getJobsList(boolean includeParameters) {
 
-		JobsList result = DTOFactory.createDTO(JobsList.class);
-		ProjectConfig tmpConfig;
+		JobsList result = DTOFactory.instance.createDTO(JobsList.class);
+		JobConfig tmpConfig;
 		AbstractProject tmpProject;
-		List<ProjectConfig> list = new ArrayList<ProjectConfig>();
+		List<JobConfig> list = new ArrayList<JobConfig>();
 		List<String> itemNames = (List<String>) Jenkins.getInstance().getTopLevelItemNames();
 		for (String name : itemNames) {
 			tmpProject = (AbstractProject) Jenkins.getInstance().getItem(name);
-			tmpConfig = new ProjectConfigImpl();
+			tmpConfig = new JobConfigImpl();
 			tmpConfig.setName(name);
 			tmpConfig.setCiId(name);
 			if (includeParameters) {
@@ -113,7 +113,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 			}
 			list.add(tmpConfig);
 		}
-		result.setJobs(list.toArray(new ProjectConfig[list.size()]));
+		result.setJobs(list.toArray(new JobConfig[list.size()]));
 		return result;
 	}
 
@@ -194,7 +194,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 		SCMData scmData;
 		Set<User> users;
 		SCMProcessor scmProcessor = SCMProcessors.getAppropriate(project.getScm().getClass().getName());
-		BuildHistory buildHistory = DTOFactory.createDTO(BuildHistory.class);
+		BuildHistory buildHistory = DTOFactory.instance.createDTO(BuildHistory.class);
 		int numberOfBuilds = 5;
 //		if (req.getParameter("numberOfBuilds") != null) {
 //			numberOfBuilds = Integer.valueOf(req.getParameter("numberOfBuilds"));
