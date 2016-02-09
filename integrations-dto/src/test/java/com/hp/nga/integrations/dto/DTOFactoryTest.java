@@ -3,9 +3,9 @@ package com.hp.nga.integrations.dto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
-import com.hp.nga.integrations.dto.general.IPluginInfo;
-import com.hp.nga.integrations.dto.general.IServerInfo;
 import com.hp.nga.integrations.dto.general.PluginInfo;
+import com.hp.nga.integrations.dto.general.ServerInfo;
+import com.hp.nga.integrations.dto.general.PluginInfoImpl;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -23,11 +23,11 @@ public class DTOFactoryTest {
 
 	@Test
 	public void test_A() {
-		IPluginInfo pluginInfo = DTOFactory.createDTO(IPluginInfo.class);
+		PluginInfo pluginInfo = DTOFactory.createDTO(PluginInfo.class);
 		assertNotNull(pluginInfo);
 		assertNull(pluginInfo.getVersion());
 
-		IPluginInfo newRef = pluginInfo.setVersion("1.2.3");
+		PluginInfo newRef = pluginInfo.setVersion("1.2.3");
 		assertNotNull(newRef);
 		assertEquals(newRef, pluginInfo);
 		assertEquals("1.2.3", pluginInfo.getVersion());
@@ -37,7 +37,7 @@ public class DTOFactoryTest {
 			String jsonA = new ObjectMapper().writeValueAsString(pluginInfo);
 			String jsonB = new ObjectMapper().writeValueAsString(newRef);
 			assertEquals(jsonA, jsonB);
-			PluginInfo pluginInfoDes = new ObjectMapper().readValue(jsonA, PluginInfo.class);
+			PluginInfoImpl pluginInfoImplDes = new ObjectMapper().readValue(jsonA, PluginInfoImpl.class);
 		} catch (JsonProcessingException jpe) {
 			fail("failed on serialization");
 		} catch (IOException ioe) {
@@ -47,7 +47,7 @@ public class DTOFactoryTest {
 
 	@Test
 	public void test_B() {
-		IServerInfo serverInfo = DTOFactory.createDTO(IServerInfo.class);
+		ServerInfo serverInfo = DTOFactory.createDTO(ServerInfo.class);
 		serverInfo
 				.setType(CIServerTypes.JENKINS)
 				.setInstanceId("instance id")
@@ -66,7 +66,7 @@ public class DTOFactoryTest {
 
 	@Test
 	public void test_C() {
-		IPluginInfo pluginInfo = DTOFactory.createDTO(IPluginInfo.class);
+		PluginInfo pluginInfo = DTOFactory.createDTO(PluginInfo.class);
 		assertNotNull(pluginInfo);
 	}
 }

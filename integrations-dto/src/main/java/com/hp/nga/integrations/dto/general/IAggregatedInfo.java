@@ -7,11 +7,11 @@ package com.hp.nga.integrations.dto.general;
  */
 
 public interface IAggregatedInfo {
-	IServerInfo getServer();
+	ServerInfo getServer();
 
-	IAggregatedInfo setServer(IServerInfo server);
+	IAggregatedInfo setServer(ServerInfo server);
 
-	IPluginInfo getPlugin();
+	PluginInfo getPlugin();
 
-	IAggregatedInfo setPlugin(IPluginInfo plugin);
+	IAggregatedInfo setPlugin(PluginInfo plugin);
 }

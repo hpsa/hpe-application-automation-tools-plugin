@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class JobsListDTOImpl implements JobsListDTO{
+public class JobsListImpl implements JobsList {
 	private ProjectConfig[] jobs = new ProjectConfig[0];
 
 	public void setJobs(ProjectConfig[] jobs) {

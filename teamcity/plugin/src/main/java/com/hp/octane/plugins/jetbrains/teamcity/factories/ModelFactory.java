@@ -4,7 +4,7 @@ import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.pipelines.StructureItem;
 import com.hp.nga.integrations.dto.pipelines.StructurePhase;
 import com.hp.nga.integrations.dto.pipelines.StructurePhaseImpl;
-import com.hp.nga.integrations.dto.projects.JobsListDTO;
+import com.hp.nga.integrations.dto.projects.JobsList;
 import com.hp.nga.integrations.dto.projects.ProjectConfig;
 import com.hp.nga.integrations.dto.projects.ProjectConfigImpl;
 import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
@@ -23,9 +23,9 @@ import java.util.List;
  */
 public class ModelFactory { // {
 
-    public static JobsListDTO CreateProjectList() {
+    public static JobsList CreateProjectList() {
 
-        JobsListDTO jobsListDTO = DTOFactory.createDTO(JobsListDTO.class);
+        JobsList jobsList = DTOFactory.createDTO(JobsList.class);
         List<ProjectConfig> list = new ArrayList<ProjectConfig>();
         List<String>ids = new ArrayList<String>();
 
@@ -44,8 +44,8 @@ public class ModelFactory { // {
             }
         }
 
-        jobsListDTO.setJobs(list.toArray(new ProjectConfig[list.size()]));
-        return jobsListDTO;
+        jobsList.setJobs(list.toArray(new ProjectConfig[list.size()]));
+        return jobsList;
     }
 
     public static StructureItem createStructure(String buildConfigurationId) {

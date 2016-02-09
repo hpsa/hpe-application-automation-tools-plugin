@@ -3,12 +3,12 @@ package com.hp.octane.plugins;
 import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
-import com.hp.nga.integrations.dto.general.IPluginInfo;
-import com.hp.nga.integrations.dto.general.IServerInfo;
 import com.hp.nga.integrations.dto.general.PluginInfo;
+import com.hp.nga.integrations.dto.general.ServerInfo;
+import com.hp.nga.integrations.dto.general.PluginInfoImpl;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.StructureItem;
-import com.hp.nga.integrations.dto.projects.JobsListDTO;
+import com.hp.nga.integrations.dto.projects.JobsList;
 import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
 import com.hp.nga.integrations.services.configuration.NGAConfiguration;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
@@ -28,13 +28,13 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	private static final String pluginVersion = "9.1.5";
 
 	@Override
-	public IServerInfo getServerInfo() {
+	public ServerInfo getServerInfo() {
 		String serverUrl = "http://localhost:8081";
 		if (serverUrl != null && serverUrl.endsWith("/")) {
 			serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
 		}
 
-		IServerInfo serverInfo = DTOFactory.createDTO(IServerInfo.class);
+		ServerInfo serverInfo = DTOFactory.createDTO(ServerInfo.class);
 		serverInfo.setInstanceId(NGAPlugin.getInstance().getConfig().getIdentity())
 				.setInstanceIdFrom(NGAPlugin.getInstance().getConfig().getIdentityFromAsLong())
 				.setSendingTime(System.currentTimeMillis())
@@ -46,8 +46,8 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	}
 
 	@Override
-	public IPluginInfo getPluginInfo() {
-		IPluginInfo pluginInfo = DTOFactory.createDTO(PluginInfo.class);
+	public PluginInfo getPluginInfo() {
+		PluginInfo pluginInfo = DTOFactory.createDTO(PluginInfoImpl.class);
 		pluginInfo.setVersion(pluginVersion);
 		return pluginInfo;
 	}
@@ -65,10 +65,10 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	}
 
 	@Override
-	public JobsListDTO getJobsList(boolean includeParameters) {
+	public JobsList getJobsList(boolean includeParameters) {
 
-		JobsListDTO jobsListDTO = ModelFactory.CreateProjectList();
-		return jobsListDTO;
+		JobsList jobsList = ModelFactory.CreateProjectList();
+		return jobsList;
 
 	}
 

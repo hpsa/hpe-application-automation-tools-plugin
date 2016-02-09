@@ -5,7 +5,7 @@ import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.general.IAggregatedInfo;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.StructureItem;
-import com.hp.nga.integrations.dto.projects.JobsListDTO;
+import com.hp.nga.integrations.dto.projects.JobsList;
 import com.hp.nga.integrations.dto.rest.NGAResult;
 import com.hp.nga.integrations.dto.rest.NGATask;
 import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
@@ -94,7 +94,7 @@ public class NGATaskProcessor {
 	}
 
 	private void executeJobsListRequest(NGAResult result, boolean includingParameters) {
-		JobsListDTO content = SDKFactory.getCIPluginServices().getJobsList(includingParameters);
+		JobsList content = SDKFactory.getCIPluginServices().getJobsList(includingParameters);
 		result.setBody(SerializationService.toJSON(content));
 	}
 

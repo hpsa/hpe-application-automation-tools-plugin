@@ -2,19 +2,18 @@ package com.hp.nga.integrations.dto;
 
 import com.hp.nga.integrations.dto.general.AggregatedInfo;
 import com.hp.nga.integrations.dto.general.IAggregatedInfo;
-import com.hp.nga.integrations.dto.general.IPluginInfo;
-import com.hp.nga.integrations.dto.general.IServerInfo;
 import com.hp.nga.integrations.dto.general.PluginInfo;
 import com.hp.nga.integrations.dto.general.ServerInfo;
+import com.hp.nga.integrations.dto.general.PluginInfoImpl;
+import com.hp.nga.integrations.dto.general.ServerInfoImpl;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.BuildHistoryImpl;
 import com.hp.nga.integrations.dto.pipelines.StructureItem;
 import com.hp.nga.integrations.dto.pipelines.StructureItemImpl;
-import com.hp.nga.integrations.dto.projects.JobsListDTO;
-import com.hp.nga.integrations.dto.projects.JobsListDTOImpl;
+import com.hp.nga.integrations.dto.projects.JobsList;
+import com.hp.nga.integrations.dto.projects.JobsListImpl;
 import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
 import com.hp.nga.integrations.dto.snapshots.SnapshotItemImpl;
-
 
 /**
  * Created by gullery on 08/02/2016.
@@ -23,11 +22,12 @@ import com.hp.nga.integrations.dto.snapshots.SnapshotItemImpl;
  */
 
 public enum DTOFactory {
-	PLUGIN_INFO(IPluginInfo.class, PluginInfo.class),
-	SERVER_INFO(IServerInfo.class, ServerInfo.class),
+
+	PLUGIN_INFO(PluginInfo.class, PluginInfoImpl.class),
+	SERVER_INFO(ServerInfo.class, ServerInfoImpl.class),
 	STRUCTURE_ITEM(StructureItem.class, StructureItemImpl.class),
 	SNAPSHOT_ITEM(SnapshotItem.class, SnapshotItemImpl.class),
-	JOB_LIST_DTO(JobsListDTO.class, JobsListDTOImpl.class),
+	JOB_LIST(JobsList.class, JobsListImpl.class),
 	BUILD_HISTORY(BuildHistory.class, BuildHistoryImpl.class),
 	AGGREGATED_INFO(IAggregatedInfo.class, AggregatedInfo.class);
 

@@ -1,10 +1,10 @@
 package com.hp.nga.integrations.api;
 
-import com.hp.nga.integrations.dto.general.IPluginInfo;
-import com.hp.nga.integrations.dto.general.IServerInfo;
+import com.hp.nga.integrations.dto.general.PluginInfo;
+import com.hp.nga.integrations.dto.general.ServerInfo;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.StructureItem;
-import com.hp.nga.integrations.dto.projects.JobsListDTO;
+import com.hp.nga.integrations.dto.projects.JobsList;
 import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
 import com.hp.nga.integrations.services.configuration.NGAConfiguration;
 
@@ -21,14 +21,14 @@ public interface CIPluginServices {
 	 *
 	 * @return ServerInfo object; MUST NOT return null
 	 */
-	IServerInfo getServerInfo();
+	ServerInfo getServerInfo();
 
 	/**
 	 * Provides Plugin's information
 	 *
 	 * @return PluginInfo object; MUST NOT return null
 	 */
-	IPluginInfo getPluginInfo();
+	PluginInfo getPluginInfo();
 
 	/**
 	 * Provides NGA Server configuration (managed by plugin implementation)
@@ -43,7 +43,7 @@ public interface CIPluginServices {
 	 * @param includeParameters
 	 * @return ProjectList object holding the list of the projects
 	 */
-	JobsListDTO getJobsList(boolean includeParameters);
+	JobsList getJobsList(boolean includeParameters);
 
 	/**
 	 * Provides Pipeline (structure) from the root CI Job

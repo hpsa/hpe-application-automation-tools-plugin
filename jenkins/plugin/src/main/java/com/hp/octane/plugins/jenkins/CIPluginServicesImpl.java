@@ -3,13 +3,13 @@ package com.hp.octane.plugins.jenkins;
 import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
-import com.hp.nga.integrations.dto.general.IPluginInfo;
-import com.hp.nga.integrations.dto.general.IServerInfo;
+import com.hp.nga.integrations.dto.general.PluginInfo;
+import com.hp.nga.integrations.dto.general.ServerInfo;
 import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 import com.hp.nga.integrations.dto.parameters.ParameterType;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.StructureItem;
-import com.hp.nga.integrations.dto.projects.JobsListDTO;
+import com.hp.nga.integrations.dto.projects.JobsList;
 import com.hp.nga.integrations.dto.projects.ProjectConfig;
 import com.hp.nga.integrations.dto.projects.ProjectConfigImpl;
 import com.hp.nga.integrations.dto.scm.SCMData;
@@ -51,8 +51,8 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	private static final Logger logger = Logger.getLogger(CIPluginServicesImpl.class.getName());
 
 	@Override
-	public IServerInfo getServerInfo() {
-		IServerInfo result = DTOFactory.createDTO(IServerInfo.class);
+	public ServerInfo getServerInfo() {
+		ServerInfo result = DTOFactory.createDTO(ServerInfo.class);
 		String serverUrl = Jenkins.getInstance().getRootUrl();
 		if (serverUrl != null && serverUrl.endsWith("/")) {
 			serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
@@ -67,8 +67,8 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	}
 
 	@Override
-	public IPluginInfo getPluginInfo() {
-		IPluginInfo result = DTOFactory.createDTO(IPluginInfo.class);
+	public PluginInfo getPluginInfo() {
+		PluginInfo result = DTOFactory.createDTO(PluginInfo.class);
 		result.setVersion(Jenkins.getInstance().getPlugin(OctanePlugin.class).getWrapper().getVersion());
 		return result;
 	}
@@ -85,9 +85,9 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	}
 
 	@Override
-	public JobsListDTO getJobsList(boolean includeParameters) {
+	public JobsList getJobsList(boolean includeParameters) {
 
-		JobsListDTO result = DTOFactory.createDTO(JobsListDTO.class);
+		JobsList result = DTOFactory.createDTO(JobsList.class);
 		ProjectConfig tmpConfig;
 		AbstractProject tmpProject;
 		List<ProjectConfig> list = new ArrayList<ProjectConfig>();

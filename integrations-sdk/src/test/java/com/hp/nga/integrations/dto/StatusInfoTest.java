@@ -2,8 +2,6 @@ package com.hp.nga.integrations.dto;
 
 import com.hp.nga.integrations.dto.general.AggregatedInfo;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
-import com.hp.nga.integrations.dto.general.PluginInfo;
-import com.hp.nga.integrations.dto.general.ServerInfo;
 import com.hp.nga.integrations.dto.general.*;
 import com.hp.nga.integrations.services.serialization.SerializationService;
 import org.junit.Test;
@@ -31,10 +29,10 @@ public class StatusInfoTest {
 	public void testA() {
 		AggregatedInfo statusInfo = new AggregatedInfo();
 
-		IPluginInfo pluginInfo = DTOFactory.createDTO(IPluginInfo.class);
+		PluginInfo pluginInfo = DTOFactory.createDTO(PluginInfo.class);
 		pluginInfo.setVersion(PLUGIN_VERSION);
 
-		IServerInfo serverInfo = DTOFactory.createDTO(IServerInfo.class);
+		ServerInfo serverInfo = DTOFactory.createDTO(ServerInfo.class);
 		serverInfo.setType(CIServerTypes.JENKINS);
 		serverInfo.setVersion(SERVER_VERION);
 		serverInfo.setInstanceId(SERVER_UUID);
