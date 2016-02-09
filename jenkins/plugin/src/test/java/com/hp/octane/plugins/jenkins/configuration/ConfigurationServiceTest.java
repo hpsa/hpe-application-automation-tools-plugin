@@ -68,7 +68,7 @@ public class ConfigurationServiceTest {
 	@Test
 	@SuppressWarnings("ThrowableResultOfMethodCallIgnored")
 	public void testCheckConfiguration() {
-		Mockito.when(clientFactory.obtain("http://localhost:8088/", "1001", "username1", "password1")).thenReturn(client);
+		Mockito.when(clientFactory.obtainTemp("http://localhost:8088/", "1001", "username1", "password1")).thenReturn(client);
 
 		// valid configuration
 		Mockito.doNothing().when(client).tryToConnectSharedSpace();
