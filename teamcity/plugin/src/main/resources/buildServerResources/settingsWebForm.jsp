@@ -83,7 +83,7 @@
                 <tr>
                     <th><label for="server">MQM server: <span class="mandatoryAsterix" title="Mandatory field">*</span></label></th>
                     <td>
-                        <input type="text" name="server" id="server"   value="" class="textField"        >
+                        <input type="text" name="server" id="server"   value="" class="longField"        >
 
                         <span class="error" id="errorServer"></span>
                     </td>
@@ -93,7 +93,7 @@
                 <tr>
                     <th><label for="username1">Username: <span class="mandatoryAsterix" title="Mandatory field">*</span></label></th>
                     <td>
-                        <input type="text" name="username1" id="username1"   value="" class="textField"        >
+                        <input type="text" name="username1" id="username1"   value="" class="longField"        >
 
                         <span class="error" id="errorUsername1"></span>
                     </td>
@@ -102,7 +102,7 @@
                 <tr>
                     <th><label for="password1">Password: <span class="mandatoryAsterix" title="Mandatory field">*</span></label></th>
                     <td>
-                        <input type="text" name="password1" id="password1"   value="" class="textField"        >
+                        <input type="text" name="password1" id="password1"   value="" class="longField"        >
 
                         <span class="error" id="errorPassword"></span>
 
