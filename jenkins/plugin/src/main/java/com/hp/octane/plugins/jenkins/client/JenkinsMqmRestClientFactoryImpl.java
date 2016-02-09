@@ -49,6 +49,29 @@ public class JenkinsMqmRestClientFactoryImpl implements JenkinsMqmRestClientFact
     }
 
     @Override
+    public MqmRestClient obtainTemp(String location, String sharedSpace, String username, String password) {
+        MqmConnectionConfig clientConfig = new MqmConnectionConfig(location, sharedSpace, username, password, CLIENT_TYPE);
+
+        URL locationUrl;
+        try {
+            locationUrl = new URL(clientConfig.getLocation());
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException(e);
+        }
+        if (isProxyNeeded(locationUrl.getHost())) {
+            clientConfig.setProxyHost(getProxyHost());
+            clientConfig.setProxyPort(getProxyPort());
+            final String proxyUsername = getUsername();
+            if (!StringUtils.isEmpty(proxyUsername)) {
+                clientConfig.setProxyCredentials(new UsernamePasswordProxyCredentials(username, getPassword()));
+            }
+        }
+        MqmRestClient mqmRestClientTemp = new MqmRestClientImpl(clientConfig);
+        logger.info("NGA REST Clint: initialized for " + location + " - " + sharedSpace + " - " + username);
+        return mqmRestClientTemp;
+    }
+
+    @Override
     public synchronized void updateMqmRestClient(String location, String sharedSpace, String username, String password){
         MqmConnectionConfig clientConfig = new MqmConnectionConfig(location, sharedSpace, username, password, CLIENT_TYPE);
         URL locationUrl = null;
