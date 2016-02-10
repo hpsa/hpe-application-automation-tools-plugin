@@ -29,7 +29,7 @@ public class ModelFactory {
 
     public static StructureItem createStructureItem(AbstractProject project) {
 
-        StructureItem structureItem = DTOFactory.createDTO(StructureItem.class);
+        StructureItem structureItem = DTOFactory.newDTO(StructureItem.class);
         structureItem.setName(project.getName());
         structureItem.setCiId(project.getName());
         structureItem.setParameters(ParameterProcessors.getConfigs(project));
@@ -66,7 +66,7 @@ public class ModelFactory {
 
     public static SnapshotItem createSnapshotItem(AbstractBuild build, boolean metaOnly){
 
-        SnapshotItem snapshotItem = DTOFactory.createDTO(SnapshotItem.class);
+        SnapshotItem snapshotItem = DTOFactory.newDTO(SnapshotItem.class);
         SCMProcessor scmProcessor = SCMProcessors.getAppropriate(build.getProject().getScm().getClass().getName());
 
         SnapshotStatus status = SnapshotStatus.FINISHED;
@@ -116,7 +116,7 @@ public class ModelFactory {
 
 
     public static SnapshotItem createSnapshotItem(AbstractProject project, boolean metaOnly){
-        SnapshotItem snapshotItem = DTOFactory.createDTO(SnapshotItem.class);
+        SnapshotItem snapshotItem = DTOFactory.newDTO(SnapshotItem.class);
 
         snapshotItem.setName(project.getName());
         snapshotItem.setCiId(project.getName());

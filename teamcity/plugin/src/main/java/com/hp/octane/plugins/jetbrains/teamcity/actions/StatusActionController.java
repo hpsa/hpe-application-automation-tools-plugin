@@ -34,7 +34,7 @@ public class StatusActionController extends AbstractActionController {
             serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
         }
 
-        com.hp.nga.integrations.dto.general.ServerInfo serverInfo = DTOFactory.createDTO(com.hp.nga.integrations.dto.general.ServerInfo.class);
+        com.hp.nga.integrations.dto.general.ServerInfo serverInfo = DTOFactory.newDTO(com.hp.nga.integrations.dto.general.ServerInfo.class);
         serverInfo.setInstanceId(NGAPlugin.getInstance().getConfig().getIdentity());
         serverInfo.setInstanceIdFrom(NGAPlugin.getInstance().getConfig().getIdentityFromAsLong());
         serverInfo.setSendingTime(System.currentTimeMillis());
@@ -94,7 +94,7 @@ public class StatusActionController extends AbstractActionController {
         }
 
         public PluginInfo getPlugin() {
-            return DTOFactory.createDTO(PluginInfo.class);
+            return DTOFactory.newDTO(PluginInfo.class);
         }
 
 //        public List<EventsClient> getEventsClients() {

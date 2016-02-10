@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PluginInfoImpl implements PluginInfo {
+class PluginInfoImpl implements PluginInfo {
 	private String version;
 
 	public PluginInfoImpl() {

@@ -6,7 +6,7 @@ import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 /**
  * Created by lazara on 08/02/2016.
  */
-public final class JobConfigImpl implements JobConfig {
+class JobConfigImpl implements JobConfig {
 	private String name;
 	private ParameterConfig[] parameters;
 	private String ciId;

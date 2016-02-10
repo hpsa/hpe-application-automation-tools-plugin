@@ -3,9 +3,9 @@ package com.hp.nga.integrations.dto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
+import com.hp.nga.integrations.dto.general.DTOFactoryGeneral;
 import com.hp.nga.integrations.dto.general.PluginInfo;
 import com.hp.nga.integrations.dto.general.ServerInfo;
-import com.hp.nga.integrations.dto.general.PluginInfoImpl;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -23,7 +23,7 @@ public class DTOFactoryTest {
 
 	@Test
 	public void test_A() {
-		PluginInfo pluginInfo = DTOFactory.instance.createDTO(PluginInfo.class);
+		PluginInfo pluginInfo = DTOFactoryGeneral.instance.newDTO(PluginInfo.class);
 		assertNotNull(pluginInfo);
 		assertNull(pluginInfo.getVersion());
 
@@ -37,7 +37,7 @@ public class DTOFactoryTest {
 			String jsonA = new ObjectMapper().writeValueAsString(pluginInfo);
 			String jsonB = new ObjectMapper().writeValueAsString(newRef);
 			assertEquals(jsonA, jsonB);
-			PluginInfoImpl pluginInfoImplDes = new ObjectMapper().readValue(jsonA, PluginInfoImpl.class);
+			//PluginInfoImpl pluginInfoImplDes = new ObjectMapper().readValue(jsonA, PluginInfoImpl.class);
 		} catch (JsonProcessingException jpe) {
 			fail("failed on serialization");
 		} catch (IOException ioe) {
@@ -47,7 +47,7 @@ public class DTOFactoryTest {
 
 	@Test
 	public void test_B() {
-		ServerInfo serverInfo = DTOFactory.instance.createDTO(ServerInfo.class);
+		ServerInfo serverInfo = DTOFactoryGeneral.instance.newDTO(ServerInfo.class);
 		serverInfo
 				.setType(CIServerTypes.JENKINS)
 				.setInstanceId("instance id")
@@ -66,7 +66,7 @@ public class DTOFactoryTest {
 
 	@Test
 	public void test_C() {
-		PluginInfo pluginInfo = DTOFactory.instance.createDTO(PluginInfo.class);
+		PluginInfo pluginInfo = DTOFactoryGeneral.instance.newDTO(PluginInfo.class);
 		assertNotNull(pluginInfo);
 	}
 }

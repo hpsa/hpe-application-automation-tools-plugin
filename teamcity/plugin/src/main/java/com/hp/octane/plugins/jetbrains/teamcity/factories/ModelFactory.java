@@ -6,7 +6,6 @@ import com.hp.nga.integrations.dto.pipelines.StructurePhase;
 import com.hp.nga.integrations.dto.pipelines.StructurePhaseImpl;
 import com.hp.nga.integrations.dto.general.JobsList;
 import com.hp.nga.integrations.dto.general.JobConfig;
-import com.hp.nga.integrations.dto.general.JobConfigImpl;
 import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
 import com.hp.nga.integrations.dto.snapshots.SnapshotPhase;
 import com.hp.nga.integrations.dto.snapshots.SnapshotPhaseImpl;
@@ -25,7 +24,7 @@ public class ModelFactory { // {
 
     public static JobsList CreateProjectList() {
 
-        JobsList jobsList = DTOFactory.createDTO(JobsList.class);
+        JobsList jobsList = DTOFactory.newDTO(JobsList.class);
         List<JobConfig> list = new ArrayList<JobConfig>();
         List<String>ids = new ArrayList<String>();
 
@@ -36,7 +35,7 @@ public class ModelFactory { // {
             for (SBuildType buildType : buildTypes) {
                 if(!ids.contains(buildType.getInternalId())) {
                     ids.add(buildType.getInternalId());
-                    buildConf = new JobConfigImpl();
+                    buildConf = DTOFactory.newDTO(JobConfig.class);
                     buildConf.setName(buildType.getName());
                     buildConf.setCiId(buildType.getExternalId());
                     list.add(buildConf);
@@ -52,7 +51,7 @@ public class ModelFactory { // {
         SBuildType root = NGAPlugin.getInstance().getProjectManager().findBuildTypeByExternalId(buildConfigurationId);
         StructureItem treeRoot =null;
         if(root !=null) {
-            treeRoot = DTOFactory.createDTO(StructureItem.class);
+            treeRoot = DTOFactory.newDTO(StructureItem.class);
             treeRoot.setName(root.getName());
             treeRoot.setCiId(root.getExternalId());
             createPipelineStructure(treeRoot, root.getDependencies());
@@ -73,7 +72,7 @@ public class ModelFactory { // {
         List<StructureItem> structureItemList = new ArrayList<StructureItem>();
         for(Dependency dependency : dependencies){
             SBuildType build = dependency.getDependOn();
-            StructureItem buildItem = DTOFactory.createDTO(StructureItem.class);
+            StructureItem buildItem = DTOFactory.newDTO(StructureItem.class);
             buildItem.setName(build.getName());
             buildItem.setCiId(build.getExternalId());
             structureItemList.add(buildItem);
@@ -151,7 +150,7 @@ public class ModelFactory { // {
         }
 
         if(currentBuild!=null){
-            snapshotItem = DTOFactory.createDTO(SnapshotItem.class);
+            snapshotItem = DTOFactory.newDTO(SnapshotItem.class);
             snapshotItem.setName(build.getExtendedName());
             snapshotItem.setCiId(build.getExternalId());
             snapshotItem.setDuration(currentBuild.getDuration());
@@ -184,7 +183,7 @@ public class ModelFactory { // {
             }
 
             if (queuedBuild != null) {
-                snapshotItem = DTOFactory.createDTO(SnapshotItem.class);
+                snapshotItem = DTOFactory.newDTO(SnapshotItem.class);
                 snapshotItem.setName(build.getName());
                 snapshotItem.setCiId(build.getExternalId());
                 snapshotItem.setStatus(SnapshotStatus.QUEUED);
@@ -213,7 +212,7 @@ public class ModelFactory { // {
         }
 
         if(currentBuild!=null) {
-            snapshotItem = DTOFactory.createDTO(SnapshotItem.class);
+            snapshotItem = DTOFactory.newDTO(SnapshotItem.class);
             snapshotItem.setName(build.getName());
             snapshotItem.setCiId(build.getExternalId());
             snapshotItem.setDuration(currentBuild.getDuration());

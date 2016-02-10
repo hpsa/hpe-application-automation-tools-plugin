@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ServerInfoImpl implements ServerInfo {
+class ServerInfoImpl implements ServerInfo {
 	private CIServerTypes type;
 	private String version;
 	private String url;

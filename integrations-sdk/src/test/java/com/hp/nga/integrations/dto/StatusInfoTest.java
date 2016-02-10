@@ -1,6 +1,5 @@
 package com.hp.nga.integrations.dto;
 
-import com.hp.nga.integrations.dto.general.AggregatedInfoImpl;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
 import com.hp.nga.integrations.dto.general.*;
 import com.hp.nga.integrations.services.serialization.SerializationService;
@@ -27,12 +26,12 @@ public class StatusInfoTest {
 
 	@Test
 	public void testA() {
-		AggregatedInfo statusInfo = DTOFactory.instance.createDTO(AggregatedInfo.class);
+		AggregatedInfo statusInfo = DTOFactory.newDTO(AggregatedInfo.class);
 
-		PluginInfo pluginInfo = DTOFactory.instance.createDTO(PluginInfo.class)
+		PluginInfo pluginInfo = DTOFactory.newDTO(PluginInfo.class)
 				.setVersion(PLUGIN_VERSION);
 
-		ServerInfo serverInfo = DTOFactory.instance.createDTO(ServerInfo.class)
+		ServerInfo serverInfo = DTOFactory.newDTO(ServerInfo.class)
 				.setType(CIServerTypes.JENKINS)
 				.setVersion(SERVER_VERION)
 				.setInstanceId(SERVER_UUID)
@@ -45,7 +44,7 @@ public class StatusInfoTest {
 
 		String json = SerializationService.toJSON(statusInfo);
 
-		AggregatedInfoImpl newStatus = SerializationService.fromJSON(json, AggregatedInfoImpl.class);
+		AggregatedInfo newStatus = DTOFactory.dtoFromJson(json, AggregatedInfo.class);
 
 		assertNotNull(newStatus);
 

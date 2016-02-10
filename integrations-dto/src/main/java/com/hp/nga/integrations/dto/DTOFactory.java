@@ -1,66 +1,116 @@
 package com.hp.nga.integrations.dto;
 
-import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
-import com.hp.nga.integrations.dto.configuration.NGAConfigurationImpl;
-import com.hp.nga.integrations.dto.general.AggregatedInfoImpl;
-import com.hp.nga.integrations.dto.general.AggregatedInfo;
-import com.hp.nga.integrations.dto.general.JobConfig;
-import com.hp.nga.integrations.dto.general.JobConfigImpl;
-import com.hp.nga.integrations.dto.general.PluginInfo;
-import com.hp.nga.integrations.dto.general.ServerInfo;
-import com.hp.nga.integrations.dto.general.PluginInfoImpl;
-import com.hp.nga.integrations.dto.general.ServerInfoImpl;
-import com.hp.nga.integrations.dto.pipelines.BuildHistory;
-import com.hp.nga.integrations.dto.pipelines.BuildHistoryImpl;
-import com.hp.nga.integrations.dto.pipelines.StructureItem;
-import com.hp.nga.integrations.dto.pipelines.StructureItemImpl;
-import com.hp.nga.integrations.dto.general.JobsList;
-import com.hp.nga.integrations.dto.general.JobsListImpl;
-import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
-import com.hp.nga.integrations.dto.snapshots.SnapshotItemImpl;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.hp.nga.integrations.dto.general.DTOFactoryGeneral;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by gullery on 08/02/2016.
  * <p>
- * Generator of the DTOs
+ * Base generator of the DTOs, this is the entry point of any DTO creation/serialization/deserialization
  */
 
-public class DTOFactory {
-	public static final DTOFactory instance = new DTOFactory();
-	private final Map<Class, Class> dtoPairs = new HashMap<Class, Class>();
 
-	private DTOFactory() {
-		dtoPairs.put(PluginInfo.class, PluginInfoImpl.class);
-		dtoPairs.put(ServerInfo.class, ServerInfoImpl.class);
-		dtoPairs.put(AggregatedInfo.class, AggregatedInfoImpl.class);
-		dtoPairs.put(JobConfig.class, JobConfigImpl.class);
-		dtoPairs.put(JobsList.class, JobsListImpl.class);
-		dtoPairs.put(StructureItem.class, StructureItemImpl.class);
-		dtoPairs.put(SnapshotItem.class, SnapshotItemImpl.class);
-		dtoPairs.put(NGAConfiguration.class, NGAConfigurationImpl.class);
-		dtoPairs.put(BuildHistory.class, BuildHistoryImpl.class);
+//		dtoPairs.put(StructureItem.class, StructureItemImpl.class);
+//		dtoPairs.put(SnapshotItem.class, SnapshotItemImpl.class);
+//		dtoPairs.put(NGAConfiguration.class, NGAConfigurationImpl.class);
+//		dtoPairs.put(BuildHistory.class, BuildHistoryImpl.class);
+
+public abstract class DTOFactory {
+	private static final List<DTOFactory> dtoFactories;
+
+	static {
+		dtoFactories = new ArrayList<DTOFactory>();
+		dtoFactories.add(DTOFactoryGeneral.instance);
 	}
 
-	public <T> T createDTO(Class<T> targetType) {
+	protected abstract <T> boolean ownsDTO(Class<T> targetType);
+
+	protected abstract <T> T innerNewDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException;
+
+	protected abstract <T> String innerDtoToJson(T dto, Class<T> targetType) throws JsonProcessingException;
+
+	protected abstract <T> T innerDtoFromJson(String json, Class<T> targetType) throws IOException;
+
+	public static <T> T newDTO(Class<T> targetType) {
 		if (targetType == null) {
 			throw new IllegalArgumentException("target type MUST NOT be null");
 		}
 		if (!targetType.isInterface()) {
-			throw new IllegalArgumentException("target type MUST BE an Interface");
-		}
-		if (!dtoPairs.containsKey(targetType)) {
-			throw new IllegalArgumentException("target type if not one of supported ones");
+			throw new IllegalArgumentException("target type MUST be an Interface");
 		}
 
-		try {
-			return (T) dtoPairs.get(targetType).newInstance();
-		} catch (InstantiationException ie) {
-			throw new RuntimeException("failed to instantiate DTO of type " + targetType);
-		} catch (IllegalAccessException iae) {
-			throw new RuntimeException("DTO of type " + targetType + " is inaccessible");
+		T result = null;
+		for (DTOFactory factory : dtoFactories) {
+			if (factory.ownsDTO(targetType)) {
+				try {
+					result = factory.innerNewDTO(targetType);
+				} catch (InstantiationException ie) {
+					//  [YG] TODO: add logger here
+					throw new RuntimeException("failed to instantiate " + targetType + "; error: " + ie.getMessage());
+				} catch (IllegalAccessException iae) {
+					//  [YG] TODO: add logger here
+					throw new RuntimeException("access denied to " + targetType + "; error: " + iae.getMessage());
+				}
+				break;
+			}
+		}
+		if (result != null) {
+			return result;
+		} else {
+			//  [YG] TODO: add logger here
+			throw new RuntimeException("failed to construct DTO");
+		}
+	}
+
+	public static <T> String dtoToJson(T dto, Class<T> targetType) {
+		if (dto == null) {
+			throw new IllegalArgumentException("dto MUST NOT be null");
+		}
+
+		String result = null;
+		for (DTOFactory factory : dtoFactories) {
+			if (factory.ownsDTO(targetType)) {
+				try {
+					result = factory.innerDtoToJson(dto, targetType);
+				} catch (JsonProcessingException ioe) {
+					//  [YG] TODO: add logger here
+					throw new RuntimeException("failed to serialize DTO " + targetType + " from JSON; error: " + ioe.getMessage());
+				}
+				break;
+			}
+		}
+		return result;
+	}
+
+	public static <T> T dtoFromJson(String json, Class<T> targetType) {
+		if (targetType == null) {
+			throw new IllegalArgumentException("target type MUST NOT be null");
+		}
+		if (!targetType.isInterface()) {
+			throw new IllegalArgumentException("target type MUST be an Interface");
+		}
+
+		T result = null;
+		for (DTOFactory factory : dtoFactories) {
+			if (factory.ownsDTO(targetType)) {
+				try {
+					result = factory.innerDtoFromJson(json, targetType);
+				} catch (IOException ioe) {
+					//  [YG] TODO: add logger here
+					throw new RuntimeException("failed to deserialize DTO " + targetType + " from JSON; error: " + ioe.getMessage());
+				}
+				break;
+			}
+		}
+		if (result != null) {
+			return result;
+		} else {
+			//  [YG] TODO: add logger here
+			throw new RuntimeException("failed to construct DTO from JSON");
 		}
 	}
 }

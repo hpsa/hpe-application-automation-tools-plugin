@@ -5,7 +5,6 @@ import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
 import com.hp.nga.integrations.dto.general.PluginInfo;
 import com.hp.nga.integrations.dto.general.ServerInfo;
-import com.hp.nga.integrations.dto.general.PluginInfoImpl;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.StructureItem;
 import com.hp.nga.integrations.dto.general.JobsList;
@@ -34,7 +33,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 			serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
 		}
 
-		ServerInfo serverInfo = DTOFactory.createDTO(ServerInfo.class);
+		ServerInfo serverInfo = DTOFactory.newDTO(ServerInfo.class);
 		serverInfo.setInstanceId(NGAPlugin.getInstance().getConfig().getIdentity())
 				.setInstanceIdFrom(NGAPlugin.getInstance().getConfig().getIdentityFromAsLong())
 				.setSendingTime(System.currentTimeMillis())
@@ -47,7 +46,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 
 	@Override
 	public PluginInfo getPluginInfo() {
-		PluginInfo pluginInfo = DTOFactory.createDTO(PluginInfoImpl.class);
+		PluginInfo pluginInfo = DTOFactory.newDTO(PluginInfo.class);
 		pluginInfo.setVersion(pluginVersion);
 		return pluginInfo;
 	}
@@ -56,7 +55,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	//TODO: implement..
 	public NGAConfiguration getNGAConfiguration() {
 		Config config = NGAPlugin.getInstance().getConfig();
-		NGAConfiguration ngaConfiguration = DTOFactory.createDTO(NGAConfiguration.class);
+		NGAConfiguration ngaConfiguration = DTOFactory.newDTO(NGAConfiguration.class);
 		ngaConfiguration.setUrl(config.getUiLocation());
 		ngaConfiguration.setClientId(config.getUsername());
 		ngaConfiguration.setApiKey(config.getSecretPassword());
@@ -93,6 +92,6 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	@Override
 	//TODO: implement: feel build history
 	public BuildHistory getHistoryPipeline(String ciJobId, String originalBody) {
-		return DTOFactory.createDTO(BuildHistory.class);
+		return DTOFactory.newDTO(BuildHistory.class);
 	}
 }
