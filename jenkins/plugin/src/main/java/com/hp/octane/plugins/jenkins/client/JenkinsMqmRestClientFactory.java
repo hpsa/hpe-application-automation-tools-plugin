@@ -8,6 +8,8 @@ public interface JenkinsMqmRestClientFactory {
 
     MqmRestClient obtain(String location, String sharedSpace, String username, String password);
 
+    MqmRestClient obtainTemp(String location, String sharedSpace, String username, String password);
+
     void updateMqmRestClient(String location, String sharedSpace, String username, String password);
 
 }
