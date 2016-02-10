@@ -5,7 +5,6 @@ import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
 import com.hp.nga.integrations.dto.general.IPluginInfo;
 import com.hp.nga.integrations.dto.general.IServerInfo;
-import com.hp.nga.integrations.dto.general.PluginInfo;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.StructureItem;
 import com.hp.nga.integrations.dto.projects.JobsListDTO;
@@ -47,7 +46,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 
 	@Override
 	public IPluginInfo getPluginInfo() {
-		IPluginInfo pluginInfo = DTOFactory.createDTO(PluginInfo.class);
+		IPluginInfo pluginInfo = DTOFactory.createDTO(IPluginInfo.class);
 		pluginInfo.setVersion(pluginVersion);
 		return pluginInfo;
 	}

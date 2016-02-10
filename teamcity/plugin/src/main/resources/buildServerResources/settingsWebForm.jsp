@@ -12,7 +12,7 @@
                     document.getElementById("password1").value  = obj.secretPassword;
                 }
             };
-            xhttp.open("GET", "/octane/userDetails/", true);
+            xhttp.open("GET", "/octane-rest/userDetails/", true);
             xhttp.send();
         }
     </script>
@@ -34,7 +34,7 @@
 
             var parameters = "server="+server+"&username1="+username+"&password1="+password;
 
-            xhttp.open("POST", "/octane/admin/", true)
+            xhttp.open("POST", "/octane-rest/admin/", true)
             xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
             xhttp.send(parameters)
         }
@@ -60,7 +60,7 @@
 
             var parameters = "server="+server+"&username1="+username+"&password1="+password;
 
-            xhttp.open("POST", "/octane/testConnection/", true)
+            xhttp.open("POST", "/octane-rest/testConnection/", true)
             xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
             xhttp.send(parameters)
         }
@@ -73,7 +73,7 @@
 <body>
 
 <div id="settingsContainer">
-    <form action="/octane/admin/" method="post" >
+    <form action="/octane-rest/admin/" method="post" >
         <div class="editNotificatorSettingsPage">
 
 

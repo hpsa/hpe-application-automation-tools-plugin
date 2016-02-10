@@ -105,24 +105,28 @@ public class NGAPlugin implements ServerExtension {
 
     private void registerControllers(WebControllerManager webControllerManager, ProjectManager projectManager, SBuildServer sBuildServer, ProjectSettingsManager projectSettingsManager, PluginDescriptor pluginDescriptor) {
 
-        webControllerManager.registerController("/octane/jobs/**",
+
+        webControllerManager.registerController("/octane/**", new DynamicController());
+
+        webControllerManager.registerController("/octane-rest/jobs/**",
                 new PluginActionsController(sBuildServer, projectManager, responsibilityFacade));
 
-        webControllerManager.registerController("/octane/snapshot/**",
+        webControllerManager.registerController("/octane-rest/snapshot/**",
                 new BuildActionsController(sBuildServer, projectManager, responsibilityFacade));
 
-        webControllerManager.registerController("/octane/structure/**",
+        webControllerManager.registerController("/octane-rest/structure/**",
                 new ProjectActionsController(sBuildServer, projectManager, responsibilityFacade));
-        webControllerManager.registerController("/octane/status/**",
+        webControllerManager.registerController("/octane-rest/status/**",
                 new StatusActionController(sBuildServer, projectManager, responsibilityFacade));
 
-        webControllerManager.registerController("/octane/admin/**",
+        ////////////////////////////////////////////////////////////////////////////////////
+        webControllerManager.registerController("/octane-rest/admin/**",
                 new AdminActionController(sBuildServer, projectManager, responsibilityFacade, projectSettingsManager, pluginDescriptor));
 
-        webControllerManager.registerController("/octane/userDetails/**",
+        webControllerManager.registerController("/octane-rest/userDetails/**",
                 new UserDetailsActionController(sBuildServer, projectManager, responsibilityFacade, projectSettingsManager, pluginDescriptor));
 
-        webControllerManager.registerController("/octane/testConnection/**",
+        webControllerManager.registerController("/octane-rest/testConnection/**",
                 new TestConnectionActionController(sBuildServer, projectManager, responsibilityFacade, projectSettingsManager, pluginDescriptor));
 
     }
