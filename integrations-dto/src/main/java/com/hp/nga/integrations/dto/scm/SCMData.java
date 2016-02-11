@@ -1,5 +1,7 @@
 package com.hp.nga.integrations.dto.scm;
 
+import com.hp.nga.integrations.dto.DTOBase;
+
 /**
  * Created with IntelliJ IDEA.
  * User: gullery
@@ -8,26 +10,17 @@ package com.hp.nga.integrations.dto.scm;
  * To change this template use File | Settings | File Templates.
  */
 
-public class SCMData {
-	private final SCMRepository repository;
-	private final String builtRevId;
-	private final SCMCommit[] commits;
+public interface SCMData extends DTOBase {
 
-	public SCMData(SCMRepository repository, String builtRevId, SCMCommit[] commits) {
-		this.repository = repository;
-		this.builtRevId = builtRevId;
-		this.commits = commits;
-	}
+	SCMRepository getRepository();
 
-	public SCMRepository getRepository() {
-		return repository;
-	}
+	SCMData setRepository(SCMRepository repository);
 
-	public String getBuiltRevId() {
-		return builtRevId;
-	}
+	String getBuiltRevId();
 
-	public SCMCommit[] getCommits() {
-		return commits;
-	}
+	SCMData setBuiltRevId(String builtRevId);
+
+	SCMCommit[] getCommits();
+
+	SCMData setCommits(SCMCommit[] commits);
 }

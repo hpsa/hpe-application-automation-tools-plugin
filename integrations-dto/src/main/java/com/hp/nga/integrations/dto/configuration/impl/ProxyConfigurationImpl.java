@@ -1,4 +1,6 @@
-package com.hp.nga.integrations.dto.configuration;
+package com.hp.nga.integrations.dto.configuration.impl;
+
+import com.hp.nga.integrations.dto.configuration.ProxyConfiguration;
 
 /**
  * Created by gullery on 11/02/2016.

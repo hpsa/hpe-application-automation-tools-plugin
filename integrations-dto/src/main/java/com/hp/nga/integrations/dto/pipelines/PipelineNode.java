@@ -1,8 +1,6 @@
 package com.hp.nga.integrations.dto.pipelines;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.hp.nga.integrations.dto.DTO;
+import com.hp.nga.integrations.dto.DTOBase;
 import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 
 import java.util.List;
@@ -15,9 +13,7 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-@JsonSubTypes(@JsonSubTypes.Type(value = PipelineNodeImpl.class, name = "PipelineNodeImpl"))
-public interface PipelineNode extends DTO {
+public interface PipelineNode extends DTOBase {
 
 	String getCiId();
 

@@ -1,8 +1,6 @@
 package com.hp.nga.integrations.dto.snapshots;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.hp.nga.integrations.dto.DTO;
+import com.hp.nga.integrations.dto.DTOBase;
 import com.hp.nga.integrations.dto.causes.CIEventCauseBase;
 import com.hp.nga.integrations.dto.parameters.ParameterInstance;
 import com.hp.nga.integrations.dto.scm.SCMData;
@@ -17,9 +15,7 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-@JsonSubTypes(@JsonSubTypes.Type(value = SnapshotNodeImpl.class, name = "SnapshotNodeImpl"))
-public interface SnapshotNode extends DTO {
+public interface SnapshotNode extends DTOBase {
 
 	String getCiId();
 

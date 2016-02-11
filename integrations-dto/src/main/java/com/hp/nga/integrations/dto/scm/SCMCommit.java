@@ -1,6 +1,7 @@
 package com.hp.nga.integrations.dto.scm;
 
-import java.util.ArrayList;
+import com.hp.nga.integrations.dto.DTOBase;
+import com.hp.nga.integrations.dto.scm.impl.SCMChange;
 
 /**
  * Created with IntelliJ IDEA.
@@ -10,67 +11,29 @@ import java.util.ArrayList;
  * To change this template use File | Settings | File Templates.
  */
 
-public class SCMCommit {
+public interface SCMCommit extends DTOBase {
 
-	public static class Change {
-		private String type;
-		private String file;
+	Long getTime();
 
-		Change(String type, String file) {
-			this.type = type;
-			this.file = file;
-		}
+	SCMCommit setTime(Long time);
 
-		public String getType() {
-			return type;
-		}
+	String getUser();
 
-		public String getFile() {
-			return file;
-		}
-	}
+	SCMCommit setUser(String user);
 
-	private final Long time;
-	private final String user;
-	private final String revId;
-	private final String parentRevId;
-	private final String comment;
-	private final ArrayList<Change> changes;
+	String getRevId();
 
-	public SCMCommit(Long time, String user, String revId, String parentRevId, String comment) {
-		this.time = time;
-		this.user = user;
-		this.revId = revId;
-		this.parentRevId = parentRevId;
-		this.comment = comment;
-		this.changes = new ArrayList<Change>();
-	}
+	SCMCommit setRevId(String revId);
 
-	public void addChange(String type, String file) {
-		changes.add(new Change(type, file));
-	}
+	String getParentRevId();
 
-	public Long getTime() {
-		return time;
-	}
+	SCMCommit setParentRevId(String parentRevId);
 
-	public String getUser() {
-		return user;
-	}
+	String getComment();
 
-	public String getRevId() {
-		return revId;
-	}
+	SCMCommit setComment(String comment);
 
-	public String getParentRevId() {
-		return parentRevId;
-	}
+	SCMChange[] getChanges();
 
-	public String getComment() {
-		return comment;
-	}
-
-	public Change[] getChanges() {
-		return changes.toArray(new Change[changes.size()]);
-	}
+	SCMCommit setChanges(SCMChange[] changes);
 }

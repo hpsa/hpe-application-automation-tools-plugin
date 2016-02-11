@@ -1,8 +1,6 @@
 package com.hp.octane.plugins.jenkins.model;
 
 import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.configuration.DTOFactoryConfigs;
-import com.hp.nga.integrations.dto.general.DTOFactoryGeneral;
 import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 import com.hp.nga.integrations.dto.parameters.ParameterInstance;
 import com.hp.nga.integrations.dto.parameters.ParameterType;
@@ -29,7 +27,7 @@ public class ModelFactory {
 	private static final Logger logger = Logger.getLogger(ModelFactory.class.getName());
 
 	public static PipelineNode createStructureItem(AbstractProject project) {
-		PipelineNode pipelineNode = DTOFactory.instance.newDTO(PipelineNode.class);
+		PipelineNode pipelineNode = DTOFactory.getInstance().newDTO(PipelineNode.class);
 		pipelineNode.setName(project.getName());
 		pipelineNode.setCiId(project.getName());
 		pipelineNode.setParameters(ParameterProcessors.getConfigs(project));
@@ -42,7 +40,7 @@ public class ModelFactory {
 	}
 
 	public static PipelinePhase createStructurePhase(String name, boolean blocking, List<AbstractProject> items) {
-		PipelinePhase pipelinePhase = DTOFactory.instance.newDTO(PipelinePhase.class);
+		PipelinePhase pipelinePhase = DTOFactory.getInstance().newDTO(PipelinePhase.class);
 		pipelinePhase.setName(name);
 		pipelinePhase.setBlocking(blocking);
 
@@ -67,7 +65,7 @@ public class ModelFactory {
 
 	public static SnapshotNode createSnapshotItem(AbstractBuild build, boolean metaOnly) {
 
-		SnapshotNode snapshotNode = DTOFactory.instance.newDTO(SnapshotNode.class);
+		SnapshotNode snapshotNode = DTOFactory.getInstance().newDTO(SnapshotNode.class);
 		SCMProcessor scmProcessor = SCMProcessors.getAppropriate(build.getProject().getScm().getClass().getName());
 
 		SnapshotStatus status = SnapshotStatus.FINISHED;
@@ -117,7 +115,7 @@ public class ModelFactory {
 
 
 	public static SnapshotNode createSnapshotItem(AbstractProject project, boolean metaOnly) {
-		SnapshotNode snapshotNode = DTOFactory.instance.newDTO(SnapshotNode.class);
+		SnapshotNode snapshotNode = DTOFactory.getInstance().newDTO(SnapshotNode.class);
 
 		snapshotNode.setName(project.getName());
 		snapshotNode.setCiId(project.getName());
@@ -182,7 +180,7 @@ public class ModelFactory {
 	}
 
 	public static SnapshotPhase createSnapshotPhase(PipelinePhase pipelinePhase, HashMap<String, ArrayList<AbstractBuild>> invokedBuilds) {
-		SnapshotPhase snapshotPhase = DTOFactory.instance.newDTO(SnapshotPhase.class);
+		SnapshotPhase snapshotPhase = DTOFactory.getInstance().newDTO(SnapshotPhase.class);
 		snapshotPhase.setName(pipelinePhase.getName());
 		snapshotPhase.setBlocking(pipelinePhase.isBlocking());
 

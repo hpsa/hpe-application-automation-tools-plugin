@@ -1,8 +1,6 @@
 package com.hp.nga.integrations.dto.snapshots;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.hp.nga.integrations.dto.DTO;
+import com.hp.nga.integrations.dto.DTOBase;
 
 import java.util.List;
 
@@ -14,9 +12,7 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-@JsonSubTypes(@JsonSubTypes.Type(value = SnapshotPhaseImpl.class, name = "SnapshotPhaseImpl"))
-public interface SnapshotPhase extends DTO {
+public interface SnapshotPhase extends DTOBase {
 
 	String getName();
 

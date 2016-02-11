@@ -1,4 +1,7 @@
-package com.hp.nga.integrations.dto.snapshots;
+package com.hp.nga.integrations.dto.snapshots.impl;
+
+import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
+import com.hp.nga.integrations.dto.snapshots.SnapshotPhase;
 
 import java.util.List;
 

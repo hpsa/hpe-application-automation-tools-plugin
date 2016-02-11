@@ -1,4 +1,6 @@
-package com.hp.nga.integrations.dto.configuration;
+package com.hp.nga.integrations.dto.configuration.impl;
+
+import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
 
 import java.net.MalformedURLException;
 import java.net.URL;

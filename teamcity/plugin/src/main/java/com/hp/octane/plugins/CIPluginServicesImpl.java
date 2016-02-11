@@ -33,7 +33,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 			serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
 		}
 
-		ServerInfo serverInfo = DTOFactory.instance.newDTO(ServerInfo.class);
+		ServerInfo serverInfo = DTOFactory.getInstance().newDTO(ServerInfo.class);
 		serverInfo.setInstanceId(NGAPlugin.getInstance().getConfig().getIdentity())
 				.setInstanceIdFrom(NGAPlugin.getInstance().getConfig().getIdentityFromAsLong())
 				.setSendingTime(System.currentTimeMillis())
@@ -46,7 +46,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 
 	@Override
 	public PluginInfo getPluginInfo() {
-		PluginInfo pluginInfo = DTOFactory.instance.newDTO(PluginInfo.class);
+		PluginInfo pluginInfo = DTOFactory.getInstance().newDTO(PluginInfo.class);
 		pluginInfo.setVersion(pluginVersion);
 		return pluginInfo;
 	}
@@ -55,7 +55,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	//TODO: implement..
 	public NGAConfiguration getNGAConfiguration() {
 		Config config = NGAPlugin.getInstance().getConfig();
-		NGAConfiguration ngaConfiguration = DTOFactory.instance.newDTO(NGAConfiguration.class);
+		NGAConfiguration ngaConfiguration = DTOFactory.getInstance().newDTO(NGAConfiguration.class);
 		ngaConfiguration.setUrl(config.getUiLocation());
 		ngaConfiguration.setClientId(config.getUsername());
 		ngaConfiguration.setApiKey(config.getSecretPassword());
@@ -92,6 +92,6 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	@Override
 	//TODO: implement: feel build history
 	public BuildHistory getHistoryPipeline(String ciJobId, String originalBody) {
-		return DTOFactory.instance.newDTO(BuildHistory.class);
+		return DTOFactory.getInstance().newDTO(BuildHistory.class);
 	}
 }

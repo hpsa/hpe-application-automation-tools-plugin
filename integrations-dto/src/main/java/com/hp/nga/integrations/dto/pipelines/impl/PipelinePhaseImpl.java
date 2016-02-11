@@ -1,4 +1,7 @@
-package com.hp.nga.integrations.dto.pipelines;
+package com.hp.nga.integrations.dto.pipelines.impl;
+
+import com.hp.nga.integrations.dto.pipelines.PipelineNode;
+import com.hp.nga.integrations.dto.pipelines.PipelinePhase;
 
 import java.util.List;
 

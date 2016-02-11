@@ -1,8 +1,6 @@
 package com.hp.nga.integrations.dto.pipelines;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.hp.nga.integrations.dto.DTO;
+import com.hp.nga.integrations.dto.DTOBase;
 import com.hp.nga.integrations.dto.scm.SCMData;
 
 import java.util.Set;
@@ -15,9 +13,7 @@ import java.util.Set;
  * To change this template use File | Settings | File Templates.
  */
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-@JsonSubTypes(@JsonSubTypes.Type(value = BuildHistoryImpl.class, name = "BuildHistoryImpl"))
-public interface BuildHistory extends DTO {
+public interface BuildHistory extends DTOBase {
 
 	class Build {
 		private String status;

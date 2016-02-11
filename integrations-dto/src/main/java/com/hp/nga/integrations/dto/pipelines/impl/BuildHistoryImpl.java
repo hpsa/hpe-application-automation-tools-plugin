@@ -1,6 +1,7 @@
-package com.hp.nga.integrations.dto.pipelines;
+package com.hp.nga.integrations.dto.pipelines.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.scm.SCMData;
 
 import java.util.ArrayList;

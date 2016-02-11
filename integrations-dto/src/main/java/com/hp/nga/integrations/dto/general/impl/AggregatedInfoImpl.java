@@ -1,6 +1,9 @@
-package com.hp.nga.integrations.dto.general;
+package com.hp.nga.integrations.dto.general.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.hp.nga.integrations.dto.general.AggregatedInfo;
+import com.hp.nga.integrations.dto.general.PluginInfo;
+import com.hp.nga.integrations.dto.general.ServerInfo;
 
 /**
  * Created by gullery on 03/01/2016.

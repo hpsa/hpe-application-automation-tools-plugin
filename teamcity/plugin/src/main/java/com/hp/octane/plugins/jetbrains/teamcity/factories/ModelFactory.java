@@ -22,7 +22,7 @@ public class ModelFactory { // {
 
     public static JobsList CreateProjectList() {
 
-        JobsList jobsList = DTOFactory.instance.newDTO(JobsList.class);
+        JobsList jobsList = DTOFactory.getInstance().newDTO(JobsList.class);
         List<JobConfig> list = new ArrayList<JobConfig>();
         List<String>ids = new ArrayList<String>();
 
@@ -33,7 +33,7 @@ public class ModelFactory { // {
             for (SBuildType buildType : buildTypes) {
                 if(!ids.contains(buildType.getInternalId())) {
                     ids.add(buildType.getInternalId());
-                    buildConf = DTOFactory.instance.newDTO(JobConfig.class);
+                    buildConf = DTOFactory.getInstance().newDTO(JobConfig.class);
                     buildConf.setName(buildType.getName());
                     buildConf.setCiId(buildType.getExternalId());
                     list.add(buildConf);
@@ -49,7 +49,7 @@ public class ModelFactory { // {
         SBuildType root = NGAPlugin.getInstance().getProjectManager().findBuildTypeByExternalId(buildConfigurationId);
         PipelineNode treeRoot =null;
         if(root !=null) {
-            treeRoot = DTOFactory.instance.newDTO(PipelineNode.class);
+            treeRoot = DTOFactory.getInstance().newDTO(PipelineNode.class);
             treeRoot.setName(root.getName());
             treeRoot.setCiId(root.getExternalId());
             createPipelineStructure(treeRoot, root.getDependencies());
@@ -62,7 +62,7 @@ public class ModelFactory { // {
 
     private static void createPipelineStructure(PipelineNode treeRoot, List<Dependency> dependencies) {
         if(dependencies ==null || dependencies.size() == 0)return;
-        PipelinePhase phase = DTOFactory.instance.newDTO(PipelinePhase.class);
+        PipelinePhase phase = DTOFactory.getInstance().newDTO(PipelinePhase.class);
         phase.setName("teamcity_dependencies");
         phase.setBlocking(true);
         List<PipelinePhase> pipelinePhaseList = new ArrayList<PipelinePhase>();
@@ -70,7 +70,7 @@ public class ModelFactory { // {
         List<PipelineNode> pipelineNodeList = new ArrayList<PipelineNode>();
         for(Dependency dependency : dependencies){
             SBuildType build = dependency.getDependOn();
-            PipelineNode buildItem = DTOFactory.instance.newDTO(PipelineNode.class);
+            PipelineNode buildItem = DTOFactory.getInstance().newDTO(PipelineNode.class);
             buildItem.setName(build.getName());
             buildItem.setCiId(build.getExternalId());
             pipelineNodeList.add(buildItem);
@@ -98,7 +98,7 @@ public class ModelFactory { // {
 
     private static void createSnapshotPipeline(SnapshotNode treeRoot, List<Dependency> dependencies,String rootId) {
         if(dependencies ==null || dependencies.size() == 0)return;
-        SnapshotPhase phase = DTOFactory.instance.newDTO(SnapshotPhase.class);
+        SnapshotPhase phase = DTOFactory.getInstance().newDTO(SnapshotPhase.class);
         phase.setBlocking(true);
         phase.setName("teamcity_dependencies");
         List<SnapshotPhase>snapshotPhaseList = new ArrayList<SnapshotPhase>();
@@ -148,7 +148,7 @@ public class ModelFactory { // {
         }
 
         if(currentBuild!=null){
-            snapshotNode = DTOFactory.instance.newDTO(SnapshotNode.class);
+            snapshotNode = DTOFactory.getInstance().newDTO(SnapshotNode.class);
             snapshotNode.setName(build.getExtendedName());
             snapshotNode.setCiId(build.getExternalId());
             snapshotNode.setDuration(currentBuild.getDuration());
@@ -181,7 +181,7 @@ public class ModelFactory { // {
             }
 
             if (queuedBuild != null) {
-                snapshotNode = DTOFactory.instance.newDTO(SnapshotNode.class);
+                snapshotNode = DTOFactory.getInstance().newDTO(SnapshotNode.class);
                 snapshotNode.setName(build.getName());
                 snapshotNode.setCiId(build.getExternalId());
                 snapshotNode.setStatus(SnapshotStatus.QUEUED);
@@ -210,7 +210,7 @@ public class ModelFactory { // {
         }
 
         if(currentBuild!=null) {
-            snapshotNode = DTOFactory.instance.newDTO(SnapshotNode.class);
+            snapshotNode = DTOFactory.getInstance().newDTO(SnapshotNode.class);
             snapshotNode.setName(build.getName());
             snapshotNode.setCiId(build.getExternalId());
             snapshotNode.setDuration(currentBuild.getDuration());

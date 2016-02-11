@@ -1,8 +1,12 @@
-package com.hp.nga.integrations.dto.snapshots;
+package com.hp.nga.integrations.dto.snapshots.impl;
 
 import com.hp.nga.integrations.dto.causes.CIEventCauseBase;
 import com.hp.nga.integrations.dto.parameters.ParameterInstance;
 import com.hp.nga.integrations.dto.scm.SCMData;
+import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
+import com.hp.nga.integrations.dto.snapshots.SnapshotPhase;
+import com.hp.nga.integrations.dto.snapshots.SnapshotResult;
+import com.hp.nga.integrations.dto.snapshots.SnapshotStatus;
 
 import java.util.List;
 

@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
 
 public class NGATaskProcessor {
 	private static final Logger logger = Logger.getLogger(NGATaskProcessor.class.getName());
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String NGA = "nga";
 	private static final String STATUS = "status";
 	private static final String JOBS = "jobs";
@@ -87,7 +88,7 @@ public class NGATaskProcessor {
 
 	private void executeStatusRequest(NGAResult result) {
 		CIPluginServices dataProvider = SDKFactory.getCIPluginServices();
-		AggregatedInfo status = DTOFactory.instance.newDTO(AggregatedInfo.class)
+		AggregatedInfo status = dtoFactory.newDTO(AggregatedInfo.class)
 				.setServer(dataProvider.getServerInfo())
 				.setPlugin(dataProvider.getPluginInfo());
 		result.setBody(SerializationService.toJSON(status));

@@ -12,7 +12,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
  */
 
 public enum SCMType {
-	UNSUPPORTED("unsupported"),
+	UNKNOWN("unknown"),
 	GIT("git");
 
 	private String value;
@@ -32,7 +32,7 @@ public enum SCMType {
 			throw new IllegalArgumentException("value MUST NOT be null nor empty");
 		}
 
-		SCMType result = UNSUPPORTED;
+		SCMType result = UNKNOWN;
 		for (SCMType v : values()) {
 			if (v.value.compareTo(value) == 0) {
 				result = v;

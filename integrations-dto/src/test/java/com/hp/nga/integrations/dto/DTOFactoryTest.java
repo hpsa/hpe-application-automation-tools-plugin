@@ -14,10 +14,11 @@ import static org.junit.Assert.assertNull;
  */
 
 public class DTOFactoryTest {
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Test
 	public void test_A() {
-		PluginInfo pluginInfo = DTOFactory.instance.newDTO(PluginInfo.class);
+		PluginInfo pluginInfo = dtoFactory.newDTO(PluginInfo.class);
 		assertNotNull(pluginInfo);
 		assertNull(pluginInfo.getVersion());
 
@@ -27,18 +28,18 @@ public class DTOFactoryTest {
 		assertEquals("1.2.3", pluginInfo.getVersion());
 		assertEquals("1.2.3", newRef.getVersion());
 
-		String jsonA = DTOFactory.instance.dtoToJson(pluginInfo, PluginInfo.class);
-		String jsonB = DTOFactory.instance.dtoToJson(newRef, PluginInfo.class);
+		String jsonA = dtoFactory.dtoToJson(pluginInfo);
+		String jsonB = dtoFactory.dtoToJson(newRef);
 		assertEquals(jsonA, jsonB);
 
-		PluginInfo pluginInfoImplDes = DTOFactory.instance.dtoFromJson(jsonA, PluginInfo.class);
+		PluginInfo pluginInfoImplDes = dtoFactory.dtoFromJson(jsonA, PluginInfo.class);
 		assertNotNull(pluginInfoImplDes);
 		assertEquals("1.2.3", pluginInfoImplDes.getVersion());
 	}
 
 	@Test
 	public void test_B() {
-		ServerInfo serverInfo = DTOFactory.instance.newDTO(ServerInfo.class);
+		ServerInfo serverInfo = dtoFactory.newDTO(ServerInfo.class);
 		serverInfo
 				.setType(CIServerTypes.JENKINS)
 				.setInstanceId("instance id")
@@ -53,11 +54,7 @@ public class DTOFactoryTest {
 		assertEquals((Long) 123456789L, serverInfo.getSendingTime());
 		assertEquals("http://localhost:8080", serverInfo.getUrl());
 		assertEquals("1.2.3", serverInfo.getVersion());
-	}
 
-	@Test
-	public void test_C() {
-		PluginInfo pluginInfo = DTOFactory.instance.newDTO(PluginInfo.class);
-		assertNotNull(pluginInfo);
+		String json = dtoFactory.dtoToJson(serverInfo);
 	}
 }

@@ -1,8 +1,6 @@
 package com.hp.nga.integrations.dto.general;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.hp.nga.integrations.dto.DTO;
+import com.hp.nga.integrations.dto.DTOBase;
 
 /**
  * Created by gullery on 03/01/2016.
@@ -10,9 +8,7 @@ import com.hp.nga.integrations.dto.DTO;
  * Description of Plugin Status
  */
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-@JsonSubTypes(@JsonSubTypes.Type(value = AggregatedInfoImpl.class, name = "AggregatedInfoImpl"))
-public interface AggregatedInfo extends DTO {
+public interface AggregatedInfo extends DTOBase {
 
 	ServerInfo getServer();
 

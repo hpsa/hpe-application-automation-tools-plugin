@@ -1,6 +1,6 @@
 package com.hp.nga.integrations.dto.configuration;
 
-import com.hp.nga.integrations.dto.DTO;
+import com.hp.nga.integrations.dto.DTOBase;
 
 /**
  * Created by gullery on 08/01/2016.
@@ -8,7 +8,7 @@ import com.hp.nga.integrations.dto.DTO;
  * NGA Server configuration descriptor
  */
 
-public interface NGAConfiguration extends DTO {
+public interface NGAConfiguration extends DTOBase {
 
 	String getUrl();
 
