@@ -9,9 +9,11 @@ import com.hp.nga.integrations.services.bridge.NGATaskProcessor;
 import com.hp.nga.integrations.dto.rest.NGAResult;
 import com.hp.nga.integrations.dto.rest.NGATask;
 import com.hp.nga.integrations.services.serialization.SerializationService;
+import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
+import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.export.Exported;
 
