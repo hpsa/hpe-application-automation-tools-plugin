@@ -5,9 +5,9 @@ import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 import com.hp.nga.integrations.dto.parameters.ParameterInstance;
 import com.hp.nga.integrations.dto.parameters.ParameterType;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
-import com.hp.nga.integrations.dto.pipelines.StructureItem;
-import com.hp.nga.integrations.dto.pipelines.StructurePhase;
-import com.hp.nga.integrations.dto.pipelines.StructurePhaseImpl;
+import com.hp.nga.integrations.dto.pipelines.PipelineItem;
+import com.hp.nga.integrations.dto.pipelines.PipelinePhase;
+import com.hp.nga.integrations.dto.pipelines.PipelinePhaseImpl;
 import com.hp.nga.integrations.dto.snapshots.*;
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCausesFactory;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
@@ -27,27 +27,27 @@ public class ModelFactory {
 
     private static final Logger logger = Logger.getLogger(ModelFactory.class.getName());
 
-    public static StructureItem createStructureItem(AbstractProject project) {
+    public static PipelineItem createStructureItem(AbstractProject project) {
 
-        StructureItem structureItem = DTOFactory.newDTO(StructureItem.class);
-        structureItem.setName(project.getName());
-        structureItem.setCiId(project.getName());
-        structureItem.setParameters(ParameterProcessors.getConfigs(project));
+        PipelineItem pipelineItem = DTOFactory.newDTO(PipelineItem.class);
+        pipelineItem.setName(project.getName());
+        pipelineItem.setCiId(project.getName());
+        pipelineItem.setParameters(ParameterProcessors.getConfigs(project));
 
         AbstractProjectProcessor projectProcessor = AbstractProjectProcessor.getFlowProcessor(project);
-        structureItem.setPhasesInternal(projectProcessor.getInternals());
-        structureItem.setPhasesPostBuild(projectProcessor.getPostBuilds());
+        pipelineItem.setPhasesInternal(projectProcessor.getInternals());
+        pipelineItem.setPhasesPostBuild(projectProcessor.getPostBuilds());
 
-        return structureItem;
+        return pipelineItem;
     }
 
-    public static StructurePhase createStructurePhase(String name, boolean blocking, List<AbstractProject> items) {
+    public static PipelinePhase createStructurePhase(String name, boolean blocking, List<AbstractProject> items) {
 
-        StructurePhase structurePhase = new StructurePhaseImpl();
-        structurePhase.setName(name);
-        structurePhase.setBlocking(blocking);
+        PipelinePhase pipelinePhase = new PipelinePhaseImpl();
+        pipelinePhase.setName(name);
+        pipelinePhase.setBlocking(blocking);
 
-        StructureItem[] tmp = new StructureItem[items.size()];
+        PipelineItem[] tmp = new PipelineItem[items.size()];
         for (int i = 0; i < tmp.length; i++) {
             if (items.get(i) != null) {
                 tmp[i] = ModelFactory.createStructureItem(items.get(i));
@@ -57,9 +57,9 @@ public class ModelFactory {
             }
         }
 
-        structurePhase.setJobs(Arrays.asList(tmp));
+        pipelinePhase.setJobs(Arrays.asList(tmp));
 
-        return structurePhase;
+        return pipelinePhase;
     }
 
     /*********************************************************/
@@ -89,14 +89,14 @@ public class ModelFactory {
 
         if (!metaOnly) {
             AbstractProjectProcessor flowProcessor = AbstractProjectProcessor.getFlowProcessor(build.getProject());
-            List<StructurePhase> tmpStructurePhasesInternals = flowProcessor.getInternals();
-            List<StructurePhase> tmpStructurePhasesPostBuilds = flowProcessor.getPostBuilds();
+            List<PipelinePhase> tmpPipelinePhasesInternals = flowProcessor.getInternals();
+            List<PipelinePhase> tmpPipelinePhasesPostBuilds = flowProcessor.getPostBuilds();
             ArrayList<String> invokeesNames = new ArrayList<String>();
-            appendInvokeesNames(invokeesNames, tmpStructurePhasesInternals);
-            appendInvokeesNames(invokeesNames, tmpStructurePhasesPostBuilds);
+            appendInvokeesNames(invokeesNames, tmpPipelinePhasesInternals);
+            appendInvokeesNames(invokeesNames, tmpPipelinePhasesPostBuilds);
             HashMap<String, ArrayList<AbstractBuild>> invokedBuilds = getInvokedBuilds(build, invokeesNames);
-            snapshotItem.setPhasesInternal((inflatePhases(tmpStructurePhasesInternals, invokedBuilds)));
-            snapshotItem.setPhasesPostBuild(inflatePhases(tmpStructurePhasesPostBuilds, invokedBuilds));
+            snapshotItem.setPhasesInternal((inflatePhases(tmpPipelinePhasesInternals, invokedBuilds)));
+            snapshotItem.setPhasesPostBuild(inflatePhases(tmpPipelinePhasesPostBuilds, invokedBuilds));
         }
 
         snapshotItem.setName(build.getProject().getName());
@@ -129,9 +129,9 @@ public class ModelFactory {
         return snapshotItem;
     }
 
-    private static void appendInvokeesNames(ArrayList<String> list, List<StructurePhase> phases) {
-        for (StructurePhase phase : phases) {
-            for (StructureItem item : phase.getJobs()) {
+    private static void appendInvokeesNames(ArrayList<String> list, List<PipelinePhase> phases) {
+        for (PipelinePhase phase : phases) {
+            for (PipelineItem item : phase.getJobs()) {
                 if (item != null) {
                     if (!list.contains(item.getName())) list.add(item.getName());
                 } else {
@@ -172,7 +172,7 @@ public class ModelFactory {
         return result;
     }
 
-    private static List<SnapshotPhase> inflatePhases(List<StructurePhase> structures, HashMap<String, ArrayList<AbstractBuild>> invokedBuilds) {
+    private static List<SnapshotPhase> inflatePhases(List<PipelinePhase> structures, HashMap<String, ArrayList<AbstractBuild>> invokedBuilds) {
         List<SnapshotPhase> phases = new ArrayList<SnapshotPhase>();
         for (int i = 0; i < structures.size(); i++) {
             phases.add(i,createSnapshotPhase(structures.get(i), invokedBuilds));
@@ -180,14 +180,14 @@ public class ModelFactory {
         return phases;
     }
 
-    public static SnapshotPhase createSnapshotPhase(StructurePhase structurePhase, HashMap<String, ArrayList<AbstractBuild>> invokedBuilds) {
+    public static SnapshotPhase createSnapshotPhase(PipelinePhase pipelinePhase, HashMap<String, ArrayList<AbstractBuild>> invokedBuilds) {
 
         SnapshotPhase snapshotPhase = new SnapshotPhaseImpl();
-        snapshotPhase.setName(structurePhase.getName());
-        snapshotPhase.setBlocking(structurePhase.isBlocking());
+        snapshotPhase.setName(pipelinePhase.getName());
+        snapshotPhase.setBlocking(pipelinePhase.isBlocking());
 
         ArrayList<AbstractBuild> tmpBuilds;
-        List<StructureItem> structures = structurePhase.getJobs();
+        List<PipelineItem> structures = pipelinePhase.getJobs();
         List<SnapshotItem> tmp = new ArrayList<SnapshotItem>();
 
         for (int i = 0; i < structures.size(); i++) {

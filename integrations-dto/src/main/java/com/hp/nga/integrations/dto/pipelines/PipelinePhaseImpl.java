@@ -10,16 +10,16 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 
-public final class StructurePhaseImpl implements StructurePhase {
+class PipelinePhaseImpl implements PipelinePhase {
 	private String name;
 	private boolean blocking;
-	private List<StructureItem> jobs;
+	private List<PipelineItem> jobs;
 
 	public String getName() {
 		return name;
 	}
 
-	public StructurePhase setName(String name) {
+	public PipelinePhase setName(String name) {
 		this.name = name;
 		return this;
 	}
@@ -28,16 +28,16 @@ public final class StructurePhaseImpl implements StructurePhase {
 		return blocking;
 	}
 
-	public StructurePhase setBlocking(boolean blocking) {
+	public PipelinePhase setBlocking(boolean blocking) {
 		this.blocking = blocking;
 		return this;
 	}
 
-	public List<StructureItem> getJobs() {
+	public List<PipelineItem> getJobs() {
 		return jobs;
 	}
 
-	public StructurePhase setJobs(List<StructureItem> jobs) {
+	public PipelinePhase setJobs(List<PipelineItem> jobs) {
 		this.jobs = jobs;
 		return this;
 	}

@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jetbrains.teamcity.actions;
 
-import com.hp.nga.integrations.dto.pipelines.StructureItem;
+import com.hp.nga.integrations.dto.pipelines.PipelineItem;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
 import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;
 import jetbrains.buildServer.serverSide.ProjectManager;
@@ -21,7 +21,7 @@ public class ProjectActionsController extends AbstractActionController {
     @Override
     protected Object buildResults(HttpServletRequest request, HttpServletResponse response) {
         String buildConfigurationId = request.getParameter("id");
-        StructureItem treeRoot =  ModelFactory.createStructure(buildConfigurationId);
+        PipelineItem treeRoot =  ModelFactory.createStructure(buildConfigurationId);
 
         return treeRoot;
     }

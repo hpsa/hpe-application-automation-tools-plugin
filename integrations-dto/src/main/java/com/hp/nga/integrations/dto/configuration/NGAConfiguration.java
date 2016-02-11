@@ -23,4 +23,6 @@ public interface NGAConfiguration {
 	String getApiKey();
 
 	NGAConfiguration setApiKey(String apiKey);
+
+	boolean isValid();
 }

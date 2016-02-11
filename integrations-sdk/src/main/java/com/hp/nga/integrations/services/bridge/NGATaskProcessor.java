@@ -4,7 +4,7 @@ import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.dto.general.AggregatedInfo;
 import com.hp.nga.integrations.dto.general.DTOFactoryGeneral;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
-import com.hp.nga.integrations.dto.pipelines.StructureItem;
+import com.hp.nga.integrations.dto.pipelines.PipelineItem;
 import com.hp.nga.integrations.dto.general.JobsList;
 import com.hp.nga.integrations.dto.rest.NGAResult;
 import com.hp.nga.integrations.dto.rest.NGATask;
@@ -99,7 +99,7 @@ public class NGATaskProcessor {
 	}
 
 	private void executePipelineRequest(NGAResult result, String jobId) {
-		StructureItem content = SDKFactory.getCIPluginServices().getPipeline(jobId);
+		PipelineItem content = SDKFactory.getCIPluginServices().getPipeline(jobId);
 		result.setBody(SerializationService.toJSON(content));
 	}
 

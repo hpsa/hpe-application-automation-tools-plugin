@@ -6,7 +6,7 @@ import com.hp.nga.integrations.dto.general.CIServerTypes;
 import com.hp.nga.integrations.dto.general.PluginInfo;
 import com.hp.nga.integrations.dto.general.ServerInfo;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
-import com.hp.nga.integrations.dto.pipelines.StructureItem;
+import com.hp.nga.integrations.dto.pipelines.PipelineItem;
 import com.hp.nga.integrations.dto.general.JobsList;
 import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
 import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
@@ -72,9 +72,9 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	}
 
 	@Override
-	public StructureItem getPipeline(String rootCIJobId) {
-		StructureItem structureItem = ModelFactory.createStructure(rootCIJobId);
-		return structureItem;
+	public PipelineItem getPipeline(String rootCIJobId) {
+		PipelineItem pipelineItem = ModelFactory.createStructure(rootCIJobId);
+		return pipelineItem;
 	}
 
 	@Override

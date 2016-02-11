@@ -9,31 +9,11 @@ import java.net.URL;
  * NGA Server configuration descriptor
  */
 
-public class NGAConfigurationImpl implements NGAConfiguration {
+class NGAConfigurationImpl implements NGAConfiguration {
 	private String url;
 	private Long sharedSpace;
 	private String clientId;
 	private String apiKey;
-
-	public NGAConfigurationImpl() {
-	}
-
-	public NGAConfigurationImpl(String url, Long sharedSpace, String clientId, String apiKey) {
-		this.url = url;
-		this.sharedSpace = sharedSpace;
-		this.clientId = clientId;
-		this.apiKey = apiKey;
-	}
-
-	public NGAConfigurationImpl(NGAConfigurationImpl config) {
-		if (config == null) {
-			throw new IllegalArgumentException("config MUST NOT be null");
-		}
-		this.url = config.url;
-		this.sharedSpace = config.sharedSpace;
-		this.clientId = config.clientId;
-		this.apiKey = config.apiKey;
-	}
 
 	public String getUrl() {
 		return url;

@@ -3,7 +3,7 @@ package com.hp.nga.integrations.api;
 import com.hp.nga.integrations.dto.general.PluginInfo;
 import com.hp.nga.integrations.dto.general.ServerInfo;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
-import com.hp.nga.integrations.dto.pipelines.StructureItem;
+import com.hp.nga.integrations.dto.pipelines.PipelineItem;
 import com.hp.nga.integrations.dto.general.JobsList;
 import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
 import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
@@ -51,7 +51,7 @@ public interface CIPluginServices {
 	 * @param rootCIJobId
 	 * @return
 	 */
-	StructureItem getPipeline(String rootCIJobId);
+	PipelineItem getPipeline(String rootCIJobId);
 
 	/**
 	 * Executes the Pipeline, running the root job

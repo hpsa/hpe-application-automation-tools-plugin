@@ -1,9 +1,9 @@
 package com.hp.octane.plugins.jetbrains.teamcity.factories;
 
 import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.pipelines.StructureItem;
-import com.hp.nga.integrations.dto.pipelines.StructurePhase;
-import com.hp.nga.integrations.dto.pipelines.StructurePhaseImpl;
+import com.hp.nga.integrations.dto.pipelines.PipelineItem;
+import com.hp.nga.integrations.dto.pipelines.PipelinePhase;
+import com.hp.nga.integrations.dto.pipelines.PipelinePhaseImpl;
 import com.hp.nga.integrations.dto.general.JobsList;
 import com.hp.nga.integrations.dto.general.JobConfig;
 import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
@@ -47,11 +47,11 @@ public class ModelFactory { // {
         return jobsList;
     }
 
-    public static StructureItem createStructure(String buildConfigurationId) {
+    public static PipelineItem createStructure(String buildConfigurationId) {
         SBuildType root = NGAPlugin.getInstance().getProjectManager().findBuildTypeByExternalId(buildConfigurationId);
-        StructureItem treeRoot =null;
+        PipelineItem treeRoot =null;
         if(root !=null) {
-            treeRoot = DTOFactory.newDTO(StructureItem.class);
+            treeRoot = DTOFactory.newDTO(PipelineItem.class);
             treeRoot.setName(root.getName());
             treeRoot.setCiId(root.getExternalId());
             createPipelineStructure(treeRoot, root.getDependencies());
@@ -62,24 +62,24 @@ public class ModelFactory { // {
         return treeRoot;
     }
 
-    private static void createPipelineStructure(StructureItem treeRoot, List<Dependency> dependencies) {
+    private static void createPipelineStructure(PipelineItem treeRoot, List<Dependency> dependencies) {
         if(dependencies ==null || dependencies.size() == 0)return;
-        StructurePhase phase = new StructurePhaseImpl();
+        PipelinePhase phase = new PipelinePhaseImpl();
         phase.setName("teamcity_dependencies");
         phase.setBlocking(true);
-        List<StructurePhase> structurePhaseList = new ArrayList<StructurePhase>();
-        structurePhaseList.add(phase);
-        List<StructureItem> structureItemList = new ArrayList<StructureItem>();
+        List<PipelinePhase> pipelinePhaseList = new ArrayList<PipelinePhase>();
+        pipelinePhaseList.add(phase);
+        List<PipelineItem> pipelineItemList = new ArrayList<PipelineItem>();
         for(Dependency dependency : dependencies){
             SBuildType build = dependency.getDependOn();
-            StructureItem buildItem = DTOFactory.newDTO(StructureItem.class);
+            PipelineItem buildItem = DTOFactory.newDTO(PipelineItem.class);
             buildItem.setName(build.getName());
             buildItem.setCiId(build.getExternalId());
-            structureItemList.add(buildItem);
+            pipelineItemList.add(buildItem);
             createPipelineStructure(buildItem, build.getDependencies());
         }
-        phase.setJobs(structureItemList);
-        treeRoot.setPhasesInternal(structurePhaseList);
+        phase.setJobs(pipelineItemList);
+        treeRoot.setPhasesInternal(pipelinePhaseList);
     }
 
 

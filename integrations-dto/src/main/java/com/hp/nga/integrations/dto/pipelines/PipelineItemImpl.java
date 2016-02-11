@@ -12,18 +12,18 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 
-public final class StructureItemImpl implements StructureItem {
+class PipelineItemImpl implements PipelineItem {
 	private String ciId;
 	private String name;
 	private List<ParameterConfig> parameters;
-	private List<StructurePhase> phasesInternal;
-	private List<StructurePhase> phasesPostBuild;
+	private List<PipelinePhase> phasesInternal;
+	private List<PipelinePhase> phasesPostBuild;
 
 	public String getCiId() {
 		return ciId;
 	}
 
-	public StructureItem setCiId(String ciId) {
+	public PipelineItem setCiId(String ciId) {
 		this.ciId = ciId;
 		return this;
 	}
@@ -32,7 +32,7 @@ public final class StructureItemImpl implements StructureItem {
 		return name;
 	}
 
-	public StructureItem setName(String name) {
+	public PipelineItem setName(String name) {
 		this.name = name;
 		return this;
 	}
@@ -41,25 +41,25 @@ public final class StructureItemImpl implements StructureItem {
 		return parameters;
 	}
 
-	public StructureItem setParameters(List<ParameterConfig> parameters) {
+	public PipelineItem setParameters(List<ParameterConfig> parameters) {
 		this.parameters = parameters;
 		return this;
 	}
 
-	public List<StructurePhase> getPhasesInternal() {
+	public List<PipelinePhase> getPhasesInternal() {
 		return phasesInternal;
 	}
 
-	public StructureItem setPhasesInternal(List<StructurePhase> phasesInternal) {
+	public PipelineItem setPhasesInternal(List<PipelinePhase> phasesInternal) {
 		this.phasesInternal = phasesInternal;
 		return this;
 	}
 
-	public List<StructurePhase> getPhasesPostBuild() {
+	public List<PipelinePhase> getPhasesPostBuild() {
 		return phasesPostBuild;
 	}
 
-	public StructureItem setPhasesPostBuild(List<StructurePhase> phasesPostBuild) {
+	public PipelineItem setPhasesPostBuild(List<PipelinePhase> phasesPostBuild) {
 		this.phasesPostBuild = phasesPostBuild;
 		return this;
 	}

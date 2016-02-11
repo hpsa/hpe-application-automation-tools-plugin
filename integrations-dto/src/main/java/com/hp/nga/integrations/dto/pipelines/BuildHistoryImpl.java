@@ -3,6 +3,7 @@ package com.hp.nga.integrations.dto.pipelines;
 import com.hp.nga.integrations.dto.scm.SCMData;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -13,16 +14,10 @@ import java.util.Set;
  * To change this template use File | Settings | File Templates.
  */
 
-public class BuildHistoryImpl implements BuildHistory {
-	private ArrayList<Build> builds;
+class BuildHistoryImpl implements BuildHistory {
+	private List<Build> builds = new ArrayList<Build>();
 	private Build lastSuccesfullBuild;
 	private Build lastBuild;
-
-	public BuildHistoryImpl() {
-		this.builds = new ArrayList<Build>();
-		this.lastSuccesfullBuild = null;
-		this.lastBuild = null;
-	}
 
 	public void addBuild(String status, String number, String time, String startTime, String duration, SCMData scmData, Set<SCMUser> culprits) {
 		builds.add(new Build(status, number, time, startTime, duration, scmData, culprits));

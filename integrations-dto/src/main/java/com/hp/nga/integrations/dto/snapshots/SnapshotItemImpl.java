@@ -5,7 +5,6 @@ import com.hp.nga.integrations.dto.parameters.ParameterInstance;
 import com.hp.nga.integrations.dto.scm.SCMData;
 
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -15,7 +14,7 @@ import java.util.logging.Logger;
  * To change this template use File | Settings | File Templates.
  */
 
-public final class SnapshotItemImpl implements SnapshotItem {
+class SnapshotItemImpl implements SnapshotItem {
 	private String ciId;
 	private String name;
 	private Integer number = null;

@@ -10,17 +10,17 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 
-public interface StructurePhase {
+public interface PipelinePhase {
 
 	String getName();
 
-	StructurePhase setName(String name);
+	PipelinePhase setName(String name);
 
 	boolean isBlocking();
 
-	StructurePhase setBlocking(boolean blocking);
+	PipelinePhase setBlocking(boolean blocking);
 
-	List<StructureItem> getJobs();
+	List<PipelineItem> getJobs();
 
-	StructurePhase setJobs(List<StructureItem> jobs);
+	PipelinePhase setJobs(List<PipelineItem> jobs);
 }

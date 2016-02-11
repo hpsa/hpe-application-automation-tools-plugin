@@ -1,7 +1,10 @@
 package com.hp.nga.integrations.dto;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.hp.nga.integrations.dto.configuration.DTOFactoryConfigs;
 import com.hp.nga.integrations.dto.general.DTOFactoryGeneral;
+import com.hp.nga.integrations.dto.pipelines.DTOFactoryPipelines;
+import com.hp.nga.integrations.dto.snapshots.DTOFactorySnapshots;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -13,18 +16,15 @@ import java.util.List;
  * Base generator of the DTOs, this is the entry point of any DTO creation/serialization/deserialization
  */
 
-
-//		dtoPairs.put(StructureItem.class, StructureItemImpl.class);
-//		dtoPairs.put(SnapshotItem.class, SnapshotItemImpl.class);
-//		dtoPairs.put(NGAConfiguration.class, NGAConfigurationImpl.class);
-//		dtoPairs.put(BuildHistory.class, BuildHistoryImpl.class);
-
 public abstract class DTOFactory {
 	private static final List<DTOFactory> dtoFactories;
 
 	static {
 		dtoFactories = new ArrayList<DTOFactory>();
 		dtoFactories.add(DTOFactoryGeneral.instance);
+		dtoFactories.add(DTOFactoryConfigs.instance);
+		dtoFactories.add(DTOFactoryPipelines.instance);
+		dtoFactories.add(DTOFactorySnapshots.instance);
 	}
 
 	protected abstract <T> boolean ownsDTO(Class<T> targetType);

@@ -8,7 +8,7 @@ import com.hp.nga.integrations.dto.general.ServerInfo;
 import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 import com.hp.nga.integrations.dto.parameters.ParameterType;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
-import com.hp.nga.integrations.dto.pipelines.StructureItem;
+import com.hp.nga.integrations.dto.pipelines.PipelineItem;
 import com.hp.nga.integrations.dto.general.JobsList;
 import com.hp.nga.integrations.dto.general.JobConfig;
 import com.hp.nga.integrations.dto.scm.SCMData;
@@ -117,7 +117,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	}
 
 	@Override
-	public StructureItem getPipeline(String rootCIJobId) {
+	public PipelineItem getPipeline(String rootCIJobId) {
 
 		AbstractProject project = getProjectFromId(rootCIJobId);
 		if (project != null) {
