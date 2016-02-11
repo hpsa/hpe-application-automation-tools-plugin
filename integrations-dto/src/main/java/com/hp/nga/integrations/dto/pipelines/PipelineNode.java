@@ -12,25 +12,25 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 
-public interface PipelineItem {
+public interface PipelineNode {
 
 	String getCiId();
 
-	PipelineItem setCiId(String ciId);
+	PipelineNode setCiId(String ciId);
 
 	String getName();
 
-	PipelineItem setName(String name);
+	PipelineNode setName(String name);
 
 	List<ParameterConfig> getParameters();
 
-	PipelineItem setParameters(List<ParameterConfig> parameters);
+	PipelineNode setParameters(List<ParameterConfig> parameters);
 
 	List<PipelinePhase> getPhasesInternal();
 
-	PipelineItem setPhasesInternal(List<PipelinePhase> phasesInternal);
+	PipelineNode setPhasesInternal(List<PipelinePhase> phasesInternal);
 
 	List<PipelinePhase> getPhasesPostBuild();
 
-	PipelineItem setPhasesPostBuild(List<PipelinePhase> phasesPostBuild);
+	PipelineNode setPhasesPostBuild(List<PipelinePhase> phasesPostBuild);
 }

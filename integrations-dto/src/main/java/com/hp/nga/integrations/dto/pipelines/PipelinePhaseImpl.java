@@ -13,7 +13,7 @@ import java.util.List;
 class PipelinePhaseImpl implements PipelinePhase {
 	private String name;
 	private boolean blocking;
-	private List<PipelineItem> jobs;
+	private List<PipelineNode> jobs;
 
 	public String getName() {
 		return name;
@@ -33,11 +33,11 @@ class PipelinePhaseImpl implements PipelinePhase {
 		return this;
 	}
 
-	public List<PipelineItem> getJobs() {
+	public List<PipelineNode> getJobs() {
 		return jobs;
 	}
 
-	public PipelinePhase setJobs(List<PipelineItem> jobs) {
+	public PipelinePhase setJobs(List<PipelineNode> jobs) {
 		this.jobs = jobs;
 		return this;
 	}

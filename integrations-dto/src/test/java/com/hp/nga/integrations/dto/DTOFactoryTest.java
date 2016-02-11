@@ -1,19 +1,13 @@
 package com.hp.nga.integrations.dto;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
-import com.hp.nga.integrations.dto.general.DTOFactoryGeneral;
 import com.hp.nga.integrations.dto.general.PluginInfo;
 import com.hp.nga.integrations.dto.general.ServerInfo;
 import org.junit.Test;
 
-import java.io.IOException;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
 
 /**
  * Created by gullery on 08/02/2016.
@@ -23,7 +17,7 @@ public class DTOFactoryTest {
 
 	@Test
 	public void test_A() {
-		PluginInfo pluginInfo = DTOFactoryGeneral.instance.newDTO(PluginInfo.class);
+		PluginInfo pluginInfo = DTOFactory.instance.newDTO(PluginInfo.class);
 		assertNotNull(pluginInfo);
 		assertNull(pluginInfo.getVersion());
 
@@ -33,21 +27,18 @@ public class DTOFactoryTest {
 		assertEquals("1.2.3", pluginInfo.getVersion());
 		assertEquals("1.2.3", newRef.getVersion());
 
-		try {
-			String jsonA = new ObjectMapper().writeValueAsString(pluginInfo);
-			String jsonB = new ObjectMapper().writeValueAsString(newRef);
-			assertEquals(jsonA, jsonB);
-			//PluginInfoImpl pluginInfoImplDes = new ObjectMapper().readValue(jsonA, PluginInfoImpl.class);
-		} catch (JsonProcessingException jpe) {
-			fail("failed on serialization");
-		} catch (IOException ioe) {
+		String jsonA = DTOFactory.instance.dtoToJson(pluginInfo, PluginInfo.class);
+		String jsonB = DTOFactory.instance.dtoToJson(newRef, PluginInfo.class);
+		assertEquals(jsonA, jsonB);
 
-		}
+		PluginInfo pluginInfoImplDes = DTOFactory.instance.dtoFromJson(jsonA, PluginInfo.class);
+		assertNotNull(pluginInfoImplDes);
+		assertEquals("1.2.3", pluginInfoImplDes.getVersion());
 	}
 
 	@Test
 	public void test_B() {
-		ServerInfo serverInfo = DTOFactoryGeneral.instance.newDTO(ServerInfo.class);
+		ServerInfo serverInfo = DTOFactory.instance.newDTO(ServerInfo.class);
 		serverInfo
 				.setType(CIServerTypes.JENKINS)
 				.setInstanceId("instance id")
@@ -66,7 +57,7 @@ public class DTOFactoryTest {
 
 	@Test
 	public void test_C() {
-		PluginInfo pluginInfo = DTOFactoryGeneral.instance.newDTO(PluginInfo.class);
+		PluginInfo pluginInfo = DTOFactory.instance.newDTO(PluginInfo.class);
 		assertNotNull(pluginInfo);
 	}
 }

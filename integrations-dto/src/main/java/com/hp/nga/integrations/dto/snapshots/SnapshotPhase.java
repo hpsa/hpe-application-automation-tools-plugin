@@ -20,7 +20,7 @@ public interface SnapshotPhase {
 
 	SnapshotPhase setBlocking(boolean blocking);
 
-	List<SnapshotItem> getBuilds();
+	List<SnapshotNode> getBuilds();
 
-	SnapshotPhase setBuilds(List<SnapshotItem> builds);
+	SnapshotPhase setBuilds(List<SnapshotNode> builds);
 }

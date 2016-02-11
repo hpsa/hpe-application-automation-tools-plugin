@@ -6,7 +6,7 @@ import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
 import com.hp.mqm.client.model.*;
-import com.hp.nga.integrations.dto.pipelines.PipelineItem;
+import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.plugins.jenkins.Messages;
 import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
@@ -53,7 +53,7 @@ public class JobConfigurationProxy {
     public JSONObject createPipelineOnServer(JSONObject pipelineObject) throws IOException {
         JSONObject result = new JSONObject();
 
-        PipelineItem pipelineItem = ModelFactory.createStructureItem(project);//new StructureItem(project);
+        PipelineNode pipelineNode = ModelFactory.createStructureItem(project);//new StructureItem(project);
         PluginActions.ServerInfo serverInfo = new PluginActions.ServerInfo();
         Long releaseId = pipelineObject.getLong("releaseId") != -1 ? pipelineObject.getLong("releaseId") : null;
 
@@ -67,7 +67,7 @@ public class JobConfigurationProxy {
 
         try {
             Pipeline createdPipeline = client.createPipeline(ServerIdentity.getIdentity(), project.getName(), pipelineObject.getString("name"), pipelineObject.getLong("workspaceId"), releaseId,
-                    toString(pipelineItem), toString(serverInfo));
+                    toString(pipelineNode), toString(serverInfo));
 
             //WORKAROUND BEGIN
             //getting workspaceName - because the workspaceName is not returned from configuration API

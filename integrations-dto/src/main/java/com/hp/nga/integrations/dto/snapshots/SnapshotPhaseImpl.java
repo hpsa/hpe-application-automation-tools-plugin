@@ -13,7 +13,7 @@ import java.util.List;
 class SnapshotPhaseImpl implements SnapshotPhase {
 	private String name;
 	private boolean blocking;
-	private List<SnapshotItem> builds;
+	private List<SnapshotNode> builds;
 
 	public String getName() {
 		return name;
@@ -33,11 +33,11 @@ class SnapshotPhaseImpl implements SnapshotPhase {
 		return this;
 	}
 
-	public List<SnapshotItem> getBuilds() {
+	public List<SnapshotNode> getBuilds() {
 		return builds;
 	}
 
-	public SnapshotPhase setBuilds(List<SnapshotItem> builds) {
+	public SnapshotPhase setBuilds(List<SnapshotNode> builds) {
 		this.builds = builds;
 		return this;
 	}

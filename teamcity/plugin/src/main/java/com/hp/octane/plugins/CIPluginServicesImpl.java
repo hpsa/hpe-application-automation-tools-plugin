@@ -2,13 +2,14 @@ package com.hp.octane.plugins;
 
 import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.dto.DTOFactory;
+import com.hp.nga.integrations.dto.DTOFactoryBase;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
 import com.hp.nga.integrations.dto.general.PluginInfo;
 import com.hp.nga.integrations.dto.general.ServerInfo;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
-import com.hp.nga.integrations.dto.pipelines.PipelineItem;
+import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.general.JobsList;
-import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
+import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
 import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
@@ -33,7 +34,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 			serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
 		}
 
-		ServerInfo serverInfo = DTOFactory.newDTO(ServerInfo.class);
+		ServerInfo serverInfo = DTOFactory.instance.newDTO(ServerInfo.class);
 		serverInfo.setInstanceId(NGAPlugin.getInstance().getConfig().getIdentity())
 				.setInstanceIdFrom(NGAPlugin.getInstance().getConfig().getIdentityFromAsLong())
 				.setSendingTime(System.currentTimeMillis())
@@ -46,7 +47,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 
 	@Override
 	public PluginInfo getPluginInfo() {
-		PluginInfo pluginInfo = DTOFactory.newDTO(PluginInfo.class);
+		PluginInfo pluginInfo = DTOFactory.instance.newDTO(PluginInfo.class);
 		pluginInfo.setVersion(pluginVersion);
 		return pluginInfo;
 	}
@@ -55,7 +56,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	//TODO: implement..
 	public NGAConfiguration getNGAConfiguration() {
 		Config config = NGAPlugin.getInstance().getConfig();
-		NGAConfiguration ngaConfiguration = DTOFactory.newDTO(NGAConfiguration.class);
+		NGAConfiguration ngaConfiguration = DTOFactory.instance.newDTO(NGAConfiguration.class);
 		ngaConfiguration.setUrl(config.getUiLocation());
 		ngaConfiguration.setClientId(config.getUsername());
 		ngaConfiguration.setApiKey(config.getSecretPassword());
@@ -72,9 +73,9 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	}
 
 	@Override
-	public PipelineItem getPipeline(String rootCIJobId) {
-		PipelineItem pipelineItem = ModelFactory.createStructure(rootCIJobId);
-		return pipelineItem;
+	public PipelineNode getPipeline(String rootCIJobId) {
+		PipelineNode pipelineNode = ModelFactory.createStructure(rootCIJobId);
+		return pipelineNode;
 	}
 
 	@Override
@@ -84,14 +85,14 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	}
 
 	@Override
-	public SnapshotItem getSnapshotLatest(String ciJobId, boolean subTree) {
-		SnapshotItem snapshotItem = ModelFactory.createSnapshot(ciJobId);
-		return snapshotItem;
+	public SnapshotNode getSnapshotLatest(String ciJobId, boolean subTree) {
+		SnapshotNode snapshotNode = ModelFactory.createSnapshot(ciJobId);
+		return snapshotNode;
 	}
 
 	@Override
 	//TODO: implement: feel build history
 	public BuildHistory getHistoryPipeline(String ciJobId, String originalBody) {
-		return DTOFactory.newDTO(BuildHistory.class);
+		return DTOFactory.instance.newDTO(BuildHistory.class);
 	}
 }

@@ -117,6 +117,7 @@
 
         <!--Internals-->
 
+        <!-- TO BE REMOVED -->
         <dependency>
             <artifactId>mqm-rest-client</artifactId>
             <groupId>com.hp.mqm</groupId>

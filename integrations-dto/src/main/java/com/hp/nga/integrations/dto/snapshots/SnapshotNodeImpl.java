@@ -14,7 +14,7 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 
-class SnapshotItemImpl implements SnapshotItem {
+class SnapshotNodeImpl implements SnapshotNode {
 	private String ciId;
 	private String name;
 	private Integer number = null;
@@ -33,7 +33,7 @@ class SnapshotItemImpl implements SnapshotItem {
 		return ciId;
 	}
 
-	public SnapshotItem setCiId(String ciId) {
+	public SnapshotNode setCiId(String ciId) {
 		this.ciId = ciId;
 		return this;
 	}
@@ -42,7 +42,7 @@ class SnapshotItemImpl implements SnapshotItem {
 		return name;
 	}
 
-	public SnapshotItem setName(String name) {
+	public SnapshotNode setName(String name) {
 		this.name = name;
 		return this;
 	}
@@ -51,7 +51,7 @@ class SnapshotItemImpl implements SnapshotItem {
 		return number;
 	}
 
-	public SnapshotItem setNumber(Integer number) {
+	public SnapshotNode setNumber(Integer number) {
 		this.number = number;
 		return this;
 	}
@@ -60,7 +60,7 @@ class SnapshotItemImpl implements SnapshotItem {
 		return causes;
 	}
 
-	public SnapshotItem setCauses(CIEventCauseBase[] causes) {
+	public SnapshotNode setCauses(CIEventCauseBase[] causes) {
 		this.causes = causes;
 		return this;
 	}
@@ -69,7 +69,7 @@ class SnapshotItemImpl implements SnapshotItem {
 		return status;
 	}
 
-	public SnapshotItem setStatus(SnapshotStatus status) {
+	public SnapshotNode setStatus(SnapshotStatus status) {
 		this.status = status;
 		return this;
 	}
@@ -78,7 +78,7 @@ class SnapshotItemImpl implements SnapshotItem {
 		return result;
 	}
 
-	public SnapshotItem setResult(SnapshotResult result) {
+	public SnapshotNode setResult(SnapshotResult result) {
 		this.result = result;
 		return this;
 	}
@@ -87,7 +87,7 @@ class SnapshotItemImpl implements SnapshotItem {
 		return estimatedDuration;
 	}
 
-	public SnapshotItem setEstimatedDuration(Long estimatedDuration) {
+	public SnapshotNode setEstimatedDuration(Long estimatedDuration) {
 		this.estimatedDuration = estimatedDuration;
 		return this;
 	}
@@ -96,7 +96,7 @@ class SnapshotItemImpl implements SnapshotItem {
 		return startTime;
 	}
 
-	public SnapshotItem setStartTime(Long startTime) {
+	public SnapshotNode setStartTime(Long startTime) {
 		this.startTime = startTime;
 		return this;
 	}
@@ -105,7 +105,7 @@ class SnapshotItemImpl implements SnapshotItem {
 		return duration;
 	}
 
-	public SnapshotItem setDuration(Long duration) {
+	public SnapshotNode setDuration(Long duration) {
 		this.duration = duration;
 		return this;
 	}
@@ -114,7 +114,7 @@ class SnapshotItemImpl implements SnapshotItem {
 		return scmData;
 	}
 
-	public SnapshotItem setScmData(SCMData scmData) {
+	public SnapshotNode setScmData(SCMData scmData) {
 		this.scmData = scmData;
 		return this;
 	}
@@ -123,7 +123,7 @@ class SnapshotItemImpl implements SnapshotItem {
 		return parameters;
 	}
 
-	public SnapshotItem setParameters(List<ParameterInstance> parameters) {
+	public SnapshotNode setParameters(List<ParameterInstance> parameters) {
 		this.parameters = parameters;
 		return this;
 	}
@@ -132,7 +132,7 @@ class SnapshotItemImpl implements SnapshotItem {
 		return phasesInternal;
 	}
 
-	public SnapshotItem setPhasesInternal(List<SnapshotPhase> phasesInternal) {
+	public SnapshotNode setPhasesInternal(List<SnapshotPhase> phasesInternal) {
 		this.phasesInternal = phasesInternal;
 		return this;
 	}
@@ -141,7 +141,7 @@ class SnapshotItemImpl implements SnapshotItem {
 		return phasesPostBuild;
 	}
 
-	public SnapshotItem setPhasesPostBuild(List<SnapshotPhase> phasesPostBuild) {
+	public SnapshotNode setPhasesPostBuild(List<SnapshotPhase> phasesPostBuild) {
 		this.phasesPostBuild = phasesPostBuild;
 		return this;
 	}

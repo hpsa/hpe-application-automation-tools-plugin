@@ -12,7 +12,7 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 
-class PipelineItemImpl implements PipelineItem {
+class PipelineNodeImpl implements PipelineNode {
 	private String ciId;
 	private String name;
 	private List<ParameterConfig> parameters;
@@ -23,7 +23,7 @@ class PipelineItemImpl implements PipelineItem {
 		return ciId;
 	}
 
-	public PipelineItem setCiId(String ciId) {
+	public PipelineNode setCiId(String ciId) {
 		this.ciId = ciId;
 		return this;
 	}
@@ -32,7 +32,7 @@ class PipelineItemImpl implements PipelineItem {
 		return name;
 	}
 
-	public PipelineItem setName(String name) {
+	public PipelineNode setName(String name) {
 		this.name = name;
 		return this;
 	}
@@ -41,7 +41,7 @@ class PipelineItemImpl implements PipelineItem {
 		return parameters;
 	}
 
-	public PipelineItem setParameters(List<ParameterConfig> parameters) {
+	public PipelineNode setParameters(List<ParameterConfig> parameters) {
 		this.parameters = parameters;
 		return this;
 	}
@@ -50,7 +50,7 @@ class PipelineItemImpl implements PipelineItem {
 		return phasesInternal;
 	}
 
-	public PipelineItem setPhasesInternal(List<PipelinePhase> phasesInternal) {
+	public PipelineNode setPhasesInternal(List<PipelinePhase> phasesInternal) {
 		this.phasesInternal = phasesInternal;
 		return this;
 	}
@@ -59,7 +59,7 @@ class PipelineItemImpl implements PipelineItem {
 		return phasesPostBuild;
 	}
 
-	public PipelineItem setPhasesPostBuild(List<PipelinePhase> phasesPostBuild) {
+	public PipelineNode setPhasesPostBuild(List<PipelinePhase> phasesPostBuild) {
 		this.phasesPostBuild = phasesPostBuild;
 		return this;
 	}

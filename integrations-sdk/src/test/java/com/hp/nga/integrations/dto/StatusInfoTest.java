@@ -26,12 +26,12 @@ public class StatusInfoTest {
 
 	@Test
 	public void testA() {
-		AggregatedInfo statusInfo = DTOFactory.newDTO(AggregatedInfo.class);
+		AggregatedInfo statusInfo = DTOFactory.instance.newDTO(AggregatedInfo.class);
 
-		PluginInfo pluginInfo = DTOFactory.newDTO(PluginInfo.class)
+		PluginInfo pluginInfo = DTOFactory.instance.newDTO(PluginInfo.class)
 				.setVersion(PLUGIN_VERSION);
 
-		ServerInfo serverInfo = DTOFactory.newDTO(ServerInfo.class)
+		ServerInfo serverInfo = DTOFactory.instance.newDTO(ServerInfo.class)
 				.setType(CIServerTypes.JENKINS)
 				.setVersion(SERVER_VERION)
 				.setInstanceId(SERVER_UUID)
@@ -44,7 +44,7 @@ public class StatusInfoTest {
 
 		String json = SerializationService.toJSON(statusInfo);
 
-		AggregatedInfo newStatus = DTOFactory.dtoFromJson(json, AggregatedInfo.class);
+		AggregatedInfo newStatus = DTOFactory.instance.dtoFromJson(json, AggregatedInfo.class);
 
 		assertNotNull(newStatus);
 

@@ -1,14 +1,14 @@
 package com.hp.nga.integrations.services.bridge;
 
 import com.hp.nga.integrations.api.CIPluginServices;
+import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.general.AggregatedInfo;
-import com.hp.nga.integrations.dto.general.DTOFactoryGeneral;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
-import com.hp.nga.integrations.dto.pipelines.PipelineItem;
+import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.general.JobsList;
 import com.hp.nga.integrations.dto.rest.NGAResult;
 import com.hp.nga.integrations.dto.rest.NGATask;
-import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
+import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
 import com.hp.nga.integrations.services.SDKFactory;
 import com.hp.nga.integrations.services.serialization.SerializationService;
 
@@ -87,7 +87,7 @@ public class NGATaskProcessor {
 
 	private void executeStatusRequest(NGAResult result) {
 		CIPluginServices dataProvider = SDKFactory.getCIPluginServices();
-		AggregatedInfo status = DTOFactoryGeneral.instance.newDTO(AggregatedInfo.class)
+		AggregatedInfo status = DTOFactory.instance.newDTO(AggregatedInfo.class)
 				.setServer(dataProvider.getServerInfo())
 				.setPlugin(dataProvider.getPluginInfo());
 		result.setBody(SerializationService.toJSON(status));
@@ -99,7 +99,7 @@ public class NGATaskProcessor {
 	}
 
 	private void executePipelineRequest(NGAResult result, String jobId) {
-		PipelineItem content = SDKFactory.getCIPluginServices().getPipeline(jobId);
+		PipelineNode content = SDKFactory.getCIPluginServices().getPipeline(jobId);
 		result.setBody(SerializationService.toJSON(content));
 	}
 
@@ -109,12 +109,11 @@ public class NGATaskProcessor {
 	}
 
 	private void executeLatestSnapshotRequest(NGAResult result, String jobId, boolean subTree) {
-		SnapshotItem content = SDKFactory.getCIPluginServices().getSnapshotLatest(jobId, subTree);
+		SnapshotNode content = SDKFactory.getCIPluginServices().getSnapshotLatest(jobId, subTree);
 		result.setBody(SerializationService.toJSON(content));
 	}
 
 	private void executeHistoryRequest(NGAResult result, String jobId, String originalBody) {
-
 		BuildHistory content = SDKFactory.getCIPluginServices().getHistoryPipeline(jobId, originalBody);
 		result.setBody(SerializationService.toJSON(content));
 	}

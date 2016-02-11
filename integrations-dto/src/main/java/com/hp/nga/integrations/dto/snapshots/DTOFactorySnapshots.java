@@ -2,7 +2,7 @@ package com.hp.nga.integrations.dto.snapshots;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hp.nga.integrations.dto.DTOFactory;
+import com.hp.nga.integrations.dto.DTOFactoryBase;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -12,14 +12,14 @@ import java.util.Map;
  * Created by gullery on 10/02/2016.
  */
 
-public class DTOFactorySnapshots extends DTOFactory {
+public class DTOFactorySnapshots extends DTOFactoryBase {
 	public static final DTOFactorySnapshots instance = new DTOFactorySnapshots();
 	private static final ObjectMapper objectMapper = new ObjectMapper();
 	private final Map<Class, Class> dtoPairs;
 
 	protected DTOFactorySnapshots() {
 		dtoPairs = new HashMap<Class, Class>();
-		dtoPairs.put(SnapshotItem.class, SnapshotItemImpl.class);
+		dtoPairs.put(SnapshotNode.class, SnapshotNodeImpl.class);
 		dtoPairs.put(SnapshotPhase.class, SnapshotPhaseImpl.class);
 	}
 

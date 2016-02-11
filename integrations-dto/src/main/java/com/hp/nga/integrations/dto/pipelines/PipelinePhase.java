@@ -20,7 +20,7 @@ public interface PipelinePhase {
 
 	PipelinePhase setBlocking(boolean blocking);
 
-	List<PipelineItem> getJobs();
+	List<PipelineNode> getJobs();
 
-	PipelinePhase setJobs(List<PipelineItem> jobs);
+	PipelinePhase setJobs(List<PipelineNode> jobs);
 }

@@ -8,11 +8,11 @@ import com.hp.nga.integrations.dto.general.ServerInfo;
 import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 import com.hp.nga.integrations.dto.parameters.ParameterType;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
-import com.hp.nga.integrations.dto.pipelines.PipelineItem;
+import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.general.JobsList;
 import com.hp.nga.integrations.dto.general.JobConfig;
 import com.hp.nga.integrations.dto.scm.SCMData;
-import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
+import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
 import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jenkins.model.ModelFactory;
@@ -51,7 +51,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 
 	@Override
 	public ServerInfo getServerInfo() {
-		ServerInfo result = DTOFactory.newDTO(ServerInfo.class);
+		ServerInfo result = DTOFactory.instance.newDTO(ServerInfo.class);
 		String serverUrl = Jenkins.getInstance().getRootUrl();
 		if (serverUrl != null && serverUrl.endsWith("/")) {
 			serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
@@ -67,14 +67,14 @@ public class CIPluginServicesImpl implements CIPluginServices {
 
 	@Override
 	public PluginInfo getPluginInfo() {
-		PluginInfo result = DTOFactory.newDTO(PluginInfo.class);
+		PluginInfo result = DTOFactory.instance.newDTO(PluginInfo.class);
 		result.setVersion(Jenkins.getInstance().getPlugin(OctanePlugin.class).getWrapper().getVersion());
 		return result;
 	}
 
 	@Override
 	public NGAConfiguration getNGAConfiguration() {
-		NGAConfiguration result = DTOFactory.newDTO(NGAConfiguration.class);
+		NGAConfiguration result = DTOFactory.instance.newDTO(NGAConfiguration.class);
 		ServerConfiguration serverConfiguration = Jenkins.getInstance().getPlugin(OctanePlugin.class).getServerConfiguration();
 		result.setUrl(serverConfiguration.location);
 		result.setSharedSpace(Long.parseLong(serverConfiguration.sharedSpace));
@@ -86,14 +86,14 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	@Override
 	public JobsList getJobsList(boolean includeParameters) {
 
-		JobsList result = DTOFactory.newDTO(JobsList.class);
+		JobsList result = DTOFactory.instance.newDTO(JobsList.class);
 		JobConfig tmpConfig;
 		AbstractProject tmpProject;
 		List<JobConfig> list = new ArrayList<JobConfig>();
 		List<String> itemNames = (List<String>) Jenkins.getInstance().getTopLevelItemNames();
 		for (String name : itemNames) {
 			tmpProject = (AbstractProject) Jenkins.getInstance().getItem(name);
-			tmpConfig = DTOFactory.newDTO(JobConfig.class);
+			tmpConfig = DTOFactory.instance.newDTO(JobConfig.class);
 			tmpConfig.setName(name);
 			tmpConfig.setCiId(name);
 			if (includeParameters) {
@@ -117,7 +117,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	}
 
 	@Override
-	public PipelineItem getPipeline(String rootCIJobId) {
+	public PipelineNode getPipeline(String rootCIJobId) {
 
 		AbstractProject project = getProjectFromId(rootCIJobId);
 		if (project != null) {
@@ -177,7 +177,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	}
 
 	@Override
-	public SnapshotItem getSnapshotLatest(String ciJobId, boolean subTree) {
+	public SnapshotNode getSnapshotLatest(String ciJobId, boolean subTree) {
 
 		AbstractProject project = getProjectFromId(ciJobId);
 		if (project != null) {
@@ -193,7 +193,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 		SCMData scmData;
 		Set<User> users;
 		SCMProcessor scmProcessor = SCMProcessors.getAppropriate(project.getScm().getClass().getName());
-		BuildHistory buildHistory = DTOFactory.newDTO(BuildHistory.class);
+		BuildHistory buildHistory = DTOFactory.instance.newDTO(BuildHistory.class);
 		int numberOfBuilds = 5;
 //		if (req.getParameter("numberOfBuilds") != null) {
 //			numberOfBuilds = Integer.valueOf(req.getParameter("numberOfBuilds"));
