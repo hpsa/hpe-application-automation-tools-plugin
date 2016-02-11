@@ -2,7 +2,7 @@ package com.hp.nga.integrations.dto.general;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hp.nga.integrations.dto.DTOFactoryBase;
+import com.hp.nga.integrations.dto.InternalFactoryBase;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -12,7 +12,7 @@ import java.util.Map;
  * Created by gullery on 10/02/2016.
  */
 
-public class DTOFactoryGeneral extends DTOFactoryBase {
+public class DTOFactoryGeneral extends InternalFactoryBase {
 	public static final DTOFactoryGeneral instance = new DTOFactoryGeneral();
 	private static final ObjectMapper objectMapper = new ObjectMapper();
 	private final Map<Class, Class> dtoPairs;

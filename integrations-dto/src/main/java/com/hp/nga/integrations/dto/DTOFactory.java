@@ -2,14 +2,16 @@ package com.hp.nga.integrations.dto;
 
 /**
  * Created by gullery on 11/02/2016.
+ * <p>
+ * DTO Factory API definition
  */
 
 public interface DTOFactory {
-	DTOFactory instance = DTOFactoryBase.instance;
+	DTOFactory instance = DTOFactoryImpl.instance;
 
-	<T> T newDTO(Class<T> targetType);
+	<T extends DTO> T newDTO(Class<T> targetType);
 
-	<T> String dtoToJson(T dto, Class<T> targetType);
+	<T extends DTO> String dtoToJson(T dto, Class<T> targetType);
 
-	<T> T dtoFromJson(String json, Class<T> targetType);
+	<T extends DTO> T dtoFromJson(String json, Class<T> targetType);
 }

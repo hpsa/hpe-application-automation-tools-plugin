@@ -2,7 +2,6 @@ package com.hp.octane.plugins;
 
 import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.DTOFactoryBase;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
 import com.hp.nga.integrations.dto.general.PluginInfo;
 import com.hp.nga.integrations.dto.general.ServerInfo;

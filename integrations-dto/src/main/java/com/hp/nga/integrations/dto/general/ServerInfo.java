@@ -2,6 +2,7 @@ package com.hp.nga.integrations.dto.general;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.hp.nga.integrations.dto.DTO;
 
 /**
  * Created by gullery on 03/01/2016.
@@ -9,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes(@JsonSubTypes.Type(value = ServerInfoImpl.class, name = "ServerInfoImpl"))
-public interface ServerInfo {
+public interface ServerInfo extends DTO {
 
 	CIServerTypes getType();
 

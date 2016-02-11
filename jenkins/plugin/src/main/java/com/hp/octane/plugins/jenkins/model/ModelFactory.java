@@ -1,6 +1,8 @@
 package com.hp.octane.plugins.jenkins.model;
 
 import com.hp.nga.integrations.dto.DTOFactory;
+import com.hp.nga.integrations.dto.configuration.DTOFactoryConfigs;
+import com.hp.nga.integrations.dto.general.DTOFactoryGeneral;
 import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 import com.hp.nga.integrations.dto.parameters.ParameterInstance;
 import com.hp.nga.integrations.dto.parameters.ParameterType;

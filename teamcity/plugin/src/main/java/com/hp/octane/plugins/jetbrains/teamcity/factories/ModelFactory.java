@@ -1,7 +1,6 @@
 package com.hp.octane.plugins.jetbrains.teamcity.factories;
 
 import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.DTOFactoryBase;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.pipelines.PipelinePhase;
 import com.hp.nga.integrations.dto.general.JobsList;

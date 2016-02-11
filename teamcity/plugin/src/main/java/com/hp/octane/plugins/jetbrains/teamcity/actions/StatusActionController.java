@@ -1,7 +1,6 @@
 package com.hp.octane.plugins.jetbrains.teamcity.actions;
 
 import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.DTOFactoryBase;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
 import com.hp.nga.integrations.dto.general.PluginInfo;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;

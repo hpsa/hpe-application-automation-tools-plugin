@@ -1,11 +1,14 @@
 package com.hp.nga.integrations.dto.general;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 
 /**
  * Created by lazara on 08/02/2016.
  */
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 class JobConfigImpl implements JobConfig {
 	private String name;
 	private ParameterConfig[] parameters;

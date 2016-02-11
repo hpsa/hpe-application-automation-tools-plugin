@@ -1,5 +1,6 @@
 package com.hp.nga.integrations.dto.pipelines;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.hp.nga.integrations.dto.scm.SCMData;
 
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import java.util.Set;
  * To change this template use File | Settings | File Templates.
  */
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 class BuildHistoryImpl implements BuildHistory {
 	private List<Build> builds = new ArrayList<Build>();
 	private Build lastSuccesfullBuild;
