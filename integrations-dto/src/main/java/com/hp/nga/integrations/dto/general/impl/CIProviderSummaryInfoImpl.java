@@ -1,7 +1,7 @@
 package com.hp.nga.integrations.dto.general.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.hp.nga.integrations.dto.general.AggregatedInfo;
+import com.hp.nga.integrations.dto.general.CIProviderSummaryInfo;
 import com.hp.nga.integrations.dto.general.PluginInfo;
 import com.hp.nga.integrations.dto.general.ServerInfo;
 
@@ -12,7 +12,7 @@ import com.hp.nga.integrations.dto.general.ServerInfo;
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-class AggregatedInfoImpl implements AggregatedInfo {
+class CIProviderSummaryInfoImpl implements CIProviderSummaryInfo {
 	private ServerInfo server;
 	private PluginInfo plugin;
 
@@ -20,7 +20,7 @@ class AggregatedInfoImpl implements AggregatedInfo {
 		return server;
 	}
 
-	public AggregatedInfo setServer(ServerInfo server) {
+	public CIProviderSummaryInfo setServer(ServerInfo server) {
 		this.server = server;
 		return this;
 	}
@@ -29,7 +29,7 @@ class AggregatedInfoImpl implements AggregatedInfo {
 		return plugin;
 	}
 
-	public AggregatedInfo setPlugin(PluginInfo plugin) {
+	public CIProviderSummaryInfo setPlugin(PluginInfo plugin) {
 		this.plugin = plugin;
 		return this;
 	}

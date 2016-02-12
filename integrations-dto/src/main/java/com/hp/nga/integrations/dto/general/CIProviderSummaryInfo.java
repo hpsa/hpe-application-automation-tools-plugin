@@ -8,13 +8,13 @@ import com.hp.nga.integrations.dto.DTOBase;
  * Description of Plugin Status
  */
 
-public interface AggregatedInfo extends DTOBase {
+public interface CIProviderSummaryInfo extends DTOBase {
 
 	ServerInfo getServer();
 
-	AggregatedInfo setServer(ServerInfo server);
+	CIProviderSummaryInfo setServer(ServerInfo server);
 
 	PluginInfo getPlugin();
 
-	AggregatedInfo setPlugin(PluginInfo plugin);
+	CIProviderSummaryInfo setPlugin(PluginInfo plugin);
 }

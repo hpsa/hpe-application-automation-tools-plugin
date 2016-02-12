@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.hp.nga.integrations.dto.DTOBase;
 import com.hp.nga.integrations.dto.DTOFactoryInternalBase;
-import com.hp.nga.integrations.dto.general.AggregatedInfo;
+import com.hp.nga.integrations.dto.general.CIProviderSummaryInfo;
 import com.hp.nga.integrations.dto.general.JobConfig;
 import com.hp.nga.integrations.dto.general.JobsList;
 import com.hp.nga.integrations.dto.general.PluginInfo;
@@ -27,20 +27,20 @@ public final class DTOFactoryGeneral implements DTOFactoryInternalBase {
 	public static void ensureInit(Map<Class<? extends DTOBase>, DTOFactoryInternalBase> registry, ObjectMapper objectMapper) {
 		registry.put(PluginInfo.class, INSTANCE_HOLDER.instance);
 		registry.put(ServerInfo.class, INSTANCE_HOLDER.instance);
-		registry.put(AggregatedInfo.class, INSTANCE_HOLDER.instance);
+		registry.put(CIProviderSummaryInfo.class, INSTANCE_HOLDER.instance);
 		registry.put(JobConfig.class, INSTANCE_HOLDER.instance);
 		registry.put(JobsList.class, INSTANCE_HOLDER.instance);
 
 		INSTANCE_HOLDER.instance.dtoPairs.put(PluginInfo.class, PluginInfoImpl.class);
 		INSTANCE_HOLDER.instance.dtoPairs.put(ServerInfo.class, ServerInfoImpl.class);
-		INSTANCE_HOLDER.instance.dtoPairs.put(AggregatedInfo.class, AggregatedInfoImpl.class);
+		INSTANCE_HOLDER.instance.dtoPairs.put(CIProviderSummaryInfo.class, CIProviderSummaryInfoImpl.class);
 		INSTANCE_HOLDER.instance.dtoPairs.put(JobConfig.class, JobConfigImpl.class);
 		INSTANCE_HOLDER.instance.dtoPairs.put(JobsList.class, JobsListImpl.class);
 
 		SimpleAbstractTypeResolver resolver = new SimpleAbstractTypeResolver();
 		resolver.addMapping(PluginInfo.class, PluginInfoImpl.class);
 		resolver.addMapping(ServerInfo.class, ServerInfoImpl.class);
-		resolver.addMapping(AggregatedInfo.class, AggregatedInfoImpl.class);
+		resolver.addMapping(CIProviderSummaryInfo.class, CIProviderSummaryInfoImpl.class);
 		resolver.addMapping(JobConfig.class, JobConfigImpl.class);
 		resolver.addMapping(JobsList.class, JobsListImpl.class);
 		SimpleModule module = new SimpleModule();
