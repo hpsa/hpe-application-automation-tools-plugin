@@ -5,13 +5,12 @@ import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
 import com.hp.nga.integrations.dto.general.PluginInfo;
 import com.hp.nga.integrations.dto.general.ServerInfo;
-import com.hp.nga.integrations.dto.general.impl.DTOFactoryGeneral;
 import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 import com.hp.nga.integrations.dto.parameters.ParameterType;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
-import com.hp.nga.integrations.dto.general.JobsList;
-import com.hp.nga.integrations.dto.general.JobConfig;
+import com.hp.nga.integrations.dto.general.CIJobsList;
+import com.hp.nga.integrations.dto.general.CIJobConfig;
 import com.hp.nga.integrations.dto.scm.SCMData;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
 import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
@@ -86,16 +85,16 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	}
 
 	@Override
-	public JobsList getJobsList(boolean includeParameters) {
+	public CIJobsList getJobsList(boolean includeParameters) {
 
-		JobsList result = dtoFactory.newDTO(JobsList.class);
-		JobConfig tmpConfig;
+		CIJobsList result = dtoFactory.newDTO(CIJobsList.class);
+		CIJobConfig tmpConfig;
 		AbstractProject tmpProject;
-		List<JobConfig> list = new ArrayList<JobConfig>();
+		List<CIJobConfig> list = new ArrayList<CIJobConfig>();
 		List<String> itemNames = (List<String>) Jenkins.getInstance().getTopLevelItemNames();
 		for (String name : itemNames) {
 			tmpProject = (AbstractProject) Jenkins.getInstance().getItem(name);
-			tmpConfig = dtoFactory.newDTO(JobConfig.class);
+			tmpConfig = dtoFactory.newDTO(CIJobConfig.class);
 			tmpConfig.setName(name);
 			tmpConfig.setCiId(name);
 			if (includeParameters) {
@@ -114,7 +113,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 			}
 			list.add(tmpConfig);
 		}
-		result.setJobs(list.toArray(new JobConfig[list.size()]));
+		result.setJobs(list.toArray(new CIJobConfig[list.size()]));
 		return result;
 	}
 

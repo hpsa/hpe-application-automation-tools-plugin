@@ -5,9 +5,9 @@ import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.general.CIProviderSummaryInfo;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
-import com.hp.nga.integrations.dto.general.JobsList;
-import com.hp.nga.integrations.dto.rest.NGAResult;
-import com.hp.nga.integrations.dto.rest.NGATask;
+import com.hp.nga.integrations.dto.general.CIJobsList;
+import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
+import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
 import com.hp.nga.integrations.services.SDKFactory;
 import com.hp.nga.integrations.services.serialization.SerializationService;
@@ -32,9 +32,9 @@ public class NGATaskProcessor {
 	private static final String BUILDS = "builds";
 	private static final String LATEST = "lastBuild";
 
-	private final NGATask task;
+	private final NGATaskAbridged task;
 
-	public NGATaskProcessor(NGATask task) {
+	public NGATaskProcessor(NGATaskAbridged task) {
 		if (task == null) {
 			throw new IllegalArgumentException("task MUST NOT be null");
 		}
@@ -48,10 +48,10 @@ public class NGATaskProcessor {
 		this.task = task;
 	}
 
-	public NGAResult execute() {
+	public NGAResultAbridged execute() {
 		logger.info("BRIDGE: processing task '" + task.getId() + "': " + task.getMethod() + " " + task.getUrl());
 
-		NGAResult result = new NGAResult();
+		NGAResultAbridged result = DTOFactory.getInstance().newDTO(NGAResultAbridged.class);
 		result.setId(task.getId());
 		result.setStatus(200);
 		String[] path = Pattern.compile("^.*" + NGA + "/?").matcher(task.getUrl()).replaceFirst("").split("/");
@@ -86,7 +86,7 @@ public class NGATaskProcessor {
 		return result;
 	}
 
-	private void executeStatusRequest(NGAResult result) {
+	private void executeStatusRequest(NGAResultAbridged result) {
 		CIPluginServices dataProvider = SDKFactory.getCIPluginServices();
 		CIProviderSummaryInfo status = dtoFactory.newDTO(CIProviderSummaryInfo.class)
 				.setServer(dataProvider.getServerInfo())
@@ -94,27 +94,27 @@ public class NGATaskProcessor {
 		result.setBody(SerializationService.toJSON(status));
 	}
 
-	private void executeJobsListRequest(NGAResult result, boolean includingParameters) {
-		JobsList content = SDKFactory.getCIPluginServices().getJobsList(includingParameters);
+	private void executeJobsListRequest(NGAResultAbridged result, boolean includingParameters) {
+		CIJobsList content = SDKFactory.getCIPluginServices().getJobsList(includingParameters);
 		result.setBody(SerializationService.toJSON(content));
 	}
 
-	private void executePipelineRequest(NGAResult result, String jobId) {
+	private void executePipelineRequest(NGAResultAbridged result, String jobId) {
 		PipelineNode content = SDKFactory.getCIPluginServices().getPipeline(jobId);
 		result.setBody(SerializationService.toJSON(content));
 	}
 
-	private void executePipelineRunRequest(NGAResult result, String jobId, String originalBody) {
+	private void executePipelineRunRequest(NGAResultAbridged result, String jobId, String originalBody) {
 		int status = SDKFactory.getCIPluginServices().runPipeline(jobId, originalBody);
 		result.setStatus(status);
 	}
 
-	private void executeLatestSnapshotRequest(NGAResult result, String jobId, boolean subTree) {
+	private void executeLatestSnapshotRequest(NGAResultAbridged result, String jobId, boolean subTree) {
 		SnapshotNode content = SDKFactory.getCIPluginServices().getSnapshotLatest(jobId, subTree);
 		result.setBody(SerializationService.toJSON(content));
 	}
 
-	private void executeHistoryRequest(NGAResult result, String jobId, String originalBody) {
+	private void executeHistoryRequest(NGAResultAbridged result, String jobId, String originalBody) {
 		BuildHistory content = SDKFactory.getCIPluginServices().getHistoryPipeline(jobId, originalBody);
 		result.setBody(SerializationService.toJSON(content));
 	}

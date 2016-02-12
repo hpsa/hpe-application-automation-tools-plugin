@@ -4,7 +4,7 @@ import com.hp.nga.integrations.dto.general.PluginInfo;
 import com.hp.nga.integrations.dto.general.ServerInfo;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
-import com.hp.nga.integrations.dto.general.JobsList;
+import com.hp.nga.integrations.dto.general.CIJobsList;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
 import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
 
@@ -43,7 +43,7 @@ public interface CIPluginServices {
 	 * @param includeParameters
 	 * @return ProjectList object holding the list of the projects
 	 */
-	JobsList getJobsList(boolean includeParameters);
+	CIJobsList getJobsList(boolean includeParameters);
 
 	/**
 	 * Provides Pipeline (structure) from the root CI Job

@@ -1,16 +1,14 @@
 package com.hp.octane.plugins.jenkins.actions;
 
-import com.hp.nga.integrations.dto.rest.NGAResult;
-import com.hp.nga.integrations.dto.rest.NGATask;
+import com.hp.nga.integrations.dto.DTOFactory;
+import com.hp.nga.integrations.dto.connectivity.NGAHttpMethod;
+import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
+import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
 import com.hp.nga.integrations.services.bridge.NGATaskProcessor;
-import com.hp.octane.plugins.jenkins.OctanePlugin;
 import hudson.Extension;
 import hudson.model.RootAction;
-import jenkins.model.Jenkins;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
-import org.kohsuke.stapler.export.Exported;
-import org.kohsuke.stapler.export.ExportedBean;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
@@ -28,55 +26,7 @@ import java.util.logging.Logger;
 @Extension
 public class PluginActions implements RootAction {
 	private static final Logger logger = Logger.getLogger(PluginActions.class.getName());
-
-	//  [YG] probably move the instance ID related things to Plugin Info, since it's not belongs to the Jenkins core
-	@ExportedBean
-	public static final class ServerInfo {
-		private static final String type = "jenkins";
-		private static final String version = Jenkins.VERSION;
-		private String url;
-		private String instanceId = Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity();
-		private Long instanceIdFrom = Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentityFrom();
-		private Long sendingTime;
-
-		public ServerInfo() {
-			String serverUrl = Jenkins.getInstance().getRootUrl();
-			if (serverUrl != null && serverUrl.endsWith("/"))
-				serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
-			this.url = serverUrl;
-			this.sendingTime = System.currentTimeMillis();
-		}
-
-		@Exported(inline = true)
-		public String getType() {
-			return type;
-		}
-
-		@Exported(inline = true)
-		public String getVersion() {
-			return version;
-		}
-
-		@Exported(inline = true)
-		public String getUrl() {
-			return url;
-		}
-
-		@Exported(inline = true)
-		public String getInstanceId() {
-			return instanceId;
-		}
-
-		@Exported(inline = true)
-		public Long getInstanceIdFrom() {
-			return instanceIdFrom;
-		}
-
-		@Exported(inline = true)
-		public Long getSendingTime() {
-			return sendingTime;
-		}
-	}
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	public String getIconFileName() {
 		return null;
@@ -91,17 +41,31 @@ public class PluginActions implements RootAction {
 	}
 
 	public void doDynamic(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
-		NGATask ngaTask = new NGATask();
-		ngaTask.setId(UUID.randomUUID().toString());
-		ngaTask.setMethod(req.getMethod());
-		ngaTask.setUrl(req.getRequestURIWithQueryString());
-		ngaTask.setBody("");
-		NGATaskProcessor taskProcessor = new NGATaskProcessor(ngaTask);
-		NGAResult result = taskProcessor.execute();
+		NGAHttpMethod method = null;
+		if ("post".equals(req.getMethod().toLowerCase())) {
+			method = NGAHttpMethod.POST;
+		} else if ("get".equals(req.getMethod().toLowerCase())) {
+			method = NGAHttpMethod.GET;
+		} else if ("put".equals(req.getMethod().toLowerCase())) {
+			method = NGAHttpMethod.PUT;
+		} else if ("delete".equals(req.getMethod().toLowerCase())) {
+			method = NGAHttpMethod.DELETE;
+		}
+		if (method != null) {
+			NGATaskAbridged ngaTaskAbridged = dtoFactory.newDTO(NGATaskAbridged.class);
+			ngaTaskAbridged.setId(UUID.randomUUID().toString());
+			ngaTaskAbridged.setMethod(method);
+			ngaTaskAbridged.setUrl(req.getRequestURIWithQueryString());
+			ngaTaskAbridged.setBody("");
+			NGATaskProcessor taskProcessor = new NGATaskProcessor(ngaTaskAbridged);
+			NGAResultAbridged result = taskProcessor.execute();
 
-		res.setStatus(result.getStatus());
-		if (result.getBody() != null) {
-			res.getWriter().write(result.getBody());
+			res.setStatus(result.getStatus());
+			if (result.getBody() != null) {
+				res.getWriter().write(result.getBody());
+			}
+		} else {
+			res.setStatus(501);
 		}
 	}
 }

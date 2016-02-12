@@ -7,7 +7,7 @@ import com.hp.nga.integrations.dto.general.PluginInfo;
 import com.hp.nga.integrations.dto.general.ServerInfo;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
-import com.hp.nga.integrations.dto.general.JobsList;
+import com.hp.nga.integrations.dto.general.CIJobsList;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
 import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
@@ -64,10 +64,10 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	}
 
 	@Override
-	public JobsList getJobsList(boolean includeParameters) {
+	public CIJobsList getJobsList(boolean includeParameters) {
 
-		JobsList jobsList = ModelFactory.CreateProjectList();
-		return jobsList;
+		CIJobsList CIJobsList = ModelFactory.CreateProjectList();
+		return CIJobsList;
 
 	}
 

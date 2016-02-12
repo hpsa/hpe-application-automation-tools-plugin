@@ -1,7 +1,7 @@
 package com.hp.nga.integrations.services.rest;
 
-import com.hp.nga.integrations.dto.rest.NGARequest;
-import com.hp.nga.integrations.dto.rest.NGAResponse;
+import com.hp.nga.integrations.dto.connectivity.NGARequest;
+import com.hp.nga.integrations.dto.connectivity.NGAResponse;
 
 /**
  * Created by gullery on 07/01/2016.

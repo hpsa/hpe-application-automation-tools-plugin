@@ -6,9 +6,9 @@ import com.hp.nga.integrations.dto.DTOBase;
  * Created by gullery on 06/01/2016.
  */
 
-public interface JobsList extends DTOBase {
+public interface CIJobsList extends DTOBase {
 
-	void setJobs(JobConfig[] jobs) ;
+	void setJobs(CIJobConfig[] jobs) ;
 
-	JobConfig[] getJobs();
+	CIJobConfig[] getJobs();
 }

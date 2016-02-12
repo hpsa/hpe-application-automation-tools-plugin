@@ -1,8 +1,8 @@
 package com.hp.nga.integrations.services.bridge;
 
 import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
-import com.hp.nga.integrations.dto.rest.NGAResult;
-import com.hp.nga.integrations.dto.rest.NGATask;
+import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
+import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
 import com.hp.nga.integrations.services.serialization.SerializationService;
 
 import java.net.MalformedURLException;
@@ -106,14 +106,14 @@ public class BridgeClient {
 
 	private void handleTasks(String tasksJSON) {
 		try {
-			NGATask[] tasks = SerializationService.fromJSON(tasksJSON, NGATask[].class);
+			NGATaskAbridged[] tasks = SerializationService.fromJSON(tasksJSON, NGATaskAbridged[].class);
 
 			logger.info("BRIDGE: going to process " + tasks.length + " tasks");
-			for (final NGATask task : tasks) {
+			for (final NGATaskAbridged task : tasks) {
 				taskProcessingExecutors.execute(new Runnable() {
 					public void run() {
 						NGATaskProcessor taskProcessor = new NGATaskProcessor(task);
-						NGAResult result = taskProcessor.execute();
+						NGAResultAbridged result = taskProcessor.execute();
 						//  TODO: post the result to NGA
 					}
 				});

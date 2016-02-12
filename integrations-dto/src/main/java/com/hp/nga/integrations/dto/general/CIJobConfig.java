@@ -7,17 +7,17 @@ import com.hp.nga.integrations.dto.parameters.ParameterConfig;
  * Created by lazara on 08/02/2016.
  */
 
-public interface JobConfig extends DTOBase {
+public interface CIJobConfig extends DTOBase {
 
-	JobConfig setName(String value);
+	CIJobConfig setName(String value);
 
 	String getName();
 
-	JobConfig setCiId(String ciId);
+	CIJobConfig setCiId(String ciId);
 
 	String getCiId();
 
-	JobConfig setParameters(ParameterConfig[] parameters);
+	CIJobConfig setParameters(ParameterConfig[] parameters);
 
 	ParameterConfig[] getParameters();
 }

@@ -3,8 +3,8 @@ package com.hp.octane.plugins.common.bridge;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.AuthenticationException;
 import com.hp.mqm.client.exception.TemporarilyUnavailableException;
-import com.hp.nga.integrations.dto.rest.NGAResult;
-import com.hp.nga.integrations.dto.rest.NGATask;
+import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
+import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
 import com.hp.nga.integrations.services.bridge.NGATaskProcessor;
 import com.hp.nga.integrations.services.serialization.SerializationService;
 import com.hp.octane.plugins.common.configuration.ServerConfiguration;
@@ -113,14 +113,14 @@ public class BridgeClient {
 
     private void dispatchTasks(String tasksJSON) {
         try {
-            NGATask[] tasks = SerializationService.fromJSON(tasksJSON, NGATask[].class);
+            NGATaskAbridged[] tasks = SerializationService.fromJSON(tasksJSON, NGATaskAbridged[].class);
             logger.info("BRIDGE: going to process " + tasks.length + " tasks");
-            for (final NGATask task : tasks) {
+            for (final NGATaskAbridged task : tasks) {
                 taskProcessingExecutors.execute(new Runnable() {
                     @Override
                     public void run() {
                         NGATaskProcessor NGATaskProcessor = new NGATaskProcessor(task);
-                        NGAResult result = NGATaskProcessor.execute();
+                        NGAResultAbridged result = NGATaskProcessor.execute();
                         MqmRestClient restClient = MqmRestClientFactory.create(
                                 ciType,
                                 mqmConfig.location,

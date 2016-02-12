@@ -3,8 +3,8 @@ package com.hp.octane.plugins.jetbrains.teamcity.factories;
 import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.pipelines.PipelinePhase;
-import com.hp.nga.integrations.dto.general.JobsList;
-import com.hp.nga.integrations.dto.general.JobConfig;
+import com.hp.nga.integrations.dto.general.CIJobsList;
+import com.hp.nga.integrations.dto.general.CIJobConfig;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
 import com.hp.nga.integrations.dto.snapshots.SnapshotPhase;
 import com.hp.nga.integrations.dto.snapshots.SnapshotStatus;
@@ -20,20 +20,20 @@ import java.util.List;
  */
 public class ModelFactory { // {
 
-    public static JobsList CreateProjectList() {
+    public static CIJobsList CreateProjectList() {
 
-        JobsList jobsList = DTOFactory.getInstance().newDTO(JobsList.class);
-        List<JobConfig> list = new ArrayList<JobConfig>();
+        CIJobsList CIJobsList = DTOFactory.getInstance().newDTO(CIJobsList.class);
+        List<CIJobConfig> list = new ArrayList<CIJobConfig>();
         List<String>ids = new ArrayList<String>();
 
-        JobConfig buildConf;
+        CIJobConfig buildConf;
         for (SProject project : NGAPlugin.getInstance().getProjectManager().getProjects()) {
 
             List<SBuildType> buildTypes = project.getBuildTypes();
             for (SBuildType buildType : buildTypes) {
                 if(!ids.contains(buildType.getInternalId())) {
                     ids.add(buildType.getInternalId());
-                    buildConf = DTOFactory.getInstance().newDTO(JobConfig.class);
+                    buildConf = DTOFactory.getInstance().newDTO(CIJobConfig.class);
                     buildConf.setName(buildType.getName());
                     buildConf.setCiId(buildType.getExternalId());
                     list.add(buildConf);
@@ -41,8 +41,8 @@ public class ModelFactory { // {
             }
         }
 
-        jobsList.setJobs(list.toArray(new JobConfig[list.size()]));
-        return jobsList;
+        CIJobsList.setJobs(list.toArray(new CIJobConfig[list.size()]));
+        return CIJobsList;
     }
 
     public static PipelineNode createStructure(String buildConfigurationId) {
