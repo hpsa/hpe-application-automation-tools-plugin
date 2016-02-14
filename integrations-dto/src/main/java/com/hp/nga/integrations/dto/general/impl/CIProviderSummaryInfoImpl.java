@@ -2,8 +2,8 @@ package com.hp.nga.integrations.dto.general.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.hp.nga.integrations.dto.general.CIProviderSummaryInfo;
-import com.hp.nga.integrations.dto.general.PluginInfo;
-import com.hp.nga.integrations.dto.general.ServerInfo;
+import com.hp.nga.integrations.dto.general.CIPluginInfo;
+import com.hp.nga.integrations.dto.general.CIServerInfo;
 
 /**
  * Created by gullery on 03/01/2016.
@@ -13,23 +13,23 @@ import com.hp.nga.integrations.dto.general.ServerInfo;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class CIProviderSummaryInfoImpl implements CIProviderSummaryInfo {
-	private ServerInfo server;
-	private PluginInfo plugin;
+	private CIServerInfo server;
+	private CIPluginInfo plugin;
 
-	public ServerInfo getServer() {
+	public CIServerInfo getServer() {
 		return server;
 	}
 
-	public CIProviderSummaryInfo setServer(ServerInfo server) {
+	public CIProviderSummaryInfo setServer(CIServerInfo server) {
 		this.server = server;
 		return this;
 	}
 
-	public PluginInfo getPlugin() {
+	public CIPluginInfo getPlugin() {
 		return plugin;
 	}
 
-	public CIProviderSummaryInfo setPlugin(PluginInfo plugin) {
+	public CIProviderSummaryInfo setPlugin(CIPluginInfo plugin) {
 		this.plugin = plugin;
 		return this;
 	}

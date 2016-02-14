@@ -2,14 +2,14 @@ package com.hp.nga.integrations.dto.general.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
-import com.hp.nga.integrations.dto.general.ServerInfo;
+import com.hp.nga.integrations.dto.general.CIServerInfo;
 
 /**
  * Created by gullery on 03/01/2016.
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-class ServerInfoImpl implements ServerInfo {
+class CIServerInfoImpl implements CIServerInfo {
 	private CIServerTypes type;
 	private String version;
 	private String url;
@@ -17,10 +17,10 @@ class ServerInfoImpl implements ServerInfo {
 	private Long instanceIdFrom;
 	private Long sendingTime = System.currentTimeMillis();
 
-	public ServerInfoImpl() {
+	public CIServerInfoImpl() {
 	}
 
-	public ServerInfoImpl(CIServerTypes type, String version, String url, String instanceId, Long instanceIdFrom) {
+	public CIServerInfoImpl(CIServerTypes type, String version, String url, String instanceId, Long instanceIdFrom) {
 		this.type = type;
 		this.version = version;
 		this.url = normalizeURL(url);
@@ -32,7 +32,7 @@ class ServerInfoImpl implements ServerInfo {
 		return type;
 	}
 
-	public ServerInfo setType(CIServerTypes type) {
+	public CIServerInfo setType(CIServerTypes type) {
 		this.type = type;
 		return this;
 	}
@@ -41,7 +41,7 @@ class ServerInfoImpl implements ServerInfo {
 		return version;
 	}
 
-	public ServerInfo setVersion(String version) {
+	public CIServerInfo setVersion(String version) {
 		this.version = version;
 		return this;
 	}
@@ -50,7 +50,7 @@ class ServerInfoImpl implements ServerInfo {
 		return url;
 	}
 
-	public ServerInfo setUrl(String url) {
+	public CIServerInfo setUrl(String url) {
 		this.url = normalizeURL(url);
 		return this;
 	}
@@ -59,7 +59,7 @@ class ServerInfoImpl implements ServerInfo {
 		return instanceId;
 	}
 
-	public ServerInfo setInstanceId(String instanceId) {
+	public CIServerInfo setInstanceId(String instanceId) {
 		this.instanceId = instanceId;
 		return this;
 	}
@@ -68,7 +68,7 @@ class ServerInfoImpl implements ServerInfo {
 		return instanceIdFrom;
 	}
 
-	public ServerInfo setInstanceIdFrom(Long instanceIdFrom) {
+	public CIServerInfo setInstanceIdFrom(Long instanceIdFrom) {
 		this.instanceIdFrom = instanceIdFrom;
 		return this;
 	}
@@ -77,7 +77,7 @@ class ServerInfoImpl implements ServerInfo {
 		return sendingTime;
 	}
 
-	public ServerInfo setSendingTime(Long sendingTime) {
+	public CIServerInfo setSendingTime(Long sendingTime) {
 		this.sendingTime = sendingTime;
 		return this;
 	}

@@ -11,8 +11,6 @@ import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class NGAResultAbridgedImpl implements NGAResultAbridged {
-	private static final long serialVersionUID = 6526471155622217731L;
-
 	private String id;
 	private String serviceId;
 	private int status;

@@ -7,6 +7,8 @@ import java.util.Map;
 
 /**
  * Created by gullery on 08/01/2016.
+ * <p>
+ * Task container descriptor, as to be used in abridged tasking in NGA
  */
 
 public interface NGATaskAbridged extends DTOBase, Serializable {

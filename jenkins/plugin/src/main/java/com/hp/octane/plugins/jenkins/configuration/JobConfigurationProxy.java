@@ -7,10 +7,9 @@ import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
 import com.hp.mqm.client.model.*;
 import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.general.ServerInfo;
+import com.hp.nga.integrations.dto.general.CIServerInfo;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.plugins.jenkins.Messages;
-import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
@@ -56,7 +55,7 @@ public class JobConfigurationProxy {
 		JSONObject result = new JSONObject();
 
 		PipelineNode pipelineNode = ModelFactory.createStructureItem(project);
-		ServerInfo serverInfo = DTOFactory.getInstance().newDTO(ServerInfo.class);
+		CIServerInfo CIServerInfo = DTOFactory.getInstance().newDTO(CIServerInfo.class);
 		//  TODO: inflate the object
 		Long releaseId = pipelineObject.getLong("releaseId") != -1 ? pipelineObject.getLong("releaseId") : null;
 
@@ -70,7 +69,7 @@ public class JobConfigurationProxy {
 
 		try {
 			Pipeline createdPipeline = client.createPipeline(ServerIdentity.getIdentity(), project.getName(), pipelineObject.getString("name"), pipelineObject.getLong("workspaceId"), releaseId,
-					toString(pipelineNode), toString(serverInfo));
+					toString(pipelineNode), toString(CIServerInfo));
 
 			//WORKAROUND BEGIN
 			//getting workspaceName - because the workspaceName is not returned from configuration API

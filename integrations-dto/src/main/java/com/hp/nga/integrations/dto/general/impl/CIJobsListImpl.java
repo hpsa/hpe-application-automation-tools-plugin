@@ -1,7 +1,7 @@
 package com.hp.nga.integrations.dto.general.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.hp.nga.integrations.dto.general.CIJobConfig;
+import com.hp.nga.integrations.dto.general.CIJobMetadata;
 import com.hp.nga.integrations.dto.general.CIJobsList;
 
 /**
@@ -10,13 +10,13 @@ import com.hp.nga.integrations.dto.general.CIJobsList;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class CIJobsListImpl implements CIJobsList {
-	private CIJobConfig[] jobs = new CIJobConfig[0];
+	private CIJobMetadata[] jobs = new CIJobMetadata[0];
 
-	public void setJobs(CIJobConfig[] jobs) {
-		this.jobs = jobs == null ? new CIJobConfig[0] : jobs.clone();
+	public void setJobs(CIJobMetadata[] jobs) {
+		this.jobs = jobs == null ? new CIJobMetadata[0] : jobs.clone();
 	}
 
-	public CIJobConfig[] getJobs() {
+	public CIJobMetadata[] getJobs() {
 		return jobs.clone();
 	}
 }

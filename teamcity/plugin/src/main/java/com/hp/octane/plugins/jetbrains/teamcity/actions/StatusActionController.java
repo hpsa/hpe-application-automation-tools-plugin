@@ -2,7 +2,7 @@ package com.hp.octane.plugins.jetbrains.teamcity.actions;
 
 import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
-import com.hp.nga.integrations.dto.general.ServerInfo;
+import com.hp.nga.integrations.dto.general.CIServerInfo;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;
 import jetbrains.buildServer.serverSide.ProjectManager;
@@ -34,15 +34,15 @@ public class StatusActionController extends AbstractActionController {
 			serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
 		}
 
-		ServerInfo serverInfo = DTOFactory.getInstance().newDTO(ServerInfo.class);
-		serverInfo.setInstanceId(NGAPlugin.getInstance().getConfig().getIdentity());
-		serverInfo.setInstanceIdFrom(NGAPlugin.getInstance().getConfig().getIdentityFromAsLong());
-		serverInfo.setSendingTime(System.currentTimeMillis());
-		serverInfo.setType(CIServerTypes.TEAMCITY);
-		serverInfo.setUrl(serverUrl);
-		serverInfo.setVersion(version);
+		CIServerInfo CIServerInfo = DTOFactory.getInstance().newDTO(CIServerInfo.class);
+		CIServerInfo.setInstanceId(NGAPlugin.getInstance().getConfig().getIdentity());
+		CIServerInfo.setInstanceIdFrom(NGAPlugin.getInstance().getConfig().getIdentityFromAsLong());
+		CIServerInfo.setSendingTime(System.currentTimeMillis());
+		CIServerInfo.setType(CIServerTypes.TEAMCITY);
+		CIServerInfo.setUrl(serverUrl);
+		CIServerInfo.setVersion(version);
 
-		return serverInfo;
+		return CIServerInfo;
 	}
 
 	//TODO:Add to common lib

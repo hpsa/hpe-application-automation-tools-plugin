@@ -3,8 +3,8 @@ package com.hp.octane.plugins;
 import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
-import com.hp.nga.integrations.dto.general.PluginInfo;
-import com.hp.nga.integrations.dto.general.ServerInfo;
+import com.hp.nga.integrations.dto.general.CIPluginInfo;
+import com.hp.nga.integrations.dto.general.CIServerInfo;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.general.CIJobsList;
@@ -27,28 +27,28 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	private static final String pluginVersion = "9.1.5";
 
 	@Override
-	public ServerInfo getServerInfo() {
+	public CIServerInfo getServerInfo() {
 		String serverUrl = "http://localhost:8081";
 		if (serverUrl != null && serverUrl.endsWith("/")) {
 			serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
 		}
 
-		ServerInfo serverInfo = DTOFactory.getInstance().newDTO(ServerInfo.class);
-		serverInfo.setInstanceId(NGAPlugin.getInstance().getConfig().getIdentity())
+		CIServerInfo CIServerInfo = DTOFactory.getInstance().newDTO(CIServerInfo.class);
+		CIServerInfo.setInstanceId(NGAPlugin.getInstance().getConfig().getIdentity())
 				.setInstanceIdFrom(NGAPlugin.getInstance().getConfig().getIdentityFromAsLong())
 				.setSendingTime(System.currentTimeMillis())
 				.setType(CIServerTypes.TEAMCITY)
 				.setUrl(serverUrl)
 				.setVersion(pluginVersion);
 
-		return serverInfo;
+		return CIServerInfo;
 	}
 
 	@Override
-	public PluginInfo getPluginInfo() {
-		PluginInfo pluginInfo = DTOFactory.getInstance().newDTO(PluginInfo.class);
-		pluginInfo.setVersion(pluginVersion);
-		return pluginInfo;
+	public CIPluginInfo getPluginInfo() {
+		CIPluginInfo CIPluginInfo = DTOFactory.getInstance().newDTO(CIPluginInfo.class);
+		CIPluginInfo.setVersion(pluginVersion);
+		return CIPluginInfo;
 	}
 
 	@Override

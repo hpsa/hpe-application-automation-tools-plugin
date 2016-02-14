@@ -6,10 +6,10 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.hp.nga.integrations.dto.DTOBase;
 import com.hp.nga.integrations.dto.DTOFactoryInternalBase;
 import com.hp.nga.integrations.dto.general.CIProviderSummaryInfo;
-import com.hp.nga.integrations.dto.general.CIJobConfig;
+import com.hp.nga.integrations.dto.general.CIJobMetadata;
 import com.hp.nga.integrations.dto.general.CIJobsList;
-import com.hp.nga.integrations.dto.general.PluginInfo;
-import com.hp.nga.integrations.dto.general.ServerInfo;
+import com.hp.nga.integrations.dto.general.CIPluginInfo;
+import com.hp.nga.integrations.dto.general.CIServerInfo;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,23 +25,23 @@ public final class DTOFactoryGeneral implements DTOFactoryInternalBase {
 	}
 
 	public static void ensureInit(Map<Class<? extends DTOBase>, DTOFactoryInternalBase> registry, ObjectMapper objectMapper) {
-		registry.put(PluginInfo.class, INSTANCE_HOLDER.instance);
-		registry.put(ServerInfo.class, INSTANCE_HOLDER.instance);
+		registry.put(CIPluginInfo.class, INSTANCE_HOLDER.instance);
+		registry.put(CIServerInfo.class, INSTANCE_HOLDER.instance);
 		registry.put(CIProviderSummaryInfo.class, INSTANCE_HOLDER.instance);
-		registry.put(CIJobConfig.class, INSTANCE_HOLDER.instance);
+		registry.put(CIJobMetadata.class, INSTANCE_HOLDER.instance);
 		registry.put(CIJobsList.class, INSTANCE_HOLDER.instance);
 
-		INSTANCE_HOLDER.instance.dtoPairs.put(PluginInfo.class, PluginInfoImpl.class);
-		INSTANCE_HOLDER.instance.dtoPairs.put(ServerInfo.class, ServerInfoImpl.class);
+		INSTANCE_HOLDER.instance.dtoPairs.put(CIPluginInfo.class, CIPluginInfoImpl.class);
+		INSTANCE_HOLDER.instance.dtoPairs.put(CIServerInfo.class, CIServerInfoImpl.class);
 		INSTANCE_HOLDER.instance.dtoPairs.put(CIProviderSummaryInfo.class, CIProviderSummaryInfoImpl.class);
-		INSTANCE_HOLDER.instance.dtoPairs.put(CIJobConfig.class, CIJobConfigImpl.class);
+		INSTANCE_HOLDER.instance.dtoPairs.put(CIJobMetadata.class, CIJobMetadataImpl.class);
 		INSTANCE_HOLDER.instance.dtoPairs.put(CIJobsList.class, CIJobsListImpl.class);
 
 		SimpleAbstractTypeResolver resolver = new SimpleAbstractTypeResolver();
-		resolver.addMapping(PluginInfo.class, PluginInfoImpl.class);
-		resolver.addMapping(ServerInfo.class, ServerInfoImpl.class);
+		resolver.addMapping(CIPluginInfo.class, CIPluginInfoImpl.class);
+		resolver.addMapping(CIServerInfo.class, CIServerInfoImpl.class);
 		resolver.addMapping(CIProviderSummaryInfo.class, CIProviderSummaryInfoImpl.class);
-		resolver.addMapping(CIJobConfig.class, CIJobConfigImpl.class);
+		resolver.addMapping(CIJobMetadata.class, CIJobMetadataImpl.class);
 		resolver.addMapping(CIJobsList.class, CIJobsListImpl.class);
 		SimpleModule module = new SimpleModule();
 		module.setAbstractTypes(resolver);

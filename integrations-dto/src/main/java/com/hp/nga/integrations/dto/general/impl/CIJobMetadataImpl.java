@@ -2,7 +2,7 @@ package com.hp.nga.integrations.dto.general.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.hp.nga.integrations.dto.general.CIJobConfig;
+import com.hp.nga.integrations.dto.general.CIJobMetadata;
 import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 
 /**
@@ -10,12 +10,12 @@ import com.hp.nga.integrations.dto.parameters.ParameterConfig;
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-class CIJobConfigImpl implements CIJobConfig {
+class CIJobMetadataImpl implements CIJobMetadata {
 	private String name;
 	private ParameterConfig[] parameters;
 	private String ciId;
 
-	public CIJobConfig setName(String value) {
+	public CIJobMetadata setName(String value) {
 		name = value;
 		return this;
 	}
@@ -24,7 +24,7 @@ class CIJobConfigImpl implements CIJobConfig {
 		return name;
 	}
 
-	public CIJobConfig setCiId(String ciId) {
+	public CIJobMetadata setCiId(String ciId) {
 		this.ciId = ciId;
 		return this;
 	}
@@ -33,7 +33,7 @@ class CIJobConfigImpl implements CIJobConfig {
 		return ciId;
 	}
 
-	public CIJobConfig setParameters(ParameterConfig[] parameters) {
+	public CIJobMetadata setParameters(ParameterConfig[] parameters) {
 		this.parameters = parameters == null ? null : parameters.clone();
 		return this;
 	}

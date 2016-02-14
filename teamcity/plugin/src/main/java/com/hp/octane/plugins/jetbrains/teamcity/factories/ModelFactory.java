@@ -4,7 +4,7 @@ import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.pipelines.PipelinePhase;
 import com.hp.nga.integrations.dto.general.CIJobsList;
-import com.hp.nga.integrations.dto.general.CIJobConfig;
+import com.hp.nga.integrations.dto.general.CIJobMetadata;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
 import com.hp.nga.integrations.dto.snapshots.SnapshotPhase;
 import com.hp.nga.integrations.dto.snapshots.SnapshotStatus;
@@ -23,17 +23,17 @@ public class ModelFactory { // {
     public static CIJobsList CreateProjectList() {
 
         CIJobsList CIJobsList = DTOFactory.getInstance().newDTO(CIJobsList.class);
-        List<CIJobConfig> list = new ArrayList<CIJobConfig>();
+        List<CIJobMetadata> list = new ArrayList<CIJobMetadata>();
         List<String>ids = new ArrayList<String>();
 
-        CIJobConfig buildConf;
+        CIJobMetadata buildConf;
         for (SProject project : NGAPlugin.getInstance().getProjectManager().getProjects()) {
 
             List<SBuildType> buildTypes = project.getBuildTypes();
             for (SBuildType buildType : buildTypes) {
                 if(!ids.contains(buildType.getInternalId())) {
                     ids.add(buildType.getInternalId());
-                    buildConf = DTOFactory.getInstance().newDTO(CIJobConfig.class);
+                    buildConf = DTOFactory.getInstance().newDTO(CIJobMetadata.class);
                     buildConf.setName(buildType.getName());
                     buildConf.setCiId(buildType.getExternalId());
                     list.add(buildConf);
@@ -41,7 +41,7 @@ public class ModelFactory { // {
             }
         }
 
-        CIJobsList.setJobs(list.toArray(new CIJobConfig[list.size()]));
+        CIJobsList.setJobs(list.toArray(new CIJobMetadata[list.size()]));
         return CIJobsList;
     }
 

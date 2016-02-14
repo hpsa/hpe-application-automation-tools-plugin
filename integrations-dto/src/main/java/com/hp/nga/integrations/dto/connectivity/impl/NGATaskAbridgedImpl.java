@@ -12,8 +12,6 @@ import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class NGATaskAbridgedImpl implements NGATaskAbridged {
-	private static final long serialVersionUID = 6526471255422717731L;
-
 	private String id;
 	private String serviceId;
 	private String url;

@@ -1,20 +1,20 @@
 package com.hp.nga.integrations.dto.general.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.hp.nga.integrations.dto.general.PluginInfo;
+import com.hp.nga.integrations.dto.general.CIPluginInfo;
 
 /**
  * Created by gullery on 03/01/2016.
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-class PluginInfoImpl implements PluginInfo {
+class CIPluginInfoImpl implements CIPluginInfo {
 	private String version;
 
-	public PluginInfoImpl() {
+	public CIPluginInfoImpl() {
 	}
 
-	public PluginInfoImpl(String version) {
+	public CIPluginInfoImpl(String version) {
 		this.version = version;
 	}
 
@@ -22,7 +22,7 @@ class PluginInfoImpl implements PluginInfo {
 		return version;
 	}
 
-	public PluginInfo setVersion(String version) {
+	public CIPluginInfo setVersion(String version) {
 		this.version = version;
 		return this;
 	}

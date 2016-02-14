@@ -4,11 +4,13 @@ import com.hp.nga.integrations.dto.DTOBase;
 
 /**
  * Created by gullery on 08/02/2016.
+ * <p>
+ * Plugin info descriptor
  */
 
-public interface PluginInfo extends DTOBase {
+public interface CIPluginInfo extends DTOBase {
 
 	String getVersion();
 
-	PluginInfo setVersion(String version);
+	CIPluginInfo setVersion(String version);
 }

@@ -6,6 +6,8 @@ import java.util.Map;
 
 /**
  * Created by gullery on 07/01/2016.
+ * <p>
+ * REST Response descriptor (normalized to NGA usages)
  */
 
 public interface NGAResponse extends DTOBase {

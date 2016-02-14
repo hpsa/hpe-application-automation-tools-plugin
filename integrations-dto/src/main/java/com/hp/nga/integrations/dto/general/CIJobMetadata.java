@@ -5,19 +5,21 @@ import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 
 /**
  * Created by lazara on 08/02/2016.
+ * <p>
+ * CI Job metadata descriptor
  */
 
-public interface CIJobConfig extends DTOBase {
+public interface CIJobMetadata extends DTOBase {
 
-	CIJobConfig setName(String value);
+	CIJobMetadata setName(String value);
 
 	String getName();
 
-	CIJobConfig setCiId(String ciId);
+	CIJobMetadata setCiId(String ciId);
 
 	String getCiId();
 
-	CIJobConfig setParameters(ParameterConfig[] parameters);
+	CIJobMetadata setParameters(ParameterConfig[] parameters);
 
 	ParameterConfig[] getParameters();
 }

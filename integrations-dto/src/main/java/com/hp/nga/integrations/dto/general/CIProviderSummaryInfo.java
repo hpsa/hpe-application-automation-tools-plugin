@@ -5,16 +5,16 @@ import com.hp.nga.integrations.dto.DTOBase;
 /**
  * Created by gullery on 03/01/2016.
  * <p>
- * Description of Plugin Status
+ * CI Provider summary data container descriptor
  */
 
 public interface CIProviderSummaryInfo extends DTOBase {
 
-	ServerInfo getServer();
+	CIServerInfo getServer();
 
-	CIProviderSummaryInfo setServer(ServerInfo server);
+	CIProviderSummaryInfo setServer(CIServerInfo server);
 
-	PluginInfo getPlugin();
+	CIPluginInfo getPlugin();
 
-	CIProviderSummaryInfo setPlugin(PluginInfo plugin);
+	CIProviderSummaryInfo setPlugin(CIPluginInfo plugin);
 }

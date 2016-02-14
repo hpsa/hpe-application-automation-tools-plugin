@@ -3,14 +3,14 @@ package com.hp.octane.plugins.jenkins;
 import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
-import com.hp.nga.integrations.dto.general.PluginInfo;
-import com.hp.nga.integrations.dto.general.ServerInfo;
+import com.hp.nga.integrations.dto.general.CIPluginInfo;
+import com.hp.nga.integrations.dto.general.CIServerInfo;
 import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 import com.hp.nga.integrations.dto.parameters.ParameterType;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.general.CIJobsList;
-import com.hp.nga.integrations.dto.general.CIJobConfig;
+import com.hp.nga.integrations.dto.general.CIJobMetadata;
 import com.hp.nga.integrations.dto.scm.SCMData;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
 import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
@@ -51,8 +51,8 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Override
-	public ServerInfo getServerInfo() {
-		ServerInfo result = dtoFactory.newDTO(ServerInfo.class);
+	public CIServerInfo getServerInfo() {
+		CIServerInfo result = dtoFactory.newDTO(CIServerInfo.class);
 		String serverUrl = Jenkins.getInstance().getRootUrl();
 		if (serverUrl != null && serverUrl.endsWith("/")) {
 			serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
@@ -67,8 +67,8 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	}
 
 	@Override
-	public PluginInfo getPluginInfo() {
-		PluginInfo result = dtoFactory.newDTO(PluginInfo.class);
+	public CIPluginInfo getPluginInfo() {
+		CIPluginInfo result = dtoFactory.newDTO(CIPluginInfo.class);
 		result.setVersion(Jenkins.getInstance().getPlugin(OctanePlugin.class).getWrapper().getVersion());
 		return result;
 	}
@@ -88,13 +88,13 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	public CIJobsList getJobsList(boolean includeParameters) {
 
 		CIJobsList result = dtoFactory.newDTO(CIJobsList.class);
-		CIJobConfig tmpConfig;
+		CIJobMetadata tmpConfig;
 		AbstractProject tmpProject;
-		List<CIJobConfig> list = new ArrayList<CIJobConfig>();
+		List<CIJobMetadata> list = new ArrayList<CIJobMetadata>();
 		List<String> itemNames = (List<String>) Jenkins.getInstance().getTopLevelItemNames();
 		for (String name : itemNames) {
 			tmpProject = (AbstractProject) Jenkins.getInstance().getItem(name);
-			tmpConfig = dtoFactory.newDTO(CIJobConfig.class);
+			tmpConfig = dtoFactory.newDTO(CIJobMetadata.class);
 			tmpConfig.setName(name);
 			tmpConfig.setCiId(name);
 			if (includeParameters) {
@@ -113,7 +113,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 			}
 			list.add(tmpConfig);
 		}
-		result.setJobs(list.toArray(new CIJobConfig[list.size()]));
+		result.setJobs(list.toArray(new CIJobMetadata[list.size()]));
 		return result;
 	}
 

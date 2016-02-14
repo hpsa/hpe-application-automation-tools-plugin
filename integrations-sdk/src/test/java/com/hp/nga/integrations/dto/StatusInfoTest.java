@@ -2,8 +2,8 @@ package com.hp.nga.integrations.dto;
 
 import com.hp.nga.integrations.dto.general.CIProviderSummaryInfo;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
-import com.hp.nga.integrations.dto.general.PluginInfo;
-import com.hp.nga.integrations.dto.general.ServerInfo;
+import com.hp.nga.integrations.dto.general.CIPluginInfo;
+import com.hp.nga.integrations.dto.general.CIServerInfo;
 import org.junit.Test;
 
 import java.util.UUID;
@@ -29,10 +29,10 @@ public class StatusInfoTest {
 	public void testA() {
 		CIProviderSummaryInfo statusInfo = dtoFactory.newDTO(CIProviderSummaryInfo.class);
 
-		PluginInfo pluginInfo = dtoFactory.newDTO(PluginInfo.class)
+		CIPluginInfo CIPluginInfo = dtoFactory.newDTO(CIPluginInfo.class)
 				.setVersion(PLUGIN_VERSION);
 
-		ServerInfo serverInfo = dtoFactory.newDTO(ServerInfo.class)
+		CIServerInfo CIServerInfo = dtoFactory.newDTO(CIServerInfo.class)
 				.setType(CIServerTypes.JENKINS)
 				.setVersion(SERVER_VERION)
 				.setInstanceId(SERVER_UUID)
@@ -40,8 +40,8 @@ public class StatusInfoTest {
 				.setSendingTime(SYNC_TIME)
 				.setUrl(INPUT_SERVER_URL);
 
-		statusInfo.setPlugin(pluginInfo);
-		statusInfo.setServer(serverInfo);
+		statusInfo.setPlugin(CIPluginInfo);
+		statusInfo.setServer(CIServerInfo);
 
 		String json = dtoFactory.dtoToJson(statusInfo);
 

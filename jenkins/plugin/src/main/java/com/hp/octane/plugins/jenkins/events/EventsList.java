@@ -2,8 +2,7 @@ package com.hp.octane.plugins.jenkins.events;
 
 import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.events.CIEventBase;
-import com.hp.nga.integrations.dto.general.ServerInfo;
-import com.hp.octane.plugins.jenkins.actions.PluginActions;
+import com.hp.nga.integrations.dto.general.CIServerInfo;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
@@ -27,10 +26,10 @@ public class EventsList {
 	}
 
 	@Exported(inline = true)
-	public ServerInfo getServer() {
-		ServerInfo serverInfo = DTOFactory.getInstance().newDTO(ServerInfo.class);
+	public CIServerInfo getServer() {
+		CIServerInfo CIServerInfo = DTOFactory.getInstance().newDTO(CIServerInfo.class);
 		//  currently not inflating nothing
-		return serverInfo;
+		return CIServerInfo;
 	}
 
 	@Exported(inline = true)

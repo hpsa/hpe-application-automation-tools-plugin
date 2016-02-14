@@ -7,9 +7,11 @@ import java.util.Map;
 
 /**
  * Created by gullery on 08/01/2016.
+ * <p>
+ * Result container descriptor, as to be used in abridged tasking in NGA
  */
 
-public interface NGAResultAbridged extends DTOBase, Serializable {
+public interface NGAResultAbridged extends DTOBase {
 
 	String getId();
 
