@@ -47,34 +47,34 @@ public class ConfigurationActionsController extends AbstractActionController {
     @Override
     public ModelAndView handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
 
-        String username = httpServletRequest.getParameter("username1");
-        String password = httpServletRequest.getParameter("password1");
-        String url_str = httpServletRequest.getParameter("server");
-
-
-        MqmProject mqmProject = null;
-        try {
-            mqmProject = ConfigurationService.parseUiLocation(url_str);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        ServerConfiguration serverConfiguration  = new ServerConfiguration(
-                mqmProject.getLocation(),
-                mqmProject.getSharedSpace(),
-                username,
-                password,
-                "");
-        String returnStr = handleTestRequest(serverConfiguration);
-        PrintWriter writer;
-
-        try
-        {
-            writer = httpServletResponse.getWriter();
-            writer.write(returnStr);
-        }
-
-        catch(IOException e){}
+//        String username = httpServletRequest.getParameter("username1");
+//        String password = httpServletRequest.getParameter("password1");
+//        String url_str = httpServletRequest.getParameter("server");
+//
+//
+//        MqmProject mqmProject = null;
+//        try {
+//            mqmProject = ConfigurationService.parseUiLocation(url_str);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//
+//        ServerConfiguration serverConfiguration  = new ServerConfiguration(
+//                mqmProject.getLocation(),
+//                mqmProject.getSharedSpace(),
+//                username,
+//                password,
+//                "");
+//        String returnStr = handleTestRequest(serverConfiguration);
+//        PrintWriter writer;
+//
+//        try
+//        {
+//            writer = httpServletResponse.getWriter();
+//            writer.write(returnStr);
+//        }
+//
+//        catch(IOException e){}
         return null;
 
     }

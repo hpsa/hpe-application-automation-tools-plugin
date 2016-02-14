@@ -14,13 +14,14 @@ import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.kohsuke.stapler.export.Exported;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
-import java.util.logging.Logger;
 
 /**
  * Created by gullery on 12/08/2015.
@@ -29,7 +30,7 @@ import java.util.logging.Logger;
  */
 
 public class BridgeClient {
-	private static final Logger logger = Logger.getLogger(BridgeClient.class.getName());
+	private static final Logger logger = LogManager.getLogger(BridgeClient.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String serverInstanceId = Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity();
 	private static final String pluginVersion = Jenkins.getInstance().getPlugin(OctanePlugin.class).getWrapper().getVersion();
@@ -76,7 +77,7 @@ public class BridgeClient {
 							dispatchTasks(tasksJSON);
 						}
 					} catch (AuthenticationException ae) {
-						logger.severe("BRIDGE: connection to MQM Server temporary failed: authentication error");
+						logger.error("BRIDGE: connection to MQM Server temporary failed: authentication error", ae);
 						try {
 							Thread.sleep(20000);
 						} catch (InterruptedException ie) {
@@ -84,7 +85,7 @@ public class BridgeClient {
 						}
 						connect();
 					} catch (TemporarilyUnavailableException tue) {
-						logger.severe("BRIDGE: connection to MQM Server temporary failed: resource not available");
+						logger.error("BRIDGE: connection to MQM Server temporary failed: resource not available", tue);
 						try {
 							Thread.sleep(20000);
 						} catch (InterruptedException ie) {
@@ -92,7 +93,7 @@ public class BridgeClient {
 						}
 						connect();
 					} catch (Exception e) {
-						logger.severe("BRIDGE: connection to MQM Server temporary failed: " + e.getMessage());
+						logger.error("BRIDGE: connection to MQM Server temporary failed: " + e.getMessage(), e);
 						try {
 							Thread.sleep(1000);
 						} catch (InterruptedException ie) {
@@ -142,7 +143,7 @@ public class BridgeClient {
 				});
 			}
 		} catch (Exception e) {
-			logger.severe("BRIDGE: failed to process tasks: " + e.getMessage());
+			logger.error("BRIDGE: failed to process tasks: " + e.getMessage(), e);
 		}
 	}
 

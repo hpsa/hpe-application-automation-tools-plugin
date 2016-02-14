@@ -8,6 +8,8 @@ import com.hp.nga.integrations.dto.general.CIJobsList;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
 import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
 
+import java.io.File;
+
 /**
  * Created by gullery on 20/01/2016.
  * <p>
@@ -31,9 +33,16 @@ public interface CIPluginServices {
 	CIPluginInfo getPluginInfo();
 
 	/**
+	 * Provider the folder that the plugin is allowed to write to (logs, temporary stuff etc)
+	 *
+	 * @return File object of type Directory; if no available storage exists the implementation should return NULL
+	 */
+	File getAllowedNGAStorage();
+
+	/**
 	 * Provides NGA Server configuration (managed by plugin implementation)
 	 *
-	 * @return NGAConfiguration object; MUST NOT return null
+	 * @return NGAConfiguration object; if no configuration available the implementation should return NULL
 	 */
 	NGAConfiguration getNGAConfiguration();
 
@@ -62,8 +71,6 @@ public interface CIPluginServices {
 	 */
 	int runPipeline(String ciJobId, String originalBody);       //  [YG]: TODO: replace the body thing with parsed parameters/DTO
 
-	//  TODO: Almog's history API (TBR)
-
 	/**
 	 * Provides Snapshot of the specified CI Build
 	 *
@@ -73,5 +80,12 @@ public interface CIPluginServices {
 	 */
 	SnapshotNode getSnapshotLatest(String ciJobId, boolean subTree);
 
+	/**
+	 * Retrieves aggregated latest builds info                  //  [YG]: TODO: this API should be removed, all the relevant data should be made available in the rest of APIs
+	 *
+	 * @param ciJobId
+	 * @param originalBody
+	 * @return
+	 */
 	BuildHistory getHistoryPipeline(String ciJobId, String originalBody);
 }

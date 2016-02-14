@@ -10,8 +10,6 @@ import com.hp.octane.plugins.CIPluginServicesImpl;
 import com.hp.octane.plugins.common.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jetbrains.teamcity.actions.*;
 import com.hp.octane.plugins.jetbrains.teamcity.configuration.ConfigurationService;
-import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
-import com.hp.octane.plugins.jetbrains.teamcity.factories.TeamCityModelFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.Config;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.ConfigManager;
 import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;
@@ -123,14 +121,14 @@ public class NGAPlugin implements ServerExtension {
                 new StatusActionController(sBuildServer, projectManager, responsibilityFacade));
 
         ////////////////////////////////////////////////////////////////////////////////////
-        webControllerManager.registerController("/octane-rest/admin/**",
-                new AdminActionController(sBuildServer, projectManager, responsibilityFacade, projectSettingsManager, pluginDescriptor));
-
-        webControllerManager.registerController("/octane-rest/userDetails/**",
-                new UserDetailsActionController(sBuildServer, projectManager, responsibilityFacade, projectSettingsManager, pluginDescriptor));
-
-        webControllerManager.registerController("/octane-rest/testConnection/**",
-                new TestConnectionActionController(sBuildServer, projectManager, responsibilityFacade, projectSettingsManager, pluginDescriptor));
+//        webControllerManager.registerController("/octane-rest/admin/**",
+//                new AdminActionController(sBuildServer, projectManager, responsibilityFacade, projectSettingsManager, pluginDescriptor));
+//
+//        webControllerManager.registerController("/octane-rest/userDetails/**",
+//                new UserDetailsActionController(sBuildServer, projectManager, responsibilityFacade, projectSettingsManager, pluginDescriptor));
+//
+//        webControllerManager.registerController("/octane-rest/testConnection/**",
+//                new TestConnectionActionController(sBuildServer, projectManager, responsibilityFacade, projectSettingsManager, pluginDescriptor));
 
     }
 

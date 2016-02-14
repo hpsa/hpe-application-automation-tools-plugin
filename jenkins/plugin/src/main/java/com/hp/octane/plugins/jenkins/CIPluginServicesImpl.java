@@ -32,6 +32,7 @@ import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 
 import javax.xml.bind.DatatypeConverter;
+import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -71,6 +72,11 @@ public class CIPluginServicesImpl implements CIPluginServices {
 		CIPluginInfo result = dtoFactory.newDTO(CIPluginInfo.class);
 		result.setVersion(Jenkins.getInstance().getPlugin(OctanePlugin.class).getWrapper().getVersion());
 		return result;
+	}
+
+	@Override
+	public File getAllowedNGAStorage() {
+		return new File(Jenkins.getInstance().getRootDir(), "userContent" + File.separator + "nga");
 	}
 
 	@Override

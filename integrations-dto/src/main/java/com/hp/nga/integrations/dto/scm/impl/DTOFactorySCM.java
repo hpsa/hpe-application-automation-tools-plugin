@@ -23,7 +23,6 @@ public final class DTOFactorySCM implements DTOFactoryInternalBase {
 	}
 
 	public static void ensureInit(Map<Class<? extends DTOBase>, DTOFactoryInternalBase> registry, ObjectMapper objectMapper) {
-		assert INSTANCE_HOLDER.instance != null;
 		registry.put(SCMCommit.class, INSTANCE_HOLDER.instance);
 		registry.put(SCMRepository.class, INSTANCE_HOLDER.instance);
 		registry.put(SCMData.class, INSTANCE_HOLDER.instance);

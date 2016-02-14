@@ -14,6 +14,7 @@ import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.Config;
 
+import java.io.File;
 import java.util.logging.Logger;
 
 /**
@@ -49,6 +50,12 @@ public class CIPluginServicesImpl implements CIPluginServices {
 		CIPluginInfo CIPluginInfo = DTOFactory.getInstance().newDTO(CIPluginInfo.class);
 		CIPluginInfo.setVersion(pluginVersion);
 		return CIPluginInfo;
+	}
+
+	@Override
+	public File getAllowedNGAStorage() {
+		//  not yet implemented, null means no storage available
+		return null;
 	}
 
 	@Override

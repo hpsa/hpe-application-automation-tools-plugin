@@ -26,6 +26,7 @@ public class SDKFactory {
 		}
 
 		SDKFactory.ciPluginServices = ciPluginServices;
+		LoggingService.ensureInit();
 		//  do init logic
 		//  init bridge
 		//  init rest client
