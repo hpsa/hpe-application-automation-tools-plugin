@@ -4,6 +4,7 @@ import com.hp.mqm.client.MqmConnectionConfig;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.MqmRestClientImpl;
 import com.hp.mqm.client.UsernamePasswordProxyCredentials;
+import com.hp.octane.plugins.jetbrains.teamcity.configuration.ConfigurationService;
 import org.apache.commons.lang.StringUtils;
 
 import java.net.MalformedURLException;
@@ -28,7 +29,7 @@ public class MqmRestClientFactory {
     }
 
     private static void configureProxy(String clientType, URL locationUrl, MqmConnectionConfig clientConfig, String username) {
-        if (clientType.equals("HPE_TEAMCITY_PLUGIN")){
+        if (clientType.equals(ConfigurationService.CLIENT_TYPE)){
             if (isProxyNeeded(locationUrl.getHost())) {
                 clientConfig.setProxyHost(getProxyHost());
                 clientConfig.setProxyPort(getProxyPort());

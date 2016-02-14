@@ -9,6 +9,9 @@ import com.hp.nga.integrations.services.bridge.BridgeService;
 import com.hp.octane.plugins.CIPluginServicesImpl;
 import com.hp.octane.plugins.common.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jetbrains.teamcity.actions.*;
+import com.hp.octane.plugins.jetbrains.teamcity.configuration.ConfigurationService;
+import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
+import com.hp.octane.plugins.jetbrains.teamcity.factories.TeamCityModelFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.Config;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.ConfigManager;
 import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;
@@ -36,7 +39,7 @@ public class NGAPlugin implements ServerExtension {
     private Long identityFrom;
 
     // inferred from uiLocation
-    private final String PLUGIN_TYPE = "HPE_TEAMCITY_PLUGIN";
+    private final String PLUGIN_TYPE = ConfigurationService.CLIENT_TYPE;
 
     private SBuildServer sBuildServer;
     private ProjectManager projectManager;
