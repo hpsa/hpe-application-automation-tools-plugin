@@ -10,7 +10,6 @@ import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
 import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
 import com.hp.nga.integrations.services.SDKFactory;
-import com.hp.nga.integrations.services.serialization.SerializationService;
 
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -91,17 +90,17 @@ public class NGATaskProcessor {
 		CIProviderSummaryInfo status = dtoFactory.newDTO(CIProviderSummaryInfo.class)
 				.setServer(dataProvider.getServerInfo())
 				.setPlugin(dataProvider.getPluginInfo());
-		result.setBody(SerializationService.toJSON(status));
+		result.setBody(dtoFactory.dtoToJson(status));
 	}
 
 	private void executeJobsListRequest(NGAResultAbridged result, boolean includingParameters) {
 		CIJobsList content = SDKFactory.getCIPluginServices().getJobsList(includingParameters);
-		result.setBody(SerializationService.toJSON(content));
+		result.setBody(dtoFactory.dtoToJson(content));
 	}
 
 	private void executePipelineRequest(NGAResultAbridged result, String jobId) {
 		PipelineNode content = SDKFactory.getCIPluginServices().getPipeline(jobId);
-		result.setBody(SerializationService.toJSON(content));
+		result.setBody(dtoFactory.dtoToJson(content));
 	}
 
 	private void executePipelineRunRequest(NGAResultAbridged result, String jobId, String originalBody) {
@@ -111,11 +110,11 @@ public class NGATaskProcessor {
 
 	private void executeLatestSnapshotRequest(NGAResultAbridged result, String jobId, boolean subTree) {
 		SnapshotNode content = SDKFactory.getCIPluginServices().getSnapshotLatest(jobId, subTree);
-		result.setBody(SerializationService.toJSON(content));
+		result.setBody(dtoFactory.dtoToJson(content));
 	}
 
 	private void executeHistoryRequest(NGAResultAbridged result, String jobId, String originalBody) {
 		BuildHistory content = SDKFactory.getCIPluginServices().getHistoryPipeline(jobId, originalBody);
-		result.setBody(SerializationService.toJSON(content));
+		result.setBody(dtoFactory.dtoToJson(content));
 	}
 }

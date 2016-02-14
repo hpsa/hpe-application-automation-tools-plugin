@@ -10,7 +10,9 @@ import com.hp.nga.integrations.dto.scm.impl.DTOFactorySCM;
 import com.hp.nga.integrations.dto.snapshots.impl.DTOFactorySnapshots;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -68,12 +70,39 @@ public final class DTOFactory {
 		}
 	}
 
+	public <T extends DTOBase> String dtoCollectionToJson(List<T> dto) {
+		if (dto == null) {
+			throw new IllegalArgumentException("dto MUST NOT be null");
+		}
+
+		try {
+			return objectMapper.writeValueAsString(dto);
+		} catch (JsonProcessingException ioe) {
+			throw new RuntimeException("failed to serialize " + dto + " from JSON; error: " + ioe.getMessage());
+		}
+	}
+
 	public <T extends DTOBase> T dtoFromJson(String json, Class<T> targetType) {
 		if (targetType == null) {
 			throw new IllegalArgumentException("target type MUST NOT be null");
 		}
 		if (!targetType.isInterface()) {
 			throw new IllegalArgumentException("target type MUST be an Interface");
+		}
+
+		try {
+			return objectMapper.readValue(json, targetType);
+		} catch (IOException ioe) {
+			throw new RuntimeException("failed to deserialize " + json + " into " + targetType + "; error: " + ioe.getMessage());
+		}
+	}
+
+	public <T extends DTOBase> T[] dtoCollectionFromJson(String json, Class<T[]> targetType) {
+		if (targetType == null) {
+			throw new IllegalArgumentException("target type MUST NOT be null");
+		}
+		if (!targetType.isArray()) {
+			throw new IllegalArgumentException("target type MUST be an Array");
 		}
 
 		try {

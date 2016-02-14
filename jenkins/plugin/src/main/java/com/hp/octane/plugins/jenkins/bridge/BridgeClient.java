@@ -4,11 +4,11 @@ import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.AuthenticationException;
 import com.hp.mqm.client.exception.TemporarilyUnavailableException;
 import com.hp.nga.integrations.api.CIPluginServices;
+import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.services.SDKFactory;
 import com.hp.nga.integrations.services.bridge.NGATaskProcessor;
 import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
 import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
-import com.hp.nga.integrations.services.serialization.SerializationService;
 import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
@@ -30,6 +30,7 @@ import java.util.logging.Logger;
 
 public class BridgeClient {
 	private static final Logger logger = Logger.getLogger(BridgeClient.class.getName());
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String serverInstanceId = Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity();
 	private static final String pluginVersion = Jenkins.getInstance().getPlugin(OctanePlugin.class).getWrapper().getVersion();
 	private static final Integer apiVersion = 1;
@@ -113,7 +114,8 @@ public class BridgeClient {
 
 	private void dispatchTasks(String tasksJSON) {
 		try {
-			NGATaskAbridged[] tasks = SerializationService.fromJSON(tasksJSON, NGATaskAbridged[].class);
+			NGATaskAbridged[] tasks = dtoFactory.dtoCollectionFromJson(tasksJSON, NGATaskAbridged[].class);
+
 			logger.info("BRIDGE: going to process " + tasks.length + " tasks");
 			for (final NGATaskAbridged task : tasks) {
 				taskProcessingExecutors.execute(new Runnable() {

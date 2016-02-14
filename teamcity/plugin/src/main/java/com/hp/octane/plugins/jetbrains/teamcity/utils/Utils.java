@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jetbrains.teamcity.utils;
 
-import com.hp.nga.integrations.services.serialization.SerializationService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -19,7 +19,7 @@ public class Utils {
         //BuildConfigurationHolder state = (BuildConfigurationHolder)map.get("ViewState");
 
         if (result != null) {
-            data.append(SerializationService.toJSON(result));
+            data.append(new ObjectMapper().writeValueAsString(result));
         }
 
         String[] jsonp = request.getParameterValues("jsonp");
