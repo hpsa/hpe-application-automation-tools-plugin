@@ -38,17 +38,19 @@ public class TestConnectionActionController extends AbstractActionController {
         String password = httpServletRequest.getParameter("password1");
         String url_str = httpServletRequest.getParameter("server");
 
-        MqmProject mqmProject = null;
+
+        PrintWriter writer;
+        String returnString="";
         try {
-            mqmProject = ConfigurationService.parseUiLocation(url_str);
+            MqmProject mqmProject = ConfigurationService.parseUiLocation(url_str);
+            returnString= ConfigurationService.checkConfiguration(mqmProject.getLocation(), mqmProject.getSharedSpace(),
+                    username, password,CLIENT_TYPE);
+
+
         } catch (Exception e) {
             e.printStackTrace();
+            returnString = e.getMessage();
         }
-
-        String returnString = ConfigurationService.checkConfiguration(mqmProject.getLocation(), mqmProject.getSharedSpace(),
-                username, password,CLIENT_TYPE);
-        PrintWriter writer;
-
 
         try
         {
@@ -56,7 +58,9 @@ public class TestConnectionActionController extends AbstractActionController {
             writer.write(returnString);
         }
 
-        catch(IOException e){}
+        catch(IOException e){
+
+        }
 
         return null;
     }

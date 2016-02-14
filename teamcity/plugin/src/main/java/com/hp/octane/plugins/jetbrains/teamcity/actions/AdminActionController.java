@@ -54,6 +54,7 @@ public class AdminActionController extends AbstractActionController {
                 mqmProject = ConfigurationService.parseUiLocation(url_str);
             } catch (Exception e) {
                 e.printStackTrace();
+                throw e;
             }
 
             Config cfg = NGAPlugin.getInstance().getConfig();
