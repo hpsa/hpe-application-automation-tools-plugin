@@ -1,9 +1,9 @@
 package com.hp.nga.integrations.services.bridge;
 
-import com.hp.nga.integrations.services.configuration.NGAConfiguration;
-import com.hp.nga.integrations.dto.rest.NGAResult;
-import com.hp.nga.integrations.dto.rest.NGATask;
-import com.hp.nga.integrations.services.serialization.SerializationService;
+import com.hp.nga.integrations.dto.DTOFactory;
+import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
+import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
+import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -20,7 +20,7 @@ import java.util.logging.Logger;
 
 public class BridgeClient {
 	private static final Logger logger = Logger.getLogger(BridgeClient.class.getName());
-
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
 	private ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30, new AbridgedTasksExecutorsFactory());
 	volatile private boolean shuttingDown = false;
@@ -106,14 +106,14 @@ public class BridgeClient {
 
 	private void handleTasks(String tasksJSON) {
 		try {
-			NGATask[] tasks = SerializationService.fromJSON(tasksJSON, NGATask[].class);
+			NGATaskAbridged[] tasks = dtoFactory.dtoCollectionFromJson(tasksJSON, NGATaskAbridged[].class);
 
 			logger.info("BRIDGE: going to process " + tasks.length + " tasks");
-			for (final NGATask task : tasks) {
+			for (final NGATaskAbridged task : tasks) {
 				taskProcessingExecutors.execute(new Runnable() {
 					public void run() {
 						NGATaskProcessor taskProcessor = new NGATaskProcessor(task);
-						NGAResult result = taskProcessor.execute();
+						NGAResultAbridged result = taskProcessor.execute();
 						//  TODO: post the result to NGA
 					}
 				});

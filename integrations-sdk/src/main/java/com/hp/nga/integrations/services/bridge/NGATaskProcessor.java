@@ -2,15 +2,14 @@ package com.hp.nga.integrations.services.bridge;
 
 import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.general.IAggregatedInfo;
+import com.hp.nga.integrations.dto.general.CIProviderSummaryInfo;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
-import com.hp.nga.integrations.dto.pipelines.StructureItem;
-import com.hp.nga.integrations.dto.projects.JobsListDTO;
-import com.hp.nga.integrations.dto.rest.NGAResult;
-import com.hp.nga.integrations.dto.rest.NGATask;
-import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
+import com.hp.nga.integrations.dto.pipelines.PipelineNode;
+import com.hp.nga.integrations.dto.general.CIJobsList;
+import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
+import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
+import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
 import com.hp.nga.integrations.services.SDKFactory;
-import com.hp.nga.integrations.services.serialization.SerializationService;
 
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -23,7 +22,8 @@ import java.util.regex.Pattern;
 
 public class NGATaskProcessor {
 	private static final Logger logger = Logger.getLogger(NGATaskProcessor.class.getName());
-	private static final String OCTANE = "octane";
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+	private static final String NGA = "nga";
 	private static final String STATUS = "status";
 	private static final String JOBS = "jobs";
 	private static final String RUN = "run";
@@ -31,29 +31,29 @@ public class NGATaskProcessor {
 	private static final String BUILDS = "builds";
 	private static final String LATEST = "lastBuild";
 
-	private final NGATask task;
+	private final NGATaskAbridged task;
 
-	public NGATaskProcessor(NGATask task) {
+	public NGATaskProcessor(NGATaskAbridged task) {
 		if (task == null) {
 			throw new IllegalArgumentException("task MUST NOT be null");
 		}
 		if (task.getUrl() == null || task.getUrl().isEmpty()) {
 			throw new IllegalArgumentException("task 'URL' MUST NOT be null nor empty");
 		}
-		if (!task.getUrl().contains(OCTANE)) {
-			throw new IllegalArgumentException("task 'URL' expected to contain '" + OCTANE + "'; wrong handler call?");
+		if (!task.getUrl().contains(NGA)) {
+			throw new IllegalArgumentException("task 'URL' expected to contain '" + NGA + "'; wrong handler call?");
 		}
 
 		this.task = task;
 	}
 
-	public NGAResult execute() {
+	public NGAResultAbridged execute() {
 		logger.info("BRIDGE: processing task '" + task.getId() + "': " + task.getMethod() + " " + task.getUrl());
 
-		NGAResult result = new NGAResult();
+		NGAResultAbridged result = DTOFactory.getInstance().newDTO(NGAResultAbridged.class);
 		result.setId(task.getId());
 		result.setStatus(200);
-		String[] path = Pattern.compile("^.*" + OCTANE + "/?").matcher(task.getUrl()).replaceFirst("").split("/");
+		String[] path = Pattern.compile("^.*" + NGA + "/?").matcher(task.getUrl()).replaceFirst("").split("/");
 		try {
 			if (path.length == 1 && STATUS.equals(path[0])) {
 				executeStatusRequest(result);
@@ -77,7 +77,7 @@ public class NGATaskProcessor {
 				result.setStatus(404);
 			}
 		} catch (Exception e) {
-			logger.warning("can't execute the task\n"+e.getStackTrace());
+			logger.warning("can't execute the task\n" + e.getStackTrace());
 			result.setStatus(500);
 		}
 
@@ -85,37 +85,36 @@ public class NGATaskProcessor {
 		return result;
 	}
 
-	private void executeStatusRequest(NGAResult result) {
+	private void executeStatusRequest(NGAResultAbridged result) {
 		CIPluginServices dataProvider = SDKFactory.getCIPluginServices();
-		IAggregatedInfo status = DTOFactory.createDTO(IAggregatedInfo.class);
-		status.setServer(dataProvider.getServerInfo());
-		status.setPlugin(dataProvider.getPluginInfo());
-		result.setBody(SerializationService.toJSON(status));
+		CIProviderSummaryInfo status = dtoFactory.newDTO(CIProviderSummaryInfo.class)
+				.setServer(dataProvider.getServerInfo())
+				.setPlugin(dataProvider.getPluginInfo());
+		result.setBody(dtoFactory.dtoToJson(status));
 	}
 
-	private void executeJobsListRequest(NGAResult result, boolean includingParameters) {
-		JobsListDTO content = SDKFactory.getCIPluginServices().getJobsList(includingParameters);
-		result.setBody(SerializationService.toJSON(content));
+	private void executeJobsListRequest(NGAResultAbridged result, boolean includingParameters) {
+		CIJobsList content = SDKFactory.getCIPluginServices().getJobsList(includingParameters);
+		result.setBody(dtoFactory.dtoToJson(content));
 	}
 
-	private void executePipelineRequest(NGAResult result, String jobId) {
-		StructureItem content = SDKFactory.getCIPluginServices().getPipeline(jobId);
-		result.setBody(SerializationService.toJSON(content));
+	private void executePipelineRequest(NGAResultAbridged result, String jobId) {
+		PipelineNode content = SDKFactory.getCIPluginServices().getPipeline(jobId);
+		result.setBody(dtoFactory.dtoToJson(content));
 	}
 
-	private void executePipelineRunRequest(NGAResult result, String jobId, String originalBody) {
+	private void executePipelineRunRequest(NGAResultAbridged result, String jobId, String originalBody) {
 		int status = SDKFactory.getCIPluginServices().runPipeline(jobId, originalBody);
 		result.setStatus(status);
 	}
 
-	private void executeLatestSnapshotRequest(NGAResult result, String jobId, boolean subTree) {
-		SnapshotItem content = SDKFactory.getCIPluginServices().getSnapshotLatest(jobId, subTree);
-		result.setBody(SerializationService.toJSON(content));
+	private void executeLatestSnapshotRequest(NGAResultAbridged result, String jobId, boolean subTree) {
+		SnapshotNode content = SDKFactory.getCIPluginServices().getSnapshotLatest(jobId, subTree);
+		result.setBody(dtoFactory.dtoToJson(content));
 	}
 
-	private void executeHistoryRequest(NGAResult result, String jobId, String originalBody) {
-
-		BuildHistory content = SDKFactory.getCIPluginServices().getHistoryPipeline(jobId,originalBody);
-		result.setBody(SerializationService.toJSON(content));
+	private void executeHistoryRequest(NGAResultAbridged result, String jobId, String originalBody) {
+		BuildHistory content = SDKFactory.getCIPluginServices().getHistoryPipeline(jobId, originalBody);
+		result.setBody(dtoFactory.dtoToJson(content));
 	}
 }

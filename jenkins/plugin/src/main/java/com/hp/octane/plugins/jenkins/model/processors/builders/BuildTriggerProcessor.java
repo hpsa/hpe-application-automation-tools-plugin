@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jenkins.model.processors.builders;
 
-import com.hp.nga.integrations.dto.pipelines.StructurePhase;
+import com.hp.nga.integrations.dto.pipelines.PipelinePhase;
 import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import hudson.model.AbstractProject;
 import hudson.tasks.BuildTrigger;
@@ -24,7 +24,7 @@ public class BuildTriggerProcessor extends AbstractBuilderProcessor {
 
 	public BuildTriggerProcessor(Publisher publisher, AbstractProject project) {
 		BuildTrigger t = (BuildTrigger) publisher;
-		super.phases = new ArrayList<StructurePhase>();
+		super.phases = new ArrayList<PipelinePhase>();
 		List<AbstractProject> items = t.getChildProjects(project.getParent());
 		for (Iterator<AbstractProject> iterator = items.iterator(); iterator.hasNext();) {
 			AbstractProject next = iterator.next();

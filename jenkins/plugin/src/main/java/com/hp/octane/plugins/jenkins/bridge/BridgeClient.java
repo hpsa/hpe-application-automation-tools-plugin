@@ -4,14 +4,15 @@ import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.AuthenticationException;
 import com.hp.mqm.client.exception.TemporarilyUnavailableException;
 import com.hp.nga.integrations.api.CIPluginServices;
+import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.services.SDKFactory;
 import com.hp.nga.integrations.services.bridge.NGATaskProcessor;
-import com.hp.nga.integrations.dto.rest.NGAResult;
-import com.hp.nga.integrations.dto.rest.NGATask;
-import com.hp.nga.integrations.services.serialization.SerializationService;
-import com.hp.octane.plugins.jenkins.actions.PluginActions;
+import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
+import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
+import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
+import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.export.Exported;
 
@@ -29,7 +30,10 @@ import java.util.logging.Logger;
 
 public class BridgeClient {
 	private static final Logger logger = Logger.getLogger(BridgeClient.class.getName());
-
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+	private static final String serverInstanceId = Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity();
+	private static final String pluginVersion = Jenkins.getInstance().getPlugin(OctanePlugin.class).getWrapper().getVersion();
+	private static final Integer apiVersion = 1;
 	private ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
 	private ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30, new AbridgedTasksExecutorsFactory());
 	volatile private boolean shuttingDown = false;
@@ -59,12 +63,13 @@ public class BridgeClient {
 					String tasksJSON;
 					CIPluginServices pluginServices = SDKFactory.getCIPluginServices();
 					try {
+						//  TODO: get server self URL by means of CIPluginServices
 						logger.info("BRIDGE: connecting to '" + mqmConfig.location +
 								"' (SP: " + mqmConfig.sharedSpace +
 								"; instance ID: " + pluginServices.getServerInfo().getInstanceId() +
-								"; self URL: " + new PluginActions.ServerInfo().getUrl());
+								"; self URL: " + "<to be implemented>");
 						MqmRestClient restClient = restClientFactory.obtain(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
-						tasksJSON = restClient.getAbridgedTasks(pluginServices.getServerInfo().getInstanceId(), new PluginActions.ServerInfo().getUrl());
+						tasksJSON = restClient.getAbridgedTasks(serverInstanceId, "http://dummy/url", pluginVersion, apiVersion);
 						logger.info("BRIDGE: back from '" + mqmConfig.location + "' (SP: " + mqmConfig.sharedSpace + ") with " + (tasksJSON == null || tasksJSON.isEmpty() ? "no tasks" : "some tasks"));
 						connect();
 						if (tasksJSON != null && !tasksJSON.isEmpty()) {
@@ -109,14 +114,15 @@ public class BridgeClient {
 
 	private void dispatchTasks(String tasksJSON) {
 		try {
-			NGATask[] tasks = SerializationService.fromJSON(tasksJSON, NGATask[].class);
+			NGATaskAbridged[] tasks = dtoFactory.dtoCollectionFromJson(tasksJSON, NGATaskAbridged[].class);
+
 			logger.info("BRIDGE: going to process " + tasks.length + " tasks");
-			for (final NGATask task : tasks) {
+			for (final NGATaskAbridged task : tasks) {
 				taskProcessingExecutors.execute(new Runnable() {
 					@Override
 					public void run() {
 						NGATaskProcessor NGATaskProcessor = new NGATaskProcessor(task);
-						NGAResult result = NGATaskProcessor.execute();
+						NGAResultAbridged result = NGATaskProcessor.execute();
 						MqmRestClient restClient = restClientFactory.obtain(
 								mqmConfig.location,
 								mqmConfig.sharedSpace,
@@ -128,7 +134,7 @@ public class BridgeClient {
 						json.put("body", result.getBody());
 
 						int submitStatus = restClient.putAbridgedResult(
-								new PluginActions.ServerInfo().getInstanceId(),
+								serverInstanceId,
 								result.getId(),
 								json.toString());
 						logger.info("BRIDGE: result for task '" + result.getId() + "' submitted with status " + submitStatus);

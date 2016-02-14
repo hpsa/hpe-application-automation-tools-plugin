@@ -1,11 +1,9 @@
 package com.hp.nga.integrations.dto;
 
-import com.hp.nga.integrations.dto.general.AggregatedInfo;
+import com.hp.nga.integrations.dto.general.CIProviderSummaryInfo;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
-import com.hp.nga.integrations.dto.general.PluginInfo;
-import com.hp.nga.integrations.dto.general.ServerInfo;
-import com.hp.nga.integrations.dto.general.*;
-import com.hp.nga.integrations.services.serialization.SerializationService;
+import com.hp.nga.integrations.dto.general.CIPluginInfo;
+import com.hp.nga.integrations.dto.general.CIServerInfo;
 import org.junit.Test;
 
 import java.util.UUID;
@@ -18,8 +16,8 @@ import static org.junit.Assert.assertNotNull;
  */
 
 public class StatusInfoTest {
+	private final static DTOFactory dtoFactory = DTOFactory.getInstance();
 	private final static String PLUGIN_VERSION = "2.3.4";
-
 	private final static String SERVER_VERION = "1.2.3";
 	private final static String INPUT_SERVER_URL = "http://some.url/";
 	private final static String EXPECTED_SERVER_URL = "http://some.url";
@@ -29,25 +27,25 @@ public class StatusInfoTest {
 
 	@Test
 	public void testA() {
-		AggregatedInfo statusInfo = new AggregatedInfo();
+		CIProviderSummaryInfo statusInfo = dtoFactory.newDTO(CIProviderSummaryInfo.class);
 
-		IPluginInfo pluginInfo = DTOFactory.createDTO(IPluginInfo.class);
-		pluginInfo.setVersion(PLUGIN_VERSION);
+		CIPluginInfo CIPluginInfo = dtoFactory.newDTO(CIPluginInfo.class)
+				.setVersion(PLUGIN_VERSION);
 
-		IServerInfo serverInfo = DTOFactory.createDTO(IServerInfo.class);
-		serverInfo.setType(CIServerTypes.JENKINS);
-		serverInfo.setVersion(SERVER_VERION);
-		serverInfo.setInstanceId(SERVER_UUID);
-		serverInfo.setInstanceIdFrom(SERVER_UUID_FROM);
-		serverInfo.setSendingTime(SYNC_TIME);
-		serverInfo.setUrl(INPUT_SERVER_URL);
+		CIServerInfo CIServerInfo = dtoFactory.newDTO(CIServerInfo.class)
+				.setType(CIServerTypes.JENKINS)
+				.setVersion(SERVER_VERION)
+				.setInstanceId(SERVER_UUID)
+				.setInstanceIdFrom(SERVER_UUID_FROM)
+				.setSendingTime(SYNC_TIME)
+				.setUrl(INPUT_SERVER_URL);
 
-		statusInfo.setPlugin(pluginInfo);
-		statusInfo.setServer(serverInfo);
+		statusInfo.setPlugin(CIPluginInfo);
+		statusInfo.setServer(CIServerInfo);
 
-		String json = SerializationService.toJSON(statusInfo);
+		String json = dtoFactory.dtoToJson(statusInfo);
 
-		AggregatedInfo newStatus = SerializationService.fromJSON(json, AggregatedInfo.class);
+		CIProviderSummaryInfo newStatus = dtoFactory.dtoFromJson(json, CIProviderSummaryInfo.class);
 
 		assertNotNull(newStatus);
 

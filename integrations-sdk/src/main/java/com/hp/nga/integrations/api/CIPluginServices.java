@@ -1,12 +1,12 @@
 package com.hp.nga.integrations.api;
 
-import com.hp.nga.integrations.dto.general.IPluginInfo;
-import com.hp.nga.integrations.dto.general.IServerInfo;
+import com.hp.nga.integrations.dto.general.CIPluginInfo;
+import com.hp.nga.integrations.dto.general.CIServerInfo;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
-import com.hp.nga.integrations.dto.pipelines.StructureItem;
-import com.hp.nga.integrations.dto.projects.JobsListDTO;
-import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
-import com.hp.nga.integrations.services.configuration.NGAConfiguration;
+import com.hp.nga.integrations.dto.pipelines.PipelineNode;
+import com.hp.nga.integrations.dto.general.CIJobsList;
+import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
+import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
 
 /**
  * Created by gullery on 20/01/2016.
@@ -21,14 +21,14 @@ public interface CIPluginServices {
 	 *
 	 * @return ServerInfo object; MUST NOT return null
 	 */
-	IServerInfo getServerInfo();
+	CIServerInfo getServerInfo();
 
 	/**
 	 * Provides Plugin's information
 	 *
 	 * @return PluginInfo object; MUST NOT return null
 	 */
-	IPluginInfo getPluginInfo();
+	CIPluginInfo getPluginInfo();
 
 	/**
 	 * Provides NGA Server configuration (managed by plugin implementation)
@@ -43,7 +43,7 @@ public interface CIPluginServices {
 	 * @param includeParameters
 	 * @return ProjectList object holding the list of the projects
 	 */
-	JobsListDTO getJobsList(boolean includeParameters);
+	CIJobsList getJobsList(boolean includeParameters);
 
 	/**
 	 * Provides Pipeline (structure) from the root CI Job
@@ -51,7 +51,7 @@ public interface CIPluginServices {
 	 * @param rootCIJobId
 	 * @return
 	 */
-	StructureItem getPipeline(String rootCIJobId);
+	PipelineNode getPipeline(String rootCIJobId);
 
 	/**
 	 * Executes the Pipeline, running the root job
@@ -71,7 +71,7 @@ public interface CIPluginServices {
 	 * @param subTree
 	 * @return
 	 */
-	SnapshotItem getSnapshotLatest(String ciJobId, boolean subTree);
+	SnapshotNode getSnapshotLatest(String ciJobId, boolean subTree);
 
 	BuildHistory getHistoryPipeline(String ciJobId, String originalBody);
 }

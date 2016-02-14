@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jenkins.model.processors.builders;
 
-import com.hp.nga.integrations.dto.pipelines.StructurePhase;
+import com.hp.nga.integrations.dto.pipelines.PipelinePhase;
 import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import hudson.model.AbstractProject;
 import hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig;
@@ -28,7 +28,7 @@ public class ParameterizedTriggerProcessor extends AbstractBuilderProcessor {
 
 	public ParameterizedTriggerProcessor(Builder builder, AbstractProject project, String phasesName) {
 		TriggerBuilder b = (TriggerBuilder) builder;
-		super.phases = new ArrayList<StructurePhase>();
+		super.phases = new ArrayList<PipelinePhase>();
 		List<AbstractProject> items;
 		for (BlockableBuildTriggerConfig config : b.getConfigs()) {
 			items = config.getProjectList(project.getParent(), null);
@@ -47,7 +47,7 @@ public class ParameterizedTriggerProcessor extends AbstractBuilderProcessor {
 
 	public ParameterizedTriggerProcessor(Publisher publisher, AbstractProject project, String phasesName) {
 		BuildTrigger t = (BuildTrigger) publisher;
-		super.phases = new ArrayList<StructurePhase>();
+		super.phases = new ArrayList<PipelinePhase>();
 		List<AbstractProject> items;
 		for (BuildTriggerConfig config : t.getConfigs()) {
 			items = config.getProjectList(project.getParent(), null);

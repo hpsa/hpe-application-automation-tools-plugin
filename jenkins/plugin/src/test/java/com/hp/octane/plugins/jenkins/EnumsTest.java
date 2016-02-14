@@ -77,8 +77,8 @@ public class EnumsTest {
 	@Test
 	public void testSCMType() {
 		assertEquals(SCMType.values().length, 2);
-		assertEquals(SCMType.UNSUPPORTED.toString(), "unsupported");
+		assertEquals(SCMType.UNKNOWN.toString(), "unsupported");
 		assertEquals(SCMType.GIT.toString(), "git");
-		assertEquals(SCMType.fromValue("unsupported"), SCMType.UNSUPPORTED);
+		assertEquals(SCMType.fromValue("unsupported"), SCMType.UNKNOWN);
 	}
 }

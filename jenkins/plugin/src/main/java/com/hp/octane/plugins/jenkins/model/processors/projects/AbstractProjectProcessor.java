@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jenkins.model.processors.projects;
 
-import com.hp.nga.integrations.dto.pipelines.StructurePhase;
+import com.hp.nga.integrations.dto.pipelines.PipelinePhase;
 import com.hp.octane.plugins.jenkins.model.processors.builders.AbstractBuilderProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.builders.BuildTriggerProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.builders.MultiJobBuilderProcessor;
@@ -24,8 +24,8 @@ import java.util.logging.Logger;
 public abstract class AbstractProjectProcessor {
 	private static final Logger logger = Logger.getLogger(AbstractProjectProcessor.class.getName());
 
-	private List<StructurePhase> internals = new ArrayList<StructurePhase>();
-	private List<StructurePhase> postBuilds = new ArrayList<StructurePhase>();
+	private List<PipelinePhase> internals = new ArrayList<PipelinePhase>();
+	private List<PipelinePhase> postBuilds = new ArrayList<PipelinePhase>();
 
 	protected void processBuilders(List<Builder> builders, AbstractProject project) {
 		this.processBuilders(builders, project, "");
@@ -70,11 +70,11 @@ public abstract class AbstractProjectProcessor {
 		}
 	}
 
-	public List<StructurePhase> getInternals() {
+	public List<PipelinePhase> getInternals() {
 		return internals;
 	}
 
-	public List<StructurePhase> getPostBuilds() {
+	public List<PipelinePhase> getPostBuilds() {
 		return postBuilds;
 	}
 

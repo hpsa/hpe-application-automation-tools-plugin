@@ -3,18 +3,17 @@ package com.hp.octane.plugins.jenkins;
 import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
-import com.hp.nga.integrations.dto.general.IPluginInfo;
-import com.hp.nga.integrations.dto.general.IServerInfo;
+import com.hp.nga.integrations.dto.general.CIPluginInfo;
+import com.hp.nga.integrations.dto.general.CIServerInfo;
 import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 import com.hp.nga.integrations.dto.parameters.ParameterType;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
-import com.hp.nga.integrations.dto.pipelines.StructureItem;
-import com.hp.nga.integrations.dto.projects.JobsListDTO;
-import com.hp.nga.integrations.dto.projects.ProjectConfig;
-import com.hp.nga.integrations.dto.projects.ProjectConfigImpl;
+import com.hp.nga.integrations.dto.pipelines.PipelineNode;
+import com.hp.nga.integrations.dto.general.CIJobsList;
+import com.hp.nga.integrations.dto.general.CIJobMetadata;
 import com.hp.nga.integrations.dto.scm.SCMData;
-import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
-import com.hp.nga.integrations.services.configuration.NGAConfiguration;
+import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
+import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
@@ -49,10 +48,11 @@ import java.util.logging.Logger;
 
 public class CIPluginServicesImpl implements CIPluginServices {
 	private static final Logger logger = Logger.getLogger(CIPluginServicesImpl.class.getName());
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Override
-	public IServerInfo getServerInfo() {
-		IServerInfo result = DTOFactory.createDTO(IServerInfo.class);
+	public CIServerInfo getServerInfo() {
+		CIServerInfo result = dtoFactory.newDTO(CIServerInfo.class);
 		String serverUrl = Jenkins.getInstance().getRootUrl();
 		if (serverUrl != null && serverUrl.endsWith("/")) {
 			serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
@@ -67,34 +67,34 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	}
 
 	@Override
-	public IPluginInfo getPluginInfo() {
-		IPluginInfo result = DTOFactory.createDTO(IPluginInfo.class);
+	public CIPluginInfo getPluginInfo() {
+		CIPluginInfo result = dtoFactory.newDTO(CIPluginInfo.class);
 		result.setVersion(Jenkins.getInstance().getPlugin(OctanePlugin.class).getWrapper().getVersion());
 		return result;
 	}
 
 	@Override
 	public NGAConfiguration getNGAConfiguration() {
-		NGAConfiguration result = new NGAConfiguration();
+		NGAConfiguration result = dtoFactory.newDTO(NGAConfiguration.class);
 		ServerConfiguration serverConfiguration = Jenkins.getInstance().getPlugin(OctanePlugin.class).getServerConfiguration();
 		result.setUrl(serverConfiguration.location);
 		result.setSharedSpace(Long.parseLong(serverConfiguration.sharedSpace));
-		result.setUsername(serverConfiguration.username);
-		result.setPassword(serverConfiguration.password);
+		result.setClientId(serverConfiguration.username);
+		result.setApiKey(serverConfiguration.password);
 		return result;
 	}
 
 	@Override
-	public JobsListDTO getJobsList(boolean includeParameters) {
+	public CIJobsList getJobsList(boolean includeParameters) {
 
-		JobsListDTO result = DTOFactory.createDTO(JobsListDTO.class);
-		ProjectConfig tmpConfig;
+		CIJobsList result = dtoFactory.newDTO(CIJobsList.class);
+		CIJobMetadata tmpConfig;
 		AbstractProject tmpProject;
-		List<ProjectConfig> list = new ArrayList<ProjectConfig>();
+		List<CIJobMetadata> list = new ArrayList<CIJobMetadata>();
 		List<String> itemNames = (List<String>) Jenkins.getInstance().getTopLevelItemNames();
 		for (String name : itemNames) {
 			tmpProject = (AbstractProject) Jenkins.getInstance().getItem(name);
-			tmpConfig = new ProjectConfigImpl();
+			tmpConfig = dtoFactory.newDTO(CIJobMetadata.class);
 			tmpConfig.setName(name);
 			tmpConfig.setCiId(name);
 			if (includeParameters) {
@@ -113,12 +113,12 @@ public class CIPluginServicesImpl implements CIPluginServices {
 			}
 			list.add(tmpConfig);
 		}
-		result.setJobs(list.toArray(new ProjectConfig[list.size()]));
+		result.setJobs(list.toArray(new CIJobMetadata[list.size()]));
 		return result;
 	}
 
 	@Override
-	public StructureItem getPipeline(String rootCIJobId) {
+	public PipelineNode getPipeline(String rootCIJobId) {
 
 		AbstractProject project = getProjectFromId(rootCIJobId);
 		if (project != null) {
@@ -178,8 +178,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	}
 
 	@Override
-	public SnapshotItem getSnapshotLatest(String ciJobId, boolean subTree) {
-
+	public SnapshotNode getSnapshotLatest(String ciJobId, boolean subTree) {
 		AbstractProject project = getProjectFromId(ciJobId);
 		if (project != null) {
 			AbstractBuild build = project.getLastBuild();
@@ -194,7 +193,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 		SCMData scmData;
 		Set<User> users;
 		SCMProcessor scmProcessor = SCMProcessors.getAppropriate(project.getScm().getClass().getName());
-		BuildHistory buildHistory = DTOFactory.createDTO(BuildHistory.class);
+		BuildHistory buildHistory = dtoFactory.newDTO(BuildHistory.class);
 		int numberOfBuilds = 5;
 //		if (req.getParameter("numberOfBuilds") != null) {
 //			numberOfBuilds = Integer.valueOf(req.getParameter("numberOfBuilds"));

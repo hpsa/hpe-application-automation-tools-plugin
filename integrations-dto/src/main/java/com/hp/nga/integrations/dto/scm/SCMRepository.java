@@ -1,5 +1,7 @@
 package com.hp.nga.integrations.dto.scm;
 
+import com.hp.nga.integrations.dto.DTOBase;
+
 /**
  * Created with IntelliJ IDEA.
  * User: gullery
@@ -8,26 +10,17 @@ package com.hp.nga.integrations.dto.scm;
  * To change this template use File | Settings | File Templates.
  */
 
-public class SCMRepository {
-	private final SCMType type;
-	private final String url;
-	private final String branch;
+public interface SCMRepository extends DTOBase {
 
-	public SCMRepository(SCMType type, String url, String branch) {
-		this.type = type;
-		this.url = url;
-		this.branch = branch;
-	}
+	SCMType getType();
 
-	public String getType() {
-		return type.toString();
-	}
+	SCMRepository setType(SCMType type);
 
-	public String getUrl() {
-		return url;
-	}
+	String getUrl();
 
-	public String getBranch() {
-		return branch;
-	}
+	SCMRepository setUrl(String url);
+
+	String getBranch();
+
+	SCMRepository setBranch(String branch);
 }

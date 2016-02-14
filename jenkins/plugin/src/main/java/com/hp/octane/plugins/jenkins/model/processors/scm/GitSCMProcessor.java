@@ -1,5 +1,6 @@
 package com.hp.octane.plugins.jenkins.model.processors.scm;
 
+import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.scm.SCMCommit;
 import com.hp.nga.integrations.dto.scm.SCMData;
 import com.hp.nga.integrations.dto.scm.SCMRepository;
@@ -21,6 +22,7 @@ import java.util.logging.Logger;
 
 public class GitSCMProcessor implements SCMProcessor {
 	private static final Logger logger = Logger.getLogger(GitSCMProcessor.class.getName());
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	GitSCMProcessor() {
 	}
@@ -51,13 +53,12 @@ public class GitSCMProcessor implements SCMProcessor {
 				for (ChangeLogSet.Entry c : changes) {
 					if (c instanceof GitChangeSet) {
 						commit = (GitChangeSet) c;
-						tmpCommit = new SCMCommit(
-								commit.getTimestamp(),
-								commit.getAuthor().getId(),
-								commit.getCommitId(),
-								commit.getParentCommit(),
-								commit.getComment().trim()
-						);
+						tmpCommit = dtoFactory.newDTO(SCMCommit.class)
+								.setTime(commit.getTimestamp())
+								.setUser(commit.getAuthor().getId())
+								.setRevId(commit.getCommitId())
+								.setParentRevId(commit.getParentCommit())
+								.setComment(commit.getComment().trim());
 
 						//  [YG] Changes will be handled later
 //						for (GitChangeSet.Path item : commit.getAffectedFiles()) {
@@ -70,7 +71,10 @@ public class GitSCMProcessor implements SCMProcessor {
 					}
 				}
 
-				result = new SCMData(scmRepository, builtCommitRevId, tmpCommits.toArray(new SCMCommit[tmpCommits.size()]));
+				result = dtoFactory.newDTO(SCMData.class)
+						.setRepository(scmRepository)
+						.setBuiltRevId(builtCommitRevId)
+						.setCommits(tmpCommits.toArray(new SCMCommit[tmpCommits.size()]));
 			}
 		}
 		return result;
@@ -88,11 +92,10 @@ public class GitSCMProcessor implements SCMProcessor {
 			if (buildData.getLastBuiltRevision() != null && !buildData.getLastBuiltRevision().getBranches().isEmpty()) {
 				branch = ((Branch) buildData.getLastBuiltRevision().getBranches().toArray()[0]).getName();
 			}
-
-			result = new SCMRepository(
-					SCMType.GIT,
-					url,
-					branch);
+			result = dtoFactory.newDTO(SCMRepository.class)
+					.setType(SCMType.GIT)
+					.setUrl(url)
+					.setBranch(branch);
 		}
 		return result;
 	}

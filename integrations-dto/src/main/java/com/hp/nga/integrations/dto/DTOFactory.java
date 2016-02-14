@@ -1,78 +1,118 @@
 package com.hp.nga.integrations.dto;
 
-import com.hp.nga.integrations.dto.general.AggregatedInfo;
-import com.hp.nga.integrations.dto.general.IAggregatedInfo;
-import com.hp.nga.integrations.dto.general.IPluginInfo;
-import com.hp.nga.integrations.dto.general.IServerInfo;
-import com.hp.nga.integrations.dto.general.PluginInfo;
-import com.hp.nga.integrations.dto.general.ServerInfo;
-import com.hp.nga.integrations.dto.pipelines.BuildHistory;
-import com.hp.nga.integrations.dto.pipelines.BuildHistoryImpl;
-import com.hp.nga.integrations.dto.pipelines.StructureItem;
-import com.hp.nga.integrations.dto.pipelines.StructureItemImpl;
-import com.hp.nga.integrations.dto.projects.JobsListDTO;
-import com.hp.nga.integrations.dto.projects.JobsListDTOImpl;
-import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
-import com.hp.nga.integrations.dto.snapshots.SnapshotItemImpl;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hp.nga.integrations.dto.configuration.impl.DTOFactoryConfigs;
+import com.hp.nga.integrations.dto.connectivity.impl.DTOFactoryConnectivity;
+import com.hp.nga.integrations.dto.general.impl.DTOFactoryGeneral;
+import com.hp.nga.integrations.dto.pipelines.impl.DTOFactoryPipelines;
+import com.hp.nga.integrations.dto.scm.impl.DTOFactorySCM;
+import com.hp.nga.integrations.dto.snapshots.impl.DTOFactorySnapshots;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Created by gullery on 08/02/2016.
+ * Created by gullery on 11/02/2016.
  * <p>
- * Generator of the DTOs
+ * DTO Factory is a single entry point of DTOs management
  */
 
-public enum DTOFactory {
-	PLUGIN_INFO(IPluginInfo.class, PluginInfo.class),
-	SERVER_INFO(IServerInfo.class, ServerInfo.class),
-	STRUCTURE_ITEM(StructureItem.class, StructureItemImpl.class),
-	SNAPSHOT_ITEM(SnapshotItem.class, SnapshotItemImpl.class),
-	JOB_LIST_DTO(JobsListDTO.class, JobsListDTOImpl.class),
-	BUILD_HISTORY(BuildHistory.class, BuildHistoryImpl.class),
-	AGGREGATED_INFO(IAggregatedInfo.class, AggregatedInfo.class);
+public final class DTOFactory {
+	private final Map<Class<? extends DTOBase>, DTOFactoryInternalBase> registry = new HashMap<Class<? extends DTOBase>, DTOFactoryInternalBase>();
+	private final ObjectMapper objectMapper = new ObjectMapper();
 
-	Class dtoInterface;
-	Class dtoImplementation;
-
-	DTOFactory(Class type, Class impl) {
-		dtoInterface = type;
-		dtoImplementation = impl;
+	private DTOFactory() {
+		DTOFactoryConfigs.ensureInit(registry, objectMapper);
+		DTOFactoryConnectivity.ensureInit(registry, objectMapper);
+		DTOFactoryGeneral.ensureInit(registry, objectMapper);
+		DTOFactoryPipelines.ensureInit(registry, objectMapper);
+		DTOFactorySCM.ensureInit(registry, objectMapper);
+		DTOFactorySnapshots.ensureInit(registry, objectMapper);
 	}
 
-	public static <T> T createDTO(Class<T> targetType) {
+	public static DTOFactory getInstance() {
+		return INSTANCE_HOLDER.instance;
+	}
+
+	public <T extends DTOBase> T newDTO(Class<T> targetType) {
 		if (targetType == null) {
 			throw new IllegalArgumentException("target type MUST NOT be null");
 		}
 		if (!targetType.isInterface()) {
-			throw new IllegalArgumentException("target type MUST BE an Interface");
+			throw new IllegalArgumentException("target type MUST be an Interface");
+		}
+		if (!registry.containsKey(targetType)) {
+			throw new IllegalArgumentException("requested type " + targetType + " is not supported");
 		}
 
-		Object result = null;
-		for (DTOFactory type : values()) {
-			if (type.dtoInterface.equals(targetType)) {
-				try {
-					result = type.dtoImplementation.newInstance();
-				} catch (Exception e) {
-					throw new RuntimeException("failed to instantiate DTO of type " + targetType);
-				}
-			}
-		}
-
-		if (result != null) {
-			return (T) result;
-		} else {
-			throw new RuntimeException("DTO of type " + targetType + " is not supported");
+		try {
+			return registry.get(targetType).instantiateDTO(targetType);
+		} catch (InstantiationException ie) {
+			throw new RuntimeException("failed to instantiate " + targetType + "; error: " + ie.getMessage());
+		} catch (IllegalAccessException iae) {
+			throw new RuntimeException("access denied to " + targetType + "; error: " + iae.getMessage());
 		}
 	}
 
+	public <T extends DTOBase> String dtoToJson(T dto) {
+		if (dto == null) {
+			throw new IllegalArgumentException("dto MUST NOT be null");
+		}
 
-	/*
-	package com.hp.nga.integrations.api;
+		try {
+			return objectMapper.writeValueAsString(dto);
+		} catch (JsonProcessingException ioe) {
+			throw new RuntimeException("failed to serialize " + dto + " from JSON; error: " + ioe.getMessage());
+		}
+	}
 
+	public <T extends DTOBase> String dtoCollectionToJson(List<T> dto) {
+		if (dto == null) {
+			throw new IllegalArgumentException("dto MUST NOT be null");
+		}
 
-	public interface CIPluginServices {
+		try {
+			return objectMapper.writeValueAsString(dto);
+		} catch (JsonProcessingException ioe) {
+			throw new RuntimeException("failed to serialize " + dto + " from JSON; error: " + ioe.getMessage());
+		}
+	}
 
-		NGAConfiguration getNGAConfiguration();
-		int runPipeline(String ciJobId, String originalBody);       //  [YG]: TODO: replace the body thing with parsed parameters/DTO
-	* */
+	public <T extends DTOBase> T dtoFromJson(String json, Class<T> targetType) {
+		if (targetType == null) {
+			throw new IllegalArgumentException("target type MUST NOT be null");
+		}
+		if (!targetType.isInterface()) {
+			throw new IllegalArgumentException("target type MUST be an Interface");
+		}
+
+		try {
+			return objectMapper.readValue(json, targetType);
+		} catch (IOException ioe) {
+			throw new RuntimeException("failed to deserialize " + json + " into " + targetType + "; error: " + ioe.getMessage());
+		}
+	}
+
+	public <T extends DTOBase> T[] dtoCollectionFromJson(String json, Class<T[]> targetType) {
+		if (targetType == null) {
+			throw new IllegalArgumentException("target type MUST NOT be null");
+		}
+		if (!targetType.isArray()) {
+			throw new IllegalArgumentException("target type MUST be an Array");
+		}
+
+		try {
+			return objectMapper.readValue(json, targetType);
+		} catch (IOException ioe) {
+			throw new RuntimeException("failed to deserialize " + json + " into " + targetType + "; error: " + ioe.getMessage());
+		}
+	}
+
+	private static final class INSTANCE_HOLDER {
+		private static final DTOFactory instance = new DTOFactory();
+	}
 }

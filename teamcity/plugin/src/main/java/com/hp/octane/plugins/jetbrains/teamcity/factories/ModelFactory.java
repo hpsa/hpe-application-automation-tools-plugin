@@ -1,15 +1,12 @@
 package com.hp.octane.plugins.jetbrains.teamcity.factories;
 
 import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.pipelines.StructureItem;
-import com.hp.nga.integrations.dto.pipelines.StructurePhase;
-import com.hp.nga.integrations.dto.pipelines.StructurePhaseImpl;
-import com.hp.nga.integrations.dto.projects.JobsListDTO;
-import com.hp.nga.integrations.dto.projects.ProjectConfig;
-import com.hp.nga.integrations.dto.projects.ProjectConfigImpl;
-import com.hp.nga.integrations.dto.snapshots.SnapshotItem;
+import com.hp.nga.integrations.dto.pipelines.PipelineNode;
+import com.hp.nga.integrations.dto.pipelines.PipelinePhase;
+import com.hp.nga.integrations.dto.general.CIJobsList;
+import com.hp.nga.integrations.dto.general.CIJobMetadata;
+import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
 import com.hp.nga.integrations.dto.snapshots.SnapshotPhase;
-import com.hp.nga.integrations.dto.snapshots.SnapshotPhaseImpl;
 import com.hp.nga.integrations.dto.snapshots.SnapshotStatus;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import jetbrains.buildServer.serverSide.*;
@@ -23,20 +20,20 @@ import java.util.List;
  */
 public class ModelFactory { // {
 
-    public static JobsListDTO CreateProjectList() {
+    public static CIJobsList CreateProjectList() {
 
-        JobsListDTO jobsListDTO = DTOFactory.createDTO(JobsListDTO.class);
-        List<ProjectConfig> list = new ArrayList<ProjectConfig>();
+        CIJobsList CIJobsList = DTOFactory.getInstance().newDTO(CIJobsList.class);
+        List<CIJobMetadata> list = new ArrayList<CIJobMetadata>();
         List<String>ids = new ArrayList<String>();
 
-        ProjectConfig buildConf;
+        CIJobMetadata buildConf;
         for (SProject project : NGAPlugin.getInstance().getProjectManager().getProjects()) {
 
             List<SBuildType> buildTypes = project.getBuildTypes();
             for (SBuildType buildType : buildTypes) {
                 if(!ids.contains(buildType.getInternalId())) {
                     ids.add(buildType.getInternalId());
-                    buildConf = new ProjectConfigImpl();
+                    buildConf = DTOFactory.getInstance().newDTO(CIJobMetadata.class);
                     buildConf.setName(buildType.getName());
                     buildConf.setCiId(buildType.getExternalId());
                     list.add(buildConf);
@@ -44,15 +41,15 @@ public class ModelFactory { // {
             }
         }
 
-        jobsListDTO.setJobs(list.toArray(new ProjectConfig[list.size()]));
-        return jobsListDTO;
+        CIJobsList.setJobs(list.toArray(new CIJobMetadata[list.size()]));
+        return CIJobsList;
     }
 
-    public static StructureItem createStructure(String buildConfigurationId) {
+    public static PipelineNode createStructure(String buildConfigurationId) {
         SBuildType root = NGAPlugin.getInstance().getProjectManager().findBuildTypeByExternalId(buildConfigurationId);
-        StructureItem treeRoot =null;
+        PipelineNode treeRoot =null;
         if(root !=null) {
-            treeRoot = DTOFactory.createDTO(StructureItem.class);
+            treeRoot = DTOFactory.getInstance().newDTO(PipelineNode.class);
             treeRoot.setName(root.getName());
             treeRoot.setCiId(root.getExternalId());
             createPipelineStructure(treeRoot, root.getDependencies());
@@ -63,32 +60,32 @@ public class ModelFactory { // {
         return treeRoot;
     }
 
-    private static void createPipelineStructure(StructureItem treeRoot, List<Dependency> dependencies) {
+    private static void createPipelineStructure(PipelineNode treeRoot, List<Dependency> dependencies) {
         if(dependencies ==null || dependencies.size() == 0)return;
-        StructurePhase phase = new StructurePhaseImpl();
+        PipelinePhase phase = DTOFactory.getInstance().newDTO(PipelinePhase.class);
         phase.setName("teamcity_dependencies");
         phase.setBlocking(true);
-        List<StructurePhase> structurePhaseList = new ArrayList<StructurePhase>();
-        structurePhaseList.add(phase);
-        List<StructureItem> structureItemList = new ArrayList<StructureItem>();
+        List<PipelinePhase> pipelinePhaseList = new ArrayList<PipelinePhase>();
+        pipelinePhaseList.add(phase);
+        List<PipelineNode> pipelineNodeList = new ArrayList<PipelineNode>();
         for(Dependency dependency : dependencies){
             SBuildType build = dependency.getDependOn();
-            StructureItem buildItem = DTOFactory.createDTO(StructureItem.class);
+            PipelineNode buildItem = DTOFactory.getInstance().newDTO(PipelineNode.class);
             buildItem.setName(build.getName());
             buildItem.setCiId(build.getExternalId());
-            structureItemList.add(buildItem);
+            pipelineNodeList.add(buildItem);
             createPipelineStructure(buildItem, build.getDependencies());
         }
-        phase.setJobs(structureItemList);
-        treeRoot.setPhasesInternal(structurePhaseList);
+        phase.setJobs(pipelineNodeList);
+        treeRoot.setPhasesInternal(pipelinePhaseList);
     }
 
 
 
-    public static SnapshotItem createSnapshot(String buildConfigurationId) {
+    public static SnapshotNode createSnapshot(String buildConfigurationId) {
         SBuildType root = NGAPlugin.getInstance().getProjectManager().findBuildTypeByExternalId(buildConfigurationId);
         //currentBuild.getTriggeredBy().getParameters().get("buildTypeId")
-        SnapshotItem snapshotRoot = null;
+        SnapshotNode snapshotRoot = null;
         if(root !=null) {
             snapshotRoot = createSnapshotItem(root, root.getBuildTypeId());
             createSnapshotPipeline(snapshotRoot, root.getDependencies(), root.getBuildTypeId());
@@ -99,41 +96,41 @@ public class ModelFactory { // {
         return snapshotRoot;
     }
 
-    private static void createSnapshotPipeline(SnapshotItem treeRoot, List<Dependency> dependencies,String rootId) {
+    private static void createSnapshotPipeline(SnapshotNode treeRoot, List<Dependency> dependencies,String rootId) {
         if(dependencies ==null || dependencies.size() == 0)return;
-        SnapshotPhase phase = new SnapshotPhaseImpl();
+        SnapshotPhase phase = DTOFactory.getInstance().newDTO(SnapshotPhase.class);
         phase.setBlocking(true);
         phase.setName("teamcity_dependencies");
         List<SnapshotPhase>snapshotPhaseList = new ArrayList<SnapshotPhase>();
         snapshotPhaseList.add(phase);
-        List<SnapshotItem> snapshotItemList = new ArrayList<SnapshotItem>();
+        List<SnapshotNode> snapshotNodeList = new ArrayList<SnapshotNode>();
         for(Dependency dependency : dependencies){
             SBuildType build = dependency.getDependOn();
-            SnapshotItem snapshotItem = createSnapshotItem(build,rootId);
-            snapshotItemList.add(snapshotItem);
+            SnapshotNode snapshotNode = createSnapshotItem(build,rootId);
+            snapshotNodeList.add(snapshotNode);
 //            phase.setBuilds(snapshotItem);
-            createSnapshotPipeline(snapshotItem, build.getDependencies(),rootId);
+            createSnapshotPipeline(snapshotNode, build.getDependencies(),rootId);
         }
-        phase.setBuilds(snapshotItemList);
+        phase.setBuilds(snapshotNodeList);
         treeRoot.setPhasesInternal(snapshotPhaseList);
     }
 
-    private static SnapshotItem createSnapshotItem(SBuildType build,String rootId){
+    private static SnapshotNode createSnapshotItem(SBuildType build,String rootId){
         //option 1: the build is running now and need to retrieve the data from the running object
-        SnapshotItem snapshotItem = createRunningBuild(build, rootId);
+        SnapshotNode snapshotNode = createRunningBuild(build, rootId);
         //option 2: the build in the queue
-        if(snapshotItem ==null){
-            snapshotItem = createQueueBuild(build, rootId);
+        if(snapshotNode ==null){
+            snapshotNode = createQueueBuild(build, rootId);
         }
 
-        if(snapshotItem ==null){
-            snapshotItem = createHistoryBuild(build,rootId);
+        if(snapshotNode ==null){
+            snapshotNode = createHistoryBuild(build,rootId);
         }
-        return snapshotItem;
+        return snapshotNode;
     }
 
-    private static SnapshotItem createHistoryBuild(SBuildType build, String rootId) {
-        SnapshotItem snapshotItem =null;
+    private static SnapshotNode createHistoryBuild(SBuildType build, String rootId) {
+        SnapshotNode snapshotNode =null;
         SBuild currentBuild = null;
 
         List<SFinishedBuild> finishedBuilds = build.getHistory();
@@ -151,22 +148,22 @@ public class ModelFactory { // {
         }
 
         if(currentBuild!=null){
-            snapshotItem = DTOFactory.createDTO(SnapshotItem.class);
-            snapshotItem.setName(build.getExtendedName());
-            snapshotItem.setCiId(build.getExternalId());
-            snapshotItem.setDuration(currentBuild.getDuration());
-            snapshotItem.setEstimatedDuration(null);
-            snapshotItem.setNumber(Integer.parseInt(currentBuild.getBuildNumber()));
-            snapshotItem.setStartTime(currentBuild.getClientStartDate().getTime()); //Returns the timestamp when the build was started on the build agent
-            snapshotItem.setCauses(null);
-            snapshotItem.setStatus(SnapshotStatus.FINISHED);
+            snapshotNode = DTOFactory.getInstance().newDTO(SnapshotNode.class);
+            snapshotNode.setName(build.getExtendedName());
+            snapshotNode.setCiId(build.getExternalId());
+            snapshotNode.setDuration(currentBuild.getDuration());
+            snapshotNode.setEstimatedDuration(null);
+            snapshotNode.setNumber(Integer.parseInt(currentBuild.getBuildNumber()));
+            snapshotNode.setStartTime(currentBuild.getClientStartDate().getTime()); //Returns the timestamp when the build was started on the build agent
+            snapshotNode.setCauses(null);
+            snapshotNode.setStatus(SnapshotStatus.FINISHED);
 
         }
-        return snapshotItem;
+        return snapshotNode;
     }
 
-    private static SnapshotItem createQueueBuild(SBuildType build, String rootId) {
-        SnapshotItem snapshotItem = null;
+    private static SnapshotNode createQueueBuild(SBuildType build, String rootId) {
+        SnapshotNode snapshotNode = null;
 
         if(build.isInQueue()) {
             List<SQueuedBuild> queuedBuilds = build.getQueuedBuilds(null);
@@ -184,18 +181,18 @@ public class ModelFactory { // {
             }
 
             if (queuedBuild != null) {
-                snapshotItem = DTOFactory.createDTO(SnapshotItem.class);
-                snapshotItem.setName(build.getName());
-                snapshotItem.setCiId(build.getExternalId());
-                snapshotItem.setStatus(SnapshotStatus.QUEUED);
+                snapshotNode = DTOFactory.getInstance().newDTO(SnapshotNode.class);
+                snapshotNode.setName(build.getName());
+                snapshotNode.setCiId(build.getExternalId());
+                snapshotNode.setStatus(SnapshotStatus.QUEUED);
             }
         }
-        return snapshotItem;
+        return snapshotNode;
     }
 
-    private static SnapshotItem createRunningBuild(SBuildType build, String rootId) {
+    private static SnapshotNode createRunningBuild(SBuildType build, String rootId) {
 
-        SnapshotItem snapshotItem =null;
+        SnapshotNode snapshotNode =null;
         SBuild currentBuild = null;
 
         List<SRunningBuild> runningBuilds =build.getRunningBuilds();
@@ -213,18 +210,18 @@ public class ModelFactory { // {
         }
 
         if(currentBuild!=null) {
-            snapshotItem = DTOFactory.createDTO(SnapshotItem.class);
-            snapshotItem.setName(build.getName());
-            snapshotItem.setCiId(build.getExternalId());
-            snapshotItem.setDuration(currentBuild.getDuration());
-            snapshotItem.setEstimatedDuration(((SRunningBuild) currentBuild).getDurationEstimate());
-            snapshotItem.setNumber(Integer.parseInt(currentBuild.getBuildNumber()));
-            snapshotItem.setStartTime(currentBuild.getClientStartDate().getTime()); //Returns the timestamp when the build was started on the build agent
-            snapshotItem.setCauses(null);
-            snapshotItem.setStatus(SnapshotStatus.RUNNING);
-            return snapshotItem;
+            snapshotNode = DTOFactory.getInstance().newDTO(SnapshotNode.class);
+            snapshotNode.setName(build.getName());
+            snapshotNode.setCiId(build.getExternalId());
+            snapshotNode.setDuration(currentBuild.getDuration());
+            snapshotNode.setEstimatedDuration(((SRunningBuild) currentBuild).getDurationEstimate());
+            snapshotNode.setNumber(Integer.parseInt(currentBuild.getBuildNumber()));
+            snapshotNode.setStartTime(currentBuild.getClientStartDate().getTime()); //Returns the timestamp when the build was started on the build agent
+            snapshotNode.setCauses(null);
+            snapshotNode.setStatus(SnapshotStatus.RUNNING);
+            return snapshotNode;
         }
-        return snapshotItem;
+        return snapshotNode;
     }
 
 }

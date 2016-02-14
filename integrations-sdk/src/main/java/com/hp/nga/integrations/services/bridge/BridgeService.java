@@ -1,6 +1,6 @@
 package com.hp.nga.integrations.services.bridge;
 
-import com.hp.nga.integrations.services.configuration.NGAConfiguration;
+import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
 
 import java.util.logging.Logger;
 
@@ -25,18 +25,18 @@ public class BridgeService {
 	}
 
 	public void updateBridge(NGAConfiguration config) {
-		if (config.isValid()) {
-			if (bridgeClient != null) {
-				bridgeClient.update(config);
-			} else {
-				bridgeClient = new BridgeClient();
-			}
-		} else {
-			if (bridgeClient != null) {
-				logger.info("BRIDGE: empty / non-valid configuration submitted, disposing bridge client");
-				bridgeClient.dispose();
-				bridgeClient = null;
-			}
-		}
+//		if (config.isValid()) {
+//			if (bridgeClient != null) {
+//				bridgeClient.update(config);
+//			} else {
+//				bridgeClient = new BridgeClient();
+//			}
+//		} else {
+//			if (bridgeClient != null) {
+//				logger.info("BRIDGE: empty / non-valid configuration submitted, disposing bridge client");
+//				bridgeClient.dispose();
+//				bridgeClient = null;
+//			}
+//		}
 	}
 }

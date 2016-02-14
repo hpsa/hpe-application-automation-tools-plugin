@@ -1,14 +1,12 @@
 package com.hp.octane.plugins.jenkins.events;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.nga.integrations.dto.events.CIEventBase;
-import com.hp.nga.integrations.services.serialization.SerializationService;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
-import org.kohsuke.stapler.export.Flavor;
-import org.kohsuke.stapler.export.ModelBuilder;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -142,7 +140,7 @@ public class EventsClient {
 		MqmRestClient restClient = restClientFactory.obtain(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
 
 		try {
-			requestBody = SerializationService.toJSON(eventsSnapshot);
+			requestBody = new ObjectMapper().writeValueAsString(eventsSnapshot);
 			logger.info("EVENTS: sending " + eventsSnapshot.getEvents().size() + " event/s to '" + mqmConfig.location + "'...");
 			while (failedRetries < MAX_SEND_RETRIES) {
 				if (restClient.putEvents(requestBody)) {

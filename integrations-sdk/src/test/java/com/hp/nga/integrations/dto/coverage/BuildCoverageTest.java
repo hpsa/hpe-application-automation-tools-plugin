@@ -1,7 +1,11 @@
 package com.hp.nga.integrations.dto.coverage;
 
-import com.hp.nga.integrations.services.serialization.SerializationService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hp.nga.integrations.dto.DTOFactory;
 import org.junit.Test;
+
+import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -11,9 +15,12 @@ import static org.junit.Assert.assertNotNull;
  */
 
 public class BuildCoverageTest {
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Test
-	public void testA() {
+	public void testA() throws JsonProcessingException, IOException {
+		ObjectMapper mapper = new ObjectMapper();
+
 		TestCoverage[] testCoverages = new TestCoverage[2];
 
 		FileCoverage[] locs = new FileCoverage[2];
@@ -40,11 +47,11 @@ public class BuildCoverageTest {
 
 		BuildCoverage bc = new BuildCoverage(testCoverages);
 
-		String json = SerializationService.toJSON(bc);
+		String json = mapper.writeValueAsString(bc);
 
 		assertNotNull(json);
 
-		BuildCoverage newBc = SerializationService.fromJSON(json, BuildCoverage.class);
+		BuildCoverage newBc = mapper.readValue(json, BuildCoverage.class);
 		assertNotNull(newBc);
 		assertEquals(2, newBc.getTestCoverages().length);
 

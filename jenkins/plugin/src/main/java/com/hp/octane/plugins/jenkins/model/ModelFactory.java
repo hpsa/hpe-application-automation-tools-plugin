@@ -5,9 +5,8 @@ import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 import com.hp.nga.integrations.dto.parameters.ParameterInstance;
 import com.hp.nga.integrations.dto.parameters.ParameterType;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
-import com.hp.nga.integrations.dto.pipelines.StructureItem;
-import com.hp.nga.integrations.dto.pipelines.StructurePhase;
-import com.hp.nga.integrations.dto.pipelines.StructurePhaseImpl;
+import com.hp.nga.integrations.dto.pipelines.PipelineNode;
+import com.hp.nga.integrations.dto.pipelines.PipelinePhase;
 import com.hp.nga.integrations.dto.snapshots.*;
 import com.hp.octane.plugins.jenkins.model.causes.CIEventCausesFactory;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
@@ -25,281 +24,287 @@ import java.util.logging.Logger;
  */
 public class ModelFactory {
 
-    private static final Logger logger = Logger.getLogger(ModelFactory.class.getName());
+	private static final Logger logger = Logger.getLogger(ModelFactory.class.getName());
 
-    public static StructureItem createStructureItem(AbstractProject project) {
+	public static PipelineNode createStructureItem(AbstractProject project) {
+		PipelineNode pipelineNode = DTOFactory.getInstance().newDTO(PipelineNode.class);
+		pipelineNode.setName(project.getName());
+		pipelineNode.setCiId(project.getName());
+		pipelineNode.setParameters(ParameterProcessors.getConfigs(project));
 
-        StructureItem structureItem = DTOFactory.createDTO(StructureItem.class);
-        structureItem.setName(project.getName());
-        structureItem.setCiId(project.getName());
-        structureItem.setParameters(ParameterProcessors.getConfigs(project));
+		AbstractProjectProcessor projectProcessor = AbstractProjectProcessor.getFlowProcessor(project);
+		pipelineNode.setPhasesInternal(projectProcessor.getInternals());
+		pipelineNode.setPhasesPostBuild(projectProcessor.getPostBuilds());
 
-        AbstractProjectProcessor projectProcessor = AbstractProjectProcessor.getFlowProcessor(project);
-        structureItem.setPhasesInternal(projectProcessor.getInternals());
-        structureItem.setPhasesPostBuild(projectProcessor.getPostBuilds());
+		return pipelineNode;
+	}
 
-        return structureItem;
-    }
+	public static PipelinePhase createStructurePhase(String name, boolean blocking, List<AbstractProject> items) {
+		PipelinePhase pipelinePhase = DTOFactory.getInstance().newDTO(PipelinePhase.class);
+		pipelinePhase.setName(name);
+		pipelinePhase.setBlocking(blocking);
 
-    public static StructurePhase createStructurePhase(String name, boolean blocking, List<AbstractProject> items) {
+		PipelineNode[] tmp = new PipelineNode[items.size()];
+		for (int i = 0; i < tmp.length; i++) {
+			if (items.get(i) != null) {
+				tmp[i] = ModelFactory.createStructureItem(items.get(i));
 
-        StructurePhase structurePhase = new StructurePhaseImpl();
-        structurePhase.setName(name);
-        structurePhase.setBlocking(blocking);
+			} else {
+				logger.warning("One of referenced jobs is null, your Jenkins config probably broken, skipping this job...");
+			}
+		}
 
-        StructureItem[] tmp = new StructureItem[items.size()];
-        for (int i = 0; i < tmp.length; i++) {
-            if (items.get(i) != null) {
-                tmp[i] = ModelFactory.createStructureItem(items.get(i));
+		pipelinePhase.setJobs(Arrays.asList(tmp));
 
-            } else {
-                logger.warning("One of referenced jobs is null, your Jenkins config probably broken, skipping this job...");
-            }
-        }
+		return pipelinePhase;
+	}
 
-        structurePhase.setJobs(Arrays.asList(tmp));
+	/**
+	 * *****************************************************
+	 */
 
-        return structurePhase;
-    }
+	public static SnapshotNode createSnapshotItem(AbstractBuild build, boolean metaOnly) {
 
-    /*********************************************************/
+		SnapshotNode snapshotNode = DTOFactory.getInstance().newDTO(SnapshotNode.class);
+		SCMProcessor scmProcessor = SCMProcessors.getAppropriate(build.getProject().getScm().getClass().getName());
 
-    public static SnapshotItem createSnapshotItem(AbstractBuild build, boolean metaOnly){
+		SnapshotStatus status = SnapshotStatus.FINISHED;
+		if (build.hasntStartedYet()) {
+			status = SnapshotStatus.QUEUED;
+		} else if (build.isBuilding()) {
+			status = SnapshotStatus.RUNNING;
+		}
 
-        SnapshotItem snapshotItem = DTOFactory.createDTO(SnapshotItem.class);
-        SCMProcessor scmProcessor = SCMProcessors.getAppropriate(build.getProject().getScm().getClass().getName());
+		SnapshotResult result = SnapshotResult.UNAVAILABLE;
+		if (build.getResult() == Result.SUCCESS) {
+			result = SnapshotResult.SUCCESS;
+		} else if (build.getResult() == Result.ABORTED) {
+			result = SnapshotResult.ABORTED;
+		} else if (build.getResult() == Result.FAILURE) {
+			result = SnapshotResult.FAILURE;
+		} else if (build.getResult() == Result.UNSTABLE) {
+			result = SnapshotResult.UNSTABLE;
+		}
 
-        SnapshotStatus status = SnapshotStatus.FINISHED;
-        if (build.hasntStartedYet()) {
-            status = SnapshotStatus.QUEUED;
-        } else if (build.isBuilding()) {
-            status = SnapshotStatus.RUNNING;
-        }
+		if (!metaOnly) {
+			AbstractProjectProcessor flowProcessor = AbstractProjectProcessor.getFlowProcessor(build.getProject());
+			List<PipelinePhase> tmpPipelinePhasesInternals = flowProcessor.getInternals();
+			List<PipelinePhase> tmpPipelinePhasesPostBuilds = flowProcessor.getPostBuilds();
+			ArrayList<String> invokeesNames = new ArrayList<String>();
+			appendInvokeesNames(invokeesNames, tmpPipelinePhasesInternals);
+			appendInvokeesNames(invokeesNames, tmpPipelinePhasesPostBuilds);
+			HashMap<String, ArrayList<AbstractBuild>> invokedBuilds = getInvokedBuilds(build, invokeesNames);
+			snapshotNode.setPhasesInternal((inflatePhases(tmpPipelinePhasesInternals, invokedBuilds)));
+			snapshotNode.setPhasesPostBuild(inflatePhases(tmpPipelinePhasesPostBuilds, invokedBuilds));
+		}
 
-        SnapshotResult result = SnapshotResult.UNAVAILABLE;
-        if (build.getResult() == Result.SUCCESS) {
-            result = SnapshotResult.SUCCESS;
-        } else if (build.getResult() == Result.ABORTED) {
-            result = SnapshotResult.ABORTED;
-        } else if (build.getResult() == Result.FAILURE) {
-            result = SnapshotResult.FAILURE;
-        } else if (build.getResult() == Result.UNSTABLE) {
-            result = SnapshotResult.UNSTABLE;
-        }
+		snapshotNode.setName(build.getProject().getName());
+		snapshotNode.setCiId(build.getProject().getName());
+		snapshotNode.setCauses(CIEventCausesFactory.processCauses(build.getCauses()));
+		snapshotNode.setNumber(build.getNumber());
+		snapshotNode.setDuration(build.getDuration());
+		snapshotNode.setEstimatedDuration(build.getEstimatedDuration());
+		snapshotNode.setScmData(scmProcessor == null ? null : scmProcessor.getSCMData(build));
+		snapshotNode.setStartTime(build.getStartTimeInMillis());
+		snapshotNode.setParameters(Arrays.asList(ParameterProcessors.getInstances(build)));
+		snapshotNode.setResult(result);
+		snapshotNode.setStatus(status);
 
-        if (!metaOnly) {
-            AbstractProjectProcessor flowProcessor = AbstractProjectProcessor.getFlowProcessor(build.getProject());
-            List<StructurePhase> tmpStructurePhasesInternals = flowProcessor.getInternals();
-            List<StructurePhase> tmpStructurePhasesPostBuilds = flowProcessor.getPostBuilds();
-            ArrayList<String> invokeesNames = new ArrayList<String>();
-            appendInvokeesNames(invokeesNames, tmpStructurePhasesInternals);
-            appendInvokeesNames(invokeesNames, tmpStructurePhasesPostBuilds);
-            HashMap<String, ArrayList<AbstractBuild>> invokedBuilds = getInvokedBuilds(build, invokeesNames);
-            snapshotItem.setPhasesInternal((inflatePhases(tmpStructurePhasesInternals, invokedBuilds)));
-            snapshotItem.setPhasesPostBuild(inflatePhases(tmpStructurePhasesPostBuilds, invokedBuilds));
-        }
-
-        snapshotItem.setName(build.getProject().getName());
-        snapshotItem.setCiId(build.getProject().getName());
-        snapshotItem.setCauses(CIEventCausesFactory.processCauses(build.getCauses()));
-        snapshotItem.setNumber(build.getNumber());
-        snapshotItem.setDuration(build.getDuration());
-        snapshotItem.setEstimatedDuration(build.getEstimatedDuration());
-        snapshotItem.setScmData(scmProcessor == null ? null : scmProcessor.getSCMData(build));
-        snapshotItem.setStartTime(build.getStartTimeInMillis());
-        snapshotItem.setParameters(Arrays.asList(ParameterProcessors.getInstances(build)));
-        snapshotItem.setResult(result);
-        snapshotItem.setStatus(status);
-
-        return snapshotItem;
-    }
+		return snapshotNode;
+	}
 
 
-    public static SnapshotItem createSnapshotItem(AbstractProject project, boolean metaOnly){
-        SnapshotItem snapshotItem = DTOFactory.createDTO(SnapshotItem.class);
+	public static SnapshotNode createSnapshotItem(AbstractProject project, boolean metaOnly) {
+		SnapshotNode snapshotNode = DTOFactory.getInstance().newDTO(SnapshotNode.class);
 
-        snapshotItem.setName(project.getName());
-        snapshotItem.setCiId(project.getName());
+		snapshotNode.setName(project.getName());
+		snapshotNode.setCiId(project.getName());
 
-        if (!metaOnly) {
-            AbstractProjectProcessor flowProcessor = AbstractProjectProcessor.getFlowProcessor(project);
-            snapshotItem.setPhasesPostBuild(inflatePhases(flowProcessor.getPostBuilds(), null));
-            snapshotItem.setPhasesInternal(inflatePhases(flowProcessor.getInternals(), null));
-        }
-        return snapshotItem;
-    }
+		if (!metaOnly) {
+			AbstractProjectProcessor flowProcessor = AbstractProjectProcessor.getFlowProcessor(project);
+			snapshotNode.setPhasesPostBuild(inflatePhases(flowProcessor.getPostBuilds(), null));
+			snapshotNode.setPhasesInternal(inflatePhases(flowProcessor.getInternals(), null));
+		}
+		return snapshotNode;
+	}
 
-    private static void appendInvokeesNames(ArrayList<String> list, List<StructurePhase> phases) {
-        for (StructurePhase phase : phases) {
-            for (StructureItem item : phase.getJobs()) {
-                if (item != null) {
-                    if (!list.contains(item.getName())) list.add(item.getName());
-                } else {
-                    logger.severe("null referenced project encountered; considering it as corrupted configuration and skipping");
-                }
-            }
-        }
-    }
+	private static void appendInvokeesNames(ArrayList<String> list, List<PipelinePhase> phases) {
+		for (PipelinePhase phase : phases) {
+			for (PipelineNode item : phase.getJobs()) {
+				if (item != null) {
+					if (!list.contains(item.getName())) list.add(item.getName());
+				} else {
+					logger.severe("null referenced project encountered; considering it as corrupted configuration and skipping");
+				}
+			}
+		}
+	}
 
-    private static HashMap<String, ArrayList<AbstractBuild>> getInvokedBuilds(AbstractBuild self, ArrayList<String> invokeesNames) {
-        HashMap<String, ArrayList<AbstractBuild>> result = new HashMap<String, ArrayList<AbstractBuild>>();
-        AbstractProject project;
-        for (String invokeeName : invokeesNames) {
-            project = (AbstractProject) Jenkins.getInstance().getItem(invokeeName);
-            result.put(invokeeName, getInvokees(self, project));
-        }
-        return result;
-    }
+	private static HashMap<String, ArrayList<AbstractBuild>> getInvokedBuilds(AbstractBuild self, ArrayList<String> invokeesNames) {
+		HashMap<String, ArrayList<AbstractBuild>> result = new HashMap<String, ArrayList<AbstractBuild>>();
+		AbstractProject project;
+		for (String invokeeName : invokeesNames) {
+			project = (AbstractProject) Jenkins.getInstance().getItem(invokeeName);
+			result.put(invokeeName, getInvokees(self, project));
+		}
+		return result;
+	}
 
-    @SuppressWarnings("unchecked")
-    private static ArrayList<AbstractBuild> getInvokees(AbstractBuild invoker, AbstractProject project) {
-        ArrayList<AbstractBuild> result = new ArrayList<AbstractBuild>();
-        AbstractBuild tmpBuild;
-        Cause.UpstreamCause tmpCause;
-        for (Object o : project.getBuilds()) {
-            tmpBuild = (AbstractBuild) o;
-            for (Cause cause : (List<Cause>) tmpBuild.getCauses()) {
-                if (!(cause instanceof Cause.UpstreamCause)) continue;
+	@SuppressWarnings("unchecked")
+	private static ArrayList<AbstractBuild> getInvokees(AbstractBuild invoker, AbstractProject project) {
+		ArrayList<AbstractBuild> result = new ArrayList<AbstractBuild>();
+		AbstractBuild tmpBuild;
+		Cause.UpstreamCause tmpCause;
+		for (Object o : project.getBuilds()) {
+			tmpBuild = (AbstractBuild) o;
+			for (Cause cause : (List<Cause>) tmpBuild.getCauses()) {
+				if (!(cause instanceof Cause.UpstreamCause)) continue;
 
-                tmpCause = (Cause.UpstreamCause) cause;
-                if (tmpCause.pointsTo(invoker)) {
-                    result.add(0, tmpBuild);
-                } else if (tmpCause.pointsTo(invoker.getProject()) && tmpCause.getUpstreamBuild() < invoker.getNumber()) {
-                    return result;
-                }
-            }
-        }
-        return result;
-    }
+				tmpCause = (Cause.UpstreamCause) cause;
+				if (tmpCause.pointsTo(invoker)) {
+					result.add(0, tmpBuild);
+				} else if (tmpCause.pointsTo(invoker.getProject()) && tmpCause.getUpstreamBuild() < invoker.getNumber()) {
+					return result;
+				}
+			}
+		}
+		return result;
+	}
 
-    private static List<SnapshotPhase> inflatePhases(List<StructurePhase> structures, HashMap<String, ArrayList<AbstractBuild>> invokedBuilds) {
-        List<SnapshotPhase> phases = new ArrayList<SnapshotPhase>();
-        for (int i = 0; i < structures.size(); i++) {
-            phases.add(i,createSnapshotPhase(structures.get(i), invokedBuilds));
-        }
-        return phases;
-    }
+	private static List<SnapshotPhase> inflatePhases(List<PipelinePhase> structures, HashMap<String, ArrayList<AbstractBuild>> invokedBuilds) {
+		List<SnapshotPhase> phases = new ArrayList<SnapshotPhase>();
+		for (int i = 0; i < structures.size(); i++) {
+			phases.add(i, createSnapshotPhase(structures.get(i), invokedBuilds));
+		}
+		return phases;
+	}
 
-    public static SnapshotPhase createSnapshotPhase(StructurePhase structurePhase, HashMap<String, ArrayList<AbstractBuild>> invokedBuilds) {
+	public static SnapshotPhase createSnapshotPhase(PipelinePhase pipelinePhase, HashMap<String, ArrayList<AbstractBuild>> invokedBuilds) {
+		SnapshotPhase snapshotPhase = DTOFactory.getInstance().newDTO(SnapshotPhase.class);
+		snapshotPhase.setName(pipelinePhase.getName());
+		snapshotPhase.setBlocking(pipelinePhase.isBlocking());
 
-        SnapshotPhase snapshotPhase = new SnapshotPhaseImpl();
-        snapshotPhase.setName(structurePhase.getName());
-        snapshotPhase.setBlocking(structurePhase.isBlocking());
+		ArrayList<AbstractBuild> tmpBuilds;
+		List<PipelineNode> structures = pipelinePhase.getJobs();
+		List<SnapshotNode> tmp = new ArrayList<SnapshotNode>();
 
-        ArrayList<AbstractBuild> tmpBuilds;
-        List<StructureItem> structures = structurePhase.getJobs();
-        List<SnapshotItem> tmp = new ArrayList<SnapshotItem>();
+		for (int i = 0; i < structures.size(); i++) {
+			if (structures.get(i) != null) {
+				tmpBuilds = invokedBuilds == null ? null : invokedBuilds.get(structures.get(i).getName());
+				if (tmpBuilds == null || tmpBuilds.size() == 0) {
+					tmp.add(i, createSnapshotItem((AbstractProject) Jenkins.getInstance().getItem(structures.get(i).getName()), false));
+				} else {
+					tmp.add(i, createSnapshotItem(tmpBuilds.get(0), false));
+					tmpBuilds.remove(0);
+				}
+			} else {
+				logger.warning("One of referenced jobs is null, your Jenkins config probably broken, skipping the build info for this job...");
+			}
+		}
+		snapshotPhase.setBuilds(tmp);
 
-        for (int i = 0; i < structures.size(); i++) {
-            if (structures.get(i) != null) {
-                tmpBuilds = invokedBuilds == null ? null : invokedBuilds.get(structures.get(i).getName());
-                if (tmpBuilds == null || tmpBuilds.size() == 0) {
-                    tmp.add(i, createSnapshotItem((AbstractProject) Jenkins.getInstance().getItem(structures.get(i).getName()), false));
-                } else {
-                    tmp.add(i, createSnapshotItem(tmpBuilds.get(0), false));
-                    tmpBuilds.remove(0);
-                }
-            } else {
-                logger.warning("One of referenced jobs is null, your Jenkins config probably broken, skipping the build info for this job...");
-            }
-        }
-            snapshotPhase.setBuilds(tmp);
-            return snapshotPhase;
+		return snapshotPhase;
+	}
 
-    }
-  /******************************************************************************************/
+	/**
+	 * **************************************************************************************
+	 */
 
-    public static BuildHistory.SCMUser createScmUser(User user){
-        BuildHistory.SCMUser scmUser = new BuildHistory.SCMUser();
-        scmUser.setDisplayName(user.getDisplayName());
-        scmUser.setFullName(user.getFullName());
-        scmUser.setId(user.getId());
+	public static BuildHistory.SCMUser createScmUser(User user) {
+		BuildHistory.SCMUser scmUser = new BuildHistory.SCMUser();
+		scmUser.setDisplayName(user.getDisplayName());
+		scmUser.setFullName(user.getFullName());
+		scmUser.setId(user.getId());
 
-        return scmUser;
-    }
+		return scmUser;
+	}
 
-    public static Set<BuildHistory.SCMUser> createScmUsersList(Set<User> users) {
-        Set<BuildHistory.SCMUser> userList = ModelFactory.createScmUsersList(users);
+	public static Set<BuildHistory.SCMUser> createScmUsersList(Set<User> users) {
+		Set<BuildHistory.SCMUser> userList = ModelFactory.createScmUsersList(users);
 
-        for(User user: users){
-            userList.add(ModelFactory.createScmUser(user));
-        }
-        return userList;
-    }
+		for (User user : users) {
+			userList.add(ModelFactory.createScmUser(user));
+		}
+		return userList;
+	}
 
-    /*******************************************************************************/
-    public static ParameterConfig createParameterConfig(ParameterDefinition pd) {
-        return createParameterConfig(pd, ParameterType.UNKNOWN, null, null);
-    }
+	/**
+	 * ***************************************************************************
+	 */
+	public static ParameterConfig createParameterConfig(ParameterDefinition pd) {
+		return createParameterConfig(pd, ParameterType.UNKNOWN, null, null);
+	}
 
-    public static ParameterConfig createParameterConfig(ParameterDefinition pd, ParameterType type) {
-        return createParameterConfig(pd, type, null, null);
-    }
+	public static ParameterConfig createParameterConfig(ParameterDefinition pd, ParameterType type) {
+		return createParameterConfig(pd, type, null, null);
+	}
 
-    public static ParameterConfig createParameterConfig(ParameterDefinition pd, ParameterType type, Object defaultValue) {
-        return createParameterConfig(pd, type, defaultValue, null);
-    }
+	public static ParameterConfig createParameterConfig(ParameterDefinition pd, ParameterType type, Object defaultValue) {
+		return createParameterConfig(pd, type, defaultValue, null);
+	}
 
-    public static ParameterConfig createParameterConfig(String name,ParameterType  type, List<Object> choices) {
-        ParameterConfig parameterConfig = new ParameterConfig();
-        parameterConfig.setName(name);
-        parameterConfig.setType(type);
-        parameterConfig.setDescription("");
-        parameterConfig.setChoices(choices.toArray());
-        return parameterConfig;
-    }
+	public static ParameterConfig createParameterConfig(String name, ParameterType type, List<Object> choices) {
+		ParameterConfig parameterConfig = new ParameterConfig();
+		parameterConfig.setName(name);
+		parameterConfig.setType(type);
+		parameterConfig.setDescription("");
+		parameterConfig.setChoices(choices.toArray());
+		return parameterConfig;
+	}
 
-    public static ParameterConfig createParameterConfig(ParameterDefinition pd, ParameterType type, Object defaultValue, List<Object> choices) {
+	public static ParameterConfig createParameterConfig(ParameterDefinition pd, ParameterType type, Object defaultValue, List<Object> choices) {
 
-        ParameterConfig parameterConfig = new ParameterConfig();
-        parameterConfig.setName(pd.getName());
-        parameterConfig.setType(type);
-        parameterConfig.setDescription(pd.getDescription());
-        ParameterValue tmp;
-        if (type != ParameterType.UNKNOWN) {
-            if (defaultValue != null || type == ParameterType.PASSWORD) {
-                parameterConfig.setDefaultValue(defaultValue);
-            } else {
-                tmp = pd.getDefaultParameterValue();
-                parameterConfig.setDefaultValue(tmp == null ? "" : tmp.getValue());
-            }
-            if(choices!=null) {
-                parameterConfig.setChoices(choices.toArray());
-            }
-        }
+		ParameterConfig parameterConfig = new ParameterConfig();
+		parameterConfig.setName(pd.getName());
+		parameterConfig.setType(type);
+		parameterConfig.setDescription(pd.getDescription());
+		ParameterValue tmp;
+		if (type != ParameterType.UNKNOWN) {
+			if (defaultValue != null || type == ParameterType.PASSWORD) {
+				parameterConfig.setDefaultValue(defaultValue);
+			} else {
+				tmp = pd.getDefaultParameterValue();
+				parameterConfig.setDefaultValue(tmp == null ? "" : tmp.getValue());
+			}
+			if (choices != null) {
+				parameterConfig.setChoices(choices.toArray());
+			}
+		}
 
-        return parameterConfig;
-    }
+		return parameterConfig;
+	}
 
-    /*****************************************************************/
+	/**
+	 * *************************************************************
+	 */
 
-    public static ParameterInstance createParameterInstance(ParameterConfig pc, ParameterValue value){
-            return new ParameterInstance(pc,value == null ? null : value.getValue().toString());
-    }
+	public static ParameterInstance createParameterInstance(ParameterConfig pc, ParameterValue value) {
+		return new ParameterInstance(pc, value == null ? null : value.getValue().toString());
+	}
 
-    public static String generateSubBuildName(ParameterInstance[] parameters){
-        List<ParameterInstance> sortedList = new ArrayList<ParameterInstance>();
-        for(ParameterInstance p : parameters) {
-            if(p.getType().toString() == ParameterType.AXIS.toString()) {
-                sortedList.add(p);
-            }
-        }
+	public static String generateSubBuildName(ParameterInstance[] parameters) {
+		List<ParameterInstance> sortedList = new ArrayList<ParameterInstance>();
+		for (ParameterInstance p : parameters) {
+			if (p.getType().toString() == ParameterType.AXIS.toString()) {
+				sortedList.add(p);
+			}
+		}
 
-        Collections.sort(sortedList, new Comparator<ParameterInstance>() {
-            @Override
-            public int compare(ParameterInstance p1, ParameterInstance p2) {
-                return p1.getName().compareTo(p2.getName());
-            }
-        });
+		Collections.sort(sortedList, new Comparator<ParameterInstance>() {
+			@Override
+			public int compare(ParameterInstance p1, ParameterInstance p2) {
+				return p1.getName().compareTo(p2.getName());
+			}
+		});
 
-        String subBuildName = "";
-        if(sortedList.size() > 0) {
-            int i = 0;
-            for (; i < sortedList.size() - 1; i++) {
-                subBuildName += sortedList.get(i).getName() + "=" + sortedList.get(i).getValue().toString() + ",";
-            }
-            subBuildName += sortedList.get(i).getName() + "=" + sortedList.get(i).getValue().toString();
-        }
-        return subBuildName;
-    }
+		String subBuildName = "";
+		if (sortedList.size() > 0) {
+			int i = 0;
+			for (; i < sortedList.size() - 1; i++) {
+				subBuildName += sortedList.get(i).getName() + "=" + sortedList.get(i).getValue().toString() + ",";
+			}
+			subBuildName += sortedList.get(i).getName() + "=" + sortedList.get(i).getValue().toString();
+		}
+		return subBuildName;
+	}
 }
