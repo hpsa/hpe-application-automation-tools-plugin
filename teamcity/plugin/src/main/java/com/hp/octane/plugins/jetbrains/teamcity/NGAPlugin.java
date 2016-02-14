@@ -121,15 +121,8 @@ public class NGAPlugin implements ServerExtension {
                 new StatusActionController(sBuildServer, projectManager, responsibilityFacade));
 
         ////////////////////////////////////////////////////////////////////////////////////
-//        webControllerManager.registerController("/octane-rest/admin/**",
-//                new AdminActionController(sBuildServer, projectManager, responsibilityFacade, projectSettingsManager, pluginDescriptor));
-//
-//        webControllerManager.registerController("/octane-rest/userDetails/**",
-//                new UserDetailsActionController(sBuildServer, projectManager, responsibilityFacade, projectSettingsManager, pluginDescriptor));
-//
-//        webControllerManager.registerController("/octane-rest/testConnection/**",
-//                new TestConnectionActionController(sBuildServer, projectManager, responsibilityFacade, projectSettingsManager, pluginDescriptor));
-
+        webControllerManager.registerController("/octane-rest/**",new ConfigurationActionsController(sBuildServer,
+                projectManager, responsibilityFacade, projectSettingsManager, pluginDescriptor));
     }
 
     private void initOPB() {

@@ -66,7 +66,9 @@ public class CIPluginServicesImpl implements CIPluginServices {
 		ngaConfiguration.setUrl(config.getUiLocation());
 		ngaConfiguration.setClientId(config.getUsername());
 		ngaConfiguration.setApiKey(config.getSecretPassword());
-		ngaConfiguration.setSharedSpace(Long.parseLong(config.getSharedSpace()));
+		if(config.getSharedSpace()!=null && !config.getSharedSpace().isEmpty()){
+			ngaConfiguration.setSharedSpace(Long.parseLong(config.getSharedSpace()));
+		}
 		return ngaConfiguration;
 	}
 

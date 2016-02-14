@@ -12,12 +12,6 @@ import javax.servlet.http.HttpServletResponse;
  */
 abstract class AbstractActionController implements Controller {
 
-//
-//    public AbstractActionController(SBuildServer server,
-//                                    ProjectManager projectManager,
-//                                    BuildTypeResponsibilityFacade responsibilityFacade,
-//                                   ) {}
-
     public  ModelAndView handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws Exception {
         Object results = buildResults(httpServletRequest,httpServletResponse);
 

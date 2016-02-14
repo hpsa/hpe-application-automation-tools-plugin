@@ -12,8 +12,9 @@
                     document.getElementById("password1").value  = obj.secretPassword;
                 }
             };
-            xhttp.open("GET", "/octane-rest/userDetails/", true);
-            xhttp.send();
+            var parameters ="action=reload";
+            xhttp.open("GET", "/octane-rest/", true);
+            xhttp.send(parameters);
         }
     </script>
 
@@ -32,9 +33,9 @@
             var username = encodeURIComponent(document.getElementById("username1").value);
             var password =encodeURIComponent(document.getElementById("password1").value);
 
-            var parameters = "server="+server+"&username1="+username+"&password1="+password;
+            var parameters = "action=save"+"&server="+server+"&username1="+username+"&password1="+password;
 
-            xhttp.open("POST", "/octane-rest/admin/", true)
+            xhttp.open("POST", "/octane-rest/", true)
             xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
             xhttp.send(parameters)
         }
@@ -58,9 +59,9 @@
             var username = encodeURIComponent(document.getElementById("username1").value);
             var password =encodeURIComponent(document.getElementById("password1").value);
 
-            var parameters = "server="+server+"&username1="+username+"&password1="+password;
+            var parameters = "action=test&server="+server+"&username1="+username+"&password1="+password;
 
-            xhttp.open("POST", "/octane-rest/testConnection/", true)
+            xhttp.open("POST", "/octane-rest/", true)
             xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
             xhttp.send(parameters)
         }

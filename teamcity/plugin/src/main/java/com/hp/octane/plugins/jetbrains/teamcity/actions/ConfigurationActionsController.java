@@ -14,21 +14,27 @@ import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.SBuildServer;
 import jetbrains.buildServer.serverSide.settings.ProjectSettingsManager;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Created by lazara on 14/02/2016.
  */
 public class ConfigurationActionsController extends AbstractActionController {
 
+    @Autowired
+    private static final Logger logger = Logger.getLogger(ConfigurationActionsController.class.getName());
     private SBuildServer m_server;
     private PluginDescriptor m_descriptor;
     private static final String CLIENT_TYPE = ConfigurationService.CLIENT_TYPE;
+
 
 
     public ConfigurationActionsController(SBuildServer server, ProjectManager projectManager,
@@ -47,34 +53,52 @@ public class ConfigurationActionsController extends AbstractActionController {
     @Override
     public ModelAndView handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
 
-//        String username = httpServletRequest.getParameter("username1");
-//        String password = httpServletRequest.getParameter("password1");
-//        String url_str = httpServletRequest.getParameter("server");
-//
-//
-//        MqmProject mqmProject = null;
-//        try {
-//            mqmProject = ConfigurationService.parseUiLocation(url_str);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//
-//        ServerConfiguration serverConfiguration  = new ServerConfiguration(
-//                mqmProject.getLocation(),
-//                mqmProject.getSharedSpace(),
-//                username,
-//                password,
-//                "");
-//        String returnStr = handleTestRequest(serverConfiguration);
-//        PrintWriter writer;
-//
-//        try
-//        {
-//            writer = httpServletResponse.getWriter();
-//            writer.write(returnStr);
-//        }
-//
-//        catch(IOException e){}
+        String returnStr="";
+        String action = httpServletRequest.getParameter("action");
+
+        if (action==null || action == "") {
+            returnStr = reloadConfiguration();
+        }else{
+
+            String username = httpServletRequest.getParameter("username1");
+            String password = httpServletRequest.getParameter("password1");
+            String url_str = httpServletRequest.getParameter("server");
+
+
+            MqmProject mqmProject;
+            try {
+                mqmProject = ConfigurationService.parseUiLocation(url_str);
+
+                ServerConfiguration serverConfiguration  = new ServerConfiguration(
+                        mqmProject.getLocation(),
+                        mqmProject.getSharedSpace(),
+                        username,
+                        password,
+                        "");
+
+                if(action.equals("test")){
+                    returnStr = testConfiguration(serverConfiguration);
+                }else if(action.equals("save")){
+                    returnStr = updateConfiguration(serverConfiguration,url_str);
+                }
+
+            } catch (Exception e) {
+                returnStr = e.getMessage();
+                e.printStackTrace();
+            }
+
+        }
+
+        PrintWriter writer;
+        try
+        {
+            writer = httpServletResponse.getWriter();
+            writer.write(returnStr);
+        }
+
+        catch(IOException e){
+            logger.log(Level.WARNING, e.getMessage());
+        }
         return null;
 
     }
@@ -84,7 +108,7 @@ public class ConfigurationActionsController extends AbstractActionController {
                 serverConf.username,serverConf.password,CLIENT_TYPE);
     }
 
-    public String updateConfiguration(ServerConfiguration serverConf,String url) throws Exception {
+    public String updateConfiguration(ServerConfiguration serverConf,String url){
 
         Config cfg = NGAPlugin.getInstance().getConfig();
         ConfigManager cfgManager = ConfigManager.getInstance(m_descriptor, m_server);
@@ -114,6 +138,7 @@ public class ConfigurationActionsController extends AbstractActionController {
             return jsonInString;
 
         } catch (JsonProcessingException e) {
+            logger.log(Level.WARNING, "failed to reload configuration: "+ e.getMessage());
             e.printStackTrace();
         }
         return null;
