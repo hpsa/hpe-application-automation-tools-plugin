@@ -3,7 +3,9 @@ package com.hp.octane.plugins.jetbrains.teamcity.actions;
         import com.hp.octane.plugins.common.bridge.BridgesService;
         import com.hp.octane.plugins.common.configuration.ServerConfiguration;
         import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
-import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
+        import com.hp.octane.plugins.jetbrains.teamcity.configuration.ConfigurationService;
+        import com.hp.octane.plugins.jetbrains.teamcity.configuration.MqmProject;
+        import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.Config;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.ConfigManager;
 import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;
@@ -39,55 +41,35 @@ public class AdminActionController extends AbstractActionController {
 
     @Override
     public ModelAndView handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws Exception {
-        NGAPlugin ngaPlugin = NGAPlugin.getInstance();
-        Config cfg = ngaPlugin.getConfig();
 
         PrintWriter writer = httpServletResponse.getWriter();
-
-        ConfigManager cfgManager = ConfigManager.getInstance(m_descriptor,m_server);
 
         try {
             String username = httpServletRequest.getParameter("username1");
             String password = httpServletRequest.getParameter("password1");
             String url_str = httpServletRequest.getParameter("server");
 
-            // separating the sharedSpace from the uiLocation
-            String sharedSpace;
-            String uiLocation;
-            int start = url_str.indexOf("p=");
-            int end = (url_str.substring(start)).indexOf("/");
-            if(end!=-1) {
-                sharedSpace = url_str.substring(start + 2, start + end);
-                uiLocation = url_str.substring(0,start+end);
-            }
-            else
-            {
-                sharedSpace = url_str.substring(start + 2);
-                uiLocation=url_str;
+            MqmProject mqmProject = new MqmProject("","");
+            try {
+                mqmProject = ConfigurationService.parseUiLocation(url_str);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
 
-            int index=0;
-            for(int i=0; i<url_str.length(); i++)
-                if ((url_str.charAt(i))==':')
-                    index = i;
-
-
-            String Location = url_str.substring(0,index+5);
-
+            Config cfg = NGAPlugin.getInstance().getConfig();
+            ConfigManager cfgManager = ConfigManager.getInstance(m_descriptor, m_server);
 
             // updating the cfg file parameters
             cfg.setUsername(username);
             cfg.setSecretPassword(password);
-            cfg.setUiLocation(uiLocation);
-            cfg.setSharedSpace(sharedSpace);
-            cfg.setLocation(Location);
+            cfg.setUiLocation(url_str);
+            cfg.setSharedSpace(mqmProject.getSharedSpace());
+            cfg.setLocation(mqmProject.getLocation());
             cfgManager.jaxbObjectToXML(cfg);        // save the new parameters at the config file
 
-
-            Config config = NGAPlugin.getInstance().getConfig();
             ServerConfiguration serverConfiguration  = new ServerConfiguration(
-                    Location,
-                    sharedSpace,
+                    mqmProject.getLocation(),
+                    mqmProject.getSharedSpace(),
                     username,
                     password,
                     "");

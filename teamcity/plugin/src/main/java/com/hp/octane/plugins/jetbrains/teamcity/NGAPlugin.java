@@ -7,6 +7,7 @@ package com.hp.octane.plugins.jetbrains.teamcity;
 import com.hp.octane.plugins.common.bridge.BridgesService;
 import com.hp.octane.plugins.common.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jetbrains.teamcity.actions.*;
+import com.hp.octane.plugins.jetbrains.teamcity.configuration.ConfigurationService;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.TeamCityModelFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.Config;
@@ -18,7 +19,6 @@ import jetbrains.buildServer.serverSide.ServerExtension;
 import jetbrains.buildServer.serverSide.settings.ProjectSettingsManager;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import jetbrains.buildServer.web.openapi.WebControllerManager;
-import org.apache.commons.lang.StringUtils;
 
 import java.util.Date;
 import java.util.UUID;
@@ -32,7 +32,7 @@ public class NGAPlugin implements ServerExtension {
     private Long identityFrom;
 
     // inferred from uiLocation
-    private final String PLUGIN_TYPE = "HPE_TEAMCITY_PLUGIN";
+    private final String PLUGIN_TYPE = ConfigurationService.CLIENT_TYPE;
 
     private SBuildServer sBuildServer;
     private ProjectManager projectManager;
