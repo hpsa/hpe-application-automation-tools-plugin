@@ -70,7 +70,7 @@ public class BridgeClient {
 								"; instance ID: " + pluginServices.getServerInfo().getInstanceId() +
 								"; self URL: " + "<to be implemented>");
 						MqmRestClient restClient = restClientFactory.obtain(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
-						tasksJSON = restClient.getAbridgedTasks(serverInstanceId, "http://dummy/url", pluginVersion, apiVersion);
+						tasksJSON = restClient.getAbridgedTasks(serverInstanceId, pluginServices.getServerInfo().getUrl(), pluginVersion, apiVersion);
 						logger.info("BRIDGE: back from '" + mqmConfig.location + "' (SP: " + mqmConfig.sharedSpace + ") with " + (tasksJSON == null || tasksJSON.isEmpty() ? "no tasks" : "some tasks"));
 						connect();
 						if (tasksJSON != null && !tasksJSON.isEmpty()) {
