@@ -99,7 +99,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	}
 
 	@Override
-	//TODO: implement: feel build history
+	//TODO: implement: fill build history
 	public BuildHistory getHistoryPipeline(String ciJobId, String originalBody) {
 		return DTOFactory.getInstance().newDTO(BuildHistory.class);
 	}

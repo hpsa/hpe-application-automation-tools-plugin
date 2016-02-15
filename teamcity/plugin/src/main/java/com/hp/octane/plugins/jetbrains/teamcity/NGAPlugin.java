@@ -7,9 +7,8 @@ package com.hp.octane.plugins.jetbrains.teamcity;
 import com.hp.nga.integrations.services.SDKFactory;
 import com.hp.nga.integrations.services.bridge.BridgeService;
 import com.hp.octane.plugins.CIPluginServicesImpl;
-import com.hp.octane.plugins.common.configuration.ServerConfiguration;
-import com.hp.octane.plugins.jetbrains.teamcity.actions.*;
-import com.hp.octane.plugins.jetbrains.teamcity.configuration.ConfigurationService;
+import com.hp.octane.plugins.jetbrains.teamcity.actions.ConfigurationActionsController;
+import com.hp.octane.plugins.jetbrains.teamcity.actions.DynamicController;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.Config;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.ConfigManager;
 import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;
@@ -32,12 +31,11 @@ public class NGAPlugin implements ServerExtension {
     public static final String PLUGIN_NAME = NGAPlugin.class.getSimpleName().toLowerCase();
     private static final Logger logger = Logger.getLogger(NGAPlugin.class.getName());
     private final CIPluginServicesImpl ciPluginService;
-
-    private String identity;
-    private Long identityFrom;
-
+//
+//    private String identity;
+//    private Long identityFrom;
     // inferred from uiLocation
-    private final String PLUGIN_TYPE = ConfigurationService.CLIENT_TYPE;
+//    private final String PLUGIN_TYPE = ConfigurationService.CLIENT_TYPE;
 
     private SBuildServer sBuildServer;
     private ProjectManager projectManager;
@@ -46,15 +44,8 @@ public class NGAPlugin implements ServerExtension {
 
     private static NGAPlugin plugin;
     private PluginDescriptor descriptor;
-
-
-
     private Config config;
     private ConfigManager configManager;
-    public static String getPluginName() {
-        return PLUGIN_NAME;
-    }
-
 
     public NGAPlugin(SBuildServer sBuildServer,
                      ProjectManager projectManager,
@@ -87,17 +78,8 @@ public class NGAPlugin implements ServerExtension {
         initOPB();
     }
 
-    public SBuildServer getsBuildServer() {
-        return sBuildServer;
-    }
-
-
     public ProjectManager getProjectManager() {
         return projectManager;
-    }
-
-    public BuildTypeResponsibilityFacade getResponsibilityFacade() {
-        return responsibilityFacade;
     }
 
     public static NGAPlugin getInstance() {
@@ -106,23 +88,8 @@ public class NGAPlugin implements ServerExtension {
 
     private void registerControllers(WebControllerManager webControllerManager, ProjectManager projectManager, SBuildServer sBuildServer, ProjectSettingsManager projectSettingsManager, PluginDescriptor pluginDescriptor) {
 
-
-        webControllerManager.registerController("/octane/**", new DynamicController());
-
-        webControllerManager.registerController("/octane-rest/jobs/**",
-                new PluginActionsController(sBuildServer, projectManager, responsibilityFacade));
-
-        webControllerManager.registerController("/octane-rest/snapshot/**",
-                new BuildActionsController(sBuildServer, projectManager, responsibilityFacade));
-
-        webControllerManager.registerController("/octane-rest/structure/**",
-                new ProjectActionsController(sBuildServer, projectManager, responsibilityFacade));
-        webControllerManager.registerController("/octane-rest/status/**",
-                new StatusActionController(sBuildServer, projectManager, responsibilityFacade));
-
-        ////////////////////////////////////////////////////////////////////////////////////
-        webControllerManager.registerController("/octane-rest/**",new ConfigurationActionsController(sBuildServer,
-                projectManager, responsibilityFacade, projectSettingsManager, pluginDescriptor));
+        webControllerManager.registerController("/nga/**", new DynamicController());
+        webControllerManager.registerController("/octane-rest/**",new ConfigurationActionsController(sBuildServer,pluginDescriptor));
     }
 
     private void initOPB() {
@@ -142,24 +109,8 @@ public class NGAPlugin implements ServerExtension {
  //       BridgesService.getInstance().updateBridge(getServerConfiguration());
     }
 
-
-
     public Config getConfig() {
         return config;
-    }
-
-
-    public ServerConfiguration getServerConfiguration() {
-
-        return new ServerConfiguration(
-                config.getLocation(),
-                config.getSharedSpace(),
-                config.getUsername(),
-                config.getSecretPassword(),
-                ""
-
-
-        );
     }
 
 }

@@ -9,13 +9,11 @@ import com.hp.octane.plugins.jetbrains.teamcity.configuration.ConfigurationServi
 import com.hp.octane.plugins.jetbrains.teamcity.configuration.MqmProject;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.Config;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.ConfigManager;
-import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;
-import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.SBuildServer;
-import jetbrains.buildServer.serverSide.settings.ProjectSettingsManager;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.Controller;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -27,7 +25,7 @@ import java.util.logging.Logger;
 /**
  * Created by lazara on 14/02/2016.
  */
-public class ConfigurationActionsController extends AbstractActionController {
+public class ConfigurationActionsController implements Controller {
 
     @Autowired
     private static final Logger logger = Logger.getLogger(ConfigurationActionsController.class.getName());
@@ -37,17 +35,9 @@ public class ConfigurationActionsController extends AbstractActionController {
 
 
 
-    public ConfigurationActionsController(SBuildServer server, ProjectManager projectManager,
-                                          BuildTypeResponsibilityFacade responsibilityFacade,
-                                          ProjectSettingsManager projectSettingsManager, PluginDescriptor descriptor) {
+    public ConfigurationActionsController(SBuildServer server, PluginDescriptor descriptor) {
         m_server = server;
         m_descriptor = descriptor;
-    }
-
-
-    @Override
-    protected Object buildResults(HttpServletRequest request, HttpServletResponse response) {
-        return null;
     }
 
     @Override

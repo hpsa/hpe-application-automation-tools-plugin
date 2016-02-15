@@ -37,7 +37,7 @@ public class PluginActions implements RootAction {
 	}
 
 	public String getUrlName() {
-		return "octane";
+		return "nga";
 	}
 
 	public void doDynamic(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {

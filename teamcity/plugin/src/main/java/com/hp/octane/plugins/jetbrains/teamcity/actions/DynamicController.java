@@ -5,20 +5,24 @@ import com.hp.nga.integrations.dto.connectivity.NGAHttpMethod;
 import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
 import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
 import com.hp.nga.integrations.services.bridge.NGATaskProcessor;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.Controller;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.UUID;
 
 /**
  * Created by lazara on 07/02/2016.
  */
 
-public class DynamicController extends AbstractActionController {
+public class DynamicController  implements Controller {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Override
-	protected Object buildResults(HttpServletRequest req, HttpServletResponse res) {
+	public ModelAndView handleRequest(HttpServletRequest req, HttpServletResponse res) throws Exception {
+
 		NGAHttpMethod method = null;
 		if ("post".equals(req.getMethod().toLowerCase())) {
 			method = NGAHttpMethod.POST;
@@ -38,10 +42,15 @@ public class DynamicController extends AbstractActionController {
 			NGATaskProcessor taskProcessor = new NGATaskProcessor(ngaTaskAbridged);
 			NGAResultAbridged result = taskProcessor.execute();
 			res.setStatus(result.getStatus());
-			return result.getBody();
+			try {
+				res.getWriter().write(result.getBody());
+			} catch (IOException e) {
+				res.setStatus(501);
+				e.printStackTrace();
+			}
 		} else {
 			res.setStatus(501);
-			return "";
 		}
+		return null;
 	}
 }
