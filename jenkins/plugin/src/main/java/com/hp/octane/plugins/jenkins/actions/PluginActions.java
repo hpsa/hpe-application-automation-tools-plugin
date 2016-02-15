@@ -5,6 +5,7 @@ import com.hp.nga.integrations.dto.connectivity.NGAHttpMethod;
 import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
 import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
 import com.hp.nga.integrations.services.bridge.NGATaskProcessor;
+import com.hp.octane.plugins.jenkins.configuration.ConfigApi;
 import hudson.Extension;
 import hudson.model.RootAction;
 import org.kohsuke.stapler.StaplerRequest;
@@ -38,6 +39,10 @@ public class PluginActions implements RootAction {
 
 	public String getUrlName() {
 		return "nga";
+	}
+
+	public ConfigApi getConfiguration() {
+		return new ConfigApi();
 	}
 
 	public void doDynamic(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
