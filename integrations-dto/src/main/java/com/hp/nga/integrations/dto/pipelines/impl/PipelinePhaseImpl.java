@@ -3,6 +3,7 @@ package com.hp.nga.integrations.dto.pipelines.impl;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.pipelines.PipelinePhase;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -16,7 +17,7 @@ import java.util.List;
 class PipelinePhaseImpl implements PipelinePhase {
 	private String name;
 	private boolean blocking;
-	private List<PipelineNode> jobs;
+	private List<PipelineNode> jobs = new ArrayList<PipelineNode>();
 
 	public String getName() {
 		return name;

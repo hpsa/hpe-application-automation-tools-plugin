@@ -4,6 +4,7 @@ import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.pipelines.PipelinePhase;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -17,9 +18,9 @@ import java.util.List;
 class PipelineNodeImpl implements PipelineNode {
 	private String ciId;
 	private String name;
-	private List<ParameterConfig> parameters;
-	private List<PipelinePhase> phasesInternal;
-	private List<PipelinePhase> phasesPostBuild;
+	private List<ParameterConfig> parameters = new ArrayList<ParameterConfig>();
+	private List<PipelinePhase> phasesInternal = new ArrayList<PipelinePhase>();
+	private List<PipelinePhase> phasesPostBuild = new ArrayList<PipelinePhase>();
 
 	public String getCiId() {
 		return ciId;

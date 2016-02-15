@@ -8,6 +8,7 @@ import com.hp.nga.integrations.dto.snapshots.SnapshotPhase;
 import com.hp.nga.integrations.dto.snapshots.SnapshotResult;
 import com.hp.nga.integrations.dto.snapshots.SnapshotStatus;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,9 +30,9 @@ class SnapshotNodeImpl implements SnapshotNode {
 	private Long startTime = null;
 	private Long duration = null;
 	private SCMData scmData = null;
-	private List<ParameterInstance> parameters;
-	private List<SnapshotPhase> phasesInternal;
-	private List<SnapshotPhase> phasesPostBuild;
+	private List<ParameterInstance> parameters = new ArrayList<ParameterInstance>();
+	private List<SnapshotPhase> phasesInternal = new ArrayList<SnapshotPhase>();
+	private List<SnapshotPhase> phasesPostBuild = new ArrayList<SnapshotPhase>();
 
 	public String getCiId() {
 		return ciId;

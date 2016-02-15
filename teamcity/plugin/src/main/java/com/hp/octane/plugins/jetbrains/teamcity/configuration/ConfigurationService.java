@@ -74,7 +74,7 @@ public class ConfigurationService {
 
     public static String checkConfiguration(String location, String sharedSpace, String username, String password, String clientType) {
 
-        String returnString = "";
+        String returnString = "Connection successful";
         MqmRestClient client = MqmRestClientFactory.create(
                 clientType, location, sharedSpace, username, password);
 

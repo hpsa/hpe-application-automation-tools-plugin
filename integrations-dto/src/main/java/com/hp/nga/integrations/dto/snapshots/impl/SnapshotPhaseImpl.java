@@ -3,6 +3,7 @@ package com.hp.nga.integrations.dto.snapshots.impl;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
 import com.hp.nga.integrations.dto.snapshots.SnapshotPhase;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -16,7 +17,7 @@ import java.util.List;
 class SnapshotPhaseImpl implements SnapshotPhase {
 	private String name;
 	private boolean blocking;
-	private List<SnapshotNode> builds;
+	private List<SnapshotNode> builds = new ArrayList<SnapshotNode>();
 
 	public String getName() {
 		return name;

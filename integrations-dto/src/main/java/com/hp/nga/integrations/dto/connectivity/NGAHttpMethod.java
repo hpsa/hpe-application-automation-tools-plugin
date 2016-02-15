@@ -36,7 +36,7 @@ public enum NGAHttpMethod {
 
 		NGAHttpMethod result = null;
 		for (NGAHttpMethod v : values()) {
-			if (v.value.compareTo(value) == 0) {
+			if (v.value.equalsIgnoreCase(value)) {
 				result = v;
 				break;
 			}
