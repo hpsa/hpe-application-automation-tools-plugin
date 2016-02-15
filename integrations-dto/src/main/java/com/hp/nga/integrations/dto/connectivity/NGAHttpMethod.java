@@ -12,10 +12,10 @@ import com.fasterxml.jackson.annotation.JsonValue;
  */
 
 public enum NGAHttpMethod {
-	POST("post"),
-	GET("get"),
-	PUT("put"),
-	DELETE("delete");
+	POST("POST"),
+	GET("GET"),
+	PUT("PUT"),
+	DELETE("DELETE");
 
 	private String value;
 
