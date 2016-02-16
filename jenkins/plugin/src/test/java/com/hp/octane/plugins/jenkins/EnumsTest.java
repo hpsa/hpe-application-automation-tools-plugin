@@ -28,7 +28,7 @@ public class EnumsTest {
 		assertEquals(CIEventCauseType.TIMER.value(), "timer");
 		assertEquals(CIEventCauseType.UPSTREAM.value(), "upstream");
 		assertEquals(CIEventCauseType.UNDEFINED.value(), "undefined");
-		assertEquals(CIEventCauseType.fromValue("scm"), CIEventCauseType.SCM.value());
+		assertEquals(CIEventCauseType.fromValue("scm"), CIEventCauseType.SCM);
 	}
 
 	@Test
@@ -37,7 +37,7 @@ public class EnumsTest {
 		assertEquals(CIEventType.QUEUED.value(), "queued");
 		assertEquals(CIEventType.STARTED.value(), "started");
 		assertEquals(CIEventType.FINISHED.value(), "finished");
-		assertEquals(CIEventType.fromValue("queued"), CIEventType.QUEUED.value());
+		assertEquals(CIEventType.fromValue("queued"), CIEventType.QUEUED);
 	}
 
 	@Test

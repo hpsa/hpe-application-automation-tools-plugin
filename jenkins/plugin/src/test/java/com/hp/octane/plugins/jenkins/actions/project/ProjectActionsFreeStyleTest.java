@@ -13,8 +13,6 @@ import hudson.plugins.parameterizedtrigger.*;
 import hudson.tasks.BuildTrigger;
 import hudson.tasks.Fingerprinter;
 import hudson.tasks.Shell;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -175,7 +173,6 @@ public class ProjectActionsFreeStyleTest {
 		PipelineNode tmpNode;
 
 		page = client.goTo("nga/jobs/" + projectName, "application/json");
-
 		pipeline = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), PipelineNode.class);
 		assertEquals(projectName, pipeline.getCiId());
 		assertEquals(projectName, pipeline.getName());
