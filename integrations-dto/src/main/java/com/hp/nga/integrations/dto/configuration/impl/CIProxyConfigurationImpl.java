@@ -1,12 +1,12 @@
 package com.hp.nga.integrations.dto.configuration.impl;
 
-import com.hp.nga.integrations.dto.configuration.ProxyConfiguration;
+import com.hp.nga.integrations.dto.configuration.CIProxyConfiguration;
 
 /**
  * Created by gullery on 11/02/2016.
  */
 
-class ProxyConfigurationImpl implements ProxyConfiguration {
+class CIProxyConfigurationImpl implements CIProxyConfiguration {
 	private String url;
 	private String username;
 	private String password;
@@ -15,7 +15,7 @@ class ProxyConfigurationImpl implements ProxyConfiguration {
 		return url;
 	}
 
-	public ProxyConfiguration setUrl(String url) {
+	public CIProxyConfiguration setUrl(String url) {
 		this.url = url;
 		return this;
 	}
@@ -24,7 +24,7 @@ class ProxyConfigurationImpl implements ProxyConfiguration {
 		return username;
 	}
 
-	public ProxyConfiguration setUsername(String username) {
+	public CIProxyConfiguration setUsername(String username) {
 		this.username = username;
 		return this;
 	}
@@ -33,7 +33,7 @@ class ProxyConfigurationImpl implements ProxyConfiguration {
 		return password;
 	}
 
-	public ProxyConfiguration setPassword(String password) {
+	public CIProxyConfiguration setPassword(String password) {
 		this.password = password;
 		return this;
 	}

@@ -1,5 +1,6 @@
 package com.hp.nga.integrations.api;
 
+import com.hp.nga.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.nga.integrations.dto.general.CIPluginInfo;
 import com.hp.nga.integrations.dto.general.CIServerInfo;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
@@ -45,6 +46,13 @@ public interface CIPluginServices {
 	 * @return NGAConfiguration object; if no configuration available the implementation should return NULL
 	 */
 	NGAConfiguration getNGAConfiguration();
+
+	/**
+	 * Provides CI Server proxy configuration (managed by plugin implementation)
+	 *
+	 * @return ProxyConfiguration object; if no configuration available the implementation should return NULL
+	 */
+	CIProxyConfiguration getProxyConfiguration();
 
 	/**
 	 * Provides a list of Projects existing on this CI Server

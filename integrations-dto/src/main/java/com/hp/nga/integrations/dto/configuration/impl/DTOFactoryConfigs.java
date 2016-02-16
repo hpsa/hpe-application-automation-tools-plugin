@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.hp.nga.integrations.dto.DTOBase;
 import com.hp.nga.integrations.dto.DTOFactoryInternalBase;
 import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
-import com.hp.nga.integrations.dto.configuration.ProxyConfiguration;
+import com.hp.nga.integrations.dto.configuration.CIProxyConfiguration;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,14 +23,14 @@ public final class DTOFactoryConfigs implements DTOFactoryInternalBase {
 
 	public static void ensureInit(Map<Class<? extends DTOBase>, DTOFactoryInternalBase> registry, ObjectMapper objectMapper) {
 		registry.put(NGAConfiguration.class, INSTANCE_HOLDER.instance);
-		registry.put(ProxyConfiguration.class, INSTANCE_HOLDER.instance);
+		registry.put(CIProxyConfiguration.class, INSTANCE_HOLDER.instance);
 
 		INSTANCE_HOLDER.instance.dtoPairs.put(NGAConfiguration.class, NGAConfigurationImpl.class);
-		INSTANCE_HOLDER.instance.dtoPairs.put(ProxyConfiguration.class, ProxyConfigurationImpl.class);
+		INSTANCE_HOLDER.instance.dtoPairs.put(CIProxyConfiguration.class, CIProxyConfigurationImpl.class);
 
 		SimpleAbstractTypeResolver resolver = new SimpleAbstractTypeResolver();
 		resolver.addMapping(NGAConfiguration.class, NGAConfigurationImpl.class);
-		resolver.addMapping(ProxyConfiguration.class, ProxyConfigurationImpl.class);
+		resolver.addMapping(CIProxyConfiguration.class, CIProxyConfigurationImpl.class);
 		SimpleModule module = new SimpleModule();
 		module.setAbstractTypes(resolver);
 		objectMapper.registerModule(module);

@@ -2,6 +2,7 @@ package com.hp.octane.plugins.jenkins;
 
 import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.dto.DTOFactory;
+import com.hp.nga.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
 import com.hp.nga.integrations.dto.general.CIPluginInfo;
 import com.hp.nga.integrations.dto.general.CIServerInfo;
@@ -19,6 +20,7 @@ import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessors;
+import hudson.ProxyConfiguration;
 import hudson.model.*;
 import hudson.security.ACL;
 import hudson.security.AccessDeniedException2;
@@ -47,8 +49,8 @@ import java.util.logging.Logger;
  * Jenkins CI Server oriented extension of CI Data Provider
  */
 
-public class CIPluginServicesImpl implements CIPluginServices {
-	private static final Logger logger = Logger.getLogger(CIPluginServicesImpl.class.getName());
+public class CIJenkinsServicesImpl implements CIPluginServices {
+	private static final Logger logger = Logger.getLogger(CIJenkinsServicesImpl.class.getName());
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Override
@@ -87,6 +89,19 @@ public class CIPluginServicesImpl implements CIPluginServices {
 		result.setSharedSpace(Long.parseLong(serverConfiguration.sharedSpace));
 		result.setClientId(serverConfiguration.username);
 		result.setApiKey(serverConfiguration.password);
+		return result;
+	}
+
+	@Override
+	public CIProxyConfiguration getProxyConfiguration() {
+		CIProxyConfiguration result = null;
+		ProxyConfiguration proxy = Jenkins.getInstance().proxy;
+		if (proxy != null) {
+			result = dtoFactory.newDTO(CIProxyConfiguration.class);
+			result.setUrl(proxy.name + ":" + proxy.port);
+			result.setUsername(proxy.getUserName());
+			result.setPassword(proxy.getPassword());
+		}
 		return result;
 	}
 

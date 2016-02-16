@@ -2,6 +2,7 @@ package com.hp.octane.plugins;
 
 import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.dto.DTOFactory;
+import com.hp.nga.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
 import com.hp.nga.integrations.dto.general.CIPluginInfo;
 import com.hp.nga.integrations.dto.general.CIServerInfo;
@@ -70,6 +71,12 @@ public class CIPluginServicesImpl implements CIPluginServices {
 			ngaConfiguration.setSharedSpace(Long.parseLong(config.getSharedSpace()));
 		}
 		return ngaConfiguration;
+	}
+
+	@Override
+	public CIProxyConfiguration getProxyConfiguration() {
+		//  TODO: to be implemented
+		return null;
 	}
 
 	@Override

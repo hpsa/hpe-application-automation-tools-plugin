@@ -8,17 +8,17 @@ import com.hp.nga.integrations.dto.DTOBase;
  * Proxy configuration descriptor
  */
 
-public interface ProxyConfiguration extends DTOBase {
+public interface CIProxyConfiguration extends DTOBase {
 
 	String getUrl();
 
-	ProxyConfiguration setUrl(String url);
+	CIProxyConfiguration setUrl(String url);
 
 	String getUsername();
 
-	ProxyConfiguration setUsername(String username);
+	CIProxyConfiguration setUsername(String username);
 
 	String getPassword();
 
-	ProxyConfiguration setPassword(String password);
+	CIProxyConfiguration setPassword(String password);
 }

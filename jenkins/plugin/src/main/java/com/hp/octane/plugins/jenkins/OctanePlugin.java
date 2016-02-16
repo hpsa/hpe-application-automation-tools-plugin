@@ -109,7 +109,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 		}
 
 		//  X Plugin will decide what's its pattern to provide instance/s of the implementation
-		SDKFactory.init(new CIPluginServicesImpl());
+		SDKFactory.init(new CIJenkinsServicesImpl());
 		//  X Plugin will consume SDK's services elsewhere in the following manner
 		//  EventsService eventsService = SDKFactory.getEventsService();
 
