@@ -97,10 +97,11 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 		CIProxyConfiguration result = null;
 		ProxyConfiguration proxy = Jenkins.getInstance().proxy;
 		if (proxy != null) {
-			result = dtoFactory.newDTO(CIProxyConfiguration.class);
-			result.setUrl(proxy.name + ":" + proxy.port);
-			result.setUsername(proxy.getUserName());
-			result.setPassword(proxy.getPassword());
+			result = dtoFactory.newDTO(CIProxyConfiguration.class)
+					.setHost(proxy.name)
+					.setPort(proxy.port)
+					.setUsername(proxy.getUserName())
+					.setPassword(proxy.getPassword());
 		}
 		return result;
 	}

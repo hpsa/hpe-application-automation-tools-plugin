@@ -7,16 +7,26 @@ import com.hp.nga.integrations.dto.configuration.CIProxyConfiguration;
  */
 
 class CIProxyConfigurationImpl implements CIProxyConfiguration {
-	private String url;
+	private String host;
+	private Integer port;
 	private String username;
 	private String password;
 
-	public String getUrl() {
-		return url;
+	public String getHost() {
+		return host;
 	}
 
-	public CIProxyConfiguration setUrl(String url) {
-		this.url = url;
+	public CIProxyConfiguration setHost(String host) {
+		this.host = host;
+		return this;
+	}
+
+	public Integer getPort() {
+		return port;
+	}
+
+	public CIProxyConfiguration setPort(Integer port) {
+		this.port = port;
 		return this;
 	}
 
