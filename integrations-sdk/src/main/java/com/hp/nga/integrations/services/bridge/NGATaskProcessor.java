@@ -11,6 +11,8 @@ import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
 import com.hp.nga.integrations.services.SDKFactory;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
@@ -100,7 +102,10 @@ public class NGATaskProcessor {
 
 	private void executePipelineRequest(NGAResultAbridged result, String jobId) {
 		PipelineNode content = SDKFactory.getCIPluginServices().getPipeline(jobId);
+		Map<String, String> headers = new HashMap<String, String>();
 		result.setBody(dtoFactory.dtoToJson(content));
+		headers.put("content-type", "application/json");
+		result.setHeaders(headers);
 	}
 
 	private void executePipelineRunRequest(NGAResultAbridged result, String jobId, String originalBody) {

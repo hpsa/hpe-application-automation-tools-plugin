@@ -13,6 +13,7 @@ import org.kohsuke.stapler.StaplerResponse;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -68,6 +69,11 @@ public class PluginActions implements RootAction {
 			res.setStatus(result.getStatus());
 			if (result.getBody() != null) {
 				res.getWriter().write(result.getBody());
+			}
+			if (result.getHeaders() != null) {
+				for (Map.Entry<String, String> header : result.getHeaders().entrySet()) {
+					res.setHeader(header.getKey(), header.getValue());;
+				}
 			}
 		} else {
 			res.setStatus(501);
