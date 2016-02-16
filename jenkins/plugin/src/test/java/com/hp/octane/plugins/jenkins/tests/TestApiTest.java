@@ -99,13 +99,13 @@ public class TestApiTest {
 
 	@Test
 	public void testXml() throws Exception {
-		Page testResults = client.goTo("job/test-api-test/" + build.getNumber() + "/octane/tests/xml", "application/xml");
+		Page testResults = client.goTo("job/test-api-test/" + build.getNumber() + "/nga/tests/xml", "application/xml");
 		TestUtils.matchTests(new TestResultIterable(new StringReader(testResults.getWebResponse().getContentAsString())), "test-api-test", build.getStartTimeInMillis(), TestUtils.helloWorldTests);
 	}
 
 	@Test
 	public void testAudit() throws Exception {
-		Page auditLog = client.goTo("job/test-api-test/" + build.getNumber() + "/octane/tests/audit", "application/json");
+		Page auditLog = client.goTo("job/test-api-test/" + build.getNumber() + "/nga/tests/audit", "application/json");
 		JSONArray audits = JSONArray.fromObject(auditLog.getWebResponse().getContentAsString());
 		Assert.assertEquals(1, audits.size());
 		JSONObject audit = audits.getJSONObject(0);
@@ -118,7 +118,7 @@ public class TestApiTest {
 
 	@Test
 	public void testLog() throws InterruptedException, IOException, SAXException {
-		Page publishLog = client.goTo("job/test-api-test/" + build.getNumber() + "/octane/tests/log", "text/plain");
+		Page publishLog = client.goTo("job/test-api-test/" + build.getNumber() + "/nga/tests/log", "text/plain");
 		Assert.assertEquals("This is the log", publishLog.getWebResponse().getContentAsString());
 	}
 }
