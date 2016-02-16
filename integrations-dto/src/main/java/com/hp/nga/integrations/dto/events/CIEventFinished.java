@@ -1,6 +1,6 @@
 package com.hp.nga.integrations.dto.events;
 
-import com.hp.nga.integrations.dto.causes.CIEventCauseBase;
+import com.hp.nga.integrations.dto.causes.CIEventCause;
 import com.hp.nga.integrations.dto.parameters.ParameterInstance;
 import com.hp.nga.integrations.dto.scm.SCMData;
 import com.hp.nga.integrations.dto.snapshots.SnapshotResult;
@@ -24,7 +24,7 @@ public final class CIEventFinished extends CIEventStarted {
 			int subNumber,
 			long startTime,
 			long estimatedDuration,
-			CIEventCauseBase[] causes,
+			CIEventCause[] causes,
 			ParameterInstance[] parameters,
 			SnapshotResult result,
 			long duration,

@@ -1,6 +1,6 @@
 package com.hp.nga.integrations.dto.snapshots.impl;
 
-import com.hp.nga.integrations.dto.causes.CIEventCauseBase;
+import com.hp.nga.integrations.dto.causes.CIEventCause;
 import com.hp.nga.integrations.dto.parameters.ParameterInstance;
 import com.hp.nga.integrations.dto.scm.SCMData;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
@@ -23,7 +23,7 @@ class SnapshotNodeImpl implements SnapshotNode {
 	private String ciId;
 	private String name;
 	private Integer number = null;
-	private CIEventCauseBase[] causes = null;
+	private CIEventCause[] causes = null;
 	private SnapshotStatus status = SnapshotStatus.UNAVAILABLE;
 	private SnapshotResult result = SnapshotResult.UNAVAILABLE;
 	private Long estimatedDuration = null;
@@ -61,11 +61,11 @@ class SnapshotNodeImpl implements SnapshotNode {
 		return this;
 	}
 
-	public CIEventCauseBase[] getCauses() {
+	public CIEventCause[] getCauses() {
 		return causes;
 	}
 
-	public SnapshotNode setCauses(CIEventCauseBase[] causes) {
+	public SnapshotNode setCauses(CIEventCause[] causes) {
 		this.causes = causes;
 		return this;
 	}

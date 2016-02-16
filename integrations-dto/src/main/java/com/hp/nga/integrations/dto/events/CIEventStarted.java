@@ -1,6 +1,6 @@
 package com.hp.nga.integrations.dto.events;
 
-import com.hp.nga.integrations.dto.causes.CIEventCauseBase;
+import com.hp.nga.integrations.dto.causes.CIEventCause;
 import com.hp.nga.integrations.dto.parameters.ParameterInstance;
 
 /**
@@ -18,7 +18,7 @@ public class CIEventStarted extends CIEventQueued {
 	private long estimatedDuration;
 	private ParameterInstance[] parameters;
 
-	public CIEventStarted(String project,int number, int subNumber, long startTime, long estimatedDuration, CIEventCauseBase[] causes, ParameterInstance[] parameters) {
+	public CIEventStarted(String project,int number, int subNumber, long startTime, long estimatedDuration, CIEventCause[] causes, ParameterInstance[] parameters) {
 		super(project,causes);
 		this.number = number;
         this.subNumber = subNumber;

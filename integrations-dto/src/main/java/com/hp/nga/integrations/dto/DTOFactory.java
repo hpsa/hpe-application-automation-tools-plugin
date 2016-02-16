@@ -2,6 +2,7 @@ package com.hp.nga.integrations.dto;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hp.nga.integrations.dto.causes.impl.DTOFactoryCauses;
 import com.hp.nga.integrations.dto.configuration.impl.DTOFactoryConfigs;
 import com.hp.nga.integrations.dto.connectivity.impl.DTOFactoryConnectivity;
 import com.hp.nga.integrations.dto.general.impl.DTOFactoryGeneral;
@@ -26,6 +27,7 @@ public final class DTOFactory {
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	private DTOFactory() {
+		DTOFactoryCauses.ensureInit(registry, objectMapper);
 		DTOFactoryConfigs.ensureInit(registry, objectMapper);
 		DTOFactoryConnectivity.ensureInit(registry, objectMapper);
 		DTOFactoryGeneral.ensureInit(registry, objectMapper);

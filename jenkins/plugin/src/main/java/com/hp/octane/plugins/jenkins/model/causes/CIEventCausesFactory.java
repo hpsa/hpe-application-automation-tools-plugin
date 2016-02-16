@@ -1,5 +1,6 @@
 package com.hp.octane.plugins.jenkins.model.causes;
 
+import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.causes.*;
 import hudson.model.Cause;
 import hudson.triggers.SCMTrigger;
@@ -16,32 +17,35 @@ import java.util.List;
  */
 
 public final class CIEventCausesFactory {
-	public static CIEventCauseBase[] processCauses(List<? extends Cause> causes) {
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+
+	public static CIEventCause[] processCauses(List<? extends Cause> causes) {
 		Cause tmpCause;
-		CIEventCauseBase[] result = null;
+		CIEventCause[] result = null;
 		Cause.UserIdCause tmpUserCause;
 		Cause.UpstreamCause tmpUpstreamCause;
 
 		if (causes != null && causes.size() > 0) {
-			result = new CIEventCauseBase[causes.size()];
+			result = new CIEventCause[causes.size()];
 			for (int i = 0; i < result.length; i++) {
 				tmpCause = causes.get(i);
+				result[i] = dtoFactory.newDTO(CIEventCause.class);
 				if (tmpCause instanceof SCMTrigger.SCMTriggerCause) {
-					result[i] = new CIEventSCMCause();
+					result[i].setType(CIEventCauseType.SCM);
 				} else if (tmpCause instanceof TimerTrigger.TimerTriggerCause) {
-					result[i] = new CIEventTimerCause();
+					result[i].setType(CIEventCauseType.TIMER);
 				} else if (tmpCause instanceof Cause.UserIdCause) {
 					tmpUserCause = (Cause.UserIdCause) tmpCause;
-					result[i] = new CIEventUserCause(tmpUserCause.getUserId(), tmpUserCause.getUserName());
+					result[i].setType(CIEventCauseType.USER);
+					result[i].setUser(tmpUserCause.getUserId());
 				} else if (tmpCause instanceof Cause.UpstreamCause) {
 					tmpUpstreamCause = (Cause.UpstreamCause) tmpCause;
-					result[i] = new CIEventUpstreamCause(
-							tmpUpstreamCause.getUpstreamProject(),
-							tmpUpstreamCause.getUpstreamBuild(),
-							processCauses(tmpUpstreamCause.getUpstreamCauses())
-					);
+					result[i].setType(CIEventCauseType.UPSTREAM);
+					result[i].setProject(tmpUpstreamCause.getUpstreamProject());
+					result[i].setNumber(tmpUpstreamCause.getUpstreamBuild());
+					result[i].setCauses(processCauses(tmpUpstreamCause.getUpstreamCauses()));
 				} else {
-					result[i] = new CIEventUndefinedCause();
+					result[i].setType(CIEventCauseType.UNDEFINED);
 				}
 			}
 		}

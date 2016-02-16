@@ -83,13 +83,20 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 
 	@Override
 	public NGAConfiguration getNGAConfiguration() {
-		NGAConfiguration result = dtoFactory.newDTO(NGAConfiguration.class);
 		ServerConfiguration serverConfiguration = Jenkins.getInstance().getPlugin(OctanePlugin.class).getServerConfiguration();
-		result.setUrl(serverConfiguration.location);
-		result.setSharedSpace(Long.parseLong(serverConfiguration.sharedSpace));
-		result.setClientId(serverConfiguration.username);
-		result.setApiKey(serverConfiguration.password);
-		return result;
+		Long sharedSpace = null;
+		if (serverConfiguration.sharedSpace != null) {
+			try {
+				sharedSpace = Long.parseLong(serverConfiguration.sharedSpace);
+			} catch (NumberFormatException nfe) {
+				logger.severe("found shared space '" + serverConfiguration.sharedSpace + "' yet it's not parsable into Long: " + nfe.getMessage());
+			}
+		}
+		return dtoFactory.newDTO(NGAConfiguration.class)
+				.setUrl(serverConfiguration.location)
+				.setSharedSpace(sharedSpace)
+				.setClientId(serverConfiguration.username)
+				.setApiKey(serverConfiguration.password);
 	}
 
 	@Override
@@ -142,7 +149,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 	@Override
 	public PipelineNode getPipeline(String rootCIJobId) {
 
-		AbstractProject project = getProjectFromId(rootCIJobId);
+		AbstractProject project = getJobByRefId(rootCIJobId);
 		if (project != null) {
 			return ModelFactory.createStructureItem(project);
 		}
@@ -152,7 +159,6 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 	@Override
 	public int runPipeline(String ciJobId, String originalBody) {
 		int result;
-		TopLevelItem item;
 		AbstractProject project;
 		SecurityContext originalContext = null;
 		String user = Jenkins.getInstance().getPlugin(OctanePlugin.class).getImpersonatedUser();
@@ -178,7 +184,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 		}
 
 		try {
-			project = getProjectFromId(ciJobId);
+			project = getJobByRefId(ciJobId);
 			if (project != null) {
 				project.checkPermission(Item.BUILD);
 			} else {
@@ -201,7 +207,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 
 	@Override
 	public SnapshotNode getSnapshotLatest(String ciJobId, boolean subTree) {
-		AbstractProject project = getProjectFromId(ciJobId);
+		AbstractProject project = getJobByRefId(ciJobId);
 		if (project != null) {
 			AbstractBuild build = project.getLastBuild();
 			return ModelFactory.createSnapshotItem(build, subTree);
@@ -210,8 +216,18 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 	}
 
 	@Override
+	public SnapshotNode getSnapshotByNumber(String ciJobId, Integer ciBuildNumber, boolean subTree) {
+		AbstractProject project = getJobByRefId(ciJobId);
+		if (project != null) {
+			AbstractBuild build = project.getBuildByNumber(ciBuildNumber);
+			return ModelFactory.createSnapshotItem(build, subTree);
+		}
+		return null;
+	}
+
+	@Override
 	public BuildHistory getHistoryPipeline(String ciJobId, String originalBody) {
-		AbstractProject project = getProjectFromId(ciJobId);
+		AbstractProject project = getJobByRefId(ciJobId);
 		SCMData scmData;
 		Set<User> users;
 		SCMProcessor scmProcessor = SCMProcessors.getAppropriate(project.getScm().getClass().getName());
@@ -269,10 +285,6 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 		return buildHistory;
 	}
 
-	private int extractParameter(String numberOfBuilds, String originalBody) {
-		return 0;
-	}
-
 	private int doRunImpl(AbstractProject project, String originalBody) {
 		int delay = project.getQuietPeriod();
 		ParametersAction parametersAction = new ParametersAction();
@@ -291,6 +303,8 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 				parametersAction = new ParametersAction(createParameters(project, paramsJSON));
 			}
 		}
+		logger.warning("=====================" + getNGAConfiguration());
+
 		boolean success = project.scheduleBuild(delay, new Cause.RemoteCause(getNGAConfiguration().getUrl(), "octane driven execution"), parametersAction);
 		if (success) {
 			return 201;
@@ -364,21 +378,21 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 		return result;
 	}
 
-	private AbstractProject getProjectFromId(String projectId) {
+	private AbstractProject getJobByRefId(String jobRefId) {
+		AbstractProject result = null;
 
-		if (projectId != null) {
+		if (jobRefId != null) {
 			try {
-				projectId = URLDecoder.decode(projectId, "UTF-8");
+				jobRefId = URLDecoder.decode(jobRefId, "UTF-8");
+				TopLevelItem item = Jenkins.getInstance().getItem(jobRefId);
+				if (item != null && item instanceof AbstractProject) {
+					result = (AbstractProject) item;
+				}
 			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
-			}
-			TopLevelItem item = Jenkins.getInstance().getItem(projectId);
-			if (item != null && item instanceof AbstractProject) {
-				AbstractProject project = (AbstractProject) item;
-				return project;
+				logger.severe("failed to decode job ref ID '" + jobRefId + "'");
 			}
 		}
 
-		return null;
+		return result;
 	}
 }

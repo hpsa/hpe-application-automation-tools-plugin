@@ -67,7 +67,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 		ngaConfiguration.setUrl(config.getUiLocation());
 		ngaConfiguration.setClientId(config.getUsername());
 		ngaConfiguration.setApiKey(config.getSecretPassword());
-		if(config.getSharedSpace()!=null && !config.getSharedSpace().isEmpty()){
+		if (config.getSharedSpace() != null && !config.getSharedSpace().isEmpty()) {
 			ngaConfiguration.setSharedSpace(Long.parseLong(config.getSharedSpace()));
 		}
 		return ngaConfiguration;
@@ -93,8 +93,8 @@ public class CIPluginServicesImpl implements CIPluginServices {
 		return pipelineNode;
 	}
 
-	@Override
 	//TODO: implement..
+	@Override
 	public int runPipeline(String ciJobId, String originalBody) {
 		return 404;
 	}
@@ -105,8 +105,14 @@ public class CIPluginServicesImpl implements CIPluginServices {
 		return snapshotNode;
 	}
 
+	//  TODO: implement
 	@Override
+	public SnapshotNode getSnapshotByNumber(String ciJobId, Integer ciBuildNumber, boolean subTree) {
+		return null;
+	}
+
 	//TODO: implement: fill build history
+	@Override
 	public BuildHistory getHistoryPipeline(String ciJobId, String originalBody) {
 		return DTOFactory.getInstance().newDTO(BuildHistory.class);
 	}

@@ -1,7 +1,7 @@
 package com.hp.nga.integrations.dto.snapshots;
 
 import com.hp.nga.integrations.dto.DTOBase;
-import com.hp.nga.integrations.dto.causes.CIEventCauseBase;
+import com.hp.nga.integrations.dto.causes.CIEventCause;
 import com.hp.nga.integrations.dto.parameters.ParameterInstance;
 import com.hp.nga.integrations.dto.scm.SCMData;
 
@@ -29,9 +29,9 @@ public interface SnapshotNode extends DTOBase {
 
 	SnapshotNode setNumber(Integer number);
 
-	CIEventCauseBase[] getCauses();
+	CIEventCause[] getCauses();
 
-	SnapshotNode setCauses(CIEventCauseBase[] causes);
+	SnapshotNode setCauses(CIEventCause[] causes);
 
 	SnapshotStatus getStatus();
 

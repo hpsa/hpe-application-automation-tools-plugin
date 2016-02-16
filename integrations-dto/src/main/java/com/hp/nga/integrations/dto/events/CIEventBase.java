@@ -1,6 +1,6 @@
 package com.hp.nga.integrations.dto.events;
 
-import com.hp.nga.integrations.dto.causes.CIEventCauseBase;
+import com.hp.nga.integrations.dto.causes.CIEventCause;
 
 /**
  * Created with IntelliJ IDEA.
@@ -12,9 +12,9 @@ import com.hp.nga.integrations.dto.causes.CIEventCauseBase;
 
 public abstract class CIEventBase {
 	private String project;
-	private CIEventCauseBase[] causes;
+	private CIEventCause[] causes;
 
-	public CIEventBase(String project, CIEventCauseBase[] causes) {
+	public CIEventBase(String project, CIEventCause[] causes) {
 		this.project = project;
 		this.causes = causes;
 	}
@@ -25,7 +25,7 @@ public abstract class CIEventBase {
 		return project;
 	}
 
-	public CIEventCauseBase[] getCauses() {
+	public CIEventCause[] getCauses() {
 		return causes;
 	}
 }

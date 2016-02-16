@@ -49,7 +49,7 @@ public class TasksRoutingService {
 	}
 
 	public NGAResultAbridged execute() {
-		logger.info("NGA: processing task '" + task.getId() + "': " + task.getMethod() + " " + task.getUrl());
+		logger.info("TasksRouter: processing task '" + task.getId() + "': " + task.getMethod() + " " + task.getUrl());
 
 		NGAResultAbridged result = DTOFactory.getInstance().newDTO(NGAResultAbridged.class);
 		result.setId(task.getId());
@@ -71,7 +71,17 @@ public class TasksRoutingService {
 				if (LATEST.equals(path[3])) {
 					executeLatestSnapshotRequest(result, path[1], subTree);
 				} else {
-					result.setStatus(501);
+					Integer buildNumber = null;
+					try {
+						buildNumber = Integer.parseInt(path[3]);
+					} catch (NumberFormatException nfe) {
+						logger.warning("lskdfjsdl");
+					}
+					if (buildNumber != null) {
+						executeSnapshotByNumberRequest(result, path[1], buildNumber, subTree);
+					} else {
+						result.setStatus(501);
+					}
 				}
 			} else if (path.length == 3 && JOBS.equals(path[0]) && HISTORY.equals(path[2])) {
 				executeHistoryRequest(result, path[1], task.getBody());
@@ -79,11 +89,11 @@ public class TasksRoutingService {
 				result.setStatus(404);
 			}
 		} catch (Exception e) {
-			logger.warning("can't execute the task\n" + e.getStackTrace());
+			logger.warning("TasksRouter: task execution failed; error: " + e.getMessage());
 			result.setStatus(500);
 		}
 
-		logger.info("NGA: result for task '" + task.getId() + "' available with status " + result.getStatus());
+		logger.info("TasksRouter: result for task '" + task.getId() + "' available with status " + result.getStatus());
 		return result;
 	}
 
@@ -115,6 +125,12 @@ public class TasksRoutingService {
 
 	private void executeLatestSnapshotRequest(NGAResultAbridged result, String jobId, boolean subTree) {
 		SnapshotNode content = SDKFactory.getCIPluginServices().getSnapshotLatest(jobId, subTree);
+		result.setBody(dtoFactory.dtoToJson(content));
+		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
+	}
+
+	private void executeSnapshotByNumberRequest(NGAResultAbridged result, String jobId, Integer buildNumber, boolean subTree) {
+		SnapshotNode content = SDKFactory.getCIPluginServices().getSnapshotByNumber(jobId, buildNumber, subTree);
 		result.setBody(dtoFactory.dtoToJson(content));
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
 	}

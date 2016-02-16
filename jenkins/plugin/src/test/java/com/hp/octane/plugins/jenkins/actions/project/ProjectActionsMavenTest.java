@@ -1,11 +1,23 @@
 package com.hp.octane.plugins.jenkins.actions.project;
 
+import com.gargoylesoftware.htmlunit.HttpMethod;
 import com.gargoylesoftware.htmlunit.Page;
+import com.gargoylesoftware.htmlunit.WebRequestSettings;
+import com.gargoylesoftware.htmlunit.WebResponse;
+import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.dto.DTOFactory;
+import com.hp.nga.integrations.dto.configuration.CIProxyConfiguration;
+import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
+import com.hp.nga.integrations.dto.general.CIJobsList;
+import com.hp.nga.integrations.dto.general.CIPluginInfo;
+import com.hp.nga.integrations.dto.general.CIServerInfo;
 import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 import com.hp.nga.integrations.dto.parameters.ParameterType;
+import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.pipelines.PipelinePhase;
+import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
+import com.hp.nga.integrations.services.SDKFactory;
 import hudson.matrix.MatrixProject;
 import hudson.maven.MavenModuleSet;
 import hudson.model.*;
@@ -13,12 +25,16 @@ import hudson.plugins.parameterizedtrigger.*;
 import hudson.tasks.BuildTrigger;
 import hudson.tasks.Fingerprinter;
 import hudson.tasks.Shell;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.xml.sax.SAXException;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 
@@ -59,11 +75,15 @@ public class ProjectActionsMavenTest {
 	}
 
 	@Test
+	//@Ignore
 	public void testDoRun() throws IOException, SAXException, InterruptedException {
+		int retries = 0;
 		MavenModuleSet p = rule.createMavenProject(projectName);
 		JenkinsRule.WebClient client = rule.createWebClient();
-		client.goTo("nga/jobs/" + projectName + "/run", "");
-		while (p.getLastBuild() == null || p.getLastBuild().isBuilding()) {
+		WebRequestSettings wrs = new WebRequestSettings(new URL(client.getContextPath() + "nga/jobs/" + projectName + "/run"), HttpMethod.POST);
+		wrs = client.addCrumb(wrs);
+		WebResponse wr = client.loadWebResponse(wrs);
+		while ((p.getLastBuild() == null || p.getLastBuild().isBuilding()) && ++retries < 20) {
 			Thread.sleep(1000);
 		}
 		assertEquals(p.getBuilds().toArray().length, 1);

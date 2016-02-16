@@ -1,6 +1,6 @@
 package com.hp.nga.integrations.dto.events;
 
-import com.hp.nga.integrations.dto.causes.CIEventCauseBase;
+import com.hp.nga.integrations.dto.causes.CIEventCause;
 
 /**
  * Created with IntelliJ IDEA.
@@ -11,7 +11,7 @@ import com.hp.nga.integrations.dto.causes.CIEventCauseBase;
  */
 
 public class CIEventQueued extends CIEventBase {
-	public CIEventQueued(String project, CIEventCauseBase[] causes) {
+	public CIEventQueued(String project, CIEventCause[] causes) {
 		super(project, causes);
 	}
 
