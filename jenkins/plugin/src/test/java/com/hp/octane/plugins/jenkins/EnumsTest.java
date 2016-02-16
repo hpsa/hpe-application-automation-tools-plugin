@@ -23,17 +23,17 @@ public class EnumsTest {
 	@Test
 	public void testCIEventCauseType() {
 		assertEquals(CIEventCauseType.values().length, 5);
-		assertEquals(CIEventCauseType.SCM.toString(), "scm");
-		assertEquals(CIEventCauseType.USER.toString(), "user");
-		assertEquals(CIEventCauseType.TIMER.toString(), "timer");
-		assertEquals(CIEventCauseType.UPSTREAM.toString(), "upstream");
-		assertEquals(CIEventCauseType.UNDEFINED.toString(), "undefined");
+		assertEquals(CIEventCauseType.SCM.value(), "scm");
+		assertEquals(CIEventCauseType.USER.value(), "user");
+		assertEquals(CIEventCauseType.TIMER.value(), "timer");
+		assertEquals(CIEventCauseType.UPSTREAM.value(), "upstream");
+		assertEquals(CIEventCauseType.UNDEFINED.value(), "undefined");
 		assertEquals(CIEventCauseType.fromValue("scm"), CIEventCauseType.SCM);
 	}
 
 	@Test
 	public void testCIEventType() {
-		assertEquals(CIEventType.values().length, 3);
+		assertEquals(CIEventType.values().length, 4);
 		assertEquals(CIEventType.QUEUED.toString(), "queued");
 		assertEquals(CIEventType.STARTED.toString(), "started");
 		assertEquals(CIEventType.FINISHED.toString(), "finished");
@@ -43,42 +43,42 @@ public class EnumsTest {
 	@Test
 	public void testParameterType() {
 		assertEquals(ParameterType.values().length, 7);
-		assertEquals(ParameterType.UNKNOWN.toString(), "unknown");
-		assertEquals(ParameterType.PASSWORD.toString(), "password");
-		assertEquals(ParameterType.BOOLEAN.toString(), "boolean");
-		assertEquals(ParameterType.STRING.toString(), "string");
-		assertEquals(ParameterType.NUMBER.toString(), "number");
-		assertEquals(ParameterType.FILE.toString(), "file");
-    assertEquals(ParameterType.AXIS.toString(), "axis");
+		assertEquals(ParameterType.UNKNOWN.value(), "unknown");
+		assertEquals(ParameterType.PASSWORD.value(), "password");
+		assertEquals(ParameterType.BOOLEAN.value(), "boolean");
+		assertEquals(ParameterType.STRING.value(), "string");
+		assertEquals(ParameterType.NUMBER.value(), "number");
+		assertEquals(ParameterType.FILE.value(), "file");
+    assertEquals(ParameterType.AXIS.value(), "axis");
 		assertEquals(ParameterType.fromValue("unavailable"), ParameterType.UNKNOWN);
 	}
 
 	@Test
 	public void testSnapshotResult() {
 		assertEquals(SnapshotResult.values().length, 5);
-		assertEquals(SnapshotResult.UNAVAILABLE.toString(), "unavailable");
-		assertEquals(SnapshotResult.UNSTABLE.toString(), "unstable");
-		assertEquals(SnapshotResult.ABORTED.toString(), "aborted");
-		assertEquals(SnapshotResult.FAILURE.toString(), "failure");
-		assertEquals(SnapshotResult.SUCCESS.toString(), "success");
+		assertEquals(SnapshotResult.UNAVAILABLE.value(), "unavailable");
+		assertEquals(SnapshotResult.UNSTABLE.value(), "unstable");
+		assertEquals(SnapshotResult.ABORTED.value(), "aborted");
+		assertEquals(SnapshotResult.FAILURE.value(), "failure");
+		assertEquals(SnapshotResult.SUCCESS.value(), "success");
 		assertEquals(SnapshotResult.fromValue("unavailable"), SnapshotResult.UNAVAILABLE);
 	}
 
 	@Test
 	public void testSnapshotStatus() {
 		assertEquals(SnapshotStatus.values().length, 4);
-		assertEquals(SnapshotStatus.UNAVAILABLE.toString(), "unavailable");
-		assertEquals(SnapshotStatus.QUEUED.toString(), "queued");
-		assertEquals(SnapshotStatus.RUNNING.toString(), "running");
-		assertEquals(SnapshotStatus.FINISHED.toString(), "finished");
+		assertEquals(SnapshotStatus.UNAVAILABLE.value(), "unavailable");
+		assertEquals(SnapshotStatus.QUEUED.value(), "queued");
+		assertEquals(SnapshotStatus.RUNNING.value(), "running");
+		assertEquals(SnapshotStatus.FINISHED.value(), "finished");
 		assertEquals(SnapshotStatus.fromValue("unavailable"), SnapshotStatus.UNAVAILABLE);
 	}
 
 	@Test
 	public void testSCMType() {
 		assertEquals(SCMType.values().length, 2);
-		assertEquals(SCMType.UNKNOWN.toString(), "unsupported");
+		assertEquals(SCMType.UNKNOWN.toString(), "unknown");
 		assertEquals(SCMType.GIT.toString(), "git");
-		assertEquals(SCMType.fromValue("unsupported"), SCMType.UNKNOWN);
+		assertEquals(SCMType.fromValue("unknown"), SCMType.UNKNOWN);
 	}
 }
