@@ -48,7 +48,7 @@ public class ProjectActionsMultiJobTest {
 		JSONObject body;
 		JSONArray tmpArray;
 
-		page = client.goTo("job/" + projectName + "/octane/structure", "application/json");
+		page = client.goTo("nga/jobs/" + projectName, "application/json");
 		body = new JSONObject(page.getWebResponse().getContentAsString());
 		assertEquals(body.length(), 4);
 		assertTrue(body.has("name"));
@@ -87,7 +87,7 @@ public class ProjectActionsMultiJobTest {
 		JSONArray tmpArray;
 		JSONObject tmpParam;
 
-		page = client.goTo("job/" + projectName + "/octane/structure", "application/json");
+		page = client.goTo("nga/jobs/" + projectName, "application/json");
 		body = new JSONObject(page.getWebResponse().getContentAsString());
 		assertEquals(body.length(), 4);
 		assertTrue(body.has("name"));
@@ -206,7 +206,7 @@ public class ProjectActionsMultiJobTest {
 		JSONArray tmpJobs;
 		JSONObject tmpJob;
 
-		page = client.goTo("job/" + projectName + "/octane/structure", "application/json");
+		page = client.goTo("nga/jobs/" + projectName, "application/json");
 		body = new JSONObject(page.getWebResponse().getContentAsString());
 		assertEquals(body.length(), 4);
 		assertTrue(body.has("name"));

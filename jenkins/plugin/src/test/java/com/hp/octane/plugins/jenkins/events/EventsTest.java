@@ -5,7 +5,6 @@ import com.gargoylesoftware.htmlunit.WebRequestSettings;
 import com.gargoylesoftware.htmlunit.WebResponse;
 import com.hp.nga.integrations.dto.events.CIEventType;
 import com.hp.octane.plugins.jenkins.ExtensionUtil;
-import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import hudson.model.FreeStyleProject;
 import org.eclipse.jetty.server.Request;
@@ -104,7 +103,7 @@ public class EventsTest {
 				""
 		));
 
-		WebRequestSettings req = new WebRequestSettings(client.createCrumbedUrl("octane/status"), HttpMethod.GET);
+		WebRequestSettings req = new WebRequestSettings(client.createCrumbedUrl("nga/status"), HttpMethod.GET);
 		WebResponse res = client.loadWebResponse(req);
 		JSONObject resJSON = new JSONObject(res.getContentAsString());
 		//assertEquals("", resJSON.toString());

@@ -46,7 +46,7 @@ public class ProjectActionsMatrixTest {
 		JSONObject body;
 		JSONArray tmpArray;
 
-		page = client.goTo("job/" + projectName + "/octane/structure", "application/json");
+		page = client.goTo("nga/jobs/" + projectName, "application/json");
 		body = new JSONObject(page.getWebResponse().getContentAsString());
 		assertEquals(body.length(), 4);
 		assertTrue(body.has("name"));
@@ -85,7 +85,7 @@ public class ProjectActionsMatrixTest {
 		JSONArray tmpArray;
 		JSONObject tmpParam;
 
-		page = client.goTo("job/" + projectName + "/octane/structure", "application/json");
+		page = client.goTo("nga/jobs/" + projectName, "application/json");
 		body = new JSONObject(page.getWebResponse().getContentAsString());
 		assertEquals(body.length(), 4);
 		assertTrue(body.has("name"));
@@ -187,7 +187,7 @@ public class ProjectActionsMatrixTest {
 		JSONArray tmpJobs;
 		JSONObject tmpJob;
 
-		page = client.goTo("job/" + projectName + "/octane/structure", "application/json");
+		page = client.goTo("nga/jobs/" + projectName, "application/json");
 		body = new JSONObject(page.getWebResponse().getContentAsString());
 		assertEquals(body.length(), 4);
 		assertTrue(body.has("name"));

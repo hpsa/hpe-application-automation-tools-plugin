@@ -102,7 +102,7 @@ public class BuildActionsFreeStyleTest {
 		}
 		assertEquals(p.getBuilds().toArray().length, 1);
 
-		page = client.goTo("job/" + projectName + "/" + p.getLastBuild().getNumber() + "/octane/snapshot", "application/json");
+		page = client.goTo("nga/jobs/" + projectName + "/builds/" + p.getLastBuild().getNumber(), "application/json");
 		body = new JSONObject(page.getWebResponse().getContentAsString());
 		assertEquals(body.length(), 12);
 		assertEquals(body.getString("name"), projectName);
@@ -161,7 +161,7 @@ public class BuildActionsFreeStyleTest {
 		}
 		assertEquals(p.getBuilds().toArray().length, 1);
 
-		page = client.goTo("job/" + projectName + "/" + p.getLastBuild().getNumber() + "/octane/snapshot", "application/json");
+		page = client.goTo("nga/jobs/" + projectName + "/builds/" + p.getLastBuild().getNumber(), "application/json");
 		body = new JSONObject(page.getWebResponse().getContentAsString());
 		assertEquals(body.length(), 12);
 		assertEquals(body.getString("name"), projectName);
@@ -235,7 +235,7 @@ public class BuildActionsFreeStyleTest {
 		}
 		assertEquals(p.getBuilds().toArray().length, 1);
 
-		page = client.goTo("job/" + projectName + "/" + p.getLastBuild().getNumber() + "/octane/snapshot", "application/json");
+		page = client.goTo("nga/jobs/" + projectName + "/builds/" + p.getLastBuild().getNumber(), "application/json");
 		body = new JSONObject(page.getWebResponse().getContentAsString());
 		assertEquals(body.length(), 12);
 		assertEquals(body.getString("name"), projectName);

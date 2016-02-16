@@ -46,7 +46,7 @@ public class ProjectActionsMavenTest {
 		JSONObject body;
 		JSONArray tmpArray;
 
-		page = client.goTo("job/" + projectName + "/octane/structure", "application/json");
+		page = client.goTo("nga/jobs/" + projectName, "application/json");
 		body = new JSONObject(page.getWebResponse().getContentAsString());
 		assertEquals(body.length(), 4);
 		assertTrue(body.has("name"));
@@ -69,7 +69,7 @@ public class ProjectActionsMavenTest {
 	public void testDoRun() throws IOException, SAXException, InterruptedException {
 		MavenModuleSet p = rule.createMavenProject(projectName);
 		JenkinsRule.WebClient client = rule.createWebClient();
-		client.goTo("job/" + projectName + "/octane/run", "");
+		client.goTo("nga/jobs/" + projectName + "/run", "");
 		while (p.getLastBuild() == null || p.getLastBuild().isBuilding()) {
 			Thread.sleep(1000);
 		}
@@ -96,7 +96,7 @@ public class ProjectActionsMavenTest {
 		JSONArray tmpArray;
 		JSONObject tmpParam;
 
-		page = client.goTo("job/" + projectName + "/octane/structure", "application/json");
+		page = client.goTo("nga/jobs/" + projectName, "application/json");
 		body = new JSONObject(page.getWebResponse().getContentAsString());
 		assertEquals(body.length(), 4);
 		assertTrue(body.has("name"));
@@ -206,7 +206,7 @@ public class ProjectActionsMavenTest {
 		JSONArray tmpJobs;
 		JSONObject tmpJob;
 
-		page = client.goTo("job/" + projectName + "/octane/structure", "application/json");
+		page = client.goTo("nga/jobs/" + projectName, "application/json");
 		body = new JSONObject(page.getWebResponse().getContentAsString());
 		assertEquals(body.length(), 4);
 		assertTrue(body.has("name"));
