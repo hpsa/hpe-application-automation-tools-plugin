@@ -28,16 +28,16 @@ public class EnumsTest {
 		assertEquals(CIEventCauseType.TIMER.value(), "timer");
 		assertEquals(CIEventCauseType.UPSTREAM.value(), "upstream");
 		assertEquals(CIEventCauseType.UNDEFINED.value(), "undefined");
-		assertEquals(CIEventCauseType.fromValue("scm"), CIEventCauseType.SCM);
+		assertEquals(CIEventCauseType.fromValue("scm"), CIEventCauseType.SCM.value());
 	}
 
 	@Test
 	public void testCIEventType() {
 		assertEquals(CIEventType.values().length, 4);
-		assertEquals(CIEventType.QUEUED.toString(), "queued");
-		assertEquals(CIEventType.STARTED.toString(), "started");
-		assertEquals(CIEventType.FINISHED.toString(), "finished");
-		assertEquals(CIEventType.fromValue("queued"), CIEventType.QUEUED);
+		assertEquals(CIEventType.QUEUED.value(), "queued");
+		assertEquals(CIEventType.STARTED.value(), "started");
+		assertEquals(CIEventType.FINISHED.value(), "finished");
+		assertEquals(CIEventType.fromValue("queued"), CIEventType.QUEUED.value());
 	}
 
 	@Test
@@ -49,7 +49,7 @@ public class EnumsTest {
 		assertEquals(ParameterType.STRING.value(), "string");
 		assertEquals(ParameterType.NUMBER.value(), "number");
 		assertEquals(ParameterType.FILE.value(), "file");
-    assertEquals(ParameterType.AXIS.value(), "axis");
+		assertEquals(ParameterType.AXIS.value(), "axis");
 		assertEquals(ParameterType.fromValue("unavailable"), ParameterType.UNKNOWN);
 	}
 
@@ -77,8 +77,8 @@ public class EnumsTest {
 	@Test
 	public void testSCMType() {
 		assertEquals(SCMType.values().length, 2);
-		assertEquals(SCMType.UNKNOWN.toString(), "unknown");
-		assertEquals(SCMType.GIT.toString(), "git");
+		assertEquals(SCMType.UNKNOWN.value(), "unknown");
+		assertEquals(SCMType.GIT.value(), "git");
 		assertEquals(SCMType.fromValue("unknown"), SCMType.UNKNOWN);
 	}
 }
