@@ -4,7 +4,7 @@ import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.connectivity.NGAHttpMethod;
 import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
 import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
-import com.hp.nga.integrations.services.bridge.NGATaskProcessor;
+import com.hp.nga.integrations.services.TasksRoutingService;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.Controller;
 
@@ -39,7 +39,7 @@ public class DynamicController  implements Controller {
 			ngaTaskAbridged.setMethod(method);
 			ngaTaskAbridged.setUrl(req.getRequestURI());
 			ngaTaskAbridged.setBody("");
-			NGATaskProcessor taskProcessor = new NGATaskProcessor(ngaTaskAbridged);
+			TasksRoutingService taskProcessor = new TasksRoutingService(ngaTaskAbridged);
 			NGAResultAbridged result = taskProcessor.execute();
 			res.setStatus(result.getStatus());
 			try {

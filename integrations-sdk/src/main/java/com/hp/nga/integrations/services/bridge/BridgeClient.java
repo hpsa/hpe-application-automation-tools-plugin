@@ -4,6 +4,7 @@ import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
 import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
 import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
+import com.hp.nga.integrations.services.TasksRoutingService;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -112,7 +113,7 @@ public class BridgeClient {
 			for (final NGATaskAbridged task : tasks) {
 				taskProcessingExecutors.execute(new Runnable() {
 					public void run() {
-						NGATaskProcessor taskProcessor = new NGATaskProcessor(task);
+						TasksRoutingService taskProcessor = new TasksRoutingService(task);
 						NGAResultAbridged result = taskProcessor.execute();
 						//  TODO: post the result to NGA
 					}

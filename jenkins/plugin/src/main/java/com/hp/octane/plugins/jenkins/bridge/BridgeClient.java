@@ -6,7 +6,7 @@ import com.hp.mqm.client.exception.TemporarilyUnavailableException;
 import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.services.SDKFactory;
-import com.hp.nga.integrations.services.bridge.NGATaskProcessor;
+import com.hp.nga.integrations.services.TasksRoutingService;
 import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
 import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
 import com.hp.octane.plugins.jenkins.OctanePlugin;
@@ -122,8 +122,8 @@ public class BridgeClient {
 				taskProcessingExecutors.execute(new Runnable() {
 					@Override
 					public void run() {
-						NGATaskProcessor NGATaskProcessor = new NGATaskProcessor(task);
-						NGAResultAbridged result = NGATaskProcessor.execute();
+						TasksRoutingService TasksRoutingService = new TasksRoutingService(task);
+						NGAResultAbridged result = TasksRoutingService.execute();
 						MqmRestClient restClient = restClientFactory.obtain(
 								mqmConfig.location,
 								mqmConfig.sharedSpace,

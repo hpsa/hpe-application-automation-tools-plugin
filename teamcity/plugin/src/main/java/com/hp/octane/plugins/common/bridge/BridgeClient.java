@@ -6,7 +6,7 @@ import com.hp.mqm.client.exception.TemporarilyUnavailableException;
 import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
 import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
-import com.hp.nga.integrations.services.bridge.NGATaskProcessor;
+import com.hp.nga.integrations.services.TasksRoutingService;
 import com.hp.octane.plugins.common.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.client.MqmRestClientFactory;
@@ -120,8 +120,8 @@ public class BridgeClient {
 				taskProcessingExecutors.execute(new Runnable() {
 					@Override
 					public void run() {
-						NGATaskProcessor NGATaskProcessor = new NGATaskProcessor(task);
-						NGAResultAbridged result = NGATaskProcessor.execute();
+						TasksRoutingService TasksRoutingService = new TasksRoutingService(task);
+						NGAResultAbridged result = TasksRoutingService.execute();
 						MqmRestClient restClient = MqmRestClientFactory.create(
 								ciType,
 								mqmConfig.location,

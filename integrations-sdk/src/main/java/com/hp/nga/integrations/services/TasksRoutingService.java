@@ -1,4 +1,4 @@
-package com.hp.nga.integrations.services.bridge;
+package com.hp.nga.integrations.services;
 
 import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.dto.DTOFactory;
@@ -9,21 +9,20 @@ import com.hp.nga.integrations.dto.general.CIJobsList;
 import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
 import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
-import com.hp.nga.integrations.services.SDKFactory;
+import org.apache.http.HttpHeaders;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 /**
  * Created by gullery on 17/08/2015.
  * <p>
- * Tasks Processor handles NGA tasks, both coming from abridged logic as well as plugin's REST call delegation
+ * Tasks routing service handles NGA tasks, both coming from abridged logic as well as plugin's REST call delegation
  */
 
-public class NGATaskProcessor {
-	private static final Logger logger = Logger.getLogger(NGATaskProcessor.class.getName());
+public class TasksRoutingService {
+	private static final Logger logger = Logger.getLogger(TasksRoutingService.class.getName());
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String NGA = "nga";
 	private static final String STATUS = "status";
@@ -35,7 +34,7 @@ public class NGATaskProcessor {
 
 	private final NGATaskAbridged task;
 
-	public NGATaskProcessor(NGATaskAbridged task) {
+	public TasksRoutingService(NGATaskAbridged task) {
 		if (task == null) {
 			throw new IllegalArgumentException("task MUST NOT be null");
 		}
@@ -50,11 +49,12 @@ public class NGATaskProcessor {
 	}
 
 	public NGAResultAbridged execute() {
-		logger.info("BRIDGE: processing task '" + task.getId() + "': " + task.getMethod() + " " + task.getUrl());
+		logger.info("NGA: processing task '" + task.getId() + "': " + task.getMethod() + " " + task.getUrl());
 
 		NGAResultAbridged result = DTOFactory.getInstance().newDTO(NGAResultAbridged.class);
 		result.setId(task.getId());
 		result.setStatus(200);
+		result.setHeaders(new HashMap<String, String>());
 		String[] path = Pattern.compile("^.*" + NGA + "/?").matcher(task.getUrl()).replaceFirst("").split("/");
 		try {
 			if (path.length == 1 && STATUS.equals(path[0])) {
@@ -83,7 +83,7 @@ public class NGATaskProcessor {
 			result.setStatus(500);
 		}
 
-		logger.info("BRIDGE: result for task '" + task.getId() + "' available with status " + result.getStatus());
+		logger.info("NGA: result for task '" + task.getId() + "' available with status " + result.getStatus());
 		return result;
 	}
 
@@ -93,19 +93,19 @@ public class NGATaskProcessor {
 				.setServer(dataProvider.getServerInfo())
 				.setPlugin(dataProvider.getPluginInfo());
 		result.setBody(dtoFactory.dtoToJson(status));
+		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
 	}
 
 	private void executeJobsListRequest(NGAResultAbridged result, boolean includingParameters) {
 		CIJobsList content = SDKFactory.getCIPluginServices().getJobsList(includingParameters);
 		result.setBody(dtoFactory.dtoToJson(content));
+		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
 	}
 
 	private void executePipelineRequest(NGAResultAbridged result, String jobId) {
 		PipelineNode content = SDKFactory.getCIPluginServices().getPipeline(jobId);
-		Map<String, String> headers = new HashMap<String, String>();
 		result.setBody(dtoFactory.dtoToJson(content));
-		headers.put("content-type", "application/json");
-		result.setHeaders(headers);
+		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
 	}
 
 	private void executePipelineRunRequest(NGAResultAbridged result, String jobId, String originalBody) {
@@ -116,10 +116,12 @@ public class NGATaskProcessor {
 	private void executeLatestSnapshotRequest(NGAResultAbridged result, String jobId, boolean subTree) {
 		SnapshotNode content = SDKFactory.getCIPluginServices().getSnapshotLatest(jobId, subTree);
 		result.setBody(dtoFactory.dtoToJson(content));
+		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
 	}
 
 	private void executeHistoryRequest(NGAResultAbridged result, String jobId, String originalBody) {
 		BuildHistory content = SDKFactory.getCIPluginServices().getHistoryPipeline(jobId, originalBody);
 		result.setBody(dtoFactory.dtoToJson(content));
+		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
 	}
 }
