@@ -10,7 +10,7 @@ import java.util.Map;
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class NGAResultAbridgedImpl implements NGAResultAbridged {
+class NGAResultAbridgedImpl implements NGAResultAbridged {
 	private String id;
 	private String serviceId;
 	private int status;

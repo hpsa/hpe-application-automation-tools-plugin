@@ -7,7 +7,7 @@ import com.hp.nga.integrations.dto.causes.CIEventCauseType;
  * Created by gullery on 16/02/2016.
  */
 
-public class CIEventCauseImpl implements CIEventCause {
+class CIEventCauseImpl implements CIEventCause {
 	private CIEventCauseType type;
 	private String user;
 	private String project;

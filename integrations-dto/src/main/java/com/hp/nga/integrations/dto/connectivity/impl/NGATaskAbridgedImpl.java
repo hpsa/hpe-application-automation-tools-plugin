@@ -11,7 +11,7 @@ import java.util.Map;
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class NGATaskAbridgedImpl implements NGATaskAbridged {
+class NGATaskAbridgedImpl implements NGATaskAbridged {
 	private String id;
 	private String serviceId;
 	private String url;

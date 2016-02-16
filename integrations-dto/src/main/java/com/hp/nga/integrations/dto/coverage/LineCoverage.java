@@ -1,42 +1,18 @@
 package com.hp.nga.integrations.dto.coverage;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.hp.nga.integrations.dto.DTOBase;
 
 /**
  * Created by gullery on 03/01/2016.
  */
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class LineCoverage {
-	private int number;
-	private int count;
+public interface LineCoverage extends DTOBase {
 
-	public LineCoverage() {
-	}
+	Integer getNumber();
 
-	public LineCoverage(int number, int count) {
-		this.number = number;
-		this.count = count;
-	}
+	LineCoverage setNumber(int number);
 
-	@JsonProperty("n")
-	public int getNumber() {
-		return number;
-	}
+	Integer getCount();
 
-	@JsonProperty("n")
-	public void setNumber(int number) {
-		this.number = number;
-	}
-
-	@JsonProperty("c")
-	public int getCount() {
-		return count;
-	}
-
-	@JsonProperty("c")
-	public void setCount(int count) {
-		this.count = count;
-	}
+	LineCoverage setCount(int count);
 }

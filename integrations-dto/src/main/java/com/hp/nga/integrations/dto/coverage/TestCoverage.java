@@ -1,83 +1,30 @@
 package com.hp.nga.integrations.dto.coverage;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.hp.nga.integrations.dto.DTOBase;
 
 /**
  * Created by gullery on 29/12/2015.
  */
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class TestCoverage {
-	private String testName;
-	private String testClass;
-	private String testPackage;
-	private String testModule;
-	private FileCoverage[] locs = new FileCoverage[0];
+public interface TestCoverage extends DTOBase {
 
-	public TestCoverage() {
-	}
+	String getTestName();
 
-	public TestCoverage(String testName, String testClass, String testPackage, String testModule, FileCoverage[] locs) {
-		if (testName == null || testName.isEmpty()) {
-			throw new IllegalArgumentException("test name MUST NOT be null nor empty");
-		}
-		if (testClass == null || testClass.isEmpty()) {
-			throw new IllegalArgumentException("test class MUST NOT be null nor empty");
-		}
-		if (testPackage == null || testPackage.isEmpty()) {
-			throw new IllegalArgumentException("test package MUST NOT be null nor empty");
-		}
-		if (testModule == null || testModule.isEmpty()) {
-			throw new IllegalArgumentException("test module MUST NOT be null nor empty");
-		}
-		if (locs == null) {
-			throw new IllegalArgumentException("coverage data MUST NOT be null");
-		}
+	TestCoverage setTestName(String testName);
 
-		this.testName = testName;
-		this.testClass = testClass;
-		this.testPackage = testPackage;
-		this.testModule = testModule;
-		this.locs = locs.clone();
-	}
+	String getTestClass();
 
-	public String getTestName() {
-		return testName;
-	}
+	TestCoverage setTestClass(String testClass);
 
-	public void setTestName(String testName) {
-		this.testName = testName;
-	}
+	String getTestPackage();
 
-	public String getTestClass() {
-		return testClass;
-	}
+	TestCoverage setTestPackage(String testPackage);
 
-	public void setTestClass(String testClass) {
-		this.testClass = testClass;
-	}
+	String getTestModule();
 
-	public String getTestPackage() {
-		return testPackage;
-	}
+	TestCoverage setTestModule(String testModule);
 
-	public void setTestPackage(String testPackage) {
-		this.testPackage = testPackage;
-	}
+	FileCoverage[] getLocs();
 
-	public String getTestModule() {
-		return testModule;
-	}
-
-	public void setTestModule(String testModule) {
-		this.testModule = testModule;
-	}
-
-	public FileCoverage[] getLocs() {
-		return locs.clone();
-	}
-
-	public void setLocs(FileCoverage[] locs) {
-		this.locs = locs == null ? new FileCoverage[0] : locs.clone();
-	}
+	TestCoverage setLocs(FileCoverage[] locs);
 }

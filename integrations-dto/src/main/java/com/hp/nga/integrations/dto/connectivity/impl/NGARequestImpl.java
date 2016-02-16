@@ -11,7 +11,7 @@ import java.util.Map;
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class NGARequestImpl implements NGARequest {
+class NGARequestImpl implements NGARequest {
 	private String url;
 	private NGAHttpMethod method;
 	private Map<String, String> headers;

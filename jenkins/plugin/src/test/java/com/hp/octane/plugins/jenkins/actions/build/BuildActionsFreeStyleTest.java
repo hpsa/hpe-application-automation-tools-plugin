@@ -193,7 +193,7 @@ public class BuildActionsFreeStyleTest {
 		assertEquals(ParameterType.STRING, tmpParam.getType());
 		assertEquals("choice", tmpParam.getDescription());
 		assertEquals("one", tmpParam.getDefaultValue());
-		assertEquals("one", tmpParam.getValue());
+		assertEquals("two", tmpParam.getValue());
 
 		tmpParam = snapshot.getParameters().get(4);
 		assertEquals("ParamE", tmpParam.getName());

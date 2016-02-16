@@ -10,7 +10,7 @@ import java.util.Map;
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class NGAResponseImpl implements NGAResponse {
+class NGAResponseImpl implements NGAResponse {
 	private int status;
 	private Map<String, String> headers;
 	private String body;

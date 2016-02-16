@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.nga.integrations.dto.causes.impl.DTOFactoryCauses;
 import com.hp.nga.integrations.dto.configuration.impl.DTOFactoryConfigs;
 import com.hp.nga.integrations.dto.connectivity.impl.DTOFactoryConnectivity;
+import com.hp.nga.integrations.dto.coverage.impl.DTOFactoryCoverage;
 import com.hp.nga.integrations.dto.general.impl.DTOFactoryGeneral;
 import com.hp.nga.integrations.dto.pipelines.impl.DTOFactoryPipelines;
 import com.hp.nga.integrations.dto.scm.impl.DTOFactorySCM;
@@ -30,6 +31,7 @@ public final class DTOFactory {
 		DTOFactoryCauses.ensureInit(registry, objectMapper);
 		DTOFactoryConfigs.ensureInit(registry, objectMapper);
 		DTOFactoryConnectivity.ensureInit(registry, objectMapper);
+		DTOFactoryCoverage.ensureInit(registry, objectMapper);
 		DTOFactoryGeneral.ensureInit(registry, objectMapper);
 		DTOFactoryPipelines.ensureInit(registry, objectMapper);
 		DTOFactorySCM.ensureInit(registry, objectMapper);
