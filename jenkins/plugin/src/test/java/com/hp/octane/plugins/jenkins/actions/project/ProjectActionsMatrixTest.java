@@ -245,7 +245,7 @@ public class ProjectActionsMatrixTest {
 		assertEquals(0, tmpNode.getParameters().size());
 		assertEquals(0, tmpNode.getPhasesInternal().size());
 		assertEquals(0, tmpNode.getPhasesPostBuild().size());
-		tmpNode = tmpPhases.get(0).getJobs().get(3);
+		tmpNode = tmpPhases.get(0).getJobs().get(2);
 		assertEquals("jobE", tmpNode.getCiId());
 		assertEquals("jobE", tmpNode.getName());
 		assertEquals(0, tmpNode.getParameters().size());
