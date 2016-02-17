@@ -4,10 +4,7 @@ import com.hp.mqm.clt.tests.TestResultPushStatus;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
+import org.apache.http.*;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
@@ -42,7 +39,10 @@ public class RestClient {
     private static final String URI_AUTHENTICATION = "authentication/sign_in";
     private static final String HEADER_NAME_AUTHORIZATION = "Authorization";
     private static final String HEADER_VALUE_BASIC_AUTH = "Basic ";
-    private static final String HEADER_CLIENT_TYPE = "HPECLIENTTYPE";
+    //private static final String HEADER_CLIENT_TYPE = "HPECLIENTTYPE";
+    private static final String HPSSO_COOKIE_NAME = "HPSSO_COOKIE_CSRF";
+    private static final String HPSSO_HEADER_NAME = "HPSSO_HEADER_CSRF";
+
     static final String URI_LOGOUT = "authentication/sign_out";
 
     private static final String SHARED_SPACE_API_URI = "api/shared_spaces/{0}";
@@ -57,8 +57,8 @@ public class RestClient {
 
     public static final int DEFAULT_CONNECTION_TIMEOUT = 20000; // in milliseconds
     public static final int DEFAULT_SO_TIMEOUT = 40000; // in milliseconds
-
-    private static final String CLIENT_TYPE = "HPE_COLLECTION_TOOL";
+    private String CSRF_TOKEN;
+//    private static final String CLIENT_TYPE = "HPE_COLLECTION_TOOL";
 
     private CloseableHttpClient httpClient;
     private Settings settings;
@@ -175,6 +175,8 @@ public class RestClient {
             response = httpClient.execute(post);
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                 throw new RuntimeException("Authentication failed: code=" + response.getStatusLine().getStatusCode() + "; reason=" + response.getStatusLine().getReasonPhrase());
+            }else {
+                handleCSRF(response);
             }
         } finally {
             HttpClientUtils.closeQuietly(response);
@@ -234,8 +236,13 @@ public class RestClient {
     }
 
     private void addClientTypeHeader(HttpUriRequest request) {
-        if (request.getFirstHeader(HEADER_CLIENT_TYPE) == null) {
-            request.addHeader(HEADER_CLIENT_TYPE, CLIENT_TYPE);
+//        if (request.getFirstHeader(HEADER_CLIENT_TYPE) == null) {
+//            request.addHeader(HEADER_CLIENT_TYPE, CLIENT_TYPE);
+//        }
+        if (!isLoggedIn) {
+            if (request.getFirstHeader(HPSSO_HEADER_NAME) == null) {
+                request.setHeader(HPSSO_HEADER_NAME, CSRF_TOKEN);
+            }
         }
     }
 
@@ -249,5 +256,22 @@ public class RestClient {
             map.put(String.valueOf(i), params[i]);
         }
         return map;
+    }
+    private void handleCSRF(HttpResponse response) {
+        boolean isCSRF = false;
+        Header[] headers = response.getHeaders("Set-Cookie");
+        for (Header h : headers) {
+            HeaderElement[] he = h.getElements();
+            for (HeaderElement e : he) {
+                if (e.getName().equals(HPSSO_COOKIE_NAME)) {
+                    CSRF_TOKEN = e.getValue();
+                    isCSRF = true;
+                    break;
+                }
+            }
+            if (isCSRF) {
+                break;
+            }
+        }
     }
 }

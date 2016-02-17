@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 @Extension
 public class JenkinsMqmRestClientFactoryImpl implements JenkinsMqmRestClientFactory {
     private static final Logger logger = Logger.getLogger(JenkinsMqmRestClientFactoryImpl.class.getName());
-    private static final String CLIENT_TYPE = "HPE_JENKINS_PLUGIN";
+    private static final String CLIENT_TYPE = "HPE_CI_CLIENT";
     private static MqmRestClient mqmRestClient;
 
     @Override
