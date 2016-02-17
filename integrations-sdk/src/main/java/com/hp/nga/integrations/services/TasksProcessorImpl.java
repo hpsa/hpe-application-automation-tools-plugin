@@ -30,7 +30,7 @@ class TasksProcessorImpl implements TasksProcessor {
 	private static final String RUN = "run";
 	private static final String HISTORY = "history";
 	private static final String BUILDS = "builds";
-	private static final String LATEST = "lastBuild";
+	private static final String LATEST = "latest";
 
 	private TasksProcessorImpl() {
 	}
@@ -124,8 +124,12 @@ class TasksProcessorImpl implements TasksProcessor {
 	}
 
 	private void executeLatestSnapshotRequest(NGAResultAbridged result, String jobId, boolean subTree) {
-		SnapshotNode content = SDKManager.getCIPluginServices().getSnapshotLatest(jobId, subTree);
-		result.setBody(dtoFactory.dtoToJson(content));
+		SnapshotNode data = SDKManager.getCIPluginServices().getSnapshotLatest(jobId, subTree);
+		if (data != null) {
+			result.setBody(dtoFactory.dtoToJson(data));
+		} else {
+			result.setStatus(404);
+		}
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
 	}
 
