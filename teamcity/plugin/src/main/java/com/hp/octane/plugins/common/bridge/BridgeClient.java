@@ -6,7 +6,8 @@ import com.hp.mqm.client.exception.TemporarilyUnavailableException;
 import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
 import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
-import com.hp.nga.integrations.services.TasksRoutingService;
+import com.hp.nga.integrations.services.SDKManager;
+import com.hp.nga.integrations.services.TasksProcessor;
 import com.hp.octane.plugins.common.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.client.MqmRestClientFactory;
@@ -69,7 +70,11 @@ public class BridgeClient {
 								"; self URL: " + ciLocation);//new PluginActions.ServerInfo().getUrl());
 						MqmRestClient restClient = MqmRestClientFactory.create(ciType, mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
 
-						tasksJSON = restClient.getAbridgedTasks(serverInstanceId, ciLocation, "12.50.29", 1);
+						tasksJSON = restClient.getAbridgedTasks(
+								serverInstanceId,
+								ciLocation,
+								SDKManager.getApiVersion(),
+								"12.50.29");
 						logger.info("BRIDGE: back from '" + mqmConfig.location + "' (SP: " + mqmConfig.sharedSpace + ") with " + (tasksJSON == null || tasksJSON.isEmpty() ? "no tasks" : "some tasks"));
 						connect();
 						if (tasksJSON != null && !tasksJSON.isEmpty()) {
@@ -120,8 +125,8 @@ public class BridgeClient {
 				taskProcessingExecutors.execute(new Runnable() {
 					@Override
 					public void run() {
-						TasksRoutingService TasksRoutingService = new TasksRoutingService(task);
-						NGAResultAbridged result = TasksRoutingService.execute();
+						TasksProcessor TasksProcessor = SDKManager.getTasksProcessor();
+						NGAResultAbridged result = TasksProcessor.execute(task);
 						MqmRestClient restClient = MqmRestClientFactory.create(
 								ciType,
 								mqmConfig.location,

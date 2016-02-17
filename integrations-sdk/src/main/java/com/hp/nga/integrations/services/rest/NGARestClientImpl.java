@@ -2,7 +2,6 @@ package com.hp.nga.integrations.services.rest;
 
 import com.hp.nga.integrations.dto.connectivity.NGARequest;
 import com.hp.nga.integrations.dto.connectivity.NGAResponse;
-import com.hp.nga.integrations.services.SDKFactory;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpUriRequest;

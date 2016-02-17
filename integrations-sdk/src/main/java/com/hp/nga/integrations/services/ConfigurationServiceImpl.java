@@ -7,7 +7,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
 	public void configurationChanged() {
 		//  example code
-		NGAConfiguration newConfig = SDKFactory.getCIPluginServices().getNGAConfiguration();
+		NGAConfiguration newConfig = SDKManager.getCIPluginServices().getNGAConfiguration();
 		//  do anything with this new config
 	}
 }

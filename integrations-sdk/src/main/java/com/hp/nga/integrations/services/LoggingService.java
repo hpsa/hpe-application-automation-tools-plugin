@@ -29,7 +29,7 @@ class LoggingService {
 	private static final String LOG_FILE = "nga.log";
 
 	private LoggingService() {
-		pluginServices = SDKFactory.getCIPluginServices();
+		pluginServices = SDKManager.getCIPluginServices();
 		configureLogger();
 	}
 

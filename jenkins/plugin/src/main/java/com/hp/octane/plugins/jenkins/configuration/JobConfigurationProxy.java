@@ -9,6 +9,7 @@ import com.hp.mqm.client.model.*;
 import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.general.CIServerInfo;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
+import com.hp.nga.integrations.services.SDKManager;
 import com.hp.octane.plugins.jenkins.Messages;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
@@ -22,12 +23,11 @@ import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
-import org.kohsuke.stapler.export.Flavor;
-import org.kohsuke.stapler.export.Model;
-import org.kohsuke.stapler.export.ModelBuilder;
+//import org.kohsuke.stapler.export.Flavor;
+//import org.kohsuke.stapler.export.Model;
+//import org.kohsuke.stapler.export.ModelBuilder;
 
 import java.io.IOException;
-import java.io.StringWriter;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.logging.Level;
@@ -35,8 +35,8 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 public class JobConfigurationProxy {
-
 	private final static Logger logger = Logger.getLogger(JobConfigurationProxy.class.getName());
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	final private AbstractProject project;
 	private RetryModel retryModel;
@@ -55,7 +55,7 @@ public class JobConfigurationProxy {
 		JSONObject result = new JSONObject();
 
 		PipelineNode pipelineNode = ModelFactory.createStructureItem(project);
-		CIServerInfo CIServerInfo = DTOFactory.getInstance().newDTO(CIServerInfo.class);
+		CIServerInfo ciServerInfo = SDKManager.getCIPluginServices().getServerInfo();
 		//  TODO: inflate the object
 		Long releaseId = pipelineObject.getLong("releaseId") != -1 ? pipelineObject.getLong("releaseId") : null;
 
@@ -68,8 +68,14 @@ public class JobConfigurationProxy {
 		}
 
 		try {
-			Pipeline createdPipeline = client.createPipeline(ServerIdentity.getIdentity(), project.getName(), pipelineObject.getString("name"), pipelineObject.getLong("workspaceId"), releaseId,
-					toString(pipelineNode), toString(CIServerInfo));
+			Pipeline createdPipeline = client.createPipeline(
+					ServerIdentity.getIdentity(),
+					project.getName(),
+					pipelineObject.getString("name"),
+					pipelineObject.getLong("workspaceId"),
+					releaseId,
+					dtoFactory.dtoToJson(pipelineNode),
+					dtoFactory.dtoToJson(ciServerInfo));
 
 			//WORKAROUND BEGIN
 			//getting workspaceName - because the workspaceName is not returned from configuration API
@@ -831,13 +837,6 @@ public class JobConfigurationProxy {
 		ExtensionList<T> items = Jenkins.getInstance().getExtensionList(clazz);
 		Assert.assertEquals(1, items.size());
 		return items.get(0);
-	}
-
-	private static <T> String toString(T bean) throws IOException {
-		StringWriter writer = new StringWriter();
-		Model<T> model = new ModelBuilder().get((Class<T>) bean.getClass());
-		model.writeTo(bean, Flavor.JSON.createDataWriter(bean, writer));
-		return writer.toString();
 	}
 
 	private static class ClientException extends Exception {
