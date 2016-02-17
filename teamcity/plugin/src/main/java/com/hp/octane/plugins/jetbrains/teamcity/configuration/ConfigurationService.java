@@ -26,7 +26,7 @@ public class ConfigurationService {
 
     private static final String PARAM_SHARED_SPACE = "p"; // NON-NLS
 
-    public static final String CLIENT_TYPE = "HPE_JENKINS_PLUGIN";//"HPE_TEAMCITY_PLUGIN";
+    public static final String CLIENT_TYPE = "HPE_CI_CLIENT";//"HPE_TEAMCITY_PLUGIN";
 //    private JenkinsMqmRestClientFactory clientFactory;
 
 //    public static ServerConfiguration getServerConfiguration()
