@@ -220,7 +220,7 @@ public class ModelFactory {
 	}
 
 	public static Set<BuildHistory.SCMUser> createScmUsersList(Set<User> users) {
-		Set<BuildHistory.SCMUser> userList = ModelFactory.createScmUsersList(users);
+		Set<BuildHistory.SCMUser> userList = new HashSet<BuildHistory.SCMUser>();
 
 		for (User user : users) {
 			userList.add(ModelFactory.createScmUser(user));
