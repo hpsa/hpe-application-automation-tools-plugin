@@ -72,7 +72,7 @@ public class BridgeClient {
 								serverInstanceId,
 								ciLocation,
 								SDKManager.getApiVersion(),
-								"12.50.29");
+								SDKManager.getSDKVersion());
 						logger.info("BRIDGE: back from '" + mqmConfig.location + "' (SP: " + mqmConfig.sharedSpace + ") with " + (tasksJSON == null || tasksJSON.isEmpty() ? "no tasks" : "some tasks"));
 						connect();
 						if (tasksJSON != null && !tasksJSON.isEmpty()) {

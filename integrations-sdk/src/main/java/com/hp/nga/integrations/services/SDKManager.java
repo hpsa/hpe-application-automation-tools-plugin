@@ -26,27 +26,7 @@ public class SDKManager {
 			loadSDKProp();
 	};
 
-	private static final Integer apiVersion = 1;
-
-	private SDKFactory() {
-	}
-
-	private static void loadSDKProp() {
-
-		Properties p = new Properties();
-		try {
-			p.load(SDKFactory.class.getClassLoader().getResourceAsStream("com/hp/nga/integrations/services/sdk.properties"));
-			sdkVersion = p.getProperty("sdk.version");
-		} catch (Exception e) {
-			sdkVersion = "";
-		}
-	}
-	public static Integer getAPIVersion() {
-		return apiVersion;
-	}
-
-	public static String getSDKVersion() {
-		return sdkVersion;
+	private SDKManager() {
 	}
 
 	public static synchronized void init(CIPluginServices ciPluginServices) {
@@ -64,6 +44,9 @@ public class SDKManager {
 
 	public static Integer getApiVersion() {
 		return API_VERSION;
+	}
+	public static String getSDKVersion() {
+		return sdkVersion;
 	}
 
 	public static CIPluginServices getCIPluginServices() {
@@ -101,6 +84,16 @@ public class SDKManager {
 	private static void ensureInitialization() {
 		if (ciPluginServices == null) {
 			throw new IllegalStateException("SDK MUST be initialized prior to services consumption");
+		}
+	}
+	private static void loadSDKProp() {
+
+		Properties p = new Properties();
+		try {
+			p.load(SDKManager.class.getClassLoader().getResourceAsStream("com/hp/nga/integrations/services/sdk.properties"));
+			sdkVersion = p.getProperty("sdk.version");
+		} catch (Exception e) {
+			sdkVersion = "";
 		}
 	}
 }
