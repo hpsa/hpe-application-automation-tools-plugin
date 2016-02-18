@@ -306,7 +306,6 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 				parametersAction = new ParametersAction(createParameters(project, paramsJSON));
 			}
 		}
-		logger.warning("=====================" + getNGAConfiguration());
 
 		boolean success = project.scheduleBuild(delay, new Cause.RemoteCause(getNGAConfiguration().getUrl(), "octane driven execution"), parametersAction);
 		if (success) {

@@ -17,4 +17,8 @@ public interface CIProviderSummaryInfo extends DTOBase {
 	CIPluginInfo getPlugin();
 
 	CIProviderSummaryInfo setPlugin(CIPluginInfo plugin);
+
+	CIPluginSDKInfo getSdk();
+
+	CIProviderSummaryInfo setSdk(CIPluginSDKInfo sdk);
 }

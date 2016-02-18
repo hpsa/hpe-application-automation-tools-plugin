@@ -8,12 +8,12 @@ import com.hp.octane.plugins.jenkins.configuration.ConfigurationListener;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import hudson.Extension;
 import jenkins.model.Jenkins;
+import org.apache.logging.log4j.LogManager;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -25,7 +25,7 @@ import java.util.logging.Logger;
 
 @Extension
 public final class EventsService implements ConfigurationListener {
-	private static final Logger logger = Logger.getLogger(EventsService.class.getName());
+	private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger(EventsService.class);
 
 	private static EventsService extensionInstance;
 	private JenkinsMqmRestClientFactory clientFactory;
@@ -103,7 +103,7 @@ public final class EventsService implements ConfigurationListener {
 				URL tmp = new URL(serverConfiguration.location);
 				result = true;
 			} catch (MalformedURLException mue) {
-				logger.warning("EVENTS: configuration with malformed URL supplied");
+				logger.error("EVENTS: configuration with malformed URL supplied", mue);
 			}
 		}
 		return result;

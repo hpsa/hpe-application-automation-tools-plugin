@@ -13,7 +13,6 @@ import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import jenkins.model.Jenkins;
-import net.sf.json.JSONObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.kohsuke.stapler.export.Exported;
@@ -45,12 +44,12 @@ public class BridgeClient {
 		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password, mqmConfig.impersonatedUser);
 		restClientFactory = clientFactory;
 		connect();
-		logger.info("BRIDGE: client initialized for '" + this.mqmConfig.location + "' (SP: " + this.mqmConfig.sharedSpace + ")");
+		logger.info("BRIDGE: client initialized for '" + this.mqmConfig.location + "'; SP: " + this.mqmConfig.sharedSpace + "; access key: " + this.mqmConfig.username);
 	}
 
 	public void update(ServerConfiguration newConfig) {
 		mqmConfig = new ServerConfiguration(newConfig.location, newConfig.sharedSpace, newConfig.username, newConfig.password, newConfig.impersonatedUser);
-		logger.info("BRIDGE: updated for '" + mqmConfig.location + "' (SP: " + mqmConfig.sharedSpace + ")");
+		logger.info("BRIDGE: client updated to '" + mqmConfig.location + "'; SP: " + mqmConfig.sharedSpace + "; access key: " + newConfig.username);
 		restClientFactory.updateMqmRestClient(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
 		connect();
 	}
@@ -114,7 +113,7 @@ public class BridgeClient {
 		try {
 			NGATaskAbridged[] tasks = dtoFactory.dtoCollectionFromJson(tasksJSON, NGATaskAbridged[].class);
 
-			logger.info("BRIDGE: received " + tasks.length + " tasks");
+			logger.info("BRIDGE: received " + tasks.length + " task(s)");
 			for (final NGATaskAbridged task : tasks) {
 				taskProcessingExecutors.execute(new Runnable() {
 					@Override
@@ -126,15 +125,10 @@ public class BridgeClient {
 								mqmConfig.sharedSpace,
 								mqmConfig.username,
 								mqmConfig.password);
-						JSONObject json = new JSONObject();
-						json.put("statusCode", result.getStatus());
-						json.put("headers", result.getHeaders());
-						json.put("body", result.getBody());
-
 						int submitStatus = restClient.putAbridgedResult(
 								serverInstanceId,
 								result.getId(),
-								json.toString());
+								dtoFactory.dtoToJson(result));
 						logger.info("BRIDGE: result for task '" + result.getId() + "' submitted with status " + submitStatus);
 					}
 				});

@@ -4,7 +4,7 @@ import com.google.inject.Inject;
 import com.hp.nga.integrations.dto.events.CIEventFinished;
 import com.hp.nga.integrations.dto.events.CIEventStarted;
 import com.hp.nga.integrations.dto.snapshots.SnapshotResult;
-import com.hp.octane.plugins.jenkins.model.causes.CIEventCausesFactory;
+import com.hp.octane.plugins.jenkins.model.CIEventCausesFactory;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessors;
@@ -17,7 +17,6 @@ import hudson.model.listeners.RunListener;
 
 import javax.annotation.Nonnull;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -29,7 +28,6 @@ import java.util.logging.Logger;
 
 @Extension
 public final class RunListenerImpl extends RunListener<Run> {
-	private static Logger logger = Logger.getLogger(RunListenerImpl.class.getName());
 
 	@Inject
 	private TestListener testListener;

@@ -24,9 +24,11 @@ import java.io.File;
  */
 
 class LoggingService {
-	private final CIPluginServices pluginServices;
 	private static final Object INIT_LOCKER = new Object();
 	private static final String LOG_FILE = "nga.log";
+
+	private final CIPluginServices pluginServices;
+	private Level logLevel = Level.INFO;
 
 	private LoggingService() {
 		pluginServices = SDKManager.getCIPluginServices();
@@ -81,14 +83,14 @@ class LoggingService {
 				AppenderRef[] refs = new AppenderRef[]{ref};
 				LoggerConfig loggerConfig = LoggerConfig.createLogger(
 						"true",
-						Level.ALL,
+						logLevel,
 						LogManager.ROOT_LOGGER_NAME,
 						"true",
 						refs,
 						null,
 						config,
 						null);
-				loggerConfig.addAppender(appender, Level.ALL, null);
+				loggerConfig.addAppender(appender, logLevel, null);
 				config.addLogger(LogManager.ROOT_LOGGER_NAME, loggerConfig);
 				ctx.updateLoggers();
 			}

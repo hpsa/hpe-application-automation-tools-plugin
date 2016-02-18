@@ -11,13 +11,6 @@ import com.hp.nga.integrations.dto.general.CIPluginInfo;
 class CIPluginInfoImpl implements CIPluginInfo {
 	private String version;
 
-	public CIPluginInfoImpl() {
-	}
-
-	public CIPluginInfoImpl(String version) {
-		this.version = version;
-	}
-
 	public String getVersion() {
 		return version;
 	}

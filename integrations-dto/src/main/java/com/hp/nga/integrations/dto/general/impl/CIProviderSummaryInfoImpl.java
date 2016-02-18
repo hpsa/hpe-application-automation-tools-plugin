@@ -1,13 +1,14 @@
 package com.hp.nga.integrations.dto.general.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.hp.nga.integrations.dto.general.CIPluginSDKInfo;
 import com.hp.nga.integrations.dto.general.CIProviderSummaryInfo;
 import com.hp.nga.integrations.dto.general.CIPluginInfo;
 import com.hp.nga.integrations.dto.general.CIServerInfo;
 
 /**
  * Created by gullery on 03/01/2016.
- * <p/>
+ * <p>
  * Description of Plugin Status
  */
 
@@ -15,6 +16,7 @@ import com.hp.nga.integrations.dto.general.CIServerInfo;
 class CIProviderSummaryInfoImpl implements CIProviderSummaryInfo {
 	private CIServerInfo server;
 	private CIPluginInfo plugin;
+	private CIPluginSDKInfo sdk;
 
 	public CIServerInfo getServer() {
 		return server;
@@ -31,6 +33,15 @@ class CIProviderSummaryInfoImpl implements CIProviderSummaryInfo {
 
 	public CIProviderSummaryInfo setPlugin(CIPluginInfo plugin) {
 		this.plugin = plugin;
+		return this;
+	}
+
+	public CIPluginSDKInfo getSdk() {
+		return sdk;
+	}
+
+	public CIProviderSummaryInfo setSdk(CIPluginSDKInfo sdk) {
+		this.sdk = sdk;
 		return this;
 	}
 }

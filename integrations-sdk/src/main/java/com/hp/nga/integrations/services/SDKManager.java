@@ -1,8 +1,8 @@
 package com.hp.nga.integrations.services;
 
 import com.hp.nga.integrations.api.CIPluginServices;
-import com.hp.nga.integrations.api.ConfigurationService;
-import com.hp.nga.integrations.api.EventsService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Created by gullery on 22/01/2016.
@@ -11,12 +11,9 @@ import com.hp.nga.integrations.api.EventsService;
  */
 
 public class SDKManager {
-	private static final Object INIT_CONFIGURATION_SERVICE_LOCK = new Object();
-	private static final Object INIT_EVENTS_SERVICE_LOCK = new Object();
+	private static final Logger logger = LogManager.getLogger(SDKManager.class);
 	private static final Integer API_VERSION = 1;
 	private static CIPluginServices ciPluginServices;
-	private static ConfigurationService configurationService;
-	private static EventsService eventsService;
 
 	private SDKManager() {
 	}
@@ -42,31 +39,8 @@ public class SDKManager {
 	}
 
 	public static TasksProcessor getTasksProcessor() {
+		ensureInitialization();
 		return TasksProcessorImpl.getInstance();
-	}
-
-	public static ConfigurationService getConfigurationService() {
-		ensureInitialization();
-		if (configurationService == null) {
-			synchronized (INIT_CONFIGURATION_SERVICE_LOCK) {
-				if (configurationService == null) {
-					configurationService = new ConfigurationServiceImpl();
-				}
-			}
-		}
-		return configurationService;
-	}
-
-	public static EventsService getEventsService() {
-		ensureInitialization();
-		if (eventsService == null) {
-			synchronized (INIT_EVENTS_SERVICE_LOCK) {
-				if (eventsService == null) {
-					eventsService = new EventsServiceImpl();
-				}
-			}
-		}
-		return eventsService;
 	}
 
 	private static void ensureInitialization() {

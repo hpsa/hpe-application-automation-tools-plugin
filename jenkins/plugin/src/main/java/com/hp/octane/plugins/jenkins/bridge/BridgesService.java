@@ -7,22 +7,22 @@ import com.hp.octane.plugins.jenkins.configuration.ConfigurationListener;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import hudson.Extension;
 import jenkins.model.Jenkins;
+import org.apache.logging.log4j.LogManager;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * Created by gullery on 05/08/2015.
- * <p/>
+ * <p>
  * Bridge Service meant to provide an abridged connectivity functionality
  * The only APIs to be exposed is the basic management of abridged clients
  */
 
 @Extension
 public class BridgesService implements ConfigurationListener {
-	private static final Logger logger = Logger.getLogger(BridgesService.class.getName());
+	private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger(BridgesService.class);
 
 	private static BridgesService extensionInstance;
 	private JenkinsMqmRestClientFactory clientFactory;
@@ -76,7 +76,7 @@ public class BridgesService implements ConfigurationListener {
 				URL tmp = new URL(serverConfiguration.location);
 				result = true;
 			} catch (MalformedURLException mue) {
-				logger.warning("BRIDGE: configuration with malformed URL supplied");
+				logger.error("BRIDGE: configuration with malformed URL supplied", mue);
 			}
 		}
 		return result;

@@ -1,4 +1,4 @@
-package com.hp.octane.plugins.jenkins.model.causes;
+package com.hp.octane.plugins.jenkins.model;
 
 import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.causes.*;

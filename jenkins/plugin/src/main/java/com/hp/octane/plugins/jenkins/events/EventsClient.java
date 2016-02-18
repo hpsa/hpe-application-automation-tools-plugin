@@ -5,27 +5,24 @@ import com.hp.mqm.client.MqmRestClient;
 import com.hp.nga.integrations.dto.events.CIEventBase;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
+import org.apache.logging.log4j.LogManager;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * Created by gullery on 21/04/2015.
- * <p/>
+ * <p>
  * Event Client is a service of dispatching events to a single MQM Server Context (server : sharedspace)
  */
 
 @ExportedBean
 public class EventsClient {
-	private static final Logger logger = Logger.getLogger(EventsClient.class.getName());
+	private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger(EventsClient.class);
 
 	private static final class WaitMonitor {
 		volatile boolean released;
@@ -55,13 +52,13 @@ public class EventsClient {
 		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password, mqmConfig.impersonatedUser);
 		this.restClientFactory = clientFactory;
 		activate();
-		logger.info("EVENTS: client initialized for '" + this.mqmConfig.location + "' (SP: " + this.mqmConfig.sharedSpace + ")");
+		logger.info("EVENTS: client initialized for '" + this.mqmConfig.location + "'; SP: " + this.mqmConfig.sharedSpace + "; access key: " + mqmConfig.username);
 	}
 
 	public void update(ServerConfiguration newConfig) {
 		mqmConfig = new ServerConfiguration(newConfig.location, newConfig.sharedSpace, newConfig.username, newConfig.password, newConfig.impersonatedUser);
 		activate();
-		logger.info("EVENTS: updated for '" + mqmConfig.location + "' (SP: " + mqmConfig.sharedSpace + ")");
+		logger.info("EVENTS: client updated to '" + mqmConfig.location + "'; SP: " + mqmConfig.sharedSpace + "; access key: " + newConfig.username);
 	}
 
 	public void pushEvent(CIEventBase event) {
@@ -83,7 +80,7 @@ public class EventsClient {
 									}
 									Thread.sleep(DATA_SEND_INTERVAL);
 								} catch (Exception e) {
-									logger.severe("EVENTS: Exception while events sending: " + e.getMessage());
+									logger.error("EVENTS: failed to send events", e);
 								}
 							}
 							logger.info("EVENTS: worker thread of events client stopped");
@@ -111,7 +108,7 @@ public class EventsClient {
 			try {
 				worker.join();
 			} catch (InterruptedException ie) {
-				logger.warning("EVENTS: interruption happened while shutting down worker thread");
+				logger.info("EVENTS: interruption happened while shutting down worker thread", ie);
 			} finally {
 				if (worker.isAlive()) {
 					worker.interrupt();
@@ -133,7 +130,6 @@ public class EventsClient {
 	}
 
 	private boolean sendData() {
-		Writer w = new StringWriter();
 		EventsList eventsSnapshot = new EventsList(events);
 		String requestBody;
 		boolean result = true;
@@ -159,11 +155,11 @@ public class EventsClient {
 				}
 			}
 			if (failedRetries == MAX_SEND_RETRIES) {
-				logger.severe("EVENTS: max number of retries reached");
+				logger.error("EVENTS: max number of retries reached");
 				result = false;
 			}
 		} catch (Exception e) {
-			logger.severe("EVENTS: failed to send snapshot of " + eventsSnapshot.getEvents().size() + " events: " + e.getMessage() + "; dropping them all");
+			logger.error("EVENTS: failed to send snapshot of " + eventsSnapshot.getEvents().size() + " events: " + e.getMessage() + "; dropping them all", e);
 			events.removeAll(eventsSnapshot.getEvents());
 		}
 		return result;
@@ -179,7 +175,7 @@ public class EventsClient {
 				try {
 					WAIT_MONITOR.wait(timeout);
 				} catch (InterruptedException ie) {
-					logger.warning("EVENTS: waiting period was interrupted: " + ie.getMessage());
+					logger.info("EVENTS: waiting period was interrupted", ie);
 				}
 			}
 			paused = false;

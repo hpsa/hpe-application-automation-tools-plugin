@@ -8,7 +8,6 @@ import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.pipelines.PipelinePhase;
 import com.hp.nga.integrations.dto.snapshots.*;
-import com.hp.octane.plugins.jenkins.model.causes.CIEventCausesFactory;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import com.hp.octane.plugins.jenkins.model.processors.projects.AbstractProjectProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessor;
@@ -221,9 +220,10 @@ public class ModelFactory {
 
 	public static Set<BuildHistory.SCMUser> createScmUsersList(Set<User> users) {
 		Set<BuildHistory.SCMUser> userList = new HashSet<BuildHistory.SCMUser>();
-
-		for (User user : users) {
-			userList.add(ModelFactory.createScmUser(user));
+		if (users != null) {
+			for (User user : users) {
+				userList.add(ModelFactory.createScmUser(user));
+			}
 		}
 		return userList;
 	}

@@ -2,6 +2,7 @@ package com.hp.nga.integrations.services;
 
 import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.dto.DTOFactory;
+import com.hp.nga.integrations.dto.general.CIPluginSDKInfo;
 import com.hp.nga.integrations.dto.general.CIProviderSummaryInfo;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
@@ -24,7 +25,7 @@ import java.util.regex.Pattern;
 class TasksProcessorImpl implements TasksProcessor {
 	private static final Logger logger = Logger.getLogger(TasksProcessorImpl.class.getName());
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-	private static final String NGA = "nga";
+	private static final String NGA_API = "nga/api/v1";
 	private static final String STATUS = "status";
 	private static final String JOBS = "jobs";
 	private static final String RUN = "run";
@@ -46,8 +47,8 @@ class TasksProcessorImpl implements TasksProcessor {
 		if (task.getUrl() == null || task.getUrl().isEmpty()) {
 			throw new IllegalArgumentException("task 'URL' MUST NOT be null nor empty");
 		}
-		if (!task.getUrl().contains(NGA)) {
-			throw new IllegalArgumentException("task 'URL' expected to contain '" + NGA + "'; wrong handler call?");
+		if (!task.getUrl().contains(NGA_API)) {
+			throw new IllegalArgumentException("task 'URL' expected to contain '" + NGA_API + "'; wrong handler call?");
 		}
 		logger.info("TasksRouter: processing task '" + task.getId() + "': " + task.getMethod() + " " + task.getUrl());
 
@@ -55,7 +56,7 @@ class TasksProcessorImpl implements TasksProcessor {
 		result.setId(task.getId());
 		result.setStatus(200);
 		result.setHeaders(new HashMap<String, String>());
-		String[] path = Pattern.compile("^.*" + NGA + "/?").matcher(task.getUrl()).replaceFirst("").split("/");
+		String[] path = Pattern.compile("^.*" + NGA_API + "/?").matcher(task.getUrl()).replaceFirst("").split("/");
 		try {
 			if (path.length == 1 && STATUS.equals(path[0])) {
 				executeStatusRequest(result);
@@ -99,9 +100,13 @@ class TasksProcessorImpl implements TasksProcessor {
 
 	private void executeStatusRequest(NGAResultAbridged result) {
 		CIPluginServices dataProvider = SDKManager.getCIPluginServices();
+		CIPluginSDKInfo sdkInfo = dtoFactory.newDTO(CIPluginSDKInfo.class)
+				.setApiVersion(SDKManager.getApiVersion())
+				.setSdkVersion("TBD");
 		CIProviderSummaryInfo status = dtoFactory.newDTO(CIProviderSummaryInfo.class)
 				.setServer(dataProvider.getServerInfo())
-				.setPlugin(dataProvider.getPluginInfo());
+				.setPlugin(dataProvider.getPluginInfo())
+				.setSdk(sdkInfo);
 		result.setBody(dtoFactory.dtoToJson(status));
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
 	}
