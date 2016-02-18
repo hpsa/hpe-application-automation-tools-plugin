@@ -65,7 +65,7 @@ public class BridgeClient {
 						tasksJSON = restClient.getAbridgedTasks(
 								serverInstanceId,
 								pluginServices.getServerInfo().getUrl(),
-								SDKManager.getApiVersion(),
+								SDKManager.getAPIVersion(),
 								SDKManager.getSDKVersion());
 						connect();
 						if (tasksJSON != null && !tasksJSON.isEmpty()) {

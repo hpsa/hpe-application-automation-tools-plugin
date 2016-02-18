@@ -101,8 +101,8 @@ class TasksProcessorImpl implements TasksProcessor {
 	private void executeStatusRequest(NGAResultAbridged result) {
 		CIPluginServices dataProvider = SDKManager.getCIPluginServices();
 		CIPluginSDKInfo sdkInfo = dtoFactory.newDTO(CIPluginSDKInfo.class)
-				.setApiVersion(SDKManager.getApiVersion())
-				.setSdkVersion("TBD");
+				.setApiVersion(SDKManager.getAPIVersion())
+				.setSdkVersion(SDKManager.getSDKVersion());
 		CIProviderSummaryInfo status = dtoFactory.newDTO(CIProviderSummaryInfo.class)
 				.setServer(dataProvider.getServerInfo())
 				.setPlugin(dataProvider.getPluginInfo())

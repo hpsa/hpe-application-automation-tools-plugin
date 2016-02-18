@@ -4,6 +4,7 @@ import com.hp.nga.integrations.api.CIPluginServices;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.IOException;
 import java.util.Properties;
 
 /**
@@ -19,9 +20,8 @@ public class SDKManager {
 	private static String sdkVersion;
 
 	static {
-			//load api version
-			loadSDKProp();
-	};
+		loadSDKProp();
+	}
 
 	private SDKManager() {
 	}
@@ -39,9 +39,10 @@ public class SDKManager {
 	}
 
 
-	public static Integer getApiVersion() {
+	public static Integer getAPIVersion() {
 		return API_VERSION;
 	}
+
 	public static String getSDKVersion() {
 		return sdkVersion;
 	}
@@ -60,13 +61,15 @@ public class SDKManager {
 			throw new IllegalStateException("SDK MUST be initialized prior to services consumption");
 		}
 	}
+
 	private static void loadSDKProp() {
 
 		Properties p = new Properties();
 		try {
-			p.load(SDKManager.class.getClassLoader().getResourceAsStream("com/hp/nga/integrations/services/sdk.properties"));
+			p.load(SDKManager.class.getClassLoader().getResourceAsStream("sdk.properties"));
 			sdkVersion = p.getProperty("sdk.version");
-		} catch (Exception e) {
+		} catch (IOException ioe) {
+			logger.error("failed to load SDK properties", ioe);
 			sdkVersion = "";
 		}
 	}

@@ -71,7 +71,7 @@ public class BridgeClient {
 						tasksJSON = restClient.getAbridgedTasks(
 								serverInstanceId,
 								ciLocation,
-								SDKManager.getApiVersion(),
+								SDKManager.getAPIVersion(),
 								SDKManager.getSDKVersion());
 						logger.info("BRIDGE: back from '" + mqmConfig.location + "' (SP: " + mqmConfig.sharedSpace + ") with " + (tasksJSON == null || tasksJSON.isEmpty() ? "no tasks" : "some tasks"));
 						connect();
