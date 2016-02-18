@@ -36,7 +36,6 @@ public class BridgeClient {
 
 	private ServerConfiguration mqmConfig;
 	private String ciType;
-//    private CITaskService ciTaskService;
 
 	public BridgeClient(ServerConfiguration mqmConfig, String ciType) {
 
@@ -46,7 +45,6 @@ public class BridgeClient {
 
 		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password, mqmConfig.impersonatedUser);
 		this.ciType = ciType;
-//        ciTaskService = CITaskServiceFactory.create(ciType);
 		connect();
 		logger.info("BRIDGE: client initialized for '" + this.mqmConfig.location + "' (SP: " + this.mqmConfig.sharedSpace + ")");
 	}
@@ -74,7 +72,7 @@ public class BridgeClient {
 								serverInstanceId,
 								ciLocation,
 								SDKManager.getApiVersion(),
-								"12.50.29");
+								SDKManager.getSDKVersion());
 						logger.info("BRIDGE: back from '" + mqmConfig.location + "' (SP: " + mqmConfig.sharedSpace + ") with " + (tasksJSON == null || tasksJSON.isEmpty() ? "no tasks" : "some tasks"));
 						connect();
 						if (tasksJSON != null && !tasksJSON.isEmpty()) {

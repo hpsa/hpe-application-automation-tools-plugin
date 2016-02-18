@@ -4,6 +4,8 @@ import com.hp.nga.integrations.api.CIPluginServices;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.Properties;
+
 /**
  * Created by gullery on 22/01/2016.
  * <p>
@@ -14,6 +16,12 @@ public class SDKManager {
 	private static final Logger logger = LogManager.getLogger(SDKManager.class);
 	private static final Integer API_VERSION = 1;
 	private static CIPluginServices ciPluginServices;
+	private static String sdkVersion;
+
+	static {
+			//load api version
+			loadSDKProp();
+	};
 
 	private SDKManager() {
 	}
@@ -30,8 +38,12 @@ public class SDKManager {
 		//  init rest client
 	}
 
+
 	public static Integer getApiVersion() {
 		return API_VERSION;
+	}
+	public static String getSDKVersion() {
+		return sdkVersion;
 	}
 
 	public static CIPluginServices getCIPluginServices() {
@@ -46,6 +58,16 @@ public class SDKManager {
 	private static void ensureInitialization() {
 		if (ciPluginServices == null) {
 			throw new IllegalStateException("SDK MUST be initialized prior to services consumption");
+		}
+	}
+	private static void loadSDKProp() {
+
+		Properties p = new Properties();
+		try {
+			p.load(SDKManager.class.getClassLoader().getResourceAsStream("com/hp/nga/integrations/services/sdk.properties"));
+			sdkVersion = p.getProperty("sdk.version");
+		} catch (Exception e) {
+			sdkVersion = "";
 		}
 	}
 }

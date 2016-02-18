@@ -32,7 +32,6 @@ public class BridgeClient {
 	private static final Logger logger = LogManager.getLogger(BridgeClient.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String serverInstanceId = Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity();
-	private static final String sdkVersion = Jenkins.getInstance().getPlugin(OctanePlugin.class).getWrapper().getVersion();
 	private ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
 	private ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30, new AbridgedTasksExecutorsFactory());
 	volatile private boolean shuttingDown = false;
@@ -67,7 +66,7 @@ public class BridgeClient {
 								serverInstanceId,
 								pluginServices.getServerInfo().getUrl(),
 								SDKManager.getApiVersion(),
-								sdkVersion);
+								SDKManager.getSDKVersion());
 						connect();
 						if (tasksJSON != null && !tasksJSON.isEmpty()) {
 							dispatchTasks(tasksJSON);
