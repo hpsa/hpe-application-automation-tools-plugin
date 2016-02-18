@@ -4,6 +4,8 @@ import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.api.ConfigurationService;
 import com.hp.nga.integrations.api.EventsService;
 
+import java.util.Properties;
+
 /**
  * Created by gullery on 22/01/2016.
  * <p>
@@ -16,8 +18,34 @@ public class SDKFactory {
 	private static CIPluginServices ciPluginServices;
 	private static ConfigurationService configurationService;
 	private static EventsService eventsService;
+	private static String sdkVersion;
+
+	static {
+			//load api version
+			loadSDKProp();
+	};
+
+	private static final Integer apiVersion = 1;
 
 	private SDKFactory() {
+	}
+
+	private static void loadSDKProp() {
+
+		Properties p = new Properties();
+		try {
+			p.load(SDKFactory.class.getClassLoader().getResourceAsStream("com/hp/nga/integrations/services/sdk.properties"));
+			sdkVersion = p.getProperty("sdk.version");
+		} catch (Exception e) {
+			sdkVersion = "";
+		}
+	}
+	public static Integer getAPIVersion() {
+		return apiVersion;
+	}
+
+	public static String getSDKVersion() {
+		return sdkVersion;
 	}
 
 	public static synchronized void init(CIPluginServices ciPluginServices) {
@@ -31,6 +59,7 @@ public class SDKFactory {
 		//  init bridge
 		//  init rest client
 	}
+
 
 	public static CIPluginServices getCIPluginServices() {
 		return ciPluginServices;

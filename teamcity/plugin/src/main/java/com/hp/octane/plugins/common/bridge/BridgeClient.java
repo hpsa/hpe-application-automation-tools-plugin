@@ -6,6 +6,7 @@ import com.hp.mqm.client.exception.TemporarilyUnavailableException;
 import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
 import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
+import com.hp.nga.integrations.services.SDKFactory;
 import com.hp.nga.integrations.services.TasksRoutingService;
 import com.hp.octane.plugins.common.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
@@ -35,7 +36,6 @@ public class BridgeClient {
 
 	private ServerConfiguration mqmConfig;
 	private String ciType;
-//    private CITaskService ciTaskService;
 
 	public BridgeClient(ServerConfiguration mqmConfig, String ciType) {
 
@@ -45,7 +45,6 @@ public class BridgeClient {
 
 		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password, mqmConfig.impersonatedUser);
 		this.ciType = ciType;
-//        ciTaskService = CITaskServiceFactory.create(ciType);
 		connect();
 		logger.info("BRIDGE: client initialized for '" + this.mqmConfig.location + "' (SP: " + this.mqmConfig.sharedSpace + ")");
 	}
@@ -69,7 +68,7 @@ public class BridgeClient {
 								"; self URL: " + ciLocation);//new PluginActions.ServerInfo().getUrl());
 						MqmRestClient restClient = MqmRestClientFactory.create(ciType, mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
 
-						tasksJSON = restClient.getAbridgedTasks(serverInstanceId, ciLocation, "12.50.29", 1);
+						tasksJSON = restClient.getAbridgedTasks(serverInstanceId, ciLocation, SDKFactory.getSDKVersion(),SDKFactory.getAPIVersion());
 						logger.info("BRIDGE: back from '" + mqmConfig.location + "' (SP: " + mqmConfig.sharedSpace + ") with " + (tasksJSON == null || tasksJSON.isEmpty() ? "no tasks" : "some tasks"));
 						connect();
 						if (tasksJSON != null && !tasksJSON.isEmpty()) {
