@@ -68,7 +68,7 @@ public class ProjectActionsMavenTest {
 		int retries = 0;
 		MavenModuleSet p = rule.createMavenProject(projectName);
 		JenkinsRule.WebClient client = rule.createWebClient();
-		WebRequestSettings wrs = new WebRequestSettings(new URL(client.getContextPath() + "nga/jobs/" + projectName + "/run"), HttpMethod.POST);
+		WebRequestSettings wrs = new WebRequestSettings(new URL(client.getContextPath() + "nga/api/v1/jobs/" + projectName + "/run"), HttpMethod.POST);
 		wrs = client.addCrumb(wrs);
 		WebResponse wr = client.loadWebResponse(wrs);
 		while ((p.getLastBuild() == null || p.getLastBuild().isBuilding()) && ++retries < 20) {
