@@ -21,8 +21,8 @@ import java.util.regex.Pattern;
  * Tasks routing service handles NGA tasks, both coming from abridged logic as well as plugin's REST call delegation
  */
 
-public class TasksRoutingService {
-	private static final Logger logger = Logger.getLogger(TasksRoutingService.class.getName());
+class TasksProcessorImpl implements TasksProcessor {
+	private static final Logger logger = Logger.getLogger(TasksProcessorImpl.class.getName());
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String NGA = "nga";
 	private static final String STATUS = "status";
@@ -30,11 +30,16 @@ public class TasksRoutingService {
 	private static final String RUN = "run";
 	private static final String HISTORY = "history";
 	private static final String BUILDS = "builds";
-	private static final String LATEST = "lastBuild";
+	private static final String LATEST = "latest";
 
-	private final NGATaskAbridged task;
+	private TasksProcessorImpl() {
+	}
 
-	public TasksRoutingService(NGATaskAbridged task) {
+	static TasksProcessor getInstance() {
+		return INSTANCE_HOLDER.instance;
+	}
+
+	public NGAResultAbridged execute(NGATaskAbridged task) {
 		if (task == null) {
 			throw new IllegalArgumentException("task MUST NOT be null");
 		}
@@ -44,11 +49,6 @@ public class TasksRoutingService {
 		if (!task.getUrl().contains(NGA)) {
 			throw new IllegalArgumentException("task 'URL' expected to contain '" + NGA + "'; wrong handler call?");
 		}
-
-		this.task = task;
-	}
-
-	public NGAResultAbridged execute() {
 		logger.info("TasksRouter: processing task '" + task.getId() + "': " + task.getMethod() + " " + task.getUrl());
 
 		NGAResultAbridged result = DTOFactory.getInstance().newDTO(NGAResultAbridged.class);
@@ -98,7 +98,7 @@ public class TasksRoutingService {
 	}
 
 	private void executeStatusRequest(NGAResultAbridged result) {
-		CIPluginServices dataProvider = SDKFactory.getCIPluginServices();
+		CIPluginServices dataProvider = SDKManager.getCIPluginServices();
 		CIProviderSummaryInfo status = dtoFactory.newDTO(CIProviderSummaryInfo.class)
 				.setServer(dataProvider.getServerInfo())
 				.setPlugin(dataProvider.getPluginInfo());
@@ -107,37 +107,45 @@ public class TasksRoutingService {
 	}
 
 	private void executeJobsListRequest(NGAResultAbridged result, boolean includingParameters) {
-		CIJobsList content = SDKFactory.getCIPluginServices().getJobsList(includingParameters);
+		CIJobsList content = SDKManager.getCIPluginServices().getJobsList(includingParameters);
 		result.setBody(dtoFactory.dtoToJson(content));
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
 	}
 
 	private void executePipelineRequest(NGAResultAbridged result, String jobId) {
-		PipelineNode content = SDKFactory.getCIPluginServices().getPipeline(jobId);
+		PipelineNode content = SDKManager.getCIPluginServices().getPipeline(jobId);
 		result.setBody(dtoFactory.dtoToJson(content));
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
 	}
 
 	private void executePipelineRunRequest(NGAResultAbridged result, String jobId, String originalBody) {
-		int status = SDKFactory.getCIPluginServices().runPipeline(jobId, originalBody);
+		int status = SDKManager.getCIPluginServices().runPipeline(jobId, originalBody);
 		result.setStatus(status);
 	}
 
 	private void executeLatestSnapshotRequest(NGAResultAbridged result, String jobId, boolean subTree) {
-		SnapshotNode content = SDKFactory.getCIPluginServices().getSnapshotLatest(jobId, subTree);
-		result.setBody(dtoFactory.dtoToJson(content));
+		SnapshotNode data = SDKManager.getCIPluginServices().getSnapshotLatest(jobId, subTree);
+		if (data != null) {
+			result.setBody(dtoFactory.dtoToJson(data));
+		} else {
+			result.setStatus(404);
+		}
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
 	}
 
 	private void executeSnapshotByNumberRequest(NGAResultAbridged result, String jobId, Integer buildNumber, boolean subTree) {
-		SnapshotNode content = SDKFactory.getCIPluginServices().getSnapshotByNumber(jobId, buildNumber, subTree);
+		SnapshotNode content = SDKManager.getCIPluginServices().getSnapshotByNumber(jobId, buildNumber, subTree);
 		result.setBody(dtoFactory.dtoToJson(content));
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
 	}
 
 	private void executeHistoryRequest(NGAResultAbridged result, String jobId, String originalBody) {
-		BuildHistory content = SDKFactory.getCIPluginServices().getHistoryPipeline(jobId, originalBody);
+		BuildHistory content = SDKManager.getCIPluginServices().getHistoryPipeline(jobId, originalBody);
 		result.setBody(dtoFactory.dtoToJson(content));
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
+	}
+
+	private static final class INSTANCE_HOLDER {
+		private static final TasksProcessor instance = new TasksProcessorImpl();
 	}
 }

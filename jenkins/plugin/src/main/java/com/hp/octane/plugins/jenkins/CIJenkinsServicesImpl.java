@@ -207,12 +207,15 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 
 	@Override
 	public SnapshotNode getSnapshotLatest(String ciJobId, boolean subTree) {
+		SnapshotNode result = null;
 		AbstractProject project = getJobByRefId(ciJobId);
 		if (project != null) {
 			AbstractBuild build = project.getLastBuild();
-			return ModelFactory.createSnapshotItem(build, subTree);
+			if (build != null) {
+				result = ModelFactory.createSnapshotItem(build, subTree);
+			}
 		}
-		return null;
+		return result;
 	}
 
 	@Override

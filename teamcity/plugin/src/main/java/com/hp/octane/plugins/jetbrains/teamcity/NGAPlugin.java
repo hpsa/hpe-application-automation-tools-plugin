@@ -4,7 +4,7 @@ package com.hp.octane.plugins.jetbrains.teamcity;
  * Created by lazara on 23/12/2015.
  */
 
-import com.hp.nga.integrations.services.SDKFactory;
+import com.hp.nga.integrations.services.SDKManager;
 import com.hp.nga.integrations.services.bridge.BridgeService;
 import com.hp.octane.plugins.CIPluginServicesImpl;
 import com.hp.octane.plugins.jetbrains.teamcity.actions.ConfigurationActionsController;
@@ -67,7 +67,7 @@ public class NGAPlugin implements ServerExtension {
         this.ciPluginService = new CIPluginServicesImpl();
 
         //  X Plugin will decide what's its pattern to provide instance/s of the implementation
-        SDKFactory.init(ciPluginService);
+        SDKManager.init(ciPluginService);
         //  X Plugin will consume SDK's services elsewhere in the following manner
         //  EventsService eventsService = SDKFactory.getEventsService();
 

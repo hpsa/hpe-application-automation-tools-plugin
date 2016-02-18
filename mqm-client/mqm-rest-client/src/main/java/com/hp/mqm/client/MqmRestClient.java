@@ -228,11 +228,11 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 *
 	 * @param selfIdentity  identity of the server
 	 * @param selfLocation  location of
-	 * @param pluginVersion
 	 * @param apiVersion
+	 * @param sdkVersion
 	 * @return
 	 */
-	String getAbridgedTasks(String selfIdentity, String selfLocation, String pluginVersion, Integer apiVersion);
+	String getAbridgedTasks(String selfIdentity, String selfLocation, Integer apiVersion, String sdkVersion);
 
 	/**
 	 * Sends Result of the Abridged Task Invocation

@@ -4,7 +4,8 @@ import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
 import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
 import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
-import com.hp.nga.integrations.services.TasksRoutingService;
+import com.hp.nga.integrations.services.SDKManager;
+import com.hp.nga.integrations.services.TasksProcessor;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -33,10 +34,10 @@ public class BridgeClient {
 
 	public void update(NGAConfiguration newConfig) {
 //		logger.info("BRIDGE: updated for '" + config.getUrl() + "' (SP: " + config.getSharedSpace() + ")");
-		if(isConfigurationValid(newConfig)){
+		if (isConfigurationValid(newConfig)) {
 			//TODO: 1. update the rest client
 			connect();
-		}else{
+		} else {
 			/*
 				logger.info("BRIDGE: empty / non-valid configuration submitted, disposing bridge client");
 				bridgeClient.dispose();
@@ -113,8 +114,8 @@ public class BridgeClient {
 			for (final NGATaskAbridged task : tasks) {
 				taskProcessingExecutors.execute(new Runnable() {
 					public void run() {
-						TasksRoutingService taskProcessor = new TasksRoutingService(task);
-						NGAResultAbridged result = taskProcessor.execute();
+						TasksProcessor taskProcessor = SDKManager.getTasksProcessor();
+						NGAResultAbridged result = taskProcessor.execute(task);
 						//  TODO: post the result to NGA
 					}
 				});

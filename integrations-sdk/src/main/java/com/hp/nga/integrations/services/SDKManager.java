@@ -12,9 +12,10 @@ import java.util.Properties;
  * This class provides main entry point of interaction between an SDK and it's services and concrete plugin and it's services
  */
 
-public class SDKFactory {
+public class SDKManager {
 	private static final Object INIT_CONFIGURATION_SERVICE_LOCK = new Object();
 	private static final Object INIT_EVENTS_SERVICE_LOCK = new Object();
+	private static final Integer API_VERSION = 1;
 	private static CIPluginServices ciPluginServices;
 	private static ConfigurationService configurationService;
 	private static EventsService eventsService;
@@ -53,7 +54,7 @@ public class SDKFactory {
 			throw new IllegalArgumentException("SDK factory initialization failed: MUST be initialized with valid plugin services provider");
 		}
 
-		SDKFactory.ciPluginServices = ciPluginServices;
+		SDKManager.ciPluginServices = ciPluginServices;
 		LoggingService.ensureInit();
 		//  do init logic
 		//  init bridge
@@ -61,8 +62,16 @@ public class SDKFactory {
 	}
 
 
+	public static Integer getApiVersion() {
+		return API_VERSION;
+	}
+
 	public static CIPluginServices getCIPluginServices() {
 		return ciPluginServices;
+	}
+
+	public static TasksProcessor getTasksProcessor() {
+		return TasksProcessorImpl.getInstance();
 	}
 
 	public static ConfigurationService getConfigurationService() {
