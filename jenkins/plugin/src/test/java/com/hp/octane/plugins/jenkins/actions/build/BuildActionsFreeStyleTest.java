@@ -105,7 +105,7 @@ public class BuildActionsFreeStyleTest {
 		}
 		assertEquals(p.getBuilds().toArray().length, 1);
 
-		page = client.goTo("nga/jobs/" + projectName + "/builds/" + p.getLastBuild().getNumber(), "application/json");
+		page = client.goTo("nga/api/v1/jobs/" + projectName + "/builds/" + p.getLastBuild().getNumber(), "application/json");
 		snapshot = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), SnapshotNode.class);
 		assertEquals(projectName, snapshot.getCiId());
 		assertEquals(projectName, snapshot.getName());
@@ -149,7 +149,7 @@ public class BuildActionsFreeStyleTest {
 		}
 		assertEquals(p.getBuilds().toArray().length, 1);
 
-		page = client.goTo("nga/jobs/" + projectName + "/builds/" + p.getLastBuild().getNumber(), "application/json");
+		page = client.goTo("nga/api/v1/jobs/" + projectName + "/builds/" + p.getLastBuild().getNumber(), "application/json");
 		snapshot = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), SnapshotNode.class);
 		assertEquals(projectName, snapshot.getCiId());
 		assertEquals(projectName, snapshot.getName());
@@ -232,7 +232,7 @@ public class BuildActionsFreeStyleTest {
 		}
 		assertEquals(p.getBuilds().toArray().length, 1);
 
-		page = client.goTo("nga/jobs/" + projectName + "/builds/" + p.getLastBuild().getNumber(), "application/json");
+		page = client.goTo("nga/api/v1/jobs/" + projectName + "/builds/" + p.getLastBuild().getNumber(), "application/json");
 		snapshot = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), SnapshotNode.class);
 		assertEquals(projectName, snapshot.getCiId());
 		assertEquals(projectName, snapshot.getName());

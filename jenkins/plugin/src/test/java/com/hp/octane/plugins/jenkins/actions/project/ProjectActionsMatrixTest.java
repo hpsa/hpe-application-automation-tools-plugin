@@ -49,7 +49,7 @@ public class ProjectActionsMatrixTest {
 		Page page;
 		PipelineNode pipeline;
 
-		page = client.goTo("nga/jobs/" + projectName, "application/json");
+		page = client.goTo("nga/api/v1/jobs/" + projectName, "application/json");
 		pipeline = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), PipelineNode.class);
 		assertEquals(projectName, pipeline.getCiId());
 		assertEquals(projectName, pipeline.getName());
@@ -77,7 +77,7 @@ public class ProjectActionsMatrixTest {
 		PipelineNode pipeline;
 		ParameterConfig tmpParam;
 
-		page = client.goTo("nga/jobs/" + projectName, "application/json");
+		page = client.goTo("nga/api/v1/jobs/" + projectName, "application/json");
 		pipeline = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), PipelineNode.class);
 		assertEquals(projectName, pipeline.getCiId());
 		assertEquals(projectName, pipeline.getName());
@@ -162,7 +162,7 @@ public class ProjectActionsMatrixTest {
 		PipelineNode tmpNode;
 		ParameterConfig tmpParam;
 
-		page = client.goTo("nga/jobs/" + projectName, "application/json");
+		page = client.goTo("nga/api/v1/jobs/" + projectName, "application/json");
 		pipeline = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), PipelineNode.class);
 		assertEquals(projectName, pipeline.getCiId());
 		assertEquals(projectName, pipeline.getName());
