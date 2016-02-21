@@ -59,6 +59,6 @@ public class MqmRestClientFactory {
     }
 
     private static boolean isProxyNeeded(final String host) {
-        return false;
+        return true;
     }
 }
