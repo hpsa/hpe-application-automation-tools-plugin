@@ -98,14 +98,12 @@ public class TestApiTest {
 		client = rule.createWebClient();
 	}
 
-	@Ignore
 	@Test
 	public void testXml() throws Exception {
 		Page testResults = client.goTo("job/test-api-test/" + build.getNumber() + "/nga/tests/xml", "application/xml");
 		TestUtils.matchTests(new TestResultIterable(new StringReader(testResults.getWebResponse().getContentAsString())), "test-api-test", build.getStartTimeInMillis(), TestUtils.helloWorldTests);
 	}
 
-	@Ignore
 	@Test
 	public void testAudit() throws Exception {
 		Page auditLog = client.goTo("job/test-api-test/" + build.getNumber() + "/nga/tests/audit", "application/json");
