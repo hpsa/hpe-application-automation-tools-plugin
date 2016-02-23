@@ -117,7 +117,6 @@ public class TestApiTest {
 		Assert.assertNotNull(audit.getString("date"));
 	}
 
-	@Ignore
 	@Test
 	public void testLog() throws InterruptedException, IOException, SAXException {
 		Page publishLog = client.goTo("job/test-api-test/" + build.getNumber() + "/nga/tests/log", "text/plain");
