@@ -13,7 +13,6 @@ import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.client.MqmRestClientFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.Config;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.ConfigManager;
-import net.sf.json.JSONObject;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.ExecutorService;
@@ -131,16 +130,12 @@ public class BridgeClient {
 								mqmConfig.sharedSpace,
 								mqmConfig.username,
 								mqmConfig.password);
-						JSONObject json = new JSONObject();
-						json.put("statusCode", result.getStatus());
-						json.put("headers", result.getHeaders());
-						json.put("body", result.getBody());
 
 						Config cfg = NGAPlugin.getInstance().getConfig();
 						int submitStatus = restClient.putAbridgedResult(
 								cfg.getIdentity()/*new PluginActions.ServerInfo().getInstanceId()*/,
 								result.getId(),
-								json.toString());
+								dtoFactory.dtoToJson(result));
 						logger.info("BRIDGE: result for task '" + result.getId() + "' submitted with status " + submitStatus);
 
 					}
