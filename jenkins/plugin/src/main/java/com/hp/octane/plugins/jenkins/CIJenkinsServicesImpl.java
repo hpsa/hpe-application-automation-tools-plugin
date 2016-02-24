@@ -122,25 +122,29 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 		List<CIJobMetadata> list = new ArrayList<CIJobMetadata>();
 		List<String> itemNames = (List<String>) Jenkins.getInstance().getTopLevelItemNames();
 		for (String name : itemNames) {
-			tmpProject = (AbstractProject) Jenkins.getInstance().getItem(name);
-			tmpConfig = dtoFactory.newDTO(CIJobMetadata.class);
-			tmpConfig.setName(name);
-			tmpConfig.setCiId(name);
-			if (includeParameters) {
-				List<ParameterConfig> tmpList = ParameterProcessors.getConfigs(tmpProject);
-				List<com.hp.nga.integrations.dto.parameters.ParameterConfig> configs = new ArrayList<com.hp.nga.integrations.dto.parameters.ParameterConfig>();
-				for (ParameterConfig pc : tmpList) {
-					configs.add(new com.hp.nga.integrations.dto.parameters.ParameterConfig(
-							pc.getType(),
-							pc.getName(),
-							pc.getDescription(),
-							pc.getDefaultValue(),
-							pc.getChoices() == null ? null : pc.getChoices()
-					));
+			if (Jenkins.getInstance().getItem(name) instanceof AbstractProject) {
+				tmpProject = (AbstractProject) Jenkins.getInstance().getItem(name);
+				tmpConfig = dtoFactory.newDTO(CIJobMetadata.class);
+				tmpConfig.setName(name);
+				tmpConfig.setCiId(name);
+				if (includeParameters) {
+					List<ParameterConfig> tmpList = ParameterProcessors.getConfigs(tmpProject);
+					List<com.hp.nga.integrations.dto.parameters.ParameterConfig> configs = new ArrayList<com.hp.nga.integrations.dto.parameters.ParameterConfig>();
+					for (ParameterConfig pc : tmpList) {
+						configs.add(new com.hp.nga.integrations.dto.parameters.ParameterConfig(
+								pc.getType(),
+								pc.getName(),
+								pc.getDescription(),
+								pc.getDefaultValue(),
+								pc.getChoices() == null ? null : pc.getChoices()
+						));
+					}
+					tmpConfig.setParameters(configs.toArray(new com.hp.nga.integrations.dto.parameters.ParameterConfig[configs.size()]));
 				}
-				tmpConfig.setParameters(configs.toArray(new com.hp.nga.integrations.dto.parameters.ParameterConfig[configs.size()]));
+				list.add(tmpConfig);
+			} else {
+				logger.info("item '" + name + "' is not of supported type");
 			}
-			list.add(tmpConfig);
 		}
 		result.setJobs(list.toArray(new CIJobMetadata[list.size()]));
 		return result;
