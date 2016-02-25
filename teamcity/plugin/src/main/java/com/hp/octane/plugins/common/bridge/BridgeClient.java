@@ -66,7 +66,6 @@ public class BridgeClient {
 								"; instance ID: " + serverInstanceId +
 								"; self URL: " + ciLocation);//new PluginActions.ServerInfo().getUrl());
 						MqmRestClient restClient = MqmRestClientFactory.create(ciType, mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
-
 						tasksJSON = restClient.getAbridgedTasks(
 								serverInstanceId,
 								ciLocation,
