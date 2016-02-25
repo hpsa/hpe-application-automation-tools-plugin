@@ -15,7 +15,6 @@ import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;
 import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.SBuildServer;
 import jetbrains.buildServer.serverSide.ServerExtension;
-import jetbrains.buildServer.serverSide.WebLinks;
 import jetbrains.buildServer.serverSide.settings.ProjectSettingsManager;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import jetbrains.buildServer.web.openapi.WebControllerManager;
@@ -23,10 +22,6 @@ import jetbrains.buildServer.web.openapi.WebControllerManager;
 import java.util.Date;
 import java.util.UUID;
 import java.util.logging.Logger;
-
-//import com.hp.octane.plugins.common.bridge.BridgesService;
-
-//import com.hp.octane.plugins.common.bridge.BridgesService;
 
 public class NGAPlugin implements ServerExtension {
     public static final String PLUGIN_NAME = NGAPlugin.class.getSimpleName().toLowerCase();
@@ -53,8 +48,7 @@ public class NGAPlugin implements ServerExtension {
                      BuildTypeResponsibilityFacade responsibilityFacade,
                      WebControllerManager webControllerManager,
                      ProjectSettingsManager projectSettingsManager,
-                     PluginDescriptor pluginDescriptor,
-                     WebLinks webLinks) {
+                     PluginDescriptor pluginDescriptor) {
         logger.info("Init HPE MQM CI Plugin");
         sBuildServer.registerExtension(ServerExtension.class, PLUGIN_NAME, this);
         this.plugin = this;

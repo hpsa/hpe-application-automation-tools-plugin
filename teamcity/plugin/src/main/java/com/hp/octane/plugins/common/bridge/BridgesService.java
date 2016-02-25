@@ -2,6 +2,7 @@ package com.hp.octane.plugins.common.bridge;
 
 
 import com.hp.octane.plugins.common.configuration.ServerConfiguration;
+import com.hp.octane.plugins.jetbrains.teamcity.configuration.ConfigurationService;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -21,7 +22,7 @@ public class BridgesService{
 	private static BridgesService instance;
 
 	private BridgeClient bridgeClient;
-	private String ciType = "HPE_CI_CLIENT";
+	private String ciType = ConfigurationService.CLIENT_TYPE;//"HPE_CI_CLIENT";
 
 	public static BridgesService getInstance() {
 		if (instance == null) {
