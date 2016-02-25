@@ -3,14 +3,14 @@ package com.hp.octane.plugins;
 import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.configuration.CIProxyConfiguration;
-import com.hp.nga.integrations.dto.general.CIServerTypes;
+import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
+import com.hp.nga.integrations.dto.general.CIJobsList;
 import com.hp.nga.integrations.dto.general.CIPluginInfo;
 import com.hp.nga.integrations.dto.general.CIServerInfo;
+import com.hp.nga.integrations.dto.general.CIServerTypes;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
-import com.hp.nga.integrations.dto.general.CIJobsList;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
-import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.Config;
@@ -30,11 +30,8 @@ public class CIPluginServicesImpl implements CIPluginServices {
 
 	@Override
 	public CIServerInfo getServerInfo() {
-		String serverUrl = "http://localhost:8081";
-		if (serverUrl != null && serverUrl.endsWith("/")) {
-			serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
-		}
 
+		String serverUrl = NGAPlugin.getInstance().getServerURL();
 		CIServerInfo CIServerInfo = DTOFactory.getInstance().newDTO(CIServerInfo.class);
 		CIServerInfo.setInstanceId(NGAPlugin.getInstance().getConfig().getIdentity())
 				.setInstanceIdFrom(NGAPlugin.getInstance().getConfig().getIdentityFromAsLong())

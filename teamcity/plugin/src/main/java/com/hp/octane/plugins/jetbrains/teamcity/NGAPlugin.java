@@ -15,6 +15,7 @@ import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;
 import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.SBuildServer;
 import jetbrains.buildServer.serverSide.ServerExtension;
+import jetbrains.buildServer.serverSide.WebLinks;
 import jetbrains.buildServer.serverSide.settings.ProjectSettingsManager;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import jetbrains.buildServer.web.openapi.WebControllerManager;
@@ -52,7 +53,8 @@ public class NGAPlugin implements ServerExtension {
                      BuildTypeResponsibilityFacade responsibilityFacade,
                      WebControllerManager webControllerManager,
                      ProjectSettingsManager projectSettingsManager,
-                     PluginDescriptor pluginDescriptor) {
+                     PluginDescriptor pluginDescriptor,
+                     WebLinks webLinks) {
         logger.info("Init HPE MQM CI Plugin");
         sBuildServer.registerExtension(ServerExtension.class, PLUGIN_NAME, this);
         this.plugin = this;
@@ -113,4 +115,20 @@ public class NGAPlugin implements ServerExtension {
         return config;
     }
 
+    public String getServerURL() {
+//        String serverUrl = sBuildServer.getRootUrl();
+//        if(serverUrl.contains("localhost")){
+//            try {
+//                serverUrl ="http://"+ InetAddress.getLocalHost().getCanonicalHostName();
+//            } catch (UnknownHostException e) {
+//                e.printStackTrace();
+//                serverUrl="http://localhost";
+//            }
+//        }
+//        if (serverUrl != null && serverUrl.endsWith("/")) {
+//            serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
+//        }
+//        return serverUrl;
+        return "http://localhost:8081";
+    }
 }
