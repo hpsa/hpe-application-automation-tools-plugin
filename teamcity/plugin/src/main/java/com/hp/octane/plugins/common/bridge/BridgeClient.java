@@ -27,7 +27,7 @@ public class BridgeClient {
 	private static String serverInstanceId;
 	private static ConfigManager m_ConfigManager;
 	//  private static final String serverInstanceId =
-	private static final String ciLocation = NGAPlugin.getInstance().getServerURL();//"http://localhost:8081";//
+	private static final String ciLocation = "http://localhost:8081";//
 
 	private ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
 	private ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30, new AbridgedTasksExecutorsFactory());

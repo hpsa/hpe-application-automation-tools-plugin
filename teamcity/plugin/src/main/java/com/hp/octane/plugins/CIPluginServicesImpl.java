@@ -30,8 +30,11 @@ public class CIPluginServicesImpl implements CIPluginServices {
 
 	@Override
 	public CIServerInfo getServerInfo() {
+		String serverUrl = "http://localhost:8081";
+		if (serverUrl != null && serverUrl.endsWith("/")) {
+			serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
+		}
 
-		String serverUrl = NGAPlugin.getInstance().getServerURL();
 		CIServerInfo CIServerInfo = DTOFactory.getInstance().newDTO(CIServerInfo.class);
 		CIServerInfo.setInstanceId(NGAPlugin.getInstance().getConfig().getIdentity())
 				.setInstanceIdFrom(NGAPlugin.getInstance().getConfig().getIdentityFromAsLong())

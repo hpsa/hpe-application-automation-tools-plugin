@@ -21,7 +21,7 @@ public class BridgesService{
 	private static BridgesService instance;
 
 	private BridgeClient bridgeClient;
-	private String ciType = "HPE_TEAMCITY_PLUGIN";
+	private String ciType = "HPE_CI_CLIENT";
 
 	public static BridgesService getInstance() {
 		if (instance == null) {

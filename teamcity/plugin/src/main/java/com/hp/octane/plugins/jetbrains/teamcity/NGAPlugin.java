@@ -115,20 +115,4 @@ public class NGAPlugin implements ServerExtension {
         return config;
     }
 
-    public String getServerURL() {
-//        String serverUrl = sBuildServer.getRootUrl();
-//        if(serverUrl.contains("localhost")){
-//            try {
-//                serverUrl ="http://"+ InetAddress.getLocalHost().getCanonicalHostName();
-//            } catch (UnknownHostException e) {
-//                e.printStackTrace();
-//                serverUrl="http://localhost";
-//            }
-//        }
-//        if (serverUrl != null && serverUrl.endsWith("/")) {
-//            serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
-//        }
-//        return serverUrl;
-        return "http://localhost:8081";
-    }
 }
