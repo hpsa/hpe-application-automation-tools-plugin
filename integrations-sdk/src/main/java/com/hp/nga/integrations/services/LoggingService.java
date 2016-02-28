@@ -25,7 +25,7 @@ import java.io.File;
 
 class LoggingService {
 	private static final Object INIT_LOCKER = new Object();
-	private static final String LOG_FILE = "nga.log";
+	private static final String LOGS_LOCATION = "logs" + File.separator + "nga.log";
 
 	private final CIPluginServices pluginServices;
 	private Level logLevel = Level.INFO;
@@ -51,8 +51,8 @@ class LoggingService {
 				SizeBasedTriggeringPolicy policy = SizeBasedTriggeringPolicy.createPolicy("2MB");
 				DefaultRolloverStrategy strategy = DefaultRolloverStrategy.createStrategy("10", "0", "min", null, null, true, config);
 				RollingFileManager fileManager = RollingFileManager.getFileManager(
-						new File(pluginServices.getAllowedNGAStorage(), LOG_FILE).getAbsolutePath(),
-						new File(pluginServices.getAllowedNGAStorage(), LOG_FILE).getAbsolutePath() + "%i",
+						new File(pluginServices.getAllowedNGAStorage(), LOGS_LOCATION).getAbsolutePath(),
+						new File(pluginServices.getAllowedNGAStorage(), LOGS_LOCATION).getAbsolutePath() + "%i",
 						false,
 						false,
 						policy,
@@ -62,8 +62,8 @@ class LoggingService {
 						128);
 				policy.initialize(fileManager);
 				Appender appender = RollingFileAppender.createAppender(
-						new File(pluginServices.getAllowedNGAStorage(), LOG_FILE).getAbsolutePath(),
-						new File(pluginServices.getAllowedNGAStorage(), LOG_FILE).getAbsolutePath() + "%i",
+						new File(pluginServices.getAllowedNGAStorage(), LOGS_LOCATION).getAbsolutePath(),
+						new File(pluginServices.getAllowedNGAStorage(), LOGS_LOCATION).getAbsolutePath() + "%i",
 						"true",
 						"NGAFileLogger",
 						"false",

@@ -12,16 +12,17 @@ import hudson.plugins.git.GitChangeSet;
 import hudson.plugins.git.GitSCM;
 import hudson.plugins.git.util.BuildData;
 import hudson.scm.ChangeLogSet;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
-import java.util.logging.Logger;
 
 /**
  * Created by gullery on 31/03/2015.
  */
 
 public class GitSCMProcessor implements SCMProcessor {
-	private static final Logger logger = Logger.getLogger(GitSCMProcessor.class.getName());
+	private static final Logger logger = LogManager.getLogger(GitSCMProcessor.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	GitSCMProcessor() {
