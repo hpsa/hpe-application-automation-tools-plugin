@@ -116,15 +116,15 @@
         </dependency>
 
         <!--Internals-->
+        <dependency>
+            <artifactId>integrations-sdk</artifactId>
+            <groupId>com.hp.mqm</groupId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- TO BE REMOVED -->
         <dependency>
             <artifactId>mqm-rest-client</artifactId>
-            <groupId>com.hp.mqm</groupId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <artifactId>integrations-sdk</artifactId>
             <groupId>com.hp.mqm</groupId>
             <version>${project.version}</version>
         </dependency>
