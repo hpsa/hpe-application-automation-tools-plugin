@@ -9,7 +9,7 @@ public class HttpClientTest {
 
     @Test
     public void TestConnectionWithNGAServer(){
-//
+
 //        String serverLocation="https://mqalb006nngx.saas.hpe.com";
 //        String username="MQM_QA2@hpe.com";
 //        String password="Welcome1";
@@ -17,7 +17,7 @@ public class HttpClientTest {
 //
 //        String status = ConfigurationService.checkConfiguration(serverLocation, sharedSpace,
 //                username, password, ConfigurationService.CLIENT_TYPE);
-//
+
 //        assertNotNull(status);
 //        assertEquals("Connection successful", status);
     }
