@@ -11,19 +11,20 @@ import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
 import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
 import org.apache.http.HttpHeaders;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 /**
  * Created by gullery on 17/08/2015.
- * <p>
+ * <p/>
  * Tasks routing service handles NGA tasks, both coming from abridged logic as well as plugin's REST call delegation
  */
 
 class TasksProcessorImpl implements TasksProcessor {
-	private static final Logger logger = Logger.getLogger(TasksProcessorImpl.class.getName());
+	private static final Logger logger = LogManager.getLogger(TasksProcessorImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String NGA_API = "nga/api/v1";
 	private static final String STATUS = "status";
@@ -76,7 +77,7 @@ class TasksProcessorImpl implements TasksProcessor {
 					try {
 						buildNumber = Integer.parseInt(path[3]);
 					} catch (NumberFormatException nfe) {
-						logger.warning("lskdfjsdl");
+						logger.error("failed to parse build number", nfe);
 					}
 					if (buildNumber != null) {
 						executeSnapshotByNumberRequest(result, path[1], buildNumber, subTree);
@@ -90,7 +91,7 @@ class TasksProcessorImpl implements TasksProcessor {
 				result.setStatus(404);
 			}
 		} catch (Exception e) {
-			logger.warning("TasksRouter: task execution failed; error: " + e.getMessage());
+			logger.error("TasksRouter: task execution failed", e);
 			result.setStatus(500);
 		}
 

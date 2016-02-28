@@ -28,6 +28,7 @@ import java.io.File;
 /**
  * TestNG and JUnit listener that instructs JaCoCo to create one session per test.
  */
+
 public class TestNGListener extends JUnitListener implements ITestListener {
 
 	public TestNGListener() {
