@@ -36,21 +36,21 @@ public class BridgeClient {
 	private ServerConfiguration mqmConfig;
 	private String ciType;
 
-	public BridgeClient(ServerConfiguration mqmConfig, String ciType,String teamcityURL) {
+	public BridgeClient(ServerConfiguration mqmConfig, String ciType) {
 
 		NGAPlugin ngaPlugin = NGAPlugin.getInstance();
 		Config cfg = ngaPlugin.getConfig();
 		serverInstanceId = cfg.getIdentity();
-		ciLocation = teamcityURL;
+		ciLocation = NGAPlugin.getInstance().getsBuildServer().getRootUrl();
 		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password, mqmConfig.impersonatedUser);
 		this.ciType = ciType;
 		connect();
 		logger.info("BRIDGE: client initialized for '" + this.mqmConfig.location + "' (SP: " + this.mqmConfig.sharedSpace + ")");
 	}
 
-	public void update(ServerConfiguration newConfig,String teamcityURL) {
+	public void update(ServerConfiguration newConfig) {
 		mqmConfig = new ServerConfiguration(newConfig.location, newConfig.sharedSpace, newConfig.username, newConfig.password, newConfig.impersonatedUser);
-		ciLocation = teamcityURL;
+		ciLocation = NGAPlugin.getInstance().getsBuildServer().getRootUrl();
 		logger.info("BRIDGE: updated for '" + mqmConfig.location + "' (SP: " + mqmConfig.sharedSpace + ")");
 		connect();
 	}

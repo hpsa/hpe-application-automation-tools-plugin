@@ -111,7 +111,7 @@ public class ConfigurationActionsController implements Controller {
         cfg.setLocation(serverConf.location);
         cfgManager.jaxbObjectToXML(cfg);        // save the new parameters at the config file
 
-        BridgesService.getInstance().updateBridge(serverConf, m_server.getRootUrl());
+        BridgesService.getInstance().updateBridge(serverConf);
 
         return "Updated successfully";
     }

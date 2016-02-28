@@ -31,12 +31,12 @@ public class BridgesService{
 		return instance;
 	}
 
-	public void updateBridge(ServerConfiguration conf, String teamcityURL) {
+	public void updateBridge(ServerConfiguration conf) {
 		if (isConfigurationValid(conf)) {
 			if (bridgeClient != null) {
-				bridgeClient.update(conf,teamcityURL);
+				bridgeClient.update(conf);
 			} else {
-				bridgeClient = new BridgeClient(conf, ciType,teamcityURL);
+				bridgeClient = new BridgeClient(conf, ciType);
 			}
 		} else {
 			if (bridgeClient != null) {
