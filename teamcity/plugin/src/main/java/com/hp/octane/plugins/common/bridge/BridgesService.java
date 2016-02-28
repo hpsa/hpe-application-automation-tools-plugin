@@ -30,12 +30,12 @@ public class BridgesService{
 		return instance;
 	}
 
-	public void updateBridge(ServerConfiguration conf) {
+	public void updateBridge(ServerConfiguration conf, String teamcityURL) {
 		if (isConfigurationValid(conf)) {
 			if (bridgeClient != null) {
-				bridgeClient.update(conf);
+				bridgeClient.update(conf,teamcityURL);
 			} else {
-				bridgeClient = new BridgeClient(conf, ciType);
+				bridgeClient = new BridgeClient(conf, ciType,teamcityURL);
 			}
 		} else {
 			if (bridgeClient != null) {
