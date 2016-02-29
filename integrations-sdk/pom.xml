@@ -48,6 +48,11 @@
 			<artifactId>log4j-core</artifactId>
 			<version>${log4j.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+			<version>1.2</version>
+		</dependency>
 
 		<!-- TESTING -->
 		<dependency>
@@ -86,9 +91,9 @@
 		<resources>
 			<resource>
 				<directory>src/main/resources</directory>
-				<filtering>true</filtering>
 				<includes>
-					<include>**/sdk.properties</include>
+					<include>sdk.properties</include>
+					<include>log4j2.xml</include>
 				</includes>
 			</resource>
 		</resources>
