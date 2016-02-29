@@ -3,19 +3,18 @@
 	<parent>
 		<groupId>org.jenkins-ci.plugins</groupId>
 		<artifactId>plugin</artifactId>
-		<version>1.509.4</version>
+		<version>2.2</version>
 		<!-- which version of Jenkins is this plugin built against? -->
 	</parent>
 
 	<artifactId>hp-application-automation-tools-plugin</artifactId>
-    <version>4.0.1-SNAPSHOT</version>
+	<version>4.0.1-SNAPSHOT</version>
 	<packaging>hpi</packaging>
 	<name>HP Application Automation Tools</name>
-	<description>Allowing to run HP testing tools tests: Unified Functional Testing, QuickTest Professional, Service
-        Test and Performance Center
+	<description>Allowing to run HP testing tools tests: Unified Functional Testing, QuickTest Professional, Service Test, Mobile Center and Performance Center
 	</description>
 	<url>https://wiki.jenkins-ci.org/display/JENKINS/HP+Application+Automation+Tools</url>
-	
+
 	<licenses>
 		<license>
 			<name>MIT License</name>
@@ -23,10 +22,11 @@
 			<distribution>repo</distribution>
 		</license>
 	</licenses>	
-	
+
 	<properties>
 		<msbuild.exe>C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe</msbuild.exe>
 		<msbuild.configuration>Release</msbuild.configuration>
+		<jenkins.version>1.646</jenkins.version>
 	</properties>
 
 	<distributionManagement>
@@ -45,43 +45,45 @@
 	</scm>
 
 	<developers>
-
-
 		<developer>
-			<name>Effi Bar-Shean</name>
-			<email>effi.bar--shean@hp.com</email>
-		</developer>
-		<developer>
-			<id>mrmann</id>
+			<id>imrman</id>
 			<name>Avishai Moshka</name>
 			<email>avishai.moshka@hp.com</email>
-		</developer>
-		<developer>
-			<id>orens</id>
-			<name>Oren Schwartz</name>
-			<email>orens@hp.com</email>
-		</developer>
-		<developer>
-			<name>Daniel Petisme</name>
-		</developer>
-		<developer>
-			<name>Romain Seguy</name>
-		</developer>
-		<developer>
-			<id>ofirshaked</id>
-			<name>Ofir Shaked</name>
+			<roles>
+				<role>LoadRunner</role>
+			</roles>
 		</developer>
 		<developer>
 			<id>amitb</id>
 			<name>Amit Bezalel</name>
+			<email>amit.bezalel@hpe.com</email>
+			<roles>
+				<role>UFT</role>
+			</roles>
 		</developer>
 		<developer>
-			<name>Daniel Schreiber</name>
-			<email>daniel.schreiber@hp.com</email>
+			<id>bamh</id>
+			<name>Hanan Bem</name>
+			<email>hanan.bem@hpe.com</email>
+			<roles>
+				<role>Performance Center</role>
+			</roles>
 		</developer>
 		<developer>
-			<id>liron_tzabari</id>
-			<name>Liron Tzabari</name>
+			<id>michaelhpe</id>
+			<name>Weimin Jing</name>
+			<email>weimin.jing@hpe.com</email>
+			<roles>
+				<role>Mobile Center</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>JackyZhuHPE</id>
+			<name>Chunjiang Zhu (Jacky)</name>
+			<email>chun-jiang.zhu@hpe.com</email>
+			<roles>
+				<role>ALM/Upload test result to ALM (External Test)</role>
+			</roles>
 		</developer>
 	</developers>
 
@@ -119,7 +121,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-release-plugin</artifactId>
-                <version>2.5.1</version>
+				<version>2.5.1</version>
 			</plugin>
 			<!--  -->
 			<plugin>
@@ -136,7 +138,7 @@
 						<goals>
 							<goal>exec</goal>
 						</goals>
-						
+
 						<configuration>
 							<skip>false</skip>
 							<executable>java</executable>
@@ -199,28 +201,28 @@
 		</repository>
 	</repositories>
 
-    <pluginRepositories>
-        <pluginRepository>
-            <id>repo.jenkins-ci.org</id>
-            <url>http://repo.jenkins-ci.org/public/</url>
-        </pluginRepository>
-    </pluginRepositories>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>repo.jenkins-ci.org</id>
+			<url>http://repo.jenkins-ci.org/public/</url>
+		</pluginRepository>
+	</pluginRepositories>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.2.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpcore</artifactId>
-            <version>4.2.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.jayway.jsonpath</groupId>
-            <artifactId>json-path</artifactId>
-            <version>1.1.0</version>
-        </dependency>
-    </dependencies>
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.2.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpcore</artifactId>
+			<version>4.2.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.jayway.jsonpath</groupId>
+			<artifactId>json-path</artifactId>
+			<version>1.1.0</version>
+		</dependency>
+	</dependencies>
 </project>
