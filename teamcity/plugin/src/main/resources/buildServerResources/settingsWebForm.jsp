@@ -23,11 +23,15 @@
         function saveParams() {
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
-                if (xhttp.readyState == 4 && xhttp.status == 200)
-                    message_box_div.innerHTML  = xhttp.responseText;
-                else
-                    message_box_div.innerHTML  = "Error"
 
+                if(xhttp.readyState == 4) {
+                    if (xhttp.status == 200)
+                        message_box_div.innerHTML = xhttp.responseText;
+                    else
+                        message_box_div.innerHTML = "Error"
+                }else{
+                    message_box_div.innerHTML = "Saving...";
+                }
             };
             var server= encodeURIComponent(document.getElementById("server").value);
             var username = encodeURIComponent(document.getElementById("username1").value);
@@ -49,11 +53,14 @@
         function checkConnection() {
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
-                if (xhttp.readyState == 4 && xhttp.status == 200)
-                    message_box_div.innerHTML  = xhttp.responseText;
-                else
-                    message_box_div.innerHTML  = "Error"
-
+                if(xhttp.readyState == 4) {
+                    if (xhttp.status == 200)
+                        message_box_div.innerHTML = xhttp.responseText;
+                    else
+                        message_box_div.innerHTML = "Error"
+                }else{
+                    message_box_div.innerHTML = "Waiting...";
+                }
             };
             var server= encodeURIComponent(document.getElementById("server").value);
             var username = encodeURIComponent(document.getElementById("username1").value);
