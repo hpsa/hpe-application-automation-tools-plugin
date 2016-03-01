@@ -26,7 +26,7 @@ import java.util.logging.Logger;
  * To change this template use File | Settings | File Templates.
  */
 
-public abstract class AbstractProjectProcessor {
+public abstract class 	AbstractProjectProcessor {
 	private static final Logger logger = Logger.getLogger(AbstractProjectProcessor.class.getName());
 
 	private List<PipelinePhase> internals = new ArrayList<PipelinePhase>();

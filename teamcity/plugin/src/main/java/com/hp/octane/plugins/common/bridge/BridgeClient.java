@@ -27,7 +27,7 @@ public class BridgeClient {
 	private static String serverInstanceId;
 	private static ConfigManager m_ConfigManager;
 	//  private static final String serverInstanceId =
-	private static final String ciLocation = "http://localhost:8081";//
+	private static String ciLocation = "";
 
 	private ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
 	private ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30, new AbridgedTasksExecutorsFactory());
@@ -41,7 +41,7 @@ public class BridgeClient {
 		NGAPlugin ngaPlugin = NGAPlugin.getInstance();
 		Config cfg = ngaPlugin.getConfig();
 		serverInstanceId = cfg.getIdentity();
-
+		ciLocation = NGAPlugin.getInstance().getsBuildServer().getRootUrl();
 		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password, mqmConfig.impersonatedUser);
 		this.ciType = ciType;
 		connect();
@@ -50,6 +50,7 @@ public class BridgeClient {
 
 	public void update(ServerConfiguration newConfig) {
 		mqmConfig = new ServerConfiguration(newConfig.location, newConfig.sharedSpace, newConfig.username, newConfig.password, newConfig.impersonatedUser);
+		ciLocation = NGAPlugin.getInstance().getsBuildServer().getRootUrl();
 		logger.info("BRIDGE: updated for '" + mqmConfig.location + "' (SP: " + mqmConfig.sharedSpace + ")");
 		connect();
 	}

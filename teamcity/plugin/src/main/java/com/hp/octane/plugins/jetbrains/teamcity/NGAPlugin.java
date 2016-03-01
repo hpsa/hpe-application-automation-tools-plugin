@@ -43,6 +43,10 @@ public class NGAPlugin implements ServerExtension {
     private Config config;
     private ConfigManager configManager;
 
+    public SBuildServer getsBuildServer() {
+        return sBuildServer;
+    }
+
     public NGAPlugin(SBuildServer sBuildServer,
                      ProjectManager projectManager,
                      BuildTypeResponsibilityFacade responsibilityFacade,

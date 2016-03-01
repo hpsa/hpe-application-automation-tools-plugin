@@ -89,7 +89,7 @@
 
             <table class="runnerFormTable">
                 <tr>
-                    <th><label for="server">MQM server: <span class="mandatoryAsterix" title="Mandatory field">*</span></label></th>
+                    <th><label for="server">Location <span class="mandatoryAsterix" title="Mandatory field">*</span></label></th>
                     <td>
                         <input type="text" name="server" id="server"   value="" class="longField"        >
 
@@ -99,7 +99,7 @@
 
 
                 <tr>
-                    <th><label for="username1">Username: <span class="mandatoryAsterix" title="Mandatory field">*</span></label></th>
+                    <th><label for="username1">Access key <span class="mandatoryAsterix" title="Mandatory field">*</span></label></th>
                     <td>
                         <input type="text" name="username1" id="username1"   value="" class="longField"        >
 
@@ -108,9 +108,9 @@
                 </tr>
 
                 <tr>
-                    <th><label for="password1">Password: <span class="mandatoryAsterix" title="Mandatory field">*</span></label></th>
+                    <th><label for="password1">Secret key <span class="mandatoryAsterix" title="Mandatory field">*</span></label></th>
                     <td>
-                        <input type="text" name="password1" id="password1"   value="" class="longField"        >
+                        <input type="password" name="password1" id="password1"   value="" class="longField"        >
 
                         <span class="error" id="errorPassword"></span>
 
