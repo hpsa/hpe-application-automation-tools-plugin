@@ -94,6 +94,7 @@ public class ConfigurationService {
             logger.log(Level.WARNING, returnString, e);
         }catch (Throwable t){
             logger.log(Level.WARNING,"",t);
+            returnString="Connection failed "+t.getMessage();
         }
 
         return returnString;
