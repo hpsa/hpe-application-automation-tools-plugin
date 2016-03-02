@@ -311,7 +311,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 			}
 		}
 
-		boolean success = project.scheduleBuild(delay, new Cause.RemoteCause(getNGAConfiguration().getUrl(), "octane driven execution"), parametersAction);
+		boolean success = project.scheduleBuild(delay, new Cause.RemoteCause(getNGAConfiguration().getUrl(), "NGA driven execution"), parametersAction);
 		if (success) {
 			return 201;
 		} else {
