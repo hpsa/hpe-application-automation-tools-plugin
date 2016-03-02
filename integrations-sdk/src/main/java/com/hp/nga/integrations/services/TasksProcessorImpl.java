@@ -2,14 +2,15 @@ package com.hp.nga.integrations.services;
 
 import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.dto.DTOFactory;
+import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
+import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
+import com.hp.nga.integrations.dto.general.CIJobsList;
 import com.hp.nga.integrations.dto.general.CIPluginSDKInfo;
 import com.hp.nga.integrations.dto.general.CIProviderSummaryInfo;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
-import com.hp.nga.integrations.dto.general.CIJobsList;
-import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
-import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
+import com.hp.nga.integrations.exceptions.JenkinsRequestException;
 import org.apache.http.HttpHeaders;
 
 import java.util.HashMap;
@@ -89,7 +90,13 @@ class TasksProcessorImpl implements TasksProcessor {
 			} else {
 				result.setStatus(404);
 			}
-		} catch (Exception e) {
+		}
+		catch (JenkinsRequestException jenkinsRequestException){
+			logger.warning("TasksRouter: task execution failed; error: " + jenkinsRequestException.getErrorCode());
+			result.setStatus(500);
+			result.setBody(String.valueOf(jenkinsRequestException.getErrorCode()));
+		}
+		catch (Exception e) {
 			logger.warning("TasksRouter: task execution failed; error: " + e.getMessage());
 			result.setStatus(500);
 		}
