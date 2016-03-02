@@ -154,6 +154,7 @@
 								<argument>"${project.artifactId}"</argument>
 								<!-- <argument>-deploy</argument> -->
 								<argument>-restart</argument>
+								<argument>--password-file ${id_rsa_file}</argument>
 							</arguments>
 						</configuration>
 					</execution>
@@ -213,12 +214,12 @@
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
-			<version>4.2.1</version>
+			<version>LATEST</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpcore</artifactId>
-			<version>4.2.1</version>
+			<version>LATEST</version>
 		</dependency>
 		<dependency>
 			<groupId>com.jayway.jsonpath</groupId>

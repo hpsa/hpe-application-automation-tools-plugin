@@ -61,6 +61,7 @@ import javax.xml.transform.stream.StreamResult;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.tools.ant.DirectoryScanner;
+import org.jenkinsci.remoting.RoleChecker;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -192,6 +193,12 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                     
                     return new TestResult(buildTime + (nowSlave - nowMaster), ds, true);
                 }
+
+				@Override
+				public void checkRoles(RoleChecker arg0) throws SecurityException {
+					// TODO Auto-generated method stub
+					
+				}
             });
             
             action = new TestResultAction(build, result, listener);
