@@ -49,7 +49,7 @@ public class EnumsTest {
 		assertEquals(ParameterType.STRING.value(), "string");
 		assertEquals(ParameterType.NUMBER.value(), "number");
 		assertEquals(ParameterType.FILE.value(), "file");
-		assertEquals(ParameterType.AXIS.value(), "axis");
+    assertEquals(ParameterType.AXIS.value(), "axis");
 		assertEquals(ParameterType.fromValue("unavailable"), ParameterType.UNKNOWN);
 	}
 

@@ -23,10 +23,6 @@ import java.util.Date;
 import java.util.UUID;
 import java.util.logging.Logger;
 
-//import com.hp.octane.plugins.common.bridge.BridgesService;
-
-//import com.hp.octane.plugins.common.bridge.BridgesService;
-
 public class NGAPlugin implements ServerExtension {
     public static final String PLUGIN_NAME = NGAPlugin.class.getSimpleName().toLowerCase();
     private static final Logger logger = Logger.getLogger(NGAPlugin.class.getName());
@@ -46,6 +42,10 @@ public class NGAPlugin implements ServerExtension {
     private PluginDescriptor descriptor;
     private Config config;
     private ConfigManager configManager;
+
+    public SBuildServer getsBuildServer() {
+        return sBuildServer;
+    }
 
     public NGAPlugin(SBuildServer sBuildServer,
                      ProjectManager projectManager,

@@ -6,6 +6,5 @@ package com.hp.mqm.listeners.surefire;
 public class Paths {
     public static String TARGET_DIRECTORY_PATH;
     public static String REPORT_DIRECTORY_NAME = "nga-surefire-listener";
-    public static String REPORT_DIRECTORY_PATH = TARGET_DIRECTORY_PATH + "nga-surefire-listener";
-
+    public static String REPORT_DIRECTORY_PATH = TARGET_DIRECTORY_PATH + REPORT_DIRECTORY_NAME;
 }

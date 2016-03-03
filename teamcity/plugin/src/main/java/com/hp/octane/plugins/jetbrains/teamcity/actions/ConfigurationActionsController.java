@@ -46,7 +46,7 @@ public class ConfigurationActionsController implements Controller {
         String returnStr="";
         String action = httpServletRequest.getParameter("action");
 
-        if (action==null || action == "") {
+        if (action==null || action.equals("")) {
             returnStr = reloadConfiguration();
         }else{
 

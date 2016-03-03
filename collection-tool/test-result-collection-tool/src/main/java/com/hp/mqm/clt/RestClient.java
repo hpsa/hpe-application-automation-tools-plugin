@@ -1,12 +1,16 @@
 package com.hp.mqm.clt;
 
 import com.hp.mqm.clt.tests.TestResultPushStatus;
+
+
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.*;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
@@ -14,11 +18,17 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.HttpClientUtils;
+import org.apache.http.cookie.Cookie;
+import org.apache.http.impl.client.*;
+import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
 import org.json.JSONObject;
 
 import javax.xml.bind.ValidationException;
@@ -42,6 +52,7 @@ public class RestClient {
     //private static final String HEADER_CLIENT_TYPE = "HPECLIENTTYPE";
     private static final String HPSSO_COOKIE_NAME = "HPSSO_COOKIE_CSRF";
     private static final String HPSSO_HEADER_NAME = "HPSSO_HEADER_CSRF";
+    private static final String LWSSO_COOKIE_NAME = "LWSSO_COOKIE_KEY";
 
     static final String URI_LOGOUT = "authentication/sign_out";
 
@@ -57,8 +68,12 @@ public class RestClient {
 
     public static final int DEFAULT_CONNECTION_TIMEOUT = 20000; // in milliseconds
     public static final int DEFAULT_SO_TIMEOUT = 40000; // in milliseconds
-    private String CSRF_TOKEN;
-//    private static final String CLIENT_TYPE = "HPE_COLLECTION_TOOL";
+    private CookieStore cookieStore;
+    private Cookie CSRF_TOKEN;
+    private Cookie LWSSO_TOKEN;
+    //private String CSRF_TOKEN;
+    //private String LWSSO_TOKEN;
+
 
     private CloseableHttpClient httpClient;
     private Settings settings;
@@ -69,10 +84,14 @@ public class RestClient {
         this.settings = settings;
 
         HttpClientBuilder httpClientBuilder = HttpClients.custom();
+        cookieStore = new BasicCookieStore();
+        httpClientBuilder.setDefaultCookieStore(cookieStore);
         RequestConfig.Builder requestConfigBuilder = RequestConfig.custom()
                 .setCookieSpec(CookieSpecs.STANDARD)
                 .setSocketTimeout(DEFAULT_SO_TIMEOUT)
                 .setConnectTimeout(DEFAULT_CONNECTION_TIMEOUT);
+
+
 
         // proxy setting
         if (StringUtils.isNotEmpty(settings.getProxyHost())) {
@@ -87,6 +106,7 @@ public class RestClient {
             }
         }
         httpClient = httpClientBuilder.setDefaultRequestConfig(requestConfigBuilder.build()).build();
+
     }
 
     public long postTestResult(HttpEntity entity) throws IOException, ValidationException {
@@ -143,13 +163,29 @@ public class RestClient {
         }
     }
 
+//    private void doFirstLogin() throws IOException{
+//        if (!isLoggedIn) {
+//            login();
+//        }
+//    }
     protected CloseableHttpResponse execute(HttpUriRequest request) throws IOException {
+        //doFirstLogin();
+        if (LWSSO_TOKEN == null) {
+            login();
+        }
+        HttpContext localContext = new BasicHttpContext();
+        CookieStore localCookies = new BasicCookieStore();
+        localCookies.addCookie(LWSSO_TOKEN);
+        localContext.setAttribute(HttpClientContext.COOKIE_STORE, localCookies);
         addClientTypeHeader(request);
-        CloseableHttpResponse response = httpClient.execute(request);
+        CloseableHttpResponse response = httpClient.execute(request, localContext);
         if (isLoginNecessary(response)) { // if request fails with 401 do login and execute request again
             HttpClientUtils.closeQuietly(response);
             login();
-            response = httpClient.execute(request);
+            localCookies.clear();
+            localCookies.addCookie(LWSSO_TOKEN);
+            localContext.setAttribute(HttpClientContext.COOKIE_STORE, localCookies);
+            response = httpClient.execute(request, localContext);
         }
         return response;
     }
@@ -168,15 +204,16 @@ public class RestClient {
         String authorizationString =
                 (settings.getUser() != null ? settings.getUser() : "") + ":" + (settings.getPassword() != null ? settings.getPassword() : "");
         post.setHeader(HEADER_NAME_AUTHORIZATION, HEADER_VALUE_BASIC_AUTH + Base64.encodeBase64String(authorizationString.getBytes(StandardCharsets.UTF_8)));
-        addClientTypeHeader(post);
+        addClientTypeHeader(post, true);
 
         HttpResponse response = null;
         try {
+            cookieStore.clear();
             response = httpClient.execute(post);
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                 throw new RuntimeException("Authentication failed: code=" + response.getStatusLine().getStatusCode() + "; reason=" + response.getStatusLine().getReasonPhrase());
-            }else {
-                handleCSRF(response);
+            } else {
+                handleCookies(response);
             }
         } finally {
             HttpClientUtils.closeQuietly(response);
@@ -236,12 +273,14 @@ public class RestClient {
     }
 
     private void addClientTypeHeader(HttpUriRequest request) {
-//        if (request.getFirstHeader(HEADER_CLIENT_TYPE) == null) {
-//            request.addHeader(HEADER_CLIENT_TYPE, CLIENT_TYPE);
-//        }
-        if (!isLoggedIn) {
+        addClientTypeHeader(request, false);
+    }
+//
+    private void addClientTypeHeader(HttpUriRequest request, boolean isLoginRequest) {
+        request.setHeader("HPECLIENTTYPE", "HPE_CI_CLIENT");
+        if (!isLoginRequest) {
             if (request.getFirstHeader(HPSSO_HEADER_NAME) == null) {
-                request.setHeader(HPSSO_HEADER_NAME, CSRF_TOKEN);
+                request.setHeader(HPSSO_HEADER_NAME, CSRF_TOKEN.getValue());
             }
         }
     }
@@ -257,21 +296,33 @@ public class RestClient {
         }
         return map;
     }
-    private void handleCSRF(HttpResponse response) {
-        boolean isCSRF = false;
-        Header[] headers = response.getHeaders("Set-Cookie");
-        for (Header h : headers) {
-            HeaderElement[] he = h.getElements();
-            for (HeaderElement e : he) {
-                if (e.getName().equals(HPSSO_COOKIE_NAME)) {
-                    CSRF_TOKEN = e.getValue();
-                    isCSRF = true;
-                    break;
-                }
+    private void handleCookies(HttpResponse response) {
+        for (Cookie cookie : cookieStore.getCookies()) {
+            if (cookie.getName().equals(LWSSO_COOKIE_NAME)) {
+                LWSSO_TOKEN = cookie;
             }
-            if (isCSRF) {
-                break;
+            if (cookie.getName().equals(HPSSO_COOKIE_NAME)) {
+                CSRF_TOKEN = cookie;
             }
         }
+//        boolean isCSRF = false;
+//        //boolean isLWSSO = false;
+//        Header[] headers = response.getHeaders("Set-Cookie");
+//        for (Header h : headers) {
+//            HeaderElement[] he = h.getElements();
+//            for (HeaderElement e : he) {
+//                if (e.getName().equals(HPSSO_COOKIE_NAME)) {
+//                    CSRF_TOKEN = e.getValue();
+//                    isCSRF = true;
+//                    break;
+//                }else if(e.getName().equals(LWSSO_COOKIE_NAME)){
+//                        LWSSO_TOKEN = e.getValue();
+//                    //isLWSSO =
+//                }
+//            }
+////            if (isCSRF && ) {
+////                break;
+////            }
+//        }
     }
 }
