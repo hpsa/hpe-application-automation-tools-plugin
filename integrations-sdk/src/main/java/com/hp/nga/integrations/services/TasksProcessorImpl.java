@@ -10,7 +10,8 @@ import com.hp.nga.integrations.dto.general.CIProviderSummaryInfo;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
-import com.hp.nga.integrations.exceptions.JenkinsRequestException;
+import com.hp.nga.integrations.exceptions.ConfigurationException;
+import com.hp.nga.integrations.exceptions.PermissionException;
 import org.apache.http.HttpHeaders;
 
 import java.util.HashMap;
@@ -91,10 +92,15 @@ class TasksProcessorImpl implements TasksProcessor {
 				result.setStatus(404);
 			}
 		}
-		catch (JenkinsRequestException jenkinsRequestException){
+		catch (PermissionException jenkinsRequestException){
 			logger.warning("TasksRouter: task execution failed; error: " + jenkinsRequestException.getErrorCode());
-			result.setStatus(500);
+			result.setStatus(jenkinsRequestException.getErrorCode());
 			result.setBody(String.valueOf(jenkinsRequestException.getErrorCode()));
+		}
+		catch (ConfigurationException ce){
+			logger.warning("TasksRouter: task execution failed; error: " + ce.getErrorCode());
+			result.setStatus(404);
+			result.setBody(String.valueOf(ce.getErrorCode()));
 		}
 		catch (Exception e) {
 			logger.warning("TasksRouter: task execution failed; error: " + e.getMessage());
@@ -131,8 +137,8 @@ class TasksProcessorImpl implements TasksProcessor {
 	}
 
 	private void executePipelineRunRequest(NGAResultAbridged result, String jobId, String originalBody) {
-		int status = SDKManager.getCIPluginServices().runPipeline(jobId, originalBody);
-		result.setStatus(status);
+		SDKManager.getCIPluginServices().runPipeline(jobId, originalBody);
+		result.setStatus(201);
 	}
 
 	private void executeLatestSnapshotRequest(NGAResultAbridged result, String jobId, boolean subTree) {

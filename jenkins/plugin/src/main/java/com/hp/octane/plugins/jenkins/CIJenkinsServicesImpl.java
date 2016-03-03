@@ -11,7 +11,8 @@ import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.scm.SCMData;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
-import com.hp.nga.integrations.exceptions.JenkinsRequestException;
+import com.hp.nga.integrations.exceptions.ConfigurationException;
+import com.hp.nga.integrations.exceptions.PermissionException;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
@@ -20,13 +21,11 @@ import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessors;
 import hudson.ProxyConfiguration;
 import hudson.model.*;
 import hudson.security.ACL;
-import hudson.security.AccessDeniedException2;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.acegisecurity.AccessDeniedException;
 import org.acegisecurity.context.SecurityContext;
-import org.acegisecurity.userdetails.UsernameNotFoundException;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
@@ -50,8 +49,7 @@ import java.util.logging.Logger;
 public class CIJenkinsServicesImpl implements CIPluginServices {
     private static final Logger logger = Logger.getLogger(CIJenkinsServicesImpl.class.getName());
     private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-    private SecurityContext originalContext = null;
-    private User jenkinsUser = null;
+
 
     @Override
     public CIServerInfo getServerInfo() {
@@ -115,12 +113,17 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 
     @Override
     public CIJobsList getJobsList(boolean includeParameters) {
-        startImpersonation();
+        SecurityContext securityContext = startImpersonation();
         CIJobsList result = dtoFactory.newDTO(CIJobsList.class);
         CIJobMetadata tmpConfig;
         AbstractProject tmpProject;
         List<CIJobMetadata> list = new ArrayList<CIJobMetadata>();
         try {
+            boolean hasReadPermission = Jenkins.getInstance().hasPermission(Item.READ);
+            if (!hasReadPermission){
+                stopImpersonation(securityContext);
+                throw new PermissionException(403);
+            }
             List<String> itemNames = (List<String>) Jenkins.getInstance().getTopLevelItemNames();
             for (String name : itemNames) {
                 tmpProject = (AbstractProject) Jenkins.getInstance().getItem(name);
@@ -144,116 +147,81 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
                 list.add(tmpConfig);
             }
             result.setJobs(list.toArray(new CIJobMetadata[list.size()]));
-            stopImpersonation();
+            stopImpersonation(securityContext);
         } catch (AccessDeniedException e) {
-            throw new JenkinsRequestException(403);
+            stopImpersonation(securityContext);
+            throw new PermissionException(403);
         }
         return result;
     }
 
     @Override
     public PipelineNode getPipeline(String rootCIJobId) {
+        PipelineNode result;
+        SecurityContext securityContext=startImpersonation();
+        boolean hasRead = Jenkins.getInstance().hasPermission(Item.READ);
+        if (!hasRead){
+            throw new PermissionException(403);
+        }
         AbstractProject project = getJobByRefId(rootCIJobId);
         if (project != null) {
-            return ModelFactory.createStructureItem(project);
+            result =  ModelFactory.createStructureItem(project);
+            stopImpersonation(securityContext);
+            return result;
+        }else{
+            //todo: check error message(s)
+            logger.warning("Failed to get project from jobRefId: '" + rootCIJobId + "' check plugin user Job Read/Overall Read permissions / project name");
+            stopImpersonation(securityContext);
+            throw new ConfigurationException(404);
         }
-        //todo: check error message(s)
-        logger.warning("Failed to get project from jobRefId: '" + rootCIJobId + "' check plugin user Job Read/Overall Read permissions / project name");
-        throw new JenkinsRequestException(404);
     }
 
-
-    private void doImpersonation(boolean enforce) {
+    private SecurityContext startImpersonation() {
         String user = Jenkins.getInstance().getPlugin(OctanePlugin.class).getImpersonatedUser();
+        SecurityContext originalContext=null;
         if (user != null && !user.equalsIgnoreCase("")) {
-            jenkinsUser = User.get(user, false);
+            User jenkinsUser = User.get(user, false);
             if (jenkinsUser != null) {
-                if (enforce) {
-                    logger.info("impersonating with user: " + user);
-                    originalContext = ACL.impersonate(jenkinsUser.impersonate());
-                } else {
-                    if (originalContext != null) {
-                        logger.info("un-impersonating back from user: " + user);
-                        ACL.impersonate(originalContext.getAuthentication());
-                    } else {
-                        logger.warning("Could not roll back impersonation, originalContext is null ");
-                    }
-
-                }
+                logger.info("impersonating with user: " + user);
+                originalContext = ACL.impersonate(jenkinsUser.impersonate());
             } else {
-                throw new JenkinsRequestException(401);
+                throw new PermissionException(401);
             }
         } else {
             logger.info("No user set to impersonating to. Operations will be done using Anonymous user");
         }
-
+        return originalContext;
     }
 
-    private void startImpersonation() {
-        doImpersonation(true);
-    }
-
-    private void stopImpersonation() {
-        doImpersonation(false);
-    }
-
-    private int checkPermssion(AbstractProject project) {
-        SecurityContext originalContext = null;
-        String user = Jenkins.getInstance().getPlugin(OctanePlugin.class).getImpersonatedUser();
-        if (user != null && !user.isEmpty()) {
-            User jenkinsUser;
-            try {
-                jenkinsUser = User.get(user, false);
-                if (jenkinsUser == null) {
-                    logger.severe("Failed to load user details: " + user);
-                    return 401;
-                }
-            } catch (Exception e) {
-                logger.severe("Failed to load user details: " + user);
-                return 500;
-            }
-            try {
-                originalContext = ACL.impersonate(jenkinsUser.impersonate());
-            } catch (UsernameNotFoundException unfe) {
-                logger.severe("Failed to impersonate '" + user + "':" + unfe.getMessage());
-                return 402;
-            }
-        }
-
-        try {
-            if (project != null) {
-                Jenkins.getInstance().hasPermission(Item.DISCOVER);
-                project.checkPermission(Item.BUILD);
-            } else {
-                return 404;
-            }
-        } catch (AccessDeniedException2 accessDeniedException) {
-            logger.severe(accessDeniedException.getMessage());
-            if (user != null && !user.isEmpty()) {
-                return 403;
-            } else {
-                return 405;
-            }
-        }
+    private void stopImpersonation(SecurityContext originalContext) {
         if (originalContext != null) {
             ACL.impersonate(originalContext.getAuthentication());
+        } else {
+            logger.warning("Could not roll back impersonation, originalContext is null ");
         }
-        return 200;
-
     }
 
     @Override
-    public int runPipeline(String ciJobId, String originalBody) {
+    public void runPipeline(String ciJobId, String originalBody) {
+        SecurityContext securityContext=startImpersonation();
         AbstractProject project = getJobByRefId(ciJobId);
         if (project != null) {
-            return doRunImpl(project, originalBody);
+            boolean hasBuildPermission = project.hasPermission(Item.BUILD);
+            if (!hasBuildPermission){
+                stopImpersonation(securityContext);
+                throw new PermissionException(403);
+            }
+            doRunImpl(project, originalBody);
+            stopImpersonation(securityContext);
         } else {
-            throw new JenkinsRequestException(404);
+            stopImpersonation(securityContext);
+            throw new ConfigurationException(404);
         }
     }
 
     @Override
     public SnapshotNode getSnapshotLatest(String ciJobId, boolean subTree) {
+        SecurityContext securityContext=startImpersonation();
         SnapshotNode result = null;
         AbstractProject project = getJobByRefId(ciJobId);
         if (project != null) {
@@ -262,28 +230,27 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
                 result = ModelFactory.createSnapshotItem(build, subTree);
             }
         }
+        stopImpersonation(securityContext);
         return result;
     }
 
     @Override
     public SnapshotNode getSnapshotByNumber(String ciJobId, Integer ciBuildNumber, boolean subTree) {
-        startImpersonation();
+        SecurityContext securityContext = startImpersonation();
         AbstractProject project = getJobByRefId(ciJobId);
         if (project != null) {
             AbstractBuild build = project.getBuildByNumber(ciBuildNumber);
+            stopImpersonation(securityContext);
             return ModelFactory.createSnapshotItem(build, subTree);
         }
-        stopImpersonation();
+        stopImpersonation(securityContext);
         return null;
     }
 
     @Override
     public BuildHistory getHistoryPipeline(String ciJobId, String originalBody) {
-        startImpersonation();
+        SecurityContext securityContext = startImpersonation();
         AbstractProject project = getJobByRefId(ciJobId);
-
-        //checkPermssion(project);
-
 
         SCMData scmData;
         Set<User> users;
@@ -339,12 +306,11 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
                 buildHistory.addLastBuild(lastBuild.getResult().toString(), String.valueOf(lastBuild.getNumber()), lastBuild.getTimestampString(), String.valueOf(lastBuild.getStartTimeInMillis()), String.valueOf(lastBuild.getDuration()), scmData, ModelFactory.createScmUsersList(users));
             }
         }
-        stopImpersonation();
+        stopImpersonation(securityContext);
         return buildHistory;
     }
 
-    private int doRunImpl(AbstractProject project, String originalBody) {
-        startImpersonation();
+    private void doRunImpl(AbstractProject project, String originalBody) {
         int delay = project.getQuietPeriod();
         ParametersAction parametersAction = new ParametersAction();
 
@@ -363,17 +329,10 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
             }
         }
 
-        boolean success = project.scheduleBuild(delay, new Cause.RemoteCause(getNGAConfiguration().getUrl(), "octane driven execution"), parametersAction);
-        stopImpersonation();
-        if (success) {
-            return 201;
-        } else {
-            return 500;
-        }
+        project.scheduleBuild(delay, new Cause.RemoteCause(getNGAConfiguration().getUrl(), "octane driven execution"), parametersAction);
     }
 
     private List<ParameterValue> createParameters(AbstractProject project, JSONArray paramsJSON) {
-        startImpersonation();
         List<ParameterValue> result = new ArrayList<ParameterValue>();
         boolean parameterHandled;
         ParameterValue tmpValue;
@@ -435,13 +394,10 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
                 }
             }
         }
-
-        stopImpersonation();
         return result;
     }
 
     private AbstractProject getJobByRefId(String jobRefId) {
-        startImpersonation();
         AbstractProject result = null;
 
         if (jobRefId != null) {
@@ -456,7 +412,6 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
                 logger.severe("failed to decode job ref ID '" + jobRefId + "'");
             }
         }
-        stopImpersonation();
         return result;
     }
 
@@ -467,9 +422,9 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
         } catch (AccessDeniedException e) {
             String user = Jenkins.getInstance().getPlugin(OctanePlugin.class).getImpersonatedUser();
             if (user != null && !user.isEmpty()) {
-                throw new JenkinsRequestException(403);
+                throw new PermissionException(403);
             } else {
-                throw new JenkinsRequestException(405);
+                throw new PermissionException(405);
             }
         }
         return item;

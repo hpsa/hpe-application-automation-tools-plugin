@@ -75,9 +75,9 @@ public interface CIPluginServices {
 	 *
 	 * @param ciJobId
 	 * @param originalBody
-	 * @return status of execution                              //  [YG]: TODO: this should be normalized in the SDK and not on the plugin level
+	 * @return
 	 */
-	int runPipeline(String ciJobId, String originalBody);       //  [YG]: TODO: replace the body thing with parsed parameters/DTO
+	void runPipeline(String ciJobId, String originalBody);       //  [YG]: TODO: replace the body thing with parsed parameters/DTO
 
 	/**
 	 * Provides Snapshot of the latest CI Build of the specified CI Job
