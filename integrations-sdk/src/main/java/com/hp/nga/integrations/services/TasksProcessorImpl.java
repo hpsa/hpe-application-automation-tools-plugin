@@ -94,18 +94,16 @@ class TasksProcessorImpl implements TasksProcessor {
 			}
 		}
 		catch (PermissionException jenkinsRequestException){
-			logger.warning("TasksRouter: task execution failed; error: " + jenkinsRequestException.getErrorCode());
+			logger.warn("TasksRouter: task execution failed; error: " + jenkinsRequestException.getErrorCode());
 			result.setStatus(jenkinsRequestException.getErrorCode());
 			result.setBody(String.valueOf(jenkinsRequestException.getErrorCode()));
 		}
 		catch (ConfigurationException ce){
-			logger.warning("TasksRouter: task execution failed; error: " + ce.getErrorCode());
+			logger.warn("TasksRouter: task execution failed; error: " + ce.getErrorCode());
 			result.setStatus(404);
 			result.setBody(String.valueOf(ce.getErrorCode()));
 		}
 		catch (Exception e) {
-			logger.warning("TasksRouter: task execution failed; error: " + e.getMessage());
-		} catch (Exception e) {
 			logger.error("TasksRouter: task execution failed", e);
 			result.setStatus(500);
 		}

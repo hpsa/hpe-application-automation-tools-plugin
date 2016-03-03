@@ -187,7 +187,6 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
         if (user != null && !user.equalsIgnoreCase("")) {
             User jenkinsUser = User.get(user, false);
             if (jenkinsUser != null) {
-                logger.info("impersonating with user: " + user);
                 originalContext = ACL.impersonate(jenkinsUser.impersonate());
             } else {
                 throw new PermissionException(401);
