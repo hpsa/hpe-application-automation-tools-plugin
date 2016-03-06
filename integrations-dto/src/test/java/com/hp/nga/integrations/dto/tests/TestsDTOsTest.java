@@ -19,7 +19,7 @@ public class TestsDTOsTest {
 	private static final String PackageName = "package";
 	private static final String ClassName = "class";
 	private static final String TestName = "test";
-	private static final String Result = "Passed";
+	private static final TestRunResult Result = TestRunResult.PASSED;
 	private static final int Duration = 3000;
 	private static final long Started = System.currentTimeMillis();
 

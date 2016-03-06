@@ -3,6 +3,7 @@ package com.hp.nga.integrations.dto.tests.impl;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.hp.nga.integrations.dto.tests.TestRun;
+import com.hp.nga.integrations.dto.tests.TestRunResult;
 
 /**
  * Created by gullery on 06/03/2016.
@@ -14,7 +15,7 @@ class TestRunImpl implements TestRun {
 	private String packageName;
 	private String className;
 	private String testName;
-	private String result;
+	private TestRunResult result;
 	private int duration;
 	private long started;
 
@@ -59,11 +60,11 @@ class TestRunImpl implements TestRun {
 	}
 
 	@JacksonXmlProperty(isAttribute = true, localName = "status")
-	public String getResult() {
+	public TestRunResult getResult() {
 		return result;
 	}
 
-	public TestRun setResult(String result) {
+	public TestRun setResult(TestRunResult result) {
 		this.result = result;
 		return this;
 	}

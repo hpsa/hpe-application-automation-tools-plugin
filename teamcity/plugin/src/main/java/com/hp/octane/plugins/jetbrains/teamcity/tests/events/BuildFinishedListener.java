@@ -13,23 +13,23 @@ import java.util.List;
 /**
  * Created by lev on 06/01/2016.
  */
-public class BuildFinishedListener extends BuildServerAdapter{
+public class BuildFinishedListener extends BuildServerAdapter {
 
-    private static final String TEAMCITY_BUILD_CHECKOUT_DIR = "teamcity.build.checkoutDir";
+	private static final String TEAMCITY_BUILD_CHECKOUT_DIR = "teamcity.build.checkoutDir";
 
-    public BuildFinishedListener(SBuildServer server){
-        server.addListener(this);
-    }
+	public BuildFinishedListener(SBuildServer server) {
+		server.addListener(this);
+	}
 
-    @Override
-    public void buildFinished(@NotNull SRunningBuild build) {
-        String currPath = ((SecuredRunningBuild) build).getBuildFinishParameters ().get(TEAMCITY_BUILD_CHECKOUT_DIR);
-        File destPath = build.getArtifactsDirectory();
-        long buildTime = build.getStartDate().getTime();
+	@Override
+	public void buildFinished(@NotNull SRunningBuild build) {
+		String currPath = ((SecuredRunningBuild) build).getBuildFinishParameters().get(TEAMCITY_BUILD_CHECKOUT_DIR);
+		File destPath = build.getArtifactsDirectory();
+		long buildTime = build.getStartDate().getTime();
 
-        BuildStatistics stats = build.getBuildStatistics(new BuildStatisticsOptions());
-        List<STestRun> tests = stats.getTests(null, BuildStatistics.Order.NATURAL_ASC);
+		BuildStatistics stats = build.getBuildStatistics(new BuildStatisticsOptions());
+		List<STestRun> tests = stats.getTests(null, BuildStatistics.Order.NATURAL_ASC);
 
-        BuildTestsService.handleTestResult(currPath, destPath, buildTime);
-    }
+		BuildTestsService.handleTestResult(currPath, destPath, buildTime);
+	}
 }

@@ -24,9 +24,9 @@ public interface TestRun extends DTOBase {
 
 	TestRun setTestName(String testName);
 
-	String getResult();
+	TestRunResult getResult();
 
-	TestRun setResult(String result);
+	TestRun setResult(TestRunResult result);
 
 	int getDuration();
 
