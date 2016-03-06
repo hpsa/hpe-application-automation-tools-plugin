@@ -1,26 +1,5 @@
 package com.hp.octane.plugins.jenkins.actions.plugin;
 
-import com.gargoylesoftware.htmlunit.Page;
-import com.hp.nga.integrations.dto.general.CIServerTypes;
-import com.hp.nga.integrations.dto.projects.ProjectsList;
-import com.hp.nga.integrations.dto.parameters.ParameterType;
-import com.hp.octane.plugins.jenkins.OctanePlugin;
-import com.hp.octane.plugins.jenkins.actions.PluginActions;
-import com.hp.nga.integrations.serialization.SerializationService;
-import hudson.model.*;
-import jenkins.model.Jenkins;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.junit.Rule;
-import org.junit.Test;
-import org.jvnet.hudson.test.JenkinsRule;
-import org.xml.sax.SAXException;
-
-import java.io.IOException;
-import java.util.Arrays;
-
-import static org.junit.Assert.*;
-
 /**
  * Created with IntelliJ IDEA.
  * User: gullery

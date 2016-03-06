@@ -1,13 +1,11 @@
 package com.hp.octane.plugins.jenkins.events;
 
-import com.hp.octane.plugins.jenkins.model.causes.CIEventCausesFactory;
-import com.hp.octane.plugins.jenkins.model.events.CIEventQueued;
+import com.hp.nga.integrations.dto.events.CIEventQueued;
+import com.hp.octane.plugins.jenkins.model.CIEventCausesFactory;
 import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.Queue;
 import hudson.model.queue.QueueListener;
-
-import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -19,7 +17,6 @@ import java.util.logging.Logger;
 
 @Extension
 public final class QueueListenerImpl extends QueueListener {
-	private static Logger logger = Logger.getLogger(QueueListenerImpl.class.getName());
 
 	@Override
 	public void onEnterWaiting(Queue.WaitingItem wi) {
@@ -33,29 +30,6 @@ public final class QueueListenerImpl extends QueueListener {
 			);
 			//  REMARK: temporary decided to not send QUEUED event
 			//EventsDispatcher.getExtensionInstance().dispatchEvent(event);
-		}
-	}
-
-	@Override
-	public void onEnterBlocked(Queue.BlockedItem bi) {
-		if (bi.task instanceof AbstractProject) {
-
-		}
-	}
-
-	@Override
-	public void onEnterBuildable(Queue.BuildableItem bi) {
-		if (bi.task instanceof AbstractProject) {
-
-		}
-	}
-
-	@Override
-	public void onLeft(Queue.LeftItem li) {
-		AbstractProject project;
-		if (li.task instanceof AbstractProject) {
-			project = (AbstractProject) li.task;
-			logger.info(project.getName() + " left queue");
 		}
 	}
 }

@@ -1,14 +1,16 @@
 package com.hp.octane.plugins.jenkins.actions.build;
 
 import com.gargoylesoftware.htmlunit.Page;
+import com.hp.nga.integrations.dto.DTOFactory;
+import com.hp.nga.integrations.dto.causes.CIEventCauseType;
+import com.hp.nga.integrations.dto.parameters.ParameterInstance;
+import com.hp.nga.integrations.dto.parameters.ParameterType;
+import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
+import com.hp.nga.integrations.dto.snapshots.SnapshotResult;
+import com.hp.nga.integrations.dto.snapshots.SnapshotStatus;
 import com.hp.octane.plugins.jenkins.actions.Utils;
-import com.hp.octane.plugins.jenkins.model.parameters.ParameterType;
-import com.hp.octane.plugins.jenkins.model.snapshots.SnapshotResult;
-import com.hp.octane.plugins.jenkins.model.snapshots.SnapshotStatus;
 import hudson.model.*;
 import hudson.plugins.parameterizedtrigger.*;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -16,9 +18,7 @@ import org.jvnet.hudson.test.JenkinsRule;
 import java.io.IOException;
 import java.util.Arrays;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -29,7 +29,9 @@ import static org.junit.Assert.assertTrue;
  */
 
 public class BuildActionsFreeStyleTest {
-	final private String projectName = "root-job";
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+	private static final String projectName = "root-job";
+	private static final int MAX_RUN_WAITING_SECS = 20;
 
 	@Rule
 	public final JenkinsRule rule = new JenkinsRule();
@@ -89,57 +91,42 @@ public class BuildActionsFreeStyleTest {
 	//
 	@Test
 	public void testFreeStyleNoParamsNoChildren() throws Exception {
+		int retries = 0;
 		FreeStyleProject p = rule.createFreeStyleProject(projectName);
 
 		JenkinsRule.WebClient client = rule.createWebClient();
 		Page page;
-		JSONObject body;
-		JSONObject tmpObject;
-		JSONArray tmpArray;
+		SnapshotNode snapshot;
 
 		assertEquals(p.getBuilds().toArray().length, 0);
 		Utils.buildProject(client, p);
-		while (p.getLastBuild() == null || p.getLastBuild().isBuilding()) {
+		while ((p.getLastBuild() == null || p.getLastBuild().isBuilding()) && ++retries < MAX_RUN_WAITING_SECS) {
 			Thread.sleep(1000);
 		}
 		assertEquals(p.getBuilds().toArray().length, 1);
 
-		page = client.goTo("job/" + projectName + "/" + p.getLastBuild().getNumber() + "/octane/snapshot", "application/json");
-		body = new JSONObject(page.getWebResponse().getContentAsString());
-		assertEquals(body.length(), 12);
-		assertEquals(body.getString("name"), projectName);
-
-		assertFalse(body.isNull("parameters"));
-		tmpArray = body.getJSONArray("parameters");
-		assertEquals(tmpArray.length(), 0);
-
-		assertFalse(body.isNull("phasesInternal"));
-		tmpArray = body.getJSONArray("phasesInternal");
-		assertEquals(tmpArray.length(), 0);
-
-		assertFalse(body.isNull("phasesPostBuild"));
-		tmpArray = body.getJSONArray("phasesPostBuild");
-		assertEquals(tmpArray.length(), 0);
-
-		assertFalse(body.isNull("causes"));
-		tmpArray = body.getJSONArray("causes");
-		assertEquals(tmpArray.length(), 1);
-		tmpObject = tmpArray.getJSONObject(0);
-		assertEquals(tmpObject.getString("type"), "user");
-
-		assertFalse(body.isNull("duration"));
-		assertFalse(body.isNull("estimatedDuration"));
-		assertEquals(body.getInt("number"), p.getLastBuild().getNumber());
-		assertEquals(body.getString("result"), SnapshotResult.SUCCESS.toString());
-		assertTrue(body.has("scmData"));
-		assertFalse(body.isNull("startTime"));
-		assertEquals(body.getString("status"), SnapshotStatus.FINISHED.toString());
+		page = client.goTo("nga/api/v1/jobs/" + projectName + "/builds/" + p.getLastBuild().getNumber(), "application/json");
+		snapshot = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), SnapshotNode.class);
+		assertEquals(projectName, snapshot.getCiId());
+		assertEquals(projectName, snapshot.getName());
+		assertEquals(0, snapshot.getParameters().size());
+		assertEquals(0, snapshot.getPhasesInternal().size());
+		assertEquals(0, snapshot.getPhasesPostBuild().size());
+		assertEquals(1, snapshot.getCauses().length);
+		assertEquals(CIEventCauseType.USER, snapshot.getCauses()[0].getType());
+		assertEquals(p.getLastBuild().getNumber(), (int) snapshot.getNumber());
+		assertEquals(SnapshotStatus.FINISHED, snapshot.getStatus());
+		assertEquals(SnapshotResult.SUCCESS, snapshot.getResult());
+		assertNotNull(snapshot.getStartTime());
+		assertNotNull(snapshot.getDuration());
+		assertNotNull(snapshot.getEstimatedDuration());
 	}
 
 	//  Snapshot: free-style, with params, no children
 	//
 	@Test
 	public void testFreeStyleWithParamsNoChildren() throws Exception {
+		int retries = 0;
 		FreeStyleProject p = rule.createFreeStyleProject(projectName);
 		ParametersDefinitionProperty params = new ParametersDefinitionProperty(Arrays.asList(
 				(ParameterDefinition) new BooleanParameterDefinition("ParamA", true, "bool"),
@@ -152,58 +139,68 @@ public class BuildActionsFreeStyleTest {
 
 		JenkinsRule.WebClient client = rule.createWebClient();
 		Page page;
-		JSONObject body;
-		JSONObject tmpObject;
-		JSONArray tmpArray;
+		SnapshotNode snapshot;
+		ParameterInstance tmpParam;
 
 		assertEquals(p.getBuilds().toArray().length, 0);
 		Utils.buildProjectWithParams(client, p, "ParamA=false&ParamD=two&ParamX=some_string");
-		while (p.getLastBuild() == null || p.getLastBuild().isBuilding()) {
+		while ((p.getLastBuild() == null || p.getLastBuild().isBuilding()) && ++retries < MAX_RUN_WAITING_SECS) {
 			Thread.sleep(1000);
 		}
 		assertEquals(p.getBuilds().toArray().length, 1);
 
-		page = client.goTo("job/" + projectName + "/" + p.getLastBuild().getNumber() + "/octane/snapshot", "application/json");
-		body = new JSONObject(page.getWebResponse().getContentAsString());
-		assertEquals(body.length(), 12);
-		assertEquals(body.getString("name"), projectName);
-		tmpArray = body.getJSONArray("parameters");
-		assertEquals(tmpArray.length(), 5);
+		page = client.goTo("nga/api/v1/jobs/" + projectName + "/builds/" + p.getLastBuild().getNumber(), "application/json");
+		snapshot = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), SnapshotNode.class);
+		assertEquals(projectName, snapshot.getCiId());
+		assertEquals(projectName, snapshot.getName());
+		assertEquals(5, snapshot.getParameters().size());
+		assertEquals(0, snapshot.getPhasesInternal().size());
+		assertEquals(0, snapshot.getPhasesPostBuild().size());
+		assertEquals(1, snapshot.getCauses().length);
+		assertEquals(CIEventCauseType.USER, snapshot.getCauses()[0].getType());
+		assertEquals(p.getLastBuild().getNumber(), (int) snapshot.getNumber());
+		assertEquals(SnapshotStatus.FINISHED, snapshot.getStatus());
+		assertEquals(SnapshotResult.SUCCESS, snapshot.getResult());
+		assertNotNull(snapshot.getStartTime());
+		assertNotNull(snapshot.getDuration());
+		assertNotNull(snapshot.getEstimatedDuration());
 
-		tmpObject = tmpArray.getJSONObject(0);
-		assertEquals(tmpObject.getString("name"), "ParamA");
-		assertEquals(tmpObject.getString("type"), ParameterType.BOOLEAN.toString());
-		assertEquals(tmpObject.getString("description"), "bool");
-		assertEquals(tmpObject.getBoolean("defaultValue"), true);
-		assertEquals(tmpObject.getBoolean("value"), false);
+		tmpParam = snapshot.getParameters().get(0);
+		assertEquals("ParamA", tmpParam.getName());
+		assertEquals(ParameterType.BOOLEAN, tmpParam.getType());
+		assertEquals("bool", tmpParam.getDescription());
+		assertEquals(true, tmpParam.getDefaultValue());
+		assertEquals("false", tmpParam.getValue());
+		assertNull(tmpParam.getChoices());
 
-		tmpObject = tmpArray.getJSONObject(1);
-		assertEquals(tmpObject.getString("name"), "ParamB");
-		assertEquals(tmpObject.getString("type"), ParameterType.STRING.toString());
-		assertEquals(tmpObject.getString("description"), "string");
-		assertEquals(tmpObject.getString("defaultValue"), "str");
-		assertEquals(tmpObject.getString("value"), "str");
+		tmpParam = snapshot.getParameters().get(1);
+		assertEquals("ParamB", tmpParam.getName());
+		assertEquals(ParameterType.STRING, tmpParam.getType());
+		assertEquals("string", tmpParam.getDescription());
+		assertEquals("str", tmpParam.getDefaultValue());
+		assertEquals("str", tmpParam.getValue());
+		assertNull(tmpParam.getChoices());
 
-		tmpObject = tmpArray.getJSONObject(2);
-		assertEquals(tmpObject.getString("name"), "ParamC");
-		assertEquals(tmpObject.getString("type"), ParameterType.STRING.toString());
-		assertEquals(tmpObject.getString("description"), "text");
-		assertEquals(tmpObject.getString("defaultValue"), "txt");
-		assertEquals(tmpObject.getString("value"), "txt");
+		tmpParam = snapshot.getParameters().get(2);
+		assertEquals("ParamC", tmpParam.getName());
+		assertEquals(ParameterType.STRING, tmpParam.getType());
+		assertEquals("text", tmpParam.getDescription());
+		assertEquals("txt", tmpParam.getDefaultValue());
+		assertEquals("txt", tmpParam.getValue());
 
-		tmpObject = tmpArray.getJSONObject(3);
-		assertEquals(tmpObject.getString("name"), "ParamD");
-		assertEquals(tmpObject.getString("type"), ParameterType.STRING.toString());
-		assertEquals(tmpObject.getString("description"), "choice");
-		assertEquals(tmpObject.getString("defaultValue"), "one");
-		assertEquals(tmpObject.getString("value"), "two");
+		tmpParam = snapshot.getParameters().get(3);
+		assertEquals("ParamD", tmpParam.getName());
+		assertEquals(ParameterType.STRING, tmpParam.getType());
+		assertEquals("choice", tmpParam.getDescription());
+		assertEquals("one", tmpParam.getDefaultValue());
+		assertEquals("two", tmpParam.getValue());
 
-		tmpObject = tmpArray.getJSONObject(4);
-		assertEquals(tmpObject.getString("name"), "ParamE");
-		assertEquals(tmpObject.getString("type"), ParameterType.FILE.toString());
-		assertEquals(tmpObject.getString("description"), "file param");
-		assertEquals(tmpObject.getString("defaultValue"), "");
-		assertTrue(tmpObject.isNull("value"));
+		tmpParam = snapshot.getParameters().get(4);
+		assertEquals("ParamE", tmpParam.getName());
+		assertEquals(ParameterType.FILE, tmpParam.getType());
+		assertEquals("file param", tmpParam.getDescription());
+		assertEquals("", tmpParam.getDefaultValue());
+		assertEquals(null, tmpParam.getValue());
 	}
 
 	//  Snapshot: free-style, with params, with children
@@ -224,9 +221,7 @@ public class BuildActionsFreeStyleTest {
 
 		JenkinsRule.WebClient client = rule.createWebClient();
 		Page page;
-		JSONObject body;
-		JSONObject tmpObject;
-		JSONArray tmpArray;
+		SnapshotNode snapshot;
 
 		assertEquals(p.getBuilds().toArray().length, 0);
 		Utils.buildProjectWithParams(client, p, "ParamA=false&ParamC=not_exists");
@@ -237,19 +232,20 @@ public class BuildActionsFreeStyleTest {
 		}
 		assertEquals(p.getBuilds().toArray().length, 1);
 
-		page = client.goTo("job/" + projectName + "/" + p.getLastBuild().getNumber() + "/octane/snapshot", "application/json");
-		body = new JSONObject(page.getWebResponse().getContentAsString());
-		assertEquals(body.length(), 12);
-		assertEquals(body.getString("name"), projectName);
-		tmpArray = body.getJSONArray("parameters");
-		assertEquals(tmpArray.length(), 2);
-
-		//  internals
-		tmpArray = body.getJSONArray("phasesInternal");
-		assertEquals(tmpArray.length(), 2);
-
-		//  post builds
-		tmpArray = body.getJSONArray("phasesPostBuild");
-		assertEquals(tmpArray.length(), 2);
+		page = client.goTo("nga/api/v1/jobs/" + projectName + "/builds/" + p.getLastBuild().getNumber(), "application/json");
+		snapshot = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), SnapshotNode.class);
+		assertEquals(projectName, snapshot.getCiId());
+		assertEquals(projectName, snapshot.getName());
+		assertEquals(2, snapshot.getParameters().size());
+		assertEquals(2, snapshot.getPhasesInternal().size());
+		assertEquals(2, snapshot.getPhasesPostBuild().size());
+		assertEquals(1, snapshot.getCauses().length);
+		assertEquals(CIEventCauseType.USER, snapshot.getCauses()[0].getType());
+		assertEquals(p.getLastBuild().getNumber(), (int) snapshot.getNumber());
+		assertEquals(SnapshotStatus.FINISHED, snapshot.getStatus());
+		assertEquals(SnapshotResult.SUCCESS, snapshot.getResult());
+		assertNotNull(snapshot.getStartTime());
+		assertNotNull(snapshot.getDuration());
+		assertNotNull(snapshot.getEstimatedDuration());
 	}
 }

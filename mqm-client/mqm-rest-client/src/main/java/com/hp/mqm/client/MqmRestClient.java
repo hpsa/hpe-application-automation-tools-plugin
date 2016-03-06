@@ -37,7 +37,7 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * Posts test results to MQM. Test results can be large data and therefore be aware to keep it in memory.
 	 * Also divide extra large test results into smaller parts which will be posted individually
 	 * (multiple invocation of this method) to avoid HTTP request timeout.
-	 * <p/>
+	 * <p>
 	 * InputStream obtained from InputStreamSource is automatically closed after all data are read.
 	 *
 	 * @param inputStreamSource input stream source with test results in MQM XML format.
@@ -98,14 +98,14 @@ public interface MqmRestClient extends BaseMqmRestClient {
 
 	/**
 	 * Update pipeline metadata on the MQM server.
-	 * <p/>
-	 * <p/>
+	 * <p>
+	 * <p>
 	 * Either <code>pipeline.*</code> value can be null (except for id). In that case, the value isn't updated.
-	 * <p/>
+	 * <p>
 	 * It is not possible to update the <code>pipeline.root</code> flag (value is ignored if specified).
-	 * <p/>
+	 * <p>
 	 * In order to dissociate pipeline from release, <code>releaseId</code> value -1 needs to be specified.
-	 * <p/>
+	 * <p>
 	 *
 	 * @param serverIdentity identity of the server
 	 * @param jobName        name of the job
@@ -115,10 +115,10 @@ public interface MqmRestClient extends BaseMqmRestClient {
 
 	/**
 	 * Query releases matching given name filter (using contains semantics).
-	 * <p/>
-	 * <p/>
+	 * <p>
+	 * <p>
 	 * If <code>name</code> is not specified or empty, all releases are returned.
-	 * <p/>
+	 * <p>
 	 *
 	 * @param name        release name filter (can be null or empty)
 	 * @param workspaceId workspace
@@ -139,10 +139,10 @@ public interface MqmRestClient extends BaseMqmRestClient {
 
 	/**
 	 * Query workspaces matching given name filter (using contains semantics).
-	 * <p/>
-	 * <p/>
+	 * <p>
+	 * <p>
 	 * If <code>name</code> is not specified or empty, all workspaces are returned.
-	 * <p/>
+	 * <p>
 	 *
 	 * @param name   workspace name filter (can be null or empty)
 	 * @param offset paging offset
@@ -161,8 +161,8 @@ public interface MqmRestClient extends BaseMqmRestClient {
 
 	/**
 	 * Query taxonomies (including categories) matching given name (using contains semantics).
-	 * <p/>
-	 * <p/>
+	 * <p>
+	 * <p>
 	 * If <code>name</code> is not specified or empty, all taxonomies are considered.
 	 *
 	 * @param name        taxonomy name filter (can be null or empty)
@@ -184,7 +184,7 @@ public interface MqmRestClient extends BaseMqmRestClient {
 
 	/**
 	 * Query list for items matching given name (using contains semantics).
-	 * <p/>
+	 * <p>
 	 * If <code>name</code> is not specified or empty, all items are considered.
 	 *
 	 * @param logicalListName logical name of a list to search in
@@ -226,11 +226,13 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	/**
 	 * Retrieves tasks from service working in Abridged Connectivity Mode
 	 *
-	 * @param selfIdentity identity of the server
-	 * @param selfLocation location of
+	 * @param selfIdentity  identity of the server
+	 * @param selfLocation  location of
+	 * @param apiVersion
+	 * @param sdkVersion
 	 * @return
 	 */
-	String getAbridgedTasks(String selfIdentity, String selfLocation);
+	String getAbridgedTasks(String selfIdentity, String selfLocation, Integer apiVersion, String sdkVersion);
 
 	/**
 	 * Sends Result of the Abridged Task Invocation

@@ -13,6 +13,9 @@ public class ParameterInstance extends ParameterConfig {
 	public ParameterInstance() {
 	}
 
+	public ParameterInstance(ParameterConfig pc){
+		super(pc);
+	}
 	public ParameterInstance(ParameterConfig pc, String value) {
 		super(pc);
 		this.value = value;

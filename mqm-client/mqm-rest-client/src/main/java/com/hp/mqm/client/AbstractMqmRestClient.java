@@ -9,6 +9,18 @@ import com.hp.mqm.client.exception.ServerException;
 import com.hp.mqm.client.exception.SharedSpaceNotExistException;
 import com.hp.mqm.client.model.PagedList;
 import com.hp.mqm.org.apache.http.*;
+import com.hp.mqm.org.apache.http.client.CookieStore;
+import com.hp.mqm.org.apache.http.client.CredentialsProvider;
+import com.hp.mqm.org.apache.http.client.config.RequestConfig;
+import com.hp.mqm.org.apache.http.client.protocol.HttpClientContext;
+import com.hp.mqm.org.apache.http.cookie.Cookie;
+import com.hp.mqm.org.apache.http.impl.client.BasicCookieStore;
+import com.hp.mqm.org.apache.http.impl.client.BasicCredentialsProvider;
+import com.hp.mqm.org.apache.http.impl.client.CloseableHttpClient;
+import com.hp.mqm.org.apache.http.impl.client.HttpClients;
+import com.hp.mqm.org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import com.hp.mqm.org.apache.http.protocol.BasicHttpContext;
+import com.hp.mqm.org.apache.http.protocol.HttpContext;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
@@ -18,14 +30,10 @@ import org.apache.commons.lang.StringUtils;
 import com.hp.mqm.org.apache.http.auth.AuthScope;
 import com.hp.mqm.org.apache.http.auth.Credentials;
 import com.hp.mqm.org.apache.http.auth.UsernamePasswordCredentials;
-import com.hp.mqm.org.apache.http.client.ResponseHandler;
 import com.hp.mqm.org.apache.http.client.methods.HttpGet;
 import com.hp.mqm.org.apache.http.client.methods.HttpPost;
 import com.hp.mqm.org.apache.http.client.methods.HttpUriRequest;
 import com.hp.mqm.org.apache.http.client.utils.HttpClientUtils;
-import com.hp.mqm.org.apache.http.conn.params.ConnRoutePNames;
-import com.hp.mqm.org.apache.http.impl.client.DefaultHttpClient;
-import com.hp.mqm.org.apache.http.params.CoreConnectionPNames;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -43,24 +51,22 @@ import java.util.regex.Pattern;
 
 public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	private static final Logger logger = Logger.getLogger(AbstractMqmRestClient.class.getName());
-
 	private static final String URI_AUTHENTICATION = "authentication/sign_in";
 	private static final String HEADER_NAME_AUTHORIZATION = "Authorization";
 	private static final String HEADER_VALUE_BASIC_AUTH = "Basic ";
 	private static final String HEADER_CLIENT_TYPE = "HPECLIENTTYPE";
-	private static final String HPSSO_COOKIE_CSRF = "HPSSO_COOKIE_CSRF";
-	private static final String HPSSO_HEADER_CSRF = "HPSSO_HEADER_CSRF";
+	private static final String LWSSO_COOKIE_NAME = "LWSSO_COOKIE_KEY";
+	private static final String HPSSO_COOKIE_NAME = "HPSSO_COOKIE_CSRF";
+	private static final String HPSSO_HEADER_NAME = "HPSSO_HEADER_CSRF";
 
-
-	static final String URI_LOGOUT = "authentication/sign_out";
+	private Cookie LWSSO_TOKEN = null;
+	private Cookie CSRF_TOKEN = null;
 
 	private static final String PROJECT_API_URI = "api/shared_spaces/{0}";
 	private static final String SHARED_SPACE_INTERNAL_API_URI = "internal-api/shared_spaces/{0}";
-
 	private static final String SHARED_SPACE_API_URI = "api/shared_spaces/{0}";
 	private static final String WORKSPACE_API_URI = SHARED_SPACE_API_URI + "/workspaces/{1}";
 	private static final String WORKSPACE_INTERNAL_API_URI = SHARED_SPACE_INTERNAL_API_URI + "/workspaces/{1}";
-
 	private static final String FILTERING_FRAGMENT = "query={query}";
 	private static final String PAGING_FRAGMENT = "offset={offset}&limit={limit}";
 	private static final String ORDER_BY_FRAGMENT = "order_by={order}";
@@ -70,16 +76,13 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	public static final int DEFAULT_CONNECTION_TIMEOUT = 20000; // in milliseconds
 	public static final int DEFAULT_SO_TIMEOUT = 40000; // in milliseconds
 
-	private final DefaultHttpClient httpClient;
+	private CloseableHttpClient httpClient;
+	private CookieStore cookieStore;
+	private final String clientType;
 	private final String location;
 	private final String sharedSpace;
-	private final String clientType;
 	private final String username;
-
 	private final String password;
-	private String XCRF_VALUE;
-
-	private volatile boolean alreadyLoggedIn = false;
 
 	/**
 	 * Constructor for AbstractMqmRestClient.
@@ -90,31 +93,55 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 		checkNotEmpty("Parameter 'location' must not be null or empty.", connectionConfig.getLocation());
 		checkNotEmpty("Parameter 'sharedSpace' must not be null or empty.", connectionConfig.getSharedSpace());
 		checkNotEmpty("Parameter 'clientType' must not be null or empty.", connectionConfig.getClientType());
-		this.location = connectionConfig.getLocation();
-		this.sharedSpace = connectionConfig.getSharedSpace();
-		this.clientType = connectionConfig.getClientType();
+		clientType = connectionConfig.getClientType();
+		location = connectionConfig.getLocation();
+		sharedSpace = connectionConfig.getSharedSpace();
+		username = connectionConfig.getUsername();
+		password = connectionConfig.getPassword();
 
+		PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+		cm.setMaxTotal(20);
+		cm.setDefaultMaxPerRoute(20);
+		cookieStore = new BasicCookieStore();
 
-		this.username = connectionConfig.getUsername();
-		this.password = connectionConfig.getPassword();
-
-		httpClient = new DefaultHttpClient();
-
-		httpClient.getParams().setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, connectionConfig.getDefaultConnectionTimeout() != null ?
-				connectionConfig.getDefaultConnectionTimeout() : DEFAULT_CONNECTION_TIMEOUT);
-		httpClient.getParams().setIntParameter(CoreConnectionPNames.SO_TIMEOUT, connectionConfig.getDefaultSocketTimeout() != null ?
-				connectionConfig.getDefaultSocketTimeout() : DEFAULT_SO_TIMEOUT);
-
-		// proxy setting
 		if (connectionConfig.getProxyHost() != null && !connectionConfig.getProxyHost().isEmpty()) {
 			HttpHost proxy = new HttpHost(connectionConfig.getProxyHost(), connectionConfig.getProxyPort());
-			httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+
+			RequestConfig requestConfig = RequestConfig.custom()
+					.setProxy(proxy)
+					.setConnectTimeout(connectionConfig.getDefaultConnectionTimeout() != null ? connectionConfig.getDefaultConnectionTimeout() : DEFAULT_CONNECTION_TIMEOUT)
+					.setSocketTimeout(connectionConfig.getDefaultSocketTimeout() != null ? connectionConfig.getDefaultSocketTimeout() : DEFAULT_SO_TIMEOUT).build();
 
 			if (connectionConfig.getProxyCredentials() != null) {
 				AuthScope proxyAuthScope = new AuthScope(connectionConfig.getProxyHost(), connectionConfig.getProxyPort());
 				Credentials credentials = proxyCredentialsToCredentials(connectionConfig.getProxyCredentials());
-				httpClient.getCredentialsProvider().setCredentials(proxyAuthScope, credentials);
+
+				CredentialsProvider credsProvider = new BasicCredentialsProvider();
+				credsProvider.setCredentials(proxyAuthScope, credentials);
+
+				httpClient = HttpClients.custom()
+						.setConnectionManager(cm)
+						.setDefaultCookieStore(cookieStore)
+						.setDefaultCredentialsProvider(credsProvider)
+						.setDefaultRequestConfig(requestConfig)
+						.build();
+			} else {
+				httpClient = HttpClients.custom()
+						.setConnectionManager(cm)
+						.setDefaultCookieStore(cookieStore)
+						.setDefaultRequestConfig(requestConfig)
+						.build();
 			}
+		} else {
+			RequestConfig requestConfig = RequestConfig.custom()
+					.setConnectTimeout(connectionConfig.getDefaultConnectionTimeout() != null ? connectionConfig.getDefaultConnectionTimeout() : DEFAULT_CONNECTION_TIMEOUT)
+					.setSocketTimeout(connectionConfig.getDefaultSocketTimeout() != null ? connectionConfig.getDefaultSocketTimeout() : DEFAULT_SO_TIMEOUT)
+					.build();
+			httpClient = HttpClients.custom()
+					.setConnectionManager(cm)
+					.setDefaultCookieStore(cookieStore)
+					.setDefaultRequestConfig(requestConfig)
+					.build();
 		}
 	}
 
@@ -134,80 +161,30 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	 */
 	protected synchronized void login() {
 		authenticate();
-		alreadyLoggedIn = true;
-	}
-
-	/**
-	 * Logout from MQM.
-	 */
-	protected synchronized void logout() {
-		HttpUriRequest request = new HttpPost(createBaseUri(URI_LOGOUT));
-		addRequestHeaders(request);
-		HttpResponse response = null;
-		try {
-			response = httpClient.execute(request);
-			if (response.getStatusLine().getStatusCode() != 200) {
-				throw new RequestException("Logout failed: code=" + response.getStatusLine().getStatusCode() + "; reason=" + response.getStatusLine().getReasonPhrase());
-			}
-			alreadyLoggedIn = false;
-		} catch (IOException e) {
-			throw new RequestErrorException("Error occurred during logout", e);
-		} finally {
-			HttpClientUtils.closeQuietly(response);
-		}
-	}
-
-	public void release() {
-		logout();
-	}
-
-	public void releaseQuietly() {
-		try {
-			release();
-		} catch (Exception e) {
-			logger.log(Level.WARNING, "Failed to release client", e);
-		}
-	}
-
-	private void handleCSRF(HttpResponse response) {
-		boolean isCSRF = false;
-		Header[] headers = response.getHeaders("Set-Cookie");
-		for (Header h : headers) {
-			HeaderElement[] he = h.getElements();
-			for (HeaderElement e : he) {
-				if (e.getName().equals(HPSSO_COOKIE_CSRF)) {
-					XCRF_VALUE = e.getValue();
-					isCSRF = true;
-					break;
-				}
-			}
-			if (isCSRF) {
-				break;
-			}
-		}
 	}
 
 	private void authenticate() {
 		HttpPost post = new HttpPost(createBaseUri(URI_AUTHENTICATION));
 		String authorizationString = (username != null ? username : "") + ":" + (password != null ? password : "");
-		//Base64.class.getProtectionDomain().getCodeSource().getLocation()
-
-
 		post.setHeader(HEADER_NAME_AUTHORIZATION, HEADER_VALUE_BASIC_AUTH + Base64.encodeBase64String(authorizationString.getBytes(StandardCharsets.UTF_8)));
-		//post.setHeader(HEADER_NAME_AUTHORIZATION, HEADER_VALUE_BASIC_AUTH + java.util.Base64.getEncoder().encodeToString(authorizationString.getBytes(StandardCharsets.UTF_8)));
-
-		//post.setHeader(HEADER_NAME_AUTHORIZATION, HEADER_VALUE_BASIC_AUTH + MqmBase64.encode(authorizationString));
-
-		// post.setHeader(HEADER_NAME_AUTHORIZATION, HEADER_VALUE_BASIC_AUTH + "test@hp.com:test");
-		addRequestHeaders(post, true);
+		post.setHeader(HEADER_CLIENT_TYPE, clientType);
 
 		HttpResponse response = null;
 		try {
+			cookieStore.clear();
 			response = httpClient.execute(post);
-			if (response.getStatusLine().getStatusCode() != 200) {
+			if (response.getStatusLine().getStatusCode() == 200) {
+				for (Cookie cookie : cookieStore.getCookies()) {
+					if (cookie.getName().equals(LWSSO_COOKIE_NAME)) {
+						LWSSO_TOKEN = cookie;
+					}
+					if (cookie.getName().equals(HPSSO_COOKIE_NAME)) {
+						CSRF_TOKEN = cookie;
+					}
+				}
+			} else {
 				throw new AuthenticationException("Authentication failed: code=" + response.getStatusLine().getStatusCode() + "; reason=" + response.getStatusLine().getReasonPhrase());
 			}
-			handleCSRF(response);
 		} catch (IOException e) {
 			throw new LoginErrorException("Error occurred during authentication", e);
 		} finally {
@@ -359,59 +336,28 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	 * @throws IllegalArgumentException when request entity is not repeatable
 	 */
 	protected HttpResponse execute(HttpUriRequest request) throws IOException {
-		if (request instanceof HttpEntityEnclosingRequest) {
-			HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
-			if (entity != null && !entity.isRepeatable()) {
-				throw new IllegalArgumentException("MqmRestClient does not support non-repeatable entity (entity.isRepeatable() must be true).");
-			}
+		HttpResponse response;
+
+		if (LWSSO_TOKEN == null) {
+			login();
 		}
-		doFirstLogin();
+		HttpContext localContext = new BasicHttpContext();
+		CookieStore localCookies = new BasicCookieStore();
+		localCookies.addCookie(LWSSO_TOKEN);
+		localContext.setAttribute(HttpClientContext.COOKIE_STORE, localCookies);
+
 		addRequestHeaders(request);
-		HttpResponse response = httpClient.execute(request);
-		if (isLoginNecessary(response)) { // if request fails with 401 do login and execute request again
+		response = httpClient.execute(request, localContext);
+		if (response.getStatusLine().getStatusCode() == 401) {
 			HttpClientUtils.closeQuietly(response);
 			login();
-			response = httpClient.execute(request);
+			localCookies.clear();
+			localCookies.addCookie(LWSSO_TOKEN);
+			localContext.setAttribute(HttpClientContext.COOKIE_STORE, localCookies);
+			addRequestHeaders(request);
+			response = httpClient.execute(request, localContext);
 		}
 		return response;
-	}
-
-	/**
-	 * Invokes {@link com.hp.mqm.org.apache.http.client.HttpClient#execute(com.hp.mqm.org.apache.http.client.methods.HttpUriRequest, com.hp.mqm.org.apache.http.client.ResponseHandler)}
-	 * with given request and does login if it is necessary.
-	 * <p>
-	 * Method does not support request with non-repeatable entity (see {@link HttpEntity#isRepeatable()}).
-	 * </p>
-	 *
-	 * @param request which should be executed
-	 * @return response for given request
-	 * @throws IllegalArgumentException when request entity is not repeatable
-	 */
-	protected <T> T execute(final HttpUriRequest request, final ResponseHandler<? extends T> responseHandler) throws IOException {
-		doFirstLogin();
-		addRequestHeaders(request);
-		final BooleanReference loginNecessary = new BooleanReference();
-		loginNecessary.value = false;
-		T result = httpClient.execute(request, new ResponseHandler<T>() {
-			@Override
-			public T handleResponse(HttpResponse response) throws IOException {
-				if (isLoginNecessary(response)) {
-					loginNecessary.value = true;
-					return null;
-				}
-				return responseHandler.handleResponse(response);
-			}
-		});
-		if (loginNecessary.value) {
-			login();
-			result = httpClient.execute(request, new ResponseHandler<T>() {
-				@Override
-				public T handleResponse(HttpResponse response) throws IOException {
-					return responseHandler.handleResponse(response);
-				}
-			});
-		}
-		return result;
 	}
 
 	protected <E> PagedList<E> getEntities(URI uri, int offset, EntityFactory<E> factory) {
@@ -538,23 +484,9 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	}
 
 	private void addRequestHeaders(HttpUriRequest request, boolean isLogin) {
-		if (request.getFirstHeader(HEADER_CLIENT_TYPE) == null) {
-			request.addHeader(HEADER_CLIENT_TYPE, clientType);
-		}
+		request.setHeader(HEADER_CLIENT_TYPE, clientType);
 		if (!isLogin) {
-			if (request.getFirstHeader(HPSSO_HEADER_CSRF) == null) {
-				request.addHeader(HPSSO_HEADER_CSRF, XCRF_VALUE);
-			}
-		}
-	}
-
-	private boolean isLoginNecessary(HttpResponse response) {
-		return response.getStatusLine().getStatusCode() == 401;
-	}
-
-	private void doFirstLogin() {
-		if (!alreadyLoggedIn) {
-			login();
+			request.setHeader(HPSSO_HEADER_NAME, CSRF_TOKEN.getValue());
 		}
 	}
 
@@ -564,18 +496,12 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 		}
 	}
 
-	private static class BooleanReference {
-		public boolean value;
-	}
-
 	static Collection<JSONObject> getJSONObjectCollection(JSONObject object, String key) {
 		JSONArray array = object.getJSONArray(key);
 		return (Collection<JSONObject>) array.subList(0, array.size());
 	}
 
 	interface EntityFactory<E> {
-
 		E create(String json);
-
 	}
 }

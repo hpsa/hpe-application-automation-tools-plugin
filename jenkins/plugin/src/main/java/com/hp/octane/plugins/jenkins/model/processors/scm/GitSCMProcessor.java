@@ -1,6 +1,10 @@
 package com.hp.octane.plugins.jenkins.model.processors.scm;
 
-import com.hp.octane.plugins.jenkins.model.scm.*;
+import com.hp.nga.integrations.dto.DTOFactory;
+import com.hp.nga.integrations.dto.scm.SCMCommit;
+import com.hp.nga.integrations.dto.scm.SCMData;
+import com.hp.nga.integrations.dto.scm.SCMRepository;
+import com.hp.nga.integrations.dto.scm.SCMType;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.plugins.git.Branch;
@@ -8,18 +12,18 @@ import hudson.plugins.git.GitChangeSet;
 import hudson.plugins.git.GitSCM;
 import hudson.plugins.git.util.BuildData;
 import hudson.scm.ChangeLogSet;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.logging.Logger;
 
 /**
  * Created by gullery on 31/03/2015.
  */
 
 public class GitSCMProcessor implements SCMProcessor {
-	private static final Logger logger = Logger.getLogger(GitSCMProcessor.class.getName());
+	private static final Logger logger = LogManager.getLogger(GitSCMProcessor.class);
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	GitSCMProcessor() {
 	}
@@ -36,7 +40,7 @@ public class GitSCMProcessor implements SCMProcessor {
 		ChangeLogSet<ChangeLogSet.Entry> changes = build.getChangeSet();
 		BuildData buildData;
 		GitChangeSet commit;
-		Long tmpTime;
+
 		if (project.getScm() instanceof GitSCM) {
 			scmGit = (GitSCM) project.getScm();
 			buildData = scmGit.getBuildData(build);
@@ -50,20 +54,12 @@ public class GitSCMProcessor implements SCMProcessor {
 				for (ChangeLogSet.Entry c : changes) {
 					if (c instanceof GitChangeSet) {
 						commit = (GitChangeSet) c;
-						tmpTime = null;
-						try {
-							tmpTime = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse(commit.getDate()).getTime();
-						} catch (ParseException pe) {
-							logger.severe("failed to parse commit time");
-						}
-						tmpCommit = new SCMCommit(
-								tmpTime,
-								commit.getAuthor().getId(),
-								commit.getCommitId(),
-								commit.getParentCommit(),
-								commit.getComment().trim()
-						);
-						//2015-12-10 00:44:06 +0200
+						tmpCommit = dtoFactory.newDTO(SCMCommit.class)
+								.setTime(commit.getTimestamp())
+								.setUser(commit.getAuthor().getId())
+								.setRevId(commit.getCommitId())
+								.setParentRevId(commit.getParentCommit())
+								.setComment(commit.getComment().trim());
 
 						//  [YG] Changes will be handled later
 //						for (GitChangeSet.Path item : commit.getAffectedFiles()) {
@@ -76,7 +72,10 @@ public class GitSCMProcessor implements SCMProcessor {
 					}
 				}
 
-				result = new SCMData(scmRepository, builtCommitRevId, tmpCommits.toArray(new SCMCommit[tmpCommits.size()]));
+				result = dtoFactory.newDTO(SCMData.class)
+						.setRepository(scmRepository)
+						.setBuiltRevId(builtCommitRevId)
+						.setCommits(tmpCommits.toArray(new SCMCommit[tmpCommits.size()]));
 			}
 		}
 		return result;
@@ -94,11 +93,10 @@ public class GitSCMProcessor implements SCMProcessor {
 			if (buildData.getLastBuiltRevision() != null && !buildData.getLastBuiltRevision().getBranches().isEmpty()) {
 				branch = ((Branch) buildData.getLastBuiltRevision().getBranches().toArray()[0]).getName();
 			}
-
-			result = new SCMRepository(
-					SCMType.GIT,
-					url,
-					branch);
+			result = dtoFactory.newDTO(SCMRepository.class)
+					.setType(SCMType.GIT)
+					.setUrl(url)
+					.setBranch(branch);
 		}
 		return result;
 	}

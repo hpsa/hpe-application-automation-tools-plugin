@@ -2,7 +2,7 @@ package com.hp.octane.plugins.common.bridge;
 
 
 import com.hp.octane.plugins.common.configuration.ServerConfiguration;
-import com.hp.octane.plugins.jetbrains.teamcity.client.MqmRestClientFactory;
+import com.hp.octane.plugins.jetbrains.teamcity.configuration.ConfigurationService;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -20,9 +20,9 @@ public class BridgesService{
 	private static final Logger logger = Logger.getLogger(BridgesService.class.getName());
 
 	private static BridgesService instance;
-	//private MqmRestClientFactory clientFactory;
+
 	private BridgeClient bridgeClient;
-	private String ciType;
+	private String ciType = ConfigurationService.CLIENT_TYPE;//"HPE_CI_CLIENT";
 
 	public static BridgesService getInstance() {
 		if (instance == null) {

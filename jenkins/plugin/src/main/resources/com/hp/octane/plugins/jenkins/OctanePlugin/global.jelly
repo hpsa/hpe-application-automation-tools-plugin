@@ -5,10 +5,10 @@
             <f:nested>
                 <table width="100%">
                     <f:entry title="${%global.config.location.title}"
-                             description="${%global.config.location.description}" help="/plugin/octane-jenkins-plugin/help/uiLocation.html">
+                             description="${%global.config.location.description}" help="/plugin/hp-lifecycle-management-ci-plugin/help/uiLocation.html">
                         <f:textbox field="uiLocation" />
                     </f:entry>
-                    <f:entry title="${%global.config.username.title}" description="${%global.config.username.description}">
+                    <f:entry title="${%global.config.username.title}" description="${%global.config.username.description}" help="/plugin/hp-lifecycle-management-ci-plugin/help/accessKey.html">
                         <f:textbox field="username" />
                     </f:entry>
                     <f:entry title="${%global.config.password.title}" description="${%global.config.password.description}">

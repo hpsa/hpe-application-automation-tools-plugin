@@ -33,7 +33,7 @@ public class ConfigApiTest {
 
 	@Test
 	public void testRead() throws Exception {
-		Page page = client.goTo("octane/configuration/read", "application/json");
+		Page page = client.goTo("nga/configuration/read", "application/json");
 		String configAsString = page.getWebResponse().getContentAsString();
 		JSONObject config = JSONObject.fromObject(configAsString);
 		Assert.assertEquals("http://localhost:8008", config.getString("location"));
@@ -44,7 +44,7 @@ public class ConfigApiTest {
 
 	@Test
 	public void testSave() throws Exception {
-		URL url = client.createCrumbedUrl("octane/configuration/save");
+		URL url = client.createCrumbedUrl("nga/configuration/save");
 		WebRequestSettings request = new WebRequestSettings(url);
 		request.setHttpMethod(HttpMethod.POST);
 

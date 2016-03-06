@@ -3,6 +3,7 @@
 package com.hp.octane.plugins.jenkins;
 
 import com.google.inject.Inject;
+import com.hp.nga.integrations.services.SDKManager;
 import com.hp.octane.plugins.jenkins.bridge.BridgesService;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationListener;
@@ -107,6 +108,12 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 			}
 		}
 
+		//  X Plugin will decide what's its pattern to provide instance/s of the implementation
+		SDKManager.init(new CIJenkinsServicesImpl());
+		//  X Plugin will consume SDK's services elsewhere in the following manner
+		//  EventsService eventsService = SDKFactory.getEventsService();
+
+		//  These ones, once will become part of the SDK, will be hidden from X Plugin and initialized in SDK internally
 		EventsService.getExtensionInstance().updateClient(getServerConfiguration());
 		BridgesService.getExtensionInstance().updateBridge(getServerConfiguration());
 	}

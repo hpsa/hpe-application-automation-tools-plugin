@@ -12,8 +12,9 @@
                     document.getElementById("password1").value  = obj.secretPassword;
                 }
             };
-            xhttp.open("GET", "/octane/userDetails/", true);
-            xhttp.send();
+            var parameters ="action=reload";
+            xhttp.open("GET", "/octane-rest/", true);
+            xhttp.send(parameters);
         }
     </script>
 
@@ -22,19 +23,23 @@
         function saveParams() {
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
-                if (xhttp.readyState == 4 && xhttp.status == 200)
-                    message_box_div.innerHTML  = xhttp.responseText;
-                else
-                    message_box_div.innerHTML  = "Error"
 
+                if(xhttp.readyState == 4) {
+                    if (xhttp.status == 200)
+                        message_box_div.innerHTML = xhttp.responseText;
+                    else
+                        message_box_div.innerHTML = "Error"
+                }else{
+                    message_box_div.innerHTML = "Saving...";
+                }
             };
             var server= encodeURIComponent(document.getElementById("server").value);
             var username = encodeURIComponent(document.getElementById("username1").value);
             var password =encodeURIComponent(document.getElementById("password1").value);
 
-            var parameters = "server="+server+"&username1="+username+"&password1="+password;
+            var parameters = "action=save"+"&server="+server+"&username1="+username+"&password1="+password;
 
-            xhttp.open("POST", "/octane/admin/", true)
+            xhttp.open("POST", "/octane-rest/", true)
             xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
             xhttp.send(parameters)
         }
@@ -48,19 +53,22 @@
         function checkConnection() {
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
-                if (xhttp.readyState == 4 && xhttp.status == 200)
-                    message_box_div.innerHTML  = xhttp.responseText;
-                else
-                    message_box_div.innerHTML  = "Error"
-
+                if(xhttp.readyState == 4) {
+                    if (xhttp.status == 200)
+                        message_box_div.innerHTML = xhttp.responseText;
+                    else
+                        message_box_div.innerHTML = "Error"
+                }else{
+                    message_box_div.innerHTML = "Waiting...";
+                }
             };
             var server= encodeURIComponent(document.getElementById("server").value);
             var username = encodeURIComponent(document.getElementById("username1").value);
             var password =encodeURIComponent(document.getElementById("password1").value);
 
-            var parameters = "server="+server+"&username1="+username+"&password1="+password;
+            var parameters = "action=test&server="+server+"&username1="+username+"&password1="+password;
 
-            xhttp.open("POST", "/octane/testConnection/", true)
+            xhttp.open("POST", "/octane-rest/", true)
             xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
             xhttp.send(parameters)
         }
@@ -73,7 +81,7 @@
 <body>
 
 <div id="settingsContainer">
-    <form action="/octane/admin/" method="post" >
+    <form action="/octane-rest/admin/" method="post" >
         <div class="editNotificatorSettingsPage">
 
 
@@ -81,9 +89,9 @@
 
             <table class="runnerFormTable">
                 <tr>
-                    <th><label for="server">MQM server: <span class="mandatoryAsterix" title="Mandatory field">*</span></label></th>
+                    <th><label for="server">Location <span class="mandatoryAsterix" title="Mandatory field">*</span></label></th>
                     <td>
-                        <input type="text" name="server" id="server"   value="" class="textField"        >
+                        <input type="text" name="server" id="server"   value="" class="longField"        >
 
                         <span class="error" id="errorServer"></span>
                     </td>
@@ -91,18 +99,18 @@
 
 
                 <tr>
-                    <th><label for="username1">Username: <span class="mandatoryAsterix" title="Mandatory field">*</span></label></th>
+                    <th><label for="username1">Access key <span class="mandatoryAsterix" title="Mandatory field">*</span></label></th>
                     <td>
-                        <input type="text" name="username1" id="username1"   value="" class="textField"        >
+                        <input type="text" name="username1" id="username1"   value="" class="longField"        >
 
                         <span class="error" id="errorUsername1"></span>
                     </td>
                 </tr>
 
                 <tr>
-                    <th><label for="password1">Password: <span class="mandatoryAsterix" title="Mandatory field">*</span></label></th>
+                    <th><label for="password1">Secret key <span class="mandatoryAsterix" title="Mandatory field">*</span></label></th>
                     <td>
-                        <input type="text" name="password1" id="password1"   value="" class="textField"        >
+                        <input type="password" name="password1" id="password1"   value="" class="longField"        >
 
                         <span class="error" id="errorPassword"></span>
 

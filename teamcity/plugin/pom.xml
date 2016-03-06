@@ -7,15 +7,11 @@
     <name>HP Lifecycle Management TeamCity CI Plugin</name>
     <packaging>jar</packaging>
 
-
     <parent>
         <artifactId>teamcity-plugin-root</artifactId>
         <groupId>com.hp.mqm</groupId>
-        <version>12.50.28-SNAPSHOT</version>
+        <version>12.53.1-SNAPSHOT</version>
     </parent>
-    <properties>
-        <project-version>12.50.28-SNAPSHOT</project-version>
-    </properties>
 
     <dependencies>
 
@@ -48,19 +44,6 @@
             <version>${teamcity-version}</version>
             <scope>test</scope>
         </dependency>
-
-        <!-- end: taken from Jetbrains TeamCity-->
-
-        <!-- start: taken from JetBrains\IntelliJ IDEA 14.1.1\redist-->
-        <!--<dependency>-->
-        <!--<groupId>org.jetbrains.annotations</groupId>-->
-        <!--<artifactId>annotations</artifactId>-->
-        <!--<version>132.940</version>-->
-        <!--<scope>provided</scope>-->
-        <!--</dependency>-->
-        <!-- end: taken from JetBrains\IntelliJ IDEA 14.1.1\redist-->
-
-        <!--start: spring dependencies-->
 
         <dependency>
             <groupId>org.springframework</groupId>
@@ -111,12 +94,12 @@
         <dependency>
             <groupId>com.hp.mqm</groupId>
             <artifactId>mqm-rest-client</artifactId>
-            <version>${project-version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.hp.mqm</groupId>
             <artifactId>integrations-sdk</artifactId>
-            <version>${project-version}</version>
+            <version>${project.version}</version>
         </dependency>
 
     <dependency>
