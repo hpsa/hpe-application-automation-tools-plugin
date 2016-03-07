@@ -10,14 +10,9 @@ import com.hp.nga.integrations.dto.general.impl.DTOFactoryGeneral;
 import com.hp.nga.integrations.dto.pipelines.impl.DTOFactoryPipelines;
 import com.hp.nga.integrations.dto.scm.impl.DTOFactorySCM;
 import com.hp.nga.integrations.dto.snapshots.impl.DTOFactorySnapshots;
-import com.hp.nga.integrations.dto.tests.TestResult;
-import com.hp.nga.integrations.dto.tests.TestRun;
 import com.hp.nga.integrations.dto.tests.impl.DTOFactoryTests;
 
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -30,7 +25,7 @@ import java.util.Map;
  */
 
 public final class DTOFactory {
-	private final Map<Class<? extends DTOBase>, DTOFactoryInternalAbstract> registry = new HashMap<Class<? extends DTOBase>, DTOFactoryInternalAbstract>();
+	private final Map<Class<? extends DTOBase>, DTOFactoryInternalBase> registry = new HashMap<Class<? extends DTOBase>, DTOFactoryInternalBase>();
 	private final ObjectMapper jsonMapper = new ObjectMapper();
 
 	private DTOFactory() {
@@ -128,11 +123,11 @@ public final class DTOFactory {
 			throw new IllegalArgumentException("dto MUST NOT be null");
 		}
 
-		DTOFactoryInternalAbstract internalFactory = null;
+		DTOFactoryInternalBase internalFactory = null;
 		try {
 			for (Class<? extends DTOBase> supported : registry.keySet()) {
 				if (supported.isAssignableFrom(dto.getClass())) {
-					internalFactory = (DTOFactoryInternalAbstract) registry.get(supported);
+					internalFactory = (DTOFactoryInternalBase) registry.get(supported);
 					break;
 				}
 			}
@@ -154,11 +149,11 @@ public final class DTOFactory {
 			throw new IllegalArgumentException("target type MUST be an Interface");
 		}
 
-		DTOFactoryInternalAbstract internalFactory = null;
+		DTOFactoryInternalBase internalFactory = null;
 		try {
 			for (Class<? extends DTOBase> supported : registry.keySet()) {
 				if (supported.equals(targetType)) {
-					internalFactory = (DTOFactoryInternalAbstract) registry.get(supported);
+					internalFactory = (DTOFactoryInternalBase) registry.get(supported);
 					break;
 				}
 			}

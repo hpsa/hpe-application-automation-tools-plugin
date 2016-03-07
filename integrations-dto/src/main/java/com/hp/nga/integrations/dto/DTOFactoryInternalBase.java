@@ -13,9 +13,9 @@ import java.io.StringReader;
  * API definition of an internal DTO factories
  */
 
-public abstract class DTOFactoryInternalAbstract {
+public abstract class DTOFactoryInternalBase {
 
-	protected DTOFactoryInternalAbstract() {
+	protected DTOFactoryInternalBase() {
 	}
 
 	protected abstract Class[] getXMLAbleClasses();

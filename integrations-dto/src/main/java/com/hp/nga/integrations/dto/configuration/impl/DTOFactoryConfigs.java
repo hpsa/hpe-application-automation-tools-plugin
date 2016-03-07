@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.hp.nga.integrations.dto.DTOBase;
-import com.hp.nga.integrations.dto.DTOFactoryInternalAbstract;
+import com.hp.nga.integrations.dto.DTOFactoryInternalBase;
 import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
 import com.hp.nga.integrations.dto.configuration.CIProxyConfiguration;
 
@@ -15,7 +15,7 @@ import java.util.Map;
  * Created by gullery on 10/02/2016.
  */
 
-public final class DTOFactoryConfigs extends DTOFactoryInternalAbstract {
+public final class DTOFactoryConfigs extends DTOFactoryInternalBase {
 	private final Map<Class, Class> dtoPairs = new HashMap<Class, Class>();
 
 	private DTOFactoryConfigs() {
@@ -26,7 +26,7 @@ public final class DTOFactoryConfigs extends DTOFactoryInternalAbstract {
 		return new Class[0];
 	}
 
-	public static void ensureInit(Map<Class<? extends DTOBase>, DTOFactoryInternalAbstract> registry, ObjectMapper objectMapper) {
+	public static void ensureInit(Map<Class<? extends DTOBase>, DTOFactoryInternalBase> registry, ObjectMapper objectMapper) {
 		registry.put(NGAConfiguration.class, INSTANCE_HOLDER.instance);
 		registry.put(CIProxyConfiguration.class, INSTANCE_HOLDER.instance);
 
