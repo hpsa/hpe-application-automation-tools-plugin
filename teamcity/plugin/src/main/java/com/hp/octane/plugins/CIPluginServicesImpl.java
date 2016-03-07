@@ -95,8 +95,8 @@ public class CIPluginServicesImpl implements CIPluginServices {
 
 	//TODO: implement..
 	@Override
-	public int runPipeline(String ciJobId, String originalBody) {
-		return 404;
+	public void runPipeline(String ciJobId, String originalBody) {
+		return;
 	}
 
 	@Override

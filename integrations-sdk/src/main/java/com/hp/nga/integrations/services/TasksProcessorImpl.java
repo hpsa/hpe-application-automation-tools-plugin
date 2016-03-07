@@ -2,14 +2,16 @@ package com.hp.nga.integrations.services;
 
 import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.dto.DTOFactory;
+import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
+import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
+import com.hp.nga.integrations.dto.general.CIJobsList;
 import com.hp.nga.integrations.dto.general.CIPluginSDKInfo;
 import com.hp.nga.integrations.dto.general.CIProviderSummaryInfo;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
-import com.hp.nga.integrations.dto.general.CIJobsList;
-import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
-import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
+import com.hp.nga.integrations.exceptions.ConfigurationException;
+import com.hp.nga.integrations.exceptions.PermissionException;
 import org.apache.http.HttpHeaders;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -90,7 +92,18 @@ class TasksProcessorImpl implements TasksProcessor {
 			} else {
 				result.setStatus(404);
 			}
-		} catch (Exception e) {
+		}
+		catch (PermissionException jenkinsRequestException){
+			logger.warn("TasksRouter: task execution failed; error: " + jenkinsRequestException.getErrorCode());
+			result.setStatus(jenkinsRequestException.getErrorCode());
+			result.setBody(String.valueOf(jenkinsRequestException.getErrorCode()));
+		}
+		catch (ConfigurationException ce){
+			logger.warn("TasksRouter: task execution failed; error: " + ce.getErrorCode());
+			result.setStatus(404);
+			result.setBody(String.valueOf(ce.getErrorCode()));
+		}
+		catch (Exception e) {
 			logger.error("TasksRouter: task execution failed", e);
 			result.setStatus(500);
 		}
@@ -125,8 +138,8 @@ class TasksProcessorImpl implements TasksProcessor {
 	}
 
 	private void executePipelineRunRequest(NGAResultAbridged result, String jobId, String originalBody) {
-		int status = SDKManager.getCIPluginServices().runPipeline(jobId, originalBody);
-		result.setStatus(status);
+		SDKManager.getCIPluginServices().runPipeline(jobId, originalBody);
+		result.setStatus(201);
 	}
 
 	private void executeLatestSnapshotRequest(NGAResultAbridged result, String jobId, boolean subTree) {
