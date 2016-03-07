@@ -1,5 +1,7 @@
 package com.hp.octane.plugins.jetbrains.teamcity.tests.events;
 
+import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
+import com.hp.octane.plugins.jetbrains.teamcity.tests.model.BuildContext;
 import com.hp.octane.plugins.jetbrains.teamcity.tests.services.BuildTestsService;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.impl.auth.SecuredRunningBuild;
@@ -15,7 +17,6 @@ import java.util.List;
  */
 public class BuildFinishedListener extends BuildServerAdapter{
 
-    private static final String TEAMCITY_BUILD_CHECKOUT_DIR = "teamcity.build.checkoutDir";
 
     public BuildFinishedListener(SBuildServer server){
         server.addListener(this);
@@ -23,13 +24,15 @@ public class BuildFinishedListener extends BuildServerAdapter{
 
     @Override
     public void buildFinished(@NotNull SRunningBuild build) {
-        String currPath = ((SecuredRunningBuild) build).getBuildFinishParameters ().get(TEAMCITY_BUILD_CHECKOUT_DIR);
         File destPath = build.getArtifactsDirectory();
         long buildTime = build.getStartDate().getTime();
 
         BuildStatistics stats = build.getBuildStatistics(new BuildStatisticsOptions());
         List<STestRun> tests = stats.getTests(null, BuildStatistics.Order.NATURAL_ASC);
-
-        BuildTestsService.handleTestResult(currPath, destPath, buildTime);
+        BuildContext buildContext = new BuildContext();
+        buildContext.setBuildId(build.getBuildId());
+        buildContext.setBuildType(build.getBuildType().getName());
+        buildContext.setServer(NGAPlugin.getInstance().getConfig().getIdentity());
+        BuildTestsService.handleTestResult(tests, destPath, buildTime, buildContext);
     }
 }

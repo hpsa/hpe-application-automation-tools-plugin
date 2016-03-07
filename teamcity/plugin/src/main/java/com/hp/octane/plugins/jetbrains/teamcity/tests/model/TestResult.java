@@ -5,12 +5,17 @@ package com.hp.octane.plugins.jetbrains.teamcity.tests.model;
 import java.io.Serializable;
 
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
 
 @XmlRootElement(name = "test_run")
-final public class TestResult implements Serializable {
+@XmlAccessorType(XmlAccessType.FIELD)
+final public class TestResult {
+
+
 
     @XmlAttribute(name = "module")
     private String moduleName;
@@ -28,20 +33,21 @@ final public class TestResult implements Serializable {
     private TestResultStatus result;
 
     @XmlAttribute(name = "duration")
-    private String duration;
-
-//    @JacksonXmlProperty(isAttribute = true, localName = "started")
-//    private String started;
+    private int duration;
 
 
-    public TestResult(String moduleName, String packageName, String className, String testName, String duration, TestResultStatus result) {
+    @XmlAttribute(name = "started")
+    private long started;
+
+
+    public TestResult(String moduleName, String packageName, String className, String testName, int duration, TestResultStatus result, long started) {
         this.moduleName = moduleName;
         this.packageName = packageName;
         this.className = className;
         this.testName = testName;
         this.result = result;
         this.duration = duration;
-       // this.started = started;
+        this.started = started;
     }
 
     public String getModuleName() {
@@ -64,11 +70,11 @@ final public class TestResult implements Serializable {
         return result;
     }
 
-    public String getDuration() {
+    public int getDuration() {
         return duration;
     }
 
-//    public String getStarted() {
-//        return started;
-//    }
+    public long getStarted() {
+        return started;
+    }
 }
