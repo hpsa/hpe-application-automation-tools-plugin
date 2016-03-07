@@ -11,6 +11,7 @@ import com.hp.octane.plugins.jetbrains.teamcity.tests.model.TestResultContainer;
 import com.hp.octane.plugins.jetbrains.teamcity.tests.model.TestResultStatus;
 import jetbrains.buildServer.serverSide.STestRun;
 
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,15 +22,14 @@ import java.util.List;
  */
 public class BuildTestsService{
 
-    static final String TEST_RESULT_FILE = "mqmTests.xml";
+	static final String TEST_RESULT_FILE = "mqmTests.xml";
 
-    //private static XmlMapper mapper = new XmlMapper();
-    private static XmlMapper mapper = new XmlMapper();
-    static {
-        JaxbAnnotationModule module = new JaxbAnnotationModule();
-        mapper.registerModule(module);
-    }
+	private static XmlMapper mapper = new XmlMapper();
 
+	static {
+		JaxbAnnotationModule module = new JaxbAnnotationModule();
+		mapper.registerModule(module);
+	}
     public static boolean handleTestResult(List<STestRun> tests, File destPath, long buildStartingTime, BuildContext buildContext){
 
         List<TestResult> testList = new ArrayList<TestResult>();

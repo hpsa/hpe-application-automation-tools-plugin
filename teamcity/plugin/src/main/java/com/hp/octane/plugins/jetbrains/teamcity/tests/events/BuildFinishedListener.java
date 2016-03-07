@@ -15,12 +15,13 @@ import java.util.List;
 /**
  * Created by lev on 06/01/2016.
  */
-public class BuildFinishedListener extends BuildServerAdapter{
+public class BuildFinishedListener extends BuildServerAdapter {
 
+    private static final String TEAMCITY_BUILD_CHECKOUT_DIR = "teamcity.build.checkoutDir";
 
-    public BuildFinishedListener(SBuildServer server){
-        server.addListener(this);
-    }
+	public BuildFinishedListener(SBuildServer server) {
+		server.addListener(this);
+	}
 
     @Override
     public void buildFinished(@NotNull SRunningBuild build) {

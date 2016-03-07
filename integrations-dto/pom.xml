@@ -13,6 +13,7 @@
 
 	<properties>
 		<jackson.version>2.6.4</jackson.version>
+		<woodstox.version>4.4.1</woodstox.version>
 	</properties>
 
 	<dependencies>
@@ -22,6 +23,16 @@
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
 			<version>${jackson.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.dataformat</groupId>
+			<artifactId>jackson-dataformat-xml</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.codehaus.woodstox</groupId>
+			<artifactId>woodstox-core-asl</artifactId>
+			<version>${woodstox.version}</version>
 		</dependency>
 
 		<!-- TESTING -->
