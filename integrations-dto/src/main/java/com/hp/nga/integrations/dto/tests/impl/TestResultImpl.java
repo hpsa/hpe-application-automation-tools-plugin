@@ -1,21 +1,26 @@
 package com.hp.nga.integrations.dto.tests.impl;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.hp.nga.integrations.dto.tests.TestResult;
 import com.hp.nga.integrations.dto.tests.TestRun;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAnyElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * Created by gullery on 06/03/2016.
  */
 
-@JacksonXmlRootElement(localName = "test_result")
+@XmlRootElement(name = "test_result")
+@XmlAccessorType(XmlAccessType.NONE)
 class TestResultImpl implements TestResult {
+
+	@XmlElementWrapper(name = "test_runs")
+	@XmlAnyElement(lax = true)
 	private TestRun[] testRuns;
 
-	@JacksonXmlElementWrapper(localName = "test_runs")
-	@JacksonXmlProperty(localName = "test_run")
 	public TestRun[] getTestRuns() {
 		return testRuns;
 	}

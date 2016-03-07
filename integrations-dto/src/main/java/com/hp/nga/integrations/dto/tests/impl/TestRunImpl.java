@@ -1,25 +1,42 @@
 package com.hp.nga.integrations.dto.tests.impl;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.hp.nga.integrations.dto.tests.TestRun;
 import com.hp.nga.integrations.dto.tests.TestRunResult;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * Created by gullery on 06/03/2016.
  */
 
-@JacksonXmlRootElement(localName = "test_run")
+@XmlRootElement(name = "test_run")
+@XmlAccessorType(XmlAccessType.NONE)
 class TestRunImpl implements TestRun {
+
+	@XmlAttribute(name = "module")
 	private String moduleName;
+
+	@XmlAttribute(name = "package")
 	private String packageName;
+
+	@XmlAttribute(name = "class")
 	private String className;
+
+	@XmlAttribute(name = "name")
 	private String testName;
+
+	@XmlAttribute(name = "status")
 	private TestRunResult result;
+
+	@XmlAttribute(name = "duration")
 	private int duration;
+
+	@XmlAttribute(name = "started")
 	private long started;
 
-	@JacksonXmlProperty(isAttribute = true, localName = "module")
 	public String getModuleName() {
 		return moduleName;
 	}
@@ -29,7 +46,6 @@ class TestRunImpl implements TestRun {
 		return this;
 	}
 
-	@JacksonXmlProperty(isAttribute = true, localName = "package")
 	public String getPackageName() {
 		return packageName;
 	}
@@ -39,7 +55,6 @@ class TestRunImpl implements TestRun {
 		return this;
 	}
 
-	@JacksonXmlProperty(isAttribute = true, localName = "class")
 	public String getClassName() {
 		return className;
 	}
@@ -49,7 +64,6 @@ class TestRunImpl implements TestRun {
 		return this;
 	}
 
-	@JacksonXmlProperty(isAttribute = true, localName = "name")
 	public String getTestName() {
 		return testName;
 	}
@@ -59,7 +73,6 @@ class TestRunImpl implements TestRun {
 		return this;
 	}
 
-	@JacksonXmlProperty(isAttribute = true, localName = "status")
 	public TestRunResult getResult() {
 		return result;
 	}
@@ -69,7 +82,6 @@ class TestRunImpl implements TestRun {
 		return this;
 	}
 
-	@JacksonXmlProperty(isAttribute = true, localName = "duration")
 	public int getDuration() {
 		return duration;
 	}
@@ -79,7 +91,6 @@ class TestRunImpl implements TestRun {
 		return this;
 	}
 
-	@JacksonXmlProperty(isAttribute = true, localName = "started")
 	public long getStarted() {
 		return started;
 	}

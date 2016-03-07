@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.hp.nga.integrations.dto.DTOBase;
-import com.hp.nga.integrations.dto.DTOFactoryInternalBase;
+import com.hp.nga.integrations.dto.DTOFactoryInternalAbstract;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.pipelines.PipelinePhase;
@@ -16,13 +16,18 @@ import java.util.Map;
  * Created by gullery on 10/02/2016.
  */
 
-public final class DTOFactoryPipelines implements DTOFactoryInternalBase {
+public final class DTOFactoryPipelines extends DTOFactoryInternalAbstract {
 	private final Map<Class, Class> dtoPairs = new HashMap<Class, Class>();
 
 	private DTOFactoryPipelines() {
 	}
 
-	public static void ensureInit(Map<Class<? extends DTOBase>, DTOFactoryInternalBase> registry, ObjectMapper objectMapper) {
+	@Override
+	protected Class[] getXMLAbleClasses() {
+		return new Class[0];
+	}
+
+	public static void ensureInit(Map<Class<? extends DTOBase>, DTOFactoryInternalAbstract> registry, ObjectMapper objectMapper) {
 		registry.put(PipelineNode.class, INSTANCE_HOLDER.instance);
 		registry.put(PipelinePhase.class, INSTANCE_HOLDER.instance);
 		registry.put(BuildHistory.class, INSTANCE_HOLDER.instance);

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.hp.nga.integrations.dto.DTOBase;
-import com.hp.nga.integrations.dto.DTOFactoryInternalBase;
+import com.hp.nga.integrations.dto.DTOFactoryInternalAbstract;
 import com.hp.nga.integrations.dto.scm.SCMCommit;
 import com.hp.nga.integrations.dto.scm.SCMData;
 import com.hp.nga.integrations.dto.scm.SCMRepository;
@@ -16,13 +16,18 @@ import java.util.Map;
  * Created by gullery on 10/02/2016.
  */
 
-public final class DTOFactorySCM implements DTOFactoryInternalBase {
+public final class DTOFactorySCM extends DTOFactoryInternalAbstract {
 	private final Map<Class, Class> dtoPairs = new HashMap<Class, Class>();
 
 	private DTOFactorySCM() {
 	}
 
-	public static void ensureInit(Map<Class<? extends DTOBase>, DTOFactoryInternalBase> registry, ObjectMapper objectMapper) {
+	@Override
+	protected Class[] getXMLAbleClasses() {
+		return new Class[0];
+	}
+
+	public static void ensureInit(Map<Class<? extends DTOBase>, DTOFactoryInternalAbstract> registry, ObjectMapper objectMapper) {
 		registry.put(SCMCommit.class, INSTANCE_HOLDER.instance);
 		registry.put(SCMRepository.class, INSTANCE_HOLDER.instance);
 		registry.put(SCMData.class, INSTANCE_HOLDER.instance);
