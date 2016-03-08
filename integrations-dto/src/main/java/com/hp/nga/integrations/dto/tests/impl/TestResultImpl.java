@@ -1,5 +1,6 @@
 package com.hp.nga.integrations.dto.tests.impl;
 
+import com.hp.nga.integrations.dto.tests.BuildContext;
 import com.hp.nga.integrations.dto.tests.TestResult;
 import com.hp.nga.integrations.dto.tests.TestRun;
 
@@ -20,7 +21,14 @@ class TestResultImpl implements TestResult {
 	@XmlElementWrapper(name = "test_runs")
 	@XmlAnyElement(lax = true)
 	private TestRun[] testRuns;
+
+	@XmlAnyElement(lax = true)
 	private BuildContext buildContext;
+
+
+	public BuildContext getBuildContext() {
+		return buildContext;
+	}
 
 	public TestRun[] getTestRuns() {
 		return testRuns;
@@ -28,6 +36,11 @@ class TestResultImpl implements TestResult {
 
 	public TestResult setTestRuns(TestRun[] testRuns) {
 		this.testRuns = testRuns;
+		return this;
+	}
+
+	public TestResult setBuildContext(BuildContext buildContext) {
+		this.buildContext = buildContext;
 		return this;
 	}
 }

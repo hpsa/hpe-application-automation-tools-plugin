@@ -1,25 +1,33 @@
 package com.hp.nga.integrations.dto.tests.impl;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
 import  com.hp.nga.integrations.dto.tests.BuildContext;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlRootElement;
 
 
 /**
  * Created by lev on 06/03/2016.
  */
-@JacksonXmlRootElement(localName = "build")
+@XmlRootElement(name = "build")
+@XmlAccessorType(XmlAccessType.NONE)
 public class BuildContextImpl implements BuildContext {
 
+    @XmlAttribute(name = "build_sid")
     private long buildId;
 
+    @XmlAttribute(name = "sub_type")
     private String subType;
 
+    @XmlAttribute(name = "build_type")
     private String buildType;
 
+    @XmlAttribute(name = "server")
     private String server;
 
-    @JacksonXmlProperty(isAttribute = true, localName = "build_sid")
     public long getBuildId() {
         return buildId;
     }
@@ -29,7 +37,6 @@ public class BuildContextImpl implements BuildContext {
         return this;
     }
 
-    @JacksonXmlProperty(isAttribute = true, localName = "sub_type")
     public String getSubType() {
         return subType;
     }
@@ -39,7 +46,6 @@ public class BuildContextImpl implements BuildContext {
         return this;
     }
 
-    @JacksonXmlProperty(isAttribute = true, localName = "build_type")
     public String getBuildType() {
         return buildType;
     }
@@ -49,7 +55,6 @@ public class BuildContextImpl implements BuildContext {
         return this;
     }
 
-    @JacksonXmlProperty(isAttribute = true, localName = "server")
     public String getServer() {
         return server;
     }

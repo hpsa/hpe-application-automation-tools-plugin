@@ -21,16 +21,11 @@ import java.util.List;
  * Created by lev on 06/01/2016.
  */
 public class BuildTestsService{
-    private static final String TEAMCITY_BUILD_CHECKOUT_DIR = "teamcity.build.checkoutDir";
-	//static final String TEST_RESULT_FILE = "mqmTests.xml";
-    private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-	//private static XmlMapper mapper = new XmlMapper();
+    //private static final String TEAMCITY_BUILD_CHECKOUT_DIR = "teamcity.build.checkoutDir";
 
-//	static {
-//		JaxbAnnotationModule module = new JaxbAnnotationModule();
-//		mapper.registerModule(module);
-//	}
-    public static boolean handleTestResult(List<STestRun> tests, File destPath, long buildStartingTime,  SRunningBuild build){
+    private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+
+    public static void handleTestResult(List<STestRun> tests, long buildStartingTime,  SRunningBuild build){
 
         BuildContext buildContext = dtoFactory.newDTO(BuildContext.class)
                 .setBuildId(build.getBuildId())
@@ -38,17 +33,8 @@ public class BuildTestsService{
                 .setServer(NGAPlugin.getInstance().getConfig().getIdentity());
         TestRun [] testArr = createTestList(tests, buildStartingTime);
         TestResult result = dtoFactory.newDTO(com.hp.nga.integrations.dto.tests.TestResult.class).setTestRuns(testArr).setBuildContext(buildContext);
-        //DTOFactory dtoFactory = DTOFactory.getInstance();
         String xml = dtoFactory.dtoToXml(result);
-        //TestResultContainer testResult = new TestResultContainer(testList, buildContext);
-//        try {
-//            mapper.writeValue(new File(destPath.getPath() + "\\" + TEST_RESULT_FILE), result);
-//        } catch (JsonProcessingException e) {
-//            e.printStackTrace();
-//        } catch (IOException ioe){
-//            ioe.printStackTrace();
-//        }
-        return true;
+
     }
 
 

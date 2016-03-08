@@ -50,7 +50,7 @@ public final class DTOFactoryTests extends DTOFactoryInternalBase {
 
 	@Override
 	protected Class[] getXMLAbleClasses() {
-		return new Class[]{TestRunImpl.class, TestResultImpl.class};
+		return new Class[]{TestRunImpl.class, TestResultImpl.class, BuildContextImpl.class};
 	}
 
 	private static final class INSTANCE_HOLDER {
