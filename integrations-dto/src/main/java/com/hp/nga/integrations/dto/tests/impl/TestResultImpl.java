@@ -3,6 +3,7 @@ package com.hp.nga.integrations.dto.tests.impl;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.hp.nga.integrations.dto.tests.BuildContext;
 import com.hp.nga.integrations.dto.tests.TestResult;
 import com.hp.nga.integrations.dto.tests.TestRun;
 
@@ -13,6 +14,12 @@ import com.hp.nga.integrations.dto.tests.TestRun;
 @JacksonXmlRootElement(localName = "test_result")
 class TestResultImpl implements TestResult {
 	private TestRun[] testRuns;
+	private BuildContext buildContext;
+
+	@JacksonXmlProperty(localName = "build")
+	public BuildContext getBuildContext() {
+		return buildContext;
+	}
 
 	@JacksonXmlElementWrapper(localName = "test_runs")
 	@JacksonXmlProperty(localName = "test_run")
@@ -22,6 +29,11 @@ class TestResultImpl implements TestResult {
 
 	public TestResult setTestRuns(TestRun[] testRuns) {
 		this.testRuns = testRuns;
+		return this;
+	}
+
+	public TestResult setBuildContext(BuildContext buildContext) {
+		this.buildContext = buildContext;
 		return this;
 	}
 }

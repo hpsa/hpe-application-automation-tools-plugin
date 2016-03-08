@@ -17,7 +17,6 @@ import java.util.List;
  */
 public class BuildFinishedListener extends BuildServerAdapter {
 
-    private static final String TEAMCITY_BUILD_CHECKOUT_DIR = "teamcity.build.checkoutDir";
 
 	public BuildFinishedListener(SBuildServer server) {
 		server.addListener(this);
@@ -27,13 +26,9 @@ public class BuildFinishedListener extends BuildServerAdapter {
     public void buildFinished(@NotNull SRunningBuild build) {
         File destPath = build.getArtifactsDirectory();
         long buildTime = build.getStartDate().getTime();
-
         BuildStatistics stats = build.getBuildStatistics(new BuildStatisticsOptions());
         List<STestRun> tests = stats.getTests(null, BuildStatistics.Order.NATURAL_ASC);
-        BuildContext buildContext = new BuildContext();
-        buildContext.setBuildId(build.getBuildId());
-        buildContext.setBuildType(build.getBuildType().getName());
-        buildContext.setServer(NGAPlugin.getInstance().getConfig().getIdentity());
-        BuildTestsService.handleTestResult(tests, destPath, buildTime, buildContext);
+
+        BuildTestsService.handleTestResult(tests, destPath, buildTime, build);
     }
 }

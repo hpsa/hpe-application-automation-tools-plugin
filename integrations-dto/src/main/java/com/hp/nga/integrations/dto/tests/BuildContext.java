@@ -6,33 +6,22 @@ import com.hp.nga.integrations.dto.DTOBase;
  * Created by gullery on 06/03/2016.
  */
 
-public interface BuildContext extends DTOBase {
+public interface BuildContext  extends DTOBase {
 
-	String getModuleName();
+	long getBuildId();
 
-	BuildContext setModuleName(String moduleName);
+	BuildContext setBuildId(long buildId);
 
-	String getPackageName();
+	String getSubType();
 
-	BuildContext setPackageName(String packageName);
+	BuildContext setSubType(String subType);
 
-	String getClassName();
+	String getBuildType();
 
-	BuildContext setClassName(String className);
+	BuildContext setBuildType(String buildType);
 
-	String getTestName();
+	String getServer();
 
-	BuildContext setTestName(String testName);
+	BuildContext setServer(String server);
 
-	TestRunResult getResult();
-
-	BuildContext setResult(TestRunResult result);
-
-	int getDuration();
-
-	BuildContext setDuration(int duration);
-
-	long getStarted();
-
-	BuildContext setStarted(long started);
 }

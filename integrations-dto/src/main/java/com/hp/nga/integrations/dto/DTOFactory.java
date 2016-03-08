@@ -26,10 +26,12 @@ import java.util.Map;
 
 public final class DTOFactory {
 	private final Map<Class<? extends DTOBase>, DTOFactoryInternalBase> registry = new HashMap<Class<? extends DTOBase>, DTOFactoryInternalBase>();
-	private final ObjectMapper jsonMapper = new ObjectMapper();
-	private final ObjectMapper xmlMapper = new XmlMapper();
+	private final ObjectMapper jsonMapper;
+	private final ObjectMapper xmlMapper;
 
 	private DTOFactory() {
+		xmlMapper = new XmlMapper();
+		jsonMapper = new ObjectMapper();
 		DTOFactoryCauses.ensureInit(registry, jsonMapper);
 		DTOFactoryConfigs.ensureInit(registry, jsonMapper);
 		DTOFactoryConnectivity.ensureInit(registry, jsonMapper);

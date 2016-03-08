@@ -29,11 +29,11 @@
 			<artifactId>jackson-dataformat-xml</artifactId>
 			<version>${jackson.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>org.codehaus.woodstox</groupId>
-			<artifactId>woodstox-core-asl</artifactId>
-			<version>${woodstox.version}</version>
-		</dependency>
+		<!--<dependency>-->
+			<!--<groupId>org.codehaus.woodstox</groupId>-->
+			<!--<artifactId>woodstox-core-asl</artifactId>-->
+			<!--<version>${woodstox.version}</version>-->
+		<!--</dependency>-->
 
 		<!-- TESTING -->
 		<dependency>
