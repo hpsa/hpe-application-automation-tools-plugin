@@ -1,12 +1,11 @@
 package com.hp.nga.integrations.dto.tests;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
+import javax.xml.bind.annotation.XmlEnumValue;
 
 public enum TestRunResult {
-	PASSED("Passed"),
-	SKIPPED("Skipped"),
-	FAILED("Failed");
+	@XmlEnumValue(value = "Passed")PASSED("Passed"),
+	@XmlEnumValue(value = "Failed")FAILED("Failed"),
+	@XmlEnumValue(value = "Skipped")SKIPPED("Skipped");
 
 	private final String value;
 
@@ -14,12 +13,10 @@ public enum TestRunResult {
 		this.value = value;
 	}
 
-	@JsonValue
 	public String value() {
 		return value;
 	}
 
-	@JsonCreator
 	public static TestRunResult fromValue(String value) {
 		if (value == null || value.isEmpty()) {
 			throw new IllegalArgumentException("value MUST NOT be null nor empty");

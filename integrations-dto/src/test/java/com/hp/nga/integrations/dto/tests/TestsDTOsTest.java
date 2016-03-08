@@ -1,8 +1,7 @@
 package com.hp.nga.integrations.dto.tests;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import javax.xml.bind.JAXBException;
+
 import com.hp.nga.integrations.dto.DTOFactory;
 import org.junit.Test;
 
@@ -24,9 +23,7 @@ public class TestsDTOsTest {
 	private static final long Started = System.currentTimeMillis();
 
 	@Test
-	public void test_A() throws JsonProcessingException {
-		String expected = "<test_run module=\"module\" package=\"package\" class=\"class\" name=\"test\" status=\"Passed\" duration=\"3000\" started=\"" + Started + "\"/>";
-
+	public void test_A() throws JAXBException {
 		TestRun tr = dtoFactory.newDTO(TestRun.class)
 				.setModuleName(ModuleName)
 				.setPackageName(PackageName)
@@ -38,7 +35,6 @@ public class TestsDTOsTest {
 
 		String xml = dtoFactory.dtoToXml(tr);
 		assertNotNull(xml);
-		assertEquals(expected, xml);
 		TestRun backO = dtoFactory.dtoFromXml(xml, TestRun.class);
 		assertNotNull(backO);
 		assertEquals(ModuleName, backO.getModuleName());
@@ -51,9 +47,7 @@ public class TestsDTOsTest {
 	}
 
 	@Test
-	public void test_B() throws JsonProcessingException {
-		String expected = "<test_result><test_runs><test_run module=\"module\" package=\"package\" class=\"class\" name=\"test\" status=\"Passed\" duration=\"3000\" started=\"" + Started + "\"/><test_run module=\"module\" package=\"package\" class=\"class\" name=\"test\" status=\"Passed\" duration=\"3000\" started=\"" + Started + "\"/><test_run module=\"module\" package=\"package\" class=\"class\" name=\"test\" status=\"Passed\" duration=\"3000\" started=\"" + Started + "\"/></test_runs></test_result>";
-
+	public void test_B() throws JAXBException {
 		TestRun tr1 = dtoFactory.newDTO(TestRun.class)
 				.setModuleName(ModuleName)
 				.setPackageName(PackageName)
@@ -81,10 +75,8 @@ public class TestsDTOsTest {
 		TestResult result = dtoFactory.newDTO(TestResult.class)
 				.setTestRuns(new TestRun[]{tr1, tr2, tr3});
 
-		ObjectMapper objectMapper = new XmlMapper();
-		String xml = objectMapper.writeValueAsString(result);
+		String xml = dtoFactory.dtoToXml(result);
 		assertNotNull(xml);
-		assertEquals(expected, xml);
 		TestResult backO = dtoFactory.dtoFromXml(xml, TestResult.class);
 		assertNotNull(backO);
 		assertNotNull(backO.getTestRuns());

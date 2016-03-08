@@ -16,7 +16,7 @@ import java.util.Map;
  * Created by gullery on 10/02/2016.
  */
 
-public final class DTOFactoryTests implements DTOFactoryInternalBase {
+public final class DTOFactoryTests extends DTOFactoryInternalBase {
 	private final Map<Class, Class> dtoPairs = new HashMap<Class, Class>();
 
 	private DTOFactoryTests() {
@@ -46,6 +46,11 @@ public final class DTOFactoryTests implements DTOFactoryInternalBase {
 			result = (T) dtoPairs.get(targetType).newInstance();
 		}
 		return result;
+	}
+
+	@Override
+	protected Class[] getXMLAbleClasses() {
+		return new Class[]{TestRunImpl.class, TestResultImpl.class};
 	}
 
 	private static final class INSTANCE_HOLDER {
