@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.hp.nga.integrations.dto.DTOBase;
-import com.hp.nga.integrations.dto.DTOFactoryInternalBase;
+import com.hp.nga.integrations.dto.DTOInternalProviderBase;
 import com.hp.nga.integrations.dto.scm.SCMCommit;
 import com.hp.nga.integrations.dto.scm.SCMData;
 import com.hp.nga.integrations.dto.scm.SCMRepository;
@@ -16,10 +16,10 @@ import java.util.Map;
  * Created by gullery on 10/02/2016.
  */
 
-public final class DTOFactorySCM extends DTOFactoryInternalBase {
+public final class DTOSCMProvider extends DTOInternalProviderBase {
 	private final Map<Class, Class> dtoPairs = new HashMap<Class, Class>();
 
-	private DTOFactorySCM() {
+	private DTOSCMProvider() {
 	}
 
 	@Override
@@ -27,7 +27,7 @@ public final class DTOFactorySCM extends DTOFactoryInternalBase {
 		return new Class[0];
 	}
 
-	public static void ensureInit(Map<Class<? extends DTOBase>, DTOFactoryInternalBase> registry, ObjectMapper objectMapper) {
+	public static void ensureInit(Map<Class<? extends DTOBase>, DTOInternalProviderBase> registry, ObjectMapper objectMapper) {
 		registry.put(SCMCommit.class, INSTANCE_HOLDER.instance);
 		registry.put(SCMRepository.class, INSTANCE_HOLDER.instance);
 		registry.put(SCMData.class, INSTANCE_HOLDER.instance);
@@ -54,6 +54,6 @@ public final class DTOFactorySCM extends DTOFactoryInternalBase {
 	}
 
 	private static final class INSTANCE_HOLDER {
-		private static final DTOFactorySCM instance = new DTOFactorySCM();
+		private static final DTOSCMProvider instance = new DTOSCMProvider();
 	}
 }

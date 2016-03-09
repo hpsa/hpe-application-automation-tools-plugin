@@ -1,5 +1,7 @@
 package com.hp.nga.integrations.dto;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
@@ -13,16 +15,29 @@ import java.io.StringReader;
  * API definition of an internal DTO factories
  */
 
-public abstract class DTOFactoryInternalBase {
+public abstract class DTOInternalProviderBase {
 
-	protected DTOFactoryInternalBase() {
+	protected DTOInternalProviderBase() {
 	}
 
 	protected abstract Class[] getXMLAbleClasses();
 
 	protected abstract <T> T instantiateDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException;
 
-	<T> String toXML(T dto) throws JAXBException {
+	<T extends DTOBase> String dtoToJson(T dto) {
+		if (dto == null) {
+			throw new IllegalArgumentException("dto MUST NOT be null");
+		}
+
+		try {
+			return jsonMapper.writeValueAsString(dto);
+		} catch (JsonProcessingException ioe) {
+			throw new RuntimeException("failed to serialize " + dto + " from JSON; error: " + ioe.getMessage());
+		}
+	}
+
+
+	<T extends DTOBase> String toXML(T dto) throws JAXBException {
 		JAXBContext jaxbContext = JAXBContext.newInstance(getXMLAbleClasses());
 		Marshaller marshaller = jaxbContext.createMarshaller();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();

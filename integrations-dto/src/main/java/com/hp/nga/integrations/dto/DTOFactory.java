@@ -2,14 +2,14 @@ package com.hp.nga.integrations.dto;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hp.nga.integrations.dto.causes.impl.DTOFactoryCauses;
-import com.hp.nga.integrations.dto.configuration.impl.DTOFactoryConfigs;
-import com.hp.nga.integrations.dto.connectivity.impl.DTOFactoryConnectivity;
-import com.hp.nga.integrations.dto.coverage.impl.DTOFactoryCoverage;
-import com.hp.nga.integrations.dto.general.impl.DTOFactoryGeneral;
-import com.hp.nga.integrations.dto.pipelines.impl.DTOFactoryPipelines;
-import com.hp.nga.integrations.dto.scm.impl.DTOFactorySCM;
-import com.hp.nga.integrations.dto.snapshots.impl.DTOFactorySnapshots;
+import com.hp.nga.integrations.dto.causes.impl.DTOCausesProvider;
+import com.hp.nga.integrations.dto.configuration.impl.DTOConfigsProvider;
+import com.hp.nga.integrations.dto.connectivity.impl.DTOConnectivityProvider;
+import com.hp.nga.integrations.dto.coverage.impl.DTOCoverageProvider;
+import com.hp.nga.integrations.dto.general.impl.DTOGeneralProvider;
+import com.hp.nga.integrations.dto.pipelines.impl.DTOPipelinesProvider;
+import com.hp.nga.integrations.dto.scm.impl.DTOSCMProvider;
+import com.hp.nga.integrations.dto.snapshots.impl.DTOSnapshotsProvider;
 
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
@@ -24,18 +24,18 @@ import java.util.Map;
  */
 
 public final class DTOFactory {
-	private final Map<Class<? extends DTOBase>, DTOFactoryInternalBase> registry = new HashMap<Class<? extends DTOBase>, DTOFactoryInternalBase>();
+	private final Map<Class<? extends DTOBase>, DTOInternalProviderBase> registry = new HashMap<Class<? extends DTOBase>, DTOInternalProviderBase>();
 	private final ObjectMapper jsonMapper = new ObjectMapper();
 
 	private DTOFactory() {
-		DTOFactoryCauses.ensureInit(registry, jsonMapper);
-		DTOFactoryConfigs.ensureInit(registry, jsonMapper);
-		DTOFactoryConnectivity.ensureInit(registry, jsonMapper);
-		DTOFactoryCoverage.ensureInit(registry, jsonMapper);
-		DTOFactoryGeneral.ensureInit(registry, jsonMapper);
-		DTOFactoryPipelines.ensureInit(registry, jsonMapper);
-		DTOFactorySCM.ensureInit(registry, jsonMapper);
-		DTOFactorySnapshots.ensureInit(registry, jsonMapper);
+		DTOCausesProvider.ensureInit(registry, jsonMapper);
+		DTOConfigsProvider.ensureInit(registry, jsonMapper);
+		DTOConnectivityProvider.ensureInit(registry, jsonMapper);
+		DTOCoverageProvider.ensureInit(registry, jsonMapper);
+		DTOGeneralProvider.ensureInit(registry, jsonMapper);
+		DTOPipelinesProvider.ensureInit(registry, jsonMapper);
+		DTOSCMProvider.ensureInit(registry, jsonMapper);
+		DTOSnapshotsProvider.ensureInit(registry, jsonMapper);
 	}
 
 	public static DTOFactory getInstance() {
@@ -121,11 +121,11 @@ public final class DTOFactory {
 			throw new IllegalArgumentException("dto MUST NOT be null");
 		}
 
-		DTOFactoryInternalBase internalFactory = null;
+		DTOInternalProviderBase internalFactory = null;
 		try {
 			for (Class<? extends DTOBase> supported : registry.keySet()) {
 				if (supported.isAssignableFrom(dto.getClass())) {
-					internalFactory = (DTOFactoryInternalBase) registry.get(supported);
+					internalFactory = registry.get(supported);
 					break;
 				}
 			}
@@ -147,11 +147,11 @@ public final class DTOFactory {
 			throw new IllegalArgumentException("target type MUST be an Interface");
 		}
 
-		DTOFactoryInternalBase internalFactory = null;
+		DTOInternalProviderBase internalFactory = null;
 		try {
 			for (Class<? extends DTOBase> supported : registry.keySet()) {
 				if (supported.equals(targetType)) {
-					internalFactory = (DTOFactoryInternalBase) registry.get(supported);
+					internalFactory = registry.get(supported);
 					break;
 				}
 			}

@@ -1,16 +1,3 @@
-//package com.hp.octane.plugins.jetbrains.teamcity.client;
-//
-//import com.hp.octane.plugins.jetbrains.teamcity.configuration.ConfigurationService;
-//
-//import java.net.MalformedURLException;
-//import java.net.URL;
-//import java.util.Arrays;
-//import java.util.HashMap;
-//import java.util.Map;
-//
-///**
-// * Created by linsha on 10/01/2016.
-// */
 //public class MqmRestClientFactory {
 //
 //	private static String host;
@@ -45,21 +32,6 @@
 //		}
 //	}
 //
-//	private static String getProxyHost() {
-//		return host;
-//	}
-//
-//	private static Integer getProxyPort() {
-//		return port;
-//	}
-//
-//	private static String getUsername() {
-//		return userName;
-//	}
-//
-//	private static String getPassword() {
-//		return password;
-//	}
 //
 //	private static boolean isProxyNeeded(final String str) {
 //		Map<String, String> propertiesMap = parseProperties(System.getenv("TEAMCITY_SERVER_OPTS"));

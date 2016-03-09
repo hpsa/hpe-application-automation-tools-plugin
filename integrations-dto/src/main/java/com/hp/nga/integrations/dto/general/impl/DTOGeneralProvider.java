@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.hp.nga.integrations.dto.DTOBase;
-import com.hp.nga.integrations.dto.DTOFactoryInternalBase;
+import com.hp.nga.integrations.dto.DTOInternalProviderBase;
 import com.hp.nga.integrations.dto.general.CIPluginSDKInfo;
 import com.hp.nga.integrations.dto.general.CIProviderSummaryInfo;
 import com.hp.nga.integrations.dto.general.CIJobMetadata;
@@ -19,10 +19,10 @@ import java.util.Map;
  * Created by gullery on 10/02/2016.
  */
 
-public final class DTOFactoryGeneral extends DTOFactoryInternalBase {
+public final class DTOGeneralProvider extends DTOInternalProviderBase {
 	private final Map<Class, Class> dtoPairs = new HashMap<Class, Class>();
 
-	private DTOFactoryGeneral() {
+	private DTOGeneralProvider() {
 	}
 
 	@Override
@@ -30,7 +30,7 @@ public final class DTOFactoryGeneral extends DTOFactoryInternalBase {
 		return new Class[0];
 	}
 
-	public static void ensureInit(Map<Class<? extends DTOBase>, DTOFactoryInternalBase> registry, ObjectMapper objectMapper) {
+	public static void ensureInit(Map<Class<? extends DTOBase>, DTOInternalProviderBase> registry, ObjectMapper objectMapper) {
 		registry.put(CIPluginInfo.class, INSTANCE_HOLDER.instance);
 		registry.put(CIServerInfo.class, INSTANCE_HOLDER.instance);
 		registry.put(CIPluginSDKInfo.class, INSTANCE_HOLDER.instance);
@@ -66,6 +66,6 @@ public final class DTOFactoryGeneral extends DTOFactoryInternalBase {
 	}
 
 	private static final class INSTANCE_HOLDER {
-		private static final DTOFactoryGeneral instance = new DTOFactoryGeneral();
+		private static final DTOGeneralProvider instance = new DTOGeneralProvider();
 	}
 }

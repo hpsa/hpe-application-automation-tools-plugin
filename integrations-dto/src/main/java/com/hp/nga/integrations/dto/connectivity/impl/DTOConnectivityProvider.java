@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.hp.nga.integrations.dto.DTOBase;
-import com.hp.nga.integrations.dto.DTOFactoryInternalBase;
+import com.hp.nga.integrations.dto.DTOInternalProviderBase;
 import com.hp.nga.integrations.dto.connectivity.NGARequest;
 import com.hp.nga.integrations.dto.connectivity.NGAResponse;
 import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
@@ -17,10 +17,10 @@ import java.util.Map;
  * Created by gullery on 10/02/2016.
  */
 
-public final class DTOFactoryConnectivity extends DTOFactoryInternalBase {
+public final class DTOConnectivityProvider extends DTOInternalProviderBase {
 	private final Map<Class, Class> dtoPairs = new HashMap<Class, Class>();
 
-	private DTOFactoryConnectivity() {
+	private DTOConnectivityProvider() {
 	}
 
 	@Override
@@ -28,7 +28,7 @@ public final class DTOFactoryConnectivity extends DTOFactoryInternalBase {
 		return new Class[0];
 	}
 
-	public static void ensureInit(Map<Class<? extends DTOBase>, DTOFactoryInternalBase> registry, ObjectMapper objectMapper) {
+	public static void ensureInit(Map<Class<? extends DTOBase>, DTOInternalProviderBase> registry, ObjectMapper objectMapper) {
 		registry.put(NGARequest.class, INSTANCE_HOLDER.instance);
 		registry.put(NGAResponse.class, INSTANCE_HOLDER.instance);
 		registry.put(NGATaskAbridged.class, INSTANCE_HOLDER.instance);
@@ -58,6 +58,6 @@ public final class DTOFactoryConnectivity extends DTOFactoryInternalBase {
 	}
 
 	private static final class INSTANCE_HOLDER {
-		private static final DTOFactoryConnectivity instance = new DTOFactoryConnectivity();
+		private static final DTOConnectivityProvider instance = new DTOConnectivityProvider();
 	}
 }

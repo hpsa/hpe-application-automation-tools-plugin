@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.hp.nga.integrations.dto.DTOBase;
-import com.hp.nga.integrations.dto.DTOFactoryInternalBase;
+import com.hp.nga.integrations.dto.DTOInternalProviderBase;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
 import com.hp.nga.integrations.dto.snapshots.SnapshotPhase;
 
@@ -15,10 +15,10 @@ import java.util.Map;
  * Created by gullery on 10/02/2016.
  */
 
-public final class DTOFactorySnapshots extends DTOFactoryInternalBase {
+public final class DTOSnapshotsProvider extends DTOInternalProviderBase {
 	private final Map<Class, Class> dtoPairs = new HashMap<Class, Class>();
 
-	private DTOFactorySnapshots() {
+	private DTOSnapshotsProvider() {
 	}
 
 	@Override
@@ -26,7 +26,7 @@ public final class DTOFactorySnapshots extends DTOFactoryInternalBase {
 		return new Class[0];
 	}
 
-	public static void ensureInit(Map<Class<? extends DTOBase>, DTOFactoryInternalBase> registry, ObjectMapper objectMapper) {
+	public static void ensureInit(Map<Class<? extends DTOBase>, DTOInternalProviderBase> registry, ObjectMapper objectMapper) {
 		registry.put(SnapshotNode.class, INSTANCE_HOLDER.instance);
 		registry.put(SnapshotPhase.class, INSTANCE_HOLDER.instance);
 
@@ -50,6 +50,6 @@ public final class DTOFactorySnapshots extends DTOFactoryInternalBase {
 	}
 
 	private static final class INSTANCE_HOLDER {
-		private static final DTOFactorySnapshots instance = new DTOFactorySnapshots();
+		private static final DTOSnapshotsProvider instance = new DTOSnapshotsProvider();
 	}
 }

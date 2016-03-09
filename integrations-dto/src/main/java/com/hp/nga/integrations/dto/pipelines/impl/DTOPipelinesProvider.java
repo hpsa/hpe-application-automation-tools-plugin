@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.hp.nga.integrations.dto.DTOBase;
-import com.hp.nga.integrations.dto.DTOFactoryInternalBase;
+import com.hp.nga.integrations.dto.DTOInternalProviderBase;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.pipelines.PipelinePhase;
@@ -16,10 +16,10 @@ import java.util.Map;
  * Created by gullery on 10/02/2016.
  */
 
-public final class DTOFactoryPipelines extends DTOFactoryInternalBase {
+public final class DTOPipelinesProvider extends DTOInternalProviderBase {
 	private final Map<Class, Class> dtoPairs = new HashMap<Class, Class>();
 
-	private DTOFactoryPipelines() {
+	private DTOPipelinesProvider() {
 	}
 
 	@Override
@@ -27,7 +27,7 @@ public final class DTOFactoryPipelines extends DTOFactoryInternalBase {
 		return new Class[0];
 	}
 
-	public static void ensureInit(Map<Class<? extends DTOBase>, DTOFactoryInternalBase> registry, ObjectMapper objectMapper) {
+	public static void ensureInit(Map<Class<? extends DTOBase>, DTOInternalProviderBase> registry, ObjectMapper objectMapper) {
 		registry.put(PipelineNode.class, INSTANCE_HOLDER.instance);
 		registry.put(PipelinePhase.class, INSTANCE_HOLDER.instance);
 		registry.put(BuildHistory.class, INSTANCE_HOLDER.instance);
@@ -54,6 +54,6 @@ public final class DTOFactoryPipelines extends DTOFactoryInternalBase {
 	}
 
 	private static final class INSTANCE_HOLDER {
-		private static final DTOFactoryPipelines instance = new DTOFactoryPipelines();
+		private static final DTOPipelinesProvider instance = new DTOPipelinesProvider();
 	}
 }
