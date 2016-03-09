@@ -5,11 +5,9 @@ package com.hp.octane.plugins.jetbrains.teamcity;
  */
 
 import com.hp.nga.integrations.SDKManager;
-import com.hp.nga.integrations.services.bridge.BridgeService;
-import com.hp.octane.plugins.CIPluginServicesImpl;
 import com.hp.octane.plugins.jetbrains.teamcity.actions.ConfigurationActionsController;
 import com.hp.octane.plugins.jetbrains.teamcity.actions.DynamicController;
-import com.hp.octane.plugins.jetbrains.teamcity.utils.Config;
+import com.hp.octane.plugins.jetbrains.teamcity.configuration.NGAConfig;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.ConfigManager;
 import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;
 import jetbrains.buildServer.serverSide.ProjectManager;
@@ -27,20 +25,14 @@ public class NGAPlugin implements ServerExtension {
 	public static final String PLUGIN_NAME = NGAPlugin.class.getSimpleName().toLowerCase();
 	private static final Logger logger = Logger.getLogger(NGAPlugin.class.getName());
 	private final CIPluginServicesImpl ciPluginService;
-//
-//    private String identity;
-//    private Long identityFrom;
-	// inferred from uiLocation
-//    private final String PLUGIN_TYPE = ConfigurationService.CLIENT_TYPE;
 
 	private SBuildServer sBuildServer;
 	private ProjectManager projectManager;
 	private BuildTypeResponsibilityFacade responsibilityFacade;
 
-
 	private static NGAPlugin plugin;
 	private PluginDescriptor descriptor;
-	private Config config;
+	private NGAConfig config;
 	private ConfigManager configManager;
 
 	public SBuildServer getsBuildServer() {
@@ -60,7 +52,6 @@ public class NGAPlugin implements ServerExtension {
 		this.sBuildServer = sBuildServer;
 		this.projectManager = projectManager;
 		this.responsibilityFacade = responsibilityFacade;
-//        server.addListener(new BuildEventListener());
 		registerControllers(webControllerManager, projectManager, sBuildServer, projectSettingsManager, pluginDescriptor);
 		configManager = ConfigManager.getInstance(descriptor, sBuildServer);
 		config = configManager.jaxbXMLToObject();
@@ -79,25 +70,24 @@ public class NGAPlugin implements ServerExtension {
 	}
 
 	private void registerControllers(WebControllerManager webControllerManager, ProjectManager projectManager, SBuildServer sBuildServer, ProjectSettingsManager projectSettingsManager, PluginDescriptor pluginDescriptor) {
-
 		webControllerManager.registerController("/nga/**", new DynamicController());
 		webControllerManager.registerController("/octane-rest/**", new ConfigurationActionsController(sBuildServer, pluginDescriptor));
 	}
 
 	private void initOPB() {
-		String Identity = config.getIdentity();
-		if (Identity.equals("") || Identity.equals(null)) {
-			String newidentity = UUID.randomUUID().toString();      //creating the new parameters
+		String identity = config.getIdentity();
+		if (identity == null || identity.equals("")) {
+			identity = UUID.randomUUID().toString();
 			String newidentityFrom = String.valueOf(new Date().getTime());
-			config.setIdentity(newidentity);                    // canging the parsms at the config object
+			config.setIdentity(identity);
 			config.setIdentityFrom(newidentityFrom);
-			configManager.jaxbObjectToXML(config);              // update the XML file
+			configManager.jaxbObjectToXML(config);
 		}
 
 		//BridgeService.getInstance().updateBridge(ciPluginService.getNGAConfiguration());
 	}
 
-	public Config getConfig() {
+	public NGAConfig getConfig() {
 		return config;
 	}
 }
