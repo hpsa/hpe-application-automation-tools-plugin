@@ -1,6 +1,7 @@
 package com.hp.octane.plugins.jetbrains.teamcity.configuration;
 
 import com.hp.nga.integrations.SDKManager;
+import com.hp.nga.integrations.api.ConfigurationService;
 import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
 import com.hp.nga.integrations.dto.connectivity.NGAResponse;
@@ -11,14 +12,14 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 
-public class ConfigurationService {
+public class TCConfigurationService {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String UI_CONTEXT_PATH = "/ui";
 	private static final String PARAM_SHARED_SPACE = "p";
 
 	public static String checkConfiguration(NGAConfiguration ngaConfiguration) {
 		String returnString = "Connection successful";
-		NGAResponse result = SDKManager.getService(com.hp.nga.integrations.api.ConfigurationService.class).testConnection(ngaConfiguration);
+		NGAResponse result = SDKManager.getService(ConfigurationService.class).testConnection(ngaConfiguration);
 
 //		MqmRestClient client = MqmRestClientFactory.create(
 //				clientType, location, sharedSpace, username, password);

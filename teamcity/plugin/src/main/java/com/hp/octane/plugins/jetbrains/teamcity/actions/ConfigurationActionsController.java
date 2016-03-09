@@ -2,12 +2,10 @@ package com.hp.octane.plugins.jetbrains.teamcity.actions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hp.nga.integrations.SDKManager;
-import com.hp.nga.integrations.dto.DTOInternalProviderBase;
 import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
 import com.hp.octane.plugins.jetbrains.teamcity.configuration.NGAConfig;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
-import com.hp.octane.plugins.jetbrains.teamcity.configuration.ConfigurationService;
+import com.hp.octane.plugins.jetbrains.teamcity.configuration.TCConfigurationService;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.ConfigManager;
 import jetbrains.buildServer.serverSide.SBuildServer;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
@@ -46,10 +44,10 @@ public class ConfigurationActionsController implements Controller {
 				String url = httpServletRequest.getParameter("server");
 				String apiKey = httpServletRequest.getParameter("username1");
 				String secret = httpServletRequest.getParameter("password1");
-				NGAConfiguration ngaConfiguration = ConfigurationService.buildConfiguration(url, apiKey, secret);
+				NGAConfiguration ngaConfiguration = TCConfigurationService.buildConfiguration(url, apiKey, secret);
 
 				if (action.equals("test")) {
-					returnStr = ConfigurationService.checkConfiguration(ngaConfiguration);
+					returnStr = TCConfigurationService.checkConfiguration(ngaConfiguration);
 				} else if (action.equals("save")) {
 					returnStr = updateConfiguration(ngaConfiguration, url);
 				}
