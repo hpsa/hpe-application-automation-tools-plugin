@@ -11,6 +11,7 @@ import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.general.CIServerInfo;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.plugins.jenkins.Messages;
+import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
@@ -42,8 +43,6 @@ public class JobConfigurationProxy {
 	private static final String NOT_SPECIFIED = "-- Not specified --";
 
 	public JobConfigurationProxy(AbstractProject project) {
-		// ConfigurationActionFactory/ConfigurationAction bypasses the caching mechanism, make sure only simple
-		// assignment is performed in the constructor
 		this.project = project;
 	}
 
@@ -52,8 +51,7 @@ public class JobConfigurationProxy {
 		JSONObject result = new JSONObject();
 
 		PipelineNode pipelineNode = ModelFactory.createStructureItem(project);
-		CIServerInfo ciServerInfo = SDKManager.getCIPluginServices().getServerInfo();
-		//  TODO: inflate the object
+		CIServerInfo ciServerInfo = Jenkins.getInstance().getPlugin(OctanePlugin.class).jenkinsPluginServices.getServerInfo();
 		Long releaseId = pipelineObject.getLong("releaseId") != -1 ? pipelineObject.getLong("releaseId") : null;
 
 		MqmRestClient client;

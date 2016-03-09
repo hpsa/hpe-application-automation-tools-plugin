@@ -50,7 +50,6 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
     private static final Logger logger = Logger.getLogger(CIJenkinsServicesImpl.class.getName());
     private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
-
     @Override
     public CIServerInfo getServerInfo() {
         CIServerInfo result = dtoFactory.newDTO(CIServerInfo.class);

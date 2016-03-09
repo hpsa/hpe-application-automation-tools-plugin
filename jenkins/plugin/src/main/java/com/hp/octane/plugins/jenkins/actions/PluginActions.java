@@ -5,7 +5,7 @@ import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.connectivity.NGAHttpMethod;
 import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
 import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
-import com.hp.nga.integrations.services.tasking.TasksProcessor;
+import com.hp.nga.integrations.api.TasksProcessor;
 import com.hp.octane.plugins.jenkins.configuration.ConfigApi;
 import hudson.Extension;
 import hudson.model.RootAction;
@@ -64,7 +64,7 @@ public class PluginActions implements RootAction {
 			ngaTaskAbridged.setMethod(method);
 			ngaTaskAbridged.setUrl(req.getRequestURIWithQueryString());
 			ngaTaskAbridged.setBody("");
-			TasksProcessor taskProcessor = SDKManager.getTasksProcessor();
+			TasksProcessor taskProcessor = SDKManager.getService(TasksProcessor.class);
 			NGAResultAbridged result = taskProcessor.execute(ngaTaskAbridged);
 
 			res.setStatus(result.getStatus());
@@ -73,7 +73,8 @@ public class PluginActions implements RootAction {
 			}
 			if (result.getHeaders() != null) {
 				for (Map.Entry<String, String> header : result.getHeaders().entrySet()) {
-					res.setHeader(header.getKey(), header.getValue());;
+					res.setHeader(header.getKey(), header.getValue());
+					;
 				}
 			}
 		} else {

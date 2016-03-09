@@ -1,7 +1,9 @@
 package com.hp.octane.plugins.jetbrains.teamcity.configuration;
 
+import com.hp.nga.integrations.SDKManager;
 import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
+import com.hp.nga.integrations.dto.connectivity.NGAResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 
@@ -16,6 +18,7 @@ public class ConfigurationService {
 
 	public static String checkConfiguration(NGAConfiguration ngaConfiguration) {
 		String returnString = "Connection successful";
+		NGAResponse result = SDKManager.getService(com.hp.nga.integrations.api.ConfigurationService.class).testConnection(ngaConfiguration);
 
 //		MqmRestClient client = MqmRestClientFactory.create(
 //				clientType, location, sharedSpace, username, password);

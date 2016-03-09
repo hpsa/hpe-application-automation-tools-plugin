@@ -2,7 +2,8 @@ package com.hp.octane.plugins.jetbrains.teamcity.actions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hp.nga.integrations.dto.DTOFactory;
+import com.hp.nga.integrations.SDKManager;
+import com.hp.nga.integrations.dto.DTOInternalProviderBase;
 import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
 import com.hp.octane.plugins.jetbrains.teamcity.configuration.NGAConfig;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;

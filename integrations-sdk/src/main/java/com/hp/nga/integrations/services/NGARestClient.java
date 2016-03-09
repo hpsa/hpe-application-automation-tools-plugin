@@ -1,4 +1,4 @@
-package com.hp.nga.integrations.services.rest;
+package com.hp.nga.integrations.services;
 
 import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.configuration.CIProxyConfiguration;
@@ -48,8 +48,8 @@ import java.util.Set;
  * REST Client default implementation
  */
 
-class NGARestClientImpl implements NGARestClient {
-	private static final Logger logger = LogManager.getLogger(NGARestClientImpl.class);
+final class NGARestClient {
+	private static final Logger logger = LogManager.getLogger(NGARestClient.class);
 	private static final Set<Integer> AUTHENTICATION_ERROR_CODES;
 	private static final String CLIENT_TYPE_HEADER = "HPECLIENTTYPE";
 	private static final String CLIENT_TYPE_VALUE = "HPE_CI_CLIENT";
@@ -60,8 +60,8 @@ class NGARestClientImpl implements NGARestClient {
 	private static final String AUTHENTICATION_URI = "authentication/sign_in";
 	private static final String AUTHENTICATION_HEADER = "Authorization";
 	private static final String AUTHENTICATION_BASIC_PREFIX = "Basic ";
-	private static final String SHARED_SPACES_API_URI = "api/shared_spaces/";
 
+	private final SDKManager manager;
 	private final CloseableHttpClient httpClient;
 	private int MAX_TOTAL_CONNECTIONS = 20;
 	private CookieStore cookieStore;
@@ -73,7 +73,8 @@ class NGARestClientImpl implements NGARestClient {
 		AUTHENTICATION_ERROR_CODES.add(HttpStatus.SC_UNAUTHORIZED);
 	}
 
-	NGARestClientImpl() {
+	NGARestClient(SDKManager manager) {
+		this.manager = manager;
 		PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
 		connectionManager.setMaxTotal(MAX_TOTAL_CONNECTIONS);
 		connectionManager.setDefaultMaxPerRoute(MAX_TOTAL_CONNECTIONS);
@@ -83,7 +84,7 @@ class NGARestClientImpl implements NGARestClient {
 				.setConnectionManager(connectionManager)
 				.setDefaultCookieStore(cookieStore);
 
-		CIProxyConfiguration proxyConf = SDKManager.getCIPluginServices().getProxyConfiguration();
+		CIProxyConfiguration proxyConf = manager.getCIPluginServices().getProxyConfiguration();
 		if (proxyConf != null) {
 			logger.warn("proxy will be used with the following setup: " + proxyConf);
 			HttpHost proxyHost = new HttpHost(proxyConf.getHost(), proxyConf.getPort());
@@ -113,7 +114,7 @@ class NGARestClientImpl implements NGARestClient {
 		NGAResponse loginResponse;
 		if (LWSSO_TOKEN == null) {
 			logger.warn("initial login");
-			loginResponse = login(SDKManager.getCIPluginServices().getNGAConfiguration());
+			loginResponse = login(manager.getCIPluginServices().getNGAConfiguration());
 			if (loginResponse.getStatus() != 200) {
 				logger.error("failed on initial login, status " + loginResponse.getStatus());
 				throw new RuntimeException("failed on initial login, status " + loginResponse.getStatus());
@@ -128,7 +129,7 @@ class NGARestClientImpl implements NGARestClient {
 			if (AUTHENTICATION_ERROR_CODES.contains(httpResponse.getStatusLine().getStatusCode())) {
 				logger.warn("re-login");
 				HttpClientUtils.closeQuietly(httpResponse);
-				loginResponse = login(SDKManager.getCIPluginServices().getNGAConfiguration());
+				loginResponse = login(manager.getCIPluginServices().getNGAConfiguration());
 				if (loginResponse.getStatus() != 200) {
 					logger.error("failed on re-login, status " + loginResponse.getStatus());
 					throw new RuntimeException("failed on re-login, status " + loginResponse.getStatus());
@@ -146,22 +147,6 @@ class NGARestClientImpl implements NGARestClient {
 			if (httpResponse != null) {
 				HttpClientUtils.closeQuietly(httpResponse);
 			}
-		}
-
-		return result;
-	}
-
-	NGAResponse connectToSharedSpace(NGAConfiguration configuration) throws IOException {
-		NGAResponse result = null;
-
-		NGAResponse loginResult = login(configuration);
-		if (loginResult.getStatus() == HttpStatus.SC_OK) {
-			NGARequest ngaRequest = DTOFactory.getInstance().newDTO(NGARequest.class)
-					.setMethod(NGAHttpMethod.GET)
-					.setUrl(configuration.getUrl() + "/" + SHARED_SPACES_API_URI + configuration.getSharedSpace() + "/workspaces");
-			result = execute(ngaRequest);
-		} else {
-			result = loginResult;
 		}
 
 		return result;

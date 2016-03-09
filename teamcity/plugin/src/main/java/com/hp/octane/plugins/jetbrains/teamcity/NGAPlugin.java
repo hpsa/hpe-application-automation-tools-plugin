@@ -57,7 +57,7 @@ public class NGAPlugin implements ServerExtension {
 		config = configManager.jaxbXMLToObject();
 		this.ciPluginService = new CIPluginServicesImpl();
 
-		SDKManager.init(ciPluginService);
+		SDKManager.init(ciPluginService, true);
 		initOPB();
 	}
 

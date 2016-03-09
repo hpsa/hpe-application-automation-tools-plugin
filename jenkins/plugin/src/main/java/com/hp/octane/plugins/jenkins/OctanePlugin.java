@@ -4,6 +4,7 @@ package com.hp.octane.plugins.jenkins;
 
 import com.google.inject.Inject;
 import com.hp.nga.integrations.SDKManager;
+import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.octane.plugins.jenkins.bridge.BridgesService;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationListener;
@@ -53,6 +54,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 
 	// deprecated, replaced by secretPassword
 	private String password;
+	public final CIPluginServices jenkinsPluginServices = new CIJenkinsServicesImpl();
 
 	public String getIdentity() {
 		return identity;
@@ -62,8 +64,6 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 		return identityFrom;
 	}
 
-	// identity should not be changed under normal circumstances; this functionality is provided in order to simplify
-	// test automation
 	public void setIdentity(String identity) throws IOException {
 		if (StringUtils.isEmpty(identity)) {
 			throw new IllegalArgumentException("Empty identity is not allowed");
@@ -108,7 +108,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 			}
 		}
 
-		SDKManager.init(new CIJenkinsServicesImpl());
+		SDKManager.init(jenkinsPluginServices, false);
 
 		//  These ones, once will become part of the SDK, will be hidden from X Plugin and initialized in SDK internally
 		EventsService.getExtensionInstance().updateClient(getServerConfiguration());

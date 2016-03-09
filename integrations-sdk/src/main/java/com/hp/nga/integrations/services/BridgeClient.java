@@ -1,6 +1,7 @@
-package com.hp.nga.integrations.services.bridge;
+package com.hp.nga.integrations.services;
 
 import com.hp.nga.integrations.api.CIPluginServices;
+import com.hp.nga.integrations.api.TasksProcessor;
 import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
 import com.hp.nga.integrations.dto.connectivity.NGAHttpMethod;
@@ -10,9 +11,6 @@ import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
 import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
 import com.hp.nga.integrations.dto.general.CIServerInfo;
 import com.hp.nga.integrations.SDKManager;
-import com.hp.nga.integrations.services.tasking.TasksProcessor;
-import com.hp.nga.integrations.services.rest.NGARestClient;
-import com.hp.nga.integrations.services.rest.NGARestServiceImpl;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -29,14 +27,16 @@ import java.util.concurrent.ThreadFactory;
  * This class encompasses functionality of managing connection/s to a single abridged client (NGA Server)
  */
 
-class BridgeClient {
+final class BridgeClient {
 	private static final Logger logger = LogManager.getLogger(BridgeClient.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
 	private ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30, new AbridgedTasksExecutorsFactory());
+	private final SDKManager sdk;
 	volatile private boolean shuttingDown = false;
 
-	BridgeClient() {
+	BridgeClient(SDKManager sdk) {
+		this.sdk = sdk;
 		connect();
 	}
 
@@ -45,15 +45,13 @@ class BridgeClient {
 			connectivityExecutors.execute(new Runnable() {
 				public void run() {
 					String tasksJSON;
-					CIServerInfo serverInfo = SDKManager.getCIPluginServices().getServerInfo();
+					CIServerInfo serverInfo = sdk.getCIPluginServices().getServerInfo();
 					try {
-						NGARestClient restClient = NGARestServiceImpl.getInstance().obtainClient();
 						tasksJSON = getAbridgedTasks(
 								serverInfo.getInstanceId(),
 								serverInfo.getUrl(),
-								SDKManager.getAPIVersion(),
-								SDKManager.getSDKVersion(),
-								restClient);
+								sdk.API_VERSION,
+								sdk.SDK_VERSION);
 						connect();
 						if (tasksJSON != null && !tasksJSON.isEmpty()) {
 							handleTasks(tasksJSON);
@@ -74,9 +72,10 @@ class BridgeClient {
 		}
 	}
 
-	private String getAbridgedTasks(String selfIdentity, String selfLocation, Integer apiVersion, String sdkVersion, NGARestClient restClient) {
+	private String getAbridgedTasks(String selfIdentity, String selfLocation, Integer apiVersion, String sdkVersion) {
 		String responseBody = null;
-		NGAConfiguration ngaConfiguration = SDKManager.getCIPluginServices().getNGAConfiguration();
+		NGARestClient restClient = sdk.getInternalService(NGARestService.class).obtainClient();
+		NGAConfiguration ngaConfiguration = sdk.getCIPluginServices().getNGAConfiguration();
 		Map<String, String> headers = new HashMap<String, String>();
 		headers.put("accept", "application/json");
 		NGARequest ngaRequest = dtoFactory.newDTO(NGARequest.class)
@@ -116,10 +115,10 @@ class BridgeClient {
 			for (final NGATaskAbridged task : tasks) {
 				taskProcessingExecutors.execute(new Runnable() {
 					public void run() {
-						TasksProcessor taskProcessor = SDKManager.getTasksProcessor();
-						CIPluginServices pluginServices = SDKManager.getCIPluginServices();
+						TasksProcessor taskProcessor = SDKManager.getService(TasksProcessor.class);
+						CIPluginServices pluginServices = sdk.getCIPluginServices();
+						NGARestClient restClient = sdk.getInternalService(NGARestService.class).obtainClient();
 						NGAResultAbridged result = taskProcessor.execute(task);
-						NGARestClient restClient = NGARestServiceImpl.getInstance().obtainClient();
 						int submitStatus = putAbridgedResult(
 								pluginServices.getServerInfo().getInstanceId(),
 								result.getId(),
@@ -135,7 +134,7 @@ class BridgeClient {
 	}
 
 	private int putAbridgedResult(String selfIdentity, String taskId, String contentJSON, NGARestClient restClient) {
-		NGAConfiguration ngaConfiguration = SDKManager.getCIPluginServices().getNGAConfiguration();
+		NGAConfiguration ngaConfiguration = sdk.getCIPluginServices().getNGAConfiguration();
 		NGARequest ngaRequest = dtoFactory.newDTO(NGARequest.class)
 				.setUrl(ngaConfiguration.getUrl() + "/internal-api/shared_spaces/" + ngaConfiguration.getSharedSpace() + "/analytics/ci/servers/" + selfIdentity + "/tasks/" + taskId + "/result")
 				.setMethod(NGAHttpMethod.PUT)

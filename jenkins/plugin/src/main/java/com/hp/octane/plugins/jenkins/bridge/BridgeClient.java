@@ -8,7 +8,7 @@ import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
 import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
-import com.hp.nga.integrations.services.tasking.TasksProcessor;
+import com.hp.nga.integrations.api.TasksProcessor;
 import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
@@ -24,14 +24,15 @@ import java.util.concurrent.ThreadFactory;
 
 /**
  * Created by gullery on 12/08/2015.
- * <p>
+ * <p/>
  * This class encompasses functionality of managing connection/s to a single abridged client (MQM Server)
  */
 
 public class BridgeClient {
 	private static final Logger logger = LogManager.getLogger(BridgeClient.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-	private static final String serverInstanceId = Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity();
+	private static final OctanePlugin plugin = Jenkins.getInstance().getPlugin(OctanePlugin.class);
+	private static final String serverInstanceId = plugin.getIdentity();
 	private ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
 	private ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30, new AbridgedTasksExecutorsFactory());
 	volatile private boolean shuttingDown = false;
@@ -59,14 +60,14 @@ public class BridgeClient {
 				@Override
 				public void run() {
 					String tasksJSON;
-					CIPluginServices pluginServices = SDKManager.getCIPluginServices();
+					CIPluginServices pluginServices = plugin.jenkinsPluginServices;
 					try {
 						MqmRestClient restClient = restClientFactory.obtain(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
 						tasksJSON = restClient.getAbridgedTasks(
 								serverInstanceId,
 								pluginServices.getServerInfo().getUrl(),
-								SDKManager.getAPIVersion(),
-								SDKManager.getSDKVersion());
+								SDKManager.API_VERSION,
+								SDKManager.SDK_VERSION);
 						connect();
 						if (tasksJSON != null && !tasksJSON.isEmpty()) {
 							dispatchTasks(tasksJSON);
@@ -117,7 +118,7 @@ public class BridgeClient {
 				taskProcessingExecutors.execute(new Runnable() {
 					@Override
 					public void run() {
-						TasksProcessor TasksProcessor = SDKManager.getTasksProcessor();
+						TasksProcessor TasksProcessor = SDKManager.getService(TasksProcessor.class);
 						NGAResultAbridged result = TasksProcessor.execute(task);
 						MqmRestClient restClient = restClientFactory.obtain(
 								mqmConfig.location,
