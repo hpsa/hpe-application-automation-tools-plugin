@@ -93,8 +93,8 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
         return dtoFactory.newDTO(NGAConfiguration.class)
                 .setUrl(serverConfiguration.location)
                 .setSharedSpace(sharedSpace)
-                .setClientId(serverConfiguration.username)
-                .setApiKey(serverConfiguration.password);
+                .setApiKey(serverConfiguration.username)
+                .setSecret(serverConfiguration.password);
     }
 
     @Override

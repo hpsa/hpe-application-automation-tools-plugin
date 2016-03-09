@@ -2,44 +2,56 @@ package com.hp.nga.integrations.services.rest;
 
 import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
 import com.hp.nga.integrations.dto.connectivity.NGAResponse;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.IOException;
 
 /**
  * Created by gullery on 14/01/2016.
- * <p>
+ * <p/>
  * REST Service - default implementation
  */
 
 public class NGARestServiceImpl implements NGARestService {
-	private static final Object CLIENT_INIT_LOCK = new Object();
-	private volatile NGARestClient defaultNGARestClient;
+	private static final Logger logger = LogManager.getLogger(NGARestClientImpl.class);
 
 	private NGARestServiceImpl() {
 	}
 
 	public static NGARestService getInstance() {
-		return INSTANCE_HOLDER.instance;
+		return SERVICE_INSTANCE_HOLDER.instance;
 	}
 
 	public NGARestClient obtainClient() {
-		if (defaultNGARestClient == null) {
-			synchronized (CLIENT_INIT_LOCK) {
-				if (defaultNGARestClient == null) {
-					defaultNGARestClient = new NGARestClientImpl();
-				}
-			}
+		return DEFAULT_CLIENT_INSTANCE_HOLDER.defaultClient;
+	}
+
+	public NGAResponse testConnection(NGAConfiguration configuration) throws RuntimeException {
+		NGARestClientImpl ngaRestClientNGARestClient = new NGARestClientImpl();
+		try {
+			return ngaRestClientNGARestClient.connectToSharedSpace(configuration);
+		} catch (IOException ioe) {
+			logger.error("failed to connect to " + configuration, ioe);
+			throw new RuntimeException("failed to connect to " + configuration, ioe);
 		}
-		return defaultNGARestClient;
 	}
 
-	public NGAResponse testConnection(NGAConfiguration configuration) {
-		//  TODO: implement test connection NOT on the default rest client but creating the new one
-		return null;
+	private static final class SERVICE_INSTANCE_HOLDER {
+		private static final NGARestService instance;
+
+		static {
+			logger.warn("service initialized");
+			instance = new NGARestServiceImpl();
+		}
 	}
 
-	private static final class INSTANCE_HOLDER {
-		private static final NGARestService instance = new NGARestServiceImpl();
+	private static final class DEFAULT_CLIENT_INSTANCE_HOLDER {
+		private static final NGARestClient defaultClient;
+
+		static {
+			logger.warn("default http client initialized");
+			defaultClient = new NGARestClientImpl();
+		}
 	}
 }

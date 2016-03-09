@@ -1,92 +1,65 @@
 package com.hp.nga.integrations.services.bridge;
 
+import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
+import com.hp.nga.integrations.dto.connectivity.NGAHttpMethod;
+import com.hp.nga.integrations.dto.connectivity.NGARequest;
+import com.hp.nga.integrations.dto.connectivity.NGAResponse;
 import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
 import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
-import com.hp.nga.integrations.services.SDKManager;
-import com.hp.nga.integrations.services.TasksProcessor;
+import com.hp.nga.integrations.dto.general.CIServerInfo;
+import com.hp.nga.integrations.SDKManager;
+import com.hp.nga.integrations.services.tasking.TasksProcessor;
+import com.hp.nga.integrations.services.rest.NGARestClient;
+import com.hp.nga.integrations.services.rest.NGARestServiceImpl;
+import org.apache.http.HttpStatus;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
-import java.util.logging.Logger;
 
 /**
  * Created by gullery on 12/08/2015.
- * <p>
- * This class encompasses functionality of managing connection/s to a single abridged client (MQM Server)
+ * <p/>
+ * This class encompasses functionality of managing connection/s to a single abridged client (NGA Server)
  */
 
-public class BridgeClient {
-	private static final Logger logger = Logger.getLogger(BridgeClient.class.getName());
+class BridgeClient {
+	private static final Logger logger = LogManager.getLogger(BridgeClient.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
 	private ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30, new AbridgedTasksExecutorsFactory());
 	volatile private boolean shuttingDown = false;
 
-	public BridgeClient() {
+	BridgeClient() {
 		connect();
-//		logger.info("BRIDGE: client initialized for '" + this.config.getUrl() + "' (SP: " + this.config.getSharedSpace() + ")");
-	}
-
-	public void update(NGAConfiguration newConfig) {
-//		logger.info("BRIDGE: updated for '" + config.getUrl() + "' (SP: " + config.getSharedSpace() + ")");
-		if (isConfigurationValid(newConfig)) {
-			//TODO: 1. update the rest client
-			connect();
-		} else {
-			/*
-				logger.info("BRIDGE: empty / non-valid configuration submitted, disposing bridge client");
-				bridgeClient.dispose();
-				bridgeClient = null;
-			* */
-		}
-	}
-
-	private boolean isConfigurationValid(NGAConfiguration serverConfiguration) {
-		boolean result = false;
-		if (serverConfiguration.getUrl() != null && !serverConfiguration.getUrl().isEmpty() &&
-				serverConfiguration.getSharedSpace() != null /*&&!serverConfiguration.getSharedSpace().isEmpty()*/) {
-			try {
-				URL tmp = new URL(serverConfiguration.getUrl());
-				result = true;
-			} catch (MalformedURLException mue) {
-				logger.warning("BRIDGE: configuration with malformed URL supplied");
-			}
-		}
-		return result;
 	}
 
 	private void connect() {
 		if (!shuttingDown) {
 			connectivityExecutors.execute(new Runnable() {
 				public void run() {
-					String tasksJSON = "";
+					String tasksJSON;
+					CIServerInfo serverInfo = SDKManager.getCIPluginServices().getServerInfo();
 					try {
-//						logger.info("BRIDGE: connecting to '" + config.getUrl() +
-//								"' (SP: " + config.getSharedSpace() +
-//								"; instance ID: " + serverInstanceId +
-//								"; own URL: " + CIDataProvider.getInstance().getServerInfo().getUrl());
-//						MqmRestClient restClient = restClientFactory.create(config.getUrl(), config.getSharedSpace(), config.getUsername(), config.getPassword());
-//						tasksJSON = restClient.getAbridgedTasks(serverInstanceId, new PluginActions.ServerInfo().getUrl());
-//						logger.info("BRIDGE: back from '" + config.getUrl() + "' (SP: " + config.getSharedSpace() + ") with " + (tasksJSON == null || tasksJSON.isEmpty() ? "no tasks" : "some tasks"));
+						NGARestClient restClient = NGARestServiceImpl.getInstance().obtainClient();
+						tasksJSON = getAbridgedTasks(
+								serverInfo.getInstanceId(),
+								serverInfo.getUrl(),
+								SDKManager.getAPIVersion(),
+								SDKManager.getSDKVersion(),
+								restClient);
 						connect();
 						if (tasksJSON != null && !tasksJSON.isEmpty()) {
 							handleTasks(tasksJSON);
 						}
-//					} catch (AuthenticationException ae) {
-//						logger.severe("BRIDGE: connection to MQM Server temporary failed: authentication error");
-//						try {
-//							Thread.sleep(20000);
-//						} catch (InterruptedException ie) {
-//							logger.info("interrupted while breathing on temporary exception, continue to re-connect...");
-//						}
-//						connect();
 					} catch (Exception e) {
-						logger.severe("BRIDGE: connection to MQM Server temporary failed: " + e.getMessage());
+						logger.error("connection to MQM Server temporary failed", e);
 						try {
 							Thread.sleep(1000);
 						} catch (InterruptedException ie) {
@@ -97,8 +70,38 @@ public class BridgeClient {
 				}
 			});
 		} else if (shuttingDown) {
-			logger.info("BRIDGE: bridge client stopped");
+			logger.info("bridge client stopped");
 		}
+	}
+
+	private String getAbridgedTasks(String selfIdentity, String selfLocation, Integer apiVersion, String sdkVersion, NGARestClient restClient) {
+		String responseBody = null;
+		NGAConfiguration ngaConfiguration = SDKManager.getCIPluginServices().getNGAConfiguration();
+		Map<String, String> headers = new HashMap<String, String>();
+		headers.put("accept", "application/json");
+		NGARequest ngaRequest = dtoFactory.newDTO(NGARequest.class)
+				.setMethod(NGAHttpMethod.GET)
+				.setUrl(ngaConfiguration.getUrl() + "/internal-api/shared_spaces/" + ngaConfiguration.getSharedSpace() + "/analytics/ci/servers/" + selfIdentity + "/tasks?self-url=" + selfLocation + "&api-version=" + apiVersion + "&sdk-version=" + sdkVersion)
+				.setHeaders(headers);
+		try {
+			NGAResponse ngaResponse = restClient.execute(ngaRequest);
+			if (ngaResponse.getStatus() == HttpStatus.SC_OK) {
+				responseBody = ngaResponse.getBody();
+			} else {
+				if (ngaResponse.getStatus() == HttpStatus.SC_REQUEST_TIMEOUT) {
+					logger.info("expected timeout disconnection on retrieval of abridged tasks");
+				} else if (ngaResponse.getStatus() == HttpStatus.SC_UNAUTHORIZED) {
+					//  TODO: this is a 'fatal' error since relogin didn't help and only configuration change may solve it; still need to continue to retry, maybe breathe more
+				} else if (ngaResponse.getStatus() == HttpStatus.SC_NOT_FOUND) {
+					//  TODO: thei is a 'fatal' error since NGA server changed an API signature and only redeploy/rebuild may help; still need to continue to retry, maybe breathe more
+				} else {
+					logger.info("unexpected response; status: " + ngaResponse.getStatus() + "; content: " + ngaResponse.getBody());
+				}
+			}
+		} catch (Exception e) {
+			logger.error("failed to retrieve abridged tasks", e);
+		}
+		return responseBody;
 	}
 
 	void dispose() {
@@ -109,19 +112,40 @@ public class BridgeClient {
 	private void handleTasks(String tasksJSON) {
 		try {
 			NGATaskAbridged[] tasks = dtoFactory.dtoCollectionFromJson(tasksJSON, NGATaskAbridged[].class);
-
-			logger.info("BRIDGE: going to process " + tasks.length + " tasks");
+			logger.info("going to process " + tasks.length + " tasks");
 			for (final NGATaskAbridged task : tasks) {
 				taskProcessingExecutors.execute(new Runnable() {
 					public void run() {
 						TasksProcessor taskProcessor = SDKManager.getTasksProcessor();
+						CIPluginServices pluginServices = SDKManager.getCIPluginServices();
 						NGAResultAbridged result = taskProcessor.execute(task);
-						//  TODO: post the result to NGA
+						NGARestClient restClient = NGARestServiceImpl.getInstance().obtainClient();
+						int submitStatus = putAbridgedResult(
+								pluginServices.getServerInfo().getInstanceId(),
+								result.getId(),
+								dtoFactory.dtoToJson(result),
+								restClient);
+						logger.info("result for task '" + result.getId() + "' submitted with status " + submitStatus);
 					}
 				});
 			}
 		} catch (Exception e) {
-			logger.severe("BRIDGE: failed to process tasks: " + e.getMessage());
+			logger.error("failed to process tasks", e);
+		}
+	}
+
+	private int putAbridgedResult(String selfIdentity, String taskId, String contentJSON, NGARestClient restClient) {
+		NGAConfiguration ngaConfiguration = SDKManager.getCIPluginServices().getNGAConfiguration();
+		NGARequest ngaRequest = dtoFactory.newDTO(NGARequest.class)
+				.setUrl(ngaConfiguration.getUrl() + "/internal-api/shared_spaces/" + ngaConfiguration.getSharedSpace() + "/analytics/ci/servers/" + selfIdentity + "/tasks/" + taskId + "/result")
+				.setMethod(NGAHttpMethod.PUT)
+				.setBody(contentJSON);
+		try {
+			NGAResponse ngaResponse = restClient.execute(ngaRequest);
+			return ngaResponse.getStatus();
+		} catch (Exception e) {
+			logger.error("failed to submit abridged task's result", e);
+			throw new RuntimeException(e);
 		}
 	}
 

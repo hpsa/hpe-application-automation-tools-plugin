@@ -1,4 +1,4 @@
-package com.hp.nga.integrations.services;
+package com.hp.nga.integrations.services.tasking;
 
 import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
 import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;

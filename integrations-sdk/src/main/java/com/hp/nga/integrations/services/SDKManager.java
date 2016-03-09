@@ -1,6 +1,10 @@
-package com.hp.nga.integrations.services;
+package com.hp.nga.integrations;
 
 import com.hp.nga.integrations.api.CIPluginServices;
+import com.hp.nga.integrations.services.bridge.BridgeService;
+import com.hp.nga.integrations.services.logging.LoggingService;
+import com.hp.nga.integrations.services.tasking.TasksProcessor;
+import com.hp.nga.integrations.services.tasking.TasksProcessorImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -33,6 +37,7 @@ public class SDKManager {
 
 		SDKManager.ciPluginServices = ciPluginServices;
 		LoggingService.ensureInit();
+		BridgeService.init();
 		//  do init logic
 		//  init bridge
 		//  init rest client

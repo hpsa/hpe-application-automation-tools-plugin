@@ -7,15 +7,15 @@ import java.net.URL;
 
 /**
  * Created by gullery on 08/01/2016.
- * <p>
+ * <p/>
  * NGA Server configuration descriptor
  */
 
 class NGAConfigurationImpl implements NGAConfiguration {
 	private String url;
 	private Long sharedSpace;
-	private String clientId;
 	private String apiKey;
+	private String secret;
 
 	public String getUrl() {
 		return url;
@@ -35,12 +35,9 @@ class NGAConfigurationImpl implements NGAConfiguration {
 		return this;
 	}
 
-	public String getClientId() {
-		return clientId;
-	}
 
-	public NGAConfiguration setClientId(String clientId) {
-		this.clientId = clientId;
+	public NGAConfiguration setApiKey(String apiKey) {
+		this.apiKey = apiKey;
 		return this;
 	}
 
@@ -48,8 +45,12 @@ class NGAConfigurationImpl implements NGAConfiguration {
 		return apiKey;
 	}
 
-	public NGAConfiguration setApiKey(String apiKey) {
-		this.apiKey = apiKey;
+	public String getSecret() {
+		return secret;
+	}
+
+	public NGAConfiguration setSecret(String secret) {
+		this.secret = secret;
 		return this;
 	}
 
@@ -64,5 +65,13 @@ class NGAConfigurationImpl implements NGAConfiguration {
 			}
 		}
 		return result;
+	}
+
+	@Override
+	public String toString() {
+		return "NGAConfigurationImpl { " +
+				"url: " + url +
+				", sharedSpace: " + sharedSpace +
+				", apiKey: " + apiKey + " }";
 	}
 }

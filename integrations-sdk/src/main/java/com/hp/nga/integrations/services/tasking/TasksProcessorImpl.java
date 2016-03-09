@@ -1,4 +1,4 @@
-package com.hp.nga.integrations.services;
+package com.hp.nga.integrations.services.tasking;
 
 import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.dto.DTOFactory;
@@ -12,6 +12,7 @@ import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
 import com.hp.nga.integrations.exceptions.ConfigurationException;
 import com.hp.nga.integrations.exceptions.PermissionException;
+import com.hp.nga.integrations.SDKManager;
 import org.apache.http.HttpHeaders;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,7 +26,7 @@ import java.util.regex.Pattern;
  * Tasks routing service handles NGA tasks, both coming from abridged logic as well as plugin's REST call delegation
  */
 
-class TasksProcessorImpl implements TasksProcessor {
+public class TasksProcessorImpl implements TasksProcessor {
 	private static final Logger logger = LogManager.getLogger(TasksProcessorImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String NGA_API = "nga/api/v1";
@@ -39,7 +40,7 @@ class TasksProcessorImpl implements TasksProcessor {
 	private TasksProcessorImpl() {
 	}
 
-	static TasksProcessor getInstance() {
+	public static TasksProcessor getInstance() {
 		return INSTANCE_HOLDER.instance;
 	}
 
@@ -92,18 +93,15 @@ class TasksProcessorImpl implements TasksProcessor {
 			} else {
 				result.setStatus(404);
 			}
-		}
-		catch (PermissionException jenkinsRequestException){
+		} catch (PermissionException jenkinsRequestException) {
 			logger.warn("TasksRouter: task execution failed; error: " + jenkinsRequestException.getErrorCode());
 			result.setStatus(jenkinsRequestException.getErrorCode());
 			result.setBody(String.valueOf(jenkinsRequestException.getErrorCode()));
-		}
-		catch (ConfigurationException ce){
+		} catch (ConfigurationException ce) {
 			logger.warn("TasksRouter: task execution failed; error: " + ce.getErrorCode());
 			result.setStatus(404);
 			result.setBody(String.valueOf(ce.getErrorCode()));
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			logger.error("TasksRouter: task execution failed", e);
 			result.setStatus(500);
 		}

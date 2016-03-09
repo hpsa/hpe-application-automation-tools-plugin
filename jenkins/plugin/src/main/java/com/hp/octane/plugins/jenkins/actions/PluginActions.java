@@ -1,11 +1,11 @@
 package com.hp.octane.plugins.jenkins.actions;
 
+import com.hp.nga.integrations.SDKManager;
 import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.connectivity.NGAHttpMethod;
 import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
 import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
-import com.hp.nga.integrations.services.SDKManager;
-import com.hp.nga.integrations.services.TasksProcessor;
+import com.hp.nga.integrations.services.tasking.TasksProcessor;
 import com.hp.octane.plugins.jenkins.configuration.ConfigApi;
 import hudson.Extension;
 import hudson.model.RootAction;

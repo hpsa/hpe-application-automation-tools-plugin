@@ -17,10 +17,15 @@ import java.util.Map;
  * Created by gullery on 10/02/2016.
  */
 
-public final class DTOFactoryCoverage implements DTOFactoryInternalBase {
+public final class DTOFactoryCoverage extends DTOFactoryInternalBase {
 	private final Map<Class, Class> dtoPairs = new HashMap<Class, Class>();
 
 	private DTOFactoryCoverage() {
+	}
+
+	@Override
+	protected Class[] getXMLAbleClasses() {
+		return new Class[0];
 	}
 
 	public static void ensureInit(Map<Class<? extends DTOBase>, DTOFactoryInternalBase> registry, ObjectMapper objectMapper) {

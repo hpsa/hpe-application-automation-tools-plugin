@@ -1,42 +1,28 @@
 package com.hp.nga.integrations.services.bridge;
 
-import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
-
-import java.util.logging.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Created by gullery on 05/08/2015.
  * <p/>
  * Bridge Service meant to provide an abridged connectivity functionality
- * The only APIs to be exposed is the basic management of abridged clients
+ * The only APIs to be exposed is the basic management of abridged client/s
  */
 
 public class BridgeService {
-	private static final Logger logger = Logger.getLogger(BridgeService.class.getName());
-
-	private static final BridgeService instance = new BridgeService();
+	private static final Logger logger = LogManager.getLogger(BridgeService.class);
+	private static final Object BRIDGE_INIT_LOCK = new Object();
 	private BridgeClient bridgeClient;
 
 	private BridgeService() {
 	}
 
-	public static BridgeService getInstance() {
-		return instance;
+	public static void init() {
+		INSTANCE_HOLDER.instance.bridgeClient = new BridgeClient();
 	}
 
-	public void updateBridge(NGAConfiguration config) {
-//		if (config.isValid()) {
-//			if (bridgeClient != null) {
-//				bridgeClient.update(config);
-//			} else {
-//				bridgeClient = new BridgeClient();
-//			}
-//		} else {
-//			if (bridgeClient != null) {
-//				logger.info("BRIDGE: empty / non-valid configuration submitted, disposing bridge client");
-//				bridgeClient.dispose();
-//				bridgeClient = null;
-//			}
-//		}
+	private static final class INSTANCE_HOLDER {
+		private static final BridgeService instance = new BridgeService();
 	}
 }

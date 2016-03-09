@@ -3,16 +3,15 @@ package com.hp.octane.plugins.common.bridge;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.AuthenticationException;
 import com.hp.mqm.client.exception.TemporarilyUnavailableException;
+import com.hp.nga.integrations.SDKManager;
 import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
 import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
-import com.hp.nga.integrations.services.SDKManager;
-import com.hp.nga.integrations.services.TasksProcessor;
+import com.hp.nga.integrations.services.tasking.TasksProcessor;
 import com.hp.octane.plugins.common.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.client.MqmRestClientFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.utils.Config;
-import com.hp.octane.plugins.jetbrains.teamcity.utils.ConfigManager;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.ExecutorService;
@@ -25,8 +24,6 @@ public class BridgeClient {
 	private static final Logger logger = Logger.getLogger(BridgeClient.class.getName());
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static String serverInstanceId;
-	private static ConfigManager m_ConfigManager;
-	//  private static final String serverInstanceId =
 	private static String ciLocation = "";
 
 	private ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
@@ -65,7 +62,7 @@ public class BridgeClient {
 						logger.info("BRIDGE: connecting to '" + mqmConfig.location +
 								"' (SP: " + mqmConfig.sharedSpace +
 								"; instance ID: " + serverInstanceId +
-								"; self URL: " + ciLocation);//new PluginActions.ServerInfo().getUrl());
+								"; self URL: " + ciLocation);
 						MqmRestClient restClient = MqmRestClientFactory.create(ciType, mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
 						tasksJSON = restClient.getAbridgedTasks(
 								serverInstanceId,
@@ -133,7 +130,7 @@ public class BridgeClient {
 
 						Config cfg = NGAPlugin.getInstance().getConfig();
 						int submitStatus = restClient.putAbridgedResult(
-								cfg.getIdentity()/*new PluginActions.ServerInfo().getInstanceId()*/,
+								cfg.getIdentity(),
 								result.getId(),
 								dtoFactory.dtoToJson(result));
 						logger.info("BRIDGE: result for task '" + result.getId() + "' submitted with status " + submitStatus);
@@ -144,40 +141,6 @@ public class BridgeClient {
 		} catch (Exception e) {
 			logger.severe("BRIDGE: failed to process tasks: " + e.getMessage());
 		}
-	}
-
-//    private void dispatchTasks(String tasksJSON) {
-//
-//        try {
-//            JSONArray tasks = JSONArray.fromObject(tasksJSON);
-//            logger.info("BRIDGE: going to process " + tasks.size() + " tasks");
-//            for (int i = 0; i < tasks.size(); i++) {
-//                taskProcessingExecutors.execute(new TaskProcessor(
-//                        tasks.getJSONObject(i),
-//                        ciType,
-//                        mqmConfig,
-//                        ciTaskService
-//                ));
-//
-//            }
-//        } catch (Exception e) {
-//            logger.severe("BRIDGE: failed to process tasks: " + e.getMessage());
-//        }
-//    }
-
-
-	public String getLocation() {
-		return mqmConfig.location;
-	}
-
-
-	public String getSharedSpace() {
-		return mqmConfig.sharedSpace;
-	}
-
-
-	public String getUsername() {
-		return mqmConfig.username;
 	}
 
 	private static final class AbridgedConnectivityExecutorsFactory implements ThreadFactory {
