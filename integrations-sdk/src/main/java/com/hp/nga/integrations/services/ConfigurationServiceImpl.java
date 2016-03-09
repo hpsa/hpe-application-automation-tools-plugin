@@ -33,7 +33,7 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 			NGARequest request = dtoFactory.newDTO(NGARequest.class)
 					.setMethod(NGAHttpMethod.GET)
 					.setUrl(configuration.getUrl() + "/" + SHARED_SPACES_API_URI + configuration.getSharedSpace() + "/workspaces");
-			return restClient.execute(request);
+			return restClient.execute(request, configuration);
 		} catch (RuntimeException re) {
 			logger.error("failed to connect to " + configuration, re);
 			throw new RuntimeException("failed to connect to " + configuration, re);

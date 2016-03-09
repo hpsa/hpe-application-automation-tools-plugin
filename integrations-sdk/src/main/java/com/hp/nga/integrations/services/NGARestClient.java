@@ -106,7 +106,15 @@ final class NGARestClient {
 		httpClient = clientBuilder.build();
 	}
 
-	public NGAResponse execute(NGARequest request) {
+	NGAResponse execute(NGARequest request) {
+		return executeInternal(request, manager.getCIPluginServices().getNGAConfiguration());
+	}
+
+	NGAResponse execute(NGARequest request, NGAConfiguration configuration) {
+		return executeInternal(request, configuration);
+	}
+
+	private NGAResponse executeInternal(NGARequest request, NGAConfiguration configuration) {
 		NGAResponse result;
 		HttpClientContext context;
 		HttpUriRequest uriRequest;
@@ -114,7 +122,7 @@ final class NGARestClient {
 		NGAResponse loginResponse;
 		if (LWSSO_TOKEN == null) {
 			logger.warn("initial login");
-			loginResponse = login(manager.getCIPluginServices().getNGAConfiguration());
+			loginResponse = login(configuration);
 			if (loginResponse.getStatus() != 200) {
 				logger.error("failed on initial login, status " + loginResponse.getStatus());
 				throw new RuntimeException("failed on initial login, status " + loginResponse.getStatus());
@@ -129,7 +137,7 @@ final class NGARestClient {
 			if (AUTHENTICATION_ERROR_CODES.contains(httpResponse.getStatusLine().getStatusCode())) {
 				logger.warn("re-login");
 				HttpClientUtils.closeQuietly(httpResponse);
-				loginResponse = login(manager.getCIPluginServices().getNGAConfiguration());
+				loginResponse = login(configuration);
 				if (loginResponse.getStatus() != 200) {
 					logger.error("failed on re-login, status " + loginResponse.getStatus());
 					throw new RuntimeException("failed on re-login, status " + loginResponse.getStatus());
