@@ -10,6 +10,7 @@ import com.hp.nga.integrations.dto.general.impl.DTOGeneralProvider;
 import com.hp.nga.integrations.dto.pipelines.impl.DTOPipelinesProvider;
 import com.hp.nga.integrations.dto.scm.impl.DTOSCMProvider;
 import com.hp.nga.integrations.dto.snapshots.impl.DTOSnapshotsProvider;
+import com.hp.nga.integrations.dto.tests.impl.DTOTestsProvider;
 
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
@@ -36,6 +37,7 @@ public final class DTOFactory {
 		DTOPipelinesProvider.ensureInit(registry, jsonMapper);
 		DTOSCMProvider.ensureInit(registry, jsonMapper);
 		DTOSnapshotsProvider.ensureInit(registry, jsonMapper);
+		DTOTestsProvider.ensureInit(registry, jsonMapper);
 	}
 
 	public static DTOFactory getInstance() {
