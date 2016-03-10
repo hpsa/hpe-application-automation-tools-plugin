@@ -1,51 +1,38 @@
 package com.hp.octane.plugins.jetbrains.teamcity.tests.services;
 
-
-import com.hp.mqm.client.MqmRestClient;
-import com.hp.nga.integrations.api.CIPluginServices;
+import com.hp.nga.integrations.SDKManager;
+import com.hp.nga.integrations.api.TestsService;
 import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
 import com.hp.nga.integrations.dto.tests.BuildContext;
 import com.hp.nga.integrations.dto.tests.TestRun;
 import com.hp.nga.integrations.dto.tests.TestResult;
 import com.hp.nga.integrations.dto.tests.TestRunResult;
-import com.hp.nga.integrations.services.SDKManager;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
-import com.hp.octane.plugins.jetbrains.teamcity.client.MqmRestClientFactory;
-import com.hp.octane.plugins.jetbrains.teamcity.configuration.ConfigurationService;
-import com.intellij.openapi.vfs.FilePath;
 import jetbrains.buildServer.serverSide.SRunningBuild;
 import jetbrains.buildServer.serverSide.STestRun;
-import jetbrains.buildServer.serverSide.impl.auth.SecuredRunningBuild;
 
-
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Created by lev on 06/01/2016.
  */
-public class BuildTestsService{
-    //private static final String TEAMCITY_BUILD_CHECKOUT_DIR = "teamcity.build.checkoutDir";
+public class BuildTestsService {
+	private static final Logger logger = Logger.getLogger(BuildTestsService.class.getName());
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
-    private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-
-    public static void handleTestResult(List<STestRun> tests, long buildStartingTime,  SRunningBuild build){
-
-        BuildContext buildContext = dtoFactory.newDTO(BuildContext.class)
-                .setBuildId(build.getBuildId())
-                .setBuildType(build.getBuildType().getName())
-                .setServer(NGAPlugin.getInstance().getConfig().getIdentity());
-        TestRun [] testArr = createTestList(tests, buildStartingTime);
-       // TestResult result = dtoFactory.newDTO(com.hp.nga.integrations.dto.tests.TestResult.class).setTestRuns(testArr).setBuildContext(buildContext);
-        TestResult result = dtoFactory.newDTO(com.hp.nga.integrations.dto.tests.TestResult.class).setTestRuns(testArr);
-        String xml = dtoFactory.dtoToXml(result);
-        NGAConfiguration configuration = SDKManager.getCIPluginServices().getNGAConfiguration();
-        MqmRestClient restClient = MqmRestClientFactory.create(ConfigurationService.CLIENT_TYPE, configuration.getUrl(), configuration.getSharedSpace().toString(), configuration.getClientId(), configuration.getApiKey());
-        restClient.pushTestResult(xml,true, "1002");
-    }
-
+	public static void handleTestResult(List<STestRun> tests, long buildStartingTime, SRunningBuild build) {
+		BuildContext buildContext = dtoFactory.newDTO(BuildContext.class)
+				.setBuildId(build.getBuildId())
+				.setBuildType(build.getBuildType().getName())
+				.setServer(NGAPlugin.getInstance().getConfig().getIdentity());
+		TestRun[] testArr = createTestList(tests, buildStartingTime);
+		TestResult result = dtoFactory.newDTO(TestResult.class)
+				.setBuildContext(buildContext)
+				.setTestRuns(testArr);
+		SDKManager.getService(TestsService.class).pushTestsResult(result);
+	}
 
 //    private static void findMoudle(SRunningBuild build, String className){
 //        String currPath = ((SecuredRunningBuild) build).getBuildFinishParameters ().get(TEAMCITY_BUILD_CHECKOUT_DIR);
@@ -86,35 +73,33 @@ public class BuildTestsService{
 //        return false;
 //    }
 
-    private static TestRun [] createTestList(List<STestRun> tests, long startingTime){
+	private static TestRun[] createTestList(List<STestRun> tests, long startingTime) {
 
-        List<TestRun> testList = new ArrayList<TestRun>();
-        for (STestRun testRun: tests){
-            TestRunResult testResultStatus = null;
-            if(testRun.isIgnored()) {
-                testResultStatus = TestRunResult.SKIPPED;
-            }else if(testRun.getStatus().isFailed()){
-                testResultStatus = TestRunResult.FAILED;
-            }else if(testRun.getStatus().isSuccessful()){
-                testResultStatus = TestRunResult.PASSED;
-            }
+		List<TestRun> testList = new ArrayList<TestRun>();
+		for (STestRun testRun : tests) {
+			TestRunResult testResultStatus = null;
+			if (testRun.isIgnored()) {
+				testResultStatus = TestRunResult.SKIPPED;
+			} else if (testRun.getStatus().isFailed()) {
+				testResultStatus = TestRunResult.FAILED;
+			} else if (testRun.getStatus().isSuccessful()) {
+				testResultStatus = TestRunResult.PASSED;
+			}
 
-            TestRun tr = dtoFactory.newDTO(TestRun.class)
-                    .setModuleName("")
-                    .setPackageName(testRun.getTest().getName().getPackageName())
-                    .setClassName(testRun.getTest().getName().getClassName())
-                    .setTestName(testRun.getTest().getName().getTestMethodName())
-                    .setResult(testResultStatus)
-                    .setStarted(startingTime)
-                    .setDuration(testRun.getDuration());
-
-
-            testList.add(tr);
-        }
-        TestRun [] testArr = testList.toArray(new TestRun[testList.size()]);
-
-        return testArr;
-    }
+			TestRun tr = dtoFactory.newDTO(TestRun.class)
+					.setModuleName("")
+					.setPackageName(testRun.getTest().getName().getPackageName())
+					.setClassName(testRun.getTest().getName().getClassName())
+					.setTestName(testRun.getTest().getName().getTestMethodName())
+					.setResult(testResultStatus)
+					.setStarted(startingTime)
+					.setDuration(testRun.getDuration());
 
 
+			testList.add(tr);
+		}
+		TestRun[] testArr = testList.toArray(new TestRun[testList.size()]);
+
+		return testArr;
+	}
 }

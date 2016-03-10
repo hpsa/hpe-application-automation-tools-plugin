@@ -6,11 +6,11 @@ import com.hp.nga.integrations.dto.DTOBase;
  * Created by gullery on 06/03/2016.
  */
 
-public interface BuildContext  extends DTOBase {
+public interface BuildContext extends DTOBase {
 
-	long getBuildId();
+	Long getBuildId();
 
-	BuildContext setBuildId(long buildId);
+	BuildContext setBuildId(Long buildId);
 
 	String getSubType();
 
@@ -23,5 +23,4 @@ public interface BuildContext  extends DTOBase {
 	String getServer();
 
 	BuildContext setServer(String server);
-
 }

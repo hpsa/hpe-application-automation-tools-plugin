@@ -3,10 +3,6 @@ package com.hp.nga.integrations.dto.tests;
 import javax.xml.bind.JAXBException;
 
 import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.tests.TestResult;
-import com.hp.nga.integrations.dto.tests.TestRun;
-import com.hp.nga.integrations.dto.tests.TestRunResult;
-import com.hp.nga.integrations.dto.tests.impl.DTOTestsProvider;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

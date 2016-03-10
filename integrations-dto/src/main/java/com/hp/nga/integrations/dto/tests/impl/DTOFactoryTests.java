@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.hp.nga.integrations.dto.DTOBase;
-import com.hp.nga.integrations.dto.DTOFactoryInternalBase;
+import com.hp.nga.integrations.dto.DTOInternalProviderBase;
 import com.hp.nga.integrations.dto.tests.BuildContext;
 import com.hp.nga.integrations.dto.tests.TestResult;
 import com.hp.nga.integrations.dto.tests.TestRun;
@@ -16,13 +16,13 @@ import java.util.Map;
  * Created by gullery on 10/02/2016.
  */
 
-public final class DTOFactoryTests extends DTOFactoryInternalBase {
+public final class DTOFactoryTests extends DTOInternalProviderBase {
 	private final Map<Class, Class> dtoPairs = new HashMap<Class, Class>();
 
 	private DTOFactoryTests() {
 	}
 
-	public static void ensureInit(Map<Class<? extends DTOBase>, DTOFactoryInternalBase> registry, ObjectMapper objectMapper) {
+	public static void ensureInit(Map<Class<? extends DTOBase>, DTOInternalProviderBase> registry, ObjectMapper objectMapper) {
 		registry.put(TestRun.class, INSTANCE_HOLDER.instance);
 		registry.put(BuildContext.class, INSTANCE_HOLDER.instance);
 		registry.put(TestResult.class, INSTANCE_HOLDER.instance);

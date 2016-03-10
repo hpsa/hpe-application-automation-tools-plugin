@@ -8,13 +8,11 @@ import com.hp.nga.integrations.dto.DTOBase;
 
 public interface TestResult extends DTOBase {
 
-	BuildContext getBuildContext();
-
 	TestRun[] getTestRuns();
 
 	TestResult setTestRuns(TestRun[] testRuns);
 
+	BuildContext getBuildContext();
+
 	TestResult setBuildContext(BuildContext buildContext);
-
-
 }

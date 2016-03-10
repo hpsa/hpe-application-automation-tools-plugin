@@ -25,12 +25,6 @@ class TestResultImpl implements TestResult {
 	@XmlAnyElement(lax = true)
 	private TestRun[] testRuns;
 
-
-
-	public BuildContext getBuildContext() {
-		return buildContext;
-	}
-
 	public TestRun[] getTestRuns() {
 		return testRuns;
 	}
@@ -38,6 +32,10 @@ class TestResultImpl implements TestResult {
 	public TestResult setTestRuns(TestRun[] testRuns) {
 		this.testRuns = testRuns;
 		return this;
+	}
+
+	public BuildContext getBuildContext() {
+		return buildContext;
 	}
 
 	public TestResult setBuildContext(BuildContext buildContext) {
