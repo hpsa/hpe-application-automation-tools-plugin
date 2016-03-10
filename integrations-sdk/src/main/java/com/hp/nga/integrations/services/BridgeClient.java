@@ -51,8 +51,8 @@ final class BridgeClient {
 						tasksJSON = getAbridgedTasks(
 								serverInfo.getInstanceId(),
 								serverInfo.getUrl(),
-								sdk.API_VERSION,
-								sdk.SDK_VERSION);
+								SDKManager.API_VERSION,
+								SDKManager.SDK_VERSION);
 						connect();
 						if (tasksJSON != null && !tasksJSON.isEmpty()) {
 							handleTasks(tasksJSON);
@@ -135,9 +135,12 @@ final class BridgeClient {
 	private int putAbridgedResult(String selfIdentity, String taskId, String contentJSON) {
 		NGARestClient restClient = sdk.getInternalService(NGARestService.class).obtainClient();
 		NGAConfiguration ngaConfiguration = sdk.getCIPluginServices().getNGAConfiguration();
+		Map<String, String> headers = new HashMap<String, String>();
+		headers.put("content-type", "application/json");
 		NGARequest ngaRequest = dtoFactory.newDTO(NGARequest.class)
-				.setUrl(ngaConfiguration.getUrl() + "/internal-api/shared_spaces/" + ngaConfiguration.getSharedSpace() + "/analytics/ci/servers/" + selfIdentity + "/tasks/" + taskId + "/result")
 				.setMethod(NGAHttpMethod.PUT)
+				.setUrl(ngaConfiguration.getUrl() + "/internal-api/shared_spaces/" + ngaConfiguration.getSharedSpace() + "/analytics/ci/servers/" + selfIdentity + "/tasks/" + taskId + "/result")
+				.setHeaders(headers)
 				.setBody(contentJSON);
 		try {
 			NGAResponse ngaResponse = restClient.execute(ngaRequest);
