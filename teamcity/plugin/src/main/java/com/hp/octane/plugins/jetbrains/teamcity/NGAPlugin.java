@@ -44,7 +44,7 @@ public class NGAPlugin implements ServerExtension {
 		config = TCConfigurationService.getInstance().readConfig();
 
 		ensureServerInstanceID();
-		SDKManager.init(new CIPluginServicesImpl(), true);
+		SDKManager.init(new TeamCityPluginServicesImpl(), true);
 	}
 
 	public ProjectManager getProjectManager() {

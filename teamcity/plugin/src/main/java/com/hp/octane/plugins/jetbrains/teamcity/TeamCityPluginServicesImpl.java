@@ -4,12 +4,10 @@ import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
-import com.hp.nga.integrations.dto.connectivity.impl.DTOConnectivityProvider;
 import com.hp.nga.integrations.dto.general.CIJobsList;
 import com.hp.nga.integrations.dto.general.CIPluginInfo;
 import com.hp.nga.integrations.dto.general.CIServerInfo;
 import com.hp.nga.integrations.dto.general.CIServerTypes;
-import com.hp.nga.integrations.dto.general.impl.DTOGeneralProvider;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
@@ -25,8 +23,8 @@ import java.util.logging.Logger;
  * Jenkins CI Server oriented extension of CI Data Provider
  */
 
-public class CIPluginServicesImpl implements CIPluginServices {
-	private static final Logger logger = Logger.getLogger(CIPluginServicesImpl.class.getName());
+public class TeamCityPluginServicesImpl implements CIPluginServices {
+	private static final Logger logger = Logger.getLogger(TeamCityPluginServicesImpl.class.getName());
 	private static final String pluginVersion = "9.1.5";
 
 	@Override
@@ -60,7 +58,7 @@ public class CIPluginServicesImpl implements CIPluginServices {
 	public NGAConfiguration getNGAConfiguration() {
 		NGAConfig config = NGAPlugin.getInstance().getConfig();
 		return DTOFactory.getInstance().newDTO(NGAConfiguration.class)
-				.setUrl(config.getUiLocation())
+				.setUrl(config.getLocation())
 				.setSharedSpace(config.getSharedSpace())
 				.setApiKey(config.getUsername())
 				.setSecret(config.getSecretPassword());
