@@ -1,14 +1,21 @@
 package com.hp.nga.integrations.dto.tests.impl;
 
+
+import  com.hp.nga.integrations.dto.tests.BuildContext;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlRootElement;
+
 
 /**
  * Created by lev on 06/03/2016.
  */
-@XmlAccessorType(XmlAccessType.FIELD)
-public class BuildContextImpl {
+@XmlRootElement(name = "build")
+@XmlAccessorType(XmlAccessType.NONE)
+public class BuildContextImpl implements BuildContext {
+
     @XmlAttribute(name = "build_sid")
     private long buildId;
 
@@ -21,36 +28,41 @@ public class BuildContextImpl {
     @XmlAttribute(name = "server")
     private String server;
 
-
     public long getBuildId() {
         return buildId;
     }
 
-    public void setBuildId(long buildId) {
+    public BuildContext setBuildId(long buildId) {
         this.buildId = buildId;
+        return this;
     }
 
     public String getSubType() {
         return subType;
     }
 
-    public void setSubType(String subType) {
+    public BuildContext setSubType(String subType) {
         this.subType = subType;
+        return this;
     }
 
     public String getBuildType() {
         return buildType;
     }
 
-    public void setBuildType(String buildType) {
+    public BuildContext setBuildType(String buildType) {
         this.buildType = buildType;
+        return this;
     }
 
     public String getServer() {
         return server;
     }
 
-    public void setServer(String server) {
+    public BuildContext setServer(String server) {
         this.server = server;
+        return this;
     }
+
+
 }

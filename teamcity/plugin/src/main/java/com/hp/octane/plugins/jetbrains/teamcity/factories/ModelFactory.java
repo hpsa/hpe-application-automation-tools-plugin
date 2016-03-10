@@ -1,10 +1,10 @@
 package com.hp.octane.plugins.jetbrains.teamcity.factories;
 
 import com.hp.nga.integrations.dto.DTOFactory;
+import com.hp.nga.integrations.dto.general.CIJobMetadata;
+import com.hp.nga.integrations.dto.general.CIJobsList;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.pipelines.PipelinePhase;
-import com.hp.nga.integrations.dto.general.CIJobsList;
-import com.hp.nga.integrations.dto.general.CIJobMetadata;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
 import com.hp.nga.integrations.dto.snapshots.SnapshotPhase;
 import com.hp.nga.integrations.dto.snapshots.SnapshotStatus;
@@ -19,7 +19,6 @@ import java.util.List;
  * Created by lazara on 04/01/2016.
  */
 public class ModelFactory { // {
-
     public static CIJobsList CreateProjectList() {
 
         CIJobsList CIJobsList = DTOFactory.getInstance().newDTO(CIJobsList.class);
@@ -49,16 +48,41 @@ public class ModelFactory { // {
         SBuildType root = NGAPlugin.getInstance().getProjectManager().findBuildTypeByExternalId(buildConfigurationId);
         PipelineNode treeRoot =null;
         if(root !=null) {
+            //Old code to create hierarchical structure
+//            treeRoot = DTOFactory.getInstance().newDTO(PipelineNode.class);
+//            treeRoot.setName(root.getName());
+//            treeRoot.setCiId(root.getExternalId());
+//            createPipelineStructure(treeRoot, root.getDependencies());
             treeRoot = DTOFactory.getInstance().newDTO(PipelineNode.class);
             treeRoot.setName(root.getName());
             treeRoot.setCiId(root.getExternalId());
-            createPipelineStructure(treeRoot, root.getDependencies());
-
+            PipelinePhase phase = DTOFactory.getInstance().newDTO(PipelinePhase.class);
+            phase.setName("teamcity_dependencies");
+            phase.setBlocking(true);
+            List<PipelinePhase> pipelinePhaseList = new ArrayList<PipelinePhase>();
+            pipelinePhaseList.add(phase);
+            List<PipelineNode> pipelineNodeList=new ArrayList<PipelineNode>();
+            getFlatDependencies(root.getOwnDependencies(), pipelineNodeList);
+            phase.setJobs(pipelineNodeList);
+            treeRoot.setPhasesPostBuild(pipelinePhaseList);
         }else{
             //should update the response?
         }
         return treeRoot;
     }
+
+    private static void getFlatDependencies( List<Dependency> dependencies,List<PipelineNode> pipelineNodeList){
+        if(dependencies ==null || dependencies.size() == 0)return;
+        for(Dependency dependency : dependencies){
+            SBuildType build = dependency.getDependOn();
+            PipelineNode buildItem = DTOFactory.getInstance().newDTO(PipelineNode.class);
+            buildItem.setName(build.getName());
+            buildItem.setCiId(build.getExternalId());
+            pipelineNodeList.add(buildItem);
+            getFlatDependencies(build.getDependencies(),pipelineNodeList);
+        }
+    }
+
 
     private static void createPipelineStructure(PipelineNode treeRoot, List<Dependency> dependencies) {
         if(dependencies ==null || dependencies.size() == 0)return;
@@ -79,8 +103,6 @@ public class ModelFactory { // {
         phase.setJobs(pipelineNodeList);
         treeRoot.setPhasesInternal(pipelinePhaseList);
     }
-
-
 
     public static SnapshotNode createSnapshot(String buildConfigurationId) {
         SBuildType root = NGAPlugin.getInstance().getProjectManager().findBuildTypeByExternalId(buildConfigurationId);
