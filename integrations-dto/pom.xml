@@ -13,7 +13,6 @@
 
 	<properties>
 		<jackson.version>2.6.4</jackson.version>
-		<woodstox.version>4.4.1</woodstox.version>
 	</properties>
 
 	<dependencies>
