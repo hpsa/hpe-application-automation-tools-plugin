@@ -15,6 +15,7 @@ import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -117,13 +118,11 @@ final class BridgeClient {
 					public void run() {
 						TasksProcessor taskProcessor = SDKManager.getService(TasksProcessor.class);
 						CIPluginServices pluginServices = sdk.getCIPluginServices();
-						NGARestClient restClient = sdk.getInternalService(NGARestService.class).obtainClient();
 						NGAResultAbridged result = taskProcessor.execute(task);
 						int submitStatus = putAbridgedResult(
 								pluginServices.getServerInfo().getInstanceId(),
 								result.getId(),
-								dtoFactory.dtoToJson(result),
-								restClient);
+								dtoFactory.dtoToJson(result));
 						logger.info("result for task '" + result.getId() + "' submitted with status " + submitStatus);
 					}
 				});
@@ -133,7 +132,8 @@ final class BridgeClient {
 		}
 	}
 
-	private int putAbridgedResult(String selfIdentity, String taskId, String contentJSON, NGARestClient restClient) {
+	private int putAbridgedResult(String selfIdentity, String taskId, String contentJSON) {
+		NGARestClient restClient = sdk.getInternalService(NGARestService.class).obtainClient();
 		NGAConfiguration ngaConfiguration = sdk.getCIPluginServices().getNGAConfiguration();
 		NGARequest ngaRequest = dtoFactory.newDTO(NGARequest.class)
 				.setUrl(ngaConfiguration.getUrl() + "/internal-api/shared_spaces/" + ngaConfiguration.getSharedSpace() + "/analytics/ci/servers/" + selfIdentity + "/tasks/" + taskId + "/result")
@@ -142,9 +142,9 @@ final class BridgeClient {
 		try {
 			NGAResponse ngaResponse = restClient.execute(ngaRequest);
 			return ngaResponse.getStatus();
-		} catch (Exception e) {
-			logger.error("failed to submit abridged task's result", e);
-			throw new RuntimeException(e);
+		} catch (IOException ioe) {
+			logger.error("failed to submit abridged task's result", ioe);
+			return 0;
 		}
 	}
 
