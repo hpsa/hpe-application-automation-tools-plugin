@@ -18,12 +18,13 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.NONE)
 class TestResultImpl implements TestResult {
 
+	@XmlAnyElement(lax = true)
+	private BuildContext buildContext;
+
 	@XmlElementWrapper(name = "test_runs")
 	@XmlAnyElement(lax = true)
 	private TestRun[] testRuns;
 
-	@XmlAnyElement(lax = true)
-	private BuildContext buildContext;
 
 
 	public BuildContext getBuildContext() {

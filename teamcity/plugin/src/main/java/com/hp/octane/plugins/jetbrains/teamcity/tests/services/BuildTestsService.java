@@ -1,12 +1,18 @@
 package com.hp.octane.plugins.jetbrains.teamcity.tests.services;
 
 
+import com.hp.mqm.client.MqmRestClient;
+import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.dto.DTOFactory;
+import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
 import com.hp.nga.integrations.dto.tests.BuildContext;
 import com.hp.nga.integrations.dto.tests.TestRun;
 import com.hp.nga.integrations.dto.tests.TestResult;
 import com.hp.nga.integrations.dto.tests.TestRunResult;
+import com.hp.nga.integrations.services.SDKManager;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
+import com.hp.octane.plugins.jetbrains.teamcity.client.MqmRestClientFactory;
+import com.hp.octane.plugins.jetbrains.teamcity.configuration.ConfigurationService;
 import com.intellij.openapi.vfs.FilePath;
 import jetbrains.buildServer.serverSide.SRunningBuild;
 import jetbrains.buildServer.serverSide.STestRun;
@@ -32,9 +38,12 @@ public class BuildTestsService{
                 .setBuildType(build.getBuildType().getName())
                 .setServer(NGAPlugin.getInstance().getConfig().getIdentity());
         TestRun [] testArr = createTestList(tests, buildStartingTime);
-        TestResult result = dtoFactory.newDTO(com.hp.nga.integrations.dto.tests.TestResult.class).setTestRuns(testArr).setBuildContext(buildContext);
+       // TestResult result = dtoFactory.newDTO(com.hp.nga.integrations.dto.tests.TestResult.class).setTestRuns(testArr).setBuildContext(buildContext);
+        TestResult result = dtoFactory.newDTO(com.hp.nga.integrations.dto.tests.TestResult.class).setTestRuns(testArr);
         String xml = dtoFactory.dtoToXml(result);
-
+        NGAConfiguration configuration = SDKManager.getCIPluginServices().getNGAConfiguration();
+        MqmRestClient restClient = MqmRestClientFactory.create(ConfigurationService.CLIENT_TYPE, configuration.getUrl(), configuration.getSharedSpace().toString(), configuration.getClientId(), configuration.getApiKey());
+        restClient.pushTestResult(xml,true, "1002");
     }
 
 

@@ -36,6 +36,7 @@ import org.apache.commons.lang.StringUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -54,6 +55,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 
 	private static final String PREFIX_CI = "analytics/ci/";
 
+	private static final String URI_TEST_RESULT_PUSH_NEW = "workspaces/{0}/test-results?skip-errors=false";
 	private static final String URI_TEST_RESULT_PUSH = PREFIX_CI + "test-results?skip-errors={0}";
 	private static final String URI_TEST_RESULT_STATUS = PREFIX_CI + "test-results/{0}";
 	private static final String URI_TEST_RESULT_LOG = URI_TEST_RESULT_STATUS + "/log";
@@ -89,6 +91,32 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	@Override
 	public long postTestResult(File testResultReport, boolean skipErrors) {
 		return postTestResult(new FileEntity(testResultReport, ContentType.APPLICATION_XML), skipErrors);
+	}
+
+	@Override
+	public long pushTestResult(String xml, boolean skipErrors, String workSpace){
+		HttpPost request = new HttpPost(createSharedSpaceApiUri(URI_TEST_RESULT_PUSH_NEW, workSpace));
+		request.setEntity(new StringEntity(xml, ContentType.APPLICATION_XML));
+		HttpResponse response = null;
+		try {
+			response = execute(request);
+			int statusCode = response.getStatusLine().getStatusCode();
+			if (statusCode == HttpStatus.SC_SERVICE_UNAVAILABLE) {
+				throw new TemporarilyUnavailableException("Service not available");
+			}
+			if (statusCode != HttpStatus.SC_ACCEPTED) {
+				throw createRequestException("Test result post failed", response);
+			}
+			String json = IOUtils.toString(response.getEntity().getContent());
+			JSONObject jsonObject = JSONObject.fromObject(json);
+			return jsonObject.getLong("id");
+		} catch (java.io.FileNotFoundException e) {
+			throw new FileNotFoundException("Cannot find test result file.", e);
+		} catch (IOException e) {
+			throw new RequestErrorException("Cannot post test results to MQM.", e);
+		} finally {
+			HttpClientUtils.closeQuietly(response);
+		}
 	}
 
 	@Override

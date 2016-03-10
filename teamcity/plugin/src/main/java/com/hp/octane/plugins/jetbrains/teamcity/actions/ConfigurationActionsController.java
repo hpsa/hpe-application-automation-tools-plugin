@@ -69,7 +69,7 @@ public class ConfigurationActionsController implements Controller {
                 if(action.equals("test")){
                     returnStr = testConfiguration(serverConfiguration);
                 }else if(action.equals("save")){
-                    returnStr = updateConfiguration(serverConfiguration,url_str);
+                    returnStr = updateConfiguration(serverConfiguration,mqmProject);
                 }
 
             } catch (Exception e) {
@@ -98,7 +98,7 @@ public class ConfigurationActionsController implements Controller {
                 serverConf.username,serverConf.password,CLIENT_TYPE);
     }
 
-    public String updateConfiguration(ServerConfiguration serverConf,String url){
+    public String updateConfiguration(ServerConfiguration serverConf,MqmProject mqmProject){
 
         Config cfg = NGAPlugin.getInstance().getConfig();
         ConfigManager cfgManager = ConfigManager.getInstance(m_descriptor, m_server);
@@ -106,7 +106,7 @@ public class ConfigurationActionsController implements Controller {
         // updating the cfg file parameters
         cfg.setUsername(serverConf.username);
         cfg.setSecretPassword(serverConf.password);
-        cfg.setUiLocation(url);
+        cfg.setUiLocation(mqmProject.getLocation());
         cfg.setSharedSpace(serverConf.sharedSpace);
         cfg.setLocation(serverConf.location);
         cfgManager.jaxbObjectToXML(cfg);        // save the new parameters at the config file
