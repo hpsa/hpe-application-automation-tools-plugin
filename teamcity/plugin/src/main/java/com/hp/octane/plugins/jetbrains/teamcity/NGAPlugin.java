@@ -8,7 +8,7 @@ import com.hp.nga.integrations.SDKManager;
 import com.hp.octane.plugins.jetbrains.teamcity.actions.ConfigurationActionsController;
 import com.hp.octane.plugins.jetbrains.teamcity.actions.DynamicController;
 import com.hp.octane.plugins.jetbrains.teamcity.configuration.NGAConfig;
-import com.hp.octane.plugins.jetbrains.teamcity.utils.ConfigManager;
+import com.hp.octane.plugins.jetbrains.teamcity.configuration.TCConfigurationService;
 import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;
 import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.SBuildServer;
@@ -24,20 +24,10 @@ import java.util.logging.Logger;
 public class NGAPlugin implements ServerExtension {
 	public static final String PLUGIN_NAME = NGAPlugin.class.getSimpleName().toLowerCase();
 	private static final Logger logger = Logger.getLogger(NGAPlugin.class.getName());
-	private final CIPluginServicesImpl ciPluginService;
 
-	private SBuildServer sBuildServer;
 	private ProjectManager projectManager;
-	private BuildTypeResponsibilityFacade responsibilityFacade;
-
 	private static NGAPlugin plugin;
-	private PluginDescriptor descriptor;
 	private NGAConfig config;
-	private ConfigManager configManager;
-
-	public SBuildServer getsBuildServer() {
-		return sBuildServer;
-	}
 
 	public NGAPlugin(SBuildServer sBuildServer,
 	                 ProjectManager projectManager,
@@ -45,20 +35,16 @@ public class NGAPlugin implements ServerExtension {
 	                 WebControllerManager webControllerManager,
 	                 ProjectSettingsManager projectSettingsManager,
 	                 PluginDescriptor pluginDescriptor) {
-		logger.info("Init HPE MQM CI Plugin");
+		logger.info("Init HPE NGA CI Plugin");
 		sBuildServer.registerExtension(ServerExtension.class, PLUGIN_NAME, this);
 		this.plugin = this;
-		descriptor = pluginDescriptor;
-		this.sBuildServer = sBuildServer;
 		this.projectManager = projectManager;
-		this.responsibilityFacade = responsibilityFacade;
-		registerControllers(webControllerManager, projectManager, sBuildServer, projectSettingsManager, pluginDescriptor);
-		configManager = ConfigManager.getInstance(descriptor, sBuildServer);
-		config = configManager.jaxbXMLToObject();
-		this.ciPluginService = new CIPluginServicesImpl();
+		registerControllers(webControllerManager, sBuildServer, pluginDescriptor);
+		TCConfigurationService.init(pluginDescriptor, sBuildServer);
+		config = TCConfigurationService.getInstance().readConfig();
 
-		SDKManager.init(ciPluginService, true);
-		initOPB();
+		ensureServerInstanceID();
+		SDKManager.init(new CIPluginServicesImpl(), true);
 	}
 
 	public ProjectManager getProjectManager() {
@@ -69,22 +55,18 @@ public class NGAPlugin implements ServerExtension {
 		return plugin;
 	}
 
-	private void registerControllers(WebControllerManager webControllerManager, ProjectManager projectManager, SBuildServer sBuildServer, ProjectSettingsManager projectSettingsManager, PluginDescriptor pluginDescriptor) {
+	private void registerControllers(WebControllerManager webControllerManager, SBuildServer sBuildServer, PluginDescriptor pluginDescriptor) {
 		webControllerManager.registerController("/nga/**", new DynamicController());
 		webControllerManager.registerController("/octane-rest/**", new ConfigurationActionsController(sBuildServer, pluginDescriptor));
 	}
 
-	private void initOPB() {
+	private void ensureServerInstanceID() {
 		String identity = config.getIdentity();
 		if (identity == null || identity.equals("")) {
-			identity = UUID.randomUUID().toString();
-			String newidentityFrom = String.valueOf(new Date().getTime());
-			config.setIdentity(identity);
-			config.setIdentityFrom(newidentityFrom);
-			configManager.jaxbObjectToXML(config);
+			config.setIdentity(UUID.randomUUID().toString());
+			config.setIdentityFrom(String.valueOf(new Date().getTime()));
+			TCConfigurationService.getInstance().saveConfig(config);
 		}
-
-		//BridgeService.getInstance().updateBridge(ciPluginService.getNGAConfiguration());
 	}
 
 	public NGAConfig getConfig() {

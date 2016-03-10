@@ -8,7 +8,6 @@ import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
 import com.hp.octane.plugins.jetbrains.teamcity.configuration.NGAConfig;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.configuration.TCConfigurationService;
-import com.hp.octane.plugins.jetbrains.teamcity.utils.ConfigManager;
 import jetbrains.buildServer.serverSide.SBuildServer;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import org.springframework.web.servlet.ModelAndView;
@@ -49,7 +48,7 @@ public class ConfigurationActionsController implements Controller {
 				NGAConfiguration ngaConfiguration = SDKManager.getService(ConfigurationService.class).buildConfiguration(url, apiKey, secret);
 
 				if (action.equals("test")) {
-					returnStr = TCConfigurationService.checkConfiguration(ngaConfiguration);
+					returnStr = TCConfigurationService.getInstance().checkConfiguration(ngaConfiguration);
 				} else if (action.equals("save")) {
 					returnStr = updateConfiguration(ngaConfiguration, url);
 				}
@@ -71,16 +70,14 @@ public class ConfigurationActionsController implements Controller {
 
 	public String updateConfiguration(NGAConfiguration ngaConfiguration, String originalUrl) {
 		NGAConfig cfg = NGAPlugin.getInstance().getConfig();
-		ConfigManager cfgManager = ConfigManager.getInstance(m_descriptor, m_server);
-
 		cfg.setUiLocation(originalUrl);
 		cfg.setLocation(ngaConfiguration.getUrl());
 		cfg.setSharedSpace(ngaConfiguration.getSharedSpace());
 		cfg.setUsername(ngaConfiguration.getApiKey());
 		cfg.setSecretPassword(ngaConfiguration.getSecret());
-		cfgManager.jaxbObjectToXML(cfg);
+		TCConfigurationService.getInstance().saveConfig(cfg);
 
-		//BridgesService.getInstance().updateBridge(serverConf);
+		SDKManager.getService(ConfigurationService.class).notifyChange(ngaConfiguration);
 
 		return "Updated successfully";
 	}
