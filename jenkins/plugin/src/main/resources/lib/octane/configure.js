@@ -768,7 +768,7 @@ function octane_job_configuration(target, progress, proxy) {
 
                 function matchAddedTag(tag) {
                     if (caseInsensitiveStringEquals(tag.tagName, tagInput.val()) &&
-                            caseInsensitiveStringEquals(tag.tagTypeName, tagTypeInput.val())) {
+                      caseInsensitiveStringEquals(tag.tagTypeName, tagTypeInput.val())) {
                         error = "Environment " + tag.tagTypeName + ":" + tag.tagName + " is already added";
                         return true;
                     } else {
