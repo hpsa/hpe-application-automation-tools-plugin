@@ -2,6 +2,8 @@ package com.hp.octane.plugins.jetbrains.teamcity.actions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hp.nga.integrations.SDKManager;
+import com.hp.nga.integrations.api.ConfigurationService;
 import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
 import com.hp.octane.plugins.jetbrains.teamcity.configuration.NGAConfig;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
@@ -44,7 +46,7 @@ public class ConfigurationActionsController implements Controller {
 				String url = httpServletRequest.getParameter("server");
 				String apiKey = httpServletRequest.getParameter("username1");
 				String secret = httpServletRequest.getParameter("password1");
-				NGAConfiguration ngaConfiguration = TCConfigurationService.buildConfiguration(url, apiKey, secret);
+				NGAConfiguration ngaConfiguration = SDKManager.getService(ConfigurationService.class).buildConfiguration(url, apiKey, secret);
 
 				if (action.equals("test")) {
 					returnStr = TCConfigurationService.checkConfiguration(ngaConfiguration);

@@ -61,7 +61,7 @@ final class NGARestClient {
 	private static final String AUTHENTICATION_HEADER = "Authorization";
 	private static final String AUTHENTICATION_BASIC_PREFIX = "Basic ";
 
-	private final SDKManager manager;
+	private final SDKManager sdk;
 	private final CloseableHttpClient httpClient;
 	private int MAX_TOTAL_CONNECTIONS = 20;
 	private CookieStore cookieStore;
@@ -73,8 +73,8 @@ final class NGARestClient {
 		AUTHENTICATION_ERROR_CODES.add(HttpStatus.SC_UNAUTHORIZED);
 	}
 
-	NGARestClient(SDKManager manager) {
-		this.manager = manager;
+	NGARestClient(SDKManager sdk) {
+		this.sdk = sdk;
 		PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
 		connectionManager.setMaxTotal(MAX_TOTAL_CONNECTIONS);
 		connectionManager.setDefaultMaxPerRoute(MAX_TOTAL_CONNECTIONS);
@@ -84,7 +84,7 @@ final class NGARestClient {
 				.setConnectionManager(connectionManager)
 				.setDefaultCookieStore(cookieStore);
 
-		CIProxyConfiguration proxyConf = manager.getCIPluginServices().getProxyConfiguration();
+		CIProxyConfiguration proxyConf = sdk.getCIPluginServices().getProxyConfiguration();
 		if (proxyConf != null) {
 			logger.warn("proxy will be used with the following setup: " + proxyConf);
 			HttpHost proxyHost = new HttpHost(proxyConf.getHost(), proxyConf.getPort());
@@ -106,15 +106,15 @@ final class NGARestClient {
 		httpClient = clientBuilder.build();
 	}
 
-	NGAResponse execute(NGARequest request) {
-		return executeInternal(request, manager.getCIPluginServices().getNGAConfiguration());
+	NGAResponse execute(NGARequest request) throws IOException {
+		return executeRequest(request, sdk.getCIPluginServices().getNGAConfiguration());
 	}
 
-	NGAResponse execute(NGARequest request, NGAConfiguration configuration) {
-		return executeInternal(request, configuration);
+	NGAResponse execute(NGARequest request, NGAConfiguration configuration) throws IOException {
+		return executeRequest(request, configuration);
 	}
 
-	private NGAResponse executeInternal(NGARequest request, NGAConfiguration configuration) {
+	private NGAResponse executeRequest(NGARequest request, NGAConfiguration configuration) throws IOException {
 		NGAResponse result;
 		HttpClientContext context;
 		HttpUriRequest uriRequest;
@@ -125,7 +125,7 @@ final class NGARestClient {
 			loginResponse = login(configuration);
 			if (loginResponse.getStatus() != 200) {
 				logger.error("failed on initial login, status " + loginResponse.getStatus());
-				throw new RuntimeException("failed on initial login, status " + loginResponse.getStatus());
+				return loginResponse;
 			}
 		}
 
@@ -140,7 +140,7 @@ final class NGARestClient {
 				loginResponse = login(configuration);
 				if (loginResponse.getStatus() != 200) {
 					logger.error("failed on re-login, status " + loginResponse.getStatus());
-					throw new RuntimeException("failed on re-login, status " + loginResponse.getStatus());
+					return loginResponse;
 				}
 				uriRequest = createHttpRequest(request);
 				context = createHttpContext();
@@ -150,7 +150,7 @@ final class NGARestClient {
 			result = createNGAResponse(httpResponse);
 		} catch (IOException ioe) {
 			logger.error("failed executing " + request, ioe);
-			throw new RuntimeException("failed executing " + request, ioe);
+			throw ioe;
 		} finally {
 			if (httpResponse != null) {
 				HttpClientUtils.closeQuietly(httpResponse);
@@ -240,7 +240,7 @@ final class NGARestClient {
 		return baos.toString(StandardCharsets.UTF_8.toString());
 	}
 
-	private NGAResponse login(NGAConfiguration config) {
+	private NGAResponse login(NGAConfiguration config) throws IOException {
 		HttpResponse response = null;
 
 		try {
@@ -258,9 +258,9 @@ final class NGARestClient {
 				}
 			}
 			return createNGAResponse(response);
-		} catch (IOException e) {
-			logger.error("failed to login to " + config, e);
-			throw new RuntimeException("failed to login to " + config, e);
+		} catch (IOException ioe) {
+			logger.error("failed to login to " + config, ioe);
+			throw ioe;
 		} finally {
 			HttpClientUtils.closeQuietly(response);
 		}

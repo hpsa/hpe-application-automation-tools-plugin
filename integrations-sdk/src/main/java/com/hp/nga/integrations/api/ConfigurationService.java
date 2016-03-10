@@ -5,16 +5,28 @@ import com.hp.nga.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
 import com.hp.nga.integrations.dto.connectivity.NGAResponse;
 
+import java.io.IOException;
+
 public interface ConfigurationService extends SDKServicePublic {
+
+	/**
+	 * Builds configuration object from raw data, usually supplied from UI or storage
+	 *
+	 * @param rawUrl
+	 * @param apiKey
+	 * @param secret
+	 * @return
+	 */
+	NGAConfiguration buildConfiguration(String rawUrl, String apiKey, String secret) throws IllegalArgumentException;
 
 	/**
 	 * Tests connectivity to the NGA server with the supplied configuration
 	 *
 	 * @param configuration
 	 * @return
-	 * @throws RuntimeException in case of connection failure
+	 * @throws IOException in case of connection failure
 	 */
-	NGAResponse testConnection(NGAConfiguration configuration) throws RuntimeException;
+	NGAResponse validateConfiguration(NGAConfiguration configuration) throws IOException;
 
 	/**
 	 * Notify SDK notification on NGA configuration change
