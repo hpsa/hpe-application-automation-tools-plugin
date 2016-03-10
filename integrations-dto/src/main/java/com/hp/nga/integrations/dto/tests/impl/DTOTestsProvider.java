@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.hp.nga.integrations.dto.DTOBase;
 import com.hp.nga.integrations.dto.DTOInternalProviderBase;
+import com.hp.nga.integrations.dto.tests.BuildContext;
 import com.hp.nga.integrations.dto.tests.TestResult;
 import com.hp.nga.integrations.dto.tests.TestRun;
 
@@ -21,15 +22,23 @@ public final class DTOTestsProvider extends DTOInternalProviderBase {
 	private DTOTestsProvider() {
 	}
 
+	@Override
+	protected Class[] getXMLAbleClasses() {
+		return new Class[]{BuildContextImpl.class, TestRunImpl.class, TestResultImpl.class};
+	}
+
 	public static void ensureInit(Map<Class<? extends DTOBase>, DTOInternalProviderBase> registry, ObjectMapper objectMapper) {
 		registry.put(TestRun.class, INSTANCE_HOLDER.instance);
+		registry.put(BuildContext.class, INSTANCE_HOLDER.instance);
 		registry.put(TestResult.class, INSTANCE_HOLDER.instance);
 
 		INSTANCE_HOLDER.instance.dtoPairs.put(TestRun.class, TestRunImpl.class);
+		INSTANCE_HOLDER.instance.dtoPairs.put(BuildContext.class, BuildContextImpl.class);
 		INSTANCE_HOLDER.instance.dtoPairs.put(TestResult.class, TestResultImpl.class);
 
 		SimpleAbstractTypeResolver resolver = new SimpleAbstractTypeResolver();
 		resolver.addMapping(TestRun.class, TestRunImpl.class);
+		resolver.addMapping(BuildContext.class, BuildContextImpl.class);
 		resolver.addMapping(TestResult.class, TestResultImpl.class);
 		SimpleModule module = new SimpleModule();
 		module.setAbstractTypes(resolver);
@@ -42,11 +51,6 @@ public final class DTOTestsProvider extends DTOInternalProviderBase {
 			result = (T) dtoPairs.get(targetType).newInstance();
 		}
 		return result;
-	}
-
-	@Override
-	protected Class[] getXMLAbleClasses() {
-		return new Class[]{TestRunImpl.class, TestResultImpl.class};
 	}
 
 	private static final class INSTANCE_HOLDER {
