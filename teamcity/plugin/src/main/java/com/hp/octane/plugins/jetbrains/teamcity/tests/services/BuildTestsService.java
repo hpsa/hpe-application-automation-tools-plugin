@@ -26,12 +26,11 @@ public class BuildTestsService {
 	public static void handleTestResult(List<STestRun> tests, long buildStartingTime, SRunningBuild build) {
 		BuildContext buildContext = dtoFactory.newDTO(BuildContext.class)
 				.setBuildId(build.getBuildId())
-				.setBuildType(build.getBuildType().getName())
+				.setBuildType(build.getBuildTypeExternalId())
 				.setServer(NGAPlugin.getInstance().getConfig().getIdentity());
 		TestRun[] testArr = createTestList(tests, buildStartingTime);
-		//testArr = createMockTests();
 		TestResult result = dtoFactory.newDTO(TestResult.class)
-				//.setBuildContext(buildContext)
+				.setBuildContext(buildContext)
 				.setTestRuns(testArr);
 		SDKManager.getService(TestsService.class).pushTestsResult(result);
 	}
@@ -75,35 +74,6 @@ public class BuildTestsService {
 //        return false;
 //    }
 
-	private static TestRun[] createMockTests() {
-		TestRun[] runs = new TestRun[3];
-		runs[0] = dtoFactory.newDTO(TestRun.class)
-				.setModuleName("mod")
-				.setPackageName("pack")
-				.setClassName("class")
-				.setTestName("test1")
-				.setStarted(System.currentTimeMillis())
-				.setDuration(1000)
-				.setResult(TestRunResult.FAILED);
-		runs[1] = dtoFactory.newDTO(TestRun.class)
-				.setModuleName("mod")
-				.setPackageName("pack")
-				.setClassName("class")
-				.setTestName("test2")
-				.setStarted(System.currentTimeMillis())
-				.setDuration(1500)
-				.setResult(TestRunResult.PASSED);
-		runs[2] = dtoFactory.newDTO(TestRun.class)
-				.setModuleName("mod")
-				.setPackageName("pack")
-				.setClassName("class")
-				.setTestName("test3")
-				.setStarted(System.currentTimeMillis())
-				.setDuration(3900)
-				.setResult(TestRunResult.PASSED);
-		return runs;
-	}
-
 	private static TestRun[] createTestList(List<STestRun> tests, long startingTime) {
 
 		List<TestRun> testList = new ArrayList<TestRun>();
@@ -129,8 +99,6 @@ public class BuildTestsService {
 
 			testList.add(tr);
 		}
-		TestRun[] testArr = testList.toArray(new TestRun[testList.size()]);
-
-		return testArr;
+		return testList.toArray(new TestRun[testList.size()]);
 	}
 }
