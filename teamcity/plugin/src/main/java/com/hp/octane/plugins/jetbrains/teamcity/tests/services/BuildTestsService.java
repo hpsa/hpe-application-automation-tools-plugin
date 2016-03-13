@@ -28,7 +28,7 @@ public class BuildTestsService {
 				.setBuildType(build.getBuildType().getName())
 				.setServer(NGAPlugin.getInstance().getConfig().getIdentity());
 		TestRun[] testArr = createTestList(tests, buildStartingTime);
-		testArr = createMockTests();
+		//testArr = createMockTests();
 		TestResult result = dtoFactory.newDTO(TestResult.class)
 				//.setBuildContext(buildContext)
 				.setTestRuns(testArr);
