@@ -13,7 +13,7 @@ public class SDKServicesProvider {
 
 	public void registerServices(SDKManager manager, boolean startBridge) {
 		manager.publicList.add(new ConfigurationServiceImpl(manager));
-		manager.publicList.add(new EventsServiceImpl());
+		manager.publicList.add(new EventsServiceImpl(manager));
 		manager.publicList.add(new TasksProcessorImpl(manager));
 		manager.publicList.add(new TestsServiceImpl(manager));
 
