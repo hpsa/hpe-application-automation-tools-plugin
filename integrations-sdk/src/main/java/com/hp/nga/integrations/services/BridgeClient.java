@@ -91,15 +91,42 @@ final class BridgeClient {
 				if (ngaResponse.getStatus() == HttpStatus.SC_REQUEST_TIMEOUT) {
 					logger.info("expected timeout disconnection on retrieval of abridged tasks");
 				} else if (ngaResponse.getStatus() == HttpStatus.SC_UNAUTHORIZED) {
-					//  TODO: this is a 'fatal' error since relogin didn't help and only configuration change may solve it; still need to continue to retry, maybe breathe more
+					logger.error("connection to NGA Server failed: authentication error");
+					try {
+						Thread.sleep(5000);
+					} catch (InterruptedException ie) {
+						logger.info("interrupted while breathing on temporary exception, continue to re-connect...", ie);
+					}
+				} else if (ngaResponse.getStatus() == HttpStatus.SC_FORBIDDEN) {
+					logger.error("connection to NGA Server failed: authorization error");
+					try {
+						Thread.sleep(5000);
+					} catch (InterruptedException ie) {
+						logger.info("interrupted while breathing on temporary exception, continue to re-connect...", ie);
+					}
 				} else if (ngaResponse.getStatus() == HttpStatus.SC_NOT_FOUND) {
-					//  TODO: thei is a 'fatal' error since NGA server changed an API signature and only redeploy/rebuild may help; still need to continue to retry, maybe breathe more
+					logger.error("connection to NGA Server failed: 404, API changes? version problem?");
+					try {
+						Thread.sleep(20000);
+					} catch (InterruptedException ie) {
+						logger.info("interrupted while breathing on temporary exception, continue to re-connect...", ie);
+					}
 				} else {
 					logger.info("unexpected response; status: " + ngaResponse.getStatus() + "; content: " + ngaResponse.getBody());
+					try {
+						Thread.sleep(2000);
+					} catch (InterruptedException ie) {
+						logger.info("interrupted while breathing on temporary exception, continue to re-connect...", ie);
+					}
 				}
 			}
 		} catch (Exception e) {
 			logger.error("failed to retrieve abridged tasks", e);
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException ie) {
+				logger.info("interrupted while breathing on temporary exception, continue to re-connect...", ie);
+			}
 		}
 		return responseBody;
 	}
