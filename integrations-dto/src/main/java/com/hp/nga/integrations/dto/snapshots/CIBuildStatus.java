@@ -1,4 +1,4 @@
-package com.hp.nga.integrations.dto.parameters;
+package com.hp.nga.integrations.dto.snapshots;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
@@ -11,18 +11,15 @@ import com.fasterxml.jackson.annotation.JsonValue;
  * To change this template use File | Settings | File Templates.
  */
 
-public enum ParameterType {
-	UNKNOWN("unknown"),
-	PASSWORD("password"),
-	BOOLEAN("boolean"),
-	STRING("string"),
-	NUMBER("number"),
-	FILE("file"),
-	AXIS("axis");
+public enum CIBuildStatus {
+	UNAVAILABLE("unavailable"),
+	QUEUED("queued"),
+	RUNNING("running"),
+	FINISHED("finished");
 
 	private String value;
 
-	ParameterType(String value) {
+	CIBuildStatus(String value) {
 		this.value = value;
 	}
 
@@ -32,13 +29,13 @@ public enum ParameterType {
 	}
 
 	@JsonCreator
-	public static ParameterType fromValue(String value) {
+	public static CIBuildStatus fromValue(String value) {
 		if (value == null || value.isEmpty()) {
 			throw new IllegalArgumentException("value MUST NOT be null nor empty");
 		}
 
-		ParameterType result = UNKNOWN;
-		for (ParameterType v : values()) {
+		CIBuildStatus result = UNAVAILABLE;
+		for (CIBuildStatus v : values()) {
 			if (v.value.compareTo(value) == 0) {
 				result = v;
 				break;

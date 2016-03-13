@@ -1,8 +1,8 @@
 package com.hp.octane.plugins.jenkins.model.processors.parameters;
 
-import com.hp.nga.integrations.dto.parameters.ParameterConfig;
-import com.hp.nga.integrations.dto.parameters.ParameterType;
-import com.hp.nga.integrations.dto.parameters.ParameterInstance;
+import com.hp.nga.integrations.dto.DTOFactory;
+import com.hp.nga.integrations.dto.parameters.CIParameter;
+import com.hp.nga.integrations.dto.parameters.CIParameterType;
 import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import hudson.model.*;
 
@@ -13,26 +13,28 @@ import java.util.ArrayList;
  */
 
 public class InherentParameterProcessor extends AbstractParametersProcessor {
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+
 	InherentParameterProcessor() {
 	}
 
 	@Override
-	public ParameterConfig createParameterConfig(ParameterDefinition pd) {
-		ParameterConfig result;
+	public CIParameter createParameterConfig(ParameterDefinition pd) {
+		CIParameter result;
 		if (pd instanceof BooleanParameterDefinition) {
-			result = ModelFactory.createParameterConfig(pd, ParameterType.BOOLEAN);
+			result = ModelFactory.createParameterConfig(pd, CIParameterType.BOOLEAN);
 		} else if (pd instanceof TextParameterDefinition) {
-			result = ModelFactory.createParameterConfig(pd, ParameterType.STRING);
+			result = ModelFactory.createParameterConfig(pd, CIParameterType.STRING);
 		} else if (pd instanceof StringParameterDefinition) {
-			result = ModelFactory.createParameterConfig(pd, ParameterType.STRING);
+			result = ModelFactory.createParameterConfig(pd, CIParameterType.STRING);
 		} else if (pd instanceof ChoiceParameterDefinition) {
 			ChoiceParameterDefinition choicePd = (ChoiceParameterDefinition) pd;
-			result = ModelFactory.createParameterConfig(pd, ParameterType.STRING, null, new ArrayList<Object>(choicePd.getChoices()));
+			result = ModelFactory.createParameterConfig(pd, CIParameterType.STRING, null, new ArrayList<Object>(choicePd.getChoices()));
 		} else if (pd instanceof PasswordParameterDefinition) {
 			PasswordParameterDefinition passPd = (PasswordParameterDefinition) pd;
-			result = ModelFactory.createParameterConfig(pd, ParameterType.PASSWORD, passPd.getDefaultValue());
+			result = ModelFactory.createParameterConfig(pd, CIParameterType.PASSWORD, passPd.getDefaultValue());
 		} else if (pd instanceof FileParameterDefinition) {
-			result = ModelFactory.createParameterConfig(pd, ParameterType.FILE);
+			result = ModelFactory.createParameterConfig(pd, CIParameterType.FILE);
 		} else {
 			result = new UnsupportedParameterProcessor().createParameterConfig(pd);
 		}
@@ -40,9 +42,9 @@ public class InherentParameterProcessor extends AbstractParametersProcessor {
 	}
 
 	@Override
-	public ParameterInstance createParameterInstance(ParameterDefinition pd, ParameterValue pv) {
-		ParameterInstance result;
-		ParameterConfig pc = createParameterConfig(pd);
+	public CIParameter createParameterInstance(ParameterDefinition pd, ParameterValue pv) {
+		CIParameter result;
+		CIParameter pc = createParameterConfig(pd);
 		if (pd instanceof BooleanParameterDefinition) {
 			result = ModelFactory.createParameterInstance(pc, pv);
 		} else if (pd instanceof TextParameterDefinition) {
@@ -52,12 +54,22 @@ public class InherentParameterProcessor extends AbstractParametersProcessor {
 		} else if (pd instanceof ChoiceParameterDefinition) {
 			result = ModelFactory.createParameterInstance(pc, pv);
 		} else if (pd instanceof PasswordParameterDefinition) {
-			result = new ParameterInstance(pc, "");
+			result = dtoFactory.newDTO(CIParameter.class)
+					.setType(pc.getType())
+					.setName(pc.getName())
+					.setDescription(pc.getDescription())
+					.setChoices(pc.getChoices())
+					.setDefaultValue(pc.getDefaultValue())
+					.setValue("");
 		} else if (pd instanceof FileParameterDefinition) {
 			FileParameterValue filePv = (FileParameterValue) pv;
-			result = filePv != null ?
-					new ParameterInstance(pc, filePv.getOriginalFileName()) :
-					new ParameterInstance(pc);
+			result = dtoFactory.newDTO(CIParameter.class)
+					.setType(pc.getType())
+					.setName(pc.getName())
+					.setDescription(pc.getDescription())
+					.setChoices(pc.getChoices())
+					.setDefaultValue(pc.getDefaultValue())
+					.setValue(filePv != null ? filePv.getOriginalFileName() : null);
 		} else {
 			result = new UnsupportedParameterProcessor().createParameterInstance(pd, pv);
 		}

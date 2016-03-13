@@ -1,7 +1,7 @@
 package com.hp.nga.integrations.dto.general;
 
 import com.hp.nga.integrations.dto.DTOBase;
-import com.hp.nga.integrations.dto.parameters.ParameterConfig;
+import com.hp.nga.integrations.dto.parameters.CIParameter;
 
 /**
  * Created by lazara on 08/02/2016.
@@ -19,7 +19,7 @@ public interface CIJobMetadata extends DTOBase {
 
 	String getCiId();
 
-	CIJobMetadata setParameters(ParameterConfig[] parameters);
+	CIJobMetadata setParameters(CIParameter[] parameters);
 
-	ParameterConfig[] getParameters();
+	CIParameter[] getParameters();
 }

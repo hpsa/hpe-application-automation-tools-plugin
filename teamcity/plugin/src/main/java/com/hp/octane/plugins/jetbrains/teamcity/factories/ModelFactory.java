@@ -7,7 +7,7 @@ import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.pipelines.PipelinePhase;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
 import com.hp.nga.integrations.dto.snapshots.SnapshotPhase;
-import com.hp.nga.integrations.dto.snapshots.SnapshotStatus;
+import com.hp.nga.integrations.dto.snapshots.CIBuildStatus;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.dependency.Dependency;
@@ -178,7 +178,7 @@ public class ModelFactory { // {
             snapshotNode.setNumber(Integer.parseInt(currentBuild.getBuildNumber()));
             snapshotNode.setStartTime(currentBuild.getClientStartDate().getTime()); //Returns the timestamp when the build was started on the build agent
             snapshotNode.setCauses(null);
-            snapshotNode.setStatus(SnapshotStatus.FINISHED);
+            snapshotNode.setStatus(CIBuildStatus.FINISHED);
 
         }
         return snapshotNode;
@@ -206,7 +206,7 @@ public class ModelFactory { // {
                 snapshotNode = DTOFactory.getInstance().newDTO(SnapshotNode.class);
                 snapshotNode.setName(build.getName());
                 snapshotNode.setCiId(build.getExternalId());
-                snapshotNode.setStatus(SnapshotStatus.QUEUED);
+                snapshotNode.setStatus(CIBuildStatus.QUEUED);
             }
         }
         return snapshotNode;
@@ -240,7 +240,7 @@ public class ModelFactory { // {
             snapshotNode.setNumber(Integer.parseInt(currentBuild.getBuildNumber()));
             snapshotNode.setStartTime(currentBuild.getClientStartDate().getTime()); //Returns the timestamp when the build was started on the build agent
             snapshotNode.setCauses(null);
-            snapshotNode.setStatus(SnapshotStatus.RUNNING);
+            snapshotNode.setStatus(CIBuildStatus.RUNNING);
             return snapshotNode;
         }
         return snapshotNode;

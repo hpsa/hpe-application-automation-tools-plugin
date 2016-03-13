@@ -2,7 +2,7 @@ package com.hp.nga.integrations.dto.snapshots;
 
 import com.hp.nga.integrations.dto.DTOBase;
 import com.hp.nga.integrations.dto.causes.CIEventCause;
-import com.hp.nga.integrations.dto.parameters.ParameterInstance;
+import com.hp.nga.integrations.dto.parameters.CIParameter;
 import com.hp.nga.integrations.dto.scm.SCMData;
 
 import java.util.List;
@@ -33,13 +33,13 @@ public interface SnapshotNode extends DTOBase {
 
 	SnapshotNode setCauses(CIEventCause[] causes);
 
-	SnapshotStatus getStatus();
+	CIBuildStatus getStatus();
 
-	SnapshotNode setStatus(SnapshotStatus status);
+	SnapshotNode setStatus(CIBuildStatus status);
 
-	SnapshotResult getResult();
+	CIBuildResult getResult();
 
-	SnapshotNode setResult(SnapshotResult result);
+	SnapshotNode setResult(CIBuildResult result);
 
 	Long getEstimatedDuration();
 
@@ -57,9 +57,9 @@ public interface SnapshotNode extends DTOBase {
 
 	SnapshotNode setScmData(SCMData scmData);
 
-	List<ParameterInstance> getParameters();
+	List<CIParameter> getParameters();
 
-	SnapshotNode setParameters(List<ParameterInstance> parameters);
+	SnapshotNode setParameters(List<CIParameter> parameters);
 
 	List<SnapshotPhase> getPhasesInternal();
 

@@ -2,12 +2,15 @@ package com.hp.octane.plugins.jenkins.events;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.mqm.client.MqmRestClient;
-import com.hp.nga.integrations.dto.events.CIEventBase;
+import com.hp.nga.integrations.dto.DTOFactory;
+import com.hp.nga.integrations.dto.events.CIEvent;
+import com.hp.nga.integrations.dto.events.CIEventsList;
+import com.hp.octane.plugins.jenkins.CIJenkinsServicesImpl;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
+import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import org.apache.logging.log4j.LogManager;
-import org.kohsuke.stapler.export.Exported;
-import org.kohsuke.stapler.export.ExportedBean;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,19 +19,19 @@ import java.util.List;
 
 /**
  * Created by gullery on 21/04/2015.
- * <p>
+ * <p/>
  * Event Client is a service of dispatching events to a single MQM Server Context (server : sharedspace)
  */
 
-@ExportedBean
 public class EventsClient {
-	private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger(EventsClient.class);
+	private static final Logger logger = LogManager.getLogger(EventsClient.class);
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	private static final class WaitMonitor {
 		volatile boolean released;
 	}
 
-	private final List<CIEventBase> events = Collections.synchronizedList(new ArrayList<CIEventBase>());
+	private final List<CIEvent> events = Collections.synchronizedList(new ArrayList<CIEvent>());
 	private final Object INIT_LOCKER = new Object();
 	private final WaitMonitor WAIT_MONITOR = new WaitMonitor();
 	private Thread worker;
@@ -61,7 +64,7 @@ public class EventsClient {
 		logger.info("EVENTS: client updated to '" + mqmConfig.location + "'; SP: " + mqmConfig.sharedSpace + "; access key: " + newConfig.username);
 	}
 
-	public void pushEvent(CIEventBase event) {
+	public void pushEvent(CIEvent event) {
 		events.add(event);
 	}
 
@@ -130,7 +133,9 @@ public class EventsClient {
 	}
 
 	private boolean sendData() {
-		EventsList eventsSnapshot = new EventsList(events);
+		CIEventsList eventsSnapshot = dtoFactory.newDTO(CIEventsList.class)
+				.setServer(new CIJenkinsServicesImpl().getServerInfo())
+				.setEvents(new ArrayList<CIEvent>(events));
 		String requestBody;
 		boolean result = true;
 		MqmRestClient restClient = restClientFactory.obtain(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
@@ -187,42 +192,22 @@ public class EventsClient {
 		}
 	}
 
-	@Exported(inline = true)
 	public String getLocation() {
 		return mqmConfig.location;
 	}
 
-	@Exported(inline = true)
 	public String getSharedSpace() {
 		return mqmConfig.sharedSpace;
 	}
 
-	@Exported(inline = true)
 	public String getUsername() {
 		return mqmConfig.username;
 	}
 
-	@Exported(inline = true)
-	public String getImpersonatedUser() {
-		return mqmConfig.impersonatedUser;
-	}
-
-	@Exported(inline = true)
-	public String getLastErrorNote() {
-		return lastErrorNote;
-	}
-
-	@Exported(inline = true)
-	public Date getLastErrorTime() {
-		return lastErrorTime;
-	}
-
-	@Exported(inline = true)
 	public boolean isActive() {
 		return worker != null && worker.isAlive();
 	}
 
-	@Exported(inline = true)
 	public boolean isPaused() {
 		return paused;
 	}

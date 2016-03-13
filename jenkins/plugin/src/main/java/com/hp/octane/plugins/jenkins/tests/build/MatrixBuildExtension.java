@@ -1,8 +1,6 @@
-// (C) Copyright 2003-2015 Hewlett-Packard Development Company, L.P.
-
 package com.hp.octane.plugins.jenkins.tests.build;
 
-import com.hp.nga.integrations.dto.parameters.ParameterInstance;
+import com.hp.nga.integrations.dto.parameters.CIParameter;
 import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import hudson.Extension;
@@ -18,7 +16,7 @@ public class MatrixBuildExtension extends BuildHandlerExtension {
 
     @Override
     public BuildTypeDescriptor getBuildType(AbstractBuild<?, ?> build) {
-        ParameterInstance[] parameters = ParameterProcessors.getInstances(build);
+        CIParameter[] parameters = ParameterProcessors.getInstances(build);
         String subBuildName = ModelFactory.generateSubBuildName(parameters);
         return new BuildTypeDescriptor(build.getRootBuild().getProject().getName(), subBuildName);
     }

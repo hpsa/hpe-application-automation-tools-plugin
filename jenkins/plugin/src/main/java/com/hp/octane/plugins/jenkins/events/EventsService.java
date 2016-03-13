@@ -1,7 +1,7 @@
 package com.hp.octane.plugins.jenkins.events;
 
 import com.google.inject.Inject;
-import com.hp.nga.integrations.dto.events.CIEventBase;
+import com.hp.nga.integrations.dto.events.CIEvent;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactoryImpl;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationListener;
@@ -67,7 +67,7 @@ public final class EventsService implements ConfigurationListener {
 		}
 	}
 
-	public void dispatchEvent(CIEventBase event) {
+	public void dispatchEvent(CIEvent event) {
 		if (eventsClient != null) {
 			eventsClient.pushEvent(event);
 		}

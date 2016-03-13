@@ -1,7 +1,7 @@
 package com.hp.nga.integrations.dto.pipelines;
 
 import com.hp.nga.integrations.dto.DTOBase;
-import com.hp.nga.integrations.dto.parameters.ParameterConfig;
+import com.hp.nga.integrations.dto.parameters.CIParameter;
 
 import java.util.List;
 
@@ -23,9 +23,9 @@ public interface PipelineNode extends DTOBase {
 
 	PipelineNode setName(String name);
 
-	List<ParameterConfig> getParameters();
+	List<CIParameter> getParameters();
 
-	PipelineNode setParameters(List<ParameterConfig> parameters);
+	PipelineNode setParameters(List<CIParameter> parameters);
 
 	List<PipelinePhase> getPhasesInternal();
 

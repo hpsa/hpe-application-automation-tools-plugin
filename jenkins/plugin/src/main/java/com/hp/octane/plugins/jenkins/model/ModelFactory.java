@@ -1,9 +1,8 @@
 package com.hp.octane.plugins.jenkins.model;
 
 import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.parameters.ParameterConfig;
-import com.hp.nga.integrations.dto.parameters.ParameterInstance;
-import com.hp.nga.integrations.dto.parameters.ParameterType;
+import com.hp.nga.integrations.dto.parameters.CIParameter;
+import com.hp.nga.integrations.dto.parameters.CIParameterType;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.pipelines.PipelinePhase;
@@ -22,11 +21,11 @@ import java.util.logging.Logger;
  * Created by lazara on 26/01/2016.
  */
 public class ModelFactory {
-
 	private static final Logger logger = Logger.getLogger(ModelFactory.class.getName());
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	public static PipelineNode createStructureItem(AbstractProject project) {
-		PipelineNode pipelineNode = DTOFactory.getInstance().newDTO(PipelineNode.class);
+		PipelineNode pipelineNode = dtoFactory.newDTO(PipelineNode.class);
 		pipelineNode.setName(project.getName());
 		pipelineNode.setCiId(project.getName());
 		pipelineNode.setParameters(ParameterProcessors.getConfigs(project));
@@ -39,7 +38,7 @@ public class ModelFactory {
 	}
 
 	public static PipelinePhase createStructurePhase(String name, boolean blocking, List<AbstractProject> items) {
-		PipelinePhase pipelinePhase = DTOFactory.getInstance().newDTO(PipelinePhase.class);
+		PipelinePhase pipelinePhase = dtoFactory.newDTO(PipelinePhase.class);
 		pipelinePhase.setName(name);
 		pipelinePhase.setBlocking(blocking);
 
@@ -63,26 +62,25 @@ public class ModelFactory {
 	 */
 
 	public static SnapshotNode createSnapshotItem(AbstractBuild build, boolean metaOnly) {
-
-		SnapshotNode snapshotNode = DTOFactory.getInstance().newDTO(SnapshotNode.class);
+		SnapshotNode snapshotNode = dtoFactory.newDTO(SnapshotNode.class);
 		SCMProcessor scmProcessor = SCMProcessors.getAppropriate(build.getProject().getScm().getClass().getName());
 
-		SnapshotStatus status = SnapshotStatus.FINISHED;
+		CIBuildStatus status = CIBuildStatus.FINISHED;
 		if (build.hasntStartedYet()) {
-			status = SnapshotStatus.QUEUED;
+			status = CIBuildStatus.QUEUED;
 		} else if (build.isBuilding()) {
-			status = SnapshotStatus.RUNNING;
+			status = CIBuildStatus.RUNNING;
 		}
 
-		SnapshotResult result = SnapshotResult.UNAVAILABLE;
+		CIBuildResult result = CIBuildResult.UNAVAILABLE;
 		if (build.getResult() == Result.SUCCESS) {
-			result = SnapshotResult.SUCCESS;
+			result = CIBuildResult.SUCCESS;
 		} else if (build.getResult() == Result.ABORTED) {
-			result = SnapshotResult.ABORTED;
+			result = CIBuildResult.ABORTED;
 		} else if (build.getResult() == Result.FAILURE) {
-			result = SnapshotResult.FAILURE;
+			result = CIBuildResult.FAILURE;
 		} else if (build.getResult() == Result.UNSTABLE) {
-			result = SnapshotResult.UNSTABLE;
+			result = CIBuildResult.UNSTABLE;
 		}
 
 		if (!metaOnly) {
@@ -114,7 +112,7 @@ public class ModelFactory {
 
 
 	public static SnapshotNode createSnapshotItem(AbstractProject project, boolean metaOnly) {
-		SnapshotNode snapshotNode = DTOFactory.getInstance().newDTO(SnapshotNode.class);
+		SnapshotNode snapshotNode = dtoFactory.newDTO(SnapshotNode.class);
 
 		snapshotNode.setName(project.getName());
 		snapshotNode.setCiId(project.getName());
@@ -179,7 +177,7 @@ public class ModelFactory {
 	}
 
 	public static SnapshotPhase createSnapshotPhase(PipelinePhase pipelinePhase, HashMap<String, ArrayList<AbstractBuild>> invokedBuilds) {
-		SnapshotPhase snapshotPhase = DTOFactory.getInstance().newDTO(SnapshotPhase.class);
+		SnapshotPhase snapshotPhase = dtoFactory.newDTO(SnapshotPhase.class);
 		snapshotPhase.setName(pipelinePhase.getName());
 		snapshotPhase.setBlocking(pipelinePhase.isBlocking());
 
@@ -231,68 +229,74 @@ public class ModelFactory {
 	/**
 	 * ***************************************************************************
 	 */
-	public static ParameterConfig createParameterConfig(ParameterDefinition pd) {
-		return createParameterConfig(pd, ParameterType.UNKNOWN, null, null);
+	public static CIParameter createParameterConfig(ParameterDefinition pd) {
+		return createParameterConfig(pd, CIParameterType.UNKNOWN, null, null);
 	}
 
-	public static ParameterConfig createParameterConfig(ParameterDefinition pd, ParameterType type) {
+	public static CIParameter createParameterConfig(ParameterDefinition pd, CIParameterType type) {
 		return createParameterConfig(pd, type, null, null);
 	}
 
-	public static ParameterConfig createParameterConfig(ParameterDefinition pd, ParameterType type, Object defaultValue) {
+	public static CIParameter createParameterConfig(ParameterDefinition pd, CIParameterType type, Object defaultValue) {
 		return createParameterConfig(pd, type, defaultValue, null);
 	}
 
-	public static ParameterConfig createParameterConfig(String name, ParameterType type, List<Object> choices) {
-		ParameterConfig parameterConfig = new ParameterConfig();
-		parameterConfig.setName(name);
-		parameterConfig.setType(type);
-		parameterConfig.setDescription("");
-		parameterConfig.setChoices(choices.toArray());
-		return parameterConfig;
+	public static CIParameter createParameterConfig(String name, CIParameterType type, List<Object> choices) {
+		CIParameter ciParameter = dtoFactory.newDTO(CIParameter.class);
+		ciParameter.setName(name);
+		ciParameter.setType(type);
+		ciParameter.setDescription("");
+		ciParameter.setChoices(choices.toArray());
+		return ciParameter;
 	}
 
-	public static ParameterConfig createParameterConfig(ParameterDefinition pd, ParameterType type, Object defaultValue, List<Object> choices) {
-
-		ParameterConfig parameterConfig = new ParameterConfig();
-		parameterConfig.setName(pd.getName());
-		parameterConfig.setType(type);
-		parameterConfig.setDescription(pd.getDescription());
+	public static CIParameter createParameterConfig(ParameterDefinition pd, CIParameterType type, Object defaultValue, List<Object> choices) {
+		CIParameter ciParameter = dtoFactory.newDTO(CIParameter.class);
+		ciParameter.setName(pd.getName());
+		ciParameter.setType(type);
+		ciParameter.setDescription(pd.getDescription());
 		ParameterValue tmp;
-		if (type != ParameterType.UNKNOWN) {
-			if (defaultValue != null || type == ParameterType.PASSWORD) {
-				parameterConfig.setDefaultValue(defaultValue);
+		if (type != CIParameterType.UNKNOWN) {
+			if (defaultValue != null || type == CIParameterType.PASSWORD) {
+				ciParameter.setDefaultValue(defaultValue);
 			} else {
 				tmp = pd.getDefaultParameterValue();
-				parameterConfig.setDefaultValue(tmp == null ? "" : tmp.getValue());
+				ciParameter.setDefaultValue(tmp == null ? "" : tmp.getValue());
 			}
 			if (choices != null) {
-				parameterConfig.setChoices(choices.toArray());
+				ciParameter.setChoices(choices.toArray());
 			}
 		}
 
-		return parameterConfig;
+		return ciParameter;
 	}
 
 	/**
 	 * *************************************************************
 	 */
 
-	public static ParameterInstance createParameterInstance(ParameterConfig pc, ParameterValue value) {
-		return new ParameterInstance(pc, value == null ? null : value.getValue().toString());
+	public static CIParameter createParameterInstance(CIParameter pc, ParameterValue value) {
+		CIParameter result = dtoFactory.newDTO(CIParameter.class)
+				.setName(pc.getName())
+				.setType(pc.getType())
+				.setDescription(pc.getDescription())
+				.setChoices(pc.getChoices())
+				.setDescription(pc.getDescription())
+				.setValue(value == null ? null : value.getValue().toString());
+		return result;
 	}
 
-	public static String generateSubBuildName(ParameterInstance[] parameters) {
-		List<ParameterInstance> sortedList = new ArrayList<ParameterInstance>();
-		for (ParameterInstance p : parameters) {
-			if (p.getType().toString() == ParameterType.AXIS.toString()) {
+	public static String generateSubBuildName(CIParameter[] parameters) {
+		List<CIParameter> sortedList = new ArrayList<CIParameter>();
+		for (CIParameter p : parameters) {
+			if (p.getType().toString() == CIParameterType.AXIS.toString()) {
 				sortedList.add(p);
 			}
 		}
 
-		Collections.sort(sortedList, new Comparator<ParameterInstance>() {
+		Collections.sort(sortedList, new Comparator<CIParameter>() {
 			@Override
-			public int compare(ParameterInstance p1, ParameterInstance p2) {
+			public int compare(CIParameter p1, CIParameter p2) {
 				return p1.getName().compareTo(p2.getName());
 			}
 		});

@@ -1,6 +1,6 @@
 package com.hp.nga.integrations.dto.pipelines.impl;
 
-import com.hp.nga.integrations.dto.parameters.ParameterConfig;
+import com.hp.nga.integrations.dto.parameters.CIParameter;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.pipelines.PipelinePhase;
 
@@ -18,7 +18,7 @@ import java.util.List;
 class PipelineNodeImpl implements PipelineNode {
 	private String ciId;
 	private String name;
-	private List<ParameterConfig> parameters = new ArrayList<ParameterConfig>();
+	private List<CIParameter> parameters = new ArrayList<CIParameter>();
 	private List<PipelinePhase> phasesInternal = new ArrayList<PipelinePhase>();
 	private List<PipelinePhase> phasesPostBuild = new ArrayList<PipelinePhase>();
 
@@ -40,11 +40,11 @@ class PipelineNodeImpl implements PipelineNode {
 		return this;
 	}
 
-	public List<ParameterConfig> getParameters() {
+	public List<CIParameter> getParameters() {
 		return parameters;
 	}
 
-	public PipelineNode setParameters(List<ParameterConfig> parameters) {
+	public PipelineNode setParameters(List<CIParameter> parameters) {
 		this.parameters = parameters;
 		return this;
 	}

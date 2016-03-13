@@ -2,7 +2,7 @@ package com.hp.nga.integrations.services;
 
 import com.hp.nga.integrations.api.EventsService;
 import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.events.CIEventBase;
+import com.hp.nga.integrations.dto.events.CIEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -19,7 +19,7 @@ final class EventsServiceImpl implements EventsService {
 	EventsServiceImpl() {
 	}
 
-	public void publishEvent(CIEventBase event) {
+	public void publishEvent(CIEvent event) {
 		//  TODO...
 	}
 }

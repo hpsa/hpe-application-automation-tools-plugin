@@ -3,7 +3,7 @@ package com.hp.nga.integrations.dto.general.impl;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.hp.nga.integrations.dto.general.CIJobMetadata;
-import com.hp.nga.integrations.dto.parameters.ParameterConfig;
+import com.hp.nga.integrations.dto.parameters.CIParameter;
 
 /**
  * Created by lazara on 08/02/2016.
@@ -12,7 +12,7 @@ import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 @JsonIgnoreProperties(ignoreUnknown = true)
 class CIJobMetadataImpl implements CIJobMetadata {
 	private String name;
-	private ParameterConfig[] parameters;
+	private CIParameter[] parameters;
 	private String ciId;
 
 	public CIJobMetadata setName(String value) {
@@ -33,13 +33,13 @@ class CIJobMetadataImpl implements CIJobMetadata {
 		return ciId;
 	}
 
-	public CIJobMetadata setParameters(ParameterConfig[] parameters) {
+	public CIJobMetadata setParameters(CIParameter[] parameters) {
 		this.parameters = parameters == null ? null : parameters.clone();
 		return this;
 	}
 
 	@JsonInclude(JsonInclude.Include.NON_NULL)
-	public ParameterConfig[] getParameters() {
+	public CIParameter[] getParameters() {
 		return parameters == null ? null : parameters.clone();
 	}
 }

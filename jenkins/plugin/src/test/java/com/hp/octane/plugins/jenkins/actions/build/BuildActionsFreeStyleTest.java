@@ -3,11 +3,11 @@ package com.hp.octane.plugins.jenkins.actions.build;
 import com.gargoylesoftware.htmlunit.Page;
 import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.causes.CIEventCauseType;
-import com.hp.nga.integrations.dto.parameters.ParameterInstance;
-import com.hp.nga.integrations.dto.parameters.ParameterType;
+import com.hp.nga.integrations.dto.parameters.CIParameter;
+import com.hp.nga.integrations.dto.parameters.CIParameterType;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
-import com.hp.nga.integrations.dto.snapshots.SnapshotResult;
-import com.hp.nga.integrations.dto.snapshots.SnapshotStatus;
+import com.hp.nga.integrations.dto.snapshots.CIBuildResult;
+import com.hp.nga.integrations.dto.snapshots.CIBuildStatus;
 import com.hp.octane.plugins.jenkins.actions.Utils;
 import hudson.model.*;
 import hudson.plugins.parameterizedtrigger.*;
@@ -115,8 +115,8 @@ public class BuildActionsFreeStyleTest {
 		assertEquals(1, snapshot.getCauses().length);
 		assertEquals(CIEventCauseType.USER, snapshot.getCauses()[0].getType());
 		assertEquals(p.getLastBuild().getNumber(), (int) snapshot.getNumber());
-		assertEquals(SnapshotStatus.FINISHED, snapshot.getStatus());
-		assertEquals(SnapshotResult.SUCCESS, snapshot.getResult());
+		assertEquals(CIBuildStatus.FINISHED, snapshot.getStatus());
+		assertEquals(CIBuildResult.SUCCESS, snapshot.getResult());
 		assertNotNull(snapshot.getStartTime());
 		assertNotNull(snapshot.getDuration());
 		assertNotNull(snapshot.getEstimatedDuration());
@@ -140,7 +140,7 @@ public class BuildActionsFreeStyleTest {
 		JenkinsRule.WebClient client = rule.createWebClient();
 		Page page;
 		SnapshotNode snapshot;
-		ParameterInstance tmpParam;
+		CIParameter tmpParam;
 
 		assertEquals(p.getBuilds().toArray().length, 0);
 		Utils.buildProjectWithParams(client, p, "ParamA=false&ParamD=two&ParamX=some_string");
@@ -159,15 +159,15 @@ public class BuildActionsFreeStyleTest {
 		assertEquals(1, snapshot.getCauses().length);
 		assertEquals(CIEventCauseType.USER, snapshot.getCauses()[0].getType());
 		assertEquals(p.getLastBuild().getNumber(), (int) snapshot.getNumber());
-		assertEquals(SnapshotStatus.FINISHED, snapshot.getStatus());
-		assertEquals(SnapshotResult.SUCCESS, snapshot.getResult());
+		assertEquals(CIBuildStatus.FINISHED, snapshot.getStatus());
+		assertEquals(CIBuildResult.SUCCESS, snapshot.getResult());
 		assertNotNull(snapshot.getStartTime());
 		assertNotNull(snapshot.getDuration());
 		assertNotNull(snapshot.getEstimatedDuration());
 
 		tmpParam = snapshot.getParameters().get(0);
 		assertEquals("ParamA", tmpParam.getName());
-		assertEquals(ParameterType.BOOLEAN, tmpParam.getType());
+		assertEquals(CIParameterType.BOOLEAN, tmpParam.getType());
 		assertEquals("bool", tmpParam.getDescription());
 		assertEquals(true, tmpParam.getDefaultValue());
 		assertEquals("false", tmpParam.getValue());
@@ -175,7 +175,7 @@ public class BuildActionsFreeStyleTest {
 
 		tmpParam = snapshot.getParameters().get(1);
 		assertEquals("ParamB", tmpParam.getName());
-		assertEquals(ParameterType.STRING, tmpParam.getType());
+		assertEquals(CIParameterType.STRING, tmpParam.getType());
 		assertEquals("string", tmpParam.getDescription());
 		assertEquals("str", tmpParam.getDefaultValue());
 		assertEquals("str", tmpParam.getValue());
@@ -183,21 +183,21 @@ public class BuildActionsFreeStyleTest {
 
 		tmpParam = snapshot.getParameters().get(2);
 		assertEquals("ParamC", tmpParam.getName());
-		assertEquals(ParameterType.STRING, tmpParam.getType());
+		assertEquals(CIParameterType.STRING, tmpParam.getType());
 		assertEquals("text", tmpParam.getDescription());
 		assertEquals("txt", tmpParam.getDefaultValue());
 		assertEquals("txt", tmpParam.getValue());
 
 		tmpParam = snapshot.getParameters().get(3);
 		assertEquals("ParamD", tmpParam.getName());
-		assertEquals(ParameterType.STRING, tmpParam.getType());
+		assertEquals(CIParameterType.STRING, tmpParam.getType());
 		assertEquals("choice", tmpParam.getDescription());
 		assertEquals("one", tmpParam.getDefaultValue());
 		assertEquals("two", tmpParam.getValue());
 
 		tmpParam = snapshot.getParameters().get(4);
 		assertEquals("ParamE", tmpParam.getName());
-		assertEquals(ParameterType.FILE, tmpParam.getType());
+		assertEquals(CIParameterType.FILE, tmpParam.getType());
 		assertEquals("file param", tmpParam.getDescription());
 		assertEquals("", tmpParam.getDefaultValue());
 		assertEquals(null, tmpParam.getValue());
@@ -242,8 +242,8 @@ public class BuildActionsFreeStyleTest {
 		assertEquals(1, snapshot.getCauses().length);
 		assertEquals(CIEventCauseType.USER, snapshot.getCauses()[0].getType());
 		assertEquals(p.getLastBuild().getNumber(), (int) snapshot.getNumber());
-		assertEquals(SnapshotStatus.FINISHED, snapshot.getStatus());
-		assertEquals(SnapshotResult.SUCCESS, snapshot.getResult());
+		assertEquals(CIBuildStatus.FINISHED, snapshot.getStatus());
+		assertEquals(CIBuildResult.SUCCESS, snapshot.getResult());
 		assertNotNull(snapshot.getStartTime());
 		assertNotNull(snapshot.getDuration());
 		assertNotNull(snapshot.getEstimatedDuration());

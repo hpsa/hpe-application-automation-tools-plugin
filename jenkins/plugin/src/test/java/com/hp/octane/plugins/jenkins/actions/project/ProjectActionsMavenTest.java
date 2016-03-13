@@ -5,8 +5,8 @@ import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.WebRequestSettings;
 import com.gargoylesoftware.htmlunit.WebResponse;
 import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.parameters.ParameterConfig;
-import com.hp.nga.integrations.dto.parameters.ParameterType;
+import com.hp.nga.integrations.dto.parameters.CIParameter;
+import com.hp.nga.integrations.dto.parameters.CIParameterType;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.pipelines.PipelinePhase;
 import hudson.matrix.MatrixProject;
@@ -94,7 +94,7 @@ public class ProjectActionsMavenTest {
 		JenkinsRule.WebClient client = rule.createWebClient();
 		Page page;
 		PipelineNode pipeline;
-		ParameterConfig tmpParam;
+		CIParameter tmpParam;
 
 		page = client.goTo("nga/api/v1/jobs/" + projectName, "application/json");
 		pipeline = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), PipelineNode.class);
@@ -106,28 +106,28 @@ public class ProjectActionsMavenTest {
 
 		tmpParam = pipeline.getParameters().get(0);
 		assertEquals("ParamA", tmpParam.getName());
-		assertEquals(ParameterType.BOOLEAN, tmpParam.getType());
+		assertEquals(CIParameterType.BOOLEAN, tmpParam.getType());
 		assertEquals("bool", tmpParam.getDescription());
 		assertEquals(true, tmpParam.getDefaultValue());
 		assertNull(tmpParam.getChoices());
 
 		tmpParam = pipeline.getParameters().get(1);
 		assertEquals("ParamB", tmpParam.getName());
-		assertEquals(ParameterType.STRING, tmpParam.getType());
+		assertEquals(CIParameterType.STRING, tmpParam.getType());
 		assertEquals("string", tmpParam.getDescription());
 		assertEquals("str", tmpParam.getDefaultValue());
 		assertNull(tmpParam.getChoices());
 
 		tmpParam = pipeline.getParameters().get(2);
 		assertEquals("ParamC", tmpParam.getName());
-		assertEquals(ParameterType.STRING, tmpParam.getType());
+		assertEquals(CIParameterType.STRING, tmpParam.getType());
 		assertEquals("text", tmpParam.getDescription());
 		assertEquals("txt", tmpParam.getDefaultValue());
 		assertNull(tmpParam.getChoices());
 
 		tmpParam = pipeline.getParameters().get(3);
 		assertEquals("ParamD", tmpParam.getName());
-		assertEquals(ParameterType.STRING, tmpParam.getType());
+		assertEquals(CIParameterType.STRING, tmpParam.getType());
 		assertEquals("choice", tmpParam.getDescription());
 		assertEquals("one", tmpParam.getDefaultValue());
 		assertNotNull(tmpParam.getChoices());
@@ -138,7 +138,7 @@ public class ProjectActionsMavenTest {
 
 		tmpParam = pipeline.getParameters().get(4);
 		assertEquals("ParamE", tmpParam.getName());
-		assertEquals(ParameterType.FILE, tmpParam.getType());
+		assertEquals(CIParameterType.FILE, tmpParam.getType());
 		assertEquals("file param", tmpParam.getDescription());
 		assertEquals("", tmpParam.getDefaultValue());
 		assertNull(tmpParam.getChoices());
@@ -187,7 +187,7 @@ public class ProjectActionsMavenTest {
 		PipelineNode pipeline;
 		List<PipelinePhase> tmpPhases;
 		PipelineNode tmpNode;
-		ParameterConfig tmpParam;
+		CIParameter tmpParam;
 
 		page = client.goTo("nga/api/v1/jobs/" + projectName, "application/json");
 		pipeline = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), PipelineNode.class);
@@ -197,14 +197,14 @@ public class ProjectActionsMavenTest {
 
 		tmpParam = pipeline.getParameters().get(0);
 		assertEquals("ParamA", tmpParam.getName());
-		assertEquals(ParameterType.BOOLEAN, tmpParam.getType());
+		assertEquals(CIParameterType.BOOLEAN, tmpParam.getType());
 		assertEquals("bool", tmpParam.getDescription());
 		assertEquals(true, tmpParam.getDefaultValue());
 		assertNull(tmpParam.getChoices());
 
 		tmpParam = pipeline.getParameters().get(1);
 		assertEquals("ParamB", tmpParam.getName());
-		assertEquals(ParameterType.STRING, tmpParam.getType());
+		assertEquals(CIParameterType.STRING, tmpParam.getType());
 		assertEquals("string", tmpParam.getDescription());
 		assertEquals("str", tmpParam.getDefaultValue());
 		assertNull(tmpParam.getChoices());
