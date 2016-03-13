@@ -10,9 +10,9 @@ import java.util.List;
  * Created by lev on 06/01/2016.
  */
 
-public class BuildFinishedListener extends BuildServerAdapter {
+public class TestsResultEventsListener extends BuildServerAdapter {
 
-	public BuildFinishedListener(SBuildServer server) {
+	public TestsResultEventsListener(SBuildServer server) {
 		server.addListener(this);
 	}
 

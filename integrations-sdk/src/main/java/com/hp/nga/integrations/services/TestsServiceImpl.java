@@ -39,9 +39,9 @@ class TestsServiceImpl implements TestsService {
 				.setBody(dtoFactory.dtoToXml(testResult));
 		try {
 			NGAResponse response = restClient.execute(request);
-			System.out.println(response);
+			logger.info("tests result pushed with " + response);
 		} catch (IOException ioe) {
-			System.out.println(ioe);
+			logger.error("failed to push tests result", ioe);
 		}
 	}
 

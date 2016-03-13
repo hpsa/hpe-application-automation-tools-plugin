@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 /**
  * Created by lazara on 07/01/2016.
  */
+
 public class BuildEventListener extends BuildServerAdapter {
 
     private static Logger LOG = Logger.getLogger(BuildEventListener.class.getName());
@@ -46,6 +47,4 @@ public class BuildEventListener extends BuildServerAdapter {
         String name = build.getBuildTypeName();
         LOG.warning(" build finished: "+name);
     }
-
-
 }
