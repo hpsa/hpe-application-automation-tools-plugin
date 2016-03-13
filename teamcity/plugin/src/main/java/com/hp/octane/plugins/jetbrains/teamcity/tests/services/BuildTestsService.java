@@ -18,6 +18,7 @@ import java.util.logging.Logger;
 /**
  * Created by lev on 06/01/2016.
  */
+
 public class BuildTestsService {
 	private static final Logger logger = Logger.getLogger(BuildTestsService.class.getName());
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
