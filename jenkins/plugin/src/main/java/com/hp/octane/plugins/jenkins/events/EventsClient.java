@@ -141,7 +141,7 @@ public class EventsClient {
 		MqmRestClient restClient = restClientFactory.obtain(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
 
 		try {
-			requestBody = new ObjectMapper().writeValueAsString(eventsSnapshot);
+			requestBody = dtoFactory.dtoToJson(eventsSnapshot);
 			logger.info("EVENTS: sending " + eventsSnapshot.getEvents().size() + " event/s to '" + mqmConfig.location + "'...");
 			while (failedRetries < MAX_SEND_RETRIES) {
 				if (restClient.putEvents(requestBody)) {

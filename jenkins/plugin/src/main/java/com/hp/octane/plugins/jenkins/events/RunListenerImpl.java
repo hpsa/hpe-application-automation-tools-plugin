@@ -40,7 +40,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 		if (r.getParent() instanceof MatrixConfiguration) {
 			AbstractBuild build = (AbstractBuild) r;
 			event = dtoFactory.newDTO(CIEvent.class)
-					.setType(CIEventType.STARTED)
+					.setEventType(CIEventType.STARTED)
 					.setProject(((MatrixRun) r).getParentBuild().getParent().getName())
 					.setNumber(String.valueOf(build.getNumber()))
 					.setStartTime(build.getStartTimeInMillis())
@@ -51,7 +51,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 		} else if (r instanceof AbstractBuild) {
 			AbstractBuild build = (AbstractBuild) r;
 			event = dtoFactory.newDTO(CIEvent.class)
-					.setType(CIEventType.STARTED)
+					.setEventType(CIEventType.STARTED)
 					.setProject(build.getProject().getName())
 					.setNumber(String.valueOf(build.getNumber()))
 					.setStartTime(build.getStartTimeInMillis())
@@ -81,7 +81,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 
 			SCMProcessor scmProcessor = SCMProcessors.getAppropriate(build.getProject().getScm().getClass().getName());
 			CIEvent event = dtoFactory.newDTO(CIEvent.class)
-					.setType(CIEventType.FINISHED)
+					.setEventType(CIEventType.FINISHED)
 					.setProject(getProjectName(r))
 					.setNumber(String.valueOf(build.getNumber()))
 					.setStartTime(build.getStartTimeInMillis())

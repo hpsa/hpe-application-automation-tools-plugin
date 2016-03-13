@@ -16,7 +16,7 @@ import com.hp.nga.integrations.dto.snapshots.CIBuildResult;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class CIEventImpl implements CIEvent {
-	private CIEventType type;
+	private CIEventType eventType;
 	private String project;
 	private String number;
 	private CIEventCause[] causes;
@@ -27,12 +27,12 @@ class CIEventImpl implements CIEvent {
 	private Long duration;
 	private SCMData scmData;
 
-	public CIEventType getType() {
-		return type;
+	public CIEventType getEventType() {
+		return eventType;
 	}
 
-	public CIEvent setType(CIEventType type) {
-		this.type = type;
+	public CIEvent setEventType(CIEventType eventType) {
+		this.eventType = eventType;
 		return this;
 	}
 

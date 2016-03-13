@@ -27,7 +27,7 @@ public final class QueueListenerImpl extends QueueListener {
 		if (wi.task instanceof AbstractProject) {
 			project = (AbstractProject) wi.task;
 			CIEvent event = dtoFactory.newDTO(CIEvent.class)
-					.setType(CIEventType.QUEUED)
+					.setEventType(CIEventType.QUEUED)
 					.setProject(project.getName())
 					.setCauses(CIEventCausesFactory.processCauses(wi.getCauses()));
 			//  REMARK: temporary decided to not send QUEUED event

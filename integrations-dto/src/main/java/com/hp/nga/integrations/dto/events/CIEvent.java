@@ -14,9 +14,9 @@ import com.hp.nga.integrations.dto.snapshots.CIBuildResult;
 
 public interface CIEvent extends DTOBase {
 
-	CIEventType getType();
+	CIEventType getEventType();
 
-	CIEvent setType(CIEventType type);
+	CIEvent setEventType(CIEventType type);
 
 	String getProject();
 
