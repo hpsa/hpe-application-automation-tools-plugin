@@ -30,7 +30,7 @@ public class BuildTestsService {
 		TestRun[] testArr = createTestList(tests, buildStartingTime);
 		testArr = createMockTests();
 		TestResult result = dtoFactory.newDTO(TestResult.class)
-				.setBuildContext(buildContext)
+				//.setBuildContext(buildContext)
 				.setTestRuns(testArr);
 		SDKManager.getService(TestsService.class).pushTestsResult(result);
 	}
