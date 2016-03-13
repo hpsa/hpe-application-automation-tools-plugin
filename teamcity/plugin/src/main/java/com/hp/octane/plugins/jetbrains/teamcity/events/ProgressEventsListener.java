@@ -32,7 +32,7 @@ public class ProgressEventsListener extends BuildServerAdapter {
 	public void buildStarted(@NotNull SRunningBuild build) {
 		CIEvent event = dtoFactory.newDTO(CIEvent.class)
 				.setEventType(CIEventType.STARTED)
-				.setProject(build.getProjectId())
+				.setProject(build.getBuildTypeExternalId())
 				.setNumber(build.getBuildNumber())
 				.setCauses(new CIEventCause[0])
 				.setStartTime(build.getStartDate().getTime())
@@ -44,7 +44,7 @@ public class ProgressEventsListener extends BuildServerAdapter {
 	public void buildFinished(@NotNull SRunningBuild build) {
 		CIEvent event = dtoFactory.newDTO(CIEvent.class)
 				.setEventType(CIEventType.FINISHED)
-				.setProject(build.getProjectId())
+				.setProject(build.getBuildTypeExternalId())
 				.setNumber(build.getBuildNumber())
 				.setCauses(new CIEventCause[0])
 				.setStartTime(build.getStartDate().getTime())

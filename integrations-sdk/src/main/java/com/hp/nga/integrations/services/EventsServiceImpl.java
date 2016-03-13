@@ -72,10 +72,10 @@ final class EventsServiceImpl implements EventsService {
 									}
 									Thread.sleep(DATA_SEND_INTERVAL);
 								} catch (Exception e) {
-									logger.error("EVENTS: failed to send events", e);
+									logger.error("failed to send events", e);
 								}
 							}
-							logger.info("EVENTS: worker thread of events client stopped");
+							logger.info("worker thread of events client stopped");
 						}
 					});
 					worker.setDaemon(true);
@@ -100,7 +100,7 @@ final class EventsServiceImpl implements EventsService {
 			try {
 				worker.join();
 			} catch (InterruptedException ie) {
-				logger.info("EVENTS: interruption happened while shutting down worker thread", ie);
+				logger.info("interruption happened while shutting down worker thread", ie);
 			} finally {
 				if (worker.isAlive()) {
 					worker.interrupt();
@@ -129,14 +129,14 @@ final class EventsServiceImpl implements EventsService {
 		boolean result = true;
 
 		try {
-			logger.info("EVENTS: sending " + eventsSnapshot.getEvents().size() + " event/s to '" + eventsSnapshot.getServer().getUrl() + "'...");
+			logger.info("sending " + eventsSnapshot.getEvents().size() + " event/s to '" + eventsSnapshot.getServer().getUrl() + "'...");
 			NGARequest request = createEventsRequest(eventsSnapshot);
 			NGAResponse response;
 			while (failedRetries < MAX_SEND_RETRIES) {
 				response = sdk.getInternalService(NGARestService.class).obtainClient().execute(request);
 				if (response.getStatus() == 200) {
 					events.removeAll(eventsSnapshot.getEvents());
-					logger.info("EVENTS: ... done, left to send " + events.size() + " events");
+					logger.info("... done, left to send " + events.size() + " events");
 					resetCounters();
 					break;
 				} else {
@@ -148,11 +148,11 @@ final class EventsServiceImpl implements EventsService {
 				}
 			}
 			if (failedRetries == MAX_SEND_RETRIES) {
-				logger.error("EVENTS: max number of retries reached");
+				logger.error("max number of retries reached");
 				result = false;
 			}
 		} catch (Exception e) {
-			logger.error("EVENTS: failed to send snapshot of " + eventsSnapshot.getEvents().size() + " events: " + e.getMessage() + "; dropping them all", e);
+			logger.error("failed to send snapshot of " + eventsSnapshot.getEvents().size() + " events: " + e.getMessage() + "; dropping them all", e);
 			events.removeAll(eventsSnapshot.getEvents());
 		}
 		return result;
@@ -163,7 +163,7 @@ final class EventsServiceImpl implements EventsService {
 		headers.put("content-type", "application/json");
 		NGARequest request = dtoFactory.newDTO(NGARequest.class)
 				.setMethod(NGAHttpMethod.PUT)
-				.setUrl(sdk.getCIPluginServices().getNGAConfiguration().getUrl() + "/internal-api/shared_spaces" +
+				.setUrl(sdk.getCIPluginServices().getNGAConfiguration().getUrl() + "/internal-api/shared_spaces/" +
 						sdk.getCIPluginServices().getNGAConfiguration().getSharedSpace() + "/analytics/ci/events")
 				.setHeaders(headers)
 				.setBody(dtoFactory.dtoToJson(events));
@@ -171,7 +171,7 @@ final class EventsServiceImpl implements EventsService {
 	}
 
 	private void doBreakableWait(long timeout) {
-		logger.info("EVENTS: entering waiting period of " + timeout + "ms");
+		logger.info("entering waiting period of " + timeout + "ms");
 		long waitStart = new Date().getTime();
 		synchronized (WAIT_MONITOR) {
 			WAIT_MONITOR.released = false;
@@ -180,14 +180,14 @@ final class EventsServiceImpl implements EventsService {
 				try {
 					WAIT_MONITOR.wait(timeout);
 				} catch (InterruptedException ie) {
-					logger.info("EVENTS: waiting period was interrupted", ie);
+					logger.info("waiting period was interrupted", ie);
 				}
 			}
 			paused = false;
 			if (WAIT_MONITOR.released) {
-				logger.info("EVENTS: pause finished on demand");
+				logger.info("pause finished on demand");
 			} else {
-				logger.info("EVENTS: pause finished timely");
+				logger.info("pause finished timely");
 			}
 		}
 	}
