@@ -174,7 +174,7 @@ public class ModelFactory {
 			snapshotNode.setStartTime(currentBuild.getClientStartDate().getTime()); //Returns the timestamp when the build was started on the build agent
 			snapshotNode.setCauses(null);
 			snapshotNode.setStatus(CIBuildStatus.FINISHED);
-			snapshotNode.setResult(convertFromNativeStatus(currentBuild));
+			snapshotNode.setResult(resultFromNativeStatus(currentBuild.getBuildStatus()));
 		}
 		return snapshotNode;
 	}
@@ -243,13 +243,13 @@ public class ModelFactory {
 		return snapshotNode;
 	}
 
-	private static CIBuildResult convertFromNativeStatus(SBuild build) {
+	public static CIBuildResult resultFromNativeStatus(Status status) {
 		CIBuildResult result = CIBuildResult.UNAVAILABLE;
-		if (build.getBuildStatus() == Status.ERROR || build.getBuildStatus() == Status.FAILURE) {
+		if (status == Status.ERROR || status == Status.FAILURE) {
 			result = CIBuildResult.FAILURE;
-		} else if (build.getBuildStatus() == Status.WARNING) {
+		} else if (status == Status.WARNING) {
 			result = CIBuildResult.UNSTABLE;
-		} else if (build.getBuildStatus() == Status.NORMAL) {
+		} else if (status == Status.NORMAL) {
 			result = CIBuildResult.SUCCESS;
 		}
 		return result;
