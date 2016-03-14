@@ -35,7 +35,7 @@ public class ProgressEventsListener extends BuildServerAdapter {
 				.setProject(build.getBuildTypeExternalId())
 				.setNumber(build.getBuildNumber())
 				.setCauses(new CIEventCause[0])
-				.setStartTime(build.getStartDate().getTime())
+				.setStartTime(build.getClientStartDate().getTime())
 				.setEstimatedDuration(build.getDurationEstimate());
 		SDKManager.getService(EventsService.class).publishEvent(event);
 	}
@@ -47,7 +47,7 @@ public class ProgressEventsListener extends BuildServerAdapter {
 				.setProject(build.getBuildTypeExternalId())
 				.setNumber(build.getBuildNumber())
 				.setCauses(new CIEventCause[0])
-				.setStartTime(build.getStartDate().getTime())
+				.setStartTime(build.getClientStartDate().getTime())
 				.setEstimatedDuration(build.getDurationEstimate())
 				.setDuration(build.getDuration())
 				.setResult(ModelFactory.resultFromNativeStatus(build.getBuildStatus()));
