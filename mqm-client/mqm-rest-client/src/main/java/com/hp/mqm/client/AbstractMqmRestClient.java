@@ -199,7 +199,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	}
 
 	private void checkSharedSpace() {
-		HttpGet request = new HttpGet(createSharedSpaceApiUri(""));
+		HttpGet request = new HttpGet(createSharedSpaceApiUri("workspaces"));
 		HttpResponse response = null;
 		try {
 			response = execute(request);
