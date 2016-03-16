@@ -115,44 +115,18 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 		return DTOFactory.getInstance().newDTO(BuildHistory.class);
 	}
 
-
-	//	private static void configureProxy(String clientType, URL locationUrl, MqmConnectionConfig clientConfig, String username) {
-//		if (clientType.equals(ConfigurationService.CLIENT_TYPE)) {
-//			if (isProxyNeeded(locationUrl.getHost())) {
-//				clientConfig.setProxyHost(getProxyHost());
-//				clientConfig.setProxyPort(getProxyPort());
-//				final String proxyUsername = getUsername();
-//				if (!proxyUsername.isEmpty()) {
-//					clientConfig.setProxyCredentials(new UsernamePasswordProxyCredentials(username, getPassword()));
-//				}
-//			}
-//
-//		}
-//	}
-//
-//
-	private static boolean isProxyNeeded() {
+	private boolean isProxyNeeded() {
+		boolean result = false;
 		Map<String, String> propertiesMap = parseProperties(System.getenv("TEAMCITY_SERVER_OPTS"));
-		return propertiesMap.get("Dhttps.proxyHost") != null;
-
-//		if (propertiesMap.get("Dhttps.proxyHost") == null) {
-//			return false;
-//		}
-//		host = propertiesMap.get("Dhttps.proxyHost");
-//		if (propertiesMap.get("Dhttps.proxyPort") != null) {
-//			port = Integer.parseInt(propertiesMap.get("Dhttps.proxyPort"));
-//		}
-//
-//		return true;
-/*
-                -Dproxyset=true
-                -Dhttp.proxyHost=proxy.domain.com
-                -Dhttp.proxyPort=8080
-                -Dhttp.nonProxyHosts=domain.com
-                -Dhttps.proxyHost=web-proxy.il.hpecorp.net
-                -Dhttps.proxyPort=8080
-                -Dhttps.nonProxyHosts=domain.com
-                */
+		if (propertiesMap.get("Dhttps.proxyHost") != null && getNGAConfiguration() != null) {
+			String proxyHost = propertiesMap.get("Dhttps.proxyHost");
+			String targetHost = getNGAConfiguration().getUrl();
+			if (targetHost.contains(proxyHost)) {
+				System.out.println("some");
+				return true;
+			}
+		}
+		return result;
 	}
 
 	private static Map<String, String> parseProperties(String internalProperties) {

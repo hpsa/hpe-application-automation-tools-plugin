@@ -39,16 +39,20 @@ public class TCConfigurationService {
 	}
 
 	public String checkConfiguration(NGAConfiguration ngaConfiguration) {
-		String resultMessage = "Connection succeeded";
+		String resultMessage;
 
 		try {
 			NGAResponse result = SDKManager.getService(ConfigurationService.class).validateConfiguration(ngaConfiguration);
-			if (result.getStatus() == HttpStatus.SC_UNAUTHORIZED) {
+			if (result.getStatus() == HttpStatus.SC_OK) {
+				resultMessage = "Connection succeeded";
+			} else if (result.getStatus() == HttpStatus.SC_UNAUTHORIZED) {
 				resultMessage = "Authentication failed";
 			} else if (result.getStatus() == HttpStatus.SC_FORBIDDEN) {
 				resultMessage = ngaConfiguration.getApiKey() + " not authorized to shared space " + ngaConfiguration.getSharedSpace();
 			} else if (result.getStatus() == HttpStatus.SC_NOT_FOUND) {
 				resultMessage = "Shared space " + ngaConfiguration.getSharedSpace() + " not exists";
+			} else {
+				resultMessage = "Validation failed for unknown reason; status code: " + result.getStatus();
 			}
 		} catch (IOException ioe) {
 			resultMessage = "Connection failed: " + ioe.getMessage();
