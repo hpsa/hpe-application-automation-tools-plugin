@@ -18,7 +18,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.NONE)
 class TestResultImpl implements TestResult {
 
-//	@XmlAnyElement(lax = true)
+	@XmlAnyElement(lax = true)
 	private BuildContext buildContext;
 
 	@XmlElementWrapper(name = "test_runs")

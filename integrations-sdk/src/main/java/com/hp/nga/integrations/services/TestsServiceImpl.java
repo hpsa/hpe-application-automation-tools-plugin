@@ -36,7 +36,7 @@ class TestsServiceImpl implements TestsService {
 		NGARequest request = dtoFactory.newDTO(NGARequest.class)
 				.setMethod(NGAHttpMethod.POST)
 				.setUrl(sdk.getCIPluginServices().getNGAConfiguration().getUrl() + "/internal-api/shared_spaces/" +
-						sdk.getCIPluginServices().getNGAConfiguration().getSharedSpace() + "analytics/ci/test-results?skip-errors=false")
+						sdk.getCIPluginServices().getNGAConfiguration().getSharedSpace() + "/analytics/ci/test-results?skip-errors=false")
 				.setHeaders(headers)
 				.setBody(dtoFactory.dtoToXml(testResult));
 		try {

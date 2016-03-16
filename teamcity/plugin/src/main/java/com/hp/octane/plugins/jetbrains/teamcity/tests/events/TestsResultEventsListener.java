@@ -18,10 +18,9 @@ public class TestsResultEventsListener extends BuildServerAdapter {
 
 	@Override
 	public void buildFinished(@NotNull SRunningBuild build) {
-		long buildTime = build.getStartDate().getTime();
 		BuildStatistics stats = build.getBuildStatistics(new BuildStatisticsOptions());
 		List<STestRun> tests = stats.getTests(null, BuildStatistics.Order.NATURAL_ASC);
 
-		BuildTestsService.handleTestResult(tests, buildTime, build);
+		BuildTestsService.handleTestResult(tests, build);
 	}
 }

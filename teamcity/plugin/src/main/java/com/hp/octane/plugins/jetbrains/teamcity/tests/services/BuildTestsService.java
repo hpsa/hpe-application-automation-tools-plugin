@@ -23,12 +23,12 @@ public class BuildTestsService {
 	private static final Logger logger = Logger.getLogger(BuildTestsService.class.getName());
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
-	public static void handleTestResult(List<STestRun> tests, long buildStartingTime, SRunningBuild build) {
+	public static void handleTestResult(List<STestRun> tests, SRunningBuild build) {
 		BuildContext buildContext = dtoFactory.newDTO(BuildContext.class)
-				.setBuildId(build.getBuildId())
+				.setBuildId(build.getBuildNumber())
 				.setBuildType(build.getBuildTypeExternalId())
 				.setServer(NGAPlugin.getInstance().getConfig().getIdentity());
-		TestRun[] testArr = createTestList(tests, buildStartingTime);
+		TestRun[] testArr = createTestList(tests, build.getStartDate().getTime());
 		TestResult result = dtoFactory.newDTO(TestResult.class)
 				.setBuildContext(buildContext)
 				.setTestRuns(testArr);

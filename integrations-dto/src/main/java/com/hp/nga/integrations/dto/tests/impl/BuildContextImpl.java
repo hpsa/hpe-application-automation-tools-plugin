@@ -16,7 +16,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class BuildContextImpl implements BuildContext {
 
 	@XmlAttribute(name = "build_sid")
-	private long buildId;
+	private String buildId;
 
 	@XmlAttribute(name = "sub_type")
 	private String subType;
@@ -27,11 +27,11 @@ public class BuildContextImpl implements BuildContext {
 	@XmlAttribute(name = "server")
 	private String server;
 
-	public Long getBuildId() {
+	public String getBuildId() {
 		return buildId;
 	}
 
-	public BuildContext setBuildId(Long buildId) {
+	public BuildContext setBuildId(String buildId) {
 		this.buildId = buildId;
 		return this;
 	}

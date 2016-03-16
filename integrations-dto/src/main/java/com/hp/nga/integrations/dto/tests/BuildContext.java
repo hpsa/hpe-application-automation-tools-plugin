@@ -8,9 +8,9 @@ import com.hp.nga.integrations.dto.DTOBase;
 
 public interface BuildContext extends DTOBase {
 
-	Long getBuildId();
+	String getBuildId();
 
-	BuildContext setBuildId(Long buildId);
+	BuildContext setBuildId(String buildId);
 
 	String getSubType();
 
