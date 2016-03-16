@@ -16,6 +16,8 @@ import java.util.Map;
 
 /**
  * Created by gullery on 09/03/2016.
+ *
+ * Default implementation of tests service
  */
 
 class TestsServiceImpl implements TestsService {
@@ -33,8 +35,8 @@ class TestsServiceImpl implements TestsService {
 		headers.put("content-type", "application/xml");
 		NGARequest request = dtoFactory.newDTO(NGARequest.class)
 				.setMethod(NGAHttpMethod.POST)
-				.setUrl(sdk.getCIPluginServices().getNGAConfiguration().getUrl() + "/api/shared_spaces/" +
-						sdk.getCIPluginServices().getNGAConfiguration().getSharedSpace() + "/workspaces/1002/test-results?skip-errors=false")
+				.setUrl(sdk.getCIPluginServices().getNGAConfiguration().getUrl() + "/internal-api/shared_spaces/" +
+						sdk.getCIPluginServices().getNGAConfiguration().getSharedSpace() + "analytics/ci/test-results?skip-errors=false")
 				.setHeaders(headers)
 				.setBody(dtoFactory.dtoToXml(testResult));
 		try {

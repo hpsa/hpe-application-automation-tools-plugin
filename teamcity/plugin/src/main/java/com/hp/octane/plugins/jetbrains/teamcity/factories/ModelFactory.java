@@ -15,6 +15,7 @@ import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.dependency.Dependency;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -54,31 +55,39 @@ public class ModelFactory {
 			treeRoot = dtoFactory.newDTO(PipelineNode.class);
 			treeRoot.setName(root.getName());
 			treeRoot.setCiId(root.getExternalId());
-			PipelinePhase phase = dtoFactory.newDTO(PipelinePhase.class);
-			phase.setName("teamcity_dependencies");
-			phase.setBlocking(true);
-			List<PipelinePhase> pipelinePhaseList = new ArrayList<PipelinePhase>();
-			pipelinePhaseList.add(phase);
-			List<PipelineNode> pipelineNodeList = new ArrayList<PipelineNode>();
-			getFlatDependencies(root.getOwnDependencies(), pipelineNodeList);
-			phase.setJobs(pipelineNodeList);
-			treeRoot.setPhasesPostBuild(pipelinePhaseList);
+
+			List<PipelineNode> pipelineNodeList = buildFromDependenciesFlat(root.getOwnDependencies());
+			if (!pipelineNodeList.isEmpty()) {
+				PipelinePhase phase = dtoFactory.newDTO(PipelinePhase.class);
+				phase.setName("teamcity_dependencies");
+				phase.setBlocking(true);
+				phase.setJobs(pipelineNodeList);
+				List<PipelinePhase> pipelinePhaseList = new ArrayList<PipelinePhase>();
+				pipelinePhaseList.add(phase);
+				treeRoot.setPhasesPostBuild(pipelinePhaseList);
+			}
 		} else {
 			//should update the response?
 		}
 		return treeRoot;
 	}
 
-	private static void getFlatDependencies(List<Dependency> dependencies, List<PipelineNode> pipelineNodeList) {
-		if (dependencies == null || dependencies.size() == 0) return;
-		for (Dependency dependency : dependencies) {
-			SBuildType build = dependency.getDependOn();
-			PipelineNode buildItem = dtoFactory.newDTO(PipelineNode.class);
-			buildItem.setName(build.getName());
-			buildItem.setCiId(build.getExternalId());
-			pipelineNodeList.add(buildItem);
-			getFlatDependencies(build.getDependencies(), pipelineNodeList);
+	private static List<PipelineNode> buildFromDependenciesFlat(List<Dependency> dependencies) {
+		List<PipelineNode> result = new LinkedList<PipelineNode>();
+		if (dependencies != null) {
+			for (Dependency dependency : dependencies) {
+				SBuildType build = dependency.getDependOn();
+				if (build != null) {
+					PipelineNode buildItem = dtoFactory.newDTO(PipelineNode.class);
+					buildItem.setName(build.getName());
+					buildItem.setCiId(build.getExternalId());
+					//  TODO: add parameters: build.getParameters()
+					result.add(buildItem);
+					result.addAll(buildFromDependenciesFlat(build.getDependencies()));
+				}
+			}
 		}
+		return result;
 	}
 
 	private static void createPipelineStructure(PipelineNode treeRoot, List<Dependency> dependencies) {
