@@ -35,6 +35,7 @@ public class BridgeClient {
 	private static final String serverInstanceId = plugin.getIdentity();
 	private ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
 	private ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30, new AbridgedTasksExecutorsFactory());
+	volatile private boolean isConnected = false;
 	volatile private boolean shuttingDown = false;
 
 	private ServerConfiguration mqmConfig;
@@ -55,7 +56,8 @@ public class BridgeClient {
 	}
 
 	private void connect() {
-		if (!shuttingDown) {
+		if (!shuttingDown && !isConnected) {
+			isConnected = true;
 			connectivityExecutors.execute(new Runnable() {
 				@Override
 				public void run() {
@@ -68,11 +70,13 @@ public class BridgeClient {
 								pluginServices.getServerInfo().getUrl(),
 								SDKManager.API_VERSION,
 								SDKManager.SDK_VERSION);
+						isConnected = false;
 						connect();
 						if (tasksJSON != null && !tasksJSON.isEmpty()) {
 							dispatchTasks(tasksJSON);
 						}
 					} catch (AuthenticationException ae) {
+						isConnected = false;
 						logger.error("BRIDGE: connection to MQM Server temporary failed: authentication error", ae);
 						try {
 							Thread.sleep(20000);
@@ -81,6 +85,7 @@ public class BridgeClient {
 						}
 						connect();
 					} catch (TemporarilyUnavailableException tue) {
+						isConnected = false;
 						logger.error("BRIDGE: connection to MQM Server temporary failed: resource not available", tue);
 						try {
 							Thread.sleep(20000);
@@ -89,6 +94,7 @@ public class BridgeClient {
 						}
 						connect();
 					} catch (Exception e) {
+						isConnected = false;
 						logger.error("BRIDGE: connection to MQM Server temporary failed: " + e.getMessage(), e);
 						try {
 							Thread.sleep(1000);
