@@ -9,11 +9,9 @@ import com.hp.octane.plugins.jetbrains.teamcity.actions.ConfigurationActionsCont
 import com.hp.octane.plugins.jetbrains.teamcity.actions.DynamicController;
 import com.hp.octane.plugins.jetbrains.teamcity.configuration.NGAConfig;
 import com.hp.octane.plugins.jetbrains.teamcity.configuration.TCConfigurationService;
-import jetbrains.buildServer.responsibility.BuildTypeResponsibilityFacade;
 import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.SBuildServer;
 import jetbrains.buildServer.serverSide.ServerExtension;
-import jetbrains.buildServer.serverSide.settings.ProjectSettingsManager;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import jetbrains.buildServer.web.openapi.WebControllerManager;
 
@@ -31,9 +29,7 @@ public class NGAPlugin implements ServerExtension {
 
 	public NGAPlugin(SBuildServer sBuildServer,
 	                 ProjectManager projectManager,
-	                 BuildTypeResponsibilityFacade responsibilityFacade,
 	                 WebControllerManager webControllerManager,
-	                 ProjectSettingsManager projectSettingsManager,
 	                 PluginDescriptor pluginDescriptor) {
 		logger.info("Init HPE NGA CI Plugin");
 		sBuildServer.registerExtension(ServerExtension.class, PLUGIN_NAME, this);
