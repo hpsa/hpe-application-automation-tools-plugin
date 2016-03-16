@@ -1,6 +1,7 @@
 package com.hp.octane.plugins.jenkins.model.processors.builders;
 
-import com.hp.octane.plugins.jenkins.model.pipelines.StructurePhase;
+import com.hp.nga.integrations.dto.pipelines.PipelinePhase;
+import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import hudson.model.AbstractProject;
 import hudson.tasks.BuildTrigger;
 import hudson.tasks.Publisher;
@@ -23,7 +24,7 @@ public class BuildTriggerProcessor extends AbstractBuilderProcessor {
 
 	public BuildTriggerProcessor(Publisher publisher, AbstractProject project) {
 		BuildTrigger t = (BuildTrigger) publisher;
-		super.phases = new ArrayList<StructurePhase>();
+		super.phases = new ArrayList<PipelinePhase>();
 		List<AbstractProject> items = t.getChildProjects(project.getParent());
 		for (Iterator<AbstractProject> iterator = items.iterator(); iterator.hasNext();) {
 			AbstractProject next = iterator.next();
@@ -32,6 +33,8 @@ public class BuildTriggerProcessor extends AbstractBuilderProcessor {
 				logger.severe("encountered null project reference; considering it as corrupted configuration and skipping");
 			}
 		}
-		super.phases.add(new StructurePhase("downstream", false, items));
+//		super.phases.add(new StructurePhase("downstream", false, items));
+		super.phases.add(ModelFactory.createStructurePhase("downstream", false, items));
+
 	}
 }

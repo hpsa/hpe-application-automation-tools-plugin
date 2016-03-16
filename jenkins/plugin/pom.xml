@@ -9,7 +9,7 @@
     </parent>
 
     <name>HP Lifecycle Management CI Plugin</name>
-    <version>12.50.29-SNAPSHOT</version>
+    <version>12.53.1-SNAPSHOT</version>
     <artifactId>hp-lifecycle-management-ci-plugin</artifactId>
     <packaging>hpi</packaging>
 
@@ -116,14 +116,15 @@
         </dependency>
 
         <!--Internals-->
-
         <dependency>
-            <artifactId>mqm-rest-client</artifactId>
+            <artifactId>integrations-sdk</artifactId>
             <groupId>com.hp.mqm</groupId>
             <version>${project.version}</version>
         </dependency>
+
+        <!-- TO BE REMOVED -->
         <dependency>
-            <artifactId>integrations-sdk</artifactId>
+            <artifactId>mqm-rest-client</artifactId>
             <groupId>com.hp.mqm</groupId>
             <version>${project.version}</version>
         </dependency>
@@ -288,19 +289,5 @@
             </distributionManagement>
         </profile>
     </profiles>
-
-    <repositories>
-        <repository>
-            <id>mqm-public</id>
-            <url>${baseNexusURL}/content/repositories/mqm-public</url>
-        </repository>
-    </repositories>
-
-    <pluginRepositories>
-        <pluginRepository>
-            <id>mqm-public</id>
-            <url>${baseNexusURL}/content/repositories/mqm-public</url>
-        </pluginRepository>
-    </pluginRepositories>
 
 </project>

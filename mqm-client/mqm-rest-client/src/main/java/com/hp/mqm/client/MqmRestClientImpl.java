@@ -63,7 +63,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	private static final String URI_LIST_ITEMS = "list_nodes";
 	private static final String URI_METADATA_FIELDS = "metadata/fields";
 	private static final String URI_PUT_EVENTS = "analytics/ci/events";
-	private static final String URI_GET_ABRIDGED_TASKS = "analytics/ci/servers/{0}/tasks?self-url={1}";
+	private static final String URI_GET_ABRIDGED_TASKS = "analytics/ci/servers/{0}/tasks?self-url={1}&api-version={2}&sdk-version={3}";
 	private static final String URI_PUT_ABRIDGED_RESULT = "analytics/ci/servers/{0}/tasks/{1}/result";
 	private static final String URI_TAXONOMY_NODES = "taxonomy_nodes";
 
@@ -582,12 +582,12 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	}
 
 	@Override
-	public String getAbridgedTasks(String selfIdentity, String selfLocation) {
+	public String getAbridgedTasks(String selfIdentity, String selfLocation, Integer apiVersion, String sdkVersion) {
 		HttpGet request;
 		HttpResponse response = null;
 		String responseBody;
 		try {
-			request = new HttpGet(createSharedSpaceInternalApiUri(URI_GET_ABRIDGED_TASKS, selfIdentity, selfLocation));
+			request = new HttpGet(createSharedSpaceInternalApiUri(URI_GET_ABRIDGED_TASKS, selfIdentity, selfLocation, apiVersion, sdkVersion));
 			response = execute(request);
 			responseBody = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {

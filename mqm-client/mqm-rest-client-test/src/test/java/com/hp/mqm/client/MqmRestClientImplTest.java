@@ -178,62 +178,6 @@ public class MqmRestClientImplTest {
 	}
 
 	@Test
-	public void testExecute_autoLogin() throws IOException {
-		final String uri = LOCATION + "/api/shared_spaces/" + SHARED_SPACE + "/workspaces/" + WORKSPACE + "/defects?query=%22id=0%22";
-		MqmRestClientImpl client = new MqmRestClientImpl(connectionConfig);
-
-		MqmConnectionConfig badConnectionConfig = new MqmConnectionConfig(
-				LOCATION, SHARED_SPACE, NONUSER, "xxxbadxxxpasswordxxx", CLIENT_TYPE, PROXY_HOST, PROXY_PORT);
-		MqmRestClientImpl invalidClient = new MqmRestClientImpl(badConnectionConfig);
-
-		// test method execute
-		HttpResponse response = null;
-
-		try {
-			response = client.execute(new HttpGet(uri));
-			Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
-		} finally {
-			HttpClientUtils.closeQuietly(response);
-		}
-
-		try {
-			response = invalidClient.execute(new HttpGet(uri));
-			fail();
-		} catch (LoginException e) {
-			Assert.assertNotNull(e);
-		} finally {
-			HttpClientUtils.closeQuietly(response);
-		}
-
-		// test method execute with response handler
-		try {
-			int status = client.execute(new HttpGet(uri), new ResponseHandler<Integer>() {
-				@Override
-				public Integer handleResponse(HttpResponse response) throws IOException {
-					return response.getStatusLine().getStatusCode();
-				}
-			});
-			Assert.assertEquals(HttpStatus.SC_OK, status);
-		} finally {
-			HttpClientUtils.closeQuietly(response);
-		}
-
-		try {
-			int status = invalidClient.execute(new HttpGet(uri), new ResponseHandler<Integer>() {
-				@Override
-				public Integer handleResponse(HttpResponse response) throws IOException {
-					return response.getStatusLine().getStatusCode();
-				}
-			});
-			fail();
-		} catch (LoginException e) {
-			Assert.assertNotNull(e);
-		} finally {
-			HttpClientUtils.closeQuietly(response);
-		}
-	}
-
-	@Test
 	public void testPostTestResult() throws IOException, URISyntaxException, InterruptedException {
 		MqmRestClientImpl client = new MqmRestClientImpl(connectionConfig);
 

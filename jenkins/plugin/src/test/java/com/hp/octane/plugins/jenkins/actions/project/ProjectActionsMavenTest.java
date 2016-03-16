@@ -1,7 +1,14 @@
 package com.hp.octane.plugins.jenkins.actions.project;
 
+import com.gargoylesoftware.htmlunit.HttpMethod;
 import com.gargoylesoftware.htmlunit.Page;
-import com.hp.octane.plugins.jenkins.model.parameters.ParameterType;
+import com.gargoylesoftware.htmlunit.WebRequestSettings;
+import com.gargoylesoftware.htmlunit.WebResponse;
+import com.hp.nga.integrations.dto.DTOFactory;
+import com.hp.nga.integrations.dto.parameters.ParameterConfig;
+import com.hp.nga.integrations.dto.parameters.ParameterType;
+import com.hp.nga.integrations.dto.pipelines.PipelineNode;
+import com.hp.nga.integrations.dto.pipelines.PipelinePhase;
 import hudson.matrix.MatrixProject;
 import hudson.maven.MavenModuleSet;
 import hudson.model.*;
@@ -9,19 +16,17 @@ import hudson.plugins.parameterizedtrigger.*;
 import hudson.tasks.BuildTrigger;
 import hudson.tasks.Fingerprinter;
 import hudson.tasks.Shell;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Arrays;
+import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -32,7 +37,8 @@ import static org.junit.Assert.assertTrue;
  */
 
 public class ProjectActionsMavenTest {
-	final private String projectName = "root-job";
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+	private static final String projectName = "root-job";
 
 	@Rule
 	final public JenkinsRule rule = new JenkinsRule();
@@ -45,34 +51,27 @@ public class ProjectActionsMavenTest {
 
 		JenkinsRule.WebClient client = rule.createWebClient();
 		Page page;
-		JSONObject body;
-		JSONArray tmpArray;
+		PipelineNode pipeline;
 
-		page = client.goTo("job/" + projectName + "/octane/structure", "application/json");
-		body = new JSONObject(page.getWebResponse().getContentAsString());
-		assertEquals(body.length(), 4);
-		assertTrue(body.has("name"));
-		assertEquals(body.getString("name"), projectName);
-
-		assertTrue(body.has("parameters"));
-		tmpArray = body.getJSONArray("parameters");
-		assertEquals(tmpArray.length(), 0);
-
-		assertTrue(body.has("phasesInternal"));
-		tmpArray = body.getJSONArray("phasesInternal");
-		assertEquals(tmpArray.length(), 0);
-
-		assertTrue(body.has("phasesPostBuild"));
-		tmpArray = body.getJSONArray("phasesPostBuild");
-		assertEquals(tmpArray.length(), 0);
+		page = client.goTo("nga/api/v1/jobs/" + projectName, "application/json");
+		pipeline = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), PipelineNode.class);
+		assertEquals(projectName, pipeline.getCiId());
+		assertEquals(projectName, pipeline.getName());
+		assertEquals(0, pipeline.getParameters().size());
+		assertEquals(0, pipeline.getPhasesInternal().size());
+		assertEquals(0, pipeline.getPhasesPostBuild().size());
 	}
 
 	@Test
+	//@Ignore
 	public void testDoRun() throws IOException, SAXException, InterruptedException {
+		int retries = 0;
 		MavenModuleSet p = rule.createMavenProject(projectName);
 		JenkinsRule.WebClient client = rule.createWebClient();
-		client.goTo("job/" + projectName + "/octane/run", "");
-		while (p.getLastBuild() == null || p.getLastBuild().isBuilding()) {
+		WebRequestSettings wrs = new WebRequestSettings(new URL(client.getContextPath() + "nga/api/v1/jobs/" + projectName + "/run"), HttpMethod.POST);
+		wrs = client.addCrumb(wrs);
+		WebResponse wr = client.loadWebResponse(wrs);
+		while ((p.getLastBuild() == null || p.getLastBuild().isBuilding()) && ++retries < 20) {
 			Thread.sleep(1000);
 		}
 		assertEquals(p.getBuilds().toArray().length, 1);
@@ -94,71 +93,55 @@ public class ProjectActionsMavenTest {
 
 		JenkinsRule.WebClient client = rule.createWebClient();
 		Page page;
-		JSONObject body;
-		JSONArray tmpArray;
-		JSONObject tmpParam;
+		PipelineNode pipeline;
+		ParameterConfig tmpParam;
 
-		page = client.goTo("job/" + projectName + "/octane/structure", "application/json");
-		body = new JSONObject(page.getWebResponse().getContentAsString());
-		assertEquals(body.length(), 4);
-		assertTrue(body.has("name"));
-		assertEquals(body.getString("name"), projectName);
+		page = client.goTo("nga/api/v1/jobs/" + projectName, "application/json");
+		pipeline = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), PipelineNode.class);
+		assertEquals(projectName, pipeline.getCiId());
+		assertEquals(projectName, pipeline.getName());
+		assertEquals(5, pipeline.getParameters().size());
+		assertEquals(0, pipeline.getPhasesInternal().size());
+		assertEquals(0, pipeline.getPhasesPostBuild().size());
 
-		assertTrue(body.has("parameters"));
-		tmpArray = body.getJSONArray("parameters");
-		assertEquals(tmpArray.length(), 5);
+		tmpParam = pipeline.getParameters().get(0);
+		assertEquals("ParamA", tmpParam.getName());
+		assertEquals(ParameterType.BOOLEAN, tmpParam.getType());
+		assertEquals("bool", tmpParam.getDescription());
+		assertEquals(true, tmpParam.getDefaultValue());
+		assertNull(tmpParam.getChoices());
 
-		tmpParam = tmpArray.getJSONObject(0);
-		assertEquals(tmpParam.length(), 5);
-		assertEquals(tmpParam.getString("name"), "ParamA");
-		assertEquals(tmpParam.getString("type"), ParameterType.BOOLEAN.toString());
-		assertEquals(tmpParam.getString("description"), "bool");
-		assertEquals(tmpParam.getBoolean("defaultValue"), true);
-		assertTrue(tmpParam.isNull("choices"));
+		tmpParam = pipeline.getParameters().get(1);
+		assertEquals("ParamB", tmpParam.getName());
+		assertEquals(ParameterType.STRING, tmpParam.getType());
+		assertEquals("string", tmpParam.getDescription());
+		assertEquals("str", tmpParam.getDefaultValue());
+		assertNull(tmpParam.getChoices());
 
-		tmpParam = tmpArray.getJSONObject(1);
-		assertEquals(tmpParam.length(), 5);
-		assertEquals(tmpParam.getString("name"), "ParamB");
-		assertEquals(tmpParam.getString("type"), ParameterType.STRING.toString());
-		assertEquals(tmpParam.getString("description"), "string");
-		assertEquals(tmpParam.getString("defaultValue"), "str");
-		assertTrue(tmpParam.isNull("choices"));
+		tmpParam = pipeline.getParameters().get(2);
+		assertEquals("ParamC", tmpParam.getName());
+		assertEquals(ParameterType.STRING, tmpParam.getType());
+		assertEquals("text", tmpParam.getDescription());
+		assertEquals("txt", tmpParam.getDefaultValue());
+		assertNull(tmpParam.getChoices());
 
-		tmpParam = tmpArray.getJSONObject(2);
-		assertEquals(tmpParam.length(), 5);
-		assertEquals(tmpParam.getString("name"), "ParamC");
-		assertEquals(tmpParam.getString("type"), ParameterType.STRING.toString());
-		assertEquals(tmpParam.getString("description"), "text");
-		assertEquals(tmpParam.getString("defaultValue"), "txt");
-		assertTrue(tmpParam.isNull("choices"));
+		tmpParam = pipeline.getParameters().get(3);
+		assertEquals("ParamD", tmpParam.getName());
+		assertEquals(ParameterType.STRING, tmpParam.getType());
+		assertEquals("choice", tmpParam.getDescription());
+		assertEquals("one", tmpParam.getDefaultValue());
+		assertNotNull(tmpParam.getChoices());
+		assertEquals(3, tmpParam.getChoices().length);
+		assertEquals("one", tmpParam.getChoices()[0]);
+		assertEquals("two", tmpParam.getChoices()[1]);
+		assertEquals("three", tmpParam.getChoices()[2]);
 
-		tmpParam = tmpArray.getJSONObject(3);
-		assertEquals(tmpParam.length(), 5);
-		assertEquals(tmpParam.getString("name"), "ParamD");
-		assertEquals(tmpParam.getString("type"), ParameterType.STRING.toString());
-		assertEquals(tmpParam.getString("description"), "choice");
-		assertEquals(tmpParam.getString("defaultValue"), "one");
-		assertNotNull(tmpParam.get("choices"));
-		assertEquals(tmpParam.getJSONArray("choices").length(), 3);
-		assertEquals(tmpParam.getJSONArray("choices").get(0), "one");
-		assertEquals(tmpParam.getJSONArray("choices").get(1), "two");
-		assertEquals(tmpParam.getJSONArray("choices").get(2), "three");
-
-		tmpParam = tmpArray.getJSONObject(4);
-		assertEquals(tmpParam.length(), 5);
-		assertEquals(tmpParam.getString("name"), "ParamE");
-		assertEquals(tmpParam.getString("type"), ParameterType.FILE.toString());
-		assertEquals(tmpParam.getString("description"), "file param");
-		assertEquals(tmpParam.getString("defaultValue"), "");
-		assertTrue(tmpParam.isNull("choices"));
-
-		assertTrue(body.has("phasesInternal"));
-		tmpArray = body.getJSONArray("phasesInternal");
-		assertEquals(tmpArray.length(), 0);
-
-		assertTrue(body.has("phasesPostBuild"));
-		tmpArray = body.getJSONArray("phasesPostBuild");
-		assertEquals(tmpArray.length(), 0);
+		tmpParam = pipeline.getParameters().get(4);
+		assertEquals("ParamE", tmpParam.getName());
+		assertEquals(ParameterType.FILE, tmpParam.getType());
+		assertEquals("file param", tmpParam.getDescription());
+		assertEquals("", tmpParam.getDefaultValue());
+		assertNull(tmpParam.getChoices());
 	}
 
 	//  Structure test: maven, with params, with children
@@ -201,159 +184,147 @@ public class ProjectActionsMavenTest {
 
 		JenkinsRule.WebClient client = rule.createWebClient();
 		Page page;
-		JSONObject body;
-		JSONArray tmpArray;
-		JSONObject tmpParam;
-		JSONObject tmpPhase;
-		JSONArray tmpJobs;
-		JSONObject tmpJob;
+		PipelineNode pipeline;
+		List<PipelinePhase> tmpPhases;
+		PipelineNode tmpNode;
+		ParameterConfig tmpParam;
 
-		page = client.goTo("job/" + projectName + "/octane/structure", "application/json");
-		body = new JSONObject(page.getWebResponse().getContentAsString());
-		assertEquals(body.length(), 4);
-		assertTrue(body.has("name"));
-		assertEquals(body.getString("name"), projectName);
+		page = client.goTo("nga/api/v1/jobs/" + projectName, "application/json");
+		pipeline = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), PipelineNode.class);
+		assertEquals(projectName, pipeline.getCiId());
+		assertEquals(projectName, pipeline.getName());
+		assertEquals(2, pipeline.getParameters().size());
 
-		assertTrue(body.has("parameters"));
-		tmpArray = body.getJSONArray("parameters");
-		assertEquals(tmpArray.length(), 2);
+		tmpParam = pipeline.getParameters().get(0);
+		assertEquals("ParamA", tmpParam.getName());
+		assertEquals(ParameterType.BOOLEAN, tmpParam.getType());
+		assertEquals("bool", tmpParam.getDescription());
+		assertEquals(true, tmpParam.getDefaultValue());
+		assertNull(tmpParam.getChoices());
 
-		tmpParam = tmpArray.getJSONObject(0);
-		assertEquals(tmpParam.length(), 5);
-		assertEquals(tmpParam.getString("name"), "ParamA");
-		assertEquals(tmpParam.getString("type"), ParameterType.BOOLEAN.toString());
-		assertEquals(tmpParam.getString("description"), "bool");
-		assertEquals(tmpParam.getBoolean("defaultValue"), true);
-		assertTrue(tmpParam.isNull("choices"));
+		tmpParam = pipeline.getParameters().get(1);
+		assertEquals("ParamB", tmpParam.getName());
+		assertEquals(ParameterType.STRING, tmpParam.getType());
+		assertEquals("string", tmpParam.getDescription());
+		assertEquals("str", tmpParam.getDefaultValue());
+		assertNull(tmpParam.getChoices());
 
-		tmpParam = tmpArray.getJSONObject(1);
-		assertEquals(tmpParam.length(), 5);
-		assertEquals(tmpParam.getString("name"), "ParamB");
-		assertEquals(tmpParam.getString("type"), ParameterType.STRING.toString());
-		assertEquals(tmpParam.getString("description"), "string");
-		assertEquals(tmpParam.getString("defaultValue"), "str");
-		assertTrue(tmpParam.isNull("choices"));
+		//  Phases Internal
+		//
+		tmpPhases = pipeline.getPhasesInternal();
+		assertEquals(4, tmpPhases.size());
 
-		assertTrue(body.has("phasesInternal"));
-		tmpArray = body.getJSONArray("phasesInternal");
-		assertEquals(tmpArray.length(), 4);
+		//  Phase 0
+		assertEquals("pre-maven", tmpPhases.get(0).getName());
+		assertEquals(true, tmpPhases.get(0).isBlocking());
+		assertEquals(2, tmpPhases.get(0).getJobs().size());
 
-		tmpPhase = tmpArray.getJSONObject(0);
-		assertEquals(tmpPhase.length(), 3);
-		assertEquals(tmpPhase.getString("name"), "pre-maven");
-		assertEquals(tmpPhase.getBoolean("blocking"), true);
-		tmpJobs = tmpPhase.getJSONArray("jobs");
-		assertEquals(tmpJobs.length(), 2);
-		tmpJob = tmpJobs.getJSONObject(0);
-		assertEquals(tmpJob.length(), 4);
-		assertEquals(tmpJob.getString("name"), "jobA");
-		assertEquals(tmpJob.getJSONArray("parameters").length(), 0);
-		assertEquals(tmpJob.getJSONArray("phasesInternal").length(), 0);
-		assertEquals(tmpJob.getJSONArray("phasesPostBuild").length(), 0);
-		tmpJob = tmpJobs.getJSONObject(1);
-		assertEquals(tmpJob.length(), 4);
-		assertEquals(tmpJob.getString("name"), "jobB");
-		assertEquals(tmpJob.getJSONArray("parameters").length(), 0);
-		assertEquals(tmpJob.getJSONArray("phasesInternal").length(), 0);
-		assertEquals(tmpJob.getJSONArray("phasesPostBuild").length(), 0);
+		tmpNode = tmpPhases.get(0).getJobs().get(0);
+		assertEquals("jobA", tmpNode.getCiId());
+		assertEquals("jobA", tmpNode.getName());
+		assertEquals(0, tmpNode.getParameters().size());
+		assertEquals(0, tmpNode.getPhasesInternal().size());
+		assertEquals(0, tmpNode.getPhasesPostBuild().size());
+		tmpNode = tmpPhases.get(0).getJobs().get(1);
+		assertEquals("jobB", tmpNode.getCiId());
+		assertEquals("jobB", tmpNode.getName());
+		assertEquals(0, tmpNode.getParameters().size());
+		assertEquals(0, tmpNode.getPhasesInternal().size());
+		assertEquals(0, tmpNode.getPhasesPostBuild().size());
 
-		tmpPhase = tmpArray.getJSONObject(1);
-		assertEquals(tmpPhase.length(), 3);
-		assertEquals(tmpPhase.getString("name"), "pre-maven");
-		assertEquals(tmpPhase.getBoolean("blocking"), false);
-		tmpJobs = tmpPhase.getJSONArray("jobs");
-		assertEquals(tmpJobs.length(), 2);
-		tmpJob = tmpJobs.getJSONObject(0);
-		assertEquals(tmpJob.length(), 4);
-		assertEquals(tmpJob.getString("name"), "jobC");
-		assertEquals(tmpJob.getJSONArray("parameters").length(), 0);
-		assertEquals(tmpJob.getJSONArray("phasesInternal").length(), 0);
-		assertEquals(tmpJob.getJSONArray("phasesPostBuild").length(), 0);
-		tmpJob = tmpJobs.getJSONObject(1);
-		assertEquals(tmpJob.length(), 4);
-		assertEquals(tmpJob.getString("name"), "jobD");
-		assertEquals(tmpJob.getJSONArray("parameters").length(), 0);
-		assertEquals(tmpJob.getJSONArray("phasesInternal").length(), 0);
-		assertEquals(tmpJob.getJSONArray("phasesPostBuild").length(), 0);
+		//  Phase 1
+		assertEquals("pre-maven", tmpPhases.get(1).getName());
+		assertEquals(false, tmpPhases.get(1).isBlocking());
+		assertEquals(2, tmpPhases.get(1).getJobs().size());
 
-		tmpPhase = tmpArray.getJSONObject(2);
-		assertEquals(tmpPhase.length(), 3);
-		assertEquals(tmpPhase.getString("name"), "post-maven");
-		assertEquals(tmpPhase.getBoolean("blocking"), true);
-		tmpJobs = tmpPhase.getJSONArray("jobs");
-		assertEquals(tmpJobs.length(), 2);
-		tmpJob = tmpJobs.getJSONObject(0);
-		assertEquals(tmpJob.length(), 4);
-		assertEquals(tmpJob.getString("name"), "jobA");
-		assertEquals(tmpJob.getJSONArray("parameters").length(), 0);
-		assertEquals(tmpJob.getJSONArray("phasesInternal").length(), 0);
-		assertEquals(tmpJob.getJSONArray("phasesPostBuild").length(), 0);
-		tmpJob = tmpJobs.getJSONObject(1);
-		assertEquals(tmpJob.length(), 4);
-		assertEquals(tmpJob.getString("name"), "jobB");
-		assertEquals(tmpJob.getJSONArray("parameters").length(), 0);
-		assertEquals(tmpJob.getJSONArray("phasesInternal").length(), 0);
-		assertEquals(tmpJob.getJSONArray("phasesPostBuild").length(), 0);
+		tmpNode = tmpPhases.get(1).getJobs().get(0);
+		assertEquals("jobC", tmpNode.getCiId());
+		assertEquals("jobC", tmpNode.getName());
+		assertEquals(0, tmpNode.getParameters().size());
+		assertEquals(0, tmpNode.getPhasesInternal().size());
+		assertEquals(0, tmpNode.getPhasesPostBuild().size());
+		tmpNode = tmpPhases.get(1).getJobs().get(1);
+		assertEquals("jobD", tmpNode.getCiId());
+		assertEquals("jobD", tmpNode.getName());
+		assertEquals(0, tmpNode.getParameters().size());
+		assertEquals(0, tmpNode.getPhasesInternal().size());
+		assertEquals(0, tmpNode.getPhasesPostBuild().size());
 
-		tmpPhase = tmpArray.getJSONObject(3);
-		assertEquals(tmpPhase.length(), 3);
-		assertEquals(tmpPhase.getString("name"), "post-maven");
-		assertEquals(tmpPhase.getBoolean("blocking"), false);
-		tmpJobs = tmpPhase.getJSONArray("jobs");
-		assertEquals(tmpJobs.length(), 2);
-		tmpJob = tmpJobs.getJSONObject(0);
-		assertEquals(tmpJob.length(), 4);
-		assertEquals(tmpJob.getString("name"), "jobC");
-		assertEquals(tmpJob.getJSONArray("parameters").length(), 0);
-		assertEquals(tmpJob.getJSONArray("phasesInternal").length(), 0);
-		assertEquals(tmpJob.getJSONArray("phasesPostBuild").length(), 0);
-		tmpJob = tmpJobs.getJSONObject(1);
-		assertEquals(tmpJob.length(), 4);
-		assertEquals(tmpJob.getString("name"), "jobD");
-		assertEquals(tmpJob.getJSONArray("parameters").length(), 0);
-		assertEquals(tmpJob.getJSONArray("phasesInternal").length(), 0);
-		assertEquals(tmpJob.getJSONArray("phasesPostBuild").length(), 0);
+		//  Phase 2
+		assertEquals("post-maven", tmpPhases.get(2).getName());
+		assertEquals(true, tmpPhases.get(2).isBlocking());
+		assertEquals(2, tmpPhases.get(2).getJobs().size());
 
-		assertTrue(body.has("phasesPostBuild"));
-		tmpArray = body.getJSONArray("phasesPostBuild");
-		assertEquals(tmpArray.length(), 2);
+		tmpNode = tmpPhases.get(2).getJobs().get(0);
+		assertEquals("jobA", tmpNode.getCiId());
+		assertEquals("jobA", tmpNode.getName());
+		assertEquals(0, tmpNode.getParameters().size());
+		assertEquals(0, tmpNode.getPhasesInternal().size());
+		assertEquals(0, tmpNode.getPhasesPostBuild().size());
+		tmpNode = tmpPhases.get(2).getJobs().get(1);
+		assertEquals("jobB", tmpNode.getCiId());
+		assertEquals("jobB", tmpNode.getName());
+		assertEquals(0, tmpNode.getParameters().size());
+		assertEquals(0, tmpNode.getPhasesInternal().size());
+		assertEquals(0, tmpNode.getPhasesPostBuild().size());
 
-		tmpPhase = tmpArray.getJSONObject(0);
-		assertEquals(tmpPhase.length(), 3);
-		assertEquals(tmpPhase.getString("name"), "downstream");
-		assertEquals(tmpPhase.getBoolean("blocking"), false);
-		tmpJobs = tmpPhase.getJSONArray("jobs");
-		assertEquals(tmpJobs.length(), 2);
-		tmpJob = tmpJobs.getJSONObject(0);
-		assertEquals(tmpJob.length(), 4);
-		assertEquals(tmpJob.getString("name"), "jobA");
-		assertEquals(tmpJob.getJSONArray("parameters").length(), 0);
-		assertEquals(tmpJob.getJSONArray("phasesInternal").length(), 0);
-		assertEquals(tmpJob.getJSONArray("phasesPostBuild").length(), 0);
-		tmpJob = tmpJobs.getJSONObject(1);
-		assertEquals(tmpJob.length(), 4);
-		assertEquals(tmpJob.getString("name"), "jobB");
-		assertEquals(tmpJob.getJSONArray("parameters").length(), 0);
-		assertEquals(tmpJob.getJSONArray("phasesInternal").length(), 0);
-		assertEquals(tmpJob.getJSONArray("phasesPostBuild").length(), 0);
+		//  Phase 3
+		assertEquals("post-maven", tmpPhases.get(3).getName());
+		assertEquals(false, tmpPhases.get(3).isBlocking());
+		assertEquals(2, tmpPhases.get(3).getJobs().size());
 
-		tmpPhase = tmpArray.getJSONObject(1);
-		assertEquals(tmpPhase.length(), 3);
-		assertEquals(tmpPhase.getString("name"), "");
-		assertEquals(tmpPhase.getBoolean("blocking"), false);
-		tmpJobs = tmpPhase.getJSONArray("jobs");
-		assertEquals(tmpJobs.length(), 2);
-		tmpJob = tmpJobs.getJSONObject(0);
-		assertEquals(tmpJob.length(), 4);
-		assertEquals(tmpJob.getString("name"), "jobC");
-		assertEquals(tmpJob.getJSONArray("parameters").length(), 0);
-		assertEquals(tmpJob.getJSONArray("phasesInternal").length(), 0);
-		assertEquals(tmpJob.getJSONArray("phasesPostBuild").length(), 0);
-		tmpJob = tmpJobs.getJSONObject(1);
-		assertEquals(tmpJob.length(), 4);
-		assertEquals(tmpJob.getString("name"), "jobD");
-		assertEquals(tmpJob.getJSONArray("parameters").length(), 0);
-		assertEquals(tmpJob.getJSONArray("phasesInternal").length(), 0);
-		assertEquals(tmpJob.getJSONArray("phasesPostBuild").length(), 0);
+		tmpNode = tmpPhases.get(3).getJobs().get(0);
+		assertEquals("jobC", tmpNode.getCiId());
+		assertEquals("jobC", tmpNode.getName());
+		assertEquals(0, tmpNode.getParameters().size());
+		assertEquals(0, tmpNode.getPhasesInternal().size());
+		assertEquals(0, tmpNode.getPhasesPostBuild().size());
+		tmpNode = tmpPhases.get(3).getJobs().get(1);
+		assertEquals("jobD", tmpNode.getCiId());
+		assertEquals("jobD", tmpNode.getName());
+		assertEquals(0, tmpNode.getParameters().size());
+		assertEquals(0, tmpNode.getPhasesInternal().size());
+		assertEquals(0, tmpNode.getPhasesPostBuild().size());
+
+		//  Phases Post build
+		//
+		tmpPhases = pipeline.getPhasesPostBuild();
+		assertEquals(2, tmpPhases.size());
+
+		//  Phase 0
+		assertEquals("downstream", tmpPhases.get(0).getName());
+		assertEquals(false, tmpPhases.get(0).isBlocking());
+		assertEquals(2, tmpPhases.get(0).getJobs().size());
+
+		tmpNode = tmpPhases.get(0).getJobs().get(0);
+		assertEquals("jobA", tmpNode.getCiId());
+		assertEquals("jobA", tmpNode.getName());
+		assertEquals(0, tmpNode.getParameters().size());
+		assertEquals(0, tmpNode.getPhasesInternal().size());
+		assertEquals(0, tmpNode.getPhasesPostBuild().size());
+		tmpNode = tmpPhases.get(0).getJobs().get(1);
+		assertEquals("jobB", tmpNode.getCiId());
+		assertEquals("jobB", tmpNode.getName());
+		assertEquals(0, tmpNode.getParameters().size());
+		assertEquals(0, tmpNode.getPhasesInternal().size());
+		assertEquals(0, tmpNode.getPhasesPostBuild().size());
+
+		//  Phase 1
+		assertEquals("", tmpPhases.get(1).getName());
+		assertEquals(false, tmpPhases.get(1).isBlocking());
+		assertEquals(2, tmpPhases.get(1).getJobs().size());
+
+		tmpNode = tmpPhases.get(1).getJobs().get(0);
+		assertEquals("jobC", tmpNode.getCiId());
+		assertEquals("jobC", tmpNode.getName());
+		assertEquals(0, tmpNode.getParameters().size());
+		assertEquals(0, tmpNode.getPhasesInternal().size());
+		assertEquals(0, tmpNode.getPhasesPostBuild().size());
+		tmpNode = tmpPhases.get(1).getJobs().get(1);
+		assertEquals("jobD", tmpNode.getCiId());
+		assertEquals("jobD", tmpNode.getName());
+		assertEquals(0, tmpNode.getParameters().size());
+		assertEquals(0, tmpNode.getPhasesInternal().size());
+		assertEquals(0, tmpNode.getPhasesPostBuild().size());
 	}
 }
