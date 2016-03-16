@@ -71,7 +71,7 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 	@Override
 	public CIProxyConfiguration getProxyConfiguration() {
 		CIProxyConfiguration result = null;
-		if (isProxyNeeded()) {
+		if (isProxyNeeded(getNGAConfiguration())) {
 			Map<String, String> propertiesMap = parseProperties(System.getenv("TEAMCITY_SERVER_OPTS"));
 			result = dtoFactory.newDTO(CIProxyConfiguration.class)
 					.setHost(propertiesMap.get("Dhttps.proxyHost"))
@@ -115,12 +115,12 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 		return DTOFactory.getInstance().newDTO(BuildHistory.class);
 	}
 
-	private boolean isProxyNeeded() {
+	private boolean isProxyNeeded(NGAConfiguration configuration) {
 		boolean result = false;
 		Map<String, String> propertiesMap = parseProperties(System.getenv("TEAMCITY_SERVER_OPTS"));
-		if (propertiesMap.get("Dhttps.proxyHost") != null && getNGAConfiguration() != null) {
+		if (propertiesMap.get("Dhttps.proxyHost") != null && configuration != null) {
 			String proxyHost = propertiesMap.get("Dhttps.proxyHost");
-			String targetHost = getNGAConfiguration().getUrl();
+			String targetHost = configuration.getUrl();
 			if (targetHost.contains(proxyHost)) {
 				System.out.println("some");
 				return true;
