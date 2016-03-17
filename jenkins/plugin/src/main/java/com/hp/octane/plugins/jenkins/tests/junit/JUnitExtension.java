@@ -3,10 +3,7 @@
 package com.hp.octane.plugins.jenkins.tests.junit;
 
 import com.google.inject.Inject;
-import com.hp.octane.plugins.jenkins.tests.MqmTestsExtension;
-import com.hp.octane.plugins.jenkins.tests.TestResult;
-import com.hp.octane.plugins.jenkins.tests.TestResultContainer;
-import com.hp.octane.plugins.jenkins.tests.TestResultStatus;
+import com.hp.octane.plugins.jenkins.tests.*;
 import com.hp.octane.plugins.jenkins.tests.detection.ResultFields;
 import com.hp.octane.plugins.jenkins.tests.detection.ResultFieldsDetectionService;
 import com.hp.octane.plugins.jenkins.tests.impl.ObjectStreamIterator;
@@ -177,6 +174,9 @@ public class JUnitExtension extends MqmTestsExtension {
 			private String testName;
 			private long duration;
 			private TestResultStatus status;
+			private String stackTraceStr;
+			private String errorType;
+			private String errorMsg;
 
 			public JUnitXmlIterator(InputStream read, boolean stripPackageAndClass) throws XMLStreamException {
 				super(read);
@@ -202,6 +202,9 @@ public class JUnitExtension extends MqmTestsExtension {
 						testName = "";
 						duration = 0;
 						status = TestResultStatus.PASSED;
+						stackTraceStr = "";
+						errorType = "";
+						errorMsg = "";
 					} else if ("className".equals(localName)) { // NON-NLS
 						String fqn = readNextValue();
 						int p = fqn.lastIndexOf(".");
@@ -228,19 +231,26 @@ public class JUnitExtension extends MqmTestsExtension {
 						if (!"0".equals(readNextValue()) && !TestResultStatus.SKIPPED.equals(status)) {
 							status = TestResultStatus.FAILED;
 						}
-					} else if (("errorStackTrace".equals(localName) || "errorDetails".equals(localName))) { // NON-NLS
+					} else if ("errorStackTrace".equals(localName)) { // NON-NLS
 						status = TestResultStatus.FAILED;
+						stackTraceStr = readNextValue();
+						errorType = stackTraceStr.substring(0,stackTraceStr.indexOf("\n\t"));
+					} else if ("errorDetails".equals(localName)) { // NON-NLS
+						status = TestResultStatus.FAILED;
+						errorMsg = readNextValue();
+						errorType = stackTraceStr.substring(0, stackTraceStr.indexOf(":"));
 					}
 				} else if (event instanceof EndElement) {
 					EndElement element = (EndElement) event;
 					String localName = element.getName().getLocalPart();
 
 					if ("case".equals(localName)) { // NON-NLS
+						TestError testError = new TestError(stackTraceStr, errorType, errorMsg);
 						if (stripPackageAndClass) {
 							//workaround only for UFT - we do not want packageName="All-Tests" and className="&lt;None>" as it comes from JUnit report
-							addItem(new TestResult(moduleName, "", "", testName, status, duration, buildStarted));
+							addItem(new TestResult(moduleName, "", "", testName, status, duration, buildStarted, testError));
 						} else {
-							addItem(new TestResult(moduleName, packageName, className, testName, status, duration, buildStarted));
+							addItem(new TestResult(moduleName, packageName, className, testName, status, duration, buildStarted, testError));
 						}
 					}
 				}
