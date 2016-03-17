@@ -97,80 +97,57 @@ public class ModelFactory {
 
 	public SnapshotNode createSnapshot(String buildConfigurationId) {
 		SBuildType root = ngaPlugin.getProjectManager().findBuildTypeByExternalId(buildConfigurationId);
-		SnapshotNode snapshotRoot = null;
+		SnapshotNode result = null;
 		if (root != null) {
-			snapshotRoot = createSnapshotItem(root, root.getBuildTypeId());
-			createSnapshotPipeline(snapshotRoot, root.getDependencies(), root.getBuildTypeId());
+			result = createSnapshotItem(root, root.getBuildTypeId());
+
+			List<SnapshotNode> snapshotNodesList = createSnapshots(root.getDependencies(), root.getBuildTypeId());
+			if (!snapshotNodesList.isEmpty()) {
+				SnapshotPhase phase = dtoFactory.newDTO(SnapshotPhase.class);
+				phase.setName("teamcity_dependencies");
+				phase.setBlocking(true);
+				phase.setBuilds(snapshotNodesList);
+				List<SnapshotPhase> snapshotPhases = new ArrayList<SnapshotPhase>();
+				snapshotPhases.add(phase);
+				result.setPhasesPostBuild(snapshotPhases);
+			}
 		} else {
 			//should update the response?
 		}
-		return snapshotRoot;
+		return result;
 	}
 
-	private void createSnapshotPipeline(SnapshotNode treeRoot, List<Dependency> dependencies, String rootId) {
-		if (dependencies == null || dependencies.size() == 0) return;
-		SnapshotPhase phase = dtoFactory.newDTO(SnapshotPhase.class);
-		phase.setBlocking(true);
-		phase.setName("teamcity_dependencies");
-		List<SnapshotPhase> snapshotPhaseList = new ArrayList<SnapshotPhase>();
-		snapshotPhaseList.add(phase);
-		List<SnapshotNode> snapshotNodeList = new ArrayList<SnapshotNode>();
-		for (Dependency dependency : dependencies) {
-			SBuildType build = dependency.getDependOn();
-			SnapshotNode snapshotNode = createSnapshotItem(build, rootId);
-			snapshotNodeList.add(snapshotNode);
-			createSnapshotPipeline(snapshotNode, build.getDependencies(), rootId);
-		}
-		phase.setBuilds(snapshotNodeList);
-		treeRoot.setPhasesInternal(snapshotPhaseList);
-	}
+	private List<SnapshotNode> createSnapshots(List<Dependency> dependencies, String rootId) {
+		List<SnapshotNode> result = new LinkedList<SnapshotNode>();
 
-	private SnapshotNode createSnapshotItem(SBuildType build, String rootId) {
-		//option 1: the build is running now and need to retrieve the data from the running object
-		SnapshotNode snapshotNode = createRunningBuild(build, rootId);
-		//option 2: the build in the queue
-		if (snapshotNode == null) {
-			snapshotNode = createQueueBuild(build, rootId);
-		}
-		//option 3: the build is finished
-		if (snapshotNode == null) {
-			snapshotNode = createHistoryBuild(build, rootId);
-		}
-		return snapshotNode;
-	}
-
-	private SnapshotNode createHistoryBuild(SBuildType build, String rootId) {
-		SnapshotNode result = null;
-		SBuild currentBuild = null;
-
-		List<SFinishedBuild> finishedBuilds = build.getHistory();
-
-		if (build.getBuildTypeId().equalsIgnoreCase(rootId) && finishedBuilds.size() > 0) {
-			currentBuild = finishedBuilds.get(0);
-		} else {
-			for (SBuild runningBuild : finishedBuilds) {
-				TriggeredBy trigger = runningBuild.getTriggeredBy();
-				if (trigger.getParameters().get("buildTypeId") != null && rootId.equalsIgnoreCase(trigger.getParameters().get("buildTypeId"))) {
-					currentBuild = runningBuild;
-					break;
-				}
+		if (dependencies != null && !dependencies.isEmpty()) {
+			for (Dependency dependency : dependencies) {
+				SBuildType build = dependency.getDependOn();
+				SnapshotNode snapshotNode = createSnapshotItem(build, rootId);
+				result.add(snapshotNode);
+				result.addAll(createSnapshots(build.getDependencies(), rootId));
 			}
 		}
 
-		if (currentBuild != null) {
-			result = dtoFactory.newDTO(SnapshotNode.class)
-					.setName(build.getExtendedName())
-					.setCiId(build.getExternalId())
-					.setDuration(currentBuild.getDuration())
-					.setEstimatedDuration(null)
-					.setNumber(Integer.parseInt(currentBuild.getBuildNumber()))
-					.setStartTime(currentBuild.getStartDate().getTime())
-					.setCauses(null)
-					.setStatus(CIBuildStatus.FINISHED)
-					.setResult(resultFromNativeStatus(currentBuild.getBuildStatus()));
-		}
-
 		return result;
+	}
+
+	private SnapshotNode createSnapshotItem(SBuildType build, String rootId) {
+		//  Option 1: the build is running now and need to retrieve the data from the running object
+		SnapshotNode snapshotNode = createRunningBuild(build, rootId);
+		//  Option 2: the build in the queue
+		if (snapshotNode == null) {
+			snapshotNode = createQueueBuild(build, rootId);
+		}
+		//  Option 3: the build is finished
+		if (snapshotNode == null) {
+			snapshotNode = createHistoryBuild(build, rootId);
+		}
+		//  Option 4: if the build not available, create empty build
+		if (snapshotNode == null) {
+			snapshotNode = createUnavailableBuild(build);
+		}
+		return snapshotNode;
 	}
 
 	private SnapshotNode createQueueBuild(SBuildType build, String rootId) {
@@ -235,6 +212,48 @@ public class ModelFactory {
 		}
 
 		return result;
+	}
+
+	private SnapshotNode createHistoryBuild(SBuildType build, String rootId) {
+		SnapshotNode result = null;
+		SBuild currentBuild = null;
+
+		List<SFinishedBuild> finishedBuilds = build.getHistory();
+
+		if (build.getBuildTypeId().equalsIgnoreCase(rootId) && finishedBuilds.size() > 0) {
+			currentBuild = finishedBuilds.get(0);
+		} else {
+			for (SBuild runningBuild : finishedBuilds) {
+				TriggeredBy trigger = runningBuild.getTriggeredBy();
+				if (trigger.getParameters().get("buildTypeId") != null && rootId.equalsIgnoreCase(trigger.getParameters().get("buildTypeId"))) {
+					currentBuild = runningBuild;
+					break;
+				}
+			}
+		}
+
+		if (currentBuild != null) {
+			result = dtoFactory.newDTO(SnapshotNode.class)
+					.setName(build.getExtendedName())
+					.setCiId(build.getExternalId())
+					.setDuration(currentBuild.getDuration())
+					.setEstimatedDuration(null)
+					.setNumber(Integer.parseInt(currentBuild.getBuildNumber()))
+					.setStartTime(currentBuild.getStartDate().getTime())
+					.setCauses(null)
+					.setStatus(CIBuildStatus.FINISHED)
+					.setResult(resultFromNativeStatus(currentBuild.getBuildStatus()));
+		}
+
+		return result;
+	}
+
+	private SnapshotNode createUnavailableBuild(SBuildType build) {
+		return dtoFactory.newDTO(SnapshotNode.class)
+				.setName(build.getExtendedName())
+				.setCiId(build.getExternalId())
+				.setStatus(CIBuildStatus.UNAVAILABLE)
+				.setResult(CIBuildResult.UNAVAILABLE);
 	}
 
 	public CIBuildResult resultFromNativeStatus(Status status) {

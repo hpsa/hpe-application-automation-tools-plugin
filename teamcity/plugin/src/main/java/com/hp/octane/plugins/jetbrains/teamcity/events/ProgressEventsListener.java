@@ -11,6 +11,7 @@ import jetbrains.buildServer.serverSide.BuildServerAdapter;
 import jetbrains.buildServer.serverSide.BuildServerListener;
 import jetbrains.buildServer.serverSide.SQueuedBuild;
 import jetbrains.buildServer.serverSide.SRunningBuild;
+import jetbrains.buildServer.serverSide.TriggeredBy;
 import jetbrains.buildServer.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +35,8 @@ public class ProgressEventsListener extends BuildServerAdapter {
 
 	@Override
 	public void buildTypeAddedToQueue(@NotNull SQueuedBuild queuedBuild) {
-		String name = queuedBuild.getBuildType().getName();
+		TriggeredBy triggeredBy = queuedBuild.getTriggeredBy();
+		System.out.println("some");
 	}
 
 	@Override
