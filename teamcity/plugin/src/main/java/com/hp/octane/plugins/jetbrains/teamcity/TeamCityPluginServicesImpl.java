@@ -11,8 +11,9 @@ import com.hp.nga.integrations.dto.general.CIServerTypes;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
-import com.hp.octane.plugins.jetbrains.teamcity.configuration.NGAConfig;
+import com.hp.octane.plugins.jetbrains.teamcity.configuration.NGAConfigStructure;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
 import java.util.Arrays;
@@ -31,6 +32,11 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String pluginVersion = "9.1.5";
 
+	@Autowired
+	private NGAPlugin ngaPlugin;
+	@Autowired
+	private ModelFactory modelFactory;
+
 	@Override
 	public CIServerInfo getServerInfo() {
 		String serverUrl = "http://localhost:8081";
@@ -39,8 +45,8 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 		}
 
 		return dtoFactory.newDTO(CIServerInfo.class)
-				.setInstanceId(NGAPlugin.getInstance().getConfig().getIdentity())
-				.setInstanceIdFrom(NGAPlugin.getInstance().getConfig().getIdentityFromAsLong())
+				.setInstanceId(ngaPlugin.getConfig().getIdentity())
+				.setInstanceIdFrom(ngaPlugin.getConfig().getIdentityFromAsLong())
 				.setSendingTime(System.currentTimeMillis())
 				.setType(CIServerTypes.TEAMCITY)
 				.setUrl(serverUrl)
@@ -60,7 +66,7 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 
 	@Override
 	public NGAConfiguration getNGAConfiguration() {
-		NGAConfig config = NGAPlugin.getInstance().getConfig();
+		NGAConfigStructure config = ngaPlugin.getConfig();
 		return dtoFactory.newDTO(NGAConfiguration.class)
 				.setUrl(config.getLocation())
 				.setSharedSpace(config.getSharedSpace())
@@ -84,29 +90,29 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 
 	@Override
 	public CIJobsList getJobsList(boolean includeParameters) {
-		return ModelFactory.CreateProjectList();
+		return modelFactory.CreateProjectList();
 	}
 
 	@Override
 	public PipelineNode getPipeline(String rootCIJobId) {
-		return ModelFactory.createStructure(rootCIJobId);
-	}
-
-	//TODO: implement..
-	@Override
-	public void runPipeline(String ciJobId, String originalBody) {
-		return;
+		return modelFactory.createStructure(rootCIJobId);
 	}
 
 	@Override
 	public SnapshotNode getSnapshotLatest(String ciJobId, boolean subTree) {
-		return ModelFactory.createSnapshot(ciJobId);
+		return modelFactory.createSnapshot(ciJobId);
 	}
 
 	//  TODO: implement
 	@Override
 	public SnapshotNode getSnapshotByNumber(String ciJobId, Integer ciBuildNumber, boolean subTree) {
 		return null;
+	}
+
+	//TODO: implement..
+	@Override
+	public void runPipeline(String ciJobId, String originalBody) {
+		return;
 	}
 
 	//TODO: implement: fill build history

@@ -1,8 +1,9 @@
 package com.hp.octane.plugins.jetbrains.teamcity.tests.events;
 
-import com.hp.octane.plugins.jetbrains.teamcity.tests.services.BuildTestsService;
+import com.hp.octane.plugins.jetbrains.teamcity.tests.services.TestsResultsService;
 import jetbrains.buildServer.serverSide.*;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
@@ -11,6 +12,9 @@ import java.util.List;
  */
 
 public class TestsResultEventsListener extends BuildServerAdapter {
+
+	@Autowired
+	private TestsResultsService testsService;
 
 	public TestsResultEventsListener(SBuildServer server) {
 		server.addListener(this);
@@ -21,6 +25,6 @@ public class TestsResultEventsListener extends BuildServerAdapter {
 		BuildStatistics stats = build.getBuildStatistics(new BuildStatisticsOptions());
 		List<STestRun> tests = stats.getTests(null, BuildStatistics.Order.NATURAL_ASC);
 
-		BuildTestsService.handleTestResult(tests, build);
+		testsService.handleTestResult(tests, build);
 	}
 }

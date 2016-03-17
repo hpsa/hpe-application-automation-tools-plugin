@@ -10,6 +10,7 @@ import com.hp.nga.integrations.dto.tests.TestRunResult;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import jetbrains.buildServer.serverSide.SRunningBuild;
 import jetbrains.buildServer.serverSide.STestRun;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,15 +20,18 @@ import java.util.logging.Logger;
  * Created by lev on 06/01/2016.
  */
 
-public class BuildTestsService {
-	private static final Logger logger = Logger.getLogger(BuildTestsService.class.getName());
+public class TestsResultsService {
+	private static final Logger logger = Logger.getLogger(TestsResultsService.class.getName());
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
-	public static void handleTestResult(List<STestRun> tests, SRunningBuild build) {
+	@Autowired
+	private NGAPlugin ngaPlugin;
+
+	public void handleTestResult(List<STestRun> tests, SRunningBuild build) {
 		BuildContext buildContext = dtoFactory.newDTO(BuildContext.class)
 				.setBuildId(build.getBuildNumber())
 				.setBuildType(build.getBuildTypeExternalId())
-				.setServer(NGAPlugin.getInstance().getConfig().getIdentity());
+				.setServer(ngaPlugin.getConfig().getIdentity());
 		TestRun[] testArr = createTestList(tests, build.getStartDate().getTime());
 		TestResult result = dtoFactory.newDTO(TestResult.class)
 				.setBuildContext(buildContext)
@@ -74,7 +78,7 @@ public class BuildTestsService {
 //        return false;
 //    }
 
-	private static TestRun[] createTestList(List<STestRun> tests, long startingTime) {
+	private TestRun[] createTestList(List<STestRun> tests, long startingTime) {
 
 		List<TestRun> testList = new ArrayList<TestRun>();
 		for (STestRun testRun : tests) {

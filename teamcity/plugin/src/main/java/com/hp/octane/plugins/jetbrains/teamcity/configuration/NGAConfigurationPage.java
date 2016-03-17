@@ -1,4 +1,4 @@
-package com.hp.octane.plugins.jetbrains.teamcity.utils;
+package com.hp.octane.plugins.jetbrains.teamcity.configuration;
 
 import jetbrains.buildServer.controllers.admin.AdminPage;
 import jetbrains.buildServer.serverSide.auth.Permission;
@@ -12,13 +12,14 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * Created by gadiel on 11/01/2016.
  */
-public class DiagnosticsAdminPage extends AdminPage {
 
-	public DiagnosticsAdminPage(@NotNull PagePlaces pagePlaces, @NotNull PluginDescriptor descriptor) {
+public class NGAConfigurationPage extends AdminPage {
+
+	protected NGAConfigurationPage(@NotNull PagePlaces pagePlaces, @NotNull PluginDescriptor pluginDescriptor) {
 		super(pagePlaces);
 		setPluginName("HPE NGA Settings");
-		setIncludeUrl(descriptor.getPluginResourcesPath("settingsWebForm.jsp"));
 		setTabTitle("HPE NGA Settings");
+		setIncludeUrl(pluginDescriptor.getPluginResourcesPath("settingsWebForm.jsp"));
 		setPosition(PositionConstraint.after("clouds", "email", "jabber"));
 		register();
 	}

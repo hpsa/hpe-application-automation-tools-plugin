@@ -6,15 +6,17 @@ package com.hp.octane.plugins.jetbrains.teamcity;
 
 import com.hp.nga.integrations.SDKManager;
 import com.hp.octane.plugins.jetbrains.teamcity.actions.ConfigurationActionsController;
-import com.hp.octane.plugins.jetbrains.teamcity.actions.DynamicController;
-import com.hp.octane.plugins.jetbrains.teamcity.configuration.NGAConfig;
+import com.hp.octane.plugins.jetbrains.teamcity.actions.GenericNGAActionsController;
+import com.hp.octane.plugins.jetbrains.teamcity.configuration.NGAConfigStructure;
 import com.hp.octane.plugins.jetbrains.teamcity.configuration.TCConfigurationService;
 import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.SBuildServer;
 import jetbrains.buildServer.serverSide.ServerExtension;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import jetbrains.buildServer.web.openapi.WebControllerManager;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.PostConstruct;
 import java.util.Date;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -23,37 +25,48 @@ public class NGAPlugin implements ServerExtension {
 	public static final String PLUGIN_NAME = NGAPlugin.class.getSimpleName().toLowerCase();
 	private static final Logger logger = Logger.getLogger(NGAPlugin.class.getName());
 
+	@Autowired
 	private ProjectManager projectManager;
-	private static NGAPlugin plugin;
-	private NGAConfig config;
+	@Autowired
+	private SBuildServer buildServer;
+	@Autowired
+	private TeamCityPluginServicesImpl pluginServices;
+	@Autowired
+	private GenericNGAActionsController genericController;
+	@Autowired
+	private ConfigurationActionsController configurationController;
+	@Autowired
+	private TCConfigurationService configurationService;
+	@Autowired
+	private PluginDescriptor pluginDescriptor;
+	@Autowired
+	private WebControllerManager webControllerManager;
 
-	public NGAPlugin(SBuildServer sBuildServer,
-	                 ProjectManager projectManager,
-	                 WebControllerManager webControllerManager,
-	                 PluginDescriptor pluginDescriptor) {
+	//  [YG] TODO: move this config cache to the configuration service
+	private NGAConfigStructure config;
+
+	@PostConstruct
+	private void initPlugin() {
 		logger.info("Init HPE NGA CI Plugin");
-		sBuildServer.registerExtension(ServerExtension.class, PLUGIN_NAME, this);
-		this.plugin = this;
-		this.projectManager = projectManager;
-		registerControllers(webControllerManager, sBuildServer, pluginDescriptor);
-		TCConfigurationService.init(pluginDescriptor, sBuildServer);
-		config = TCConfigurationService.getInstance().readConfig();
+		buildServer.registerExtension(ServerExtension.class, PLUGIN_NAME, this);
+		registerControllers();
+		config = configurationService.readConfig();
 
 		ensureServerInstanceID();
-		SDKManager.init(new TeamCityPluginServicesImpl(), true);
+		SDKManager.init(pluginServices, true);
 	}
 
 	public ProjectManager getProjectManager() {
 		return projectManager;
 	}
 
-	public static NGAPlugin getInstance() {
-		return plugin;
+	public PluginDescriptor getDescriptor() {
+		return pluginDescriptor;
 	}
 
-	private void registerControllers(WebControllerManager webControllerManager, SBuildServer sBuildServer, PluginDescriptor pluginDescriptor) {
-		webControllerManager.registerController("/nga/**", new DynamicController());
-		webControllerManager.registerController("/octane-rest/**", new ConfigurationActionsController(sBuildServer, pluginDescriptor));
+	private void registerControllers() {
+		webControllerManager.registerController("/nga/**", genericController);
+		webControllerManager.registerController("/octane-rest/**", configurationController);
 	}
 
 	private void ensureServerInstanceID() {
@@ -61,11 +74,11 @@ public class NGAPlugin implements ServerExtension {
 		if (identity == null || identity.equals("")) {
 			config.setIdentity(UUID.randomUUID().toString());
 			config.setIdentityFrom(String.valueOf(new Date().getTime()));
-			TCConfigurationService.getInstance().saveConfig(config);
+			configurationService.saveConfig(config);
 		}
 	}
 
-	public NGAConfig getConfig() {
+	public NGAConfigStructure getConfig() {
 		return config;
 	}
 }

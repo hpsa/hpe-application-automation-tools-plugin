@@ -2,8 +2,22 @@
 <beans default-autowire="constructor"
 	   xsi:schemaLocation=" http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans">
-	<bean class="com.hp.octane.plugins.jetbrains.teamcity.tests.events.TestsResultEventsListener"/>
-	<bean class="com.hp.octane.plugins.jetbrains.teamcity.events.ProgressEventsListener"/>
+
+	<!-- MAIN -->
 	<bean class="com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin"/>
-	<bean class="com.hp.octane.plugins.jetbrains.teamcity.utils.DiagnosticsAdminPage"/>
+	<bean class="com.hp.octane.plugins.jetbrains.teamcity.TeamCityPluginServicesImpl"/>
+	<bean class="com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory"/>
+	<bean class="com.hp.octane.plugins.jetbrains.teamcity.actions.GenericNGAActionsController"/>
+
+	<!-- CONFIGURATION -->
+	<bean class="com.hp.octane.plugins.jetbrains.teamcity.actions.ConfigurationActionsController"/>
+	<bean class="com.hp.octane.plugins.jetbrains.teamcity.configuration.NGAConfigurationPage"/>
+	<bean class="com.hp.octane.plugins.jetbrains.teamcity.configuration.TCConfigurationService"/>
+
+	<!-- EVENTS -->
+	<bean class="com.hp.octane.plugins.jetbrains.teamcity.events.ProgressEventsListener"/>
+
+	<!-- TESTS -->
+	<bean class="com.hp.octane.plugins.jetbrains.teamcity.tests.services.TestsResultsService"/>
+	<bean class="com.hp.octane.plugins.jetbrains.teamcity.tests.events.TestsResultEventsListener"/>
 </beans>

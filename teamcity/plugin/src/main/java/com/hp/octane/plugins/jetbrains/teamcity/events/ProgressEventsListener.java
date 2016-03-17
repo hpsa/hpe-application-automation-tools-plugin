@@ -9,6 +9,7 @@ import com.hp.nga.integrations.dto.events.CIEventType;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
 import jetbrains.buildServer.serverSide.BuildServerAdapter;
 import jetbrains.buildServer.serverSide.BuildServerListener;
+import jetbrains.buildServer.serverSide.SQueuedBuild;
 import jetbrains.buildServer.serverSide.SRunningBuild;
 import jetbrains.buildServer.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
@@ -24,8 +25,16 @@ public class ProgressEventsListener extends BuildServerAdapter {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Autowired
+	private ModelFactory modelFactory;
+
+	@Autowired
 	private void setupListener(EventDispatcher<BuildServerListener> dispatcher) {
 		dispatcher.addListener(this);
+	}
+
+	@Override
+	public void buildTypeAddedToQueue(@NotNull SQueuedBuild queuedBuild) {
+		String name = queuedBuild.getBuildType().getName();
 	}
 
 	@Override
@@ -50,7 +59,7 @@ public class ProgressEventsListener extends BuildServerAdapter {
 				.setStartTime(build.getStartDate().getTime())
 				.setEstimatedDuration(build.getDurationEstimate())
 				.setDuration(build.getDuration())
-				.setResult(ModelFactory.resultFromNativeStatus(build.getBuildStatus()));
+				.setResult(modelFactory.resultFromNativeStatus(build.getBuildStatus()));
 		SDKManager.getService(EventsService.class).publishEvent(event);
 	}
 }

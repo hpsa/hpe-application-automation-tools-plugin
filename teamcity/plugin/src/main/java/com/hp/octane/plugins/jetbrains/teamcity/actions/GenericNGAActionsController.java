@@ -18,7 +18,7 @@ import java.util.UUID;
  * Created by lazara on 07/02/2016.
  */
 
-public class DynamicController implements Controller {
+public class GenericNGAActionsController implements Controller {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Override
