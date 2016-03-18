@@ -8,6 +8,8 @@ import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
 import com.hp.octane.plugins.jetbrains.teamcity.configuration.NGAConfigStructure;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.configuration.TCConfigurationService;
+import jetbrains.buildServer.serverSide.SBuildServer;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.Controller;
@@ -30,6 +32,9 @@ public class ConfigurationActionsController implements Controller {
 	private NGAPlugin ngaPlugin;
 	@Autowired
 	private TCConfigurationService configurationService;
+
+	private ConfigurationActionsController(@NotNull SBuildServer buildServer) {
+	}
 
 	@Override
 	public ModelAndView handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {

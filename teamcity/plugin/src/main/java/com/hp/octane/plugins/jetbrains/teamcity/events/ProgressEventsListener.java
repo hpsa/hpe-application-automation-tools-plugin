@@ -28,15 +28,8 @@ public class ProgressEventsListener extends BuildServerAdapter {
 	@Autowired
 	private ModelFactory modelFactory;
 
-	@Autowired
-	private void setupListener(EventDispatcher<BuildServerListener> dispatcher) {
+	private ProgressEventsListener(EventDispatcher<BuildServerListener> dispatcher) {
 		dispatcher.addListener(this);
-	}
-
-	@Override
-	public void buildTypeAddedToQueue(@NotNull SQueuedBuild queuedBuild) {
-		TriggeredBy triggeredBy = queuedBuild.getTriggeredBy();
-		System.out.println("some");
 	}
 
 	@Override

@@ -16,7 +16,7 @@ public class TestsResultEventsListener extends BuildServerAdapter {
 	@Autowired
 	private TestsResultsService testsService;
 
-	public TestsResultEventsListener(SBuildServer server) {
+	private TestsResultEventsListener(SBuildServer server) {
 		server.addListener(this);
 	}
 

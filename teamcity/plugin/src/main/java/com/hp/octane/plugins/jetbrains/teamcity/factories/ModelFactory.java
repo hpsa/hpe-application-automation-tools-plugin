@@ -88,7 +88,7 @@ public class ModelFactory {
 					buildItem.setCiId(build.getExternalId());
 					//  TODO: add parameters: build.getParameters()
 					result.add(buildItem);
-					result.addAll(buildFromDependenciesFlat(build.getDependencies()));
+					result.addAll(buildFromDependenciesFlat(build.getOwnDependencies()));
 				}
 			}
 		}
@@ -101,7 +101,7 @@ public class ModelFactory {
 		if (root != null) {
 			result = createSnapshotItem(root, root.getBuildTypeId());
 
-			List<SnapshotNode> snapshotNodesList = createSnapshots(root.getDependencies(), root.getBuildTypeId());
+			List<SnapshotNode> snapshotNodesList = createSnapshots(root.getOwnDependencies(), root.getBuildTypeId());
 			if (!snapshotNodesList.isEmpty()) {
 				SnapshotPhase phase = dtoFactory.newDTO(SnapshotPhase.class);
 				phase.setName("teamcity_dependencies");
@@ -125,7 +125,7 @@ public class ModelFactory {
 				SBuildType build = dependency.getDependOn();
 				SnapshotNode snapshotNode = createSnapshotItem(build, rootId);
 				result.add(snapshotNode);
-				result.addAll(createSnapshots(build.getDependencies(), rootId));
+				result.addAll(createSnapshots(build.getOwnDependencies(), rootId));
 			}
 		}
 

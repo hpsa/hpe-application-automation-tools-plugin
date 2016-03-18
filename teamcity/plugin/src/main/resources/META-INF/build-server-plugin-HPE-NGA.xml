@@ -10,9 +10,9 @@
 	<bean class="com.hp.octane.plugins.jetbrains.teamcity.actions.GenericNGAActionsController"/>
 
 	<!-- CONFIGURATION -->
-	<bean class="com.hp.octane.plugins.jetbrains.teamcity.actions.ConfigurationActionsController"/>
-	<bean class="com.hp.octane.plugins.jetbrains.teamcity.configuration.NGAConfigurationPage"/>
 	<bean class="com.hp.octane.plugins.jetbrains.teamcity.configuration.TCConfigurationService"/>
+	<bean class="com.hp.octane.plugins.jetbrains.teamcity.configuration.NGAConfigurationPage"/>
+	<bean class="com.hp.octane.plugins.jetbrains.teamcity.actions.ConfigurationActionsController"/>
 
 	<!-- EVENTS -->
 	<bean class="com.hp.octane.plugins.jetbrains.teamcity.events.ProgressEventsListener"/>

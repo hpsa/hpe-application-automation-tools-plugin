@@ -6,6 +6,8 @@ import com.hp.nga.integrations.dto.connectivity.NGAHttpMethod;
 import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
 import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
 import com.hp.nga.integrations.api.TasksProcessor;
+import jetbrains.buildServer.serverSide.SBuildServer;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.Controller;
 
@@ -20,6 +22,9 @@ import java.util.UUID;
 
 public class GenericNGAActionsController implements Controller {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+
+	private GenericNGAActionsController(@NotNull SBuildServer buildServer) {
+	}
 
 	@Override
 	public ModelAndView handleRequest(HttpServletRequest req, HttpServletResponse res) throws Exception {
