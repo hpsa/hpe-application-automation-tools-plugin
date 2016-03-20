@@ -206,7 +206,6 @@ public class JUnitResultsTest {
 
     private static class MyMaven extends Builder {
 
-
         private Maven builder;
 
         public MyMaven(String targets, String name, String pom, String properties, String jvmOptions) {

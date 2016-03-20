@@ -62,6 +62,10 @@ public abstract class AbstractXmlIterator<E> {
         return ((Characters)reader.nextEvent()).getData();
     }
 
+    protected String readElementText() throws XMLStreamException {
+        return reader.getElementText();
+    }
+
     private static XMLInputFactory createXmlInputFactory() {
         XMLInputFactory xmlFactory = XMLInputFactory.newInstance();
         xmlFactory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
