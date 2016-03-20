@@ -42,7 +42,7 @@ public final class CIEventCausesFactory {
 					tmpUpstreamCause = (Cause.UpstreamCause) tmpCause;
 					result[i].setType(CIEventCauseType.UPSTREAM);
 					result[i].setProject(tmpUpstreamCause.getUpstreamProject());
-					result[i].setNumber(tmpUpstreamCause.getUpstreamBuild());
+					result[i].setBuildCiId(String.valueOf(tmpUpstreamCause.getUpstreamBuild()));
 					result[i].setCauses(processCauses(tmpUpstreamCause.getUpstreamCauses()));
 				} else {
 					result[i].setType(CIEventCauseType.UNDEFINED);

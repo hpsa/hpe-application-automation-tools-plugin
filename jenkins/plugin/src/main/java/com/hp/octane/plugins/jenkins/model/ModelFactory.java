@@ -97,7 +97,7 @@ public class ModelFactory {
 
 		snapshotNode.setJobCiId(build.getProject().getName());
 		snapshotNode.setName(build.getProject().getName());
-		snapshotNode.setBuildCiId(build.getId());
+		snapshotNode.setBuildCiId(String.valueOf(build.getNumber()));
 		snapshotNode.setNumber(String.valueOf(build.getNumber()));
 		snapshotNode.setCauses(CIEventCausesFactory.processCauses(build.getCauses()));
 		snapshotNode.setDuration(build.getDuration());

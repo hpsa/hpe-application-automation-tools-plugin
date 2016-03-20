@@ -11,7 +11,7 @@ class CIEventCauseImpl implements CIEventCause {
 	private CIEventCauseType type;
 	private String user;
 	private String project;
-	private Integer number;
+	private String buildCiId;
 	private CIEventCause[] causes;
 
 	public CIEventCauseType getType() {
@@ -41,12 +41,12 @@ class CIEventCauseImpl implements CIEventCause {
 		return this;
 	}
 
-	public Integer getNumber() {
-		return number;
+	public String getBuildCiId() {
+		return buildCiId;
 	}
 
-	public CIEventCause setNumber(Integer number) {
-		this.number = number;
+	public CIEventCause setBuildCiId(String buildCiId) {
+		this.buildCiId = buildCiId;
 		return this;
 	}
 

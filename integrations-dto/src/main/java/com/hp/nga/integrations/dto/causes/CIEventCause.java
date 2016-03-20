@@ -24,9 +24,9 @@ public interface CIEventCause extends DTOBase {
 
 	CIEventCause setProject(String ciJobRefId);
 
-	Integer getNumber();
+	String getBuildCiId();
 
-	CIEventCause setNumber(Integer number);
+	CIEventCause setBuildCiId(String buildCiId);
 
 	CIEventCause[] getCauses();
 
