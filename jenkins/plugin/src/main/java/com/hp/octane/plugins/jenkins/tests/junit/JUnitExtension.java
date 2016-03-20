@@ -234,11 +234,17 @@ public class JUnitExtension extends MqmTestsExtension {
 					} else if ("errorStackTrace".equals(localName)) { // NON-NLS
 						status = TestResultStatus.FAILED;
 						stackTraceStr = readNextValue();
-						errorType = stackTraceStr.substring(0, stackTraceStr.indexOf("at "));
+						int index = stackTraceStr.indexOf("at ");
+						if(index >= 0) {
+							errorType = stackTraceStr.substring(0, index);
+						}
 					} else if ("errorDetails".equals(localName)) { // NON-NLS
 						status = TestResultStatus.FAILED;
 						errorMsg = readNextValue();
-						errorType = stackTraceStr.substring(0, stackTraceStr.indexOf(":"));
+						int index = stackTraceStr.indexOf(":");
+						if(index >= 0) {
+							errorType = stackTraceStr.substring(0, index);
+						}
 
 					}
 				} else if (event instanceof EndElement) {
