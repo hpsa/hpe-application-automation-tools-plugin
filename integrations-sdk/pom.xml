@@ -91,6 +91,7 @@
 		<resources>
 			<resource>
 				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
 				<includes>
 					<include>sdk.properties</include>
 					<include>log4j2.xml</include>

@@ -47,4 +47,12 @@ class CIProxyConfigurationImpl implements CIProxyConfiguration {
 		this.password = password;
 		return this;
 	}
+
+	@Override
+	public String toString() {
+		return "CIProxyConfigurationImpl { " +
+				"host=" + host +
+				", port=" + port +
+				", username=" + username + " }";
+	}
 }

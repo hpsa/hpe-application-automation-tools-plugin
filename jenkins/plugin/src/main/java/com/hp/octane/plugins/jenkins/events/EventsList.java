@@ -2,7 +2,8 @@ package com.hp.octane.plugins.jenkins.events;
 
 import com.hp.nga.integrations.dto.events.CIEventBase;
 import com.hp.nga.integrations.dto.general.CIServerInfo;
-import com.hp.nga.integrations.services.SDKManager;
+import com.hp.octane.plugins.jenkins.OctanePlugin;
+import jenkins.model.Jenkins;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
@@ -27,7 +28,7 @@ public class EventsList {
 
 	@Exported(inline = true)
 	public CIServerInfo getServer() {
-		return SDKManager.getCIPluginServices().getServerInfo();
+		return Jenkins.getInstance().getPlugin(OctanePlugin.class).jenkinsPluginServices.getServerInfo();
 	}
 
 	@Exported(inline = true)

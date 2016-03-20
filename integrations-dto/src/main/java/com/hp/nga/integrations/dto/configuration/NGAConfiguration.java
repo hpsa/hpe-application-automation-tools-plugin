@@ -18,13 +18,13 @@ public interface NGAConfiguration extends DTOBase {
 
 	NGAConfiguration setSharedSpace(Long sharedSpace);
 
-	String getClientId();
-
-	NGAConfiguration setClientId(String clientId);
-
 	String getApiKey();
 
 	NGAConfiguration setApiKey(String apiKey);
+
+	String getSecret();
+
+	NGAConfiguration setSecret(String secret);
 
 	boolean isValid();
 }

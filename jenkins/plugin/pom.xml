@@ -290,18 +290,4 @@
         </profile>
     </profiles>
 
-    <repositories>
-        <repository>
-            <id>mqm-public</id>
-            <url>${baseNexusURL}/content/repositories/mqm-public</url>
-        </repository>
-    </repositories>
-
-    <pluginRepositories>
-        <pluginRepository>
-            <id>mqm-public</id>
-            <url>${baseNexusURL}/content/repositories/mqm-public</url>
-        </pluginRepository>
-    </pluginRepositories>
-
 </project>

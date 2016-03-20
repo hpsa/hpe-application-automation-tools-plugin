@@ -1,6 +1,8 @@
 package com.hp.nga.integrations.services;
 
+import com.hp.nga.integrations.SDKServiceInternal;
 import com.hp.nga.integrations.api.CIPluginServices;
+import com.hp.nga.integrations.SDKManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
 
@@ -12,22 +14,16 @@ import java.io.File;
  * Service for management logging capabilities of the plugin (SDK); currently meant for the internal usage only
  */
 
-class LoggingService {
+final class LoggingService implements SDKServiceInternal {
 	private static final Object INIT_LOCKER = new Object();
 	private static final String LOGS_LOCATION_SYS_PROPERTY = "ngaLogsLocation";
 	private static final String LOGS_LOCATION_SUB_FOLDER = "logs";
 
 	private final CIPluginServices pluginServices;
 
-	private LoggingService() {
-		pluginServices = SDKManager.getCIPluginServices();
+	LoggingService(SDKManager manager) {
+		pluginServices = manager.getCIPluginServices();
 		configureLogger();
-	}
-
-	static void ensureInit() {
-		if (INSTANCE_HOLDER.instance == null) {
-			throw new IllegalStateException("Logging service was not initialized properly");
-		}
 	}
 
 	private void configureLogger() {
@@ -39,9 +35,5 @@ class LoggingService {
 				ctx.reconfigure();
 			}
 		}
-	}
-
-	private static final class INSTANCE_HOLDER {
-		private static final LoggingService instance = new LoggingService();
 	}
 }

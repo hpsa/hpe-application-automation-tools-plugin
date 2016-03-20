@@ -1,11 +1,11 @@
 package com.hp.octane.plugins.jetbrains.teamcity.actions;
 
+import com.hp.nga.integrations.SDKManager;
 import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.connectivity.NGAHttpMethod;
 import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
 import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
-import com.hp.nga.integrations.services.SDKManager;
-import com.hp.nga.integrations.services.TasksProcessor;
+import com.hp.nga.integrations.api.TasksProcessor;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.Controller;
 
@@ -18,7 +18,7 @@ import java.util.UUID;
  * Created by lazara on 07/02/2016.
  */
 
-public class DynamicController  implements Controller {
+public class DynamicController implements Controller {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Override
@@ -35,12 +35,12 @@ public class DynamicController  implements Controller {
 			method = NGAHttpMethod.DELETE;
 		}
 		if (method != null) {
-			NGATaskAbridged ngaTaskAbridged = dtoFactory.newDTO(NGATaskAbridged.class);
-			ngaTaskAbridged.setId(UUID.randomUUID().toString());
-			ngaTaskAbridged.setMethod(method);
-			ngaTaskAbridged.setUrl(req.getRequestURI());
-			ngaTaskAbridged.setBody("");
-			TasksProcessor taskProcessor = SDKManager.getTasksProcessor();
+			NGATaskAbridged ngaTaskAbridged = dtoFactory.newDTO(NGATaskAbridged.class)
+					.setId(UUID.randomUUID().toString())
+					.setMethod(method)
+					.setUrl(req.getRequestURI())
+					.setBody("");
+			TasksProcessor taskProcessor = SDKManager.getService(TasksProcessor.class);
 			NGAResultAbridged result = taskProcessor.execute(ngaTaskAbridged);
 			res.setStatus(result.getStatus());
 			try {

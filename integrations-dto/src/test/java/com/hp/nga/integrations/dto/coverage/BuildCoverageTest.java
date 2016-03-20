@@ -1,7 +1,5 @@
 package com.hp.nga.integrations.dto.coverage;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.nga.integrations.dto.DTOFactory;
 import org.junit.Test;
 
@@ -18,9 +16,9 @@ public class BuildCoverageTest {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Test
-	public void testA() throws JsonProcessingException, IOException {
-		LineCoverage tmpLineCovA = dtoFactory.newDTO(LineCoverage.class);
-		LineCoverage tmpLineCovB = dtoFactory.newDTO(LineCoverage.class);
+	public void testA() throws IOException {
+		LineCoverage tmpLineCovA;
+		LineCoverage tmpLineCovB;
 		TestCoverage[] testCoverages = new TestCoverage[2];
 
 		FileCoverage[] locs = new FileCoverage[2];
