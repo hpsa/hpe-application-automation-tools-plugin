@@ -33,6 +33,12 @@ public class ProgressEventsListener extends BuildServerAdapter {
 	}
 
 	@Override
+	public void buildTypeAddedToQueue(@NotNull SQueuedBuild queuedBuild) {
+		TriggeredBy triggeredBy = queuedBuild.getTriggeredBy();
+		System.out.println("some");
+	}
+
+	@Override
 	public void buildStarted(@NotNull SRunningBuild build) {
 		CIEvent event = dtoFactory.newDTO(CIEvent.class)
 				.setEventType(CIEventType.STARTED)
