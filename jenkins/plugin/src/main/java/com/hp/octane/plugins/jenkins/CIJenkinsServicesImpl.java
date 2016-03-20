@@ -114,9 +114,9 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 	public CIJobsList getJobsList(boolean includeParameters) {
 		SecurityContext securityContext = startImpersonation();
 		CIJobsList result = dtoFactory.newDTO(CIJobsList.class);
-		CIJobMetadata tmpConfig;
+		PipelineNode tmpConfig;
 		AbstractProject tmpProject;
-		List<CIJobMetadata> list = new ArrayList<CIJobMetadata>();
+		List<PipelineNode> list = new ArrayList<PipelineNode>();
 		try {
 			boolean hasReadPermission = Jenkins.getInstance().hasPermission(Item.READ);
 			if (!hasReadPermission) {
@@ -127,9 +127,9 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 			for (String name : itemNames) {
 				if (Jenkins.getInstance().getItem(name) instanceof AbstractProject) {
 					tmpProject = (AbstractProject) Jenkins.getInstance().getItem(name);
-					tmpConfig = dtoFactory.newDTO(CIJobMetadata.class);
-					tmpConfig.setName(name);
-					tmpConfig.setCiId(name);
+					tmpConfig = dtoFactory.newDTO(PipelineNode.class)
+							.setJobCiId(name)
+							.setName(name);
 					if (includeParameters) {
 						List<CIParameter> tmpList = ParameterProcessors.getConfigs(tmpProject);
 						List<CIParameter> configs = new ArrayList<CIParameter>();
@@ -143,14 +143,14 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 									.setChoices(pc.getChoices() == null ? null : pc.getChoices());
 							configs.add(tmp);
 						}
-						tmpConfig.setParameters(configs.toArray(new CIParameter[configs.size()]));
+						tmpConfig.setParameters(configs);
 					}
 					list.add(tmpConfig);
 				} else {
 					logger.info("item '" + name + "' is not of supported type");
 				}
 			}
-			result.setJobs(list.toArray(new CIJobMetadata[list.size()]));
+			result.setJobs(list.toArray(new PipelineNode[list.size()]));
 			stopImpersonation(securityContext);
 		} catch (AccessDeniedException e) {
 			stopImpersonation(securityContext);

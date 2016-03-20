@@ -15,9 +15,9 @@ import java.util.List;
 
 public interface PipelineNode extends DTOBase {
 
-	String getCiId();
+	String getJobCiId();
 
-	PipelineNode setCiId(String ciId);
+	PipelineNode setJobCiId(String jobCiId);
 
 	String getName();
 

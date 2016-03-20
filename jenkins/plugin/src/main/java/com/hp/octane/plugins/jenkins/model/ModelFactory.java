@@ -26,8 +26,8 @@ public class ModelFactory {
 
 	public static PipelineNode createStructureItem(AbstractProject project) {
 		PipelineNode pipelineNode = dtoFactory.newDTO(PipelineNode.class);
+		pipelineNode.setJobCiId(project.getName());
 		pipelineNode.setName(project.getName());
-		pipelineNode.setCiId(project.getName());
 		pipelineNode.setParameters(ParameterProcessors.getConfigs(project));
 
 		AbstractProjectProcessor projectProcessor = AbstractProjectProcessor.getFlowProcessor(project);
@@ -95,10 +95,11 @@ public class ModelFactory {
 			snapshotNode.setPhasesPostBuild(inflatePhases(tmpPipelinePhasesPostBuilds, invokedBuilds));
 		}
 
+		snapshotNode.setJobCiId(build.getProject().getName());
 		snapshotNode.setName(build.getProject().getName());
-		snapshotNode.setCiId(build.getProject().getName());
+		snapshotNode.setBuildCiId(build.getId());
+		snapshotNode.setNumber(String.valueOf(build.getNumber()));
 		snapshotNode.setCauses(CIEventCausesFactory.processCauses(build.getCauses()));
-		snapshotNode.setNumber(build.getNumber());
 		snapshotNode.setDuration(build.getDuration());
 		snapshotNode.setEstimatedDuration(build.getEstimatedDuration());
 		snapshotNode.setScmData(scmProcessor == null ? null : scmProcessor.getSCMData(build));
@@ -114,8 +115,8 @@ public class ModelFactory {
 	public static SnapshotNode createSnapshotItem(AbstractProject project, boolean metaOnly) {
 		SnapshotNode snapshotNode = dtoFactory.newDTO(SnapshotNode.class);
 
+		snapshotNode.setJobCiId(project.getName());
 		snapshotNode.setName(project.getName());
-		snapshotNode.setCiId(project.getName());
 
 		if (!metaOnly) {
 			AbstractProjectProcessor flowProcessor = AbstractProjectProcessor.getFlowProcessor(project);
@@ -129,7 +130,7 @@ public class ModelFactory {
 		for (PipelinePhase phase : phases) {
 			for (PipelineNode item : phase.getJobs()) {
 				if (item != null) {
-					if (!list.contains(item.getName())) list.add(item.getName());
+					if (!list.contains(item.getJobCiId())) list.add(item.getJobCiId());
 				} else {
 					logger.severe("null referenced project encountered; considering it as corrupted configuration and skipping");
 				}
@@ -187,9 +188,9 @@ public class ModelFactory {
 
 		for (int i = 0; i < structures.size(); i++) {
 			if (structures.get(i) != null) {
-				tmpBuilds = invokedBuilds == null ? null : invokedBuilds.get(structures.get(i).getName());
+				tmpBuilds = invokedBuilds == null ? null : invokedBuilds.get(structures.get(i).getJobCiId());
 				if (tmpBuilds == null || tmpBuilds.size() == 0) {
-					tmp.add(i, createSnapshotItem((AbstractProject) Jenkins.getInstance().getItem(structures.get(i).getName()), false));
+					tmp.add(i, createSnapshotItem((AbstractProject) Jenkins.getInstance().getItem(structures.get(i).getJobCiId()), false));
 				} else {
 					tmp.add(i, createSnapshotItem(tmpBuilds.get(0), false));
 					tmpBuilds.remove(0);

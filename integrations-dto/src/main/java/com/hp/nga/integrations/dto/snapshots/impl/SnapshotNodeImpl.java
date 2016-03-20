@@ -20,26 +20,27 @@ import java.util.List;
  */
 
 class SnapshotNodeImpl implements SnapshotNode {
-	private String ciId;
+	private String jobCiId;
 	private String name;
-	private Integer number = null;
-	private CIEventCause[] causes = null;
+	private String buildCiId;
+	private String number;
+	private CIEventCause[] causes;
 	private CIBuildStatus status = CIBuildStatus.UNAVAILABLE;
 	private CIBuildResult result = CIBuildResult.UNAVAILABLE;
-	private Long estimatedDuration = null;
-	private Long startTime = null;
-	private Long duration = null;
-	private SCMData scmData = null;
+	private Long estimatedDuration;
+	private Long startTime;
+	private Long duration;
+	private SCMData scmData;
 	private List<CIParameter> parameters = new ArrayList<CIParameter>();
 	private List<SnapshotPhase> phasesInternal = new ArrayList<SnapshotPhase>();
 	private List<SnapshotPhase> phasesPostBuild = new ArrayList<SnapshotPhase>();
 
-	public String getCiId() {
-		return ciId;
+	public String getJobCiId() {
+		return jobCiId;
 	}
 
-	public SnapshotNode setCiId(String ciId) {
-		this.ciId = ciId;
+	public SnapshotNode setJobCiId(String jobCiId) {
+		this.jobCiId = jobCiId;
 		return this;
 	}
 
@@ -52,11 +53,20 @@ class SnapshotNodeImpl implements SnapshotNode {
 		return this;
 	}
 
-	public Integer getNumber() {
+	public String getBuildCiId() {
+		return buildCiId;
+	}
+
+	public SnapshotNode setBuildCiId(String buildCiId) {
+		this.buildCiId = buildCiId;
+		return this;
+	}
+
+	public String getNumber() {
 		return number;
 	}
 
-	public SnapshotNode setNumber(Integer number) {
+	public SnapshotNode setNumber(String number) {
 		this.number = number;
 		return this;
 	}

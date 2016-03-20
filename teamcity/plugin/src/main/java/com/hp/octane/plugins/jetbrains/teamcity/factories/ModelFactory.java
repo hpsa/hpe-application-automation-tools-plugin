@@ -1,7 +1,6 @@
 package com.hp.octane.plugins.jetbrains.teamcity.factories;
 
 import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.general.CIJobMetadata;
 import com.hp.nga.integrations.dto.general.CIJobsList;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.pipelines.PipelinePhase;
@@ -30,27 +29,27 @@ public class ModelFactory {
 	private NGAPlugin ngaPlugin;
 
 	public CIJobsList CreateProjectList() {
-		CIJobsList CIJobsList = dtoFactory.newDTO(CIJobsList.class);
-		List<CIJobMetadata> list = new ArrayList<CIJobMetadata>();
+		CIJobsList ciJobsList = dtoFactory.newDTO(CIJobsList.class);
+		List<PipelineNode> list = new ArrayList<PipelineNode>();
 		List<String> ids = new ArrayList<String>();
 
-		CIJobMetadata buildConf;
+		PipelineNode buildConf;
 		for (SProject project : ngaPlugin.getProjectManager().getProjects()) {
 
 			List<SBuildType> buildTypes = project.getBuildTypes();
 			for (SBuildType buildType : buildTypes) {
 				if (!ids.contains(buildType.getInternalId())) {
 					ids.add(buildType.getInternalId());
-					buildConf = dtoFactory.newDTO(CIJobMetadata.class);
-					buildConf.setName(buildType.getName());
-					buildConf.setCiId(buildType.getExternalId());
+					buildConf = dtoFactory.newDTO(PipelineNode.class)
+							.setJobCiId(buildType.getExternalId())
+							.setName(buildType.getName());
 					list.add(buildConf);
 				}
 			}
 		}
 
-		CIJobsList.setJobs(list.toArray(new CIJobMetadata[list.size()]));
-		return CIJobsList;
+		ciJobsList.setJobs(list.toArray(new PipelineNode[list.size()]));
+		return ciJobsList;
 	}
 
 	public PipelineNode createStructure(String buildConfigurationId) {
@@ -58,8 +57,8 @@ public class ModelFactory {
 		PipelineNode treeRoot = null;
 		if (root != null) {
 			treeRoot = dtoFactory.newDTO(PipelineNode.class);
+			treeRoot.setJobCiId(root.getExternalId());
 			treeRoot.setName(root.getName());
-			treeRoot.setCiId(root.getExternalId());
 
 			List<PipelineNode> pipelineNodeList = buildFromDependenciesFlat(root.getOwnDependencies());
 			if (!pipelineNodeList.isEmpty()) {
@@ -84,8 +83,8 @@ public class ModelFactory {
 				SBuildType build = dependency.getDependOn();
 				if (build != null) {
 					PipelineNode buildItem = dtoFactory.newDTO(PipelineNode.class);
+					buildItem.setJobCiId(build.getExternalId());
 					buildItem.setName(build.getName());
-					buildItem.setCiId(build.getExternalId());
 					//  TODO: add parameters: build.getParameters()
 					result.add(buildItem);
 					result.addAll(buildFromDependenciesFlat(build.getOwnDependencies()));
@@ -170,8 +169,9 @@ public class ModelFactory {
 
 			if (queuedBuild != null) {
 				result = dtoFactory.newDTO(SnapshotNode.class)
+						.setBuildCiId(queuedBuild.getItemId())
+						.setJobCiId(build.getExternalId())
 						.setName(build.getName())
-						.setCiId(build.getExternalId())
 						.setStatus(CIBuildStatus.QUEUED)
 						.setResult(CIBuildResult.UNAVAILABLE);
 			}
@@ -200,11 +200,12 @@ public class ModelFactory {
 
 		if (currentBuild != null) {
 			result = dtoFactory.newDTO(SnapshotNode.class)
+					.setJobCiId(build.getExternalId())
 					.setName(build.getName())
-					.setCiId(build.getExternalId())
+					.setBuildCiId(String.valueOf(currentBuild.getBuildId()))
+					.setNumber(currentBuild.getBuildNumber())
 					.setDuration(currentBuild.getDuration())
 					.setEstimatedDuration(((SRunningBuild) currentBuild).getDurationEstimate())
-					.setNumber(Integer.parseInt(currentBuild.getBuildNumber()))
 					.setStartTime(currentBuild.getStartDate().getTime())
 					.setCauses(null)
 					.setStatus(CIBuildStatus.RUNNING)
@@ -234,11 +235,12 @@ public class ModelFactory {
 
 		if (currentBuild != null) {
 			result = dtoFactory.newDTO(SnapshotNode.class)
+					.setJobCiId(build.getExternalId())
 					.setName(build.getExtendedName())
-					.setCiId(build.getExternalId())
+					.setBuildCiId(String.valueOf(currentBuild.getBuildId()))
+					.setNumber(currentBuild.getBuildNumber())
 					.setDuration(currentBuild.getDuration())
 					.setEstimatedDuration(null)
-					.setNumber(Integer.parseInt(currentBuild.getBuildNumber()))
 					.setStartTime(currentBuild.getStartDate().getTime())
 					.setCauses(null)
 					.setStatus(CIBuildStatus.FINISHED)
@@ -250,8 +252,8 @@ public class ModelFactory {
 
 	private SnapshotNode createUnavailableBuild(SBuildType build) {
 		return dtoFactory.newDTO(SnapshotNode.class)
+				.setJobCiId(build.getExternalId())
 				.setName(build.getExtendedName())
-				.setCiId(build.getExternalId())
 				.setStatus(CIBuildStatus.UNAVAILABLE)
 				.setResult(CIBuildResult.UNAVAILABLE);
 	}

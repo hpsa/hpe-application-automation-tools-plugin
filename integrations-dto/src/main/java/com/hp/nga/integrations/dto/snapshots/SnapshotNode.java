@@ -17,17 +17,21 @@ import java.util.List;
 
 public interface SnapshotNode extends DTOBase {
 
-	String getCiId();
+	String getJobCiId();
 
-	SnapshotNode setCiId(String ciId);
+	SnapshotNode setJobCiId(String jobCiId);
 
 	String getName();
 
 	SnapshotNode setName(String name);
 
-	Integer getNumber();
+	String getBuildCiId();
 
-	SnapshotNode setNumber(Integer number);
+	SnapshotNode setBuildCiId(String buildCiId);
+
+	String getNumber();
+
+	SnapshotNode setNumber(String number);
 
 	CIEventCause[] getCauses();
 

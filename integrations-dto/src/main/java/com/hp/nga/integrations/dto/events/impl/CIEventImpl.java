@@ -17,6 +17,7 @@ import com.hp.nga.integrations.dto.snapshots.CIBuildResult;
 @JsonIgnoreProperties(ignoreUnknown = true)
 class CIEventImpl implements CIEvent {
 	private CIEventType eventType;
+	private String buildCiId;
 	private String project;
 	private String number;
 	private CIEventCause[] causes;
@@ -33,6 +34,15 @@ class CIEventImpl implements CIEvent {
 
 	public CIEvent setEventType(CIEventType eventType) {
 		this.eventType = eventType;
+		return this;
+	}
+
+	public String getBuildCiId() {
+		return buildCiId;
+	}
+
+	public CIEvent setBuildCiId(String buildCiId) {
+		this.buildCiId = buildCiId;
 		return this;
 	}
 

@@ -18,6 +18,10 @@ public interface CIEvent extends DTOBase {
 
 	CIEvent setEventType(CIEventType type);
 
+	String getBuildCiId();
+
+	CIEvent setBuildCiId(String buildCiId);
+
 	String getProject();
 
 	CIEvent setProject(String project);
@@ -25,8 +29,6 @@ public interface CIEvent extends DTOBase {
 	String getNumber();
 
 	CIEvent setNumber(String number);
-
-
 
 	CIEventCause[] getCauses();
 

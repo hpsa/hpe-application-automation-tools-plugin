@@ -16,18 +16,18 @@ import java.util.List;
  */
 
 class PipelineNodeImpl implements PipelineNode {
-	private String ciId;
+	private String jobCiId;
 	private String name;
 	private List<CIParameter> parameters = new ArrayList<CIParameter>();
 	private List<PipelinePhase> phasesInternal = new ArrayList<PipelinePhase>();
 	private List<PipelinePhase> phasesPostBuild = new ArrayList<PipelinePhase>();
 
-	public String getCiId() {
-		return ciId;
+	public String getJobCiId() {
+		return jobCiId;
 	}
 
-	public PipelineNode setCiId(String ciId) {
-		this.ciId = ciId;
+	public PipelineNode setJobCiId(String jobCiId) {
+		this.jobCiId = jobCiId;
 		return this;
 	}
 

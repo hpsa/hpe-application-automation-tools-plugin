@@ -35,25 +35,37 @@ public class ProgressEventsListener extends BuildServerAdapter {
 	@Override
 	public void buildTypeAddedToQueue(@NotNull SQueuedBuild queuedBuild) {
 		TriggeredBy triggeredBy = queuedBuild.getTriggeredBy();
-		System.out.println("some");
+		if (!triggeredBy.getParameters().containsKey("buildTypeId")) {
+			CIEvent event = dtoFactory.newDTO(CIEvent.class)
+					.setEventType(CIEventType.STARTED)
+					.setBuildCiId(queuedBuild.getItemId())
+					.setProject(queuedBuild.getBuildType().getExternalId())
+					.setCauses(new CIEventCause[0]);
+			SDKManager.getService(EventsService.class).publishEvent(event);
+		}
 	}
 
 	@Override
 	public void buildStarted(@NotNull SRunningBuild build) {
-		CIEvent event = dtoFactory.newDTO(CIEvent.class)
-				.setEventType(CIEventType.STARTED)
-				.setProject(build.getBuildTypeExternalId())
-				.setNumber(build.getBuildNumber())
-				.setCauses(new CIEventCause[0])
-				.setStartTime(build.getStartDate().getTime())
-				.setEstimatedDuration(build.getDurationEstimate());
-		SDKManager.getService(EventsService.class).publishEvent(event);
+		TriggeredBy triggeredBy = build.getTriggeredBy();
+		if (triggeredBy.getParameters().containsKey("buildTypeId")) {
+			CIEvent event = dtoFactory.newDTO(CIEvent.class)
+					.setEventType(CIEventType.STARTED)
+					.setBuildCiId(String.valueOf(build.getBuildId()))
+					.setProject(build.getBuildTypeExternalId())
+					.setNumber(build.getBuildNumber())
+					.setCauses(new CIEventCause[0])
+					.setStartTime(build.getStartDate().getTime())
+					.setEstimatedDuration(build.getDurationEstimate());
+			SDKManager.getService(EventsService.class).publishEvent(event);
+		}
 	}
 
 	@Override
 	public void buildFinished(@NotNull SRunningBuild build) {
 		CIEvent event = dtoFactory.newDTO(CIEvent.class)
 				.setEventType(CIEventType.FINISHED)
+				.setBuildCiId(String.valueOf(build.getBuildId()))
 				.setProject(build.getBuildTypeExternalId())
 				.setNumber(build.getBuildNumber())
 				.setCauses(new CIEventCause[0])

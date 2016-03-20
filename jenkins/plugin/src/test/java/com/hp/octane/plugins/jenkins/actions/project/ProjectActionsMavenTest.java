@@ -55,7 +55,7 @@ public class ProjectActionsMavenTest {
 
 		page = client.goTo("nga/api/v1/jobs/" + projectName, "application/json");
 		pipeline = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), PipelineNode.class);
-		assertEquals(projectName, pipeline.getCiId());
+		assertEquals(projectName, pipeline.getJobCiId());
 		assertEquals(projectName, pipeline.getName());
 		assertEquals(0, pipeline.getParameters().size());
 		assertEquals(0, pipeline.getPhasesInternal().size());
@@ -98,7 +98,7 @@ public class ProjectActionsMavenTest {
 
 		page = client.goTo("nga/api/v1/jobs/" + projectName, "application/json");
 		pipeline = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), PipelineNode.class);
-		assertEquals(projectName, pipeline.getCiId());
+		assertEquals(projectName, pipeline.getJobCiId());
 		assertEquals(projectName, pipeline.getName());
 		assertEquals(5, pipeline.getParameters().size());
 		assertEquals(0, pipeline.getPhasesInternal().size());
@@ -191,7 +191,7 @@ public class ProjectActionsMavenTest {
 
 		page = client.goTo("nga/api/v1/jobs/" + projectName, "application/json");
 		pipeline = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), PipelineNode.class);
-		assertEquals(projectName, pipeline.getCiId());
+		assertEquals(projectName, pipeline.getJobCiId());
 		assertEquals(projectName, pipeline.getName());
 		assertEquals(2, pipeline.getParameters().size());
 
@@ -220,13 +220,13 @@ public class ProjectActionsMavenTest {
 		assertEquals(2, tmpPhases.get(0).getJobs().size());
 
 		tmpNode = tmpPhases.get(0).getJobs().get(0);
-		assertEquals("jobA", tmpNode.getCiId());
+		assertEquals("jobA", tmpNode.getJobCiId());
 		assertEquals("jobA", tmpNode.getName());
 		assertEquals(0, tmpNode.getParameters().size());
 		assertEquals(0, tmpNode.getPhasesInternal().size());
 		assertEquals(0, tmpNode.getPhasesPostBuild().size());
 		tmpNode = tmpPhases.get(0).getJobs().get(1);
-		assertEquals("jobB", tmpNode.getCiId());
+		assertEquals("jobB", tmpNode.getJobCiId());
 		assertEquals("jobB", tmpNode.getName());
 		assertEquals(0, tmpNode.getParameters().size());
 		assertEquals(0, tmpNode.getPhasesInternal().size());
@@ -238,13 +238,13 @@ public class ProjectActionsMavenTest {
 		assertEquals(2, tmpPhases.get(1).getJobs().size());
 
 		tmpNode = tmpPhases.get(1).getJobs().get(0);
-		assertEquals("jobC", tmpNode.getCiId());
+		assertEquals("jobC", tmpNode.getJobCiId());
 		assertEquals("jobC", tmpNode.getName());
 		assertEquals(0, tmpNode.getParameters().size());
 		assertEquals(0, tmpNode.getPhasesInternal().size());
 		assertEquals(0, tmpNode.getPhasesPostBuild().size());
 		tmpNode = tmpPhases.get(1).getJobs().get(1);
-		assertEquals("jobD", tmpNode.getCiId());
+		assertEquals("jobD", tmpNode.getJobCiId());
 		assertEquals("jobD", tmpNode.getName());
 		assertEquals(0, tmpNode.getParameters().size());
 		assertEquals(0, tmpNode.getPhasesInternal().size());
@@ -256,13 +256,13 @@ public class ProjectActionsMavenTest {
 		assertEquals(2, tmpPhases.get(2).getJobs().size());
 
 		tmpNode = tmpPhases.get(2).getJobs().get(0);
-		assertEquals("jobA", tmpNode.getCiId());
+		assertEquals("jobA", tmpNode.getJobCiId());
 		assertEquals("jobA", tmpNode.getName());
 		assertEquals(0, tmpNode.getParameters().size());
 		assertEquals(0, tmpNode.getPhasesInternal().size());
 		assertEquals(0, tmpNode.getPhasesPostBuild().size());
 		tmpNode = tmpPhases.get(2).getJobs().get(1);
-		assertEquals("jobB", tmpNode.getCiId());
+		assertEquals("jobB", tmpNode.getJobCiId());
 		assertEquals("jobB", tmpNode.getName());
 		assertEquals(0, tmpNode.getParameters().size());
 		assertEquals(0, tmpNode.getPhasesInternal().size());
@@ -274,13 +274,13 @@ public class ProjectActionsMavenTest {
 		assertEquals(2, tmpPhases.get(3).getJobs().size());
 
 		tmpNode = tmpPhases.get(3).getJobs().get(0);
-		assertEquals("jobC", tmpNode.getCiId());
+		assertEquals("jobC", tmpNode.getJobCiId());
 		assertEquals("jobC", tmpNode.getName());
 		assertEquals(0, tmpNode.getParameters().size());
 		assertEquals(0, tmpNode.getPhasesInternal().size());
 		assertEquals(0, tmpNode.getPhasesPostBuild().size());
 		tmpNode = tmpPhases.get(3).getJobs().get(1);
-		assertEquals("jobD", tmpNode.getCiId());
+		assertEquals("jobD", tmpNode.getJobCiId());
 		assertEquals("jobD", tmpNode.getName());
 		assertEquals(0, tmpNode.getParameters().size());
 		assertEquals(0, tmpNode.getPhasesInternal().size());
@@ -297,13 +297,13 @@ public class ProjectActionsMavenTest {
 		assertEquals(2, tmpPhases.get(0).getJobs().size());
 
 		tmpNode = tmpPhases.get(0).getJobs().get(0);
-		assertEquals("jobA", tmpNode.getCiId());
+		assertEquals("jobA", tmpNode.getJobCiId());
 		assertEquals("jobA", tmpNode.getName());
 		assertEquals(0, tmpNode.getParameters().size());
 		assertEquals(0, tmpNode.getPhasesInternal().size());
 		assertEquals(0, tmpNode.getPhasesPostBuild().size());
 		tmpNode = tmpPhases.get(0).getJobs().get(1);
-		assertEquals("jobB", tmpNode.getCiId());
+		assertEquals("jobB", tmpNode.getJobCiId());
 		assertEquals("jobB", tmpNode.getName());
 		assertEquals(0, tmpNode.getParameters().size());
 		assertEquals(0, tmpNode.getPhasesInternal().size());
@@ -315,13 +315,13 @@ public class ProjectActionsMavenTest {
 		assertEquals(2, tmpPhases.get(1).getJobs().size());
 
 		tmpNode = tmpPhases.get(1).getJobs().get(0);
-		assertEquals("jobC", tmpNode.getCiId());
+		assertEquals("jobC", tmpNode.getJobCiId());
 		assertEquals("jobC", tmpNode.getName());
 		assertEquals(0, tmpNode.getParameters().size());
 		assertEquals(0, tmpNode.getPhasesInternal().size());
 		assertEquals(0, tmpNode.getPhasesPostBuild().size());
 		tmpNode = tmpPhases.get(1).getJobs().get(1);
-		assertEquals("jobD", tmpNode.getCiId());
+		assertEquals("jobD", tmpNode.getJobCiId());
 		assertEquals("jobD", tmpNode.getName());
 		assertEquals(0, tmpNode.getParameters().size());
 		assertEquals(0, tmpNode.getPhasesInternal().size());

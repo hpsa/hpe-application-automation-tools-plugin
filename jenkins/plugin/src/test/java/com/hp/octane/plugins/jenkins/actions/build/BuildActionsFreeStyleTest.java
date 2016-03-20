@@ -107,14 +107,14 @@ public class BuildActionsFreeStyleTest {
 
 		page = client.goTo("nga/api/v1/jobs/" + projectName + "/builds/" + p.getLastBuild().getNumber(), "application/json");
 		snapshot = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), SnapshotNode.class);
-		assertEquals(projectName, snapshot.getCiId());
+		assertEquals(projectName, snapshot.getJobCiId());
 		assertEquals(projectName, snapshot.getName());
 		assertEquals(0, snapshot.getParameters().size());
 		assertEquals(0, snapshot.getPhasesInternal().size());
 		assertEquals(0, snapshot.getPhasesPostBuild().size());
 		assertEquals(1, snapshot.getCauses().length);
 		assertEquals(CIEventCauseType.USER, snapshot.getCauses()[0].getType());
-		assertEquals(p.getLastBuild().getNumber(), (int) snapshot.getNumber());
+		assertEquals(String.valueOf(p.getLastBuild().getNumber()), snapshot.getNumber());
 		assertEquals(CIBuildStatus.FINISHED, snapshot.getStatus());
 		assertEquals(CIBuildResult.SUCCESS, snapshot.getResult());
 		assertNotNull(snapshot.getStartTime());
@@ -151,14 +151,14 @@ public class BuildActionsFreeStyleTest {
 
 		page = client.goTo("nga/api/v1/jobs/" + projectName + "/builds/" + p.getLastBuild().getNumber(), "application/json");
 		snapshot = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), SnapshotNode.class);
-		assertEquals(projectName, snapshot.getCiId());
+		assertEquals(projectName, snapshot.getJobCiId());
 		assertEquals(projectName, snapshot.getName());
 		assertEquals(5, snapshot.getParameters().size());
 		assertEquals(0, snapshot.getPhasesInternal().size());
 		assertEquals(0, snapshot.getPhasesPostBuild().size());
 		assertEquals(1, snapshot.getCauses().length);
 		assertEquals(CIEventCauseType.USER, snapshot.getCauses()[0].getType());
-		assertEquals(p.getLastBuild().getNumber(), (int) snapshot.getNumber());
+		assertEquals(String.valueOf(p.getLastBuild().getNumber()), snapshot.getNumber());
 		assertEquals(CIBuildStatus.FINISHED, snapshot.getStatus());
 		assertEquals(CIBuildResult.SUCCESS, snapshot.getResult());
 		assertNotNull(snapshot.getStartTime());
@@ -234,14 +234,14 @@ public class BuildActionsFreeStyleTest {
 
 		page = client.goTo("nga/api/v1/jobs/" + projectName + "/builds/" + p.getLastBuild().getNumber(), "application/json");
 		snapshot = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), SnapshotNode.class);
-		assertEquals(projectName, snapshot.getCiId());
+		assertEquals(projectName, snapshot.getJobCiId());
 		assertEquals(projectName, snapshot.getName());
 		assertEquals(2, snapshot.getParameters().size());
 		assertEquals(2, snapshot.getPhasesInternal().size());
 		assertEquals(2, snapshot.getPhasesPostBuild().size());
 		assertEquals(1, snapshot.getCauses().length);
 		assertEquals(CIEventCauseType.USER, snapshot.getCauses()[0].getType());
-		assertEquals(p.getLastBuild().getNumber(), (int) snapshot.getNumber());
+		assertEquals(String.valueOf(p.getLastBuild().getNumber()), snapshot.getNumber());
 		assertEquals(CIBuildStatus.FINISHED, snapshot.getStatus());
 		assertEquals(CIBuildResult.SUCCESS, snapshot.getResult());
 		assertNotNull(snapshot.getStartTime());
