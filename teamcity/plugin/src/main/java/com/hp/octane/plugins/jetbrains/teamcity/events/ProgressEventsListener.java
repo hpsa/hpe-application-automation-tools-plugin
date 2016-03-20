@@ -107,7 +107,7 @@ public class ProgressEventsListener extends BuildServerAdapter {
 
 	private SQueuedBuild getTriggerBuild(String triggerBuildTypeId) {
 		SQueuedBuild result = null;
-		SBuildType triggerBuildType = ngaPlugin.getProjectManager().findBuildTypeByExternalId(triggerBuildTypeId);
+		SBuildType triggerBuildType = ngaPlugin.getProjectManager().findBuildTypeById(triggerBuildTypeId);
 		if (triggerBuildType != null) {
 			List<SQueuedBuild> queuedBuildsOfType = triggerBuildType.getQueuedBuilds(null);
 			if (!queuedBuildsOfType.isEmpty()) {
