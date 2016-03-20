@@ -233,11 +233,11 @@ public class JUnitExtension extends MqmTestsExtension {
 						}
 					} else if ("errorStackTrace".equals(localName)) { // NON-NLS
 						status = TestResultStatus.FAILED;
-						stackTraceStr = readElementText();
+						stackTraceStr = readNextValue();
 						errorType = stackTraceStr.substring(0, stackTraceStr.indexOf("\n\t"));
 					} else if ("errorDetails".equals(localName)) { // NON-NLS
 						status = TestResultStatus.FAILED;
-						errorMsg = readElementText();
+						errorMsg = readNextValue();
 						errorType = stackTraceStr.substring(0, stackTraceStr.indexOf(":"));
 
 					}
