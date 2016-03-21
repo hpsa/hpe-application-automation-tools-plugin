@@ -13,6 +13,7 @@ import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.plugins.jetbrains.teamcity.configuration.NGAConfigStructure;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
+import jetbrains.buildServer.serverSide.SBuildType;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
@@ -94,30 +95,32 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 	}
 
 	@Override
-	public PipelineNode getPipeline(String rootCIJobId) {
-		return modelFactory.createStructure(rootCIJobId);
+	public PipelineNode getPipeline(String rootJobCiId) {
+		return modelFactory.createStructure(rootJobCiId);
 	}
 
 	@Override
-	public SnapshotNode getSnapshotLatest(String ciJobId, boolean subTree) {
-		return modelFactory.createSnapshot(ciJobId);
+	public SnapshotNode getSnapshotLatest(String jobCiId, boolean subTree) {
+		return modelFactory.createSnapshot(jobCiId);
 	}
 
 	//  TODO: implement
 	@Override
-	public SnapshotNode getSnapshotByNumber(String ciJobId, Integer ciBuildNumber, boolean subTree) {
+	public SnapshotNode getSnapshotByNumber(String jobCiId, String buildCiId, boolean subTree) {
 		return null;
 	}
 
-	//TODO: implement..
 	@Override
-	public void runPipeline(String ciJobId, String originalBody) {
-		return;
+	public void runPipeline(String jobCiId, String originalBody) {
+		SBuildType buildType = ngaPlugin.getProjectManager().findBuildTypeByExternalId(jobCiId);
+		if (buildType != null) {
+			buildType.addToQueue("ngaRemoteExecution");
+		}
 	}
 
 	//TODO: implement: fill build history
 	@Override
-	public BuildHistory getHistoryPipeline(String ciJobId, String originalBody) {
+	public BuildHistory getHistoryPipeline(String jobCiId, String originalBody) {
 		return DTOFactory.getInstance().newDTO(BuildHistory.class);
 	}
 

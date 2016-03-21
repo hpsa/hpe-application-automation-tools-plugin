@@ -64,7 +64,9 @@ public class ProgressEventsListener extends BuildServerAdapter {
 			String rootBuildTypeId = triggeredBy.getParameters().get(TRIGGER_BUILD_TYPE_KEY);
 			SQueuedBuild rootBuild = getTriggerBuild(rootBuildTypeId);
 			if (rootBuild != null) {
-				causes = new CIEventCause[]{causeFromBuild(rootBuild)};
+				causes = new CIEventCause[]{
+						causeFromBuild(rootBuild)
+				};
 			}
 
 			CIEvent event = dtoFactory.newDTO(CIEvent.class)
@@ -74,7 +76,7 @@ public class ProgressEventsListener extends BuildServerAdapter {
 					.setNumber(build.getBuildNumber())
 					.setCauses(causes)
 					.setStartTime(build.getStartDate().getTime())
-					.setEstimatedDuration(build.getDurationEstimate());
+					.setEstimatedDuration(build.getDurationEstimate() * 1000);
 			SDKManager.getService(EventsService.class).publishEvent(event);
 		}
 	}
@@ -88,7 +90,9 @@ public class ProgressEventsListener extends BuildServerAdapter {
 			String rootBuildTypeId = triggeredBy.getParameters().get(TRIGGER_BUILD_TYPE_KEY);
 			SQueuedBuild rootBuild = getTriggerBuild(rootBuildTypeId);
 			if (rootBuild != null) {
-				causes = new CIEventCause[]{causeFromBuild(rootBuild)};
+				causes = new CIEventCause[]{
+						causeFromBuild(rootBuild)
+				};
 			}
 		}
 
@@ -99,8 +103,8 @@ public class ProgressEventsListener extends BuildServerAdapter {
 				.setNumber(build.getBuildNumber())
 				.setCauses(causes)
 				.setStartTime(build.getStartDate().getTime())
-				.setEstimatedDuration(build.getDurationEstimate())
-				.setDuration(build.getDuration())
+				.setEstimatedDuration(build.getDurationEstimate() * 1000)
+				.setDuration(build.getDuration() * 1000)
 				.setResult(modelFactory.resultFromNativeStatus(build.getBuildStatus()));
 		SDKManager.getService(EventsService.class).publishEvent(event);
 	}

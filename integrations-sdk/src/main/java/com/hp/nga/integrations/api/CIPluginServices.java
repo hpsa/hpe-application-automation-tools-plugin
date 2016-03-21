@@ -92,11 +92,11 @@ public interface CIPluginServices {
 	 * Provides Snapshot of the specified CI Build of the specified CI Job
 	 *
 	 * @param ciJobId
-	 * @param ciBuildNumber
+	 * @param buildCiId
 	 * @param subTree
 	 * @return
 	 */
-	SnapshotNode getSnapshotByNumber(String ciJobId, Integer ciBuildNumber, boolean subTree);
+	SnapshotNode getSnapshotByNumber(String ciJobId, String buildCiId, boolean subTree);
 
 	/**
 	 * Retrieves aggregated latest builds info                  //  [YG]: TODO: this API should be removed, all the relevant data should be made available in the rest of APIs

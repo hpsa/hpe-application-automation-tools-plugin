@@ -160,7 +160,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 	}
 
 	@Override
-	public PipelineNode getPipeline(String rootCIJobId) {
+	public PipelineNode getPipeline(String rootJobCiId) {
 		PipelineNode result;
 		SecurityContext securityContext = startImpersonation();
 		boolean hasRead = Jenkins.getInstance().hasPermission(Item.READ);
@@ -168,14 +168,14 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 			stopImpersonation(securityContext);
 			throw new PermissionException(403);
 		}
-		AbstractProject project = getJobByRefId(rootCIJobId);
+		AbstractProject project = getJobByRefId(rootJobCiId);
 		if (project != null) {
 			result = ModelFactory.createStructureItem(project);
 			stopImpersonation(securityContext);
 			return result;
 		} else {
 			//todo: check error message(s)
-			logger.warning("Failed to get project from jobRefId: '" + rootCIJobId + "' check plugin user Job Read/Overall Read permissions / project name");
+			logger.warning("Failed to get project from jobRefId: '" + rootJobCiId + "' check plugin user Job Read/Overall Read permissions / project name");
 			stopImpersonation(securityContext);
 			throw new ConfigurationException(404);
 		}
@@ -206,9 +206,9 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 	}
 
 	@Override
-	public void runPipeline(String ciJobId, String originalBody) {
+	public void runPipeline(String jobCiId, String originalBody) {
 		SecurityContext securityContext = startImpersonation();
-		AbstractProject project = getJobByRefId(ciJobId);
+		AbstractProject project = getJobByRefId(jobCiId);
 		if (project != null) {
 			boolean hasBuildPermission = project.hasPermission(Item.BUILD);
 			if (!hasBuildPermission) {
@@ -224,10 +224,10 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 	}
 
 	@Override
-	public SnapshotNode getSnapshotLatest(String ciJobId, boolean subTree) {
+	public SnapshotNode getSnapshotLatest(String jobCiId, boolean subTree) {
 		SecurityContext securityContext = startImpersonation();
 		SnapshotNode result = null;
-		AbstractProject project = getJobByRefId(ciJobId);
+		AbstractProject project = getJobByRefId(jobCiId);
 		if (project != null) {
 			AbstractBuild build = project.getLastBuild();
 			if (build != null) {
@@ -239,11 +239,17 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 	}
 
 	@Override
-	public SnapshotNode getSnapshotByNumber(String ciJobId, Integer ciBuildNumber, boolean subTree) {
+	public SnapshotNode getSnapshotByNumber(String jobCiId, String buildCiId, boolean subTree) {
 		SecurityContext securityContext = startImpersonation();
-		AbstractProject project = getJobByRefId(ciJobId);
-		if (project != null) {
-			AbstractBuild build = project.getBuildByNumber(ciBuildNumber);
+		AbstractProject project = getJobByRefId(jobCiId);
+		Integer buildNumber = null;
+		try {
+			buildNumber = Integer.parseInt(buildCiId);
+		} catch (NumberFormatException nfe) {
+			logger.severe("failed to parse build CI ID to build number, " + nfe.getMessage());
+		}
+		if (project != null && buildNumber != null) {
+			AbstractBuild build = project.getBuildByNumber(buildNumber);
 			stopImpersonation(securityContext);
 			return ModelFactory.createSnapshotItem(build, subTree);
 		}
@@ -252,9 +258,9 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 	}
 
 	@Override
-	public BuildHistory getHistoryPipeline(String ciJobId, String originalBody) {
+	public BuildHistory getHistoryPipeline(String jobCiId, String originalBody) {
 		SecurityContext securityContext = startImpersonation();
-		AbstractProject project = getJobByRefId(ciJobId);
+		AbstractProject project = getJobByRefId(jobCiId);
 
 		SCMData scmData;
 		Set<User> users;
