@@ -40,11 +40,7 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 
 	@Override
 	public CIServerInfo getServerInfo() {
-		String serverUrl = "http://localhost:8081";
-		if (serverUrl != null && serverUrl.endsWith("/")) {
-			serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
-		}
-
+		String serverUrl = NGAPlugin.getInstance().getBuildServer().getRootUrl();
 		return dtoFactory.newDTO(CIServerInfo.class)
 				.setInstanceId(ngaPlugin.getConfig().getIdentity())
 				.setInstanceIdFrom(ngaPlugin.getConfig().getIdentityFromAsLong())

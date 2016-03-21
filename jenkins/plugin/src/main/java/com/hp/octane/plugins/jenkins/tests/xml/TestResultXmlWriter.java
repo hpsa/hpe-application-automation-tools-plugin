@@ -3,8 +3,10 @@
 package com.hp.octane.plugins.jenkins.tests.xml;
 
 import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
+import com.hp.octane.plugins.jenkins.tests.TestError;
 import com.hp.octane.plugins.jenkins.tests.TestResult;
 import com.hp.octane.plugins.jenkins.tests.TestResultContainer;
+import com.hp.octane.plugins.jenkins.tests.TestResultStatus;
 import com.hp.octane.plugins.jenkins.tests.build.BuildHandlerUtils;
 import com.hp.octane.plugins.jenkins.tests.build.BuildTypeDescriptor;
 import com.hp.octane.plugins.jenkins.tests.detection.ResultFields;
@@ -47,6 +49,14 @@ public class TestResultXmlWriter {
             writer.writeAttribute("duration", String.valueOf(item.getDuration()));
             writer.writeAttribute("status", item.getResult().toPrettyName());
             writer.writeAttribute("started", String.valueOf(item.getStarted()));
+            if(item.getResult().equals(TestResultStatus.FAILED) && item.getTestError() != null) {
+                TestError testError = item.getTestError();
+                writer.writeStartElement("error");
+                writer.writeAttribute("type", String.valueOf(testError.getErrorType()));
+                writer.writeAttribute("message", String.valueOf(testError.getErrorMsg()));
+                writer.writeCharacters(testError.getStackTraceStr());
+                writer.writeEndElement();
+            }
             writer.writeEndElement();
         }
     }
