@@ -29,7 +29,7 @@ public class TestsResultsService {
 
 	public void handleTestResult(List<STestRun> tests, SRunningBuild build) {
 		BuildContext buildContext = dtoFactory.newDTO(BuildContext.class)
-				.setBuildId(String.valueOf(build.getBuildId()))
+				.setBuildId(build.getBuildNumber())
 				.setBuildType(build.getBuildTypeExternalId())
 				.setServer(ngaPlugin.getConfig().getIdentity());
 		TestRun[] testArr = createTestList(tests, build.getStartDate().getTime());
