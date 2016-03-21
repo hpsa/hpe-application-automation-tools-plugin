@@ -277,7 +277,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 				numberOfBuilds = bodyJSON.getInt("numberOfBuilds");
 			}
 		}
-		List<Run> result = project.getLastBuildsOverThreshold(numberOfBuilds, Result.FAILURE); // get last five build with result that better or equal failure
+		List<Run> result = project.getLastBuildsOverThreshold(numberOfBuilds, Result.ABORTED); // get last five build with result that better or equal failure
 		for (int i = 0; i < result.size(); i++) {
 			AbstractBuild build = (AbstractBuild) result.get(i);
 			scmData = null;
