@@ -7,6 +7,7 @@ import com.hp.nga.integrations.dto.connectivity.NGAHttpMethod;
 import com.hp.nga.integrations.dto.connectivity.NGARequest;
 import com.hp.nga.integrations.dto.connectivity.NGAResponse;
 import com.hp.nga.integrations.SDKManager;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -14,6 +15,7 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.cookie.Cookie;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.client.CookieStore;
@@ -267,6 +269,13 @@ final class NGARestClient {
 	}
 
 	private HttpUriRequest buildLoginRequest(NGAConfiguration config) {
+//		HttpEntity body = new StringEntity(
+//				"{\"user\":\"" + config.getApiKey() + "\",\"password\":\"" + config.getSecret() + "\"}",
+//				ContentType.APPLICATION_JSON
+//		);
+//		RequestBuilder requestBuilder = RequestBuilder.post(config.getUrl() + "/" + AUTHENTICATION_URI)
+//				.setHeader(CLIENT_TYPE_HEADER, CLIENT_TYPE_VALUE)
+//				.setEntity(body);
 		String authString = (config.getApiKey() != null ? config.getApiKey() : "") + ":" + (config.getSecret() != null ? config.getSecret() : "");
 		RequestBuilder requestBuilder = RequestBuilder.post(config.getUrl() + "/" + AUTHENTICATION_URI)
 				.setHeader(AUTHENTICATION_HEADER, AUTHENTICATION_BASIC_PREFIX + DatatypeConverter.printBase64Binary(authString.getBytes(StandardCharsets.UTF_8)))

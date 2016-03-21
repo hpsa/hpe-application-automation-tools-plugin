@@ -13,6 +13,7 @@ import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.plugins.jetbrains.teamcity.configuration.NGAConfigStructure;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
+import jetbrains.buildServer.serverSide.SBuildServer;
 import jetbrains.buildServer.serverSide.SBuildType;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -36,17 +37,18 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 	@Autowired
 	private NGAPlugin ngaPlugin;
 	@Autowired
+	private SBuildServer buildServer;
+	@Autowired
 	private ModelFactory modelFactory;
 
 	@Override
 	public CIServerInfo getServerInfo() {
-		String serverUrl = NGAPlugin.getInstance().getBuildServer().getRootUrl();
 		return dtoFactory.newDTO(CIServerInfo.class)
 				.setInstanceId(ngaPlugin.getConfig().getIdentity())
 				.setInstanceIdFrom(ngaPlugin.getConfig().getIdentityFromAsLong())
 				.setSendingTime(System.currentTimeMillis())
 				.setType(CIServerTypes.TEAMCITY)
-				.setUrl(serverUrl)
+				.setUrl(buildServer.getRootUrl())
 				.setVersion(pluginVersion);
 	}
 
