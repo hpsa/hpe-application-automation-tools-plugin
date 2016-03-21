@@ -24,7 +24,8 @@ public class TestsResultEventsListener extends BuildServerAdapter {
 	public void buildFinished(@NotNull SRunningBuild build) {
 		BuildStatistics stats = build.getBuildStatistics(new BuildStatisticsOptions());
 		List<STestRun> tests = stats.getTests(null, BuildStatistics.Order.NATURAL_ASC);
-
-		testsService.handleTestResult(tests, build);
+		if (tests != null && !tests.isEmpty()) {
+			testsService.handleTestResult(tests, build);
+		}
 	}
 }
