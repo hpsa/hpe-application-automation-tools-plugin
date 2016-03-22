@@ -58,16 +58,17 @@ public class ModelFactory {
 		SBuildType root = ngaPlugin.getProjectManager().findBuildTypeByExternalId(buildConfigurationId);
 		PipelineNode treeRoot = null;
 		if (root != null) {
-			treeRoot = dtoFactory.newDTO(PipelineNode.class);
-			treeRoot.setJobCiId(root.getExternalId());
-			treeRoot.setName(root.getName());
+			treeRoot = dtoFactory.newDTO(PipelineNode.class)
+					.setJobCiId(root.getExternalId())
+					.setName(root.getName())
+					.setParameters(parametersFactory.obtainFromBuildType(root));
 
 			List<PipelineNode> pipelineNodeList = buildFromDependenciesFlat(root.getOwnDependencies());
 			if (!pipelineNodeList.isEmpty()) {
-				PipelinePhase phase = dtoFactory.newDTO(PipelinePhase.class);
-				phase.setName("teamcity_dependencies");
-				phase.setBlocking(true);
-				phase.setJobs(pipelineNodeList);
+				PipelinePhase phase = dtoFactory.newDTO(PipelinePhase.class)
+						.setName("teamcity_dependencies")
+						.setBlocking(true)
+						.setJobs(pipelineNodeList);
 				List<PipelinePhase> pipelinePhaseList = new ArrayList<PipelinePhase>();
 				pipelinePhaseList.add(phase);
 				treeRoot.setPhasesPostBuild(pipelinePhaseList);

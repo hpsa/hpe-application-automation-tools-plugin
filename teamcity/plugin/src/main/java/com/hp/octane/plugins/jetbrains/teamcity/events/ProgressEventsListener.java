@@ -68,18 +68,18 @@ public class ProgressEventsListener extends BuildServerAdapter {
 			if (rootBuild != null) {
 				causes.add(causeFromBuild(rootBuild));
 			}
-
-			CIEvent event = dtoFactory.newDTO(CIEvent.class)
-					.setEventType(CIEventType.STARTED)
-					.setProject(build.getBuildTypeExternalId())
-					.setBuildCiId(String.valueOf(build.getBuildId()))
-					.setNumber(build.getBuildNumber())
-					.setParameters(parametersFactory.obtainFromBuild(build))
-					.setCauses(causes)
-					.setStartTime(build.getStartDate().getTime())
-					.setEstimatedDuration(build.getDurationEstimate() * 1000);
-			SDKManager.getService(EventsService.class).publishEvent(event);
 		}
+
+		CIEvent event = dtoFactory.newDTO(CIEvent.class)
+				.setEventType(CIEventType.STARTED)
+				.setProject(build.getBuildTypeExternalId())
+				.setBuildCiId(String.valueOf(build.getBuildId()))
+				.setNumber(build.getBuildNumber())
+				.setParameters(parametersFactory.obtainFromBuild(build))
+				.setCauses(causes)
+				.setStartTime(build.getStartDate().getTime())
+				.setEstimatedDuration(build.getDurationEstimate() * 1000);
+		SDKManager.getService(EventsService.class).publishEvent(event);
 	}
 
 	@Override
