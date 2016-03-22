@@ -63,7 +63,7 @@ public enum ParameterProcessors {
 	}
 
 	//  TODO: the below mapping between param configs and values based on param name uniqueness, beware!
-	public static CIParameter[] getInstances(AbstractBuild build) {
+	public static List<CIParameter> getInstances(AbstractBuild build) {
 		List<CIParameter> result = new ArrayList<CIParameter>();
 		CIParameter tmp;
 		AbstractProject project = build.getProject();
@@ -115,7 +115,7 @@ public enum ParameterProcessors {
 			}
 		}
 
-		return result.toArray(new CIParameter[result.size()]);
+		return result;
 
 	}
 

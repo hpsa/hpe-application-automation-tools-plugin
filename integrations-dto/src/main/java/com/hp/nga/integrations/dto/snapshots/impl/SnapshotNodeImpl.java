@@ -24,7 +24,7 @@ class SnapshotNodeImpl implements SnapshotNode {
 	private String name;
 	private String buildCiId;
 	private String number;
-	private CIEventCause[] causes;
+	private List<CIEventCause> causes = new ArrayList<CIEventCause>();
 	private CIBuildStatus status = CIBuildStatus.UNAVAILABLE;
 	private CIBuildResult result = CIBuildResult.UNAVAILABLE;
 	private Long estimatedDuration;
@@ -71,11 +71,11 @@ class SnapshotNodeImpl implements SnapshotNode {
 		return this;
 	}
 
-	public CIEventCause[] getCauses() {
+	public List<CIEventCause> getCauses() {
 		return causes;
 	}
 
-	public SnapshotNode setCauses(CIEventCause[] causes) {
+	public SnapshotNode setCauses(List<CIEventCause> causes) {
 		this.causes = causes;
 		return this;
 	}

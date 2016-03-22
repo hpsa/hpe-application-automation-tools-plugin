@@ -33,9 +33,9 @@ public interface SnapshotNode extends DTOBase {
 
 	SnapshotNode setNumber(String number);
 
-	CIEventCause[] getCauses();
+	List<CIEventCause> getCauses();
 
-	SnapshotNode setCauses(CIEventCause[] causes);
+	SnapshotNode setCauses(List<CIEventCause> causes);
 
 	CIBuildStatus getStatus();
 

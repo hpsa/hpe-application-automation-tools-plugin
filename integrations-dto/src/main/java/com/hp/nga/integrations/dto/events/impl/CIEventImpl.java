@@ -8,6 +8,8 @@ import com.hp.nga.integrations.dto.parameters.CIParameter;
 import com.hp.nga.integrations.dto.scm.SCMData;
 import com.hp.nga.integrations.dto.snapshots.CIBuildResult;
 
+import java.util.List;
+
 /**
  * User: gullery
  * <p/>
@@ -20,8 +22,8 @@ class CIEventImpl implements CIEvent {
 	private String buildCiId;
 	private String project;
 	private String number;
-	private CIEventCause[] causes;
-	private CIParameter[] parameters;
+	private List<CIEventCause> causes;
+	private List<CIParameter> parameters;
 	private CIBuildResult result;
 	private Long startTime;
 	private Long estimatedDuration;
@@ -64,20 +66,20 @@ class CIEventImpl implements CIEvent {
 		return this;
 	}
 
-	public CIEventCause[] getCauses() {
+	public List<CIEventCause> getCauses() {
 		return causes;
 	}
 
-	public CIEvent setCauses(CIEventCause[] causes) {
+	public CIEvent setCauses(List<CIEventCause> causes) {
 		this.causes = causes;
 		return this;
 	}
 
-	public CIParameter[] getParameters() {
+	public List<CIParameter> getParameters() {
 		return parameters;
 	}
 
-	public CIEvent setParameters(CIParameter[] parameters) {
+	public CIEvent setParameters(List<CIParameter> parameters) {
 		this.parameters = parameters;
 		return this;
 	}

@@ -104,7 +104,7 @@ public class ModelFactory {
 		snapshotNode.setEstimatedDuration(build.getEstimatedDuration());
 		snapshotNode.setScmData(scmProcessor == null ? null : scmProcessor.getSCMData(build));
 		snapshotNode.setStartTime(build.getStartTimeInMillis());
-		snapshotNode.setParameters(Arrays.asList(ParameterProcessors.getInstances(build)));
+		snapshotNode.setParameters(ParameterProcessors.getInstances(build));
 		snapshotNode.setResult(result);
 		snapshotNode.setStatus(status);
 
@@ -287,7 +287,7 @@ public class ModelFactory {
 		return result;
 	}
 
-	public static String generateSubBuildName(CIParameter[] parameters) {
+	public static String generateSubBuildName(List<CIParameter> parameters) {
 		List<CIParameter> sortedList = new ArrayList<CIParameter>();
 		for (CIParameter p : parameters) {
 			if (p.getType().toString() == CIParameterType.AXIS.toString()) {

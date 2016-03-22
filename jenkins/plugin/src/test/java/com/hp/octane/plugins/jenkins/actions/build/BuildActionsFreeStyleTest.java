@@ -112,8 +112,8 @@ public class BuildActionsFreeStyleTest {
 		assertEquals(0, snapshot.getParameters().size());
 		assertEquals(0, snapshot.getPhasesInternal().size());
 		assertEquals(0, snapshot.getPhasesPostBuild().size());
-		assertEquals(1, snapshot.getCauses().length);
-		assertEquals(CIEventCauseType.USER, snapshot.getCauses()[0].getType());
+		assertEquals(1, snapshot.getCauses().size());
+		assertEquals(CIEventCauseType.USER, snapshot.getCauses().get(0).getType());
 		assertEquals(String.valueOf(p.getLastBuild().getNumber()), snapshot.getNumber());
 		assertEquals(CIBuildStatus.FINISHED, snapshot.getStatus());
 		assertEquals(CIBuildResult.SUCCESS, snapshot.getResult());
@@ -156,8 +156,8 @@ public class BuildActionsFreeStyleTest {
 		assertEquals(5, snapshot.getParameters().size());
 		assertEquals(0, snapshot.getPhasesInternal().size());
 		assertEquals(0, snapshot.getPhasesPostBuild().size());
-		assertEquals(1, snapshot.getCauses().length);
-		assertEquals(CIEventCauseType.USER, snapshot.getCauses()[0].getType());
+		assertEquals(1, snapshot.getCauses().size());
+		assertEquals(CIEventCauseType.USER, snapshot.getCauses().get(0).getType());
 		assertEquals(String.valueOf(p.getLastBuild().getNumber()), snapshot.getNumber());
 		assertEquals(CIBuildStatus.FINISHED, snapshot.getStatus());
 		assertEquals(CIBuildResult.SUCCESS, snapshot.getResult());
@@ -239,8 +239,8 @@ public class BuildActionsFreeStyleTest {
 		assertEquals(2, snapshot.getParameters().size());
 		assertEquals(2, snapshot.getPhasesInternal().size());
 		assertEquals(2, snapshot.getPhasesPostBuild().size());
-		assertEquals(1, snapshot.getCauses().length);
-		assertEquals(CIEventCauseType.USER, snapshot.getCauses()[0].getType());
+		assertEquals(1, snapshot.getCauses().size());
+		assertEquals(CIEventCauseType.USER, snapshot.getCauses().get(0).getType());
 		assertEquals(String.valueOf(p.getLastBuild().getNumber()), snapshot.getNumber());
 		assertEquals(CIBuildStatus.FINISHED, snapshot.getStatus());
 		assertEquals(CIBuildResult.SUCCESS, snapshot.getResult());

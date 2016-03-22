@@ -2,6 +2,8 @@ package com.hp.nga.integrations.dto.causes;
 
 import com.hp.nga.integrations.dto.DTOBase;
 
+import java.util.List;
+
 /**
  * Created with IntelliJ IDEA.
  * User: gullery
@@ -28,7 +30,7 @@ public interface CIEventCause extends DTOBase {
 
 	CIEventCause setBuildCiId(String buildCiId);
 
-	CIEventCause[] getCauses();
+	List<CIEventCause> getCauses();
 
-	CIEventCause setCauses(CIEventCause[] causes);
+	CIEventCause setCauses(List<CIEventCause> causes);
 }

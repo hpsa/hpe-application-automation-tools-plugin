@@ -9,9 +9,9 @@ import com.hp.nga.integrations.dto.events.CIEvent;
 import com.hp.nga.integrations.dto.events.CIEventType;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
+import com.hp.octane.plugins.jetbrains.teamcity.factories.ParametersFactory;
 import jetbrains.buildServer.serverSide.BuildServerAdapter;
 import jetbrains.buildServer.serverSide.BuildServerListener;
-import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SBuildType;
 import jetbrains.buildServer.serverSide.SQueuedBuild;
 import jetbrains.buildServer.serverSide.SRunningBuild;
@@ -20,6 +20,7 @@ import jetbrains.buildServer.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,9 +35,10 @@ public class ProgressEventsListener extends BuildServerAdapter {
 
 	@Autowired
 	private NGAPlugin ngaPlugin;
-
 	@Autowired
 	private ModelFactory modelFactory;
+	@Autowired
+	private ParametersFactory parametersFactory;
 
 	private ProgressEventsListener(EventDispatcher<BuildServerListener> dispatcher) {
 		dispatcher.addListener(this);
@@ -50,7 +52,7 @@ public class ProgressEventsListener extends BuildServerAdapter {
 					.setEventType(CIEventType.STARTED)
 					.setBuildCiId(queuedBuild.getItemId())
 					.setProject(queuedBuild.getBuildType().getExternalId())
-					.setCauses(new CIEventCause[0]);
+					.setCauses(new ArrayList<CIEventCause>());
 			SDKManager.getService(EventsService.class).publishEvent(event);
 		}
 	}
@@ -58,22 +60,21 @@ public class ProgressEventsListener extends BuildServerAdapter {
 	@Override
 	public void buildStarted(@NotNull SRunningBuild build) {
 		TriggeredBy triggeredBy = build.getTriggeredBy();
-		CIEventCause[] causes = new CIEventCause[0];
+		List<CIEventCause> causes = new ArrayList<CIEventCause>();
 
 		if (triggeredBy.getParameters().containsKey(TRIGGER_BUILD_TYPE_KEY)) {
 			String rootBuildTypeId = triggeredBy.getParameters().get(TRIGGER_BUILD_TYPE_KEY);
 			SQueuedBuild rootBuild = getTriggerBuild(rootBuildTypeId);
 			if (rootBuild != null) {
-				causes = new CIEventCause[]{
-						causeFromBuild(rootBuild)
-				};
+				causes.add(causeFromBuild(rootBuild));
 			}
 
 			CIEvent event = dtoFactory.newDTO(CIEvent.class)
 					.setEventType(CIEventType.STARTED)
-					.setBuildCiId(String.valueOf(build.getBuildId()))
 					.setProject(build.getBuildTypeExternalId())
+					.setBuildCiId(String.valueOf(build.getBuildId()))
 					.setNumber(build.getBuildNumber())
+					.setParameters(parametersFactory.obtainFromBuild(build))
 					.setCauses(causes)
 					.setStartTime(build.getStartDate().getTime())
 					.setEstimatedDuration(build.getDurationEstimate() * 1000);
@@ -84,23 +85,22 @@ public class ProgressEventsListener extends BuildServerAdapter {
 	@Override
 	public void buildFinished(@NotNull SRunningBuild build) {
 		TriggeredBy triggeredBy = build.getTriggeredBy();
-		CIEventCause[] causes = new CIEventCause[0];
+		List<CIEventCause> causes = new ArrayList<CIEventCause>();
 
 		if (triggeredBy.getParameters().containsKey(TRIGGER_BUILD_TYPE_KEY)) {
 			String rootBuildTypeId = triggeredBy.getParameters().get(TRIGGER_BUILD_TYPE_KEY);
 			SQueuedBuild rootBuild = getTriggerBuild(rootBuildTypeId);
 			if (rootBuild != null) {
-				causes = new CIEventCause[]{
-						causeFromBuild(rootBuild)
-				};
+				causes.add(causeFromBuild(rootBuild));
 			}
 		}
 
 		CIEvent event = dtoFactory.newDTO(CIEvent.class)
 				.setEventType(CIEventType.FINISHED)
-				.setBuildCiId(String.valueOf(build.getBuildId()))
 				.setProject(build.getBuildTypeExternalId())
+				.setBuildCiId(String.valueOf(build.getBuildId()))
 				.setNumber(build.getBuildNumber())
+				.setParameters(parametersFactory.obtainFromBuild(build))
 				.setCauses(causes)
 				.setStartTime(build.getStartDate().getTime())
 				.setEstimatedDuration(build.getDurationEstimate() * 1000)

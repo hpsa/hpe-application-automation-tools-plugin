@@ -6,6 +6,7 @@ import hudson.model.Cause;
 import hudson.triggers.SCMTrigger;
 import hudson.triggers.TimerTrigger;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -19,7 +20,7 @@ import java.util.List;
 public final class CIEventCausesFactory {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
-	public static CIEventCause[] processCauses(List<? extends Cause> causes) {
+	public static List<CIEventCause> processCauses(List<? extends Cause> causes) {
 		Cause tmpCause;
 		CIEventCause[] result = null;
 		Cause.UserIdCause tmpUserCause;
@@ -49,6 +50,6 @@ public final class CIEventCausesFactory {
 				}
 			}
 		}
-		return result;
+		return Arrays.asList(result);
 	}
 }

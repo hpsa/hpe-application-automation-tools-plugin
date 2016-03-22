@@ -6,6 +6,8 @@ import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProces
 import hudson.Extension;
 import hudson.model.AbstractBuild;
 
+import java.util.List;
+
 @Extension
 public class MatrixBuildExtension extends BuildHandlerExtension {
 
@@ -16,7 +18,7 @@ public class MatrixBuildExtension extends BuildHandlerExtension {
 
     @Override
     public BuildTypeDescriptor getBuildType(AbstractBuild<?, ?> build) {
-        CIParameter[] parameters = ParameterProcessors.getInstances(build);
+        List<CIParameter> parameters = ParameterProcessors.getInstances(build);
         String subBuildName = ModelFactory.generateSubBuildName(parameters);
         return new BuildTypeDescriptor(build.getRootBuild().getProject().getName(), subBuildName);
     }

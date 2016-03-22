@@ -6,6 +6,8 @@ import com.hp.nga.integrations.dto.parameters.CIParameter;
 import com.hp.nga.integrations.dto.scm.SCMData;
 import com.hp.nga.integrations.dto.snapshots.CIBuildResult;
 
+import java.util.List;
+
 /**
  * User: gullery
  * <p/>
@@ -30,13 +32,13 @@ public interface CIEvent extends DTOBase {
 
 	CIEvent setNumber(String number);
 
-	CIEventCause[] getCauses();
+	List<CIEventCause> getCauses();
 
-	CIEvent setCauses(CIEventCause[] causes);
+	CIEvent setCauses(List<CIEventCause> causes);
 
-	CIParameter[] getParameters();
+	List<CIParameter> getParameters();
 
-	CIEvent setParameters(CIParameter[] parameters);
+	CIEvent setParameters(List<CIParameter> parameters);
 
 	CIBuildResult getResult();
 

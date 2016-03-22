@@ -27,6 +27,8 @@ public class ModelFactory {
 
 	@Autowired
 	private NGAPlugin ngaPlugin;
+	@Autowired
+	private ParametersFactory parametersFactory;
 
 	public CIJobsList CreateProjectList() {
 		CIJobsList ciJobsList = dtoFactory.newDTO(CIJobsList.class);
@@ -82,10 +84,10 @@ public class ModelFactory {
 			for (Dependency dependency : dependencies) {
 				SBuildType build = dependency.getDependOn();
 				if (build != null) {
-					PipelineNode buildItem = dtoFactory.newDTO(PipelineNode.class);
-					buildItem.setJobCiId(build.getExternalId());
-					buildItem.setName(build.getName());
-					//  TODO: add parameters: build.getParameters()
+					PipelineNode buildItem = dtoFactory.newDTO(PipelineNode.class)
+							.setJobCiId(build.getExternalId())
+							.setName(build.getName())
+							.setParameters(parametersFactory.obtainFromBuildType(build));
 					result.add(buildItem);
 					result.addAll(buildFromDependenciesFlat(build.getOwnDependencies()));
 				}
@@ -102,10 +104,10 @@ public class ModelFactory {
 
 			List<SnapshotNode> snapshotNodesList = createSnapshots(root.getOwnDependencies(), root.getBuildTypeId());
 			if (!snapshotNodesList.isEmpty()) {
-				SnapshotPhase phase = dtoFactory.newDTO(SnapshotPhase.class);
-				phase.setName("teamcity_dependencies");
-				phase.setBlocking(true);
-				phase.setBuilds(snapshotNodesList);
+				SnapshotPhase phase = dtoFactory.newDTO(SnapshotPhase.class)
+						.setName("teamcity_dependencies")
+						.setBlocking(true)
+						.setBuilds(snapshotNodesList);
 				List<SnapshotPhase> snapshotPhases = new ArrayList<SnapshotPhase>();
 				snapshotPhases.add(phase);
 				result.setPhasesPostBuild(snapshotPhases);
@@ -169,8 +171,8 @@ public class ModelFactory {
 
 			if (queuedBuild != null) {
 				result = dtoFactory.newDTO(SnapshotNode.class)
-						.setBuildCiId(queuedBuild.getItemId())
 						.setJobCiId(build.getExternalId())
+						.setBuildCiId(queuedBuild.getItemId())
 						.setName(build.getName())
 						.setStatus(CIBuildStatus.QUEUED)
 						.setResult(CIBuildResult.UNAVAILABLE);
@@ -204,6 +206,7 @@ public class ModelFactory {
 					.setName(build.getName())
 					.setBuildCiId(String.valueOf(currentBuild.getBuildId()))
 					.setNumber(currentBuild.getBuildNumber())
+					.setParameters(parametersFactory.obtainFromBuild(currentBuild))
 					.setDuration(currentBuild.getDuration() * 1000)
 					.setEstimatedDuration(((SRunningBuild) currentBuild).getDurationEstimate() * 1000)
 					.setStartTime(currentBuild.getStartDate().getTime())
@@ -239,6 +242,7 @@ public class ModelFactory {
 					.setName(build.getExtendedName())
 					.setBuildCiId(String.valueOf(currentBuild.getBuildId()))
 					.setNumber(currentBuild.getBuildNumber())
+					.setParameters(parametersFactory.obtainFromBuild(currentBuild))
 					.setDuration(currentBuild.getDuration() * 1000)
 					.setEstimatedDuration(currentBuild.getDuration() * 1000)
 					.setStartTime(currentBuild.getStartDate().getTime())
