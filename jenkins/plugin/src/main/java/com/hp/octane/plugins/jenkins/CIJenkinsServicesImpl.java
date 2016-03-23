@@ -11,6 +11,7 @@ import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.scm.SCMData;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
+import com.hp.nga.integrations.dto.tests.TestResult;
 import com.hp.nga.integrations.exceptions.ConfigurationException;
 import com.hp.nga.integrations.exceptions.PermissionException;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
@@ -311,6 +312,12 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
         }
         stopImpersonation(securityContext);
         return buildHistory;
+    }
+
+    @Override
+    public TestResult getTestResults(String ciJobRefId, String ciBuildRefId) {
+        //TODO : implement
+        return null;
     }
 
     private void doRunImpl(AbstractProject project, String originalBody) {

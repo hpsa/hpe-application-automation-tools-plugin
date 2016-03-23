@@ -8,6 +8,7 @@ import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.general.CIJobsList;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
 import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
+import com.hp.nga.integrations.dto.tests.TestResult;
 
 import java.io.File;
 
@@ -106,4 +107,6 @@ public interface CIPluginServices {
 	 * @return
 	 */
 	BuildHistory getHistoryPipeline(String ciJobId, String originalBody);
+
+	TestResult getTestResults(String ciJobRefId, String ciBuildRefId);
 }

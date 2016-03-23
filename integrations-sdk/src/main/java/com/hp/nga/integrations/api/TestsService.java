@@ -8,10 +8,11 @@ public interface TestsService extends SDKServicePublic {
 	/**
 	 * Publishes CI Event to the NGA server
 	 * Tests result pushed to NGA in a synchronous manner, use this method with caution
+	 * Returns the response code. If there was an exception, returns -1.
 	 *
 	 * @param testResult
 	 */
-	void pushTestsResult(TestResult testResult);
+	int pushTestsResult(TestResult testResult);
 
 	/**
 	 * Enqueue push tests result by submitting build reference for future tests retrieval

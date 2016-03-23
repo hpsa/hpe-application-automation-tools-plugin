@@ -1,6 +1,8 @@
 package com.hp.octane.plugins.jetbrains.teamcity;
 
+import com.hp.nga.integrations.SDKManager;
 import com.hp.nga.integrations.api.CIPluginServices;
+import com.hp.nga.integrations.api.TestsService;
 import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
@@ -11,13 +13,17 @@ import com.hp.nga.integrations.dto.general.CIServerTypes;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
+import com.hp.nga.integrations.dto.tests.BuildContext;
+import com.hp.nga.integrations.dto.tests.TestResult;
+import com.hp.nga.integrations.dto.tests.TestRun;
+import com.hp.nga.integrations.dto.tests.TestRunResult;
 import com.hp.octane.plugins.jetbrains.teamcity.configuration.NGAConfig;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
+import jetbrains.buildServer.Build;
+import jetbrains.buildServer.serverSide.*;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Logger;
 
 /**
@@ -111,7 +117,55 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 		return DTOFactory.getInstance().newDTO(BuildHistory.class);
 	}
 
+	@Override
+	public TestResult getTestResults(String ciJobRefId, String ciBuildRefId) {
+		TestResult result = null;
+		if(ciJobRefId != null && ciBuildRefId != null) {
+			Build build = NGAPlugin.getInstance().getProjectManager().findBuildTypeByExternalId(ciJobRefId).getBuildByBuildNumber(ciBuildRefId);
+			BuildStatistics stats = ((SFinishedBuild) build).getBuildStatistics(new BuildStatisticsOptions());
+			List<STestRun> tests = stats.getTests(null, BuildStatistics.Order.NATURAL_ASC);
+			BuildContext buildContext = dtoFactory.newDTO(BuildContext.class)
+					.setBuildId(build.getBuildId())
+					.setBuildType(build.getBuildType().getName())
+					.setServer(NGAPlugin.getInstance().getConfig().getIdentity());
+			TestRun[] testArr = createTestList(tests, build.getStartDate().getTime());
+			result = dtoFactory.newDTO(TestResult.class)
+					//.setBuildContext(buildContext)
+					.setTestRuns(testArr);
+		}
+		return result;
 
+	}
+
+	private TestRun[] createTestList(List<STestRun> tests, long startingTime) {
+
+		List<TestRun> testList = new ArrayList<TestRun>();
+		for (STestRun testRun : tests) {
+			TestRunResult testResultStatus = null;
+			if (testRun.isIgnored()) {
+				testResultStatus = TestRunResult.SKIPPED;
+			} else if (testRun.getStatus().isFailed()) {
+				testResultStatus = TestRunResult.FAILED;
+			} else if (testRun.getStatus().isSuccessful()) {
+				testResultStatus = TestRunResult.PASSED;
+			}
+
+			TestRun tr = dtoFactory.newDTO(TestRun.class)
+					.setModuleName("")
+					.setPackageName(testRun.getTest().getName().getPackageName())
+					.setClassName(testRun.getTest().getName().getClassName())
+					.setTestName(testRun.getTest().getName().getTestMethodName())
+					.setResult(testResultStatus)
+					.setStarted(startingTime)
+					.setDuration(testRun.getDuration());
+
+
+			testList.add(tr);
+		}
+		TestRun[] testArr = testList.toArray(new TestRun[testList.size()]);
+
+		return testArr;
+	}
 	//	private static void configureProxy(String clientType, URL locationUrl, MqmConnectionConfig clientConfig, String username) {
 //		if (clientType.equals(ConfigurationService.CLIENT_TYPE)) {
 //			if (isProxyNeeded(locationUrl.getHost())) {

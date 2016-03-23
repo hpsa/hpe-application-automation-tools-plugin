@@ -106,6 +106,7 @@ public class ModelFactory { // {
 
     public static SnapshotNode createSnapshot(String buildConfigurationId) {
         SBuildType root = NGAPlugin.getInstance().getProjectManager().findBuildTypeByExternalId(buildConfigurationId);
+
         //currentBuild.getTriggeredBy().getParameters().get("buildTypeId")
         SnapshotNode snapshotRoot = null;
         if(root !=null) {
