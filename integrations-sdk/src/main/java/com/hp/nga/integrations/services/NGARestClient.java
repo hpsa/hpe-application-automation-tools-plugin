@@ -14,6 +14,13 @@ import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.DefaultHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.util.InetAddressUtils;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
@@ -28,10 +35,15 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.ssl.SSLContexts;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.http.Header;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLSession;
 import javax.xml.bind.DatatypeConverter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -39,8 +51,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateParsingException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -77,7 +95,15 @@ final class NGARestClient {
 
 	NGARestClient(SDKManager sdk) {
 		this.sdk = sdk;
-		PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+
+		SSLContext sslContext = SSLContexts.createSystemDefault();
+		HostnameVerifier hostnameVerifier = new CustomHostnameVerifier();
+		SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(sslContext, hostnameVerifier);
+		Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
+				.register("http", PlainConnectionSocketFactory.getSocketFactory())
+				.register("https", sslSocketFactory)
+				.build();
+		PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
 		connectionManager.setMaxTotal(MAX_TOTAL_CONNECTIONS);
 		connectionManager.setDefaultMaxPerRoute(MAX_TOTAL_CONNECTIONS);
 		cookieStore = new BasicCookieStore();
@@ -281,5 +307,34 @@ final class NGARestClient {
 				.setHeader(AUTHENTICATION_HEADER, AUTHENTICATION_BASIC_PREFIX + DatatypeConverter.printBase64Binary(authString.getBytes(StandardCharsets.UTF_8)))
 				.setHeader(CLIENT_TYPE_HEADER, CLIENT_TYPE_VALUE);
 		return requestBuilder.build();
+	}
+
+	private static final class CustomHostnameVerifier implements HostnameVerifier {
+		private final HostnameVerifier defaultVerifier = new DefaultHostnameVerifier();
+
+		public boolean verify(String host, SSLSession sslSession) {
+			boolean result = defaultVerifier.verify(host, sslSession);
+			if (!result) {
+				try {
+					Certificate[] ex = sslSession.getPeerCertificates();
+					X509Certificate x509 = (X509Certificate) ex[0];
+					Collection altNames = x509.getSubjectAlternativeNames();
+					for (List<Object> namePair : new ArrayList<List<Object>>(altNames)) {
+						if (namePair != null && namePair.size() > 1 && namePair.get(1) instanceof String &&
+								"*.saas.hp.com".equals(namePair.get(1))) {
+							result = true;
+							break;
+						}
+					}
+				} catch (CertificateParsingException cpe) {
+					logger.error("failed to parse certificate", cpe);
+					return false;
+				} catch (SSLException ssle) {
+					logger.error("failed to handle certificate", ssle);
+					result = false;
+				}
+			}
+			return result;
+		}
 	}
 }
