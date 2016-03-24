@@ -23,24 +23,22 @@ public final class CIEventCausesFactory {
 	public static List<CIEventCause> processCauses(List<? extends Cause> causes) {
 		List<CIEventCause> result = new LinkedList<CIEventCause>();
 		CIEventCause tmpResultCause;
-		Cause tmpCause;
 		Cause.UserIdCause tmpUserCause;
 		Cause.UpstreamCause tmpUpstreamCause;
 
 		if (causes != null) {
-			for (int i = 0; i < result.size(); i++) {
-				tmpCause = causes.get(i);
+			for (Cause cause : causes) {
 				tmpResultCause = dtoFactory.newDTO(CIEventCause.class);
-				if (tmpCause instanceof SCMTrigger.SCMTriggerCause) {
+				if (cause instanceof SCMTrigger.SCMTriggerCause) {
 					tmpResultCause.setType(CIEventCauseType.SCM);
-				} else if (tmpCause instanceof TimerTrigger.TimerTriggerCause) {
+				} else if (cause instanceof TimerTrigger.TimerTriggerCause) {
 					tmpResultCause.setType(CIEventCauseType.TIMER);
-				} else if (tmpCause instanceof Cause.UserIdCause) {
-					tmpUserCause = (Cause.UserIdCause) tmpCause;
+				} else if (cause instanceof Cause.UserIdCause) {
+					tmpUserCause = (Cause.UserIdCause) cause;
 					tmpResultCause.setType(CIEventCauseType.USER);
 					tmpResultCause.setUser(tmpUserCause.getUserId());
-				} else if (tmpCause instanceof Cause.UpstreamCause) {
-					tmpUpstreamCause = (Cause.UpstreamCause) tmpCause;
+				} else if (cause instanceof Cause.UpstreamCause) {
+					tmpUpstreamCause = (Cause.UpstreamCause) cause;
 					tmpResultCause.setType(CIEventCauseType.UPSTREAM);
 					tmpResultCause.setProject(tmpUpstreamCause.getUpstreamProject());
 					tmpResultCause.setBuildCiId(String.valueOf(tmpUpstreamCause.getUpstreamBuild()));
