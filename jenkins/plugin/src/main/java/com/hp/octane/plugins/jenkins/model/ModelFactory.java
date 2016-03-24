@@ -235,7 +235,11 @@ public class ModelFactory {
 	}
 
 	public static CIParameter createParameterConfig(ParameterDefinition pd, CIParameterType type) {
-		return createParameterConfig(pd, type, null, null);
+		return createParameterConfig(
+				pd,
+				type,
+				pd.getDefaultParameterValue() == null ? null : pd.getDefaultParameterValue().getValue(),
+				null);
 	}
 
 	public static CIParameter createParameterConfig(ParameterDefinition pd, CIParameterType type, Object defaultValue) {
@@ -283,6 +287,7 @@ public class ModelFactory {
 				.setDescription(pc.getDescription())
 				.setChoices(pc.getChoices())
 				.setDescription(pc.getDescription())
+				.setDefaultValue(pc.getDefaultValue())
 				.setValue(value == null ? null : value.getValue().toString());
 		return result;
 	}
