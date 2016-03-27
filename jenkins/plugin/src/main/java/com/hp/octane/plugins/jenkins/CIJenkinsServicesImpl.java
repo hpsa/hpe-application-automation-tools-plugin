@@ -350,7 +350,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 			}
 		}
 
-		project.scheduleBuild(delay, new Cause.RemoteCause(getNGAConfiguration().getUrl(), "octane driven execution"), parametersAction);
+		project.scheduleBuild(delay, new Cause.RemoteCause(getNGAConfiguration() == null ? "non available URL" : getNGAConfiguration().getUrl(), "octane driven execution"), parametersAction);
 	}
 
 	private List<ParameterValue> createParameters(AbstractProject project, JSONArray paramsJSON) {
