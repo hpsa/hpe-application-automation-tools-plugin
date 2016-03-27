@@ -119,6 +119,7 @@ final class BridgeClient {
 						logger.info("interrupted while breathing on temporary exception, continue to re-connect...", ie);
 					}
 				}
+
 			}
 		} catch (Exception e) {
 			logger.error("failed to retrieve abridged tasks", e);

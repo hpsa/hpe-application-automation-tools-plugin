@@ -11,11 +11,8 @@ import com.hp.nga.integrations.dto.general.CIServerTypes;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
-import com.hp.octane.plugins.jetbrains.teamcity.configuration.NGAConfigStructure;
+import com.hp.octane.plugins.jetbrains.teamcity.configuration.NGAConfig;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
-import jetbrains.buildServer.serverSide.SBuildServer;
-import jetbrains.buildServer.serverSide.SBuildType;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
 import java.util.Arrays;
@@ -122,7 +119,57 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 		return DTOFactory.getInstance().newDTO(BuildHistory.class);
 	}
 
-	private boolean isProxyNeeded() {
+	@Override
+	public TestResult getTestResults(String ciJobRefId, String ciBuildRefId) {
+		TestResult result = null;
+		if(ciJobRefId != null && ciBuildRefId != null) {
+			Build build = NGAPlugin.getInstance().getProjectManager().findBuildTypeByExternalId(ciJobRefId).getBuildByBuildNumber(ciBuildRefId);
+			BuildStatistics stats = ((SFinishedBuild) build).getBuildStatistics(new BuildStatisticsOptions());
+			List<STestRun> tests = stats.getTests(null, BuildStatistics.Order.NATURAL_ASC);
+			BuildContext buildContext = dtoFactory.newDTO(BuildContext.class)
+					.setBuildId(build.getBuildId())
+					.setBuildType(build.getBuildType().getName())
+					.setServer(NGAPlugin.getInstance().getConfig().getIdentity());
+			TestRun[] testArr = createTestList(tests, build.getStartDate().getTime());
+			result = dtoFactory.newDTO(TestResult.class)
+					//.setBuildContext(buildContext)
+					.setTestRuns(testArr);
+		}
+		return result;
+
+	}
+
+	private TestRun[] createTestList(List<STestRun> tests, long startingTime) {
+
+		List<TestRun> testList = new ArrayList<TestRun>();
+		for (STestRun testRun : tests) {
+			TestRunResult testResultStatus = null;
+			if (testRun.isIgnored()) {
+				testResultStatus = TestRunResult.SKIPPED;
+			} else if (testRun.getStatus().isFailed()) {
+				testResultStatus = TestRunResult.FAILED;
+			} else if (testRun.getStatus().isSuccessful()) {
+				testResultStatus = TestRunResult.PASSED;
+			}
+
+			TestRun tr = dtoFactory.newDTO(TestRun.class)
+					.setModuleName("")
+					.setPackageName(testRun.getTest().getName().getPackageName())
+					.setClassName(testRun.getTest().getName().getClassName())
+					.setTestName(testRun.getTest().getName().getTestMethodName())
+					.setResult(testResultStatus)
+					.setStarted(startingTime)
+					.setDuration(testRun.getDuration());
+
+
+			testList.add(tr);
+		}
+		TestRun[] testArr = testList.toArray(new TestRun[testList.size()]);
+
+		return testArr;
+	}
+
+	private static boolean isProxyNeeded() {
 		boolean result = false;
 		Map<String, String> propertiesMap = parseProperties(System.getenv("TEAMCITY_SERVER_OPTS"));
 		if (propertiesMap.get("Dhttps.proxyHost") != null) {

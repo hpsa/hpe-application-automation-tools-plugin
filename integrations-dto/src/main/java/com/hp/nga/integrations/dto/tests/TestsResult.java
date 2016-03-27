@@ -6,13 +6,13 @@ import com.hp.nga.integrations.dto.DTOBase;
  * Created by gullery on 06/03/2016.
  */
 
-public interface TestResult extends DTOBase {
+public interface TestsResult extends DTOBase {
 
 	TestRun[] getTestRuns();
 
-	TestResult setTestRuns(TestRun[] testRuns);
+	TestsResult setTestRuns(TestRun[] testRuns);
 
 	BuildContext getBuildContext();
 
-	TestResult setBuildContext(BuildContext buildContext);
+	TestsResult setBuildContext(BuildContext buildContext);
 }
