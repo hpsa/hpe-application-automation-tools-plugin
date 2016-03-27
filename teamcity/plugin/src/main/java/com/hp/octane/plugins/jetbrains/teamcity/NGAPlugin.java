@@ -28,6 +28,7 @@ public class NGAPlugin implements ServerExtension {
 	private ProjectManager projectManager;
 	private static NGAPlugin plugin;
 	private NGAConfig config;
+	private SBuildServer sBuildServer;
 
 	public NGAPlugin(SBuildServer sBuildServer,
 	                 ProjectManager projectManager,
@@ -39,12 +40,17 @@ public class NGAPlugin implements ServerExtension {
 		sBuildServer.registerExtension(ServerExtension.class, PLUGIN_NAME, this);
 		this.plugin = this;
 		this.projectManager = projectManager;
+		this.sBuildServer = sBuildServer;
 		registerControllers(webControllerManager, sBuildServer, pluginDescriptor);
 		TCConfigurationService.init(pluginDescriptor, sBuildServer);
 		config = TCConfigurationService.getInstance().readConfig();
 
 		ensureServerInstanceID();
 		SDKManager.init(new TeamCityPluginServicesImpl(), true);
+	}
+
+	public SBuildServer getBuildServer() {
+		return sBuildServer;
 	}
 
 	public ProjectManager getProjectManager() {
