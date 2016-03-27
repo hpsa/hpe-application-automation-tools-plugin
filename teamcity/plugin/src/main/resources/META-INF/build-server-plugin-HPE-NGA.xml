@@ -20,5 +20,5 @@
 
 	<!-- TESTS -->
 	<bean class="com.hp.octane.plugins.jetbrains.teamcity.tests.services.TestsResultsService"/>
-	<bean class="com.hp.octane.plugins.jetbrains.teamcity.tests.events.TestsResultEventsListener"/>
+	<bean class="com.hp.octane.plugins.jetbrains.teamcity.tests.TestsResultEventsListener"/>
 </beans>

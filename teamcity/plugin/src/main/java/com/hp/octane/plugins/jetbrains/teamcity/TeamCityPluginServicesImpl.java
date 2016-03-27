@@ -11,12 +11,26 @@ import com.hp.nga.integrations.dto.general.CIServerTypes;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
-import com.hp.octane.plugins.jetbrains.teamcity.configuration.NGAConfig;
+import com.hp.nga.integrations.dto.tests.BuildContext;
+import com.hp.nga.integrations.dto.tests.TestRun;
+import com.hp.nga.integrations.dto.tests.TestRunResult;
+import com.hp.nga.integrations.dto.tests.TestsResult;
+import com.hp.octane.plugins.jetbrains.teamcity.configuration.NGAConfigStructure;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
+import jetbrains.buildServer.Build;
+import jetbrains.buildServer.serverSide.BuildStatistics;
+import jetbrains.buildServer.serverSide.BuildStatisticsOptions;
+import jetbrains.buildServer.serverSide.SBuildServer;
+import jetbrains.buildServer.serverSide.SBuildType;
+import jetbrains.buildServer.serverSide.SFinishedBuild;
+import jetbrains.buildServer.serverSide.STestRun;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -62,12 +76,16 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 
 	@Override
 	public NGAConfiguration getNGAConfiguration() {
+		NGAConfiguration result = null;
 		NGAConfigStructure config = ngaPlugin.getConfig();
-		return dtoFactory.newDTO(NGAConfiguration.class)
-				.setUrl(config.getLocation())
-				.setSharedSpace(config.getSharedSpace())
-				.setApiKey(config.getUsername())
-				.setSecret(config.getSecretPassword());
+		if (config != null) {
+			result = dtoFactory.newDTO(NGAConfiguration.class)
+					.setUrl(config.getLocation())
+					.setSharedSpace(config.getSharedSpace())
+					.setApiKey(config.getUsername())
+					.setSecret(config.getSecretPassword());
+		}
+		return result;
 	}
 
 	@Override
@@ -120,29 +138,33 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 	}
 
 	@Override
-	public TestResult getTestResults(String ciJobRefId, String ciBuildRefId) {
-		TestResult result = null;
-		if(ciJobRefId != null && ciBuildRefId != null) {
-			Build build = NGAPlugin.getInstance().getProjectManager().findBuildTypeByExternalId(ciJobRefId).getBuildByBuildNumber(ciBuildRefId);
-			BuildStatistics stats = ((SFinishedBuild) build).getBuildStatistics(new BuildStatisticsOptions());
-			List<STestRun> tests = stats.getTests(null, BuildStatistics.Order.NATURAL_ASC);
-			BuildContext buildContext = dtoFactory.newDTO(BuildContext.class)
-					.setBuildId(build.getBuildId())
-					.setBuildType(build.getBuildType().getName())
-					.setServer(NGAPlugin.getInstance().getConfig().getIdentity());
-			TestRun[] testArr = createTestList(tests, build.getStartDate().getTime());
-			result = dtoFactory.newDTO(TestResult.class)
-					//.setBuildContext(buildContext)
-					.setTestRuns(testArr);
+	public TestsResult getTestsResult(String jobId, String buildNumber) {
+		TestsResult result = null;
+		if (jobId != null && buildNumber != null) {
+			SBuildType buildType = ngaPlugin.getProjectManager().findBuildTypeByExternalId(jobId);
+			if (buildType != null) {
+				Build build = buildType.getBuildByBuildNumber(buildNumber);
+				if (build != null && build instanceof SFinishedBuild) {
+					List<TestRun> tests = createTestList((SFinishedBuild) build);
+					if (tests != null && !tests.isEmpty()) {
+						BuildContext buildContext = dtoFactory.newDTO(BuildContext.class)
+								.setBuildId(String.valueOf(build.getBuildId()))
+								.setBuildType(build.getBuildTypeExternalId())
+								.setServer(ngaPlugin.getConfig().getIdentity());
+						result = dtoFactory.newDTO(TestsResult.class)
+								.setBuildContext(buildContext)
+								.setTestRuns(tests);
+					}
+				}
+			}
 		}
 		return result;
-
 	}
 
-	private TestRun[] createTestList(List<STestRun> tests, long startingTime) {
-
-		List<TestRun> testList = new ArrayList<TestRun>();
-		for (STestRun testRun : tests) {
+	private List<TestRun> createTestList(SFinishedBuild build) {
+		List<TestRun> result = new ArrayList<TestRun>();
+		BuildStatistics stats = build.getBuildStatistics(new BuildStatisticsOptions());
+		for (STestRun testRun : stats.getTests(null, BuildStatistics.Order.NATURAL_ASC)) {
 			TestRunResult testResultStatus = null;
 			if (testRun.isIgnored()) {
 				testResultStatus = TestRunResult.SKIPPED;
@@ -158,21 +180,19 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 					.setClassName(testRun.getTest().getName().getClassName())
 					.setTestName(testRun.getTest().getName().getTestMethodName())
 					.setResult(testResultStatus)
-					.setStarted(startingTime)
+					.setStarted(build.getStartDate().getTime())
 					.setDuration(testRun.getDuration());
-
-
-			testList.add(tr);
+			result.add(tr);
 		}
-		TestRun[] testArr = testList.toArray(new TestRun[testList.size()]);
 
-		return testArr;
+		return result;
 	}
 
 	private static boolean isProxyNeeded() {
 		boolean result = false;
 		Map<String, String> propertiesMap = parseProperties(System.getenv("TEAMCITY_SERVER_OPTS"));
 		if (propertiesMap.get("Dhttps.proxyHost") != null) {
+			result = true;
 			String proxyHost = propertiesMap.get("Dhttps.proxyHost");
 			//  TODO: when no proxy locations management will be available - check against that list here and make a decision
 		}

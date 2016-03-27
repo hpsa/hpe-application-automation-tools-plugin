@@ -6,7 +6,7 @@ import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.connectivity.NGAHttpMethod;
 import com.hp.nga.integrations.dto.connectivity.NGARequest;
 import com.hp.nga.integrations.dto.connectivity.NGAResponse;
-import com.hp.nga.integrations.dto.tests.TestResult;
+import com.hp.nga.integrations.dto.tests.TestsResult;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,13 +22,13 @@ import java.util.*;
 
 class TestsServiceImpl implements TestsService {
     private static final Logger logger = LogManager.getLogger(TestsServiceImpl.class);
+    private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+    private final Object INIT_LOCKER = new Object();
 
+    private static List<BuildNode> buildList = Collections.synchronizedList(new LinkedList<BuildNode>());
     private int DATA_SEND_INTERVAL = 60000;
     private int LIST_EMPTY_INTERVAL = 3000;
-    private static final DTOFactory dtoFactory = DTOFactory.getInstance();
     private final SDKManager sdk;
-    private static List<BuildNode> buildList = Collections.synchronizedList(new LinkedList<BuildNode>());
-    private final Object INIT_LOCKER = new Object();
     private Thread worker;
 	
     TestsServiceImpl(SDKManager sdk) {
@@ -36,7 +36,7 @@ class TestsServiceImpl implements TestsService {
         activate();
     }
 
-	public NGAResponse pushTestsResult(TestResult testResult) throws IOException {
+	public NGAResponse pushTestsResult(TestsResult testsResult) throws IOException {
 		NGARestClient restClient = sdk.getInternalService(NGARestService.class).obtainClient();
 		Map<String, String> headers = new HashMap<String, String>();
 		headers.put("content-type", "application/xml");
@@ -45,14 +45,14 @@ class TestsServiceImpl implements TestsService {
 				.setUrl(sdk.getCIPluginServices().getNGAConfiguration().getUrl() + "/internal-api/shared_spaces/" +
 						sdk.getCIPluginServices().getNGAConfiguration().getSharedSpace() + "/analytics/ci/test-results?skip-errors=false")
 				.setHeaders(headers)
-				.setBody(dtoFactory.dtoToXml(testResult));
+				.setBody(dtoFactory.dtoToXml(testsResult));
 			NGAResponse response = restClient.execute(request);
 			logger.info("tests result pushed with " + response);
 			return response;
 	}
 
-    public void enqueuePushTestsResult(String ciJobRefId, String ciBuildRefId) {
-        buildList.add(new BuildNode(ciJobRefId, ciBuildRefId));
+    public void enqueuePushTestsResult(String jobId, String buildNumber) {
+        buildList.add(new BuildNode(jobId, buildNumber));
     }
 
     private void activate() {
@@ -66,9 +66,9 @@ class TestsServiceImpl implements TestsService {
                                 if (!buildList.isEmpty()) {
                                     try {
                                         BuildNode buildNode = buildList.get(0);
-                                        TestResult testResult = sdk.getCIPluginServices().getTestResults(buildNode.getCiJobRefId(), buildNode.getCiBuildRefId());
-                                        if (testResult != null) {
-                                            NGAResponse response = pushTestsResult(testResult);
+                                        TestsResult testsResult = sdk.getCIPluginServices().getTestsResult(buildNode.getJobId(), buildNode.getBuildNumber());
+                                        if (testsResult != null) {
+                                            NGAResponse response = pushTestsResult(testsResult);
                                             if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
                                                 logger.info("Push test result was successful ");
                                                 buildList.remove(0);
@@ -107,29 +107,28 @@ class TestsServiceImpl implements TestsService {
 
 
     class BuildNode {
-        String ciJobRefId;
-        String ciBuildRefId;
+        String jobId;
+        String buildNumber;
 
-
-        BuildNode(String ciJobRefId, String ciBuildRefId) {
-            this.ciJobRefId = ciJobRefId;
-            this.ciBuildRefId = ciBuildRefId;
+        BuildNode(String jobId, String buildNumber) {
+            this.jobId = jobId;
+            this.buildNumber = buildNumber;
         }
 
-        String getCiJobRefId() {
-            return ciJobRefId;
+        String getJobId() {
+            return jobId;
         }
 
-        void setCiJobRefId(String ciJobRefId) {
-            this.ciJobRefId = ciJobRefId;
+        void setJobId(String jobId) {
+            this.jobId = jobId;
         }
 
-        String getCiBuildRefId() {
-            return ciBuildRefId;
+        String getBuildNumber() {
+            return buildNumber;
         }
 
-        void setCiBuildRefId(String ciBuildRefId) {
-            this.ciBuildRefId = ciBuildRefId;
+        void setBuildNumber(String buildNumber) {
+            this.buildNumber = buildNumber;
         }
     }
 }

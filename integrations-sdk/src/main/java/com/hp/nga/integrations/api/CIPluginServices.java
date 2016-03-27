@@ -8,13 +8,13 @@ import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.general.CIJobsList;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
 import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
-import com.hp.nga.integrations.dto.tests.TestResult;
+import com.hp.nga.integrations.dto.tests.TestsResult;
 
 import java.io.File;
 
 /**
  * Created by gullery on 20/01/2016.
- * <p>
+ * <p/>
  * Composite API of all the endpoints to be implemented by a hosting CI Plugin for NGA use cases
  */
 
@@ -108,5 +108,12 @@ public interface CIPluginServices {
 	 */
 	BuildHistory getHistoryPipeline(String ciJobId, String originalBody);
 
-	TestResult getTestResults(String ciJobRefId, String ciBuildRefId);
+	/**
+	 * Retrieves tests result report for the specific build
+	 *
+	 * @param jobId
+	 * @param buildNumber
+	 * @return TestsResult data; NULL if no tests result available
+	 */
+	TestsResult getTestsResult(String jobId, String buildNumber);
 }
