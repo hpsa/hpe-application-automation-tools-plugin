@@ -17,8 +17,8 @@ public class SDKServicesProvider {
 		manager.publicList.add(new TasksProcessorImpl(manager));
 		manager.publicList.add(new TestsServiceImpl(manager));
 
-		manager.internalList.add(new BridgeService(manager, startBridge));
 		manager.internalList.add(new LoggingService(manager));
 		manager.internalList.add(new NGARestService(manager));
+		manager.internalList.add(new BridgeService(manager, startBridge));
 	}
 }

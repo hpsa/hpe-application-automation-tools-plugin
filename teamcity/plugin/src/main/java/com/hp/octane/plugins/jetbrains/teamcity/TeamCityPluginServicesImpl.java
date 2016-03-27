@@ -78,7 +78,7 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 	public NGAConfiguration getNGAConfiguration() {
 		NGAConfiguration result = null;
 		NGAConfigStructure config = ngaPlugin.getConfig();
-		if (config != null) {
+		if (config != null && config.getLocation() != null && !config.getLocation().isEmpty() && config.getSharedSpace() != null) {
 			result = dtoFactory.newDTO(NGAConfiguration.class)
 					.setUrl(config.getLocation())
 					.setSharedSpace(config.getSharedSpace())
@@ -89,9 +89,9 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 	}
 
 	@Override
-	public CIProxyConfiguration getProxyConfiguration() {
+	public CIProxyConfiguration getProxyConfiguration(String targetHost) {
 		CIProxyConfiguration result = null;
-		if (isProxyNeeded()) {
+		if (isProxyNeeded(targetHost)) {
 			Map<String, String> propertiesMap = parseProperties(System.getenv("TEAMCITY_SERVER_OPTS"));
 			result = dtoFactory.newDTO(CIProxyConfiguration.class)
 					.setHost(propertiesMap.get("Dhttps.proxyHost"))
@@ -188,18 +188,24 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 		return result;
 	}
 
-	private static boolean isProxyNeeded() {
+	private boolean isProxyNeeded(String targetHost) {
 		boolean result = false;
 		Map<String, String> propertiesMap = parseProperties(System.getenv("TEAMCITY_SERVER_OPTS"));
 		if (propertiesMap.get("Dhttps.proxyHost") != null) {
 			result = true;
-			String proxyHost = propertiesMap.get("Dhttps.proxyHost");
-			//  TODO: when no proxy locations management will be available - check against that list here and make a decision
+			if (targetHost != null) {
+				for (String noProxyHost : getNoProxyHosts()) {
+					if (targetHost.contains(noProxyHost)) {
+						result = false;
+						break;
+					}
+				}
+			}
 		}
 		return result;
 	}
 
-	private static Map<String, String> parseProperties(String internalProperties) {
+	private Map<String, String> parseProperties(String internalProperties) {
 		Map<String, String> propertiesMap = new HashMap<String, String>();
 		if (internalProperties != null) {
 			String[] properties = internalProperties.split(" -");
@@ -211,5 +217,10 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 			}
 		}
 		return propertiesMap;
+	}
+
+	//  TODO: when no proxy locations management will be available - use that list here
+	private List<String> getNoProxyHosts() {
+		return Arrays.asList("localhost.emea.hpqcorp.net");
 	}
 }

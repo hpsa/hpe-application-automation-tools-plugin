@@ -51,9 +51,10 @@ public interface CIPluginServices {
 	/**
 	 * Provides CI Server proxy configuration (managed by plugin implementation)
 	 *
+	 * @param targetHost target host that the proxy, if available, should be relevant to
 	 * @return ProxyConfiguration object; if no configuration available the implementation should return NULL
 	 */
-	CIProxyConfiguration getProxyConfiguration();
+	CIProxyConfiguration getProxyConfiguration(String targetHost);
 
 	/**
 	 * Provides a list of Projects existing on this CI Server

@@ -93,7 +93,7 @@ final class NGARestClient {
 		AUTHENTICATION_ERROR_CODES.add(HttpStatus.SC_UNAUTHORIZED);
 	}
 
-	NGARestClient(SDKManager sdk) {
+	NGARestClient(SDKManager sdk, CIProxyConfiguration proxyConfiguration) {
 		this.sdk = sdk;
 
 		SSLContext sslContext = SSLContexts.createSystemDefault();
@@ -112,17 +112,16 @@ final class NGARestClient {
 				.setConnectionManager(connectionManager)
 				.setDefaultCookieStore(cookieStore);
 
-		CIProxyConfiguration proxyConf = sdk.getCIPluginServices().getProxyConfiguration();
-		if (proxyConf != null) {
-			logger.warn("proxy will be used with the following setup: " + proxyConf);
-			HttpHost proxyHost = new HttpHost(proxyConf.getHost(), proxyConf.getPort());
+		if (proxyConfiguration != null) {
+			logger.warn("proxy will be used with the following setup: " + proxyConfiguration);
+			HttpHost proxyHost = new HttpHost(proxyConfiguration.getHost(), proxyConfiguration.getPort());
 
 			clientBuilder
 					.setProxy(proxyHost);
 
-			if (proxyConf.getUsername() != null && !proxyConf.getUsername().isEmpty()) {
+			if (proxyConfiguration.getUsername() != null && !proxyConfiguration.getUsername().isEmpty()) {
 				AuthScope authScope = new AuthScope(proxyHost);
-				Credentials credentials = new UsernamePasswordCredentials(proxyConf.getUsername(), proxyConf.getPassword());
+				Credentials credentials = new UsernamePasswordCredentials(proxyConfiguration.getUsername(), proxyConfiguration.getPassword());
 				CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
 				credentialsProvider.setCredentials(authScope, credentials);
 

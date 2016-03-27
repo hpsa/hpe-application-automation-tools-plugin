@@ -81,6 +81,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 
 	@Override
 	public NGAConfiguration getNGAConfiguration() {
+		NGAConfiguration result = null;
 		ServerConfiguration serverConfiguration = Jenkins.getInstance().getPlugin(OctanePlugin.class).getServerConfiguration();
 		Long sharedSpace = null;
 		if (serverConfiguration.sharedSpace != null) {
@@ -90,15 +91,18 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 				logger.severe("found shared space '" + serverConfiguration.sharedSpace + "' yet it's not parsable into Long: " + nfe.getMessage());
 			}
 		}
-		return dtoFactory.newDTO(NGAConfiguration.class)
-				.setUrl(serverConfiguration.location)
-				.setSharedSpace(sharedSpace)
-				.setApiKey(serverConfiguration.username)
-				.setSecret(serverConfiguration.password);
+		if (serverConfiguration.location != null && !serverConfiguration.location.isEmpty() && sharedSpace != null) {
+			result = dtoFactory.newDTO(NGAConfiguration.class)
+					.setUrl(serverConfiguration.location)
+					.setSharedSpace(sharedSpace)
+					.setApiKey(serverConfiguration.username)
+					.setSecret(serverConfiguration.password);
+		}
+		return result;
 	}
 
 	@Override
-	public CIProxyConfiguration getProxyConfiguration() {
+	public CIProxyConfiguration getProxyConfiguration(String targetHost) {
 		CIProxyConfiguration result = null;
 		ProxyConfiguration proxy = Jenkins.getInstance().proxy;
 		if (proxy != null) {

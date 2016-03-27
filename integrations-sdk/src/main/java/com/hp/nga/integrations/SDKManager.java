@@ -71,7 +71,7 @@ public final class SDKManager {
 				return (T) s;
 			}
 		}
-		throw new IllegalArgumentException(type + " type is not a known public service");
+		throw new IllegalArgumentException(type + " type is not a known internal service");
 	}
 
 	public CIPluginServices getCIPluginServices() {
