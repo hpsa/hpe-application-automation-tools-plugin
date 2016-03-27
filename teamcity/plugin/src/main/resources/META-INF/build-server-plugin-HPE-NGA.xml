@@ -19,6 +19,5 @@
 	<bean class="com.hp.octane.plugins.jetbrains.teamcity.events.ProgressEventsListener"/>
 
 	<!-- TESTS -->
-	<bean class="com.hp.octane.plugins.jetbrains.teamcity.tests.services.TestsResultsService"/>
 	<bean class="com.hp.octane.plugins.jetbrains.teamcity.tests.TestsResultEventsListener"/>
 </beans>
