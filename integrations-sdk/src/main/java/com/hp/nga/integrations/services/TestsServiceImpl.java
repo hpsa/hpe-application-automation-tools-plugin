@@ -37,6 +37,10 @@ class TestsServiceImpl implements TestsService {
 	}
 
 	public NGAResponse pushTestsResult(TestsResult testsResult) throws IOException {
+		if (testsResult == null) {
+			throw new IllegalArgumentException("tests result MUST NOT be null");
+		}
+
 		NGARestClient restClient = sdk.getInternalService(NGARestService.class).obtainClient();
 		Map<String, String> headers = new HashMap<String, String>();
 		headers.put("content-type", "application/xml");
@@ -67,15 +71,17 @@ class TestsServiceImpl implements TestsService {
 									try {
 										BuildNode buildNode = buildList.get(0);
 										TestsResult testsResult = sdk.getCIPluginServices().getTestsResult(buildNode.jobId, buildNode.buildNumber);
-										if (testsResult != null) {
-											NGAResponse response = pushTestsResult(testsResult);
-											if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
-												logger.info("Push test result was successful");
-												buildList.remove(0);
-											} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
-												logger.info("tests result push failed because of service unavailable; retrying");
-												breathe(DATA_SEND_INTERVAL);
-											}
+										NGAResponse response = pushTestsResult(testsResult);
+										if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
+											logger.info("Push test result was successful");
+											buildList.remove(0);
+										} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
+											logger.info("tests result push failed because of service unavailable; retrying");
+											breathe(DATA_SEND_INTERVAL);
+										} else {
+											//  case of any other fatal error
+											logger.error("failed to submit tests result with " + response.getStatus() + "; dropping this item from the queue");
+											buildList.remove(0);
 										}
 									} catch (IOException e) {
 										logger.error("Test Push IOException; retrying", e);

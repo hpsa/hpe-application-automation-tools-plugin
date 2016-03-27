@@ -17,6 +17,9 @@ public class TestsResultEventsListener extends BuildServerAdapter {
 
 	@Override
 	public void buildFinished(@NotNull SRunningBuild build) {
-		SDKManager.getService(TestsService.class).enqueuePushTestsResult(build.getBuildTypeExternalId(), build.getBuildNumber());
+		BuildStatistics stats = build.getBuildStatistics(new BuildStatisticsOptions());
+		if (!stats.getTests(null, BuildStatistics.Order.NATURAL_ASC).isEmpty()) {
+			SDKManager.getService(TestsService.class).enqueuePushTestsResult(build.getBuildTypeExternalId(), build.getBuildNumber());
+		}
 	}
 }
