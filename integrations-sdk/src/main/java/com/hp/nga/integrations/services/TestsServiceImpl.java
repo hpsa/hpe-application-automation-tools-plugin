@@ -64,7 +64,6 @@ class TestsServiceImpl implements TestsService {
 			synchronized (INIT_LOCKER) {
 				if (worker == null || !worker.isAlive()) {
 					worker = new Thread(new Runnable() {
-
 						public void run() {
 							while (true) {
 								if (!buildList.isEmpty()) {
