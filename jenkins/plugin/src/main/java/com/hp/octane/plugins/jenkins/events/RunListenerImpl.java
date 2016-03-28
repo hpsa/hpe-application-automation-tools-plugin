@@ -10,6 +10,7 @@ import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProces
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessors;
 import com.hp.octane.plugins.jenkins.tests.TestListener;
+import com.hp.octane.plugins.jenkins.tests.gherkin.GherkinEventsService;
 import hudson.Extension;
 import hudson.matrix.MatrixConfiguration;
 import hudson.matrix.MatrixRun;
@@ -96,6 +97,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 					.setScmData(scmProcessor == null ? null : scmProcessor.getSCMData(build));
 			EventsService.getExtensionInstance().dispatchEvent(event);
 
+			GherkinEventsService.copyGherkinTestResultsToBuildDir(build);
 			testListener.processBuild(build);
 		}
 	}
