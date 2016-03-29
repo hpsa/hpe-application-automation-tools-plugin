@@ -4,12 +4,14 @@ package com.hp.octane.plugins.jenkins.tests;
 
 import com.google.inject.Inject;
 import com.hp.octane.plugins.jenkins.tests.build.BuildHandlerUtils;
+import com.hp.octane.plugins.jenkins.tests.gherkin.GherkinTestResultsCollector;
 import com.hp.octane.plugins.jenkins.tests.xml.TestResultXmlWriter;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.model.AbstractBuild;
 
 import javax.xml.stream.XMLStreamException;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -31,9 +33,16 @@ public class TestListener {
             for (MqmTestsExtension ext: MqmTestsExtension.all()) {
                 try {
                     if (ext.supports(build)) {
+                        GherkinTestResultsCollector gherkinResultsCollector = new GherkinTestResultsCollector(build);
+                        List<CustomTestResult> gherkinTestResults =  gherkinResultsCollector.getGherkinTestsResults();
+                        if(gherkinTestResults != null && gherkinTestResults.size() > 0) {
+                          resultWriter.addCustomResults(gherkinTestResults);
+                          hasTests = true;
+                        }
+
                         TestResultContainer testResultContainer = ext.getTestResults(build);
                         if (testResultContainer != null && testResultContainer.getIterator().hasNext()) {
-                            resultWriter.add(testResultContainer);
+                            resultWriter.add(testResultContainer, gherkinResultsCollector);
                             hasTests = true;
                         }
                     }
