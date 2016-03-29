@@ -50,6 +50,7 @@ final class BridgeClient {
 					try {
 						tasksJSON = getAbridgedTasks(
 								serverInfo.getInstanceId(),
+								serverInfo.getType().value(),
 								serverInfo.getUrl(),
 								SDKManager.API_VERSION,
 								SDKManager.SDK_VERSION);
@@ -69,7 +70,7 @@ final class BridgeClient {
 		}
 	}
 
-	private String getAbridgedTasks(String selfIdentity, String selfLocation, Integer apiVersion, String sdkVersion) {
+	private String getAbridgedTasks(String selfIdentity, String selfType, String selfLocation, Integer apiVersion, String sdkVersion) {
 		String responseBody = null;
 		NGARestClient restClient = sdk.getInternalService(NGARestService.class).obtainClient();
 		NGAConfiguration ngaConfiguration = sdk.getCIPluginServices().getNGAConfiguration();
@@ -78,7 +79,9 @@ final class BridgeClient {
 			headers.put("accept", "application/json");
 			NGARequest ngaRequest = dtoFactory.newDTO(NGARequest.class)
 					.setMethod(NGAHttpMethod.GET)
-					.setUrl(ngaConfiguration.getUrl() + "/internal-api/shared_spaces/" + ngaConfiguration.getSharedSpace() + "/analytics/ci/servers/" + selfIdentity + "/tasks?self-url=" + selfLocation + "&api-version=" + apiVersion + "&sdk-version=" + sdkVersion)
+					.setUrl(ngaConfiguration.getUrl() + "/internal-api/shared_spaces/" +
+							ngaConfiguration.getSharedSpace() + "/analytics/ci/servers/" +
+							selfIdentity + "/tasks?self-type=" + selfType + "&self-url=" + selfLocation + "&api-version=" + apiVersion + "&sdk-version=" + sdkVersion)
 					.setHeaders(headers);
 			try {
 				NGAResponse ngaResponse = restClient.execute(ngaRequest);

@@ -67,6 +67,7 @@ public class BridgeClient {
 						MqmRestClient restClient = restClientFactory.obtain(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
 						tasksJSON = restClient.getAbridgedTasks(
 								serverInstanceId,
+								pluginServices.getServerInfo().getType().value(),
 								pluginServices.getServerInfo().getUrl(),
 								SDKManager.API_VERSION,
 								SDKManager.SDK_VERSION);
