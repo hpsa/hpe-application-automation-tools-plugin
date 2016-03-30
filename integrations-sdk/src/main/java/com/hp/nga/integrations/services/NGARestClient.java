@@ -1,5 +1,7 @@
 package com.hp.nga.integrations.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
@@ -7,7 +9,6 @@ import com.hp.nga.integrations.dto.connectivity.NGAHttpMethod;
 import com.hp.nga.integrations.dto.connectivity.NGARequest;
 import com.hp.nga.integrations.dto.connectivity.NGAResponse;
 import com.hp.nga.integrations.SDKManager;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -20,7 +21,6 @@ import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.util.InetAddressUtils;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
@@ -44,7 +44,6 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSession;
-import javax.xml.bind.DatatypeConverter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
@@ -238,6 +237,7 @@ final class NGARestClient {
 		CookieStore localCookies = new BasicCookieStore();
 		localCookies.addCookie(LWSSO_TOKEN);
 		context.setCookieStore(localCookies);
+		//  create settings for proxy registration here
 		return context;
 	}
 
@@ -293,19 +293,17 @@ final class NGARestClient {
 		}
 	}
 
-	private HttpUriRequest buildLoginRequest(NGAConfiguration config) {
-//		HttpEntity body = new StringEntity(
-//				"{\"user\":\"" + config.getApiKey() + "\",\"password\":\"" + config.getSecret() + "\"}",
-//				ContentType.APPLICATION_JSON
-//		);
-//		RequestBuilder requestBuilder = RequestBuilder.post(config.getUrl() + "/" + AUTHENTICATION_URI)
-//				.setHeader(CLIENT_TYPE_HEADER, CLIENT_TYPE_VALUE)
-//				.setEntity(body);
-		String authString = (config.getApiKey() != null ? config.getApiKey() : "") + ":" + (config.getSecret() != null ? config.getSecret() : "");
-		RequestBuilder requestBuilder = RequestBuilder.post(config.getUrl() + "/" + AUTHENTICATION_URI)
-				.setHeader(AUTHENTICATION_HEADER, AUTHENTICATION_BASIC_PREFIX + DatatypeConverter.printBase64Binary(authString.getBytes(StandardCharsets.UTF_8)))
-				.setHeader(CLIENT_TYPE_HEADER, CLIENT_TYPE_VALUE);
-		return requestBuilder.build();
+	private HttpUriRequest buildLoginRequest(NGAConfiguration config) throws IOException {
+		try {
+			LoginApiBody loginApiBody = new LoginApiBody(config.getApiKey(), config.getSecret());
+			StringEntity loginApiJson = new StringEntity(new ObjectMapper().writeValueAsString(loginApiBody), ContentType.APPLICATION_JSON);
+			RequestBuilder requestBuilder = RequestBuilder.post(config.getUrl() + "/" + AUTHENTICATION_URI)
+					.setHeader(CLIENT_TYPE_HEADER, CLIENT_TYPE_VALUE)
+					.setEntity(loginApiJson);
+			return requestBuilder.build();
+		} catch (JsonProcessingException jpe) {
+			throw new IOException("failed to serialize login content", jpe);
+		}
 	}
 
 	private static final class CustomHostnameVerifier implements HostnameVerifier {
@@ -334,6 +332,16 @@ final class NGARestClient {
 				}
 			}
 			return result;
+		}
+	}
+
+	private static final class LoginApiBody {
+		public final String user;
+		public final String password;
+
+		private LoginApiBody(String user, String password) {
+			this.user = user;
+			this.password = password;
 		}
 	}
 }
