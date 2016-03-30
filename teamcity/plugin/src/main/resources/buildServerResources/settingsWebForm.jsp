@@ -99,7 +99,7 @@
 
 
                 <tr>
-                    <th><label for="username1">Access key <span class="mandatoryAsterix" title="Mandatory field">*</span></label></th>
+                    <th><label for="username1">Client ID <span class="mandatoryAsterix" title="Mandatory field">*</span></label></th>
                     <td>
                         <input type="text" name="username1" id="username1"   value="" class="longField"        >
 
@@ -108,7 +108,7 @@
                 </tr>
 
                 <tr>
-                    <th><label for="password1">Secret key <span class="mandatoryAsterix" title="Mandatory field">*</span></label></th>
+                    <th><label for="password1">Client secret <span class="mandatoryAsterix" title="Mandatory field">*</span></label></th>
                     <td>
                         <input type="password" name="password1" id="password1"   value="" class="longField"        >
 
