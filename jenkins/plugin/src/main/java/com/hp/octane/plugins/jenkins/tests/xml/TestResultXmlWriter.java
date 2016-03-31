@@ -31,61 +31,75 @@ public class TestResultXmlWriter {
 
     private XMLStreamWriter writer;
     private OutputStream outputStream;
-    private ResultFields resultFields;
+    private TestResultContainer testResultContainer;
+    private TestResultsExcluder testResultsExcluder;
+    private List<CustomTestResult> customTestResults;
 
     public TestResultXmlWriter(FilePath targetPath, AbstractBuild build) {
         this.targetPath = targetPath;
         this.build = build;
     }
 
-    public void add(TestResultContainer container, TestResultsExcluder excluder) throws InterruptedException, XMLStreamException, IOException {
-        Iterator<TestResult> items = container.getIterator();
-        resultFields = container.getResultFields();
-        initialize();
+    public void setCustomTestResults(List<CustomTestResult> customTestResults) {
+        this.customTestResults = customTestResults;
+    }
 
-        while (items.hasNext()) {
-            TestResult item = items.next();
-            if(excluder == null || !excluder.shouldExclude(item)) {
-                writer.writeStartElement("test_run");
-                writer.writeAttribute("module", item.getModuleName());
-                writer.writeAttribute("package", item.getPackageName());
-                writer.writeAttribute("class", item.getClassName());
-                writer.writeAttribute("name", item.getTestName());
-                writer.writeAttribute("duration", String.valueOf(item.getDuration()));
-                writer.writeAttribute("status", item.getResult().toPrettyName());
-                writer.writeAttribute("started", String.valueOf(item.getStarted()));
-                if (item.getResult().equals(TestResultStatus.FAILED) && item.getTestError() != null) {
-                    TestError testError = item.getTestError();
-                    writer.writeStartElement("error");
-                    writer.writeAttribute("type", String.valueOf(testError.getErrorType()));
-                    writer.writeAttribute("message", String.valueOf(testError.getErrorMsg()));
-                    writer.writeCharacters(testError.getStackTraceStr());
+    public void setTestResultContainer(TestResultContainer container, TestResultsExcluder excluder) {
+        this.testResultContainer = container;
+        this.testResultsExcluder = excluder;
+    }
+
+    public void writeResults() throws InterruptedException, XMLStreamException, IOException {
+        ResultFields resultFields = null;
+        if(testResultContainer != null) {
+            resultFields = testResultContainer.getResultFields();
+        }
+        initialize(resultFields);
+
+        if(testResultContainer != null) {
+            Iterator<TestResult> items = testResultContainer.getIterator();
+            while (items.hasNext()) {
+                TestResult item = items.next();
+                if (testResultsExcluder == null || !testResultsExcluder.shouldExclude(item)) {
+                    writer.writeStartElement("test_run");
+                    writer.writeAttribute("module", item.getModuleName());
+                    writer.writeAttribute("package", item.getPackageName());
+                    writer.writeAttribute("class", item.getClassName());
+                    writer.writeAttribute("name", item.getTestName());
+                    writer.writeAttribute("duration", String.valueOf(item.getDuration()));
+                    writer.writeAttribute("status", item.getResult().toPrettyName());
+                    writer.writeAttribute("started", String.valueOf(item.getStarted()));
+                    if (item.getResult().equals(TestResultStatus.FAILED) && item.getTestError() != null) {
+                        TestError testError = item.getTestError();
+                        writer.writeStartElement("error");
+                        writer.writeAttribute("type", String.valueOf(testError.getErrorType()));
+                        writer.writeAttribute("message", String.valueOf(testError.getErrorMsg()));
+                        writer.writeCharacters(testError.getStackTraceStr());
+                        writer.writeEndElement();
+                    }
                     writer.writeEndElement();
                 }
+            }
+        }
+
+        if(customTestResults != null) {
+            for (CustomTestResult result : customTestResults) {
+                writer.writeStartElement("test_run");
+                Map<String, String> attributes = result.getAttributes();
+                if (attributes != null) {
+                    for (String attrName : attributes.keySet()) {
+                        writer.writeAttribute(attrName, result.getAttributes().get(attrName));
+                    }
+                }
+                writeXmlElement(result.getXmlElement());
                 writer.writeEndElement();
             }
         }
     }
 
-    public void addCustomResults(List<CustomTestResult> testResults) throws InterruptedException, XMLStreamException, IOException {
-      initialize();
-      for(CustomTestResult result : testResults) {
-        writer.writeStartElement("test_run");
-        Map<String, String> attributes = result.getAttributes();
-        if(attributes != null) {
-          for (String attrName : attributes.keySet()) {
-            writer.writeAttribute(attrName, result.getAttributes().get(attrName));
-          }
-        }
-        writeXmlElement(result.getXmlElement());
-        writer.writeEndElement();
-      }
-    }
-
     public void close() throws XMLStreamException {
         if (outputStream != null) {
             writer.writeEndElement(); // test_runs
-            writeFields(resultFields);
             writer.writeEndElement(); // test_result
             writer.writeEndDocument();
             writer.close();
@@ -93,7 +107,7 @@ public class TestResultXmlWriter {
         }
     }
 
-    private void initialize() throws IOException, InterruptedException, XMLStreamException {
+    private void initialize(ResultFields resultFields) throws IOException, InterruptedException, XMLStreamException {
         if (outputStream == null) {
             outputStream = targetPath.write();
             writer = possiblyCreateIndentingWriter(XMLOutputFactory.newInstance().createXMLStreamWriter(outputStream));
@@ -109,6 +123,7 @@ public class TestResultXmlWriter {
             }
             writer.writeAttribute("build_sid", String.valueOf(build.getNumber()));
             writer.writeEndElement(); // build
+            writeFields(resultFields);
             writer.writeStartElement("test_runs");
         }
     }

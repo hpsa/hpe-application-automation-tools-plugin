@@ -60,7 +60,8 @@ public class TestResultXmlWriterTest {
     private void assertBuildType(AbstractBuild build, String buildType, String subType) throws IOException, XMLStreamException, InterruptedException {
         FilePath testXml = new FilePath(build.getWorkspace(), "test.xml");
         TestResultXmlWriter xmlWriter = new TestResultXmlWriter(testXml, build);
-        xmlWriter.add(container, null);
+        xmlWriter.setTestResultContainer(container, null);
+        xmlWriter.writeResults();
         xmlWriter.close();
 
         TestResultIterator iterator = new TestResultIterable(new File(testXml.getRemote())).iterator();

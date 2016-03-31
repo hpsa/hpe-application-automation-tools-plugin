@@ -36,14 +36,18 @@ public class TestListener {
                         GherkinTestResultsCollector gherkinResultsCollector = new GherkinTestResultsCollector(build);
                         List<CustomTestResult> gherkinTestResults =  gherkinResultsCollector.getGherkinTestsResults();
                         if(gherkinTestResults != null && gherkinTestResults.size() > 0) {
-                          resultWriter.addCustomResults(gherkinTestResults);
+                          resultWriter.setCustomTestResults(gherkinTestResults);
                           hasTests = true;
                         }
 
                         TestResultContainer testResultContainer = ext.getTestResults(build);
                         if (testResultContainer != null && testResultContainer.getIterator().hasNext()) {
-                            resultWriter.add(testResultContainer, gherkinResultsCollector);
+                            resultWriter.setTestResultContainer(testResultContainer, gherkinResultsCollector);
                             hasTests = true;
+                        }
+
+                        if(hasTests) {
+                            resultWriter.writeResults();
                         }
                     }
                 } catch (InterruptedException e) {
