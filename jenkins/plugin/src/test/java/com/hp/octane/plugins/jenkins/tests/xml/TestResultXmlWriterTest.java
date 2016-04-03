@@ -19,7 +19,6 @@ import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -65,7 +64,7 @@ public class TestResultXmlWriterTest {
         xmlWriter.close();
 
         TestResultIterator iterator = new TestResultIterable(new File(testXml.getRemote())).iterator();
-        Assert.assertEquals(buildType, iterator.getBuildType());
+        Assert.assertEquals(buildType, iterator.getJobId());
         Assert.assertEquals(subType, iterator.getSubType());
     }
 }
