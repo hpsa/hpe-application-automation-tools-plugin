@@ -14,6 +14,8 @@ import com.hp.mqm.org.apache.http.client.CredentialsProvider;
 import com.hp.mqm.org.apache.http.client.config.RequestConfig;
 import com.hp.mqm.org.apache.http.client.protocol.HttpClientContext;
 import com.hp.mqm.org.apache.http.cookie.Cookie;
+import com.hp.mqm.org.apache.http.entity.ContentType;
+import com.hp.mqm.org.apache.http.entity.StringEntity;
 import com.hp.mqm.org.apache.http.impl.client.BasicCookieStore;
 import com.hp.mqm.org.apache.http.impl.client.BasicCredentialsProvider;
 import com.hp.mqm.org.apache.http.impl.client.CloseableHttpClient;
@@ -52,8 +54,6 @@ import java.util.regex.Pattern;
 public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	private static final Logger logger = Logger.getLogger(AbstractMqmRestClient.class.getName());
 	private static final String URI_AUTHENTICATION = "authentication/sign_in";
-	private static final String HEADER_NAME_AUTHORIZATION = "Authorization";
-	private static final String HEADER_VALUE_BASIC_AUTH = "Basic ";
 	private static final String HEADER_CLIENT_TYPE = "HPECLIENTTYPE";
 	private static final String LWSSO_COOKIE_NAME = "LWSSO_COOKIE_KEY";
 	private static final String HPSSO_COOKIE_NAME = "HPSSO_COOKIE_CSRF";
@@ -165,9 +165,12 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 
 	private void authenticate() {
 		HttpPost post = new HttpPost(createBaseUri(URI_AUTHENTICATION));
-		String authorizationString = (username != null ? username : "") + ":" + (password != null ? password : "");
-		post.setHeader(HEADER_NAME_AUTHORIZATION, HEADER_VALUE_BASIC_AUTH + Base64.encodeBase64String(authorizationString.getBytes(StandardCharsets.UTF_8)));
+		StringEntity loginApiJson = new StringEntity(
+				"{\"user\":\"" + (username != null ? username : "") + "\"," +
+						"\"password\":\"" + (password != null ? password : "") + "\"}"
+				, ContentType.APPLICATION_JSON);
 		post.setHeader(HEADER_CLIENT_TYPE, clientType);
+		post.setEntity(loginApiJson);
 
 		HttpResponse response = null;
 		try {
