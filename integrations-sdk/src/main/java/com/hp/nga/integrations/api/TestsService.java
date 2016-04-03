@@ -16,7 +16,7 @@ public interface TestsService extends SDKServicePublic {
 	 *
 	 * @param testsResult
 	 */
-	public NGAResponse pushTestsResult(TestsResult testsResult) throws IOException;
+	NGAResponse pushTestsResult(TestsResult testsResult) throws IOException;
 
 	/**
 	 * Enqueue push tests result by submitting build reference for future tests retrieval

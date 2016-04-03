@@ -148,9 +148,11 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 					List<TestRun> tests = createTestList((SFinishedBuild) build);
 					if (tests != null && !tests.isEmpty()) {
 						BuildContext buildContext = dtoFactory.newDTO(BuildContext.class)
+								.setJobId(build.getBuildTypeExternalId())
+								.setJobName(build.getBuildTypeName())
 								.setBuildId(String.valueOf(build.getBuildId()))
-								.setBuildType(build.getBuildTypeExternalId())
-								.setServer(ngaPlugin.getConfig().getIdentity());
+								.setBuildName(build.getBuildNumber())
+								.setServerId(ngaPlugin.getConfig().getIdentity());
 						result = dtoFactory.newDTO(TestsResult.class)
 								.setBuildContext(buildContext)
 								.setTestRuns(tests);
