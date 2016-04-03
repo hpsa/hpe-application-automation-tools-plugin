@@ -6,7 +6,8 @@
 	<!-- MAIN -->
 	<bean class="com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin"/>
 	<bean class="com.hp.octane.plugins.jetbrains.teamcity.TeamCityPluginServicesImpl"/>
-	<bean class="com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory"/>
+	<bean class="com.hp.octane.plugins.jetbrains.teamcity.factories.ModelCommonFactory"/>
+	<bean class="com.hp.octane.plugins.jetbrains.teamcity.factories.SnapshotsFactory"/>
 	<bean class="com.hp.octane.plugins.jetbrains.teamcity.factories.ParametersFactory"/>
 	<bean class="com.hp.octane.plugins.jetbrains.teamcity.actions.GenericNGAActionsController"/>
 

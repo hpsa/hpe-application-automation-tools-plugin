@@ -1,16 +1,17 @@
 package com.hp.octane.plugins.jetbrains.teamcity.factories;
 
 import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.general.CIJobsList;
-import com.hp.nga.integrations.dto.pipelines.PipelineNode;
-import com.hp.nga.integrations.dto.pipelines.PipelinePhase;
 import com.hp.nga.integrations.dto.snapshots.CIBuildResult;
+import com.hp.nga.integrations.dto.snapshots.CIBuildStatus;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
 import com.hp.nga.integrations.dto.snapshots.SnapshotPhase;
-import com.hp.nga.integrations.dto.snapshots.CIBuildStatus;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
-import jetbrains.buildServer.messages.Status;
-import jetbrains.buildServer.serverSide.*;
+import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.serverSide.SBuildType;
+import jetbrains.buildServer.serverSide.SFinishedBuild;
+import jetbrains.buildServer.serverSide.SQueuedBuild;
+import jetbrains.buildServer.serverSide.SRunningBuild;
+import jetbrains.buildServer.serverSide.TriggeredBy;
 import jetbrains.buildServer.serverSide.dependency.Dependency;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -19,91 +20,26 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Created by lazara on 04/01/2016.
+ * Created by gullery on 03/04/2016.
  */
 
-public class ModelFactory {
+public class SnapshotsFactory {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Autowired
 	private NGAPlugin ngaPlugin;
 	@Autowired
+	private ModelCommonFactory modelCommonFactory;
+	@Autowired
 	private ParametersFactory parametersFactory;
 
-	public CIJobsList CreateProjectList() {
-		CIJobsList ciJobsList = dtoFactory.newDTO(CIJobsList.class);
-		List<PipelineNode> list = new ArrayList<PipelineNode>();
-		List<String> ids = new ArrayList<String>();
-
-		PipelineNode buildConf;
-		for (SProject project : ngaPlugin.getProjectManager().getProjects()) {
-
-			List<SBuildType> buildTypes = project.getBuildTypes();
-			for (SBuildType buildType : buildTypes) {
-				if (!ids.contains(buildType.getInternalId())) {
-					ids.add(buildType.getInternalId());
-					buildConf = dtoFactory.newDTO(PipelineNode.class)
-							.setJobCiId(buildType.getExternalId())
-							.setName(buildType.getName());
-					list.add(buildConf);
-				}
-			}
-		}
-
-		ciJobsList.setJobs(list.toArray(new PipelineNode[list.size()]));
-		return ciJobsList;
-	}
-
-	public PipelineNode createStructure(String buildConfigurationId) {
-		SBuildType root = ngaPlugin.getProjectManager().findBuildTypeByExternalId(buildConfigurationId);
-		PipelineNode treeRoot = null;
-		if (root != null) {
-			treeRoot = dtoFactory.newDTO(PipelineNode.class)
-					.setJobCiId(root.getExternalId())
-					.setName(root.getName())
-					.setParameters(parametersFactory.obtainFromBuildType(root));
-
-			List<PipelineNode> pipelineNodeList = buildFromDependenciesFlat(root.getOwnDependencies());
-			if (!pipelineNodeList.isEmpty()) {
-				PipelinePhase phase = dtoFactory.newDTO(PipelinePhase.class)
-						.setName("teamcity_dependencies")
-						.setBlocking(true)
-						.setJobs(pipelineNodeList);
-				List<PipelinePhase> pipelinePhaseList = new ArrayList<PipelinePhase>();
-				pipelinePhaseList.add(phase);
-				treeRoot.setPhasesPostBuild(pipelinePhaseList);
-			}
-		} else {
-			//should update the response?
-		}
-		return treeRoot;
-	}
-
-	private List<PipelineNode> buildFromDependenciesFlat(List<Dependency> dependencies) {
-		List<PipelineNode> result = new LinkedList<PipelineNode>();
-		if (dependencies != null) {
-			for (Dependency dependency : dependencies) {
-				SBuildType build = dependency.getDependOn();
-				if (build != null) {
-					PipelineNode buildItem = dtoFactory.newDTO(PipelineNode.class)
-							.setJobCiId(build.getExternalId())
-							.setName(build.getName())
-							.setParameters(parametersFactory.obtainFromBuildType(build));
-					result.add(buildItem);
-					result.addAll(buildFromDependenciesFlat(build.getOwnDependencies()));
-				}
-			}
-		}
-		return result;
-	}
-
 	public SnapshotNode createSnapshot(String buildConfigurationId) {
-		SBuildType root = ngaPlugin.getProjectManager().findBuildTypeByExternalId(buildConfigurationId);
+		SBuildType rootJob = ngaPlugin.getProjectManager().findBuildTypeByExternalId(buildConfigurationId);
 		SnapshotNode result = null;
-		if (root != null) {
-			result = createSnapshotItem(root, root.getBuildTypeId());
+		if (rootJob != null) {
+			result = createSnapshotItem(rootJob, rootJob.getBuildTypeId());
 
-			List<SnapshotNode> snapshotNodesList = createSnapshots(root.getOwnDependencies(), root.getBuildTypeId());
+			List<SnapshotNode> snapshotNodesList = createSnapshots(rootJob.getOwnDependencies(), rootJob.getBuildTypeId());
 			if (!snapshotNodesList.isEmpty()) {
 				SnapshotPhase phase = dtoFactory.newDTO(SnapshotPhase.class)
 						.setName("teamcity_dependencies")
@@ -116,21 +52,6 @@ public class ModelFactory {
 		} else {
 			//should update the response?
 		}
-		return result;
-	}
-
-	private List<SnapshotNode> createSnapshots(List<Dependency> dependencies, String rootId) {
-		List<SnapshotNode> result = new LinkedList<SnapshotNode>();
-
-		if (dependencies != null && !dependencies.isEmpty()) {
-			for (Dependency dependency : dependencies) {
-				SBuildType build = dependency.getDependOn();
-				SnapshotNode snapshotNode = createSnapshotItem(build, rootId);
-				result.add(snapshotNode);
-				result.addAll(createSnapshots(build.getOwnDependencies(), rootId));
-			}
-		}
-
 		return result;
 	}
 
@@ -151,6 +72,23 @@ public class ModelFactory {
 		}
 		return snapshotNode;
 	}
+
+
+	private List<SnapshotNode> createSnapshots(List<Dependency> dependencies, String rootId) {
+		List<SnapshotNode> result = new LinkedList<SnapshotNode>();
+
+		if (dependencies != null && !dependencies.isEmpty()) {
+			for (Dependency dependency : dependencies) {
+				SBuildType build = dependency.getDependOn();
+				SnapshotNode snapshotNode = createSnapshotItem(build, rootId);
+				result.add(snapshotNode);
+				result.addAll(createSnapshots(build.getOwnDependencies(), rootId));
+			}
+		}
+
+		return result;
+	}
+
 
 	private SnapshotNode createQueueBuild(SBuildType build, String rootId) {
 		SnapshotNode result = null;
@@ -249,7 +187,7 @@ public class ModelFactory {
 					.setStartTime(currentBuild.getStartDate().getTime())
 					.setCauses(null)
 					.setStatus(CIBuildStatus.FINISHED)
-					.setResult(resultFromNativeStatus(currentBuild.getBuildStatus()));
+					.setResult(modelCommonFactory.resultFromNativeStatus(currentBuild.getBuildStatus()));
 		}
 
 		return result;
@@ -261,17 +199,5 @@ public class ModelFactory {
 				.setName(build.getExtendedName())
 				.setStatus(CIBuildStatus.UNAVAILABLE)
 				.setResult(CIBuildResult.UNAVAILABLE);
-	}
-
-	public CIBuildResult resultFromNativeStatus(Status status) {
-		CIBuildResult result = CIBuildResult.UNAVAILABLE;
-		if (status == Status.ERROR || status == Status.FAILURE) {
-			result = CIBuildResult.FAILURE;
-		} else if (status == Status.WARNING) {
-			result = CIBuildResult.UNSTABLE;
-		} else if (status == Status.NORMAL) {
-			result = CIBuildResult.SUCCESS;
-		}
-		return result;
 	}
 }

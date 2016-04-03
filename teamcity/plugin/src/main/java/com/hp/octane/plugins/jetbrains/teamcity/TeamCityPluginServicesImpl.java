@@ -16,7 +16,8 @@ import com.hp.nga.integrations.dto.tests.TestRun;
 import com.hp.nga.integrations.dto.tests.TestRunResult;
 import com.hp.nga.integrations.dto.tests.TestsResult;
 import com.hp.octane.plugins.jetbrains.teamcity.configuration.NGAConfigStructure;
-import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
+import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelCommonFactory;
+import com.hp.octane.plugins.jetbrains.teamcity.factories.SnapshotsFactory;
 import jetbrains.buildServer.Build;
 import jetbrains.buildServer.serverSide.BuildStatistics;
 import jetbrains.buildServer.serverSide.BuildStatisticsOptions;
@@ -50,7 +51,9 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 	@Autowired
 	private SBuildServer buildServer;
 	@Autowired
-	private ModelFactory modelFactory;
+	private ModelCommonFactory modelCommonFactory;
+	@Autowired
+	private SnapshotsFactory snapshotsFactory;
 
 	@Override
 	public CIServerInfo getServerInfo() {
@@ -104,17 +107,17 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 
 	@Override
 	public CIJobsList getJobsList(boolean includeParameters) {
-		return modelFactory.CreateProjectList();
+		return modelCommonFactory.CreateProjectList();
 	}
 
 	@Override
 	public PipelineNode getPipeline(String rootJobCiId) {
-		return modelFactory.createStructure(rootJobCiId);
+		return modelCommonFactory.createStructure(rootJobCiId);
 	}
 
 	@Override
 	public SnapshotNode getSnapshotLatest(String jobCiId, boolean subTree) {
-		return modelFactory.createSnapshot(jobCiId);
+		return snapshotsFactory.createSnapshot(jobCiId);
 	}
 
 	//  TODO: implement

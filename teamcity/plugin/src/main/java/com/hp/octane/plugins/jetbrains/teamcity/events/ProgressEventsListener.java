@@ -8,7 +8,7 @@ import com.hp.nga.integrations.dto.causes.CIEventCauseType;
 import com.hp.nga.integrations.dto.events.CIEvent;
 import com.hp.nga.integrations.dto.events.CIEventType;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
-import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
+import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelCommonFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ParametersFactory;
 import jetbrains.buildServer.serverSide.BuildServerAdapter;
 import jetbrains.buildServer.serverSide.BuildServerListener;
@@ -36,7 +36,7 @@ public class ProgressEventsListener extends BuildServerAdapter {
 	@Autowired
 	private NGAPlugin ngaPlugin;
 	@Autowired
-	private ModelFactory modelFactory;
+	private ModelCommonFactory modelCommonFactory;
 	@Autowired
 	private ParametersFactory parametersFactory;
 
@@ -105,7 +105,7 @@ public class ProgressEventsListener extends BuildServerAdapter {
 				.setStartTime(build.getStartDate().getTime())
 				.setEstimatedDuration(build.getDurationEstimate() * 1000)
 				.setDuration(build.getDuration() * 1000)
-				.setResult(modelFactory.resultFromNativeStatus(build.getBuildStatus()));
+				.setResult(modelCommonFactory.resultFromNativeStatus(build.getBuildStatus()));
 		SDKManager.getService(EventsService.class).publishEvent(event);
 	}
 
