@@ -92,17 +92,17 @@ public class SnapshotsFactory {
 
 	private SnapshotNode createQueueBuild(SBuildType build, String rootId) {
 		SnapshotNode result = null;
+		SQueuedBuild queuedBuild = null;
 
 		if (build.isInQueue()) {
 			List<SQueuedBuild> queuedBuilds = build.getQueuedBuilds(null);
-			SQueuedBuild queuedBuild = null;
-			if (build.getBuildTypeId().equalsIgnoreCase(rootId) && queuedBuilds.size() > 0) {
+			if (build.getBuildTypeId().equals(rootId) && !queuedBuilds.isEmpty()) {
 				queuedBuild = queuedBuilds.get(0);
 			} else {
-				for (SQueuedBuild runningBuild : queuedBuilds) {
-					TriggeredBy trigger = runningBuild.getTriggeredBy();
-					if (rootId.equalsIgnoreCase(trigger.getParameters().get("buildTypeId"))) {
-						queuedBuild = runningBuild;
+				for (SQueuedBuild b : queuedBuilds) {
+					TriggeredBy trigger = b.getTriggeredBy();
+					if (rootId.equals(trigger.getParameters().get("buildTypeId"))) {
+						queuedBuild = b;
 						break;
 					}
 				}
@@ -127,14 +127,22 @@ public class SnapshotsFactory {
 
 		List<SRunningBuild> runningBuilds = build.getRunningBuilds();
 
-		if (build.getBuildTypeId().equalsIgnoreCase(rootId) && runningBuilds.size() > 0) {
-			currentBuild = runningBuilds.get(0);
-		} else {
-			for (SBuild runningBuild : runningBuilds) {
-				TriggeredBy trigger = runningBuild.getTriggeredBy();
-				if (rootId.equalsIgnoreCase(trigger.getParameters().get("buildTypeId"))) {
-					currentBuild = runningBuild;
-					break;
+		if (!runningBuilds.isEmpty()) {
+			if (build.getBuildTypeId().equals(rootId)) {
+				for (SBuild b : runningBuilds) {
+					TriggeredBy trigger = b.getTriggeredBy();
+					if (!trigger.getParameters().containsKey("buildTypeId")) {
+						currentBuild = b;
+						break;
+					}
+				}
+			} else {
+				for (SBuild b : runningBuilds) {
+					TriggeredBy trigger = b.getTriggeredBy();
+					if (rootId.equals(trigger.getParameters().get("buildTypeId"))) {
+						currentBuild = b;
+						break;
+					}
 				}
 			}
 		}
@@ -163,14 +171,22 @@ public class SnapshotsFactory {
 
 		List<SFinishedBuild> finishedBuilds = build.getHistory();
 
-		if (build.getBuildTypeId().equalsIgnoreCase(rootId) && finishedBuilds.size() > 0) {
-			currentBuild = finishedBuilds.get(0);
-		} else {
-			for (SBuild runningBuild : finishedBuilds) {
-				TriggeredBy trigger = runningBuild.getTriggeredBy();
-				if (trigger.getParameters().get("buildTypeId") != null && rootId.equalsIgnoreCase(trigger.getParameters().get("buildTypeId"))) {
-					currentBuild = runningBuild;
-					break;
+		if (!finishedBuilds.isEmpty()) {
+			if (build.getBuildTypeId().equals(rootId)) {
+				for (SBuild b : finishedBuilds) {
+					TriggeredBy trigger = b.getTriggeredBy();
+					if (!trigger.getParameters().containsKey("buildTypeId")) {
+						currentBuild = b;
+						break;
+					}
+				}
+			} else {
+				for (SBuild b : finishedBuilds) {
+					TriggeredBy trigger = b.getTriggeredBy();
+					if (rootId.equals(trigger.getParameters().get("buildTypeId"))) {
+						currentBuild = b;
+						break;
+					}
 				}
 			}
 		}
