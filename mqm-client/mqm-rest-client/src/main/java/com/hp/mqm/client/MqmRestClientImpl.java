@@ -704,13 +704,15 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 			if (entityObject.has("field_type_data")) {
 				JSONObject fieldTypeData = entityObject.getJSONObject("field_type_data");
 
-				if (fieldTypeData.has("multiple") && fieldTypeData.has("target")) {
+				if (fieldTypeData.has("multiple") && fieldTypeData.has("targets")) {
 					multiple = fieldTypeData.getBoolean("multiple");
 
-					JSONObject target = fieldTypeData.getJSONObject("target");
-					if (target.has("logical_name")) {
-						logicalName = target.getString("logical_name");
-						mandatoryElementsFound++;
+					JSONArray targets = fieldTypeData.getJSONArray("targets");
+					for (int i = 0; i < targets.size(); i++) {
+						if (targets.getJSONObject(i).has("logical_name")) {
+							logicalName = targets.getJSONObject(i).getString("logical_name");
+							mandatoryElementsFound++;
+						}
 					}
 				}
 			}
