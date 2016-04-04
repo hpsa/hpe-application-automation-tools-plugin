@@ -84,7 +84,7 @@ public class TestResultXmlWriter {
 
 		if (customTestResults != null) {
 			for (CustomTestResult result : customTestResults) {
-				writer.writeStartElement("test_run");
+                writer.writeStartElement("gherkin_test_run");
 				Map<String, String> attributes = result.getAttributes();
 				if (attributes != null) {
 					for (String attrName : attributes.keySet()) {
