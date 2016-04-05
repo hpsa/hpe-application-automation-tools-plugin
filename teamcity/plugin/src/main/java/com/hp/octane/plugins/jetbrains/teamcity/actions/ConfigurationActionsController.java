@@ -5,11 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.nga.integrations.SDKManager;
 import com.hp.nga.integrations.api.ConfigurationService;
 import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
-import com.hp.octane.plugins.jetbrains.teamcity.configuration.NGAConfig;
+import com.hp.octane.plugins.jetbrains.teamcity.configuration.NGAConfigStructure;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.configuration.TCConfigurationService;
 import jetbrains.buildServer.serverSide.SBuildServer;
-import jetbrains.buildServer.web.openapi.PluginDescriptor;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.Controller;
 
@@ -23,14 +24,16 @@ import java.util.logging.Logger;
 /**
  * Created by lazara on 14/02/2016.
  */
+
 public class ConfigurationActionsController implements Controller {
 	private static final Logger logger = Logger.getLogger(ConfigurationActionsController.class.getName());
-	private SBuildServer m_server;
-	private PluginDescriptor m_descriptor;
 
-	public ConfigurationActionsController(SBuildServer server, PluginDescriptor descriptor) {
-		m_server = server;
-		m_descriptor = descriptor;
+	@Autowired
+	private NGAPlugin ngaPlugin;
+	@Autowired
+	private TCConfigurationService configurationService;
+
+	private ConfigurationActionsController(@NotNull SBuildServer buildServer) {
 	}
 
 	@Override
@@ -48,7 +51,7 @@ public class ConfigurationActionsController implements Controller {
 				NGAConfiguration ngaConfiguration = SDKManager.getService(ConfigurationService.class).buildConfiguration(url, apiKey, secret);
 
 				if (action.equals("test")) {
-					returnStr = TCConfigurationService.getInstance().checkConfiguration(ngaConfiguration);
+					returnStr = configurationService.checkConfiguration(ngaConfiguration);
 				} else if (action.equals("save")) {
 					returnStr = updateConfiguration(ngaConfiguration, url);
 				}
@@ -69,13 +72,13 @@ public class ConfigurationActionsController implements Controller {
 	}
 
 	public String updateConfiguration(NGAConfiguration ngaConfiguration, String originalUrl) {
-		NGAConfig cfg = NGAPlugin.getInstance().getConfig();
+		NGAConfigStructure cfg = ngaPlugin.getConfig();
 		cfg.setUiLocation(originalUrl);
 		cfg.setLocation(ngaConfiguration.getUrl());
 		cfg.setSharedSpace(ngaConfiguration.getSharedSpace());
 		cfg.setUsername(ngaConfiguration.getApiKey());
 		cfg.setSecretPassword(ngaConfiguration.getSecret());
-		TCConfigurationService.getInstance().saveConfig(cfg);
+		configurationService.saveConfig(cfg);
 
 		SDKManager.getService(ConfigurationService.class).notifyChange(ngaConfiguration);
 
@@ -85,8 +88,7 @@ public class ConfigurationActionsController implements Controller {
 	public String reloadConfiguration() {
 		try {
 			ObjectMapper mapper = new ObjectMapper();
-			NGAPlugin ngaPlugin = NGAPlugin.getInstance();
-			NGAConfig cfg = ngaPlugin.getConfig();
+			NGAConfigStructure cfg = ngaPlugin.getConfig();
 			return mapper.writeValueAsString(cfg);
 		} catch (JsonProcessingException e) {
 			logger.log(Level.WARNING, "failed to reload configuration: " + e.getMessage());

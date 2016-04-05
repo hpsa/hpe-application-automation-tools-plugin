@@ -1,12 +1,12 @@
 package com.hp.nga.integrations.dto.snapshots.impl;
 
 import com.hp.nga.integrations.dto.causes.CIEventCause;
-import com.hp.nga.integrations.dto.parameters.ParameterInstance;
+import com.hp.nga.integrations.dto.parameters.CIParameter;
 import com.hp.nga.integrations.dto.scm.SCMData;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
 import com.hp.nga.integrations.dto.snapshots.SnapshotPhase;
-import com.hp.nga.integrations.dto.snapshots.SnapshotResult;
-import com.hp.nga.integrations.dto.snapshots.SnapshotStatus;
+import com.hp.nga.integrations.dto.snapshots.CIBuildResult;
+import com.hp.nga.integrations.dto.snapshots.CIBuildStatus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,26 +20,27 @@ import java.util.List;
  */
 
 class SnapshotNodeImpl implements SnapshotNode {
-	private String ciId;
+	private String jobCiId;
 	private String name;
-	private Integer number = null;
-	private CIEventCause[] causes = null;
-	private SnapshotStatus status = SnapshotStatus.UNAVAILABLE;
-	private SnapshotResult result = SnapshotResult.UNAVAILABLE;
-	private Long estimatedDuration = null;
-	private Long startTime = null;
-	private Long duration = null;
-	private SCMData scmData = null;
-	private List<ParameterInstance> parameters = new ArrayList<ParameterInstance>();
+	private String buildCiId;
+	private String number;
+	private List<CIEventCause> causes = new ArrayList<CIEventCause>();
+	private CIBuildStatus status = CIBuildStatus.UNAVAILABLE;
+	private CIBuildResult result = CIBuildResult.UNAVAILABLE;
+	private Long estimatedDuration;
+	private Long startTime;
+	private Long duration;
+	private SCMData scmData;
+	private List<CIParameter> parameters = new ArrayList<CIParameter>();
 	private List<SnapshotPhase> phasesInternal = new ArrayList<SnapshotPhase>();
 	private List<SnapshotPhase> phasesPostBuild = new ArrayList<SnapshotPhase>();
 
-	public String getCiId() {
-		return ciId;
+	public String getJobCiId() {
+		return jobCiId;
 	}
 
-	public SnapshotNode setCiId(String ciId) {
-		this.ciId = ciId;
+	public SnapshotNode setJobCiId(String jobCiId) {
+		this.jobCiId = jobCiId;
 		return this;
 	}
 
@@ -52,38 +53,47 @@ class SnapshotNodeImpl implements SnapshotNode {
 		return this;
 	}
 
-	public Integer getNumber() {
+	public String getBuildCiId() {
+		return buildCiId;
+	}
+
+	public SnapshotNode setBuildCiId(String buildCiId) {
+		this.buildCiId = buildCiId;
+		return this;
+	}
+
+	public String getNumber() {
 		return number;
 	}
 
-	public SnapshotNode setNumber(Integer number) {
+	public SnapshotNode setNumber(String number) {
 		this.number = number;
 		return this;
 	}
 
-	public CIEventCause[] getCauses() {
+	public List<CIEventCause> getCauses() {
 		return causes;
 	}
 
-	public SnapshotNode setCauses(CIEventCause[] causes) {
+	public SnapshotNode setCauses(List<CIEventCause> causes) {
 		this.causes = causes;
 		return this;
 	}
 
-	public SnapshotStatus getStatus() {
+	public CIBuildStatus getStatus() {
 		return status;
 	}
 
-	public SnapshotNode setStatus(SnapshotStatus status) {
+	public SnapshotNode setStatus(CIBuildStatus status) {
 		this.status = status;
 		return this;
 	}
 
-	public SnapshotResult getResult() {
+	public CIBuildResult getResult() {
 		return result;
 	}
 
-	public SnapshotNode setResult(SnapshotResult result) {
+	public SnapshotNode setResult(CIBuildResult result) {
 		this.result = result;
 		return this;
 	}
@@ -124,11 +134,11 @@ class SnapshotNodeImpl implements SnapshotNode {
 		return this;
 	}
 
-	public List<ParameterInstance> getParameters() {
+	public List<CIParameter> getParameters() {
 		return parameters;
 	}
 
-	public SnapshotNode setParameters(List<ParameterInstance> parameters) {
+	public SnapshotNode setParameters(List<CIParameter> parameters) {
 		this.parameters = parameters;
 		return this;
 	}

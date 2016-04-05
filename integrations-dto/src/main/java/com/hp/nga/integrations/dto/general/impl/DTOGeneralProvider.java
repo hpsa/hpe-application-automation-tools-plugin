@@ -7,7 +7,6 @@ import com.hp.nga.integrations.dto.DTOBase;
 import com.hp.nga.integrations.dto.DTOInternalProviderBase;
 import com.hp.nga.integrations.dto.general.CIPluginSDKInfo;
 import com.hp.nga.integrations.dto.general.CIProviderSummaryInfo;
-import com.hp.nga.integrations.dto.general.CIJobMetadata;
 import com.hp.nga.integrations.dto.general.CIJobsList;
 import com.hp.nga.integrations.dto.general.CIPluginInfo;
 import com.hp.nga.integrations.dto.general.CIServerInfo;
@@ -35,14 +34,12 @@ public final class DTOGeneralProvider extends DTOInternalProviderBase {
 		registry.put(CIServerInfo.class, INSTANCE_HOLDER.instance);
 		registry.put(CIPluginSDKInfo.class, INSTANCE_HOLDER.instance);
 		registry.put(CIProviderSummaryInfo.class, INSTANCE_HOLDER.instance);
-		registry.put(CIJobMetadata.class, INSTANCE_HOLDER.instance);
 		registry.put(CIJobsList.class, INSTANCE_HOLDER.instance);
 
 		INSTANCE_HOLDER.instance.dtoPairs.put(CIPluginInfo.class, CIPluginInfoImpl.class);
 		INSTANCE_HOLDER.instance.dtoPairs.put(CIServerInfo.class, CIServerInfoImpl.class);
 		INSTANCE_HOLDER.instance.dtoPairs.put(CIPluginSDKInfo.class, CIPluginSDKInfoImpl.class);
 		INSTANCE_HOLDER.instance.dtoPairs.put(CIProviderSummaryInfo.class, CIProviderSummaryInfoImpl.class);
-		INSTANCE_HOLDER.instance.dtoPairs.put(CIJobMetadata.class, CIJobMetadataImpl.class);
 		INSTANCE_HOLDER.instance.dtoPairs.put(CIJobsList.class, CIJobsListImpl.class);
 
 		SimpleAbstractTypeResolver resolver = new SimpleAbstractTypeResolver();
@@ -50,7 +47,6 @@ public final class DTOGeneralProvider extends DTOInternalProviderBase {
 		resolver.addMapping(CIServerInfo.class, CIServerInfoImpl.class);
 		resolver.addMapping(CIPluginSDKInfo.class, CIPluginSDKInfoImpl.class);
 		resolver.addMapping(CIProviderSummaryInfo.class, CIProviderSummaryInfoImpl.class);
-		resolver.addMapping(CIJobMetadata.class, CIJobMetadataImpl.class);
 		resolver.addMapping(CIJobsList.class, CIJobsListImpl.class);
 		SimpleModule module = new SimpleModule();
 		module.setAbstractTypes(resolver);

@@ -1,14 +1,16 @@
 package com.hp.octane.plugins.jenkins.events;
 
 import com.google.inject.Inject;
-import com.hp.nga.integrations.dto.events.CIEventFinished;
-import com.hp.nga.integrations.dto.events.CIEventStarted;
-import com.hp.nga.integrations.dto.snapshots.SnapshotResult;
+import com.hp.nga.integrations.dto.DTOFactory;
+import com.hp.nga.integrations.dto.events.CIEvent;
+import com.hp.nga.integrations.dto.events.CIEventType;
+import com.hp.nga.integrations.dto.snapshots.CIBuildResult;
 import com.hp.octane.plugins.jenkins.model.CIEventCausesFactory;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessors;
 import com.hp.octane.plugins.jenkins.tests.TestListener;
+import com.hp.octane.plugins.jenkins.tests.gherkin.GherkinEventsService;
 import hudson.Extension;
 import hudson.matrix.MatrixConfiguration;
 import hudson.matrix.MatrixRun;
@@ -28,36 +30,37 @@ import java.util.List;
 
 @Extension
 public final class RunListenerImpl extends RunListener<Run> {
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Inject
 	private TestListener testListener;
 
 	@Override
 	public void onStarted(Run r, TaskListener listener) {
-		CIEventStarted event;
+		CIEvent event;
 		if (r.getParent() instanceof MatrixConfiguration) {
 			AbstractBuild build = (AbstractBuild) r;
-			event = new CIEventStarted(
-					((MatrixRun) r).getParentBuild().getParent().getName(),
-					((MatrixRun) r).getParentBuild().getNumber(),
-					build.getNumber(),
-					build.getStartTimeInMillis(),
-					build.getEstimatedDuration(),
-					CIEventCausesFactory.processCauses(extractCauses(build)),
-					ParameterProcessors.getInstances(build)
-			);
+			event = dtoFactory.newDTO(CIEvent.class)
+					.setEventType(CIEventType.STARTED)
+					.setProject(((MatrixRun) r).getParentBuild().getParent().getName())
+					.setBuildCiId(String.valueOf(build.getNumber()))
+					.setNumber(String.valueOf(build.getNumber()))
+					.setStartTime(build.getStartTimeInMillis())
+					.setEstimatedDuration(build.getEstimatedDuration())
+					.setCauses(CIEventCausesFactory.processCauses(extractCauses(build)))
+					.setParameters(ParameterProcessors.getInstances(build));
 			EventsService.getExtensionInstance().dispatchEvent(event);
 		} else if (r instanceof AbstractBuild) {
 			AbstractBuild build = (AbstractBuild) r;
-			event = new CIEventStarted(
-					build.getProject().getName(),
-					build.getNumber(),
-					-1,
-					build.getStartTimeInMillis(),
-					build.getEstimatedDuration(),
-					CIEventCausesFactory.processCauses(extractCauses(build)),
-					ParameterProcessors.getInstances(build)
-			);
+			event = dtoFactory.newDTO(CIEvent.class)
+					.setEventType(CIEventType.STARTED)
+					.setProject(build.getProject().getName())
+					.setBuildCiId(String.valueOf(build.getNumber()))
+					.setNumber(String.valueOf(build.getNumber()))
+					.setStartTime(build.getStartTimeInMillis())
+					.setEstimatedDuration(build.getEstimatedDuration())
+					.setCauses(CIEventCausesFactory.processCauses(extractCauses(build)))
+					.setParameters(ParameterProcessors.getInstances(build));
 			EventsService.getExtensionInstance().dispatchEvent(event);
 		}
 	}
@@ -66,34 +69,35 @@ public final class RunListenerImpl extends RunListener<Run> {
 	public void onCompleted(Run r, @Nonnull TaskListener listener) {
 		if (r instanceof AbstractBuild) {
 			AbstractBuild build = (AbstractBuild) r;
-			SnapshotResult result;
+			CIBuildResult result;
 			if (build.getResult() == Result.SUCCESS) {
-				result = SnapshotResult.SUCCESS;
+				result = CIBuildResult.SUCCESS;
 			} else if (build.getResult() == Result.ABORTED) {
-				result = SnapshotResult.ABORTED;
+				result = CIBuildResult.ABORTED;
 			} else if (build.getResult() == Result.FAILURE) {
-				result = SnapshotResult.FAILURE;
+				result = CIBuildResult.FAILURE;
 			} else if (build.getResult() == Result.UNSTABLE) {
-				result = SnapshotResult.UNSTABLE;
+				result = CIBuildResult.UNSTABLE;
 			} else {
-				result = SnapshotResult.UNAVAILABLE;
+				result = CIBuildResult.UNAVAILABLE;
 			}
 
 			SCMProcessor scmProcessor = SCMProcessors.getAppropriate(build.getProject().getScm().getClass().getName());
-			CIEventFinished event = new CIEventFinished(
-					getProjectName(r),
-					build.getNumber(),
-					-1,
-					build.getStartTimeInMillis(),
-					build.getEstimatedDuration(),
-					CIEventCausesFactory.processCauses(extractCauses(build)),
-					ParameterProcessors.getInstances(build),
-					result,
-					build.getDuration(),
-					scmProcessor == null ? null : scmProcessor.getSCMData(build)
-			);
+			CIEvent event = dtoFactory.newDTO(CIEvent.class)
+					.setEventType(CIEventType.FINISHED)
+					.setProject(getProjectName(r))
+					.setBuildCiId(String.valueOf(build.getNumber()))
+					.setNumber(String.valueOf(build.getNumber()))
+					.setStartTime(build.getStartTimeInMillis())
+					.setEstimatedDuration(build.getEstimatedDuration())
+					.setCauses(CIEventCausesFactory.processCauses(extractCauses(build)))
+					.setParameters(ParameterProcessors.getInstances(build))
+					.setResult(result)
+					.setDuration(build.getDuration())
+					.setScmData(scmProcessor == null ? null : scmProcessor.getSCMData(build));
 			EventsService.getExtensionInstance().dispatchEvent(event);
 
+			GherkinEventsService.copyGherkinTestResultsToBuildDir(build);
 			testListener.processBuild(build);
 		}
 	}

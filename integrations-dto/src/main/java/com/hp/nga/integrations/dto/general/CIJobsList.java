@@ -1,16 +1,17 @@
 package com.hp.nga.integrations.dto.general;
 
 import com.hp.nga.integrations.dto.DTOBase;
+import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 
 /**
  * Created by gullery on 06/01/2016.
- * <p>
+ * <p/>
  * CI Jobs list container descriptor
  */
 
 public interface CIJobsList extends DTOBase {
 
-	void setJobs(CIJobMetadata[] jobs);
+	PipelineNode[] getJobs();
 
-	CIJobMetadata[] getJobs();
+	CIJobsList setJobs(PipelineNode[] jobs);
 }

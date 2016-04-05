@@ -74,7 +74,6 @@ public class PluginActions implements RootAction {
 			if (result.getHeaders() != null) {
 				for (Map.Entry<String, String> header : result.getHeaders().entrySet()) {
 					res.setHeader(header.getKey(), header.getValue());
-					;
 				}
 			}
 		} else {

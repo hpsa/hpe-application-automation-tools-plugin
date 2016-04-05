@@ -3,6 +3,9 @@ package com.hp.nga.integrations.dto.causes.impl;
 import com.hp.nga.integrations.dto.causes.CIEventCause;
 import com.hp.nga.integrations.dto.causes.CIEventCauseType;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by gullery on 16/02/2016.
  */
@@ -11,8 +14,8 @@ class CIEventCauseImpl implements CIEventCause {
 	private CIEventCauseType type;
 	private String user;
 	private String project;
-	private Integer number;
-	private CIEventCause[] causes;
+	private String buildCiId;
+	private List<CIEventCause> causes = new ArrayList<CIEventCause>();
 
 	public CIEventCauseType getType() {
 		return type;
@@ -41,21 +44,21 @@ class CIEventCauseImpl implements CIEventCause {
 		return this;
 	}
 
-	public Integer getNumber() {
-		return number;
+	public String getBuildCiId() {
+		return buildCiId;
 	}
 
-	public CIEventCause setNumber(Integer number) {
-		this.number = number;
+	public CIEventCause setBuildCiId(String buildCiId) {
+		this.buildCiId = buildCiId;
 		return this;
 	}
 
-	public CIEventCause[] getCauses() {
-		return causes == null ? new CIEventCause[0] : causes.clone();
+	public List<CIEventCause> getCauses() {
+		return causes;
 	}
 
-	public CIEventCause setCauses(CIEventCause[] causes) {
-		this.causes = causes == null ? new CIEventCause[0] : causes.clone();
+	public CIEventCause setCauses(List<CIEventCause> causes) {
+		this.causes = causes;
 		return this;
 	}
 }

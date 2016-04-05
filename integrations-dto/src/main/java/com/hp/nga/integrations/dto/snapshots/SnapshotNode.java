@@ -2,7 +2,7 @@ package com.hp.nga.integrations.dto.snapshots;
 
 import com.hp.nga.integrations.dto.DTOBase;
 import com.hp.nga.integrations.dto.causes.CIEventCause;
-import com.hp.nga.integrations.dto.parameters.ParameterInstance;
+import com.hp.nga.integrations.dto.parameters.CIParameter;
 import com.hp.nga.integrations.dto.scm.SCMData;
 
 import java.util.List;
@@ -17,29 +17,33 @@ import java.util.List;
 
 public interface SnapshotNode extends DTOBase {
 
-	String getCiId();
+	String getJobCiId();
 
-	SnapshotNode setCiId(String ciId);
+	SnapshotNode setJobCiId(String jobCiId);
 
 	String getName();
 
 	SnapshotNode setName(String name);
 
-	Integer getNumber();
+	String getBuildCiId();
 
-	SnapshotNode setNumber(Integer number);
+	SnapshotNode setBuildCiId(String buildCiId);
 
-	CIEventCause[] getCauses();
+	String getNumber();
 
-	SnapshotNode setCauses(CIEventCause[] causes);
+	SnapshotNode setNumber(String number);
 
-	SnapshotStatus getStatus();
+	List<CIEventCause> getCauses();
 
-	SnapshotNode setStatus(SnapshotStatus status);
+	SnapshotNode setCauses(List<CIEventCause> causes);
 
-	SnapshotResult getResult();
+	CIBuildStatus getStatus();
 
-	SnapshotNode setResult(SnapshotResult result);
+	SnapshotNode setStatus(CIBuildStatus status);
+
+	CIBuildResult getResult();
+
+	SnapshotNode setResult(CIBuildResult result);
 
 	Long getEstimatedDuration();
 
@@ -57,9 +61,9 @@ public interface SnapshotNode extends DTOBase {
 
 	SnapshotNode setScmData(SCMData scmData);
 
-	List<ParameterInstance> getParameters();
+	List<CIParameter> getParameters();
 
-	SnapshotNode setParameters(List<ParameterInstance> parameters);
+	SnapshotNode setParameters(List<CIParameter> parameters);
 
 	List<SnapshotPhase> getPhasesInternal();
 

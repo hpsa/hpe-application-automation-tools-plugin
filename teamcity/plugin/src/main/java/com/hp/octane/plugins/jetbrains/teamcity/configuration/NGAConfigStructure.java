@@ -3,13 +3,12 @@ package com.hp.octane.plugins.jetbrains.teamcity.configuration;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "NGAconfig")
-public class NGAConfig {
+public class NGAConfigStructure {
 	private String identity;
 	private String identityFrom;
 	private String uiLocation;
 	private String username;
 	private String secretPassword;
-	private String impersonatedUser;
 	private String location;
 	private Long sharedSpace;
 
@@ -57,14 +56,6 @@ public class NGAConfig {
 		this.secretPassword = secretPassword;
 	}
 
-	public String getImpersonatedUser() {
-		return impersonatedUser;
-	}
-
-	public void setImpersonatedUser(String impersonatedUser) {
-		this.impersonatedUser = impersonatedUser;
-	}
-
 	public String getLocation() {
 		return location;
 	}
@@ -83,15 +74,13 @@ public class NGAConfig {
 
 	@Override
 	public String toString() {
-		return "Config{" +
-				"identity='" + identity + '\'' +
-				", identityFrom='" + identityFrom + '\'' +
-				", uiLocation='" + uiLocation + '\'' +
-				", username='" + username + '\'' +
-				", secretPassword='" + secretPassword + '\'' +
-				", impersonatedUser='" + impersonatedUser + '\'' +
-				", location='" + location + '\'' +
-				", sharedSpace='" + sharedSpace + '\'' +
-				'}';
+		return "Config { " +
+				"identity: " + identity +
+				", identityFrom: " + identityFrom +
+				", uiLocation: " + uiLocation +
+				", username: " + username +
+				", secretPassword: " + secretPassword +
+				", location: " + location +
+				", sharedSpace: " + sharedSpace + '}';
 	}
 }

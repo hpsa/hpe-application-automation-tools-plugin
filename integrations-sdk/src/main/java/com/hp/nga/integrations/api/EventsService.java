@@ -1,7 +1,7 @@
 package com.hp.nga.integrations.api;
 
 import com.hp.nga.integrations.SDKServicePublic;
-import com.hp.nga.integrations.dto.events.CIEventBase;
+import com.hp.nga.integrations.dto.events.CIEvent;
 
 public interface EventsService extends SDKServicePublic {
 
@@ -10,5 +10,5 @@ public interface EventsService extends SDKServicePublic {
 	 *
 	 * @param event
 	 */
-	void publishEvent(CIEventBase event);
+	void publishEvent(CIEvent event);
 }

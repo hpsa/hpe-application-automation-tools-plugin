@@ -63,7 +63,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	private static final String URI_LIST_ITEMS = "list_nodes";
 	private static final String URI_METADATA_FIELDS = "metadata/fields";
 	private static final String URI_PUT_EVENTS = "analytics/ci/events";
-	private static final String URI_GET_ABRIDGED_TASKS = "analytics/ci/servers/{0}/tasks?self-url={1}&api-version={2}&sdk-version={3}";
+	private static final String URI_GET_ABRIDGED_TASKS = "analytics/ci/servers/{0}/tasks?self-type={1}&self-url={2}&api-version={3}&sdk-version={4}";
 	private static final String URI_PUT_ABRIDGED_RESULT = "analytics/ci/servers/{0}/tasks/{1}/result";
 	private static final String URI_TAXONOMY_NODES = "taxonomy_nodes";
 
@@ -582,12 +582,12 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	}
 
 	@Override
-	public String getAbridgedTasks(String selfIdentity, String selfLocation, Integer apiVersion, String sdkVersion) {
+	public String getAbridgedTasks(String selfIdentity, String selfType, String selfLocation, Integer apiVersion, String sdkVersion) {
 		HttpGet request;
 		HttpResponse response = null;
 		String responseBody;
 		try {
-			request = new HttpGet(createSharedSpaceInternalApiUri(URI_GET_ABRIDGED_TASKS, selfIdentity, selfLocation, apiVersion, sdkVersion));
+			request = new HttpGet(createSharedSpaceInternalApiUri(URI_GET_ABRIDGED_TASKS, selfIdentity, selfType, selfLocation, apiVersion, sdkVersion));
 			response = execute(request);
 			responseBody = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
@@ -704,13 +704,15 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 			if (entityObject.has("field_type_data")) {
 				JSONObject fieldTypeData = entityObject.getJSONObject("field_type_data");
 
-				if (fieldTypeData.has("multiple") && fieldTypeData.has("target")) {
+				if (fieldTypeData.has("multiple") && fieldTypeData.has("targets")) {
 					multiple = fieldTypeData.getBoolean("multiple");
 
-					JSONObject target = fieldTypeData.getJSONObject("target");
-					if (target.has("logical_name")) {
-						logicalName = target.getString("logical_name");
-						mandatoryElementsFound++;
+					JSONArray targets = fieldTypeData.getJSONArray("targets");
+					for (int i = 0; i < targets.size(); i++) {
+						if (targets.getJSONObject(i).has("logical_name")) {
+							logicalName = targets.getJSONObject(i).getString("logical_name");
+							mandatoryElementsFound++;
+						}
 					}
 				}
 			}

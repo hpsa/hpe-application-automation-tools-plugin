@@ -86,7 +86,7 @@
                 <executions>
                     <execution>
                         <id>assembly</id>
-                        <phase>package</phase>
+                        <phase>post-integration-test</phase>
                         <goals>
                             <goal>single</goal>
                         </goals>

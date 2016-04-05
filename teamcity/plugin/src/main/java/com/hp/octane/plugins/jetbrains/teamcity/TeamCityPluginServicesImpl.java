@@ -11,12 +11,27 @@ import com.hp.nga.integrations.dto.general.CIServerTypes;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
-import com.hp.octane.plugins.jetbrains.teamcity.configuration.NGAConfig;
-import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelFactory;
+import com.hp.nga.integrations.dto.tests.BuildContext;
+import com.hp.nga.integrations.dto.tests.TestRun;
+import com.hp.nga.integrations.dto.tests.TestRunResult;
+import com.hp.nga.integrations.dto.tests.TestsResult;
+import com.hp.octane.plugins.jetbrains.teamcity.configuration.NGAConfigStructure;
+import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelCommonFactory;
+import com.hp.octane.plugins.jetbrains.teamcity.factories.SnapshotsFactory;
+import jetbrains.buildServer.Build;
+import jetbrains.buildServer.serverSide.BuildStatistics;
+import jetbrains.buildServer.serverSide.BuildStatisticsOptions;
+import jetbrains.buildServer.serverSide.SBuildServer;
+import jetbrains.buildServer.serverSide.SBuildType;
+import jetbrains.buildServer.serverSide.SFinishedBuild;
+import jetbrains.buildServer.serverSide.STestRun;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -31,15 +46,23 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String pluginVersion = "9.1.5";
 
+	@Autowired
+	private NGAPlugin ngaPlugin;
+	@Autowired
+	private SBuildServer buildServer;
+	@Autowired
+	private ModelCommonFactory modelCommonFactory;
+	@Autowired
+	private SnapshotsFactory snapshotsFactory;
+
 	@Override
 	public CIServerInfo getServerInfo() {
-		String serverUrl = NGAPlugin.getInstance().getBuildServer().getRootUrl();
 		return dtoFactory.newDTO(CIServerInfo.class)
-				.setInstanceId(NGAPlugin.getInstance().getConfig().getIdentity())
-				.setInstanceIdFrom(NGAPlugin.getInstance().getConfig().getIdentityFromAsLong())
+				.setInstanceId(ngaPlugin.getConfig().getIdentity())
+				.setInstanceIdFrom(ngaPlugin.getConfig().getIdentityFromAsLong())
 				.setSendingTime(System.currentTimeMillis())
 				.setType(CIServerTypes.TEAMCITY)
-				.setUrl(serverUrl)
+				.setUrl(buildServer.getRootUrl())
 				.setVersion(pluginVersion);
 	}
 
@@ -56,18 +79,22 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 
 	@Override
 	public NGAConfiguration getNGAConfiguration() {
-		NGAConfig config = NGAPlugin.getInstance().getConfig();
-		return dtoFactory.newDTO(NGAConfiguration.class)
-				.setUrl(config.getLocation())
-				.setSharedSpace(config.getSharedSpace())
-				.setApiKey(config.getUsername())
-				.setSecret(config.getSecretPassword());
+		NGAConfiguration result = null;
+		NGAConfigStructure config = ngaPlugin.getConfig();
+		if (config != null && config.getLocation() != null && !config.getLocation().isEmpty() && config.getSharedSpace() != null) {
+			result = dtoFactory.newDTO(NGAConfiguration.class)
+					.setUrl(config.getLocation())
+					.setSharedSpace(config.getSharedSpace())
+					.setApiKey(config.getUsername())
+					.setSecret(config.getSecretPassword());
+		}
+		return result;
 	}
 
 	@Override
-	public CIProxyConfiguration getProxyConfiguration() {
+	public CIProxyConfiguration getProxyConfiguration(String targetHost) {
 		CIProxyConfiguration result = null;
-		if (isProxyNeeded()) {
+		if (isProxyNeeded(targetHost)) {
 			Map<String, String> propertiesMap = parseProperties(System.getenv("TEAMCITY_SERVER_OPTS"));
 			result = dtoFactory.newDTO(CIProxyConfiguration.class)
 					.setHost(propertiesMap.get("Dhttps.proxyHost"))
@@ -80,78 +107,110 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 
 	@Override
 	public CIJobsList getJobsList(boolean includeParameters) {
-		return ModelFactory.CreateProjectList();
+		return modelCommonFactory.CreateProjectList();
 	}
 
 	@Override
-	public PipelineNode getPipeline(String rootCIJobId) {
-		return ModelFactory.createStructure(rootCIJobId);
-	}
-
-	//TODO: implement..
-	@Override
-	public void runPipeline(String ciJobId, String originalBody) {
-		return;
+	public PipelineNode getPipeline(String rootJobCiId) {
+		return modelCommonFactory.createStructure(rootJobCiId);
 	}
 
 	@Override
-	public SnapshotNode getSnapshotLatest(String ciJobId, boolean subTree) {
-		return ModelFactory.createSnapshot(ciJobId);
+	public SnapshotNode getSnapshotLatest(String jobCiId, boolean subTree) {
+		return snapshotsFactory.createSnapshot(jobCiId);
 	}
 
 	//  TODO: implement
 	@Override
-	public SnapshotNode getSnapshotByNumber(String ciJobId, Integer ciBuildNumber, boolean subTree) {
+	public SnapshotNode getSnapshotByNumber(String jobCiId, String buildCiId, boolean subTree) {
 		return null;
+	}
+
+	@Override
+	public void runPipeline(String jobCiId, String originalBody) {
+		SBuildType buildType = ngaPlugin.getProjectManager().findBuildTypeByExternalId(jobCiId);
+		if (buildType != null) {
+			buildType.addToQueue("ngaRemoteExecution");
+		}
 	}
 
 	//TODO: implement: fill build history
 	@Override
-	public BuildHistory getHistoryPipeline(String ciJobId, String originalBody) {
+	public BuildHistory getHistoryPipeline(String jobCiId, String originalBody) {
 		return DTOFactory.getInstance().newDTO(BuildHistory.class);
 	}
 
-
-	//	private static void configureProxy(String clientType, URL locationUrl, MqmConnectionConfig clientConfig, String username) {
-//		if (clientType.equals(ConfigurationService.CLIENT_TYPE)) {
-//			if (isProxyNeeded(locationUrl.getHost())) {
-//				clientConfig.setProxyHost(getProxyHost());
-//				clientConfig.setProxyPort(getProxyPort());
-//				final String proxyUsername = getUsername();
-//				if (!proxyUsername.isEmpty()) {
-//					clientConfig.setProxyCredentials(new UsernamePasswordProxyCredentials(username, getPassword()));
-//				}
-//			}
-//
-//		}
-//	}
-//
-//
-	private static boolean isProxyNeeded() {
-		Map<String, String> propertiesMap = parseProperties(System.getenv("TEAMCITY_SERVER_OPTS"));
-		return propertiesMap.get("Dhttps.proxyHost") != null;
-
-//		if (propertiesMap.get("Dhttps.proxyHost") == null) {
-//			return false;
-//		}
-//		host = propertiesMap.get("Dhttps.proxyHost");
-//		if (propertiesMap.get("Dhttps.proxyPort") != null) {
-//			port = Integer.parseInt(propertiesMap.get("Dhttps.proxyPort"));
-//		}
-//
-//		return true;
-/*
-                -Dproxyset=true
-                -Dhttp.proxyHost=proxy.domain.com
-                -Dhttp.proxyPort=8080
-                -Dhttp.nonProxyHosts=domain.com
-                -Dhttps.proxyHost=web-proxy.il.hpecorp.net
-                -Dhttps.proxyPort=8080
-                -Dhttps.nonProxyHosts=domain.com
-                */
+	@Override
+	public TestsResult getTestsResult(String jobId, String buildNumber) {
+		TestsResult result = null;
+		if (jobId != null && buildNumber != null) {
+			SBuildType buildType = ngaPlugin.getProjectManager().findBuildTypeByExternalId(jobId);
+			if (buildType != null) {
+				Build build = buildType.getBuildByBuildNumber(buildNumber);
+				if (build != null && build instanceof SFinishedBuild) {
+					List<TestRun> tests = createTestList((SFinishedBuild) build);
+					if (tests != null && !tests.isEmpty()) {
+						BuildContext buildContext = dtoFactory.newDTO(BuildContext.class)
+								.setJobId(build.getBuildTypeExternalId())
+								.setJobName(build.getBuildTypeName())
+								.setBuildId(String.valueOf(build.getBuildId()))
+								.setBuildName(build.getBuildNumber())
+								.setServerId(ngaPlugin.getConfig().getIdentity());
+						result = dtoFactory.newDTO(TestsResult.class)
+								.setBuildContext(buildContext)
+								.setTestRuns(tests);
+					}
+				}
+			}
+		}
+		return result;
 	}
 
-	private static Map<String, String> parseProperties(String internalProperties) {
+	private List<TestRun> createTestList(SFinishedBuild build) {
+		List<TestRun> result = new ArrayList<TestRun>();
+		BuildStatistics stats = build.getBuildStatistics(new BuildStatisticsOptions());
+		for (STestRun testRun : stats.getTests(null, BuildStatistics.Order.NATURAL_ASC)) {
+			TestRunResult testResultStatus = null;
+			if (testRun.isIgnored()) {
+				testResultStatus = TestRunResult.SKIPPED;
+			} else if (testRun.getStatus().isFailed()) {
+				testResultStatus = TestRunResult.FAILED;
+			} else if (testRun.getStatus().isSuccessful()) {
+				testResultStatus = TestRunResult.PASSED;
+			}
+
+			TestRun tr = dtoFactory.newDTO(TestRun.class)
+					.setModuleName("")
+					.setPackageName(testRun.getTest().getName().getPackageName())
+					.setClassName(testRun.getTest().getName().getClassName())
+					.setTestName(testRun.getTest().getName().getTestMethodName())
+					.setResult(testResultStatus)
+					.setStarted(build.getStartDate().getTime())
+					.setDuration(testRun.getDuration());
+			result.add(tr);
+		}
+
+		return result;
+	}
+
+	private boolean isProxyNeeded(String targetHost) {
+		boolean result = false;
+		Map<String, String> propertiesMap = parseProperties(System.getenv("TEAMCITY_SERVER_OPTS"));
+		if (propertiesMap.get("Dhttps.proxyHost") != null) {
+			result = true;
+			if (targetHost != null) {
+				for (String noProxyHost : getNoProxyHosts()) {
+					if (targetHost.contains(noProxyHost)) {
+						result = false;
+						break;
+					}
+				}
+			}
+		}
+		return result;
+	}
+
+	private Map<String, String> parseProperties(String internalProperties) {
 		Map<String, String> propertiesMap = new HashMap<String, String>();
 		if (internalProperties != null) {
 			String[] properties = internalProperties.split(" -");
@@ -163,5 +222,10 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 			}
 		}
 		return propertiesMap;
+	}
+
+	//  TODO: when no proxy locations management will be available - use that list here
+	private List<String> getNoProxyHosts() {
+		return Arrays.asList("localhost.emea.hpqcorp.net");
 	}
 }

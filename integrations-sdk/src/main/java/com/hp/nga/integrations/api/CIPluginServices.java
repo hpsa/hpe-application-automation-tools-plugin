@@ -8,12 +8,13 @@ import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.general.CIJobsList;
 import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
 import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
+import com.hp.nga.integrations.dto.tests.TestsResult;
 
 import java.io.File;
 
 /**
  * Created by gullery on 20/01/2016.
- * <p>
+ * <p/>
  * Composite API of all the endpoints to be implemented by a hosting CI Plugin for NGA use cases
  */
 
@@ -50,9 +51,10 @@ public interface CIPluginServices {
 	/**
 	 * Provides CI Server proxy configuration (managed by plugin implementation)
 	 *
+	 * @param targetHost target host that the proxy, if available, should be relevant to
 	 * @return ProxyConfiguration object; if no configuration available the implementation should return NULL
 	 */
-	CIProxyConfiguration getProxyConfiguration();
+	CIProxyConfiguration getProxyConfiguration(String targetHost);
 
 	/**
 	 * Provides a list of Projects existing on this CI Server
@@ -92,11 +94,11 @@ public interface CIPluginServices {
 	 * Provides Snapshot of the specified CI Build of the specified CI Job
 	 *
 	 * @param ciJobId
-	 * @param ciBuildNumber
+	 * @param buildCiId
 	 * @param subTree
 	 * @return
 	 */
-	SnapshotNode getSnapshotByNumber(String ciJobId, Integer ciBuildNumber, boolean subTree);
+	SnapshotNode getSnapshotByNumber(String ciJobId, String buildCiId, boolean subTree);
 
 	/**
 	 * Retrieves aggregated latest builds info                  //  [YG]: TODO: this API should be removed, all the relevant data should be made available in the rest of APIs
@@ -106,4 +108,13 @@ public interface CIPluginServices {
 	 * @return
 	 */
 	BuildHistory getHistoryPipeline(String ciJobId, String originalBody);
+
+	/**
+	 * Retrieves tests result report for the specific build
+	 *
+	 * @param jobId
+	 * @param buildNumber
+	 * @return TestsResult data; NULL if no tests result available
+	 */
+	TestsResult getTestsResult(String jobId, String buildNumber);
 }

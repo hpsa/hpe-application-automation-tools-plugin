@@ -2,10 +2,10 @@ package com.hp.octane.plugins.jenkins;
 
 import com.hp.nga.integrations.dto.causes.CIEventCauseType;
 import com.hp.nga.integrations.dto.events.CIEventType;
-import com.hp.nga.integrations.dto.parameters.ParameterType;
+import com.hp.nga.integrations.dto.parameters.CIParameterType;
 import com.hp.nga.integrations.dto.scm.SCMType;
-import com.hp.nga.integrations.dto.snapshots.SnapshotResult;
-import com.hp.nga.integrations.dto.snapshots.SnapshotStatus;
+import com.hp.nga.integrations.dto.snapshots.CIBuildResult;
+import com.hp.nga.integrations.dto.snapshots.CIBuildStatus;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -42,36 +42,36 @@ public class EnumsTest {
 
 	@Test
 	public void testParameterType() {
-		assertEquals(ParameterType.values().length, 7);
-		assertEquals(ParameterType.UNKNOWN.value(), "unknown");
-		assertEquals(ParameterType.PASSWORD.value(), "password");
-		assertEquals(ParameterType.BOOLEAN.value(), "boolean");
-		assertEquals(ParameterType.STRING.value(), "string");
-		assertEquals(ParameterType.NUMBER.value(), "number");
-		assertEquals(ParameterType.FILE.value(), "file");
-    assertEquals(ParameterType.AXIS.value(), "axis");
-		assertEquals(ParameterType.fromValue("unavailable"), ParameterType.UNKNOWN);
+		assertEquals(CIParameterType.values().length, 7);
+		assertEquals(CIParameterType.UNKNOWN.value(), "unknown");
+		assertEquals(CIParameterType.PASSWORD.value(), "password");
+		assertEquals(CIParameterType.BOOLEAN.value(), "boolean");
+		assertEquals(CIParameterType.STRING.value(), "string");
+		assertEquals(CIParameterType.NUMBER.value(), "number");
+		assertEquals(CIParameterType.FILE.value(), "file");
+    assertEquals(CIParameterType.AXIS.value(), "axis");
+		assertEquals(CIParameterType.fromValue("unavailable"), CIParameterType.UNKNOWN);
 	}
 
 	@Test
 	public void testSnapshotResult() {
-		assertEquals(SnapshotResult.values().length, 5);
-		assertEquals(SnapshotResult.UNAVAILABLE.value(), "unavailable");
-		assertEquals(SnapshotResult.UNSTABLE.value(), "unstable");
-		assertEquals(SnapshotResult.ABORTED.value(), "aborted");
-		assertEquals(SnapshotResult.FAILURE.value(), "failure");
-		assertEquals(SnapshotResult.SUCCESS.value(), "success");
-		assertEquals(SnapshotResult.fromValue("unavailable"), SnapshotResult.UNAVAILABLE);
+		assertEquals(CIBuildResult.values().length, 5);
+		assertEquals(CIBuildResult.UNAVAILABLE.value(), "unavailable");
+		assertEquals(CIBuildResult.UNSTABLE.value(), "unstable");
+		assertEquals(CIBuildResult.ABORTED.value(), "aborted");
+		assertEquals(CIBuildResult.FAILURE.value(), "failure");
+		assertEquals(CIBuildResult.SUCCESS.value(), "success");
+		assertEquals(CIBuildResult.fromValue("unavailable"), CIBuildResult.UNAVAILABLE);
 	}
 
 	@Test
 	public void testSnapshotStatus() {
-		assertEquals(SnapshotStatus.values().length, 4);
-		assertEquals(SnapshotStatus.UNAVAILABLE.value(), "unavailable");
-		assertEquals(SnapshotStatus.QUEUED.value(), "queued");
-		assertEquals(SnapshotStatus.RUNNING.value(), "running");
-		assertEquals(SnapshotStatus.FINISHED.value(), "finished");
-		assertEquals(SnapshotStatus.fromValue("unavailable"), SnapshotStatus.UNAVAILABLE);
+		assertEquals(CIBuildStatus.values().length, 4);
+		assertEquals(CIBuildStatus.UNAVAILABLE.value(), "unavailable");
+		assertEquals(CIBuildStatus.QUEUED.value(), "queued");
+		assertEquals(CIBuildStatus.RUNNING.value(), "running");
+		assertEquals(CIBuildStatus.FINISHED.value(), "finished");
+		assertEquals(CIBuildStatus.fromValue("unavailable"), CIBuildStatus.UNAVAILABLE);
 	}
 
 	@Test

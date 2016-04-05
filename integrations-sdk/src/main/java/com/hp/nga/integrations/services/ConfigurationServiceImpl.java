@@ -80,7 +80,15 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 	}
 
 	public NGAResponse validateConfiguration(NGAConfiguration configuration) throws IOException {
-		NGARestClient restClient = sdk.getInternalService(NGARestService.class).createClient();
+		if (configuration == null) {
+			throw new IllegalArgumentException("configuration MUST not be null");
+		}
+		if (!configuration.isValid()) {
+			throw new IllegalArgumentException("configuration " + configuration + " is not valid");
+		}
+
+		CIProxyConfiguration proxyConfiguration = sdk.getCIPluginServices().getProxyConfiguration(configuration.getUrl());
+		NGARestClient restClient = sdk.getInternalService(NGARestService.class).createClient(proxyConfiguration);
 		NGARequest request = dtoFactory.newDTO(NGARequest.class)
 				.setMethod(NGAHttpMethod.GET)
 				.setUrl(configuration.getUrl() + "/" + SHARED_SPACES_API_URI + configuration.getSharedSpace() + "/workspaces");
@@ -88,10 +96,12 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 	}
 
 	public void notifyChange(NGAConfiguration newConfiguration) {
-		//  TODO...
+		//  TODO:
+		//  notify bridge service
 	}
 
 	public void notifyChange(CIProxyConfiguration newConfiguration) {
-		//  TODO...
+		//  TODO
+		//  notify bridge service
 	}
 }

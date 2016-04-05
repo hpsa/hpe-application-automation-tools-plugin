@@ -5,6 +5,8 @@ import javax.xml.bind.JAXBException;
 import com.hp.nga.integrations.dto.DTOFactory;
 import org.junit.Test;
 
+import java.util.Arrays;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -72,14 +74,14 @@ public class TestsDTOsTest {
 				.setResult(Result)
 				.setStarted(Started)
 				.setDuration(Duration);
-		TestResult result = dtoFactory.newDTO(TestResult.class)
-				.setTestRuns(new TestRun[]{tr1, tr2, tr3});
+		TestsResult result = dtoFactory.newDTO(TestsResult.class)
+				.setTestRuns(Arrays.asList(tr1, tr2, tr3));
 
 		String xml = dtoFactory.dtoToXml(result);
 		assertNotNull(xml);
-		TestResult backO = dtoFactory.dtoFromXml(xml, TestResult.class);
+		TestsResult backO = dtoFactory.dtoFromXml(xml, TestsResult.class);
 		assertNotNull(backO);
 		assertNotNull(backO.getTestRuns());
-		assertEquals(3, backO.getTestRuns().length);
+		assertEquals(3, backO.getTestRuns().size());
 	}
 }

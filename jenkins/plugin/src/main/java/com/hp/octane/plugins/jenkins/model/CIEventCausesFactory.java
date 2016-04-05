@@ -6,6 +6,7 @@ import hudson.model.Cause;
 import hudson.triggers.SCMTrigger;
 import hudson.triggers.TimerTrigger;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -19,34 +20,33 @@ import java.util.List;
 public final class CIEventCausesFactory {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
-	public static CIEventCause[] processCauses(List<? extends Cause> causes) {
-		Cause tmpCause;
-		CIEventCause[] result = null;
+	public static List<CIEventCause> processCauses(List<? extends Cause> causes) {
+		List<CIEventCause> result = new LinkedList<CIEventCause>();
+		CIEventCause tmpResultCause;
 		Cause.UserIdCause tmpUserCause;
 		Cause.UpstreamCause tmpUpstreamCause;
 
-		if (causes != null && causes.size() > 0) {
-			result = new CIEventCause[causes.size()];
-			for (int i = 0; i < result.length; i++) {
-				tmpCause = causes.get(i);
-				result[i] = dtoFactory.newDTO(CIEventCause.class);
-				if (tmpCause instanceof SCMTrigger.SCMTriggerCause) {
-					result[i].setType(CIEventCauseType.SCM);
-				} else if (tmpCause instanceof TimerTrigger.TimerTriggerCause) {
-					result[i].setType(CIEventCauseType.TIMER);
-				} else if (tmpCause instanceof Cause.UserIdCause) {
-					tmpUserCause = (Cause.UserIdCause) tmpCause;
-					result[i].setType(CIEventCauseType.USER);
-					result[i].setUser(tmpUserCause.getUserId());
-				} else if (tmpCause instanceof Cause.UpstreamCause) {
-					tmpUpstreamCause = (Cause.UpstreamCause) tmpCause;
-					result[i].setType(CIEventCauseType.UPSTREAM);
-					result[i].setProject(tmpUpstreamCause.getUpstreamProject());
-					result[i].setNumber(tmpUpstreamCause.getUpstreamBuild());
-					result[i].setCauses(processCauses(tmpUpstreamCause.getUpstreamCauses()));
+		if (causes != null) {
+			for (Cause cause : causes) {
+				tmpResultCause = dtoFactory.newDTO(CIEventCause.class);
+				if (cause instanceof SCMTrigger.SCMTriggerCause) {
+					tmpResultCause.setType(CIEventCauseType.SCM);
+				} else if (cause instanceof TimerTrigger.TimerTriggerCause) {
+					tmpResultCause.setType(CIEventCauseType.TIMER);
+				} else if (cause instanceof Cause.UserIdCause) {
+					tmpUserCause = (Cause.UserIdCause) cause;
+					tmpResultCause.setType(CIEventCauseType.USER);
+					tmpResultCause.setUser(tmpUserCause.getUserId());
+				} else if (cause instanceof Cause.UpstreamCause) {
+					tmpUpstreamCause = (Cause.UpstreamCause) cause;
+					tmpResultCause.setType(CIEventCauseType.UPSTREAM);
+					tmpResultCause.setProject(tmpUpstreamCause.getUpstreamProject());
+					tmpResultCause.setBuildCiId(String.valueOf(tmpUpstreamCause.getUpstreamBuild()));
+					tmpResultCause.setCauses(processCauses(tmpUpstreamCause.getUpstreamCauses()));
 				} else {
-					result[i].setType(CIEventCauseType.UNDEFINED);
+					tmpResultCause.setType(CIEventCauseType.UNDEFINED);
 				}
+				result.add(tmpResultCause);
 			}
 		}
 		return result;

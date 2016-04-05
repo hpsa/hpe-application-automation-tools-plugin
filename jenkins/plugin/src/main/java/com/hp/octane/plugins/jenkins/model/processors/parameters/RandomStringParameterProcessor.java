@@ -1,8 +1,7 @@
 package com.hp.octane.plugins.jenkins.model.processors.parameters;
 
-import com.hp.nga.integrations.dto.parameters.ParameterConfig;
-import com.hp.nga.integrations.dto.parameters.ParameterType;
-import com.hp.nga.integrations.dto.parameters.ParameterInstance;
+import com.hp.nga.integrations.dto.parameters.CIParameter;
+import com.hp.nga.integrations.dto.parameters.CIParameterType;
 import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import hudson.model.ParameterDefinition;
 import hudson.model.ParameterValue;
@@ -18,13 +17,13 @@ public class RandomStringParameterProcessor extends AbstractParametersProcessor 
 	}
 
 	@Override
-	public ParameterConfig createParameterConfig(ParameterDefinition pd) {
+	public CIParameter createParameterConfig(ParameterDefinition pd) {
 		RandomStringParameterDefinition randomPd = (RandomStringParameterDefinition) pd;
-		return ModelFactory.createParameterConfig(pd, ParameterType.STRING);
+		return ModelFactory.createParameterConfig(pd, CIParameterType.STRING);
 	}
 
 	@Override
-	public ParameterInstance createParameterInstance(ParameterDefinition pd, ParameterValue pv) {
+	public CIParameter createParameterInstance(ParameterDefinition pd, ParameterValue pv) {
 		RandomStringParameterDefinition randomPd = (RandomStringParameterDefinition) pd;
 		RandomStringParameterValue randomPv = (RandomStringParameterValue) pv;
 		return ModelFactory.createParameterInstance(createParameterConfig(pd), randomPv);

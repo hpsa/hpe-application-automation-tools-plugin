@@ -1,7 +1,8 @@
 package com.hp.octane.plugins.jenkins.model.processors.parameters;
 
-import com.hp.nga.integrations.dto.parameters.ParameterConfig;
-import com.hp.nga.integrations.dto.parameters.ParameterInstance;
+import com.hp.nga.integrations.dto.DTOFactory;
+import com.hp.nga.integrations.dto.parameters.CIParameter;
+import com.hp.nga.integrations.dto.parameters.CIParameterType;
 import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import hudson.model.ParameterDefinition;
 import hudson.model.ParameterValue;
@@ -11,16 +12,22 @@ import hudson.model.ParameterValue;
  */
 
 public class UnsupportedParameterProcessor extends AbstractParametersProcessor {
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+
 	UnsupportedParameterProcessor() {
 	}
 
 	@Override
-	public ParameterConfig createParameterConfig(ParameterDefinition pd) {
+	public CIParameter createParameterConfig(ParameterDefinition pd) {
 		return ModelFactory.createParameterConfig(pd);
 	}
 
 	@Override
-	public ParameterInstance createParameterInstance(ParameterDefinition pd, ParameterValue pv) {
-		return new ParameterInstance(createParameterConfig(pd));
+	public CIParameter createParameterInstance(ParameterDefinition pd, ParameterValue pv) {
+		return dtoFactory.newDTO(CIParameter.class)
+				.setType(CIParameterType.UNKNOWN)
+				.setName(pd.getName())
+				.setDescription(pd.getDescription())
+				.setDefaultValue(pd.getDefaultParameterValue() != null ? pd.getDefaultParameterValue().getValue() : null);
 	}
 }

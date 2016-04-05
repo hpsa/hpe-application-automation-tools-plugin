@@ -2,8 +2,8 @@ package com.hp.octane.plugins.jenkins.actions.project;
 
 import com.gargoylesoftware.htmlunit.Page;
 import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.parameters.ParameterConfig;
-import com.hp.nga.integrations.dto.parameters.ParameterType;
+import com.hp.nga.integrations.dto.parameters.CIParameter;
+import com.hp.nga.integrations.dto.parameters.CIParameterType;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
 import com.hp.nga.integrations.dto.pipelines.PipelinePhase;
 import com.tikal.jenkins.plugins.multijob.MultiJobBuilder;
@@ -53,7 +53,7 @@ public class ProjectActionsMultiJobTest {
 
 		page = client.goTo("nga/api/v1/jobs/" + projectName, "application/json");
 		pipeline = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), PipelineNode.class);
-		assertEquals(projectName, pipeline.getCiId());
+		assertEquals(projectName, pipeline.getJobCiId());
 		assertEquals(projectName, pipeline.getName());
 		assertEquals(0, pipeline.getParameters().size());
 		assertEquals(0, pipeline.getPhasesInternal().size());
@@ -77,11 +77,11 @@ public class ProjectActionsMultiJobTest {
 		JenkinsRule.WebClient client = rule.createWebClient();
 		Page page;
 		PipelineNode pipeline;
-		ParameterConfig tmpParam;
+		CIParameter tmpParam;
 
 		page = client.goTo("nga/api/v1/jobs/" + projectName, "application/json");
 		pipeline = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), PipelineNode.class);
-		assertEquals(projectName, pipeline.getCiId());
+		assertEquals(projectName, pipeline.getJobCiId());
 		assertEquals(projectName, pipeline.getName());
 		assertEquals(5, pipeline.getParameters().size());
 		assertEquals(0, pipeline.getPhasesInternal().size());
@@ -89,28 +89,28 @@ public class ProjectActionsMultiJobTest {
 
 		tmpParam = pipeline.getParameters().get(0);
 		assertEquals("ParamA", tmpParam.getName());
-		assertEquals(ParameterType.BOOLEAN, tmpParam.getType());
+		assertEquals(CIParameterType.BOOLEAN, tmpParam.getType());
 		assertEquals("bool", tmpParam.getDescription());
 		assertEquals(true, tmpParam.getDefaultValue());
 		assertNull(tmpParam.getChoices());
 
 		tmpParam = pipeline.getParameters().get(1);
 		assertEquals("ParamB", tmpParam.getName());
-		assertEquals(ParameterType.STRING, tmpParam.getType());
+		assertEquals(CIParameterType.STRING, tmpParam.getType());
 		assertEquals("string", tmpParam.getDescription());
 		assertEquals("str", tmpParam.getDefaultValue());
 		assertNull(tmpParam.getChoices());
 
 		tmpParam = pipeline.getParameters().get(2);
 		assertEquals("ParamC", tmpParam.getName());
-		assertEquals(ParameterType.STRING, tmpParam.getType());
+		assertEquals(CIParameterType.STRING, tmpParam.getType());
 		assertEquals("text", tmpParam.getDescription());
 		assertEquals("txt", tmpParam.getDefaultValue());
 		assertNull(tmpParam.getChoices());
 
 		tmpParam = pipeline.getParameters().get(3);
 		assertEquals("ParamD", tmpParam.getName());
-		assertEquals(ParameterType.STRING, tmpParam.getType());
+		assertEquals(CIParameterType.STRING, tmpParam.getType());
 		assertEquals("choice", tmpParam.getDescription());
 		assertEquals("A", tmpParam.getDefaultValue());
 		assertNotNull(tmpParam.getChoices());
@@ -121,7 +121,7 @@ public class ProjectActionsMultiJobTest {
 
 		tmpParam = pipeline.getParameters().get(4);
 		assertEquals("ParamE", tmpParam.getName());
-		assertEquals(ParameterType.FILE, tmpParam.getType());
+		assertEquals(CIParameterType.FILE, tmpParam.getType());
 		assertEquals("file param", tmpParam.getDescription());
 		assertEquals("", tmpParam.getDefaultValue());
 		assertNull(tmpParam.getChoices());
@@ -179,24 +179,24 @@ public class ProjectActionsMultiJobTest {
 		PipelineNode pipeline;
 		List<PipelinePhase> tmpPhases;
 		PipelineNode tmpNode;
-		ParameterConfig tmpParam;
+		CIParameter tmpParam;
 
 		page = client.goTo("nga/api/v1/jobs/" + projectName, "application/json");
 		pipeline = dtoFactory.dtoFromJson(page.getWebResponse().getContentAsString(), PipelineNode.class);
-		assertEquals(projectName, pipeline.getCiId());
+		assertEquals(projectName, pipeline.getJobCiId());
 		assertEquals(projectName, pipeline.getName());
 		assertEquals(2, pipeline.getParameters().size());
 
 		tmpParam = pipeline.getParameters().get(0);
 		assertEquals("ParamA", tmpParam.getName());
-		assertEquals(ParameterType.BOOLEAN, tmpParam.getType());
+		assertEquals(CIParameterType.BOOLEAN, tmpParam.getType());
 		assertEquals("bool", tmpParam.getDescription());
 		assertEquals(true, tmpParam.getDefaultValue());
 		assertNull(tmpParam.getChoices());
 
 		tmpParam = pipeline.getParameters().get(1);
 		assertEquals("ParamB", tmpParam.getName());
-		assertEquals(ParameterType.STRING, tmpParam.getType());
+		assertEquals(CIParameterType.STRING, tmpParam.getType());
 		assertEquals("string", tmpParam.getDescription());
 		assertEquals("str", tmpParam.getDefaultValue());
 		assertNull(tmpParam.getChoices());
@@ -212,13 +212,13 @@ public class ProjectActionsMultiJobTest {
 		assertEquals(2, tmpPhases.get(0).getJobs().size());
 
 		tmpNode = tmpPhases.get(0).getJobs().get(0);
-		assertEquals("jobA", tmpNode.getCiId());
+		assertEquals("jobA", tmpNode.getJobCiId());
 		assertEquals("jobA", tmpNode.getName());
 		assertEquals(0, tmpNode.getParameters().size());
 		assertEquals(0, tmpNode.getPhasesInternal().size());
 		assertEquals(0, tmpNode.getPhasesPostBuild().size());
 		tmpNode = tmpPhases.get(0).getJobs().get(1);
-		assertEquals("jobB", tmpNode.getCiId());
+		assertEquals("jobB", tmpNode.getJobCiId());
 		assertEquals("jobB", tmpNode.getName());
 		assertEquals(0, tmpNode.getParameters().size());
 		assertEquals(0, tmpNode.getPhasesInternal().size());
@@ -230,13 +230,13 @@ public class ProjectActionsMultiJobTest {
 		assertEquals(2, tmpPhases.get(1).getJobs().size());
 
 		tmpNode = tmpPhases.get(1).getJobs().get(0);
-		assertEquals("jobC", tmpNode.getCiId());
+		assertEquals("jobC", tmpNode.getJobCiId());
 		assertEquals("jobC", tmpNode.getName());
 		assertEquals(0, tmpNode.getParameters().size());
 		assertEquals(0, tmpNode.getPhasesInternal().size());
 		assertEquals(0, tmpNode.getPhasesPostBuild().size());
 		tmpNode = tmpPhases.get(1).getJobs().get(1);
-		assertEquals("jobD", tmpNode.getCiId());
+		assertEquals("jobD", tmpNode.getJobCiId());
 		assertEquals("jobD", tmpNode.getName());
 		assertEquals(0, tmpNode.getParameters().size());
 		assertEquals(0, tmpNode.getPhasesInternal().size());
@@ -248,19 +248,19 @@ public class ProjectActionsMultiJobTest {
 		assertEquals(3, tmpPhases.get(2).getJobs().size());
 
 		tmpNode = tmpPhases.get(2).getJobs().get(0);
-		assertEquals("jobA", tmpNode.getCiId());
+		assertEquals("jobA", tmpNode.getJobCiId());
 		assertEquals("jobA", tmpNode.getName());
 		assertEquals(0, tmpNode.getParameters().size());
 		assertEquals(0, tmpNode.getPhasesInternal().size());
 		assertEquals(0, tmpNode.getPhasesPostBuild().size());
 		tmpNode = tmpPhases.get(2).getJobs().get(1);
-		assertEquals("jobB", tmpNode.getCiId());
+		assertEquals("jobB", tmpNode.getJobCiId());
 		assertEquals("jobB", tmpNode.getName());
 		assertEquals(0, tmpNode.getParameters().size());
 		assertEquals(0, tmpNode.getPhasesInternal().size());
 		assertEquals(0, tmpNode.getPhasesPostBuild().size());
 		tmpNode = tmpPhases.get(2).getJobs().get(2);
-		assertEquals("jobE", tmpNode.getCiId());
+		assertEquals("jobE", tmpNode.getJobCiId());
 		assertEquals("jobE", tmpNode.getName());
 		assertEquals(0, tmpNode.getParameters().size());
 		assertEquals(0, tmpNode.getPhasesInternal().size());
@@ -272,13 +272,13 @@ public class ProjectActionsMultiJobTest {
 		assertEquals(2, tmpPhases.get(3).getJobs().size());
 
 		tmpNode = tmpPhases.get(3).getJobs().get(0);
-		assertEquals("jobC", tmpNode.getCiId());
+		assertEquals("jobC", tmpNode.getJobCiId());
 		assertEquals("jobC", tmpNode.getName());
 		assertEquals(0, tmpNode.getParameters().size());
 		assertEquals(0, tmpNode.getPhasesInternal().size());
 		assertEquals(0, tmpNode.getPhasesPostBuild().size());
 		tmpNode = tmpPhases.get(3).getJobs().get(1);
-		assertEquals("jobD", tmpNode.getCiId());
+		assertEquals("jobD", tmpNode.getJobCiId());
 		assertEquals("jobD", tmpNode.getName());
 		assertEquals(0, tmpNode.getParameters().size());
 		assertEquals(0, tmpNode.getPhasesInternal().size());
@@ -295,13 +295,13 @@ public class ProjectActionsMultiJobTest {
 		assertEquals(2, tmpPhases.get(0).getJobs().size());
 
 		tmpNode = tmpPhases.get(0).getJobs().get(0);
-		assertEquals("jobA", tmpNode.getCiId());
+		assertEquals("jobA", tmpNode.getJobCiId());
 		assertEquals("jobA", tmpNode.getName());
 		assertEquals(0, tmpNode.getParameters().size());
 		assertEquals(0, tmpNode.getPhasesInternal().size());
 		assertEquals(0, tmpNode.getPhasesPostBuild().size());
 		tmpNode = tmpPhases.get(0).getJobs().get(1);
-		assertEquals("jobB", tmpNode.getCiId());
+		assertEquals("jobB", tmpNode.getJobCiId());
 		assertEquals("jobB", tmpNode.getName());
 		assertEquals(0, tmpNode.getParameters().size());
 		assertEquals(0, tmpNode.getPhasesInternal().size());
@@ -313,13 +313,13 @@ public class ProjectActionsMultiJobTest {
 		assertEquals(2, tmpPhases.get(1).getJobs().size());
 
 		tmpNode = tmpPhases.get(1).getJobs().get(0);
-		assertEquals("jobC", tmpNode.getCiId());
+		assertEquals("jobC", tmpNode.getJobCiId());
 		assertEquals("jobC", tmpNode.getName());
 		assertEquals(0, tmpNode.getParameters().size());
 		assertEquals(0, tmpNode.getPhasesInternal().size());
 		assertEquals(0, tmpNode.getPhasesPostBuild().size());
 		tmpNode = tmpPhases.get(1).getJobs().get(1);
-		assertEquals("jobD", tmpNode.getCiId());
+		assertEquals("jobD", tmpNode.getJobCiId());
 		assertEquals("jobD", tmpNode.getName());
 		assertEquals(0, tmpNode.getParameters().size());
 		assertEquals(0, tmpNode.getPhasesInternal().size());

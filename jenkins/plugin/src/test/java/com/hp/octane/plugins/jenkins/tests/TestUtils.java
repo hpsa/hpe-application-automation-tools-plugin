@@ -42,7 +42,7 @@ public class TestUtils {
             copy.addAll(expected);
         }
         TestResultIterator it = testResultIterable.iterator();
-        Assert.assertEquals(buildType, it.getBuildType());
+        Assert.assertEquals(buildType, it.getJobId());
         while(it.hasNext()) {
             TestResult testResult = it.next();
             String testSignature = TestUtils.testSignature(testResult);

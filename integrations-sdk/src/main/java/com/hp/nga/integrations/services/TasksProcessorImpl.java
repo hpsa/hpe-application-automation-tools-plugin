@@ -54,7 +54,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 		if (!task.getUrl().contains(NGA_API)) {
 			throw new IllegalArgumentException("task 'URL' expected to contain '" + NGA_API + "'; wrong handler call?");
 		}
-		logger.info("TasksRouter: processing task '" + task.getId() + "': " + task.getMethod() + " " + task.getUrl());
+		logger.info("processing task '" + task.getId() + "': " + task.getMethod() + " " + task.getUrl());
 
 		NGAResultAbridged result = DTOFactory.getInstance().newDTO(NGAResultAbridged.class);
 		result.setId(task.getId());
@@ -76,17 +76,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 				if (LATEST.equals(path[3])) {
 					executeLatestSnapshotRequest(result, path[1], subTree);
 				} else {
-					Integer buildNumber = null;
-					try {
-						buildNumber = Integer.parseInt(path[3]);
-					} catch (NumberFormatException nfe) {
-						logger.error("failed to parse build number", nfe);
-					}
-					if (buildNumber != null) {
-						executeSnapshotByNumberRequest(result, path[1], buildNumber, subTree);
-					} else {
-						result.setStatus(501);
-					}
+					executeSnapshotByNumberRequest(result, path[1], path[3], subTree);
 				}
 			} else if (path.length == 3 && JOBS.equals(path[0]) && HISTORY.equals(path[2])) {
 				executeHistoryRequest(result, path[1], task.getBody());
@@ -94,27 +84,27 @@ final class TasksProcessorImpl implements TasksProcessor {
 				result.setStatus(404);
 			}
 		} catch (PermissionException jenkinsRequestException) {
-			logger.warn("TasksRouter: task execution failed; error: " + jenkinsRequestException.getErrorCode());
+			logger.warn("task execution failed; error: " + jenkinsRequestException.getErrorCode());
 			result.setStatus(jenkinsRequestException.getErrorCode());
 			result.setBody(String.valueOf(jenkinsRequestException.getErrorCode()));
 		} catch (ConfigurationException ce) {
-			logger.warn("TasksRouter: task execution failed; error: " + ce.getErrorCode());
+			logger.warn("task execution failed; error: " + ce.getErrorCode());
 			result.setStatus(404);
 			result.setBody(String.valueOf(ce.getErrorCode()));
 		} catch (Exception e) {
-			logger.error("TasksRouter: task execution failed", e);
+			logger.error("task execution failed", e);
 			result.setStatus(500);
 		}
 
-		logger.info("TasksRouter: result for task '" + task.getId() + "' available with status " + result.getStatus());
+		logger.info("result for task '" + task.getId() + "' available with status " + result.getStatus());
 		return result;
 	}
 
 	private void executeStatusRequest(NGAResultAbridged result) {
 		CIPluginServices dataProvider = manager.getCIPluginServices();
 		CIPluginSDKInfo sdkInfo = dtoFactory.newDTO(CIPluginSDKInfo.class)
-				.setApiVersion(manager.API_VERSION)
-				.setSdkVersion(manager.SDK_VERSION);
+				.setApiVersion(SDKManager.API_VERSION)
+				.setSdkVersion(SDKManager.SDK_VERSION);
 		CIProviderSummaryInfo status = dtoFactory.newDTO(CIProviderSummaryInfo.class)
 				.setServer(dataProvider.getServerInfo())
 				.setPlugin(dataProvider.getPluginInfo())
@@ -150,8 +140,8 @@ final class TasksProcessorImpl implements TasksProcessor {
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
 	}
 
-	private void executeSnapshotByNumberRequest(NGAResultAbridged result, String jobId, Integer buildNumber, boolean subTree) {
-		SnapshotNode content = manager.getCIPluginServices().getSnapshotByNumber(jobId, buildNumber, subTree);
+	private void executeSnapshotByNumberRequest(NGAResultAbridged result, String jobCiId, String buildCiId, boolean subTree) {
+		SnapshotNode content = manager.getCIPluginServices().getSnapshotByNumber(jobCiId, buildCiId, subTree);
 		result.setBody(dtoFactory.dtoToJson(content));
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
 	}

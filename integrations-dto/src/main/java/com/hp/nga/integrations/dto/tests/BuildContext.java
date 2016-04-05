@@ -8,19 +8,27 @@ import com.hp.nga.integrations.dto.DTOBase;
 
 public interface BuildContext extends DTOBase {
 
-	Long getBuildId();
+	String getServerId();
 
-	BuildContext setBuildId(Long buildId);
+	BuildContext setServerId(String serverId);
+
+	String getJobId();
+
+	BuildContext setJobId(String jobId);
+
+	String getJobName();
+
+	BuildContext setJobName(String jobName);
+
+	String getBuildId();
+
+	BuildContext setBuildId(String buildId);
+
+	String getBuildName();
+
+	BuildContext setBuildName(String buildName);
 
 	String getSubType();
 
 	BuildContext setSubType(String subType);
-
-	String getBuildType();
-
-	BuildContext setBuildType(String buildType);
-
-	String getServer();
-
-	BuildContext setServer(String server);
 }

@@ -1,8 +1,8 @@
 package com.hp.octane.plugins.jenkins.model.processors.parameters;
 
-import com.hp.nga.integrations.dto.parameters.ParameterConfig;
-import com.hp.nga.integrations.dto.parameters.ParameterType;
-import com.hp.nga.integrations.dto.parameters.ParameterInstance;
+import com.hp.nga.integrations.dto.DTOFactory;
+import com.hp.nga.integrations.dto.parameters.CIParameter;
+import com.hp.nga.integrations.dto.parameters.CIParameterType;
 import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import hudson.matrix.*;
 import hudson.model.*;
@@ -25,6 +25,7 @@ public enum ParameterProcessors {
 	RANDOM_STRING("hudson.plugins.random_string_parameter.RandomStringParameterDefinition", RandomStringParameterProcessor.class);
 
 	private static final Logger logger = Logger.getLogger(ParameterProcessors.class.getName());
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private String targetPluginClassName;
 	private Class<? extends AbstractParametersProcessor> processorClass;
 
@@ -33,8 +34,8 @@ public enum ParameterProcessors {
 		this.processorClass = processorClass;
 	}
 
-	public static List<ParameterConfig> getConfigs(AbstractProject project) {
-		ArrayList<ParameterConfig> result = new ArrayList<ParameterConfig>();
+	public static List<CIParameter> getConfigs(AbstractProject project) {
+		ArrayList<CIParameter> result = new ArrayList<CIParameter>();
 
 		List<ParameterDefinition> paramDefinitions;
 		ParameterDefinition pd;
@@ -53,7 +54,7 @@ public enum ParameterProcessors {
 		if (project instanceof MatrixProject) {
 			AxisList axisList = ((MatrixProject) project).getAxes();
 			for (Axis axis : axisList) {
-				result.add(ModelFactory.createParameterConfig(axis.getName(), ParameterType.AXIS, new ArrayList<Object>(axis.getValues())));
+				result.add(ModelFactory.createParameterConfig(axis.getName(), CIParameterType.AXIS, new ArrayList<Object>(axis.getValues())));
 			}
 		}
 //		ParameterConfig[] params = new ParameterConfig[result.size()];
@@ -62,8 +63,9 @@ public enum ParameterProcessors {
 	}
 
 	//  TODO: the below mapping between param configs and values based on param name uniqueness, beware!
-	public static ParameterInstance[] getInstances(AbstractBuild build) {
-		List<ParameterInstance> result = new ArrayList<ParameterInstance>();
+	public static List<CIParameter> getInstances(AbstractBuild build) {
+		List<CIParameter> result = new ArrayList<CIParameter>();
+		CIParameter tmp;
 		AbstractProject project = build.getProject();
 		List<ParameterDefinition> paramDefinitions;
 		String className;
@@ -82,7 +84,11 @@ public enum ParameterProcessors {
 		if (project instanceof MatrixConfiguration) {
 			Combination combination = ((MatrixConfiguration) project).getCombination();
 			for (Map.Entry<String, String> entry : combination.entrySet()) {
-				result.add(new ParameterInstance(ModelFactory.createParameterConfig(entry.getKey(), ParameterType.AXIS, Collections.emptyList()), entry.getValue()));
+				tmp = dtoFactory.newDTO(CIParameter.class)
+						.setType(CIParameterType.AXIS)
+						.setName(entry.getKey())
+						.setValue(entry.getValue());
+				result.add(tmp);
 			}
 		}
 
@@ -109,7 +115,7 @@ public enum ParameterProcessors {
 			}
 		}
 
-		return result.toArray(new ParameterInstance[result.size()]);
+		return result;
 
 	}
 
