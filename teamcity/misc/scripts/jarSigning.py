@@ -17,7 +17,7 @@ cmdargs = str(sys.argv)
 print ("The total numbers of args passed to the script: %d " % total)
 print ("Args list: %s " % cmdargs)
 
-
+# map script parameters with maven properties
 zipname = sys.argv[1]
 print "zipname:" +  zipname
 
@@ -31,7 +31,7 @@ jarFolder = sys.argv[4]
 print "jarFolder:" + jarFolder
 
 
-
+# unzip teamcity.zip into target/extracted folder
 def unzipTargetFile():
 
     print("extracting " + zipname + " and placing it in " + extractionFolder)
@@ -39,6 +39,8 @@ def unzipTargetFile():
             z.extractall(extractionFolder)
     print "Extracted : " + zipname +  " to: " + extractionFolder
 
+# sign each jar inside server folder (under extracted folder) into target/temp folder	
+# verify each signed jar and fail build in case of unsign
 def signJars():
 
     print 'starting to sign jars'
@@ -56,12 +58,13 @@ def signJars():
 
     print 'finished to sign jars'
 
+# Copy teamcity-plugin.xml under target/temp folder
 def copyXML():
     print 'copying teamcity-plugin.xml'
     shutil.copy2( extractionFolder + '/teamcity-plugin.xml', tempTarget + '/teamcity-plugin.xml')
     print 'finished copying teamcity-plugin.xml'
 
-
+# Pack all files under target/temp to zip 
 def packFiles():
     old_Working_directory = os.getcwd()
     os.chdir(tempTarget)
