@@ -7,7 +7,7 @@
   <parent>
         <artifactId>indi-integrations-root</artifactId>
         <groupId>com.hp.mqm</groupId>
-        <version>12.53.3-SNAPSHOT</version>
+        <version>12.53.4-SNAPSHOT</version>
   </parent>
   <properties>
       <teamcity-version>9.1.5</teamcity-version>
