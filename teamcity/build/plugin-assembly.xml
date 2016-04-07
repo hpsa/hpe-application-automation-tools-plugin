@@ -11,23 +11,14 @@
          <outputDirectory>/</outputDirectory>
      </file> 
   </files>
-  <moduleSets>
-    <moduleSet>
-       <useAllReactorProjects>true</useAllReactorProjects>
-       <includes>
-           <include>com.hp.mqm:hp-lifecycle-management-teamcity-ci-plugin</include>
-       </includes> 
-       <binaries>
-           <outputDirectory>server</outputDirectory>
-           <unpack>false</unpack>
-           <dependencySets>
-               <dependencySet>
-                    <includes>
-                         <include>*</include>
-                    </includes>
-               </dependencySet>
-           </dependencySets>
-       </binaries>
-    </moduleSet>
-  </moduleSets>
+	<dependencySets> 	
+		<dependencySet>                                                                                                                      
+            <useProjectArtifact>false</useProjectArtifact>                                                                                   
+            <includes>                                                                                                                       
+                <include>com.hp.mqm:hp-lifecycle-management-teamcity-ci-plugin:jar</include>
+            </includes>                                                                                                                      
+            <useTransitiveFiltering>true</useTransitiveFiltering>                                                                            
+            <outputDirectory>server</outputDirectory>                                                                                             
+        </dependencySet>
+	</dependencySets>
 </assembly>
