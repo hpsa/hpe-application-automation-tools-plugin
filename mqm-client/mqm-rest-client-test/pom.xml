@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>com.hp.mqm</groupId>
 		<artifactId>mqm-client</artifactId>
-		<version>12.53.3-SNAPSHOT</version>
+		<version>12.53.4-SNAPSHOT</version>
 	</parent>
 	<properties>
 		<DEPLOY_TARGET>localhost</DEPLOY_TARGET>
