@@ -1,8 +1,5 @@
 package com.hp.application.automation.tools.sse.sdk.handler;
 
-import java.util.Arrays;
-import java.util.List;
-
 import com.hp.application.automation.tools.sse.common.StringUtils;
 import com.hp.application.automation.tools.sse.common.XPathUtils;
 import com.hp.application.automation.tools.sse.sdk.Client;
@@ -19,8 +16,6 @@ import com.hp.application.automation.tools.sse.sdk.request.PollTimeslotRequest;
  */
 public class LabPollHandler extends PollHandler {
     
-    private final static List<String> FINAL_STATES =
-            Arrays.asList("Finished", "Aborted", "Stopped");
     private EventLogHandler _eventLogHandler;
     
     public LabPollHandler(Client client, String entityId) {
@@ -68,10 +63,10 @@ public class LabPollHandler extends PollHandler {
         boolean ret = false;
         try {
             String xml = response.toString();
-            String currentRunState = XPathUtils.getAttributeValue(xml, "current-run-state");
-            if (FINAL_STATES.contains(currentRunState)) {
+            String endTime = XPathUtils.getAttributeValue(xml, "end-time");
+            if (!StringUtils.isNullOrEmpty(endTime)) {
                 String startTime = XPathUtils.getAttributeValue(xml, "start-time");
-                String endTime = XPathUtils.getAttributeValue(xml, "end-time");
+                String currentRunState = XPathUtils.getAttributeValue(xml, "state");
                 logger.log(String.format(
                         "Timeslot %s is %s.\nTimeslot start time: %s, Timeslot end time: %s",
                         _timeslotId,
