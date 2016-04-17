@@ -85,19 +85,15 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 
 	@Override
 	public long postTestResult(InputStreamSource inputStreamSource, boolean skipErrors) {
-		HttpPost request = new HttpPost(createSharedSpaceInternalApiUri(URI_TEST_RESULT_PUSH, skipErrors));
-		request.setEntity(new InputStreamSourceEntity(inputStreamSource, ContentType.APPLICATION_XML));
-		return postTestResult(request);
+		return postTestResult(createGZipEntity(inputStreamSource), skipErrors);
 	}
 
 
 	@Override
 	public long postTestResult(File testResultReport, boolean skipErrors) {
-		HttpPost request = new HttpPost(createSharedSpaceInternalApiUri(URI_TEST_RESULT_PUSH, skipErrors));
-		request.setEntity(createGZipEntity(testResultReport));
-		request.setHeader(HTTP.CONTENT_ENCODING, CONTENT_ENCODING_GZIP);
-		return postTestResult(request);
+		return postTestResult(createGZipEntity(testResultReport), skipErrors);
 	}
+
 	@Override
 	public TestResultStatus getTestResultStatus(long id) {
 		HttpGet request = new HttpGet(createSharedSpaceInternalApiUri(URI_TEST_RESULT_STATUS, id));
@@ -536,7 +532,10 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		return ret;
 	}
 
-	private long postTestResult(HttpPost request) {
+	private long postTestResult(HttpEntity entity, boolean skipErrors) {
+		HttpPost request = new HttpPost(createSharedSpaceInternalApiUri(URI_TEST_RESULT_PUSH, skipErrors));
+		request.setEntity(entity);
+		request.setHeader(HTTP.CONTENT_ENCODING, CONTENT_ENCODING_GZIP);
 		HttpResponse response = null;
 		try {
 			response = execute(request);
@@ -559,9 +558,32 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		}
 	}
 
+	private ByteArrayEntity createGZipEntity(InputStreamSource result) {
+
+		try{
+			InputStream in = result.getInputStream();
+			ByteArrayOutputStream arr = new ByteArrayOutputStream();
+			OutputStream zipper = new GZIPOutputStream(arr);
+			byte[] buffer = new byte[1024];
+
+			int len;
+			while ((len = in.read(buffer)) > 0) {
+				zipper.write(buffer, 0, len);
+			}
+
+			in.close();
+			zipper.close();
+
+			return new ByteArrayEntity(arr.toByteArray(), ContentType.APPLICATION_XML);
+
+		}catch(IOException ex){
+			throw new RequestErrorException("Failed to create GZip entity.", ex);
+		}
+
+	}
+
 
 	private ByteArrayEntity createGZipEntity(File resultFile) {
-		ByteArrayEntity byteArrayEntity = null;
 		try{
 			FileInputStream in = new FileInputStream(resultFile);
 			ByteArrayOutputStream arr = new ByteArrayOutputStream();
@@ -576,12 +598,11 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 			in.close();
 			zipper.close();
 
-			byteArrayEntity = new ByteArrayEntity(arr.toByteArray(), ContentType.APPLICATION_XML);
+			return new ByteArrayEntity(arr.toByteArray(), ContentType.APPLICATION_XML);
 
 		}catch(IOException ex){
-			throw new RequestErrorException("Faild to create GZip entity.", ex);
+			throw new RequestErrorException("Failed to create GZip entity.", ex);
 		}
-		return byteArrayEntity;
 
 	}
 
