@@ -5,7 +5,6 @@ import com.hp.mqm.client.exception.FileNotFoundException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
 import com.hp.mqm.client.exception.TemporarilyUnavailableException;
-import com.hp.mqm.client.internal.InputStreamSourceEntity;
 import com.hp.mqm.client.model.FieldMetadata;
 import com.hp.mqm.client.model.JobConfiguration;
 import com.hp.mqm.client.model.ListField;
@@ -25,7 +24,6 @@ import com.hp.mqm.org.apache.http.client.methods.HttpPut;
 import com.hp.mqm.org.apache.http.client.utils.HttpClientUtils;
 import com.hp.mqm.org.apache.http.entity.ByteArrayEntity;
 import com.hp.mqm.org.apache.http.entity.ContentType;
-import com.hp.mqm.org.apache.http.entity.FileEntity;
 import com.hp.mqm.org.apache.http.entity.StringEntity;
 import com.hp.mqm.org.apache.http.protocol.HTTP;
 import net.sf.json.JSONArray;
@@ -85,13 +83,18 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 
 	@Override
 	public long postTestResult(InputStreamSource inputStreamSource, boolean skipErrors) {
-		return postTestResult(createGZipEntity(inputStreamSource), skipErrors);
+		return postTestResult(createGZipEntity(inputStreamSource.getInputStream()), skipErrors);
 	}
 
 
 	@Override
 	public long postTestResult(File testResultReport, boolean skipErrors) {
-		return postTestResult(createGZipEntity(testResultReport), skipErrors);
+		try {
+			return postTestResult(createGZipEntity(new FileInputStream(testResultReport)), skipErrors);
+		} catch (java.io.FileNotFoundException fnfe) {
+			logger.severe("file " + testResultReport + " not found");
+			return -1;
+		}
 	}
 
 	@Override
@@ -558,20 +561,19 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		}
 	}
 
-	private ByteArrayEntity createGZipEntity(InputStreamSource result) {
+	private ByteArrayEntity createGZipEntity(InputStream inputStream) {
 
 		try{
-			InputStream in = result.getInputStream();
 			ByteArrayOutputStream arr = new ByteArrayOutputStream();
 			OutputStream zipper = new GZIPOutputStream(arr);
 			byte[] buffer = new byte[1024];
 
 			int len;
-			while ((len = in.read(buffer)) > 0) {
+			while ((len = inputStream.read(buffer)) > 0) {
 				zipper.write(buffer, 0, len);
 			}
 
-			in.close();
+			inputStream.close();
 			zipper.close();
 
 			return new ByteArrayEntity(arr.toByteArray(), ContentType.APPLICATION_XML);
@@ -579,31 +581,6 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		}catch(IOException ex){
 			throw new RequestErrorException("Failed to create GZip entity.", ex);
 		}
-
-	}
-
-
-	private ByteArrayEntity createGZipEntity(File resultFile) {
-		try{
-			FileInputStream in = new FileInputStream(resultFile);
-			ByteArrayOutputStream arr = new ByteArrayOutputStream();
-			OutputStream zipper = new GZIPOutputStream(arr);
-			byte[] buffer = new byte[1024];
-
-			int len;
-			while ((len = in.read(buffer)) > 0) {
-				zipper.write(buffer, 0, len);
-			}
-
-			in.close();
-			zipper.close();
-
-			return new ByteArrayEntity(arr.toByteArray(), ContentType.APPLICATION_XML);
-
-		}catch(IOException ex){
-			throw new RequestErrorException("Failed to create GZip entity.", ex);
-		}
-
 	}
 
 	@Override
