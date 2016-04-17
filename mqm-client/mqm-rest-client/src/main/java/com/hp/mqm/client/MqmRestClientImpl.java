@@ -560,30 +560,6 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	}
 
 
-//	private FileEntity createGZipEntity(File resultFile) {
-//		FileEntity fileEntity = null;
-//		try{
-//			FileInputStream in = new FileInputStream(resultFile);
-//			FileOutputStream fileOutputStream = new FileOutputStream("c:\\dev\\zipped.gz");
-//			OutputStream zipper = new GZIPOutputStream(new FileOutputStream("c:\\dev\\zipped.gz"));
-//			byte[] buffer = new byte[1024];
-//
-//			int len;
-//			while ((len = in.read(buffer)) > 0) {
-//				zipper.write(buffer, 0, len);
-//			}
-//
-//			in.close();
-//			zipper.close();
-//
-//			fileEntity = new FileEntity(new File("c:\\dev\\zipped.gz"), ContentType.APPLICATION_XML);
-//
-//		}catch(IOException ex){
-//			ex.printStackTrace();
-//		}
-//		return fileEntity;
-//
-//	}
 	private ByteArrayEntity createGZipEntity(File resultFile) {
 		ByteArrayEntity byteArrayEntity = null;
 		try{
@@ -603,7 +579,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 			byteArrayEntity = new ByteArrayEntity(arr.toByteArray(), ContentType.APPLICATION_XML);
 
 		}catch(IOException ex){
-			ex.printStackTrace();
+			throw new RequestErrorException("Faild to create GZip entity.", ex);
 		}
 		return byteArrayEntity;
 
