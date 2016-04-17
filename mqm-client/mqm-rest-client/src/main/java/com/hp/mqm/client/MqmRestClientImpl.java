@@ -27,6 +27,7 @@ import com.hp.mqm.org.apache.http.entity.ByteArrayEntity;
 import com.hp.mqm.org.apache.http.entity.ContentType;
 import com.hp.mqm.org.apache.http.entity.FileEntity;
 import com.hp.mqm.org.apache.http.entity.StringEntity;
+import com.hp.mqm.org.apache.http.protocol.HTTP;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONException;
 import net.sf.json.JSONNull;
@@ -95,7 +96,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	public long postTestResult(File testResultReport, boolean skipErrors) {
 		HttpPost request = new HttpPost(createSharedSpaceInternalApiUri(URI_TEST_RESULT_PUSH, skipErrors));
 		request.setEntity(createGZipEntity(testResultReport));
-		request.setHeader(CONTENT_ENCODING, CONTENT_ENCODING_GZIP);
+		request.setHeader(HTTP.CONTENT_ENCODING, CONTENT_ENCODING_GZIP);
 		return postTestResult(request);
 	}
 	@Override
