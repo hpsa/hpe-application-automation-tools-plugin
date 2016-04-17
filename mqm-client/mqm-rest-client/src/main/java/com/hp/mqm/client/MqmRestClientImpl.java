@@ -562,8 +562,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	}
 
 	private ByteArrayEntity createGZipEntity(InputStream inputStream) {
-
-		try{
+		try {
 			ByteArrayOutputStream arr = new ByteArrayOutputStream();
 			OutputStream zipper = new GZIPOutputStream(arr);
 			byte[] buffer = new byte[1024];
@@ -573,12 +572,19 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 				zipper.write(buffer, 0, len);
 			}
 
-			inputStream.close();
-			zipper.close();
+			try {
+				inputStream.close();
+			} catch (IOException ioe) {
+				logger.warning("failed to close silently input stream of tests result");
+			}
+			try {
+				zipper.close();
+			} catch (IOException ioe) {
+				logger.warning("failed to close silently zip stream of tests result");
+			}
 
 			return new ByteArrayEntity(arr.toByteArray(), ContentType.APPLICATION_XML);
-
-		}catch(IOException ex){
+		} catch (IOException ex) {
 			throw new RequestErrorException("Failed to create GZip entity.", ex);
 		}
 	}
