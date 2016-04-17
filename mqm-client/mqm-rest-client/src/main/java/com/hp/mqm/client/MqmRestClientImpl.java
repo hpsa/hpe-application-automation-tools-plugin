@@ -72,7 +72,6 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 
 	private static final int DEFAULT_OFFSET = 0;
 	private static final int DEFAULT_LIMIT = 100;
-	public static final String CONTENT_ENCODING = "Content-Encoding";
 	public static final String CONTENT_ENCODING_GZIP = "gzip";
 
 	/**
