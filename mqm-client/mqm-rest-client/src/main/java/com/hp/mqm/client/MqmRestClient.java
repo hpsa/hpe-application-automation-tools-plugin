@@ -9,6 +9,7 @@ import com.hp.mqm.client.model.Release;
 import com.hp.mqm.client.model.Taxonomy;
 import com.hp.mqm.client.model.TestResultStatus;
 import com.hp.mqm.client.model.Workspace;
+import com.hp.mqm.org.apache.http.entity.ByteArrayEntity;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,6 +56,7 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * @throws com.hp.mqm.client.exception.FileNotFoundException
 	 */
 	long postTestResult(File testResultReport, boolean skipErrors);
+
 
 	/**
 	 * Get status of the test result post operation

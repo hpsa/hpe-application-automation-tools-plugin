@@ -10,6 +10,8 @@ import com.hp.mqm.client.exception.LoginException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
 import com.hp.mqm.client.exception.TemporarilyUnavailableException;
+import com.hp.mqm.org.apache.http.entity.ByteArrayEntity;
+import com.hp.mqm.org.apache.http.entity.ContentType;
 import com.hp.octane.plugins.jenkins.client.EventPublisher;
 import com.hp.octane.plugins.jenkins.client.JenkinsInsightEventPublisher;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
@@ -31,12 +33,11 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * Marked as not supporting dynamic loading: AsyncPeriodicWork collects tasks during server startup. Possible workaround
