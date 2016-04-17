@@ -86,7 +86,6 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		return postTestResult(createGZipEntity(inputStreamSource.getInputStream()), skipErrors);
 	}
 
-
 	@Override
 	public long postTestResult(File testResultReport, boolean skipErrors) {
 		try {
@@ -535,10 +534,10 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		return ret;
 	}
 
-	private long postTestResult(HttpEntity entity, boolean skipErrors) {
+	private long postTestResult(ByteArrayEntity entity, boolean skipErrors) {
 		HttpPost request = new HttpPost(createSharedSpaceInternalApiUri(URI_TEST_RESULT_PUSH, skipErrors));
-		request.setEntity(entity);
 		request.setHeader(HTTP.CONTENT_ENCODING, CONTENT_ENCODING_GZIP);
+		request.setEntity(entity);
 		HttpResponse response = null;
 		try {
 			response = execute(request);
