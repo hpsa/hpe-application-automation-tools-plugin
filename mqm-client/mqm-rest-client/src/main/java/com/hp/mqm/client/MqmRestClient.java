@@ -9,12 +9,11 @@ import com.hp.mqm.client.model.Release;
 import com.hp.mqm.client.model.Taxonomy;
 import com.hp.mqm.client.model.TestResultStatus;
 import com.hp.mqm.client.model.Workspace;
-import com.hp.mqm.org.apache.http.entity.ByteArrayEntity;
 
 import java.io.File;
-import java.io.IOException;
+
 import java.util.List;
-import java.util.Map;
+
 
 /**
  * Client for connection to MQM public API. It wraps whole http communication with MQM server. Client handles login automatically.
