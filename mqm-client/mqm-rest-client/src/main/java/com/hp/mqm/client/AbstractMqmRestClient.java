@@ -140,7 +140,6 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 					.setDefaultCookieStore(cookieStore)
 					.setDefaultRequestConfig(requestConfig)
 					.build();
-
 		}
 	}
 

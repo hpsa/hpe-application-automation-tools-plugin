@@ -5,6 +5,7 @@ import com.hp.mqm.client.exception.FileNotFoundException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
 import com.hp.mqm.client.exception.TemporarilyUnavailableException;
+import com.hp.mqm.client.internal.InputStreamSourceEntity;
 import com.hp.mqm.client.model.FieldMetadata;
 import com.hp.mqm.client.model.JobConfiguration;
 import com.hp.mqm.client.model.ListField;
@@ -22,10 +23,9 @@ import com.hp.mqm.org.apache.http.client.methods.HttpGet;
 import com.hp.mqm.org.apache.http.client.methods.HttpPost;
 import com.hp.mqm.org.apache.http.client.methods.HttpPut;
 import com.hp.mqm.org.apache.http.client.utils.HttpClientUtils;
-import com.hp.mqm.org.apache.http.entity.ByteArrayEntity;
 import com.hp.mqm.org.apache.http.entity.ContentType;
+import com.hp.mqm.org.apache.http.entity.FileEntity;
 import com.hp.mqm.org.apache.http.entity.StringEntity;
-import com.hp.mqm.org.apache.http.protocol.HTTP;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONException;
 import net.sf.json.JSONNull;
@@ -33,7 +33,9 @@ import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -44,7 +46,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
-import java.util.zip.GZIPOutputStream;
 
 public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestClient {
 	private static final Logger logger = Logger.getLogger(MqmRestClientImpl.class.getName());
@@ -70,7 +71,6 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 
 	private static final int DEFAULT_OFFSET = 0;
 	private static final int DEFAULT_LIMIT = 100;
-	public static final String CONTENT_ENCODING_GZIP = "gzip";
 
 	/**
 	 * Constructor for AbstractMqmRestClient.
@@ -83,23 +83,17 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 
 	@Override
 	public long postTestResult(InputStreamSource inputStreamSource, boolean skipErrors) {
-		return postTestResult(createGZipEntity(inputStreamSource.getInputStream()), skipErrors);
+		return postTestResult(new InputStreamSourceEntity(inputStreamSource, ContentType.APPLICATION_XML), skipErrors);
 	}
 
 	@Override
 	public long postTestResult(File testResultReport, boolean skipErrors) {
-		try {
-			return postTestResult(createGZipEntity(new FileInputStream(testResultReport)), skipErrors);
-		} catch (java.io.FileNotFoundException fnfe) {
-			logger.severe("file " + testResultReport + " not found");
-			return -1;
-		}
+		return postTestResult(new FileEntity(testResultReport, ContentType.APPLICATION_XML), skipErrors);
 	}
 
 	@Override
 	public TestResultStatus getTestResultStatus(long id) {
 		HttpGet request = new HttpGet(createSharedSpaceInternalApiUri(URI_TEST_RESULT_STATUS, id));
-
 		HttpResponse response = null;
 		try {
 			response = execute(request);
@@ -534,9 +528,8 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		return ret;
 	}
 
-	private long postTestResult(ByteArrayEntity entity, boolean skipErrors) {
+	private long postTestResult(HttpEntity entity, boolean skipErrors) {
 		HttpPost request = new HttpPost(createSharedSpaceInternalApiUri(URI_TEST_RESULT_PUSH, skipErrors));
-		request.setHeader(HTTP.CONTENT_ENCODING, CONTENT_ENCODING_GZIP);
 		request.setEntity(entity);
 		HttpResponse response = null;
 		try {
@@ -557,34 +550,6 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 			throw new RequestErrorException("Cannot post test results to MQM.", e);
 		} finally {
 			HttpClientUtils.closeQuietly(response);
-		}
-	}
-
-	private ByteArrayEntity createGZipEntity(InputStream inputStream) {
-		try {
-			ByteArrayOutputStream arr = new ByteArrayOutputStream();
-			OutputStream zipper = new GZIPOutputStream(arr);
-			byte[] buffer = new byte[1024];
-
-			int len;
-			while ((len = inputStream.read(buffer)) > 0) {
-				zipper.write(buffer, 0, len);
-			}
-
-			try {
-				inputStream.close();
-			} catch (IOException ioe) {
-				logger.warning("failed to close silently input stream of tests result");
-			}
-			try {
-				zipper.close();
-			} catch (IOException ioe) {
-				logger.warning("failed to close silently zip stream of tests result");
-			}
-
-			return new ByteArrayEntity(arr.toByteArray(), ContentType.APPLICATION_XML);
-		} catch (IOException ex) {
-			throw new RequestErrorException("Failed to create GZip entity.", ex);
 		}
 	}
 

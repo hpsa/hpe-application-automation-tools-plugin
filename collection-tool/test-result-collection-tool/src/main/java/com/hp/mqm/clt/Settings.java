@@ -37,7 +37,6 @@ public class Settings {
     private String proxyUser;
     private String proxyPassword;
 
-
     private boolean checkResult = false;
     private Integer checkResultTimeout;
     private boolean internal = false;

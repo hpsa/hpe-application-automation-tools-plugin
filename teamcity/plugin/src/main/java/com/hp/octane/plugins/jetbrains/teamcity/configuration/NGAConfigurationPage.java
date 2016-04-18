@@ -17,8 +17,8 @@ public class NGAConfigurationPage extends AdminPage {
 
 	protected NGAConfigurationPage(@NotNull PagePlaces pagePlaces, @NotNull PluginDescriptor pluginDescriptor) {
 		super(pagePlaces);
-		setPluginName("HPE ALM Octane Settings");
-		setTabTitle("HPE ALM Octane Settings");
+		setPluginName("HPE NGA Settings");
+		setTabTitle("HPE NGA Settings");
 		setIncludeUrl(pluginDescriptor.getPluginResourcesPath("settingsWebForm.jsp"));
 		setPosition(PositionConstraint.after("clouds", "email", "jabber"));
 		register();
