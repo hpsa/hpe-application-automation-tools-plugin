@@ -82,27 +82,22 @@
 <div id="settingsContainer">
     <form action="/octane-rest/admin/" method="post" >
         <div class="editNotificatorSettingsPage">
-
-
-
-
             <table class="runnerFormTable">
                 <tr>
                     <th><label for="server">Location <span class="mandatoryAsterix" title="Mandatory field">*</span></label></th>
                     <td>
                         <input type="text" name="server" id="server"   value="" class="longField"        >
-
                         <span class="error" id="errorServer"></span>
+                        <span style="font-size: xx-small;">Location of the HPE ALM Octane application</span>
                     </td>
                 </tr>
-
 
                 <tr>
                     <th><label for="username1">Client ID <span class="mandatoryAsterix" title="Mandatory field">*</span></label></th>
                     <td>
                         <input type="text" name="username1" id="username1"   value="" class="longField"        >
-
                         <span class="error" id="errorUsername1"></span>
+                        <span style="font-size: xx-small;">Client ID used for logging into the ALM Octane server</span>
                     </td>
                 </tr>
 
@@ -110,15 +105,10 @@
                     <th><label for="password1">Client secret <span class="mandatoryAsterix" title="Mandatory field">*</span></label></th>
                     <td>
                         <input type="password" name="password1" id="password1"   value="" class="longField"        >
-
                         <span class="error" id="errorPassword"></span>
-
-
+                        <span style="font-size: xx-small;">Client secret used for logging into the ALM Octane server</span>
                     </td>
                 </tr>
-
-
-
 
             </table>
 

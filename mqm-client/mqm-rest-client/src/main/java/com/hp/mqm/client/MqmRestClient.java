@@ -11,9 +11,9 @@ import com.hp.mqm.client.model.TestResultStatus;
 import com.hp.mqm.client.model.Workspace;
 
 import java.io.File;
-import java.io.IOException;
+
 import java.util.List;
-import java.util.Map;
+
 
 /**
  * Client for connection to MQM public API. It wraps whole http communication with MQM server. Client handles login automatically.
@@ -55,6 +55,7 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * @throws com.hp.mqm.client.exception.FileNotFoundException
 	 */
 	long postTestResult(File testResultReport, boolean skipErrors);
+
 
 	/**
 	 * Get status of the test result post operation

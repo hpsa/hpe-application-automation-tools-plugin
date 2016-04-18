@@ -8,7 +8,7 @@
         <version>1.580.2</version>
     </parent>
 
-    <name>HP Lifecycle Management CI Plugin</name>
+    <name>HPE ALM Octane Jenkins CI Plugin</name>
     <version>12.53.4-SNAPSHOT</version>
     <artifactId>hp-lifecycle-management-ci-plugin</artifactId>
     <packaging>hpi</packaging>
