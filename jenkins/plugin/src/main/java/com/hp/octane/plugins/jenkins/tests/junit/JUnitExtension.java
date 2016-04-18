@@ -20,6 +20,7 @@ import org.jenkinsci.remoting.Role;
 import org.jenkinsci.remoting.RoleChecker;
 
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.Characters;
 import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
@@ -233,10 +234,13 @@ public class JUnitExtension extends MqmTestsExtension {
 						}
 					} else if ("errorStackTrace".equals(localName)) { // NON-NLS
 						status = TestResultStatus.FAILED;
-						stackTraceStr = readNextValue();
-						int index = stackTraceStr.indexOf("at ");
-						if(index >= 0) {
-							errorType = stackTraceStr.substring(0, index);
+						stackTraceStr="";
+						if(peek() instanceof Characters) {
+							stackTraceStr = readNextValue();
+							int index = stackTraceStr.indexOf("at ");
+							if(index >= 0) {
+								errorType = stackTraceStr.substring(0, index);
+							}
 						}
 					} else if ("errorDetails".equals(localName)) { // NON-NLS
 						status = TestResultStatus.FAILED;

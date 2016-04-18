@@ -17,7 +17,7 @@ import java.util.NoSuchElementException;
 public abstract class AbstractXmlIterator<E> {
 
     private InputStream is;
-    private XMLEventReader reader;
+    protected XMLEventReader reader;
     private LinkedList<E> queue;
     private boolean closed;
 
@@ -25,6 +25,10 @@ public abstract class AbstractXmlIterator<E> {
         this.is = is;
         reader = createXmlInputFactory().createXMLEventReader(is);
         queue = new LinkedList<E>();
+    }
+
+    public XMLEvent peek() throws XMLStreamException {
+        return reader.peek();
     }
 
     public boolean hasNext() throws XMLStreamException, IOException, InterruptedException {
