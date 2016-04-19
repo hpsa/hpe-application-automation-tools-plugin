@@ -4,6 +4,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Array;
+import java.nio.file.FileSystemException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -14,6 +20,7 @@ import org.apache.http.client.CookieStore;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.entity.ContentType;
@@ -41,7 +48,9 @@ public class PcRestProxy {
     protected static final String        PC_API_RESOURCES_TEMPLATE      = BASE_PC_API_URL + "/domains/%s/projects/%s";
     protected static final String        RUNS_RESOURCE_NAME             = "Runs";
     protected static final String        RESULTS_RESOURCE_NAME          = "Results";
-    protected static final String        EVENTLOG_RESOURCE_NAME         = "EventLog";    
+    protected static final String        EVENTLOG_RESOURCE_NAME         = "EventLog";
+    protected static final String        TREND_REPORT_RESOURCE_NAME     = "TrendReports";
+    protected static final String        TREND_REPORT_RESOURCE_SUFFIX     = "data";
     protected static final String        CONTENT_TYPE_XML               = "application/xml";
     static final String                  PC_API_XMLNS                   = "http://www.hp.com/PC/REST/API";
 	
@@ -97,7 +106,7 @@ public class PcRestProxy {
 
     public boolean stopRun(int runId, String stopMode) throws PcException, ClientProtocolException, IOException {
         String stopUrl = String.format(baseURL + "/%s/%s/%s", RUNS_RESOURCE_NAME, runId, stopMode);
-        HttpPost stopRunRequest = new HttpPost(stopUrl);;
+        HttpPost stopRunRequest = new HttpPost(stopUrl);
         ReleaseTimeslot releaseTimesloteRequest = new ReleaseTimeslot(true, "Do Not Collate");
         stopRunRequest.addHeader(HttpHeaders.CONTENT_TYPE, CONTENT_TYPE_XML);
         stopRunRequest.setEntity(new StringEntity (releaseTimesloteRequest.objectToXML(),ContentType.APPLICATION_XML)); 
@@ -123,7 +132,7 @@ public class PcRestProxy {
 
     public boolean GetRunResultData(int runId, int resultId, String localFilePath) throws PcException, ClientProtocolException, IOException {
         String getRunResultDataUrl = String.format(baseURL + "/%s/%s/%s/%s/data", RUNS_RESOURCE_NAME, runId,
-            RESULTS_RESOURCE_NAME, resultId);
+                RESULTS_RESOURCE_NAME, resultId);
         HttpGet getRunResultRequest = new HttpGet(getRunResultDataUrl);
         HttpResponse response = executeRequest(getRunResultRequest);
         OutputStream out = new FileOutputStream(localFilePath);
@@ -132,6 +141,41 @@ public class PcRestProxy {
         IOUtils.closeQuietly(in);
         IOUtils.closeQuietly(out);
         return true;
+    }
+
+
+    public ArrayList<PcTrendedRun> getTrendReportMetaData (String trendReportId) throws PcException, ClientProtocolException, IOException {
+        String getTrendReportMetaDataUrl = String.format(baseURL + "/%s/%s", TREND_REPORT_RESOURCE_NAME, trendReportId);
+        HttpGet getTrendReportMetaDataRequest = new HttpGet(getTrendReportMetaDataUrl);
+        HttpResponse response = executeRequest(getTrendReportMetaDataRequest);
+        String trendReportMetaData = IOUtils.toString(response.getEntity().getContent());
+        return PcTrendReportMetaData.xmlToObject(trendReportMetaData);
+    }
+
+
+    public boolean updateTrendReport(String trendReportId, TrendReportRequest trendReportRequest) throws PcException, IOException {
+
+        String updateTrendReportUrl = String.format(baseURL + "/%s/%s", TREND_REPORT_RESOURCE_NAME, trendReportId);
+        HttpPost updateTrendReportRequest = new HttpPost(updateTrendReportUrl);
+        updateTrendReportRequest.addHeader(HttpHeaders.CONTENT_TYPE, CONTENT_TYPE_XML);
+        updateTrendReportRequest.setEntity(new StringEntity(trendReportRequest.objectToXML(), ContentType.APPLICATION_XML));
+        executeRequest(updateTrendReportRequest);
+        return true;
+    }
+
+
+
+    public InputStream getTrendingPDF(String trendReportId) throws IOException, PcException {
+
+        String getTrendReportUrl = String.format(baseURL + "/%s/%s/%s", TREND_REPORT_RESOURCE_NAME, trendReportId,TREND_REPORT_RESOURCE_SUFFIX);
+        HttpGet getTrendReportRequest = new HttpGet(getTrendReportUrl);
+        executeRequest(getTrendReportRequest);
+
+        HttpResponse response = executeRequest(getTrendReportRequest);
+        InputStream in = response.getEntity().getContent();
+
+        return in;
+
     }
     
     public PcRunEventLog getRunEventLog(int runId) throws PcException, ClientProtocolException, IOException {
@@ -149,7 +193,7 @@ public class PcRestProxy {
         return true;
     }
 
-    protected HttpResponse executeRequest(HttpRequestBase request) throws PcException, ClientProtocolException, IOException  {  
+    protected HttpResponse executeRequest(HttpRequestBase request) throws PcException, IOException {
     		HttpResponse response = client.execute(request,context);
 			if (!isOk(response)){
 				String message;

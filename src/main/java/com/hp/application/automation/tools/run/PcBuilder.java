@@ -1,21 +1,28 @@
 package com.hp.application.automation.tools.run;
 
-import static com.hp.application.automation.tools.pc.RunState.FINISHED;
-import static com.hp.application.automation.tools.pc.RunState.RUN_FAILURE;
+import com.hp.application.automation.tools.common.PcException;
+import com.hp.application.automation.tools.model.PcModel;
+import com.hp.application.automation.tools.model.PostRunAction;
+import com.hp.application.automation.tools.model.TimeslotDuration;
+import com.hp.application.automation.tools.pc.*;
+import com.hp.application.automation.tools.sse.result.model.junit.Error;
+import com.hp.application.automation.tools.sse.result.model.junit.Failure;
+import com.hp.application.automation.tools.sse.result.model.junit.*;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.BuildListener;
-import hudson.model.Result;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.Hudson;
-import hudson.model.ParametersAction;
-import hudson.model.StringParameterValue;
+import hudson.console.HyperlinkNote;
+import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
+import org.apache.commons.lang.StringUtils;
+import org.apache.http.client.ClientProtocolException;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Marshaller;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.StringWriter;
@@ -25,38 +32,23 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.http.client.ClientProtocolException;
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.QueryParameter;
-
-import com.hp.application.automation.tools.common.PcException;
-import com.hp.application.automation.tools.model.PcModel;
-import com.hp.application.automation.tools.model.PostRunAction;
-import com.hp.application.automation.tools.model.TimeslotDuration;
-import com.hp.application.automation.tools.pc.PcClient;
-import com.hp.application.automation.tools.pc.PcRunEventLog;
-import com.hp.application.automation.tools.pc.PcRunEventLogRecord;
-import com.hp.application.automation.tools.pc.PcRunResponse;
-import com.hp.application.automation.tools.pc.RunState;
-import com.hp.application.automation.tools.sse.result.model.junit.Error;
-import com.hp.application.automation.tools.sse.result.model.junit.Failure;
-import com.hp.application.automation.tools.sse.result.model.junit.JUnitTestCaseStatus;
-import com.hp.application.automation.tools.sse.result.model.junit.Testcase;
-import com.hp.application.automation.tools.sse.result.model.junit.Testsuite;
-import com.hp.application.automation.tools.sse.result.model.junit.Testsuites;
+import static com.hp.application.automation.tools.pc.RunState.FINISHED;
+import static com.hp.application.automation.tools.pc.RunState.RUN_FAILURE;
 
 public class PcBuilder extends Builder {
     
     private static final String artifactsDirectoryName = "archive";
     public static final String artifactsResourceName = "artifact";
     public static final String runReportStructure = "%s/%s/performanceTestsReports/pcRun%s";
+    public static final String trendReportStructure = "%s/%s/performanceTestsReports/TrendReports";
     public static final String pcReportArchiveName = "Reports.zip";
     public static final String pcReportFileName = "Report.html";
     private static final String RUNID_BUILD_VARIABLE = "HP_RUN_ID";
+
+    public static final String    TRENDED         = "Trended";
+    public static final String    PENDING         = "Pending";
+    public static final String    PUBLISHING      = "Publishing";
+    public static final String    ERROR           = "Error";
     
     private final PcModel pcModel;
     private final boolean statusBySLA;
@@ -64,6 +56,7 @@ public class PcBuilder extends Builder {
     private FilePath pcReportFile;
     private String junitResultsFileName;
     private PrintStream logger;
+  //  private boolean trendReportReady;
     
     @DataBoundConstructor
     public PcBuilder(
@@ -79,7 +72,9 @@ public class PcBuilder extends Builder {
             PostRunAction postRunAction,
             boolean vudsMode,
             boolean statusBySLA,
-            String description) {
+            String description,
+            boolean addRunToTrendReport,
+            String trendReportId) {
         
         this.statusBySLA = statusBySLA;
         
@@ -96,7 +91,9 @@ public class PcBuilder extends Builder {
                         timeslotDurationMinutes.trim(),
                         postRunAction,
                         vudsMode,
-                        description);
+                        description,
+                        addRunToTrendReport,
+                        trendReportId);
     }
     
     @Override
@@ -110,8 +107,18 @@ public class PcBuilder extends Builder {
             throws InterruptedException {
         
         Result resultStatus = Result.FAILURE;
+        //trendReportReady = false;
         logger = listener.getLogger();
-        Testsuites testsuites = execute(new PcClient(pcModel, logger), build);
+        PcClient pcClient =new PcClient(pcModel, logger);
+        Testsuites testsuites = execute(pcClient, build);
+
+//        // Create Trend Report
+//        if(trendReportReady){
+//            String reportUrlTemp = trendReportStructure.replaceFirst("%s/", "") + "/trendReport%s.pdf";
+//            String reportUrl = String.format(reportUrlTemp, artifactsResourceName, pcModel.getTrendReportId());
+//            pcClient.publishTrendReport(reportUrl, pcModel.getTrendReportId());
+//        }
+//        // End Create Trend Report
         
         FilePath resultsFilePath = build.getWorkspace().child(getJunitResultsFileName());
         resultStatus = createRunResults(resultsFilePath, testsuites);
@@ -161,19 +168,21 @@ public class PcBuilder extends Builder {
     }
     
     private Testsuites execute(PcClient pcClient, AbstractBuild<?, ?> build)
-            throws InterruptedException {
+            throws InterruptedException,NullPointerException {
         try {
             if (!StringUtils.isBlank(pcModel.getDescription()))
                 logger.println("- - -\nTest description: " + pcModel.getDescription());
             if (!beforeRun(pcClient))
                 return null;
-            
+
             return run(pcClient, build);
-            
+
         } catch (InterruptedException e) {
             build.setResult(Result.ABORTED);
             pcClient.stopRun(runId);
             throw e;
+        } catch (NullPointerException e) {
+            logger.println("Error: Run could not start!");
         } catch (Exception e) {
             logger.println(e);
         } finally {
@@ -181,14 +190,16 @@ public class PcBuilder extends Builder {
         }
         return null;
     }
-    
+
+
     private Testsuites run(PcClient pcClient, AbstractBuild<?, ?> build)
-            throws InterruptedException, NumberFormatException, ClientProtocolException,
-            IOException {
+            throws InterruptedException, ClientProtocolException,
+            IOException, PcException {
         
         PcRunResponse response = null;
         String errorMessage = "";
         String eventLogString = "";
+        boolean trendReportReady = false;
         try {
             runId = pcClient.startRun();
             
@@ -197,18 +208,35 @@ public class PcBuilder extends Builder {
             logger.print("Set " + RUNID_BUILD_VARIABLE + " Env Variable to " + runId + "\n");
             
             response = pcClient.waitForRunCompletion(runId);
+
+
             if (response != null && RunState.get(response.getRunState()) == FINISHED) {
                 pcReportFile = pcClient.publishRunReport(runId, getReportDirectory(build));
+
+                // Adding the trend report section
+                if(pcModel.isAddRunToTrendReport() && pcModel.getTrendReportId() != null && RunState.get(response.getRunState()) != RUN_FAILURE){
+                    pcClient.addRunToTrendReport(this.runId, pcModel.getTrendReportId());
+                    pcClient.waitForRunToPublishOnTrendReport(this.runId, pcModel.getTrendReportId());
+                    pcClient.downloadTrendReportAsPdf(pcModel.getTrendReportId(), getTrendReportsDirectory(build));
+                    trendReportReady = true;
+                }
+
             } else  if (RunState.get(response.getRunState()).ordinal() > FINISHED.ordinal()) {
-                PcRunEventLog eventLog = pcClient.getRunEventLog(runId);                
+                PcRunEventLog eventLog = pcClient.getRunEventLog(runId);
                 eventLogString = buildEventLogString(eventLog);
-            }           
+            }
+
+
+
         } catch (PcException e) {
             errorMessage = e.getMessage();
+            logger.println("Error: " + errorMessage);
         }
-        if (response == null)
-            return null;
-        return parsePcRunResponse(response, build, errorMessage, eventLogString);
+
+        Testsuites ret = new Testsuites();
+        parsePcRunResponse(ret,response, build, errorMessage, eventLogString);
+        parsePcTrendResponse(ret,pcClient,trendReportReady,pcModel.getTrendReportId(),runId);
+        return ret;
     }
     
     private String buildEventLogString(PcRunEventLog eventLog) {
@@ -232,7 +260,20 @@ public class PcBuilder extends Builder {
                 artifactsDirectoryName,
                 runId);
     }
-    
+
+    private String getTrendReportsDirectory(AbstractBuild<?, ?> build) {
+        return String.format(
+                trendReportStructure,
+                build.getRootDir().getPath(),
+                artifactsDirectoryName);
+    }
+
+
+    @Override
+    public boolean perform(Build<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
+        return super.perform(build, launcher, listener);
+    }
+
     private boolean validatePcForm() {
         
         logger.println("Validating parameters before run");
@@ -262,28 +303,85 @@ public class PcBuilder extends Builder {
                 }
             }
         }
+
+        boolean isTrendReportIdValid = validateTrendReportIdIsNumeric(getPcModel().getTrendReportId(),
+                getPcModel().isAddRunToTrendReport());
+
+        ret &= isTrendReportIdValid;
         return ret;
         
     }
+
+    private boolean validateTrendReportIdIsNumeric(String trendReportId, boolean addRunToTrendReport){
+
+        FormValidation res = FormValidation.ok();
+        if(addRunToTrendReport){
+            if(trendReportId.isEmpty()){
+                res = FormValidation.error("Parameter Is Missing: trend report ID is missing");
+            }
+            else{
+
+                try{
+
+                    Integer.parseInt(trendReportId);
+                }
+                catch(NumberFormatException e) {
+
+                    res = FormValidation.error("Illegal Parameter: trend report ID is is not a number");
+                }
+
+            }
+        }
+
+        logger.println(res.toString().replace(": <div/>",""));
+
+        return res.equals(FormValidation.ok());
+    }
     
-    private Testsuites parsePcRunResponse(
+    private Testsuites parsePcRunResponse(Testsuites ret,
             PcRunResponse runResponse,
             AbstractBuild<?, ?> build,
             String errorMessage, String eventLogString) throws IOException, InterruptedException {
-        
-        Testsuites ret = new Testsuites();
+
+        RunState runState = RunState.get(runResponse.getRunState());
+
+
         List<Testsuite> testSuites = ret.getTestsuite();
         Testsuite testSuite = new Testsuite();
         Testcase testCase = new Testcase();
         testCase.setClassname("Performance Tests.Test ID: " + runResponse.getTestID());
         testCase.setName("Run ID: " + runResponse.getID());
         testCase.setTime(String.valueOf(runResponse.getDuration() * 60));
-        if (pcReportFile != null && pcReportFile.exists())
+        if (pcReportFile != null && pcReportFile.exists() && runState == FINISHED)
             testCase.getSystemOut().add(getOutputForReportLinks(build));
         updateTestStatus(testCase, runResponse, errorMessage, eventLogString);
         testSuite.getTestcase().add(testCase);
         testSuites.add(testSuite);
-        
+        return ret;
+    }
+
+    private Testsuites parsePcTrendResponse(Testsuites ret,PcClient pcClient,boolean trendReportReady,String TrendReportID, int runID) throws IOException, InterruptedException {
+
+
+        // Create Trend Report
+        if(trendReportReady){
+            List<Testsuite> testSuites = ret.getTestsuite();
+            Testsuite testSuite = new Testsuite();
+            Testcase testCase = new Testcase();
+
+            String reportUrlTemp = trendReportStructure.replaceFirst("%s/", "") + "/trendReport%s.pdf";
+            String reportUrl = String.format(reportUrlTemp, artifactsResourceName, pcModel.getTrendReportId());
+
+            testCase.setClassname("Trend report publishing .Trend Report ID: " + TrendReportID);
+            testCase.setName("Run ID: " + runID);
+            pcClient.publishTrendReport(reportUrl, pcModel.getTrendReportId());
+            //testCase.setTime(String.valueOf(runResponse.getDuration() * 60));
+            testCase.setStatus(JUnitTestCaseStatus.PASS);
+            testSuite.getTestcase().add(testCase);
+            testSuites.add(testSuite);
+        }
+        // End Create Trend Report
+
         return ret;
     }
     
@@ -296,8 +394,12 @@ public class PcBuilder extends Builder {
                                  + response.getRunSLAStatus(), eventLog);
         } else if (runState.hasFailure()) {          
             setFailure(testCase, String.format("%s. %s", runState, errorMessage), eventLog);
-        } else
+        } else if(errorMessage != null && !errorMessage.isEmpty()){
+            setFailure(testCase, String.format("%s. %s", runState, errorMessage), eventLog);
+        }
+        else{
             testCase.setStatus(JUnitTestCaseStatus.PASS);
+        }
     }
     
     private void setError(Testcase testCase, String message, String eventLog) {
@@ -324,14 +426,16 @@ public class PcBuilder extends Builder {
         String urlPattern = getArtifactsUrlPattern(build);
         String viewUrl = String.format(urlPattern, pcReportFileName);
         String downloadUrl = String.format(urlPattern, "*zip*/pcRun" + runId);
-        logger.println(String.format("View report: %s", viewUrl));
-        return String.format("View Report:\n%s\n\n\nDownload Report:\n%s", viewUrl, downloadUrl);
+        logger.println(HyperlinkNote.encodeTo(viewUrl, "View analysis report of run " + runId));
+        return String.format("View analysis report:\n%s\n\n\nDownload Report:\n%s", viewUrl, downloadUrl);
+
     }
     
     private String getArtifactsUrlPattern(AbstractBuild<?, ?> build) {
+
+        String runReportUrlTemp = runReportStructure.replaceFirst("%s/", "");
         return String.format(
-                runReportStructure,
-                Hudson.getInstance().getRootUrl() + StringUtils.chop(build.getUrl()).replace("%", "%%"),
+                runReportUrlTemp,
                 artifactsResourceName,
                 runId + "/%s");
     }
@@ -420,7 +524,7 @@ public class PcBuilder extends Builder {
         
         public FormValidation doCheckPcServerName(@QueryParameter String value) {
             
-            return validateString(value, "PC Server");
+           return validateString(value, "PC Server");
         }
         
         public FormValidation doCheckAlmUserName(@QueryParameter String value) {
@@ -461,7 +565,8 @@ public class PcBuilder extends Builder {
             
             return validateHigherThanInt(value, "Timeslot ID", 0, true);
         }
-        
+
+
         /**
          * @param limitIncluded
          *            if true, value must be higher than limit. if false, value must be equal to or
@@ -500,6 +605,8 @@ public class PcBuilder extends Builder {
             
             return ret;
         }
+
+
         
         public List<PostRunAction> getPostRunActions() {
             
