@@ -3,9 +3,9 @@ package com.hp.application.automation.tools.sse.sdk;
 import java.net.HttpURLConnection;
 import java.util.Map;
 
-import com.hp.application.automation.tools.rest.RestClient;
+import com.hp.application.automation.tools.sse.common.RestClient4Test;
 
-public class MockRestClientBadDomain extends RestClient {
+public class MockRestClientBadDomain extends RestClient4Test {
     
     public MockRestClientBadDomain(String url, String domain, String project, String username) {
         

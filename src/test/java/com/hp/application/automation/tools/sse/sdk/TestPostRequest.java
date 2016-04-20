@@ -1,13 +1,14 @@
 package com.hp.application.automation.tools.sse.sdk;
 
-import com.hp.application.automation.tools.rest.RestClient;
-import com.hp.application.automation.tools.sse.common.StringUtils;
-import com.hp.application.automation.tools.sse.common.TestCase;
-import com.hp.application.automation.tools.sse.sdk.request.PostRequest;
+import java.util.Map;
+
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Map;
+import com.hp.application.automation.tools.sse.common.RestClient4Test;
+import com.hp.application.automation.tools.sse.common.StringUtils;
+import com.hp.application.automation.tools.sse.common.TestCase;
+import com.hp.application.automation.tools.sse.sdk.request.PostRequest;
 
 public class TestPostRequest extends TestCase {
     
@@ -23,7 +24,7 @@ public class TestPostRequest extends TestCase {
         Assert.assertTrue(PostRequestException.class.equals(response.getFailure().getClass()));
     }
     
-    private class MockRestClientPostRequestException extends RestClient {
+    private class MockRestClientPostRequestException extends RestClient4Test {
         
         public MockRestClientPostRequestException(
                 String url,

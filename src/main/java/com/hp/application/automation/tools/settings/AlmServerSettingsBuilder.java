@@ -5,28 +5,28 @@
 
 package com.hp.application.automation.tools.settings;
 
-import hudson.CopyOnWrite;
-import hudson.Extension;
-import hudson.Launcher;
-import hudson.model.BuildListener;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.tasks.BuildStepDescriptor;
-import hudson.tasks.Builder;
-import hudson.util.FormValidation;
-
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-
-import net.sf.json.JSONObject;
 
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
 import com.hp.application.automation.tools.model.AlmServerSettingsModel;
+import com.hp.application.automation.tools.sse.sdk.RestAuthenticator;
+
+import hudson.CopyOnWrite;
+import hudson.Extension;
+import hudson.Launcher;
+import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
+import hudson.model.BuildListener;
+import hudson.tasks.BuildStepDescriptor;
+import hudson.tasks.Builder;
+import hudson.util.FormValidation;
+import net.sf.json.JSONObject;
 
 /**
  * Sample {@link Builder}.
@@ -102,7 +102,7 @@ public class AlmServerSettingsBuilder extends Builder {
             return super.configure(req, formData);
         }
         
-        public FormValidation doCheckAlmServerURL(@QueryParameter String value) {
+        public FormValidation doCheckAlmServerUrl(@QueryParameter String value) {
             return checkQcServerURL(value, false);
         }
         
@@ -128,7 +128,7 @@ public class AlmServerSettingsBuilder extends Builder {
         private FormValidation checkQcServerURL(String value, Boolean acceptEmpty) {
             String url;
             // Path to the page to check if the server is alive
-            String page = "servlet/tdservlet/TDAPI_GeneralWebTreatment";
+            String page = RestAuthenticator.IS_AUTHENTICATED;
             
             // Do will allow empty value?
             if (StringUtils.isBlank(value)) {
@@ -150,11 +150,11 @@ public class AlmServerSettingsBuilder extends Builder {
             HttpURLConnection connection;
             try {
                 connection = (HttpURLConnection) new URL(url).openConnection();
-                connection.setRequestMethod("HEAD");
+                connection.setRequestMethod("GET");
                 
-                // Check the response code
-                if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
-                    return FormValidation.error(connection.getResponseMessage());
+                // Check whether the response is from ALM Server
+                if (!isALMServerResponse(connection)) {
+                    return FormValidation.error(RestAuthenticator.INVALID_ALM_SERVER_URL);
                 }
             } catch (MalformedURLException ex) {
                 // This is not a valid URL
@@ -167,7 +167,18 @@ public class AlmServerSettingsBuilder extends Builder {
             return FormValidation.ok();
         }
         
-        public Boolean hasAlmServers() {
+        private boolean isALMServerResponse(HttpURLConnection conn) throws IOException {
+        	boolean ret = false;
+        	
+        	if (conn.getResponseCode() == HttpURLConnection.HTTP_UNAUTHORIZED 
+        			&& conn.getHeaderFields().get(RestAuthenticator.AUTHENTICATE_HEADER) != null){
+        		ret = true;
+        	}
+        	
+			return ret;
+		}
+
+		public Boolean hasAlmServers() {
             return installations.length > 0;
         }
     }
