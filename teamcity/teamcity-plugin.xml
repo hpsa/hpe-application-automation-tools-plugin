@@ -2,9 +2,9 @@
 <teamcity-plugin xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:schemas-jetbrains-com:teamcity-plugin-v1-xml">
   <info>
     <name>hpeAlmOctanePlugin</name>
-    <display-name>HPE ALM Octane Plugin</display-name>
+    <display-name>Lifecycle Management CI</display-name>
     <version>1.0</version>
-    <description>enable you to see TeamCity pipeline in HPE ALM Octane</description>
+    <description>This plugin enables ALM Octane to retrieve and display TeamCity build pipelines and synchronize test results with TeamCity.</description>
     <download-url>Plugin download URL</download-url>
     <email>Plugin author e-mail</email>
     <vendor>
