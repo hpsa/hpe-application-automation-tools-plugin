@@ -17,8 +17,8 @@ public class NGAConfigurationPage extends AdminPage {
 
 	protected NGAConfigurationPage(@NotNull PagePlaces pagePlaces, @NotNull PluginDescriptor pluginDescriptor) {
 		super(pagePlaces);
-		setPluginName("HPE Lifecycle Management CI Settings");
-		setTabTitle("HPE Lifecycle Management CI Settings");
+		setPluginName("Lifecycle Management CI");
+		setTabTitle("Lifecycle Management CI");
 		setIncludeUrl(pluginDescriptor.getPluginResourcesPath("settingsWebForm.jsp"));
 		setPosition(PositionConstraint.after("clouds", "email", "jabber"));
 		register();
