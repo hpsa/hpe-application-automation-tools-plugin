@@ -21,6 +21,8 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.cookie.Cookie;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.*;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicCredentialsProvider;
@@ -36,7 +38,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -201,10 +202,13 @@ public class RestClient {
 
     private void authenticate() throws IOException {
         HttpPost post = new HttpPost(createBaseUri(URI_AUTHENTICATION));
-        String authorizationString =
-                (settings.getUser() != null ? settings.getUser() : "") + ":" + (settings.getPassword() != null ? settings.getPassword() : "");
-        post.setHeader(HEADER_NAME_AUTHORIZATION, HEADER_VALUE_BASIC_AUTH + Base64.encodeBase64String(authorizationString.getBytes(StandardCharsets.UTF_8)));
         addClientTypeHeader(post, true);
+
+        String username = settings.getUser() != null ? settings.getUser() : "";
+        String password = settings.getPassword() != null ? settings.getPassword() : "";
+        String authorization = "{\"user\":\"" + username + "\",\"password\":\"" + password + "\"}";
+        StringEntity httpEntity = new StringEntity(authorization, ContentType.APPLICATION_JSON);
+        post.setEntity(httpEntity);
 
         HttpResponse response = null;
         try {
