@@ -1,18 +1,15 @@
 package com.hp.nga.integrations.dto.scm.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-import java.io.Serializable;
+import com.hp.nga.integrations.dto.scm.SCMChange;
 
 /**
  * Created by gullery on 08/12/2015.
  * SCM Change descriptor
  */
 
-//  [YG]    TODO: check the usages of this class in NGA
-
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class SCMChange implements Serializable {
+public class SCMChangeImpl implements SCMChange {
 	private String type;
 	private String file;
 
@@ -20,15 +17,17 @@ public class SCMChange implements Serializable {
 		return type;
 	}
 
-	public void setType(String type) {
+	public SCMChange setType(String type) {
 		this.type = type;
+		return this;
 	}
 
 	public String getFile() {
 		return file;
 	}
 
-	public void setFile(String file) {
+	public SCMChange setFile(String file) {
 		this.file = file;
+		return this;
 	}
 }

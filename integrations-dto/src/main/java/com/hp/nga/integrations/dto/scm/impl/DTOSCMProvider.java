@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.hp.nga.integrations.dto.DTOBase;
 import com.hp.nga.integrations.dto.DTOInternalProviderBase;
+import com.hp.nga.integrations.dto.scm.SCMChange;
 import com.hp.nga.integrations.dto.scm.SCMCommit;
 import com.hp.nga.integrations.dto.scm.SCMData;
 import com.hp.nga.integrations.dto.scm.SCMRepository;
@@ -28,15 +29,18 @@ public final class DTOSCMProvider extends DTOInternalProviderBase {
 	}
 
 	public static void ensureInit(Map<Class<? extends DTOBase>, DTOInternalProviderBase> registry, ObjectMapper objectMapper) {
+		registry.put(SCMChange.class, INSTANCE_HOLDER.instance);
 		registry.put(SCMCommit.class, INSTANCE_HOLDER.instance);
 		registry.put(SCMRepository.class, INSTANCE_HOLDER.instance);
 		registry.put(SCMData.class, INSTANCE_HOLDER.instance);
 
+		INSTANCE_HOLDER.instance.dtoPairs.put(SCMChange.class, SCMChangeImpl.class);
 		INSTANCE_HOLDER.instance.dtoPairs.put(SCMCommit.class, SCMCommitImpl.class);
 		INSTANCE_HOLDER.instance.dtoPairs.put(SCMRepository.class, SCMRepositoryImpl.class);
 		INSTANCE_HOLDER.instance.dtoPairs.put(SCMData.class, SCMDataImpl.class);
 
 		SimpleAbstractTypeResolver resolver = new SimpleAbstractTypeResolver();
+		resolver.addMapping(SCMChange.class, SCMChangeImpl.class);
 		resolver.addMapping(SCMCommit.class, SCMCommitImpl.class);
 		resolver.addMapping(SCMRepository.class, SCMRepositoryImpl.class);
 		resolver.addMapping(SCMData.class, SCMDataImpl.class);

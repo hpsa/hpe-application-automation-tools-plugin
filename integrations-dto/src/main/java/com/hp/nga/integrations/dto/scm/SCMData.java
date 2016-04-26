@@ -2,6 +2,8 @@ package com.hp.nga.integrations.dto.scm;
 
 import com.hp.nga.integrations.dto.DTOBase;
 
+import java.util.List;
+
 /**
  * Created with IntelliJ IDEA.
  * User: gullery
@@ -20,7 +22,7 @@ public interface SCMData extends DTOBase {
 
 	SCMData setBuiltRevId(String builtRevId);
 
-	SCMCommit[] getCommits();
+	List<SCMCommit> getCommits();
 
-	SCMData setCommits(SCMCommit[] commits);
+	SCMData setCommits(List<SCMCommit> commits);
 }
