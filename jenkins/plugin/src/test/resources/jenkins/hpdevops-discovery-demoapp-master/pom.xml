@@ -1,0 +1,46 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>discover-demo-app</groupId>
+	<artifactId>app-all</artifactId>
+	<packaging>pom</packaging>
+	<version>1.0-SNAPSHOT</version>
+
+	<profiles>
+		<profile>
+			<id>defaultConfig</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<modules>
+				<module>webapp</module>
+				<module>ui-tests</module>
+				<module>integration-tests</module>
+				<module>ui-tests-testng</module>
+			</modules>
+		</profile>
+		
+		<profile>
+			<id>matrixConfig</id>
+			<activation>
+				<property>
+					<name>paramA</name>
+				</property>
+			</activation>
+			<properties>
+				<paramA>true</paramA>
+				<paramB>false</paramB>
+			</properties>
+			<modules>
+				<module>matrix-tests</module>
+			</modules>
+		</profile>
+	</profiles>
+	
+	<name>Discover Demo App - Tribute to Progressive Music (Parent)</name>
+
+	<build>
+		<finalName>discover-demo-app</finalName>
+	</build>
+	
+</project>

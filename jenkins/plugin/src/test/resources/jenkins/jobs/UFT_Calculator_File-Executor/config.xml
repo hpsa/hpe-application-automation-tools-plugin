@@ -1,0 +1,72 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>json = {&quot;parameter&quot;: [{&quot;name&quot;: &quot;mtbx_file_content&quot;,&quot;value&quot;: &quot;^&lt;Mtbx^&gt;^&lt;Test name = \&quot;CalculatorPlus\&quot; path=\&quot;C:\\TEE\\UFTTests\\CalculatorPlus\&quot;^&gt;^&lt;/Test^&gt;^&lt;Test name = \&quot;CalculatorPlusParams\&quot; path=\&quot;C:\\TEE\\UFTTests\\CalculatorPlusParams\&quot;^&gt;^&lt;Parameter name=\&quot;ResultAreaNumber1_Text\&quot; value=\&quot;2\&quot; type=\&quot;Int\&quot; /^&gt;^&lt;Parameter name=\&quot;ResultAreaNumber2_Text\&quot; value=\&quot;5\&quot; type=\&quot;Int\&quot; /^&gt;^&lt;/Test^&gt;^&lt;/Mtbx^&gt;&quot;}]} &#xd;
+json = {&quot;parameter&quot;: [{&quot;name&quot;: &quot;mtbx_file_content&quot;,&quot;value&quot;: &quot;^&lt;Mtbx^&gt;^&lt;Test name = \&quot;CalculatorPlus\&quot; path=\&quot;C:/TEE/UFTTests/CalculatorPlus\&quot;^&gt;^&lt;/Test^&gt;^&lt;Test name = \&quot;CalculatorPlusParams\&quot; path=\&quot;C:/TEE/UFTTests/CalculatorPlusParams\&quot;^&gt;^&lt;Parameter name=\&quot;ResultAreaNumber1_Text\&quot; value=\&quot;2\&quot; type=\&quot;Int\&quot; /^&gt;^&lt;Parameter name=\&quot;ResultAreaNumber2_Text\&quot; value=\&quot;5\&quot; type=\&quot;Int\&quot; /^&gt;^&lt;/Test^&gt;^&lt;/Mtbx^&gt;&quot;}]} &#xd;
+json = {&quot;parameter&quot;: [{&quot;name&quot;: &quot;mtbx_file_content&quot;,&quot;value&quot;: &quot;^&lt;Mtbx^&gt;^&lt;Test name = &apos;CalculatorPlus&apos; path=&apos;C:/TEE/UFTTests/CalculatorPlus&apos;^&gt;^&lt;/Test^&gt;^&lt;Test name = &apos;CalculatorPlusParams&apos; path=&apos;C:/TEE/UFTTests/CalculatorPlusParams&apos;^&gt;^&lt;Parameter name=&apos;ResultAreaNumber1_Text&apos; value=&apos;2&apos; type=&apos;Int&apos; /^&gt;^&lt;Parameter name=&apos;ResultAreaNumber2_Text&apos; value=&apos;5&apos; type=&apos;Int&apos; /^&gt;^&lt;/Test^&gt;^&lt;/Mtbx^&gt;&quot;}]} </description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.FileParameterDefinition>
+          <name>testsToRun.mtbx</name>
+          <description>mtbx file</description>
+        </hudson.model.FileParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@2.3.5">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://github.com/boriska70/very-public-repository.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/master</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions/>
+  </scm>
+  <assignedNode>uft</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.BatchFile>
+      <command>echo %WORKSPACE%</command>
+    </hudson.tasks.BatchFile>
+    <com.hp.application.automation.tools.run.RunFromFileBuilder plugin="hp-application-automation-tools-plugin@3.0.7">
+      <runFromFileModel>
+        <fsTests>testsToRun.mtbx
+</fsTests>
+        <fsTimeout>2000000</fsTimeout>
+        <controllerPollingInterval>30</controllerPollingInterval>
+        <perScenarioTimeOut>10</perScenarioTimeOut>
+        <ignoreErrorStrings></ignoreErrorStrings>
+      </runFromFileModel>
+      <ResultFilename>ApiResults.xml</ResultFilename>
+      <ParamFileName>ApiRun.txt</ParamFileName>
+    </com.hp.application.automation.tools.run.RunFromFileBuilder>
+  </builders>
+  <publishers>
+    <com.hp.application.automation.tools.results.RunResultRecorder plugin="hp-application-automation-tools-plugin@3.0.7">
+      <__resultsPublisherModel>
+        <archiveTestResultsMode>ONLY_ARCHIVE_FAILED_TESTS_REPORT</archiveTestResultsMode>
+      </__resultsPublisherModel>
+    </com.hp.application.automation.tools.results.RunResultRecorder>
+    <hudson.tasks.junit.JUnitResultArchiver plugin="junit@1.0">
+      <testResults>Results*.xml</testResults>
+      <keepLongStdio>false</keepLongStdio>
+      <testDataPublishers/>
+      <healthScaleFactor>1.0</healthScaleFactor>
+    </hudson.tasks.junit.JUnitResultArchiver>
+  </publishers>
+  <buildWrappers/>
+</project>

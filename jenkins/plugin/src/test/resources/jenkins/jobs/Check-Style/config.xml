@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>CURRENT_WORKSPACE</name>
+          <description></description>
+          <defaultValue>\workspace\Dev-Quick-Root-master-DS</defaultValue>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <customWorkspace>$CURRENT_WORKSPACE</customWorkspace>
+  <builders>
+    <hudson.tasks.Maven>
+      <targets>clean test -f mone/pom.xml</targets>
+      <mavenName>maven-305</mavenName>
+      <usePrivateRepository>false</usePrivateRepository>
+      <settings class="jenkins.mvn.FilePathSettingsProvider">
+        <path>/var/jenkins_home/userContent/settings.xml</path>
+      </settings>
+      <globalSettings class="jenkins.mvn.FilePathGlobalSettingsProvider">
+        <path>/var/jenkins_home/userContent/settings.xml</path>
+      </globalSettings>
+    </hudson.tasks.Maven>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>

@@ -1,0 +1,71 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@2.3.5">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://github.com/boriska70/very-public-repository.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/master</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions/>
+  </scm>
+  <assignedNode>uft</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.BatchFile>
+      <command>echo %WORKSPACE%</command>
+    </hudson.tasks.BatchFile>
+    <com.hp.application.automation.tools.run.RunFromFileBuilder plugin="hp-application-automation-tools-plugin@3.0.7">
+      <runFromFileModel>
+        <fsTests>Calculator
+CalculatorPlusParams
+subfolder/CalculatorPlusNextGen</fsTests>
+        <fsTimeout>2000000</fsTimeout>
+        <controllerPollingInterval>30</controllerPollingInterval>
+        <perScenarioTimeOut>10</perScenarioTimeOut>
+        <ignoreErrorStrings></ignoreErrorStrings>
+      </runFromFileModel>
+      <ResultFilename>ApiResults.xml</ResultFilename>
+      <ParamFileName>ApiRun.txt</ParamFileName>
+    </com.hp.application.automation.tools.run.RunFromFileBuilder>
+  </builders>
+  <publishers>
+    <com.hp.application.automation.tools.results.RunResultRecorder plugin="hp-application-automation-tools-plugin@3.0.7">
+      <__resultsPublisherModel>
+        <archiveTestResultsMode>ONLY_ARCHIVE_FAILED_TESTS_REPORT</archiveTestResultsMode>
+      </__resultsPublisherModel>
+    </com.hp.application.automation.tools.results.RunResultRecorder>
+    <hudson.tasks.BuildTrigger>
+      <childProjects>base-b,base-c,base-d</childProjects>
+      <threshold>
+        <name>FAILURE</name>
+        <ordinal>2</ordinal>
+        <color>RED</color>
+        <completeBuild>true</completeBuild>
+      </threshold>
+    </hudson.tasks.BuildTrigger>
+    <hudson.tasks.junit.JUnitResultArchiver plugin="junit@1.2-beta-4">
+      <testResults>Results*.xml</testResults>
+      <keepLongStdio>false</keepLongStdio>
+      <testDataPublishers/>
+      <healthScaleFactor>1.0</healthScaleFactor>
+    </hudson.tasks.junit.JUnitResultArchiver>
+  </publishers>
+  <buildWrappers/>
+</project>

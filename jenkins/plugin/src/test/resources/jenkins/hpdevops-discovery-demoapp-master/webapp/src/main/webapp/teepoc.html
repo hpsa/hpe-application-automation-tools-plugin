@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/html">
+<head lang="en">
+	<meta charset="UTF-8">
+	<title>Internal TEE Runner</title>
+
+	<style>
+		div#wholeForm {
+			position: relative;
+			top: 10px;
+			left: 50px;
+			width: 80%;
+		}
+
+		div#mandatoryFields {
+			position: relative;
+			width: 60%;
+			border: 2px solid gray;
+			border-radius: 15px;
+			padding: 10px;
+			left: 30px;
+			top: 30px;
+		}
+
+		.mandatoryField {
+			text-align: left;
+			vertical-align: middle;
+			width: 90%;
+		}
+
+		div#optionalFields {
+			position: relative;
+			padding: 10px;
+			left: 30px;
+			top: 30px;
+			visibility: visible;
+			opacity: 0;
+			border: 2px solid gray;
+			border-radius: 15px;
+			width: 60%;
+
+		}
+
+		.ngTestSubForm {
+			position: absolute;
+			display: inline-block;
+			top: 10px;
+			width: 33%;
+			border-left: 1px solid #ccc;
+			border-right: 1px solid #ccc;
+			font: 18px Tahoma;
+		}
+
+		.ngTestSubForm .ngFormLabel {
+			display: block;
+			margin: 5px 0;
+			padding: 0 5px;
+			font: 14px Tahoma;
+		}
+
+		#optionalFields .compiledParam {
+			position: absolute;
+			bottom: 0;
+			left: 10px;
+			right: 10px;
+			height: 100px;
+			word-break: break-all;
+			font: 16px monospace;
+		}
+
+		.ngTestSubForm > #ngTestsList {
+			margin: 10px 0;
+		}
+
+		div#submitter {
+			position: relative;
+			padding: 10px;
+			visibility: hidden;
+		}
+
+		div#testParamDiv {
+			margin-top: 5px;
+		}
+
+		#params {
+			resize: none;
+			vertical-align: middle;
+		}
+
+		label {
+			font-family: Times New Roman, serif;
+			font-size: 150%;
+			font-style: italic;
+		}
+
+		#testsList, th, td {
+			border: 2px solid gray;
+			border-collapse: collapse;
+			padding: 3px;
+			text-align: center;
+		}
+
+		#uftTestsList {
+			border: 2px solid gray;
+			border-collapse: collapse;
+			width: 100%;
+		}
+
+		#uftTestsList td {
+			text-align: left;
+		}
+
+		.uftTestParams {
+			background-color: lightblue;
+			width: 90%;
+		}
+
+		.wider-td {
+			width: 50%;
+		}
+
+			/* Chrome, Safari, Opera */
+		@-webkit-keyframes optionalmove {
+			from {
+				opacity: 0.1;
+			}
+			to {
+				top: 90px;
+				opacity: 1;
+			}
+		}
+
+		@keyframes optionalmove {
+			from {
+				opacity: 0.1;
+			}
+			to {
+				top: 90px;
+				opacity: 1;
+			}
+		}
+	</style>
+</head>
+<body>
+
+<form name="mainFormat" action="javascript:runJob()">
+
+	<div id="mandatoryFields" onkeyup="showOptionalParams()">
+		<label for="jenkinsUrl" width="20%">Jenkins URL: </label>
+		<input type="text" name="jenkinsUrl" id="jenkinsUrl" class="mandatoryField"
+		       value="http://myd-vm02771.hpswlabs.adapps.hp.com:8080/jenkins"/>
+
+		<p/>
+		<label for="techStack">Technology stack: </label>
+		<select name="techStack" id="techStack" class="mandatoryField" onchange="showOptionalParams(); ">
+			<option value="">Select the tests technology...</option>
+			<option value="Selenium-Junit">Selenium/JUnit</option>
+			<option value="Selenium-TestNG">Selenium/TestNG</option>
+			<option value="UFT_Calculator">UFT</option>
+		</select>
+		<p/>
+		<div id="mandatoryFieldsPerFramework"></div>
+	</div>
+
+	<div id="optionalFields"></div>
+	<div id="submitter">
+		<input type="submit" id="submitBtn" value="Run it!"/>
+	</div>
+
+
+
+</form>
+
+<script>
+
+var tests = [];
+var uftTests = [];
+var uftTestsUglyParams = [];
+
+function Test(cclass, mmethod, ttech, group) {
+	this.cclass = cclass;
+	this.mmethod = mmethod;
+	this.ttech = ttech;
+	this.group = group;
+}
+
+function UFTTest(nname, ppath, pparams){
+	this.nname = nname;
+	this.ppath = ppath;
+	this.pparams = pparams;
+}
+
+Test.getByMethod = function(method) {
+	for(var i = 0, test; i < tests.length, test = tests[i]; i++) {
+		if(test.mmethod === method) return test;
+	}
+	return null;
+};
+
+tests.push(new Test("com.hp.devops.demoapp.tests.ui.TestA", "testUIcaseA", "Selenium-Junit"));
+tests.push(new Test("com.hp.devops.demoapp.tests.ui.TestA", "testUIcaseB", "Selenium-Junit"));
+tests.push(new Test("com.hp.devops.demoapp.tests.ui.TestB", "testUIcaseC", "Selenium-Junit"));
+tests.push(new Test("com.hp.devops.demoapp.tests.ui.TestB", "testUIcaseD", "Selenium-Junit"));
+tests.push(new Test("com.hp.devops.demoapp.tests.ui.TestSuiteA", "testCase1", "Selenium via TestNG", "Group_A"));
+tests.push(new Test("com.hp.devops.demoapp.tests.ui.TestSuiteA", "testCase2", "Selenium via TestNG"));
+tests.push(new Test("com.hp.devops.demoapp.tests.ui.TestSuiteA", "testCase3", "Selenium via TestNG", "Group_A"));
+tests.push(new Test("com.hp.devops.demoapp.tests.ui.TestSuiteB", "testCaseA", "Selenium via TestNG", "Group_B"));
+tests.push(new Test("com.hp.devops.demoapp.tests.ui.TestSuiteB", "testCaseB", "Selenium via TestNG"));
+tests.push(new Test("com.hp.devops.demoapp.tests.ui.TestSuiteB", "testCaseC", "Selenium via TestNG", "Group_B"));
+
+uftTests.push(new UFTTest("CalculatorPlus", "C:/TEE/UFTTests/CalculatorPlus"));
+var calcPlusParamsParams = [{'name' : 'ResultAreaNumber1_Text', 'value':'2', 'type':'Int'},{'name' : 'ResultAreaNumber2_Text', 'value':'5', 'type':'Int'}];
+uftTests.push(new UFTTest("CalculatorPlusParams", "C:/TEE/UFTTests/CalculatorPlusParams", calcPlusParamsParams));
+
+uftTestsUglyParams["CalculatorPlus"] = "^<Test name = 'CalculatorPlus' path='C:/TEE/UFTTests/CalculatorPlus'^>^</Test^>";
+uftTestsUglyParams["CalculatorPlusParams"] = "^<Test name = 'CalculatorPlusParams' path='C:/TEE/UFTTests/CalculatorPlusParams'^>^<Parameter name='ResultAreaNumber1_Text' value='2' type='Int' /^>^<Parameter name='ResultAreaNumber2_Text' value='5' type='Int' /^>^</Test^>";
+
+var movingDiv = document.getElementById("optionalFields");
+movingDiv.addEventListener("webkitAnimationEnd", moveButton, false);
+movingDiv.addEventListener("animationend", moveButton, false);
+function moveButton() {
+	document.getElementById("submitter").style.left = '30px';
+	document.getElementById("submitter").style.top = '100px';
+	document.getElementById("submitter").style.visibility = "visible";
+}
+
+function runJob() {
+	var xmlhttp = new XMLHttpRequest(), dest = document.getElementById("jenkinsUrl").value + '/job/' + document.getElementById("techStack").value + '/build?delay=0sec', form;
+	xmlhttp.open('POST', dest, true);
+	xmlhttp.onerror = function() {
+
+	};
+	xmlhttp.onload = function() {
+
+	};
+	xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
+	if(document.getElementById("techStack").selectedIndex === 1) {
+		var data;
+		var testsString = buildJunitTestString(selectTests());
+		//json="{'parameter': [{'name': 'useProxy', 'value': 'false'},{'name': 'appUrl', 'value': 'http://myd-vm05069.hpswlabs.adapps.hp.com:9080'},{'name': 'testsToRun', 'value': '-Dtest=com.hp.devops.demoapp.tests.ui.TestA#testUIcaseA+testUIcaseB'}]}"
+		var testParams;
+		if(document.getElementById("junitCategory").checked) {
+			testParams = '-Dgroups=';
+		} else {
+			testParams = '-Dtest=';
+		}
+		testParams += testsString;
+
+		data = {
+			parameter: []
+		};
+		if(document.getElementById('mandatoryFieldsPerFramework').style.display !== 'none') {
+			Array.prototype.slice.call(document.getElementsByClassName('junitmfields'), 0).forEach(function(input) {
+				data.parameter.push({name: input.dataset.name, value: input.value});
+			});
+		}
+		data.parameter.push({name: 'testsToRun', value: encodeURIComponent(testParams)});
+		//data = "json=" + "{'parameter': [{'name': 'useProxy', 'value': 'false'},{'name': 'appUrl', 'value': 'http://myd-vm05069.hpswlabs.adapps.hp.com:9080'},{'name': 'testsToRun', 'value': '" + encodeURIComponent(testParams) + "'}]}";
+		console.log('data = ' + data);
+		xmlhttp.send('json=' + JSON.stringify(data));
+	} else if(document.getElementById("techStack").selectedIndex === 2) {
+		data = {
+			parameter: []
+		};
+		if(document.getElementById('mandatoryFieldsPerFramework').style.display !== 'none') {
+			Array.prototype.slice.call(document.getElementById('mandatoryFieldsPerFramework').querySelectorAll('input'), 0).forEach(function(input) {
+				data.parameter.push({name: input.dataset.name, value: input.value});
+			});
+		}
+		data.parameter.push({name: 'TESTNG_PARAMS', value: compileOptionalParamsTestNG()});
+		xmlhttp.send('json=' + JSON.stringify(data));
+	} else if(document.getElementById("techStack").selectedIndex === 3) {   //UFT
+		//update the parameters sent for CalculatorPlusParams
+		//uftTestsUglyParams["CalculatorPlusParams"] = "^<Test name = 'CalculatorPlusParams' path='C:/TEE/UFTTests/CalculatorPlusParams'^>^<Parameter name='ResultAreaNumber1_Text' value='2' type='Int' /^>^<Parameter name='ResultAreaNumber2_Text' value='5' type='Int' /^>^</Test^>";
+
+		var allTestsParams = document.getElementsByClassName("uftTestParams");
+		for(var i = 0; i<allTestsParams.length; i++){
+			if(allTestsParams[i].value != ""){
+				//replace the first value only
+				var fullString = allTestsParams[i].value;
+				var valueStarts = fullString.indexOf("value");
+				var valueEnds = fullString.indexOf(" ", valueStarts);
+				var firstValueString = fullString.substring(valueStarts, valueEnds);
+				valueStarts = firstValueString.indexOf("=");
+				var newFirstValue = firstValueString.substring(valueStarts+1);
+				console.log('firstValueString'+firstValueString);
+				var currentUglyParameter = uftTestsUglyParams["CalculatorPlusParams"];
+				var newParamPartOne = uftTestsUglyParams["CalculatorPlusParams"].substring(0, uftTestsUglyParams["CalculatorPlusParams"].indexOf('value=')+7);
+				var newParamPartTwo = uftTestsUglyParams["CalculatorPlusParams"].substring(uftTestsUglyParams["CalculatorPlusParams"].indexOf('value=')+8);
+				console.log("Part one: " + newParamPartOne);
+				console.log("Part two: " + newParamPartTwo);
+				currentUglyParameter = newParamPartOne + newFirstValue + newParamPartTwo;
+				uftTestsUglyParams["CalculatorPlusParams"] = currentUglyParameter;
+
+			}
+		}
+
+
+		jsonString = ("{\"parameter\": [{\"name\": \"mtbx_file_content\",\"value\": \"^<Mtbx^>");
+		var allListedUftTests = document.getElementsByClassName("uftAddToRun");
+		var selectedTests='';
+		[].forEach.call(allListedUftTests, function(element){
+			if(element.checked){
+				jsonString += uftTestsUglyParams[element.value];
+			}
+		});
+		jsonString += "^</Mtbx^>\"}]}";
+		console.log('json = ' + jsonString);
+		xmlhttp.send('json=' + jsonString);
+	}
+}
+
+//create string like class1#test1+test2,class2#test3+test4 from array of FQDN classname#method
+function buildJunitTestString(selectedTests) {
+	if(selectedTests.length == 0) {
+		return "";
+	} else {
+		var allClasses = [];
+		var allStrings = {};
+		selectedTests.forEach(function(element) {
+			var afterSplit = element.split("#");
+			//				if(afterSplit.length == 2) {    //specific tests
+			if(allClasses.indexOf(afterSplit[0]) == -1) {    //first method for the class
+				allClasses.push(afterSplit[0]);
+				allStrings[afterSplit[0]] = afterSplit[1];
+			} else {    //add the method only using the # delimiter
+				var classMethods = allStrings[afterSplit[0]];
+				classMethods += "+";
+				classMethods += afterSplit[1];
+				allStrings[afterSplit[0]] = classMethods;
+			}
+			//				}
+		});
+		var finalString = "";
+		allClasses.forEach(function(element) {
+			if(allStrings[element]) {
+				finalString += element + "#" + allStrings[element] + ",";
+			} else {
+				finalString += element + ",";
+			}
+		});
+		return finalString.substring(0, finalString.lastIndexOf(','));
+	}
+}
+
+function compileOptionalParamsTestNG() {
+	var boxes, subForm, type, result = 'failed to compile the param', testsList, tmpTest;
+	boxes = Array.prototype.slice.call(document.getElementById("optionalFields").childNodes, 0);
+	boxes.forEach(function(box) {
+		if(box.firstChild.nodeName === 'INPUT' && box.firstChild.checked) {
+			subForm = box;
+			type = box.firstChild.value;
+		}
+	});
+	if(subForm) {
+		result = '-D';
+		testsList = Array.prototype.slice.call(subForm.querySelectorAll('input'), 0);
+		testsList.shift();
+		if(type === 'mmethod') {
+			result += 'test=';
+			testsList.forEach(function(test) {
+				if(test.checked) {
+					tmpTest = Test.getByMethod(test.value);
+					result += tmpTest.cclass + '#' + tmpTest.mmethod;
+				}
+			});
+		} else if(type === 'cclass') {
+			result += 'test=';
+			testsList.forEach(function(test) {
+				if(test.checked) result += test.value + ',';
+			});
+			result = result.replace(/,$/, '');
+		} else if(type === 'group') {
+			result += 'groups=';
+			testsList.forEach(function(test) {
+				if(test.checked) result += test.value + ',';
+			});
+			result = result.replace(/,$/, '');
+		} else throw new Error('unknown type');
+
+	}
+	return result;
+}
+
+function showMandatoryFieldsJUnit() {
+	var mfDiv = document.getElementById("mandatoryFieldsPerFramework");
+	mfDiv.innerHTML = '';
+
+	var tmp = document.createElement('label');
+	tmp.style.display = 'block';
+	tmp.innerHTML = 'APP_HOST: <input type="text" data-name="appUrl" value="http://myd-vm05069.hpswlabs.adapps.hp.com:9080" size="80" class="junitmfields"/>';
+	mfDiv.appendChild(tmp);
+
+	tmp = document.createElement('label');
+	tmp.style.display = 'block';
+	tmp.innerHTML = 'USE PROXY: <select name="useProxySelect" data-name="useProxy" id="useProxySelect"  class="junitmfields"><option value="false" selected>False</option><option value="true">True</option></select>';
+
+	mfDiv.appendChild(tmp);
+
+}
+
+function showOptionalParamsTestNG() {
+	var container = document.getElementById("optionalFields"), testsList, tmpList, tmp;
+	container.innerHTML = '';
+
+	function createSubForm(title, testsList, selector, multiChoice) {
+		var box, tmp;
+		box = document.createElement('div');
+		box.classList.add('ngTestSubForm');
+
+		tmp = document.createElement('input');
+		tmp.type = 'radio';
+		tmp.name = 'ngTestRunType';
+		tmp.value = selector;
+		tmp.onchange = function() {
+			container.querySelector('.compiledParam').textContent = compileOptionalParamsTestNG();
+		};
+		box.appendChild(tmp);
+
+		box.appendChild(document.createTextNode(title));
+
+		tmp = document.createElement('div');
+		tmp.classList.add('ngTestsList');
+		box.appendChild(tmp);
+
+		testsList.forEach(function(test) {
+			var lbl = document.createElement('label'), tmp = document.createElement('input');
+			if(multiChoice) {
+				tmp.type = 'checkbox';
+			} else {
+				tmp.type = 'radio';
+				tmp.name = 'title';
+			}
+			tmp.value = test[selector];
+			tmp.onchange = function() {
+				box.querySelector('input').checked = true;
+				container.querySelector('.compiledParam').textContent = compileOptionalParamsTestNG();
+			};
+			lbl.classList.add('ngFormLabel');
+			lbl.textContent = selector === 'cclass' ? test[selector].split('.').pop() : test[selector];
+			lbl.appendChild(tmp);
+			box.querySelector('.ngTestsList').appendChild(lbl);
+		});
+
+		box.style.left = (container.childNodes.length * 33 + 1) + '%';
+		container.style.height = '300px';
+		container.appendChild(box);
+	}
+
+	testsList = [];
+	tests.forEach(function(test) {if(test.ttech === 'Selenium via TestNG') testsList.push(test);});
+	createSubForm('Single Test', testsList, 'mmethod', false);
+
+	testsList = [];
+	tmpList = [];
+	tests.forEach(function(test) {
+		if(test.ttech === 'Selenium via TestNG' && tmpList.indexOf(test.cclass) < 0) {
+			testsList.push(test);
+			tmpList.push(test.cclass)
+		}
+	});
+	createSubForm('Class/es', testsList, 'cclass', true);
+
+	testsList = [];
+	tmpList = [];
+	tests.forEach(function(test) {
+		if(test.ttech === 'Selenium via TestNG' && test.group && tmpList.indexOf(test.group) < 0) {
+			testsList.push(test);
+			tmpList.push(test.group);
+		}
+	});
+	createSubForm('Group/s', testsList, 'group', true);
+	container.querySelector('input').checked = true;
+
+	tmp = document.createElement('div');
+	tmp.classList.add('compiledParam');
+	tmp.textContent = 'codes are going here';
+	container.appendChild(tmp);
+
+	tmpList = document.getElementById('mandatoryFieldsPerFramework');
+	tmpList.innerHTML = '';
+
+	tmp = document.createElement('label');
+	tmp.style.display = 'block';
+	tmp.innerHTML = 'APP_HOST: <input type="text" data-name="APP_HOST" value="http://myd-vm05069.hpswlabs.adapps.hp.com" />';
+	tmpList.appendChild(tmp);
+
+	tmp = document.createElement('label');
+	tmp.style.display = 'block';
+	tmp.innerHTML = 'APP_PORT: <input type="text" data-name="APP_PORT" value="9080" />';
+	tmpList.appendChild(tmp);
+
+	tmp = document.createElement('label');
+	tmp.style.display = 'block';
+	tmp.innerHTML = 'PROXY_HOST: <input type="text" data-name="PROXY_HOST" />';
+	tmpList.appendChild(tmp);
+
+	tmp = document.createElement('label');
+	tmp.style.display = 'block';
+	tmp.innerHTML = 'PROXY_PORT: <input type="text" data-name="PROXY_PORT" />';
+	tmpList.appendChild(tmp);
+
+	tmpList.style.display = 'block';
+}
+
+function showOptionalParamsUFT(){
+
+	document.getElementById("optionalFields").innerHTML  = "<table id = 'uftTestsList'><thead><tr><td>Test name</td><td>Test path</td><td class='wider-td'>Parameters</td><td>Add to run?</td></tr></thead></table>";
+
+	var container = document.getElementById("uftTestsList");
+	uftTests.forEach(function(uftTest){
+		var param = fetchUftParams(uftTest.pparams);
+		container.innerHTML += "<tr><td>"+uftTest.nname+"</td><td>"+uftTest.ppath+"</td><td><input type='text' class='uftTestParams' value='"+param+"'></td><td><input type='checkbox' class='uftAddToRun' value="+uftTest.nname+"></td></tr>";
+	})
+
+}
+
+function fetchUftParams(currentTestParams){
+	var finalString = "";
+	if(currentTestParams != null){
+		var paramString = '';
+		currentTestParams.forEach(function(element){
+			paramString += "Parameter name=" + element.name + " value=" + element.value + " type="+element.type +", ";
+		});
+		var finalString = paramString.substring(0,paramString.length-2);
+		console.log("Final string is " + finalString);
+	}
+	return finalString;
+}
+
+//show the tables of tests (predefined array at the beginning)
+function showOptionalParams() {
+	if(document.getElementById("jenkinsUrl").value.length > 3 && document.getElementById("techStack").selectedIndex > 0) {
+
+		if(document.getElementById("techStack").selectedIndex == 1) {
+			showMandatoryFieldsJUnit();
+			document.getElementById("optionalFields").innerHTML = "<table id='testsList' onchange='showTestParam()'><thead><tr><th>Test class</th><th>Test name</th><th>Add to run?</th></tr></thead>";
+			tests.forEach(function(element) {
+				if(element.ttech == document.getElementById("techStack").value) {
+					document.getElementById("testsList").innerHTML += "<tr><td>" + element.cclass + "</td><td>" + element.mmethod + "</td>" + "<td><input type='checkbox' class='testSelector' value=" + element.cclass + "#" + element.mmethod + "'></td></tr>";
+				}
+			});
+			document.getElementById("testsList").innerHTML += "<tr><td>Category: SpecialTests</td><td>All related to category</td>" + "<td><input type='checkbox' class='testSelector' id='junitCategory' value='com.hp.devops.demoapp.tests.ui.SpecialTests''></td></tr>";
+			document.getElementById("testsList").innerHTML += "<tr><td>Class: com.hp.devops.demoapp.tests.ui.TestB</td><td>All tests in the class</td>" + "<td><input type='checkbox' class='testSelector' id='junitClass' value='com.hp.devops.demoapp.tests.ui.TestB''></td></tr>";
+			document.getElementById("testsList").innerHTML += "<tr><td>All classes</td><td>All tests</td>" + "<td><input type='checkbox' class='testSelector' id='allTestsSelected' value=all></td></tr>";
+			document.getElementById("optionalFields").innerHTML += "</table>";
+			document.getElementById("optionalFields").innerHTML += "<div id='testParamDiv'></div>"
+		} else if(document.getElementById("techStack").selectedIndex == 2) {
+			showOptionalParamsTestNG();
+		} else if(document.getElementById("techStack").selectedIndex == 3) {
+			showOptionalParamsUFT();
+		}
+
+		if(document.getElementById("optionalFields").style.visibility != "visible") {
+			document.getElementById("optionalFields").style.visibility = "visible";
+			document.getElementById("optionalFields").style.animation = "optionalmove 3s 1 forwards";
+			document.getElementById("optionalFields").style.webkitAnimation = "optionalmove 3s 1 forwards";
+		} else {
+			moveButton();
+		}
+	}
+}
+
+function showTestParam(){
+	var selectedTests = buildJunitTestString(selectTests());
+	if(document.getElementById("junitCategory").checked){
+		document.getElementById("testParamDiv").innerText = '-Dgroups=' + selectedTests;
+	} else {
+		document.getElementById("testParamDiv").innerText = '-Dtest=' + selectedTests;
+	}
+}
+
+function selectTests(){
+	var selectedTests = [], data;
+
+	var selectors = document.getElementById("testsList").getElementsByClassName("testSelector");
+	var arrSelectors = Array.prototype.slice.call(selectors);
+	if(!document.getElementById("allTestsSelected").checked) {  //nothing should be passed for running all tests
+		if(document.getElementById("junitCategory").checked) {
+			selectedTests[selectedTests.length] = document.getElementById("junitCategory").value;    //hard-coded category
+		} else if(document.getElementById("junitClass").checked) {
+			selectedTests[selectedTests.length] = document.getElementById("junitClass").value;    //hard-coded class
+		} else {
+			arrSelectors.forEach(function(element) {
+				if(element.checked) {
+					selectedTests[selectedTests.length] = element.value;
+				}
+			});
+		}
+	}
+	return selectedTests;
+}
+</script>
+
+</body>
+</html>

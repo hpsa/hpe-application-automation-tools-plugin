@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<proxy>
+  <name>web-proxy.bbn.hpecorp.net</name>
+  <port>8080</port>
+  <secretPassword>7qjC91+R/Uu6qENCWkBl+A==</secretPassword>
+  <testUrl>https://github.com/boriska70/very-public-repository.git/</testUrl>
+</proxy>
