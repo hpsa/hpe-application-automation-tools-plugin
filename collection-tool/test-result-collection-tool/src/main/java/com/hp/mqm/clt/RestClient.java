@@ -52,7 +52,7 @@ public class RestClient {
     private static final String HEADER_VALUE_BASIC_AUTH = "Basic ";
     //private static final String HEADER_CLIENT_TYPE = "HPECLIENTTYPE";
     private static final String HPSSO_COOKIE_NAME = "HPSSO_COOKIE_CSRF";
-    private static final String HPSSO_HEADER_NAME = "HPSSO_HEADER_CSRF";
+    private static final String HPSSO_HEADER_NAME = "HPSSO-HEADER-CSRF";
     private static final String LWSSO_COOKIE_NAME = "LWSSO_COOKIE_KEY";
 
     static final String URI_LOGOUT = "authentication/sign_out";
