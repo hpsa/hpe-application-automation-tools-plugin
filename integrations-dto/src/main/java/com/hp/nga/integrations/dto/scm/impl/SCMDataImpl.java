@@ -5,6 +5,8 @@ import com.hp.nga.integrations.dto.scm.SCMCommit;
 import com.hp.nga.integrations.dto.scm.SCMData;
 import com.hp.nga.integrations.dto.scm.SCMRepository;
 
+import java.util.List;
+
 /**
  * Created with IntelliJ IDEA.
  * User: gullery
@@ -17,7 +19,7 @@ import com.hp.nga.integrations.dto.scm.SCMRepository;
 class SCMDataImpl implements SCMData {
 	private SCMRepository repository;
 	private String builtRevId;
-	private SCMCommit[] commits;
+	private List<SCMCommit> commits;
 
 	public SCMRepository getRepository() {
 		return repository;
@@ -37,11 +39,11 @@ class SCMDataImpl implements SCMData {
 		return this;
 	}
 
-	public SCMCommit[] getCommits() {
+	public List<SCMCommit> getCommits() {
 		return commits;
 	}
 
-	public SCMData setCommits(SCMCommit[] commits) {
+	public SCMData setCommits(List<SCMCommit> commits) {
 		this.commits = commits;
 		return this;
 	}

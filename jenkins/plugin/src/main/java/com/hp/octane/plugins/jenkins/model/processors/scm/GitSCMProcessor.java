@@ -1,6 +1,7 @@
 package com.hp.octane.plugins.jenkins.model.processors.scm;
 
 import com.hp.nga.integrations.dto.DTOFactory;
+import com.hp.nga.integrations.dto.scm.SCMChange;
 import com.hp.nga.integrations.dto.scm.SCMCommit;
 import com.hp.nga.integrations.dto.scm.SCMData;
 import com.hp.nga.integrations.dto.scm.SCMRepository;
@@ -16,6 +17,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by gullery on 31/03/2015.
@@ -37,6 +39,8 @@ public class GitSCMProcessor implements SCMProcessor {
 		String builtCommitRevId = null;
 		ArrayList<SCMCommit> tmpCommits;
 		SCMCommit tmpCommit;
+		List<SCMChange> tmpChanges;
+		SCMChange tmpChange;
 		ChangeLogSet<ChangeLogSet.Entry> changes = build.getChangeSet();
 		BuildData buildData;
 		GitChangeSet commit;
@@ -54,20 +58,23 @@ public class GitSCMProcessor implements SCMProcessor {
 				for (ChangeLogSet.Entry c : changes) {
 					if (c instanceof GitChangeSet) {
 						commit = (GitChangeSet) c;
+
+						tmpChanges = new ArrayList<SCMChange>();
+						for (GitChangeSet.Path item : commit.getAffectedFiles()) {
+							tmpChange = dtoFactory.newDTO(SCMChange.class)
+									.setType(item.getEditType().getName())
+									.setFile(item.getPath());
+							tmpChanges.add(tmpChange);
+						}
+
 						tmpCommit = dtoFactory.newDTO(SCMCommit.class)
 								.setTime(commit.getTimestamp())
 								.setUser(commit.getAuthor().getId())
 								.setRevId(commit.getCommitId())
 								.setParentRevId(commit.getParentCommit())
-								.setComment(commit.getComment().trim());
+								.setComment(commit.getComment().trim())
+								.setChanges(tmpChanges);
 
-						//  [YG] Changes will be handled later
-//						for (GitChangeSet.Path item : commit.getAffectedFiles()) {
-//							tmpCommit.addChange(
-//									item.getEditType().getName(),
-//									item.getPath()
-//							);
-//						}
 						tmpCommits.add(tmpCommit);
 					}
 				}
@@ -75,7 +82,7 @@ public class GitSCMProcessor implements SCMProcessor {
 				result = dtoFactory.newDTO(SCMData.class)
 						.setRepository(scmRepository)
 						.setBuiltRevId(builtCommitRevId)
-						.setCommits(tmpCommits.toArray(new SCMCommit[tmpCommits.size()]));
+						.setCommits(tmpCommits);
 			}
 		}
 		return result;

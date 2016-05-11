@@ -1,7 +1,8 @@
 package com.hp.nga.integrations.dto.scm;
 
 import com.hp.nga.integrations.dto.DTOBase;
-import com.hp.nga.integrations.dto.scm.impl.SCMChange;
+
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -33,7 +34,7 @@ public interface SCMCommit extends DTOBase {
 
 	SCMCommit setComment(String comment);
 
-	SCMChange[] getChanges();
+	List<SCMChange> getChanges();
 
-	SCMCommit setChanges(SCMChange[] changes);
+	SCMCommit setChanges(List<SCMChange> changes);
 }

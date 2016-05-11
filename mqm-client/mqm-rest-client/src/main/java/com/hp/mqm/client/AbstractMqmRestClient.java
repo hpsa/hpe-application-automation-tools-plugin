@@ -71,8 +71,8 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 
 	private static final String URI_PARAM_ENCODING = "UTF-8";
 
-	public static final int DEFAULT_CONNECTION_TIMEOUT = 20000; // in milliseconds
-	public static final int DEFAULT_SO_TIMEOUT = 40000; // in milliseconds
+	public static final int DEFAULT_CONNECTION_TIMEOUT = 20 * 1000;     // in milliseconds
+	public static final int DEFAULT_SO_TIMEOUT = 2 * 60 * 1000;         // in milliseconds
 
 	private CloseableHttpClient httpClient;
 	private CookieStore cookieStore;

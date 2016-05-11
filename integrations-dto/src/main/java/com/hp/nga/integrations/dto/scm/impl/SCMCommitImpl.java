@@ -1,7 +1,10 @@
 package com.hp.nga.integrations.dto.scm.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.hp.nga.integrations.dto.scm.SCMChange;
 import com.hp.nga.integrations.dto.scm.SCMCommit;
+
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -18,7 +21,7 @@ class SCMCommitImpl implements SCMCommit {
 	private String revId;
 	private String parentRevId;
 	private String comment;
-	private SCMChange[] changes;
+	private List<SCMChange> changes;
 
 	public Long getTime() {
 		return time;
@@ -65,11 +68,11 @@ class SCMCommitImpl implements SCMCommit {
 		return this;
 	}
 
-	public SCMChange[] getChanges() {
+	public List<SCMChange> getChanges() {
 		return changes;
 	}
 
-	public SCMCommit setChanges(SCMChange[] changes) {
+	public SCMCommit setChanges(List<SCMChange> changes) {
 		this.changes = changes;
 		return this;
 	}
