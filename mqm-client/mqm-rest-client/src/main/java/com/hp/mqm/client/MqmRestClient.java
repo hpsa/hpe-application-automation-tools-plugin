@@ -56,6 +56,13 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 */
 	long postTestResult(File testResultReport, boolean skipErrors);
 
+	/**
+	 * Checks if the test results are needed in NGA.
+	 *
+	 * @param serverIdentity The server id
+	 * @param runRefId       The build run id
+	 * @param jobName       The job name
+	 */
 	Boolean isTestResultRelevant(String serverIdentity, String runRefId, String jobName);
 
 
