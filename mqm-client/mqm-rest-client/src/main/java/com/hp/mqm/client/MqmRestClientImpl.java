@@ -57,6 +57,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	private static final String URI_TEST_RESULT_STATUS = PREFIX_CI + "test-results/{0}";
 	private static final String URI_TEST_RESULT_LOG = URI_TEST_RESULT_STATUS + "/log";
 	private static final String URI_JOB_CONFIGURATION = "analytics/ci/servers/{0}/jobs/{1}/configuration";
+	private static final String URI_PREFLIGHT = "analytics/ci/preflight/server/{0}/job/{1}/build/{2}";
 	private static final String URI_RELEASES = "releases";
 	private static final String URI_WORKSPACES = "workspaces";
 	private static final String URI_LIST_ITEMS = "list_nodes";
@@ -93,6 +94,24 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 		} catch (java.io.FileNotFoundException fnfe) {
 			logger.severe("file " + testResultReport + " not found");
 			return -1;
+		}
+	}
+
+	@Override
+	public Boolean isTestResultRelevant(String serverIdentity, String runRefId, String jobName){
+		HttpGet request = new HttpGet(createSharedSpaceInternalApiUri(URI_PREFLIGHT, serverIdentity, jobName, runRefId));
+		HttpResponse response = null;
+		try {
+			response = execute(request);
+			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+				throw createRequestException("Result status retrieval failed", response);
+			}
+			Boolean needTestResult = Boolean.parseBoolean(IOUtils.toString(response.getEntity().getContent(), "UTF-8"));
+			return needTestResult;
+		} catch (IOException e) {
+			throw new RequestErrorException("Cannot obtain status.", e);
+		} finally {
+			HttpClientUtils.closeQuietly(response);
 		}
 	}
 

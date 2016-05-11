@@ -56,6 +56,8 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 */
 	long postTestResult(File testResultReport, boolean skipErrors);
 
+	Boolean isTestResultRelevant(String serverIdentity, String runRefId, String jobName);
+
 
 	/**
 	 * Get status of the test result post operation

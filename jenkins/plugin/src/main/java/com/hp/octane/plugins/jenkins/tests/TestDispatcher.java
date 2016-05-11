@@ -17,6 +17,9 @@ import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactoryImpl;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationService;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
+import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
+import com.hp.octane.plugins.jenkins.tests.build.BuildDescriptor;
+import com.hp.octane.plugins.jenkins.tests.build.BuildHandlerUtils;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.model.AbstractBuild;
@@ -128,34 +131,42 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
                 continue;
             }
 
-            try {
-                Long id = null;
-                try {
-                    File resultFile = new File(build.getRootDir(), TestListener.TEST_RESULT_FILE);
-                    id = client.postTestResult(resultFile, false);
-                } catch (TemporarilyUnavailableException e) {
-                    logger.log(Level.WARNING, "Server temporarily unavailable, will try later", e);
-                    audit(configuration, build, null, true);
-                    break;
-                } catch (RequestException e) {
-                    logger.log(Level.WARNING, "Failed to submit test results [" + build.getProject().getName() + "#" + build.getNumber() + "]", e);
-                } catch (RequestErrorException e) {
-                    logger.log(Level.WARNING, "Failed to submit test results [" + build.getProject().getName() + "#" + build.getNumber() + "]", e);
-                }
+            BuildDescriptor descriptor = BuildHandlerUtils.getBuildType(build);
+            Boolean needTestResult = client.isTestResultRelevant(ServerIdentity.getIdentity(), descriptor.getBuildId(), descriptor.getJobName());
 
-                if (id != null) {
-                    logger.info("Successfully pushed test results of build [" + item.projectName + "#" + item.buildNumber + "]");
-                    queue.remove();
-                } else {
-                    logger.warning("Failed to push test results of build [" + item.projectName + "#" + item.buildNumber + "]");
-                    if (!queue.failed()) {
-                        logger.warning("Maximum number of attempts reached, operation will not be re-attempted for this build");
+            if (needTestResult) {
+                try {
+                    Long id = null;
+                    try {
+                        File resultFile = new File(build.getRootDir(), TestListener.TEST_RESULT_FILE);
+                        id = client.postTestResult(resultFile, false);
+                    } catch (TemporarilyUnavailableException e) {
+                        logger.log(Level.WARNING, "Server temporarily unavailable, will try later", e);
+                        audit(configuration, build, null, true);
+                        break;
+                    } catch (RequestException e) {
+                        logger.log(Level.WARNING, "Failed to submit test results [" + build.getProject().getName() + "#" + build.getNumber() + "]", e);
+                    } catch (RequestErrorException e) {
+                        logger.log(Level.WARNING, "Failed to submit test results [" + build.getProject().getName() + "#" + build.getNumber() + "]", e);
                     }
-                    client = null;
+
+                    if (id != null) {
+                        logger.info("Successfully pushed test results of build [" + item.projectName + "#" + item.buildNumber + "]");
+                        queue.remove();
+                    } else {
+                        logger.warning("Failed to push test results of build [" + item.projectName + "#" + item.buildNumber + "]");
+                        if (!queue.failed()) {
+                            logger.warning("Maximum number of attempts reached, operation will not be re-attempted for this build");
+                        }
+                        client = null;
+                    }
+                    audit(configuration, build, id, false);
+                } catch (FileNotFoundException e) {
+                    logger.warning("File no longer exists, failed to push test results of build [" + item.projectName + "#" + item.buildNumber + "]");
+                    queue.remove();
                 }
-                audit(configuration, build, id, false);
-            } catch (FileNotFoundException e) {
-                logger.warning("File no longer exists, failed to push test results of build [" + item.projectName + "#" + item.buildNumber + "]");
+            } else {
+                logger.info("Test result not needed for build [" + item.projectName + "#" + item.buildNumber + "]");
                 queue.remove();
             }
         }
