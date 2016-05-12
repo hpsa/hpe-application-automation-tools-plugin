@@ -1,11 +1,13 @@
 FROM jenkins:1.609.1
 MAINTAINER Noam Kachko <noam.kachko@hpe.com>
 
+ENV workdir=/opt
 
-RUN  $jenkins_home
-COPY jenkins/
+WORKDIR $workdir
 
-RUN ls -la /jenkins/*
+COPY jenkins/ $workdir/jenkins
+
+RUN ls -la ${workdir}/jenkins
 
 
 EXPOSE 8080
