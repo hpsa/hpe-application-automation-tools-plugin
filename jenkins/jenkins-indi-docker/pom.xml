@@ -111,7 +111,7 @@
                             </execution>
                             <execution>
                                 <id>copy</id>
-                                <phase>package</phase>
+                                <phase>prepare-package</phase>
                                 <goals>
                                     <goal>copy</goal>
                                 </goals>
@@ -161,17 +161,25 @@
                         <groupId>com.spotify</groupId>
                         <artifactId>docker-maven-plugin</artifactId>
                         <version>0.4.1</version>
-                        <configuration>
-                            <imageName>hpsoftware/nga:12.53.2</imageName>
-                            <dockerDirectory>${project.basedir}/src/main/docker</dockerDirectory>
-                            <resources>
-                                <resource>
-                                    <targetPath>/jenkins</targetPath>
-                                    <directory>${project.build.directory}/jenkins</directory>
-                                    <include>mqm-onprem.rpm</include>
-                                </resource>
-                            </resources>
-                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>build-image</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>build</goal>
+                                </goals>
+                                <configuration>
+                                    <imageName>16.60.141.93:5000/jenkins-nga:${project.version}</imageName>
+                                    <dockerDirectory>${project.basedir}/src/main/docker</dockerDirectory>
+                                    <resources>
+                                        <resource>
+                                            <targetPath>/jenkins</targetPath>
+                                            <directory>${project.build.directory}/jenkins</directory>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                        </executions>
                     </plugin>
                 </plugins>
             </build>
