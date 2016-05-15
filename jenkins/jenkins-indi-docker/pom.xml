@@ -33,17 +33,11 @@
 
             <dependencies>
                 <dependency>
-                    <groupId>org.jenkins-ci.plugins</groupId>
-                    <artifactId>hp-lifecycle-management-ci-plugin</artifactId>
-                    <version>${project.version}</version>
-                    <type>hpi</type>
-                </dependency>
-                <dependency>
-                    <groupId>org.jenkins-ci.plugins</groupId>
-                    <artifactId>hp-lifecycle-management-ci-plugin</artifactId>
+                    <groupId>com.hp.mqm</groupId>
+                    <artifactId>jenkins-test-pack</artifactId>
                     <version>${project.version}</version>
                     <type>zip</type>
-                    <classifier>test</classifier>
+                    <classifier>uber</classifier>
                 </dependency>
             </dependencies>
             <properties>

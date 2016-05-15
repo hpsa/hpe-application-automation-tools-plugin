@@ -1,0 +1,45 @@
+<assembly
+        xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0 http://maven.apache.org/xsd/assembly-1.1.0.xsd">
+    <includeBaseDirectory>false</includeBaseDirectory>
+    <id>uber</id>
+    <formats>
+        <format>zip</format>
+    </formats>
+    <fileSets>
+        <fileSet>
+            <directory>${project.basedir}/src/main/resources/jenkins</directory>
+            <outputDirectory>jenkins</outputDirectory>
+            <directoryMode>777</directoryMode>
+            <fileMode>777</fileMode>
+            <!--<includes>-->
+                <!--<include>ansible/**</include>-->
+            <!--</includes>-->
+        </fileSet>
+    </fileSets>
+    <dependencySets>
+        <dependencySet>
+            <outputDirectory>/jenkins/plugins</outputDirectory>
+            <directoryMode>777</directoryMode>
+            <includes>
+                <include>com.hp.docker.jenkins.plugins:scm-api.jpi:jpi:0.2</include>
+                <include>com.hp.docker.jenkins.plugins:hp-application-automation-tools-plugin.jpi:jpi:3.0.7</include>
+                <include>com.hp.docker.jenkins.plugins:git.hpi:hpi:2.3.5</include>
+                <include>com.hp.docker.jenkins.plugins:git-server.hpi:hpi:1.6</include>
+                <include>com.hp.docker.jenkins.plugins:git-client.hpi:hpi:1.17.0</include>
+                <include>com.hp.docker.jenkins.plugins:jquery.hpi:hpi:1.11.2-0</include>
+                <include>com.hp.docker.jenkins.plugins:parameterized-trigger.hpi:hpi:2.26</include>
+                <include>com.hp.docker.jenkins.plugins:jenkins-multijob-plugin:hpi:1.20</include>
+                <include>com.hp.docker.jenkins.plugins:conditional-buildstep:hpi:1.3.3</include>
+                <include>com.hp.docker.jenkins.plugins:envinject:hpi:1.92</include>
+                <include>com.hp.docker.jenkins.plugins:run-condition:hpi:1.0</include>
+                <include>com.hp.docker.jenkins.plugins:token-macro:hpi:1.11</include>
+                <include>com.hp.docker.jenkins.plugins:copyartifact:hpi:1.37</include>
+                <include>com.hp.docker.jenkins.plugins:xunit:hpi:1.99</include>
+                <include>com.hp.docker.jenkins.plugins:dynamic-axis:hpi:1.0.3</include>
+                <include>org.jenkins-ci.plugins:hp-lifecycle-management-ci-plugin:hpi:${project.version}</include>
+            </includes>
+        </dependencySet>
+    </dependencySets>
+</assembly>
