@@ -14,6 +14,7 @@ import com.hp.octane.plugins.jenkins.ExtensionUtil;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.client.TestEventPublisher;
+import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
 import hudson.FilePath;
 import hudson.matrix.Axis;
 import hudson.matrix.AxisList;
@@ -349,6 +350,8 @@ public class TestDispatcherTest {
 
     private void verifyRestClient(MqmRestClient restClient, AbstractBuild build, boolean body) throws IOException {
         Mockito.verify(restClient).tryToConnectSharedSpace();
+
+        Mockito.verify(restClient).isTestResultRelevant(ServerIdentity.getIdentity(), build.getProject().getName(), build.getNumber());
         if (body) {
             Mockito.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
         }
