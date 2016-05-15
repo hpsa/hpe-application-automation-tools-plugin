@@ -18,8 +18,6 @@ import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationService;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
-import com.hp.octane.plugins.jenkins.tests.build.BuildDescriptor;
-import com.hp.octane.plugins.jenkins.tests.build.BuildHandlerUtils;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.model.AbstractBuild;
@@ -131,8 +129,7 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
                 continue;
             }
 
-            BuildDescriptor descriptor = BuildHandlerUtils.getBuildType(build);
-            Boolean needTestResult = client.isTestResultRelevant(ServerIdentity.getIdentity(), descriptor.getBuildId(), descriptor.getJobName());
+            Boolean needTestResult = client.isTestResultRelevant(ServerIdentity.getIdentity(), build.getProject().getName(), build.getNumber());
 
             if (needTestResult) {
                 try {

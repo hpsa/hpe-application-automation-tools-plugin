@@ -57,7 +57,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	private static final String URI_TEST_RESULT_STATUS = PREFIX_CI + "test-results/{0}";
 	private static final String URI_TEST_RESULT_LOG = URI_TEST_RESULT_STATUS + "/log";
 	private static final String URI_JOB_CONFIGURATION = "analytics/ci/servers/{0}/jobs/{1}/configuration";
-	private static final String URI_PREFLIGHT = "analytics/ci/preflight/server/{0}/job/{1}/build/{2}";
+	private static final String URI_PREFLIGHT = "analytics/ci/servers/{0}/jobs/{1}/builds/{2}/tests-result-preflight";
 	private static final String URI_RELEASES = "releases";
 	private static final String URI_WORKSPACES = "workspaces";
 	private static final String URI_LIST_ITEMS = "list_nodes";
@@ -98,7 +98,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	}
 
 	@Override
-	public Boolean isTestResultRelevant(String serverIdentity, String runRefId, String jobName){
+	public Boolean isTestResultRelevant(String serverIdentity, String jobName, int runRefId){
 		HttpGet request = new HttpGet(createSharedSpaceInternalApiUri(URI_PREFLIGHT, serverIdentity, jobName, runRefId));
 		HttpResponse response = null;
 		try {
