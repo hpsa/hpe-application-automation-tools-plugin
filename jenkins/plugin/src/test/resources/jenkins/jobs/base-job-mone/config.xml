@@ -1,0 +1,34 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>Testing purpose - to test various pipeline configuration &amp; JE (mirek)</description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>pwd
+        cd ../../
+
+        cp -a hpdevops-discovery-demoapp-master/mone/. $WORKSPACE/mone</command>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command>/var/jenkins_home/tools/hudson.tasks.Maven_MavenInstallation/maven-305/bin/mvn clean test -s /var/jenkins_home/userContent/settings.xml -gs /var/jenkins_home/userContent/settings.xml -f mone/pom.xml</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.tasks.junit.JUnitResultArchiver plugin="junit@1.2-beta-4">
+      <testResults>**/target/**/*.xml</testResults>
+      <keepLongStdio>false</keepLongStdio>
+      <testDataPublishers/>
+      <healthScaleFactor>1.0</healthScaleFactor>
+    </hudson.tasks.junit.JUnitResultArchiver>
+  </publishers>
+  <buildWrappers/>
+</project>

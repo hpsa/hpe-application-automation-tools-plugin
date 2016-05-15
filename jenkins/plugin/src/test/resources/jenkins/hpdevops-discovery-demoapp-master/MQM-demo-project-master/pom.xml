@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.hp.demo</groupId>
+    <artifactId>man-project</artifactId>
+    <packaging>pom</packaging>
+    <version>1.0-SNAPSHOT</version>
+    <modules>
+        <module>automation-core</module>
+        <module>automation-e2e</module>
+        <module>automation-uft</module>
+        <module>test-support</module>
+    </modules>
+
+    <properties>
+        <testcase.groups/>
+        <testresult.outputDir>all</testresult.outputDir>
+    </properties>
+
+    <profiles>
+        <profile>
+            <id>unitTests</id>
+            <properties>
+                <testresult.outputDir>unit</testresult.outputDir>
+                <testcase.groups>com.hp.demo.support.UnitTests</testcase.groups>
+            </properties>
+        </profile>
+        <profile>
+            <id>systemTests</id>
+            <properties>
+                <testresult.outputDir>system</testresult.outputDir>
+                <testcase.groups>com.hp.demo.support.SystemTests</testcase.groups>
+            </properties>
+        </profile>
+        <profile>
+            <id>restTests</id>
+            <properties>
+                <testresult.outputDir>rest</testresult.outputDir>
+                <testcase.groups>com.hp.demo.support.RESTTests</testcase.groups>
+            </properties>
+        </profile>
+        <profile>
+            <id>functionalTests</id>
+            <properties>
+                <testresult.outputDir>functional</testresult.outputDir>
+                <testcase.groups>com.hp.demo.support.FunctionalTests</testcase.groups>
+            </properties>
+        </profile>
+    </profiles>
+
+</project>

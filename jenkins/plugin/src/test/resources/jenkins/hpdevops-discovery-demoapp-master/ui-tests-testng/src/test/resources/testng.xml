@@ -1,0 +1,23 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+
+<suite name="SuiteA" verbose="1">
+	<test name="Trial">
+		<groups>
+			<run>
+				<include name="Group_A" />
+				<exclude name="Group_B" />
+			</run>
+		</groups>
+
+		<classes>
+			<class name="com.hp.devops.demoapp.tests.ui.TestSuiteA">
+				<methods>
+					<include name="testCase1" />
+					<include name="testCase2" />
+					<include name="testCase3" />
+				</methods>
+			</class>
+			<class name="com.hp.devops.demoapp.tests.ui.TestSuiteB"/>
+		</classes>
+	</test>
+</suite>

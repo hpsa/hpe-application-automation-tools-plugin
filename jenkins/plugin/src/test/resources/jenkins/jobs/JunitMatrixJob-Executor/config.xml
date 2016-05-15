@@ -1,0 +1,79 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<matrix-project plugin="matrix-project@1.4.1">
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>testsToRun</name>
+          <description></description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>paramA</name>
+          <description></description>
+          <defaultValue>true</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>paramB</name>
+          <description></description>
+          <defaultValue>true</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <axes>
+    <ca.silvermaplesolutions.jenkins.plugins.daxis.DynamicAxis plugin="dynamic-axis@1.0.3">
+      <name>paramA</name>
+      <values>
+        <string>paramA</string>
+      </values>
+      <varName>paramA</varName>
+      <axisValues>
+        <string>default</string>
+      </axisValues>
+    </ca.silvermaplesolutions.jenkins.plugins.daxis.DynamicAxis>
+    <ca.silvermaplesolutions.jenkins.plugins.daxis.DynamicAxis plugin="dynamic-axis@1.0.3">
+      <name>paramB</name>
+      <values>
+        <string>paramB</string>
+      </values>
+      <varName>paramB</varName>
+      <axisValues>
+        <string>default</string>
+      </axisValues>
+    </ca.silvermaplesolutions.jenkins.plugins.daxis.DynamicAxis>
+  </axes>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>pwd
+        cd ../../../../../..
+
+        cp -a hpdevops-discovery-demoapp-master/. $WORKSPACE/</command>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command>/var/jenkins_home/tools/hudson.tasks.Maven_MavenInstallation/maven-305/bin/mvn clean verify -f matrix-tests/pom.xml -s /var/jenkins_home/userContent/settings.xml -gs /var/jenkins_home/userContent/settings.xml -DparamA=$paramA -DparamB=$paramB ${testsToRun}</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.tasks.junit.JUnitResultArchiver plugin="junit@1.2-beta-4">
+      <testResults>matrix-tests/target/failsafe-reports/*.xml</testResults>
+      <keepLongStdio>false</keepLongStdio>
+      <testDataPublishers/>
+      <healthScaleFactor>1.0</healthScaleFactor>
+    </hudson.tasks.junit.JUnitResultArchiver>
+  </publishers>
+  <buildWrappers/>
+  <executionStrategy class="hudson.matrix.DefaultMatrixExecutionStrategyImpl">
+    <runSequentially>false</runSequentially>
+  </executionStrategy>
+</matrix-project>

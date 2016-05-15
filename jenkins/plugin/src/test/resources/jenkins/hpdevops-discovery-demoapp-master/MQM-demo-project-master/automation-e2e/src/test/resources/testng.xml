@@ -1,0 +1,37 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+<suite name="DemoSuite" verbose="2">
+    <test name="RestTests">
+        <packages>
+            <package name="com.hp.demo.client.contact" />
+            <package name="com.hp.demo.client.image" />
+            <package name="com.hp.demo.client.login" />
+            <package name="com.hp.demo.client.rest" />
+            <package name="com.hp.demo.client.search" />
+            <package name="com.hp.demo.server.contact" />
+            <package name="com.hp.demo.server.account" />
+            <package name="com.hp.demo.server.tasks" />
+            <package name="com.hp.demo.server.search" />
+            <!-- User defined test classes -->
+            <package name="com.hp.demo.extra" />
+        </packages>
+    </test>
+    <test name="FunctionalTests">
+        <packages>
+            <package name="com.hp.demo.e2e.camera" />
+            <package name="com.hp.demo.e2e.contact" />
+            <package name="com.hp.demo.e2e.account" />
+            <package name="com.hp.demo.e2e.image" />
+            <package name="com.hp.demo.e2e.lifecycle" />
+            <package name="com.hp.demo.e2e.location" />
+            <package name="com.hp.demo.e2e.login" />
+            <package name="com.hp.demo.e2e.notifications" />
+            <package name="com.hp.demo.e2e.performance" />
+            <package name="com.hp.demo.e2e.platform" />
+            <package name="com.hp.demo.e2e.providers" />
+            <package name="com.hp.demo.e2e.rest" />
+            <package name="com.hp.demo.e2e.search" />
+            <package name="com.hp.demo.e2e.tasks" />
+            <package name="com.hp.demo.e2e.utils" />
+        </packages>
+    </test>
+</suite>

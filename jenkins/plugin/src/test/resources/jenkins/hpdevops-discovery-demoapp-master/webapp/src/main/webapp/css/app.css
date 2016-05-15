@@ -1,0 +1,120 @@
+@font-face {
+	font-family: "HP_Simplified";
+	src: url("fonts/HPSimplified_Rg.ttf");
+}
+
+html, body {
+	position: absolute;
+	margin: 0;
+	padding: 0;
+	height: 100%;
+	width: 100%;
+	overflow: hidden;
+	font: 20px HP_Simplified;
+}
+
+#header {
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 150px;
+	width: 100%;
+	overflow: hidden;
+	border-bottom: 3px solid #ccc;
+	box-sizing: border-box;
+}
+
+#content {
+	position: absolute;
+	top: 150px;
+	bottom: 70px;
+	width: 100%;
+	overflow: hidden;
+}
+
+#footer {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	height: 70px;
+	width: 100%;
+	overflow: hidden;
+	border-top: 3px solid #ccc;
+	box-sizing: border-box;
+}
+
+#mainTitle {
+	position: absolute;
+	top: 30px;
+	left: 60px;
+	color: #449;
+	font-size: 60px;
+	font-weight: bold;
+	letter-spacing: 12px;
+}
+
+#mainTitle > span:nth-last-child(0n+3) {
+	opacity: .6;
+}
+
+#mainTitle > span:nth-last-child(0n+2) {
+	opacity: .4;
+}
+
+#mainTitle > span:nth-last-child(0n+1) {
+	opacity: .2;
+}
+
+#contentTitle {
+	margin: 20px;
+}
+
+#bandsList {
+	position: absolute;
+	bottom: 0;
+	height: 80%;
+	width: 100%;
+	overflow-x: hidden;
+	overflow-y: scroll;
+}
+
+.bandStrip {
+	position: relative;
+	margin: 20px;
+	background: linear-gradient(0deg, #eee, #ccc, #eee);
+	border: 2px solid #ccf;
+	border-radius: 5px;
+}
+
+.bandLogo {
+	display: inline-block;
+	position: relative;
+	height: 100px;
+	width: auto;
+}
+
+.bandTitle {
+	position: absolute;
+	top: 30px;
+	left: 420px;
+	font-size: 40px;
+}
+
+.bandVotes {
+	position: absolute;
+	top: 30px;
+	left: 1200px;
+	font-size: 40px;
+}
+
+.bandSong {
+	position: absolute;
+	top: 40px;
+	right: 20px;
+}
+
+#totalVotes {
+	position: absolute;
+	top: 20px;
+	left: 20px;
+}

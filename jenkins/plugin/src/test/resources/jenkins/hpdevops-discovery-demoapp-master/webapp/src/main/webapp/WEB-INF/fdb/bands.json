@@ -1,0 +1,37 @@
+[
+    {
+        "id": 1,
+        "song": "audio/song_dt.mp3",
+        "logo": "images/logo_dt.png",
+        "name": "Dream Theater",
+        "votes": 23
+    },
+    {
+        "id": 2,
+        "song": "audio/song_qsr.mp3",
+        "logo": "images/logo_qsr.png",
+        "name": "Queensryche",
+        "votes": 3
+    },
+    {
+        "id": 3,
+        "song": "audio/song_sx.mp3",
+        "logo": "images/logo_sx.png",
+        "name": "Symphony X",
+        "votes": 2
+    },
+    {
+        "id": 4,
+        "song": "audio/song_rush.mp3",
+        "logo": "images/logo_rush.png",
+        "name": "Rush",
+        "votes": 1
+    },
+    {
+        "id": 5,
+        "song": "audio/song_tool.mp3",
+        "logo": "images/logo_tool.png",
+        "name": "Tool",
+        "votes": 1
+    }
+]

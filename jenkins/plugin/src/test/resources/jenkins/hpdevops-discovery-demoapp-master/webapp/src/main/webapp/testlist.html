@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 5px;
+        }
+        td.cellInput
+        {
+            padding: 0px;
+        }
+
+        th {
+            text-align: left;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 0px;
+            box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            border: 0px;
+        }
+        button
+        {
+            width: 100px; height : 50px;
+        }
+
+    </style>
+</head>
+<body onload="initTable();">
+<table id=testTable style="width:50%">
+    <tr>
+        <th>Test class</th>
+        <th>Test Name</th>
+        <th>Framework</th>
+    </tr>
+
+</table>
+
+<br/>
+<br/>
+<table  id=paramTable style="width:50%">
+    <tr>
+        <th>Parameter Name</th>
+        <th>Parameter Value</th>
+    </tr>
+    <tr>
+        <td class="cellInput"><input type="text"/></td>
+        <td class="cellInput"><input type="text"/></td>
+    </tr>
+    <tr>
+        <td class="cellInput"><input type="text"/></td>
+        <td class="cellInput"><input type="text"/></td>
+    </tr>
+    <tr>
+        <td class="cellInput"><input type="text"/></td>
+        <td class="cellInput"><input type="text"/></td>
+    </tr>
+    <tr>
+        <td class="cellInput"><input type="text"/></td>
+        <td class="cellInput"><input type="text"/></td>
+    </tr>
+</table>
+<br/>
+<br/>
+<br/>
+<button name="button" id="submit">submit</button>
+<script>
+    function initTable() {
+
+        var testTable = document.getElementById("testTable");
+        var parametersTable=document.getElementById("paramTable");
+        var currentSelectedTestIndex=-1;
+        var tests = [];
+        var frameworToJobUrl={};
+        frameworToJobUrl["Selenium-Junit"]="http://myd-vm02771.hpswlabs.adapps.hp.com:8080/jenkins/job/Selenium-Junit/build?delay=0sec";
+        frameworToJobUrl["Selenium via TestNG"]="http://myd-vm02771.hpswlabs.adapps.hp.com:8080/jenkins/job/Selenium-TestNG/build?delay=0sec";
+        var junit="Selenium-Junit";
+        var testNG="Selenium via TestNG";
+
+        function Test(cclass, mmethod,framework) {
+            this.cclass = cclass;
+            this.mmethod = mmethod;
+            this.framework=framework;
+        }
+
+	    tests.push(new Test("com.hp.devops.demoapp.tests.ui.TestA", "testUIcaseA", "Selenium-Junit"));
+	    tests.push(new Test("com.hp.devops.demoapp.tests.ui.TestA", "testUIcaseB", "Selenium-Junit"));
+	    tests.push(new Test("com.hp.devops.demoapp.tests.ui.TestB", "testUIcaseC", "Selenium-Junit"));
+	    tests.push(new Test("com.hp.devops.demoapp.tests.ui.TestB", "testUIcaseD", "Selenium-Junit"));
+	    tests.push(new Test("com.hp.devops.demoapp.tests.ui.TestSuiteA", "testCase1", "Selenium via TestNG"));
+	    tests.push(new Test("com.hp.devops.demoapp.tests.ui.TestSuiteA", "testCase2", "Selenium via TestNG"));
+	    tests.push(new Test("com.hp.devops.demoapp.tests.ui.TestSuiteA", "testCase3", "Selenium via TestNG"));
+	    tests.push(new Test("com.hp.devops.demoapp.tests.ui.TestSuiteB", "testCaseA", "Selenium via TestNG"));
+	    tests.push(new Test("com.hp.devops.demoapp.tests.ui.TestSuiteB", "testCaseB", "Selenium via TestNG"));
+	    tests.push(new Test("com.hp.devops.demoapp.tests.ui.TestSuiteB", "testCaseC", "Selenium via TestNG"));
+        //init tests table
+        tests.forEach(function (element) {
+
+            testTable.innerHTML += "<tr><td>" + element.cclass + "</td><td>" + element.mmethod +"</td><td>"+element.framework+ "</td>" + "</tr>";
+        });
+        for (var i = 1, row; row = testTable.rows[i]; i++) {
+            row.onclick = function () {
+                for (var i = 1, row; row = testTable.rows[i]; i++) {
+                    if (this !== row) {
+                        row.style.color = 'DarkGray';
+                    }
+                    else {
+                        row.style.color = 'black'
+                        //set the current selected index
+                        currentSelectedTestIndex=i;
+                    }
+                }
+                for (var i = 1, row; row = parametersTable.rows[i]; i++) {
+                    for (var j = 0, col; col = row.cells[j]; j++) {
+                        col.firstChild.value='';
+                    }
+                }
+                //set predefined parameters
+                if(testTable.rows[currentSelectedTestIndex].cells[2].innerText===junit)
+                {
+                      parametersTable.rows[1].cells[0].firstChild.value="useProxy";
+                      parametersTable.rows[2].cells[0].firstChild.value="appUrl";
+                }
+                else
+                {
+                    parametersTable.rows[1].cells[0].firstChild.value="PROXY_HOST";
+                    parametersTable.rows[2].cells[0].firstChild.value="PROXY_PORT";
+                    parametersTable.rows[3].cells[0].firstChild.value="APP_HOST";
+                    parametersTable.rows[4].cells[0].firstChild.value="APP_PORT";
+                }
+            };
+        }
+
+
+
+
+
+
+
+        var submitButton=document.getElementById("submit");
+        submitButton.onclick=function(){
+
+            if(currentSelectedTestIndex==-1)
+            {
+                alert("no test selected");
+                return ;
+            }
+            var framework= testTable.rows[currentSelectedTestIndex].cells[2].innerText;
+            var url=frameworToJobUrl[framework];
+            var testClass=testTable.rows[currentSelectedTestIndex].cells[0].innerText;
+            var testName=testTable.rows[currentSelectedTestIndex].cells[1].innerText;
+
+
+            var jsonSendParameters={'parameter':[]};
+            //add test execution run
+            if(framework===junit) {
+                jsonSendParameters.parameter.push({'name': 'testsToRun', 'value': "-Dtest=" + testClass + "#" + testName});
+            }
+            else{
+                jsonSendParameters.parameter.push({'name': 'TESTNG_PARAMS', 'value': "-Dtest=" + testClass + "#" + testName});
+            }
+
+            for (var i = 1, row; row = parametersTable.rows[i]; i++) {
+                var parameterName=row.cells[0].firstChild.value;
+                var parameterValue=row.cells[1].firstChild.value;
+                if(parameterName==="")
+                {
+                    break;
+                }
+                jsonSendParameters.parameter.push({'name':parameterName,'value':parameterValue})
+            }
+
+            var xmlhttp = new XMLHttpRequest();
+            xmlhttp.open("POST", url, true);
+            xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            xmlhttp.onreadystatechange = function () { //Call a function when the state changes.
+                if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                    alert(xmlhttp.responseText);
+                }
+            }
+
+            var stringParameters = encodeURIComponent(JSON.stringify(jsonSendParameters));
+            var data = "json="+stringParameters;
+            xmlhttp.send(data);
+
+
+        }
+
+//        one test, one class:
+//        curl -X POST "http://myd-vm02771.hpswlabs.adapps.hp.com:8080/jenkins/job/Selenium-Junit/build?delay=0sec"
+// --data-urlencode json=
+// "{'parameter': [{'name': 'useProxy', 'value': 'false'},{'name': 'appUrl', 'value': 'http://myd-vm05069.hpswlabs.adapps.hp.com:9080'},
+// {'name': 'testsToRun', 'value': '-Dtest=com.hp.devops.demoapp.tests.ui.TestA#testUIcaseB'}]}"
+//TESTNG
+//        DPROXY_PORT= -DAPP_PORT=9080 -DPROXY_HOST= -DTESTNG_PARAMS=-Dgroups=Group_A -DAPP_HOST=http://myd-vm05069.hpswlabs.adapps.hp.com
+        //http://myd-vm02771.hpswlabs.adapps.hp.com:8080/jenkins/job/Selenium-TestNG
+    }
+
+</script>
+
+</body>
+</html>

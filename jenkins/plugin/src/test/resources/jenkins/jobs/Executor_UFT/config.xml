@@ -1,0 +1,86 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.FileParameterDefinition>
+          <name>testsToRun.mtbx</name>
+          <description>mtbx file</description>
+        </hudson.model.FileParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>HA_SETUP</name>
+          <description></description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>Browser</name>
+          <description></description>
+          <defaultValue>Chrome</defaultValue>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@1.8.4">
+      <maxConcurrentPerNode>1</maxConcurrentPerNode>
+      <maxConcurrentTotal>1</maxConcurrentTotal>
+      <categories>
+        <string>uft</string>
+      </categories>
+      <throttleEnabled>true</throttleEnabled>
+      <throttleOption>category</throttleOption>
+    </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@2.3.5">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://github.com/TA-demo/MQM-demo-UFT-tests.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/master</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions/>
+  </scm>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.BatchFile>
+      <command>echo HA_SETUP value: &#xd;
+echo %HA_SETUP%&gt; c:\envtesthack.txt</command>
+    </hudson.tasks.BatchFile>
+    <com.hp.application.automation.tools.run.RunFromFileBuilder plugin="hp-application-automation-tools-plugin@3.0.7">
+      <runFromFileModel>
+        <fsTests>testsToRun.mtbx
+</fsTests>
+        <fsTimeout></fsTimeout>
+        <controllerPollingInterval>30</controllerPollingInterval>
+        <perScenarioTimeOut>10</perScenarioTimeOut>
+        <ignoreErrorStrings></ignoreErrorStrings>
+      </runFromFileModel>
+      <ResultFilename>ApiResults.xml</ResultFilename>
+      <ParamFileName>ApiRun.txt</ParamFileName>
+    </com.hp.application.automation.tools.run.RunFromFileBuilder>
+    <hudson.tasks.BatchFile>
+      <command>del /F /Q c:\envtesthack.txt</command>
+    </hudson.tasks.BatchFile>
+  </builders>
+  <publishers>
+    <com.hp.application.automation.tools.results.RunResultRecorder plugin="hp-application-automation-tools-plugin@3.0.7">
+      <__resultsPublisherModel>
+        <archiveTestResultsMode>ALWAYS_ARCHIVE_TEST_REPORT</archiveTestResultsMode>
+      </__resultsPublisherModel>
+    </com.hp.application.automation.tools.results.RunResultRecorder>
+  </publishers>
+  <buildWrappers/>
+</project>
