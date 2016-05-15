@@ -172,6 +172,7 @@ public class JUnitResultsTest {
         Assert.assertEquals(Collections.singleton("junit-job#1"), getQueuedItems());
     }
 
+
     @Test
     public void testJUnitResultsMatrixProject() throws Exception {
         MatrixProject matrixProject = rule.createMatrixProject(projectName);
