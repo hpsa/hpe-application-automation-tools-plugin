@@ -129,9 +129,9 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
                 continue;
             }
 
-            //Boolean needTestResult = client.isTestResultRelevant(ServerIdentity.getIdentity(), build.getProject().getName(), build.getNumber());
+            Boolean needTestResult = client.isTestResultRelevant(ServerIdentity.getIdentity(), build.getProject().getName(), build.getNumber());
 
-          //  if (needTestResult) {
+            if (needTestResult) {
                 try {
                     Long id = null;
                     try {
@@ -162,10 +162,10 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
                     logger.warning("File no longer exists, failed to push test results of build [" + item.projectName + "#" + item.buildNumber + "]");
                     queue.remove();
                 }
-           // } else {
-           //     logger.info("Test result not needed for build [" + item.projectName + "#" + item.buildNumber + "]");
-           //     queue.remove();
-           // }
+            } else {
+                logger.info("Test result not needed for build [" + item.projectName + "#" + item.buildNumber + "]");
+                queue.remove();
+            }
         }
     }
 
