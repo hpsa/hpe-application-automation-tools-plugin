@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.file.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import hudson.console.HyperlinkNote;
 import org.apache.commons.io.IOUtils;
@@ -89,9 +90,12 @@ public class PcClient {
         return waitForRunState(runId, state, interval);
     }
 
+
     private PcRunResponse waitForRunState(int runId, RunState completionState, int interval) throws InterruptedException,
             ClientProtocolException, PcException, IOException {
 
+        int counter = 0;
+        RunState[] states = {RunState.BEFORE_COLLATING_RESULTS,RunState.BEFORE_CREATING_ANALYSIS_DATA};
         PcRunResponse response = null;
         RunState lastState = RunState.UNDEFINED;
         do {
@@ -101,7 +105,20 @@ public class PcClient {
                 lastState = currentState;
                 logger.println(String.format("RunID: %s - State = %s", runId, currentState.value()));
             }
-            Thread.sleep(interval);
+
+            // In case we are in state before collate or before analyze, we will wait 1 minute for the state to change otherwise we exit
+            // because the user probably stopped the run from PC or timeslot has reached the end.
+            if (Arrays.asList(states).contains(currentState)){
+                counter++;
+                Thread.sleep(1000);
+                if(counter > 60 ){
+                    logger.println(String.format("RunID: %s  - Stopped from Performance Center side with state = %s", runId, currentState.value()));
+                    break;
+                }
+            }else{
+                counter = 0;
+                Thread.sleep(interval);
+            }
         } while (lastState.ordinal() < completionState.ordinal());
         return response;
     }
