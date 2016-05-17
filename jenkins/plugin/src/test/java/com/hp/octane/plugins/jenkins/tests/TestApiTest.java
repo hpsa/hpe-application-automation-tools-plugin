@@ -76,6 +76,7 @@ public class TestApiTest {
 		RetryModel retryModel = new RetryModel(testEventPublisher);
 		testDispatcher._setRetryModel(retryModel);
 		testDispatcher._setEventPublisher(testEventPublisher);
+		Mockito.when(restClient.isTestResultRelevant(Mockito.anyString(), Mockito.anyString(), Mockito.anyInt())).thenReturn(true);
 
 		// server needs to be configured in order for the processing to happen
 		HtmlPage configPage = rule.createWebClient().goTo("configure");
