@@ -20,6 +20,7 @@ import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
 import hudson.Extension;
 import hudson.FilePath;
+import hudson.matrix.MatrixRun;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.TaskListener;
@@ -129,7 +130,14 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
                 continue;
             }
 
-            Boolean needTestResult = client.isTestResultRelevant(ServerIdentity.getIdentity(), build.getProject().getName(), build.getNumber());
+            String jobName = null;
+            if (build instanceof MatrixRun) {
+                jobName = ((MatrixRun) build).getProject().getParent().getName();
+            } else {
+                jobName = build.getProject().getName();
+            }
+
+            Boolean needTestResult = client.isTestResultRelevant(ServerIdentity.getIdentity(), jobName, build.getNumber());
 
             if (needTestResult) {
                 try {
