@@ -13,7 +13,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum SCMType {
 	UNKNOWN("unknown"),
-	GIT("git");
+	GIT("git"),
+	SVN("svn");
 
 	private String value;
 
