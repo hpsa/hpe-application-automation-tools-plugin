@@ -5,7 +5,10 @@
 
 package com.hp.application.automation.tools.run;
 
+import com.hp.application.automation.tools.EncryptionUtils;
 import com.hp.application.automation.tools.model.MCServerSettingsModel;
+import com.hp.application.automation.tools.mc.JobConfigurationProxy;
+import com.hp.application.automation.tools.model.ProxySettings;
 import com.hp.application.automation.tools.settings.MCServerSettingsBuilder;
 import hudson.EnvVars;
 import hudson.Extension;
@@ -31,9 +34,9 @@ import java.net.URL;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
+
+import net.minidev.json.JSONObject;
 
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -42,6 +45,7 @@ import org.kohsuke.stapler.QueryParameter;
 import com.hp.application.automation.tools.AlmToolsUtils;
 import com.hp.application.automation.tools.model.RunFromFileSystemModel;
 import com.hp.application.automation.tools.run.AlmRunTypes.RunType;
+import org.kohsuke.stapler.bind.JavaScriptMethod;
 
 public class RunFromFileBuilder extends Builder {
 
@@ -54,11 +58,10 @@ public class RunFromFileBuilder extends Builder {
 
 	@DataBoundConstructor
 	public RunFromFileBuilder(String fsTests, String fsTimeout, String controllerPollingInterval,
-			String perScenarioTimeOut, String ignoreErrorStrings, String mcServerName, String fsUserName, String fsPassword, String fsAppPath, String fsAppParamName) {
+			String perScenarioTimeOut, String ignoreErrorStrings, String mcServerName, String fsUserName, String fsPassword, String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel, String fsOs, String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics, String fsInstrumented, String fsExtraApps, String fsJobId, ProxySettings proxySettings, boolean useSSL) {
 
 		runFromFileModel = new RunFromFileSystemModel(fsTests, fsTimeout, controllerPollingInterval,
-				perScenarioTimeOut, ignoreErrorStrings, mcServerName, fsUserName, fsPassword, fsAppPath, fsAppParamName);
-
+				perScenarioTimeOut, ignoreErrorStrings, mcServerName, fsUserName, fsPassword, fsDeviceId, fsTargetLab, fsManufacturerAndModel, fsOs, fsAutActions, fsLaunchAppName, fsDevicesMetrics, fsInstrumented, fsExtraApps, fsJobId, proxySettings, useSSL);
 	}
 
 	@Override
@@ -84,21 +87,32 @@ public class RunFromFileBuilder extends Builder {
 			e2.printStackTrace();
 		}
 		VariableResolver<String> varResolver = build.getBuildVariableResolver();
-        String appIdentifier;
+        JSONObject jobDetails = null;
         String mcServerUrl = "";
-        if(mcServerSettingsModel != null){
-            mcServerUrl = mcServerSettingsModel.getProperties().getProperty("mcServerUrl");
-            appIdentifier = runFromFileModel.getAppIndentifier(mcServerUrl);
-        }else{
-            appIdentifier = "";
-        }
 		// now merge them into one list
-		Properties mergedProperties = new Properties();
-        //add app identifier
-        if(!StringUtils.isEmpty(runFromFileModel.getFsAppParamName()) && !StringUtils.isEmpty(appIdentifier)){
-            mergedProperties.setProperty("fsAppParamName",runFromFileModel.getFsAppParamName());
-            mergedProperties.setProperty(runFromFileModel.getFsAppParamName(),appIdentifier);
+        Properties mergedProperties = new Properties();
+
+        if(mcServerSettingsModel != null){
+            mcServerUrl = mcServerSettingsModel.getProperties().getProperty("MobileHostAddress");
+            if(runFromFileModel.getProxySettings() == null){
+                jobDetails = runFromFileModel.getJobDetails(mcServerUrl, null, null, null);
+            }else{
+                jobDetails = runFromFileModel.getJobDetails(mcServerUrl, runFromFileModel.getProxySettings().getFsProxyAddress(),runFromFileModel.getProxySettings().getFsProxyUserName(), runFromFileModel.getProxySettings().getFsProxyPassword());
+            }
+            mergedProperties.setProperty("mobileinfo", jobDetails.toJSONString());
         }
+        if(runFromFileModel != null && StringUtils.isNotBlank(runFromFileModel.getFsPassword())){
+            String encPassword = "";
+            try {
+                encPassword = EncryptionUtils.Encrypt(runFromFileModel.getFsPassword(),EncryptionUtils.getSecretKey());
+                mergedProperties.put("MobilePassword", encPassword);
+            } catch (Exception e) {
+                build.setResult(Result.FAILURE);
+                listener.fatalError("problem in mobile center password encription");
+            }
+        }
+
+        mergedProperties.putAll(mcServerSettingsModel.getProperties());
 		mergedProperties.putAll(runFromFileModel.getProperties(env, varResolver));
 		int idx = 0;
 		for (String key : env.keySet()) {
@@ -161,8 +175,8 @@ public class RunFromFileBuilder extends Builder {
 			CmdLineExe.copyFrom(cmdExeUrl);
 			
 			CmdLineExe2.copyFrom(cmdExe2Url);
-			
-			
+
+
 		} catch (IOException e1) {
 			build.setResult(Result.FAILURE);
 			// TODO Auto-generated catch block
@@ -237,6 +251,7 @@ public class RunFromFileBuilder extends Builder {
 	// point.
 	public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
 
+        JobConfigurationProxy instance = JobConfigurationProxy.getInstance();
 		public DescriptorImpl() {
 			load();
 		}
@@ -247,7 +262,30 @@ public class RunFromFileBuilder extends Builder {
 			return true;
 		}
 
-		@Override
+        @JavaScriptMethod
+        public String getJobId(String mcUrl, String mcUserName, String mcPassword, String proxyAddress, String proxyUserName, String proxyPassword) {
+            return instance.createTempJob(mcUrl, mcUserName, mcPassword, proxyAddress, proxyUserName, proxyPassword);
+        }
+
+        @JavaScriptMethod
+        public JSONObject populateAppAndDevice(String mcUrl, String mcUserName, String mcPassword,  String proxyAddress, String proxyUserName, String proxyPassword, String jobId) {
+            return instance.getJobJSONData(mcUrl, mcUserName, mcPassword, proxyAddress, proxyUserName, proxyPassword, jobId);
+        }
+
+        @JavaScriptMethod
+        public String getMcServerUrl(String serverName) {
+            String serverUrl = "";
+            MCServerSettingsModel[] servers = Hudson.getInstance().getDescriptorByType(
+                    MCServerSettingsBuilder.MCDescriptorImpl.class).getInstallations();
+            for (MCServerSettingsModel mcServer : servers) {
+                if (mcServer.getMcServerName().equals(serverName)) {
+                    serverUrl = mcServer.getMcServerUrl();
+                }
+            }
+            return serverUrl;
+        }
+
+        @Override
 		public String getDisplayName() {
 			return "Execute HP tests from file system";
 		}
@@ -259,8 +297,6 @@ public class RunFromFileBuilder extends Builder {
 		
 		public FormValidation doCheckIgnoreErrorStrings(@QueryParameter String value)
 		{
-			
-			
 			return FormValidation.ok();
 		}
 		

@@ -5,6 +5,10 @@
 
 package com.hp.application.automation.tools.model;
 
+import com.hp.application.automation.tools.mc.Constants;
+import com.hp.application.automation.tools.mc.HttpResponse;
+import com.hp.application.automation.tools.mc.HttpUtils;
+import com.hp.application.automation.tools.mc.JobConfigurationProxy;
 import hudson.EnvVars;
 import hudson.util.Secret;
 import hudson.util.VariableResolver;
@@ -12,88 +16,78 @@ import hudson.util.VariableResolver;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
-import net.minidev.json.parser.ParseException;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 public class RunFromFileSystemModel {
 
-	private String fsTests;
-	private String fsTimeout;
-	private String controllerPollingInterval = "30";
-	private String perScenarioTimeOut = "10";
-	private String ignoreErrorStrings;
-	private String mcServerName;
-	private String fsUserName;
-	private Secret fsPassword;
-	private String fsAppPath;
-	private String fsAppParamName;
+    private String fsTests;
+    private String fsTimeout;
+    private String controllerPollingInterval = "30";
+    private String perScenarioTimeOut = "10";
+    private String ignoreErrorStrings;
+    private String mcServerName;
+    private String fsUserName;
+    private Secret fsPassword;
+    private String fsDeviceId;
+    private String fsOs;
+    private String fsManufacturerAndModel;
+    private String fsTargetLab;
+    private String fsAutActions;
+    private String fsLaunchAppName;
+    private String fsInstrumented;
+    private String fsDevicesMetrics;
+    private String fsExtraApps;
+    private String fsJobId;
+    private ProxySettings proxySettings;
+    private boolean useSSL;
 
-    private final static String JSESSIONID = "JSESSIONID";
-    private final static String HPMCSECRET = "x-hp4msecret";
-    private final static String BOUNDARYSTR = "randomstring";
-    private final static String DATA = "data";
-    private final static String IDENTIFIER = "identifier";
-    private final static String GETAPPID = "/rest/apps/getAppById/";
-    private final static String MC_LOGIN = "/rest/client/login";
-    private final static String APP_UPLOAD = "/rest/apps/upload";
-    private final static String CONTENT_TYPE = "Content-type";
-    private final static String ACCEPT = "Accept";
-    private final static String CONTENT_TYPE_VALUE = "application/json; charset=UTF-8";
-    private final static String METHOD_GET = "GET";
-    private final static String METHOD_POST = "POST";
-    private final static String CONTENT_TYPE_DOWNLOAD_VALUE = "multipart/form-data; boundary=----";
-    private final static String FILENAME = "filename";
-    private final static String JSON = "application/json";
-    private final static String MC_USERNAME = "name";
-    private final static String MC_PASSWORD = "password";
-    private final static String MC_ACCOUNT = "accountName";
-    private final static String MC_ACCOUNT_VALUE = "default";
-    private final static String SETCOOKIE = "Set-Cookie";
-    private final static String COOKIE = "Cookie";
-    private final static String SEMICOLON = ";";
-    private final static String EQUAL = "=";
+    @DataBoundConstructor
+    public RunFromFileSystemModel(String fsTests, String fsTimeout, String controllerPollingInterval,String perScenarioTimeOut, String ignoreErrorStrings, String mcServerName, String fsUserName, String fsPassword, String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel, String fsOs, String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics, String fsInstrumented, String fsExtraApps, String fsJobId, ProxySettings proxySettings, boolean useSSL) {
 
-    private Map<String,String> headers = null;
+        this.fsTests = fsTests;
 
-	@DataBoundConstructor
-	public RunFromFileSystemModel(String fsTests, String fsTimeout, String controllerPollingInterval,String perScenarioTimeOut, String ignoreErrorStrings, String mcServerName, String fsUserName, String fsPassword, String fsAppPath, String fsAppParamName) {
+        if (!this.fsTests.contains("\n")) {
+            this.fsTests += "\n";
+        }
 
-		this.fsTests = fsTests;
+        this.fsTimeout = fsTimeout;
 
-		if (!this.fsTests.contains("\n")) {
-			this.fsTests += "\n";
-		}
 
-		this.fsTimeout = fsTimeout;
-		
-		
-		this.perScenarioTimeOut = perScenarioTimeOut;
-		this.controllerPollingInterval = controllerPollingInterval;
-		this.ignoreErrorStrings = ignoreErrorStrings;
+        this.perScenarioTimeOut = perScenarioTimeOut;
+        this.controllerPollingInterval = controllerPollingInterval;
+        this.ignoreErrorStrings = ignoreErrorStrings;
 
         this.mcServerName = mcServerName;
         this.fsUserName = fsUserName;
         this.fsPassword = Secret.fromString(fsPassword);
-        this.fsAppPath = fsAppPath;
-        this.fsAppParamName = fsAppParamName;
+        this.fsDeviceId = fsDeviceId;
+        this.fsOs = fsOs;
+        this.fsManufacturerAndModel = fsManufacturerAndModel;
+        this.fsTargetLab = fsTargetLab;
+        this.fsAutActions = fsAutActions;
+        this.fsLaunchAppName = fsLaunchAppName;
+        this.fsAutActions = fsAutActions;
+        this.fsDevicesMetrics = fsDevicesMetrics;
+        this.fsInstrumented = fsInstrumented;
+        this.fsExtraApps = fsExtraApps;
+        this.fsJobId = fsJobId;
+        this.proxySettings = proxySettings;
+        this.useSSL = useSSL;
+    }
 
-	}
 
+    public String getFsTests() {
+        return fsTests;
+    }
 
-	public String getFsTests() {
-		return fsTests;
-	}
-
-	public String getFsTimeout() {
-		return fsTimeout;
-	}
+    public String getFsTimeout() {
+        return fsTimeout;
+    }
 
     public String getMcServerName() {
         return mcServerName;
@@ -107,271 +101,196 @@ public class RunFromFileSystemModel {
         return fsPassword.getPlainText();
     }
 
-    public String getFsAppPath() {
-        return fsAppPath;
+    public String getFsDeviceId() {
+        return fsDeviceId;
     }
 
-    public String getFsAppParamName() {
-        return fsAppParamName;
+    public String getFsOs() {
+        return fsOs;
     }
 
-	
-	/**
-	 * @return the controllerPollingInterval
-	 */
-	public String getControllerPollingInterval() {
-		return controllerPollingInterval;
-	}
-
-	/**
-	 * @param controllerPollingInterval the controllerPollingInterval to set
-	 */
-	public void setControllerPollingInterval(String controllerPollingInterval) {
-		this.controllerPollingInterval = controllerPollingInterval;
-	}
-
-	/**
-	 * @return the ignoreErrorStrings
-	 */
-	public String getIgnoreErrorStrings() {
-		return ignoreErrorStrings;
-	}
-
-
-	/**
-	 * @param ignoreErrorStrings the ignoreErrorStrings to set
-	 */
-	public void setIgnoreErrorStrings(String ignoreErrorStrings) {
-		this.ignoreErrorStrings = ignoreErrorStrings;
-	}
-
-
-
-	/**
-	 * @return the perScenarioTimeOut
-	 */
-	public String getPerScenarioTimeOut() {
-		return perScenarioTimeOut;
-	}
-
-	/**
-	 * @param perScenarioTimeOut the perScenarioTimeOut to set
-	 */
-	public void setPerScenarioTimeOut(String perScenarioTimeOut) {
-		this.perScenarioTimeOut = perScenarioTimeOut;
-	}
-
-	public Properties getProperties(EnvVars envVars,
-			VariableResolver<String> varResolver) {
-		return CreateProperties(envVars, varResolver);
-	}
-
-	public Properties getProperties() {
-		return CreateProperties(null, null);
-	}
-
-    public String getAppIndentifier(String mcServerUrl) {
-        JSONObject data = null;
-        JSONObject obj = null;
-        String identifier = "";
-        if(StringUtils.isEmpty(mcServerUrl) || StringUtils.isEmpty(fsUserName) || StringUtils.isEmpty(fsAppParamName) || StringUtils.isEmpty(fsAppPath)){
-            return identifier;
-        }
-        obj = getApplication(mcServerUrl);
-        if(obj != null){
-            try {
-                data = (JSONObject) JSONValue.parseStrict(obj.getAsString(DATA));
-                identifier = data.getAsString(IDENTIFIER);
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-        }
-        return identifier;
+    public String getFsManufacturerAndModel() {
+        return fsManufacturerAndModel;
     }
 
-	private Properties CreateProperties(EnvVars envVars,
-			VariableResolver<String> varResolver) {
-		Properties props = new Properties();
-		
-		if (!StringUtils.isEmpty(this.fsTests)) {
-			String expandedFsTests = envVars.expand(fsTests);
-			String[] testsArr = expandedFsTests.replaceAll("\r", "").split("\n");
-
-			int i = 1;
-
-			for (String test : testsArr) {
-				props.put("Test" + i, test);
-				i++;
-			}
-		} else {
-			props.put("fsTests", "");
-		}
-
-		
-		if (StringUtils.isEmpty(fsTimeout)){
-			props.put("fsTimeout", "-1");	
-		}
-		else{
-			props.put("fsTimeout", "" + fsTimeout);
-		}
-		
-		
-		if (StringUtils.isEmpty(controllerPollingInterval)){
-			props.put("controllerPollingInterval", "30");
-		}
-		else{
-			props.put("controllerPollingInterval", "" + controllerPollingInterval);
-		}
-		
-		if (StringUtils.isEmpty(perScenarioTimeOut)){
-			props.put("PerScenarioTimeOut", "10");
-		}
-		else{
-			props.put("PerScenarioTimeOut", ""+ perScenarioTimeOut);
-		}
-		
-		if (!StringUtils.isEmpty(ignoreErrorStrings.replaceAll("\\r|\\n", ""))){
-			props.put("ignoreErrorStrings", ""+ignoreErrorStrings.replaceAll("\r", ""));
-		}
-
-
-		return props;
-	}
-
-    private JSONObject getApplication(String mcServerUrl){
-        URL url= null;
-        JSONObject obj = null;
-        String appUUID = getAppUUID(mcServerUrl);
-        String appURL = mcServerUrl + GETAPPID + appUUID;
-        try {
-            url = new URL(appURL);
-            HttpURLConnection conn=(HttpURLConnection) url.openConnection();
-            conn.setRequestMethod(METHOD_GET);
-            conn.setDoOutput(true);
-            conn.setRequestProperty(CONTENT_TYPE, CONTENT_TYPE_VALUE);
-            for(String key : headers.keySet()){
-                conn.setRequestProperty(key, headers.get(key));
-            }
-            conn.connect();
-            if(conn.getResponseCode() == 200){
-                obj = getResponse(conn.getInputStream());
-            }
-            conn.disconnect();
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-        return obj;
+    public String getFsTargetLab() {
+        return fsTargetLab;
     }
 
-    private String getAppUUID(String mcServerUrl){
-        String appUUID = "";
-        String uploadAppUrl = mcServerUrl + APP_UPLOAD;
-        URL url= null;
-        try {
-            File file = new File(fsAppPath);
-            url = new URL(uploadAppUrl);
-            HttpURLConnection conn=(HttpURLConnection) url.openConnection();
-            conn.setRequestMethod(METHOD_POST);
-            conn.setDoOutput(true);
-            headers = getHeaders(mcServerUrl);
-            for(String key : headers.keySet()){
-                conn.setRequestProperty(key, headers.get(key));
-            }
-            conn.setRequestMethod(METHOD_POST);
-            conn.setDoOutput(true);
-            conn.setRequestProperty(CONTENT_TYPE, CONTENT_TYPE_DOWNLOAD_VALUE + BOUNDARYSTR);
-            conn.setRequestProperty(FILENAME, file.getName());
-            conn.connect();
-            OutputStream out = new DataOutputStream(conn.getOutputStream());
-            StringBuffer content = new StringBuffer();
-            content.append("\r\n").append("------").append(BOUNDARYSTR).append("\r\n");
-            content.append("Content-Disposition: form-data; name=\"file\"; filename=\"" + file.getName() + "\"\r\n");
-            content.append("Content-Type: application/octet-stream\r\n\r\n");
-            out.write(content.toString().getBytes());
-            DataInputStream in = new DataInputStream(new FileInputStream(file));
-            int bytes = 0;
-            byte[] bufferOut = new byte[1024];
-            while ((bytes = in.read(bufferOut)) != -1) {
-                out.write(bufferOut, 0, bytes);
-            }
-            in.close();
-            out.write(("\r\n------" + BOUNDARYSTR + "--\r\n").getBytes());
-            out.flush();
-            out.close();
-            int code = conn.getResponseCode();
-            if(code == HttpURLConnection.HTTP_OK){
-                BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                StringBuffer res = new StringBuffer();
-                String line;
-                while ((line = reader.readLine()) != null){
-                    res.append(line);
-                }
-                JSONObject obj  = (JSONObject) JSONValue.parseStrict(res.toString());
-                appUUID = obj.getAsString(DATA);
-            }
-            conn.disconnect();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return appUUID;
+    public String getFsAutActions() {
+        return fsAutActions;
     }
 
-    private Map<String,String> getHeaders(String mcServerUrl){
-        String loginUrl = mcServerUrl + MC_LOGIN;
-        headers = new HashMap<String,String>();
-        URL url= null;
-        try {
-            url = new URL(loginUrl);
-            JSONObject obj = new JSONObject();
-            HttpURLConnection conn=(HttpURLConnection) url.openConnection();
-            conn.setRequestMethod(METHOD_POST);
-            conn.setDoOutput(true);
-            conn.setRequestProperty(ACCEPT, JSON);
-            conn.setRequestProperty(CONTENT_TYPE,CONTENT_TYPE_VALUE);
-            obj.put(MC_USERNAME, fsUserName);
-            obj.put(MC_PASSWORD, getFsPassword());
-            obj.put(MC_ACCOUNT, MC_ACCOUNT_VALUE);
-            OutputStream out = conn.getOutputStream();
-            out.write(obj.toString().getBytes());
-            out.flush();
-            out.close();
-            conn.connect();
-            if(conn.getResponseCode() == HttpURLConnection.HTTP_OK){
-                String mcSecret = conn.getHeaderField(HPMCSECRET);
-                String setCookie = conn.getHeaderField(SETCOOKIE);
-                String[] cookies = setCookie.split(SEMICOLON);
-                for(int i = 0; i<cookies.length; i++){
-                    String cookie = cookies[i];
-                    if(cookie.contains(JSESSIONID)){
-                        int equalIndex = cookie.indexOf(EQUAL);
-                        String cookieValue = cookie.substring(equalIndex + 1);
-                        headers.put(JSESSIONID,cookieValue);
-                        headers.put(COOKIE, JSESSIONID + EQUAL + cookieValue);
-                        break;
-                    }
-                }
-                headers.put(HPMCSECRET,mcSecret);
-            }
-            conn.disconnect();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return headers;
+    public String getFsLaunchAppName() {
+        return fsLaunchAppName;
     }
 
-    private JSONObject getResponse(InputStream is){
-        JSONObject obj = null;
-        try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-            StringBuffer res = new StringBuffer();
-            String line;
-            while ((line = reader.readLine()) != null){
-                res.append(line);
+    public String getFsInstrumented() {
+        return fsInstrumented;
+    }
+
+    public String getFsDevicesMetrics() {
+        return fsDevicesMetrics;
+    }
+
+    public String getFsExtraApps() {
+        return fsExtraApps;
+    }
+
+    public String getFsJobId() {
+        return fsJobId;
+    }
+
+    public boolean isUseProxy() {
+        return proxySettings != null;
+    }
+
+    public boolean isUseAuthentication() {
+        return proxySettings != null && StringUtils.isNotBlank(proxySettings.getFsProxyUserName());
+    }
+
+    public ProxySettings getProxySettings() {
+        return proxySettings;
+    }
+
+    public boolean isUseSSL() {
+        return useSSL;
+    }
+
+    /**
+     * @return the controllerPollingInterval
+     */
+    public String getControllerPollingInterval() {
+        return controllerPollingInterval;
+    }
+
+    /**
+     * @param controllerPollingInterval the controllerPollingInterval to set
+     */
+    public void setControllerPollingInterval(String controllerPollingInterval) {
+        this.controllerPollingInterval = controllerPollingInterval;
+    }
+
+    /**
+     * @return the ignoreErrorStrings
+     */
+    public String getIgnoreErrorStrings() {
+        return ignoreErrorStrings;
+    }
+
+
+    /**
+     * @param ignoreErrorStrings the ignoreErrorStrings to set
+     */
+    public void setIgnoreErrorStrings(String ignoreErrorStrings) {
+        this.ignoreErrorStrings = ignoreErrorStrings;
+    }
+
+
+
+    /**
+     * @return the perScenarioTimeOut
+     */
+    public String getPerScenarioTimeOut() {
+        return perScenarioTimeOut;
+    }
+
+    /**
+     * @param perScenarioTimeOut the perScenarioTimeOut to set
+     */
+    public void setPerScenarioTimeOut(String perScenarioTimeOut) {
+        this.perScenarioTimeOut = perScenarioTimeOut;
+    }
+
+    public Properties getProperties(EnvVars envVars,
+                                    VariableResolver<String> varResolver) {
+        return CreateProperties(envVars, varResolver);
+    }
+
+    public Properties getProperties() {
+        return CreateProperties(null, null);
+    }
+
+    private Properties CreateProperties(EnvVars envVars,
+                                        VariableResolver<String> varResolver) {
+        Properties props = new Properties();
+
+        if (!StringUtils.isEmpty(this.fsTests)) {
+            String expandedFsTests = envVars.expand(fsTests);
+            String[] testsArr = expandedFsTests.replaceAll("\r", "").split("\n");
+
+            int i = 1;
+
+            for (String test : testsArr) {
+                props.put("Test" + i, test);
+                i++;
             }
-            obj  = (JSONObject)JSONValue.parseStrict(res.toString());
-        } catch (Exception e) {
-            e.printStackTrace();
+        } else {
+            props.put("fsTests", "");
         }
-        return obj;
+
+
+        if (StringUtils.isEmpty(fsTimeout)){
+            props.put("fsTimeout", "-1");
+        }
+        else{
+            props.put("fsTimeout", "" + fsTimeout);
+        }
+
+
+        if (StringUtils.isEmpty(controllerPollingInterval)){
+            props.put("controllerPollingInterval", "30");
+        }
+        else{
+            props.put("controllerPollingInterval", "" + controllerPollingInterval);
+        }
+
+        if (StringUtils.isEmpty(perScenarioTimeOut)){
+            props.put("PerScenarioTimeOut", "10");
+        }
+        else{
+            props.put("PerScenarioTimeOut", ""+ perScenarioTimeOut);
+        }
+
+        if (!StringUtils.isEmpty(ignoreErrorStrings.replaceAll("\\r|\\n", ""))){
+            props.put("ignoreErrorStrings", ""+ignoreErrorStrings.replaceAll("\r", ""));
+        }
+
+        if (StringUtils.isNotBlank(fsUserName)){
+            props.put("MobileUserName", fsUserName);
+        }
+
+        if(isUseProxy()){
+            props.put("MobileUseProxy", "1");
+            props.put("MobileProxyType","2");
+            props.put("MobileProxySetting_Address", proxySettings.getFsProxyAddress());
+            if(isUseAuthentication()){
+                props.put("MobileProxySetting_Authentication","1");
+                props.put("MobileProxySetting_UserName",proxySettings.getFsProxyUserName());
+                props.put("MobileProxySetting_Password",proxySettings.getFsProxyPassword());
+            }else{
+                props.put("MobileProxySetting_Authentication","0");
+                props.put("MobileProxySetting_UserName","");
+                props.put("MobileProxySetting_Password","");
+            }
+        }else{
+            props.put("MobileUseProxy", "0");
+            props.put("MobileProxyType","0");
+            props.put("MobileProxySetting_Authentication","0");
+            props.put("MobileProxySetting_Address", "");
+            props.put("MobileProxySetting_UserName","");
+            props.put("MobileProxySetting_Password","");
+        }
+
+        if(useSSL){
+            props.put("MobileUseSSL","1");
+        }else{
+            props.put("MobileUseSSL","0");
+        }
+        return props;
+    }
+
+    public JSONObject getJobDetails(String mcUrl, String proxyAddress, String proxyUserName, String proxyPassword){
+        return JobConfigurationProxy.getInstance().getJobById(mcUrl, fsUserName, fsPassword.getPlainText(), proxyAddress, proxyUserName, proxyPassword, fsJobId);
     }
 }
