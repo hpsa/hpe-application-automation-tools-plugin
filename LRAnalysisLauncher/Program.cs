@@ -51,7 +51,7 @@ namespace LRAnalysisLauncher
         [STAThread]
         static int Main(string[] args)
         {
-            
+            Console.OutputEncoding = System.Text.Encoding.GetEncoding("utf-8");
             log("starting analysis launcher");
             int iPassed = (int)Launcher.ExitCodeEnum.Passed;//variable to keep track of whether all of the SLAs passed
             try
