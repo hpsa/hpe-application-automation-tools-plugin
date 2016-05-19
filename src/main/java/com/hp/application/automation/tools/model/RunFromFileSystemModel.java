@@ -291,6 +291,9 @@ public class RunFromFileSystemModel {
     }
 
     public JSONObject getJobDetails(String mcUrl, String proxyAddress, String proxyUserName, String proxyPassword){
+        if(StringUtils.isBlank(fsUserName) || StringUtils.isBlank(fsPassword.getPlainText())){
+            return null;
+        }
         return JobConfigurationProxy.getInstance().getJobById(mcUrl, fsUserName, fsPassword.getPlainText(), proxyAddress, proxyUserName, proxyPassword, fsJobId);
     }
 }
