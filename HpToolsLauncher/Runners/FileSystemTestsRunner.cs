@@ -38,6 +38,9 @@ namespace HpToolsLauncher
 
         public const string UftJUnitRportName = "uftRunnerRoot";
 
+        private McConnectionInfo _mcConnection;
+        private string _mobileInfoForAllGuiTests;
+
         #endregion
 
         /// <summary>
@@ -53,9 +56,9 @@ namespace HpToolsLauncher
             TimeSpan perScenarioTimeOutMinutes,
             List<string> ignoreErrorStrings,
             Dictionary<string, string> jenkinsEnvVariables,
-            string fsAppParamName,
-            string appIdentifier,
-            bool useUFTLicense = false
+            McConnectionInfo mcConnection,
+            string mobileInfo,
+            bool useUFTLicense = false     
             )
         {
             _jenkinsEnvVariables = jenkinsEnvVariables;
@@ -77,6 +80,11 @@ namespace HpToolsLauncher
 
             _useUFTLicense = useUFTLicense;
             _tests = new List<TestInfo>();
+
+            _mcConnection = mcConnection;
+            _mobileInfoForAllGuiTests = mobileInfo;
+
+            ConsoleWriter.WriteLine("Mc connection info is - " + _mcConnection.ToString());
 
             //go over all sources, and create a list of all tests
             foreach (string source in sources)
@@ -119,14 +127,6 @@ namespace HpToolsLauncher
                         //if (source.TrimEnd().EndsWith(".mtb", StringComparison.CurrentCultureIgnoreCase))
                         {
                             testGroup = MtbxManager.Parse(source, _jenkinsEnvVariables, source);
-                            if (!string.IsNullOrEmpty(fsAppParamName) && !string.IsNullOrEmpty(appIdentifier))
-                            {
-                                var testParam = new TestParameterInfo() { Name = fsAppParamName, Type = "string", Value = appIdentifier };
-                                foreach(TestInfo testInfo in testGroup)
-                                {
-                                    testInfo.ParameterList.Add(testParam);
-                                }
-                            }
                         }
                     }
                 }
@@ -282,7 +282,7 @@ namespace HpToolsLauncher
                     runner = new ApiTestRunner(this, _timeout - _stopwatch.Elapsed);
                     break;
                 case TestType.QTP:
-                    runner = new GuiTestRunner(this, _useUFTLicense, _timeout - _stopwatch.Elapsed);
+                    runner = new GuiTestRunner(this, _useUFTLicense, _timeout - _stopwatch.Elapsed, _mcConnection, _mobileInfoForAllGuiTests);
                     break;
                 case TestType.LoadRunner:
                     AppDomain.CurrentDomain.AssemblyResolve += Helper.HPToolsAssemblyResolver;
