@@ -101,6 +101,7 @@
     <Compile Include="TestRunners\ApiTestRunner.cs" />
     <Compile Include="Runners\AlmTestSetsRunner.cs" />
     <Compile Include="TestSuiteRunResults.cs" />
+    <Compile Include="WinUserNativeMethods.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Interfaces\.svn\prop-base\" />
@@ -125,6 +126,9 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
