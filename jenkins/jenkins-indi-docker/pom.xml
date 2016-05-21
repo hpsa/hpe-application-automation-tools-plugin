@@ -164,6 +164,7 @@
                                 </goals>
                                 <configuration>
                                     <imageName>16.60.141.93:5000/jenkins-nga:${project.version}</imageName>
+                                    <forceTags>true</forceTags>
                                     <dockerDirectory>${project.basedir}/src/main/docker</dockerDirectory>
                                     <resources>
                                         <resource>
