@@ -92,11 +92,11 @@
                                 <configuration>
                                     <artifactItems>
                                         <artifactItem>
-                                            <groupId>org.jenkins-ci.plugins</groupId>
-                                            <artifactId>hp-lifecycle-management-ci-plugin</artifactId>
+                                            <groupId>com.hp.mqm</groupId>
+                                            <artifactId>jenkins-test-pack</artifactId>
                                             <version>${project.version}</version>
                                             <type>zip</type>
-                                            <classifier>test</classifier>
+                                            <classifier>uber</classifier>
                                             <overWrite>true</overWrite>
                                             <outputDirectory>${project.build.directory}</outputDirectory>
                                         </artifactItem>
