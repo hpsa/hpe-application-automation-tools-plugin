@@ -5,23 +5,15 @@
 
 package com.hp.application.automation.tools.model;
 
-import com.hp.application.automation.tools.mc.Constants;
-import com.hp.application.automation.tools.mc.HttpResponse;
-import com.hp.application.automation.tools.mc.HttpUtils;
 import com.hp.application.automation.tools.mc.JobConfigurationProxy;
 import hudson.EnvVars;
 import hudson.util.Secret;
 import hudson.util.VariableResolver;
-
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.*;
-
 import net.minidev.json.JSONObject;
-import net.minidev.json.JSONValue;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
+
+import java.util.Properties;
 
 public class RunFromFileSystemModel {
 

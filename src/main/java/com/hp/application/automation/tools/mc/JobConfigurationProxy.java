@@ -4,6 +4,9 @@ import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -59,6 +62,61 @@ public class JobConfigurationProxy {
             e.printStackTrace();
         }
         return returnObject;
+    }
+
+    //upload app to MC
+    public JSONObject upload(String mcUrl, String mcUserName, String mcPassword, String proxyAddress, String proxyUsername, String proxyPassword, String appPath) throws Exception {
+
+        JSONObject json = null;
+        String hp4mSecret = null;
+        String jsessionId = null;
+
+        File appFile = new File(appPath);
+
+        String uploadUrl = mcUrl + Constants.APP_UPLOAD;
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        StringBuffer content = new StringBuffer();
+        content.append("\r\n").append("------").append(Constants.BOUNDARYSTR).append("\r\n");
+        content.append("Content-Disposition: form-data; name=\"file\"; filename=\"" + appFile.getName() + "\"\r\n");
+        content.append("Content-Type: application/octet-stream\r\n\r\n");
+
+        outputStream.write(content.toString().getBytes());
+
+        FileInputStream in = new FileInputStream(appFile);
+        byte[] b = new byte[1024];
+        int i = 0;
+        while ((i = in.read(b)) != -1) {
+            outputStream.write(b, 0, i);
+        }
+        in.close();
+
+        outputStream.write(("\r\n------" + Constants.BOUNDARYSTR + "--\r\n").getBytes());
+
+        byte[] bytes = outputStream.toByteArray();
+
+        outputStream.close();
+
+        JSONObject loginJson = loginToMC(mcUrl, mcUserName, mcPassword, proxyAddress, proxyUsername, proxyPassword);
+
+        if (loginJson != null) {
+            hp4mSecret = (String) loginJson.get(Constants.LOGIN_SECRET);
+            jsessionId = (String) loginJson.get(Constants.JSESSIONID);
+        }
+        Map<String, String> headers = new HashMap<String, String>();
+        headers.put(Constants.LOGIN_SECRET, hp4mSecret);
+        headers.put(Constants.COOKIE, Constants.JESEEIONEQ + jsessionId);
+        headers.put(Constants.CONTENT_TYPE, Constants.CONTENT_TYPE_DOWNLOAD_VALUE + Constants.BOUNDARYSTR);
+        headers.put(Constants.FILENAME, appFile.getName());
+
+        HttpUtils.ProxyInfo proxyInfo = HttpUtils.setProxyCfg(proxyAddress, proxyUsername, proxyPassword);
+        HttpResponse response = HttpUtils.post(proxyInfo, uploadUrl, headers, bytes);
+
+        if (response != null && response.getJsonObject() != null) {
+            json = response.getJsonObject();
+        }
+        return json;
     }
 
     //create one temp job
