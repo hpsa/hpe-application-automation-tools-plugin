@@ -62,7 +62,7 @@ git config --global user.email &quot;eazulay@hpe.com&quot;
 git config --global user.name &quot;authomation_indi_slave&quot;
 
 
-git commit -am &quot;$Entity_Name #$Entity_ID: commit message - ${BUILD_TAG}&quot;
+git commit -am &quot;$Entity_Type #$Entity_ID: commit message - ${BUILD_TAG}&quot;
 
 #git status
 
