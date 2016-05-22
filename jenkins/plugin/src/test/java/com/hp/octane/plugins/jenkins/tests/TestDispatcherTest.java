@@ -273,7 +273,7 @@ public class TestDispatcherTest {
         queue.waitForTicks(5);
         Mockito.verify(restClient).tryToConnectSharedSpace();
         for (MatrixRun run: matrixBuild.getExactRuns()) {
-            Mockito.verify(restClient).isTestResultRelevant(ServerIdentity.getIdentity(), run.getProject().getName(), run.getNumber());
+            Mockito.verify(restClient,Mockito.atLeast(2)).isTestResultRelevant(ServerIdentity.getIdentity(), run.getProject().getParent().getName(), run.getNumber());
             Mockito.verify(restClient).postTestResult(new File(run.getRootDir(), "mqmTests.xml"), false);
             verifyAudit(run, true);
         }

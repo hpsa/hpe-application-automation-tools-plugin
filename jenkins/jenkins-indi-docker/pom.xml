@@ -14,7 +14,7 @@
     <parent>
         <groupId>com.hp.mqm</groupId>
         <artifactId>jenkins</artifactId>
-        <version>12.53.5-SNAPSHOT</version>
+        <version>12.53.7-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -92,11 +92,11 @@
                                 <configuration>
                                     <artifactItems>
                                         <artifactItem>
-                                            <groupId>org.jenkins-ci.plugins</groupId>
-                                            <artifactId>hp-lifecycle-management-ci-plugin</artifactId>
+                                            <groupId>com.hp.mqm</groupId>
+                                            <artifactId>jenkins-test-pack</artifactId>
                                             <version>${project.version}</version>
                                             <type>zip</type>
-                                            <classifier>test</classifier>
+                                            <classifier>uber</classifier>
                                             <overWrite>true</overWrite>
                                             <outputDirectory>${project.build.directory}</outputDirectory>
                                         </artifactItem>
@@ -164,6 +164,7 @@
                                 </goals>
                                 <configuration>
                                     <imageName>16.60.141.93:5000/jenkins-nga:${project.version}</imageName>
+                                    <forceTags>true</forceTags>
                                     <dockerDirectory>${project.basedir}/src/main/docker</dockerDirectory>
                                     <resources>
                                         <resource>
