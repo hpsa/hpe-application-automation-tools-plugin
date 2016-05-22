@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <hudson.plugins.git.GitSCM_-DescriptorImpl plugin="git@2.3.5">
-  <generation>29</generation>
-  <globalConfigName></globalConfigName>
-  <globalConfigEmail></globalConfigEmail>
+  <generation>48</generation>
+  <globalConfigName>authomation_indi_slave</globalConfigName>
+  <globalConfigEmail>mercurypw</globalConfigEmail>
   <createAccountBasedOnEmail>false</createAccountBasedOnEmail>
 </hudson.plugins.git.GitSCM_-DescriptorImpl>
