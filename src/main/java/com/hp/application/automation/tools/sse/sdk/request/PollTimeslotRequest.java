@@ -22,6 +22,6 @@ public class PollTimeslotRequest extends GetRequest {
     @Override
     protected String getSuffix() {
         
-        return String.format("reservations/%s", _timeslotId);
+        return String.format("procedure-runs/%s", _timeslotId);
     }
 }

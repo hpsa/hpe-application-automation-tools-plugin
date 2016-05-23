@@ -1,15 +1,16 @@
 package com.hp.application.automation.tools.sse.sdk;
 
-import com.hp.application.automation.tools.rest.RestClient;
-import com.hp.application.automation.tools.sse.common.ConsoleLogger;
-import com.hp.application.automation.tools.sse.common.TestCase;
-import com.hp.application.automation.tools.sse.sdk.handler.PollHandler;
-import com.hp.application.automation.tools.sse.sdk.handler.PollHandlerFactory;
+import java.net.HttpURLConnection;
+import java.util.Map;
+
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.net.HttpURLConnection;
-import java.util.Map;
+import com.hp.application.automation.tools.sse.common.ConsoleLogger;
+import com.hp.application.automation.tools.sse.common.RestClient4Test;
+import com.hp.application.automation.tools.sse.common.TestCase;
+import com.hp.application.automation.tools.sse.sdk.handler.PollHandler;
+import com.hp.application.automation.tools.sse.sdk.handler.PollHandlerFactory;
 
 public class TestPollHandler extends TestCase {
     
@@ -23,7 +24,7 @@ public class TestPollHandler extends TestCase {
         Assert.assertTrue(isOk);
     }
     
-    private class MockRestClientBVS extends RestClient {
+    private class MockRestClientBVS extends RestClient4Test {
         
         public MockRestClientBVS(String url, String domain, String project, String username) {
             
@@ -58,7 +59,7 @@ public class TestPollHandler extends TestCase {
         Assert.assertTrue(isOk);
     }
     
-    private class MockRestClientPC extends RestClient {
+    private class MockRestClientPC extends RestClient4Test {
         
         public MockRestClientPC(String url, String domain, String project, String username) {
             
@@ -102,7 +103,7 @@ public class TestPollHandler extends TestCase {
         Assert.assertFalse(isOk);
     }
     
-    private class MockRestClientThrowsException extends RestClient {
+    private class MockRestClientThrowsException extends RestClient4Test {
         
         public MockRestClientThrowsException(
                 String url,
@@ -129,7 +130,7 @@ public class TestPollHandler extends TestCase {
         Assert.assertTrue(isOk);
     }
     
-    private class MockRestClientBvsTwoPasses extends RestClient {
+    private class MockRestClientBvsTwoPasses extends RestClient4Test {
         
         private int _calls = 0;
         
@@ -177,7 +178,7 @@ public class TestPollHandler extends TestCase {
         Assert.assertTrue(isOk);
     }
     
-    private class MockRestClientPCTwoPasses extends RestClient {
+    private class MockRestClientPCTwoPasses extends RestClient4Test {
         
         private int _calls = 0;
         
