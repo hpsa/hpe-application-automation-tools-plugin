@@ -34,8 +34,8 @@
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
         <name>stable</name>
-        <url>ssh://git@mydtbld0005.hpeswlab.net:7999/indiqa/indi-qa.git</url>
-        <credentialsId>e4c9ebf0-e3dd-4d36-b402-5e47c720ea66</credentialsId>
+        <url>http://authomation_indi_slave:mercurypw@mydtbld0005.hpeswlab.net:7990/scm/indiqa/indi-qa.git</url>
+        <credentialsId>9da41900-705b-434a-b96b-8f8cbd69f244</credentialsId>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
     <branches>
