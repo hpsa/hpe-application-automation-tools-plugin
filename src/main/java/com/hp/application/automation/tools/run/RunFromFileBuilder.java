@@ -5,10 +5,7 @@
 
 package com.hp.application.automation.tools.run;
 
-import com.hp.application.automation.tools.EncryptionUtils;
 import com.hp.application.automation.tools.model.MCServerSettingsModel;
-import com.hp.application.automation.tools.mc.JobConfigurationProxy;
-import com.hp.application.automation.tools.model.ProxySettings;
 import com.hp.application.automation.tools.settings.MCServerSettingsBuilder;
 import hudson.EnvVars;
 import hudson.Extension;
@@ -36,8 +33,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Properties;
 
-import net.minidev.json.JSONObject;
-
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -45,53 +40,57 @@ import org.kohsuke.stapler.QueryParameter;
 import com.hp.application.automation.tools.AlmToolsUtils;
 import com.hp.application.automation.tools.model.RunFromFileSystemModel;
 import com.hp.application.automation.tools.run.AlmRunTypes.RunType;
+
+import com.hp.application.automation.tools.mc.JobConfigurationProxy;
+import com.hp.application.automation.tools.model.ProxySettings;
+import net.minidev.json.JSONObject;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
+import com.hp.application.automation.tools.EncryptionUtils;
 
 public class RunFromFileBuilder extends Builder {
 
-	private final RunFromFileSystemModel runFromFileModel;
-	private final static String HpToolsLauncher_SCRIPT_NAME = "HpToolsLauncher.exe";
-	private final static String LRAnalysisLauncher_EXE = "LRAnalysisLauncher.exe";
-	private String ResultFilename = "ApiResults.xml";
-	//private String KillFileName = "";
-	private String ParamFileName = "ApiRun.txt";
+    private final RunFromFileSystemModel runFromFileModel;
+    private final static String HpToolsLauncher_SCRIPT_NAME = "HpToolsLauncher.exe";
+    private final static String LRAnalysisLauncher_EXE = "LRAnalysisLauncher.exe";
+    private String ResultFilename = "ApiResults.xml";
+    //private String KillFileName = "";
+    private String ParamFileName = "ApiRun.txt";
 
-	@DataBoundConstructor
-	public RunFromFileBuilder(String fsTests, String fsTimeout, String controllerPollingInterval,
-			String perScenarioTimeOut, String ignoreErrorStrings, String mcServerName, String fsUserName, String fsPassword, String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel, String fsOs, String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics, String fsInstrumented, String fsExtraApps, String fsJobId, ProxySettings proxySettings, boolean useSSL) {
+    @DataBoundConstructor
+    public RunFromFileBuilder(String fsTests, String fsTimeout, String controllerPollingInterval,
+                              String perScenarioTimeOut, String ignoreErrorStrings, String mcServerName, String fsUserName, String fsPassword, String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel, String fsOs, String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics, String fsInstrumented, String fsExtraApps, String fsJobId, ProxySettings proxySettings, boolean useSSL) {
 
-		runFromFileModel = new RunFromFileSystemModel(fsTests, fsTimeout, controllerPollingInterval,
-				perScenarioTimeOut, ignoreErrorStrings, mcServerName, fsUserName, fsPassword, fsDeviceId, fsTargetLab, fsManufacturerAndModel, fsOs, fsAutActions, fsLaunchAppName, fsDevicesMetrics, fsInstrumented, fsExtraApps, fsJobId, proxySettings, useSSL);
-	}
+        runFromFileModel = new RunFromFileSystemModel(fsTests, fsTimeout, controllerPollingInterval,
+                perScenarioTimeOut, ignoreErrorStrings, mcServerName, fsUserName, fsPassword, fsDeviceId, fsTargetLab, fsManufacturerAndModel, fsOs, fsAutActions, fsLaunchAppName, fsDevicesMetrics, fsInstrumented, fsExtraApps, fsJobId, proxySettings, useSSL);
+    }
 
-	@Override
-	public DescriptorImpl getDescriptor() {
-		return (DescriptorImpl) super.getDescriptor();
-	}
+    @Override
+    public DescriptorImpl getDescriptor() {
+        return (DescriptorImpl) super.getDescriptor();
+    }
 
-	@Override
-	public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
+    @Override
+    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
 
         // get the mc server settings
         MCServerSettingsModel mcServerSettingsModel = getMCServerSettingsModel();
 
-		EnvVars env = null;
-		try {
-			env = build.getEnvironment(listener);
+        EnvVars env = null;
+        try {
+            env = build.getEnvironment(listener);
 
-		} catch (IOException e2) {
-			// TODO Auto-generated catch block
-			e2.printStackTrace();
-		} catch (InterruptedException e2) {
-			// TODO Auto-generated catch block
-			e2.printStackTrace();
-		}
-		VariableResolver<String> varResolver = build.getBuildVariableResolver();
+        } catch (IOException e2) {
+            // TODO Auto-generated catch block
+            e2.printStackTrace();
+        } catch (InterruptedException e2) {
+            // TODO Auto-generated catch block
+            e2.printStackTrace();
+        }
+        VariableResolver<String> varResolver = build.getBuildVariableResolver();
         JSONObject jobDetails = null;
         String mcServerUrl = "";
-		// now merge them into one list
+        // now merge them into one list
         Properties mergedProperties = new Properties();
-
         if(mcServerSettingsModel != null){
             mcServerUrl = mcServerSettingsModel.getProperties().getProperty("MobileHostAddress");
             if(runFromFileModel.getProxySettings() == null){
@@ -111,106 +110,104 @@ public class RunFromFileBuilder extends Builder {
                 listener.fatalError("problem in mobile center password encription");
             }
         }
+        mergedProperties.putAll(runFromFileModel.getProperties(env, varResolver));
+        int idx = 0;
+        for (String key : env.keySet()) {
+            idx++;
+            mergedProperties.put("JenkinsEnv" + idx, key+";"+env.get(key));
+        }
 
-        mergedProperties.putAll(mcServerSettingsModel.getProperties());
-		mergedProperties.putAll(runFromFileModel.getProperties(env, varResolver));
-		int idx = 0;
-		for (String key : env.keySet()) {
-			idx++;
-			mergedProperties.put("JenkinsEnv" + idx, key+";"+env.get(key));
-		}
+        Date now = new Date();
+        Format formatter = new SimpleDateFormat("ddMMyyyyHHmmssSSS");
+        String time = formatter.format(now);
 
-		Date now = new Date();
-		Format formatter = new SimpleDateFormat("ddMMyyyyHHmmssSSS");
-		String time = formatter.format(now);
+        // get a unique filename for the params file
+        ParamFileName = "props" + time + ".txt";
+        ResultFilename = "Results" + time + ".xml";
+        //KillFileName = "stop" + time + ".txt";
 
-		// get a unique filename for the params file
-		ParamFileName = "props" + time + ".txt";
-		ResultFilename = "Results" + time + ".xml";
-		//KillFileName = "stop" + time + ".txt";
+        mergedProperties.put("runType", RunType.FileSystem.toString());
+        mergedProperties.put("resultsFilename", ResultFilename);
 
-		mergedProperties.put("runType", RunType.FileSystem.toString());
-		mergedProperties.put("resultsFilename", ResultFilename);
+        // get properties serialized into a stream
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        try {
+            mergedProperties.store(stream, "");
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            build.setResult(Result.FAILURE);
+        }
+        String propsSerialization = stream.toString();
+        InputStream propsStream = IOUtils.toInputStream(propsSerialization);
 
-		// get properties serialized into a stream
-		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		try {
-			mergedProperties.store(stream, "");
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			build.setResult(Result.FAILURE);
-		}
-		String propsSerialization = stream.toString();
-		InputStream propsStream = IOUtils.toInputStream(propsSerialization);
+        // get the remote workspace filesys
+        FilePath projectWS = build.getWorkspace();
 
-		// get the remote workspace filesys
-		FilePath projectWS = build.getWorkspace();
+        // Get the URL to the Script used to run the test, which is bundled
+        // in the plugin
+        URL cmdExeUrl = Hudson.getInstance().pluginManager.uberClassLoader.getResource(HpToolsLauncher_SCRIPT_NAME);
+        if (cmdExeUrl == null) {
+            listener.fatalError(HpToolsLauncher_SCRIPT_NAME + " not found in resources");
+            return false;
+        }
 
-		// Get the URL to the Script used to run the test, which is bundled
-		// in the plugin
-		URL cmdExeUrl = Hudson.getInstance().pluginManager.uberClassLoader.getResource(HpToolsLauncher_SCRIPT_NAME);
-		if (cmdExeUrl == null) {
-			listener.fatalError(HpToolsLauncher_SCRIPT_NAME + " not found in resources");
-			return false;
-		}
-		
-		URL cmdExe2Url = Hudson.getInstance().pluginManager.uberClassLoader.getResource(LRAnalysisLauncher_EXE);
-		if (cmdExe2Url == null){
-			listener.fatalError(LRAnalysisLauncher_EXE+ "not found in resources");
-			return false;
-		}
+        URL cmdExe2Url = Hudson.getInstance().pluginManager.uberClassLoader.getResource(LRAnalysisLauncher_EXE);
+        if (cmdExe2Url == null){
+            listener.fatalError(LRAnalysisLauncher_EXE+ "not found in resources");
+            return false;
+        }
 
-		FilePath propsFileName = projectWS.child(ParamFileName);
-		FilePath CmdLineExe = projectWS.child(HpToolsLauncher_SCRIPT_NAME);
-		FilePath CmdLineExe2 = projectWS.child(LRAnalysisLauncher_EXE);
+        FilePath propsFileName = projectWS.child(ParamFileName);
+        FilePath CmdLineExe = projectWS.child(HpToolsLauncher_SCRIPT_NAME);
+        FilePath CmdLineExe2 = projectWS.child(LRAnalysisLauncher_EXE);
 
 
-		try {
-			// create a file for the properties file, and save the properties
-			propsFileName.copyFrom(propsStream);
-
-			
-			// Copy the script to the project workspace
-			CmdLineExe.copyFrom(cmdExeUrl);
-			
-			CmdLineExe2.copyFrom(cmdExe2Url);
+        try {
+            // create a file for the properties file, and save the properties
+            propsFileName.copyFrom(propsStream);
 
 
-		} catch (IOException e1) {
-			build.setResult(Result.FAILURE);
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (InterruptedException e1) {
-			build.setResult(Result.FAILURE);
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+            // Copy the script to the project workspace
+            CmdLineExe.copyFrom(cmdExeUrl);
 
-		try {
-			// Run the HpToolsLauncher.exe
+            CmdLineExe2.copyFrom(cmdExe2Url);
+
+
+        } catch (IOException e1) {
+            build.setResult(Result.FAILURE);
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        } catch (InterruptedException e1) {
+            build.setResult(Result.FAILURE);
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
+
+        try {
+            // Run the HpToolsLauncher.exe
             AlmToolsUtils.runOnBuildEnv(build, launcher, listener, CmdLineExe, ParamFileName);
-			// Has the report been successfuly generated?
-		} catch (IOException ioe) {
-			Util.displayIOException(ioe, listener);
-			build.setResult(Result.FAILURE);
-			return false;
-		} catch (InterruptedException e) {
-			build.setResult(Result.ABORTED);
-			PrintStream out = listener.getLogger();
-			
-			try {
-				AlmToolsUtils.runHpToolsAborterOnBuildEnv(build, launcher, listener, ParamFileName);
-			} catch (IOException e1) {
-				Util.displayIOException(e1, listener);
-				build.setResult(Result.FAILURE);
-				return false;
-		} catch (InterruptedException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-			
-			// kill processes
+            // Has the report been successfuly generated?
+        } catch (IOException ioe) {
+            Util.displayIOException(ioe, listener);
+            build.setResult(Result.FAILURE);
+            return false;
+        } catch (InterruptedException e) {
+            build.setResult(Result.ABORTED);
+            PrintStream out = listener.getLogger();
+
+            try {
+                AlmToolsUtils.runHpToolsAborterOnBuildEnv(build, launcher, listener, ParamFileName);
+            } catch (IOException e1) {
+                Util.displayIOException(e1, listener);
+                build.setResult(Result.FAILURE);
+                return false;
+            } catch (InterruptedException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            }
+
+            // kill processes
 			/*FilePath killFile = projectWS.child(KillFileName);
 			try {
 				killFile.write("\n", "UTF-8");
@@ -225,12 +222,12 @@ public class RunFromFileBuilder extends Builder {
 				e1.printStackTrace();
 			}*/
 
-			out.println("Operation Was aborted by user.");
-		}
+            out.println("Operation Was aborted by user.");
+        }
 
-		return true;
+        return true;
 
-	}
+    }
 
     public MCServerSettingsModel getMCServerSettingsModel() {
         for (MCServerSettingsModel mcServer : getDescriptor().getMcServers()) {
@@ -242,25 +239,24 @@ public class RunFromFileBuilder extends Builder {
         return null;
     }
 
-	public RunFromFileSystemModel getRunFromFileModel() {
-		return runFromFileModel;
-	}
+    public RunFromFileSystemModel getRunFromFileModel() {
+        return runFromFileModel;
+    }
 
-	@Extension
-	// This indicates to Jenkins that this is an implementation of an extension
-	// point.
-	public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
-
+    @Extension
+    // This indicates to Jenkins that this is an implementation of an extension
+    // point.
+    public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
         JobConfigurationProxy instance = JobConfigurationProxy.getInstance();
-		public DescriptorImpl() {
-			load();
-		}
+        public DescriptorImpl() {
+            load();
+        }
 
-		@Override
+        @Override
         public boolean isApplicable(
                 @SuppressWarnings("rawtypes") Class<? extends AbstractProject> jobType) {
-			return true;
-		}
+            return true;
+        }
 
         @JavaScriptMethod
         public String getJobId(String mcUrl, String mcUserName, String mcPassword, String proxyAddress, String proxyUserName, String proxyPassword) {
@@ -286,37 +282,39 @@ public class RunFromFileBuilder extends Builder {
         }
 
         @Override
-		public String getDisplayName() {
-			return "Execute HP tests from file system";
-		}
+        public String getDisplayName() {
+            return "Execute HP tests from file system";
+        }
 
-		public FormValidation doCheckFsTests(@QueryParameter String value) 
-		{
-			return FormValidation.ok();
-		}
-		
-		public FormValidation doCheckIgnoreErrorStrings(@QueryParameter String value)
-		{
-			return FormValidation.ok();
-		}
-		
-						
-		public FormValidation doCheckFsTimeout(@QueryParameter String value) 
-		{
-			if (StringUtils.isEmpty(value)){
-				return FormValidation.ok();
-			}
-			
-			String val1 = value.trim();  
-			if (val1.length()>0 && val1.charAt(0) == '-')
-				val1=val1.substring(1);
-						
-			if (!StringUtils.isNumeric(val1) && val1 !="") 
-			{
-				return FormValidation.error("Timeout name must be a number");
-			}
-			return FormValidation.ok();
-		}
+        public FormValidation doCheckFsTests(@QueryParameter String value)
+        {
+            return FormValidation.ok();
+        }
+
+        public FormValidation doCheckIgnoreErrorStrings(@QueryParameter String value)
+        {
+
+
+            return FormValidation.ok();
+        }
+
+
+        public FormValidation doCheckFsTimeout(@QueryParameter String value)
+        {
+            if (StringUtils.isEmpty(value)){
+                return FormValidation.ok();
+            }
+
+            String val1 = value.trim();
+            if (val1.length()>0 && val1.charAt(0) == '-')
+                val1=val1.substring(1);
+
+            if (!StringUtils.isNumeric(val1) && val1 !="")
+            {
+                return FormValidation.error("Timeout name must be a number");
+            }
+            return FormValidation.ok();
+        }
 
         public boolean hasMCServers() {
             return Hudson.getInstance().getDescriptorByType(
@@ -328,33 +326,33 @@ public class RunFromFileBuilder extends Builder {
                     MCServerSettingsBuilder.MCDescriptorImpl.class).getInstallations();
         }
 
-		public FormValidation doCheckControllerPollingInterval(@QueryParameter String value){
-			if (StringUtils.isEmpty(value)){
-				return FormValidation.ok();
-			}
-			
-			if (!StringUtils.isNumeric(value)){
-				return FormValidation.error("Controller Polling Interval must be a number");
-			}
-			
-			return FormValidation.ok();
-		}
-		
-		public FormValidation doCheckPerScenarioTimeOut(@QueryParameter String value){
-			if (StringUtils.isEmpty(value)){
-				return FormValidation.ok();
-			}
-			
-			if (!StringUtils.isNumeric(value)){
-				return FormValidation.error("Per Scenario Timeout must be a number");
-			}
-			
-			return FormValidation.ok();
-		}
-		
-	}
+        public FormValidation doCheckControllerPollingInterval(@QueryParameter String value){
+            if (StringUtils.isEmpty(value)){
+                return FormValidation.ok();
+            }
 
-	public String getRunResultsFileName() {
-		return ResultFilename;
-	}
+            if (!StringUtils.isNumeric(value)){
+                return FormValidation.error("Controller Polling Interval must be a number");
+            }
+
+            return FormValidation.ok();
+        }
+
+        public FormValidation doCheckPerScenarioTimeOut(@QueryParameter String value){
+            if (StringUtils.isEmpty(value)){
+                return FormValidation.ok();
+            }
+
+            if (!StringUtils.isNumeric(value)){
+                return FormValidation.error("Per Scenario Timeout must be a number");
+            }
+
+            return FormValidation.ok();
+        }
+
+    }
+
+    public String getRunResultsFileName() {
+        return ResultFilename;
+    }
 }

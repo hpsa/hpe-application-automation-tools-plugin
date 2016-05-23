@@ -5,15 +5,16 @@
 
 package com.hp.application.automation.tools.model;
 
-import com.hp.application.automation.tools.mc.JobConfigurationProxy;
 import hudson.EnvVars;
 import hudson.util.Secret;
 import hudson.util.VariableResolver;
+
+import java.util.Properties;
+import com.hp.application.automation.tools.mc.JobConfigurationProxy;
+
 import net.minidev.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
-
-import java.util.Properties;
 
 public class RunFromFileSystemModel {
 
@@ -25,6 +26,7 @@ public class RunFromFileSystemModel {
     private String mcServerName;
     private String fsUserName;
     private Secret fsPassword;
+
     private String fsDeviceId;
     private String fsOs;
     private String fsManufacturerAndModel;
@@ -57,6 +59,8 @@ public class RunFromFileSystemModel {
         this.mcServerName = mcServerName;
         this.fsUserName = fsUserName;
         this.fsPassword = Secret.fromString(fsPassword);
+
+
         this.fsDeviceId = fsDeviceId;
         this.fsOs = fsOs;
         this.fsManufacturerAndModel = fsManufacturerAndModel;
@@ -70,6 +74,7 @@ public class RunFromFileSystemModel {
         this.fsJobId = fsJobId;
         this.proxySettings = proxySettings;
         this.useSSL = useSSL;
+
     }
 
 
@@ -148,6 +153,7 @@ public class RunFromFileSystemModel {
     public boolean isUseSSL() {
         return useSSL;
     }
+
 
     /**
      * @return the controllerPollingInterval
@@ -279,6 +285,7 @@ public class RunFromFileSystemModel {
         }else{
             props.put("MobileUseSSL","0");
         }
+
         return props;
     }
 
@@ -288,4 +295,5 @@ public class RunFromFileSystemModel {
         }
         return JobConfigurationProxy.getInstance().getJobById(mcUrl, fsUserName, fsPassword.getPlainText(), proxyAddress, proxyUserName, proxyPassword, fsJobId);
     }
+
 }
