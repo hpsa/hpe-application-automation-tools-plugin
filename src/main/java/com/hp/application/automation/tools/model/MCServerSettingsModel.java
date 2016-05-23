@@ -44,9 +44,9 @@ public class MCServerSettingsModel {
 
         Properties prop = new Properties();
         if (!StringUtils.isEmpty(_mcServerUrl)) {
-            prop.put("mcServerUrl", _mcServerUrl);
+            prop.put("MobileHostAddress", _mcServerUrl);
         } else {
-            prop.put("mcServerUrl", "");
+            prop.put("MobileHostAddress", "");
         }
 
         return prop;
