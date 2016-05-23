@@ -5,6 +5,7 @@ import os
 import subprocess
 import sys
 import shutil
+import time
 
 
 #Global params
@@ -49,6 +50,7 @@ def signJars():
         subprocess.call(["/opt/HPCSS/HPSignClient/HPSign.sh", "-r jarAgm", "-c HPSign.conf", "-i ", jarFolder + filename, "-o ", tempTarget + "/server/" ,"-obj jarfile_batch_sign_local_timestamp" ])
         output = subprocess.Popen(['/usr/bin/jarsigner -verify ' + tempTarget + '/server/' + str(filename)], stdout=subprocess.PIPE, shell=True).communicate()[0]
         print output
+        time.sleep(10)
         if 'jar verified.' in output:
             print str(filename) + ' has been verified'
         else:
