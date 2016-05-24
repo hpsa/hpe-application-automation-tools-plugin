@@ -61,9 +61,8 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 *
 	 * @param serverIdentity The server id
 	 * @param jobName       The job name
-	 * @param runRefId       The build run id
 	 */
-	Boolean isTestResultRelevant(String serverIdentity, String jobName, int runRefId);
+	Boolean isTestResultRelevant(String serverIdentity, String jobName);
 
 
 	/**

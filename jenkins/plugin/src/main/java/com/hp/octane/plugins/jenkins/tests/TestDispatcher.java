@@ -137,7 +137,7 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
                 jobName = build.getProject().getName();
             }
 
-            Boolean needTestResult = client.isTestResultRelevant(ServerIdentity.getIdentity(), jobName, build.getNumber());
+            Boolean needTestResult = client.isTestResultRelevant(ServerIdentity.getIdentity(), jobName);
 
             if (needTestResult) {
                 try {
