@@ -28,22 +28,35 @@ import com.atlassian.bamboo.configuration.ConfigurationMap;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.*;
+import java.lang.Boolean;
+import java.lang.Object;
+import java.lang.String;
+import java.lang.StringBuffer;
+import java.lang.System;
 import java.util.*;
+import java.util.Iterator;
+import java.net.URI;
 import com.atlassian.bamboo.utils.i18n.I18nBean;
 import com.atlassian.bamboo.utils.i18n.I18nBeanFactory;
 import com.hpe.application.automation.tools.common.sdk.DirectoryZipHelper;
+import com.hpe.application.automation.tools.common.integration.HttpConnectionException;
+import net.minidev.json.JSONArray;
+import net.minidev.json.JSONObject;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import com.hpe.application.automation.tools.common.UploadApplication;
+import com.hpe.application.automation.tools.common.integration.JobOperation;
 import com.hpe.application.automation.tools.common.StringUtils;
 import org.apache.commons.lang.BooleanUtils;
 
 public class RunFromFileSystemTask extends AbstractLauncherTask {
 
-	private final String RESULT_HTML_REPORT_FILE_NAME = "run_results.html";
-	private final String HTML_REPORT_FILE_NAME = "Report.html";
-	private I18nBean i18nBean;
+    private final String RESULT_HTML_REPORT_FILE_NAME = "run_results.html";
+    private final String HTML_REPORT_FILE_NAME = "Report.html";
+    private static final String ICON = "icon";
+
+    private I18nBean i18nBean;
 
 	public RunFromFileSystemTask(@NotNull final TestCollationService testCollationService, @NotNull I18nBeanFactory i18nBeanFactory)
 	{
@@ -52,33 +65,128 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
 	}
 
     @java.lang.Override
-	protected Properties getTaskProperties(final TaskContext taskContext) throws Exception {
-    	final ConfigurationMap map = taskContext.getConfigurationMap();        
-    	LauncherParamsBuilder builder = new LauncherParamsBuilder(); 
-   	
-    	builder.setRunType(RunType.FileSystem);
+    protected Properties getTaskProperties(final TaskContext taskContext) throws Exception {
+
+        final ConfigurationMap map = taskContext.getConfigurationMap();
+        final BuildLogger buildLogger = taskContext.getBuildLogger();
+
+        LauncherParamsBuilder builder = new LauncherParamsBuilder();
+
+        builder.setRunType(RunType.FileSystem);
+
         String timeout = map.get(RunFromFileSystemTaskConfigurator.TIMEOUT);
         builder.setPerScenarioTimeOut(timeout);
 
-		String mcAppIdentifierName = "";
+
 		boolean useMC = BooleanUtils.toBoolean(map.get(RunFromFileSystemTaskConfigurator.USE_MC_SETTINGS));
 		if(useMC){
 			String mcServerUrl = map.get(RunFromFileSystemTaskConfigurator.MCSERVERURL);
 			String mcUserName = map.get(RunFromFileSystemTaskConfigurator.MCUSERNAME);
 			String mcPassword = map.get(RunFromFileSystemTaskConfigurator.MCPASSWORD);
-			String mcAppPath = map.get(RunFromFileSystemTaskConfigurator.MCAPPLICATIONPATH);
-			String mcAppIdKey = map.get(RunFromFileSystemTaskConfigurator.MCAPPLICATIONIDKEY);
-			if(!mcInfoCheck(mcServerUrl,mcUserName,mcAppPath,mcAppIdKey)){
-				UploadApplication app = new UploadApplication(mcServerUrl,mcUserName,mcPassword,mcAppPath);
-				mcAppIdentifierName = app.getAppIndentifier();
-			}
-			if(!StringUtils.isNullOrEmpty(mcAppIdentifierName) && !StringUtils.isNullOrEmpty(mcAppIdKey))
-			{
-				builder.setFsAppParamName(mcAppIdKey);
-				builder.setIdentifierName(mcAppIdKey, mcAppIdentifierName);
-			}
-		}
-		
+            String proxyAddress = null;
+            String proxyUserName = null;
+            String proxyPassword = null;
+
+            boolean useSSL = BooleanUtils.toBoolean(map.get(RunFromFileSystemTaskConfigurator.USE_SSL));
+            builder.setMobileUseSSL(useSSL ? 1 : 0);
+
+            if (useSSL) {
+                buildLogger.addBuildLogEntry("********** Use SSL ********** ");
+            }
+
+            boolean useProxy = BooleanUtils.toBoolean(map.get(RunFromFileSystemTaskConfigurator.USE_PROXY));
+
+            builder.setMobileUseProxy(useProxy ? 1 : 0);
+
+            if (useProxy) {
+
+                buildLogger.addBuildLogEntry("********** Use Proxy ********** ");
+
+                builder.setMobileProxyType(2);
+
+                proxyAddress = map.get(RunFromFileSystemTaskConfigurator.PROXY_ADDRESS);
+
+                //proxy info
+                if (proxyAddress != null) {
+
+                    builder.setMobileProxySetting_Address(proxyAddress);
+
+                }
+
+                Boolean specifyAutheration = BooleanUtils.toBoolean(RunFromFileSystemTaskConfigurator.SPECIFY_AUTHERATION);
+
+                builder.setMobileProxySetting_Authentication(specifyAutheration ? 1 : 0);
+
+                if (specifyAutheration) {
+                    proxyUserName = map.get(RunFromFileSystemTaskConfigurator.PROXY_USERNAME);
+                    proxyPassword = map.get(RunFromFileSystemTaskConfigurator.PROXY_PASSWORD);
+
+                    if (proxyUserName != null && proxyPassword != null) {
+                        builder.setMobileProxySetting_UserName(proxyUserName);
+                        builder.setMobileProxySetting_Password(proxyPassword);
+                    }
+
+                }
+            } else {
+                builder.setMobileProxyType(0);
+            }
+
+
+            if (!mcInfoCheck(mcServerUrl, mcUserName, mcPassword)) {
+                //url name password
+                builder.setServerUrl(mcServerUrl);
+                builder.setUserName(mcUserName);
+                builder.setFileSystemPassword(mcPassword);
+
+                String jobUUID = map.get(RunFromFileSystemTaskConfigurator.JOB_UUID);
+
+                //write the specified job info(json type) to properties
+                JobOperation operation = new JobOperation(mcServerUrl, mcUserName, mcPassword, proxyAddress, proxyUserName, proxyPassword);
+
+                String mobileInfo = null;
+                JSONObject jobJSON = null;
+                JSONObject dataJSON = null;
+                JSONArray extArr = null;
+                JSONObject applicationJSONObject = null;
+
+                if (jobUUID != null) {
+
+                    try {
+                        jobJSON = operation.getJobById(jobUUID);
+                    } catch (HttpConnectionException e) {
+                        buildLogger.addErrorLogEntry("********** Fail to connect mobile center, please check URL, UserName, Password, and Proxy Configuration ********** ");
+                    }
+
+                    if (jobJSON != null) {
+                        dataJSON = (JSONObject) jobJSON.get("data");
+                        if (dataJSON != null) {
+
+                            applicationJSONObject = (JSONObject) dataJSON.get("application");
+                            if (applicationJSONObject != null) {
+                                applicationJSONObject.remove(ICON);
+                            }
+
+                            extArr = (JSONArray) dataJSON.get("extraApps");
+                            if (extArr != null) {
+                                Iterator<Object> iterator = extArr.iterator();
+
+                                while (iterator.hasNext()) {
+                                    JSONObject extAppJSONObject = (JSONObject) iterator.next();
+                                    extAppJSONObject.remove(ICON);
+                                }
+
+                            }
+                        }
+
+                        mobileInfo = jobJSON.toJSONString();
+                        builder.setMobileInfo(mobileInfo);
+                    }
+                }
+
+            }
+
+
+        }
     	String splitMarker = "\n";
     	String tests = map.get(RunFromFileSystemTaskConfigurator.TESTS_PATH);
     	String[] testNames;
@@ -203,7 +311,7 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
 		return null;
 	}
 
-    private boolean mcInfoCheck(String mcUrl, String mcUserName, String mcAppPath, String mcAppIdKey){
-        return StringUtils.isNullOrEmpty(mcUrl) || StringUtils.isNullOrEmpty(mcUrl) || StringUtils.isNullOrEmpty(mcUserName) || StringUtils.isNullOrEmpty(mcAppPath) || StringUtils.isNullOrEmpty(mcAppIdKey);
+    private boolean mcInfoCheck(String mcUrl, String mcUserName, String mcPassword) {
+        return StringUtils.isNullOrEmpty(mcUrl) || StringUtils.isNullOrEmpty(mcUserName) || StringUtils.isNullOrEmpty(mcPassword);
     }
 }

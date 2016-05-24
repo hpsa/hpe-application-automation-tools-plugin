@@ -31,6 +31,10 @@
         <param name="vendor-logo">images/hp_logo.png</param>
     </plugin-info>
 
+    <servlet name="HTTP Servlet" key="httpOperationServlet"
+             class="com.hpe.application.automation.tools.common.integration.HttpOperationServlet">
+        <url-pattern>/httpOperationServlet</url-pattern>
+    </servlet>
     <!-- add our i18n resource -->
     <resource type="i18n" name="english language" location="english"/>
     
@@ -106,6 +110,22 @@
         location="images/execute_file_system.png"/>
     </taskType>
     
+    <taskType
+            name="HP Application Upload Execution"
+            class="com.hpe.application.automation.bamboo.tasks.UploadApplicationTask"
+            key="com.hpe.application.automation.bamboo.tasks.UploadApplicationTask">
+        <description>Upload One APP TO MC</description>
+        <category name="test"/>
+        <configuration class="com.hpe.application.automation.bamboo.tasks.UploadApplicationTaskConfigurator"/>
+        <resource
+                type="freemarker"
+                name="edit"
+                location="uploadApp.ftl"/>
+        <resource
+                type="download"
+                name="icon"
+                location="images/execute_file_system.png"/>
+    </taskType>
     <taskType 
     	name="HP UFT ALM Execution"
     	class="com.hpe.application.automation.bamboo.tasks.RunFromAlmTask"

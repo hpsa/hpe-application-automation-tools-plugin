@@ -21,6 +21,9 @@
  */
 package com.hpe.application.automation.bamboo.tasks;
 
+import java.lang.Object;
+import java.lang.String;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import com.atlassian.bamboo.collections.ActionParametersMap;
@@ -58,6 +61,33 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 	private static final String TASK_ID_CONTROL = "RunFromFileSystemTask.taskId";
 	private static final String TASK_ID_LBL = "CommonTask.taskIdLbl";
 
+    //job
+    public static final String JOB_UUID = "jobUUID";
+
+
+    public static final String OS = "OS";
+    public static final String DEVICE_ID = "deviceId";
+    public static final String DEVICE_NAME = "manufacturerAndModel";
+    public static final String SOURCE = "targetLab";
+    public static final String EXTRA_APPS = "extraApps";
+    public static final String LAUNCH_APP_NAME = "launchApplicationName";
+    public static final String AUT_ACTIONS = "autActions";
+    public static final String INSTRUMENTED = "instrumented";
+    public static final String DEVICE_METRICS = "deviceMetrics";
+
+    //SSL
+    public static final String USE_SSL = "useSSL";
+
+    //proxy info
+    public static final String USE_PROXY = "useProxy";
+    public static final String SPECIFY_AUTHERATION = "specifyAutheration";
+
+    public static final String PROXY_ADDRESS = "proxyAddress";
+    public static final String PROXY_USERNAME = "proxyUserName";
+    public static final String PROXY_PASSWORD = "proxyPassword";
+
+    //MC info
+    public static final String MC_INFO = "mcInfo";
 	public Map<String, String> generateTaskConfigMap(@NotNull final ActionParametersMap params, @Nullable final TaskDefinition previousTaskDefinition)
 	{
 		final Map<String, String> config = super.generateTaskConfigMap(params, previousTaskDefinition);
@@ -73,6 +103,27 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 		config.put(PUBLISH_MODE_PARAM, params.getString(PUBLISH_MODE_PARAM));
 		config.put(CommonTaskConfigurationProperties.TASK_NAME, getI18nBean().getText(TASK_NAME_VALUE));
 
+        config.put(JOB_UUID, params.getString(JOB_UUID));
+
+        config.put(OS, params.getString(OS));
+        config.put(DEVICE_ID, params.getString(DEVICE_ID));
+        config.put(DEVICE_NAME, params.getString(DEVICE_NAME));
+        config.put(SOURCE, params.getString(SOURCE));
+        config.put(EXTRA_APPS, params.getString(EXTRA_APPS));
+        config.put(LAUNCH_APP_NAME, params.getString(LAUNCH_APP_NAME));
+        config.put(AUT_ACTIONS, params.getString(AUT_ACTIONS));
+        config.put(INSTRUMENTED, params.getString(INSTRUMENTED));
+        config.put(DEVICE_METRICS, params.getString(DEVICE_METRICS));
+
+        config.put(USE_SSL, params.getString(USE_SSL));
+
+        config.put(USE_PROXY, params.getString(USE_PROXY));
+        config.put(SPECIFY_AUTHERATION, params.getString(SPECIFY_AUTHERATION));
+
+
+        config.put(PROXY_ADDRESS, params.getString(PROXY_ADDRESS));
+        config.put(PROXY_USERNAME, params.getString(PROXY_USERNAME));
+        config.put(PROXY_PASSWORD, params.getString(PROXY_PASSWORD));
 		return config;
 	}
 
@@ -125,6 +176,27 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 		context.put(PUBLISH_MODE_PARAM, taskDefinition.getConfiguration().get(PUBLISH_MODE_PARAM));
 		context.put(TASK_ID_CONTROL, getI18nBean().getText(TASK_ID_LBL) + String.format("%03d",taskDefinition.getId()));
 
+        context.put(JOB_UUID, taskDefinition.getConfiguration().get(JOB_UUID));
+
+        context.put(OS, taskDefinition.getConfiguration().get(OS));
+        context.put(DEVICE_ID, taskDefinition.getConfiguration().get(DEVICE_ID));
+        context.put(DEVICE_NAME, taskDefinition.getConfiguration().get(DEVICE_NAME));
+        context.put(SOURCE, taskDefinition.getConfiguration().get(SOURCE));
+        context.put(EXTRA_APPS, taskDefinition.getConfiguration().get(EXTRA_APPS));
+        context.put(LAUNCH_APP_NAME, taskDefinition.getConfiguration().get(LAUNCH_APP_NAME));
+        context.put(AUT_ACTIONS, taskDefinition.getConfiguration().get(AUT_ACTIONS));
+        context.put(INSTRUMENTED, taskDefinition.getConfiguration().get(INSTRUMENTED));
+        context.put(DEVICE_METRICS, taskDefinition.getConfiguration().get(DEVICE_METRICS));
+
+        context.put(USE_SSL, taskDefinition.getConfiguration().get(USE_SSL));
+
+        context.put(USE_PROXY, taskDefinition.getConfiguration().get(USE_PROXY));
+        context.put(SPECIFY_AUTHERATION, taskDefinition.getConfiguration().get(SPECIFY_AUTHERATION));
+
+
+        context.put(PROXY_ADDRESS, taskDefinition.getConfiguration().get(PROXY_ADDRESS));
+        context.put(PROXY_USERNAME, taskDefinition.getConfiguration().get(PROXY_USERNAME));
+        context.put(PROXY_PASSWORD, taskDefinition.getConfiguration().get(PROXY_PASSWORD));
 		populateContextForLists(context);
 	}
 
