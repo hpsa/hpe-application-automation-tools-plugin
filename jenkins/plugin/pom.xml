@@ -9,7 +9,7 @@
     </parent>
 
     <name>HPE ALM Octane Jenkins CI Plugin</name>
-    <version>12.53.5-SNAPSHOT</version>
+    <version>12.53.7-SNAPSHOT</version>
     <artifactId>hp-lifecycle-management-ci-plugin</artifactId>
     <packaging>hpi</packaging>
 
@@ -158,6 +158,11 @@
             <artifactId>hp-application-automation-tools-plugin</artifactId>
             <version>3.0.7</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>subversion</artifactId>
+            <version>1.45</version>
         </dependency>
 
     </dependencies>

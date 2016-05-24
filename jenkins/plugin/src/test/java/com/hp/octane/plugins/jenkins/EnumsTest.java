@@ -76,9 +76,10 @@ public class EnumsTest {
 
 	@Test
 	public void testSCMType() {
-		assertEquals(SCMType.values().length, 2);
+		assertEquals(SCMType.values().length, 3);
 		assertEquals(SCMType.UNKNOWN.value(), "unknown");
 		assertEquals(SCMType.GIT.value(), "git");
+		assertEquals(SCMType.SVN.value(), "svn");
 		assertEquals(SCMType.fromValue("unknown"), SCMType.UNKNOWN);
 	}
 }
