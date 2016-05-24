@@ -121,11 +121,9 @@ public class TestDispatcherTest {
         queue.waitForTicks(10);
 
         Mockito.verify(restClient).tryToConnectSharedSpace();
-        Mockito.verify(restClient).isTestResultRelevant(ServerIdentity.getIdentity(), build.getProject().getName());
+        Mockito.verify(restClient, Mockito.atMost(3)).isTestResultRelevant(ServerIdentity.getIdentity(), build.getProject().getName());
         Mockito.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
-        Mockito.verify(restClient).isTestResultRelevant(ServerIdentity.getIdentity(), build2.getProject().getName());
         Mockito.verify(restClient).postTestResult(new File(build2.getRootDir(), "mqmTests.xml"), false);
-        Mockito.verify(restClient).isTestResultRelevant(ServerIdentity.getIdentity(), build3.getProject().getName());
         Mockito.verify(restClient).postTestResult(new File(build3.getRootDir(), "mqmTests.xml"), false);
         Mockito.verifyNoMoreInteractions(restClient);
         Assert.assertEquals(0, queue.size());
@@ -298,9 +296,8 @@ public class TestDispatcherTest {
         FreeStyleBuild build2 = executeBuild();
         queue.waitForTicks(12);
         Mockito.verify(restClient, Mockito.atMost(7)).tryToConnectSharedSpace();
-        Mockito.verify(restClient).isTestResultRelevant(ServerIdentity.getIdentity(), build.getProject().getName());
+        Mockito.verify(restClient, Mockito.times(7)).isTestResultRelevant(ServerIdentity.getIdentity(), build.getProject().getName());
         Mockito.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
-        Mockito.verify(restClient, Mockito.times(6)).isTestResultRelevant(ServerIdentity.getIdentity(), build2.getProject().getName());
         Mockito.verify(restClient, Mockito.times(6)).postTestResult(new File(build2.getRootDir(), "mqmTests.xml"), false);
         Mockito.verifyNoMoreInteractions(restClient);
         verifyAudit(build, true);
