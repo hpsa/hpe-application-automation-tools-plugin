@@ -31,7 +31,7 @@ public class UploadApplicationTaskConfigurator extends AbstractLauncherTaskConfi
 
     //proxy type
     public static final String USE_PROXY = "useProxy";
-    public static final String SPECIFY_AUTHERATION = "specifyAutheration";
+    public static final String SPECIFY_AUTHENTICATION = "specifyAuthentication";
 
     //proxy info
     public static final String PROXY_ADDRESS = "proxyAddress";
@@ -48,6 +48,8 @@ public class UploadApplicationTaskConfigurator extends AbstractLauncherTaskConfi
 
 
         config.put(USE_PROXY, params.getString(USE_PROXY));
+        config.put(SPECIFY_AUTHENTICATION, params.getString(SPECIFY_AUTHENTICATION));
+
 
         config.put(PROXY_ADDRESS, params.getString(PROXY_ADDRESS));
         config.put(PROXY_USERNAME, params.getString(PROXY_USERNAME));
@@ -94,6 +96,8 @@ public class UploadApplicationTaskConfigurator extends AbstractLauncherTaskConfi
         context.put(TASK_ID_CONTROL, getI18nBean().getText(TASK_ID_LBL) + String.format("%03d", taskDefinition.getId()));
 
         context.put(USE_PROXY, taskDefinition.getConfiguration().get(USE_PROXY));
+        context.put(SPECIFY_AUTHENTICATION, taskDefinition.getConfiguration().get(SPECIFY_AUTHENTICATION));
+
         context.put(PROXY_ADDRESS, taskDefinition.getConfiguration().get(PROXY_ADDRESS));
         context.put(PROXY_USERNAME, taskDefinition.getConfiguration().get(PROXY_USERNAME));
         context.put(PROXY_PASSWORD, taskDefinition.getConfiguration().get(PROXY_PASSWORD));

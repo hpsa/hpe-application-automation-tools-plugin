@@ -80,7 +80,7 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
 
     //proxy info
     public static final String USE_PROXY = "useProxy";
-    public static final String SPECIFY_AUTHERATION = "specifyAutheration";
+    public static final String SPECIFY_AUTHENTICATION = "specifyAuthentication";
 
     public static final String PROXY_ADDRESS = "proxyAddress";
     public static final String PROXY_USERNAME = "proxyUserName";
@@ -118,7 +118,7 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
         config.put(USE_SSL, params.getString(USE_SSL));
 
         config.put(USE_PROXY, params.getString(USE_PROXY));
-        config.put(SPECIFY_AUTHERATION, params.getString(SPECIFY_AUTHERATION));
+        config.put(SPECIFY_AUTHENTICATION, params.getString(SPECIFY_AUTHENTICATION));
 
 
         config.put(PROXY_ADDRESS, params.getString(PROXY_ADDRESS));
@@ -191,7 +191,7 @@ public class RunFromFileSystemTaskConfigurator extends AbstractLauncherTaskConfi
         context.put(USE_SSL, taskDefinition.getConfiguration().get(USE_SSL));
 
         context.put(USE_PROXY, taskDefinition.getConfiguration().get(USE_PROXY));
-        context.put(SPECIFY_AUTHERATION, taskDefinition.getConfiguration().get(SPECIFY_AUTHERATION));
+        context.put(SPECIFY_AUTHENTICATION, taskDefinition.getConfiguration().get(SPECIFY_AUTHENTICATION));
 
 
         context.put(PROXY_ADDRESS, taskDefinition.getConfiguration().get(PROXY_ADDRESS));

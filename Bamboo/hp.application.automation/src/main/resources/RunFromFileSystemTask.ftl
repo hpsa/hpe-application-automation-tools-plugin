@@ -148,7 +148,7 @@ hr{
     </div>
     <hr>
     <div class="MCcheckBox">
-        [@ww.checkbox labelKey="Specify Autheration" name="specifyAutheration" toggle='true'/]
+        [@ww.checkbox labelKey="Specify Authentication" name="specifyAuthentication" toggle='true'/]
     </div>
     <hr>
     <div class="control">
@@ -218,7 +218,8 @@ var jobId,
         useProxy,
         proxyAddress,
         proxyUserName,
-        proxyPassword;
+        proxyPassword,
+        useAuthentication;
     var customWidth = "500px";
     document.getElementById('timeoutInput').style.maxWidth=customWidth;
     document.getElementById('testPathInput').style.maxWidth=customWidth;
@@ -228,12 +229,12 @@ var jobId,
     document.getElementById('mcPasswordInput').style.maxWidth=customWidth;
 document.getElementById('extraApps').style.maxWidth=customWidth;
 var openMCBtn = document.getElementById('openMCBtn');
-var specifyAutherationBox = document.getElementById('specifyAutheration');
-specifyAutherationBox.addEventListener('change', function(e) {
+var specifyAuthenticationBox = document.getElementById('specifyAuthentication');
+specifyAuthenticationBox.addEventListener('change', function (e) {
     var proxyUserNameInput = document.getElementById('proxyUserName'),
             proxyPasswordInput = document.getElementById('proxyPassword');
 
-    if (specifyAutherationBox.checked == true) {
+    if (specifyAuthenticationBox.checked == true) {
         proxyUserNameInput.disabled = false;
         proxyPasswordInput.disabled = false;
     } else {
@@ -241,12 +242,13 @@ specifyAutherationBox.addEventListener('change', function(e) {
         proxyPasswordInput.disabled = true;
     }
 });
-    function toggle_visibility(id) {
-        var e = document.getElementById(id);
-        if(e.style.display == 'block')
-            e.style.display = 'none';
-        else
-            e.style.display = 'block'
+
+function toggle_visibility(id) {
+    var e = document.getElementById(id);
+    if (e.style.display == 'block')
+        e.style.display = 'none';
+    else
+        e.style.display = 'block';
 }
 function openMCWizardHandler(e) {
     //disable open wizard button
@@ -256,33 +258,23 @@ function openMCWizardHandler(e) {
     mcServerURLInput = document.getElementById('mcServerURLInput').value;
     mcUserNameInput = document.getElementById('mcUserNameInput').value;
     mcPasswordInput = document.getElementById('mcPasswordInput').value;
+    proxyAddress = document.getElementById('proxyAddress').value;
+    proxyUserName = document.getElementById('proxyUserName').value;
+    proxyPassword = document.getElementById('proxyPassword').value;
+    useProxy = document.getElementById('useProxy').checked;
+    useAuthentication = specifyAuthenticationBox.checked;
 
-    if (!mcServerURLInput || !mcUserNameInput || !mcPasswordInput) {
-        alert('Mobile Center URL, Username, Password cannot be empty.');
-        openMCBtn.disabled = false;
-        return;
-    } else {
-        loginInfo = {
-            mcServerURLInput: mcServerURLInput,
-            mcUserNameInput: mcUserNameInput,
-            mcPasswordInput: mcPasswordInput
-        };
-    }
+    loginInfo = {
+        mcServerURLInput: mcServerURLInput,
+        mcUserNameInput: mcUserNameInput,
+        mcPasswordInput: mcPasswordInput,
+        proxyAddress: proxyAddress,
+        proxyUserName: proxyUserName,
+        proxyPassword: proxyPassword,
+        useProxy: useProxy,
+        useAuthentication: useAuthentication
+    };
 
-    if (document.getElementById('useProxy').checked) {
-        proxyAddress = document.getElementById('proxyAddress').value;
-        proxyUserName = document.getElementById('proxyUserName').value;
-        proxyPassword = document.getElementById('proxyPassword').value;
-
-        loginInfo = {
-            mcServerURLInput: mcServerURLInput,
-            mcUserNameInput: mcUserNameInput,
-            mcPasswordInput: mcPasswordInput,
-            proxyAddress: proxyAddress,
-            proxyUserName: proxyUserName,
-            proxyPassword: proxyPassword
-        };
-    }
     //no need do login, get job id directly
     getJobIdHelper();
 }
@@ -297,10 +289,27 @@ function getJobIdHelper() {
         success: function(data) {
             //data = JSON.parse(data);
             if(data != null){
+                var errorCode = data.myErrorCode;
+                //alert(errorCode);
+
+                if (errorCode != null) {
+                    openMCBtn.disabled = false;
+                    if (errorCode == 0) {
+                        alert("URL, UserName, Password is required");
+                        return;
+                    } else if (errorCode == 2) {
+                        alert("You checked the use proxy, but proxy address did not be configured.");
+                        return;
+                    } else if (errorCode == 4) {
+                        alert("You checked the specify Authentication, but proxyUserName or proxyPassword did not be configured.");
+                        return;
+                    }
+                }
                 jobId =  data.data && data.data.id;
 
                 if (!jobId){
                     alert('Login to Mobile Center failed, mc login information is incorrect.');
+                    openMCBtn.disabled = false;
                     return;
                 }
 
@@ -315,12 +324,22 @@ function getJobIdHelper() {
                 window.addEventListener('message', messageEventHandler, false);
             }else{
                 alert('Login to Mobile Center failed, mc login information is incorrect.');
+                openMCBtn.disabled = false;
+                return;
             }
 
 
         },
         error: function(error) {
-            alert('Login to Mobile Center failed, please contact your administrator.');
+	var errorCode = error.myErrorCode;
+            if (errorCode == 0) {
+                alert("URL, UserName, Password Can't be null");
+            } else if (errorCode == 2) {
+                alert("You checked the use proxy, but proxy address did not be configured.");
+            } else if (errorCode == 4) {
+                alert("You checked the specify authentication, but proxyUserName or proxyPassword is null");
+            }
+
             openMCBtn.disabled = false;
         }
     });

@@ -113,11 +113,11 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
 
                 }
 
-                Boolean specifyAutheration = BooleanUtils.toBoolean(RunFromFileSystemTaskConfigurator.SPECIFY_AUTHERATION);
+                Boolean specifyAuthentication = BooleanUtils.toBoolean(RunFromFileSystemTaskConfigurator.SPECIFY_AUTHENTICATION);
 
-                builder.setMobileProxySetting_Authentication(specifyAutheration ? 1 : 0);
+                builder.setMobileProxySetting_Authentication(specifyAuthentication ? 1 : 0);
 
-                if (specifyAutheration) {
+                if (specifyAuthentication) {
                     proxyUserName = map.get(RunFromFileSystemTaskConfigurator.PROXY_USERNAME);
                     proxyPassword = map.get(RunFromFileSystemTaskConfigurator.PROXY_PASSWORD);
 

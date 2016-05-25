@@ -122,7 +122,7 @@
 <hr>
 
 <div class="MCcheckBox">
-    [@ww.checkbox labelKey="Specify Autheration" name="specifyAutheration" toggle="true"/]
+    [@ww.checkbox labelKey="Specify Authentication" name="specifyAuthentication" toggle="true"/]
 </div>
 <hr>
 <div class="control">
@@ -161,12 +161,12 @@
 
 
 <script>
-    var specifyAutherationBox = document.getElementById('specifyAutheration');
-    specifyAutherationBox.addEventListener('change', function(e) {
+    var specifyAuthenticationBox = document.getElementById('specifyAuthentication');
+    specifyAuthenticationBox.addEventListener('change', function(e) {
         var proxyUserNameInput = document.getElementById('proxyUserName'),
                 proxyPasswordInput = document.getElementById('proxyPassword');
 
-        if (specifyAutherationBox.checked == true) {
+        if (specifyAuthenticationBox.checked == true) {
             proxyUserNameInput.disabled = false;
             proxyPasswordInput.disabled = false;
         } else {

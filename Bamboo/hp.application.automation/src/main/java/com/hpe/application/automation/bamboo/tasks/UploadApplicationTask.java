@@ -47,9 +47,9 @@ public class UploadApplicationTask implements TaskType {
 
             proxyAddress = map.get(RunFromFileSystemTaskConfigurator.PROXY_ADDRESS);
 
-            Boolean specifyAutheration = BooleanUtils.toBoolean(RunFromFileSystemTaskConfigurator.SPECIFY_AUTHERATION);
+            Boolean specifyAuthentication = BooleanUtils.toBoolean(RunFromFileSystemTaskConfigurator.SPECIFY_AUTHENTICATION);
 
-            if (specifyAutheration) {
+            if (specifyAuthentication) {
                 proxyUserName = map.get(RunFromFileSystemTaskConfigurator.PROXY_USERNAME);
                 proxyPassword = map.get(RunFromFileSystemTaskConfigurator.PROXY_PASSWORD);
             }
