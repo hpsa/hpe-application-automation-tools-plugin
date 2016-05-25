@@ -60,6 +60,11 @@ public class UploadApplicationTask implements TaskType {
 
         List<String> lst = UploadApplicationTaskConfigurator.fetchMCApplicationPathFromContext(map);
 
+        if (lst == null || lst.size() == 0) {
+            buildLogger.addErrorLogEntry("********** You should provide at least one App **********");
+            return TaskResultBuilder.create(taskContext).failedWithError().build();
+        }
+
         for (String path : lst) {
 
             String appName = getAppName(path);
@@ -72,7 +77,7 @@ public class UploadApplicationTask implements TaskType {
                 buildLogger.addErrorLogEntry("********** Fail to connect Mobile Center Server, Please check the URL, UserName, Password, and Proxy configuration **********");
                 return TaskResultBuilder.create(taskContext).failedWithError().build();
             } catch (FileNotFoundException e) {
-                buildLogger.addErrorLogEntry("********** Fail to find the App path you provided, please check it **********");
+                buildLogger.addErrorLogEntry(String.format("********** Fail to find the App %s you provided %s, please check it **********", appName, path));
                 return TaskResultBuilder.create(taskContext).failedWithError().build();
             } catch (IOException e) {
                 buildLogger.addErrorLogEntry("********** Some problems appeared when upload app **********");
