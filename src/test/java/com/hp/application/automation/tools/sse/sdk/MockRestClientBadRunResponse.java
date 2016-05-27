@@ -3,9 +3,9 @@ package com.hp.application.automation.tools.sse.sdk;
 import java.net.HttpURLConnection;
 import java.util.Map;
 
-import com.hp.application.automation.tools.rest.RestClient;
+import com.hp.application.automation.tools.sse.common.RestClient4Test;
 
-public class MockRestClientBadRunResponse extends RestClient {
+public class MockRestClientBadRunResponse extends RestClient4Test {
     
     public MockRestClientBadRunResponse(String url, String domain, String project, String username) {
         
@@ -17,7 +17,7 @@ public class MockRestClientBadRunResponse extends RestClient {
         
         Response ret = new Response();
         if (url.contains("rest/is-authenticated")) {
-            ret = new Response(null, null, null, HttpURLConnection.HTTP_OK);
+            ret = new Response(null, getExpectAuthInfo(), null, HttpURLConnection.HTTP_OK);
         } else if (url.contains("procedure-runs/")) {
             ret.setData("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><Entity Type=\"procedure-run\"><Fields><Field Name=\"end-time\"><Value>2013-02-13 14:32:35</Value></Field><Field Name=\"topology-id\"><Value></Value></Field><Field Name=\"status\"><Value></Value></Field><Field Name=\"topology-name\"><Value></Value></Field><Field Name=\"run-type\"><Value>TestSet-Run</Value></Field><Field Name=\"state\"><Value>Finished</Value></Field><Field Name=\"start-time\"><Value>2013-02-13 14:31:57</Value></Field><Field Name=\"reservation-id\"><Value>1008</Value></Field><Field Name=\"is-closing\"><Value></Value></Field><Field Name=\"vts\"><Value>2013-02-13 14:32:35</Value></Field><Field Name=\"planner-time-lock\"><Value>2013-02-10 03:12:35</Value></Field><Field Name=\"user-name\"><Value>sa</Value></Field><Field Name=\"id\"><Value>1008</Value></Field><Field Name=\"test-set-ids\"><Value>1</Value></Field><Field Name=\"parent-id\"><Value>1008</Value></Field><Field Name=\"ver-stamp\"><Value>4</Value></Field><Field Name=\"completed-successfully\"><Value>Y</Value></Field><Field Name=\"name\"><Value>testset1_105bc9c9-466e-48c2-9282-3d17fa3cdf7e</Value></Field><Field Name=\"user-id\"><Value>251</Value></Field><Field Name=\"test-set-names\"><Value>testset1</Value></Field><Field Name=\"step\"><Value>Deprovisioning</Value></Field></Fields><RelatedEntities/></Entity>".getBytes());
         } else if (url.contains("event-log-reads")) {

@@ -38,4 +38,5 @@ public class TestRestClient extends TestCase {
                 String.format("%srest/domains/%s/projects/%s/%s", URL, DOMAIN, PROJECT, SUFFIX),
                 url);
     }
+
 }

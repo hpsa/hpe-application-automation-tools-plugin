@@ -1,7 +1,14 @@
 package com.hp.application.automation.tools.sse.result;
 
-import com.hp.application.automation.tools.rest.RestClient;
+import java.net.HttpURLConnection;
+import java.util.List;
+import java.util.Map;
+
+import org.junit.Assert;
+import org.junit.Test;
+
 import com.hp.application.automation.tools.sse.common.ConsoleLogger;
+import com.hp.application.automation.tools.sse.common.RestClient4Test;
 import com.hp.application.automation.tools.sse.common.TestCase;
 import com.hp.application.automation.tools.sse.result.model.junit.JUnitTestCaseStatus;
 import com.hp.application.automation.tools.sse.result.model.junit.Testcase;
@@ -10,12 +17,6 @@ import com.hp.application.automation.tools.sse.result.model.junit.Testsuites;
 import com.hp.application.automation.tools.sse.sdk.Client;
 import com.hp.application.automation.tools.sse.sdk.ResourceAccessLevel;
 import com.hp.application.automation.tools.sse.sdk.Response;
-import org.junit.Assert;
-import org.junit.Test;
-
-import java.net.HttpURLConnection;
-import java.util.List;
-import java.util.Map;
 
 public class TestPublisher extends TestCase {
 
@@ -103,7 +104,7 @@ public class TestPublisher extends TestCase {
                 new ConsoleLogger());
     }
 
-    private class MockClient extends RestClient {
+    private class MockClient extends RestClient4Test {
 
         private final byte[] _bytes;
 

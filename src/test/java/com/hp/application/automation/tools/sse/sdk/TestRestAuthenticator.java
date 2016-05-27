@@ -1,16 +1,17 @@
 package com.hp.application.automation.tools.sse.sdk;
 
-import com.hp.application.automation.tools.rest.RestClient;
-import com.hp.application.automation.tools.sse.common.ConsoleLogger;
-import com.hp.application.automation.tools.sse.common.TestCase;
-import org.junit.Assert;
-import org.junit.Test;
-
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.junit.Assert;
+import org.junit.Test;
+
+import com.hp.application.automation.tools.sse.common.ConsoleLogger;
+import com.hp.application.automation.tools.sse.common.RestClient4Test;
+import com.hp.application.automation.tools.sse.common.TestCase;
 
 public class TestRestAuthenticator extends TestCase {
     
@@ -22,7 +23,7 @@ public class TestRestAuthenticator extends TestCase {
         Assert.assertTrue(ok);
     }
     
-    public class MockRestClientAlreadyAuthenticated extends RestClient {
+    public class MockRestClientAlreadyAuthenticated extends RestClient4Test {
         
         public MockRestClientAlreadyAuthenticated(
                 String url,
@@ -36,7 +37,7 @@ public class TestRestAuthenticator extends TestCase {
         @Override
         public Response httpGet(String url, String queryString, Map<String, String> headers, ResourceAccessLevel resourceAccessLevel) {
             
-            return new Response(null, null, null, HttpURLConnection.HTTP_OK);
+            return new Response(null, getExpectAuthInfo(), null, HttpURLConnection.HTTP_OK);
         }
     }
     
@@ -48,7 +49,7 @@ public class TestRestAuthenticator extends TestCase {
         Assert.assertTrue(ok);
     }
     
-    public class MockRestClientNotAuthenticated extends RestClient {
+    public class MockRestClientNotAuthenticated extends RestClient4Test {
         
         private int _time = 0;
         private final String _isAuthenticatedUrl;
@@ -105,7 +106,7 @@ public class TestRestAuthenticator extends TestCase {
         Assert.assertFalse(ok);
     }
     
-    public class MockRestClientFailedToLogin extends RestClient {
+    public class MockRestClientFailedToLogin extends RestClient4Test {
         
         private int _time = 0;
         private final String _isAuthenticatedUrl;
