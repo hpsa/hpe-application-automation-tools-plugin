@@ -16,6 +16,10 @@ import java.util.List;
 
 public interface CIEvent extends DTOBase {
 
+	String getProjectName();
+
+	CIEvent setProjectName(String projectName);
+
 	CIEventType getEventType();
 
 	CIEvent setEventType(CIEventType type);
