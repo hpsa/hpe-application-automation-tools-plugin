@@ -24,6 +24,8 @@ package com.hpe.application.automation.bamboo.tasks;
 import com.hpe.application.automation.tools.common.EncryptionUtils;
 import com.hpe.application.automation.tools.common.StringUtils;
 
+import java.lang.String;
+import java.lang.StringBuffer;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
@@ -52,7 +54,55 @@ public class LauncherParamsBuilder {
 	{
 		properties = new Properties();
 	}
-	
+    public void setMobileUseSSL(int type) {
+        setParamValue("MobileUseSSL", String.valueOf(type));
+    }
+
+    public void setMobileUseProxy(int proxy) {
+        setParamValue("MobileUseProxy", String.valueOf(proxy));
+    }
+
+    public void setMobileProxyType(int type) {
+        setParamValue("MobileProxyType", String.valueOf(type));
+    }
+
+    public void setMobileProxySetting_Address(String proxyAddress) {
+        setParamValue("MobileProxySetting_Address", proxyAddress);
+    }
+
+    public void setMobileProxySetting_Authentication(int authentication)
+    {
+        setParamValue("MobileProxySetting_Authentication", String.valueOf(authentication));
+    }
+
+
+    public void setProxyHost(String proxyHost) {
+        setParamValue("proxyHost", proxyHost);
+    }
+
+    public void setProxyPort(String proxyPort) {
+        setParamValue("proxyPort", proxyPort);
+    }
+
+    public void setMobileProxySetting_UserName(String proxyUserName) {
+        setParamValue("MobileProxySetting_UserName", proxyUserName);
+    }
+
+    public void setMobileProxySetting_Password(String proxyPassword) {
+        String proxyPass;
+        try {
+
+            proxyPass =
+                    EncryptionUtils.Encrypt(
+                            proxyPassword,
+                            EncryptionUtils.getSecretKey());
+
+            properties.put("MobileProxySetting_Password", proxyPass);
+
+        } catch (Exception e) {
+
+        }
+    }
 	public void setRunType(RunType runType)
 	{
 		setParamValue("runType", runType.toString());
@@ -143,14 +193,32 @@ public class LauncherParamsBuilder {
 		setParamValue("PerScenarioTimeOut", perScenarioTimeOut);
 	}
 
-    public void setFsAppParamName(String mcAppIDKey)
-    {
-        setParamValue("fsAppParamName", mcAppIDKey);
+    public void setFileSystemPassword(String oriPass) {
+        String encPass;
+        try {
+
+            encPass =
+                    EncryptionUtils.Encrypt(
+                            oriPass,
+                            EncryptionUtils.getSecretKey());
+
+            properties.put("MobilePassword", encPass);
+
+        } catch (Exception e) {
+
+        }
     }
 
-    public void setIdentifierName(String mcAppIDKey, String identifierName)
-    {
-        setParamValue(mcAppIDKey, identifierName);
+    public void setMobileInfo(String mobileInfo) {
+        setParamValue("mobileinfo", mobileInfo);
+    }
+
+    public void setServerUrl(String serverUrl) {
+        setParamValue("MobileHostAddress", serverUrl);
+    }
+
+    public void setUserName(String username) {
+        setParamValue("MobileUserName", username);
     }
 
 	public Properties getProperties()
