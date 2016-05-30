@@ -6,7 +6,7 @@ import com.hp.application.automation.tools.sse.sdk.Client;
 import com.hp.application.automation.tools.sse.sdk.Logger;
 import com.hp.application.automation.tools.sse.sdk.Response;
 import com.hp.application.automation.tools.sse.sdk.request.GetLabRunEntityDataRequest;
-import com.hp.application.automation.tools.sse.sdk.request.PollTimeslotRequest;
+import com.hp.application.automation.tools.sse.sdk.request.PollSSERunRequest;
 
 /***
  * 
@@ -48,7 +48,7 @@ public class LabPollHandler extends PollHandler {
     @Override
     protected Response getResponse() {
         
-        return new PollTimeslotRequest(_client, _timeslotId).execute();
+        return new PollSSERunRequest(_client, _runId).execute();
     }
     
     @Override
@@ -68,7 +68,7 @@ public class LabPollHandler extends PollHandler {
                 String startTime = XPathUtils.getAttributeValue(xml, "start-time");
                 String currentRunState = XPathUtils.getAttributeValue(xml, "state");
                 logger.log(String.format(
-                        "Timeslot %s is %s.\nTimeslot start time: %s, Timeslot end time: %s",
+                        "Timeslot %s is %s.\nRun start time: %s, Run end time: %s",
                         _timeslotId,
                         currentRunState,
                         startTime,
