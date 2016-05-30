@@ -99,6 +99,7 @@ public class RunFromFileBuilder extends Builder {
                 jobDetails = runFromFileModel.getJobDetails(mcServerUrl, runFromFileModel.getProxySettings().getFsProxyAddress(),runFromFileModel.getProxySettings().getFsProxyUserName(), runFromFileModel.getProxySettings().getFsProxyPassword());
             }
             mergedProperties.setProperty("mobileinfo", jobDetails != null ? jobDetails.toJSONString() : "");
+            mergedProperties.setProperty("MobileHostAddress",mcServerUrl);
         }
         if(runFromFileModel != null && StringUtils.isNotBlank(runFromFileModel.getFsPassword())){
             String encPassword = "";

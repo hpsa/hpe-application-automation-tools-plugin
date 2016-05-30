@@ -147,7 +147,7 @@ public class UploadAppBuilder extends Builder {
         @Override
         public String getDisplayName() {
 
-            return "Upload App To Mobile Center";
+            return "Upload app to Mobile Center";
         }
 
         public boolean hasMCServers() {

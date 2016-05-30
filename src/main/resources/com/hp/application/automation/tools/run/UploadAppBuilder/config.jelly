@@ -42,21 +42,21 @@
             </j:forEach>
         </select>
     </f:entry>
-    <f:entry title="User Name" field="mcUserName">
+    <f:entry title="User name" field="mcUserName">
         <f:textbox name="uploadApp.mcUserName" value="${instance.uploadAppModel.mcUserName}"/>
     </f:entry>
     <f:entry title="Password" field="mcPassword">
         <f:password name="uploadApp.mcPassword" value="${instance.uploadAppModel.mcPassword}"/>
     </f:entry>
     <f:entry>
-        <f:optionalBlock title="Use Proxy Settings" name = "proxySettings" checked="${instance.uploadAppModel.useProxy}">
+        <f:optionalBlock title="Use proxy settings" name = "proxySettings" checked="${instance.uploadAppModel.useProxy}">
             <f:entry title="Address" field="fsProxyAddress">
               <f:textbox name="uploadApp.fsProxyAddress" value="${instance.uploadAppModel.proxySettings.fsProxyAddress}"/>
             </f:entry>
             <f:entry>
-                <f:checkbox title="Specify Authentication" name="uploadApp.fsUseAuthentication" checked="${instance.uploadAppModel.useAuthentication}" onclick="useAuthentication(this)"/>
+                <f:checkbox title="Specify authentication" name="uploadApp.fsUseAuthentication" checked="${instance.uploadAppModel.useAuthentication}" onclick="useAuthentication(this)"/>
             </f:entry>
-            <f:entry title="User Name" field="fsProxyUserName">
+            <f:entry title="User name" field="fsProxyUserName">
               <f:textbox name="uploadApp.fsProxyUserName" disabled = "${instance.uploadAppModel.useAuthentication ? null : 'true'}" value="${instance.uploadAppModel.proxySettings.fsProxyUserName}"/>
             </f:entry>
             <f:entry title="Password" field="fsProxyPassword">
@@ -68,7 +68,7 @@
     <f:entry title="Applications List" field="applicationPaths">
         <f:repeatable var="app" items="${instance.uploadAppModel.applicationPaths}" add="Add Application" name="applicationPaths">
             <table width="100%">
-                <f:entry title="Application Path" field="mcAppPath">
+                <f:entry title="Application path" field="mcAppPath">
                     <f:textbox value="${app.mcAppPath}" name="uploadApp.mcAppPath" />
                 </f:entry>
                 <f:entry>
