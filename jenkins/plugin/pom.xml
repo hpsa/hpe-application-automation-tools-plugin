@@ -1,40 +1,40 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
-    <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>org.jenkins-ci.plugins</groupId>
-        <artifactId>plugin</artifactId>
-        <version>1.580.2</version>
-    </parent>
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.jenkins-ci.plugins</groupId>
+		<artifactId>plugin</artifactId>
+		<version>1.580.2</version>
+	</parent>
 
-    <name>HPE ALM Octane Jenkins CI Plugin</name>
-    <version>12.53.7-SNAPSHOT</version>
-    <artifactId>hp-lifecycle-management-ci-plugin</artifactId>
-    <packaging>hpi</packaging>
+	<name>HPE ALM Octane Jenkins CI Plugin</name>
+	<version>12.53.7-SNAPSHOT</version>
+	<artifactId>hp-lifecycle-management-ci-plugin</artifactId>
+	<packaging>hpi</packaging>
 
-    <properties>
-        <baseNexusURL>http://mydtbld0051.hpeswlab.net:8081/nexus</baseNexusURL>
-        <surefire.version>2.18.1</surefire.version>
-        <jacoco.version>0.7.4.201502262128</jacoco.version>
+	<properties>
+		<baseNexusURL>http://mydtbld0051.hpeswlab.net:8081/nexus</baseNexusURL>
+		<surefire.version>2.18.1</surefire.version>
+		<jacoco.version>0.7.4.201502262128</jacoco.version>
 
-        <!-- SONAR STUFF -->
-        <sonar.jacoco.reportPath>${jacoco.report.path}/${jacoco.report.filename}</sonar.jacoco.reportPath>
-        <sonar.jacoco.reportMissing.force.zero>true</sonar.jacoco.reportMissing.force.zero>
-        <sonar.java.source>${jdk.version}</sonar.java.source>
-        <sonar.core.codeCoveragePlugin>jacoco</sonar.core.codeCoveragePlugin>
-        <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
-        <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
-        <sonar.forceAnalysis>true</sonar.forceAnalysis>
-        <sonar.exclusions>
-            **/src/test/**/*.java,
-            **/*JSON.java,
-            **/json/**,
-            **/Json.java,
-            **/*Json*.java,
-            **/JsonTest.java,
-            **/opb-tests/**,
-            **/NotificationEmail.java
+		<!-- SONAR STUFF -->
+		<sonar.jacoco.reportPath>${jacoco.report.path}/${jacoco.report.filename}</sonar.jacoco.reportPath>
+		<sonar.jacoco.reportMissing.force.zero>true</sonar.jacoco.reportMissing.force.zero>
+		<sonar.java.source>${jdk.version}</sonar.java.source>
+		<sonar.core.codeCoveragePlugin>jacoco</sonar.core.codeCoveragePlugin>
+		<sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+		<sonar.forceAnalysis>true</sonar.forceAnalysis>
+		<sonar.exclusions>
+			**/src/test/**/*.java,
+			**/*JSON.java,
+			**/json/**,
+			**/Json.java,
+			**/*Json*.java,
+			**/JsonTest.java,
+			**/opb-tests/**,
+			**/NotificationEmail.java
 		</sonar.exclusions>
 		<skipTests>true</skipTests>
 		<matching.obj>jarfile_batch_sign_local_timestamp</matching.obj>
@@ -43,260 +43,261 @@
 		<cert.project.name>jarAgm</cert.project.name>
 	</properties>
 
-    <dependencies>
-        <dependency>
-            <groupId>com.squareup</groupId>
-            <artifactId>tape</artifactId>
-            <version>1.2.3</version>
-        </dependency>
+	<dependencies>
+		<dependency>
+			<groupId>com.squareup</groupId>
+			<artifactId>tape</artifactId>
+			<version>1.2.3</version>
+		</dependency>
 
-        <!--Extensibility-->
+		<!--Extensibility-->
 
-        <dependency>
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>git</artifactId>
-            <version>2.2.7</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>matrix-project</artifactId>
-            <version>1.4</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.jenkins-ci.main</groupId>
-            <artifactId>maven-plugin</artifactId>
-            <version>2.5</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>jenkins-multijob-plugin</artifactId>
-            <version>1.15</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>parameterized-trigger</artifactId>
-            <version>2.25</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>com.seitenbau.jenkins.plugins</groupId>
-            <artifactId>dynamicparameter</artifactId>
-            <version>0.2.0</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>extended-choice-parameter</artifactId>
-            <version>0.34</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>random-string-parameter</artifactId>
-            <version>1.0</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>nodelabelparameter</artifactId>
-            <version>1.5.0</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>junit</artifactId>
-            <version>1.0</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>jquery</artifactId>
-            <version>1.7.2-1</version>
-            <optional>true</optional>
-        </dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>git</artifactId>
+			<version>2.2.7</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>matrix-project</artifactId>
+			<version>1.4</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.main</groupId>
+			<artifactId>maven-plugin</artifactId>
+			<version>2.5</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>jenkins-multijob-plugin</artifactId>
+			<version>1.15</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>parameterized-trigger</artifactId>
+			<version>2.25</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>com.seitenbau.jenkins.plugins</groupId>
+			<artifactId>dynamicparameter</artifactId>
+			<version>0.2.0</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>extended-choice-parameter</artifactId>
+			<version>0.34</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>random-string-parameter</artifactId>
+			<version>1.0</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>nodelabelparameter</artifactId>
+			<version>1.5.0</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>junit</artifactId>
+			<version>1.0</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>jquery</artifactId>
+			<version>1.7.2-1</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>subversion</artifactId>
+			<version>1.45</version>
+			<optional>true</optional>
+		</dependency>
 
-        <!--Internals-->
-        <dependency>
-            <artifactId>integrations-sdk</artifactId>
-            <groupId>com.hp.mqm</groupId>
-            <version>${project.version}</version>
-        </dependency>
+		<!--Internals-->
+		<dependency>
+			<artifactId>integrations-sdk</artifactId>
+			<groupId>com.hp.mqm</groupId>
+			<version>${project.version}</version>
+		</dependency>
 
-        <!-- TO BE REMOVED -->
-        <dependency>
-            <artifactId>mqm-rest-client</artifactId>
-            <groupId>com.hp.mqm</groupId>
-            <version>${project.version}</version>
-        </dependency>
+		<!-- TO BE REMOVED -->
+		<dependency>
+			<artifactId>mqm-rest-client</artifactId>
+			<groupId>com.hp.mqm</groupId>
+			<version>${project.version}</version>
+		</dependency>
 
-        <!--Test-->
+		<!--Test-->
 
-        <dependency>
-            <groupId>org.json</groupId>
-            <artifactId>json</artifactId>
-            <version>20141113</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-server</artifactId>
-            <version>9.2.6.v20141205</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <version>1.10.19</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>hp-application-automation-tools-plugin</artifactId>
-            <version>3.0.7</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>subversion</artifactId>
-            <version>1.45</version>
-        </dependency>
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20141113</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-server</artifactId>
+			<version>9.2.6.v20141205</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>1.10.19</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>hp-application-automation-tools-plugin</artifactId>
+			<version>3.0.7</version>
+			<scope>test</scope>
+		</dependency>
 
-    </dependencies>
+	</dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.jvnet.localizer</groupId>
-                <artifactId>maven-localizer-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                        <configuration>
-                            <fileMask>Messages.properties</fileMask>
-                            <outputDirectory>target/generated-sources/localizer</outputDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.5.1</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <serverId>stage-indi</serverId>
-                    <stagingProfileId>3f945a89b73e3c</stagingProfileId>
-                    <buildPromotionProfileId>fccb50be7d1a</buildPromotionProfileId>
-                    <nexusUrl>${baseNexusURL}/</nexusUrl>
-                </configuration>
-            </plugin>
-        </plugins>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <artifactId>maven-surefire-plugin</artifactId>
-                    <version>${surefire.version}</version>
-                    <configuration>
-                        <argLine>${surefireArgLine}</argLine>
-                        <skipTests>${skipTests}</skipTests>
-                        <testFailureIgnore>true</testFailureIgnore>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-    </build>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.jvnet.localizer</groupId>
+				<artifactId>maven-localizer-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<fileMask>Messages.properties</fileMask>
+							<outputDirectory>target/generated-sources/localizer</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.sonatype.plugins</groupId>
+				<artifactId>nexus-staging-maven-plugin</artifactId>
+				<version>1.5.1</version>
+				<extensions>true</extensions>
+				<configuration>
+					<serverId>stage-indi</serverId>
+					<stagingProfileId>3f945a89b73e3c</stagingProfileId>
+					<buildPromotionProfileId>fccb50be7d1a</buildPromotionProfileId>
+					<nexusUrl>${baseNexusURL}/</nexusUrl>
+				</configuration>
+			</plugin>
+		</plugins>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>${surefire.version}</version>
+					<configuration>
+						<argLine>${surefireArgLine}</argLine>
+						<skipTests>${skipTests}</skipTests>
+						<testFailureIgnore>true</testFailureIgnore>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
 
-    <profiles>
-        <!-- This profile is for coverage unitests -->
-        <profile>
-            <id>test-coverage</id>
-            <properties>
-                <jacoco.report.filename>jacoco-ut.exec</jacoco.report.filename>
-                <jacoco.report.path>${user.dir}/target/coverage-reports</jacoco.report.path>
-                <jacoco.report.append>true</jacoco.report.append>
-            </properties>
-            <dependencies>
-                <dependency>
-                    <groupId>org.jacoco</groupId>
-                    <artifactId>jacoco-maven-plugin</artifactId>
-                    <version>${jacoco.version}</version>
-                </dependency>
-            </dependencies>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.jacoco</groupId>
-                        <artifactId>jacoco-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>prepare-agent</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-                <pluginManagement>
+	<profiles>
+		<!-- This profile is for coverage unitests -->
+		<profile>
+			<id>test-coverage</id>
+			<properties>
+				<jacoco.report.filename>jacoco-ut.exec</jacoco.report.filename>
+				<jacoco.report.path>${user.dir}/target/coverage-reports</jacoco.report.path>
+				<jacoco.report.append>true</jacoco.report.append>
+			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>org.jacoco</groupId>
+					<artifactId>jacoco-maven-plugin</artifactId>
+					<version>${jacoco.version}</version>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.jacoco</groupId>
+						<artifactId>jacoco-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<goals>
+									<goal>prepare-agent</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+				<pluginManagement>
 
-                    <plugins>
-                        <plugin>
-                            <groupId>org.jacoco</groupId>
-                            <artifactId>jacoco-maven-plugin</artifactId>
-                            <version>${jacoco.version}</version>
-                            <configuration>
-                                <destFile>${jacoco.report.path}/${jacoco.report.filename}</destFile>
-                                <!-- Sets the name of the property containing the settings for JaCoCo
-                                        runtime agent. -->
-                                <propertyName>surefireArgLine</propertyName>
-                                <append>${jacoco.report.append}</append>
-                            </configuration>
-                        </plugin>
-                    </plugins>
-                </pluginManagement>
-            </build>
-        </profile>
-        <profile>
-            <id>full</id>
-            <distributionManagement>
-                <snapshotRepository>
-                    <id>mqm-latest</id>
-                    <name>Latest repository</name>
-                    <url>${baseNexusURL}/content/repositories/mqm-latest</url>
-                </snapshotRepository>
-            </distributionManagement>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.sonatype.plugins</groupId>
-                        <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>1.5.1</version>
-                        <extensions>true</extensions>
-                        <configuration>
-                            <serverId>stage-indi</serverId>
-                            <stagingProfileId>3f945a89b73e3c</stagingProfileId>
-                            <buildPromotionProfileId>fccb50be7d1a</buildPromotionProfileId>
-                            <nexusUrl>${baseNexusURL}/</nexusUrl>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <id>quick</id>
-            <distributionManagement>
-                <snapshotRepository>
-                    <id>mqm-snapshots</id>
-                    <name>Snapshot repository</name>
-                    <url>${baseNexusURL}/content/repositories/mqm-snapshots</url>
-                </snapshotRepository>
-            </distributionManagement>
-        </profile>
+					<plugins>
+						<plugin>
+							<groupId>org.jacoco</groupId>
+							<artifactId>jacoco-maven-plugin</artifactId>
+							<version>${jacoco.version}</version>
+							<configuration>
+								<destFile>${jacoco.report.path}/${jacoco.report.filename}</destFile>
+								<!-- Sets the name of the property containing the settings for JaCoCo
+										runtime agent. -->
+								<propertyName>surefireArgLine</propertyName>
+								<append>${jacoco.report.append}</append>
+							</configuration>
+						</plugin>
+					</plugins>
+				</pluginManagement>
+			</build>
+		</profile>
+		<profile>
+			<id>full</id>
+			<distributionManagement>
+				<snapshotRepository>
+					<id>mqm-latest</id>
+					<name>Latest repository</name>
+					<url>${baseNexusURL}/content/repositories/mqm-latest</url>
+				</snapshotRepository>
+			</distributionManagement>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.sonatype.plugins</groupId>
+						<artifactId>nexus-staging-maven-plugin</artifactId>
+						<version>1.5.1</version>
+						<extensions>true</extensions>
+						<configuration>
+							<serverId>stage-indi</serverId>
+							<stagingProfileId>3f945a89b73e3c</stagingProfileId>
+							<buildPromotionProfileId>fccb50be7d1a</buildPromotionProfileId>
+							<nexusUrl>${baseNexusURL}/</nexusUrl>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>quick</id>
+			<distributionManagement>
+				<snapshotRepository>
+					<id>mqm-snapshots</id>
+					<name>Snapshot repository</name>
+					<url>${baseNexusURL}/content/repositories/mqm-snapshots</url>
+				</snapshotRepository>
+			</distributionManagement>
+		</profile>
 		<profile>
 			<id>jar-signing</id>
 			<build>
@@ -312,11 +313,11 @@
 								<phase>post-integration-test</phase>
 								<configuration>
 									<target name="Sign">
-										<echo message="This is the file name:${file.name}" />
+										<echo message="This is the file name:${file.name}"/>
 										<exec executable="/bin/bash" failonerror="true">
 											<arg value="/opt/HPCSS/HPSignClient/HPSign.sh"/>
 											<!--<arg value="-r jarAgm -c HPSign.conf -i /tmp/tmp/hp-integration-bridge-upgrade-windows.jar -o /tmp/tmp/Signed -obj jarfile_batch_sign_local_timestamp" />-->
-											<arg value="-r ${cert.project.name} -c HPSign.conf -i ${project.build.directory}/${file.name} -o ${original.folder} -obj ${matching.obj}" />							 
+											<arg value="-r ${cert.project.name} -c HPSign.conf -i ${project.build.directory}/${file.name} -o ${original.folder} -obj ${matching.obj}"/>
 										</exec>
 									</target>
 								</configuration>
@@ -329,8 +330,9 @@
 								<phase>post-integration-test</phase>
 								<configuration>
 									<target>
-										<copy file="${original.folder}/${file.name}" toFile="${project.build.directory}/${file.name}"
-                                              overwrite="true">
+										<copy file="${original.folder}/${file.name}"
+											  toFile="${project.build.directory}/${file.name}"
+											  overwrite="true">
 										</copy>
 									</target>
 								</configuration>
@@ -343,10 +345,10 @@
 								<phase>post-integration-test</phase>
 								<configuration>
 									<target name="Verify sign">
-										<echo message="This is the file name:${file.name}" />
+										<echo message="This is the file name:${file.name}"/>
 										<exec executable="/bin/bash" failonerror="true">
 											<arg value="-c"/>
-											<arg value="if /usr/bin/jarsigner -verify ${project.build.directory}/${file.name} | grep 'jar verified.'; then echo THE JAR ${file.name} WAS SIGNED SUCCESSFULLY; exit 0; else echo THE BUILD FAILED BECAUSE JAR ${file.name} IS UNSIGNED; exit 1; fi"/>										
+											<arg value="if /usr/bin/jarsigner -verify ${project.build.directory}/${file.name} | grep 'jar verified.'; then echo THE JAR ${file.name} WAS SIGNED SUCCESSFULLY; exit 0; else echo THE BUILD FAILED BECAUSE JAR ${file.name} IS UNSIGNED; exit 1; fi"/>
 										</exec>
 									</target>
 								</configuration>
@@ -354,11 +356,11 @@
 									<goal>run</goal>
 								</goals>
 							</execution>
-						</executions>					
+						</executions>
 					</plugin>
 				</plugins>
 			</build>
 		</profile>
-    </profiles>
+	</profiles>
 
 </project>
