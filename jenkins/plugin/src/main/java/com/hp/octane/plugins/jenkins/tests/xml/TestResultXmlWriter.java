@@ -69,6 +69,9 @@ public class TestResultXmlWriter {
 					writer.writeAttribute("duration", String.valueOf(item.getDuration()));
 					writer.writeAttribute("status", item.getResult().toPrettyName());
 					writer.writeAttribute("started", String.valueOf(item.getStarted()));
+					if(item.getStormRunnerURL() != null) {
+						writer.writeAttribute("url", item.getStormRunnerURL());
+					}
 					if (item.getResult().equals(TestResultStatus.FAILED) && item.getTestError() != null) {
 						TestError testError = item.getTestError();
 						writer.writeStartElement("error");
@@ -77,6 +80,7 @@ public class TestResultXmlWriter {
 						writer.writeCharacters(testError.getStackTraceStr());
 						writer.writeEndElement();
 					}
+
 					writer.writeEndElement();
 				}
 			}

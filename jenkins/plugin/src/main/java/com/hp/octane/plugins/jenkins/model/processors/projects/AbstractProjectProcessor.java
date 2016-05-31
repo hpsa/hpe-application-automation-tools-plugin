@@ -101,6 +101,8 @@ public abstract class 	AbstractProjectProcessor {
 		return postBuilds;
 	}
 
+	public abstract List<Builder> tryGetBuilders();
+
 	public static AbstractProjectProcessor getFlowProcessor(AbstractProject project) {
 		AbstractProjectProcessor flowProcessor = null;
 		if (project.getClass().getName().equals("hudson.model.FreeStyleProject")) {

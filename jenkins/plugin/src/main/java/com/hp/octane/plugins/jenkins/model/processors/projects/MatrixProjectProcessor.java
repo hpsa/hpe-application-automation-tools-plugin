@@ -2,6 +2,10 @@ package com.hp.octane.plugins.jenkins.model.processors.projects;
 
 import hudson.matrix.MatrixProject;
 import hudson.model.AbstractProject;
+import hudson.model.FreeStyleProject;
+import hudson.tasks.Builder;
+
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -12,15 +16,22 @@ import hudson.model.AbstractProject;
  */
 
 public class MatrixProjectProcessor extends AbstractProjectProcessor {
+	private final MatrixProject project;
+
 	public MatrixProjectProcessor(AbstractProject project) {
-		MatrixProject p = (MatrixProject) project;
+		this.project = (MatrixProject) project;
 
 		//  Internal phases
 		//
-		super.processBuilders(p.getBuilders(), p);
+		super.processBuilders(this.project.getBuilders(), this.project);
 
 		//  Post build phases
 		//
-		super.processPublishers(p);
+		super.processPublishers(this.project);
+	}
+
+	@Override
+	public List<Builder> tryGetBuilders() {
+		return project.getBuilders();
 	}
 }

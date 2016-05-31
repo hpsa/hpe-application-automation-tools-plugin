@@ -16,11 +16,12 @@ public abstract class MqmTestsExtension implements ExtensionPoint {
     /**
      *
      * @param build build to find test results for
+     * @param isStormRunnerProject if the project is storm runner project
      * @return instance of {@link TestResultContainer} or null, when no test results found
      * @throws IOException
      * @throws InterruptedException
      */
-    public abstract TestResultContainer getTestResults(AbstractBuild<?, ?> build) throws IOException, InterruptedException;
+    public abstract TestResultContainer getTestResults(AbstractBuild<?, ?> build, boolean isStormRunnerProject) throws IOException, InterruptedException;
 
     public static ExtensionList<MqmTestsExtension> all() {
         return Hudson.getInstance().getExtensionList(MqmTestsExtension.class);

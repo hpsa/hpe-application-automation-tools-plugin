@@ -3,12 +3,18 @@
 package com.hp.octane.plugins.jenkins.tests;
 
 import com.google.inject.Inject;
+import com.hp.nga.integrations.dto.pipelines.BuildHistory;
+import com.hp.octane.plugins.jenkins.model.processors.projects.AbstractProjectProcessor;
 import com.hp.octane.plugins.jenkins.tests.build.BuildHandlerUtils;
 import com.hp.octane.plugins.jenkins.tests.gherkin.GherkinTestResultsCollector;
 import com.hp.octane.plugins.jenkins.tests.xml.TestResultXmlWriter;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
+import hudson.model.FreeStyleProject;
+import hudson.model.Project;
+import hudson.tasks.Builder;
 
 import javax.xml.stream.XMLStreamException;
 import java.util.List;
@@ -19,34 +25,47 @@ import java.util.logging.Logger;
 public class TestListener {
 
     static final String TEST_RESULT_FILE = "mqmTests.xml";
+    public static final String JENKINS_STORM_TEST_RUNNER_CLASS = "com.hpe.sr.plugins.jenkins.StormTestRunner";
 
     private static Logger logger = Logger.getLogger(TestListener.class.getName());
 
     private TestResultQueue queue;
 
     public void processBuild(AbstractBuild build) {
+
         FilePath resultPath = new FilePath(new FilePath(build.getRootDir()), TEST_RESULT_FILE);
         TestResultXmlWriter resultWriter = new TestResultXmlWriter(resultPath, build);
         boolean success = false;
         boolean hasTests = false;
+
+        boolean isStormRunnerProject = false;
+        List<Builder> builders = AbstractProjectProcessor.getFlowProcessor(build.getProject()).tryGetBuilders();
+        if (builders != null) {
+            for (Builder builder : builders) {
+                if (builder.getClass().getName().equals(JENKINS_STORM_TEST_RUNNER_CLASS)) {
+                    isStormRunnerProject = true;
+                    break;
+                }
+            }
+        }
         try {
-            for (MqmTestsExtension ext: MqmTestsExtension.all()) {
+            for (MqmTestsExtension ext : MqmTestsExtension.all()) {
                 try {
                     if (ext.supports(build)) {
                         GherkinTestResultsCollector gherkinResultsCollector = new GherkinTestResultsCollector(build);
-                        List<CustomTestResult> gherkinTestResults =  gherkinResultsCollector.getGherkinTestsResults();
-                        if(gherkinTestResults != null && gherkinTestResults.size() > 0) {
-                          resultWriter.setCustomTestResults(gherkinTestResults);
-                          hasTests = true;
+                        List<CustomTestResult> gherkinTestResults = gherkinResultsCollector.getGherkinTestsResults();
+                        if (gherkinTestResults != null && gherkinTestResults.size() > 0) {
+                            resultWriter.setCustomTestResults(gherkinTestResults);
+                            hasTests = true;
                         }
 
-                        TestResultContainer testResultContainer = ext.getTestResults(build);
+                        TestResultContainer testResultContainer = ext.getTestResults(build, isStormRunnerProject);
                         if (testResultContainer != null && testResultContainer.getIterator().hasNext()) {
                             resultWriter.setTestResultContainer(testResultContainer, gherkinResultsCollector);
                             hasTests = true;
                         }
 
-                        if(hasTests) {
+                        if (hasTests) {
                             resultWriter.writeResults();
                         }
                     }

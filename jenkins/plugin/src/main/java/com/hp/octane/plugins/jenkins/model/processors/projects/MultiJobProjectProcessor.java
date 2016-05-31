@@ -2,6 +2,9 @@ package com.hp.octane.plugins.jenkins.model.processors.projects;
 
 import com.tikal.jenkins.plugins.multijob.MultiJobProject;
 import hudson.model.AbstractProject;
+import hudson.tasks.Builder;
+
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -12,15 +15,23 @@ import hudson.model.AbstractProject;
  */
 
 public class MultiJobProjectProcessor extends AbstractProjectProcessor {
+
+	private final MultiJobProject project;
+
 	public MultiJobProjectProcessor(AbstractProject project) {
-		MultiJobProject p = (MultiJobProject) project;
+		this.project = (MultiJobProject) project;
 
 		//  Internal phases
 		//
-		super.processBuilders(p.getBuilders(), p);
+		super.processBuilders(this.project.getBuilders(), this.project);
 
 		//  Post build phases
 		//
-		super.processPublishers(p);
+		super.processPublishers(this.project);
+	}
+
+	@Override
+	public List<Builder> tryGetBuilders() {
+		return project.getBuilders();
 	}
 }

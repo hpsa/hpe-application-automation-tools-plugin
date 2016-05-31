@@ -5,6 +5,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.StringReader;
 
 /**
@@ -34,5 +35,11 @@ public abstract class DTOInternalProviderBase {
 		JAXBContext jaxbContext = JAXBContext.newInstance(getXMLAbleClasses());
 		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 		return (T) unmarshaller.unmarshal(new StringReader(xml));
+	}
+
+	<T extends DTOBase> T fromXmlFile(File xml) throws JAXBException {
+		JAXBContext jaxbContext = JAXBContext.newInstance(getXMLAbleClasses());
+		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+		return (T) unmarshaller.unmarshal(xml);
 	}
 }

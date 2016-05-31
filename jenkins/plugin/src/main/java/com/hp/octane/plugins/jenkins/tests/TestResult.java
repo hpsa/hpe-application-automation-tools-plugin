@@ -14,8 +14,9 @@ final public class TestResult implements Serializable {
     private final long duration;
     private final long started;
     private final TestError testError;
+    private final String stormRunnerURL;
 
-    public TestResult(String moduleName, String packageName, String className, String testName, TestResultStatus result, long duration, long started, TestError testError) {
+    public TestResult(String moduleName, String packageName, String className, String testName, TestResultStatus result, long duration, long started, TestError testError, String stormRunnerURL) {
         this.moduleName = moduleName;
         this.packageName = packageName;
         this.className = className;
@@ -24,6 +25,7 @@ final public class TestResult implements Serializable {
         this.duration = duration;
         this.started = started;
         this.testError = testError;
+        this.stormRunnerURL = stormRunnerURL;
     }
 
     public String getModuleName() {
@@ -57,4 +59,6 @@ final public class TestResult implements Serializable {
     public TestError getTestError() {
         return testError;
     }
+
+    public String  getStormRunnerURL() {return stormRunnerURL;}
 }

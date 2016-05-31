@@ -12,9 +12,11 @@ import com.hp.nga.integrations.dto.parameters.impl.DTOParametersProvider;
 import com.hp.nga.integrations.dto.pipelines.impl.DTOPipelinesProvider;
 import com.hp.nga.integrations.dto.scm.impl.DTOSCMProvider;
 import com.hp.nga.integrations.dto.snapshots.impl.DTOSnapshotsProvider;
+import com.hp.nga.integrations.dto.stormRunner.impl.DTOStormRunnerProvider;
 import com.hp.nga.integrations.dto.tests.impl.DTOTestsProvider;
 
 import javax.xml.bind.JAXBException;
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -42,6 +44,7 @@ public final class DTOFactory {
 		DTOSCMProvider.ensureInit(registry, jsonMapper);
 		DTOSnapshotsProvider.ensureInit(registry, jsonMapper);
 		DTOTestsProvider.ensureInit(registry, jsonMapper);
+		DTOStormRunnerProvider.ensureInit(registry, jsonMapper);
 	}
 
 	public static DTOFactory getInstance() {
@@ -163,6 +166,32 @@ public final class DTOFactory {
 			}
 			if (internalFactory != null) {
 				return internalFactory.fromXml(xml);
+			} else {
+				throw new RuntimeException(targetType + " is not supported in this flow");
+			}
+		} catch (JAXBException jaxbe) {
+			throw new RuntimeException("failed to deserialize " + xml + " into " + targetType + "; error: " + jaxbe.getMessage());
+		}
+	}
+
+	public <T extends DTOBase> T dtoFromXmlFile(File xml, Class<T> targetType) {
+		if (targetType == null) {
+			throw new IllegalArgumentException("target type MUST NOT be null");
+		}
+		if (!targetType.isInterface()) {
+			throw new IllegalArgumentException("target type MUST be an Interface");
+		}
+
+		DTOInternalProviderBase internalFactory = null;
+		try {
+			for (Class<? extends DTOBase> supported : registry.keySet()) {
+				if (supported.equals(targetType)) {
+					internalFactory = registry.get(supported);
+					break;
+				}
+			}
+			if (internalFactory != null) {
+				return internalFactory.fromXmlFile(xml);
 			} else {
 				throw new RuntimeException(targetType + " is not supported in this flow");
 			}

@@ -1,5 +1,10 @@
 package com.hp.octane.plugins.jenkins.model.processors.projects;
 
+import hudson.tasks.Builder;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created with IntelliJ IDEA.
  * User: gullery
@@ -9,4 +14,8 @@ package com.hp.octane.plugins.jenkins.model.processors.projects;
  */
 
 public class UnsupportedProjectProcessor extends AbstractProjectProcessor {
+    @Override
+    public List<Builder> tryGetBuilders() {
+        return new ArrayList<Builder>();
+    }
 }

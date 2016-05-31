@@ -3,6 +3,9 @@
 package com.hp.octane.plugins.jenkins.tests.junit;
 
 import com.google.inject.Inject;
+import com.hp.nga.integrations.dto.DTOFactory;
+import com.hp.nga.integrations.dto.stormRunner.Property;
+import com.hp.nga.integrations.dto.stormRunner.TestSuite;
 import com.hp.octane.plugins.jenkins.tests.*;
 import com.hp.octane.plugins.jenkins.tests.detection.ResultFields;
 import com.hp.octane.plugins.jenkins.tests.detection.ResultFieldsDetectionService;
@@ -59,13 +62,13 @@ public class JUnitExtension extends MqmTestsExtension {
 	}
 
 	@Override
-	public TestResultContainer getTestResults(AbstractBuild<?, ?> build) throws IOException, InterruptedException {
+	public TestResultContainer getTestResults(AbstractBuild<?, ?> build, boolean isStormRunnerProject) throws IOException, InterruptedException {
 		logger.fine("Collecting JUnit results");
 		FilePath resultFile = new FilePath(build.getRootDir()).child(JUNIT_RESULT_XML);
 		if (resultFile.exists()) {
 			logger.fine("JUnit result report found");
 			ResultFields detectedFields = resultFieldsDetectionService.getDetectedFields(build);
-			FilePath filePath = build.getWorkspace().act(new GetJUnitTestResults(build, Arrays.asList(resultFile), shallStripPackageAndClass(detectedFields)));
+			FilePath filePath = build.getWorkspace().act(new GetJUnitTestResults(build, Arrays.asList(resultFile), shallStripPackageAndClass(detectedFields), isStormRunnerProject));
 			return new TestResultContainer(new ObjectStreamIterator<TestResult>(filePath, true), detectedFields);
 		} else {
 			//avoid java.lang.NoClassDefFoundError when maven plugin is not present
@@ -86,7 +89,7 @@ public class JUnitExtension extends MqmTestsExtension {
 				}
 				if (!resultFiles.isEmpty()) {
 					ResultFields detectedFields = resultFieldsDetectionService.getDetectedFields(build);
-					FilePath filePath = build.getWorkspace().act(new GetJUnitTestResults(build, resultFiles, shallStripPackageAndClass(detectedFields)));
+					FilePath filePath = build.getWorkspace().act(new GetJUnitTestResults(build, resultFiles, shallStripPackageAndClass(detectedFields), isStormRunnerProject));
 					return new TestResultContainer(new ObjectStreamIterator<TestResult>(filePath, true), detectedFields);
 				}
 			}
@@ -110,13 +113,15 @@ public class JUnitExtension extends MqmTestsExtension {
 		private long buildStarted;
 		private FilePath workspace;
 		private boolean stripPackageAndClass;
+		private boolean isStormRunnerProject;
 
-		public GetJUnitTestResults(AbstractBuild<?, ?> build, List<FilePath> reports, boolean stripPackageAndClass) throws IOException, InterruptedException {
+		public GetJUnitTestResults(AbstractBuild<?, ?> build, List<FilePath> reports, boolean stripPackageAndClass, boolean isStormRunnerProject) throws IOException, InterruptedException {
 			this.reports = reports;
 			this.filePath = new FilePath(build.getRootDir()).createTempFile(getClass().getSimpleName(), null);
 			this.buildStarted = build.getStartTimeInMillis();
 			this.workspace = build.getWorkspace();
 			this.stripPackageAndClass = stripPackageAndClass;
+			this.isStormRunnerProject = isStormRunnerProject;
 
 			moduleDetection = Arrays.asList(
 					new MavenBuilderModuleDetection(build),
@@ -132,7 +137,7 @@ public class JUnitExtension extends MqmTestsExtension {
 
 			try {
 				for (FilePath report : reports) {
-					JUnitXmlIterator iterator = new JUnitXmlIterator(report.read(), stripPackageAndClass);
+					JUnitXmlIterator iterator = new JUnitXmlIterator(report.read(), stripPackageAndClass, isStormRunnerProject);
 					while (iterator.hasNext()) {
 						oos.writeObject(iterator.next());
 					}
@@ -168,6 +173,7 @@ public class JUnitExtension extends MqmTestsExtension {
 
 		private class JUnitXmlIterator extends AbstractXmlIterator<TestResult> {
 
+			public static final String REPORT_URL = "reportUrl";
 			private boolean stripPackageAndClass;
 			private String moduleName;
 			private String packageName;
@@ -178,10 +184,27 @@ public class JUnitExtension extends MqmTestsExtension {
 			private String stackTraceStr;
 			private String errorType;
 			private String errorMsg;
+			private boolean isStormRunnerProject;
+			private String stormRunnerURL;
 
-			public JUnitXmlIterator(InputStream read, boolean stripPackageAndClass) throws XMLStreamException {
+			public JUnitXmlIterator(InputStream read, boolean stripPackageAndClass, boolean isStormRunnerProject) throws XMLStreamException {
 				super(read);
 				this.stripPackageAndClass = stripPackageAndClass;
+				this.isStormRunnerProject = isStormRunnerProject;
+			}
+
+			private String getStormRunnerURL(String path){
+
+				String srUrl = null;
+				TestSuite testSuite = DTOFactory.getInstance().dtoFromXmlFile(new File(path), TestSuite.class);
+
+				for (Property property : testSuite.getProprties()){
+					if(property.getPropertyName().equals(REPORT_URL)){
+						srUrl = property.getPropertyValue();
+						break;
+					}
+				}
+				return srUrl;
 			}
 
 			@Override
@@ -197,6 +220,14 @@ public class JUnitExtension extends MqmTestsExtension {
 								break;
 							}
 						}
+
+
+						if(isStormRunnerProject){
+							stormRunnerURL = getStormRunnerURL(path);
+						}else {
+							stormRunnerURL = null;
+						}
+
 					} else if ("case".equals(localName)) { // NON-NLS
 						packageName = "";
 						className = "";
@@ -259,9 +290,9 @@ public class JUnitExtension extends MqmTestsExtension {
 						TestError testError = new TestError(stackTraceStr, errorType, errorMsg);
 						if (stripPackageAndClass) {
 							//workaround only for UFT - we do not want packageName="All-Tests" and className="&lt;None>" as it comes from JUnit report
-							addItem(new TestResult(moduleName, "", "", testName, status, duration, buildStarted, testError));
+							addItem(new TestResult(moduleName, "", "", testName, status, duration, buildStarted, testError, stormRunnerURL));
 						} else {
-							addItem(new TestResult(moduleName, packageName, className, testName, status, duration, buildStarted, testError));
+							addItem(new TestResult(moduleName, packageName, className, testName, status, duration, buildStarted, testError, stormRunnerURL));
 						}
 					}
 				}
