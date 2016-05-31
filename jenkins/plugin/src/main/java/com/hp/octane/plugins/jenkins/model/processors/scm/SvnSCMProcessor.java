@@ -17,65 +17,64 @@ import java.util.List;
  * Created by benmeior on 5/15/2016.
  */
 public class SvnSCMProcessor implements SCMProcessor {
-    private static final Logger logger = LogManager.getLogger(SvnSCMProcessor.class);
-    private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+	private static final Logger logger = LogManager.getLogger(SvnSCMProcessor.class);
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
-    @Override
-    public SCMData getSCMData(AbstractBuild build) {
-        AbstractProject project = build.getProject();
-        SCMData result = null;
-        SubversionSCM svnData;
-        SCMRepository scmRepository;
-        ArrayList<SCMCommit> tmpCommits;
-        SCMCommit tmpCommit;
-        List<SCMChange> tmpChanges;
-        SCMChange tmpChange;
-        ChangeLogSet<ChangeLogSet.Entry> changes = build.getChangeSet();
-        SubversionChangeLogSet.LogEntry commit;
+	@Override
+	public SCMData getSCMData(AbstractBuild build) {
+		AbstractProject project = build.getProject();
+		SCMData result = null;
+		SubversionSCM svnData;
+		SCMRepository scmRepository;
+		ArrayList<SCMCommit> tmpCommits;
+		SCMCommit tmpCommit;
+		List<SCMChange> tmpChanges;
+		SCMChange tmpChange;
+		ChangeLogSet<ChangeLogSet.Entry> changes = build.getChangeSet();
+		SubversionChangeLogSet.LogEntry commit;
 
-        if (project.getScm() instanceof SubversionSCM) {
-            svnData = (SubversionSCM) project.getScm();
-            if (svnData != null) {
-                scmRepository = getSCMRepository(svnData);
+		if (project.getScm() instanceof SubversionSCM) {
+			svnData = (SubversionSCM) project.getScm();
+			scmRepository = getSCMRepository(svnData);
 
-                tmpCommits = new ArrayList<SCMCommit>();
-                for (ChangeLogSet.Entry c : changes) {
-                    if (c instanceof SubversionChangeLogSet.LogEntry) {
-                        commit = (SubversionChangeLogSet.LogEntry) c;
+			tmpCommits = new ArrayList<SCMCommit>();
+			for (ChangeLogSet.Entry c : changes) {
+				if (c instanceof SubversionChangeLogSet.LogEntry) {
+					commit = (SubversionChangeLogSet.LogEntry) c;
 
-                        tmpChanges = new ArrayList<SCMChange>();
-                        for (SubversionChangeLogSet.Path item : commit.getAffectedFiles()) {
-                            tmpChange = dtoFactory.newDTO(SCMChange.class)
-                                    .setType(item.getEditType().getName())
-                                    .setFile(item.getPath());
-                            tmpChanges.add(tmpChange);
-                        }
-                        tmpCommit = dtoFactory.newDTO(SCMCommit.class)
-                                .setTime(commit.getTimestamp())
-                                .setUser(commit.getAuthor().getId())
-                                .setRevId(commit.getCommitId())
-                                .setComment(commit.getMsg())
-                                .setChanges(tmpChanges);
-                        tmpCommits.add(tmpCommit);
-                    }
-                }
-                result = dtoFactory.newDTO(SCMData.class)
-                        .setRepository(scmRepository)
-                        .setCommits(tmpCommits);
-            }
-        }
-        return result;
-    }
+					tmpChanges = new ArrayList<SCMChange>();
+					for (SubversionChangeLogSet.Path item : commit.getAffectedFiles()) {
+						tmpChange = dtoFactory.newDTO(SCMChange.class)
+								.setType(item.getEditType().getName())
+								.setFile(item.getPath());
+						tmpChanges.add(tmpChange);
+					}
+					tmpCommit = dtoFactory.newDTO(SCMCommit.class)
+							.setTime(commit.getTimestamp())
+							.setUser(commit.getAuthor().getId())
+							.setRevId(commit.getCommitId())
+							.setComment(commit.getMsg().trim())
+							.setChanges(tmpChanges);
+					tmpCommits.add(tmpCommit);
+				}
+			}
 
-    private SCMRepository getSCMRepository(SubversionSCM svnData) {
-        SCMRepository result;
-        String url = null;
-        if (svnData.getLocations().length == 1) {
-            url = svnData.getLocations()[0].getURL();
-        }
-        result = dtoFactory.newDTO(SCMRepository.class)
-                .setType(SCMType.SVN)
-                .setUrl(url);
-        return result;
-    }
+			result = dtoFactory.newDTO(SCMData.class)
+					.setRepository(scmRepository)
+					.setCommits(tmpCommits);
+		}
+		return result;
+	}
+
+	private SCMRepository getSCMRepository(SubversionSCM svnData) {
+		SCMRepository result;
+		String url = null;
+		if (svnData.getLocations().length == 1) {
+			url = svnData.getLocations()[0].getURL();
+		}
+		result = dtoFactory.newDTO(SCMRepository.class)
+				.setType(SCMType.SVN)
+				.setUrl(url);
+		return result;
+	}
 }
