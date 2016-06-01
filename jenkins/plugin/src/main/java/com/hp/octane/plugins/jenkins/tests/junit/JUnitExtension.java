@@ -173,7 +173,7 @@ public class JUnitExtension extends MqmTestsExtension {
 
 		private class JUnitXmlIterator extends AbstractXmlIterator<TestResult> {
 
-			public static final String REPORT_URL = "reportUrl";
+			public static final String DASHBOARD_URL = "dashboardUrl";
 			private boolean stripPackageAndClass;
 			private String moduleName;
 			private String packageName;
@@ -196,12 +196,15 @@ public class JUnitExtension extends MqmTestsExtension {
 			private String getStormRunnerURL(String path){
 
 				String srUrl = null;
-				TestSuite testSuite = DTOFactory.getInstance().dtoFromXmlFile(new File(path), TestSuite.class);
+				File srReport = new File(path);
+				if(srReport.exists()) {
+					TestSuite testSuite = DTOFactory.getInstance().dtoFromXmlFile(srReport, TestSuite.class);
 
-				for (Property property : testSuite.getProprties()){
-					if(property.getPropertyName().equals(REPORT_URL)){
-						srUrl = property.getPropertyValue();
-						break;
+					for (Property property : testSuite.getProprties()) {
+						if (property.getPropertyName().equals(DASHBOARD_URL)) {
+							srUrl = property.getPropertyValue();
+							break;
+						}
 					}
 				}
 				return srUrl;

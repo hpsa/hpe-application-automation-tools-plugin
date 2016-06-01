@@ -196,7 +196,7 @@ public final class DTOFactory {
 				throw new RuntimeException(targetType + " is not supported in this flow");
 			}
 		} catch (JAXBException jaxbe) {
-			throw new RuntimeException("failed to deserialize " + xml + " into " + targetType + "; error: " + jaxbe.getMessage());
+			throw new RuntimeException("failed to deserialize " + xml.getName() + " into " + targetType + "; error: " + jaxbe.getMessage());
 		}
 	}
 

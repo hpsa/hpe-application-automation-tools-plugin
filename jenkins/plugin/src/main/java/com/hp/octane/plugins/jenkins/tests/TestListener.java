@@ -11,9 +11,6 @@ import com.hp.octane.plugins.jenkins.tests.xml.TestResultXmlWriter;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.FreeStyleProject;
-import hudson.model.Project;
 import hudson.tasks.Builder;
 
 import javax.xml.stream.XMLStreamException;
