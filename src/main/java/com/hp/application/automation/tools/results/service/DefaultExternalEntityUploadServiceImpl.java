@@ -56,7 +56,7 @@ public class DefaultExternalEntityUploadServiceImpl implements
 							};
 	}
 	
-	private AlmTest importTest(AlmTest test , int testFolderId, String testingTool, String testdesigner){
+	private AlmTest importTest(AlmTest test , int testFolderId, String testingTool, String testdesigner) throws ExternalEntityUploadException{
 
 		String className = (String) test.getFieldValue(AlmTest.TS_UT_CLASS_NAME);
 		String methodName = (String) test.getFieldValue(AlmTest.TS_UT_METHOD_NAME);
@@ -120,7 +120,7 @@ public class DefaultExternalEntityUploadServiceImpl implements
 								AlmTestSet.TESTSET_SUB_TYPE_ID};
 	}
 	
-	private AlmTestSet importTestSet(AlmTestSet testset, int testsetFolderId){
+	private AlmTestSet importTestSet(AlmTestSet testset, int testsetFolderId) throws ExternalEntityUploadException{
 
 		
 		AlmTestSetImpl importedTestset = restTool.getEntityUnderParentFolder(AlmTestSetImpl.class, testsetFolderId, testset.getName());
@@ -159,7 +159,7 @@ public class DefaultExternalEntityUploadServiceImpl implements
 		
 	}
 	
-	private AlmTestInstance importTestInstance(AlmTestInstance testinstance, String testsetId, String testId, String testconfigId, String tester){
+	private AlmTestInstance importTestInstance(AlmTestInstance testinstance, String testsetId, String testId, String testconfigId, String tester) throws ExternalEntityUploadException{
 		
 		String queryString = String.format("query={cycle-id[%s];test-config-id[%s];test-id[%s]}&fields=id,name",
 										String.valueOf(testsetId), String.valueOf(testconfigId), String.valueOf(testId) );
@@ -221,7 +221,7 @@ public class DefaultExternalEntityUploadServiceImpl implements
 								String testconfigId, 
 								String subversion,
 								String jobName,
-								String buildUrl){
+								String buildUrl) throws ExternalEntityUploadException{
 		
 		run.setFieldValue(AlmRun.RUN_CONFIG_ID, String.valueOf(testconfigId));
 		run.setFieldValue(AlmRun.RUN_CYCLE_ID, String.valueOf(testsetId));
@@ -249,7 +249,7 @@ public class DefaultExternalEntityUploadServiceImpl implements
 		return new String[] {AlmCommonProperties.NAME, AlmCommonProperties.PARENT_ID};
 	}
 	
-	private AlmTestFolder createTestFolder(int parentId, String folderName) {
+	private AlmTestFolder createTestFolder(int parentId, String folderName) throws ExternalEntityUploadException {
 		
 		AlmTestFolderImpl testFolder = restTool.getEntityUnderParentFolder(AlmTestFolderImpl.class, parentId, folderName);
 		String encodedFolderName = folderName;
@@ -266,7 +266,7 @@ public class DefaultExternalEntityUploadServiceImpl implements
 	String FOLDER_SEPERATOR = "\\";
 	
 	
-	private AlmTestFolder createTestFolderPath(int parentId, String path) {
+	private AlmTestFolder createTestFolderPath(int parentId, String path) throws ExternalEntityUploadException {
 		List<AlmTestFolder> folders = new ArrayList<AlmTestFolder>();
 		
 		StringTokenizer tokenizer = new StringTokenizer(path, FOLDER_SEPERATOR);
@@ -291,7 +291,7 @@ public class DefaultExternalEntityUploadServiceImpl implements
 		return new String[] {AlmCommonProperties.NAME, AlmCommonProperties.PARENT_ID};
 	}
 	
-	private AlmTestSetFolder createTestSetFolder(int parentId, String folderName) {
+	private AlmTestSetFolder createTestSetFolder(int parentId, String folderName) throws ExternalEntityUploadException {
 		
 		AlmTestSetFolderImpl testsetFolder = restTool.getEntityUnderParentFolder(AlmTestSetFolderImpl.class, parentId, folderName);
 		
@@ -307,7 +307,7 @@ public class DefaultExternalEntityUploadServiceImpl implements
 		}
 	}
 
-	private AlmTestSetFolder createTestSetFolderPath(int parentId, String path) {
+	private AlmTestSetFolder createTestSetFolderPath(int parentId, String path) throws ExternalEntityUploadException {
 
 		List<AlmTestSetFolder> folders = new ArrayList<AlmTestSetFolder>();
 
@@ -371,6 +371,8 @@ public class DefaultExternalEntityUploadServiceImpl implements
 								jobName, 
 								buildUrl);
 					}
+				} else {
+					throw new ExternalEntityUploadException("Failed to login to ALM Server.");
 				}
 			} catch (Exception e) {
 				throw new ExternalEntityUploadException(e);
@@ -379,7 +381,7 @@ public class DefaultExternalEntityUploadServiceImpl implements
 	}
 	
 	
-	private void importExternalTestSet(List<AlmTestSet> testsets, String tester, int testsetFolderId, int testFolderId, String testingTool, String subversion, String jobName, String buildUrl ){
+	private void importExternalTestSet(List<AlmTestSet> testsets, String tester, int testsetFolderId, int testFolderId, String testingTool, String subversion, String jobName, String buildUrl ) throws ExternalEntityUploadException{
 
 		
 		for (AlmTestSet testset : testsets){
