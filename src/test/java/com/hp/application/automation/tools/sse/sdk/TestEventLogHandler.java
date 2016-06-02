@@ -6,11 +6,11 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.hp.application.automation.tools.rest.RestClient;
+import com.hp.application.automation.tools.sse.common.RestClient4Test;
 import com.hp.application.automation.tools.sse.common.TestCase;
 import com.hp.application.automation.tools.sse.sdk.handler.EventLogHandler;
 
-public class TestEventLogHandler implements TestCase {
+public class TestEventLogHandler extends TestCase {
     
     String _expectedEventLogUrl =
             URL
@@ -49,7 +49,7 @@ public class TestEventLogHandler implements TestCase {
         Assert.assertFalse(isOk);
     }
     
-    private class MockRestClient extends RestClient {
+    private class MockRestClient extends RestClient4Test {
         
         public MockRestClient(String url, String domain, String project, String username) {
             
@@ -75,7 +75,7 @@ public class TestEventLogHandler implements TestCase {
         }
     }
     
-    private class MockRestClientBadTimeslot extends RestClient {
+    private class MockRestClientBadTimeslot extends RestClient4Test {
         
         public MockRestClientBadTimeslot(String url, String domain, String project, String username) {
             
@@ -101,7 +101,7 @@ public class TestEventLogHandler implements TestCase {
         }
     }
     
-    private class MockRestClientBadLogResponse extends RestClient {
+    private class MockRestClientBadLogResponse extends RestClient4Test {
         
         public MockRestClientBadLogResponse(
                 String url,

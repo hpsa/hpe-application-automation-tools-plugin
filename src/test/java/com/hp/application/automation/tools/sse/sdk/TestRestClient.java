@@ -6,7 +6,7 @@ import org.junit.Test;
 import com.hp.application.automation.tools.rest.RestClient;
 import com.hp.application.automation.tools.sse.common.TestCase;
 
-public class TestRestClient implements TestCase {
+public class TestRestClient extends TestCase {
     
     @Test
     public void testBuild() {
@@ -38,4 +38,5 @@ public class TestRestClient implements TestCase {
                 String.format("%srest/domains/%s/projects/%s/%s", URL, DOMAIN, PROJECT, SUFFIX),
                 url);
     }
+
 }

@@ -36,7 +36,7 @@ import static org.apache.commons.httpclient.HttpStatus.*;
 
 import com.hp.application.automation.tools.common.PcException;
 import com.hp.application.automation.tools.model.TimeslotDuration;
-import com.hp.application.automation.tools.rest.HttpHeaders;
+import com.hp.application.automation.tools.rest.RESTConstants;
 import com.hp.application.automation.tools.sse.sdk.Base64Encoder;
 
 public class PcRestProxy {
@@ -96,7 +96,7 @@ public class PcRestProxy {
     public PcRunResponse startRun(int testId, int testInstaceId, TimeslotDuration timeslotDuration,
             String postRunAction, boolean vudsMode) throws PcException, ClientProtocolException, IOException {
         HttpPost startRunRequest = new HttpPost(String.format(baseURL + "/%s", RUNS_RESOURCE_NAME));
-        startRunRequest.addHeader(HttpHeaders.CONTENT_TYPE, CONTENT_TYPE_XML);
+        startRunRequest.addHeader(RESTConstants.CONTENT_TYPE, CONTENT_TYPE_XML);
         PcRunRequest runRequestData = new PcRunRequest(testId, testInstaceId, 0, timeslotDuration, postRunAction, vudsMode);
         startRunRequest.setEntity(new StringEntity(runRequestData.objectToXML(), ContentType.APPLICATION_XML));
         HttpResponse response = executeRequest(startRunRequest);
@@ -108,7 +108,7 @@ public class PcRestProxy {
         String stopUrl = String.format(baseURL + "/%s/%s/%s", RUNS_RESOURCE_NAME, runId, stopMode);
         HttpPost stopRunRequest = new HttpPost(stopUrl);
         ReleaseTimeslot releaseTimesloteRequest = new ReleaseTimeslot(true, "Do Not Collate");
-        stopRunRequest.addHeader(HttpHeaders.CONTENT_TYPE, CONTENT_TYPE_XML);
+        stopRunRequest.addHeader(RESTConstants.CONTENT_TYPE, CONTENT_TYPE_XML);
         stopRunRequest.setEntity(new StringEntity (releaseTimesloteRequest.objectToXML(),ContentType.APPLICATION_XML)); 
         executeRequest(stopRunRequest);
         return true;

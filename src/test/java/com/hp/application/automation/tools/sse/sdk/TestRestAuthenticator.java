@@ -9,11 +9,11 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.hp.application.automation.tools.rest.RestClient;
 import com.hp.application.automation.tools.sse.common.ConsoleLogger;
+import com.hp.application.automation.tools.sse.common.RestClient4Test;
 import com.hp.application.automation.tools.sse.common.TestCase;
 
-public class TestRestAuthenticator implements TestCase {
+public class TestRestAuthenticator extends TestCase {
     
     @Test
     public void testLogin_alreadyAuthenticated() {
@@ -23,7 +23,7 @@ public class TestRestAuthenticator implements TestCase {
         Assert.assertTrue(ok);
     }
     
-    public class MockRestClientAlreadyAuthenticated extends RestClient {
+    public class MockRestClientAlreadyAuthenticated extends RestClient4Test {
         
         public MockRestClientAlreadyAuthenticated(
                 String url,
@@ -37,7 +37,7 @@ public class TestRestAuthenticator implements TestCase {
         @Override
         public Response httpGet(String url, String queryString, Map<String, String> headers, ResourceAccessLevel resourceAccessLevel) {
             
-            return new Response(null, null, null, HttpURLConnection.HTTP_OK);
+            return new Response(null, getExpectAuthInfo(), null, HttpURLConnection.HTTP_OK);
         }
     }
     
@@ -49,7 +49,7 @@ public class TestRestAuthenticator implements TestCase {
         Assert.assertTrue(ok);
     }
     
-    public class MockRestClientNotAuthenticated extends RestClient {
+    public class MockRestClientNotAuthenticated extends RestClient4Test {
         
         private int _time = 0;
         private final String _isAuthenticatedUrl;
@@ -106,7 +106,7 @@ public class TestRestAuthenticator implements TestCase {
         Assert.assertFalse(ok);
     }
     
-    public class MockRestClientFailedToLogin extends RestClient {
+    public class MockRestClientFailedToLogin extends RestClient4Test {
         
         private int _time = 0;
         private final String _isAuthenticatedUrl;

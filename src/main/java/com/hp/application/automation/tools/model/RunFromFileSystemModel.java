@@ -6,152 +6,294 @@
 package com.hp.application.automation.tools.model;
 
 import hudson.EnvVars;
+import hudson.util.Secret;
 import hudson.util.VariableResolver;
+
 import java.util.Properties;
+import com.hp.application.automation.tools.mc.JobConfigurationProxy;
+
+import net.minidev.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 public class RunFromFileSystemModel {
 
-	private String fsTests;
-	private String fsTimeout;
-	private String controllerPollingInterval = "30";
-	private String perScenarioTimeOut = "10";
-	private String ignoreErrorStrings;
-	
-	
-	
+    private String fsTests;
+    private String fsTimeout;
+    private String controllerPollingInterval = "30";
+    private String perScenarioTimeOut = "10";
+    private String ignoreErrorStrings;
+    private String mcServerName;
+    private String fsUserName;
+    private Secret fsPassword;
 
-	@DataBoundConstructor
-	public RunFromFileSystemModel(String fsTests, String fsTimeout, String controllerPollingInterval,String perScenarioTimeOut, String ignoreErrorStrings) {
+    private String fsDeviceId;
+    private String fsOs;
+    private String fsManufacturerAndModel;
+    private String fsTargetLab;
+    private String fsAutActions;
+    private String fsLaunchAppName;
+    private String fsInstrumented;
+    private String fsDevicesMetrics;
+    private String fsExtraApps;
+    private String fsJobId;
+    private ProxySettings proxySettings;
+    private boolean useSSL;
 
-		this.fsTests = fsTests;
+    @DataBoundConstructor
+    public RunFromFileSystemModel(String fsTests, String fsTimeout, String controllerPollingInterval,String perScenarioTimeOut, String ignoreErrorStrings, String mcServerName, String fsUserName, String fsPassword, String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel, String fsOs, String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics, String fsInstrumented, String fsExtraApps, String fsJobId, ProxySettings proxySettings, boolean useSSL) {
 
-		if (!this.fsTests.contains("\n")) {
-			this.fsTests += "\n";
-		}
+        this.fsTests = fsTests;
 
-		this.fsTimeout = fsTimeout;
-		
-		
-		this.perScenarioTimeOut = perScenarioTimeOut;
-		this.controllerPollingInterval = controllerPollingInterval;
-		this.ignoreErrorStrings = ignoreErrorStrings;
-		
-	}
+        if (!this.fsTests.contains("\n")) {
+            this.fsTests += "\n";
+        }
 
-
-	public String getFsTests() {
-		return fsTests;
-	}
-
-	public String getFsTimeout() {
-		return fsTimeout;
-	}
-
-	
-
-	
-	/**
-	 * @return the controllerPollingInterval
-	 */
-	public String getControllerPollingInterval() {
-		return controllerPollingInterval;
-	}
-
-	/**
-	 * @param controllerPollingInterval the controllerPollingInterval to set
-	 */
-	public void setControllerPollingInterval(String controllerPollingInterval) {
-		this.controllerPollingInterval = controllerPollingInterval;
-	}
-
-	/**
-	 * @return the ignoreErrorStrings
-	 */
-	public String getIgnoreErrorStrings() {
-		return ignoreErrorStrings;
-	}
+        this.fsTimeout = fsTimeout;
 
 
-	/**
-	 * @param ignoreErrorStrings the ignoreErrorStrings to set
-	 */
-	public void setIgnoreErrorStrings(String ignoreErrorStrings) {
-		this.ignoreErrorStrings = ignoreErrorStrings;
-	}
+        this.perScenarioTimeOut = perScenarioTimeOut;
+        this.controllerPollingInterval = controllerPollingInterval;
+        this.ignoreErrorStrings = ignoreErrorStrings;
+
+        this.mcServerName = mcServerName;
+        this.fsUserName = fsUserName;
+        this.fsPassword = Secret.fromString(fsPassword);
+
+
+        this.fsDeviceId = fsDeviceId;
+        this.fsOs = fsOs;
+        this.fsManufacturerAndModel = fsManufacturerAndModel;
+        this.fsTargetLab = fsTargetLab;
+        this.fsAutActions = fsAutActions;
+        this.fsLaunchAppName = fsLaunchAppName;
+        this.fsAutActions = fsAutActions;
+        this.fsDevicesMetrics = fsDevicesMetrics;
+        this.fsInstrumented = fsInstrumented;
+        this.fsExtraApps = fsExtraApps;
+        this.fsJobId = fsJobId;
+        this.proxySettings = proxySettings;
+        this.useSSL = useSSL;
+
+    }
+
+
+    public String getFsTests() {
+        return fsTests;
+    }
+
+    public String getFsTimeout() {
+        return fsTimeout;
+    }
+
+    public String getMcServerName() {
+        return mcServerName;
+    }
+
+    public String getFsUserName() {
+        return fsUserName;
+    }
+
+    public String getFsPassword() {
+        return fsPassword.getPlainText();
+    }
+
+    public String getFsDeviceId() {
+        return fsDeviceId;
+    }
+
+    public String getFsOs() {
+        return fsOs;
+    }
+
+    public String getFsManufacturerAndModel() {
+        return fsManufacturerAndModel;
+    }
+
+    public String getFsTargetLab() {
+        return fsTargetLab;
+    }
+
+    public String getFsAutActions() {
+        return fsAutActions;
+    }
+
+    public String getFsLaunchAppName() {
+        return fsLaunchAppName;
+    }
+
+    public String getFsInstrumented() {
+        return fsInstrumented;
+    }
+
+    public String getFsDevicesMetrics() {
+        return fsDevicesMetrics;
+    }
+
+    public String getFsExtraApps() {
+        return fsExtraApps;
+    }
+
+    public String getFsJobId() {
+        return fsJobId;
+    }
+
+    public boolean isUseProxy() {
+        return proxySettings != null;
+    }
+
+    public boolean isUseAuthentication() {
+        return proxySettings != null && StringUtils.isNotBlank(proxySettings.getFsProxyUserName());
+    }
+
+    public ProxySettings getProxySettings() {
+        return proxySettings;
+    }
+
+    public boolean isUseSSL() {
+        return useSSL;
+    }
+
+
+    /**
+     * @return the controllerPollingInterval
+     */
+    public String getControllerPollingInterval() {
+        return controllerPollingInterval;
+    }
+
+    /**
+     * @param controllerPollingInterval the controllerPollingInterval to set
+     */
+    public void setControllerPollingInterval(String controllerPollingInterval) {
+        this.controllerPollingInterval = controllerPollingInterval;
+    }
+
+    /**
+     * @return the ignoreErrorStrings
+     */
+    public String getIgnoreErrorStrings() {
+        return ignoreErrorStrings;
+    }
+
+
+    /**
+     * @param ignoreErrorStrings the ignoreErrorStrings to set
+     */
+    public void setIgnoreErrorStrings(String ignoreErrorStrings) {
+        this.ignoreErrorStrings = ignoreErrorStrings;
+    }
 
 
 
-	/**
-	 * @return the perScenarioTimeOut
-	 */
-	public String getPerScenarioTimeOut() {
-		return perScenarioTimeOut;
-	}
+    /**
+     * @return the perScenarioTimeOut
+     */
+    public String getPerScenarioTimeOut() {
+        return perScenarioTimeOut;
+    }
 
-	/**
-	 * @param perScenarioTimeOut the perScenarioTimeOut to set
-	 */
-	public void setPerScenarioTimeOut(String perScenarioTimeOut) {
-		this.perScenarioTimeOut = perScenarioTimeOut;
-	}
+    /**
+     * @param perScenarioTimeOut the perScenarioTimeOut to set
+     */
+    public void setPerScenarioTimeOut(String perScenarioTimeOut) {
+        this.perScenarioTimeOut = perScenarioTimeOut;
+    }
 
-	public Properties getProperties(EnvVars envVars,
-			VariableResolver<String> varResolver) {
-		return CreateProperties(envVars, varResolver);
-	}
+    public Properties getProperties(EnvVars envVars,
+                                    VariableResolver<String> varResolver) {
+        return CreateProperties(envVars, varResolver);
+    }
 
-	public Properties getProperties() {
-		return CreateProperties(null, null);
-	}
+    public Properties getProperties() {
+        return CreateProperties(null, null);
+    }
 
-	private Properties CreateProperties(EnvVars envVars,
-			VariableResolver<String> varResolver) {
-		Properties props = new Properties();
-		
-		if (!StringUtils.isEmpty(this.fsTests)) {
-			String expandedFsTests = envVars.expand(fsTests);
-			String[] testsArr = expandedFsTests.replaceAll("\r", "").split("\n");
+    private Properties CreateProperties(EnvVars envVars,
+                                        VariableResolver<String> varResolver) {
+        Properties props = new Properties();
 
-			int i = 1;
+        if (!StringUtils.isEmpty(this.fsTests)) {
+            String expandedFsTests = envVars.expand(fsTests);
+            String[] testsArr = expandedFsTests.replaceAll("\r", "").split("\n");
 
-			for (String test : testsArr) {
-				props.put("Test" + i, test);
-				i++;
-			}
-		} else {
-			props.put("fsTests", "");
-		}
+            int i = 1;
 
-		
-		if (StringUtils.isEmpty(fsTimeout)){
-			props.put("fsTimeout", "-1");	
-		}
-		else{
-			props.put("fsTimeout", "" + fsTimeout);
-		}
-		
-		
-		if (StringUtils.isEmpty(controllerPollingInterval)){
-			props.put("controllerPollingInterval", "30");
-		}
-		else{
-			props.put("controllerPollingInterval", "" + controllerPollingInterval);
-		}
-		
-		if (StringUtils.isEmpty(perScenarioTimeOut)){
-			props.put("PerScenarioTimeOut", "10");
-		}
-		else{
-			props.put("PerScenarioTimeOut", ""+ perScenarioTimeOut);
-		}
-		
-		if (!StringUtils.isEmpty(ignoreErrorStrings.replaceAll("\\r|\\n", ""))){
-			props.put("ignoreErrorStrings", ""+ignoreErrorStrings.replaceAll("\r", ""));
-		}
+            for (String test : testsArr) {
+                props.put("Test" + i, test);
+                i++;
+            }
+        } else {
+            props.put("fsTests", "");
+        }
 
 
-		return props;
-	}
+        if (StringUtils.isEmpty(fsTimeout)){
+            props.put("fsTimeout", "-1");
+        }
+        else{
+            props.put("fsTimeout", "" + fsTimeout);
+        }
+
+
+        if (StringUtils.isEmpty(controllerPollingInterval)){
+            props.put("controllerPollingInterval", "30");
+        }
+        else{
+            props.put("controllerPollingInterval", "" + controllerPollingInterval);
+        }
+
+        if (StringUtils.isEmpty(perScenarioTimeOut)){
+            props.put("PerScenarioTimeOut", "10");
+        }
+        else{
+            props.put("PerScenarioTimeOut", ""+ perScenarioTimeOut);
+        }
+
+        if (!StringUtils.isEmpty(ignoreErrorStrings.replaceAll("\\r|\\n", ""))){
+            props.put("ignoreErrorStrings", ""+ignoreErrorStrings.replaceAll("\r", ""));
+        }
+
+        if (StringUtils.isNotBlank(fsUserName)){
+            props.put("MobileUserName", fsUserName);
+        }
+
+        if(isUseProxy()){
+            props.put("MobileUseProxy", "1");
+            props.put("MobileProxyType","2");
+            props.put("MobileProxySetting_Address", proxySettings.getFsProxyAddress());
+            if(isUseAuthentication()){
+                props.put("MobileProxySetting_Authentication","1");
+                props.put("MobileProxySetting_UserName",proxySettings.getFsProxyUserName());
+                props.put("MobileProxySetting_Password",proxySettings.getFsProxyPassword());
+            }else{
+                props.put("MobileProxySetting_Authentication","0");
+                props.put("MobileProxySetting_UserName","");
+                props.put("MobileProxySetting_Password","");
+            }
+        }else{
+            props.put("MobileUseProxy", "0");
+            props.put("MobileProxyType","0");
+            props.put("MobileProxySetting_Authentication","0");
+            props.put("MobileProxySetting_Address", "");
+            props.put("MobileProxySetting_UserName","");
+            props.put("MobileProxySetting_Password","");
+        }
+
+        if(useSSL){
+            props.put("MobileUseSSL","1");
+        }else{
+            props.put("MobileUseSSL","0");
+        }
+
+        return props;
+    }
+
+    public JSONObject getJobDetails(String mcUrl, String proxyAddress, String proxyUserName, String proxyPassword){
+        if(StringUtils.isBlank(fsUserName) || StringUtils.isBlank(fsPassword.getPlainText())){
+            return null;
+        }
+        return JobConfigurationProxy.getInstance().getJobById(mcUrl, fsUserName, fsPassword.getPlainText(), proxyAddress, proxyUserName, proxyPassword, fsJobId);
+    }
+
 }

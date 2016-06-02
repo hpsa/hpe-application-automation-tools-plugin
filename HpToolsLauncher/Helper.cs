@@ -484,6 +484,54 @@ namespace HpToolsLauncher
             return drive.DriveType == DriveType.Network;
         }
 
+        public static bool IsLeanFTRunning()
+        {
+            bool bRet = false;
+            Process[] procArray = Process.GetProcessesByName("LFTRuntime");   // Hardcoded temporarily since LeanFT does not store the process name anywhere
+            if (procArray.Length != 0)
+            {
+                bRet = true;
+            }
+            return bRet;
+        }
+
+        public static bool IsSprinterRunning()
+        {
+            RegistryKey key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey("SOFTWARE\\Hewlett-Packard\\Manual Runner\\Process");
+            if (key == null)
+                return false;
+
+            var arrayName = key.GetSubKeyNames();
+            if (arrayName.Length == 0)
+                return false;
+            foreach (string s in arrayName)
+            {
+                Process[] sprinterProcArray = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(s));
+                if ( sprinterProcArray.Length != 0 )
+                    return true;
+                
+            }
+            return false;
+        }
+
+        public static bool CanUftProcessStart(out string reason)
+        {
+            //Close UFT when some of the Sprinter processes is running
+            if (IsSprinterRunning())
+            {
+                reason = Resources.UFT_Sprinter_Running;
+                return false;
+            }
+
+            //Close UFT when LeanFT engine is running
+            if (IsLeanFTRunning())
+            {
+                reason = Resources.UFT_LeanFT_Running;
+                return false;
+            }
+            reason = string.Empty;
+            return true;
+        }
 
         #region Report Related
 
@@ -611,7 +659,8 @@ namespace HpToolsLauncher
 
                 string[] resultFiles = Directory.GetFiles(runDesc.ReportLocation, "Results.xml", SearchOption.TopDirectoryOnly);
                 if (resultFiles.Length == 0)
-                    resultFiles = Directory.GetFiles(Path.Combine(runDesc.ReportLocation, "Report"), "Results.xml", SearchOption.TopDirectoryOnly);
+                    resultFiles = Directory.GetFiles(runDesc.ReportLocation, "run_results.xml", SearchOption.TopDirectoryOnly);
+                    //resultFiles = Directory.GetFiles(Path.Combine(runDesc.ReportLocation, "Report"), "Results.xml", SearchOption.TopDirectoryOnly);
 
                 if (resultFiles != null && resultFiles.Length > 0)
                     return GetTestStateFromUFTReport(runDesc, resultFiles);
@@ -689,21 +738,40 @@ namespace HpToolsLauncher
         {
             TestState finalState = TestState.Unknown;
             desc = "";
-
+            var status = "";
             var doc = new XmlDocument { PreserveWhitespace = true };
             doc.Load(resultsFileFullPath);
-            var testStatusPathNode = doc.SelectSingleNode("//Report/Doc/NodeArgs");
-            if (testStatusPathNode == null)
+            string strFileName = Path.GetFileName(resultsFileFullPath);
+            if( strFileName.Equals("run_results.xml"))
             {
-                desc = string.Format(Resources.XmlNodeNotExistError, "//Report/Doc/NodeArgs");
-                finalState = TestState.Error;
+                XmlNodeList rNodeList = doc.SelectNodes("/Results/ReportNode/Data");
+                if (rNodeList == null)
+                {
+                    desc = string.Format(Resources.XmlNodeNotExistError, "/Results/ReportNode/Data");
+                    finalState = TestState.Error;
+                }
+                
+                var node = rNodeList.Item(0);
+                XmlNode resultNode = ((XmlElement)node).GetElementsByTagName("Result").Item(0);
+
+                status = resultNode.InnerText;
+
             }
+            else
+            {
+                var testStatusPathNode = doc.SelectSingleNode("//Report/Doc/NodeArgs");
+                if (testStatusPathNode == null)
+                {
+                    desc = string.Format(Resources.XmlNodeNotExistError, "//Report/Doc/NodeArgs");
+                    finalState = TestState.Error;
+                }
 
-            if (!testStatusPathNode.Attributes["status"].Specified)
-                finalState = TestState.Unknown;
+                if (!testStatusPathNode.Attributes["status"].Specified)
+                    finalState = TestState.Unknown;
 
-            var status = testStatusPathNode.Attributes["status"].Value;
-
+                status = testStatusPathNode.Attributes["status"].Value;
+            }
+            
             var result = (TestResult)Enum.Parse(typeof(TestResult), status);
             if (result == TestResult.Passed || result == TestResult.Done)
             {

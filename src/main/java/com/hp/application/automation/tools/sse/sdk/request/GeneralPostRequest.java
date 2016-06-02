@@ -1,16 +1,16 @@
 package com.hp.application.automation.tools.sse.sdk.request;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.hp.application.automation.tools.common.Pair;
-import com.hp.application.automation.tools.rest.HttpHeaders;
+import com.hp.application.automation.tools.rest.RESTConstants;
 import com.hp.application.automation.tools.sse.common.RestXmlUtils;
 import com.hp.application.automation.tools.sse.sdk.Client;
 import com.hp.application.automation.tools.sse.sdk.ResourceAccessLevel;
 import com.hp.application.automation.tools.sse.sdk.Response;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by barush on 29/10/2014.
@@ -25,8 +25,8 @@ public abstract class GeneralPostRequest extends GeneralRequest {
     protected Map<String, String> getHeaders() {
 
         Map<String, String> ret = new HashMap<String, String>();
-        ret.put(HttpHeaders.CONTENT_TYPE, RestXmlUtils.APP_XML);
-        ret.put(HttpHeaders.ACCEPT, RestXmlUtils.APP_XML);
+        ret.put(RESTConstants.CONTENT_TYPE, RESTConstants.APP_XML);
+        ret.put(RESTConstants.ACCEPT, RESTConstants.APP_XML);
 
         return ret;
     }
@@ -34,7 +34,7 @@ public abstract class GeneralPostRequest extends GeneralRequest {
     @Override
     public Response perform() {
         
-        return client.httpPost(
+        return _client.httpPost(
                 getUrl(),
                 getDataBytes(),
                 getHeaders(),

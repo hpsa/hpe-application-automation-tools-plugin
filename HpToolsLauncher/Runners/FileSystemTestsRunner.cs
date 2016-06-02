@@ -28,7 +28,7 @@ namespace HpToolsLauncher
 
         //LoadRunner Arguments
         private int _pollingInterval;
-        private TimeSpan _perScenarioTimeOut;
+        private TimeSpan _perScenarioTimeOutMinutes;
         private List<string> _ignoreErrorStrings;
 
 
@@ -37,6 +37,9 @@ namespace HpToolsLauncher
 
 
         public const string UftJUnitRportName = "uftRunnerRoot";
+
+        private McConnectionInfo _mcConnection;
+        private string _mobileInfoForAllGuiTests;
 
         #endregion
 
@@ -50,10 +53,12 @@ namespace HpToolsLauncher
         public FileSystemTestsRunner(List<string> sources,
             TimeSpan timeout,
             int ControllerPollingInterval,
-            TimeSpan perScenarioTimeOut,
+            TimeSpan perScenarioTimeOutMinutes,
             List<string> ignoreErrorStrings,
             Dictionary<string, string> jenkinsEnvVariables,
-            bool useUFTLicense = false
+            McConnectionInfo mcConnection,
+            string mobileInfo,
+            bool useUFTLicense = false     
             )
         {
             _jenkinsEnvVariables = jenkinsEnvVariables;
@@ -65,15 +70,21 @@ namespace HpToolsLauncher
             }
 
             _timeout = timeout;
+            ConsoleWriter.WriteLine("FileSystemTestRunner timeout is " + _timeout );
             _stopwatch = Stopwatch.StartNew();
 
             _pollingInterval = ControllerPollingInterval;
-            _perScenarioTimeOut = perScenarioTimeOut;
+            _perScenarioTimeOutMinutes = perScenarioTimeOutMinutes;
             _ignoreErrorStrings = ignoreErrorStrings;
 
 
             _useUFTLicense = useUFTLicense;
             _tests = new List<TestInfo>();
+
+            _mcConnection = mcConnection;
+            _mobileInfoForAllGuiTests = mobileInfo;
+
+            ConsoleWriter.WriteLine("Mc connection info is - " + _mcConnection.ToString());
 
             //go over all sources, and create a list of all tests
             foreach (string source in sources)
@@ -271,11 +282,11 @@ namespace HpToolsLauncher
                     runner = new ApiTestRunner(this, _timeout - _stopwatch.Elapsed);
                     break;
                 case TestType.QTP:
-                    runner = new GuiTestRunner(this, _useUFTLicense, _timeout - _stopwatch.Elapsed);
+                    runner = new GuiTestRunner(this, _useUFTLicense, _timeout - _stopwatch.Elapsed, _mcConnection, _mobileInfoForAllGuiTests);
                     break;
                 case TestType.LoadRunner:
                     AppDomain.CurrentDomain.AssemblyResolve += Helper.HPToolsAssemblyResolver;
-                    runner = new PerformanceTestRunner(this, _timeout, _pollingInterval, _perScenarioTimeOut, _ignoreErrorStrings);
+                    runner = new PerformanceTestRunner(this, _timeout, _pollingInterval, _perScenarioTimeOutMinutes, _ignoreErrorStrings);
                     break;
             }
 
