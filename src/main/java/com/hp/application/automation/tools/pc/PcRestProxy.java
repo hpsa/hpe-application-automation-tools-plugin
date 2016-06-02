@@ -1,26 +1,17 @@
 package com.hp.application.automation.tools.pc;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.lang.reflect.Array;
-import java.nio.file.FileSystemException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
+import com.hp.application.automation.tools.common.PcException;
+import com.hp.application.automation.tools.model.TimeslotDuration;
+import com.hp.application.automation.tools.rest.RESTConstants;
+import com.hp.application.automation.tools.sse.sdk.Base64Encoder;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.entity.ContentType;
@@ -32,12 +23,15 @@ import org.apache.http.impl.conn.SchemeRegistryFactory;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 
-import static org.apache.commons.httpclient.HttpStatus.*;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-import com.hp.application.automation.tools.common.PcException;
-import com.hp.application.automation.tools.model.TimeslotDuration;
-import com.hp.application.automation.tools.rest.RESTConstants;
-import com.hp.application.automation.tools.sse.sdk.Base64Encoder;
+import static org.apache.commons.httpclient.HttpStatus.*;
 
 public class PcRestProxy {
 	
