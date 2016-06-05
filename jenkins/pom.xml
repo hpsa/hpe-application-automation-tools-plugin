@@ -12,8 +12,8 @@
 
 	<modules>
 		<module>plugin</module>
-		<module>jenkins-test-pack</module>
-		<module>jenkins-indi-docker</module>
+		<!--module>jenkins-test-pack</module>
+		<module>jenkins-indi-docker</module-->
 	</modules>
 
 </project>
