@@ -29,14 +29,14 @@ class CIEventImpl implements CIEvent {
 	private Long estimatedDuration;
 	private Long duration;
 	private SCMData scmData;
-	private String projectName;
+	private String projectDisplayName;
 
-	public String getProjectName() {
-		return projectName;
+	public String getProjectDisplayName() {
+		return projectDisplayName;
 	}
 
-	public CIEvent setProjectName(String projectName) {
-		this.projectName = projectName;
+	public CIEvent setProjectDisplayName(String projectDisplayName) {
+		this.projectDisplayName = projectDisplayName;
 		return this;
 	}
 

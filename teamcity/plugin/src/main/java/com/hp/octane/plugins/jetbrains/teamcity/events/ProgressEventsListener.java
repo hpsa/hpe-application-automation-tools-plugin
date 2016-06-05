@@ -10,13 +10,10 @@ import com.hp.nga.integrations.dto.events.CIEventType;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelCommonFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ParametersFactory;
-import jetbrains.buildServer.serverSide.BuildServerAdapter;
-import jetbrains.buildServer.serverSide.BuildServerListener;
-import jetbrains.buildServer.serverSide.SBuildType;
-import jetbrains.buildServer.serverSide.SQueuedBuild;
-import jetbrains.buildServer.serverSide.SRunningBuild;
-import jetbrains.buildServer.serverSide.TriggeredBy;
+import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.util.EventDispatcher;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -44,14 +41,18 @@ public class ProgressEventsListener extends BuildServerAdapter {
 		dispatcher.addListener(this);
 	}
 
+	private static final Logger logger = LogManager.getLogger(ProgressEventsListener.class);
+
 	@Override
 	public void buildTypeAddedToQueue(@NotNull SQueuedBuild queuedBuild) {
 		TriggeredBy triggeredBy = queuedBuild.getTriggeredBy();
 		if (!triggeredBy.getParameters().containsKey(TRIGGER_BUILD_TYPE_KEY)) {
+
 			CIEvent event = dtoFactory.newDTO(CIEvent.class)
 					.setEventType(CIEventType.STARTED)
 					.setBuildCiId(queuedBuild.getItemId())
 					.setProject(queuedBuild.getBuildType().getExternalId())
+					.setProjectDisplayName(queuedBuild.getBuildType().getName())
 					.setCauses(new ArrayList<CIEventCause>());
 			SDKManager.getService(EventsService.class).publishEvent(event);
 		}
@@ -73,6 +74,7 @@ public class ProgressEventsListener extends BuildServerAdapter {
 		CIEvent event = dtoFactory.newDTO(CIEvent.class)
 				.setEventType(CIEventType.STARTED)
 				.setProject(build.getBuildTypeExternalId())
+				.setProjectDisplayName(build.getBuildTypeName())
 				.setBuildCiId(String.valueOf(build.getBuildId()))
 				.setNumber(build.getBuildNumber())
 				.setParameters(parametersFactory.obtainFromBuild(build))
@@ -98,6 +100,7 @@ public class ProgressEventsListener extends BuildServerAdapter {
 		CIEvent event = dtoFactory.newDTO(CIEvent.class)
 				.setEventType(CIEventType.FINISHED)
 				.setProject(build.getBuildTypeExternalId())
+				.setProjectDisplayName(build.getBuildTypeName())
 				.setBuildCiId(String.valueOf(build.getBuildId()))
 				.setNumber(build.getBuildNumber())
 				.setParameters(parametersFactory.obtainFromBuild(build))

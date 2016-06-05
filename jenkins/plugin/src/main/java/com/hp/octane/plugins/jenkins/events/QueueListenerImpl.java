@@ -29,6 +29,7 @@ public final class QueueListenerImpl extends QueueListener {
 			CIEvent event = dtoFactory.newDTO(CIEvent.class)
 					.setEventType(CIEventType.QUEUED)
 					.setProject(project.getName())
+					.setProjectDisplayName(project.getName())
 					.setCauses(CIEventCausesFactory.processCauses(wi.getCauses()));
 			//  REMARK: temporary decided to not send QUEUED event
 			//EventsDispatcher.getExtensionInstance().dispatchEvent(event);
