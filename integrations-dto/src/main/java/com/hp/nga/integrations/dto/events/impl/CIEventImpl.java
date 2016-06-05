@@ -29,6 +29,16 @@ class CIEventImpl implements CIEvent {
 	private Long estimatedDuration;
 	private Long duration;
 	private SCMData scmData;
+	private String projectDisplayName;
+
+	public String getProjectDisplayName() {
+		return projectDisplayName;
+	}
+
+	public CIEvent setProjectDisplayName(String projectDisplayName) {
+		this.projectDisplayName = projectDisplayName;
+		return this;
+	}
 
 	public CIEventType getEventType() {
 		return eventType;
