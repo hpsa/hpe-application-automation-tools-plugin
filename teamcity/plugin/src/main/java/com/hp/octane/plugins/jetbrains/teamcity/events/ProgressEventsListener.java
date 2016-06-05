@@ -12,8 +12,6 @@ import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelCommonFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ParametersFactory;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.util.EventDispatcher;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -40,8 +38,6 @@ public class ProgressEventsListener extends BuildServerAdapter {
 	private ProgressEventsListener(EventDispatcher<BuildServerListener> dispatcher) {
 		dispatcher.addListener(this);
 	}
-
-	private static final Logger logger = LogManager.getLogger(ProgressEventsListener.class);
 
 	@Override
 	public void buildTypeAddedToQueue(@NotNull SQueuedBuild queuedBuild) {
