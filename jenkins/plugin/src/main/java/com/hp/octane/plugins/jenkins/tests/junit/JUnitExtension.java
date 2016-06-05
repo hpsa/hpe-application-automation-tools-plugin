@@ -44,269 +44,281 @@ import java.util.logging.Logger;
 @Extension
 public class JUnitExtension extends MqmTestsExtension {
 
-	private static Logger logger = Logger.getLogger(JUnitExtension.class.getName());
+    public static final String STORM_RUNNER = "StormRunner";
+    private static Logger logger = Logger.getLogger(JUnitExtension.class.getName());
 
-	private static final String JUNIT_RESULT_XML = "junitResult.xml"; // NON-NLS
+    private static final String JUNIT_RESULT_XML = "junitResult.xml"; // NON-NLS
 
-	@Inject
-	ResultFieldsDetectionService resultFieldsDetectionService;
+    @Inject
+    ResultFieldsDetectionService resultFieldsDetectionService;
 
-	public boolean supports(AbstractBuild<?, ?> build) throws IOException, InterruptedException {
-		if (build.getAction(AbstractTestResultAction.class) != null) {
-			logger.fine("AbstractTestResultAction found, JUnit results expected");
-			return true;
-		} else {
-			logger.fine("AbstractTestResultAction not found, no JUnit results expected");
-			return false;
-		}
-	}
+    public boolean supports(AbstractBuild<?, ?> build) throws IOException, InterruptedException {
+        if (build.getAction(AbstractTestResultAction.class) != null) {
+            logger.fine("AbstractTestResultAction found, JUnit results expected");
+            return true;
+        } else {
+            logger.fine("AbstractTestResultAction not found, no JUnit results expected");
+            return false;
+        }
+    }
 
-	@Override
-	public TestResultContainer getTestResults(AbstractBuild<?, ?> build, boolean isStormRunnerProject) throws IOException, InterruptedException {
-		logger.fine("Collecting JUnit results");
-		FilePath resultFile = new FilePath(build.getRootDir()).child(JUNIT_RESULT_XML);
-		if (resultFile.exists()) {
-			logger.fine("JUnit result report found");
-			ResultFields detectedFields = resultFieldsDetectionService.getDetectedFields(build);
-			FilePath filePath = build.getWorkspace().act(new GetJUnitTestResults(build, Arrays.asList(resultFile), shallStripPackageAndClass(detectedFields), isStormRunnerProject));
-			return new TestResultContainer(new ObjectStreamIterator<TestResult>(filePath, true), detectedFields);
-		} else {
-			//avoid java.lang.NoClassDefFoundError when maven plugin is not present
-			if ("hudson.maven.MavenModuleSetBuild".equals(build.getClass().getName())) {
-				logger.fine("MavenModuleSetBuild detected, looking for results in maven modules");
+    @Override
+    public TestResultContainer getTestResults(AbstractBuild<?, ?> build, boolean isStormRunnerProject) throws IOException, InterruptedException {
+        logger.fine("Collecting JUnit results");
 
-				List<FilePath> resultFiles = new LinkedList<FilePath>();
-				Map<MavenModule, MavenBuild> moduleLastBuilds = ((MavenModuleSetBuild) build).getModuleLastBuilds();
-				for (MavenBuild mavenBuild : moduleLastBuilds.values()) {
-					AbstractTestResultAction action = mavenBuild.getAction(AbstractTestResultAction.class);
-					if (action != null) {
-						FilePath moduleResultFile = new FilePath(mavenBuild.getRootDir()).child(JUNIT_RESULT_XML);
-						if (moduleResultFile.exists()) {
-							logger.fine("Found results in " + mavenBuild.getFullDisplayName());
-							resultFiles.add(moduleResultFile);
-						}
-					}
-				}
-				if (!resultFiles.isEmpty()) {
-					ResultFields detectedFields = resultFieldsDetectionService.getDetectedFields(build);
-					FilePath filePath = build.getWorkspace().act(new GetJUnitTestResults(build, resultFiles, shallStripPackageAndClass(detectedFields), isStormRunnerProject));
-					return new TestResultContainer(new ObjectStreamIterator<TestResult>(filePath, true), detectedFields);
-				}
-			}
-			logger.fine("No JUnit result report found");
-			return null;
-		}
-	}
+        FilePath resultFile = new FilePath(build.getRootDir()).child(JUNIT_RESULT_XML);
+        if (resultFile.exists()) {
+            logger.fine("JUnit result report found");
+            ResultFields detectedFields = null;
+            if (isStormRunnerProject) {
+                detectedFields = new ResultFields(null, STORM_RUNNER, null);
+            } else {
+                detectedFields = resultFieldsDetectionService.getDetectedFields(build);
+            }
+            FilePath filePath = build.getWorkspace().act(new GetJUnitTestResults(build, Arrays.asList(resultFile), shallStripPackageAndClass(detectedFields), isStormRunnerProject));
+            return new TestResultContainer(new ObjectStreamIterator<TestResult>(filePath, true), detectedFields);
+        } else {
+            //avoid java.lang.NoClassDefFoundError when maven plugin is not present
+            if ("hudson.maven.MavenModuleSetBuild".equals(build.getClass().getName())) {
+                logger.fine("MavenModuleSetBuild detected, looking for results in maven modules");
 
-	private boolean shallStripPackageAndClass(ResultFields resultFields) {
-		if (resultFields == null) {
-			return false;
-		}
-		return resultFields.equals(new ResultFields("UFT", "UFT", null));
-	}
+                List<FilePath> resultFiles = new LinkedList<FilePath>();
+                Map<MavenModule, MavenBuild> moduleLastBuilds = ((MavenModuleSetBuild) build).getModuleLastBuilds();
+                for (MavenBuild mavenBuild : moduleLastBuilds.values()) {
+                    AbstractTestResultAction action = mavenBuild.getAction(AbstractTestResultAction.class);
+                    if (action != null) {
+                        FilePath moduleResultFile = new FilePath(mavenBuild.getRootDir()).child(JUNIT_RESULT_XML);
+                        if (moduleResultFile.exists()) {
+                            logger.fine("Found results in " + mavenBuild.getFullDisplayName());
+                            resultFiles.add(moduleResultFile);
+                        }
+                    }
+                }
+                if (!resultFiles.isEmpty()) {
+                    ResultFields detectedFields = null;
+                    if (isStormRunnerProject) {
+                        detectedFields = new ResultFields(null, STORM_RUNNER, null);
+                    } else {
+                        detectedFields = resultFieldsDetectionService.getDetectedFields(build);
+                    }
+                    FilePath filePath = build.getWorkspace().act(new GetJUnitTestResults(build, resultFiles, shallStripPackageAndClass(detectedFields), isStormRunnerProject));
+                    return new TestResultContainer(new ObjectStreamIterator<TestResult>(filePath, true), detectedFields);
+                }
+            }
+            logger.fine("No JUnit result report found");
+            return null;
+        }
+    }
 
-	private static class GetJUnitTestResults implements FilePath.FileCallable<FilePath> {
+    private boolean shallStripPackageAndClass(ResultFields resultFields) {
+        if (resultFields == null) {
+            return false;
+        }
+        return resultFields.equals(new ResultFields("UFT", "UFT", null));
+    }
 
-		private final List<FilePath> reports;
-		private FilePath filePath;
-		private List<ModuleDetection> moduleDetection;
-		private long buildStarted;
-		private FilePath workspace;
-		private boolean stripPackageAndClass;
-		private boolean isStormRunnerProject;
+    private static class GetJUnitTestResults implements FilePath.FileCallable<FilePath> {
 
-		public GetJUnitTestResults(AbstractBuild<?, ?> build, List<FilePath> reports, boolean stripPackageAndClass, boolean isStormRunnerProject) throws IOException, InterruptedException {
-			this.reports = reports;
-			this.filePath = new FilePath(build.getRootDir()).createTempFile(getClass().getSimpleName(), null);
-			this.buildStarted = build.getStartTimeInMillis();
-			this.workspace = build.getWorkspace();
-			this.stripPackageAndClass = stripPackageAndClass;
-			this.isStormRunnerProject = isStormRunnerProject;
+        private final List<FilePath> reports;
+        private FilePath filePath;
+        private List<ModuleDetection> moduleDetection;
+        private long buildStarted;
+        private FilePath workspace;
+        private boolean stripPackageAndClass;
+        private boolean isStormRunnerProject;
 
-			moduleDetection = Arrays.asList(
-					new MavenBuilderModuleDetection(build),
-					new MavenSetModuleDetection(build),
-					new ModuleDetection.Default());
-		}
+        public GetJUnitTestResults(AbstractBuild<?, ?> build, List<FilePath> reports, boolean stripPackageAndClass, boolean isStormRunnerProject) throws IOException, InterruptedException {
+            this.reports = reports;
+            this.filePath = new FilePath(build.getRootDir()).createTempFile(getClass().getSimpleName(), null);
+            this.buildStarted = build.getStartTimeInMillis();
+            this.workspace = build.getWorkspace();
+            this.stripPackageAndClass = stripPackageAndClass;
+            this.isStormRunnerProject = isStormRunnerProject;
 
-		@Override
-		public FilePath invoke(File f, VirtualChannel channel) throws IOException, InterruptedException {
-			OutputStream os = filePath.write();
-			BufferedOutputStream bos = new BufferedOutputStream(os);
-			ObjectOutputStream oos = new ObjectOutputStream(bos);
+            moduleDetection = Arrays.asList(
+                    new MavenBuilderModuleDetection(build),
+                    new MavenSetModuleDetection(build),
+                    new ModuleDetection.Default());
+        }
 
-			try {
-				for (FilePath report : reports) {
-					JUnitXmlIterator iterator = new JUnitXmlIterator(report.read(), stripPackageAndClass, isStormRunnerProject);
-					while (iterator.hasNext()) {
-						oos.writeObject(iterator.next());
-					}
-				}
-			} catch (XMLStreamException e) {
-				throw new IOException(e);
-			}
-			os.flush();
+        @Override
+        public FilePath invoke(File f, VirtualChannel channel) throws IOException, InterruptedException {
+            OutputStream os = filePath.write();
+            BufferedOutputStream bos = new BufferedOutputStream(os);
+            ObjectOutputStream oos = new ObjectOutputStream(bos);
 
-			oos.close();
-			return filePath;
-		}
+            try {
+                for (FilePath report : reports) {
+                    JUnitXmlIterator iterator = new JUnitXmlIterator(report.read(), stripPackageAndClass, isStormRunnerProject);
+                    while (iterator.hasNext()) {
+                        oos.writeObject(iterator.next());
+                    }
+                }
+            } catch (XMLStreamException e) {
+                throw new IOException(e);
+            }
+            os.flush();
 
-		@Override
-		public void checkRoles(RoleChecker roleChecker) throws SecurityException {
-			roleChecker.check(this, Role.UNKNOWN);
-		}
+            oos.close();
+            return filePath;
+        }
 
-		private static long parseTime(String timeString) {
-			String time = timeString.replace(",", "");
-			try {
-				float seconds = Float.parseFloat(time);
-				return (long) (seconds * 1000);
-			} catch (NumberFormatException e) {
-				try {
-					return new DecimalFormat().parse(time).longValue();
-				} catch (ParseException ex) {
-					logger.fine("Unable to parse test duration: " + timeString);
-				}
-			}
-			return 0;
-		}
+        @Override
+        public void checkRoles(RoleChecker roleChecker) throws SecurityException {
+            roleChecker.check(this, Role.UNKNOWN);
+        }
 
-		private class JUnitXmlIterator extends AbstractXmlIterator<TestResult> {
+        private static long parseTime(String timeString) {
+            String time = timeString.replace(",", "");
+            try {
+                float seconds = Float.parseFloat(time);
+                return (long) (seconds * 1000);
+            } catch (NumberFormatException e) {
+                try {
+                    return new DecimalFormat().parse(time).longValue();
+                } catch (ParseException ex) {
+                    logger.fine("Unable to parse test duration: " + timeString);
+                }
+            }
+            return 0;
+        }
 
-			public static final String DASHBOARD_URL = "dashboardUrl";
-			private boolean stripPackageAndClass;
-			private String moduleName;
-			private String packageName;
-			private String className;
-			private String testName;
-			private long duration;
-			private TestResultStatus status;
-			private String stackTraceStr;
-			private String errorType;
-			private String errorMsg;
-			private boolean isStormRunnerProject;
-			private String stormRunnerURL;
+        private class JUnitXmlIterator extends AbstractXmlIterator<TestResult> {
 
-			public JUnitXmlIterator(InputStream read, boolean stripPackageAndClass, boolean isStormRunnerProject) throws XMLStreamException {
-				super(read);
-				this.stripPackageAndClass = stripPackageAndClass;
-				this.isStormRunnerProject = isStormRunnerProject;
-			}
+            public static final String DASHBOARD_URL = "dashboardUrl";
+            private boolean stripPackageAndClass;
+            private String moduleName;
+            private String packageName;
+            private String className;
+            private String testName;
+            private long duration;
+            private TestResultStatus status;
+            private String stackTraceStr;
+            private String errorType;
+            private String errorMsg;
+            private boolean isStormRunnerProject;
+            private String stormRunnerURL;
 
-			private String getStormRunnerURL(String path){
+            public JUnitXmlIterator(InputStream read, boolean stripPackageAndClass, boolean isStormRunnerProject) throws XMLStreamException {
+                super(read);
+                this.stripPackageAndClass = stripPackageAndClass;
+                this.isStormRunnerProject = isStormRunnerProject;
+            }
 
-				String srUrl = null;
-				File srReport = new File(path);
-				if(srReport.exists()) {
-					TestSuite testSuite = DTOFactory.getInstance().dtoFromXmlFile(srReport, TestSuite.class);
+            private String getStormRunnerURL(String path) {
 
-					for (Property property : testSuite.getProprties()) {
-						if (property.getPropertyName().equals(DASHBOARD_URL)) {
-							srUrl = property.getPropertyValue();
-							break;
-						}
-					}
-				}
-				return srUrl;
-			}
+                String srUrl = null;
+                File srReport = new File(path);
+                if (srReport.exists()) {
+                    TestSuite testSuite = DTOFactory.getInstance().dtoFromXmlFile(srReport, TestSuite.class);
 
-			@Override
-			protected void onEvent(XMLEvent event) throws XMLStreamException, IOException, InterruptedException {
-				if (event instanceof StartElement) {
-					StartElement element = (StartElement) event;
-					String localName = element.getName().getLocalPart();
-					if ("file".equals(localName)) {  // NON-NLS
-						String path = readNextValue();
-						for (ModuleDetection detection : moduleDetection) {
-							moduleName = detection.getModule(new FilePath(new File(path)));
-							if (moduleName != null) {
-								break;
-							}
-						}
+                    for (Property property : testSuite.getProprties()) {
+                        if (property.getPropertyName().equals(DASHBOARD_URL)) {
+                            srUrl = property.getPropertyValue();
+                            break;
+                        }
+                    }
+                }
+                return srUrl;
+            }
+
+            @Override
+            protected void onEvent(XMLEvent event) throws XMLStreamException, IOException, InterruptedException {
+                if (event instanceof StartElement) {
+                    StartElement element = (StartElement) event;
+                    String localName = element.getName().getLocalPart();
+                    if ("file".equals(localName)) {  // NON-NLS
+                        String path = readNextValue();
+                        for (ModuleDetection detection : moduleDetection) {
+                            moduleName = detection.getModule(new FilePath(new File(path)));
+                            if (moduleName != null) {
+                                break;
+                            }
+                        }
 
 
-						if(isStormRunnerProject){
-							stormRunnerURL = getStormRunnerURL(path);
-						}else {
-							stormRunnerURL = null;
-						}
+                        if (isStormRunnerProject) {
+                            stormRunnerURL = getStormRunnerURL(path);
+                        } else {
+                            stormRunnerURL = null;
+                        }
 
-					} else if ("case".equals(localName)) { // NON-NLS
-						packageName = "";
-						className = "";
-						testName = "";
-						duration = 0;
-						status = TestResultStatus.PASSED;
-						stackTraceStr = "";
-						errorType = "";
-						errorMsg = "";
-					} else if ("className".equals(localName)) { // NON-NLS
-						String fqn = readNextValue();
-						int p = fqn.lastIndexOf(".");
-						className = fqn.substring(p + 1);
-						if (p > 0) {
-							packageName = fqn.substring(0, p);
-						} else {
-							packageName = "";
-						}
-					} else if ("testName".equals(localName)) { // NON-NLS
-						testName = readNextValue();
-						if (testName.startsWith(workspace.getRemote())) {
-							// if workspace is prefix of the method name, cut it off
-							// currently this handling is needed for UFT tests
-							testName = testName.substring(workspace.getRemote().length()).replaceAll("^[/\\\\]", "");
-						}
-					} else if ("duration".equals(localName)) { // NON-NLS
-						duration = parseTime(readNextValue());
-					} else if ("skipped".equals(localName)) { // NON-NLS
-						if ("true".equals(readNextValue())) { // NON-NLS
-							status = TestResultStatus.SKIPPED;
-						}
-					} else if ("failedSince".equals(localName)) { // NON-NLS
-						if (!"0".equals(readNextValue()) && !TestResultStatus.SKIPPED.equals(status)) {
-							status = TestResultStatus.FAILED;
-						}
-					} else if ("errorStackTrace".equals(localName)) { // NON-NLS
-						status = TestResultStatus.FAILED;
-						stackTraceStr="";
-						if(peek() instanceof Characters) {
-							stackTraceStr = readNextValue();
-							int index = stackTraceStr.indexOf("at ");
-							if(index >= 0) {
-								errorType = stackTraceStr.substring(0, index);
-							}
-						}
-					} else if ("errorDetails".equals(localName)) { // NON-NLS
-						status = TestResultStatus.FAILED;
-						errorMsg = readNextValue();
-						int index = stackTraceStr.indexOf(":");
-						if(index >= 0) {
-							errorType = stackTraceStr.substring(0, index);
-						}
+                    } else if ("case".equals(localName)) { // NON-NLS
+                        packageName = "";
+                        className = "";
+                        testName = "";
+                        duration = 0;
+                        status = TestResultStatus.PASSED;
+                        stackTraceStr = "";
+                        errorType = "";
+                        errorMsg = "";
+                    } else if ("className".equals(localName)) { // NON-NLS
+                        String fqn = readNextValue();
+                        int p = fqn.lastIndexOf(".");
+                        className = fqn.substring(p + 1);
+                        if (p > 0) {
+                            packageName = fqn.substring(0, p);
+                        } else {
+                            packageName = "";
+                        }
+                    } else if ("testName".equals(localName)) { // NON-NLS
+                        testName = readNextValue();
+                        if (testName.startsWith(workspace.getRemote())) {
+                            // if workspace is prefix of the method name, cut it off
+                            // currently this handling is needed for UFT tests
+                            testName = testName.substring(workspace.getRemote().length()).replaceAll("^[/\\\\]", "");
+                        }
+                    } else if ("duration".equals(localName)) { // NON-NLS
+                        duration = parseTime(readNextValue());
+                    } else if ("skipped".equals(localName)) { // NON-NLS
+                        if ("true".equals(readNextValue())) { // NON-NLS
+                            status = TestResultStatus.SKIPPED;
+                        }
+                    } else if ("failedSince".equals(localName)) { // NON-NLS
+                        if (!"0".equals(readNextValue()) && !TestResultStatus.SKIPPED.equals(status)) {
+                            status = TestResultStatus.FAILED;
+                        }
+                    } else if ("errorStackTrace".equals(localName)) { // NON-NLS
+                        status = TestResultStatus.FAILED;
+                        stackTraceStr = "";
+                        if (peek() instanceof Characters) {
+                            stackTraceStr = readNextValue();
+                            int index = stackTraceStr.indexOf("at ");
+                            if (index >= 0) {
+                                errorType = stackTraceStr.substring(0, index);
+                            }
+                        }
+                    } else if ("errorDetails".equals(localName)) { // NON-NLS
+                        status = TestResultStatus.FAILED;
+                        errorMsg = readNextValue();
+                        int index = stackTraceStr.indexOf(":");
+                        if (index >= 0) {
+                            errorType = stackTraceStr.substring(0, index);
+                        }
 
-					}
-				} else if (event instanceof EndElement) {
-					EndElement element = (EndElement) event;
-					String localName = element.getName().getLocalPart();
+                    }
+                } else if (event instanceof EndElement) {
+                    EndElement element = (EndElement) event;
+                    String localName = element.getName().getLocalPart();
 
-					if ("case".equals(localName)) { // NON-NLS
-						TestError testError = new TestError(stackTraceStr, errorType, errorMsg);
-						if (stripPackageAndClass) {
-							//workaround only for UFT - we do not want packageName="All-Tests" and className="&lt;None>" as it comes from JUnit report
-							addItem(new TestResult(moduleName, "", "", testName, status, duration, buildStarted, testError, stormRunnerURL));
-						} else {
-							addItem(new TestResult(moduleName, packageName, className, testName, status, duration, buildStarted, testError, stormRunnerURL));
-						}
-					}
-				}
-			}
-		}
-	}
+                    if ("case".equals(localName)) { // NON-NLS
+                        TestError testError = new TestError(stackTraceStr, errorType, errorMsg);
+                        if (stripPackageAndClass) {
+                            //workaround only for UFT - we do not want packageName="All-Tests" and className="&lt;None>" as it comes from JUnit report
+                            addItem(new TestResult(moduleName, "", "", testName, status, duration, buildStarted, testError, stormRunnerURL));
+                        } else {
+                            addItem(new TestResult(moduleName, packageName, className, testName, status, duration, buildStarted, testError, stormRunnerURL));
+                        }
+                    }
+                }
+            }
+        }
+    }
 
-	/*
-	 * To be used in tests only.
-	 */
-	public void _setResultFieldsDetectionService(ResultFieldsDetectionService detectionService) {
-		this.resultFieldsDetectionService = detectionService;
-	}
+    /*
+     * To be used in tests only.
+     */
+    public void _setResultFieldsDetectionService(ResultFieldsDetectionService detectionService) {
+        this.resultFieldsDetectionService = detectionService;
+    }
 }
