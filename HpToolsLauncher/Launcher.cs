@@ -143,7 +143,7 @@ namespace HpToolsLauncher
         /// <param name="textToDecrypt"></param>
         /// <param name="key"></param>
         /// <returns></returns>
-        string Decrypt(string textToDecrypt, string key)
+        private static string Decrypt(string textToDecrypt, string key)
         {
             RijndaelManaged rijndaelCipher = new RijndaelManaged();
             rijndaelCipher.Mode = CipherMode.CBC;
@@ -172,7 +172,7 @@ namespace HpToolsLauncher
         /// <param name="textToEncrypt"></param>
         /// <param name="key"></param>
         /// <returns></returns>
-        string Encrypt(string textToEncrypt, string key)
+        private static string Encrypt(string textToEncrypt, string key)
         {
             RijndaelManaged rijndaelCipher = new RijndaelManaged();
             rijndaelCipher.Mode = CipherMode.CBC;
