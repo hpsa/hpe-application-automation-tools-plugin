@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using HpToolsLauncher.Properties;
 
 namespace HpToolsLauncher
@@ -96,8 +97,11 @@ namespace HpToolsLauncher
         /// <param name="textToDecrypt"></param>
         /// <param name="key"></param>
         /// <returns></returns>
-        string Decrypt(string textToDecrypt, string key)
+        public static  string Decrypt(string textToDecrypt, string key)
         {
+            if (String.IsNullOrEmpty(textToDecrypt))
+                return String.Empty;
+
             RijndaelManaged rijndaelCipher = new RijndaelManaged();
             rijndaelCipher.Mode = CipherMode.CBC;
             rijndaelCipher.Padding = PaddingMode.PKCS7;
@@ -125,7 +129,7 @@ namespace HpToolsLauncher
         /// <param name="textToEncrypt"></param>
         /// <param name="key"></param>
         /// <returns></returns>
-        string Encrypt(string textToEncrypt, string key)
+        public static string Encrypt(string textToEncrypt, string key)
         {
             RijndaelManaged rijndaelCipher = new RijndaelManaged();
             rijndaelCipher.Mode = CipherMode.CBC;
@@ -182,10 +186,11 @@ namespace HpToolsLauncher
             {
                 UniqueTimeStamp = _ciParams["uniqueTimeStamp"];
             }
-            else
+            else if (Regex.IsMatch(resultsFilename, "results\\d{17}\\.xml", RegexOptions.IgnoreCase)) // resultsddMMyyyyHHmmssfff
             {
                 UniqueTimeStamp = resultsFilename.ToLower().Replace("results", "").Replace(".xml", "");
             }
+            else UniqueTimeStamp = DateTime.Now.ToString("ddMMyyyyHHmmssfff");
 
             //create the runner according to type
             IAssetRunner runner = CreateRunner(_runtype, _ciParams);
