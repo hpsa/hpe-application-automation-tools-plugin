@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using HpToolsLauncher.Properties;
 
 namespace HpToolsLauncher
@@ -228,10 +229,11 @@ namespace HpToolsLauncher
             {
                 UniqueTimeStamp = _ciParams["uniqueTimeStamp"];
             }
-            else
+            else if (Regex.IsMatch(resultsFilename, "results\\d{17}\\.xml", RegexOptions.IgnoreCase)) // resultsddMMyyyyHHmmssfff.xml
             {
                 UniqueTimeStamp = resultsFilename.ToLower().Replace("results", "").Replace(".xml", "");
             }
+            else UniqueTimeStamp = DateTime.Now.ToString("ddMMyyyyHHmmssfff");
 
             //create the runner according to type
             IAssetRunner runner = CreateRunner(_runtype, _ciParams);
