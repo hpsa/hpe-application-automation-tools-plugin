@@ -98,6 +98,16 @@ public class GherkinTestResultsCollector implements TestResultsExcluder {
                 for (int s = 0; s < scenarioNodes.getLength(); s++) {
                     Element scenarioElement = (Element) scenarioNodes.item(s);
                     String scenarioName = scenarioElement.getAttribute("name");
+                    if(scenarioElement.hasAttribute("outlineIndex")){
+                        String outlineIndexStr = scenarioElement.getAttribute("outlineIndex");
+                        if(outlineIndexStr !=null && !outlineIndexStr.isEmpty()){
+                            Integer outlineIndex = Integer.valueOf(scenarioElement.getAttribute("outlineIndex"));
+                            if(outlineIndex>1){
+                                //we add the index only from 2 and upwards seeing as that is the naming convention in junit xml.
+                                scenarioName = scenarioName + " " + scenarioElement.getAttribute("outlineIndex");
+                            }
+                        }
+                    }
                     scenarioNames.add(scenarioName);
                     TestResultStatus scenarioStatus = TestResultStatus.PASSED;
                     boolean scenarioStatusDetermined = false;
