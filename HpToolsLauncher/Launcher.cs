@@ -99,6 +99,9 @@ namespace HpToolsLauncher
         /// <returns></returns>
         public static  string Decrypt(string textToDecrypt, string key)
         {
+            if (String.IsNullOrEmpty(textToDecrypt))
+                return String.Empty;
+
             RijndaelManaged rijndaelCipher = new RijndaelManaged();
             rijndaelCipher.Mode = CipherMode.CBC;
             rijndaelCipher.Padding = PaddingMode.PKCS7;
