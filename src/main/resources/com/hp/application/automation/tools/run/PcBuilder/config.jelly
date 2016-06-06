@@ -16,6 +16,52 @@
 
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
 	xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+	<f:block>
+	<style>
+	.disabledLine {
+		position:relative;
+	}
+	.disabledLine:before {
+	width:100%;
+	height:100%;
+	background-color:#fff;
+	opacity:0.9;
+	content:'';
+	position:absolute;
+	
+	}
+	
+	.myClass{
+		border: 5px solid red;
+	}
+	</style>
+	
+		<script>
+		function isAddRunToTrendReportEnabled(sender) {
+			var x = sender.selectedIndex;
+			var y = sender.options;
+			var addRunToTrendReport = document.getElementById('addRunToTrendReport');
+			//alert(y[x].value);
+			if (y[x].value === 'COLLATE_AND_ANALYZE'){
+				addRunToTrendReport.classList.remove("disabledLine");
+			}
+			else{
+				addRunToTrendReport.classList.add("disabledLine");
+			}
+						
+		}
+		
+		function onPostRunActionLoad(){
+			var postRunAction = document.getElementById('postRunAction');
+			if(postRunAction != null){
+			    isAddRunToTrendReportEnabled(postRunAction);
+			}
+
+		}
+
+		</script>
+	</f:block>
+	
 	<tr>
 		<td />
 		<td colspan="2">
@@ -53,7 +99,7 @@
 		<br />
 	</f:block>
 	<f:entry title="Post Run Action" field="postRunAction">
-		<select name="pc.postRunAction">
+		<select id="postRunAction" name="pc.postRunAction" onchange="isAddRunToTrendReportEnabled(this)">
 			<j:forEach var="action" items="${descriptor.postRunActions}">
 				<f:option selected="${action == instance.pcModel.postRunAction}"
 					value="${action}">
@@ -62,6 +108,14 @@
 			</j:forEach>
 		</select>
 	</f:entry>
+
+	<f:block>
+		<div id="addRunToTrendReport" class="disabledLine">
+			<f:checkbox name="addRunToTrendReport" title="Add run to trend report with ID" checked="${instance.pcModel.addRunToTrendReport}" value="${instance.pcModel.addRunToTrendReport}"/>
+			<f:textbox  name="trendReportId" style="width:40px;height:24px;text-align:center;margin:10px" value="${instance.pcModel.trendReportId}"/>
+		</div>
+		<script>onPostRunActionLoad();</script>
+	</f:block>
 
 	<f:block>
 		<j:set var="h_id" value="${h.generateId()}" />
@@ -157,4 +211,6 @@
 	<f:optionalBlock title="Set step status according to SLA"
 		field="statusBySLA" name="pc.statusBySLA" checked="${instance.statusBySLA}"
 		inline="true" />
+
+  
 </j:jelly>

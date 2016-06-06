@@ -155,7 +155,6 @@ public class AlmRestTool {
 				if(entities.size()>0){
 					return entities.get(0);
 				} else {
-					//_logger.log("No Entity Found:" +getEntityUnderParentFolderQuery );
 					return null;
 				}
 			} else {
@@ -192,7 +191,7 @@ public class AlmRestTool {
 
 	}	
 	
-	public <E extends AlmEntity> E createAlmEntity (E entity, String[] fieldsForCreation) {
+	public <E extends AlmEntity> E createAlmEntity (E entity, String[] fieldsForCreation) throws ExternalEntityUploadException {
 		
 		CreateAlmEntityRequest createRequest = new CreateAlmEntityRequest(getRestClient(), entity, getPairListForAlmEntityFields(entity, fieldsForCreation) );
 		Response response = createRequest.perform();	
@@ -205,11 +204,11 @@ public class AlmRestTool {
 				return (E)entities.get(0);
 			} else {
 				_logger.log("Failed to create Entity:" + entity.toString());
-				return null;
+				throw new ExternalEntityUploadException("Failed to create Entity:" + entity.toString());
 			}
 		} else {
 			_logger.log("Failed to create Entity:" + entity.toString());
-			return null;
+			throw new ExternalEntityUploadException("Failed to create Entity:" + entity.toString());
 		}
 		
 	}

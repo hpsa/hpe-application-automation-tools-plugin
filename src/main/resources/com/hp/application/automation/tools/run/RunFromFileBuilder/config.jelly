@@ -53,8 +53,8 @@
     </f:advanced>
 
     <!-- add MC server and app info starting -->
-     <f:advanced title="Mobile Center-Specific Settings">
-            <f:section title="Mobile Center Settings">
+     <f:advanced title="Mobile Center options">
+            <f:section title="Mobile Center options">
                 <f:entry title="MC Server" field="mcServerName">
                     <select name="runfromfs.mcServerName">
                         <j:forEach var="mcServer" items="${descriptor.mcServers}">
@@ -67,21 +67,21 @@
                 <f:entry>
                     <f:checkbox title="Use SSL" name="runfromfs.useSSL" checked="${instance.runFromFileModel.useSSL}"/>
                 </f:entry>
-                <f:entry title="User Name" field="fsUserName">
+                <f:entry title="User name" field="fsUserName">
                     <f:textbox name="runfromfs.fsUserName" value="${instance.runFromFileModel.fsUserName}"/>
                 </f:entry>
                 <f:entry title="Password" field="fsPassword">
                     <f:password name="runfromfs.fsPassword" value="${instance.runFromFileModel.fsPassword}"/>
                 </f:entry>
                 <f:entry>
-                    <f:optionalBlock title="Use Proxy Settings" name = "proxySettings" checked="${instance.runFromFileModel.useProxy}">
+                    <f:optionalBlock title="Use proxy settings" name = "proxySettings" checked="${instance.runFromFileModel.useProxy}">
                         <f:entry title="Address" field="fsProxyAddress">
                           <f:textbox name="runfromfs.fsProxyAddress" value="${instance.runFromFileModel.proxySettings.fsProxyAddress}"/>
                         </f:entry>
                         <f:entry>
-                            <f:checkbox title="Specify Authentication" name="runfromfs.fsUseAuthentication" checked="${instance.runFromFileModel.useAuthentication}" onclick="useAuthentication(this)"/>
+                            <f:checkbox title="Specify authentication" name="runfromfs.fsUseAuthentication" checked="${instance.runFromFileModel.useAuthentication}" onclick="useAuthentication(this)"/>
                         </f:entry>
-                        <f:entry title="User Name" field="fsProxyUserName">
+                        <f:entry title="User name" field="fsProxyUserName">
                           <f:textbox name="runfromfs.fsProxyUserName" disabled = "${instance.runFromFileModel.useAuthentication ? null : 'true'}" value="${instance.runFromFileModel.proxySettings.fsProxyUserName}"/>
                         </f:entry>
                         <f:entry title="Password" field="fsProxyPassword">
@@ -91,13 +91,13 @@
                 </f:entry>
                 <f:entry title="DEVICE INFORMATION:"/>
                 <f:entry/>
-                <f:entry title="Device Id" field="fsDeviceId">
+                <f:entry title="Device ID" field="fsDeviceId">
                         <f:textbox name="runfromfs.fsDeviceId" readonly = "true" value="${instance.runFromFileModel.fsDeviceId}"/>
                 </f:entry>
                 <f:entry title="OS" field="fsOs">
                     <f:textbox name="runfromfs.fsOs" readonly = "true" value="${instance.runFromFileModel.fsOs}"/>
                 </f:entry>
-                <f:entry title="Manufacturer and Model" field="fsManufacturerAndModel">
+                <f:entry title="Manufacturer and model" field="fsManufacturerAndModel">
                     <f:textbox name="runfromfs.fsManufacturerAndModel" readonly = "true" value="${instance.runFromFileModel.fsManufacturerAndModel}"/>
                 </f:entry>
                 <f:entry title="Target lab" field="fsTargetLab">
@@ -109,16 +109,16 @@
 
                 <f:entry title="TEST DEFINITIONS:"/>
                 <f:entry/>
-                <f:entry title="Launch on Start" field="fsLaunchAppName">
+                <f:entry title="Launch on start" field="fsLaunchAppName">
                     <f:textbox name="runfromfs.fsLaunchAppName" readonly = "true" value="${instance.runFromFileModel.fsLaunchAppName}"/>
                 </f:entry>
-                <f:entry title="AUT Packaging" field="fsInstrumented">
+                <f:entry title="AUT packaging" field="fsInstrumented">
                         <f:textbox name="runfromfs.fsInstrumented" readonly = "true" value="${instance.runFromFileModel.fsInstrumented}"/>
                 </f:entry>
-                <f:entry title="AUT Actions" field="fsAutActions">
+                <f:entry title="AUT actions" field="fsAutActions">
                         <f:textbox name="runfromfs.fsAutActions" readonly = "true" value="${instance.runFromFileModel.fsAutActions}"/>
                 </f:entry>
-                <f:entry title="Device Metrics" field="fsDevicesMetrics">
+                <f:entry title="Device metrics" field="fsDevicesMetrics">
                         <f:textbox name="runfromfs.fsDevicesMetrics" readonly = "true" value="${instance.runFromFileModel.fsDevicesMetrics}"/>
                 </f:entry>
                 <f:entry>
