@@ -1,6 +1,6 @@
-package com.hp.nga.integrations.dto.stormRunner.impl;
+package com.hp.nga.integrations.dto.tests.impl;
 
-import com.hp.nga.integrations.dto.stormRunner.Property;
+import com.hp.nga.integrations.dto.tests.Property;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;

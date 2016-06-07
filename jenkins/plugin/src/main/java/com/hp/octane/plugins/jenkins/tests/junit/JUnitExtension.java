@@ -4,8 +4,8 @@ package com.hp.octane.plugins.jenkins.tests.junit;
 
 import com.google.inject.Inject;
 import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.stormRunner.Property;
-import com.hp.nga.integrations.dto.stormRunner.TestSuite;
+import com.hp.nga.integrations.dto.tests.Property;
+import com.hp.nga.integrations.dto.tests.TestSuite;
 import com.hp.octane.plugins.jenkins.tests.*;
 import com.hp.octane.plugins.jenkins.tests.detection.ResultFields;
 import com.hp.octane.plugins.jenkins.tests.detection.ResultFieldsDetectionService;

@@ -1,15 +1,13 @@
-package com.hp.nga.integrations.dto.stormRunner.impl;
+package com.hp.nga.integrations.dto.tests.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.hp.nga.integrations.dto.DTOBase;
 import com.hp.nga.integrations.dto.DTOInternalProviderBase;
-import com.hp.nga.integrations.dto.stormRunner.Property;
-import com.hp.nga.integrations.dto.stormRunner.TestCase;
-import com.hp.nga.integrations.dto.stormRunner.TestSuite;
-
-
+import com.hp.nga.integrations.dto.tests.Property;
+import com.hp.nga.integrations.dto.tests.TestCase;
+import com.hp.nga.integrations.dto.tests.TestSuite;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,15 +16,15 @@ import java.util.Map;
  * Created by gullery on 10/02/2016.
  */
 
-public final class DTOStormRunnerProvider extends DTOInternalProviderBase {
+public final class DTOJUnitProvider extends DTOInternalProviderBase {
 	private final Map<Class, Class> dtoPairs = new HashMap<Class, Class>();
 
-	private DTOStormRunnerProvider() {
+	private DTOJUnitProvider() {
 	}
 
 	@Override
 	protected Class[] getXMLAbleClasses() {
-		return new Class[]{PropertyImpl.class, TestCaseImpl.class, TestSuiteImpl.class};
+		return new Class[]{TestSuiteImpl.class, TestCaseImpl.class, PropertyImpl.class};
 	}
 
 	public static void ensureInit(Map<Class<? extends DTOBase>, DTOInternalProviderBase> registry, ObjectMapper objectMapper) {
@@ -34,14 +32,19 @@ public final class DTOStormRunnerProvider extends DTOInternalProviderBase {
 		registry.put(TestCase.class, INSTANCE_HOLDER.instance);
 		registry.put(TestSuite.class, INSTANCE_HOLDER.instance);
 
+
+
 		INSTANCE_HOLDER.instance.dtoPairs.put(Property.class, PropertyImpl.class);
 		INSTANCE_HOLDER.instance.dtoPairs.put(TestCase.class, TestCaseImpl.class);
 		INSTANCE_HOLDER.instance.dtoPairs.put(TestSuite.class, TestSuiteImpl.class);
 
+
 		SimpleAbstractTypeResolver resolver = new SimpleAbstractTypeResolver();
+
 		resolver.addMapping(Property.class, PropertyImpl.class);
 		resolver.addMapping(TestCase.class, TestCaseImpl.class);
 		resolver.addMapping(TestSuite.class, TestSuiteImpl.class);
+
 		SimpleModule module = new SimpleModule();
 		module.setAbstractTypes(resolver);
 		objectMapper.registerModule(module);
@@ -56,6 +59,6 @@ public final class DTOStormRunnerProvider extends DTOInternalProviderBase {
 	}
 
 	private static final class INSTANCE_HOLDER {
-		private static final DTOStormRunnerProvider instance = new DTOStormRunnerProvider();
+		private static final DTOJUnitProvider instance = new DTOJUnitProvider();
 	}
 }

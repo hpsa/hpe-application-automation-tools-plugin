@@ -1,4 +1,4 @@
-package com.hp.nga.integrations.dto.stormRunner;
+package com.hp.nga.integrations.dto.tests;
 
 import com.hp.nga.integrations.dto.DTOBase;
 
@@ -14,4 +14,5 @@ public interface TestCase  extends DTOBase {
     TestCase setTestStatus(String status);
     String getTestClassName();
     TestCase setTestClassName(String className);
+
 }

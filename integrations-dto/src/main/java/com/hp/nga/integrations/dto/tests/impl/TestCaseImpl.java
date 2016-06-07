@@ -1,11 +1,8 @@
-package com.hp.nga.integrations.dto.stormRunner.impl;
+package com.hp.nga.integrations.dto.tests.impl;
 
-import com.hp.nga.integrations.dto.stormRunner.TestCase;
+import com.hp.nga.integrations.dto.tests.TestCase;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.*;
 
 /**
  * Created by lev on 31/05/2016.
@@ -24,6 +21,7 @@ public class TestCaseImpl implements TestCase {
 
     @XmlAttribute(name = "classname")
     private String className;
+
 
     public String getTestName() {
         return name;
@@ -60,4 +58,6 @@ public class TestCaseImpl implements TestCase {
         this.className = className;
         return this;
     }
+
+
 }

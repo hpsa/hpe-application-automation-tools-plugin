@@ -1,8 +1,8 @@
-package com.hp.nga.integrations.dto.stormRunner.impl;
+package com.hp.nga.integrations.dto.tests.impl;
 
-import com.hp.nga.integrations.dto.stormRunner.Property;
-import com.hp.nga.integrations.dto.stormRunner.TestCase;
-import com.hp.nga.integrations.dto.stormRunner.TestSuite;
+import com.hp.nga.integrations.dto.tests.Property;
+import com.hp.nga.integrations.dto.tests.TestCase;
+import com.hp.nga.integrations.dto.tests.TestSuite;
 
 import javax.xml.bind.annotation.*;
 import java.util.List;

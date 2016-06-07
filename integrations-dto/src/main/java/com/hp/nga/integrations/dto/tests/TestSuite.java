@@ -1,4 +1,4 @@
-package com.hp.nga.integrations.dto.stormRunner;
+package com.hp.nga.integrations.dto.tests;
 
 import com.hp.nga.integrations.dto.DTOBase;
 
