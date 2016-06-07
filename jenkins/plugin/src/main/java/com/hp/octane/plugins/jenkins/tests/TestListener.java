@@ -44,6 +44,7 @@ public class TestListener {
                 }
             }
         }
+
         try {
             for (MqmTestsExtension ext : MqmTestsExtension.all()) {
                 try {
