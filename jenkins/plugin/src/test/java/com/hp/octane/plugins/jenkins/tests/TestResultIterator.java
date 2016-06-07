@@ -50,7 +50,7 @@ public class TestResultIterator implements Iterator<TestResult> {
 							long duration = Long.valueOf(element.getAttributeByName(new QName("duration")).getValue());
 							TestResultStatus status = TestResultStatus.fromPrettyName(element.getAttributeByName(new QName("status")).getValue());
 							long started = Long.valueOf(element.getAttributeByName(new QName("started")).getValue());
-							items.add(new TestResult(moduleName, packageName, className, testName, status, duration, started, null));
+							items.add(new TestResult(moduleName, packageName, className, testName, status, duration, started, null, null));
 						} else if ("build".equals(localName)) {
 							serverId = element.getAttributeByName(new QName("server_id")).getValue();
 							jobId = element.getAttributeByName(new QName("job_id")).getValue();

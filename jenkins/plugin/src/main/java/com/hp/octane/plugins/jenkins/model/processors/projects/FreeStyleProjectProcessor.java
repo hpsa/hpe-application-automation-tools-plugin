@@ -2,6 +2,9 @@ package com.hp.octane.plugins.jenkins.model.processors.projects;
 
 import hudson.model.AbstractProject;
 import hudson.model.FreeStyleProject;
+import hudson.tasks.Builder;
+
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -12,15 +15,22 @@ import hudson.model.FreeStyleProject;
  */
 
 public class FreeStyleProjectProcessor extends AbstractProjectProcessor {
+	private final FreeStyleProject project;
+
 	public FreeStyleProjectProcessor(AbstractProject project) {
-		FreeStyleProject p = (FreeStyleProject) project;
+		this.project = (FreeStyleProject) project;
 
 		//  Internal phases
 		//
-		super.processBuilders(p.getBuilders(), p);
+		super.processBuilders(this.project.getBuilders(), this.project);
 
 		//  Post build phases
 		//
-		super.processPublishers(p);
+		super.processPublishers(this.project);
+	}
+
+	@Override
+	public List<Builder> tryGetBuilders() {
+		return project.getBuilders();
 	}
 }

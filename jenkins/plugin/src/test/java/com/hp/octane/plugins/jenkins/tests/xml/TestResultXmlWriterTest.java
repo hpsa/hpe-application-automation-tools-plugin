@@ -37,7 +37,7 @@ public class TestResultXmlWriterTest {
 
     @Before
     public void initialize() throws IOException {
-        container = new TestResultContainer(Collections.singleton(new TestResult("module", "package", "class", "testName", TestResultStatus.PASSED, 1l, 2l, null)).iterator(), new ResultFields());
+        container = new TestResultContainer(Collections.singleton(new TestResult("module", "package", "class", "testName", TestResultStatus.PASSED, 1l, 2l, null, null)).iterator(), new ResultFields());
     }
 
     @Test
