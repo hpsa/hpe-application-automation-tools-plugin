@@ -12,6 +12,7 @@ import hudson.model.Hudson;
 import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.util.ArgumentListBuilder;
+import jenkins.model.Jenkins;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -60,7 +61,7 @@ public class AlmToolsUtils {
         PrintStream out = listener.getLogger();
 
         String hpToolsAborter_exe = "HpToolsAborter.exe";
-        URL hpToolsAborterUrl = Hudson.getInstance().pluginManager.uberClassLoader.getResource("HpToolsAborter.exe");
+        URL hpToolsAborterUrl = Jenkins.getInstance().pluginManager.uberClassLoader.getResource("HpToolsAborter.exe");
         FilePath hpToolsAborterFile =build.getWorkspace().child(hpToolsAborter_exe);
         
         args.add(hpToolsAborterFile);
