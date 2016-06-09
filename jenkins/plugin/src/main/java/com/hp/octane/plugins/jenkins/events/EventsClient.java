@@ -1,6 +1,5 @@
 package com.hp.octane.plugins.jenkins.events;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.events.CIEvent;
@@ -8,7 +7,6 @@ import com.hp.nga.integrations.dto.events.CIEventsList;
 import com.hp.octane.plugins.jenkins.CIJenkinsServicesImpl;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
-import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -139,10 +137,15 @@ public class EventsClient {
 		String requestBody;
 		boolean result = true;
 		MqmRestClient restClient = restClientFactory.obtain(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
+		String eventsSummary = "";
+		for (CIEvent event : eventsSnapshot.getEvents()) {
+			eventsSummary += event.getProject() + ":" + event.getBuildCiId() + ":" + event.getEventType() + ", ";
+		}
+		eventsSummary = eventsSummary.substring(0, eventsSummary.length() - 2);
 
 		try {
 			requestBody = dtoFactory.dtoToJson(eventsSnapshot);
-			logger.info("EVENTS: sending " + eventsSnapshot.getEvents().size() + " event/s to '" + mqmConfig.location + "'...");
+			logger.info("EVENTS: sending events [" + eventsSummary + "] to '" + mqmConfig.location + "'...");
 			while (failedRetries < MAX_SEND_RETRIES) {
 				if (restClient.putEvents(requestBody)) {
 					events.removeAll(eventsSnapshot.getEvents());
