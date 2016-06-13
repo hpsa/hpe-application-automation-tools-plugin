@@ -45,10 +45,13 @@ import java.util.logging.Logger;
 public class JUnitExtension extends MqmTestsExtension {
 
     public static final String STORM_RUNNER = "StormRunner";
+    public static final String LOAD_RUNNER = "LoadRunner";
     private static Logger logger = Logger.getLogger(JUnitExtension.class.getName());
 
     private static final String JUNIT_RESULT_XML = "junitResult.xml"; // NON-NLS
 
+    private static final String PREFORMANCE_REPORT = "PerformanceReport";
+    private static final String TRANSACTION_SUMMARY = "TransactionSummary";
     @Inject
     ResultFieldsDetectionService resultFieldsDetectionService;
 
@@ -66,12 +69,15 @@ public class JUnitExtension extends MqmTestsExtension {
     public TestResultContainer getTestResults(AbstractBuild<?, ?> build, boolean isStormRunnerProject) throws IOException, InterruptedException {
         logger.fine("Collecting JUnit results");
 
+        boolean isLoadRunnerProject = isLoadRunnerProject(build);
         FilePath resultFile = new FilePath(build.getRootDir()).child(JUNIT_RESULT_XML);
         if (resultFile.exists()) {
             logger.fine("JUnit result report found");
             ResultFields detectedFields = null;
             if (isStormRunnerProject) {
                 detectedFields = new ResultFields(null, STORM_RUNNER, null);
+            } else if (isLoadRunnerProject) {
+                detectedFields = new ResultFields(null, LOAD_RUNNER, null);
             } else {
                 detectedFields = resultFieldsDetectionService.getDetectedFields(build);
             }
@@ -98,6 +104,8 @@ public class JUnitExtension extends MqmTestsExtension {
                     ResultFields detectedFields = null;
                     if (isStormRunnerProject) {
                         detectedFields = new ResultFields(null, STORM_RUNNER, null);
+                    } else if (isLoadRunnerProject) {
+                        detectedFields = new ResultFields(null, LOAD_RUNNER, null);
                     } else {
                         detectedFields = resultFieldsDetectionService.getDetectedFields(build);
                     }
@@ -115,6 +123,15 @@ public class JUnitExtension extends MqmTestsExtension {
             return false;
         }
         return resultFields.equals(new ResultFields("UFT", "UFT", null));
+    }
+
+    private boolean isLoadRunnerProject(AbstractBuild<?, ?> build) throws IOException, InterruptedException {
+        FilePath preformanceReportFolder = new FilePath(build.getRootDir()).child(PREFORMANCE_REPORT);
+        FilePath transactionSummaryFolder = new FilePath(build.getRootDir()).child(TRANSACTION_SUMMARY);
+        if ((preformanceReportFolder.exists() && preformanceReportFolder.isDirectory()) && (transactionSummaryFolder.exists() && transactionSummaryFolder.isDirectory())) {
+            return true;
+        }
+        return false;
     }
 
     private static class GetJUnitTestResults implements FilePath.FileCallable<FilePath> {
@@ -197,7 +214,7 @@ public class JUnitExtension extends MqmTestsExtension {
             private String errorType;
             private String errorMsg;
             private boolean isStormRunnerProject;
-            private String stormRunnerURL;
+            private String externalURL;
 
             public JUnitXmlIterator(InputStream read, boolean stripPackageAndClass, boolean isStormRunnerProject) throws XMLStreamException {
                 super(read);
@@ -238,9 +255,9 @@ public class JUnitExtension extends MqmTestsExtension {
 
 
                         if (isStormRunnerProject) {
-                            stormRunnerURL = getStormRunnerURL(path);
+                            externalURL = getStormRunnerURL(path);
                         } else {
-                            stormRunnerURL = null;
+                            externalURL = null;
                         }
 
                     } else if ("case".equals(localName)) { // NON-NLS
@@ -305,9 +322,9 @@ public class JUnitExtension extends MqmTestsExtension {
                         TestError testError = new TestError(stackTraceStr, errorType, errorMsg);
                         if (stripPackageAndClass) {
                             //workaround only for UFT - we do not want packageName="All-Tests" and className="&lt;None>" as it comes from JUnit report
-                            addItem(new TestResult(moduleName, "", "", testName, status, duration, buildStarted, testError, stormRunnerURL));
+                            addItem(new TestResult(moduleName, "", "", testName, status, duration, buildStarted, testError, externalURL));
                         } else {
-                            addItem(new TestResult(moduleName, packageName, className, testName, status, duration, buildStarted, testError, stormRunnerURL));
+                            addItem(new TestResult(moduleName, packageName, className, testName, status, duration, buildStarted, testError, externalURL));
                         }
                     }
                 }
