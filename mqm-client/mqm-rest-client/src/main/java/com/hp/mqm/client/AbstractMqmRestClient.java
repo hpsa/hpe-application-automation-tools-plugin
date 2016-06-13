@@ -487,7 +487,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 
 	private void addRequestHeaders(HttpUriRequest request, boolean isLogin) {
 		request.setHeader(HEADER_CLIENT_TYPE, clientType);
-		if (!isLogin) {
+		if (!isLogin && CSRF_TOKEN != null) {
 			request.setHeader(HPSSO_HEADER_NAME, CSRF_TOKEN.getValue());
 		}
 	}
