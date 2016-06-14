@@ -178,7 +178,7 @@ public class RunFromFileSystemTask extends AbstractLauncherTask {
                             }
                         }
 
-                        mobileInfo = jobJSON.toJSONString();
+                        mobileInfo = dataJSON.toJSONString();
                         builder.setMobileInfo(mobileInfo);
                     }
                 }

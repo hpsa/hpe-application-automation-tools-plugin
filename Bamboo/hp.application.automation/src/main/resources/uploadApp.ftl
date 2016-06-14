@@ -143,7 +143,7 @@
 <table id="paramTable">
 [#list mcPathParams as prmVal]
     <tr>
-        <td width="100px"><input type="Button" class="Button" onclick="javascript:delRow(this)"
+        <td width="100px" style="padding-top: 20px;"><input type="Button" class="aui-button aui-button-primary" onclick="javascript:delRow(this)"
                                  value="[@ww.text name='Delete'/]"</td>
         <td>[@newMCParam paramValue=prmVal /]</td>
     </tr>
@@ -185,6 +185,7 @@
         var strHtml5 = "<INPUT TYPE=\"Button\" CLASS=\"aui-button aui-button-primary\" onClick=\"javascript: delRow(this)\" VALUE=\"[@ww.text name='Delete'/]\">";
         td1.innerHTML = strHtml5;
         td1.width = '100px';
+        td1.style.paddingTop = '20px';
 
         var divClone = divTemplate.cloneNode(true);
         td2.appendChild(divClone);
