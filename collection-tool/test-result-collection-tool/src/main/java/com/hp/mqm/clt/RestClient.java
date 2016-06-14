@@ -51,7 +51,6 @@ public class RestClient {
     private static final String HEADER_NAME_AUTHORIZATION = "Authorization";
     private static final String HEADER_VALUE_BASIC_AUTH = "Basic ";
     //private static final String HEADER_CLIENT_TYPE = "HPECLIENTTYPE";
-    private static final String HPSSO_COOKIE_NAME = "HPSSO_COOKIE_CSRF";
     private static final String HPSSO_HEADER_NAME = "HPSSO-HEADER-CSRF";
     private static final String LWSSO_COOKIE_NAME = "LWSSO_COOKIE_KEY";
 
@@ -70,7 +69,6 @@ public class RestClient {
     public static final int DEFAULT_CONNECTION_TIMEOUT = 20000; // in milliseconds
     public static final int DEFAULT_SO_TIMEOUT = 40000; // in milliseconds
     private CookieStore cookieStore;
-    private Cookie CSRF_TOKEN;
     private Cookie LWSSO_TOKEN;
     //private String CSRF_TOKEN;
     //private String LWSSO_TOKEN;
@@ -217,7 +215,7 @@ public class RestClient {
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                 throw new RuntimeException("Authentication failed: code=" + response.getStatusLine().getStatusCode() + "; reason=" + response.getStatusLine().getReasonPhrase());
             } else {
-                handleCookies(response);
+                handleCookies();
             }
         } finally {
             HttpClientUtils.closeQuietly(response);
@@ -282,11 +280,11 @@ public class RestClient {
 //
     private void addClientTypeHeader(HttpUriRequest request, boolean isLoginRequest) {
         request.setHeader("HPECLIENTTYPE", "HPE_CI_CLIENT");
-        if (!isLoginRequest) {
-            if (request.getFirstHeader(HPSSO_HEADER_NAME) == null) {
-                request.setHeader(HPSSO_HEADER_NAME, CSRF_TOKEN.getValue());
-            }
-        }
+//        if (!isLoginRequest) {
+//            if (request.getFirstHeader(HPSSO_HEADER_NAME) == null) {
+//                request.setHeader(HPSSO_HEADER_NAME, CSRF_TOKEN.getValue());
+//            }
+//        }
     }
 
     private Date parseDatetime(String datetime) throws ParseException {
@@ -300,13 +298,10 @@ public class RestClient {
         }
         return map;
     }
-    private void handleCookies(HttpResponse response) {
+    private void handleCookies() {
         for (Cookie cookie : cookieStore.getCookies()) {
             if (cookie.getName().equals(LWSSO_COOKIE_NAME)) {
                 LWSSO_TOKEN = cookie;
-            }
-            if (cookie.getName().equals(HPSSO_COOKIE_NAME)) {
-                CSRF_TOKEN = cookie;
             }
         }
 //        boolean isCSRF = false;
