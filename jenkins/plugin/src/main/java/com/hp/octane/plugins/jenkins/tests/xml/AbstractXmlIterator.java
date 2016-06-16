@@ -8,6 +8,7 @@ import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.Characters;
+import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.XMLEvent;
 import java.io.IOException;
 import java.io.InputStream;
@@ -63,7 +64,12 @@ public abstract class AbstractXmlIterator<E> {
     }
 
     protected String readNextValue() throws XMLStreamException {
-        return ((Characters)reader.nextEvent()).getData();
+        XMLEvent nextEvent = reader.nextEvent();
+        if(nextEvent instanceof EndElement){
+            return "";
+        } else {
+            return ((Characters)nextEvent).getData();
+        }
     }
 
     private static XMLInputFactory createXmlInputFactory() {
