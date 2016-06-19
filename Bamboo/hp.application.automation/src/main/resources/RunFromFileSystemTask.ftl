@@ -255,7 +255,7 @@ function openMCWizardHandler(e) {
     openMCBtn.disabled = true;
 
     //get login info, url, username, password
-    mcServerURLInput = document.getElementById('mcServerURLInput').value;
+    mcServerURLInput = document.getElementById('mcServerURLInput').value.replace(/\/$/, "");//remve tailing slash
     mcUserNameInput = document.getElementById('mcUserNameInput').value;
     mcPasswordInput = document.getElementById('mcPasswordInput').value;
     proxyAddress = document.getElementById('proxyAddress').value;
@@ -295,20 +295,20 @@ function getJobIdHelper() {
                 if (errorCode != null) {
                     openMCBtn.disabled = false;
                     if (errorCode == 0) {
-                        alert("URL, UserName, Password is required");
+                        alert("The URL, User name, and Password fields cannot be empty.");
                         return;
                     } else if (errorCode == 2) {
-                        alert("You checked the use proxy, but proxy address did not be configured.");
+                        alert("Use Proxy is enabled, but no proxy address was provided.");
                         return;
                     } else if (errorCode == 4) {
-                        alert("You checked the specify Authentication, but proxyUserName or proxyPassword did not be configured.");
+                        alert("Specific Authentication is selected, but the Proxy User name or password is empty.");
                         return;
                     }
                 }
                 jobId =  data.data && data.data.id;
 
                 if (!jobId){
-                    alert('Login to Mobile Center failed, mc login information is incorrect.');
+                    alert('The login to Mobile Center failed. Check that the Mobile Center login information is correct.');
                     openMCBtn.disabled = false;
                     return;
                 }
@@ -323,7 +323,7 @@ function getJobIdHelper() {
                 wizard.focus();
                 window.addEventListener('message', messageEventHandler, false);
             }else{
-                alert('Login to Mobile Center failed, mc login information is incorrect.');
+                alert('The login to Mobile Center failed. Check that the Mobile Center login information is correct.');
                 openMCBtn.disabled = false;
                 return;
             }
@@ -333,11 +333,11 @@ function getJobIdHelper() {
         error: function(error) {
 	var errorCode = error.myErrorCode;
             if (errorCode == 0) {
-                alert("URL, UserName, Password Can't be null");
+                alert("The URL, User name, and Password fields cannot be empty.");
             } else if (errorCode == 2) {
-                alert("You checked the use proxy, but proxy address did not be configured.");
+                alert("Use Proxy is enabled, but no proxy address was provided.");
             } else if (errorCode == 4) {
-                alert("You checked the specify authentication, but proxyUserName or proxyPassword is null");
+                alert("Specific Authentication is selected, but the Proxy User name or password is empty.");
             }
 
             openMCBtn.disabled = false;
@@ -370,7 +370,7 @@ function messageEventHandler(event) {
             },
             error: function(error) {
                 console.log("=====get job detail from mc fail====");
-                alert('Get job detail from Mobile Center failed, please try again.');
+                alert('Get job detail information from Mobile Center failed, please try again.');
                 //enable action button after the wizard closed
                 openMCBtn.disabled = false;
             }
