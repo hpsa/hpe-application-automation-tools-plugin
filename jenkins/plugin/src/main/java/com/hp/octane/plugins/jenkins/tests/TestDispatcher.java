@@ -95,7 +95,7 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
                         configuration.username,
                         configuration.password);
                 try {
-                    client.tryToConnectSharedSpace();
+                    client.validateConfiguration();
                 } catch (SharedSpaceNotExistException e) {
                     logger.log(Level.WARNING, "Invalid shared space. Pending test results can't be submitted", e);
                     retryModel.failure();

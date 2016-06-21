@@ -5,6 +5,8 @@ package com.hp.octane.plugins.jenkins.configuration;
 import com.google.inject.Inject;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.AuthenticationException;
+import com.hp.mqm.client.exception.AuthorizationException;
+import com.hp.mqm.client.exception.LoginErrorException;
 import com.hp.mqm.client.exception.SharedSpaceNotExistException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.SessionCreationException;
@@ -73,18 +75,24 @@ public class ConfigurationService {
 	public FormValidation checkConfiguration(String location, String sharedSpace, String username, String password) {
 		MqmRestClient client = clientFactory.obtainTemp(location, sharedSpace, username, password);
 		try {
-			client.tryToConnectSharedSpace();
-		} catch (AuthenticationException e) {
-			logger.log(Level.WARNING, "Authentication failed.", e);
+			client.validateConfiguration();
+		} catch (AuthenticationException ae) {
+			logger.log(Level.WARNING, "Authentication failure", ae);
 			return FormValidation.errorWithMarkup(markup("red", Messages.AuthenticationFailure()));
-		} catch (SessionCreationException e) {
-			logger.log(Level.WARNING, "Session creation failed.", e);
+		} catch (AuthorizationException ae) {
+			logger.log(Level.WARNING, "Authorization failure", ae);
+			return FormValidation.errorWithMarkup(markup("red", Messages.AuthorizationFailure()));
+		} catch (SessionCreationException sce) {
+			logger.log(Level.WARNING, "Session creation failure", sce);
 			return FormValidation.errorWithMarkup(markup("red", Messages.SessionCreationFailure()));
-		} catch (SharedSpaceNotExistException e) {
-			logger.log(Level.WARNING, "Shared space validation failed.", e);
+		} catch (SharedSpaceNotExistException ssnee) {
+			logger.log(Level.WARNING, "Shared space validation failure", ssnee);
 			return FormValidation.errorWithMarkup(markup("red", Messages.ConnectionSharedSpaceInvalid()));
-		} catch (RequestErrorException e) {
-			logger.log(Level.WARNING, "Connection check failed due to communication problem.", e);
+		} catch (LoginErrorException lee) {
+			logger.log(Level.WARNING, "General logic failure", lee);
+			return FormValidation.errorWithMarkup(markup("red", Messages.ConnectionFailure()));
+		} catch (RequestErrorException ree) {
+			logger.log(Level.WARNING, "Connection check failed due to communication problem", ree);
 			return FormValidation.errorWithMarkup(markup("red", Messages.ConnectionFailure()));
 		}
 		return FormValidation.okWithMarkup(markup("green", Messages.ConnectionSuccess()));

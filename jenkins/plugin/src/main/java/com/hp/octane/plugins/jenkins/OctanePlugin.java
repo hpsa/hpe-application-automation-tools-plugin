@@ -5,6 +5,7 @@ package com.hp.octane.plugins.jenkins;
 import com.google.inject.Inject;
 import com.hp.nga.integrations.SDKManager;
 import com.hp.nga.integrations.api.CIPluginServices;
+import com.hp.nga.integrations.exceptions.PermissionException;
 import com.hp.octane.plugins.jenkins.bridge.BridgesService;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationListener;
@@ -19,11 +20,15 @@ import hudson.ExtensionList;
 import hudson.Plugin;
 import hudson.model.Describable;
 import hudson.model.Descriptor;
+import hudson.model.Item;
+import hudson.model.User;
+import hudson.security.ACL;
 import hudson.util.FormValidation;
 import hudson.util.Scrambler;
 import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
+import org.acegisecurity.context.SecurityContext;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.QueryParameter;
@@ -216,35 +221,27 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 				JSONObject mqmData = formData.getJSONObject("mqm"); // NON-NLS
 				octanePlugin.configurePlugin(mqmData.getString("uiLocation"), // NON-NLS
 						mqmData.getString("username"), // NON-NLS
-						mqmData.getString("password"), mqmData.getString("impersonatedUser")); // NON-NLS
+						mqmData.getString("password"),
+						mqmData.getString("impersonatedUser"));
 				return true;
 			} catch (IOException e) {
 				throw new FormException(e, Messages.ConfigurationSaveFailed());
 			}
 		}
 
-		public FormValidation doCheckUiLocation(@QueryParameter String value) {
-			if (value.isEmpty()) {
-				return FormValidation.error(Messages.ConfigurationUrlNotSpecified());
-			}
-			try {
-				ConfigurationService.parseUiLocation(value);
-				return FormValidation.ok();
-			} catch (FormValidation ex) {
-				return ex;
-			}
-		}
-
 		public FormValidation doTestGlobalConnection(@QueryParameter("uiLocation") String uiLocation,
 		                                             @QueryParameter("username") String username,
-		                                             @QueryParameter("password") String password, @QueryParameter("impersonatedUser") String impersonatedUser) {
+		                                             @QueryParameter("password") String password,
+		                                             @QueryParameter("impersonatedUser") String impersonatedUser) {
 			MqmProject mqmProject;
 			try {
 				mqmProject = ConfigurationService.parseUiLocation(uiLocation);
 			} catch (FormValidation ex) {
-				// location syntactically incorrect, no need to check connectivity
+				logger.warning("tested configuration failed on Octane URL parse: " + ex.getMessage());
 				return ex;
 			}
+
+			//  if parse is good, check authentication/authorization
 			FormValidation validation = configurationService.checkConfiguration(mqmProject.getLocation(),
 					mqmProject.getSharedSpace(), username, password);
 			if (validation.kind == FormValidation.Kind.OK &&
@@ -252,6 +249,26 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 					username.equals(octanePlugin.getUsername()) &&
 					password.equals(octanePlugin.getPassword())) {
 				retryModel.success();
+			}
+
+			//  if still good, check Jenkins user permissions
+			try {
+				SecurityContext preserveContext = impersonate(impersonatedUser);
+				if (!Jenkins.getInstance().hasPermission(Item.READ)) {
+					logger.warning("tested configuration failed on insufficient Jenkins' user permissions");
+					validation = FormValidation.errorWithMarkup(markup("red", Messages.JenkinsUserPermissionsFailure()));
+				}
+				depersonate(preserveContext);
+			} catch (FormValidation fv) {
+				logger.warning("tested configuration failed on impersonating Jenkins' user, most likely non existent user provided");
+				return fv;
+			}
+
+			//  if still good, check version
+			if (validation.kind == FormValidation.Kind.OK) {
+				if ("1.580.2".compareTo(Jenkins.getVersion().toString()) > 0) {
+					validation = FormValidation.errorWithMarkup(markup("red", Messages.JenkinsVersionFailure()));
+				}
 			}
 
 			return validation;
@@ -284,6 +301,29 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 
 		public String getImpersonatedUser() {
 			return octanePlugin.getImpersonatedUser();
+		}
+
+		private String markup(String color, String message) {
+			return "<font color=\"" + color + "\"><b>" + message + "</b></font>";
+		}
+
+		private SecurityContext impersonate(String user) throws FormValidation {
+			SecurityContext originalContext = null;
+			if (user != null && !user.equalsIgnoreCase("")) {
+				User jenkinsUser = User.get(user, false);
+				if (jenkinsUser != null) {
+					originalContext = ACL.impersonate(jenkinsUser.impersonate());
+				} else {
+					throw FormValidation.errorWithMarkup(markup("red", Messages.JenkinsUserPermissionsFailure()));
+				}
+			}
+			return originalContext;
+		}
+
+		private void depersonate(SecurityContext originalContext) {
+			if (originalContext != null) {
+				ACL.impersonate(originalContext.getAuthentication());
+			}
 		}
 	}
 }

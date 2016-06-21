@@ -6,7 +6,6 @@ import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
 import com.hp.mqm.client.model.*;
-import com.hp.nga.integrations.SDKManager;
 import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.general.CIServerInfo;
 import com.hp.nga.integrations.dto.pipelines.PipelineNode;
@@ -807,7 +806,7 @@ public class JobConfigurationProxy {
 				configuration.username,
 				configuration.password);
 		try {
-			client.tryToConnectSharedSpace();
+			client.validateConfiguration();
 		} catch (RequestException e) {
 			logger.log(Level.WARNING, PRODUCT_NAME + " connection failed", e);
 			retryModel.failure();

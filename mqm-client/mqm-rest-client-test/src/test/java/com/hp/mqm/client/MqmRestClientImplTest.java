@@ -17,14 +17,8 @@ import com.hp.mqm.client.model.Taxonomy;
 import com.hp.mqm.client.model.TestResultStatus;
 import com.hp.mqm.client.model.TestRun;
 import com.hp.mqm.client.model.Workspace;
-import com.hp.mqm.org.apache.http.client.methods.HttpPost;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.FileUtils;
-import com.hp.mqm.org.apache.http.HttpResponse;
-import com.hp.mqm.org.apache.http.HttpStatus;
-import com.hp.mqm.org.apache.http.client.ResponseHandler;
-import com.hp.mqm.org.apache.http.client.methods.HttpGet;
-import com.hp.mqm.org.apache.http.client.utils.HttpClientUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -127,7 +121,7 @@ public class MqmRestClientImplTest {
 	@Test
 	public void testTryToConnectSharedSpace() {
 		MqmRestClientImpl client = new MqmRestClientImpl(connectionConfig);
-		client.tryToConnectSharedSpace();
+		client.validateConfiguration();
 
 
 		// bad credentials
@@ -135,7 +129,7 @@ public class MqmRestClientImplTest {
 				LOCATION, SHARED_SPACE, NONUSER, "xxxbadxxxpasswordxxx", CLIENT_TYPE, PROXY_HOST, PROXY_PORT);
 		client = new MqmRestClientImpl(badConnectionConfig);
 		try {
-			client.tryToConnectSharedSpace();
+			client.validateConfiguration();
 			fail();
 		} catch (AuthenticationException e) {
 			Assert.assertNotNull(e);
@@ -146,7 +140,7 @@ public class MqmRestClientImplTest {
 				"http://invalidaddress", SHARED_SPACE, USERNAME, "xxxbadxxxpasswordxxx", CLIENT_TYPE, PROXY_HOST, PROXY_PORT);
 		client = new MqmRestClientImpl(badConnectionConfig);
 		try {
-			client.tryToConnectSharedSpace();
+			client.validateConfiguration();
 			fail();
 		} catch (LoginException e) {
 			// when proxied
@@ -157,12 +151,12 @@ public class MqmRestClientImplTest {
 
 		client = new MqmRestClientImpl(connectionConfig);
 		client.login();
-		client.tryToConnectSharedSpace();
+		client.validateConfiguration();
 
 
 		// test autologin
 
-		client.tryToConnectSharedSpace();
+		client.validateConfiguration();
 
 
 		// bad domain
@@ -170,7 +164,7 @@ public class MqmRestClientImplTest {
 				LOCATION, "BadSharedSpace123", USERNAME, PASSWORD, CLIENT_TYPE, PROXY_HOST, PROXY_PORT);
 		client = new MqmRestClientImpl(badConnectionConfig);
 		try {
-			client.tryToConnectSharedSpace();
+			client.validateConfiguration();
 			fail();
 		} catch (SharedSpaceNotExistException e) {
 			Assert.assertNotNull(e);

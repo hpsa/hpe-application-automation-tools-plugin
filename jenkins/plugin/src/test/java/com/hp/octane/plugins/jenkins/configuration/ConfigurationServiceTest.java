@@ -71,28 +71,28 @@ public class ConfigurationServiceTest {
 		Mockito.when(clientFactory.obtainTemp("http://localhost:8088/", "1001", "username1", "password1")).thenReturn(client);
 
 		// valid configuration
-		Mockito.doNothing().when(client).tryToConnectSharedSpace();
+		Mockito.doNothing().when(client).validateConfiguration();
 
 		FormValidation validation = configurationService.checkConfiguration("http://localhost:8088/", "1001", "username1", "password1");
 		Assert.assertEquals(FormValidation.Kind.OK, validation.kind);
 		Assert.assertTrue(validation.getMessage().contains("Connection successful"));
 
 		// authentication failed
-		Mockito.doThrow(new AuthenticationException()).when(client).tryToConnectSharedSpace();
+		Mockito.doThrow(new AuthenticationException()).when(client).validateConfiguration();
 
 		validation = configurationService.checkConfiguration("http://localhost:8088/", "1001", "username1", "password1");
 		Assert.assertEquals(FormValidation.Kind.ERROR, validation.kind);
 		Assert.assertTrue(validation.getMessage().contains(Messages.AuthenticationFailure()));
 
 		// cannot create session
-		Mockito.doThrow(new SessionCreationException()).when(client).tryToConnectSharedSpace();
+		Mockito.doThrow(new SessionCreationException()).when(client).validateConfiguration();
 
 		validation = configurationService.checkConfiguration("http://localhost:8088/", "1001", "username1", "password1");
 		Assert.assertEquals(FormValidation.Kind.ERROR, validation.kind);
 		Assert.assertTrue(validation.getMessage().contains(Messages.SessionCreationFailure()));
 
 		// domain project does not exists
-		Mockito.doThrow(new SharedSpaceNotExistException()).when(client).tryToConnectSharedSpace();
+		Mockito.doThrow(new SharedSpaceNotExistException()).when(client).validateConfiguration();
 
 		validation = configurationService.checkConfiguration("http://localhost:8088/", "1001", "username1", "password1");
 		Assert.assertEquals(FormValidation.Kind.ERROR, validation.kind);

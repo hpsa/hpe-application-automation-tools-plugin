@@ -16,6 +16,5 @@ public interface BaseMqmRestClient {
      * (for authentication and session creation issues {@link com.hp.mqm.client.exception.LoginErrorException} as special
      * case of RequestErrorException is thrown)
      */
-    void tryToConnectSharedSpace();
-
+    void validateConfiguration();
 }

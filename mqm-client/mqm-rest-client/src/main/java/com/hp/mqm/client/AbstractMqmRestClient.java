@@ -1,6 +1,7 @@
 package com.hp.mqm.client;
 
 import com.hp.mqm.client.exception.AuthenticationException;
+import com.hp.mqm.client.exception.AuthorizationException;
 import com.hp.mqm.client.exception.ExceptionStackTraceParser;
 import com.hp.mqm.client.exception.LoginErrorException;
 import com.hp.mqm.client.exception.RequestErrorException;
@@ -54,15 +55,13 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	private static final String URI_AUTHENTICATION = "authentication/sign_in";
 	private static final String HEADER_CLIENT_TYPE = "HPECLIENTTYPE";
 	private static final String LWSSO_COOKIE_NAME = "LWSSO_COOKIE_KEY";
-	private static final String HPSSO_COOKIE_NAME = "HPSSO_COOKIE_CSRF";
-	private static final String HPSSO_HEADER_NAME = "HPSSO_HEADER_CSRF";
 
 	private Cookie LWSSO_TOKEN = null;
-	private Cookie CSRF_TOKEN = null;
 
 	private static final String PROJECT_API_URI = "api/shared_spaces/{0}";
 	private static final String SHARED_SPACE_INTERNAL_API_URI = "internal-api/shared_spaces/{0}";
 	private static final String SHARED_SPACE_API_URI = "api/shared_spaces/{0}";
+	private static final String CONNECTIVITY_API_URI = "analytics/ci/servers/connectivity/status";
 	private static final String WORKSPACE_API_URI = SHARED_SPACE_API_URI + "/workspaces/{1}";
 	private static final String WORKSPACE_INTERNAL_API_URI = SHARED_SPACE_INTERNAL_API_URI + "/workspaces/{1}";
 	private static final String FILTERING_FRAGMENT = "query={query}";
@@ -166,12 +165,13 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 		HttpPost post = new HttpPost(createBaseUri(URI_AUTHENTICATION));
 		StringEntity loginApiJson = new StringEntity(
 				"{\"user\":\"" + (username != null ? username : "") + "\"," +
-						"\"password\":\"" + (password != null ? password : "") + "\"}"
-				, ContentType.APPLICATION_JSON);
+						"\"password\":\"" + (password != null ? password : "") + "\"}",
+				ContentType.APPLICATION_JSON);
 		post.setHeader(HEADER_CLIENT_TYPE, clientType);
 		post.setEntity(loginApiJson);
 
 		HttpResponse response = null;
+		boolean tokenFound = false;
 		try {
 			cookieStore.clear();
 			response = httpClient.execute(post);
@@ -179,13 +179,15 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 				for (Cookie cookie : cookieStore.getCookies()) {
 					if (cookie.getName().equals(LWSSO_COOKIE_NAME)) {
 						LWSSO_TOKEN = cookie;
-					}
-					if (cookie.getName().equals(HPSSO_COOKIE_NAME)) {
-						CSRF_TOKEN = cookie;
+						tokenFound = true;
 					}
 				}
 			} else {
 				throw new AuthenticationException("Authentication failed: code=" + response.getStatusLine().getStatusCode() + "; reason=" + response.getStatusLine().getReasonPhrase());
+			}
+			if (!tokenFound) {
+				LWSSO_TOKEN = null;
+				throw new AuthenticationException("Authentication failed: status code was OK, but no security token found");
 			}
 		} catch (IOException e) {
 			throw new LoginErrorException("Error occurred during authentication", e);
@@ -195,18 +197,24 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	}
 
 	@Override
-	public void tryToConnectSharedSpace() {
+	public void validateConfiguration() {
 		login();
-		checkSharedSpace();
+		checkAuthorization();
 	}
 
-	private void checkSharedSpace() {
-		HttpGet request = new HttpGet(createSharedSpaceApiUri("workspaces"));
+	private void checkAuthorization() {
+		HttpGet request = new HttpGet(createSharedSpaceInternalApiUri(CONNECTIVITY_API_URI));
 		HttpResponse response = null;
+		String responseBody;
 		try {
 			response = execute(request);
-			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+			responseBody = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
+			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_INTERNAL_SERVER_ERROR) {
 				throw new SharedSpaceNotExistException("Cannot connect to given shared space.");
+			} else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_FORBIDDEN) {
+				throw new AuthorizationException("Provided credentials are not sufficient for requested resource");
+			} else if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+				throw new AuthorizationException("Authorization failed with unexpected response " + response.getStatusLine().getStatusCode());
 			}
 		} catch (IOException e) {
 			throw new RequestErrorException("Shared space check failed", e);
@@ -487,9 +495,6 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 
 	private void addRequestHeaders(HttpUriRequest request, boolean isLogin) {
 		request.setHeader(HEADER_CLIENT_TYPE, clientType);
-		if (!isLogin && CSRF_TOKEN != null) {
-			request.setHeader(HPSSO_HEADER_NAME, CSRF_TOKEN.getValue());
-		}
 	}
 
 	private void checkNotEmpty(String msg, String value) {
