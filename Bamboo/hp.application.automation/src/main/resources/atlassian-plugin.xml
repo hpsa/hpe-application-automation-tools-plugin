@@ -111,10 +111,10 @@
     </taskType>
     
     <taskType
-            name="HP Application Upload Execution"
+            name="HP MC Application Upload"
             class="com.hpe.application.automation.bamboo.tasks.UploadApplicationTask"
             key="com.hpe.application.automation.bamboo.tasks.UploadApplicationTask">
-        <description>Upload One APP TO MC</description>
+        <description>Uploads apps to Mobile Center</description>
         <category name="test"/>
         <configuration class="com.hpe.application.automation.bamboo.tasks.UploadApplicationTaskConfigurator"/>
         <resource
@@ -124,7 +124,7 @@
         <resource
                 type="download"
                 name="icon"
-                location="images/execute_file_system.png"/>
+                location="images/upload_app.png"/>
     </taskType>
     <taskType 
     	name="HP UFT ALM Execution"
