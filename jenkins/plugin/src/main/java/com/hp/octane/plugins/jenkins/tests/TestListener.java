@@ -49,7 +49,7 @@ public class TestListener {
             for (MqmTestsExtension ext : MqmTestsExtension.all()) {
                 try {
                     if (ext.supports(build)) {
-                        GherkinTestResultsCollector gherkinResultsCollector = new GherkinTestResultsCollector(build);
+                        GherkinTestResultsCollector gherkinResultsCollector = new GherkinTestResultsCollector(build.getRootDir());
                         List<CustomTestResult> gherkinTestResults = gherkinResultsCollector.getGherkinTestsResults();
                         if (gherkinTestResults != null && gherkinTestResults.size() > 0) {
                             resultWriter.setCustomTestResults(gherkinTestResults);

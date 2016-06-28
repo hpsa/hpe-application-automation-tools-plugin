@@ -37,10 +37,10 @@ public class GherkinTestResultsCollector implements TestResultsExcluder {
     private GherkinTestResultsCollector() {
     }
 
-    public GherkinTestResultsCollector(AbstractBuild build) throws InterruptedException, ParserConfigurationException, TransformerException, SAXException, IOException {
+    public GherkinTestResultsCollector(File buildDir) throws InterruptedException, ParserConfigurationException, TransformerException, SAXException, IOException {
         gherkinTestsByFeature = new HashMap<String, List<String>>();
         gherkinTestsByScenario = new HashMap<String, List<String>>();
-        testResults = collectGherkinTestsResults(build);
+        testResults = collectGherkinTestsResults(buildDir);
     }
 
     @Override
@@ -63,12 +63,11 @@ public class GherkinTestResultsCollector implements TestResultsExcluder {
         return testResults;
     }
 
-    private List<CustomTestResult> collectGherkinTestsResults(AbstractBuild build) throws ParserConfigurationException, IOException, InterruptedException, SAXException, TransformerException {
+    private List<CustomTestResult> collectGherkinTestsResults(File buildDir) throws ParserConfigurationException, IOException, InterruptedException, SAXException, TransformerException {
         List<CustomTestResult> result = new ArrayList<CustomTestResult>();
 
         //Retrieve the gherkin results xml
         int i = 0;
-        File buildDir = build.getRootDir();
         FilePath gherkinTestResultsFilePath = new FilePath(buildDir).child(GHERKIN_NGA_RESULTS + i + ".xml");
 
         while (gherkinTestResultsFilePath.exists()) {
