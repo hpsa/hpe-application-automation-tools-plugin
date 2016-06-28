@@ -18,6 +18,8 @@ import hudson.model.*;
 import hudson.model.listeners.RunListener;
 
 import javax.annotation.Nonnull;
+import javax.servlet.ServletException;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -101,7 +103,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 			EventsService.getExtensionInstance().dispatchEvent(event);
 
 			GherkinEventsService.copyGherkinTestResultsToBuildDir(build);
-			testListener.processBuild(build);
+			testListener.processBuild(build,listener);
 		}
 	}
 

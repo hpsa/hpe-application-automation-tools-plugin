@@ -3,6 +3,7 @@
 package com.hp.octane.plugins.jenkins.tests;
 
 import com.google.inject.Inject;
+import com.hp.nga.integrations.dto.snapshots.CIBuildResult;
 import com.hp.octane.plugins.jenkins.model.processors.projects.AbstractProjectProcessor;
 import com.hp.octane.plugins.jenkins.tests.build.BuildHandlerUtils;
 import com.hp.octane.plugins.jenkins.tests.gherkin.GherkinTestResultsCollector;
@@ -10,6 +11,8 @@ import com.hp.octane.plugins.jenkins.tests.xml.TestResultXmlWriter;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.model.AbstractBuild;
+import hudson.model.Result;
+import hudson.model.TaskListener;
 import hudson.tasks.Builder;
 
 import javax.xml.stream.XMLStreamException;
@@ -27,7 +30,7 @@ public class TestListener {
 
     private TestResultQueue queue;
 
-    public void processBuild(AbstractBuild build) {
+    public void processBuild(AbstractBuild build,TaskListener listener) {
 
         FilePath resultPath = new FilePath(new FilePath(build.getRootDir()), TEST_RESULT_FILE);
         TestResultXmlWriter resultWriter = new TestResultXmlWriter(resultPath, build);
@@ -66,6 +69,9 @@ public class TestListener {
                             resultWriter.writeResults();
                         }
                     }
+                } catch (IllegalArgumentException e) {
+                    listener.fatalError(e.getMessage());
+                    return;
                 } catch (InterruptedException e) {
                     logger.log(Level.SEVERE, "Interrupted processing test results in " + ext.getClass().getName(), e);
                     Thread.currentThread().interrupt();

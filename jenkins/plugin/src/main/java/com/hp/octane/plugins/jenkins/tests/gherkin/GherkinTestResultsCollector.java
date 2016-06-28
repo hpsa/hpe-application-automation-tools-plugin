@@ -79,6 +79,8 @@ public class GherkinTestResultsCollector implements TestResultsExcluder {
             Document doc = dBuilder.parse(gherkinTestResultsPath);
             doc.getDocumentElement().normalize();
 
+            validateXMLVersion(doc);
+
             //Go over the features
             NodeList featureNodes = doc.getElementsByTagName("feature");
             for (int f = 0; f < featureNodes.getLength(); f++) {
@@ -177,5 +179,16 @@ public class GherkinTestResultsCollector implements TestResultsExcluder {
         } //end while
 
         return result;
+    }
+
+    private void validateXMLVersion(Document doc) {
+        String XML_VERSION = "1";
+        NodeList featuresNodes = doc.getElementsByTagName("features");
+        String versionAttr = ((Element)featuresNodes.item(0)).getAttribute("version");
+        if(versionAttr ==null || versionAttr.isEmpty() || versionAttr.compareTo(XML_VERSION)!=0){
+            throw new IllegalArgumentException("Incompatible xml version received from the Octane formatter.\n" +
+                                                "expected version = " + XML_VERSION + " actual version = " + versionAttr + ".\n" +
+                                                "You may need to update the octane formatter version to the correct version in order to work with this jenkins plugin");
+        }
     }
 }

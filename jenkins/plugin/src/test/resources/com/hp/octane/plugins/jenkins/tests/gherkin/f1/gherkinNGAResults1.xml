@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<features><feature name="test Feature2" path="src\main\features\test3.feature" started="1467028340511" tag="@TID2002REV0.2.0"><file><![CDATA[#Auto generated NGA revision tag
+<features version="1"><feature name="test Feature2" path="src\main\features\test3.feature" started="1467028340511" tag="@TID2002REV0.2.0"><file><![CDATA[#Auto generated NGA revision tag
 @TID2001REV0.2.0
 Feature: test Feature2
 	Scenario: test scenario4

@@ -17,25 +17,33 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public class GherkinTestResultsCollectorTest {
+    String defaultResourceRelativePath = "f1";
+    String defaultResourceName = "gherkinNGAResults0.xml";
 
-    String root = "";
+    private String getDefaultRootResourceFolder(){
+        return getRootResourceFolder(defaultResourceRelativePath,defaultResourceName);
+    }
 
-    @Before
-    public void init(){
-        String resourceName = "gherkinNGAResults0.xml";
-        URL url = getClass().getResource(resourceName);
+    private String getRootResourceFolder(String resourceRelativePath,String resourceName){
+        String resource;
+        if(resourceRelativePath.isEmpty()){
+            resource = resourceName;
+        } else {
+            resource = resourceRelativePath + "/" + resourceName;
+        }
+        URL url = getClass().getResource(resource);
         String path = url.getPath();
-        root =  path.substring(0,path.lastIndexOf(resourceName)-1);
+        return path.substring(0,path.lastIndexOf(resourceName)-1);
     }
 
     @Test
     public void testConstruct() throws InterruptedException, ParserConfigurationException, IOException, SAXException, TransformerException {
-        new GherkinTestResultsCollector(new File(root));
+        new GherkinTestResultsCollector(new File(getDefaultRootResourceFolder()));
     }
 
     @Test
     public void testShouldExclude() throws InterruptedException, ParserConfigurationException, IOException, SAXException, TransformerException {
-        GherkinTestResultsCollector gherkinTestResultsCollector =  new GherkinTestResultsCollector(new File(root));
+        GherkinTestResultsCollector gherkinTestResultsCollector =  new GherkinTestResultsCollector(new File(getDefaultRootResourceFolder()));
         Assert.assertFalse(gherkinTestResultsCollector.shouldExclude(new TestResult("","","Class1","test6",null,(long)0,(long)0,null,"")));
         Assert.assertTrue(gherkinTestResultsCollector.shouldExclude(new TestResult("","","test Feature1","test scenario2",null,(long)0,(long)0,null,"")));
         Assert.assertTrue(gherkinTestResultsCollector.shouldExclude(new TestResult("","","test Feature1","test scenario3",null,(long)0,(long)0,null,"")));
@@ -45,11 +53,21 @@ public class GherkinTestResultsCollectorTest {
 
     @Test
     public void testGetResults() throws InterruptedException, ParserConfigurationException, IOException, SAXException, TransformerException {
-        GherkinTestResultsCollector gherkinTestResultsCollector =  new GherkinTestResultsCollector(new File(root));
+        GherkinTestResultsCollector gherkinTestResultsCollector =  new GherkinTestResultsCollector(new File(getDefaultRootResourceFolder()));
         ArrayList<CustomTestResult> gherkinTestsResults = (ArrayList<CustomTestResult>) gherkinTestResultsCollector.getGherkinTestsResults();
         Assert.assertEquals(gherkinTestsResults.size(),2);
         validateGherkinTestResult((GherkinTestResult)gherkinTestsResults.get(0),"test Feature1",21,TestResultStatus.FAILED);
         validateGherkinTestResult((GherkinTestResult)gherkinTestsResults.get(1),"test Feature2",21,TestResultStatus.PASSED);
+    }
+
+    @Test (expected=IllegalArgumentException.class)
+    public void testXmlHasNoVersion() throws InterruptedException, ParserConfigurationException, IOException, SAXException, TransformerException {
+        new GherkinTestResultsCollector(new File(getRootResourceFolder("f2",defaultResourceName)));
+    }
+
+    @Test (expected=IllegalArgumentException.class)
+    public void testXmlHasHigherVersion() throws InterruptedException, ParserConfigurationException, IOException, SAXException, TransformerException {
+        new GherkinTestResultsCollector(new File(getRootResourceFolder("f3",defaultResourceName)));
     }
 
     private void validateGherkinTestResult(GherkinTestResult gherkinTestResult, String name, long duration, TestResultStatus status){
