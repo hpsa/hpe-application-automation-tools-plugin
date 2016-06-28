@@ -73,6 +73,9 @@ public final class RunListenerImpl extends RunListener<Run> {
 	public void onCompleted(Run r, @Nonnull TaskListener listener) {
 		if (r instanceof AbstractBuild) {
 			AbstractBuild build = (AbstractBuild) r;
+			GherkinEventsService.copyGherkinTestResultsToBuildDir(build);
+			testListener.processBuild(build,listener);
+
 			CIBuildResult result;
 			if (build.getResult() == Result.SUCCESS) {
 				result = CIBuildResult.SUCCESS;
@@ -101,9 +104,6 @@ public final class RunListenerImpl extends RunListener<Run> {
 					.setDuration(build.getDuration())
 					.setScmData(scmProcessor == null ? null : scmProcessor.getSCMData(build));
 			EventsService.getExtensionInstance().dispatchEvent(event);
-
-			GherkinEventsService.copyGherkinTestResultsToBuildDir(build);
-			testListener.processBuild(build,listener);
 		}
 	}
 

@@ -70,7 +70,10 @@ public class TestListener {
                         }
                     }
                 } catch (IllegalArgumentException e) {
-                    listener.fatalError(e.getMessage());
+                    listener.error(e.getMessage());
+                    if(!build.getResult().isWorseOrEqualTo(Result.UNSTABLE)){
+                        build.setResult(Result.UNSTABLE);
+                    }
                     return;
                 } catch (InterruptedException e) {
                     logger.log(Level.SEVERE, "Interrupted processing test results in " + ext.getClass().getName(), e);
