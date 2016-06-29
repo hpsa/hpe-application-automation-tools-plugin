@@ -3,7 +3,7 @@
   <info>
     <name>hpeAlmOctanePlugin</name>
     <display-name>HPE ALM Octane CI Plugin</display-name>
-    <version>1.0</version>
+    <version>@Version@</version>
     <description>This plugin enables ALM Octane to retrieve and display TeamCity build pipelines and synchronize test results with TeamCity.</description>
     <download-url>Plugin download URL</download-url>
     <email>Plugin author e-mail</email>

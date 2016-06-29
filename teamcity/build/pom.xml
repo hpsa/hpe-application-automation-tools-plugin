@@ -12,7 +12,7 @@
 	<packaging>pom</packaging>
 	<properties>
 		<maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
-		<teamcity.plugin.version>snapshot-${maven.build.timestamp}</teamcity.plugin.version>
+		<teamcity.plugin.version>${version}</teamcity.plugin.version>
 		<teamcity.plugin.vendorName>Plugin vendor name</teamcity.plugin.vendorName>
 		<teamcity.plugin.vendorUrl>Plugin vendor URL</teamcity.plugin.vendorUrl>
 		<zip.location>${project.parent.basedir}/target/hp-lifecycle-management-teamcity-ci-plugin.zip</zip.location>
