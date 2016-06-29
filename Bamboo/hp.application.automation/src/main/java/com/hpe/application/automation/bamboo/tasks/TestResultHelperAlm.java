@@ -28,9 +28,11 @@ import com.atlassian.bamboo.utils.i18n.I18nBean;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.FileUtils;
 
-import java.io.File;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.hpe.application.automation.bamboo.tasks.TestResultHelper.getOutputFilePath;
 
@@ -61,7 +63,7 @@ public class TestResultHelperAlm {
     private static List<String> savedALMRunLogPaths = new ArrayList<String>();
     private static int currentBuildNumber;
 
-    protected static void AddALMArtifacts(final TaskContext taskContext, String linkSearchFilter, I18nBean i18nBean)
+    protected static void AddALMArtifacts(final TaskContext taskContext, File resultFile, String linkSearchFilter, I18nBean i18nBean)
     {
         clearSavedALMRunLogPaths(taskContext);
         String taskName = taskContext.getConfigurationMap().get(CommonTaskConfigurationProperties.TASK_NAME);
@@ -76,13 +78,21 @@ public class TestResultHelperAlm {
             createResultFile(taskContext, taskRunLogPath, ".*processRunId=", i18nBean);
         }
         else if(taskName.equals(i18nBean.getText(RunFromAlmTaskConfigurator.TASK_NAME_VALUE))){
-            List<String> links = findRequiredStringsFromLog(taskContext, linkSearchFilter);
+            List<String> links = null;
+            if (resultFile != null && resultFile.exists()) {
+                links = findRequiredStringsFromFile(taskContext.getBuildLogger(), resultFile);
+            }
+            if (links == null || links.size() < 1)
+            {
+                links = findRequiredStringsFromLog(taskContext.getBuildLogger(), linkSearchFilter);
+            }
             Integer linksAmount = links.size();
             if (linksAmount.equals(0)) {
                 taskContext.getBuildLogger().addErrorLogEntry(i18nBean.getText(CAN_NOT_SAVE_RUN_LOG_MESSAGE));
                 return;
             }
 
+            //taskContext.getBuildLogger().addBuildLogEntry("+++++++++++ " + links.size());
             for (String link : links) {
                 createResultFile(taskContext, link, ".*EntityID=",i18nBean);
             }
@@ -122,9 +132,8 @@ public class TestResultHelperAlm {
     }
 
     //is used for Run from Alm task
-    private static List<String> findRequiredStringsFromLog(TaskContext taskContext, String searchFilter)
+    private static List<String> findRequiredStringsFromLog(BuildLogger logger, String searchFilter)
     {
-        BuildLogger logger = taskContext.getBuildLogger();
         List<LogEntry> buildLog = Lists.reverse(logger.getBuildLog());
         List<String> results = new ArrayList<String>();
         for(LogEntry logEntry: buildLog){
@@ -139,6 +148,32 @@ public class TestResultHelperAlm {
                     }
                 }
             }
+        }
+        return results;
+    }
+
+    private static List<String> findRequiredStringsFromFile(BuildLogger logger, File resultFile) {
+        List<String> results = new ArrayList<String>();
+        try {
+            StringBuilder sb = new StringBuilder();
+            BufferedReader in = new BufferedReader(new FileReader(resultFile.getAbsoluteFile()));
+            try{
+                String s;
+                while((s = in.readLine()) != null){
+                    sb.append(s);
+                }
+            }finally {
+                in.close();
+            }
+            //report link example: td://Automation.AUTOMATION.mydph0271.hpswlabs.adapps.hp.com:8080/qcbin/TestLabModule-000000003649890581?EntityType=IRun&amp;EntityID=1195091
+            String sp = "td://.+?;EntityID=[0-9]+";
+            Pattern p = Pattern.compile(sp);
+            Matcher m = p.matcher(sb.toString());
+            while(m.find()){
+                results.add(m.group());
+            }
+        } catch (Exception e) {
+            logger.addBuildLogEntry(e.getMessage());
         }
         return results;
     }

@@ -118,7 +118,7 @@ public class AlmLabManagementTask implements TaskType {
         }
 
         TestResultHelper.CollateResults(testCollationService, taskContext);
-        AddALMArtifacts(taskContext, LINK_SEARCH_FILTER, i18nBean);
+        AddALMArtifacts(taskContext, null, LINK_SEARCH_FILTER, i18nBean);
 
         return TaskResultBuilder.create(taskContext).checkTestFailures().build();
     }
