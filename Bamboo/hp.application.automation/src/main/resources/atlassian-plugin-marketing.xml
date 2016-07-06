@@ -1,6 +1,6 @@
 <atlassian-plugin-marketing>
     <compatibility>
-        <product name="bamboo" min="5.9.2" max="5.10"/>
+        <product name="bamboo" min="5.9.2" max="5.12.2.1"/>
     </compatibility>
     <logo image="images/hp_automation_app_for_bamboo_logo2.png"/>
     <banner image="images/Banner1120x548.png"/>

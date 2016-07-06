@@ -79,12 +79,31 @@ public class RunFromAlmTaskConfigurator extends AbstractUftTaskConfigurator {
 		return config;
 	}
 
+	private String trimEnd(String s, char ch)
+	{
+		if (s == null || s.length() < 1) {
+			return s;
+		}
+		else if (s.length() == 1 && s.charAt(0) == ch)
+		{
+			return "";
+		}
+		int i = s.length() - 1;
+		while(s.charAt(i) == ch && i > 0)
+		{
+			s = s.substring(0, i);
+			i--;
+		}
+		return s;
+	}
+
 	public void validate(@NotNull final ActionParametersMap params, @NotNull final ErrorCollection errorCollection)
 	{
 		super.validate(params, errorCollection);
 
 		I18nBean textProvider = getI18nBean();
 
+		params.put(ALM_SERVER, trimEnd(params.getString(ALM_SERVER), '/'));
 	    if (StringUtils.isEmpty(params.getString(ALM_SERVER))) {
 	        errorCollection.addError(ALM_SERVER, textProvider.getText("Alm.error.ALMServerIsEmpty"));
 	    }
