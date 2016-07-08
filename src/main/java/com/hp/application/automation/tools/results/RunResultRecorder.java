@@ -708,7 +708,9 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                     bais.close();
                     baos.close();
                     tmpZipFile.unzip(reportDirectoryFilePath);
-                    FileUtils.moveDirectory(new File(reportDirectory, IE_REPORT_FOLDER), new File(reportDirectory, testFolderPathFile.getName()));
+                    String newFolderName = org.apache.commons.io.FilenameUtils.getName(testFolderPathFile.getPath());
+
+                    FileUtils.moveDirectory(new File(reportDirectory, IE_REPORT_FOLDER), new File(reportDirectory, newFolderName));
                     tmpZipFile.delete();
                     outputReportFiles(reportNames, reportDirectory, testResult, false);
                 }
@@ -729,8 +731,9 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             File reportDirectory = new File(artifactsDir.getParent(), TRANSACTION_SUMMARY_FOLDER);
             if (!reportDirectory.exists())
                 reportDirectory.mkdir();
+            String newFolderName = org.apache.commons.io.FilenameUtils.getName(testFolderPathFile.getPath());
 
-            File testDirectory = new File(reportDirectory, testFolderPathFile.getName());
+            File testDirectory = new File(reportDirectory, newFolderName);
             if (!testDirectory.exists())
                 testDirectory.mkdir();
 
