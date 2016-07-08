@@ -53,6 +53,7 @@ public class RunFromFileBuilder extends Builder {
     private final static String HpToolsLauncher_SCRIPT_NAME = "HpToolsLauncher.exe";
     private final static String LRAnalysisLauncher_EXE = "LRAnalysisLauncher.exe";
     private String ResultFilename = "ApiResults.xml";
+    private String LrResultFilename = "LrTestResults.xml";
     //private String KillFileName = "";
     private String ParamFileName = "ApiRun.txt";
 
@@ -125,10 +126,12 @@ public class RunFromFileBuilder extends Builder {
         // get a unique filename for the params file
         ParamFileName = "props" + time + ".txt";
         ResultFilename = "Results" + time + ".xml";
+        LrResultFilename = "LrResults" + time + ".xml";
         //KillFileName = "stop" + time + ".txt";
 
         mergedProperties.put("runType", RunType.FileSystem.toString());
         mergedProperties.put("resultsFilename", ResultFilename);
+        mergedProperties.put("LrResultsFilename", LrResultFilename);
 
         // get properties serialized into a stream
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -155,7 +158,7 @@ public class RunFromFileBuilder extends Builder {
 
         URL cmdExe2Url = Hudson.getInstance().pluginManager.uberClassLoader.getResource(LRAnalysisLauncher_EXE);
         if (cmdExe2Url == null){
-            listener.fatalError(LRAnalysisLauncher_EXE+ "not found in resources");
+            listener.fatalError(LRAnalysisLauncher_EXE + "not found in resources");
             return false;
         }
 
@@ -355,5 +358,9 @@ public class RunFromFileBuilder extends Builder {
 
     public String getRunResultsFileName() {
         return ResultFilename;
+    }
+
+    public String getLrRunResultsFileName() {
+        return LrResultFilename;
     }
 }

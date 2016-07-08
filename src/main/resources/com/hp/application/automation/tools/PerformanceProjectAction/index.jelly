@@ -1,0 +1,77 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
+         xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
+
+    <!--<st:include it="${it.project}" page="sidepanel.jelly" />-->
+    <l:layout title="Jenkins JS Lib Samples" norefresh="true">
+
+        <!--<j:set var="builds" value="${it.builds}"/>-->
+    <!--<st:include it="${it.project}" page="sidepanel.jelly" />-->
+    <!--<j:set var="builds" value="${it.builds}"/>-->
+    <l:main-panel>
+
+        <h1>Test page</h1>
+
+        <div>
+    </div>
+        <div id="container">
+            <!-- This element's contents will be replaced with your component. -->
+        </div>
+
+        <canvas id="mycanvas" width="400" height="400"></canvas>
+        <st:bind var="foo" value="${it}"/>
+        <st:bind var="projectName" value="${it.DisplayName}"/>
+        <st:bind var="f" value="${it.BuildPerformanceReportList}"/>
+        <div id="msk" />
+        <div id="mse" />
+        <div id="msg" />
+
+        <div id="msr" />
+
+        <pre><code>
+        </code></pre>
+        <div id="examples"></div>
+        <script>            //
+
+            // var ExampleApplication = React.createClass({
+            // render: function() {
+            // var elapsed = Math.round(this.props.elapsed  / 100);
+            // var seconds = elapsed / 10 + (elapsed % 10 ? '' : '.0' );
+            // var message =
+            // 'React has been successfully running for ' + seconds + ' seconds.';
+            //
+            // return React.DOM.p(null, message);
+            // }
+            // });
+
+            // Call React.createFactory instead of directly call ExampleApplication({...}) in React.render
+            // var ExampleApplicationFactory = React.createFactory(ExampleApplication);
+            //
+            // var start = new Date().getTime();
+            // setInterval(function() {
+            // ReactDOM.render(
+            //     ExampleApplicationFactory({elapsed: new Date().getTime() - start}),
+            //     document.getElementById('container')); }, 50);
+            // <!--var f =<st:bind value="${BuildPerformanceReport}"/>;-->
+            // <!--// var foo = <st:bind value="${it}"/>;-->
+            //
+            // foo.add(1,5, function(t) {
+            // document.getElementById('msg').innerHTML = t.responseObject();
+            // });
+
+            // var txt = ""
+            // var x;
+            // for(x in f)
+            // {
+            //     txt += x + " ";
+            // }
+
+        </script>
+
+
+    </l:main-panel>
+    <!--<j:set var="temp" value="${it.jsonLoadData}"/>-->
+    </l:layout>
+    <st:adjunct includes="org.jenkins.ui.jsmodules.hp_application_automation_tools_plugin.jslib"/>
+
+</j:jelly>

@@ -1,0 +1,36 @@
+{
+  "name": "hp-application-automation-tools-plugin",
+  "version": "1.4.5",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yafimk/hp-application-automation-tools-plugin.git"
+  },
+  "author": "kazak@hpe.com",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yafimk/hp-application-automation-tools-plugin/issues"
+  },
+  "homepage": "https://github.com/yafimk/hp-application-automation-tools-plugin#readme",
+  "devDependencies": {
+    "@jenkins-cd/js-builder": "latest",
+    "gulp": "^3.9.1"
+  },
+  "dependencies": {
+    "@jenkins-cd/js-modules": "0.0.5",
+    "chart.js": "^1.1.1",
+    "react": "^15.2.0",
+    "react-dom": "^15.2.0"
+  },
+  "jenkinscd": {
+    "extDependencies": [
+      "react-dom",
+      "react",
+      "chart.js"
+    ]
+  }
+}

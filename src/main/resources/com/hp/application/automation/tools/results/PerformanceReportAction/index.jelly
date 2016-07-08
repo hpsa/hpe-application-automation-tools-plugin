@@ -24,16 +24,16 @@
           <tr style="background-color: ${c.getColor()};">
             <td style="padding:8px;line-height:1.42857;vertical-align:top;border-top:1px solid #DDD;">
               <a href="./${c.getName()}">${c.getName()}</a>
-            </td>	      
+            </td>
             <td style="padding:8px;line-height:1.42857;vertical-align:top;border-top:1px solid #DDD;">
               ${c.getDuration()}
-            </td>	      
+            </td>
             <td style="padding:8px;line-height:1.42857;vertical-align:top;border-top:1px solid #DDD;">
               ${c.getPass()}
-            </td>	      
+            </td>
             <td style="padding:8px;line-height:1.42857;vertical-align:top;border-top:1px solid #DDD;">
               ${c.getFail()}
-            </td>	      
+            </td>
             ${c.printFourCoverageColumns()}
           </tr>
         </j:forEach>
