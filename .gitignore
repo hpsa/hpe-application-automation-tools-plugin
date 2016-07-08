@@ -84,5 +84,13 @@ local.properties
 # PDT-specific
 .buildpath
 
-/target/**
-/work/**
+
+#  Intellij specific
+.iml
+target/
+.idea/
+
+# java script
+node/
+node_modules/
+
