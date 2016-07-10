@@ -5,17 +5,17 @@ package com.hp.application.automation.tools.results.projectparser.performance;
  */
 public interface LrTest {
     public enum SLA_STATUS {
-        fail, pass, NoData, bad;
+        Failed, Passed, NoData, bad;
 
         public static SLA_STATUS checkStatus(String status)
         {
-            if ((status.compareTo(fail.toString())==0))
+            if ((status.compareTo(Failed.toString())==0))
             {
-                return fail;
+                return Failed;
             }
-            else if( (status.compareTo(pass.toString())==0))
+            else if( (status.compareTo(Passed.toString())==0))
             {
-                return pass;
+                return Passed;
             }
             else if((status.compareTo(NoData.toString())==0))
             {
@@ -27,7 +27,7 @@ public interface LrTest {
 
     enum SLA_GOAL {
         AverageThroughput, TotalThroughput, AverageHitsPerSecond, TotalHits,
-        ErrorsPerSecond, AverageTRT, Bad;
+        ErrorsPerSecond, PercentileTRT, AverageTRT, Bad;
 
         public static SLA_GOAL checkGoal(String status)
         {

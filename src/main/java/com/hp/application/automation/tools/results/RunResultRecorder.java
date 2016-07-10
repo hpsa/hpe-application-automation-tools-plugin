@@ -74,6 +74,8 @@ import com.hp.application.automation.tools.run.RunFromFileBuilder;
 import com.hp.application.automation.tools.run.SseBuilder;
 import com.hp.application.automation.tools.run.PcBuilder;
 
+import static com.hp.application.automation.tools.results.projectparser.performance.LrTest.SLA_GOAL.TotalHits;
+
 /**
  * This class is adapted from {@link JunitResultArchiver}; Only the {@code perform()} method
  * slightly differs.
@@ -112,17 +114,17 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
             throws InterruptedException, IOException {
-        
+
         TestResultAction action;
         Project<?, ?> project = RuntimeUtils.cast(build.getProject());
         List<Builder> builders = project.getBuilders();
-        
+
         final List<String> almResultNames = new ArrayList<String>();
         final List<String> fileSystemResultNames = new ArrayList<String>();
         final List<String> mergedResultNames = new ArrayList<String>();
         final List<String> almSSEResultNames = new ArrayList<String>();
         final List<String> pcResultNames = new ArrayList<String>();
-        
+
         // Get the TestSet report files names of the current build
         for (Builder builder : builders) {
             if (builder instanceof RunFromAlmBuilder) {
@@ -135,17 +137,17 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 if (resultsFileName != null)
                     almSSEResultNames.add(resultsFileName);
             } else if (builder instanceof PcBuilder) {
-            	String resultsFileName = ((PcBuilder) builder).getRunResultsFileName();
-            	if (resultsFileName != null)
-            		pcResultNames.add(resultsFileName);
+                String resultsFileName = ((PcBuilder) builder).getRunResultsFileName();
+                if (resultsFileName != null)
+                    pcResultNames.add(resultsFileName);
             }
         }
-        
+
         mergedResultNames.addAll(almResultNames);
         mergedResultNames.addAll(fileSystemResultNames);
         mergedResultNames.addAll(almSSEResultNames);
         mergedResultNames.addAll(pcResultNames);
-        
+
         // Has any QualityCenter builder been set up?
         if (mergedResultNames.isEmpty()) {
             listener.getLogger().println("RunResultRecorder: no results xml File provided");
@@ -156,18 +158,18 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         try {
             final long buildTime = build.getTimestamp().getTimeInMillis();
             final long nowMaster = System.currentTimeMillis();
-            
+
             result = build.getWorkspace().act(new FileCallable<TestResult>() {
-                
+
                 private static final long serialVersionUID = 1L;
-                
+
                 @Override
                 public TestResult invoke(File ws, VirtualChannel channel) throws IOException {
                     final long nowSlave = System.currentTimeMillis();
                     List<String> files = new ArrayList<String>();
                     DirectoryScanner ds = new DirectoryScanner();
                     ds.setBasedir(ws);
-                    
+
                     // Transform the report file names list to a
                     // File
                     // Array,
@@ -179,7 +181,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                             files.add(file.getName());
                         }
                     }
-                    
+
                     Object[] objectArray = new String[files.size()];
                     files.toArray(objectArray);
                     ds.setIncludes((String[]) objectArray);
@@ -191,17 +193,17 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                         // fatal problem
                         throw new AbortException("Report not found");
                     }
-                    
+
                     return new TestResult(buildTime + (nowSlave - nowMaster), ds, true);
                 }
 
-				@Override
-				public void checkRoles(RoleChecker arg0) throws SecurityException {
-					// TODO Auto-generated method stub
-					
-				}
+                @Override
+                public void checkRoles(RoleChecker arg0) throws SecurityException {
+                    // TODO Auto-generated method stub
+
+                }
             });
-            
+
             action = new TestResultAction(build, result, listener);
             if (result.getPassCount() == 0 && result.getFailCount() == 0) {
                 throw new AbortException("TestResultParser is empty");
@@ -213,7 +215,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 // don't report confusing error message.
                 return true;
             }
-            
+
             listener.getLogger().println(e.getMessage());
             build.setResult(Result.FAILURE);
             return true;
@@ -222,9 +224,9 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             build.setResult(Result.FAILURE);
             return true;
         }
-        
+
         build.getActions().add(action);
-        
+
         try {
             archiveTestsReport(build, listener, fileSystemResultNames, result);
         } catch (ParserConfigurationException e) {
@@ -235,20 +237,23 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             e.printStackTrace();
         }
 
-        LrJobResults jobDataSet = null;
-//        try {
-////            jobDataSet = buildJobDataset(build, listener, fileSystemResultNames);
-//        } catch (ParserConfigurationException e) {
-//            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//        } catch (SAXException e) {
-//            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//        }
-//
-//        if((jobDataSet != null && !jobDataSet.getLrScenarioResults().isEmpty())) {
-//            build.addAction(new PerformanceJobReportAction(build, jobDataSet));
-//        }
+
+        if ((slaList != null) && (slaList.size() != 0)) {
+            LrJobResults jobDataSet = null;
+            try {
+                jobDataSet = buildJobDataset(build, listener);
+            } catch (ParserConfigurationException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (SAXException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+
+            if((jobDataSet != null && !jobDataSet.getLrScenarioResults().isEmpty())) {
+                build.addAction(new PerformanceJobReportAction(build, jobDataSet));
+            }
+        }
 
         File artifactsDir = build.getArtifactsDir();
         if (artifactsDir.exists()) {
@@ -454,7 +459,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                         continue;
                     }
                     String testFolderPath = testSuiteElement.getAttribute("name");
-                    String testStatus = (testSuiteElement.getAttribute("failures").equals("0")) ? "pass" : "fail";
+                    String testStatus = (testSuiteElement.getAttribute("failures").equals("0")) ? "Passed" : "fail";
 
                     Node testCaseNode = testSuiteElement.getElementsByTagName("testcase").item(0);
                     if (testCaseNode.getNodeType() == Node.ELEMENT_NODE) {
@@ -509,7 +514,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
 						String reportFolderPath = eElement.getAttribute("report"); //e.g. "C:\UFTTest\GuiTest1\Report"
 						String testFolderPath = eElement.getAttribute("name"); //e.g. "C:\UFTTest\GuiTest1"
-						String testStatus = eElement.getAttribute("status");  //e.g. "pass"
+						String testStatus = eElement.getAttribute("status");  //e.g. "Passed"
 
 
 						Node nodeSystemInfo = eElement.getElementsByTagName("system-out").item(0);
@@ -669,7 +674,8 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             baos.close();
             tmpZipFile.unzip(slaDirectoryFilePath);
             FilePath slaFile = new FilePath(slaDirectoryFilePath, "SLA.xml");
-            slaFile.renameTo(new FilePath(slaDirectoryFilePath, "SLA_" + scenerioName + ".xml"));
+            slaFile.getBaseName();
+            slaFile.renameTo(new FilePath(slaDirectoryFilePath, scenerioName + ".xml"));
 
             return slaFile;
         }
@@ -682,28 +688,15 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         listener.getLogger().println(
                 "Starting the creation of test run dataset for graphing");
 
-        if ((slaList == null) || (slaList.size() == 0)) {
-            return null;
-        }
-
-//        FilePath projectWS = build.getWorkspace();
-
-        // get the artifacts directory where we will upload the zipped report
-        // folder
-//        File artifactsDir = build.getArtifactsDir();
-
         // read each SLA.xml
-        /*
-         * The structure of the result file is: <testsuites> <testsuite>
-         * <testcase.........report="path-to-report"/>
-         * <testcase.........report="path-to-report"/>
-         * <testcase.........report="path-to-report"/>
-         * <testcase.........report="path-to-report"/> </testsuite>
-         * </testsuites>
-         */
-        LrJobResults jobResults = new LrJobResults();
         for (FilePath slaFilePath : slaList) {
+            LrJobResults jobResults = new LrJobResults();
 
+            LrScenarioResult lrScenarioResult = new LrScenarioResult();
+            lrScenarioResult.setScenrio(slaFilePath.getBaseName());
+//            lrScenarioResult.set_totalErrors(Integer.valueOf(testSuiteElement.getAttribute("errors")));
+//            lrScenarioResult.set_totalErrors(Integer.valueOf(testSuiteElement.getAttribute("failures")));
+//            lrScenarioResult.set_time(Double.valueOf(testSuiteElement.getAttribute("time")));
 
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
@@ -711,38 +704,81 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             Document doc = dBuilder.parse(slaFilePath.read());
             doc.getDocumentElement().normalize();
 
-            Node testSuiteNode;
-            Node testTypeNode;
-            Node testCaseNode;
-            Element testSuiteElement;
-            Element testTypeElement;
-            Element testCaseElement;
+//            Node SlaCase;
+            Node slaNode;
+            Node slaRuleNode;
+            Element slaElements;
+            Element slaRuleElement;
+//            Element slaCaseElement;
 
-            NodeList testSuiteNodes = doc.getElementsByTagName("testsuite");
+            NodeList slaNodes = doc.getElementsByTagName("SLA");
+            for (int i = 0; i < slaNodes.getLength(); i++) {
+                slaNode = slaNodes.item(i);
+                slaElements = (Element) slaNode;
 
-            for (int i = 0; i < testSuiteNodes.getLength(); i++) {
-                testSuiteNode = testSuiteNodes.item(i);
-                testSuiteElement = (Element) testSuiteNode;
+                NodeList slaRuleResults = slaElements.getChildNodes(); //get all the sla rules
+                for (int j = 0; j < slaRuleResults.getLength(); i++) {
+                    slaRuleNode = slaRuleResults.item(j);
+                    slaRuleElement = (Element) slaRuleNode;
 
 
-                if (testSuiteElement.hasAttribute("name") && testSuiteElement.getAttribute("name").endsWith(".lrs")) {        //LR test
-                    LrScenarioResult lrScenarioResult = new LrScenarioResult();
+                    String currentGoal = slaRuleElement.getTagName();
+                    //check type by mesurment field:
+                    LrTest.SLA_GOAL slaGoal = LrTest.SLA_GOAL.checkGoal(slaRuleElement.getAttribute("Measurement").toString());
 
-                    lrScenarioResult.setScenrio(testSuiteElement.getAttribute("name").toString());
-                    lrScenarioResult.set_totalErrors(Integer.valueOf(testSuiteElement.getAttribute("errors")));
-                    lrScenarioResult.set_totalErrors(Integer.valueOf(testSuiteElement.getAttribute("failures")));
-                    lrScenarioResult.set_time(Double.valueOf(testSuiteElement.getAttribute("time")));
+                    switch (slaGoal)
+                    {
+                        case AverageThroughput:
 
-                    NodeList testTypeNodes = testSuiteElement.getElementsByTagName("testtype");
-                    LrTest.SLA_STATUS slaStatus = LrTest.SLA_STATUS.bad;
-                    for (int k = 0; i < testTypeNodes.getLength(); i++) {
-                        testTypeNode = testTypeNodes.item(i);
-                        testTypeElement = (Element) testTypeNode;
 
-                        String testType = testTypeElement.getAttribute("name").toString();
-                        slaStatus = LrTest.SLA_STATUS.bad;
 
-                        //TODO: make this better
+                            break;
+                        case TotalThroughput:
+                            WholeRunResult totalThroughtput = new WholeRunResult();
+                            totalThroughtput.setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
+                            totalThroughtput.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
+                            totalThroughtput.setFullName(slaRuleElement.getAttribute("FullName"));
+                            totalThroughtput.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
+                            lrScenarioResult.wholeRunResults.add(totalThroughtput);
+                            break;
+                        case AverageHitsPerSecond:
+                            WholeRunResult averageHitsPerSecond = new WholeRunResult();
+                            averageHitsPerSecond.setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
+                            averageHitsPerSecond.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
+                            averageHitsPerSecond.setFullName(slaRuleElement.getAttribute("FullName"));
+                            averageHitsPerSecond.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
+                            lrScenarioResult.wholeRunResults.add(averageHitsPerSecond);
+                            break;
+                        case TotalHits:
+                            WholeRunResult wholeRunResult = new WholeRunResult();
+                            wholeRunResult.setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
+                            wholeRunResult.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
+                            wholeRunResult.setFullName(slaRuleElement.getAttribute("FullName"));
+                            wholeRunResult.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
+                            lrScenarioResult.wholeRunResults.add(wholeRunResult);
+                            break;
+                        case ErrorsPerSecond:
+                            break;
+                        case PercentileTRT:
+                            PercentileTransactionWholeRunRule percentileTransactionWholeRunRule = new PercentileTransactionWholeRunRule();
+                            percentileTransactionWholeRunRule.setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
+                            percentileTransactionWholeRunRule.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
+                            percentileTransactionWholeRunRule.setFullName(slaRuleElement.getAttribute("FullName"));
+                            percentileTransactionWholeRunRule.setPrecentage(Double.valueOf(slaRuleElement.getAttribute("Percentile")));
+                            percentileTransactionWholeRunRule.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
+                            lrScenarioResult.wholeRunResults.add(percentileTransactionWholeRunRule);
+                            break;
+                        case AverageTRT:
+
+                            break;
+                        case Bad:
+
+                            break;
+                    }
+
+
+
+
 
                         if(!(testType.compareTo(SlaRuleTypes.TIME_RANGE_TRANSACTION.toString()) == 0))
                         {
@@ -758,13 +794,13 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                                 String transactionName = testCaseElement.getAttribute("Transaction name").toString();
                                 if(transactionName.isEmpty())
                                 {
-                                    //TODO: fail;
+                                    //TODO: Failed;
                                 }
                                 transactionTimeRange.setName(transactionName);
                                 slaStatus = LrTest.SLA_STATUS.checkStatus(testCaseElement.getAttribute("status").toString());
                                 if(slaStatus == LrTest.SLA_STATUS.bad)
                                 {
-                                    //TODO: fail
+                                    //TODO: Failed
                                 }
                                 transactionTimeRange.setDuration(Double.valueOf(testCaseElement.getAttribute("time")));
                                 lrScenarioResult.transactionTimeRanges.add(transactionTimeRange);
@@ -781,28 +817,20 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                                 testCaseElement = (Element) testCaseNode;
 
                                 WholeRunResult wholeRunResult = new WholeRunResult();
-                                LrTest.SLA_GOAL slaGoal = LrTest.SLA_GOAL.checkGoal(testCaseElement.getAttribute("Measurement").toString());
-                                if(slaGoal == LrTest.SLA_GOAL.Bad)
-                                {
-                                    //TODO: fail
-                                }
-                                wholeRunResult.setActualValue(Double.valueOf(testCaseElement.getAttribute("ActualValue")));
-                                wholeRunResult.setGoalValue(Double.valueOf(testCaseElement.getAttribute("GoalValue")));
 
                                 slaStatus = LrTest.SLA_STATUS.checkStatus(testCaseElement.getAttribute("status").toString());
                                 if(slaStatus == LrTest.SLA_STATUS.bad)
                                 {
-                                    //TODO: fail
+                                    //TODO: Failed
                                 }
                                 wholeRunResult.setDuration(Double.valueOf(testCaseElement.getAttribute("time")));
                                 lrScenarioResult.wholeRunResults.add(wholeRunResult);
                             }
                         }
                     }
-                    jobResults.addScenrio(lrScenarioResult);
                 }
+                jobResults.addScenrio(lrScenarioResult);
             }
-        }
 
 
         return jobResults;
