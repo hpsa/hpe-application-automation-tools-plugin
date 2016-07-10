@@ -23,6 +23,9 @@ public class LrScenarioResult extends LrJobResults{
 
     public ArrayList<WholeRunResult> wholeRunResults = new ArrayList<WholeRunResult>(0);
     public ArrayList<TransactionTimeRange> transactionTimeRanges = new ArrayList<TransactionTimeRange>(0);
+    public ArrayList<TimeRangeResult> timeRangeResults = new ArrayList<TimeRangeResult>(0);
+    public ArrayList<PercentileTransactionWholeRun> percentileTransactionWholeRuns = new ArrayList<PercentileTransactionWholeRun>(0);
+
 
 
 }

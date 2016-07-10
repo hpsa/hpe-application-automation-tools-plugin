@@ -11,5 +11,13 @@ public class TransactionTimeRange extends TimeRangeResult {
     public TransactionTimeRange() {
     }
 
+    public String getName() {
+        return name;
+    }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    protected String name = "";
 }
