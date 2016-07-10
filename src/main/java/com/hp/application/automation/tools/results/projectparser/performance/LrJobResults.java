@@ -2,6 +2,8 @@ package com.hp.application.automation.tools.results.projectparser.performance;
 
 import java.util.ArrayList;
 
+import static com.hp.application.automation.tools.results.projectparser.performance.LrTest.SLA_STATUS.Failed;
+
 /**
  * Created by kazaky on 07/07/2016.
  */
@@ -14,27 +16,61 @@ public class LrJobResults  implements LrTest{
         return _totalFailures;
     }
 
-    public void set_totalFailures(int _totalFailures) {
-        this._totalFailures = _totalFailures;
+    public void set_totalFailures(int totalFailures) {
+        this._totalFailures = totalFailures;
+    }
+
+    public void incTotalFailures()
+    {
+        _totalFailures++;
+    }
+
+    public void incTotalErrors()
+    {
+        _totalErrors++;
     }
 
     public int get_totalErrors() {
         return _totalErrors;
     }
 
-    public void set_totalErrors(int _totalErrors) {
-        this._totalErrors = _totalErrors;
+    public void set_totalErrors(int totalErrors) {
+        this._totalErrors = totalErrors;
+    }
+
+    public void updateStatus(SLA_STATUS slaStatus)
+    {
+        switch(slaStatus)
+        {
+            case Failed:
+                incTotalFailures();
+                break;
+            case Passed:
+                incTotalErrors();
+                break;
+            case NoData:
+                break;
+            case bad:
+                break;
+        }
     }
 
     private int _totalFailures = 0;
     private int _totalErrors = 0;
+    private int _totalPassed = 0;
+
+    public int get_testCount() {
+        return _testCount;
+    }
+
+    private int _testCount = 0;
 
     public double get_time() {
         return _time;
     }
 
-    public void set_time(double _time) {
-        this._time = _time;
+    public void set_time(double time) {
+        this._time = time;
     }
 
     private double _time = 0;

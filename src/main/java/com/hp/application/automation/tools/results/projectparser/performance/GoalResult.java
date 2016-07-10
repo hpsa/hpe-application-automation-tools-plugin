@@ -35,6 +35,16 @@ public abstract class GoalResult implements LrTest{
 
     private SLA_GOAL _slaGoal;
     private SLA_STATUS _status;
+
+    public String getFullName() {
+        return _fullName;
+    }
+
+    public void setFullName(String _fullName) {
+        this._fullName = _fullName;
+    }
+
+    private String _fullName;
     private double _duration;
 
 
