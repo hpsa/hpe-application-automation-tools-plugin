@@ -6,6 +6,8 @@ package com.hp.application.automation.tools.results.projectparser.performance;
 public class TransactionTimeRange extends TimeRangeResult {
 
 
+
+
     public TransactionTimeRange() {
     }
 
