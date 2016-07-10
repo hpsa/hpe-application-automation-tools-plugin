@@ -682,10 +682,10 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             IOException, InterruptedException {
         listener.getLogger().println(
                 "Starting the creation of test run dataset for graphing");
+        LrJobResults jobResults = new LrJobResults();
 
         // read each SLA.xml
         for (FilePath slaFilePath : slaList) {
-            LrJobResults jobResults = new LrJobResults();
 
             LrScenarioResult lrScenarioResult = new LrScenarioResult();
             lrScenarioResult.setScenrio(slaFilePath.getBaseName());
@@ -721,10 +721,8 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                     //check type by mesurment field:
                     LrTest.SLA_GOAL slaGoal = LrTest.SLA_GOAL.checkGoal(slaRuleElement.getAttribute("Measurement").toString());
 
-                    switch (slaGoal)
-                    {
+                    switch (slaGoal) {
                         case AverageThroughput:
-
 
 
                             break;
@@ -764,7 +762,9 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                             lrScenarioResult.wholeRunResults.add(percentileTransactionWholeRunRule);
                             break;
                         case AverageTRT:
-
+                            TransactionTimeRange transactionTimeRange = new TransactionTimeRange();
+                            transactionTimeRange.setName(slaRuleElement.getAttribute("Transaction name").toString());
+                            transactionTimeRange.setFullName(slaRuleElement.getAttribute("FullNameS"));
                             break;
                         case Bad:
 
@@ -772,64 +772,13 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                     }
 
 
-
-
-
-                        if(!(testType.compareTo(SlaRuleTypes.TIME_RANGE_TRANSACTION.toString()) == 0))
-                        {
-                            NodeList testCaseNodes = testTypeElement.getElementsByTagName("testcase");
-
-                            String testCaseType = "";
-                            for (int j = 0; i < testCaseNodes.getLength(); i++) {
-
-                                testCaseNode = testCaseNodes.item(i);
-                                testCaseElement = (Element) testCaseNode;
-
-                                TransactionTimeRange transactionTimeRange = new TransactionTimeRange();
-                                String transactionName = testCaseElement.getAttribute("Transaction name").toString();
-                                if(transactionName.isEmpty())
-                                {
-                                    //TODO: Failed;
-                                }
-                                transactionTimeRange.setName(transactionName);
-                                slaStatus = LrTest.SLA_STATUS.checkStatus(testCaseElement.getAttribute("status").toString());
-                                if(slaStatus == LrTest.SLA_STATUS.bad)
-                                {
-                                    //TODO: Failed
-                                }
-                                transactionTimeRange.setDuration(Double.valueOf(testCaseElement.getAttribute("time")));
-                                lrScenarioResult.transactionTimeRanges.add(transactionTimeRange);
-
-                            }
-                        }
-                        else if(!(testType.compareTo(SlaRuleTypes.SIMPLE_WHOLE_RUN.toString()) == 0)) {
-                            NodeList testCaseNodes = testTypeElement.getElementsByTagName("testcase");
-
-                            String testCaseType = "";
-                            for (int j = 0; i < testCaseNodes.getLength(); i++) {
-
-                                testCaseNode = testCaseNodes.item(i);
-                                testCaseElement = (Element) testCaseNode;
-
-                                WholeRunResult wholeRunResult = new WholeRunResult();
-
-                                slaStatus = LrTest.SLA_STATUS.checkStatus(testCaseElement.getAttribute("status").toString());
-                                if(slaStatus == LrTest.SLA_STATUS.bad)
-                                {
-                                    //TODO: Failed
-                                }
-                                wholeRunResult.setDuration(Double.valueOf(testCaseElement.getAttribute("time")));
-                                lrScenarioResult.wholeRunResults.add(wholeRunResult);
-                            }
-                        }
-                    }
                 }
                 jobResults.addScenrio(lrScenarioResult);
             }
+        }
 
-
-        return jobResults;
-    }
+            return jobResults;
+        }
 
 	private boolean archiveFolder(FilePath reportFolder,
                                   String testStatus,
