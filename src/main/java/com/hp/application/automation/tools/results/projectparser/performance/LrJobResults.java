@@ -30,6 +30,22 @@ public class LrJobResults  implements LrTest{
         _totalErrors++;
     }
 
+    public void incTotalNoData()
+    {
+        _totalNoData++;
+    }
+
+    public void incTotalPassed()
+    {
+        _totalPassed++;
+    }
+
+    public void incTotalTests()
+    {
+        _testCount++;
+    }
+
+
     public int get_totalErrors() {
         return _totalErrors;
     }
@@ -44,17 +60,25 @@ public class LrJobResults  implements LrTest{
         {
             case Failed:
                 incTotalFailures();
+                incTotalTests();
                 break;
             case Passed:
-                incTotalErrors();
+                incTotalPassed();
+                incTotalTests();
                 break;
             case NoData:
+
                 break;
             case bad:
                 break;
         }
     }
 
+    public int get_totalNoData() {
+        return _totalNoData;
+    }
+
+    private int _totalNoData = 0;
     private int _totalFailures = 0;
     private int _totalErrors = 0;
     private int _totalPassed = 0;

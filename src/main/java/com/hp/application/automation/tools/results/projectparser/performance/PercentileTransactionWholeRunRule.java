@@ -5,19 +5,18 @@ package com.hp.application.automation.tools.results.projectparser.performance;
  */
 public class PercentileTransactionWholeRunRule extends WholeRunResult {
 
-    public PercentileTransactionWholeRunRule(double precentage) {
-        this.precentage = precentage;
+    public PercentileTransactionWholeRunRule() {
     }
 
     public double getPrecentage() {
-        return precentage;
+        return _precentage;
     }
 
     public void setPrecentage(double precentage) {
-        this.precentage = precentage;
+        this._precentage = precentage;
     }
 
-    double precentage;
+    double _precentage;
 
 
 }
