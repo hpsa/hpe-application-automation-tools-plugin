@@ -131,7 +131,7 @@ public class RunFromFileBuilder extends Builder {
 
         mergedProperties.put("runType", RunType.FileSystem.toString());
         mergedProperties.put("resultsFilename", ResultFilename);
-        mergedProperties.put("LrResultsFilename", LrResultFilename);
+//        mergedProperties.put("LrResultsFilename", LrResultFilename);
 
         // get properties serialized into a stream
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
