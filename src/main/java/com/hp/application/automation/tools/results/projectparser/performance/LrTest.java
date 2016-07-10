@@ -29,7 +29,7 @@ public interface LrTest {
         AverageThroughput, TotalThroughput, AverageHitsPerSecond, TotalHits,
         ErrorsPerSecond, AverageTRT, Bad;
 
-        public static SLA_GOAL checkStatus(String status)
+        public static SLA_GOAL checkGoal(String status)
         {
             if ((status.compareTo(AverageThroughput.toString())==0))
             {

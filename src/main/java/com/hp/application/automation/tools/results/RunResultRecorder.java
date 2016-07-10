@@ -58,7 +58,6 @@ import javax.xml.transform.stream.StreamResult;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.tools.ant.DirectoryScanner;
-import org.apache.tools.ant.taskdefs.optional.depend.constantpool.IntegerCPInfo;
 import org.jenkinsci.remoting.RoleChecker;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.w3c.dom.Document;
@@ -92,7 +91,10 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 	private static final String REPORTMETADATE_XML = "report_metadata.xml";
 	private static final String TRANSACTION_SUMMARY_FOLDER = "TransactionSummary";
 	private static final String TRANSACTION_REPORT_NAME = "Report3";
-	
+
+    List<FilePath> slaList = new ArrayList<FilePath>();
+
+
     private final ResultsPublisherModel _resultsPublisherModel;
     
     @DataBoundConstructor
@@ -127,7 +129,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 almResultNames.add(((RunFromAlmBuilder) builder).getRunResultsFileName());
             } else if (builder instanceof RunFromFileBuilder) {
                 fileSystemResultNames.add(((RunFromFileBuilder) builder).getRunResultsFileName());
-                fileSystemResultNames.add(((RunFromFileBuilder) builder).getLrRunResultsFileName());
+//                fileSystemResultNames.add(((RunFromFileBuilder) builder).getLrRunResultsFileName());
             } else if (builder instanceof SseBuilder) {
                 String resultsFileName = ((SseBuilder) builder).getRunResultsFileName();
                 if (resultsFileName != null)
@@ -234,19 +236,19 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         }
 
         LrJobResults jobDataSet = null;
-        try {
-            jobDataSet = buildJobDataset(build, listener, fileSystemResultNames);
-        } catch (ParserConfigurationException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (SAXException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-
-        if((jobDataSet != null && !jobDataSet.getLrScenarioResults().isEmpty())) {
-            build.addAction(new PerformanceJobReportAction(build, jobDataSet));
-        }
+//        try {
+////            jobDataSet = buildJobDataset(build, listener, fileSystemResultNames);
+//        } catch (ParserConfigurationException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        } catch (SAXException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        }
+//
+//        if((jobDataSet != null && !jobDataSet.getLrScenarioResults().isEmpty())) {
+//            build.addAction(new PerformanceJobReportAction(build, jobDataSet));
+//        }
 
         File artifactsDir = build.getArtifactsDir();
         if (artifactsDir.exists()) {
@@ -399,6 +401,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         ArrayList<String> zipFileNames = new ArrayList<String>();
         ArrayList<FilePath> reportFolders = new ArrayList<FilePath>();
         List<String> reportNames = new ArrayList<String>();
+        List<FilePath> slaList = new ArrayList<FilePath>();
 
         listener.getLogger().println(
                 "Report archiving mode is set to: "
@@ -479,6 +482,13 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                         reportNames.add(testFolder.getName());
                         createHtmlReport(reportFolder, testFolderPath, artifactsDir, reportNames, testResult);
                         createTransactionSummary(reportFolder, testFolderPath, artifactsDir, reportNames, testResult);
+                        try {
+                            FilePath testSla = copySla(reportFolder, testFolderPath, build.getRootDir(), testFolder.getName(), testResult);
+                            slaList.add(testSla);
+                        } catch (Exception e) {
+                            listener.getLogger().println(
+                                    "No SLA.xml file was found in: " + reportFolder);
+                        }
                     }
                 }
             } else {		//UFT Test  
@@ -643,24 +653,46 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 		}
     }
 
+    private FilePath copySla(FilePath reportFolder, String testFolderPath, File buildDir, String scenerioName, TestResult testResult) throws Exception {
+        FilePath slaReportFilePath = new FilePath(reportFolder, "SLA.xml");
+        if (slaReportFilePath.exists()) {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            slaReportFilePath.zip(baos);
+            File slaDirectory = new File(buildDir, "SlaReport");
+            if (!slaDirectory.exists())
+                    slaDirectory.mkdir();
+            ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+            FilePath slaDirectoryFilePath = new FilePath(slaDirectory);
+            FilePath tmpZipFile = new FilePath(slaDirectoryFilePath, "slaReport.zip");
+            tmpZipFile.copyFrom(bais);
+            bais.close();
+            baos.close();
+            tmpZipFile.unzip(slaDirectoryFilePath);
+            FilePath slaFile = new FilePath(slaDirectoryFilePath, "SLA.xml");
+            slaFile.renameTo(new FilePath(slaDirectoryFilePath, "SLA_" + scenerioName + ".xml"));
+
+            return slaFile;
+        }
+            throw(new Exception("no SLA.xml file was created"));
+        }
 
 
-    private LrJobResults buildJobDataset(AbstractBuild<?, ?> build, BuildListener listener, List<String> resultFiles)throws ParserConfigurationException, SAXException,
+    private LrJobResults buildJobDataset(AbstractBuild<?, ?> build, BuildListener listener)throws ParserConfigurationException, SAXException,
             IOException, InterruptedException {
         listener.getLogger().println(
                 "Starting the creation of test run dataset for graphing");
 
-        if ((resultFiles == null) || (resultFiles.size() == 0)) {
+        if ((slaList == null) || (slaList.size() == 0)) {
             return null;
         }
 
-        FilePath projectWS = build.getWorkspace();
+//        FilePath projectWS = build.getWorkspace();
 
         // get the artifacts directory where we will upload the zipped report
         // folder
-        File artifactsDir = build.getArtifactsDir();
+//        File artifactsDir = build.getArtifactsDir();
 
-        // read each result.xml
+        // read each SLA.xml
         /*
          * The structure of the result file is: <testsuites> <testsuite>
          * <testcase.........report="path-to-report"/>
@@ -670,15 +702,13 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
          * </testsuites>
          */
         LrJobResults jobResults = new LrJobResults();
-        for (String resultsFilePath : resultFiles) {
-            FilePath resultsFile = projectWS.child(resultsFilePath);
+        for (FilePath slaFilePath : slaList) {
 
-            List<ReportMetaData> ReportInfoToCollect = new ArrayList<ReportMetaData>();
 
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
-            Document doc = dBuilder.parse(resultsFile.read());
+            Document doc = dBuilder.parse(slaFilePath.read());
             doc.getDocumentElement().normalize();
 
             Node testSuiteNode;
@@ -751,7 +781,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                                 testCaseElement = (Element) testCaseNode;
 
                                 WholeRunResult wholeRunResult = new WholeRunResult();
-                                LrTest.SLA_GOAL slaGoal = LrTest.SLA_GOAL.checkStatus(testCaseElement.getAttribute("Measurement").toString());
+                                LrTest.SLA_GOAL slaGoal = LrTest.SLA_GOAL.checkGoal(testCaseElement.getAttribute("Measurement").toString());
                                 if(slaGoal == LrTest.SLA_GOAL.Bad)
                                 {
                                     //TODO: fail
@@ -777,11 +807,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
         return jobResults;
     }
-
-
-
-
-
 
 	private boolean archiveFolder(FilePath reportFolder,
                                   String testStatus,
