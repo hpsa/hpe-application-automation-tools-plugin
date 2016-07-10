@@ -5,8 +5,6 @@ package com.hp.application.automation.tools.results.projectparser.performance;
  */
 
 
-
-
 public abstract class GoalResult implements LrTest{
 
     public SLA_STATUS getStatus() {

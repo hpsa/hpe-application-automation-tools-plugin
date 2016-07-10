@@ -3,9 +3,9 @@ package com.hp.application.automation.tools.results.projectparser.performance;
 /**
  * Created by kazaky on 10/07/2016.
  */
-public class PercentileTransactionWholeRunRule extends WholeRunResult {
+public class PercentileTransactionWholeRun extends WholeRunResult {
 
-    public PercentileTransactionWholeRunRule() {
+    public PercentileTransactionWholeRun() {
     }
 
     public double getPrecentage() {

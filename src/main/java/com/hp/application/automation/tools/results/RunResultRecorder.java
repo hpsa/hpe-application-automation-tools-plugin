@@ -74,8 +74,6 @@ import com.hp.application.automation.tools.run.RunFromFileBuilder;
 import com.hp.application.automation.tools.run.SseBuilder;
 import com.hp.application.automation.tools.run.PcBuilder;
 
-import static com.hp.application.automation.tools.results.projectparser.performance.LrTest.SLA_GOAL.TotalHits;
-
 /**
  * This class is adapted from {@link JunitResultArchiver}; Only the {@code perform()} method
  * slightly differs.
@@ -694,9 +692,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
             LrScenarioResult lrScenarioResult = new LrScenarioResult();
             lrScenarioResult.setScenrio(slaFilePath.getBaseName());
-//            lrScenarioResult.set_totalErrors(Integer.valueOf(testSuiteElement.getAttribute("errors")));
-//            lrScenarioResult.set_totalErrors(Integer.valueOf(testSuiteElement.getAttribute("failures")));
-//            lrScenarioResult.set_time(Double.valueOf(testSuiteElement.getAttribute("time")));
 
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
@@ -704,12 +699,12 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             Document doc = dBuilder.parse(slaFilePath.read());
             doc.getDocumentElement().normalize();
 
-//            Node SlaCase;
+            Node timeRangeNode;
             Node slaNode;
             Node slaRuleNode;
             Element slaElements;
             Element slaRuleElement;
-//            Element slaCaseElement;
+            Element timeRangeElement;
 
             NodeList slaNodes = doc.getElementsByTagName("SLA");
             for (int i = 0; i < slaNodes.getLength(); i++) {
@@ -728,8 +723,12 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
                     switch (slaGoal) {
                         case AverageThroughput:
-
-
+                            WholeRunResult averageThroughput = new WholeRunResult();
+                            averageThroughput.setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
+                            averageThroughput.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
+                            averageThroughput.setFullName(slaRuleElement.getAttribute("FullName"));
+                            averageThroughput.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
+                            lrScenarioResult.wholeRunResults.add(averageThroughput);
                             break;
                         case TotalThroughput:
                             WholeRunResult totalThroughtput = new WholeRunResult();
@@ -756,36 +755,63 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                             lrScenarioResult.wholeRunResults.add(wholeRunResult);
                             break;
                         case ErrorsPerSecond:
+                            TimeRangeResult errPerSec = new TransactionTimeRange();
+                            errPerSec.setFullName(slaRuleElement.getAttribute("FullName").toString());
+                            errPerSec.setLoadThrashold(slaRuleElement.getAttribute("SLALoadThresholdValue").toString());
+                            errPerSec.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getFirstChild().getTextContent())); //Might not work due to time ranges
+                            addTimeRanges(errPerSec, slaRuleElement);
+                            errPerSec.getActualValueAvg();
+                            lrScenarioResult.timeRangeResults.add(errPerSec);
                             break;
                         case PercentileTRT:
-                            PercentileTransactionWholeRunRule percentileTransactionWholeRunRule = new PercentileTransactionWholeRunRule();
-                            percentileTransactionWholeRunRule.setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
-                            percentileTransactionWholeRunRule.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
-                            percentileTransactionWholeRunRule.setFullName(slaRuleElement.getAttribute("FullName"));
-                            percentileTransactionWholeRunRule.setPrecentage(Double.valueOf(slaRuleElement.getAttribute("Percentile")));
-                            percentileTransactionWholeRunRule.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
-                            lrScenarioResult.wholeRunResults.add(percentileTransactionWholeRunRule);
+                            PercentileTransactionWholeRun percentileTransactionWholeRun = new PercentileTransactionWholeRun();
+                            percentileTransactionWholeRun.setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
+                            percentileTransactionWholeRun.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
+                            percentileTransactionWholeRun.setFullName(slaRuleElement.getAttribute("FullName"));
+                            percentileTransactionWholeRun.setPrecentage(Double.valueOf(slaRuleElement.getAttribute("Percentile")));
+                            percentileTransactionWholeRun.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
+                            lrScenarioResult.wholeRunResults.add(percentileTransactionWholeRun);
                             break;
                         case AverageTRT:
                             TransactionTimeRange transactionTimeRange = new TransactionTimeRange();
                             transactionTimeRange.setName(slaRuleElement.getAttribute("Transaction name").toString());
-                            transactionTimeRange.setFullName(slaRuleElement.getAttribute("FullNameS"));
+                            transactionTimeRange.setFullName(slaRuleElement.getAttribute("FullName").toString());
+                            transactionTimeRange.setLoadThrashold(slaRuleElement.getAttribute("SLALoadThresholdValue").toString());
+                            transactionTimeRange.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getFirstChild().getTextContent())); //Might not work due to time ranges
+                            addTimeRanges(transactionTimeRange, slaRuleElement);
+                            transactionTimeRange.getActualValueAvg();
+                            lrScenarioResult.transactionTimeRanges.add(transactionTimeRange);
                             break;
                         case Bad:
 
                             break;
                     }
-
-
                 }
                 jobResults.addScenrio(lrScenarioResult);
             }
         }
-
             return jobResults;
         }
 
-	private boolean archiveFolder(FilePath reportFolder,
+    private static void addTimeRanges(TimeRangeResult transactionTimeRange, Element slaRuleElement) {
+        Node timeRangeNode;
+        Element timeRangeElement;NodeList timeRanges = slaRuleElement.getElementsByTagName("TimeRangeInfo");
+        for (int k = 0; k < timeRanges.getLength(); k++) {
+            timeRangeNode = timeRanges.item(k);
+            timeRangeElement = (Element) timeRangeNode;
+            double actualValue = Double.valueOf(timeRangeElement.getAttribute("ActualValue"));
+            double goalValue = Double.valueOf(timeRangeElement.getAttribute("GoalValue"));
+            int loadValue = Integer.valueOf(timeRangeElement.getAttribute("LoadValue"));
+            double startTime = Double.valueOf(timeRangeElement.getAttribute("ActualValue"));
+            double endTIme = Double.valueOf(timeRangeElement.getAttribute("GoalValue"));
+            transactionTimeRange.incActualValue(actualValue);
+            LrTest.SLA_STATUS slaStatus = LrTest.SLA_STATUS.checkStatus(timeRangeElement.getFirstChild().getTextContent());
+            TimeRange timeRange = new TimeRange(actualValue, goalValue, slaStatus, loadValue, startTime, endTIme);
+            transactionTimeRange.timeRanges.add(timeRange);
+        }
+    }
+
+    private boolean archiveFolder(FilePath reportFolder,
                                   String testStatus,
                                   FilePath archivedFile,
                                   BuildListener listener) throws IOException, InterruptedException {
