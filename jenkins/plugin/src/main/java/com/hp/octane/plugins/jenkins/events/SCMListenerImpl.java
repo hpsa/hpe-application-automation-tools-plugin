@@ -41,7 +41,7 @@ public class SCMListenerImpl extends SCMListener {
 					SCMData scmData = scmProcessor.getSCMData((AbstractBuild) build);
 					//  TODO: generate event with SCM data
 				} else {
-					logger.info("SCM changes detected, but no processors found for SCM of type " + scm.getClass().getName());
+					logger.info("SCM changes detected, but no processors found for SCM provider of type " + scm.getClass().getName());
 				}
 			}
 		}
