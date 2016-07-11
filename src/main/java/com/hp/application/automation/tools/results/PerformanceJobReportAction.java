@@ -29,6 +29,11 @@ public class PerformanceJobReportAction implements Action {
     public PerformanceJobReportAction(AbstractBuild<?,?> build, LrJobResults resultFiles) {
         this.build = build;
         this._resultFiles = resultFiles;
+    }
+
+
+    public void getJsonData()
+    {
 
     }
 
