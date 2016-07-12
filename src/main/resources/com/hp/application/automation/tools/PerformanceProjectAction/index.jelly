@@ -22,6 +22,8 @@
         <st:bind var="foo" value="${it}"/>
         <st:bind var="projectName" value="${it.DisplayName}"/>
         <st:bind var="f" value="${it.BuildPerformanceReportList}"/>
+        <st:bind var="" value="${it.UpdatedData}"/>
+        <st:bind var="totalHitsGraphData" value="${it.TotalHitsGraphData}"/>
         <div id="msk" />
         <div id="mse" />
         <div id="msg" />
@@ -32,7 +34,7 @@
         </code></pre>
         <div id="examples"></div>
         <script>            //
-
+            document.getElementById('mse').innerHTML = JSON.parseJSON(${totalHitsGraphData}).stringify();
             // var ExampleApplication = React.createClass({
             // render: function() {
             // var elapsed = Math.round(this.props.elapsed  / 100);
