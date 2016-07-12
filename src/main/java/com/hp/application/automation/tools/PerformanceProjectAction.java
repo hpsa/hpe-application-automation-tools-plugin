@@ -98,6 +98,7 @@ public class PerformanceProjectAction implements Action{
 
     }
 
+    @JavaScriptMethod
     public JSONObject getTotalHitsGraphData()
     {
         JSONObject graphDataSet;
@@ -116,31 +117,33 @@ public class PerformanceProjectAction implements Action{
 
             labels.addAll(graphData.keySet());
 
-            double goalValue = graphData.values().iterator().next().getGoalValue();
+            String goalValue = String.valueOf(graphData.values().iterator().next().getGoalValue());
             for( WholeRunResult result : graphData.values())
             {
                 data.add(result.getActualValue());
             }
 
-            graphDataSet.put("Goal", goalValue);
+//            graphDataSet.put("Goal", goalValue);
 
-            graphDataSet.put("labels: ", labels);
+           graphDataSet.put("labels", labels);
 
-            dataset.put("label:", LrTest.SLA_GOAL.TotalHits.toString());
-            dataset.put("fillColor:", "rgba(220,220,220,0.2)");
-            dataset.put("strokeColor:", "rgba(220,220,220,1)");
-            dataset.put("pointColor:", "rgba(220,220,220,1)");
-            dataset.put("pointStrokeColor:", "#fff");
-            dataset.put("pointHighlightFill:", "#fff");
-            dataset.put("pointHighlightStroke:", "rgba(220,220,220,0.2)");
+            dataset.put("label", LrTest.SLA_GOAL.TotalHits.toString());
+            dataset.put("fillColor", "rgba(220,220,220,0.2)");
+            dataset.put("strokeColor", "rgba(220,220,220,1)");
+            dataset.put("pointColor", "rgba(220,220,220,1)");
+            dataset.put("pointStrokeColor", "#fff");
+            dataset.put("pointHighlightFill", "#fff");
+            dataset.put("pointHighlightStroke", "rgba(220,220,220,0.2)");
 
-            dataset.put("data: ", data);
-            datasets.add(1, dataset);
-            graphDataSet.put("datasets: ", datasets);
+            dataset.put("data", data);
+            datasets.add(dataset);
+            graphDataSet.put("datasets", datasets);
             scenarionGraphData.put(scenarioResults.getKey(), graphDataSet);
-        }
 
-        return scenarionGraphData;
+            return graphDataSet;
+
+        }
+       return scenarionGraphData;
     }
 
     public List<String> getBuildPerformanceReportList(){
