@@ -92,7 +92,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 	private static final String TRANSACTION_SUMMARY_FOLDER = "TransactionSummary";
 	private static final String TRANSACTION_REPORT_NAME = "Report3";
 
-    List<FilePath> slaList = new ArrayList<FilePath>();
+    List<FilePath> slaList;
 
 
     private final ResultsPublisherModel _resultsPublisherModel;
@@ -101,7 +101,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
     public RunResultRecorder(boolean publishResults, String archiveTestResultsMode) {
         
         _resultsPublisherModel = new ResultsPublisherModel(archiveTestResultsMode);
-        slaList = new ArrayList<FilePath>();
+
     }
     
     @Override
@@ -123,6 +123,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         final List<String> mergedResultNames = new ArrayList<String>();
         final List<String> almSSEResultNames = new ArrayList<String>();
         final List<String> pcResultNames = new ArrayList<String>();
+        slaList = new ArrayList<FilePath>();
 
         // Get the TestSet report files names of the current build
         for (Builder builder : builders) {
@@ -707,18 +708,19 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             Element slaRuleElement;
             Element timeRangeElement;
 
-            NodeList slaNodes = doc.getElementsByTagName("SLA");
-            for (int i = 0; i < slaNodes.getLength(); i++) {
-                slaNode = slaNodes.item(i);
-                slaElements = (Element) slaNode;
+            NodeList slaRuleResults = doc.getElementsByTagName("SLA_GOAL");
+//            for (int i = 0; i < slaNodes.getLength(); i++) {
+//                slaNode = slaNodes.item(i);
+//                slaElements = (Element) slaNode;
 
-                NodeList slaRuleResults = slaElements.getChildNodes(); //get all the sla rules
-                for (int j = 0; j < slaRuleResults.getLength(); i++) {
+//                NodeList slaRuleResults = slaNodes.getChildNodes(); //get all the sla rules
+                for (int j = 0; j < slaRuleResults.getLength(); j++) {
                     slaRuleNode = slaRuleResults.item(j);
                     slaRuleElement = (Element) slaRuleNode;
 
 
-                    String currentGoal = slaRuleElement.getTagName();
+
+
                     //check type by mesurment field:
                     LrTest.SLA_GOAL slaGoal = LrTest.SLA_GOAL.checkGoal(slaRuleElement.getAttribute("Measurement").toString());
 
@@ -787,10 +789,10 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
                             break;
                     }
-                }
-                jobResults.addScenrio(jobLrScenarioResult);
-            }
+                }            jobResults.addScenrio(jobLrScenarioResult);
+
         }
+
             return jobResults;
         }
 

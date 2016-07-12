@@ -4,11 +4,12 @@
 
     <!--<st:include it="${it.project}" page="sidepanel.jelly" />-->
     <l:layout title="Jenkins JS Lib Samples" norefresh="true">
-
         <!--<j:set var="builds" value="${it.builds}"/>-->
     <!--<st:include it="${it.project}" page="sidepanel.jelly" />-->
     <!--<j:set var="builds" value="${it.builds}"/>-->
-    <l:main-panel>
+        <st:bind var="" value="${it.UpdatedData}"/>
+
+        <l:main-panel>
 
         <h1>Test page</h1>
 
@@ -17,24 +18,42 @@
         <div id="container">
             <!-- This element's contents will be replaced with your component. -->
         </div>
+            <canvas id="mycanvas1" width="400" height="400"></canvas>
 
         <canvas id="mycanvas" width="400" height="400"></canvas>
         <st:bind var="foo" value="${it}"/>
         <st:bind var="projectName" value="${it.DisplayName}"/>
         <st:bind var="f" value="${it.BuildPerformanceReportList}"/>
-        <st:bind var="" value="${it.UpdatedData}"/>
-        <st:bind var="totalHitsGraphData" value="${it.TotalHitsGraphData}"/>
+        <st:bind var="thgd" value="${it.getTotalHitsGraphData}"/>
+
         <div id="msk" />
+
         <div id="mse" />
+
         <div id="msg" />
+
+        <div id="msv" />
 
         <div id="msr" />
 
         <pre><code>
         </code></pre>
         <div id="examples"></div>
-        <script>            //
-            document.getElementById('mse').innerHTML = JSON.parseJSON(${totalHitsGraphData}).stringify();
+        <script>
+            // var cxz = JSON.parse(thgd);
+            // document.getElementById('msr').innerHTML = JSON.stringify(thgd);
+            var cxd = {"2013-01-21":1,"2013-01-22":"LL"};
+            var resultd = [];
+
+
+
+            for(var i in cxd)
+                resultd.push([i,cxd[i]]);
+
+
+
+            // var adf = JSON.parse(totalHitsGraphData);
+            document.getElementById('mse').innerHTML = JSON.stringify(resultd[1]);
             // var ExampleApplication = React.createClass({
             // render: function() {
             // var elapsed = Math.round(this.props.elapsed  / 100);
@@ -55,18 +74,22 @@
             //     ExampleApplicationFactory({elapsed: new Date().getTime() - start}),
             //     document.getElementById('container')); }, 50);
             // <!--var f =<st:bind value="${BuildPerformanceReport}"/>;-->
-            // <!--// var foo = <st:bind value="${it}"/>;-->
+            var foo = <st:bind value="${it}"/>
             //
             // foo.add(1,5, function(t) {
             // document.getElementById('msg').innerHTML = t.responseObject();
             // });
-
-            // var txt = ""
-            // var x;
-            // for(x in f)
-            // {
-            //     txt += x + " ";
-            // }
+            // var pvb;
+            // foo.getTotalHitsGraphData(function(t) {
+            // pvb = t.responseObject();
+            // var p =[];
+            // for(var i in pvb)
+            //     p.push([i,pvb[i]]);
+            //
+            //
+            //
+            // document.getElementById('msg').innerHTML = p;
+            // });
 
         </script>
 
