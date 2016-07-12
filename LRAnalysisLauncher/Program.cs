@@ -129,7 +129,7 @@ namespace LRAnalysisLauncher
                         if (a.Measurement.Equals(SlaMeasurement.PercentileTRT))
                         {
                             SlaPercentileRuleResult b = slaResult.TransactionRules.PercentileRules[iCounter];
-                            elem = xmlDoc.CreateElement(b.RuleName.Replace(" ", "_"));    //no white space in the element name
+                            elem = xmlDoc.CreateElement("SLA_GOAL");    //no white space in the element name
                             log("Transaction Name : " + b.TransactionName);
                             elem.SetAttribute("TransactionName", b.TransactionName.ToString());
                             log("Percentile : " + b.Percentage);
@@ -153,7 +153,7 @@ namespace LRAnalysisLauncher
                         }
                         else
                         {
-                            elem = xmlDoc.CreateElement(a.RuleName.Replace(" ", "_"));    //no white space in the element name
+                            elem = xmlDoc.CreateElement("SLA_GOAL");    //no white space in the element name
                             elem.SetAttribute("FullName", a.RuleUiName);
                             log("Full Name : " + a.RuleUiName);
                             log("Measurement : " + a.Measurement);
@@ -184,7 +184,7 @@ namespace LRAnalysisLauncher
                         if (a.Measurement.Equals(SlaMeasurement.AverageTRT))
                          {
                             SlaTransactionTimeRangeRuleResult b = slaResult.TransactionRules.TimeRangeRules[iCounter];
-                            rule = xmlDoc.CreateElement(b.RuleName.Replace(" ", "_"));      //no white space in the element name
+                            rule = xmlDoc.CreateElement("SLA_GOAL");      //no white space in the element name
                             log("Transaction Name: " + b.TransactionName);
                             rule.SetAttribute("TransactionName", b.TransactionName);
                             log("Full Name : " + b.RuleUiName);
@@ -227,7 +227,7 @@ namespace LRAnalysisLauncher
                          }
                         else
                         {
-                            rule = xmlDoc.CreateElement(a.RuleName.Replace(" ", "_"));  //no white space in the element name
+                            rule = xmlDoc.CreateElement("SLA_GOAL");  //no white space in the element name
                             log("Full Name : " + a.RuleUiName);
                             rule.SetAttribute("FullName", a.RuleUiName);
                             log("Measurement : " + a.Measurement);
