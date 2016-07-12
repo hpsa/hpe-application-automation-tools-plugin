@@ -64,12 +64,12 @@ public class PerformanceJobReportAction implements Action {
 
     @Override
     public String getDisplayName() {
-        return "Performance Report";
+        return "Performance Job Report";
     }
 
     @Override
     public String getUrlName() {
-        return "PerformanceReport";
+        return "PerformanceJobReport";
     }
 
     public AbstractBuild<?,?> getBuild() {

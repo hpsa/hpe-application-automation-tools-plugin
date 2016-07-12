@@ -11,7 +11,7 @@
   <l:layout norefresh="true" title="LoadRunner Job Performance Graphs<">
     <st:include it="${it.build}" page="sidepanel.jelly" />
     <l:main-panel>
-      <h2>LoadRunner Performance Result</h2>
+      <h2>Job Performance Result</h2>
       
     </l:main-panel>
   </l:layout>
