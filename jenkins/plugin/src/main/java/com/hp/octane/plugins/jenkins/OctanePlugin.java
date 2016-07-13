@@ -5,7 +5,6 @@ package com.hp.octane.plugins.jenkins;
 import com.google.inject.Inject;
 import com.hp.nga.integrations.SDKManager;
 import com.hp.nga.integrations.api.CIPluginServices;
-import com.hp.nga.integrations.exceptions.PermissionException;
 import com.hp.octane.plugins.jenkins.bridge.BridgesService;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationListener;
