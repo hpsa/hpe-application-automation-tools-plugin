@@ -18,9 +18,12 @@
         <div id="container">
             <!-- This element's contents will be replaced with your component. -->
         </div>
-            <canvas id="mycanvas1" width="400" height="400"></canvas>
-
-        <canvas id="mycanvas" width="400" height="400"></canvas>
+            <h4> Total throughput </h4>
+            <canvas id="TotalThroughput" width="900" height="500"></canvas>
+            <h4> AvgHitsPerSecGraphData </h4>
+            <canvas id="AvgHitsPerSecGraphData" width="900" height="500"></canvas>
+            <h4> Total Hits</h4>
+        <canvas id="mycanvas" width="900" height="500"></canvas>
         <st:bind var="foo" value="${it}"/>
         <st:bind var="projectName" value="${it.DisplayName}"/>
         <st:bind var="f" value="${it.BuildPerformanceReportList}"/>
