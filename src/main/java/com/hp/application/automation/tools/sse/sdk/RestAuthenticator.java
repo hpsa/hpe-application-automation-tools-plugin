@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.hp.application.automation.tools.common.SSEException;
-import com.hp.application.automation.tools.rest.HttpHeaders;
+import com.hp.application.automation.tools.rest.RESTConstants;
 import com.hp.application.automation.tools.rest.RestClient;
 
 /***
@@ -53,7 +53,7 @@ public class RestAuthenticator {
         byte[] credBytes = (username + ":" + password).getBytes();
         String credEncodedString = "Basic " + Base64Encoder.encode(credBytes);
         Map<String, String> headers = new HashMap<String, String>();
-        headers.put(HttpHeaders.AUTHORIZATION, credEncodedString);
+        headers.put(RESTConstants.AUTHORIZATION, credEncodedString);
         
         return client.httpGet(loginUrl, null, headers, ResourceAccessLevel.PUBLIC);
     }

@@ -80,7 +80,7 @@
 				<td rowspan="2" style="vertical-align:middle">
 					<f:textbox name="timeslotDurationHours" id="${h_id}"
 						value="${instance.pcModel.timeslotDuration.hours}" default="0"
-						style="width:20px;height:23px;text-align:center"
+						style="width:40px;height:24px;text-align:center"
 						onchange="var hours = parseInt(value); 
 										value = (isNaN(hours) || (hours &lt; 0)) ? 0 : ((hours &gt; 480) ? 480 : hours);
 										var minutes = document.getElementById('${m_id}');
@@ -102,7 +102,7 @@
 				<td rowspan="2" style="vertical-align:middle">
 					<f:textbox name="timeslotDurationMinutes" id="${m_id}"
 						value="${instance.pcModel.timeslotDuration.minutes}" default="30"
-						style="width:20px;height:23px;text-align:center"
+						style="width:40px;height:24px;text-align:center"
 						onchange="var v = parseInt(value); 
 										v = isNaN(v) || (v &lt; 0) || (v &gt; 59) ? 0 : v ;										
 										value = (v &lt; 30 &amp;&amp; document.getElementById('${h_id}').value == 0) ? 30 : v;" />

@@ -23,15 +23,12 @@ public abstract class PollHandler extends Handler {
         
         super(client, entityId, runId);
     }
-    
+
     public boolean poll(Logger logger) throws InterruptedException {
-        
-        logger.log("Polling...");
-        boolean ret = false;
-        logger.log(String.format("Run id: %s", _runId));
-        ret = doPoll(logger);
-        
-        return ret;
+
+        logger.log(String.format("Polling... Run ID: %s", _runId));
+
+        return doPoll(logger);
     }
     
     protected boolean doPoll(Logger logger) throws InterruptedException {

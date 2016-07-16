@@ -1,17 +1,15 @@
 package com.hp.application.automation.tools.sse.sdk;
 
-import java.util.Map;
-
-import junit.framework.Assert;
-
-import org.junit.Test;
-
 import com.hp.application.automation.tools.rest.RestClient;
 import com.hp.application.automation.tools.sse.common.StringUtils;
 import com.hp.application.automation.tools.sse.common.TestCase;
 import com.hp.application.automation.tools.sse.sdk.request.PostRequest;
+import org.junit.Assert;
+import org.junit.Test;
 
-public class TestPostRequest implements TestCase {
+import java.util.Map;
+
+public class TestPostRequest extends TestCase {
     
     @Test
     public void testPostRequestException() {
@@ -22,8 +20,7 @@ public class TestPostRequest implements TestCase {
                         DOMAIN,
                         PROJECT,
                         USER), RUN_ID).execute();
-        Assert.assertTrue(PostRequestException.class == response.getFailure().getClass());
-        
+        Assert.assertTrue(PostRequestException.class.equals(response.getFailure().getClass()));
     }
     
     private class MockRestClientPostRequestException extends RestClient {
@@ -45,7 +42,6 @@ public class TestPostRequest implements TestCase {
                 ResourceAccessLevel resourceAccessLevel) {
             
             throw new PostRequestException();
-            
         }
     }
     
@@ -58,8 +54,8 @@ public class TestPostRequest implements TestCase {
     private class MockPostRequest extends PostRequest {
         
         protected MockPostRequest(Client client, String runId) {
+
             super(client, runId);
-            
         }
         
         @Override
@@ -67,7 +63,5 @@ public class TestPostRequest implements TestCase {
             
             return StringUtils.EMPTY_STRING;
         }
-        
     }
-    
 }

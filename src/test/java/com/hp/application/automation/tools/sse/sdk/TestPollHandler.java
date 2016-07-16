@@ -1,19 +1,17 @@
 package com.hp.application.automation.tools.sse.sdk;
 
-import java.net.HttpURLConnection;
-import java.util.Map;
-
-import junit.framework.Assert;
-
-import org.junit.Test;
-
 import com.hp.application.automation.tools.rest.RestClient;
 import com.hp.application.automation.tools.sse.common.ConsoleLogger;
 import com.hp.application.automation.tools.sse.common.TestCase;
 import com.hp.application.automation.tools.sse.sdk.handler.PollHandler;
 import com.hp.application.automation.tools.sse.sdk.handler.PollHandlerFactory;
+import org.junit.Assert;
+import org.junit.Test;
 
-public class TestPollHandler implements TestCase {
+import java.net.HttpURLConnection;
+import java.util.Map;
+
+public class TestPollHandler extends TestCase {
     
     @Test
     public void testBVSPoll() throws InterruptedException {

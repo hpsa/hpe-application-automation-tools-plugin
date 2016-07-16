@@ -359,7 +359,7 @@ Save the test in QuickTest and then run it again.</value>
     <value>Cannot collate results ret code = {0}.</value>
   </data>
   <data name="LrScenarioEnded" xml:space="preserve">
-    <value>Scenario {0} ended.</value>
+    <value>Scenario {0} ended after {1}:{2}:{3}.</value>
   </data>
   <data name="LrScenarioEndedTimeOut" xml:space="preserve">
     <value>Timeout passed. Stopping sceario by force.</value>
@@ -432,5 +432,11 @@ Save the test in QuickTest and then run it again.</value>
   </data>
   <data name="GeneralDuplicateParameterWarning" xml:space="preserve">
     <value>The Parameter {0} of test: {1} is defined more than once</value>
+  </data>
+  <data name="UFT_LeanFT_Running" xml:space="preserve">
+    <value>UFT cannot start while the LeanFT engine is running.</value>
+  </data>
+  <data name="UFT_Sprinter_Running" xml:space="preserve">
+    <value>UFT cannot start while HP Sprinter is running.</value>
   </data>
 </root>

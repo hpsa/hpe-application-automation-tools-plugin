@@ -23,11 +23,13 @@ public class TestRunManagerSystemTests {
     private static final String SERVER_NAME = "zahavia1.emea.hpqcorp.net";
     private static final int PORT = 8080;
     private static final String PROJECT = "Project1";
+    private static int TEST_SET_ID = 2;
+    private static int BVS_ID = 1084;
     
     @Test
     public void testEndToEndTestSet() throws InterruptedException {
         
-        SseModel model = createModel(SseModel.TEST_SET, SERVER_NAME, PROJECT, PORT, 1);
+        SseModel model = createModel(SseModel.TEST_SET, SERVER_NAME, PROJECT, PORT, TEST_SET_ID);
         Args args = new ArgsFactory().create(model);
         RestClient connection =
                 new RestClient(
@@ -43,7 +45,7 @@ public class TestRunManagerSystemTests {
     @Test
     public void testEndToEndBVS() throws InterruptedException {
         
-        SseModel model = createModel(SseModel.BVS, SERVER_NAME, PROJECT, PORT, 1015);
+        SseModel model = createModel(SseModel.BVS, SERVER_NAME, PROJECT, PORT, BVS_ID);
         Args args = new ArgsFactory().create(model);
         RestClient connection =
                 new RestClient(

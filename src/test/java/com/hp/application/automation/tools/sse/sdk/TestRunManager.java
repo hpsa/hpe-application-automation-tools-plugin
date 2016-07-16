@@ -12,7 +12,7 @@ import com.hp.application.automation.tools.sse.result.model.junit.JUnitTestCaseS
 import com.hp.application.automation.tools.sse.result.model.junit.Testcase;
 import com.hp.application.automation.tools.sse.result.model.junit.Testsuites;
 
-public class TestRunManager implements TestCase {
+public class TestRunManager extends TestCase {
     
     @Test
     public void testEndToEndBVS() throws InterruptedException {

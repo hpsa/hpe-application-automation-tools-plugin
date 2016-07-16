@@ -17,6 +17,9 @@
       </td>
       <td/>
     </tr>
+
+
+
     <f:entry title="Tests" field="fsTests">
         <f:expandableTextbox name="runfromfs.fsTests" value="${instance.runFromFileModel.fsTests}"/>
     </f:entry>
@@ -35,6 +38,33 @@
 				<f:textarea name="runfromfs.ignoreErrorStrings" value="${instance.runFromFileModel.ignoreErrorStrings}"  />
 			</f:entry>
     	</f:section>
-    </f:advanced> 
+    </f:advanced>
 
+    <!-- add MC server and app info starting -->
+     <f:advanced title="Mobile Center-Specific Settings">
+            <f:section title="Mobile Center Settings">
+                <f:entry title="MC Server" field="mcServerName">
+                    <select name="runfromfs.mcServerName">
+                        <j:forEach var="mcServer" items="${descriptor.mcServers}">
+                            <f:option selected="${mcServer.mcServerName==instance.mCServerSettingsModel.mcServerName}" value="${mcServer.mcServerName}">
+                                ${mcServer.mcServerName}
+                            </f:option>
+                        </j:forEach>
+                    </select>
+                </f:entry>
+                <f:entry title="User Name" field="fsUserName">
+                    <f:textbox name="runfromfs.fsUserName" value="${instance.runFromFileModel.fsUserName}"/>
+                </f:entry>
+                <f:entry title="Password" field="fsPassword">
+                    <f:password name="runfromfs.fsPassword" value="${instance.runFromFileModel.fsPassword}"/>
+                </f:entry>
+                <f:entry title="Application Path" field="fsAppPath">
+                    <f:textbox name="runfromfs.fsAppPath" value="${instance.runFromFileModel.fsAppPath}"/>
+                </f:entry>
+                <f:entry title="Application Parameter Name" field="fsAppParamName">
+                        <f:textbox name="runfromfs.fsAppParamName" value="${instance.runFromFileModel.fsAppParamName}"/>
+                </f:entry>
+            </f:section>
+        </f:advanced>
+    <!-- end -->
 </j:jelly>

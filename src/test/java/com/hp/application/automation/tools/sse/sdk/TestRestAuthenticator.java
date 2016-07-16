@@ -1,19 +1,18 @@
 package com.hp.application.automation.tools.sse.sdk;
 
+import com.hp.application.automation.tools.rest.RestClient;
+import com.hp.application.automation.tools.sse.common.ConsoleLogger;
+import com.hp.application.automation.tools.sse.common.TestCase;
+import org.junit.Assert;
+import org.junit.Test;
+
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Assert;
-import org.junit.Test;
-
-import com.hp.application.automation.tools.rest.RestClient;
-import com.hp.application.automation.tools.sse.common.ConsoleLogger;
-import com.hp.application.automation.tools.sse.common.TestCase;
-
-public class TestRestAuthenticator implements TestCase {
+public class TestRestAuthenticator extends TestCase {
     
     @Test
     public void testLogin_alreadyAuthenticated() {

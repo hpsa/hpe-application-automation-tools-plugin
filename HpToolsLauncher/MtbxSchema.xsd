@@ -5,7 +5,9 @@
       <xs:enumeration value="String" />
       <xs:enumeration value="Any" />
       <xs:enumeration value="Boolean" />
+      <xs:enumeration value="Bool" />
       <xs:enumeration value="Int" />
+      <xs:enumeration value="Integer" />
       <xs:enumeration value="Number" />
       <xs:enumeration value="Password" />
       <xs:enumeration value="DateTime" />
@@ -13,6 +15,21 @@
       <xs:enumeration value="Long" />
       <xs:enumeration value="Double" />
       <xs:enumeration value="Decimal" />
+      <xs:enumeration value="float" />
+      <xs:enumeration value="string" />
+      <xs:enumeration value="any" />
+      <xs:enumeration value="boolean" />
+      <xs:enumeration value="bool" />
+      <xs:enumeration value="int" />
+      <xs:enumeration value="integer" />
+      <xs:enumeration value="number" />
+      <xs:enumeration value="password" />
+      <xs:enumeration value="dateTime" />
+      <xs:enumeration value="datetime" />
+      <xs:enumeration value="date" />
+      <xs:enumeration value="long" />
+      <xs:enumeration value="double" />
+      <xs:enumeration value="decimal" />
     </xs:restriction>
   </xs:simpleType>
 

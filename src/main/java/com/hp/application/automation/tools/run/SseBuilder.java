@@ -1,17 +1,5 @@
 package com.hp.application.automation.tools.run;
 
-import hudson.Extension;
-import hudson.FilePath;
-import hudson.Launcher;
-import hudson.model.BuildListener;
-import hudson.model.Result;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.Hudson;
-import hudson.tasks.BuildStepDescriptor;
-import hudson.tasks.Builder;
-import hudson.util.FormValidation;
-
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.StringWriter;
@@ -37,6 +25,15 @@ import com.hp.application.automation.tools.sse.result.model.junit.Testcase;
 import com.hp.application.automation.tools.sse.result.model.junit.Testsuite;
 import com.hp.application.automation.tools.sse.result.model.junit.Testsuites;
 import com.hp.application.automation.tools.sse.sdk.Logger;
+
+import hudson.Extension;
+import hudson.FilePath;
+import hudson.Launcher;
+import hudson.model.*;
+import hudson.tasks.BuildStepDescriptor;
+import hudson.tasks.Builder;
+import hudson.util.FormValidation;
+import hudson.util.VariableResolver;
 
 /***
  * This Jenkins plugin contains an unofficial implementation of some of the elements of the HP ALM
@@ -97,7 +94,7 @@ public class SseBuilder extends Builder {
         Result resultStatus = Result.FAILURE;
         _sseModel.setAlmServerUrl(getServerUrl(_sseModel.getAlmServerName()));
         PrintStream logger = listener.getLogger();
-        Testsuites testsuites = execute(build, logger);
+        Testsuites testsuites = execute(build, logger, build.getBuildVariableResolver());
         
         FilePath resultsFilePath = build.getWorkspace().child(getFileName());
         resultStatus = createRunResults(resultsFilePath, testsuites, logger);
@@ -130,13 +127,16 @@ public class SseBuilder extends Builder {
         
     }
     
-    private Testsuites execute(AbstractBuild<?, ?> build, PrintStream logger) throws InterruptedException {
+    private Testsuites execute(
+            AbstractBuild<?, ?> build,
+            PrintStream logger,
+            VariableResolver<String> buildVariableResolver) throws InterruptedException {
         
         Testsuites ret = null;
         SSEBuilderPerformer performer = null;
         try {
             performer = new SSEBuilderPerformer();
-            ret = execute(performer, logger);
+            ret = execute(performer, logger, buildVariableResolver);
         } catch (InterruptedException e) {
             build.setResult(Result.ABORTED);
             stop(performer, logger);
@@ -210,8 +210,11 @@ public class SseBuilder extends Builder {
         }
     }
     
-    private Testsuites execute(SSEBuilderPerformer performer, final PrintStream logger)
-            throws InterruptedException, IOException {
+    private Testsuites execute(
+            SSEBuilderPerformer performer,
+            final PrintStream logger,
+            VariableResolver<String> buildVariableResolver) throws InterruptedException,
+            IOException {
         
         return performer.start(_sseModel, new Logger() {
             
@@ -220,7 +223,7 @@ public class SseBuilder extends Builder {
                 
                 logger.println(message);
             }
-        });
+        }, buildVariableResolver);
     }
     
     public String getServerUrl(String almServerName) {

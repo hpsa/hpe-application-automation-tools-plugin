@@ -32,7 +32,7 @@ namespace HpToolsAborter
         {
             try
             {
-                if (args == null)
+                if (args == null || args.Length ==0)
                 {
                     Console.Out.WriteLine("Usage: HpToolsAborter paramfile");
                     return;
@@ -151,8 +151,22 @@ namespace HpToolsAborter
             {
                 KillProcess(remoteAgent);
             }
+            // new remote agent
+            remoteAgent = Process.GetProcessesByName("UFTRemoteAgent").FirstOrDefault();
+            if (remoteAgent != null)
+            {
+                KillProcess(remoteAgent);
+            }
 
             KillQtpAutomationProcess();
+
+            //some how if run from ALM, use the above method cannot stop uft.exe
+            var uft = Process.GetProcessesByName("UFT").FirstOrDefault();
+            if (uft != null)
+            {
+                Console.Out.WriteLine(string.Format("begin to kill uft.exe"));
+                KillProcess(uft);
+            }
         }
 
         private static void KillServiceTestFromAlm()

@@ -6,6 +6,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using HpToolsLauncher.Properties;
 
 namespace HpToolsLauncher
@@ -102,14 +103,17 @@ namespace HpToolsLauncher
             }
 
             //write the input parameter xml file for the API test
-            string paramsFile = Path.GetTempFileName();
+            string paramFileName = Guid.NewGuid().ToString().Replace("-", string.Empty).Substring(0, 10);
+            string tempPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "TestParams");
+            Directory.CreateDirectory(tempPath);
+            string paramsFilePath = Path.Combine(tempPath, "params" + paramFileName + ".xml");
             string paramFileContent = testinf.GenerateAPITestXmlForTest();
 
             string argumentString = "";
             if (!string.IsNullOrWhiteSpace(paramFileContent))
             {
-                File.WriteAllText(paramsFile, paramFileContent);
-                argumentString = String.Format("{0} \"{1}\" {2} \"{3}\" {4} \"{5}\"", STRunnerTestArg, testinf.TestPath, STRunnerReportArg, runDesc.ReportLocation, STRunnerInputParamsArg, paramsFile);
+                File.WriteAllText(paramsFilePath, paramFileContent);
+                argumentString = String.Format("{0} \"{1}\" {2} \"{3}\" {4} \"{5}\"", STRunnerTestArg, testinf.TestPath, STRunnerReportArg, runDesc.ReportLocation, STRunnerInputParamsArg, paramsFilePath);
             }
             else
             {
@@ -129,13 +133,13 @@ namespace HpToolsLauncher
             else
             {
                 runDesc.ReportLocation = Path.Combine(runDesc.ReportLocation, "Report");
-                if (!File.Exists(Path.Combine(runDesc.ReportLocation, "Results.xml")))
+                if (!File.Exists(Path.Combine(runDesc.ReportLocation, "Results.xml")) && !File.Exists(Path.Combine(runDesc.ReportLocation, "run_results.html")))
                 {
                     runDesc.TestState = TestState.Error;
-                    runDesc.ErrorDesc = "No Results.xml file found";
+                    runDesc.ErrorDesc = "No Results.xml or run_results.html file found";
                 }
             }
-
+			//File.Delete(paramsFilePath);
             runDesc.Runtime = s.Elapsed;
             return runDesc;
         }
