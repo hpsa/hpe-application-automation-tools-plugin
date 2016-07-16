@@ -41,8 +41,9 @@ public class PerformanceProjectAction implements Action{
             return;
         }
 
+        _workedBuilds = new ArrayList<Integer>(); //TODO: remove after testing!
 
-        RunList<? extends Run> projectBuilds = currentProject.getBuilds().completedOnly();
+        RunList<? extends Run> projectBuilds = currentProject.getBuilds();
 
 //        updateLastBuild();
 
@@ -51,6 +52,11 @@ public class PerformanceProjectAction implements Action{
             if (performanceJobReportAction == null) {
                 continue;
             }
+            if(run.isBuilding())
+            {
+                continue;
+            }
+
             if(_workedBuilds.contains(run.getNumber()))
             {
                 continue;
@@ -127,7 +133,7 @@ public class PerformanceProjectAction implements Action{
 
            graphDataSet.put("labels", labels);
 
-            dataset.put("label", LrTest.SLA_GOAL.TotalHits.toString());
+            dataset.put("label", LrTest.SLA_GOAL.TotalHits + " of scenario " + scenarioResults.getKey().toString());
             dataset.put("fillColor", "rgba(220,220,220,0.2)");
             dataset.put("strokeColor", "rgba(220,220,220,1)");
             dataset.put("pointColor", "rgba(220,220,220,1)");
@@ -145,6 +151,103 @@ public class PerformanceProjectAction implements Action{
         }
        return scenarionGraphData;
     }
+
+    @JavaScriptMethod
+    public JSONObject getAvgHitsPerSecGraphData()
+    {
+        JSONObject graphDataSet;
+        JSONObject scenarionGraphData = new JSONObject();
+
+        for(Map.Entry<String, LrProjectScenarioResults> scenarioResults: _projectResult.getLrScenarioResults().entrySet() ) {
+            Map<Integer, WholeRunResult> graphData = scenarioResults.getValue().averageHitsPerSecondResults;
+
+            graphDataSet = new JSONObject();
+
+            JSONArray labels = new JSONArray();
+            JSONArray datasets = new JSONArray();
+            JSONObject dataset = new JSONObject();
+            JSONArray data = new JSONArray();
+            JSONObject datasetStyle = new JSONObject();
+
+            labels.addAll(graphData.keySet());
+
+            String goalValue = String.valueOf(graphData.values().iterator().next().getGoalValue());
+            for( WholeRunResult result : graphData.values())
+            {
+                data.add(result.getActualValue());
+            }
+
+//            graphDataSet.put("Goal", goalValue);
+
+            graphDataSet.put("labels", labels);
+
+            dataset.put("label", LrTest.SLA_GOAL.AverageHitsPerSecond);
+            dataset.put("fillColor", "rgba(220,220,21,0.2)");
+            dataset.put("strokeColor", "rgba(220,42,220,1)");
+            dataset.put("pointColor", "rgba(34,220,220,1)");
+            dataset.put("pointStrokeColor", "#fff");
+            dataset.put("pointHighlightFill", "#fff");
+            dataset.put("pointHighlightStroke", "rgba(220,158,220,0.2)");
+
+            dataset.put("data", data);
+            datasets.add(dataset);
+            graphDataSet.put("datasets", datasets);
+            scenarionGraphData.put(scenarioResults.getKey(), graphDataSet);
+
+            return graphDataSet;
+
+        }
+        return scenarionGraphData;
+    }
+
+    @JavaScriptMethod
+    public JSONObject getTotalThroughputGraphData()
+    {
+        JSONObject graphDataSet;
+        JSONObject scenarionGraphData = new JSONObject();
+
+        for(Map.Entry<String, LrProjectScenarioResults> scenarioResults: _projectResult.getLrScenarioResults().entrySet() ) {
+            Map<Integer, WholeRunResult> graphData = scenarioResults.getValue().totalThroughtputResutls;
+
+            graphDataSet = new JSONObject();
+
+            JSONArray labels = new JSONArray();
+            JSONArray datasets = new JSONArray();
+            JSONObject dataset = new JSONObject();
+            JSONArray data = new JSONArray();
+            JSONObject datasetStyle = new JSONObject();
+
+            labels.addAll(graphData.keySet());
+
+            String goalValue = String.valueOf(graphData.values().iterator().next().getGoalValue());
+            for( WholeRunResult result : graphData.values())
+            {
+                data.add(result.getActualValue());
+            }
+
+//            graphDataSet.put("Goal", goalValue);
+
+            graphDataSet.put("labels", labels);
+
+            dataset.put("label", LrTest.SLA_GOAL.AverageHitsPerSecond);
+            dataset.put("fillColor", "rgba(220,220,21,0.2)");
+            dataset.put("strokeColor", "rgba(220,42,220,1)");
+            dataset.put("pointColor", "rgba(34,220,220,1)");
+            dataset.put("pointStrokeColor", "#fff");
+            dataset.put("pointHighlightFill", "#fff");
+            dataset.put("pointHighlightStroke", "rgba(220,158,220,0.2)");
+
+            dataset.put("data", data);
+            datasets.add(dataset);
+            graphDataSet.put("datasets", datasets);
+            scenarionGraphData.put(scenarioResults.getKey(), graphDataSet);
+
+            return graphDataSet;
+
+        }
+        return scenarionGraphData;
+    }
+
 
     public List<String> getBuildPerformanceReportList(){
 //        this.buildPerformanceReportList = new ArrayList<String>(0);
