@@ -4,8 +4,8 @@ import com.hp.octane.integrations.dto.DTOBase;
 
 /**
  * Created by gullery on 08/01/2016.
- * <p>
- * NGA Server configuration descriptor
+ * <p/>
+ * Octane Server configuration descriptor
  */
 
 public interface OctaneConfiguration extends DTOBase {

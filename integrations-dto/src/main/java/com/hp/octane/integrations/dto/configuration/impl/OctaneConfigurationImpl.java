@@ -8,7 +8,7 @@ import java.net.URL;
 /**
  * Created by gullery on 08/01/2016.
  * <p/>
- * NGA Server configuration descriptor
+ * Octane Server configuration descriptor
  */
 
 class OctaneConfigurationImpl implements OctaneConfiguration {
