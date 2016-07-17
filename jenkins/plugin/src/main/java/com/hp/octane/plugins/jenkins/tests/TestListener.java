@@ -3,7 +3,6 @@
 package com.hp.octane.plugins.jenkins.tests;
 
 import com.google.inject.Inject;
-import com.hp.nga.integrations.dto.snapshots.CIBuildResult;
 import com.hp.octane.plugins.jenkins.model.processors.projects.AbstractProjectProcessor;
 import com.hp.octane.plugins.jenkins.tests.build.BuildHandlerUtils;
 import com.hp.octane.plugins.jenkins.tests.gherkin.GherkinTestResultsCollector;

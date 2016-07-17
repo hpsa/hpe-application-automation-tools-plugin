@@ -2,11 +2,11 @@ package com.hp.nga.integrations.services;
 
 import com.hp.nga.integrations.SDKManager;
 import com.hp.nga.integrations.api.TestsService;
-import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.connectivity.NGAHttpMethod;
-import com.hp.nga.integrations.dto.connectivity.NGARequest;
-import com.hp.nga.integrations.dto.connectivity.NGAResponse;
-import com.hp.nga.integrations.dto.tests.TestsResult;
+import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.connectivity.HttpMethod;
+import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
+import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.hp.octane.integrations.dto.tests.TestsResult;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -36,21 +36,21 @@ class TestsServiceImpl implements TestsService {
 		activate();
 	}
 
-	public NGAResponse pushTestsResult(TestsResult testsResult) throws IOException {
+	public OctaneResponse pushTestsResult(TestsResult testsResult) throws IOException {
 		if (testsResult == null) {
 			throw new IllegalArgumentException("tests result MUST NOT be null");
 		}
 
-		NGARestClient restClient = sdk.getInternalService(NGARestService.class).obtainClient();
+		OctaneRestClient restClient = sdk.getInternalService(OctaneRestService.class).obtainClient();
 		Map<String, String> headers = new HashMap<String, String>();
 		headers.put("content-type", "application/xml");
-		NGARequest request = dtoFactory.newDTO(NGARequest.class)
-				.setMethod(NGAHttpMethod.POST)
-				.setUrl(sdk.getCIPluginServices().getNGAConfiguration().getUrl() + "/internal-api/shared_spaces/" +
-						sdk.getCIPluginServices().getNGAConfiguration().getSharedSpace() + "/analytics/ci/test-results?skip-errors=false")
+		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
+				.setMethod(HttpMethod.POST)
+				.setUrl(sdk.getCIPluginServices().getOctaneConfiguration().getUrl() + "/internal-api/shared_spaces/" +
+						sdk.getCIPluginServices().getOctaneConfiguration().getSharedSpace() + "/analytics/ci/test-results?skip-errors=false")
 				.setHeaders(headers)
 				.setBody(dtoFactory.dtoToXml(testsResult));
-		NGAResponse response = restClient.execute(request);
+		OctaneResponse response = restClient.execute(request);
 		logger.info("tests result pushed with " + response);
 		return response;
 	}
@@ -70,7 +70,7 @@ class TestsServiceImpl implements TestsService {
 									try {
 										BuildNode buildNode = buildList.get(0);
 										TestsResult testsResult = sdk.getCIPluginServices().getTestsResult(buildNode.jobId, buildNode.buildNumber);
-										NGAResponse response = pushTestsResult(testsResult);
+										OctaneResponse response = pushTestsResult(testsResult);
 										if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
 											logger.info("Push test result was successful");
 											buildList.remove(0);

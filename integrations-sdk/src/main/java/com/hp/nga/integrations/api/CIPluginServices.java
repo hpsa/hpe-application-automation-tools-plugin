@@ -1,21 +1,21 @@
 package com.hp.nga.integrations.api;
 
-import com.hp.nga.integrations.dto.configuration.CIProxyConfiguration;
-import com.hp.nga.integrations.dto.general.CIPluginInfo;
-import com.hp.nga.integrations.dto.general.CIServerInfo;
-import com.hp.nga.integrations.dto.pipelines.BuildHistory;
-import com.hp.nga.integrations.dto.pipelines.PipelineNode;
-import com.hp.nga.integrations.dto.general.CIJobsList;
-import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
-import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
-import com.hp.nga.integrations.dto.tests.TestsResult;
+import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
+import com.hp.octane.integrations.dto.general.CIPluginInfo;
+import com.hp.octane.integrations.dto.general.CIServerInfo;
+import com.hp.octane.integrations.dto.pipelines.BuildHistory;
+import com.hp.octane.integrations.dto.pipelines.PipelineNode;
+import com.hp.octane.integrations.dto.general.CIJobsList;
+import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
+import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
+import com.hp.octane.integrations.dto.tests.TestsResult;
 
 import java.io.File;
 
 /**
  * Created by gullery on 20/01/2016.
  * <p/>
- * Composite API of all the endpoints to be implemented by a hosting CI Plugin for NGA use cases
+ * Composite API of all the endpoints to be implemented by a hosting CI Plugin for Octane use cases
  */
 
 public interface CIPluginServices {
@@ -39,14 +39,14 @@ public interface CIPluginServices {
 	 *
 	 * @return File object of type Directory; if no available storage exists the implementation should return NULL
 	 */
-	File getAllowedNGAStorage();
+	File getAllowedOctaneStorage();
 
 	/**
-	 * Provides NGA Server configuration (managed by plugin implementation)
+	 * Provides Octane Server configuration (managed by plugin implementation)
 	 *
-	 * @return NGAConfiguration object; if no configuration available the implementation should return NULL
+	 * @return OctaneConfiguration object; if no configuration available the implementation should return NULL
 	 */
-	NGAConfiguration getNGAConfiguration();
+	OctaneConfiguration getOctaneConfiguration();
 
 	/**
 	 * Provides CI Server proxy configuration (managed by plugin implementation)

@@ -2,11 +2,11 @@ package com.hp.octane.plugins.jetbrains.teamcity.events;
 
 import com.hp.nga.integrations.SDKManager;
 import com.hp.nga.integrations.api.EventsService;
-import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.causes.CIEventCause;
-import com.hp.nga.integrations.dto.causes.CIEventCauseType;
-import com.hp.nga.integrations.dto.events.CIEvent;
-import com.hp.nga.integrations.dto.events.CIEventType;
+import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.causes.CIEventCause;
+import com.hp.octane.integrations.dto.causes.CIEventCauseType;
+import com.hp.octane.integrations.dto.events.CIEvent;
+import com.hp.octane.integrations.dto.events.CIEventType;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelCommonFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ParametersFactory;

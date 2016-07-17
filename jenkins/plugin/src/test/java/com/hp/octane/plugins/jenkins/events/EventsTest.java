@@ -3,7 +3,7 @@ package com.hp.octane.plugins.jenkins.events;
 import com.gargoylesoftware.htmlunit.HttpMethod;
 import com.gargoylesoftware.htmlunit.WebRequestSettings;
 import com.gargoylesoftware.htmlunit.WebResponse;
-import com.hp.nga.integrations.dto.events.CIEventType;
+import com.hp.octane.integrations.dto.events.CIEventType;
 import com.hp.octane.plugins.jenkins.ExtensionUtil;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import hudson.model.FreeStyleProject;

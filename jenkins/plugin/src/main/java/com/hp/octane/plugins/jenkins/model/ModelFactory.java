@@ -1,12 +1,15 @@
 package com.hp.octane.plugins.jenkins.model;
 
-import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.parameters.CIParameter;
-import com.hp.nga.integrations.dto.parameters.CIParameterType;
-import com.hp.nga.integrations.dto.pipelines.BuildHistory;
-import com.hp.nga.integrations.dto.pipelines.PipelineNode;
-import com.hp.nga.integrations.dto.pipelines.PipelinePhase;
-import com.hp.nga.integrations.dto.snapshots.*;
+import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.parameters.CIParameter;
+import com.hp.octane.integrations.dto.parameters.CIParameterType;
+import com.hp.octane.integrations.dto.pipelines.BuildHistory;
+import com.hp.octane.integrations.dto.pipelines.PipelineNode;
+import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
+import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
+import com.hp.octane.integrations.dto.snapshots.CIBuildStatus;
+import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
+import com.hp.octane.integrations.dto.snapshots.SnapshotPhase;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import com.hp.octane.plugins.jenkins.model.processors.projects.AbstractProjectProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessor;

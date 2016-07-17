@@ -1,20 +1,20 @@
 package com.hp.octane.plugins.jetbrains.teamcity;
 
 import com.hp.nga.integrations.api.CIPluginServices;
-import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.configuration.CIProxyConfiguration;
-import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
-import com.hp.nga.integrations.dto.general.CIJobsList;
-import com.hp.nga.integrations.dto.general.CIPluginInfo;
-import com.hp.nga.integrations.dto.general.CIServerInfo;
-import com.hp.nga.integrations.dto.general.CIServerTypes;
-import com.hp.nga.integrations.dto.pipelines.BuildHistory;
-import com.hp.nga.integrations.dto.pipelines.PipelineNode;
-import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
-import com.hp.nga.integrations.dto.tests.BuildContext;
-import com.hp.nga.integrations.dto.tests.TestRun;
-import com.hp.nga.integrations.dto.tests.TestRunResult;
-import com.hp.nga.integrations.dto.tests.TestsResult;
+import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
+import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
+import com.hp.octane.integrations.dto.general.CIJobsList;
+import com.hp.octane.integrations.dto.general.CIPluginInfo;
+import com.hp.octane.integrations.dto.general.CIServerInfo;
+import com.hp.octane.integrations.dto.general.CIServerTypes;
+import com.hp.octane.integrations.dto.pipelines.BuildHistory;
+import com.hp.octane.integrations.dto.pipelines.PipelineNode;
+import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
+import com.hp.octane.integrations.dto.tests.BuildContext;
+import com.hp.octane.integrations.dto.tests.TestRun;
+import com.hp.octane.integrations.dto.tests.TestRunResult;
+import com.hp.octane.integrations.dto.tests.TestsResult;
 import com.hp.octane.plugins.jetbrains.teamcity.configuration.NGAConfigStructure;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelCommonFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.SnapshotsFactory;
@@ -73,16 +73,16 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 	}
 
 	@Override
-	public File getAllowedNGAStorage() {
+	public File getAllowedOctaneStorage() {
 		return null;
 	}
 
 	@Override
-	public NGAConfiguration getNGAConfiguration() {
-		NGAConfiguration result = null;
+	public OctaneConfiguration getOctaneConfiguration() {
+		OctaneConfiguration result = null;
 		NGAConfigStructure config = ngaPlugin.getConfig();
 		if (config != null && config.getLocation() != null && !config.getLocation().isEmpty() && config.getSharedSpace() != null) {
-			result = dtoFactory.newDTO(NGAConfiguration.class)
+			result = dtoFactory.newDTO(OctaneConfiguration.class)
 					.setUrl(config.getLocation())
 					.setSharedSpace(config.getSharedSpace())
 					.setApiKey(config.getUsername())

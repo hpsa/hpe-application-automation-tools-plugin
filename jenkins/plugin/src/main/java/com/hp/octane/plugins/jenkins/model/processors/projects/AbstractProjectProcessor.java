@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jenkins.model.processors.projects;
 
-import com.hp.nga.integrations.dto.pipelines.PipelinePhase;
+import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
 import com.hp.octane.plugins.jenkins.model.processors.builders.AbstractBuilderProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.builders.BuildTriggerProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.builders.MultiJobBuilderProcessor;
@@ -13,9 +13,7 @@ import org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder;
 import org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 import java.util.logging.Logger;
 
 /**

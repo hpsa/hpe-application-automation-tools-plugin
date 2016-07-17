@@ -1,10 +1,10 @@
 package com.hp.octane.plugins.jetbrains.teamcity.actions;
 
 import com.hp.nga.integrations.SDKManager;
-import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.connectivity.NGAHttpMethod;
-import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
-import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
+import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.connectivity.HttpMethod;
+import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
+import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
 import com.hp.nga.integrations.api.TasksProcessor;
 import jetbrains.buildServer.serverSide.SBuildServer;
 import org.jetbrains.annotations.NotNull;
@@ -29,24 +29,24 @@ public class GenericNGAActionsController implements Controller {
 	@Override
 	public ModelAndView handleRequest(HttpServletRequest req, HttpServletResponse res) throws Exception {
 
-		NGAHttpMethod method = null;
+		HttpMethod method = null;
 		if ("post".equals(req.getMethod().toLowerCase())) {
-			method = NGAHttpMethod.POST;
+			method = HttpMethod.POST;
 		} else if ("get".equals(req.getMethod().toLowerCase())) {
-			method = NGAHttpMethod.GET;
+			method = HttpMethod.GET;
 		} else if ("put".equals(req.getMethod().toLowerCase())) {
-			method = NGAHttpMethod.PUT;
+			method = HttpMethod.PUT;
 		} else if ("delete".equals(req.getMethod().toLowerCase())) {
-			method = NGAHttpMethod.DELETE;
+			method = HttpMethod.DELETE;
 		}
 		if (method != null) {
-			NGATaskAbridged ngaTaskAbridged = dtoFactory.newDTO(NGATaskAbridged.class)
+			OctaneTaskAbridged octaneTaskAbridged = dtoFactory.newDTO(OctaneTaskAbridged.class)
 					.setId(UUID.randomUUID().toString())
 					.setMethod(method)
 					.setUrl(req.getRequestURI())
 					.setBody("");
 			TasksProcessor taskProcessor = SDKManager.getService(TasksProcessor.class);
-			NGAResultAbridged result = taskProcessor.execute(ngaTaskAbridged);
+			OctaneResultAbridged result = taskProcessor.execute(octaneTaskAbridged);
 			res.setStatus(result.getStatus());
 			try {
 				res.getWriter().write(result.getBody());

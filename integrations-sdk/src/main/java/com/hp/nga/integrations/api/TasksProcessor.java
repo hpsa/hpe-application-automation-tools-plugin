@@ -1,8 +1,8 @@
 package com.hp.nga.integrations.api;
 
 import com.hp.nga.integrations.SDKServicePublic;
-import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
-import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
+import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
+import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
 
 /**
  * Created by gullery on 17/08/2015.
@@ -19,5 +19,5 @@ public interface TasksProcessor extends SDKServicePublic {
 	 * @param task
 	 * @return
 	 */
-	NGAResultAbridged execute(NGATaskAbridged task);
+	OctaneResultAbridged execute(OctaneTaskAbridged task);
 }

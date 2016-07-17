@@ -1,9 +1,9 @@
 package com.hp.nga.integrations.api;
 
 import com.hp.nga.integrations.SDKServicePublic;
-import com.hp.nga.integrations.dto.configuration.CIProxyConfiguration;
-import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
-import com.hp.nga.integrations.dto.connectivity.NGAResponse;
+import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
+import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
+import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 
 import java.io.IOException;
 
@@ -17,7 +17,7 @@ public interface ConfigurationService extends SDKServicePublic {
 	 * @param secret
 	 * @return
 	 */
-	NGAConfiguration buildConfiguration(String rawUrl, String apiKey, String secret) throws IllegalArgumentException;
+	OctaneConfiguration buildConfiguration(String rawUrl, String apiKey, String secret) throws IllegalArgumentException;
 
 	/**
 	 * Tests connectivity to the NGA server with the supplied configuration
@@ -26,14 +26,14 @@ public interface ConfigurationService extends SDKServicePublic {
 	 * @return
 	 * @throws IOException in case of connection failure
 	 */
-	NGAResponse validateConfiguration(NGAConfiguration configuration) throws IOException;
+	OctaneResponse validateConfiguration(OctaneConfiguration configuration) throws IOException;
 
 	/**
 	 * Notify SDK notification on NGA configuration change
 	 *
 	 * @param newConfiguration
 	 */
-	void notifyChange(NGAConfiguration newConfiguration);
+	void notifyChange(OctaneConfiguration newConfiguration);
 
 	/**
 	 * Notify SDK about proxy configuration change of the hosting CI Server

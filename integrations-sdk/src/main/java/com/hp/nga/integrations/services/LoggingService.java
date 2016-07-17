@@ -27,7 +27,7 @@ final class LoggingService implements SDKServiceInternal {
 	}
 
 	private void configureLogger() {
-		File file = pluginServices.getAllowedNGAStorage();
+		File file = pluginServices.getAllowedOctaneStorage();
 		if (file != null && (file.isDirectory() || !file.exists())) {
 			synchronized (INIT_LOCKER) {
 				LoggerContext ctx = (LoggerContext) LogManager.getContext(false);

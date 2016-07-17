@@ -2,8 +2,8 @@ package com.hp.octane.plugins.jetbrains.teamcity.configuration;
 
 import com.hp.nga.integrations.SDKManager;
 import com.hp.nga.integrations.api.ConfigurationService;
-import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
-import com.hp.nga.integrations.dto.connectivity.NGAResponse;
+import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
+import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import jetbrains.buildServer.serverSide.SBuildServer;
 import org.apache.http.HttpStatus;
@@ -31,19 +31,19 @@ public class TCConfigurationService {
 	@Autowired
 	private NGAPlugin ngaPlugin;
 
-	public String checkConfiguration(NGAConfiguration ngaConfiguration) {
+	public String checkConfiguration(OctaneConfiguration octaneConfiguration) {
 		String resultMessage;
 
 		try {
-			NGAResponse result = SDKManager.getService(ConfigurationService.class).validateConfiguration(ngaConfiguration);
+			OctaneResponse result = SDKManager.getService(ConfigurationService.class).validateConfiguration(octaneConfiguration);
 			if (result.getStatus() == HttpStatus.SC_OK) {
 				resultMessage = "Connection succeeded";
 			} else if (result.getStatus() == HttpStatus.SC_UNAUTHORIZED) {
 				resultMessage = "Authentication failed";
 			} else if (result.getStatus() == HttpStatus.SC_FORBIDDEN) {
-				resultMessage = ngaConfiguration.getApiKey() + " not authorized to shared space " + ngaConfiguration.getSharedSpace();
+				resultMessage = octaneConfiguration.getApiKey() + " not authorized to shared space " + octaneConfiguration.getSharedSpace();
 			} else if (result.getStatus() == HttpStatus.SC_NOT_FOUND) {
-				resultMessage = "Shared space " + ngaConfiguration.getSharedSpace() + " not exists";
+				resultMessage = "Shared space " + octaneConfiguration.getSharedSpace() + " not exists";
 			} else {
 				resultMessage = "Validation failed for unknown reason; status code: " + result.getStatus();
 			}

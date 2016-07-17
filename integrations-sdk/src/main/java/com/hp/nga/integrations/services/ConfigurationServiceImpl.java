@@ -2,12 +2,12 @@ package com.hp.nga.integrations.services;
 
 import com.hp.nga.integrations.SDKManager;
 import com.hp.nga.integrations.api.ConfigurationService;
-import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.configuration.CIProxyConfiguration;
-import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
-import com.hp.nga.integrations.dto.connectivity.NGAHttpMethod;
-import com.hp.nga.integrations.dto.connectivity.NGARequest;
-import com.hp.nga.integrations.dto.connectivity.NGAResponse;
+import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
+import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
+import com.hp.octane.integrations.dto.connectivity.HttpMethod;
+import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
+import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.logging.log4j.LogManager;
@@ -37,8 +37,8 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 		this.sdk = sdk;
 	}
 
-	public NGAConfiguration buildConfiguration(String rawUrl, String apiKey, String secret) throws IllegalArgumentException {
-		NGAConfiguration result = null;
+	public OctaneConfiguration buildConfiguration(String rawUrl, String apiKey, String secret) throws IllegalArgumentException {
+		OctaneConfiguration result = null;
 		try {
 			String url;
 			long sharedSpaceId;
@@ -57,7 +57,7 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 						throw new IllegalArgumentException("shared space parameter MUST be present");
 					}
 					sharedSpaceId = Long.parseLong(sharedSpaceAndWorkspace[0]);
-					result = dtoFactory.newDTO(NGAConfiguration.class)
+					result = dtoFactory.newDTO(OctaneConfiguration.class)
 							.setUrl(url)
 							.setSharedSpace(sharedSpaceId)
 							.setApiKey(apiKey)
@@ -79,7 +79,7 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 		}
 	}
 
-	public NGAResponse validateConfiguration(NGAConfiguration configuration) throws IOException {
+	public OctaneResponse validateConfiguration(OctaneConfiguration configuration) throws IOException {
 		if (configuration == null) {
 			throw new IllegalArgumentException("configuration MUST not be null");
 		}
@@ -88,14 +88,14 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 		}
 
 		CIProxyConfiguration proxyConfiguration = sdk.getCIPluginServices().getProxyConfiguration(configuration.getUrl());
-		NGARestClient restClient = sdk.getInternalService(NGARestService.class).createClient(proxyConfiguration);
-		NGARequest request = dtoFactory.newDTO(NGARequest.class)
-				.setMethod(NGAHttpMethod.GET)
+		OctaneRestClient restClient = sdk.getInternalService(OctaneRestService.class).createClient(proxyConfiguration);
+		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
+				.setMethod(HttpMethod.GET)
 				.setUrl(configuration.getUrl() + "/" + SHARED_SPACES_API_URI + configuration.getSharedSpace() + "/workspaces");
 		return restClient.execute(request, configuration);
 	}
 
-	public void notifyChange(NGAConfiguration newConfiguration) {
+	public void notifyChange(OctaneConfiguration newConfiguration) {
 		//  TODO:
 		//  notify bridge service
 	}

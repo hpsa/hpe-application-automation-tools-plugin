@@ -1,7 +1,7 @@
 package com.hp.nga.integrations.api;
 
 import com.hp.nga.integrations.SDKServicePublic;
-import com.hp.nga.integrations.dto.events.CIEvent;
+import com.hp.octane.integrations.dto.events.CIEvent;
 
 public interface EventsService extends SDKServicePublic {
 

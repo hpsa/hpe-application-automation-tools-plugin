@@ -1,8 +1,8 @@
 package com.hp.nga.integrations.api;
 
 import com.hp.nga.integrations.SDKServicePublic;
-import com.hp.nga.integrations.dto.connectivity.NGAResponse;
-import com.hp.nga.integrations.dto.tests.TestsResult;
+import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.hp.octane.integrations.dto.tests.TestsResult;
 
 import java.io.IOException;
 
@@ -16,7 +16,7 @@ public interface TestsService extends SDKServicePublic {
 	 *
 	 * @param testsResult
 	 */
-	NGAResponse pushTestsResult(TestsResult testsResult) throws IOException;
+	OctaneResponse pushTestsResult(TestsResult testsResult) throws IOException;
 
 	/**
 	 * Enqueue push tests result by submitting build reference for future tests retrieval

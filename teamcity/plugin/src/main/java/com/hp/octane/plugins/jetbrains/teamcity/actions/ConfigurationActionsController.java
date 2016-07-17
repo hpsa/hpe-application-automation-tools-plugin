@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.nga.integrations.SDKManager;
 import com.hp.nga.integrations.api.ConfigurationService;
-import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
+import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.plugins.jetbrains.teamcity.configuration.NGAConfigStructure;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.configuration.TCConfigurationService;
@@ -48,12 +48,12 @@ public class ConfigurationActionsController implements Controller {
 				String url = httpServletRequest.getParameter("server");
 				String apiKey = httpServletRequest.getParameter("username1");
 				String secret = httpServletRequest.getParameter("password1");
-				NGAConfiguration ngaConfiguration = SDKManager.getService(ConfigurationService.class).buildConfiguration(url, apiKey, secret);
+				OctaneConfiguration octaneConfiguration = SDKManager.getService(ConfigurationService.class).buildConfiguration(url, apiKey, secret);
 
 				if (action.equals("test")) {
-					returnStr = configurationService.checkConfiguration(ngaConfiguration);
+					returnStr = configurationService.checkConfiguration(octaneConfiguration);
 				} else if (action.equals("save")) {
-					returnStr = updateConfiguration(ngaConfiguration, url);
+					returnStr = updateConfiguration(octaneConfiguration, url);
 				}
 			} catch (Exception e) {
 				returnStr = e.getMessage();
@@ -71,16 +71,16 @@ public class ConfigurationActionsController implements Controller {
 		return null;
 	}
 
-	public String updateConfiguration(NGAConfiguration ngaConfiguration, String originalUrl) {
+	public String updateConfiguration(OctaneConfiguration octaneConfiguration, String originalUrl) {
 		NGAConfigStructure cfg = ngaPlugin.getConfig();
 		cfg.setUiLocation(originalUrl);
-		cfg.setLocation(ngaConfiguration.getUrl());
-		cfg.setSharedSpace(ngaConfiguration.getSharedSpace());
-		cfg.setUsername(ngaConfiguration.getApiKey());
-		cfg.setSecretPassword(ngaConfiguration.getSecret());
+		cfg.setLocation(octaneConfiguration.getUrl());
+		cfg.setSharedSpace(octaneConfiguration.getSharedSpace());
+		cfg.setUsername(octaneConfiguration.getApiKey());
+		cfg.setSecretPassword(octaneConfiguration.getSecret());
 		configurationService.saveConfig(cfg);
 
-		SDKManager.getService(ConfigurationService.class).notifyChange(ngaConfiguration);
+		SDKManager.getService(ConfigurationService.class).notifyChange(octaneConfiguration);
 
 		return "Updated successfully";
 	}

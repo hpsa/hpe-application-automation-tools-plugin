@@ -2,12 +2,12 @@ package com.hp.nga.integrations.services;
 
 import com.hp.nga.integrations.SDKManager;
 import com.hp.nga.integrations.api.EventsService;
-import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.connectivity.NGAHttpMethod;
-import com.hp.nga.integrations.dto.connectivity.NGARequest;
-import com.hp.nga.integrations.dto.connectivity.NGAResponse;
-import com.hp.nga.integrations.dto.events.CIEvent;
-import com.hp.nga.integrations.dto.events.CIEventsList;
+import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.connectivity.HttpMethod;
+import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
+import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.hp.octane.integrations.dto.events.CIEvent;
+import com.hp.octane.integrations.dto.events.CIEventsList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -130,10 +130,10 @@ final class EventsServiceImpl implements EventsService {
 
 		try {
 			logger.info("sending " + eventsSnapshot.getEvents().size() + " event/s to '" + eventsSnapshot.getServer().getUrl() + "'...");
-			NGARequest request = createEventsRequest(eventsSnapshot);
-			NGAResponse response;
+			OctaneRequest request = createEventsRequest(eventsSnapshot);
+			OctaneResponse response;
 			while (failedRetries < MAX_SEND_RETRIES) {
-				response = sdk.getInternalService(NGARestService.class).obtainClient().execute(request);
+				response = sdk.getInternalService(OctaneRestService.class).obtainClient().execute(request);
 				if (response.getStatus() == 200) {
 					events.removeAll(eventsSnapshot.getEvents());
 					logger.info("... done, left to send " + events.size() + " events");
@@ -158,13 +158,13 @@ final class EventsServiceImpl implements EventsService {
 		return result;
 	}
 
-	private NGARequest createEventsRequest(CIEventsList events) {
+	private OctaneRequest createEventsRequest(CIEventsList events) {
 		Map<String, String> headers = new HashMap<String, String>();
 		headers.put("content-type", "application/json");
-		NGARequest request = dtoFactory.newDTO(NGARequest.class)
-				.setMethod(NGAHttpMethod.PUT)
-				.setUrl(sdk.getCIPluginServices().getNGAConfiguration().getUrl() + "/internal-api/shared_spaces/" +
-						sdk.getCIPluginServices().getNGAConfiguration().getSharedSpace() + "/analytics/ci/events")
+		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
+				.setMethod(HttpMethod.PUT)
+				.setUrl(sdk.getCIPluginServices().getOctaneConfiguration().getUrl() + "/internal-api/shared_spaces/" +
+						sdk.getCIPluginServices().getOctaneConfiguration().getSharedSpace() + "/analytics/ci/events")
 				.setHeaders(headers)
 				.setBody(dtoFactory.dtoToJson(events));
 		return request;

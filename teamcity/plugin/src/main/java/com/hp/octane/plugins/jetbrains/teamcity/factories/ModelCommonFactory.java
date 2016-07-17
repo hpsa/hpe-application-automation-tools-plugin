@@ -1,13 +1,10 @@
 package com.hp.octane.plugins.jetbrains.teamcity.factories;
 
-import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.general.CIJobsList;
-import com.hp.nga.integrations.dto.pipelines.PipelineNode;
-import com.hp.nga.integrations.dto.pipelines.PipelinePhase;
-import com.hp.nga.integrations.dto.snapshots.CIBuildResult;
-import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
-import com.hp.nga.integrations.dto.snapshots.SnapshotPhase;
-import com.hp.nga.integrations.dto.snapshots.CIBuildStatus;
+import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.general.CIJobsList;
+import com.hp.octane.integrations.dto.pipelines.PipelineNode;
+import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
+import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
 import jetbrains.buildServer.messages.Status;
 import jetbrains.buildServer.serverSide.*;

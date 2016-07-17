@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jenkins.model.processors.builders;
 
-import com.hp.nga.integrations.dto.pipelines.PipelinePhase;
+import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
 import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import hudson.model.AbstractProject;
 import hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig;

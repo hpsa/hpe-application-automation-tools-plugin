@@ -1,10 +1,10 @@
 package com.hp.octane.plugins.jenkins.events;
 
 import com.google.inject.Inject;
-import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.events.CIEvent;
-import com.hp.nga.integrations.dto.events.CIEventType;
-import com.hp.nga.integrations.dto.snapshots.CIBuildResult;
+import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.events.CIEvent;
+import com.hp.octane.integrations.dto.events.CIEventType;
+import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
 import com.hp.octane.plugins.jenkins.model.CIEventCausesFactory;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessor;
@@ -18,8 +18,6 @@ import hudson.model.*;
 import hudson.model.listeners.RunListener;
 
 import javax.annotation.Nonnull;
-import javax.servlet.ServletException;
-import java.io.IOException;
 import java.util.List;
 
 /**
