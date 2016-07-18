@@ -56,8 +56,8 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 
 	// deprecated, replaced by secretPassword
 	private String password;
-	public final CIPluginServices jenkinsPluginServices = new CIJenkinsServicesImpl();
-	private OctaneSDK octaneSDK;
+	transient public final CIPluginServices jenkinsPluginServices = new CIJenkinsServicesImpl();
+	transient private OctaneSDK octaneSDK;
 
 	public String getIdentity() {
 		return identity;
