@@ -1,14 +1,15 @@
-package com.hp.nga.integrations.services;
+package com.hp.octane.integrations.services.rest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hp.octane.integrations.api.CIPluginServices;
+import com.hp.octane.integrations.api.RestClient;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
-import com.hp.nga.integrations.SDKManager;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -67,8 +68,8 @@ import java.util.Set;
  * REST Client default implementation
  */
 
-final class OctaneRestClient {
-	private static final Logger logger = LogManager.getLogger(OctaneRestClient.class);
+final class RestClientImpl implements RestClient {
+	private static final Logger logger = LogManager.getLogger(RestClientImpl.class);
 	private static final Set<Integer> AUTHENTICATION_ERROR_CODES;
 	private static final String CLIENT_TYPE_HEADER = "HPECLIENTTYPE";
 	private static final String CLIENT_TYPE_VALUE = "HPE_CI_CLIENT";
@@ -77,10 +78,8 @@ final class OctaneRestClient {
 	private static final String CSRF_HEADER_NAME = "HPSSO_HEADER_CSRF";
 
 	private static final String AUTHENTICATION_URI = "authentication/sign_in";
-	private static final String AUTHENTICATION_HEADER = "Authorization";
-	private static final String AUTHENTICATION_BASIC_PREFIX = "Basic ";
 
-	private final SDKManager sdk;
+	private final CIPluginServices pluginServices;
 	private final CloseableHttpClient httpClient;
 	private int MAX_TOTAL_CONNECTIONS = 20;
 	private CookieStore cookieStore;
@@ -92,8 +91,8 @@ final class OctaneRestClient {
 		AUTHENTICATION_ERROR_CODES.add(HttpStatus.SC_UNAUTHORIZED);
 	}
 
-	OctaneRestClient(SDKManager sdk, CIProxyConfiguration proxyConfiguration) {
-		this.sdk = sdk;
+	RestClientImpl(CIPluginServices pluginServices, CIProxyConfiguration proxyConfiguration) {
+		this.pluginServices = pluginServices;
 
 		SSLContext sslContext = SSLContexts.createSystemDefault();
 		HostnameVerifier hostnameVerifier = new CustomHostnameVerifier();
@@ -132,11 +131,11 @@ final class OctaneRestClient {
 		httpClient = clientBuilder.build();
 	}
 
-	OctaneResponse execute(OctaneRequest request) throws IOException {
-		return executeRequest(request, sdk.getCIPluginServices().getOctaneConfiguration());
+	public OctaneResponse execute(OctaneRequest request) throws IOException {
+		return executeRequest(request, pluginServices.getOctaneConfiguration());
 	}
 
-	OctaneResponse execute(OctaneRequest request, OctaneConfiguration configuration) throws IOException {
+	public OctaneResponse execute(OctaneRequest request, OctaneConfiguration configuration) throws IOException {
 		return executeRequest(request, configuration);
 	}
 

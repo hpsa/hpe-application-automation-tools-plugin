@@ -1,7 +1,6 @@
 package com.hp.octane.plugins.jetbrains.teamcity.configuration;
 
-import com.hp.nga.integrations.SDKManager;
-import com.hp.nga.integrations.api.ConfigurationService;
+import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
@@ -25,6 +24,7 @@ import java.util.logging.Logger;
 //  [YG] TODO: move the storage of the configuration to permanent location
 public class TCConfigurationService {
 	private static final Logger logger = Logger.getLogger(TCConfigurationService.class.getName());
+	private static final OctaneSDK octaneSDK = OctaneSDK.getInstance();
 
 	@Autowired
 	private SBuildServer buildServer;
@@ -35,7 +35,7 @@ public class TCConfigurationService {
 		String resultMessage;
 
 		try {
-			OctaneResponse result = SDKManager.getService(ConfigurationService.class).validateConfiguration(octaneConfiguration);
+			OctaneResponse result = octaneSDK.getConfigurationService().validateConfiguration(octaneConfiguration);
 			if (result.getStatus() == HttpStatus.SC_OK) {
 				resultMessage = "Connection succeeded";
 			} else if (result.getStatus() == HttpStatus.SC_UNAUTHORIZED) {

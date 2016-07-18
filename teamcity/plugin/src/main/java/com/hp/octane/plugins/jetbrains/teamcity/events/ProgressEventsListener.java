@@ -1,7 +1,6 @@
 package com.hp.octane.plugins.jetbrains.teamcity.events;
 
-import com.hp.nga.integrations.SDKManager;
-import com.hp.nga.integrations.api.EventsService;
+import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.causes.CIEventCause;
 import com.hp.octane.integrations.dto.causes.CIEventCauseType;
@@ -26,6 +25,7 @@ import java.util.List;
 
 public class ProgressEventsListener extends BuildServerAdapter {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+	private static final OctaneSDK octaneSDK = OctaneSDK.getInstance();
 	private static final String TRIGGER_BUILD_TYPE_KEY = "buildTypeId";
 
 	@Autowired
@@ -50,7 +50,7 @@ public class ProgressEventsListener extends BuildServerAdapter {
 					.setProject(queuedBuild.getBuildType().getExternalId())
 					.setProjectDisplayName(queuedBuild.getBuildType().getName())
 					.setCauses(new ArrayList<CIEventCause>());
-			SDKManager.getService(EventsService.class).publishEvent(event);
+			octaneSDK.getEventsService().publishEvent(event);
 		}
 	}
 
@@ -77,7 +77,7 @@ public class ProgressEventsListener extends BuildServerAdapter {
 				.setCauses(causes)
 				.setStartTime(build.getStartDate().getTime())
 				.setEstimatedDuration(build.getDurationEstimate() * 1000);
-		SDKManager.getService(EventsService.class).publishEvent(event);
+		octaneSDK.getEventsService().publishEvent(event);
 	}
 
 	@Override
@@ -105,7 +105,7 @@ public class ProgressEventsListener extends BuildServerAdapter {
 				.setEstimatedDuration(build.getDurationEstimate() * 1000)
 				.setDuration(build.getDuration() * 1000)
 				.setResult(modelCommonFactory.resultFromNativeStatus(build.getBuildStatus()));
-		SDKManager.getService(EventsService.class).publishEvent(event);
+		octaneSDK.getEventsService().publishEvent(event);
 	}
 
 	private SQueuedBuild getTriggerBuild(String triggerBuildTypeId) {

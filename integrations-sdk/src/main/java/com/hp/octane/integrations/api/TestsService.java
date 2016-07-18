@@ -1,12 +1,11 @@
-package com.hp.nga.integrations.api;
+package com.hp.octane.integrations.api;
 
-import com.hp.nga.integrations.SDKServicePublic;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.tests.TestsResult;
 
 import java.io.IOException;
 
-public interface TestsService extends SDKServicePublic {
+public interface TestsService {
 
 	/**
 	 * Publishes CI Event to the NGA server

@@ -1,9 +1,8 @@
-package com.hp.nga.integrations.api;
+package com.hp.octane.integrations.api;
 
-import com.hp.nga.integrations.SDKServicePublic;
 import com.hp.octane.integrations.dto.events.CIEvent;
 
-public interface EventsService extends SDKServicePublic {
+public interface EventsService {
 
 	/**
 	 * Publishes CI Event to the NGA server

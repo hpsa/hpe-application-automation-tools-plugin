@@ -1,13 +1,12 @@
-package com.hp.nga.integrations.api;
+package com.hp.octane.integrations.api;
 
-import com.hp.nga.integrations.SDKServicePublic;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 
 import java.io.IOException;
 
-public interface ConfigurationService extends SDKServicePublic {
+public interface ConfigurationService {
 
 	/**
 	 * Builds configuration object from raw data, usually supplied from UI or storage

@@ -1,7 +1,9 @@
-package com.hp.nga.integrations.services;
+package com.hp.octane.integrations.services.configuration;
 
-import com.hp.nga.integrations.SDKManager;
-import com.hp.nga.integrations.api.ConfigurationService;
+import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.SDKService;
+import com.hp.octane.integrations.api.ConfigurationService;
+import com.hp.octane.integrations.api.RestClient;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
@@ -25,16 +27,15 @@ import java.util.List;
  * Base implementation of Configuration Service API
  */
 
-final class ConfigurationServiceImpl implements ConfigurationService {
+public final class ConfigurationServiceImpl extends SDKService implements ConfigurationService {
 	private static final Logger logger = LogManager.getLogger(ConfigurationServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String SHARED_SPACES_API_URI = "api/shared_spaces/";
 	private static final String UI_CONTEXT_PATH = "/ui";
 	private static final String PARAM_SHARED_SPACE = "p";
-	private final SDKManager sdk;
 
-	ConfigurationServiceImpl(SDKManager sdk) {
-		this.sdk = sdk;
+	public ConfigurationServiceImpl(Object configurator) {
+		super(configurator);
 	}
 
 	public OctaneConfiguration buildConfiguration(String rawUrl, String apiKey, String secret) throws IllegalArgumentException {
@@ -42,11 +43,11 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 		try {
 			String url;
 			URL tmpUrl = new URL(rawUrl);
-			int contextPos = rawUrl.indexOf(UI_CONTEXT_PATH);
-			if (contextPos < 0) {
+			int contextPathPosition = rawUrl.indexOf(UI_CONTEXT_PATH);
+			if (contextPathPosition < 0) {
 				throw new IllegalArgumentException("URL does not conform to the expected format");
 			} else {
-				url = rawUrl.substring(0, contextPos);
+				url = rawUrl.substring(0, contextPathPosition);
 			}
 			List<NameValuePair> params = URLEncodedUtils.parse(tmpUrl.toURI(), "UTF-8");
 			for (NameValuePair param : params) {
@@ -66,8 +67,6 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 			throw new IllegalArgumentException("invalid URL", murle);
 		} catch (URISyntaxException uirse) {
 			throw new IllegalArgumentException("invalid URL (parameters)", uirse);
-		} catch (NumberFormatException nfe) {
-			throw new IllegalArgumentException("shared space parameter MUST be a number");
 		}
 
 		if (result == null) {
@@ -85,12 +84,12 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 			throw new IllegalArgumentException("configuration " + configuration + " is not valid");
 		}
 
-		CIProxyConfiguration proxyConfiguration = sdk.getCIPluginServices().getProxyConfiguration(configuration.getUrl());
-		OctaneRestClient restClient = sdk.getInternalService(OctaneRestService.class).createClient(proxyConfiguration);
+		CIProxyConfiguration proxyConfiguration = getPluginServices().getProxyConfiguration(configuration.getUrl());
+		RestClient restClientImpl = getRestService().createClient(proxyConfiguration);
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.GET)
 				.setUrl(configuration.getUrl() + "/" + SHARED_SPACES_API_URI + configuration.getSharedSpace() + "/workspaces");
-		return restClient.execute(request, configuration);
+		return restClientImpl.execute(request, configuration);
 	}
 
 	public void notifyChange(OctaneConfiguration newConfiguration) {

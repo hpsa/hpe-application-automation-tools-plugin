@@ -1,7 +1,9 @@
-package com.hp.nga.integrations.services;
+package com.hp.octane.integrations.services.tasking;
 
-import com.hp.nga.integrations.api.CIPluginServices;
-import com.hp.nga.integrations.api.TasksProcessor;
+import com.hp.octane.integrations.SDKService;
+import com.hp.octane.integrations.api.CIPluginServices;
+import com.hp.octane.integrations.api.TasksProcessor;
+import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
 import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
@@ -11,9 +13,8 @@ import com.hp.octane.integrations.dto.general.CIProviderSummaryInfo;
 import com.hp.octane.integrations.dto.pipelines.BuildHistory;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
-import com.hp.nga.integrations.exceptions.ConfigurationException;
-import com.hp.nga.integrations.exceptions.PermissionException;
-import com.hp.nga.integrations.SDKManager;
+import com.hp.octane.integrations.exceptions.ConfigurationException;
+import com.hp.octane.integrations.exceptions.PermissionException;
 import org.apache.http.HttpHeaders;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,7 +28,7 @@ import java.util.regex.Pattern;
  * Tasks routing service handles NGA tasks, both coming from abridged logic as well as plugin's REST call delegation
  */
 
-final class TasksProcessorImpl implements TasksProcessor {
+public final class TasksProcessorImpl extends SDKService implements TasksProcessor {
 	private static final Logger logger = LogManager.getLogger(TasksProcessorImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String NGA_API = "nga/api/v1";
@@ -38,10 +39,8 @@ final class TasksProcessorImpl implements TasksProcessor {
 	private static final String BUILDS = "builds";
 	private static final String LATEST = "latest";
 
-	private final SDKManager manager;
-
-	TasksProcessorImpl(SDKManager manager) {
-		this.manager = manager;
+	public TasksProcessorImpl(Object configurator) {
+		super(configurator);
 	}
 
 	public OctaneResultAbridged execute(OctaneTaskAbridged task) {
@@ -101,10 +100,10 @@ final class TasksProcessorImpl implements TasksProcessor {
 	}
 
 	private void executeStatusRequest(OctaneResultAbridged result) {
-		CIPluginServices dataProvider = manager.getCIPluginServices();
+		CIPluginServices dataProvider = getPluginServices();
 		CIPluginSDKInfo sdkInfo = dtoFactory.newDTO(CIPluginSDKInfo.class)
-				.setApiVersion(SDKManager.API_VERSION)
-				.setSdkVersion(SDKManager.SDK_VERSION);
+				.setApiVersion(OctaneSDK.API_VERSION)
+				.setSdkVersion(OctaneSDK.SDK_VERSION);
 		CIProviderSummaryInfo status = dtoFactory.newDTO(CIProviderSummaryInfo.class)
 				.setServer(dataProvider.getServerInfo())
 				.setPlugin(dataProvider.getPluginInfo())
@@ -114,24 +113,24 @@ final class TasksProcessorImpl implements TasksProcessor {
 	}
 
 	private void executeJobsListRequest(OctaneResultAbridged result, boolean includingParameters) {
-		CIJobsList content = manager.getCIPluginServices().getJobsList(includingParameters);
+		CIJobsList content = getPluginServices().getJobsList(includingParameters);
 		result.setBody(dtoFactory.dtoToJson(content));
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
 	}
 
 	private void executePipelineRequest(OctaneResultAbridged result, String jobId) {
-		PipelineNode content = manager.getCIPluginServices().getPipeline(jobId);
+		PipelineNode content = getPluginServices().getPipeline(jobId);
 		result.setBody(dtoFactory.dtoToJson(content));
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
 	}
 
 	private void executePipelineRunRequest(OctaneResultAbridged result, String jobId, String originalBody) {
-		manager.getCIPluginServices().runPipeline(jobId, originalBody);
+		getPluginServices().runPipeline(jobId, originalBody);
 		result.setStatus(201);
 	}
 
 	private void executeLatestSnapshotRequest(OctaneResultAbridged result, String jobId, boolean subTree) {
-		SnapshotNode data = manager.getCIPluginServices().getSnapshotLatest(jobId, subTree);
+		SnapshotNode data = getPluginServices().getSnapshotLatest(jobId, subTree);
 		if (data != null) {
 			result.setBody(dtoFactory.dtoToJson(data));
 		} else {
@@ -141,13 +140,13 @@ final class TasksProcessorImpl implements TasksProcessor {
 	}
 
 	private void executeSnapshotByNumberRequest(OctaneResultAbridged result, String jobCiId, String buildCiId, boolean subTree) {
-		SnapshotNode content = manager.getCIPluginServices().getSnapshotByNumber(jobCiId, buildCiId, subTree);
+		SnapshotNode content = getPluginServices().getSnapshotByNumber(jobCiId, buildCiId, subTree);
 		result.setBody(dtoFactory.dtoToJson(content));
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
 	}
 
 	private void executeHistoryRequest(OctaneResultAbridged result, String jobId, String originalBody) {
-		BuildHistory content = manager.getCIPluginServices().getHistoryPipeline(jobId, originalBody);
+		BuildHistory content = getPluginServices().getHistoryPipeline(jobId, originalBody);
 		result.setBody(dtoFactory.dtoToJson(content));
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
 	}

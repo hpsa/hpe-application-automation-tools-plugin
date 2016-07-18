@@ -10,7 +10,7 @@ public class NGAConfigStructure {
 	private String username;
 	private String secretPassword;
 	private String location;
-	private Long sharedSpace;
+	private String sharedSpace;
 
 	public String getIdentity() {
 		return identity;
@@ -64,11 +64,11 @@ public class NGAConfigStructure {
 		this.location = location;
 	}
 
-	public Long getSharedSpace() {
+	public String getSharedSpace() {
 		return sharedSpace;
 	}
 
-	public void setSharedSpace(Long sharedSpace) {
+	public void setSharedSpace(String sharedSpace) {
 		this.sharedSpace = sharedSpace;
 	}
 

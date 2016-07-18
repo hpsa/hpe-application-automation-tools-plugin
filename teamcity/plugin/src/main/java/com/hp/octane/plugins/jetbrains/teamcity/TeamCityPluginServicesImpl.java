@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jetbrains.teamcity;
 
-import com.hp.nga.integrations.api.CIPluginServices;
+import com.hp.octane.integrations.api.CIPluginServices;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;

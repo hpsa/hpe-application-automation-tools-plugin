@@ -3,12 +3,12 @@ package com.hp.octane.plugins.jenkins.bridge;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.AuthenticationException;
 import com.hp.mqm.client.exception.TemporarilyUnavailableException;
-import com.hp.nga.integrations.SDKManager;
-import com.hp.nga.integrations.api.CIPluginServices;
+import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.api.CIPluginServices;
+import com.hp.octane.integrations.api.TasksProcessor;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
 import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
-import com.hp.nga.integrations.api.TasksProcessor;
 import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
@@ -31,6 +31,7 @@ import java.util.concurrent.ThreadFactory;
 public class BridgeClient {
 	private static final Logger logger = LogManager.getLogger(BridgeClient.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+	private static final OctaneSDK octaneSDK = OctaneSDK.getInstance();
 	private static final OctanePlugin plugin = Jenkins.getInstance().getPlugin(OctanePlugin.class);
 	private static final String serverInstanceId = plugin.getIdentity();
 	private ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
@@ -62,15 +63,15 @@ public class BridgeClient {
 				@Override
 				public void run() {
 					String tasksJSON;
-					CIPluginServices pluginServices = plugin.jenkinsPluginServices;
+					CIPluginServices pluginServices = octaneSDK.getPluginServices();
 					try {
 						MqmRestClient restClient = restClientFactory.obtain(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
 						tasksJSON = restClient.getAbridgedTasks(
 								serverInstanceId,
 								pluginServices.getServerInfo().getType().value(),
 								pluginServices.getServerInfo().getUrl(),
-								SDKManager.API_VERSION,
-								SDKManager.SDK_VERSION);
+								OctaneSDK.API_VERSION,
+								OctaneSDK.SDK_VERSION);
 						isConnected = false;
 						connect();
 						if (tasksJSON != null && !tasksJSON.isEmpty()) {
@@ -125,7 +126,7 @@ public class BridgeClient {
 				taskProcessingExecutors.execute(new Runnable() {
 					@Override
 					public void run() {
-						TasksProcessor TasksProcessor = SDKManager.getService(TasksProcessor.class);
+						TasksProcessor TasksProcessor = octaneSDK.getTasksProcessor();
 						OctaneResultAbridged result = TasksProcessor.execute(task);
 						MqmRestClient restClient = restClientFactory.obtain(
 								mqmConfig.location,

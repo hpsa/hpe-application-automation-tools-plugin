@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="INFO">
+
 	<Properties>
 		<Property name="pattern">%d{dd/MM/yyyy HH:mm:ss,SSS} - %c{1}: %m%n</Property>
 	</Properties>
+
 	<Appenders>
-		<RollingFile name="NGAFileAppender"
-					 append="true"
-					 fileName="${sys:ngaLogsLocation}/nga.log"
+
+		<RollingFile name="OctaneFileAppender" append="true" fileName="${sys:ngaLogsLocation}/nga.log"
 					 filePattern="${sys:ngaLogsLocation}/nga-%i.log">
 			<PatternLayout pattern="${pattern}"/>
 			<Policies>
@@ -14,14 +15,18 @@
 			</Policies>
 			<DefaultRolloverStrategy max="10"/>
 		</RollingFile>
-		<Console name="NGAConsoleAppender" target="SYSTEM_OUT">
+
+		<Console name="OctaneConsoleAppender" target="SYSTEM_OUT">
 			<PatternLayout pattern="${pattern}"/>
 		</Console>
+
 	</Appenders>
+
 	<Loggers>
 		<Root level="info" additivity="true">
-			<AppenderRef ref="NGAFileAppender"/>
-			<AppenderRef ref="NGAConsoleAppender"/>
+			<AppenderRef ref="OctaneFileAppender"/>
+			<AppenderRef ref="OctaneConsoleAppender"/>
 		</Root>
 	</Loggers>
+
 </Configuration>

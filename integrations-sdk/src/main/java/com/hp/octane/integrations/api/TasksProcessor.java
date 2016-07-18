@@ -1,6 +1,5 @@
-package com.hp.nga.integrations.api;
+package com.hp.octane.integrations.api;
 
-import com.hp.nga.integrations.SDKServicePublic;
 import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
 import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
 
@@ -11,7 +10,7 @@ import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
  * Generally Tasks Processor assumed to be implemented as a singleton, and in any case it should be fully thread safe.
  */
 
-public interface TasksProcessor extends SDKServicePublic {
+public interface TasksProcessor {
 
 	/**
 	 * Initiates execution of NGA logic oriented task

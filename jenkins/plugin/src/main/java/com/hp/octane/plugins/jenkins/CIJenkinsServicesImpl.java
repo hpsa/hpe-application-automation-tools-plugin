@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jenkins;
 
-import com.hp.nga.integrations.api.CIPluginServices;
+import com.hp.octane.integrations.api.CIPluginServices;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
@@ -15,8 +15,8 @@ import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.scm.SCMData;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.dto.tests.TestsResult;
-import com.hp.nga.integrations.exceptions.ConfigurationException;
-import com.hp.nga.integrations.exceptions.PermissionException;
+import com.hp.octane.integrations.exceptions.ConfigurationException;
+import com.hp.octane.integrations.exceptions.PermissionException;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;

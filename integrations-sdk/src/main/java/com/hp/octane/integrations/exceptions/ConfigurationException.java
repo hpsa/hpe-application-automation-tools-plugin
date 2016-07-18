@@ -1,4 +1,4 @@
-package com.hp.nga.integrations.exceptions;
+package com.hp.octane.integrations.exceptions;
 
 /**
  * Created by kashbi on 29/02/2016.

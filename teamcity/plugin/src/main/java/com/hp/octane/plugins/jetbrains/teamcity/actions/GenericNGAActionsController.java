@@ -1,11 +1,11 @@
 package com.hp.octane.plugins.jetbrains.teamcity.actions;
 
-import com.hp.nga.integrations.SDKManager;
+import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.api.TasksProcessor;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
 import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
-import com.hp.nga.integrations.api.TasksProcessor;
 import jetbrains.buildServer.serverSide.SBuildServer;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.web.servlet.ModelAndView;
@@ -22,6 +22,7 @@ import java.util.UUID;
 
 public class GenericNGAActionsController implements Controller {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+	private static final OctaneSDK octaneSDK = OctaneSDK.getInstance();
 
 	private GenericNGAActionsController(@NotNull SBuildServer buildServer) {
 	}
@@ -45,7 +46,7 @@ public class GenericNGAActionsController implements Controller {
 					.setMethod(method)
 					.setUrl(req.getRequestURI())
 					.setBody("");
-			TasksProcessor taskProcessor = SDKManager.getService(TasksProcessor.class);
+			TasksProcessor taskProcessor = octaneSDK.getTasksProcessor();
 			OctaneResultAbridged result = taskProcessor.execute(octaneTaskAbridged);
 			res.setStatus(result.getStatus());
 			try {

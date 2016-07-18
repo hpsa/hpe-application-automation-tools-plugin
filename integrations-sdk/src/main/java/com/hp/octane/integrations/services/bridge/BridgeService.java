@@ -1,7 +1,8 @@
-package com.hp.nga.integrations.services;
+package com.hp.octane.integrations.services.bridge;
 
-import com.hp.nga.integrations.api.CIPluginServices;
-import com.hp.nga.integrations.api.TasksProcessor;
+import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.SDKService;
+import com.hp.octane.integrations.api.RestClient;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
@@ -10,7 +11,6 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
 import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
-import com.hp.nga.integrations.SDKManager;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,22 +23,23 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
 /**
- * Created by gullery on 12/08/2015.
+ * Created by gullery on 05/08/2015.
  * <p/>
- * This class encompasses functionality of managing connection/s to a single abridged client (NGA Server)
+ * Bridge Service meant to provide an abridged connectivity functionality
  */
 
-final class BridgeClient {
-	private static final Logger logger = LogManager.getLogger(BridgeClient.class);
+public final class BridgeService extends SDKService {
+	private static final Logger logger = LogManager.getLogger(BridgeService.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
 	private ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30, new AbridgedTasksExecutorsFactory());
-	private final SDKManager sdk;
 	volatile private boolean shuttingDown = false;
 
-	BridgeClient(SDKManager sdk) {
-		this.sdk = sdk;
-		connect();
+	public BridgeService(Object configurator, boolean initBridge) {
+		super(configurator);
+		if (initBridge) {
+			connect();
+		}
 	}
 
 	private void connect() {
@@ -46,14 +47,14 @@ final class BridgeClient {
 			connectivityExecutors.execute(new Runnable() {
 				public void run() {
 					String tasksJSON;
-					CIServerInfo serverInfo = sdk.getCIPluginServices().getServerInfo();
+					CIServerInfo serverInfo = getPluginServices().getServerInfo();
 					try {
 						tasksJSON = getAbridgedTasks(
 								serverInfo.getInstanceId(),
 								serverInfo.getType().value(),
 								serverInfo.getUrl(),
-								SDKManager.API_VERSION,
-								SDKManager.SDK_VERSION);
+								OctaneSDK.API_VERSION,
+								OctaneSDK.SDK_VERSION);
 						connect();
 						if (tasksJSON != null && !tasksJSON.isEmpty()) {
 							handleTasks(tasksJSON);
@@ -72,8 +73,8 @@ final class BridgeClient {
 
 	private String getAbridgedTasks(String selfIdentity, String selfType, String selfLocation, Integer apiVersion, String sdkVersion) {
 		String responseBody = null;
-		OctaneRestClient restClient = sdk.getInternalService(OctaneRestService.class).obtainClient();
-		OctaneConfiguration octaneConfiguration = sdk.getCIPluginServices().getOctaneConfiguration();
+		RestClient restClientImpl = getRestService().obtainClient();
+		OctaneConfiguration octaneConfiguration = getPluginServices().getOctaneConfiguration();
 		if (octaneConfiguration != null && octaneConfiguration.isValid()) {
 			Map<String, String> headers = new HashMap<String, String>();
 			headers.put("accept", "application/json");
@@ -84,7 +85,7 @@ final class BridgeClient {
 							selfIdentity + "/tasks?self-type=" + selfType + "&self-url=" + selfLocation + "&api-version=" + apiVersion + "&sdk-version=" + sdkVersion)
 					.setHeaders(headers);
 			try {
-				OctaneResponse octaneResponse = restClient.execute(octaneRequest);
+				OctaneResponse octaneResponse = restClientImpl.execute(octaneRequest);
 				if (octaneResponse.getStatus() == HttpStatus.SC_OK) {
 					responseBody = octaneResponse.getBody();
 				} else {
@@ -128,11 +129,9 @@ final class BridgeClient {
 			for (final OctaneTaskAbridged task : tasks) {
 				taskProcessingExecutors.execute(new Runnable() {
 					public void run() {
-						TasksProcessor taskProcessor = SDKManager.getService(TasksProcessor.class);
-						CIPluginServices pluginServices = sdk.getCIPluginServices();
-						OctaneResultAbridged result = taskProcessor.execute(task);
+						OctaneResultAbridged result = getTasksProcessor().execute(task);
 						int submitStatus = putAbridgedResult(
-								pluginServices.getServerInfo().getInstanceId(),
+								getPluginServices().getServerInfo().getInstanceId(),
 								result.getId(),
 								dtoFactory.dtoToJson(result));
 						logger.info("result for task '" + result.getId() + "' submitted with status " + submitStatus);
@@ -145,8 +144,8 @@ final class BridgeClient {
 	}
 
 	private int putAbridgedResult(String selfIdentity, String taskId, String contentJSON) {
-		OctaneRestClient restClient = sdk.getInternalService(OctaneRestService.class).obtainClient();
-		OctaneConfiguration octaneConfiguration = sdk.getCIPluginServices().getOctaneConfiguration();
+		RestClient restClientImpl = getRestService().obtainClient();
+		OctaneConfiguration octaneConfiguration = getPluginServices().getOctaneConfiguration();
 		Map<String, String> headers = new HashMap<String, String>();
 		headers.put("content-type", "application/json");
 		OctaneRequest octaneRequest = dtoFactory.newDTO(OctaneRequest.class)
@@ -155,7 +154,7 @@ final class BridgeClient {
 				.setHeaders(headers)
 				.setBody(contentJSON);
 		try {
-			OctaneResponse octaneResponse = restClient.execute(octaneRequest);
+			OctaneResponse octaneResponse = restClientImpl.execute(octaneRequest);
 			return octaneResponse.getStatus();
 		} catch (IOException ioe) {
 			logger.error("failed to submit abridged task's result", ioe);

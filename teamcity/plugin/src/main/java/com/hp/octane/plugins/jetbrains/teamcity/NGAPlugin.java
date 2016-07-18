@@ -4,7 +4,7 @@ package com.hp.octane.plugins.jetbrains.teamcity;
  * Created by lazara on 23/12/2015.
  */
 
-import com.hp.nga.integrations.SDKManager;
+import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.plugins.jetbrains.teamcity.actions.ConfigurationActionsController;
 import com.hp.octane.plugins.jetbrains.teamcity.actions.GenericNGAActionsController;
 import com.hp.octane.plugins.jetbrains.teamcity.configuration.NGAConfigStructure;
@@ -53,7 +53,7 @@ public class NGAPlugin implements ServerExtension {
 		config = configurationService.readConfig();
 
 		ensureServerInstanceID();
-		SDKManager.init(pluginServices, true);
+		OctaneSDK.init(pluginServices, true);
 	}
 
 	public ProjectManager getProjectManager() {

@@ -1,4 +1,4 @@
-package com.hp.nga.integrations.api;
+package com.hp.octane.integrations.api;
 
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
@@ -42,9 +42,9 @@ public interface CIPluginServices {
 	File getAllowedOctaneStorage();
 
 	/**
-	 * Provides Octane Server configuration (managed by plugin implementation)
+	 * Provides NGA Server configuration (managed by plugin implementation)
 	 *
-	 * @return OctaneConfiguration object; if no configuration available the implementation should return NULL
+	 * @return NGAConfiguration object; if no configuration available the implementation should return NULL
 	 */
 	OctaneConfiguration getOctaneConfiguration();
 

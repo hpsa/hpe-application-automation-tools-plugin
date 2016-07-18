@@ -1,7 +1,8 @@
-package com.hp.nga.integrations.services;
+package com.hp.octane.integrations.services.events;
 
-import com.hp.nga.integrations.SDKManager;
-import com.hp.nga.integrations.api.EventsService;
+import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.SDKService;
+import com.hp.octane.integrations.api.EventsService;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
@@ -26,10 +27,9 @@ import java.util.Map;
  * To change this template use File | Settings | File Templates.
  */
 
-final class EventsServiceImpl implements EventsService {
+public final class EventsServiceImpl extends SDKService implements EventsService {
 	private static final Logger logger = LogManager.getLogger(EventsServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-	private final SDKManager sdk;
 
 	private static final class WaitMonitor {
 		volatile boolean released;
@@ -49,8 +49,8 @@ final class EventsServiceImpl implements EventsService {
 	private int pauseInterval;
 	volatile private boolean shuttingDown;
 
-	EventsServiceImpl(SDKManager sdk) {
-		this.sdk = sdk;
+	public EventsServiceImpl(Object configurator) {
+		super(configurator);
 		activate();
 	}
 
@@ -123,9 +123,8 @@ final class EventsServiceImpl implements EventsService {
 
 	private boolean sendData() {
 		CIEventsList eventsSnapshot = dtoFactory.newDTO(CIEventsList.class)
-				.setServer(sdk.getCIPluginServices().getServerInfo())
+				.setServer(getPluginServices().getServerInfo())
 				.setEvents(new ArrayList<CIEvent>(events));
-		String requestBody;
 		boolean result = true;
 
 		try {
@@ -133,7 +132,7 @@ final class EventsServiceImpl implements EventsService {
 			OctaneRequest request = createEventsRequest(eventsSnapshot);
 			OctaneResponse response;
 			while (failedRetries < MAX_SEND_RETRIES) {
-				response = sdk.getInternalService(OctaneRestService.class).obtainClient().execute(request);
+				response = getRestService().obtainClient().execute(request);
 				if (response.getStatus() == 200) {
 					events.removeAll(eventsSnapshot.getEvents());
 					logger.info("... done, left to send " + events.size() + " events");
@@ -163,8 +162,8 @@ final class EventsServiceImpl implements EventsService {
 		headers.put("content-type", "application/json");
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.PUT)
-				.setUrl(sdk.getCIPluginServices().getOctaneConfiguration().getUrl() + "/internal-api/shared_spaces/" +
-						sdk.getCIPluginServices().getOctaneConfiguration().getSharedSpace() + "/analytics/ci/events")
+				.setUrl(getPluginServices().getOctaneConfiguration().getUrl() + "/internal-api/shared_spaces/" +
+						getPluginServices().getOctaneConfiguration().getSharedSpace() + "/analytics/ci/events")
 				.setHeaders(headers)
 				.setBody(dtoFactory.dtoToJson(events));
 		return request;
