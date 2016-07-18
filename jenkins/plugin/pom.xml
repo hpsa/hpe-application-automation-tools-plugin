@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.jenkins-ci.plugins</groupId>
 		<artifactId>plugin</artifactId>
-		<version>1.580.2</version>
+		<version>1.642.3</version>
 	</parent>
 
 	<name>HPE ALM Octane CI Plugin</name>
@@ -14,6 +14,7 @@
 	<packaging>hpi</packaging>
 
 	<properties>
+		<jenkins.version>1.642.3 </jenkins.version>
 		<baseNexusURL>http://mydtbld0051.hpeswlab.net:8081/nexus</baseNexusURL>
 		<surefire.version>2.18.1</surefire.version>
 		<jacoco.version>0.7.4.201502262128</jacoco.version>
@@ -44,6 +45,22 @@
 	</properties>
 
 	<dependencies>
+
+		<dependency>
+			<groupId>org.jenkins-ci.plugins.pipeline-stage-view</groupId>
+			<artifactId>pipeline-rest-api</artifactId>
+			<version>1.1</version>
+			<optional>true</optional>
+		</dependency>
+
+         <dependency>
+         	<groupId>org.jenkins-ci.plugins.workflow</groupId>
+			 <artifactId>workflow-aggregator</artifactId>
+			 <version>2.2</version>
+			 <optional>true</optional>
+		 </dependency>
+
+                <!-- pipeline as a code  ends here -->
 		<dependency>
 			<groupId>com.squareup</groupId>
 			<artifactId>tape</artifactId>

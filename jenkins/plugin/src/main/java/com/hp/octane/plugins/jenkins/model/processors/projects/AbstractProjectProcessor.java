@@ -5,17 +5,18 @@ import com.hp.octane.plugins.jenkins.model.processors.builders.AbstractBuilderPr
 import com.hp.octane.plugins.jenkins.model.processors.builders.BuildTriggerProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.builders.MultiJobBuilderProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.builders.ParameterizedTriggerProcessor;
+import com.hp.octane.plugins.jenkins.workflow.WorkFlowJobProcessor;
 import hudson.model.AbstractProject;
+import hudson.model.Job;
 import hudson.tasks.BuildStep;
 import hudson.tasks.Builder;
 import hudson.tasks.Publisher;
 import org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder;
 import org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder;
+import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 import java.util.logging.Logger;
 
 /**
@@ -103,19 +104,33 @@ public abstract class 	AbstractProjectProcessor {
 
 	public abstract List<Builder> tryGetBuilders();
 
-	public static AbstractProjectProcessor getFlowProcessor(AbstractProject project) {
+	public static AbstractProjectProcessor getFlowProcessor(Job job) {
 		AbstractProjectProcessor flowProcessor = null;
-		if (project.getClass().getName().equals("hudson.model.FreeStyleProject")) {
-			flowProcessor = new FreeStyleProjectProcessor(project);
-		} else if (project.getClass().getName().equals("hudson.matrix.MatrixProject")) {
-			flowProcessor = new MatrixProjectProcessor(project);
-		} else if (project.getClass().getName().equals("hudson.maven.MavenModuleSet")) {
-			flowProcessor = new MavenProjectProcessor(project);
-		} else if (project.getClass().getName().equals("com.tikal.jenkins.plugins.multijob.MultiJobProject")) {
-			flowProcessor = new MultiJobProjectProcessor(project);
-		} else {
-			flowProcessor = new UnsupportedProjectProcessor();
+		AbstractProject project= null;
+		WorkflowJob workflowJob = null;
+		if(job instanceof  AbstractProject) {
+			project = (AbstractProject)job;
+			if (project.getClass().getName().equals("hudson.model.FreeStyleProject")) {
+				flowProcessor = new FreeStyleProjectProcessor(project);
+			} else if (project.getClass().getName().equals("hudson.matrix.MatrixProject")) {
+				flowProcessor = new MatrixProjectProcessor(project);
+			} else if (project.getClass().getName().equals("hudson.maven.MavenModuleSet")) {
+				flowProcessor = new MavenProjectProcessor(project);
+			} else if (project.getClass().getName().equals("com.tikal.jenkins.plugins.multijob.MultiJobProject")) {
+				flowProcessor = new MultiJobProjectProcessor(project);
+			} else {
+				flowProcessor = new UnsupportedProjectProcessor();
+			}
 		}
+
+		else
+		{
+			if(job instanceof WorkflowJob)
+			{
+				flowProcessor =  new WorkFlowJobProcessor(workflowJob);
+			}
+		}
+
 		return flowProcessor;
 	}
 }

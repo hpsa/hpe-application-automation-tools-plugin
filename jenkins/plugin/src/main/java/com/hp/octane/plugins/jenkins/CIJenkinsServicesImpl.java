@@ -4,7 +4,10 @@ import com.hp.nga.integrations.api.CIPluginServices;
 import com.hp.nga.integrations.dto.DTOFactory;
 import com.hp.nga.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
-import com.hp.nga.integrations.dto.general.*;
+import com.hp.nga.integrations.dto.general.CIJobsList;
+import com.hp.nga.integrations.dto.general.CIPluginInfo;
+import com.hp.nga.integrations.dto.general.CIServerInfo;
+import com.hp.nga.integrations.dto.general.CIServerTypes;
 import com.hp.nga.integrations.dto.parameters.CIParameter;
 import com.hp.nga.integrations.dto.parameters.CIParameterType;
 import com.hp.nga.integrations.dto.pipelines.BuildHistory;
@@ -30,6 +33,7 @@ import org.acegisecurity.context.SecurityContext;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.File;
@@ -120,6 +124,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 		SecurityContext securityContext = startImpersonation();
 		CIJobsList result = dtoFactory.newDTO(CIJobsList.class);
 		PipelineNode tmpConfig;
+		WorkflowJob tmpFlowjob;
 		AbstractProject tmpProject;
 		List<PipelineNode> list = new ArrayList<PipelineNode>();
 		try {
@@ -151,9 +156,27 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 						tmpConfig.setParameters(configs);
 					}
 					list.add(tmpConfig);
-				} else {
-					logger.info("item '" + name + "' is not of supported type");
 				}
+				else {
+					if(Jenkins.getInstance().getItem(name) instanceof WorkflowJob) {
+						tmpFlowjob = (WorkflowJob) Jenkins.getInstance().getItem(name);
+						tmpConfig = dtoFactory.newDTO(PipelineNode.class)
+								.setJobCiId(name)
+								.setName(name);
+
+						if (includeParameters) {
+							List<CIParameter> configs = new ArrayList<CIParameter>();
+							CIParameter tmp;
+							tmpConfig.setParameters(configs);
+						}
+
+						list.add(tmpConfig);
+					}
+					else {
+						logger.info("item '" + name + "' is not of supported type");
+					}
+				}
+
 			}
 			result.setJobs(list.toArray(new PipelineNode[list.size()]));
 			stopImpersonation(securityContext);
@@ -173,7 +196,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 			stopImpersonation(securityContext);
 			throw new PermissionException(403);
 		}
-		AbstractProject project = getJobByRefId(rootJobCiId);
+		Job project = getJobByRefId(rootJobCiId);
 		if (project != null) {
 			result = ModelFactory.createStructureItem(project);
 			stopImpersonation(securityContext);
@@ -213,14 +236,20 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 	@Override
 	public void runPipeline(String jobCiId, String originalBody) {
 		SecurityContext securityContext = startImpersonation();
-		AbstractProject project = getJobByRefId(jobCiId);
-		if (project != null) {
-			boolean hasBuildPermission = project.hasPermission(Item.BUILD);
+		Job job = getJobByRefId(jobCiId);
+		AbstractProject project=null;
+		if (job != null) {
+			boolean hasBuildPermission = job.hasPermission(Item.BUILD);
 			if (!hasBuildPermission) {
 				stopImpersonation(securityContext);
 				throw new PermissionException(403);
 			}
-			doRunImpl(project, originalBody);
+			if(job instanceof AbstractProject)
+			{
+				project = (AbstractProject)job;
+				doRunImpl(project, originalBody);
+			}
+
 			stopImpersonation(securityContext);
 		} else {
 			stopImpersonation(securityContext);
@@ -232,7 +261,17 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 	public SnapshotNode getSnapshotLatest(String jobCiId, boolean subTree) {
 		SecurityContext securityContext = startImpersonation();
 		SnapshotNode result = null;
-		AbstractProject project = getJobByRefId(jobCiId);
+		Job job = getJobByRefId(jobCiId);
+		AbstractProject project=null;
+		if(job instanceof AbstractProject)
+		{
+			project = (AbstractProject)job;
+		}
+		else
+		{
+			return null;
+		}
+
 		if (project != null) {
 			AbstractBuild build = project.getLastBuild();
 			if (build != null) {
@@ -246,7 +285,17 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 	@Override
 	public SnapshotNode getSnapshotByNumber(String jobCiId, String buildCiId, boolean subTree) {
 		SecurityContext securityContext = startImpersonation();
-		AbstractProject project = getJobByRefId(jobCiId);
+		Job job = getJobByRefId(jobCiId);
+		AbstractProject project=null;
+		if(job instanceof AbstractProject)
+		{
+			project = (AbstractProject)job;
+		}
+		else
+		{
+			return null;
+		}
+
 		Integer buildNumber = null;
 		try {
 			buildNumber = Integer.parseInt(buildCiId);
@@ -262,66 +311,71 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 		return null;
 	}
 
+
 	@Override
 	public BuildHistory getHistoryPipeline(String jobCiId, String originalBody) {
 		SecurityContext securityContext = startImpersonation();
-		AbstractProject project = getJobByRefId(jobCiId);
-
-		SCMData scmData;
-		Set<User> users;
-		SCMProcessor scmProcessor = SCMProcessors.getAppropriate(project.getScm().getClass().getName());
 		BuildHistory buildHistory = dtoFactory.newDTO(BuildHistory.class);
-		int numberOfBuilds = 5;
+		Job job = getJobByRefId(jobCiId);
+		AbstractProject project=null;
+		if(job instanceof AbstractProject ) {
+			project = (AbstractProject) job;
+			SCMData scmData;
+			Set<User> users;
+			SCMProcessor scmProcessor = SCMProcessors.getAppropriate(project.getScm().getClass().getName());
+
+			int numberOfBuilds = 5;
 //		if (req.getParameter("numberOfBuilds") != null) {
 //			numberOfBuilds = Integer.valueOf(req.getParameter("numberOfBuilds"));
 //		}
-		//TODO : check if it works!!
-		if (originalBody != null && !originalBody.isEmpty()) {
-			JSONObject bodyJSON = JSONObject.fromObject(originalBody);
-			if (bodyJSON.has("numberOfBuilds")) {
-				numberOfBuilds = bodyJSON.getInt("numberOfBuilds");
+			//TODO : check if it works!!
+			if (originalBody != null && !originalBody.isEmpty()) {
+				JSONObject bodyJSON = JSONObject.fromObject(originalBody);
+				if (bodyJSON.has("numberOfBuilds")) {
+					numberOfBuilds = bodyJSON.getInt("numberOfBuilds");
+				}
 			}
-		}
-		List<Run> result = project.getLastBuildsOverThreshold(numberOfBuilds, Result.ABORTED); // get last five build with result that better or equal failure
-		for (int i = 0; i < result.size(); i++) {
-			AbstractBuild build = (AbstractBuild) result.get(i);
-			scmData = null;
-			users = null;
-			if (build != null) {
+			List<Run> result = project.getLastBuildsOverThreshold(numberOfBuilds, Result.ABORTED); // get last five build with result that better or equal failure
+			for (int i = 0; i < result.size(); i++) {
+				AbstractBuild build = (AbstractBuild) result.get(i);
+				scmData = null;
+				users = null;
+				if (build != null) {
+					if (scmProcessor != null) {
+						scmData = scmProcessor.getSCMData(build);
+						users = build.getCulprits();
+					}
+
+					buildHistory.addBuild(build.getResult().toString(), String.valueOf(build.getNumber()), build.getTimestampString(), String.valueOf(build.getStartTimeInMillis()), String.valueOf(build.getDuration()), scmData, ModelFactory.createScmUsersList(users));
+				}
+			}
+			AbstractBuild lastSuccessfulBuild = (AbstractBuild) project.getLastSuccessfulBuild();
+			if (lastSuccessfulBuild != null) {
+				scmData = null;
+				users = null;
 				if (scmProcessor != null) {
-					scmData = scmProcessor.getSCMData(build);
-					users = build.getCulprits();
+					scmData = scmProcessor.getSCMData(lastSuccessfulBuild);
+					users = lastSuccessfulBuild.getCulprits();
+				}
+				buildHistory.addLastSuccesfullBuild(lastSuccessfulBuild.getResult().toString(), String.valueOf(lastSuccessfulBuild.getNumber()), lastSuccessfulBuild.getTimestampString(), String.valueOf(lastSuccessfulBuild.getStartTimeInMillis()), String.valueOf(lastSuccessfulBuild.getDuration()), scmData, ModelFactory.createScmUsersList(users));
+			}
+			AbstractBuild lastBuild = project.getLastBuild();
+			if (lastBuild != null) {
+				scmData = null;
+				users = null;
+				if (scmProcessor != null) {
+					scmData = scmProcessor.getSCMData(lastBuild);
+					users = lastBuild.getCulprits();
 				}
 
-				buildHistory.addBuild(build.getResult().toString(), String.valueOf(build.getNumber()), build.getTimestampString(), String.valueOf(build.getStartTimeInMillis()), String.valueOf(build.getDuration()), scmData, ModelFactory.createScmUsersList(users));
+				if (lastBuild.getResult() == null) {
+					buildHistory.addLastBuild("building", String.valueOf(lastBuild.getNumber()), lastBuild.getTimestampString(), String.valueOf(lastBuild.getStartTimeInMillis()), String.valueOf(lastBuild.getDuration()), scmData, ModelFactory.createScmUsersList(users));
+				} else {
+					buildHistory.addLastBuild(lastBuild.getResult().toString(), String.valueOf(lastBuild.getNumber()), lastBuild.getTimestampString(), String.valueOf(lastBuild.getStartTimeInMillis()), String.valueOf(lastBuild.getDuration()), scmData, ModelFactory.createScmUsersList(users));
+				}
 			}
+			stopImpersonation(securityContext);
 		}
-		AbstractBuild lastSuccessfulBuild = (AbstractBuild) project.getLastSuccessfulBuild();
-		if (lastSuccessfulBuild != null) {
-			scmData = null;
-			users = null;
-			if (scmProcessor != null) {
-				scmData = scmProcessor.getSCMData(lastSuccessfulBuild);
-				users = lastSuccessfulBuild.getCulprits();
-			}
-			buildHistory.addLastSuccesfullBuild(lastSuccessfulBuild.getResult().toString(), String.valueOf(lastSuccessfulBuild.getNumber()), lastSuccessfulBuild.getTimestampString(), String.valueOf(lastSuccessfulBuild.getStartTimeInMillis()), String.valueOf(lastSuccessfulBuild.getDuration()), scmData, ModelFactory.createScmUsersList(users));
-		}
-		AbstractBuild lastBuild = project.getLastBuild();
-		if (lastBuild != null) {
-			scmData = null;
-			users = null;
-			if (scmProcessor != null) {
-				scmData = scmProcessor.getSCMData(lastBuild);
-				users = lastBuild.getCulprits();
-			}
-
-			if (lastBuild.getResult() == null) {
-				buildHistory.addLastBuild("building", String.valueOf(lastBuild.getNumber()), lastBuild.getTimestampString(), String.valueOf(lastBuild.getStartTimeInMillis()), String.valueOf(lastBuild.getDuration()), scmData, ModelFactory.createScmUsersList(users));
-			} else {
-				buildHistory.addLastBuild(lastBuild.getResult().toString(), String.valueOf(lastBuild.getNumber()), lastBuild.getTimestampString(), String.valueOf(lastBuild.getStartTimeInMillis()), String.valueOf(lastBuild.getDuration()), scmData, ModelFactory.createScmUsersList(users));
-			}
-		}
-		stopImpersonation(securityContext);
 		return buildHistory;
 	}
 
@@ -418,16 +472,15 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 		return result;
 	}
 
-	private AbstractProject getJobByRefId(String jobRefId) {
-		AbstractProject result = null;
-
+	private Job getJobByRefId(String jobRefId) {
+		Job result = null;
 		if (jobRefId != null) {
 			try {
 				jobRefId = URLDecoder.decode(jobRefId, "UTF-8");
 				TopLevelItem item = null;
 				item = getTopLevelItem(jobRefId);
-				if (item != null && item instanceof AbstractProject) {
-					result = (AbstractProject) item;
+				if (item != null && item instanceof Job) {
+					result = (Job) item;
 				}
 			} catch (UnsupportedEncodingException e) {
 				logger.severe("failed to decode job ref ID '" + jobRefId + "'");

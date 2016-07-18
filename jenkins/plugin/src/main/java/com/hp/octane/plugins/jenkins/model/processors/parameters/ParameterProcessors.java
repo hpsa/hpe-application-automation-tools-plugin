@@ -8,7 +8,6 @@ import hudson.matrix.*;
 import hudson.model.*;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -34,9 +33,18 @@ public enum ParameterProcessors {
 		this.processorClass = processorClass;
 	}
 
-	public static List<CIParameter> getConfigs(AbstractProject project) {
+	public static List<CIParameter> getConfigs(Job job) {
 		ArrayList<CIParameter> result = new ArrayList<CIParameter>();
+		AbstractProject project = null;
+		if(job instanceof AbstractProject)
+		{
+			project = (AbstractProject)job;
+		}
 
+		else
+		{
+			return result;
+		}
 		List<ParameterDefinition> paramDefinitions;
 		ParameterDefinition pd;
 		String className;

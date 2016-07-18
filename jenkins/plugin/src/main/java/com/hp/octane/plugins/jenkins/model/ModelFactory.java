@@ -24,7 +24,7 @@ public class ModelFactory {
 	private static final Logger logger = Logger.getLogger(ModelFactory.class.getName());
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
-	public static PipelineNode createStructureItem(AbstractProject project) {
+	public static PipelineNode createStructureItem(Job project) {
 		PipelineNode pipelineNode = dtoFactory.newDTO(PipelineNode.class);
 		pipelineNode.setJobCiId(project.getName());
 		pipelineNode.setName(project.getName());
