@@ -3,7 +3,7 @@ package com.hp.octane.integrations;
 import com.hp.octane.integrations.api.CIPluginServices;
 import com.hp.octane.integrations.api.ConfigurationService;
 import com.hp.octane.integrations.api.EventsService;
-import com.hp.octane.integrations.api.Re_stService;
+import com.hp.octane.integrations.api.RestService;
 import com.hp.octane.integrations.api.TasksProcessor;
 import com.hp.octane.integrations.api.TestsService;
 import com.hp.octane.integrations.services.bridge.BridgeService;
@@ -63,7 +63,7 @@ public final class OctaneSDK {
 		return configurator.configurationService;
 	}
 
-	public Re_stService getRestService() {
+	public RestService getRestService() {
 		return configurator.restService;
 	}
 
@@ -97,7 +97,7 @@ public final class OctaneSDK {
 		private final CIPluginServices pluginServices;
 		private LoggingService loggingService;
 		private ConfigurationService configurationService;
-		private Re_stService restService;
+		private RestService restService;
 		private BridgeService bridgeService;
 		private TasksProcessor tasksProcessor;
 		private EventsService eventsService;
@@ -119,7 +119,7 @@ public final class OctaneSDK {
 			return pluginServices;
 		}
 
-		Re_stService getRestService() {
+		RestService getRestService() {
 			return restService;
 		}
 
