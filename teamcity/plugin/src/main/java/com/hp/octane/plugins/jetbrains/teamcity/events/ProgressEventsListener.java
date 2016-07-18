@@ -1,12 +1,11 @@
 package com.hp.octane.plugins.jetbrains.teamcity.events;
 
-import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.causes.CIEventCause;
 import com.hp.octane.integrations.dto.causes.CIEventCauseType;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
-import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
+import com.hp.octane.plugins.jetbrains.teamcity.OctaneTeamCityPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelCommonFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ParametersFactory;
 import jetbrains.buildServer.serverSide.*;
@@ -25,11 +24,10 @@ import java.util.List;
 
 public class ProgressEventsListener extends BuildServerAdapter {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-	private static final OctaneSDK octaneSDK = OctaneSDK.getInstance();
 	private static final String TRIGGER_BUILD_TYPE_KEY = "buildTypeId";
 
 	@Autowired
-	private NGAPlugin ngaPlugin;
+	private OctaneTeamCityPlugin octaneTeamCityPlugin;
 	@Autowired
 	private ModelCommonFactory modelCommonFactory;
 	@Autowired
@@ -50,7 +48,7 @@ public class ProgressEventsListener extends BuildServerAdapter {
 					.setProject(queuedBuild.getBuildType().getExternalId())
 					.setProjectDisplayName(queuedBuild.getBuildType().getName())
 					.setCauses(new ArrayList<CIEventCause>());
-			octaneSDK.getEventsService().publishEvent(event);
+			octaneTeamCityPlugin.getOctaneSDK().getEventsService().publishEvent(event);
 		}
 	}
 
@@ -77,7 +75,7 @@ public class ProgressEventsListener extends BuildServerAdapter {
 				.setCauses(causes)
 				.setStartTime(build.getStartDate().getTime())
 				.setEstimatedDuration(build.getDurationEstimate() * 1000);
-		octaneSDK.getEventsService().publishEvent(event);
+		octaneTeamCityPlugin.getOctaneSDK().getEventsService().publishEvent(event);
 	}
 
 	@Override
@@ -105,12 +103,12 @@ public class ProgressEventsListener extends BuildServerAdapter {
 				.setEstimatedDuration(build.getDurationEstimate() * 1000)
 				.setDuration(build.getDuration() * 1000)
 				.setResult(modelCommonFactory.resultFromNativeStatus(build.getBuildStatus()));
-		octaneSDK.getEventsService().publishEvent(event);
+		octaneTeamCityPlugin.getOctaneSDK().getEventsService().publishEvent(event);
 	}
 
 	private SQueuedBuild getTriggerBuild(String triggerBuildTypeId) {
 		SQueuedBuild result = null;
-		SBuildType triggerBuildType = ngaPlugin.getProjectManager().findBuildTypeById(triggerBuildTypeId);
+		SBuildType triggerBuildType = octaneTeamCityPlugin.getProjectManager().findBuildTypeById(triggerBuildTypeId);
 		if (triggerBuildType != null) {
 			List<SQueuedBuild> queuedBuildsOfType = triggerBuildType.getQueuedBuilds(null);
 			if (!queuedBuildsOfType.isEmpty()) {

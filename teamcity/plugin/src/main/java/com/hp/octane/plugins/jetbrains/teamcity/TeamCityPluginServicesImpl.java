@@ -15,7 +15,7 @@ import com.hp.octane.integrations.dto.tests.BuildContext;
 import com.hp.octane.integrations.dto.tests.TestRun;
 import com.hp.octane.integrations.dto.tests.TestRunResult;
 import com.hp.octane.integrations.dto.tests.TestsResult;
-import com.hp.octane.plugins.jetbrains.teamcity.configuration.NGAConfigStructure;
+import com.hp.octane.plugins.jetbrains.teamcity.configuration.OctaneConfigStructure;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelCommonFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.SnapshotsFactory;
 import jetbrains.buildServer.Build;
@@ -47,7 +47,7 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 	private static final String pluginVersion = "9.1.5";
 
 	@Autowired
-	private NGAPlugin ngaPlugin;
+	private OctaneTeamCityPlugin octaneTeamCityPlugin;
 	@Autowired
 	private SBuildServer buildServer;
 	@Autowired
@@ -58,8 +58,8 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 	@Override
 	public CIServerInfo getServerInfo() {
 		return dtoFactory.newDTO(CIServerInfo.class)
-				.setInstanceId(ngaPlugin.getConfig().getIdentity())
-				.setInstanceIdFrom(ngaPlugin.getConfig().getIdentityFromAsLong())
+				.setInstanceId(octaneTeamCityPlugin.getConfig().getIdentity())
+				.setInstanceIdFrom(octaneTeamCityPlugin.getConfig().getIdentityFromAsLong())
 				.setSendingTime(System.currentTimeMillis())
 				.setType(CIServerTypes.TEAMCITY)
 				.setUrl(buildServer.getRootUrl())
@@ -80,7 +80,7 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 	@Override
 	public OctaneConfiguration getOctaneConfiguration() {
 		OctaneConfiguration result = null;
-		NGAConfigStructure config = ngaPlugin.getConfig();
+		OctaneConfigStructure config = octaneTeamCityPlugin.getConfig();
 		if (config != null && config.getLocation() != null && !config.getLocation().isEmpty() && config.getSharedSpace() != null) {
 			result = dtoFactory.newDTO(OctaneConfiguration.class)
 					.setUrl(config.getLocation())
@@ -128,7 +128,7 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 
 	@Override
 	public void runPipeline(String jobCiId, String originalBody) {
-		SBuildType buildType = ngaPlugin.getProjectManager().findBuildTypeByExternalId(jobCiId);
+		SBuildType buildType = octaneTeamCityPlugin.getProjectManager().findBuildTypeByExternalId(jobCiId);
 		if (buildType != null) {
 			buildType.addToQueue("ngaRemoteExecution");
 		}
@@ -144,7 +144,7 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 	public TestsResult getTestsResult(String jobId, String buildNumber) {
 		TestsResult result = null;
 		if (jobId != null && buildNumber != null) {
-			SBuildType buildType = ngaPlugin.getProjectManager().findBuildTypeByExternalId(jobId);
+			SBuildType buildType = octaneTeamCityPlugin.getProjectManager().findBuildTypeByExternalId(jobId);
 			if (buildType != null) {
 				Build build = buildType.getBuildByBuildNumber(buildNumber);
 				if (build != null && build instanceof SFinishedBuild) {
@@ -155,7 +155,7 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 								.setJobName(build.getBuildTypeName())
 								.setBuildId(String.valueOf(build.getBuildId()))
 								.setBuildName(build.getBuildNumber())
-								.setServerId(ngaPlugin.getConfig().getIdentity());
+								.setServerId(octaneTeamCityPlugin.getConfig().getIdentity());
 						result = dtoFactory.newDTO(TestsResult.class)
 								.setBuildContext(buildContext)
 								.setTestRuns(tests);

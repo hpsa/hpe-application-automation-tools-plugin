@@ -4,12 +4,12 @@
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans">
 
 	<!-- MAIN -->
-	<bean class="com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin"/>
+	<bean class="com.hp.octane.plugins.jetbrains.teamcity.OctaneTeamCityPlugin"/>
 	<bean class="com.hp.octane.plugins.jetbrains.teamcity.TeamCityPluginServicesImpl"/>
 	<bean class="com.hp.octane.plugins.jetbrains.teamcity.factories.ModelCommonFactory"/>
 	<bean class="com.hp.octane.plugins.jetbrains.teamcity.factories.SnapshotsFactory"/>
 	<bean class="com.hp.octane.plugins.jetbrains.teamcity.factories.ParametersFactory"/>
-	<bean class="com.hp.octane.plugins.jetbrains.teamcity.actions.GenericNGAActionsController"/>
+	<bean class="com.hp.octane.plugins.jetbrains.teamcity.actions.GenericOctaneActionsController"/>
 
 	<!-- CONFIGURATION -->
 	<bean class="com.hp.octane.plugins.jetbrains.teamcity.configuration.TCConfigurationService"/>

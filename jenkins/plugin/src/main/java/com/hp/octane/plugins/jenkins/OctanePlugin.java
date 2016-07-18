@@ -57,6 +57,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 	// deprecated, replaced by secretPassword
 	private String password;
 	public final CIPluginServices jenkinsPluginServices = new CIJenkinsServicesImpl();
+	private OctaneSDK octaneSDK;
 
 	public String getIdentity() {
 		return identity;
@@ -110,7 +111,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 			}
 		}
 
-		OctaneSDK.init(jenkinsPluginServices, false);
+		octaneSDK = OctaneSDK.init(jenkinsPluginServices, false);
 
 		//  These ones, once will become part of the SDK, will be hidden from X Plugin and initialized in SDK internally
 		EventsService.getExtensionInstance().updateClient(getServerConfiguration());
@@ -153,6 +154,10 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 
 	public String getImpersonatedUser() {
 		return impersonatedUser;
+	}
+
+	public OctaneSDK getOctaneSDK() {
+		return octaneSDK;
 	}
 
 	public void configurePlugin(String uiLocation, String username, String password, String impersonatedUser) throws IOException {

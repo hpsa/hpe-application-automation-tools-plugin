@@ -4,8 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
-import com.hp.octane.plugins.jetbrains.teamcity.configuration.NGAConfigStructure;
-import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
+import com.hp.octane.plugins.jetbrains.teamcity.configuration.OctaneConfigStructure;
+import com.hp.octane.plugins.jetbrains.teamcity.OctaneTeamCityPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.configuration.TCConfigurationService;
 import jetbrains.buildServer.serverSide.SBuildServer;
 import org.jetbrains.annotations.NotNull;
@@ -26,10 +26,9 @@ import java.util.logging.Logger;
 
 public class ConfigurationActionsController implements Controller {
 	private static final Logger logger = Logger.getLogger(ConfigurationActionsController.class.getName());
-	private static final OctaneSDK octaneSDK = OctaneSDK.getInstance();
 
 	@Autowired
-	private NGAPlugin ngaPlugin;
+	private OctaneTeamCityPlugin octaneTeamCityPlugin;
 	@Autowired
 	private TCConfigurationService configurationService;
 
@@ -48,7 +47,7 @@ public class ConfigurationActionsController implements Controller {
 				String url = httpServletRequest.getParameter("server");
 				String apiKey = httpServletRequest.getParameter("username1");
 				String secret = httpServletRequest.getParameter("password1");
-				OctaneConfiguration octaneConfiguration = octaneSDK.getConfigurationService().buildConfiguration(url, apiKey, secret);
+				OctaneConfiguration octaneConfiguration = octaneTeamCityPlugin.getOctaneSDK().getConfigurationService().buildConfiguration(url, apiKey, secret);
 
 				if (action.equals("test")) {
 					returnStr = configurationService.checkConfiguration(octaneConfiguration);
@@ -72,7 +71,7 @@ public class ConfigurationActionsController implements Controller {
 	}
 
 	public String updateConfiguration(OctaneConfiguration octaneConfiguration, String originalUrl) {
-		NGAConfigStructure cfg = ngaPlugin.getConfig();
+		OctaneConfigStructure cfg = octaneTeamCityPlugin.getConfig();
 		cfg.setUiLocation(originalUrl);
 		cfg.setLocation(octaneConfiguration.getUrl());
 		cfg.setSharedSpace(octaneConfiguration.getSharedSpace());
@@ -80,7 +79,7 @@ public class ConfigurationActionsController implements Controller {
 		cfg.setSecretPassword(octaneConfiguration.getSecret());
 		configurationService.saveConfig(cfg);
 
-		octaneSDK.getConfigurationService().notifyChange(octaneConfiguration);
+		octaneTeamCityPlugin.getOctaneSDK().getConfigurationService().notifyChange(octaneConfiguration);
 
 		return "Updated successfully";
 	}
@@ -88,7 +87,7 @@ public class ConfigurationActionsController implements Controller {
 	public String reloadConfiguration() {
 		try {
 			ObjectMapper mapper = new ObjectMapper();
-			NGAConfigStructure cfg = ngaPlugin.getConfig();
+			OctaneConfigStructure cfg = octaneTeamCityPlugin.getConfig();
 			return mapper.writeValueAsString(cfg);
 		} catch (JsonProcessingException e) {
 			logger.log(Level.WARNING, "failed to reload configuration: " + e.getMessage());

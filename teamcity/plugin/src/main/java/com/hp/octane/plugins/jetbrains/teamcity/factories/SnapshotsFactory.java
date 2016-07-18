@@ -5,7 +5,7 @@ import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
 import com.hp.octane.integrations.dto.snapshots.CIBuildStatus;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.dto.snapshots.SnapshotPhase;
-import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
+import com.hp.octane.plugins.jetbrains.teamcity.OctaneTeamCityPlugin;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SBuildType;
 import jetbrains.buildServer.serverSide.SFinishedBuild;
@@ -27,14 +27,14 @@ public class SnapshotsFactory {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Autowired
-	private NGAPlugin ngaPlugin;
+	private OctaneTeamCityPlugin octaneTeamCityPlugin;
 	@Autowired
 	private ModelCommonFactory modelCommonFactory;
 	@Autowired
 	private ParametersFactory parametersFactory;
 
 	public SnapshotNode createSnapshot(String buildConfigurationId) {
-		SBuildType rootJob = ngaPlugin.getProjectManager().findBuildTypeByExternalId(buildConfigurationId);
+		SBuildType rootJob = octaneTeamCityPlugin.getProjectManager().findBuildTypeByExternalId(buildConfigurationId);
 		SnapshotNode result = null;
 		if (rootJob != null) {
 			result = createSnapshotItem(rootJob, rootJob.getBuildTypeId());

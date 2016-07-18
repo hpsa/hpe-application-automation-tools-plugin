@@ -3,7 +3,7 @@ package com.hp.octane.plugins.jetbrains.teamcity.configuration;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "NGAconfig")
-public class NGAConfigStructure {
+public class OctaneConfigStructure {
 	private String identity;
 	private String identityFrom;
 	private String uiLocation;

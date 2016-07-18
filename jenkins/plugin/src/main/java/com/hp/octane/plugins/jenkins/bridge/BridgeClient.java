@@ -31,7 +31,6 @@ import java.util.concurrent.ThreadFactory;
 public class BridgeClient {
 	private static final Logger logger = LogManager.getLogger(BridgeClient.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-	private static final OctaneSDK octaneSDK = OctaneSDK.getInstance();
 	private static final OctanePlugin plugin = Jenkins.getInstance().getPlugin(OctanePlugin.class);
 	private static final String serverInstanceId = plugin.getIdentity();
 	private ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
@@ -63,7 +62,7 @@ public class BridgeClient {
 				@Override
 				public void run() {
 					String tasksJSON;
-					CIPluginServices pluginServices = octaneSDK.getPluginServices();
+					CIPluginServices pluginServices = plugin.jenkinsPluginServices;
 					try {
 						MqmRestClient restClient = restClientFactory.obtain(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
 						tasksJSON = restClient.getAbridgedTasks(
@@ -126,7 +125,7 @@ public class BridgeClient {
 				taskProcessingExecutors.execute(new Runnable() {
 					@Override
 					public void run() {
-						TasksProcessor TasksProcessor = octaneSDK.getTasksProcessor();
+						TasksProcessor TasksProcessor = plugin.getOctaneSDK().getTasksProcessor();
 						OctaneResultAbridged result = TasksProcessor.execute(task);
 						MqmRestClient restClient = restClientFactory.obtain(
 								mqmConfig.location,

@@ -41,7 +41,8 @@ public final class OctaneSDK {
 
 	//  TODO: remove the boolean once migrated JP
 	private static boolean initBridge;
-	synchronized public static void init(CIPluginServices ciPluginServices, boolean initBridge) {
+
+	synchronized public static OctaneSDK init(CIPluginServices ciPluginServices, boolean initBridge) {
 		if (ciPluginServices == null) {
 			throw new IllegalArgumentException("SDK initialization failed: MUST be initialized with valid plugin services provider");
 		}
@@ -49,12 +50,13 @@ public final class OctaneSDK {
 		OctaneSDK.initBridge = initBridge;
 
 		instance = new OctaneSDK(ciPluginServices);
-	}
-
-	public static OctaneSDK getInstance() {
 		return instance;
 	}
 
+	//	public static OctaneSDK getInstance() {
+//		return instance;
+//	}
+//
 	public CIPluginServices getPluginServices() {
 		return configurator.pluginServices;
 	}
