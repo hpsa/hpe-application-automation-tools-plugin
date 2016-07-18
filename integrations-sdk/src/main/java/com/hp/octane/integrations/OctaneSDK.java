@@ -3,14 +3,14 @@ package com.hp.octane.integrations;
 import com.hp.octane.integrations.api.CIPluginServices;
 import com.hp.octane.integrations.api.ConfigurationService;
 import com.hp.octane.integrations.api.EventsService;
-import com.hp.octane.integrations.api.RestService;
+import com.hp.octane.integrations.api.RestService1;
 import com.hp.octane.integrations.api.TasksProcessor;
 import com.hp.octane.integrations.api.TestsService;
 import com.hp.octane.integrations.services.bridge.BridgeService;
 import com.hp.octane.integrations.services.configuration.ConfigurationServiceImpl;
 import com.hp.octane.integrations.services.events.EventsServiceImpl;
 import com.hp.octane.integrations.services.logging.LoggingService;
-import com.hp.octane.integrations.services.rest.RestServiceImpl;
+import com.hp.octane.integrations.services.rest.RestService1Impl;
 import com.hp.octane.integrations.services.tasking.TasksProcessorImpl;
 import com.hp.octane.integrations.services.tests.TestsServiceImpl;
 import org.apache.logging.log4j.LogManager;
@@ -63,8 +63,8 @@ public final class OctaneSDK {
 		return configurator.configurationService;
 	}
 
-	public RestService getRestService() {
-		return configurator.restService;
+	public RestService1 getRestService() {
+		return configurator.restService1;
 	}
 
 	public TasksProcessor getTasksProcessor() {
@@ -97,7 +97,7 @@ public final class OctaneSDK {
 		private final CIPluginServices pluginServices;
 		private LoggingService loggingService;
 		private ConfigurationService configurationService;
-		private RestService restService;
+		private RestService1 restService1;
 		private BridgeService bridgeService;
 		private TasksProcessor tasksProcessor;
 		private EventsService eventsService;
@@ -108,7 +108,7 @@ public final class OctaneSDK {
 			this.pluginServices = pluginServices;
 			loggingService = new LoggingService(this);
 			configurationService = new ConfigurationServiceImpl(this);
-			restService = new RestServiceImpl(this);
+			restService1 = new RestService1Impl(this);
 			tasksProcessor = new TasksProcessorImpl(this);
 			bridgeService = new BridgeService(this, initBridge);
 			eventsService = new EventsServiceImpl(this);
@@ -119,8 +119,8 @@ public final class OctaneSDK {
 			return pluginServices;
 		}
 
-		RestService getRestService() {
-			return restService;
+		RestService1 getRestService1() {
+			return restService1;
 		}
 
 		TasksProcessor getTasksProcessor() {
