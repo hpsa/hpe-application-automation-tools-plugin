@@ -1,7 +1,7 @@
 package com.hp.octane.integrations;
 
 import com.hp.octane.integrations.api.CIPluginServices;
-import com.hp.octane.integrations.api.RestService1;
+import com.hp.octane.integrations.api.RestService;
 import com.hp.octane.integrations.api.TasksProcessor;
 
 /**
@@ -28,8 +28,8 @@ public abstract class SDKService {
 		return configurator.getPluginServices();
 	}
 
-	protected RestService1 getRestService() {
-		return configurator.getRestService1();
+	protected RestService getRestService() {
+		return configurator.getRestService();
 	}
 
 	protected TasksProcessor getTasksProcessor() {
