@@ -5,7 +5,7 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
 import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
-import com.hp.octane.plugins.jenkins.OctaneJenkinsPlugin;
+import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.configuration.ConfigApi;
 import hudson.Extension;
 import hudson.model.RootAction;
@@ -31,7 +31,7 @@ import java.util.logging.Logger;
 public class PluginActions implements RootAction {
 	private static final Logger logger = Logger.getLogger(PluginActions.class.getName());
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-	private static final OctaneJenkinsPlugin plugin = Jenkins.getInstance().getPlugin(OctaneJenkinsPlugin.class);
+	private static final OctanePlugin plugin = Jenkins.getInstance().getPlugin(OctanePlugin.class);
 
 	public String getIconFileName() {
 		return null;

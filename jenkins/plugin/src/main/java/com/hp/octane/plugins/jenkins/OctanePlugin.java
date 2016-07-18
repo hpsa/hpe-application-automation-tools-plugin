@@ -39,8 +39,8 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class OctaneJenkinsPlugin extends Plugin implements Describable<OctaneJenkinsPlugin> {
-	private static Logger logger = Logger.getLogger(OctaneJenkinsPlugin.class.getName());
+public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
+	private static Logger logger = Logger.getLogger(OctanePlugin.class.getName());
 
 	private String identity;
 	private Long identityFrom;
@@ -119,7 +119,7 @@ public class OctaneJenkinsPlugin extends Plugin implements Describable<OctaneJen
 	}
 
 	@Override
-	public Descriptor<OctaneJenkinsPlugin> getDescriptor() {
+	public Descriptor<OctanePlugin> getDescriptor() {
 		return new OctanePluginDescriptor();
 	}
 
@@ -203,9 +203,9 @@ public class OctaneJenkinsPlugin extends Plugin implements Describable<OctaneJen
 	}
 
 	@Extension
-	public static final class OctanePluginDescriptor extends Descriptor<OctaneJenkinsPlugin> {
+	public static final class OctanePluginDescriptor extends Descriptor<OctanePlugin> {
 
-		private OctaneJenkinsPlugin octaneJenkinsPlugin;
+		private OctanePlugin octanePlugin;
 
 		@Inject
 		private ConfigurationService configurationService;
@@ -214,14 +214,14 @@ public class OctaneJenkinsPlugin extends Plugin implements Describable<OctaneJen
 		private RetryModel retryModel;
 
 		public OctanePluginDescriptor() {
-			octaneJenkinsPlugin = Jenkins.getInstance().getPlugin(OctaneJenkinsPlugin.class);
+			octanePlugin = Jenkins.getInstance().getPlugin(OctanePlugin.class);
 		}
 
 		@Override
 		public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
 			try {
 				JSONObject mqmData = formData.getJSONObject("mqm"); // NON-NLS
-				octaneJenkinsPlugin.configurePlugin(mqmData.getString("uiLocation"), // NON-NLS
+				octanePlugin.configurePlugin(mqmData.getString("uiLocation"), // NON-NLS
 						mqmData.getString("username"), // NON-NLS
 						mqmData.getString("password"),
 						mqmData.getString("impersonatedUser"));
@@ -247,9 +247,9 @@ public class OctaneJenkinsPlugin extends Plugin implements Describable<OctaneJen
 			FormValidation validation = configurationService.checkConfiguration(mqmProject.getLocation(),
 					mqmProject.getSharedSpace(), username, password);
 			if (validation.kind == FormValidation.Kind.OK &&
-					uiLocation.equals(octaneJenkinsPlugin.getUiLocation()) &&
-					username.equals(octaneJenkinsPlugin.getUsername()) &&
-					password.equals(octaneJenkinsPlugin.getPassword())) {
+					uiLocation.equals(octanePlugin.getUiLocation()) &&
+					username.equals(octanePlugin.getUsername()) &&
+					password.equals(octanePlugin.getPassword())) {
 				retryModel.success();
 			}
 
@@ -282,27 +282,27 @@ public class OctaneJenkinsPlugin extends Plugin implements Describable<OctaneJen
 		}
 
 		public String getUiLocation() {
-			return octaneJenkinsPlugin.getUiLocation();
+			return octanePlugin.getUiLocation();
 		}
 
 		public String getLocation() {
-			return octaneJenkinsPlugin.getLocation();
+			return octanePlugin.getLocation();
 		}
 
 		public String getSharedSpace() {
-			return octaneJenkinsPlugin.getSharedSpace();
+			return octanePlugin.getSharedSpace();
 		}
 
 		public String getUsername() {
-			return octaneJenkinsPlugin.getUsername();
+			return octanePlugin.getUsername();
 		}
 
 		public String getPassword() {
-			return octaneJenkinsPlugin.getPassword();
+			return octanePlugin.getPassword();
 		}
 
 		public String getImpersonatedUser() {
-			return octaneJenkinsPlugin.getImpersonatedUser();
+			return octanePlugin.getImpersonatedUser();
 		}
 
 		private String markup(String color, String message) {

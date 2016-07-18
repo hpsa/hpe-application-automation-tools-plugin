@@ -11,7 +11,7 @@ import com.hp.mqm.client.exception.SharedSpaceNotExistException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.SessionCreationException;
 import com.hp.octane.plugins.jenkins.Messages;
-import com.hp.octane.plugins.jenkins.OctaneJenkinsPlugin;
+import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactoryImpl;
 import hudson.Extension;
@@ -38,8 +38,8 @@ public class ConfigurationService {
 	private JenkinsMqmRestClientFactory clientFactory;
 
 	public static ServerConfiguration getServerConfiguration() {
-		OctaneJenkinsPlugin octaneJenkinsPlugin = Jenkins.getInstance().getPlugin(OctaneJenkinsPlugin.class);
-		return octaneJenkinsPlugin.getServerConfiguration();
+		OctanePlugin octanePlugin = Jenkins.getInstance().getPlugin(OctanePlugin.class);
+		return octanePlugin.getServerConfiguration();
 	}
 
 	public static MqmProject parseUiLocation(String uiLocation) throws FormValidation {

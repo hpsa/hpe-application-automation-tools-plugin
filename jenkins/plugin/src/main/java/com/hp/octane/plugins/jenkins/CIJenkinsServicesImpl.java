@@ -64,8 +64,8 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 		result.setType(CIServerTypes.JENKINS)
 				.setVersion(Jenkins.VERSION)
 				.setUrl(serverUrl)
-				.setInstanceId(Jenkins.getInstance().getPlugin(OctaneJenkinsPlugin.class).getIdentity())
-				.setInstanceIdFrom(Jenkins.getInstance().getPlugin(OctaneJenkinsPlugin.class).getIdentityFrom())
+				.setInstanceId(Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity())
+				.setInstanceIdFrom(Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentityFrom())
 				.setSendingTime(System.currentTimeMillis());
 		return result;
 	}
@@ -73,7 +73,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 	@Override
 	public CIPluginInfo getPluginInfo() {
 		CIPluginInfo result = dtoFactory.newDTO(CIPluginInfo.class);
-		result.setVersion(Jenkins.getInstance().getPlugin(OctaneJenkinsPlugin.class).getWrapper().getVersion());
+		result.setVersion(Jenkins.getInstance().getPlugin(OctanePlugin.class).getWrapper().getVersion());
 		return result;
 	}
 
@@ -85,7 +85,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 	@Override
 	public OctaneConfiguration getOctaneConfiguration() {
 		OctaneConfiguration result = null;
-		ServerConfiguration serverConfiguration = Jenkins.getInstance().getPlugin(OctaneJenkinsPlugin.class).getServerConfiguration();
+		ServerConfiguration serverConfiguration = Jenkins.getInstance().getPlugin(OctanePlugin.class).getServerConfiguration();
 		Long sharedSpace = null;
 		if (serverConfiguration.sharedSpace != null) {
 			try {
@@ -191,7 +191,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 	}
 
 	private SecurityContext startImpersonation() {
-		String user = Jenkins.getInstance().getPlugin(OctaneJenkinsPlugin.class).getImpersonatedUser();
+		String user = Jenkins.getInstance().getPlugin(OctanePlugin.class).getImpersonatedUser();
 		SecurityContext originalContext = null;
 		if (user != null && !user.equalsIgnoreCase("")) {
 			User jenkinsUser = User.get(user, false);
@@ -445,7 +445,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 		try {
 			item = Jenkins.getInstance().getItem(jobRefId);
 		} catch (AccessDeniedException e) {
-			String user = Jenkins.getInstance().getPlugin(OctaneJenkinsPlugin.class).getImpersonatedUser();
+			String user = Jenkins.getInstance().getPlugin(OctanePlugin.class).getImpersonatedUser();
 			if (user != null && !user.isEmpty()) {
 				throw new PermissionException(403);
 			} else {

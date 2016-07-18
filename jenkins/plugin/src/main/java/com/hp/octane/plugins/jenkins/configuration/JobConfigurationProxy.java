@@ -10,7 +10,7 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.plugins.jenkins.Messages;
-import com.hp.octane.plugins.jenkins.OctaneJenkinsPlugin;
+import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
@@ -50,7 +50,7 @@ public class JobConfigurationProxy {
 		JSONObject result = new JSONObject();
 
 		PipelineNode pipelineNode = ModelFactory.createStructureItem(project);
-		CIServerInfo ciServerInfo = Jenkins.getInstance().getPlugin(OctaneJenkinsPlugin.class).jenkinsPluginServices.getServerInfo();
+		CIServerInfo ciServerInfo = Jenkins.getInstance().getPlugin(OctanePlugin.class).jenkinsPluginServices.getServerInfo();
 		Long releaseId = pipelineObject.getLong("releaseId") != -1 ? pipelineObject.getLong("releaseId") : null;
 
 		MqmRestClient client;
