@@ -13,7 +13,7 @@ import java.net.URL;
 
 class OctaneConfigurationImpl implements OctaneConfiguration {
 	private String url;
-	private Long sharedSpace;
+	private String sharedSpace;
 	private String apiKey;
 	private String secret;
 
@@ -26,23 +26,22 @@ class OctaneConfigurationImpl implements OctaneConfiguration {
 		return this;
 	}
 
-	public Long getSharedSpace() {
+	public String getSharedSpace() {
 		return sharedSpace;
 	}
 
-	public OctaneConfiguration setSharedSpace(Long sharedSpace) {
+	public OctaneConfiguration setSharedSpace(String sharedSpace) {
 		this.sharedSpace = sharedSpace;
-		return this;
-	}
-
-
-	public OctaneConfiguration setApiKey(String apiKey) {
-		this.apiKey = apiKey;
 		return this;
 	}
 
 	public String getApiKey() {
 		return apiKey;
+	}
+
+	public OctaneConfiguration setApiKey(String apiKey) {
+		this.apiKey = apiKey;
+		return this;
 	}
 
 	public String getSecret() {
@@ -56,7 +55,7 @@ class OctaneConfigurationImpl implements OctaneConfiguration {
 
 	public boolean isValid() {
 		boolean result = false;
-		if (url != null && !url.isEmpty() && sharedSpace != null) {
+		if (url != null && !url.isEmpty() && sharedSpace != null && !sharedSpace.isEmpty()) {
 			try {
 				URL tmp = new URL(url);
 				result = true;

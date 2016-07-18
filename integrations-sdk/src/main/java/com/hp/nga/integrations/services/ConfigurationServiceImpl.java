@@ -41,7 +41,6 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 		OctaneConfiguration result = null;
 		try {
 			String url;
-			long sharedSpaceId;
 			URL tmpUrl = new URL(rawUrl);
 			int contextPos = rawUrl.indexOf(UI_CONTEXT_PATH);
 			if (contextPos < 0) {
@@ -56,10 +55,9 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 					if (sharedSpaceAndWorkspace.length < 1 || sharedSpaceAndWorkspace[0].isEmpty()) {
 						throw new IllegalArgumentException("shared space parameter MUST be present");
 					}
-					sharedSpaceId = Long.parseLong(sharedSpaceAndWorkspace[0]);
 					result = dtoFactory.newDTO(OctaneConfiguration.class)
 							.setUrl(url)
-							.setSharedSpace(sharedSpaceId)
+							.setSharedSpace(sharedSpaceAndWorkspace[0])
 							.setApiKey(apiKey)
 							.setSecret(secret);
 				}

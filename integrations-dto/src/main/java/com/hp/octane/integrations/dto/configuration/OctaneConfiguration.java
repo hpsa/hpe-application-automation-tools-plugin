@@ -14,9 +14,9 @@ public interface OctaneConfiguration extends DTOBase {
 
 	OctaneConfiguration setUrl(String url);
 
-	Long getSharedSpace();
+	String getSharedSpace();
 
-	OctaneConfiguration setSharedSpace(Long sharedSpace);
+	OctaneConfiguration setSharedSpace(String sharedSpace);
 
 	String getApiKey();
 

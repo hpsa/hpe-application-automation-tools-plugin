@@ -94,10 +94,11 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 				logger.severe("found shared space '" + serverConfiguration.sharedSpace + "' yet it's not parsable into Long: " + nfe.getMessage());
 			}
 		}
-		if (serverConfiguration.location != null && !serverConfiguration.location.isEmpty() && sharedSpace != null) {
+		if (serverConfiguration.location != null && !serverConfiguration.location.isEmpty() &&
+				serverConfiguration.sharedSpace != null && !serverConfiguration.sharedSpace.isEmpty()) {
 			result = dtoFactory.newDTO(OctaneConfiguration.class)
 					.setUrl(serverConfiguration.location)
-					.setSharedSpace(sharedSpace)
+					.setSharedSpace(serverConfiguration.sharedSpace)
 					.setApiKey(serverConfiguration.username)
 					.setSecret(serverConfiguration.password);
 		}
