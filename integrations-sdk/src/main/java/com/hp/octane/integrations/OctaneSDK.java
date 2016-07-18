@@ -43,9 +43,6 @@ public final class OctaneSDK {
 	private static boolean initBridge;
 
 	synchronized public static OctaneSDK init(CIPluginServices ciPluginServices, boolean initBridge) {
-		if (instance != null) {
-			throw new IllegalStateException("SDK MAY be initialized only once in a runtime; please use the instance returned from the first initialization");
-		}
 		if (ciPluginServices == null) {
 			throw new IllegalArgumentException("SDK initialization failed: MUST be initialized with valid plugin services provider");
 		}
