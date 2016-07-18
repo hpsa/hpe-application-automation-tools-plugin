@@ -56,10 +56,6 @@ public final class OctaneSDK {
 		return instance;
 	}
 
-	public CIPluginServices getPluginServices() {
-		return configurator.pluginServices;
-	}
-
 	public ConfigurationService getConfigurationService() {
 		return configurator.configurationService;
 	}
