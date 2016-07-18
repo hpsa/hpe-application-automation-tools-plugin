@@ -13,9 +13,9 @@ import javax.servlet.http.HttpServletRequest;
  * Created by gadiel on 11/01/2016.
  */
 
-public class NGAConfigurationPage extends AdminPage {
+public class OctaneConfigurationPage extends AdminPage {
 
-	protected NGAConfigurationPage(@NotNull PagePlaces pagePlaces, @NotNull PluginDescriptor pluginDescriptor) {
+	protected OctaneConfigurationPage(@NotNull PagePlaces pagePlaces, @NotNull PluginDescriptor pluginDescriptor) {
 		super(pagePlaces);
 		setPluginName("HPE ALM Octane CI Plugin");
 		setTabTitle("ALM Octane CI Plugin");

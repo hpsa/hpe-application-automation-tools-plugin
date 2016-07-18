@@ -13,7 +13,7 @@
 
 	<!-- CONFIGURATION -->
 	<bean class="com.hp.octane.plugins.jetbrains.teamcity.configuration.TCConfigurationService"/>
-	<bean class="com.hp.octane.plugins.jetbrains.teamcity.configuration.NGAConfigurationPage"/>
+	<bean class="com.hp.octane.plugins.jetbrains.teamcity.configuration.OctaneConfigurationPage"/>
 	<bean class="com.hp.octane.plugins.jetbrains.teamcity.actions.ConfigurationActionsController"/>
 
 	<!-- EVENTS -->

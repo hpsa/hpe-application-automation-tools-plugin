@@ -42,7 +42,6 @@ public class OctaneTeamCityPlugin implements ServerExtension {
 	@Autowired
 	private WebControllerManager webControllerManager;
 
-	//  [YG] TODO: move this config cache to the configuration service
 	private OctaneConfigStructure config;
 	private OctaneSDK octaneSDK;
 

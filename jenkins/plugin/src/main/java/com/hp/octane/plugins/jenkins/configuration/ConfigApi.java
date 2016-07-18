@@ -2,7 +2,7 @@
 
 package com.hp.octane.plugins.jenkins.configuration;
 
-import com.hp.octane.plugins.jenkins.OctanePlugin;
+import com.hp.octane.plugins.jenkins.OctaneJenkinsPlugin;
 import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
 import hudson.util.FormValidation;
 import jenkins.model.Jenkins;
@@ -70,11 +70,11 @@ public class ConfigApi {
 		if (configuration.containsKey("password")) {
 			password = configuration.getString("password");
 		}
-		OctanePlugin octanePlugin = Jenkins.getInstance().getPlugin(OctanePlugin.class);
-		octanePlugin.configurePlugin(uiLocation, username, password, impersonatedUser);
+		OctaneJenkinsPlugin octaneJenkinsPlugin = Jenkins.getInstance().getPlugin(OctaneJenkinsPlugin.class);
+		octaneJenkinsPlugin.configurePlugin(uiLocation, username, password, impersonatedUser);
 		String serverIdentity = (String) configuration.get("serverIdentity");
 		if (!StringUtils.isEmpty(serverIdentity)) {
-			octanePlugin.setIdentity(serverIdentity);
+			octaneJenkinsPlugin.setIdentity(serverIdentity);
 		}
 
 		res.serveExposedBean(req, getConfiguration(), Flavor.JSON);

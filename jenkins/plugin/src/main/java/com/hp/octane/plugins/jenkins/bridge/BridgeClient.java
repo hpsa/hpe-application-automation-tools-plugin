@@ -9,7 +9,7 @@ import com.hp.octane.integrations.api.TasksProcessor;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
 import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
-import com.hp.octane.plugins.jenkins.OctanePlugin;
+import com.hp.octane.plugins.jenkins.OctaneJenkinsPlugin;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import jenkins.model.Jenkins;
@@ -31,7 +31,7 @@ import java.util.concurrent.ThreadFactory;
 public class BridgeClient {
 	private static final Logger logger = LogManager.getLogger(BridgeClient.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-	private static final OctanePlugin plugin = Jenkins.getInstance().getPlugin(OctanePlugin.class);
+	private static final OctaneJenkinsPlugin plugin = Jenkins.getInstance().getPlugin(OctaneJenkinsPlugin.class);
 	private static final String serverInstanceId = plugin.getIdentity();
 	private ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
 	private ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30, new AbridgedTasksExecutorsFactory());

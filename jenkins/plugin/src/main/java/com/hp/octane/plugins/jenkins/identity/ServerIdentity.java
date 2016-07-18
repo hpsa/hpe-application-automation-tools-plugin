@@ -2,12 +2,12 @@
 
 package com.hp.octane.plugins.jenkins.identity;
 
-import com.hp.octane.plugins.jenkins.OctanePlugin;
+import com.hp.octane.plugins.jenkins.OctaneJenkinsPlugin;
 import jenkins.model.Jenkins;
 
 public class ServerIdentity {
 
     public static String getIdentity() {
-        return Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity();
+        return Jenkins.getInstance().getPlugin(OctaneJenkinsPlugin.class).getIdentity();
     }
 }
