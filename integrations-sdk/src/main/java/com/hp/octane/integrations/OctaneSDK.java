@@ -43,13 +43,16 @@ public final class OctaneSDK {
 	private static boolean initBridge;
 
 	synchronized public static OctaneSDK init(CIPluginServices ciPluginServices, boolean initBridge) {
-		if (ciPluginServices == null) {
-			throw new IllegalArgumentException("SDK initialization failed: MUST be initialized with valid plugin services provider");
+		if (instance != null) {
+			logger.warn("Octane SDK expected to be initialized only once, but detected additional initialization attempt; origin initialization artifact will be returned");
+		} else {
+			if (ciPluginServices == null) {
+				throw new IllegalArgumentException("SDK initialization failed: MUST be initialized with valid plugin services provider");
+			}
+			OctaneSDK.initBridge = initBridge;
+			instance = new OctaneSDK(ciPluginServices);
 		}
 
-		OctaneSDK.initBridge = initBridge;
-
-		instance = new OctaneSDK(ciPluginServices);
 		return instance;
 	}
 
