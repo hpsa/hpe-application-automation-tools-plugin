@@ -1,14 +1,11 @@
 package com.hp.octane.plugins.jetbrains.teamcity.factories;
 
-import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.general.CIJobsList;
-import com.hp.nga.integrations.dto.pipelines.PipelineNode;
-import com.hp.nga.integrations.dto.pipelines.PipelinePhase;
-import com.hp.nga.integrations.dto.snapshots.CIBuildResult;
-import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
-import com.hp.nga.integrations.dto.snapshots.SnapshotPhase;
-import com.hp.nga.integrations.dto.snapshots.CIBuildStatus;
-import com.hp.octane.plugins.jetbrains.teamcity.NGAPlugin;
+import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.general.CIJobsList;
+import com.hp.octane.integrations.dto.pipelines.PipelineNode;
+import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
+import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
+import com.hp.octane.plugins.jetbrains.teamcity.OctaneTeamCityPlugin;
 import jetbrains.buildServer.messages.Status;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.dependency.Dependency;
@@ -26,7 +23,7 @@ public class ModelCommonFactory {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Autowired
-	private NGAPlugin ngaPlugin;
+	private OctaneTeamCityPlugin octaneTeamCityPlugin;
 	@Autowired
 	private ParametersFactory parametersFactory;
 
@@ -36,7 +33,7 @@ public class ModelCommonFactory {
 		List<String> ids = new ArrayList<String>();
 
 		PipelineNode buildConf;
-		for (SProject project : ngaPlugin.getProjectManager().getProjects()) {
+		for (SProject project : octaneTeamCityPlugin.getProjectManager().getProjects()) {
 
 			List<SBuildType> buildTypes = project.getBuildTypes();
 			for (SBuildType buildType : buildTypes) {
@@ -55,7 +52,7 @@ public class ModelCommonFactory {
 	}
 
 	public PipelineNode createStructure(String buildConfigurationId) {
-		SBuildType root = ngaPlugin.getProjectManager().findBuildTypeByExternalId(buildConfigurationId);
+		SBuildType root = octaneTeamCityPlugin.getProjectManager().findBuildTypeByExternalId(buildConfigurationId);
 		PipelineNode treeRoot = null;
 		if (root != null) {
 			treeRoot = dtoFactory.newDTO(PipelineNode.class)

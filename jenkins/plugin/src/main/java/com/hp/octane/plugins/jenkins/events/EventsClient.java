@@ -1,9 +1,9 @@
 package com.hp.octane.plugins.jenkins.events;
 
 import com.hp.mqm.client.MqmRestClient;
-import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.events.CIEvent;
-import com.hp.nga.integrations.dto.events.CIEventsList;
+import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.events.CIEvent;
+import com.hp.octane.integrations.dto.events.CIEventsList;
 import com.hp.octane.plugins.jenkins.CIJenkinsServicesImpl;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;

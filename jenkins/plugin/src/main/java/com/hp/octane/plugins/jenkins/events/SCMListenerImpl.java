@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jenkins.events;
 
-import com.hp.nga.integrations.dto.scm.SCMData;
+import com.hp.octane.integrations.dto.scm.SCMData;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessors;
 import hudson.Extension;

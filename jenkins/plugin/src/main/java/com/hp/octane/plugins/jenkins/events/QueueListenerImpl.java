@@ -1,8 +1,8 @@
 package com.hp.octane.plugins.jenkins.events;
 
-import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.events.CIEvent;
-import com.hp.nga.integrations.dto.events.CIEventType;
+import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.events.CIEvent;
+import com.hp.octane.integrations.dto.events.CIEventType;
 import com.hp.octane.plugins.jenkins.model.CIEventCausesFactory;
 import hudson.Extension;
 import hudson.model.AbstractProject;

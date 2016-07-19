@@ -1,11 +1,11 @@
 package com.hp.octane.plugins.jenkins.model.processors.scm;
 
-import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.scm.SCMChange;
-import com.hp.nga.integrations.dto.scm.SCMCommit;
-import com.hp.nga.integrations.dto.scm.SCMData;
-import com.hp.nga.integrations.dto.scm.SCMRepository;
-import com.hp.nga.integrations.dto.scm.SCMType;
+import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.scm.SCMChange;
+import com.hp.octane.integrations.dto.scm.SCMCommit;
+import com.hp.octane.integrations.dto.scm.SCMData;
+import com.hp.octane.integrations.dto.scm.SCMRepository;
+import com.hp.octane.integrations.dto.scm.SCMType;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.plugins.git.Branch;

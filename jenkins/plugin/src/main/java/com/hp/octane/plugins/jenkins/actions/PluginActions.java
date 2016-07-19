@@ -1,14 +1,15 @@
 package com.hp.octane.plugins.jenkins.actions;
 
-import com.hp.nga.integrations.SDKManager;
-import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.connectivity.NGAHttpMethod;
-import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
-import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
-import com.hp.nga.integrations.api.TasksProcessor;
+import com.hp.octane.integrations.api.TasksProcessor;
+import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.connectivity.HttpMethod;
+import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
+import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
+import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.configuration.ConfigApi;
 import hudson.Extension;
 import hudson.model.RootAction;
+import jenkins.model.Jenkins;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
@@ -30,6 +31,7 @@ import java.util.logging.Logger;
 public class PluginActions implements RootAction {
 	private static final Logger logger = Logger.getLogger(PluginActions.class.getName());
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+	private static final OctanePlugin plugin = Jenkins.getInstance().getPlugin(OctanePlugin.class);
 
 	public String getIconFileName() {
 		return null;
@@ -48,24 +50,24 @@ public class PluginActions implements RootAction {
 	}
 
 	public void doDynamic(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
-		NGAHttpMethod method = null;
+		HttpMethod method = null;
 		if ("post".equals(req.getMethod().toLowerCase())) {
-			method = NGAHttpMethod.POST;
+			method = HttpMethod.POST;
 		} else if ("get".equals(req.getMethod().toLowerCase())) {
-			method = NGAHttpMethod.GET;
+			method = HttpMethod.GET;
 		} else if ("put".equals(req.getMethod().toLowerCase())) {
-			method = NGAHttpMethod.PUT;
+			method = HttpMethod.PUT;
 		} else if ("delete".equals(req.getMethod().toLowerCase())) {
-			method = NGAHttpMethod.DELETE;
+			method = HttpMethod.DELETE;
 		}
 		if (method != null) {
-			NGATaskAbridged ngaTaskAbridged = dtoFactory.newDTO(NGATaskAbridged.class);
-			ngaTaskAbridged.setId(UUID.randomUUID().toString());
-			ngaTaskAbridged.setMethod(method);
-			ngaTaskAbridged.setUrl(req.getRequestURIWithQueryString());
-			ngaTaskAbridged.setBody("");
-			TasksProcessor taskProcessor = SDKManager.getService(TasksProcessor.class);
-			NGAResultAbridged result = taskProcessor.execute(ngaTaskAbridged);
+			OctaneTaskAbridged octaneTaskAbridged = dtoFactory.newDTO(OctaneTaskAbridged.class);
+			octaneTaskAbridged.setId(UUID.randomUUID().toString());
+			octaneTaskAbridged.setMethod(method);
+			octaneTaskAbridged.setUrl(req.getRequestURIWithQueryString());
+			octaneTaskAbridged.setBody("");
+			TasksProcessor taskProcessor = plugin.getOctaneSDK().getTasksProcessor();
+			OctaneResultAbridged result = taskProcessor.execute(octaneTaskAbridged);
 
 			res.setStatus(result.getStatus());
 			if (result.getBody() != null) {

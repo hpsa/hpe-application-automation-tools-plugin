@@ -3,12 +3,12 @@ package com.hp.octane.plugins.jenkins.bridge;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.AuthenticationException;
 import com.hp.mqm.client.exception.TemporarilyUnavailableException;
-import com.hp.nga.integrations.SDKManager;
-import com.hp.nga.integrations.api.CIPluginServices;
-import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.connectivity.NGAResultAbridged;
-import com.hp.nga.integrations.dto.connectivity.NGATaskAbridged;
-import com.hp.nga.integrations.api.TasksProcessor;
+import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.api.CIPluginServices;
+import com.hp.octane.integrations.api.TasksProcessor;
+import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
+import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
 import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
@@ -69,8 +69,8 @@ public class BridgeClient {
 								serverInstanceId,
 								pluginServices.getServerInfo().getType().value(),
 								pluginServices.getServerInfo().getUrl(),
-								SDKManager.API_VERSION,
-								SDKManager.SDK_VERSION);
+								OctaneSDK.API_VERSION,
+								OctaneSDK.SDK_VERSION);
 						isConnected = false;
 						connect();
 						if (tasksJSON != null && !tasksJSON.isEmpty()) {
@@ -118,15 +118,15 @@ public class BridgeClient {
 
 	private void dispatchTasks(String tasksJSON) {
 		try {
-			NGATaskAbridged[] tasks = dtoFactory.dtoCollectionFromJson(tasksJSON, NGATaskAbridged[].class);
+			OctaneTaskAbridged[] tasks = dtoFactory.dtoCollectionFromJson(tasksJSON, OctaneTaskAbridged[].class);
 
 			logger.info("BRIDGE: received " + tasks.length + " task(s)");
-			for (final NGATaskAbridged task : tasks) {
+			for (final OctaneTaskAbridged task : tasks) {
 				taskProcessingExecutors.execute(new Runnable() {
 					@Override
 					public void run() {
-						TasksProcessor TasksProcessor = SDKManager.getService(TasksProcessor.class);
-						NGAResultAbridged result = TasksProcessor.execute(task);
+						TasksProcessor TasksProcessor = plugin.getOctaneSDK().getTasksProcessor();
+						OctaneResultAbridged result = TasksProcessor.execute(task);
 						MqmRestClient restClient = restClientFactory.obtain(
 								mqmConfig.location,
 								mqmConfig.sharedSpace,

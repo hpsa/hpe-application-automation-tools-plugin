@@ -1,10 +1,8 @@
-// (C) Copyright 2003-2015 Hewlett-Packard Development Company, L.P.
-
 package com.hp.octane.plugins.jenkins;
 
 import com.google.inject.Inject;
-import com.hp.nga.integrations.SDKManager;
-import com.hp.nga.integrations.api.CIPluginServices;
+import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.api.CIPluginServices;
 import com.hp.octane.plugins.jenkins.bridge.BridgesService;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationListener;
@@ -58,7 +56,8 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 
 	// deprecated, replaced by secretPassword
 	private String password;
-	public final CIPluginServices jenkinsPluginServices = new CIJenkinsServicesImpl();
+	transient public final CIPluginServices jenkinsPluginServices = new CIJenkinsServicesImpl();
+	transient private OctaneSDK octaneSDK;
 
 	public String getIdentity() {
 		return identity;
@@ -112,7 +111,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 			}
 		}
 
-		SDKManager.init(jenkinsPluginServices, false);
+		octaneSDK = OctaneSDK.init(jenkinsPluginServices, false);
 
 		//  These ones, once will become part of the SDK, will be hidden from X Plugin and initialized in SDK internally
 		EventsService.getExtensionInstance().updateClient(getServerConfiguration());
@@ -155,6 +154,10 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 
 	public String getImpersonatedUser() {
 		return impersonatedUser;
+	}
+
+	public OctaneSDK getOctaneSDK() {
+		return octaneSDK;
 	}
 
 	public void configurePlugin(String uiLocation, String username, String password, String impersonatedUser) throws IOException {

@@ -1,7 +1,8 @@
 package com.hp.octane.plugins.jenkins.model;
 
-import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.causes.*;
+import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.causes.CIEventCause;
+import com.hp.octane.integrations.dto.causes.CIEventCauseType;
 import hudson.model.Cause;
 import hudson.triggers.SCMTrigger;
 import hudson.triggers.TimerTrigger;
