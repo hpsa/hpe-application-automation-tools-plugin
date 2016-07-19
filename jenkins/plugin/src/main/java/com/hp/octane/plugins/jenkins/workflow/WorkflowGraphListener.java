@@ -2,12 +2,12 @@ package com.hp.octane.plugins.jenkins.workflow;
 
 import com.cloudbees.workflow.flownode.FlowNodeUtil;
 import com.cloudbees.workflow.rest.external.StageNodeExt;
-import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.causes.CIEventCause;
-import com.hp.nga.integrations.dto.causes.CIEventCauseType;
-import com.hp.nga.integrations.dto.events.CIEvent;
-import com.hp.nga.integrations.dto.events.CIEventType;
-import com.hp.nga.integrations.dto.snapshots.CIBuildResult;
+import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.causes.CIEventCause;
+import com.hp.octane.integrations.dto.causes.CIEventCauseType;
+import com.hp.octane.integrations.dto.events.CIEvent;
+import com.hp.octane.integrations.dto.events.CIEventType;
+import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
 import com.hp.octane.plugins.jenkins.events.EventsService;
 import hudson.model.Cause;
 import hudson.model.Run;
@@ -125,6 +125,7 @@ public class WorkflowGraphListener implements GraphListener {
     }
 
     private String getParentName(FlowNode flowNode) {
+
         String url = null;
         try {
             url = flowNode.getUrl();

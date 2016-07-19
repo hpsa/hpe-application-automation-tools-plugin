@@ -1,22 +1,22 @@
 package com.hp.octane.plugins.jenkins;
 
-import com.hp.nga.integrations.api.CIPluginServices;
-import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.configuration.CIProxyConfiguration;
-import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
-import com.hp.nga.integrations.dto.general.CIJobsList;
-import com.hp.nga.integrations.dto.general.CIPluginInfo;
-import com.hp.nga.integrations.dto.general.CIServerInfo;
-import com.hp.nga.integrations.dto.general.CIServerTypes;
-import com.hp.nga.integrations.dto.parameters.CIParameter;
-import com.hp.nga.integrations.dto.parameters.CIParameterType;
-import com.hp.nga.integrations.dto.pipelines.BuildHistory;
-import com.hp.nga.integrations.dto.pipelines.PipelineNode;
-import com.hp.nga.integrations.dto.scm.SCMData;
-import com.hp.nga.integrations.dto.snapshots.SnapshotNode;
-import com.hp.nga.integrations.dto.tests.TestsResult;
-import com.hp.nga.integrations.exceptions.ConfigurationException;
-import com.hp.nga.integrations.exceptions.PermissionException;
+import com.hp.octane.integrations.api.CIPluginServices;
+import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
+import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
+import com.hp.octane.integrations.dto.general.CIJobsList;
+import com.hp.octane.integrations.dto.general.CIPluginInfo;
+import com.hp.octane.integrations.dto.general.CIServerInfo;
+import com.hp.octane.integrations.dto.general.CIServerTypes;
+import com.hp.octane.integrations.dto.parameters.CIParameter;
+import com.hp.octane.integrations.dto.parameters.CIParameterType;
+import com.hp.octane.integrations.dto.pipelines.BuildHistory;
+import com.hp.octane.integrations.dto.pipelines.PipelineNode;
+import com.hp.octane.integrations.dto.scm.SCMData;
+import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
+import com.hp.octane.integrations.dto.tests.TestsResult;
+import com.hp.octane.integrations.exceptions.ConfigurationException;
+import com.hp.octane.integrations.exceptions.PermissionException;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
@@ -79,13 +79,13 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 	}
 
 	@Override
-	public File getAllowedNGAStorage() {
+	public File getAllowedOctaneStorage() {
 		return new File(Jenkins.getInstance().getRootDir(), "userContent" + File.separator + "nga");
 	}
 
 	@Override
-	public NGAConfiguration getNGAConfiguration() {
-		NGAConfiguration result = null;
+	public OctaneConfiguration getOctaneConfiguration() {
+		OctaneConfiguration result = null;
 		ServerConfiguration serverConfiguration = Jenkins.getInstance().getPlugin(OctanePlugin.class).getServerConfiguration();
 		Long sharedSpace = null;
 		if (serverConfiguration.sharedSpace != null) {
@@ -95,10 +95,11 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 				logger.severe("found shared space '" + serverConfiguration.sharedSpace + "' yet it's not parsable into Long: " + nfe.getMessage());
 			}
 		}
-		if (serverConfiguration.location != null && !serverConfiguration.location.isEmpty() && sharedSpace != null) {
-			result = dtoFactory.newDTO(NGAConfiguration.class)
+		if (serverConfiguration.location != null && !serverConfiguration.location.isEmpty() &&
+				serverConfiguration.sharedSpace != null && !serverConfiguration.sharedSpace.isEmpty()) {
+			result = dtoFactory.newDTO(OctaneConfiguration.class)
 					.setUrl(serverConfiguration.location)
-					.setSharedSpace(sharedSpace)
+					.setSharedSpace(serverConfiguration.sharedSpace)
 					.setApiKey(serverConfiguration.username)
 					.setSecret(serverConfiguration.password);
 		}
@@ -311,7 +312,6 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 		return null;
 	}
 
-
 	@Override
 	public BuildHistory getHistoryPipeline(String jobCiId, String originalBody) {
 		SecurityContext securityContext = startImpersonation();
@@ -404,7 +404,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 			}
 		}
 
-		project.scheduleBuild(delay, new Cause.RemoteCause(getNGAConfiguration() == null ? "non available URL" : getNGAConfiguration().getUrl(), "octane driven execution"), parametersAction);
+		project.scheduleBuild(delay, new Cause.RemoteCause(getOctaneConfiguration() == null ? "non available URL" : getOctaneConfiguration().getUrl(), "octane driven execution"), parametersAction);
 	}
 
 	private List<ParameterValue> createParameters(AbstractProject project, JSONArray paramsJSON) {

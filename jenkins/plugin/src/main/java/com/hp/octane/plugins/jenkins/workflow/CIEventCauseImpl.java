@@ -1,7 +1,7 @@
 package com.hp.octane.plugins.jenkins.workflow;
 
-import com.hp.nga.integrations.dto.causes.CIEventCause;
-import com.hp.nga.integrations.dto.causes.CIEventCauseType;
+import com.hp.octane.integrations.dto.causes.CIEventCause;
+import com.hp.octane.integrations.dto.causes.CIEventCauseType;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -2,18 +2,16 @@ package com.hp.octane.plugins.jenkins.events;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.inject.Inject;
-import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.causes.CIEventCause;
-import com.hp.nga.integrations.dto.events.CIEvent;
-import com.hp.nga.integrations.dto.events.CIEventType;
-import com.hp.nga.integrations.dto.snapshots.CIBuildResult;
+import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.events.CIEvent;
+import com.hp.octane.integrations.dto.events.CIEventType;
+import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
 import com.hp.octane.plugins.jenkins.model.CIEventCausesFactory;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessors;
 import com.hp.octane.plugins.jenkins.tests.TestListener;
 import com.hp.octane.plugins.jenkins.tests.gherkin.GherkinEventsService;
-import com.hp.octane.plugins.jenkins.workflow.BuildRelations;
 import com.hp.octane.plugins.jenkins.workflow.WorkflowGraphListener;
 import hudson.Extension;
 import hudson.matrix.MatrixConfiguration;
@@ -26,7 +24,6 @@ import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 import javax.annotation.Nonnull;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.*;
 
@@ -45,7 +42,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 
 	@Inject
 	private TestListener testListener;
-	
+
 	@Override
 	public void onStarted(final Run r, TaskListener listener) {
 		CIEvent event;
@@ -68,16 +65,22 @@ public final class RunListenerImpl extends RunListener<Run> {
 					try {
 						FlowExecution ex = ((WorkflowRun) r).getExecutionPromise().get();
 						ex.addListener(new WorkflowGraphListener());
-					}
-					catch (InterruptedException e) {
+					} catch (InterruptedException e) {
 						e.printStackTrace();
 					} catch (ExecutionException e) {
 						e.printStackTrace();
 					}
 				}
 			}, executor);
-		}
-		else{
+		} else {
+
+// turned off at the moment. basically, we want to know if the job called from workflow,
+// if so, we want to make sure it did'nt come from a Stage.
+// if it did, we don't want to pop this job from here -> we want to pop it from WorkflowGraphListener class.
+//			if(calledFromWorkflow(r))
+//			{
+//				return;
+//			}
 			if (r.getParent() instanceof MatrixConfiguration) {
 				AbstractBuild build = (AbstractBuild) r;
 				event = dtoFactory.newDTO(CIEvent.class)
@@ -123,13 +126,12 @@ public final class RunListenerImpl extends RunListener<Run> {
 			result = CIBuildResult.UNAVAILABLE;
 		}
 		if (r instanceof AbstractBuild) {
-			Cause.UpstreamCause cause = (Cause.UpstreamCause) r.getCauses().get(0);
-			String causeJobName = cause.getUpstreamProject();
-			TopLevelItem currentJobParent = Jenkins.getInstance().getItem(causeJobName);
-			if(currentJobParent instanceof WorkflowJob)
-			{
-				return;
-			}
+
+// same as above
+//			if(calledFromWorkflow(r))
+//			{
+//				return;
+//			}
 
 			AbstractBuild build = (AbstractBuild) r;
 			SCMProcessor scmProcessor = SCMProcessors.getAppropriate(build.getProject().getScm().getClass().getName());
@@ -148,13 +150,13 @@ public final class RunListenerImpl extends RunListener<Run> {
 					.setScmData(scmProcessor == null ? null : scmProcessor.getSCMData(build));
 
 
-			String parentName = currentJobParent.getFullDisplayName()+ String.valueOf(((FreeStyleProject) currentJobParent).getLastBuild().getNumber());
-			if (BuildRelations.getInstance().containKey(parentName)) {
-				CIEventCause ciEventCause = BuildRelations.getInstance().getValue(parentName);
-				List<CIEventCause> ciEventCauseList = new LinkedList<CIEventCause>();
-				ciEventCauseList.add(ciEventCause);
-				event.setCauses(ciEventCauseList);
-			}
+//			String parentName = currentJobParent.getFullDisplayName()+ String.valueOf(((FreeStyleProject) currentJobParent).getLastBuild().getNumber());
+//			if (BuildRelations.getInstance().containKey(parentName)) {
+//				CIEventCause ciEventCause = BuildRelations.getInstance().getValue(parentName);
+//				List<CIEventCause> ciEventCauseList = new LinkedList<CIEventCause>();
+//				ciEventCauseList.add(ciEventCause);
+//				event.setCauses(ciEventCauseList);
+//			}
 			EventsService.getExtensionInstance().dispatchEvent(event);
 
 			GherkinEventsService.copyGherkinTestResultsToBuildDir(build);
@@ -196,4 +198,17 @@ public final class RunListenerImpl extends RunListener<Run> {
 	}
 
 
+	private boolean calledFromWorkflow(Run r) {
+			try {
+			Cause.UpstreamCause cause = (Cause.UpstreamCause) r.getCauses().get(0);
+			String causeJobName = cause.getUpstreamProject();
+			TopLevelItem currentJobParent = Jenkins.getInstance().getItem(causeJobName);
+			if (currentJobParent instanceof WorkflowJob) {
+				return true;
+			}
+			return false;
+		} catch (ClassCastException e) {
+			return false;
+		}
+	}
 }
