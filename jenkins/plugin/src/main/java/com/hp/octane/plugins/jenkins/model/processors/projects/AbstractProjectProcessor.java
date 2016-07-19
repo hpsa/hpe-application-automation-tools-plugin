@@ -5,6 +5,7 @@ import com.hp.octane.plugins.jenkins.model.processors.builders.AbstractBuilderPr
 import com.hp.octane.plugins.jenkins.model.processors.builders.BuildTriggerProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.builders.MultiJobBuilderProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.builders.ParameterizedTriggerProcessor;
+//import com.hp.octane.plugins.jenkins.workflow.WorkFlowJobProcessor;
 import com.hp.octane.plugins.jenkins.workflow.WorkFlowJobProcessor;
 import hudson.model.AbstractProject;
 import hudson.model.Job;
@@ -14,6 +15,7 @@ import hudson.tasks.Publisher;
 import org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder;
 import org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
+//import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 
 import java.util.ArrayList;
 import java.util.List;

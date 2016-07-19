@@ -17,6 +17,7 @@ import org.jenkinsci.plugins.workflow.cps.nodes.StepEndNode;
 import org.jenkinsci.plugins.workflow.flow.GraphListener;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
@@ -36,12 +37,12 @@ public class WorkflowGraphListener implements GraphListener {
         if (flowNode instanceof StepEndNode) {
             finishAllStartedEvents();
         } else if (StageNodeExt.isStageNode(flowNode)) {
-            // its a stage node - also a finish of previous stage
+            // its a stage node - it is also a finish of previous stage
             finishAllStartedEvents();
             // starting an event:
             dispatchStartEvent(flowNode);
             // after the dispatching of the event, we create the finish event and add it to the queue:
-             dispatchFinishEvent(flowNode);
+            createFinishEvent(flowNode);
         }
         else if (flowNode instanceof StepAtomNode)       // its outer Job
         {
@@ -52,6 +53,14 @@ public class WorkflowGraphListener implements GraphListener {
     }
 
     private void popNewJobEvent(FlowNode flowNode) {
+    // this option is off at the moment.
+        // in general, we want to pop regular jobs that created inside a stage HERE,
+        // and not in RunListenerImpl class.
+        // the reason for that is that we need to care of the CAUSE issue.
+
+
+
+
         // getting real Jenkins object from its name.
 //        String buildActualName = flowNode.getDisplayName().replace("Building ", "");
 //        TopLevelItem jobAsJenkinsObj = Jenkins.getInstance().getItem(buildActualName);
@@ -132,22 +141,8 @@ public class WorkflowGraphListener implements GraphListener {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        int count = 0;
-        int firstIndex = 0;
-        int secondIndex = 0;
-        for (int i = 0; i < url.length(); i++) {
-            if (url.charAt(i) == '/') {
-                count++;
-                if (count == 1) {
-                    firstIndex = i;
-                } else if (count == 2) {
-                    secondIndex = i;
-                    break;
-                }
-            }
-        }
-        String parentName = url.substring(firstIndex + 1, secondIndex);
-        return parentName;
+        String[] words = url.split("/");
+        return words[1];
     }
 
 
@@ -158,27 +153,12 @@ public class WorkflowGraphListener implements GraphListener {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        int count = 0;
-        int secondIndex = 0;
-        int thirdIndex = 0;
-        for (int i = 0; i < url.length(); i++) {
-            if (url.charAt(i) == '/') {
-                count++;
-                if (count == 2) {
-                    secondIndex = i;
-                } else if (count == 3) {
-                    thirdIndex = i;
-                    break;
-                }
-            }
-        }
-        String parentBuildNum = url.substring(secondIndex + 1, thirdIndex);
-        return parentBuildNum;
+        String[] words = url.split("/");
+        return words[2];
     }
 
 
     private void dispatchStartEvent(FlowNode flowNode) {
-
         Long nodeStartTime = 0L;
         if ((flowNode.getAllActions().get(3) instanceof TimingAction)) {
             TimingAction t = (TimingAction) flowNode.getAllActions().get(3);
@@ -199,7 +179,7 @@ public class WorkflowGraphListener implements GraphListener {
 //        lastCIEventCause = causeList.get(0);
     }
 
-    private void dispatchFinishEvent(FlowNode flowNode) {
+    private void createFinishEvent(FlowNode flowNode) {
         String ParentName = getParentName(flowNode);
         String ParentBuildNum = getParentId(flowNode);
         CIEventCause endCause = new CIEventCauseImpl();
