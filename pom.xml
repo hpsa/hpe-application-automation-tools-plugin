@@ -46,6 +46,14 @@
 
 	<developers>
 		<developer>
+			<id>YafimK</id>
+			<name>Fima (Yafim) Kazak</name>
+			<email>kazak@hpe.com</email>
+			<roles>
+				<role>Global owner and LoadRuner Dev</role>
+			</roles>
+		</developer>
+		<developer>
 			<id>imrman</id>
 			<name>Avishai Moshka</name>
 			<email>avishai.moshka@hp.com</email>
