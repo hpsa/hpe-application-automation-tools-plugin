@@ -709,7 +709,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                     baos.close();
                     tmpZipFile.unzip(reportDirectoryFilePath);
                     String newFolderName = org.apache.commons.io.FilenameUtils.getName(testFolderPathFile.getPath());
-
                     FileUtils.moveDirectory(new File(reportDirectory, IE_REPORT_FOLDER), new File(reportDirectory, newFolderName));
                     tmpZipFile.delete();
                     outputReportFiles(reportNames, reportDirectory, testResult, false);
@@ -732,7 +731,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             if (!reportDirectory.exists())
                 reportDirectory.mkdir();
             String newFolderName = org.apache.commons.io.FilenameUtils.getName(testFolderPathFile.getPath());
-
             File testDirectory = new File(reportDirectory, newFolderName);
             if (!testDirectory.exists())
                 testDirectory.mkdir();
