@@ -33,11 +33,12 @@ import org.acegisecurity.context.SecurityContext;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.jenkinsci.plugins.workflow.job.WorkflowJob;
+//import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import javax.xml.bind.DatatypeConverter;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Parameter;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
@@ -124,8 +125,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 		SecurityContext securityContext = startImpersonation();
 		CIJobsList result = dtoFactory.newDTO(CIJobsList.class);
 		PipelineNode tmpConfig;
-		WorkflowJob tmpFlowjob;
-		AbstractProject tmpProject;
+		TopLevelItem tmpItem;
 		List<PipelineNode> list = new ArrayList<PipelineNode>();
 		try {
 			boolean hasReadPermission = Jenkins.getInstance().hasPermission(Item.READ);
@@ -135,46 +135,27 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 			}
 			List<String> itemNames = (List<String>) Jenkins.getInstance().getTopLevelItemNames();
 			for (String name : itemNames) {
-				if (Jenkins.getInstance().getItem(name) instanceof AbstractProject) {
-					tmpProject = (AbstractProject) Jenkins.getInstance().getItem(name);
+				tmpItem = Jenkins.getInstance().getItem(name);
+				if (tmpItem instanceof AbstractProject) {
+					AbstractProject abstractProject = (AbstractProject) tmpItem;
 					tmpConfig = dtoFactory.newDTO(PipelineNode.class)
 							.setJobCiId(name)
 							.setName(name);
 					if (includeParameters) {
-						List<CIParameter> tmpList = ParameterProcessors.getConfigs(tmpProject);
-						List<CIParameter> configs = new ArrayList<CIParameter>();
-						CIParameter tmp;
-						for (CIParameter pc : tmpList) {
-							tmp = dtoFactory.newDTO(CIParameter.class)
-									.setType(pc.getType())
-									.setName(pc.getName())
-									.setDescription(pc.getDescription())
-									.setDefaultValue(pc.getDefaultValue())
-									.setChoices(pc.getChoices() == null ? null : pc.getChoices());
-							configs.add(tmp);
-						}
-						tmpConfig.setParameters(configs);
+						tmpConfig.setParameters(ParameterProcessors.getConfigs(abstractProject));
 					}
 					list.add(tmpConfig);
-				}
-				else {
-					if(Jenkins.getInstance().getItem(name) instanceof WorkflowJob) {
-						tmpFlowjob = (WorkflowJob) Jenkins.getInstance().getItem(name);
-						tmpConfig = dtoFactory.newDTO(PipelineNode.class)
-								.setJobCiId(name)
-								.setName(name);
-
-						if (includeParameters) {
-							List<CIParameter> configs = new ArrayList<CIParameter>();
-							CIParameter tmp;
-							tmpConfig.setParameters(configs);
-						}
-
-						list.add(tmpConfig);
+				} else if (tmpItem.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob")) {
+					Job tmpJob = (Job) tmpItem;
+					tmpConfig = dtoFactory.newDTO(PipelineNode.class)
+							.setJobCiId(name)
+							.setName(name);
+					if (includeParameters) {
+						tmpConfig.setParameters(ParameterProcessors.getConfigs(tmpJob));
 					}
-					else {
-						logger.info("item '" + name + "' is not of supported type");
-					}
+					list.add(tmpConfig);
+				} else {
+					logger.info("item '" + name + "' is not of supported type");
 				}
 
 			}
@@ -237,16 +218,15 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 	public void runPipeline(String jobCiId, String originalBody) {
 		SecurityContext securityContext = startImpersonation();
 		Job job = getJobByRefId(jobCiId);
-		AbstractProject project=null;
+		AbstractProject project = null;
 		if (job != null) {
 			boolean hasBuildPermission = job.hasPermission(Item.BUILD);
 			if (!hasBuildPermission) {
 				stopImpersonation(securityContext);
 				throw new PermissionException(403);
 			}
-			if(job instanceof AbstractProject)
-			{
-				project = (AbstractProject)job;
+			if (job instanceof AbstractProject) {
+				project = (AbstractProject) job;
 				doRunImpl(project, originalBody);
 			}
 
@@ -262,13 +242,10 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 		SecurityContext securityContext = startImpersonation();
 		SnapshotNode result = null;
 		Job job = getJobByRefId(jobCiId);
-		AbstractProject project=null;
-		if(job instanceof AbstractProject)
-		{
-			project = (AbstractProject)job;
-		}
-		else
-		{
+		AbstractProject project = null;
+		if (job instanceof AbstractProject) {
+			project = (AbstractProject) job;
+		} else {
 			return null;
 		}
 
@@ -286,13 +263,10 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 	public SnapshotNode getSnapshotByNumber(String jobCiId, String buildCiId, boolean subTree) {
 		SecurityContext securityContext = startImpersonation();
 		Job job = getJobByRefId(jobCiId);
-		AbstractProject project=null;
-		if(job instanceof AbstractProject)
-		{
-			project = (AbstractProject)job;
-		}
-		else
-		{
+		AbstractProject project = null;
+		if (job instanceof AbstractProject) {
+			project = (AbstractProject) job;
+		} else {
 			return null;
 		}
 
@@ -316,8 +290,8 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 		SecurityContext securityContext = startImpersonation();
 		BuildHistory buildHistory = dtoFactory.newDTO(BuildHistory.class);
 		Job job = getJobByRefId(jobCiId);
-		AbstractProject project=null;
-		if(job instanceof AbstractProject ) {
+		AbstractProject project = null;
+		if (job instanceof AbstractProject) {
 			project = (AbstractProject) job;
 			SCMData scmData;
 			Set<User> users;
@@ -476,8 +450,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 		if (jobRefId != null) {
 			try {
 				jobRefId = URLDecoder.decode(jobRefId, "UTF-8");
-				TopLevelItem item = null;
-				item = getTopLevelItem(jobRefId);
+				TopLevelItem item = getTopLevelItem(jobRefId);
 				if (item != null && item instanceof Job) {
 					result = (Job) item;
 				}

@@ -5,6 +5,7 @@ import hudson.model.Job;
 import hudson.tasks.Builder;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -16,8 +17,10 @@ import java.util.List;
  */
 
 public class WorkFlowJobProcessor extends AbstractProjectProcessor {
+	WorkflowJob workflowJob;
+
 	public WorkFlowJobProcessor(Job project) {
-		WorkflowJob p = (WorkflowJob) project;
+		this.workflowJob = (WorkflowJob) project;
 
 		//  Internal phases
 		//
@@ -31,6 +34,6 @@ public class WorkFlowJobProcessor extends AbstractProjectProcessor {
 	}
 
 	public List<Builder> tryGetBuilders() {
-		return null;
+		return new ArrayList<Builder>();
 	}
 }

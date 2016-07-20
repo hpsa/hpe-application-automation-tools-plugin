@@ -35,14 +35,10 @@ public enum ParameterProcessors {
 
 	public static List<CIParameter> getConfigs(Job job) {
 		ArrayList<CIParameter> result = new ArrayList<CIParameter>();
-		AbstractProject project = null;
-		if(job instanceof AbstractProject)
-		{
-			project = (AbstractProject)job;
-		}
-
-		else
-		{
+		AbstractProject project;
+		if (job instanceof AbstractProject) {
+			project = (AbstractProject) job;
+		} else {
 			return result;
 		}
 		List<ParameterDefinition> paramDefinitions;
@@ -65,8 +61,7 @@ public enum ParameterProcessors {
 				result.add(ModelFactory.createParameterConfig(axis.getName(), CIParameterType.AXIS, new ArrayList<Object>(axis.getValues())));
 			}
 		}
-//		ParameterConfig[] params = new ParameterConfig[result.size()];
-//		return result.toArray(params);
+
 		return result;
 	}
 
