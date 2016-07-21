@@ -22,6 +22,7 @@ import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessors;
+import com.hp.octane.plugins.jenkins.workflow.WorkFlowJobProcessor;
 import hudson.ProxyConfiguration;
 import hudson.model.*;
 import hudson.security.ACL;
@@ -33,6 +34,7 @@ import org.acegisecurity.context.SecurityContext;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 //import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import javax.xml.bind.DatatypeConverter;
 import java.io.File;
@@ -229,9 +231,14 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 				project = (AbstractProject) job;
 				doRunImpl(project, originalBody);
 			}
+			else if(job.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob"))
+			{
 
+				doRunImpl(job, originalBody);
+			}
 			stopImpersonation(securityContext);
-		} else {
+		}
+		else {
 			stopImpersonation(securityContext);
 			throw new ConfigurationException(404);
 		}
@@ -248,7 +255,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 		} else {
 			return null;
 		}
-
+// second
 		if (project != null) {
 			AbstractBuild build = project.getLastBuild();
 			if (build != null) {
@@ -358,27 +365,41 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 		return null;
 	}
 
-	private void doRunImpl(AbstractProject project, String originalBody) {
-		int delay = project.getQuietPeriod();
-		ParametersAction parametersAction = new ParametersAction();
+	private void doRunImpl(Job job, String originalBody) {
+		if (job instanceof AbstractProject) {
+			AbstractProject project = (AbstractProject)job;
+			int delay = project.getQuietPeriod();
+			ParametersAction parametersAction = new ParametersAction();
 
-		if (originalBody != null && !originalBody.isEmpty()) {
-			JSONObject bodyJSON = JSONObject.fromObject(originalBody);
+			if (originalBody != null && !originalBody.isEmpty()) {
+				JSONObject bodyJSON = JSONObject.fromObject(originalBody);
 
-			//  delay
-			if (bodyJSON.has("delay") && bodyJSON.get("delay") != null) {
-				delay = bodyJSON.getInt("delay");
+				//  delay
+				if (bodyJSON.has("delay") && bodyJSON.get("delay") != null) {
+					delay = bodyJSON.getInt("delay");
+				}
+
+				//  parameters
+				if (bodyJSON.has("parameters") && bodyJSON.get("parameters") != null) {
+					JSONArray paramsJSON = bodyJSON.getJSONArray("parameters");
+					parametersAction = new ParametersAction(createParameters(project, paramsJSON));
+				}
 			}
 
-			//  parameters
-			if (bodyJSON.has("parameters") && bodyJSON.get("parameters") != null) {
-				JSONArray paramsJSON = bodyJSON.getJSONArray("parameters");
-				parametersAction = new ParametersAction(createParameters(project, paramsJSON));
-			}
+			project.scheduleBuild(delay, new Cause.RemoteCause(getOctaneConfiguration() == null ? "non available URL" : getOctaneConfiguration().getUrl(), "octane driven execution"), parametersAction);
 		}
+		else if(job.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob"))
+		{
+			WorkFlowJobProcessor workFlowJobProcessor = new WorkFlowJobProcessor(job);
+			workFlowJobProcessor.scheduleBuild(originalBody);
 
-		project.scheduleBuild(delay, new Cause.RemoteCause(getOctaneConfiguration() == null ? "non available URL" : getOctaneConfiguration().getUrl(), "octane driven execution"), parametersAction);
+		}
 	}
+
+
+
+
+
 
 	private List<ParameterValue> createParameters(AbstractProject project, JSONArray paramsJSON) {
 		List<ParameterValue> result = new ArrayList<ParameterValue>();
