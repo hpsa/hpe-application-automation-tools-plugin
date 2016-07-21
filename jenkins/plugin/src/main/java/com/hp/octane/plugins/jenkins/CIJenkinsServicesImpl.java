@@ -300,7 +300,11 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 				buildHistory.addBuild(build.getResult().toString(), String.valueOf(build.getNumber()), build.getTimestampString(), String.valueOf(build.getStartTimeInMillis()), String.valueOf(build.getDuration()), scmData, ModelFactory.createScmUsersList(users));
 			}
 		}
-		AbstractBuild lastSuccessfulBuild = (AbstractBuild) project.getLastSuccessfulBuild();
+		AbstractBuild lastSuccessfulBuild = null;
+		AbstractBuild lastProjectBuild = project.getLastBuild();
+		if (lastProjectBuild != null) {
+			lastSuccessfulBuild = (AbstractBuild) lastProjectBuild.getPreviousSuccessfulBuild();
+		}
 		if (lastSuccessfulBuild != null) {
 			scmData = null;
 			users = null;
