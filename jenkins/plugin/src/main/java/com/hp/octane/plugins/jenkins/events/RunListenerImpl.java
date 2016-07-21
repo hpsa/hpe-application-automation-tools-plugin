@@ -12,16 +12,17 @@ import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessors;
 import com.hp.octane.plugins.jenkins.tests.TestListener;
 import com.hp.octane.plugins.jenkins.tests.gherkin.GherkinEventsService;
-import com.hp.octane.plugins.jenkins.workflow.WorkflowGraphListener;
+import com.hp.octane.plugins.jenkins.workflow.WorkFlowRunProcessor;
 import hudson.Extension;
 import hudson.matrix.MatrixConfiguration;
 import hudson.matrix.MatrixRun;
 import hudson.model.*;
 import hudson.model.listeners.RunListener;
 import jenkins.model.Jenkins;
-import org.jenkinsci.plugins.workflow.flow.FlowExecution;
-import org.jenkinsci.plugins.workflow.job.WorkflowJob;
-import org.jenkinsci.plugins.workflow.job.WorkflowRun;
+//import org.jenkinsci.plugins.workflow.flow.FlowExecution;
+//import org.jenkinsci.plugins.workflow.job.WorkflowJob;
+//import org.jenkinsci.plugins.workflow.job.WorkflowRun;
+//import com.hp.octane.plugins.jenkins.workflow.WorkflowGraphListener;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -46,32 +47,21 @@ public final class RunListenerImpl extends RunListener<Run> {
 	@Override
 	public void onStarted(final Run r, TaskListener listener) {
 		CIEvent event;
-		if (r instanceof WorkflowRun) {
-			final WorkflowRun build = (WorkflowRun) r;
+		if (r.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowRun")) {
 			event = dtoFactory.newDTO(CIEvent.class)
 					.setEventType(CIEventType.STARTED)
-					.setProject(((WorkflowRun) r).getParent().getName())
-					.setBuildCiId(String.valueOf(build.getNumber()))
-					.setNumber(String.valueOf(build.getNumber()))
-					.setStartTime(build.getStartTimeInMillis())
-					.setEstimatedDuration(build.getEstimatedDuration())
-					.setCauses(CIEventCausesFactory.processCauses(extractCauses(build)));
+					//.setProject(((WorkflowRun) r).getParent().getName())
+					.setProject(r.getParent().getName())
+					.setBuildCiId(String.valueOf(r.getNumber()))
+					.setNumber(String.valueOf(r.getNumber()))
+					.setStartTime(r.getStartTimeInMillis())
+					.setEstimatedDuration(r.getEstimatedDuration())
+					.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)));
 			EventsService.getExtensionInstance().dispatchEvent(event);
 
-			ListenableFuture<FlowExecution> promise = ((WorkflowRun) r).getExecutionPromise();
-			promise.addListener(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						FlowExecution ex = ((WorkflowRun) r).getExecutionPromise().get();
-						ex.addListener(new WorkflowGraphListener());
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					} catch (ExecutionException e) {
-						e.printStackTrace();
-					}
-				}
-			}, executor);
+			WorkFlowRunProcessor workFlowRunProcessor = new WorkFlowRunProcessor(r);
+			workFlowRunProcessor.registerEvents(executor);
+
 		} else {
 
 // turned off at the moment. basically, we want to know if the job called from workflow,
@@ -162,18 +152,17 @@ public final class RunListenerImpl extends RunListener<Run> {
 			GherkinEventsService.copyGherkinTestResultsToBuildDir(build);
 			// testListener.processBuild(build);					// need to figure out what it is
 		}
-		else if (r instanceof WorkflowRun) {
-			WorkflowRun build = (WorkflowRun) r;
+		else if (r.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowRun"))  {
 			CIEvent event = dtoFactory.newDTO(CIEvent.class)
 					.setEventType(CIEventType.FINISHED)
 					.setProject(getProjectName(r))
-					.setBuildCiId(String.valueOf(build.getNumber()))
-					.setNumber(String.valueOf(build.getNumber()))
-					.setStartTime(build.getStartTimeInMillis())
-					.setEstimatedDuration(build.getEstimatedDuration())
-					.setCauses(CIEventCausesFactory.processCauses(extractCauses(build)))
+					.setBuildCiId(String.valueOf(r.getNumber()))
+					.setNumber(String.valueOf(r.getNumber()))
+					.setStartTime(r.getStartTimeInMillis())
+					.setEstimatedDuration(r.getEstimatedDuration())
+					.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
 					.setResult(result)
-					.setDuration(build.getDuration());
+					.setDuration(r.getDuration());
 			EventsService.getExtensionInstance().dispatchEvent(event);
 		}
 	}
@@ -182,9 +171,9 @@ public final class RunListenerImpl extends RunListener<Run> {
 		if (r.getParent() instanceof MatrixConfiguration) {
 			return ((MatrixRun) r).getParentBuild().getParent().getName();
 		}
-		if(r.getParent() instanceof  WorkflowJob)
+		if(r.getParent().getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob"))
 		{
-			return ((WorkflowRun) r).getParent().getName();
+			return r.getParent().getName();
 		}
 		return ((AbstractBuild) r).getProject().getName();
 	}
@@ -203,7 +192,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 			Cause.UpstreamCause cause = (Cause.UpstreamCause) r.getCauses().get(0);
 			String causeJobName = cause.getUpstreamProject();
 			TopLevelItem currentJobParent = Jenkins.getInstance().getItem(causeJobName);
-			if (currentJobParent instanceof WorkflowJob) {
+			if (currentJobParent.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob")) {
 				return true;
 			}
 			return false;
