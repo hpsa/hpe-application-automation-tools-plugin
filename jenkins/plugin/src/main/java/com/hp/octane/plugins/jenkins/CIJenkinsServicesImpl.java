@@ -8,7 +8,6 @@ import com.hp.octane.integrations.dto.general.CIJobsList;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.general.CIServerTypes;
-import com.hp.octane.integrations.dto.parameters.CIParameter;
 import com.hp.octane.integrations.dto.parameters.CIParameterType;
 import com.hp.octane.integrations.dto.pipelines.BuildHistory;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
@@ -34,13 +33,10 @@ import org.acegisecurity.context.SecurityContext;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.jenkinsci.plugins.workflow.job.WorkflowJob;
-//import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import javax.xml.bind.DatatypeConverter;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Parameter;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
@@ -89,14 +85,6 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 	public OctaneConfiguration getOctaneConfiguration() {
 		OctaneConfiguration result = null;
 		ServerConfiguration serverConfiguration = Jenkins.getInstance().getPlugin(OctanePlugin.class).getServerConfiguration();
-		Long sharedSpace = null;
-		if (serverConfiguration.sharedSpace != null) {
-			try {
-				sharedSpace = Long.parseLong(serverConfiguration.sharedSpace);
-			} catch (NumberFormatException nfe) {
-				logger.severe("found shared space '" + serverConfiguration.sharedSpace + "' yet it's not parsable into Long: " + nfe.getMessage());
-			}
-		}
 		if (serverConfiguration.location != null && !serverConfiguration.location.isEmpty() &&
 				serverConfiguration.sharedSpace != null && !serverConfiguration.sharedSpace.isEmpty()) {
 			result = dtoFactory.newDTO(OctaneConfiguration.class)

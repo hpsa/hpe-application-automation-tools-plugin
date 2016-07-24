@@ -1,5 +1,6 @@
 package com.hp.octane.plugins.jenkins.workflow;
 
+import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.plugins.jenkins.OctanePlugin;
@@ -29,7 +30,7 @@ import java.util.logging.Logger;
  */
 
 public class WorkFlowJobProcessor extends AbstractProjectProcessor {
-	WorkflowJob workflowJob;
+	final WorkflowJob workflowJob;
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final Logger logger = Logger.getLogger(CIJenkinsServicesImpl.class.getName());
 
@@ -72,6 +73,7 @@ public class WorkFlowJobProcessor extends AbstractProjectProcessor {
 			}
 		}
 
+
 		this.workflowJob.scheduleBuild(delay, new Cause.RemoteCause(getOctaneConfiguration() == null ? "non available URL" : getOctaneConfiguration().getUrl(), "octane driven execution"));
 	}
 
@@ -82,14 +84,6 @@ public class WorkFlowJobProcessor extends AbstractProjectProcessor {
 	public OctaneConfiguration getOctaneConfiguration() {
 		OctaneConfiguration result = null;
 		ServerConfiguration serverConfiguration = Jenkins.getInstance().getPlugin(OctanePlugin.class).getServerConfiguration();
-		Long sharedSpace = null;
-		if (serverConfiguration.sharedSpace != null) {
-			try {
-				sharedSpace = Long.parseLong(serverConfiguration.sharedSpace);
-			} catch (NumberFormatException nfe) {
-				logger.severe("found shared space '" + serverConfiguration.sharedSpace + "' yet it's not parsable into Long: " + nfe.getMessage());
-			}
-		}
 		if (serverConfiguration.location != null && !serverConfiguration.location.isEmpty() &&
 				serverConfiguration.sharedSpace != null && !serverConfiguration.sharedSpace.isEmpty()) {
 			result = dtoFactory.newDTO(OctaneConfiguration.class)
