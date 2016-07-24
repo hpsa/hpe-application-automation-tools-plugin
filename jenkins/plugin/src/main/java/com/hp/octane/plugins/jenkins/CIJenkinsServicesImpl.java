@@ -33,6 +33,7 @@ import org.acegisecurity.context.SecurityContext;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+
 import javax.xml.bind.DatatypeConverter;
 import java.io.File;
 import java.io.IOException;
@@ -234,17 +235,10 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 		SecurityContext securityContext = startImpersonation();
 		SnapshotNode result = null;
 		Job job = getJobByRefId(jobCiId);
-		AbstractProject project = null;
-		if (job instanceof AbstractProject) {
-			project = (AbstractProject) job;
-		} else {
-			return null;
-		}
-// second
-		if (project != null) {
-			AbstractBuild build = project.getLastBuild();
-			if (build != null) {
-				result = ModelFactory.createSnapshotItem(build, subTree);
+		if (job != null) {
+			Run run = job.getLastBuild();
+			if (run != null) {
+				result = ModelFactory.createSnapshotItem(run, subTree);
 			}
 		}
 		stopImpersonation(securityContext);
@@ -255,12 +249,6 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 	public SnapshotNode getSnapshotByNumber(String jobCiId, String buildCiId, boolean subTree) {
 		SecurityContext securityContext = startImpersonation();
 		Job job = getJobByRefId(jobCiId);
-		AbstractProject project = null;
-		if (job instanceof AbstractProject) {
-			project = (AbstractProject) job;
-		} else {
-			return null;
-		}
 
 		Integer buildNumber = null;
 		try {
@@ -268,8 +256,8 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 		} catch (NumberFormatException nfe) {
 			logger.severe("failed to parse build CI ID to build number, " + nfe.getMessage());
 		}
-		if (project != null && buildNumber != null) {
-			AbstractBuild build = project.getBuildByNumber(buildNumber);
+		if (job != null && buildNumber != null) {
+			Run build = job.getBuildByNumber(buildNumber);
 			stopImpersonation(securityContext);
 			return ModelFactory.createSnapshotItem(build, subTree);
 		}
@@ -282,7 +270,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 		SecurityContext securityContext = startImpersonation();
 		BuildHistory buildHistory = dtoFactory.newDTO(BuildHistory.class);
 		Job job = getJobByRefId(jobCiId);
-		AbstractProject project = null;
+		AbstractProject project;
 		if (job instanceof AbstractProject) {
 			project = (AbstractProject) job;
 			SCMData scmData;
@@ -345,7 +333,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 			}
 			stopImpersonation(securityContext);
 		} else {
-			//  TODO: handle workflow
+			//  TODO: handle workflow later on
 		}
 		return buildHistory;
 	}
@@ -384,7 +372,6 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 
 		}
 	}
-
 
 	private List<ParameterValue> createParameters(AbstractProject project, JSONArray paramsJSON) {
 		List<ParameterValue> result = new ArrayList<ParameterValue>();
