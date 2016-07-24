@@ -64,9 +64,9 @@ public class ModelFactory {
 	 * *****************************************************
 	 */
 
-	public static SnapshotNode createSnapshotItem(AbstractBuild build, boolean metaOnly) {
+	public static SnapshotNode createSnapshotItem(Run build, boolean metaOnly) {
 		SnapshotNode snapshotNode = dtoFactory.newDTO(SnapshotNode.class);
-		SCMProcessor scmProcessor = SCMProcessors.getAppropriate(build.getProject().getScm().getClass().getName());
+		SCMProcessor scmProcessor = SCMProcessors.getAppropriate(build.getParent().getScm().getClass().getName());
 
 		CIBuildStatus status = CIBuildStatus.FINISHED;
 		if (build.hasntStartedYet()) {
@@ -87,7 +87,7 @@ public class ModelFactory {
 		}
 
 		if (!metaOnly) {
-			AbstractProjectProcessor flowProcessor = AbstractProjectProcessor.getFlowProcessor(build.getProject());
+			AbstractProjectProcessor flowProcessor = AbstractProjectProcessor.getFlowProcessor(build.getParent());
 			List<PipelinePhase> tmpPipelinePhasesInternals = flowProcessor.getInternals();
 			List<PipelinePhase> tmpPipelinePhasesPostBuilds = flowProcessor.getPostBuilds();
 			ArrayList<String> invokeesNames = new ArrayList<String>();
@@ -98,8 +98,8 @@ public class ModelFactory {
 			snapshotNode.setPhasesPostBuild(inflatePhases(tmpPipelinePhasesPostBuilds, invokedBuilds));
 		}
 
-		snapshotNode.setJobCiId(build.getProject().getName());
-		snapshotNode.setName(build.getProject().getName());
+		snapshotNode.setJobCiId(build.getParent().getName());
+		snapshotNode.setName(build.getParent().getName());
 		snapshotNode.setBuildCiId(String.valueOf(build.getNumber()));
 		snapshotNode.setNumber(String.valueOf(build.getNumber()));
 		snapshotNode.setCauses(CIEventCausesFactory.processCauses(build.getCauses()));
