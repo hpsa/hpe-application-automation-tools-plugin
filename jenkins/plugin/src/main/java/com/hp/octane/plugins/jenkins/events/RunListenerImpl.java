@@ -1,6 +1,5 @@
 package com.hp.octane.plugins.jenkins.events;
 
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.inject.Inject;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.events.CIEvent;
@@ -19,10 +18,6 @@ import hudson.matrix.MatrixRun;
 import hudson.model.*;
 import hudson.model.listeners.RunListener;
 import jenkins.model.Jenkins;
-//import org.jenkinsci.plugins.workflow.flow.FlowExecution;
-//import org.jenkinsci.plugins.workflow.job.WorkflowJob;
-//import org.jenkinsci.plugins.workflow.job.WorkflowRun;
-//import com.hp.octane.plugins.jenkins.workflow.WorkflowGraphListener;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -50,7 +45,6 @@ public final class RunListenerImpl extends RunListener<Run> {
 		if (r.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowRun")) {
 			event = dtoFactory.newDTO(CIEvent.class)
 					.setEventType(CIEventType.STARTED)
-					//.setProject(((WorkflowRun) r).getParent().getName())
 					.setProject(r.getParent().getName())
 					.setBuildCiId(String.valueOf(r.getNumber()))
 					.setNumber(String.valueOf(r.getNumber()))
@@ -151,8 +145,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 
 			GherkinEventsService.copyGherkinTestResultsToBuildDir(build);
 			// testListener.processBuild(build);					// need to figure out what it is
-		}
-		else if (r.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowRun"))  {
+		} else if (r.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowRun")) {
 			CIEvent event = dtoFactory.newDTO(CIEvent.class)
 					.setEventType(CIEventType.FINISHED)
 					.setProject(getProjectName(r))
@@ -171,8 +164,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 		if (r.getParent() instanceof MatrixConfiguration) {
 			return ((MatrixRun) r).getParentBuild().getParent().getName();
 		}
-		if(r.getParent().getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob"))
-		{
+		if (r.getParent().getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob")) {
 			return r.getParent().getName();
 		}
 		return ((AbstractBuild) r).getProject().getName();
@@ -188,7 +180,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 
 
 	private boolean calledFromWorkflow(Run r) {
-			try {
+		try {
 			Cause.UpstreamCause cause = (Cause.UpstreamCause) r.getCauses().get(0);
 			String causeJobName = cause.getUpstreamProject();
 			TopLevelItem currentJobParent = Jenkins.getInstance().getItem(causeJobName);

@@ -12,28 +12,26 @@ import java.util.concurrent.ExecutorService;
  * Created by gadiel on 21/07/2016.
  */
 public class WorkFlowRunProcessor {
-    WorkflowRun workFlowRun;
+	WorkflowRun workFlowRun;
 
-    public WorkFlowRunProcessor(Run r)
-    {
-        this.workFlowRun = (WorkflowRun)r;
-    }
+	public WorkFlowRunProcessor(Run r) {
+		this.workFlowRun = (WorkflowRun) r;
+	}
 
-    public void registerEvents(ExecutorService executor)
-    {
-        ListenableFuture<FlowExecution> promise = ((WorkflowRun) workFlowRun).getExecutionPromise();
-        promise.addListener(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    FlowExecution ex = ((WorkflowRun) workFlowRun).getExecutionPromise().get();
-                    ex.addListener(new WorkflowGraphListener());
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                }
-            }
-        }, executor);
-    }
+	public void registerEvents(ExecutorService executor) {
+		ListenableFuture<FlowExecution> promise = workFlowRun.getExecutionPromise();
+		promise.addListener(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					FlowExecution ex = workFlowRun.getExecutionPromise().get();
+					ex.addListener(new WorkflowGraphListener());
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				} catch (ExecutionException e) {
+					e.printStackTrace();
+				}
+			}
+		}, executor);
+	}
 }
