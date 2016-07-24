@@ -230,15 +230,12 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 			if (job instanceof AbstractProject) {
 				project = (AbstractProject) job;
 				doRunImpl(project, originalBody);
-			}
-			else if(job.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob"))
-			{
+			} else if (job.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob")) {
 
 				doRunImpl(job, originalBody);
 			}
 			stopImpersonation(securityContext);
-		}
-		else {
+		} else {
 			stopImpersonation(securityContext);
 			throw new ConfigurationException(404);
 		}
@@ -329,7 +326,11 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 					buildHistory.addBuild(build.getResult().toString(), String.valueOf(build.getNumber()), build.getTimestampString(), String.valueOf(build.getStartTimeInMillis()), String.valueOf(build.getDuration()), scmData, ModelFactory.createScmUsersList(users));
 				}
 			}
-			AbstractBuild lastSuccessfulBuild = (AbstractBuild) project.getLastSuccessfulBuild();
+			AbstractBuild lastSuccessfulBuild = null;
+			AbstractBuild lastProjectBuild = project.getLastBuild();
+			if (lastProjectBuild != null) {
+				lastSuccessfulBuild = (AbstractBuild) lastProjectBuild.getPreviousSuccessfulBuild();
+			}
 			if (lastSuccessfulBuild != null) {
 				scmData = null;
 				users = null;
@@ -355,6 +356,8 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 				}
 			}
 			stopImpersonation(securityContext);
+		} else {
+			//  TODO: handle workflow
 		}
 		return buildHistory;
 	}
@@ -367,7 +370,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 
 	private void doRunImpl(Job job, String originalBody) {
 		if (job instanceof AbstractProject) {
-			AbstractProject project = (AbstractProject)job;
+			AbstractProject project = (AbstractProject) job;
 			int delay = project.getQuietPeriod();
 			ParametersAction parametersAction = new ParametersAction();
 
@@ -387,18 +390,12 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 			}
 
 			project.scheduleBuild(delay, new Cause.RemoteCause(getOctaneConfiguration() == null ? "non available URL" : getOctaneConfiguration().getUrl(), "octane driven execution"), parametersAction);
-		}
-		else if(job.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob"))
-		{
+		} else if (job.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob")) {
 			WorkFlowJobProcessor workFlowJobProcessor = new WorkFlowJobProcessor(job);
 			workFlowJobProcessor.scheduleBuild(originalBody);
 
 		}
 	}
-
-
-
-
 
 
 	private List<ParameterValue> createParameters(AbstractProject project, JSONArray paramsJSON) {
