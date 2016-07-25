@@ -216,11 +216,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 				stopImpersonation(securityContext);
 				throw new PermissionException(403);
 			}
-			if (job instanceof AbstractProject) {
-				project = (AbstractProject) job;
-				doRunImpl(project, originalBody);
-			} else if (job.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob")) {
-
+			if (job instanceof AbstractProject || job.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob")) {
 				doRunImpl(job, originalBody);
 			}
 			stopImpersonation(securityContext);
@@ -298,7 +294,6 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 						scmData = scmProcessor.getSCMData(build);
 						users = build.getCulprits();
 					}
-
 					buildHistory.addBuild(build.getResult().toString(), String.valueOf(build.getNumber()), build.getTimestampString(), String.valueOf(build.getStartTimeInMillis()), String.valueOf(build.getDuration()), scmData, ModelFactory.createScmUsersList(users));
 				}
 			}

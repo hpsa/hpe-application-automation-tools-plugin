@@ -1,13 +1,11 @@
 package com.hp.octane.plugins.jenkins.workflow;
 
-import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
+import com.hp.octane.plugins.jenkins.CIJenkinsServicesImpl;
 import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jenkins.model.processors.projects.AbstractProjectProcessor;
-import com.hp.octane.plugins.jenkins.CIJenkinsServicesImpl;
-import hudson.model.AbstractProject;
 import hudson.model.Cause;
 import hudson.model.Job;
 import hudson.model.ParametersAction;
@@ -37,16 +35,6 @@ public class WorkFlowJobProcessor extends AbstractProjectProcessor {
 
 	public WorkFlowJobProcessor(Job project) {
 		this.workflowJob = (WorkflowJob) project;
-
-		//  Internal phases
-		//
-		//super.processBuilders(p.getBuilders(), p);
-
-		//  Post build phases
-		//
-		//super.processPublishers(p);
-
-
 	}
 
 	public List<Builder> tryGetBuilders() {
