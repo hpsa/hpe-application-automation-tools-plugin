@@ -131,6 +131,14 @@
 				<artifactId>maven-release-plugin</artifactId>
 				<version>2.5.3</version>
 			</plugin>
+			<!-- The following was added to fix Releasing using jdk 1.8-->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<configuration>
+					<additionalparam>-Xdoclint:none</additionalparam>
+				</configuration>
+			</plugin>
 			<!--  -->
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
