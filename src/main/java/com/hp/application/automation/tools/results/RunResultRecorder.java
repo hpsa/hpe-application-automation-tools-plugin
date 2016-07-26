@@ -302,9 +302,11 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 String htmlReportDir = htmlReportInfo.getFolderPath(); //C:\UFTTest\GuiTest1\Report
 
                 listener.getLogger().println("collectAndPrepareHtmlReports, collecting:" + htmlReportDir);
+                listener.getLogger().println("workspace: " + build.getWorkspace());
 
                 //copy to the subdirs of master
                 FilePath source = new FilePath(build.getWorkspace(), htmlReportDir);
+                listener.getLogger().println("source: " + source);
                 String testName = htmlReportInfo.getDisPlayName();  //like "GuiTest1"
                 //File testFileFullName = new File(testFullName);
                 //String testName = testFileFullName.getName();  //like GuiTest1
@@ -337,8 +339,11 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 //we need to rename the above path to targetPath.
                 //So at last we got files in C:\Program Files (x86)\Jenkins\jobs\testAction\builds\35\archive\UFTReport\GuiTest
 
-                FilePath unzippedFolderPath = new FilePath(rootTarget, source.getName());  //C:\Program Files (x86)\Jenkins\jobs\testAction\builds\35\archive\UFTReport\Report
+                String unzippedFileName = org.apache.commons.io.FilenameUtils.getName(htmlReportDir);
+                FilePath unzippedFolderPath = new FilePath(rootTarget, unzippedFileName);  //C:\Program Files (x86)\Jenkins\jobs\testAction\builds\35\archive\UFTReport\Report
+                //FilePath unzippedFolderPath = new FilePath(rootTarget, source.getName());  //C:\Program Files (x86)\Jenkins\jobs\testAction\builds\35\archive\UFTReport\Report
                 unzippedFolderPath.renameTo(targetPath);
+                listener.getLogger().println("UnzippedFolderPath is: " + unzippedFolderPath + " targetPath is: " + targetPath);
                 //end zip copy and unzip
 
                 //just test some url value
@@ -511,7 +516,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 							reportMetaData.setStatus(testStatus);
 
 							File testFileFullName = new File(testFolderPath);
-							String testName = testFileFullName.getName();
+							String testName = org.apache.commons.io.FilenameUtils.getName(testFileFullName.getPath());
 							String resourceUrl = "artifact/UFTReport/" + testName;
 							reportMetaData.setResourceURL(resourceUrl);
                             reportMetaData.setDisPlayName(testName); // use the name, not the full path
@@ -708,7 +713,8 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                     bais.close();
                     baos.close();
                     tmpZipFile.unzip(reportDirectoryFilePath);
-                    FileUtils.moveDirectory(new File(reportDirectory, IE_REPORT_FOLDER), new File(reportDirectory, testFolderPathFile.getName()));
+                    String newFolderName = org.apache.commons.io.FilenameUtils.getName(testFolderPathFile.getPath());
+                    FileUtils.moveDirectory(new File(reportDirectory, IE_REPORT_FOLDER), new File(reportDirectory, newFolderName));
                     tmpZipFile.delete();
                     outputReportFiles(reportNames, reportDirectory, testResult, false);
                 }
@@ -729,8 +735,8 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             File reportDirectory = new File(artifactsDir.getParent(), TRANSACTION_SUMMARY_FOLDER);
             if (!reportDirectory.exists())
                 reportDirectory.mkdir();
-
-            File testDirectory = new File(reportDirectory, testFolderPathFile.getName());
+            String newFolderName = org.apache.commons.io.FilenameUtils.getName(testFolderPathFile.getPath());
+            File testDirectory = new File(reportDirectory, newFolderName);
             if (!testDirectory.exists())
                 testDirectory.mkdir();
 

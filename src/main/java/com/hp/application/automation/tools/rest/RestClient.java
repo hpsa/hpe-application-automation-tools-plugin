@@ -1,7 +1,6 @@
 package com.hp.application.automation.tools.rest;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -12,7 +11,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.hp.application.automation.tools.common.SSEException;
-import com.hp.application.automation.tools.sse.common.RestXmlUtils;
 import com.hp.application.automation.tools.sse.sdk.Client;
 import com.hp.application.automation.tools.sse.sdk.HttpRequestDecorator;
 import com.hp.application.automation.tools.sse.sdk.ResourceAccessLevel;

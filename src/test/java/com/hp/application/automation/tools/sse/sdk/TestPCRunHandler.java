@@ -1,6 +1,7 @@
 package com.hp.application.automation.tools.sse.sdk;
 
 import com.hp.application.automation.tools.rest.RestClient;
+import com.hp.application.automation.tools.sse.common.RestClient4Test;
 import com.hp.application.automation.tools.sse.common.TestCase;
 import com.hp.application.automation.tools.sse.sdk.handler.RunHandler;
 import com.hp.application.automation.tools.sse.sdk.handler.RunHandlerFactory;
@@ -31,7 +32,7 @@ public class TestPCRunHandler extends TestCase {
         Assert.assertTrue(response.isOk());
     }
 
-    private class MockRestStartClient extends RestClient {
+    private class MockRestStartClient extends RestClient4Test {
 
         public MockRestStartClient(String url, String domain, String project, String username) {
 
@@ -76,7 +77,7 @@ public class TestPCRunHandler extends TestCase {
 
     }
 
-    private class MockRestStopClient extends RestClient {
+    private class MockRestStopClient extends RestClient4Test {
 
         public MockRestStopClient(String url, String domain, String project, String username) {
 

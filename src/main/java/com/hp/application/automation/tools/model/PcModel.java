@@ -22,11 +22,13 @@ public class PcModel {
     private final PostRunAction    postRunAction;
     private final boolean          vudsMode;
     private final String           description;
+    private final boolean          addRunToTrendReport;
+    private final String trendReportId;
 
     @DataBoundConstructor
     public PcModel(String pcServerName, String almUserName, String almPassword, String almDomain, String almProject,
-            String testId, String testInstanceId, String timeslotDurationHours, String timeslotDurationMinutes,
-            PostRunAction postRunAction, boolean vudsMode, String description) {
+                   String testId, String testInstanceId, String timeslotDurationHours, String timeslotDurationMinutes,
+                   PostRunAction postRunAction, boolean vudsMode, String description, boolean addRunToTrendReport, String trendReportId) {
 
         this.pcServerName = pcServerName;
         this.almUserName = almUserName;
@@ -39,6 +41,8 @@ public class PcModel {
         this.postRunAction = postRunAction;
         this.vudsMode = vudsMode;
         this.description = description;
+        this.addRunToTrendReport = addRunToTrendReport;
+        this.trendReportId = trendReportId;
     }
 
     protected SecretContainer setPassword(String almPassword) {
@@ -103,25 +107,36 @@ public class PcModel {
         return this.description;
     }
 
+
+
     public static List<PostRunAction> getPostRunActions() {
         return Arrays.asList(PostRunAction.values());
     }
-    
+
     @Override
     public String toString() {
 
         return String.format("[PCServer='%s', User='%s', %s", runParamsToString().substring(1));
     }
-    
-    public String runParamsToString() {
-        
-        String vudsModeString = (vudsMode) ? ", VUDsMode='true'" : "";
-                
-        return String.format("[Domain='%s', Project='%s', TestID='%s', " +
-        		"TestInstanceID='%s', TimeslotDuration='%s', PostRunAction='%s'%s]",
 
-        		almDomain, almProject, testId, testInstanceId,  
-        		timeslotDuration, postRunAction.getValue(), vudsModeString);
+    public String runParamsToString() {
+
+        String vudsModeString = (vudsMode) ? ", VUDsMode='true'" : "";
+        String trendString = (addRunToTrendReport) ? String.format(", TrendReportID = '%s'",trendReportId) : "";
+
+        return String.format("[Domain='%s', Project='%s', TestID='%s', " +
+                        "TestInstanceID='%s', TimeslotDuration='%s', PostRunAction='%s'%s%s]",
+
+                almDomain, almProject, testId, testInstanceId,
+                timeslotDuration, postRunAction.getValue(), vudsModeString,trendString);
     }
 
+
+    public String getTrendReportId() {
+        return trendReportId;
+    }
+
+    public boolean isAddRunToTrendReport() {
+        return addRunToTrendReport;
+    }
 }
