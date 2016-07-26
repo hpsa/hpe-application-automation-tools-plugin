@@ -1,15 +1,16 @@
 package com.hp.application.automation.tools.sse.sdk;
 
 
-import com.hp.application.automation.tools.rest.RestClient;
-import com.hp.application.automation.tools.sse.common.TestCase;
-import com.hp.application.automation.tools.sse.sdk.handler.RunHandler;
-import com.hp.application.automation.tools.sse.sdk.handler.RunHandlerFactory;
+import java.net.HttpURLConnection;
+import java.util.Map;
+
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.net.HttpURLConnection;
-import java.util.Map;
+import com.hp.application.automation.tools.sse.common.RestClient4Test;
+import com.hp.application.automation.tools.sse.common.TestCase;
+import com.hp.application.automation.tools.sse.sdk.handler.RunHandler;
+import com.hp.application.automation.tools.sse.sdk.handler.RunHandlerFactory;
 
 /**
  * @author Effi Bar-She'an
@@ -53,7 +54,7 @@ public class TestTestSetRunHandlerGetReportUrl extends TestCase {
         Assert.assertEquals("NA", runHandler.getReportUrl(createArgs()));
     }
 
-    private class MockClient extends RestClient {
+    private class MockClient extends RestClient4Test {
 
         private final String _data;
 
@@ -74,7 +75,7 @@ public class TestTestSetRunHandlerGetReportUrl extends TestCase {
         }
     }
 
-    private class MockClientThrowsException extends RestClient {
+    private class MockClientThrowsException extends RestClient4Test {
 
         public MockClientThrowsException(String url, String domain, String project, String username) {
 

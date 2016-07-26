@@ -1,14 +1,15 @@
 package com.hp.application.automation.tools.sse.sdk;
 
-import com.hp.application.automation.tools.rest.RestClient;
-import com.hp.application.automation.tools.sse.common.TestCase;
-import com.hp.application.automation.tools.sse.sdk.handler.RunHandlerFactory;
-import com.hp.application.automation.tools.sse.sdk.handler.TestSetRunHandler;
+import java.net.HttpURLConnection;
+import java.util.Map;
+
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.net.HttpURLConnection;
-import java.util.Map;
+import com.hp.application.automation.tools.sse.common.RestClient4Test;
+import com.hp.application.automation.tools.sse.common.TestCase;
+import com.hp.application.automation.tools.sse.sdk.handler.RunHandlerFactory;
+import com.hp.application.automation.tools.sse.sdk.handler.TestSetRunHandler;
 
 /**
  * @author Effi Bar-She'an
@@ -28,7 +29,7 @@ public class TestTestSetRunHandler extends TestCase {
         Assert.assertTrue(response.isOk());
     }
 
-    private class MockRestStartClient extends RestClient {
+    private class MockRestStartClient extends RestClient4Test {
 
         public MockRestStartClient(String url, String domain, String project, String username) {
 
@@ -50,7 +51,7 @@ public class TestTestSetRunHandler extends TestCase {
         Assert.assertTrue(response.isOk());
     }
 
-    private class MockRestStopClient extends RestClient {
+    private class MockRestStopClient extends RestClient4Test {
 
         public MockRestStopClient(String url, String domain, String project, String username) {
 

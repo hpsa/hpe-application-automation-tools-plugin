@@ -15,6 +15,7 @@ import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Hudson;
+import hudson.model.Result;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
@@ -169,6 +170,7 @@ public class TestResultToALMUploader extends Recorder implements Serializable, M
 	    			logger.log("INFO: Uploaded "+fullpath + ".");
     			} catch (Exception e) {
     				logger.log("WARN: there's exception while uploading "+fullpath + ".");
+    				build.setResult(Result.UNSTABLE);
     			}
 
         	}

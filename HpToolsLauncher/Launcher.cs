@@ -20,6 +20,52 @@ namespace HpToolsLauncher
         CCNET,
     }
 
+    public class McConnectionInfo
+    {
+        public string MobileUserName { get; set; }
+        public string MobilePassword{ get; set; }
+        public string MobileHostAddress { get; set; }
+        public string MobileHostPort { get; set; }
+
+        public int MobileUseSSL { get; set; }
+
+        public int MobileUseProxy { get; set; }
+        public int MobileProxyType { get; set; }
+        public string MobileProxySetting_Address { get; set; }
+        public int MobileProxySetting_Port { get; set; }
+        public int MobileProxySetting_Authentication { get; set; }
+        public string MobileProxySetting_UserName { get; set; }
+        public string MobileProxySetting_Password { get; set; }
+
+
+        public McConnectionInfo() {
+            MobileHostPort = "8080";
+            MobileUserName = "";
+            MobilePassword = "";
+            MobileHostAddress = "";
+
+            MobileUseSSL = 0;
+
+            MobileUseProxy = 0;
+            MobileProxyType = 0;
+            MobileProxySetting_Address = "";
+            MobileProxySetting_Port = 0;
+            MobileProxySetting_Authentication = 0;
+            MobileProxySetting_UserName = "";
+            MobileProxySetting_Password = "";
+
+        }
+
+        public override string ToString()
+        {
+            string McConnectionStr = 
+                string.Format("Mc HostAddress: {0}, McPort: {1}, Username: {2}, UseSSL: {3}, UseProxy: {4}, ProxyType: {5}, ProxyAddress: {6}, ProxyPort: {7}, ProxyAuth: {8}, ProxyUser: {9}",
+                MobileHostAddress, MobileHostPort, MobileUserName, MobileUseSSL, MobileUseProxy, MobileProxyType, MobileProxySetting_Address, MobileProxySetting_Port, MobileProxySetting_Authentication,
+                MobileProxySetting_UserName);
+            return McConnectionStr;
+        }
+    }
+
     public class Launcher
     {
         private IXmlBuilder _xmlBuilder;
@@ -331,18 +377,132 @@ namespace HpToolsLauncher
                         ConsoleWriter.WriteLine(Resources.LauncherNoValidTests);
                         return null;
                     }
-                    string fsAppParamName = "";
-                    string appIdentifier = "";
-                    if (_ciParams.ContainsKey("fsAppParamName"))
+
+                    //--MC connection info
+                    McConnectionInfo mcConnectionInfo = new McConnectionInfo();
+                    if (_ciParams.ContainsKey("MobileHostAddress"))
                     {
-                        fsAppParamName = _ciParams["fsAppParamName"];
-                        if (_ciParams.ContainsKey(fsAppParamName))
+                        string mcServerUrl = _ciParams["MobileHostAddress"];
+
+                        if (!string.IsNullOrEmpty(mcServerUrl) )
                         {
-                            appIdentifier = _ciParams[fsAppParamName];
+                            //url is something like http://xxx.xxx.xxx.xxx:8080
+                            string[] strArray = mcServerUrl.Split(new Char[] { ':' });
+                            if (strArray.Length == 3)
+                            {
+                                mcConnectionInfo.MobileHostAddress = strArray[1].Replace("/", "");
+                                mcConnectionInfo.MobileHostPort = strArray[2];
+                            }
+
+                            //mc username
+                            if (_ciParams.ContainsKey("MobileUserName"))
+                            {
+                                string mcUsername = _ciParams["MobileUserName"];
+                                if (!string.IsNullOrEmpty(mcUsername))
+                                {
+                                    mcConnectionInfo.MobileUserName = mcUsername;
+                                }
+                            }
+
+                            //mc password
+                            if (_ciParams.ContainsKey("MobilePassword"))
+                            {
+                                string mcPassword = _ciParams["MobilePassword"];
+                                if (!string.IsNullOrEmpty(mcPassword))
+                                {
+                                    mcConnectionInfo.MobilePassword = Decrypt(mcPassword, secretkey);
+                                }
+                            }
+
+                            //ssl
+                            if (_ciParams.ContainsKey("MobileUseSSL"))
+                            {
+                                string mcUseSSL = _ciParams["MobileUseSSL"];
+                                if (!string.IsNullOrEmpty(mcUseSSL))
+                                {
+                                    mcConnectionInfo.MobileUseSSL = int.Parse(mcUseSSL);
+                                }
+                            }
+
+                            //Proxy enabled flag
+                            if (_ciParams.ContainsKey("MobileUseProxy"))
+                            {
+                                string useProxy = _ciParams["MobileUseProxy"];
+                                if (!string.IsNullOrEmpty(useProxy))
+                                {
+                                    mcConnectionInfo.MobileUseProxy = int.Parse(useProxy);
+                                }
+                            }
+                            
+
+                            //Proxy type
+                            if (_ciParams.ContainsKey("MobileProxyType"))
+                            {
+                                string proxyType = _ciParams["MobileProxyType"];
+                                if (!string.IsNullOrEmpty(proxyType))
+                                {
+                                    mcConnectionInfo.MobileProxyType = int.Parse(proxyType);
+                                }
+                            }
+                            
+
+                            //proxy address
+                            if (_ciParams.ContainsKey("MobileProxySetting_Address"))
+                            {
+                                string proxyAddress = _ciParams["MobileProxySetting_Address"];
+                                if (!string.IsNullOrEmpty(proxyAddress))
+                                {
+                                    // data is something like "16.105.9.23:8080"
+                                    string[] strArray4ProxyAddr = proxyAddress.Split(new Char[] { ':' });
+                                    if (strArray.Length == 2)
+                                    {
+                                        mcConnectionInfo.MobileProxySetting_Address = strArray4ProxyAddr[0];
+                                        mcConnectionInfo.MobileProxySetting_Port = int.Parse(strArray4ProxyAddr[1]);
+                                    }
+                                }
+                            }
+
+                            //Proxy authentication
+                            if (_ciParams.ContainsKey("MobileProxySetting_Authentication"))
+                            {
+                                string proxyAuthentication = _ciParams["MobileProxySetting_Authentication"];
+                                if (!string.IsNullOrEmpty(proxyAuthentication))
+                                {
+                                    mcConnectionInfo.MobileProxySetting_Authentication = int.Parse(proxyAuthentication);
+                                }
+                            }
+                            
+                            //Proxy username
+                            if (_ciParams.ContainsKey("MobileProxySetting_UserName"))
+                            {
+                                string proxyUsername = _ciParams["MobileProxySetting_UserName"];
+                                if (!string.IsNullOrEmpty(proxyUsername))
+                                {
+                                    mcConnectionInfo.MobileProxySetting_UserName = proxyUsername;
+                                }
+                            }
+
+                            //Proxy password
+                            if (_ciParams.ContainsKey("MobileProxySetting_Password"))
+                            {
+                                string proxyPassword = _ciParams["MobileProxySetting_Password"];
+                                if (!string.IsNullOrEmpty(proxyPassword))
+                                {
+                                    mcConnectionInfo.MobileProxySetting_Password = Decrypt(proxyPassword, secretkey);
+                                }
+                            }
+                            
                         }
                     }
+                    
+                    // other mobile info
+                    string mobileinfo = "";
+                    if (_ciParams.ContainsKey("mobileinfo"))
+                    {
+                        mobileinfo = _ciParams["mobileinfo"];
+                    }
 
-                    runner = new FileSystemTestsRunner(validTests, timeout, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, fsAppParamName, appIdentifier);
+                    runner = new FileSystemTestsRunner(validTests, timeout, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo);
 
                     break;
 

@@ -19,6 +19,9 @@ public class RestAuthenticator {
     
     public static final String IS_AUTHENTICATED = "rest/is-authenticated";
     public static String AUTHENTICATE_HEADER = "WWW-Authenticate";
+    public static String INVALID_ALM_SERVER_URL = "Invalid ALM Server URL";
+    public static String AUTHENTICATEION_INFO = "AuthenticationInfo";
+    public static String USER_NAME = "Username";
     
     public boolean login(Client client, String username, String password, Logger logger) {
         
@@ -96,7 +99,7 @@ public class RestAuthenticator {
         int responseCode = response.getStatusCode();
         
         // already authenticated
-        if (responseCode == HttpURLConnection.HTTP_OK) {
+        if (isAlreadyAuthenticated(response, client.getUsername())) {
             ret = null;
             logLoggedInSuccessfully(client.getUsername(), client.getServerUrl(), logger);
         }
@@ -119,7 +122,31 @@ public class RestAuthenticator {
         return ret;
     }
     
-    private void logLoggedInSuccessfully(String username, String loginServerUrl, Logger logger) {
+    private boolean isAlreadyAuthenticated(Response response, String authUser) {
+    	boolean ret = false;
+    	
+    	if (response.getStatusCode() == HttpURLConnection.HTTP_OK){
+    		
+    		if (response.getData() != null && containAuthenticatedInfo(new String(response.getData()), authUser)){
+        		ret = true;
+        	}
+        	else{
+        		throw new SSEException(INVALID_ALM_SERVER_URL);
+        	}
+    	}
+    	
+		return ret;
+	}
+
+    //if it's authenticated, the response should look like that:
+    //<?xml version="1.0" encoding="UTF-8" standalone="yes"?><AuthenticationInfo><Username>sa</Username></AuthenticationInfo>
+	private boolean containAuthenticatedInfo(String authInfo, String authUser){
+		
+		return authInfo.contains(AUTHENTICATEION_INFO) && authInfo.contains(USER_NAME) && authInfo.contains(authUser);
+	}
+
+
+	private void logLoggedInSuccessfully(String username, String loginServerUrl, Logger logger) {
         
         logger.log(String.format(
                 "Logged in successfully to ALM Server %s using %s",

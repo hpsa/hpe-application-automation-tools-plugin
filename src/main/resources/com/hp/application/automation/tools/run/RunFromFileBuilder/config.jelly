@@ -8,6 +8,7 @@
 -->
 
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+    <st:bind var="a" value="${descriptor}"/>
     <tr>
       <td/>
       <td colspan="2">
@@ -18,7 +19,18 @@
       <td/>
     </tr>
 
-
+    <script type="text/javascript">
+        function useAuthentication(obj){
+            if(obj.checked){
+                document.getElementsByName("runfromfs.fsProxyUserName")[0].disabled=null;
+                document.getElementsByName("runfromfs.fsProxyPassword")[0].disabled=null;
+            }else{
+                document.getElementsByName("runfromfs.fsProxyUserName")[0].disabled="true";
+                document.getElementsByName("runfromfs.fsProxyPassword")[0].disabled="true";
+            }
+        }
+    </script>
+    <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/configure.js"/>
 
     <f:entry title="Tests" field="fsTests">
         <f:expandableTextbox name="runfromfs.fsTests" value="${instance.runFromFileModel.fsTests}"/>
@@ -41,8 +53,8 @@
     </f:advanced>
 
     <!-- add MC server and app info starting -->
-     <f:advanced title="Mobile Center-Specific Settings">
-            <f:section title="Mobile Center Settings">
+     <f:advanced title="Mobile Center options">
+            <f:section title="Mobile Center options">
                 <f:entry title="MC Server" field="mcServerName">
                     <select name="runfromfs.mcServerName">
                         <j:forEach var="mcServer" items="${descriptor.mcServers}">
@@ -52,18 +64,72 @@
                         </j:forEach>
                     </select>
                 </f:entry>
-                <f:entry title="User Name" field="fsUserName">
+                <f:entry>
+                    <f:checkbox title="Use SSL" name="runfromfs.useSSL" checked="${instance.runFromFileModel.useSSL}"/>
+                </f:entry>
+                <f:entry title="User name" field="fsUserName">
                     <f:textbox name="runfromfs.fsUserName" value="${instance.runFromFileModel.fsUserName}"/>
                 </f:entry>
                 <f:entry title="Password" field="fsPassword">
                     <f:password name="runfromfs.fsPassword" value="${instance.runFromFileModel.fsPassword}"/>
                 </f:entry>
-                <f:entry title="Application Path" field="fsAppPath">
-                    <f:textbox name="runfromfs.fsAppPath" value="${instance.runFromFileModel.fsAppPath}"/>
+                <f:entry>
+                    <f:optionalBlock title="Use proxy settings" name = "proxySettings" checked="${instance.runFromFileModel.useProxy}">
+                        <f:entry title="Address" field="fsProxyAddress">
+                          <f:textbox name="runfromfs.fsProxyAddress" value="${instance.runFromFileModel.proxySettings.fsProxyAddress}"/>
+                        </f:entry>
+                        <f:entry>
+                            <f:checkbox title="Specify authentication" name="runfromfs.fsUseAuthentication" checked="${instance.runFromFileModel.useAuthentication}" onclick="useAuthentication(this)"/>
+                        </f:entry>
+                        <f:entry title="User name" field="fsProxyUserName">
+                          <f:textbox name="runfromfs.fsProxyUserName" disabled = "${instance.runFromFileModel.useAuthentication ? null : 'true'}" value="${instance.runFromFileModel.proxySettings.fsProxyUserName}"/>
+                        </f:entry>
+                        <f:entry title="Password" field="fsProxyPassword">
+                          <f:password name="runfromfs.fsProxyPassword" disabled = "${instance.runFromFileModel.useAuthentication ? null : 'true'}" value="${instance.runFromFileModel.proxySettings.fsProxyPassword}"/>
+                        </f:entry>
+                    </f:optionalBlock>
                 </f:entry>
-                <f:entry title="Application Parameter Name" field="fsAppParamName">
-                        <f:textbox name="runfromfs.fsAppParamName" value="${instance.runFromFileModel.fsAppParamName}"/>
+                <f:entry title="DEVICE INFORMATION:"/>
+                <f:entry/>
+                <f:entry title="Device ID" field="fsDeviceId">
+                        <f:textbox name="runfromfs.fsDeviceId" readonly = "true" value="${instance.runFromFileModel.fsDeviceId}"/>
                 </f:entry>
+                <f:entry title="OS" field="fsOs">
+                    <f:textbox name="runfromfs.fsOs" readonly = "true" value="${instance.runFromFileModel.fsOs}"/>
+                </f:entry>
+                <f:entry title="Manufacturer and model" field="fsManufacturerAndModel">
+                    <f:textbox name="runfromfs.fsManufacturerAndModel" readonly = "true" value="${instance.runFromFileModel.fsManufacturerAndModel}"/>
+                </f:entry>
+                <f:entry title="Target lab" field="fsTargetLab">
+                    <f:textbox name="runfromfs.fsTargetLab" readonly = "true" value="${instance.runFromFileModel.fsTargetLab}"/>
+                </f:entry>
+                <f:entry title="APPLICATION UNDER TEST" field="fsExtraApps">
+                    <f:textarea name="runfromfs.fsExtraApps" readonly = "true" value="${instance.runFromFileModel.fsExtraApps}"/>
+                </f:entry>
+
+                <f:entry title="TEST DEFINITIONS:"/>
+                <f:entry/>
+                <f:entry title="Launch on start" field="fsLaunchAppName">
+                    <f:textbox name="runfromfs.fsLaunchAppName" readonly = "true" value="${instance.runFromFileModel.fsLaunchAppName}"/>
+                </f:entry>
+                <f:entry title="AUT packaging" field="fsInstrumented">
+                        <f:textbox name="runfromfs.fsInstrumented" readonly = "true" value="${instance.runFromFileModel.fsInstrumented}"/>
+                </f:entry>
+                <f:entry title="AUT actions" field="fsAutActions">
+                        <f:textbox name="runfromfs.fsAutActions" readonly = "true" value="${instance.runFromFileModel.fsAutActions}"/>
+                </f:entry>
+                <f:entry title="Device metrics" field="fsDevicesMetrics">
+                        <f:textbox name="runfromfs.fsDevicesMetrics" readonly = "true" value="${instance.runFromFileModel.fsDevicesMetrics}"/>
+                </f:entry>
+                <f:entry>
+                        <input id="wizard" type="button" value="wizard" onClick="load(a,'/integration/#/login?jobId=')"/>
+                </f:entry>
+                <f:entry>
+                        <div id="errorMessage" style="color:red;display:none">MC login information or proxy is incorrect.</div>
+                </f:entry>
+                <f:invisibleEntry>
+                		<f:textbox name="runfromfs.fsJobId" value="${instance.runFromFileModel.fsJobId}"/>
+                </f:invisibleEntry>
             </f:section>
         </f:advanced>
     <!-- end -->
