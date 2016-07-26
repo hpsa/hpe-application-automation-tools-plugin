@@ -11,10 +11,11 @@ final public class Pipeline {
 	private Boolean root;
 	private long workspaceId;
 	private Long releaseId;
+	private Boolean ignoreTests;
 	private List<Taxonomy> taxonomies;
 	private List<ListField> fields;
 
-	public Pipeline(long id, String name, Boolean root, long workspaceId, Long releaseId, List<Taxonomy> taxonomies, List<ListField> fields) {
+	public Pipeline(long id, String name, Boolean root, long workspaceId, Long releaseId, List<Taxonomy> taxonomies, List<ListField> fields, Boolean ignoreTests) {
 		this.id = id;
 		this.name = name;
 		this.root = root;
@@ -22,6 +23,7 @@ final public class Pipeline {
 		this.releaseId = releaseId;
 		this.taxonomies = taxonomies;
 		this.fields = fields;
+		this.ignoreTests = ignoreTests;
 	}
 
 	public long getId() {
@@ -67,4 +69,13 @@ final public class Pipeline {
 	public Boolean isRoot() {
 		return root;
 	}
+
+	public Boolean getIgnoreTests() {
+		return ignoreTests;
+	}
+
+	public void setIgnoreTests(Boolean ignoreTests) {
+		this.ignoreTests = ignoreTests;
+	}
+
 }

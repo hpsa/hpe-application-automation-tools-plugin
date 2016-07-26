@@ -63,6 +63,8 @@ function octane_job_configuration(target, progress, proxy) {
         result.append(pipelineDiv);
 
         var buttons = $("<div>");
+        var checkbox1 = $("<div>");
+        var checkbox2 = $("<div>");
         var status = $("<div>");
 
         var selectedWorkspaceId;
@@ -80,6 +82,39 @@ function octane_job_configuration(target, progress, proxy) {
             clearDirty();
 
             pipelineDiv.empty();
+        }
+
+
+
+        function addCheckbox(currPipeline) {
+            checkbox1.empty();
+            checkbox1.append(status);
+            var ignoreTestCheckbox = $('<input type="checkbox" name="ignoreTestResults" id="ignoreTestResults" />' + 'Ignore test run results (Results are not sent to ALM Octane). ' + '<br /><br />');
+            checkbox1.append(ignoreTestCheckbox);
+            checkbox2.empty();
+            pipelineDiv.append(checkbox1);
+            checkbox2.append(status);
+            var deleteTestCheckbox = $('<input type="checkbox" name="deleteTestResults" id="deleteTestResults"/>' + 'Delete results previously collected from this step. ' + '<br /><br />');
+            checkbox2.append(deleteTestCheckbox);
+            checkbox2.hide();
+            pipelineDiv.append(checkbox2);
+
+            ignoreTestCheckbox.change(function() {
+                if($('#ignoreTestResults').prop('checked')){
+                    checkbox2.show();
+                }
+                else {
+                    checkbox2.hide();
+                    $('#deleteTestResults').attr('checked', false);
+                }
+
+
+
+            });
+            $('#ignoreTestResults').attr('checked', currPipeline.ignoreTests);
+            if(currPipeline.ignoreTests){
+                checkbox2.show();
+            }
         }
 
         function addApplyButton(caption, pipeline, func, callback) {
@@ -139,6 +174,7 @@ function octane_job_configuration(target, progress, proxy) {
             var tdPipeline = $("<td class='setting-name'><label for='pipeline-name'>Pipeline:</label></td>");
             tr.append(tdPipeline);
 
+            //  NAME
             if (pipeline.isRoot) {
                 var tdPipelineInput = $("<td class='setting-main' colspan='2'><input id='pipeline-name' type='text' placeholder='Pipeline name' class='setting-input' maxlength='50'/><div class='validation-error-area'/></td>");
                 tr.append(tdPipelineInput);
@@ -172,6 +208,7 @@ function octane_job_configuration(target, progress, proxy) {
                 tdPipelineName.text(pipeline.name);
             }
 
+            //  RELEASE
             if (pipeline.isRoot) {
                 var trRelease = $("<tr><td class='setting-name'><label for='pipeline-release'>Release:</label>");
                 tbody.append(trRelease);
@@ -194,6 +231,16 @@ function octane_job_configuration(target, progress, proxy) {
                 if (pipeline.id == null) {
                     trRelease.css('visibility', 'hidden');
                 }
+                apply.push((function (){
+                    var ignoreTestsCheck = $('#ignoreTestResults');
+                    var deleteTestsCheck = $('#deleteTestResults');
+                    pipeline.ignoreTests = ignoreTestsCheck.prop("checked");
+                    if(pipeline.ignoreTests){
+                        pipeline.deleteTests = deleteTestsCheck.prop("checked");
+                    }else {
+                        pipeline.deleteTests = false;
+                    }
+                }));
             }
         }
 
@@ -228,6 +275,9 @@ function octane_job_configuration(target, progress, proxy) {
         function renderExistingPipeline(pipeline, pipelineSelector) {
 
             function saveFunc(pipeline, callback) {
+                if(pipeline.deleteTests){
+                    proxy.deleteTests(pipeline, function() {});
+                }
                 proxy.updatePipelineOnSever(pipeline, callback);
             }
 
@@ -569,6 +619,8 @@ function octane_job_configuration(target, progress, proxy) {
 
             tagValidationTd.append(validationAreaTagType);
             tagValidationTd.append(validationAreaTag);
+
+            addCheckbox(jobConfiguration.currentPipeline);
 
             addApplyButton('Apply', pipeline, saveFunc, saveCallback);
         }

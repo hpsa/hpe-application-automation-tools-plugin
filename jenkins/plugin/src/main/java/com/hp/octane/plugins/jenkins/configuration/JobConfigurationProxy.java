@@ -140,7 +140,7 @@ public class JobConfigurationProxy {
 			}
 
 			Pipeline pipeline = client.updatePipeline(ServerIdentity.getIdentity(), project.getName(),
-					new Pipeline(pipelineId, pipelineObject.getString("name"), null, pipelineObject.getLong("workspaceId"), pipelineObject.getLong("releaseId"), taxonomies, fields));
+					new Pipeline(pipelineId, pipelineObject.getString("name"), null, pipelineObject.getLong("workspaceId"), pipelineObject.getLong("releaseId"), taxonomies, fields, pipelineObject.getBoolean("ignoreTests")));
 
 			//WORKAROUND BEGIN
 			//getting workspaceName - because the workspaceName is not returned from configuration API
@@ -166,6 +166,34 @@ public class JobConfigurationProxy {
 		} catch (ClientException e) {
 			logger.log(Level.WARNING, "Failed to update pipeline", e);
 			return error(e.getMessage(), e.getLink());
+		}
+
+		return result;
+	}
+
+
+	@JavaScriptMethod
+	public JSONObject deleteTests(JSONObject pipelineObject) throws IOException, InterruptedException {
+		JSONObject result = new JSONObject();
+
+		MqmRestClient client;
+		try {
+			client = createClient();
+		} catch (ClientException e) {
+			logger.log(Level.WARNING, PRODUCT_NAME + " connection failed", e);
+			return error(e.getMessage(), e.getLink());
+		}
+		try {
+			long pipelineId = pipelineObject.getLong("id");
+			long workspaceId = pipelineObject.getLong("workspaceId");
+			client.deleteTestsFromPipelineNodes(project.getName(),pipelineId, workspaceId);
+
+		} catch (RequestException e) {
+			logger.log(Level.WARNING, "Failed to delete tests", e);
+			return error("Unable to delete tests");
+		} catch (RequestErrorException e) {
+			logger.log(Level.WARNING, "Failed to update pipeline", e);
+			return error("Unable to update pipeline");
 		}
 
 		return result;
@@ -298,6 +326,7 @@ public class JobConfigurationProxy {
 		pipelineJSON.put("isRoot", pipeline.isRoot());
 		pipelineJSON.put("workspaceId", relatedWorkspace.getId());
 		pipelineJSON.put("workspaceName", relatedWorkspace.getName());
+		pipelineJSON.put("ignoreTests", pipeline.getIgnoreTests());
 		addTaxonomyTags(pipelineJSON, pipeline);
 		addFields(pipelineJSON, pipeline);
 

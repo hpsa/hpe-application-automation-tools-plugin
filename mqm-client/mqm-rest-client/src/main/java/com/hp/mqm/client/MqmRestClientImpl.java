@@ -15,9 +15,9 @@ import com.hp.mqm.client.model.Release;
 import com.hp.mqm.client.model.Taxonomy;
 import com.hp.mqm.client.model.TestResultStatus;
 import com.hp.mqm.client.model.Workspace;
-import com.hp.mqm.org.apache.http.HttpEntity;
 import com.hp.mqm.org.apache.http.HttpResponse;
 import com.hp.mqm.org.apache.http.HttpStatus;
+import com.hp.mqm.org.apache.http.client.methods.HttpDelete;
 import com.hp.mqm.org.apache.http.client.methods.HttpGet;
 import com.hp.mqm.org.apache.http.client.methods.HttpPost;
 import com.hp.mqm.org.apache.http.client.methods.HttpPut;
@@ -57,6 +57,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 	private static final String URI_TEST_RESULT_STATUS = PREFIX_CI + "test-results/{0}";
 	private static final String URI_TEST_RESULT_LOG = URI_TEST_RESULT_STATUS + "/log";
 	private static final String URI_JOB_CONFIGURATION = "analytics/ci/servers/{0}/jobs/{1}/configuration";
+	private static final String URI_DELETE_NODES_TESTS = "analytics/ci/pipelines/{0}/jobs/{1}/tests";
 	private static final String URI_PREFLIGHT = "analytics/ci/servers/{0}/jobs/{1}/tests-result-preflight";
 	private static final String URI_RELEASES = "releases";
 	private static final String URI_WORKSPACES = "workspaces";
@@ -239,6 +240,9 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 				pipelineObject.put("releaseId", pipeline.getReleaseId());
 			}
 		}
+		if(pipeline.getIgnoreTests() != null) {
+			pipelineObject.put("ignoreTests", pipeline.getIgnoreTests());
+		}
 		if (pipeline.getTaxonomies() != null) {
 			JSONArray taxonomies = taxonomiesArray(pipeline.getTaxonomies());
 			pipelineObject.put("taxonomies", taxonomies);
@@ -266,6 +270,24 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 			return getPipelineById(json, pipeline.getId());
 		} catch (IOException e) {
 			throw new RequestErrorException("Cannot update pipeline.", e);
+		} finally {
+			HttpClientUtils.closeQuietly(response);
+		}
+	}
+
+	@Override
+	public void deleteTestsFromPipelineNodes(String jobName, Long pipelineId, Long workspaceId) {
+		HttpDelete request = new HttpDelete(createWorkspaceInternalApiUriMap(URI_DELETE_NODES_TESTS, workspaceId, pipelineId, jobName));
+
+		HttpResponse response = null;
+		try {
+			response = execute(request);
+			if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+				throw createRequestException("delete tests failed", response);
+			}
+
+		} catch (IOException e) {
+			throw new RequestErrorException("Cannot delete tests.", e);
 		} finally {
 			HttpClientUtils.closeQuietly(response);
 		}
@@ -411,7 +433,8 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 				pipelineObject.getString("contextEntityName"),
 				pipelineObject.getBoolean("pipelineRoot"),
 				pipelineObject.getLong("workspaceId"),
-				pipelineObject.has("releaseId") && !pipelineObject.get("releaseId").equals(JSONNull.getInstance()) ? pipelineObject.getLong("releaseId") : null, taxonomies, fields);
+				pipelineObject.has("releaseId") && !pipelineObject.get("releaseId").equals(JSONNull.getInstance()) ? pipelineObject.getLong("releaseId") : null, taxonomies, fields,
+				pipelineObject.has("ignoreTests") && !pipelineObject.get("ignoreTests").equals(JSONNull.getInstance()) ? pipelineObject.getBoolean("ignoreTests") : null);
 	}
 
 	@Override
