@@ -276,7 +276,9 @@ function octane_job_configuration(target, progress, proxy) {
 
             function saveFunc(pipeline, callback) {
                 if(pipeline.deleteTests){
-                    proxy.deleteTests(pipeline, function() {});
+                    proxy.deleteTests(pipeline, function(response) {
+                        console.log(response.responseJSON)
+                    });
                 }
                 proxy.updatePipelineOnSever(pipeline, callback);
             }

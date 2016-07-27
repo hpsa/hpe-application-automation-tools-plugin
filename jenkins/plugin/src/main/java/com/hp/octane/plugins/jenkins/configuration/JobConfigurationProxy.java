@@ -187,13 +187,13 @@ public class JobConfigurationProxy {
 			long pipelineId = pipelineObject.getLong("id");
 			long workspaceId = pipelineObject.getLong("workspaceId");
 			client.deleteTestsFromPipelineNodes(project.getName(),pipelineId, workspaceId);
-
+            result.put("Test deletion was succeful","");
 		} catch (RequestException e) {
 			logger.log(Level.WARNING, "Failed to delete tests", e);
 			return error("Unable to delete tests");
 		} catch (RequestErrorException e) {
-			logger.log(Level.WARNING, "Failed to update pipeline", e);
-			return error("Unable to update pipeline");
+			logger.log(Level.WARNING, "Failed to delete tests", e);
+			return error("Unable to delete tests");
 		}
 
 		return result;
