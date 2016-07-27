@@ -11,7 +11,7 @@ import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessors;
 import com.hp.octane.plugins.jenkins.tests.TestListener;
 import com.hp.octane.plugins.jenkins.tests.gherkin.GherkinEventsService;
-import com.hp.octane.plugins.jenkins.workflow.WorkFlowRunProcessor;
+import com.hp.octane.plugins.jenkins.model.processors.builders.WorkFlowRunProcessor;
 import hudson.Extension;
 import hudson.matrix.MatrixConfiguration;
 import hudson.matrix.MatrixRun;

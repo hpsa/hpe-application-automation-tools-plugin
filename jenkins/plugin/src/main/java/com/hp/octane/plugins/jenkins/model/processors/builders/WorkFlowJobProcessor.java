@@ -1,4 +1,4 @@
-package com.hp.octane.plugins.jenkins.workflow;
+package com.hp.octane.plugins.jenkins.model.processors.builders;
 
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;

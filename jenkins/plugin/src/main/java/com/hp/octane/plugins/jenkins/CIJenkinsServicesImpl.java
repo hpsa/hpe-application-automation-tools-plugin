@@ -21,7 +21,7 @@ import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessors;
-import com.hp.octane.plugins.jenkins.workflow.WorkFlowJobProcessor;
+import com.hp.octane.plugins.jenkins.model.processors.builders.WorkFlowJobProcessor;
 import hudson.ProxyConfiguration;
 import hudson.model.*;
 import hudson.security.ACL;
