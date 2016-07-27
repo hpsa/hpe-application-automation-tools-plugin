@@ -59,8 +59,6 @@
 			<optional>true</optional>
 		</dependency>
 
-
-
 		<dependency>
 			<groupId>org.jenkins-ci.plugins.pipeline-stage-view</groupId>
 			<artifactId>pipeline-rest-api</artifactId>
@@ -75,8 +73,14 @@
 			<optional>true</optional>
 		</dependency>
 
+		<!-- pipeline as a code  ends here -->
+		<dependency>
+			<groupId>com.squareup</groupId>
+			<artifactId>tape</artifactId>
+			<version>1.2.3</version>
+		</dependency>
 
-
+		<!--Extensibility-->
 
 		<dependency>
 			<groupId>org.jenkins-ci.plugins</groupId>
@@ -89,17 +93,6 @@
 			<artifactId>maven-plugin</artifactId>
 			<version>2.5</version>
 		</dependency>
-
-
-
-		<!-- pipeline as a code  ends here -->
-		<dependency>
-			<groupId>com.squareup</groupId>
-			<artifactId>tape</artifactId>
-			<version>1.2.3</version>
-		</dependency>
-
-		<!--Extensibility-->
 
 		<dependency>
 			<groupId>org.jenkins-ci.plugins</groupId>
