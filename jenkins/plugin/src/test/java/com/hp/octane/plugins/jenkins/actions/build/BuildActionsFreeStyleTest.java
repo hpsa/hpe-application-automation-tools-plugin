@@ -44,6 +44,7 @@ public class BuildActionsFreeStyleTest {
 		FreeStyleProject jobBB = rule.createFreeStyleProject("jobBB");
 		FreeStyleProject jobCC = rule.createFreeStyleProject("jobCC");
 
+
 		//  jobA
 		jobA.getBuildersList().add(Utils.getSleepScript(5));
 		jobA.getBuildersList().add(new TriggerBuilder(Arrays.asList(
@@ -110,6 +111,7 @@ public class BuildActionsFreeStyleTest {
 		assertEquals(projectName, snapshot.getJobCiId());
 		assertEquals(projectName, snapshot.getName());
 		assertEquals(0, snapshot.getParameters().size());
+
 		assertEquals(0, snapshot.getPhasesInternal().size());
 		assertEquals(0, snapshot.getPhasesPostBuild().size());
 		assertEquals(1, snapshot.getCauses().size());

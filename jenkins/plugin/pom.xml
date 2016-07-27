@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.jenkins-ci.plugins</groupId>
 		<artifactId>plugin</artifactId>
-		<version>1.580.2</version>
+		<version>1.642.3</version>
 	</parent>
 
 	<name>HPE ALM Octane CI Plugin</name>
@@ -44,6 +44,55 @@
 	</properties>
 
 	<dependencies>
+
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>branch-api</artifactId>
+			<version>1.10</version>
+			<optional>true</optional>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>git-server</artifactId>
+			<version>1.7</version>
+			<optional>true</optional>
+		</dependency>
+
+
+
+		<dependency>
+			<groupId>org.jenkins-ci.plugins.pipeline-stage-view</groupId>
+			<artifactId>pipeline-rest-api</artifactId>
+			<version>1.1</version>
+			<optional>true</optional>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jenkins-ci.plugins.workflow</groupId>
+			<artifactId>workflow-aggregator</artifactId>
+			<version>2.2</version>
+			<optional>true</optional>
+		</dependency>
+
+
+
+
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>git</artifactId>
+			<version>2.2.7</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jenkins-ci.main</groupId>
+			<artifactId>maven-plugin</artifactId>
+			<version>2.5</version>
+		</dependency>
+
+
+
+		<!-- pipeline as a code  ends here -->
 		<dependency>
 			<groupId>com.squareup</groupId>
 			<artifactId>tape</artifactId>
@@ -52,24 +101,24 @@
 
 		<!--Extensibility-->
 
-		<dependency>
-			<groupId>org.jenkins-ci.plugins</groupId>
-			<artifactId>git</artifactId>
-			<version>2.2.7</version>
-			<optional>true</optional>
-		</dependency>
+		<!--<dependency>-->
+			<!--<groupId>org.jenkins-ci.plugins</groupId>-->
+			<!--<artifactId>git</artifactId>-->
+			<!--<version>2.2.7</version>-->
+			<!--<optional>true</optional>-->
+		<!--</dependency>-->
 		<dependency>
 			<groupId>org.jenkins-ci.plugins</groupId>
 			<artifactId>matrix-project</artifactId>
 			<version>1.4</version>
 			<optional>true</optional>
 		</dependency>
-		<dependency>
-			<groupId>org.jenkins-ci.main</groupId>
-			<artifactId>maven-plugin</artifactId>
-			<version>2.5</version>
-			<optional>true</optional>
-		</dependency>
+		<!--<dependency>-->
+			<!--<groupId>org.jenkins-ci.main</groupId>-->
+			<!--<artifactId>maven-plugin</artifactId>-->
+			<!--<version>2.5</version>-->
+			<!--<optional>true</optional>-->
+		<!--</dependency>-->
 		<dependency>
 			<groupId>org.jenkins-ci.plugins</groupId>
 			<artifactId>jenkins-multijob-plugin</artifactId>

@@ -33,15 +33,14 @@ public enum ParameterProcessors {
 		this.processorClass = processorClass;
 	}
 
-	public static List<CIParameter> getConfigs(AbstractProject project) {
+	public static List<CIParameter> getConfigs(Job job) {
 		ArrayList<CIParameter> result = new ArrayList<CIParameter>();
-
 		List<ParameterDefinition> paramDefinitions;
 		ParameterDefinition pd;
 		String className;
 		AbstractParametersProcessor processor;
-		if (project.isParameterized()) {
-			paramDefinitions = ((ParametersDefinitionProperty) project.getProperty(ParametersDefinitionProperty.class)).getParameterDefinitions();
+		if (job.getProperty(ParametersDefinitionProperty.class) != null) {
+			paramDefinitions = ((ParametersDefinitionProperty) job.getProperty(ParametersDefinitionProperty.class)).getParameterDefinitions();
 			for (int i = 0; i < paramDefinitions.size(); i++) {
 				pd = paramDefinitions.get(i);
 				className = pd.getClass().getName();
@@ -50,28 +49,27 @@ public enum ParameterProcessors {
 			}
 		}
 
-		if (project instanceof MatrixProject) {
-			AxisList axisList = ((MatrixProject) project).getAxes();
+		if (job instanceof MatrixProject) {
+			AxisList axisList = ((MatrixProject) job).getAxes();
 			for (Axis axis : axisList) {
 				result.add(ModelFactory.createParameterConfig(axis.getName(), CIParameterType.AXIS, new ArrayList<Object>(axis.getValues())));
 			}
 		}
-//		ParameterConfig[] params = new ParameterConfig[result.size()];
-//		return result.toArray(params);
+
 		return result;
 	}
 
 	//  TODO: the below mapping between param configs and values based on param name uniqueness, beware!
-	public static List<CIParameter> getInstances(AbstractBuild build) {
+	public static List<CIParameter> getInstances(Run run) {
 		List<CIParameter> result = new ArrayList<CIParameter>();
 		CIParameter tmp;
-		AbstractProject project = build.getProject();
+		Job job = run.getParent();
 		List<ParameterDefinition> paramDefinitions;
 		String className;
 
 		AbstractParametersProcessor processor;
 		List<ParameterValue> parametersValues;
-		ParametersAction parametersAction = build.getAction(ParametersAction.class);
+		ParametersAction parametersAction = run.getAction(ParametersAction.class);
 		if (parametersAction != null) {
 			parametersValues = new ArrayList<ParameterValue>(parametersAction.getParameters());
 		} else {
@@ -80,8 +78,8 @@ public enum ParameterProcessors {
 		ParameterValue pv;
 
 		//  TODO: should be moved to the Matrix Project processor
-		if (project instanceof MatrixConfiguration) {
-			Combination combination = ((MatrixConfiguration) project).getCombination();
+		if (job instanceof MatrixConfiguration) {
+			Combination combination = ((MatrixConfiguration) job).getCombination();
 			for (Map.Entry<String, String> entry : combination.entrySet()) {
 				tmp = dtoFactory.newDTO(CIParameter.class)
 						.setType(CIParameterType.AXIS)
@@ -91,8 +89,8 @@ public enum ParameterProcessors {
 			}
 		}
 
-		if (project.isParameterized()) {
-			paramDefinitions = ((ParametersDefinitionProperty) project.getProperty(ParametersDefinitionProperty.class)).getParameterDefinitions();
+		if (job.getProperty(ParametersDefinitionProperty.class) != null) {
+			paramDefinitions = ((ParametersDefinitionProperty) job.getProperty(ParametersDefinitionProperty.class)).getParameterDefinitions();
 			for (ParameterDefinition pd : paramDefinitions) {
 				className = pd.getClass().getName();
 				pv = null;
