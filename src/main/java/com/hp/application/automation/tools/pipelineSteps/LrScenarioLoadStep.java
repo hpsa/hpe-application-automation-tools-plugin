@@ -19,7 +19,7 @@ public class LrScenarioLoadStep extends AbstractStepImpl {
 
         @Override
         public String getFunctionName() {
-            return "loadRunnerScenarioRun";
+            return "RunLoadRunnerScenario";
         }
 
         @Nonnull
