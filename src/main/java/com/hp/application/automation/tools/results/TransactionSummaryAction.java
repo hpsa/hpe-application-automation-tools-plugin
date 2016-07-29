@@ -5,6 +5,8 @@ import hudson.model.AbstractBuild;
 import hudson.model.Action;
 import hudson.model.DirectoryBrowserSupport;
 import hudson.model.Run;
+import hudson.tasks.test.TestResultProjectAction;
+import jenkins.tasks.SimpleBuildStep;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
@@ -12,15 +14,15 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
-public class TransactionSummaryAction implements Action {
+public class TransactionSummaryAction implements Action, SimpleBuildStep.LastBuildAction {
 
     private static final String TRANSACTION_SUMMARY_FOLDER = "TransactionSummary";
     private static final String REPORT_INDEX = "report.index";
 
     private Map<String, SummaryReport> summaryReportMap = new LinkedHashMap<String, SummaryReport>();
+    private final List<TestResultProjectAction> projectActionList;
 
     private Run<?,?> build;
 
@@ -69,6 +71,8 @@ public class TransactionSummaryAction implements Action {
                 
             }
         }
+        projectActionList = new ArrayList<TestResultProjectAction>();
+        projectActionList.add(new TestResultProjectAction(build.getParent()));
     }
 
     @Override
@@ -100,4 +104,8 @@ public class TransactionSummaryAction implements Action {
         return null;
     }
 
+    @Override
+    public Collection<? extends Action> getProjectActions() {
+        return projectActionList;
+    }
 }

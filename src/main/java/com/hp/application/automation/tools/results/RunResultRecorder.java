@@ -202,7 +202,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         build.getActions().add(action);
         
         try {
-            archiveTestsReport(build, listener, fileSystemResultNames, result);
+            archiveTestsReport(build, listener, fileSystemResultNames, result, workspace);
         } catch (ParserConfigurationException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -261,7 +261,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         write2XML(doc, xmlFile);
     }
 
-    private Boolean collectAndPrepareHtmlReports(AbstractBuild build, BuildListener listener, List<ReportMetaData> htmlReportsInfo) throws IOException, InterruptedException {
+    private Boolean collectAndPrepareHtmlReports(Run build, TaskListener listener, List<ReportMetaData> htmlReportsInfo, FilePath runWorkspace) throws IOException, InterruptedException {
         //Project<?, ?> project = RuntimeUtils.cast(build.getProject());
         //File reportDir = new File(build.getRootDir(), "UFTReport");
         File reportDir = new File(build.getArtifactsDir(), "UFTReport");
@@ -279,10 +279,10 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 String htmlReportDir = htmlReportInfo.getFolderPath(); //C:\UFTTest\GuiTest1\Report
 
                 listener.getLogger().println("collectAndPrepareHtmlReports, collecting:" + htmlReportDir);
-                listener.getLogger().println("workspace: " + build.getWorkspace());
+                listener.getLogger().println("workspace: " + runWorkspace);
 
                 //copy to the subdirs of master
-                FilePath source = new FilePath(build.getWorkspace(), htmlReportDir);
+                FilePath source = new FilePath(runWorkspace, htmlReportDir);
                 listener.getLogger().println("source: " + source);
                 String testName = htmlReportInfo.getDisPlayName();  //like "GuiTest1"
                 //File testFileFullName = new File(testFullName);
@@ -349,10 +349,10 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
     }
 	
     private void archiveTestsReport(
-            AbstractBuild<?, ?> build,
-            BuildListener listener,
+            Run<?, ?> build,
+            TaskListener listener,
             List<String> resultFiles,
-            TestResult testResult) throws ParserConfigurationException, SAXException,
+            TestResult testResult, FilePath runWorkspace) throws ParserConfigurationException, SAXException,
             IOException, InterruptedException {
         
         if ((resultFiles == null) || (resultFiles.size() == 0)) {
@@ -375,7 +375,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         	return;
         }*/
 
-        FilePath projectWS = build.getWorkspace();
+        FilePath projectWS = runWorkspace;
         
         // get the artifacts directory where we will upload the zipped report
         // folder
@@ -583,7 +583,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 				if (reportIsHtml && !ReportInfoToCollect.isEmpty()){
 
 					listener.getLogger().println("begin to collectAndPrepareHtmlReports");
-					collectAndPrepareHtmlReports(build, listener, ReportInfoToCollect);
+					collectAndPrepareHtmlReports(build, listener, ReportInfoToCollect, runWorkspace);
 				}
 
 				if (!ReportInfoToCollect.isEmpty()) {
@@ -609,7 +609,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 	private boolean archiveFolder(FilePath reportFolder,
                                   String testStatus,
                                   FilePath archivedFile,
-                                  BuildListener listener) throws IOException, InterruptedException {
+                                  TaskListener listener) throws IOException, InterruptedException {
         String archiveTestResultMode =
                 _resultsPublisherModel.getArchiveTestResultsMode();
         boolean archiveTestResult = false;
