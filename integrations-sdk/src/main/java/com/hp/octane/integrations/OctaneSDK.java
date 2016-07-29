@@ -1,6 +1,6 @@
 package com.hp.octane.integrations;
 
-import com.hp.octane.integrations.api.CIPluginServices;
+import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.api.ConfigurationService;
 import com.hp.octane.integrations.api.EventsService;
 import com.hp.octane.integrations.api.RestService;
@@ -52,6 +52,18 @@ public final class OctaneSDK {
 		} else {
 			throw new IllegalStateException("SDK may be initialized only once");
 		}
+	}
+
+	public static OctaneSDK getInstance() {
+		if (instance != null) {
+			return instance;
+		} else {
+			throw new IllegalStateException("SDK MUST be initialized prior to any usage");
+		}
+	}
+
+	public CIPluginServices getPluginServices() {
+		return configurator.pluginServices;
 	}
 
 	public ConfigurationService getConfigurationService() {

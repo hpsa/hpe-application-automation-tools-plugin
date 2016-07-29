@@ -1,4 +1,4 @@
-package com.hp.octane.integrations.api;
+package com.hp.octane.integrations.spi;
 
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;

@@ -1,6 +1,6 @@
 package com.hp.octane.integrations;
 
-import com.hp.octane.integrations.api.CIPluginServices;
+import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.api.RestService;
 import com.hp.octane.integrations.api.TasksProcessor;
 

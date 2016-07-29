@@ -43,7 +43,6 @@ public class OctaneTeamCityPlugin implements ServerExtension {
 	private WebControllerManager webControllerManager;
 
 	private OctaneConfigStructure config;
-	private OctaneSDK octaneSDK;
 
 	@PostConstruct
 	private void initPlugin() {
@@ -53,7 +52,7 @@ public class OctaneTeamCityPlugin implements ServerExtension {
 		config = configurationService.readConfig();
 
 		ensureServerInstanceID();
-		octaneSDK = OctaneSDK.init(pluginServices, true);
+		OctaneSDK.init(pluginServices, true);
 	}
 
 	public ProjectManager getProjectManager() {
@@ -66,10 +65,6 @@ public class OctaneTeamCityPlugin implements ServerExtension {
 
 	public OctaneConfigStructure getConfig() {
 		return config;
-	}
-
-	public OctaneSDK getOctaneSDK() {
-		return octaneSDK;
 	}
 
 	private void registerControllers() {

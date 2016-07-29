@@ -4,7 +4,7 @@ import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.AuthenticationException;
 import com.hp.mqm.client.exception.TemporarilyUnavailableException;
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.api.CIPluginServices;
+import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.api.TasksProcessor;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
@@ -62,7 +62,7 @@ public class BridgeClient {
 				@Override
 				public void run() {
 					String tasksJSON;
-					CIPluginServices pluginServices = plugin.jenkinsPluginServices;
+					CIPluginServices pluginServices = OctaneSDK.getInstance().getPluginServices();
 					try {
 						MqmRestClient restClient = restClientFactory.obtain(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
 						tasksJSON = restClient.getAbridgedTasks(
@@ -125,7 +125,7 @@ public class BridgeClient {
 				taskProcessingExecutors.execute(new Runnable() {
 					@Override
 					public void run() {
-						TasksProcessor TasksProcessor = plugin.getOctaneSDK().getTasksProcessor();
+						TasksProcessor TasksProcessor = OctaneSDK.getInstance().getTasksProcessor();
 						OctaneResultAbridged result = TasksProcessor.execute(task);
 						MqmRestClient restClient = restClientFactory.obtain(
 								mqmConfig.location,

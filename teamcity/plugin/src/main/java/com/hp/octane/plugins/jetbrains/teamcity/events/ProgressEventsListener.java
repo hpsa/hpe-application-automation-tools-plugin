@@ -1,5 +1,6 @@
 package com.hp.octane.plugins.jetbrains.teamcity.events;
 
+import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.causes.CIEventCause;
 import com.hp.octane.integrations.dto.causes.CIEventCauseType;
@@ -48,7 +49,7 @@ public class ProgressEventsListener extends BuildServerAdapter {
 					.setProject(queuedBuild.getBuildType().getExternalId())
 					.setProjectDisplayName(queuedBuild.getBuildType().getName())
 					.setCauses(new ArrayList<CIEventCause>());
-			octaneTeamCityPlugin.getOctaneSDK().getEventsService().publishEvent(event);
+			OctaneSDK.getInstance().getEventsService().publishEvent(event);
 		}
 	}
 
@@ -75,7 +76,7 @@ public class ProgressEventsListener extends BuildServerAdapter {
 				.setCauses(causes)
 				.setStartTime(build.getStartDate().getTime())
 				.setEstimatedDuration(build.getDurationEstimate() * 1000);
-		octaneTeamCityPlugin.getOctaneSDK().getEventsService().publishEvent(event);
+		OctaneSDK.getInstance().getEventsService().publishEvent(event);
 	}
 
 	@Override
@@ -103,7 +104,7 @@ public class ProgressEventsListener extends BuildServerAdapter {
 				.setEstimatedDuration(build.getDurationEstimate() * 1000)
 				.setDuration(build.getDuration() * 1000)
 				.setResult(modelCommonFactory.resultFromNativeStatus(build.getBuildStatus()));
-		octaneTeamCityPlugin.getOctaneSDK().getEventsService().publishEvent(event);
+		OctaneSDK.getInstance().getEventsService().publishEvent(event);
 	}
 
 	private SQueuedBuild getTriggerBuild(String triggerBuildTypeId) {

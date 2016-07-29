@@ -2,7 +2,7 @@ package com.hp.octane.integrations.services.rest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hp.octane.integrations.api.CIPluginServices;
+import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.api.RestClient;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;

@@ -47,7 +47,7 @@ public class ConfigurationActionsController implements Controller {
 				String url = httpServletRequest.getParameter("server");
 				String apiKey = httpServletRequest.getParameter("username1");
 				String secret = httpServletRequest.getParameter("password1");
-				OctaneConfiguration octaneConfiguration = octaneTeamCityPlugin.getOctaneSDK().getConfigurationService().buildConfiguration(url, apiKey, secret);
+				OctaneConfiguration octaneConfiguration = OctaneSDK.getInstance().getConfigurationService().buildConfiguration(url, apiKey, secret);
 
 				if (action.equals("test")) {
 					returnStr = configurationService.checkConfiguration(octaneConfiguration);
@@ -79,7 +79,7 @@ public class ConfigurationActionsController implements Controller {
 		cfg.setSecretPassword(octaneConfiguration.getSecret());
 		configurationService.saveConfig(cfg);
 
-		octaneTeamCityPlugin.getOctaneSDK().getConfigurationService().notifyChange(octaneConfiguration);
+		OctaneSDK.getInstance().getConfigurationService().notifyChange(octaneConfiguration);
 
 		return "Updated successfully";
 	}

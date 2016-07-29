@@ -1,7 +1,7 @@
 package com.hp.octane.integrations.services.tasking;
 
 import com.hp.octane.integrations.SDKServiceBase;
-import com.hp.octane.integrations.api.CIPluginServices;
+import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.api.TasksProcessor;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;

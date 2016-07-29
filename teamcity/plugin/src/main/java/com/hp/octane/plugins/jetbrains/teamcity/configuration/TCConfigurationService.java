@@ -1,5 +1,6 @@
 package com.hp.octane.plugins.jetbrains.teamcity.configuration;
 
+import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.plugins.jetbrains.teamcity.OctaneTeamCityPlugin;
@@ -33,7 +34,7 @@ public class TCConfigurationService {
 		String resultMessage;
 
 		try {
-			OctaneResponse result = octaneTeamCityPlugin.getOctaneSDK().getConfigurationService().validateConfiguration(octaneConfiguration);
+			OctaneResponse result = OctaneSDK.getInstance().getConfigurationService().validateConfiguration(octaneConfiguration);
 			if (result.getStatus() == HttpStatus.SC_OK) {
 				resultMessage = "Connection succeeded";
 			} else if (result.getStatus() == HttpStatus.SC_UNAUTHORIZED) {
