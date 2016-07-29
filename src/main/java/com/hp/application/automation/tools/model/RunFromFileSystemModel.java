@@ -5,16 +5,15 @@
 
 package com.hp.application.automation.tools.model;
 
+import com.hp.application.automation.tools.mc.JobConfigurationProxy;
 import hudson.EnvVars;
 import hudson.util.Secret;
 import hudson.util.VariableResolver;
-
-import java.util.Properties;
-import com.hp.application.automation.tools.mc.JobConfigurationProxy;
-
 import net.minidev.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
+
+import java.util.Properties;
 
 public class RunFromFileSystemModel {
 
