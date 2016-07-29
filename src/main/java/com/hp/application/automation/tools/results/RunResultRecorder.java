@@ -5,12 +5,13 @@
 
 package com.hp.application.automation.tools.results;
 
-import java.io.*;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-
-import com.hp.application.automation.tools.common.Pair;
+import com.hp.application.automation.tools.common.RuntimeUtils;
+import com.hp.application.automation.tools.model.EnumDescription;
+import com.hp.application.automation.tools.model.ResultsPublisherModel;
+import com.hp.application.automation.tools.run.PcBuilder;
+import com.hp.application.automation.tools.run.RunFromAlmBuilder;
+import com.hp.application.automation.tools.run.RunFromFileBuilder;
+import com.hp.application.automation.tools.run.SseBuilder;
 import hudson.AbortException;
 import hudson.Extension;
 import hudson.FilePath;
@@ -19,45 +20,16 @@ import hudson.Launcher;
 import hudson.matrix.MatrixAggregatable;
 import hudson.matrix.MatrixAggregator;
 import hudson.matrix.MatrixBuild;
-import hudson.model.Action;
-import hudson.model.BuildListener;
-import hudson.model.Result;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.Project;
+import hudson.model.*;
 import hudson.remoting.VirtualChannel;
-import hudson.tasks.BuildStepDescriptor;
-import hudson.tasks.BuildStepMonitor;
-import hudson.tasks.Builder;
-import hudson.tasks.Publisher;
-import hudson.tasks.Recorder;
+import hudson.tasks.*;
+import hudson.tasks.junit.CaseResult;
+import hudson.tasks.junit.SuiteResult;
 import hudson.tasks.junit.TestResult;
 import hudson.tasks.junit.TestResultAction;
-import hudson.tasks.junit.SuiteResult;
-import hudson.tasks.junit.CaseResult;
 import hudson.tasks.test.TestResultAggregator;
 import hudson.tasks.test.TestResultProjectAction;
-
-import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
+import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.tools.ant.DirectoryScanner;
@@ -69,13 +41,19 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import com.hp.application.automation.tools.common.RuntimeUtils;
-import com.hp.application.automation.tools.model.EnumDescription;
-import com.hp.application.automation.tools.model.ResultsPublisherModel;
-import com.hp.application.automation.tools.run.RunFromAlmBuilder;
-import com.hp.application.automation.tools.run.RunFromFileBuilder;
-import com.hp.application.automation.tools.run.SseBuilder;
-import com.hp.application.automation.tools.run.PcBuilder;
+import javax.annotation.Nonnull;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * This class is adapted from {@link JunitResultArchiver}; Only the {@code perform()} method
@@ -83,7 +61,7 @@ import com.hp.application.automation.tools.run.PcBuilder;
  * 
  * @author Thomas Maurel
  */
-public class RunResultRecorder extends Recorder implements Serializable, MatrixAggregatable {
+public class RunResultRecorder extends Recorder implements Serializable, MatrixAggregatable, SimpleBuildStep {
     
     private static final long serialVersionUID = 1L;
     private static final String PERFORMANCE_REPORT_FOLDER = "PerformanceReport";
@@ -108,13 +86,12 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         
         return (DescriptorImpl) super.getDescriptor();
     }
-    
+
     @Override
-    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
-            throws InterruptedException, IOException {
+    public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
         
         TestResultAction action;
-        Project<?, ?> project = RuntimeUtils.cast(build.getProject());
+        Project<?, ?> project = RuntimeUtils.cast(build.getParent());
         List<Builder> builders = project.getBuilders();
         
         final List<String> almResultNames = new ArrayList<String>();
@@ -148,15 +125,15 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         // Has any QualityCenter builder been set up?
         if (mergedResultNames.isEmpty()) {
             listener.getLogger().println("RunResultRecorder: no results xml File provided");
-            return true;
+            return;
         }
 
         TestResult result = null;
         try {
             final long buildTime = build.getTimestamp().getTimeInMillis();
             final long nowMaster = System.currentTimeMillis();
-            
-            result = build.getWorkspace().act(new FileCallable<TestResult>() {
+
+            result = workspace.act(new FileCallable<TestResult>() {
                 
                 private static final long serialVersionUID = 1L;
                 
@@ -210,16 +187,16 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 // most likely a build failed before it gets to the test
                 // phase.
                 // don't report confusing error message.
-                return true;
+                return;
             }
             
             listener.getLogger().println(e.getMessage());
             build.setResult(Result.FAILURE);
-            return true;
+            return;
         } catch (IOException e) {
             e.printStackTrace(listener.error("Failed to archive testing tool reports"));
             build.setResult(Result.FAILURE);
-            return true;
+            return;
         }
         
         build.getActions().add(action);
@@ -251,7 +228,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             }
         }
         
-        return true;
+        return ;
     }
     
     private void writeReportMetaData2XML(List<ReportMetaData> htmlReportsInfo, String xmlFile) throws IOException, ParserConfigurationException {

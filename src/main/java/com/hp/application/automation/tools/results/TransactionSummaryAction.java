@@ -1,19 +1,19 @@
 package com.hp.application.automation.tools.results;
 
+import hudson.FilePath;
+import hudson.model.AbstractBuild;
+import hudson.model.Action;
+import hudson.model.DirectoryBrowserSupport;
+import hudson.model.Run;
+import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerResponse;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
-import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.StaplerResponse;
-
-import hudson.FilePath;
-import hudson.model.Action;
-import hudson.model.AbstractBuild;
-import hudson.model.DirectoryBrowserSupport;
 
 public class TransactionSummaryAction implements Action {
 
@@ -22,9 +22,9 @@ public class TransactionSummaryAction implements Action {
 
     private Map<String, SummaryReport> summaryReportMap = new LinkedHashMap<String, SummaryReport>();
 
-    private AbstractBuild<?,?> build;
+    private Run<?,?> build;
 
-    public TransactionSummaryAction(AbstractBuild<?,?> build) {
+    public TransactionSummaryAction(Run<?,?> build) {
         this.build = build;
         File reportFolder = new File(build.getArtifactsDir().getParent(), TRANSACTION_SUMMARY_FOLDER);
         if (reportFolder.exists()) {
@@ -86,7 +86,7 @@ public class TransactionSummaryAction implements Action {
         return "TransactionSummary";
     }
 
-    public AbstractBuild<?,?> getBuild() {
+    public Run<?,?> getBuild() {
         return build;
     }
 
