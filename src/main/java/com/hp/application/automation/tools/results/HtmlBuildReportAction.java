@@ -2,23 +2,18 @@ package com.hp.application.automation.tools.results;
 
 
 import hudson.model.Action;
-import hudson.model.AbstractBuild;
-import hudson.model.BuildListener;
 import hudson.model.Run;
-//import hudson.model.ProminentProjectAction;
-import hudson.remoting.Channel;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+//import hudson.model.ProminentProjectAction;
 
 
 /**
@@ -30,7 +25,7 @@ public class HtmlBuildReportAction implements Action {
 
     private static final String REPORTMETADATE_XML = "report_metadata.xml";
 
-    private AbstractBuild build;
+    private Run build;
     //private BuildListener listener;
     private List<ReportMetaData> reportMetaDataList = new ArrayList<ReportMetaData>();
 
@@ -38,7 +33,7 @@ public class HtmlBuildReportAction implements Action {
     //public HtmlBuildReportAction(AbstractBuild<?, ?> build, BuildListener listener, List<ReportMetaData> reportMetaData)
     //NOTE: if parameter has BuildListener, the build cannot be serilize normally.
 
-    public HtmlBuildReportAction(AbstractBuild<?, ?> build) {
+    public HtmlBuildReportAction(Run<?, ?> build) {
         //super(actualHtmlPublisherTarget);
         this.build = build;
 
@@ -50,7 +45,7 @@ public class HtmlBuildReportAction implements Action {
 
     }
 
-    public final AbstractBuild<?, ?> getBuild() {
+    public final Run<?, ?> getBuild() {
         return build;
     }
 
