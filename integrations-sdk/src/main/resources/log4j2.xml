@@ -7,8 +7,8 @@
 
 	<Appenders>
 
-		<RollingFile name="OctaneFileAppender" append="true" fileName="${sys:ngaLogsLocation}/nga.log"
-					 filePattern="${sys:ngaLogsLocation}/nga-%i.log">
+		<RollingFile name="OctaneFileAppender" append="true" fileName="${sys:ngaLogsLocation:-}/nga.log"
+					 filePattern="${sys:ngaLogsLocation:-}/nga-%i.log">
 			<PatternLayout pattern="${pattern}"/>
 			<Policies>
 				<SizeBasedTriggeringPolicy size="2MB"/>
