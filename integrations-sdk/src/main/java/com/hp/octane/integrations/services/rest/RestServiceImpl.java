@@ -1,6 +1,6 @@
 package com.hp.octane.integrations.services.rest;
 
-import com.hp.octane.integrations.SDKService;
+import com.hp.octane.integrations.SDKServiceBase;
 import com.hp.octane.integrations.api.RestService;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
@@ -13,7 +13,7 @@ import org.apache.logging.log4j.Logger;
  * REST Service - default implementation
  */
 
-public final class RestServiceImpl extends SDKService implements RestService {
+public final class RestServiceImpl extends SDKServiceBase implements RestService {
 	private static final Logger logger = LogManager.getLogger(RestServiceImpl.class);
 	private static final Object DEFAULT_CLIENT_INIT_LOCK = new Object();
 	private RestClientImpl defaultClient;

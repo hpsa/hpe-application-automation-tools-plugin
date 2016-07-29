@@ -1,7 +1,6 @@
 package com.hp.octane.integrations.services.tests;
 
-import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.SDKService;
+import com.hp.octane.integrations.SDKServiceBase;
 import com.hp.octane.integrations.api.RestClient;
 import com.hp.octane.integrations.api.TestsService;
 import com.hp.octane.integrations.dto.DTOFactory;
@@ -22,7 +21,7 @@ import java.util.*;
  * Default implementation of tests service
  */
 
-public final class TestsServiceImpl extends SDKService implements TestsService {
+public final class TestsServiceImpl extends SDKServiceBase implements TestsService {
 	private static final Logger logger = LogManager.getLogger(TestsServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private final Object INIT_LOCKER = new Object();

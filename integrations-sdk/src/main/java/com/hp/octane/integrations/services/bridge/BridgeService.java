@@ -1,7 +1,7 @@
 package com.hp.octane.integrations.services.bridge;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.SDKService;
+import com.hp.octane.integrations.SDKServiceBase;
 import com.hp.octane.integrations.api.RestClient;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
@@ -28,7 +28,7 @@ import java.util.concurrent.ThreadFactory;
  * Bridge Service meant to provide an abridged connectivity functionality
  */
 
-public final class BridgeService extends SDKService {
+public final class BridgeService extends SDKServiceBase {
 	private static final Logger logger = LogManager.getLogger(BridgeService.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());

@@ -10,10 +10,10 @@ import com.hp.octane.integrations.api.TasksProcessor;
  * Base class for SDK services, used to mediate the services and other internal data between the services and SDK
  */
 
-public abstract class SDKService {
+public abstract class SDKServiceBase {
 	private final OctaneSDK.SDKConfigurator configurator;
 
-	protected SDKService(Object configurator) {
+	protected SDKServiceBase(Object configurator) {
 		if (configurator == null) {
 			throw new IllegalArgumentException("configurator MUST NOT be null");
 		}

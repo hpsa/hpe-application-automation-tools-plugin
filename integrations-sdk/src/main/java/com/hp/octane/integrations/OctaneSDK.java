@@ -42,18 +42,16 @@ public final class OctaneSDK {
 	//  TODO: remove the boolean once migrated JP
 	private static boolean initBridge;
 
-	synchronized public static OctaneSDK init(CIPluginServices ciPluginServices, boolean initBridge) {
-		if (instance != null) {
-			logger.warn("Octane SDK expected to be initialized only once, but detected additional initialization attempt; origin initialization artifact will be returned");
-		} else {
+	synchronized public static void init(CIPluginServices ciPluginServices, boolean initBridge) {
+		if (instance == null) {
 			if (ciPluginServices == null) {
 				throw new IllegalArgumentException("SDK initialization failed: MUST be initialized with valid plugin services provider");
 			}
 			OctaneSDK.initBridge = initBridge;
 			instance = new OctaneSDK(ciPluginServices);
+		} else {
+			throw new IllegalStateException("SDK may be initialized only once");
 		}
-
-		return instance;
 	}
 
 	public ConfigurationService getConfigurationService() {

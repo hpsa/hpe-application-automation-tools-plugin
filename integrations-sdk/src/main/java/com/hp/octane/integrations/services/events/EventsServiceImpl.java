@@ -1,7 +1,6 @@
 package com.hp.octane.integrations.services.events;
 
-import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.SDKService;
+import com.hp.octane.integrations.SDKServiceBase;
 import com.hp.octane.integrations.api.EventsService;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
@@ -27,7 +26,7 @@ import java.util.Map;
  * To change this template use File | Settings | File Templates.
  */
 
-public final class EventsServiceImpl extends SDKService implements EventsService {
+public final class EventsServiceImpl extends SDKServiceBase implements EventsService {
 	private static final Logger logger = LogManager.getLogger(EventsServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 

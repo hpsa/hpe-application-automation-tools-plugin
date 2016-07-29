@@ -1,7 +1,6 @@
 package com.hp.octane.integrations.services.logging;
 
-import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.SDKService;
+import com.hp.octane.integrations.SDKServiceBase;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
 
@@ -13,7 +12,7 @@ import java.io.File;
  * Service for management logging capabilities of the plugin (SDK); currently meant for the internal usage only
  */
 
-public final class LoggingService extends SDKService {
+public final class LoggingService extends SDKServiceBase {
 	private static final Object INIT_LOCKER = new Object();
 	private static final String LOGS_LOCATION_SYS_PROPERTY = "ngaLogsLocation";
 	private static final String LOGS_LOCATION_SUB_FOLDER = "logs";

@@ -1,6 +1,6 @@
 package com.hp.octane.integrations.services.tasking;
 
-import com.hp.octane.integrations.SDKService;
+import com.hp.octane.integrations.SDKServiceBase;
 import com.hp.octane.integrations.api.CIPluginServices;
 import com.hp.octane.integrations.api.TasksProcessor;
 import com.hp.octane.integrations.OctaneSDK;
@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
  * Tasks routing service handles NGA tasks, both coming from abridged logic as well as plugin's REST call delegation
  */
 
-public final class TasksProcessorImpl extends SDKService implements TasksProcessor {
+public final class TasksProcessorImpl extends SDKServiceBase implements TasksProcessor {
 	private static final Logger logger = LogManager.getLogger(TasksProcessorImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String NGA_API = "nga/api/v1";

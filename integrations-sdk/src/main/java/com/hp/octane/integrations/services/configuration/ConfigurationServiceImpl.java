@@ -1,7 +1,6 @@
 package com.hp.octane.integrations.services.configuration;
 
-import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.SDKService;
+import com.hp.octane.integrations.SDKServiceBase;
 import com.hp.octane.integrations.api.ConfigurationService;
 import com.hp.octane.integrations.api.RestClient;
 import com.hp.octane.integrations.dto.DTOFactory;
@@ -27,7 +26,7 @@ import java.util.List;
  * Base implementation of Configuration Service API
  */
 
-public final class ConfigurationServiceImpl extends SDKService implements ConfigurationService {
+public final class ConfigurationServiceImpl extends SDKServiceBase implements ConfigurationService {
 	private static final Logger logger = LogManager.getLogger(ConfigurationServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String SHARED_SPACES_API_URI = "api/shared_spaces/";
