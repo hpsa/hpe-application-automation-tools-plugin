@@ -7,10 +7,10 @@ package com.hp.application.automation.tools;
 
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.BuildListener;
 import hudson.model.Hudson;
 import hudson.model.Result;
-import hudson.model.AbstractBuild;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.util.ArgumentListBuilder;
 
 import java.io.IOException;
@@ -20,9 +20,9 @@ import java.net.URL;
 public class AlmToolsUtils {
     
     public static void runOnBuildEnv(
-            AbstractBuild<?, ?> build,
+            Run<?, ?> build,
             Launcher launcher,
-            BuildListener listener,
+            TaskListener listener,
             FilePath file,
             String paramFileName) throws IOException, InterruptedException {
         
@@ -51,17 +51,17 @@ public class AlmToolsUtils {
     
     
     public static void runHpToolsAborterOnBuildEnv(
-            AbstractBuild<?, ?> build,
+            Run<?, ?> build,
             Launcher launcher,
-            BuildListener listener,
-            String paramFileName) throws IOException, InterruptedException {
+            TaskListener listener,
+            String paramFileName, FilePath runWorkspace) throws IOException, InterruptedException {
         
         ArgumentListBuilder args = new ArgumentListBuilder();
         PrintStream out = listener.getLogger();
 
         String hpToolsAborter_exe = "HpToolsAborter.exe";
         URL hpToolsAborterUrl = Hudson.getInstance().pluginManager.uberClassLoader.getResource("HpToolsAborter.exe");
-        FilePath hpToolsAborterFile =build.getWorkspace().child(hpToolsAborter_exe);
+        FilePath hpToolsAborterFile = runWorkspace.child(hpToolsAborter_exe);
         
         args.add(hpToolsAborterFile);
         args.add(paramFileName);

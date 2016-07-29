@@ -5,24 +5,29 @@
 
 package com.hp.application.automation.tools.run;
 
+import com.hp.application.automation.tools.AlmToolsUtils;
+import com.hp.application.automation.tools.EncryptionUtils;
+import com.hp.application.automation.tools.mc.JobConfigurationProxy;
 import com.hp.application.automation.tools.model.MCServerSettingsModel;
+import com.hp.application.automation.tools.model.ProxySettings;
+import com.hp.application.automation.tools.model.RunFromFileSystemModel;
+import com.hp.application.automation.tools.run.AlmRunTypes.RunType;
 import com.hp.application.automation.tools.settings.MCServerSettingsBuilder;
-import hudson.EnvVars;
-import hudson.Extension;
-import hudson.FilePath;
-import hudson.Launcher;
-import hudson.Util;
-import hudson.model.BuildListener;
-import hudson.model.Result;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.Hudson;
+import hudson.*;
+import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
 import hudson.util.IOUtils;
 import hudson.util.VariableResolver;
+import jenkins.tasks.SimpleBuildStep;
+import net.minidev.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.bind.JavaScriptMethod;
 
+import javax.annotation.Nonnull;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,21 +37,6 @@ import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Properties;
-
-import jenkins.tasks.SimpleBuildStep;
-import org.apache.commons.lang.StringUtils;
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.QueryParameter;
-
-import com.hp.application.automation.tools.AlmToolsUtils;
-import com.hp.application.automation.tools.model.RunFromFileSystemModel;
-import com.hp.application.automation.tools.run.AlmRunTypes.RunType;
-
-import com.hp.application.automation.tools.mc.JobConfigurationProxy;
-import com.hp.application.automation.tools.model.ProxySettings;
-import net.minidev.json.JSONObject;
-import org.kohsuke.stapler.bind.JavaScriptMethod;
-import com.hp.application.automation.tools.EncryptionUtils;
 
 public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
@@ -71,7 +61,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     }
 
     @Override
-    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
+    public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
 
         // get the mc server settings
         MCServerSettingsModel mcServerSettingsModel = getMCServerSettingsModel();
@@ -87,7 +77,10 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             // TODO Auto-generated catch block
             e2.printStackTrace();
         }
-        VariableResolver<String> varResolver = build.getBuildVariableResolver();
+        //this is an unproper replacment to the build.getVariableResolver since workflowrun won't support the
+        // getBuildEnviroment() as written here:
+        // https://github.com/jenkinsci/pipeline-plugin/blob/893e3484a25289c59567c6724f7ce19e3d23c6ee/DEVGUIDE.md#variable-substitutions
+        VariableResolver<String> varResolver = new VariableResolver.ByMap<String>(build.getEnvironment(listener));
         JSONObject jobDetails = null;
         String mcServerUrl = "";
         // now merge them into one list
@@ -144,20 +137,20 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         InputStream propsStream = IOUtils.toInputStream(propsSerialization);
 
         // get the remote workspace filesys
-        FilePath projectWS = build.getWorkspace();
+        FilePath projectWS = workspace;
 
         // Get the URL to the Script used to run the test, which is bundled
         // in the plugin
         URL cmdExeUrl = Hudson.getInstance().pluginManager.uberClassLoader.getResource(HpToolsLauncher_SCRIPT_NAME);
         if (cmdExeUrl == null) {
             listener.fatalError(HpToolsLauncher_SCRIPT_NAME + " not found in resources");
-            return false;
+            return ;
         }
 
         URL cmdExe2Url = Hudson.getInstance().pluginManager.uberClassLoader.getResource(LRAnalysisLauncher_EXE);
         if (cmdExe2Url == null){
             listener.fatalError(LRAnalysisLauncher_EXE+ "not found in resources");
-            return false;
+            return ;
         }
 
         FilePath propsFileName = projectWS.child(ParamFileName);
@@ -193,17 +186,17 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         } catch (IOException ioe) {
             Util.displayIOException(ioe, listener);
             build.setResult(Result.FAILURE);
-            return false;
+            return ;
         } catch (InterruptedException e) {
             build.setResult(Result.ABORTED);
             PrintStream out = listener.getLogger();
 
             try {
-                AlmToolsUtils.runHpToolsAborterOnBuildEnv(build, launcher, listener, ParamFileName);
+                AlmToolsUtils.runHpToolsAborterOnBuildEnv(build, launcher, listener, ParamFileName, workspace);
             } catch (IOException e1) {
                 Util.displayIOException(e1, listener);
                 build.setResult(Result.FAILURE);
-                return false;
+                return ;
             } catch (InterruptedException e1) {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();
@@ -227,7 +220,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             out.println("Operation Was aborted by user.");
         }
 
-        return true;
+        return ;
 
     }
 
