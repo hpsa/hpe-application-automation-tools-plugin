@@ -33,6 +33,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Properties;
 
+import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -47,7 +48,7 @@ import net.minidev.json.JSONObject;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
 import com.hp.application.automation.tools.EncryptionUtils;
 
-public class RunFromFileBuilder extends Builder {
+public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
     private final RunFromFileSystemModel runFromFileModel;
     private final static String HpToolsLauncher_SCRIPT_NAME = "HpToolsLauncher.exe";

@@ -1,30 +1,31 @@
 package com.hp.application.automation.tools.results;
 
+import hudson.FilePath;
+import hudson.model.Action;
+import hudson.model.DirectoryBrowserSupport;
+import hudson.model.Run;
+import hudson.tasks.test.TestResultProjectAction;
+import jenkins.tasks.SimpleBuildStep;
+import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerResponse;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
-import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.StaplerResponse;
-
-import hudson.FilePath;
-import hudson.model.Action;
-import hudson.model.AbstractBuild;
-import hudson.model.DirectoryBrowserSupport;
-
-public class PerformanceReportAction implements Action {
+public class PerformanceReportAction implements Action, SimpleBuildStep.LastBuildAction {
 
     private static final String PERFORMANCE_REPORT_FOLDER = "PerformanceReport";
     private static final String REPORT_INDEX = "report.index";
 
     private Map<String, DetailReport> detailReportMap = new LinkedHashMap<String, DetailReport>();
 
-    private AbstractBuild<?,?> build;
+    private final List<TestResultProjectAction> projectActionList;
+    private final Run<?,?> build;
 
-    public PerformanceReportAction(AbstractBuild<?,?> build) {
+    public PerformanceReportAction(Run<?,?> build) {
         this.build = build;
         File reportFolder = new File(build.getArtifactsDir().getParent(), PERFORMANCE_REPORT_FOLDER);
         if (reportFolder.exists()) {
@@ -69,6 +70,9 @@ public class PerformanceReportAction implements Action {
                 
             }
         }
+
+        projectActionList = new ArrayList<TestResultProjectAction>();
+        projectActionList.add(new TestResultProjectAction(build.getParent()));
     }
 
     @Override
@@ -86,7 +90,7 @@ public class PerformanceReportAction implements Action {
         return "PerformanceReport";
     }
 
-    public AbstractBuild<?,?> getBuild() {
+    public Run<?,?> getBuild() {
         return build;
     }
 
@@ -100,4 +104,8 @@ public class PerformanceReportAction implements Action {
         return null;
     }
 
+    @Override
+    public Collection<? extends Action> getProjectActions() {
+        return projectActionList;
+    }
 }
