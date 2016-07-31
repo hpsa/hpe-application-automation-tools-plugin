@@ -8,7 +8,8 @@
 	</parent>
 
 	<artifactId>hp-application-automation-tools-plugin</artifactId>
-	<version>5.0.0-SNAPSHOT</version>	<packaging>hpi</packaging>
+	<version>5.0.0-SNAPSHOT</version>
+	<packaging>hpi</packaging>
 	<name>HP Application Automation Tools</name>
 	<description>Allowing to run HP testing tools tests: Unified Functional Testing, QuickTest Professional, Service Test, Mobile Center and Performance Center
 	</description>
@@ -257,21 +258,23 @@
 			<artifactId>workflow-step-api</artifactId>
 			<version>2.2</version>
 		</dependency>
-		<!--<dependency>-->
-		<!--<groupId>org.jenkins-ci.plugins.workflow</groupId>-->
-		<!--<artifactId>workflow-job</artifactId>-->
-		<!--<version>1.15</version>-->
-		<!--</dependency>-->
-		<!--<dependency>-->
-			<!--<groupId>org.jenkins-ci.plugins.workflow</groupId>-->
-			<!--<artifactId>workflow-cps</artifactId>-->
-			<!--<version>1.15</version>-->
-		<!--</dependency>-->
-		<!--<dependency>-->
-			<!--<groupId>org.jenkins-ci.plugins.workflow</groupId>-->
-			<!--<artifactId>workflow-basic-steps</artifactId>-->
-			<!--<version>1.14</version>-->
-			<!--<scope>test</scope>-->
-		<!--</dependency>-->
+		<dependency>
+			<groupId>org.jenkins-ci.plugins.workflow</groupId>
+			<artifactId>workflow-job</artifactId>
+			<version>2.3</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins.workflow</groupId>
+			<artifactId>workflow-cps</artifactId>
+			<version>2.9</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins.workflow</groupId>
+			<artifactId>workflow-basic-steps</artifactId>
+			<version>1.15</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 </project>

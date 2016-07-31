@@ -7,10 +7,7 @@ package com.hp.application.automation.tools;
 
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.Hudson;
-import hudson.model.Result;
-import hudson.model.Run;
-import hudson.model.TaskListener;
+import hudson.model.*;
 import hudson.util.ArgumentListBuilder;
 
 import java.io.IOException;
