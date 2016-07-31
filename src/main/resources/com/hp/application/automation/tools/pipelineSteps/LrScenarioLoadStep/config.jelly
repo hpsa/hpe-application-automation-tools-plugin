@@ -4,30 +4,30 @@
         <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
             <!--this will show up in the groovy snippet generator -->
             <f:entry title="Tests" field="fsTests">
-                <f:expandableTextbox name="runfromfs.fsTests" value="${instance.runFromFileModel.fsTests}"/>
+                <f:expandableTextbox name="fsTests"/>
             </f:entry>
             <f:entry title="Timeout" field="fsTimeout">
-                <f:textbox name="runfromfs.fsTimeout" value="${instance.runFromFileModel.fsTimeout}"/>
+                <f:textbox name="fsTimeout"/>
             </f:entry>
             <f:advanced title="LoadRunner-Specific Settings">
                 <f:section title="LoadRunner Settings">
                     <f:entry title="Controller Polling Interval" field="controllerPollingInterval">
-                        <f:textbox name="runfromfs.controllerPollingInterval" value="${instance.runFromFileModel.controllerPollingInterval}" default="30"/>
+                        <f:textbox name="controllerPollingInterval" default="30"/>
                     </f:entry>
                     <f:entry title="Scenario Execution Timeout" field="perScenarioTimeOut">
-                        <f:textbox name="runfromfs.perScenarioTimeOut" value="${instance.runFromFileModel.perScenarioTimeOut}" default="10"/>
+                        <f:textbox name="perScenarioTimeOut" default="10"/>
                     </f:entry>
                     <f:entry title="Errors to Ignore" field="ignoreErrorStrings">
-                        <f:textarea name="runfromfs.ignoreErrorStrings" value="${instance.runFromFileModel.ignoreErrorStrings}"  />
+                        <f:textarea name="ignoreErrorStrings"  />
                     </f:entry>
                 </f:section>
             </f:advanced>
 
     <f:entry title="Report archive mode" field="archiveTestResultsMode">
 
-    <select name="runresults.archiveTestResultsMode" >
+    <select name="archiveTestResultsMode" >
         <j:forEach var="archiveMode" items="${descriptor.reportArchiveModes}">
-            <f:option selected="${archiveMode.value == instance.resultsPublisherModel.archiveTestResultsMode}" value="${archiveMode.value}">
+            <f:option >
                 ${archiveMode.description}
             </f:option>
         </j:forEach>
