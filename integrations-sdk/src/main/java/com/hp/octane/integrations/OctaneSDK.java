@@ -100,38 +100,37 @@ public final class OctaneSDK {
 		}
 	}
 
-	static class SDKConfigurator {
+	private static class SDKConfigurator {
 		private final CIPluginServices pluginServices;
-		private LoggingService loggingService;
-		private ConfigurationService configurationService;
-		private RestService restService;
-		private BridgeService bridgeService;
-		private TasksProcessor tasksProcessor;
-		private EventsService eventsService;
-		private TestsService testsService;
+		private final LoggingService loggingService;
+		private final RestService restService;
+		private final ConfigurationService configurationService;
+		private final BridgeService bridgeService;
+		private final TasksProcessor tasksProcessor;
+		private final EventsService eventsService;
+		private final TestsService testsService;
 
 		private SDKConfigurator(CIPluginServices pluginServices) {
-			//  the order of services initialization below is important; please change with caution
 			this.pluginServices = pluginServices;
-			loggingService = new LoggingService(this);
-			configurationService = new ConfigurationServiceImpl(this);
-			restService = new RestServiceImpl(this);
-			tasksProcessor = new TasksProcessorImpl(this);
-			bridgeService = new BridgeService(this, initBridge);
-			eventsService = new EventsServiceImpl(this);
-			testsService = new TestsServiceImpl(this);
+			loggingService = new LoggingService(this, pluginServices);
+			restService = new RestServiceImpl(this, pluginServices);
+			tasksProcessor = new TasksProcessorImpl(this, pluginServices);
+			configurationService = new ConfigurationServiceImpl(this, pluginServices, restService);
+			eventsService = new EventsServiceImpl(this, pluginServices, restService);
+			testsService = new TestsServiceImpl(this, pluginServices, restService);
+			bridgeService = new BridgeService(this, pluginServices, restService, tasksProcessor, initBridge);
 		}
+	}
 
-		CIPluginServices getPluginServices() {
-			return pluginServices;
-		}
-
-		RestService getRestService() {
-			return restService;
-		}
-
-		TasksProcessor getTasksProcessor() {
-			return tasksProcessor;
+	//  the below base class used ONLY for a correct initiation enforcement of an SDK services
+	public static abstract class SDKServiceBase {
+		protected SDKServiceBase(Object configurator) {
+			if (configurator == null) {
+				throw new IllegalArgumentException("configurator MUST NOT be null");
+			}
+			if (!(configurator instanceof SDKConfigurator)) {
+				throw new IllegalArgumentException("configurator MUST be of a correct type");
+			}
 		}
 	}
 }

@@ -1,14 +1,16 @@
 package com.hp.octane.integrations.services.configuration;
 
-import com.hp.octane.integrations.SDKServiceBase;
+import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.api.ConfigurationService;
 import com.hp.octane.integrations.api.RestClient;
+import com.hp.octane.integrations.api.RestService;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.logging.log4j.LogManager;
@@ -26,15 +28,28 @@ import java.util.List;
  * Base implementation of Configuration Service API
  */
 
-public final class ConfigurationServiceImpl extends SDKServiceBase implements ConfigurationService {
+public final class ConfigurationServiceImpl extends OctaneSDK.SDKServiceBase implements ConfigurationService {
 	private static final Logger logger = LogManager.getLogger(ConfigurationServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String SHARED_SPACES_API_URI = "api/shared_spaces/";
 	private static final String UI_CONTEXT_PATH = "/ui";
 	private static final String PARAM_SHARED_SPACE = "p";
 
-	public ConfigurationServiceImpl(Object configurator) {
+	private final CIPluginServices pluginServices;
+	private final RestService restService;
+
+	public ConfigurationServiceImpl(Object configurator, CIPluginServices pluginServices, RestService restService) {
 		super(configurator);
+
+		if (pluginServices == null) {
+			throw new IllegalArgumentException("plugin services MUST NOT be null");
+		}
+		if (restService == null) {
+			throw new IllegalArgumentException("rest service MUST NOT be null");
+		}
+
+		this.pluginServices = pluginServices;
+		this.restService = restService;
 	}
 
 	public OctaneConfiguration buildConfiguration(String rawUrl, String apiKey, String secret) throws IllegalArgumentException {
@@ -83,8 +98,8 @@ public final class ConfigurationServiceImpl extends SDKServiceBase implements Co
 			throw new IllegalArgumentException("configuration " + configuration + " is not valid");
 		}
 
-		CIProxyConfiguration proxyConfiguration = getPluginServices().getProxyConfiguration(configuration.getUrl());
-		RestClient restClientImpl = getRestService().createClient(proxyConfiguration);
+		CIProxyConfiguration proxyConfiguration = pluginServices.getProxyConfiguration(configuration.getUrl());
+		RestClient restClientImpl = restService.createClient(proxyConfiguration);
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.GET)
 				.setUrl(configuration.getUrl() + "/" + SHARED_SPACES_API_URI + configuration.getSharedSpace() + "/workspaces");

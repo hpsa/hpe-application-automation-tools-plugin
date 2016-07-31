@@ -1,8 +1,9 @@
 package com.hp.octane.integrations.services.bridge;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.SDKServiceBase;
 import com.hp.octane.integrations.api.RestClient;
+import com.hp.octane.integrations.api.RestService;
+import com.hp.octane.integrations.api.TasksProcessor;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
@@ -11,6 +12,7 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
 import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
+import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -28,15 +30,33 @@ import java.util.concurrent.ThreadFactory;
  * Bridge Service meant to provide an abridged connectivity functionality
  */
 
-public final class BridgeService extends SDKServiceBase {
+public final class BridgeService extends OctaneSDK.SDKServiceBase {
 	private static final Logger logger = LogManager.getLogger(BridgeService.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
 	private ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30, new AbridgedTasksExecutorsFactory());
 	volatile private boolean shuttingDown = false;
 
-	public BridgeService(Object configurator, boolean initBridge) {
+	private final CIPluginServices pluginServices;
+	private final RestService restService;
+	private final TasksProcessor tasksProcessor;
+
+	public BridgeService(Object configurator, CIPluginServices pluginServices, RestService restService, TasksProcessor tasksProcessor, boolean initBridge) {
 		super(configurator);
+
+		if (pluginServices == null) {
+			throw new IllegalArgumentException("plugin services MUST NOT be null");
+		}
+		if (restService == null) {
+			throw new IllegalArgumentException("rest service MUST NOT be null");
+		}
+		if (tasksProcessor == null) {
+			throw new IllegalArgumentException("task processor MUST NOT be null");
+		}
+
+		this.pluginServices = pluginServices;
+		this.restService = restService;
+		this.tasksProcessor = tasksProcessor;
 		if (initBridge) {
 			connect();
 		}
@@ -47,7 +67,7 @@ public final class BridgeService extends SDKServiceBase {
 			connectivityExecutors.execute(new Runnable() {
 				public void run() {
 					String tasksJSON;
-					CIServerInfo serverInfo = getPluginServices().getServerInfo();
+					CIServerInfo serverInfo = pluginServices.getServerInfo();
 					try {
 						tasksJSON = getAbridgedTasks(
 								serverInfo.getInstanceId(),
@@ -73,8 +93,8 @@ public final class BridgeService extends SDKServiceBase {
 
 	private String getAbridgedTasks(String selfIdentity, String selfType, String selfLocation, Integer apiVersion, String sdkVersion) {
 		String responseBody = null;
-		RestClient restClientImpl = getRestService().obtainClient();
-		OctaneConfiguration octaneConfiguration = getPluginServices().getOctaneConfiguration();
+		RestClient restClientImpl = restService.obtainClient();
+		OctaneConfiguration octaneConfiguration = pluginServices.getOctaneConfiguration();
 		if (octaneConfiguration != null && octaneConfiguration.isValid()) {
 			Map<String, String> headers = new HashMap<String, String>();
 			headers.put("accept", "application/json");
@@ -129,9 +149,9 @@ public final class BridgeService extends SDKServiceBase {
 			for (final OctaneTaskAbridged task : tasks) {
 				taskProcessingExecutors.execute(new Runnable() {
 					public void run() {
-						OctaneResultAbridged result = getTasksProcessor().execute(task);
+						OctaneResultAbridged result = tasksProcessor.execute(task);
 						int submitStatus = putAbridgedResult(
-								getPluginServices().getServerInfo().getInstanceId(),
+								pluginServices.getServerInfo().getInstanceId(),
 								result.getId(),
 								dtoFactory.dtoToJson(result));
 						logger.info("result for task '" + result.getId() + "' submitted with status " + submitStatus);
@@ -144,8 +164,8 @@ public final class BridgeService extends SDKServiceBase {
 	}
 
 	private int putAbridgedResult(String selfIdentity, String taskId, String contentJSON) {
-		RestClient restClientImpl = getRestService().obtainClient();
-		OctaneConfiguration octaneConfiguration = getPluginServices().getOctaneConfiguration();
+		RestClient restClientImpl = restService.obtainClient();
+		OctaneConfiguration octaneConfiguration = pluginServices.getOctaneConfiguration();
 		Map<String, String> headers = new HashMap<String, String>();
 		headers.put("content-type", "application/json");
 		OctaneRequest octaneRequest = dtoFactory.newDTO(OctaneRequest.class)
