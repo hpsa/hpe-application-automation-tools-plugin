@@ -3,6 +3,7 @@ package com.hp.octane.integrations.services.configuration;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.api.ConfigurationService;
 import com.hp.octane.integrations.api.RestClient;
+import com.hp.octane.integrations.api.RestService;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
