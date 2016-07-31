@@ -34,6 +34,7 @@ import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.File;
@@ -52,7 +53,7 @@ import java.util.regex.Pattern;
  */
 
 public class CIJenkinsServicesImpl implements CIPluginServices {
-	private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger(CIJenkinsServicesImpl.class);
+	private static final Logger logger = LogManager.getLogger(CIJenkinsServicesImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Override
