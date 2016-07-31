@@ -33,6 +33,7 @@ import org.acegisecurity.context.SecurityContext;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.logging.log4j.LogManager;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.File;
@@ -42,7 +43,7 @@ import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 /**
  * Created by gullery on 21/01/2016.
@@ -51,7 +52,7 @@ import java.util.logging.Logger;
  */
 
 public class CIJenkinsServicesImpl implements CIPluginServices {
-	private static final Logger logger = Logger.getLogger(CIJenkinsServicesImpl.class.getName());
+	private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger(CIJenkinsServicesImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Override
@@ -102,11 +103,20 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 		CIProxyConfiguration result = null;
 		ProxyConfiguration proxy = Jenkins.getInstance().proxy;
 		if (proxy != null) {
-			result = dtoFactory.newDTO(CIProxyConfiguration.class)
-					.setHost(proxy.name)
-					.setPort(proxy.port)
-					.setUsername(proxy.getUserName())
-					.setPassword(proxy.getPassword());
+			boolean noProxyHost = false;
+			for (Pattern pattern : proxy.getNoProxyHostPatterns()) {
+				if (pattern.matcher(targetHost).find()) {
+					noProxyHost = true;
+					break;
+				}
+			}
+			if (!noProxyHost) {
+				result = dtoFactory.newDTO(CIProxyConfiguration.class)
+						.setHost(proxy.name)
+						.setPort(proxy.port)
+						.setUsername(proxy.getUserName())
+						.setPassword(proxy.getPassword());
+			}
 		}
 		return result;
 	}
@@ -175,7 +185,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 			return result;
 		} else {
 			//todo: check error message(s)
-			logger.warning("Failed to get project from jobRefId: '" + rootJobCiId + "' check plugin user Job Read/Overall Read permissions / project name");
+			logger.warn("Failed to get project from jobRefId: '" + rootJobCiId + "' check plugin user Job Read/Overall Read permissions / project name");
 			stopImpersonation(securityContext);
 			throw new ConfigurationException(404);
 		}
@@ -201,7 +211,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 		if (originalContext != null) {
 			ACL.impersonate(originalContext.getAuthentication());
 		} else {
-			logger.warning("Could not roll back impersonation, originalContext is null ");
+			logger.warn("Could not roll back impersonation, originalContext is null ");
 		}
 	}
 
@@ -250,7 +260,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 		try {
 			buildNumber = Integer.parseInt(buildCiId);
 		} catch (NumberFormatException nfe) {
-			logger.severe("failed to parse build CI ID to build number, " + nfe.getMessage());
+			logger.error("failed to parse build CI ID to build number, " + nfe.getMessage(), nfe);
 		}
 		if (job != null && buildNumber != null) {
 			Run build = job.getBuildByNumber(buildNumber);
@@ -364,7 +374,6 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 		} else if (job.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob")) {
 			WorkFlowJobProcessor workFlowJobProcessor = new WorkFlowJobProcessor(job);
 			workFlowJobProcessor.scheduleBuild(originalBody);
-
 		}
 	}
 
@@ -388,7 +397,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 									fi.getOutputStream().write(DatatypeConverter.parseBase64Binary(paramJSON.getString("value")));
 									tmpValue = new FileParameterValue(paramJSON.getString("name"), fi);
 								} catch (IOException ioe) {
-									logger.warning("failed to process file parameter");
+									logger.warn("failed to process file parameter", ioe);
 								}
 								break;
 							case NUMBER:
@@ -420,7 +429,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 						try {
 							fi.getOutputStream().write(new byte[0]);
 						} catch (IOException ioe) {
-							logger.severe("failed to create default value for file parameter '" + paramDef.getName() + "'");
+							logger.error("failed to create default value for file parameter '" + paramDef.getName() + "'", ioe);
 						}
 						tmpValue = new FileParameterValue(paramDef.getName(), fi);
 						result.add(tmpValue);
@@ -442,8 +451,8 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 				if (item != null && item instanceof Job) {
 					result = (Job) item;
 				}
-			} catch (UnsupportedEncodingException e) {
-				logger.severe("failed to decode job ref ID '" + jobRefId + "'");
+			} catch (UnsupportedEncodingException uee) {
+				logger.error("failed to decode job ref ID '" + jobRefId + "'", uee);
 			}
 		}
 		return result;

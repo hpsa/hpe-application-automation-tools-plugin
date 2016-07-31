@@ -3,7 +3,6 @@ package com.hp.octane.integrations.services.rest;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.api.RestService;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
-import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,9 +34,7 @@ public final class RestServiceImpl extends OctaneSDK.SDKServiceBase implements R
 		if (defaultClient == null) {
 			synchronized (DEFAULT_CLIENT_INIT_LOCK) {
 				if (defaultClient == null) {
-					OctaneConfiguration octaneConfiguration = pluginServices.getOctaneConfiguration();
-					CIProxyConfiguration proxyConfiguration = pluginServices.getProxyConfiguration(octaneConfiguration == null ? null : octaneConfiguration.getUrl());
-					defaultClient = new RestClientImpl(pluginServices, proxyConfiguration);
+					defaultClient = new RestClientImpl(pluginServices);
 				}
 			}
 		}
@@ -45,6 +42,6 @@ public final class RestServiceImpl extends OctaneSDK.SDKServiceBase implements R
 	}
 
 	public RestClientImpl createClient(CIProxyConfiguration proxyConfiguration) {
-		return new RestClientImpl(pluginServices, proxyConfiguration);
+		return new RestClientImpl(pluginServices);
 	}
 }

@@ -16,6 +16,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -36,6 +37,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -74,15 +76,15 @@ final class RestClientImpl implements RestClient {
 	private static final String CLIENT_TYPE_HEADER = "HPECLIENTTYPE";
 	private static final String CLIENT_TYPE_VALUE = "HPE_CI_CLIENT";
 	private static final String LWSSO_COOKIE_NAME = "LWSSO_COOKIE_KEY";
-	private static final String CSRF_COOKIE_NAME = "HPSSO_COOKIE_CSRF";
-	private static final String CSRF_HEADER_NAME = "HPSSO_HEADER_CSRF";
 
 	private static final String AUTHENTICATION_URI = "authentication/sign_in";
 
 	private final CIPluginServices pluginServices;
 	private final CloseableHttpClient httpClient;
+	private final CredentialsProvider credentialsProvider;
+	private final CookieStore cookieStore;
+
 	private int MAX_TOTAL_CONNECTIONS = 20;
-	private CookieStore cookieStore;
 	private Cookie LWSSO_TOKEN = null;
 	private String CSRF_TOKEN = null;
 
@@ -91,7 +93,7 @@ final class RestClientImpl implements RestClient {
 		AUTHENTICATION_ERROR_CODES.add(HttpStatus.SC_UNAUTHORIZED);
 	}
 
-	RestClientImpl(CIPluginServices pluginServices, CIProxyConfiguration proxyConfiguration) {
+	RestClientImpl(CIPluginServices pluginServices) {
 		this.pluginServices = pluginServices;
 
 		SSLContext sslContext = SSLContexts.createSystemDefault();
@@ -105,28 +107,12 @@ final class RestClientImpl implements RestClient {
 		connectionManager.setMaxTotal(MAX_TOTAL_CONNECTIONS);
 		connectionManager.setDefaultMaxPerRoute(MAX_TOTAL_CONNECTIONS);
 		cookieStore = new BasicCookieStore();
+		credentialsProvider = new BasicCredentialsProvider();
 
 		HttpClientBuilder clientBuilder = HttpClients.custom()
 				.setConnectionManager(connectionManager)
-				.setDefaultCookieStore(cookieStore);
-
-		if (proxyConfiguration != null) {
-			logger.warn("proxy will be used with the following setup: " + proxyConfiguration);
-			HttpHost proxyHost = new HttpHost(proxyConfiguration.getHost(), proxyConfiguration.getPort());
-
-			clientBuilder
-					.setProxy(proxyHost);
-
-			if (proxyConfiguration.getUsername() != null && !proxyConfiguration.getUsername().isEmpty()) {
-				AuthScope authScope = new AuthScope(proxyHost);
-				Credentials credentials = new UsernamePasswordCredentials(proxyConfiguration.getUsername(), proxyConfiguration.getPassword());
-				CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-				credentialsProvider.setCredentials(authScope, credentials);
-
-				clientBuilder
-						.setDefaultCredentialsProvider(credentialsProvider);
-			}
-		}
+				.setDefaultCookieStore(cookieStore)
+				.setDefaultCredentialsProvider(credentialsProvider);
 
 		httpClient = clientBuilder.build();
 	}
@@ -156,7 +142,7 @@ final class RestClientImpl implements RestClient {
 
 		try {
 			uriRequest = createHttpRequest(request);
-			context = createHttpContext();
+			context = createHttpContext(request.getUrl());
 			httpResponse = httpClient.execute(uriRequest, context);
 
 			if (AUTHENTICATION_ERROR_CODES.contains(httpResponse.getStatusLine().getStatusCode())) {
@@ -168,7 +154,7 @@ final class RestClientImpl implements RestClient {
 					return loginResponse;
 				}
 				uriRequest = createHttpRequest(request);
-				context = createHttpContext();
+				context = createHttpContext(request.getUrl());
 				httpResponse = httpClient.execute(uriRequest, context);
 			}
 
@@ -190,25 +176,19 @@ final class RestClientImpl implements RestClient {
 
 		//  create base request by METHOD
 		if (octaneRequest.getMethod().equals(HttpMethod.GET)) {
-			requestBuilder = RequestBuilder
-					.get(octaneRequest.getUrl());
+			requestBuilder = RequestBuilder.get(octaneRequest.getUrl());
 		} else if (octaneRequest.getMethod().equals(HttpMethod.DELETE)) {
-			requestBuilder = RequestBuilder
-					.delete(octaneRequest.getUrl());
+			requestBuilder = RequestBuilder.delete(octaneRequest.getUrl());
 		} else if (octaneRequest.getMethod().equals(HttpMethod.POST)) {
 			try {
-				requestBuilder = RequestBuilder
-						.post(octaneRequest.getUrl())
-						.setEntity(new StringEntity(octaneRequest.getBody()));
+				requestBuilder = RequestBuilder.post(octaneRequest.getUrl()).setEntity(new StringEntity(octaneRequest.getBody()));
 			} catch (UnsupportedEncodingException uee) {
 				logger.error("failed to create POST entity", uee);
 				throw new RuntimeException("failed to create POST entity", uee);
 			}
 		} else if (octaneRequest.getMethod().equals(HttpMethod.PUT)) {
 			try {
-				requestBuilder = RequestBuilder
-						.put(octaneRequest.getUrl())
-						.setEntity(new StringEntity(octaneRequest.getBody()));
+				requestBuilder = RequestBuilder.put(octaneRequest.getUrl()).setEntity(new StringEntity(octaneRequest.getBody()));
 			} catch (UnsupportedEncodingException uee) {
 				logger.error("failed to create PUT entity", uee);
 				throw new RuntimeException("failed to create PUT entity", uee);
@@ -226,17 +206,37 @@ final class RestClientImpl implements RestClient {
 
 		//  set system headers
 		requestBuilder.setHeader(CLIENT_TYPE_HEADER, CLIENT_TYPE_VALUE);
-		requestBuilder.setHeader(CSRF_HEADER_NAME, CSRF_TOKEN);
 
 		return requestBuilder.build();
 	}
 
-	private HttpClientContext createHttpContext() {
+	private HttpClientContext createHttpContext(String requestUrl) {
 		HttpClientContext context = HttpClientContext.create();
 		CookieStore localCookies = new BasicCookieStore();
 		localCookies.addCookie(LWSSO_TOKEN);
 		context.setCookieStore(localCookies);
-		//  create settings for proxy registration here
+
+		//  configure proxy if needed
+		CIProxyConfiguration proxyConfiguration = pluginServices.getProxyConfiguration(requestUrl);
+		if (proxyConfiguration != null) {
+			logger.debug("proxy will be used with the following setup: " + proxyConfiguration);
+			HttpHost proxyHost = new HttpHost(proxyConfiguration.getHost(), proxyConfiguration.getPort());
+
+			if (proxyConfiguration.getUsername() != null && !proxyConfiguration.getUsername().isEmpty()) {
+				AuthScope authScope = new AuthScope(proxyHost);
+				Credentials credentials = new UsernamePasswordCredentials(proxyConfiguration.getUsername(), proxyConfiguration.getPassword());
+				credentialsProvider.setCredentials(authScope, credentials);
+			} else {
+				credentialsProvider.clear();
+			}
+
+			context.setRequestConfig(RequestConfig
+							.custom()
+							.setProxy(proxyHost)
+							.build()
+			);
+		}
+
 		return context;
 	}
 
@@ -271,15 +271,13 @@ final class RestClientImpl implements RestClient {
 
 		try {
 			HttpUriRequest loginRequest = buildLoginRequest(config);
+			HttpContext context = createHttpContext(loginRequest.getURI().toString());
 			cookieStore.clear();
-			response = httpClient.execute(loginRequest);
+			response = httpClient.execute(loginRequest, context);
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 				for (Cookie cookie : cookieStore.getCookies()) {
 					if (cookie.getName().equals(LWSSO_COOKIE_NAME)) {
 						LWSSO_TOKEN = cookie;
-					}
-					if (cookie.getName().equals(CSRF_COOKIE_NAME)) {
-						CSRF_TOKEN = cookie.getValue();
 					}
 				}
 			}
