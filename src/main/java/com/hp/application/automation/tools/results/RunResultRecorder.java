@@ -864,11 +864,11 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         return result;
     }
     
-    @Override
-    public Action getProjectAction(AbstractProject<?, ?> project) {
-        
-        return new TestResultProjectAction(project);
-    }
+//    @Override
+//    public Action getProjectAction(AbstractProject<?, ?> project) {
+//
+//        return new TestResultProjectAction(project);
+//    }
     
     @Override
     public MatrixAggregator createAggregator(

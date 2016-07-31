@@ -22,4 +22,16 @@
                     </f:entry>
                 </f:section>
             </f:advanced>
-    </j:jelly>
+
+    <f:entry title="Report archive mode" field="archiveTestResultsMode">
+
+    <select name="runresults.archiveTestResultsMode" >
+        <j:forEach var="archiveMode" items="${descriptor.reportArchiveModes}">
+            <f:option selected="${archiveMode.value == instance.resultsPublisherModel.archiveTestResultsMode}" value="${archiveMode.value}">
+                ${archiveMode.description}
+            </f:option>
+        </j:forEach>
+    </select>
+
+    </f:entry>
+</j:jelly>
