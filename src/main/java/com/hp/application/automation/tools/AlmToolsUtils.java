@@ -48,8 +48,16 @@ public class AlmToolsUtils {
             }
         }
     }
-    
-    
+
+    public static void runHpToolsAborterOnBuildEnv(
+            AbstractBuild<?, ?> build,
+            Launcher launcher,
+            BuildListener listener,
+            String paramFileName) throws IOException, InterruptedException {
+
+            runHpToolsAborterOnBuildEnv(((Run<?,?>) build),launcher, listener, paramFileName, build.getWorkspace());
+    }
+
     public static void runHpToolsAborterOnBuildEnv(
             Run<?, ?> build,
             Launcher launcher,
