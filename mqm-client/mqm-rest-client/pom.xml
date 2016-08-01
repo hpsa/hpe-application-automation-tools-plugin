@@ -22,15 +22,10 @@
 			<groupId>jdom</groupId>
 			<artifactId>jdom</artifactId>
 		</dependency>
-		<!--<dependency>-->
-			<!--<groupId>org.kohsuke.stapler</groupId>-->
-			<!--<artifactId>json-lib</artifactId>-->
-			<!--<version>2.4-jenkins-2</version>-->
-		<!--</dependency>-->
 		<dependency>
-			<groupId>net.sf.json-lib</groupId>
+			<groupId>org.kohsuke.stapler</groupId>
 			<artifactId>json-lib</artifactId>
-			<version>2.4</version>
+			<version>2.4-jenkins-2</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
