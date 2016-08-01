@@ -28,7 +28,6 @@ import hudson.tasks.junit.SuiteResult;
 import hudson.tasks.junit.TestResult;
 import hudson.tasks.junit.TestResultAction;
 import hudson.tasks.test.TestResultAggregator;
-import hudson.tasks.test.TestResultProjectAction;
 import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
@@ -91,15 +90,17 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
     public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
         
         TestResultAction action;
+        final List<String> mergedResultNames = new ArrayList<String>();
+
         Project<?, ?> project = RuntimeUtils.cast(build.getParent());
         List<Builder> builders = project.getBuilders();
-        
+
+
         final List<String> almResultNames = new ArrayList<String>();
         final List<String> fileSystemResultNames = new ArrayList<String>();
-        final List<String> mergedResultNames = new ArrayList<String>();
         final List<String> almSSEResultNames = new ArrayList<String>();
         final List<String> pcResultNames = new ArrayList<String>();
-        
+
         // Get the TestSet report files names of the current build
         for (Builder builder : builders) {
             if (builder instanceof RunFromAlmBuilder) {
@@ -116,7 +117,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             		pcResultNames.add(resultsFileName);
             }
         }
-        
+
         mergedResultNames.addAll(almResultNames);
         mergedResultNames.addAll(fileSystemResultNames);
         mergedResultNames.addAll(almSSEResultNames);
@@ -128,6 +129,49 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             return;
         }
 
+        TestResult result = recordTestResult(build, workspace, listener, mergedResultNames);
+        if (result == null)
+        {
+            //Since recording returned null - there no result to this test run to preform on
+            return;
+        }
+        
+        try {
+            archiveTestsReport(build, listener, fileSystemResultNames, result, workspace);
+        } catch (ParserConfigurationException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (SAXException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        publishLrReports(build);
+        
+        return ;
+    }
+
+    private void publishLrReports(@Nonnull Run<?, ?> build) {
+        File artifactsDir = build.getArtifactsDir();
+        if (artifactsDir.exists()) {
+            File reportDirectory = new File(artifactsDir.getParent(), PERFORMANCE_REPORT_FOLDER);
+            if (reportDirectory.exists()) {
+                File htmlIndexFile = new File(reportDirectory, INDEX_HTML_NAME);
+                if (htmlIndexFile.exists())
+                    build.getActions().add(new PerformanceReportAction(build));
+            }
+
+			File summaryDirectory = new File(artifactsDir.getParent(), TRANSACTION_SUMMARY_FOLDER);
+            if (summaryDirectory.exists()) {
+                File htmlIndexFile = new File(summaryDirectory, INDEX_HTML_NAME);
+                if (htmlIndexFile.exists())
+                    build.getActions().add(new TransactionSummaryAction(build));
+            }
+        }
+    }
+
+    private TestResult recordTestResult(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull TaskListener listener, final List<String> mergedResultNames) throws InterruptedException {
+        TestResultAction action;
         TestResult result = null;
         try {
             final long buildTime = build.getTimestamp().getTimeInMillis();
@@ -187,48 +231,21 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 // most likely a build failed before it gets to the test
                 // phase.
                 // don't report confusing error message.
-                return;
+                //exit preform
+                return null;
             }
 
             listener.getLogger().println(e.getMessage());
             build.setResult(Result.FAILURE);
-            return;
+            return null;
         } catch (IOException e) {
             e.printStackTrace(listener.error("Failed to archive testing tool reports"));
             build.setResult(Result.FAILURE);
-            return;
+            return null;
         }
 
         build.getActions().add(action);
-        
-        try {
-            archiveTestsReport(build, listener, fileSystemResultNames, result, workspace);
-        } catch (ParserConfigurationException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (SAXException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        
-        File artifactsDir = build.getArtifactsDir();
-        if (artifactsDir.exists()) {
-            File reportDirectory = new File(artifactsDir.getParent(), PERFORMANCE_REPORT_FOLDER);
-            if (reportDirectory.exists()) {
-                File htmlIndexFile = new File(reportDirectory, INDEX_HTML_NAME);
-                if (htmlIndexFile.exists())
-                    build.getActions().add(new PerformanceReportAction(build));
-            }
-			
-			File summaryDirectory = new File(artifactsDir.getParent(), TRANSACTION_SUMMARY_FOLDER);
-            if (summaryDirectory.exists()) {
-                File htmlIndexFile = new File(summaryDirectory, INDEX_HTML_NAME);
-                if (htmlIndexFile.exists())
-                    build.getActions().add(new TransactionSummaryAction(build));
-            }
-        }
-        
-        return ;
+        return result;
     }
 
     private void writeReportMetaData2XML(List<ReportMetaData> htmlReportsInfo, String xmlFile) throws IOException, ParserConfigurationException {
