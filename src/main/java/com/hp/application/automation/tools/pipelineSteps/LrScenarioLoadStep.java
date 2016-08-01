@@ -68,15 +68,6 @@ public class LrScenarioLoadStep extends AbstractStepImpl {
         this.publishResults = publishResults;
         this.archiveTestResultsMode = archiveTestResultsMode;
     }
-    
-//    public final void startScenarioLoad(Run<?, ?> build, FilePath ws, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
-//
-//        RunFromFileBuilder runFromFileBuilder = new RunFromFileBuilder(getFsTests(), getFsTimeout(), getControllerPollingInterval(), getPerScenarioTimeOut(), getIgnoreErrorStrings(), "", "", "", "", "", "", "", "", "", "", "", "", "", null, false);
-//        RunResultRecorder runResultRecorder = new RunResultRecorder(isPublishResults(), getArchiveTestResultsMode());
-//
-//        runFromFileBuilder.perform(build, ws, launcher, listener);
-//        runResultRecorder.perform(build, ws, launcher, listener);
-//    }
 
     @Extension
     public static class DescriptorImpl extends AbstractStepDescriptorImpl {

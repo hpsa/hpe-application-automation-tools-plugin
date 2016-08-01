@@ -134,16 +134,16 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             final long nowMaster = System.currentTimeMillis();
 
             result = workspace.act(new FileCallable<TestResult>() {
-                
+
                 private static final long serialVersionUID = 1L;
-                
+
                 @Override
                 public TestResult invoke(File ws, VirtualChannel channel) throws IOException {
                     final long nowSlave = System.currentTimeMillis();
                     List<String> files = new ArrayList<String>();
                     DirectoryScanner ds = new DirectoryScanner();
                     ds.setBasedir(ws);
-                    
+
                     // Transform the report file names list to a
                     // File
                     // Array,
@@ -155,7 +155,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                             files.add(file.getName());
                         }
                     }
-                    
+
                     Object[] objectArray = new String[files.size()];
                     files.toArray(objectArray);
                     ds.setIncludes((String[]) objectArray);
@@ -167,17 +167,17 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                         // fatal problem
                         throw new AbortException("Report not found");
                     }
-                    
+
                     return new TestResult(buildTime + (nowSlave - nowMaster), ds, true);
                 }
 
 				@Override
 				public void checkRoles(RoleChecker arg0) throws SecurityException {
 					// TODO Auto-generated method stub
-					
+
 				}
             });
-            
+
             action = new TestResultAction(build, result, listener);
             if (result.getPassCount() == 0 && result.getFailCount() == 0) {
                 throw new AbortException("Result is empty");
@@ -189,7 +189,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 // don't report confusing error message.
                 return;
             }
-            
+
             listener.getLogger().println(e.getMessage());
             build.setResult(Result.FAILURE);
             return;
@@ -198,7 +198,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             build.setResult(Result.FAILURE);
             return;
         }
-        
+
         build.getActions().add(action);
         
         try {
@@ -230,7 +230,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         
         return ;
     }
-    
+
     private void writeReportMetaData2XML(List<ReportMetaData> htmlReportsInfo, String xmlFile) throws IOException, ParserConfigurationException {
 
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -881,7 +881,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
     
     @Override
     public BuildStepMonitor getRequiredMonitorService() {
-        
+
         return BuildStepMonitor.BUILD;
     }
     
@@ -889,7 +889,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         
         return _resultsPublisherModel;
     }
-    
+
     @Extension
     public static class DescriptorImpl extends BuildStepDescriptor<Publisher> {
         
