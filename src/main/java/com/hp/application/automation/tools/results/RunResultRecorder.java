@@ -153,12 +153,14 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         return ;
     }
 
-    private boolean recordRunResults(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull TaskListener listener, List<String> mergedResultNames, List<String> fileSystemResultNames) throws InterruptedException, IOException {
+
+    private void recordRunResults(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull TaskListener listener, List<String> mergedResultNames, List<String> fileSystemResultNames) throws InterruptedException, IOException {
+
         TestResult result = recordTestResult(build, workspace, listener, mergedResultNames);
         if (result == null)
         {
             //Since recording returned null - there no result to this test run to preform on
-            return true;
+            return;
         }
 
         try {
@@ -172,7 +174,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         }
 
         publishLrReports(build);
-        return false;
+        return ;
     }
 
     private void publishLrReports(@Nonnull Run<?, ?> build) {

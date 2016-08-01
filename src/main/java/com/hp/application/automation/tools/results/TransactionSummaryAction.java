@@ -72,7 +72,7 @@ public class TransactionSummaryAction implements Action, SimpleBuildStep.LastBui
             }
         }
         projectActionList = new ArrayList<TestResultProjectAction>();
-        projectActionList.add(new TestResultProjectAction(build.getParent()));
+//        projectActionList.add(new TestResultProjectAction(build.getParent()));
     }
 
     @Override
