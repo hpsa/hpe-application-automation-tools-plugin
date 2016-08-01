@@ -72,7 +72,7 @@ public class PerformanceReportAction implements Action, SimpleBuildStep.LastBuil
         }
 
         projectActionList = new ArrayList<TestResultProjectAction>();
-        projectActionList.add(new TestResultProjectAction(build.getParent()));
+//        projectActionList.add(new TestResultProjectAction(build.getParent()));
     }
 
     @Override
