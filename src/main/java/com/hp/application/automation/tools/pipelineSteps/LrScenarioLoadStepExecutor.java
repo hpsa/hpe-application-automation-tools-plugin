@@ -11,6 +11,8 @@ import org.jenkinsci.plugins.workflow.steps.AbstractSynchronousNonBlockingStepEx
 import org.jenkinsci.plugins.workflow.steps.StepContextParameter;
 
 import javax.inject.Inject;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by kazaky on 28/07/2016.
@@ -42,8 +44,11 @@ public class LrScenarioLoadStepExecutor extends AbstractSynchronousNonBlockingSt
         RunFromFileBuilder runFromFileBuilder = new RunFromFileBuilder(step.getFsTests(), step.getFsTimeout(), step.getControllerPollingInterval(), step.getPerScenarioTimeOut(), step.getIgnoreErrorStrings(), "", "", "", "", "", "", "", "", "", "", "", "", "", null, false);
         RunResultRecorder runResultRecorder = new RunResultRecorder(step.isPublishResults(), step.getArchiveTestResultsMode());
 
+        HashMap<String,String> resultFilename = new HashMap<String, String>(0);
+        resultFilename.put(RunFromFileBuilder.class.getName(), runFromFileBuilder.getRunResultsFileName());
+
         runFromFileBuilder.perform(build, ws, launcher, listener);
-        runResultRecorder.perform(build, ws, launcher, listener);
+        runResultRecorder.pipelinePerform(build, ws, launcher, listener, resultFilename);
 
         return null;
     }

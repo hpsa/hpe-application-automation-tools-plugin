@@ -50,9 +50,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * This class is adapted from {@link JunitResultArchiver}; Only the {@code perform()} method
@@ -73,10 +71,11 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 	private static final String TRANSACTION_REPORT_NAME = "Report3";
 	
     private final ResultsPublisherModel _resultsPublisherModel;
-    
+
+
     @DataBoundConstructor
     public RunResultRecorder(boolean publishResults, String archiveTestResultsMode) {
-        
+
         _resultsPublisherModel = new ResultsPublisherModel(archiveTestResultsMode);
     }
     
@@ -86,10 +85,31 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         return (DescriptorImpl) super.getDescriptor();
     }
 
+    // temporary solution to deal with lack of support in builder list when Project is replaced by job type in pipeline.
+    // Should be dealt with general refactoring - making this a job property or change folder structure to scan instead
+    // of passing file name from builder.
+    public void pipelinePerform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
+                        @Nonnull TaskListener listener, @Nonnull HashMap<String,String> builderResultNames)
+            throws IOException, InterruptedException {
+        final List<String> mergedResultNames = new ArrayList<String>();
+
+        final List<String> fileSystemResultNames = new ArrayList<String>();
+        fileSystemResultNames.add(builderResultNames.get(RunFromFileBuilder.class.getName()));
+
+        mergedResultNames.addAll(builderResultNames.values());
+
+        if (mergedResultNames.isEmpty()) {
+            listener.getLogger().println("RunResultRecorder: no results xml File provided");
+            return;
+        }
+
+        recordRunResults(build, workspace, listener, mergedResultNames, fileSystemResultNames);
+        return ;
+    }
+
     @Override
     public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
-        
-        TestResultAction action;
+
         final List<String> mergedResultNames = new ArrayList<String>();
 
         Project<?, ?> project = RuntimeUtils.cast(build.getParent());
@@ -129,13 +149,18 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             return;
         }
 
+        recordRunResults(build, workspace, listener, mergedResultNames, fileSystemResultNames);
+        return ;
+    }
+
+    private boolean recordRunResults(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull TaskListener listener, List<String> mergedResultNames, List<String> fileSystemResultNames) throws InterruptedException, IOException {
         TestResult result = recordTestResult(build, workspace, listener, mergedResultNames);
         if (result == null)
         {
             //Since recording returned null - there no result to this test run to preform on
-            return;
+            return true;
         }
-        
+
         try {
             archiveTestsReport(build, listener, fileSystemResultNames, result, workspace);
         } catch (ParserConfigurationException e) {
@@ -147,8 +172,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         }
 
         publishLrReports(build);
-        
-        return ;
+        return false;
     }
 
     private void publishLrReports(@Nonnull Run<?, ?> build) {
