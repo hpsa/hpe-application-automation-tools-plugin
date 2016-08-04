@@ -31,4 +31,8 @@
     <f:entry title="Force" field="force">
         <f:checkbox checked="${instance.model.force}"/>
     </f:entry>
+
+    <f:entry title="Continue if not deployed" field="continueIfNotDeployed">
+        <f:checkbox checked="${instance.model.continueIfNotDeployed}"/>
+    </f:entry>
 </j:jelly>
