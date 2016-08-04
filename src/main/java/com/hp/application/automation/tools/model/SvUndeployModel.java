@@ -9,8 +9,15 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 public class SvUndeployModel extends AbstractSvRunModel {
 
+    protected final boolean continueIfNotDeployed;
+
     @DataBoundConstructor
-    public SvUndeployModel(String serverName, boolean force, SvServiceSelectionModel serviceSelection) {
+    public SvUndeployModel(String serverName, boolean continueIfNotDeployed, boolean force, SvServiceSelectionModel serviceSelection) {
         super(serverName, force, serviceSelection);
+        this.continueIfNotDeployed = continueIfNotDeployed;
+    }
+
+    public boolean isContinueIfNotDeployed() {
+        return continueIfNotDeployed;
     }
 }

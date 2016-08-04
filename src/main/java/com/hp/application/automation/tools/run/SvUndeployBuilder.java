@@ -22,8 +22,8 @@ import org.kohsuke.stapler.DataBoundConstructor;
 public class SvUndeployBuilder extends AbstractSvRunBuilder<SvUndeployModel> {
 
     @DataBoundConstructor
-    public SvUndeployBuilder(String serverName, boolean force, SvServiceSelectionModel serviceSelection) {
-        super(new SvUndeployModel(serverName, force, serviceSelection));
+    public SvUndeployBuilder(String serverName, boolean continueIfNotDeployed, boolean force, SvServiceSelectionModel serviceSelection) {
+        super(new SvUndeployModel(serverName, continueIfNotDeployed, force, serviceSelection));
     }
 
     @Override
@@ -38,13 +38,20 @@ public class SvUndeployBuilder extends AbstractSvRunBuilder<SvUndeployModel> {
         IUndeployProcessor processor = new UndeployProcessor(null);
 
         ICommandExecutor exec = createCommandExecutor();
-        for (ServiceInfo service : getServiceList()) {
+        for (ServiceInfo service : getServiceList(model.isContinueIfNotDeployed(), logger)) {
             logger.printf("  Undeploying service '%s' [%s] %n", service.getName(), service.getId());
             UndeployProcessorInput undeployProcessorInput = new UndeployProcessorInput(model.isForce(), null, service.getId());
             processor.process(undeployProcessorInput, exec);
+
         }
 
         return true;
+    }
+
+    @Override
+    protected void logConfig(PrintStream logger, String prefix) {
+        super.logConfig(logger, prefix);
+        logger.println(prefix + "Continue if not deployed: " + model.isContinueIfNotDeployed());
     }
 
     @Extension

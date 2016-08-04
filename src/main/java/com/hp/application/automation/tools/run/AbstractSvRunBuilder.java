@@ -13,6 +13,8 @@ import com.hp.application.automation.tools.model.SvServiceSelectionModel;
 import com.hp.sv.jsvconfigurator.build.ProjectBuilder;
 import com.hp.sv.jsvconfigurator.core.IProject;
 import com.hp.sv.jsvconfigurator.core.IService;
+import com.hp.sv.jsvconfigurator.core.impl.exception.CommandExecutorException;
+import com.hp.sv.jsvconfigurator.core.impl.exception.CommunicatorException;
 import com.hp.sv.jsvconfigurator.core.impl.exception.ProjectBuilderException;
 import com.hp.sv.jsvconfigurator.core.impl.jaxb.atom.ServiceListAtom;
 import com.hp.sv.jsvconfigurator.serverclient.ICommandExecutor;
@@ -133,7 +135,7 @@ public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends
         logger.println(prefix + "Force: " + model.isForce());
     }
 
-    protected Iterable<ServiceInfo> getServiceList() throws Exception {
+    protected Iterable<ServiceInfo> getServiceList(boolean ignoreMissingServices, PrintStream logger) throws Exception {
         SvServiceSelectionModel s = getServiceSelection();
         ICommandExecutor exec = createCommandExecutor();
 
@@ -141,13 +143,12 @@ public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends
 
         switch (s.getServiceSelectionKind()) {
             case SERVICE:
-                IService service = exec.findService(s.getService(), null);
-                res.add(new ServiceInfo(service.getId(), service.getName()));
+                addServiceIfDeployed(s.getService(), res, ignoreMissingServices, exec, logger);
                 break;
             case PROJECT:
                 IProject project = loadProject();
                 for (IService svc : project.getServices()) {
-                    res.add(new ServiceInfo(svc.getId(), svc.getName()));
+                    addServiceIfDeployed(svc.getId(), res, ignoreMissingServices, exec, logger);
                 }
                 break;
             case ALL_DEPLOYED:
@@ -158,6 +159,18 @@ public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends
                 break;
         }
         return res;
+    }
+
+    private void addServiceIfDeployed(String service, ArrayList<ServiceInfo> results, boolean ignoreMissingServices, ICommandExecutor exec, PrintStream logger) throws CommunicatorException, CommandExecutorException {
+        try {
+            IService svc = exec.findService(service, null);
+            results.add(new ServiceInfo(svc.getId(), svc.getName()));
+        } catch (CommandExecutorException e) {
+            if (!ignoreMissingServices) {
+                throw e;
+            }
+            logger.printf("Service '%s' is not deployed, ignoring%n", service);
+        }
     }
 
     protected IProject loadProject() throws ProjectBuilderException {
