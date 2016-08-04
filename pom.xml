@@ -217,6 +217,10 @@
 			<id>central</id>
 			<url>http://repo1.maven.org/maven2</url>
 		</repository>
+		<repository>
+			<id>Local repository</id>
+			<url>file://${basedir}/lib</url>
+		</repository>
 	</repositories>
 
 	<pluginRepositories>
@@ -246,6 +250,11 @@
 			<groupId>org.jenkins-ci.plugins</groupId>
 			<artifactId>matrix-project</artifactId>
 			<version>1.6</version>
+		</dependency>
+		<dependency>
+			<groupId>com.hp.sv</groupId>
+			<artifactId>SVConfigurator</artifactId>
+			<version>3.82</version>
 		</dependency>
 	</dependencies>
 </project>
