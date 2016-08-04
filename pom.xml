@@ -218,6 +218,10 @@
 			<id>central</id>
 			<url>http://repo1.maven.org/maven2</url>
 		</repository>
+		<repository>
+			<id>Local repository</id>
+			<url>file://${basedir}/lib</url>
+		</repository>
 	</repositories>
 
 	<pluginRepositories>
@@ -298,5 +302,9 @@
 	      <artifactId>credentials</artifactId>
 	      <version>2.1.4</version>
 	    </dependency>
-	</dependencies>
+		<dependency>
+			<groupId>com.hp.sv</groupId>
+			<artifactId>SVConfigurator</artifactId>
+			<version>3.82</version>
+		</dependency>	</dependencies>
 </project>
