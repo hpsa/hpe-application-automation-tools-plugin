@@ -43,11 +43,11 @@ public class LrScenarioLoadStepExecutor extends AbstractSynchronousNonBlockingSt
 //        step.startScenarioLoad(build,ws,launcher,listener);
         RunFromFileBuilder runFromFileBuilder = new RunFromFileBuilder(step.getFsTests(), step.getFsTimeout(), step.getControllerPollingInterval(), step.getPerScenarioTimeOut(), step.getIgnoreErrorStrings(), "", "", "", "", "", "", "", "", "", "", "", "", "", null, false);
         RunResultRecorder runResultRecorder = new RunResultRecorder(step.isPublishResults(), step.getArchiveTestResultsMode());
+        runFromFileBuilder.perform(build, ws, launcher, listener);
 
         HashMap<String,String> resultFilename = new HashMap<String, String>(0);
         resultFilename.put(RunFromFileBuilder.class.getName(), runFromFileBuilder.getRunResultsFileName());
 
-        runFromFileBuilder.perform(build, ws, launcher, listener);
         runResultRecorder.pipelinePerform(build, ws, launcher, listener, resultFilename);
 
         return null;
