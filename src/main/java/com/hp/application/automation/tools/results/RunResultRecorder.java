@@ -156,6 +156,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 //        recordTestResult(build, workspace, listener, mergedResultNames);
 
         JUnitResultArchiver jUnitResultArchiver = new JUnitResultArchiver(mergedResultNames.get(0));
+        jUnitResultArchiver.setKeepLongStdio(true);
         jUnitResultArchiver.perform(build, workspace, launcher, listener);
 
 
@@ -188,14 +189,14 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             if (reportDirectory.exists()) {
                 File htmlIndexFile = new File(reportDirectory, INDEX_HTML_NAME);
                 if (htmlIndexFile.exists())
-                    build.getActions().add(new PerformanceReportAction(build));
+                    build.replaceAction(new PerformanceReportAction(build));
             }
 
 			File summaryDirectory = new File(artifactsDir.getParent(), TRANSACTION_SUMMARY_FOLDER);
             if (summaryDirectory.exists()) {
                 File htmlIndexFile = new File(summaryDirectory, INDEX_HTML_NAME);
                 if (htmlIndexFile.exists())
-                    build.getActions().add(new TransactionSummaryAction(build));
+                    build.replaceAction(new TransactionSummaryAction(build));
             }
         }
     }
@@ -361,8 +362,16 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
          * </testsuites>
          */
 
+        //add previous report names for aggregation when using pipelines.
+        for(SuiteResult suiteResult : testResult.getSuites())
+        {
+            String[] temp = suiteResult.getName().split("_");
+            reportNames.add(temp[temp.length - 1]);
+        }
+
         for (String resultsFilePath : resultFiles) {
             FilePath resultsFile = projectWS.child(resultsFilePath);
+
 
             List<ReportMetaData> ReportInfoToCollect = new ArrayList<ReportMetaData>();
 
@@ -408,7 +417,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                         if (archiveFolder(reportFolder, testStatus, archivedFile, listener))
                             zipFileNames.add(zipFileName);
 
-                        reportNames.add(testFolder.getName());
+//                        reportNames.add(testFolder.getName());
                         createHtmlReport(reportFolder, testFolderPath, artifactsDir, reportNames, testResult);
                         createTransactionSummary(reportFolder, testFolderPath, artifactsDir, reportNames, testResult);
                     }
@@ -636,12 +645,12 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                                      File artifactsDir,
                                      List<String> reportNames,
                                      TestResult testResult) throws IOException, InterruptedException {
-        String archiveTestResultMode =
-                _resultsPublisherModel.getArchiveTestResultsMode();
-        boolean createReport = archiveTestResultMode.equals(ResultsPublisherModel.CreateHtmlReportResults.getValue());
-
-
-        if (createReport) {
+//        String archiveTestResultMode =
+//                _resultsPublisherModel.getArchiveTestResultsMode();
+//        boolean createReport = archiveTestResultMode.equals(ResultsPublisherModel.CreateHtmlReportResults.getValue());
+//
+//
+//        if (createReport) {
             File testFolderPathFile = new File(testFolderPath);
             FilePath srcDirectoryFilePath = new FilePath(reportFolder, HTML_REPORT_FOLDER);
             if (srcDirectoryFilePath.exists()) {
@@ -665,7 +674,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                     outputReportFiles(reportNames, reportDirectory, testResult, false);
                 }
             }
-        }
+//        }
     }
 
     private void createTransactionSummary(FilePath reportFolder,

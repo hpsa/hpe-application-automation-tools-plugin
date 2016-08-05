@@ -21,8 +21,8 @@ public class PerformanceReportAction implements Action, SimpleBuildStep.LastBuil
     private static final String REPORT_INDEX = "report.index";
 
     private Map<String, DetailReport> detailReportMap = new LinkedHashMap<String, DetailReport>();
-
     private final List<TestResultProjectAction> projectActionList;
+
     private final Run<?,?> build;
 
     public PerformanceReportAction(Run<?,?> build) {
