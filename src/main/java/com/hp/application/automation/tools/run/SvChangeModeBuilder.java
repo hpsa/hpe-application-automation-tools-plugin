@@ -7,15 +7,14 @@ package com.hp.application.automation.tools.run;
 
 import java.io.PrintStream;
 import java.util.Collection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.hp.application.automation.tools.model.SvChangeModeModel;
 import com.hp.application.automation.tools.model.SvServiceSelectionModel;
 import com.hp.sv.jsvconfigurator.core.IProjectElement;
 import com.hp.sv.jsvconfigurator.core.IService;
-import com.hp.sv.jsvconfigurator.core.impl.exception.CommandExecutorException;
-import com.hp.sv.jsvconfigurator.core.impl.exception.CommunicatorException;
 import com.hp.sv.jsvconfigurator.core.impl.jaxb.ServiceRuntimeConfiguration;
-import com.hp.sv.jsvconfigurator.core.impl.jaxb.atom.ServiceListAtom;
 import com.hp.sv.jsvconfigurator.processor.ChmodeProcessor;
 import com.hp.sv.jsvconfigurator.processor.ChmodeProcessorInput;
 import com.hp.sv.jsvconfigurator.processor.IChmodeProcessor;
@@ -31,6 +30,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
 public class SvChangeModeBuilder extends AbstractSvRunBuilder<SvChangeModeModel> {
+    private static final Logger LOG = Logger.getLogger(SvChangeModeBuilder.class.getName());
 
     @DataBoundConstructor
     public SvChangeModeBuilder(String serverName, boolean force, ServiceRuntimeConfiguration.RuntimeMode mode,
@@ -47,32 +47,27 @@ public class SvChangeModeBuilder extends AbstractSvRunBuilder<SvChangeModeModel>
     public boolean performImpl(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws Exception {
         PrintStream logger = listener.getLogger();
 
-        String serviceId = model.getServiceSelection().getService();
-
         ICommandExecutor exec = createCommandExecutor();
-        if (serviceId != null) {
-            logger.printf("  Changing service '%s' to %s mode%n", serviceId, model.getMode().toString());
-            changeServiceMode(serviceId, logger, exec);
-        } else {
-            logger.println("  No service is specified. Going to switch all deployed services to " + model.getMode().toString() + " mode");
-            for (ServiceListAtom.ServiceEntry svc : exec.getServiceList(null).getEntries()) {
-                logger.printf("    Changing service '%s' [%s] to %s mode%n", svc.getId(), svc.getTitle(), model.getMode().toString());
-                changeServiceMode(svc.getId(), logger, exec);
-            }
+        for (ServiceInfo service : getServiceList(false, logger)) {
+            changeServiceMode(service, logger, exec);
         }
 
         return true;
     }
 
-    private void changeServiceMode(String serviceId, PrintStream logger, ICommandExecutor commandExecutor) throws Exception {
-        ChmodeProcessorInput chmodeInput = new ChmodeProcessorInput(model.isForce(), null, serviceId,
+    private void changeServiceMode(ServiceInfo serviceInfo, PrintStream logger, ICommandExecutor commandExecutor) throws Exception {
+        ChmodeProcessorInput chmodeInput = new ChmodeProcessorInput(model.isForce(), null, serviceInfo.getId(),
                 model.getDataModel(), model.getPerformanceModel(), model.getMode(), shouldUseDefaultDataModel(), false);
+
+        logger.printf("    Changing mode of service '%s' [%s] to %s mode%n", serviceInfo.getName(), serviceInfo.getId(), model.getMode());
 
         IChmodeProcessor processor = new ChmodeProcessor(null);
 
-        processor.process(chmodeInput, commandExecutor);
-
-        printServiceStatus(logger, serviceId, commandExecutor);
+        try {
+            processor.process(chmodeInput, commandExecutor);
+        } finally {
+            printServiceStatus(logger, serviceInfo, commandExecutor);
+        }
     }
 
     private boolean shouldUseDefaultDataModel() {
@@ -80,15 +75,25 @@ public class SvChangeModeBuilder extends AbstractSvRunBuilder<SvChangeModeModel>
                 && model.getDataModel() == null;
     }
 
-    private void printServiceStatus(PrintStream logger, String serviceId, ICommandExecutor commandExecutor) throws CommunicatorException, CommandExecutorException {
-        IService service = commandExecutor.findService(serviceId, null);
-        ServiceRuntimeConfiguration info = commandExecutor.getServiceRuntimeInfo(service);
-        ServiceRuntimeConfiguration.RuntimeMode mode = info.getRuntimeMode();
+    private void printServiceStatus(PrintStream logger, ServiceInfo serviceInfo, ICommandExecutor commandExecutor) {
+        try {
+            IService service = commandExecutor.findService(serviceInfo.getId(), null);
+            ServiceRuntimeConfiguration info = commandExecutor.getServiceRuntimeInfo(service);
+            ServiceRuntimeConfiguration.RuntimeMode mode = info.getRuntimeMode();
 
-        logger.printf("    Service '%s' [%s] changed to %s mode%n", service.getName(), service.getId(), mode);
-        if (mode == ServiceRuntimeConfiguration.RuntimeMode.LEARNING || mode == ServiceRuntimeConfiguration.RuntimeMode.SIMULATING) {
-            logger.println("      Simulation model: " + getModelName(service.getDataModels(), info.getDataModelId()));
-            logger.println("      Performance model: " + getModelName(service.getPerfModels(), info.getPerfModelId()));
+            logger.printf("    Service '%s' [%s] is in %s mode%n", service.getName(), service.getId(), mode);
+            if (mode == ServiceRuntimeConfiguration.RuntimeMode.LEARNING || mode == ServiceRuntimeConfiguration.RuntimeMode.SIMULATING) {
+                logger.println("      Simulation model: " + getModelName(service.getDataModels(), info.getDataModelId()));
+                logger.println("      Performance model: " + getModelName(service.getPerfModels(), info.getPerfModelId()));
+            }
+
+            if (info.getDeploymentErrorMessage() != null) {
+                logger.println("      Error message: " + info.getDeploymentErrorMessage());
+            }
+        } catch (Exception e) {
+            String msg = String.format("Failed to get detail of service '%s' [%s]", serviceInfo.getName(), serviceInfo.getId());
+            logger.printf("      %s: %s%n", msg, e.getMessage());
+            LOG.log(Level.SEVERE, msg, e);
         }
     }
 
@@ -116,6 +121,7 @@ public class SvChangeModeBuilder extends AbstractSvRunBuilder<SvChangeModeModel>
             super("SV: Change Mode of Virtual Service");
         }
 
+        @SuppressWarnings("unused")
         public FormValidation doCheckDataModel(@QueryParameter String value, @QueryParameter("mode") String mode, @QueryParameter("serviceSelectionKind") String kind) {
             if (StringUtils.isNotBlank(mode)) {
                 ServiceRuntimeConfiguration.RuntimeMode runtimeMode = ServiceRuntimeConfiguration.RuntimeMode.valueOf(mode);
@@ -131,6 +137,7 @@ public class SvChangeModeBuilder extends AbstractSvRunBuilder<SvChangeModeModel>
             return FormValidation.ok();
         }
 
+        @SuppressWarnings("unused")
         public ListBoxModel doFillModeItems() {
             ListBoxModel items = new ListBoxModel();
             items.add("Stand-By", ServiceRuntimeConfiguration.RuntimeMode.STAND_BY.toString());
