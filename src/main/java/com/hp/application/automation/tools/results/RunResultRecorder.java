@@ -23,15 +23,13 @@ import hudson.matrix.MatrixBuild;
 import hudson.model.*;
 import hudson.remoting.VirtualChannel;
 import hudson.tasks.*;
-import hudson.tasks.junit.CaseResult;
-import hudson.tasks.junit.SuiteResult;
-import hudson.tasks.junit.TestResult;
-import hudson.tasks.junit.TestResultAction;
+import hudson.tasks.junit.*;
 import hudson.tasks.test.TestResultAggregator;
+import jenkins.MasterToSlaveFileCallable;
+import jenkins.security.Roles;
 import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
-import org.apache.tools.ant.DirectoryScanner;
 import org.jenkinsci.remoting.RoleChecker;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.w3c.dom.Document;
@@ -53,8 +51,7 @@ import java.io.*;
 import java.util.*;
 
 /**
- * This class is adapted from {@link JunitResultArchiver}; Only the {@code perform()} method
- * slightly differs.
+ * Some parts of this code have been taken or used from {@link JUnitResultArchiver};
  * 
  * @author Thomas Maurel
  */
@@ -103,7 +100,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             return;
         }
 
-        recordRunResults(build, workspace, listener, mergedResultNames, fileSystemResultNames);
+        recordRunResults(build, workspace, launcher, listener, mergedResultNames, fileSystemResultNames);
         return ;
     }
 
@@ -149,19 +146,26 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             return;
         }
 
-        recordRunResults(build, workspace, listener, mergedResultNames, fileSystemResultNames);
+        recordRunResults(build, workspace, launcher, listener, mergedResultNames, fileSystemResultNames);
         return ;
     }
 
 
-    private void recordRunResults(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull TaskListener listener, List<String> mergedResultNames, List<String> fileSystemResultNames) throws InterruptedException, IOException {
+    private void recordRunResults(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher,@Nonnull TaskListener listener, List<String> mergedResultNames, List<String> fileSystemResultNames) throws InterruptedException, IOException {
 
-        TestResult result = recordTestResult(build, workspace, listener, mergedResultNames);
-        if (result == null)
+//        recordTestResult(build, workspace, listener, mergedResultNames);
+
+        JUnitResultArchiver jUnitResultArchiver = new JUnitResultArchiver(mergedResultNames.get(0));
+        jUnitResultArchiver.perform(build, workspace, launcher, listener);
+
+
+        final TestResultAction tempAction = build.getAction(TestResultAction.class);
+        if (tempAction == null || tempAction.getResult() == null)
         {
             //Since recording returned null - there no result to this test run to preform on
             return;
         }
+        TestResult result = tempAction.getResult();
 
         try {
             archiveTestsReport(build, listener, fileSystemResultNames, result, workspace);
@@ -194,84 +198,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                     build.getActions().add(new TransactionSummaryAction(build));
             }
         }
-    }
-
-    private TestResult recordTestResult(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull TaskListener listener, final List<String> mergedResultNames) throws InterruptedException {
-        TestResultAction action;
-        TestResult result = null;
-        try {
-            final long buildTime = build.getTimestamp().getTimeInMillis();
-            final long nowMaster = System.currentTimeMillis();
-
-            result = workspace.act(new FileCallable<TestResult>() {
-
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public TestResult invoke(File ws, VirtualChannel channel) throws IOException {
-                    final long nowSlave = System.currentTimeMillis();
-                    List<String> files = new ArrayList<String>();
-                    DirectoryScanner ds = new DirectoryScanner();
-                    ds.setBasedir(ws);
-
-                    // Transform the report file names list to a
-                    // File
-                    // Array,
-                    // and add it to the DirectoryScanner includes
-                    // set
-                    for (String name : mergedResultNames) {
-                        File file = new File(ws, name);
-                        if (file.exists()) {
-                            files.add(file.getName());
-                        }
-                    }
-
-                    Object[] objectArray = new String[files.size()];
-                    files.toArray(objectArray);
-                    ds.setIncludes((String[]) objectArray);
-                    ds.scan();
-                    if (ds.getIncludedFilesCount() == 0) {
-                        // no test result. Most likely a
-                        // configuration
-                        // error or
-                        // fatal problem
-                        throw new AbortException("Report not found");
-                    }
-
-                    return new TestResult(buildTime + (nowSlave - nowMaster), ds, true);
-                }
-
-				@Override
-				public void checkRoles(RoleChecker arg0) throws SecurityException {
-					// TODO Auto-generated method stub
-
-				}
-            });
-
-            action = new TestResultAction(build, result, listener);
-            if (result.getPassCount() == 0 && result.getFailCount() == 0) {
-                throw new AbortException("Result is empty");
-            }
-        } catch (AbortException e) {
-            if (build.getResult() == Result.FAILURE) {
-                // most likely a build failed before it gets to the test
-                // phase.
-                // don't report confusing error message.
-                //exit preform
-                return null;
-            }
-
-            listener.getLogger().println(e.getMessage());
-            build.setResult(Result.FAILURE);
-            return null;
-        } catch (IOException e) {
-            e.printStackTrace(listener.error("Failed to archive testing tool reports"));
-            build.setResult(Result.FAILURE);
-            return null;
-        }
-
-        build.getActions().add(action);
-        return result;
     }
 
     private void writeReportMetaData2XML(List<ReportMetaData> htmlReportsInfo, String xmlFile) throws IOException, ParserConfigurationException {
