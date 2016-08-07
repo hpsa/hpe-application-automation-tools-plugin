@@ -3,6 +3,7 @@ package com.hp.octane.plugins.jetbrains.teamcity.actions;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.plugins.jetbrains.teamcity.configuration.OctaneConfigStructure;
 import com.hp.octane.plugins.jetbrains.teamcity.OctaneTeamCityPlugin;
@@ -24,6 +25,7 @@ import java.io.PrintWriter;
 
 public class ConfigurationActionsController implements Controller {
 	private static final Logger logger = LogManager.getLogger(ConfigurationActionsController.class);
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Autowired
 	private OctaneTeamCityPlugin octaneTeamCityPlugin;
@@ -42,11 +44,21 @@ public class ConfigurationActionsController implements Controller {
 				String url = httpServletRequest.getParameter("server");
 				String apiKey = httpServletRequest.getParameter("username1");
 				String secret = httpServletRequest.getParameter("password1");
-				OctaneConfiguration octaneConfiguration = OctaneSDK.getInstance().getConfigurationService().buildConfiguration(url, apiKey, secret);
+				OctaneConfiguration octaneConfiguration;
 
 				if (action.equals("test")) {
+					octaneConfiguration = OctaneSDK.getInstance().getConfigurationService().buildConfiguration(url, apiKey, secret);
 					returnStr = configurationService.checkConfiguration(octaneConfiguration);
 				} else if (action.equals("save")) {
+					if (url != null && !url.isEmpty()) {
+						octaneConfiguration = OctaneSDK.getInstance().getConfigurationService().buildConfiguration(url, apiKey, secret);
+					} else {
+						octaneConfiguration = dtoFactory.newDTO(OctaneConfiguration.class)
+								.setUrl("")
+								.setSharedSpace("")
+								.setApiKey(apiKey)
+								.setSecret(secret);
+					}
 					returnStr = updateConfiguration(octaneConfiguration, url);
 				}
 			} catch (Exception e) {

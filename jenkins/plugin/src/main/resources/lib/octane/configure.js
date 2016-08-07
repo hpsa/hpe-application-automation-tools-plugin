@@ -218,6 +218,7 @@ function octane_job_configuration(target, progress, proxy) {
                     pipeline.deleteTests = false;
                 }
             }));
+
             //  RELEASE
             if (pipeline.isRoot) {
                 var trRelease = $("<tr><td class='setting-name'><label for='pipeline-release'>Release:</label>");
@@ -241,7 +242,6 @@ function octane_job_configuration(target, progress, proxy) {
                 if (pipeline.id == null) {
                     trRelease.css('visibility', 'hidden');
                 }
-
             }
         }
 
