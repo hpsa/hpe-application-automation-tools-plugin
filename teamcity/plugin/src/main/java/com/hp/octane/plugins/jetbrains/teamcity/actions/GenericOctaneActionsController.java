@@ -6,8 +6,6 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
 import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
-import jetbrains.buildServer.serverSide.SBuildServer;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.Controller;
 
@@ -22,9 +20,6 @@ import java.util.UUID;
 
 public class GenericOctaneActionsController implements Controller {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-
-	private GenericOctaneActionsController(@NotNull SBuildServer buildServer) {
-	}
 
 	@Override
 	public ModelAndView handleRequest(HttpServletRequest req, HttpServletResponse res) throws Exception {

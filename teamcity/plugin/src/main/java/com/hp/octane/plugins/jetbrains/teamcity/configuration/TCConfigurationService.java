@@ -6,6 +6,8 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.plugins.jetbrains.teamcity.OctaneTeamCityPlugin;
 import jetbrains.buildServer.serverSide.SBuildServer;
 import org.apache.http.HttpStatus;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.xml.bind.JAXBContext;
@@ -14,16 +16,15 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.IOException;
-import java.util.logging.Logger;
 
 /**
  * Created by lazara.
  * Created by gadiel.
  */
 
-//  [YG] TODO: move the storage of the configuration to permanent location
 public class TCConfigurationService {
-	private static final Logger logger = Logger.getLogger(TCConfigurationService.class.getName());
+	private static final Logger logger = LogManager.getLogger(TCConfigurationService.class);
+	private static final String CONFIG_FILE = "octane-config.xml";
 
 	@Autowired
 	private SBuildServer buildServer;
@@ -54,14 +55,15 @@ public class TCConfigurationService {
 	}
 
 	public OctaneConfigStructure readConfig() {
+		OctaneConfigStructure result = null;
 		try {
 			JAXBContext context = JAXBContext.newInstance(OctaneConfigStructure.class);
 			Unmarshaller un = context.createUnmarshaller();
-			return (OctaneConfigStructure) un.unmarshal(new File(getConfigResourceLocation()));
-		} catch (JAXBException e) {
-			e.printStackTrace();
+			result = (OctaneConfigStructure) un.unmarshal(new File(getConfigResourceLocation()));
+		} catch (JAXBException jaxbe) {
+			logger.error("failed to read Octane configuration", jaxbe);
 		}
-		return null;
+		return result;
 	}
 
 	public void saveConfig(OctaneConfigStructure config) {
@@ -70,12 +72,12 @@ public class TCConfigurationService {
 			Marshaller m = context.createMarshaller();
 			m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 			m.marshal(config, new File(getConfigResourceLocation()));
-		} catch (JAXBException e) {
-			e.printStackTrace();
+		} catch (JAXBException jaxbe) {
+			logger.error("failed to save Octane configuration", jaxbe);
 		}
 	}
 
 	private String getConfigResourceLocation() {
-		return buildServer.getServerRootPath() + octaneTeamCityPlugin.getDescriptor().getPluginResourcesPath("ConfigFile.xml");
+		return buildServer.getServerRootPath() + octaneTeamCityPlugin.getDescriptor().getPluginResourcesPath(CONFIG_FILE);
 	}
 }

@@ -30,18 +30,17 @@ import java.util.concurrent.ThreadFactory;
  * Bridge Service meant to provide an abridged connectivity functionality
  */
 
-public final class BridgeService extends OctaneSDK.SDKServiceBase {
-	private static final Logger logger = LogManager.getLogger(BridgeService.class);
+public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
+	private static final Logger logger = LogManager.getLogger(BridgeServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
 	private ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30, new AbridgedTasksExecutorsFactory());
-	volatile private boolean shuttingDown = false;
 
 	private final CIPluginServices pluginServices;
 	private final RestService restService;
 	private final TasksProcessor tasksProcessor;
 
-	public BridgeService(Object configurator, CIPluginServices pluginServices, RestService restService, TasksProcessor tasksProcessor, boolean initBridge) {
+	public BridgeServiceImpl(Object configurator, CIPluginServices pluginServices, RestService restService, TasksProcessor tasksProcessor, boolean initBridge) {
 		super(configurator);
 
 		if (pluginServices == null) {
@@ -63,7 +62,7 @@ public final class BridgeService extends OctaneSDK.SDKServiceBase {
 	}
 
 	private void connect() {
-		if (!shuttingDown) {
+		if (!connectivityExecutors.isShutdown()) {
 			connectivityExecutors.execute(new Runnable() {
 				public void run() {
 					String tasksJSON;
@@ -80,14 +79,14 @@ public final class BridgeService extends OctaneSDK.SDKServiceBase {
 							handleTasks(tasksJSON);
 						}
 					} catch (Exception e) {
-						logger.error("connection to MQM Server temporary failed", e);
+						logger.error("connection to Octane Server temporary failed", e);
 						doBreakableWait(1000);
 						connect();
 					}
 				}
 			});
-		} else if (shuttingDown) {
-			logger.info("bridge client stopped");
+		} else {
+			logger.info("bridge service stopped gracefully by external request");
 		}
 	}
 
@@ -112,13 +111,13 @@ public final class BridgeService extends OctaneSDK.SDKServiceBase {
 					if (octaneResponse.getStatus() == HttpStatus.SC_REQUEST_TIMEOUT) {
 						logger.info("expected timeout disconnection on retrieval of abridged tasks");
 					} else if (octaneResponse.getStatus() == HttpStatus.SC_UNAUTHORIZED) {
-						logger.error("connection to NGA Server failed: authentication error");
+						logger.error("connection to Octane Server failed: authentication error");
 						doBreakableWait(5000);
 					} else if (octaneResponse.getStatus() == HttpStatus.SC_FORBIDDEN) {
-						logger.error("connection to NGA Server failed: authorization error");
+						logger.error("connection to Octane Server failed: authorization error");
 						doBreakableWait(5000);
 					} else if (octaneResponse.getStatus() == HttpStatus.SC_NOT_FOUND) {
-						logger.error("connection to NGA Server failed: 404, API changes? version problem?");
+						logger.error("connection to Octane Server failed: 404, API changes? version problem?");
 						doBreakableWait(20000);
 					} else {
 						logger.info("unexpected response; status: " + octaneResponse.getStatus() + "; content: " + octaneResponse.getBody());
@@ -131,15 +130,14 @@ public final class BridgeService extends OctaneSDK.SDKServiceBase {
 			}
 			return responseBody;
 		} else {
-			logger.info("NGA is not configured on this plugin, breathing before next retry");
+			logger.info("Octane is not configured on this plugin, breathing before next retry");
 			doBreakableWait(5000);
 			return null;
 		}
 	}
 
-	void dispose() {
-		//  TODO: disconnect current connection once async connectivity is possible
-		shuttingDown = true;
+	public void shutdown() {
+		connectivityExecutors.shutdownNow();
 	}
 
 	private void handleTasks(String tasksJSON) {

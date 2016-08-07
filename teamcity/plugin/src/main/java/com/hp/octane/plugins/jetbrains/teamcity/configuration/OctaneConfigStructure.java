@@ -1,15 +1,27 @@
 package com.hp.octane.plugins.jetbrains.teamcity.configuration;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement(name = "NGAconfig")
+@XmlRootElement(name = "octane-config")
+@XmlAccessorType(XmlAccessType.NONE)
 public class OctaneConfigStructure {
+
+	@XmlElement
 	private String identity;
+	@XmlElement
 	private String identityFrom;
+	@XmlElement
 	private String uiLocation;
+	@XmlElement(name = "api-key")
 	private String username;
+	@XmlElement(name = "secret")
 	private String secretPassword;
+	@XmlElement
 	private String location;
+	@XmlElement
 	private String sharedSpace;
 
 	public String getIdentity() {
@@ -78,8 +90,8 @@ public class OctaneConfigStructure {
 				"identity: " + identity +
 				", identityFrom: " + identityFrom +
 				", uiLocation: " + uiLocation +
-				", username: " + username +
-				", secretPassword: " + secretPassword +
+				", apiKey: " + username +
+				", secret: " + secretPassword +
 				", location: " + location +
 				", sharedSpace: " + sharedSpace + '}';
 	}

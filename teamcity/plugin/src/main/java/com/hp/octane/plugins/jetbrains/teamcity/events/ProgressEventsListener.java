@@ -11,6 +11,8 @@ import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelCommonFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ParametersFactory;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.util.EventDispatcher;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -24,6 +26,7 @@ import java.util.List;
  */
 
 public class ProgressEventsListener extends BuildServerAdapter {
+	private static final Logger logger = LogManager.getLogger(ProgressEventsListener.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String TRIGGER_BUILD_TYPE_KEY = "buildTypeId";
 

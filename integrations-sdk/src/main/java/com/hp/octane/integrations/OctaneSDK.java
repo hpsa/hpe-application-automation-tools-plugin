@@ -6,7 +6,7 @@ import com.hp.octane.integrations.api.EventsService;
 import com.hp.octane.integrations.api.RestService;
 import com.hp.octane.integrations.api.TasksProcessor;
 import com.hp.octane.integrations.api.TestsService;
-import com.hp.octane.integrations.services.bridge.BridgeService;
+import com.hp.octane.integrations.services.bridge.BridgeServiceImpl;
 import com.hp.octane.integrations.services.configuration.ConfigurationServiceImpl;
 import com.hp.octane.integrations.services.events.EventsServiceImpl;
 import com.hp.octane.integrations.services.logging.LoggingService;
@@ -49,6 +49,7 @@ public final class OctaneSDK {
 			}
 			OctaneSDK.initBridge = initBridge;
 			instance = new OctaneSDK(ciPluginServices);
+			logger.info("SDK has been initialized");
 		} else {
 			throw new IllegalStateException("SDK may be initialized only once");
 		}
@@ -105,7 +106,7 @@ public final class OctaneSDK {
 		private final LoggingService loggingService;
 		private final RestService restService;
 		private final ConfigurationService configurationService;
-		private final BridgeService bridgeService;
+		private final BridgeServiceImpl bridgeServiceImpl;
 		private final TasksProcessor tasksProcessor;
 		private final EventsService eventsService;
 		private final TestsService testsService;
@@ -118,7 +119,7 @@ public final class OctaneSDK {
 			configurationService = new ConfigurationServiceImpl(this, pluginServices, restService);
 			eventsService = new EventsServiceImpl(this, pluginServices, restService);
 			testsService = new TestsServiceImpl(this, pluginServices, restService);
-			bridgeService = new BridgeService(this, pluginServices, restService, tasksProcessor, initBridge);
+			bridgeServiceImpl = new BridgeServiceImpl(this, pluginServices, restService, tasksProcessor, initBridge);
 		}
 	}
 

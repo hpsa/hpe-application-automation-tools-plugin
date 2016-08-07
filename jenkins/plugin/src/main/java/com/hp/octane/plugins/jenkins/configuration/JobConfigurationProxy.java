@@ -19,7 +19,6 @@ import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
-import org.junit.Assert;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
 
 import java.io.IOException;
@@ -856,7 +855,7 @@ public class JobConfigurationProxy {
 
 	private static <T> T getExtension(Class<T> clazz) {
 		ExtensionList<T> items = Jenkins.getInstance().getExtensionList(clazz);
-		Assert.assertEquals(1, items.size());
+		assert 1 == items.size() : "Expected to have one and only one extension of type " + clazz;
 		return items.get(0);
 	}
 

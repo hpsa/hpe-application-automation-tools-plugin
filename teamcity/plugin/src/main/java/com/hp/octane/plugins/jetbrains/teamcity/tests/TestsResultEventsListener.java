@@ -6,6 +6,8 @@ import jetbrains.buildServer.serverSide.BuildStatistics;
 import jetbrains.buildServer.serverSide.BuildStatisticsOptions;
 import jetbrains.buildServer.serverSide.SBuildServer;
 import jetbrains.buildServer.serverSide.SRunningBuild;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -13,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
  */
 
 public class TestsResultEventsListener extends BuildServerAdapter {
+	private static final Logger logger = LogManager.getLogger(TestsResultEventsListener.class);
 
 	private TestsResultEventsListener(SBuildServer server) {
 		server.addListener(this);
