@@ -31,7 +31,8 @@ import java.util.List;
 public final class ConfigurationServiceImpl extends OctaneSDK.SDKServiceBase implements ConfigurationService {
 	private static final Logger logger = LogManager.getLogger(ConfigurationServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-	private static final String SHARED_SPACES_API_URI = "api/shared_spaces/";
+	private static final String SHARED_SPACES_API_URI = "/internal-api/shared_spaces/";
+	private static final String AUTHORIZATION_URI = "/analytics/ci/servers/connectivity/status";
 	private static final String UI_CONTEXT_PATH = "/ui";
 	private static final String PARAM_SHARED_SPACE = "p";
 
@@ -102,7 +103,7 @@ public final class ConfigurationServiceImpl extends OctaneSDK.SDKServiceBase imp
 		RestClient restClientImpl = restService.createClient(proxyConfiguration);
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.GET)
-				.setUrl(configuration.getUrl() + "/" + SHARED_SPACES_API_URI + configuration.getSharedSpace() + "/workspaces");
+				.setUrl(configuration.getUrl() + SHARED_SPACES_API_URI + configuration.getSharedSpace() + AUTHORIZATION_URI);
 		return restClientImpl.execute(request, configuration);
 	}
 

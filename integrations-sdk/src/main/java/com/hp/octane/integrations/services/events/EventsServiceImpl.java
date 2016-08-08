@@ -137,8 +137,14 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 				.setEvents(new ArrayList<CIEvent>(events));
 		boolean result = true;
 
+		String eventsSummary = "";
+		for (CIEvent event : eventsSnapshot.getEvents()) {
+			eventsSummary += event.getProject() + ":" + event.getBuildCiId() + ":" + event.getEventType() + ", ";
+		}
+		eventsSummary = eventsSummary.substring(0, eventsSummary.length() - 2);
+
 		try {
-			logger.info("sending " + eventsSnapshot.getEvents().size() + " event/s to '" + eventsSnapshot.getServer().getUrl() + "'...");
+			logger.info("sending [" + eventsSummary + "] event/s to '" + eventsSnapshot.getServer().getUrl() + "'...");
 			OctaneRequest request = createEventsRequest(eventsSnapshot);
 			OctaneResponse response;
 			while (failedRetries < MAX_SEND_RETRIES) {

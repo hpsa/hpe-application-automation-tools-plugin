@@ -37,7 +37,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.protocol.HttpContext;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -82,11 +81,9 @@ final class RestClientImpl implements RestClient {
 	private final CIPluginServices pluginServices;
 	private final CloseableHttpClient httpClient;
 	private final CredentialsProvider credentialsProvider;
-	private final CookieStore cookieStore;
 
 	private int MAX_TOTAL_CONNECTIONS = 20;
 	private Cookie LWSSO_TOKEN = null;
-	private String CSRF_TOKEN = null;
 
 	static {
 		AUTHENTICATION_ERROR_CODES = new HashSet<Integer>();
@@ -106,12 +103,10 @@ final class RestClientImpl implements RestClient {
 		PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
 		connectionManager.setMaxTotal(MAX_TOTAL_CONNECTIONS);
 		connectionManager.setDefaultMaxPerRoute(MAX_TOTAL_CONNECTIONS);
-		cookieStore = new BasicCookieStore();
 		credentialsProvider = new BasicCredentialsProvider();
 
 		HttpClientBuilder clientBuilder = HttpClients.custom()
 				.setConnectionManager(connectionManager)
-				.setDefaultCookieStore(cookieStore)
 				.setDefaultCredentialsProvider(credentialsProvider);
 
 		httpClient = clientBuilder.build();
@@ -132,7 +127,7 @@ final class RestClientImpl implements RestClient {
 		HttpResponse httpResponse = null;
 		OctaneResponse loginResponse;
 		if (LWSSO_TOKEN == null) {
-			logger.warn("initial login");
+			logger.info("initial login");
 			loginResponse = login(configuration);
 			if (loginResponse.getStatus() != 200) {
 				logger.error("failed on initial login, status " + loginResponse.getStatus());
@@ -146,7 +141,7 @@ final class RestClientImpl implements RestClient {
 			httpResponse = httpClient.execute(uriRequest, context);
 
 			if (AUTHENTICATION_ERROR_CODES.contains(httpResponse.getStatusLine().getStatusCode())) {
-				logger.warn("re-login");
+				logger.info("re-login");
 				HttpClientUtils.closeQuietly(httpResponse);
 				loginResponse = login(configuration);
 				if (loginResponse.getStatus() != 200) {
@@ -271,11 +266,10 @@ final class RestClientImpl implements RestClient {
 
 		try {
 			HttpUriRequest loginRequest = buildLoginRequest(config);
-			HttpContext context = createHttpContext(loginRequest.getURI().toString());
-			cookieStore.clear();
+			HttpClientContext context = createHttpContext(loginRequest.getURI().toString());
 			response = httpClient.execute(loginRequest, context);
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-				for (Cookie cookie : cookieStore.getCookies()) {
+				for (Cookie cookie : context.getCookieStore().getCookies()) {
 					if (cookie.getName().equals(LWSSO_COOKIE_NAME)) {
 						LWSSO_TOKEN = cookie;
 					}
@@ -333,12 +327,12 @@ final class RestClientImpl implements RestClient {
 	}
 
 	private static final class LoginApiBody {
-		public final String user;
-		public final String password;
+		public final String client_id;
+		public final String client_secret;
 
-		private LoginApiBody(String user, String password) {
-			this.user = user;
-			this.password = password;
+		private LoginApiBody(String client_id, String client_secret) {
+			this.client_id = client_id;
+			this.client_secret = client_secret;
 		}
 	}
 }
