@@ -5,8 +5,8 @@ package com.hp.octane.plugins.jenkins.configuration;
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.HttpMethod;
 import com.gargoylesoftware.htmlunit.Page;
-// import com.gargoylesoftware.htmlunit.WebRequestSettings;
-import com.gargoylesoftware.htmlunit.WebRequest;
+import com.gargoylesoftware.htmlunit.WebRequestSettings;
+//import com.gargoylesoftware.htmlunit.WebRequest;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
@@ -46,9 +46,9 @@ public class ConfigApiTest {
 	@Test
 	public void testSave() throws Exception {
 		URL url = client.createCrumbedUrl("nga/configuration/save");
-	//	WebRequestSettings request = new WebRequestSettings(url);
+		WebRequestSettings request = new WebRequestSettings(url);
 		// the above 1 line changed with this 1 line
-		WebRequest request = new WebRequest(url);
+		//WebRequest request = new WebRequest(url);
 
 		request.setHttpMethod(HttpMethod.POST);
 

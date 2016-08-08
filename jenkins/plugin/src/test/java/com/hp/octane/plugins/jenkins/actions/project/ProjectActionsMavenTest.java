@@ -2,8 +2,8 @@ package com.hp.octane.plugins.jenkins.actions.project;
 
 import com.gargoylesoftware.htmlunit.HttpMethod;
 import com.gargoylesoftware.htmlunit.Page;
-// import com.gargoylesoftware.htmlunit.WebRequestSettings;
-import com.gargoylesoftware.htmlunit.WebRequest;
+ import com.gargoylesoftware.htmlunit.WebRequestSettings;
+//import com.gargoylesoftware.htmlunit.WebRequest;
 import com.gargoylesoftware.htmlunit.WebResponse;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.parameters.CIParameter;
@@ -69,11 +69,11 @@ public class ProjectActionsMavenTest {
 		int retries = 0;
 		MavenModuleSet p = rule.createMavenProject(projectName);
 		JenkinsRule.WebClient client = rule.createWebClient();
-//		WebRequestSettings wrs = new WebRequestSettings(new URL(client.getContextPath() + "nga/api/v1/jobs/" + projectName + "/run"), HttpMethod.POST);
-//		wrs = client.addCrumb(wrs);
-//		WebResponse wr = client.loadWebResponse(wrs);
+		WebRequestSettings wrs = new WebRequestSettings(new URL(client.getContextPath() + "nga/api/v1/jobs/" + projectName + "/run"), HttpMethod.POST);
+		wrs = client.addCrumb(wrs);
+		WebResponse wr = client.loadWebResponse(wrs);
 		// the above 3 lines changed to this 1 line
-		WebResponse wr = client.loadWebResponse(new WebRequest(new URL(client.getContextPath() + "nga/api/v1/jobs/" + projectName + "/run"), HttpMethod.POST));
+//		WebResponse wr = client.loadWebResponse(new WebRequest(new URL(client.getContextPath() + "nga/api/v1/jobs/" + projectName + "/run"), HttpMethod.POST));
 
 		while ((p.getLastBuild() == null || p.getLastBuild().isBuilding()) && ++retries < 20) {
 			Thread.sleep(1000);

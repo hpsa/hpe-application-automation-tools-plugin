@@ -144,7 +144,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 			EventsService.getExtensionInstance().dispatchEvent(event);
 
 			GherkinEventsService.copyGherkinTestResultsToBuildDir(build);
-			testListener.processBuild(build, listener);					// need to figure out what it is
+			testListener.processBuild(build, listener);
 		} else if (r.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowRun")) {
 			CIEvent event = dtoFactory.newDTO(CIEvent.class)
 					.setEventType(CIEventType.FINISHED)
