@@ -11,6 +11,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.hp.application.automation.tools.model.SvChangeModeModel;
+import com.hp.application.automation.tools.model.SvDataModelSelection;
+import com.hp.application.automation.tools.model.SvPerformanceModelSelection;
 import com.hp.application.automation.tools.model.SvServiceSelectionModel;
 import com.hp.sv.jsvconfigurator.core.IProjectElement;
 import com.hp.sv.jsvconfigurator.core.IService;
@@ -34,13 +36,23 @@ public class SvChangeModeBuilder extends AbstractSvRunBuilder<SvChangeModeModel>
 
     @DataBoundConstructor
     public SvChangeModeBuilder(String serverName, boolean force, ServiceRuntimeConfiguration.RuntimeMode mode,
-                               String dataModel, String performanceModel, SvServiceSelectionModel serviceSelection) {
+                               SvDataModelSelection dataModel, SvPerformanceModelSelection performanceModel, SvServiceSelectionModel serviceSelection) {
         super(new SvChangeModeModel(serverName, force, mode, dataModel, performanceModel,serviceSelection));
     }
 
     @Override
     public DescriptorImpl getDescriptor() {
         return (DescriptorImpl) super.getDescriptor();
+    }
+
+    @SuppressWarnings("unused")
+    public SvDataModelSelection getDataModel() {
+        return model.getDataModel();
+    }
+
+    @SuppressWarnings("unused")
+    public SvPerformanceModelSelection getPerformanceModel() {
+        return model.getPerformanceModel();
     }
 
     @Override
@@ -56,8 +68,15 @@ public class SvChangeModeBuilder extends AbstractSvRunBuilder<SvChangeModeModel>
     }
 
     private void changeServiceMode(ServiceInfo serviceInfo, PrintStream logger, ICommandExecutor commandExecutor) throws Exception {
+
+        String dataModel = model.getDataModel().getSelectedModelName();
+        String performanceModel = model.getPerformanceModel().getSelectedModelName();
+        boolean useDefaultDataModel = SvDataModelSelection.Kind.DEFAULT.equals(model.getDataModel().getDataModelSelectionType());
+        boolean useDefaultPerformanceModel = SvPerformanceModelSelection.Kind.DEFAULT.equals(model.getPerformanceModel().getPerformanceModelSelectionType());
+        ServiceRuntimeConfiguration.RuntimeMode targetMode = getTargetMode();
+
         ChmodeProcessorInput chmodeInput = new ChmodeProcessorInput(model.isForce(), null, serviceInfo.getId(),
-                model.getDataModel(), model.getPerformanceModel(), model.getMode(), shouldUseDefaultDataModel(), false);
+                dataModel, performanceModel, targetMode, useDefaultDataModel, useDefaultPerformanceModel);
 
         logger.printf("    Changing mode of service '%s' [%s] to %s mode%n", serviceInfo.getName(), serviceInfo.getId(), model.getMode());
 
@@ -70,20 +89,26 @@ public class SvChangeModeBuilder extends AbstractSvRunBuilder<SvChangeModeModel>
         }
     }
 
-    private boolean shouldUseDefaultDataModel() {
-        return model.getMode() != ServiceRuntimeConfiguration.RuntimeMode.STAND_BY
-                && model.getDataModel() == null;
+    private ServiceRuntimeConfiguration.RuntimeMode getTargetMode() {
+        // Set STAND_BY with PM in case of simulation without data model to be in accord with designer & SVM
+        if (model.getMode().equals(ServiceRuntimeConfiguration.RuntimeMode.SIMULATING)
+                && model.getPerformanceModel().getPerformanceModelSelectionType() != SvPerformanceModelSelection.Kind.NONE
+                && model.getDataModel().getDataModelSelectionType() == SvDataModelSelection.Kind.NONE) {
+            return ServiceRuntimeConfiguration.RuntimeMode.STAND_BY;
+        }
+
+        return model.getMode();
     }
 
     private void printServiceStatus(PrintStream logger, ServiceInfo serviceInfo, ICommandExecutor commandExecutor) {
         try {
             IService service = commandExecutor.findService(serviceInfo.getId(), null);
             ServiceRuntimeConfiguration info = commandExecutor.getServiceRuntimeInfo(service);
-            ServiceRuntimeConfiguration.RuntimeMode mode = info.getRuntimeMode();
+            ServiceRuntimeConfiguration.RuntimeMode mode = getDisplayRuntimeMode(info);
 
             logger.printf("    Service '%s' [%s] is in %s mode%n", service.getName(), service.getId(), mode);
             if (mode == ServiceRuntimeConfiguration.RuntimeMode.LEARNING || mode == ServiceRuntimeConfiguration.RuntimeMode.SIMULATING) {
-                logger.println("      Simulation model: " + getModelName(service.getDataModels(), info.getDataModelId()));
+                logger.println("      Data model: " + getModelName(service.getDataModels(), info.getDataModelId()));
                 logger.println("      Performance model: " + getModelName(service.getPerfModels(), info.getPerfModelId()));
             }
 
@@ -95,6 +120,13 @@ public class SvChangeModeBuilder extends AbstractSvRunBuilder<SvChangeModeModel>
             logger.printf("      %s: %s%n", msg, e.getMessage());
             LOG.log(Level.SEVERE, msg, e);
         }
+    }
+
+    private ServiceRuntimeConfiguration.RuntimeMode getDisplayRuntimeMode(ServiceRuntimeConfiguration info) {
+        // display SIMULATING in case of STAND_BY mode with PM set (as it is done in designer and SVM)
+        return (info.getRuntimeMode() == ServiceRuntimeConfiguration.RuntimeMode.STAND_BY && info.getPerfModelId() != null)
+                ? ServiceRuntimeConfiguration.RuntimeMode.SIMULATING
+                : info.getRuntimeMode();
     }
 
     private String getModelName(Collection<? extends IProjectElement> models, String modelId) {
@@ -110,8 +142,8 @@ public class SvChangeModeBuilder extends AbstractSvRunBuilder<SvChangeModeModel>
     protected void logConfig(PrintStream logger, String prefix) {
         super.logConfig(logger, prefix);
         logger.println(prefix + "Mode: " + model.getMode().toString());
-        logger.println(prefix + "Data model: " + ((shouldUseDefaultDataModel()) ? "<default>" : model.getDataModel()));
-        logger.println(prefix + "Performance model: " + model.getPerformanceModel());
+        logger.println(prefix + "Data model: " + model.getDataModel().toString());
+        logger.println(prefix + "Performance model: " + model.getPerformanceModel().toString());
     }
 
     @Extension
