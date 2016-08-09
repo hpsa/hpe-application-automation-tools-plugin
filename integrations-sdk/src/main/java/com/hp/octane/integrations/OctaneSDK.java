@@ -51,7 +51,7 @@ public final class OctaneSDK {
 			instance = new OctaneSDK(ciPluginServices);
 			logger.info("SDK has been initialized");
 		} else {
-			throw new IllegalStateException("SDK may be initialized only once");
+			logger.error("SDK may be initialized only once, secondary initialization attempt encountered");
 		}
 	}
 
