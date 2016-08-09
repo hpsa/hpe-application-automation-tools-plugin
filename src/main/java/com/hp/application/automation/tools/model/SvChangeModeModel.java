@@ -6,18 +6,17 @@
 package com.hp.application.automation.tools.model;
 
 import com.hp.sv.jsvconfigurator.core.impl.jaxb.ServiceRuntimeConfiguration;
-import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 public class SvChangeModeModel extends AbstractSvRunModel {
 
     private final ServiceRuntimeConfiguration.RuntimeMode mode;
-    private final String dataModel;
-    private final String performanceModel;
+    private final SvDataModelSelection dataModel;
+    private final SvPerformanceModelSelection performanceModel;
 
     @DataBoundConstructor
     public SvChangeModeModel(String serverName, boolean force, ServiceRuntimeConfiguration.RuntimeMode mode,
-                             String dataModel, String performanceModel, SvServiceSelectionModel serviceSelection) {
+                             SvDataModelSelection dataModel, SvPerformanceModelSelection performanceModel, SvServiceSelectionModel serviceSelection) {
         super(serverName, force, serviceSelection);
         this.mode = mode;
         this.dataModel = dataModel;
@@ -28,12 +27,11 @@ public class SvChangeModeModel extends AbstractSvRunModel {
         return mode;
     }
 
-    public String getDataModel() {
-        return (StringUtils.isNotBlank(dataModel)) ? dataModel : null;
+    public SvDataModelSelection getDataModel() {
+        return dataModel;
     }
 
-    public String getPerformanceModel() {
-        return (StringUtils.isNotBlank(performanceModel)) ? performanceModel : null;
+    public SvPerformanceModelSelection getPerformanceModel() {
+        return performanceModel;
     }
-
 }
