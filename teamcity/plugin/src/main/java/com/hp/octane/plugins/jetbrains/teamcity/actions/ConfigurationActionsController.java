@@ -62,8 +62,8 @@ public class ConfigurationActionsController implements Controller {
 					returnStr = updateConfiguration(octaneConfiguration, url);
 				}
 			} catch (Exception e) {
+				logger.error("failed to process configuration request (" + action + ")", e);
 				returnStr = e.getMessage();
-				e.printStackTrace();
 			}
 		}
 
