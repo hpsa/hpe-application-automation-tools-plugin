@@ -35,7 +35,7 @@ public class SvDataModelSelection extends AbstractDescribableImpl<SvDataModelSel
 
     @SuppressWarnings("unused")
     public boolean isSelected(String type) {
-        return Kind.valueOf(type).equals(this.dataModelSelectionType);
+        return Kind.valueOf(type) == this.dataModelSelectionType;
     }
 
     public enum Kind {
