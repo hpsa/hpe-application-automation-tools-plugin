@@ -35,7 +35,7 @@ public class SvPerformanceModelSelection extends AbstractDescribableImpl<SvPerfo
 
     @SuppressWarnings("unused")
     public boolean isSelected(String type) {
-        return Kind.valueOf(type).equals(this.performanceModelSelectionType);
+        return Kind.valueOf(type) == this.performanceModelSelectionType;
     }
 
     public enum Kind {

@@ -47,7 +47,7 @@ public class SvServiceSelectionModel extends AbstractDescribableImpl<SvServiceSe
 
     @SuppressWarnings("unused")
     public boolean isSelectedServiceSelectionKind(String kind) {
-        return Kind.valueOf(kind).equals(serviceSelectionKind);
+        return Kind.valueOf(kind) == serviceSelectionKind;
     }
 
     public enum Kind {
