@@ -76,7 +76,7 @@ public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends
         SvServerSettingsModel[] servers = ((AbstractSvRunDescriptor) getDescriptor()).getServers();
         if (servers != null) {
             for (SvServerSettingsModel serverSettings : servers) {
-                if (model.getServerName().equals(serverSettings.getName())) {
+                if (model.getServerName() != null && model.getServerName().equals(serverSettings.getName())) {
                     return serverSettings;
                 }
             }
