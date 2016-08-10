@@ -79,11 +79,29 @@ public class SvServerSettingsBuilder extends Builder {
         @Override
         public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
             List<SvServerSettingsModel> list = req.bindJSONToList(SvServerSettingsModel.class, formData.get("srv"));
+
+            validateMandatoryFields(list);
+
             servers = list.toArray(new SvServerSettingsModel[list.size()]);
 
             save();
 
             return super.configure(req, formData);
+        }
+
+        private void validateMandatoryFields(List<SvServerSettingsModel> servers) throws FormException {
+            for (SvServerSettingsModel server : servers) {
+                validateConfiguration(doCheckName(server.getName()), "name");
+                validateConfiguration(doCheckUrl(server.getUrl()), "url");
+                validateConfiguration(doCheckUsername(server.getUsername(), server.getUrl()), "username");
+                validateConfiguration(doCheckPassword(server.getPassword(), server.getUrl()), "password");
+            }
+        }
+
+        private void validateConfiguration(FormValidation result, String formField) throws FormException {
+            if (!result.equals(FormValidation.ok())) {
+                throw new FormException("Validation of property in Service Virtualization server configuration failed: " + result.getMessage(), formField);
+            }
         }
 
         public FormValidation doCheckUrl(@QueryParameter String value) {
@@ -112,6 +130,7 @@ public class SvServerSettingsBuilder extends Builder {
             return FormValidation.ok();
         }
 
+        @SuppressWarnings("unused")
         public FormValidation doTestConnection(@QueryParameter("url") final String url, @QueryParameter("username") final String username,
                                                @QueryParameter("password") final String password) {
             try {

@@ -12,6 +12,7 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
+import org.apache.commons.lang.StringUtils;
 
 public class AbstractSvRunDescriptor extends BuildStepDescriptor<Builder> {
     private String displayName;
@@ -39,7 +40,9 @@ public class AbstractSvRunDescriptor extends BuildStepDescriptor<Builder> {
     public ListBoxModel doFillServerNameItems() {
         ListBoxModel items = new ListBoxModel();
         for (SvServerSettingsModel server : getServers()) {
-            items.add(server.getName(), server.getName());
+            if (StringUtils.isNotBlank(server.getName())) {
+                items.add(server.getName(), server.getName());
+            }
         }
 
         return items;
