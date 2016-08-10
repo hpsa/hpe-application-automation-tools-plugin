@@ -15,30 +15,66 @@ import org.kohsuke.stapler.QueryParameter;
 
 public class SvPerformanceModelSelection extends AbstractDescribableImpl<SvPerformanceModelSelection> {
 
-    protected final Kind performanceModelSelectionType;
+    protected final SelectionType selectionType;
     protected final String performanceModel;
 
     @DataBoundConstructor
-    public SvPerformanceModelSelection(Kind performanceModelSelectionType, String performanceModel) {
-        this.performanceModelSelectionType = performanceModelSelectionType;
+    public SvPerformanceModelSelection(SelectionType selectionType, String performanceModel) {
+        this.selectionType = selectionType;
         this.performanceModel = performanceModel;
     }
 
     @SuppressWarnings("unused")
-    public Kind getPerformanceModelSelectionType() {
-        return performanceModelSelectionType;
+    public SelectionType getSelectionType() {
+        return selectionType;
     }
 
+    @SuppressWarnings("unused")
     public String getPerformanceModel() {
         return (StringUtils.isNotBlank(performanceModel)) ? performanceModel : null;
     }
 
     @SuppressWarnings("unused")
     public boolean isSelected(String type) {
-        return Kind.valueOf(type) == this.performanceModelSelectionType;
+        return SelectionType.valueOf(type) == this.selectionType;
     }
 
-    public enum Kind {
+    public boolean isNoneSelected() {
+        return selectionType == SelectionType.NONE;
+    }
+
+    public boolean isDefaultSelected() {
+        return selectionType == SelectionType.DEFAULT;
+    }
+
+    @Override
+    public String toString() {
+        switch (selectionType) {
+            case BY_NAME:
+                return performanceModel;
+            case NONE:
+                return "<none>";
+            case OFFLINE:
+                return "<offline>";
+            default:
+                return "<default>";
+        }
+    }
+
+    public String getSelectedModelName() {
+        switch (selectionType) {
+            case BY_NAME:
+                DescriptorImpl descriptor = (DescriptorImpl) getDescriptor();
+                SvDataModelSelection.validateField(descriptor.doCheckPerformanceModel(performanceModel));
+                return performanceModel;
+            case OFFLINE:
+                return "Offline";
+            default:
+                return null;
+        }
+    }
+
+    public enum SelectionType {
         BY_NAME,
         NONE,
         OFFLINE,
@@ -53,36 +89,11 @@ public class SvPerformanceModelSelection extends AbstractDescribableImpl<SvPerfo
         }
 
         @SuppressWarnings("unused")
-        public FormValidation doCheckModel(@QueryParameter String model) {
-            if (StringUtils.isBlank(model)) {
-                return FormValidation.error("Value cannot be empty");
+        public FormValidation doCheckPerformanceModel(@QueryParameter String performanceModel) {
+            if (StringUtils.isBlank(performanceModel)) {
+                return FormValidation.error("Performance model cannot be empty if 'Specific' model is selected");
             }
             return FormValidation.ok();
-        }
-    }
-
-    @Override
-    public String toString() {
-        switch (performanceModelSelectionType) {
-            case BY_NAME:
-                return performanceModel;
-            case NONE:
-                return "<none>";
-            case OFFLINE:
-                return "<offline>";
-            default:
-                return "<default>";
-        }
-    }
-
-    public String getSelectedModelName() {
-        switch (performanceModelSelectionType) {
-            case BY_NAME:
-                return performanceModel;
-            case OFFLINE:
-                return "Offline";
-            default:
-                return null;
         }
     }
 }

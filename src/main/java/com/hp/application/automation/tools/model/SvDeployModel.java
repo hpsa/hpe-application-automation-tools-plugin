@@ -14,7 +14,7 @@ public class SvDeployModel extends AbstractSvRunModel {
 
     @DataBoundConstructor
     public SvDeployModel(String serverName, boolean force, String service, String projectPath, Secret projectPassword, boolean firstAgentFallback) {
-        super(serverName, force, new SvServiceSelectionModel(SvServiceSelectionModel.Kind.DEPLOY, service, projectPath, projectPassword));
+        super(serverName, force, new SvServiceSelectionModel(SvServiceSelectionModel.SelectionType.DEPLOY, service, projectPath, projectPassword));
         this.firstAgentFallback = firstAgentFallback;
     }
 

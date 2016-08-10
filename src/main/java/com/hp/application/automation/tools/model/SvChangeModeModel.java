@@ -10,6 +10,8 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 public class SvChangeModeModel extends AbstractSvRunModel {
 
+    private static final SvDataModelSelection NONE_DATA_MODEL = new SvDataModelSelection(SvDataModelSelection.SelectionType.NONE, null);
+    private static final SvPerformanceModelSelection NONE_PERFORMANCE_MODEL = new SvPerformanceModelSelection(SvPerformanceModelSelection.SelectionType.NONE, null);
     private final ServiceRuntimeConfiguration.RuntimeMode mode;
     private final SvDataModelSelection dataModel;
     private final SvPerformanceModelSelection performanceModel;
@@ -28,10 +30,10 @@ public class SvChangeModeModel extends AbstractSvRunModel {
     }
 
     public SvDataModelSelection getDataModel() {
-        return dataModel;
+        return (mode == ServiceRuntimeConfiguration.RuntimeMode.STAND_BY) ? NONE_DATA_MODEL : dataModel;
     }
 
     public SvPerformanceModelSelection getPerformanceModel() {
-        return performanceModel;
+        return (mode == ServiceRuntimeConfiguration.RuntimeMode.STAND_BY) ? NONE_PERFORMANCE_MODEL : performanceModel;
     }
 }

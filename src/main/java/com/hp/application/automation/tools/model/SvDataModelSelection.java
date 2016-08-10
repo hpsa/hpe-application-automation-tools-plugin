@@ -9,24 +9,31 @@ import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
 import hudson.util.FormValidation;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
 public class SvDataModelSelection extends AbstractDescribableImpl<SvDataModelSelection> {
 
-    protected final Kind dataModelSelectionType;
+    protected final SelectionType selectionType;
     protected final String dataModel;
 
     @DataBoundConstructor
-    public SvDataModelSelection(Kind dataModelSelectionType, String dataModel) {
-        this.dataModelSelectionType = dataModelSelectionType;
+    public SvDataModelSelection(SelectionType selectionType, String dataModel) {
+        this.selectionType = selectionType;
         this.dataModel = dataModel;
     }
 
+    public static void validateField(FormValidation result) {
+        if (!result.equals(FormValidation.ok())) {
+            throw new IllegalArgumentException(StringEscapeUtils.unescapeXml(result.getMessage()));
+        }
+    }
+
     @SuppressWarnings("unused")
-    public Kind getDataModelSelectionType() {
-        return dataModelSelectionType;
+    public SelectionType getSelectionType() {
+        return selectionType;
     }
 
     public String getDataModel() {
@@ -35,10 +42,41 @@ public class SvDataModelSelection extends AbstractDescribableImpl<SvDataModelSel
 
     @SuppressWarnings("unused")
     public boolean isSelected(String type) {
-        return Kind.valueOf(type) == this.dataModelSelectionType;
+        return SelectionType.valueOf(type) == this.selectionType;
     }
 
-    public enum Kind {
+    public boolean isNoneSelected() {
+        return selectionType == SelectionType.NONE;
+    }
+
+    public boolean isDefaultSelected() {
+        return selectionType == SelectionType.DEFAULT;
+    }
+
+    @Override
+    public String toString() {
+        switch (selectionType) {
+            case BY_NAME:
+                return dataModel;
+            case NONE:
+                return "<none>";
+            default:
+                return "<default>";
+        }
+    }
+
+    public String getSelectedModelName() {
+        switch (selectionType) {
+            case BY_NAME:
+                DescriptorImpl descriptor = (DescriptorImpl) getDescriptor();
+                validateField(descriptor.doCheckDataModel(dataModel));
+                return dataModel;
+            default:
+                return null;
+        }
+    }
+
+    public enum SelectionType {
         BY_NAME,
         NONE,
         DEFAULT,
@@ -52,32 +90,11 @@ public class SvDataModelSelection extends AbstractDescribableImpl<SvDataModelSel
         }
 
         @SuppressWarnings("unused")
-        public FormValidation doCheckModel(@QueryParameter String model) {
-            if (StringUtils.isBlank(model)) {
-                return FormValidation.error("Value cannot be empty");
+        public FormValidation doCheckDataModel(@QueryParameter String dataModel) {
+            if (StringUtils.isBlank(dataModel)) {
+                return FormValidation.error("Data model cannot be empty if 'Specific' model is selected");
             }
             return FormValidation.ok();
-        }
-    }
-
-    @Override
-    public String toString() {
-        switch (dataModelSelectionType) {
-            case BY_NAME:
-                return dataModel;
-            case NONE:
-                return "<none>";
-            default:
-                return "<default>";
-        }
-    }
-
-    public String getSelectedModelName() {
-        switch (dataModelSelectionType) {
-            case BY_NAME:
-                return dataModel;
-            default:
-                return null;
         }
     }
 }
