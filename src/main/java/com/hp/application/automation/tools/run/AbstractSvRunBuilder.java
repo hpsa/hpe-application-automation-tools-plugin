@@ -115,7 +115,7 @@ public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends
 
     protected void logConfig(PrintStream logger, String prefix) {
         SvServiceSelectionModel ss = model.getServiceSelection();
-        switch (ss.getServiceSelectionKind()) {
+        switch (ss.getSelectionType()) {
             case SERVICE:
                 logger.println(prefix + "Service name or id: " + ss.getService());
                 break;
@@ -141,7 +141,7 @@ public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends
 
         ArrayList<ServiceInfo> res = new ArrayList<ServiceInfo>();
 
-        switch (s.getServiceSelectionKind()) {
+        switch (s.getSelectionType()) {
             case SERVICE:
                 addServiceIfDeployed(s.getService(), res, ignoreMissingServices, exec, logger);
                 break;
@@ -180,7 +180,7 @@ public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends
 
     protected void validateServiceSelection() throws ConfigurationException {
         SvServiceSelectionModel s = getServiceSelection();
-        switch (s.getServiceSelectionKind()) {
+        switch (s.getSelectionType()) {
             case SERVICE:
                 verifyNotNull(s.getService(), "Service name or id must not be empty if service selection by name or id set");
                 break;

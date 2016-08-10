@@ -71,8 +71,8 @@ public class SvChangeModeBuilder extends AbstractSvRunBuilder<SvChangeModeModel>
 
         String dataModel = model.getDataModel().getSelectedModelName();
         String performanceModel = model.getPerformanceModel().getSelectedModelName();
-        boolean useDefaultDataModel = model.getDataModel().getDataModelSelectionType() == SvDataModelSelection.Kind.DEFAULT;
-        boolean useDefaultPerformanceModel = model.getPerformanceModel().getPerformanceModelSelectionType() == SvPerformanceModelSelection.Kind.DEFAULT;
+        boolean useDefaultDataModel = model.getDataModel().isDefaultSelected();
+        boolean useDefaultPerformanceModel = model.getPerformanceModel().isDefaultSelected();
         ServiceRuntimeConfiguration.RuntimeMode targetMode = getTargetMode();
 
         ChmodeProcessorInput chmodeInput = new ChmodeProcessorInput(model.isForce(), null, serviceInfo.getId(),
@@ -92,8 +92,8 @@ public class SvChangeModeBuilder extends AbstractSvRunBuilder<SvChangeModeModel>
     private ServiceRuntimeConfiguration.RuntimeMode getTargetMode() {
         // Set STAND_BY with PM in case of simulation without data model to be in accord with designer & SVM
         if (model.getMode() == ServiceRuntimeConfiguration.RuntimeMode.SIMULATING
-                && model.getPerformanceModel().getPerformanceModelSelectionType() != SvPerformanceModelSelection.Kind.NONE
-                && model.getDataModel().getDataModelSelectionType() == SvDataModelSelection.Kind.NONE) {
+                && !model.getPerformanceModel().isNoneSelected()
+                && model.getDataModel().isNoneSelected()) {
             return ServiceRuntimeConfiguration.RuntimeMode.STAND_BY;
         }
 

@@ -16,21 +16,21 @@ import org.kohsuke.stapler.QueryParameter;
 
 public class SvServiceSelectionModel extends AbstractDescribableImpl<SvServiceSelectionModel> {
 
-    protected final Kind serviceSelectionKind;
+    protected final SelectionType selectionType;
     protected final String service;
     protected final String projectPath;
     protected final Secret projectPassword;
 
     @DataBoundConstructor
-    public SvServiceSelectionModel(Kind serviceSelectionKind, String service, String projectPath, Secret projectPassword) {
-        this.serviceSelectionKind = serviceSelectionKind;
+    public SvServiceSelectionModel(SelectionType selectionType, String service, String projectPath, Secret projectPassword) {
+        this.selectionType = selectionType;
         this.service = service;
         this.projectPath = projectPath;
         this.projectPassword = projectPassword;
     }
 
-    public Kind getServiceSelectionKind() {
-        return serviceSelectionKind;
+    public SelectionType getSelectionType() {
+        return selectionType;
     }
 
     public String getService() {
@@ -46,11 +46,11 @@ public class SvServiceSelectionModel extends AbstractDescribableImpl<SvServiceSe
     }
 
     @SuppressWarnings("unused")
-    public boolean isSelectedServiceSelectionKind(String kind) {
-        return Kind.valueOf(kind) == serviceSelectionKind;
+    public boolean isSelected(String selectionType) {
+        return SelectionType.valueOf(selectionType) == this.selectionType;
     }
 
-    public enum Kind {
+    public enum SelectionType {
         SERVICE,
         PROJECT,
         ALL_DEPLOYED,
@@ -79,6 +79,5 @@ public class SvServiceSelectionModel extends AbstractDescribableImpl<SvServiceSe
             }
             return FormValidation.ok();
         }
-
     }
 }
