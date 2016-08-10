@@ -21,11 +21,11 @@
                     </f:entry>
                 </f:nested>
             </f:radioBlock>
-            <f:radioBlock name="{instance.hashCode()}.dataModelSelectionType" value="NONE"
+            <f:radioBlock name="${instance.hashCode()}.dataModelSelectionType" value="NONE"
                           checked="${instance.isSelected('NONE')}"
                           title="None" inline="true">
             </f:radioBlock>
-            <f:radioBlock name="{instance.toString()}.dataModelSelectionType" value="DEFAULT"
+            <f:radioBlock name="${instance.toString()}.dataModelSelectionType" value="DEFAULT"
                           checked="${instance.isSelected('DEFAULT')}"
                           title="Default (first data model in alphabetical order)" inline="true">
             </f:radioBlock>
