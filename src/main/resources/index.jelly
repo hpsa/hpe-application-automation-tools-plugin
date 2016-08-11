@@ -1,6 +1,7 @@
 <!--
   This view is used to render the installed plugins page.
 -->
+<?jelly escape-by-default='true'?>
 <div>
   This plugin allows integration with HP ALM, HP Unified Functional Testing, HP LoadRunner and HP Performance cente
 </div>
