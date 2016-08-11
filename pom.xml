@@ -179,7 +179,7 @@
 				</pluginManagement>
 			</build>
 		</profile>
-		
+
 		<profile>
 			<id>full</id>
 			<distributionManagement>
@@ -198,11 +198,11 @@
 					<plugin>
 						<groupId>org.sonatype.plugins</groupId>
 						<artifactId>nexus-staging-maven-plugin</artifactId>
-						<version>1.6.5</version>
+						<version>1.5.1</version>
 						<extensions>true</extensions>
 						<configuration>
-							<serverId>stage-mqm</serverId>
-							<stagingProfileId>3f346058becc87</stagingProfileId>
+							<serverId>stage-indi</serverId>
+							<stagingProfileId>3f945a89b73e3c</stagingProfileId>
 							<buildPromotionProfileId>fccb50be7d1a</buildPromotionProfileId>
 							<nexusUrl>${baseNexusURL}/</nexusUrl>
 						</configuration>
@@ -210,7 +210,7 @@
 				</plugins>
 			</build>
 		</profile>
-		
+
 		<profile>
 			<id>quick</id>
 			<distributionManagement>
