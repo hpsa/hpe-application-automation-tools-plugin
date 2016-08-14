@@ -47,31 +47,31 @@
 
 
 		<!--<dependency>-->
-			<!--<groupId>org.jenkins-ci.plugins</groupId>-->
-			<!--<artifactId>branch-api</artifactId>-->
-			<!--<version>1.10</version>-->
-			<!--<optional>true</optional>-->
+		<!--<groupId>org.jenkins-ci.plugins</groupId>-->
+		<!--<artifactId>branch-api</artifactId>-->
+		<!--<version>1.10</version>-->
+		<!--<optional>true</optional>-->
 		<!--</dependency>-->
 
 		<!--<dependency>-->
-			<!--<groupId>org.jenkins-ci.plugins</groupId>-->
-			<!--<artifactId>git-server</artifactId>-->
-			<!--<version>1.7</version>-->
-			<!--<optional>true</optional>-->
+		<!--<groupId>org.jenkins-ci.plugins</groupId>-->
+		<!--<artifactId>git-server</artifactId>-->
+		<!--<version>1.7</version>-->
+		<!--<optional>true</optional>-->
 		<!--</dependency>-->
 
 		<!--<dependency>-->
-			<!--<groupId>org.jenkins-ci.plugins.pipeline-stage-view</groupId>-->
-			<!--<artifactId>pipeline-rest-api</artifactId>-->
-			<!--<version>1.1</version>-->
-			<!--<optional>true</optional>-->
+		<!--<groupId>org.jenkins-ci.plugins.pipeline-stage-view</groupId>-->
+		<!--<artifactId>pipeline-rest-api</artifactId>-->
+		<!--<version>1.1</version>-->
+		<!--<optional>true</optional>-->
 		<!--</dependency>-->
 
 		<!--<dependency>-->
-			<!--<groupId>org.jenkins-ci.plugins.workflow</groupId>-->
-			<!--<artifactId>workflow-aggregator</artifactId>-->
-			<!--<version>2.2</version>-->
-			<!--<optional>true</optional>-->
+		<!--<groupId>org.jenkins-ci.plugins.workflow</groupId>-->
+		<!--<artifactId>workflow-aggregator</artifactId>-->
+		<!--<version>2.2</version>-->
+		<!--<optional>true</optional>-->
 		<!--</dependency>-->
 
 		<!-- pipeline as a code  ends here -->
@@ -296,12 +296,16 @@
 		<profile>
 			<id>full</id>
 			<distributionManagement>
-				<snapshotRepository>
+				<repository>
 					<id>mqm-latest</id>
 					<name>Latest repository</name>
-					<url>${baseNexusURL}/content/repositories/mqm-latest</url>
-				</snapshotRepository>
+					<url>${baseNexusURL}/content/repositories/mqm-latest2</url>
+				</repository>
 			</distributionManagement>
+		</profile>
+
+		<profile>
+			<id>full-stage</id>
 			<build>
 				<plugins>
 					<plugin>
@@ -319,6 +323,7 @@
 				</plugins>
 			</build>
 		</profile>
+
 		<profile>
 			<id>quick</id>
 			<distributionManagement>
@@ -329,69 +334,70 @@
 				</snapshotRepository>
 			</distributionManagement>
 		</profile>
-		<profile>
-			<id>jar-signing</id>
-			<build>
-				<defaultGoal>install</defaultGoal>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.7</version>
-						<executions>
-							<execution>
-								<id>default-cli</id>
-								<phase>post-integration-test</phase>
-								<configuration>
-									<target name="Sign">
-										<echo message="This is the file name:${file.name}"/>
-										<exec executable="/bin/bash" failonerror="true">
-											<arg value="/opt/HPCSS/HPSignClient/HPSign.sh"/>
-											<!--<arg value="-r jarAgm -c HPSign.conf -i /tmp/tmp/hp-integration-bridge-upgrade-windows.jar -o /tmp/tmp/Signed -obj jarfile_batch_sign_local_timestamp" />-->
-											<arg value="-r ${cert.project.name} -c HPSign.conf -i ${project.build.directory}/${file.name} -o ${original.folder} -obj ${matching.obj}"/>
-										</exec>
-									</target>
-								</configuration>
-								<goals>
-									<goal>run</goal>
-								</goals>
-							</execution>
-							<execution>
-								<id>copy signed hpi to target</id>
-								<phase>post-integration-test</phase>
-								<configuration>
-									<target>
-										<copy file="${original.folder}/${file.name}"
+	
+	<profile>
+		<id>jar-signing</id>
+		<build>
+			<defaultGoal>install</defaultGoal>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-antrun-plugin</artifactId>
+					<version>1.7</version>
+					<executions>
+						<execution>
+							<id>default-cli</id>
+							<phase>post-integration-test</phase>
+							<configuration>
+								<target name="Sign">
+									<echo message="This is the file name:${file.name}"/>
+									<exec executable="/bin/bash" failonerror="true">
+										<arg value="/opt/HPCSS/HPSignClient/HPSign.sh"/>
+										<!--<arg value="-r jarAgm -c HPSign.conf -i /tmp/tmp/hp-integration-bridge-upgrade-windows.jar -o /tmp/tmp/Signed -obj jarfile_batch_sign_local_timestamp" />-->
+										<arg value="-r ${cert.project.name} -c HPSign.conf -i ${project.build.directory}/${file.name} -o ${original.folder} -obj ${matching.obj}"/>
+									</exec>
+								</target>
+							</configuration>
+							<goals>
+								<goal>run</goal>
+							</goals>
+						</execution>
+						<execution>
+							<id>copy signed hpi to target</id>
+							<phase>post-integration-test</phase>
+							<configuration>
+								<target>
+									<copy file="${original.folder}/${file.name}"
 											  toFile="${project.build.directory}/${file.name}"
 											  overwrite="true">
-										</copy>
-									</target>
-								</configuration>
-								<goals>
-									<goal>run</goal>
-								</goals>
-							</execution>
-							<execution>
-								<id>verify-signing</id>
-								<phase>post-integration-test</phase>
-								<configuration>
-									<target name="Verify sign">
-										<echo message="This is the file name:${file.name}"/>
-										<exec executable="/bin/bash" failonerror="true">
-											<arg value="-c"/>
-											<arg value="if /usr/bin/jarsigner -verify ${project.build.directory}/${file.name} | grep 'jar verified.'; then echo THE JAR ${file.name} WAS SIGNED SUCCESSFULLY; exit 0; else echo THE BUILD FAILED BECAUSE JAR ${file.name} IS UNSIGNED; exit 1; fi"/>
-										</exec>
-									</target>
-								</configuration>
-								<goals>
-									<goal>run</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
+									</copy>
+								</target>
+							</configuration>
+							<goals>
+								<goal>run</goal>
+							</goals>
+						</execution>
+						<execution>
+							<id>verify-signing</id>
+							<phase>post-integration-test</phase>
+							<configuration>
+								<target name="Verify sign">
+									<echo message="This is the file name:${file.name}"/>
+									<exec executable="/bin/bash" failonerror="true">
+										<arg value="-c"/>
+										<arg value="if /usr/bin/jarsigner -verify ${project.build.directory}/${file.name} | grep 'jar verified.'; then echo THE JAR ${file.name} WAS SIGNED SUCCESSFULLY; exit 0; else echo THE BUILD FAILED BECAUSE JAR ${file.name} IS UNSIGNED; exit 1; fi"/>
+									</exec>
+								</target>
+							</configuration>
+							<goals>
+								<goal>run</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+			</plugins>
+		</build>
+	</profile>
+</profiles>
 
 </project>
