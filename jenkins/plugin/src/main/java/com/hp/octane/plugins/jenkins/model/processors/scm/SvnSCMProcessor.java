@@ -40,7 +40,7 @@ public class SvnSCMProcessor implements SCMProcessor {
 		List<SCMChange> tmpChanges;
 		SCMChange tmpChange;
 		ChangeLogSet<ChangeLogSet.Entry> changes = build.getChangeSet();
-		SubversionChangeLogSet.LogEntry commit;
+		String builtRevId = null;
 
 		if (project.getScm() instanceof SubversionSCM) {
 			svnData = (SubversionSCM) project.getScm();
