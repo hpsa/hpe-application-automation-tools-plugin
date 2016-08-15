@@ -255,6 +255,8 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 	@Override
 	public SnapshotNode getSnapshotByNumber(String jobCiId, String buildCiId, boolean subTree) {
 		SecurityContext securityContext = startImpersonation();
+
+		SnapshotNode result = null;
 		Job job = getJobByRefId(jobCiId);
 
 		Integer buildNumber = null;
@@ -265,11 +267,13 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 		}
 		if (job != null && buildNumber != null) {
 			Run build = job.getBuildByNumber(buildNumber);
-			stopImpersonation(securityContext);
-			return ModelFactory.createSnapshotItem(build, subTree);
+			if (build != null) {
+				result = ModelFactory.createSnapshotItem(build, subTree);
+			}
 		}
+
 		stopImpersonation(securityContext);
-		return null;
+		return result;
 	}
 
 	@Override

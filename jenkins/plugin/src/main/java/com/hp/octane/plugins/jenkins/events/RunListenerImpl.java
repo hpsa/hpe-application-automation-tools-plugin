@@ -170,7 +170,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 		return ((AbstractBuild) r).getProject().getName();
 	}
 
-	private List<? extends Cause> extractCauses(Run r) {
+	private List<Cause> extractCauses(Run r) {
 		if (r.getParent() instanceof MatrixConfiguration) {
 			return ((MatrixRun) r).getParentBuild().getCauses();
 		} else {

@@ -146,8 +146,12 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
 	}
 
 	private void executeSnapshotByNumberRequest(OctaneResultAbridged result, String jobCiId, String buildCiId, boolean subTree) {
-		SnapshotNode content = pluginServices.getSnapshotByNumber(jobCiId, buildCiId, subTree);
-		result.setBody(dtoFactory.dtoToJson(content));
+		SnapshotNode data = pluginServices.getSnapshotByNumber(jobCiId, buildCiId, subTree);
+		if (data != null) {
+			result.setBody(dtoFactory.dtoToJson(data));
+		} else {
+			result.setStatus(404);
+		}
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
 	}
 

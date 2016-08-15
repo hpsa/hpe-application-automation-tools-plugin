@@ -60,7 +60,7 @@ public class InherentParameterProcessor extends AbstractParametersProcessor {
 					.setDescription(pc.getDescription())
 					.setChoices(pc.getChoices())
 					.setDefaultValue(pc.getDefaultValue())
-					.setValue("");
+					.setValue(null);
 		} else if (pd instanceof FileParameterDefinition) {
 			FileParameterValue filePv = (FileParameterValue) pv;
 			result = dtoFactory.newDTO(CIParameter.class)

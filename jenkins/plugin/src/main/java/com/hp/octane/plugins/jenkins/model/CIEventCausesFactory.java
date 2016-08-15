@@ -21,7 +21,7 @@ import java.util.List;
 public final class CIEventCausesFactory {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
-	public static List<CIEventCause> processCauses(List<? extends Cause> causes) {
+	public static List<CIEventCause> processCauses(List<Cause> causes) {
 		List<CIEventCause> result = new LinkedList<CIEventCause>();
 		CIEventCause tmpResultCause;
 		Cause.UserIdCause tmpUserCause;

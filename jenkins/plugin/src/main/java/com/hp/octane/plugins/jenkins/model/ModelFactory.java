@@ -268,8 +268,8 @@ public class ModelFactory {
 		ciParameter.setType(type);
 		ciParameter.setDescription(pd.getDescription());
 		ParameterValue tmp;
-		if (type != CIParameterType.UNKNOWN) {
-			if (defaultValue != null || type == CIParameterType.PASSWORD) {
+		if (type != CIParameterType.UNKNOWN && type != CIParameterType.PASSWORD) {
+			if (defaultValue != null) {
 				ciParameter.setDefaultValue(defaultValue);
 			} else {
 				tmp = pd.getDefaultParameterValue();
@@ -301,7 +301,7 @@ public class ModelFactory {
 	public static String generateSubBuildName(List<CIParameter> parameters) {
 		List<CIParameter> sortedList = new ArrayList<CIParameter>();
 		for (CIParameter p : parameters) {
-			if (p.getType().toString() == CIParameterType.AXIS.toString()) {
+			if (p.getType() == CIParameterType.AXIS) {
 				sortedList.add(p);
 			}
 		}
