@@ -22,6 +22,10 @@ public interface SCMCommit extends DTOBase {
 
 	SCMCommit setUser(String user);
 
+	String getUserEmail();
+
+	SCMCommit setUserEmail(String userEmail);
+
 	String getRevId();
 
 	SCMCommit setRevId(String revId);

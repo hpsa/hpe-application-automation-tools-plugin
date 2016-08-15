@@ -8,11 +8,14 @@ import com.hp.octane.integrations.dto.scm.SCMRepository;
 import com.hp.octane.integrations.dto.scm.SCMType;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
+import hudson.model.User;
+import hudson.model.UserProperty;
 import hudson.plugins.git.Branch;
 import hudson.plugins.git.GitChangeSet;
 import hudson.plugins.git.GitSCM;
 import hudson.plugins.git.util.BuildData;
 import hudson.scm.ChangeLogSet;
+import hudson.tasks.Mailer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -37,13 +40,8 @@ public class GitSCMProcessor implements SCMProcessor {
 		GitSCM scmGit;
 		SCMRepository scmRepository;
 		String builtCommitRevId = null;
-		ArrayList<SCMCommit> tmpCommits;
-		SCMCommit tmpCommit;
-		List<SCMChange> tmpChanges;
-		SCMChange tmpChange;
 		ChangeLogSet<ChangeLogSet.Entry> changes = build.getChangeSet();
 		BuildData buildData;
-		GitChangeSet commit;
 
 		if (project.getScm() instanceof GitSCM) {
 			scmGit = (GitSCM) project.getScm();
@@ -54,22 +52,31 @@ public class GitSCMProcessor implements SCMProcessor {
 					builtCommitRevId = buildData.getLastBuiltRevision().getSha1String();
 				}
 
-				tmpCommits = new ArrayList<SCMCommit>();
+				ArrayList<SCMCommit> tmpCommits = new ArrayList<SCMCommit>();
 				for (ChangeLogSet.Entry c : changes) {
 					if (c instanceof GitChangeSet) {
-						commit = (GitChangeSet) c;
+						GitChangeSet commit = (GitChangeSet) c;
+						User user = commit.getAuthor();
+						String userEmail = null;
 
-						tmpChanges = new ArrayList<SCMChange>();
+						List<SCMChange> tmpChanges = new ArrayList<SCMChange>();
 						for (GitChangeSet.Path item : commit.getAffectedFiles()) {
-							tmpChange = dtoFactory.newDTO(SCMChange.class)
+							SCMChange tmpChange = dtoFactory.newDTO(SCMChange.class)
 									.setType(item.getEditType().getName())
 									.setFile(item.getPath());
 							tmpChanges.add(tmpChange);
 						}
 
-						tmpCommit = dtoFactory.newDTO(SCMCommit.class)
+						for (UserProperty property : user.getAllProperties()) {
+							if (property instanceof Mailer.UserProperty) {
+								userEmail = ((Mailer.UserProperty) property).getAddress();
+							}
+						}
+
+						SCMCommit tmpCommit = dtoFactory.newDTO(SCMCommit.class)
 								.setTime(commit.getTimestamp())
-								.setUser(commit.getAuthor().getId())
+								.setUser(user.getId())
+								.setUserEmail(userEmail)
 								.setRevId(commit.getCommitId())
 								.setParentRevId(commit.getParentCommit())
 								.setComment(commit.getComment().trim())

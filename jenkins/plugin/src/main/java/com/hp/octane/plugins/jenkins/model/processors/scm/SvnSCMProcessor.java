@@ -8,9 +8,12 @@ import com.hp.octane.integrations.dto.scm.SCMRepository;
 import com.hp.octane.integrations.dto.scm.SCMType;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
+import hudson.model.User;
+import hudson.model.UserProperty;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.SubversionChangeLogSet;
 import hudson.scm.SubversionSCM;
+import hudson.tasks.Mailer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -31,11 +34,9 @@ public class SvnSCMProcessor implements SCMProcessor {
 		SubversionSCM svnData;
 		SCMRepository scmRepository;
 		ArrayList<SCMCommit> tmpCommits;
-		SCMCommit tmpCommit;
 		List<SCMChange> tmpChanges;
 		SCMChange tmpChange;
 		ChangeLogSet<ChangeLogSet.Entry> changes = build.getChangeSet();
-		SubversionChangeLogSet.LogEntry commit;
 
 		if (project.getScm() instanceof SubversionSCM) {
 			svnData = (SubversionSCM) project.getScm();
@@ -44,7 +45,9 @@ public class SvnSCMProcessor implements SCMProcessor {
 			tmpCommits = new ArrayList<SCMCommit>();
 			for (ChangeLogSet.Entry c : changes) {
 				if (c instanceof SubversionChangeLogSet.LogEntry) {
-					commit = (SubversionChangeLogSet.LogEntry) c;
+					SubversionChangeLogSet.LogEntry commit = (SubversionChangeLogSet.LogEntry) c;
+					User user = commit.getAuthor();
+					String userEmail = null;
 
 					tmpChanges = new ArrayList<SCMChange>();
 					for (SubversionChangeLogSet.Path item : commit.getAffectedFiles()) {
@@ -53,9 +56,17 @@ public class SvnSCMProcessor implements SCMProcessor {
 								.setFile(item.getPath());
 						tmpChanges.add(tmpChange);
 					}
-					tmpCommit = dtoFactory.newDTO(SCMCommit.class)
+
+					for (UserProperty property : user.getAllProperties()) {
+						if (property instanceof Mailer.UserProperty) {
+							userEmail = ((Mailer.UserProperty) property).getAddress();
+						}
+					}
+
+					SCMCommit tmpCommit = dtoFactory.newDTO(SCMCommit.class)
 							.setTime(commit.getTimestamp())
 							.setUser(commit.getAuthor().getId())
+							.setUserEmail(userEmail)
 							.setRevId(commit.getCommitId())
 							.setComment(commit.getMsg().trim())
 							.setChanges(tmpChanges);
