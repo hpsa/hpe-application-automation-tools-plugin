@@ -60,9 +60,7 @@ public class ModelFactory {
 		return pipelinePhase;
 	}
 
-	/**
-	 * *****************************************************
-	 */
+
 
 	public static SnapshotNode createSnapshotItem(Run build, boolean metaOnly) {
 		SnapshotNode snapshotNode = dtoFactory.newDTO(SnapshotNode.class);
@@ -211,9 +209,6 @@ public class ModelFactory {
 		return snapshotPhase;
 	}
 
-	/**
-	 * **************************************************************************************
-	 */
 
 	public static BuildHistory.SCMUser createScmUser(User user) {
 		BuildHistory.SCMUser scmUser = new BuildHistory.SCMUser();
@@ -234,9 +229,7 @@ public class ModelFactory {
 		return userList;
 	}
 
-	/**
-	 * ***************************************************************************
-	 */
+
 	public static CIParameter createParameterConfig(ParameterDefinition pd) {
 		return createParameterConfig(pd, CIParameterType.UNKNOWN, null, null);
 	}
@@ -283,9 +276,7 @@ public class ModelFactory {
 		return ciParameter;
 	}
 
-	/**
-	 * *************************************************************
-	 */
+
 
 	public static CIParameter createParameterInstance(CIParameter pc, ParameterValue value) {
 		return dtoFactory.newDTO(CIParameter.class)

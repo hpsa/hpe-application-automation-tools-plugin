@@ -22,11 +22,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
-/**
- * Created by gullery on 12/08/2015.
- * <p/>
- * This class encompasses functionality of managing connection/s to a single abridged client (MQM Server)
- */
+
 
 public class BridgeClient {
 	private static final Logger logger = LogManager.getLogger(BridgeClient.class);

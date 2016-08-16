@@ -28,9 +28,7 @@ public class RetryModel implements ConfigurationListener {
         doSuccess();
     }
 
-    /**
-     * To be used by tests only.
-     */
+
     public RetryModel(EventPublisher eventPublisher) {
         this();
         this.eventPublisher = eventPublisher;
@@ -67,9 +65,7 @@ public class RetryModel implements ConfigurationListener {
         this.eventPublisher = eventPublisher;
     }
 
-    /**
-     * To be used by tests only.
-     */
+
     void setTimeProvider(TimeProvider timeProvider) {
         this.timeProvider = timeProvider;
     }

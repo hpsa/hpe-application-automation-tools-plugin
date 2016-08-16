@@ -19,6 +19,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.ToolInstallations;
 
 import javax.xml.stream.XMLStreamException;
 import java.io.File;
@@ -42,7 +43,8 @@ public class TestNGExtensionTest {
 
     @Before
     public void setUp() throws Exception {
-        mavenName = rule.configureDefaultMaven().getName();
+     //   mavenName = rule.configureDefaultMaven().getName();
+        mavenName = ToolInstallations.configureDefaultMaven().getName();
     }
 
     @Test
@@ -83,7 +85,9 @@ public class TestNGExtensionTest {
 
     @Test
     public void testMavenOneModule() throws Exception {
-        MavenModuleSet mavenProject = rule.createMavenProject("testNG - maven job");
+        MavenModuleSet mavenProject = rule.createProject(MavenModuleSet.class, "testNG - maven job");
+        mavenProject.runHeadless();
+      //  MavenModuleSet mavenProject = rule.createMavenProject("testNG - maven job");
         mavenProject.setMaven(mavenName);
         mavenProject.setGoals("test -Dmaven.test.failure.ignore=true");
         mavenProject.setScm(new CopyResourceSCM("/helloWorldTestNGRoot/helloWorld"));
@@ -95,7 +99,9 @@ public class TestNGExtensionTest {
 
     @Test
     public void testMavenMultimodule() throws Exception {
-        MavenModuleSet mavenProject = rule.createMavenProject("testNG - maven job");
+        MavenModuleSet mavenProject = rule.createProject(MavenModuleSet.class, "testNG - maven job");
+        mavenProject.runHeadless();
+       // MavenModuleSet mavenProject = rule.createMavenProject("testNG - maven job");
         mavenProject.setMaven(mavenName);
         mavenProject.setGoals("test -Dmaven.test.failure.ignore=true");
         mavenProject.setScm(new CopyResourceSCM("/helloWorldTestNGRoot"));
@@ -117,7 +123,9 @@ public class TestNGExtensionTest {
 
     @Test
     public void testMavenOneModuleCustomLocation() throws Exception {
-        MavenModuleSet mavenProject = rule.createMavenProject("testNG - maven job");
+        MavenModuleSet mavenProject = rule.createProject(MavenModuleSet.class, "testNG - maven job");
+        mavenProject.runHeadless();
+       // MavenModuleSet mavenProject = rule.createMavenProject("testNG - maven job");
         mavenProject.setMaven(mavenName);
         mavenProject.setGoals("test -P custom-report-location -Dmaven.test.failure.ignore=true");
         mavenProject.setScm(new CopyResourceSCM("/helloWorldTestNGRoot/helloWorld"));
@@ -132,7 +140,9 @@ public class TestNGExtensionTest {
 
     @Test
     public void testMavenMultimoduleCustomLocation() throws Exception {
-        MavenModuleSet mavenProject = rule.createMavenProject("testNG - maven job");
+        MavenModuleSet mavenProject = rule.createProject(MavenModuleSet.class, "testNG - maven job");
+        mavenProject.runHeadless();
+       // MavenModuleSet mavenProject = rule.createMavenProject("testNG - maven job");
         mavenProject.setMaven(mavenName);
         mavenProject.setGoals("test -P custom-report-location -Dmaven.test.failure.ignore=true");
         mavenProject.setScm(new CopyResourceSCM("/helloWorldTestNGRoot"));
@@ -147,7 +157,9 @@ public class TestNGExtensionTest {
 
     @Test
     public void testMavenMultimoduleCustomLocationPublished() throws Exception {
-        MavenModuleSet mavenProject = rule.createMavenProject("testNG - maven job");
+        MavenModuleSet mavenProject = rule.createProject(MavenModuleSet.class, "testNG - maven job");
+        mavenProject.runHeadless();
+     //   MavenModuleSet mavenProject = rule.createMavenProject("testNG - maven job");
         mavenProject.setMaven(mavenName);
         mavenProject.setGoals("test -P custom-report-location -Dmaven.test.failure.ignore=true");
         mavenProject.getPublishersList().add(new JUnitResultArchiver("**/custom-report-location/**.xml"));
@@ -160,7 +172,9 @@ public class TestNGExtensionTest {
 
     @Test
     public void testMavenFailsafe() throws Exception {
-        MavenModuleSet mavenProject = rule.createMavenProject("testNG - maven failsafe job");
+        MavenModuleSet mavenProject = rule.createProject(MavenModuleSet.class, "testNG - maven failsafe job");
+        mavenProject.runHeadless();
+      //  MavenModuleSet mavenProject = rule.createMavenProject("testNG - maven failsafe job");
         mavenProject.setMaven(mavenName);
         mavenProject.setGoals("verify");
         mavenProject.setScm(new CopyResourceSCM("/helloWorldFailsafe"));
@@ -207,7 +221,9 @@ public class TestNGExtensionTest {
     @Test
     public void testFindingFilesMavenBuild() throws Exception {
         //running Junit tests - there will be no testng results file
-        MavenModuleSet mavenProject = rule.createMavenProject("testNG - maven job");
+        MavenModuleSet mavenProject = rule.createProject(MavenModuleSet.class, "testNG - maven job");
+        mavenProject.runHeadless();
+       // MavenModuleSet mavenProject = rule.createMavenProject("testNG - maven job");
         mavenProject.setMaven(mavenName);
         mavenProject.setGoals("test -Dmaven.test.failure.ignore=true");
         mavenProject.setScm(new CopyResourceSCM("/helloWorldRoot/helloWorld"));
@@ -235,7 +251,9 @@ public class TestNGExtensionTest {
     @Test
     public void testFindingFilesMavenBuildFailsafe() throws Exception {
         //running Junit tests - there will be no testng results file
-        MavenModuleSet mavenProject = rule.createMavenProject("testNG - maven job");
+        MavenModuleSet mavenProject = rule.createProject(MavenModuleSet.class, "testNG - maven job");
+        mavenProject.runHeadless();
+       // MavenModuleSet mavenProject = rule.createMavenProject("testNG - maven job");
         mavenProject.setMaven(mavenName);
         mavenProject.setGoals("test -Dmaven.test.failure.ignore=true");
         mavenProject.setScm(new CopyResourceSCM("/helloWorldRoot/helloWorld"));

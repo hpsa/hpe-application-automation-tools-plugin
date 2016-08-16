@@ -4,11 +4,7 @@ package com.hp.octane.plugins.jenkins.tests;
 
 import com.hp.octane.plugins.jenkins.ExtensionUtil;
 import hudson.Launcher;
-import hudson.matrix.Axis;
-import hudson.matrix.AxisList;
-import hudson.matrix.MatrixBuild;
-import hudson.matrix.MatrixProject;
-import hudson.matrix.MatrixRun;
+import hudson.matrix.*;
 import hudson.maven.MavenModuleSet;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
@@ -21,6 +17,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.ToolInstallations;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -67,7 +64,9 @@ public class JUnitResultsTest {
     @Test
     public void testJUnitResults() throws Exception {
         FreeStyleProject project = rule.createFreeStyleProject(projectName);
-        Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
+      //  Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
+        Maven.MavenInstallation mavenInstallation = ToolInstallations.configureDefaultMaven();
+
         project.getBuildersList().add(new Maven("test", mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
         project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
         project.setScm(new CopyResourceSCM("/helloWorldRoot"));
@@ -80,7 +79,9 @@ public class JUnitResultsTest {
     @Test
     public void testJUnitResultsPom() throws Exception {
         FreeStyleProject project = rule.createFreeStyleProject(projectName);
-        Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
+       // Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
+        Maven.MavenInstallation mavenInstallation = ToolInstallations.configureDefaultMaven();
+
         project.getBuildersList().add(new Maven("test", mavenInstallation.getName(), "subFolder/helloWorld/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
         project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
         project.setScm(new CopyResourceSCM("/helloWorldRoot", "subFolder"));
@@ -93,7 +94,9 @@ public class JUnitResultsTest {
     @Test
     public void testJUnitResultsTwoPoms() throws Exception {
         FreeStyleProject project = rule.createFreeStyleProject(projectName);
-        Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
+       // Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
+        Maven.MavenInstallation mavenInstallation = ToolInstallations.configureDefaultMaven();
+
         project.getBuildersList().add(new Maven("test", mavenInstallation.getName(), "helloWorld/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
         project.getBuildersList().add(new Maven("test", mavenInstallation.getName(), "helloWorld2/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
         project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
@@ -106,8 +109,12 @@ public class JUnitResultsTest {
 
     @Test
     public void testJUnitResultsLegacy() throws Exception {
-        MavenModuleSet project = rule.createMavenProject(projectName);
-        Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
+     //   MavenModuleSet project = rule.createMavenProject(projectName);
+        MavenModuleSet project = rule.createProject(MavenModuleSet.class, projectName);
+        project.runHeadless();
+     //   Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
+        Maven.MavenInstallation mavenInstallation = ToolInstallations.configureDefaultMaven();
+
         project.setMaven(mavenInstallation.getName());
         project.setGoals("test -Dmaven.test.failure.ignore=true");
         project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
@@ -120,8 +127,11 @@ public class JUnitResultsTest {
 
     @Test
     public void testJUnitResultsLegacyWithoutJUnitArchiver() throws Exception {
-        MavenModuleSet project = rule.createMavenProject(projectName);
-        Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
+       // MavenModuleSet project = rule.createMavenProject(projectName);
+        MavenModuleSet project = rule.createProject(MavenModuleSet.class, projectName);
+        project.runHeadless();
+        Maven.MavenInstallation mavenInstallation = ToolInstallations.configureDefaultMaven();
+      //  Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
         project.setMaven(mavenInstallation.getName());
         project.setGoals("test -Dmaven.test.failure.ignore=true");
         project.setScm(new CopyResourceSCM("/helloWorldRoot"));
@@ -133,8 +143,11 @@ public class JUnitResultsTest {
 
     @Test
     public void testJUnitResultsLegacySubfolder() throws Exception {
-        MavenModuleSet project = rule.createMavenProject(projectName);
-        Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
+      //  MavenModuleSet project = rule.createMavenProject(projectName);
+        MavenModuleSet project = rule.createProject(MavenModuleSet.class, projectName);
+        project.runHeadless();
+     //   Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
+        Maven.MavenInstallation mavenInstallation = ToolInstallations.configureDefaultMaven();
         project.setMaven(mavenInstallation.getName());
         project.setRootPOM("subFolder/helloWorld/pom.xml");
         project.setGoals("test -Dmaven.test.failure.ignore=true");
@@ -162,7 +175,8 @@ public class JUnitResultsTest {
         // this scenario simulates FreeStyle project with maven executed via shell (by not using Maven builder directly)
 
         FreeStyleProject project = rule.createFreeStyleProject(projectName);
-        Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
+      //  Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
+        Maven.MavenInstallation mavenInstallation = ToolInstallations.configureDefaultMaven();
         project.getBuildersList().add(new MyMaven("test", mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
         project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
         project.setScm(new CopyResourceSCM("/helloWorldRoot"));
@@ -175,9 +189,11 @@ public class JUnitResultsTest {
 
     @Test
     public void testJUnitResultsMatrixProject() throws Exception {
-        MatrixProject matrixProject = rule.createMatrixProject(projectName);
+      //  MatrixProject matrixProject = rule.createMatrixProject(projectName);
+        MatrixProject matrixProject = rule.createProject(MatrixProject.class,projectName);
         matrixProject.setAxes(new AxisList(new Axis("OS", "Linux", "Windows")));
-        Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
+      //  Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
+        Maven.MavenInstallation mavenInstallation = ToolInstallations.configureDefaultMaven();
         matrixProject.getBuildersList().add(new Maven("test", mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
         matrixProject.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
         matrixProject.setScm(new CopyResourceSCM("/helloWorldRoot"));

@@ -18,8 +18,12 @@ import hudson.tasks.Maven;
 import hudson.tasks.junit.JUnitResultArchiver;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.ToolInstallations;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -87,7 +91,8 @@ public class TestApiTest {
 		rule.submit(form);
 
 		FreeStyleProject project = rule.createFreeStyleProject("test-api-test");
-		Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
+        Maven.MavenInstallation mavenInstallation = ToolInstallations.configureDefaultMaven();
+       // Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
 		project.getBuildersList().add(new Maven("test", mavenInstallation.getName(), "helloWorld/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
 		project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
 		project.setScm(new CopyResourceSCM("/helloWorldRoot"));

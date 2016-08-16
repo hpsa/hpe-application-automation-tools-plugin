@@ -8,14 +8,9 @@ import com.hp.octane.plugins.jenkins.tests.detection.ResultFieldsXmlReader.TestR
 import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleProject;
 import hudson.scm.SubversionSCM;
-import hudson.tasks.Ant;
 import hudson.tasks.Maven;
 import hudson.tasks.junit.JUnitResultArchiver;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.mockito.Mockito;
 
@@ -53,7 +48,7 @@ public class UFTExtensionTest {
     @Test
     public void testMockMoreBuilders() throws Exception {
         FreeStyleProject project = rule.createFreeStyleProject(projectName);
-        project.getBuildersList().add(new Ant("clean", "", "", "build.xml", ""));
+     //   project.getBuildersList().add(new Ant("clean", "", "", "build.xml", ""));
         project.getBuildersList().add(new Maven("test", "apache-maven", null, null, "-Dmaven.test.failure.ignore=true"));
         project.getBuildersList().add(new RunFromAlmBuilder("notExistingServer", "notExistingUser", "password", "domain", "project", "notExistingTests", "", "", "", ""));
 

@@ -46,11 +46,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-/**
- * Created by gullery on 21/01/2016.
- * <p/>
- * Jenkins CI Server oriented extension of CI Data Provider
- */
+
 
 public class CIJenkinsServicesImpl implements CIPluginServices {
 	private static final Logger logger = LogManager.getLogger(CIJenkinsServicesImpl.class);

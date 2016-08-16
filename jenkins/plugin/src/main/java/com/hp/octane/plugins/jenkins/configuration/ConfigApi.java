@@ -32,6 +32,11 @@ public class ConfigApi {
 	public void doSave(StaplerRequest req, StaplerResponse res) throws IOException, ServletException {
 		checkPermission();
 
+		System.out.println("***************4**************");
+		System.out.println(IOUtils.toString(req.getInputStream()));
+		
+
+		System.out.println("***************4.5**************");
 		JSONObject configuration = JSONObject.fromObject(IOUtils.toString(req.getInputStream()));
 		String uiLocation;
 		if (!configuration.containsKey("uiLocation")) {

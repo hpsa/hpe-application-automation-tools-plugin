@@ -39,12 +39,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
-/**
- * Marked as not supporting dynamic loading: AsyncPeriodicWork collects tasks during server startup. Possible workaround
- * is to schedule the period task manually after the installation, however, there is no nice & bullet proof mechanism to
- * find out if plugin is initialized regularly or dynamically. To simplify the matter, simply indicate that installation
- * is required.
- */
+
 @Extension(dynamicLoadable = YesNoMaybe.NO)
 public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
 
@@ -230,30 +225,22 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
         this.eventPublisher = eventPublisher;
     }
 
-    /*
-     * To be used in tests only.
-     */
+
     public void _setMqmRestClientFactory(JenkinsMqmRestClientFactory clientFactory) {
         this.clientFactory = clientFactory;
     }
 
-    /*
-     * To be used in tests only.
-     */
+
     public void _setTestResultQueue(TestResultQueue queue) {
         this.queue = queue;
     }
 
-    /*
-     * To be used in tests only.
-     */
+
     public void _setRetryModel(RetryModel retryModel) {
         this.retryModel = retryModel;
     }
 
-    /*
-     * To be used in tests only.
-     */
+
     public void _setEventPublisher(EventPublisher eventPublisher) {
         this.eventPublisher = eventPublisher;
     }

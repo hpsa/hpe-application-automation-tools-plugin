@@ -42,7 +42,9 @@ public class TestResultXmlWriterTest {
 
     @Test
     public void testNonEmptySubType() throws Exception {
-        MatrixProject matrixProject = jenkins.createMatrixProject("matrix-project");
+       //  MatrixProject matrixProject = jenkins.createMatrixProject("matrix-project");
+        MatrixProject matrixProject = jenkins.createProject(MatrixProject.class,"matrix-project");
+
         matrixProject.setAxes(new AxisList(new Axis("OS", "Linux")));
         MatrixBuild build = (MatrixBuild) TestUtils.runAndCheckBuild(matrixProject);
         Assert.assertEquals(1, build.getExactRuns().size());

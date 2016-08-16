@@ -5,22 +5,14 @@ package com.hp.octane.plugins.jenkins.tests;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.hp.mqm.client.MqmRestClient;
-import com.hp.mqm.client.exception.AuthenticationException;
-import com.hp.mqm.client.exception.SharedSpaceNotExistException;
-import com.hp.mqm.client.exception.RequestException;
-import com.hp.mqm.client.exception.SessionCreationException;
-import com.hp.mqm.client.exception.TemporarilyUnavailableException;
+import com.hp.mqm.client.exception.*;
 import com.hp.octane.plugins.jenkins.ExtensionUtil;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.client.TestEventPublisher;
 import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
 import hudson.FilePath;
-import hudson.matrix.Axis;
-import hudson.matrix.AxisList;
-import hudson.matrix.MatrixBuild;
-import hudson.matrix.MatrixProject;
-import hudson.matrix.MatrixRun;
+import hudson.matrix.*;
 import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
@@ -31,12 +23,9 @@ import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.ToolInstallations;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
@@ -81,7 +70,9 @@ public class TestDispatcherTest {
         testDispatcher._setEventPublisher(testEventPublisher);
 
         project = rule.createFreeStyleProject("TestDispatcher");
-        Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
+        //Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
+        Maven.MavenInstallation mavenInstallation = ToolInstallations.configureDefaultMaven();
+
         project.getBuildersList().add(new Maven("install", mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
         project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
         project.setScm(new CopyResourceSCM("/helloWorldRoot"));
@@ -256,9 +247,12 @@ public class TestDispatcherTest {
 
     @Test
     public void testDispatchMatrixBuild() throws Exception {
-        MatrixProject matrixProject = rule.createMatrixProject("TestDispatcherMatrix");
+        MatrixProject matrixProject = rule.createProject(MatrixProject.class,"TestDispatcherMatrix");
+      //  MatrixProject matrixProject = rule.createMatrixProject("TestDispatcherMatrix");
         matrixProject.setAxes(new AxisList(new Axis("OS", "Linux", "Windows")));
-        Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
+      //  Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
+        Maven.MavenInstallation mavenInstallation = ToolInstallations.configureDefaultMaven();
+
         matrixProject.getBuildersList().add(new Maven("install", mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
         matrixProject.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
         matrixProject.setScm(new CopyResourceSCM("/helloWorldRoot"));

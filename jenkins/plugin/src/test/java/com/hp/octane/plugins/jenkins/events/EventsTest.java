@@ -1,8 +1,8 @@
 package com.hp.octane.plugins.jenkins.events;
 
 import com.gargoylesoftware.htmlunit.HttpMethod;
- import com.gargoylesoftware.htmlunit.WebRequestSettings;
-//import com.gargoylesoftware.htmlunit.WebRequest;
+// import com.gargoylesoftware.htmlunit.WebRequestSettings;
+import com.gargoylesoftware.htmlunit.WebRequest;
 import com.gargoylesoftware.htmlunit.WebResponse;
 import com.hp.octane.integrations.dto.events.CIEventType;
 import com.hp.octane.plugins.jenkins.ExtensionUtil;
@@ -104,9 +104,9 @@ public class EventsTest {
 				""
 		));
 
-		WebRequestSettings req = new WebRequestSettings(client.createCrumbedUrl("nga/status"), HttpMethod.GET);
+		//WebRequestSettings req = new WebRequestSettings(client.createCrumbedUrl("nga/status"), HttpMethod.GET);
 		// the above 1 line changed to this 1 line
-		//WebRequest req = new WebRequest(client.createCrumbedUrl("nga/status"), HttpMethod.GET);
+		WebRequest req = new WebRequest(client.createCrumbedUrl("nga/status"), HttpMethod.GET);
 
 		WebResponse res = client.loadWebResponse(req);
 		JSONObject resJSON = new JSONObject(res.getContentAsString());

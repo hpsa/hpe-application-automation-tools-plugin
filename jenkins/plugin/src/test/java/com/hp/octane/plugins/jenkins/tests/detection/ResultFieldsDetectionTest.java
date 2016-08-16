@@ -13,13 +13,15 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.ToolInstallations;
 import org.mockito.Mockito;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.FileReader;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ResultFieldsDetectionTest {
 
@@ -37,7 +39,9 @@ public class ResultFieldsDetectionTest {
         detectionService = Mockito.mock(ResultFieldsDetectionService.class);
         junitExtension._setResultFieldsDetectionService(detectionService);
 
-        Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
+        //Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
+        Maven.MavenInstallation mavenInstallation = ToolInstallations.configureDefaultMaven();
+
         project.getBuildersList().add(new Maven("test", mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
         project.setScm(new CopyResourceSCM("/helloWorldRoot"));
     }

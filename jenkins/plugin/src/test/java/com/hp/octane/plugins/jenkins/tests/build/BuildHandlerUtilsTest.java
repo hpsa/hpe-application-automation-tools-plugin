@@ -4,11 +4,7 @@ package com.hp.octane.plugins.jenkins.tests.build;
 
 import com.hp.octane.plugins.jenkins.tests.CopyResourceSCM;
 import com.hp.octane.plugins.jenkins.tests.TestUtils;
-import hudson.matrix.Axis;
-import hudson.matrix.AxisList;
-import hudson.matrix.MatrixBuild;
-import hudson.matrix.MatrixProject;
-import hudson.matrix.MatrixRun;
+import hudson.matrix.*;
 import hudson.maven.MavenModuleSet;
 import hudson.maven.MavenModuleSetBuild;
 import hudson.model.FreeStyleBuild;
@@ -18,6 +14,7 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.ToolInstallations;
 
 import java.util.HashMap;
 
@@ -28,7 +25,8 @@ public class BuildHandlerUtilsTest {
 
 	@Test
 	public void testMatrixBuildType() throws Exception {
-		MatrixProject matrixProject = jenkins.createMatrixProject("matrix-project");
+		//MatrixProject matrixProject = jenkins.createMatrixProject("matrix-project");
+        MatrixProject matrixProject = jenkins.createProject(MatrixProject.class,"matrix-project");
 		matrixProject.setAxes(new AxisList(new Axis("OS", "Linux", "Windows")));
 		MatrixBuild build = (MatrixBuild) TestUtils.runAndCheckBuild(matrixProject);
 
@@ -53,8 +51,10 @@ public class BuildHandlerUtilsTest {
 
 	@Test
 	public void testMavenBuildType() throws Exception {
-		MavenModuleSet project = jenkins.createMavenProject("maven-project");
-		Maven.MavenInstallation mavenInstallation = jenkins.configureDefaultMaven();
+        MavenModuleSet project = jenkins.createProject(MavenModuleSet.class, "maven-project");
+        project.runHeadless();
+       // MavenModuleSet project = jenkins.createMavenProject("maven-project");
+		Maven.MavenInstallation mavenInstallation = ToolInstallations.configureDefaultMaven();
 		project.setMaven(mavenInstallation.getName());
 		project.setGoals("test -Dmaven.test.failure.ignore=true");
 		project.setScm(new CopyResourceSCM("/helloWorldRoot"));
