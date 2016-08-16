@@ -1,3 +1,4 @@
+<?jelly escape-by-default='true'?>
 <div>
 This plugin enables ALM Octane to retrieve and display Jenkins build pipelines and synchronize test results with Jenkins.
 </div>
