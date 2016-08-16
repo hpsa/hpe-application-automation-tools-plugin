@@ -12,7 +12,7 @@
     <td colspan="2"/>
     <td colspan="2">
         <table style="width:100%">
-            <f:radioBlock name="${instance.hashCode()}.selectionType" value="SERVICE"
+            <f:radioBlock name="${instance.hashCode()}s.selectionType" value="SERVICE"
                           checked="true"
                           title="Selected service only" inline="true">
                 <f:nested>
@@ -21,7 +21,7 @@
                     </f:entry>
                 </f:nested>
             </f:radioBlock>
-            <f:radioBlock name="${instance.hashCode()}.selectionType" value="PROJECT"
+            <f:radioBlock name="${instance.hashCode()}s.selectionType" value="PROJECT"
                           checked="${instance.isSelected('PROJECT')}"
                           title="All services from project" inline="true">
                 <f:nested>
@@ -34,7 +34,7 @@
                     </f:entry>
                 </f:nested>
             </f:radioBlock>
-            <f:radioBlock name="${instance.hashCode()}.selectionType" value="ALL_DEPLOYED"
+            <f:radioBlock name="${instance.hashCode()}s.selectionType" value="ALL_DEPLOYED"
                           checked="${instance.isSelected('ALL_DEPLOYED')}"
                           title="All services deployed on server" inline="true">
             </f:radioBlock>
