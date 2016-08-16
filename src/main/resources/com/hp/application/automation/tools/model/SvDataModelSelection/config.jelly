@@ -12,7 +12,7 @@
     <td colspan="2"/>
     <td colspan="2">
         <table style="width:100%">
-            <f:radioBlock name="${instance.hashCode()}.selectionType" value="BY_NAME"
+            <f:radioBlock name="${instance.hashCode()}dm.selectionType" value="BY_NAME"
                           checked="true"
                           title="Specific" inline="true">
                 <f:nested>
@@ -21,11 +21,11 @@
                     </f:entry>
                 </f:nested>
             </f:radioBlock>
-            <f:radioBlock name="${instance.hashCode()}.selectionType" value="NONE"
+            <f:radioBlock name="${instance.hashCode()}dm.selectionType" value="NONE"
                           checked="${instance.isSelected('NONE')}"
                           title="None (real service in simulation mode)" inline="true">
             </f:radioBlock>
-            <f:radioBlock name="${instance.hashCode()}.selectionType" value="DEFAULT"
+            <f:radioBlock name="${instance.hashCode()}dm.selectionType" value="DEFAULT"
                           checked="${instance.isSelected('DEFAULT')}"
                           title="Default (first data model in alphabetical order)" inline="true">
             </f:radioBlock>
