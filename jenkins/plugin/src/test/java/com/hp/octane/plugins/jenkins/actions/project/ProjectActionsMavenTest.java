@@ -78,18 +78,6 @@ public class ProjectActionsMavenTest {
 //		WebResponse wr = client.loadWebResponse(wrs);
 		// the above 3 lines changed to this 1 line
 
-//
-//		WebResponse wr = client.loadWebResponse(new WebRequest(
-//				new URL(client.getContextPath() + "nga/api/v1/jobs/" + projectName + "/run"), HttpMethod.POST));
-
-
-//		JenkinsRule.WebClient wc = rule.createWebClient();
-//		WebRequest req = new WebRequest(wc.createCrumbedUrl("nga/api/v1/jobs/"+ projectName + "/run"), HttpMethod.POST);
-//		req.setEncodingType(null);
-//		//req.setRequestBody(config.toString());
-//		Page page = wc.getPage(req);
-//		page.getWebResponse();
-
 
 		WebRequest webRequest = new WebRequest(new URL(client.getContextPath() +"nga/api/v1/jobs/"+ projectName + "/run"),HttpMethod.GET);
 		client.loadWebResponse(webRequest);
