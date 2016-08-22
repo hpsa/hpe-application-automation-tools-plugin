@@ -53,6 +53,9 @@ public class ConfigurationListenerTest {
 		rule.submit(form);
 		Assert.assertEquals(1, listener.getCount());
 
+		configPage = null;
+		configPage = rule.createWebClient().goTo("configure");
+		form = configPage.getFormByName("config");
 		// increased when configuration changes
 		form.getInputByName("_.username").setValueAttribute("username2");
 		rule.submit(form);

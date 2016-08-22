@@ -48,7 +48,7 @@ public class UFTExtensionTest {
     @Test
     public void testMockMoreBuilders() throws Exception {
         FreeStyleProject project = rule.createFreeStyleProject(projectName);
-     //   project.getBuildersList().add(new Ant("clean", "", "", "build.xml", ""));
+    //    project.getBuildersList().add(new Ant("clean", "", "", "build.xml", ""));
         project.getBuildersList().add(new Maven("test", "apache-maven", null, null, "-Dmaven.test.failure.ignore=true"));
         project.getBuildersList().add(new RunFromAlmBuilder("notExistingServer", "notExistingUser", "password", "domain", "project", "notExistingTests", "", "", "", ""));
 
