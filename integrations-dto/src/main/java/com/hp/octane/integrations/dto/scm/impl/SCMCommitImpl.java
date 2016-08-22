@@ -18,6 +18,7 @@ import java.util.List;
 class SCMCommitImpl implements SCMCommit {
 	private Long time;
 	private String user;
+	private String userEmail;
 	private String revId;
 	private String parentRevId;
 	private String comment;
@@ -38,6 +39,15 @@ class SCMCommitImpl implements SCMCommit {
 
 	public SCMCommit setUser(String user) {
 		this.user = user;
+		return this;
+	}
+
+	public String getUserEmail() {
+		return userEmail;
+	}
+
+	public SCMCommit setUserEmail(String userEmail) {
+		this.userEmail = userEmail;
 		return this;
 	}
 

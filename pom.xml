@@ -179,15 +179,20 @@
 				</pluginManagement>
 			</build>
 		</profile>
+
 		<profile>
 			<id>full</id>
 			<distributionManagement>
-				<snapshotRepository>
+				<repository>
 					<id>mqm-latest</id>
 					<name>Latest repository</name>
-					<url>${baseNexusURL}/content/repositories/mqm-latest</url>
-				</snapshotRepository>
+					<url>${baseNexusURL}/content/repositories/mqm-latest2</url>
+				</repository>
 			</distributionManagement>
+		</profile>
+
+		<profile>
+			<id>full-stage</id>
 			<build>
 				<plugins>
 					<plugin>
@@ -205,6 +210,7 @@
 				</plugins>
 			</build>
 		</profile>
+
 		<profile>
 			<id>quick</id>
 			<distributionManagement>
