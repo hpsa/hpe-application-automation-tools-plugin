@@ -4,7 +4,6 @@ package com.hp.octane.plugins.jenkins.actions.project;
 import com.gargoylesoftware.htmlunit.HttpMethod;
 import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.WebRequest;
-import com.gargoylesoftware.htmlunit.WebResponse;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.parameters.CIParameter;
 import com.hp.octane.integrations.dto.parameters.CIParameterType;
@@ -74,17 +73,31 @@ public class ProjectActionsMavenTest {
         MavenModuleSet p = rule.createProject(MavenModuleSet.class, projectName);
 		p.runHeadless();
 		JenkinsRule.WebClient client = rule.createWebClient();
-//		WebRequestSettings wrs = new WebRequestSettings(new URL(client.getContextPath() + "nga/api/v1/jobs/" + projectName + "/run"), HttpMethod.POST);
-//		wrs = client.addCrumb(wrs);
+		//WebRequestSettings wrs = new WebRequestSettings(new URL(client.getContextPath() + "nga/api/v1/jobs/" + projectName + "/run"), HttpMethod.POST);
+	//	wrs = client.addCrumb(wrs);
 //		WebResponse wr = client.loadWebResponse(wrs);
 		// the above 3 lines changed to this 1 line
 
+//
+//		WebResponse wr = client.loadWebResponse(new WebRequest(
+//				new URL(client.getContextPath() + "nga/api/v1/jobs/" + projectName + "/run"), HttpMethod.POST));
 
-		WebResponse wr = client.loadWebResponse(new WebRequest(
-				new URL(client.getContextPath() + "nga/api/v1/jobs/" + projectName + "/run"), HttpMethod.POST));
+
+//		JenkinsRule.WebClient wc = rule.createWebClient();
+//		WebRequest req = new WebRequest(wc.createCrumbedUrl("nga/api/v1/jobs/"+ projectName + "/run"), HttpMethod.POST);
+//		req.setEncodingType(null);
+//		//req.setRequestBody(config.toString());
+//		Page page = wc.getPage(req);
+//		page.getWebResponse();
+
+
+		WebRequest webRequest = new WebRequest(new URL(client.getContextPath() +"nga/api/v1/jobs/"+ projectName + "/run"),HttpMethod.GET);
+		client.loadWebResponse(webRequest);
+
 
 
 		while ((p.getLastBuild() == null || p.getLastBuild().isBuilding()) && ++retries < 20) {
+
 			Thread.sleep(1000);
 		}
 		assertEquals(p.getBuilds().toArray().length, 1);
