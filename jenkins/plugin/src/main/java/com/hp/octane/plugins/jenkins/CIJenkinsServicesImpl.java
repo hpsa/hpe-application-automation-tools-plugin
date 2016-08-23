@@ -46,7 +46,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-
 public class CIJenkinsServicesImpl implements CIPluginServices {
 	private static final Logger logger = LogManager.getLogger(CIJenkinsServicesImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();

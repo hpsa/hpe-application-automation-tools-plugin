@@ -16,15 +16,16 @@ import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessors;
 import hudson.model.*;
 import jenkins.model.Jenkins;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.*;
-import java.util.logging.Logger;
 
 /**
  * Created by lazara on 26/01/2016.
  */
 public class ModelFactory {
-	private static final Logger logger = Logger.getLogger(ModelFactory.class.getName());
+	private static final Logger logger = LogManager.getLogger(ModelFactory.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	public static PipelineNode createStructureItem(Job project) {
@@ -51,7 +52,7 @@ public class ModelFactory {
 				tmp[i] = ModelFactory.createStructureItem(items.get(i));
 
 			} else {
-				logger.warning("One of referenced jobs is null, your Jenkins config probably broken, skipping this job...");
+				logger.warn("One of referenced jobs is null, your Jenkins config probably broken, skipping this job...");
 			}
 		}
 
@@ -59,7 +60,6 @@ public class ModelFactory {
 
 		return pipelinePhase;
 	}
-
 
 
 	public static SnapshotNode createSnapshotItem(Run build, boolean metaOnly) {
@@ -138,7 +138,7 @@ public class ModelFactory {
 				if (item != null) {
 					if (!list.contains(item.getJobCiId())) list.add(item.getJobCiId());
 				} else {
-					logger.severe("null referenced project encountered; considering it as corrupted configuration and skipping");
+					logger.error("null referenced project encountered; considering it as corrupted configuration and skipping");
 				}
 			}
 		}
@@ -201,7 +201,7 @@ public class ModelFactory {
 					tmpBuilds.remove(0);
 				}
 			} else {
-				logger.warning("One of referenced jobs is null, your Jenkins config probably broken, skipping the build info for this job...");
+				logger.warn("One of referenced jobs is null, your Jenkins config probably broken, skipping the build info for this job...");
 			}
 		}
 		snapshotPhase.setBuilds(tmp);
@@ -275,7 +275,6 @@ public class ModelFactory {
 
 		return ciParameter;
 	}
-
 
 
 	public static CIParameter createParameterInstance(CIParameter pc, ParameterValue value) {

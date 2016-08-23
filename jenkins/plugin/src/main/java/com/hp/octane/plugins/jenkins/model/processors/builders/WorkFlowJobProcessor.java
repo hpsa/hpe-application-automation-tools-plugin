@@ -13,11 +13,12 @@ import hudson.tasks.Builder;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -27,13 +28,11 @@ import java.util.logging.Logger;
  * To change this template use File | Settings | File Templates.
  */
 
- // to make it work, just remove the remarks.
-
 public class WorkFlowJobProcessor extends AbstractProjectProcessor {
-	final WorkflowJob workflowJob;
+	private static final Logger logger = LogManager.getLogger(CIJenkinsServicesImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-	private static final Logger logger = Logger.getLogger(CIJenkinsServicesImpl.class.getName());
 
+	final WorkflowJob workflowJob;
 
 	public WorkFlowJobProcessor(Job project) {
 
@@ -83,5 +82,4 @@ public class WorkFlowJobProcessor extends AbstractProjectProcessor {
 		}
 		return result;
 	}
-
 }

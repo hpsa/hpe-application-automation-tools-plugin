@@ -27,6 +27,8 @@ import net.sf.json.JSONObject;
 import org.acegisecurity.context.SecurityContext;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -35,11 +37,9 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
-	private static Logger logger = Logger.getLogger(OctanePlugin.class.getName());
+	private static final Logger logger = LogManager.getLogger(OctanePlugin.class);
 
 	private String identity;
 	private Long identityFrom;
@@ -97,7 +97,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 				File resourceDirectory = new File(getWrapper().baseResourceURL.toURI());
 				configurationFile = new File(resourceDirectory, "predefinedConfiguration.xml");
 			} catch (URISyntaxException e) {
-				logger.log(Level.WARNING, "Unable to convert path of the predefined server configuration file", e);
+				logger.warn("Unable to convert path of the predefined server configuration file", e);
 			}
 			PredefinedConfigurationUnmarshaller predefinedConfigurationUnmarshaller = PredefinedConfigurationUnmarshaller.getExtensionInstance();
 			if (configurationFile != null && configurationFile.canRead() && predefinedConfigurationUnmarshaller != null) {
@@ -165,9 +165,9 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 			MqmProject mqmProject = ConfigurationService.parseUiLocation(uiLocation);
 			location = mqmProject.getLocation();
 			sharedSpace = mqmProject.getSharedSpace();
-		} catch (FormValidation ex) {
+		} catch (FormValidation fv) {
 			// consider plugin unconfigured
-			logger.warning("invalid configuration submitted; processing failed with error: " + ex.getMessage());
+			logger.warn("invalid configuration submitted; processing failed with error: " + fv.getMessage(), fv);
 			location = null;
 			sharedSpace = null;
 		}
@@ -190,7 +190,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 			} catch (ThreadDeath t) {
 				throw t;
 			} catch (Throwable t) {
-				logger.log(Level.WARNING, null, t);
+				logger.warn(t);
 			}
 		}
 	}
@@ -231,9 +231,9 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 			MqmProject mqmProject;
 			try {
 				mqmProject = ConfigurationService.parseUiLocation(uiLocation);
-			} catch (FormValidation ex) {
-				logger.warning("tested configuration failed on Octane URL parse: " + ex.getMessage());
-				return ex;
+			} catch (FormValidation fv) {
+				logger.warn("tested configuration failed on Octane URL parse: " + fv.getMessage(), fv);
+				return fv;
 			}
 
 			//  if parse is good, check authentication/authorization
@@ -250,12 +250,12 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 			try {
 				SecurityContext preserveContext = impersonate(impersonatedUser);
 				if (!Jenkins.getInstance().hasPermission(Item.READ)) {
-					logger.warning("tested configuration failed on insufficient Jenkins' user permissions");
+					logger.warn("tested configuration failed on insufficient Jenkins' user permissions");
 					validation = FormValidation.errorWithMarkup(markup("red", Messages.JenkinsUserPermissionsFailure()));
 				}
 				depersonate(preserveContext);
 			} catch (FormValidation fv) {
-				logger.warning("tested configuration failed on impersonating Jenkins' user, most likely non existent user provided");
+				logger.warn("tested configuration failed on impersonating Jenkins' user, most likely non existent user provided", fv);
 				return fv;
 			}
 
