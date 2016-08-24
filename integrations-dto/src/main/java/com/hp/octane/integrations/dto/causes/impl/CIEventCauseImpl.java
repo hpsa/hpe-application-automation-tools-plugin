@@ -15,7 +15,7 @@ class CIEventCauseImpl implements CIEventCause {
 	private String user;
 	private String project;
 	private String buildCiId;
-	private List<CIEventCause> causes = new ArrayList<CIEventCause>();
+	private List<CIEventCause> causes = new ArrayList<>();
 
 	public CIEventCauseType getType() {
 		return type;
