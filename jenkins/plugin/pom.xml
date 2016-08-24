@@ -41,6 +41,7 @@
 		<file.name>${project.artifactId}.hpi</file.name>
 		<original.folder>${project.build.directory}/temp</original.folder>
 		<cert.project.name>jarAgm</cert.project.name>
+		<jenkins-test-harness.version>2.14</jenkins-test-harness.version>
 		<findbugs.skip>true</findbugs.skip>
 	</properties>
 
