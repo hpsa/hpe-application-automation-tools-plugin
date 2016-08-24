@@ -10,7 +10,7 @@
 	<properties>
 		<baseNexusURL>http://mydtbld0051.hpeswlab.net:8081/nexus</baseNexusURL>
 		<maven.compiler.plugin.version>3.1</maven.compiler.plugin.version>
-		<jdk.version>1.6</jdk.version>
+		<jdk.version>1.7</jdk.version>
 		<httpclient-hp.version>4.5.1-hp-1</httpclient-hp.version>
 		<httpclient.version>4.5.1</httpclient.version>
 		<commons-io.version>2.4</commons-io.version>
