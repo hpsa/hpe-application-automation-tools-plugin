@@ -70,10 +70,9 @@ public class TestDispatcherTest {
         testDispatcher._setEventPublisher(testEventPublisher);
 
         project = rule.createFreeStyleProject("TestDispatcher");
-        //Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
-        Maven.MavenInstallation mavenInstallation = ToolInstallations.configureDefaultMaven();
+        Maven.MavenInstallation mavenInstallation = ToolInstallations.configureMaven3();
 
-        project.getBuildersList().add(new Maven("install", mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
+        project.getBuildersList().add(new Maven("-s settings.xml install", mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
         project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
         project.setScm(new CopyResourceSCM("/helloWorldRoot"));
 
@@ -248,12 +247,11 @@ public class TestDispatcherTest {
     @Test
     public void testDispatchMatrixBuild() throws Exception {
         MatrixProject matrixProject = rule.createProject(MatrixProject.class,"TestDispatcherMatrix");
-      //  MatrixProject matrixProject = rule.createMatrixProject("TestDispatcherMatrix");
         matrixProject.setAxes(new AxisList(new Axis("OS", "Linux", "Windows")));
-      //  Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
-        Maven.MavenInstallation mavenInstallation = ToolInstallations.configureDefaultMaven();
 
-        matrixProject.getBuildersList().add(new Maven("install", mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
+        Maven.MavenInstallation mavenInstallation = ToolInstallations.configureMaven3();
+
+        matrixProject.getBuildersList().add(new Maven("-s settings.xml install", mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
         matrixProject.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
         matrixProject.setScm(new CopyResourceSCM("/helloWorldRoot"));
 

@@ -1,6 +1,5 @@
 package com.hp.octane.plugins.jenkins.actions.project;
 
-
 import com.gargoylesoftware.htmlunit.HttpMethod;
 import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.WebRequest;
@@ -28,8 +27,6 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-//import com.gargoylesoftware.htmlunit.WebRequestSettings;
-
 /**
  * Created with IntelliJ IDEA.
  * User: gullery
@@ -49,10 +46,9 @@ public class ProjectActionsMavenTest {
 	//
 	@Test
 	public void testStructureMavenNoParamsNoChildren() throws IOException, SAXException {
-		//rule.createMavenProject(projectName);
-        MavenModuleSet project = rule.createProject(MavenModuleSet.class, projectName);
+		MavenModuleSet project = rule.createProject(MavenModuleSet.class, projectName);
 		project.runHeadless();
-        JenkinsRule.WebClient client = rule.createWebClient();
+		JenkinsRule.WebClient client = rule.createWebClient();
 		Page page;
 		PipelineNode pipeline;
 
@@ -69,23 +65,14 @@ public class ProjectActionsMavenTest {
 	//@Ignore
 	public void testDoRun() throws IOException, SAXException, InterruptedException {
 		int retries = 0;
-		//MavenModuleSet p = rule.createMavenProject(projectName);
-        MavenModuleSet p = rule.createProject(MavenModuleSet.class, projectName);
+		MavenModuleSet p = rule.createProject(MavenModuleSet.class, projectName);
 		p.runHeadless();
 		JenkinsRule.WebClient client = rule.createWebClient();
-		//WebRequestSettings wrs = new WebRequestSettings(new URL(client.getContextPath() + "nga/api/v1/jobs/" + projectName + "/run"), HttpMethod.POST);
-	//	wrs = client.addCrumb(wrs);
-//		WebResponse wr = client.loadWebResponse(wrs);
-		// the above 3 lines changed to this 1 line
 
-
-		WebRequest webRequest = new WebRequest(new URL(client.getContextPath() +"nga/api/v1/jobs/"+ projectName + "/run"),HttpMethod.GET);
+		WebRequest webRequest = new WebRequest(new URL(client.getContextPath() + "nga/api/v1/jobs/" + projectName + "/run"), HttpMethod.GET);
 		client.loadWebResponse(webRequest);
 
-
-
 		while ((p.getLastBuild() == null || p.getLastBuild().isBuilding()) && ++retries < 20) {
-
 			Thread.sleep(1000);
 		}
 		assertEquals(p.getBuilds().toArray().length, 1);
@@ -95,8 +82,7 @@ public class ProjectActionsMavenTest {
 	//
 	@Test
 	public void testStructureMavenWithParamsNoChildren() throws IOException, SAXException {
-		//MavenModuleSet p = rule.createMavenProject(projectName);
-        MavenModuleSet p = rule.createProject(MavenModuleSet.class, projectName);
+		MavenModuleSet p = rule.createProject(MavenModuleSet.class, projectName);
 		p.runHeadless();
 		ParametersDefinitionProperty params = new ParametersDefinitionProperty(Arrays.asList(
 				(ParameterDefinition) new BooleanParameterDefinition("ParamA", true, "bool"),
@@ -164,15 +150,12 @@ public class ProjectActionsMavenTest {
 	//
 	@Test
 	public void testStructureMavenWithParamsWithChildren() throws IOException, SAXException {
-		//MavenModuleSet p = rule.createMavenProject(projectName);
-        MavenModuleSet p = rule.createProject(MavenModuleSet.class, projectName);
+		MavenModuleSet p = rule.createProject(MavenModuleSet.class, projectName);
 		p.runHeadless();
 		FreeStyleProject p1 = rule.createFreeStyleProject("jobA");
-		//MatrixProject p2 = rule.createMatrixProject("jobB");
-        MatrixProject p2 = rule.createProject(MatrixProject.class,"jobB");
+		MatrixProject p2 = rule.createProject(MatrixProject.class, "jobB");
 		FreeStyleProject p3 = rule.createFreeStyleProject("jobC");
-		// MatrixProject p4 = rule.createMatrixProject("jobD");
-        MatrixProject p4 = rule.createProject(MatrixProject.class,"jobD");
+		MatrixProject p4 = rule.createProject(MatrixProject.class, "jobD");
 		ParametersDefinitionProperty params = new ParametersDefinitionProperty(Arrays.asList(
 				(ParameterDefinition) new BooleanParameterDefinition("ParamA", true, "bool"),
 				(ParameterDefinition) new StringParameterDefinition("ParamB", "str", "string")
@@ -184,7 +167,7 @@ public class ProjectActionsMavenTest {
 						Result.UNSTABLE,
 						Result.FAILURE
 				), Arrays.asList(new AbstractBuildParameters[0])),
-				new BlockableBuildTriggerConfig("jobC,jobD", null, Arrays.asList(new AbstractBuildParameters[0]))
+				new BlockableBuildTriggerConfig("jobC, jobD", null, Arrays.asList(new AbstractBuildParameters[0]))
 		)));
 		p.getPrebuilders().add(new Shell(""));
 		p.getPostbuilders().add(new Shell(""));
@@ -194,12 +177,12 @@ public class ProjectActionsMavenTest {
 						Result.UNSTABLE,
 						Result.FAILURE
 				), Arrays.asList(new AbstractBuildParameters[0])),
-				new BlockableBuildTriggerConfig("jobC,jobD", null, Arrays.asList(new AbstractBuildParameters[0]))
+				new BlockableBuildTriggerConfig("jobC, jobD", null, Arrays.asList(new AbstractBuildParameters[0]))
 		)));
 		p.getPublishersList().add(new BuildTrigger("jobA, jobB", Result.SUCCESS));
 		p.getPublishersList().add(new Fingerprinter(""));
 		p.getPublishersList().add(new hudson.plugins.parameterizedtrigger.BuildTrigger(Arrays.asList(
-				new BuildTriggerConfig("jobC,jobD", ResultCondition.ALWAYS, false, null)
+				new BuildTriggerConfig("jobC, jobD", ResultCondition.ALWAYS, false, null)
 		)));
 
 		JenkinsRule.WebClient client = rule.createWebClient();

@@ -90,8 +90,8 @@ public class TestApiTest {
 		rule.submit(form);
 
 		FreeStyleProject project = rule.createFreeStyleProject("test-api-test");
-		Maven.MavenInstallation mavenInstallation = ToolInstallations.configureDefaultMaven();
-		project.getBuildersList().add(new Maven("test", mavenInstallation.getName(), "helloWorld/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
+		Maven.MavenInstallation mavenInstallation = ToolInstallations.configureMaven3();
+		project.getBuildersList().add(new Maven("-s settings.xml test", mavenInstallation.getName(), "helloWorld/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
 		project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
 		project.setScm(new CopyResourceSCM("/helloWorldRoot"));
 		build = TestUtils.runAndCheckBuild(project);

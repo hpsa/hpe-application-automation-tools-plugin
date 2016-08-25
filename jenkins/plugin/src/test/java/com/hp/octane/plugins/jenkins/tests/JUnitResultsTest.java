@@ -1,8 +1,7 @@
-// (C) Copyright 2003-2015 Hewlett-Packard Development Company, L.P.
-
 package com.hp.octane.plugins.jenkins.tests;
 
 import com.hp.octane.plugins.jenkins.ExtensionUtil;
+import hudson.EnvVars;
 import hudson.Launcher;
 import hudson.matrix.*;
 import hudson.maven.MavenModuleSet;
@@ -29,208 +28,199 @@ import java.util.Set;
 
 public class JUnitResultsTest {
 
-    final private static String projectName = "junit-job";
+	final private static String projectName = "junit-job";
 
-    public static Set<String> helloWorld2Tests = new HashSet<String>();
-    static {
-        helloWorld2Tests.add(TestUtils.testSignature("helloWorld2", "hello", "HelloWorld2Test", "testOnce", TestResultStatus.PASSED));
-        helloWorld2Tests.add(TestUtils.testSignature("helloWorld2", "hello", "HelloWorld2Test", "testDoce", TestResultStatus.PASSED));
-    }
+	public static Set<String> helloWorld2Tests = new HashSet<String>();
 
-    private static Set<String> subFolderHelloWorldTests = new HashSet<String>();
-    static {
-        subFolderHelloWorldTests.add(TestUtils.testSignature("subFolder/helloWorld", "hello", "HelloWorldTest", "testOne", TestResultStatus.PASSED));
-        subFolderHelloWorldTests.add(TestUtils.testSignature("subFolder/helloWorld", "hello", "HelloWorldTest", "testTwo", TestResultStatus.FAILED));
-        subFolderHelloWorldTests.add(TestUtils.testSignature("subFolder/helloWorld", "hello", "HelloWorldTest", "testThree", TestResultStatus.SKIPPED));
-    }
+	static {
+		helloWorld2Tests.add(TestUtils.testSignature("helloWorld2", "hello", "HelloWorld2Test", "testOnce", TestResultStatus.PASSED));
+		helloWorld2Tests.add(TestUtils.testSignature("helloWorld2", "hello", "HelloWorld2Test", "testDoce", TestResultStatus.PASSED));
+	}
 
-    private static Set<String> uftTests = new HashSet<String>();
-    static {
-        uftTests.add(TestUtils.testSignature("", "All-Tests", "<None>", "subfolder/CalculatorPlusNextGen", TestResultStatus.FAILED));
-    }
+	private static Set<String> subFolderHelloWorldTests = new HashSet<String>();
 
-    @Rule
-    final public JenkinsRule rule = new JenkinsRule();
+	static {
+		subFolderHelloWorldTests.add(TestUtils.testSignature("subFolder/helloWorld", "hello", "HelloWorldTest", "testOne", TestResultStatus.PASSED));
+		subFolderHelloWorldTests.add(TestUtils.testSignature("subFolder/helloWorld", "hello", "HelloWorldTest", "testTwo", TestResultStatus.FAILED));
+		subFolderHelloWorldTests.add(TestUtils.testSignature("subFolder/helloWorld", "hello", "HelloWorldTest", "testThree", TestResultStatus.SKIPPED));
+	}
 
-    private TestQueue queue;
+	private static Set<String> uftTests = new HashSet<String>();
 
-    @Before
-    public void prepare() {
-        TestListener testListener = ExtensionUtil.getInstance(rule, TestListener.class);
-        queue = new TestQueue();
-        testListener._setTestResultQueue(queue);
-    }
+	static {
+		uftTests.add(TestUtils.testSignature("", "All-Tests", "<None>", "subfolder/CalculatorPlusNextGen", TestResultStatus.FAILED));
+	}
 
-    @Test
-    public void testJUnitResults() throws Exception {
-        FreeStyleProject project = rule.createFreeStyleProject(projectName);
-      //  Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
-        Maven.MavenInstallation mavenInstallation = ToolInstallations.configureDefaultMaven();
+	private static String mavenName;
 
-        project.getBuildersList().add(new Maven("test", mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
-        project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
-        project.setScm(new CopyResourceSCM("/helloWorldRoot"));
-        AbstractBuild build = TestUtils.runAndCheckBuild(project);
+	@Rule
+	final public JenkinsRule rule = new JenkinsRule();
 
-        matchTests(build, TestUtils.helloWorldTests, helloWorld2Tests);
-        Assert.assertEquals(Collections.singleton("junit-job#1"), getQueuedItems());
-    }
+	private TestQueue queue;
 
-    @Test
-    public void testJUnitResultsPom() throws Exception {
-        FreeStyleProject project = rule.createFreeStyleProject(projectName);
-       // Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
-        Maven.MavenInstallation mavenInstallation = ToolInstallations.configureDefaultMaven();
+	@Before
+	public void prepare() throws Exception {
+		TestListener testListener = ExtensionUtil.getInstance(rule, TestListener.class);
+		queue = new TestQueue();
+		testListener._setTestResultQueue(queue);
 
-        project.getBuildersList().add(new Maven("test", mavenInstallation.getName(), "subFolder/helloWorld/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
-        project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
-        project.setScm(new CopyResourceSCM("/helloWorldRoot", "subFolder"));
-        AbstractBuild build = TestUtils.runAndCheckBuild(project);
+		Maven.MavenInstallation mavenInstallation = ToolInstallations.configureMaven3();
+		mavenName = mavenInstallation.getName();
+	}
 
-        matchTests(build, subFolderHelloWorldTests);
-        Assert.assertEquals(Collections.singleton("junit-job#1"), getQueuedItems());
-    }
+	@Test
+	public void testJUnitResults() throws Exception {
+		FreeStyleProject project = rule.createFreeStyleProject(projectName);
 
-    @Test
-    public void testJUnitResultsTwoPoms() throws Exception {
-        FreeStyleProject project = rule.createFreeStyleProject(projectName);
-       // Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
-        Maven.MavenInstallation mavenInstallation = ToolInstallations.configureDefaultMaven();
+		project.getBuildersList().add(new Maven("-s settings.xml test", mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
+		project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
+		project.setScm(new CopyResourceSCM("/helloWorldRoot"));
+		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
-        project.getBuildersList().add(new Maven("test", mavenInstallation.getName(), "helloWorld/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
-        project.getBuildersList().add(new Maven("test", mavenInstallation.getName(), "helloWorld2/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
-        project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
-        project.setScm(new CopyResourceSCM("/helloWorldRoot"));
-        AbstractBuild build = TestUtils.runAndCheckBuild(project);
+		matchTests(build, TestUtils.helloWorldTests, helloWorld2Tests);
+		Assert.assertEquals(Collections.singleton("junit-job#1"), getQueuedItems());
+	}
 
-        matchTests(build, TestUtils.helloWorldTests, helloWorld2Tests);
-        Assert.assertEquals(Collections.singleton("junit-job#1"), getQueuedItems());
-    }
+	@Test
+	public void testJUnitResultsPom() throws Exception {
+		FreeStyleProject project = rule.createFreeStyleProject(projectName);
 
-    @Test
-    public void testJUnitResultsLegacy() throws Exception {
-     //   MavenModuleSet project = rule.createMavenProject(projectName);
-        MavenModuleSet project = rule.createProject(MavenModuleSet.class, projectName);
-        project.runHeadless();
-     //   Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
-        Maven.MavenInstallation mavenInstallation = ToolInstallations.configureDefaultMaven();
+		project.getBuildersList().add(new Maven("-s settings.xml test", mavenName, "subFolder/helloWorld/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
+		project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
+		project.setScm(new CopyResourceSCM("/helloWorldRoot", "subFolder"));
+		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
-        project.setMaven(mavenInstallation.getName());
-        project.setGoals("test -Dmaven.test.failure.ignore=true");
-        project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
-        project.setScm(new CopyResourceSCM("/helloWorldRoot"));
-        AbstractBuild build = TestUtils.runAndCheckBuild(project);
+		matchTests(build, subFolderHelloWorldTests);
+		Assert.assertEquals(Collections.singleton("junit-job#1"), getQueuedItems());
+	}
 
-        matchTests(build, TestUtils.helloWorldTests, helloWorld2Tests);
-        Assert.assertEquals(Collections.singleton("junit-job#1"), getQueuedItems());
-    }
+	@Test
+	public void testJUnitResultsTwoPoms() throws Exception {
+		FreeStyleProject project = rule.createFreeStyleProject(projectName);
 
-    @Test
-    public void testJUnitResultsLegacyWithoutJUnitArchiver() throws Exception {
-       // MavenModuleSet project = rule.createMavenProject(projectName);
-        MavenModuleSet project = rule.createProject(MavenModuleSet.class, projectName);
-        project.runHeadless();
-        Maven.MavenInstallation mavenInstallation = ToolInstallations.configureDefaultMaven();
-      //  Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
-        project.setMaven(mavenInstallation.getName());
-        project.setGoals("test -Dmaven.test.failure.ignore=true");
-        project.setScm(new CopyResourceSCM("/helloWorldRoot"));
-        AbstractBuild build = TestUtils.runAndCheckBuild(project);
+		project.getBuildersList().add(new Maven("-s settings.xml test", mavenName, "helloWorld/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
+		project.getBuildersList().add(new Maven("-s settings.xml test", mavenName, "helloWorld2/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
+		project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
+		project.setScm(new CopyResourceSCM("/helloWorldRoot"));
+		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
-        matchTests(build, TestUtils.helloWorldTests, helloWorld2Tests);
-        Assert.assertEquals(Collections.singleton("junit-job#1"), getQueuedItems());
-    }
+		matchTests(build, TestUtils.helloWorldTests, helloWorld2Tests);
+		Assert.assertEquals(Collections.singleton("junit-job#1"), getQueuedItems());
+	}
 
-    @Test
-    public void testJUnitResultsLegacySubfolder() throws Exception {
-      //  MavenModuleSet project = rule.createMavenProject(projectName);
-        MavenModuleSet project = rule.createProject(MavenModuleSet.class, projectName);
-        project.runHeadless();
-     //   Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
-        Maven.MavenInstallation mavenInstallation = ToolInstallations.configureDefaultMaven();
-        project.setMaven(mavenInstallation.getName());
-        project.setRootPOM("subFolder/helloWorld/pom.xml");
-        project.setGoals("test -Dmaven.test.failure.ignore=true");
-        project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
-        project.setScm(new CopyResourceSCM("/helloWorldRoot", "subFolder"));
-        AbstractBuild build = TestUtils.runAndCheckBuild(project);
+	@Test
+	public void testJUnitResultsLegacy() throws Exception {
+		MavenModuleSet project = rule.createProject(MavenModuleSet.class, projectName);
+		project.runHeadless();
 
-        matchTests(build, subFolderHelloWorldTests);
-        Assert.assertEquals(Collections.singleton("junit-job#1"), getQueuedItems());
-    }
+		project.setMaven(mavenName);
+		project.setGoals("-s settings.xml test -Dmaven.test.failure.ignore=true");
+		project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
+		project.setScm(new CopyResourceSCM("/helloWorldRoot"));
+		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
-    @Test
-    public void testJUnitResultsWorkspaceStripping() throws Exception {
-        FreeStyleProject project = rule.createFreeStyleProject(projectName);
-        project.getPublishersList().add(new TestCustomJUnitArchiver("UFT_results.xml"));
-        project.setScm(new CopyResourceSCM("/UFT"));
-        AbstractBuild build = TestUtils.runAndCheckBuild(project);
+		matchTests(build, TestUtils.helloWorldTests, helloWorld2Tests);
+		Assert.assertEquals(Collections.singleton("junit-job#1"), getQueuedItems());
+	}
 
-        matchTests(build, uftTests);
-        Assert.assertEquals(Collections.singleton("junit-job#1"), getQueuedItems());
-    }
+	@Test
+	public void testJUnitResultsLegacyWithoutJUnitArchiver() throws Exception {
+		MavenModuleSet project = rule.createProject(MavenModuleSet.class, projectName);
+		project.runHeadless();
 
-    @Test
-    public void testJUnitResultsFreeStyleModule() throws Exception {
-        // this scenario simulates FreeStyle project with maven executed via shell (by not using Maven builder directly)
+		project.setMaven(mavenName);
+		project.setGoals("-s settings.xml test -Dmaven.test.failure.ignore=true");
+		project.setScm(new CopyResourceSCM("/helloWorldRoot"));
+		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
-        FreeStyleProject project = rule.createFreeStyleProject(projectName);
-      //  Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
-        Maven.MavenInstallation mavenInstallation = ToolInstallations.configureDefaultMaven();
-        project.getBuildersList().add(new MyMaven("test", mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
-        project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
-        project.setScm(new CopyResourceSCM("/helloWorldRoot"));
-        AbstractBuild build = TestUtils.runAndCheckBuild(project);
+		matchTests(build, TestUtils.helloWorldTests, helloWorld2Tests);
+		Assert.assertEquals(Collections.singleton("junit-job#1"), getQueuedItems());
+	}
 
-        matchTests(build, TestUtils.helloWorldTests, helloWorld2Tests);
-        Assert.assertEquals(Collections.singleton("junit-job#1"), getQueuedItems());
-    }
+	@Test
+	public void testJUnitResultsLegacySubfolder() throws Exception {
+		MavenModuleSet project = rule.createProject(MavenModuleSet.class, projectName);
+		project.runHeadless();
+
+		project.setMaven(mavenName);
+		project.setRootPOM("subFolder/helloWorld/pom.xml");
+		project.setGoals("-s settings.xml test -Dmaven.test.failure.ignore=true");
+		project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
+		project.setScm(new CopyResourceSCM("/helloWorldRoot", "subFolder"));
+		AbstractBuild build = TestUtils.runAndCheckBuild(project);
+
+		matchTests(build, subFolderHelloWorldTests);
+		Assert.assertEquals(Collections.singleton("junit-job#1"), getQueuedItems());
+	}
+
+	@Test
+	public void testJUnitResultsWorkspaceStripping() throws Exception {
+		FreeStyleProject project = rule.createFreeStyleProject(projectName);
+		project.getPublishersList().add(new TestCustomJUnitArchiver("UFT_results.xml"));
+		project.setScm(new CopyResourceSCM("/UFT"));
+		AbstractBuild build = TestUtils.runAndCheckBuild(project);
+
+		matchTests(build, uftTests);
+		Assert.assertEquals(Collections.singleton("junit-job#1"), getQueuedItems());
+	}
+
+	@Test
+	public void testJUnitResultsFreeStyleModule() throws Exception {
+		// this scenario simulates FreeStyle project with maven executed via shell (by not using Maven builder directly)
+		FreeStyleProject project = rule.createFreeStyleProject(projectName);
+
+		project.getBuildersList().add(new MyMaven("-s settings.xml test", mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
+		project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
+		project.setScm(new CopyResourceSCM("/helloWorldRoot"));
+		AbstractBuild build = TestUtils.runAndCheckBuild(project);
+
+		matchTests(build, TestUtils.helloWorldTests, helloWorld2Tests);
+		Assert.assertEquals(Collections.singleton("junit-job#1"), getQueuedItems());
+	}
 
 
-    @Test
-    public void testJUnitResultsMatrixProject() throws Exception {
-      //  MatrixProject matrixProject = rule.createMatrixProject(projectName);
-        MatrixProject matrixProject = rule.createProject(MatrixProject.class,projectName);
-        matrixProject.setAxes(new AxisList(new Axis("OS", "Linux", "Windows")));
-      //  Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
-        Maven.MavenInstallation mavenInstallation = ToolInstallations.configureDefaultMaven();
-        matrixProject.getBuildersList().add(new Maven("test", mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
-        matrixProject.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
-        matrixProject.setScm(new CopyResourceSCM("/helloWorldRoot"));
+	@Test
+	public void testJUnitResultsMatrixProject() throws Exception {
+		MatrixProject matrixProject = rule.createProject(MatrixProject.class, projectName);
+		matrixProject.setAxes(new AxisList(new Axis("OS", "Linux", "Windows")));
 
-        MatrixBuild build = (MatrixBuild) TestUtils.runAndCheckBuild(matrixProject);
-        for (MatrixRun run: build.getExactRuns()) {
-            matchTests(run, TestUtils.helloWorldTests, helloWorld2Tests);
-        }
-        Assert.assertEquals(new HashSet<String>(Arrays.asList("junit-job/OS=Windows#1", "junit-job/OS=Linux#1")), getQueuedItems());
-        Assert.assertFalse(new File(build.getRootDir(), "mqmTests.xml").exists());
-    }
+		matrixProject.getBuildersList().add(new Maven("-s settings.xml test", mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
+		matrixProject.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
+		matrixProject.setScm(new CopyResourceSCM("/helloWorldRoot"));
 
-    private Set<String> getQueuedItems() {
-        Set<String> ret = new HashSet<String>();
-        TestResultQueue.QueueItem item;
-        while ((item = queue.peekFirst()) != null) {
-            ret.add(item.projectName + "#" + item.buildNumber);
-            queue.remove();
-        }
-        return ret;
-    }
+		MatrixBuild build = (MatrixBuild) TestUtils.runAndCheckBuild(matrixProject);
+		for (MatrixRun run : build.getExactRuns()) {
+			matchTests(run, TestUtils.helloWorldTests, helloWorld2Tests);
+		}
+		Assert.assertEquals(new HashSet<String>(Arrays.asList("junit-job/OS=Windows#1", "junit-job/OS=Linux#1")), getQueuedItems());
+		Assert.assertFalse(new File(build.getRootDir(), "mqmTests.xml").exists());
+	}
 
-    private void matchTests(AbstractBuild build, Set<String> ... expectedTests) throws FileNotFoundException {
-        File mqmTestsXml = new File(build.getRootDir(), "mqmTests.xml");
-        TestUtils.matchTests(new TestResultIterable(mqmTestsXml), projectName, build.getStartTimeInMillis(), expectedTests);
-    }
+	private Set<String> getQueuedItems() {
+		Set<String> ret = new HashSet<String>();
+		TestResultQueue.QueueItem item;
+		while ((item = queue.peekFirst()) != null) {
+			ret.add(item.projectName + "#" + item.buildNumber);
+			queue.remove();
+		}
+		return ret;
+	}
 
-    private static class MyMaven extends Builder {
+	private void matchTests(AbstractBuild build, Set<String>... expectedTests) throws FileNotFoundException {
+		File mqmTestsXml = new File(build.getRootDir(), "mqmTests.xml");
+		TestUtils.matchTests(new TestResultIterable(mqmTestsXml), projectName, build.getStartTimeInMillis(), expectedTests);
+	}
 
-        private Maven builder;
+	private static class MyMaven extends Builder {
 
-        public MyMaven(String targets, String name, String pom, String properties, String jvmOptions) {
-            this.builder = new Maven(targets, name, pom, properties, jvmOptions);
-        }
+		private Maven builder;
 
-        public boolean perform(AbstractBuild<?,?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
-            return builder.perform(build, launcher, listener);
-        }
-    }
+		public MyMaven(String targets, String name, String pom, String properties, String jvmOptions) {
+			this.builder = new Maven(targets, name, pom, properties, jvmOptions);
+		}
+
+		public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
+			return builder.perform(build, launcher, listener);
+		}
+	}
 }
