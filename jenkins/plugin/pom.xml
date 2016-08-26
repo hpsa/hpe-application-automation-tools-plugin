@@ -43,7 +43,7 @@
 		<cert.project.name>jarAgm</cert.project.name>
 		<jenkins-test-harness.version>2.14</jenkins-test-harness.version>
 		<findbugs.skip>true</findbugs.skip>
-		<surefire.entended.args>${surefireArgLine} -Xmx2048M -Djava.awt.headless=true</surefire.entended.args>
+		<surefireArgLine>-Xmx2048M -Djava.awt.headless=true</surefireArgLine>
 	</properties>
 
 	<dependencies>
@@ -237,7 +237,7 @@
 					<artifactId>maven-surefire-plugin</artifactId>
 					<version>${surefire.version}</version>
 					<configuration>
-						<argLine>${surefire.entended.args}</argLine>
+						<argLine>@{surefireArgLine}</argLine>
 						<skipTests>${skipTests}</skipTests>
 						<testFailureIgnore>true</testFailureIgnore>
 					</configuration>
