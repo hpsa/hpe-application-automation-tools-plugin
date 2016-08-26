@@ -1,5 +1,6 @@
 package com.hp.octane.plugins.jenkins.actions.build;
 
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.jvnet.hudson.test.JenkinsRule;
 
@@ -12,8 +13,8 @@ import org.jvnet.hudson.test.JenkinsRule;
  */
 
 public class BuildActionsMultiJobTest {
-	final private String projectName = "root-job";
 
-	@Rule
-	final public JenkinsRule rule = new JenkinsRule();
+//  TBD
+//	@ClassRule
+//	final public JenkinsRule rule = new JenkinsRule();
 }

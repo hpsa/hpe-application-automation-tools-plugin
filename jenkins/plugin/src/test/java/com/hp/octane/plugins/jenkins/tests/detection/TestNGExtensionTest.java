@@ -15,7 +15,7 @@ import hudson.tasks.junit.JUnitResultArchiver;
 import hudson.tasks.test.AbstractTestResultAction;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -27,14 +27,15 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Map;
+import java.util.UUID;
 
 public class TestNGExtensionTest {
 
-	@Rule
-	final public JenkinsRule rule = new JenkinsRule();
+	@ClassRule
+	public static final JenkinsRule rule = new JenkinsRule();
 
-	@Rule
-	public TemporaryFolder temporaryFolder = new TemporaryFolder();
+	@ClassRule
+	public static final TemporaryFolder temporaryFolder = new TemporaryFolder();
 
 	@Inject
 	public TestNGExtension extension = new TestNGExtension();
@@ -48,7 +49,8 @@ public class TestNGExtensionTest {
 
 	@Test
 	public void testFreestyleProject() throws Exception {
-		FreeStyleProject project = rule.createFreeStyleProject("testNG - job");
+		String projectName = "testNG-job-" + UUID.randomUUID().toString();
+		FreeStyleProject project = rule.createFreeStyleProject(projectName);
 		project.setScm(new CopyResourceSCM("/helloWorldTestNGRoot"));
 		project.getBuildersList().add(new Maven("-s settings.xml test", mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
 		project.getPublishersList().add(new JUnitResultArchiver("helloWorld/target/surefire-reports/TEST*.xml, helloWorld2/target/surefire-reports/TEST*.xml"));
@@ -60,7 +62,8 @@ public class TestNGExtensionTest {
 
 	@Test
 	public void testFreestyleProjectOneModule() throws Exception {
-		FreeStyleProject project = rule.createFreeStyleProject("testNG - job");
+		String projectName = "testNG-job-" + UUID.randomUUID().toString();
+		FreeStyleProject project = rule.createFreeStyleProject(projectName);
 		project.setScm(new CopyResourceSCM("/helloWorldTestNGRoot/helloWorld"));
 		project.getBuildersList().add(new Maven("-s settings.xml test", mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
 		project.getPublishersList().add(new JUnitResultArchiver("target/surefire-reports/TEST*.xml"));
@@ -72,7 +75,8 @@ public class TestNGExtensionTest {
 
 	@Test
 	public void testFreestyleProjectCustomLocation() throws Exception {
-		FreeStyleProject project = rule.createFreeStyleProject("testNG - job");
+		String projectName = "testNG-job-" + UUID.randomUUID().toString();
+		FreeStyleProject project = rule.createFreeStyleProject(projectName);
 		project.setScm(new CopyResourceSCM("/helloWorldTestNGRoot"));
 		project.getBuildersList().add(new Maven("-s settings.xml test -P custom-report-location", mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
 		project.getPublishersList().add(new JUnitResultArchiver("**\\custom-report-location/**.xml"));
@@ -84,7 +88,8 @@ public class TestNGExtensionTest {
 
 	@Test
 	public void testMavenOneModule() throws Exception {
-		MavenModuleSet mavenProject = rule.createProject(MavenModuleSet.class, "testNG - maven job");
+		String projectName = "testNG-job-maven-" + UUID.randomUUID().toString();
+		MavenModuleSet mavenProject = rule.createProject(MavenModuleSet.class, projectName);
 		mavenProject.runHeadless();
 		mavenProject.setMaven(mavenName);
 		mavenProject.setGoals("-s settings.xml test -Dmaven.test.failure.ignore=true");
@@ -97,7 +102,8 @@ public class TestNGExtensionTest {
 
 	@Test
 	public void testMavenMultimodule() throws Exception {
-		MavenModuleSet mavenProject = rule.createProject(MavenModuleSet.class, "testNG - maven job");
+		String projectName = "testNG-job-maven-" + UUID.randomUUID().toString();
+		MavenModuleSet mavenProject = rule.createProject(MavenModuleSet.class, projectName);
 		mavenProject.runHeadless();
 		mavenProject.setMaven(mavenName);
 		mavenProject.setGoals("-s settings.xml test -Dmaven.test.failure.ignore=true");
@@ -120,7 +126,8 @@ public class TestNGExtensionTest {
 
 	@Test
 	public void testMavenOneModuleCustomLocation() throws Exception {
-		MavenModuleSet mavenProject = rule.createProject(MavenModuleSet.class, "testNG - maven job");
+		String projectName = "testNG-job-maven-" + UUID.randomUUID().toString();
+		MavenModuleSet mavenProject = rule.createProject(MavenModuleSet.class, projectName);
 		mavenProject.runHeadless();
 		mavenProject.setMaven(mavenName);
 		mavenProject.setGoals("-s settings.xml test -P custom-report-location -Dmaven.test.failure.ignore=true");
@@ -136,7 +143,8 @@ public class TestNGExtensionTest {
 
 	@Test
 	public void testMavenMultimoduleCustomLocation() throws Exception {
-		MavenModuleSet mavenProject = rule.createProject(MavenModuleSet.class, "testNG - maven job");
+		String projectName = "testNG-job-maven-" + UUID.randomUUID().toString();
+		MavenModuleSet mavenProject = rule.createProject(MavenModuleSet.class, projectName);
 		mavenProject.runHeadless();
 		mavenProject.setMaven(mavenName);
 		mavenProject.setGoals("-s settings.xml test -P custom-report-location -Dmaven.test.failure.ignore=true");
@@ -152,7 +160,8 @@ public class TestNGExtensionTest {
 
 	@Test
 	public void testMavenMultimoduleCustomLocationPublished() throws Exception {
-		MavenModuleSet mavenProject = rule.createProject(MavenModuleSet.class, "testNG - maven job");
+		String projectName = "testNG-job-maven-" + UUID.randomUUID().toString();
+		MavenModuleSet mavenProject = rule.createProject(MavenModuleSet.class, projectName);
 		mavenProject.runHeadless();
 		mavenProject.setMaven(mavenName);
 		mavenProject.setGoals("-s settings.xml test -P custom-report-location -Dmaven.test.failure.ignore=true");
@@ -166,7 +175,8 @@ public class TestNGExtensionTest {
 
 	@Test
 	public void testMavenFailsafe() throws Exception {
-		MavenModuleSet mavenProject = rule.createProject(MavenModuleSet.class, "testNG - maven failsafe job");
+		String projectName = "testNG-job-maven-failsafe-" + UUID.randomUUID().toString();
+		MavenModuleSet mavenProject = rule.createProject(MavenModuleSet.class, projectName);
 		mavenProject.runHeadless();
 		mavenProject.setMaven(mavenName);
 		mavenProject.setGoals("-s settings.xml verify");
@@ -214,7 +224,8 @@ public class TestNGExtensionTest {
 	@Test
 	public void testFindingFilesMavenBuild() throws Exception {
 		//running Junit tests - there will be no testng results file
-		MavenModuleSet mavenProject = rule.createProject(MavenModuleSet.class, "testNG - maven job");
+		String projectName = "testNG-job-maven-" + UUID.randomUUID().toString();
+		MavenModuleSet mavenProject = rule.createProject(MavenModuleSet.class, projectName);
 		mavenProject.runHeadless();
 		mavenProject.setMaven(mavenName);
 		mavenProject.setGoals("-s settings.xml test -Dmaven.test.failure.ignore=true");
@@ -243,7 +254,8 @@ public class TestNGExtensionTest {
 	@Test
 	public void testFindingFilesMavenBuildFailsafe() throws Exception {
 		//running Junit tests - there will be no testng results file
-		MavenModuleSet mavenProject = rule.createProject(MavenModuleSet.class, "testNG - maven job");
+		String projectName = "testNG-job-maven-" + UUID.randomUUID().toString();
+		MavenModuleSet mavenProject = rule.createProject(MavenModuleSet.class, projectName);
 		mavenProject.runHeadless();
 		mavenProject.setMaven(mavenName);
 		mavenProject.setGoals("-s settings.xml test -Dmaven.test.failure.ignore=true");

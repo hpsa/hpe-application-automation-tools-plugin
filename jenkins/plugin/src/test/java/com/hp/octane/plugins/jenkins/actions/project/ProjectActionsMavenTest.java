@@ -15,7 +15,7 @@ import hudson.plugins.parameterizedtrigger.*;
 import hudson.tasks.BuildTrigger;
 import hudson.tasks.Fingerprinter;
 import hudson.tasks.Shell;
-import org.junit.Rule;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.xml.sax.SAXException;
@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.Assert.*;
 
@@ -37,18 +38,19 @@ import static org.junit.Assert.*;
 
 public class ProjectActionsMavenTest {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-	private static final String projectName = "root-job";
 
-	@Rule
-	final public JenkinsRule rule = new JenkinsRule();
+	@ClassRule
+	public static final JenkinsRule rule = new JenkinsRule();
+
+	private final JenkinsRule.WebClient client = rule.createWebClient();
 
 	//  Structure test: maven, no params, no children
 	//
 	@Test
 	public void testStructureMavenNoParamsNoChildren() throws IOException, SAXException {
+		String projectName = "root-job-" + UUID.randomUUID().toString();
 		MavenModuleSet project = rule.createProject(MavenModuleSet.class, projectName);
 		project.runHeadless();
-		JenkinsRule.WebClient client = rule.createWebClient();
 		Page page;
 		PipelineNode pipeline;
 
@@ -64,10 +66,10 @@ public class ProjectActionsMavenTest {
 	@Test
 	//@Ignore
 	public void testDoRun() throws IOException, SAXException, InterruptedException {
+		String projectName = "root-job-" + UUID.randomUUID().toString();
 		int retries = 0;
 		MavenModuleSet p = rule.createProject(MavenModuleSet.class, projectName);
 		p.runHeadless();
-		JenkinsRule.WebClient client = rule.createWebClient();
 
 		WebRequest webRequest = new WebRequest(new URL(client.getContextPath() + "nga/api/v1/jobs/" + projectName + "/run"), HttpMethod.GET);
 		client.loadWebResponse(webRequest);
@@ -82,6 +84,7 @@ public class ProjectActionsMavenTest {
 	//
 	@Test
 	public void testStructureMavenWithParamsNoChildren() throws IOException, SAXException {
+		String projectName = "root-job-" + UUID.randomUUID().toString();
 		MavenModuleSet p = rule.createProject(MavenModuleSet.class, projectName);
 		p.runHeadless();
 		ParametersDefinitionProperty params = new ParametersDefinitionProperty(Arrays.asList(
@@ -93,7 +96,6 @@ public class ProjectActionsMavenTest {
 		));
 		p.addProperty(params);
 
-		JenkinsRule.WebClient client = rule.createWebClient();
 		Page page;
 		PipelineNode pipeline;
 		CIParameter tmpParam;
@@ -150,6 +152,7 @@ public class ProjectActionsMavenTest {
 	//
 	@Test
 	public void testStructureMavenWithParamsWithChildren() throws IOException, SAXException {
+		String projectName = "root-job-" + UUID.randomUUID().toString();
 		MavenModuleSet p = rule.createProject(MavenModuleSet.class, projectName);
 		p.runHeadless();
 		FreeStyleProject p1 = rule.createFreeStyleProject("jobA");
@@ -185,7 +188,6 @@ public class ProjectActionsMavenTest {
 				new BuildTriggerConfig("jobC, jobD", ResultCondition.ALWAYS, false, null)
 		)));
 
-		JenkinsRule.WebClient client = rule.createWebClient();
 		Page page;
 		PipelineNode pipeline;
 		List<PipelinePhase> tmpPhases;

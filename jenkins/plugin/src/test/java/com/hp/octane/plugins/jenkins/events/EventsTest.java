@@ -1,7 +1,6 @@
 package com.hp.octane.plugins.jenkins.events;
 
 import com.gargoylesoftware.htmlunit.HttpMethod;
-// import com.gargoylesoftware.htmlunit.WebRequestSettings;
 import com.gargoylesoftware.htmlunit.WebRequest;
 import com.gargoylesoftware.htmlunit.WebResponse;
 import com.hp.octane.integrations.dto.events.CIEventType;
@@ -48,8 +47,8 @@ public class EventsTest {
 	static private int testingServerPort = DEFAULT_TESTING_SERVER_PORT;
 	static private EventsHandler eventsHandler;
 
-	@Rule
-	public final JenkinsRule rule = new JenkinsRule();
+	@ClassRule
+	public static final JenkinsRule rule = new JenkinsRule();
 	private final JenkinsRule.WebClient client = rule.createWebClient();
 
 	private static final class EventsHandler extends AbstractHandler {

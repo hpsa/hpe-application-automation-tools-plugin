@@ -12,8 +12,9 @@ import hudson.tasks.Maven;
 import hudson.tasks.junit.JUnitResultArchiver;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.ToolInstallations;
@@ -25,10 +26,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 public class JUnitResultsTest {
-
-	final private static String projectName = "junit-job";
 
 	public static Set<String> helloWorld2Tests = new HashSet<>();
 
@@ -45,21 +45,14 @@ public class JUnitResultsTest {
 		subFolderHelloWorldTests.add(TestUtils.testSignature("subFolder/helloWorld", "hello", "HelloWorldTest", "testThree", TestResultStatus.SKIPPED));
 	}
 
-	private static Set<String> uftTests = new HashSet<>();
-
-	static {
-		uftTests.add(TestUtils.testSignature("", "All-Tests", "<None>", "subfolder/CalculatorPlusNextGen", TestResultStatus.FAILED));
-	}
-
+	@ClassRule
+	public static final JenkinsRule rule = new JenkinsRule();
 	private static String mavenName;
-
-	@Rule
-	public final JenkinsRule rule = new JenkinsRule();
 
 	private TestQueue queue;
 
-	@Before
-	public void prepareClass() throws Exception {
+	@BeforeClass
+	public static void prepareClass() throws Exception {
 		rule.jenkins.setNumExecutors(10);
 		Maven.MavenInstallation mavenInstallation = ToolInstallations.configureMaven3();
 		mavenName = mavenInstallation.getName();
@@ -74,6 +67,7 @@ public class JUnitResultsTest {
 
 	@Test
 	public void testJUnitResults() throws Exception {
+		String projectName = "root-job-" + UUID.randomUUID().toString();
 		FreeStyleProject project = rule.createFreeStyleProject(projectName);
 
 		project.getBuildersList().add(new Maven("-s settings.xml test", mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
@@ -81,13 +75,14 @@ public class JUnitResultsTest {
 		project.setScm(new CopyResourceSCM("/helloWorldRoot"));
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
-		matchTests(build, TestUtils.helloWorldTests, helloWorld2Tests);
-		Assert.assertEquals(Collections.singleton("junit-job#1"), getQueuedItems());
+		matchTests(build, projectName, TestUtils.helloWorldTests, helloWorld2Tests);
+		Assert.assertEquals(Collections.singleton(projectName + "#1"), getQueuedItems());
 	}
 
 	@Test
 	@Ignore
 	public void testJUnitResultsPom() throws Exception {
+		String projectName = "root-job-" + UUID.randomUUID().toString();
 		FreeStyleProject project = rule.createFreeStyleProject(projectName);
 
 		project.getBuildersList().add(new Maven("-s settings.xml test", mavenName, "subFolder/helloWorld/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
@@ -95,12 +90,13 @@ public class JUnitResultsTest {
 		project.setScm(new CopyResourceSCM("/helloWorldRoot", "subFolder"));
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
-		matchTests(build, subFolderHelloWorldTests);
-		Assert.assertEquals(Collections.singleton("junit-job#1"), getQueuedItems());
+		matchTests(build, projectName, subFolderHelloWorldTests);
+		Assert.assertEquals(Collections.singleton(projectName + "#1"), getQueuedItems());
 	}
 
 	@Test
 	public void testJUnitResultsTwoPoms() throws Exception {
+		String projectName = "root-job-" + UUID.randomUUID().toString();
 		FreeStyleProject project = rule.createFreeStyleProject(projectName);
 
 		project.getBuildersList().add(new Maven("-s settings.xml test", mavenName, "helloWorld/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
@@ -109,12 +105,13 @@ public class JUnitResultsTest {
 		project.setScm(new CopyResourceSCM("/helloWorldRoot"));
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
-		matchTests(build, TestUtils.helloWorldTests, helloWorld2Tests);
-		Assert.assertEquals(Collections.singleton("junit-job#1"), getQueuedItems());
+		matchTests(build, projectName, TestUtils.helloWorldTests, helloWorld2Tests);
+		Assert.assertEquals(Collections.singleton(projectName + "#1"), getQueuedItems());
 	}
 
 	@Test
 	public void testJUnitResultsLegacy() throws Exception {
+		String projectName = "root-job-" + UUID.randomUUID().toString();
 		MavenModuleSet project = rule.createProject(MavenModuleSet.class, projectName);
 		project.runHeadless();
 
@@ -124,12 +121,13 @@ public class JUnitResultsTest {
 		project.setScm(new CopyResourceSCM("/helloWorldRoot"));
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
-		matchTests(build, TestUtils.helloWorldTests, helloWorld2Tests);
-		Assert.assertEquals(Collections.singleton("junit-job#1"), getQueuedItems());
+		matchTests(build, projectName, TestUtils.helloWorldTests, helloWorld2Tests);
+		Assert.assertEquals(Collections.singleton(projectName + "#1"), getQueuedItems());
 	}
 
 	@Test
 	public void testJUnitResultsLegacyWithoutJUnitArchiver() throws Exception {
+		String projectName = "root-job-" + UUID.randomUUID().toString();
 		MavenModuleSet project = rule.createProject(MavenModuleSet.class, projectName);
 		project.runHeadless();
 
@@ -138,12 +136,13 @@ public class JUnitResultsTest {
 		project.setScm(new CopyResourceSCM("/helloWorldRoot"));
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
-		matchTests(build, TestUtils.helloWorldTests, helloWorld2Tests);
-		Assert.assertEquals(Collections.singleton("junit-job#1"), getQueuedItems());
+		matchTests(build, projectName, TestUtils.helloWorldTests, helloWorld2Tests);
+		Assert.assertEquals(Collections.singleton(projectName + "#1"), getQueuedItems());
 	}
 
 	@Test
 	public void testJUnitResultsLegacySubfolder() throws Exception {
+		String projectName = "root-job-" + UUID.randomUUID().toString();
 		MavenModuleSet project = rule.createProject(MavenModuleSet.class, projectName);
 		project.runHeadless();
 
@@ -154,24 +153,29 @@ public class JUnitResultsTest {
 		project.setScm(new CopyResourceSCM("/helloWorldRoot", "subFolder"));
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
-		matchTests(build, subFolderHelloWorldTests);
-		Assert.assertEquals(Collections.singleton("junit-job#1"), getQueuedItems());
+		matchTests(build, projectName, subFolderHelloWorldTests);
+		Assert.assertEquals(Collections.singleton(projectName + "#1"), getQueuedItems());
 	}
 
 	@Test
 	public void testJUnitResultsWorkspaceStripping() throws Exception {
+		Set<String> uftTests = new HashSet<>();
+		uftTests.add(TestUtils.testSignature("", "All-Tests", "<None>", "subfolder" + File.separator + "CalculatorPlusNextGen", TestResultStatus.FAILED));
+
+		String projectName = "root-job-" + UUID.randomUUID().toString();
 		FreeStyleProject project = rule.createFreeStyleProject(projectName);
 		project.getPublishersList().add(new TestCustomJUnitArchiver("UFT_results.xml"));
 		project.setScm(new CopyResourceSCM("/UFT"));
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
-		matchTests(build, uftTests);
-		Assert.assertEquals(Collections.singleton("junit-job#1"), getQueuedItems());
+		matchTests(build, projectName, uftTests);
+		Assert.assertEquals(Collections.singleton(projectName + "#1"), getQueuedItems());
 	}
 
 	@Test
 	public void testJUnitResultsFreeStyleModule() throws Exception {
 		// this scenario simulates FreeStyle project with maven executed via shell (by not using Maven builder directly)
+		String projectName = "root-job-" + UUID.randomUUID().toString();
 		FreeStyleProject project = rule.createFreeStyleProject(projectName);
 
 		project.getBuildersList().add(new MyMaven("-s settings.xml test", mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
@@ -179,12 +183,13 @@ public class JUnitResultsTest {
 		project.setScm(new CopyResourceSCM("/helloWorldRoot"));
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
-		matchTests(build, TestUtils.helloWorldTests, helloWorld2Tests);
-		Assert.assertEquals(Collections.singleton("junit-job#1"), getQueuedItems());
+		matchTests(build, projectName, TestUtils.helloWorldTests, helloWorld2Tests);
+		Assert.assertEquals(Collections.singleton(projectName + "#1"), getQueuedItems());
 	}
 
 	@Test
 	public void testJUnitResultsMatrixProject() throws Exception {
+		String projectName = "root-job-" + UUID.randomUUID().toString();
 		MatrixProject matrixProject = rule.createProject(MatrixProject.class, projectName);
 		matrixProject.setAxes(new AxisList(new Axis("OS", "Linux", "Windows")));
 
@@ -194,9 +199,9 @@ public class JUnitResultsTest {
 
 		MatrixBuild build = (MatrixBuild) TestUtils.runAndCheckBuild(matrixProject);
 		for (MatrixRun run : build.getExactRuns()) {
-			matchTests(run, TestUtils.helloWorldTests, helloWorld2Tests);
+			matchTests(run, projectName, TestUtils.helloWorldTests, helloWorld2Tests);
 		}
-		Assert.assertEquals(new HashSet<>(Arrays.asList("junit-job/OS=Windows#1", "junit-job/OS=Linux#1")), getQueuedItems());
+		Assert.assertEquals(new HashSet<>(Arrays.asList(projectName + "/OS=Windows#1", projectName + "/OS=Linux#1")), getQueuedItems());
 		Assert.assertFalse(new File(build.getRootDir(), "mqmTests.xml").exists());
 	}
 
@@ -210,7 +215,7 @@ public class JUnitResultsTest {
 		return ret;
 	}
 
-	private void matchTests(AbstractBuild build, Set<String>... expectedTests) throws FileNotFoundException {
+	private void matchTests(AbstractBuild build, String projectName, Set<String>... expectedTests) throws FileNotFoundException {
 		File mqmTestsXml = new File(build.getRootDir(), "mqmTests.xml");
 		TestUtils.matchTests(new TestResultIterable(mqmTestsXml), projectName, build.getStartTimeInMillis(), expectedTests);
 	}

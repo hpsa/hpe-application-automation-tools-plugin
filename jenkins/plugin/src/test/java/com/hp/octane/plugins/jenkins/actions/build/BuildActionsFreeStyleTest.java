@@ -11,12 +11,13 @@ import com.hp.octane.integrations.dto.snapshots.CIBuildStatus;
 import com.hp.octane.plugins.jenkins.actions.Utils;
 import hudson.model.*;
 import hudson.plugins.parameterizedtrigger.*;
-import org.junit.Rule;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.UUID;
 
 import static org.junit.Assert.*;
 
@@ -30,67 +31,15 @@ import static org.junit.Assert.*;
 
 public class BuildActionsFreeStyleTest {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-	private static final String projectName = "root-job";
 
-	@Rule
-	public final JenkinsRule rule = new JenkinsRule();
-
-	private void createProjectStructure(FreeStyleProject project) throws IOException {
-		FreeStyleProject jobA = rule.createFreeStyleProject("jobA");
-		FreeStyleProject jobB = rule.createFreeStyleProject("jobB");
-		FreeStyleProject jobC = rule.createFreeStyleProject("jobC");
-		FreeStyleProject jobAA = rule.createFreeStyleProject("jobAA");
-		FreeStyleProject jobBB = rule.createFreeStyleProject("jobBB");
-		FreeStyleProject jobCC = rule.createFreeStyleProject("jobCC");
-
-
-		//  jobA
-		jobA.getBuildersList().add(Utils.getSleepScript(5));
-		jobA.getBuildersList().add(new TriggerBuilder(Arrays.asList(
-				new BlockableBuildTriggerConfig("jobAA, jobC", new BlockingBehaviour(
-						Result.FAILURE,
-						Result.FAILURE,
-						Result.UNSTABLE
-				), null)
-		)));
-
-		//  jobB
-		jobB.getBuildersList().add(Utils.getSleepScript(2));
-		jobB.getPublishersList().add(new hudson.tasks.BuildTrigger("jobBB, jobC", Result.SUCCESS));
-
-		//  jobC
-		jobC.getBuildersList().add(Utils.getSleepScript(5));
-		jobC.getPublishersList().add(new hudson.plugins.parameterizedtrigger.BuildTrigger(Arrays.asList(
-				new BuildTriggerConfig("jobCC", ResultCondition.ALWAYS, true, null)
-		)));
-
-		jobAA.getBuildersList().add(Utils.getSleepScript(2));
-		jobBB.getBuildersList().add(Utils.getSleepScript(4));
-		jobCC.getBuildersList().add(Utils.getSleepScript(3));
-
-		//  root job config
-		project.getBuildersList().add(new TriggerBuilder(Arrays.asList(
-				new BlockableBuildTriggerConfig("jobA, jobB", new BlockingBehaviour(
-						Result.FAILURE,
-						Result.FAILURE,
-						Result.UNSTABLE
-				), Arrays.asList(new AbstractBuildParameters[0])),
-				new BlockableBuildTriggerConfig("jobC", new BlockingBehaviour(
-						Result.FAILURE,
-						Result.FAILURE,
-						Result.UNSTABLE
-				), Arrays.asList(new AbstractBuildParameters[0]))
-		)));
-		project.getPublishersList().add(new hudson.tasks.BuildTrigger("jobA, jobB", Result.SUCCESS));
-		project.getPublishersList().add(new hudson.plugins.parameterizedtrigger.BuildTrigger(Arrays.asList(
-				new BuildTriggerConfig("jobC", ResultCondition.ALWAYS, true, null)
-		)));
-	}
+	@ClassRule
+	public static final JenkinsRule rule = new JenkinsRule();
 
 	//  Snapshot: free-style, no params, no children
 	//
 	@Test
 	public void testFreeStyleNoParamsNoChildren() throws Exception {
+		String projectName = "root-job-" + UUID.randomUUID().toString();
 		int retries = 0;
 		FreeStyleProject p = rule.createFreeStyleProject(projectName);
 
@@ -127,6 +76,7 @@ public class BuildActionsFreeStyleTest {
 	//
 	@Test
 	public void testFreeStyleWithParamsNoChildren() throws Exception {
+		String projectName = "root-job-" + UUID.randomUUID().toString();
 		int retries = 0;
 		FreeStyleProject p = rule.createFreeStyleProject(projectName);
 		ParametersDefinitionProperty params = new ParametersDefinitionProperty(Arrays.asList(
@@ -208,6 +158,7 @@ public class BuildActionsFreeStyleTest {
 	//
 	@Test
 	public void testFreeStyleWithParamsWithChildren() throws Exception {
+		String projectName = "root-job-" + UUID.randomUUID().toString();
 		int retries = 0;
 		rule.jenkins.setNumExecutors(10);
 		rule.jenkins.setNodes(rule.jenkins.getNodes());
@@ -249,5 +200,58 @@ public class BuildActionsFreeStyleTest {
 		assertNotNull(snapshot.getStartTime());
 		assertNotNull(snapshot.getDuration());
 		assertNotNull(snapshot.getEstimatedDuration());
+	}
+
+
+	private void createProjectStructure(FreeStyleProject project) throws IOException {
+		FreeStyleProject jobA = rule.createFreeStyleProject("jobA");
+		FreeStyleProject jobB = rule.createFreeStyleProject("jobB");
+		FreeStyleProject jobC = rule.createFreeStyleProject("jobC");
+		FreeStyleProject jobAA = rule.createFreeStyleProject("jobAA");
+		FreeStyleProject jobBB = rule.createFreeStyleProject("jobBB");
+		FreeStyleProject jobCC = rule.createFreeStyleProject("jobCC");
+
+
+		//  jobA
+		jobA.getBuildersList().add(Utils.getSleepScript(5));
+		jobA.getBuildersList().add(new TriggerBuilder(Arrays.asList(
+				new BlockableBuildTriggerConfig("jobAA, jobC", new BlockingBehaviour(
+						Result.FAILURE,
+						Result.FAILURE,
+						Result.UNSTABLE
+				), null)
+		)));
+
+		//  jobB
+		jobB.getBuildersList().add(Utils.getSleepScript(2));
+		jobB.getPublishersList().add(new hudson.tasks.BuildTrigger("jobBB, jobC", Result.SUCCESS));
+
+		//  jobC
+		jobC.getBuildersList().add(Utils.getSleepScript(5));
+		jobC.getPublishersList().add(new hudson.plugins.parameterizedtrigger.BuildTrigger(Arrays.asList(
+				new BuildTriggerConfig("jobCC", ResultCondition.ALWAYS, true, null)
+		)));
+
+		jobAA.getBuildersList().add(Utils.getSleepScript(2));
+		jobBB.getBuildersList().add(Utils.getSleepScript(4));
+		jobCC.getBuildersList().add(Utils.getSleepScript(3));
+
+		//  root job config
+		project.getBuildersList().add(new TriggerBuilder(Arrays.asList(
+				new BlockableBuildTriggerConfig("jobA, jobB", new BlockingBehaviour(
+						Result.FAILURE,
+						Result.FAILURE,
+						Result.UNSTABLE
+				), Arrays.asList(new AbstractBuildParameters[0])),
+				new BlockableBuildTriggerConfig("jobC", new BlockingBehaviour(
+						Result.FAILURE,
+						Result.FAILURE,
+						Result.UNSTABLE
+				), Arrays.asList(new AbstractBuildParameters[0]))
+		)));
+		project.getPublishersList().add(new hudson.tasks.BuildTrigger("jobA, jobB", Result.SUCCESS));
+		project.getPublishersList().add(new hudson.plugins.parameterizedtrigger.BuildTrigger(Arrays.asList(
+				new BuildTriggerConfig("jobC", ResultCondition.ALWAYS, true, null)
+		)));
 	}
 }

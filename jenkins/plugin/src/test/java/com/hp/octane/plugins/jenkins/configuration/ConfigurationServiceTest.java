@@ -1,5 +1,3 @@
-// (C) Copyright 2003-2015 Hewlett-Packard Development Company, L.P.
-
 package com.hp.octane.plugins.jenkins.configuration;
 
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
@@ -14,15 +12,16 @@ import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import hudson.util.FormValidation;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.mockito.Mockito;
 
 public class ConfigurationServiceTest {
 
-	@Rule
-	final public JenkinsRule rule = new JenkinsRule();
+	@ClassRule
+	public static final JenkinsRule rule = new JenkinsRule();
+	private final JenkinsRule.WebClient jClient = rule.createWebClient();
 
 	private ConfigurationService configurationService;
 	private JenkinsMqmRestClientFactory clientFactory;
@@ -35,7 +34,7 @@ public class ConfigurationServiceTest {
 		configurationService = ExtensionUtil.getInstance(rule, ConfigurationService.class);
 		configurationService._setMqmRestClientFactory(clientFactory);
 
-		HtmlPage configPage = rule.createWebClient().goTo("configure");
+		HtmlPage configPage = jClient.goTo("configure");
 		HtmlForm form = configPage.getFormByName("config");
 
 		form.getInputByName("_.uiLocation").setValueAttribute("http://localhost:8008/ui/?p=1001/1002");
@@ -55,10 +54,9 @@ public class ConfigurationServiceTest {
 
 	@Test
 	public void testConfigurationRoundTrip() throws Exception {
-		JenkinsRule.WebClient webClient = rule.createWebClient();
-		HtmlForm formIn = webClient.goTo("configure").getFormByName("config");
+		HtmlForm formIn = jClient.goTo("configure").getFormByName("config");
 		rule.submit(formIn);
-		HtmlForm formOut = webClient.goTo("configure").getFormByName("config");
+		HtmlForm formOut = jClient.goTo("configure").getFormByName("config");
 		Assert.assertEquals(formIn.getInputByName("_.uiLocation").getValueAttribute(), formOut.getInputByName("_.uiLocation").getValueAttribute());
 		Assert.assertEquals(formIn.getInputByName("_.username").getValueAttribute(), formOut.getInputByName("_.username").getValueAttribute());
 		// NOTE: password is actually empty (bug or security feature?)
