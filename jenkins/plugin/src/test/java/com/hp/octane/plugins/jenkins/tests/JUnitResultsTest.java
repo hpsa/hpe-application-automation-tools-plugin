@@ -55,7 +55,7 @@ public class JUnitResultsTest {
 	private static String mavenName;
 
 	@Rule
-	private static final JenkinsRule rule = new JenkinsRule();
+	public static final JenkinsRule rule = new JenkinsRule();
 
 	private TestQueue queue;
 
