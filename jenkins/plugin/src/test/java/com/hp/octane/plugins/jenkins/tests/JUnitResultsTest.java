@@ -1,7 +1,6 @@
 package com.hp.octane.plugins.jenkins.tests;
 
 import com.hp.octane.plugins.jenkins.ExtensionUtil;
-import hudson.EnvVars;
 import hudson.Launcher;
 import hudson.matrix.*;
 import hudson.maven.MavenModuleSet;
@@ -13,6 +12,8 @@ import hudson.tasks.Maven;
 import hudson.tasks.junit.JUnitResultArchiver;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -26,18 +27,19 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+@Ignore
 public class JUnitResultsTest {
 
 	final private static String projectName = "junit-job";
 
-	public static Set<String> helloWorld2Tests = new HashSet<String>();
+	public static Set<String> helloWorld2Tests = new HashSet<>();
 
 	static {
 		helloWorld2Tests.add(TestUtils.testSignature("helloWorld2", "hello", "HelloWorld2Test", "testOnce", TestResultStatus.PASSED));
 		helloWorld2Tests.add(TestUtils.testSignature("helloWorld2", "hello", "HelloWorld2Test", "testDoce", TestResultStatus.PASSED));
 	}
 
-	private static Set<String> subFolderHelloWorldTests = new HashSet<String>();
+	private static Set<String> subFolderHelloWorldTests = new HashSet<>();
 
 	static {
 		subFolderHelloWorldTests.add(TestUtils.testSignature("subFolder/helloWorld", "hello", "HelloWorldTest", "testOne", TestResultStatus.PASSED));
@@ -45,7 +47,7 @@ public class JUnitResultsTest {
 		subFolderHelloWorldTests.add(TestUtils.testSignature("subFolder/helloWorld", "hello", "HelloWorldTest", "testThree", TestResultStatus.SKIPPED));
 	}
 
-	private static Set<String> uftTests = new HashSet<String>();
+	private static Set<String> uftTests = new HashSet<>();
 
 	static {
 		uftTests.add(TestUtils.testSignature("", "All-Tests", "<None>", "subfolder/CalculatorPlusNextGen", TestResultStatus.FAILED));
@@ -54,18 +56,22 @@ public class JUnitResultsTest {
 	private static String mavenName;
 
 	@Rule
-	final public JenkinsRule rule = new JenkinsRule();
+	private static final JenkinsRule rule = new JenkinsRule();
 
 	private TestQueue queue;
 
+	@BeforeClass
+	public static void prepareClass() throws Exception {
+		rule.jenkins.setNumExecutors(10);
+		Maven.MavenInstallation mavenInstallation = ToolInstallations.configureMaven3();
+		mavenName = mavenInstallation.getName();
+	}
+
 	@Before
-	public void prepare() throws Exception {
+	private void prepareTest() {
 		TestListener testListener = ExtensionUtil.getInstance(rule, TestListener.class);
 		queue = new TestQueue();
 		testListener._setTestResultQueue(queue);
-
-		Maven.MavenInstallation mavenInstallation = ToolInstallations.configureMaven3();
-		mavenName = mavenInstallation.getName();
 	}
 
 	@Test
@@ -178,7 +184,6 @@ public class JUnitResultsTest {
 		Assert.assertEquals(Collections.singleton("junit-job#1"), getQueuedItems());
 	}
 
-
 	@Test
 	public void testJUnitResultsMatrixProject() throws Exception {
 		MatrixProject matrixProject = rule.createProject(MatrixProject.class, projectName);
@@ -192,12 +197,12 @@ public class JUnitResultsTest {
 		for (MatrixRun run : build.getExactRuns()) {
 			matchTests(run, TestUtils.helloWorldTests, helloWorld2Tests);
 		}
-		Assert.assertEquals(new HashSet<String>(Arrays.asList("junit-job/OS=Windows#1", "junit-job/OS=Linux#1")), getQueuedItems());
+		Assert.assertEquals(new HashSet<>(Arrays.asList("junit-job/OS=Windows#1", "junit-job/OS=Linux#1")), getQueuedItems());
 		Assert.assertFalse(new File(build.getRootDir(), "mqmTests.xml").exists());
 	}
 
 	private Set<String> getQueuedItems() {
-		Set<String> ret = new HashSet<String>();
+		Set<String> ret = new HashSet<>();
 		TestResultQueue.QueueItem item;
 		while ((item = queue.peekFirst()) != null) {
 			ret.add(item.projectName + "#" + item.buildNumber);

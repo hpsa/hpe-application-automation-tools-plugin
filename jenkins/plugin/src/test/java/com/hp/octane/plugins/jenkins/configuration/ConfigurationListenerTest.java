@@ -1,5 +1,3 @@
-// (C) Copyright 2003-2015 Hewlett-Packard Development Company, L.P.
-
 package com.hp.octane.plugins.jenkins.configuration;
 
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
@@ -78,7 +76,7 @@ public class ConfigurationListenerTest {
 		@Override
 		public void onChanged(ServerConfiguration conf, ServerConfiguration oldConf) {
 			++count;
-			newAndOld = new ArrayList<ServerConfiguration>();
+			newAndOld = new ArrayList<>();
 			newAndOld.add(conf);
 			newAndOld.add(oldConf);
 		}

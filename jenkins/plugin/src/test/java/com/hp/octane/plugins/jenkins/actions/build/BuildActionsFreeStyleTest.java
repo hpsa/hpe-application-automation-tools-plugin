@@ -56,18 +56,18 @@ public class BuildActionsFreeStyleTest {
 		)));
 
 		//  jobB
-		jobB.getBuildersList().add(Utils.getSleepScript(12));
+		jobB.getBuildersList().add(Utils.getSleepScript(2));
 		jobB.getPublishersList().add(new hudson.tasks.BuildTrigger("jobBB, jobC", Result.SUCCESS));
 
 		//  jobC
-		jobC.getBuildersList().add(Utils.getSleepScript(20));
+		jobC.getBuildersList().add(Utils.getSleepScript(4));
 		jobC.getPublishersList().add(new hudson.plugins.parameterizedtrigger.BuildTrigger(Arrays.asList(
 				new BuildTriggerConfig("jobCC", ResultCondition.ALWAYS, true, null)
 		)));
 
-		jobAA.getBuildersList().add(Utils.getSleepScript(10));
-		jobBB.getBuildersList().add(Utils.getSleepScript(25));
-		jobCC.getBuildersList().add(Utils.getSleepScript(17));
+		jobAA.getBuildersList().add(Utils.getSleepScript(2));
+		jobBB.getBuildersList().add(Utils.getSleepScript(4));
+		jobCC.getBuildersList().add(Utils.getSleepScript(3));
 
 		//  root job config
 		project.getBuildersList().add(new TriggerBuilder(Arrays.asList(
@@ -146,8 +146,8 @@ public class BuildActionsFreeStyleTest {
 
 		assertEquals(p.getBuilds().toArray().length, 0);
 		Utils.buildProjectWithParams(client, p, "ParamA=false&ParamD=two&ParamX=some_string");
-		while ((p.getLastBuild() == null || p.getLastBuild().isBuilding()) && ++retries < MAX_RUN_WAITING_SECS) {
-			Thread.sleep(1000);
+		while ((p.getLastBuild() == null || p.getLastBuild().isBuilding()) && ++retries < MAX_RUN_WAITING_SECS * 2) {
+			Thread.sleep(500);
 		}
 		assertEquals(p.getBuilds().toArray().length, 1);
 
