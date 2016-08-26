@@ -236,7 +236,7 @@
 					<artifactId>maven-surefire-plugin</artifactId>
 					<version>${surefire.version}</version>
 					<configuration>
-						<argLine>${surefireArgLine}</argLine>
+						<argLine>${surefireArgLine} -Xmx256m -Djava.awt.headless=true</argLine>
 						<skipTests>${skipTests}</skipTests>
 						<testFailureIgnore>true</testFailureIgnore>
 					</configuration>
