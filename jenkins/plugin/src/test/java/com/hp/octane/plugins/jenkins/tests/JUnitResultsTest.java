@@ -27,7 +27,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-@Ignore
 public class JUnitResultsTest {
 
 	final private static String projectName = "junit-job";
