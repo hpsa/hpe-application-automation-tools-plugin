@@ -31,7 +31,6 @@ import static org.junit.Assert.*;
 public class BuildActionsFreeStyleTest {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String projectName = "root-job";
-	private static final int MAX_RUN_WAITING_SECS = 20;
 
 	@Rule
 	public final JenkinsRule rule = new JenkinsRule();
@@ -60,7 +59,7 @@ public class BuildActionsFreeStyleTest {
 		jobB.getPublishersList().add(new hudson.tasks.BuildTrigger("jobBB, jobC", Result.SUCCESS));
 
 		//  jobC
-		jobC.getBuildersList().add(Utils.getSleepScript(4));
+		jobC.getBuildersList().add(Utils.getSleepScript(5));
 		jobC.getPublishersList().add(new hudson.plugins.parameterizedtrigger.BuildTrigger(Arrays.asList(
 				new BuildTriggerConfig("jobCC", ResultCondition.ALWAYS, true, null)
 		)));
@@ -101,8 +100,8 @@ public class BuildActionsFreeStyleTest {
 
 		assertEquals(p.getBuilds().toArray().length, 0);
 		Utils.buildProject(client, p);
-		while ((p.getLastBuild() == null || p.getLastBuild().isBuilding()) && ++retries < MAX_RUN_WAITING_SECS) {
-			Thread.sleep(1000);
+		while ((p.getLastBuild() == null || p.getLastBuild().isBuilding()) && ++retries < 40) {
+			Thread.sleep(500);
 		}
 		assertEquals(p.getBuilds().toArray().length, 1);
 
@@ -146,7 +145,7 @@ public class BuildActionsFreeStyleTest {
 
 		assertEquals(p.getBuilds().toArray().length, 0);
 		Utils.buildProjectWithParams(client, p, "ParamA=false&ParamD=two&ParamX=some_string");
-		while ((p.getLastBuild() == null || p.getLastBuild().isBuilding()) && ++retries < MAX_RUN_WAITING_SECS * 2) {
+		while ((p.getLastBuild() == null || p.getLastBuild().isBuilding()) && ++retries < 40) {
 			Thread.sleep(500);
 		}
 		assertEquals(p.getBuilds().toArray().length, 1);
@@ -209,6 +208,7 @@ public class BuildActionsFreeStyleTest {
 	//
 	@Test
 	public void testFreeStyleWithParamsWithChildren() throws Exception {
+		int retries = 0;
 		rule.jenkins.setNumExecutors(10);
 		rule.jenkins.setNodes(rule.jenkins.getNodes());
 		FreeStyleProject p = rule.createFreeStyleProject(projectName);
@@ -227,10 +227,10 @@ public class BuildActionsFreeStyleTest {
 
 		assertEquals(p.getBuilds().toArray().length, 0);
 		Utils.buildProjectWithParams(client, p, "ParamA=false&ParamC=not_exists");
-		while (lastToBeBuilt.getLastBuild() == null ||
+		while ((lastToBeBuilt.getLastBuild() == null ||
 				lastToBeBuilt.getLastBuild().getNumber() < 6 ||
-				lastToBeBuilt.getLastBuild().isBuilding()) {
-			Thread.sleep(100);
+				lastToBeBuilt.getLastBuild().isBuilding()) && retries++ < 100) {
+			Thread.sleep(500);
 		}
 		assertEquals(p.getBuilds().toArray().length, 1);
 
