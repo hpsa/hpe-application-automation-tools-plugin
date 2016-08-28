@@ -24,6 +24,7 @@
 		<easymock.version>3.4</easymock.version>
 		<surefire.version>2.19.1</surefire.version>
 		<failsafe.version>2.18.1</failsafe.version>
+		<surefireArgLine>-Xmx2G -Djava.awt.headless=true</surefireArgLine>
 
 		<jacoco.version>0.7.4.201502262128</jacoco.version>
 		<skipTests>true</skipTests>
