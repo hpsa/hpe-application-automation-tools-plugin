@@ -35,6 +35,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 
+@Ignore
 public class TestDispatcherTest {
 
     private TestQueue queue;
