@@ -1,5 +1,3 @@
-// (C) Copyright 2003-2015 Hewlett-Packard Development Company, L.P.
-
 package com.hp.octane.plugins.jenkins.tests;
 
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
@@ -35,7 +33,6 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 
-@Ignore
 public class TestDispatcherTest {
 
     private TestQueue queue;
