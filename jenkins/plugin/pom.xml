@@ -43,7 +43,7 @@
 		<cert.project.name>jarAgm</cert.project.name>
 		<jenkins-test-harness.version>2.14</jenkins-test-harness.version>
 		<findbugs.skip>true</findbugs.skip>
-		<surefireArgLine>-Xmx2G -Djava.awt.headless=true</surefireArgLine>
+		<surefireArgLine>-Xmx1G -Djava.awt.headless=true</surefireArgLine>
 	</properties>
 
 	<dependencies>
