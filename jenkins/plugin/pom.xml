@@ -301,7 +301,7 @@
 				<repository>
 					<id>mqm-latest</id>
 					<name>Latest repository</name>
-					<url>${baseNexusURL}/content/repositories/mqm-latest2</url>
+					<url>${baseNexusURL}/content/repositories/mqm-latest-dev</url>
 				</repository>
 			</distributionManagement>
 		</profile>
