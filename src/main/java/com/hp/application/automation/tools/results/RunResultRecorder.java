@@ -872,7 +872,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
     public static class DescriptorImpl extends BuildStepDescriptor<Publisher> {
         
         public DescriptorImpl() {
-            
+
             load();
         }
         
