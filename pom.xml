@@ -26,7 +26,8 @@
 	<properties>
 		<msbuild.exe>C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe</msbuild.exe>
 		<msbuild.configuration>Release</msbuild.configuration>
-		<jenkins.version>1.625.3</jenkins.version>
+		<jenkins.version>1.642.4</jenkins.version>
+		<workflow.version>2.2</workflow.version>
 	</properties>
 
 	<distributionManagement>
@@ -251,30 +252,36 @@
 		<dependency>
 			<groupId>org.jenkins-ci.main</groupId>
 			<artifactId>jenkins-test-harness</artifactId>
-			<version>1.642.4</version>
+			<version>1.642.3</version>
 		</dependency>
+
 		<dependency>
 			<groupId>org.jenkins-ci.plugins.workflow</groupId>
 			<artifactId>workflow-step-api</artifactId>
-			<version>2.2</version>
+			<version>${workflow.version}</version>
+		</dependency>
+		<dependency> <!-- Test framework -->
+			<groupId>org.jenkins-ci.plugins.workflow</groupId>
+			<artifactId>workflow-step-api</artifactId>
+			<version>${workflow.version}</version>
+			<classifier>tests</classifier>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.jenkins-ci.plugins.workflow</groupId>
-			<artifactId>workflow-job</artifactId>
-			<version>2.3</version>
+			<artifactId>workflow-aggregator</artifactId>
+			<version>${workflow.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.jenkins-ci.plugins.workflow</groupId>
 			<artifactId>workflow-cps</artifactId>
-			<version>2.9</version>
-			<scope>test</scope>
+			<version>2.6</version>
 		</dependency>
 		<dependency>
-			<groupId>org.jenkins-ci.plugins.workflow</groupId>
-			<artifactId>workflow-basic-steps</artifactId>
-			<version>1.15</version>
-			<scope>test</scope>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>structs</artifactId>
+			<version>1.4</version>
 		</dependency>
 	</dependencies>
 </project>

@@ -12,12 +12,11 @@ import org.jenkinsci.plugins.workflow.steps.StepContextParameter;
 
 import javax.inject.Inject;
 import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created by kazaky on 28/07/2016.
  */
-public class LrScenarioLoadStepExecutor extends AbstractSynchronousNonBlockingStepExecution<Void> {
+public class LrScenarioLoadStepExecution extends AbstractSynchronousNonBlockingStepExecution<Void> {
 
     @Inject
     private transient LrScenarioLoadStep step;
@@ -40,9 +39,8 @@ public class LrScenarioLoadStepExecutor extends AbstractSynchronousNonBlockingSt
     protected Void run() throws Exception {
         listener.getLogger().println("Running LoadRunner Scenario step");
 
-//        step.startScenarioLoad(build,ws,launcher,listener);
-        RunFromFileBuilder runFromFileBuilder = new RunFromFileBuilder(step.getFsTests(), step.getFsTimeout(), step.getControllerPollingInterval(), step.getPerScenarioTimeOut(), step.getIgnoreErrorStrings(), "", "", "", "", "", "", "", "", "", "", "", "", "", null, false);
-        RunResultRecorder runResultRecorder = new RunResultRecorder(step.isPublishResults(), step.getArchiveTestResultsMode());
+        RunFromFileBuilder runFromFileBuilder = new RunFromFileBuilder(step.getTestPaths(), step.getRunTimeout(), step.getControllerRunPollingInterval(), step.getPerScenarioRunTimeOut(), step.getIgnoreErrorStrings(), "", "", "", "", "", "", "", "", "", "", "", "", "", null, false);
+        RunResultRecorder runResultRecorder = new RunResultRecorder(step.isPublishResults(), step.getArchiveRunTestResultsMode());
         runFromFileBuilder.perform(build, ws, launcher, listener);
 
         HashMap<String,String> resultFilename = new HashMap<String, String>(0);
