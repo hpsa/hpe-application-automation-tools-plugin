@@ -1,4 +1,5 @@
-    <j:jelly xmlns:j="jelly:core"
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core"
          xmlns:f="/lib/form">
     <!--
       This Jelly script is used to produce the global configuration option.
