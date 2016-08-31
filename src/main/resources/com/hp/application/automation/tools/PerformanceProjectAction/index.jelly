@@ -4,6 +4,7 @@
 
     <!--<st:include it="${it.project}" page="sidepanel.jelly" />-->
     <l:layout title="Jenkins JS Lib Samples" norefresh="true">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.1.1/Chart.min.js"></script>
         <!--<j:set var="builds" value="${it.builds}"/>-->
     <!--<st:include it="${it.project}" page="sidepanel.jelly" />-->
     <!--<j:set var="builds" value="${it.builds}"/>-->
@@ -29,7 +30,10 @@
         <st:bind var="f" value="${it.BuildPerformanceReportList}"/>
         <st:bind var="thgd" value="${it.getTotalHitsGraphData}"/>
 
-        <div id="msk" />
+            <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/jslib.js"/>
+
+
+            <div id="msk" />
 
         <div id="mse" />
 
