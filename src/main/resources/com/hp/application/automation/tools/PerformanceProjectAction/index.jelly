@@ -1,16 +1,19 @@
+<?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
 
-    <!--<st:include it="${it.project}" page="sidepanel.jelly" />-->
     <l:layout title="Jenkins JS Lib Samples" norefresh="true">
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.1.1/Chart.min.js"></script>
+        <st:bind var="foo" value="${it}"/>
+
+        <st:include it="${it.project}" page="sidepanel.jelly" />
         <!--<j:set var="builds" value="${it.builds}"/>-->
     <!--<st:include it="${it.project}" page="sidepanel.jelly" />-->
     <!--<j:set var="builds" value="${it.builds}"/>-->
         <st:bind var="" value="${it.UpdatedData}"/>
 
         <l:main-panel>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.1.1/Chart.min.js"></script>
 
         <h1>Test page</h1>
 
@@ -25,7 +28,6 @@
             <canvas id="AvgHitsPerSecGraphData" width="900" height="500"></canvas>
             <h4> Total Hits</h4>
         <canvas id="mycanvas" width="900" height="500"></canvas>
-        <st:bind var="foo" value="${it}"/>
         <st:bind var="projectName" value="${it.DisplayName}"/>
         <st:bind var="f" value="${it.BuildPerformanceReportList}"/>
         <st:bind var="thgd" value="${it.getTotalHitsGraphData}"/>
