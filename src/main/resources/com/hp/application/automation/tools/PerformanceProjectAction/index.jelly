@@ -6,7 +6,7 @@
     <l:layout title="Jenkins JS Lib Samples" norefresh="true">
         <st:bind var="foo" value="${it}"/>
 
-        <st:include it="${it.project}" page="sidepanel.jelly" />
+        <!--<st:include it="${it}" page="sidepanel.jelly" />-->
         <!--<j:set var="builds" value="${it.builds}"/>-->
     <!--<st:include it="${it.project}" page="sidepanel.jelly" />-->
     <!--<j:set var="builds" value="${it.builds}"/>-->
@@ -83,7 +83,6 @@
             //     ExampleApplicationFactory({elapsed: new Date().getTime() - start}),
             //     document.getElementById('container')); }, 50);
             // <!--var f =<st:bind value="${BuildPerformanceReport}"/>;-->
-            var foo = <st:bind value="${it}"/>
             //
             // foo.add(1,5, function(t) {
             // document.getElementById('msg').innerHTML = t.responseObject();
