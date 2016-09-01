@@ -134,7 +134,7 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 		}
 	}
 
-	//TODO: implement: fill build history
+	//TODO: implement: fill build histor
 	@Override
 	public BuildHistory getHistoryPipeline(String jobCiId, String originalBody) {
 		return DTOFactory.getInstance().newDTO(BuildHistory.class);
