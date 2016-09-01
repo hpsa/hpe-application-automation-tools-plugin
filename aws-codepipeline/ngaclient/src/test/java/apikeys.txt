@@ -1,0 +1,2 @@
+Client ID: ApiTester_j2mwxkg20v4qmioy849konzd8
+Client secret: %ce2a952383761dM

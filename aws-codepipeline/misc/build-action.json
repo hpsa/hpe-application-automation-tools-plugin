@@ -1,0 +1,41 @@
+{
+    "category": "Build",
+    "provider": "NextGenALM",
+    "version": "5",
+    "settings": {
+        "entityUrlTemplate": "{Config:Server-URL}",
+        "executionUrlTemplate": "{Config:Server-URL}/{ExternalExecutionId}"
+    },
+    "configurationProperties": [
+        {
+            "name": "Server-URL",
+            "description": "The URL of the NGA server to integrate with",
+            "required": true,
+            "key": false,
+            "secret": false
+        },
+        {
+            "name": "Client id",
+            "description": "The client id to use for accessing NGA",
+            "required": true,
+            "key": false,
+            "secret": false
+        },
+        {
+            "name": "Client secret",
+            "description": "The client secret to use for accessing NGA",
+            "required": true,
+            "key": true,
+            "secret": true
+        }
+
+    ],
+    "inputArtifactDetails": {
+        "minimumCount": 0,
+        "maximumCount": 0
+    },
+    "outputArtifactDetails": {
+        "minimumCount": 0,
+        "maximumCount": 0
+    }
+}

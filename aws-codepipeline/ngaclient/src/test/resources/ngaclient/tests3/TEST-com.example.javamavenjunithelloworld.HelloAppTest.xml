@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.javamavenjunithelloworld.HelloAppTest" time="0.747" tests="8" errors="1" skipped="0" failures="1">
+  <properties>
+    <property name="java.runtime.name" value="Java(TM) SE Runtime Environment"/>
+    <property name="sun.boot.library.path" value="/var/lib/jenkins/tools/hudson.model.JDK/jdkauto/jre/lib/amd64"/>
+    <property name="java.vm.version" value="25.77-b03"/>
+    <property name="java.vm.vendor" value="Oracle Corporation"/>
+    <property name="maven.multiModuleProjectDirectory" value="/var/lib/jenkins/workspace/nga-helloworld-test"/>
+    <property name="java.vendor.url" value="http://java.oracle.com/"/>
+    <property name="path.separator" value=":"/>
+    <property name="guice.disable.misplaced.annotation.check" value="true"/>
+    <property name="java.vm.name" value="Java HotSpot(TM) 64-Bit Server VM"/>
+    <property name="file.encoding.pkg" value="sun.io"/>
+    <property name="user.country" value="US"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="sun.os.patch.level" value="unknown"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="user.dir" value="/var/lib/jenkins/workspace/nga-helloworld-test"/>
+    <property name="java.runtime.version" value="1.8.0_77-b03"/>
+    <property name="java.awt.graphicsenv" value="sun.awt.X11GraphicsEnvironment"/>
+    <property name="java.endorsed.dirs" value="/var/lib/jenkins/tools/hudson.model.JDK/jdkauto/jre/lib/endorsed"/>
+    <property name="os.arch" value="amd64"/>
+    <property name="java.io.tmpdir" value="/tmp"/>
+    <property name="line.separator" value="&#10;"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="os.name" value="Linux"/>
+    <property name="classworlds.conf" value="/var/lib/jenkins/tools/hudson.tasks.Maven_MavenInstallation/mavenauto/bin/m2.conf"/>
+    <property name="sun.jnu.encoding" value="UTF-8"/>
+    <property name="java.library.path" value="/usr/java/packages/lib/amd64:/usr/lib64:/lib64:/lib:/usr/lib"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="java.class.version" value="52.0"/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="maven.test.failure.ignore" value="true"/>
+    <property name="testsToRun" value="testSayHello"/>
+    <property name="os.version" value="4.4.5-15.26.amzn1.x86_64"/>
+    <property name="user.home" value="/var/lib/jenkins"/>
+    <property name="user.timezone" value="Zulu"/>
+    <property name="java.awt.printerjob" value="sun.print.PSPrinterJob"/>
+    <property name="java.specification.version" value="1.8"/>
+    <property name="file.encoding" value="UTF-8"/>
+    <property name="user.name" value="jenkins"/>
+    <property name="java.class.path" value="/var/lib/jenkins/tools/hudson.tasks.Maven_MavenInstallation/mavenauto/boot/plexus-classworlds-2.5.2.jar"/>
+    <property name="java.vm.specification.version" value="1.8"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="java.home" value="/var/lib/jenkins/tools/hudson.model.JDK/jdkauto/jre"/>
+    <property name="sun.java.command" value="org.codehaus.plexus.classworlds.launcher.Launcher -f java-maven-junit-helloworld-master/pom.xml -DtestsToRun=testSayHello -Dmaven.test.failure.ignore=true test"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="user.language" value="en"/>
+    <property name="awt.toolkit" value="sun.awt.X11.XToolkit"/>
+    <property name="java.vm.info" value="mixed mode"/>
+    <property name="java.version" value="1.8.0_77"/>
+    <property name="java.ext.dirs" value="/var/lib/jenkins/tools/hudson.model.JDK/jdkauto/jre/lib/ext:/usr/java/packages/lib/ext"/>
+    <property name="securerandom.source" value="file:/dev/./urandom"/>
+    <property name="sun.boot.class.path" value="/var/lib/jenkins/tools/hudson.model.JDK/jdkauto/jre/lib/resources.jar:/var/lib/jenkins/tools/hudson.model.JDK/jdkauto/jre/lib/rt.jar:/var/lib/jenkins/tools/hudson.model.JDK/jdkauto/jre/lib/sunrsasign.jar:/var/lib/jenkins/tools/hudson.model.JDK/jdkauto/jre/lib/jsse.jar:/var/lib/jenkins/tools/hudson.model.JDK/jdkauto/jre/lib/jce.jar:/var/lib/jenkins/tools/hudson.model.JDK/jdkauto/jre/lib/charsets.jar:/var/lib/jenkins/tools/hudson.model.JDK/jdkauto/jre/lib/jfr.jar:/var/lib/jenkins/tools/hudson.model.JDK/jdkauto/jre/classes"/>
+    <property name="java.vendor" value="Oracle Corporation"/>
+    <property name="maven.home" value="/var/lib/jenkins/tools/hudson.tasks.Maven_MavenInstallation/mavenauto"/>
+    <property name="file.separator" value="/"/>
+    <property name="java.vendor.url.bug" value="http://bugreport.sun.com/bugreport/"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
+    <property name="sun.cpu.isalist" value=""/>
+  </properties>
+  <testcase name="testWrongArgument" classname="com.example.javamavenjunithelloworld.HelloAppTest" time="0.626"/>
+  <testcase name="testComplexLogic" classname="com.example.javamavenjunithelloworld.HelloAppTest" time="0.005">
+    <failure message="Comparison of 1 &amp; 2" type="junit.framework.AssertionFailedError"><![CDATA[junit.framework.AssertionFailedError: Comparison of 1 & 2
+	at junit.framework.Assert.fail(Assert.java:57)
+	at junit.framework.Assert.assertTrue(Assert.java:22)
+	at junit.framework.TestCase.assertTrue(TestCase.java:192)
+	at com.example.javamavenjunithelloworld.HelloAppTest.testComplexLogic(HelloAppTest.java:35)
+]]></failure>
+  </testcase>
+  <testcase name="testSequenceRuns" classname="com.example.javamavenjunithelloworld.HelloAppTest" time="0.008"/>
+  <testcase name="testMain" classname="com.example.javamavenjunithelloworld.HelloAppTest" time="0.003"/>
+  <testcase name="testHelloError" classname="com.example.javamavenjunithelloworld.HelloAppTest" time="0.099"/>
+  <testcase name="testDefaultArgument" classname="com.example.javamavenjunithelloworld.HelloAppTest" time="0.001"/>
+  <testcase name="classInstanceForCodeCoverageTest" classname="com.example.javamavenjunithelloworld.HelloAppTest" time="0.001"/>
+  <testcase name="testCornerCases" classname="com.example.javamavenjunithelloworld.HelloAppTest" time="0.004">
+    <error message="This test is failing" type="java.lang.RuntimeException">java.lang.RuntimeException: This test is failing
+	at com.example.javamavenjunithelloworld.HelloAppTest.failure(HelloAppTest.java:30)
+	at com.example.javamavenjunithelloworld.HelloAppTest.testCornerCases(HelloAppTest.java:26)
+</error>
+  </testcase>
+</testsuite>
