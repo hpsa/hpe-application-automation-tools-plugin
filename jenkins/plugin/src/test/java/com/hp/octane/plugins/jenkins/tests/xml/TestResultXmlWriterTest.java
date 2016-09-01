@@ -1,5 +1,3 @@
-// (C) Copyright 2003-2015 Hewlett-Packard Development Company, L.P.
-
 package com.hp.octane.plugins.jenkins.tests.xml;
 
 import com.hp.octane.plugins.jenkins.tests.TestResult;
@@ -19,7 +17,7 @@ import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
@@ -30,41 +28,42 @@ import java.util.Collections;
 
 public class TestResultXmlWriterTest {
 
-    @Rule
-    final public JenkinsRule jenkins = new JenkinsRule();
+	@ClassRule
+	public static final JenkinsRule jenkins = new JenkinsRule();
 
-    private TestResultContainer container;
+	private TestResultContainer container;
 
-    @Before
-    public void initialize() throws IOException {
-        container = new TestResultContainer(Collections.singleton(new TestResult("module", "package", "class", "testName", TestResultStatus.PASSED, 1l, 2l, null, null)).iterator(), new ResultFields());
-    }
+	@Before
+	public void initialize() throws IOException {
+		container = new TestResultContainer(Collections.singleton(new TestResult("module", "package", "class", "testName", TestResultStatus.PASSED, 1l, 2l, null, null)).iterator(), new ResultFields());
+	}
 
-    @Test
-    public void testNonEmptySubType() throws Exception {
-        MatrixProject matrixProject = jenkins.createMatrixProject("matrix-project");
-        matrixProject.setAxes(new AxisList(new Axis("OS", "Linux")));
-        MatrixBuild build = (MatrixBuild) TestUtils.runAndCheckBuild(matrixProject);
-        Assert.assertEquals(1, build.getExactRuns().size());
-        assertBuildType(build.getExactRuns().get(0), "matrix-project", "OS=Linux");
-    }
+	@Test
+	public void testNonEmptySubType() throws Exception {
+		MatrixProject matrixProject = jenkins.createProject(MatrixProject.class, "matrix-project");
 
-    @Test
-    public void testEmptySubType() throws Exception {
-        FreeStyleProject project = jenkins.createFreeStyleProject("freestyle-project");
-        FreeStyleBuild build = (FreeStyleBuild) TestUtils.runAndCheckBuild(project);
-        assertBuildType(build, "freestyle-project", null);
-    }
+		matrixProject.setAxes(new AxisList(new Axis("OS", "Linux")));
+		MatrixBuild build = (MatrixBuild) TestUtils.runAndCheckBuild(matrixProject);
+		Assert.assertEquals(1, build.getExactRuns().size());
+		assertBuildType(build.getExactRuns().get(0), "matrix-project", "OS=Linux");
+	}
 
-    private void assertBuildType(AbstractBuild build, String buildType, String subType) throws IOException, XMLStreamException, InterruptedException {
-        FilePath testXml = new FilePath(build.getWorkspace(), "test.xml");
-        TestResultXmlWriter xmlWriter = new TestResultXmlWriter(testXml, build);
-        xmlWriter.setTestResultContainer(container, null);
-        xmlWriter.writeResults();
-        xmlWriter.close();
+	@Test
+	public void testEmptySubType() throws Exception {
+		FreeStyleProject project = jenkins.createFreeStyleProject("freestyle-project");
+		FreeStyleBuild build = (FreeStyleBuild) TestUtils.runAndCheckBuild(project);
+		assertBuildType(build, "freestyle-project", null);
+	}
 
-        TestResultIterator iterator = new TestResultIterable(new File(testXml.getRemote())).iterator();
-        Assert.assertEquals(buildType, iterator.getJobId());
-        Assert.assertEquals(subType, iterator.getSubType());
-    }
+	private void assertBuildType(AbstractBuild build, String buildType, String subType) throws IOException, XMLStreamException, InterruptedException {
+		FilePath testXml = new FilePath(build.getWorkspace(), "test.xml");
+		TestResultXmlWriter xmlWriter = new TestResultXmlWriter(testXml, build);
+		xmlWriter.setTestResultContainer(container, null);
+		xmlWriter.writeResults();
+		xmlWriter.close();
+
+		TestResultIterator iterator = new TestResultIterable(new File(testXml.getRemote())).iterator();
+		Assert.assertEquals(buildType, iterator.getJobId());
+		Assert.assertEquals(subType, iterator.getSubType());
+	}
 }

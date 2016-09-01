@@ -1,12 +1,12 @@
 package com.hp.octane.integrations;
 
-import com.hp.octane.integrations.api.CIPluginServices;
+import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.api.ConfigurationService;
 import com.hp.octane.integrations.api.EventsService;
 import com.hp.octane.integrations.api.RestService;
 import com.hp.octane.integrations.api.TasksProcessor;
 import com.hp.octane.integrations.api.TestsService;
-import com.hp.octane.integrations.services.bridge.BridgeService;
+import com.hp.octane.integrations.services.bridge.BridgeServiceImpl;
 import com.hp.octane.integrations.services.configuration.ConfigurationServiceImpl;
 import com.hp.octane.integrations.services.events.EventsServiceImpl;
 import com.hp.octane.integrations.services.logging.LoggingService;
@@ -42,18 +42,29 @@ public final class OctaneSDK {
 	//  TODO: remove the boolean once migrated JP
 	private static boolean initBridge;
 
-	synchronized public static OctaneSDK init(CIPluginServices ciPluginServices, boolean initBridge) {
-		if (instance != null) {
-			logger.warn("Octane SDK expected to be initialized only once, but detected additional initialization attempt; origin initialization artifact will be returned");
-		} else {
+	synchronized public static void init(CIPluginServices ciPluginServices, boolean initBridge) {
+		if (instance == null) {
 			if (ciPluginServices == null) {
 				throw new IllegalArgumentException("SDK initialization failed: MUST be initialized with valid plugin services provider");
 			}
 			OctaneSDK.initBridge = initBridge;
 			instance = new OctaneSDK(ciPluginServices);
+			logger.info("SDK has been initialized");
+		} else {
+			logger.error("SDK may be initialized only once, secondary initialization attempt encountered");
 		}
+	}
 
-		return instance;
+	public static OctaneSDK getInstance() {
+		if (instance != null) {
+			return instance;
+		} else {
+			throw new IllegalStateException("SDK MUST be initialized prior to any usage");
+		}
+	}
+
+	public CIPluginServices getPluginServices() {
+		return configurator.pluginServices;
 	}
 
 	public ConfigurationService getConfigurationService() {
@@ -90,38 +101,37 @@ public final class OctaneSDK {
 		}
 	}
 
-	static class SDKConfigurator {
+	private static class SDKConfigurator {
 		private final CIPluginServices pluginServices;
-		private LoggingService loggingService;
-		private ConfigurationService configurationService;
-		private RestService restService;
-		private BridgeService bridgeService;
-		private TasksProcessor tasksProcessor;
-		private EventsService eventsService;
-		private TestsService testsService;
+		private final LoggingService loggingService;
+		private final RestService restService;
+		private final ConfigurationService configurationService;
+		private final BridgeServiceImpl bridgeServiceImpl;
+		private final TasksProcessor tasksProcessor;
+		private final EventsService eventsService;
+		private final TestsService testsService;
 
 		private SDKConfigurator(CIPluginServices pluginServices) {
-			//  the order of services initialization below is important; please change with caution
 			this.pluginServices = pluginServices;
-			loggingService = new LoggingService(this);
-			configurationService = new ConfigurationServiceImpl(this);
-			restService = new RestServiceImpl(this);
-			tasksProcessor = new TasksProcessorImpl(this);
-			bridgeService = new BridgeService(this, initBridge);
-			eventsService = new EventsServiceImpl(this);
-			testsService = new TestsServiceImpl(this);
+			loggingService = new LoggingService(this, pluginServices);
+			restService = new RestServiceImpl(this, pluginServices);
+			tasksProcessor = new TasksProcessorImpl(this, pluginServices);
+			configurationService = new ConfigurationServiceImpl(this, pluginServices, restService);
+			eventsService = new EventsServiceImpl(this, pluginServices, restService);
+			testsService = new TestsServiceImpl(this, pluginServices, restService);
+			bridgeServiceImpl = new BridgeServiceImpl(this, pluginServices, restService, tasksProcessor, initBridge);
 		}
+	}
 
-		CIPluginServices getPluginServices() {
-			return pluginServices;
-		}
-
-		RestService getRestService() {
-			return restService;
-		}
-
-		TasksProcessor getTasksProcessor() {
-			return tasksProcessor;
+	//  the below base class used ONLY for a correct initiation enforcement of an SDK services
+	public static abstract class SDKServiceBase {
+		protected SDKServiceBase(Object configurator) {
+			if (configurator == null) {
+				throw new IllegalArgumentException("configurator MUST NOT be null");
+			}
+			if (!(configurator instanceof SDKConfigurator)) {
+				throw new IllegalArgumentException("configurator MUST be of a correct type");
+			}
 		}
 	}
 }

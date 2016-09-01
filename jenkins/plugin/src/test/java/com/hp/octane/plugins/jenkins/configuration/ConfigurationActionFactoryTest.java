@@ -30,7 +30,9 @@ public class ConfigurationActionFactoryTest {
 
     @Test
     public void testMatrixJob() throws IOException {
-        MatrixProject matrixProject = jenkins.createMatrixProject("ConfigurationActionFactoryTest.testMatrixJob");
+
+        MatrixProject matrixProject = jenkins.createProject(MatrixProject.class, "ConfigurationActionFactoryTest.testMatrixJob");
+        //jenkins.createMatrixProject("ConfigurationActionFactoryTest.testMatrixJob");
         matrixProject.setAxes(new AxisList(new Axis("OS", "Linux", "Windows")));
 
         Assert.assertEquals(1, configurationActionFactory.createFor(matrixProject).size());

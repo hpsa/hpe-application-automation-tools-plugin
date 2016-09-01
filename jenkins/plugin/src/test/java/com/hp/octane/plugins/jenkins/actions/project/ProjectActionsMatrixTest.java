@@ -13,7 +13,7 @@ import hudson.plugins.parameterizedtrigger.*;
 import hudson.tasks.BuildTrigger;
 import hudson.tasks.Fingerprinter;
 import hudson.tasks.Shell;
-import org.junit.Rule;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.xml.sax.SAXException;
@@ -21,6 +21,7 @@ import org.xml.sax.SAXException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.Assert.*;
 
@@ -34,16 +35,16 @@ import static org.junit.Assert.*;
 
 public class ProjectActionsMatrixTest {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-	private static final String projectName = "root-job";
 
-	@Rule
-	final public JenkinsRule rule = new JenkinsRule();
+	@ClassRule
+	public static final JenkinsRule rule = new JenkinsRule();
 
 	//  Structure test: matrix, no params, no children
 	//
 	@Test
 	public void testStructureMatrixNoParamsNoChildren() throws IOException, SAXException {
-		rule.createMatrixProject(projectName);
+		String projectName = "root-job-" + UUID.randomUUID().toString();
+		rule.createProject(MatrixProject.class, projectName);
 
 		JenkinsRule.WebClient client = rule.createWebClient();
 		Page page;
@@ -62,7 +63,8 @@ public class ProjectActionsMatrixTest {
 	//
 	@Test
 	public void testStructureMatrixWithParamsNoChildren() throws IOException, SAXException {
-		MatrixProject p = rule.createMatrixProject(projectName);
+		String projectName = "root-job-" + UUID.randomUUID().toString();
+		MatrixProject p = rule.createProject(MatrixProject.class, projectName);
 		ParametersDefinitionProperty params = new ParametersDefinitionProperty(Arrays.asList(
 				(ParameterDefinition) new BooleanParameterDefinition("ParamA", true, "bool"),
 				(ParameterDefinition) new StringParameterDefinition("ParamB", "str", "string"),
@@ -129,11 +131,12 @@ public class ProjectActionsMatrixTest {
 	//
 	@Test
 	public void testStructureMatrixWithParamsWithChildren() throws IOException, SAXException {
-		MatrixProject p = rule.createMatrixProject(projectName);
+		String projectName = "root-job-" + UUID.randomUUID().toString();
+		MatrixProject p = rule.createProject(MatrixProject.class, projectName);
 		FreeStyleProject p1 = rule.createFreeStyleProject("jobA");
-		MatrixProject p2 = rule.createMatrixProject("jobB");
+		MatrixProject p2 = rule.createProject(MatrixProject.class, "jobB");
 		FreeStyleProject p3 = rule.createFreeStyleProject("jobC");
-		MavenModuleSet p4 = rule.createMavenProject("jobD");
+		MavenModuleSet p4 = rule.createProject(MavenModuleSet.class, "jobD");
 		CustomProject p5 = rule.getInstance().createProject(CustomProject.class, "jobE");
 		ParametersDefinitionProperty params = new ParametersDefinitionProperty(Arrays.asList(
 				(ParameterDefinition) new BooleanParameterDefinition("ParamA", true, "bool"),

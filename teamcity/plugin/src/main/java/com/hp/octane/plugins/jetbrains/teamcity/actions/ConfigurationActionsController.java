@@ -3,12 +3,13 @@ package com.hp.octane.plugins.jetbrains.teamcity.actions;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.plugins.jetbrains.teamcity.configuration.OctaneConfigStructure;
 import com.hp.octane.plugins.jetbrains.teamcity.OctaneTeamCityPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.configuration.TCConfigurationService;
-import jetbrains.buildServer.serverSide.SBuildServer;
-import org.jetbrains.annotations.NotNull;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.Controller;
@@ -17,23 +18,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Created by lazara on 14/02/2016.
  */
 
 public class ConfigurationActionsController implements Controller {
-	private static final Logger logger = Logger.getLogger(ConfigurationActionsController.class.getName());
+	private static final Logger logger = LogManager.getLogger(ConfigurationActionsController.class);
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Autowired
 	private OctaneTeamCityPlugin octaneTeamCityPlugin;
 	@Autowired
 	private TCConfigurationService configurationService;
-
-	private ConfigurationActionsController(@NotNull SBuildServer buildServer) {
-	}
 
 	@Override
 	public ModelAndView handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
@@ -47,16 +44,26 @@ public class ConfigurationActionsController implements Controller {
 				String url = httpServletRequest.getParameter("server");
 				String apiKey = httpServletRequest.getParameter("username1");
 				String secret = httpServletRequest.getParameter("password1");
-				OctaneConfiguration octaneConfiguration = octaneTeamCityPlugin.getOctaneSDK().getConfigurationService().buildConfiguration(url, apiKey, secret);
+				OctaneConfiguration octaneConfiguration;
 
 				if (action.equals("test")) {
+					octaneConfiguration = OctaneSDK.getInstance().getConfigurationService().buildConfiguration(url, apiKey, secret);
 					returnStr = configurationService.checkConfiguration(octaneConfiguration);
 				} else if (action.equals("save")) {
+					if (url != null && !url.isEmpty()) {
+						octaneConfiguration = OctaneSDK.getInstance().getConfigurationService().buildConfiguration(url, apiKey, secret);
+					} else {
+						octaneConfiguration = dtoFactory.newDTO(OctaneConfiguration.class)
+								.setUrl("")
+								.setSharedSpace("")
+								.setApiKey(apiKey)
+								.setSecret(secret);
+					}
 					returnStr = updateConfiguration(octaneConfiguration, url);
 				}
 			} catch (Exception e) {
+				logger.error("failed to process configuration request (" + action + ")", e);
 				returnStr = e.getMessage();
-				e.printStackTrace();
 			}
 		}
 
@@ -64,8 +71,8 @@ public class ConfigurationActionsController implements Controller {
 		try {
 			writer = httpServletResponse.getWriter();
 			writer.write(returnStr);
-		} catch (IOException e) {
-			logger.warning(e.getMessage());
+		} catch (IOException ioe) {
+			logger.error("failed to write response", ioe);
 		}
 		return null;
 	}
@@ -79,7 +86,7 @@ public class ConfigurationActionsController implements Controller {
 		cfg.setSecretPassword(octaneConfiguration.getSecret());
 		configurationService.saveConfig(cfg);
 
-		octaneTeamCityPlugin.getOctaneSDK().getConfigurationService().notifyChange(octaneConfiguration);
+		OctaneSDK.getInstance().getConfigurationService().notifyChange(octaneConfiguration);
 
 		return "Updated successfully";
 	}
@@ -89,9 +96,8 @@ public class ConfigurationActionsController implements Controller {
 			ObjectMapper mapper = new ObjectMapper();
 			OctaneConfigStructure cfg = octaneTeamCityPlugin.getConfig();
 			return mapper.writeValueAsString(cfg);
-		} catch (JsonProcessingException e) {
-			logger.log(Level.WARNING, "failed to reload configuration: " + e.getMessage());
-			e.printStackTrace();
+		} catch (JsonProcessingException jpe) {
+			logger.error("failed to reload configuration", jpe);
 		}
 		return null;
 	}

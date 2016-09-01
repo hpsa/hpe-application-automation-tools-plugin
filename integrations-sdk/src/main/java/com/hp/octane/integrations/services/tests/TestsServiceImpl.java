@@ -1,14 +1,15 @@
 package com.hp.octane.integrations.services.tests;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.SDKService;
 import com.hp.octane.integrations.api.RestClient;
+import com.hp.octane.integrations.api.RestService;
 import com.hp.octane.integrations.api.TestsService;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.tests.TestsResult;
+import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,18 +23,31 @@ import java.util.*;
  * Default implementation of tests service
  */
 
-public final class TestsServiceImpl extends SDKService implements TestsService {
+public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements TestsService {
 	private static final Logger logger = LogManager.getLogger(TestsServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+
 	private final Object INIT_LOCKER = new Object();
+	private final CIPluginServices pluginServices;
+	private final RestService restService;
 
 	private static List<BuildNode> buildList = Collections.synchronizedList(new LinkedList<BuildNode>());
 	private int DATA_SEND_INTERVAL = 60000;
 	private int LIST_EMPTY_INTERVAL = 3000;
 	private Thread worker;
 
-	public TestsServiceImpl(Object configurator) {
+	public TestsServiceImpl(Object configurator, CIPluginServices pluginServices, RestService restService) {
 		super(configurator);
+
+		if (pluginServices == null) {
+			throw new IllegalArgumentException("plugin services MUST NOT be null");
+		}
+		if (restService == null) {
+			throw new IllegalArgumentException("rest service MUST NOT be null");
+		}
+
+		this.pluginServices = pluginServices;
+		this.restService = restService;
 		activate();
 	}
 
@@ -42,13 +56,13 @@ public final class TestsServiceImpl extends SDKService implements TestsService {
 			throw new IllegalArgumentException("tests result MUST NOT be null");
 		}
 
-		RestClient restClientImpl = getRestService().obtainClient();
+		RestClient restClientImpl = restService.obtainClient();
 		Map<String, String> headers = new HashMap<String, String>();
 		headers.put("content-type", "application/xml");
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.POST)
-				.setUrl(getPluginServices().getOctaneConfiguration().getUrl() + "/internal-api/shared_spaces/" +
-						getPluginServices().getOctaneConfiguration().getSharedSpace() + "/analytics/ci/test-results?skip-errors=false")
+				.setUrl(pluginServices.getOctaneConfiguration().getUrl() + "/internal-api/shared_spaces/" +
+						pluginServices.getOctaneConfiguration().getSharedSpace() + "/analytics/ci/test-results?skip-errors=false")
 				.setHeaders(headers)
 				.setBody(dtoFactory.dtoToXml(testsResult));
 		OctaneResponse response = restClientImpl.execute(request);
@@ -70,7 +84,7 @@ public final class TestsServiceImpl extends SDKService implements TestsService {
 								if (!buildList.isEmpty()) {
 									try {
 										BuildNode buildNode = buildList.get(0);
-										TestsResult testsResult = getPluginServices().getTestsResult(buildNode.jobId, buildNode.buildNumber);
+										TestsResult testsResult = pluginServices.getTestsResult(buildNode.jobId, buildNode.buildNumber);
 										OctaneResponse response = pushTestsResult(testsResult);
 										if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
 											logger.info("Push tests result was successful");

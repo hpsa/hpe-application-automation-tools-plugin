@@ -1,7 +1,6 @@
 package com.hp.octane.integrations.services.tasking;
 
-import com.hp.octane.integrations.SDKService;
-import com.hp.octane.integrations.api.CIPluginServices;
+import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.api.TasksProcessor;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
@@ -28,7 +27,7 @@ import java.util.regex.Pattern;
  * Tasks routing service handles NGA tasks, both coming from abridged logic as well as plugin's REST call delegation
  */
 
-public final class TasksProcessorImpl extends SDKService implements TasksProcessor {
+public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implements TasksProcessor {
 	private static final Logger logger = LogManager.getLogger(TasksProcessorImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String NGA_API = "nga/api/v1";
@@ -39,8 +38,16 @@ public final class TasksProcessorImpl extends SDKService implements TasksProcess
 	private static final String BUILDS = "builds";
 	private static final String LATEST = "latest";
 
-	public TasksProcessorImpl(Object configurator) {
+	private final CIPluginServices pluginServices;
+
+	public TasksProcessorImpl(Object configurator, CIPluginServices pluginServices) {
 		super(configurator);
+
+		if (pluginServices == null) {
+			throw new IllegalArgumentException("plugin services MUST NOT be null");
+		}
+
+		this.pluginServices = pluginServices;
 	}
 
 	public OctaneResultAbridged execute(OctaneTaskAbridged task) {
@@ -100,37 +107,36 @@ public final class TasksProcessorImpl extends SDKService implements TasksProcess
 	}
 
 	private void executeStatusRequest(OctaneResultAbridged result) {
-		CIPluginServices dataProvider = getPluginServices();
 		CIPluginSDKInfo sdkInfo = dtoFactory.newDTO(CIPluginSDKInfo.class)
 				.setApiVersion(OctaneSDK.API_VERSION)
 				.setSdkVersion(OctaneSDK.SDK_VERSION);
 		CIProviderSummaryInfo status = dtoFactory.newDTO(CIProviderSummaryInfo.class)
-				.setServer(dataProvider.getServerInfo())
-				.setPlugin(dataProvider.getPluginInfo())
+				.setServer(pluginServices.getServerInfo())
+				.setPlugin(pluginServices.getPluginInfo())
 				.setSdk(sdkInfo);
 		result.setBody(dtoFactory.dtoToJson(status));
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
 	}
 
 	private void executeJobsListRequest(OctaneResultAbridged result, boolean includingParameters) {
-		CIJobsList content = getPluginServices().getJobsList(includingParameters);
+		CIJobsList content = pluginServices.getJobsList(includingParameters);
 		result.setBody(dtoFactory.dtoToJson(content));
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
 	}
 
 	private void executePipelineRequest(OctaneResultAbridged result, String jobId) {
-		PipelineNode content = getPluginServices().getPipeline(jobId);
+		PipelineNode content = pluginServices.getPipeline(jobId);
 		result.setBody(dtoFactory.dtoToJson(content));
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
 	}
 
 	private void executePipelineRunRequest(OctaneResultAbridged result, String jobId, String originalBody) {
-		getPluginServices().runPipeline(jobId, originalBody);
+		pluginServices.runPipeline(jobId, originalBody);
 		result.setStatus(201);
 	}
 
 	private void executeLatestSnapshotRequest(OctaneResultAbridged result, String jobId, boolean subTree) {
-		SnapshotNode data = getPluginServices().getSnapshotLatest(jobId, subTree);
+		SnapshotNode data = pluginServices.getSnapshotLatest(jobId, subTree);
 		if (data != null) {
 			result.setBody(dtoFactory.dtoToJson(data));
 		} else {
@@ -140,13 +146,17 @@ public final class TasksProcessorImpl extends SDKService implements TasksProcess
 	}
 
 	private void executeSnapshotByNumberRequest(OctaneResultAbridged result, String jobCiId, String buildCiId, boolean subTree) {
-		SnapshotNode content = getPluginServices().getSnapshotByNumber(jobCiId, buildCiId, subTree);
-		result.setBody(dtoFactory.dtoToJson(content));
+		SnapshotNode data = pluginServices.getSnapshotByNumber(jobCiId, buildCiId, subTree);
+		if (data != null) {
+			result.setBody(dtoFactory.dtoToJson(data));
+		} else {
+			result.setStatus(404);
+		}
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
 	}
 
 	private void executeHistoryRequest(OctaneResultAbridged result, String jobId, String originalBody) {
-		BuildHistory content = getPluginServices().getHistoryPipeline(jobId, originalBody);
+		BuildHistory content = pluginServices.getHistoryPipeline(jobId, originalBody);
 		result.setBody(dtoFactory.dtoToJson(content));
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
 	}

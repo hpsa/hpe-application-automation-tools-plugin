@@ -15,11 +15,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-/**
- * Created by gullery on 21/04/2015.
- * <p/>
- * Event Client is a service of dispatching events to a single MQM Server Context (server : sharedspace)
- */
 
 public class EventsClient {
 	private static final Logger logger = LogManager.getLogger(EventsClient.class);

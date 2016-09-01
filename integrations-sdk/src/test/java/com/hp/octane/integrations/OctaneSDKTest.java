@@ -1,6 +1,6 @@
 package com.hp.octane.integrations;
 
-import com.hp.octane.integrations.api.CIPluginServices;
+import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.general.CIJobsList;
@@ -22,7 +22,7 @@ public class OctaneSDKTest {
 
 	@Test
 	public void SDKTest_A() {
-		OctaneSDK octaneSDK = OctaneSDK.init(new CIPluginServicesMockA(), false);
+		OctaneSDK.init(new CIPluginServicesMockA(), false);
 	}
 
 	private class CIPluginServicesMockA implements CIPluginServices  {

@@ -1,15 +1,14 @@
 package com.hp.octane.plugins.jenkins.actions;
 
+import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.api.TasksProcessor;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
 import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
-import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.configuration.ConfigApi;
 import hudson.Extension;
 import hudson.model.RootAction;
-import jenkins.model.Jenkins;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
@@ -31,7 +30,6 @@ import java.util.logging.Logger;
 public class PluginActions implements RootAction {
 	private static final Logger logger = Logger.getLogger(PluginActions.class.getName());
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-	private static final OctanePlugin plugin = Jenkins.getInstance().getPlugin(OctanePlugin.class);
 
 	public String getIconFileName() {
 		return null;
@@ -66,7 +64,7 @@ public class PluginActions implements RootAction {
 			octaneTaskAbridged.setMethod(method);
 			octaneTaskAbridged.setUrl(req.getRequestURIWithQueryString());
 			octaneTaskAbridged.setBody("");
-			TasksProcessor taskProcessor = plugin.getOctaneSDK().getTasksProcessor();
+			TasksProcessor taskProcessor = OctaneSDK.getInstance().getTasksProcessor();
 			OctaneResultAbridged result = taskProcessor.execute(octaneTaskAbridged);
 
 			res.setStatus(result.getStatus());

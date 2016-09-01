@@ -2,8 +2,7 @@ package com.hp.octane.plugins.jenkins.actions.project;
 
 import com.gargoylesoftware.htmlunit.HttpMethod;
 import com.gargoylesoftware.htmlunit.Page;
-import com.gargoylesoftware.htmlunit.WebRequestSettings;
-import com.gargoylesoftware.htmlunit.WebResponse;
+import com.gargoylesoftware.htmlunit.WebRequest;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.parameters.CIParameter;
 import com.hp.octane.integrations.dto.parameters.CIParameterType;
@@ -16,7 +15,7 @@ import hudson.plugins.parameterizedtrigger.*;
 import hudson.tasks.BuildTrigger;
 import hudson.tasks.Fingerprinter;
 import hudson.tasks.Shell;
-import org.junit.Rule;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.xml.sax.SAXException;
@@ -25,6 +24,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.Assert.*;
 
@@ -38,18 +38,19 @@ import static org.junit.Assert.*;
 
 public class ProjectActionsMavenTest {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-	private static final String projectName = "root-job";
 
-	@Rule
-	final public JenkinsRule rule = new JenkinsRule();
+	@ClassRule
+	public static final JenkinsRule rule = new JenkinsRule();
+
+	private final JenkinsRule.WebClient client = rule.createWebClient();
 
 	//  Structure test: maven, no params, no children
 	//
 	@Test
 	public void testStructureMavenNoParamsNoChildren() throws IOException, SAXException {
-		rule.createMavenProject(projectName);
-
-		JenkinsRule.WebClient client = rule.createWebClient();
+		String projectName = "root-job-" + UUID.randomUUID().toString();
+		MavenModuleSet project = rule.createProject(MavenModuleSet.class, projectName);
+		project.runHeadless();
 		Page page;
 		PipelineNode pipeline;
 
@@ -65,12 +66,14 @@ public class ProjectActionsMavenTest {
 	@Test
 	//@Ignore
 	public void testDoRun() throws IOException, SAXException, InterruptedException {
+		String projectName = "root-job-" + UUID.randomUUID().toString();
 		int retries = 0;
-		MavenModuleSet p = rule.createMavenProject(projectName);
-		JenkinsRule.WebClient client = rule.createWebClient();
-		WebRequestSettings wrs = new WebRequestSettings(new URL(client.getContextPath() + "nga/api/v1/jobs/" + projectName + "/run"), HttpMethod.POST);
-		wrs = client.addCrumb(wrs);
-		WebResponse wr = client.loadWebResponse(wrs);
+		MavenModuleSet p = rule.createProject(MavenModuleSet.class, projectName);
+		p.runHeadless();
+
+		WebRequest webRequest = new WebRequest(new URL(client.getContextPath() + "nga/api/v1/jobs/" + projectName + "/run"), HttpMethod.GET);
+		client.loadWebResponse(webRequest);
+
 		while ((p.getLastBuild() == null || p.getLastBuild().isBuilding()) && ++retries < 20) {
 			Thread.sleep(1000);
 		}
@@ -81,7 +84,9 @@ public class ProjectActionsMavenTest {
 	//
 	@Test
 	public void testStructureMavenWithParamsNoChildren() throws IOException, SAXException {
-		MavenModuleSet p = rule.createMavenProject(projectName);
+		String projectName = "root-job-" + UUID.randomUUID().toString();
+		MavenModuleSet p = rule.createProject(MavenModuleSet.class, projectName);
+		p.runHeadless();
 		ParametersDefinitionProperty params = new ParametersDefinitionProperty(Arrays.asList(
 				(ParameterDefinition) new BooleanParameterDefinition("ParamA", true, "bool"),
 				(ParameterDefinition) new StringParameterDefinition("ParamB", "str", "string"),
@@ -91,7 +96,6 @@ public class ProjectActionsMavenTest {
 		));
 		p.addProperty(params);
 
-		JenkinsRule.WebClient client = rule.createWebClient();
 		Page page;
 		PipelineNode pipeline;
 		CIParameter tmpParam;
@@ -148,11 +152,13 @@ public class ProjectActionsMavenTest {
 	//
 	@Test
 	public void testStructureMavenWithParamsWithChildren() throws IOException, SAXException {
-		MavenModuleSet p = rule.createMavenProject(projectName);
+		String projectName = "root-job-" + UUID.randomUUID().toString();
+		MavenModuleSet p = rule.createProject(MavenModuleSet.class, projectName);
+		p.runHeadless();
 		FreeStyleProject p1 = rule.createFreeStyleProject("jobA");
-		MatrixProject p2 = rule.createMatrixProject("jobB");
+		MatrixProject p2 = rule.createProject(MatrixProject.class, "jobB");
 		FreeStyleProject p3 = rule.createFreeStyleProject("jobC");
-		MatrixProject p4 = rule.createMatrixProject("jobD");
+		MatrixProject p4 = rule.createProject(MatrixProject.class, "jobD");
 		ParametersDefinitionProperty params = new ParametersDefinitionProperty(Arrays.asList(
 				(ParameterDefinition) new BooleanParameterDefinition("ParamA", true, "bool"),
 				(ParameterDefinition) new StringParameterDefinition("ParamB", "str", "string")
@@ -164,7 +170,7 @@ public class ProjectActionsMavenTest {
 						Result.UNSTABLE,
 						Result.FAILURE
 				), Arrays.asList(new AbstractBuildParameters[0])),
-				new BlockableBuildTriggerConfig("jobC,jobD", null, Arrays.asList(new AbstractBuildParameters[0]))
+				new BlockableBuildTriggerConfig("jobC, jobD", null, Arrays.asList(new AbstractBuildParameters[0]))
 		)));
 		p.getPrebuilders().add(new Shell(""));
 		p.getPostbuilders().add(new Shell(""));
@@ -174,15 +180,14 @@ public class ProjectActionsMavenTest {
 						Result.UNSTABLE,
 						Result.FAILURE
 				), Arrays.asList(new AbstractBuildParameters[0])),
-				new BlockableBuildTriggerConfig("jobC,jobD", null, Arrays.asList(new AbstractBuildParameters[0]))
+				new BlockableBuildTriggerConfig("jobC, jobD", null, Arrays.asList(new AbstractBuildParameters[0]))
 		)));
 		p.getPublishersList().add(new BuildTrigger("jobA, jobB", Result.SUCCESS));
 		p.getPublishersList().add(new Fingerprinter(""));
 		p.getPublishersList().add(new hudson.plugins.parameterizedtrigger.BuildTrigger(Arrays.asList(
-				new BuildTriggerConfig("jobC,jobD", ResultCondition.ALWAYS, false, null)
+				new BuildTriggerConfig("jobC, jobD", ResultCondition.ALWAYS, false, null)
 		)));
 
-		JenkinsRule.WebClient client = rule.createWebClient();
 		Page page;
 		PipelineNode pipeline;
 		List<PipelinePhase> tmpPhases;

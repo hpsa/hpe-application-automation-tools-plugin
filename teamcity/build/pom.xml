@@ -5,7 +5,7 @@
     <parent>
         <artifactId>teamcity-plugin-root</artifactId>
         <groupId>com.hp.mqm</groupId>
-        <version>12.53.11-SNAPSHOT</version>
+        <version>12.53.14-SNAPSHOT</version>
     </parent>
 
 	<artifactId>build</artifactId>

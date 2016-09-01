@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jetbrains.teamcity;
 
-import com.hp.octane.integrations.api.CIPluginServices;
+import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
@@ -25,6 +25,8 @@ import jetbrains.buildServer.serverSide.SBuildServer;
 import jetbrains.buildServer.serverSide.SBuildType;
 import jetbrains.buildServer.serverSide.SFinishedBuild;
 import jetbrains.buildServer.serverSide.STestRun;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
@@ -33,16 +35,15 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
 /**
  * Created by gullery on 21/01/2016.
  * <p/>
- * Jenkins CI Server oriented extension of CI Data Provider
+ * TeamCity CI Server oriented extension of CI Data Provider
  */
 
 public class TeamCityPluginServicesImpl implements CIPluginServices {
-	private static final Logger logger = Logger.getLogger(TeamCityPluginServicesImpl.class.getName());
+	private static final Logger logger = LogManager.getLogger(TeamCityPluginServicesImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String pluginVersion = "9.1.5";
 

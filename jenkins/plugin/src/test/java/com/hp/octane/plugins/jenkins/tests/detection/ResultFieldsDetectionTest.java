@@ -10,112 +10,119 @@ import hudson.tasks.Maven;
 import hudson.tasks.junit.JUnitResultArchiver;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.ToolInstallations;
 import org.mockito.Mockito;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.FileReader;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 public class ResultFieldsDetectionTest {
 
-    @Rule
-    final public JenkinsRule rule = new JenkinsRule();
+	@Rule
+	public final JenkinsRule rule = new JenkinsRule();
 
-    private FreeStyleProject project;
+	private static FreeStyleProject project;
 
-    private ResultFieldsDetectionService detectionService;
+	private static ResultFieldsDetectionService detectionService;
 
-    @Before
-    public void setUp() throws Exception {
-        project = rule.createFreeStyleProject("junit - job");
-        JUnitExtension junitExtension = ExtensionUtil.getInstance(rule, JUnitExtension.class);
-        detectionService = Mockito.mock(ResultFieldsDetectionService.class);
-        junitExtension._setResultFieldsDetectionService(detectionService);
+	@Before
+	public void setUp() throws Exception {
+		project = rule.createFreeStyleProject("junit - job");
+		JUnitExtension junitExtension = ExtensionUtil.getInstance(rule, JUnitExtension.class);
+		detectionService = Mockito.mock(ResultFieldsDetectionService.class);
+		junitExtension._setResultFieldsDetectionService(detectionService);
 
-        Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
-        project.getBuildersList().add(new Maven("test", mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
-        project.setScm(new CopyResourceSCM("/helloWorldRoot"));
-    }
+		Maven.MavenInstallation mavenInstallation = ToolInstallations.configureMaven3();
 
-    @Test
-    public void testDetectionNotRun() throws Exception {
-        //there is no test publisher set up in this project, detection will not run
-        AbstractBuild build = TestUtils.runAndCheckBuild(project);
-        verify(detectionService, Mockito.never()).getDetectedFields(build);
-    }
+		project.getBuildersList().add(new Maven("-s settings.xml test", mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
+		project.setScm(new CopyResourceSCM("/helloWorldRoot"));
+	}
 
-    @Test
-    public void testDetectionRunOnce() throws Exception {
-        project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
-        AbstractBuild build = TestUtils.runAndCheckBuild(project);
-        verify(detectionService, Mockito.times(1)).getDetectedFields(build);
-    }
+	@Test
+	public void testDetectionNotRun() throws Exception {
+		//there is no test publisher set up in this project, detection will not run
+		AbstractBuild build = TestUtils.runAndCheckBuild(project);
+		verify(detectionService, Mockito.never()).getDetectedFields(build);
+	}
 
-    @Test
-    public void testDetectedFieldsInXml() throws Exception {
-        when(detectionService.getDetectedFields(any(AbstractBuild.class))).thenReturn(new ResultFields("HOLA", "CIAO", "SALUT"));
-        project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
-        AbstractBuild build = TestUtils.runAndCheckBuild(project);
+	@Test
+	public void testDetectionRunOnce() throws Exception {
+		project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
+		AbstractBuild build = TestUtils.runAndCheckBuild(project);
+		verify(detectionService, Mockito.times(1)).getDetectedFields(build);
+	}
 
-        File mqmTestsXml = new File(build.getRootDir(), "mqmTests.xml");
-        ResultFieldsXmlReader xmlReader = new ResultFieldsXmlReader(new FileReader(mqmTestsXml));
-        ResultFields resultFields = xmlReader.readXml().getResultFields();
+	@Test
+	public void testDetectedFieldsInXml() throws Exception {
+		when(detectionService.getDetectedFields(any(AbstractBuild.class))).thenReturn(new ResultFields("HOLA", "CIAO", "SALUT"));
+		project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
+		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
-        Assert.assertNotNull(resultFields);
-        Assert.assertEquals("HOLA", resultFields.getFramework());
-        Assert.assertEquals("CIAO", resultFields.getTestingTool());
-        Assert.assertEquals("SALUT", resultFields.getTestLevel());
-    }
+		File mqmTestsXml = new File(build.getRootDir(), "mqmTests.xml");
+		ResultFieldsXmlReader xmlReader = new ResultFieldsXmlReader(new FileReader(mqmTestsXml));
+		ResultFields resultFields = xmlReader.readXml().getResultFields();
 
-    @Test
-    public void testNoDetectedFieldsInXml() throws Exception {
-        when(detectionService.getDetectedFields(any(AbstractBuild.class))).thenReturn(null);
-        project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
-        AbstractBuild build = TestUtils.runAndCheckBuild(project);
+		Assert.assertNotNull(resultFields);
+		Assert.assertEquals("HOLA", resultFields.getFramework());
+		Assert.assertEquals("CIAO", resultFields.getTestingTool());
+		Assert.assertEquals("SALUT", resultFields.getTestLevel());
+	}
 
-        File mqmTestsXml = new File(build.getRootDir(), "mqmTests.xml");
-        ResultFieldsXmlReader xmlReader = new ResultFieldsXmlReader(new FileReader(mqmTestsXml));
-        ResultFields resultFields = xmlReader.readXml().getResultFields();;
+	@Test
+	public void testNoDetectedFieldsInXml() throws Exception {
+		when(detectionService.getDetectedFields(any(AbstractBuild.class))).thenReturn(null);
+		project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
+		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
-        Assert.assertNull(resultFields.getFramework());
-        Assert.assertNull(resultFields.getTestingTool());
-        Assert.assertNull(resultFields.getTestLevel());
-    }
+		File mqmTestsXml = new File(build.getRootDir(), "mqmTests.xml");
+		ResultFieldsXmlReader xmlReader = new ResultFieldsXmlReader(new FileReader(mqmTestsXml));
+		ResultFields resultFields = xmlReader.readXml().getResultFields();
+		;
 
-    @Test
-    public void testEmptyDetectedFieldsInXml() throws Exception {
-        when(detectionService.getDetectedFields(any(AbstractBuild.class))).thenReturn(new ResultFields(null, null, null));
-        project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
-        AbstractBuild build = TestUtils.runAndCheckBuild(project);
+		Assert.assertNull(resultFields.getFramework());
+		Assert.assertNull(resultFields.getTestingTool());
+		Assert.assertNull(resultFields.getTestLevel());
+	}
 
-        File mqmTestsXml = new File(build.getRootDir(), "mqmTests.xml");
-        ResultFieldsXmlReader xmlReader = new ResultFieldsXmlReader(new FileReader(mqmTestsXml));
-        ResultFields resultFields = xmlReader.readXml().getResultFields();;
+	@Test
+	public void testEmptyDetectedFieldsInXml() throws Exception {
+		when(detectionService.getDetectedFields(any(AbstractBuild.class))).thenReturn(new ResultFields(null, null, null));
+		project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
+		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
-        Assert.assertNull(resultFields.getFramework());
-        Assert.assertNull(resultFields.getTestingTool());
-        Assert.assertNull(resultFields.getTestLevel());
-    }
+		File mqmTestsXml = new File(build.getRootDir(), "mqmTests.xml");
+		ResultFieldsXmlReader xmlReader = new ResultFieldsXmlReader(new FileReader(mqmTestsXml));
+		ResultFields resultFields = xmlReader.readXml().getResultFields();
+		;
 
-    /**
-     * We do not detect Junit yet.
-     */
-    @Test
-    public void testNotDetectableConfigurationInXml() throws Exception {
-        project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
-        AbstractBuild build = TestUtils.runAndCheckBuild(project);
+		Assert.assertNull(resultFields.getFramework());
+		Assert.assertNull(resultFields.getTestingTool());
+		Assert.assertNull(resultFields.getTestLevel());
+	}
 
-        File mqmTestsXml = new File(build.getRootDir(), "mqmTests.xml");
-        ResultFieldsXmlReader xmlReader = new ResultFieldsXmlReader(new FileReader(mqmTestsXml));
-        ResultFields resultFields = xmlReader.readXml().getResultFields();;
+	/**
+	 * We do not detect Junit yet.
+	 */
+	@Test
+	public void testNotDetectableConfigurationInXml() throws Exception {
+		project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
+		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
-        Assert.assertNull(resultFields.getFramework());
-        Assert.assertNull(resultFields.getTestingTool());
-        Assert.assertNull(resultFields.getTestLevel());
-    }
+		File mqmTestsXml = new File(build.getRootDir(), "mqmTests.xml");
+		ResultFieldsXmlReader xmlReader = new ResultFieldsXmlReader(new FileReader(mqmTestsXml));
+		ResultFields resultFields = xmlReader.readXml().getResultFields();
+
+		Assert.assertNull(resultFields.getFramework());
+		Assert.assertNull(resultFields.getTestingTool());
+		Assert.assertNull(resultFields.getTestLevel());
+	}
 }

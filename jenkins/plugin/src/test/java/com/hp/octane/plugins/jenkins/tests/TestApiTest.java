@@ -1,5 +1,3 @@
-// (C) Copyright 2003-2015 Hewlett-Packard Development Company, L.P.
-
 package com.hp.octane.plugins.jenkins.tests;
 
 import com.gargoylesoftware.htmlunit.Page;
@@ -18,8 +16,12 @@ import hudson.tasks.Maven;
 import hudson.tasks.junit.JUnitResultArchiver;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.ToolInstallations;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -79,7 +81,8 @@ public class TestApiTest {
 		Mockito.when(restClient.isTestResultRelevant(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
 
 		// server needs to be configured in order for the processing to happen
-		HtmlPage configPage = rule.createWebClient().goTo("configure");
+		client = rule.createWebClient();
+		HtmlPage configPage = client.goTo("configure");
 		HtmlForm form = configPage.getFormByName("config");
 		form.getInputByName("_.uiLocation").setValueAttribute("http://localhost:8008/ui/?p=1001/1002");
 		form.getInputByName("_.username").setValueAttribute("username");
@@ -87,16 +90,14 @@ public class TestApiTest {
 		rule.submit(form);
 
 		FreeStyleProject project = rule.createFreeStyleProject("test-api-test");
-		Maven.MavenInstallation mavenInstallation = rule.configureDefaultMaven();
-		project.getBuildersList().add(new Maven("test", mavenInstallation.getName(), "helloWorld/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
+		Maven.MavenInstallation mavenInstallation = ToolInstallations.configureMaven3();
+		project.getBuildersList().add(new Maven("-s settings.xml test", mavenInstallation.getName(), "helloWorld/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
 		project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
 		project.setScm(new CopyResourceSCM("/helloWorldRoot"));
 		build = TestUtils.runAndCheckBuild(project);
 
 		// make sure dispatcher logic was executed
 		queue.waitForTicks(3);
-
-		client = rule.createWebClient();
 	}
 
 	@Test

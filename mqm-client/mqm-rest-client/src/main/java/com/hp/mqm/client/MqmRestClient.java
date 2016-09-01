@@ -122,6 +122,18 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 */
 	Pipeline updatePipeline(String serverIdentity, String jobName, Pipeline pipeline);
 
+
+	/**
+	 * Delete Tests by pipeline nodes on the MQM server.
+	 * <p/>
+	 * <p/>
+	 *
+	 * @param jobName        name of the job
+	 * @param pipelineId       pipeline id
+	 * @param workspaceId 	 workspace id
+	 */
+	void deleteTestsFromPipelineNodes(String jobName, Long pipelineId, Long workspaceId);
+
 	/**
 	 * Query releases matching given name filter (using contains semantics).
 	 * <p/>

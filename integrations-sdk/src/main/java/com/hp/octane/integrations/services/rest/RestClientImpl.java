@@ -2,7 +2,7 @@ package com.hp.octane.integrations.services.rest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hp.octane.integrations.api.CIPluginServices;
+import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.api.RestClient;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
@@ -16,6 +16,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -74,24 +75,22 @@ final class RestClientImpl implements RestClient {
 	private static final String CLIENT_TYPE_HEADER = "HPECLIENTTYPE";
 	private static final String CLIENT_TYPE_VALUE = "HPE_CI_CLIENT";
 	private static final String LWSSO_COOKIE_NAME = "LWSSO_COOKIE_KEY";
-	private static final String CSRF_COOKIE_NAME = "HPSSO_COOKIE_CSRF";
-	private static final String CSRF_HEADER_NAME = "HPSSO_HEADER_CSRF";
 
 	private static final String AUTHENTICATION_URI = "authentication/sign_in";
 
 	private final CIPluginServices pluginServices;
 	private final CloseableHttpClient httpClient;
+	private final CredentialsProvider credentialsProvider;
+
 	private int MAX_TOTAL_CONNECTIONS = 20;
-	private CookieStore cookieStore;
 	private Cookie LWSSO_TOKEN = null;
-	private String CSRF_TOKEN = null;
 
 	static {
 		AUTHENTICATION_ERROR_CODES = new HashSet<Integer>();
 		AUTHENTICATION_ERROR_CODES.add(HttpStatus.SC_UNAUTHORIZED);
 	}
 
-	RestClientImpl(CIPluginServices pluginServices, CIProxyConfiguration proxyConfiguration) {
+	RestClientImpl(CIPluginServices pluginServices) {
 		this.pluginServices = pluginServices;
 
 		SSLContext sslContext = SSLContexts.createSystemDefault();
@@ -104,29 +103,11 @@ final class RestClientImpl implements RestClient {
 		PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
 		connectionManager.setMaxTotal(MAX_TOTAL_CONNECTIONS);
 		connectionManager.setDefaultMaxPerRoute(MAX_TOTAL_CONNECTIONS);
-		cookieStore = new BasicCookieStore();
+		credentialsProvider = new BasicCredentialsProvider();
 
 		HttpClientBuilder clientBuilder = HttpClients.custom()
 				.setConnectionManager(connectionManager)
-				.setDefaultCookieStore(cookieStore);
-
-		if (proxyConfiguration != null) {
-			logger.warn("proxy will be used with the following setup: " + proxyConfiguration);
-			HttpHost proxyHost = new HttpHost(proxyConfiguration.getHost(), proxyConfiguration.getPort());
-
-			clientBuilder
-					.setProxy(proxyHost);
-
-			if (proxyConfiguration.getUsername() != null && !proxyConfiguration.getUsername().isEmpty()) {
-				AuthScope authScope = new AuthScope(proxyHost);
-				Credentials credentials = new UsernamePasswordCredentials(proxyConfiguration.getUsername(), proxyConfiguration.getPassword());
-				CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-				credentialsProvider.setCredentials(authScope, credentials);
-
-				clientBuilder
-						.setDefaultCredentialsProvider(credentialsProvider);
-			}
-		}
+				.setDefaultCredentialsProvider(credentialsProvider);
 
 		httpClient = clientBuilder.build();
 	}
@@ -146,7 +127,7 @@ final class RestClientImpl implements RestClient {
 		HttpResponse httpResponse = null;
 		OctaneResponse loginResponse;
 		if (LWSSO_TOKEN == null) {
-			logger.warn("initial login");
+			logger.info("initial login");
 			loginResponse = login(configuration);
 			if (loginResponse.getStatus() != 200) {
 				logger.error("failed on initial login, status " + loginResponse.getStatus());
@@ -156,11 +137,11 @@ final class RestClientImpl implements RestClient {
 
 		try {
 			uriRequest = createHttpRequest(request);
-			context = createHttpContext();
+			context = createHttpContext(request.getUrl());
 			httpResponse = httpClient.execute(uriRequest, context);
 
 			if (AUTHENTICATION_ERROR_CODES.contains(httpResponse.getStatusLine().getStatusCode())) {
-				logger.warn("re-login");
+				logger.info("re-login");
 				HttpClientUtils.closeQuietly(httpResponse);
 				loginResponse = login(configuration);
 				if (loginResponse.getStatus() != 200) {
@@ -168,7 +149,7 @@ final class RestClientImpl implements RestClient {
 					return loginResponse;
 				}
 				uriRequest = createHttpRequest(request);
-				context = createHttpContext();
+				context = createHttpContext(request.getUrl());
 				httpResponse = httpClient.execute(uriRequest, context);
 			}
 
@@ -190,25 +171,19 @@ final class RestClientImpl implements RestClient {
 
 		//  create base request by METHOD
 		if (octaneRequest.getMethod().equals(HttpMethod.GET)) {
-			requestBuilder = RequestBuilder
-					.get(octaneRequest.getUrl());
+			requestBuilder = RequestBuilder.get(octaneRequest.getUrl());
 		} else if (octaneRequest.getMethod().equals(HttpMethod.DELETE)) {
-			requestBuilder = RequestBuilder
-					.delete(octaneRequest.getUrl());
+			requestBuilder = RequestBuilder.delete(octaneRequest.getUrl());
 		} else if (octaneRequest.getMethod().equals(HttpMethod.POST)) {
 			try {
-				requestBuilder = RequestBuilder
-						.post(octaneRequest.getUrl())
-						.setEntity(new StringEntity(octaneRequest.getBody()));
+				requestBuilder = RequestBuilder.post(octaneRequest.getUrl()).setEntity(new StringEntity(octaneRequest.getBody()));
 			} catch (UnsupportedEncodingException uee) {
 				logger.error("failed to create POST entity", uee);
 				throw new RuntimeException("failed to create POST entity", uee);
 			}
 		} else if (octaneRequest.getMethod().equals(HttpMethod.PUT)) {
 			try {
-				requestBuilder = RequestBuilder
-						.put(octaneRequest.getUrl())
-						.setEntity(new StringEntity(octaneRequest.getBody()));
+				requestBuilder = RequestBuilder.put(octaneRequest.getUrl()).setEntity(new StringEntity(octaneRequest.getBody()));
 			} catch (UnsupportedEncodingException uee) {
 				logger.error("failed to create PUT entity", uee);
 				throw new RuntimeException("failed to create PUT entity", uee);
@@ -226,17 +201,37 @@ final class RestClientImpl implements RestClient {
 
 		//  set system headers
 		requestBuilder.setHeader(CLIENT_TYPE_HEADER, CLIENT_TYPE_VALUE);
-		requestBuilder.setHeader(CSRF_HEADER_NAME, CSRF_TOKEN);
 
 		return requestBuilder.build();
 	}
 
-	private HttpClientContext createHttpContext() {
+	private HttpClientContext createHttpContext(String requestUrl) {
 		HttpClientContext context = HttpClientContext.create();
 		CookieStore localCookies = new BasicCookieStore();
 		localCookies.addCookie(LWSSO_TOKEN);
 		context.setCookieStore(localCookies);
-		//  create settings for proxy registration here
+
+		//  configure proxy if needed
+		CIProxyConfiguration proxyConfiguration = pluginServices.getProxyConfiguration(requestUrl);
+		if (proxyConfiguration != null) {
+			logger.debug("proxy will be used with the following setup: " + proxyConfiguration);
+			HttpHost proxyHost = new HttpHost(proxyConfiguration.getHost(), proxyConfiguration.getPort());
+
+			if (proxyConfiguration.getUsername() != null && !proxyConfiguration.getUsername().isEmpty()) {
+				AuthScope authScope = new AuthScope(proxyHost);
+				Credentials credentials = new UsernamePasswordCredentials(proxyConfiguration.getUsername(), proxyConfiguration.getPassword());
+				credentialsProvider.setCredentials(authScope, credentials);
+			} else {
+				credentialsProvider.clear();
+			}
+
+			context.setRequestConfig(RequestConfig
+							.custom()
+							.setProxy(proxyHost)
+							.build()
+			);
+		}
+
 		return context;
 	}
 
@@ -271,15 +266,12 @@ final class RestClientImpl implements RestClient {
 
 		try {
 			HttpUriRequest loginRequest = buildLoginRequest(config);
-			cookieStore.clear();
-			response = httpClient.execute(loginRequest);
+			HttpClientContext context = createHttpContext(loginRequest.getURI().toString());
+			response = httpClient.execute(loginRequest, context);
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-				for (Cookie cookie : cookieStore.getCookies()) {
+				for (Cookie cookie : context.getCookieStore().getCookies()) {
 					if (cookie.getName().equals(LWSSO_COOKIE_NAME)) {
 						LWSSO_TOKEN = cookie;
-					}
-					if (cookie.getName().equals(CSRF_COOKIE_NAME)) {
-						CSRF_TOKEN = cookie.getValue();
 					}
 				}
 			}
@@ -335,12 +327,12 @@ final class RestClientImpl implements RestClient {
 	}
 
 	private static final class LoginApiBody {
-		public final String user;
-		public final String password;
+		public final String client_id;
+		public final String client_secret;
 
-		private LoginApiBody(String user, String password) {
-			this.user = user;
-			this.password = password;
+		private LoginApiBody(String client_id, String client_secret) {
+			this.client_id = client_id;
+			this.client_secret = client_secret;
 		}
 	}
 }

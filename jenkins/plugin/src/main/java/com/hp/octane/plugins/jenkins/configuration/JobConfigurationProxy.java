@@ -1,16 +1,14 @@
-// (C) Copyright 2003-2015 Hewlett-Packard Development Company, L.P.
-
 package com.hp.octane.plugins.jenkins.configuration;
 
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
 import com.hp.mqm.client.model.*;
+import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.plugins.jenkins.Messages;
-import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
@@ -21,7 +19,6 @@ import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
-import org.junit.Assert;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
 
 import java.io.IOException;
@@ -50,7 +47,7 @@ public class JobConfigurationProxy {
 		JSONObject result = new JSONObject();
 
 		PipelineNode pipelineNode = ModelFactory.createStructureItem(project);
-		CIServerInfo ciServerInfo = Jenkins.getInstance().getPlugin(OctanePlugin.class).jenkinsPluginServices.getServerInfo();
+		CIServerInfo ciServerInfo = OctaneSDK.getInstance().getPluginServices().getServerInfo();
 		Long releaseId = pipelineObject.getLong("releaseId") != -1 ? pipelineObject.getLong("releaseId") : null;
 
 		MqmRestClient client;
@@ -140,7 +137,7 @@ public class JobConfigurationProxy {
 			}
 
 			Pipeline pipeline = client.updatePipeline(ServerIdentity.getIdentity(), project.getName(),
-					new Pipeline(pipelineId, pipelineObject.getString("name"), null, pipelineObject.getLong("workspaceId"), pipelineObject.getLong("releaseId"), taxonomies, fields));
+					new Pipeline(pipelineId, pipelineObject.getString("name"), null, pipelineObject.getLong("workspaceId"), pipelineObject.getLong("releaseId"), taxonomies, fields, pipelineObject.getBoolean("ignoreTests")));
 
 			//WORKAROUND BEGIN
 			//getting workspaceName - because the workspaceName is not returned from configuration API
@@ -166,6 +163,34 @@ public class JobConfigurationProxy {
 		} catch (ClientException e) {
 			logger.log(Level.WARNING, "Failed to update pipeline", e);
 			return error(e.getMessage(), e.getLink());
+		}
+
+		return result;
+	}
+
+
+	@JavaScriptMethod
+	public JSONObject deleteTests(JSONObject pipelineObject) throws IOException, InterruptedException {
+		JSONObject result = new JSONObject();
+
+		MqmRestClient client;
+		try {
+			client = createClient();
+		} catch (ClientException e) {
+			logger.log(Level.WARNING, PRODUCT_NAME + " connection failed", e);
+			return error(e.getMessage(), e.getLink());
+		}
+		try {
+			long pipelineId = pipelineObject.getLong("id");
+			long workspaceId = pipelineObject.getLong("workspaceId");
+			client.deleteTestsFromPipelineNodes(project.getName(),pipelineId, workspaceId);
+            result.put("Test deletion was succeful","");
+		} catch (RequestException e) {
+			logger.log(Level.WARNING, "Failed to delete tests", e);
+			return error("Unable to delete tests");
+		} catch (RequestErrorException e) {
+			logger.log(Level.WARNING, "Failed to delete tests", e);
+			return error("Unable to delete tests");
 		}
 
 		return result;
@@ -298,6 +323,7 @@ public class JobConfigurationProxy {
 		pipelineJSON.put("isRoot", pipeline.isRoot());
 		pipelineJSON.put("workspaceId", relatedWorkspace.getId());
 		pipelineJSON.put("workspaceName", relatedWorkspace.getName());
+		pipelineJSON.put("ignoreTests", pipeline.getIgnoreTests());
 		addTaxonomyTags(pipelineJSON, pipeline);
 		addFields(pipelineJSON, pipeline);
 
@@ -829,7 +855,7 @@ public class JobConfigurationProxy {
 
 	private static <T> T getExtension(Class<T> clazz) {
 		ExtensionList<T> items = Jenkins.getInstance().getExtensionList(clazz);
-		Assert.assertEquals(1, items.size());
+		assert 1 == items.size() : "Expected to have one and only one extension of type " + clazz;
 		return items.get(0);
 	}
 

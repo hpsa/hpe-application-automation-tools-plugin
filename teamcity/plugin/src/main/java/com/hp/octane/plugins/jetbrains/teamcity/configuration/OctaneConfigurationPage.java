@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 
 public class OctaneConfigurationPage extends AdminPage {
 
-	protected OctaneConfigurationPage(@NotNull PagePlaces pagePlaces, @NotNull PluginDescriptor pluginDescriptor) {
+	private OctaneConfigurationPage(@NotNull PagePlaces pagePlaces, @NotNull PluginDescriptor pluginDescriptor) {
 		super(pagePlaces);
 		setPluginName("HPE ALM Octane CI Plugin");
 		setTabTitle("ALM Octane CI Plugin");

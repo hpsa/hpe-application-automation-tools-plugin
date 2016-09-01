@@ -7,13 +7,11 @@
 	<parent>
 		<groupId>com.hp.mqm</groupId>
 		<artifactId>indi-integrations-root</artifactId>
-		<version>12.53.11-SNAPSHOT</version>
+		<version>12.53.14-SNAPSHOT</version>
 	</parent>
 
 	<modules>
 		<module>plugin</module>
-		<!--module>jenkins-test-pack</module>
-		<module>jenkins-indi-docker</module-->
 	</modules>
 
 </project>

@@ -35,19 +35,7 @@ public class TestNGExtension  extends ResultFieldsDetectionExtension {
             "target/failsafe-reports/" + TESTNG_RESULT_FILE
     );
 
-    /**
-     * Basically, the detection is based on finding the <code>testng-results.xml</code> file in the workspace.
-     There are two main approaches for finding:
-     *  <ul>
-     *      <li>FreestyleProject - takes JUnitResultArchiver pattern and tries to find <code>testng-results.xml</code> in the same directories as test reports</li>
-     *      <li>MavenProject - tries to find <code>testng-results.xml</code> in default report location for surefire and failsafe maven plugins</li>
-     *  </ul>
-     *
-     * @param build
-     * @return
-     * @throws IOException
-     * @throws InterruptedException
-     */
+
     @Override
     public ResultFields detect(final AbstractBuild build) throws IOException, InterruptedException {
 

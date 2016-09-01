@@ -1,34 +1,29 @@
-// (C) Copyright 2003-2015 Hewlett-Packard Development Company, L.P.
-
 package com.hp.octane.plugins.jenkins.tests.build;
 
 import com.hp.octane.plugins.jenkins.tests.CopyResourceSCM;
 import com.hp.octane.plugins.jenkins.tests.TestUtils;
-import hudson.matrix.Axis;
-import hudson.matrix.AxisList;
-import hudson.matrix.MatrixBuild;
-import hudson.matrix.MatrixProject;
-import hudson.matrix.MatrixRun;
+import hudson.matrix.*;
 import hudson.maven.MavenModuleSet;
 import hudson.maven.MavenModuleSetBuild;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.tasks.Maven;
 import org.junit.Assert;
-import org.junit.Rule;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.ToolInstallations;
 
 import java.util.HashMap;
 
 public class BuildHandlerUtilsTest {
 
-	@Rule
-	final public JenkinsRule jenkins = new JenkinsRule();
+	@ClassRule
+	public static final JenkinsRule jenkins = new JenkinsRule();
 
 	@Test
 	public void testMatrixBuildType() throws Exception {
-		MatrixProject matrixProject = jenkins.createMatrixProject("matrix-project");
+		MatrixProject matrixProject = jenkins.createProject(MatrixProject.class, "matrix-project");
 		matrixProject.setAxes(new AxisList(new Axis("OS", "Linux", "Windows")));
 		MatrixBuild build = (MatrixBuild) TestUtils.runAndCheckBuild(matrixProject);
 
@@ -38,7 +33,7 @@ public class BuildHandlerUtilsTest {
 
 		Assert.assertEquals("matrix-project", BuildHandlerUtils.getProjectFullName(build));
 
-		HashMap<String, String> expectedType = new HashMap<String, String>();
+		HashMap<String, String> expectedType = new HashMap<>();
 		expectedType.put("OS=Linux", "matrix-project/OS=Linux");
 		expectedType.put("OS=Windows", "matrix-project/OS=Windows");
 
@@ -53,10 +48,12 @@ public class BuildHandlerUtilsTest {
 
 	@Test
 	public void testMavenBuildType() throws Exception {
-		MavenModuleSet project = jenkins.createMavenProject("maven-project");
-		Maven.MavenInstallation mavenInstallation = jenkins.configureDefaultMaven();
+		MavenModuleSet project = jenkins.createProject(MavenModuleSet.class, "maven-project");
+		project.runHeadless();
+
+		Maven.MavenInstallation mavenInstallation = ToolInstallations.configureMaven3();
 		project.setMaven(mavenInstallation.getName());
-		project.setGoals("test -Dmaven.test.failure.ignore=true");
+		project.setGoals("-s settings.xml test -Dmaven.test.failure.ignore=true");
 		project.setScm(new CopyResourceSCM("/helloWorldRoot"));
 		MavenModuleSetBuild build = (MavenModuleSetBuild) TestUtils.runAndCheckBuild(project);
 

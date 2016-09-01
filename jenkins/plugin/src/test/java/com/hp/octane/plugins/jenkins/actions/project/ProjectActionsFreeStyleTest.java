@@ -13,7 +13,7 @@ import hudson.plugins.parameterizedtrigger.*;
 import hudson.tasks.BuildTrigger;
 import hudson.tasks.Fingerprinter;
 import hudson.tasks.Shell;
-import org.junit.Rule;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.xml.sax.SAXException;
@@ -21,6 +21,7 @@ import org.xml.sax.SAXException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.Assert.*;
 
@@ -34,15 +35,15 @@ import static org.junit.Assert.*;
 
 public class ProjectActionsFreeStyleTest {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-	private static final String projectName = "root-job";
 
-	@Rule
-	public final JenkinsRule rule = new JenkinsRule();
+	@ClassRule
+	public static final JenkinsRule rule = new JenkinsRule();
 
 	//  Structure test: free-style, no params, no children
 	//
 	@Test
 	public void testStructureFreeStyleNoParamsNoChildren() throws IOException, SAXException {
+		String projectName = "root-job-" + UUID.randomUUID().toString();
 		rule.createFreeStyleProject(projectName);
 
 		JenkinsRule.WebClient client = rule.createWebClient();
@@ -63,6 +64,7 @@ public class ProjectActionsFreeStyleTest {
 	//
 	@Test
 	public void testStructureFreeStyleWithParamsNoChildren() throws IOException, SAXException {
+		String projectName = "root-job-" + UUID.randomUUID().toString();
 		FreeStyleProject p = rule.createFreeStyleProject(projectName);
 		ParametersDefinitionProperty params = new ParametersDefinitionProperty(Arrays.asList(
 				(ParameterDefinition) new BooleanParameterDefinition("ParamA", true, "bool"),
@@ -131,11 +133,12 @@ public class ProjectActionsFreeStyleTest {
 	//
 	@Test
 	public void testStructureFreeStyleWithParamsWithChildren() throws IOException, SAXException {
+		String projectName = "root-job-" + UUID.randomUUID().toString();
 		FreeStyleProject p = rule.createFreeStyleProject(projectName);
 		FreeStyleProject p1 = rule.createFreeStyleProject("jobA");
-		MatrixProject p2 = rule.createMatrixProject("jobB");
+		MatrixProject p2 = rule.createProject(MatrixProject.class, "jobB");
 		FreeStyleProject p3 = rule.createFreeStyleProject("jobC");
-		MavenModuleSet p4 = rule.createMavenProject("jobD");
+		MavenModuleSet p4 = rule.createProject(MavenModuleSet.class, "jobD");
 		CustomProject p5 = rule.getInstance().createProject(CustomProject.class, "jobE");
 		ParametersDefinitionProperty params = new ParametersDefinitionProperty(Arrays.asList(
 				(ParameterDefinition) new BooleanParameterDefinition("ParamA", true, "bool"),

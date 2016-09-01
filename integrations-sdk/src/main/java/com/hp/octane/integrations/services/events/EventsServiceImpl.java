@@ -1,14 +1,15 @@
 package com.hp.octane.integrations.services.events;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.SDKService;
 import com.hp.octane.integrations.api.EventsService;
+import com.hp.octane.integrations.api.RestService;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventsList;
+import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -27,17 +28,16 @@ import java.util.Map;
  * To change this template use File | Settings | File Templates.
  */
 
-public final class EventsServiceImpl extends SDKService implements EventsService {
+public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements EventsService {
 	private static final Logger logger = LogManager.getLogger(EventsServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-
-	private static final class WaitMonitor {
-		volatile boolean released;
-	}
 
 	private final List<CIEvent> events = Collections.synchronizedList(new ArrayList<CIEvent>());
 	private final Object INIT_LOCKER = new Object();
 	private final WaitMonitor WAIT_MONITOR = new WaitMonitor();
+	private final CIPluginServices pluginServices;
+	private final RestService restService;
+
 	private Thread worker;
 	volatile boolean paused;
 
@@ -49,8 +49,18 @@ public final class EventsServiceImpl extends SDKService implements EventsService
 	private int pauseInterval;
 	volatile private boolean shuttingDown;
 
-	public EventsServiceImpl(Object configurator) {
+	public EventsServiceImpl(Object configurator, CIPluginServices pluginServices, RestService restService) {
 		super(configurator);
+
+		if (pluginServices == null) {
+			throw new IllegalArgumentException("plugin services MUST NOT be null");
+		}
+		if (restService == null) {
+			throw new IllegalArgumentException("rest service MUST NOT be null");
+		}
+
+		this.pluginServices = pluginServices;
+		this.restService = restService;
 		activate();
 	}
 
@@ -123,16 +133,22 @@ public final class EventsServiceImpl extends SDKService implements EventsService
 
 	private boolean sendData() {
 		CIEventsList eventsSnapshot = dtoFactory.newDTO(CIEventsList.class)
-				.setServer(getPluginServices().getServerInfo())
+				.setServer(pluginServices.getServerInfo())
 				.setEvents(new ArrayList<CIEvent>(events));
 		boolean result = true;
 
+		String eventsSummary = "";
+		for (CIEvent event : eventsSnapshot.getEvents()) {
+			eventsSummary += event.getProject() + ":" + event.getBuildCiId() + ":" + event.getEventType() + ", ";
+		}
+		eventsSummary = eventsSummary.substring(0, eventsSummary.length() - 2);
+
 		try {
-			logger.info("sending " + eventsSnapshot.getEvents().size() + " event/s to '" + eventsSnapshot.getServer().getUrl() + "'...");
+			logger.info("sending [" + eventsSummary + "] event/s to '" + eventsSnapshot.getServer().getUrl() + "'...");
 			OctaneRequest request = createEventsRequest(eventsSnapshot);
 			OctaneResponse response;
 			while (failedRetries < MAX_SEND_RETRIES) {
-				response = getRestService().obtainClient().execute(request);
+				response = restService.obtainClient().execute(request);
 				if (response.getStatus() == 200) {
 					events.removeAll(eventsSnapshot.getEvents());
 					logger.info("... done, left to send " + events.size() + " events");
@@ -160,13 +176,12 @@ public final class EventsServiceImpl extends SDKService implements EventsService
 	private OctaneRequest createEventsRequest(CIEventsList events) {
 		Map<String, String> headers = new HashMap<String, String>();
 		headers.put("content-type", "application/json");
-		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
+		return dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.PUT)
-				.setUrl(getPluginServices().getOctaneConfiguration().getUrl() + "/internal-api/shared_spaces/" +
-						getPluginServices().getOctaneConfiguration().getSharedSpace() + "/analytics/ci/events")
+				.setUrl(pluginServices.getOctaneConfiguration().getUrl() + "/internal-api/shared_spaces/" +
+						pluginServices.getOctaneConfiguration().getSharedSpace() + "/analytics/ci/events")
 				.setHeaders(headers)
 				.setBody(dtoFactory.dtoToJson(events));
-		return request;
 	}
 
 	private void doBreakableWait(long timeout) {
@@ -189,5 +204,9 @@ public final class EventsServiceImpl extends SDKService implements EventsService
 				logger.info("pause finished timely");
 			}
 		}
+	}
+
+	private static final class WaitMonitor {
+		volatile boolean released;
 	}
 }

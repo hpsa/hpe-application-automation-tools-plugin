@@ -1,5 +1,6 @@
 package com.hp.octane.plugins.jetbrains.teamcity.events;
 
+import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.causes.CIEventCause;
 import com.hp.octane.integrations.dto.causes.CIEventCauseType;
@@ -10,6 +11,8 @@ import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelCommonFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ParametersFactory;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.util.EventDispatcher;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -23,6 +26,7 @@ import java.util.List;
  */
 
 public class ProgressEventsListener extends BuildServerAdapter {
+	private static final Logger logger = LogManager.getLogger(ProgressEventsListener.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String TRIGGER_BUILD_TYPE_KEY = "buildTypeId";
 
@@ -48,7 +52,7 @@ public class ProgressEventsListener extends BuildServerAdapter {
 					.setProject(queuedBuild.getBuildType().getExternalId())
 					.setProjectDisplayName(queuedBuild.getBuildType().getName())
 					.setCauses(new ArrayList<CIEventCause>());
-			octaneTeamCityPlugin.getOctaneSDK().getEventsService().publishEvent(event);
+			OctaneSDK.getInstance().getEventsService().publishEvent(event);
 		}
 	}
 
@@ -75,7 +79,7 @@ public class ProgressEventsListener extends BuildServerAdapter {
 				.setCauses(causes)
 				.setStartTime(build.getStartDate().getTime())
 				.setEstimatedDuration(build.getDurationEstimate() * 1000);
-		octaneTeamCityPlugin.getOctaneSDK().getEventsService().publishEvent(event);
+		OctaneSDK.getInstance().getEventsService().publishEvent(event);
 	}
 
 	@Override
@@ -103,7 +107,7 @@ public class ProgressEventsListener extends BuildServerAdapter {
 				.setEstimatedDuration(build.getDurationEstimate() * 1000)
 				.setDuration(build.getDuration() * 1000)
 				.setResult(modelCommonFactory.resultFromNativeStatus(build.getBuildStatus()));
-		octaneTeamCityPlugin.getOctaneSDK().getEventsService().publishEvent(event);
+		OctaneSDK.getInstance().getEventsService().publishEvent(event);
 	}
 
 	private SQueuedBuild getTriggerBuild(String triggerBuildTypeId) {
