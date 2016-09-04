@@ -1,5 +1,6 @@
 package com.hp.application.automation.tools.results.projectparser.performance;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,7 +15,7 @@ public class LrProjectScenarioResults extends LrScenario {
 
     public Map<Integer, TimeRangeResult> errPerSecResults = new HashMap<Integer, TimeRangeResult>();
     public Map<Integer, PercentileTransactionWholeRun> percentileTransactionResultsProject = new HashMap<Integer, PercentileTransactionWholeRun>();
-    public Map<Integer, TransactionTimeRange> transactionTimeRangesProject = new HashMap<Integer, TransactionTimeRange>();
+    public Map<Integer, ArrayList<TransactionTimeRange>> transactionTimeRangesProject = new HashMap<Integer, ArrayList<TransactionTimeRange>>();
 
     public LrProjectScenarioResults(String scenarioName) {
         this.setScenrioName(scenarioName);

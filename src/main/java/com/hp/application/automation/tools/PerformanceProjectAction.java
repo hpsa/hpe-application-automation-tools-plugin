@@ -66,22 +66,23 @@ public class PerformanceProjectAction implements Action{
             LrJobResults jobLrResult = performanceJobReportAction.getLrResultBuildDataset();
 
             //get all the ran scenario results
-            for(Map.Entry<String,jobLrScenarioResult> b : jobLrResult.getLrScenarioResults().entrySet())
+            for(Map.Entry<String,jobLrScenarioResult> runResult : jobLrResult.getLrScenarioResults().entrySet())
             {
-                if(!_projectResult.getLrScenarioResults().containsKey(b.getKey())) {
-                    _projectResult.addScenrio(new LrProjectScenarioResults(b.getKey()));
+                if(!_projectResult.getLrScenarioResults().containsKey(runResult.getKey())) {
+                    _projectResult.addScenrio(new LrProjectScenarioResults(runResult.getKey()));
                 }
 
 
                 //Join the rule results
-                LrProjectScenarioResults targetLrScenarioResult = _projectResult.getLrScenarioResults().get(b.getKey());
-                targetLrScenarioResult.averageThroughputResults.put(run.getNumber(), b.getValue().averageThroughputResults);
-                targetLrScenarioResult.totalThroughtputResutls.put(run.getNumber(), b.getValue().totalThroughtputResutls);
-                targetLrScenarioResult.averageHitsPerSecondResults.put(run.getNumber(), b.getValue().averageHitsPerSecondResults);
-                targetLrScenarioResult.totalHitsResults.put(run.getNumber(), b.getValue().totalHitsResults);
-                targetLrScenarioResult.errPerSecResults.put(run.getNumber(), b.getValue().errPerSecResults);
-                targetLrScenarioResult.percentileTransactionResultsProject.put(run.getNumber(), b.getValue().percentileTransactionResults);
-                targetLrScenarioResult.transactionTimeRangesProject.put(run.getNumber(), b.getValue().transactionTimeRanges);
+                LrProjectScenarioResults targetLrScenarioResult = _projectResult.getLrScenarioResults().get(runResult.getKey());
+                targetLrScenarioResult.averageThroughputResults.put(run.getNumber(), runResult.getValue().averageThroughputResults);
+                targetLrScenarioResult.totalThroughtputResutls.put(run.getNumber(), runResult.getValue().totalThroughtputResutls);
+                targetLrScenarioResult.averageHitsPerSecondResults.put(run.getNumber(), runResult.getValue().averageHitsPerSecondResults);
+                targetLrScenarioResult.totalHitsResults.put(run.getNumber(), runResult.getValue().totalHitsResults);
+
+                targetLrScenarioResult.errPerSecResults.put(run.getNumber(), runResult.getValue().errPerSecResults);
+                targetLrScenarioResult.percentileTransactionResultsProject.put(run.getNumber(), runResult.getValue().percentileTransactionResults);
+                targetLrScenarioResult.transactionTimeRangesProject.put(run.getNumber(), runResult.getValue().transactionTimeRanges);
 
             }
         }
@@ -134,6 +135,20 @@ public class PerformanceProjectAction implements Action{
            graphDataSet.put("labels", labels);
 
             dataset.put("label", LrTest.SLA_GOAL.TotalHits + " of scenario " + scenarioResults.getKey().toString());
+//            dataset.put("fill", "false");
+//            dataset.put("lineTension", "0.1");
+//            dataset.put("backgroundColor", "rgba(220,220,220,0.2)");
+//            dataset.put("borderColor", "rgba(220,220,220,1)");
+//            dataset.put("borderCapStyle", "butt");
+//            dataset.put("borderDash", "[]");
+//            dataset.put("borderDash", "[]");
+//            dataset.put("pointBackgroundColor", "rgba(220,220,220,1)");
+//            dataset.put("pointBorderColor", "#fff");
+//            dataset.put("pointHoverBorderWidth", "1");
+//            dataset.put("pointHoverBorderWidth", "1");
+//            dataset.put("pointRadius", "1");
+//            dataset.put("pointHitRadius", "10");
+
             dataset.put("fillColor", "rgba(220,220,220,0.2)");
             dataset.put("strokeColor", "rgba(220,220,220,1)");
             dataset.put("pointColor", "rgba(220,220,220,1)");
@@ -247,6 +262,55 @@ public class PerformanceProjectAction implements Action{
         }
         return scenarionGraphData;
     }
+
+    @JavaScriptMethod
+    public JSONObject getAvgThroughtputResultsGraphData()
+    {
+        JSONObject graphDataSet;
+        JSONObject scenarionGraphData = new JSONObject();
+
+        for(Map.Entry<String, LrProjectScenarioResults> scenarioResults: _projectResult.getLrScenarioResults().entrySet() ) {
+            Map<Integer, WholeRunResult> graphData = scenarioResults.getValue().averageThroughputResults;
+
+            graphDataSet = new JSONObject();
+
+            JSONArray labels = new JSONArray();
+            JSONArray datasets = new JSONArray();
+            JSONObject dataset = new JSONObject();
+            JSONArray data = new JSONArray();
+            JSONObject datasetStyle = new JSONObject();
+
+            labels.addAll(graphData.keySet());
+
+            String goalValue = String.valueOf(graphData.values().iterator().next().getGoalValue());
+            for( WholeRunResult result : graphData.values())
+            {
+                data.add(result.getActualValue());
+            }
+
+//            graphDataSet.put("Goal", goalValue);
+
+            graphDataSet.put("labels", labels);
+
+            dataset.put("label", LrTest.SLA_GOAL.AverageHitsPerSecond);
+            dataset.put("fillColor", "rgba(220,220,21,0.2)");
+            dataset.put("strokeColor", "rgba(220,42,220,1)");
+            dataset.put("pointColor", "rgba(34,220,220,1)");
+            dataset.put("pointStrokeColor", "#fff");
+            dataset.put("pointHighlightFill", "#fff");
+            dataset.put("pointHighlightStroke", "rgba(220,158,220,0.2)");
+
+            dataset.put("data", data);
+            datasets.add(dataset);
+            graphDataSet.put("datasets", datasets);
+            scenarionGraphData.put(scenarioResults.getKey(), graphDataSet);
+
+            return graphDataSet;
+
+        }
+        return scenarionGraphData;
+    }
+
 
 
     public List<String> getBuildPerformanceReportList(){

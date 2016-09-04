@@ -5,7 +5,7 @@
 
 foo.getTotalHitsGraphData(function(t){
     var r = t.responseObject();
-    var ctx = document.getElementById('mycanvas').getContext("2d");
+    var ctx = document.getElementById('TotalHits').getContext("2d");
     new Chart(ctx).Line(r);
 });
 
@@ -25,7 +25,30 @@ foo.getTotalThroughputGraphData(function(t){
 
 });
 
+foo.getAvgThroughtputResultsGraphData(function(t){
+    var data = t.responseObject();
+    var ctx = document.getElementById('AvgThroughput').getContext("2d");
+    new Chart(ctx).Line(data);
 
+});
+
+
+foo.getAvgHitsPerSecGraphData(function(t) {
+    var data = t.responseObject();
+    document.getElementById('msr').innerHTML = ((data.labels));
+    document.getElementById('msv').innerHTML = JSON.stringify((data));
+    console.log(Object.keys(data)[1]);
+
+
+    // var data1= JSON.parse((data[0]));
+
+
+});
+
+
+// var adf = JSON.parse(totalHitsGraph2);
+// document.getElementById('mse').innerHTML = JSON.stringify(resultc);
+// document.getElementById('msr').innerHTML = JSON.stringify(adf);
 
 
 var Hello = React.createClass({
@@ -76,9 +99,7 @@ setInterval(function () {
 //
 //
 //
-// var adf = JSON.parse(totalHitsGraphData);
-// document.getElementById('mse').innerHTML = JSON.stringify(resultc);
-// document.getElementById('msv').innerHTML = JSON.stringify(thgd);
+//
 //
 // foo.getTotalHitsGraphData(function(t) {
 //     document.getElementById('msk').innerHTML = JSON.stringify(JSON.parse(t.responseObject()));

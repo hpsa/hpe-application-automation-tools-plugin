@@ -777,13 +777,13 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                             break;
                         case AverageTRT:
                             TransactionTimeRange transactionTimeRange = new TransactionTimeRange();
-                            transactionTimeRange.setName(slaRuleElement.getAttribute("Transaction name").toString());
+                            transactionTimeRange.setName(slaRuleElement.getAttribute("TransactionName").toString());
                             transactionTimeRange.setFullName(slaRuleElement.getAttribute("FullName").toString());
                             transactionTimeRange.setLoadThrashold(slaRuleElement.getAttribute("SLALoadThresholdValue").toString());
                             transactionTimeRange.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getFirstChild().getTextContent())); //Might not work due to time ranges
                             addTimeRanges(transactionTimeRange, slaRuleElement);
-                            transactionTimeRange.getActualValueAvg();
-                            jobLrScenarioResult.transactionTimeRanges = transactionTimeRange;
+                            //transactionTimeRange.getActualValueAvg();
+                            jobLrScenarioResult.transactionTimeRanges.add(transactionTimeRange);
                             break;
                         case Bad:
 
@@ -798,15 +798,16 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
     private static void addTimeRanges(TimeRangeResult transactionTimeRange, Element slaRuleElement) {
         Node timeRangeNode;
-        Element timeRangeElement;NodeList timeRanges = slaRuleElement.getElementsByTagName("TimeRangeInfo");
+        Element timeRangeElement;
+        NodeList timeRanges = slaRuleElement.getElementsByTagName("TimeRangeInfo");
         for (int k = 0; k < timeRanges.getLength(); k++) {
             timeRangeNode = timeRanges.item(k);
             timeRangeElement = (Element) timeRangeNode;
             double actualValue = Double.valueOf(timeRangeElement.getAttribute("ActualValue"));
             double goalValue = Double.valueOf(timeRangeElement.getAttribute("GoalValue"));
             int loadValue = Integer.valueOf(timeRangeElement.getAttribute("LoadValue"));
-            double startTime = Double.valueOf(timeRangeElement.getAttribute("ActualValue"));
-            double endTIme = Double.valueOf(timeRangeElement.getAttribute("GoalValue"));
+            double startTime = Double.valueOf(timeRangeElement.getAttribute("StartTime"));
+            double endTIme = Double.valueOf(timeRangeElement.getAttribute("EndTime"));
             transactionTimeRange.incActualValue(actualValue);
             LrTest.SLA_STATUS slaStatus = LrTest.SLA_STATUS.checkStatus(timeRangeElement.getFirstChild().getTextContent());
             TimeRange timeRange = new TimeRange(actualValue, goalValue, slaStatus, loadValue, startTime, endTIme);

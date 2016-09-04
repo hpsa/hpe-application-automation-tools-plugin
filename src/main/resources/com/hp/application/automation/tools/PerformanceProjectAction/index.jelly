@@ -14,8 +14,9 @@
 
         <l:main-panel>
             <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.1.1/Chart.min.js"></script>
+            <st:bind var="projectName" value="${it.DisplayName}"/>
 
-        <h1>Test page</h1>
+        <h1>${it.DisplayName}</h1>
 
         <div>
     </div>
@@ -26,13 +27,15 @@
             <canvas id="TotalThroughput" width="900" height="500"></canvas>
             <h4> AvgHitsPerSecGraphData </h4>
             <canvas id="AvgHitsPerSecGraphData" width="900" height="500"></canvas>
+            <h4> AvgThroughput</h4>
+            <canvas id="AvgThroughput" width="900" height="500"></canvas>
             <h4> Total Hits</h4>
-        <canvas id="mycanvas" width="900" height="500"></canvas>
-        <st:bind var="projectName" value="${it.DisplayName}"/>
-        <st:bind var="f" value="${it.BuildPerformanceReportList}"/>
-        <st:bind var="thgd" value="${it.getTotalHitsGraphData}"/>
+            <canvas id="TotalHits" width="900" height="500"></canvas>
 
-            <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/jslib.js"/>
+            <!--<h4> Total Hits</h4>-->
+        <!--<st:bind var="f" value="${it.BuildPerformanceReportList}"/>-->
+        <st:bind var="totalHitsGraph2" value="${it.getTotalHitsGraphData}"/>
+        <!--<st:bind var="thdgd" value="${it.getAvgThroughtputResultsGraphData}"/>-->
 
 
             <div id="msk" />
@@ -43,26 +46,30 @@
 
         <div id="msv" />
 
-        <div id="msr" />
+        <div id="msr"></div>
 
         <pre><code>
         </code></pre>
         <div id="examples"></div>
         <script>
-            // var cxz = JSON.parse(thgd);
-            // document.getElementById('msr').innerHTML = JSON.stringify(thgd);
-            var cxd = {"2013-01-21":1,"2013-01-22":"LL"};
-            var resultd = [];
+
+            // var canvas = document.createElement('canvas');
+            //
+            // canvas.id = "CursorLayer";
+            // canvas.width = 900;
+            // canvas.height = 500;
+            //
+            // var body1 = document.getElementById('msr');
+            // body1.appendChild(canvas);
+            //
+            // cursorLayer = document.getElementById("CursorLayer");
+            //
+            // console.log(cursorLayer);
 
 
 
-            for(var i in cxd)
-                resultd.push([i,cxd[i]]);
-
-
-
-            // var adf = JSON.parse(totalHitsGraphData);
-            document.getElementById('mse').innerHTML = JSON.stringify(resultd[1]);
+            // var adf = JSON.parse(thgd);
+            // document.getElementById('msv').innerHTML = JSON.stringify(totalHitsGraphData);
             // var ExampleApplication = React.createClass({
             // render: function() {
             // var elapsed = Math.round(this.props.elapsed  / 100);
@@ -101,10 +108,9 @@
 
         </script>
 
+            <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/jslib.js"/>
 
     </l:main-panel>
     <!--<j:set var="temp" value="${it.jsonLoadData}"/>-->
     </l:layout>
-    <st:adjunct includes="org.jenkins.ui.jsmodules.hp_application_automation_tools_plugin.jslib"/>
-
 </j:jelly>
