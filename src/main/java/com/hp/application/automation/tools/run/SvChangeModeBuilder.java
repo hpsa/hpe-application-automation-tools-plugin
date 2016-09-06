@@ -60,7 +60,7 @@ public class SvChangeModeBuilder extends AbstractSvRunBuilder<SvChangeModeModel>
         PrintStream logger = listener.getLogger();
 
         ICommandExecutor exec = createCommandExecutor();
-        for (ServiceInfo service : getServiceList(false, logger)) {
+        for (ServiceInfo service : getServiceList(false, logger, build)) {
             changeServiceMode(service, logger, exec);
         }
 

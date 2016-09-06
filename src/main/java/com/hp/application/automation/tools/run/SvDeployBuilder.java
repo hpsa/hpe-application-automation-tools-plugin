@@ -46,7 +46,7 @@ public class SvDeployBuilder extends AbstractSvRunBuilder<SvDeployModel> {
     public boolean performImpl(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws Exception {
         PrintStream logger = listener.getLogger();
 
-        IProject project = loadProject();
+        IProject project = loadProject(build);
         printProjectContent(project, logger);
         deployServiceFromProject(project, logger);
         return true;

@@ -254,7 +254,7 @@
 		<dependency>
 			<groupId>com.hp.sv</groupId>
 			<artifactId>SVConfigurator</artifactId>
-			<version>3.82</version>
+			<version>3.82.1</version>
 		</dependency>
 	</dependencies>
 </project>

@@ -57,7 +57,7 @@ public class SvExportBuilder extends AbstractSvRunBuilder<SvExportModel> {
             cleanTargetDirectory(logger);
         }
 
-        for (ServiceInfo service : getServiceList(false, logger)) {
+        for (ServiceInfo service : getServiceList(false, logger, build)) {
             logger.printf("  Exporting service '%s' [%s]%n", service.getName(), service.getId());
             processor.process(exec, model.getTargetDirectory(), service.getId());
         }
