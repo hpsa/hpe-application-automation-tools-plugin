@@ -219,8 +219,12 @@
 			<url>http://repo1.maven.org/maven2</url>
 		</repository>
 		<repository>
-			<id>Local repository</id>
-			<url>file://${basedir}/lib</url>
+			<id>hp-application-automation-tools-plugin-mvn-repo</id>
+			<url>https://raw.github.com/HpeServiceVirtualization/3g/mvn-repo/</url>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+			</snapshots>
 		</repository>
 	</repositories>
 
@@ -305,6 +309,6 @@
 		<dependency>
 			<groupId>com.hp.sv</groupId>
 			<artifactId>SVConfigurator</artifactId>
-			<version>3.82.1</version>
+			<version>3.82.1-SNAPSHOT</version>
 		</dependency>	</dependencies>
 </project>
