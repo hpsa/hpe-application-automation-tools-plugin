@@ -38,7 +38,7 @@ public class SvUndeployBuilder extends AbstractSvRunBuilder<SvUndeployModel> {
         IUndeployProcessor processor = new UndeployProcessor(null);
 
         ICommandExecutor exec = createCommandExecutor();
-        for (ServiceInfo service : getServiceList(model.isContinueIfNotDeployed(), logger)) {
+        for (ServiceInfo service : getServiceList(model.isContinueIfNotDeployed(), logger, build)) {
             logger.printf("  Undeploying service '%s' [%s] %n", service.getName(), service.getId());
             UndeployProcessorInput undeployProcessorInput = new UndeployProcessorInput(model.isForce(), null, service.getId());
             processor.process(undeployProcessorInput, exec);

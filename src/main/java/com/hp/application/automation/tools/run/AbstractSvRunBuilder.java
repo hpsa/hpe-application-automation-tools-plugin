@@ -19,6 +19,7 @@ import com.hp.sv.jsvconfigurator.core.impl.exception.ProjectBuilderException;
 import com.hp.sv.jsvconfigurator.core.impl.jaxb.atom.ServiceListAtom;
 import com.hp.sv.jsvconfigurator.serverclient.ICommandExecutor;
 import com.hp.sv.jsvconfigurator.serverclient.impl.CommandExecutorFactory;
+import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
@@ -135,7 +136,7 @@ public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends
         logger.println(prefix + "Force: " + model.isForce());
     }
 
-    protected Iterable<ServiceInfo> getServiceList(boolean ignoreMissingServices, PrintStream logger) throws Exception {
+    protected Iterable<ServiceInfo> getServiceList(boolean ignoreMissingServices, PrintStream logger, AbstractBuild<?, ?> build) throws Exception {
         SvServiceSelectionModel s = getServiceSelection();
         ICommandExecutor exec = createCommandExecutor();
 
@@ -146,7 +147,7 @@ public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends
                 addServiceIfDeployed(s.getService(), res, ignoreMissingServices, exec, logger);
                 break;
             case PROJECT:
-                IProject project = loadProject();
+                IProject project = loadProject(build);
                 for (IService svc : project.getServices()) {
                     addServiceIfDeployed(svc.getId(), res, ignoreMissingServices, exec, logger);
                 }
@@ -173,9 +174,10 @@ public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends
         }
     }
 
-    protected IProject loadProject() throws ProjectBuilderException {
+    protected IProject loadProject(AbstractBuild<?, ?> build) throws ProjectBuilderException {
         SvServiceSelectionModel s = getServiceSelection();
-        return new ProjectBuilder().buildProject(new File(s.getProjectPath()), s.getProjectPassword());
+        FilePath projectPath = build.getWorkspace().child(s.getProjectPath());
+        return new ProjectBuilder().buildProject(new File(projectPath.getRemote()), s.getProjectPassword());
     }
 
     protected void validateServiceSelection() throws ConfigurationException {
