@@ -53,13 +53,15 @@ public class SvExportBuilder extends AbstractSvRunBuilder<SvExportModel> {
 
         verifyNotNull(model.getTargetDirectory(), "Target directory must be set");
 
+        String targetDirectory = build.getWorkspace().child(model.getTargetDirectory()).getRemote();
+
         if (model.isCleanTargetDirectory()) {
-            cleanTargetDirectory(logger);
+            cleanTargetDirectory(logger, targetDirectory);
         }
 
         for (ServiceInfo service : getServiceList(false, logger, build)) {
-            logger.printf("  Exporting service '%s' [%s]%n", service.getName(), service.getId());
-            processor.process(exec, model.getTargetDirectory(), service.getId());
+            logger.printf("  Exporting service '%s' [%s] to %s %n", service.getName(), service.getId(), targetDirectory);
+            processor.process(exec, targetDirectory, service.getId());
         }
 
         return true;
@@ -68,8 +70,8 @@ public class SvExportBuilder extends AbstractSvRunBuilder<SvExportModel> {
     /**
      * Cleans all sub-folders containing *.vproj file.
      */
-    private void cleanTargetDirectory(PrintStream logger) throws IOException {
-        File target = new File(model.getTargetDirectory());
+    private void cleanTargetDirectory(PrintStream logger, String targetDirectory) throws IOException {
+        File target = new File(targetDirectory);
         if (target.exists()) {
             File[] subfolders = target.listFiles((FilenameFilter) DirectoryFileFilter.INSTANCE);
             if (subfolders.length > 0) {
