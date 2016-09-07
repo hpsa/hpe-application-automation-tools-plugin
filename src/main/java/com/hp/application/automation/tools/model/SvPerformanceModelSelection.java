@@ -5,6 +5,8 @@
 
 package com.hp.application.automation.tools.model;
 
+import javax.annotation.Nonnull;
+
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
@@ -21,7 +23,7 @@ public class SvPerformanceModelSelection extends AbstractDescribableImpl<SvPerfo
     @DataBoundConstructor
     public SvPerformanceModelSelection(SelectionType selectionType, String performanceModel) {
         this.selectionType = selectionType;
-        this.performanceModel = performanceModel;
+        this.performanceModel = StringUtils.trim(performanceModel);
     }
 
     @SuppressWarnings("unused")
@@ -84,6 +86,7 @@ public class SvPerformanceModelSelection extends AbstractDescribableImpl<SvPerfo
     @Extension
     public static class DescriptorImpl extends Descriptor<SvPerformanceModelSelection> {
 
+        @Nonnull
         public String getDisplayName() {
             return "Performance Model Selection";
         }

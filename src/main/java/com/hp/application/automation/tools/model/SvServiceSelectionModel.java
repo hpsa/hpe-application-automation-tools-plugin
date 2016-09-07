@@ -5,6 +5,8 @@
 
 package com.hp.application.automation.tools.model;
 
+import javax.annotation.Nonnull;
+
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
@@ -24,8 +26,8 @@ public class SvServiceSelectionModel extends AbstractDescribableImpl<SvServiceSe
     @DataBoundConstructor
     public SvServiceSelectionModel(SelectionType selectionType, String service, String projectPath, Secret projectPassword) {
         this.selectionType = selectionType;
-        this.service = service;
-        this.projectPath = projectPath;
+        this.service = StringUtils.trim(service);
+        this.projectPath = StringUtils.trim(projectPath);
         this.projectPassword = projectPassword;
     }
 
@@ -60,6 +62,7 @@ public class SvServiceSelectionModel extends AbstractDescribableImpl<SvServiceSe
     @Extension
     public static class DescriptorImpl extends Descriptor<SvServiceSelectionModel> {
 
+        @Nonnull
         public String getDisplayName() {
             return "Service Selection";
         }
