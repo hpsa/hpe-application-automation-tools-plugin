@@ -36,4 +36,12 @@
     <f:entry title="Clean target directory first" field="cleanTargetDirectory">
         <f:checkbox checked="${instance.model.cleanTargetDirectory}"/>
     </f:entry>
+
+    <f:entry title="Switch service to Stand-By mode first" field="switchToStandByFirst">
+        <f:checkbox checked="${instance.model.switchToStandByFirst}"/>
+    </f:entry>
+
+    <f:entry title="Force" field="force">
+        <f:checkbox checked="${instance.model.force}"/>
+    </f:entry>
 </j:jelly>

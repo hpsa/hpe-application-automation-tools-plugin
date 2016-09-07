@@ -12,7 +12,15 @@ import java.io.PrintStream;
 
 import com.hp.application.automation.tools.model.SvExportModel;
 import com.hp.application.automation.tools.model.SvServiceSelectionModel;
+import com.hp.sv.jsvconfigurator.core.IService;
+import com.hp.sv.jsvconfigurator.core.impl.exception.CommandExecutorException;
+import com.hp.sv.jsvconfigurator.core.impl.exception.CommunicatorException;
+import com.hp.sv.jsvconfigurator.core.impl.exception.SVCParseException;
+import com.hp.sv.jsvconfigurator.core.impl.jaxb.ServiceRuntimeConfiguration;
+import com.hp.sv.jsvconfigurator.processor.ChmodeProcessor;
+import com.hp.sv.jsvconfigurator.processor.ChmodeProcessorInput;
 import com.hp.sv.jsvconfigurator.processor.ExportProcessor;
+import com.hp.sv.jsvconfigurator.processor.IChmodeProcessor;
 import com.hp.sv.jsvconfigurator.serverclient.ICommandExecutor;
 import hudson.Extension;
 import hudson.Launcher;
@@ -29,13 +37,15 @@ import org.kohsuke.stapler.QueryParameter;
 public class SvExportBuilder extends AbstractSvRunBuilder<SvExportModel> {
 
     @DataBoundConstructor
-    public SvExportBuilder(String serverName, String targetDirectory, boolean cleanTargetDirectory, SvServiceSelectionModel serviceSelection) {
-        super(new SvExportModel(serverName, targetDirectory, cleanTargetDirectory, serviceSelection));
+    public SvExportBuilder(String serverName, boolean force, String targetDirectory, boolean cleanTargetDirectory,
+                           SvServiceSelectionModel serviceSelection, boolean switchToStandByFirst) {
+        super(new SvExportModel(serverName, force, targetDirectory, cleanTargetDirectory, serviceSelection, switchToStandByFirst));
     }
 
     @Override
     protected void logConfig(PrintStream logger, String prefix) {
         logger.println(prefix + "Target Directory: " + model.getTargetDirectory());
+        logger.println(prefix + "Switch to Stand-By: " + model.isSwitchToStandByFirst());
         super.logConfig(logger, prefix);
     }
 
@@ -48,7 +58,9 @@ public class SvExportBuilder extends AbstractSvRunBuilder<SvExportModel> {
     public boolean performImpl(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws Exception {
         PrintStream logger = listener.getLogger();
 
-        ExportProcessor processor = new ExportProcessor(null);
+        ExportProcessor exportProcessor = new ExportProcessor(null);
+        IChmodeProcessor chmodeProcessor = new ChmodeProcessor(null);
+
         ICommandExecutor exec = createCommandExecutor();
 
         verifyNotNull(model.getTargetDirectory(), "Target directory must be set");
@@ -59,12 +71,37 @@ public class SvExportBuilder extends AbstractSvRunBuilder<SvExportModel> {
             cleanTargetDirectory(logger, targetDirectory);
         }
 
-        for (ServiceInfo service : getServiceList(false, logger, build)) {
-            logger.printf("  Exporting service '%s' [%s] to %s %n", service.getName(), service.getId(), targetDirectory);
-            processor.process(exec, targetDirectory, service.getId());
+        for (ServiceInfo serviceInfo : getServiceList(false, logger, build)) {
+            if (model.isSwitchToStandByFirst()) {
+                switchToStandBy(serviceInfo, chmodeProcessor, exec, logger);
+            }
+
+            logger.printf("  Exporting service '%s' [%s] to %s %n", serviceInfo.getName(), serviceInfo.getId(), targetDirectory);
+            verifyNotLearningBeforeExport(logger, exec, serviceInfo);
+            exportProcessor.process(exec, targetDirectory, serviceInfo.getId());
         }
 
         return true;
+    }
+
+    private void verifyNotLearningBeforeExport(PrintStream logger, ICommandExecutor exec, ServiceInfo serviceInfo)
+            throws CommunicatorException, CommandExecutorException {
+
+        IService service = exec.findService(serviceInfo.getId(), null);
+        ServiceRuntimeConfiguration info = exec.getServiceRuntimeInfo(service);
+        if (info.getRuntimeMode() == ServiceRuntimeConfiguration.RuntimeMode.LEARNING) {
+            logger.printf("    WARNING: Service '%s' [%s] is in Learning mode. Exported model need not be complete!",
+                    serviceInfo.getName(), serviceInfo.getId());
+        }
+    }
+
+    private void switchToStandBy(ServiceInfo service, IChmodeProcessor chmodeProcessor, ICommandExecutor exec, PrintStream logger)
+            throws CommandExecutorException, SVCParseException, CommunicatorException {
+
+        logger.printf("  Switching service '%s' [%s] to Stand-By mode before export%n", service.getName(), service.getId());
+        ChmodeProcessorInput chmodeInput = new ChmodeProcessorInput(model.isForce(), null, service.getId(), null, null,
+                ServiceRuntimeConfiguration.RuntimeMode.STAND_BY, false, false);
+        chmodeProcessor.process(chmodeInput, exec);
     }
 
     /**
