@@ -17,7 +17,7 @@ public class SvExportModel extends AbstractSvRunModel {
     public SvExportModel(String serverName, String targetDirectory, boolean cleanTargetDirectory,
                          SvServiceSelectionModel serviceSelection) {
         super(serverName, false, serviceSelection);
-        this.targetDirectory = targetDirectory;
+        this.targetDirectory = StringUtils.trim(targetDirectory);
         this.cleanTargetDirectory = cleanTargetDirectory;
     }
 
