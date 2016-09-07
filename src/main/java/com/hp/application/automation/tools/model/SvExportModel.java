@@ -12,13 +12,15 @@ public class SvExportModel extends AbstractSvRunModel {
 
     private final String targetDirectory;
     private final boolean cleanTargetDirectory;
+    private final boolean switchToStandByFirst;
 
     @DataBoundConstructor
-    public SvExportModel(String serverName, String targetDirectory, boolean cleanTargetDirectory,
-                         SvServiceSelectionModel serviceSelection) {
-        super(serverName, false, serviceSelection);
+    public SvExportModel(String serverName, boolean force, String targetDirectory, boolean cleanTargetDirectory,
+                         SvServiceSelectionModel serviceSelection, boolean switchToStandByFirst) {
+        super(serverName, force, serviceSelection);
         this.targetDirectory = StringUtils.trim(targetDirectory);
         this.cleanTargetDirectory = cleanTargetDirectory;
+        this.switchToStandByFirst = switchToStandByFirst;
     }
 
     public String getTargetDirectory() {
@@ -27,5 +29,9 @@ public class SvExportModel extends AbstractSvRunModel {
 
     public boolean isCleanTargetDirectory() {
         return cleanTargetDirectory;
+    }
+
+    public boolean isSwitchToStandByFirst() {
+        return switchToStandByFirst;
     }
 }

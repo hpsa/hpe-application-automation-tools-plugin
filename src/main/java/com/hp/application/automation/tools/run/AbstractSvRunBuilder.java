@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -136,7 +137,7 @@ public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends
         logger.println(prefix + "Force: " + model.isForce());
     }
 
-    protected Iterable<ServiceInfo> getServiceList(boolean ignoreMissingServices, PrintStream logger, AbstractBuild<?, ?> build) throws Exception {
+    protected List<ServiceInfo> getServiceList(boolean ignoreMissingServices, PrintStream logger, AbstractBuild<?, ?> build) throws Exception {
         SvServiceSelectionModel s = getServiceSelection();
         ICommandExecutor exec = createCommandExecutor();
 
