@@ -22,8 +22,8 @@ public class SvServerSettingsModel {
 
     @DataBoundConstructor
     public SvServerSettingsModel(String name, String url, String username, Secret password) {
-        this.name = name;
-        this.url = url;
+        this.name = StringUtils.trim(name);
+        this.url = StringUtils.trim(url);
         this.username = username;
         this.password = password;
     }

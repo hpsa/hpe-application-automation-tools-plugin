@@ -5,6 +5,8 @@
 
 package com.hp.application.automation.tools.model;
 
+import javax.annotation.Nonnull;
+
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
@@ -22,7 +24,7 @@ public class SvDataModelSelection extends AbstractDescribableImpl<SvDataModelSel
     @DataBoundConstructor
     public SvDataModelSelection(SelectionType selectionType, String dataModel) {
         this.selectionType = selectionType;
-        this.dataModel = dataModel;
+        this.dataModel = StringUtils.trim(dataModel);
     }
 
     public static void validateField(FormValidation result) {
@@ -85,6 +87,7 @@ public class SvDataModelSelection extends AbstractDescribableImpl<SvDataModelSel
     @Extension
     public static class DescriptorImpl extends Descriptor<SvDataModelSelection> {
 
+        @Nonnull
         public String getDisplayName() {
             return "Data model Selection";
         }
