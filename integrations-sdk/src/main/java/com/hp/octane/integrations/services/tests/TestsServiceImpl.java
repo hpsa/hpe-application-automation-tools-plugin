@@ -74,6 +74,9 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 		buildList.add(new BuildNode(jobId, buildNumber));
 	}
 
+	//  TODO: move thread to thread factory
+	//  TODO: implement retries counter per item and strategy of discard
+	//  TODO: distinct between the item's problem, server problem and env problem and retry strategy accordingly
 	private void activate() {
 		if (worker == null || !worker.isAlive()) {
 			synchronized (INIT_LOCKER) {
@@ -97,8 +100,8 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 											logger.error("failed to submit tests result with " + response.getStatus() + "; dropping this item from the queue");
 											buildList.remove(0);
 										}
-									} catch (IOException e) {
-										logger.error("Tests result push IOException; retrying", e);
+									} catch (Throwable t) {
+										logger.error("Tests result push failed; will retry after " + DATA_SEND_INTERVAL + "ms", t);
 										breathe(DATA_SEND_INTERVAL);
 									}
 								} else {

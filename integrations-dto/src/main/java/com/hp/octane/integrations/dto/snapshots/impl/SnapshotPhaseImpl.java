@@ -17,7 +17,7 @@ import java.util.List;
 class SnapshotPhaseImpl implements SnapshotPhase {
 	private String name;
 	private boolean blocking;
-	private List<SnapshotNode> builds = new ArrayList<SnapshotNode>();
+	private List<SnapshotNode> builds = new ArrayList<>();
 
 	public String getName() {
 		return name;

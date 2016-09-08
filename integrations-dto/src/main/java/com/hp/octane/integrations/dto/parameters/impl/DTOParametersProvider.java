@@ -15,7 +15,7 @@ import java.util.Map;
  */
 
 public final class DTOParametersProvider extends DTOInternalProviderBase {
-	private final Map<Class, Class> dtoPairs = new HashMap<Class, Class>();
+	private final Map<Class, Class> dtoPairs = new HashMap<>();
 
 	private DTOParametersProvider() {
 	}

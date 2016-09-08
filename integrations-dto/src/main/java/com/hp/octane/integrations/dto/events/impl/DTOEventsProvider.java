@@ -16,7 +16,7 @@ import java.util.Map;
  */
 
 public final class DTOEventsProvider extends DTOInternalProviderBase {
-	private final Map<Class, Class> dtoPairs = new HashMap<Class, Class>();
+	private final Map<Class, Class> dtoPairs = new HashMap<>();
 
 	private DTOEventsProvider() {
 	}

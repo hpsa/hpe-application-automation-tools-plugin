@@ -18,9 +18,9 @@ import java.util.List;
 class PipelineNodeImpl implements PipelineNode {
 	private String jobCiId;
 	private String name;
-	private List<CIParameter> parameters = new ArrayList<CIParameter>();
-	private List<PipelinePhase> phasesInternal = new ArrayList<PipelinePhase>();
-	private List<PipelinePhase> phasesPostBuild = new ArrayList<PipelinePhase>();
+	private List<CIParameter> parameters = new ArrayList<>();
+	private List<PipelinePhase> phasesInternal = new ArrayList<>();
+	private List<PipelinePhase> phasesPostBuild = new ArrayList<>();
 
 	public String getJobCiId() {
 		return jobCiId;

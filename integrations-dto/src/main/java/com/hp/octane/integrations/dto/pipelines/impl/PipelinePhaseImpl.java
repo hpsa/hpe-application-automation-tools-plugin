@@ -17,7 +17,7 @@ import java.util.List;
 class PipelinePhaseImpl implements PipelinePhase {
 	private String name;
 	private boolean blocking;
-	private List<PipelineNode> jobs = new ArrayList<PipelineNode>();
+	private List<PipelineNode> jobs = new ArrayList<>();
 
 	public String getName() {
 		return name;

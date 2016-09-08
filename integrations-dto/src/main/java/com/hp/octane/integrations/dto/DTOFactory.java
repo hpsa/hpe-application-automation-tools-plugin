@@ -29,7 +29,7 @@ import java.util.Map;
  */
 
 public final class DTOFactory {
-	private final Map<Class<? extends DTOBase>, DTOInternalProviderBase> registry = new HashMap<Class<? extends DTOBase>, DTOInternalProviderBase>();
+	private final Map<Class<? extends DTOBase>, DTOInternalProviderBase> registry = new HashMap<>();
 	private final ObjectMapper jsonMapper = new ObjectMapper();
 
 	private DTOFactory() {
@@ -44,7 +44,7 @@ public final class DTOFactory {
 		DTOSCMProvider.ensureInit(registry, jsonMapper);
 		DTOSnapshotsProvider.ensureInit(registry, jsonMapper);
 		DTOTestsProvider.ensureInit(registry, jsonMapper);
-		DTOJUnitProvider.ensureInit(registry,jsonMapper);
+		DTOJUnitProvider.ensureInit(registry, jsonMapper);
 	}
 
 	public static DTOFactory getInstance() {

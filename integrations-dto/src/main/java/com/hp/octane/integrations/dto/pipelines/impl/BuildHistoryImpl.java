@@ -18,7 +18,7 @@ import java.util.Set;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class BuildHistoryImpl implements BuildHistory {
-	private List<Build> builds = new ArrayList<Build>();
+	private List<Build> builds = new ArrayList<>();
 	private Build lastSuccesfullBuild;
 	private Build lastBuild;
 

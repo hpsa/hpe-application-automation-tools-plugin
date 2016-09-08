@@ -24,16 +24,16 @@ class SnapshotNodeImpl implements SnapshotNode {
 	private String name;
 	private String buildCiId;
 	private String number;
-	private List<CIEventCause> causes = new ArrayList<CIEventCause>();
+	private List<CIEventCause> causes = new ArrayList<>();
 	private CIBuildStatus status = CIBuildStatus.UNAVAILABLE;
 	private CIBuildResult result = CIBuildResult.UNAVAILABLE;
 	private Long estimatedDuration;
 	private Long startTime;
 	private Long duration;
 	private SCMData scmData;
-	private List<CIParameter> parameters = new ArrayList<CIParameter>();
-	private List<SnapshotPhase> phasesInternal = new ArrayList<SnapshotPhase>();
-	private List<SnapshotPhase> phasesPostBuild = new ArrayList<SnapshotPhase>();
+	private List<CIParameter> parameters = new ArrayList<>();
+	private List<SnapshotPhase> phasesInternal = new ArrayList<>();
+	private List<SnapshotPhase> phasesPostBuild = new ArrayList<>();
 
 	public String getJobCiId() {
 		return jobCiId;
