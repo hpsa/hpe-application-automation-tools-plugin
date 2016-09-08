@@ -187,7 +187,7 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 					.setTestName(testRun.getTest().getName().getTestMethodName())
 					.setResult(testResultStatus)
 					.setStarted(build.getStartDate().getTime())
-					.setDuration(testRun.getDuration());
+					.setDuration((long) testRun.getDuration());
 			result.add(tr);
 		}
 

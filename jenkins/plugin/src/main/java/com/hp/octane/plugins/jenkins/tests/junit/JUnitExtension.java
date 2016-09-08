@@ -229,7 +229,7 @@ public class JUnitExtension extends MqmTestsExtension {
                 if (srReport.exists()) {
                     TestSuite testSuite = DTOFactory.getInstance().dtoFromXmlFile(srReport, TestSuite.class);
 
-                    for (Property property : testSuite.getProprties()) {
+                    for (Property property : testSuite.getProperties()) {
                         if (property.getPropertyName().equals(DASHBOARD_URL)) {
                             srUrl = property.getPropertyValue();
                             break;
