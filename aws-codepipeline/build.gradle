@@ -1,0 +1,29 @@
+subprojects{
+
+	apply plugin: 'java'
+	apply plugin: 'eclipse'
+	apply plugin: 'jacoco'
+	apply plugin: 'project-report'
+	
+	jar.baseName='hpngaawscodepipeline-'+ project.name
+
+	repositories {
+	    mavenCentral()
+	}
+	dependencies {
+		testCompile group: 'junit', name: 'junit', version: '4.+'
+		testCompile "org.mockito:mockito-core:1.+" 
+	 }
+
+	jacoco{
+	    toolVersion = "0.7.1.201405082137"
+	    reportsDir = file("$buildDir/customJacocoReportDir")
+	}
+
+	jar {
+	    from "../LICENSE"
+	}
+}
+
+
+

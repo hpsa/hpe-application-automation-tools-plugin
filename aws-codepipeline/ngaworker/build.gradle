@@ -1,0 +1,22 @@
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+
+version = '0.1.0'
+sourceCompatibility = 1.8
+
+dependencies {
+    compile project(':ngaclient')
+    compile project(':ngalambda')
+	compile 'com.amazonaws:aws-java-sdk-codepipeline:1.11.0'
+	compile 'com.amazonaws:aws-java-sdk-s3:1.11.0'
+	compile 'commons-daemon:commons-daemon:1.0.15'
+	compile 'org.apache.commons:commons-lang3:3.4'
+	compile 'ch.qos.logback:logback-core:1.1.7'
+	compile 'ch.qos.logback:logback-core:1.1.7'
+	compile 'org.slf4j:slf4j-api:1.7.21'
+}
+
+

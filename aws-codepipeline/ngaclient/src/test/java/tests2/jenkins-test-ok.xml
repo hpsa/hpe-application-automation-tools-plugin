@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.javamavenjunithelloworld.HelloAppTest" time="0.644" tests="5" errors="0" skipped="0" failures="0">
+  <properties>    
+    <property name="maven.home" value="/var/lib/jenkins/tools/hudson.tasks.Maven_MavenInstallation/mavenauto"/>
+    <property name="file.separator" value="/"/>
+    <property name="java.vendor.url.bug" value="http://bugreport.sun.com/bugreport/"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
+    <property name="sun.cpu.isalist" value=""/>
+  </properties>
+  <testcase name="testWrongArgument" classname="com.example.javamavenjunithelloworld.HelloAppTest" time="0.518"/>
+  <testcase name="testMain" classname="com.example.javamavenjunithelloworld.HelloAppTest" time="0.003"/>
+  <testcase name="testHelloError" classname="com.example.javamavenjunithelloworld.HelloAppTest" time="0.114"/>
+  <testcase name="testDefaultArgument" classname="com.example.javamavenjunithelloworld.HelloAppTest" time="0.004"/>
+  <testcase name="classInstanceForCodeCoverageTest" classname="com.example.javamavenjunithelloworld.HelloAppTest" time="0.005"/>
+</testsuite>

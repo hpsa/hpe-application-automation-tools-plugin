@@ -1,0 +1,32 @@
+{
+    "CodePipeline.job": {
+        "id": "jobId",
+        "accountId":"accountId", 
+        "data": {
+            "actionConfiguration": {
+                 "configuration": {
+                     "FunctionName":"NgaStageDetail"
+                 }
+             }, 
+             "inputArtifacts": [
+                 {
+                    "location": {
+                        "s3Location": {
+                            "bucketName":"bucket",
+                            "objectKey":"pipeline/report/object"
+                         },
+                         "type":"S3"
+                    },
+                    "revision":null, 
+                    "name":"Reports"
+                 }
+             ], 
+             "outputArtifacts":[],
+             "artifactCredentials": {
+                 "secretAccessKey":"secretAccessKey", 
+                 "sessionToken":"sessionToken",
+                 "accessKeyId":"accessKeyId"
+             }
+        }
+    }
+}

@@ -9,7 +9,7 @@
 	</parent>
 
 	<name>HPE ALM Octane CI Plugin</name>
-	<version>12.53.14-SNAPSHOT</version>
+	<version>12.53.15-SNAPSHOT</version>
 	<artifactId>hp-lifecycle-management-ci-plugin</artifactId>
 	<packaging>hpi</packaging>
 
@@ -301,7 +301,7 @@
 				<repository>
 					<id>mqm-latest</id>
 					<name>Latest repository</name>
-					<url>${baseNexusURL}/content/repositories/mqm-latest2</url>
+					<url>${baseNexusURL}/content/repositories/mqm-latest-dev</url>
 				</repository>
 			</distributionManagement>
 		</profile>

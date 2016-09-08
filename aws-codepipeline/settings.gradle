@@ -1,0 +1,10 @@
+include 'ngaclient'
+include 'ngalambda'
+include 'ngaworker'
+
+rootProject.name = 'hpngaawscodepipeline'
+
+
+rootProject.children.each {
+
+}

@@ -1,0 +1,94 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<test_result>
+   <build server_id="your_managed_server_id" job_id="your_managed_job_id" job_name="for_display_reasons" build_id="your_managed_build_id" build_name="1" />
+<test_runs>
+  <test_run module="webapp" package="com.hp.devops.demoapp" class="BandTest" name="bandTestA" duration="14" status="Passed" started="1459437919731" />
+  <test_run module="webapp" package="com.hp.devops.demoapp" class="BandTest" name="bandTestB" duration="0" status="Passed" started="1459437919731" />
+  <test_run module="webapp" package="com.hp.devops.demoapp" class="BandTest" name="bandTestC" duration="1" status="Passed" started="1459437919731" />
+  <test_run module="webapp" package="com.hp.devops.demoapp" class="BandTest" name="bandTestD" duration="1" status="Passed" started="1459437919731" />
+  <test_run module="webapp" package="com.hp.devops.demoapp" class="BandTest" name="bandTestE" duration="0" status="Passed" started="1459437919731" />
+  <test_run module="webapp" package="com.hp.devops.demoapp" class="CalcsTest" name="always_true_A" duration="1" status="Failed" started="1459437919731">
+   <error type="java.lang.AssertionError: null&#xa;&#x9;" message="">java.lang.AssertionError: null
+     at org.junit.Assert.fail(Assert.java:86)
+     at org.junit.Assert.assertTrue(Assert.java:41)
+     at org.junit.Assert.assertTrue(Assert.java:52)
+     at com.hp.devops.demoapp.CalcsTest.always_true_A(CalcsTest.java:60)
+</error>
+  </test_run>
+  <test_run module="webapp" package="com.hp.devops.demoapp" class="CalcsTest" name="sub_test_A" duration="1" status="Failed" started="1459437919731">
+   <error type="java.lang.AssertionError" message="expected:&lt;3> but was:&lt;-6>">java.lang.AssertionError: expected:&lt;3> but was:&lt;-6>
+     at org.junit.Assert.fail(Assert.java:88)
+     at org.junit.Assert.failNotEquals(Assert.java:743)
+     at org.junit.Assert.assertEquals(Assert.java:118)
+     at org.junit.Assert.assertEquals(Assert.java:555)
+     at org.junit.Assert.assertEquals(Assert.java:542)
+     at com.hp.devops.demoapp.CalcsTest.sub_test_A(CalcsTest.java:20)
+</error>
+  </test_run>
+  <test_run module="webapp" package="com.hp.devops.demoapp" class="CalcsTest" name="sub_test_B" duration="0" status="Failed" started="1459437919731">
+   <error type="java.lang.AssertionError" message="expected:&lt;2> but was:&lt;-7>">java.lang.AssertionError: expected:&lt;2> but was:&lt;-7>
+     at org.junit.Assert.fail(Assert.java:88)
+     at org.junit.Assert.failNotEquals(Assert.java:743)
+     at org.junit.Assert.assertEquals(Assert.java:118)
+     at org.junit.Assert.assertEquals(Assert.java:555)
+     at org.junit.Assert.assertEquals(Assert.java:542)
+     at com.hp.devops.demoapp.CalcsTest.sub_test_B(CalcsTest.java:25)
+</error>
+  </test_run>
+  <test_run module="webapp" package="com.hp.devops.demoapp" class="CalcsTest" name="sub_test_C" duration="1" status="Failed" started="1459437919731">
+   <error type="java.lang.AssertionError" message="expected:&lt;3> but was:&lt;-6>">java.lang.AssertionError: expected:&lt;3> but was:&lt;-6>
+     at org.junit.Assert.fail(Assert.java:88)
+     at org.junit.Assert.failNotEquals(Assert.java:743)
+     at org.junit.Assert.assertEquals(Assert.java:118)
+     at org.junit.Assert.assertEquals(Assert.java:555)
+     at org.junit.Assert.assertEquals(Assert.java:542)
+     at com.hp.devops.demoapp.CalcsTest.sub_test_C(CalcsTest.java:30)
+</error>
+  </test_run>
+  <test_run module="webapp" package="com.hp.devops.demoapp" class="CalcsTest" name="neq_test_A" duration="0" status="Failed" started="1459437919731">
+   <error type="java.lang.AssertionError: null&#xa;&#x9;" message="">java.lang.AssertionError: null
+     at org.junit.Assert.fail(Assert.java:86)
+     at org.junit.Assert.assertTrue(Assert.java:41)
+     at org.junit.Assert.assertTrue(Assert.java:52)
+     at com.hp.devops.demoapp.CalcsTest.neq_test_A(CalcsTest.java:45)
+</error>
+  </test_run>
+  <test_run module="webapp" package="com.hp.devops.demoapp" class="CalcsTest" name="neq_test_B" duration="1" status="Failed" started="1459437919731">
+   <error type="java.lang.AssertionError: null&#xa;&#x9;" message="">java.lang.AssertionError: null
+     at org.junit.Assert.fail(Assert.java:86)
+     at org.junit.Assert.assertTrue(Assert.java:41)
+     at org.junit.Assert.assertTrue(Assert.java:52)
+     at com.hp.devops.demoapp.CalcsTest.neq_test_B(CalcsTest.java:50)
+</error>
+  </test_run>
+  <test_run module="webapp" package="com.hp.devops.demoapp" class="CalcsTest" name="eq_test_A" duration="0" status="Passed" started="1459437919731" />
+  <test_run module="webapp" package="com.hp.devops.demoapp" class="CalcsTest" name="eq_test_B" duration="0" status="Passed" started="1459437919731" />
+  <test_run module="webapp" package="com.hp.devops.demoapp" class="CalcsTest" name="sum_test_A" duration="1" status="Failed" started="1459437919731">
+   <error type="java.lang.AssertionError" message="expected:&lt;3> but was:&lt;-5>">java.lang.AssertionError: expected:&lt;3> but was:&lt;-5>
+     at org.junit.Assert.fail(Assert.java:88)
+     at org.junit.Assert.failNotEquals(Assert.java:743)
+     at org.junit.Assert.assertEquals(Assert.java:118)
+     at org.junit.Assert.assertEquals(Assert.java:555)
+     at org.junit.Assert.assertEquals(Assert.java:542)
+     at com.hp.devops.demoapp.CalcsTest.sum_test_A(CalcsTest.java:15)
+</error>
+  </test_run>
+  <test_run module="webapp" package="com.hp.devops.demoapp" class="CalcsTest" name="neq_test_C_BrokenTest" duration="0" status="Passed" started="1459437919731" />
+  <test_run module="webapp" package="com.hp.devops.demoapp" class="DataManagerTest" name="dataManagerTestA" duration="23" status="Passed" started="1459437919731" />
+  <test_run module="webapp" package="com.hp.devops.demoapp" class="DataManagerTest" name="dataManagerTestB" duration="20" status="Passed" started="1459437919731" />
+  <test_run module="webapp" package="com.hp.devops.demoapp" class="DataManagerTest" name="dataManagerTestC" duration="0" status="Passed" started="1459437919731" />
+  <test_run module="webapp" package="com.hp.devops.demoapp" class="DataManagerTest" name="dataManagerTestD" duration="0" status="Passed" started="1459437919731" />
+  <test_run module="webapp" package="com.hp.devops.demoapp" class="DataManagerTest" name="dataManagerTestE" duration="0" status="Passed" started="1459437919731" />
+  <test_run module="webapp" package="com.hp.devops.demoapp" class="DataManagerTest" name="failTestForCoverageAnalysisB" duration="7" status="Passed" started="1459437919731" />
+  <test_run module="webapp" package="com.hp.devops.demoapp" class="UtilsTest" name="testSimpleLogical" duration="0" status="Passed" started="1459437919731" />
+  <test_run module="webapp" package="com.hp.devops.demoapp" class="UtilsTest" name="failTestForCoverageAnalysisA" duration="0" status="Passed" started="1459437919731" />
+  <test_run module="webapp" package="com.hp.devops.demoapp" class="UtilsTest" name="nodifyTestA" duration="0" status="Passed" started="1459437919731" />
+  <test_run module="webapp" package="com.hp.devops.demoapp" class="UtilsTest" name="nodifyTestB" duration="0" status="Passed" started="1459437919731" />
+  <test_run module="webapp" package="com.hp.devops.demoapp" class="UtilsTest" name="nodifyTestC" duration="1" status="Passed" started="1459437919731" />
+  <test_run module="webapp" package="com.hp.devops.demoapp" class="UtilsTest" name="nodifyTestD" duration="0" status="Passed" started="1459437919731" />
+  <test_run module="webapp" package="com.hp.devops.demoapp" class="UtilsTest" name="nodifyTestE" duration="0" status="Passed" started="1459437919731" />
+  <test_run module="webapp" package="com.hp.devops.demoapp" class="UtilsTest" name="nodifyTestF" duration="0" status="Passed" started="1459437919731" />
+  <test_run module="webapp" package="com.hp.devops.demoapp" class="UtilsTest" name="nodifyTestG" duration="0" status="Passed" started="1459437919731" />
+</test_runs>
+</test_result>
+ 
