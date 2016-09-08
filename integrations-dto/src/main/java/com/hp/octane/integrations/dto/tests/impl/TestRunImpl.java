@@ -1,12 +1,15 @@
 package com.hp.octane.integrations.dto.tests.impl;
 
 import com.hp.octane.integrations.dto.tests.TestRun;
+import com.hp.octane.integrations.dto.tests.TestRunError;
 import com.hp.octane.integrations.dto.tests.TestRunResult;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlValue;
 
 /**
  * Created by gullery on 06/03/2016.
@@ -32,10 +35,16 @@ class TestRunImpl implements TestRun {
 	private TestRunResult result;
 
 	@XmlAttribute(name = "duration")
-	private int duration;
+	private Long duration;
 
 	@XmlAttribute(name = "started")
-	private long started;
+	private Long started;
+
+	@XmlAnyElement(lax = true)
+	private TestRunError error;
+
+	@XmlAttribute(name = "external_report_url")
+	private String externalReportUrl;
 
 	public String getModuleName() {
 		return moduleName;
@@ -82,21 +91,39 @@ class TestRunImpl implements TestRun {
 		return this;
 	}
 
-	public int getDuration() {
+	public Long getDuration() {
 		return duration;
 	}
 
-	public TestRun setDuration(int duration) {
+	public TestRun setDuration(Long duration) {
 		this.duration = duration;
 		return this;
 	}
 
-	public long getStarted() {
+	public Long getStarted() {
 		return started;
 	}
 
-	public TestRun setStarted(long started) {
+	public TestRun setStarted(Long started) {
 		this.started = started;
+		return this;
+	}
+
+	public TestRunError getError() {
+		return error;
+	}
+
+	public TestRun setError(TestRunError testError) {
+		this.error = testError;
+		return this;
+	}
+
+	public String getExternalReportUrl() {
+		return externalReportUrl;
+	}
+
+	public TestRun setExternalReportUrl(String externalReportUrl) {
+		this.externalReportUrl = externalReportUrl;
 		return this;
 	}
 }

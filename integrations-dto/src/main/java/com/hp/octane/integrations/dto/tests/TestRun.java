@@ -28,11 +28,19 @@ public interface TestRun extends DTOBase {
 
 	TestRun setResult(TestRunResult result);
 
-	int getDuration();
+	Long getDuration();
 
-	TestRun setDuration(int duration);
+	TestRun setDuration(Long duration);
 
-	long getStarted();
+	Long getStarted();
 
-	TestRun setStarted(long started);
+	TestRun setStarted(Long started);
+
+	TestRunError getError();
+
+	TestRun setError(TestRunError testError);
+
+	String getExternalReportUrl();
+
+	TestRun setExternalReportUrl(String externalReportUrl);
 }

@@ -32,12 +32,9 @@ public final class DTOJUnitProvider extends DTOInternalProviderBase {
 		registry.put(TestCase.class, INSTANCE_HOLDER.instance);
 		registry.put(TestSuite.class, INSTANCE_HOLDER.instance);
 
-
-
 		INSTANCE_HOLDER.instance.dtoPairs.put(Property.class, PropertyImpl.class);
 		INSTANCE_HOLDER.instance.dtoPairs.put(TestCase.class, TestCaseImpl.class);
 		INSTANCE_HOLDER.instance.dtoPairs.put(TestSuite.class, TestSuiteImpl.class);
-
 
 		SimpleAbstractTypeResolver resolver = new SimpleAbstractTypeResolver();
 
