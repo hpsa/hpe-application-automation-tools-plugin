@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-        <?jelly escape-by-default='true'?>
-        <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
             this will show up in the groovy snippet generator
             <f:entry title="Tests" field="testPaths">
                 <f:expandableTextbox name="runPipeline.testPaths"/>
-            </f:entry>
-            <f:entry title="Timeout" field="runTimeout">
-                <f:textbox name="runPipeline.runTimeout"/>
+    </f:entry>
+            <f:entry title="Timeout" field="fsTimeout">
+                <f:textbox name="runPipeline.fsTimeout"/>
             </f:entry>
             <f:advanced title="LoadRunner-Specific Settings">
                 <f:section title="LoadRunner Settings">
-                    <f:entry title="Controller Polling Interval" field="controllerRunPollingInterval">
-                        <f:textbox name="runPipeline.controllerRunPollingInterval" default="30"/>
+                    <f:entry title="Controller Polling Interval" field="controllerPollingInterval">
+                        <f:textbox name="runPipeline.controllerPollingInterval" default="30"/>
                     </f:entry>
-                    <f:entry title="Scenario Execution Timeout" field="perScenarioRunTimeOut">
-                        <f:textbox name="runPipeline.perScenarioRunTimeOut" default="10"/>
+                    <f:entry title="Scenario Execution Timeout" field="perScenarioTimeOut">
+                        <f:textbox name="runPipeline.perScenarioTimeOut" default="10"/>
                     </f:entry>
                     <f:entry title="Errors to Ignore" field="ignoreErrorStrings">
                         <f:textarea name="runPipeline.ignoreErrorStrings"  />
@@ -25,12 +25,15 @@
 
     <f:entry title="Report archive mode" field="archiveRunTestResultsMode">
 
-    <select name="archiveRunTestResultsMode" >
-        <j:forEach var="archiveMode" items="${descriptor.reportArchiveModes}">
-            <f:option >
-                ${archiveMode.description}
-            </f:option>
-        </j:forEach>
-    </select>
+    <!--<f:entry title="Report archive mode" field="archiveRunTestResultsMode">-->
+
+    <!--<select name="archiveRunTestResultsMode" >-->
+        <!--<j:forEach var="archiveMode" items="${descriptor.reportArchiveModes}">-->
+            <!--<f:option >-->
+                <!--${archiveMode.description}-->
+            <!--</f:option>-->
+        <!--</j:forEach>-->
+    <!--</select>-->
+    </f:entry>
 
 </j:jelly>

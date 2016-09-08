@@ -39,7 +39,6 @@ public class RunFromFileSystemModel {
     private ProxySettings proxySettings;
     private boolean useSSL;
 
-    @DataBoundConstructor
     public RunFromFileSystemModel(String fsTests, String fsTimeout, String controllerPollingInterval,String perScenarioTimeOut, String ignoreErrorStrings, String mcServerName, String fsUserName, String fsPassword, String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel, String fsOs, String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics, String fsInstrumented, String fsExtraApps, String fsJobId, ProxySettings proxySettings, boolean useSSL) {
 
         this.fsTests = fsTests;
@@ -77,6 +76,86 @@ public class RunFromFileSystemModel {
     }
 
 
+    @DataBoundConstructor
+    public RunFromFileSystemModel(String fsTests) {
+        this.fsTests = fsTests;
+
+        if (!this.fsTests.contains("\n")) {
+            this.fsTests += "\n";
+        }
+
+
+    }
+
+
+    public void setFsTests(String fsTests) {
+        this.fsTests = fsTests;
+    }
+
+    public void setFsTimeout(String fsTimeout) {
+        this.fsTimeout = fsTimeout;
+    }
+
+    public void setMcServerName(String mcServerName) {
+        this.mcServerName = mcServerName;
+    }
+
+    public void setFsUserName(String fsUserName) {
+        this.fsUserName = fsUserName;
+    }
+
+    public void setFsPassword(String fsPassword) {
+        this.fsPassword = Secret.fromString(fsPassword);
+    }
+
+    public void setFsDeviceId(String fsDeviceId) {
+        this.fsDeviceId = fsDeviceId;
+    }
+
+    public void setFsOs(String fsOs) {
+        this.fsOs = fsOs;
+    }
+
+    public void setFsManufacturerAndModel(String fsManufacturerAndModel) {
+        this.fsManufacturerAndModel = fsManufacturerAndModel;
+    }
+
+    public void setFsTargetLab(String fsTargetLab) {
+        this.fsTargetLab = fsTargetLab;
+    }
+
+    public void setFsAutActions(String fsAutActions) {
+        this.fsAutActions = fsAutActions;
+    }
+
+    public void setFsLaunchAppName(String fsLaunchAppName) {
+        this.fsLaunchAppName = fsLaunchAppName;
+    }
+
+    public void setFsInstrumented(String fsInstrumented) {
+        this.fsInstrumented = fsInstrumented;
+    }
+
+    public void setFsDevicesMetrics(String fsDevicesMetrics) {
+        this.fsDevicesMetrics = fsDevicesMetrics;
+    }
+
+    public void setFsExtraApps(String fsExtraApps) {
+        this.fsExtraApps = fsExtraApps;
+    }
+
+    public void setFsJobId(String fsJobId) {
+        this.fsJobId = fsJobId;
+    }
+
+    public void setProxySettings(ProxySettings proxySettings) {
+        this.proxySettings = proxySettings;
+    }
+
+    public void setUseSSL(boolean useSSL) {
+        this.useSSL = useSSL;
+    }
+
     public String getFsTests() {
         return fsTests;
     }
@@ -94,6 +173,11 @@ public class RunFromFileSystemModel {
     }
 
     public String getFsPassword() {
+        //Temp fix till supported in pipeline module in LR
+        if(fsPassword == null)
+        {
+            return null;
+        }
         return fsPassword.getPlainText();
     }
 
