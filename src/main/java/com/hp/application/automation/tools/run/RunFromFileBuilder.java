@@ -24,6 +24,7 @@ import jenkins.tasks.SimpleBuildStep;
 import net.minidev.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
 
@@ -47,13 +48,121 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     //private String KillFileName = "";
     private String ParamFileName = "ApiRun.txt";
 
+
     @DataBoundConstructor
+    public RunFromFileBuilder(String fsTests) {
+
+        runFromFileModel = new RunFromFileSystemModel(fsTests);
+    }
+
+    public RunFromFileBuilder(RunFromFileSystemModel runFromFileModel) {
+
+        this.runFromFileModel = runFromFileModel;
+    }
+
+    @Deprecated
     public RunFromFileBuilder(String fsTests, String fsTimeout, String controllerPollingInterval,
                               String perScenarioTimeOut, String ignoreErrorStrings, String mcServerName, String fsUserName, String fsPassword, String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel, String fsOs, String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics, String fsInstrumented, String fsExtraApps, String fsJobId, ProxySettings proxySettings, boolean useSSL) {
 
         runFromFileModel = new RunFromFileSystemModel(fsTests, fsTimeout, controllerPollingInterval,
                 perScenarioTimeOut, ignoreErrorStrings, mcServerName, fsUserName, fsPassword, fsDeviceId, fsTargetLab, fsManufacturerAndModel, fsOs, fsAutActions, fsLaunchAppName, fsDevicesMetrics, fsInstrumented, fsExtraApps, fsJobId, proxySettings, useSSL);
     }
+
+
+    @DataBoundSetter
+    public void setControllerPollingInterval(String controllerPollingInterval)
+    {
+        runFromFileModel.setControllerPollingInterval(controllerPollingInterval);
+    }
+
+    @DataBoundSetter
+    public void setPerScenarioTimeOut(String perScenarioTimeOut)
+    {
+        runFromFileModel.setPerScenarioTimeOut(perScenarioTimeOut);
+    }
+
+    @DataBoundSetter
+    public void setIgnoreErrorStrings(String ignoreErrorStrings)
+    {
+        runFromFileModel.setIgnoreErrorStrings(ignoreErrorStrings);
+    }
+
+    @DataBoundSetter
+    public void setFsTimeout(String fsTimeout)
+    {
+        runFromFileModel.setFsTimeout(fsTimeout);
+    }
+
+    @DataBoundSetter
+    public void setMcServerName(String mcServerName) {
+        runFromFileModel.setMcServerName(mcServerName);
+    }
+
+    @DataBoundSetter
+    public void setFsUserName(String fsUserName) {
+        runFromFileModel.setFsUserName(fsUserName);
+    }
+
+    @DataBoundSetter
+    public void setFsPassword(String fsPassword) {
+        runFromFileModel.setFsPassword(fsPassword);
+    }
+
+    @DataBoundSetter
+    public void setFsDeviceId(String fsDeviceId) {
+        runFromFileModel.setFsDeviceId(fsDeviceId);
+    }
+
+    @DataBoundSetter
+    public void setFsOs(String fsOs) {
+        runFromFileModel.setFsOs(fsOs);
+    }
+
+    @DataBoundSetter
+    public void setFsManufacturerAndModel(String fsManufacturerAndModel) {
+        runFromFileModel.setFsManufacturerAndModel(fsManufacturerAndModel);
+    }
+
+    @DataBoundSetter
+    public void setFsTargetLab(String fsTargetLab) {
+        runFromFileModel.setFsTargetLab(fsTargetLab);
+    }
+
+    @DataBoundSetter
+    public void setFsAutActions(String fsAutActions) {
+        runFromFileModel.setFsAutActions(fsAutActions);
+    }
+
+    @DataBoundSetter
+    public void setFsLaunchAppName(String fsLaunchAppName) {
+        runFromFileModel.setFsLaunchAppName(fsLaunchAppName);
+    }
+
+    @DataBoundSetter
+    public void setFsInstrumented(String fsInstrumented) {
+        runFromFileModel.setFsInstrumented(fsInstrumented);
+    }
+
+    @DataBoundSetter
+    public void setFsDevicesMetrics(String fsDevicesMetrics) {
+        runFromFileModel.setFsDevicesMetrics(fsDevicesMetrics);
+    }
+
+    @DataBoundSetter
+    public void setFsExtraApps(String fsExtraApps) {
+        runFromFileModel.setFsExtraApps(fsExtraApps);
+    }
+
+    @DataBoundSetter
+    public void setFsJobId(String fsJobId) {
+        runFromFileModel.setFsJobId(fsJobId);
+    }
+
+    @DataBoundSetter
+    public void setProxySettings(ProxySettings proxySettings) {
+        runFromFileModel.setProxySettings(proxySettings);
+    }
+
 
     @Override
     public DescriptorImpl getDescriptor() {
@@ -77,7 +186,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             // TODO Auto-generated catch block
             e2.printStackTrace();
         }
-        //this is an unproper replacment to the build.getVariableResolver since workflowrun won't support the
+        //this is an unproper replacment to the build.getVariableResolver since workflow run won't support the
         // getBuildEnviroment() as written here:
         // https://github.com/jenkinsci/pipeline-plugin/blob/893e3484a25289c59567c6724f7ce19e3d23c6ee/DEVGUIDE.md#variable-substitutions
         VariableResolver<String> varResolver = new VariableResolver.ByMap<String>(build.getEnvironment(listener));
@@ -90,7 +199,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             if(runFromFileModel.getProxySettings() == null){
                 jobDetails = runFromFileModel.getJobDetails(mcServerUrl, null, null, null);
             }else{
-                jobDetails = runFromFileModel.getJobDetails(mcServerUrl, runFromFileModel.getProxySettings().getFsProxyAddress(),runFromFileModel.getProxySettings().getFsProxyUserName(), runFromFileModel.getProxySettings().getFsProxyPassword());
+                jobDetails = runFromFileModel.getJobDetails(mcServerUrl, runFromFileModel.getProxySettings().getFsProxyAddress(), runFromFileModel.getProxySettings().getFsProxyUserName(), runFromFileModel.getProxySettings().getFsProxyPassword());
             }
             mergedProperties.setProperty("mobileinfo", jobDetails != null ? jobDetails.toJSONString() : "");
             mergedProperties.setProperty("MobileHostAddress",mcServerUrl);
@@ -239,8 +348,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     }
 
     @Extension
-    // This indicates to Jenkins that this is an implementation of an extension
-    // point.
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
         JobConfigurationProxy instance = JobConfigurationProxy.getInstance();
         public DescriptorImpl() {
@@ -292,7 +399,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
             return FormValidation.ok();
         }
-
 
         public FormValidation doCheckFsTimeout(@QueryParameter String value)
         {
