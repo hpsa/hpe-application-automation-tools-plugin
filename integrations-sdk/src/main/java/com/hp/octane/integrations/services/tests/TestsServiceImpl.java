@@ -57,7 +57,7 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 		}
 
 		RestClient restClientImpl = restService.obtainClient();
-		Map<String, String> headers = new HashMap<String, String>();
+		Map<String, String> headers = new HashMap<>();
 		headers.put("content-type", "application/xml");
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.POST)
