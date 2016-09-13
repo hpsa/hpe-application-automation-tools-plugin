@@ -23,3 +23,4 @@ artifacts:
 cache:
   - C:\maven\
   - C:\Users\appveyor\.m2
+  - C:\Users\appveyor\.sonar\cache
