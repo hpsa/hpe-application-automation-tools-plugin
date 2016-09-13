@@ -19,7 +19,7 @@ build_script:
 test: off
 artifacts:
   - path: \target\hp-application-automation-tools-plugin.hpi
-  - name: hp-application-automation-tools-plugin.hpi
+    name: hp-application-automation-tools-plugin.hpi
 cache:
   - C:\maven\
   - C:\Users\appveyor\.m2
