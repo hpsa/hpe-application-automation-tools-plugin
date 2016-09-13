@@ -20,6 +20,9 @@ test: off
 artifacts:
   - path: \target\hp-application-automation-tools-plugin.hpi
     name: hp-application-automation-tools-plugin.hpi
+  - path: \target\sonar\issues-report
+    name: Sonar html report (reprot-light.html - only new issues, reprot.html)
+    type: zip
 cache:
   - C:\maven\
   - C:\Users\appveyor\.m2
