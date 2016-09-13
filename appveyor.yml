@@ -41,6 +41,7 @@ artifacts:
     type: zip
 cache:
   - C:\maven\
+  - C:\sonarlint\
   - C:\Users\appveyor\.m2
   - C:\Users\appveyor\.sonar\cache
   - C:\Users\appveyor\.sonarlint\conf\global.json
