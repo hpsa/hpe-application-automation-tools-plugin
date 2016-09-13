@@ -15,8 +15,7 @@ install:
   - cmd: SET MAVEN_OPTS=-XX:MaxPermSize=2g -Xmx4g
   - cmd: SET JAVA_OPTS=-XX:MaxPermSize=2g -Xmx4g
 build_script:
-  - mvn clean package --batch-mode
-  - mvn sonar:sonar -Dsonar.host.url=https://sonarqube.com:443 -Dsonar.login=bd17494f9769dec8a9baaa0f5143be1924b07ecf
+  - mvn clean package --batch-mode sonar:sonar -Dsonar.host.url=https://sonarqube.com:443 -Dsonar.login=bd17494f9769dec8a9baaa0f5143be1924b07ecf
 test: off
 artifacts:
   - path: \target\hp-application-automation-tools-plugin.hpi
