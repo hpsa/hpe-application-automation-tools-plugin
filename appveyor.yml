@@ -1,6 +1,5 @@
 version: '{build}'
 os: Windows Server 2012
-test: off
 
 install:
   - ps: |
@@ -16,6 +15,7 @@ install:
   - cmd: SET MAVEN_OPTS=-XX:MaxPermSize=2g -Xmx4g
   - cmd: SET JAVA_OPTS=-XX:MaxPermSize=2g -Xmx4g
 build_script:
+  - test: off
   - mvn clean package --batch-mode -DskipTests
 cache:
   - C:\maven\
