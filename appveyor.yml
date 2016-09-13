@@ -14,20 +14,11 @@ install:
         )
         [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\apache-maven-3.3.9-bin", "C:\maven")
       }
-        (new-object System.Net.WebClient).DownloadFile(
-          'https://bintray.com/sonarsource/Distribution/download_file?file_path=sonarlint-cli/sonarlint-cli-2.0.zip',
-          'C:\sonarlint-cli-2.0.zip')
-        7z e l C:\sonarlint-cli-2.0.zip C:\sonarlint
-      
   - cmd: SET PATH=C:\maven\apache-maven-3.3.9\bin;%JAVA_HOME%\bin;%PATH%
   - cmd: SET MAVEN_OPTS=-XX:MaxPermSize=2g -Xmx4g
   - cmd: SET JAVA_OPTS=-XX:MaxPermSize=2g -Xmx4g
-  - cmd: SET PATH=C:\sonarlint\bin;%PATH%
 build_script:
   - mvn clean package --batch-mode sonar:sonar -Dsonar.host.url=https://sonarqube.com:443 -Dsonar.login=bd17494f9769dec8a9baaa0f5143be1924b07ecf -Dsonar.issuesReport.html.enable=true -Dsonar.analysis.mode=issues
-  - echo {servers:[{"id":"local","url":"https://sonarqube.com:443","token":"bd17494f9769dec8a9baaa0f5143be1924b07ecf"}]} >> C:\Users\appveyor\.sonarlint\conf\global.json
-  - echo {"serverId":"local","projectKey":"org.jenkins-ci.plugins:hp-application-automation-tools-plugin","sonar.analysis.mode":"preview","sonar.language":"java"} >> sonarlint.json 
-  - sonarlint.bat -u --charset UTF-8
 test: off
 artifacts:
   - path: \target\hp-application-automation-tools-plugin.hpi
@@ -40,4 +31,4 @@ cache:
   - C:\sonarlint\
   - C:\Users\appveyor\.m2
   - C:\Users\appveyor\.sonar\cache
-  - C:\Users\appveyor\.sonarlint\conf\global.json
+  
