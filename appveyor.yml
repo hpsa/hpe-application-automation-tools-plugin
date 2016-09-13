@@ -17,10 +17,10 @@ install:
       Add-Type -AssemblyName System.IO.Compression.FileSystem
       if (!(Test-Path -Path "C:\sonarlint" )) {
         (new-object System.Net.WebClient).DownloadFile(
-          'https://bintray.com/sonarsource/Distribution/download_file?file_path=sonarlint-cli/sonarlint-cli-2.0.zip',
+          'https://bintray.com/sonarsource/Distribution/download_file?file_path=sonarlint-cli%2Fsonarlint-cli-2.0.zip',
           'C:\sonarlint-cli-2.0.zip'
         )
-        [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\sonarlint-cli-2.0", "C:\sonarlint")
+        7z e C:\sonarlint-cli-2.0.zip C:\sonarlint
       }
   - cmd: SET PATH=C:\maven\apache-maven-3.3.9\bin;%JAVA_HOME%\bin;%PATH%
   - cmd: SET MAVEN_OPTS=-XX:MaxPermSize=2g -Xmx4g
