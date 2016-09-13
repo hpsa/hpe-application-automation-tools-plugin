@@ -26,7 +26,7 @@ install:
   - cmd: SET PATH=C:\sonarlint\bin;%PATH%
 build_script:
   - mvn clean package --batch-mode sonar:sonar -Dsonar.host.url=https://sonarqube.com:443 -Dsonar.login=bd17494f9769dec8a9baaa0f5143be1924b07ecf -Dsonar.issuesReport.html.enable=true -Dsonar.analysis.mode=issues
-  - echo { servers: [ { "id": "local", "url": "https://sonarqube.com:443" , "token": "bd17494f9769dec8a9baaa0f5143be1924b07ecf" } ] } >> C:\Users\appveyor\.sonarlint\conf\global.json
+  - echo {servers:[{"id":"local","url":"https://sonarqube.com:443","token":"bd17494f9769dec8a9baaa0f5143be1924b07ecf"}]} >> C:\Users\appveyor\.sonarlint\conf\global.json
   - echo { "serverId": "local", "projectKey": "org.jenkins-ci.plugins:hp-application-automation-tools-plugin" , "sonar.analysis.mode": "preview", "sonar.language":"java"} >> sonarlint.json 
   - sonarlint.bat -u --charset UTF-8
 test: off
