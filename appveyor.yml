@@ -15,10 +15,11 @@ install:
   - cmd: SET MAVEN_OPTS=-XX:MaxPermSize=2g -Xmx4g
   - cmd: SET JAVA_OPTS=-XX:MaxPermSize=2g -Xmx4g
 build_script:
- 
-  - mvn clean package --batch-mode -DskipTests
-  
+  - mvn clean package --batch-mode
 test: off
+artifacts:
+  - path: \target\hp-application-automation-tools-plugin.hpi
+  - name: hp-application-automation-tools-plugin.hpi
 cache:
   - C:\maven\
   - C:\Users\appveyor\.m2
