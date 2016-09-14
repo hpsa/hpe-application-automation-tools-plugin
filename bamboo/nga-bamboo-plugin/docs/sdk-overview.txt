@@ -1,0 +1,19 @@
+plugin init
+  if uuid does not exist, create it and persist it
+  init the SDK
+
+CIServerInfo
+  type - type
+  url is base url of the bamboo
+  instance-id-from is mostly for debugging
+  instance-id is unique identifier
+  sending-time - currenttime at creation
+CIPluginInfo
+  version - is version
+
+PipelineNode
+  ids are unique on CI side, so these must be preserved in octane too
+  plugin is sending IDs known by the CI server
+parametrized run is out of scope, runPipeline originalBody is null
+getHistoryPipeline is postponed, so does not need an implementation
+

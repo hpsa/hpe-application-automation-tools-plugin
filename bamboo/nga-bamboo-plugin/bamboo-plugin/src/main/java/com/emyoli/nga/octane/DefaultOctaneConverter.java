@@ -1,0 +1,188 @@
+package com.emyoli.nga.octane;
+
+import com.atlassian.bamboo.chains.cache.ImmutableChainStage;
+import com.atlassian.bamboo.plan.PlanIdentifier;
+import com.atlassian.bamboo.plan.cache.ImmutableJob;
+import com.atlassian.bamboo.plan.cache.ImmutableTopLevelPlan;
+import com.atlassian.bamboo.results.tests.TestResults;
+import com.atlassian.bamboo.resultsummary.ImmutableResultsSummary;
+import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.causes.CIEventCause;
+import com.hp.octane.integrations.dto.causes.CIEventCauseType;
+import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
+import com.hp.octane.integrations.dto.events.CIEvent;
+import com.hp.octane.integrations.dto.events.CIEventType;
+import com.hp.octane.integrations.dto.general.CIJobsList;
+import com.hp.octane.integrations.dto.general.CIServerInfo;
+import com.hp.octane.integrations.dto.general.CIServerTypes;
+import com.hp.octane.integrations.dto.pipelines.PipelineNode;
+import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
+import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
+import com.hp.octane.integrations.dto.snapshots.CIBuildStatus;
+import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
+import com.hp.octane.integrations.dto.tests.TestRun;
+import com.hp.octane.integrations.dto.tests.TestRunError;
+import com.hp.octane.integrations.dto.tests.TestRunResult;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class DefaultOctaneConverter implements DTOConverter {
+
+    private DTOFactory dtoFactoryInstance;
+
+    private static DTOConverter converter;
+
+    private DefaultOctaneConverter() {
+        super();
+        dtoFactoryInstance = DTOFactory.getInstance();
+    }
+
+    public static DTOConverter getInstance() {
+        synchronized (DefaultOctaneConverter.class) {
+            if (converter == null) {
+                converter = new DefaultOctaneConverter();
+            }
+        }
+        return converter;
+    }
+
+    public PipelineNode getPipelineNodeFromJob(ImmutableJob job) {
+        return dtoFactoryInstance.newDTO(PipelineNode.class).setJobCiId(getJobCiId(job)).setName(job.getName());
+    }
+
+    public String getRootJobCiId(ImmutableTopLevelPlan plan) {
+        return getCiId(plan);
+    }
+
+    public String getJobCiId(ImmutableJob job) {
+        return getCiId(job);
+    }
+
+    public PipelinePhase getPipelinePhaseFromStage(ImmutableChainStage stage) {
+        PipelinePhase phase = dtoFactoryInstance.newDTO(PipelinePhase.class).setName(stage.getName()).setBlocking(true);
+        List<PipelineNode> nodes = new ArrayList<PipelineNode>(stage.getJobs().size());
+        for (ImmutableJob job : stage.getJobs()) {
+            // TODO decide if we want to mirror disabled jobs or not
+            // if (!job.isSuspendedFromBuilding()) {
+            nodes.add(getPipelineNodeFromJob(job));
+            // }
+        }
+        phase.setJobs(nodes);
+        return phase;
+    }
+
+    public CIProxyConfiguration getProxyCconfiguration(String server, int port, String user, String password) {
+        return dtoFactoryInstance.newDTO(CIProxyConfiguration.class).setHost(server).setPort(port).setUsername(user)
+                .setPassword(password);
+    }
+
+    public PipelineNode getRootPipelineNodeFromTopLevelPlan(ImmutableTopLevelPlan plan) {
+        PipelineNode node = dtoFactoryInstance.newDTO(PipelineNode.class).setJobCiId(getRootJobCiId(plan))
+                .setName(plan.getName());
+        List<PipelinePhase> phases = new ArrayList<PipelinePhase>(plan.getAllStages().size());
+        for (ImmutableChainStage stage : plan.getAllStages()) {
+            phases.add(getPipelinePhaseFromStage(stage));
+        }
+        node.setPhasesInternal(phases);
+        return node;
+    }
+
+    public CIServerInfo getServerInfo(String baseUrl, String instanceId) {
+        return dtoFactoryInstance.newDTO(CIServerInfo.class).setInstanceId("bamboo-instance-" + instanceId)
+                .setInstanceIdFrom(System.currentTimeMillis()).setSendingTime(System.currentTimeMillis())
+                .setType(CIServerTypes.JENKINS).setUrl(baseUrl);
+    }
+
+    public SnapshotNode getSnapshot(ImmutableTopLevelPlan plan, ImmutableResultsSummary resultsSummary) {
+        SnapshotNode result = dtoFactoryInstance.newDTO(SnapshotNode.class)
+                .setBuildCiId(resultsSummary.getPlanResultKey().getKey()).setJobCiId(getRootJobCiId(plan))
+                .setDuration(resultsSummary.getDuration()).setNumber(String.valueOf(resultsSummary.getBuildNumber()))
+                .setStartTime(resultsSummary.getBuildDate() != null ? resultsSummary.getBuildDate().getTime()
+                        : (resultsSummary.getBuildCompletedDate() != null
+                                ? resultsSummary.getBuildCompletedDate().getTime() : System.currentTimeMillis()));
+        switch (resultsSummary.getBuildState()) {
+        case FAILED:
+            result.setResult(CIBuildResult.FAILURE);
+            break;
+        case SUCCESS:
+            result.setResult(CIBuildResult.SUCCESS);
+            break;
+        case UNKNOWN:
+            result.setResult(CIBuildResult.UNAVAILABLE);
+            break;
+        }
+        switch (plan.getLatestResultsSummary().getLifeCycleState()) {
+        case FINISHED:
+            result.setStatus(CIBuildStatus.FINISHED);
+            break;
+        case IN_PROGRESS:
+            result.setStatus(CIBuildStatus.RUNNING);
+            break;
+        case QUEUED:
+            result.setStatus(CIBuildStatus.QUEUED);
+            break;
+        default:
+            result.setStatus(CIBuildStatus.UNAVAILABLE);
+        }
+
+        return result;
+    }
+
+    public CIJobsList getRootJobsList(List<ImmutableTopLevelPlan> plans) {
+        CIJobsList jobsList = dtoFactoryInstance.newDTO(CIJobsList.class).setJobs(new PipelineNode[0]);
+
+        List<PipelineNode> nodes = new ArrayList<PipelineNode>(plans.size());
+        for (ImmutableTopLevelPlan plan : plans) {
+            PipelineNode node = DTOFactory.getInstance().newDTO(PipelineNode.class).setJobCiId(getRootJobCiId(plan))
+                    .setName(plan.getName());
+            nodes.add(node);
+        }
+
+        jobsList.setJobs(nodes.toArray(new PipelineNode[nodes.size()]));
+        return jobsList;
+    }
+
+    public String getCiId(PlanIdentifier identifier) {
+        return identifier.getPlanKey().getKey();
+    }
+
+    public TestRun getTestRunFromTestResult(TestResults testResult, TestRunResult result, long startTime) {
+        String className = testResult.getClassName();
+        String simpleName = testResult.getShortClassName();
+        String packageName = className.substring(0,
+                className.length() - simpleName.length() - (className.length() > simpleName.length() ? 1 : 0));
+
+        TestRun testRun = dtoFactoryInstance.newDTO(TestRun.class).setClassName(simpleName)
+                .setDuration(Math.round(Double.valueOf(testResult.getDuration()))).setPackageName(packageName)
+                .setResult(result).setStarted(startTime).setTestName(testResult.getActualMethodName());
+        if (result == TestRunResult.FAILED) {
+            TestRunError error = dtoFactoryInstance.newDTO(TestRunError.class)
+                    .setErrorMessage(testResult.getSystemOut());
+            if (!testResult.getErrors().isEmpty()) {
+                error.setStackTrace(testResult.getErrors().get(0).getContent());
+            }
+            testRun.setError(error);
+        }
+        return testRun;
+    }
+
+    public CIEvent getEventWithDetails(String project, String buildCiId, String displayName, CIEventType eventType,
+            long startTime, long estimatedDuration, List<CIEventCause> causes, String number) {
+        CIEvent event = dtoFactoryInstance.newDTO(CIEvent.class).setEventType(eventType).setCauses(causes)
+                .setProject(project).setProjectDisplayName(displayName).setBuildCiId(buildCiId)
+                .setEstimatedDuration(estimatedDuration).setStartTime(startTime);
+        if (number != null) {
+            event.setNumber(number);
+        }
+        return event;
+    }
+
+    public CIEventCause getCauseWithDetails(String buildCiId, String project, String user) {
+        CIEventCause cause = DTOFactory.getInstance().newDTO(CIEventCause.class).setBuildCiId(buildCiId)
+                .setCauses(new ArrayList<CIEventCause>()).setProject(project).setType(CIEventCauseType.UPSTREAM)
+                .setUser(user);
+        return cause;
+    }
+
+}
