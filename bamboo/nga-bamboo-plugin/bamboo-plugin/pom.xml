@@ -28,13 +28,6 @@
 		<atlassian.plugin.key>${project.groupId}.${project.artifactId}</atlassian.plugin.key>
 	</properties>
 
-	<repositories>
-		<repository>
-			<id>mqm-repo</id>
-			<name>mqm-repo</name>
-			<url>file://${project.basedir}/src/main/resources/repository</url>
-		</repository>
-	</repositories>
 	<dependencies>
 		<dependency>
 			<groupId>com.atlassian.bamboo</groupId>
