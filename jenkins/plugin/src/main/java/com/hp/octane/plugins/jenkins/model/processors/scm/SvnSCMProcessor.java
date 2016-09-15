@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
 public class SvnSCMProcessor implements SCMProcessor {
 	private static final Logger logger = LogManager.getLogger(SvnSCMProcessor.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-	public static final int PARENT_COMMIT = 2;
+	public static final int PARENT_COMMIT_INDEX = 1;
 
 	@Override
 	public SCMData getSCMData(AbstractBuild build) {
@@ -117,7 +117,7 @@ public class SvnSCMProcessor implements SCMProcessor {
 		String parentRevId = null;
 
 		try {
-            parentRevId = commit.getParent().getLogs().get(PARENT_COMMIT).getCommitId();
+            parentRevId = commit.getParent().getLogs().get(PARENT_COMMIT_INDEX).getCommitId();
         } catch (Exception e){
         	// Do nothing, the parentRevId will be null
 		}
