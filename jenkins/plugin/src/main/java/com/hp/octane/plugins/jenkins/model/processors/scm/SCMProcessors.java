@@ -34,6 +34,23 @@ public enum SCMProcessors {
 					logger.severe("failed to instantiate SCM processor of type '" + p.targetSCMPluginClassName + "'; error: " + iae.getMessage());
 				}
 		}
+
+		if (result == null) {
+			result = getGenericSCMProcessor(className);
+		}
+
 		return result;
+	}
+
+	private static SCMProcessor getGenericSCMProcessor(String className) {
+		SCMProcessor genericSCMProcessor = null;
+		try {
+			genericSCMProcessor = (GenericSCMProcessor.class).newInstance();
+		} catch (InstantiationException e) {
+			logger.severe("failed to instantiate SCM processor of type '" + className + "'; error: " + e.getMessage());
+		} catch (IllegalAccessException e) {
+			logger.severe("failed to instantiate SCM processor of type '" + className + "'; error: " + e.getMessage());
+		}
+		return genericSCMProcessor;
 	}
 }
