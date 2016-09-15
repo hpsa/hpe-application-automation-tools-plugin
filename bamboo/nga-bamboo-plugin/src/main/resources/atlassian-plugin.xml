@@ -30,7 +30,7 @@
 	</web-item>
 	<xwork key="ngaActions" name="Octane Configuration Action">
 		<package name="ngaAdmin" extends="admin" namespace="/admin/nga">
-			<action name="configureOctane" class="com.emyoli.nga.ui.ConfigureOctaneAction"
+			<action name="configureOctane" class="com.hp.octane.plugins.bamboo.ui.ConfigureOctaneAction"
 				method="edit">
 				<result name="input" type="freemarker">/templates/configureOctane.ftl</result>
 				<result name="success" type="freemarker">/templates/configureOctane.ftl</result>
@@ -38,7 +38,7 @@
 				<param name="mode">edit</param>
 			</action>
 
-			<action name="configureOctaneSave" class="com.emyoli.nga.ui.ConfigureOctaneAction"
+			<action name="configureOctaneSave" class="com.hp.octane.plugins.bamboo.ui.ConfigureOctaneAction"
 				method="save">
 				<result name="input" type="freemarker">/templates/configureOctane.ftl</result>
 				<result name="success" type="freemarker">/templates/configureOctane.ftl</result>
@@ -49,23 +49,23 @@
 	</xwork>
 
 	<bambooEventListener key="buildContextListener"
-		name="Build Context Listener" class="com.emyoli.nga.listener.OctanePostChainAction">
+		name="Build Context Listener" class="com.hp.octane.plugins.bamboo.listener.OctanePostChainAction">
 		<description>Listens for build context events</description>
 	</bambooEventListener>
 
-	<postChainAction key="ngaPostChainReporter" name="NGA post-chain build status reporter" class="com.emyoli.nga.listener.OctanePostChainAction">
+	<postChainAction key="ngaPostChainReporter" name="NGA post-chain build status reporter" class="com.hp.octane.plugins.bamboo.listener.OctanePostChainAction">
 		<description>Report root job finished to NGA</description>
 	</postChainAction>
 
-	<preChainAction key="ngaPreChainReporter" name="NGA pre-chain build status reporter" class="com.emyoli.nga.listener.OctanePreChainAction">
+	<preChainAction key="ngaPreChainReporter" name="NGA pre-chain build status reporter" class="com.hp.octane.plugins.bamboo.listener.OctanePreChainAction">
 		<description>Report root job started to NGA</description>
 	</preChainAction>
 	
-	<preJobAction key="ngaPreJobReporter" name="NGA pre-job build status reporter" class="com.emyoli.nga.listener.OctanePreJobAction">
+	<preJobAction key="ngaPreJobReporter" name="NGA pre-job build status reporter" class="com.hp.octane.plugins.bamboo.listener.OctanePreJobAction">
 		<description>Report non-root job started to NGA</description>
 	</preJobAction>
 	
-	<preJobAction key="ngaPostJobReporter" name="NGA post-job build status reporter" class="com.emyoli.nga.listener.OctanePostJobAction">
+	<preJobAction key="ngaPostJobReporter" name="NGA post-job build status reporter" class="com.hp.octane.plugins.bamboo.listener.OctanePostJobAction">
 		<description>Report non-root job finished to NGA</description>
 	</preJobAction>
 	
