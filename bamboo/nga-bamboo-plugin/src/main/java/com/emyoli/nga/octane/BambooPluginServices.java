@@ -1,5 +1,6 @@
 package com.emyoli.nga.octane;
 
+import com.atlassian.bamboo.agent.classserver.AgentServerManager;
 import com.atlassian.bamboo.applinks.ImpersonationService;
 import com.atlassian.bamboo.configuration.AdministrationConfigurationAccessor;
 import com.atlassian.bamboo.plan.PlanExecutionManager;
@@ -131,9 +132,9 @@ public class BambooPluginServices implements CIPluginServices {
 
     public CIServerInfo getServerInfo() {
         log.info("get ci server info");
-        // String instanceId = String.valueOf(
-        // ComponentLocator.getComponent(AgentServerManager.class).getFingerprint().getInstanceFingerprint());
-        String instanceId = "0";
+        String instanceId = String.valueOf(
+                ComponentLocator.getComponent(AgentServerManager.class).getFingerprint().getServerFingerprint());
+        // String instanceId = "0";
         String baseUrl = ComponentLocator.getComponent(AdministrationConfigurationAccessor.class)
                 .getAdministrationConfiguration().getBaseUrl();
 
@@ -148,7 +149,6 @@ public class BambooPluginServices implements CIPluginServices {
     }
 
     public SnapshotNode getSnapshotLatest(String pipeline, boolean arg1) {
-        // TODO implement get latest snapshot
         log.info("get latest snapshot  for pipeline " + pipeline);
         ImmutableTopLevelPlan plan = planMan.getPlanByKey(PlanKeys.getPlanKey(pipeline), ImmutableTopLevelPlan.class);
         return CONVERTER.getSnapshot(plan, plan.getLatestResultsSummary());
@@ -158,35 +158,6 @@ public class BambooPluginServices implements CIPluginServices {
         // log.info("get test results for " + pipeline + " , " + build);
         // return TEST_RESULTS.remove(build);
         return null;
-        /*
-         * ImmutableTopLevelPlan plan =
-         * planMan.getPlanById(Long.valueOf(pipeline),
-         * ImmutableTopLevelPlan.class); TestsManager testsMan =
-         * ComponentLocator.getComponent(TestsManager.class); //
-         * ComponentLocator.getComponent(TestsManager.class).getTestClassResults
-         * (chain.getAllJobs().get(0).getLatestResultsSummary().getPlanResultKey
-         * ()); TestsDao td = ComponentLocator.getComponent(TestsDao.class); //
-         * ImmutablePlan plan = // planMan.getPlanByKey(chain.getPlanKey()); //
-         * TestsDao List<TestClass> classes = td.getTestClassesForPlan(
-         * ComponentLocator.getComponent(PlanManager.class).getPlanById(plan.
-         * getAllJobs().get(0).getId())); TestResultsDao trd =
-         * ComponentLocator.getComponent(TestResultsDao.class);
-         * List<TestClassResult> res = trd
-         * .getTestClassResults(plan.getAllJobs().get(0).getLatestResultsSummary
-         * ().getPlanResultKey()); TestRun testRun =
-         * DTOFactory.getInstance().newDTO(TestRun.class).setStarted(System.
-         * currentTimeMillis())
-         * .setClassName("testClass").setPackageName("hello").setDuration(100).
-         * setModuleName("module")
-         * .setTestName("testMethod").setResult(TestRunResult.PASSED);
-         * BuildContext context =
-         * DTOFactory.getInstance().newDTO(BuildContext.class).setServerId(
-         * "bamboo-instance-0")
-         * .setBuildId(build).setJobId(pipeline).setBuildName(build).setJobName(
-         * plan.getName()); return
-         * DTOFactory.getInstance().newDTO(TestsResult.class).setTestRuns(Arrays
-         * .asList(testRun)) .setBuildContext(context);
-         */
     }
 
     public void runPipeline(final String pipeline, String parameters) {

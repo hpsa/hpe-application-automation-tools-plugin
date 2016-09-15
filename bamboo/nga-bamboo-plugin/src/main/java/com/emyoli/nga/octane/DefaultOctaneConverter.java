@@ -1,11 +1,14 @@
 package com.emyoli.nga.octane;
 
+import com.atlassian.bamboo.agent.classserver.AgentServerManager;
 import com.atlassian.bamboo.chains.cache.ImmutableChainStage;
 import com.atlassian.bamboo.plan.PlanIdentifier;
 import com.atlassian.bamboo.plan.cache.ImmutableJob;
 import com.atlassian.bamboo.plan.cache.ImmutableTopLevelPlan;
 import com.atlassian.bamboo.results.tests.TestResults;
 import com.atlassian.bamboo.resultsummary.ImmutableResultsSummary;
+import com.atlassian.sal.api.component.ComponentLocator;
+import com.emyoli.nga.api.OctaneConfigurationKeys;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.causes.CIEventCause;
 import com.hp.octane.integrations.dto.causes.CIEventCauseType;
@@ -20,6 +23,7 @@ import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
 import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
 import com.hp.octane.integrations.dto.snapshots.CIBuildStatus;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
+import com.hp.octane.integrations.dto.tests.BuildContext;
 import com.hp.octane.integrations.dto.tests.TestRun;
 import com.hp.octane.integrations.dto.tests.TestRunError;
 import com.hp.octane.integrations.dto.tests.TestRunResult;
@@ -89,7 +93,8 @@ public class DefaultOctaneConverter implements DTOConverter {
     }
 
     public CIServerInfo getServerInfo(String baseUrl, String instanceId) {
-        return dtoFactoryInstance.newDTO(CIServerInfo.class).setInstanceId("bamboo-instance-" + instanceId)
+        return dtoFactoryInstance.newDTO(CIServerInfo.class)
+                .setInstanceId(OctaneConfigurationKeys.BAMBOO_INSTANCE_PREFIX + instanceId)
                 .setInstanceIdFrom(System.currentTimeMillis()).setSendingTime(System.currentTimeMillis())
                 .setType(CIServerTypes.JENKINS).setUrl(baseUrl);
     }
@@ -183,6 +188,13 @@ public class DefaultOctaneConverter implements DTOConverter {
                 .setCauses(new ArrayList<CIEventCause>()).setProject(project).setType(CIEventCauseType.UPSTREAM)
                 .setUser(user);
         return cause;
+    }
+
+    public BuildContext getBuildContext(String build, String identifier) {
+        String instanceId = OctaneConfigurationKeys.BAMBOO_INSTANCE_PREFIX + String.valueOf(
+                ComponentLocator.getComponent(AgentServerManager.class).getFingerprint().getServerFingerprint());
+        return DTOFactory.getInstance().newDTO(BuildContext.class).setBuildId(build).setBuildName(build)
+                .setJobId(identifier).setJobName(identifier).setServerId(instanceId);
     }
 
 }

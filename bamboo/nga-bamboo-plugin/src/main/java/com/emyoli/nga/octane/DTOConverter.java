@@ -15,6 +15,7 @@ import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
+import com.hp.octane.integrations.dto.tests.BuildContext;
 import com.hp.octane.integrations.dto.tests.TestRun;
 import com.hp.octane.integrations.dto.tests.TestRunResult;
 
@@ -44,5 +45,7 @@ public interface DTOConverter {
             long startTime, long estimatedDuration, List<CIEventCause> causes, String number);
 
     CIEventCause getCauseWithDetails(String buildCiId, String project, String user);
+
+    BuildContext getBuildContext(String build, String identifier);
 
 }

@@ -1,5 +1,6 @@
 package com.emyoli.nga.ui;
 
+import com.atlassian.bamboo.user.BambooUserManager;
 import com.atlassian.bamboo.ww2.BambooActionSupport;
 import com.atlassian.sal.api.component.ComponentLocator;
 import com.atlassian.sal.api.pluginsettings.PluginSettings;
@@ -37,10 +38,10 @@ public class ConfigureOctaneAction extends BambooActionSupport implements Initia
         this.settingsFactory = settingsFactory;
         PluginSettings settings = settingsFactory.createGlobalSettings();
         // TODO remove hard-coded default values
-        settings.put(OctaneConfigurationKeys.NGA_URL, "http://emyoli.almoctane.com:8080/ui/?p=1001/1002");
-        settings.put(OctaneConfigurationKeys.API_KEY, "Bamboo_lq203mvzqp7v5awrg0lr43k9p");
+        settings.put(OctaneConfigurationKeys.NGA_URL, "http://LAZARA4.emea.hpqcorp.net:8080/ui/?admin&p=2001/1002#/");
+        settings.put(OctaneConfigurationKeys.API_KEY, "ayellet.lazar@hpe.com");
         settings.put(OctaneConfigurationKeys.API_SECRET, "+b0abee805fc88417J");
-        settings.put(OctaneConfigurationKeys.USER_TO_USE, "admin");
+        settings.put(OctaneConfigurationKeys.USER_TO_USE, "lazara");
     }
 
     // TODO internationalize all texts
@@ -60,9 +61,12 @@ public class ConfigureOctaneAction extends BambooActionSupport implements Initia
             addFieldError("ngaUrl", "Octane Instance URL is required.");
         }
 
-        // TODO validate if bamboo user exists with the given name
         if (StringUtils.isBlank(userToUse)) {
             addFieldError("userToUse", "Username to use is required.");
+        }
+        BambooUserManager userManager = ComponentLocator.getComponent(BambooUserManager.class);
+        if (userManager.getBambooUser(userToUse) == null) {
+            addFieldError("userToUse", "User does not exist");
         }
         if (!getFieldErrors().isEmpty()) {
             addActionError("Configuration is invalid, see fields marked with error.");

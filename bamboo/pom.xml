@@ -11,7 +11,7 @@
     </parent>
 
     <modules>
-        <module>nga-bamboo-plugin/bamboo-plugin</module>
+        <module>nga-bamboo-plugin</module>
     </modules>
 
 </project>

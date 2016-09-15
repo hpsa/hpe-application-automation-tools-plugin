@@ -73,9 +73,7 @@ public class OctanePostChainAction extends BaseListener implements PostChainActi
             }
             String build = PlanKeys.getPlanResultKey(identifier, planResultKey.getBuildNumber()).getKey();
             log.info("Pushing test results for " + identifier + " build " + planResultKey.getKey());
-            // TODO use real instance id
-            BuildContext context = DTOFactory.getInstance().newDTO(BuildContext.class).setBuildId(build)
-                    .setBuildName(build).setJobId(identifier).setJobName(identifier).setServerId("bamboo-instance-0");
+            BuildContext context = CONVERTER.getBuildContext(build, identifier);
             TestsResult testsResult = DTOFactory.getInstance().newDTO(TestsResult.class).setTestRuns(testRuns)
                     .setBuildContext(context);
             try {
