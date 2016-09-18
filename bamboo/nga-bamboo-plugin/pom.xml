@@ -16,8 +16,6 @@
 	</parent>
 
 	<properties>
-		<!--<bamboo.version>5.12.3</bamboo.version>-->
-		<!--<bamboo.data.version>5.12.3</bamboo.data.version>-->
 		<bamboo.version>5.9.10</bamboo.version>
 		<bamboo.data.version>5.9.10</bamboo.data.version>
 		<amps.version>5.0.18</amps.version>
@@ -81,7 +79,6 @@
 					<allowGoogleTracking>false</allowGoogleTracking>
 					<productVersion>${bamboo.version}</productVersion>
 					<productDataVersion>${bamboo.data.version}</productDataVersion>
-					<enableQuickReload>true</enableQuickReload>
 					<enableFastdev>false</enableFastdev>
 					<!-- See here for more options: -->
 					<!-- https://developer.atlassian.com/docs/developer-tools/working-with-the-sdk/about-amps-build-options/amps-build-configuration-reference -->

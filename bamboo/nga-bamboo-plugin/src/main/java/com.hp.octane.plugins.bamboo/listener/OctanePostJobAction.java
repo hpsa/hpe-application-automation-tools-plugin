@@ -8,23 +8,8 @@ import com.atlassian.bamboo.resultsummary.BuildResultsSummary;
 
 public class OctanePostJobAction extends BaseListener implements PostJobAction {
 
-    public void execute(StageExecution paramStageExecution, Job paramJob,
-            BuildResultsSummary paramBuildResultsSummary) {
-        PlanResultKey resultKey = paramBuildResultsSummary.getPlanResultKey();
-        System.out.println(resultKey);
-        // List<CIEventCause> causes = new ArrayList<>(1);
-        // CIEventCause cause = CONVERTER.getCauseWithDetails(
-        // paramBuildContext.getParentBuildIdentifier().getBuildResultKey(),
-        // paramBuildContext.getParentBuildContext().getPlanResultKey().getPlanKey().getKey(),
-        // "admin");
-        //
-        // CIEvent event =
-        // CONVERTER.getEventWithDetails(PlanKeys.getChainKeyIfJobKey(resultKey.getPlanKey()).getKey(),
-        // resultKey.getKey(), paramBuildContext.getDisplayName(),
-        // CIEventType.STARTED, System.currentTimeMillis(),
-        // paramBuildResultsSummary.getav, Arrays.asList(cause),
-        // String.valueOf(resultKey.getBuildNumber()));
-        // OctaneSDK.getInstance().getEventsService().publishEvent(event);
-
-    }
+	//  [YG] TODO: review the original intent for this listener and remove if not needed
+	public void execute(StageExecution paramStageExecution, Job paramJob, BuildResultsSummary paramBuildResultsSummary) {
+		PlanResultKey resultKey = paramBuildResultsSummary.getPlanResultKey();
+	}
 }

@@ -114,7 +114,6 @@ public class BambooPluginServices implements CIPluginServices {
 			return CONVERTER.getProxyCconfiguration(System.getProperty("https.proxyHost"),
 					Integer.parseInt(System.getProperty("https.proxyPort")), System.getProperty("https.proxyUser", ""),
 					System.getProperty("https.proxyPassword", ""));
-
 		}
 		return result;
 	}
@@ -147,9 +146,8 @@ public class BambooPluginServices implements CIPluginServices {
 		return CONVERTER.getSnapshot(plan, plan.getLatestResultsSummary());
 	}
 
+	//  [YG] TODO: implement this one for queued push tests results implementation
 	public TestsResult getTestsResult(String pipeline, String build) {
-		// log.info("get test results for " + pipeline + " , " + build);
-		// return TEST_RESULTS.remove(build);
 		return null;
 	}
 

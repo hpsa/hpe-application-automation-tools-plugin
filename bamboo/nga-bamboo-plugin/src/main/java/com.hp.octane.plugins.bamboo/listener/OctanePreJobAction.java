@@ -13,16 +13,16 @@ import java.util.Arrays;
 
 public class OctanePreJobAction extends BaseListener implements PreJobAction {
 
-    public void execute(StageExecution paramStageExecution, BuildContext paramBuildContext) {
-        PlanResultKey resultKey = paramBuildContext.getPlanResultKey();
-        CIEventCause cause = CONVERTER.getCauseWithDetails(
-                paramBuildContext.getParentBuildIdentifier().getBuildResultKey(),
-                paramBuildContext.getParentBuildContext().getPlanResultKey().getPlanKey().getKey(), "admin");
+	public void execute(StageExecution paramStageExecution, BuildContext paramBuildContext) {
+		PlanResultKey resultKey = paramBuildContext.getPlanResultKey();
+		CIEventCause cause = CONVERTER.getCauseWithDetails(
+				paramBuildContext.getParentBuildIdentifier().getBuildResultKey(),
+				paramBuildContext.getParentBuildContext().getPlanResultKey().getPlanKey().getKey(), "admin");
 
-        CIEvent event = CONVERTER.getEventWithDetails(resultKey.getPlanKey().getKey(),
-                resultKey.getKey(), paramBuildContext.getDisplayName(), CIEventType.STARTED, System.currentTimeMillis(),
-                paramStageExecution.getChainExecution().getAverageDuration(), Arrays.asList(cause),
-                String.valueOf(resultKey.getBuildNumber()));
-        OctaneSDK.getInstance().getEventsService().publishEvent(event);
-    }
+		CIEvent event = CONVERTER.getEventWithDetails(resultKey.getPlanKey().getKey(),
+				resultKey.getKey(), paramBuildContext.getDisplayName(), CIEventType.STARTED, System.currentTimeMillis(),
+				paramStageExecution.getChainExecution().getAverageDuration(), Arrays.asList(cause),
+				String.valueOf(resultKey.getBuildNumber()));
+		OctaneSDK.getInstance().getEventsService().publishEvent(event);
+	}
 }
