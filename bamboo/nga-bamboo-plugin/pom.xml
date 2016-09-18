@@ -16,8 +16,10 @@
 	</parent>
 
 	<properties>
-		<bamboo.version>5.12.3</bamboo.version>
-		<bamboo.data.version>5.12.3</bamboo.data.version>
+		<!--<bamboo.version>5.12.3</bamboo.version>-->
+		<!--<bamboo.data.version>5.12.3</bamboo.data.version>-->
+		<bamboo.version>5.9.10</bamboo.version>
+		<bamboo.data.version>5.9.10</bamboo.data.version>
 		<amps.version>6.2.6</amps.version>
 		<plugin.testrunner.version>1.2.3</plugin.testrunner.version>
 		<atlassian.spring.scanner.version>1.2.13</atlassian.spring.scanner.version>
@@ -81,10 +83,17 @@
 					<productDataVersion>${bamboo.data.version}</productDataVersion>
 					<enableQuickReload>true</enableQuickReload>
 					<enableFastdev>false</enableFastdev>
-
-					<!-- See here for an explanation of default instructions: -->
-					<!-- https://developer.atlassian.com/docs/advanced-topics/configuration-of-instructions-in-atlassian-plugins -->
+					<!-- See here for more options: -->
+					<!-- https://developer.atlassian.com/docs/developer-tools/working-with-the-sdk/about-amps-build-options/amps-build-configuration-reference -->
 				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>compress-resources</goal>
+						</goals>
+						<phase>none</phase>
+					</execution>
+				</executions>
 			</plugin>
 
 			<plugin>
