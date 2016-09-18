@@ -22,30 +22,30 @@ import com.hp.octane.integrations.dto.tests.TestRunResult;
 import java.util.List;
 
 public interface DTOConverter {
-    PipelineNode getRootPipelineNodeFromTopLevelPlan(ImmutableTopLevelPlan plan);
+	PipelineNode getRootPipelineNodeFromTopLevelPlan(ImmutableTopLevelPlan plan);
 
-    PipelineNode getPipelineNodeFromJob(ImmutableJob job);
+	PipelineNode getPipelineNodeFromJob(ImmutableJob job);
 
-    PipelinePhase getPipelinePhaseFromStage(ImmutableChainStage stage);
+	PipelinePhase getPipelinePhaseFromStage(ImmutableChainStage stage);
 
-    CIProxyConfiguration getProxyCconfiguration(String proxyServer, int proxyPort, String proxyUser,
-            String proxyPassword);
+	CIProxyConfiguration getProxyCconfiguration(String proxyServer, int proxyPort, String proxyUser,
+	                                            String proxyPassword);
 
-    CIServerInfo getServerInfo(String baseUrl, String instanceId);
+	CIServerInfo getServerInfo(String baseUrl, String instanceId);
 
-    SnapshotNode getSnapshot(ImmutableTopLevelPlan plan, ImmutableResultsSummary summary);
+	SnapshotNode getSnapshot(ImmutableTopLevelPlan plan, ImmutableResultsSummary summary);
 
-    CIJobsList getRootJobsList(List<ImmutableTopLevelPlan> toplevels);
+	CIJobsList getRootJobsList(List<ImmutableTopLevelPlan> toplevels);
 
-    String getCiId(PlanIdentifier identifier);
+	String getCiId(PlanIdentifier identifier);
 
-    TestRun getTestRunFromTestResult(TestResults currentTestResult, TestRunResult result, long startTime);
+	TestRun getTestRunFromTestResult(TestResults currentTestResult, TestRunResult result, long startTime);
 
-    CIEvent getEventWithDetails(String project, String buildCiId, String displayName, CIEventType eventType,
-            long startTime, long estimatedDuration, List<CIEventCause> causes, String number);
+	CIEvent getEventWithDetails(String project, String buildCiId, String displayName, CIEventType eventType,
+	                            long startTime, long estimatedDuration, List<CIEventCause> causes, String number);
 
-    CIEventCause getCauseWithDetails(String buildCiId, String project, String user);
+	CIEventCause getCauseWithDetails(String buildCiId, String project, String user);
 
-    BuildContext getBuildContext(String build, String identifier);
+	BuildContext getBuildContext(String build, String identifier);
 
 }
