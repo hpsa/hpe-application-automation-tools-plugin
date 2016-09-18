@@ -1,19 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
 	<name>HPE ALM Octane Bamboo CI Plugin</name>
 	<description>This is hp lifecycle management ci plugin for Atlassian Bamboo.</description>
 	<packaging>atlassian-plugin</packaging>
 	<artifactId>hp-lifecycle-management-bamboo-ci-plugin</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
 
 	<parent>
 		<groupId>com.hp.mqm</groupId>
 		<artifactId>bamboo</artifactId>
-		<version>12.53.14-SNAPSHOT</version>
+		<version>12.53.15-SNAPSHOT</version>
 	</parent>
 
 	<properties>
@@ -29,133 +28,125 @@
 	</properties>
 
 	<dependencies>
+
+		<!-- CONTAINER -->
 		<dependency>
-			<groupId>com.atlassian.bamboo</groupId>
 			<artifactId>atlassian-bamboo-web</artifactId>
+			<groupId>com.atlassian.bamboo</groupId>
 			<version>${bamboo.version}</version>
 			<scope>provided</scope>
 		</dependency>
-
 		<dependency>
-			<groupId>com.atlassian.plugin</groupId>
 			<artifactId>atlassian-spring-scanner-annotation</artifactId>
+			<groupId>com.atlassian.plugin</groupId>
 			<version>${atlassian.spring.scanner.version}</version>
 			<scope>compile</scope>
 		</dependency>
-
 		<dependency>
-			<groupId>com.atlassian.plugin</groupId>
 			<artifactId>atlassian-spring-scanner-runtime</artifactId>
+			<groupId>com.atlassian.plugin</groupId>
 			<version>${atlassian.spring.scanner.version}</version>
 			<scope>runtime</scope>
 		</dependency>
-
 		<dependency>
-			<groupId>javax.inject</groupId>
 			<artifactId>javax.inject</artifactId>
+			<groupId>javax.inject</groupId>
 			<version>1</version>
 			<scope>provided</scope>
 		</dependency>
 
+		<!-- INTERNAL -->
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.10</version>
-			<scope>test</scope>
+			<artifactId>integrations-sdk</artifactId>
+			<groupId>com.hp.mqm</groupId>
+			<version>${project.version}</version>
 		</dependency>
 
 		<!-- WIRED TEST RUNNER DEPENDENCIES -->
 		<dependency>
-			<groupId>com.atlassian.plugins</groupId>
+			<artifactId>junit</artifactId>
+			<groupId>junit</groupId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<artifactId>atlassian-plugins-osgi-testrunner</artifactId>
+			<groupId>com.atlassian.plugins</groupId>
 			<version>${plugin.testrunner.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>javax.ws.rs</groupId>
 			<artifactId>jsr311-api</artifactId>
+			<groupId>javax.ws.rs</groupId>
 			<version>1.1.1</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
+			<groupId>com.google.code.gson</groupId>
 			<version>2.2.2-atlassian-1</version>
 		</dependency>
 		<dependency>
-			<groupId>org.mockito</groupId>
 			<artifactId>mockito-core</artifactId>
+			<groupId>org.mockito</groupId>
 			<version>2.0.97-beta</version>
 			<scope>test</scope>
 		</dependency>
+
 		<!-- hell's gate from here -->
 		<dependency>
-			<groupId>com.fasterxml.jackson.dataformat</groupId>
 			<artifactId>jackson-dataformat-xml</artifactId>
-			<version>2.6.4</version>
-		</dependency>
-		<dependency>
 			<groupId>com.fasterxml.jackson.dataformat</groupId>
-			<artifactId>jackson-dataformat-yaml</artifactId>
 			<version>2.6.4</version>
 		</dependency>
 		<dependency>
-			<groupId>com.lmax</groupId>
+			<artifactId>jackson-dataformat-yaml</artifactId>
+			<groupId>com.fasterxml.jackson.dataformat</groupId>
+			<version>2.6.4</version>
+		</dependency>
+		<dependency>
 			<artifactId>disruptor</artifactId>
+			<groupId>com.lmax</groupId>
 			<version>3.3.2</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.avalon.framework</groupId>
 			<artifactId>avalon-framework-api</artifactId>
-			<version>4.3.1</version>
-		</dependency>
-		<dependency>
 			<groupId>org.apache.avalon.framework</groupId>
-			<artifactId>avalon-framework-impl</artifactId>
 			<version>4.3.1</version>
 		</dependency>
 		<dependency>
-			<groupId>org.zeromq</groupId>
+			<artifactId>avalon-framework-impl</artifactId>
+			<groupId>org.apache.avalon.framework</groupId>
+			<version>4.3.1</version>
+		</dependency>
+		<dependency>
 			<artifactId>jeromq</artifactId>
+			<groupId>org.zeromq</groupId>
 			<version>0.3.5</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-csv</artifactId>
+			<groupId>org.apache.commons</groupId>
 			<version>1.2</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.kafka</groupId>
 			<artifactId>kafka-clients</artifactId>
+			<groupId>org.apache.kafka</groupId>
 			<version>0.9.0.1</version>
 		</dependency>
-
-
 		<dependency>
-			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
+			<groupId>org.slf4j</groupId>
 			<version>1.7.21</version>
 		</dependency>
 		<dependency>
-			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-core</artifactId>
-			<version>1.1.7</version>
-		</dependency>
-		<dependency>
 			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
 			<version>1.1.7</version>
 		</dependency>
-		<!-- <dependency> -->
-		<!-- <groupId>com.diffplug.osgi</groupId> -->
-		<!-- <artifactId>com.diffplug.osgi.extension.sun.misc</artifactId> -->
-		<!-- <version>0.0.0</version> -->
-		<!-- </dependency> -->
 		<dependency>
-			<groupId>com.hp.mqm</groupId>
-			<artifactId>integrations-sdk</artifactId>
-			<version>${hp.octane.integrations.version}-SNAPSHOT</version>
-			<!--<scope>provided</scope>-->
+			<artifactId>logback-classic</artifactId>
+			<groupId>ch.qos.logback</groupId>
+			<version>1.1.7</version>
 		</dependency>
 
 	</dependencies>
@@ -204,67 +195,67 @@
 	</build>
 	<profiles>
 		<profile>
-		<id>jar-signing</id>
-		<build>
-			<defaultGoal>install</defaultGoal>
-			<plugins>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-antrun-plugin</artifactId>
-					<version>1.7</version>
-					<executions>
-						<execution>
-							<id>default-cli</id>
-							<phase>post-integration-test</phase>
-							<configuration>
-								<target name="Sign">
-									<echo message="This is the file name:${file.name}"/>
-									<exec executable="/bin/bash" failonerror="true">
-										<arg value="/opt/HPCSS/HPSignClient/HPSign.sh"/>
-										<!--<arg value="-r jarAgm -c HPSign.conf -i /tmp/tmp/hp-integration-bridge-upgrade-windows.jar -o /tmp/tmp/Signed -obj jarfile_batch_sign_local_timestamp" />-->
-										<arg value="-r ${cert.project.name} -c HPSign.conf -i ${project.build.directory}/${file.name} -o ${original.folder} -obj ${matching.obj}"/>
-									</exec>
-								</target>
-							</configuration>
-							<goals>
-								<goal>run</goal>
-							</goals>
-						</execution>
-						<execution>
-							<id>copy signed jar to target</id>
-							<phase>post-integration-test</phase>
-							<configuration>
-								<target>
-									<copy file="${original.folder}/${file.name}"
-										  toFile="${project.build.directory}/${file.name}"
-										  overwrite="true">
-									</copy>
-								</target>
-							</configuration>
-							<goals>
-								<goal>run</goal>
-							</goals>
-						</execution>
-						<execution>
-							<id>verify-signing</id>
-							<phase>post-integration-test</phase>
-							<configuration>
-								<target name="Verify sign">
-									<echo message="This is the file name:${file.name}"/>
-									<exec executable="/bin/bash" failonerror="true">
-										<arg value="-c"/>
-										<arg value="if /usr/bin/jarsigner -verify ${project.build.directory}/${file.name} | grep 'jar verified.'; then echo THE JAR ${file.name} WAS SIGNED SUCCESSFULLY; exit 0; else echo THE BUILD FAILED BECAUSE JAR ${file.name} IS UNSIGNED; exit 1; fi"/>
-									</exec>
-								</target>
-							</configuration>
-							<goals>
-								<goal>run</goal>
-							</goals>
-						</execution>
-					</executions>
-				</plugin>
-			</plugins>
-		</build>
-	</profile>
+			<id>jar-signing</id>
+			<build>
+				<defaultGoal>install</defaultGoal>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>1.7</version>
+						<executions>
+							<execution>
+								<id>default-cli</id>
+								<phase>post-integration-test</phase>
+								<configuration>
+									<target name="Sign">
+										<echo message="This is the file name:${file.name}"/>
+										<exec executable="/bin/bash" failonerror="true">
+											<arg value="/opt/HPCSS/HPSignClient/HPSign.sh"/>
+											<!--<arg value="-r jarAgm -c HPSign.conf -i /tmp/tmp/hp-integration-bridge-upgrade-windows.jar -o /tmp/tmp/Signed -obj jarfile_batch_sign_local_timestamp" />-->
+											<arg value="-r ${cert.project.name} -c HPSign.conf -i ${project.build.directory}/${file.name} -o ${original.folder} -obj ${matching.obj}"/>
+										</exec>
+									</target>
+								</configuration>
+								<goals>
+									<goal>run</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>copy signed jar to target</id>
+								<phase>post-integration-test</phase>
+								<configuration>
+									<target>
+										<copy file="${original.folder}/${file.name}"
+											  toFile="${project.build.directory}/${file.name}"
+											  overwrite="true">
+										</copy>
+									</target>
+								</configuration>
+								<goals>
+									<goal>run</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>verify-signing</id>
+								<phase>post-integration-test</phase>
+								<configuration>
+									<target name="Verify sign">
+										<echo message="This is the file name:${file.name}"/>
+										<exec executable="/bin/bash" failonerror="true">
+											<arg value="-c"/>
+											<arg value="if /usr/bin/jarsigner -verify ${project.build.directory}/${file.name} | grep 'jar verified.'; then echo THE JAR ${file.name} WAS SIGNED SUCCESSFULLY; exit 0; else echo THE BUILD FAILED BECAUSE JAR ${file.name} IS UNSIGNED; exit 1; fi"/>
+										</exec>
+									</target>
+								</configuration>
+								<goals>
+									<goal>run</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 	</profiles>
 </project>
