@@ -88,11 +88,15 @@ public class BambooPluginServices implements CIPluginServices {
 
 	public OctaneConfiguration getOctaneConfiguration() {
 		log.info("getOctaneConfiguration");
+		OctaneConfiguration result = null;
 		PluginSettings settings = settingsFactory.createGlobalSettings();
-		String url = String.valueOf(settings.get(OctaneConfigurationKeys.NGA_URL));
-		String accessKey = String.valueOf(settings.get(OctaneConfigurationKeys.API_KEY));
-		String secret = String.valueOf(settings.get(OctaneConfigurationKeys.API_SECRET));
-		return OctaneSDK.getInstance().getConfigurationService().buildConfiguration(url, accessKey, secret);
+		if (settings.get(OctaneConfigurationKeys.OCTANE_URL) != null && settings.get(OctaneConfigurationKeys.ACCESS_KEY) != null) {
+			String url = String.valueOf(settings.get(OctaneConfigurationKeys.OCTANE_URL));
+			String accessKey = String.valueOf(settings.get(OctaneConfigurationKeys.ACCESS_KEY));
+			String secret = String.valueOf(settings.get(OctaneConfigurationKeys.API_SECRET));
+			result = OctaneSDK.getInstance().getConfigurationService().buildConfiguration(url, accessKey, secret);
+		}
+		return result;
 	}
 
 	public PipelineNode getPipeline(String pipelineId) {
@@ -180,7 +184,7 @@ public class BambooPluginServices implements CIPluginServices {
 
 	private String getRunAsUser() {
 		PluginSettings settings = settingsFactory.createGlobalSettings();
-		return String.valueOf(settings.get(OctaneConfigurationKeys.USER_TO_USE));
+		return String.valueOf(settings.get(OctaneConfigurationKeys.IMPERSONATION_USER));
 	}
 
 }

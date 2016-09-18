@@ -5,7 +5,10 @@
 
 	<modelVersion>4.0.0</modelVersion>
 	<name>HPE ALM Octane Bamboo CI Plugin</name>
-	<description>This is an HPE Lifecycle Management CI plugin for Atlassian Bamboo CI</description>
+	<description>HPE Lifecycle Management CI plugin for Atlassian Bamboo CI</description>
+	<organization>
+		<name>HPE</name>
+	</organization>
 	<packaging>atlassian-plugin</packaging>
 	<artifactId>hp-lifecycle-management-bamboo-ci-plugin</artifactId>
 
@@ -39,6 +42,18 @@
 			<groupId>com.atlassian.bamboo</groupId>
 			<version>${bamboo.version}</version>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<artifactId>atlassian-spring-scanner-annotation</artifactId>
+			<groupId>com.atlassian.plugin</groupId>
+			<version>${atlassian.spring.scanner.version}</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<artifactId>atlassian-spring-scanner-runtime</artifactId>
+			<groupId>com.atlassian.plugin</groupId>
+			<version>${atlassian.spring.scanner.version}</version>
+			<scope>runtime</scope>
 		</dependency>
 
 		<!-- INTERNAL -->

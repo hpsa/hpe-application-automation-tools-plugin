@@ -32,20 +32,20 @@ public class ConfigureOctaneActionTest {
 
     ConfigureOctaneAction underTest;
 
-    String[] keys = new String[] { OctaneConfigurationKeys.NGA_URL, OctaneConfigurationKeys.API_KEY,
-            OctaneConfigurationKeys.API_SECRET, OctaneConfigurationKeys.USER_TO_USE };
+    String[] keys = new String[] { OctaneConfigurationKeys.OCTANE_URL, OctaneConfigurationKeys.ACCESS_KEY,
+            OctaneConfigurationKeys.API_SECRET, OctaneConfigurationKeys.IMPERSONATION_USER};
 
-    String[] values = new String[] { "url", "apiKey", "apiSecret","admin" };
+    String[] values = new String[] { "url", "accessKey", "apiSecret","admin" };
 
     @Before
     public void setUp() {
         Mockito.when(settingsFactory.createGlobalSettings()).thenReturn(settings);
         underTest = new ConfigureOctaneAction(settingsFactory);
         
-        underTest.setNgaUrl(values[0]);
-        underTest.setApiKey(values[1]);
+        underTest.setOctaneUrl(values[0]);
+        underTest.setAccessKey(values[1]);
         underTest.setApiSecret(values[2]);
-        underTest.setUserToUse(values[3]);
+        underTest.setUserName(values[3]);
     }
 
     @Test
