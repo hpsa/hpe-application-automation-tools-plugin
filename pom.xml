@@ -22,6 +22,7 @@
 		<jdom.version>1.1</jdom.version>
 		<junit.version>4.12</junit.version>
 		<easymock.version>3.4</easymock.version>
+		<mockito.core.version>2.0.97-beta</mockito.core.version>
 		<surefire.version>2.18.1</surefire.version>
 		<failsafe.version>2.18.1</failsafe.version>
 		<surefireArgLine>-Xmx2G -Djava.awt.headless=true</surefireArgLine>
@@ -124,7 +125,7 @@
 				<version>${httpclient.version}</version>
 			</dependency>
 
-			<!-- TESTING -->
+			<!-- TESTS -->
 			<dependency>
 				<artifactId>junit</artifactId>
 				<groupId>junit</groupId>
@@ -135,6 +136,12 @@
 				<artifactId>easymock</artifactId>
 				<groupId>org.easymock</groupId>
 				<version>${easymock.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<artifactId>mockito-core</artifactId>
+				<groupId>org.mockito</groupId>
+				<version>${mockito.core.version}</version>
 				<scope>test</scope>
 			</dependency>
 
