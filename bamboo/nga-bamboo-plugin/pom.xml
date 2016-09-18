@@ -23,6 +23,12 @@
 		<atlassian.spring.scanner.version>1.2.13</atlassian.spring.scanner.version>
 		<!-- This key is used to keep the consistency between the key in atlassian-plugin.xml and the key to generate bundle. -->
 		<atlassian.plugin.key>${project.groupId}.${project.artifactId}</atlassian.plugin.key>
+
+		<!-- signing -->
+		<cert.project.name>jarAgm</cert.project.name>
+		<original.folder>${project.build.directory}/temp</original.folder>
+		<matching.obj>jarfile_batch_sign_local_timestamp</matching.obj>
+		<file.name>TBD</file.name>
 	</properties>
 
 	<dependencies>

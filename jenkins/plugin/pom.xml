@@ -37,13 +37,15 @@
 			**/NotificationEmail.java
 		</sonar.exclusions>
 		<skipTests>true</skipTests>
+		<jenkins-test-harness.version>2.14</jenkins-test-harness.version>
+		<findbugs.skip>true</findbugs.skip>
+		<surefireArgLine>-Xmx2G -Djava.awt.headless=true</surefireArgLine>
+
+		<!-- signing-->
 		<matching.obj>jarfile_batch_sign_local_timestamp</matching.obj>
 		<file.name>${project.artifactId}.hpi</file.name>
 		<original.folder>${project.build.directory}/temp</original.folder>
 		<cert.project.name>jarAgm</cert.project.name>
-		<jenkins-test-harness.version>2.14</jenkins-test-harness.version>
-		<findbugs.skip>true</findbugs.skip>
-		<surefireArgLine>-Xmx2G -Djava.awt.headless=true</surefireArgLine>
 	</properties>
 
 	<dependencies>
@@ -218,18 +220,6 @@
 					</execution>
 				</executions>
 			</plugin>
-			<!--<plugin>
-				<groupId>org.sonatype.plugins</groupId>
-				<artifactId>nexus-staging-maven-plugin</artifactId>
-				<version>1.5.1</version>
-				<extensions>true</extensions>
-				<configuration>
-					<serverId>stage-indi</serverId>
-					<stagingProfileId>3f945a89b73e3c</stagingProfileId>
-					<buildPromotionProfileId>fccb50be7d1a</buildPromotionProfileId>
-					<nexusUrl>${baseNexusURL}/</nexusUrl>
-				</configuration>
-			</plugin>-->
 		</plugins>
 		<pluginManagement>
 			<plugins>
@@ -285,8 +275,7 @@
 							<version>${jacoco.version}</version>
 							<configuration>
 								<destFile>${jacoco.report.path}/${jacoco.report.filename}</destFile>
-								<!-- Sets the name of the property containing the settings for JaCoCo
-										runtime agent. -->
+								<!-- Sets the name of the property containing the settings for JaCoCo runtime agent. -->
 								<propertyName>surefireArgLine</propertyName>
 								<append>${jacoco.report.append}</append>
 							</configuration>
