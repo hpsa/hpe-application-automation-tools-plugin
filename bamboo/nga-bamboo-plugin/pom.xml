@@ -31,7 +31,7 @@
 		<cert.project.name>jarAgm</cert.project.name>
 		<original.folder>${project.build.directory}/temp</original.folder>
 		<matching.obj>jarfile_batch_sign_local_timestamp</matching.obj>
-		<file.name>TBD</file.name>
+		<file.name>${project.artifactId}-${project.version}.jar</file.name>
 	</properties>
 
 	<dependencies>
