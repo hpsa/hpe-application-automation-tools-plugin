@@ -7,6 +7,10 @@
 		<param name="plugin-logo">images/pluginLogo.png</param>
 	</plugin-info>
 
+	<!-- import Bamboo resources -->
+	<component-import key="pluginSettingsFactory"
+					  interface="com.atlassian.sal.api.pluginsettings.PluginSettingsFactory"/>
+
 	<!-- add our i18n resource -->
 	<resource type="i18n" name="i18n" location="bamboo-plugin"/>
 
@@ -21,12 +25,12 @@
 	<!-- 		<context>bamboo-plugin</context> -->
 	<!-- 	</web-resource> -->
 
-	<web-item key="ngaAdminLink" name="ngaAdminLink" section="system.admin/communication" weight="130">
+	<web-item key="ngaAdminLink" section="system.admin/communication" weight="130">
 		<description>Octane configuration link</description>
-		<label key="ALM Octane"/>
+		<label key="HPE Octane Plugin"/>
 		<link linkId="ngaConfig">/admin/nga/configureOctane.action</link>
 	</web-item>
-	<xwork key="ngaActions" name="Octane Configuration Action">
+	<xwork key="ngaActions" name="Octane Configuration Actions">
 		<package name="ngaAdmin" extends="admin" namespace="/admin/nga">
 			<action name="configureOctane" class="com.hp.octane.plugins.bamboo.ui.ConfigureOctaneAction" method="edit">
 				<result name="input" type="freemarker">/templates/configureOctane.ftl</result>
@@ -41,7 +45,6 @@
 				<result name="success" type="freemarker">/templates/configureOctane.ftl</result>
 				<result name="error" type="freemarker">/error.ftl</result>
 			</action>
-
 		</package>
 	</xwork>
 

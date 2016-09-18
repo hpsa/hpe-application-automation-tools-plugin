@@ -5,7 +5,10 @@
 
 	<modelVersion>4.0.0</modelVersion>
 	<name>HPE ALM Octane Bamboo CI Plugin</name>
-	<description>This is hp lifecycle management ci plugin for Atlassian Bamboo.</description>
+	<description>HPE Lifecycle Management CI plugin for Atlassian Bamboo CI</description>
+	<organization>
+		<name>HPE</name>
+	</organization>
 	<packaging>atlassian-plugin</packaging>
 	<artifactId>hp-lifecycle-management-bamboo-ci-plugin</artifactId>
 
@@ -16,9 +19,9 @@
 	</parent>
 
 	<properties>
-		<bamboo.version>5.12.3</bamboo.version>
-		<bamboo.data.version>5.12.3</bamboo.data.version>
-		<amps.version>6.2.6</amps.version>
+		<bamboo.version>5.9.10</bamboo.version>
+		<bamboo.data.version>5.9.10</bamboo.data.version>
+		<amps.version>5.0.18</amps.version>
 		<plugin.testrunner.version>1.2.3</plugin.testrunner.version>
 		<atlassian.spring.scanner.version>1.2.13</atlassian.spring.scanner.version>
 		<!-- This key is used to keep the consistency between the key in atlassian-plugin.xml and the key to generate bundle. -->
@@ -39,6 +42,18 @@
 			<groupId>com.atlassian.bamboo</groupId>
 			<version>${bamboo.version}</version>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<artifactId>atlassian-spring-scanner-annotation</artifactId>
+			<groupId>com.atlassian.plugin</groupId>
+			<version>${atlassian.spring.scanner.version}</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<artifactId>atlassian-spring-scanner-runtime</artifactId>
+			<groupId>com.atlassian.plugin</groupId>
+			<version>${atlassian.spring.scanner.version}</version>
+			<scope>runtime</scope>
 		</dependency>
 
 		<!-- INTERNAL -->
@@ -79,10 +94,9 @@
 					<allowGoogleTracking>false</allowGoogleTracking>
 					<productVersion>${bamboo.version}</productVersion>
 					<productDataVersion>${bamboo.data.version}</productDataVersion>
-					<enableQuickReload>true</enableQuickReload>
 					<enableFastdev>false</enableFastdev>
-					<!-- See here for an explanation of default instructions: -->
-					<!-- https://developer.atlassian.com/docs/advanced-topics/configuration-of-instructions-in-atlassian-plugins -->
+					<!-- See here for more options: -->
+					<!-- https://developer.atlassian.com/docs/developer-tools/working-with-the-sdk/about-amps-build-options/amps-build-configuration-reference -->
 				</configuration>
 			</plugin>
 

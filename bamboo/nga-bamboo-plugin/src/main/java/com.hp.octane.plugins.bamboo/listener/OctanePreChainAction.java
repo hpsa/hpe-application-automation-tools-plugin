@@ -13,18 +13,17 @@ import java.util.List;
 
 public class OctanePreChainAction extends BaseListener implements PreChainAction {
 
-    public void execute(Chain chain, ChainExecution chainExecution) throws InterruptedException, Exception {
-        log.info("Executing chain " + chain.getName() + " build id "
-                + chainExecution.getBuildIdentifier().getBuildResultKey() + " build number "
-                + chainExecution.getBuildIdentifier().getBuildNumber());
-        List<CIEventCause> causes = new ArrayList<CIEventCause>();
-        CIEvent event = CONVERTER.getEventWithDetails(chainExecution.getPlanResultKey().getPlanKey().getKey(),
-                chainExecution.getBuildIdentifier().getBuildResultKey(), chain.getName(), CIEventType.STARTED,
-                chainExecution.getStartTime() != null ? chainExecution.getStartTime().getTime()
-                        : System.currentTimeMillis(),
-                chainExecution.getAverageDuration(), causes,
-                String.valueOf(chainExecution.getBuildIdentifier().getBuildNumber()));
+	public void execute(Chain chain, ChainExecution chainExecution) throws Exception {
+		log.info("Executing chain " + chain.getName() + " build id "
+				+ chainExecution.getBuildIdentifier().getBuildResultKey() + " build number "
+				+ chainExecution.getBuildIdentifier().getBuildNumber());
+		List<CIEventCause> causes = new ArrayList<CIEventCause>();
+		CIEvent event = CONVERTER.getEventWithDetails(chainExecution.getPlanResultKey().getPlanKey().getKey(),
+				chainExecution.getBuildIdentifier().getBuildResultKey(), chain.getName(), CIEventType.STARTED,
+				chainExecution.getStartTime() != null ? chainExecution.getStartTime().getTime() : System.currentTimeMillis(),
+				chainExecution.getAverageDuration(), causes,
+				String.valueOf(chainExecution.getBuildIdentifier().getBuildNumber()));
 
-        OctaneSDK.getInstance().getEventsService().publishEvent(event);
-    }
+		OctaneSDK.getInstance().getEventsService().publishEvent(event);
+	}
 }

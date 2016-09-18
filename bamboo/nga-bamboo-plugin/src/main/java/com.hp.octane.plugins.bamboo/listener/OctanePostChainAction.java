@@ -32,89 +32,78 @@ import java.util.List;
 
 public class OctanePostChainAction extends BaseListener implements PostChainAction {
 
-    @EventListener
-    @HibernateEventListenerAspect
-    public void handle(BuildContextEvent event) {
-        // TODO move this listener into OctanePostJobAction
-        log.info("Build context event " + event.getClass().getSimpleName());
-        if (event instanceof PostBuildCompletedEvent) {
-            CurrentBuildResult results = event.getContext().getBuildResult();
-            // Object source = event.getSource();
-            PlanKey planKey = event.getPlanKey();
-            PlanResultKey planResultKey = event.getPlanResultKey();
-            {
-                CIEventCause cause = CONVERTER.getCauseWithDetails(
-                        event.getContext().getParentBuildIdentifier().getBuildResultKey(),
-                        event.getContext().getParentBuildContext().getPlanResultKey().getPlanKey().getKey(), "admin");
+	@EventListener
+	@HibernateEventListenerAspect
+	public void handle(BuildContextEvent event) {
+		// TODO move this listener into OctanePostJobAction
+		log.info("Build context event " + event.getClass().getSimpleName());
+		if (event instanceof PostBuildCompletedEvent) {
+			CurrentBuildResult results = event.getContext().getBuildResult();
+			PlanKey planKey = event.getPlanKey();
+			PlanResultKey planResultKey = event.getPlanResultKey();
+			{
+				CIEventCause cause = CONVERTER.getCauseWithDetails(
+						event.getContext().getParentBuildIdentifier().getBuildResultKey(),
+						event.getContext().getParentBuildContext().getPlanResultKey().getPlanKey().getKey(), "admin");
 
-                CIEvent ciEvent = CONVERTER.getEventWithDetails(planResultKey.getPlanKey().getKey(),
-                        planResultKey.getKey(), event.getContext().getDisplayName(), CIEventType.FINISHED,
-                        System.currentTimeMillis(), 100, Arrays.asList(cause),
-                        String.valueOf(planResultKey.getBuildNumber()));
-                ciEvent.setResult(event.getContext().getCurrentResult().getBuildState().equals(BuildState.SUCCESS)
-                        ? CIBuildResult.SUCCESS : CIBuildResult.FAILURE);
-                ciEvent.setDuration(System.currentTimeMillis() - ciEvent.getStartTime());
-                OctaneSDK.getInstance().getEventsService().publishEvent(ciEvent);
-            }
-            String identifier = planKey.getKey();
-            List<TestRun> testRuns = new ArrayList<TestRun>(results.getFailedTestResults().size()
-                    + results.getSkippedTestResults().size() + results.getSuccessfulTestResults().size());
-            for (TestResults currentTestResult : results.getFailedTestResults()) {
-                testRuns.add(CONVERTER.getTestRunFromTestResult(currentTestResult, TestRunResult.FAILED,
-                        results.getTasksStartDate().getTime()));
-            }
-            for (TestResults currentTestResult : results.getSkippedTestResults()) {
-                testRuns.add(CONVERTER.getTestRunFromTestResult(currentTestResult, TestRunResult.SKIPPED,
-                        results.getTasksStartDate().getTime()));
-            }
-            for (TestResults currentTestResult : results.getSuccessfulTestResults()) {
-                testRuns.add(CONVERTER.getTestRunFromTestResult(currentTestResult, TestRunResult.PASSED,
-                        results.getTasksStartDate().getTime()));
-            }
-            String build = PlanKeys.getPlanResultKey(identifier, planResultKey.getBuildNumber()).getKey();
-            log.info("Pushing test results for " + identifier + " build " + planResultKey.getKey());
-            BuildContext context = CONVERTER.getBuildContext(build, identifier);
-            TestsResult testsResult = DTOFactory.getInstance().newDTO(TestsResult.class).setTestRuns(testRuns)
-                    .setBuildContext(context);
-            try {
-                // TODO check if synchronous test results push is a good idea
-                OctaneSDK.getInstance().getTestsService().pushTestsResult(testsResult);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            // TODO if synchronous test results push is a bad idea,
-            // move to a better inter-instance communication than a
-            // synchronizedHashMap
-            // BambooPluginServices.TEST_RESULTS.put(build, testsResult);
-            // OctaneSDK.getInstance().getTestsService().enqueuePushTestsResult(identifier,
-            // build);
-        }
-    }
+				CIEvent ciEvent = CONVERTER.getEventWithDetails(planResultKey.getPlanKey().getKey(),
+						planResultKey.getKey(), event.getContext().getDisplayName(), CIEventType.FINISHED,
+						System.currentTimeMillis(), 100, Arrays.asList(cause),
+						String.valueOf(planResultKey.getBuildNumber()));
+				ciEvent.setResult(event.getContext().getCurrentResult().getBuildState().equals(BuildState.SUCCESS)
+						? CIBuildResult.SUCCESS : CIBuildResult.FAILURE);
+				ciEvent.setDuration(System.currentTimeMillis() - ciEvent.getStartTime());
+				OctaneSDK.getInstance().getEventsService().publishEvent(ciEvent);
+			}
+			String identifier = planKey.getKey();
+			List<TestRun> testRuns = new ArrayList<>(results.getFailedTestResults().size()
+					+ results.getSkippedTestResults().size() + results.getSuccessfulTestResults().size());
+			for (TestResults currentTestResult : results.getFailedTestResults()) {
+				testRuns.add(CONVERTER.getTestRunFromTestResult(currentTestResult, TestRunResult.FAILED,
+						results.getTasksStartDate().getTime()));
+			}
+			for (TestResults currentTestResult : results.getSkippedTestResults()) {
+				testRuns.add(CONVERTER.getTestRunFromTestResult(currentTestResult, TestRunResult.SKIPPED,
+						results.getTasksStartDate().getTime()));
+			}
+			for (TestResults currentTestResult : results.getSuccessfulTestResults()) {
+				testRuns.add(CONVERTER.getTestRunFromTestResult(currentTestResult, TestRunResult.PASSED,
+						results.getTasksStartDate().getTime()));
+			}
+			String build = PlanKeys.getPlanResultKey(identifier, planResultKey.getBuildNumber()).getKey();
+			log.info("Pushing test results for " + identifier + " build " + planResultKey.getKey());
+			BuildContext context = CONVERTER.getBuildContext(build, identifier);
+			TestsResult testsResult = DTOFactory.getInstance().newDTO(TestsResult.class).setTestRuns(testRuns)
+					.setBuildContext(context);
+			try {
+				// TODO check if synchronous test results push is a good idea
+				OctaneSDK.getInstance().getTestsService().pushTestsResult(testsResult);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
 
-    //
-    public void execute(Chain chain, ChainResultsSummary chainResultsSummary, ChainExecution chainExecution)
-            throws InterruptedException, Exception {
-        log.info("Chain " + chain.getName() + " completed with result "
-                + chainResultsSummary.getBuildState().toString());
-        log.info("Build identifier " + chainExecution.getBuildIdentifier().getBuildResultKey() + " chain id "
-                + chain.getKey());
-        // String chainRes = chainResultsSummary.getPlanResultKey().getKey();
-        // String jobRes =
-        // chainResultsSummary.getOrderedJobResultSummaries().get(0).getPlanResultKey().getKey();
-        List<CIEventCause> causes = new ArrayList<CIEventCause>();
-        CIEvent event = CONVERTER.getEventWithDetails(chain.getPlanKey().getKey(),
-                chainExecution.getBuildIdentifier().getBuildResultKey(), chain.getName(), CIEventType.FINISHED,
-                chainExecution.getStartTime() != null ? chainExecution.getStartTime().getTime()
-                        : chainExecution.getQueueTime().getTime(),
-                chainResultsSummary.getDuration(), causes,
-                String.valueOf(chainExecution.getBuildIdentifier().getBuildNumber()));
-        event.setResult((chainResultsSummary.getBuildState() == BuildState.SUCCESS) ? CIBuildResult.SUCCESS
-                : CIBuildResult.FAILURE);
-        // TODO pushing finished type event with null duration results in http
-        // 400, octane rest api could be more verbose to specify the reason
-        event.setDuration(System.currentTimeMillis() - chainExecution.getQueueTime().getTime());
-        OctaneSDK.getInstance().getEventsService().publishEvent(event);
-
-    }
+	public void execute(Chain chain, ChainResultsSummary chainResultsSummary, ChainExecution chainExecution) throws Exception {
+		log.info("Chain " + chain.getName() + " completed with result "
+				+ chainResultsSummary.getBuildState().toString());
+		log.info("Build identifier " + chainExecution.getBuildIdentifier().getBuildResultKey() + " chain id "
+				+ chain.getKey());
+		List<CIEventCause> causes = new ArrayList<>();
+		CIEvent event = CONVERTER.getEventWithDetails(
+				chain.getPlanKey().getKey(),
+				chainExecution.getBuildIdentifier().getBuildResultKey(),
+				chain.getName(),
+				CIEventType.FINISHED,
+				chainExecution.getStartTime() != null ? chainExecution.getStartTime().getTime() : chainExecution.getQueueTime().getTime(),
+				chainResultsSummary.getDuration(),
+				causes,
+				String.valueOf(chainExecution.getBuildIdentifier().getBuildNumber()));
+		event.setResult((chainResultsSummary.getBuildState() == BuildState.SUCCESS) ? CIBuildResult.SUCCESS : CIBuildResult.FAILURE);
+		// TODO pushing finished type event with null duration results in http
+		// 400, octane rest api could be more verbose to specify the reason
+		event.setDuration(System.currentTimeMillis() - chainExecution.getQueueTime().getTime());
+		OctaneSDK.getInstance().getEventsService().publishEvent(event);
+	}
 
 }
