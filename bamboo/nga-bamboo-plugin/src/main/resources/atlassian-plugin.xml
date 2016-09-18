@@ -1,5 +1,4 @@
-<atlassian-plugin key="${atlassian.plugin.key}" name="${project.name}"
-				  plugins-version="2">
+<atlassian-plugin key="${atlassian.plugin.key}" name="${project.name}" plugins-version="2">
 	<plugin-info>
 		<description>${project.description}</description>
 		<version>${project.version}</version>
@@ -22,16 +21,14 @@
 	<!-- 		<context>bamboo-plugin</context> -->
 	<!-- 	</web-resource> -->
 
-	<web-item key="ngaAdminLink" name="ngaAdminLink" section="system.admin/communication"
-			  weight="130">
+	<web-item key="ngaAdminLink" name="ngaAdminLink" section="system.admin/communication" weight="130">
 		<description>Octane configuration link</description>
 		<label key="ALM Octane"/>
 		<link linkId="ngaConfig">/admin/nga/configureOctane.action</link>
 	</web-item>
 	<xwork key="ngaActions" name="Octane Configuration Action">
 		<package name="ngaAdmin" extends="admin" namespace="/admin/nga">
-			<action name="configureOctane" class="com.hp.octane.plugins.bamboo.ui.ConfigureOctaneAction"
-					method="edit">
+			<action name="configureOctane" class="com.hp.octane.plugins.bamboo.ui.ConfigureOctaneAction" method="edit">
 				<result name="input" type="freemarker">/templates/configureOctane.ftl</result>
 				<result name="success" type="freemarker">/templates/configureOctane.ftl</result>
 				<result name="error" type="freemarker">/error.ftl</result>
