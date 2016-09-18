@@ -83,14 +83,6 @@
 					<!-- See here for more options: -->
 					<!-- https://developer.atlassian.com/docs/developer-tools/working-with-the-sdk/about-amps-build-options/amps-build-configuration-reference -->
 				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>compress-resources</goal>
-						</goals>
-						<phase>none</phase>
-					</execution>
-				</executions>
 			</plugin>
 
 			<plugin>
