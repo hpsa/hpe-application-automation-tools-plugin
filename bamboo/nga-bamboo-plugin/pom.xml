@@ -22,8 +22,7 @@
 		<hp.octane.integrations.version>12.53.15</hp.octane.integrations.version>
 		<plugin.testrunner.version>1.2.3</plugin.testrunner.version>
 		<atlassian.spring.scanner.version>1.2.13</atlassian.spring.scanner.version>
-		<!-- This key is used to keep the consistency between the key in atlassian-plugin.xml 
-			and the key to generate bundle. -->
+		<!-- This key is used to keep the consistency between the key in atlassian-plugin.xml and the key to generate bundle. -->
 		<atlassian.plugin.key>${project.groupId}.${project.artifactId}</atlassian.plugin.key>
 	</properties>
 
@@ -34,24 +33,6 @@
 			<artifactId>atlassian-bamboo-web</artifactId>
 			<groupId>com.atlassian.bamboo</groupId>
 			<version>${bamboo.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<artifactId>atlassian-spring-scanner-annotation</artifactId>
-			<groupId>com.atlassian.plugin</groupId>
-			<version>${atlassian.spring.scanner.version}</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<artifactId>atlassian-spring-scanner-runtime</artifactId>
-			<groupId>com.atlassian.plugin</groupId>
-			<version>${atlassian.spring.scanner.version}</version>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<artifactId>javax.inject</artifactId>
-			<groupId>javax.inject</groupId>
-			<version>1</version>
 			<scope>provided</scope>
 		</dependency>
 
@@ -69,84 +50,16 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<artifactId>atlassian-plugins-osgi-testrunner</artifactId>
-			<groupId>com.atlassian.plugins</groupId>
-			<version>${plugin.testrunner.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<artifactId>jsr311-api</artifactId>
-			<groupId>javax.ws.rs</groupId>
-			<version>1.1.1</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<artifactId>gson</artifactId>
-			<groupId>com.google.code.gson</groupId>
-			<version>2.2.2-atlassian-1</version>
-		</dependency>
-		<dependency>
 			<artifactId>mockito-core</artifactId>
 			<groupId>org.mockito</groupId>
 			<version>2.0.97-beta</version>
 			<scope>test</scope>
 		</dependency>
-
-		<!-- hell's gate from here -->
 		<dependency>
-			<artifactId>jackson-dataformat-xml</artifactId>
-			<groupId>com.fasterxml.jackson.dataformat</groupId>
-			<version>2.6.4</version>
-		</dependency>
-		<dependency>
-			<artifactId>jackson-dataformat-yaml</artifactId>
-			<groupId>com.fasterxml.jackson.dataformat</groupId>
-			<version>2.6.4</version>
-		</dependency>
-		<dependency>
-			<artifactId>disruptor</artifactId>
-			<groupId>com.lmax</groupId>
-			<version>3.3.2</version>
-		</dependency>
-		<dependency>
-			<artifactId>avalon-framework-api</artifactId>
-			<groupId>org.apache.avalon.framework</groupId>
-			<version>4.3.1</version>
-		</dependency>
-		<dependency>
-			<artifactId>avalon-framework-impl</artifactId>
-			<groupId>org.apache.avalon.framework</groupId>
-			<version>4.3.1</version>
-		</dependency>
-		<dependency>
-			<artifactId>jeromq</artifactId>
-			<groupId>org.zeromq</groupId>
-			<version>0.3.5</version>
-		</dependency>
-		<dependency>
-			<artifactId>commons-csv</artifactId>
-			<groupId>org.apache.commons</groupId>
-			<version>1.2</version>
-		</dependency>
-		<dependency>
-			<artifactId>kafka-clients</artifactId>
-			<groupId>org.apache.kafka</groupId>
-			<version>0.9.0.1</version>
-		</dependency>
-		<dependency>
-			<artifactId>slf4j-api</artifactId>
-			<groupId>org.slf4j</groupId>
-			<version>1.7.21</version>
-		</dependency>
-		<dependency>
-			<artifactId>logback-core</artifactId>
-			<groupId>ch.qos.logback</groupId>
-			<version>1.1.7</version>
-		</dependency>
-		<dependency>
-			<artifactId>logback-classic</artifactId>
-			<groupId>ch.qos.logback</groupId>
-			<version>1.1.7</version>
+			<artifactId>atlassian-plugins-osgi-testrunner</artifactId>
+			<groupId>com.atlassian.plugins</groupId>
+			<version>${plugin.testrunner.version}</version>
+			<scope>test</scope>
 		</dependency>
 
 	</dependencies>
@@ -193,6 +106,7 @@
 			</plugin>
 		</plugins>
 	</build>
+
 	<profiles>
 		<profile>
 			<id>jar-signing</id>
