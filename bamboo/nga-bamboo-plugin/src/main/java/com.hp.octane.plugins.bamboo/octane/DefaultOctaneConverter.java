@@ -1,9 +1,12 @@
 package com.hp.octane.plugins.bamboo.octane;
 
 import com.atlassian.bamboo.agent.classserver.AgentServerManager;
+import com.atlassian.bamboo.builder.BuildState;
+import com.atlassian.bamboo.builder.LifeCycleState;
 import com.atlassian.bamboo.chains.cache.ImmutableChainStage;
 import com.atlassian.bamboo.plan.PlanIdentifier;
 import com.atlassian.bamboo.plan.cache.ImmutableJob;
+import com.atlassian.bamboo.plan.cache.ImmutablePlan;
 import com.atlassian.bamboo.plan.cache.ImmutableTopLevelPlan;
 import com.atlassian.bamboo.results.tests.TestResults;
 import com.atlassian.bamboo.resultsummary.ImmutableResultsSummary;
@@ -22,6 +25,7 @@ import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
 import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
 import com.hp.octane.integrations.dto.snapshots.CIBuildStatus;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
+import com.hp.octane.integrations.dto.snapshots.SnapshotPhase;
 import com.hp.octane.integrations.dto.tests.BuildContext;
 import com.hp.octane.integrations.dto.tests.TestRun;
 import com.hp.octane.integrations.dto.tests.TestRunError;
@@ -99,40 +103,72 @@ public class DefaultOctaneConverter implements DTOConverter {
 				.setType(CIServerTypes.JENKINS).setUrl(baseUrl);
 	}
 
-	public SnapshotNode getSnapshot(ImmutableTopLevelPlan plan, ImmutableResultsSummary resultsSummary) {
-		SnapshotNode result = dtoFactoryInstance.newDTO(SnapshotNode.class)
-				.setBuildCiId(resultsSummary.getPlanResultKey().getKey()).setJobCiId(getRootJobCiId(plan))
-				.setDuration(resultsSummary.getDuration()).setNumber(String.valueOf(resultsSummary.getBuildNumber()))
-				.setStartTime(resultsSummary.getBuildDate() != null ? resultsSummary.getBuildDate().getTime()
-						: (resultsSummary.getBuildCompletedDate() != null
-						? resultsSummary.getBuildCompletedDate().getTime() : System.currentTimeMillis()));
-		switch (resultsSummary.getBuildState()) {
-			case FAILED:
-				result.setResult(CIBuildResult.FAILURE);
-				break;
-			case SUCCESS:
-				result.setResult(CIBuildResult.SUCCESS);
-				break;
-			case UNKNOWN:
-				result.setResult(CIBuildResult.UNAVAILABLE);
-				break;
-		}
-		switch (plan.getLatestResultsSummary().getLifeCycleState()) {
-			case FINISHED:
-				result.setStatus(CIBuildStatus.FINISHED);
-				break;
-			case IN_PROGRESS:
-				result.setStatus(CIBuildStatus.RUNNING);
-				break;
-			case QUEUED:
-				result.setStatus(CIBuildStatus.QUEUED);
-				break;
-			default:
-				result.setStatus(CIBuildStatus.UNAVAILABLE);
-		}
+    public SnapshotNode getSnapshot(ImmutableTopLevelPlan plan, ImmutableResultsSummary resultsSummary){
+        SnapshotNode snapshotNode = getSnapshotNode(plan, resultsSummary);
 
-		return result;
-	}
+        List<SnapshotPhase> phases = new ArrayList<SnapshotPhase>(plan.getAllStages().size());
+        for (ImmutableChainStage stage : plan.getAllStages()) {
+            phases.add(getSnapshotPhaseFromStage(stage));
+        }
+        snapshotNode.setPhasesInternal(phases);
+        return snapshotNode;
+    }
+
+    private SnapshotPhase getSnapshotPhaseFromStage(ImmutableChainStage stage) {
+        SnapshotPhase phase = dtoFactoryInstance.newDTO(SnapshotPhase.class);
+        phase.setName(stage.getName());
+        phase.setBlocking(true);
+
+        List<SnapshotNode> nodes = new ArrayList<SnapshotNode>(stage.getJobs().size());
+        for (ImmutableJob job : stage.getJobs()) {
+            // TODO decide if we want to mirror disabled jobs or not
+            nodes.add(getSnapshotNode(job, job.getLatestResultsSummary()));
+        }
+        phase.setBuilds(nodes);
+
+        return phase;
+    }
+
+    private SnapshotNode getSnapshotNode(ImmutablePlan immutablePlane, ImmutableResultsSummary resultsSummary) {
+
+        SnapshotNode result = dtoFactoryInstance.newDTO(SnapshotNode.class)
+                .setBuildCiId(resultsSummary.getPlanResultKey().getKey())
+                .setName(immutablePlane.getName())
+                .setJobCiId((getCiId(immutablePlane)))
+                .setDuration(resultsSummary.getDuration())
+                .setNumber(String.valueOf(resultsSummary.getBuildNumber()))
+                .setResult(getJobResult(resultsSummary.getBuildState()))
+                .setStatus(getJobStatus(immutablePlane.getLatestResultsSummary().getLifeCycleState()))
+                .setStartTime(resultsSummary.getBuildDate() != null ? resultsSummary.getBuildDate().getTime()
+                        : (resultsSummary.getBuildCompletedDate() != null
+                        ? resultsSummary.getBuildCompletedDate().getTime() : System.currentTimeMillis()));
+        return result;
+    }
+
+    private CIBuildStatus getJobStatus(LifeCycleState lifeCycleState){
+        switch (lifeCycleState) {
+            case FINISHED:
+                return CIBuildStatus.FINISHED;
+            case IN_PROGRESS:
+                return CIBuildStatus.RUNNING;
+            case QUEUED:
+                return CIBuildStatus.QUEUED;
+            default:
+                return CIBuildStatus.UNAVAILABLE;
+        }
+    }
+
+    private CIBuildResult getJobResult(BuildState buildState){
+
+        switch (buildState) {
+            case FAILED:
+                return CIBuildResult.FAILURE;
+            case SUCCESS:
+                return CIBuildResult.SUCCESS;
+            default:
+                return  CIBuildResult.UNAVAILABLE;
+        }
+    }
 
 	public CIJobsList getRootJobsList(List<ImmutableTopLevelPlan> plans) {
 		CIJobsList jobsList = dtoFactoryInstance.newDTO(CIJobsList.class).setJobs(new PipelineNode[0]);
