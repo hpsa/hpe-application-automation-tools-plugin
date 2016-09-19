@@ -15,7 +15,7 @@
 	<parent>
 		<groupId>com.hp.mqm</groupId>
 		<artifactId>bamboo</artifactId>
-		<version>12.53.15-SNAPSHOT</version>
+		<version>12.53.16-SNAPSHOT</version>
 	</parent>
 
 	<properties>
