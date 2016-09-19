@@ -95,6 +95,7 @@
 					<productVersion>${bamboo.version}</productVersion>
 					<productDataVersion>${bamboo.data.version}</productDataVersion>
 					<enableFastdev>false</enableFastdev>
+					<buildTestPlugin>false</buildTestPlugin>
 					<!-- See here for more options: -->
 					<!-- https://developer.atlassian.com/docs/developer-tools/working-with-the-sdk/about-amps-build-options/amps-build-configuration-reference -->
 				</configuration>
