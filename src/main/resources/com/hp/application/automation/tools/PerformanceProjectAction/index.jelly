@@ -6,7 +6,7 @@
     <l:layout title="Jenkins JS Lib Samples" norefresh="true">
         <st:bind var="foo" value="${it}"/>
 
-        <!--<st:include it="${it}" page="sidepanel.jelly" />-->
+        <st:include it="${it.project}" page="sidepanel.jelly" />
         <!--<j:set var="builds" value="${it.builds}"/>-->
     <!--<st:include it="${it.project}" page="sidepanel.jelly" />-->
     <!--<j:set var="builds" value="${it.builds}"/>-->
@@ -14,9 +14,8 @@
 
         <l:main-panel>
             <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.1.1/Chart.min.js"></script>
-            <st:bind var="projectName" value="${it.DisplayName}"/>
 
-        <h1>${it.DisplayName}</h1>
+        <h1>Test page</h1>
 
         <div>
     </div>
@@ -27,17 +26,13 @@
             <canvas id="TotalThroughput" width="900" height="500"></canvas>
             <h4> AvgHitsPerSecGraphData </h4>
             <canvas id="AvgHitsPerSecGraphData" width="900" height="500"></canvas>
-            <h4> AvgThroughput</h4>
-            <canvas id="AvgThroughput" width="900" height="500"></canvas>
             <h4> Total Hits</h4>
-            <canvas id="TotalHits" width="900" height="500"></canvas>
-            <h4> Average transaction</h4>
-            <canvas id="AvgTRT" width="900" height="500"></canvas>
-            <div id="AvgTRT_Legend"></div>
-            <!--<h4> Total Hits</h4>-->
-        <!--<st:bind var="f" value="${it.BuildPerformanceReportList}"/>-->
-        <st:bind var="totalHitsGraph2" value="${it.getTotalHitsGraphData}"/>
-        <!--<st:bind var="thdgd" value="${it.getAvgThroughtputResultsGraphData}"/>-->
+        <canvas id="mycanvas" width="900" height="500"></canvas>
+        <st:bind var="projectName" value="${it.DisplayName}"/>
+        <st:bind var="f" value="${it.BuildPerformanceReportList}"/>
+        <st:bind var="thgd" value="${it.getTotalHitsGraphData}"/>
+
+            <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/jslib.js"/>
 
 
             <div id="msk" />
@@ -48,30 +43,26 @@
 
         <div id="msv" />
 
-        <div id="msr"></div>
+        <div id="msr" />
 
         <pre><code>
         </code></pre>
         <div id="examples"></div>
         <script>
-
-            // var canvas = document.createElement('canvas');
-            //
-            // canvas.id = "CursorLayer";
-            // canvas.width = 900;
-            // canvas.height = 500;
-            //
-            // var body1 = document.getElementById('msr');
-            // body1.appendChild(canvas);
-            //
-            // cursorLayer = document.getElementById("CursorLayer");
-            //
-            // console.log(cursorLayer);
+            // var cxz = JSON.parse(thgd);
+            // document.getElementById('msr').innerHTML = JSON.stringify(thgd);
+            var cxd = {"2013-01-21":1,"2013-01-22":"LL"};
+            var resultd = [];
 
 
 
-            // var adf = JSON.parse(thgd);
-            // document.getElementById('msv').innerHTML = JSON.stringify(totalHitsGraphData);
+            for(var i in cxd)
+                resultd.push([i,cxd[i]]);
+
+
+
+            // var adf = JSON.parse(totalHitsGraphData);
+            document.getElementById('mse').innerHTML = JSON.stringify(resultd[1]);
             // var ExampleApplication = React.createClass({
             // render: function() {
             // var elapsed = Math.round(this.props.elapsed  / 100);
@@ -92,6 +83,7 @@
             //     ExampleApplicationFactory({elapsed: new Date().getTime() - start}),
             //     document.getElementById('container')); }, 50);
             // <!--var f =<st:bind value="${BuildPerformanceReport}"/>;-->
+            var foo = <st:bind value="${it}"/>
             //
             // foo.add(1,5, function(t) {
             // document.getElementById('msg').innerHTML = t.responseObject();
@@ -110,9 +102,10 @@
 
         </script>
 
-            <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/jslib.js"/>
 
     </l:main-panel>
     <!--<j:set var="temp" value="${it.jsonLoadData}"/>-->
     </l:layout>
+    <st:adjunct includes="org.jenkins.ui.jsmodules.hp_application_automation_tools_plugin.jslib"/>
+
 </j:jelly>
