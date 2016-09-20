@@ -800,6 +800,11 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         Node timeRangeNode;
         Element timeRangeElement;
         NodeList timeRanges = slaRuleElement.getElementsByTagName("TimeRangeInfo");
+
+        //Taking the goal per transaction -
+        double generalGoalValue = Double.valueOf(((Element) timeRanges.item(0)).getAttribute("GoalValue"));
+        transactionTimeRange.setGoalValue(generalGoalValue);
+
         for (int k = 0; k < timeRanges.getLength(); k++) {
             timeRangeNode = timeRanges.item(k);
             timeRangeElement = (Element) timeRangeNode;

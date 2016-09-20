@@ -12,6 +12,7 @@ import net.sf.json.JSONObject;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -171,7 +172,7 @@ public class PerformanceProjectAction implements Action{
     public JSONObject getAvgHitsPerSecGraphData()
     {
         JSONObject graphDataSet;
-        JSONObject scenarionGraphData = new JSONObject();
+        JSONObject scenarioGraphData = new JSONObject();
 
         for(Map.Entry<String, LrProjectScenarioResults> scenarioResults: _projectResult.getLrScenarioResults().entrySet() ) {
             Map<Integer, WholeRunResult> graphData = scenarioResults.getValue().averageHitsPerSecondResults;
@@ -207,12 +208,12 @@ public class PerformanceProjectAction implements Action{
             dataset.put("data", data);
             datasets.add(dataset);
             graphDataSet.put("datasets", datasets);
-            scenarionGraphData.put(scenarioResults.getKey(), graphDataSet);
+            scenarioGraphData.put(scenarioResults.getKey(), graphDataSet);
 
             return graphDataSet;
 
         }
-        return scenarionGraphData;
+        return scenarioGraphData;
     }
 
     @JavaScriptMethod
@@ -311,7 +312,75 @@ public class PerformanceProjectAction implements Action{
         return scenarionGraphData;
     }
 
+    @JavaScriptMethod
+    public JSONObject getAvgTransactionResultsGraphData()
+    {
+        JSONObject graphDataSet;
+        JSONObject scenarionGraphData = new JSONObject();
 
+        for(Map.Entry<String, LrProjectScenarioResults> scenarioResults: _projectResult.getLrScenarioResults().entrySet() ) {
+            Map<Integer, ArrayList<TransactionTimeRange>> graphData = scenarioResults.getValue().transactionTimeRangesProject;
+            HashMap<String, ArrayList<Double>> averageTRTData = new HashMap<String, ArrayList<Double>>(0);
+            graphDataSet = new JSONObject();
+
+            JSONArray labels = new JSONArray();
+            JSONArray datasets = new JSONArray();
+            JSONObject datasetStyle = new JSONObject();
+
+            labels.addAll(graphData.keySet());
+            graphDataSet.put("labels", labels);
+
+//            String goalValue = String.valueOf(graphData.values().iterator().next().getGoalValue());
+
+            for( ArrayList<TransactionTimeRange> result : graphData.values())
+            {
+                for(TransactionTimeRange transactionTimeRange : result)
+                {
+                    if(averageTRTData.containsKey(transactionTimeRange.getName()))
+                    {
+                        averageTRTData.get(transactionTimeRange.getName()).add(transactionTimeRange.getActualValueAvg());
+                    }
+                    else
+                    {
+                        ArrayList<Double> temp = new ArrayList<Double>(0);
+                        temp.add(transactionTimeRange.getActualValueAvg());
+                        averageTRTData.put(transactionTimeRange.getName(),temp);
+                    }
+                }
+            }
+
+            for(Map.Entry<String, ArrayList<Double>> transactionData : averageTRTData.entrySet())
+            {
+                JSONObject dataset = new JSONObject();
+                JSONArray data = new JSONArray();
+                dataset.put("label", transactionData.getKey());
+                data.addAll(transactionData.getValue());
+                dataset.put("data", data);
+                datasets.add(dataset);
+            }
+
+            graphDataSet.put("datasets", datasets);
+
+
+
+//            graphDataSet.put("Goal", goalValue);
+
+
+//            dataset.put("fillColor", "rgba(220,220,21,0.2)");
+//            dataset.put("strokeColor", "rgba(220,42,220,1)");
+//            dataset.put("pointColor", "rgba(34,220,220,1)");
+//            dataset.put("pointStrokeColor", "#fff");
+//            dataset.put("pointHighlightFill", "#fff");
+//            dataset.put("pointHighlightStroke", "rgba(220,158,220,0.2)");
+
+
+            scenarionGraphData.put(scenarioResults.getKey(), graphDataSet);
+
+            return graphDataSet;
+
+        }
+        return scenarionGraphData;
+    }
 
     public List<String> getBuildPerformanceReportList(){
 //        this.buildPerformanceReportList = new ArrayList<String>(0);

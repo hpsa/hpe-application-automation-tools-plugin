@@ -33,17 +33,26 @@ foo.getAvgThroughtputResultsGraphData(function(t){
 });
 
 
-foo.getAvgHitsPerSecGraphData(function(t) {
+foo.getAvgTransactionResultsGraphData(function(t){
     var data = t.responseObject();
-    document.getElementById('msr').innerHTML = ((data.labels));
-    document.getElementById('msv').innerHTML = JSON.stringify((data));
-    console.log(Object.keys(data)[1]);
+    var ctx = document.getElementById('AvgTRT').getContext("2d");
+    var a = new Chart(ctx).Line(data);
 
-
-    // var data1= JSON.parse((data[0]));
-
+    document.getElementById('AvgTRT_Legend').innerHTML = a.generateLegend();
 
 });
+
+// foo.getAvgHitsPerSecGraphData(function(t) {
+//     var data = t.responseObject();
+//     document.getElementById('msr').innerHTML = ((data.labels));
+//     document.getElementById('msv').innerHTML = JSON.stringify((data));
+//     console.log(Object.keys(data)[1]);
+//
+//
+//     // var data1= JSON.parse((data[0]));
+//
+//
+// });
 
 
 // var adf = JSON.parse(totalHitsGraph2);

@@ -31,7 +31,9 @@
             <canvas id="AvgThroughput" width="900" height="500"></canvas>
             <h4> Total Hits</h4>
             <canvas id="TotalHits" width="900" height="500"></canvas>
-
+            <h4> Average transaction</h4>
+            <canvas id="AvgTRT" width="900" height="500"></canvas>
+            <div id="AvgTRT_Legend"></div>
             <!--<h4> Total Hits</h4>-->
         <!--<st:bind var="f" value="${it.BuildPerformanceReportList}"/>-->
         <st:bind var="totalHitsGraph2" value="${it.getTotalHitsGraphData}"/>

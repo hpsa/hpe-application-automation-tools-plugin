@@ -25,7 +25,7 @@ public class TimeRangeResult extends GoalResult implements LrTest {
     private double _avgActualValue = 0;
 
     public void incActualValue(double actualValue) {
-        this._actualValueSum += _actualValueSum;
+        this._actualValueSum += actualValue;
     }
 
     private double _actualValueSum = 0;
