@@ -2,6 +2,7 @@
 
 package com.hp.octane.plugins.jenkins.tests;
 
+import com.hp.octane.plugins.jenkins.tests.junit.JUnitExtension;
 import hudson.ExtensionList;
 import hudson.ExtensionPoint;
 import hudson.model.AbstractBuild;
@@ -14,7 +15,7 @@ public abstract class MqmTestsExtension implements ExtensionPoint {
     public abstract boolean supports(AbstractBuild<?, ?> build) throws IOException, InterruptedException;
 
 
-    public abstract TestResultContainer getTestResults(AbstractBuild<?, ?> build, boolean isStormRunnerProject) throws IOException, InterruptedException;
+    public abstract TestResultContainer getTestResults(AbstractBuild<?, ?> build, JUnitExtension.HPRunnerType hpRunnerType, String jenkinsRootUrl) throws IOException, InterruptedException;
 
     public static ExtensionList<MqmTestsExtension> all() {
         return Hudson.getInstance().getExtensionList(MqmTestsExtension.class);
