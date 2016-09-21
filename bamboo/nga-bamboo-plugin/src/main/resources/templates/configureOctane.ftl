@@ -1,24 +1,60 @@
-<html>
-<head>
-    <title>Configure HPE Octane Plugin</title>
-    <meta name="decorator" content="adminpage">
-</head>
-<body>
 <!--<img src="${req.contextPath}/download/resources/alm-octane-logo.png" border="0"/>-->
+<script>
+    function testConfiguration() {
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                var p = document.getElementById("resultPNode");
+                // clear children
+                while (p.firstChild) {
+                    p.removeChild(p.firstChild);
+                }
+                var t = document.createTextNode(this.responseText);
+                if (this.responseText.toLocaleLowerCase().includes("success")) {
+                    debugger;
+                    p.style.color = "green";
+                }
+                else {
+                    debugger;
+                    p.style.color = "red";
+                }
+                pAnswer.appendChild(t);
+            }
+        };
+        xhttp.open("POST", "/bamboo/rest/octanerest/1.0/testconnection", true);
+        xhttp.send(JSON.stringify({
+            octaneUrl: document.getElementById("octaneConfigurationForm_octaneUrl").value,
+            accessKey: document.getElementById("octaneConfigurationForm_accessKey").value,
+            apiSecret: document.getElementById("octaneConfigurationForm_apiSecret").value
+        }));
+    }
+</script>
 <h1>HPE ALM Octane CI Plugin Configuration</h1>
-
 <div class="paddedClearer"></div>
-    [@ww.form action="/admin/nga/configureOctaneSave.action"
-        id="octaneConfigurationForm"
-        submitLabelKey='global.buttons.update'
-        cancelUri='/admin/administer.action']
-
-        [@ui.bambooSection title="Credentials"]
-            [@ww.textfield name='octaneUrl' label='Octane Instance URL' /]
-            [@ww.textfield name="accessKey" label='Access Key' /]
-            [@ww.textfield name="apiSecret" label='API Secret' /]
-            [@ww.textfield name="userName" label='Username to use' /]
-        [/@ui.bambooSection]
-    [/@ww.form]
-</body>
-</html>
+[@ww.form action="/admin/nga/configureOctaneSave.action"
+id="octaneConfigurationForm"
+submitLabelKey='global.buttons.update']
+[@ui.bambooSection title="Credentials"]
+[@ww.textfield name='octaneUrl' label='Octane Instance URL' /]
+[@ww.textfield name="accessKey" label='Access Key' /]
+[@ww.textfield name="apiSecret" label='API Secret' /]
+[@ww.textfield name="userName" label='Username to use' /]
+[/@ui.bambooSection]
+[/@ww.form]
+<script>
+    // adding the check connection button
+    var buttonsContainer = document.querySelector('#octaneConfigurationForm > .buttons-container > .buttons'),
+    testButton = document.createElement('input');
+    testButton.type = 'button';
+    testButton.value = 'Check Connection';
+    testButton.className = 'aui-button aui-button-primary';
+    testButton.onclick = testConfiguration;
+    buttonsContainer.appendChild(testButton);
+    // adding the check result text
+    var buttonsContainer = document.querySelector('#octaneConfigurationForm > .buttons-container '),
+    Answer = document.createElement('p');
+    pAnswer.setAttribute("id", "resultPNode");
+    buttonsContainer.appendChild(pAnswer);
+    var t = document.createTextNode("");
+    pAnswer.appendChild(t);
+</script>

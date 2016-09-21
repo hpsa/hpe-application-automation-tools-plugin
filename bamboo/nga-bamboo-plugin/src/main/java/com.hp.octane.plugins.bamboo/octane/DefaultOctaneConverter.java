@@ -1,6 +1,5 @@
 package com.hp.octane.plugins.bamboo.octane;
 
-import com.atlassian.bamboo.agent.classserver.AgentServerManager;
 import com.atlassian.bamboo.builder.BuildState;
 import com.atlassian.bamboo.builder.LifeCycleState;
 import com.atlassian.bamboo.chains.cache.ImmutableChainStage;
@@ -10,7 +9,7 @@ import com.atlassian.bamboo.plan.cache.ImmutablePlan;
 import com.atlassian.bamboo.plan.cache.ImmutableTopLevelPlan;
 import com.atlassian.bamboo.results.tests.TestResults;
 import com.atlassian.bamboo.resultsummary.ImmutableResultsSummary;
-import com.atlassian.sal.api.component.ComponentLocator;
+import com.atlassian.sal.api.pluginsettings.PluginSettings;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.causes.CIEventCause;
 import com.hp.octane.integrations.dto.causes.CIEventCauseType;
@@ -226,11 +225,9 @@ public class DefaultOctaneConverter implements DTOConverter {
 		return cause;
 	}
 
-	public BuildContext getBuildContext(String build, String identifier) {
-		String instanceId = OctaneConfigurationKeys.BAMBOO_INSTANCE_PREFIX + String.valueOf(
-				ComponentLocator.getComponent(AgentServerManager.class).getFingerprint().getServerFingerprint());
-		return DTOFactory.getInstance().newDTO(BuildContext.class).setBuildId(build).setBuildName(build)
-				.setJobId(identifier).setJobName(identifier).setServerId(instanceId);
+	public BuildContext getBuildContext(String instanceId, String jobId, String buildId) {
+		return DTOFactory.getInstance().newDTO(BuildContext.class).setBuildId(buildId).setBuildName(buildId)
+				.setJobId(jobId).setJobName(jobId).setServerId(instanceId);
 	}
 
 }
