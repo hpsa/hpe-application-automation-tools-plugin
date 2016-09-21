@@ -125,7 +125,7 @@ public class BambooPluginServices implements CIPluginServices {
 		PluginSettings settings = settingsFactory.createGlobalSettings();
 		log.info("get ci server info");
 		String instanceId = String.valueOf(settings.get(OctaneConfigurationKeys.UUID));
-		// String instanceId = "0";
+
 		String baseUrl = ComponentLocator.getComponent(AdministrationConfigurationAccessor.class)
 				.getAdministrationConfiguration().getBaseUrl();
 
