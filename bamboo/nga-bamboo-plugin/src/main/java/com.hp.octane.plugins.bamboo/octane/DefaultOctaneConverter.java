@@ -56,7 +56,7 @@ public class DefaultOctaneConverter implements DTOConverter {
 	}
 
 	public PipelineNode getPipelineNodeFromJob(ImmutableJob job) {
-		return dtoFactoryInstance.newDTO(PipelineNode.class).setJobCiId(getJobCiId(job)).setName(job.getName());
+		return dtoFactoryInstance.newDTO(PipelineNode.class).setJobCiId(getJobCiId(job)).setName(job.getBuildName());
 	}
 
 	public String getRootJobCiId(ImmutableTopLevelPlan plan) {
@@ -104,7 +104,7 @@ public class DefaultOctaneConverter implements DTOConverter {
 	}
 
     public SnapshotNode getSnapshot(ImmutableTopLevelPlan plan, ImmutableResultsSummary resultsSummary){
-        SnapshotNode snapshotNode = getSnapshotNode(plan, resultsSummary);
+        SnapshotNode snapshotNode = getSnapshotNode(plan, resultsSummary, true);
 
         List<SnapshotPhase> phases = new ArrayList<SnapshotPhase>(plan.getAllStages().size());
         for (ImmutableChainStage stage : plan.getAllStages()) {
@@ -122,23 +122,23 @@ public class DefaultOctaneConverter implements DTOConverter {
         List<SnapshotNode> nodes = new ArrayList<SnapshotNode>(stage.getJobs().size());
         for (ImmutableJob job : stage.getJobs()) {
             // TODO decide if we want to mirror disabled jobs or not
-            nodes.add(getSnapshotNode(job, job.getLatestResultsSummary()));
+            nodes.add(getSnapshotNode(job, job.getLatestResultsSummary(), false));
         }
         phase.setBuilds(nodes);
 
         return phase;
     }
 
-    private SnapshotNode getSnapshotNode(ImmutablePlan immutablePlane, ImmutableResultsSummary resultsSummary) {
+    private SnapshotNode getSnapshotNode(ImmutablePlan plane, ImmutableResultsSummary resultsSummary, boolean isRoot) {
 
         SnapshotNode result = dtoFactoryInstance.newDTO(SnapshotNode.class)
                 .setBuildCiId(resultsSummary.getPlanResultKey().getKey())
-                .setName(immutablePlane.getName())
-                .setJobCiId((getCiId(immutablePlane)))
+                .setName(isRoot? plane.getBuildName() : plane.getName())
+                .setJobCiId((getCiId(plane)))
                 .setDuration(resultsSummary.getDuration())
                 .setNumber(String.valueOf(resultsSummary.getBuildNumber()))
                 .setResult(getJobResult(resultsSummary.getBuildState()))
-                .setStatus(getJobStatus(immutablePlane.getLatestResultsSummary().getLifeCycleState()))
+                .setStatus(getJobStatus(plane.getLatestResultsSummary().getLifeCycleState()))
                 .setStartTime(resultsSummary.getBuildDate() != null ? resultsSummary.getBuildDate().getTime()
                         : (resultsSummary.getBuildCompletedDate() != null
                         ? resultsSummary.getBuildCompletedDate().getTime() : System.currentTimeMillis()));
