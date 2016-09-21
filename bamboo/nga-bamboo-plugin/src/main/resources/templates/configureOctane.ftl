@@ -6,9 +6,7 @@
             if (this.readyState == 4 && this.status == 200) {
                 var p = document.getElementById("resultPNode");
                 // clear children
-                while (p.firstChild) {
-                    p.removeChild(p.firstChild);
-                }
+                p.textContent ='';
                 var t = document.createTextNode(this.responseText);
                 if (this.responseText.toLocaleLowerCase().includes("success")) {
                     debugger;
@@ -18,7 +16,7 @@
                     debugger;
                     p.style.color = "red";
                 }
-                pAnswer.appendChild(t);
+                p.appendChild(t);
             }
         };
         xhttp.open("POST", "/bamboo/rest/octanerest/1.0/testconnection", true);
@@ -52,8 +50,8 @@ submitLabelKey='global.buttons.update']
     buttonsContainer.appendChild(testButton);
     // adding the check result text
     var buttonsContainer = document.querySelector('#octaneConfigurationForm > .buttons-container '),
-    Answer = document.createElement('p');
-    pAnswer.setAttribute("id", "resultPNode");
+    pAnswer = document.createElement('p');
+    pAnswer.id = "resultPNode";
     buttonsContainer.appendChild(pAnswer);
     var t = document.createTextNode("");
     pAnswer.appendChild(t);
