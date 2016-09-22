@@ -8,4 +8,5 @@ public interface OctaneConfigurationKeys {
 	String API_SECRET = PLUGIN_PREFIX + "apiSecret";
 	String IMPERSONATION_USER = PLUGIN_PREFIX + "userName";
 	String SHARED_SPACE_ID = PLUGIN_PREFIX + "sharedSpaceId";
+	String UUID = "uuid";
 }

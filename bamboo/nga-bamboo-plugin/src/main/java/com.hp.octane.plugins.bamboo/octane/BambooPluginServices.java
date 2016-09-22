@@ -1,6 +1,5 @@
 package com.hp.octane.plugins.bamboo.octane;
 
-import com.atlassian.bamboo.agent.classserver.AgentServerManager;
 import com.atlassian.bamboo.applinks.ImpersonationService;
 import com.atlassian.bamboo.configuration.AdministrationConfigurationAccessor;
 import com.atlassian.bamboo.plan.PlanExecutionManager;
@@ -25,17 +24,12 @@ import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.dto.tests.TestsResult;
 import com.hp.octane.integrations.spi.CIPluginServices;
-
 import com.hp.octane.plugins.bamboo.api.OctaneConfigurationKeys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Callable;
 
 public class BambooPluginServices implements CIPluginServices {
@@ -128,10 +122,10 @@ public class BambooPluginServices implements CIPluginServices {
 	}
 
 	public CIServerInfo getServerInfo() {
+		PluginSettings settings = settingsFactory.createGlobalSettings();
 		log.info("get ci server info");
-		String instanceId = String.valueOf(
-				ComponentLocator.getComponent(AgentServerManager.class).getFingerprint().getServerFingerprint());
-		// String instanceId = "0";
+		String instanceId = String.valueOf(settings.get(OctaneConfigurationKeys.UUID));
+
 		String baseUrl = ComponentLocator.getComponent(AdministrationConfigurationAccessor.class)
 				.getAdministrationConfiguration().getBaseUrl();
 

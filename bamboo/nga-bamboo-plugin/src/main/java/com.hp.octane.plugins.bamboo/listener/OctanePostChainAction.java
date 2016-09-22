@@ -14,6 +14,7 @@ import com.atlassian.bamboo.v2.build.CurrentBuildResult;
 import com.atlassian.bamboo.v2.build.events.BuildContextEvent;
 import com.atlassian.bamboo.v2.build.events.PostBuildCompletedEvent;
 import com.atlassian.event.api.EventListener;
+import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.causes.CIEventCause;
@@ -24,6 +25,7 @@ import com.hp.octane.integrations.dto.tests.BuildContext;
 import com.hp.octane.integrations.dto.tests.TestRun;
 import com.hp.octane.integrations.dto.tests.TestRunResult;
 import com.hp.octane.integrations.dto.tests.TestsResult;
+import com.hp.octane.plugins.bamboo.api.OctaneConfigurationKeys;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,6 +33,11 @@ import java.util.Arrays;
 import java.util.List;
 
 public class OctanePostChainAction extends BaseListener implements PostChainAction {
+	private final PluginSettingsFactory settingsFactory;
+
+	public OctanePostChainAction(PluginSettingsFactory settingsFactory) {
+		this.settingsFactory = settingsFactory;
+	}
 
 	@EventListener
 	@HibernateEventListenerAspect
@@ -72,7 +79,10 @@ public class OctanePostChainAction extends BaseListener implements PostChainActi
 			}
 			String build = PlanKeys.getPlanResultKey(identifier, planResultKey.getBuildNumber()).getKey();
 			log.info("Pushing test results for " + identifier + " build " + planResultKey.getKey());
-			BuildContext context = CONVERTER.getBuildContext(build, identifier);
+			BuildContext context = CONVERTER.getBuildContext(
+					String.valueOf(settingsFactory.createGlobalSettings().get(OctaneConfigurationKeys.UUID)),
+					identifier,
+					build);
 			TestsResult testsResult = DTOFactory.getInstance().newDTO(TestsResult.class).setTestRuns(testRuns)
 					.setBuildContext(context);
 			try {

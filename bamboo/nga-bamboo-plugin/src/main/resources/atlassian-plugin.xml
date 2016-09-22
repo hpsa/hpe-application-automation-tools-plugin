@@ -1,76 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <atlassian-plugin key="${atlassian.plugin.key}" name="${project.name}" plugins-version="2">
-	<plugin-info>
-		<description>${project.description}</description>
-		<version>${project.version}</version>
-		<vendor name="${project.organization.name}" url="${project.organization.url}"/>
-		<param name="plugin-icon">images/pluginIcon.png</param>
-		<param name="plugin-logo">images/pluginLogo.png</param>
-	</plugin-info>
-
-	<!-- import Bamboo resources -->
-	<component-import key="pluginSettingsFactory"
-					  interface="com.atlassian.sal.api.pluginsettings.PluginSettingsFactory"/>
-
-	<!-- add our i18n resource -->
-	<resource type="i18n" name="i18n" location="bamboo-plugin"/>
-
-	<!-- add our web resources -->
-	<!-- 	<web-resource key="bamboo-plugin-resources" name="bamboo-plugin Web Resources"> -->
-	<!-- 		<dependency>com.atlassian.auiplugin:ajs</dependency> -->
-
-	<!-- 		<resource type="download" name="bamboo-plugin.css" location="/css/bamboo-plugin.css" /> -->
-	<!-- 		<resource type="download" name="bamboo-plugin.js" location="/js/bamboo-plugin.js" /> -->
-	<!-- 		<resource type="download" name="images/" location="/images" /> -->
-
-	<!-- 		<context>bamboo-plugin</context> -->
-	<!-- 	</web-resource> -->
-
-	<web-item key="ngaAdminLink" section="system.admin/communication" weight="130">
-		<description>Octane configuration link</description>
-		<label key="HPE Octane Plugin"/>
-		<link linkId="ngaConfig">/admin/nga/configureOctane.action</link>
-	</web-item>
-	<xwork key="ngaActions" name="Octane Configuration Actions">
-		<package name="ngaAdmin" extends="admin" namespace="/admin/nga">
-			<action name="configureOctane" class="com.hp.octane.plugins.bamboo.ui.ConfigureOctaneAction" method="edit">
-				<result name="input" type="freemarker">/templates/configureOctane.ftl</result>
-				<result name="success" type="freemarker">/templates/configureOctane.ftl</result>
-				<result name="error" type="freemarker">/error.ftl</result>
-				<param name="mode">edit</param>
-			</action>
-
-			<action name="configureOctaneSave" class="com.hp.octane.plugins.bamboo.ui.ConfigureOctaneAction"
-					method="save">
-				<result name="input" type="freemarker">/templates/configureOctane.ftl</result>
-				<result name="success" type="freemarker">/templates/configureOctane.ftl</result>
-				<result name="error" type="freemarker">/error.ftl</result>
-			</action>
-		</package>
-	</xwork>
-
-	<bambooEventListener key="buildContextListener" name="Build Context Listener"
-						 class="com.hp.octane.plugins.bamboo.listener.OctanePostChainAction">
-		<description>Listens for build context events</description>
-	</bambooEventListener>
-
-	<postChainAction key="ngaPostChainReporter" name="NGA post-chain build status reporter"
-					 class="com.hp.octane.plugins.bamboo.listener.OctanePostChainAction">
-		<description>Report root job finished to NGA</description>
-	</postChainAction>
-
-	<preChainAction key="ngaPreChainReporter" name="NGA pre-chain build status reporter"
-					class="com.hp.octane.plugins.bamboo.listener.OctanePreChainAction">
-		<description>Report root job started to NGA</description>
-	</preChainAction>
-
-	<preJobAction key="ngaPreJobReporter" name="NGA pre-job build status reporter"
-				  class="com.hp.octane.plugins.bamboo.listener.OctanePreJobAction">
-		<description>Report non-root job started to NGA</description>
-	</preJobAction>
-
-	<preJobAction key="ngaPostJobReporter" name="NGA post-job build status reporter"
-				  class="com.hp.octane.plugins.bamboo.listener.OctanePostJobAction">
-		<description>Report non-root job finished to NGA</description>
-	</preJobAction>
-
+  <plugin-info>
+    <description>${project.description}</description>
+    <version>${project.version}</version>
+    <vendor name="${project.organization.name}" url="${project.organization.url}"/>
+    <param name="plugin-icon">images/pluginIcon.png</param>
+    <param name="plugin-logo">images/pluginLogo.png</param>
+  </plugin-info>
+  <!-- import Bamboo resources -->
+  <component-import key="pluginSettingsFactory" interface="com.atlassian.sal.api.pluginsettings.PluginSettingsFactory"/>
+  <!-- add our i18n resource -->
+  <resource type="i18n" name="i18n" location="bamboo-plugin"/>
+  <!-- add our web resources -->
+  <!-- 	<web-resource key="bamboo-plugin-resources" name="bamboo-plugin Web Resources"> -->
+  <!-- 		<dependency>com.atlassian.auiplugin:ajs</dependency> -->
+  <!-- 		<resource type="download" name="bamboo-plugin.css" location="/css/bamboo-plugin.css" /> -->
+  <!-- 		<resource type="download" name="bamboo-plugin.js" location="/js/bamboo-plugin.js" /> -->
+  <!-- 		<resource type="download" name="images/" location="/images" /> -->
+  <!-- 		<context>bamboo-plugin</context> -->
+  <!-- 	</web-resource> -->
+  <web-item key="ngaAdminLink" section="system.admin/communication" weight="130">
+    <description>Octane configuration link</description>
+    <label key="HPE Octane Plugin"/>
+    <link linkId="ngaConfig">/admin/nga/configureOctaneEdit.action</link>
+  </web-item>
+  <xwork key="ngaActions" name="Octane Configuration Actions">
+    <package name="ngaAdmin" extends="admin" namespace="/admin/nga">
+      <action name="configureOctaneEdit" class="com.hp.octane.plugins.bamboo.ui.ConfigureOctaneAction" method="edit">
+        <result name="input" type="freemarker">/templates/configureOctane.ftl</result>
+        <param name="mode">edit</param>
+      </action>
+      <action name="configureOctaneSave" class="com.hp.octane.plugins.bamboo.ui.ConfigureOctaneAction" method="save">
+        <result name="input" type="freemarker">/templates/configureOctane.ftl</result>
+        <result name="success" type="freemarker">/templates/configureOctane.ftl</result>
+        <result name="error" type="freemarker">/error.ftl</result>
+      </action>
+    </package>
+  </xwork>
+  <bambooEventListener key="buildContextListener" name="Build Context Listener" class="com.hp.octane.plugins.bamboo.listener.OctanePostChainAction">
+    <description>Listens for build context events</description>
+  </bambooEventListener>
+  <postChainAction key="ngaPostChainReporter" name="NGA post-chain build status reporter" class="com.hp.octane.plugins.bamboo.listener.OctanePostChainAction">
+    <description>Report root job finished to NGA</description>
+  </postChainAction>
+  <preChainAction key="ngaPreChainReporter" name="NGA pre-chain build status reporter" class="com.hp.octane.plugins.bamboo.listener.OctanePreChainAction">
+    <description>Report root job started to NGA</description>
+  </preChainAction>
+  <preJobAction key="ngaPreJobReporter" name="NGA pre-job build status reporter" class="com.hp.octane.plugins.bamboo.listener.OctanePreJobAction">
+    <description>Report non-root job started to NGA</description>
+  </preJobAction>
+  <preJobAction key="ngaPostJobReporter" name="NGA post-job build status reporter" class="com.hp.octane.plugins.bamboo.listener.OctanePostJobAction">
+    <description>Report non-root job finished to NGA</description>
+  </preJobAction>
+  <rest name="Octane Rest Resource" i18n-name-key="octane-rest-resource.name" key="octane-rest-resource" path="/octane" version="1.0">
+    <description key="octane-rest-resource.description">Octane Rest</description>
+  </rest>
 </atlassian-plugin>

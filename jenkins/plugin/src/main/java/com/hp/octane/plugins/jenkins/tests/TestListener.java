@@ -5,7 +5,9 @@ package com.hp.octane.plugins.jenkins.tests;
 import com.google.inject.Inject;
 import com.hp.octane.plugins.jenkins.model.processors.projects.AbstractProjectProcessor;
 import com.hp.octane.plugins.jenkins.tests.build.BuildHandlerUtils;
+import com.hp.octane.plugins.jenkins.tests.detection.UFTExtension;
 import com.hp.octane.plugins.jenkins.tests.gherkin.GherkinTestResultsCollector;
+import com.hp.octane.plugins.jenkins.tests.junit.JUnitExtension;
 import com.hp.octane.plugins.jenkins.tests.xml.TestResultXmlWriter;
 import hudson.Extension;
 import hudson.FilePath;
@@ -13,6 +15,7 @@ import hudson.model.AbstractBuild;
 import hudson.model.Result;
 import hudson.model.TaskListener;
 import hudson.tasks.Builder;
+import jenkins.model.Jenkins;
 
 import javax.xml.stream.XMLStreamException;
 import java.util.List;
@@ -29,19 +32,23 @@ public class TestListener {
 
     private TestResultQueue queue;
 
-    public void processBuild(AbstractBuild build,TaskListener listener) {
+    public void processBuild(AbstractBuild build, TaskListener listener) {
 
         FilePath resultPath = new FilePath(new FilePath(build.getRootDir()), TEST_RESULT_FILE);
         TestResultXmlWriter resultWriter = new TestResultXmlWriter(resultPath, build);
         boolean success = false;
         boolean hasTests = false;
-
-        boolean isStormRunnerProject = false;
+        String jenkinsRootUrl = Jenkins.getInstance().getRootUrl();
+        JUnitExtension.HPRunnerType hpRunnerType = JUnitExtension.HPRunnerType.NONE;
         List<Builder> builders = AbstractProjectProcessor.getFlowProcessor(build.getProject()).tryGetBuilders();
         if (builders != null) {
             for (Builder builder : builders) {
                 if (builder.getClass().getName().equals(JENKINS_STORM_TEST_RUNNER_CLASS)) {
-                    isStormRunnerProject = true;
+                    hpRunnerType = JUnitExtension.HPRunnerType.StormRunner;
+                    break;
+                }
+                if (builder.getClass().getName().equals(UFTExtension.RUN_FROM_FILE_BUILDER) || builder.getClass().getName().equals(UFTExtension.RUN_FROM_ALM_BUILDER)) {
+                    hpRunnerType = JUnitExtension.HPRunnerType.UFT;
                     break;
                 }
             }
@@ -58,7 +65,7 @@ public class TestListener {
                             hasTests = true;
                         }
 
-                        TestResultContainer testResultContainer = ext.getTestResults(build, isStormRunnerProject);
+                        TestResultContainer testResultContainer = ext.getTestResults(build, hpRunnerType, jenkinsRootUrl);
                         if (testResultContainer != null && testResultContainer.getIterator().hasNext()) {
                             resultWriter.setTestResultContainer(testResultContainer, gherkinResultsCollector);
                             hasTests = true;
@@ -70,7 +77,7 @@ public class TestListener {
                     }
                 } catch (IllegalArgumentException e) {
                     listener.error(e.getMessage());
-                    if(!build.getResult().isWorseOrEqualTo(Result.UNSTABLE)){
+                    if (!build.getResult().isWorseOrEqualTo(Result.UNSTABLE)) {
                         build.setResult(Result.UNSTABLE);
                     }
                     return;
@@ -98,6 +105,11 @@ public class TestListener {
                 logger.log(Level.SEVERE, "Error processing test results", e);
             }
         }
+    }
+
+    private boolean isUFTRunner(AbstractBuild build) {
+        UFTExtension uftExtension = new UFTExtension();
+        return uftExtension.detect(build) != null;
     }
 
     @Inject

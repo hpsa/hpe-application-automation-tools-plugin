@@ -212,7 +212,7 @@ public class JobConfigurationProxy {
 		try {
 			JobConfiguration jobConfiguration = client.getJobConfiguration(ServerIdentity.getIdentity(), project.getName());
 
-			if (!jobConfiguration.getWorkspacePipelinesMap().isEmpty()) {
+ 			if (!jobConfiguration.getWorkspacePipelinesMap().isEmpty()) {
 				Map<Long, List<Pipeline>> workspacesMap = jobConfiguration.getWorkspacePipelinesMap();
 				//WORKAROUND BEGIN
 				//getting workspaceName - because the workspaceName is not returned from configuration API
@@ -479,10 +479,13 @@ public class JobConfigurationProxy {
 			}
 
 			for (ListItem item : listItems) {
-				JSONObject itemJson = new JSONObject();
-				itemJson.put("id", item.getId());
-				itemJson.put("text", item.getName());
-				retArray.add(itemJson);
+				if (!toBeFiltered(item)){
+					JSONObject itemJson = new JSONObject();
+					itemJson.put("id", item.getId());
+					itemJson.put("text", item.getName());
+					retArray.add(itemJson);
+				}
+
 			}
 			// we shall use "if (extensible){}" on following line, but we do not have UI ready for the case: multiValue = true & extensible = true
 			if (extensible && !multiValue) {
@@ -491,6 +494,8 @@ public class JobConfigurationProxy {
 					retArray.add(createNewValueJson("0"));
 				}
 			}
+
+
 
 			ret.put("results", retArray);
 		} catch (RequestException e) {
@@ -501,6 +506,10 @@ public class JobConfigurationProxy {
 			return error("Unable to retrieve list items");
 		}
 		return ret;
+	}
+
+	private boolean toBeFiltered(ListItem item) {
+		return (item.getLogicalName().equalsIgnoreCase("list_node.testing_tool_type.manual"));
 	}
 
 	@JavaScriptMethod

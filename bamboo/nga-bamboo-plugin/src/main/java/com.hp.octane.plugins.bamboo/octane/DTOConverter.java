@@ -46,6 +46,6 @@ public interface DTOConverter {
 
 	CIEventCause getCauseWithDetails(String buildCiId, String project, String user);
 
-	BuildContext getBuildContext(String build, String identifier);
+	BuildContext getBuildContext(String instanceId, String identifier, String build);
 
 }

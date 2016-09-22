@@ -1,6 +1,5 @@
 package com.hp.octane.plugins.bamboo.octane;
 
-import com.atlassian.bamboo.agent.classserver.AgentServerManager;
 import com.atlassian.bamboo.builder.BuildState;
 import com.atlassian.bamboo.builder.LifeCycleState;
 import com.atlassian.bamboo.chains.cache.ImmutableChainStage;
@@ -10,7 +9,6 @@ import com.atlassian.bamboo.plan.cache.ImmutablePlan;
 import com.atlassian.bamboo.plan.cache.ImmutableTopLevelPlan;
 import com.atlassian.bamboo.results.tests.TestResults;
 import com.atlassian.bamboo.resultsummary.ImmutableResultsSummary;
-import com.atlassian.sal.api.component.ComponentLocator;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.causes.CIEventCause;
 import com.hp.octane.integrations.dto.causes.CIEventCauseType;
@@ -56,7 +54,7 @@ public class DefaultOctaneConverter implements DTOConverter {
 	}
 
 	public PipelineNode getPipelineNodeFromJob(ImmutableJob job) {
-		return dtoFactoryInstance.newDTO(PipelineNode.class).setJobCiId(getJobCiId(job)).setName(job.getName());
+		return dtoFactoryInstance.newDTO(PipelineNode.class).setJobCiId(getJobCiId(job)).setName(job.getBuildName());
 	}
 
 	public String getRootJobCiId(ImmutableTopLevelPlan plan) {
@@ -104,7 +102,7 @@ public class DefaultOctaneConverter implements DTOConverter {
 	}
 
     public SnapshotNode getSnapshot(ImmutableTopLevelPlan plan, ImmutableResultsSummary resultsSummary){
-        SnapshotNode snapshotNode = getSnapshotNode(plan, resultsSummary);
+        SnapshotNode snapshotNode = getSnapshotNode(plan, resultsSummary, true);
 
         List<SnapshotPhase> phases = new ArrayList<SnapshotPhase>(plan.getAllStages().size());
         for (ImmutableChainStage stage : plan.getAllStages()) {
@@ -122,23 +120,23 @@ public class DefaultOctaneConverter implements DTOConverter {
         List<SnapshotNode> nodes = new ArrayList<SnapshotNode>(stage.getJobs().size());
         for (ImmutableJob job : stage.getJobs()) {
             // TODO decide if we want to mirror disabled jobs or not
-            nodes.add(getSnapshotNode(job, job.getLatestResultsSummary()));
+            nodes.add(getSnapshotNode(job, job.getLatestResultsSummary(), false));
         }
         phase.setBuilds(nodes);
 
         return phase;
     }
 
-    private SnapshotNode getSnapshotNode(ImmutablePlan immutablePlane, ImmutableResultsSummary resultsSummary) {
+    private SnapshotNode getSnapshotNode(ImmutablePlan plane, ImmutableResultsSummary resultsSummary, boolean isRoot) {
 
         SnapshotNode result = dtoFactoryInstance.newDTO(SnapshotNode.class)
                 .setBuildCiId(resultsSummary.getPlanResultKey().getKey())
-                .setName(immutablePlane.getName())
-                .setJobCiId((getCiId(immutablePlane)))
+                .setName(isRoot? plane.getBuildName() : plane.getName())
+                .setJobCiId((getCiId(plane)))
                 .setDuration(resultsSummary.getDuration())
                 .setNumber(String.valueOf(resultsSummary.getBuildNumber()))
                 .setResult(getJobResult(resultsSummary.getBuildState()))
-                .setStatus(getJobStatus(immutablePlane.getLatestResultsSummary().getLifeCycleState()))
+                .setStatus(getJobStatus(plane.getLatestResultsSummary().getLifeCycleState()))
                 .setStartTime(resultsSummary.getBuildDate() != null ? resultsSummary.getBuildDate().getTime()
                         : (resultsSummary.getBuildCompletedDate() != null
                         ? resultsSummary.getBuildCompletedDate().getTime() : System.currentTimeMillis()));
@@ -226,11 +224,9 @@ public class DefaultOctaneConverter implements DTOConverter {
 		return cause;
 	}
 
-	public BuildContext getBuildContext(String build, String identifier) {
-		String instanceId = OctaneConfigurationKeys.BAMBOO_INSTANCE_PREFIX + String.valueOf(
-				ComponentLocator.getComponent(AgentServerManager.class).getFingerprint().getServerFingerprint());
-		return DTOFactory.getInstance().newDTO(BuildContext.class).setBuildId(build).setBuildName(build)
-				.setJobId(identifier).setJobName(identifier).setServerId(instanceId);
+	public BuildContext getBuildContext(String instanceId, String jobId, String buildId) {
+		return DTOFactory.getInstance().newDTO(BuildContext.class).setBuildId(buildId).setBuildName(buildId)
+				.setJobId(jobId).setJobName(jobId).setServerId(instanceId);
 	}
 
 }
