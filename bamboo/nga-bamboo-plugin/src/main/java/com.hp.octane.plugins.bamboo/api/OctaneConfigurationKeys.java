@@ -1,7 +1,6 @@
 package com.hp.octane.plugins.bamboo.api;
 
 public interface OctaneConfigurationKeys {
-	String BAMBOO_INSTANCE_PREFIX = "bamboo-instance-";
 	String PLUGIN_PREFIX = "com.hp.octane.plugins.bamboo.";
 	String OCTANE_URL = PLUGIN_PREFIX + "octaneUrl";
 	String ACCESS_KEY = PLUGIN_PREFIX + "accessKey";
