@@ -1,184 +1,186 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <name>HPE ALM Octane Bamboo CI Plugin</name>
-    <description>HPE Lifecycle Management CI plugin for Atlassian Bamboo CI</description>
-    <organization>
-        <name>HPE</name>
-    </organization>
-    <packaging>atlassian-plugin</packaging>
-    <artifactId>hp-lifecycle-management-bamboo-ci-plugin</artifactId>
-    <parent>
-        <groupId>com.hp.mqm</groupId>
-        <artifactId>bamboo</artifactId>
-        <version>12.53.16-SNAPSHOT</version>
-    </parent>
-    <properties>
-        <bamboo.version>5.9.10</bamboo.version>
-        <bamboo.data.version>5.9.10</bamboo.data.version>
-        <amps.version>5.0.18</amps.version>
-        <plugin.testrunner.version>1.2.3</plugin.testrunner.version>
-        <atlassian.spring.scanner.version>1.2.13</atlassian.spring.scanner.version>
-        <!-- This key is used to keep the consistency between the key in atlassian-plugin.xml and the key to generate bundle. -->
-        <atlassian.plugin.key>${project.groupId}.${project.artifactId}</atlassian.plugin.key>
-        <!-- signing -->
-        <cert.project.name>jarAgm</cert.project.name>
-        <original.folder>${project.build.directory}/temp</original.folder>
-        <matching.obj>jarfile_batch_sign_local_timestamp</matching.obj>
-        <file.name>${project.artifactId}-${project.version}.jar</file.name>
-    </properties>
-    <dependencies>
-        <!-- CONTAINER -->
-        <dependency>
-            <artifactId>atlassian-bamboo-web</artifactId>
-            <groupId>com.atlassian.bamboo</groupId>
-            <version>${bamboo.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <artifactId>atlassian-spring-scanner-annotation</artifactId>
-            <groupId>com.atlassian.plugin</groupId>
-            <version>${atlassian.spring.scanner.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <artifactId>atlassian-spring-scanner-runtime</artifactId>
-            <groupId>com.atlassian.plugin</groupId>
-            <version>${atlassian.spring.scanner.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>javax.ws.rs</groupId>
-            <artifactId>jsr311-api</artifactId>
-            <version>1.1.1</version>
-            <scope>provided</scope>
-        </dependency>
-        <!-- INTERNAL -->
-        <dependency>
-            <artifactId>integrations-sdk</artifactId>
-            <groupId>com.hp.mqm</groupId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- TESTS -->
-        <dependency>
-            <artifactId>junit</artifactId>
-            <groupId>junit</groupId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <artifactId>mockito-core</artifactId>
-            <groupId>org.mockito</groupId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <artifactId>atlassian-plugins-osgi-testrunner</artifactId>
-            <groupId>com.atlassian.plugins</groupId>
-            <version>${plugin.testrunner.version}</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-    <build>
-        <plugins>
-            <plugin>
-                <artifactId>maven-bamboo-plugin</artifactId>
-                <groupId>com.atlassian.maven.plugins</groupId>
-                <version>${amps.version}</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <allowGoogleTracking>false</allowGoogleTracking>
-                    <productVersion>${bamboo.version}</productVersion>
-                    <productDataVersion>${bamboo.data.version}</productDataVersion>
-                    <enableFastdev>false</enableFastdev>
-                    <buildTestPlugin>false</buildTestPlugin>
-                    <!-- See here for more options: -->
-                    <!-- https://developer.atlassian.com/docs/developer-tools/working-with-the-sdk/about-amps-build-options/amps-build-configuration-reference -->
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>atlassian-spring-scanner-maven-plugin</artifactId>
-                <groupId>com.atlassian.plugin</groupId>
-                <version>${atlassian.spring.scanner.version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>atlassian-spring-scanner</goal>
-                        </goals>
-                        <phase>process-classes</phase>
-                    </execution>
-                </executions>
-                <configuration>
-                    <scannedDependencies>
-                        <dependency>
-                            <artifactId>atlassian-spring-scanner-external-jar</artifactId>
-                            <groupId>com.atlassian.plugin</groupId>
-                        </dependency>
-                    </scannedDependencies>
-                    <verbose>false</verbose>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-    <profiles>
-        <profile>
-            <id>jar-signing</id>
-            <build>
-                <defaultGoal>install</defaultGoal>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-antrun-plugin</artifactId>
-                        <version>1.7</version>
-                        <executions>
-                            <execution>
-                                <id>default-cli</id>
-                                <phase>post-integration-test</phase>
-                                <configuration>
-                                    <target name="Sign">
-                                        <echo message="This is the file name:${file.name}"/>
-                                        <exec executable="/bin/bash" failonerror="true">
-                                            <arg value="/opt/HPCSS/HPSignClient/HPSign.sh"/>
-                                            <!--<arg value="-r jarAgm -c HPSign.conf -i /tmp/tmp/hp-integration-bridge-upgrade-windows.jar -o /tmp/tmp/Signed -obj jarfile_batch_sign_local_timestamp" />-->
-                                            <arg value="-r ${cert.project.name} -c HPSign.conf -i ${project.build.directory}/${file.name} -o ${original.folder} -obj ${matching.obj}"/>
-                                        </exec>
-                                    </target>
-                                </configuration>
-                                <goals>
-                                    <goal>run</goal>
-                                </goals>
-                            </execution>
-                            <execution>
-                                <id>copy signed jar to target</id>
-                                <phase>post-integration-test</phase>
-                                <configuration>
-                                    <target>
-                                        <copy file="${original.folder}/${file.name}" toFile="${project.build.directory}/${file.name}" overwrite="true"/>
-                                    </target>
-                                </configuration>
-                                <goals>
-                                    <goal>run</goal>
-                                </goals>
-                            </execution>
-                            <execution>
-                                <id>verify-signing</id>
-                                <phase>post-integration-test</phase>
-                                <configuration>
-                                    <target name="Verify sign">
-                                        <echo message="This is the file name:${file.name}"/>
-                                        <exec executable="/bin/bash" failonerror="true">
-                                            <arg value="-c"/>
-                                            <arg value="if /usr/bin/jarsigner -verify ${project.build.directory}/${file.name} | grep &apos;jar verified.&apos;; then echo THE JAR ${file.name} WAS SIGNED SUCCESSFULLY; exit 0; else echo THE BUILD FAILED BECAUSE JAR ${file.name} IS UNSIGNED; exit 1; fi"/>
-                                        </exec>
-                                    </target>
-                                </configuration>
-                                <goals>
-                                    <goal>run</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<name>HPE ALM Octane Bamboo CI Plugin</name>
+	<description>HPE Lifecycle Management CI plugin for Atlassian Bamboo CI</description>
+	<organization>
+		<name>HPE</name>
+	</organization>
+	<packaging>atlassian-plugin</packaging>
+	<artifactId>hp-lifecycle-management-bamboo-ci-plugin</artifactId>
+	<parent>
+		<groupId>com.hp.mqm</groupId>
+		<artifactId>bamboo</artifactId>
+		<version>12.53.16-SNAPSHOT</version>
+	</parent>
+	<properties>
+		<bamboo.version>5.9.10</bamboo.version>
+		<bamboo.data.version>5.9.10</bamboo.data.version>
+		<amps.version>5.0.18</amps.version>
+		<plugin.testrunner.version>1.2.3</plugin.testrunner.version>
+		<atlassian.spring.scanner.version>1.2.13</atlassian.spring.scanner.version>
+		<!-- This key is used to keep the consistency between the key in atlassian-plugin.xml and the key to generate bundle. -->
+		<atlassian.plugin.key>${project.groupId}.${project.artifactId}</atlassian.plugin.key>
+		<!-- signing -->
+		<cert.project.name>jarAgm</cert.project.name>
+		<original.folder>${project.build.directory}/temp</original.folder>
+		<matching.obj>jarfile_batch_sign_local_timestamp</matching.obj>
+		<file.name>${project.artifactId}-${project.version}.jar</file.name>
+	</properties>
+	<dependencies>
+		<!-- CONTAINER -->
+		<dependency>
+			<artifactId>atlassian-bamboo-web</artifactId>
+			<groupId>com.atlassian.bamboo</groupId>
+			<version>${bamboo.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<artifactId>atlassian-spring-scanner-annotation</artifactId>
+			<groupId>com.atlassian.plugin</groupId>
+			<version>${atlassian.spring.scanner.version}</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<artifactId>atlassian-spring-scanner-runtime</artifactId>
+			<groupId>com.atlassian.plugin</groupId>
+			<version>${atlassian.spring.scanner.version}</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.ws.rs</groupId>
+			<artifactId>jsr311-api</artifactId>
+			<version>1.1.1</version>
+			<scope>provided</scope>
+		</dependency>
+		<!-- INTERNAL -->
+		<dependency>
+			<artifactId>integrations-sdk</artifactId>
+			<groupId>com.hp.mqm</groupId>
+			<version>${project.version}</version>
+		</dependency>
+		<!-- TESTS -->
+		<dependency>
+			<artifactId>junit</artifactId>
+			<groupId>junit</groupId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<artifactId>mockito-core</artifactId>
+			<groupId>org.mockito</groupId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<artifactId>atlassian-plugins-osgi-testrunner</artifactId>
+			<groupId>com.atlassian.plugins</groupId>
+			<version>${plugin.testrunner.version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-bamboo-plugin</artifactId>
+				<groupId>com.atlassian.maven.plugins</groupId>
+				<version>${amps.version}</version>
+				<extensions>true</extensions>
+				<configuration>
+					<allowGoogleTracking>false</allowGoogleTracking>
+					<productVersion>${bamboo.version}</productVersion>
+					<productDataVersion>${bamboo.data.version}</productDataVersion>
+					<enableFastdev>false</enableFastdev>
+					<buildTestPlugin>false</buildTestPlugin>
+					<!-- See here for more options: -->
+					<!-- https://developer.atlassian.com/docs/developer-tools/working-with-the-sdk/about-amps-build-options/amps-build-configuration-reference -->
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>atlassian-spring-scanner-maven-plugin</artifactId>
+				<groupId>com.atlassian.plugin</groupId>
+				<version>${atlassian.spring.scanner.version}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>atlassian-spring-scanner</goal>
+						</goals>
+						<phase>process-classes</phase>
+					</execution>
+				</executions>
+				<configuration>
+					<scannedDependencies>
+						<dependency>
+							<artifactId>atlassian-spring-scanner-external-jar</artifactId>
+							<groupId>com.atlassian.plugin</groupId>
+						</dependency>
+					</scannedDependencies>
+					<verbose>false</verbose>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	<profiles>
+		<profile>
+			<id>jar-signing</id>
+			<build>
+				<defaultGoal>install</defaultGoal>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>1.7</version>
+						<executions>
+							<execution>
+								<id>default-cli</id>
+								<phase>post-integration-test</phase>
+								<configuration>
+									<target name="Sign">
+										<echo message="This is the file name:${file.name}"/>
+										<exec executable="/bin/bash" failonerror="true">
+											<arg value="/opt/HPCSS/HPSignClient/HPSign.sh"/>
+											<!--<arg value="-r jarAgm -c HPSign.conf -i /tmp/tmp/hp-integration-bridge-upgrade-windows.jar -o /tmp/tmp/Signed -obj jarfile_batch_sign_local_timestamp" />-->
+											<arg value="-r ${cert.project.name} -c HPSign.conf -i ${project.build.directory}/${file.name} -o ${original.folder} -obj ${matching.obj}"/>
+										</exec>
+									</target>
+								</configuration>
+								<goals>
+									<goal>run</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>copy signed jar to target</id>
+								<phase>post-integration-test</phase>
+								<configuration>
+									<target>
+										<copy file="${original.folder}/${file.name}"
+											  toFile="${project.build.directory}/${file.name}" overwrite="true"/>
+									</target>
+								</configuration>
+								<goals>
+									<goal>run</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>verify-signing</id>
+								<phase>post-integration-test</phase>
+								<configuration>
+									<target name="Verify sign">
+										<echo message="This is the file name:${file.name}"/>
+										<exec executable="/bin/bash" failonerror="true">
+											<arg value="-c"/>
+											<arg value="if /usr/bin/jarsigner -verify ${project.build.directory}/${file.name} | grep &apos;jar verified.&apos;; then echo THE JAR ${file.name} WAS SIGNED SUCCESSFULLY; exit 0; else echo THE BUILD FAILED BECAUSE JAR ${file.name} IS UNSIGNED; exit 1; fi"/>
+										</exec>
+									</target>
+								</configuration>
+								<goals>
+									<goal>run</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>

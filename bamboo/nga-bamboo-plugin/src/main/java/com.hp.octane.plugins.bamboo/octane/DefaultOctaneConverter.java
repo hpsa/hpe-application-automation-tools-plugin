@@ -96,7 +96,7 @@ public class DefaultOctaneConverter implements DTOConverter {
 
 	public CIServerInfo getServerInfo(String baseUrl, String instanceId) {
 		return dtoFactoryInstance.newDTO(CIServerInfo.class)
-				.setInstanceId(OctaneConfigurationKeys.BAMBOO_INSTANCE_PREFIX + instanceId)
+				.setInstanceId(instanceId)
 				.setInstanceIdFrom(System.currentTimeMillis()).setSendingTime(System.currentTimeMillis())
 				.setType(CIServerTypes.JENKINS).setUrl(baseUrl);
 	}
