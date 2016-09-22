@@ -20,9 +20,9 @@ public class jobLrScenarioResult extends LrScenario {
     public WholeRunResult totalThroughtputResutls = new WholeRunResult();
     public WholeRunResult averageHitsPerSecondResults = new WholeRunResult();
     public WholeRunResult totalHitsResults = new WholeRunResult();
-    public TimeRangeResult errPerSecResults = new TimeRangeResult();
-    public PercentileTransactionWholeRun percentileTransactionResults = new PercentileTransactionWholeRun();
+    public ArrayList<PercentileTransactionWholeRun> percentileTransactionResults = new ArrayList<PercentileTransactionWholeRun>();
     public ArrayList<TransactionTimeRange> transactionTimeRanges = new ArrayList<TransactionTimeRange>();
+    public TimeRangeResult errPerSecResults = new TimeRangeResult();
 
 
 

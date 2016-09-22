@@ -14,7 +14,7 @@ public class LrProjectScenarioResults extends LrScenario {
     public Map<Integer, WholeRunResult> totalHitsResults = new HashMap<Integer, WholeRunResult>();
 
     public Map<Integer, TimeRangeResult> errPerSecResults = new HashMap<Integer, TimeRangeResult>();
-    public Map<Integer, PercentileTransactionWholeRun> percentileTransactionResultsProject = new HashMap<Integer, PercentileTransactionWholeRun>();
+    public Map<Integer, ArrayList<PercentileTransactionWholeRun>> percentileTransactionResultsProject = new HashMap<Integer, ArrayList<PercentileTransactionWholeRun>>();
     public Map<Integer, ArrayList<TransactionTimeRange>> transactionTimeRangesProject = new HashMap<Integer, ArrayList<TransactionTimeRange>>();
 
     public LrProjectScenarioResults(String scenarioName) {

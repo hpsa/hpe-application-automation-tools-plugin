@@ -80,7 +80,6 @@ public class PerformanceProjectAction implements Action{
                 targetLrScenarioResult.totalThroughtputResutls.put(run.getNumber(), runResult.getValue().totalThroughtputResutls);
                 targetLrScenarioResult.averageHitsPerSecondResults.put(run.getNumber(), runResult.getValue().averageHitsPerSecondResults);
                 targetLrScenarioResult.totalHitsResults.put(run.getNumber(), runResult.getValue().totalHitsResults);
-
                 targetLrScenarioResult.errPerSecResults.put(run.getNumber(), runResult.getValue().errPerSecResults);
                 targetLrScenarioResult.percentileTransactionResultsProject.put(run.getNumber(), runResult.getValue().percentileTransactionResults);
                 targetLrScenarioResult.transactionTimeRangesProject.put(run.getNumber(), runResult.getValue().transactionTimeRanges);
@@ -349,15 +348,7 @@ public class PerformanceProjectAction implements Action{
                 }
             }
 
-            for(Map.Entry<String, ArrayList<Double>> transactionData : averageTRTData.entrySet())
-            {
-                JSONObject dataset = new JSONObject();
-                JSONArray data = new JSONArray();
-                dataset.put("label", transactionData.getKey());
-                data.addAll(transactionData.getValue());
-                dataset.put("data", data);
-                datasets.add(dataset);
-            }
+            createGraphDatasets(averageTRTData, datasets);
 
             graphDataSet.put("datasets", datasets);
 
@@ -380,6 +371,128 @@ public class PerformanceProjectAction implements Action{
 
         }
         return scenarionGraphData;
+    }
+
+    @JavaScriptMethod
+    public JSONObject getPercentelieTransactionResultsGraphData()
+    {
+        JSONObject graphDataSet;
+        JSONObject scenarionGraphData = new JSONObject();
+
+        for(Map.Entry<String, LrProjectScenarioResults> scenarioResults: _projectResult.getLrScenarioResults().entrySet() ) {
+            Map<Integer, ArrayList<PercentileTransactionWholeRun>> graphData = scenarioResults.getValue().percentileTransactionResultsProject;
+            HashMap<String, ArrayList<Double>> averageTRTData = new HashMap<String, ArrayList<Double>>(0);
+            graphDataSet = new JSONObject();
+
+            JSONArray labels = new JSONArray();
+            JSONArray datasets = new JSONArray();
+            JSONObject datasetStyle = new JSONObject();
+
+            labels.addAll(graphData.keySet());
+            graphDataSet.put("labels", labels);
+
+//            String goalValue = String.valueOf(graphData.values().iterator().next().getGoalValue());
+
+            for( ArrayList<PercentileTransactionWholeRun> result : graphData.values())
+            {
+                for(PercentileTransactionWholeRun percentileTransactionWholeRun : result)
+                {
+                    if(averageTRTData.containsKey(percentileTransactionWholeRun.getName()))
+                    {
+                        (averageTRTData.get(percentileTransactionWholeRun.getName())).add(percentileTransactionWholeRun.getActualValue());
+                    }
+                    else
+                    {
+                        ArrayList<Double> temp = new ArrayList<Double>(0);
+                        temp.add(percentileTransactionWholeRun.getActualValue());
+                        averageTRTData.put(percentileTransactionWholeRun.getName(),temp);
+                    }
+                }
+            }
+
+            createGraphDatasets(averageTRTData, datasets);
+
+            graphDataSet.put("datasets", datasets);
+
+
+
+//            graphDataSet.put("Goal", goalValue);
+
+
+//            dataset.put("fillColor", "rgba(220,220,21,0.2)");
+//            dataset.put("strokeColor", "rgba(220,42,220,1)");
+//            dataset.put("pointColor", "rgba(34,220,220,1)");
+//            dataset.put("pointStrokeColor", "#fff");
+//            dataset.put("pointHighlightFill", "#fff");
+//            dataset.put("pointHighlightStroke", "rgba(220,158,220,0.2)");
+
+
+            scenarionGraphData.put(scenarioResults.getKey(), graphDataSet);
+
+            return graphDataSet;
+
+        }
+        return scenarionGraphData;
+    }
+
+    private void createGraphDatasets(HashMap<String, ArrayList<Double>> averageTRTData, JSONArray datasets) {
+        for(Map.Entry<String, ArrayList<Double>> transactionData : averageTRTData.entrySet())
+        {
+            JSONObject dataset = new JSONObject();
+            JSONArray data = new JSONArray();
+            dataset.put("label", transactionData.getKey());
+            data.addAll(transactionData.getValue());
+            dataset.put("data", data);
+            datasets.add(dataset);
+        }
+    }
+
+    @JavaScriptMethod
+    public JSONObject getErrorPerSecResultsGraphData()
+    {
+        JSONObject graphDataSet;
+        JSONObject scenarioGraphData = new JSONObject();
+
+        for(Map.Entry<String, LrProjectScenarioResults> scenarioResults: _projectResult.getLrScenarioResults().entrySet() ) {
+            Map<Integer, TimeRangeResult> graphData = scenarioResults.getValue().errPerSecResults;
+
+            graphDataSet = new JSONObject();
+
+            JSONArray labels = new JSONArray();
+            JSONArray datasets = new JSONArray();
+            JSONObject dataset = new JSONObject();
+            JSONArray data = new JSONArray();
+            JSONObject datasetStyle = new JSONObject();
+
+            labels.addAll(graphData.keySet());
+
+//            String goalValue = String.valueOf(graphData.values().iterator().next().getGoalValue());
+            for( TimeRangeResult result : graphData.values())
+            {
+                data.add(result.getActualValueAvg());
+            }
+
+//            graphDataSet.put("Goal", goalValue);
+
+            graphDataSet.put("labels", labels);
+
+            dataset.put("label", LrTest.SLA_GOAL.ErrorsPerSecond);
+            dataset.put("fillColor", "rgba(220,220,21,0.2)");
+            dataset.put("strokeColor", "rgba(220,42,220,1)");
+            dataset.put("pointColor", "rgba(34,220,220,1)");
+            dataset.put("pointStrokeColor", "#fff");
+            dataset.put("pointHighlightFill", "#fff");
+            dataset.put("pointHighlightStroke", "rgba(220,158,220,0.2)");
+
+            dataset.put("data", data);
+            datasets.add(dataset);
+            graphDataSet.put("datasets", datasets);
+            scenarioGraphData.put(scenarioResults.getKey(), graphDataSet);
+
+            return graphDataSet;
+
+        }
+        return scenarioGraphData;
     }
 
     public List<String> getBuildPerformanceReportList(){
@@ -432,4 +545,15 @@ public class PerformanceProjectAction implements Action{
     public int add(int x, int y) {
         return x+y;
     }
+
+    boolean isVisible()
+    {
+        getUpdatedData(); // throw this our once fixes method
+        if(_workedBuilds.size() != 0)
+        {
+            return true;
+        }
+        return false;
+    }
+
 }

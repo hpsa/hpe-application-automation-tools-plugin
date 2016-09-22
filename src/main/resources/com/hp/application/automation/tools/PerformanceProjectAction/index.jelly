@@ -1,42 +1,43 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-
-
     <l:layout title="Jenkins JS Lib Samples" norefresh="true">
-        <st:bind var="foo" value="${it}"/>
+        <l:side-panel>
+            <st:include it="${it.currentProject}" page="sidepanel.jelly"/>
+        </l:side-panel>
 
-        <!--<st:include it="${it}" page="sidepanel.jelly" />-->
-        <!--<j:set var="builds" value="${it.builds}"/>-->
-    <!--<st:include it="${it.project}" page="sidepanel.jelly" />-->
-    <!--<j:set var="builds" value="${it.builds}"/>-->
-        <st:bind var="" value="${it.UpdatedData}"/>
 
         <l:main-panel>
             <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.1.1/Chart.min.js"></script>
+            <j:set var="builds" value="${it.builds}"/>
+
+            <st:bind var="instance" value="${it}"/>
             <st:bind var="projectName" value="${it.DisplayName}"/>
+            <st:bind var="" value="${it.UpdatedData}"/>
 
         <h1>${it.DisplayName}</h1>
 
-        <div>
-    </div>
         <div id="container">
             <!-- This element's contents will be replaced with your component. -->
         </div>
             <h4> Total throughput </h4>
-            <canvas id="TotalThroughput" width="900" height="500"></canvas>
+            <canvas id="TotalThroughput" width="900" height="500"/>
             <h4> AvgHitsPerSecGraphData </h4>
-            <canvas id="AvgHitsPerSecGraphData" width="900" height="500"></canvas>
+            <canvas id="AvgHitsPerSecGraphData" width="900" height="500"/>
             <h4> AvgThroughput</h4>
-            <canvas id="AvgThroughput" width="900" height="500"></canvas>
+            <canvas id="AvgThroughput" width="900" height="500"/>
             <h4> Total Hits</h4>
-            <canvas id="TotalHits" width="900" height="500"></canvas>
+            <canvas id="TotalHits" width="900" height="500"/>
             <h4> Average transaction</h4>
-            <canvas id="AvgTRT" width="900" height="500"></canvas>
-            <div id="AvgTRT_Legend"></div>
-            <!--<h4> Total Hits</h4>-->
+            <canvas id="AvgTRT" width="900" height="500"/>
+            <div id="AvgTRT_Legend"/>
+            <h4>Error per sec</h4>
+            <canvas id="ErrorPerSec" width="900" height="500"/>
+            <h4>PercentileTransactionWholeRun</h4>
+            <canvas id="PercentileTransactionWholeRun" width="900" height="500"/>
+            <div id="PercentileTransactionWholeRun_Legend"/>
         <!--<st:bind var="f" value="${it.BuildPerformanceReportList}"/>-->
-        <st:bind var="totalHitsGraph2" value="${it.getTotalHitsGraphData}"/>
+        <!--<st:bind var="totalHitsGraph2" value="${it.getTotalHitsGraphData}"/>-->
         <!--<st:bind var="thdgd" value="${it.getAvgThroughtputResultsGraphData}"/>-->
 
 
@@ -93,11 +94,10 @@
             //     document.getElementById('container')); }, 50);
             // <!--var f =<st:bind value="${BuildPerformanceReport}"/>;-->
             //
-            // foo.add(1,5, function(t) {
+            // instance.add(1,5, function(t) {
             // document.getElementById('msg').innerHTML = t.responseObject();
             // });
             // var pvb;
-            // foo.getTotalHitsGraphData(function(t) {
             // pvb = t.responseObject();
             // var p =[];
             // for(var i in pvb)
@@ -113,6 +113,5 @@
             <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/jslib.js"/>
 
     </l:main-panel>
-    <!--<j:set var="temp" value="${it.jsonLoadData}"/>-->
     </l:layout>
 </j:jelly>

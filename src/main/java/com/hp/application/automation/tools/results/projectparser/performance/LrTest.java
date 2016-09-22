@@ -55,6 +55,10 @@ public interface LrTest {
             {
                 return AverageTRT;
             }
+            else if((status.compareTo(PercentileTRT.toString())==0))
+            {
+                return PercentileTRT;
+            }
             return Bad;
         }
 

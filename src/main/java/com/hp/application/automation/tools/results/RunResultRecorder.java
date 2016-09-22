@@ -763,17 +763,18 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                             errPerSec.setLoadThrashold(slaRuleElement.getAttribute("SLALoadThresholdValue").toString());
                             errPerSec.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getFirstChild().getTextContent())); //Might not work due to time ranges
                             addTimeRanges(errPerSec, slaRuleElement);
-                            errPerSec.getActualValueAvg();
+//                            errPerSec.getActualValueAvg();
                             jobLrScenarioResult.errPerSecResults = errPerSec;
                             break;
                         case PercentileTRT:
                             PercentileTransactionWholeRun percentileTransactionWholeRun = new PercentileTransactionWholeRun();
+                            percentileTransactionWholeRun.setName(slaRuleElement.getAttribute("TransactionName").toString());
                             percentileTransactionWholeRun.setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
                             percentileTransactionWholeRun.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
                             percentileTransactionWholeRun.setFullName(slaRuleElement.getAttribute("FullName"));
                             percentileTransactionWholeRun.setPrecentage(Double.valueOf(slaRuleElement.getAttribute("Percentile")));
                             percentileTransactionWholeRun.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
-                            jobLrScenarioResult.percentileTransactionResults = percentileTransactionWholeRun;
+                            jobLrScenarioResult.percentileTransactionResults.add(percentileTransactionWholeRun);
                             break;
                         case AverageTRT:
                             TransactionTimeRange transactionTimeRange = new TransactionTimeRange();
@@ -786,7 +787,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                             jobLrScenarioResult.transactionTimeRanges.add(transactionTimeRange);
                             break;
                         case Bad:
-
                             break;
                     }
                 }            jobResults.addScenrio(jobLrScenarioResult);

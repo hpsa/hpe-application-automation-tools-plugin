@@ -117,3 +117,4 @@ target/
 # java script
 node/
 node_modules/
+/hp-application-automation-tools-plugin.iml
