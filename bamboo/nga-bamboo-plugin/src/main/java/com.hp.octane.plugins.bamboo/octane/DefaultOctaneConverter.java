@@ -100,7 +100,7 @@ public class DefaultOctaneConverter implements DTOConverter {
 		return dtoFactoryInstance.newDTO(CIServerInfo.class)
 				.setInstanceId(OctaneConfigurationKeys.BAMBOO_INSTANCE_PREFIX + instanceId)
 				.setInstanceIdFrom(System.currentTimeMillis()).setSendingTime(System.currentTimeMillis())
-				.setType(CIServerTypes.JENKINS).setUrl(baseUrl);
+				.setType(CIServerTypes.BAMBOO).setUrl(baseUrl);
 	}
 
     public SnapshotNode getSnapshot(ImmutableTopLevelPlan plan, ImmutableResultsSummary resultsSummary){
