@@ -1,13 +1,10 @@
 package com.hp.octane.plugins.bamboo.rest;
 
-import com.atlassian.plugins.rest.common.security.AnonymousAllowed;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
-import com.sun.jersey.spi.resource.Singleton;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,22 +16,19 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 
-@Singleton
 @Path("/testconnection")
-public class OctanceRestResource {
-    private static final Logger log = LoggerFactory.getLogger(OctanceRestResource.class);
+public class OctaneRestResource {
+    private static final Logger log = LoggerFactory.getLogger(OctaneRestResource.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @POST
-    @AnonymousAllowed
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Response testConfiguration(String body) throws JsonProcessingException, IOException {
-        DTO dto = objectMapper.readValue(body, DTO.class);
+    public Response testConfiguration(String body) throws IOException {
+        OctaneConnectionDTO dto = objectMapper.readValue(body, OctaneConnectionDTO.class);
         return Response.ok(tryToConnect(dto)).build();
     }
 
-
-    private String tryToConnect(DTO dto) {
+    private String tryToConnect(OctaneConnectionDTO dto) {
         try {
             String octaneUrl = dto.getOctaneUrl();
             String accessKey = dto.getAccessKey();
@@ -70,7 +64,7 @@ public class OctanceRestResource {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private static final class DTO {
+    private static final class OctaneConnectionDTO {
         private String octaneUrl;
         private String accessKey;
         private String apiSecret;

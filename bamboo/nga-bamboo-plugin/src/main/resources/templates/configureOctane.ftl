@@ -9,17 +9,15 @@
                 p.textContent ='';
                 var t = document.createTextNode(this.responseText);
                 if (this.responseText.toLocaleLowerCase().includes("success")) {
-                    debugger;
                     p.style.color = "green";
                 }
                 else {
-                    debugger;
                     p.style.color = "red";
                 }
                 p.appendChild(t);
             }
         };
-        xhttp.open("POST", "/bamboo/rest/octanerest/1.0/testconnection", true);
+        xhttp.open("POST", "/bamboo/rest/octane/1.0/testconnection", true);
         xhttp.send(JSON.stringify({
             octaneUrl: document.getElementById("octaneConfigurationForm_octaneUrl").value,
             accessKey: document.getElementById("octaneConfigurationForm_accessKey").value,
@@ -33,10 +31,10 @@
 id="octaneConfigurationForm"
 submitLabelKey='global.buttons.update']
 [@ui.bambooSection title="Credentials"]
-[@ww.textfield name='octaneUrl' label='Octane Instance URL' /]
-[@ww.textfield name="accessKey" label='Access Key' /]
-[@ww.textfield name="apiSecret" label='API Secret' /]
-[@ww.textfield name="userName" label='Username to use' /]
+[@ww.textfield name='octaneUrl' label='Location' /]
+[@ww.textfield name="accessKey" label='Client ID' /]
+[@ww.textfield name="apiSecret" label='Client secret' /]
+[@ww.textfield name="userName" label='Bamboo user' /]
 [/@ui.bambooSection]
 [/@ww.form]
 <script>
