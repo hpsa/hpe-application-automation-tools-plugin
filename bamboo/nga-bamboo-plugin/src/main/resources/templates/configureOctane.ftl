@@ -17,7 +17,8 @@
                 p.appendChild(t);
             }
         };
-        xhttp.open("POST", document.location.pathname.replace(/\/admin.*$/, '') + "/rest/octane/1.0/testconnection", true);
+        xhttp.open("POST", "${req.contextPath}/rest/octane/1.0/testconnection", true);
+        xhttp.setRequestHeader('content-type','application/json');
         xhttp.send(JSON.stringify({
             octaneUrl: document.getElementById("octaneConfigurationForm_octaneUrl").value,
             accessKey: document.getElementById("octaneConfigurationForm_accessKey").value,
