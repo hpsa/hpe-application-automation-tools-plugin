@@ -9,6 +9,7 @@ import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -24,7 +25,8 @@ public class OctaneRestResource {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @POST
-    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response testConfiguration(String body) throws IOException {
         OctaneConnectionDTO dto = objectMapper.readValue(body, OctaneConnectionDTO.class);
         return Response.ok(tryToConnect(dto)).build();
