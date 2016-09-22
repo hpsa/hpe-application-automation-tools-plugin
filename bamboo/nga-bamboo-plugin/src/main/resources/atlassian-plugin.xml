@@ -53,7 +53,7 @@
   <preJobAction key="ngaPostJobReporter" name="NGA post-job build status reporter" class="com.hp.octane.plugins.bamboo.listener.OctanePostJobAction">
     <description>Report non-root job finished to NGA</description>
   </preJobAction>
-  <rest name="Octane Rest Resource" i18n-name-key="octane-rest-resource.name" key="octane-rest-resource" path="/octanerestresource" version="1.0">
+  <rest name="Octane Rest Resource" i18n-name-key="octane-rest-resource.name" key="octane-rest-resource" path="/octane" version="1.0">
     <description key="octane-rest-resource.description">Octane Rest</description>
   </rest>
 </atlassian-plugin>
