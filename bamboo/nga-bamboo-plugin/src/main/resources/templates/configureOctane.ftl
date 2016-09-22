@@ -17,7 +17,7 @@
                 p.appendChild(t);
             }
         };
-        xhttp.open("POST", "/bamboo/rest/octane/1.0/testconnection", true);
+        xhttp.open("POST", "/bamboo/rest/octanerestresource/1.0/testconnection", true);
         xhttp.send(JSON.stringify({
             octaneUrl: document.getElementById("octaneConfigurationForm_octaneUrl").value,
             accessKey: document.getElementById("octaneConfigurationForm_accessKey").value,
