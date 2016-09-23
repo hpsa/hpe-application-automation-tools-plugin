@@ -153,7 +153,7 @@ public class JUnitExtension extends MqmTestsExtension {
             this.jenkinsRootUrl = jenkinsRootUrl;
             AbstractProject project = build.getProject();
             this.jobName = project.getName();
-            this.buildId = ((FreeStyleBuild) build).getProject().getBuilds().getLastBuild().getId();
+            this.buildId = build.getProject().getBuilds().getLastBuild().getId();
             moduleDetection = Arrays.asList(
                     new MavenBuilderModuleDetection(build),
                     new MavenSetModuleDetection(build),
