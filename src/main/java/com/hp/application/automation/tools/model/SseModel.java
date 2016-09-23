@@ -3,6 +3,7 @@ package com.hp.application.automation.tools.model;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
@@ -34,6 +35,7 @@ public class SseModel {
     private final String _postRunAction;
     private final String _environmentConfigurationId;
     private final CdaDetails _cdaDetails;
+    private final ProxySettings _proxySettings;
     
     private final static EnumDescription _runTypeTestSet =
             new EnumDescription(TEST_SET, "Test Set");
@@ -71,7 +73,8 @@ public class SseModel {
             String description,
             String postRunAction,
             String environmentConfigurationId,
-            CdaDetails cdaDetails) {
+            CdaDetails cdaDetails,
+            ProxySettings proxySettings) {
         
         _almServerName = almServerName;
         _almDomain = almDomain;
@@ -85,6 +88,7 @@ public class SseModel {
         _postRunAction = postRunAction;
         _environmentConfigurationId = environmentConfigurationId;
         _cdaDetails = cdaDetails;
+        _proxySettings = proxySettings;
         
     }
     
@@ -178,5 +182,17 @@ public class SseModel {
     public String getPostRunAction() {
         
         return _postRunAction;
+    }
+    
+    public ProxySettings getProxySettings() {
+        return _proxySettings;
+    }
+
+    public boolean isUseProxy() {
+        return _proxySettings != null;
+    }
+
+    public boolean isUseAuthentication() {
+        return _proxySettings != null && StringUtils.isNotBlank(_proxySettings.getFsProxyUserName());
     }
 }

@@ -1,5 +1,6 @@
 package com.hp.application.automation.tools.sse;
 
+import com.hp.application.automation.tools.model.ProxySettings;
 import com.hp.application.automation.tools.model.SseModel;
 import com.hp.application.automation.tools.rest.RestClient;
 import com.hp.application.automation.tools.sse.result.model.junit.Testsuites;
@@ -27,12 +28,23 @@ public class SSEBuilderPerformer {
         try {
             //Args args = new ArgsFactory().create(model);
             Args args = new ArgsFactory().createResolved(model, buildVariableResolver);
-            RestClient restClient =
-                    new RestClient(
-                            args.getUrl(),
-                            args.getDomain(),
-                            args.getProject(),
-                            args.getUsername());
+            ProxySettings proxySettings = model.getProxySettings();
+            
+            RestClient restClient;
+            if (proxySettings != null) {
+            	restClient = new RestClient(args.getUrl(),
+                                args.getDomain(),
+                                args.getProject(),
+                                args.getUsername(),
+                                RestClient.setProxyCfg(proxySettings.getFsProxyAddress(),
+                                		proxySettings.getFsProxyUserName(),
+                                		proxySettings.getFsProxyPassword()));
+            } else {
+            	restClient = new RestClient(args.getUrl(),
+            					args.getDomain(),
+                                args.getProject(),
+                                args.getUsername());
+            }
             ret = _runManager.execute(restClient, args, logger);
         } catch (InterruptedException ex) {
             throw ex;
