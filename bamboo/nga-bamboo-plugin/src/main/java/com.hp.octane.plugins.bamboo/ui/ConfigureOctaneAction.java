@@ -83,6 +83,7 @@ public class ConfigureOctaneAction extends BambooActionSupport implements Initia
 	public void setUuid(String uuid) {
 		this.uuid = uuid;
 	}
+
 	public void afterPropertiesSet() throws Exception {
 		try {
 			OctaneSDK.init(new BambooPluginServices(settingsFactory), true);
@@ -93,6 +94,13 @@ public class ConfigureOctaneAction extends BambooActionSupport implements Initia
 
 	private void readData() {
 		PluginSettings settings = settingsFactory.createGlobalSettings();
+		if (settings.get(OctaneConfigurationKeys.UUID) != null) {
+			uuid = String.valueOf(settings.get(OctaneConfigurationKeys.UUID));
+		} else {
+			// generate new UUID
+			uuid = UUID.randomUUID().toString();
+			settings.put(OctaneConfigurationKeys.UUID, uuid);
+		}
 		if (settings.get(OctaneConfigurationKeys.OCTANE_URL) != null) {
 			octaneUrl = String.valueOf(settings.get(OctaneConfigurationKeys.OCTANE_URL));
 		} else {
@@ -102,13 +110,6 @@ public class ConfigureOctaneAction extends BambooActionSupport implements Initia
 			accessKey = String.valueOf(settings.get(OctaneConfigurationKeys.ACCESS_KEY));
 		} else {
 			accessKey = "";
-		}
-		if (settings.get(OctaneConfigurationKeys.UUID) != null) {
-			uuid = String.valueOf(settings.get(OctaneConfigurationKeys.UUID));
-		} else {
-			// generate new UUID
-			uuid = UUID.randomUUID().toString();
-			settings.put(OctaneConfigurationKeys.UUID,uuid);
 		}
 		if (settings.get(OctaneConfigurationKeys.API_SECRET) != null) {
 			apiSecret = String.valueOf(settings.get(OctaneConfigurationKeys.API_SECRET));
