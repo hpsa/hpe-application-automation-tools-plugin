@@ -68,8 +68,7 @@ public class ConfigureOctaneActionTest {
 	@Ignore
 	public void testPropertiesSaved() {
 		underTest.doSave();
-		Mockito.verify(settings, Mockito.times(keys.length)).put(propertyNameCaptor.capture(),
-				valueCaptor.capture());
+		Mockito.verify(settings, Mockito.times(keys.length)).put(propertyNameCaptor.capture(), valueCaptor.capture());
 		Assert.assertArrayEquals(keys, propertyNameCaptor.getAllValues().toArray());
 		Assert.assertArrayEquals(values, valueCaptor.getAllValues().toArray());
 	}
