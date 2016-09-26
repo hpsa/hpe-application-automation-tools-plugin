@@ -297,15 +297,21 @@ public class SseBuilder extends Builder {
         }
         
         public FormValidation doCheckTimeslotDuration(@QueryParameter String value) {
-            
-            FormValidation ret = FormValidation.ok();
             if (StringUtils.isBlank(value)) {
-                ret = FormValidation.error("Timeslot duration must be set");
-            } else if (Integer.valueOf(value) < 30) {
-                ret = FormValidation.error("Timeslot duration must be higher than 30");
+            	return FormValidation.error("Timeslot duration must be set");
             }
             
-            return ret;
+            String val1 = value.trim();
+            
+            if (!StringUtils.isNumeric(val1)) {
+            	return FormValidation.error("Timeslot duration must be a number");
+            }
+            
+            if (Integer.valueOf(val1) < 30) {
+            	return FormValidation.error("Timeslot duration must be higher than 30");
+            }
+            
+            return FormValidation.ok();
         }
         
         public FormValidation doCheckAlmDomain(@QueryParameter String value) {
