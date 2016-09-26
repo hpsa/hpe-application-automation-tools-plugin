@@ -16,53 +16,60 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.UUID;
+
 @RunWith(MockitoJUnitRunner.class)
 public class ConfigureOctaneActionTest {
 
-    @Mock
-    PluginSettingsFactory settingsFactory;
-    @Mock
-    PluginSettings settings;
+	@Mock
+	PluginSettingsFactory settingsFactory;
+	@Mock
+	PluginSettings settings;
 
-    @Captor
-    ArgumentCaptor<String> propertyNameCaptor;
+	@Captor
+	ArgumentCaptor<String> propertyNameCaptor;
 
-    @Captor
-    ArgumentCaptor<String> valueCaptor;
+	@Captor
+	ArgumentCaptor<String> valueCaptor;
 
-    ConfigureOctaneAction underTest;
+	ConfigureOctaneAction underTest;
 
-    String[] keys = new String[] { OctaneConfigurationKeys.OCTANE_URL, OctaneConfigurationKeys.ACCESS_KEY,
-            OctaneConfigurationKeys.API_SECRET, OctaneConfigurationKeys.IMPERSONATION_USER};
+	String[] keys = new String[]{
+			OctaneConfigurationKeys.UUID,
+			OctaneConfigurationKeys.OCTANE_URL,
+			OctaneConfigurationKeys.ACCESS_KEY,
+			OctaneConfigurationKeys.API_SECRET,
+			OctaneConfigurationKeys.IMPERSONATION_USER
+	};
 
-    String[] values = new String[] { "url", "accessKey", "apiSecret","admin" };
+	String[] values = new String[]{UUID.randomUUID().toString(), "url", "accessKey", "apiSecret", "admin"};
 
-    @Before
-    public void setUp() {
-        Mockito.when(settingsFactory.createGlobalSettings()).thenReturn(settings);
-        underTest = new ConfigureOctaneAction(settingsFactory);
-        
-        underTest.setOctaneUrl(values[0]);
-        underTest.setAccessKey(values[1]);
-        underTest.setApiSecret(values[2]);
-        underTest.setUserName(values[3]);
-    }
+	@Before
+	public void setUp() {
+		Mockito.when(settingsFactory.createGlobalSettings()).thenReturn(settings);
+		underTest = new ConfigureOctaneAction(settingsFactory);
 
-    @Test
-    public void testPropertiesLoaded() {
+		underTest.setUuid(values[0]);
+		underTest.setOctaneUrl(values[1]);
+		underTest.setAccessKey(values[2]);
+		underTest.setApiSecret(values[3]);
+		underTest.setUserName(values[4]);
+	}
 
-        underTest.doEdit();
-        Mockito.verify(settings, Mockito.times(keys.length)).get(propertyNameCaptor.capture());
-        Assert.assertArrayEquals(keys, propertyNameCaptor.getAllValues().toArray());
-    }
+	@Test
+	public void testPropertiesLoaded() {
 
-    @Test
-    @Ignore
-    public void testPropertiesSaved() {
-        underTest.doSave();
-        Mockito.verify(settings, Mockito.times(keys.length)).put(propertyNameCaptor.capture(),
-                valueCaptor.capture());
-        Assert.assertArrayEquals(keys, propertyNameCaptor.getAllValues().toArray());
-        Assert.assertArrayEquals(values, valueCaptor.getAllValues().toArray());
-    }
+		underTest.doEdit();
+		Mockito.verify(settings, Mockito.times(keys.length)).get(propertyNameCaptor.capture());
+		Assert.assertArrayEquals(keys, propertyNameCaptor.getAllValues().toArray());
+	}
+
+	@Test
+	@Ignore
+	public void testPropertiesSaved() {
+		underTest.doSave();
+		Mockito.verify(settings, Mockito.times(keys.length)).put(propertyNameCaptor.capture(), valueCaptor.capture());
+		Assert.assertArrayEquals(keys, propertyNameCaptor.getAllValues().toArray());
+		Assert.assertArrayEquals(values, valueCaptor.getAllValues().toArray());
+	}
 }

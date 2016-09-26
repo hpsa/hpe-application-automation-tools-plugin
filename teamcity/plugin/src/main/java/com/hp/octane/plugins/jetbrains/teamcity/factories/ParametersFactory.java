@@ -18,7 +18,7 @@ public class ParametersFactory {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	public List<CIParameter> obtainFromBuildType(SBuildType buildType) {
-		List<CIParameter> result = new LinkedList<CIParameter>();
+		List<CIParameter> result = new LinkedList<>();
 		CIParameter tmp;
 
 		if (buildType != null && !buildType.getParameters().isEmpty()) {
@@ -35,7 +35,7 @@ public class ParametersFactory {
 	}
 
 	public List<CIParameter> obtainFromBuild(SBuild build) {
-		List<CIParameter> result = new LinkedList<CIParameter>();
+		List<CIParameter> result = new LinkedList<>();
 		CIParameter tmp;
 
 		if (build != null && !build.getBuildOwnParameters().isEmpty()) {

@@ -75,7 +75,7 @@ public class SnapshotsFactory {
 
 
 	private List<SnapshotNode> createSnapshots(List<Dependency> dependencies, String rootId) {
-		List<SnapshotNode> result = new LinkedList<SnapshotNode>();
+		List<SnapshotNode> result = new LinkedList<>();
 
 		if (dependencies != null && !dependencies.isEmpty()) {
 			for (Dependency dependency : dependencies) {

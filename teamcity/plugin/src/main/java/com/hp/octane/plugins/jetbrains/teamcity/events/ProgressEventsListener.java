@@ -9,7 +9,12 @@ import com.hp.octane.integrations.dto.events.CIEventType;
 import com.hp.octane.plugins.jetbrains.teamcity.OctaneTeamCityPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelCommonFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ParametersFactory;
-import jetbrains.buildServer.serverSide.*;
+import jetbrains.buildServer.serverSide.BuildServerAdapter;
+import jetbrains.buildServer.serverSide.BuildServerListener;
+import jetbrains.buildServer.serverSide.SBuildType;
+import jetbrains.buildServer.serverSide.SQueuedBuild;
+import jetbrains.buildServer.serverSide.SRunningBuild;
+import jetbrains.buildServer.serverSide.TriggeredBy;
 import jetbrains.buildServer.util.EventDispatcher;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -59,7 +64,7 @@ public class ProgressEventsListener extends BuildServerAdapter {
 	@Override
 	public void buildStarted(@NotNull SRunningBuild build) {
 		TriggeredBy triggeredBy = build.getTriggeredBy();
-		List<CIEventCause> causes = new ArrayList<CIEventCause>();
+		List<CIEventCause> causes = new ArrayList<>();
 
 		if (triggeredBy.getParameters().containsKey(TRIGGER_BUILD_TYPE_KEY)) {
 			String rootBuildTypeId = triggeredBy.getParameters().get(TRIGGER_BUILD_TYPE_KEY);
@@ -85,7 +90,7 @@ public class ProgressEventsListener extends BuildServerAdapter {
 	@Override
 	public void buildFinished(@NotNull SRunningBuild build) {
 		TriggeredBy triggeredBy = build.getTriggeredBy();
-		List<CIEventCause> causes = new ArrayList<CIEventCause>();
+		List<CIEventCause> causes = new ArrayList<>();
 
 		if (triggeredBy.getParameters().containsKey(TRIGGER_BUILD_TYPE_KEY)) {
 			String rootBuildTypeId = triggeredBy.getParameters().get(TRIGGER_BUILD_TYPE_KEY);
