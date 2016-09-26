@@ -15,6 +15,7 @@
 		<artifactId>bamboo</artifactId>
 		<version>12.53.16-SNAPSHOT</version>
 	</parent>
+
 	<properties>
 		<bamboo.version>5.9.10</bamboo.version>
 		<bamboo.data.version>5.9.10</bamboo.data.version>
@@ -29,7 +30,9 @@
 		<matching.obj>jarfile_batch_sign_local_timestamp</matching.obj>
 		<file.name>${project.artifactId}-${project.version}.jar</file.name>
 	</properties>
+
 	<dependencies>
+
 		<!-- CONTAINER -->
 		<dependency>
 			<artifactId>atlassian-bamboo-web</artifactId>
@@ -55,12 +58,14 @@
 			<version>1.1.1</version>
 			<scope>provided</scope>
 		</dependency>
+
 		<!-- INTERNAL -->
 		<dependency>
 			<artifactId>integrations-sdk</artifactId>
 			<groupId>com.hp.mqm</groupId>
 			<version>${project.version}</version>
 		</dependency>
+
 		<!-- TESTS -->
 		<dependency>
 			<artifactId>junit</artifactId>
@@ -117,6 +122,30 @@
 					</scannedDependencies>
 					<verbose>false</verbose>
 				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<groupId>org.apache.maven.plugins</groupId>
+				<executions>
+					<execution>
+						<id>unpack</id>
+						<phase>process-test-classes</phase>
+						<goals>
+							<goal>unpack</goal>
+						</goals>
+						<configuration>
+							<artifactItems>
+								<artifactItem>
+									<artifactId>integrations-sdk</artifactId>
+									<groupId>com.hp.mqm</groupId>
+									<version>${project.version}</version>
+									<type>test-jar</type>
+									<outputDirectory>${project.build.directory}/test-classes</outputDirectory>
+								</artifactItem>
+							</artifactItems>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
