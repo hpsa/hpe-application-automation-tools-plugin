@@ -74,7 +74,6 @@
 			<plugin>
 				<artifactId>maven-jar-plugin</artifactId>
 				<groupId>org.apache.maven.plugins</groupId>
-				<version>2.3.1</version>
 				<executions>
 					<execution>
 						<id>test-jar</id>
