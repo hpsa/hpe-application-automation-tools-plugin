@@ -29,8 +29,8 @@ public class ModelCommonFactory {
 
 	public CIJobsList CreateProjectList() {
 		CIJobsList ciJobsList = dtoFactory.newDTO(CIJobsList.class);
-		List<PipelineNode> list = new ArrayList<PipelineNode>();
-		List<String> ids = new ArrayList<String>();
+		List<PipelineNode> list = new ArrayList<>();
+		List<String> ids = new ArrayList<>();
 
 		PipelineNode buildConf;
 		for (SProject project : octaneTeamCityPlugin.getProjectManager().getProjects()) {
@@ -77,7 +77,7 @@ public class ModelCommonFactory {
 	}
 
 	private List<PipelineNode> buildFromDependenciesFlat(List<Dependency> dependencies) {
-		List<PipelineNode> result = new LinkedList<PipelineNode>();
+		List<PipelineNode> result = new LinkedList<>();
 		if (dependencies != null) {
 			for (Dependency dependency : dependencies) {
 				SBuildType build = dependency.getDependOn();
