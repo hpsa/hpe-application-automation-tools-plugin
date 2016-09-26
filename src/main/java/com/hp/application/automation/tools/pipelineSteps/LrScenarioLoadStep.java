@@ -14,6 +14,7 @@ import org.kohsuke.stapler.DataBoundSetter;
 import javax.annotation.Nonnull;
 import java.util.List;
 
+
 public class LrScenarioLoadStep extends AbstractStepImpl {
 
 
@@ -22,7 +23,7 @@ public class LrScenarioLoadStep extends AbstractStepImpl {
 
     public String getArchiveRunTestResultsMode() {
 //        return archiveRunTestResultsMode;
-        return ResultsPublisherModel.CreateHtmlReportResults.toString();
+        return ResultsPublisherModel.CreateHtmlReportResults.getValue();
     }
 
     public boolean isPublishResults() {
