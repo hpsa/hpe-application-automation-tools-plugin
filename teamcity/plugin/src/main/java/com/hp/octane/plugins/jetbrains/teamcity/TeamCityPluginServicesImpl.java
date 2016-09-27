@@ -75,7 +75,7 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 
 	@Override
 	public File getAllowedOctaneStorage() {
-		return null;
+		return new File(buildServer.getServerRootPath(), "logs");
 	}
 
 	@Override

@@ -86,7 +86,7 @@ public class OctaneConfigStructure {
 
 	@Override
 	public String toString() {
-		return "Config { " +
+		return "OctaneConfigStructure { " +
 				"identity: " + identity +
 				", identityFrom: " + identityFrom +
 				", uiLocation: " + uiLocation +
