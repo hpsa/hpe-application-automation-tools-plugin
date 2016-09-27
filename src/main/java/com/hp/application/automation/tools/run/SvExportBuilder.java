@@ -78,7 +78,7 @@ public class SvExportBuilder extends AbstractSvRunBuilder<SvExportModel> {
 
             logger.printf("  Exporting service '%s' [%s] to %s %n", serviceInfo.getName(), serviceInfo.getId(), targetDirectory);
             verifyNotLearningBeforeExport(logger, exec, serviceInfo);
-            exportProcessor.process(exec, targetDirectory, serviceInfo.getId());
+            exportProcessor.process(exec, targetDirectory, serviceInfo.getId(), false);
         }
 
         return true;
