@@ -217,6 +217,14 @@
 			<id>central</id>
 			<url>http://repo1.maven.org/maven2</url>
 		</repository>
+		<repository>
+			<id>hp-application-automation-tools-plugin-mvn-repo</id>
+			<url>https://raw.github.com/HpeServiceVirtualization/3g/mvn-repo/</url>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+			</snapshots>
+		</repository>
 	</repositories>
 
 	<pluginRepositories>
@@ -246,6 +254,17 @@
 			<groupId>org.jenkins-ci.plugins</groupId>
 			<artifactId>matrix-project</artifactId>
 			<version>1.6</version>
+		</dependency>
+		<dependency>
+			<groupId>com.hp.sv</groupId>
+			<artifactId>SVConfigurator</artifactId>
+			<version>3.82.1-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-io</groupId>
+					<artifactId>commons-io</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 	</dependencies>
 </project>
