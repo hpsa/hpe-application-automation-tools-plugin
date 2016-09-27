@@ -131,7 +131,7 @@ public class JUnitXmlIterator extends AbstractXmlIterator<TestResult> {
                     testName = testName.substring(workspace.getRemote().length()).replaceAll("^[/\\\\]", "");
                 }
                 if (hpRunnerType.equals(JUnitExtension.HPRunnerType.UFT)) {
-                    externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/artifact/UFTReport/" + testName + "/run_results.html";
+                    externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/artifact/UFTReport/" + cleanTestName(testName) + "/run_results.html";
                 }
             } else if ("duration".equals(localName)) { // NON-NLS
                 duration = parseTime(readNextValue());
@@ -176,5 +176,14 @@ public class JUnitXmlIterator extends AbstractXmlIterator<TestResult> {
                 }
             }
         }
+    }
+
+    private String cleanTestName(String testName) {
+        // subfolder\testname
+        if (testName.contains("\\")){
+            return testName.substring(testName.lastIndexOf("\\")+1);
+        }
+        return testName;
+
     }
 }
