@@ -10,6 +10,7 @@
 	<properties>
 		<baseNexusURL>http://mydtbld0051.hpeswlab.net:8081/nexus</baseNexusURL>
 		<maven.compiler.plugin.version>3.1</maven.compiler.plugin.version>
+		<maven.jar.plugin.version>3.0.2</maven.jar.plugin.version>
 		<jdk.version>1.7</jdk.version>
 		<httpclient-hp.version>4.5.1-hp-1</httpclient-hp.version>
 		<httpclient.version>4.5.1</httpclient.version>
@@ -66,8 +67,8 @@
 		<pluginManagement>
 			<plugins>
 				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
+					<groupId>org.apache.maven.plugins</groupId>
 					<version>${maven.compiler.plugin.version}</version>
 					<configuration>
 						<source>1.7</source>
@@ -82,6 +83,15 @@
 						<skipTests>${skipTests}</skipTests>
 						<testFailureIgnore>true</testFailureIgnore>
 					</configuration>
+				</plugin>
+				<plugin>
+					<artifactId>maven-jar-plugin</artifactId>
+					<groupId>org.apache.maven.plugins</groupId>
+					<version>${maven.jar.plugin.version}</version>
+				</plugin>
+				<plugin>
+					<artifactId>maven-dependency-plugin</artifactId>
+					<groupId>org.apache.maven.plugins</groupId>
 				</plugin>
 			</plugins>
 		</pluginManagement>

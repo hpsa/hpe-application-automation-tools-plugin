@@ -25,7 +25,6 @@
 	<Loggers>
 		<Root level="info" additivity="true">
 			<AppenderRef ref="OctaneFileAppender"/>
-			<AppenderRef ref="OctaneConsoleAppender"/>
 		</Root>
 	</Loggers>
 
