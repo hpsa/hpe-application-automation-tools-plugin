@@ -20,6 +20,18 @@
       <td/>
     </tr>  
 	</j:if>
+	
+	<script type="text/javascript">
+        function useAuthentication(obj){
+            if(obj.checked){
+                document.getElementsByName("sse.fsProxyUserName")[0].disabled=null;
+                document.getElementsByName("sse.fsProxyPassword")[0].disabled=null;
+            }else{
+                document.getElementsByName("sse.fsProxyUserName")[0].disabled="true";
+                document.getElementsByName("sse.fsProxyPassword")[0].disabled="true";
+            }
+        }
+    </script>
 
 	<tr>
       <td/>
@@ -57,6 +69,24 @@
         <f:entry title="Domain" field="almDomain">
             <f:textbox name="sse.almDomain" value="${instance.sseModel.almDomain}"/>
         </f:entry>
+        
+        <f:entry>
+	        <f:optionalBlock title="Use proxy settings" name = "proxySettings" checked="${instance.sseModel.useProxy}">
+	            <f:entry title="Address" field="fsProxyAddress">
+	              <f:textbox name="sse.fsProxyAddress" value="${instance.sseModel.proxySettings.fsProxyAddress}"/>
+	            </f:entry>
+	            <f:entry>
+	                <f:checkbox title="Specify authentication" name="sse.fsUseAuthentication" checked="${instance.sseModel.useAuthentication}" onclick="useAuthentication(this)"/>
+	            </f:entry>
+	            <f:entry title="User name" field="fsProxyUserName">
+	              <f:textbox name="sse.fsProxyUserName" disabled = "${instance.sseModel.useAuthentication ? null : 'true'}" value="${instance.sseModel.proxySettings.fsProxyUserName}"/>
+	            </f:entry>
+	            <f:entry title="Password" field="fsProxyPassword">
+	              <f:password name="sse.fsProxyPassword" disabled = "${instance.sseModel.useAuthentication ? null : 'true'}" value="${instance.sseModel.proxySettings.fsProxyPassword}"/>
+	            </f:entry>
+	        </f:optionalBlock>
+	    </f:entry>
+	    
         <f:entry title="Project" field="almProject">
             <f:textbox name="sse.almProject" value="${instance.sseModel.almProject}"/>
         </f:entry>      

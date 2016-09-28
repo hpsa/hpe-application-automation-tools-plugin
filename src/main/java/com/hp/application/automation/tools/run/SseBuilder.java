@@ -18,6 +18,7 @@ import org.kohsuke.stapler.QueryParameter;
 import com.hp.application.automation.tools.model.AlmServerSettingsModel;
 import com.hp.application.automation.tools.model.CdaDetails;
 import com.hp.application.automation.tools.model.EnumDescription;
+import com.hp.application.automation.tools.model.ProxySettings;
 import com.hp.application.automation.tools.model.SseModel;
 import com.hp.application.automation.tools.settings.AlmServerSettingsBuilder;
 import com.hp.application.automation.tools.sse.SSEBuilderPerformer;
@@ -63,7 +64,8 @@ public class SseBuilder extends Builder {
             String timeslotDuration,
             String postRunAction,
             String environmentConfigurationId,
-            CdaDetails cdaDetails) {
+            CdaDetails cdaDetails,
+            ProxySettings proxySettings) {
         
         _sseModel =
                 new SseModel(
@@ -78,7 +80,8 @@ public class SseBuilder extends Builder {
                         description,
                         postRunAction,
                         environmentConfigurationId,
-                        cdaDetails);
+                        cdaDetails,
+                        proxySettings);
     }
     
     @Override

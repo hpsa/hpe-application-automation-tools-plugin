@@ -1,6 +1,7 @@
 package com.hp.application.automation.tools.sse.sdk;
 
 import com.hp.application.automation.tools.model.CdaDetails;
+import com.hp.application.automation.tools.model.ProxySettings;
 import com.hp.application.automation.tools.model.SecretContainer;
 import com.hp.application.automation.tools.model.SecretContainerTest;
 import com.hp.application.automation.tools.model.SseModel;
@@ -19,7 +20,8 @@ public class MockSseModel extends SseModel {
             String description,
             String postRunAction,
             String environmentConfigurationId,
-            CdaDetails cdaDetails) {
+            CdaDetails cdaDetails,
+            ProxySettings proxySettings) {
         
         super(
                 almServerName,
@@ -33,7 +35,8 @@ public class MockSseModel extends SseModel {
                 description,
                 postRunAction,
                 environmentConfigurationId,
-                cdaDetails);
+                cdaDetails,
+                null);
     }
     
     @Override
