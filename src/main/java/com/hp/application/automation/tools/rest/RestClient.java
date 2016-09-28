@@ -16,6 +16,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.lang.StringUtils;
+
+import com.ctc.wstx.util.StringUtil;
 import com.hp.application.automation.tools.common.SSEException;
 import com.hp.application.automation.tools.sse.sdk.Client;
 import com.hp.application.automation.tools.sse.sdk.HttpRequestDecorator;
@@ -35,7 +38,7 @@ public class RestClient implements Client {
     private final String _restPrefix;
     private final String _webuiPrefix;
     private final String _username;
-    private ProxyInfo _proxyInfo;
+    private ProxyInfo proxyInfo;
     
     public RestClient(String url, String domain, String project, String username) {
 
@@ -59,7 +62,7 @@ public class RestClient implements Client {
         }
         _serverUrl = url;
         _username = username;
-        _proxyInfo = proxyInfo;
+        this.proxyInfo = proxyInfo;
         _restPrefix =
                 getPrefixUrl(
                         "rest",
@@ -175,7 +178,7 @@ public class RestClient implements Client {
         }
         try {
         	URL urlObj = new URL(url);
-            HttpURLConnection connection = (HttpURLConnection) openConnection(_proxyInfo, urlObj);
+            HttpURLConnection connection = (HttpURLConnection) openConnection(proxyInfo, urlObj);
             
             connection.setRequestMethod(type);
 
@@ -326,44 +329,46 @@ public class RestClient implements Client {
         return _username;
     }
     
-    private static URLConnection openConnection(final ProxyInfo proxyInfo, URL _url) throws IOException {
+    private static URLConnection openConnection(final ProxyInfo proxyInfo, URL url) throws IOException {
 
         Proxy proxy = null;
-
-        if (proxyInfo != null && proxyInfo._host != null && proxyInfo._port != null && !proxyInfo._host.isEmpty() && !proxyInfo._port.isEmpty()) {
-
+        
+        if (proxyInfo != null && StringUtils.isNotBlank(proxyInfo._host) && StringUtils.isNotBlank(proxyInfo._port)) {
             try {
                 int port = Integer.parseInt(proxyInfo._port.trim());
                 proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyInfo._host, port));
-
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
         }
-
-        if (proxy != null && proxyInfo._userName != null && proxyInfo._password != null && !proxyInfo._password.isEmpty() && !proxyInfo._password.isEmpty()) {
+        
+        if (proxy != null && StringUtils.isNotBlank(proxyInfo._userName) && StringUtils.isNotBlank(proxyInfo._password)) {
             Authenticator authenticator = new Authenticator() {
                 @Override
                 protected PasswordAuthentication getPasswordAuthentication() {
                     return new PasswordAuthentication(proxyInfo._userName, proxyInfo._password.toCharArray());    //To change body of overridden methods use File | Settings | File Templates.
                 }
             };
-
-
             Authenticator.setDefault(authenticator);
         }
 
         if (proxy == null) {
-            return _url.openConnection();
+            return url.openConnection();
         }
 
 
-        return _url.openConnection(proxy);
+        return url.openConnection(proxy);
     }
     
+    /**
+     * Set proxy configuration.
+     * @param host
+     * @param port
+     * @param userName
+     * @param password
+     * @return proxyinfo instance
+     */
     public static ProxyInfo setProxyCfg(String host, String port, String userName, String password) {
-
         return new ProxyInfo(host, port, userName, password);
     }
 
@@ -381,17 +386,19 @@ public class RestClient implements Client {
         ProxyInfo proxyInfo = new ProxyInfo();
 
         if (address != null) {
+        	String host = address;
+        	
             if (address.endsWith("/")) {
-                int end = address.lastIndexOf("/");
-                address = address.substring(0, end);
+                int end = address.lastIndexOf('/');
+                host = address.substring(0, end);
             }
 
-            int index = address.lastIndexOf(':');
+            int index = host.lastIndexOf(':');
             if (index > 0) {
-                proxyInfo._host = address.substring(0, index);
-                proxyInfo._port = address.substring(index + 1, address.length());
+                proxyInfo._host = host.substring(0, index);
+                proxyInfo._port = host.substring(index + 1, host.length());
             } else {
-                proxyInfo._host = address;
+                proxyInfo._host = host;
                 proxyInfo._port = "80";
             }
         }
@@ -407,9 +414,10 @@ public class RestClient implements Client {
         String _userName;
         String _password;
 
-        public ProxyInfo() {
-
-        }
+        /**
+         * Keep the non parameter constructor.
+         */
+        public ProxyInfo() {}
 
         public ProxyInfo(String host, String port, String userName, String password) {
             _host = host;
