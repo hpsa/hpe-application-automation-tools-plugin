@@ -35,6 +35,7 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
 import hudson.util.VariableResolver;
+import jenkins.tasks.SimpleBuildStep;
 
 /***
  * This Jenkins plugin contains an unofficial implementation of some of the elements of the HP ALM
@@ -46,7 +47,7 @@ import hudson.util.VariableResolver;
  * @author Dani Schreiber
  * 
  */
-public class SseBuilder extends Builder {
+public class SseBuilder extends Builder implements SimpleBuildStep {
     
     private final SseModel _sseModel;
     private String _fileName;
@@ -91,21 +92,21 @@ public class SseBuilder extends Builder {
     }
     
     @Override
-    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
-            throws InterruptedException, IOException {
-        
-        Result resultStatus = Result.FAILURE;
+    public void perform(Run<?, ?> build, FilePath workspace, Launcher launcher,
+            TaskListener listener) throws InterruptedException, IOException {
+    	
+    	Result resultStatus = Result.FAILURE;
         _sseModel.setAlmServerUrl(getServerUrl(_sseModel.getAlmServerName()));
         PrintStream logger = listener.getLogger();
-        Testsuites testsuites = execute(build, logger, build.getBuildVariableResolver());
         
-        FilePath resultsFilePath = build.getWorkspace().child(getFileName());
+        VariableResolver<String> varResolver = new VariableResolver.ByMap<String>(build.getEnvironment(listener));
+        Testsuites testsuites = execute(build, logger, varResolver);
+        
+        FilePath resultsFilePath = workspace.child(getFileName());
         resultStatus = createRunResults(resultsFilePath, testsuites, logger);
         provideStepResultStatus(resultStatus, build, logger);
-        
-        return true;
     }
-    
+        
     public AlmServerSettingsModel getAlmServerSettingsModel() {
         
         AlmServerSettingsModel ret = null;
@@ -122,7 +123,7 @@ public class SseBuilder extends Builder {
     
     private void provideStepResultStatus(
             Result resultStatus,
-            AbstractBuild<?, ?> build,
+            Run<?, ?> build,
             PrintStream logger) {
         
         logger.println(String.format("Result Status: %s", resultStatus.toString()));
@@ -131,7 +132,7 @@ public class SseBuilder extends Builder {
     }
     
     private Testsuites execute(
-            AbstractBuild<?, ?> build,
+            Run<?, ?> build,
             PrintStream logger,
             VariableResolver<String> buildVariableResolver) throws InterruptedException {
         

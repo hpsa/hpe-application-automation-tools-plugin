@@ -1,5 +1,6 @@
 package com.hp.application.automation.tools.pipelineSteps;
 
+import java.io.IOException;
 import java.util.List;
 
 import javax.annotation.Nonnull;
@@ -9,6 +10,7 @@ import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.workflow.steps.AbstractStepDescriptorImpl;
 import org.jenkinsci.plugins.workflow.steps.AbstractStepImpl;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
 import com.hp.application.automation.tools.model.AlmServerSettingsModel;
@@ -20,133 +22,93 @@ import com.hp.application.automation.tools.run.SseBuilder;
 import com.hp.application.automation.tools.settings.AlmServerSettingsBuilder;
 
 import hudson.Extension;
+import hudson.FilePath;
+import hudson.Launcher;
+import hudson.model.AbstractProject;
 import hudson.model.Hudson;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.util.FormValidation;
+import hudson.util.Secret;
+import jenkins.tasks.SimpleBuildStep;
+import hudson.tasks.BuildStepDescriptor;
+import hudson.tasks.Builder;
 
-public class SseBuildStep extends AbstractStepImpl {
+/**
+ * This class is for expose the ssebuilder as a pipeline step while not change too much on the ssebuilder itself.
+ * @author llu4
+ *
+ */
+public class SseBuildStep extends Builder implements SimpleBuildStep {
 	
-	private final SseBuilder sseBuilder;
+	private SseBuilder sseBuilder;
+	
+    private String almServerName;
+    private String almUserName;
+    private String almPassword;
+    private String almDomain;
+    private String almProject;
+    private String description;
+    private String runType;
+    private String almEntityId;
+    private String timeslotDuration;
+    private String postRunAction;
+    private String environmentConfigurationId;
+    private CdaDetails cdaDetails;
+    private PlainProxySettings proxySettings;
 	
 	@DataBoundConstructor
-	public SseBuildStep (String almServerName,
-            String almUserName,
-            String almPassword,
-            String almDomain,
-            String almProject,
-            String description,
-            String runType,
-            String almEntityId,
-            String timeslotDuration,
-            String postRunAction,
-            String environmentConfigurationId,
-            CdaDetails cdaDetails,
-            ProxySettings proxySettings) {
-
-		sseBuilder = new SseBuilder(
-				almServerName,
-                almUserName,
-                almPassword,
-                almDomain,
-                almProject,
-                description,
-                runType,
-                almEntityId,
-                timeslotDuration,
-                postRunAction,
-                environmentConfigurationId,
-                cdaDetails,
-                proxySettings);
+	public SseBuildStep (String almServerName) {
+		this.almServerName = almServerName;
+	}
+	
+	@Override
+	public void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener)
+			throws InterruptedException, IOException {
+		
+		//Recieve the plain password then convert a encrypted password.
+		ProxySettings ps = null;
+		if (proxySettings != null) {
+			ps = new ProxySettings(
+					proxySettings.isFsUseAuthentication(),
+					proxySettings.getFsProxyAddress(),
+					proxySettings.getFsProxyUserName(),
+					Secret.fromString(proxySettings.getFsProxyPassword())
+				);
+		}
+		
+		SseBuilder sseBuilder = new SseBuilder(
+	            almServerName,
+	            almUserName,
+	            almPassword,
+	            almDomain,
+	            almProject,
+	            description,
+	            runType,
+	            almEntityId,
+	            timeslotDuration,
+	            postRunAction,
+	            environmentConfigurationId,
+	            cdaDetails,
+	            ps);
+		sseBuilder.perform(run, workspace, launcher, listener);
 	}
 	
 	public SseBuilder getSseBuilder() {
 		return sseBuilder;
 	}
 	
-	public String getAlmServerName() {
-        return sseBuilder.getSseModel().getAlmServerName();
-    }
-    
-    public String getAlmServerUrl() {
-        return sseBuilder.getSseModel().getAlmServerUrl();
-    }
-    
-    public String getAlmUserName() {
-        return sseBuilder.getSseModel().getAlmUserName();
-    }
-    
-    public String getAlmPassword() {
-        return sseBuilder.getSseModel().getAlmPassword();
-    }
-    
-    public String getAlmDomain() {
-        return sseBuilder.getSseModel().getAlmDomain();
-    }
-    
-    public String getAlmProject() {
-        return sseBuilder.getSseModel().getAlmProject();
-    }
-    
-    public String getTimeslotDuration() {
-        return sseBuilder.getSseModel().getTimeslotDuration();
-    }
-    
-    public String getAlmEntityId() {
-        return sseBuilder.getSseModel().getAlmEntityId();
-    }
-    
-    public String getRunType() {
-        return sseBuilder.getSseModel().getRunType();
-    }
-    
-    public String getDescription() {
-        return sseBuilder.getSseModel().getDescription();
-    }
-    
-    public String getEnvironmentConfigurationId() {
-        return sseBuilder.getSseModel().getEnvironmentConfigurationId();
-    }
-        
-    public CdaDetails getCdaDetails() {
-        
-        return sseBuilder.getSseModel().getCdaDetails();
-    }
-    
-    public boolean isCdaDetailsChecked() {
-        return sseBuilder.getSseModel().isCdaDetailsChecked();
-    }
-    
-    public String getPostRunAction() {
-        return sseBuilder.getSseModel().getPostRunAction();
-    }
-    
-    public ProxySettings getProxySettings() {
-        return sseBuilder.getSseModel().getProxySettings();
-    }
-
-    public boolean isUseProxy() {
-        return sseBuilder.getSseModel().isUseProxy();
-    }
-
-    public boolean isUseAuthentication() {
-        return sseBuilder.getSseModel().isUseAuthentication();
-    }
-	
 	@Extension @Symbol("SseBuildStep")
-	public static class DescriptorImpl extends AbstractStepDescriptorImpl {
-	    public DescriptorImpl() {
-	    	super(SseBuildStepExecution.class);
+	public static class DescriptorImpl extends BuildStepDescriptor<Builder> {
+	    @Override
+	    public String getDisplayName() {
+	    	return "Execute HP tests using HP ALM Lab Management";
 	    }
 	    
 	    @Override
-	    public String getFunctionName() {
-	        return "SseBuildStep";
-	    }
-	    
-		@Nonnull
-		@Override
-	    public String getDisplayName() {
-	        return "Sse Build Step";
-	    }
+		public boolean isApplicable(@SuppressWarnings("rawtypes") Class<? extends AbstractProject> jobType) {
+            return true;
+        }
 		
 		public boolean hasAlmServers() {
             
@@ -232,5 +194,99 @@ public class SseBuildStep extends AbstractStepImpl {
             return CdaDetails.getDeprovisioningActions();
         }
 	}
+	
+	/**
+	 * This class is for getting proxysettings with password haven't been secreted.
+	 * @author llu4
+	 *
+	 */
+	public class PlainProxySettings {
+	    private boolean fsUseAuthentication;
+	    private String fsProxyAddress;
+	    private String fsProxyUserName;
+	    private String fsProxyPassword;
 
+	    @DataBoundConstructor
+	    public PlainProxySettings (boolean fsUseAuthentication, String fsProxyAddress, String fsProxyUserName, String fsProxyPassword) {
+	        this.fsUseAuthentication = fsUseAuthentication;
+	        this.fsProxyAddress = fsProxyAddress;
+	        this.fsProxyUserName = fsProxyUserName;
+	        this.fsProxyPassword = fsProxyPassword;
+	    }
+
+	    public boolean isFsUseAuthentication() { return fsUseAuthentication; }
+	    public String getFsProxyAddress() { return fsProxyAddress; }
+	    public String getFsProxyUserName() { return fsProxyUserName; }
+	    public String getFsProxyPassword() { return fsProxyPassword; }
+	}
+	
+	/**
+	 * Databound setters and getters.
+	 * @return
+	 */
+    public String getAlmServerName() { return almServerName; }
+    @DataBoundSetter
+    public void setAlmServerName(String almServerName) { this.almServerName = almServerName; }
+
+    public String getAlmUserName() { return almUserName; }
+    @DataBoundSetter
+    public void setAlmUserName(String almUserName) { this.almUserName = almUserName; }
+
+    public String getAlmPassword() { return almPassword; }
+    @DataBoundSetter
+    public void setAlmPassword(String almPassword) { this.almPassword = almPassword; }
+
+    public String getAlmDomain() { return almDomain; }
+    @DataBoundSetter
+    public void setAlmDomain(String almDomain) { this.almDomain = almDomain; }
+
+    public String getAlmProject() { return almProject; }
+    @DataBoundSetter
+    public void setAlmProject(String almProject) { this.almProject = almProject; }
+
+    public String getDescription() { return description; }
+    @DataBoundSetter
+    public void setDescription(String description) { this.description = description; }
+
+    public String getRunType() { return runType; }
+    @DataBoundSetter
+    public void setRunType(String runType) { this.runType = runType; }
+
+    public String getAlmEntityId() { return almEntityId; }
+    @DataBoundSetter
+    public void setAlmEntityId(String almEntityId) { this.almEntityId = almEntityId; }
+
+    public String getTimeslotDuration() { return timeslotDuration; }
+    @DataBoundSetter
+    public void setTimeslotDuration(String timeslotDuration) { this.timeslotDuration = timeslotDuration; }
+
+    public String getPostRunAction() { return postRunAction; }
+    @DataBoundSetter
+    public void setPostRunAction(String postRunAction) { this.postRunAction = postRunAction; }
+
+    public String getEnvironmentConfigurationId() { return environmentConfigurationId; }
+    @DataBoundSetter
+    public void setEnvironmentConfigurationId(String environmentConfigurationId) {
+        this.environmentConfigurationId = environmentConfigurationId;
+    }
+
+    public CdaDetails getCdaDetails() { return cdaDetails; }
+    @DataBoundSetter
+    public void setCdaDetails(CdaDetails cdaDetails) { this.cdaDetails = cdaDetails; }
+
+    public PlainProxySettings getProxySettings() { return proxySettings; }
+    @DataBoundSetter
+    public void setProxySettings(PlainProxySettings proxySettings) { this.proxySettings = proxySettings; }
+    
+    public boolean isUseProxy() {
+        return proxySettings != null;
+    }
+    
+    public boolean isUseAuthentication() {
+        return proxySettings != null && StringUtils.isNotBlank(proxySettings.getFsProxyUserName());
+    }
+    
+    public boolean isCdaDetailsChecked() {
+        return cdaDetails != null;
+    }
 }
