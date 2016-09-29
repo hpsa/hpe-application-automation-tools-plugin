@@ -93,6 +93,7 @@ public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends
         return new CommandExecutorFactory().createCommandExecutor(serverModel.getUrlObject(), serverModel.getCredentials());
     }
 
+    @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
 
         PrintStream logger = listener.getLogger();
@@ -157,6 +158,7 @@ public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends
                 for (ServiceListAtom.ServiceEntry entry : exec.getServiceList(null).getEntries()) {
                     res.add(new ServiceInfo(entry.getId(), entry.getTitle()));
                 }
+                break;
             case DEPLOY:
                 break;
         }
