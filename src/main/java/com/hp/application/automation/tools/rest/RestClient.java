@@ -18,7 +18,6 @@ import java.util.Map.Entry;
 
 import org.apache.commons.lang.StringUtils;
 
-import com.ctc.wstx.util.StringUtil;
 import com.hp.application.automation.tools.common.SSEException;
 import com.hp.application.automation.tools.sse.sdk.Client;
 import com.hp.application.automation.tools.sse.sdk.HttpRequestDecorator;
