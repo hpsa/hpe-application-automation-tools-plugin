@@ -9,6 +9,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.workflow.steps.AbstractStepDescriptorImpl;
 import org.jenkinsci.plugins.workflow.steps.AbstractStepImpl;
+import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
@@ -39,7 +40,7 @@ import hudson.tasks.Builder;
  * @author llu4
  *
  */
-public class SseBuildStep extends Builder implements SimpleBuildStep {
+public class SseBuildStep extends AbstractStepImpl {
 	
 	private SseBuilder sseBuilder;
 	
@@ -58,11 +59,19 @@ public class SseBuildStep extends Builder implements SimpleBuildStep {
     private PlainProxySettings proxySettings;
 	
 	@DataBoundConstructor
-	public SseBuildStep (String almServerName) {
+	public SseBuildStep (String almServerName, String almUserName, String almPassword, String almProject, String almDomain, String runType, String almEntityId,
+                         String timeslotDuration)
+    {
 		this.almServerName = almServerName;
-	}
+        this.almUserName = almUserName;
+        this.almPassword = almPassword;
+        this.almProject = almProject;
+        this.almDomain = almDomain;
+        this.timeslotDuration = timeslotDuration;
+        this.runType = runType;
+        this.almEntityId = almEntityId;
+    }
 	
-	@Override
 	public void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener)
 			throws InterruptedException, IOException {
 		
@@ -77,7 +86,7 @@ public class SseBuildStep extends Builder implements SimpleBuildStep {
 				);
 		}
 		
-		SseBuilder sseBuilder = new SseBuilder(
+		sseBuilder = new SseBuilder(
 	            almServerName,
 	            almUserName,
 	            almPassword,
@@ -97,19 +106,19 @@ public class SseBuildStep extends Builder implements SimpleBuildStep {
 	public SseBuilder getSseBuilder() {
 		return sseBuilder;
 	}
-	
-	@Extension @Symbol("SseBuildStep")
-	public static class DescriptorImpl extends BuildStepDescriptor<Builder> {
-	    @Override
+
+	@Extension @Symbol("SseBuild")
+	public static class DescriptorImpl extends AbstractStepDescriptorImpl {
+
+        public DescriptorImpl() {
+            super(SseBuildExecutor.class);
+        }
+
+        @Override
 	    public String getDisplayName() {
 	    	return "Execute HP tests using HP ALM Lab Management";
 	    }
-	    
-	    @Override
-		public boolean isApplicable(@SuppressWarnings("rawtypes") Class<? extends AbstractProject> jobType) {
-            return true;
-        }
-		
+
 		public boolean hasAlmServers() {
             
             return Hudson.getInstance().getDescriptorByType(
@@ -193,47 +202,36 @@ public class SseBuildStep extends Builder implements SimpleBuildStep {
             
             return CdaDetails.getDeprovisioningActions();
         }
-	}
+
+        @Override
+        public String getFunctionName() {
+            return "sseBuild";
+        }
+    }
 	
 	/**
 	 * Databound setters and getters.
 	 * @return
 	 */
     public String getAlmServerName() { return almServerName; }
-    @DataBoundSetter
-    public void setAlmServerName(String almServerName) { this.almServerName = almServerName; }
 
     public String getAlmUserName() { return almUserName; }
-    @DataBoundSetter
-    public void setAlmUserName(String almUserName) { this.almUserName = almUserName; }
 
     public String getAlmPassword() { return almPassword; }
-    @DataBoundSetter
-    public void setAlmPassword(String almPassword) { this.almPassword = almPassword; }
 
     public String getAlmDomain() { return almDomain; }
-    @DataBoundSetter
-    public void setAlmDomain(String almDomain) { this.almDomain = almDomain; }
 
     public String getAlmProject() { return almProject; }
-    @DataBoundSetter
-    public void setAlmProject(String almProject) { this.almProject = almProject; }
 
     public String getDescription() { return description; }
     @DataBoundSetter
     public void setDescription(String description) { this.description = description; }
 
     public String getRunType() { return runType; }
-    @DataBoundSetter
-    public void setRunType(String runType) { this.runType = runType; }
 
     public String getAlmEntityId() { return almEntityId; }
-    @DataBoundSetter
-    public void setAlmEntityId(String almEntityId) { this.almEntityId = almEntityId; }
 
     public String getTimeslotDuration() { return timeslotDuration; }
-    @DataBoundSetter
-    public void setTimeslotDuration(String timeslotDuration) { this.timeslotDuration = timeslotDuration; }
 
     public String getPostRunAction() { return postRunAction; }
     @DataBoundSetter
@@ -264,4 +262,7 @@ public class SseBuildStep extends Builder implements SimpleBuildStep {
     public boolean isCdaDetailsChecked() {
         return cdaDetails != null;
     }
+
+    private static final long serialVersionUID = 1L;
+
 }

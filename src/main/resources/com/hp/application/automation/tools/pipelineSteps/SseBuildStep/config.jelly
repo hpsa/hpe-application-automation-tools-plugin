@@ -49,81 +49,81 @@ this will show up in the groovy snippet generator
        <f:entry title="ALM server" field="almServerName">
             <select name="sse.almServerName">
                 <j:forEach var="almServer" items="${descriptor.almServers}">
-                    <f:option selected="${almServer.almServerName==instance.almServerSettingsModel.almServerName}" value="${almServer.almServerName}">
+                    <f:option selected="${almServer.almServerName==instance.almServerSettingsModel.almServerName}" value="${instance.almServerName}">
                         ${almServer.almServerName}
                     </f:option>
                 </j:forEach>
             </select>
         </f:entry>
         <f:entry title="User name" field="almUserName">
-            <f:textbox name="sse.almUserName" value="${instance.sseModel.almUserName}"/>
+            <f:textbox name="sse.almUserName"/>
         </f:entry>
         <f:entry title="Password" field="almPassword">
-            <f:password name="sse.almPassword" value="${instance.sseModel.almPassword}"/>
+            <f:password name="sse.almPassword"/>
         </f:entry>
         <f:entry title="Domain" field="almDomain">
-            <f:textbox name="sse.almDomain" value="${instance.sseModel.almDomain}"/>
+            <f:textbox name="sse.almDomain"/>
         </f:entry>
         
         <f:entry>
-	        <f:optionalBlock title="Use proxy settings" name = "proxySettings" checked="${instance.sseModel.useProxy}">
+	        <f:optionalBlock title="Use proxy settings" name = "proxySettings" checked="${instance.useProxy}">
 	            <f:entry title="Address" field="fsProxyAddress">
-	              <f:textbox name="sse.fsProxyAddress" value="${instance.sseModel.proxySettings.fsProxyAddress}"/>
+	              <f:textbox name="sse.fsProxyAddress"/>
 	            </f:entry>
 	            <f:entry>
-	                <f:checkbox title="Specify authentication" name="sse.fsUseAuthentication" checked="${instance.sseModel.useAuthentication}" onclick="useAuthentication(this)"/>
+	                <f:checkbox title="Specify authentication" name="sse.fsUseAuthentication" checked="${instance.useAuthentication}" onclick="useAuthentication(this)"/>
 	            </f:entry>
 	            <f:entry title="User name" field="fsProxyUserName">
-	              <f:textbox name="sse.fsProxyUserName" disabled = "${instance.sseModel.useAuthentication ? null : 'true'}" value="${instance.sseModel.proxySettings.fsProxyUserName}"/>
+	              <f:textbox name="sse.fsProxyUserName" disabled = "${instance.useAuthentication ? null : 'true'}" value="${instance.proxySettings.fsProxyUserName}"/>
 	            </f:entry>
 	            <f:entry title="Password" field="fsProxyPassword">
-	              <f:password name="sse.fsProxyPassword" disabled = "${instance.sseModel.useAuthentication ? null : 'true'}" value="${instance.sseModel.proxySettings.fsProxyPassword}"/>
+	              <f:password name="sse.fsProxyPassword" disabled = "${instance.useAuthentication ? null : 'true'}" value="${instance.proxySettings.fsProxyPassword}"/>
 	            </f:entry>
 	        </f:optionalBlock>
 	    </f:entry>
 	    
         <f:entry title="Project" field="almProject">
-            <f:textbox name="sse.almProject" value="${instance.sseModel.almProject}"/>
+            <f:textbox name="sse.almProject"/>
         </f:entry>      
    		<f:entry title="Run type" field="runType">
                 <select name="sse.runType" >
                     <j:forEach var="runType" items="${descriptor.runTypes}">
-                        <f:option selected="${runType.value == instance.sseModel.runType}" value="${runType.value}">
+                        <f:option selected="${runType.value == instance.runType}" value="${runType.value}">
                           ${runType.description}
                         </f:option>
                     </j:forEach>
                 </select>
         </f:entry>        
         <f:entry title="Test Set/Build Verification Suite ID" field="almEntityId">
-            <f:textbox name="sse.almEntityId" value="${instance.sseModel.almEntityId}"/>
+            <f:textbox name="sse.almEntityId" value="${instance.almEntityId}"/>
         </f:entry>
         <f:entry title="Description" field="description">
-            <f:textbox name="sse.description" value="${instance.sseModel.description}"/>
+            <f:textbox name="sse.description" value="${instance.description}"/>
         </f:entry>
         <f:entry title="Timeslot Duration (in minutes, minimum = 30)" field="timeslotDuration">
-            <f:textbox name="sse.timeslotDuration" value="${instance.sseModel.timeslotDuration}"/>
+            <f:textbox name="sse.timeslotDuration" value="${instance.timeslotDuration}"/>
         </f:entry>
         <f:entry title="Environment Configuration ID" field="environmentConfigurationId">
-       	    <f:textbox name="sse.environmentConfigurationId" value="${instance.sseModel.environmentConfigurationId}"/>
+       	    <f:textbox name="sse.environmentConfigurationId" value="${instance.environmentConfigurationId}"/>
         </f:entry>
         <f:block>
-			<f:optionalBlock name="sse.cdaDetails" title="Use CDA for provisioning and deployment" checked="${instance.sseModel.cdaDetailsChecked}">
+			<f:optionalBlock name="sse.cdaDetails" title="Use CDA for provisioning and deployment" checked="${instance.cdaDetailsChecked}">
     			<f:entry title="Deployment Action" field="deploymentAction">
 	                <select name="sse.deploymentAction" >
 	                    <j:forEach var="deploymentAction" items="${descriptor.deploymentActions}">
-	                        <f:option selected="${deploymentAction.value == instance.sseModel.cdaDetails.deploymentAction}" value="${deploymentAction.value}">
+	                        <f:option selected="${deploymentAction.value == instance.cdaDetails.deploymentAction}" value="${deploymentAction.value}">
 	                          ${deploymentAction.description}
 	                        </f:option>
 	                    </j:forEach>
 	                </select>
     			</f:entry>      
     			<f:entry title="Deployed environment name" field="deployedEnvironmentName">
-   				    <f:textbox name="sse.deployedEnvironmentName" value="${instance.sseModel.cdaDetails.deployedEnvironmentName}"/>
+   				    <f:textbox name="sse.deployedEnvironmentName" value="${instance.cdaDetails.deployedEnvironmentName}"/>
     			</f:entry>  
 		        <f:entry title="Deprovisioning Action" field="deprovisioningAction">
 		                <select name="sse.deprovisioningAction" >
 		                    <j:forEach var="deprovisioningAction" items="${descriptor.deprovisioningActions}">
-		                        <f:option selected="${deprovisioningAction.value == instance.sseModel.cdaDetails.deprovisioningAction}" value="${deprovisioningAction.value}">
+		                        <f:option selected="${deprovisioningAction.value == instance.cdaDetails.deprovisioningAction}" value="${deprovisioningAction.value}">
 		                          ${deprovisioningAction.description}
 		                        </f:option>
 		                    </j:forEach>
