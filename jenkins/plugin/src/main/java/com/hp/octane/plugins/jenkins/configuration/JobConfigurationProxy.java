@@ -19,17 +19,17 @@ import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 public class JobConfigurationProxy {
-	private final static Logger logger = Logger.getLogger(JobConfigurationProxy.class.getName());
+	private final static Logger logger = LogManager.getLogger(JobConfigurationProxy.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	final private AbstractProject project;
@@ -54,7 +54,7 @@ public class JobConfigurationProxy {
 		try {
 			client = createClient();
 		} catch (ClientException e) {
-			logger.log(Level.WARNING, PRODUCT_NAME + " connection failed", e);
+			logger.warn(PRODUCT_NAME + " connection failed", e);
 			return error(e.getMessage(), e.getLink());
 		}
 
@@ -87,13 +87,13 @@ public class JobConfigurationProxy {
 			result.put("fieldsMetadata", fieldsMetadata);
 
 		} catch (RequestException e) {
-			logger.log(Level.WARNING, "Failed to create pipeline", e);
+			logger.warn("Failed to create pipeline", e);
 			return error("Unable to create pipeline");
 		} catch (RequestErrorException e) {
-			logger.log(Level.WARNING, "Failed to create pipeline", e);
+			logger.warn("Failed to create pipeline", e);
 			return error("Unable to create pipeline");
 		} catch (ClientException e) {
-			logger.log(Level.WARNING, "Failed to create pipeline", e);
+			logger.warn("Failed to create pipeline", e);
 			return error(e.getMessage(), e.getLink());
 		}
 		return result;
@@ -107,7 +107,7 @@ public class JobConfigurationProxy {
 		try {
 			client = createClient();
 		} catch (ClientException e) {
-			logger.log(Level.WARNING, PRODUCT_NAME + " connection failed", e);
+			logger.warn(PRODUCT_NAME + " connection failed", e);
 			return error(e.getMessage(), e.getLink());
 		}
 		try {
@@ -155,13 +155,13 @@ public class JobConfigurationProxy {
 			result.put("pipeline", pipelineJSON);
 
 		} catch (RequestException e) {
-			logger.log(Level.WARNING, "Failed to update pipeline", e);
+			logger.warn("Failed to update pipeline", e);
 			return error("Unable to update pipeline");
 		} catch (RequestErrorException e) {
-			logger.log(Level.WARNING, "Failed to update pipeline", e);
+			logger.warn("Failed to update pipeline", e);
 			return error("Unable to update pipeline");
 		} catch (ClientException e) {
-			logger.log(Level.WARNING, "Failed to update pipeline", e);
+			logger.warn("Failed to update pipeline", e);
 			return error(e.getMessage(), e.getLink());
 		}
 
@@ -177,19 +177,19 @@ public class JobConfigurationProxy {
 		try {
 			client = createClient();
 		} catch (ClientException e) {
-			logger.log(Level.WARNING, PRODUCT_NAME + " connection failed", e);
+			logger.warn(PRODUCT_NAME + " connection failed", e);
 			return error(e.getMessage(), e.getLink());
 		}
 		try {
 			long pipelineId = pipelineObject.getLong("id");
 			long workspaceId = pipelineObject.getLong("workspaceId");
-			client.deleteTestsFromPipelineNodes(project.getName(),pipelineId, workspaceId);
-            result.put("Test deletion was succeful","");
+			client.deleteTestsFromPipelineNodes(project.getName(), pipelineId, workspaceId);
+			result.put("Test deletion was succeful", "");
 		} catch (RequestException e) {
-			logger.log(Level.WARNING, "Failed to delete tests", e);
+			logger.warn("Failed to delete tests", e);
 			return error("Unable to delete tests");
 		} catch (RequestErrorException e) {
-			logger.log(Level.WARNING, "Failed to delete tests", e);
+			logger.warn("Failed to delete tests", e);
 			return error("Unable to delete tests");
 		}
 
@@ -202,7 +202,7 @@ public class JobConfigurationProxy {
 		try {
 			client = createClient();
 		} catch (ClientException e) {
-			logger.log(Level.WARNING, PRODUCT_NAME + " connection failed", e);
+			logger.warn(PRODUCT_NAME + " connection failed", e);
 			return error(e.getMessage(), e.getLink());
 		}
 
@@ -212,7 +212,7 @@ public class JobConfigurationProxy {
 		try {
 			JobConfiguration jobConfiguration = client.getJobConfiguration(ServerIdentity.getIdentity(), project.getName());
 
- 			if (!jobConfiguration.getWorkspacePipelinesMap().isEmpty()) {
+			if (!jobConfiguration.getWorkspacePipelinesMap().isEmpty()) {
 				Map<Long, List<Pipeline>> workspacesMap = jobConfiguration.getWorkspacePipelinesMap();
 				//WORKAROUND BEGIN
 				//getting workspaceName - because the workspaceName is not returned from configuration API
@@ -277,10 +277,10 @@ public class JobConfigurationProxy {
 			ret.put("fieldsMetadata", fieldsMetadata);
 
 		} catch (RequestException e) {
-			logger.log(Level.WARNING, "Failed to retrieve job configuration", e);
+			logger.warn("Failed to retrieve job configuration", e);
 			return error("Unable to retrieve job configuration");
 		} catch (RequestErrorException e) {
-			logger.log(Level.WARNING, "Failed to retrieve job configuration", e);
+			logger.warn("Failed to retrieve job configuration", e);
 			return error("Unable to retrieve job configuration");
 		}
 
@@ -294,7 +294,7 @@ public class JobConfigurationProxy {
 		try {
 			client = createClient();
 		} catch (ClientException e) {
-			logger.log(Level.WARNING, PRODUCT_NAME + " connection failed", e);
+			logger.warn(PRODUCT_NAME + " connection failed", e);
 			return error(e.getMessage(), e.getLink());
 		}
 
@@ -306,10 +306,10 @@ public class JobConfigurationProxy {
 			ret.put("pipeline", pipelineJSON);
 
 		} catch (RequestException e) {
-			logger.log(Level.WARNING, "Failed to retrieve metadata for workspace", e);
+			logger.warn("Failed to retrieve metadata for workspace", e);
 			return error("Unable to retrieve metadata for workspace");
 		} catch (RequestErrorException e) {
-			logger.log(Level.WARNING, "Failed to retrieve metadata for workspace", e);
+			logger.warn("Failed to retrieve metadata for workspace", e);
 			return error("Unable to retrieve metadata for workspace");
 		}
 		return ret;
@@ -337,7 +337,7 @@ public class JobConfigurationProxy {
 		try {
 			client = createClient();
 		} catch (ClientException e) {
-			logger.log(Level.WARNING, PRODUCT_NAME + " connection failed", e);
+			logger.warn(PRODUCT_NAME + " connection failed", e);
 			return error(e.getMessage(), e.getLink());
 		}
 
@@ -346,10 +346,10 @@ public class JobConfigurationProxy {
 			ret.put("pipeline", pipelineJSON);
 
 		} catch (RequestException e) {
-			logger.log(Level.WARNING, "Failed to retrieve metadata for pipeline", e);
+			logger.warn("Failed to retrieve metadata for pipeline", e);
 			return error("Unable to retrieve metadata for pipeline");
 		} catch (RequestErrorException e) {
-			logger.log(Level.WARNING, "Failed to retrieve metadata for pipeline", e);
+			logger.warn("Failed to retrieve metadata for pipeline", e);
 			return error("Unable to retrieve metadata for pipeline");
 		}
 		return ret;
@@ -454,7 +454,7 @@ public class JobConfigurationProxy {
 		try {
 			client = createClient();
 		} catch (ClientException e) {
-			logger.log(Level.WARNING, PRODUCT_NAME + " connection failed", e);
+			logger.warn(PRODUCT_NAME + " connection failed", e);
 			return error(e.getMessage(), e.getLink());
 		}
 		try {
@@ -479,7 +479,7 @@ public class JobConfigurationProxy {
 			}
 
 			for (ListItem item : listItems) {
-				if (!toBeFiltered(item)){
+				if (!toBeFiltered(item)) {
 					JSONObject itemJson = new JSONObject();
 					itemJson.put("id", item.getId());
 					itemJson.put("text", item.getName());
@@ -496,13 +496,12 @@ public class JobConfigurationProxy {
 			}
 
 
-
 			ret.put("results", retArray);
 		} catch (RequestException e) {
-			logger.log(Level.WARNING, "Failed to retrieve list items", e);
+			logger.warn("Failed to retrieve list items", e);
 			return error("Unable to retrieve job configuration");
 		} catch (RequestErrorException e) {
-			logger.log(Level.WARNING, "Failed to retrieve list items", e);
+			logger.warn("Failed to retrieve list items", e);
 			return error("Unable to retrieve list items");
 		}
 		return ret;
@@ -521,7 +520,7 @@ public class JobConfigurationProxy {
 		try {
 			client = createClient();
 		} catch (ClientException e) {
-			logger.log(Level.WARNING, PRODUCT_NAME + " connection failed", e);
+			logger.warn(PRODUCT_NAME + " connection failed", e);
 			return error(e.getMessage(), e.getLink());
 		}
 		try {
@@ -551,10 +550,10 @@ public class JobConfigurationProxy {
 			ret.put("results", retArray);
 
 		} catch (RequestException e) {
-			logger.log(Level.WARNING, "Failed to retrieve releases", e);
+			logger.warn("Failed to retrieve releases", e);
 			return error("Unable to retrieve job configuration");
 		} catch (RequestErrorException e) {
-			logger.log(Level.WARNING, "Failed to retrieve releases", e);
+			logger.warn("Failed to retrieve releases", e);
 			return error("Unable to retrieve taxonomies");
 		}
 		return ret;
@@ -569,7 +568,7 @@ public class JobConfigurationProxy {
 		try {
 			client = createClient();
 		} catch (ClientException e) {
-			logger.log(Level.WARNING, PRODUCT_NAME + " connection failed", e);
+			logger.warn(PRODUCT_NAME + " connection failed", e);
 			return error(e.getMessage(), e.getLink());
 		}
 		try {
@@ -591,10 +590,10 @@ public class JobConfigurationProxy {
 			ret.put("results", retArray);
 
 		} catch (RequestException e) {
-			logger.log(Level.WARNING, "Failed to retrieve workspaces", e);
+			logger.warn("Failed to retrieve workspaces", e);
 			return error("Unable to retrieve workspaces");
 		} catch (RequestErrorException e) {
-			logger.log(Level.WARNING, "Failed to retrieve workspaces", e);
+			logger.warn("Failed to retrieve workspaces", e);
 			return error("Unable to retrieve workspaces");
 		}
 		return ret;
@@ -609,7 +608,7 @@ public class JobConfigurationProxy {
 		try {
 			client = createClient();
 		} catch (ClientException e) {
-			logger.log(Level.WARNING, PRODUCT_NAME + " connection failed", e);
+			logger.warn(PRODUCT_NAME + " connection failed", e);
 			return error(e.getMessage(), e.getLink());
 		}
 		try {
@@ -719,10 +718,10 @@ public class JobConfigurationProxy {
 			ret.put("more", moreResults);
 
 		} catch (RequestException e) {
-			logger.log(Level.WARNING, "Failed to retrieve environments", e);
+			logger.warn("Failed to retrieve environments", e);
 			return error("Unable to retrieve job configuration");
 		} catch (RequestErrorException e) {
-			logger.log(Level.WARNING, "Failed to retrieve environments", e);
+			logger.warn("Failed to retrieve environments", e);
 			return error("Unable to retrieve environments");
 		}
 		return ret;
@@ -843,11 +842,11 @@ public class JobConfigurationProxy {
 		try {
 			client.validateConfiguration();
 		} catch (RequestException e) {
-			logger.log(Level.WARNING, PRODUCT_NAME + " connection failed", e);
+			logger.warn(PRODUCT_NAME + " connection failed", e);
 			retryModel.failure();
 			throw new ClientException("Connection to " + PRODUCT_NAME + " failed");
 		} catch (RequestErrorException e) {
-			logger.log(Level.WARNING, PRODUCT_NAME + " connection failed", e);
+			logger.warn(PRODUCT_NAME + " connection failed", e);
 			retryModel.failure();
 			throw new ClientException("Connection to " + PRODUCT_NAME + " failed");
 		}

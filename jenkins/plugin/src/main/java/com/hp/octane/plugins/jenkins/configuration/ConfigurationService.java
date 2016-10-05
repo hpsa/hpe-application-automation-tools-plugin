@@ -1,5 +1,3 @@
-// (C) Copyright 2003-2015 Hewlett-Packard Development Company, L.P.
-
 package com.hp.octane.plugins.jenkins.configuration;
 
 import com.google.inject.Inject;
@@ -20,18 +18,18 @@ import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 @Extension
 public class ConfigurationService {
 
-	private final static Logger logger = Logger.getLogger(ConfigurationService.class.getName());
+	private final static Logger logger = LogManager.getLogger(ConfigurationService.class);
 
 	private static final String PARAM_SHARED_SPACE = "p"; // NON-NLS
 
@@ -77,22 +75,22 @@ public class ConfigurationService {
 		try {
 			client.validateConfiguration();
 		} catch (AuthenticationException ae) {
-			logger.log(Level.WARNING, "Authentication failure", ae);
+			logger.warn("Authentication failure", ae);
 			return FormValidation.errorWithMarkup(markup("red", Messages.AuthenticationFailure()));
 		} catch (AuthorizationException ae) {
-			logger.log(Level.WARNING, "Authorization failure", ae);
+			logger.warn("Authorization failure", ae);
 			return FormValidation.errorWithMarkup(markup("red", Messages.AuthorizationFailure()));
 		} catch (SessionCreationException sce) {
-			logger.log(Level.WARNING, "Session creation failure", sce);
+			logger.warn("Session creation failure", sce);
 			return FormValidation.errorWithMarkup(markup("red", Messages.SessionCreationFailure()));
 		} catch (SharedSpaceNotExistException ssnee) {
-			logger.log(Level.WARNING, "Shared space validation failure", ssnee);
+			logger.warn("Shared space validation failure", ssnee);
 			return FormValidation.errorWithMarkup(markup("red", Messages.ConnectionSharedSpaceInvalid()));
 		} catch (LoginErrorException lee) {
-			logger.log(Level.WARNING, "General logic failure", lee);
+			logger.warn("General logic failure", lee);
 			return FormValidation.errorWithMarkup(markup("red", Messages.ConnectionFailure()));
 		} catch (RequestErrorException ree) {
-			logger.log(Level.WARNING, "Connection check failed due to communication problem", ree);
+			logger.warn("Connection check failed due to communication problem", ree);
 			return FormValidation.errorWithMarkup(markup("red", Messages.ConnectionFailure()));
 		}
 		return FormValidation.okWithMarkup(markup("green", Messages.ConnectionSuccess()));

@@ -1,16 +1,16 @@
 package com.hp.octane.plugins.jenkins.model.processors.builders;
 
-import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
 import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import com.tikal.jenkins.plugins.multijob.MultiJobBuilder;
 import com.tikal.jenkins.plugins.multijob.PhaseJobsConfig;
 import hudson.model.AbstractProject;
 import hudson.tasks.Builder;
 import jenkins.model.Jenkins;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -21,23 +21,21 @@ import java.util.logging.Logger;
  */
 
 public class MultiJobBuilderProcessor extends AbstractBuilderProcessor {
-	private static final Logger logger = Logger.getLogger(MultiJobBuilderProcessor.class.getName());
+	private static final Logger logger = LogManager.getLogger(MultiJobBuilderProcessor.class);
 
 	public MultiJobBuilderProcessor(Builder builder) {
 		MultiJobBuilder b = (MultiJobBuilder) builder;
-		super.phases = new ArrayList<PipelinePhase>();
-		List<AbstractProject> items = new ArrayList<AbstractProject>();
+		super.phases = new ArrayList<>();
+		List<AbstractProject> items = new ArrayList<>();
 		AbstractProject tmpProject;
 		for (PhaseJobsConfig config : b.getPhaseJobs()) {
 			tmpProject = (AbstractProject) Jenkins.getInstance().getItem(config.getJobName());
 			if (tmpProject != null) {
 				items.add(tmpProject);
 			} else {
-				logger.severe("project named '" + config.getJobName() + "' not found; considering this as corrupted configuration and skipping the project");
+				logger.warn("project named '" + config.getJobName() + "' not found; considering this as corrupted configuration and skipping the project");
 			}
 		}
-//		super.phases.add(new StructurePhase(b.getPhaseName(), true, items));
 		super.phases.add(ModelFactory.createStructurePhase(b.getPhaseName(), true, items));
-
 	}
 }
