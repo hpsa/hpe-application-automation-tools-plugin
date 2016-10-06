@@ -48,7 +48,6 @@ public class OctaneTeamCityPlugin implements ServerExtension {
 
 	@PostConstruct
 	private void initPlugin() {
-		logger.info("Initializing HPE Octane CI Plugin...");
 		buildServer.registerExtension(ServerExtension.class, PLUGIN_NAME, this);
 		registerControllers();
 		config = configurationService.readConfig();

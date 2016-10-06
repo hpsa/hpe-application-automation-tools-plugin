@@ -15,8 +15,7 @@ import java.io.File;
 
 public final class LoggingService extends OctaneSDK.SDKServiceBase {
 	private static final Object INIT_LOCKER = new Object();
-	private static final String LOGS_LOCATION_SYS_PROPERTY = "ngaLogsLocation";
-	private static final String LOGS_LOCATION_SUB_FOLDER = "logs";
+	private static final String OCTANE_ALLOWED_STORAGE_LOCATION = "octaneAllowedStorage";
 
 	private final CIPluginServices pluginServices;
 
@@ -36,7 +35,7 @@ public final class LoggingService extends OctaneSDK.SDKServiceBase {
 		if (file != null && (file.isDirectory() || !file.exists())) {
 			synchronized (INIT_LOCKER) {
 				LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
-				System.setProperty(LOGS_LOCATION_SYS_PROPERTY, new File(file, LOGS_LOCATION_SUB_FOLDER).getAbsolutePath());
+				System.setProperty(OCTANE_ALLOWED_STORAGE_LOCATION, file.getAbsolutePath() + File.separator);
 				ctx.reconfigure();
 			}
 		}
