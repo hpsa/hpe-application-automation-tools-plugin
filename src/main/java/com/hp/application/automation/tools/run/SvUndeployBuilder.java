@@ -19,6 +19,9 @@ import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 import org.kohsuke.stapler.DataBoundConstructor;
 
+/**
+ * Deletes selected virtual service from server
+ */
 public class SvUndeployBuilder extends AbstractSvRunBuilder<SvUndeployModel> {
 
     @DataBoundConstructor

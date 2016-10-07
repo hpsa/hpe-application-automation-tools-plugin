@@ -34,6 +34,9 @@ import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
+/**
+ * Performs export of of virtual service
+ */
 public class SvExportBuilder extends AbstractSvRunBuilder<SvExportModel> {
 
     @DataBoundConstructor

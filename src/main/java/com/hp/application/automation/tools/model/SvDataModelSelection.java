@@ -62,6 +62,7 @@ public class SvDataModelSelection extends AbstractDescribableImpl<SvDataModelSel
                 return dataModel;
             case NONE:
                 return "<none>";
+            case DEFAULT:
             default:
                 return "<default>";
         }
@@ -81,6 +82,9 @@ public class SvDataModelSelection extends AbstractDescribableImpl<SvDataModelSel
     public enum SelectionType {
         BY_NAME,
         NONE,
+        /**
+         * Default means first model in alphabetical order by model name
+         */
         DEFAULT,
     }
 

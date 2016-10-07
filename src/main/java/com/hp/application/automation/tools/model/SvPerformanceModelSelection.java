@@ -80,6 +80,9 @@ public class SvPerformanceModelSelection extends AbstractDescribableImpl<SvPerfo
         BY_NAME,
         NONE,
         OFFLINE,
+        /**
+         * Default means first model in alphabetical order by model name
+         */
         DEFAULT,
     }
 

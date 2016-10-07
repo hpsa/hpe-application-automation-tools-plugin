@@ -165,7 +165,8 @@ public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends
         return res;
     }
 
-    private void addServiceIfDeployed(String service, ArrayList<ServiceInfo> results, boolean ignoreMissingServices, ICommandExecutor exec, PrintStream logger) throws CommunicatorException, CommandExecutorException {
+    private void addServiceIfDeployed(String service, ArrayList<ServiceInfo> results, boolean ignoreMissingServices,
+                                      ICommandExecutor exec, PrintStream logger) throws CommunicatorException, CommandExecutorException {
         try {
             IService svc = exec.findService(service, null);
             results.add(new ServiceInfo(svc.getId(), svc.getName()));
