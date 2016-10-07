@@ -53,9 +53,21 @@ public class SvServiceSelectionModel extends AbstractDescribableImpl<SvServiceSe
     }
 
     public enum SelectionType {
+        /**
+         * Select service by name or id
+         */
         SERVICE,
+        /**
+         * Select all services from project
+         */
         PROJECT,
+        /**
+         * Select all deployed services
+         */
         ALL_DEPLOYED,
+        /**
+         * Specific case for deployment. Uses project & optionally service names.
+         */
         DEPLOY
     }
 

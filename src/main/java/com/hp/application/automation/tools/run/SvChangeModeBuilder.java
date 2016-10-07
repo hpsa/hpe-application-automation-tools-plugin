@@ -31,6 +31,9 @@ import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
+/**
+ * Performs change mode of virtual service
+ */
 public class SvChangeModeBuilder extends AbstractSvRunBuilder<SvChangeModeModel> {
     private static final Logger LOG = Logger.getLogger(SvChangeModeBuilder.class.getName());
 

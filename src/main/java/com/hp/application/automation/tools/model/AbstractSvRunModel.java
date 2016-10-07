@@ -8,7 +8,13 @@ package com.hp.application.automation.tools.model;
 import org.apache.commons.lang.StringUtils;
 
 public class AbstractSvRunModel {
+    /**
+     * Name of SvServerSettingsModel instance
+     */
     protected final String serverName;
+    /**
+     * Force operation regardless virtual service is locked
+     */
     protected final boolean force;
     protected final SvServiceSelectionModel serviceSelection;
 
