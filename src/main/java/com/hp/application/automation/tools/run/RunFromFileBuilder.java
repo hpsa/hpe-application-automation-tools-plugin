@@ -45,6 +45,11 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     private final static String HpToolsLauncher_SCRIPT_NAME = "HpToolsLauncher.exe";
     private final static String LRAnalysisLauncher_EXE = "LRAnalysisLauncher.exe";
     private String ResultFilename = "ApiResults.xml";
+
+    public String getParamFileName() {
+        return ParamFileName;
+    }
+
     //private String KillFileName = "";
     private String ParamFileName = "ApiRun.txt";
 
