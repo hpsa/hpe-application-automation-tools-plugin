@@ -1,6 +1,5 @@
 package com.hp.application.automation.tools.pipelineSteps;
 
-
 import com.hp.application.automation.tools.results.RunResultRecorder;
 import com.hp.application.automation.tools.run.RunFromFileBuilder;
 import hudson.FilePath;
@@ -14,41 +13,35 @@ import javax.inject.Inject;
 import java.util.HashMap;
 
 /**
- * Created by kazaky on 28/07/2016.
+ * The Load runner pipeline step execution.
  */
 public class LrScenarioLoadStepExecution extends AbstractSynchronousNonBlockingStepExecution<Void> {
 
-    @Inject
-    private transient LrScenarioLoadStep step;
+  private static final long serialVersionUID = 1L;
+  @Inject
+  @SuppressWarnings("squid:S3306")
+  private transient LrScenarioLoadStep step;
+  @StepContextParameter
+  private transient TaskListener listener;
+  @StepContextParameter
+  private transient FilePath ws;
+  @StepContextParameter
+  private transient Run build;
+  @StepContextParameter
+  private transient Launcher launcher;
 
-    @StepContextParameter
-    private transient TaskListener listener;
+  @Override
+  protected Void run() throws Exception {
+    listener.getLogger().println("Running LoadRunner Scenario step");
 
-    @StepContextParameter
-    private transient FilePath ws;
+    RunResultRecorder runResultRecorder = new RunResultRecorder(step.isPublishResults(), step.getArchiveRunTestResultsMode());
+    step.getRunFromFileBuilder().perform(build, ws, launcher, listener);
 
-    @StepContextParameter
-    private transient Run build;
+    HashMap<String, String> resultFilename = new HashMap<String, String>(0);
+    resultFilename.put(RunFromFileBuilder.class.getName(), step.getRunFromFileBuilder().getRunResultsFileName());
 
-    @StepContextParameter
-    private transient Launcher launcher;
+    runResultRecorder.pipelinePerform(build, ws, launcher, listener, resultFilename);
 
-
-
-    @Override
-    protected Void run() throws Exception {
-        listener.getLogger().println("Running LoadRunner Scenario step");
-
-        RunResultRecorder runResultRecorder = new RunResultRecorder(step.isPublishResults(), step.getArchiveRunTestResultsMode());
-        step.getRunFromFileBuilder().perform(build, ws, launcher, listener);
-
-        HashMap<String,String> resultFilename = new HashMap<String, String>(0);
-        resultFilename.put(RunFromFileBuilder.class.getName(), step.getRunFromFileBuilder().getRunResultsFileName());
-
-        runResultRecorder.pipelinePerform(build, ws, launcher, listener, resultFilename);
-
-        return null;
-    }
-
-    private static final long serialVersionUID = 1L;
+    return null;
+  }
 }

@@ -9,10 +9,7 @@ import jenkins.tasks.SimpleBuildStep;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 public class PerformanceReportAction implements Action, SimpleBuildStep.LastBuildAction {
@@ -25,54 +22,53 @@ public class PerformanceReportAction implements Action, SimpleBuildStep.LastBuil
 
     private final Run<?,?> build;
 
-    public PerformanceReportAction(Run<?,?> build) {
+    public PerformanceReportAction(Run<?,?> build) throws IOException {
         this.build = build;
-        File reportFolder = new File(build.getArtifactsDir().getParent(), PERFORMANCE_REPORT_FOLDER);
+        File reportFolder = new File(build.getRootDir(), PERFORMANCE_REPORT_FOLDER);
         if (reportFolder.exists()) {
             File indexFile = new File(reportFolder, REPORT_INDEX);
             if (indexFile.exists()) {
-                File file = new File(build.getArtifactsDir().getParent(), PERFORMANCE_REPORT_FOLDER);
+                File file = new File(build.getRootDir(), PERFORMANCE_REPORT_FOLDER);
                 DirectoryBrowserSupport dbs = new DirectoryBrowserSupport(this, new FilePath(file), "report", "graph.gif", false);
 
-                try {
-                    BufferedReader br = new BufferedReader(new FileReader(indexFile));
-                    String line = "";
-                    boolean rolling = true;
-                    while ((line = br.readLine()) != null) {
-                        String[] values = line.split("\t");
-                        if (values.length < 1)
-                            continue;
-                        DetailReport report = new DetailReport(build, values[0], dbs);
-                        if (rolling) {
-                            report.setColor("#FFF");
-                            rolling = false;
-                        } else {
-                            report.setColor("#F1F1F1");
-                            rolling = true;
-                        }
-                        if (values.length >= 2)
-                            report.setDuration(values[1]);
-                        else
-                            report.setDuration("##");
-                        if (values.length >= 3)
-                            report.setPass(values[2]);
-                        else
-                            report.setPass("##");
-                        if (values.length >= 4)
-                            report.setFail(values[3]);
-                        else
-                            report.setFail("##");
-                        detailReportMap.put(values[0], report);
-                    }
-                    br.close();
-                } catch (IOException e) {
-                }
-                
+
+                createPreformanceIndexFile(build, indexFile, dbs);
             }
         }
-
         projectActionList = new ArrayList<TestResultProjectAction>();
-//        projectActionList.add(new TestResultProjectAction(build.getParent()));
+    }
+
+    private void createPreformanceIndexFile(Run<?, ?> build, File indexFile, DirectoryBrowserSupport dbs) throws IOException {
+        BufferedReader br = new BufferedReader(new FileReader(indexFile));
+        String line;
+        boolean rolling = true;
+        while ((line = br.readLine()) != null) {
+            String[] values = line.split("\t");
+            if (values.length < 1)
+                continue;
+            DetailReport report = new DetailReport(build, values[0], dbs);
+            if (rolling) {
+                report.setColor("#FFF");
+                rolling = false;
+            } else {
+                report.setColor("#F1F1F1");
+                rolling = true;
+            }
+            if (values.length >= 2)
+                report.setDuration(values[1]);
+            else
+                report.setDuration("##");
+            if (values.length >= 3)
+                report.setPass(values[2]);
+            else
+                report.setPass("##");
+            if (values.length >= 4)
+                report.setFail(values[3]);
+            else
+                report.setFail("##");
+            detailReportMap.put(values[0], report);
+        }
+        br.close();
     }
 
     @Override
@@ -90,6 +86,7 @@ public class PerformanceReportAction implements Action, SimpleBuildStep.LastBuil
         return "PerformanceReport";
     }
 
+    @SuppressWarnings("squid:S1452")
     public Run<?,?> getBuild() {
         return build;
     }
@@ -97,6 +94,7 @@ public class PerformanceReportAction implements Action, SimpleBuildStep.LastBuil
     public Map<String, DetailReport> getDetailReportMap() {
         return detailReportMap;
     }
+
 
     public Object getDynamic(String name, StaplerRequest req, StaplerResponse rsp) {
         if (detailReportMap.containsKey(name))

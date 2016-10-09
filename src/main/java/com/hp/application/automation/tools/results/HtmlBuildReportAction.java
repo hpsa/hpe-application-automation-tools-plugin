@@ -6,111 +6,83 @@ import hudson.model.Run;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-//import hudson.model.ProminentProjectAction;
-
 
 /**
  * Created by betzalel on 28/06/2015.
  */
 
 public class HtmlBuildReportAction implements Action {
-    //private HtmlPublisherTarget actualHtmlPublisherTarget;
-
     private static final String REPORTMETADATE_XML = "report_metadata.xml";
-
     private Run build;
-    //private BuildListener listener;
     private List<ReportMetaData> reportMetaDataList = new ArrayList<ReportMetaData>();
 
 
     //public HtmlBuildReportAction(AbstractBuild<?, ?> build, BuildListener listener, List<ReportMetaData> reportMetaData)
     //NOTE: if parameter has BuildListener, the build cannot be serilize normally.
 
-    public HtmlBuildReportAction(Run<?, ?> build) {
-        //super(actualHtmlPublisherTarget);
+    public HtmlBuildReportAction(Run<?, ?> build) throws IOException, SAXException, ParserConfigurationException {
         this.build = build;
 
-        File reportMetaData_XML = new File(build.getArtifactsDir().getParent(), REPORTMETADATE_XML);
-        if (reportMetaData_XML.exists())
-        {
-            readReportFromXMLFile(reportMetaData_XML.getAbsolutePath(),this.reportMetaDataList );
+        File reportMetaData_XML = new File(build.getRootDir(), REPORTMETADATE_XML);
+        if (reportMetaData_XML.exists()) {
+            readReportFromXMLFile(reportMetaData_XML.getAbsolutePath(), this.reportMetaDataList);
         }
 
     }
 
+	@SuppressWarnings("squid:S1452")
     public final Run<?, ?> getBuild() {
         return build;
     }
-
-//    protected String getTitle() {
-//        return this.build.getDisplayName() + " UFTReport";
-//    }
 
     protected File reportFile() {
         return getBuildHtmlReport(this.build);
     }
 
     private File getBuildHtmlReport(Run run) {
-
-        File reportFile = new File(new File(run.getArtifactsDir(), "UFTReport"), "index.html");
-
-        //listener.getLogger().println("HtmlReportFile: " + reportFile.toString());
-        return reportFile;
+		return new File(new File(new File(run.getRootDir(),"archive"), "UFTReport"), "index.html");
     }
 
+    @Override
     public String getDisplayName() {
-        String displayName = "UFT Report";//this.build.getDisplayName() +
-        //return reportFile().exists() ? displayName : null;
-        return displayName;
+		return "UFT Report";
     }
 
+    @Override
     public String getUrlName() {
-
-
-        //test
         return "uft-report";
-        //testend
-//        //String url = this.build.getUrl() + "/UFTReport";
-//        String url = "artifact/UFTReport/index.html";
-//        return reportFile().exists() ? url : null;
-//        //return url;
     }
 
+    @Override
     public String getIconFileName() {
-
-        //return reportFile().exists() ? "graph.gif" : null;
-        return "/plugin/hp-application-automation-tools-plugin/icons/24x24/uft_report.png";
+		return "/plugin/hp-application-automation-tools-plugin/icons/24x24/uft_report.png";
     }
 
     // other property of the report
-    public List<ReportMetaData> getAllReports(){
+    public List<ReportMetaData> getAllReports() {
         return this.reportMetaDataList;
     }
 
 
-    private void readReportFromXMLFile(String filename, List<ReportMetaData> listReport)
-    {
+    private void readReportFromXMLFile(String filename, List<ReportMetaData> listReport) throws ParserConfigurationException, IOException, SAXException {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder = null;
-        Document doc = null;
-        try {
-            builder = dbf.newDocumentBuilder();
-            doc = builder.parse(filename);
-        }
-        catch (Exception e) {
-        }
+        DocumentBuilder builder;
+        Document doc;
+		builder = dbf.newDocumentBuilder();
+		doc = builder.parse(filename);
 
         Element root = doc.getDocumentElement();
         NodeList reportList = root.getElementsByTagName("report");
-        for (int i = 0; i < reportList.getLength(); i++)
-        {
+        for (int i = 0; i < reportList.getLength(); i++) {
             ReportMetaData reportmetadata = new ReportMetaData();
             Element report = (Element) reportList.item(i);
             String disPlayName = report.getAttribute("disPlayName");
@@ -125,18 +97,9 @@ public class HtmlBuildReportAction implements Action {
             reportmetadata.setResourceURL(resourceURL);
             reportmetadata.setDateTime(dateTime);
             reportmetadata.setStatus(status);
-            reportmetadata.setIsHtmlReport( isHtmlreport.equals("true") ? true: false);
+            reportmetadata.setIsHtmlReport("true".equals(isHtmlreport));
             listReport.add(reportmetadata);
 
         }
     }
-//
-//    /**
-//     * Serves HTML reports.
-//     */
-//    public void doDynamic(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
-//        DirectoryBrowserSupport dbs = new DirectoryBrowserSupport(this, new FilePath(this.dir()), this.getTitle(), "graph.gif", false);
-//        dbs.setIndexFileName(HtmlPublisherTarget.this.wrapperName); // Hudson >= 1.312
-//        dbs.generateResponse(req, rsp, this);
-//    }
 }

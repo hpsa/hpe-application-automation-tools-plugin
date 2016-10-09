@@ -30,6 +30,7 @@ public class DetailReport implements ModelObject {
         return name;
     }
 
+    @SuppressWarnings("squid:S1452")
     public Run<?, ?> getBuild() {
         return build;
     }

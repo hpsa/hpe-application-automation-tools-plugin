@@ -9,14 +9,33 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.*;
 import hudson.util.ArgumentListBuilder;
+import jenkins.model.Jenkins;
 
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URL;
 
+@SuppressWarnings("squid:S1160")
 public class AlmToolsUtils {
-    
-    public static void runOnBuildEnv(
+
+
+	private AlmToolsUtils() {
+	}
+
+	public static void runOnBuildEnv(
+            AbstractBuild<?, ?> build,
+            Launcher launcher,
+            BuildListener listener,
+            String paramFileName) throws IOException, InterruptedException {
+            runOnBuildEnv(build,
+                 launcher,
+                 listener,
+                build.getWorkspace(),
+                 paramFileName);
+    }
+
+
+        public static void runOnBuildEnv(
             Run<?, ?> build,
             Launcher launcher,
             TaskListener listener,
@@ -52,10 +71,11 @@ public class AlmToolsUtils {
             BuildListener listener,
             String paramFileName) throws IOException, InterruptedException {
 
-            runHpToolsAborterOnBuildEnv(((Run<?,?>) build),launcher, listener, paramFileName, build.getWorkspace());
+            runHpToolsAborterOnBuildEnv(build, launcher, listener, paramFileName, build.getWorkspace());
     }
 
-    public static void runHpToolsAborterOnBuildEnv(
+	@SuppressWarnings("squid:S2259")
+	public static void runHpToolsAborterOnBuildEnv(
             Run<?, ?> build,
             Launcher launcher,
             TaskListener listener,
@@ -65,7 +85,8 @@ public class AlmToolsUtils {
         PrintStream out = listener.getLogger();
 
         String hpToolsAborter_exe = "HpToolsAborter.exe";
-        URL hpToolsAborterUrl = Hudson.getInstance().pluginManager.uberClassLoader.getResource("HpToolsAborter.exe");
+
+		URL hpToolsAborterUrl = Jenkins.getInstance().pluginManager.uberClassLoader.getResource("HpToolsAborter.exe");
         FilePath hpToolsAborterFile = runWorkspace.child(hpToolsAborter_exe);
         
         args.add(hpToolsAborterFile);
@@ -78,7 +99,7 @@ public class AlmToolsUtils {
         try {
         	hpToolsAborterFile.delete();
 		} catch (Exception e) {
-			 listener.error(e.getMessage());
+			 listener.error("failed copying HpToolsAborter" + e);
 		}
         
         
