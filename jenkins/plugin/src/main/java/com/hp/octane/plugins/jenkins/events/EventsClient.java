@@ -15,7 +15,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-
 public class EventsClient {
 	private static final Logger logger = LogManager.getLogger(EventsClient.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
@@ -48,13 +47,13 @@ public class EventsClient {
 		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password, mqmConfig.impersonatedUser);
 		this.restClientFactory = clientFactory;
 		activate();
-		logger.info("EVENTS: client initialized for '" + this.mqmConfig.location + "'; SP: " + this.mqmConfig.sharedSpace + "; access key: " + mqmConfig.username);
+		logger.info("client initialized for '" + this.mqmConfig.location + "'; SP: " + this.mqmConfig.sharedSpace + "; access key: " + mqmConfig.username);
 	}
 
 	public void update(ServerConfiguration newConfig) {
 		mqmConfig = new ServerConfiguration(newConfig.location, newConfig.sharedSpace, newConfig.username, newConfig.password, newConfig.impersonatedUser);
 		activate();
-		logger.info("EVENTS: client updated to '" + mqmConfig.location + "'; SP: " + mqmConfig.sharedSpace + "; access key: " + newConfig.username);
+		logger.info("client updated to '" + mqmConfig.location + "'; SP: " + mqmConfig.sharedSpace + "; access key: " + newConfig.username);
 	}
 
 	public void pushEvent(CIEvent event) {
@@ -76,10 +75,10 @@ public class EventsClient {
 									}
 									Thread.sleep(DATA_SEND_INTERVAL);
 								} catch (Exception e) {
-									logger.error("EVENTS: failed to send events", e);
+									logger.error("failed to send events", e);
 								}
 							}
-							logger.info("EVENTS: worker thread of events client stopped");
+							logger.info("worker thread of events client stopped");
 						}
 					});
 					worker.setDaemon(true);
@@ -104,7 +103,7 @@ public class EventsClient {
 			try {
 				worker.join();
 			} catch (InterruptedException ie) {
-				logger.info("EVENTS: interruption happened while shutting down worker thread", ie);
+				logger.info("interruption happened while shutting down worker thread", ie);
 			} finally {
 				if (worker.isAlive()) {
 					worker.interrupt();
@@ -140,15 +139,15 @@ public class EventsClient {
 
 		try {
 			requestBody = dtoFactory.dtoToJson(eventsSnapshot);
-			logger.info("EVENTS: sending events [" + eventsSummary + "] to '" + mqmConfig.location + "'...");
+			logger.info("sending events [" + eventsSummary + "] to '" + mqmConfig.location + "'...");
 			while (failedRetries < MAX_SEND_RETRIES) {
 				if (restClient.putEvents(requestBody)) {
 					events.removeAll(eventsSnapshot.getEvents());
-					logger.info("EVENTS: ... done, left to send " + events.size() + " events");
+					logger.info("... done, left to send " + events.size() + " events");
 					resetCounters();
 					break;
 				} else {
-					lastErrorNote = "EVENTS: send to MQM server failed";
+					lastErrorNote = "send to MQM server failed";
 					lastErrorTime = new Date();
 					failedRetries++;
 
@@ -158,18 +157,18 @@ public class EventsClient {
 				}
 			}
 			if (failedRetries == MAX_SEND_RETRIES) {
-				logger.error("EVENTS: max number of retries reached");
+				logger.error("max number of retries reached");
 				result = false;
 			}
 		} catch (Exception e) {
-			logger.error("EVENTS: failed to send snapshot of " + eventsSnapshot.getEvents().size() + " events: " + e.getMessage() + "; dropping them all", e);
+			logger.error("failed to send snapshot of " + eventsSnapshot.getEvents().size() + " events: " + e.getMessage() + "; dropping them all", e);
 			events.removeAll(eventsSnapshot.getEvents());
 		}
 		return result;
 	}
 
 	private void doBreakableWait(long timeout) {
-		logger.info("EVENTS: entering waiting period of " + timeout + "ms");
+		logger.info("entering waiting period of " + timeout + "ms");
 		long waitStart = new Date().getTime();
 		synchronized (WAIT_MONITOR) {
 			WAIT_MONITOR.released = false;
@@ -178,14 +177,14 @@ public class EventsClient {
 				try {
 					WAIT_MONITOR.wait(timeout);
 				} catch (InterruptedException ie) {
-					logger.info("EVENTS: waiting period was interrupted", ie);
+					logger.info("waiting period was interrupted", ie);
 				}
 			}
 			paused = false;
 			if (WAIT_MONITOR.released) {
-				logger.info("EVENTS: pause finished on demand");
+				logger.info("pause finished on demand");
 			} else {
-				logger.info("EVENTS: pause finished timely");
+				logger.info("pause finished timely");
 			}
 		}
 	}

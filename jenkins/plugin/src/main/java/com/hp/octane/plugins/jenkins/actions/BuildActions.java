@@ -71,7 +71,7 @@ public class BuildActions extends TransientActionFactory<AbstractBuild> {
 	@Override
 	@Nonnull
 	public Collection<? extends Action> createFor(@Nonnull AbstractBuild build) {
-		ArrayList<Action> actions = new ArrayList<Action>();
+		ArrayList<Action> actions = new ArrayList<>();
 		actions.add(new OctaneBuildActions(build, clientFactory));
 		return actions;
 	}
