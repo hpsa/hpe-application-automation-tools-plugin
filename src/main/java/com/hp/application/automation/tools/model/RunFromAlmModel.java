@@ -141,9 +141,11 @@ public class RunFromAlmModel {
 			int i = 1;
 
 			for (String testSet : testSetsArr) {
-				props.put("TestSet" + i,
-					Util.replaceMacro(envVars.expand(testSet), varResolver));
-				i++;
+				if (!StringUtils.isBlank(testSet)) {
+					props.put("TestSet" + i,
+						Util.replaceMacro(envVars.expand(testSet), varResolver));
+					i++;
+				}
 			}
 		} else {
 			props.put("almTestSets", "");

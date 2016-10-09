@@ -323,6 +323,13 @@ public class RunFromAlmBuilder extends Builder {
                 return FormValidation.error("Testsets are missing");
             }
             
+            String[] testSetsArr = value.replaceAll("\r", "").split("\n");
+
+			for (int i=0; i < testSetsArr.length; i++) {
+				if (StringUtils.isBlank(testSetsArr[i])) {
+					return FormValidation.error("Testsets should not contains empty lines");
+				}
+			}
             return FormValidation.ok();
         }
         
