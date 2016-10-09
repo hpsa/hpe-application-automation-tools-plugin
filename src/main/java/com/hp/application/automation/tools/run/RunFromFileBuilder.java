@@ -345,7 +345,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 				listener.fatalError("problem in mobile center password encryption" + e);
 			}
 		}
-		mergedProperties.putAll(runFromFileModel.getProperties(env, varResolver));
+		mergedProperties.putAll(runFromFileModel.getProperties(env));
 		int idx = 0;
 		for (Iterator<String> iterator = env.keySet().iterator(); iterator.hasNext(); ) {
 			String key = iterator.next();
