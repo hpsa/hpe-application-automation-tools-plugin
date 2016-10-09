@@ -9,9 +9,12 @@ import com.hp.mqm.client.model.Release;
 import com.hp.mqm.client.model.Taxonomy;
 import com.hp.mqm.client.model.TestResultStatus;
 import com.hp.mqm.client.model.Workspace;
+import net.sf.json.JSONObject;
 
 import java.io.File;
 
+import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
 import java.util.List;
 
 
@@ -45,6 +48,7 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * @return id of the post operation
 	 */
 	long postTestResult(InputStreamSource inputStreamSource, boolean skipErrors);
+
 
 	/**
 	 * Posts test results to MQM. Divide extra large test results into smaller files which will be posted individually
@@ -233,6 +237,32 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * @return metadata fields which are supported (has field_features: pipeline_tagging)
 	 */
 	List<FieldMetadata> getFieldsMetadata(long workspaceId);
+
+	/**
+	 *
+	 * @param entity
+	 * @param skipErrors
+	 * @param uftTests
+	 * @param uftTestJson
+	 * @param uftTestData
+	 * @param serverURL
+     * @return
+	 * @throws UnsupportedEncodingException
+     */
+
+
+	JSONObject postTest(String uftTestJson, HashMap<String, String> uftTestData, String serverURL) throws UnsupportedEncodingException;
+
+	/**
+	 *
+	 * @param testId
+	 * @param resourceMtrAsJSON
+	 * @param serverURL
+	 * @throws UnsupportedEncodingException
+     */
+
+
+	void attachUFTParametersToTest(String testId, String resourceMtrAsJSON, String serverURL) throws UnsupportedEncodingException;
 
 	/**
 	 * Sends events list to MQM [PUT request].
