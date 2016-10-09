@@ -144,7 +144,7 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
         PrintStream logger = listener.getLogger();
     	
         UsernamePasswordCredentials credentials = getCredentialsById(credentialsId, build, logger);
-        setProxyCredentials(build, logger);
+        setProxyCredentials(build);
     	
     	_sseModel = new SseModel(
                 almServerName,
@@ -161,18 +161,17 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
                 cdaDetails,
                 proxySettings);
     	
-    	Result resultStatus = Result.FAILURE;
         _sseModel.setAlmServerUrl(getServerUrl(_sseModel.getAlmServerName()));
         
         VariableResolver<String> varResolver = new VariableResolver.ByMap<String>(build.getEnvironment(listener));
         Testsuites testsuites = execute(build, logger, varResolver);
         
         FilePath resultsFilePath = workspace.child(getFileName());
-        resultStatus = createRunResults(resultsFilePath, testsuites, logger);
+        Result resultStatus = createRunResults(resultsFilePath, testsuites, logger);
         provideStepResultStatus(resultStatus, build, logger);
     }
     
-    private void setProxyCredentials(Run<?, ?> run, PrintStream logger) {
+    private void setProxyCredentials(Run<?, ?> run) {
     	if (proxySettings != null && proxySettings.getFsProxyCredentialsId() != null) {
     		UsernamePasswordCredentials up = CredentialsProvider.findCredentialById(
     				proxySettings.getFsProxyCredentialsId(),
@@ -241,8 +240,9 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
             build.setResult(Result.ABORTED);
             stop(performer, logger);
             throw e;
-        } catch (Throwable cause) {
+        } catch (Exception cause) {
             build.setResult(Result.FAILURE);
+            logger.print(String.format("Failed to execute test, Exception: %s", cause.getMessage()));
         }
         
         return ret;
@@ -266,7 +266,7 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
                 ret = Result.UNSTABLE;
             }
             
-        } catch (Throwable cause) {
+        } catch (Exception cause) {
             logger.print(String.format(
                     "Failed to create run results, Exception: %s",
                     cause.getMessage()));
@@ -281,7 +281,7 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
         boolean ret = false;
         for (Testsuite testsuite : testsuites) {
             for (Testcase testcase : testsuite.getTestcase()) {
-                if (testcase.getStatus().equals("error")) {
+                if ("error".equals(testcase.getStatus())) {
                     ret = true;
                     break;
                 }
@@ -305,7 +305,7 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
             if (performer != null) {
                 performer.stop();
             }
-        } catch (Throwable cause) {
+        } catch (Exception cause) {
             logger.println(String.format("Failed to stop BVS. Exception: %s", cause.getMessage()));
         }
     }
@@ -387,7 +387,6 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
         }
         
         public AlmServerSettingsModel[] getAlmServers() {
-            
             return Hudson.getInstance().getDescriptorByType(
                     AlmServerSettingsBuilder.DescriptorImpl.class).getInstallations();
         }

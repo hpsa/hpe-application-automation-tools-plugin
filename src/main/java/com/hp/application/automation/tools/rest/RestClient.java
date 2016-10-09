@@ -98,7 +98,7 @@ public class RestClient implements Client {
         Response ret = null;
         try {
             ret = doHttp(RESTConstants.GET, url, queryString, null, headers, resourceAccessLevel);
-        } catch (Throwable cause) {
+        } catch (Exception cause) {
             throw new SSEException(cause);
         }
 
@@ -115,13 +115,14 @@ public class RestClient implements Client {
         Response ret = null;
         try {
             ret = doHttp(RESTConstants.POST, url, null, data, headers, resourceAccessLevel);
-        } catch (Throwable cause) {
+        } catch (Exception cause) {
             throw new SSEException(cause);
         }
 
         return ret;
     }
 
+    @Override
     public Response httpPut(
             String url,
             byte[] data,
@@ -131,7 +132,7 @@ public class RestClient implements Client {
         Response ret = null;
         try {
             ret = doHttp(RESTConstants.PUT, url, null, data, headers, resourceAccessLevel);
-        } catch (Throwable cause) {
+        } catch (Exception cause) {
             throw new SSEException(cause);
         }
 
@@ -171,7 +172,7 @@ public class RestClient implements Client {
             Map<String, String> headers,
             ResourceAccessLevel resourceAccessLevel) {
 
-        Response ret = null;
+        Response ret;
         if ((queryString != null) && !queryString.isEmpty()) {
             url += "?" + queryString;
         }
@@ -195,7 +196,7 @@ public class RestClient implements Client {
             connection.connect();
             ret = retrieveHtmlResponse(connection);
             updateCookies(ret);
-        } catch (Throwable cause) {
+        } catch (Exception cause) {
             throw new SSEException(cause);
         }
 
@@ -232,7 +233,7 @@ public class RestClient implements Client {
                 out.write(bytes);
                 out.flush();
                 out.close();
-            } catch (Throwable cause) {
+            } catch (Exception cause) {
                 throw new SSEException(cause);
             }
         }
@@ -262,7 +263,7 @@ public class RestClient implements Client {
         try {
             ret.setStatusCode(connection.getResponseCode());
             ret.setHeaders(connection.getHeaderFields());
-        } catch (Throwable cause) {
+        } catch (Exception cause) {
             throw new SSEException(cause);
         }
 
@@ -274,7 +275,7 @@ public class RestClient implements Client {
         // if the connection to the server somehow failed, for example 404 or 500,
         // con.getInputStream() will throw an exception, which we'll keep.
         // we'll also store the body of the exception page, in the response data. */
-        catch (Throwable e) {
+        catch (Exception e) {
             inputStream = connection.getErrorStream();
             ret.setFailure(e);
         }
@@ -332,13 +333,9 @@ public class RestClient implements Client {
 
         Proxy proxy = null;
         
-        if (proxyInfo != null && StringUtils.isNotBlank(proxyInfo._host) && StringUtils.isNotBlank(proxyInfo._port)) {
-            try {
-                int port = Integer.parseInt(proxyInfo._port.trim());
-                proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyInfo._host, port));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        if (proxyInfo != null && StringUtils.isNotBlank(proxyInfo._host) && StringUtils.isNotBlank(proxyInfo._port)) {            
+            int port = Integer.parseInt(proxyInfo._port.trim());
+            proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyInfo._host, port));
         }
         
         if (proxy != null && StringUtils.isNotBlank(proxyInfo._userName) && StringUtils.isNotBlank(proxyInfo._password)) {
@@ -413,10 +410,9 @@ public class RestClient implements Client {
         String _userName;
         String _password;
 
-        /**
-         * Keep the non parameter constructor.
-         */
-        public ProxyInfo() {}
+        public ProxyInfo() {
+        	//Keep the non parameter constructor.
+        }
 
         public ProxyInfo(String host, String port, String userName, String password) {
             _host = host;

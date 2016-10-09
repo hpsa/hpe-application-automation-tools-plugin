@@ -26,7 +26,6 @@ public class SSEBuilderPerformer {
         
         Testsuites ret = new Testsuites();
         try {
-            //Args args = new ArgsFactory().create(model);
             Args args = new ArgsFactory().createResolved(model, buildVariableResolver);
             SseProxySettings proxySettings = model.getProxySettings();
             
@@ -53,7 +52,7 @@ public class SSEBuilderPerformer {
             ret = _runManager.execute(restClient, args, logger);
         } catch (InterruptedException ex) {
             throw ex;
-        } catch (Throwable cause) {
+        } catch (Exception cause) {
             logger.log(String.format("Failed to execute ALM tests. Cause: %s", cause.getMessage()));
         }
         
