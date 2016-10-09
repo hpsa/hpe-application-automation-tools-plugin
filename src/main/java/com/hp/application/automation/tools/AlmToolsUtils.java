@@ -15,8 +15,22 @@ import java.io.PrintStream;
 import java.net.URL;
 
 public class AlmToolsUtils {
-    
+
+
     public static void runOnBuildEnv(
+            AbstractBuild<?, ?> build,
+            Launcher launcher,
+            BuildListener listener,
+            String paramFileName) throws IOException, InterruptedException {
+            runOnBuildEnv(build,
+                 launcher,
+                 listener,
+                build.getWorkspace(),
+                 paramFileName);
+    }
+
+
+        public static void runOnBuildEnv(
             Run<?, ?> build,
             Launcher launcher,
             TaskListener listener,
@@ -52,7 +66,7 @@ public class AlmToolsUtils {
             BuildListener listener,
             String paramFileName) throws IOException, InterruptedException {
 
-            runHpToolsAborterOnBuildEnv(((Run<?,?>) build),launcher, listener, paramFileName, build.getWorkspace());
+            runHpToolsAborterOnBuildEnv(build, launcher, listener, paramFileName, build.getWorkspace());
     }
 
     public static void runHpToolsAborterOnBuildEnv(

@@ -39,6 +39,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Properties;
 
+/**
+ * Describs a regular jenkins build step from UFT or LR test files
+ */
 public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
     private final RunFromFileSystemModel runFromFileModel;
@@ -46,6 +49,11 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     private final static String LRAnalysisLauncher_EXE = "LRAnalysisLauncher.exe";
     private String ResultFilename = "ApiResults.xml";
 
+    /**
+     * Gets param file name.
+     *
+     * @return the param file name
+     */
     public String getParamFileName() {
         return ParamFileName;
     }
@@ -54,17 +62,51 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     private String ParamFileName = "ApiRun.txt";
 
 
+    /**
+     * Instantiates a new Run from file builder.
+     *
+     * @param fsTests the fs tests
+     */
     @DataBoundConstructor
     public RunFromFileBuilder(String fsTests) {
 
         runFromFileModel = new RunFromFileSystemModel(fsTests);
     }
 
+    /**
+     * Instantiates a new Run from file builder.
+     *
+     * @param runFromFileModel the run from file model
+     */
     public RunFromFileBuilder(RunFromFileSystemModel runFromFileModel) {
 
         this.runFromFileModel = runFromFileModel;
     }
 
+    /**
+     * Instantiates a new Run from file builder.
+     *
+     * @param fsTests                   the fs tests
+     * @param fsTimeout                 the fs timeout
+     * @param controllerPollingInterval the controller polling interval
+     * @param perScenarioTimeOut        the per scenario time out
+     * @param ignoreErrorStrings        the ignore error strings
+     * @param mcServerName              the mc server name
+     * @param fsUserName                the fs user name
+     * @param fsPassword                the fs password
+     * @param fsDeviceId                the fs device id
+     * @param fsTargetLab               the fs target lab
+     * @param fsManufacturerAndModel    the fs manufacturer and model
+     * @param fsOs                      the fs os
+     * @param fsAutActions              the fs aut actions
+     * @param fsLaunchAppName           the fs launch app name
+     * @param fsDevicesMetrics          the fs devices metrics
+     * @param fsInstrumented            the fs instrumented
+     * @param fsExtraApps               the fs extra apps
+     * @param fsJobId                   the fs job id
+     * @param proxySettings             the proxy settings
+     * @param useSSL                    the use ssl
+     */
     @Deprecated
     public RunFromFileBuilder(String fsTests, String fsTimeout, String controllerPollingInterval,
                               String perScenarioTimeOut, String ignoreErrorStrings, String mcServerName, String fsUserName, String fsPassword, String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel, String fsOs, String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics, String fsInstrumented, String fsExtraApps, String fsJobId, ProxySettings proxySettings, boolean useSSL) {
@@ -74,95 +116,185 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
     }
 
 
+    /**
+     * Sets controller polling interval.
+     *
+     * @param controllerPollingInterval the controller polling interval
+     */
     @DataBoundSetter
     public void setControllerPollingInterval(String controllerPollingInterval)
     {
         runFromFileModel.setControllerPollingInterval(controllerPollingInterval);
     }
 
+    /**
+     * Sets per scenario time out.
+     *
+     * @param perScenarioTimeOut the per scenario time out
+     */
     @DataBoundSetter
     public void setPerScenarioTimeOut(String perScenarioTimeOut)
     {
         runFromFileModel.setPerScenarioTimeOut(perScenarioTimeOut);
     }
 
+    /**
+     * Sets ignore error strings.
+     *
+     * @param ignoreErrorStrings the ignore error strings
+     */
     @DataBoundSetter
     public void setIgnoreErrorStrings(String ignoreErrorStrings)
     {
         runFromFileModel.setIgnoreErrorStrings(ignoreErrorStrings);
     }
 
+    /**
+     * Sets fs timeout.
+     *
+     * @param fsTimeout the fs timeout
+     */
     @DataBoundSetter
     public void setFsTimeout(String fsTimeout)
     {
         runFromFileModel.setFsTimeout(fsTimeout);
     }
 
+    /**
+     * Sets mc server name.
+     *
+     * @param mcServerName the mc server name
+     */
     @DataBoundSetter
     public void setMcServerName(String mcServerName) {
         runFromFileModel.setMcServerName(mcServerName);
     }
 
+    /**
+     * Sets fs user name.
+     *
+     * @param fsUserName the fs user name
+     */
     @DataBoundSetter
     public void setFsUserName(String fsUserName) {
         runFromFileModel.setFsUserName(fsUserName);
     }
 
+    /**
+     * Sets fs password.
+     *
+     * @param fsPassword the fs password
+     */
     @DataBoundSetter
     public void setFsPassword(String fsPassword) {
         runFromFileModel.setFsPassword(fsPassword);
     }
 
+    /**
+     * Sets fs device id.
+     *
+     * @param fsDeviceId the fs device id
+     */
     @DataBoundSetter
     public void setFsDeviceId(String fsDeviceId) {
         runFromFileModel.setFsDeviceId(fsDeviceId);
     }
 
+    /**
+     * Sets fs os.
+     *
+     * @param fsOs the fs os
+     */
     @DataBoundSetter
     public void setFsOs(String fsOs) {
         runFromFileModel.setFsOs(fsOs);
     }
 
+    /**
+     * Sets fs manufacturer and model.
+     *
+     * @param fsManufacturerAndModel the fs manufacturer and model
+     */
     @DataBoundSetter
     public void setFsManufacturerAndModel(String fsManufacturerAndModel) {
         runFromFileModel.setFsManufacturerAndModel(fsManufacturerAndModel);
     }
 
+    /**
+     * Sets fs target lab.
+     *
+     * @param fsTargetLab the fs target lab
+     */
     @DataBoundSetter
     public void setFsTargetLab(String fsTargetLab) {
         runFromFileModel.setFsTargetLab(fsTargetLab);
     }
 
+    /**
+     * Sets fs aut actions.
+     *
+     * @param fsAutActions the fs aut actions
+     */
     @DataBoundSetter
     public void setFsAutActions(String fsAutActions) {
         runFromFileModel.setFsAutActions(fsAutActions);
     }
 
+    /**
+     * Sets fs launch app name.
+     *
+     * @param fsLaunchAppName the fs launch app name
+     */
     @DataBoundSetter
     public void setFsLaunchAppName(String fsLaunchAppName) {
         runFromFileModel.setFsLaunchAppName(fsLaunchAppName);
     }
 
+    /**
+     * Sets fs instrumented.
+     *
+     * @param fsInstrumented the fs instrumented
+     */
     @DataBoundSetter
     public void setFsInstrumented(String fsInstrumented) {
         runFromFileModel.setFsInstrumented(fsInstrumented);
     }
 
+    /**
+     * Sets fs devices metrics.
+     *
+     * @param fsDevicesMetrics the fs devices metrics
+     */
     @DataBoundSetter
     public void setFsDevicesMetrics(String fsDevicesMetrics) {
         runFromFileModel.setFsDevicesMetrics(fsDevicesMetrics);
     }
 
+    /**
+     * Sets fs extra apps.
+     *
+     * @param fsExtraApps the fs extra apps
+     */
     @DataBoundSetter
     public void setFsExtraApps(String fsExtraApps) {
         runFromFileModel.setFsExtraApps(fsExtraApps);
     }
 
+    /**
+     * Sets fs job id.
+     *
+     * @param fsJobId the fs job id
+     */
     @DataBoundSetter
     public void setFsJobId(String fsJobId) {
         runFromFileModel.setFsJobId(fsJobId);
     }
 
+    /**
+     * Sets proxy settings.
+     *
+     * @param proxySettings the proxy settings
+     */
     @DataBoundSetter
     public void setProxySettings(ProxySettings proxySettings) {
         runFromFileModel.setProxySettings(proxySettings);
@@ -338,6 +470,11 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
     }
 
+    /**
+     * Gets mc server settings model.
+     *
+     * @return the mc server settings model
+     */
     public MCServerSettingsModel getMCServerSettingsModel() {
         for (MCServerSettingsModel mcServer : getDescriptor().getMcServers()) {
             if (this.runFromFileModel != null
@@ -348,13 +485,28 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
         return null;
     }
 
+    /**
+     * Gets run from file model.
+     *
+     * @return the run from file model
+     */
     public RunFromFileSystemModel getRunFromFileModel() {
         return runFromFileModel;
     }
 
+    /**
+     * The type Descriptor.
+     */
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
+        /**
+         * The Instance.
+         */
         JobConfigurationProxy instance = JobConfigurationProxy.getInstance();
+
+        /**
+         * Instantiates a new Descriptor.
+         */
         public DescriptorImpl() {
             load();
         }
@@ -365,16 +517,45 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             return true;
         }
 
+        /**
+         * Gets job id.
+         *
+         * @param mcUrl         the mc url
+         * @param mcUserName    the mc user name
+         * @param mcPassword    the mc password
+         * @param proxyAddress  the proxy address
+         * @param proxyUserName the proxy user name
+         * @param proxyPassword the proxy password
+         * @return the job id
+         */
         @JavaScriptMethod
         public String getJobId(String mcUrl, String mcUserName, String mcPassword, String proxyAddress, String proxyUserName, String proxyPassword) {
             return instance.createTempJob(mcUrl, mcUserName, mcPassword, proxyAddress, proxyUserName, proxyPassword);
         }
 
+        /**
+         * Populate app and device json object.
+         *
+         * @param mcUrl         the mc url
+         * @param mcUserName    the mc user name
+         * @param mcPassword    the mc password
+         * @param proxyAddress  the proxy address
+         * @param proxyUserName the proxy user name
+         * @param proxyPassword the proxy password
+         * @param jobId         the job id
+         * @return the json object
+         */
         @JavaScriptMethod
         public JSONObject populateAppAndDevice(String mcUrl, String mcUserName, String mcPassword,  String proxyAddress, String proxyUserName, String proxyPassword, String jobId) {
             return instance.getJobJSONData(mcUrl, mcUserName, mcPassword, proxyAddress, proxyUserName, proxyPassword, jobId);
         }
 
+        /**
+         * Gets mc server url.
+         *
+         * @param serverName the server name
+         * @return the mc server url
+         */
         @JavaScriptMethod
         public String getMcServerUrl(String serverName) {
             String serverUrl = "";
@@ -393,11 +574,23 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             return "Execute HP tests from file system";
         }
 
+        /**
+         * Do check fs tests form validation.
+         *
+         * @param value the value
+         * @return the form validation
+         */
         public FormValidation doCheckFsTests(@QueryParameter String value)
         {
             return FormValidation.ok();
         }
 
+        /**
+         * Do check ignore error strings form validation.
+         *
+         * @param value the value
+         * @return the form validation
+         */
         public FormValidation doCheckIgnoreErrorStrings(@QueryParameter String value)
         {
 
@@ -405,6 +598,12 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             return FormValidation.ok();
         }
 
+        /**
+         * Do check fs timeout form validation.
+         *
+         * @param value the value
+         * @return the form validation
+         */
         public FormValidation doCheckFsTimeout(@QueryParameter String value)
         {
             if (StringUtils.isEmpty(value)){
@@ -422,16 +621,32 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             return FormValidation.ok();
         }
 
+        /**
+         * Has mc servers boolean.
+         *
+         * @return the boolean
+         */
         public boolean hasMCServers() {
             return Hudson.getInstance().getDescriptorByType(
                     MCServerSettingsBuilder.MCDescriptorImpl.class).hasMCServers();
         }
 
+        /**
+         * Get mc servers mc server settings model [ ].
+         *
+         * @return the mc server settings model [ ]
+         */
         public MCServerSettingsModel[] getMcServers() {
             return Hudson.getInstance().getDescriptorByType(
                     MCServerSettingsBuilder.MCDescriptorImpl.class).getInstallations();
         }
 
+        /**
+         * Do check controller polling interval form validation.
+         *
+         * @param value the value
+         * @return the form validation
+         */
         public FormValidation doCheckControllerPollingInterval(@QueryParameter String value){
             if (StringUtils.isEmpty(value)){
                 return FormValidation.ok();
@@ -444,6 +659,12 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
             return FormValidation.ok();
         }
 
+        /**
+         * Do check per scenario time out form validation.
+         *
+         * @param value the value
+         * @return the form validation
+         */
         public FormValidation doCheckPerScenarioTimeOut(@QueryParameter String value){
             if (StringUtils.isEmpty(value)){
                 return FormValidation.ok();
@@ -458,6 +679,11 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
     }
 
+    /**
+     * Gets run results file name.
+     *
+     * @return the run results file name
+     */
     public String getRunResultsFileName() {
         return ResultFilename;
     }

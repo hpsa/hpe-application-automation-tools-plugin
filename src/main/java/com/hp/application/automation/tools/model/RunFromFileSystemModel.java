@@ -15,6 +15,9 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.util.Properties;
 
+/**
+ * Holds the data for RunFromFile build type.
+ */
 public class RunFromFileSystemModel {
 
     private String fsTests;
@@ -39,6 +42,30 @@ public class RunFromFileSystemModel {
     private ProxySettings proxySettings;
     private boolean useSSL;
 
+    /**
+     * Instantiates a new Run from file system model.
+     *
+     * @param fsTests                   the fs tests path
+     * @param fsTimeout                 the fs timeout in minutes for tests in seconds
+     * @param controllerPollingInterval the controller polling interval in minutes
+     * @param perScenarioTimeOut        the per scenario time out in minutes
+     * @param ignoreErrorStrings        the ignore error strings
+     * @param mcServerName              the mc server name
+     * @param fsUserName                the fs user name
+     * @param fsPassword                the fs password
+     * @param fsDeviceId                the fs device id
+     * @param fsTargetLab               the fs target lab
+     * @param fsManufacturerAndModel    the fs manufacturer and model
+     * @param fsOs                      the fs os
+     * @param fsAutActions              the fs aut actions
+     * @param fsLaunchAppName           the fs launch app name
+     * @param fsDevicesMetrics          the fs devices metrics
+     * @param fsInstrumented            the fs instrumented
+     * @param fsExtraApps               the fs extra apps
+     * @param fsJobId                   the fs job id
+     * @param proxySettings             the proxy settings
+     * @param useSSL                    the use ssl
+     */
     public RunFromFileSystemModel(String fsTests, String fsTimeout, String controllerPollingInterval,String perScenarioTimeOut, String ignoreErrorStrings, String mcServerName, String fsUserName, String fsPassword, String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel, String fsOs, String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics, String fsInstrumented, String fsExtraApps, String fsJobId, ProxySettings proxySettings, boolean useSSL) {
 
         this.fsTests = fsTests;
@@ -76,6 +103,11 @@ public class RunFromFileSystemModel {
     }
 
 
+    /**
+     * Instantiates a new file system model.
+     *
+     * @param fsTests the fs tests
+     */
     @DataBoundConstructor
     public RunFromFileSystemModel(String fsTests) {
         this.fsTests = fsTests;
@@ -88,90 +120,200 @@ public class RunFromFileSystemModel {
     }
 
 
+    /**
+     * Sets fs tests.
+     *
+     * @param fsTests the fs tests
+     */
     public void setFsTests(String fsTests) {
         this.fsTests = fsTests;
     }
 
+    /**
+     * Sets fs timeout.
+     *
+     * @param fsTimeout the fs timeout
+     */
     public void setFsTimeout(String fsTimeout) {
         this.fsTimeout = fsTimeout;
     }
 
+    /**
+     * Sets mc server name.
+     *
+     * @param mcServerName the mc server name
+     */
     public void setMcServerName(String mcServerName) {
         this.mcServerName = mcServerName;
     }
 
+    /**
+     * Sets fs user name.
+     *
+     * @param fsUserName the fs user name
+     */
     public void setFsUserName(String fsUserName) {
         this.fsUserName = fsUserName;
     }
 
+    /**
+     * Sets fs password.
+     *
+     * @param fsPassword the fs password
+     */
     public void setFsPassword(String fsPassword) {
         this.fsPassword = Secret.fromString(fsPassword);
     }
 
+    /**
+     * Sets fs device id.
+     *
+     * @param fsDeviceId the fs device id
+     */
     public void setFsDeviceId(String fsDeviceId) {
         this.fsDeviceId = fsDeviceId;
     }
 
+    /**
+     * Sets fs os.
+     *
+     * @param fsOs the fs os
+     */
     public void setFsOs(String fsOs) {
         this.fsOs = fsOs;
     }
 
+    /**
+     * Sets fs manufacturer and model.
+     *
+     * @param fsManufacturerAndModel the fs manufacturer and model
+     */
     public void setFsManufacturerAndModel(String fsManufacturerAndModel) {
         this.fsManufacturerAndModel = fsManufacturerAndModel;
     }
 
+    /**
+     * Sets fs target lab.
+     *
+     * @param fsTargetLab the fs target lab
+     */
     public void setFsTargetLab(String fsTargetLab) {
         this.fsTargetLab = fsTargetLab;
     }
 
+    /**
+     * Sets fs aut actions.
+     *
+     * @param fsAutActions the fs aut actions
+     */
     public void setFsAutActions(String fsAutActions) {
         this.fsAutActions = fsAutActions;
     }
 
+    /**
+     * Sets fs launch app name.
+     *
+     * @param fsLaunchAppName the fs launch app name
+     */
     public void setFsLaunchAppName(String fsLaunchAppName) {
         this.fsLaunchAppName = fsLaunchAppName;
     }
 
+    /**
+     * Sets fs instrumented.
+     *
+     * @param fsInstrumented the fs instrumented
+     */
     public void setFsInstrumented(String fsInstrumented) {
         this.fsInstrumented = fsInstrumented;
     }
 
+    /**
+     * Sets fs devices metrics.
+     *
+     * @param fsDevicesMetrics the fs devices metrics
+     */
     public void setFsDevicesMetrics(String fsDevicesMetrics) {
         this.fsDevicesMetrics = fsDevicesMetrics;
     }
 
+    /**
+     * Sets fs extra apps.
+     *
+     * @param fsExtraApps the fs extra apps
+     */
     public void setFsExtraApps(String fsExtraApps) {
         this.fsExtraApps = fsExtraApps;
     }
 
+    /**
+     * Sets fs job id.
+     *
+     * @param fsJobId the fs job id
+     */
     public void setFsJobId(String fsJobId) {
         this.fsJobId = fsJobId;
     }
 
+    /**
+     * Sets proxy settings.
+     *
+     * @param proxySettings the proxy settings
+     */
     public void setProxySettings(ProxySettings proxySettings) {
         this.proxySettings = proxySettings;
     }
 
+    /**
+     * Sets use ssl.
+     *
+     * @param useSSL the use ssl
+     */
     public void setUseSSL(boolean useSSL) {
         this.useSSL = useSSL;
     }
 
+    /**
+     * Gets fs tests.
+     *
+     * @return the fs tests
+     */
     public String getFsTests() {
         return fsTests;
     }
 
+    /**
+     * Gets fs timeout.
+     *
+     * @return the fs timeout
+     */
     public String getFsTimeout() {
         return fsTimeout;
     }
 
+    /**
+     * Gets mc server name.
+     *
+     * @return the mc server name
+     */
     public String getMcServerName() {
         return mcServerName;
     }
 
+    /**
+     * Gets fs user name.
+     *
+     * @return the fs user name
+     */
     public String getFsUserName() {
         return fsUserName;
     }
 
+    /**
+     * Gets fs password.
+     *
+     * @return the fs password
+     */
     public String getFsPassword() {
         //Temp fix till supported in pipeline module in LR
         if(fsPassword == null)
@@ -181,64 +323,136 @@ public class RunFromFileSystemModel {
         return fsPassword.getPlainText();
     }
 
+    /**
+     * Gets fs device id.
+     *
+     * @return the fs device id
+     */
     public String getFsDeviceId() {
         return fsDeviceId;
     }
 
+    /**
+     * Gets fs os.
+     *
+     * @return the fs os
+     */
     public String getFsOs() {
         return fsOs;
     }
 
+    /**
+     * Gets fs manufacturer and model.
+     *
+     * @return the fs manufacturer and model
+     */
     public String getFsManufacturerAndModel() {
         return fsManufacturerAndModel;
     }
 
+    /**
+     * Gets fs target lab.
+     *
+     * @return the fs target lab
+     */
     public String getFsTargetLab() {
         return fsTargetLab;
     }
 
+    /**
+     * Gets fs aut actions.
+     *
+     * @return the fs aut actions
+     */
     public String getFsAutActions() {
         return fsAutActions;
     }
 
+    /**
+     * Gets fs launch app name.
+     *
+     * @return the fs launch app name
+     */
     public String getFsLaunchAppName() {
         return fsLaunchAppName;
     }
 
+    /**
+     * Gets fs instrumented.
+     *
+     * @return the fs instrumented
+     */
     public String getFsInstrumented() {
         return fsInstrumented;
     }
 
+    /**
+     * Gets fs devices metrics.
+     *
+     * @return the fs devices metrics
+     */
     public String getFsDevicesMetrics() {
         return fsDevicesMetrics;
     }
 
+    /**
+     * Gets fs extra apps.
+     *
+     * @return the fs extra apps
+     */
     public String getFsExtraApps() {
         return fsExtraApps;
     }
 
+    /**
+     * Gets fs job id.
+     *
+     * @return the fs job id
+     */
     public String getFsJobId() {
         return fsJobId;
     }
 
+    /**
+     * Is use proxy boolean.
+     *
+     * @return the boolean
+     */
     public boolean isUseProxy() {
         return proxySettings != null;
     }
 
+    /**
+     * Is use authentication boolean.
+     *
+     * @return the boolean
+     */
     public boolean isUseAuthentication() {
         return proxySettings != null && StringUtils.isNotBlank(proxySettings.getFsProxyUserName());
     }
 
+    /**
+     * Gets proxy settings.
+     *
+     * @return the proxy settings
+     */
     public ProxySettings getProxySettings() {
         return proxySettings;
     }
 
+    /**
+     * Is use ssl boolean.
+     *
+     * @return the boolean
+     */
     public boolean isUseSSL() {
         return useSSL;
     }
 
 
     /**
+     * Gets controller polling interval.
+     *
      * @return the controllerPollingInterval
      */
     public String getControllerPollingInterval() {
@@ -246,6 +460,8 @@ public class RunFromFileSystemModel {
     }
 
     /**
+     * Sets controller polling interval.
+     *
      * @param controllerPollingInterval the controllerPollingInterval to set
      */
     public void setControllerPollingInterval(String controllerPollingInterval) {
@@ -253,6 +469,8 @@ public class RunFromFileSystemModel {
     }
 
     /**
+     * Gets ignore error strings.
+     *
      * @return the ignoreErrorStrings
      */
     public String getIgnoreErrorStrings() {
@@ -261,6 +479,8 @@ public class RunFromFileSystemModel {
 
 
     /**
+     * Sets ignore error strings.
+     *
      * @param ignoreErrorStrings the ignoreErrorStrings to set
      */
     public void setIgnoreErrorStrings(String ignoreErrorStrings) {
@@ -268,8 +488,9 @@ public class RunFromFileSystemModel {
     }
 
 
-
     /**
+     * Gets per scenario time out.
+     *
      * @return the perScenarioTimeOut
      */
     public String getPerScenarioTimeOut() {
@@ -277,17 +498,31 @@ public class RunFromFileSystemModel {
     }
 
     /**
+     * Sets per scenario time out.
+     *
      * @param perScenarioTimeOut the perScenarioTimeOut to set
      */
     public void setPerScenarioTimeOut(String perScenarioTimeOut) {
         this.perScenarioTimeOut = perScenarioTimeOut;
     }
 
+    /**
+     * Gets properties.
+     *
+     * @param envVars     the env vars
+     * @param varResolver the var resolver
+     * @return the properties
+     */
     public Properties getProperties(EnvVars envVars,
                                     VariableResolver<String> varResolver) {
         return CreateProperties(envVars, varResolver);
     }
 
+    /**
+     * Gets properties.
+     *
+     * @return the properties
+     */
     public Properties getProperties() {
         return CreateProperties(null, null);
     }
@@ -372,6 +607,15 @@ public class RunFromFileSystemModel {
         return props;
     }
 
+    /**
+     * Get proxy details json object.
+     *
+     * @param mcUrl         the mc url
+     * @param proxyAddress  the proxy address
+     * @param proxyUserName the proxy user name
+     * @param proxyPassword the proxy password
+     * @return the json object
+     */
     public JSONObject getJobDetails(String mcUrl, String proxyAddress, String proxyUserName, String proxyPassword){
         if(StringUtils.isBlank(fsUserName) || StringUtils.isBlank(fsPassword.getPlainText())){
             return null;

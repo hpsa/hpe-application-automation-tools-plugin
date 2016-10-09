@@ -13,8 +13,9 @@ import org.jenkinsci.plugins.workflow.steps.StepContextParameter;
 import javax.inject.Inject;
 import java.util.HashMap;
 
+
 /**
- * Created by kazaky on 28/07/2016.
+ * The Load runner pipeline step execution.
  */
 public class LrScenarioLoadStepExecution extends AbstractSynchronousNonBlockingStepExecution<Void> {
 

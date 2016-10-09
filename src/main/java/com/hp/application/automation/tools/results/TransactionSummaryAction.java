@@ -16,6 +16,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
+/**
+ * Generates the transaction summary reports and adds them to the run
+ */
 public class TransactionSummaryAction implements Action, SimpleBuildStep.LastBuildAction {
 
     private static final String TRANSACTION_SUMMARY_FOLDER = "TransactionSummary";
@@ -26,7 +29,12 @@ public class TransactionSummaryAction implements Action, SimpleBuildStep.LastBui
 
     private Run<?,?> build;
 
-    public TransactionSummaryAction(Run<?,?> build) {
+  /**
+   * Instantiates a new Transaction summary action.
+   *
+   * @param build the build
+   */
+  public TransactionSummaryAction(Run<?,?> build) {
         this.build = build;
         File reportFolder = new File(build.getArtifactsDir().getParent(), TRANSACTION_SUMMARY_FOLDER);
         if (reportFolder.exists()) {
@@ -90,15 +98,33 @@ public class TransactionSummaryAction implements Action, SimpleBuildStep.LastBui
         return "TransactionSummary";
     }
 
-    public Run<?,?> getBuild() {
+  /**
+   * Gets build.
+   *
+   * @return the build
+   */
+  public Run<?,?> getBuild() {
         return build;
     }
 
-    public Map<String, SummaryReport> getSummaryReportMap() {
+  /**
+   * Gets summary report map.
+   *
+   * @return the summary report map
+   */
+  public Map<String, SummaryReport> getSummaryReportMap() {
         return summaryReportMap;
     }
 
-    public Object getDynamic(String name, StaplerRequest req, StaplerResponse rsp) {
+  /**
+   * Gets dynamic.
+   *
+   * @param name the name 
+   * @param req the req 
+   * @param rsp the rsp 
+   * @return the dynamic
+   */
+  public Object getDynamic(String name, StaplerRequest req, StaplerResponse rsp) {
         if (summaryReportMap.containsKey(name))
             return summaryReportMap.get(name);
         return null;

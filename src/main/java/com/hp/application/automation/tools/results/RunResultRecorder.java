@@ -51,8 +51,8 @@ import java.io.*;
 import java.util.*;
 
 /**
- * Some parts of this code have been taken or used from {@link JUnitResultArchiver};
- * 
+ * using {@link JUnitResultArchiver};
+ *
  * @author Thomas Maurel
  */
 public class RunResultRecorder extends Recorder implements Serializable, MatrixAggregatable, SimpleBuildStep {
@@ -70,6 +70,12 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
     private final ResultsPublisherModel _resultsPublisherModel;
 
 
+    /**
+     * Instantiates a new Run result recorder.
+     *
+     * @param publishResults         the publish results
+     * @param archiveTestResultsMode the archive test results mode
+     */
     @DataBoundConstructor
     public RunResultRecorder(boolean publishResults, String archiveTestResultsMode) {
 
@@ -82,7 +88,18 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         return (DescriptorImpl) super.getDescriptor();
     }
 
-    // temporary solution to deal with lack of support in builder list when Project is replaced by job type in pipeline.
+    /**
+     * Pipeline perform.
+     *
+     * @param build              the build
+     * @param workspace          the workspace
+     * @param launcher           the launcher
+     * @param listener           the listener
+     * @param builderResultNames the builder result names
+     * @throws IOException          the io exception
+     * @throws InterruptedException the interrupted exception
+     */
+// temporary solution to deal with lack of support in builder list when Project is replaced by job type in pipeline.
     // Should be dealt with general refactoring - making this a job property or change folder structure to scan instead
     // of passing file name from builder.
     public void pipelinePerform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
@@ -150,7 +167,17 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         return ;
     }
 
-
+    /**
+     * Records LR test results copied in JUnit format
+     * @param build
+     * @param workspace
+     * @param launcher
+     * @param listener
+     * @param mergedResultNames
+     * @param fileSystemResultNames
+     * @throws InterruptedException
+     * @throws IOException
+     */
     private void recordRunResults(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher,@Nonnull TaskListener listener, List<String> mergedResultNames, List<String> fileSystemResultNames) throws InterruptedException, IOException {
 
 //        recordTestResult(build, workspace, listener, mergedResultNames);
@@ -182,6 +209,11 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         return ;
     }
 
+
+    /**
+     * Adds the html reports actions to the left side menu.
+     * @param build
+     */
     private void publishLrReports(@Nonnull Run<?, ?> build) {
         File artifactsDir = build.getArtifactsDir();
         if (artifactsDir.exists()) {
@@ -317,7 +349,19 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
         return true;
     }
-	
+
+    /**
+     * copies, archives and creates the Test reports of LR and UFT runs.
+     * @param build
+     * @param listener
+     * @param resultFiles
+     * @param testResult
+     * @param runWorkspace
+     * @throws ParserConfigurationException
+     * @throws SAXException
+     * @throws IOException
+     * @throws InterruptedException
+     */
     private void archiveTestsReport(
             Run<?, ?> build,
             TaskListener listener,
@@ -640,6 +684,16 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         return false;
     }
 
+    /**
+     * Copy Summary Html reports created by LoadRunner
+     * @param reportFolder
+     * @param testFolderPath
+     * @param artifactsDir
+     * @param reportNames
+     * @param testResult
+     * @throws IOException
+     * @throws InterruptedException
+     */
     private void createHtmlReport(FilePath reportFolder,
                                      String testFolderPath,
                                      File artifactsDir,
@@ -677,6 +731,16 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 //        }
     }
 
+    /**
+     * Copies and creates the transaction summery on the master
+     * @param reportFolder
+     * @param testFolderPath
+     * @param artifactsDir
+     * @param reportNames
+     * @param testResult
+     * @throws IOException
+     * @throws InterruptedException
+     */
     private void createTransactionSummary(FilePath reportFolder,
                                           String testFolderPath,
                                           File artifactsDir,
@@ -720,7 +784,15 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         }
 
     }
-	
+
+    /**
+     * creates index files as index for the different scenarios.
+     * @param reportNames
+     * @param reportDirectory
+     * @param testResult
+     * @param tranSummary
+     * @throws IOException
+     */
     private void outputReportFiles(List<String> reportNames, File reportDirectory, TestResult testResult, boolean tranSummary) throws IOException {
 
         if (reportNames.size() <= 0)
@@ -862,15 +934,26 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
         return BuildStepMonitor.BUILD;
     }
-    
+
+    /**
+     * Gets results publisher model.
+     *
+     * @return the results publisher model
+     */
     public ResultsPublisherModel getResultsPublisherModel() {
         
         return _resultsPublisherModel;
     }
 
+    /**
+     * The type Descriptor.
+     */
     @Extension
     public static class DescriptorImpl extends BuildStepDescriptor<Publisher> {
-        
+
+        /**
+         * Instantiates a new Descriptor.
+         */
         public DescriptorImpl() {
 
             load();
@@ -888,13 +971,21 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             
             return true;
         }
-        
+
+        /**
+         * Gets report archive modes.
+         *
+         * @return the report archive modes
+         */
         public List<EnumDescription> getReportArchiveModes() {
             
             return ResultsPublisherModel.archiveModes;
         }
     }
 
+    /**
+     * The type Rrv file filter.
+     */
     public class RRVFileFilter implements FileFilter{
         //"Act*;Icons;Resources;CountersMonitorResults.txt;*.xls;GeneralInfo.ini;InstallNewReport.html;Results.qtp;Results.xml";
         private final String[] excludedFilenames =
