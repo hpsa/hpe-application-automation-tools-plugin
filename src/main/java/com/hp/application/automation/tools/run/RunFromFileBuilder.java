@@ -315,10 +315,12 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 			listener.error("Failed loading build environment " + e);
 		}
 
+
+
 		// this is an unproper replacment to the build.getVariableResolver since workflow run won't support the
 		// getBuildEnviroment() as written here:
 		// https://github.com/jenkinsci/pipeline-plugin/blob/893e3484a25289c59567c6724f7ce19e3d23c6ee/DEVGUIDE.md#variable-substitutions
-		VariableResolver<String> varResolver = new VariableResolver.ByMap<String>(build.getEnvironment(listener));
+
 		JSONObject jobDetails = null;
 		String mcServerUrl = "";
 		// now merge them into one list
@@ -345,7 +347,23 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 				listener.fatalError("problem in mobile center password encryption" + e);
 			}
 		}
-		mergedProperties.putAll(runFromFileModel.getProperties(env));
+
+		if(env == null)
+		{
+			listener.fatalError("Enviroment not set");
+			throw new IOException("Env Null - something went wrong with fetching jenkins build environment");
+		}
+		if(build instanceof AbstractBuild)
+		{
+			VariableResolver<String> varResolver = ((AbstractBuild) build).getBuildVariableResolver();
+			mergedProperties.putAll(runFromFileModel.getProperties(env, varResolver));
+		}
+		else
+		{
+			mergedProperties.putAll(runFromFileModel.getProperties(env));
+		}
+
+
 		int idx = 0;
 		for (Iterator<String> iterator = env.keySet().iterator(); iterator.hasNext(); ) {
 			String key = iterator.next();
