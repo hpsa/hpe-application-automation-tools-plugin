@@ -189,7 +189,7 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
     
     private UsernamePasswordCredentials getCredentialsById(String credentialsId, Run<?, ?> run, PrintStream logger) {
     	if (StringUtils.isBlank(credentialsId)) {
-    		throw new NullPointerException("credentialsId is blank.");
+    		throw new NullPointerException("credentials is not configured.");
     	}
     	
     	UsernamePasswordCredentials credentials = CredentialsProvider.findCredentialById(credentialsId,
