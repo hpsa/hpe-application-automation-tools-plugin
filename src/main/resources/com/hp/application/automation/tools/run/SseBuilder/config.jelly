@@ -7,7 +7,8 @@
 
 -->
 
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" 
+xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:c="/lib/credentials">
 
 	<j:if test="${empty(descriptor.almServers)}">
 		<tr>
@@ -20,18 +21,6 @@
       <td/>
     </tr>  
 	</j:if>
-	
-	<script type="text/javascript">
-        function useAuthentication(obj){
-            if(obj.checked){
-                document.getElementsByName("sse.fsProxyUserName")[0].disabled=null;
-                document.getElementsByName("sse.fsProxyPassword")[0].disabled=null;
-            }else{
-                document.getElementsByName("sse.fsProxyUserName")[0].disabled="true";
-                document.getElementsByName("sse.fsProxyPassword")[0].disabled="true";
-            }
-        }
-    </script>
 
 	<tr>
       <td/>
@@ -60,30 +49,25 @@
                 </j:forEach>
             </select>
         </f:entry>
-        <f:entry title="User name" field="almUserName">
-            <f:textbox name="sse.almUserName" value="${instance.sseModel.almUserName}"/>
-        </f:entry>
-        <f:entry title="Password" field="almPassword">
-            <f:password name="sse.almPassword" value="${instance.sseModel.almPassword}"/>
-        </f:entry>
+        
+        <f:entry name="sse.credentialsId" field="credentialsId" title="ALM Credentials">
+	        <c:select/>
+	    </f:entry>
+	    
         <f:entry title="Domain" field="almDomain">
             <f:textbox name="sse.almDomain" value="${instance.sseModel.almDomain}"/>
         </f:entry>
         
         <f:entry>
-	        <f:optionalBlock title="Use proxy settings" name = "proxySettings" checked="${instance.sseModel.useProxy}">
+	        <f:optionalBlock title="Use proxy settings" name = "proxySettings" checked="${instance.useProxy}">
 	            <f:entry title="Address" field="fsProxyAddress">
-	              <f:textbox name="sse.fsProxyAddress" value="${instance.sseModel.proxySettings.fsProxyAddress}"/>
+	              <f:textbox name="sse.fsProxyAddress" value="${instance.proxySettings.fsProxyAddress}"/>
 	            </f:entry>
-	            <f:entry>
-	                <f:checkbox title="Specify authentication" name="sse.fsUseAuthentication" checked="${instance.sseModel.useAuthentication}" onclick="useAuthentication(this)"/>
-	            </f:entry>
-	            <f:entry title="User name" field="fsProxyUserName">
-	              <f:textbox name="sse.fsProxyUserName" disabled = "${instance.sseModel.useAuthentication ? null : 'true'}" value="${instance.sseModel.proxySettings.fsProxyUserName}"/>
-	            </f:entry>
-	            <f:entry title="Password" field="fsProxyPassword">
-	              <f:password name="sse.fsProxyPassword" disabled = "${instance.sseModel.useAuthentication ? null : 'true'}" value="${instance.sseModel.proxySettings.fsProxyPassword}"/>
-	            </f:entry>
+	            
+	            <f:entry name="sse.fsProxyCredentialsId" field="fsProxyCredentialsId" title="Proxy Credentials">
+			        <c:select value="${instance.proxySettings.fsProxyCredentialsId}"/>
+			    </f:entry>
+				
 	        </f:optionalBlock>
 	    </f:entry>
 	    
@@ -112,23 +96,23 @@
        	    <f:textbox name="sse.environmentConfigurationId" value="${instance.sseModel.environmentConfigurationId}"/>
         </f:entry>
         <f:block>
-			<f:optionalBlock name="sse.cdaDetails" title="Use CDA for provisioning and deployment" checked="${instance.sseModel.cdaDetailsChecked}">
+			<f:optionalBlock name="sse.cdaDetails" title="Use CDA for provisioning and deployment" checked="${instance.cdaDetailsChecked}">
     			<f:entry title="Deployment Action" field="deploymentAction">
 	                <select name="sse.deploymentAction" >
 	                    <j:forEach var="deploymentAction" items="${descriptor.deploymentActions}">
-	                        <f:option selected="${deploymentAction.value == instance.sseModel.cdaDetails.deploymentAction}" value="${deploymentAction.value}">
+	                        <f:option selected="${deploymentAction.value == instance.cdaDetails.deploymentAction}" value="${deploymentAction.value}">
 	                          ${deploymentAction.description}
 	                        </f:option>
 	                    </j:forEach>
 	                </select>
     			</f:entry>      
     			<f:entry title="Deployed environment name" field="deployedEnvironmentName">
-   				    <f:textbox name="sse.deployedEnvironmentName" value="${instance.sseModel.cdaDetails.deployedEnvironmentName}"/>
+   				    <f:textbox name="sse.deployedEnvironmentName" value="${instance.cdaDetails.deployedEnvironmentName}"/>
     			</f:entry>  
 		        <f:entry title="Deprovisioning Action" field="deprovisioningAction">
 		                <select name="sse.deprovisioningAction" >
 		                    <j:forEach var="deprovisioningAction" items="${descriptor.deprovisioningActions}">
-		                        <f:option selected="${deprovisioningAction.value == instance.sseModel.cdaDetails.deprovisioningAction}" value="${deprovisioningAction.value}">
+		                        <f:option selected="${deprovisioningAction.value == instance.cdaDetails.deprovisioningAction}" value="${deprovisioningAction.value}">
 		                          ${deprovisioningAction.description}
 		                        </f:option>
 		                    </j:forEach>

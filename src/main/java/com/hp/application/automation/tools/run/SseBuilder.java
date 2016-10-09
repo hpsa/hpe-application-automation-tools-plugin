@@ -12,14 +12,23 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 
 import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.Symbol;
+import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
+import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.common.StandardUsernameListBoxModel;
+import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
+import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
+import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
+import com.cloudbees.plugins.credentials.matchers.IdMatcher;
 import com.hp.application.automation.tools.model.AlmServerSettingsModel;
 import com.hp.application.automation.tools.model.CdaDetails;
 import com.hp.application.automation.tools.model.EnumDescription;
-import com.hp.application.automation.tools.model.ProxySettings;
 import com.hp.application.automation.tools.model.SseModel;
+import com.hp.application.automation.tools.model.SseProxySettings;
 import com.hp.application.automation.tools.settings.AlmServerSettingsBuilder;
 import com.hp.application.automation.tools.sse.SSEBuilderPerformer;
 import com.hp.application.automation.tools.sse.result.model.junit.Testcase;
@@ -30,10 +39,14 @@ import com.hp.application.automation.tools.sse.sdk.Logger;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.Util;
 import hudson.model.*;
+import hudson.model.queue.Tasks;
+import hudson.security.ACL;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
 import hudson.util.VariableResolver;
 import jenkins.tasks.SimpleBuildStep;
 
@@ -49,55 +62,107 @@ import jenkins.tasks.SimpleBuildStep;
  */
 public class SseBuilder extends Builder implements SimpleBuildStep {
     
-    private final SseModel _sseModel;
+    private SseModel _sseModel;
     private String _fileName;
     
-    @DataBoundConstructor
-    public SseBuilder(
-            String almServerName,
-            String almUserName,
-            String almPassword,
-            String almDomain,
-            String almProject,
-            String description,
-            String runType,
-            String almEntityId,
-            String timeslotDuration,
-            String postRunAction,
-            String environmentConfigurationId,
-            CdaDetails cdaDetails,
-            ProxySettings proxySettings) {
-        
-        _sseModel =
-                new SseModel(
-                        almServerName,
-                        almUserName,
-                        almPassword,
-                        almDomain,
-                        almProject,
-                        runType,
-                        almEntityId,
-                        timeslotDuration,
-                        description,
-                        postRunAction,
-                        environmentConfigurationId,
-                        cdaDetails,
-                        proxySettings);
+    private String almServerName;
+    private String credentialsId;
+    private String almDomain;
+    private String almProject;
+    private String description;
+    private String runType;
+    private String almEntityId;
+    private String timeslotDuration;
+    private String postRunAction;
+    private String environmentConfigurationId;
+    private CdaDetails cdaDetails;
+    private SseProxySettings proxySettings;
+    
+    //Databound setters and getters.
+    public String getAlmServerName() { return almServerName; }
+    public String getCredentialsId() { return credentialsId; }
+    public String getAlmDomain() { return almDomain; }
+    public String getAlmProject() { return almProject; }
+    public String getDescription() { return description; }
+    public String getRunType() { return runType; }
+    public String getAlmEntityId() { return almEntityId; }
+    public String getTimeslotDuration() { return timeslotDuration; }
+    public String getPostRunAction() { return postRunAction; }
+    public String getEnvironmentConfigurationId() { return environmentConfigurationId; }
+    public CdaDetails getCdaDetails() { return cdaDetails; }
+    public SseProxySettings getProxySettings() { return proxySettings; }
+    
+    public boolean isUseProxy() {
+        return proxySettings != null;
+    }
+    public boolean isCdaDetailsChecked() {
+        return cdaDetails != null;
     }
     
-    @Override
-    public DescriptorImpl getDescriptor() {
-        
-        return (DescriptorImpl) super.getDescriptor();
+    @DataBoundSetter
+    public void setDescription(String description) { this.description = description; }
+    
+    @DataBoundSetter
+    public void setPostRunAction(String postRunAction) { this.postRunAction = postRunAction; }
+    
+    @DataBoundSetter
+    public void setEnvironmentConfigurationId(String environmentConfigurationId) {
+        this.environmentConfigurationId = environmentConfigurationId;
     }
+    
+    @DataBoundSetter
+    public void setCdaDetails(CdaDetails cdaDetails) { this.cdaDetails = cdaDetails; }
+    
+    @DataBoundSetter
+    public void setProxySettings(SseProxySettings proxySettings) { this.proxySettings = proxySettings; }
+    
+    /**
+     * Should contains mandatory properties.
+     */
+    @DataBoundConstructor
+    public SseBuilder(String almServerName,
+    		String almProject,
+    		String credentialsId,
+    		String almDomain,
+    		String runType,
+    		String almEntityId,
+            String timeslotDuration) {
+    	
+		this.almServerName = almServerName;
+		this.credentialsId = credentialsId;
+		this.almProject = almProject;
+		this.almDomain = almDomain;
+		this.timeslotDuration = timeslotDuration;
+		this.runType = runType;
+		this.almEntityId = almEntityId;
+	}
     
     @Override
     public void perform(Run<?, ?> build, FilePath workspace, Launcher launcher,
             TaskListener listener) throws InterruptedException, IOException {
+
+        PrintStream logger = listener.getLogger();
+    	
+        UsernamePasswordCredentials credentials = getCredentialsById(credentialsId, build, logger);
+        setProxyCredentials(build, logger);
+    	
+    	_sseModel = new SseModel(
+                almServerName,
+                credentials.getUsername(),
+                credentials.getPassword().getPlainText(),
+                almDomain,
+                almProject,
+                runType,
+                almEntityId,
+                timeslotDuration,
+                description,
+                postRunAction,
+                environmentConfigurationId,
+                cdaDetails,
+                proxySettings);
     	
     	Result resultStatus = Result.FAILURE;
         _sseModel.setAlmServerUrl(getServerUrl(_sseModel.getAlmServerName()));
-        PrintStream logger = listener.getLogger();
         
         VariableResolver<String> varResolver = new VariableResolver.ByMap<String>(build.getEnvironment(listener));
         Testsuites testsuites = execute(build, logger, varResolver);
@@ -105,6 +170,37 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
         FilePath resultsFilePath = workspace.child(getFileName());
         resultStatus = createRunResults(resultsFilePath, testsuites, logger);
         provideStepResultStatus(resultStatus, build, logger);
+    }
+    
+    private void setProxyCredentials(Run<?, ?> run, PrintStream logger) {
+    	if (proxySettings != null && proxySettings.getFsProxyCredentialsId() != null) {
+    		UsernamePasswordCredentials up = CredentialsProvider.findCredentialById(
+    				proxySettings.getFsProxyCredentialsId(),
+            		StandardUsernamePasswordCredentials.class,
+            		run,
+        			URIRequirementBuilder.create().build());
+			
+    		if (up != null) {
+    			proxySettings.setFsProxyUserName(up.getUsername());
+        		proxySettings.setFsProxyPassword(up.getPassword());
+    		}
+    	}
+    }
+    
+    private UsernamePasswordCredentials getCredentialsById(String credentialsId, Run<?, ?> run, PrintStream logger) {
+    	if (StringUtils.isBlank(credentialsId)) {
+    		throw new NullPointerException("credentialsId is blank.");
+    	}
+    	
+    	UsernamePasswordCredentials credentials = CredentialsProvider.findCredentialById(credentialsId,
+        		StandardUsernamePasswordCredentials.class,
+        		run,
+    			URIRequirementBuilder.create().build());
+    	
+    	if (credentials == null) {
+    		logger.println("Can not find credentials with the credentialsId:" + credentialsId);
+    	}
+    	return credentials;
     }
         
     public AlmServerSettingsModel getAlmServerSettingsModel() {
@@ -256,8 +352,14 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
         return _fileName;
     }
     
+    @Override
+    public DescriptorImpl getDescriptor() {
+        
+        return (DescriptorImpl) super.getDescriptor();
+    }
+    
     // This indicates to Jenkins that this is an implementation of an extension point
-    @Extension
+    @Extension @Symbol("sseBuild")
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
         
         public DescriptorImpl() {
@@ -288,16 +390,6 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
             
             return Hudson.getInstance().getDescriptorByType(
                     AlmServerSettingsBuilder.DescriptorImpl.class).getInstallations();
-        }
-        
-        public FormValidation doCheckAlmUserName(@QueryParameter String value) {
-            
-            FormValidation ret = FormValidation.ok();
-            if (StringUtils.isBlank(value)) {
-                ret = FormValidation.error("User name must be set");
-            }
-            
-            return ret;
         }
         
         public FormValidation doCheckTimeslotDuration(@QueryParameter String value) {
@@ -361,5 +453,66 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
             
             return CdaDetails.getDeprovisioningActions();
         }
+        
+        public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item project,
+                @QueryParameter String credentialsId) {
+        	
+			if (project == null || !project.hasPermission(Item.CONFIGURE)) {
+                return new StandardUsernameListBoxModel().includeCurrentValue(credentialsId);
+            }
+            return new StandardUsernameListBoxModel()
+                    .includeEmptyValue()
+                    .includeAs(
+                    		project instanceof Queue.Task ? Tasks.getAuthenticationOf((Queue.Task) project) : ACL.SYSTEM,
+                            project,
+                            StandardUsernamePasswordCredentials.class,
+                            URIRequirementBuilder.create().build())
+                    .includeCurrentValue(credentialsId);
+		}
+        
+        public ListBoxModel doFillFsProxyCredentialsIdItems(@AncestorInPath Item project,
+                @QueryParameter String credentialsId) {
+        	return doFillCredentialsIdItems(project, credentialsId);
+        }
+        
+        public FormValidation doCheckCredentialsId(@AncestorInPath Item project,
+                @QueryParameter String url,
+                @QueryParameter String value) {
+			if (project == null || !project.hasPermission(Item.EXTENDED_READ)) {
+				return FormValidation.ok();
+			}
+			
+			value = Util.fixEmptyAndTrim(value);
+			if (value == null) {
+				return FormValidation.ok();
+			}
+			
+			url = Util.fixEmptyAndTrim(url);
+			if (url == null)
+			// not set, can't check
+			{
+				return FormValidation.ok();
+			}
+			
+			if (url.indexOf('$') >= 0)
+			// set by variable, can't check
+			{
+				return FormValidation.ok();
+			}
+			
+			for (ListBoxModel.Option o : CredentialsProvider.listCredentials(
+						StandardUsernamePasswordCredentials.class, 
+						project, 
+						project instanceof Queue.Task ? Tasks.getAuthenticationOf((Queue.Task) project) : ACL.SYSTEM,
+						URIRequirementBuilder.create().build(),
+						new IdMatcher(value))) {
+				
+				if (StringUtils.equals(value, o.value)) {
+					return FormValidation.ok();
+				}
+			}
+			// no credentials available, can't check
+			return FormValidation.warning("Cannot find any credentials with id " + value);
+		}
     }
 }
