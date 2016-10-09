@@ -290,5 +290,15 @@
 			<artifactId>cli</artifactId>
 			<version>2.19</version>
 		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci</groupId>
+			<artifactId>symbol-annotation</artifactId>
+			<version>1.4</version>
+		</dependency>
+ 		<dependency>
+	      <groupId>org.jenkins-ci.plugins</groupId>
+	      <artifactId>credentials</artifactId>
+	      <version>2.1.4</version>
+	    </dependency>
 	</dependencies>
 </project>

@@ -101,7 +101,8 @@ public class TestRunManagerSystemTests {
                         description,
                         postRunAction,
                         environmentConfigurationId,
-                        cdaDetails);
+                        cdaDetails,
+                        null);
         ret.setAlmServerUrl(String.format("http://%s:%d/qcbin", serverName, port));
         
         return ret;

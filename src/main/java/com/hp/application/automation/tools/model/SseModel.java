@@ -34,6 +34,7 @@ public class SseModel {
     private final String _postRunAction;
     private final String _environmentConfigurationId;
     private final CdaDetails _cdaDetails;
+    private final SseProxySettings _proxySettings;
     
     private final static EnumDescription _runTypeTestSet =
             new EnumDescription(TEST_SET, "Test Set");
@@ -71,7 +72,8 @@ public class SseModel {
             String description,
             String postRunAction,
             String environmentConfigurationId,
-            CdaDetails cdaDetails) {
+            CdaDetails cdaDetails,
+            SseProxySettings proxySettings) {
         
         _almServerName = almServerName;
         _almDomain = almDomain;
@@ -85,6 +87,7 @@ public class SseModel {
         _postRunAction = postRunAction;
         _environmentConfigurationId = environmentConfigurationId;
         _cdaDetails = cdaDetails;
+        _proxySettings = proxySettings;
         
     }
     
@@ -170,13 +173,12 @@ public class SseModel {
         return _cdaDetails;
     }
     
-    public boolean isCdaDetailsChecked() {
-        
-        return _cdaDetails != null;
-    }
-    
     public String getPostRunAction() {
         
         return _postRunAction;
+    }
+    
+    public SseProxySettings getProxySettings() {
+        return _proxySettings;
     }
 }

@@ -1,6 +1,7 @@
 package com.hp.application.automation.tools.sse;
 
 import com.hp.application.automation.tools.model.SseModel;
+import com.hp.application.automation.tools.model.SseProxySettings;
 import com.hp.application.automation.tools.rest.RestClient;
 import com.hp.application.automation.tools.sse.result.model.junit.Testsuites;
 import com.hp.application.automation.tools.sse.sdk.Args;
@@ -27,12 +28,28 @@ public class SSEBuilderPerformer {
         try {
             //Args args = new ArgsFactory().create(model);
             Args args = new ArgsFactory().createResolved(model, buildVariableResolver);
-            RestClient restClient =
-                    new RestClient(
-                            args.getUrl(),
-                            args.getDomain(),
-                            args.getProject(),
-                            args.getUsername());
+            SseProxySettings proxySettings = model.getProxySettings();
+            
+            RestClient restClient;
+            if (proxySettings != null) {
+            	String username = proxySettings.getFsProxyUserName();
+            	String password = proxySettings.getFsProxyPassword() == null ? null : proxySettings.getFsProxyPassword().getPlainText();
+            	String passwordCrypt = proxySettings.getFsProxyPassword() == null ? null : proxySettings.getFsProxyPassword().getEncryptedValue();
+            	restClient = new RestClient(args.getUrl(),
+                                args.getDomain(),
+                                args.getProject(),
+                                args.getUsername(),
+                                RestClient.setProxyCfg(proxySettings.getFsProxyAddress(),
+                                		username,
+                                		password));
+            	logger.log(String.format("Connect with proxy. Address: %s, Username: %s, Password: %s",
+            			proxySettings.getFsProxyAddress(), username, passwordCrypt));
+            } else {
+            	restClient = new RestClient(args.getUrl(),
+            					args.getDomain(),
+                                args.getProject(),
+                                args.getUsername());
+            }
             ret = _runManager.execute(restClient, args, logger);
         } catch (InterruptedException ex) {
             throw ex;

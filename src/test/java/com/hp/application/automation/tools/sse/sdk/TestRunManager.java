@@ -191,6 +191,7 @@ public class TestRunManager extends TestCase {
                 DESCRIPTION,
                 POST_RUN_ACTION,
                 ENVIRONMENT_CONFIGURATION_ID,
+                null,
                 null);
     }
     
@@ -208,7 +209,8 @@ public class TestRunManager extends TestCase {
                 DESCRIPTION,
                 POST_RUN_ACTION,
                 ENVIRONMENT_CONFIGURATION_ID,
-                CDA_DETAILS);
+                CDA_DETAILS,
+                null);
     }
     
     private MockSseModel createBvsModelWithEmptyCDA() {
@@ -225,7 +227,8 @@ public class TestRunManager extends TestCase {
                 DESCRIPTION,
                 POST_RUN_ACTION,
                 ENVIRONMENT_CONFIGURATION_ID,
-                new CdaDetails("", "", ""));
+                new CdaDetails("", "", ""),
+                null);
     }
     
     private MockSseModel createTestSetModel() {
@@ -242,6 +245,7 @@ public class TestRunManager extends TestCase {
                 DESCRIPTION,
                 POST_RUN_ACTION,
                 ENVIRONMENT_CONFIGURATION_ID,
+                null,
                 null);
     }
     
@@ -259,6 +263,7 @@ public class TestRunManager extends TestCase {
                 DESCRIPTION,
                 POST_RUN_ACTION,
                 ENVIRONMENT_CONFIGURATION_ID,
+                null,
                 null);
     }
     
