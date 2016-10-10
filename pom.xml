@@ -311,4 +311,16 @@
 			<artifactId>SVConfigurator</artifactId>
 			<version>3.82.1-SNAPSHOT</version>
 		</dependency>	</dependencies>
+		<dependency>
+			<groupId>com.hp.sv</groupId>
+			<artifactId>SVConfigurator</artifactId>
+			<version>3.82.1-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-io</groupId>
+					<artifactId>commons-io</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+	</dependencies>
 </project>
