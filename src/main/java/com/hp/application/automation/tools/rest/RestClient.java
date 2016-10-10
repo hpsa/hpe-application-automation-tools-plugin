@@ -54,6 +54,9 @@ public class RestClient implements Client {
         _webuiPrefix = getPrefixUrl("webui/alm", domain, project);
     }
 
+    /**
+     * Constructor for setting rest client properties including proxy info.
+     */
     public RestClient(String url, String domain, String project, String username, ProxyInfo proxyInfo) {
 
         if (!url.endsWith("/")) {

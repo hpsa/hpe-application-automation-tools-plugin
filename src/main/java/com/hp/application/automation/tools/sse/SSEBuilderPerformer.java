@@ -30,29 +30,34 @@ public class SSEBuilderPerformer {
             SseProxySettings proxySettings = model.getProxySettings();
             
             RestClient restClient;
+            
             if (proxySettings != null) {
+            	// Construct restClient with proxy.
             	String username = proxySettings.getFsProxyUserName();
             	String password = proxySettings.getFsProxyPassword() == null ? null : proxySettings.getFsProxyPassword().getPlainText();
             	String passwordCrypt = proxySettings.getFsProxyPassword() == null ? null : proxySettings.getFsProxyPassword().getEncryptedValue();
+            	
             	restClient = new RestClient(args.getUrl(),
                                 args.getDomain(),
                                 args.getProject(),
                                 args.getUsername(),
-                                RestClient.setProxyCfg(proxySettings.getFsProxyAddress(),
-                                		username,
-                                		password));
+                                RestClient.setProxyCfg(proxySettings.getFsProxyAddress(), username, password));
             	logger.log(String.format("Connect with proxy. Address: %s, Username: %s, Password: %s",
             			proxySettings.getFsProxyAddress(), username, passwordCrypt));
-            } else {
+            }
+            else {
+            	// Construct restClient without proxy.
             	restClient = new RestClient(args.getUrl(),
             					args.getDomain(),
                                 args.getProject(),
                                 args.getUsername());
             }
             ret = _runManager.execute(restClient, args, logger);
-        } catch (InterruptedException ex) {
+        }
+        catch (InterruptedException ex) {
             throw ex;
-        } catch (Exception cause) {
+        }
+        catch (Exception cause) {
             logger.log(String.format("Failed to execute ALM tests. Cause: %s", cause.getMessage()));
         }
         
@@ -60,7 +65,6 @@ public class SSEBuilderPerformer {
     }
     
     public void stop() {
-        
         _runManager.stop();
     }
 }

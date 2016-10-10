@@ -117,7 +117,7 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
     public void setProxySettings(SseProxySettings proxySettings) { this.proxySettings = proxySettings; }
     
     /**
-     * Should contains mandatory properties.
+     * Should only contains mandatory properties.
      */
     @DataBoundConstructor
     public SseBuilder(String almServerName,
@@ -171,6 +171,9 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
         provideStepResultStatus(resultStatus, build, logger);
     }
     
+    /**
+     * Get credentials by the credentials id. Then set the user name and password into the SsePoxySetting.
+     */
     private void setProxyCredentials(Run<?, ?> run) {
     	if (proxySettings != null && proxySettings.getFsProxyCredentialsId() != null) {
     		UsernamePasswordCredentials up = CredentialsProvider.findCredentialById(
@@ -186,6 +189,9 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
     	}
     }
     
+    /**
+     * Get user name password credentials by id.
+     */
     private UsernamePasswordCredentials getCredentialsById(String credentialsId, Run<?, ?> run, PrintStream logger) {
     	if (StringUtils.isBlank(credentialsId)) {
     		throw new NullPointerException("credentials is not configured.");
@@ -359,7 +365,9 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
     }
     
     // This indicates to Jenkins that this is an implementation of an extension point
-    @Extension @Symbol("sseBuild")
+    @Extension
+    // To expose this builder in the Snippet Generator.
+    @Symbol("sseBuild")
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
         
         public DescriptorImpl() {
@@ -459,6 +467,10 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
             return CdaDetails.getDeprovisioningActions();
         }
         
+        /**
+         * To fill in the credentials drop down list which's field is 'credentialsId'.
+         * This method's name works with tag <c:select/>.
+         */
         public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item project,
                 @QueryParameter String credentialsId) {
         	
@@ -475,6 +487,9 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
                     .includeCurrentValue(credentialsId);
 		}
         
+        /**
+         * To fill in the credentials drop down list which's field is 'FsProxyCredentialsId'.
+         */
         public ListBoxModel doFillFsProxyCredentialsIdItems(@AncestorInPath Item project,
                 @QueryParameter String credentialsId) {
         	return doFillCredentialsIdItems(project, credentialsId);
