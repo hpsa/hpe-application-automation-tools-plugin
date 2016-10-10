@@ -683,8 +683,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             throw(new Exception("no SLA.xml file was created"));
         }
 
-
-    private LrJobResults buildJobDataset(AbstractBuild<?, ?> build, BuildListener listener)throws ParserConfigurationException, SAXException,
+        private LrJobResults buildJobDataset(AbstractBuild<?, ?> build, BuildListener listener)throws ParserConfigurationException, SAXException,
             IOException, InterruptedException {
         listener.getLogger().println(
                 "Starting the creation of test run dataset for graphing");
@@ -693,7 +692,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         // read each SLA.xml
         for (FilePath slaFilePath : slaList) {
 
-            jobLrScenarioResult jobLrScenarioResult = new jobLrScenarioResult(slaFilePath.getBaseName());
+            JobLrScenarioResult jobLrScenarioResult = new JobLrScenarioResult(slaFilePath.getBaseName());
 
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
@@ -718,78 +717,93 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                     slaRuleNode = slaRuleResults.item(j);
                     slaRuleElement = (Element) slaRuleNode;
 
-
-
-
                     //check type by mesurment field:
                     LrTest.SLA_GOAL slaGoal = LrTest.SLA_GOAL.checkGoal(slaRuleElement.getAttribute("Measurement").toString());
 
                     switch (slaGoal) {
                         case AverageThroughput:
                             WholeRunResult averageThroughput = new WholeRunResult();
+                            averageThroughput.setSlaGoal(LrTest.SLA_GOAL.AverageThroughput);
                             averageThroughput.setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
                             averageThroughput.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
                             averageThroughput.setFullName(slaRuleElement.getAttribute("FullName"));
                             averageThroughput.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
-                            jobLrScenarioResult.averageThroughputResults = averageThroughput;
+//                            jobLrScenarioResult.averageThroughputResults = averageThroughput;
+                            jobLrScenarioResult.scenarioSlaResults.add(averageThroughput);
                             break;
                         case TotalThroughput:
-                            WholeRunResult totalThroughtput = new WholeRunResult();
-                            totalThroughtput.setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
-                            totalThroughtput.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
-                            totalThroughtput.setFullName(slaRuleElement.getAttribute("FullName"));
-                            totalThroughtput.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
-                            jobLrScenarioResult.totalThroughtputResutls = totalThroughtput;
+                            WholeRunResult totalThroughput = new WholeRunResult();
+                            totalThroughput.setSlaGoal(LrTest.SLA_GOAL.TotalThroughput);
+                            totalThroughput.setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
+                            totalThroughput.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
+                            totalThroughput.setFullName(slaRuleElement.getAttribute("FullName"));
+                            totalThroughput.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
+//                            jobLrScenarioResult.totalThroughputResults = totalThroughput;
+                            jobLrScenarioResult.scenarioSlaResults.add(totalThroughput);
+
                             break;
                         case AverageHitsPerSecond:
                             WholeRunResult averageHitsPerSecond = new WholeRunResult();
+                            averageHitsPerSecond.setSlaGoal(LrTest.SLA_GOAL.AverageHitsPerSecond);
                             averageHitsPerSecond.setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
                             averageHitsPerSecond.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
                             averageHitsPerSecond.setFullName(slaRuleElement.getAttribute("FullName"));
                             averageHitsPerSecond.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
-                            jobLrScenarioResult.averageHitsPerSecondResults = averageHitsPerSecond;
+//                            jobLrScenarioResult.averageHitsPerSecondResults = averageHitsPerSecond;
+                            jobLrScenarioResult.scenarioSlaResults.add(averageHitsPerSecond);
+
                             break;
                         case TotalHits:
                             WholeRunResult totalHits = new WholeRunResult();
+                            totalHits.setSlaGoal(LrTest.SLA_GOAL.TotalHits);
                             totalHits.setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
                             totalHits.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
                             totalHits.setFullName(slaRuleElement.getAttribute("FullName"));
                             totalHits.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
-                            jobLrScenarioResult.totalHitsResults = totalHits;
+//                            jobLrScenarioResult.totalHitsResults = totalHits;
+                            jobLrScenarioResult.scenarioSlaResults.add(totalHits);
+
                             break;
                         case ErrorsPerSecond:
-                            TimeRangeResult errPerSec = new TransactionTimeRange();
+                            TimeRangeResult errPerSec = new AvgTransactionResponseTime();
+                            errPerSec.setSlaGoal(LrTest.SLA_GOAL.ErrorsPerSecond);
                             errPerSec.setFullName(slaRuleElement.getAttribute("FullName").toString());
                             errPerSec.setLoadThrashold(slaRuleElement.getAttribute("SLALoadThresholdValue").toString());
                             errPerSec.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getFirstChild().getTextContent())); //Might not work due to time ranges
                             addTimeRanges(errPerSec, slaRuleElement);
-//                            errPerSec.getActualValueAvg();
-                            jobLrScenarioResult.errPerSecResults = errPerSec;
+//                            jobLrScenarioResult.errPerSecResults = errPerSec;
+                            jobLrScenarioResult.scenarioSlaResults.add(errPerSec);
+
                             break;
                         case PercentileTRT:
                             PercentileTransactionWholeRun percentileTransactionWholeRun = new PercentileTransactionWholeRun();
+                            percentileTransactionWholeRun.setSlaGoal(LrTest.SLA_GOAL.PercentileTRT);
                             percentileTransactionWholeRun.setName(slaRuleElement.getAttribute("TransactionName").toString());
                             percentileTransactionWholeRun.setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
                             percentileTransactionWholeRun.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
                             percentileTransactionWholeRun.setFullName(slaRuleElement.getAttribute("FullName"));
                             percentileTransactionWholeRun.setPrecentage(Double.valueOf(slaRuleElement.getAttribute("Percentile")));
                             percentileTransactionWholeRun.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
-                            jobLrScenarioResult.percentileTransactionResults.add(percentileTransactionWholeRun);
+//                            jobLrScenarioResult.percentileTransactionResults.add(percentileTransactionWholeRun);
+                            jobLrScenarioResult.scenarioSlaResults.add(percentileTransactionWholeRun);
+
                             break;
                         case AverageTRT:
-                            TransactionTimeRange transactionTimeRange = new TransactionTimeRange();
+                            AvgTransactionResponseTime transactionTimeRange = new AvgTransactionResponseTime();
+                            transactionTimeRange.setSlaGoal(LrTest.SLA_GOAL.AverageTRT);
                             transactionTimeRange.setName(slaRuleElement.getAttribute("TransactionName").toString());
                             transactionTimeRange.setFullName(slaRuleElement.getAttribute("FullName").toString());
                             transactionTimeRange.setLoadThrashold(slaRuleElement.getAttribute("SLALoadThresholdValue").toString());
                             transactionTimeRange.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getFirstChild().getTextContent())); //Might not work due to time ranges
                             addTimeRanges(transactionTimeRange, slaRuleElement);
-                            //transactionTimeRange.getActualValueAvg();
-                            jobLrScenarioResult.transactionTimeRanges.add(transactionTimeRange);
+                            jobLrScenarioResult.scenarioSlaResults.add(transactionTimeRange);
+//                            jobLrScenarioResult.transactionTimeRanges.add(transactionTimeRange);
                             break;
                         case Bad:
                             break;
                     }
-                }            jobResults.addScenrio(jobLrScenarioResult);
+                }
+                jobResults.addScenrio(jobLrScenarioResult);
 
         }
 

@@ -11,26 +11,26 @@ public class LrJobResults extends LrRunResults implements LrTest{
     }
 
 
-    public HashMap<String, jobLrScenarioResult> getLrScenarioResults() {
+    public HashMap<String, JobLrScenarioResult> getLrScenarioResults() {
         return _scenarioResults;
     } //TODO:
 
-    public HashMap<String, jobLrScenarioResult> _scenarioResults = new HashMap<String, jobLrScenarioResult>();
+    public HashMap<String, JobLrScenarioResult> _scenarioResults = new HashMap<String, JobLrScenarioResult>();
 
-    public jobLrScenarioResult addScenrio(jobLrScenarioResult scenario)
+    public JobLrScenarioResult addScenrio(JobLrScenarioResult scenario)
     {
-        jobLrScenarioResult jobLrScenarioResult = null;
-         if((jobLrScenarioResult = _scenarioResults.put(scenario.getScenarioName(),scenario)) != null)
+        JobLrScenarioResult JobLrScenarioResult = null;
+         if((JobLrScenarioResult = _scenarioResults.put(scenario.getScenarioName(),scenario)) != null)
          {
              _totalErrors += scenario.get_totalErrors();
              _totalFailures += scenario.get_totalFailures();
              _time += get_time();
          }
-        return jobLrScenarioResult;
+        return JobLrScenarioResult;
     }
 
 
-//    private ArrayList<jobLrScenarioResult> _scenarioResults =  new ArrayList<jobLrScenarioResult>(0);
+//    private ArrayList<JobLrScenarioResult> _scenarioResults =  new ArrayList<JobLrScenarioResult>(0);
 
 
 

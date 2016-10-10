@@ -8,38 +8,57 @@
 
 
         <l:main-panel>
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.1.1/Chart.min.js"></script>
+            <link rel="stylesheet" type="text/css" href="${resURL}/plugin/hp-application-automation-tools-plugin/css/chartist.css"></link>
+            <link rel="stylesheet" type="text/css" href="${resURL}/plugin/hp-application-automation-tools-plugin/css/chartistLegend.css"></link>
+            <link rel="stylesheet" type="text/css" href="${resURL}/plugin/hp-application-automation-tools-plugin/css/chartist-plugin-tooltip.css"></link>
+
+            <script src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/libaries/chartist/chartist.js"/>
+            <script src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/libaries/chartist/chartist-plugin-legend.js"/>
+            <script src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/libaries/chartist/chartist-plugin-tooltip.min.js"/>
+            <script src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/libaries/chartist/chartist-plugin-axistitle.min.js"/>
+            <!--<script src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/libaries/react/react-with-addons.min.js"></script>-->
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.3.2/react-with-addons.js"></script>
+            <script src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/libaries/react/react-dom.min.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.38/browser.js"></script>
+            <st:bind var="graphData" value="${it.GraphData}"/>
+
+
+
+
             <j:set var="builds" value="${it.builds}"/>
 
             <st:bind var="instance" value="${it}"/>
             <st:bind var="projectName" value="${it.DisplayName}"/>
             <st:bind var="" value="${it.UpdatedData}"/>
+        <div>
+            <h1 >${it.DisplayName}</h1>
+            <div id="scenarioDropDown">
+                <!-- This element's contents will be replaced with your component. -->
+            </div>
+        </div>
 
-        <h1>${it.DisplayName}</h1>
-
-        <div id="container">
+        <div id="content">
             <!-- This element's contents will be replaced with your component. -->
         </div>
-            <h4> Total throughput </h4>
-            <canvas id="TotalThroughput" width="900" height="500"/>
-            <h4> AvgHitsPerSecGraphData </h4>
-            <canvas id="AvgHitsPerSecGraphData" width="900" height="500"/>
-            <h4> AvgThroughput</h4>
-            <canvas id="AvgThroughput" width="900" height="500"/>
-            <h4> Total Hits</h4>
-            <canvas id="TotalHits" width="900" height="500"/>
-            <h4> Average transaction</h4>
-            <canvas id="AvgTRT" width="900" height="500"/>
-            <div id="AvgTRT_Legend"/>
-            <h4>Error per sec</h4>
-            <canvas id="ErrorPerSec" width="900" height="500"/>
-            <h4>PercentileTransactionWholeRun</h4>
-            <canvas id="PercentileTransactionWholeRun" width="900" height="500"/>
-            <div id="PercentileTransactionWholeRun_Legend"/>
-        <!--<st:bind var="f" value="${it.BuildPerformanceReportList}"/>-->
-        <!--<st:bind var="totalHitsGraph2" value="${it.getTotalHitsGraphData}"/>-->
-        <!--<st:bind var="thdgd" value="${it.getAvgThroughtputResultsGraphData}"/>-->
+            <!--<div class="graphPlaceHolder">-->
+                <!--&lt;!&ndash;<h4> Total throughput </h4>&ndash;&gt;-->
+                <!--&lt;!&ndash;<canvas id="TotalThroughput" width="900" height="500"/>&ndash;&gt;-->
+                <!--&lt;!&ndash;<h4> AvgHitsPerSecGraphData </h4>&ndash;&gt;-->
+                <!--&lt;!&ndash;<canvas id="AvgHitsPerSecGraphData" width="900" height="500"/>&ndash;&gt;-->
+                <!--&lt;!&ndash;<h4> AvgThroughput</h4>&ndash;&gt;-->
+                <!--&lt;!&ndash;<canvas id="AvgThroughput" width="900" height="500"/>&ndash;&gt;-->
+                <!--&lt;!&ndash;<h4> Total Hits</h4>&ndash;&gt;-->
+                <!--&lt;!&ndash;<canvas id="TotalHits" width="900" height="500"/>&ndash;&gt;-->
+                <!--&lt;!&ndash;<h4> Average transaction</h4>&ndash;&gt;-->
+                <!--&lt;!&ndash;<canvas id="AvgTRT" width="900" height="500"/>&ndash;&gt;-->
+                <!--&lt;!&ndash;<div id="AvgTRT_Legend"/>&ndash;&gt;-->
+                <!--&lt;!&ndash;<h4>Error per sec</h4>&ndash;&gt;-->
+                <!--&lt;!&ndash;<canvas id="ErrorPerSec" width="900" height="500"/>&ndash;&gt;-->
+                <!--&lt;!&ndash;<h4>PercentileTransactionWholeRun</h4>&ndash;&gt;-->
+                <!--&lt;!&ndash;<canvas id="PercentileTransactionWholeRun" width="900" height="500"/>&ndash;&gt;-->
+                <!--&lt;!&ndash;<div id="PercentileTransactionWholeRun_Legend"/>&ndash;&gt;-->
 
+            <!--</div>-->
 
             <div id="msk" />
 
@@ -48,70 +67,15 @@
         <div id="msg" />
 
         <div id="msv" />
+            <div class="graphCon"></div>
 
         <div id="msr"></div>
 
         <pre><code>
         </code></pre>
         <div id="examples"></div>
-        <script>
-
-            // var canvas = document.createElement('canvas');
-            //
-            // canvas.id = "CursorLayer";
-            // canvas.width = 900;
-            // canvas.height = 500;
-            //
-            // var body1 = document.getElementById('msr');
-            // body1.appendChild(canvas);
-            //
-            // cursorLayer = document.getElementById("CursorLayer");
-            //
-            // console.log(cursorLayer);
-
-
-
-            // var adf = JSON.parse(thgd);
-            // document.getElementById('msv').innerHTML = JSON.stringify(totalHitsGraphData);
-            // var ExampleApplication = React.createClass({
-            // render: function() {
-            // var elapsed = Math.round(this.props.elapsed  / 100);
-            // var seconds = elapsed / 10 + (elapsed % 10 ? '' : '.0' );
-            // var message =
-            // 'React has been successfully running for ' + seconds + ' seconds.';
-            //
-            // return React.DOM.p(null, message);
-            // }
-            // });
-
-            // Call React.createFactory instead of directly call ExampleApplication({...}) in React.render
-            // var ExampleApplicationFactory = React.createFactory(ExampleApplication);
-            //
-            // var start = new Date().getTime();
-            // setInterval(function() {
-            // ReactDOM.render(
-            //     ExampleApplicationFactory({elapsed: new Date().getTime() - start}),
-            //     document.getElementById('container')); }, 50);
-            // <!--var f =<st:bind value="${BuildPerformanceReport}"/>;-->
-            //
-            // instance.add(1,5, function(t) {
-            // document.getElementById('msg').innerHTML = t.responseObject();
-            // });
-            // var pvb;
-            // pvb = t.responseObject();
-            // var p =[];
-            // for(var i in pvb)
-            //     p.push([i,pvb[i]]);
-            //
-            //
-            //
-            // document.getElementById('msg').innerHTML = p;
-            // });
-
-        </script>
-
             <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/jslib.js"/>
-
+            <script type="text/babel" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/dropdown.jsx"> </script>
     </l:main-panel>
     </l:layout>
 </j:jelly>

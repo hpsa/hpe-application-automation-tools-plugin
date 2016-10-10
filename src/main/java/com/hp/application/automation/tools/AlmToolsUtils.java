@@ -62,7 +62,7 @@ public class AlmToolsUtils {
 
         String hpToolsAborter_exe = "HpToolsAborter.exe";
         URL hpToolsAborterUrl = Jenkins.getInstance().pluginManager.uberClassLoader.getResource("HpToolsAborter.exe");
-        FilePath hpToolsAborterFile =build.getWorkspace().child(hpToolsAborter_exe);
+        FilePath hpToolsAborterFile = build.getWorkspace().child(hpToolsAborter_exe);
         
         args.add(hpToolsAborterFile);
         args.add(paramFileName);

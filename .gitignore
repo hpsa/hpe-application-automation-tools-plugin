@@ -118,3 +118,7 @@ target/
 node/
 node_modules/
 /hp-application-automation-tools-plugin.iml
+/node/
+/node_modules/
+.sonarlint/
+
