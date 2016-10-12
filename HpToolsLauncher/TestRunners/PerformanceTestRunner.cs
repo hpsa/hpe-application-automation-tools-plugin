@@ -525,16 +525,21 @@ namespace HpToolsLauncher.TestRunners
             {
                 try
                 {
-                    int rc = _engine.CloseController();
-                    if (rc != 0)
+                    var process = Process.GetProcessesByName("Wlrun");
+                    if (process.Length > 0)
                     {
-                        ConsoleWriter.WriteErrLine("\t\tFailed to close Controller with CloseController API function, rc: " + rc);
+                        int rc = _engine.CloseController();
+                        if (rc != 0)
+                        {
+                            ConsoleWriter.WriteErrLine(
+                                "\t\tFailed to close Controller with CloseController API function, rc: " + rc);
+                        }
                     }
 
                     //give the controller 15 secs to shutdown. otherwise, print an error.
                     Thread.Sleep(15000);
 
-                    var process = Process.GetProcessesByName("Wlrun");
+                    process = Process.GetProcessesByName("Wlrun");
                     if (process.Length > 0)
                     {
                         ConsoleWriter.WriteErrLine("\t\tThe Controller is still running...");
