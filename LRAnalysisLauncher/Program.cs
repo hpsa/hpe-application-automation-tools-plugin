@@ -27,6 +27,7 @@ using HpToolsLauncher;
 using Analysis.ApiSL;
 using Analysis.Api.Dictionaries;
 using System.Diagnostics;
+using System.Linq;
 
 namespace LRAnalysisLauncher
 {
@@ -116,23 +117,34 @@ namespace LRAnalysisLauncher
                     XmlElement runsRoot = xmlDoc.CreateElement("Runs");
                     xmlDoc.AppendChild(runsRoot);
                     XmlElement general = xmlDoc.CreateElement("General");
-                    xmlDoc.AppendChild(general);
+                    runsRoot.AppendChild(general);
 
                     XmlElement vUsers = xmlDoc.CreateElement("VUsers");
                     log("Adding VUser statistics");
                     Dictionary<string, int> vuserCountDictionary = Helper.GetVusersCountByStatus(analysis);
-                    if (vuserCountDictionary == null)
-                    {
-                        log("No vuser set in scenario");
-                    }
                     foreach (KeyValuePair<string, int> kvp in vuserCountDictionary)
                     {
-                        Console.WriteLine("Key = {0}, Value = {1}",
-                            kvp.Key, kvp.Value);
+                        log($"{kvp.Key} vUsers: {kvp.Value}");
+                        vUsers.SetAttribute(kvp.Key, kvp.Value.ToString());
                     }
-
+                    vUsers.SetAttribute("count", session.VUsers.Count.ToString());
                     general.AppendChild(vUsers);
-                    log("saving SLA.xml to " + Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(lrrlocation)), "RunReport.xml"));
+
+                    XmlElement transactions = xmlDoc.CreateElement("Transactions");
+                    log("Adding Transaction statistics");
+                    Dictionary<string, double> transactionDictionary = Helper.CalcFailedTransPercent(analysis);
+                    foreach (KeyValuePair<string, double> kvp in transactionDictionary)
+                    {
+                        log($"{kvp.Key} transactions: {kvp.Value}");
+                        transactions.SetAttribute(kvp.Key, kvp.Value.ToString());
+                    }
+                    transactions.SetAttribute("count", transactionDictionary.Values.Sum().ToString());
+                    general.AppendChild(transactions);
+
+
+
+
+                    log("saving RunReport.xml to " + Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(lrrlocation)), "RunReport.xml"));
                     xmlDoc.Save(Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(lrrlocation)), "RunReport.xml"));
                     xmlDoc.RemoveAll();
                     log("");
