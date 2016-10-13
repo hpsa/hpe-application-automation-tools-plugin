@@ -16,6 +16,7 @@
 //OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 using Analysis.Api;
@@ -111,6 +112,30 @@ namespace LRAnalysisLauncher
                         xmlDoc.RemoveAll();
                         log ("");
                     }
+                    log("Gathering Run statistics");
+                    XmlElement runsRoot = xmlDoc.CreateElement("Runs");
+                    xmlDoc.AppendChild(runsRoot);
+                    XmlElement general = xmlDoc.CreateElement("General");
+                    xmlDoc.AppendChild(general);
+
+                    XmlElement vUsers = xmlDoc.CreateElement("VUsers");
+                    log("Adding VUser statistics");
+                    Dictionary<string, int> vuserCountDictionary = Helper.GetVusersCountByStatus(analysis);
+                    if (vuserCountDictionary == null)
+                    {
+                        log("No vuser set in scenario");
+                    }
+                    foreach (KeyValuePair<string, int> kvp in vuserCountDictionary)
+                    {
+                        Console.WriteLine("Key = {0}, Value = {1}",
+                            kvp.Key, kvp.Value);
+                    }
+
+                    general.AppendChild(vUsers);
+                    log("saving SLA.xml to " + Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(lrrlocation)), "RunReport.xml"));
+                    xmlDoc.Save(Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(lrrlocation)), "RunReport.xml"));
+                    xmlDoc.RemoveAll();
+                    log("");
                     log("closing session");
                     session.Close();
                     log(Resources.SLAReportTitle);
