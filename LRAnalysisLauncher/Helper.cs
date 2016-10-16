@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Analysis.Api;
 using Analysis.ApiLib;
@@ -48,28 +49,44 @@ namespace LRAnalysisLauncher
         /// Calculating the number of transactions by status
         /// </summary>
         /// <returns>Transactions by status</returns>
-        public static Dictionary<string, double> CalcFailedTransPercent(LrAnalysis lrAnalysis)
-        {
-            var transactionGraph = lrAnalysis.Session.Runs[0].OpenGraph("TransactionSummary");
-            var transDictionary = new Dictionary<string, double>(3)
-            {
-                {"Pass", 0},
-                {"Fail", 0},
-                {"Stop", 0}
-            };
+        public static Dictionary<string, Dictionary<string, double>> CalcFailedTransPercent(LrAnalysis lrAnalysis)
+        { 
+          
+            var transactionGraph = lrAnalysis.Session.OpenGraph("TransactionSummary");
 
-            var filterDimension = transactionGraph.Filter["Transaction End Status"];
-            foreach (var transactionStatusType in transDictionary.Keys.ToList())
+            foreach (FilterItem fi in transactionGraph.Filter)
             {
-                filterDimension.ClearValues();
-                filterDimension.AddDiscreteValue(transactionStatusType);
+                fi.ClearValues();
+                fi.IsActive = false;
                 transactionGraph.ApplyFilterAndGroupBy();
-                var sum = transactionGraph.Series.Sum(val => val.GraphStatistics.Maximum);
-                transDictionary[transactionStatusType] = (int)sum;
             }
 
+
+            var transDictionary = new Dictionary<string, Dictionary<string, double> > () ;
+
+            transactionGraph.Granularity = 4;
+            
+            var filterDimension = transactionGraph.Filter["Transaction End Status"];
+            foreach (var series in transactionGraph.Series)
+            {
+                SeriesAttributeValue a;
+                if (!series.Attributes.TryGetValue("Event Name", out a)) continue;
+                SeriesAttributeValue transEndStatusAttr;
+
+                if (!series.Attributes.TryGetValue("Transaction End Status", out transEndStatusAttr)) continue;
+
+                Dictionary<string, double> value;
+                if (!transDictionary.TryGetValue(a.Value.ToString(), out value))
+                {
+                    transDictionary.Add(a.Value.ToString(),
+                        new Dictionary<string, double>() {{"Pass", 0}, {"Fail", 0}, {"Stop", 0}});
+                }
+                (transDictionary[a.Value.ToString()])[transEndStatusAttr.Value.ToString()] = series.Points[0].Value;
+            }
+        
             return transDictionary;
         }
+
 
 
         /// <summary>

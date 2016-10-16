@@ -127,18 +127,40 @@ namespace LRAnalysisLauncher
                         log($"{kvp.Key} vUsers: {kvp.Value}");
                         vUsers.SetAttribute(kvp.Key, kvp.Value.ToString());
                     }
-                    vUsers.SetAttribute("count", session.VUsers.Count.ToString());
+                    vUsers.SetAttribute("Count", session.VUsers.Count.ToString());
                     general.AppendChild(vUsers);
 
                     XmlElement transactions = xmlDoc.CreateElement("Transactions");
                     log("Adding Transaction statistics");
-                    Dictionary<string, double> transactionDictionary = Helper.CalcFailedTransPercent(analysis);
-                    foreach (KeyValuePair<string, double> kvp in transactionDictionary)
+                    Dictionary<string, double> transactionSumStatusDictionary = new Dictionary<string, double>()
                     {
-                        log($"{kvp.Key} transactions: {kvp.Value}");
-                        transactions.SetAttribute(kvp.Key, kvp.Value.ToString());
+                        {"Count", 0},
+                        {"Pass", 0},
+                        {"Fail", 0},
+                        {"Stop", 0}
+                    };
+                    Dictionary<string, Dictionary<string, double>> transactionDictionary = Helper.CalcFailedTransPercent(analysis);
+                    foreach (KeyValuePair<string, Dictionary<string, double>> kvp in transactionDictionary)
+                    {
+                        XmlElement transaction = xmlDoc.CreateElement("Transaction");
+
+//                        log($"{kvp.Key} transaction:");
+                        foreach (var transStatus in kvp.Value)
+                        {
+                            transaction.SetAttribute(transStatus.Key, transStatus.Value.ToString());
+                            transactionSumStatusDictionary[transStatus.Key] += transStatus.Value;
+                            transactionSumStatusDictionary["Count"] += transStatus.Value;
+                        }
+                        transaction.SetAttribute("Name", kvp.Key);
+                        transactions.AppendChild(transaction);
                     }
-                    transactions.SetAttribute("count", transactionDictionary.Values.Sum().ToString());
+
+                    foreach (var transStatus in transactionSumStatusDictionary)
+                    {
+                        transactions.SetAttribute(transStatus.Key, transStatus.Value.ToString());
+                        log($"{transStatus.Key} transaction: {transStatus.Value}");
+                    }
+
                     general.AppendChild(transactions);
 
 
