@@ -97,9 +97,9 @@ public class UFTTestDetectionPublisher extends Recorder {
         /**
          * This method determines the values of the album drop-down list box.
          */
-        public ListBoxModel doFillWorkspaceNameItems(@QueryParameter String partialWorkspaceName) {
+        public ListBoxModel doFillWorkspaceNameItems() {
             ListBoxModel m = new ListBoxModel();
-            PagedList<Workspace> workspacePagedList = client.queryWorkspaces(partialWorkspaceName, 0, 200);
+            PagedList<Workspace> workspacePagedList = client.queryWorkspaces("", 0, 200);
             List<Workspace> items = workspacePagedList.getItems();
             for (int i = 0; i < items.size(); i++) {
                 Workspace workspace = items.get(i);
