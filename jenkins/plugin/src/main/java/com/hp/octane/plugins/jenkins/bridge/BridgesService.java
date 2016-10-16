@@ -8,6 +8,7 @@ import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import hudson.Extension;
 import jenkins.model.Jenkins;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -15,14 +16,14 @@ import java.util.List;
 
 /**
  * Created by gullery on 05/08/2015.
- * <p>
+ * <p/>
  * Bridge Service meant to provide an abridged connectivity functionality
  * The only APIs to be exposed is the basic management of abridged clients
  */
 
 @Extension
 public class BridgesService implements ConfigurationListener {
-	private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger(BridgesService.class);
+	private static final Logger logger = LogManager.getLogger(BridgesService.class);
 
 	private static BridgesService extensionInstance;
 	private JenkinsMqmRestClientFactory clientFactory;
@@ -32,9 +33,9 @@ public class BridgesService implements ConfigurationListener {
 		if (extensionInstance == null) {
 			List<BridgesService> extensions = Jenkins.getInstance().getExtensionList(BridgesService.class);
 			if (extensions.isEmpty()) {
-				throw new RuntimeException("BRIDGE: bridge service was not initialized properly");
+				throw new RuntimeException("bridge service was not initialized properly");
 			} else if (extensions.size() > 1) {
-				throw new RuntimeException("BRIDGE: bridge service expected to be singleton, found " + extensions.size() + " instances");
+				throw new RuntimeException("bridge service expected to be singleton, found " + extensions.size() + " instances");
 			} else {
 				extensionInstance = extensions.get(0);
 			}
@@ -51,7 +52,7 @@ public class BridgesService implements ConfigurationListener {
 			}
 		} else {
 			if (bridgeClient != null) {
-				logger.info("BRIDGE: empty / non-valid configuration submitted, disposing bridge client");
+				logger.info("empty / non-valid configuration submitted, disposing bridge client");
 				bridgeClient.dispose();
 				bridgeClient = null;
 			}
@@ -76,7 +77,7 @@ public class BridgesService implements ConfigurationListener {
 				URL tmp = new URL(serverConfiguration.location);
 				result = true;
 			} catch (MalformedURLException mue) {
-				logger.error("BRIDGE: configuration with malformed URL supplied", mue);
+				logger.error("configuration with malformed URL supplied", mue);
 			}
 		}
 		return result;

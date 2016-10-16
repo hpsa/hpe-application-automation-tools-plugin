@@ -1,5 +1,3 @@
-// (C) Copyright 2003-2015 Hewlett-Packard Development Company, L.P.
-
 package com.hp.octane.plugins.jenkins.configuration;
 
 import com.hp.octane.plugins.jenkins.OctanePlugin;
@@ -9,6 +7,8 @@ import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.export.Exported;
@@ -18,10 +18,9 @@ import org.kohsuke.stapler.interceptor.RequirePOST;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
-import java.util.logging.Logger;
 
 public class ConfigApi {
-	private static final Logger logger = Logger.getLogger(ConfigApi.class.getName());
+	private static final Logger logger = LogManager.getLogger(ConfigApi.class);
 
 	public void doRead(StaplerRequest req, StaplerResponse res) throws ServletException, IOException {
 		checkPermission();

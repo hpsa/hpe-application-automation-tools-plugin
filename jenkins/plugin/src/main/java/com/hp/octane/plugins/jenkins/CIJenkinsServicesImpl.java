@@ -75,7 +75,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 
 	@Override
 	public File getAllowedOctaneStorage() {
-		return new File(Jenkins.getInstance().getRootDir(), "userContent" + File.separator + "nga");
+		return new File(Jenkins.getInstance().getRootDir(), "userContent");
 	}
 
 	@Override

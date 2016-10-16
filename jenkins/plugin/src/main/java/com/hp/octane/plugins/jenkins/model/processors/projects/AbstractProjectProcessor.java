@@ -11,12 +11,13 @@ import hudson.model.Job;
 import hudson.tasks.BuildStep;
 import hudson.tasks.Builder;
 import hudson.tasks.Publisher;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder;
 import org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -27,10 +28,10 @@ import java.util.logging.Logger;
  */
 
 public abstract class AbstractProjectProcessor {
-	private static final Logger logger = Logger.getLogger(AbstractProjectProcessor.class.getName());
+	private static final Logger logger = LogManager.getLogger(AbstractProjectProcessor.class);
 
-	private List<PipelinePhase> internals = new ArrayList<PipelinePhase>();
-	private List<PipelinePhase> postBuilds = new ArrayList<PipelinePhase>();
+	private List<PipelinePhase> internals = new ArrayList<>();
+	private List<PipelinePhase> postBuilds = new ArrayList<>();
 
 	protected void processBuilders(List<Builder> builders, AbstractProject project) {
 		this.processBuilders(builders, project, "");

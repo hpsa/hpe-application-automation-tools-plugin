@@ -9,6 +9,8 @@ import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
 import com.hp.octane.plugins.jenkins.configuration.ConfigApi;
 import hudson.Extension;
 import hudson.model.RootAction;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
@@ -16,7 +18,6 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
-import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -28,7 +29,7 @@ import java.util.logging.Logger;
 
 @Extension
 public class PluginActions implements RootAction {
-	private static final Logger logger = Logger.getLogger(PluginActions.class.getName());
+	private static final Logger logger = LogManager.getLogger(PluginActions.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	public String getIconFileName() {

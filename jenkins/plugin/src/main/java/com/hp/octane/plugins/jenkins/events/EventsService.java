@@ -9,6 +9,7 @@ import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import hudson.Extension;
 import jenkins.model.Jenkins;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -25,7 +26,7 @@ import java.util.List;
 
 @Extension
 public final class EventsService implements ConfigurationListener {
-	private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger(EventsService.class);
+	private static final Logger logger = LogManager.getLogger(EventsService.class);
 
 	private static EventsService extensionInstance;
 	private JenkinsMqmRestClientFactory clientFactory;
@@ -35,9 +36,9 @@ public final class EventsService implements ConfigurationListener {
 		if (extensionInstance == null) {
 			List<EventsService> extensions = Jenkins.getInstance().getExtensionList(EventsService.class);
 			if (extensions.isEmpty()) {
-				throw new RuntimeException("EVENTS: events service was not initialized properly");
+				throw new RuntimeException("events service was not initialized properly");
 			} else if (extensions.size() > 1) {
-				throw new RuntimeException("EVENTS: events service expected to be singleton, found " + extensions.size() + " instances");
+				throw new RuntimeException("events service expected to be singleton, found " + extensions.size() + " instances");
 			} else {
 				extensionInstance = extensions.get(0);
 			}
@@ -54,7 +55,7 @@ public final class EventsService implements ConfigurationListener {
 			}
 		} else {
 			if (eventsClient != null) {
-				logger.info("EVENTS: empty / non-valid configuration submitted, disposing events client");
+				logger.info("empty / non-valid configuration submitted, disposing events client");
 				eventsClient.dispose();
 				eventsClient = null;
 			}
@@ -103,7 +104,7 @@ public final class EventsService implements ConfigurationListener {
 				URL tmp = new URL(serverConfiguration.location);
 				result = true;
 			} catch (MalformedURLException mue) {
-				logger.error("EVENTS: configuration with malformed URL supplied", mue);
+				logger.error("configuration with malformed URL supplied", mue);
 			}
 		}
 		return result;
