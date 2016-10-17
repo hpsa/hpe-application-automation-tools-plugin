@@ -115,14 +115,15 @@ namespace LRAnalysisLauncher
                         xmlDoc.RemoveAll();
                         log ("");
                     }
+                    XmlDocument runReprotDoc = new XmlDocument();
                     log("Gathering Run statistics");
-                    XmlElement runsRoot = xmlDoc.CreateElement("Runs");
-                    xmlDoc.AppendChild(runsRoot);
+                    XmlElement runsRoot = runReprotDoc.CreateElement("Runs");
+                    runReprotDoc.AppendChild(runsRoot);
 
-                    XmlElement general = xmlDoc.CreateElement("General");
+                    XmlElement general = runReprotDoc.CreateElement("General");
                     runsRoot.AppendChild(general);
 
-                    XmlElement vUsers = xmlDoc.CreateElement("VUsers");
+                    XmlElement vUsers = runReprotDoc.CreateElement("VUsers");
                     log("Adding VUser statistics");
                     Dictionary<string, int> vuserCountDictionary = Helper.GetVusersCountByStatus(analysis);
                     foreach (KeyValuePair<string, int> kvp in vuserCountDictionary)
@@ -133,7 +134,7 @@ namespace LRAnalysisLauncher
                     vUsers.SetAttribute("Count", session.VUsers.Count.ToString());
                     general.AppendChild(vUsers);
 
-                    XmlElement transactions = xmlDoc.CreateElement("Transactions");
+                    XmlElement transactions = runReprotDoc.CreateElement("Transactions");
                     log("Adding Transaction statistics");
                     Dictionary<string, double> transactionSumStatusDictionary = new Dictionary<string, double>()
                     {
@@ -145,7 +146,7 @@ namespace LRAnalysisLauncher
                     Dictionary<string, Dictionary<string, double>> transactionDictionary = Helper.CalcFailedTransPercent(analysis);
                     foreach (KeyValuePair<string, Dictionary<string, double>> kvp in transactionDictionary)
                     {
-                        XmlElement transaction = xmlDoc.CreateElement("Transaction");
+                        XmlElement transaction = runReprotDoc.CreateElement("Transaction");
                         foreach (var transStatus in kvp.Value)
                         {
                             transaction.SetAttribute(transStatus.Key, transStatus.Value.ToString());
@@ -163,13 +164,11 @@ namespace LRAnalysisLauncher
                     general.AppendChild(transactions);
 
                     string connectionsMaximum = Helper.GetConnectionsCount(analysis).ToString("0.000");
-                    XmlElement connections = xmlDoc.CreateElement("Connections");
+                    XmlElement connections = runReprotDoc.CreateElement("Connections");
                     connections.SetAttribute("MaxCount", connectionsMaximum);
                     general.AppendChild(connections);
 
-                    log("saving RunReport.xml to " + Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(lrrlocation)), "RunReport.xml"));
-                    xmlDoc.Save(Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(lrrlocation)), "RunReport.xml"));
-                    xmlDoc.RemoveAll();
+
                     log("");
                     log("closing session");
                     session.Close();
@@ -330,6 +329,12 @@ namespace LRAnalysisLauncher
 
                         log(Resources.DoubleLineSeperator);
                     }
+
+                    XmlNode slaNode  = runReprotDoc.ImportNode(root, true);
+                    runsRoot.AppendChild(slaNode);
+                    log("saving RunReport.xml to " + Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(lrrlocation)), "RunReport.xml"));
+                    runReprotDoc.Save(Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(lrrlocation)), "RunReport.xml"));
+                    runReprotDoc.RemoveAll();
 
                     //write XML to location:
                     log("saving SLA.xml to " + Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(lrrlocation)), "SLA.xml"));
