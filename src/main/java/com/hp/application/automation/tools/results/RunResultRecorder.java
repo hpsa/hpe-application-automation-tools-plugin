@@ -66,7 +66,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 	private static final String TRANSACTION_SUMMARY_FOLDER = "TransactionSummary";
 	private static final String TRANSACTION_REPORT_NAME = "Report3";
 	private final ResultsPublisherModel _resultsPublisherModel;
-	private TaskListener _logger;
 
 	/**
 	 * Instantiates a new Run result recorder.
@@ -105,7 +104,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 								@Nonnull TaskListener listener, @Nonnull Map<String, String> builderResultNames)
 			throws IOException, InterruptedException {
 		final List<String> mergedResultNames = new ArrayList<String>();
-		this._logger = listener;
+		TaskListener _logger = listener;
 
 		final List<String> fileSystemResultNames = new ArrayList<String>();
 		fileSystemResultNames.add(builderResultNames.get(RunFromFileBuilder.class.getName()));
@@ -404,7 +403,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 					// serialize report metadata
 					File reportMetaDataXmlFile = new File(artifactsDir.getParent(), REPORTMETADATE_XML);
 					String reportMetaDataXml = reportMetaDataXmlFile.getAbsolutePath();
-					writeReportMetaData2XML(ReportInfoToCollect, reportMetaDataXml);
+					writeReportMetaData2XML(ReportInfoToCollect, reportMetaDataXml, listener);
 
 					// Add UFT report action
 					try {
@@ -434,7 +433,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 	}
 
 
-	private void writeReportMetaData2XML(List<ReportMetaData> htmlReportsInfo, String xmlFile) {
+	private void writeReportMetaData2XML(List<ReportMetaData> htmlReportsInfo, String xmlFile, TaskListener _logger) {
 
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder = null;
@@ -824,7 +823,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
 	@Override
 	public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
-		this._logger = listener;
+		TaskListener _logger = listener;
 		final List<String> mergedResultNames = new ArrayList<String>();
 
 		Project<?, ?> project = RuntimeUtils.cast(build.getParent());
