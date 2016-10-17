@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Analysis.Api;
 using Analysis.ApiLib;
+using LRAnalysisLauncher.Properties;
 
 namespace LRAnalysisLauncher
 {
@@ -87,6 +88,49 @@ namespace LRAnalysisLauncher
             return transDictionary;
         }
 
+        ///<summary>
+        /// Get Connections count
+        /// </summary>
+        public static double GetConnectionsCount(LrAnalysis lrAnalysis)
+        {
+            double connectionsCount = 0;
+
+            try
+            {
+                Graph g;
+                // check if Connections graph has data
+                if (lrAnalysis.Session.Runs[0].Graphs.TryGetValue("Connections", out g) != true)
+                {
+                    throw new Exception("Failed to retrieve values from Connections graph");
+                }
+                if (g.Series.Count == 0)
+                {
+                    throw new Exception("No data exists in Connections graph");
+                }
+
+                g.Granularity = 1;
+
+                foreach (FilterItem fi in g.Filter)
+                {
+                    fi.ClearValues();
+                    fi.IsActive = false;
+                    g.ApplyFilterAndGroupBy();
+                }
+
+                g.ApplyFilterAndGroupBy();
+                connectionsCount = g.Series["Connections"].GraphStatistics.Maximum;
+            }
+            catch (Exception ex)
+            {
+                Console.Write(Resources.Helper_GetConnectionsCount_ + ex.Message);
+            }
+            finally
+            {
+                
+            }
+
+            return connectionsCount;
+        }
 
 
         /// <summary>

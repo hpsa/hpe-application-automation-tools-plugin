@@ -78,6 +78,8 @@ namespace LRAnalysisLauncher
                     log("analysis session created");
                     log("creating HTML reports");
                     HtmlReportMaker reportMaker = session.CreateHtmlReportMaker();
+                    reportMaker.AddGraph("Connections");
+                    reportMaker.AddGraph("ConnectionsPerSecond");
                     reportMaker.CreateDefaultHtmlReport(Path.Combine(Path.GetDirectoryName(htmlLocation), "IE", Path.GetFileName(htmlLocation)), ApiBrowserType.IE);
                     reportMaker.CreateDefaultHtmlReport(Path.Combine(Path.GetDirectoryName(htmlLocation), "Netscape", Path.GetFileName(htmlLocation)), ApiBrowserType.Netscape);
                     log("HTML reports created");
@@ -116,6 +118,7 @@ namespace LRAnalysisLauncher
                     log("Gathering Run statistics");
                     XmlElement runsRoot = xmlDoc.CreateElement("Runs");
                     xmlDoc.AppendChild(runsRoot);
+
                     XmlElement general = xmlDoc.CreateElement("General");
                     runsRoot.AppendChild(general);
 
@@ -143,8 +146,6 @@ namespace LRAnalysisLauncher
                     foreach (KeyValuePair<string, Dictionary<string, double>> kvp in transactionDictionary)
                     {
                         XmlElement transaction = xmlDoc.CreateElement("Transaction");
-
-//                        log($"{kvp.Key} transaction:");
                         foreach (var transStatus in kvp.Value)
                         {
                             transaction.SetAttribute(transStatus.Key, transStatus.Value.ToString());
@@ -154,17 +155,17 @@ namespace LRAnalysisLauncher
                         transaction.SetAttribute("Name", kvp.Key);
                         transactions.AppendChild(transaction);
                     }
-
                     foreach (var transStatus in transactionSumStatusDictionary)
                     {
                         transactions.SetAttribute(transStatus.Key, transStatus.Value.ToString());
                         log($"{transStatus.Key} transaction: {transStatus.Value}");
                     }
-
                     general.AppendChild(transactions);
 
-
-
+                    string connectionsMaximum = Helper.GetConnectionsCount(analysis).ToString("0.000");
+                    XmlElement connections = xmlDoc.CreateElement("Connections");
+                    connections.SetAttribute("MaxCount", connectionsMaximum);
+                    general.AppendChild(connections);
 
                     log("saving RunReport.xml to " + Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(lrrlocation)), "RunReport.xml"));
                     xmlDoc.Save(Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(lrrlocation)), "RunReport.xml"));
