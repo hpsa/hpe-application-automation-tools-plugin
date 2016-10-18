@@ -17,7 +17,7 @@ public class LrJobResults extends LrRunResults implements LrTest{
 
     public HashMap<String, JobLrScenarioResult> _scenarioResults = new HashMap<String, JobLrScenarioResult>();
 
-    public JobLrScenarioResult addScenrio(JobLrScenarioResult scenario)
+    public JobLrScenarioResult addScenario(JobLrScenarioResult scenario)
     {
         JobLrScenarioResult JobLrScenarioResult = null;
          if((JobLrScenarioResult = _scenarioResults.put(scenario.getScenarioName(),scenario)) != null)

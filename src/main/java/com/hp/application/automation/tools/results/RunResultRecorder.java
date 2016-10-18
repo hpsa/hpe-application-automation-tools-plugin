@@ -74,6 +74,8 @@ import com.hp.application.automation.tools.run.RunFromFileBuilder;
 import com.hp.application.automation.tools.run.SseBuilder;
 import com.hp.application.automation.tools.run.PcBuilder;
 
+import static com.hp.application.automation.tools.results.projectparser.performance.XmlParserUtil.getNode;
+
 /**
  * This class is adapted from {@link JunitResultArchiver}; Only the {@code perform()} method
  * slightly differs.
@@ -92,7 +94,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 	private static final String TRANSACTION_SUMMARY_FOLDER = "TransactionSummary";
 	private static final String TRANSACTION_REPORT_NAME = "Report3";
 
-    List<FilePath> slaList;
+    List<FilePath> runReportList;
 
 
     private final ResultsPublisherModel _resultsPublisherModel;
@@ -123,7 +125,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         final List<String> mergedResultNames = new ArrayList<String>();
         final List<String> almSSEResultNames = new ArrayList<String>();
         final List<String> pcResultNames = new ArrayList<String>();
-        slaList = new ArrayList<FilePath>();
+        runReportList = new ArrayList<FilePath>();
 
         // Get the TestSet report files names of the current build
         for (Builder builder : builders) {
@@ -238,7 +240,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         }
 
 
-        if ((slaList != null) && (slaList.size() != 0)) {
+        if ((runReportList != null) && (runReportList.size() != 0)) {
             LrJobResults jobDataSet = null;
             try {
                 jobDataSet = buildJobDataset(build, listener);
@@ -487,11 +489,10 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                         createHtmlReport(reportFolder, testFolderPath, artifactsDir, reportNames, testResult);
                         createTransactionSummary(reportFolder, testFolderPath, artifactsDir, reportNames, testResult);
                         try {
-                            FilePath testSla = copySla(reportFolder, testFolderPath, build.getRootDir(), testFolder.getName(), testResult);
-                            slaList.add(testSla);
+							FilePath testSla = copyRunReport(reportFolder, testFolderPath, build.getRootDir(), testFolder.getName());
+							runReportList.add(testSla);
                         } catch (Exception e) {
-                            listener.getLogger().println(
-                                    "No SLA.xml file was found in: " + reportFolder);
+                            listener.getLogger().println(e.getMessage());
                         }
                     }
                 }
@@ -657,22 +658,22 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 		}
     }
 
-    private FilePath copySla(FilePath reportFolder, String testFolderPath, File buildDir, String scenerioName, TestResult testResult) throws Exception {
-        FilePath slaReportFilePath = new FilePath(reportFolder, "SLA.xml");
+    private FilePath copyRunReport(FilePath reportFolder, String testFolderPath, File buildDir, String scenerioName) throws IOException, InterruptedException {
+        FilePath slaReportFilePath = new FilePath(reportFolder, "RunReport.xml");
         if (slaReportFilePath.exists()) {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             slaReportFilePath.zip(baos);
-            File slaDirectory = new File(buildDir, "SlaReport");
+            File slaDirectory = new File(buildDir, "RunReport");
             if (!slaDirectory.exists())
                     slaDirectory.mkdir();
             ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
             FilePath slaDirectoryFilePath = new FilePath(slaDirectory);
-            FilePath tmpZipFile = new FilePath(slaDirectoryFilePath, "slaReport.zip");
+            FilePath tmpZipFile = new FilePath(slaDirectoryFilePath, "runReport.zip");
             tmpZipFile.copyFrom(bais);
             bais.close();
             baos.close();
             tmpZipFile.unzip(slaDirectoryFilePath);
-            FilePath slaFile = new FilePath(slaDirectoryFilePath, "SLA.xml");
+            FilePath slaFile = new FilePath(slaDirectoryFilePath, "RunReport.xml");
             slaFile.getBaseName();
             slaFile.renameTo(new FilePath(slaDirectoryFilePath, scenerioName + ".xml"));
 
@@ -680,7 +681,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
             return slaFile;
         }
-            throw(new Exception("no SLA.xml file was created"));
+            throw(new IOException("no RunReport.xml file was created"));
         }
 
         private LrJobResults buildJobDataset(AbstractBuild<?, ?> build, BuildListener listener)throws ParserConfigurationException, SAXException,
@@ -689,128 +690,178 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 "Starting the creation of test run dataset for graphing");
         LrJobResults jobResults = new LrJobResults();
 
-        // read each SLA.xml
-        for (FilePath slaFilePath : slaList) {
-
-            JobLrScenarioResult jobLrScenarioResult = new JobLrScenarioResult(slaFilePath.getBaseName());
-
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-
-            Document doc = dBuilder.parse(slaFilePath.read());
-            doc.getDocumentElement().normalize();
-
-            Node timeRangeNode;
-            Node slaNode;
-            Node slaRuleNode;
-            Element slaElements;
-            Element slaRuleElement;
-            Element timeRangeElement;
-
-            NodeList slaRuleResults = doc.getElementsByTagName("SLA_GOAL");
-//            for (int i = 0; i < slaNodes.getLength(); i++) {
-//                slaNode = slaNodes.item(i);
-//                slaElements = (Element) slaNode;
-
-//                NodeList slaRuleResults = slaNodes.getChildNodes(); //get all the sla rules
-                for (int j = 0; j < slaRuleResults.getLength(); j++) {
-                    slaRuleNode = slaRuleResults.item(j);
-                    slaRuleElement = (Element) slaRuleNode;
-
-                    //check type by mesurment field:
-                    LrTest.SLA_GOAL slaGoal = LrTest.SLA_GOAL.checkGoal(slaRuleElement.getAttribute("Measurement").toString());
-
-                    switch (slaGoal) {
-                        case AverageThroughput:
-                            WholeRunResult averageThroughput = new WholeRunResult();
-                            averageThroughput.setSlaGoal(LrTest.SLA_GOAL.AverageThroughput);
-                            averageThroughput.setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
-                            averageThroughput.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
-                            averageThroughput.setFullName(slaRuleElement.getAttribute("FullName"));
-                            averageThroughput.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
-//                            jobLrScenarioResult.averageThroughputResults = averageThroughput;
-                            jobLrScenarioResult.scenarioSlaResults.add(averageThroughput);
-                            break;
-                        case TotalThroughput:
-                            WholeRunResult totalThroughput = new WholeRunResult();
-                            totalThroughput.setSlaGoal(LrTest.SLA_GOAL.TotalThroughput);
-                            totalThroughput.setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
-                            totalThroughput.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
-                            totalThroughput.setFullName(slaRuleElement.getAttribute("FullName"));
-                            totalThroughput.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
-//                            jobLrScenarioResult.totalThroughputResults = totalThroughput;
-                            jobLrScenarioResult.scenarioSlaResults.add(totalThroughput);
-
-                            break;
-                        case AverageHitsPerSecond:
-                            WholeRunResult averageHitsPerSecond = new WholeRunResult();
-                            averageHitsPerSecond.setSlaGoal(LrTest.SLA_GOAL.AverageHitsPerSecond);
-                            averageHitsPerSecond.setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
-                            averageHitsPerSecond.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
-                            averageHitsPerSecond.setFullName(slaRuleElement.getAttribute("FullName"));
-                            averageHitsPerSecond.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
-//                            jobLrScenarioResult.averageHitsPerSecondResults = averageHitsPerSecond;
-                            jobLrScenarioResult.scenarioSlaResults.add(averageHitsPerSecond);
-
-                            break;
-                        case TotalHits:
-                            WholeRunResult totalHits = new WholeRunResult();
-                            totalHits.setSlaGoal(LrTest.SLA_GOAL.TotalHits);
-                            totalHits.setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
-                            totalHits.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
-                            totalHits.setFullName(slaRuleElement.getAttribute("FullName"));
-                            totalHits.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
-//                            jobLrScenarioResult.totalHitsResults = totalHits;
-                            jobLrScenarioResult.scenarioSlaResults.add(totalHits);
-
-                            break;
-                        case ErrorsPerSecond:
-                            TimeRangeResult errPerSec = new AvgTransactionResponseTime();
-                            errPerSec.setSlaGoal(LrTest.SLA_GOAL.ErrorsPerSecond);
-                            errPerSec.setFullName(slaRuleElement.getAttribute("FullName").toString());
-                            errPerSec.setLoadThrashold(slaRuleElement.getAttribute("SLALoadThresholdValue").toString());
-                            errPerSec.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getFirstChild().getTextContent())); //Might not work due to time ranges
-                            addTimeRanges(errPerSec, slaRuleElement);
-//                            jobLrScenarioResult.errPerSecResults = errPerSec;
-                            jobLrScenarioResult.scenarioSlaResults.add(errPerSec);
-
-                            break;
-                        case PercentileTRT:
-                            PercentileTransactionWholeRun percentileTransactionWholeRun = new PercentileTransactionWholeRun();
-                            percentileTransactionWholeRun.setSlaGoal(LrTest.SLA_GOAL.PercentileTRT);
-                            percentileTransactionWholeRun.setName(slaRuleElement.getAttribute("TransactionName").toString());
-                            percentileTransactionWholeRun.setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
-                            percentileTransactionWholeRun.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
-                            percentileTransactionWholeRun.setFullName(slaRuleElement.getAttribute("FullName"));
-                            percentileTransactionWholeRun.setPrecentage(Double.valueOf(slaRuleElement.getAttribute("Percentile")));
-                            percentileTransactionWholeRun.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
-//                            jobLrScenarioResult.percentileTransactionResults.add(percentileTransactionWholeRun);
-                            jobLrScenarioResult.scenarioSlaResults.add(percentileTransactionWholeRun);
-
-                            break;
-                        case AverageTRT:
-                            AvgTransactionResponseTime transactionTimeRange = new AvgTransactionResponseTime();
-                            transactionTimeRange.setSlaGoal(LrTest.SLA_GOAL.AverageTRT);
-                            transactionTimeRange.setName(slaRuleElement.getAttribute("TransactionName").toString());
-                            transactionTimeRange.setFullName(slaRuleElement.getAttribute("FullName").toString());
-                            transactionTimeRange.setLoadThrashold(slaRuleElement.getAttribute("SLALoadThresholdValue").toString());
-                            transactionTimeRange.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getFirstChild().getTextContent())); //Might not work due to time ranges
-                            addTimeRanges(transactionTimeRange, slaRuleElement);
-                            jobLrScenarioResult.scenarioSlaResults.add(transactionTimeRange);
-//                            jobLrScenarioResult.transactionTimeRanges.add(transactionTimeRange);
-                            break;
-                        case Bad:
-                            break;
-                    }
-                }
-                jobResults.addScenrio(jobLrScenarioResult);
-
+        // read each RunReport.xml
+        for (FilePath reportFilePath : runReportList) {
+			JobLrScenarioResult jobLrScenarioResult = parseScenarioResults(reportFilePath);
+			jobResults.addScenario(jobLrScenarioResult);
         }
 
             return jobResults;
         }
 
-    private static void addTimeRanges(TimeRangeResult transactionTimeRange, Element slaRuleElement) {
+	private JobLrScenarioResult parseScenarioResults(FilePath slaFilePath) throws ParserConfigurationException, SAXException, IOException, InterruptedException {
+		JobLrScenarioResult jobLrScenarioResult = new JobLrScenarioResult(slaFilePath.getBaseName());
+
+		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+
+		Document doc = dBuilder.parse(slaFilePath.read());
+//		doc.getDocumentElement().normalize();
+
+		processSLA(jobLrScenarioResult, doc);
+		processScenarioStats(jobLrScenarioResult, doc);
+		//TODO: add fail / Pass count
+		return jobLrScenarioResult;
+	}
+
+	private void processScenarioStats(JobLrScenarioResult jobLrScenarioResult, Document doc)
+	{
+
+		NodeList rootNodes = doc.getChildNodes();
+		Node root = getNode("Runs", rootNodes);
+		Element generalNode = (Element) getNode("General", root.getChildNodes());
+		NodeList generalNodeChildren = generalNode.getChildNodes();
+
+		Node vUser = getNode("VUsers", generalNodeChildren);
+		int atrrCount = vUser.getAttributes().getLength();
+		for(int atrrIndx = 0; atrrIndx < atrrCount; atrrIndx++)
+		{
+			Node vUserAttr = vUser.getAttributes().item(atrrIndx);
+			jobLrScenarioResult.vUser.put(vUserAttr.getNodeName(), Integer.valueOf(vUserAttr.getNodeValue()));
+		}
+
+		Node transactions = getNode("Transactions", generalNodeChildren);
+		atrrCount = transactions.getAttributes().getLength();
+		for(int atrrIndx = 0; atrrIndx < atrrCount; atrrIndx++)
+		{
+			Node vUserAttr = transactions.getAttributes().item(atrrIndx);
+			jobLrScenarioResult.transactionSum.put(vUserAttr.getNodeName(), Integer.valueOf(vUserAttr.getNodeValue()));
+		}
+
+		NodeList transactionNodes = transactions.getChildNodes();
+		int transactionNodesCount = transactionNodes.getLength();
+		for (int transIdx = 0; transIdx < transactionNodesCount; transIdx++) {
+			if (transactionNodes.item(transIdx).getNodeType() != Node.ELEMENT_NODE) continue;
+			Element transaction = (Element) transactionNodes.item(transIdx);
+			HashMap<String, Integer> transactionData = new HashMap<String, Integer>(0);
+			transactionData.put("Pass",Integer.valueOf(transaction.getAttribute("Pass")));
+			transactionData.put("Fail",Integer.valueOf(transaction.getAttribute("Fail")));
+			transactionData.put("Stop",Integer.valueOf(transaction.getAttribute("Stop")));
+			jobLrScenarioResult.transactionData.put(transaction.getAttribute("Name"), transactionData);
+		}
+
+		Element connections = (Element) getNode("Connections", generalNodeChildren);
+		jobLrScenarioResult.setConnectionMax(Integer.valueOf(connections.getAttribute("MaxCount")));
+
+	}
+
+	private void processSLA(JobLrScenarioResult jobLrScenarioResult, Document doc) {
+		Node timeRangeNode;
+		Node slaNode;
+		Node slaRuleNode;
+		Element slaElements;
+		Element slaRuleElement;
+		Element timeRangeElement;
+
+		NodeList rootNodes = doc.getChildNodes();
+		Node root = getNode("Runs", rootNodes);
+		Element slaRoot = (Element) getNode("SLA", root.getChildNodes());
+		NodeList slaRuleResults = slaRoot.getChildNodes();
+
+
+
+			for (int j = 0; j < slaRuleResults.getLength(); j++) {
+				slaRuleNode = slaRuleResults.item(j);
+				if (slaRuleNode.getNodeType() != Node.ELEMENT_NODE) continue;
+				slaRuleElement = (Element) slaRuleNode;
+				//check type by mesurment field:
+				LrTest.SLA_GOAL slaGoal = LrTest.SLA_GOAL.checkGoal(slaRuleElement.getAttribute("Measurement").toString());
+
+				processSlaRule(jobLrScenarioResult, slaRuleElement, slaGoal);
+			}
+
+	}
+
+	private void processSlaRule(JobLrScenarioResult jobLrScenarioResult, Element slaRuleElement, LrTest.SLA_GOAL slaGoal) {
+		switch (slaGoal) {
+			case AverageThroughput:
+				WholeRunResult averageThroughput = new WholeRunResult();
+				averageThroughput.setSlaGoal(LrTest.SLA_GOAL.AverageThroughput);
+				averageThroughput.setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
+				averageThroughput.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
+				averageThroughput.setFullName(slaRuleElement.getAttribute("FullName"));
+				averageThroughput.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
+				jobLrScenarioResult.scenarioSlaResults.add(averageThroughput);
+				break;
+			case TotalThroughput:
+				WholeRunResult totalThroughput = new WholeRunResult();
+				totalThroughput.setSlaGoal(LrTest.SLA_GOAL.TotalThroughput);
+				totalThroughput.setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
+				totalThroughput.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
+				totalThroughput.setFullName(slaRuleElement.getAttribute("FullName"));
+				totalThroughput.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
+				jobLrScenarioResult.scenarioSlaResults.add(totalThroughput);
+
+				break;
+			case AverageHitsPerSecond:
+				WholeRunResult averageHitsPerSecond = new WholeRunResult();
+				averageHitsPerSecond.setSlaGoal(LrTest.SLA_GOAL.AverageHitsPerSecond);
+				averageHitsPerSecond.setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
+				averageHitsPerSecond.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
+				averageHitsPerSecond.setFullName(slaRuleElement.getAttribute("FullName"));
+				averageHitsPerSecond.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
+//                            jobLrScenarioResult.averageHitsPerSecondResults = averageHitsPerSecond;
+				jobLrScenarioResult.scenarioSlaResults.add(averageHitsPerSecond);
+
+				break;
+			case TotalHits:
+				WholeRunResult totalHits = new WholeRunResult();
+				totalHits.setSlaGoal(LrTest.SLA_GOAL.TotalHits);
+				totalHits.setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
+				totalHits.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
+				totalHits.setFullName(slaRuleElement.getAttribute("FullName"));
+				totalHits.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
+				jobLrScenarioResult.scenarioSlaResults.add(totalHits);
+
+				break;
+			case ErrorsPerSecond:
+				TimeRangeResult errPerSec = new AvgTransactionResponseTime();
+				errPerSec.setSlaGoal(LrTest.SLA_GOAL.ErrorsPerSecond);
+				errPerSec.setFullName(slaRuleElement.getAttribute("FullName").toString());
+				errPerSec.setLoadThrashold(slaRuleElement.getAttribute("SLALoadThresholdValue").toString());
+				errPerSec.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getFirstChild().getTextContent())); //Might not work due to time ranges
+				addTimeRanges(errPerSec, slaRuleElement);
+				jobLrScenarioResult.scenarioSlaResults.add(errPerSec);
+
+				break;
+			case PercentileTRT:
+				PercentileTransactionWholeRun percentileTransactionWholeRun = new PercentileTransactionWholeRun();
+				percentileTransactionWholeRun.setSlaGoal(LrTest.SLA_GOAL.PercentileTRT);
+				percentileTransactionWholeRun.setName(slaRuleElement.getAttribute("TransactionName").toString());
+				percentileTransactionWholeRun.setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
+				percentileTransactionWholeRun.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
+				percentileTransactionWholeRun.setFullName(slaRuleElement.getAttribute("FullName"));
+				percentileTransactionWholeRun.setPrecentage(Double.valueOf(slaRuleElement.getAttribute("Percentile")));
+				percentileTransactionWholeRun.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
+				jobLrScenarioResult.scenarioSlaResults.add(percentileTransactionWholeRun);
+
+				break;
+			case AverageTRT:
+				AvgTransactionResponseTime transactionTimeRange = new AvgTransactionResponseTime();
+				transactionTimeRange.setSlaGoal(LrTest.SLA_GOAL.AverageTRT);
+				transactionTimeRange.setName(slaRuleElement.getAttribute("TransactionName").toString());
+				transactionTimeRange.setFullName(slaRuleElement.getAttribute("FullName").toString());
+				transactionTimeRange.setLoadThrashold(slaRuleElement.getAttribute("SLALoadThresholdValue").toString());
+				transactionTimeRange.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getFirstChild().getTextContent())); //Might not work due to time ranges
+				addTimeRanges(transactionTimeRange, slaRuleElement);
+				jobLrScenarioResult.scenarioSlaResults.add(transactionTimeRange);
+				break;
+			case Bad:
+				break;
+		}
+	}
+
+	private static void addTimeRanges(TimeRangeResult transactionTimeRange, Element slaRuleElement) {
         Node timeRangeNode;
         Element timeRangeElement;
         NodeList timeRanges = slaRuleElement.getElementsByTagName("TimeRangeInfo");
