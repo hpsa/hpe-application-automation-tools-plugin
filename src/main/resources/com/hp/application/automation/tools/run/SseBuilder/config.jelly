@@ -42,7 +42,7 @@
        <f:entry title="ALM server" field="almServerName">
             <select name="sse.almServerName">
                 <j:forEach var="almServer" items="${descriptor.almServers}">
-                    <f:option selected="${almServer.almServerName==instance.almServerSettingsModel.almServerName}" value="${almServer.almServerName}">
+                    <f:option selected="${almServer.almServerName==instance.almServerName}" value="${almServer.almServerName}">
                         ${almServer.almServerName}
                     </f:option>
                 </j:forEach>
@@ -76,7 +76,7 @@
    		<f:entry title="Run type" field="runType">
                 <select name="sse.runType" >
                     <j:forEach var="runType" items="${descriptor.runTypes}">
-                        <f:option selected="${runType.value == instance.sseModel.runType}" value="${runType.value}">
+                        <f:option selected="${runType.value == instance.runType}" value="${runType.value}">
                           ${runType.description}
                         </f:option>
                     </j:forEach>
