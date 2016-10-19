@@ -38,7 +38,8 @@ import java.util.HashSet;
 import java.util.Map;
 
 public class LrGraphUtils {
-    public LrGraphUtils() {
+
+    private LrGraphUtils() {
     }
 
     /**
@@ -67,7 +68,7 @@ public class LrGraphUtils {
         }
     }
 
-    static JSONObject extractPercentileTransactionSet(
+    private static JSONObject extractPercentileTransactionSet(
             Map<Integer, HashMap<String, PercentileTransactionWholeRun>> graphData, HashSet<String> transactions) {
         JSONObject graphDataSet = new JSONObject();
         JSONArray labels = new JSONArray();
@@ -108,8 +109,8 @@ public class LrGraphUtils {
         return datasets;
     }
 
-    void constructAvgTransactionGraph(Map.Entry<String, LrProjectScenarioResults> scenarioResults,
-                                      JSONObject scenarioGraphData) {
+    static void constructAvgTransactionGraph(Map.Entry<String, LrProjectScenarioResults> scenarioResults,
+                                             JSONObject scenarioGraphData) {
         Map<Integer, HashMap<String, AvgTransactionResponseTime>> avgTransactionResponseTimeResults =
                 scenarioResults.getValue().avgTransactionResponseTimeResults;
         JSONObject avgTransactionResponseTimeGraphSet =
@@ -128,8 +129,8 @@ public class LrGraphUtils {
         }
     }
 
-    JSONObject extractAvgTrtData(Map<Integer, HashMap<String, AvgTransactionResponseTime>> graphData,
-                                 HashSet<String> transactions) {
+    private static JSONObject extractAvgTrtData(Map<Integer, HashMap<String, AvgTransactionResponseTime>> graphData,
+                                                HashSet<String> transactions) {
         HashMap<String, ArrayList<Double>> averageTRTData = new HashMap<String, ArrayList<Double>>(0);
         JSONObject graphDataSet = new JSONObject();
 
@@ -158,8 +159,8 @@ public class LrGraphUtils {
         return graphDataSet;
     }
 
-    void constructErrorGraph(Map.Entry<String, LrProjectScenarioResults> scenarioResults,
-                             JSONObject scenarioGraphData) {
+    static void constructErrorGraph(Map.Entry<String, LrProjectScenarioResults> scenarioResults,
+                                    JSONObject scenarioGraphData) {
         Map<Integer, TimeRangeResult> errPerSecResults = scenarioResults.getValue().errPerSecResults;
         JSONObject errPerSecResultsResultsGraphSet =
                 extractTimeRangeResult(errPerSecResults);
@@ -172,7 +173,7 @@ public class LrGraphUtils {
         }
     }
 
-    JSONObject extractTimeRangeResult(Map<Integer, TimeRangeResult> graphData) {
+    private static JSONObject extractTimeRangeResult(Map<Integer, TimeRangeResult> graphData) {
         JSONObject graphDataSet;
         graphDataSet = new JSONObject();
 
@@ -193,8 +194,8 @@ public class LrGraphUtils {
         return graphDataSet;
     }
 
-    void constructAverageThroughput(Map.Entry<String, LrProjectScenarioResults> scenarioResults,
-                                    JSONObject scenarioGraphData) {
+    static void constructAverageThroughput(Map.Entry<String, LrProjectScenarioResults> scenarioResults,
+                                           JSONObject scenarioGraphData) {
         Map<Integer, WholeRunResult> averageThroughputResults = scenarioResults.getValue().averageThroughputResults;
         JSONObject averageThroughputResultsGraphSet =
                 extractWholeRunSlaResult(averageThroughputResults);
@@ -215,7 +216,7 @@ public class LrGraphUtils {
      * @param graphData
      * @return
      */
-    JSONObject extractWholeRunSlaResult(Map<Integer, WholeRunResult> graphData) {
+    private static JSONObject extractWholeRunSlaResult(Map<Integer, WholeRunResult> graphData) {
         JSONObject graphDataSet;
         graphDataSet = new JSONObject();
 
@@ -232,8 +233,8 @@ public class LrGraphUtils {
         return graphDataSet;
     }
 
-    void constructTotalThroughputGraph(Map.Entry<String, LrProjectScenarioResults> scenarioResults,
-                                       JSONObject scenarioGraphData) {
+    static void constructTotalThroughputGraph(Map.Entry<String, LrProjectScenarioResults> scenarioResults,
+                                              JSONObject scenarioGraphData) {
         Map<Integer, WholeRunResult> totalThroughputResults = scenarioResults.getValue().totalThroughtputResults;
         JSONObject totalThroughputResultsGraphSet =
                 extractWholeRunSlaResult(totalThroughputResults);
@@ -250,8 +251,8 @@ public class LrGraphUtils {
         }
     }
 
-    void constructAvgHitsGraph(Map.Entry<String, LrProjectScenarioResults> scenarioResults,
-                               JSONObject scenarioGraphData) {
+    static void constructAvgHitsGraph(Map.Entry<String, LrProjectScenarioResults> scenarioResults,
+                                      JSONObject scenarioGraphData) {
         Map<Integer, WholeRunResult> avgHitsPerSec = scenarioResults.getValue().averageHitsPerSecondResults;
         JSONObject avgHitsPerSecGraphSet = extractWholeRunSlaResult(avgHitsPerSec);
         if (avgHitsPerSecGraphSet.getJSONArray(PerformanceProjectAction.LABELS).isEmpty()) {
@@ -268,8 +269,8 @@ public class LrGraphUtils {
         }
     }
 
-    void constructTotalHitsGraph(Map.Entry<String, LrProjectScenarioResults> scenarioResults,
-                                 JSONObject scenarioGraphData) {
+    static void constructTotalHitsGraph(Map.Entry<String, LrProjectScenarioResults> scenarioResults,
+                                        JSONObject scenarioGraphData) {
         Map<Integer, WholeRunResult> totalHitsResults = scenarioResults.getValue().totalHitsResults;
         JSONObject totalHitsGraphSet = extractWholeRunSlaResult(totalHitsResults);
         if (totalHitsGraphSet.getJSONArray(PerformanceProjectAction.LABELS).isEmpty()) {

@@ -99,7 +99,6 @@ public class PerformanceProjectAction implements Action {
      * The Current project.
      */
     public final AbstractProject<?, ?> currentProject;
-    private final LrGraphUtils lrGraphUtils = new LrGraphUtils();
     private ArrayList<LrJobResults> jobLrResults;
     private int lastBuildId = -1;
     private ArrayList<Integer> _workedBuilds;
@@ -156,171 +155,18 @@ public class PerformanceProjectAction implements Action {
             JSONObject scenarioGraphData = new JSONObject();
             String scenarioName = scenarioResults.getKey();
 
-            lrGraphUtils.constructTotalHitsGraph(scenarioResults, scenarioGraphData);
-            lrGraphUtils.constructAvgHitsGraph(scenarioResults, scenarioGraphData);
-            lrGraphUtils.constructTotalThroughputGraph(scenarioResults, scenarioGraphData);
-            lrGraphUtils.constructAverageThroughput(scenarioResults, scenarioGraphData);
-            lrGraphUtils.constructErrorGraph(scenarioResults, scenarioGraphData);
-            lrGraphUtils.constructAvgTransactionGraph(scenarioResults, scenarioGraphData);
+            LrGraphUtils.constructTotalHitsGraph(scenarioResults, scenarioGraphData);
+            LrGraphUtils.constructAvgHitsGraph(scenarioResults, scenarioGraphData);
+            LrGraphUtils.constructTotalThroughputGraph(scenarioResults, scenarioGraphData);
+            LrGraphUtils.constructAverageThroughput(scenarioResults, scenarioGraphData);
+            LrGraphUtils.constructErrorGraph(scenarioResults, scenarioGraphData);
+            LrGraphUtils.constructAvgTransactionGraph(scenarioResults, scenarioGraphData);
             LrGraphUtils.constructPercentileTransactionGraph(scenarioResults, scenarioGraphData);
-
             projectDataSet.put(scenarioName, scenarioGraphData);
         }
         return projectDataSet;
     }
 
-    /**
-     * Gets total hits graph data.
-     *
-     * @return the total hits graph data
-     */
-    @JavaScriptMethod
-    public JSONObject getTotalHitsGraphData() {
-        JSONObject graphDataSet;
-        JSONObject scenarioGraphData = new JSONObject();
-
-        for (Map.Entry<String, LrProjectScenarioResults> scenarioResults : _projectResult.getScenarioResults()
-                .entrySet()) {
-            Map<Integer, WholeRunResult> graphData = scenarioResults.getValue().totalHitsResults;
-
-            graphDataSet = lrGraphUtils.extractWholeRunSlaResult(graphData);
-            scenarioGraphData.put(scenarioResults.getKey(), graphDataSet);
-
-            return graphDataSet;
-
-        }
-        return scenarioGraphData;
-    }
-
-    /**
-     * Gets avg hits per sec graph data.
-     *
-     * @return the avg hits per sec graph data
-     */
-    @JavaScriptMethod
-    public JSONObject getAvgHitsPerSecGraphData() {
-        JSONObject scenarioGraphData = new JSONObject();
-
-        for (Map.Entry<String, LrProjectScenarioResults> scenarioResults : _projectResult.getScenarioResults()
-                .entrySet()) {
-            Map<Integer, WholeRunResult> graphData = scenarioResults.getValue().averageHitsPerSecondResults;
-
-            JSONObject graphDataSet = lrGraphUtils.extractWholeRunSlaResult(graphData);
-            scenarioGraphData.put(scenarioResults.getKey(), graphDataSet);
-
-            return graphDataSet;
-
-        }
-        return scenarioGraphData;
-    }
-
-    /**
-     * Gets total throughput graph data.
-     *
-     * @return the total throughput graph data
-     */
-    @JavaScriptMethod
-    public JSONObject getTotalThroughputGraphData() {
-        JSONObject graphDataSet;
-        JSONObject scenarionGraphData = new JSONObject();
-
-        for (Map.Entry<String, LrProjectScenarioResults> scenarioResults : _projectResult.getScenarioResults()
-                .entrySet()) {
-            Map<Integer, WholeRunResult> graphData = scenarioResults.getValue().totalThroughtputResults;
-
-            graphDataSet = lrGraphUtils.extractWholeRunSlaResult(graphData);
-            scenarionGraphData.put(scenarioResults.getKey(), graphDataSet);
-
-            return graphDataSet;
-
-        }
-        return scenarionGraphData;
-    }
-
-    /**
-     * Gets avg throughtput results graph data.
-     *
-     * @return the avg throughtput results graph data
-     */
-    @JavaScriptMethod
-    public JSONObject getAvgThroughtputResultsGraphData() {
-        JSONObject graphDataSet;
-        JSONObject scenarionGraphData = new JSONObject();
-
-        for (Map.Entry<String, LrProjectScenarioResults> scenarioResults : _projectResult.getScenarioResults()
-                .entrySet()) {
-            Map<Integer, WholeRunResult> graphData = scenarioResults.getValue().averageThroughputResults;
-
-            graphDataSet = lrGraphUtils.extractWholeRunSlaResult(graphData);
-            scenarionGraphData.put(scenarioResults.getKey(), graphDataSet);
-
-            return graphDataSet;
-
-        }
-        return scenarionGraphData;
-    }
-
-    /**
-     * Gets avg transaction results graph data.
-     *
-     * @return the avg transaction results graph data
-     */
-    @JavaScriptMethod
-    public JSONObject getAvgTransactionResultsGraphData() {
-        JSONObject scenarionGraphData = new JSONObject();
-
-        for (Map.Entry<String, LrProjectScenarioResults> scenarioResults : _projectResult.getScenarioResults()
-                .entrySet()) {
-
-            Map<Integer, HashMap<String, AvgTransactionResponseTime>> graphData =
-                    scenarioResults.getValue().avgTransactionResponseTimeResults;
-            JSONObject graphDataSet =
-                    lrGraphUtils.extractAvgTrtData(graphData, scenarioResults.getValue().transactions);
-            scenarionGraphData.put(scenarioResults.getKey(), graphDataSet);
-            return graphDataSet;
-
-        }
-        return scenarionGraphData;
-    }
-
-    /**
-     * Gets percentelie transaction results graph data.
-     *
-     * @return the percentelie transaction results graph data
-     */
-    @JavaScriptMethod
-    public JSONObject getPercentelieTransactionResultsGraphData() {
-        JSONObject scenarionGraphData = new JSONObject();
-        for (Map.Entry<String, LrProjectScenarioResults> scenarioResults : _projectResult.getScenarioResults()
-                .entrySet()) {
-            Map<Integer, HashMap<String, PercentileTransactionWholeRun>> graphData =
-                    scenarioResults.getValue().percentileTransactionResults;
-            JSONObject graphDataSet =
-                    LrGraphUtils.extractPercentileTransactionSet(graphData, scenarioResults.getValue().transactions);
-            scenarionGraphData.put(scenarioResults.getKey(), graphDataSet);
-            return graphDataSet;
-        }
-        return scenarionGraphData;
-    }
-
-    /**
-     * Gets error per sec results graph data.
-     *
-     * @return the error per sec results graph data
-     */
-    @JavaScriptMethod
-    public JSONObject getErrorPerSecResultsGraphData() {
-        JSONObject graphDataSet;
-        JSONObject scenarioGraphData = new JSONObject();
-
-        for (Map.Entry<String, LrProjectScenarioResults> scenarioResults : _projectResult.getScenarioResults()
-                .entrySet()) {
-            Map<Integer, TimeRangeResult> graphData = scenarioResults.getValue().errPerSecResults;
-            graphDataSet = lrGraphUtils.extractTimeRangeResult(graphData);
-            scenarioGraphData.put(scenarioResults.getKey(), graphDataSet);
-        }
-        return scenarioGraphData;
-    }
 
     /**
      * Gets build performance report list.
