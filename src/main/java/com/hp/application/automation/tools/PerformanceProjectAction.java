@@ -278,44 +278,72 @@ public class PerformanceProjectAction implements Action {
                 if (!_projectResult.getScenarioResults().containsKey(runResult.getKey())) {
                     _projectResult.addScenario(new LrProjectScenarioResults(runResult.getKey()));
                 }
-
                 // Join the SLA rule results
                 LrProjectScenarioResults lrProjectScenarioResults =
                         _projectResult.getScenarioResults().get(runResult.getKey());
 
                 JobLrScenarioResult scenarioRunResult = runResult.getValue();
-
                 for (GoalResult goalResult : scenarioRunResult.scenarioSlaResults) {
                     scenarioGoalResult(runNumber, lrProjectScenarioResults, goalResult);
                 }
 
                 // Join sceanrio stats
-                int scenarioConnectionMax = scenarioRunResult.getConnectionMax();
-                if (scenarioConnectionMax != DEFAULT_CONNECTION_MAX) {
-                    lrProjectScenarioResults.maxConnectionsCount.put(runNumber, scenarioConnectionMax);
-                }
+                joinSceanrioConnectionsStats(runNumber, lrProjectScenarioResults, scenarioRunResult);
+                joinVUserScenarioStats(runNumber, lrProjectScenarioResults, scenarioRunResult);
+                joinTransactionScenarioStats(runNumber, lrProjectScenarioResults, scenarioRunResult);
+            }
+        }
 
 
-                if (!scenarioRunResult.vUserSum.isEmpty()) {
-                    for (Map.Entry<String, Integer> vUserStat : scenarioRunResult.vUserSum.entrySet()) {
-                        Map<Integer, Map<String, Integer>> vUserPerRun = lrProjectScenarioResults.vUserPerRun;
-                        if (!vUserPerRun.containsKey(runNumber)) {
-                            vUserPerRun.put(runNumber, new HashMap<String, Integer>(0));
-                            LrProjectScenarioResults.vUserMapInit(vUserPerRun.get(runNumber));
-                        }
 
-                        vUserPerRun.get(runNumber).put(vUserStat.getKey(), vUserStat.getValue());
-                        int previousCount = lrProjectScenarioResults.vUserSummary.get(vUserStat.getKey());
-                        lrProjectScenarioResults.vUserSummary
-                                .put(vUserStat.getKey(), previousCount + vUserStat.getValue());
-                    }
-                }
+    }
+
+    private void joinTransactionScenarioStats(int runNumber, LrProjectScenarioResults lrProjectScenarioResults,
+                                              JobLrScenarioResult scenarioRunResult) {
+        HashMap<Integer, HashMap<String, HashMap<String, Integer>>> projectTransactionPerRun =
+                lrProjectScenarioResults.transactionPerRun;
+        Map<String, Integer> projectTransactionSum = lrProjectScenarioResults.transactionSum;
+
+        final HashMap<String, HashMap<String, Integer>> scenarioTransactionData =
+                scenarioRunResult.transactionData;
+        final HashMap<String, Integer> scenarioTransactionSum = scenarioRunResult.transactionSum;
+
+        if (!scenarioTransactionData.isEmpty()) {
+            projectTransactionPerRun.put(runNumber, scenarioTransactionData);
+            for (Map.Entry<String, Integer> transactionState : scenarioTransactionSum.entrySet()) {
+                int previousCount = projectTransactionSum.get(transactionState.getKey());
+                projectTransactionSum.put(transactionState.getKey(), previousCount + transactionState.getValue());
             }
         }
     }
 
-    private void scenarioGoalResult(int runNumber, LrProjectScenarioResults lrProjectScenarioResults,
-                                    GoalResult goalResult) {
+    private void joinVUserScenarioStats(int runNumber, LrProjectScenarioResults lrProjectScenarioResults,
+                                        JobLrScenarioResult scenarioRunResult) {
+        Map<Integer, Map<String, Integer>> vUserPerRun = lrProjectScenarioResults.vUserPerRun;
+        if (!scenarioRunResult.vUserSum.isEmpty()) {
+            for (Map.Entry<String, Integer> vUserStat : scenarioRunResult.vUserSum.entrySet()) {
+                if (!vUserPerRun.containsKey(runNumber)) {
+                    vUserPerRun.put(runNumber, new HashMap<String, Integer>(0));
+                    LrProjectScenarioResults.vUserMapInit(vUserPerRun.get(runNumber));
+                }
+                vUserPerRun.get(runNumber).put(vUserStat.getKey(), vUserStat.getValue());
+                int previousCount = lrProjectScenarioResults.vUserSummary.get(vUserStat.getKey());
+                lrProjectScenarioResults.vUserSummary
+                        .put(vUserStat.getKey(), previousCount + vUserStat.getValue());
+            }
+        }
+    }
+
+    private void joinSceanrioConnectionsStats(int runNumber, LrProjectScenarioResults lrProjectScenarioResults,
+                                              JobLrScenarioResult scenarioRunResult) {
+        int scenarioConnectionMax = scenarioRunResult.getConnectionMax();
+        if (scenarioConnectionMax != DEFAULT_CONNECTION_MAX) {
+            lrProjectScenarioResults.maxConnectionsCount.put(runNumber, scenarioConnectionMax);
+        }
+    }
+
+    private static void scenarioGoalResult(int runNumber, LrProjectScenarioResults lrProjectScenarioResults,
+                                           GoalResult goalResult) {
         switch (goalResult.getSlaGoal()) {
             case AverageThroughput:
                 lrProjectScenarioResults.averageThroughputResults
@@ -365,7 +393,6 @@ public class PerformanceProjectAction implements Action {
     }
 
     private boolean isUpdateDataNeeded() {
-
         final Run<?, ?> lastBuild = currentProject.getLastBuild();
         if (null == lastBuild) {
             return false;

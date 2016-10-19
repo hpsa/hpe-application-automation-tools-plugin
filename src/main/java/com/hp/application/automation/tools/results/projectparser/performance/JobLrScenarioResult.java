@@ -36,8 +36,8 @@ public class JobLrScenarioResult extends LrScenario {
     public static final int DEFAULT_CONNECTION_MAX = -1;
     public ArrayList<GoalResult> scenarioSlaResults;
     public Map<String, Integer> vUserSum;
-    public Map<String, Integer> transactionSum;
-    public Map<String, HashMap<String, Integer>> transactionData;
+    public HashMap<String, Integer> transactionSum;
+    public HashMap<String, HashMap<String, Integer>> transactionData;
     int connectionMax;
 
     public JobLrScenarioResult(String scenarioName) {

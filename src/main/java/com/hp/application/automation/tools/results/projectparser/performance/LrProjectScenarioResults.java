@@ -34,6 +34,7 @@ import java.util.Set;
  */
 public class LrProjectScenarioResults extends LrScenario {
 
+    public HashMap<Integer, HashMap<String, HashMap<String, Integer>>> transactionPerRun;
     //Holds the data of an SLA rule per run for the whole Job
     public Map<Integer, WholeRunResult> averageThroughputResults;
     public Map<Integer, WholeRunResult> totalThroughtputResults;
@@ -67,11 +68,16 @@ public class LrProjectScenarioResults extends LrScenario {
         avgTransactionResponseTimeResults = new HashMap<Integer, HashMap<String, AvgTransactionResponseTime>>(0);
         transactions = new HashSet<String>(0);
         maxConnectionsCount = new HashMap<Integer, Integer>(0);
+
         vUserSummary = new HashMap<String, Integer>(0);
-        vUserMapInit(vUserSummary);
         vUserPerRun = new HashMap<Integer, Map<String, Integer>>(0);
-        transactionData = new HashMap<String, HashMap<String, Integer>>(0);
+
         transactionSum = new HashMap<String, Integer>(0);
+        transactionData = new HashMap<String, HashMap<String, Integer>>(0);
+        transactionPerRun = new HashMap<Integer, HashMap<String, HashMap<String, Integer>>>(0);
+
+        vUserMapInit(vUserSummary);
+        vTransactionMapInit(transactionSum);
     }
 
     /**
@@ -86,4 +92,15 @@ public class LrProjectScenarioResults extends LrScenario {
         map.put("Count",0);
     }
 
+    /**
+     * initilize vuser maps with required values
+     * @param map
+     */
+    public static void vTransactionMapInit(Map<String, Integer> map)
+    {
+        map.put("Passed",0);
+        map.put("Stopped",0);
+        map.put("Failed",0);
+        map.put("Count",0);
+    }
 }
