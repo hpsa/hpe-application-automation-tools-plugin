@@ -1,146 +1,139 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2016 Hewlett-Packard Development Company, L.P.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
 package com.hp.application.automation.tools;
 
-
 import com.hp.application.automation.tools.results.PerformanceJobReportAction;
-import com.hp.application.automation.tools.results.projectparser.performance.*;
+import com.hp.application.automation.tools.results.projectparser.performance.AvgTransactionResponseTime;
+import com.hp.application.automation.tools.results.projectparser.performance.GoalResult;
+import com.hp.application.automation.tools.results.projectparser.performance.JobLrScenarioResult;
+import com.hp.application.automation.tools.results.projectparser.performance.LrJobResults;
+import com.hp.application.automation.tools.results.projectparser.performance.LrProjectScenarioResults;
+import com.hp.application.automation.tools.results.projectparser.performance.PercentileTransactionWholeRun;
+import com.hp.application.automation.tools.results.projectparser.performance.ProjectLrResults;
+import com.hp.application.automation.tools.results.projectparser.performance.TimeRangeResult;
+import com.hp.application.automation.tools.results.projectparser.performance.WholeRunResult;
 import hudson.model.AbstractProject;
 import hudson.model.Action;
 import hudson.model.Run;
 import hudson.util.RunList;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import org.apache.commons.lang.ObjectUtils;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
+/**
+ * The type Performance project action.
+ */
+public class PerformanceProjectAction implements Action {
 
-public class PerformanceProjectAction implements Action{
-
-    private static final String CSV_RESULT_FOLDER = "CSV";
-    private static final String JUNIT_RESULT_NAME = "junitResult.xml";
+    /**
+     * The constant X_AXIS_TITLE.
+     */
     public static final String X_AXIS_TITLE = "x_axis_title";
+    /**
+     * The constant Y_AXIS_TITLE.
+     */
     public static final String Y_AXIS_TITLE = "y_axis_title";
+    /**
+     * The constant DESCRIPTION.
+     */
     public static final String DESCRIPTION = "description";
+    /**
+     * The constant TITLE.
+     */
     public static final String TITLE = "title";
-    public final AbstractProject<?, ?> currentProject;
-    private ArrayList<LrJobResults> jobLrResults;
-    private int lastBuildId = -1;
-
-
-
-    /** Logger. */
+    /**
+     * The constant LABELS.
+     */
+    public static final String LABELS = "labels";
+    /**
+     * The constant BUILD_NUMBER.
+     */
+    public static final String BUILD_NUMBER = "Build number";
+    /**
+     * The constant PERCENTILE_TRANSACTION_RESPONSE_TIME.
+     */
+    public static final String PERCENTILE_TRANSACTION_RESPONSE_TIME = "Percentile Transaction Response TIme";
+    /**
+     * The constant TRANSACTIONS_RESPONSE_TIME_SECONDS.
+     */
+    public static final String TRANSACTIONS_RESPONSE_TIME_SECONDS = "Transactions response time (Seconds)";
+    public static final String PRECENTILE_GRAPH_DESCRIPTION =
+            "Displays the average time taken to perform transactions during each second of the load test." +
+                    " This graph helps you determine whether the performance of the server is within " +
+                    "acceptable minimum and maximum transaction performance time ranges defined for your " +
+                    "system.";
+    /**
+     * Logger.
+     */
     private static final Logger LOGGER = Logger
             .getLogger(PerformanceProjectAction.class.getName());
-
+    /**
+     * The Current project.
+     */
+    public final AbstractProject<?, ?> currentProject;
+    private final LrGraphUtils lrGraphUtils = new LrGraphUtils();
+    private ArrayList<LrJobResults> jobLrResults;
+    private int lastBuildId = -1;
     private ArrayList<Integer> _workedBuilds;
     private ProjectLrResults _projectResult;
 
+    /**
+     * Instantiates a new Performance project action.
+     *
+     * @param project the project
+     */
+    public PerformanceProjectAction(AbstractProject<?, ?> project) {
 
-    public void getUpdatedData() {
-        if (isUpdateDataNeeded()) {
-            return;
-        }
+        this._projectResult = new ProjectLrResults();
+        this._workedBuilds = new ArrayList<Integer>();
+        this.jobLrResults = new ArrayList<LrJobResults>();
 
-        _workedBuilds = new ArrayList<Integer>(); //TODO: remove after testing!
-
-        RunList<? extends Run> projectBuilds = currentProject.getBuilds();
-
-//        updateLastBuild();
-
-        for (Run run : projectBuilds) {
-            PerformanceJobReportAction performanceJobReportAction = run.getAction(PerformanceJobReportAction.class);
-            if (performanceJobReportAction == null) {
-                continue;
-            }
-            if(run.isBuilding())
-            {
-                continue;
-            }
-
-            if(_workedBuilds.contains(run.getNumber()))
-            {
-                continue;
-            }
-
-            _workedBuilds.add(run.getNumber());
-            LrJobResults jobLrResult = performanceJobReportAction.getLrResultBuildDataset();
-
-            //get all the ran scenario results
-            for(Map.Entry<String, JobLrScenarioResult> runResult : jobLrResult.getLrScenarioResults().entrySet())
-            {
-                if(!_projectResult.getLrScenarioResults().containsKey(runResult.getKey())) {
-                    _projectResult.addScenrio(new LrProjectScenarioResults(runResult.getKey()));
-                }
-
-                //Join the rule results
-                LrProjectScenarioResults lrProjectScenarioResults = _projectResult.getLrScenarioResults().get(runResult.getKey());
-                for(GoalResult goalResult : runResult.getValue().scenarioSlaResults)
-                {
-                    switch (goalResult.getSlaGoal()) {
-                        case AverageThroughput:
-                            lrProjectScenarioResults.averageThroughputResults.put(run.getNumber(), (WholeRunResult) goalResult);
-                            break;
-                        case TotalThroughput:
-                            lrProjectScenarioResults.totalThroughtputResults.put(run.getNumber(), (WholeRunResult) goalResult);
-                            break;
-                        case AverageHitsPerSecond:
-                            lrProjectScenarioResults.averageHitsPerSecondResults.put(run.getNumber(), (WholeRunResult) goalResult);
-                            break;
-                        case TotalHits:
-                            lrProjectScenarioResults.totalHitsResults.put(run.getNumber(), (WholeRunResult) goalResult);
-                            break;
-                        case ErrorsPerSecond:
-                            lrProjectScenarioResults.errPerSecResults.put(run.getNumber(), (TimeRangeResult) goalResult);
-                            break;
-                        case PercentileTRT:
-                            if(!lrProjectScenarioResults.percentileTransactionResults.containsKey(run.getNumber()))
-                            {
-                                lrProjectScenarioResults.percentileTransactionResults.put(run.getNumber(), new HashMap<String, PercentileTransactionWholeRun>(0));
-                            }
-                            lrProjectScenarioResults.transactions.add(((PercentileTransactionWholeRun) goalResult).getName());
-                            lrProjectScenarioResults.percentileTransactionResults.get(run.getNumber()).put(((PercentileTransactionWholeRun) goalResult).getName(), (PercentileTransactionWholeRun) goalResult);
-                            break;
-                        case AverageTRT:
-                            if(!lrProjectScenarioResults.avgTransactionResponseTimeResults.containsKey(run.getNumber()))
-                            {
-                                lrProjectScenarioResults.avgTransactionResponseTimeResults.put(run.getNumber(), new HashMap<String, AvgTransactionResponseTime>(0));
-                            }
-                            lrProjectScenarioResults.transactions.add(((AvgTransactionResponseTime) goalResult).getName());
-                            lrProjectScenarioResults.avgTransactionResponseTimeResults.get(run.getNumber()).put(((AvgTransactionResponseTime) goalResult).getName(), (AvgTransactionResponseTime) goalResult);
-                            break;
-                        case Bad:
-                            break;
-                    }
-                }
-            }
-        }
+        this.currentProject = project;
     }
 
-    private boolean isUpdateDataNeeded()
-    {
-        int latestBuildNumber = currentProject.getLastBuild().getNumber();
-        if(lastBuildId == latestBuildNumber)
-        {
-            return true;
-        }
-        return false;
-    }
+    private void updateLastBuild() {
 
-    private void updateLastBuild()
-    {
-
-        //TODO: The first one is the last one!!
+        // TODO: The first one is the last one!!
 
     }
 
+    /**
+     * Gets scenario list.
+     *
+     * @return the scenario list
+     */
     @JavaScriptMethod
-    public JSONArray getScenarioList()
-    {
+    public JSONArray getScenarioList() {
         JSONArray scenarioList = new JSONArray();
-        for(String scenarioName : _projectResult.getLrScenarioResults().keySet())
-        {
+        for (String scenarioName : _projectResult.getScenarioResults().keySet()) {
             JSONObject scenario = new JSONObject();
             scenario.put("ScenarioName", scenarioName);
             scenarioList.add(scenario);
@@ -155,129 +148,64 @@ public class PerformanceProjectAction implements Action{
      * @return the graph data
      */
     @JavaScriptMethod
-    public JSONObject getGraphData()
-    {
-        JSONObject projectDataSet = new JSONObject ();
-        for(Map.Entry<String, LrProjectScenarioResults> scenarioResults: _projectResult.getLrScenarioResults().entrySet() ) {
+    public JSONObject getGraphData() {
+        JSONObject projectDataSet = new JSONObject();
+        for (Map.Entry<String, LrProjectScenarioResults> scenarioResults : _projectResult.getScenarioResults()
+                .entrySet()) {
 
             JSONObject scenarioGraphData = new JSONObject();
             String scenarioName = scenarioResults.getKey();
 
-            Map<Integer, WholeRunResult> totalHitsResults = scenarioResults.getValue().totalHitsResults;
-            JSONObject totalHitsGraphSet = extractWholeRunSlaResult(totalHitsResults, "Total hits");
-            if (totalHitsGraphSet.getJSONArray("labels").size() != 0)
-            {
-                totalHitsGraphSet.put(TITLE, "Total Hits");
-                totalHitsGraphSet.put(X_AXIS_TITLE, "Build number");
-                totalHitsGraphSet.put(Y_AXIS_TITLE,"Hits count");
-                totalHitsGraphSet.put(DESCRIPTION, "Displays the number of hits made on the Web server by Vusers " +
-                        "during each second of the load test. This graph helps you evaluate the amount of load Vusers " +
-                        "generate, in terms of the number of hits.");
-                scenarioGraphData.put("totalHits", totalHitsGraphSet);
-            }
-
-            Map<Integer, WholeRunResult> avgHitsPerSec = scenarioResults.getValue().averageHitsPerSecondResults;
-            JSONObject avgHitsPerSecGraphSet = extractWholeRunSlaResult(avgHitsPerSec, "Average hits per second");
-            if (avgHitsPerSecGraphSet.getJSONArray("labels").size() != 0)
-            {
-                avgHitsPerSecGraphSet.put(TITLE, "Average Hits per Second");
-                avgHitsPerSecGraphSet.put(X_AXIS_TITLE, "Build number");
-                avgHitsPerSecGraphSet.put(Y_AXIS_TITLE,"Average Hits per Second");
-                avgHitsPerSecGraphSet.put(DESCRIPTION, "Displays the number of hits made on the Web server by Vusers " +
-                        "during each second of the load test. This graph helps you evaluate the amount of load Vusers " +
-                        "generate, in terms of the number of hits.");
-                scenarioGraphData.put("avgHitsPerSec", avgHitsPerSecGraphSet);
-            }
-
-            Map<Integer, WholeRunResult> totalThroughputResults = scenarioResults.getValue().totalThroughtputResults;
-            JSONObject totalThroughputResultsGraphSet = extractWholeRunSlaResult(totalThroughputResults, "Total throughput");
-            if (totalThroughputResultsGraphSet.getJSONArray("labels").size() != 0)
-            {
-                totalThroughputResultsGraphSet.put(TITLE, "Total Throughput");
-                totalThroughputResultsGraphSet.put(X_AXIS_TITLE, "Build number");
-                totalThroughputResultsGraphSet.put(Y_AXIS_TITLE,"Bytes count");
-                totalThroughputResultsGraphSet.put(DESCRIPTION, " Displays the amount of throughput (in bytes) on the Web server during the load test. Throughput represents the amount of data that the Vusers received from the server at any given second. This graph helps you to evaluate the amount of load Vusers generate, in terms of server throughput.\n");
-                scenarioGraphData.put("totalThroughput", totalThroughputResultsGraphSet);
-            }
-
-            Map<Integer, WholeRunResult> averageThroughputResults = scenarioResults.getValue().averageThroughputResults;
-            JSONObject averageThroughputResultsGraphSet = extractWholeRunSlaResult(averageThroughputResults, "Average throughput");
-            if (averageThroughputResultsGraphSet.getJSONArray("labels").size() != 0)
-            {
-                averageThroughputResultsGraphSet.put(TITLE, "Average Throughput per second");
-                averageThroughputResultsGraphSet.put(X_AXIS_TITLE, "Build number");
-                averageThroughputResultsGraphSet.put(Y_AXIS_TITLE,"Average Bytes / Second");
-                averageThroughputResultsGraphSet.put(DESCRIPTION, " Displays the amount of throughput (in bytes) on the Web server during the load test. Throughput represents the amount of data that the Vusers received from the server at any given second. This graph helps you to evaluate the amount of load Vusers generate, in terms of server throughput.\n");
-                scenarioGraphData.put("averageThroughput", averageThroughputResultsGraphSet);
-            }
-
-            Map<Integer, TimeRangeResult> errPerSecResults = scenarioResults.getValue().errPerSecResults;
-            JSONObject errPerSecResultsResultsGraphSet = extractTimeRangeResult(errPerSecResults, LrTest.SLA_GOAL.ErrorsPerSecond.toString());
-            if (errPerSecResultsResultsGraphSet.getJSONArray("labels").size() != 0)
-            {
-                errPerSecResultsResultsGraphSet.put(TITLE, "Total errors per second");
-                errPerSecResultsResultsGraphSet.put(X_AXIS_TITLE, "Build number");
-                errPerSecResultsResultsGraphSet.put(Y_AXIS_TITLE,"Errors count");
-                errPerSecResultsResultsGraphSet.put(DESCRIPTION, "");
-                scenarioGraphData.put("errorPerSecResults", errPerSecResultsResultsGraphSet);
-            }
-
-            Map<Integer, HashMap<String, AvgTransactionResponseTime>> avgTransactionResponseTimeResults = scenarioResults.getValue().avgTransactionResponseTimeResults;
-            JSONObject avgTransactionResponseTimeGraphSet = extractAvgTrtData(avgTransactionResponseTimeResults, scenarioResults.getValue().transactions);
-            if (avgTransactionResponseTimeGraphSet.getJSONArray("labels").size() != 0)
-            {
-                avgTransactionResponseTimeGraphSet.put(TITLE, "Average Transaction Response TIme");
-                avgTransactionResponseTimeGraphSet.put(X_AXIS_TITLE, "Build number");
-                avgTransactionResponseTimeGraphSet.put(Y_AXIS_TITLE,"Average response time (Seconds)");
-                avgTransactionResponseTimeGraphSet.put(DESCRIPTION, "Displays the average time taken to perform transactions during each second of the load test. This graph helps you determine whether the performance of the server is within acceptable minimum and maximum transaction performance time ranges defined for your system.");
-                scenarioGraphData.put("averageTransactionResponseTime", avgTransactionResponseTimeGraphSet);
-            }
-
-
-            Map<Integer, HashMap<String, PercentileTransactionWholeRun>> percentileTransactionResults = scenarioResults.getValue().percentileTransactionResults;
-            JSONObject percentileTransactionResultsGraphSet = extractPercentileTransactionSet(percentileTransactionResults, scenarioResults.getValue().transactions);
-            if (percentileTransactionResultsGraphSet.getJSONArray("labels").size() != 0)
-            {
-                percentileTransactionResultsGraphSet.put(TITLE, "Percentile Transaction Response TIme");
-                percentileTransactionResultsGraphSet.put(X_AXIS_TITLE, "Build number");
-                percentileTransactionResultsGraphSet.put(Y_AXIS_TITLE,"Transactions response time (Seconds)");
-                percentileTransactionResultsGraphSet.put(DESCRIPTION, "Displays the average time taken to perform transactions during each second of the load test. This graph helps you determine whether the performance of the server is within acceptable minimum and maximum transaction performance time ranges defined for your system.");
-                scenarioGraphData.put("percentileTransaction", percentileTransactionResultsGraphSet);
-            }
+            lrGraphUtils.constructTotalHitsGraph(scenarioResults, scenarioGraphData);
+            lrGraphUtils.constructAvgHitsGraph(scenarioResults, scenarioGraphData);
+            lrGraphUtils.constructTotalThroughputGraph(scenarioResults, scenarioGraphData);
+            lrGraphUtils.constructAverageThroughput(scenarioResults, scenarioGraphData);
+            lrGraphUtils.constructErrorGraph(scenarioResults, scenarioGraphData);
+            lrGraphUtils.constructAvgTransactionGraph(scenarioResults, scenarioGraphData);
+            LrGraphUtils.constructPercentileTransactionGraph(scenarioResults, scenarioGraphData);
 
             projectDataSet.put(scenarioName, scenarioGraphData);
         }
         return projectDataSet;
     }
 
-
+    /**
+     * Gets total hits graph data.
+     *
+     * @return the total hits graph data
+     */
     @JavaScriptMethod
-    public JSONObject getTotalHitsGraphData()
-    {
+    public JSONObject getTotalHitsGraphData() {
         JSONObject graphDataSet;
         JSONObject scenarioGraphData = new JSONObject();
 
-        for(Map.Entry<String, LrProjectScenarioResults> scenarioResults: _projectResult.getLrScenarioResults().entrySet() ) {
+        for (Map.Entry<String, LrProjectScenarioResults> scenarioResults : _projectResult.getScenarioResults()
+                .entrySet()) {
             Map<Integer, WholeRunResult> graphData = scenarioResults.getValue().totalHitsResults;
 
-            graphDataSet = extractWholeRunSlaResult(graphData, "Total hits");
+            graphDataSet = lrGraphUtils.extractWholeRunSlaResult(graphData);
             scenarioGraphData.put(scenarioResults.getKey(), graphDataSet);
 
             return graphDataSet;
 
         }
-       return scenarioGraphData;
+        return scenarioGraphData;
     }
 
+    /**
+     * Gets avg hits per sec graph data.
+     *
+     * @return the avg hits per sec graph data
+     */
     @JavaScriptMethod
-    public JSONObject getAvgHitsPerSecGraphData()
-    {
+    public JSONObject getAvgHitsPerSecGraphData() {
         JSONObject scenarioGraphData = new JSONObject();
 
-        for(Map.Entry<String, LrProjectScenarioResults> scenarioResults: _projectResult.getLrScenarioResults().entrySet() ) {
+        for (Map.Entry<String, LrProjectScenarioResults> scenarioResults : _projectResult.getScenarioResults()
+                .entrySet()) {
             Map<Integer, WholeRunResult> graphData = scenarioResults.getValue().averageHitsPerSecondResults;
 
-            JSONObject graphDataSet = extractWholeRunSlaResult(graphData, "Average hits per second");
+            JSONObject graphDataSet = lrGraphUtils.extractWholeRunSlaResult(graphData);
             scenarioGraphData.put(scenarioResults.getKey(), graphDataSet);
 
             return graphDataSet;
@@ -286,16 +214,21 @@ public class PerformanceProjectAction implements Action{
         return scenarioGraphData;
     }
 
+    /**
+     * Gets total throughput graph data.
+     *
+     * @return the total throughput graph data
+     */
     @JavaScriptMethod
-    public JSONObject getTotalThroughputGraphData()
-    {
+    public JSONObject getTotalThroughputGraphData() {
         JSONObject graphDataSet;
         JSONObject scenarionGraphData = new JSONObject();
 
-        for(Map.Entry<String, LrProjectScenarioResults> scenarioResults: _projectResult.getLrScenarioResults().entrySet() ) {
+        for (Map.Entry<String, LrProjectScenarioResults> scenarioResults : _projectResult.getScenarioResults()
+                .entrySet()) {
             Map<Integer, WholeRunResult> graphData = scenarioResults.getValue().totalThroughtputResults;
 
-            graphDataSet = extractWholeRunSlaResult(graphData, "Total throughput");
+            graphDataSet = lrGraphUtils.extractWholeRunSlaResult(graphData);
             scenarionGraphData.put(scenarioResults.getKey(), graphDataSet);
 
             return graphDataSet;
@@ -304,17 +237,21 @@ public class PerformanceProjectAction implements Action{
         return scenarionGraphData;
     }
 
+    /**
+     * Gets avg throughtput results graph data.
+     *
+     * @return the avg throughtput results graph data
+     */
     @JavaScriptMethod
-    public JSONObject getAvgThroughtputResultsGraphData()
-    {
+    public JSONObject getAvgThroughtputResultsGraphData() {
         JSONObject graphDataSet;
         JSONObject scenarionGraphData = new JSONObject();
 
-        for(Map.Entry<String, LrProjectScenarioResults> scenarioResults: _projectResult.getLrScenarioResults().entrySet() ) {
+        for (Map.Entry<String, LrProjectScenarioResults> scenarioResults : _projectResult.getScenarioResults()
+                .entrySet()) {
             Map<Integer, WholeRunResult> graphData = scenarioResults.getValue().averageThroughputResults;
 
-
-            graphDataSet = extractWholeRunSlaResult(graphData, "Average throughput");
+            graphDataSet = lrGraphUtils.extractWholeRunSlaResult(graphData);
             scenarionGraphData.put(scenarioResults.getKey(), graphDataSet);
 
             return graphDataSet;
@@ -323,15 +260,22 @@ public class PerformanceProjectAction implements Action{
         return scenarionGraphData;
     }
 
+    /**
+     * Gets avg transaction results graph data.
+     *
+     * @return the avg transaction results graph data
+     */
     @JavaScriptMethod
-    public JSONObject getAvgTransactionResultsGraphData()
-    {
+    public JSONObject getAvgTransactionResultsGraphData() {
         JSONObject scenarionGraphData = new JSONObject();
 
-        for(Map.Entry<String, LrProjectScenarioResults> scenarioResults: _projectResult.getLrScenarioResults().entrySet() ) {
+        for (Map.Entry<String, LrProjectScenarioResults> scenarioResults : _projectResult.getScenarioResults()
+                .entrySet()) {
 
-            Map<Integer, HashMap<String, AvgTransactionResponseTime>> graphData = scenarioResults.getValue().avgTransactionResponseTimeResults;
-            JSONObject graphDataSet = extractAvgTrtData(graphData, scenarioResults.getValue().transactions);
+            Map<Integer, HashMap<String, AvgTransactionResponseTime>> graphData =
+                    scenarioResults.getValue().avgTransactionResponseTimeResults;
+            JSONObject graphDataSet =
+                    lrGraphUtils.extractAvgTrtData(graphData, scenarioResults.getValue().transactions);
             scenarionGraphData.put(scenarioResults.getKey(), graphDataSet);
             return graphDataSet;
 
@@ -339,184 +283,70 @@ public class PerformanceProjectAction implements Action{
         return scenarionGraphData;
     }
 
+    /**
+     * Gets percentelie transaction results graph data.
+     *
+     * @return the percentelie transaction results graph data
+     */
     @JavaScriptMethod
-    public JSONObject getPercentelieTransactionResultsGraphData()
-    {
+    public JSONObject getPercentelieTransactionResultsGraphData() {
         JSONObject scenarionGraphData = new JSONObject();
-        for(Map.Entry<String, LrProjectScenarioResults> scenarioResults: _projectResult.getLrScenarioResults().entrySet() ) {
-            Map<Integer, HashMap<String, PercentileTransactionWholeRun>> graphData = scenarioResults.getValue().percentileTransactionResults;
-            JSONObject graphDataSet = extractPercentileTransactionSet(graphData, scenarioResults.getValue().transactions);
+        for (Map.Entry<String, LrProjectScenarioResults> scenarioResults : _projectResult.getScenarioResults()
+                .entrySet()) {
+            Map<Integer, HashMap<String, PercentileTransactionWholeRun>> graphData =
+                    scenarioResults.getValue().percentileTransactionResults;
+            JSONObject graphDataSet =
+                    LrGraphUtils.extractPercentileTransactionSet(graphData, scenarioResults.getValue().transactions);
             scenarionGraphData.put(scenarioResults.getKey(), graphDataSet);
             return graphDataSet;
         }
         return scenarionGraphData;
     }
 
+    /**
+     * Gets error per sec results graph data.
+     *
+     * @return the error per sec results graph data
+     */
     @JavaScriptMethod
-    public JSONObject getErrorPerSecResultsGraphData()
-    {
+    public JSONObject getErrorPerSecResultsGraphData() {
         JSONObject graphDataSet;
         JSONObject scenarioGraphData = new JSONObject();
 
-        for(Map.Entry<String, LrProjectScenarioResults> scenarioResults: _projectResult.getLrScenarioResults().entrySet() ) {
+        for (Map.Entry<String, LrProjectScenarioResults> scenarioResults : _projectResult.getScenarioResults()
+                .entrySet()) {
             Map<Integer, TimeRangeResult> graphData = scenarioResults.getValue().errPerSecResults;
-            graphDataSet = extractTimeRangeResult(graphData,LrTest.SLA_GOAL.ErrorsPerSecond.toString());
+            graphDataSet = lrGraphUtils.extractTimeRangeResult(graphData);
             scenarioGraphData.put(scenarioResults.getKey(), graphDataSet);
         }
         return scenarioGraphData;
     }
 
-    private JSONObject extractWholeRunSlaResult(Map<Integer, WholeRunResult> graphData, String graphLabel) {
-        JSONObject graphDataSet;
-        graphDataSet = new JSONObject();
+    /**
+     * Gets build performance report list.
+     *
+     * @return the build performance report list
+     */
+    public List<String> getBuildPerformanceReportList() {
+        // this.buildPerformanceReportList = new ArrayList<String>(0);
+        // if (null == this.currentProject) {
+        // return this.buildPerformanceReportList;
+        // }
 
-        JSONArray labels = new JSONArray();
-        JSONArray datasets = new JSONArray();
-        JSONArray data = new JSONArray();
-        for( Map.Entry<Integer, WholeRunResult> result : graphData.entrySet())
-        {
-            labels.add(result.getKey());
-            data.add(result.getValue().getActualValue());
-        }
-        graphDataSet.put("labels", labels);
-        datasets.add(data);
-        graphDataSet.put("series", datasets);
-        return graphDataSet;
-    }
+        // if (null == this.currentProject.getSomeBuildWithWorkspace()) {
+        // return buildPerformanceReportList;
+        // }
 
-    private JSONObject extractAvgTrtData(Map<Integer, HashMap<String, AvgTransactionResponseTime>> graphData, HashSet<String> transactions) {
-        HashMap<String, ArrayList<Double>> averageTRTData = new HashMap<String, ArrayList<Double>>(0);
-        JSONObject graphDataSet= new JSONObject();
+        // List<? extends AbstractBuild<?, ?>> builds = currentProject.getBuilds();
+        // int nbBuildsToAnalyze = builds.size();
+        //// Range buildsLimits = getFirstAndLastBuild(request, builds);
 
-        JSONArray labels = new JSONArray();
-        JSONObject datasetStyle = new JSONObject();
-
-        for(String transaction : transactions)
-        {
-            averageTRTData.put(transaction, new ArrayList<Double>(0));
-        }
-
-        for( Map.Entry<Integer, HashMap<String ,AvgTransactionResponseTime>> result : graphData.entrySet())
-        {
-            labels.add(result.getKey());
-
-            for(String transaction : transactions)
-            {
-                if(!result.getValue().containsKey(transaction))
-                {
-                    averageTRTData.get(transaction).add(null);//TODO:change to null
-                    continue;
-                }
-                averageTRTData.get(transaction).add((result.getValue()).get(transaction).getActualValueAvg());
-            }
-        }
-
-        graphDataSet.put("labels", labels);
-        JSONArray datasets = createGraphDatasets(averageTRTData);
-        graphDataSet.put("series", datasets);
-        return graphDataSet;
-    }
-
-    private JSONObject extractTimeRangeResult(Map<Integer, TimeRangeResult> graphData, String graphLabel) {
-        JSONObject graphDataSet;
-        graphDataSet = new JSONObject();
-
-        JSONArray labels = new JSONArray();
-        JSONArray datasets = new JSONArray();
-        JSONArray data = new JSONArray();
-
-        for( Map.Entry<Integer, TimeRangeResult> result : graphData.entrySet())
-        {
-            if(result.getValue().timeRanges.size() != 0)
-            {
-                labels.add(result.getKey());
-                data.add(result.getValue().getActualValueAvg());
-            }
-        }
-
-        graphDataSet.put("labels", labels);
-        datasets.add(data);
-        graphDataSet.put("series", datasets);
-        return graphDataSet;
-    }
-
-    private JSONObject extractPercentileTransactionSet(Map<Integer, HashMap<String , PercentileTransactionWholeRun>> graphData, HashSet<String> transactions) {
-        JSONObject graphDataSet = new JSONObject();
-        JSONArray labels = new JSONArray();
-        JSONArray datasets = new JSONArray();
-        JSONObject datasetStyle = new JSONObject();
-
-        HashMap<String, ArrayList<Double>> percentileTrtData = new HashMap<String, ArrayList<Double>>(0);
-        for(String transaction : transactions)
-        {
-            percentileTrtData.put(transaction, new ArrayList<Double>(0));
-        }
-
-        for( Map.Entry<Integer, HashMap<String ,PercentileTransactionWholeRun>> result : graphData.entrySet())
-        {
-            labels.add(result.getKey());
-
-            for(String transaction : transactions)
-            {
-                if(!result.getValue().containsKey(transaction))
-                {
-                    percentileTrtData.get(transaction).add(null);//TODO:change to null
-                    continue;
-                }
-                percentileTrtData.get(transaction).add((result.getValue()).get(transaction).getActualValue());
-            }
-        }
-
-        graphDataSet.put("labels", labels);
-        datasets = createGraphDatasets(percentileTrtData);
-        graphDataSet.put("series", datasets);
-
-        return graphDataSet;
-    }
-
-    private JSONArray createGraphDatasets(HashMap<String, ArrayList<Double>> averageTRTData) {
-        JSONArray datasets = new JSONArray();
-        for(Map.Entry<String, ArrayList<Double>> transactionData : averageTRTData.entrySet())
-        {
-            JSONObject dataset = new JSONObject();
-            dataset.put("name", transactionData.getKey());
-            JSONArray data = new JSONArray();
-            data.addAll(transactionData.getValue());
-            dataset.put("data", data);
-            datasets.add(dataset);
-        }
-        return datasets;
-    }
-
-    public List<String> getBuildPerformanceReportList(){
-//        this.buildPerformanceReportList = new ArrayList<String>(0);
-//        if (null == this.currentProject) {
-//            return this.buildPerformanceReportList;
-//        }
-
-//        if (null == this.currentProject.getSomeBuildWithWorkspace()) {
-//            return buildPerformanceReportList;
-//        }
-
-//        List<? extends AbstractBuild<?, ?>> builds = currentProject.getBuilds();
-//        int nbBuildsToAnalyze = builds.size();
-////        Range buildsLimits = getFirstAndLastBuild(request, builds);
-
-//        for (AbstractBuild<?, ?> currentBuild : builds) {
-//
-//            buildPerformanceReportList.add(currentBuild.getId());
-//        }
-//        return buildPerformanceReportList;
+        // for (AbstractBuild<?, ?> currentBuild : builds) {
+        //
+        // buildPerformanceReportList.add(currentBuild.getId());
+        // }
+        // return buildPerformanceReportList;
         return new ArrayList<String>(0);
-    }
-
-    public PerformanceProjectAction(AbstractProject<?, ?> project) {
-
-        this._projectResult = new ProjectLrResults();
-        this._workedBuilds = new ArrayList<Integer>();
-        this.jobLrResults = new ArrayList<LrJobResults>();
-
-        this.currentProject = project;
     }
 
     @Override
@@ -534,16 +364,131 @@ public class PerformanceProjectAction implements Action{
         return "PerformanceProjectReport";
     }
 
+    /**
+     * Add int.
+     *
+     * @param x the x
+     * @param y the y
+     * @return the int
+     */
     @JavaScriptMethod
     public int add(int x, int y) {
-        return x+y;
+        return x + y;
     }
 
-    boolean isVisible()
-    {
+    /**
+     * Is visible boolean.
+     *
+     * @return the boolean
+     */
+    boolean isVisible() {
         getUpdatedData(); // throw this our once fixes method
-        if(_workedBuilds.size() != 0)
-        {
+        if (_workedBuilds.isEmpty()) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Gets updated data.
+     */
+    public void getUpdatedData() {
+        if (isUpdateDataNeeded()) {
+            return;
+        }
+
+        _workedBuilds = new ArrayList<Integer>(); // TODO: remove after testing!
+
+        RunList<? extends Run> projectBuilds = currentProject.getBuilds();
+
+        // updateLastBuild();
+
+        for (Run run : projectBuilds) {
+            PerformanceJobReportAction performanceJobReportAction = run.getAction(PerformanceJobReportAction.class);
+            if (performanceJobReportAction == null) {
+                continue;
+            }
+            if (run.isBuilding()) {
+                continue;
+            }
+
+            if (_workedBuilds.contains(run.getNumber())) {
+                continue;
+            }
+
+            _workedBuilds.add(run.getNumber());
+            LrJobResults jobLrResult = performanceJobReportAction.getLrResultBuildDataset();
+
+            // get all the ran scenario results
+            for (Map.Entry<String, JobLrScenarioResult> runResult : jobLrResult.getLrScenarioResults().entrySet()) {
+                // add the scenario if it's the first time it's ran in this build (allows scenarios to be also added
+                // at diffrent time)
+                if (!_projectResult.getScenarioResults().containsKey(runResult.getKey())) {
+                    _projectResult.addScenario(new LrProjectScenarioResults(runResult.getKey()));
+                }
+
+                // Join the SLA rule results
+                LrProjectScenarioResults lrProjectScenarioResults =
+                        _projectResult.getScenarioResults().get(runResult.getKey());
+                JobLrScenarioResult scenarioRunResult = runResult.getValue();
+                for (GoalResult goalResult : scenarioRunResult.scenarioSlaResults) {
+                    switch (goalResult.getSlaGoal()) {
+                        case AverageThroughput:
+                            lrProjectScenarioResults.averageThroughputResults
+                                    .put(run.getNumber(), (WholeRunResult) goalResult);
+                            break;
+                        case TotalThroughput:
+                            lrProjectScenarioResults.totalThroughtputResults
+                                    .put(run.getNumber(), (WholeRunResult) goalResult);
+                            break;
+                        case AverageHitsPerSecond:
+                            lrProjectScenarioResults.averageHitsPerSecondResults
+                                    .put(run.getNumber(), (WholeRunResult) goalResult);
+                            break;
+                        case TotalHits:
+                            lrProjectScenarioResults.totalHitsResults.put(run.getNumber(), (WholeRunResult) goalResult);
+                            break;
+                        case ErrorsPerSecond:
+                            lrProjectScenarioResults.errPerSecResults
+                                    .put(run.getNumber(), (TimeRangeResult) goalResult);
+                            break;
+                        case PercentileTRT:
+                            if (!lrProjectScenarioResults.percentileTransactionResults.containsKey(run.getNumber())) {
+                                lrProjectScenarioResults.percentileTransactionResults
+                                        .put(run.getNumber(), new HashMap<String, PercentileTransactionWholeRun>(0));
+                            }
+                            lrProjectScenarioResults.transactions
+                                    .add(((PercentileTransactionWholeRun) goalResult).getName());
+                            lrProjectScenarioResults.percentileTransactionResults.get(run.getNumber())
+                                    .put(((PercentileTransactionWholeRun) goalResult).getName(),
+                                            (PercentileTransactionWholeRun) goalResult);
+                            break;
+                        case AverageTRT:
+                            if (!lrProjectScenarioResults.avgTransactionResponseTimeResults
+                                    .containsKey(run.getNumber())) {
+                                lrProjectScenarioResults.avgTransactionResponseTimeResults
+                                        .put(run.getNumber(), new HashMap<String, AvgTransactionResponseTime>(0));
+                            }
+                            lrProjectScenarioResults.transactions
+                                    .add(((AvgTransactionResponseTime) goalResult).getName());
+                            lrProjectScenarioResults.avgTransactionResponseTimeResults.get(run.getNumber())
+                                    .put(((AvgTransactionResponseTime) goalResult).getName(),
+                                            (AvgTransactionResponseTime) goalResult);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                // Join sceanrio stats
+
+            }
+        }
+    }
+
+    private boolean isUpdateDataNeeded() {
+        int latestBuildNumber = currentProject.getLastBuild().getNumber();
+        if (lastBuildId == latestBuildNumber) {
             return true;
         }
         return false;

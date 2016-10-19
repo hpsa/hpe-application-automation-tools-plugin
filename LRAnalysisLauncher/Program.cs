@@ -163,7 +163,7 @@ namespace LRAnalysisLauncher
                     }
                     general.AppendChild(transactions);
 
-                    string connectionsMaximum = Helper.GetConnectionsCount(analysis).ToString("0.000");
+                    string connectionsMaximum = Helper.GetConnectionsCount(analysis).ToString();
                     XmlElement connections = runReprotDoc.CreateElement("Connections");
                     connections.SetAttribute("MaxCount", connectionsMaximum);
                     general.AppendChild(connections);

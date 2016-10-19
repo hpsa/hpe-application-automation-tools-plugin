@@ -1,61 +1,72 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2016 Hewlett-Packard Development Company, L.P.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
 package com.hp.application.automation.tools.results.projectparser.performance;
 
-/**
- * Created by kazaky on 12/07/2016.
- */
 public class LrRunResults {
-    protected int _totalFailures = 0;
-    protected int _totalErrors = 0;
-    protected double _time = 0;
-    private int _totalNoData = 0;
-    private int _totalPassed = 0;
-    private int _testCount = 0;
+    protected int _totalFailures;
+    protected int _totalErrors;
+    protected double _time;
+    private int TotalNoData;
+    private int TotalPassed;
+    private int TestCount;
 
-    public int get_totalFailures() {
+    public LrRunResults() {
+        _totalFailures = 0;
+        _totalErrors = 0;
+        _time = 0;
+        TotalNoData = 0;
+        TotalPassed = 0;
+        TestCount = 0;
+    }
+
+    public int getTotalFailures() {
         return _totalFailures;
     }
 
-    public void set_totalFailures(int totalFailures) {
+    public void setTotalFailures(int totalFailures) {
         this._totalFailures = totalFailures;
     }
 
-    public void incTotalFailures()
-    {
-        _totalFailures++;
-    }
-
-    public void incTotalErrors()
-    {
+    public void incTotalErrors() {
         _totalErrors++;
     }
 
-    public void incTotalNoData()
-    {
-        _totalNoData++;
+    public void incTotalNoData() {
+        TotalNoData++;
     }
 
-    public void incTotalPassed()
-    {
-        _totalPassed++;
-    }
-
-    public void incTotalTests()
-    {
-        _testCount++;
-    }
-
-    public int get_totalErrors() {
+    public int getTotalErrors() {
         return _totalErrors;
     }
 
-    public void set_totalErrors(int totalErrors) {
+    public void setTotalErrors(int totalErrors) {
         this._totalErrors = totalErrors;
     }
 
-    public void updateStatus(LrTest.SLA_STATUS slaStatus)
-    {
-        switch(slaStatus)
-        {
+    public void updateStatus(LrTest.SLA_STATUS slaStatus) {
+        switch (slaStatus) {
             case Failed:
                 incTotalFailures();
                 incTotalTests();
@@ -64,27 +75,36 @@ public class LrRunResults {
                 incTotalPassed();
                 incTotalTests();
                 break;
-            case NoData:
-
-                break;
-            case bad:
+            default:
                 break;
         }
     }
 
-    public int get_totalNoData() {
-        return _totalNoData;
+    public void incTotalFailures() {
+        _totalFailures++;
     }
 
-    public int get_testCount() {
-        return _testCount;
+    public void incTotalPassed() {
+        TotalPassed++;
     }
 
-    public double get_time() {
+    public void incTotalTests() {
+        TestCount++;
+    }
+
+    public int getTotalNoData() {
+        return TotalNoData;
+    }
+
+    public int getTestCount() {
+        return TestCount;
+    }
+
+    public double getTime() {
         return _time;
     }
 
-    public void set_time(double time) {
+    public void setTime(double time) {
         this._time = time;
     }
 }

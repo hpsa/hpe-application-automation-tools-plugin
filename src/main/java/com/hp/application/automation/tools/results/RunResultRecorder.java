@@ -1,15 +1,45 @@
-// (c) Copyright 2012 Hewlett-Packard Development Company, L.P. 
-// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-// The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+/*
+ * MIT License
+ *
+ * Copyright (c) 2016 Hewlett-Packard Development Company, L.P.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 
 package com.hp.application.automation.tools.results;
 
-import java.io.*;
-import java.util.*;
-
 import com.hp.application.automation.tools.PerformanceProjectAction;
-import com.hp.application.automation.tools.results.projectparser.performance.*;
+import com.hp.application.automation.tools.common.RuntimeUtils;
+import com.hp.application.automation.tools.model.EnumDescription;
+import com.hp.application.automation.tools.model.ResultsPublisherModel;
+import com.hp.application.automation.tools.results.projectparser.performance.AvgTransactionResponseTime;
+import com.hp.application.automation.tools.results.projectparser.performance.JobLrScenarioResult;
+import com.hp.application.automation.tools.results.projectparser.performance.LrJobResults;
+import com.hp.application.automation.tools.results.projectparser.performance.LrTest;
+import com.hp.application.automation.tools.results.projectparser.performance.PercentileTransactionWholeRun;
+import com.hp.application.automation.tools.results.projectparser.performance.TimeRange;
+import com.hp.application.automation.tools.results.projectparser.performance.TimeRangeResult;
+import com.hp.application.automation.tools.results.projectparser.performance.WholeRunResult;
+import com.hp.application.automation.tools.run.PcBuilder;
+import com.hp.application.automation.tools.run.RunFromAlmBuilder;
+import com.hp.application.automation.tools.run.RunFromFileBuilder;
+import com.hp.application.automation.tools.run.SseBuilder;
 import hudson.AbortException;
 import hudson.Extension;
 import hudson.FilePath;
@@ -18,43 +48,24 @@ import hudson.Launcher;
 import hudson.matrix.MatrixAggregatable;
 import hudson.matrix.MatrixAggregator;
 import hudson.matrix.MatrixBuild;
-import hudson.model.Action;
-import hudson.model.BuildListener;
-import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
+import hudson.model.Action;
+import hudson.model.BuildListener;
 import hudson.model.Project;
+import hudson.model.Result;
 import hudson.remoting.VirtualChannel;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Builder;
 import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
+import hudson.tasks.junit.CaseResult;
+import hudson.tasks.junit.SuiteResult;
 import hudson.tasks.junit.TestResult;
 import hudson.tasks.junit.TestResultAction;
-import hudson.tasks.junit.SuiteResult;
-import hudson.tasks.junit.CaseResult;
 import hudson.tasks.test.TestResultAggregator;
 import hudson.tasks.test.TestResultProjectAction;
-
-import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.List;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.tools.ant.DirectoryScanner;
@@ -66,52 +77,66 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import com.hp.application.automation.tools.common.RuntimeUtils;
-import com.hp.application.automation.tools.model.EnumDescription;
-import com.hp.application.automation.tools.model.ResultsPublisherModel;
-import com.hp.application.automation.tools.run.RunFromAlmBuilder;
-import com.hp.application.automation.tools.run.RunFromFileBuilder;
-import com.hp.application.automation.tools.run.SseBuilder;
-import com.hp.application.automation.tools.run.PcBuilder;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 import static com.hp.application.automation.tools.results.projectparser.performance.XmlParserUtil.getNode;
+import static com.hp.application.automation.tools.results.projectparser.performance.XmlParserUtil.getNodeAttr;
 
 /**
  * This class is adapted from {@link JunitResultArchiver}; Only the {@code perform()} method
  * slightly differs.
- * 
+ *
  * @author Thomas Maurel
  */
 public class RunResultRecorder extends Recorder implements Serializable, MatrixAggregatable {
-    
+
     private static final long serialVersionUID = 1L;
     private static final String PERFORMANCE_REPORT_FOLDER = "PerformanceReport";
     private static final String IE_REPORT_FOLDER = "IE";
     private static final String HTML_REPORT_FOLDER = "HTML";
     private static final String INDEX_HTML_NAME = "index.html";
     private static final String REPORT_INDEX_NAME = "report.index";
-	private static final String REPORTMETADATE_XML = "report_metadata.xml";
-	private static final String TRANSACTION_SUMMARY_FOLDER = "TransactionSummary";
-	private static final String TRANSACTION_REPORT_NAME = "Report3";
-
+    private static final String REPORTMETADATE_XML = "report_metadata.xml";
+    private static final String TRANSACTION_SUMMARY_FOLDER = "TransactionSummary";
+    private static final String TRANSACTION_REPORT_NAME = "Report3";
+    private final ResultsPublisherModel _resultsPublisherModel;
     List<FilePath> runReportList;
 
-
-    private final ResultsPublisherModel _resultsPublisherModel;
-    
     @DataBoundConstructor
     public RunResultRecorder(boolean publishResults, String archiveTestResultsMode) {
-        
+
         _resultsPublisherModel = new ResultsPublisherModel(archiveTestResultsMode);
 
     }
-    
+
     @Override
     public DescriptorImpl getDescriptor() {
-        
+
         return (DescriptorImpl) super.getDescriptor();
     }
-    
+
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
             throws InterruptedException, IOException {
@@ -136,12 +161,14 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 //                fileSystemResultNames.add(((RunFromFileBuilder) builder).getLrRunResultsFileName());
             } else if (builder instanceof SseBuilder) {
                 String resultsFileName = ((SseBuilder) builder).getRunResultsFileName();
-                if (resultsFileName != null)
+                if (resultsFileName != null) {
                     almSSEResultNames.add(resultsFileName);
+                }
             } else if (builder instanceof PcBuilder) {
                 String resultsFileName = ((PcBuilder) builder).getRunResultsFileName();
-                if (resultsFileName != null)
+                if (resultsFileName != null) {
                     pcResultNames.add(resultsFileName);
+                }
             }
         }
 
@@ -252,7 +279,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 e.printStackTrace();
             }
 
-            if((jobDataSet != null && !jobDataSet.getLrScenarioResults().isEmpty())) {
+            if ((jobDataSet != null && !jobDataSet.getLrScenarioResults().isEmpty())) {
                 build.addAction(new PerformanceJobReportAction(build, jobDataSet));
             }
         }
@@ -262,149 +289,34 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             File reportDirectory = new File(artifactsDir.getParent(), PERFORMANCE_REPORT_FOLDER);
             if (reportDirectory.exists()) {
                 File htmlIndexFile = new File(reportDirectory, INDEX_HTML_NAME);
-                if (htmlIndexFile.exists())
+                if (htmlIndexFile.exists()) {
                     build.getActions().add(new PerformanceReportAction(build));
+                }
             }
-			
-			File summaryDirectory = new File(artifactsDir.getParent(), TRANSACTION_SUMMARY_FOLDER);
+
+            File summaryDirectory = new File(artifactsDir.getParent(), TRANSACTION_SUMMARY_FOLDER);
             if (summaryDirectory.exists()) {
                 File htmlIndexFile = new File(summaryDirectory, INDEX_HTML_NAME);
-                if (htmlIndexFile.exists())
+                if (htmlIndexFile.exists()) {
                     build.getActions().add(new TransactionSummaryAction(build));
-            }
-        }
-        
-        return true;
-    }
-    
-    private void writeReportMetaData2XML(List<ReportMetaData> htmlReportsInfo, String xmlFile) throws IOException, ParserConfigurationException {
-
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder = dbf.newDocumentBuilder();
-        Document doc = builder.newDocument();
-        Element root = doc.createElement("reports_data");
-        doc.appendChild(root);
-
-        for (ReportMetaData htmlReportInfo : htmlReportsInfo)
-        {
-            String disPlayName = htmlReportInfo.getDisPlayName();
-            String urlName = htmlReportInfo.getUrlName();
-            String resourceURL = htmlReportInfo.getResourceURL();
-            String dateTime = htmlReportInfo.getDateTime();
-            String status = htmlReportInfo.getStatus();
-            String isHtmlReport = htmlReportInfo.getIsHtmlReport()? "true":"false";
-            Element elmReport = doc.createElement("report");
-            elmReport.setAttribute("disPlayName", disPlayName);
-            elmReport.setAttribute("urlName", urlName);
-            elmReport.setAttribute("resourceURL",resourceURL);
-            elmReport.setAttribute("dateTime", dateTime);
-            elmReport.setAttribute("status", status);
-            elmReport.setAttribute("isHtmlreport", isHtmlReport);
-            root.appendChild(elmReport);
-
-        }
-
-        write2XML(doc, xmlFile);
-    }
-
-    private Boolean collectAndPrepareHtmlReports(AbstractBuild build, BuildListener listener, List<ReportMetaData> htmlReportsInfo) throws IOException, InterruptedException {
-        //Project<?, ?> project = RuntimeUtils.cast(build.getProject());
-        //File reportDir = new File(build.getRootDir(), "UFTReport");
-        File reportDir = new File(build.getArtifactsDir(), "UFTReport");
-
-        FilePath rootTarget = new FilePath(reportDir);
-
-        try {
-            for (ReportMetaData htmlReportInfo : htmlReportsInfo) {
-
-                //make sure it's a html report
-                if(!htmlReportInfo.getIsHtmlReport())
-                {
-                    continue;
                 }
-                String htmlReportDir = htmlReportInfo.getFolderPath(); //C:\UFTTest\GuiTest1\Report
-
-                listener.getLogger().println("collectAndPrepareHtmlReports, collecting:" + htmlReportDir);
-                listener.getLogger().println("workspace: " + build.getWorkspace());
-
-                //copy to the subdirs of master
-                FilePath source = new FilePath(build.getWorkspace(), htmlReportDir);
-                listener.getLogger().println("source: " + source);
-                String testName = htmlReportInfo.getDisPlayName();  //like "GuiTest1"
-                //File testFileFullName = new File(testFullName);
-                //String testName = testFileFullName.getName();  //like GuiTest1
-                String dest = testName;
-                FilePath targetPath = new FilePath(rootTarget, dest);  //target path is something like "C:\Program Files (x86)\Jenkins\jobs\testAction\builds\35\archive\UFTReport\GuiTest1"
-                //listener.getLogger().println("copying html report, source: " + source.getRemote() + " target: " + targetPath.getRemote());
-                //source.copyRecursiveTo(targetPath);
-
-                //zip copy and unzip
-                ByteArrayOutputStream outstr = new ByteArrayOutputStream();
-
-                //don't use FileFilter for zip, or it will cause bug when files are on slave
-                source.zip(outstr);
-                ByteArrayInputStream instr = new ByteArrayInputStream(outstr.toByteArray());
-
-                String zipFileName = "UFT_Report_HTML_tmp.zip";
-                FilePath archivedFile = new FilePath(rootTarget, zipFileName);
-
-                archivedFile.copyFrom(instr);
-
-                listener.getLogger().println("copy from slave to master: " + archivedFile);
-                outstr.close();
-                instr.close();
-
-                //unzip
-                archivedFile.unzip(rootTarget);
-                archivedFile.delete();
-
-                //now,all the files are in the C:\Program Files (x86)\Jenkins\jobs\testAction\builds\35\archive\UFTReport\Report
-                //we need to rename the above path to targetPath.
-                //So at last we got files in C:\Program Files (x86)\Jenkins\jobs\testAction\builds\35\archive\UFTReport\GuiTest
-
-                String unzippedFileName = org.apache.commons.io.FilenameUtils.getName(htmlReportDir);
-                FilePath unzippedFolderPath = new FilePath(rootTarget, unzippedFileName);  //C:\Program Files (x86)\Jenkins\jobs\testAction\builds\35\archive\UFTReport\Report
-                //FilePath unzippedFolderPath = new FilePath(rootTarget, source.getName());  //C:\Program Files (x86)\Jenkins\jobs\testAction\builds\35\archive\UFTReport\Report
-                unzippedFolderPath.renameTo(targetPath);
-                listener.getLogger().println("UnzippedFolderPath is: " + unzippedFolderPath + " targetPath is: " + targetPath);
-                //end zip copy and unzip
-
-                //just test some url value
-//            String buildurl = build.getUrl();  //like "job/testAction/46/"
-//            listener.getLogger().println("build url is: " + buildurl);
-//
-//            String rootUrl = Hudson.getInstance().getRootUrl();  //http://localhost:8080/
-//            listener.getLogger().println("root url is: " + rootUrl);
-                //end -test some url value
-
-                //fill in the urlName of this report. we need a network path not a FS path
-                String resourceUrl = htmlReportInfo.getResourceURL();
-                String urlName = resourceUrl + "/run_results.html"; //like artifact/UFTReport/GuiTest1/run_results.html
-
-                listener.getLogger().println("set the report urlName to " + urlName);
-                htmlReportInfo.setUrlName(urlName);
-
             }
         }
-        catch(Exception ex) {
-            listener.getLogger().println("catch exception in collectAndPrepareHtmlReports: " + ex.toString());
-        }
-
 
         return true;
     }
-	
+
     private void archiveTestsReport(
             AbstractBuild<?, ?> build,
             BuildListener listener,
             List<String> resultFiles,
             TestResult testResult) throws ParserConfigurationException, SAXException,
-            IOException, InterruptedException{
-        
+            IOException, InterruptedException {
+
         if ((resultFiles == null) || (resultFiles.size() == 0)) {
             return;
         }
-        
+
         ArrayList<String> zipFileNames = new ArrayList<String>();
         ArrayList<FilePath> reportFolders = new ArrayList<FilePath>();
         List<String> reportNames = new ArrayList<String>();
@@ -412,22 +324,22 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         listener.getLogger().println(
                 "Report archiving mode is set to: "
                         + _resultsPublisherModel.getArchiveTestResultsMode());
-        
+
         // if we dont want to archive any results
         /*if (resultsPublisherModel.getArchiveTestResultsMode().equals(
-        		ResultsPublisherModel.dontArchiveResults.getValue())) {
-        	
+                ResultsPublisherModel.dontArchiveResults.getValue())) {
+
         	deleteReportsFolder(reportFolders,listener);
         	return;
         }*/
 
         FilePath projectWS = build.getWorkspace();
-        
+
         // get the artifacts directory where we will upload the zipped report
         // folder
         File artifactsDir = build.getArtifactsDir();
         artifactsDir.mkdirs();
-        
+
         // read each result.xml
         /*
          * The structure of the result file is: <testsuites> <testsuite>
@@ -445,13 +357,14 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-            
+
             Document doc = dBuilder.parse(resultsFile.read());
-            doc.getDocumentElement().normalize();            
-			
+            doc.getDocumentElement().normalize();
+
             Node testSuiteNode = doc.getElementsByTagName("testsuite").item(0);
-			Element testSuiteElement = (Element) testSuiteNode;
-            if(testSuiteElement.hasAttribute("name") && testSuiteElement.getAttribute("name").endsWith(".lrs")) {		//LR test
+            Element testSuiteElement = (Element) testSuiteNode;
+            if (testSuiteElement.hasAttribute("name") &&
+                    testSuiteElement.getAttribute("name").endsWith(".lrs")) {        //LR test
                 NodeList testSuiteNodes = doc.getElementsByTagName("testsuite");
                 for (int i = 0; i < testSuiteNodes.getLength(); i++) {
                     testSuiteNode = testSuiteNodes.item(i);
@@ -482,113 +395,119 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                         FilePath archivedFile =
                                 new FilePath(new FilePath(artifactsDir), zipFileName);
 
-                        if (archiveFolder(reportFolder, testStatus, archivedFile, listener))
+                        if (archiveFolder(reportFolder, testStatus, archivedFile, listener)) {
                             zipFileNames.add(zipFileName);
+                        }
 
                         reportNames.add(testFolder.getName());
                         createHtmlReport(reportFolder, testFolderPath, artifactsDir, reportNames, testResult);
                         createTransactionSummary(reportFolder, testFolderPath, artifactsDir, reportNames, testResult);
                         try {
-							FilePath testSla = copyRunReport(reportFolder, testFolderPath, build.getRootDir(), testFolder.getName());
-							runReportList.add(testSla);
+                            FilePath testSla = copyRunReport(reportFolder, testFolderPath, build.getRootDir(),
+                                    testFolder.getName());
+                            runReportList.add(testSla);
                         } catch (Exception e) {
                             listener.getLogger().println(e.getMessage());
                         }
                     }
                 }
-            } else {		//UFT Test  
-				boolean reportIsHtml = false;			
-				NodeList testCasesNodes = ((Element) testSuiteNode).getElementsByTagName("testcase");
-				for (int i = 0; i < testCasesNodes.getLength(); i++) {
-					
-					Node nNode = testCasesNodes.item(i);
-					
-					if (nNode.getNodeType() == Node.ELEMENT_NODE) {
-						
-						Element eElement = (Element) nNode;
-						
-						if (!eElement.hasAttribute("report")) {
-							continue;
-						}
+            } else {        //UFT Test
+                boolean reportIsHtml = false;
+                NodeList testCasesNodes = ((Element) testSuiteNode).getElementsByTagName("testcase");
+                for (int i = 0; i < testCasesNodes.getLength(); i++) {
+
+                    Node nNode = testCasesNodes.item(i);
+
+                    if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+
+                        Element eElement = (Element) nNode;
+
+                        if (!eElement.hasAttribute("report")) {
+                            continue;
+                        }
 
 
-						String reportFolderPath = eElement.getAttribute("report"); //e.g. "C:\UFTTest\GuiTest1\Report"
-						String testFolderPath = eElement.getAttribute("name"); //e.g. "C:\UFTTest\GuiTest1"
-						String testStatus = eElement.getAttribute("status");  //e.g. "Passed"
+                        String reportFolderPath = eElement.getAttribute("report"); //e.g. "C:\UFTTest\GuiTest1\Report"
+                        String testFolderPath = eElement.getAttribute("name"); //e.g. "C:\UFTTest\GuiTest1"
+                        String testStatus = eElement.getAttribute("status");  //e.g. "Passed"
 
 
-						Node nodeSystemInfo = eElement.getElementsByTagName("system-out").item(0);
-						String sysinfo = nodeSystemInfo.getFirstChild().getNodeValue();
-						String testDateTime = sysinfo.substring(0,19); //like "21/07/2015 11:52:50";
+                        Node nodeSystemInfo = eElement.getElementsByTagName("system-out").item(0);
+                        String sysinfo = nodeSystemInfo.getFirstChild().getNodeValue();
+                        String testDateTime = sysinfo.substring(0, 19); //like "21/07/2015 11:52:50";
 
-						FilePath reportFolder = new FilePath(projectWS.getChannel(), reportFolderPath);
-						
-						reportFolders.add(reportFolder);
-						
-						String archiveTestResultMode =
-								_resultsPublisherModel.getArchiveTestResultsMode();
-						boolean archiveTestResult = false;
-						boolean createHtmlReport = false;
-						
-						//check for the new html report
-						FilePath htmlReport = new FilePath(reportFolder, "run_results.html");
+                        FilePath reportFolder = new FilePath(projectWS.getChannel(), reportFolderPath);
+
+                        reportFolders.add(reportFolder);
+
+                        String archiveTestResultMode =
+                                _resultsPublisherModel.getArchiveTestResultsMode();
+                        boolean archiveTestResult = false;
+                        boolean createHtmlReport = false;
+
+                        //check for the new html report
+                        FilePath htmlReport = new FilePath(reportFolder, "run_results.html");
                         FilePath rrvReport = new FilePath(reportFolder, "Results.xml");
-						if (htmlReport.exists()) {
-							reportIsHtml = true;
-							String htmlReportDir = reportFolder.getRemote();
+                        if (htmlReport.exists()) {
+                            reportIsHtml = true;
+                            String htmlReportDir = reportFolder.getRemote();
 
-							ReportMetaData reportMetaData = new ReportMetaData();
-							reportMetaData.setFolderPath(htmlReportDir);
+                            ReportMetaData reportMetaData = new ReportMetaData();
+                            reportMetaData.setFolderPath(htmlReportDir);
                             //reportMetaData.setDisPlayName(testFolderPath);
-							reportMetaData.setIsHtmlReport(true);
-							reportMetaData.setDateTime(testDateTime);
-							reportMetaData.setStatus(testStatus);
+                            reportMetaData.setIsHtmlReport(true);
+                            reportMetaData.setDateTime(testDateTime);
+                            reportMetaData.setStatus(testStatus);
 
-							File testFileFullName = new File(testFolderPath);
-							String testName = org.apache.commons.io.FilenameUtils.getName(testFileFullName.getPath());
-							String resourceUrl = "artifact/UFTReport/" + testName;
-							reportMetaData.setResourceURL(resourceUrl);
+                            File testFileFullName = new File(testFolderPath);
+                            String testName = org.apache.commons.io.FilenameUtils.getName(testFileFullName.getPath());
+                            String resourceUrl = "artifact/UFTReport/" + testName;
+                            reportMetaData.setResourceURL(resourceUrl);
                             reportMetaData.setDisPlayName(testName); // use the name, not the full path
                             //don't know reportMetaData's URL path yet, we will generate it later.
-							ReportInfoToCollect.add(reportMetaData);
+                            ReportInfoToCollect.add(reportMetaData);
 
-							listener.getLogger().println("add html report info to ReportInfoToCollect: " + "[date]" + testDateTime);
-						}
+                            listener.getLogger()
+                                    .println("add html report info to ReportInfoToCollect: " + "[date]" + testDateTime);
+                        }
 
-						if (archiveTestResultMode.equals(ResultsPublisherModel.alwaysArchiveResults.getValue())) {
-							archiveTestResult = true;
-						} else if (archiveTestResultMode.equals(ResultsPublisherModel.ArchiveFailedTestsResults.getValue())) {
-							if (testStatus.equals("fail")) {
-								archiveTestResult = true;
-							} else if (archiveTestResultMode.equals(ResultsPublisherModel.dontArchiveResults.getValue())) {
-								archiveTestResult = false;
-							}
-						} else if (archiveTestResultMode.equals(ResultsPublisherModel.CreateHtmlReportResults.getValue())) {
-							archiveTestResult = true;
-							createHtmlReport = true;
-						}
-						
-						
-						if (archiveTestResult && rrvReport.exists()) {
+                        if (archiveTestResultMode.equals(ResultsPublisherModel.alwaysArchiveResults.getValue())) {
+                            archiveTestResult = true;
+                        } else if (archiveTestResultMode
+                                .equals(ResultsPublisherModel.ArchiveFailedTestsResults.getValue())) {
+                            if (testStatus.equals("fail")) {
+                                archiveTestResult = true;
+                            } else if (archiveTestResultMode
+                                    .equals(ResultsPublisherModel.dontArchiveResults.getValue())) {
+                                archiveTestResult = false;
+                            }
+                        } else if (archiveTestResultMode
+                                .equals(ResultsPublisherModel.CreateHtmlReportResults.getValue())) {
+                            archiveTestResult = true;
+                            createHtmlReport = true;
+                        }
 
-							if (reportFolder.exists()) {
-								
-								FilePath testFolder =
-										new FilePath(projectWS.getChannel(), testFolderPath);
-								
-								String zipFileName =
-										getUniqueZipFileNameInFolder(zipFileNames, testFolder.getName());
-								zipFileNames.add(zipFileName);
-								
-								listener.getLogger().println(
-										"Zipping report folder: " + reportFolderPath);
-								
-								ByteArrayOutputStream outstr = new ByteArrayOutputStream();
+
+                        if (archiveTestResult && rrvReport.exists()) {
+
+                            if (reportFolder.exists()) {
+
+                                FilePath testFolder =
+                                        new FilePath(projectWS.getChannel(), testFolderPath);
+
+                                String zipFileName =
+                                        getUniqueZipFileNameInFolder(zipFileNames, testFolder.getName());
+                                zipFileNames.add(zipFileName);
+
+                                listener.getLogger().println(
+                                        "Zipping report folder: " + reportFolderPath);
+
+                                ByteArrayOutputStream outstr = new ByteArrayOutputStream();
 
                                 //don't use FileFilter for zip, or it will cause bug when files are on slave
                                 //reportFolder.zip(outstr, new RRVFileFilter());
                                 reportFolder.zip(outstr);
-                                
+
 								/*
 								 * I did't use copyRecursiveTo or copyFrom due to
 								 * bug in
@@ -598,74 +517,222 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 								 * copy it to the master.
 								 */
 
-								ByteArrayInputStream instr =
-										new ByteArrayInputStream(outstr.toByteArray());
-								
-								FilePath archivedFile =
-										new FilePath(new FilePath(artifactsDir), zipFileName);
-								archivedFile.copyFrom(instr);
+                                ByteArrayInputStream instr =
+                                        new ByteArrayInputStream(outstr.toByteArray());
+
+                                FilePath archivedFile =
+                                        new FilePath(new FilePath(artifactsDir), zipFileName);
+                                archivedFile.copyFrom(instr);
                                 listener.getLogger().println(
                                         "copy from slave to master: " + archivedFile);
-								outstr.close();
-								instr.close();
-								
-								//add to Report list
-								ReportMetaData reportMetaData = new ReportMetaData();
-								reportMetaData.setIsHtmlReport(false);
-								//reportMetaData.setFolderPath(htmlReportDir); //no need for RRV
+                                outstr.close();
+                                instr.close();
+
+                                //add to Report list
+                                ReportMetaData reportMetaData = new ReportMetaData();
+                                reportMetaData.setIsHtmlReport(false);
+                                //reportMetaData.setFolderPath(htmlReportDir); //no need for RRV
                                 File testFileFullName = new File(testFolderPath);
                                 String testName = testFileFullName.getName();
-								reportMetaData.setDisPlayName(testName);  // use the name, not the full path
-								String zipFileUrlName = "artifact/" + zipFileName;
-								reportMetaData.setUrlName(zipFileUrlName);    //for RRV, the file url and resource url are the same.
-								reportMetaData.setResourceURL(zipFileUrlName);
-								reportMetaData.setDateTime(testDateTime);
-								reportMetaData.setStatus(testStatus);
-								ReportInfoToCollect.add(reportMetaData);
+                                reportMetaData.setDisPlayName(testName);  // use the name, not the full path
+                                String zipFileUrlName = "artifact/" + zipFileName;
+                                reportMetaData.setUrlName(
+                                        zipFileUrlName);    //for RRV, the file url and resource url are the same.
+                                reportMetaData.setResourceURL(zipFileUrlName);
+                                reportMetaData.setDateTime(testDateTime);
+                                reportMetaData.setStatus(testStatus);
+                                ReportInfoToCollect.add(reportMetaData);
 
-							} else {
-								listener.getLogger().println(
-										"No report folder was found in: " + reportFolderPath);
-							}
-						}                    
-						
-					}
-				}
+                            } else {
+                                listener.getLogger().println(
+                                        "No report folder was found in: " + reportFolderPath);
+                            }
+                        }
 
-				if (reportIsHtml && !ReportInfoToCollect.isEmpty()){
+                    }
+                }
 
-					listener.getLogger().println("begin to collectAndPrepareHtmlReports");
-					collectAndPrepareHtmlReports(build, listener, ReportInfoToCollect);
-				}
+                if (reportIsHtml && !ReportInfoToCollect.isEmpty()) {
 
-				if (!ReportInfoToCollect.isEmpty()) {
-					//serialize report metadata
-					File reportMetaDataXmlFile = new File(artifactsDir.getParent(), REPORTMETADATE_XML);
-					String reportMetaDataXml = reportMetaDataXmlFile.getAbsolutePath();
-					writeReportMetaData2XML(ReportInfoToCollect, reportMetaDataXml);
+                    listener.getLogger().println("begin to collectAndPrepareHtmlReports");
+                    collectAndPrepareHtmlReports(build, listener, ReportInfoToCollect);
+                }
 
-					//Add UFT report action
-					try {
-						listener.getLogger().println("Adding a report action to the current build.");
-						HtmlBuildReportAction reportAction = new HtmlBuildReportAction(build);
-						build.getActions().add(reportAction);
+                if (!ReportInfoToCollect.isEmpty()) {
+                    //serialize report metadata
+                    File reportMetaDataXmlFile = new File(artifactsDir.getParent(), REPORTMETADATE_XML);
+                    String reportMetaDataXml = reportMetaDataXmlFile.getAbsolutePath();
+                    writeReportMetaData2XML(ReportInfoToCollect, reportMetaDataXml);
 
-					} catch (Exception ex) {
-						listener.getLogger().println("a problem adding action: " + ex.toString());
-					}
-				}
-			}
-		}
+                    //Add UFT report action
+                    try {
+                        listener.getLogger().println("Adding a report action to the current build.");
+                        HtmlBuildReportAction reportAction = new HtmlBuildReportAction(build);
+                        build.getActions().add(reportAction);
+
+                    } catch (Exception ex) {
+                        listener.getLogger().println("a problem adding action: " + ex.toString());
+                    }
+                }
+            }
+        }
     }
 
-    private FilePath copyRunReport(FilePath reportFolder, String testFolderPath, File buildDir, String scenerioName) throws IOException, InterruptedException {
+    private void writeReportMetaData2XML(List<ReportMetaData> htmlReportsInfo, String xmlFile)
+            throws IOException, ParserConfigurationException {
+
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = dbf.newDocumentBuilder();
+        Document doc = builder.newDocument();
+        Element root = doc.createElement("reports_data");
+        doc.appendChild(root);
+
+        for (ReportMetaData htmlReportInfo : htmlReportsInfo) {
+            String disPlayName = htmlReportInfo.getDisPlayName();
+            String urlName = htmlReportInfo.getUrlName();
+            String resourceURL = htmlReportInfo.getResourceURL();
+            String dateTime = htmlReportInfo.getDateTime();
+            String status = htmlReportInfo.getStatus();
+            String isHtmlReport = htmlReportInfo.getIsHtmlReport() ? "true" : "false";
+            Element elmReport = doc.createElement("report");
+            elmReport.setAttribute("disPlayName", disPlayName);
+            elmReport.setAttribute("urlName", urlName);
+            elmReport.setAttribute("resourceURL", resourceURL);
+            elmReport.setAttribute("dateTime", dateTime);
+            elmReport.setAttribute("status", status);
+            elmReport.setAttribute("isHtmlreport", isHtmlReport);
+            root.appendChild(elmReport);
+
+        }
+
+        write2XML(doc, xmlFile);
+    }
+
+    private void write2XML(Document document, String filename) {
+        try {
+            document.normalize();
+
+            TransformerFactory tFactory = TransformerFactory.newInstance();
+            Transformer transformer = tFactory.newTransformer();
+            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+
+            DOMSource source = new DOMSource(document);
+            PrintWriter pw = new PrintWriter(new FileOutputStream(filename));
+            StreamResult result = new StreamResult(pw);
+            transformer.transform(source, result);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private Boolean collectAndPrepareHtmlReports(AbstractBuild build, BuildListener listener,
+                                                 List<ReportMetaData> htmlReportsInfo)
+            throws IOException, InterruptedException {
+        //Project<?, ?> project = RuntimeUtils.cast(build.getProject());
+        //File reportDir = new File(build.getRootDir(), "UFTReport");
+        File reportDir = new File(build.getArtifactsDir(), "UFTReport");
+
+        FilePath rootTarget = new FilePath(reportDir);
+
+        try {
+            for (ReportMetaData htmlReportInfo : htmlReportsInfo) {
+
+                //make sure it's a html report
+                if (!htmlReportInfo.getIsHtmlReport()) {
+                    continue;
+                }
+                String htmlReportDir = htmlReportInfo.getFolderPath(); //C:\UFTTest\GuiTest1\Report
+
+                listener.getLogger().println("collectAndPrepareHtmlReports, collecting:" + htmlReportDir);
+                listener.getLogger().println("workspace: " + build.getWorkspace());
+
+                //copy to the subdirs of master
+                FilePath source = new FilePath(build.getWorkspace(), htmlReportDir);
+                listener.getLogger().println("source: " + source);
+                String testName = htmlReportInfo.getDisPlayName();  //like "GuiTest1"
+                //File testFileFullName = new File(testFullName);
+                //String testName = testFileFullName.getName();  //like GuiTest1
+                String dest = testName;
+                FilePath targetPath = new FilePath(rootTarget,
+                        dest);  //target path is something like "C:\Program Files (x86)
+                // \Jenkins\jobs\testAction\builds\35\archive\UFTReport\GuiTest1"
+                //listener.getLogger().println("copying html report, source: " + source.getRemote() + " target: " +
+                // targetPath.getRemote());
+                //source.copyRecursiveTo(targetPath);
+
+                //zip copy and unzip
+                ByteArrayOutputStream outstr = new ByteArrayOutputStream();
+
+                //don't use FileFilter for zip, or it will cause bug when files are on slave
+                source.zip(outstr);
+                ByteArrayInputStream instr = new ByteArrayInputStream(outstr.toByteArray());
+
+                String zipFileName = "UFT_Report_HTML_tmp.zip";
+                FilePath archivedFile = new FilePath(rootTarget, zipFileName);
+
+                archivedFile.copyFrom(instr);
+
+                listener.getLogger().println("copy from slave to master: " + archivedFile);
+                outstr.close();
+                instr.close();
+
+                //unzip
+                archivedFile.unzip(rootTarget);
+                archivedFile.delete();
+
+                //now,all the files are in the C:\Program Files (x86)
+                // \Jenkins\jobs\testAction\builds\35\archive\UFTReport\Report
+                //we need to rename the above path to targetPath.
+                //So at last we got files in C:\Program Files (x86)
+                // \Jenkins\jobs\testAction\builds\35\archive\UFTReport\GuiTest
+
+                String unzippedFileName = org.apache.commons.io.FilenameUtils.getName(htmlReportDir);
+                FilePath unzippedFolderPath = new FilePath(rootTarget,
+                        unzippedFileName);  //C:\Program Files (x86)
+                // \Jenkins\jobs\testAction\builds\35\archive\UFTReport\Report
+                //FilePath unzippedFolderPath = new FilePath(rootTarget, source.getName());  //C:\Program Files (x86)
+                // \Jenkins\jobs\testAction\builds\35\archive\UFTReport\Report
+                unzippedFolderPath.renameTo(targetPath);
+                listener.getLogger()
+                        .println("UnzippedFolderPath is: " + unzippedFolderPath + " targetPath is: " + targetPath);
+                //end zip copy and unzip
+
+                //just test some url value
+//            String buildurl = build.getUrl();  //like "job/testAction/46/"
+//            listener.getLogger().println("build url is: " + buildurl);
+//
+//            String rootUrl = Hudson.getInstance().getRootUrl();  //http://localhost:8080/
+//            listener.getLogger().println("root url is: " + rootUrl);
+                //end -test some url value
+
+                //fill in the urlName of this report. we need a network path not a FS path
+                String resourceUrl = htmlReportInfo.getResourceURL();
+                String urlName = resourceUrl + "/run_results.html"; //like artifact/UFTReport/GuiTest1/run_results.html
+
+                listener.getLogger().println("set the report urlName to " + urlName);
+                htmlReportInfo.setUrlName(urlName);
+
+            }
+        } catch (Exception ex) {
+            listener.getLogger().println("catch exception in collectAndPrepareHtmlReports: " + ex.toString());
+        }
+
+
+        return true;
+    }
+
+    private FilePath copyRunReport(FilePath reportFolder, String testFolderPath, File buildDir, String scenerioName)
+            throws IOException, InterruptedException {
         FilePath slaReportFilePath = new FilePath(reportFolder, "RunReport.xml");
         if (slaReportFilePath.exists()) {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             slaReportFilePath.zip(baos);
             File slaDirectory = new File(buildDir, "RunReport");
-            if (!slaDirectory.exists())
-                    slaDirectory.mkdir();
+            if (!slaDirectory.exists()) {
+                slaDirectory.mkdir();
+            }
             ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
             FilePath slaDirectoryFilePath = new FilePath(slaDirectory);
             FilePath tmpZipFile = new FilePath(slaDirectoryFilePath, "runReport.zip");
@@ -681,208 +748,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
             return slaFile;
         }
-            throw(new IOException("no RunReport.xml file was created"));
-        }
-
-        private LrJobResults buildJobDataset(AbstractBuild<?, ?> build, BuildListener listener)throws ParserConfigurationException, SAXException,
-            IOException, InterruptedException {
-        listener.getLogger().println(
-                "Starting the creation of test run dataset for graphing");
-        LrJobResults jobResults = new LrJobResults();
-
-        // read each RunReport.xml
-        for (FilePath reportFilePath : runReportList) {
-			JobLrScenarioResult jobLrScenarioResult = parseScenarioResults(reportFilePath);
-			jobResults.addScenario(jobLrScenarioResult);
-        }
-
-            return jobResults;
-        }
-
-	private JobLrScenarioResult parseScenarioResults(FilePath slaFilePath) throws ParserConfigurationException, SAXException, IOException, InterruptedException {
-		JobLrScenarioResult jobLrScenarioResult = new JobLrScenarioResult(slaFilePath.getBaseName());
-
-		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-
-		Document doc = dBuilder.parse(slaFilePath.read());
-//		doc.getDocumentElement().normalize();
-
-		processSLA(jobLrScenarioResult, doc);
-		processScenarioStats(jobLrScenarioResult, doc);
-		//TODO: add fail / Pass count
-		return jobLrScenarioResult;
-	}
-
-	private void processScenarioStats(JobLrScenarioResult jobLrScenarioResult, Document doc)
-	{
-
-		NodeList rootNodes = doc.getChildNodes();
-		Node root = getNode("Runs", rootNodes);
-		Element generalNode = (Element) getNode("General", root.getChildNodes());
-		NodeList generalNodeChildren = generalNode.getChildNodes();
-
-		Node vUser = getNode("VUsers", generalNodeChildren);
-		int atrrCount = vUser.getAttributes().getLength();
-		for(int atrrIndx = 0; atrrIndx < atrrCount; atrrIndx++)
-		{
-			Node vUserAttr = vUser.getAttributes().item(atrrIndx);
-			jobLrScenarioResult.vUser.put(vUserAttr.getNodeName(), Integer.valueOf(vUserAttr.getNodeValue()));
-		}
-
-		Node transactions = getNode("Transactions", generalNodeChildren);
-		atrrCount = transactions.getAttributes().getLength();
-		for(int atrrIndx = 0; atrrIndx < atrrCount; atrrIndx++)
-		{
-			Node vUserAttr = transactions.getAttributes().item(atrrIndx);
-			jobLrScenarioResult.transactionSum.put(vUserAttr.getNodeName(), Integer.valueOf(vUserAttr.getNodeValue()));
-		}
-
-		NodeList transactionNodes = transactions.getChildNodes();
-		int transactionNodesCount = transactionNodes.getLength();
-		for (int transIdx = 0; transIdx < transactionNodesCount; transIdx++) {
-			if (transactionNodes.item(transIdx).getNodeType() != Node.ELEMENT_NODE) continue;
-			Element transaction = (Element) transactionNodes.item(transIdx);
-			HashMap<String, Integer> transactionData = new HashMap<String, Integer>(0);
-			transactionData.put("Pass",Integer.valueOf(transaction.getAttribute("Pass")));
-			transactionData.put("Fail",Integer.valueOf(transaction.getAttribute("Fail")));
-			transactionData.put("Stop",Integer.valueOf(transaction.getAttribute("Stop")));
-			jobLrScenarioResult.transactionData.put(transaction.getAttribute("Name"), transactionData);
-		}
-
-		Element connections = (Element) getNode("Connections", generalNodeChildren);
-		jobLrScenarioResult.setConnectionMax(Integer.valueOf(connections.getAttribute("MaxCount")));
-
-	}
-
-	private void processSLA(JobLrScenarioResult jobLrScenarioResult, Document doc) {
-		Node timeRangeNode;
-		Node slaNode;
-		Node slaRuleNode;
-		Element slaElements;
-		Element slaRuleElement;
-		Element timeRangeElement;
-
-		NodeList rootNodes = doc.getChildNodes();
-		Node root = getNode("Runs", rootNodes);
-		Element slaRoot = (Element) getNode("SLA", root.getChildNodes());
-		NodeList slaRuleResults = slaRoot.getChildNodes();
-
-
-
-			for (int j = 0; j < slaRuleResults.getLength(); j++) {
-				slaRuleNode = slaRuleResults.item(j);
-				if (slaRuleNode.getNodeType() != Node.ELEMENT_NODE) continue;
-				slaRuleElement = (Element) slaRuleNode;
-				//check type by mesurment field:
-				LrTest.SLA_GOAL slaGoal = LrTest.SLA_GOAL.checkGoal(slaRuleElement.getAttribute("Measurement").toString());
-
-				processSlaRule(jobLrScenarioResult, slaRuleElement, slaGoal);
-			}
-
-	}
-
-	private void processSlaRule(JobLrScenarioResult jobLrScenarioResult, Element slaRuleElement, LrTest.SLA_GOAL slaGoal) {
-		switch (slaGoal) {
-			case AverageThroughput:
-				WholeRunResult averageThroughput = new WholeRunResult();
-				averageThroughput.setSlaGoal(LrTest.SLA_GOAL.AverageThroughput);
-				averageThroughput.setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
-				averageThroughput.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
-				averageThroughput.setFullName(slaRuleElement.getAttribute("FullName"));
-				averageThroughput.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
-				jobLrScenarioResult.scenarioSlaResults.add(averageThroughput);
-				break;
-			case TotalThroughput:
-				WholeRunResult totalThroughput = new WholeRunResult();
-				totalThroughput.setSlaGoal(LrTest.SLA_GOAL.TotalThroughput);
-				totalThroughput.setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
-				totalThroughput.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
-				totalThroughput.setFullName(slaRuleElement.getAttribute("FullName"));
-				totalThroughput.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
-				jobLrScenarioResult.scenarioSlaResults.add(totalThroughput);
-
-				break;
-			case AverageHitsPerSecond:
-				WholeRunResult averageHitsPerSecond = new WholeRunResult();
-				averageHitsPerSecond.setSlaGoal(LrTest.SLA_GOAL.AverageHitsPerSecond);
-				averageHitsPerSecond.setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
-				averageHitsPerSecond.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
-				averageHitsPerSecond.setFullName(slaRuleElement.getAttribute("FullName"));
-				averageHitsPerSecond.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
-//                            jobLrScenarioResult.averageHitsPerSecondResults = averageHitsPerSecond;
-				jobLrScenarioResult.scenarioSlaResults.add(averageHitsPerSecond);
-
-				break;
-			case TotalHits:
-				WholeRunResult totalHits = new WholeRunResult();
-				totalHits.setSlaGoal(LrTest.SLA_GOAL.TotalHits);
-				totalHits.setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
-				totalHits.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
-				totalHits.setFullName(slaRuleElement.getAttribute("FullName"));
-				totalHits.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
-				jobLrScenarioResult.scenarioSlaResults.add(totalHits);
-
-				break;
-			case ErrorsPerSecond:
-				TimeRangeResult errPerSec = new AvgTransactionResponseTime();
-				errPerSec.setSlaGoal(LrTest.SLA_GOAL.ErrorsPerSecond);
-				errPerSec.setFullName(slaRuleElement.getAttribute("FullName").toString());
-				errPerSec.setLoadThrashold(slaRuleElement.getAttribute("SLALoadThresholdValue").toString());
-				errPerSec.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getFirstChild().getTextContent())); //Might not work due to time ranges
-				addTimeRanges(errPerSec, slaRuleElement);
-				jobLrScenarioResult.scenarioSlaResults.add(errPerSec);
-
-				break;
-			case PercentileTRT:
-				PercentileTransactionWholeRun percentileTransactionWholeRun = new PercentileTransactionWholeRun();
-				percentileTransactionWholeRun.setSlaGoal(LrTest.SLA_GOAL.PercentileTRT);
-				percentileTransactionWholeRun.setName(slaRuleElement.getAttribute("TransactionName").toString());
-				percentileTransactionWholeRun.setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
-				percentileTransactionWholeRun.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
-				percentileTransactionWholeRun.setFullName(slaRuleElement.getAttribute("FullName"));
-				percentileTransactionWholeRun.setPrecentage(Double.valueOf(slaRuleElement.getAttribute("Percentile")));
-				percentileTransactionWholeRun.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
-				jobLrScenarioResult.scenarioSlaResults.add(percentileTransactionWholeRun);
-
-				break;
-			case AverageTRT:
-				AvgTransactionResponseTime transactionTimeRange = new AvgTransactionResponseTime();
-				transactionTimeRange.setSlaGoal(LrTest.SLA_GOAL.AverageTRT);
-				transactionTimeRange.setName(slaRuleElement.getAttribute("TransactionName").toString());
-				transactionTimeRange.setFullName(slaRuleElement.getAttribute("FullName").toString());
-				transactionTimeRange.setLoadThrashold(slaRuleElement.getAttribute("SLALoadThresholdValue").toString());
-				transactionTimeRange.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getFirstChild().getTextContent())); //Might not work due to time ranges
-				addTimeRanges(transactionTimeRange, slaRuleElement);
-				jobLrScenarioResult.scenarioSlaResults.add(transactionTimeRange);
-				break;
-			case Bad:
-				break;
-		}
-	}
-
-	private static void addTimeRanges(TimeRangeResult transactionTimeRange, Element slaRuleElement) {
-        Node timeRangeNode;
-        Element timeRangeElement;
-        NodeList timeRanges = slaRuleElement.getElementsByTagName("TimeRangeInfo");
-
-        //Taking the goal per transaction -
-        double generalGoalValue = Double.valueOf(((Element) timeRanges.item(0)).getAttribute("GoalValue"));
-        transactionTimeRange.setGoalValue(generalGoalValue);
-
-        for (int k = 0; k < timeRanges.getLength(); k++) {
-            timeRangeNode = timeRanges.item(k);
-            timeRangeElement = (Element) timeRangeNode;
-            double actualValue = Double.valueOf(timeRangeElement.getAttribute("ActualValue"));
-            double goalValue = Double.valueOf(timeRangeElement.getAttribute("GoalValue"));
-            int loadValue = Integer.valueOf(timeRangeElement.getAttribute("LoadValue"));
-            double startTime = Double.valueOf(timeRangeElement.getAttribute("StartTime"));
-            double endTIme = Double.valueOf(timeRangeElement.getAttribute("EndTime"));
-            transactionTimeRange.incActualValue(actualValue);
-            LrTest.SLA_STATUS slaStatus = LrTest.SLA_STATUS.checkStatus(timeRangeElement.getFirstChild().getTextContent());
-            TimeRange timeRange = new TimeRange(actualValue, goalValue, slaStatus, loadValue, startTime, endTIme);
-            transactionTimeRange.timeRanges.add(timeRange);
-        }
+        throw (new IOException("no RunReport.xml file was created"));
     }
 
     private boolean archiveFolder(FilePath reportFolder,
@@ -942,10 +808,10 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
     }
 
     private void createHtmlReport(FilePath reportFolder,
-                                     String testFolderPath,
-                                     File artifactsDir,
-                                     List<String> reportNames,
-                                     TestResult testResult) throws IOException, InterruptedException {
+                                  String testFolderPath,
+                                  File artifactsDir,
+                                  List<String> reportNames,
+                                  TestResult testResult) throws IOException, InterruptedException {
         String archiveTestResultMode =
                 _resultsPublisherModel.getArchiveTestResultsMode();
         boolean createReport = archiveTestResultMode.equals(ResultsPublisherModel.CreateHtmlReportResults.getValue());
@@ -960,8 +826,9 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
                     srcFilePath.zip(baos);
                     File reportDirectory = new File(artifactsDir.getParent(), PERFORMANCE_REPORT_FOLDER);
-                    if (!reportDirectory.exists())
+                    if (!reportDirectory.exists()) {
                         reportDirectory.mkdir();
+                    }
                     ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
                     FilePath reportDirectoryFilePath = new FilePath(reportDirectory);
                     FilePath tmpZipFile = new FilePath(reportDirectoryFilePath, "tmp.zip");
@@ -970,12 +837,111 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                     baos.close();
                     tmpZipFile.unzip(reportDirectoryFilePath);
                     String newFolderName = org.apache.commons.io.FilenameUtils.getName(testFolderPathFile.getPath());
-                    FileUtils.moveDirectory(new File(reportDirectory, IE_REPORT_FOLDER), new File(reportDirectory, newFolderName));
+                    FileUtils.moveDirectory(new File(reportDirectory, IE_REPORT_FOLDER),
+                            new File(reportDirectory, newFolderName));
                     tmpZipFile.delete();
                     outputReportFiles(reportNames, reportDirectory, testResult, false);
                 }
             }
         }
+    }
+
+    private void outputReportFiles(List<String> reportNames, File reportDirectory, TestResult testResult,
+                                   boolean tranSummary) throws IOException {
+
+        if (reportNames.size() <= 0) {
+            return;
+        }
+        String title = (tranSummary) ? "Transaction Summary" : "Performance Report";
+        String htmlFileName = (tranSummary) ? (TRANSACTION_REPORT_NAME + ".html") : "HTML.html";
+        File htmlIndexFile = new File(reportDirectory, INDEX_HTML_NAME);
+        BufferedWriter writer = new BufferedWriter(new FileWriter(htmlIndexFile));
+        writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n");
+        writer.write("<HTML><HEAD>\n");
+        writer.write("<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">\n");
+        writer.write(String.format("<TITLE>%s</TITLE>\n", title));
+        writer.write("</HEAD>\n");
+        writer.write("<BODY>\n");
+        writer.write(
+                "<table style=\"font-size:15px;width:100%;max-width:100%;border-left:1px solid #DDD;border-right:1px " +
+                        "solid #DDD;border-bottom:1px solid #DDD;\">\n");
+        writer.write(
+                "<tr style=\"background-color: #F1F1F1;\"><th style=\"padding:8px;line-height:1.42857;" +
+                        "vertical-align:top;border-top:1px solid #DDD;\">Name</th></tr>\n");
+        boolean rolling = true;
+        for (String report : reportNames) {
+            if (rolling) {
+                writer.write(String.format(
+                        "<tr style=\"background-color: #FFF;\"><td style=\"padding:8px;line-height:1.42857;" +
+                                "vertical-align:top;border-top:1px solid #DDD;" +
+                                "\"><a href=\"./%s/%s\">%s</a></td></tr>\n",
+                        report, htmlFileName, report));
+                rolling = false;
+            } else {
+                writer.write(String.format(
+                        "<tr style=\"background-color: #F1F1F1;\"><td style=\"padding:8px;line-height:1.42857;" +
+                                "vertical-align:top;border-top:1px solid #DDD;" +
+                                "\"><a href=\"./%s/%s\">%s</a></td></tr>\n",
+                        report, htmlFileName, report));
+                rolling = true;
+            }
+        }
+        writer.write("</table>\n");
+        writer.write("</BODY>\n");
+        writer.flush();
+        writer.close();
+
+        File indexFile = new File(reportDirectory, REPORT_INDEX_NAME);
+        writer = new BufferedWriter(new FileWriter(indexFile));
+
+        Iterator<SuiteResult> resultIterator = null;
+        if ((testResult != null) && (testResult.getSuites().size() > 0)) {
+            resultIterator = testResult.getSuites().iterator();//get the first
+        }
+        for (String report : reportNames) {
+            SuiteResult suitResult = null;
+            if ((resultIterator != null) && resultIterator.hasNext()) {
+                suitResult = resultIterator.next();
+            }
+            if (suitResult == null) {
+                writer.write(report + "\t##\t##\t##\n");
+            } else {
+                int iDuration = (int) suitResult.getDuration();
+                String duration = "";
+                if ((iDuration / 86400) > 0) {
+                    duration += String.format("%dday ", iDuration / 86400);
+                    iDuration = iDuration % 86400;
+                }
+                if ((iDuration / 3600) > 0) {
+                    duration += String.format("%02dhr ", iDuration / 3600);
+                    iDuration = iDuration % 3600;
+                } else if (!duration.isEmpty()) {
+                    duration += "00hr ";
+                }
+                if ((iDuration / 60) > 0) {
+                    duration += String.format("%02dmin ", iDuration / 60);
+                    iDuration = iDuration % 60;
+                } else if (!duration.isEmpty()) {
+                    duration += "00min ";
+                }
+                duration += String.format("%02dsec", iDuration);
+
+                int iPassCount = 0, iFailCount = 0;
+                for (Iterator i = suitResult.getCases().iterator(); i.hasNext(); ) {
+                    CaseResult caseResult = (CaseResult) i.next();
+                    iPassCount += caseResult.getPassCount();
+                    iFailCount += caseResult.getFailCount();
+                }
+                writer.write(
+                        String.format("%s\t%s\t%d\t%d\n",
+                                report,
+                                duration,
+                                iPassCount,
+                                iFailCount));
+            }
+        }
+        writer.flush();
+        writer.close();
     }
 
     private void createTransactionSummary(FilePath reportFolder,
@@ -989,12 +955,14 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         FilePath htmlReportPath = new FilePath(reportFolder, subFolder);
         if (htmlReportPath.exists()) {
             File reportDirectory = new File(artifactsDir.getParent(), TRANSACTION_SUMMARY_FOLDER);
-            if (!reportDirectory.exists())
+            if (!reportDirectory.exists()) {
                 reportDirectory.mkdir();
+            }
             String newFolderName = org.apache.commons.io.FilenameUtils.getName(testFolderPathFile.getPath());
             File testDirectory = new File(reportDirectory, newFolderName);
-            if (!testDirectory.exists())
+            if (!testDirectory.exists()) {
                 testDirectory.mkdir();
+            }
 
             FilePath dstReportPath = new FilePath(testDirectory);
             File dir = new File(htmlReportPath.toURI());
@@ -1021,109 +989,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         }
 
     }
-	
-    private void outputReportFiles(List<String> reportNames, File reportDirectory, TestResult testResult, boolean tranSummary) throws IOException {
-
-        if (reportNames.size() <= 0)
-            return;
-		String title = (tranSummary) ? "Transaction Summary" : "Performance Report";
-        String htmlFileName = (tranSummary) ? (TRANSACTION_REPORT_NAME + ".html") : "HTML.html";
-        File htmlIndexFile = new File(reportDirectory, INDEX_HTML_NAME);
-        BufferedWriter writer = new BufferedWriter(new FileWriter(htmlIndexFile));
-        writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n");
-        writer.write("<HTML><HEAD>\n");
-        writer.write("<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">\n");
-        writer.write(String.format("<TITLE>%s</TITLE>\n", title));
-        writer.write("</HEAD>\n");
-        writer.write("<BODY>\n");
-        writer.write("<table style=\"font-size:15px;width:100%;max-width:100%;border-left:1px solid #DDD;border-right:1px solid #DDD;border-bottom:1px solid #DDD;\">\n");
-        writer.write("<tr style=\"background-color: #F1F1F1;\"><th style=\"padding:8px;line-height:1.42857;vertical-align:top;border-top:1px solid #DDD;\">Name</th></tr>\n");
-        boolean rolling = true;
-        for (String report : reportNames) {
-            if (rolling) {
-                writer.write(String.format("<tr style=\"background-color: #FFF;\"><td style=\"padding:8px;line-height:1.42857;vertical-align:top;border-top:1px solid #DDD;\"><a href=\"./%s/%s\">%s</a></td></tr>\n", report, htmlFileName, report));
-                rolling = false;
-            } else {
-                writer.write(String.format("<tr style=\"background-color: #F1F1F1;\"><td style=\"padding:8px;line-height:1.42857;vertical-align:top;border-top:1px solid #DDD;\"><a href=\"./%s/%s\">%s</a></td></tr>\n", report, htmlFileName, report));
-                rolling = true;
-            }
-        }
-        writer.write("</table>\n");
-        writer.write("</BODY>\n");
-        writer.flush();
-        writer.close();
-
-        File indexFile = new File(reportDirectory, REPORT_INDEX_NAME);
-        writer = new BufferedWriter(new FileWriter(indexFile));
-
-        Iterator<SuiteResult> resultIterator = null;
-        if ((testResult != null) && (testResult.getSuites().size() > 0)) {
-            resultIterator = testResult.getSuites().iterator();//get the first
-        }
-        for (String report : reportNames) {
-            SuiteResult suitResult = null;
-            if ((resultIterator != null) && resultIterator.hasNext())
-                suitResult = resultIterator.next();
-            if (suitResult == null)
-                writer.write(report + "\t##\t##\t##\n");
-            else {
-                int iDuration = (int) suitResult.getDuration();
-                String duration = "";
-                if ((iDuration / 86400) > 0) {
-                    duration += String.format("%dday ", iDuration / 86400);
-                    iDuration = iDuration % 86400;
-                }
-                if ((iDuration / 3600) > 0) {
-                    duration += String.format("%02dhr ", iDuration / 3600);
-                    iDuration = iDuration % 3600;
-                } else if (!duration.isEmpty()) {
-                    duration += "00hr ";
-                }
-                if ((iDuration / 60) > 0) {
-                    duration += String.format("%02dmin ", iDuration / 60);
-                    iDuration = iDuration % 60;
-                } else if (!duration.isEmpty()) {
-                    duration += "00min ";
-                }
-                duration += String.format("%02dsec", iDuration);
-
-                int iPassCount = 0, iFailCount = 0;
-                for (Iterator i = suitResult.getCases().iterator(); i.hasNext(); ) {
-                    CaseResult caseResult = (CaseResult)i.next();
-                    iPassCount += caseResult.getPassCount();
-                    iFailCount += caseResult.getFailCount();
-                }
-                writer.write(
-                        String.format("%s\t%s\t%d\t%d\n", 
-                                report, 
-                                duration,
-                                iPassCount,
-                                iFailCount));
-            }
-        }
-        writer.flush();
-        writer.close();
-    }
-   
-    private void write2XML(Document document,String filename)
-    {
-        try {
-            document.normalize();
-
-            TransformerFactory tFactory = TransformerFactory.newInstance();
-            Transformer transformer = tFactory.newTransformer();
-            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-
-            DOMSource source = new DOMSource(document);
-            PrintWriter pw = new PrintWriter(new FileOutputStream(filename));
-            StreamResult result = new StreamResult(pw);
-            transformer.transform(source, result);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
 
     /*
      * if we have a directory with file name "file.zip" we will return
@@ -1131,18 +996,226 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
      */
     private String getUniqueZipFileNameInFolder(ArrayList<String> names, String fileName)
             throws IOException, InterruptedException {
-        
+
         String result = fileName + "_Report.zip";
-        
+
         int index = 0;
-        
+
         while (names.indexOf(result) > -1) {
             result = fileName + "_" + (++index) + "_Report.zip";
         }
-        
+
         return result;
     }
-    
+
+    private LrJobResults buildJobDataset(AbstractBuild<?, ?> build, BuildListener listener)
+            throws ParserConfigurationException, SAXException,
+            IOException, InterruptedException {
+        listener.getLogger().println(
+                "Starting the creation of test run dataset for graphing");
+        LrJobResults jobResults = new LrJobResults();
+
+        // read each RunReport.xml
+        for (FilePath reportFilePath : runReportList) {
+            JobLrScenarioResult jobLrScenarioResult = parseScenarioResults(reportFilePath);
+            jobResults.addScenario(jobLrScenarioResult);
+        }
+
+        return jobResults;
+    }
+
+    private JobLrScenarioResult parseScenarioResults(FilePath slaFilePath)
+            throws ParserConfigurationException, SAXException, IOException, InterruptedException {
+        JobLrScenarioResult jobLrScenarioResult = new JobLrScenarioResult(slaFilePath.getBaseName());
+
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+
+        Document doc = dBuilder.parse(slaFilePath.read());
+//		doc.getDocumentElement().normalize();
+
+        processSLA(jobLrScenarioResult, doc);
+        processScenarioStats(jobLrScenarioResult, doc);
+        //TODO: add fail / Pass count
+        return jobLrScenarioResult;
+    }
+
+    private void processScenarioStats(JobLrScenarioResult jobLrScenarioResult, Document doc) {
+
+        NodeList rootNodes = doc.getChildNodes();
+        Node root = getNode("Runs", rootNodes);
+        Element generalNode = (Element) getNode("General", root.getChildNodes());
+        NodeList generalNodeChildren = generalNode.getChildNodes();
+
+        Node vUser = getNode("VUsers", generalNodeChildren);
+        int atrrCount = vUser.getAttributes().getLength();
+        for (int atrrIndx = 0; atrrIndx < atrrCount; atrrIndx++) {
+            Node vUserAttr = vUser.getAttributes().item(atrrIndx);
+            jobLrScenarioResult.vUser.put(vUserAttr.getNodeName(), Integer.valueOf(vUserAttr.getNodeValue()));
+        }
+
+        Node transactions = getNode("Transactions", generalNodeChildren);
+        atrrCount = transactions.getAttributes().getLength();
+        for (int atrrIndx = 0; atrrIndx < atrrCount; atrrIndx++) {
+            Node vUserAttr = transactions.getAttributes().item(atrrIndx);
+            jobLrScenarioResult.transactionSum.put(vUserAttr.getNodeName(), Integer.valueOf(vUserAttr.getNodeValue()));
+        }
+
+        NodeList transactionNodes = transactions.getChildNodes();
+        int transactionNodesCount = transactionNodes.getLength();
+        for (int transIdx = 0; transIdx < transactionNodesCount; transIdx++) {
+            if (transactionNodes.item(transIdx).getNodeType() != Node.ELEMENT_NODE) {
+                continue;
+            }
+            Element transaction = (Element) transactionNodes.item(transIdx);
+            HashMap<String, Integer> transactionData = new HashMap<String, Integer>(0);
+            transactionData.put("Pass", Integer.valueOf(transaction.getAttribute("Pass")));
+            transactionData.put("Fail", Integer.valueOf(transaction.getAttribute("Fail")));
+            transactionData.put("Stop", Integer.valueOf(transaction.getAttribute("Stop")));
+            jobLrScenarioResult.transactionData.put(transaction.getAttribute("Name"), transactionData);
+        }
+
+        Node connections = getNode("Connections", generalNodeChildren);
+        jobLrScenarioResult.setConnectionMax(Integer.valueOf(getNodeAttr("MaxCount", connections)));
+
+    }
+
+    private void processSLA(JobLrScenarioResult jobLrScenarioResult, Document doc) {
+        Node timeRangeNode;
+        Node slaNode;
+        Node slaRuleNode;
+        Element slaElements;
+        Element slaRuleElement;
+        Element timeRangeElement;
+
+        NodeList rootNodes = doc.getChildNodes();
+        Node root = getNode("Runs", rootNodes);
+        Element slaRoot = (Element) getNode("SLA", root.getChildNodes());
+        NodeList slaRuleResults = slaRoot.getChildNodes();
+
+
+        for (int j = 0; j < slaRuleResults.getLength(); j++) {
+            slaRuleNode = slaRuleResults.item(j);
+            if (slaRuleNode.getNodeType() != Node.ELEMENT_NODE) {
+                continue;
+            }
+            slaRuleElement = (Element) slaRuleNode;
+            //check type by mesurment field:
+            LrTest.SLA_GOAL slaGoal = LrTest.SLA_GOAL.checkGoal(slaRuleElement.getAttribute("Measurement").toString());
+
+            processSlaRule(jobLrScenarioResult, slaRuleElement, slaGoal);
+        }
+
+    }
+
+    private void processSlaRule(JobLrScenarioResult jobLrScenarioResult, Element slaRuleElement,
+                                LrTest.SLA_GOAL slaGoal) {
+        switch (slaGoal) {
+            case AverageThroughput:
+                WholeRunResult averageThroughput = new WholeRunResult();
+                averageThroughput.setSlaGoal(LrTest.SLA_GOAL.AverageThroughput);
+                averageThroughput.setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
+                averageThroughput.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
+                averageThroughput.setFullName(slaRuleElement.getAttribute("FullName"));
+                averageThroughput.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
+                jobLrScenarioResult.scenarioSlaResults.add(averageThroughput);
+                break;
+            case TotalThroughput:
+                WholeRunResult totalThroughput = new WholeRunResult();
+                totalThroughput.setSlaGoal(LrTest.SLA_GOAL.TotalThroughput);
+                totalThroughput.setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
+                totalThroughput.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
+                totalThroughput.setFullName(slaRuleElement.getAttribute("FullName"));
+                totalThroughput.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
+                jobLrScenarioResult.scenarioSlaResults.add(totalThroughput);
+
+                break;
+            case AverageHitsPerSecond:
+                WholeRunResult averageHitsPerSecond = new WholeRunResult();
+                averageHitsPerSecond.setSlaGoal(LrTest.SLA_GOAL.AverageHitsPerSecond);
+                averageHitsPerSecond.setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
+                averageHitsPerSecond.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
+                averageHitsPerSecond.setFullName(slaRuleElement.getAttribute("FullName"));
+                averageHitsPerSecond.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
+//                            jobLrScenarioResult.averageHitsPerSecondResults = averageHitsPerSecond;
+                jobLrScenarioResult.scenarioSlaResults.add(averageHitsPerSecond);
+
+                break;
+            case TotalHits:
+                WholeRunResult totalHits = new WholeRunResult();
+                totalHits.setSlaGoal(LrTest.SLA_GOAL.TotalHits);
+                totalHits.setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
+                totalHits.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
+                totalHits.setFullName(slaRuleElement.getAttribute("FullName"));
+                totalHits.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
+                jobLrScenarioResult.scenarioSlaResults.add(totalHits);
+
+                break;
+            case ErrorsPerSecond:
+                TimeRangeResult errPerSec = new AvgTransactionResponseTime();
+                errPerSec.setSlaGoal(LrTest.SLA_GOAL.ErrorsPerSecond);
+                errPerSec.setFullName(slaRuleElement.getAttribute("FullName").toString());
+                errPerSec.setLoadThrashold(slaRuleElement.getAttribute("SLALoadThresholdValue").toString());
+                errPerSec.setStatus(LrTest.SLA_STATUS.checkStatus(
+                        slaRuleElement.getFirstChild().getTextContent())); //Might not work due to time ranges
+                addTimeRanges(errPerSec, slaRuleElement);
+                jobLrScenarioResult.scenarioSlaResults.add(errPerSec);
+
+                break;
+            case PercentileTRT:
+                PercentileTransactionWholeRun percentileTransactionWholeRun = new PercentileTransactionWholeRun();
+                percentileTransactionWholeRun.setSlaGoal(LrTest.SLA_GOAL.PercentileTRT);
+                percentileTransactionWholeRun.setName(slaRuleElement.getAttribute("TransactionName").toString());
+                percentileTransactionWholeRun
+                        .setActualValue(Double.valueOf(slaRuleElement.getAttribute("ActualValue")));
+                percentileTransactionWholeRun.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
+                percentileTransactionWholeRun.setFullName(slaRuleElement.getAttribute("FullName"));
+                percentileTransactionWholeRun.setPrecentage(Double.valueOf(slaRuleElement.getAttribute("Percentile")));
+                percentileTransactionWholeRun.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
+                jobLrScenarioResult.scenarioSlaResults.add(percentileTransactionWholeRun);
+
+                break;
+            case AverageTRT:
+                AvgTransactionResponseTime transactionTimeRange = new AvgTransactionResponseTime();
+                transactionTimeRange.setSlaGoal(LrTest.SLA_GOAL.AverageTRT);
+                transactionTimeRange.setName(slaRuleElement.getAttribute("TransactionName").toString());
+                transactionTimeRange.setFullName(slaRuleElement.getAttribute("FullName").toString());
+                transactionTimeRange.setLoadThrashold(slaRuleElement.getAttribute("SLALoadThresholdValue").toString());
+                transactionTimeRange.setStatus(LrTest.SLA_STATUS.checkStatus(
+                        slaRuleElement.getFirstChild().getTextContent())); //Might not work due to time ranges
+                addTimeRanges(transactionTimeRange, slaRuleElement);
+                jobLrScenarioResult.scenarioSlaResults.add(transactionTimeRange);
+                break;
+            case Bad:
+                break;
+        }
+    }
+
+    private static void addTimeRanges(TimeRangeResult transactionTimeRange, Element slaRuleElement) {
+        Node timeRangeNode;
+        Element timeRangeElement;
+        NodeList timeRanges = slaRuleElement.getElementsByTagName("TimeRangeInfo");
+
+        //Taking the goal per transaction -
+        double generalGoalValue = Double.valueOf(((Element) timeRanges.item(0)).getAttribute("GoalValue"));
+        transactionTimeRange.setGoalValue(generalGoalValue);
+
+        for (int k = 0; k < timeRanges.getLength(); k++) {
+            timeRangeNode = timeRanges.item(k);
+            timeRangeElement = (Element) timeRangeNode;
+            double actualValue = Double.valueOf(timeRangeElement.getAttribute("ActualValue"));
+            double goalValue = Double.valueOf(timeRangeElement.getAttribute("GoalValue"));
+            int loadValue = Integer.valueOf(timeRangeElement.getAttribute("LoadValue"));
+            double startTime = Double.valueOf(timeRangeElement.getAttribute("StartTime"));
+            double endTIme = Double.valueOf(timeRangeElement.getAttribute("EndTime"));
+            transactionTimeRange.incActualValue(actualValue);
+            LrTest.SLA_STATUS slaStatus =
+                    LrTest.SLA_STATUS.checkStatus(timeRangeElement.getFirstChild().getTextContent());
+            TimeRange timeRange = new TimeRange(actualValue, goalValue, slaStatus, loadValue, startTime, endTIme);
+            transactionTimeRange.timeRanges.add(timeRange);
+        }
+    }
+
     @Override
     public Action getProjectAction(AbstractProject<?, ?> project) {
         return new TestResultProjectAction(project);
@@ -1153,7 +1226,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         List<Action> actions = new ArrayList<Action>(0);
         actions.add(new TestResultProjectAction(project));
         actions.add(new PerformanceProjectAction(project));
-        return  actions;
+        return actions;
     }
 
     @Override
@@ -1161,67 +1234,66 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             MatrixBuild build,
             Launcher launcher,
             BuildListener listener) {
-        
+
         return new TestResultAggregator(build, launcher, listener);
     }
-    
+
     @Override
     public BuildStepMonitor getRequiredMonitorService() {
-        
+
         return BuildStepMonitor.BUILD;
     }
-    
+
     public ResultsPublisherModel getResultsPublisherModel() {
-        
+
         return _resultsPublisherModel;
     }
-    
+
     @Extension
     public static class DescriptorImpl extends BuildStepDescriptor<Publisher> {
-        
+
         public DescriptorImpl() {
-            
+
             load();
         }
-        
+
         @Override
         public String getDisplayName() {
-            
+
             return "Publish HP tests result";
         }
-        
+
         @Override
         public boolean isApplicable(
                 @SuppressWarnings("rawtypes") Class<? extends AbstractProject> jobType) {
-            
+
             return true;
         }
-        
+
         public List<EnumDescription> getReportArchiveModes() {
-            
+
             return ResultsPublisherModel.archiveModes;
         }
     }
 
-    public class RRVFileFilter implements FileFilter{
+    public class RRVFileFilter implements FileFilter {
         //"Act*;Icons;Resources;CountersMonitorResults.txt;*.xls;GeneralInfo.ini;InstallNewReport.html;Results.qtp;Results.xml";
         private final String[] excludedFilenames =
-                new String[] {"run_results.xml","run_results.html", "diffcompare", "Resources"};
+                new String[]{"run_results.xml", "run_results.html", "diffcompare", "Resources"};
         private final String[] excludedDirnames =
-                new String[] {"diffcompare", "Resources", "CheckPoints", "Snapshots"};
-        public boolean accept(File file)
-        {
+                new String[]{"diffcompare", "Resources", "CheckPoints", "Snapshots"};
+
+        public boolean accept(File file) {
             boolean bRet = true;
 
             for (String filename : excludedFilenames) {
-                if (file.getName().equals(filename)){
+                if (file.getName().equals(filename)) {
                     bRet = false;
                     break;
                 }
             }
 
-            if( bRet )
-            {
+            if (bRet) {
                 for (String parentname : excludedDirnames) {
                     if (file.getParent().contains(parentname)) {
                         bRet = false;

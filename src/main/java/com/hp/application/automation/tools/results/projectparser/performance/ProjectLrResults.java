@@ -1,26 +1,50 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2016 Hewlett-Packard Development Company, L.P.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
 package com.hp.application.automation.tools.results.projectparser.performance;
 
 import java.util.HashMap;
+import java.util.Map;
 
-/**
- * Created by kazaky on 12/07/2016.
- */
+
 public class ProjectLrResults extends LrRunResults {
+    private Map<String, LrProjectScenarioResults> _scenarioResults;
 
-    public HashMap<String, LrProjectScenarioResults> getLrScenarioResults() {
+    public ProjectLrResults() {
+        _scenarioResults = new HashMap<String, LrProjectScenarioResults>();
+    }
+
+    public Map<String, LrProjectScenarioResults> getScenarioResults() {
         return _scenarioResults;
-    } //TODO:
+    }
 
-    public HashMap<String, LrProjectScenarioResults> _scenarioResults = new HashMap<String, LrProjectScenarioResults>();
-
-    public LrProjectScenarioResults addScenrio(LrProjectScenarioResults scenario)
-    {
-        LrProjectScenarioResults jobLrScenarioResult = null;
-        if((jobLrScenarioResult = _scenarioResults.put(scenario.getScenarioName(),scenario)) != null)
-        {
-            _totalErrors += scenario.get_totalErrors();
-            _totalFailures += scenario.get_totalFailures();
-            _time += get_time();
+    public LrProjectScenarioResults addScenario(LrProjectScenarioResults scenario) {
+        LrProjectScenarioResults jobLrScenarioResult = _scenarioResults.put(scenario.getScenarioName(), scenario);
+        if (jobLrScenarioResult != null) {
+            _totalErrors += scenario.getTotalErrors();
+            _totalFailures += scenario.getTotalFailures();
+            _time += getTime();
         }
         return jobLrScenarioResult;
     }
