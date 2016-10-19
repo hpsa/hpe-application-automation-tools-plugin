@@ -36,6 +36,7 @@ import com.hp.application.automation.tools.results.projectparser.performance.Tim
 import com.hp.application.automation.tools.results.projectparser.performance.WholeRunResult;
 import hudson.model.AbstractProject;
 import hudson.model.Action;
+import hudson.model.Project;
 import hudson.model.Run;
 import hudson.util.RunList;
 import net.sf.json.JSONArray;
@@ -47,6 +48,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+
+import static com.hp.application.automation.tools.results.projectparser.performance.JobLrScenarioResult
+        .DEFAULT_CONNECTION_MAX;
 
 /**
  * The type Performance project action.
@@ -98,7 +102,7 @@ public class PerformanceProjectAction implements Action {
     /**
      * The Current project.
      */
-    public final AbstractProject<?, ?> currentProject;
+    public final Project<?, ?> currentProject;
     private ArrayList<LrJobResults> jobLrResults;
     private int lastBuildId = -1;
     private ArrayList<Integer> _workedBuilds;
@@ -115,7 +119,7 @@ public class PerformanceProjectAction implements Action {
         this._workedBuilds = new ArrayList<Integer>();
         this.jobLrResults = new ArrayList<LrJobResults>();
 
-        this.currentProject = project;
+        this.currentProject = (Project<?, ?>) project;
     }
 
     private void updateLastBuild() {
@@ -243,7 +247,8 @@ public class PerformanceProjectAction implements Action {
             return;
         }
 
-        _workedBuilds = new ArrayList<Integer>(); // TODO: remove after testing!
+        _workedBuilds = new ArrayList<Integer>();
+        // TODO: remove after testing!
 
         RunList<? extends Run> projectBuilds = currentProject.getBuilds();
 
@@ -258,14 +263,15 @@ public class PerformanceProjectAction implements Action {
                 continue;
             }
 
-            if (_workedBuilds.contains(run.getNumber())) {
+            int runNumber = run.getNumber();
+            if (_workedBuilds.contains(runNumber)) {
                 continue;
             }
 
-            _workedBuilds.add(run.getNumber());
+            _workedBuilds.add(runNumber);
             LrJobResults jobLrResult = performanceJobReportAction.getLrResultBuildDataset();
 
-            // get all the ran scenario results
+            // get all the ran scenario results from this run and insert them into the project
             for (Map.Entry<String, JobLrScenarioResult> runResult : jobLrResult.getLrScenarioResults().entrySet()) {
                 // add the scenario if it's the first time it's ran in this build (allows scenarios to be also added
                 // at diffrent time)
@@ -276,67 +282,100 @@ public class PerformanceProjectAction implements Action {
                 // Join the SLA rule results
                 LrProjectScenarioResults lrProjectScenarioResults =
                         _projectResult.getScenarioResults().get(runResult.getKey());
+
                 JobLrScenarioResult scenarioRunResult = runResult.getValue();
+
                 for (GoalResult goalResult : scenarioRunResult.scenarioSlaResults) {
-                    switch (goalResult.getSlaGoal()) {
-                        case AverageThroughput:
-                            lrProjectScenarioResults.averageThroughputResults
-                                    .put(run.getNumber(), (WholeRunResult) goalResult);
-                            break;
-                        case TotalThroughput:
-                            lrProjectScenarioResults.totalThroughtputResults
-                                    .put(run.getNumber(), (WholeRunResult) goalResult);
-                            break;
-                        case AverageHitsPerSecond:
-                            lrProjectScenarioResults.averageHitsPerSecondResults
-                                    .put(run.getNumber(), (WholeRunResult) goalResult);
-                            break;
-                        case TotalHits:
-                            lrProjectScenarioResults.totalHitsResults.put(run.getNumber(), (WholeRunResult) goalResult);
-                            break;
-                        case ErrorsPerSecond:
-                            lrProjectScenarioResults.errPerSecResults
-                                    .put(run.getNumber(), (TimeRangeResult) goalResult);
-                            break;
-                        case PercentileTRT:
-                            if (!lrProjectScenarioResults.percentileTransactionResults.containsKey(run.getNumber())) {
-                                lrProjectScenarioResults.percentileTransactionResults
-                                        .put(run.getNumber(), new HashMap<String, PercentileTransactionWholeRun>(0));
-                            }
-                            lrProjectScenarioResults.transactions
-                                    .add(((PercentileTransactionWholeRun) goalResult).getName());
-                            lrProjectScenarioResults.percentileTransactionResults.get(run.getNumber())
-                                    .put(((PercentileTransactionWholeRun) goalResult).getName(),
-                                            (PercentileTransactionWholeRun) goalResult);
-                            break;
-                        case AverageTRT:
-                            if (!lrProjectScenarioResults.avgTransactionResponseTimeResults
-                                    .containsKey(run.getNumber())) {
-                                lrProjectScenarioResults.avgTransactionResponseTimeResults
-                                        .put(run.getNumber(), new HashMap<String, AvgTransactionResponseTime>(0));
-                            }
-                            lrProjectScenarioResults.transactions
-                                    .add(((AvgTransactionResponseTime) goalResult).getName());
-                            lrProjectScenarioResults.avgTransactionResponseTimeResults.get(run.getNumber())
-                                    .put(((AvgTransactionResponseTime) goalResult).getName(),
-                                            (AvgTransactionResponseTime) goalResult);
-                            break;
-                        default:
-                            break;
-                    }
+                    scenarioGoalResult(runNumber, lrProjectScenarioResults, goalResult);
                 }
 
                 // Join sceanrio stats
+                int scenarioConnectionMax = scenarioRunResult.getConnectionMax();
+                if (scenarioConnectionMax != DEFAULT_CONNECTION_MAX) {
+                    lrProjectScenarioResults.maxConnectionsCount.put(runNumber, scenarioConnectionMax);
+                }
 
+
+                if (!scenarioRunResult.vUserSum.isEmpty()) {
+                    for (Map.Entry<String, Integer> vUserStat : scenarioRunResult.vUserSum.entrySet()) {
+                        Map<Integer, Map<String, Integer>> vUserPerRun = lrProjectScenarioResults.vUserPerRun;
+                        if (!vUserPerRun.containsKey(runNumber)) {
+                            vUserPerRun.put(runNumber, new HashMap<String, Integer>(0));
+                            LrProjectScenarioResults.vUserMapInit(vUserPerRun.get(runNumber));
+                        }
+
+                        vUserPerRun.get(runNumber).put(vUserStat.getKey(), vUserStat.getValue());
+                        int previousCount = lrProjectScenarioResults.vUserSummary.get(vUserStat.getKey());
+                        lrProjectScenarioResults.vUserSummary
+                                .put(vUserStat.getKey(), previousCount + vUserStat.getValue());
+                    }
+                }
             }
         }
     }
 
+    private void scenarioGoalResult(int runNumber, LrProjectScenarioResults lrProjectScenarioResults,
+                                    GoalResult goalResult) {
+        switch (goalResult.getSlaGoal()) {
+            case AverageThroughput:
+                lrProjectScenarioResults.averageThroughputResults
+                        .put(runNumber, (WholeRunResult) goalResult);
+                break;
+            case TotalThroughput:
+                lrProjectScenarioResults.totalThroughtputResults
+                        .put(runNumber, (WholeRunResult) goalResult);
+                break;
+            case AverageHitsPerSecond:
+                lrProjectScenarioResults.averageHitsPerSecondResults
+                        .put(runNumber, (WholeRunResult) goalResult);
+                break;
+            case TotalHits:
+                lrProjectScenarioResults.totalHitsResults.put(runNumber, (WholeRunResult) goalResult);
+                break;
+            case ErrorsPerSecond:
+                lrProjectScenarioResults.errPerSecResults
+                        .put(runNumber, (TimeRangeResult) goalResult);
+                break;
+            case PercentileTRT:
+                if (!lrProjectScenarioResults.percentileTransactionResults.containsKey(runNumber)) {
+                    lrProjectScenarioResults.percentileTransactionResults
+                            .put(runNumber, new HashMap<String, PercentileTransactionWholeRun>(0));
+                }
+                lrProjectScenarioResults.transactions
+                        .add(((PercentileTransactionWholeRun) goalResult).getName());
+                lrProjectScenarioResults.percentileTransactionResults.get(runNumber)
+                        .put(((PercentileTransactionWholeRun) goalResult).getName(),
+                                (PercentileTransactionWholeRun) goalResult);
+                break;
+            case AverageTRT:
+                if (!lrProjectScenarioResults.avgTransactionResponseTimeResults
+                        .containsKey(runNumber)) {
+                    lrProjectScenarioResults.avgTransactionResponseTimeResults
+                            .put(runNumber, new HashMap<String, AvgTransactionResponseTime>(0));
+                }
+                lrProjectScenarioResults.transactions
+                        .add(((AvgTransactionResponseTime) goalResult).getName());
+                lrProjectScenarioResults.avgTransactionResponseTimeResults.get(runNumber)
+                        .put(((AvgTransactionResponseTime) goalResult).getName(),
+                                (AvgTransactionResponseTime) goalResult);
+                break;
+            default:
+                break;
+        }
+    }
+
     private boolean isUpdateDataNeeded() {
-        int latestBuildNumber = currentProject.getLastBuild().getNumber();
-        if (lastBuildId == latestBuildNumber) {
+
+        final Run<?, ?> lastBuild = currentProject.getLastBuild();
+        if (null == lastBuild) {
+            return false;
+        }
+
+        int latestBuildNumber = lastBuild.getNumber();
+        if (latestBuildNumber == lastBuildId) {
             return true;
         }
+
         return false;
     }
 

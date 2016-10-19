@@ -27,6 +27,7 @@ package com.hp.application.automation.tools.results.projectparser.performance;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Data model for a project / build / pipeline that contains multiple runs per scenario being run.
@@ -34,29 +35,55 @@ import java.util.Map;
 public class LrProjectScenarioResults extends LrScenario {
 
     //Holds the data of an SLA rule per run for the whole Job
-    public HashMap<Integer, WholeRunResult> averageThroughputResults = new HashMap<Integer, WholeRunResult>(0);
-    public HashMap<Integer, WholeRunResult> totalThroughtputResults = new HashMap<Integer, WholeRunResult>(0);
-    public HashMap<Integer, WholeRunResult> averageHitsPerSecondResults = new HashMap<Integer, WholeRunResult>(0);
-    public HashMap<Integer, WholeRunResult> totalHitsResults = new HashMap<Integer, WholeRunResult>(0);
-    public HashMap<Integer, TimeRangeResult> errPerSecResults = new HashMap<Integer, TimeRangeResult>(0);
-    public HashMap<Integer, HashMap<String, PercentileTransactionWholeRun>> percentileTransactionResults = new HashMap<Integer, HashMap<String, PercentileTransactionWholeRun>>(0);
-    public HashMap<Integer, HashMap<String, AvgTransactionResponseTime>> avgTransactionResponseTimeResults = new HashMap<Integer, HashMap<String, AvgTransactionResponseTime>>(0);
+    public Map<Integer, WholeRunResult> averageThroughputResults;
+    public Map<Integer, WholeRunResult> totalThroughtputResults;
+    public Map<Integer, WholeRunResult> averageHitsPerSecondResults;
+    public Map<Integer, WholeRunResult> totalHitsResults;
+    public Map<Integer, TimeRangeResult> errPerSecResults;
+    public Map<Integer, HashMap<String, PercentileTransactionWholeRun>> percentileTransactionResults;
+    public Map<Integer, HashMap<String, AvgTransactionResponseTime>> avgTransactionResponseTimeResults;
 
     //Holds the data of a transactionss for the whole Job
-    public HashSet<String> transactions = new HashSet<String>(0);
+    public HashSet<String> transactions;
     //Holds the data of connections per run for the whole Job
-    public HashMap<Integer, Integer> maxConnectionsCount = new HashMap<Integer, Integer>(0);
+    public Map<Integer, Integer> maxConnectionsCount;
     //Holds the summary data of vuser status(count, fail, pass, error) for the whole Job
-    public Map<String, Integer> vUserSummary = new HashMap<String, Integer>(0);
+    public Map<String, Integer> vUserSummary;
     //Holds the summary data of vuser status(count, fail, pass, error) **per run** for the whole Job
-    public Map<Integer, Map<String, Integer>> vUserPerRun = new HashMap<Integer, Map<String, Integer>>(0);
+    public Map<Integer, Map<String, Integer>> vUserPerRun;
     //Holds the summary status data of transactions(count, fail, pass, error) for the whole Job
-    public Map<String, Integer> transactionSum = new HashMap<String, Integer>(0);
+    public Map<String, Integer> transactionSum;
     //Holds the summary data of transaction status(count, fail, pass, error) **per run** for the whole Job
-    public Map<String, HashMap<String, Integer>> transactionData = new HashMap<String, HashMap<String, Integer>>(0);
+    public Map<String, HashMap<String, Integer>> transactionData;
 
     public LrProjectScenarioResults(String scenarioName) {
         this.setScenrioName(scenarioName);
+        averageThroughputResults = new HashMap<Integer, WholeRunResult>(0);
+        totalThroughtputResults = new HashMap<Integer, WholeRunResult>(0);
+        averageHitsPerSecondResults = new HashMap<Integer, WholeRunResult>(0);
+        totalHitsResults = new HashMap<Integer, WholeRunResult>(0);
+        errPerSecResults = new HashMap<Integer, TimeRangeResult>(0);
+        percentileTransactionResults = new HashMap<Integer, HashMap<String, PercentileTransactionWholeRun>>(0);
+        avgTransactionResponseTimeResults = new HashMap<Integer, HashMap<String, AvgTransactionResponseTime>>(0);
+        transactions = new HashSet<String>(0);
+        maxConnectionsCount = new HashMap<Integer, Integer>(0);
+        vUserSummary = new HashMap<String, Integer>(0);
+        vUserMapInit(vUserSummary);
+        vUserPerRun = new HashMap<Integer, Map<String, Integer>>(0);
+        transactionData = new HashMap<String, HashMap<String, Integer>>(0);
+        transactionSum = new HashMap<String, Integer>(0);
+    }
+
+    /**
+     * initilize vuser maps with required values
+     * @param map
+     */
+    public static void vUserMapInit(Map<String, Integer> map)
+    {
+        map.put("Passed",0);
+        map.put("Stopped",0);
+        map.put("Failed",0);
+        map.put("Count",0);
     }
 
 }

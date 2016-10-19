@@ -37,6 +37,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+/**
+ * The type Lr graph utils.
+ */
 public class LrGraphUtils {
 
     private LrGraphUtils() {
@@ -109,6 +112,12 @@ public class LrGraphUtils {
         return datasets;
     }
 
+    /**
+     * Construct avg transaction graph.
+     *
+     * @param scenarioResults   the scenario results
+     * @param scenarioGraphData the scenario graph data
+     */
     static void constructAvgTransactionGraph(Map.Entry<String, LrProjectScenarioResults> scenarioResults,
                                              JSONObject scenarioGraphData) {
         Map<Integer, HashMap<String, AvgTransactionResponseTime>> avgTransactionResponseTimeResults =
@@ -159,6 +168,12 @@ public class LrGraphUtils {
         return graphDataSet;
     }
 
+    /**
+     * Construct error graph.
+     *
+     * @param scenarioResults   the scenario results
+     * @param scenarioGraphData the scenario graph data
+     */
     static void constructErrorGraph(Map.Entry<String, LrProjectScenarioResults> scenarioResults,
                                     JSONObject scenarioGraphData) {
         Map<Integer, TimeRangeResult> errPerSecResults = scenarioResults.getValue().errPerSecResults;
@@ -194,6 +209,12 @@ public class LrGraphUtils {
         return graphDataSet;
     }
 
+    /**
+     * Construct average throughput.
+     *
+     * @param scenarioResults   the scenario results
+     * @param scenarioGraphData the scenario graph data
+     */
     static void constructAverageThroughput(Map.Entry<String, LrProjectScenarioResults> scenarioResults,
                                            JSONObject scenarioGraphData) {
         Map<Integer, WholeRunResult> averageThroughputResults = scenarioResults.getValue().averageThroughputResults;
@@ -233,6 +254,12 @@ public class LrGraphUtils {
         return graphDataSet;
     }
 
+    /**
+     * Construct total throughput graph.
+     *
+     * @param scenarioResults   the scenario results
+     * @param scenarioGraphData the scenario graph data
+     */
     static void constructTotalThroughputGraph(Map.Entry<String, LrProjectScenarioResults> scenarioResults,
                                               JSONObject scenarioGraphData) {
         Map<Integer, WholeRunResult> totalThroughputResults = scenarioResults.getValue().totalThroughtputResults;
@@ -251,6 +278,12 @@ public class LrGraphUtils {
         }
     }
 
+    /**
+     * Construct avg hits graph.
+     *
+     * @param scenarioResults   the scenario results
+     * @param scenarioGraphData the scenario graph data
+     */
     static void constructAvgHitsGraph(Map.Entry<String, LrProjectScenarioResults> scenarioResults,
                                       JSONObject scenarioGraphData) {
         Map<Integer, WholeRunResult> avgHitsPerSec = scenarioResults.getValue().averageHitsPerSecondResults;
@@ -269,6 +302,12 @@ public class LrGraphUtils {
         }
     }
 
+    /**
+     * Construct total hits graph.
+     *
+     * @param scenarioResults   the scenario results
+     * @param scenarioGraphData the scenario graph data
+     */
     static void constructTotalHitsGraph(Map.Entry<String, LrProjectScenarioResults> scenarioResults,
                                         JSONObject scenarioGraphData) {
         Map<Integer, WholeRunResult> totalHitsResults = scenarioResults.getValue().totalHitsResults;

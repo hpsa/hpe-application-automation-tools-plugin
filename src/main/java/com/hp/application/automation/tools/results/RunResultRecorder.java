@@ -509,7 +509,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                                 reportFolder.zip(outstr);
 
 								/*
-								 * I did't use copyRecursiveTo or copyFrom due to
+                                 * I did't use copyRecursiveTo or copyFrom due to
 								 * bug in
 								 * jekins:https://issues.jenkins-ci.org/browse
 								 * /JENKINS-9189 //(which is cleaimed to have been
@@ -1051,7 +1051,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         int atrrCount = vUser.getAttributes().getLength();
         for (int atrrIndx = 0; atrrIndx < atrrCount; atrrIndx++) {
             Node vUserAttr = vUser.getAttributes().item(atrrIndx);
-            jobLrScenarioResult.vUser.put(vUserAttr.getNodeName(), Integer.valueOf(vUserAttr.getNodeValue()));
+            jobLrScenarioResult.vUserSum.put(vUserAttr.getNodeName(), Integer.valueOf(vUserAttr.getNodeValue()));
         }
 
         Node transactions = getNode("Transactions", generalNodeChildren);
@@ -1277,7 +1277,8 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
     }
 
     public class RRVFileFilter implements FileFilter {
-        //"Act*;Icons;Resources;CountersMonitorResults.txt;*.xls;GeneralInfo.ini;InstallNewReport.html;Results.qtp;Results.xml";
+        //"Act*;Icons;Resources;CountersMonitorResults.txt;*.xls;GeneralInfo.ini;InstallNewReport.html;Results.qtp;
+        // Results.xml";
         private final String[] excludedFilenames =
                 new String[]{"run_results.xml", "run_results.html", "diffcompare", "Resources"};
         private final String[] excludedDirnames =

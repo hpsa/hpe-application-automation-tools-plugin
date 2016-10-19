@@ -33,14 +33,20 @@ import java.util.Map;
  * Holds information on the SLA's of one scenario (per job / run / build)
  */
 public class JobLrScenarioResult extends LrScenario {
-    public ArrayList<GoalResult> scenarioSlaResults = new ArrayList<GoalResult>(0);
-    public Map<String, Integer> vUser = new HashMap<String, Integer>(0);
-    public Map<String, Integer> transactionSum = new HashMap<String, Integer>(0);
-    public Map<String, HashMap<String, Integer>> transactionData = new HashMap<String, HashMap<String, Integer>>(0);
+    public static final int DEFAULT_CONNECTION_MAX = -1;
+    public ArrayList<GoalResult> scenarioSlaResults;
+    public Map<String, Integer> vUserSum;
+    public Map<String, Integer> transactionSum;
+    public Map<String, HashMap<String, Integer>> transactionData;
     int connectionMax;
+
     public JobLrScenarioResult(String scenarioName) {
         super.setScenrioName(scenarioName);
-        connectionMax = 0;
+        connectionMax = DEFAULT_CONNECTION_MAX;
+        vUserSum = new HashMap<String, Integer>(0);
+        transactionSum = new HashMap<String, Integer>(0);
+        transactionData = new HashMap<String, HashMap<String, Integer>>(0);
+        scenarioSlaResults = new ArrayList<GoalResult>(0);
     }
 
     public int getConnectionMax() {
