@@ -22,7 +22,6 @@
 
 package com.hp.application.automation.tools.pipelineSteps;
 
-import com.hp.application.automation.tools.results.RunResultRecorder;
 import com.hp.application.automation.tools.run.RunFromFileBuilder;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -53,17 +52,17 @@ public class LrScenarioLoadStepExecution extends AbstractSynchronousNonBlockingS
   @StepContextParameter
   private transient Launcher launcher;
 
-  @Override
-  protected Void run() throws Exception {
-    listener.getLogger().println("Running LoadRunner Scenario step");
+    public LrScenarioLoadStepExecution() {
+        //no need for actual construction
+    }
 
-    step.getRunFromFileBuilder().perform(build, ws, launcher, listener);
-
-    HashMap<String, String> resultFilename = new HashMap<String, String>(0);
-    resultFilename.put(RunFromFileBuilder.class.getName(), step.getRunFromFileBuilder().getRunResultsFileName());
-
-    step.getRunResultRecorder().pipelinePerform(build, ws, launcher, listener, resultFilename);
-
-    return null;
-  }
+    @Override
+    protected Void run() throws Exception {
+        listener.getLogger().println("Running LoadRunner Scenario step");
+        step.getRunFromFileBuilder().perform(build, ws, launcher, listener);
+        HashMap<String, String> resultFilename = new HashMap<String, String>(0);
+        resultFilename.put(RunFromFileBuilder.class.getName(), step.getRunFromFileBuilder().getRunResultsFileName());
+        step.getRunResultRecorder().pipelinePerform(build, ws, launcher, listener, resultFilename);
+        return null;
+    }
 }

@@ -26,21 +26,6 @@
     <f:entry title="Tests" field="testPaths">
         <f:expandableTextbox name="runPipeline.testPaths" value="${instance.testPaths}"/>
     </f:entry>
-    <f:entry title="Timeout" field="fsTimeout">
-        <f:textbox name="runPipeline.fsTimeout" value="${instance.fsTimeout}" default=""/>
-    </f:entry>
-    <f:entry title="Controller Polling Interval" field="controllerPollingInterval">
-        <f:textbox name="runPipeline.controllerPollingInterval" value="${instance.controllerPollingInterval}"
-                   default="30"/>
-    </f:entry>
-    <f:entry title="Scenario Execution Timeout" field="perScenarioTimeOut">
-        <f:textbox name="runPipeline.perScenarioTimeOut" value="${instance.perScenarioTimeOut}"
-                   default="10"/>
-    </f:entry>
-    <f:entry title="Errors to Ignore" field="ignoreErrorStrings">
-        <f:textarea name="runPipeline.ignoreErrorStrings" value="${instance.ignoreErrorStrings}" default=""/>
-    </f:entry>
-
     <f:entry title="Report archive mode" field="archiveTestResultsMode">
         <select name="runPipeline.archiveTestResultsMode">
             <j:forEach var="archiveMode" items="${descriptor.reportArchiveModes}">
@@ -51,5 +36,22 @@
             </j:forEach>
         </select>
     </f:entry>
-
+    <f:section title="LoadRunner advanced Settings">
+        <f:advanced title="LoadRunner advanced Settings">
+            <f:entry title="Timeout" field="fsTimeout">
+                <f:textbox name="runPipeline.fsTimeout" value="${instance.fsTimeout}" default=""/>
+            </f:entry>
+            <f:entry title="Controller Polling Interval" field="controllerPollingInterval">
+                <f:textbox name="runPipeline.controllerPollingInterval" value="${instance.controllerPollingInterval}"
+                           default="30"/>
+            </f:entry>
+            <f:entry title="Scenario Execution Timeout" field="perScenarioTimeOut">
+                <f:textbox name="runPipeline.perScenarioTimeOut" value="${instance.perScenarioTimeOut}"
+                           default="10"/>
+            </f:entry>
+            <f:entry title="Errors to Ignore" field="ignoreErrorStrings">
+                <f:textarea name="runPipeline.ignoreErrorStrings" value="${instance.ignoreErrorStrings}" default=""/>
+            </f:entry>
+        </f:advanced>
+    </f:section>
 </j:jelly>
