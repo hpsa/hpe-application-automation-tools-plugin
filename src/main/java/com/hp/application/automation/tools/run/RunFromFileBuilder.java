@@ -402,10 +402,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		FilePath CmdLineExe;
 		try (InputStream propsStream = IOUtils.toInputStream(propsSerialization)) {
 
-			// get the remote workspace filesys
-			FilePath projectWS = workspace;
-
-			// Get the URL to the Script used to run the test, which is bundled
+            // Get the URL to the Script used to run the test, which is bundled
 			// in the plugin
 			@SuppressWarnings("squid:S2259")
 			URL cmdExeUrl = Jenkins.getInstance().pluginManager.uberClassLoader.getResource(HP_TOOLS_LAUNCHER_EXE);
@@ -421,9 +418,9 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 				return;
 			}
 
-			FilePath propsFileName = projectWS.child(ParamFileName);
-			CmdLineExe = projectWS.child(HP_TOOLS_LAUNCHER_EXE);
-			FilePath CmdLineExe2 = projectWS.child(LRANALYSIS_LAUNCHER_EXE);
+			FilePath propsFileName = workspace.child(ParamFileName);
+			CmdLineExe = workspace.child(HP_TOOLS_LAUNCHER_EXE);
+			FilePath CmdLineExe2 = workspace.child(LRANALYSIS_LAUNCHER_EXE);
 
 			try {
 				// create a file for the properties file, and save the properties

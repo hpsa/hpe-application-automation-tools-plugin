@@ -184,9 +184,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
         try {
             archiveTestsReport(build, listener, fileSystemResultNames, result, workspace);
-        } catch (ParserConfigurationException e) {
-            listener.error("Archiving test reports failed due to xml parsing error: " + e);
-        } catch (SAXException e) {
+        } catch (ParserConfigurationException | SAXException e) {
             listener.error("Archiving test reports failed due to xml parsing error: " + e);
         }
         publishLrReports(build);
