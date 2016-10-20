@@ -62,7 +62,7 @@ public class LrScenarioLoadStep extends AbstractStepImpl {
    *
    * @return the archive run test results mode
    */
-  public String getArchiveRunTestResultsMode() {
+  public String getArchiveTestResultsMode() {
     return runResultRecorder.getResultsPublisherModel().getArchiveTestResultsMode();
   }
 

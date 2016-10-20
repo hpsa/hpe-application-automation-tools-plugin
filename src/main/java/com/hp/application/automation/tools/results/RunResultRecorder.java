@@ -134,15 +134,19 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 	private void recordRunResults(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener, List<String> mergedResultNames,
 								  List<String> fileSystemResultNames) throws InterruptedException, IOException {
 
-		JUnitResultArchiver jUnitResultArchiver = new JUnitResultArchiver(mergedResultNames.get(0));
-		jUnitResultArchiver.setKeepLongStdio(true);
-		jUnitResultArchiver.perform(build, workspace, launcher, listener);
 
-		final TestResultAction tempAction = build.getAction(TestResultAction.class);
-		if (tempAction == null || tempAction.getResult() == null) {
-			// Since recording returned null - there no result to this test run to preform on
-			return;
-		}
+        for(String resultFile : mergedResultNames) {
+            JUnitResultArchiver jUnitResultArchiver = new JUnitResultArchiver(resultFile);
+            jUnitResultArchiver.setKeepLongStdio(true);
+            jUnitResultArchiver.perform(build, workspace, launcher, listener);
+        }
+
+        final TestResultAction tempAction = build.getAction(TestResultAction.class);
+        if (tempAction == null || tempAction.getResult() == null) {
+            // Since recording returned null - there no result to this test run to preform on
+            return;
+        }
+
 		TestResult result = tempAction.getResult();
 
 		try {

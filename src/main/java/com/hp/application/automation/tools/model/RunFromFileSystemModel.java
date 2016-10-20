@@ -27,8 +27,8 @@ public class RunFromFileSystemModel {
 	public static final String MOBILE_USE_SSL = "MobileUseSSL";
 	private String fsTests;
     private String fsTimeout;
-    private String controllerPollingInterval = "30";
-    private String perScenarioTimeOut = "10";
+    private String controllerPollingInterval;
+    private String perScenarioTimeOut;
     private String ignoreErrorStrings;
     private String mcServerName;
     private String fsUserName;
@@ -126,7 +126,10 @@ public class RunFromFileSystemModel {
             this.fsTests += "\n";
         }
 
-
+        //Init default vals
+        this.fsTimeout = "";
+        this.controllerPollingInterval = "30";
+        this.perScenarioTimeOut = "10";
     }
 
 

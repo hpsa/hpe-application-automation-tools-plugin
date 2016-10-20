@@ -4,24 +4,21 @@
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
             this will show up in the groovy snippet generator
             <f:entry title="Tests" field="testPaths">
-                <f:expandableTextbox name="runPipeline.testPaths"/>
-    </f:entry>
-            <f:entry title="Timeout" field="fsTimeout">
-                <f:textbox name="runPipeline.fsTimeout"/>
+                <f:expandableTextbox name="runPipeline.testPaths" value="${instance.testPaths}"/>
             </f:entry>
-            <f:advanced title="LoadRunner-Specific Settings">
-                <f:section title="LoadRunner Settings">
-                    <f:entry title="Controller Polling Interval" field="controllerPollingInterval">
-                        <f:textbox name="runPipeline.controllerPollingInterval" default="30"/>
-                    </f:entry>
-                    <f:entry title="Scenario Execution Timeout" field="perScenarioTimeOut">
-                        <f:textbox name="runPipeline.perScenarioTimeOut" default="10"/>
-                    </f:entry>
-                    <f:entry title="Errors to Ignore" field="ignoreErrorStrings">
-                        <f:textarea name="runPipeline.ignoreErrorStrings"  />
-                    </f:entry>
-                </f:section>
-            </f:advanced>
+            <f:entry title="Timeout" field="fsTimeout">
+                <f:textbox name="runPipeline.fsTimeout" value="${instance.fsTimeout}" default="" />
+            </f:entry>
+            <f:entry title="Controller Polling Interval" field="controllerPollingInterval">
+                <f:textbox name="runPipeline.controllerPollingInterval" value="${instance.controllerPollingInterval}" default="30"/>
+            </f:entry>
+            <f:entry title="Scenario Execution Timeout" field="perScenarioTimeOut">
+                <f:textbox name="runPipeline.perScenarioTimeOut" value="${instance.perScenarioTimeOut}"
+                           default="10"/>
+            </f:entry>
+            <f:entry title="Errors to Ignore" field="ignoreErrorStrings">
+                <f:textarea name="runPipeline.ignoreErrorStrings"  value="${instance.ignoreErrorStrings}" default="" />
+            </f:entry>
 
     <f:entry title="Report archive mode" field="archiveTestResultsMode">
         <select name="runPipeline.archiveTestResultsMode" >
