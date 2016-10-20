@@ -35,13 +35,12 @@ public class LrScenarioLoadStepExecution extends AbstractSynchronousNonBlockingS
   protected Void run() throws Exception {
     listener.getLogger().println("Running LoadRunner Scenario step");
 
-    RunResultRecorder runResultRecorder = new RunResultRecorder(step.isPublishResults(), step.getArchiveRunTestResultsMode());
     step.getRunFromFileBuilder().perform(build, ws, launcher, listener);
 
     HashMap<String, String> resultFilename = new HashMap<String, String>(0);
     resultFilename.put(RunFromFileBuilder.class.getName(), step.getRunFromFileBuilder().getRunResultsFileName());
 
-    runResultRecorder.pipelinePerform(build, ws, launcher, listener, resultFilename);
+    step.getRunResultRecorder().pipelinePerform(build, ws, launcher, listener, resultFilename);
 
     return null;
   }

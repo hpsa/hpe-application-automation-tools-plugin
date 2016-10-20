@@ -24,16 +24,13 @@
             </f:advanced>
 
     <f:entry title="Report archive mode" field="archiveRunTestResultsMode">
-
-    <!--<f:entry title="Report archive mode" field="archiveRunTestResultsMode">-->
-
-    <!--<select name="archiveRunTestResultsMode" >-->
-        <!--<j:forEach var="archiveMode" items="${descriptor.reportArchiveModes}">-->
-            <!--<f:option >-->
-                <!--${archiveMode.description}-->
-            <!--</f:option>-->
-        <!--</j:forEach>-->
-    <!--</select>-->
+    <select name="archiveRunTestResultsMode" >
+        <j:forEach var="archiveMode" items="${descriptor.reportArchiveModes}">
+            <f:option >
+                ${archiveMode.description}
+            </f:option>
+        </j:forEach>
+    </select>
     </f:entry>
 
 </j:jelly>

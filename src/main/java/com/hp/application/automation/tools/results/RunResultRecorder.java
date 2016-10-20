@@ -70,11 +70,10 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 	/**
 	 * Instantiates a new Run result recorder.
 	 *
-	 * @param publishResults         the publish results
 	 * @param archiveTestResultsMode the archive test results mode
 	 */
 	@DataBoundConstructor
-	public RunResultRecorder(boolean publishResults, String archiveTestResultsMode) {
+	public RunResultRecorder(String archiveTestResultsMode) {
 
 		_resultsPublisherModel = new ResultsPublisherModel(archiveTestResultsMode);
 	}
