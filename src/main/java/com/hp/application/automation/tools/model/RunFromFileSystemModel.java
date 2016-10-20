@@ -130,6 +130,7 @@ public class RunFromFileSystemModel {
         this.fsTimeout = "";
         this.controllerPollingInterval = "30";
         this.perScenarioTimeOut = "10";
+        this.ignoreErrorStrings = "";
     }
 
 
