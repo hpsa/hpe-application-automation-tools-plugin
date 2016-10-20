@@ -1,3 +1,25 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2016 Hewlett-Packard Development Company, L.P.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
 package com.hp.application.automation.tools.run;
 
 import com.hp.application.automation.tools.common.PcException;
@@ -15,12 +37,15 @@ import hudson.console.HyperlinkNote;
 import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
+import hudson.tasks.junit.JUnitResultArchiver;
 import hudson.util.FormValidation;
+import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.ClientProtocolException;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
+import javax.annotation.Nonnull;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import java.io.IOException;
@@ -35,7 +60,7 @@ import java.util.List;
 import static com.hp.application.automation.tools.pc.RunState.FINISHED;
 import static com.hp.application.automation.tools.pc.RunState.RUN_FAILURE;
 
-public class PcBuilder extends Builder {
+public class PcBuilder extends Builder implements SimpleBuildStep{
     
     private static final String artifactsDirectoryName = "archive";
     public static final String artifactsResourceName = "artifact";
@@ -104,26 +129,9 @@ public class PcBuilder extends Builder {
     
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
-            throws InterruptedException {
-        
-        Result resultStatus = Result.FAILURE;
-        //trendReportReady = false;
-        logger = listener.getLogger();
-        PcClient pcClient =new PcClient(pcModel, logger);
-        Testsuites testsuites = execute(pcClient, build);
+            throws InterruptedException, IOException {
+        perform(build, build.getWorkspace(), launcher, listener);
 
-//        // Create Trend Report
-//        if(trendReportReady){
-//            String reportUrlTemp = trendReportStructure.replaceFirst("%s/", "") + "/trendReport%s.pdf";
-//            String reportUrl = String.format(reportUrlTemp, artifactsResourceName, pcModel.getTrendReportId());
-//            pcClient.publishTrendReport(reportUrl, pcModel.getTrendReportId());
-//        }
-//        // End Create Trend Report
-        
-        FilePath resultsFilePath = build.getWorkspace().child(getJunitResultsFileName());
-        resultStatus = createRunResults(resultsFilePath, testsuites);
-        provideStepResultStatus(resultStatus, build);
-        
         return true;
     }
     
@@ -167,7 +175,7 @@ public class PcBuilder extends Builder {
         return statusBySLA;
     }
     
-    private Testsuites execute(PcClient pcClient, AbstractBuild<?, ?> build)
+    private Testsuites execute(PcClient pcClient, Run<?, ?> build)
             throws InterruptedException,NullPointerException {
         try {
             if (!StringUtils.isBlank(pcModel.getDescription()))
@@ -192,7 +200,7 @@ public class PcBuilder extends Builder {
     }
 
 
-    private Testsuites run(PcClient pcClient, AbstractBuild<?, ?> build)
+    private Testsuites run(PcClient pcClient, Run<?, ?> build)
             throws InterruptedException, ClientProtocolException,
             IOException, PcException {
         
@@ -221,11 +229,10 @@ public class PcBuilder extends Builder {
                     trendReportReady = true;
                 }
 
-            } else  if (RunState.get(response.getRunState()).ordinal() > FINISHED.ordinal()) {
+            } else if (response != null && RunState.get(response.getRunState()).ordinal() > FINISHED.ordinal()) {
                 PcRunEventLog eventLog = pcClient.getRunEventLog(runId);
                 eventLogString = buildEventLogString(eventLog);
             }
-
 
 
         } catch (PcException e) {
@@ -253,7 +260,7 @@ public class PcBuilder extends Builder {
         return validatePcForm() && pcClient.login();
     }
     
-    private String getReportDirectory(AbstractBuild<?, ?> build) {
+    private String getReportDirectory(Run<?, ?> build) {
         return String.format(
                 runReportStructure,
                 build.getRootDir().getPath(),
@@ -261,7 +268,7 @@ public class PcBuilder extends Builder {
                 runId);
     }
 
-    private String getTrendReportsDirectory(AbstractBuild<?, ?> build) {
+    private String getTrendReportsDirectory(Run<?, ?> build) {
         return String.format(
                 trendReportStructure,
                 build.getRootDir().getPath(),
@@ -270,6 +277,7 @@ public class PcBuilder extends Builder {
 
 
     @Override
+    @Deprecated
     public boolean perform(Build<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
         return super.perform(build, launcher, listener);
     }
@@ -339,9 +347,9 @@ public class PcBuilder extends Builder {
     }
     
     private Testsuites parsePcRunResponse(Testsuites ret,
-            PcRunResponse runResponse,
-            AbstractBuild<?, ?> build,
-            String errorMessage, String eventLogString) throws IOException, InterruptedException {
+                                          PcRunResponse runResponse,
+                                          Run<?, ?> build,
+                                          String errorMessage, String eventLogString) throws IOException, InterruptedException {
 
         RunState runState = RunState.get(runResponse.getRunState());
 
@@ -422,7 +430,7 @@ public class PcBuilder extends Builder {
         logger.println(String.format("Failure: %s %s", message ,eventLog));
     }
     
-    private String getOutputForReportLinks(AbstractBuild<?, ?> build) {
+    private String getOutputForReportLinks(Run<?, ?> build) {
         String urlPattern = getArtifactsUrlPattern(build);
         String viewUrl = String.format(urlPattern, pcReportFileName);
         String downloadUrl = String.format(urlPattern, "*zip*/pcRun" + runId);
@@ -431,7 +439,7 @@ public class PcBuilder extends Builder {
 
     }
     
-    private String getArtifactsUrlPattern(AbstractBuild<?, ?> build) {
+    private String getArtifactsUrlPattern(Run<?, ?> build) {
 
         String runReportUrlTemp = runReportStructure.replaceFirst("%s/", "");
         return String.format(
@@ -440,7 +448,7 @@ public class PcBuilder extends Builder {
                 runId + "/%s");
     }
     
-    private void provideStepResultStatus(Result resultStatus, AbstractBuild<?, ?> build) {
+    private void provideStepResultStatus(Result resultStatus, Run<?, ?> build) {
         String runIdStr =
                 (runId > 0) ? String.format(" (PC RunID: %s)", String.valueOf(runId)) : "";
         logger.println(String.format(
@@ -468,7 +476,7 @@ public class PcBuilder extends Builder {
                 ret = Result.UNSTABLE;
             }
             
-        } catch (Throwable cause) {
+        } catch (Exception cause) {
             logger.print(String.format(
                     "Failed to create run results, Exception: %s",
                     cause.getMessage()));
@@ -498,7 +506,33 @@ public class PcBuilder extends Builder {
         junitResultsFileName = String.format("Results%s.xml", time);
         return junitResultsFileName;
     }
-    
+
+    @Override
+    public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
+                        @Nonnull TaskListener listener) throws InterruptedException, IOException {
+        Result resultStatus = Result.FAILURE;
+        //trendReportReady = false;
+        logger = listener.getLogger();
+        PcClient pcClient = new PcClient(pcModel, logger);
+        Testsuites testsuites = execute(pcClient, build);
+
+//        // Create Trend Report
+//        if(trendReportReady){
+//            String reportUrlTemp = trendReportStructure.replaceFirst("%s/", "") + "/trendReport%s.pdf";
+//            String reportUrl = String.format(reportUrlTemp, artifactsResourceName, pcModel.getTrendReportId());
+//            pcClient.publishTrendReport(reportUrl, pcModel.getTrendReportId());
+//        }
+//        // End Create Trend Report
+
+        FilePath resultsFilePath = workspace.child(getJunitResultsFileName());
+        resultStatus = createRunResults(resultsFilePath, testsuites);
+        provideStepResultStatus(resultStatus, build);
+
+        JUnitResultArchiver jUnitResultArchiver = new JUnitResultArchiver(this.getRunResultsFileName());
+        jUnitResultArchiver.setKeepLongStdio(true);
+        jUnitResultArchiver.perform(build, workspace, launcher, listener);
+    }
+
     // This indicates to Jenkins that this is an implementation of an extension
     // point
     @Extension

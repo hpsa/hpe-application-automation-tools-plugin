@@ -21,7 +21,7 @@
 			<url>http://www.opensource.org/licenses/mit-license.php</url>
 			<distribution>repo</distribution>
 		</license>
-	</licenses>	
+	</licenses>
 
 	<properties>
 		<msbuild.exe>C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe</msbuild.exe>
@@ -237,6 +237,11 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>org.jenkins-ci.plugins.workflow</groupId>
+			<artifactId>workflow-aggregator</artifactId>
+			<version>${workflow.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
 			<version>4.5.2</version>
@@ -251,18 +256,11 @@
 			<artifactId>json-path</artifactId>
 			<version>1.1.0</version>
 		</dependency>
-       <dependency>
+		<dependency>
 			<groupId>org.jenkins-ci.plugins</groupId>
 			<artifactId>matrix-project</artifactId>
 			<version>1.6</version>
 		</dependency>
-
-		<dependency>
-			<groupId>org.jenkins-ci.main</groupId>
-			<artifactId>jenkins-test-harness</artifactId>
-			<version>1.642.3</version>
-		</dependency>
-
 		<dependency>
 			<groupId>org.jenkins-ci.plugins.workflow</groupId>
 			<artifactId>workflow-step-api</artifactId>
@@ -275,12 +273,7 @@
 			<classifier>tests</classifier>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.jenkins-ci.plugins.workflow</groupId>
-			<artifactId>workflow-aggregator</artifactId>
-			<version>${workflow.version}</version>
-			<scope>test</scope>
-		</dependency>
+
 		<dependency>
 			<groupId>org.jenkins-ci.plugins.workflow</groupId>
 			<artifactId>workflow-cps</artifactId>
@@ -292,20 +285,15 @@
 			<version>1.4</version>
 		</dependency>
 		<dependency>
-			<groupId>org.jenkins-ci.main</groupId>
-			<artifactId>cli</artifactId>
-			<version>2.19</version>
-		</dependency>
-		<dependency>
 			<groupId>org.jenkins-ci</groupId>
 			<artifactId>symbol-annotation</artifactId>
 			<version>1.4</version>
 		</dependency>
- 		<dependency>
-	      <groupId>org.jenkins-ci.plugins</groupId>
-	      <artifactId>credentials</artifactId>
-	      <version>2.1.4</version>
-	    </dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>credentials</artifactId>
+			<version>2.1.4</version>
+		</dependency>
 		<dependency>
 			<groupId>com.hp.sv</groupId>
 			<artifactId>SVConfigurator</artifactId>
@@ -316,6 +304,11 @@
 					<artifactId>commons-io</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>junit</artifactId>
+			<version>1.19</version>
 		</dependency>
 	</dependencies>
 </project>
