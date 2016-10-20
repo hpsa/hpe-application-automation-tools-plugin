@@ -53,7 +53,7 @@ public class LrScenarioLoadStep extends AbstractStepImpl {
    */
   @DataBoundConstructor
   public LrScenarioLoadStep(String testPaths, String archiveTestResultsMode) {
-    runFromFileBuilder = new RunFromFileBuilder(testPaths);
+    this.runFromFileBuilder = new RunFromFileBuilder(testPaths);
     this.runResultRecorder = new RunResultRecorder(archiveTestResultsMode);
   }
 
@@ -63,16 +63,7 @@ public class LrScenarioLoadStep extends AbstractStepImpl {
    * @return the archive run test results mode
    */
   public String getArchiveRunTestResultsMode() {
-    return ResultsPublisherModel.CreateHtmlReportResults.getValue();
-  }
-
-  /**
-   * Is publish results boolean.
-   *
-   * @return the boolean
-   */
-  public boolean isPublishResults() {
-    return true;
+    return runResultRecorder.getResultsPublisherModel().getArchiveTestResultsMode();
   }
 
   /**
