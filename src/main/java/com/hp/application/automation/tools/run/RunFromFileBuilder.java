@@ -47,6 +47,7 @@ import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Properties;
 
 /**
@@ -621,7 +622,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 			if (val1.length() > 0 && val1.charAt(0) == '-')
 				val1 = val1.substring(1);
 
-			if (!StringUtils.isNumeric(val1) && val1 != "") {
+			if (!StringUtils.isNumeric(val1) && !Objects.equals(val1, "")) {
 				return FormValidation.error("Timeout name must be a number");
 			}
 			return FormValidation.ok();

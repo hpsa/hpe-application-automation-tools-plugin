@@ -28,14 +28,18 @@ import com.hp.application.automation.tools.model.ResultsPublisherModel;
 import com.hp.application.automation.tools.results.RunResultRecorder;
 import com.hp.application.automation.tools.run.RunFromFileBuilder;
 import hudson.Extension;
+import hudson.util.FormValidation;
+import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.workflow.steps.AbstractStepDescriptorImpl;
 import org.jenkinsci.plugins.workflow.steps.AbstractStepImpl;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Load runner pipeline step
@@ -196,6 +200,87 @@ public class LrScenarioLoadStep extends AbstractStepImpl {
         public List<EnumDescription> getReportArchiveModes() {
 
             return ResultsPublisherModel.archiveModes;
+        }
+
+        /**
+         * Do check fs tests form validation.
+         *
+         * @param value the value
+         * @return the form validation
+         */
+        @SuppressWarnings("squid:S1172")
+        public FormValidation doCheckFsTests(@QueryParameter String value) {
+            return FormValidation.ok();
+        }
+
+        /**
+         * Do check ignore error strings form validation.
+         *
+         * @param value the value
+         * @return the form validation
+         */
+        @SuppressWarnings("squid:S1172")
+        public FormValidation doCheckIgnoreErrorStrings(@QueryParameter String value) {
+
+            return FormValidation.ok();
+        }
+
+        /**
+         * Do check fs timeout form validation.
+         *
+         * @param value the value
+         * @return the form validation
+         */
+        public FormValidation doCheckFsTimeout(@QueryParameter String value) {
+            if (StringUtils.isEmpty(value)) {
+                return FormValidation.ok();
+            }
+
+            String val1 = value.trim();
+            if (val1.length() > 0 && val1.charAt(0) == '-') {
+                val1 = val1.substring(1);
+            }
+
+            if (!StringUtils.isNumeric(val1) && !Objects.equals(val1, "")) {
+                return FormValidation.error("Timeout name must be a number");
+            }
+            return FormValidation.ok();
+        }
+
+        /**
+         * Do check controller polling interval form validation.
+         *
+         * @param value the value
+         * @return the form validation
+         */
+        public FormValidation doCheckControllerPollingInterval(@QueryParameter String value) {
+            if (StringUtils.isEmpty(value)) {
+                return FormValidation.ok();
+            }
+
+            if (!StringUtils.isNumeric(value)) {
+                return FormValidation.error("Controller Polling Interval must be a number");
+            }
+
+            return FormValidation.ok();
+        }
+
+        /**
+         * Do check per scenario time out form validation.
+         *
+         * @param value the value
+         * @return the form validation
+         */
+        public FormValidation doCheckPerScenarioTimeOut(@QueryParameter String value) {
+            if (StringUtils.isEmpty(value)) {
+                return FormValidation.ok();
+            }
+
+            if (!StringUtils.isNumeric(value)) {
+                return FormValidation.error("Per Scenario Timeout must be a number");
+            }
+
+            return FormValidation.ok();
         }
 
     }
