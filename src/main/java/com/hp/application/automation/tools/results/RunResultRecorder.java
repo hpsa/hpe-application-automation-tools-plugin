@@ -1,7 +1,15 @@
 // (c) Copyright 2012 Hewlett-Packard Development Company, L.P.
-// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-// The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+// documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+// to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+// The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+// the Software.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+// THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+// CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
 
 package com.hp.application.automation.tools.results;
 
@@ -77,84 +85,87 @@ import java.util.Map;
  */
 public class RunResultRecorder extends Recorder implements Serializable, MatrixAggregatable, SimpleBuildStep {
 
-	public static final String REPORT_NAME_FIELD = "report";
-	private static final long serialVersionUID = 1L;
-	private static final String PERFORMANCE_REPORT_FOLDER = "PerformanceReport";
-	private static final String IE_REPORT_FOLDER = "IE";
-	private static final String HTML_REPORT_FOLDER = "HTML";
-	private static final String INDEX_HTML_NAME = "index.html";
-	private static final String REPORT_INDEX_NAME = "report.index";
-	private static final String REPORTMETADATE_XML = "report_metadata.xml";
-	private static final String TRANSACTION_SUMMARY_FOLDER = "TransactionSummary";
-	private static final String TRANSACTION_REPORT_NAME = "Report3";
-	private final ResultsPublisherModel _resultsPublisherModel;
+    public static final String REPORT_NAME_FIELD = "report";
+    private static final long serialVersionUID = 1L;
+    private static final String PERFORMANCE_REPORT_FOLDER = "PerformanceReport";
+    private static final String IE_REPORT_FOLDER = "IE";
+    private static final String HTML_REPORT_FOLDER = "HTML";
+    private static final String INDEX_HTML_NAME = "index.html";
+    private static final String REPORT_INDEX_NAME = "report.index";
+    private static final String REPORTMETADATE_XML = "report_metadata.xml";
+    private static final String TRANSACTION_SUMMARY_FOLDER = "TransactionSummary";
+    private static final String TRANSACTION_REPORT_NAME = "Report3";
+    public static final int SECS_IN_DAY = 86400;
+    public static final int SECS_IN_HOUR = 3600;
+    public static final int SECS_IN_MINUTE = 60;
+    private final ResultsPublisherModel _resultsPublisherModel;
 
-	/**
-	 * Instantiates a new Run result recorder.
-	 *
-	 * @param archiveTestResultsMode the archive test results mode
-	 */
-	@DataBoundConstructor
-	public RunResultRecorder(String archiveTestResultsMode) {
+    /**
+     * Instantiates a new Run result recorder.
+     *
+     * @param archiveTestResultsMode the archive test results mode
+     */
+    @DataBoundConstructor
+    public RunResultRecorder(String archiveTestResultsMode) {
 
-		_resultsPublisherModel = new ResultsPublisherModel(archiveTestResultsMode);
-	}
+        _resultsPublisherModel = new ResultsPublisherModel(archiveTestResultsMode);
+    }
 
-	@Override
-	public DescriptorImpl getDescriptor() {
+    @Override
+    public DescriptorImpl getDescriptor() {
 
-		return (DescriptorImpl) super.getDescriptor();
-	}
+        return (DescriptorImpl) super.getDescriptor();
+    }
 
-	/**
-	 * Pipeline perform.
-	 *
-	 * @param build              the build
-	 * @param workspace          the workspace
-	 * @param launcher           the launcher
-	 * @param listener           the listener
-	 * @param builderResultNames the builder result names
-	 * @throws IOException          the io exception
-	 * @throws InterruptedException the interrupted exception
-	 */
-	// temporary solution to deal with lack of support in builder list when Project is replaced by job type in pipeline.
-	// Should be dealt with general refactoring - making this a job property or change folder structure to scan instead
-	// of passing file name from builder.
-	@SuppressWarnings("squid:S1160")
-	public void pipelinePerform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
-								@Nonnull TaskListener listener, @Nonnull Map<String, String> builderResultNames)
-			throws IOException, InterruptedException {
-		final List<String> mergedResultNames = new ArrayList<String>();
-		TaskListener _logger = listener;
+    /**
+     * Pipeline perform.
+     *
+     * @param build              the build
+     * @param workspace          the workspace
+     * @param launcher           the launcher
+     * @param listener           the listener
+     * @param builderResultNames the builder result names
+     * @throws IOException          the io exception
+     * @throws InterruptedException the interrupted exception
+     */
+    // temporary solution to deal with lack of support in builder list when Project is replaced by job type in pipeline.
+    // Should be dealt with general refactoring - making this a job property or change folder structure to scan instead
+    // of passing file name from builder.
+    @SuppressWarnings("squid:S1160")
+    public void pipelinePerform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
+                                @Nonnull TaskListener listener, @Nonnull Map<String, String> builderResultNames)
+            throws IOException, InterruptedException {
+        final List<String> mergedResultNames = new ArrayList<String>();
 
-		final List<String> fileSystemResultNames = new ArrayList<String>();
-		fileSystemResultNames.add(builderResultNames.get(RunFromFileBuilder.class.getName()));
+        final List<String> fileSystemResultNames = new ArrayList<String>();
+        fileSystemResultNames.add(builderResultNames.get(RunFromFileBuilder.class.getName()));
 
-		mergedResultNames.addAll(builderResultNames.values());
+        mergedResultNames.addAll(builderResultNames.values());
 
-		if (mergedResultNames.isEmpty()) {
-			listener.getLogger().println("RunResultRecorder: no results xml File provided");
-			return;
-		}
+        if (mergedResultNames.isEmpty()) {
+            listener.getLogger().println("RunResultRecorder: no results xml File provided");
+            return;
+        }
 
-		recordRunResults(build, workspace, launcher, listener, mergedResultNames, fileSystemResultNames);
-		return;
-	}
+        recordRunResults(build, workspace, launcher, listener, mergedResultNames, fileSystemResultNames);
+        return;
+    }
 
-	/**
-	 * Records LR test results copied in JUnit format
-	 *
-	 * @param build
-	 * @param workspace
-	 * @param launcher
-	 * @param listener
-	 * @param mergedResultNames
-	 * @param fileSystemResultNames
-	 * @throws InterruptedException
-	 * @throws IOException
-	 */
-	private void recordRunResults(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener, List<String> mergedResultNames,
-								  List<String> fileSystemResultNames) throws InterruptedException, IOException {
+    /**
+     * Records LR test results copied in JUnit format
+     *
+     * @param build
+     * @param workspace
+     * @param launcher
+     * @param listener
+     * @param mergedResultNames
+     * @param fileSystemResultNames
+     * @throws InterruptedException
+     * @throws IOException
+     */
+    private void recordRunResults(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
+                                  @Nonnull TaskListener listener, List<String> mergedResultNames,
+                                  List<String> fileSystemResultNames) throws InterruptedException, IOException {
 
 
         for (String resultFile : mergedResultNames) {
@@ -769,19 +780,19 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 int iDuration = (int) suitResult.getDuration();
                 StringBuilder bld = new StringBuilder();
                 String duration = "";
-                if ((iDuration / 86400) > 0) {
-                    bld.append(String.format("%dday ", iDuration / 86400));
-                    iDuration = iDuration % 86400;
+                if ((iDuration / SECS_IN_DAY) > 0) {
+                    bld.append(String.format("%dday ", iDuration / SECS_IN_DAY));
+                    iDuration = iDuration % SECS_IN_DAY;
                 }
-                if ((iDuration / 3600) > 0) {
-                    bld.append(String.format("%02dhr ", iDuration / 3600));
-                    iDuration = iDuration % 3600;
+                if ((iDuration / SECS_IN_HOUR) > 0) {
+                    bld.append(String.format("%02dhr ", iDuration / SECS_IN_HOUR));
+                    iDuration = iDuration % SECS_IN_HOUR;
                 } else if (!duration.isEmpty()) {
                     bld.append("00hr ");
                 }
-                if ((iDuration / 60) > 0) {
-                    bld.append(String.format("%02dmin ", iDuration / 60));
-                    iDuration = iDuration % 60;
+                if ((iDuration / SECS_IN_MINUTE) > 0) {
+                    bld.append(String.format("%02dmin ", iDuration / SECS_IN_MINUTE));
+                    iDuration = iDuration % SECS_IN_MINUTE;
                 } else if (!duration.isEmpty()) {
                     bld.append("00min ");
                 }
@@ -881,7 +892,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
     @Override
     public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
                         @Nonnull TaskListener listener) throws InterruptedException, IOException {
-        TaskListener _logger = listener;
         final List<String> mergedResultNames = new ArrayList<String>();
 
         Project<?, ?> project = RuntimeUtils.cast(build.getParent());
