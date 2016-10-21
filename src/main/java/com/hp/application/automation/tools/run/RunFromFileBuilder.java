@@ -1,4 +1,4 @@
-// (c) Copyright 2012 Hewlett-Packard Development Company, L.P. 
+// (c) Copyright 2012 Hewlett-Packard Development Company, L.P.
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 // The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
@@ -13,8 +13,16 @@ import com.hp.application.automation.tools.model.ProxySettings;
 import com.hp.application.automation.tools.model.RunFromFileSystemModel;
 import com.hp.application.automation.tools.run.AlmRunTypes.RunType;
 import com.hp.application.automation.tools.settings.MCServerSettingsBuilder;
-import hudson.*;
-import hudson.model.*;
+import hudson.EnvVars;
+import hudson.Extension;
+import hudson.FilePath;
+import hudson.Launcher;
+import hudson.Util;
+import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
+import hudson.model.Result;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
@@ -39,6 +47,7 @@ import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Properties;
 
 /**
@@ -394,10 +403,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		FilePath CmdLineExe;
 		try (InputStream propsStream = IOUtils.toInputStream(propsSerialization)) {
 
-			// get the remote workspace filesys
-			FilePath projectWS = workspace;
-
-			// Get the URL to the Script used to run the test, which is bundled
+            // Get the URL to the Script used to run the test, which is bundled
 			// in the plugin
 			@SuppressWarnings("squid:S2259")
 			URL cmdExeUrl = Jenkins.getInstance().pluginManager.uberClassLoader.getResource(HP_TOOLS_LAUNCHER_EXE);
@@ -413,9 +419,9 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 				return;
 			}
 
-			FilePath propsFileName = projectWS.child(ParamFileName);
-			CmdLineExe = projectWS.child(HP_TOOLS_LAUNCHER_EXE);
-			FilePath CmdLineExe2 = projectWS.child(LRANALYSIS_LAUNCHER_EXE);
+			FilePath propsFileName = workspace.child(ParamFileName);
+			CmdLineExe = workspace.child(HP_TOOLS_LAUNCHER_EXE);
+			FilePath CmdLineExe2 = workspace.child(LRANALYSIS_LAUNCHER_EXE);
 
 			try {
 				// create a file for the properties file, and save the properties
@@ -616,7 +622,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 			if (val1.length() > 0 && val1.charAt(0) == '-')
 				val1 = val1.substring(1);
 
-			if (!StringUtils.isNumeric(val1) && val1 != "") {
+			if (!StringUtils.isNumeric(val1) && !Objects.equals(val1, "")) {
 				return FormValidation.error("Timeout name must be a number");
 			}
 			return FormValidation.ok();
