@@ -25,6 +25,7 @@ package com.hp.application.automation.tools.run;
 import com.hp.application.automation.tools.common.PcException;
 import com.hp.application.automation.tools.model.PcModel;
 import com.hp.application.automation.tools.model.PostRunAction;
+import com.hp.application.automation.tools.model.SecretContainer;
 import com.hp.application.automation.tools.model.TimeslotDuration;
 import com.hp.application.automation.tools.pc.*;
 import com.hp.application.automation.tools.sse.result.model.junit.Error;
@@ -42,6 +43,7 @@ import hudson.util.FormValidation;
 import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.ClientProtocolException;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
@@ -76,6 +78,11 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     public static final String    ERROR           = "Error";
     
     private final PcModel pcModel;
+
+
+    private final String almPassword;
+    private final String timeslotDurationHours;
+    private final String timeslotDurationMinutes;
     private final boolean statusBySLA;
     private int runId;
     private FilePath pcReportFile;
@@ -100,7 +107,10 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             String description,
             boolean addRunToTrendReport,
             String trendReportId) {
-        
+        this.almUserName = almUserName;
+        this.almPassword = almPassword;
+        this.timeslotDurationHours = timeslotDurationHours;
+        this.timeslotDurationMinutes = timeslotDurationMinutes;
         this.statusBySLA = statusBySLA;
         
         pcModel =
@@ -169,12 +179,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         
         return pcReportFileName;
     }
-    
-    public boolean isStatusBySLA() {
-        
-        return statusBySLA;
-    }
-    
+
     private Testsuites execute(PcClient pcClient, Run<?, ?> build)
             throws InterruptedException,NullPointerException {
         try {
@@ -528,14 +533,89 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         resultStatus = createRunResults(resultsFilePath, testsuites);
         provideStepResultStatus(resultStatus, build);
 
+        if (!Result.SUCCESS.equals(resultStatus) && !Result.FAILURE.equals(resultStatus)) {
+            return;
+        }
+        //Only do this if build worked (Not unstable or aborted - which might mean there is no report
         JUnitResultArchiver jUnitResultArchiver = new JUnitResultArchiver(this.getRunResultsFileName());
         jUnitResultArchiver.setKeepLongStdio(true);
         jUnitResultArchiver.perform(build, workspace, launcher, listener);
+
+    }
+
+    public String getPcServerName()
+    {
+        return getPcModel().getPcServerName();
+    }
+
+    public String getAlmProject()
+    {
+        return getPcModel().getAlmProject();
+    }
+    public String getTestId()
+    {
+        return getPcModel().getTestId();
+    }
+    public String getAlmDomain()
+    {
+        return getPcModel().getAlmDomain();
+    }
+    public String getTimeslotDurationHours()
+    {
+        return timeslotDurationHours;
+    }
+    public String getTimeslotDurationMinutes()
+    {
+        return timeslotDurationMinutes;
+    }
+    public PostRunAction getPostRunAction()
+    {
+        return getPcModel().getPostRunAction();
+    }
+
+    public String getTrendReportId()
+    {
+        return getPcModel().getTrendReportId();
+    }
+
+    public String getTestInstanceId()
+    {
+        return getPcModel().getTestInstanceId();
+    }
+
+
+    public boolean isAddRunToTrendReport()
+    {
+        return getPcModel().isAddRunToTrendReport();
+    }
+
+    public boolean isVudsMode()
+    {
+        return getPcModel().isVudsMode();
+    }
+
+    public String getDescription()
+    {
+        return getPcModel().getDescription();
+    }
+    public String getAlmUserName() {
+        return almUserName;
+    }
+
+    private final String almUserName;
+
+    public String getAlmPassword() {
+        return almPassword;
+    }
+
+    public boolean isStatusBySLA() {
+        return statusBySLA;
     }
 
     // This indicates to Jenkins that this is an implementation of an extension
     // point
     @Extension
+    @Symbol("pcBuild")
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
         
         public DescriptorImpl() {
