@@ -25,6 +25,7 @@
 package com.hp.application.automation.tools.results;
 
 import com.hp.application.automation.tools.results.projectparser.performance.JobLrScenarioResult;
+import com.hp.application.automation.tools.results.projectparser.performance.LrJobResults;
 import hudson.FilePath;
 import org.junit.After;
 import org.junit.Before;
@@ -33,6 +34,8 @@ import org.junit.Test;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.hp.application.automation.tools.model.ResultsPublisherModel.CreateHtmlReportResults;
 import static org.junit.Assert.assertEquals;
@@ -364,7 +367,41 @@ try {
 } catch(InvocationTargetException e) { 
 } 
 */ 
-} 
+}
+
+
+@Test
+public void testCreatingJobDataSet()
+{
+    try {
+    RunResultRecorder runResultRecorder = new RunResultRecorder(true, CreateHtmlReportResults.getValue());
+    Method parseScenarioResults = runResultRecorder.getClass().getDeclaredMethod("parseScenarioResults", FilePath.class);
+    parseScenarioResults.setAccessible(true);
+
+    ArrayList<FilePath> runReportList = new ArrayList<FilePath>(0);
+    runReportList.add(new FilePath(new File(getClass().getResource("RunReport.xml").getPath())));
+    runReportList.add(new FilePath(new File(getClass().getResource("RunReport_sc5.xml").getPath())));
+        LrJobResults jobResults = new LrJobResults();
+
+    // read each RunReport.xml
+    for (FilePath reportFilePath : runReportList) {
+        JobLrScenarioResult result = null;
+        JobLrScenarioResult jobLrScenarioResult = (JobLrScenarioResult) parseScenarioResults.invoke(runResultRecorder,
+                reportFilePath);
+        jobResults.addScenario(jobLrScenarioResult);
+    }
+    System.out.println("");
+    } catch(NoSuchMethodException e) {
+        e.printStackTrace();
+    } catch(IllegalAccessException e) {
+        e.printStackTrace();
+
+    } catch(InvocationTargetException e) {
+        e.printStackTrace();
+    }
+
+
+}
 
 /** 
 * 
@@ -392,13 +429,11 @@ public void testParseScenarioResults() throws Exception {
 	}
 
     assertNotNull("RunResult parser result is empty", result);
-    assertEquals(Integer.valueOf(344), result.vUser.get("Passed"));
-    assertEquals(Integer.valueOf(364), result.vUser.get("Stopped"));
-    assertEquals(Integer.valueOf(292), result.vUser.get("Failed"));
-    assertEquals(Integer.valueOf(0), result.vUser.get("Error"));
-    assertEquals(Integer.valueOf(1000), result.vUser.get("Count"));
-
-
+    assertEquals(Integer.valueOf(344), result.vUserSum.get("Passed"));
+    assertEquals(Integer.valueOf(364), result.vUserSum.get("Stopped"));
+    assertEquals(Integer.valueOf(292), result.vUserSum.get("Failed"));
+    assertEquals(Integer.valueOf(0), result.vUserSum.get("Error"));
+    assertEquals(Integer.valueOf(1000), result.vUserSum.get("Count"));
 
 
 } 

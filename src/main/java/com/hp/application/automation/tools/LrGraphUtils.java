@@ -40,7 +40,46 @@ import java.util.Map;
 /**
  * The type Lr graph utils.
  */
-public class LrGraphUtils {
+public final class LrGraphUtils {
+
+    /**
+     * The constant X_AXIS_TITLE.
+     */
+    private static final String X_AXIS_TITLE = "x_axis_title";
+    /**
+     * The constant Y_AXIS_TITLE.
+     */
+    private static final String Y_AXIS_TITLE = "y_axis_title";
+    /**
+     * The constant DESCRIPTION.
+     */
+    private static final String DESCRIPTION = "description";
+    /**
+     * The constant TITLE.
+     */
+    private static final String TITLE = "title";
+    /**
+     * The constant LABELS.
+     */
+    private static final String LABELS = "labels";
+    /**
+     * The constant BUILD_NUMBER.
+     */
+    private static final String BUILD_NUMBER = "Build number";
+    /**
+     * The constant PERCENTILE_TRANSACTION_RESPONSE_TIME.
+     */
+    private static final String PERCENTILE_TRANSACTION_RESPONSE_TIME = "Percentile Transaction Response TIme";
+    /**
+     * The constant TRANSACTIONS_RESPONSE_TIME_SECONDS.
+     */
+    private static final String TRANSACTIONS_RESPONSE_TIME_SECONDS = "Transactions response time (Seconds)";
+    private static final String PRECENTILE_GRAPH_DESCRIPTION =
+            "Displays the average time taken to perform transactions during each second of the load test." +
+                    " This graph helps you determine whether the performance of the server is within " +
+                    "acceptable minimum and maximum transaction performance time ranges defined for your " +
+                    "system.";
+    public static final String SERIES = "series";
 
     private LrGraphUtils() {
     }
@@ -58,15 +97,15 @@ public class LrGraphUtils {
         JSONObject percentileTransactionResultsGraphSet =
                 extractPercentileTransactionSet(percentileTransactionResults,
                         scenarioResults.getValue().transactions);
-        if (percentileTransactionResultsGraphSet.getJSONArray(PerformanceProjectAction.LABELS).isEmpty()) {
+        if (percentileTransactionResultsGraphSet.getJSONArray(LABELS).isEmpty()) {
             percentileTransactionResultsGraphSet
-                    .put(PerformanceProjectAction.TITLE, PerformanceProjectAction.PERCENTILE_TRANSACTION_RESPONSE_TIME);
+                    .put(TITLE, PERCENTILE_TRANSACTION_RESPONSE_TIME);
             percentileTransactionResultsGraphSet
-                    .put(PerformanceProjectAction.X_AXIS_TITLE, PerformanceProjectAction.BUILD_NUMBER);
-            percentileTransactionResultsGraphSet.put(PerformanceProjectAction.Y_AXIS_TITLE,
-                    PerformanceProjectAction.TRANSACTIONS_RESPONSE_TIME_SECONDS);
+                    .put(X_AXIS_TITLE, BUILD_NUMBER);
+            percentileTransactionResultsGraphSet.put(Y_AXIS_TITLE,
+                    TRANSACTIONS_RESPONSE_TIME_SECONDS);
             percentileTransactionResultsGraphSet
-                    .put(PerformanceProjectAction.DESCRIPTION, PerformanceProjectAction.PRECENTILE_GRAPH_DESCRIPTION);
+                    .put(DESCRIPTION, PRECENTILE_GRAPH_DESCRIPTION);
             scenarioGraphData.put("percentileTransaction", percentileTransactionResultsGraphSet);
         }
     }
@@ -93,8 +132,8 @@ public class LrGraphUtils {
             }
         }
 
-        graphDataSet.put(PerformanceProjectAction.LABELS, labels);
-        graphDataSet.put("series", createGraphDatasets(percentileTrtData));
+        graphDataSet.put(LABELS, labels);
+        graphDataSet.put(SERIES, createGraphDatasets(percentileTrtData));
 
         return graphDataSet;
     }
@@ -124,12 +163,12 @@ public class LrGraphUtils {
                 scenarioResults.getValue().avgTransactionResponseTimeResults;
         JSONObject avgTransactionResponseTimeGraphSet =
                 extractAvgTrtData(avgTransactionResponseTimeResults, scenarioResults.getValue().transactions);
-        if (avgTransactionResponseTimeGraphSet.getJSONArray(PerformanceProjectAction.LABELS).isEmpty()) {
-            avgTransactionResponseTimeGraphSet.put(PerformanceProjectAction.TITLE, "Average Transaction Response TIme");
-            avgTransactionResponseTimeGraphSet.put(PerformanceProjectAction.X_AXIS_TITLE, "Build number");
+        if (avgTransactionResponseTimeGraphSet.getJSONArray(LABELS).isEmpty()) {
+            avgTransactionResponseTimeGraphSet.put(TITLE, "Average Transaction Response TIme");
+            avgTransactionResponseTimeGraphSet.put(X_AXIS_TITLE, "Build number");
             avgTransactionResponseTimeGraphSet
-                    .put(PerformanceProjectAction.Y_AXIS_TITLE, "Average response time (Seconds)");
-            avgTransactionResponseTimeGraphSet.put(PerformanceProjectAction.DESCRIPTION,
+                    .put(Y_AXIS_TITLE, "Average response time (Seconds)");
+            avgTransactionResponseTimeGraphSet.put(DESCRIPTION,
                     "Displays the average time taken to perform transactions during each second of the load test." +
                             " This graph helps you determine whether the performance of the server is within " +
                             "acceptable minimum and maximum transaction performance time ranges defined for your " +
@@ -162,9 +201,9 @@ public class LrGraphUtils {
             }
         }
 
-        graphDataSet.put(PerformanceProjectAction.LABELS, labels);
+        graphDataSet.put(LABELS, labels);
         JSONArray datasets = createGraphDatasets(averageTRTData);
-        graphDataSet.put("series", datasets);
+        graphDataSet.put(SERIES, datasets);
         return graphDataSet;
     }
 
@@ -179,11 +218,11 @@ public class LrGraphUtils {
         Map<Integer, TimeRangeResult> errPerSecResults = scenarioResults.getValue().errPerSecResults;
         JSONObject errPerSecResultsResultsGraphSet =
                 extractTimeRangeResult(errPerSecResults);
-        if (errPerSecResultsResultsGraphSet.getJSONArray(PerformanceProjectAction.LABELS).isEmpty()) {
-            errPerSecResultsResultsGraphSet.put(PerformanceProjectAction.TITLE, "Total errors per second");
-            errPerSecResultsResultsGraphSet.put(PerformanceProjectAction.X_AXIS_TITLE, "Build number");
-            errPerSecResultsResultsGraphSet.put(PerformanceProjectAction.Y_AXIS_TITLE, "Errors count");
-            errPerSecResultsResultsGraphSet.put(PerformanceProjectAction.DESCRIPTION, "");
+        if (errPerSecResultsResultsGraphSet.getJSONArray(LABELS).isEmpty()) {
+            errPerSecResultsResultsGraphSet.put(TITLE, "Total errors per second");
+            errPerSecResultsResultsGraphSet.put(X_AXIS_TITLE, "Build number");
+            errPerSecResultsResultsGraphSet.put(Y_AXIS_TITLE, "Errors count");
+            errPerSecResultsResultsGraphSet.put(DESCRIPTION, "");
             scenarioGraphData.put("errorPerSecResults", errPerSecResultsResultsGraphSet);
         }
     }
@@ -203,9 +242,9 @@ public class LrGraphUtils {
             }
         }
 
-        graphDataSet.put(PerformanceProjectAction.LABELS, labels);
+        graphDataSet.put(LABELS, labels);
         datasets.add(data);
-        graphDataSet.put("series", datasets);
+        graphDataSet.put(SERIES, datasets);
         return graphDataSet;
     }
 
@@ -220,11 +259,11 @@ public class LrGraphUtils {
         Map<Integer, WholeRunResult> averageThroughputResults = scenarioResults.getValue().averageThroughputResults;
         JSONObject averageThroughputResultsGraphSet =
                 extractWholeRunSlaResult(averageThroughputResults);
-        if (averageThroughputResultsGraphSet.getJSONArray(PerformanceProjectAction.LABELS).isEmpty()) {
-            averageThroughputResultsGraphSet.put(PerformanceProjectAction.TITLE, "Average Throughput per second");
-            averageThroughputResultsGraphSet.put(PerformanceProjectAction.X_AXIS_TITLE, "Build number");
-            averageThroughputResultsGraphSet.put(PerformanceProjectAction.Y_AXIS_TITLE, "Average Bytes / Second");
-            averageThroughputResultsGraphSet.put(PerformanceProjectAction.DESCRIPTION,
+        if (averageThroughputResultsGraphSet.getJSONArray(LABELS).isEmpty()) {
+            averageThroughputResultsGraphSet.put(TITLE, "Average Throughput per second");
+            averageThroughputResultsGraphSet.put(X_AXIS_TITLE, "Build number");
+            averageThroughputResultsGraphSet.put(Y_AXIS_TITLE, "Average Bytes / Second");
+            averageThroughputResultsGraphSet.put(DESCRIPTION,
                     " Displays the amount of throughput (in bytes) on the Web server during the load test. " +
                             "Throughput represents the amount of data that the Vusers received from the server at" +
                             " any given second. This graph helps you to evaluate the amount of load Vusers " +
@@ -248,9 +287,9 @@ public class LrGraphUtils {
             labels.add(result.getKey());
             data.add(result.getValue().getActualValue());
         }
-        graphDataSet.put(PerformanceProjectAction.LABELS, labels);
+        graphDataSet.put(LABELS, labels);
         datasets.add(data);
-        graphDataSet.put("series", datasets);
+        graphDataSet.put(SERIES, datasets);
         return graphDataSet;
     }
 
@@ -265,11 +304,11 @@ public class LrGraphUtils {
         Map<Integer, WholeRunResult> totalThroughputResults = scenarioResults.getValue().totalThroughtputResults;
         JSONObject totalThroughputResultsGraphSet =
                 extractWholeRunSlaResult(totalThroughputResults);
-        if (totalThroughputResultsGraphSet.getJSONArray(PerformanceProjectAction.LABELS).isEmpty()) {
-            totalThroughputResultsGraphSet.put(PerformanceProjectAction.TITLE, "Total Throughput");
-            totalThroughputResultsGraphSet.put(PerformanceProjectAction.X_AXIS_TITLE, "Build number");
-            totalThroughputResultsGraphSet.put(PerformanceProjectAction.Y_AXIS_TITLE, "Bytes count");
-            totalThroughputResultsGraphSet.put(PerformanceProjectAction.DESCRIPTION,
+        if (totalThroughputResultsGraphSet.getJSONArray(LABELS).isEmpty()) {
+            totalThroughputResultsGraphSet.put(TITLE, "Total Throughput");
+            totalThroughputResultsGraphSet.put(X_AXIS_TITLE, "Build number");
+            totalThroughputResultsGraphSet.put(Y_AXIS_TITLE, "Bytes count");
+            totalThroughputResultsGraphSet.put(DESCRIPTION,
                     " Displays the amount of throughput (in bytes) on the Web server during the load test. " +
                             "Throughput represents the amount of data that the Vusers received from the server at" +
                             " any given second. This graph helps you to evaluate the amount of load Vusers " +
@@ -288,11 +327,11 @@ public class LrGraphUtils {
                                       JSONObject scenarioGraphData) {
         Map<Integer, WholeRunResult> avgHitsPerSec = scenarioResults.getValue().averageHitsPerSecondResults;
         JSONObject avgHitsPerSecGraphSet = extractWholeRunSlaResult(avgHitsPerSec);
-        if (avgHitsPerSecGraphSet.getJSONArray(PerformanceProjectAction.LABELS).isEmpty()) {
-            avgHitsPerSecGraphSet.put(PerformanceProjectAction.TITLE, "Average Hits per Second");
-            avgHitsPerSecGraphSet.put(PerformanceProjectAction.X_AXIS_TITLE, "Build number");
-            avgHitsPerSecGraphSet.put(PerformanceProjectAction.Y_AXIS_TITLE, "Average Hits per Second");
-            avgHitsPerSecGraphSet.put(PerformanceProjectAction.DESCRIPTION,
+        if (avgHitsPerSecGraphSet.getJSONArray(LABELS).isEmpty()) {
+            avgHitsPerSecGraphSet.put(TITLE, "Average Hits per Second");
+            avgHitsPerSecGraphSet.put(X_AXIS_TITLE, "Build number");
+            avgHitsPerSecGraphSet.put(Y_AXIS_TITLE, "Average Hits per Second");
+            avgHitsPerSecGraphSet.put(DESCRIPTION,
                     "Displays the number of hits made on the Web server by Vusers " +
                             "during each second of the load test. This graph helps you evaluate the amount of load " +
                             "Vusers" +
@@ -312,11 +351,11 @@ public class LrGraphUtils {
                                         JSONObject scenarioGraphData) {
         Map<Integer, WholeRunResult> totalHitsResults = scenarioResults.getValue().totalHitsResults;
         JSONObject totalHitsGraphSet = extractWholeRunSlaResult(totalHitsResults);
-        if (totalHitsGraphSet.getJSONArray(PerformanceProjectAction.LABELS).isEmpty()) {
-            totalHitsGraphSet.put(PerformanceProjectAction.TITLE, "Total Hits");
-            totalHitsGraphSet.put(PerformanceProjectAction.X_AXIS_TITLE, "Build number");
-            totalHitsGraphSet.put(PerformanceProjectAction.Y_AXIS_TITLE, "Hits count");
-            totalHitsGraphSet.put(PerformanceProjectAction.DESCRIPTION,
+        if (totalHitsGraphSet.getJSONArray(LABELS).isEmpty()) {
+            totalHitsGraphSet.put(TITLE, "Total Hits");
+            totalHitsGraphSet.put(X_AXIS_TITLE, "Build number");
+            totalHitsGraphSet.put(Y_AXIS_TITLE, "Hits count");
+            totalHitsGraphSet.put(DESCRIPTION,
                     "Displays the number of hits made on the Web server by Vusers " +
                             "during each second of the load test. This graph helps you evaluate the amount of load " +
                             "Vusers" +

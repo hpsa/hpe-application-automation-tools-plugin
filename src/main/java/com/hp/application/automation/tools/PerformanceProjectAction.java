@@ -51,49 +51,16 @@ import java.util.logging.Logger;
 
 import static com.hp.application.automation.tools.results.projectparser.performance.JobLrScenarioResult
         .DEFAULT_CONNECTION_MAX;
+import static com.hp.application.automation.tools.results.projectparser.performance.LrProjectScenarioResults
+        .vTransactionMapInit;
+import static com.hp.application.automation.tools.results.projectparser.performance.LrTest.SLA_GOAL.ErrorsPerSecond;
+import static com.hp.application.automation.tools.results.projectparser.performance.LrTest.SLA_GOAL.PercentileTRT;
 
 /**
  * The type Performance project action.
  */
 public class PerformanceProjectAction implements Action {
 
-    /**
-     * The constant X_AXIS_TITLE.
-     */
-    public static final String X_AXIS_TITLE = "x_axis_title";
-    /**
-     * The constant Y_AXIS_TITLE.
-     */
-    public static final String Y_AXIS_TITLE = "y_axis_title";
-    /**
-     * The constant DESCRIPTION.
-     */
-    public static final String DESCRIPTION = "description";
-    /**
-     * The constant TITLE.
-     */
-    public static final String TITLE = "title";
-    /**
-     * The constant LABELS.
-     */
-    public static final String LABELS = "labels";
-    /**
-     * The constant BUILD_NUMBER.
-     */
-    public static final String BUILD_NUMBER = "Build number";
-    /**
-     * The constant PERCENTILE_TRANSACTION_RESPONSE_TIME.
-     */
-    public static final String PERCENTILE_TRANSACTION_RESPONSE_TIME = "Percentile Transaction Response TIme";
-    /**
-     * The constant TRANSACTIONS_RESPONSE_TIME_SECONDS.
-     */
-    public static final String TRANSACTIONS_RESPONSE_TIME_SECONDS = "Transactions response time (Seconds)";
-    public static final String PRECENTILE_GRAPH_DESCRIPTION =
-            "Displays the average time taken to perform transactions during each second of the load test." +
-                    " This graph helps you determine whether the performance of the server is within " +
-                    "acceptable minimum and maximum transaction performance time ranges defined for your " +
-                    "system.";
     /**
      * Logger.
      */
@@ -243,7 +210,7 @@ public class PerformanceProjectAction implements Action {
      * Gets updated data.
      */
     public void getUpdatedData() {
-        if (isUpdateDataNeeded()) {
+        if (!isUpdateDataNeeded()) {
             return;
         }
 
@@ -291,10 +258,11 @@ public class PerformanceProjectAction implements Action {
                 joinSceanrioConnectionsStats(runNumber, lrProjectScenarioResults, scenarioRunResult);
                 joinVUserScenarioStats(runNumber, lrProjectScenarioResults, scenarioRunResult);
                 joinTransactionScenarioStats(runNumber, lrProjectScenarioResults, scenarioRunResult);
+
+
             }
+
         }
-
-
 
     }
 
@@ -309,10 +277,34 @@ public class PerformanceProjectAction implements Action {
         final HashMap<String, Integer> scenarioTransactionSum = scenarioRunResult.transactionSum;
 
         if (!scenarioTransactionData.isEmpty()) {
+            //store transaction state data per run
             projectTransactionPerRun.put(runNumber, scenarioTransactionData);
+            //add all summary transcation states to project level summary
             for (Map.Entry<String, Integer> transactionState : scenarioTransactionSum.entrySet()) {
                 int previousCount = projectTransactionSum.get(transactionState.getKey());
                 projectTransactionSum.put(transactionState.getKey(), previousCount + transactionState.getValue());
+            }
+
+
+            //add all per transcation states to project level per transaction summary
+            Map<String, HashMap<String, Integer>> projectTransactionsData = lrProjectScenarioResults.transactionData;
+            for(Map.Entry<String, HashMap<String, Integer>> scenarioTransactionDataSet :
+                    scenarioTransactionData.entrySet())
+            {
+                String transactionName = scenarioTransactionDataSet.getKey();
+                HashMap<String, Integer> TransactionStateData = scenarioTransactionDataSet.getValue();
+                if(!projectTransactionsData.containsKey(transactionName)){
+                    projectTransactionsData.put(transactionName, new HashMap<String, Integer>(TransactionStateData));
+                    continue;
+                }
+
+                HashMap<String, Integer> projectTransactionState = projectTransactionsData.get(transactionName);
+                for(Map.Entry<String, Integer> scenarioTransactionState : TransactionStateData.entrySet())
+                {
+                    Integer currentValue = scenarioTransactionState.getValue();
+                    projectTransactionState.put(scenarioTransactionState.getKey(), currentValue +
+                            scenarioTransactionState.getValue());
+                }
             }
         }
     }
@@ -393,17 +385,17 @@ public class PerformanceProjectAction implements Action {
     }
 
     private boolean isUpdateDataNeeded() {
-        final Run<?, ?> lastBuild = currentProject.getLastBuild();
-        if (null == lastBuild) {
-            return false;
-        }
+//        final Run<?, ?> lastBuild = currentProject.getLastBuild();
+//        if (null == lastBuild) {
+//            return false;
+//        }
+//
+//        int latestBuildNumber = lastBuild.getNumber();
+//        if (latestBuildNumber == lastBuildId) {
+//            return true;
+//        }
 
-        int latestBuildNumber = lastBuild.getNumber();
-        if (latestBuildNumber == lastBuildId) {
-            return true;
-        }
-
-        return false;
+        return true;
     }
 
 }
