@@ -93,7 +93,7 @@ public class SseBuildAndPublishStep extends AbstractStepImpl {
                 almEntityId,
                 timeslotDuration);
 
-        runResultRecorder = new RunResultRecorder(true, archiveTestResultsMode);
+        runResultRecorder = new RunResultRecorder(archiveTestResultsMode);
     }
 
     public String getAlmServerName() {
