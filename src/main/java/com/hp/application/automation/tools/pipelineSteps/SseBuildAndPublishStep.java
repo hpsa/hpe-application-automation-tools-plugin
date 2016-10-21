@@ -74,9 +74,45 @@ public class SseBuildAndPublishStep extends AbstractStepImpl {
         runResultRecorder = new RunResultRecorder(true, archiveTestResultsMode);
     }
 
+    public String getAlmServerName() {
+        return sseBuilder.getAlmServerName();
+    }
+
+    public String getAlmProject() {
+        return sseBuilder.getAlmProject();
+    }
+
+    public String getCredentialsId() {
+        return sseBuilder.getCredentialsId();
+    }
+
+    public String getAlmDomain() {
+        return sseBuilder.getAlmDomain();
+    }
+
+    public String getRunType() {
+        return sseBuilder.getRunType();
+    }
+
+    public String getAlmEntityId() {
+        return sseBuilder.getAlmEntityId();
+    }
+
+    public String getTimeslotDuration() {
+        return sseBuilder.getTimeslotDuration();
+    }
+
+    public String getArchiveTestResultsMode() {
+        return runResultRecorder.getResultsPublisherModel().getArchiveTestResultsMode();
+    }
+
     @DataBoundSetter
     public void setDescription(String description) {
         sseBuilder.setDescription(description);
+    }
+
+    public String getDescription() {
+        return sseBuilder.getDescription();
     }
 
     @DataBoundSetter
@@ -84,9 +120,17 @@ public class SseBuildAndPublishStep extends AbstractStepImpl {
         sseBuilder.setPostRunAction(postRunAction);
     }
 
+    public String getPostRunAction() {
+        return sseBuilder.getPostRunAction();
+    }
+
     @DataBoundSetter
     public void setEnvironmentConfigurationId(String environmentConfigurationId) {
         sseBuilder.setEnvironmentConfigurationId(environmentConfigurationId);
+    }
+
+    public String getEnvironmentConfigurationId() {
+        return sseBuilder.getEnvironmentConfigurationId();
     }
 
     @DataBoundSetter
@@ -94,9 +138,17 @@ public class SseBuildAndPublishStep extends AbstractStepImpl {
         sseBuilder.setCdaDetails(cdaDetails);
     }
 
+    public CdaDetails getCdaDetails() {
+        return sseBuilder.getCdaDetails();
+    }
+
     @DataBoundSetter
     public void setProxySettings(SseProxySettings proxySettings) {
         sseBuilder.setProxySettings(proxySettings);
+    }
+
+    public SseProxySettings getProxySettings() {
+        return sseBuilder.getProxySettings();
     }
 
     // This indicates to Jenkins that this is an implementation of an extension point
@@ -264,6 +316,15 @@ public class SseBuildAndPublishStep extends AbstractStepImpl {
             }
             // no credentials available, can't check
             return FormValidation.warning("Cannot find any credentials with id " + value);
+        }
+
+        /**
+         * Gets report archive modes.
+         *
+         * @return the report archive modes
+         */
+        public List<EnumDescription> getReportArchiveModes() {
+            return ResultsPublisherModel.archiveModes;
         }
     }
 }

@@ -53,7 +53,6 @@ public class SseBuilderPublishResultStepExecution extends AbstractSynchronousNon
             HashMap<String, String> resultFilename = new HashMap<String, String>(0);
             resultFilename.put(RunFromFileBuilder.class.getName(), sseBuilder.getRunResultsFileName());
 
-            listener.getLogger().println("Publish HP tests result");
             runResultRecorder.pipelinePerform(build, ws, launcher, listener, resultFilename);
         }
         return null;
