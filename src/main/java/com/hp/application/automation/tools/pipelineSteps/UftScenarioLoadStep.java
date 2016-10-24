@@ -61,105 +61,23 @@ public class UftScenarioLoadStep extends AbstractStepImpl {
         this.runResultRecorder = new RunResultRecorder(archiveTestResultsMode);
     }
 
-    /**
-     * Gets archive run test results mode.
-     *
-     * @return the archive run test results mode
-     */
     public String getArchiveTestResultsMode() {
         return runResultRecorder.getResultsPublisherModel().getArchiveTestResultsMode();
     }
 
-    /**
-     * Gets controller polling interval.
-     *
-     * @return the controller polling interval
-     */
-    public String getControllerPollingInterval() {
-        return runFromFileBuilder.getRunFromFileModel().getControllerPollingInterval();
-    }
-
-    /**
-     * Sets controller polling interval.
-     *
-     * @param controllerPollingInterval the controller polling interval
-     */
-    @DataBoundSetter
-    public void setControllerPollingInterval(String controllerPollingInterval) {
-        runFromFileBuilder.setControllerPollingInterval(controllerPollingInterval);
-    }
-
-    /**
-     * Gets fs timeout.
-     *
-     * @return the fs timeout
-     */
     public String getFsTimeout() {
         return runFromFileBuilder.getRunFromFileModel().getFsTimeout();
     }
 
-    /**
-     * Sets fs timeout.
-     *
-     * @param fsTimeout the fs timeout
-     */
     @DataBoundSetter
     public void setFsTimeout(String fsTimeout) {
         runFromFileBuilder.setFsTimeout(fsTimeout);
     }
 
-    /**
-     * Gets per scenario time out.
-     *
-     * @return the per scenario time out
-     */
-    public String getPerScenarioTimeOut() {
-        return runFromFileBuilder.getRunFromFileModel().getPerScenarioTimeOut();
-    }
-
-    /**
-     * Sets per scenario time out.
-     *
-     * @param perScenarioTimeOut the per scenario time out
-     */
-    @DataBoundSetter
-    public void setPerScenarioTimeOut(String perScenarioTimeOut) {
-        runFromFileBuilder.setPerScenarioTimeOut(perScenarioTimeOut);
-    }
-
-    /**
-     * Gets test paths.
-     *
-     * @return the test paths
-     */
     public String getTestPaths() {
         return runFromFileBuilder.getRunFromFileModel().getFsTests();
     }
 
-    /**
-     * Gets ignore error strings.
-     *
-     * @return the ignore error strings
-     */
-    public String getIgnoreErrorStrings() {
-        return runFromFileBuilder.getRunFromFileModel().getIgnoreErrorStrings();
-    }
-
-    /**
-     * Sets ignore error strings.
-     *
-     * @param ignoreErrorStrings the ignore error strings
-     */
-    @DataBoundSetter
-    public void setIgnoreErrorStrings(String ignoreErrorStrings) {
-        runFromFileBuilder.setIgnoreErrorStrings(ignoreErrorStrings);
-    }
-
-    /**
-     * Gets run from file builder.
-     *
-     * @return the run from file builder
-     */
     public RunFromFileBuilder getRunFromFileBuilder() {
         return runFromFileBuilder;
     }
@@ -168,15 +86,10 @@ public class UftScenarioLoadStep extends AbstractStepImpl {
         return runResultRecorder;
     }
 
-    /**
-     * The type Descriptor.
-     */
     @Extension
     @Symbol("UftScenarioLoad")
     public static class DescriptorImpl extends AbstractStepDescriptorImpl {
-        /**
-         * Instantiates a new Descriptor.
-         */
+
         public DescriptorImpl() {
             super(UftScenarioLoadStepExecution.class);
         }
@@ -192,45 +105,30 @@ public class UftScenarioLoadStep extends AbstractStepImpl {
             return "Run UFT scenario";
         }
 
-        /**
-         * Gets report archive modes.
-         *
-         * @return the report archive modes
-         */
         public List<EnumDescription> getReportArchiveModes() {
 
             return ResultsPublisherModel.archiveModes;
         }
 
-        /**
-         * Do check fs tests form validation.
-         *
-         * @param value the value
-         * @return the form validation
-         */
+        public FormValidation doCheckTestPaths(@QueryParameter String value) {
+
+            if (StringUtils.isBlank(value)) {
+                return FormValidation.error("Test path must be set");
+            }
+
+            return FormValidation.ok();
+        }
+
         @SuppressWarnings("squid:S1172")
         public FormValidation doCheckFsTests(@QueryParameter String value) {
-            return FormValidation.ok();
-        }
 
-        /**
-         * Do check ignore error strings form validation.
-         *
-         * @param value the value
-         * @return the form validation
-         */
-        @SuppressWarnings("squid:S1172")
-        public FormValidation doCheckIgnoreErrorStrings(@QueryParameter String value) {
+            if (StringUtils.isBlank(value)) {
+                return FormValidation.error("Test path must be set");
+            }
 
             return FormValidation.ok();
         }
 
-        /**
-         * Do check fs timeout form validation.
-         *
-         * @param value the value
-         * @return the form validation
-         */
         public FormValidation doCheckFsTimeout(@QueryParameter String value) {
             if (StringUtils.isEmpty(value)) {
                 return FormValidation.ok();
@@ -243,41 +141,6 @@ public class UftScenarioLoadStep extends AbstractStepImpl {
 
             if (!StringUtils.isNumeric(val1) && !Objects.equals(val1, "")) {
                 return FormValidation.error("Timeout name must be a number");
-            }
-            return FormValidation.ok();
-        }
-
-        /**
-         * Do check controller polling interval form validation.
-         *
-         * @param value the value
-         * @return the form validation
-         */
-        public FormValidation doCheckControllerPollingInterval(@QueryParameter String value) {
-            if (StringUtils.isEmpty(value)) {
-                return FormValidation.ok();
-            }
-
-            if (!StringUtils.isNumeric(value)) {
-                return FormValidation.error("Controller Polling Interval must be a number");
-            }
-
-            return FormValidation.ok();
-        }
-
-        /**
-         * Do check per scenario time out form validation.
-         *
-         * @param value the value
-         * @return the form validation
-         */
-        public FormValidation doCheckPerScenarioTimeOut(@QueryParameter String value) {
-            if (StringUtils.isEmpty(value)) {
-                return FormValidation.ok();
-            }
-
-            if (!StringUtils.isNumeric(value)) {
-                return FormValidation.error("Per Scenario Timeout must be a number");
             }
 
             return FormValidation.ok();

@@ -26,6 +26,11 @@
     <f:entry title="Tests" field="testPaths">
         <f:expandableTextbox name="runPipeline.testPaths" value="${instance.testPaths}"/>
     </f:entry>
+
+    <f:entry title="Timeout" field="fsTimeout">
+        <f:textbox name="runPipeline.fsTimeout" value="${instance.fsTimeout}" default=""/>
+    </f:entry>
+
     <f:entry title="Report archive mode" field="archiveTestResultsMode">
         <select name="runPipeline.archiveTestResultsMode">
             <j:forEach var="archiveMode" items="${descriptor.reportArchiveModes}">

@@ -43,12 +43,16 @@ public class UftScenarioLoadStepExecution extends AbstractSynchronousNonBlocking
     @Inject
     @SuppressWarnings("squid:S3306")
     private transient UftScenarioLoadStep step;
+
     @StepContextParameter
     private transient TaskListener listener;
+
     @StepContextParameter
     private transient FilePath ws;
+
     @StepContextParameter
     private transient Run build;
+
     @StepContextParameter
     private transient Launcher launcher;
 
@@ -60,9 +64,11 @@ public class UftScenarioLoadStepExecution extends AbstractSynchronousNonBlocking
     protected Void run() throws Exception {
         listener.getLogger().println("Running UFT Scenario step");
         step.getRunFromFileBuilder().perform(build, ws, launcher, listener);
+
         HashMap<String, String> resultFilename = new HashMap<String, String>(0);
         resultFilename.put(RunFromFileBuilder.class.getName(), step.getRunFromFileBuilder().getRunResultsFileName());
         step.getRunResultRecorder().pipelinePerform(build, ws, launcher, listener, resultFilename);
+
         return null;
     }
 }
