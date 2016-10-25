@@ -23,7 +23,7 @@ namespace LRAnalysisLauncher
                 {"Passed", 0},
                 {"Stopped", 0},
                 {"Failed", 0},
-                {"Error", 0},
+                {"Error", 0}
             };
 
             var vUserGraph = lrAnalysis.Session.OpenGraph("VuserSummary");
@@ -42,7 +42,8 @@ namespace LRAnalysisLauncher
                 vuserDictionary[vuserType] = (int) sum;
             }
 
-            var g = lrAnalysis.Session.OpenGraph("VuserState");
+            var g = lrAnalysis.Session.OpenGraph("VuserStateGraph");
+            g.Granularity = 4;
             var filterDimensionVUser = g.Filter["Vuser Status"];
             filterDimensionVUser.ClearValues();
             filterDimensionVUser.AddDiscreteValue("Run");
@@ -149,7 +150,7 @@ namespace LRAnalysisLauncher
         {
             var testDuration = lrAnalysis.Session.Runs[0].EndTime - lrAnalysis.Session.Runs[0].StartTime;
             var t = TimeSpan.FromSeconds(testDuration);
-            var strScenarioDuration = string.Format("{0:D2}h:{1:D2}m:{2:D2}s:{3:D3}ms",
+            var strScenarioDuration = string.Format("{0:D2}:{1:D2}:{2:D2}:{3:D3}",
                             t.Hours,
                             t.Minutes,
                             t.Seconds,

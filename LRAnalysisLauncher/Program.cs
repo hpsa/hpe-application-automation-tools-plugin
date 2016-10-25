@@ -123,11 +123,11 @@ namespace LRAnalysisLauncher
                     XmlElement general = runReprotDoc.CreateElement("General");
                     runsRoot.AppendChild(general);
 
-                    XmlElement durationElement = runReprotDoc.CreateElement("ScenarioDuration");
+                    XmlElement durationElement = runReprotDoc.CreateElement("Time");
                     DateTime startTime = Helper.FromUnixTime(analysis.Session.Runs[0].StartTime);
                     DateTime endTime = Helper.FromUnixTime(analysis.Session.Runs[0].EndTime);
-                    durationElement.SetAttribute("Start", startTime.ToString());
                     durationElement.SetAttribute("End", endTime.ToString());
+                    durationElement.SetAttribute("Start", startTime.ToString());
                     durationElement.SetAttribute("Duration", Helper.GetScenarioDuration(analysis));
                     general.AppendChild(durationElement);
 
