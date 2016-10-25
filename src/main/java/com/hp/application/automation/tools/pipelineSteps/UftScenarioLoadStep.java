@@ -61,35 +61,71 @@ public class UftScenarioLoadStep extends AbstractStepImpl {
         this.runResultRecorder = new RunResultRecorder(archiveTestResultsMode);
     }
 
+    /**
+     * Gets archive test result mode.
+     *
+     * @return the archive run test results mode
+     */
     public String getArchiveTestResultsMode() {
         return runResultRecorder.getResultsPublisherModel().getArchiveTestResultsMode();
     }
 
+    /**
+     * Gets fsTimeout
+     *
+     * @return fsTimeout value
+     */
     public String getFsTimeout() {
         return runFromFileBuilder.getRunFromFileModel().getFsTimeout();
     }
 
+    /**
+     * Sets fsTimeout value
+     *
+     * @param fsTimeout the fsTimeout value
+     */
     @DataBoundSetter
     public void setFsTimeout(String fsTimeout) {
         runFromFileBuilder.setFsTimeout(fsTimeout);
     }
 
+    /**
+     * Gets test paths.
+     *
+     * @return the test paths
+     */
     public String getTestPaths() {
         return runFromFileBuilder.getRunFromFileModel().getFsTests();
     }
 
+    /**
+     * Gets run from file builder.
+     *
+     * @return the run from file builder
+     */
     public RunFromFileBuilder getRunFromFileBuilder() {
         return runFromFileBuilder;
     }
 
+    /**
+     * Gets run result builder
+     *
+     * @return the run result builder
+     */
     public RunResultRecorder getRunResultRecorder() {
         return runResultRecorder;
     }
 
+    /**
+     * The type Descriptor.
+     */
     @Extension
     @Symbol("UftScenarioLoad")
     public static class DescriptorImpl extends AbstractStepDescriptorImpl {
 
+        /**
+         * Instantiates a new Descriptor.
+         */
         public DescriptorImpl() {
             super(UftScenarioLoadStepExecution.class);
         }
@@ -105,11 +141,22 @@ public class UftScenarioLoadStep extends AbstractStepImpl {
             return "Run UFT scenario";
         }
 
+        /**
+         * Gets report archive modes.
+         *
+         * @return the report archive modes
+         */
         public List<EnumDescription> getReportArchiveModes() {
 
             return ResultsPublisherModel.archiveModes;
         }
 
+        /**
+         * Do check test paths validation.
+         *
+         * @param value the value
+         * @return the form validation
+         */
         public FormValidation doCheckTestPaths(@QueryParameter String value) {
 
             if (StringUtils.isBlank(value)) {
@@ -119,6 +166,12 @@ public class UftScenarioLoadStep extends AbstractStepImpl {
             return FormValidation.ok();
         }
 
+        /**
+         * Do check fs tests form validation.
+         *
+         * @param value the value
+         * @return the form validation
+         */
         public FormValidation doCheckFsTests(@QueryParameter String value) {
 
             if (StringUtils.isBlank(value)) {
@@ -128,6 +181,12 @@ public class UftScenarioLoadStep extends AbstractStepImpl {
             return FormValidation.ok();
         }
 
+        /**
+         * Do check fs timeout validation
+         *
+         * @param value the value
+         * @return the form validation
+         */
         public FormValidation doCheckFsTimeout(@QueryParameter String value) {
             if (StringUtils.isEmpty(value)) {
                 return FormValidation.ok();
