@@ -18,12 +18,12 @@ namespace LRAnalysisLauncher
         {
 
 
-            var vuserDictionary = new Dictionary<string, int>(3)
+            var vuserDictionary = new Dictionary<string, int>(4)
             {
                 {"Passed", 0},
                 {"Stopped", 0},
                 {"Failed", 0},
-                {"Error", 0}
+                {"Error", 0},
             };
 
             var vUserGraph = lrAnalysis.Session.OpenGraph("VuserSummary");
@@ -41,6 +41,14 @@ namespace LRAnalysisLauncher
                 var sum = vUserGraph.Series.Sum(val => val.GraphStatistics.Maximum);
                 vuserDictionary[vuserType] = (int) sum;
             }
+
+            var g = lrAnalysis.Session.OpenGraph("VuserState");
+            var filterDimensionVUser = g.Filter["Vuser Status"];
+            filterDimensionVUser.ClearValues();
+            filterDimensionVUser.AddDiscreteValue("Run");
+            g.ApplyFilterAndGroupBy();
+            var maxVUserRun = g.Series[0].GraphStatistics.Maximum;
+            vuserDictionary.Add("MaxVuserRun", (int) maxVUserRun);
 
             return vuserDictionary;
         }
@@ -137,10 +145,23 @@ namespace LRAnalysisLauncher
         /// Returns scenario duration
         /// </summary>
         /// <returns>Scenario duration</returns>
-        protected int GetScenarioDuration(LrAnalysis lrAnalysis)
+        public static String GetScenarioDuration(LrAnalysis lrAnalysis)
         {
-            var rc = lrAnalysis.Session.Runs[0].EndTime - lrAnalysis.Session.Runs[0].StartTime;
-            return rc;
+            var testDuration = lrAnalysis.Session.Runs[0].EndTime - lrAnalysis.Session.Runs[0].StartTime;
+            var t = TimeSpan.FromSeconds(testDuration);
+            var strScenarioDuration = string.Format("{0:D2}h:{1:D2}m:{2:D2}s:{3:D3}ms",
+                            t.Hours,
+                            t.Minutes,
+                            t.Seconds,
+                            t.Milliseconds);
+            return strScenarioDuration;
+        }
+
+
+        public static DateTime FromUnixTime(long unixTime)
+        {
+            var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Local);
+            return epoch.AddSeconds(unixTime);
         }
     }
 }

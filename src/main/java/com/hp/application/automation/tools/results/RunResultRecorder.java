@@ -1203,11 +1203,11 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         for (int k = 0; k < timeRanges.getLength(); k++) {
             timeRangeNode = timeRanges.item(k);
             timeRangeElement = (Element) timeRangeNode;
-            double actualValue = Double.valueOf(timeRangeElement.getAttribute("ActualValue"));
-            double goalValue = Double.valueOf(timeRangeElement.getAttribute("GoalValue"));
-            int loadValue = Integer.valueOf(timeRangeElement.getAttribute("LoadValue"));
-            double startTime = Double.valueOf(timeRangeElement.getAttribute("StartTime"));
-            double endTIme = Double.valueOf(timeRangeElement.getAttribute("EndTime"));
+            double actualValue = Double.parseDouble(timeRangeElement.getAttribute("ActualValue"));
+            double goalValue = Double.parseDouble(timeRangeElement.getAttribute("GoalValue"));
+            int loadValue = Integer.parseInt(timeRangeElement.getAttribute("LoadValue"));
+            double startTime = Double.parseDouble(timeRangeElement.getAttribute("StartTime"));
+            double endTIme = Double.parseDouble(timeRangeElement.getAttribute("EndTime"));
             transactionTimeRange.incActualValue(actualValue);
             LrTest.SLA_STATUS slaStatus =
                     LrTest.SLA_STATUS.checkStatus(timeRangeElement.getFirstChild().getTextContent());

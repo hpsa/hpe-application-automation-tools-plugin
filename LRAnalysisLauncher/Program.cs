@@ -123,6 +123,14 @@ namespace LRAnalysisLauncher
                     XmlElement general = runReprotDoc.CreateElement("General");
                     runsRoot.AppendChild(general);
 
+                    XmlElement durationElement = runReprotDoc.CreateElement("ScenarioDuration");
+                    DateTime startTime = Helper.FromUnixTime(analysis.Session.Runs[0].StartTime);
+                    DateTime endTime = Helper.FromUnixTime(analysis.Session.Runs[0].EndTime);
+                    durationElement.SetAttribute("Start", startTime.ToString());
+                    durationElement.SetAttribute("End", endTime.ToString());
+                    durationElement.SetAttribute("Duration", Helper.GetScenarioDuration(analysis));
+                    general.AppendChild(durationElement);
+
                     XmlElement vUsers = runReprotDoc.CreateElement("VUsers");
                     log("Adding VUser statistics");
                     Dictionary<string, int> vuserCountDictionary = Helper.GetVusersCountByStatus(analysis);

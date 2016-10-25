@@ -90,6 +90,7 @@ public class LrProjectScenarioResults extends LrScenario {
         map.put("Stopped",0);
         map.put("Failed",0);
         map.put("Count",0);
+        map.put("MaxVuserRun",0);
     }
 
     /**

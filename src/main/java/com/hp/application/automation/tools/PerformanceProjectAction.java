@@ -51,10 +51,6 @@ import java.util.logging.Logger;
 
 import static com.hp.application.automation.tools.results.projectparser.performance.JobLrScenarioResult
         .DEFAULT_CONNECTION_MAX;
-import static com.hp.application.automation.tools.results.projectparser.performance.LrProjectScenarioResults
-        .vTransactionMapInit;
-import static com.hp.application.automation.tools.results.projectparser.performance.LrTest.SLA_GOAL.ErrorsPerSecond;
-import static com.hp.application.automation.tools.results.projectparser.performance.LrTest.SLA_GOAL.PercentileTRT;
 
 /**
  * The type Performance project action.
@@ -123,9 +119,14 @@ public class PerformanceProjectAction implements Action {
         for (Map.Entry<String, LrProjectScenarioResults> scenarioResults : _projectResult.getScenarioResults()
                 .entrySet()) {
 
-            JSONObject scenarioGraphData = new JSONObject();
-            String scenarioName = scenarioResults.getKey();
+            JSONObject scenarioData = new JSONObject();
+            JSONObject scenarioStats = new JSONObject();
+            LrGraphUtils.constructVuserSummary(scenarioResults.getValue().vUserSummary, scenarioStats, _workedBuilds
+                    .size());
 
+            scenarioData.put("scenarioStats", scenarioStats);
+
+            JSONObject scenarioGraphData = new JSONObject();
             LrGraphUtils.constructTotalHitsGraph(scenarioResults, scenarioGraphData);
             LrGraphUtils.constructAvgHitsGraph(scenarioResults, scenarioGraphData);
             LrGraphUtils.constructTotalThroughputGraph(scenarioResults, scenarioGraphData);
@@ -133,7 +134,11 @@ public class PerformanceProjectAction implements Action {
             LrGraphUtils.constructErrorGraph(scenarioResults, scenarioGraphData);
             LrGraphUtils.constructAvgTransactionGraph(scenarioResults, scenarioGraphData);
             LrGraphUtils.constructPercentileTransactionGraph(scenarioResults, scenarioGraphData);
-            projectDataSet.put(scenarioName, scenarioGraphData);
+            LrGraphUtils.constructVuserGraph(scenarioResults, scenarioGraphData);
+            scenarioData.put("scenarioData", scenarioGraphData);
+
+            String scenarioName = scenarioResults.getKey();
+            projectDataSet.put(scenarioName, scenarioData);
         }
         return projectDataSet;
     }
@@ -182,25 +187,13 @@ public class PerformanceProjectAction implements Action {
     }
 
     /**
-     * Add int.
-     *
-     * @param x the x
-     * @param y the y
-     * @return the int
-     */
-    @JavaScriptMethod
-    public int add(int x, int y) {
-        return x + y;
-    }
-
-    /**
      * Is visible boolean.
      *
      * @return the boolean
      */
     boolean isVisible() {
         getUpdatedData(); // throw this our once fixes method
-        if (_workedBuilds.isEmpty()) {
+        if (!_workedBuilds.isEmpty()) {
             return true;
         }
         return false;
@@ -281,7 +274,11 @@ public class PerformanceProjectAction implements Action {
             projectTransactionPerRun.put(runNumber, scenarioTransactionData);
             //add all summary transcation states to project level summary
             for (Map.Entry<String, Integer> transactionState : scenarioTransactionSum.entrySet()) {
-                int previousCount = projectTransactionSum.get(transactionState.getKey());
+                int previousCount = 0;
+                if(projectTransactionSum.containsKey(transactionState.getKey()))
+                {
+                    previousCount = projectTransactionSum.get(transactionState.getKey());
+                }
                 projectTransactionSum.put(transactionState.getKey(), previousCount + transactionState.getValue());
             }
 
@@ -319,7 +316,11 @@ public class PerformanceProjectAction implements Action {
                     LrProjectScenarioResults.vUserMapInit(vUserPerRun.get(runNumber));
                 }
                 vUserPerRun.get(runNumber).put(vUserStat.getKey(), vUserStat.getValue());
-                int previousCount = lrProjectScenarioResults.vUserSummary.get(vUserStat.getKey());
+                int previousCount = 0;
+                if(lrProjectScenarioResults.vUserSummary.containsKey(vUserStat.getKey()))
+                {
+                    previousCount = lrProjectScenarioResults.vUserSummary.get(vUserStat.getKey());
+                }
                 lrProjectScenarioResults.vUserSummary
                         .put(vUserStat.getKey(), previousCount + vUserStat.getValue());
             }

@@ -37,28 +37,9 @@
             </div>
         </div>
 
-        <div id="content">
+            <div id="content">
             <!-- This element's contents will be replaced with your component. -->
         </div>
-            <!--<div class="graphPlaceHolder">-->
-                <!--&lt;!&ndash;<h4> Total throughput </h4>&ndash;&gt;-->
-                <!--&lt;!&ndash;<canvas id="TotalThroughput" width="900" height="500"/>&ndash;&gt;-->
-                <!--&lt;!&ndash;<h4> AvgHitsPerSecGraphData </h4>&ndash;&gt;-->
-                <!--&lt;!&ndash;<canvas id="AvgHitsPerSecGraphData" width="900" height="500"/>&ndash;&gt;-->
-                <!--&lt;!&ndash;<h4> AvgThroughput</h4>&ndash;&gt;-->
-                <!--&lt;!&ndash;<canvas id="AvgThroughput" width="900" height="500"/>&ndash;&gt;-->
-                <!--&lt;!&ndash;<h4> Total Hits</h4>&ndash;&gt;-->
-                <!--&lt;!&ndash;<canvas id="TotalHits" width="900" height="500"/>&ndash;&gt;-->
-                <!--&lt;!&ndash;<h4> Average transaction</h4>&ndash;&gt;-->
-                <!--&lt;!&ndash;<canvas id="AvgTRT" width="900" height="500"/>&ndash;&gt;-->
-                <!--&lt;!&ndash;<div id="AvgTRT_Legend"/>&ndash;&gt;-->
-                <!--&lt;!&ndash;<h4>Error per sec</h4>&ndash;&gt;-->
-                <!--&lt;!&ndash;<canvas id="ErrorPerSec" width="900" height="500"/>&ndash;&gt;-->
-                <!--&lt;!&ndash;<h4>PercentileTransactionWholeRun</h4>&ndash;&gt;-->
-                <!--&lt;!&ndash;<canvas id="PercentileTransactionWholeRun" width="900" height="500"/>&ndash;&gt;-->
-                <!--&lt;!&ndash;<div id="PercentileTransactionWholeRun_Legend"/>&ndash;&gt;-->
-
-            <!--</div>-->
 
             <div id="msk" />
 
