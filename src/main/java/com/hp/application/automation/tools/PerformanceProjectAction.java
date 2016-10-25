@@ -269,6 +269,10 @@ public class PerformanceProjectAction implements Action {
                 scenarioRunResult.transactionData;
         final HashMap<String, Integer> scenarioTransactionSum = scenarioRunResult.transactionSum;
 
+        if(scenarioTransactionData == null || scenarioTransactionSum == null){
+            return;
+        }
+
         if (!scenarioTransactionData.isEmpty()) {
             //store transaction state data per run
             projectTransactionPerRun.put(runNumber, scenarioTransactionData);
@@ -309,7 +313,7 @@ public class PerformanceProjectAction implements Action {
     private void joinVUserScenarioStats(int runNumber, LrProjectScenarioResults lrProjectScenarioResults,
                                         JobLrScenarioResult scenarioRunResult) {
         Map<Integer, Map<String, Integer>> vUserPerRun = lrProjectScenarioResults.vUserPerRun;
-        if (!scenarioRunResult.vUserSum.isEmpty()) {
+        if (scenarioRunResult.vUserSum != null && !scenarioRunResult.vUserSum.isEmpty()) {
             for (Map.Entry<String, Integer> vUserStat : scenarioRunResult.vUserSum.entrySet()) {
                 if (!vUserPerRun.containsKey(runNumber)) {
                     vUserPerRun.put(runNumber, new HashMap<String, Integer>(0));

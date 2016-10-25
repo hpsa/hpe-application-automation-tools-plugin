@@ -411,17 +411,17 @@ public final class LrGraphUtils {
                                       JSONObject scenarioStats, int size){
         JSONObject vUserSummary = new JSONObject();
         int vUserCount = vUserResults.get("Count");
-        if(vUserCount != 0)
-        {
+        if(vUserCount != 0) {
             double passedVuserPercentile = ((double) vUserResults.get("Passed") / vUserCount) * 100;
             vUserSummary.put("PassedVuserPercentile", passedVuserPercentile);
             double failedVuserPercentile = ((double) vUserResults.get("Failed") / vUserCount) * 100;
             vUserSummary.put("FailedVuserPercentile", failedVuserPercentile);
             double errorVuserPercentile = ((double) vUserResults.get("Error") / vUserCount) * 100;
             vUserSummary.put("ErroredVuserPercentile", errorVuserPercentile);
+
+            double avgMaxVuser = ((double) vUserResults.get("MaxVuserRun") / size) * 100;
+            vUserSummary.put("AvgMaxVuser", avgMaxVuser);
+            scenarioStats.put("VUserSummary", vUserSummary);
         }
-        double avgMaxVuser = ((double) vUserResults.get("MaxVuserRun") / size) * 100;
-        vUserSummary.put("AvgMaxVuser", avgMaxVuser);
-        scenarioStats.put("VUserSummary", vUserSummary);
     }
 }
