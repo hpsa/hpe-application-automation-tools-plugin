@@ -41,7 +41,7 @@ public class UftScenarioLoadStepExecution extends AbstractSynchronousNonBlocking
 
     private static final long serialVersionUID = 1L;
     @Inject
-    @SuppressWarnings("squid:S3306")
+
     private transient UftScenarioLoadStep step;
 
     @StepContextParameter

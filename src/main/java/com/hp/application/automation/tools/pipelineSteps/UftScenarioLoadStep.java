@@ -119,7 +119,6 @@ public class UftScenarioLoadStep extends AbstractStepImpl {
             return FormValidation.ok();
         }
 
-        @SuppressWarnings("squid:S1172")
         public FormValidation doCheckFsTests(@QueryParameter String value) {
 
             if (StringUtils.isBlank(value)) {
