@@ -21,7 +21,7 @@ import java.util.Properties;
 
 /**
  * Created by gullery on 22/01/2016.
- * <p/>
+ * <p>
  * This class provides main entry point of interaction between an SDK and it's services and concrete plugin and it's services
  */
 
