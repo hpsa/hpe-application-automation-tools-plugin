@@ -696,8 +696,9 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
         request = new HttpPost(serverURL + "/attachments");
         request.setHeader(HTTP.CONTENT_TYPE, "multipart/form-data; boundary=Boundary_1_418958713_1441798856288");
         request.setHeader("Accept", "application/json");
-        description = "description";
+        description = "This file contains UFT parameters information extracted via HPE Octane UFT Tests Scanner";
         content = resourceMtrAsJSON;
+        String attachment_name = "test_parameters.txt";
         String data = "{\"data\":[{\n" +
                 "--Boundary_1_418958713_1441798856288\n" +
                 "Content-Disposition: form-data; name=\"entity\"\n" +
@@ -712,7 +713,7 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
                 "}\n" +
                 "\n" +
                 "--Boundary_1_418958713_1441798856288\n" +
-                "Content-Disposition: form-data; name=\"content\"; filename=\"text_attachment.txt\"\n" +
+                "Content-Disposition: form-data; name=\"content\"; filename=\"" + attachment_name + "\"\n" +
                 "Content-Type: text/plain\n" +
                 "\n" +
                 content + "\n" +
