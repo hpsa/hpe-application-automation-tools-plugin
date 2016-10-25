@@ -16,7 +16,7 @@ import java.util.List;
 
 /**
  * Created by gullery on 05/08/2015.
- * <p/>
+ * <p>
  * Bridge Service meant to provide an abridged connectivity functionality
  * The only APIs to be exposed is the basic management of abridged clients
  */
