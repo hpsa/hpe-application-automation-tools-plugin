@@ -10,13 +10,18 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
-import hudson.model.*;
+
+import hudson.model.Result;
+import hudson.model.AbstractProject;
+import hudson.model.Hudson;
+import hudson.model.Run;
+import hudson.model.TaskListener;
+
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
 import hudson.util.IOUtils;
 import hudson.util.VariableResolver;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
