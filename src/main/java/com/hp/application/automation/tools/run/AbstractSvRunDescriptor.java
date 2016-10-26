@@ -5,6 +5,8 @@
 
 package com.hp.application.automation.tools.run;
 
+import javax.annotation.Nonnull;
+
 import com.hp.application.automation.tools.model.SvServerSettingsModel;
 import com.hp.application.automation.tools.settings.SvServerSettingsBuilder;
 import hudson.model.AbstractProject;
@@ -15,7 +17,7 @@ import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 
 public class AbstractSvRunDescriptor extends BuildStepDescriptor<Builder> {
-    private String displayName;
+    private final String displayName;
 
     public AbstractSvRunDescriptor(String displayName) {
         this.displayName = displayName;
@@ -27,6 +29,7 @@ public class AbstractSvRunDescriptor extends BuildStepDescriptor<Builder> {
         return true;
     }
 
+    @Nonnull
     @Override
     public String getDisplayName() {
         return displayName;

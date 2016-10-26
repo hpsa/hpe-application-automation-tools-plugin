@@ -1,6 +1,8 @@
 package com.hp.application.automation.tools.run;
 
+import javax.annotation.Nonnull;
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Date;
@@ -20,11 +22,13 @@ import com.hp.sv.jsvconfigurator.core.impl.exception.ProjectBuilderException;
 import com.hp.sv.jsvconfigurator.core.impl.jaxb.atom.ServiceListAtom;
 import com.hp.sv.jsvconfigurator.serverclient.ICommandExecutor;
 import com.hp.sv.jsvconfigurator.serverclient.impl.CommandExecutorFactory;
+import hudson.AbortException;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.AbstractBuild;
-import hudson.model.BuildListener;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.tasks.Builder;
+import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.lang.StringUtils;
 
 class ServiceInfo {
@@ -51,7 +55,7 @@ class ConfigurationException extends Exception {
     }
 }
 
-public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends Builder {
+public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends Builder implements SimpleBuildStep {
     private static final Logger LOG = Logger.getLogger(AbstractSvRunBuilder.class.getName());
 
     protected final T model;
@@ -86,7 +90,7 @@ public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends
         throw new ConfigurationException("Selected server configuration '" + model.getServerName() + "' does not exist.");
     }
 
-    protected abstract boolean performImpl(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws Exception;
+    protected abstract void performImpl(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, Launcher launcher, TaskListener listener) throws Exception;
 
     protected ICommandExecutor createCommandExecutor() throws Exception {
         SvServerSettingsModel serverModel = getSelectedServerSettings();
@@ -94,8 +98,7 @@ public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends
     }
 
     @Override
-    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
-
+    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
         PrintStream logger = listener.getLogger();
         Date startDate = new Date();
         try {
@@ -105,15 +108,14 @@ public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends
                     serverModel.getName(), serverModel.getUrlObject(), serverModel.getUsername(), startDate);
             logConfig(logger, "    ");
             validateServiceSelection();
-            return performImpl(build, launcher, listener);
+            performImpl(run, workspace, launcher, listener);
         } catch (Exception e) {
-            listener.fatalError(e.getMessage());
             LOG.log(Level.SEVERE, "Build failed: " + e.getMessage(), e);
+            throw new AbortException(e.getMessage());
         } finally {
             double duration = (new Date().getTime() - startDate.getTime()) / 1000.;
             logger.printf("Finished: %s in %.3f seconds%n%n", getDescriptor().getDisplayName(), duration);
         }
-        return false;
     }
 
     protected void logConfig(PrintStream logger, String prefix) {
@@ -138,18 +140,18 @@ public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends
         logger.println(prefix + "Force: " + model.isForce());
     }
 
-    protected List<ServiceInfo> getServiceList(boolean ignoreMissingServices, PrintStream logger, AbstractBuild<?, ?> build) throws Exception {
+    protected List<ServiceInfo> getServiceList(boolean ignoreMissingServices, PrintStream logger, FilePath workspace) throws Exception {
         SvServiceSelectionModel s = getServiceSelection();
         ICommandExecutor exec = createCommandExecutor();
 
-        ArrayList<ServiceInfo> res = new ArrayList<ServiceInfo>();
+        ArrayList<ServiceInfo> res = new ArrayList<>();
 
         switch (s.getSelectionType()) {
             case SERVICE:
                 addServiceIfDeployed(s.getService(), res, ignoreMissingServices, exec, logger);
                 break;
             case PROJECT:
-                IProject project = loadProject(build);
+                IProject project = loadProject(workspace);
                 for (IService svc : project.getServices()) {
                     addServiceIfDeployed(svc.getId(), res, ignoreMissingServices, exec, logger);
                 }
@@ -178,9 +180,9 @@ public abstract class AbstractSvRunBuilder<T extends AbstractSvRunModel> extends
         }
     }
 
-    protected IProject loadProject(AbstractBuild<?, ?> build) throws ProjectBuilderException {
+    protected IProject loadProject(FilePath workspace) throws ProjectBuilderException {
         SvServiceSelectionModel s = getServiceSelection();
-        FilePath projectPath = build.getWorkspace().child(s.getProjectPath());
+        FilePath projectPath = workspace.child(s.getProjectPath());
         return new ProjectBuilder().buildProject(new File(projectPath.getRemote()), s.getProjectPassword());
     }
 

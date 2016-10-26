@@ -13,6 +13,7 @@ import hudson.model.Descriptor;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
@@ -24,11 +25,12 @@ public class SvServiceSelectionModel extends AbstractDescribableImpl<SvServiceSe
     protected final Secret projectPassword;
 
     @DataBoundConstructor
-    public SvServiceSelectionModel(SelectionType selectionType, String service, String projectPath, Secret projectPassword) {
+    public SvServiceSelectionModel(SelectionType selectionType, String service, String projectPath, String projectPassword) {
+        Validate.notNull(selectionType, "SelectionType must be specified");
         this.selectionType = selectionType;
         this.service = StringUtils.trim(service);
         this.projectPath = StringUtils.trim(projectPath);
-        this.projectPassword = projectPassword;
+        this.projectPassword = Secret.fromString(projectPassword);
     }
 
     public SelectionType getSelectionType() {
