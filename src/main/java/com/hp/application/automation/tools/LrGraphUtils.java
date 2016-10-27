@@ -29,6 +29,7 @@ import com.hp.application.automation.tools.results.projectparser.performance.LrP
 import com.hp.application.automation.tools.results.projectparser.performance.PercentileTransactionWholeRun;
 import com.hp.application.automation.tools.results.projectparser.performance.TimeRangeResult;
 import com.hp.application.automation.tools.results.projectparser.performance.WholeRunResult;
+import jnr.ffi.annotations.In;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
@@ -371,21 +372,22 @@ public final class LrGraphUtils {
         graphDataSet = new JSONObject();
         JSONArray labels = new JSONArray();
 
-        Map<String, ArrayList<Number>> vUserState = new HashMap<String, ArrayList<Number>>(0);
+        HashMap<String, ArrayList<Number>> vUserState = new HashMap<String, ArrayList<Number>>(0);
         vUserState.put("Passed", new ArrayList<Number>(0));
         vUserState.put("Failed", new ArrayList<Number>(0));
         vUserState.put("Stopped", new ArrayList<Number>(0));
         vUserState.put("Error", new ArrayList<Number>(0));
-        vUserState.put("MaxVuserRun", new ArrayList<Number>(0));
-
         for(Map.Entry<Integer, Map<String, Integer>> run : graphData.entrySet())
         {
-            labels.add(run.getKey());
-            vUserState.get("Passed").add(run.getValue().get("Passed"));
-            vUserState.get("Failed").add(run.getValue().get("Failed"));
-            vUserState.get("Stopped").add(run.getValue().get("Stopped"));
-            vUserState.get("Error").add(run.getValue().get("Error"));
-            vUserState.get("MaxVuserRun").add(run.getValue().get("MaxVuserRun"));
+            Number tempVUserCount = run.getValue().get("count");
+            if(tempVUserCount != null && tempVUserCount.intValue() > 0)
+            {
+                labels.add(run.getKey());
+                vUserState.get("Passed").add(run.getValue().get("Passed"));
+                vUserState.get("Failed").add(run.getValue().get("Failed"));
+                vUserState.get("Stopped").add(run.getValue().get("Stopped"));
+                vUserState.get("Error").add(run.getValue().get("Error"));
+            }
         }
 
         graphDataSet.put(LABELS, labels);
@@ -395,7 +397,7 @@ public final class LrGraphUtils {
 
 
     static void constructVuserGraph(Map.Entry<String, LrProjectScenarioResults> scenarioResults,
-                                        JSONObject scenarioGraphData) {
+                                         JSONObject scenarioGraphData) {
         Map<Integer, Map<String, Integer>> vUserResults = scenarioResults.getValue().vUserPerRun;
         JSONObject vUserGraphSet = extractVuserResult(vUserResults);
         if (!vUserGraphSet.getJSONArray(LABELS).isEmpty()) {
@@ -403,8 +405,44 @@ public final class LrGraphUtils {
             vUserGraphSet.put(X_AXIS_TITLE, "Build number");
             vUserGraphSet.put(Y_AXIS_TITLE, "Vuser count");
             vUserGraphSet.put(DESCRIPTION, "");
-            scenarioGraphData.put("totalHits", vUserGraphSet);
+            scenarioGraphData.put("VUser", vUserGraphSet);
         }
+    }
+
+    static void constructConnectionsGraph(Map.Entry<String, LrProjectScenarioResults> scenarioResults,
+                                    JSONObject scenarioGraphData) {
+        Map<Integer, Integer> connectionsResults = scenarioResults.getValue().maxConnectionsCount;
+        JSONObject maxConnectionsGraphSet = extractConnectionResults(connectionsResults);
+        if (!maxConnectionsGraphSet.getJSONArray(LABELS).isEmpty()) {
+            maxConnectionsGraphSet.put(TITLE, "Connections");
+            maxConnectionsGraphSet.put(X_AXIS_TITLE, "Build number");
+            maxConnectionsGraphSet.put(Y_AXIS_TITLE, "Connection count");
+            maxConnectionsGraphSet.put(DESCRIPTION, "");
+            scenarioGraphData.put("Connections", maxConnectionsGraphSet);
+        }
+    }
+
+    private static JSONObject extractConnectionResults(Map<Integer, Integer> connectionsResults) {
+        JSONObject graphDataSet;
+        graphDataSet = new JSONObject();
+        JSONArray labels = new JSONArray();
+        JSONArray data = new JSONArray();
+        JSONArray dataSets = new JSONArray();
+        JSONObject maxConnections = new JSONObject();
+        for(Map.Entry<Integer, Integer> runConnectionMax: connectionsResults.entrySet())
+        {
+            if(runConnectionMax.getValue()!= null && runConnectionMax.getValue() > 0)
+            {
+                labels.add(runConnectionMax.getKey());
+                data.add(runConnectionMax.getValue());
+            }
+        }
+        maxConnections.put("name", "Maximum connections per test run");
+        maxConnections.put("data", data);
+        dataSets.add(maxConnections);
+        graphDataSet.put(LABELS, labels);
+        graphDataSet.put(SERIES, dataSets);
+        return graphDataSet;
     }
 
     static void constructVuserSummary(Map<String, Integer> vUserResults,
@@ -418,10 +456,28 @@ public final class LrGraphUtils {
             vUserSummary.put("FailedVuserPercentile", failedVuserPercentile);
             double errorVuserPercentile = ((double) vUserResults.get("Error") / vUserCount) * 100;
             vUserSummary.put("ErroredVuserPercentile", errorVuserPercentile);
-
             double avgMaxVuser = ((double) vUserResults.get("MaxVuserRun") / size) * 100;
             vUserSummary.put("AvgMaxVuser", avgMaxVuser);
             scenarioStats.put("VUserSummary", vUserSummary);
         }
+    }
+
+    static void constructConnectionSummary(Map<Integer, Integer> maxConnectionPerRun,
+                                      JSONObject scenarioStats){
+        JSONObject maxConnectionsSummary = new JSONObject();
+        int connectionSum = 0;
+        int badConnectionReadings = 0;
+        for(Integer runConnectionMax: maxConnectionPerRun.values())
+        {
+            if((runConnectionMax>0))
+            {
+               connectionSum += runConnectionMax;
+               continue;
+            }
+            badConnectionReadings += 1 ;
+        }
+
+        double connectionMaxAverage = (double) connectionSum / maxConnectionPerRun.size();
+        scenarioStats.put("AvgMaxConnections", connectionMaxAverage);
     }
 }

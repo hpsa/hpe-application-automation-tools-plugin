@@ -30,31 +30,15 @@
             <st:bind var="instance" value="${it}"/>
             <st:bind var="projectName" value="${it.DisplayName}"/>
             <st:bind var="" value="${it.UpdatedData}"/>
-        <div>
+            <div>
             <h1 >${it.DisplayName}</h1>
             <div id="scenarioDropDown">
                 <!-- This element's contents will be replaced with your component. -->
             </div>
-        </div>
-
-            <div id="content">
-            <!-- This element's contents will be replaced with your component. -->
-        </div>
-
-            <div id="msk" />
-
-        <div id="mse" />
-
-        <div id="msg" />
-
-        <div id="msv" />
+            </div>
+            <div class="scenarioSummary"></div>
             <div class="graphCon"></div>
 
-        <div id="msr"></div>
-
-        <pre><code>
-        </code></pre>
-        <div id="examples"></div>
             <script type="text/javascript" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/jslib.js"/>
             <script type="text/babel" src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/dropdown.jsx"> </script>
     </l:main-panel>

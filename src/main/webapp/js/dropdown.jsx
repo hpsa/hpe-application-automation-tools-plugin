@@ -14,6 +14,8 @@ class Chart extends React.Component
         let options = new Object();
         options.fullWidth = false;
         options.chartPadding = {right: 40};
+        options.width = 1200;
+        options.height = 600;
         options.plugins = [];
         options.plugins.push(Chartist.plugins.tooltip());
         options.plugins.push(Chartist.plugins.ctAxisTitle({
@@ -31,10 +33,10 @@ class Chart extends React.Component
                 axisClass: 'ct-axis-title',
                 offset: {
                     x: 0,
-                    y: 30
+                    y: -10
                 },
                 textAnchor: 'middle',
-                flipTitle: false
+                flipTitle: true
             }
         }));
         if ((this.props.multiSeriesChart == true)) {
@@ -54,19 +56,15 @@ class Chart extends React.Component
 
     render() {
         return (
-               <div id={this.props.chartName} className=' ct-chart ct-minor-seventh'>
+               <div id={this.props.chartName} className=' ct-chart'>
                 </div>
        );
     }
 
 };
 
-
-
-
 class RenderCharts extends React.Component
 {
-
     render() {
         let graphsData = this.props.graphsData;
         let charts = Object.keys(graphsData).map((chartName, index)=>
@@ -80,7 +78,7 @@ class RenderCharts extends React.Component
             return <div key = {chartName}>
                 <div>
                     <h1>{chartData.title}</h1>
-                    <span class="ct-chart-description">{chartData.description}</span>
+                    <span className="ct-chart-description">{chartData.description}</span>
                 </div>
                     <Chart key = {chartName} chartName = {chartName} chartData = {chartData}
                            multiSeriesChart = {multiSeriesChart} {...this.props}/>
@@ -93,9 +91,6 @@ class RenderCharts extends React.Component
             returnValue = <div>{charts}</div>;
         }
         return returnValue;
-
-
-
     }
 };
 
@@ -151,8 +146,11 @@ function updateGraphs(scenarioKey)
     instance.getGraphData(function(t)
     {
         let graphsData = (t.responseObject())[scenarioKey];
-        console.log(JSON.stringify(graphsData));
-        ReactDOM.render(<ChartDashboard graphsData = {graphsData} dataProcessFunc = {isMultipleTransactionGraph}/>,
+        console.log(JSON.stringify(graphsData.scenarioStats));
+        console.log(JSON.stringify(graphsData.scenarioData));
+        ReactDOM.render(<scenarioTable scenarioName={scenarioKey} scenarioData = {graphsData.scenarioStats}/>,
+            document.querySelector('.scenarioSummary'));
+        ReactDOM.render(<ChartDashboard graphsData = {graphsData.scenarioData} dataProcessFunc = {isMultipleTransactionGraph}/>,
             document.querySelector('.graphCon'));
     });
 };
@@ -218,13 +216,15 @@ var Dropdown = React.createClass({
             )
         });
         return (
+            <div>
             <select id={this.props.id}
                     className='form-control'
                     value={this.state.selected}
                     onChange={this.handleChange}>
                 {options}
             </select>
-        )
+                </div>
+        );
     },
 
     handleChange: function(e) {
@@ -242,11 +242,48 @@ var Dropdown = React.createClass({
 
 var dropDownOnChange = function(change) {
     updateGraphs(change.newValue);
-
 };
 
 instance.getScenarioList(function(t)
 {
-    ReactDOM.render(<Dropdown id='myDropdown' options={t.responseObject()} labelField='ScenarioName' valueField='ScenarioName' onChange={dropDownOnChange}/>,
-        document.getElementById('scenarioDropDown'));
+    let tData = t.responseObject();
+    ReactDOM.render(<div><h1>Scenario dropdown:</h1>
+        <Dropdown id='myDropdown' options= {tData} labelField='ScenarioName' valueField='ScenarioName' onChange={dropDownOnChange}/></div>
+    , document.getElementById('scenarioDropDown'));
 });
+
+class scenarioTable extends React.component
+{
+    // static propTypes: {
+    //
+    // };
+    //
+    // static defaultProps : {
+    //
+    // };
+
+    componentDidMount() {
+        this.createScenarioTable();
+    };
+
+    createScenarioTable ()
+    {
+        let scenarioTable = <table>
+            <thead>
+            <th className="st-table-header">
+                Duration
+            </th>
+            </thead>
+            <tbody>
+
+        </tbody>
+        </table>
+
+        return scenarioTable;
+    }
+
+    render() {
+        let tableId= this.props.scenarioKey + '_table'
+        return (<div id={this.props.scenarioKey} className='scenario-stats'></div>);
+    }
+}

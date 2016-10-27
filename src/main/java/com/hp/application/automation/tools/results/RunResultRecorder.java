@@ -95,6 +95,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -1035,25 +1036,42 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 //		doc.getDocumentElement().normalize();
 
         processSLA(jobLrScenarioResult, doc);
-        processScenarioStats(jobLrScenarioResult, doc);
+        processLrScenarioStats(jobLrScenarioResult, doc);
         //TODO: add fail / Pass count
         return jobLrScenarioResult;
     }
 
-    private void processScenarioStats(JobLrScenarioResult jobLrScenarioResult, Document doc) {
+    private void processLrScenarioStats(JobLrScenarioResult jobLrScenarioResult, Document doc) {
 
         NodeList rootNodes = doc.getChildNodes();
         Node root = getNode("Runs", rootNodes);
         Element generalNode = (Element) getNode("General", root.getChildNodes());
         NodeList generalNodeChildren = generalNode.getChildNodes();
 
-        Node vUser = getNode("VUsers", generalNodeChildren);
-        int atrrCount = vUser.getAttributes().getLength();
-        for (int atrrIndx = 0; atrrIndx < atrrCount; atrrIndx++) {
-            Node vUserAttr = vUser.getAttributes().item(atrrIndx);
-            jobLrScenarioResult.vUserSum.put(vUserAttr.getNodeName(), Integer.valueOf(vUserAttr.getNodeValue()));
-        }
+        extractVUserScenarioReult(jobLrScenarioResult, generalNodeChildren);
+        extractTransactionScenarioResult(jobLrScenarioResult, generalNodeChildren);
+        extractConnectionsScenarioResult(jobLrScenarioResult, generalNodeChildren);
+        extractDuration(jobLrScenarioResult, generalNodeChildren);
+    }
 
+    private void extractDuration(JobLrScenarioResult jobLrScenarioResult, NodeList generalNodeChildren) {
+        Node ScenrioDurationNode = getNode("ScenarioDuration", generalNodeChildren);
+        String scenarioDurationAttr = getNodeAttr("Duration", ScenrioDurationNode);
+        SimpleDateFormat scenarioDuration = new SimpleDateFormat("DD:HH:mm:aa:SSS");
+        scenarioDuration.format(scenarioDurationAttr);
+fk
+        jobLrScenarioResult.setConnectionMax(Integer.valueOf());
+    }
+
+    private void extractConnectionsScenarioResult(JobLrScenarioResult jobLrScenarioResult,
+                                                  NodeList generalNodeChildren) {
+        Node connections = getNode("Connections", generalNodeChildren);
+        jobLrScenarioResult.setConnectionMax(Integer.valueOf(getNodeAttr("MaxCount", connections)));
+    }
+
+    private void extractTransactionScenarioResult(JobLrScenarioResult jobLrScenarioResult,
+                                                  NodeList generalNodeChildren) {
+        int atrrCount;
         Node transactions = getNode("Transactions", generalNodeChildren);
         atrrCount = transactions.getAttributes().getLength();
         for (int atrrIndx = 0; atrrIndx < atrrCount; atrrIndx++) {
@@ -1074,10 +1092,15 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             transactionData.put("Stop", Integer.valueOf(transaction.getAttribute("Stop")));
             jobLrScenarioResult.transactionData.put(transaction.getAttribute("Name"), transactionData);
         }
+    }
 
-        Node connections = getNode("Connections", generalNodeChildren);
-        jobLrScenarioResult.setConnectionMax(Integer.valueOf(getNodeAttr("MaxCount", connections)));
-
+    private void extractVUserScenarioReult(JobLrScenarioResult jobLrScenarioResult, NodeList generalNodeChildren) {
+        Node vUser = getNode("VUsers", generalNodeChildren);
+        int atrrCount = vUser.getAttributes().getLength();
+        for (int atrrIndx = 0; atrrIndx < atrrCount; atrrIndx++) {
+            Node vUserAttr = vUser.getAttributes().item(atrrIndx);
+            jobLrScenarioResult.vUserSum.put(vUserAttr.getNodeName(), Integer.valueOf(vUserAttr.getNodeValue()));
+        }
     }
 
     private void processSLA(JobLrScenarioResult jobLrScenarioResult, Document doc) {
@@ -1137,7 +1160,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 averageHitsPerSecond.setGoalValue(Double.valueOf(slaRuleElement.getAttribute("GoalValue")));
                 averageHitsPerSecond.setFullName(slaRuleElement.getAttribute("FullName"));
                 averageHitsPerSecond.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
-//                            jobLrScenarioResult.averageHitsPerSecondResults = averageHitsPerSecond;
                 jobLrScenarioResult.scenarioSlaResults.add(averageHitsPerSecond);
 
                 break;

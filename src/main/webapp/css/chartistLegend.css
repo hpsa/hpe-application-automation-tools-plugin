@@ -1,7 +1,6 @@
 .ct-legend {
-  position: absolute;
+  position: relative;
   z-index: 10;
-  bottom: -43px;
 }
 .ct-legend li {
   position: relative;

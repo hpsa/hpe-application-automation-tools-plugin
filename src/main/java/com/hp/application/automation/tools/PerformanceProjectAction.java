@@ -123,10 +123,15 @@ public class PerformanceProjectAction implements Action {
             JSONObject scenarioStats = new JSONObject();
             LrGraphUtils.constructVuserSummary(scenarioResults.getValue().vUserSummary, scenarioStats, _workedBuilds
                     .size());
+            LrGraphUtils.constructConnectionSummary(scenarioResults.getValue().maxConnectionsCount, scenarioStats);
 
             scenarioData.put("scenarioStats", scenarioStats);
 
             JSONObject scenarioGraphData = new JSONObject();
+            //Scenario data graphs
+            LrGraphUtils.constructVuserGraph(scenarioResults, scenarioGraphData);
+            LrGraphUtils.constructConnectionsGraph(scenarioResults, scenarioGraphData);
+            //Scenario SLA graphs
             LrGraphUtils.constructTotalHitsGraph(scenarioResults, scenarioGraphData);
             LrGraphUtils.constructAvgHitsGraph(scenarioResults, scenarioGraphData);
             LrGraphUtils.constructTotalThroughputGraph(scenarioResults, scenarioGraphData);
@@ -134,7 +139,7 @@ public class PerformanceProjectAction implements Action {
             LrGraphUtils.constructErrorGraph(scenarioResults, scenarioGraphData);
             LrGraphUtils.constructAvgTransactionGraph(scenarioResults, scenarioGraphData);
             LrGraphUtils.constructPercentileTransactionGraph(scenarioResults, scenarioGraphData);
-            LrGraphUtils.constructVuserGraph(scenarioResults, scenarioGraphData);
+
             scenarioData.put("scenarioData", scenarioGraphData);
 
             String scenarioName = scenarioResults.getKey();
