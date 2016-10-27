@@ -59,7 +59,7 @@ public interface CIPluginServices {
 	/**
 	 * Provides a list of Projects existing on this CI Server
 	 *
-	 * @param includeParameters
+	 * @param includeParameters should the jobs data include parameters or not
 	 * @return ProjectList object holding the list of the projects
 	 */
 	CIJobsList getJobsList(boolean includeParameters);
@@ -67,53 +67,53 @@ public interface CIPluginServices {
 	/**
 	 * Provides Pipeline (structure) from the root CI Job
 	 *
-	 * @param rootCIJobId
-	 * @return
+	 * @param rootCIJobId root Job CI ID to start pipeline from
+	 * @return pipeline's structure or null if CI Job not found
 	 */
 	PipelineNode getPipeline(String rootCIJobId);
 
 	/**
 	 * Executes the Pipeline, running the root job
 	 *
-	 * @param ciJobId
-	 * @param originalBody
-	 * @return
+	 * @param ciJobId      Job CI ID to execute
+	 * @param originalBody request body, expected to be JSON kind and hold parameters (see TODO below)
 	 */
 	void runPipeline(String ciJobId, String originalBody);       //  [YG]: TODO: replace the body thing with parsed parameters/DTO
 
 	/**
 	 * Provides Snapshot of the latest CI Build of the specified CI Job
 	 *
-	 * @param ciJobId
-	 * @param subTree
-	 * @return
+	 * @param ciJobId Job CI ID to get latest snapshot for
+	 * @param subTree should the snapshot include sub tree or not
+	 * @return latest snapshot's structure or null if build data not found
 	 */
 	SnapshotNode getSnapshotLatest(String ciJobId, boolean subTree);
 
 	/**
 	 * Provides Snapshot of the specified CI Build of the specified CI Job
 	 *
-	 * @param ciJobId
-	 * @param buildCiId
-	 * @param subTree
-	 * @return
+	 * @param ciJobId   Job CI ID to get the specified snapshot for
+	 * @param buildCiId Build CI ID to get snapshot of
+	 * @param subTree   should the snapshot include sub tree or not
+	 * @return specified snapshot's structure or null if build data not found
 	 */
 	SnapshotNode getSnapshotByNumber(String ciJobId, String buildCiId, boolean subTree);
 
 	/**
-	 * Retrieves aggregated latest builds info                  //  [YG]: TODO: this API should be removed, all the relevant data should be made available in the rest of APIs
+	 * Retrieves aggregated latest builds info
 	 *
-	 * @param ciJobId
-	 * @param originalBody
-	 * @return
+	 * @param ciJobId      Job CI ID to get history data for
+	 * @param originalBody request body
+	 * @return history data for the specified pipeline
 	 */
+	@Deprecated
 	BuildHistory getHistoryPipeline(String ciJobId, String originalBody);
 
 	/**
 	 * Retrieves tests result report for the specific build
 	 *
-	 * @param jobId
-	 * @param buildNumber
+	 * @param jobId       Job CI ID to get tests results of
+	 * @param buildNumber Build CI ID to get tests results of
 	 * @return TestsResult data; NULL if no tests result available
 	 */
 	TestsResult getTestsResult(String jobId, String buildNumber);

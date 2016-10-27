@@ -1,6 +1,5 @@
 package com.hp.octane.plugins.jenkins.model.processors.builders;
 
-import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
 import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import hudson.model.AbstractProject;
 import hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig;
@@ -9,11 +8,12 @@ import hudson.plugins.parameterizedtrigger.BuildTriggerConfig;
 import hudson.plugins.parameterizedtrigger.TriggerBuilder;
 import hudson.tasks.Builder;
 import hudson.tasks.Publisher;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -24,43 +24,39 @@ import java.util.logging.Logger;
  */
 
 public class ParameterizedTriggerProcessor extends AbstractBuilderProcessor {
-	private static final Logger logger = Logger.getLogger(ParameterizedTriggerProcessor.class.getName());
+	private static final Logger logger = LogManager.getLogger(ParameterizedTriggerProcessor.class);
 
 	public ParameterizedTriggerProcessor(Builder builder, AbstractProject project, String phasesName) {
 		TriggerBuilder b = (TriggerBuilder) builder;
-		super.phases = new ArrayList<PipelinePhase>();
+		super.phases = new ArrayList<>();
 		List<AbstractProject> items;
 		for (BlockableBuildTriggerConfig config : b.getConfigs()) {
 			items = config.getProjectList(project.getParent(), null);
-			for (Iterator<AbstractProject> iterator = items.iterator(); iterator.hasNext();) {
+			for (Iterator<AbstractProject> iterator = items.iterator(); iterator.hasNext(); ) {
 				AbstractProject next = iterator.next();
 				if (next == null) {
 					iterator.remove();
-					logger.severe("encountered null project reference; considering it as corrupted configuration and skipping");
+					logger.warn("encountered null project reference; considering it as corrupted configuration and skipping");
 				}
 			}
-//			super.phases.add(new StructurePhase(phasesName, config.getBlock() != null, items));
 			super.phases.add(ModelFactory.createStructurePhase(phasesName, config.getBlock() != null, items));
-
 		}
 	}
 
 	public ParameterizedTriggerProcessor(Publisher publisher, AbstractProject project, String phasesName) {
 		BuildTrigger t = (BuildTrigger) publisher;
-		super.phases = new ArrayList<PipelinePhase>();
+		super.phases = new ArrayList<>();
 		List<AbstractProject> items;
 		for (BuildTriggerConfig config : t.getConfigs()) {
 			items = config.getProjectList(project.getParent(), null);
-			for (Iterator<AbstractProject> iterator = items.iterator(); iterator.hasNext();) {
+			for (Iterator<AbstractProject> iterator = items.iterator(); iterator.hasNext(); ) {
 				AbstractProject next = iterator.next();
 				if (next == null) {
 					iterator.remove();
-					logger.severe("encountered null project reference; considering it as corrupted configuration and skipping");
+					logger.warn("encountered null project reference; considering it as corrupted configuration and skipping");
 				}
 			}
-//			super.phases.add(new StructurePhase(phasesName, false, items));
 			super.phases.add(ModelFactory.createStructurePhase(phasesName, false, items));
-
 		}
 	}
 }

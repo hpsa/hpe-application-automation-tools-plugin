@@ -6,11 +6,12 @@ import com.hp.octane.integrations.dto.parameters.CIParameterType;
 import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import hudson.matrix.*;
 import hudson.model.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
 /**
  * Created by gullery on 26/03/2015.
@@ -23,7 +24,7 @@ public enum ParameterProcessors {
 	NODE_LABEL("org.jvnet.jenkins.plugins.nodelabelparameter", NodeLabelParameterProcessor.class),
 	RANDOM_STRING("hudson.plugins.random_string_parameter.RandomStringParameterDefinition", RandomStringParameterProcessor.class);
 
-	private static final Logger logger = Logger.getLogger(ParameterProcessors.class.getName());
+	private static final Logger logger = LogManager.getLogger(ParameterProcessors.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private String targetPluginClassName;
 	private Class<? extends AbstractParametersProcessor> processorClass;
@@ -34,7 +35,7 @@ public enum ParameterProcessors {
 	}
 
 	public static List<CIParameter> getConfigs(Job job) {
-		ArrayList<CIParameter> result = new ArrayList<CIParameter>();
+		ArrayList<CIParameter> result = new ArrayList<>();
 		List<ParameterDefinition> paramDefinitions;
 		ParameterDefinition pd;
 		String className;
@@ -61,7 +62,7 @@ public enum ParameterProcessors {
 
 	//  TODO: the below mapping between param configs and values based on param name uniqueness, beware!
 	public static List<CIParameter> getInstances(Run run) {
-		List<CIParameter> result = new ArrayList<CIParameter>();
+		List<CIParameter> result = new ArrayList<>();
 		CIParameter tmp;
 		Job job = run.getParent();
 		List<ParameterDefinition> paramDefinitions;
@@ -71,9 +72,9 @@ public enum ParameterProcessors {
 		List<ParameterValue> parametersValues;
 		ParametersAction parametersAction = run.getAction(ParametersAction.class);
 		if (parametersAction != null) {
-			parametersValues = new ArrayList<ParameterValue>(parametersAction.getParameters());
+			parametersValues = new ArrayList<>(parametersAction.getParameters());
 		} else {
-			parametersValues = new ArrayList<ParameterValue>();
+			parametersValues = new ArrayList<>();
 		}
 		ParameterValue pv;
 
@@ -106,7 +107,7 @@ public enum ParameterProcessors {
 					processor = getAppropriate(className);
 					result.add(processor.createParameterInstance(pd, pv));
 				} catch (Exception e) {
-					logger.severe("failed to process instance of parameter or type '" + className + "', adding as unsupported");
+					logger.error("failed to process instance of parameter or type '" + className + "', adding as unsupported", e);
 					result.add(new UnsupportedParameterProcessor().createParameterInstance(pd, pv));
 				}
 			}
@@ -121,10 +122,10 @@ public enum ParameterProcessors {
 			if (className.startsWith(p.targetPluginClassName)) {
 				try {
 					return p.processorClass.newInstance();
-				} catch (InstantiationException e) {
-					e.printStackTrace();
-				} catch (IllegalAccessException e) {
-					e.printStackTrace();
+				} catch (InstantiationException ie) {
+					logger.error("failed to instantiate instance of parameters processor of type " + className, ie);
+				} catch (IllegalAccessException iae) {
+					logger.error("failed to instantiate instance of parameters processor of type " + className, iae);
 				}
 			}
 		}

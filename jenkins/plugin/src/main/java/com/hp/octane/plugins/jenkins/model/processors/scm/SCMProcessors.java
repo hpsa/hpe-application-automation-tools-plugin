@@ -1,8 +1,8 @@
 package com.hp.octane.plugins.jenkins.model.processors.scm;
 
 import com.hp.octane.plugins.jenkins.OctanePlugin;
-
-import java.util.logging.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Created by gullery on 31/03/2015.
@@ -12,7 +12,7 @@ public enum SCMProcessors {
 	GIT("hudson.plugins.git.GitSCM", GitSCMProcessor.class),
 	SVN("hudson.scm.SubversionSCM", SvnSCMProcessor.class);
 
-	private static Logger logger = Logger.getLogger(OctanePlugin.class.getName());
+	private static Logger logger = LogManager.getLogger(OctanePlugin.class);
 	private String targetSCMPluginClassName;
 	private Class<? extends SCMProcessor> processorClass;
 
@@ -28,10 +28,8 @@ public enum SCMProcessors {
 				try {
 					result = p.processorClass.newInstance();
 					break;
-				} catch (InstantiationException ie) {
-					logger.severe("failed to instantiate SCM processor of type '" + p.targetSCMPluginClassName + "'; error: " + ie.getMessage());
-				} catch (IllegalAccessException iae) {
-					logger.severe("failed to instantiate SCM processor of type '" + p.targetSCMPluginClassName + "'; error: " + iae.getMessage());
+				} catch (InstantiationException | IllegalAccessException e) {
+					logger.error("failed to instantiate SCM processor of type '" + p.targetSCMPluginClassName, e);
 				}
 		}
 
@@ -46,10 +44,8 @@ public enum SCMProcessors {
 		SCMProcessor genericSCMProcessor = null;
 		try {
 			genericSCMProcessor = (GenericSCMProcessor.class).newInstance();
-		} catch (InstantiationException e) {
-			logger.severe("failed to instantiate SCM processor of type '" + className + "'; error: " + e.getMessage());
-		} catch (IllegalAccessException e) {
-			logger.severe("failed to instantiate SCM processor of type '" + className + "'; error: " + e.getMessage());
+		} catch (InstantiationException | IllegalAccessException e) {
+			logger.error("failed to instantiate SCM processor of type '" + className, e);
 		}
 		return genericSCMProcessor;
 	}

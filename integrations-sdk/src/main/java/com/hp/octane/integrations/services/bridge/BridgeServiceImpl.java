@@ -95,7 +95,7 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 		RestClient restClientImpl = restService.obtainClient();
 		OctaneConfiguration octaneConfiguration = pluginServices.getOctaneConfiguration();
 		if (octaneConfiguration != null && octaneConfiguration.isValid()) {
-			Map<String, String> headers = new HashMap<String, String>();
+			Map<String, String> headers = new HashMap<>();
 			headers.put("accept", "application/json");
 			OctaneRequest octaneRequest = dtoFactory.newDTO(OctaneRequest.class)
 					.setMethod(HttpMethod.GET)

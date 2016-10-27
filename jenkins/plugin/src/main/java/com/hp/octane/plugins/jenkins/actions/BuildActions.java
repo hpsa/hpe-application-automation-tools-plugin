@@ -10,11 +10,12 @@ import hudson.model.Action;
 import hudson.model.Run;
 import jenkins.model.RunAction2;
 import jenkins.model.TransientActionFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -26,7 +27,7 @@ import java.util.logging.Logger;
 
 @Extension
 public class BuildActions extends TransientActionFactory<AbstractBuild> {
-	private static final Logger logger = Logger.getLogger(BuildActions.class.getName());
+	private static final Logger logger = LogManager.getLogger(BuildActions.class);
 
 	private JenkinsMqmRestClientFactory clientFactory;
 
@@ -70,7 +71,7 @@ public class BuildActions extends TransientActionFactory<AbstractBuild> {
 	@Override
 	@Nonnull
 	public Collection<? extends Action> createFor(@Nonnull AbstractBuild build) {
-		ArrayList<Action> actions = new ArrayList<Action>();
+		ArrayList<Action> actions = new ArrayList<>();
 		actions.add(new OctaneBuildActions(build, clientFactory));
 		return actions;
 	}

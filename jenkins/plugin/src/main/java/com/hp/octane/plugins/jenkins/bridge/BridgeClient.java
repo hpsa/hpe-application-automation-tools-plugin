@@ -22,8 +22,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
-
-
 public class BridgeClient {
 	private static final Logger logger = LogManager.getLogger(BridgeClient.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
@@ -41,12 +39,12 @@ public class BridgeClient {
 		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password, mqmConfig.impersonatedUser);
 		restClientFactory = clientFactory;
 		connect();
-		logger.info("BRIDGE: client initialized for '" + this.mqmConfig.location + "'; SP: " + this.mqmConfig.sharedSpace + "; access key: " + this.mqmConfig.username);
+		logger.info("client initialized for '" + this.mqmConfig.location + "'; SP: " + this.mqmConfig.sharedSpace + "; access key: " + this.mqmConfig.username);
 	}
 
 	public void update(ServerConfiguration newConfig) {
 		mqmConfig = new ServerConfiguration(newConfig.location, newConfig.sharedSpace, newConfig.username, newConfig.password, newConfig.impersonatedUser);
-		logger.info("BRIDGE: client updated to '" + mqmConfig.location + "'; SP: " + mqmConfig.sharedSpace + "; access key: " + newConfig.username);
+		logger.info("client updated to '" + mqmConfig.location + "'; SP: " + mqmConfig.sharedSpace + "; access key: " + newConfig.username);
 		restClientFactory.updateMqmRestClient(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
 		connect();
 	}
@@ -74,7 +72,7 @@ public class BridgeClient {
 						}
 					} catch (AuthenticationException ae) {
 						isConnected = false;
-						logger.error("BRIDGE: connection to MQM Server temporary failed: authentication error", ae);
+						logger.error("connection to MQM Server temporary failed: authentication error", ae);
 						try {
 							Thread.sleep(20000);
 						} catch (InterruptedException ie) {
@@ -83,7 +81,7 @@ public class BridgeClient {
 						connect();
 					} catch (TemporarilyUnavailableException tue) {
 						isConnected = false;
-						logger.error("BRIDGE: connection to MQM Server temporary failed: resource not available", tue);
+						logger.error("connection to MQM Server temporary failed: resource not available", tue);
 						try {
 							Thread.sleep(20000);
 						} catch (InterruptedException ie) {
@@ -92,7 +90,7 @@ public class BridgeClient {
 						connect();
 					} catch (Exception e) {
 						isConnected = false;
-						logger.error("BRIDGE: connection to MQM Server temporary failed: " + e.getMessage(), e);
+						logger.error("connection to MQM Server temporary failed: " + e.getMessage(), e);
 						try {
 							Thread.sleep(1000);
 						} catch (InterruptedException ie) {
@@ -103,7 +101,7 @@ public class BridgeClient {
 				}
 			});
 		} else if (shuttingDown) {
-			logger.info("BRIDGE: bridge client stopped");
+			logger.info("bridge client stopped");
 		}
 	}
 
@@ -116,7 +114,7 @@ public class BridgeClient {
 		try {
 			OctaneTaskAbridged[] tasks = dtoFactory.dtoCollectionFromJson(tasksJSON, OctaneTaskAbridged[].class);
 
-			logger.info("BRIDGE: received " + tasks.length + " task(s)");
+			logger.info("received " + tasks.length + " task(s)");
 			for (final OctaneTaskAbridged task : tasks) {
 				taskProcessingExecutors.execute(new Runnable() {
 					@Override
@@ -132,12 +130,12 @@ public class BridgeClient {
 								serverInstanceId,
 								result.getId(),
 								dtoFactory.dtoToJson(result));
-						logger.info("BRIDGE: result for task '" + result.getId() + "' submitted with status " + submitStatus);
+						logger.info("result for task '" + result.getId() + "' submitted with status " + submitStatus);
 					}
 				});
 			}
 		} catch (Exception e) {
-			logger.error("BRIDGE: failed to process tasks: " + e.getMessage(), e);
+			logger.error("failed to process tasks: " + e.getMessage(), e);
 		}
 	}
 
