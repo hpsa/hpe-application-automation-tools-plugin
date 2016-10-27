@@ -5,6 +5,8 @@
 
 package com.hp.application.automation.tools.run;
 
+import javax.annotation.Nonnull;
+
 import com.hp.application.automation.tools.model.SvServerSettingsModel;
 import com.hp.application.automation.tools.settings.SvServerSettingsBuilder;
 import hudson.model.AbstractProject;
@@ -14,10 +16,10 @@ import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 
-public class AbstractSvRunDescriptor extends BuildStepDescriptor<Builder> {
-    private String displayName;
+public abstract class AbstractSvRunDescriptor extends BuildStepDescriptor<Builder> {
+    private final String displayName;
 
-    public AbstractSvRunDescriptor(String displayName) {
+    protected AbstractSvRunDescriptor(String displayName) {
         this.displayName = displayName;
         load();
     }
@@ -27,13 +29,18 @@ public class AbstractSvRunDescriptor extends BuildStepDescriptor<Builder> {
         return true;
     }
 
+    @Nonnull
     @Override
     public String getDisplayName() {
         return displayName;
     }
 
     public SvServerSettingsModel[] getServers() {
-        return Jenkins.getInstance().getDescriptorByType(SvServerSettingsBuilder.DescriptorImpl.class).getServers();
+        Jenkins jenkins = Jenkins.getInstance();
+        if (jenkins == null) {
+            throw new IllegalStateException("Cannot get Jenkins instance, probably not running inside Jenkins");
+        }
+        return jenkins.getDescriptorByType(SvServerSettingsBuilder.DescriptorImpl.class).getServers();
     }
 
     @SuppressWarnings("unused")

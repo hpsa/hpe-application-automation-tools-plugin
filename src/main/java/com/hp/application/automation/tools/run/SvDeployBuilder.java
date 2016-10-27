@@ -5,6 +5,7 @@
 
 package com.hp.application.automation.tools.run;
 
+import javax.annotation.Nonnull;
 import java.io.PrintStream;
 import java.util.ArrayList;
 
@@ -20,11 +21,11 @@ import com.hp.sv.jsvconfigurator.serverclient.ICommandExecutor;
 import com.hp.sv.jsvconfigurator.service.ServiceAmendingServiceImpl;
 import com.hp.sv.jsvconfigurator.util.ProjectUtils;
 import hudson.Extension;
+import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.AbstractBuild;
-import hudson.model.BuildListener;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.util.FormValidation;
-import hudson.util.Secret;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -32,7 +33,7 @@ import org.kohsuke.stapler.QueryParameter;
 public class SvDeployBuilder extends AbstractSvRunBuilder<SvDeployModel> {
 
     @DataBoundConstructor
-    public SvDeployBuilder(String serverName, boolean force, String service, String projectPath, Secret projectPassword,
+    public SvDeployBuilder(String serverName, boolean force, String service, String projectPath, String projectPassword,
                            boolean firstAgentFallback) {
         super(new SvDeployModel(serverName, force, service, projectPath, projectPassword, firstAgentFallback));
     }
@@ -43,20 +44,19 @@ public class SvDeployBuilder extends AbstractSvRunBuilder<SvDeployModel> {
     }
 
     @Override
-    public boolean performImpl(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws Exception {
+    public void performImpl(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, Launcher launcher, TaskListener listener) throws Exception {
         PrintStream logger = listener.getLogger();
 
-        IProject project = loadProject(build);
+        IProject project = loadProject(workspace);
         printProjectContent(project, logger);
         deployServiceFromProject(project, logger);
-        return true;
     }
 
     private Iterable<IService> getServiceList(IProject project) {
         if (model.getService() == null) {
             return project.getServices();
         } else {
-            ArrayList<IService> list = new ArrayList<IService>();
+            ArrayList<IService> list = new ArrayList<>();
             list.add(ProjectUtils.findProjElem(project.getServices(), model.getService()));
             return list;
         }

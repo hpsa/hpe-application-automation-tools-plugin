@@ -5,6 +5,7 @@
 
 package com.hp.application.automation.tools.run;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -23,9 +24,10 @@ import com.hp.sv.jsvconfigurator.processor.ExportProcessor;
 import com.hp.sv.jsvconfigurator.processor.IChmodeProcessor;
 import com.hp.sv.jsvconfigurator.serverclient.ICommandExecutor;
 import hudson.Extension;
+import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.AbstractBuild;
-import hudson.model.BuildListener;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.util.FormValidation;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
@@ -58,7 +60,7 @@ public class SvExportBuilder extends AbstractSvRunBuilder<SvExportModel> {
     }
 
     @Override
-    public boolean performImpl(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws Exception {
+    protected void performImpl(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, Launcher launcher, TaskListener listener) throws Exception {
         PrintStream logger = listener.getLogger();
 
         ExportProcessor exportProcessor = new ExportProcessor(null);
@@ -68,13 +70,13 @@ public class SvExportBuilder extends AbstractSvRunBuilder<SvExportModel> {
 
         verifyNotNull(model.getTargetDirectory(), "Target directory must be set");
 
-        String targetDirectory = build.getWorkspace().child(model.getTargetDirectory()).getRemote();
+        String targetDirectory = workspace.child(model.getTargetDirectory()).getRemote();
 
         if (model.isCleanTargetDirectory()) {
             cleanTargetDirectory(logger, targetDirectory);
         }
 
-        for (ServiceInfo serviceInfo : getServiceList(false, logger, build)) {
+        for (ServiceInfo serviceInfo : getServiceList(false, logger, workspace)) {
             if (model.isSwitchToStandByFirst()) {
                 switchToStandBy(serviceInfo, chmodeProcessor, exec, logger);
             }
@@ -83,8 +85,6 @@ public class SvExportBuilder extends AbstractSvRunBuilder<SvExportModel> {
             verifyNotLearningBeforeExport(logger, exec, serviceInfo);
             exportProcessor.process(exec, targetDirectory, serviceInfo.getId(), false);
         }
-
-        return true;
     }
 
     private void verifyNotLearningBeforeExport(PrintStream logger, ICommandExecutor exec, ServiceInfo serviceInfo)
