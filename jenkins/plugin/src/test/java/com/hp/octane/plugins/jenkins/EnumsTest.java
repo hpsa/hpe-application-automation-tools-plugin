@@ -33,7 +33,7 @@ public class EnumsTest {
 
 	@Test
 	public void testCIEventType() {
-		assertEquals(CIEventType.values().length, 4);
+		assertEquals(CIEventType.values().length, 5);
 		assertEquals(CIEventType.QUEUED.value(), "queued");
 		assertEquals(CIEventType.SCM.value(), "scm");
 		assertEquals(CIEventType.STARTED.value(), "started");
