@@ -150,7 +150,8 @@ namespace LRAnalysisLauncher
         {
             var testDuration = lrAnalysis.Session.Runs[0].EndTime - lrAnalysis.Session.Runs[0].StartTime;
             var t = TimeSpan.FromSeconds(testDuration);
-            var strScenarioDuration = string.Format("{0:D2}:{1:D2}:{2:D2}:{3:D3}",
+            var strScenarioDuration = string.Format("{0:D2}:{1:D2}:{2:D2}:{3:D3}:{4:D3}",
+                            t.Days,
                             t.Hours,
                             t.Minutes,
                             t.Seconds,
