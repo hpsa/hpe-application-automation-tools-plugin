@@ -51,6 +51,8 @@ import java.util.logging.Logger;
 
 import static com.hp.application.automation.tools.results.projectparser.performance.JobLrScenarioResult
         .DEFAULT_CONNECTION_MAX;
+import static com.hp.application.automation.tools.results.projectparser.performance.JobLrScenarioResult
+        .DEFAULT_SCENARIO_DURATION;
 
 /**
  * The type Performance project action.
@@ -123,7 +125,9 @@ public class PerformanceProjectAction implements Action {
             JSONObject scenarioStats = new JSONObject();
             LrGraphUtils.constructVuserSummary(scenarioResults.getValue().vUserSummary, scenarioStats, _workedBuilds
                     .size());
+            LrGraphUtils.constructDurationSummary(scenarioResults.getValue().durationData, scenarioStats);
             LrGraphUtils.constructConnectionSummary(scenarioResults.getValue().maxConnectionsCount, scenarioStats);
+
 
             scenarioData.put("scenarioStats", scenarioStats);
 
@@ -256,12 +260,20 @@ public class PerformanceProjectAction implements Action {
                 joinSceanrioConnectionsStats(runNumber, lrProjectScenarioResults, scenarioRunResult);
                 joinVUserScenarioStats(runNumber, lrProjectScenarioResults, scenarioRunResult);
                 joinTransactionScenarioStats(runNumber, lrProjectScenarioResults, scenarioRunResult);
-
+                joinDurationStats(runNumber, lrProjectScenarioResults, scenarioRunResult);
 
             }
 
         }
 
+    }
+
+    private void joinDurationStats(int runNumber, LrProjectScenarioResults lrProjectScenarioResults,
+                                   JobLrScenarioResult scenarioRunResult) {
+        long scenarioConnectionMax = scenarioRunResult.getScenarioDuration();
+        if (scenarioConnectionMax != DEFAULT_SCENARIO_DURATION) {
+            lrProjectScenarioResults.durationData.put(runNumber, scenarioConnectionMax);
+        }
     }
 
     private void joinTransactionScenarioStats(int runNumber, LrProjectScenarioResults lrProjectScenarioResults,

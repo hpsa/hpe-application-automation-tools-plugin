@@ -34,15 +34,26 @@ import java.util.Map;
  */
 public class JobLrScenarioResult extends LrScenario {
     public static final int DEFAULT_CONNECTION_MAX = -1;
+    public static final int DEFAULT_SCENARIO_DURATION = -1;
     public ArrayList<GoalResult> scenarioSlaResults;
     public Map<String, Integer> vUserSum;
     public HashMap<String, Integer> transactionSum;
     public HashMap<String, HashMap<String, Integer>> transactionData;
     int connectionMax;
+    long scenarioDuration;
+
+    public long getScenarioDuration() {
+        return scenarioDuration;
+    }
+
+    public void setScenarioDuration(long scenarioDuration) {
+        this.scenarioDuration = scenarioDuration;
+    }
 
     public JobLrScenarioResult(String scenarioName) {
         super.setScenrioName(scenarioName);
         connectionMax = DEFAULT_CONNECTION_MAX;
+        scenarioDuration = DEFAULT_SCENARIO_DURATION;
         vUserSum = new HashMap<String, Integer>(0);
         transactionSum = new HashMap<String, Integer>(0);
         transactionData = new HashMap<String, HashMap<String, Integer>>(0);

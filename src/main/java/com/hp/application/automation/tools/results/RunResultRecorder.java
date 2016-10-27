@@ -1057,10 +1057,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
     private void extractDuration(JobLrScenarioResult jobLrScenarioResult, NodeList generalNodeChildren) {
         Node ScenrioDurationNode = getNode("ScenarioDuration", generalNodeChildren);
         String scenarioDurationAttr = getNodeAttr("Duration", ScenrioDurationNode);
-        SimpleDateFormat scenarioDuration = new SimpleDateFormat("DD:HH:mm:aa:SSS");
-        scenarioDuration.format(scenarioDurationAttr);
-fk
-        jobLrScenarioResult.setConnectionMax(Integer.valueOf());
+        jobLrScenarioResult.setScenarioDuration(Long.valueOf(scenarioDurationAttr));
     }
 
     private void extractConnectionsScenarioResult(JobLrScenarioResult jobLrScenarioResult,

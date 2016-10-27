@@ -27,7 +27,6 @@ package com.hp.application.automation.tools.results.projectparser.performance;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Data model for a project / build / pipeline that contains multiple runs per scenario being run.
@@ -56,6 +55,8 @@ public class LrProjectScenarioResults extends LrScenario {
     public Map<String, Integer> transactionSum;
     //Holds the summary data of transaction status(count, fail, pass, error) **per run** for the whole Job
     public Map<String, HashMap<String, Integer>> transactionData;
+    //Holds the duration aggragation for all scenario runs
+    public Map<Integer, Long> durationData;
 
     public LrProjectScenarioResults(String scenarioName) {
         this.setScenrioName(scenarioName);
@@ -68,6 +69,8 @@ public class LrProjectScenarioResults extends LrScenario {
         avgTransactionResponseTimeResults = new HashMap<Integer, HashMap<String, AvgTransactionResponseTime>>(0);
         transactions = new HashSet<String>(0);
         maxConnectionsCount = new HashMap<Integer, Integer>(0);
+
+        durationData = new HashMap<>(0);
 
         vUserSummary = new HashMap<String, Integer>(0);
         vUserPerRun = new HashMap<Integer, Map<String, Integer>>(0);

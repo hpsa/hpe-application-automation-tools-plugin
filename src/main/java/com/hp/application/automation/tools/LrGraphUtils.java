@@ -462,6 +462,8 @@ public final class LrGraphUtils {
         }
     }
 
+    
+
     static void constructConnectionSummary(Map<Integer, Integer> maxConnectionPerRun,
                                       JSONObject scenarioStats){
         JSONObject maxConnectionsSummary = new JSONObject();
@@ -479,5 +481,23 @@ public final class LrGraphUtils {
 
         double connectionMaxAverage = (double) connectionSum / maxConnectionPerRun.size();
         scenarioStats.put("AvgMaxConnections", connectionMaxAverage);
+    }
+
+    static void constructDurationSummary(Map<Integer, Long> durationData, JSONObject scenarioStats) {
+        JSONObject durationSummary = new JSONObject();
+        long runDurationSum = 0;
+        int badDurationReadings = 0;
+        for(Long runDuration: durationData.values())
+        {
+            if((runDuration > 0))
+            {
+                runDurationSum += runDuration;
+                continue;
+            }
+            badDurationReadings += 1 ;
+        }
+        double scenarioDurationAverage = (double) runDurationSum / durationData.size();
+        scenarioStats.put("AvgScenarioDuration", scenarioDurationAverage);
+
     }
 }
