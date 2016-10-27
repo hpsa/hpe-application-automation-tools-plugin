@@ -271,6 +271,15 @@ class scenarioTable extends React.component
         let scenarioTable = <table>
             <thead>
             <th className="st-table-header">
+                Average scenario duration
+            </th>
+            <th className="st-table-header">
+                Max
+            </th>
+            <th className="st-table-header">
+                Duration
+            </th>
+            <th className="st-table-header">
                 Duration
             </th>
             </thead>
