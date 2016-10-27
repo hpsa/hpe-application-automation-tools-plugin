@@ -29,7 +29,6 @@ import com.hp.application.automation.tools.results.projectparser.performance.LrP
 import com.hp.application.automation.tools.results.projectparser.performance.PercentileTransactionWholeRun;
 import com.hp.application.automation.tools.results.projectparser.performance.TimeRangeResult;
 import com.hp.application.automation.tools.results.projectparser.performance.WholeRunResult;
-import jnr.ffi.annotations.In;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
@@ -379,7 +378,7 @@ public final class LrGraphUtils {
         vUserState.put("Error", new ArrayList<Number>(0));
         for(Map.Entry<Integer, Map<String, Integer>> run : graphData.entrySet())
         {
-            Number tempVUserCount = run.getValue().get("count");
+            Number tempVUserCount = run.getValue().get("Count");
             if(tempVUserCount != null && tempVUserCount.intValue() > 0)
             {
                 labels.add(run.getKey());
@@ -434,7 +433,7 @@ public final class LrGraphUtils {
             if(runConnectionMax.getValue()!= null && runConnectionMax.getValue() > 0)
             {
                 labels.add(runConnectionMax.getKey());
-                data.add(runConnectionMax.getValue());
+                data.add(runConnectionMax.getValue().toString());
             }
         }
         maxConnections.put("name", "Maximum connections per test run");
@@ -456,7 +455,7 @@ public final class LrGraphUtils {
             vUserSummary.put("FailedVuserPercentile", failedVuserPercentile);
             double errorVuserPercentile = ((double) vUserResults.get("Error") / vUserCount) * 100;
             vUserSummary.put("ErroredVuserPercentile", errorVuserPercentile);
-            double avgMaxVuser = ((double) vUserResults.get("MaxVuserRun") / size) * 100;
+            double avgMaxVuser = (double) vUserResults.get("MaxVuserRun") / size;
             vUserSummary.put("AvgMaxVuser", avgMaxVuser);
             scenarioStats.put("VUserSummary", vUserSummary);
         }
@@ -468,25 +467,32 @@ public final class LrGraphUtils {
                                       JSONObject scenarioStats){
         JSONObject maxConnectionsSummary = new JSONObject();
         int connectionSum = 0;
-        int badConnectionReadings = 0;
         for(Integer runConnectionMax: maxConnectionPerRun.values())
         {
-            if((runConnectionMax>0))
+            if((runConnectionMax > 0))
             {
                connectionSum += runConnectionMax;
                continue;
             }
-            badConnectionReadings += 1 ;
         }
 
         double connectionMaxAverage = (double) connectionSum / maxConnectionPerRun.size();
-        scenarioStats.put("AvgMaxConnections", connectionMaxAverage);
+        maxConnectionsSummary.put("AvgMaxConnection", connectionMaxAverage);
+        scenarioStats.put("AvgMaxConnections", maxConnectionsSummary);
+    }
+
+    static void constructTransactionSummary(Map<String, Integer> transactionSummary,
+                                           JSONObject scenarioStats, int size){
+        JSONObject transactionSum = new JSONObject();
+        for(Map.Entry<String, Integer> transaction : transactionSummary.entrySet()){
+            transactionSum.put(transaction.getKey(), (transaction.getValue().intValue() / size ));
+        }
+        scenarioStats.put("TransactionSummary", transactionSum);
     }
 
     static void constructDurationSummary(Map<Integer, Long> durationData, JSONObject scenarioStats) {
         JSONObject durationSummary = new JSONObject();
         long runDurationSum = 0;
-        int badDurationReadings = 0;
         for(Long runDuration: durationData.values())
         {
             if((runDuration > 0))
@@ -494,10 +500,10 @@ public final class LrGraphUtils {
                 runDurationSum += runDuration;
                 continue;
             }
-            badDurationReadings += 1 ;
         }
         double scenarioDurationAverage = (double) runDurationSum / durationData.size();
-        scenarioStats.put("AvgScenarioDuration", scenarioDurationAverage);
+        durationSummary.put("AvgDuration", scenarioDurationAverage);
+        scenarioStats.put("AvgScenarioDuration", durationSummary);
 
     }
 }

@@ -148,7 +148,7 @@ function updateGraphs(scenarioKey)
         let graphsData = (t.responseObject())[scenarioKey];
         console.log(JSON.stringify(graphsData.scenarioStats));
         console.log(JSON.stringify(graphsData.scenarioData));
-        ReactDOM.render(<scenarioTable scenarioName={scenarioKey} scenarioData = {graphsData.scenarioStats}/>,
+        ReactDOM.render(<ScenarioTable scenName = {scenarioKey} scenData = {graphsData.scenarioStats}/>,
             document.querySelector('.scenarioSummary'));
         ReactDOM.render(<ChartDashboard graphsData = {graphsData.scenarioData} dataProcessFunc = {isMultipleTransactionGraph}/>,
             document.querySelector('.graphCon'));
@@ -216,14 +216,12 @@ var Dropdown = React.createClass({
             )
         });
         return (
-            <div>
             <select id={this.props.id}
                     className='form-control'
                     value={this.state.selected}
                     onChange={this.handleChange}>
                 {options}
             </select>
-                </div>
         );
     },
 
@@ -247,52 +245,67 @@ var dropDownOnChange = function(change) {
 instance.getScenarioList(function(t)
 {
     let tData = t.responseObject();
-    ReactDOM.render(<div><h1>Scenario dropdown:</h1>
-        <Dropdown id='myDropdown' options= {tData} labelField='ScenarioName' valueField='ScenarioName' onChange={dropDownOnChange}/></div>
-    , document.getElementById('scenarioDropDown'));
+    ReactDOM.render(<div>
+            <span>
+                Scenario name:
+            </span>
+            <Dropdown id='myDropdown' options= {tData} labelField='ScenarioName' valueField='ScenarioName' onChange={dropDownOnChange}/>
+        </div>, document.getElementById('scenarioDropDown'));
 });
 
-class scenarioTable extends React.component
-{
-    // static propTypes: {
-    //
-    // };
-    //
-    // static defaultProps : {
-    //
-    // };
-
-    componentDidMount() {
-        this.createScenarioTable();
+class ScenarioTable extends React.Component{
+    staticpropTypes: {
+        scenName: React.PropTypes.string.isRequired,
+        scenData: React.PropTypes.array.isRequired,
     };
 
-    createScenarioTable ()
-    {
-        let scenarioTable = <table>
-            <thead>
-            <th className="st-table-header">
-                Average scenario duration
-            </th>
-            <th className="st-table-header">
-                Max
-            </th>
-            <th className="st-table-header">
-                Duration
-            </th>
-            <th className="st-table-header">
-                Duration
-            </th>
-            </thead>
-            <tbody>
-
-        </tbody>
-        </table>
-
-        return scenarioTable;
-    }
-
     render() {
-        let tableId= this.props.scenarioKey + '_table'
-        return (<div id={this.props.scenarioKey} className='scenario-stats'></div>);
+        const tableId = this.props.scenarioKey + '_table'
+        const time = this.props.scenData.AvgScenarioDuration.AvgDuration;
+
+        const days = Math.floor(time / 86400);
+        const hours = Math.floor((time - (86400 * days)) / 3600);
+        const minutes = Math.floor((time - (3600 * hours)) / 60);
+        const seconds = Math.floor(time - (60 * minutes));
+
+        return (<div id={this.props.scenarioKey} className='scenario-stats'>
+            <table className="st-table">
+                <thead className="st-table-head">
+                    <tr className="st-table-row">
+                        <th className="st-table-header">
+                            Average duration
+                            (Days:Hours:Min:Sec)
+                        </th>
+                        <th className="st-table-header">
+                            Average total transaction state
+                        </th>
+                        <th className="st-table-header">
+                            Average maximum connections
+                        </th>
+                        <th className="st-table-header">
+                            Average maximum VUsers
+                        </th>
+                    </tr>
+                </thead>
+                <tbody className="st-table-body">
+                    <tr className="st-table-row">
+                        <td className="st-table-cell">
+                            {days}:{hours}:{minutes}:{seconds}
+                        </td>
+                        <pre className="st-table-cell">
+                            </pre><pre>Passed: {this.props.scenData.TransactionSummary.Pass} </pre>
+                            <pre>Stopped: {this.props.scenData.TransactionSummary.Stop}</pre>
+                            <pre>Failed: {this.props.scenData.TransactionSummary.Fail}</pre>
+                        </td>
+                        <td className="st-table-cell">
+                            {this.props.scenData.AvgMaxConnections.AvgMaxConnection}
+                        </td>
+                        <td className="st-table-cell">
+                            {this.props.scenData.VUserSummary.AvgMaxVuser}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>);
     }
-}
+};

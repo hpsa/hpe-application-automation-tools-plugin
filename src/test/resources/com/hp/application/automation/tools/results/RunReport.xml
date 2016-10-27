@@ -24,6 +24,7 @@
 
 <Runs>
   <General>
+    <Time End="28/10/2016 16:19:00" Start="27/10/2016 14:03:00" Duration="94560" />
     <VUsers Passed="344" Stopped="364" Failed="292" Error="0" Count="1000" />
     <Transactions Count="11000" Pass="6980" Fail="2128" Stop="1892">
       <Transaction Pass="1000" Fail="0" Stop="0" Name="CGI" />

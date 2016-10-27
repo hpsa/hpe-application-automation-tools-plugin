@@ -80,7 +80,6 @@ public class PerformanceProjectAction implements Action {
      */
     public PerformanceProjectAction(AbstractProject<?, ?> project) {
 
-        this._projectResult = new ProjectLrResults();
         this._workedBuilds = new ArrayList<Integer>();
         this.jobLrResults = new ArrayList<LrJobResults>();
 
@@ -118,6 +117,10 @@ public class PerformanceProjectAction implements Action {
     @JavaScriptMethod
     public JSONObject getGraphData() {
         JSONObject projectDataSet = new JSONObject();
+        if(_projectResult == null)
+        {
+            getUpdatedData();
+        }
         for (Map.Entry<String, LrProjectScenarioResults> scenarioResults : _projectResult.getScenarioResults()
                 .entrySet()) {
 
@@ -127,6 +130,8 @@ public class PerformanceProjectAction implements Action {
                     .size());
             LrGraphUtils.constructDurationSummary(scenarioResults.getValue().durationData, scenarioStats);
             LrGraphUtils.constructConnectionSummary(scenarioResults.getValue().maxConnectionsCount, scenarioStats);
+            LrGraphUtils.constructTransactionSummary(scenarioResults.getValue().transactionSum, scenarioStats,
+                    _workedBuilds.size());
 
 
             scenarioData.put("scenarioStats", scenarioStats);
@@ -201,7 +206,7 @@ public class PerformanceProjectAction implements Action {
      * @return the boolean
      */
     boolean isVisible() {
-        getUpdatedData(); // throw this our once fixes method
+//        getUpdatedData(); // throw this our once fixes method
         if (!_workedBuilds.isEmpty()) {
             return true;
         }
@@ -215,6 +220,8 @@ public class PerformanceProjectAction implements Action {
         if (!isUpdateDataNeeded()) {
             return;
         }
+
+        this._projectResult = new ProjectLrResults();
 
         _workedBuilds = new ArrayList<Integer>();
         // TODO: remove after testing!

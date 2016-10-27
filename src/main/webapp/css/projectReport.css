@@ -1,0 +1,36 @@
+.st-table{
+    margin-top: 20px;
+    border: 3px solid gray;
+    height: 100%;
+    width: 100%;
+    border-collapse: collapse;
+    font-family: "Lucida Console", Courier, monospace;
+}
+
+
+.st-table-row{
+    border-collapse: collapse;
+    vertical-align: center;
+    font-family: "Lucida Console", Courier, monospace;
+}
+
+
+.st-stats{
+    overflow-x:auto;
+}
+
+.st-table-header{
+    text-align: center;
+    height: 20px;
+    border-collapse: collapse;
+    border-right: 3px solid gray;
+}
+
+.st-table-cell{
+    height: 40px;
+    text-align: center;
+    vertical-align: middle;
+    border-collapse: collapse;
+    border-right: 3px solid gray;
+    font-family: "Lucida Console", Courier, monospace;
+}

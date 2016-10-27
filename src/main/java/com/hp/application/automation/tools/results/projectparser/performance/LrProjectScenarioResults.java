@@ -102,9 +102,9 @@ public class LrProjectScenarioResults extends LrScenario {
      */
     public static void vTransactionMapInit(Map<String, Integer> map)
     {
-        map.put("Passed",0);
-        map.put("Stopped",0);
-        map.put("Failed",0);
+        map.put("Pass",0);
+        map.put("Stop",0);
+        map.put("Fail",0);
         map.put("Count",0);
     }
 }
