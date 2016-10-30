@@ -56,6 +56,7 @@ import hudson.tasks.junit.SuiteResult;
 import hudson.tasks.junit.TestResult;
 import hudson.tasks.junit.TestResultAction;
 import hudson.tasks.test.TestResultAggregator;
+import hudson.tasks.test.TestResultProjectAction;
 import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
@@ -201,6 +202,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         }
 
         TestResult result = tempAction.getResult();
+//        build.getParent().replaceAction(new TestResultProjectAction(build.getParent()));
 
         try {
             archiveTestsReport(build, listener, fileSystemResultNames, result, workspace);
@@ -241,7 +243,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             if (reportDirectory.exists()) {
                 File htmlIndexFile = new File(reportDirectory, INDEX_HTML_NAME);
             if (htmlIndexFile.exists()) {
-                build.replaceAction(new PerformanceReportAction(build));
+                    build.replaceAction(new PerformanceReportAction(build));
                 }
         }
 
@@ -249,7 +251,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             if (summaryDirectory.exists()) {
                 File htmlIndexFile = new File(summaryDirectory, INDEX_HTML_NAME);
             if (htmlIndexFile.exists()) {
-                build.replaceAction(new TransactionSummaryAction(build));
+                    build.replaceAction(new TransactionSummaryAction(build));
                 }
             }
         }

@@ -36,6 +36,7 @@ import com.hp.application.automation.tools.results.projectparser.performance.Tim
 import com.hp.application.automation.tools.results.projectparser.performance.WholeRunResult;
 import hudson.model.AbstractProject;
 import hudson.model.Action;
+import hudson.model.Job;
 import hudson.model.Project;
 import hudson.model.Run;
 import hudson.tasks.test.TestResultProjectAction;
@@ -79,14 +80,14 @@ public class PerformanceProjectAction implements Action, SimpleBuildStep.LastBui
 
 
     /**
-     * Instantiates a new Performance project action.
+     * Instantiates a new Performance job action.
      *
-     * @param project the project
+     * @param job the job
      */
-    public PerformanceProjectAction(AbstractProject<?, ?> project) {
+    public PerformanceProjectAction(Job<?, ?> job) {
         this._workedBuilds = new ArrayList<Integer>();
         this.jobLrResults = new ArrayList<LrJobResults>();
-        this.currentProject = (Project<?, ?>) project;
+        this.currentProject = (Project<?, ?>) job;
         projectActions = new ArrayList<>();
     }
 

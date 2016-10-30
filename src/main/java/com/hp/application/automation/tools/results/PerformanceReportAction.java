@@ -125,6 +125,7 @@ public class PerformanceReportAction implements Action, SimpleBuildStep.LastBuil
 
     @Override
     public Collection<? extends Action> getProjectActions() {
+
         return projectActionList;
     }
 }
