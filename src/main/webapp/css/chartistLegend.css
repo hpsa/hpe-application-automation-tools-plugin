@@ -1,6 +1,7 @@
 .ct-legend {
   position: relative;
   z-index: 10;
+  /*padding-top: 350px;*/
 }
 .ct-legend li {
   position: relative;

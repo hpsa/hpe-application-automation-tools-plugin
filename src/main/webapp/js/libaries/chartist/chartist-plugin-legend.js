@@ -48,10 +48,17 @@
 
         return function legend(chart) {
             var existingLegendElement = chart.container.querySelector('.ct-legend');
+            // var existingLegendElementInParentNode = chart.container.parentNode.querySelector('.ct-legend').;
+
             if (existingLegendElement) {
                 // Clear legend if already existing.
                 existingLegendElement.parentNode.removeChild(existingLegendElement);
             }
+
+            // if (existingLegendElementInParentNode) {
+            //     // Clear legend if already existing.
+            //     existingLegendElementInParentNode.parentNode.removeChild(existingLegendElementInParentNode);
+            // }
 
             // Set a unique className for each series so that when a series is removed,
             // the other series still have the same color.
@@ -114,7 +121,7 @@
                      chart.container.insertBefore(legendElement, chart.container.childNodes[0]);
                      break;
 
-                  case 'bottom':
+                   case 'bottom':
                      chart.container.insertBefore(legendElement, null);
                      break;
                }

@@ -166,24 +166,24 @@
 				</configuration>
 			</plugin>
 			<!--  -->
-            <plugin>
-                <groupId>nl.geodienstencentrum.maven</groupId>
-                <artifactId>sass-maven-plugin</artifactId>
-                <version>2.21</version>
-                <executions>
-                    <execution>
-                        <id>generate-css</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>update-stylesheets</goal>
-                        </goals>
-                        <configuration>
-                            <sassSourceDirectory>${basedir}/src/main/webapp/scss</sassSourceDirectory>
-                            <destination>${project.build.directory}/hp-application-automation-tools-plugin/css</destination>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+            <!--<plugin>-->
+                <!--<groupId>nl.geodienstencentrum.maven</groupId>-->
+                <!--<artifactId>sass-maven-plugin</artifactId>-->
+                <!--<version>2.21</version>-->
+                <!--<executions>-->
+                    <!--<execution>-->
+                        <!--<id>generate-css</id>-->
+                        <!--<phase>generate-resources</phase>-->
+                        <!--<goals>-->
+                            <!--<goal>update-stylesheets</goal>-->
+                        <!--</goals>-->
+                        <!--<configuration>-->
+                            <!--<sassSourceDirectory>${basedir}/src/main/webapp/scss</sassSourceDirectory>-->
+                            <!--<destination>${project.build.directory}/hp-application-automation-tools-plugin/css</destination>-->
+                        <!--</configuration>-->
+                    <!--</execution>-->
+                <!--</executions>-->
+            <!--</plugin>-->
 			<!--  -->
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>

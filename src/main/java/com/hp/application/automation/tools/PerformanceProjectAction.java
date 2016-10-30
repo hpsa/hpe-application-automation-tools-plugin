@@ -119,7 +119,8 @@ public class PerformanceProjectAction implements Action {
         JSONObject projectDataSet = new JSONObject();
         if(_projectResult == null)
         {
-            getUpdatedData();
+//            getUpdatedData();
+            return new JSONObject();
         }
         for (Map.Entry<String, LrProjectScenarioResults> scenarioResults : _projectResult.getScenarioResults()
                 .entrySet()) {

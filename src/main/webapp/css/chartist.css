@@ -5,15 +5,21 @@
   line-height: 1;
 }
 
+.ct-chart {
+    margin: 10px 0 0 30px;
+    height: 300px;
+    width: 500px;
+}
+
 .ct-chart-seprator
 {
-    margin-top: 30px;
+    margin-top: 100px;
     position: relative;
 }
 .ct-chart-line
 {
     overflow: visible;
-    /*margin: 10px 0 0 30px;*/
+    margin: 10px 0 0 30px;
 }
 .ct-chart-line .ct-label,
 .ct-chart-bar .ct-label {
@@ -563,7 +569,7 @@
 .ct-minor-seventh > svg {
   display: block;
   position: absolute;
-  top: 0;
+  top: -15px;
   left: 0;
 }
 

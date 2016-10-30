@@ -1,21 +1,28 @@
 
-class Chart extends React.Component
-{
+class Chart extends React.Component{
+
     componentDidMount() {
         this.updateChart(this.props.chartData);
     };
+
     updateChart() {
         let chartName = this.props.chartName;
         let options = this.optionsSetter();
         return new Chartist.Line('#' + chartName, this.props.chartData, options);
     };
 
+    shouldComponentUpdate() {
+        return true;
+    };
+
+    componentDidUpdate(){
+        this.updateChart(this.props.chartData);
+    }
+
     optionsSetter() {
         let options = new Object();
         options.fullWidth = false;
-        options.chartPadding = {right: 40};
-        options.width = 1200;
-        options.height = 600;
+        // options.chartPadding = {right: 40};
         options.plugins = [];
         options.plugins.push(Chartist.plugins.tooltip());
         options.plugins.push(Chartist.plugins.ctAxisTitle({
@@ -33,7 +40,7 @@ class Chart extends React.Component
                 axisClass: 'ct-axis-title',
                 offset: {
                     x: 0,
-                    y: -10
+                    y: -20
                 },
                 textAnchor: 'middle',
                 flipTitle: true
@@ -51,19 +58,31 @@ class Chart extends React.Component
             }
         }
         return options;
+    };
+
+    componentWillReceiveProps(newProps) {
+        this.updateChart(newProps);
     }
 
+    componentWillUnmount() {
+        if (this.chartist) {
+            try {
+                this.chartist.detach();
+            } catch (err) {
+                throw new Error('Internal chartist error', err);
+            }
+        }
+    }
 
     render() {
         return (
-               <div id={this.props.chartName} className=' ct-chart'>
-                </div>
+               <div id={this.props.chartName} className='ct-chart'>
+               </div>
        );
     }
-
 };
 
-class RenderCharts extends React.Component
+class Charts extends React.Component
 {
     render() {
         let graphsData = this.props.graphsData;
@@ -75,33 +94,26 @@ class RenderCharts extends React.Component
             {
                 multiSeriesChart = true;
             }
-            return <div key = {chartName}>
+            return (<div><div key = {chartName}>
                 <div>
                     <h1>{chartData.title}</h1>
                     <span className="ct-chart-description">{chartData.description}</span>
                 </div>
                     <Chart key = {chartName} chartName = {chartName} chartData = {chartData}
                            multiSeriesChart = {multiSeriesChart} {...this.props}/>
-                <hr className="ct-chart-seprator"/>
-            </div>;
+
+                </div><hr className="ct-chart-seprator"/></div>);
         });
-        let returnValue = null;
+        let returnValue = <div id="charts"> </div>;
         if(charts.length > 0)
         {
-            returnValue = <div>{charts}</div>;
+            returnValue = <div id="charts">{charts}</div>;
         }
         return returnValue;
     }
 };
 
-class Charts extends React.Component
-{
-    render()
-    {
-        return (
-            <div id="charts"> <RenderCharts {...this.props}/> </div>)
-    }
-}
+
 
 class ChartDashboard extends React.Component{
     static propTypes: {
@@ -118,7 +130,7 @@ class ChartDashboard extends React.Component{
     };
 
     render() {
-        return (<Charts {...this.props}/>);
+        return (<Charts {...this.props}/> );
     }
 };
 
@@ -146,12 +158,11 @@ function updateGraphs(scenarioKey)
     instance.getGraphData(function(t)
     {
         let graphsData = (t.responseObject())[scenarioKey];
-        console.log(JSON.stringify(graphsData.scenarioStats));
-        console.log(JSON.stringify(graphsData.scenarioData));
+        ReactDOM.render(<ChartDashboard graphsData = {graphsData.scenarioData} dataProcessFunc = {isMultipleTransactionGraph}/>
+            ,document.querySelector('.graphCon'));
         ReactDOM.render(<ScenarioTable scenName = {scenarioKey} scenData = {graphsData.scenarioStats}/>,
             document.querySelector('.scenarioSummary'));
-        ReactDOM.render(<ChartDashboard graphsData = {graphsData.scenarioData} dataProcessFunc = {isMultipleTransactionGraph}/>,
-            document.querySelector('.graphCon'));
+
     });
 };
 
@@ -292,10 +303,19 @@ class ScenarioTable extends React.Component{
                         <td className="st-table-cell">
                             {days}:{hours}:{minutes}:{seconds}
                         </td>
-                        <pre className="st-table-cell">
-                            </pre><pre>Passed: {this.props.scenData.TransactionSummary.Pass} </pre>
-                            <pre>Stopped: {this.props.scenData.TransactionSummary.Stop}</pre>
-                            <pre>Failed: {this.props.scenData.TransactionSummary.Fail}</pre>
+                        <td className = "st-table-cell">
+                            <td className = "st-table-inner-cell">
+                                <img src="/plugin/hp-application-automation-tools-plugin/icons/16x16/passed.png" alt="Passed:"/>
+                                {this.props.scenData.TransactionSummary.Pass} Passed
+                            </td>
+                            <td className = "st-table-inner-cell">
+                                <img src="/plugin/hp-application-automation-tools-plugin/icons/16x16/stop.png" alt="Stopped:"/>
+                                {this.props.scenData.TransactionSummary.Stop} Stopped
+                            </td>
+                            <td className = "st-table-inner-cell">
+                                <img src="/plugin/hp-application-automation-tools-plugin/icons/16x16/failed.png" alt="Failed:"/>
+                                {this.props.scenData.TransactionSummary.Fail} Failed
+                            </td>
                         </td>
                         <td className="st-table-cell">
                             {this.props.scenData.AvgMaxConnections.AvgMaxConnection}

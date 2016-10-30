@@ -455,7 +455,7 @@ public final class LrGraphUtils {
             vUserSummary.put("FailedVuserPercentile", failedVuserPercentile);
             double errorVuserPercentile = ((double) vUserResults.get("Error") / vUserCount) * 100;
             vUserSummary.put("ErroredVuserPercentile", errorVuserPercentile);
-            double avgMaxVuser = (double) vUserResults.get("MaxVuserRun") / size;
+            int avgMaxVuser = vUserResults.get("MaxVuserRun") / size;
             vUserSummary.put("AvgMaxVuser", avgMaxVuser);
             scenarioStats.put("VUserSummary", vUserSummary);
         }
@@ -476,7 +476,7 @@ public final class LrGraphUtils {
             }
         }
 
-        double connectionMaxAverage = (double) connectionSum / maxConnectionPerRun.size();
+        int connectionMaxAverage = connectionSum / maxConnectionPerRun.size();
         maxConnectionsSummary.put("AvgMaxConnection", connectionMaxAverage);
         scenarioStats.put("AvgMaxConnections", maxConnectionsSummary);
     }

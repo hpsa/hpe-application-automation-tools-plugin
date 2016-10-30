@@ -377,6 +377,10 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                     String testStatus = (testSuiteElement.getAttribute("failures").equals("0")) ? "Passed" : "fail";
 
                     Node testCaseNode = testSuiteElement.getElementsByTagName("testcase").item(0);
+                    if(testCaseNode == null){
+                        listener.getLogger().println("No report folder was found in results");
+                        return;
+                    }
                     if (testCaseNode.getNodeType() == Node.ELEMENT_NODE) {
 
                         Element testCaseElement = (Element) testCaseNode;
