@@ -59,7 +59,7 @@ public class TCConfigurationService {
 		try {
 			JAXBContext context = JAXBContext.newInstance(OctaneConfigStructure.class);
 			Unmarshaller un = context.createUnmarshaller();
-			result = (OctaneConfigStructure) un.unmarshal(new File(getConfigResourceLocation()));
+			result = (OctaneConfigStructure) un.unmarshal(getConfigurationResource());
 		} catch (JAXBException jaxbe) {
 			logger.error("failed to read Octane configuration", jaxbe);
 		}
@@ -71,13 +71,13 @@ public class TCConfigurationService {
 			JAXBContext context = JAXBContext.newInstance(OctaneConfigStructure.class);
 			Marshaller m = context.createMarshaller();
 			m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-			m.marshal(config, new File(getConfigResourceLocation()));
+			m.marshal(config, getConfigurationResource());
 		} catch (JAXBException jaxbe) {
 			logger.error("failed to save Octane configuration", jaxbe);
 		}
 	}
 
-	private String getConfigResourceLocation() {
-		return buildServer.getServerRootPath() + octaneTeamCityPlugin.getDescriptor().getPluginResourcesPath(CONFIG_FILE);
+	private File getConfigurationResource() {
+		return new File(buildServer.getServerRootPath() + octaneTeamCityPlugin.getDescriptor().getPluginResourcesPath(CONFIG_FILE));
 	}
 }
