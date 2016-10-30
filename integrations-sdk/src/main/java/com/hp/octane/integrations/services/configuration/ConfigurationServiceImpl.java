@@ -107,11 +107,7 @@ public final class ConfigurationServiceImpl extends OctaneSDK.SDKServiceBase imp
 		return restClientImpl.execute(request, configuration);
 	}
 
-	public void notifyChange(OctaneConfiguration newConfiguration) {
-		restService.notifyConfigurationChange();
-	}
-
-	public void notifyChange(CIProxyConfiguration newConfiguration) {
+	public void notifyChange() {
 		restService.notifyConfigurationChange();
 	}
 }

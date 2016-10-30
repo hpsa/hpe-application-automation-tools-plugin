@@ -13,7 +13,7 @@ import org.springframework.beans.factory.InitializingBean;
 import java.util.UUID;
 
 public class ConfigureOctaneAction extends BambooActionSupport implements InitializingBean {
-	private static final Logger log = LoggerFactory.getLogger(ConfigureOctaneAction.class);
+	private static final Logger logger = LoggerFactory.getLogger(ConfigureOctaneAction.class);
 
 	private final PluginSettingsFactory settingsFactory;
 
@@ -29,18 +29,19 @@ public class ConfigureOctaneAction extends BambooActionSupport implements Initia
 	}
 
 	public String doEdit() {
-		log.info("edit configuration");
+		logger.info("edit configuration");
 		return INPUT;
 	}
 
 	public String doSave() {
-		log.info("save configuration");
+		logger.info("save configuration");
 		PluginSettings settings = settingsFactory.createGlobalSettings();
 		settings.put(OctaneConfigurationKeys.OCTANE_URL, octaneUrl);
 		settings.put(OctaneConfigurationKeys.ACCESS_KEY, accessKey);
 		settings.put(OctaneConfigurationKeys.API_SECRET, apiSecret);
 		settings.put(OctaneConfigurationKeys.IMPERSONATION_USER, userName);
-		addActionMessage("Config updated");
+		addActionMessage("Configuration updated successfully");
+		OctaneSDK.getInstance().getConfigurationService().notifyChange();
 		return SUCCESS;
 	}
 
@@ -87,8 +88,8 @@ public class ConfigureOctaneAction extends BambooActionSupport implements Initia
 	public void afterPropertiesSet() throws Exception {
 		try {
 			OctaneSDK.init(new BambooPluginServices(settingsFactory), true);
-		} catch (IllegalStateException e) {
-			// ignore double init
+		} catch (IllegalStateException ise) {
+			logger.warn("failed to init SDK, more than a single init?", ise);
 		}
 	}
 

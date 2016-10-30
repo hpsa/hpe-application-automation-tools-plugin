@@ -29,15 +29,6 @@ public interface ConfigurationService {
 
 	/**
 	 * Notify SDK notification on NGA configuration change
-	 *
-	 * @param newConfiguration
 	 */
-	void notifyChange(OctaneConfiguration newConfiguration);
-
-	/**
-	 * Notify SDK about proxy configuration change of the hosting CI Server
-	 *
-	 * @param newConfiguration
-	 */
-	void notifyChange(CIProxyConfiguration newConfiguration);
+	void notifyChange();
 }
