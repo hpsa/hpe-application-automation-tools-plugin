@@ -374,7 +374,7 @@ try {
 public void testCreatingJobDataSet()
 {
     try {
-    RunResultRecorder runResultRecorder = new RunResultRecorder(true, CreateHtmlReportResults.getValue());
+    RunResultRecorder runResultRecorder = new RunResultRecorder(CreateHtmlReportResults.getValue());
     Method parseScenarioResults = runResultRecorder.getClass().getDeclaredMethod("parseScenarioResults", FilePath.class);
     parseScenarioResults.setAccessible(true);
 
@@ -411,7 +411,7 @@ public void testCreatingJobDataSet()
 @Test
 public void testParseScenarioResults() throws Exception {
 
-	RunResultRecorder runResultRecorder = new RunResultRecorder(true, CreateHtmlReportResults.getValue());
+	RunResultRecorder runResultRecorder = new RunResultRecorder(CreateHtmlReportResults.getValue());
 	FilePath runReportPath = new FilePath(new File(getClass().getResource("RunReport.xml").getPath()));
     JobLrScenarioResult result = null;
     try {

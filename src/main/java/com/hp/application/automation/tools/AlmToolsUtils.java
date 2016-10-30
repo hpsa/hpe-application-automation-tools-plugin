@@ -42,8 +42,8 @@ import java.net.URL;
 public class AlmToolsUtils {
 
 
-    private AlmToolsUtils() {
-    }
+	private AlmToolsUtils() {
+	}
 
     public static void runOnBuildEnv(
             AbstractBuild<?, ?> build,

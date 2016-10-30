@@ -27,16 +27,17 @@ package com.hp.application.automation.tools.results;
 import com.hp.application.automation.tools.results.projectparser.performance.LrJobResults;
 import hudson.model.AbstractBuild;
 import hudson.model.InvisibleAction;
+import hudson.model.Run;
 import net.minidev.json.JSONObject;
 
 
 public class PerformanceJobReportAction extends InvisibleAction {
 
-    private AbstractBuild<?,?> build;
+    private Run<?, ?> build;
     private JSONObject jobDataSet = null;
     private LrJobResults _resultFiles;
 
-    public PerformanceJobReportAction(AbstractBuild<?,?> build, LrJobResults resultFiles) {
+    public PerformanceJobReportAction(Run<?, ?> build, LrJobResults resultFiles) {
         this.build = build;
         this._resultFiles = resultFiles;
     }

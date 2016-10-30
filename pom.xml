@@ -1,34 +1,9 @@
-<!--
-  ~ MIT License
-  ~
-  ~ Copyright (c) 2016 Hewlett-Packard Development Company, L.P.
-  ~
-  ~ Permission is hereby granted, free of charge, to any person obtaining a copy
-  ~ of this software and associated documentation files (the "Software"), to deal
-  ~ in the Software without restriction, including without limitation the rights
-  ~ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-  ~ copies of the Software, and to permit persons to whom the Software is
-  ~ furnished to do so, subject to the following conditions:
-  ~
-  ~ The above copyright notice and this permission notice shall be included in all
-  ~ copies or substantial portions of the Software.
-  ~
-  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  ~ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  ~ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  ~ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  ~ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-  ~ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-  ~ THE SOFTWARE.
-  -->
-
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.jenkins-ci.plugins</groupId>
 		<artifactId>plugin</artifactId>
-        <version>2.14</version>
+		<version>2.14</version>
 		<!-- which version of Jenkins is this plugin built against? -->
 	</parent>
 
@@ -46,13 +21,13 @@
 			<url>http://www.opensource.org/licenses/mit-license.php</url>
 			<distribution>repo</distribution>
 		</license>
-	</licenses>	
+	</licenses>
 
 	<properties>
 		<msbuild.exe>C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe</msbuild.exe>
 		<msbuild.configuration>Release</msbuild.configuration>
 		<jenkins.version>1.642.4</jenkins.version>
-        <workflow.version>2.2</workflow.version>
+		<workflow.version>2.2</workflow.version>
 	</properties>
 
 	<distributionManagement>
@@ -166,25 +141,6 @@
 				</configuration>
 			</plugin>
 			<!--  -->
-            <!--<plugin>-->
-                <!--<groupId>nl.geodienstencentrum.maven</groupId>-->
-                <!--<artifactId>sass-maven-plugin</artifactId>-->
-                <!--<version>2.21</version>-->
-                <!--<executions>-->
-                    <!--<execution>-->
-                        <!--<id>generate-css</id>-->
-                        <!--<phase>generate-resources</phase>-->
-                        <!--<goals>-->
-                            <!--<goal>update-stylesheets</goal>-->
-                        <!--</goals>-->
-                        <!--<configuration>-->
-                            <!--<sassSourceDirectory>${basedir}/src/main/webapp/scss</sassSourceDirectory>-->
-                            <!--<destination>${project.build.directory}/hp-application-automation-tools-plugin/css</destination>-->
-                        <!--</configuration>-->
-                    <!--</execution>-->
-                <!--</executions>-->
-            <!--</plugin>-->
-			<!--  -->
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
@@ -208,7 +164,7 @@
 								<argument> -jar</argument>
 								<argument>${env.JENKINS_HOME}war\WEB-INF\jenkins-cli.jar</argument>
 								<argument>-s</argument>
-								<argument>http://localhost:8080/jenkins</argument>
+								<argument>http://localhost:8080/</argument>
 								<argumnet>install-plugin</argumnet>
 								<argumnet>${project.build.directory}\${project.build.finalName}.${project.packaging}</argumnet>
 								<argument>-name</argument>
@@ -260,16 +216,12 @@
 		</repository>
 		<repository>
 			<id>central</id>
-            <url>http://repo1.maven.org/maven2</url>
+			<url>http://repo1.maven.org/maven2</url>
 		</repository>
-        <repository>
-            <id>hp-application-automation-tools-plugin-mvn-repo</id>
-            <url>https://raw.github.com/HpeServiceVirtualization/3g/mvn-repo/</url>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
-        </repository>
+		<repository>
+			<id>hp-application-automation-tools-plugin-mvn-repo</id>
+			<url>https://raw.github.com/HpeServiceVirtualization/3g/mvn-repo/</url>
+		</repository>
 	</repositories>
 
 	<pluginRepositories>
@@ -280,6 +232,11 @@
 	</pluginRepositories>
 
 	<dependencies>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins.workflow</groupId>
+			<artifactId>workflow-aggregator</artifactId>
+			<version>${workflow.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
@@ -295,64 +252,59 @@
 			<artifactId>json-path</artifactId>
 			<version>1.1.0</version>
 		</dependency>
-       <dependency>
+		<dependency>
 			<groupId>org.jenkins-ci.plugins</groupId>
 			<artifactId>matrix-project</artifactId>
 			<version>1.6</version>
 		</dependency>
-        <dependency>
-            <groupId>org.jenkins-ci.plugins.workflow</groupId>
-            <artifactId>workflow-step-api</artifactId>
-            <version>${workflow.version}</version>
-        </dependency>
-        <dependency> <!-- Test framework -->
-            <groupId>org.jenkins-ci.plugins.workflow</groupId>
-            <artifactId>workflow-step-api</artifactId>
-            <version>${workflow.version}</version>
-            <classifier>tests</classifier>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jenkins-ci.plugins.workflow</groupId>
-            <artifactId>workflow-aggregator</artifactId>
-            <version>${workflow.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jenkins-ci.plugins.workflow</groupId>
-            <artifactId>workflow-cps</artifactId>
-            <version>2.6</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>structs</artifactId>
-            <version>1.4</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jenkins-ci</groupId>
-            <artifactId>symbol-annotation</artifactId>
-            <version>1.4</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>credentials</artifactId>
-            <version>2.1.4</version>
-        </dependency>
-        <dependency>
-            <groupId>com.hp.sv</groupId>
-            <artifactId>SVConfigurator</artifactId>
-            <version>3.82.1-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-io</groupId>
-                    <artifactId>commons-io</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <!--<dependency>-->
-            <!--<groupId>nl.geodienstencentrum.maven</groupId>-->
-            <!--<artifactId>sass-maven-plugin</artifactId>-->
-            <!--<version>2.21</version>-->
-        <!--</dependency>-->
-    </dependencies>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins.workflow</groupId>
+			<artifactId>workflow-step-api</artifactId>
+			<version>${workflow.version}</version>
+		</dependency>
+		<dependency> <!-- Test framework -->
+			<groupId>org.jenkins-ci.plugins.workflow</groupId>
+			<artifactId>workflow-step-api</artifactId>
+			<version>${workflow.version}</version>
+			<classifier>tests</classifier>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jenkins-ci.plugins.workflow</groupId>
+			<artifactId>workflow-cps</artifactId>
+			<version>2.6</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>structs</artifactId>
+			<version>1.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci</groupId>
+			<artifactId>symbol-annotation</artifactId>
+			<version>1.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>credentials</artifactId>
+			<version>2.1.4</version>
+		</dependency>
+		<dependency>
+			<groupId>com.hp.sv</groupId>
+			<artifactId>SVConfigurator</artifactId>
+			<version>3.82.1.45909</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-io</groupId>
+					<artifactId>commons-io</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>junit</artifactId>
+			<version>1.19</version>
+		</dependency>
+	</dependencies>
 </project>

@@ -38,12 +38,15 @@ import hudson.model.AbstractProject;
 import hudson.model.Action;
 import hudson.model.Project;
 import hudson.model.Run;
+import hudson.tasks.test.TestResultProjectAction;
 import hudson.util.RunList;
+import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +60,7 @@ import static com.hp.application.automation.tools.results.projectparser.performa
 /**
  * The type Performance project action.
  */
-public class PerformanceProjectAction implements Action {
+public class PerformanceProjectAction implements Action, SimpleBuildStep.LastBuildAction{
 
     /**
      * Logger.
@@ -72,6 +75,8 @@ public class PerformanceProjectAction implements Action {
     private int lastBuildId = -1;
     private ArrayList<Integer> _workedBuilds;
     private ProjectLrResults _projectResult;
+    private Collection<Action> projectActions;
+
 
     /**
      * Instantiates a new Performance project action.
@@ -79,11 +84,10 @@ public class PerformanceProjectAction implements Action {
      * @param project the project
      */
     public PerformanceProjectAction(AbstractProject<?, ?> project) {
-
         this._workedBuilds = new ArrayList<Integer>();
         this.jobLrResults = new ArrayList<LrJobResults>();
-
         this.currentProject = (Project<?, ?>) project;
+        projectActions = new ArrayList<>();
     }
 
     private void updateLastBuild() {
@@ -428,4 +432,10 @@ public class PerformanceProjectAction implements Action {
         return true;
     }
 
+    @Override
+    public Collection<? extends Action> getProjectActions() {
+        this.projectActions.add(this);
+        this.projectActions.add(new TestResultProjectAction(currentProject));
+        return this.projectActions;
+    }
 }
