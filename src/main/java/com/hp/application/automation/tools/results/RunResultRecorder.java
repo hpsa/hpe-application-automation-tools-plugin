@@ -13,6 +13,13 @@
 
 package com.hp.application.automation.tools.results;
 
+import com.hp.application.automation.tools.common.RuntimeUtils;
+import com.hp.application.automation.tools.model.EnumDescription;
+import com.hp.application.automation.tools.model.ResultsPublisherModel;
+import com.hp.application.automation.tools.run.PcBuilder;
+import com.hp.application.automation.tools.run.RunFromAlmBuilder;
+import com.hp.application.automation.tools.run.RunFromFileBuilder;
+import com.hp.application.automation.tools.run.SseBuilder;
 import com.hp.application.automation.tools.PerformanceProjectAction;
 import com.hp.application.automation.tools.common.RuntimeUtils;
 import com.hp.application.automation.tools.model.EnumDescription;
@@ -38,11 +45,10 @@ import hudson.matrix.MatrixAggregator;
 import hudson.matrix.MatrixBuild;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
+import hudson.model.BuildListener;
 import hudson.model.Action;
 import hudson.model.BuildListener;
 import hudson.model.Project;
-import hudson.model.Result;
-import hudson.remoting.VirtualChannel;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.tasks.BuildStepDescriptor;
@@ -56,7 +62,6 @@ import hudson.tasks.junit.SuiteResult;
 import hudson.tasks.junit.TestResult;
 import hudson.tasks.junit.TestResultAction;
 import hudson.tasks.test.TestResultAggregator;
-import hudson.tasks.test.TestResultProjectAction;
 import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
@@ -92,6 +97,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map;
 
 import static com.hp.application.automation.tools.results.projectparser.performance.XmlParserUtil.getNode;
@@ -166,11 +172,11 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         if (mergedResultNames.isEmpty()) {
             listener.getLogger().println("RunResultRecorder: no results xml File provided");
             return;
-                        }
+        }
 
         recordRunResults(build, workspace, launcher, listener, mergedResultNames, fileSystemResultNames);
         return;
-                    }
+    }
 
     /**
      * Records LR test results copied in JUnit format
@@ -193,7 +199,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             JUnitResultArchiver jUnitResultArchiver = new JUnitResultArchiver(resultFile);
             jUnitResultArchiver.setKeepLongStdio(true);
             jUnitResultArchiver.perform(build, workspace, launcher, listener);
-            }
+        }
 
         final TestResultAction tempAction = build.getAction(TestResultAction.class);
         if (tempAction == null || tempAction.getResult() == null) {
@@ -240,21 +246,21 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
      */
     private void publishLrReports(@Nonnull Run<?, ?> build) throws IOException {
         File reportDirectory = new File(build.getRootDir(), PERFORMANCE_REPORT_FOLDER);
-            if (reportDirectory.exists()) {
-                File htmlIndexFile = new File(reportDirectory, INDEX_HTML_NAME);
+        if (reportDirectory.exists()) {
+            File htmlIndexFile = new File(reportDirectory, INDEX_HTML_NAME);
             if (htmlIndexFile.exists()) {
-                    build.replaceAction(new PerformanceReportAction(build));
-                }
+                build.replaceAction(new PerformanceReportAction(build));
+            }
         }
 
         File summaryDirectory = new File(build.getRootDir(), TRANSACTION_SUMMARY_FOLDER);
-            if (summaryDirectory.exists()) {
-                File htmlIndexFile = new File(summaryDirectory, INDEX_HTML_NAME);
+        if (summaryDirectory.exists()) {
+            File htmlIndexFile = new File(summaryDirectory, INDEX_HTML_NAME);
             if (htmlIndexFile.exists()) {
-                    build.replaceAction(new TransactionSummaryAction(build));
-                }
+                build.replaceAction(new TransactionSummaryAction(build));
             }
         }
+    }
 
     /**
      * copies, archives and creates the Test reports of LR and UFT runs.
@@ -390,22 +396,24 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
                         String reportFolderPath =
                                 eElement.getAttribute(REPORT_NAME_FIELD); // e.g. "C:\UFTTest\GuiTest1\Report"
-                        String testFolderPath = eElement.getAttribute("name"); //e.g. "C:\UFTTest\GuiTest1"
+                        String testFolderPath = eElement.getAttribute("name"); // e.g. "C:\UFTTest\GuiTest1"
                         String testStatus = eElement.getAttribute("status"); // e.g. "pass"
 
                         Node nodeSystemInfo = eElement.getElementsByTagName("system-out").item(0);
                         String sysinfo = nodeSystemInfo.getFirstChild().getNodeValue();
                         String testDateTime = sysinfo.substring(0, 19);
 
-                        FilePath reportFolder = new FilePath(projectWS.getChannel(), reportFolderPath);
-
-                        reportFolders.add(reportFolder);
-
-                        String archiveTestResultMode = _resultsPublisherModel.getArchiveTestResultsMode();
-                        boolean archiveTestResult;
-
-                        //check for the new html report
-                        FilePath htmlReport = new FilePath(reportFolder, "run_results.html");
+						FilePath reportFolder = new FilePath(projectWS.getChannel(), reportFolderPath);
+						
+						reportFolders.add(reportFolder);
+						
+						String archiveTestResultMode =
+								_resultsPublisherModel.getArchiveTestResultsMode();
+						boolean archiveTestResult = false;
+						boolean createHtmlReport = false;
+						
+						//check for the new html report
+						FilePath htmlReport = new FilePath(reportFolder, "run_results.html");
                         FilePath rrvReport = new FilePath(reportFolder, "Results.xml");
                         if (htmlReport.exists()) {
                             reportIsHtml = true;
@@ -423,7 +431,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                             reportMetaData.setResourceURL(resourceUrl);
                             reportMetaData.setDisPlayName(testName); // use the name, not the full path
                             //don't know reportMetaData's URL path yet, we will generate it later.
-                            ReportInfoToCollect.add(reportMetaData);
+							ReportInfoToCollect.add(reportMetaData);
 
                             listener.getLogger()
                                     .println("add html report info to ReportInfoToCollect: " + "[date]" + testDateTime);
@@ -447,9 +455,9 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
                                 //don't use FileFilter for zip, or it will cause bug when files are on slave
                                 reportFolder.zip(outstr);
-
+                                
 								/*
-                                 * I did't use copyRecursiveTo or copyFrom due to
+								 * I did't use copyRecursiveTo or copyFrom due to
 								 * bug in
 								 * jekins:https://issues.jenkins-ci.org/browse
 								 * /JENKINS-9189 //(which is cleaimed to have been
@@ -698,14 +706,14 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 ByteArrayOutputStream outstr = new ByteArrayOutputStream();
                 reportFolder.zip(outstr);
 
-                /*
-                * I did't use copyRecursiveTo or copyFrom due to
-                * bug in
-                * jekins:https://issues.jenkins-ci.org/browse
-                * /JENKINS-9189 //(which is cleaimed to have been
-                * fixed, but not. So I zip the folder to stream and
-                * copy it to the master.
-                */
+        /*
+         * I did't use copyRecursiveTo or copyFrom due to
+         * bug in
+         * jekins:https://issues.jenkins-ci.org/browse
+         * /JENKINS-9189 //(which is cleaimed to have been
+         * fixed, but not. So I zip the folder to stream and
+         * copy it to the master.
+         */
 
                 ByteArrayInputStream instr = new ByteArrayInputStream(outstr.toByteArray());
 
@@ -969,6 +977,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         return result;
     }
 
+
     private LrJobResults buildJobDataset(Run<?, ?> build, TaskListener listener)
             throws ParserConfigurationException, SAXException,
             IOException, InterruptedException {
@@ -1199,6 +1208,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
     public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
                         @Nonnull TaskListener listener) throws InterruptedException, IOException {
         final List<String> mergedResultNames = new ArrayList<String>();
+
         Project<?, ?> project = RuntimeUtils.cast(build.getParent());
         List<Builder> builders = project.getBuilders();
         runReportList = new ArrayList<FilePath>();
@@ -1217,7 +1227,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 String resultsFileName = ((SseBuilder) builder).getRunResultsFileName();
                 if (resultsFileName != null) {
                     almSSEResultNames.add(resultsFileName);
-    }
+                }
             } else if (builder instanceof PcBuilder) {
                 String resultsFileName = ((PcBuilder) builder).getRunResultsFileName();
                 if (resultsFileName != null) {
@@ -1265,10 +1275,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
         return _resultsPublisherModel;
     }
-
-    /**
-     * The type Descriptor.
-     */
+    
     @Extension
     public static class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
@@ -1276,20 +1283,20 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
          * Instantiates a new Descriptor.
          */
         public DescriptorImpl() {
-
+            
             load();
         }
-
+        
         @Override
         public String getDisplayName() {
-
+            
             return "Publish HP tests result";
         }
-
+        
         @Override
         public boolean isApplicable(
                 @SuppressWarnings("rawtypes") Class<? extends AbstractProject> jobType) {
-
+            
             return true;
         }
 

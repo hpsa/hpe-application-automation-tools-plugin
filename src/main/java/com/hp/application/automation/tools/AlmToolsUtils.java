@@ -1,36 +1,16 @@
-/*
- * MIT License
- *
- * Copyright (c) 2016 Hewlett-Packard Development Company, L.P.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
+// (c) Copyright 2012 Hewlett-Packard Development Company, L.P. 
+// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+// The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 package com.hp.application.automation.tools;
 
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
+import hudson.model.Hudson;
 import hudson.model.Result;
-import hudson.model.Run;
-import hudson.model.TaskListener;
+import hudson.model.AbstractBuild;
 import hudson.util.ArgumentListBuilder;
 import jenkins.model.Jenkins;
 
@@ -45,10 +25,29 @@ public class AlmToolsUtils {
 	private AlmToolsUtils() {
 	}
 
+	public static void runOnBuildEnv(
+
+
+	private AlmToolsUtils() {
+	}
+
     public static void runOnBuildEnv(
             AbstractBuild<?, ?> build,
             Launcher launcher,
             BuildListener listener,
+            String paramFileName) throws IOException, InterruptedException {
+            runOnBuildEnv(build,
+                 launcher,
+                 listener,
+                build.getWorkspace(),
+                 paramFileName);
+    }
+
+
+        public static void runOnBuildEnv(
+            Run<?, ?> build,
+            Launcher launcher,
+            TaskListener listener,
             String paramFileName) throws IOException, InterruptedException {
         runOnBuildEnv(build,
                 launcher,
@@ -94,6 +93,17 @@ public class AlmToolsUtils {
             BuildListener listener,
             String paramFileName) throws IOException, InterruptedException {
 
+            runHpToolsAborterOnBuildEnv(build, launcher, listener, paramFileName, build.getWorkspace());
+    }
+
+	@SuppressWarnings("squid:S2259")
+	public static void runHpToolsAborterOnBuildEnv(
+            Run<?, ?> build,
+            Launcher launcher,
+            TaskListener listener,
+            String paramFileName, FilePath runWorkspace) throws IOException, InterruptedException {
+
+
         runHpToolsAborterOnBuildEnv(build, launcher, listener, paramFileName, build.getWorkspace());
     }
 
@@ -109,7 +119,7 @@ public class AlmToolsUtils {
 
         String hpToolsAborter_exe = "HpToolsAborter.exe";
 
-        URL hpToolsAborterUrl = Jenkins.getInstance().pluginManager.uberClassLoader.getResource("HpToolsAborter.exe");
+		URL hpToolsAborterUrl = Jenkins.getInstance().pluginManager.uberClassLoader.getResource("HpToolsAborter.exe");
         FilePath hpToolsAborterFile = runWorkspace.child(hpToolsAborter_exe);
 
         args.add(hpToolsAborterFile);
@@ -120,12 +130,12 @@ public class AlmToolsUtils {
         int returnCode = launcher.launch().cmds(args).stdout(out).pwd(hpToolsAborterFile.getParent()).join();
 
         try {
-            hpToolsAborterFile.delete();
-        } catch (Exception e) {
-            listener.error("failed copying HpToolsAborter" + e);
-        }
-
-
+        	hpToolsAborterFile.delete();
+		} catch (Exception e) {
+			 listener.error("failed copying HpToolsAborter" + e);
+		}
+        
+        
         if (returnCode != 0) {
             if (returnCode == 1) {
                 build.setResult(Result.FAILURE);

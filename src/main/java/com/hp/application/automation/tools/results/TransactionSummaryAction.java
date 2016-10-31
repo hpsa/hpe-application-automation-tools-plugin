@@ -138,9 +138,9 @@ public class TransactionSummaryAction implements Action, SimpleBuildStep.LastBui
   /**
    * Gets dynamic.
    *
-   * @param name the name 
-   * @param req the req 
-   * @param rsp the rsp 
+   * @param name the name
+   * @param req the req
+   * @param rsp the rsp
    * @return the dynamic
    */
   public Object getDynamic(String name, StaplerRequest req, StaplerResponse rsp) {

@@ -31,8 +31,6 @@ import jenkins.tasks.SimpleBuildStep;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
-import java.io.*;
-import java.util.*;
 
 public class PerformanceReportAction implements Action, SimpleBuildStep.LastBuildAction {
 
@@ -40,7 +38,7 @@ public class PerformanceReportAction implements Action, SimpleBuildStep.LastBuil
     private static final String REPORT_INDEX = "report.index";
 
     private Map<String, DetailReport> detailReportMap = new LinkedHashMap<String, DetailReport>();
-    private final List<TestResultProjectAction> projectActionList;
+
 
     private final Run<?,?> build;
 

@@ -1,26 +1,7 @@
-/*
- * MIT License
- *
- * Copyright (c) 2016 Hewlett-Packard Development Company, L.P.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
+// (c) Copyright 2012 Hewlett-Packard Development Company, L.P.
+// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+// The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 package com.hp.application.automation.tools.run;
 
@@ -75,8 +56,8 @@ import java.util.Properties;
 public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
 
-    private String ResultFilename = "ApiResults.xml";
-    private String ParamFileName = "ApiRun.txt";
+	private String ResultFilename = "ApiResults.xml";
+	private String ParamFileName = "ApiRun.txt";
 	private final RunFromFileSystemModel runFromFileModel;
 	private static final  String HP_TOOLS_LAUNCHER_EXE = "HpToolsLauncher.exe";
 	private static final  String LRANALYSIS_LAUNCHER_EXE = "LRAnalysisLauncher.exe";
@@ -87,7 +68,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 	 *
 	 * @param fsTests the fs tests
 	 */
-    @DataBoundConstructor
+	@DataBoundConstructor
 	public RunFromFileBuilder(String fsTests) {
 
 		runFromFileModel = new RunFromFileSystemModel(fsTests);
@@ -130,15 +111,15 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 	 */
 	@SuppressWarnings("squid:S00107")
 	@Deprecated
-    public RunFromFileBuilder(String fsTests, String fsTimeout, String controllerPollingInterval,
+	public RunFromFileBuilder(String fsTests, String fsTimeout, String controllerPollingInterval,
 							  String perScenarioTimeOut, String ignoreErrorStrings, String mcServerName, String fsUserName, String fsPassword, String fsDeviceId, String fsTargetLab,
 							  String fsManufacturerAndModel, String fsOs, String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics, String fsInstrumented, String fsExtraApps, String fsJobId,
 							  ProxySettings proxySettings, boolean useSSL) {
 
-        runFromFileModel = new RunFromFileSystemModel(fsTests, fsTimeout, controllerPollingInterval,
+		runFromFileModel = new RunFromFileSystemModel(fsTests, fsTimeout, controllerPollingInterval,
 				perScenarioTimeOut, ignoreErrorStrings, mcServerName, fsUserName, fsPassword, fsDeviceId, fsTargetLab, fsManufacturerAndModel, fsOs, fsAutActions, fsLaunchAppName,
 				fsDevicesMetrics, fsInstrumented, fsExtraApps, fsJobId, proxySettings, useSSL);
-    }
+	}
 
 	/**
 	 * Gets param file name.
@@ -329,15 +310,15 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		runFromFileModel.setProxySettings(proxySettings);
 	}
 
-    @Override
+	@Override
 	public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
 
-        // get the mc server settings
-        MCServerSettingsModel mcServerSettingsModel = getMCServerSettingsModel();
+		// get the mc server settings
+		MCServerSettingsModel mcServerSettingsModel = getMCServerSettingsModel();
 
-        EnvVars env = null;
-        try {
-            env = build.getEnvironment(listener);
+		EnvVars env = null;
+		try {
+			env = build.getEnvironment(listener);
 
 		} catch (IOException | InterruptedException e) {
 			listener.error("Failed loading build environment " + e);
@@ -349,9 +330,9 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		// getBuildEnviroment() as written here:
 		// https://github.com/jenkinsci/pipeline-plugin/blob/893e3484a25289c59567c6724f7ce19e3d23c6ee/DEVGUIDE.md#variable-substitutions
 
-        JSONObject jobDetails = null;
-        String mcServerUrl = "";
-        // now merge them into one list
+		JSONObject jobDetails = null;
+		String mcServerUrl = "";
+		// now merge them into one list
 		Properties mergedProperties = new Properties();
 		if (mcServerSettingsModel != null) {
 			mcServerUrl = mcServerSettingsModel.getProperties().getProperty("MobileHostAddress");
@@ -360,7 +341,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 			} else {
 				jobDetails = runFromFileModel.getJobDetails(mcServerUrl, runFromFileModel.getProxySettings().getFsProxyAddress(), runFromFileModel.getProxySettings().getFsProxyUserName(),
 						runFromFileModel.getProxySettings().getFsProxyPassword());
-            }
+			}
 			mergedProperties.setProperty("mobileinfo", jobDetails != null ? jobDetails.toJSONString() : "");
 			mergedProperties.setProperty("MobileHostAddress", mcServerUrl);
 		}
@@ -369,12 +350,12 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 			String encPassword = "";
 			try {
 				encPassword = EncryptionUtils.Encrypt(runFromFileModel.getFsPassword(), EncryptionUtils.getSecretKey());
-                mergedProperties.put("MobilePassword", encPassword);
-            } catch (Exception e) {
-                build.setResult(Result.FAILURE);
+				mergedProperties.put("MobilePassword", encPassword);
+			} catch (Exception e) {
+				build.setResult(Result.FAILURE);
 				listener.fatalError("problem in mobile center password encryption" + e);
-            }
-        }
+			}
+		}
 
 		if(env == null)
 		{
@@ -385,43 +366,45 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		{
 			VariableResolver<String> varResolver = ((AbstractBuild) build).getBuildVariableResolver();
 			mergedProperties.putAll(runFromFileModel.getProperties(env, varResolver));
-        } else {
-            mergedProperties.putAll(runFromFileModel.getProperties(env));
-        }
+		}
+		else
+		{
+			mergedProperties.putAll(runFromFileModel.getProperties(env));
+		}
 
 
-        int idx = 0;
+		int idx = 0;
 		for (Iterator<String> iterator = env.keySet().iterator(); iterator.hasNext(); ) {
 			String key = iterator.next();
 			idx++;
 			mergedProperties.put("JenkinsEnv" + idx, key + ";" + env.get(key));
-        }
+		}
 
-        Date now = new Date();
-        Format formatter = new SimpleDateFormat("ddMMyyyyHHmmssSSS");
-        String time = formatter.format(now);
+		Date now = new Date();
+		Format formatter = new SimpleDateFormat("ddMMyyyyHHmmssSSS");
+		String time = formatter.format(now);
 
-        // get a unique filename for the params file
-        ParamFileName = "props" + time + ".txt";
-        ResultFilename = "Results" + time + ".xml";
+		// get a unique filename for the params file
+		ParamFileName = "props" + time + ".txt";
+		ResultFilename = "Results" + time + ".xml";
 
-        mergedProperties.put("runType", RunType.FileSystem.toString());
-        mergedProperties.put("resultsFilename", ResultFilename);
+		mergedProperties.put("runType", RunType.FileSystem.toString());
+		mergedProperties.put("resultsFilename", ResultFilename);
 
-        // get properties serialized into a stream
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        try {
-            mergedProperties.store(stream, "");
-        } catch (IOException e) {
+		// get properties serialized into a stream
+		ByteArrayOutputStream stream = new ByteArrayOutputStream();
+		try {
+			mergedProperties.store(stream, "");
+		} catch (IOException e) {
 			listener.error("Storing run variable failed: " + e);
-            build.setResult(Result.FAILURE);
-        }
-        String propsSerialization = stream.toString();
+			build.setResult(Result.FAILURE);
+		}
+		String propsSerialization = stream.toString();
 		FilePath CmdLineExe;
 		try (InputStream propsStream = IOUtils.toInputStream(propsSerialization)) {
 
             // Get the URL to the Script used to run the test, which is bundled
-
+			// in the plugin
 			@SuppressWarnings("squid:S2259")
 			URL cmdExeUrl = Jenkins.getInstance().pluginManager.uberClassLoader.getResource(HP_TOOLS_LAUNCHER_EXE);
 			if (cmdExeUrl == null) {
@@ -534,14 +517,14 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		 * Instantiates a new Descriptor.
 		 */
 		public DescriptorImpl() {
-            load();
-        }
+			load();
+		}
 
-        @Override
-        public boolean isApplicable(
-                @SuppressWarnings("rawtypes") Class<? extends AbstractProject> jobType) {
-            return true;
-        }
+		@Override
+		public boolean isApplicable(
+				@SuppressWarnings("rawtypes") Class<? extends AbstractProject> jobType) {
+			return true;
+		}
 
 		/**
 		 * Gets job id.
@@ -554,11 +537,10 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		 * @param proxyPassword the proxy password
 		 * @return the job id
 		 */
-        @JavaScriptMethod
-        public String getJobId(String mcUrl, String mcUserName, String mcPassword, String proxyAddress,
-                               String proxyUserName, String proxyPassword) {
-            return instance.createTempJob(mcUrl, mcUserName, mcPassword, proxyAddress, proxyUserName, proxyPassword);
-        }
+		@JavaScriptMethod
+		public String getJobId(String mcUrl, String mcUserName, String mcPassword, String proxyAddress, String proxyUserName, String proxyPassword) {
+			return instance.createTempJob(mcUrl, mcUserName, mcPassword, proxyAddress, proxyUserName, proxyPassword);
+		}
 
 		/**
 		 * Populate app and device json object.
@@ -572,12 +554,10 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		 * @param jobId         the job id
 		 * @return the json object
 		 */
-        @JavaScriptMethod
-        public JSONObject populateAppAndDevice(String mcUrl, String mcUserName, String mcPassword, String proxyAddress,
-                                               String proxyUserName, String proxyPassword, String jobId) {
-            return instance
-                    .getJobJSONData(mcUrl, mcUserName, mcPassword, proxyAddress, proxyUserName, proxyPassword, jobId);
-        }
+		@JavaScriptMethod
+		public JSONObject populateAppAndDevice(String mcUrl, String mcUserName, String mcPassword, String proxyAddress, String proxyUserName, String proxyPassword, String jobId) {
+			return instance.getJobJSONData(mcUrl, mcUserName, mcPassword, proxyAddress, proxyUserName, proxyPassword, jobId);
+		}
 
 		/**
 		 * Gets mc server url.
@@ -587,22 +567,22 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		 */
 		@SuppressWarnings("squid:S2259")
 		@JavaScriptMethod
-        public String getMcServerUrl(String serverName) {
-            String serverUrl = "";
+		public String getMcServerUrl(String serverName) {
+			String serverUrl = "";
 			MCServerSettingsModel[] servers = Jenkins.getInstance().getDescriptorByType(
-                    MCServerSettingsBuilder.MCDescriptorImpl.class).getInstallations();
-            for (MCServerSettingsModel mcServer : servers) {
-                if (mcServer.getMcServerName().equals(serverName)) {
-                    serverUrl = mcServer.getMcServerUrl();
-                }
-            }
-            return serverUrl;
-        }
+					MCServerSettingsBuilder.MCDescriptorImpl.class).getInstallations();
+			for (MCServerSettingsModel mcServer : servers) {
+				if (mcServer.getMcServerName().equals(serverName)) {
+					serverUrl = mcServer.getMcServerUrl();
+				}
+			}
+			return serverUrl;
+		}
 
-        @Override
-        public String getDisplayName() {
-            return "Execute HP tests from file system";
-        }
+		@Override
+		public String getDisplayName() {
+			return "Execute HP tests from file system";
+		}
 
 		/**
 		 * Do check fs tests form validation.
@@ -612,8 +592,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		 */
 		@SuppressWarnings("squid:S1172")
 		public FormValidation doCheckFsTests(@QueryParameter String value) {
-            return FormValidation.ok();
-        }
+			return FormValidation.ok();
+		}
 
 		/**
 		 * Do check ignore error strings form validation.
@@ -624,8 +604,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		@SuppressWarnings("squid:S1172")
 		public FormValidation doCheckIgnoreErrorStrings(@QueryParameter String value) {
 
-            return FormValidation.ok();
-        }
+			return FormValidation.ok();
+		}
 
 		/**
 		 * Do check fs timeout form validation.
@@ -635,19 +615,18 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		 */
 		public FormValidation doCheckFsTimeout(@QueryParameter String value) {
 			if (StringUtils.isEmpty(value)) {
-                return FormValidation.ok();
-            }
+				return FormValidation.ok();
+			}
 
-            String val1 = value.trim();
-            if (val1.length() > 0 && val1.charAt(0) == '-') {
+			String val1 = value.trim();
+			if (val1.length() > 0 && val1.charAt(0) == '-')
 				val1 = val1.substring(1);
-            }
 
 			if (!StringUtils.isNumeric(val1) && !Objects.equals(val1, "")) {
-                return FormValidation.error("Timeout name must be a number");
-            }
-            return FormValidation.ok();
-        }
+				return FormValidation.error("Timeout name must be a number");
+			}
+			return FormValidation.ok();
+		}
 
 		/**
 		 * Has mc servers boolean.
@@ -655,10 +634,10 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		 * @return the boolean
 		 */
 		@SuppressWarnings("squid:S2259")
-        public boolean hasMCServers() {
+		public boolean hasMCServers() {
 			return Jenkins.getInstance().getDescriptorByType(
-                    MCServerSettingsBuilder.MCDescriptorImpl.class).hasMCServers();
-        }
+					MCServerSettingsBuilder.MCDescriptorImpl.class).hasMCServers();
+		}
 
 		/**
 		 * Get mc servers mc server settings model [ ].
@@ -667,10 +646,10 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		 */
 		@SuppressWarnings("squid:S2259")
 
-        public MCServerSettingsModel[] getMcServers() {
+		public MCServerSettingsModel[] getMcServers() {
 			return Jenkins.getInstance().getDescriptorByType(
-                    MCServerSettingsBuilder.MCDescriptorImpl.class).getInstallations();
-        }
+					MCServerSettingsBuilder.MCDescriptorImpl.class).getInstallations();
+		}
 
 		/**
 		 * Do check controller polling interval form validation.
@@ -680,15 +659,15 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		 */
 		public FormValidation doCheckControllerPollingInterval(@QueryParameter String value) {
 			if (StringUtils.isEmpty(value)) {
-                return FormValidation.ok();
-            }
+				return FormValidation.ok();
+			}
 
 			if (!StringUtils.isNumeric(value)) {
-                return FormValidation.error("Controller Polling Interval must be a number");
-            }
+				return FormValidation.error("Controller Polling Interval must be a number");
+			}
 
-            return FormValidation.ok();
-        }
+			return FormValidation.ok();
+		}
 
 		/**
 		 * Do check per scenario time out form validation.
@@ -698,15 +677,14 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		 */
 		public FormValidation doCheckPerScenarioTimeOut(@QueryParameter String value) {
 			if (StringUtils.isEmpty(value)) {
-                return FormValidation.ok();
-            }
+				return FormValidation.ok();
+			}
 
 			if (!StringUtils.isNumeric(value)) {
-                return FormValidation.error("Per Scenario Timeout must be a number");
-            }
+				return FormValidation.error("Per Scenario Timeout must be a number");
+			}
 
-            return FormValidation.ok();
-        }
-
+			return FormValidation.ok();
+		}
     }
 }

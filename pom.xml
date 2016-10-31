@@ -221,6 +221,10 @@
 		<repository>
 			<id>hp-application-automation-tools-plugin-mvn-repo</id>
 			<url>https://raw.github.com/HpeServiceVirtualization/3g/mvn-repo/</url>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+			</snapshots>
 		</repository>
 	</repositories>
 
@@ -232,12 +236,12 @@
 	</pluginRepositories>
 
 	<dependencies>
-		<dependency>
-			<groupId>org.jenkins-ci.plugins.workflow</groupId>
-			<artifactId>workflow-aggregator</artifactId>
-			<version>${workflow.version}</version>
-		</dependency>
-		<dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins.workflow</groupId>
+            <artifactId>workflow-aggregator</artifactId>
+            <version>${workflow.version}</version>
+        </dependency>
+        <dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
 			<version>4.5.2</version>
@@ -252,7 +256,7 @@
 			<artifactId>json-path</artifactId>
 			<version>1.1.0</version>
 		</dependency>
-		<dependency>
+       <dependency>
 			<groupId>org.jenkins-ci.plugins</groupId>
 			<artifactId>matrix-project</artifactId>
 			<version>1.6</version>
@@ -285,15 +289,15 @@
 			<artifactId>symbol-annotation</artifactId>
 			<version>1.4</version>
 		</dependency>
-		<dependency>
-			<groupId>org.jenkins-ci.plugins</groupId>
-			<artifactId>credentials</artifactId>
-			<version>2.1.4</version>
-		</dependency>
+ 		<dependency>
+	      <groupId>org.jenkins-ci.plugins</groupId>
+	      <artifactId>credentials</artifactId>
+	      <version>2.1.4</version>
+	    </dependency>
 		<dependency>
 			<groupId>com.hp.sv</groupId>
 			<artifactId>SVConfigurator</artifactId>
-			<version>3.82.1.45909</version>
+			<version>3.82.1-SNAPSHOT</version>
 			<exclusions>
 				<exclusion>
 					<groupId>commons-io</groupId>
@@ -301,10 +305,10 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		<dependency>
-			<groupId>org.jenkins-ci.plugins</groupId>
-			<artifactId>junit</artifactId>
-			<version>1.19</version>
-		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>junit</artifactId>
+            <version>1.19</version>
+        </dependency>
+    </dependencies>
 </project>
