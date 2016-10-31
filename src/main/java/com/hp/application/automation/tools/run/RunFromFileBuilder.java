@@ -684,7 +684,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 				return FormValidation.error("Per Scenario Timeout must be a number");
 			}
 
-			return FormValidation.ok();
-		}
+            return FormValidation.ok();
+        }
+
     }
 }

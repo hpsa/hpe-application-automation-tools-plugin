@@ -26,56 +26,24 @@ public class AlmToolsUtils {
 	}
 
 	public static void runOnBuildEnv(
-
-
-	private AlmToolsUtils() {
-	}
-
-    public static void runOnBuildEnv(
             AbstractBuild<?, ?> build,
             Launcher launcher,
             BuildListener listener,
-            String paramFileName) throws IOException, InterruptedException {
-            runOnBuildEnv(build,
-                 launcher,
-                 listener,
-                build.getWorkspace(),
-                 paramFileName);
-    }
-
-
-        public static void runOnBuildEnv(
-            Run<?, ?> build,
-            Launcher launcher,
-            TaskListener listener,
-            String paramFileName) throws IOException, InterruptedException {
-        runOnBuildEnv(build,
-                launcher,
-                listener,
-                build.getWorkspace(),
-                paramFileName);
-    }
-
-
-    public static void runOnBuildEnv(
-            Run<?, ?> build,
-            Launcher launcher,
-            TaskListener listener,
             FilePath file,
             String paramFileName) throws IOException, InterruptedException {
-
+        
         ArgumentListBuilder args = new ArgumentListBuilder();
         PrintStream out = listener.getLogger();
-
+        
         // Use script to run the cmdLine and get the console output
         args.add(file);
         args.add("-paramfile");
         args.add(paramFileName);
-
+        
         // Run the script on node
         // Execution result should be 0
         int returnCode = launcher.launch().cmds(args).stdout(out).pwd(file.getParent()).join();
-
+        
         if (returnCode != 0) {
             if (returnCode == -1) {
                 build.setResult(Result.FAILURE);
@@ -103,17 +71,6 @@ public class AlmToolsUtils {
             TaskListener listener,
             String paramFileName, FilePath runWorkspace) throws IOException, InterruptedException {
 
-
-        runHpToolsAborterOnBuildEnv(build, launcher, listener, paramFileName, build.getWorkspace());
-    }
-
-    @SuppressWarnings("squid:S2259")
-    public static void runHpToolsAborterOnBuildEnv(
-            Run<?, ?> build,
-            Launcher launcher,
-            TaskListener listener,
-            String paramFileName, FilePath runWorkspace) throws IOException, InterruptedException {
-
         ArgumentListBuilder args = new ArgumentListBuilder();
         PrintStream out = listener.getLogger();
 
@@ -121,14 +78,14 @@ public class AlmToolsUtils {
 
 		URL hpToolsAborterUrl = Jenkins.getInstance().pluginManager.uberClassLoader.getResource("HpToolsAborter.exe");
         FilePath hpToolsAborterFile = runWorkspace.child(hpToolsAborter_exe);
-
+        
         args.add(hpToolsAborterFile);
         args.add(paramFileName);
-
+        
         hpToolsAborterFile.copyFrom(hpToolsAborterUrl);
-
+        
         int returnCode = launcher.launch().cmds(args).stdout(out).pwd(hpToolsAborterFile.getParent()).join();
-
+        
         try {
         	hpToolsAborterFile.delete();
 		} catch (Exception e) {
@@ -146,6 +103,6 @@ public class AlmToolsUtils {
             }
         }
     }
-
-
+    
+    
 }

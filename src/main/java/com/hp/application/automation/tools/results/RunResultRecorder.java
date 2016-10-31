@@ -498,7 +498,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                     }
                 }
 
-                if (reportIsHtml && !ReportInfoToCollect.isEmpty()) {
+				if (reportIsHtml && !ReportInfoToCollect.isEmpty()){
 
                     listener.getLogger().println("begin to collectAndPrepareHtmlReports");
                     collectAndPrepareHtmlReports(build, listener, ReportInfoToCollect, runWorkspace);
@@ -1275,7 +1275,10 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
         return _resultsPublisherModel;
     }
-    
+
+    /**
+     * The type Descriptor.
+     */
     @Extension
     public static class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
@@ -1283,20 +1286,20 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
          * Instantiates a new Descriptor.
          */
         public DescriptorImpl() {
-            
+
             load();
         }
-        
+
         @Override
         public String getDisplayName() {
-            
+
             return "Publish HP tests result";
         }
-        
+
         @Override
         public boolean isApplicable(
                 @SuppressWarnings("rawtypes") Class<? extends AbstractProject> jobType) {
-            
+
             return true;
         }
 
