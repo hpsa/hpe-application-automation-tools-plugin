@@ -532,12 +532,33 @@ public class RunFromFileSystemModel {
 		return createProperties(envVars, varResolver);
 	}
 
-    public Properties getProperties() {
-        return CreateProperties(null, null);
+	private Properties createProperties(EnvVars envVars,
+										VariableResolver<String> varResolver) {
+
+		return createProperties(envVars);
+	}
+
+    /**
+     * Gets properties.
+     *
+     * @param envVars     the env vars
+     * @return the properties
+     */
+	@Nullable
+	public Properties getProperties(EnvVars envVars) {
+        return createProperties(envVars);
     }
 
-    private Properties CreateProperties(EnvVars envVars,
-                                        VariableResolver<String> varResolver) {
+    /**
+     * Gets properties.
+     *
+     * @return the properties
+     */
+    public Properties getProperties() {
+        return createProperties(null);
+    }
+
+    private Properties createProperties(EnvVars envVars) {
         Properties props = new Properties();
 
         if (!StringUtils.isEmpty(this.fsTests)) {

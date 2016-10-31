@@ -11,6 +11,8 @@ import hudson.model.BuildListener;
 import hudson.model.Hudson;
 import hudson.model.Result;
 import hudson.model.AbstractBuild;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.util.ArgumentListBuilder;
 import jenkins.model.Jenkins;
 
@@ -26,9 +28,9 @@ public class AlmToolsUtils {
 	}
 
 	public static void runOnBuildEnv(
-            AbstractBuild<?, ?> build,
+            Run<?, ?> build,
             Launcher launcher,
-            BuildListener listener,
+            TaskListener listener,
             FilePath file,
             String paramFileName) throws IOException, InterruptedException {
         
