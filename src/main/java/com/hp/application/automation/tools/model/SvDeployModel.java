@@ -5,7 +5,6 @@
 
 package com.hp.application.automation.tools.model;
 
-import hudson.util.Secret;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 public class SvDeployModel extends AbstractSvRunModel {
@@ -13,7 +12,7 @@ public class SvDeployModel extends AbstractSvRunModel {
     protected final boolean firstAgentFallback;
 
     @DataBoundConstructor
-    public SvDeployModel(String serverName, boolean force, String service, String projectPath, Secret projectPassword, boolean firstAgentFallback) {
+    public SvDeployModel(String serverName, boolean force, String service, String projectPath, String projectPassword, boolean firstAgentFallback) {
         super(serverName, force, new SvServiceSelectionModel(SvServiceSelectionModel.SelectionType.DEPLOY, service, projectPath, projectPassword));
         this.firstAgentFallback = firstAgentFallback;
     }

@@ -20,7 +20,7 @@ public class ResultsPublisherModel implements Serializable {
 	public final static EnumDescription ArchiveFailedTestsResults = new EnumDescription("ONLY_ARCHIVE_FAILED_TESTS_REPORT", "Archive HP test report for failed tests ");
 	public final static EnumDescription CreateHtmlReportResults = new EnumDescription("PUBLISH_HTML_REPORT", "Always archive and publish HP test reports (LR only)");
     public final static List<EnumDescription> archiveModes =
-            Arrays.asList(CreateHtmlReportResults, ArchiveFailedTestsResults, alwaysArchiveResults,
+            Arrays.asList(ArchiveFailedTestsResults, alwaysArchiveResults,
                     CreateHtmlReportResults, dontArchiveResults);
 
 	private String archiveTestResultsMode;
