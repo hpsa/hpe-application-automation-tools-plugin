@@ -71,7 +71,7 @@ public class PerformanceProjectAction implements Action{
     /**
      * The Current project.
      */
-    public final Project<?, ?> currentProject;
+    public final Job<?, ?> currentProject;
     private ArrayList<LrJobResults> jobLrResults;
     private int lastBuildId = -1;
     private ArrayList<Integer> _workedBuilds;
@@ -87,7 +87,7 @@ public class PerformanceProjectAction implements Action{
     public PerformanceProjectAction(Job<?, ?> job) {
         this._workedBuilds = new ArrayList<Integer>();
         this.jobLrResults = new ArrayList<LrJobResults>();
-        this.currentProject = (Project<?, ?>) job;
+        this.currentProject = job;
         projectActions = new ArrayList<>();
     }
 
@@ -212,9 +212,13 @@ public class PerformanceProjectAction implements Action{
      * @return the boolean
      */
     boolean isVisible() {
-//        getUpdatedData(); // throw this our once fixes method
-        if (!_workedBuilds.isEmpty()) {
-            return true;
+         List<? extends Run<?,?>> builds = currentProject.getBuilds();
+        for(Run run : builds)
+        {
+            if(run.getAction(PerformanceJobReportAction.class) != null)
+            {
+                return true;
+            }
         }
         return false;
     }
@@ -439,4 +443,5 @@ public class PerformanceProjectAction implements Action{
 //        this.projectActions.add(new TestResultProjectAction(currentProject));
 //        return this.projectActions;
 //    }
+
 }

@@ -30,9 +30,10 @@ import java.util.Map;
 
 public class LrJobResults extends LrRunResults implements LrTest {
 
-    public Map<String, JobLrScenarioResult> _scenarioResults = new HashMap<String, JobLrScenarioResult>();
+    private Map<String, JobLrScenarioResult> _scenarioResults;
 
     public LrJobResults() {
+        _scenarioResults = new HashMap<String, JobLrScenarioResult>();
     }
 
     public Map<String, JobLrScenarioResult> getLrScenarioResults() {

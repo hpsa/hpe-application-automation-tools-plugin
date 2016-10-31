@@ -94,6 +94,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -203,12 +205,12 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
         final TestResultAction tempAction = build.getAction(TestResultAction.class);
         if (tempAction == null || tempAction.getResult() == null) {
-            // Since recording returned null - there no result to this test run to preform on
+            listener.getLogger().println("RunResultRecorder: didn't find any test results to record");
             return;
         }
 
         TestResult result = tempAction.getResult();
-//        build.getParent().replaceAction(new TestResultProjectAction(build.getParent()));
+
 
         try {
             archiveTestsReport(build, listener, fileSystemResultNames, result, workspace);
@@ -229,13 +231,9 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             }
 
             if ((jobDataSet != null && !jobDataSet.getLrScenarioResults().isEmpty())) {
-                build.addAction(new PerformanceJobReportAction(build, jobDataSet));
+                build.replaceAction(new PerformanceJobReportAction(build, jobDataSet));
             }
         }
-
-
-
-
         publishLrReports(build);
     }
 

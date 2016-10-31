@@ -26,11 +26,9 @@ package com.hp.application.automation.tools.results;
 
 import com.hp.application.automation.tools.PerformanceProjectAction;
 import com.hp.application.automation.tools.results.projectparser.performance.LrJobResults;
-import hudson.model.AbstractBuild;
 import hudson.model.Action;
 import hudson.model.InvisibleAction;
 import hudson.model.Run;
-import hudson.tasks.test.TestResultProjectAction;
 import jenkins.tasks.SimpleBuildStep;
 import net.minidev.json.JSONObject;
 
@@ -42,19 +40,12 @@ import java.util.List;
 public class PerformanceJobReportAction extends InvisibleAction implements SimpleBuildStep.LastBuildAction {
 
     private Run<?, ?> build;
-    private JSONObject jobDataSet = null;
+    private JSONObject jobDataSet;
     private LrJobResults _resultFiles;
-
-    private final List<TestResultProjectAction> projectActionList;
-
 
     public PerformanceJobReportAction(Run<?, ?> build, LrJobResults resultFiles) {
         this.build = build;
         this._resultFiles = resultFiles;
-
-
-        projectActionList = new ArrayList<TestResultProjectAction>();
-
     }
 
     public LrJobResults getLrResultBuildDataset() {
@@ -69,9 +60,8 @@ public class PerformanceJobReportAction extends InvisibleAction implements Simpl
 
     @Override
     public Collection<? extends Action> getProjectActions() {
-        List<Action> projectActions = new ArrayList<>();
+        List<PerformanceProjectAction> projectActions = new ArrayList<PerformanceProjectAction>();
         projectActions.add(new PerformanceProjectAction(build.getParent()));
-//        projectActions.add(new TestResultProjectAction(build.getParent()));
         return projectActions;
     }
 }

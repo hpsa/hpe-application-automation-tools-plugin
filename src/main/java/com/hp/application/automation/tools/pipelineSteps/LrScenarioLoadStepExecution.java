@@ -22,22 +22,32 @@
 
 package com.hp.application.automation.tools.pipelineSteps;
 
+import com.hp.application.automation.tools.PerformanceProjectAction;
 import com.hp.application.automation.tools.run.RunFromFileBuilder;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import org.jenkinsci.plugins.workflow.steps.AbstractSynchronousNonBlockingStepExecution;
 import org.jenkinsci.plugins.workflow.steps.StepContextParameter;
 
 import javax.inject.Inject;
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.logging.Logger;
 
 
 /**
  * The Load runner pipeline step execution.
  */
 public class LrScenarioLoadStepExecution extends AbstractSynchronousNonBlockingStepExecution<Void> {
+
+    /**
+     * Logger.
+     */
+    private static final Logger logger = Logger
+            .getLogger(LrScenarioLoadStepExecution.class.getName());
 
   private static final long serialVersionUID = 1L;
   @Inject
@@ -57,12 +67,26 @@ public class LrScenarioLoadStepExecution extends AbstractSynchronousNonBlockingS
     }
 
     @Override
-    protected Void run() throws Exception {
+    protected Void run() throws InterruptedException {
         listener.getLogger().println("Running LoadRunner Scenario step");
-        step.getRunFromFileBuilder().perform(build, ws, launcher, listener);
-        HashMap<String, String> resultFilename = new HashMap<String, String>(0);
-        resultFilename.put(RunFromFileBuilder.class.getName(), step.getRunFromFileBuilder().getRunResultsFileName());
-        step.getRunResultRecorder().pipelinePerform(build, ws, launcher, listener, resultFilename);
+         try {
+                step.getRunFromFileBuilder().perform(build, ws, launcher, listener);
+            } catch (IOException e) {
+                listener.fatalError("LoadRunnner scenario run stage encountered an IOException " + e);
+                build.setResult(Result.FAILURE);
+                return null;
+         }
+            HashMap<String, String> resultFilename = new HashMap<String, String>(0);
+            resultFilename.put(RunFromFileBuilder.class.getName(), step.getRunFromFileBuilder().getRunResultsFileName());
+
+            try {
+                step.getRunResultRecorder().pipelinePerform(build, ws, launcher, listener, resultFilename);
+            } catch (IOException e) {
+                listener.fatalError("LoadRunnner scenario run result recorder stage encountered an IOException " + e);
+                build.setResult(Result.FAILURE);
+                return null;
+            }
+
         return null;
     }
 }
