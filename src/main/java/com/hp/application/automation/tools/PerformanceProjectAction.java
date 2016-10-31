@@ -61,7 +61,7 @@ import static com.hp.application.automation.tools.results.projectparser.performa
 /**
  * The type Performance project action.
  */
-public class PerformanceProjectAction implements Action, SimpleBuildStep.LastBuildAction{
+public class PerformanceProjectAction implements Action{
 
     /**
      * Logger.
@@ -433,10 +433,10 @@ public class PerformanceProjectAction implements Action, SimpleBuildStep.LastBui
         return true;
     }
 
-    @Override
-    public Collection<? extends Action> getProjectActions() {
-        this.projectActions.add(this);
-        this.projectActions.add(new TestResultProjectAction(currentProject));
-        return this.projectActions;
-    }
+//    @Override
+//    public Collection<? extends Action> getProjectActions() {
+//        this.projectActions.add(this);
+//        this.projectActions.add(new TestResultProjectAction(currentProject));
+//        return this.projectActions;
+//    }
 }

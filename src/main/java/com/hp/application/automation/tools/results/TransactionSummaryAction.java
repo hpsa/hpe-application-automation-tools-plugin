@@ -151,6 +151,6 @@ public class TransactionSummaryAction implements Action, SimpleBuildStep.LastBui
 
     @Override
     public Collection<? extends Action> getProjectActions() {
-        return projectActionList;
+        return Collections.emptySet();
     }
 }

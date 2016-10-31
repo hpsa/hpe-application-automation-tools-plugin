@@ -21,6 +21,7 @@
 
 package com.hp.application.automation.tools.results;
 
+import com.hp.application.automation.tools.PerformanceProjectAction;
 import hudson.FilePath;
 import hudson.model.Action;
 import hudson.model.DirectoryBrowserSupport;
@@ -125,7 +126,11 @@ public class PerformanceReportAction implements Action, SimpleBuildStep.LastBuil
 
     @Override
     public Collection<? extends Action> getProjectActions() {
+//        List<Action> projectActions = new ArrayList<>();
+//        projectActions.add(new PerformanceProjectAction(build.getParent()));
+//        projectActions.add(new TestResultProjectAction(build.getParent()));
+//        return projectActions;
+        return Collections.emptySet();
 
-        return projectActionList;
     }
 }

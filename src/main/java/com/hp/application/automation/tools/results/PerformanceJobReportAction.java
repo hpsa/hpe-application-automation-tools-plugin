@@ -71,7 +71,7 @@ public class PerformanceJobReportAction extends InvisibleAction implements Simpl
     public Collection<? extends Action> getProjectActions() {
         List<Action> projectActions = new ArrayList<>();
         projectActions.add(new PerformanceProjectAction(build.getParent()));
-        projectActions.add(new TestResultProjectAction(build.getParent()));
-        return projectActionList;
+//        projectActions.add(new TestResultProjectAction(build.getParent()));
+        return projectActions;
     }
 }
