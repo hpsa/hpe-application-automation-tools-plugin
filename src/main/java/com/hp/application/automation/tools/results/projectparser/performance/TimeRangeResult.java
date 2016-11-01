@@ -1,6 +1,7 @@
 package com.hp.application.automation.tools.results.projectparser.performance;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by kazaky on 07/07/2016.
@@ -11,12 +12,11 @@ public class TimeRangeResult extends GoalResult implements LrTest {
     /**
      * The Time ranges.
      */
-    public ArrayList<TimeRange> timeRanges;
+    private ArrayList<TimeRange> timeRanges;
     private double _avgActualValue;
     private double _actualValueSum;
     private double _goalValue;
     private String LoadThrashold;
-
     /**
      * Instantiates a new Time range result.
      */
@@ -27,13 +27,17 @@ public class TimeRangeResult extends GoalResult implements LrTest {
         timeRanges = new ArrayList<TimeRange>(0);
     }
 
+    public List<TimeRange> getTimeRanges() {
+        return timeRanges;
+    }
+
     /**
      * Gets actual value avg.
      *
      * @return the actual value avg
      */
     public double getActualValueAvg() {
-        _avgActualValue = (double) _actualValueSum / timeRanges.size();
+        _avgActualValue = _actualValueSum / timeRanges.size();
         return _avgActualValue;
     }
 

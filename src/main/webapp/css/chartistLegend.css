@@ -27,7 +27,7 @@
   top: 0;
   right: 0;
 }
-.ct-legend .ct-series-0:before {
+.ct-legend .ct-series-3:before {
   background-color: #d70206;
   border-color: #d70206;
 }
@@ -39,7 +39,7 @@
   background-color: #f4c63d;
   border-color: #f4c63d;
 }
-.ct-legend .ct-series-3:before {
+.ct-legend .ct-series-6:before {
   background-color: #d17905;
   border-color: #d17905;
 }
@@ -47,7 +47,7 @@
   background-color: #453d3f;
   border-color: #453d3f;
 }
-.ct-legend .ct-series-5:before {
+.ct-legend .ct-series-0:before {
   background-color: #59922b;
   border-color: #59922b;
 }

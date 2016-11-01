@@ -360,7 +360,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                             FilePath testSla = copyRunReport(reportFolder, build.getRootDir(),
                                     testFolder.getName());
                             runReportList.add(testSla);
-                        } catch (Exception e) {
+                        } catch (IOException | InterruptedException e) {
                             listener.getLogger().println(e.getMessage());
                         }
                     }
@@ -1168,7 +1168,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         NodeList timeRanges = slaRuleElement.getElementsByTagName("TimeRangeInfo");
 
         //Taking the goal per transaction -
-        double generalGoalValue = Double.valueOf(((Element) timeRanges.item(0)).getAttribute(SLA_GOAL_VALUE_LABEL));
+        double generalGoalValue = Double.parseDouble(((Element) timeRanges.item(0)).getAttribute(SLA_GOAL_VALUE_LABEL));
         transactionTimeRange.setGoalValue(generalGoalValue);
 
         for (int k = 0; k < timeRanges.getLength(); k++) {
@@ -1183,7 +1183,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             LrTest.SLA_STATUS slaStatus =
                     LrTest.SLA_STATUS.checkStatus(timeRangeElement.getFirstChild().getTextContent());
             TimeRange timeRange = new TimeRange(actualValue, goalValue, slaStatus, loadValue, startTime, endTIme);
-            transactionTimeRange.timeRanges.add(timeRange);
+            transactionTimeRange.getTimeRanges().add(timeRange);
         }
     }
 

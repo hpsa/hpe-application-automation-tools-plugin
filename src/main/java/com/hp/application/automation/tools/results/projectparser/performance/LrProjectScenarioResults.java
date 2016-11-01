@@ -171,7 +171,7 @@ public class LrProjectScenarioResults extends LrScenario {
      *
      * @return the transactions
      */
-    public Set<String> getTransactions() {
+    public HashSet<String> getTransactions() {
         return transactions;
     }
 
