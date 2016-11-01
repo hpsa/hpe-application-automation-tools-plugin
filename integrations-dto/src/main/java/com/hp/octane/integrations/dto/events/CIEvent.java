@@ -26,6 +26,8 @@ public interface CIEvent extends DTOBase {
 
 	String getBuildCiId();
 
+	CIEvent setPhaseType(PhaseType phaseType);
+
 	CIEvent setBuildCiId(String buildCiId);
 
 	String getProject();

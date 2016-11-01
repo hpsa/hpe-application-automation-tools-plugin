@@ -67,8 +67,6 @@ public class WorkFlowJobProcessor extends AbstractProjectProcessor {
 	}
 
 
-
-
 	public OctaneConfiguration getOctaneConfiguration() {
 		OctaneConfiguration result = null;
 		ServerConfiguration serverConfiguration = Jenkins.getInstance().getPlugin(OctanePlugin.class).getServerConfiguration();

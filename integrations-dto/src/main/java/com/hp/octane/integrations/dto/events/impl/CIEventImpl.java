@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.hp.octane.integrations.dto.causes.CIEventCause;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
+import com.hp.octane.integrations.dto.events.PhaseType;
 import com.hp.octane.integrations.dto.parameters.CIParameter;
 import com.hp.octane.integrations.dto.scm.SCMData;
 import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
@@ -30,6 +31,17 @@ class CIEventImpl implements CIEvent {
 	private Long duration;
 	private SCMData scmData;
 	private String projectDisplayName;
+	private PhaseType phaseType;
+
+	public PhaseType getPhaseType() {
+		return phaseType;
+	}
+
+	public CIEvent setPhaseType(PhaseType phaseType) {
+		this.phaseType = phaseType;
+		return this;
+	}
+
 
 	public String getProjectDisplayName() {
 		return projectDisplayName;

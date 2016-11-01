@@ -21,7 +21,6 @@ import hudson.scm.SCM;
 import hudson.scm.SCMRevisionState;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import java.io.File;
 import java.util.List;
 
@@ -52,9 +51,10 @@ public class SCMListenerImpl extends SCMListener {
                     SCMData scmData = scmProcessor.getSCMData(build);
                     event = dtoFactory.newDTO(CIEvent.class)
                             .setEventType(CIEventType.SCM)
-                            .setProject(build.getProject().getName())
-                            .setBuildCiId(String.valueOf(build.getNumber()))
+                            .setProject(getProjectName(r))
+                            .setBuildCiId(String.valueOf(r.getNumber()))
                             .setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
+                            .setNumber(String.valueOf(r.getNumber()))
                             .setScmData(scmData);
                     EventsService.getExtensionInstance().dispatchEvent(event);
                 } else {
@@ -63,6 +63,18 @@ public class SCMListenerImpl extends SCMListener {
             }
         }
     }
+
+
+    private String getProjectName(Run r) {
+        if (r.getParent() instanceof MatrixConfiguration) {
+            return ((MatrixRun) r).getParentBuild().getParent().getName();
+        }
+        if (r.getParent().getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob")) {
+            return r.getParent().getName();
+        }
+        return ((AbstractBuild) r).getProject().getName();
+    }
+
 
     private List<Cause> extractCauses(Run r) {
         if (r.getParent() instanceof MatrixConfiguration) {
