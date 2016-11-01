@@ -7,13 +7,13 @@
 
 .ct-chart {
     margin: 10px 0 0 30px;
-    height: 300px;
-    width: 500px;
+    height: 400px;
+    width: 750px;
 }
 
 .ct-chart-seprator
 {
-    margin-top: 100px;
+    margin-top: 120px;
     position: relative;
 }
 .ct-chart-line
