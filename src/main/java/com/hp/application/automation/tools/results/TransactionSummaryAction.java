@@ -21,7 +21,6 @@
 
 package com.hp.application.automation.tools.results;
 
-import com.hp.application.automation.tools.PerformanceProjectAction;
 import hudson.FilePath;
 import hudson.model.Action;
 import hudson.model.DirectoryBrowserSupport;
@@ -31,8 +30,16 @@ import jenkins.tasks.SimpleBuildStep;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Generates the transaction summary reports and adds them to the run
@@ -123,7 +130,7 @@ public class TransactionSummaryAction implements Action, SimpleBuildStep.LastBui
    *
    * @return the build
    */
-  public Run<?,?> getBuild() {
+  public Run<?, ?> getBuild() {
         return build;
     }
 
