@@ -113,6 +113,8 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
     public static final String SLA_ACTUAL_VALUE_LABEL = "ActualValue";
     public static final String SLA_GOAL_VALUE_LABEL = "GoalValue";
     public static final String SLA_ULL_NAME = "FullName";
+    public static final String ARCHIVING_TEST_REPORTS_FAILED_DUE_TO_XML_PARSING_ERROR =
+            "Archiving test reports failed due to xml parsing error: ";
     private final ResultsPublisherModel _resultsPublisherModel;
     private List<FilePath> runReportList;
 
@@ -203,7 +205,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         try {
             archiveTestsReport(build, listener, fileSystemResultNames, result, workspace);
         } catch (ParserConfigurationException | SAXException e) {
-            listener.error("Archiving test reports failed due to xml parsing error: " + e);
+            listener.error(ARCHIVING_TEST_REPORTS_FAILED_DUE_TO_XML_PARSING_ERROR + e);
         }
 
         if ((runReportList != null) && !(runReportList.isEmpty())) {
@@ -211,9 +213,9 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             try {
                 jobDataSet = buildJobDataset(listener);
             } catch (ParserConfigurationException e) {
-                listener.error("Archiving test reports failed due to xml parsing error: " + e);
+                listener.error(ARCHIVING_TEST_REPORTS_FAILED_DUE_TO_XML_PARSING_ERROR + e);
             } catch (SAXException e) {
-                listener.error("Archiving test reports failed due to xml parsing error: " + e);
+                listener.error(ARCHIVING_TEST_REPORTS_FAILED_DUE_TO_XML_PARSING_ERROR + e);
             }
 
             if ((jobDataSet != null && !jobDataSet.getLrScenarioResults().isEmpty())) {
