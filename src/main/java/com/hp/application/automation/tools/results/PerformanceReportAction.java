@@ -21,6 +21,7 @@
 
 package com.hp.application.automation.tools.results;
 
+import com.hp.application.automation.tools.PerformanceProjectAction;
 import hudson.FilePath;
 import hudson.model.Action;
 import hudson.model.DirectoryBrowserSupport;
@@ -30,8 +31,17 @@ import jenkins.tasks.SimpleBuildStep;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 
 public class PerformanceReportAction implements Action, SimpleBuildStep.LastBuildAction {
 
@@ -40,6 +50,7 @@ public class PerformanceReportAction implements Action, SimpleBuildStep.LastBuil
 
     private Map<String, DetailReport> detailReportMap = new LinkedHashMap<String, DetailReport>();
     private final List<TestResultProjectAction> projectActionList;
+
 
     private final Run<?,?> build;
 
@@ -125,6 +136,11 @@ public class PerformanceReportAction implements Action, SimpleBuildStep.LastBuil
 
     @Override
     public Collection<? extends Action> getProjectActions() {
-        return projectActionList;
+//        List<Action> projectActions = new ArrayList<>();
+//        projectActions.add(new PerformanceProjectAction(build.getParent()));
+//        projectActions.add(new TestResultProjectAction(build.getParent()));
+//        return projectActions;
+        return Collections.emptySet();
+
     }
 }

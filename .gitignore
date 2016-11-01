@@ -108,7 +108,17 @@ src/main/resources/LRAnalysisLauncher.exe
 # PDT-specific
 .buildpath
 
-/target/**
-/work/**
+
+#  Intellij specific
+.iml
 target/
+.idea/
+
+# java script
+node/
+node_modules/
+/hp-application-automation-tools-plugin.iml
+/node/
+/node_modules/
+.sonarlint/
 

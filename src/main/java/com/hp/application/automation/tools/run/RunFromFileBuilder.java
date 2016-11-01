@@ -311,7 +311,9 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 	}
 
 	@Override
-	public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
+	public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener)
+
+			throws InterruptedException, IOException {
 
 		// get the mc server settings
 		MCServerSettingsModel mcServerSettingsModel = getMCServerSettingsModel();
@@ -686,8 +688,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 				return FormValidation.error("Per Scenario Timeout must be a number");
 			}
 
-			return FormValidation.ok();
-		}
+            return FormValidation.ok();
+        }
 
-	}
+    }
 }

@@ -7,7 +7,12 @@ package com.hp.application.automation.tools;
 
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.*;
+import hudson.model.BuildListener;
+import hudson.model.Hudson;
+import hudson.model.Result;
+import hudson.model.AbstractBuild;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.util.ArgumentListBuilder;
 import jenkins.model.Jenkins;
 
@@ -23,19 +28,6 @@ public class AlmToolsUtils {
 	}
 
 	public static void runOnBuildEnv(
-            AbstractBuild<?, ?> build,
-            Launcher launcher,
-            BuildListener listener,
-            String paramFileName) throws IOException, InterruptedException {
-            runOnBuildEnv(build,
-                 launcher,
-                 listener,
-                build.getWorkspace(),
-                 paramFileName);
-    }
-
-
-        public static void runOnBuildEnv(
             Run<?, ?> build,
             Launcher launcher,
             TaskListener listener,
@@ -80,7 +72,7 @@ public class AlmToolsUtils {
             Launcher launcher,
             TaskListener listener,
             String paramFileName, FilePath runWorkspace) throws IOException, InterruptedException {
-        
+
         ArgumentListBuilder args = new ArgumentListBuilder();
         PrintStream out = listener.getLogger();
 
