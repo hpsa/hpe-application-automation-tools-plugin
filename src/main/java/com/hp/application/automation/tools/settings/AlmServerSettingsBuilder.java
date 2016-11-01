@@ -8,13 +8,13 @@ package com.hp.application.automation.tools.settings;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URL;
 
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
 import com.hp.application.automation.tools.model.AlmServerSettingsModel;
+import com.hp.application.automation.tools.rest.RestClient;
 import com.hp.application.automation.tools.sse.sdk.RestAuthenticator;
 
 import hudson.CopyOnWrite;
@@ -149,7 +149,7 @@ public class AlmServerSettingsBuilder extends Builder {
             // Open the connection and perform a HEAD request
             HttpURLConnection connection;
             try {
-                connection = (HttpURLConnection) new URL(url).openConnection();
+            	connection = (HttpURLConnection) RestClient.openConnection(null, url);
                 connection.setRequestMethod("GET");
                 
                 // Check whether the response is from ALM Server

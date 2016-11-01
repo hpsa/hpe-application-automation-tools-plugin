@@ -11,10 +11,21 @@ import java.net.PasswordAuthentication;
 import java.net.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -38,6 +49,48 @@ public class RestClient implements Client {
     private final String _webuiPrefix;
     private final String _username;
     private ProxyInfo proxyInfo;
+    
+    /**
+     * Configure SSL context for the client.
+     */
+    static {
+    	// First create a trust manager that won't care.
+		X509TrustManager trustManager = new X509TrustManager() {
+			@Override
+			public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+				// Don't do anything.
+			}
+			@Override
+			public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+				// Don't do anything.
+			}
+			@Override
+			public X509Certificate[] getAcceptedIssuers() {
+				// Don't do anything.
+				return null;
+			}
+
+		};
+		// Now put the trust manager into an SSLContext.
+		SSLContext sslcontext;
+		try {
+			sslcontext = SSLContext.getInstance("SSL");
+			sslcontext.init(null, new TrustManager[] { trustManager }, null);
+		} catch (KeyManagementException | NoSuchAlgorithmException e) {
+			throw new SSEException(e);
+		}
+		
+		HttpsURLConnection.setDefaultSSLSocketFactory(sslcontext.getSocketFactory());
+		
+		//Ignore hostname verify
+		HttpsURLConnection.setDefaultHostnameVerifier(
+		    new HostnameVerifier(){
+		        public boolean verify(String hostname, SSLSession sslSession) {
+		        	return true;
+		        }
+		    }
+		);
+    }
     
     public RestClient(String url, String domain, String project, String username) {
 
@@ -180,8 +233,7 @@ public class RestClient implements Client {
             url += "?" + queryString;
         }
         try {
-        	URL urlObj = new URL(url);
-            HttpURLConnection connection = (HttpURLConnection) openConnection(proxyInfo, urlObj);
+            HttpURLConnection connection = (HttpURLConnection) openConnection(proxyInfo, url);
             
             connection.setRequestMethod(type);
 
@@ -332,9 +384,9 @@ public class RestClient implements Client {
         return _username;
     }
     
-    private static URLConnection openConnection(final ProxyInfo proxyInfo, URL url) throws IOException {
-
+    public static URLConnection openConnection(final ProxyInfo proxyInfo, String urlString) throws IOException {
         Proxy proxy = null;
+        URL url = new URL(urlString);
         
         if (proxyInfo != null && StringUtils.isNotBlank(proxyInfo._host) && StringUtils.isNotBlank(proxyInfo._port)) {            
             int port = Integer.parseInt(proxyInfo._port.trim());
