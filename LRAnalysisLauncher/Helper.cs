@@ -8,7 +8,7 @@ using LRAnalysisLauncher.Properties;
 
 namespace LRAnalysisLauncher
 {
-    public abstract class Helper
+    public static class Helper
     {
   
         /// <summary>
@@ -145,10 +145,6 @@ namespace LRAnalysisLauncher
             catch (Exception ex)
             {
                 Console.Write(Resources.Helper_GetConnectionsCount_ + ex.Message);
-            }
-            finally
-            {
-                
             }
 
             return connectionsCount;
