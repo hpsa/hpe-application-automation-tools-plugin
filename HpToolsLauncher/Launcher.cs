@@ -576,6 +576,11 @@ namespace HpToolsLauncher
                         ConsoleWriter.WriteLine("Job Errors summary:");
                         ConsoleWriter.ErrorSummaryLines.ForEach(line => ConsoleWriter.WriteLine(line));
                     }
+
+                    if ((numErrors <= 0) && (numFailures > 0))
+                    {
+                        Launcher.ExitCode = Launcher.ExitCodeEnum.Unstable;
+                    }
                 }
 
                 //ConsoleWriter.WriteLine("Returning " + runStatus + ".");

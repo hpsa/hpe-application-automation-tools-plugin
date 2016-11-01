@@ -1,0 +1,54 @@
+.st-table{
+    margin-top: 20px;
+    border: 1px solid #cecece;
+    height: 100%;
+    width: 100%;
+    border-collapse: collapse;
+    font-family: "Lucida Console", Courier, monospace;
+    padding: 0px;
+}
+
+.st-table-head{
+    padding: 30px;
+}
+
+.st-table-row{
+    border-collapse: collapse;
+    vertical-align: center;
+    font-family: "Lucida Console", Courier, monospace;
+}
+
+
+.st-stats{
+    overflow-x:auto;
+}
+
+.st-table-header{
+    text-align: center;
+    height: 20px;
+    border-collapse: collapse;
+    border-right: 1px solid #cecece;
+    padding: 10px 10px 0;
+}
+
+.st-table-cell{
+    height: 40px;
+    text-align: center;
+    vertical-align: middle;
+    border-collapse: collapse;
+    border-right: 1px solid #cecece;
+    font-family: "Lucida Console", Courier, monospace;
+    font-size: 24px;
+    padding: 8px;
+    color: #757575;
+}
+
+.st-table-inner-cell{
+    height: 40px;
+    text-align: center;
+    vertical-align: middle;
+    font-family: "Lucida Console", Courier, monospace;
+    font-size: 24px;
+    padding: 8px;
+    color: #757575;
+}

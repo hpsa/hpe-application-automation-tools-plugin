@@ -16,6 +16,14 @@ package com.hp.application.automation.tools.results;
 import com.hp.application.automation.tools.common.RuntimeUtils;
 import com.hp.application.automation.tools.model.EnumDescription;
 import com.hp.application.automation.tools.model.ResultsPublisherModel;
+import com.hp.application.automation.tools.results.projectparser.performance.AvgTransactionResponseTime;
+import com.hp.application.automation.tools.results.projectparser.performance.JobLrScenarioResult;
+import com.hp.application.automation.tools.results.projectparser.performance.LrJobResults;
+import com.hp.application.automation.tools.results.projectparser.performance.LrTest;
+import com.hp.application.automation.tools.results.projectparser.performance.PercentileTransactionWholeRun;
+import com.hp.application.automation.tools.results.projectparser.performance.TimeRange;
+import com.hp.application.automation.tools.results.projectparser.performance.TimeRangeResult;
+import com.hp.application.automation.tools.results.projectparser.performance.WholeRunResult;
 import com.hp.application.automation.tools.run.PcBuilder;
 import com.hp.application.automation.tools.run.RunFromAlmBuilder;
 import com.hp.application.automation.tools.run.RunFromFileBuilder;
@@ -74,9 +82,13 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import static com.hp.application.automation.tools.results.projectparser.performance.XmlParserUtil.getNode;
+import static com.hp.application.automation.tools.results.projectparser.performance.XmlParserUtil.getNodeAttr;
 
 /**
  * using {@link JUnitResultArchiver};
@@ -86,6 +98,9 @@ import java.util.Map;
 public class RunResultRecorder extends Recorder implements Serializable, MatrixAggregatable, SimpleBuildStep {
 
     public static final String REPORT_NAME_FIELD = "report";
+    public static final int SECS_IN_DAY = 86400;
+    public static final int SECS_IN_HOUR = 3600;
+    public static final int SECS_IN_MINUTE = 60;
     private static final long serialVersionUID = 1L;
     private static final String PERFORMANCE_REPORT_FOLDER = "PerformanceReport";
     private static final String IE_REPORT_FOLDER = "IE";
@@ -95,10 +110,13 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
     private static final String REPORTMETADATE_XML = "report_metadata.xml";
     private static final String TRANSACTION_SUMMARY_FOLDER = "TransactionSummary";
     private static final String TRANSACTION_REPORT_NAME = "Report3";
-    public static final int SECS_IN_DAY = 86400;
-    public static final int SECS_IN_HOUR = 3600;
-    public static final int SECS_IN_MINUTE = 60;
+    public static final String SLA_ACTUAL_VALUE_LABEL = "ActualValue";
+    public static final String SLA_GOAL_VALUE_LABEL = "GoalValue";
+    public static final String SLA_ULL_NAME = "FullName";
+    public static final String ARCHIVING_TEST_REPORTS_FAILED_DUE_TO_XML_PARSING_ERROR =
+            "Archiving test reports failed due to xml parsing error: ";
     private final ResultsPublisherModel _resultsPublisherModel;
+    private List<FilePath> runReportList;
 
     /**
      * Instantiates a new Run result recorder.
@@ -109,6 +127,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
     public RunResultRecorder(String archiveTestResultsMode) {
 
         _resultsPublisherModel = new ResultsPublisherModel(archiveTestResultsMode);
+
     }
 
     @Override
@@ -136,7 +155,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                                 @Nonnull TaskListener listener, @Nonnull Map<String, String> builderResultNames)
             throws IOException, InterruptedException {
         final List<String> mergedResultNames = new ArrayList<String>();
-
+        runReportList = new ArrayList<FilePath>();
         final List<String> fileSystemResultNames = new ArrayList<String>();
         fileSystemResultNames.add(builderResultNames.get(RunFromFileBuilder.class.getName()));
 
@@ -176,16 +195,32 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
         final TestResultAction tempAction = build.getAction(TestResultAction.class);
         if (tempAction == null || tempAction.getResult() == null) {
-            // Since recording returned null - there no result to this test run to preform on
+            listener.getLogger().println("RunResultRecorder: didn't find any test results to record");
             return;
         }
 
         TestResult result = tempAction.getResult();
 
+
         try {
             archiveTestsReport(build, listener, fileSystemResultNames, result, workspace);
         } catch (ParserConfigurationException | SAXException e) {
-            listener.error("Archiving test reports failed due to xml parsing error: " + e);
+            listener.error(ARCHIVING_TEST_REPORTS_FAILED_DUE_TO_XML_PARSING_ERROR + e);
+        }
+
+        if ((runReportList != null) && !(runReportList.isEmpty())) {
+            LrJobResults jobDataSet = null;
+            try {
+                jobDataSet = buildJobDataset(listener);
+            } catch (ParserConfigurationException e) {
+                listener.error(ARCHIVING_TEST_REPORTS_FAILED_DUE_TO_XML_PARSING_ERROR + e);
+            } catch (SAXException e) {
+                listener.error(ARCHIVING_TEST_REPORTS_FAILED_DUE_TO_XML_PARSING_ERROR + e);
+            }
+
+            if ((jobDataSet != null && !jobDataSet.getLrScenarioResults().isEmpty())) {
+                build.replaceAction(new PerformanceJobReportAction(build, jobDataSet));
+            }
         }
         publishLrReports(build);
     }
@@ -295,6 +330,10 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                     String testStatus = ("0".equals(testSuiteElement.getAttribute("failures"))) ? "pass" : "fail";
 
                     Node testCaseNode = testSuiteElement.getElementsByTagName("testcase").item(0);
+                    if (testCaseNode == null) {
+                        listener.getLogger().println("No report folder was found in results");
+                        return;
+                    }
                     if (testCaseNode.getNodeType() == Node.ELEMENT_NODE) {
 
                         Element testCaseElement = (Element) testCaseNode;
@@ -317,6 +356,13 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
                         createHtmlReport(reportFolder, testFolderPath, artifactsDir, reportNames, testResult);
                         createTransactionSummary(reportFolder, testFolderPath, artifactsDir, reportNames, testResult);
+                        try {
+                            FilePath testSla = copyRunReport(reportFolder, build.getRootDir(),
+                                    testFolder.getName());
+                            runReportList.add(testSla);
+                        } catch (Exception e) {
+                            listener.getLogger().println(e.getMessage());
+                        }
                     }
                 }
             } else { // UFT Test
@@ -347,10 +393,11 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
                         reportFolders.add(reportFolder);
 
-                        String archiveTestResultMode = _resultsPublisherModel.getArchiveTestResultsMode();
-                        boolean archiveTestResult;
+                        String archiveTestResultMode =
+                                _resultsPublisherModel.getArchiveTestResultsMode();
+                        boolean archiveTestResult = false;
 
-                        // check for the new html report
+                        //check for the new html report
                         FilePath htmlReport = new FilePath(reportFolder, "run_results.html");
                         FilePath rrvReport = new FilePath(reportFolder, "Results.xml");
                         if (htmlReport.exists()) {
@@ -368,7 +415,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                             String resourceUrl = "artifact/UFTReport/" + testName;
                             reportMetaData.setResourceURL(resourceUrl);
                             reportMetaData.setDisPlayName(testName); // use the name, not the full path
-                            // don't know reportMetaData's URL path yet, we will generate it later.
+                            //don't know reportMetaData's URL path yet, we will generate it later.
                             ReportInfoToCollect.add(reportMetaData);
 
                             listener.getLogger()
@@ -391,17 +438,17 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
                                 ByteArrayOutputStream outstr = new ByteArrayOutputStream();
 
-                                // don't use FileFilter for zip, or it will cause bug when files are on slave
+                                //don't use FileFilter for zip, or it will cause bug when files are on slave
                                 reportFolder.zip(outstr);
-
-                /*
-                 * I did't use copyRecursiveTo or copyFrom due to
-                 * bug in
-                 * jekins:https://issues.jenkins-ci.org/browse
-                 * /JENKINS-9189 //(which is cleaimed to have been
-                 * fixed, but not. So I zip the folder to stream and
-                 * copy it to the master.
-                 */
+                                
+								/*
+                                 * I did't use copyRecursiveTo or copyFrom due to
+								 * bug in
+								 * jekins:https://issues.jenkins-ci.org/browse
+								 * /JENKINS-9189 //(which is cleaimed to have been
+								 * fixed, but not. So I zip the folder to stream and
+								 * copy it to the master.
+								 */
 
                                 ByteArrayInputStream instr = new ByteArrayInputStream(outstr.toByteArray());
 
@@ -454,7 +501,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                         HtmlBuildReportAction reportAction = new HtmlBuildReportAction(build);
                         build.addAction(reportAction);
 
-                    } catch (Exception ex) {
+                    } catch (IOException | SAXException | ParserConfigurationException ex ) {
                         listener.getLogger().println("a problem adding action: " + ex);
                     }
                 }
@@ -595,6 +642,35 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         }
 
         return true;
+    }
+
+    private FilePath copyRunReport(FilePath reportFolder, File buildDir, String
+            scenerioName)
+            throws IOException, InterruptedException {
+        FilePath slaReportFilePath = new FilePath(reportFolder, "RunReport.xml");
+        if (slaReportFilePath.exists()) {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            slaReportFilePath.zip(baos);
+            File slaDirectory = new File(buildDir, "RunReport");
+            if (!slaDirectory.exists()) {
+                slaDirectory.mkdir();
+            }
+            ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+            FilePath slaDirectoryFilePath = new FilePath(slaDirectory);
+            FilePath tmpZipFile = new FilePath(slaDirectoryFilePath, "runReport.zip");
+            tmpZipFile.copyFrom(bais);
+            bais.close();
+            baos.close();
+            tmpZipFile.unzip(slaDirectoryFilePath);
+            FilePath slaFile = new FilePath(slaDirectoryFilePath, "RunReport.xml");
+            slaFile.getBaseName();
+            slaFile.renameTo(new FilePath(slaDirectoryFilePath, scenerioName + ".xml"));
+
+            slaFile = new FilePath(slaDirectoryFilePath, scenerioName + ".xml");
+
+            return slaFile;
+        }
+        throw (new IOException("no RunReport.xml file was created"));
     }
 
     private boolean archiveFolder(FilePath reportFolder,
@@ -887,6 +963,230 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         return result;
     }
 
+
+    private LrJobResults buildJobDataset(TaskListener listener)
+            throws ParserConfigurationException, SAXException,
+            IOException, InterruptedException {
+        listener.getLogger().println(
+                "Starting the creation of test run dataset for graphing");
+        LrJobResults jobResults = new LrJobResults();
+
+        // read each RunReport.xml
+        for (FilePath reportFilePath : runReportList) {
+            JobLrScenarioResult jobLrScenarioResult = parseScenarioResults(reportFilePath);
+            jobResults.addScenario(jobLrScenarioResult);
+        }
+
+        return jobResults;
+    }
+
+    private JobLrScenarioResult parseScenarioResults(FilePath slaFilePath)
+            throws ParserConfigurationException, SAXException, IOException, InterruptedException {
+        JobLrScenarioResult jobLrScenarioResult = new JobLrScenarioResult(slaFilePath.getBaseName());
+
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+
+        Document doc = dBuilder.parse(slaFilePath.read());
+//		doc.getDocumentElement().normalize();
+
+        processSLA(jobLrScenarioResult, doc);
+        processLrScenarioStats(jobLrScenarioResult, doc);
+        //TODO: add fail / Pass count
+        return jobLrScenarioResult;
+    }
+
+    private void processLrScenarioStats(JobLrScenarioResult jobLrScenarioResult, Document doc) {
+
+        NodeList rootNodes = doc.getChildNodes();
+        Node root = getNode("Runs", rootNodes);
+        Element generalNode = (Element) getNode("General", root.getChildNodes());
+        NodeList generalNodeChildren = generalNode.getChildNodes();
+
+        extractVUserScenarioReult(jobLrScenarioResult, generalNodeChildren);
+        extractTransactionScenarioResult(jobLrScenarioResult, generalNodeChildren);
+        extractConnectionsScenarioResult(jobLrScenarioResult, generalNodeChildren);
+        extractDuration(jobLrScenarioResult, generalNodeChildren);
+    }
+
+    private void extractDuration(JobLrScenarioResult jobLrScenarioResult, NodeList generalNodeChildren) {
+        Node ScenrioDurationNode = getNode("Time", generalNodeChildren);
+        String scenarioDurationAttr = getNodeAttr("Duration", ScenrioDurationNode);
+        jobLrScenarioResult.setScenarioDuration(Long.valueOf(scenarioDurationAttr));
+    }
+
+    private void extractConnectionsScenarioResult(JobLrScenarioResult jobLrScenarioResult,
+                                                  NodeList generalNodeChildren) {
+        Node connections = getNode("Connections", generalNodeChildren);
+        jobLrScenarioResult.setConnectionMax(Integer.valueOf(getNodeAttr("MaxCount", connections)));
+    }
+
+    private void extractTransactionScenarioResult(JobLrScenarioResult jobLrScenarioResult,
+                                                  NodeList generalNodeChildren) {
+        int atrrCount;
+        Node transactions = getNode("Transactions", generalNodeChildren);
+        atrrCount = transactions.getAttributes().getLength();
+        for (int atrrIndx = 0; atrrIndx < atrrCount; atrrIndx++) {
+            Node vUserAttr = transactions.getAttributes().item(atrrIndx);
+            jobLrScenarioResult.transactionSum.put(vUserAttr.getNodeName(), Integer.valueOf(vUserAttr.getNodeValue()));
+        }
+
+        NodeList transactionNodes = transactions.getChildNodes();
+        int transactionNodesCount = transactionNodes.getLength();
+        for (int transIdx = 0; transIdx < transactionNodesCount; transIdx++) {
+            if (transactionNodes.item(transIdx).getNodeType() != Node.ELEMENT_NODE) {
+                continue;
+            }
+            Element transaction = (Element) transactionNodes.item(transIdx);
+            HashMap<String, Integer> transactionData = new HashMap<String, Integer>(0);
+            transactionData.put("Pass", Integer.valueOf(transaction.getAttribute("Pass")));
+            transactionData.put("Fail", Integer.valueOf(transaction.getAttribute("Fail")));
+            transactionData.put("Stop", Integer.valueOf(transaction.getAttribute("Stop")));
+            jobLrScenarioResult.transactionData.put(transaction.getAttribute("Name"), transactionData);
+        }
+    }
+
+    private void extractVUserScenarioReult(JobLrScenarioResult jobLrScenarioResult, NodeList generalNodeChildren) {
+        Node vUser = getNode("VUsers", generalNodeChildren);
+        int atrrCount = vUser.getAttributes().getLength();
+        for (int atrrIndx = 0; atrrIndx < atrrCount; atrrIndx++) {
+            Node vUserAttr = vUser.getAttributes().item(atrrIndx);
+            jobLrScenarioResult.vUserSum.put(vUserAttr.getNodeName(), Integer.valueOf(vUserAttr.getNodeValue()));
+        }
+    }
+
+    private void processSLA(JobLrScenarioResult jobLrScenarioResult, Document doc) {
+        Node slaRuleNode;
+        Element slaRuleElement;
+
+        NodeList rootNodes = doc.getChildNodes();
+        Node root = getNode("Runs", rootNodes);
+        Element slaRoot = (Element) getNode("SLA", root.getChildNodes());
+        NodeList slaRuleResults = slaRoot.getChildNodes();
+
+
+        for (int j = 0; j < slaRuleResults.getLength(); j++) {
+            slaRuleNode = slaRuleResults.item(j);
+            if (slaRuleNode.getNodeType() != Node.ELEMENT_NODE) {
+                continue;
+            }
+            slaRuleElement = (Element) slaRuleNode;
+            //check type by mesurment field:
+            LrTest.SLA_GOAL slaGoal = LrTest.SLA_GOAL.checkGoal(slaRuleElement.getAttribute("Measurement"));
+
+            processSlaRule(jobLrScenarioResult, slaRuleElement, slaGoal);
+        }
+
+    }
+
+    private void processSlaRule(JobLrScenarioResult jobLrScenarioResult, Element slaRuleElement,
+                                LrTest.SLA_GOAL slaGoal) {
+        switch (slaGoal) {
+            case AverageThroughput:
+                WholeRunResult averageThroughput = new WholeRunResult();
+                averageThroughput.setSlaGoal(LrTest.SLA_GOAL.AverageThroughput);
+                averageThroughput.setActualValue(Double.valueOf(slaRuleElement.getAttribute(SLA_ACTUAL_VALUE_LABEL)));
+                averageThroughput.setGoalValue(Double.valueOf(slaRuleElement.getAttribute(SLA_GOAL_VALUE_LABEL)));
+                averageThroughput.setFullName(slaRuleElement.getAttribute(SLA_ULL_NAME));
+                averageThroughput.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
+                jobLrScenarioResult.scenarioSlaResults.add(averageThroughput);
+                break;
+            case TotalThroughput:
+                WholeRunResult totalThroughput = new WholeRunResult();
+                totalThroughput.setSlaGoal(LrTest.SLA_GOAL.TotalThroughput);
+                totalThroughput.setActualValue(Double.valueOf(slaRuleElement.getAttribute(SLA_ACTUAL_VALUE_LABEL)));
+                totalThroughput.setGoalValue(Double.valueOf(slaRuleElement.getAttribute(SLA_GOAL_VALUE_LABEL)));
+                totalThroughput.setFullName(slaRuleElement.getAttribute(SLA_ULL_NAME));
+                totalThroughput.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
+                jobLrScenarioResult.scenarioSlaResults.add(totalThroughput);
+
+                break;
+            case AverageHitsPerSecond:
+                WholeRunResult averageHitsPerSecond = new WholeRunResult();
+                averageHitsPerSecond.setSlaGoal(LrTest.SLA_GOAL.AverageHitsPerSecond);
+                averageHitsPerSecond.setActualValue(Double.valueOf(slaRuleElement.getAttribute(SLA_ACTUAL_VALUE_LABEL)));
+                averageHitsPerSecond.setGoalValue(Double.valueOf(slaRuleElement.getAttribute(SLA_GOAL_VALUE_LABEL)));
+                averageHitsPerSecond.setFullName(slaRuleElement.getAttribute(SLA_ULL_NAME));
+                averageHitsPerSecond.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
+                jobLrScenarioResult.scenarioSlaResults.add(averageHitsPerSecond);
+
+                break;
+            case TotalHits:
+                WholeRunResult totalHits = new WholeRunResult();
+                totalHits.setSlaGoal(LrTest.SLA_GOAL.TotalHits);
+                totalHits.setActualValue(Double.valueOf(slaRuleElement.getAttribute(SLA_ACTUAL_VALUE_LABEL)));
+                totalHits.setGoalValue(Double.valueOf(slaRuleElement.getAttribute(SLA_GOAL_VALUE_LABEL)));
+                totalHits.setFullName(slaRuleElement.getAttribute(SLA_ULL_NAME));
+                totalHits.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
+                jobLrScenarioResult.scenarioSlaResults.add(totalHits);
+
+                break;
+            case ErrorsPerSecond:
+                TimeRangeResult errPerSec = new AvgTransactionResponseTime();
+                errPerSec.setSlaGoal(LrTest.SLA_GOAL.ErrorsPerSecond);
+                errPerSec.setFullName(slaRuleElement.getAttribute(SLA_ULL_NAME));
+                errPerSec.setLoadThrashold(slaRuleElement.getAttribute("SLALoadThresholdValue"));
+                errPerSec.setStatus(LrTest.SLA_STATUS.checkStatus(
+                        slaRuleElement.getFirstChild().getTextContent())); //Might not work due to time ranges
+                addTimeRanges(errPerSec, slaRuleElement);
+                jobLrScenarioResult.scenarioSlaResults.add(errPerSec);
+
+                break;
+            case PercentileTRT:
+                PercentileTransactionWholeRun percentileTransactionWholeRun = new PercentileTransactionWholeRun();
+                percentileTransactionWholeRun.setSlaGoal(LrTest.SLA_GOAL.PercentileTRT);
+                percentileTransactionWholeRun.setName(slaRuleElement.getAttribute("TransactionName"));
+                percentileTransactionWholeRun
+                        .setActualValue(Double.valueOf(slaRuleElement.getAttribute(SLA_ACTUAL_VALUE_LABEL)));
+                percentileTransactionWholeRun.setGoalValue(Double.valueOf(slaRuleElement.getAttribute(
+                        SLA_GOAL_VALUE_LABEL)));
+                percentileTransactionWholeRun.setFullName(slaRuleElement.getAttribute(SLA_ULL_NAME));
+                percentileTransactionWholeRun.setPrecentage(Double.valueOf(slaRuleElement.getAttribute("Percentile")));
+                percentileTransactionWholeRun.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
+                jobLrScenarioResult.scenarioSlaResults.add(percentileTransactionWholeRun);
+
+                break;
+            case AverageTRT:
+                AvgTransactionResponseTime transactionTimeRange = new AvgTransactionResponseTime();
+                transactionTimeRange.setSlaGoal(LrTest.SLA_GOAL.AverageTRT);
+                transactionTimeRange.setName(slaRuleElement.getAttribute("TransactionName"));
+                transactionTimeRange.setFullName(slaRuleElement.getAttribute(SLA_ULL_NAME));
+                transactionTimeRange.setLoadThrashold(slaRuleElement.getAttribute("SLALoadThresholdValue"));
+                transactionTimeRange.setStatus(LrTest.SLA_STATUS.checkStatus(
+                        slaRuleElement.getFirstChild().getTextContent())); //Might not work due to time ranges
+                addTimeRanges(transactionTimeRange, slaRuleElement);
+                jobLrScenarioResult.scenarioSlaResults.add(transactionTimeRange);
+                break;
+            case Bad:
+                break;
+        }
+    }
+
+    private static void addTimeRanges(TimeRangeResult transactionTimeRange, Element slaRuleElement) {
+        Node timeRangeNode;
+        Element timeRangeElement;
+        NodeList timeRanges = slaRuleElement.getElementsByTagName("TimeRangeInfo");
+
+        //Taking the goal per transaction -
+        double generalGoalValue = Double.valueOf(((Element) timeRanges.item(0)).getAttribute(SLA_GOAL_VALUE_LABEL));
+        transactionTimeRange.setGoalValue(generalGoalValue);
+
+        for (int k = 0; k < timeRanges.getLength(); k++) {
+            timeRangeNode = timeRanges.item(k);
+            timeRangeElement = (Element) timeRangeNode;
+            double actualValue = Double.parseDouble(timeRangeElement.getAttribute(SLA_ACTUAL_VALUE_LABEL));
+            double goalValue = Double.parseDouble(timeRangeElement.getAttribute(SLA_GOAL_VALUE_LABEL));
+            int loadValue = Integer.parseInt(timeRangeElement.getAttribute("LoadValue"));
+            double startTime = Double.parseDouble(timeRangeElement.getAttribute("StartTime"));
+            double endTIme = Double.parseDouble(timeRangeElement.getAttribute("EndTime"));
+            transactionTimeRange.incActualValue(actualValue);
+            LrTest.SLA_STATUS slaStatus =
+                    LrTest.SLA_STATUS.checkStatus(timeRangeElement.getFirstChild().getTextContent());
+            TimeRange timeRange = new TimeRange(actualValue, goalValue, slaStatus, loadValue, startTime, endTIme);
+            transactionTimeRange.timeRanges.add(timeRange);
+        }
+    }
+
     @Override
     public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
                         @Nonnull TaskListener listener) throws InterruptedException, IOException {
@@ -894,7 +1194,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
         Project<?, ?> project = RuntimeUtils.cast(build.getParent());
         List<Builder> builders = project.getBuilders();
-
+        runReportList = new ArrayList<FilePath>();
         final List<String> almResultNames = new ArrayList<String>();
         final List<String> fileSystemResultNames = new ArrayList<String>();
         final List<String> almSSEResultNames = new ArrayList<String>();

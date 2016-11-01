@@ -5,6 +5,7 @@
 
 package com.hp.application.automation.tools.run;
 
+import javax.annotation.Nonnull;
 import java.io.PrintStream;
 
 import com.hp.application.automation.tools.model.SvServiceSelectionModel;
@@ -14,9 +15,10 @@ import com.hp.sv.jsvconfigurator.processor.UndeployProcessor;
 import com.hp.sv.jsvconfigurator.processor.UndeployProcessorInput;
 import com.hp.sv.jsvconfigurator.serverclient.ICommandExecutor;
 import hudson.Extension;
+import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.AbstractBuild;
-import hudson.model.BuildListener;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
@@ -35,20 +37,19 @@ public class SvUndeployBuilder extends AbstractSvRunBuilder<SvUndeployModel> {
     }
 
     @Override
-    public boolean performImpl(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws Exception {
+    protected void performImpl(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, Launcher launcher, TaskListener listener) throws Exception {
+
         PrintStream logger = listener.getLogger();
 
         IUndeployProcessor processor = new UndeployProcessor(null);
 
         ICommandExecutor exec = createCommandExecutor();
-        for (ServiceInfo service : getServiceList(model.isContinueIfNotDeployed(), logger, build)) {
+        for (ServiceInfo service : getServiceList(model.isContinueIfNotDeployed(), logger, workspace)) {
             logger.printf("  Undeploying service '%s' [%s] %n", service.getName(), service.getId());
             UndeployProcessorInput undeployProcessorInput = new UndeployProcessorInput(model.isForce(), null, service.getId());
             processor.process(undeployProcessorInput, exec);
 
         }
-
-        return true;
     }
 
     @Override

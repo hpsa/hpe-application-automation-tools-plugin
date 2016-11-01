@@ -336,7 +336,6 @@ public class RunFromFileSystemModel {
         }
         return fsPassword.getPlainText();
     }
-
     /**
      * Gets fs device id.
      *
