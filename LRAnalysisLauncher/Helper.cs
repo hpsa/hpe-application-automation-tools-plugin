@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Analysis.Api;
 using Analysis.ApiLib;
+using HpToolsLauncher;
 using LRAnalysisLauncher.Properties;
 
 namespace LRAnalysisLauncher
@@ -17,7 +18,7 @@ namespace LRAnalysisLauncher
         public static Dictionary<string, int> GetVusersCountByStatus(LrAnalysis lrAnalysis)
         {
 
-
+            
             var vuserDictionary = new Dictionary<string, int>(4)
             {
                 {"Passed", 0},
@@ -33,24 +34,36 @@ namespace LRAnalysisLauncher
             }
 
             var filterDimension = vUserGraph.Filter["Vuser End Status"];
-            foreach (var vuserType in vuserDictionary.Keys.ToList())
+            var vUserStates = new List<String>()
+            {
+                {"Passed"},
+                {"Stopped"},
+                {"Failed"},
+                {"Error"}
+            };
+            ConsoleWriter.WriteLine("Counting vUser Results for this scenarion");
+            foreach (var vuserType in vUserStates)
             {
                 filterDimension.ClearValues();
                 filterDimension.AddDiscreteValue(vuserType);
                 vUserGraph.ApplyFilterAndGroupBy();
-                var sum = vUserGraph.Series.Sum(val => val.GraphStatistics.Maximum);
+                double sum = 0;
+                foreach (var val in vUserGraph.Series)
+                    sum += val.GraphStatistics.Maximum;
                 vuserDictionary[vuserType] = (int) sum;
             }
 
+
             var g = lrAnalysis.Session.OpenGraph("VuserStateGraph");
-            g.Granularity = 4;
+            //g.Granularity = 4;
             var filterDimensionVUser = g.Filter["Vuser Status"];
             filterDimensionVUser.ClearValues();
             filterDimensionVUser.AddDiscreteValue("Run");
             g.ApplyFilterAndGroupBy();
-            var maxVUserRun = g.Series[0].GraphStatistics.Maximum;
-            vuserDictionary.Add("MaxVuserRun", (int) maxVUserRun);
-
+            int maxVUserRun = (int) Math.Round(g.Series[0].GraphStatistics.Maximum);
+            vuserDictionary.Add("MaxVuserRun", maxVUserRun);
+            ConsoleWriter.WriteLine(String.Format("{0} maximum vUser ran per {1} ", maxVUserRun, g.Granularity));
+        
             return vuserDictionary;
         }
 
