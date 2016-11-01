@@ -5,6 +5,9 @@ package com.hp.application.automation.tools.results.projectparser.performance;
  */
 public class WholeRunResult extends GoalResult {
 
+    private double _actualValue;
+    private double _goalValue;
+
     public double getActualValue() {
         return _actualValue;
     }
@@ -20,8 +23,5 @@ public class WholeRunResult extends GoalResult {
     public void setGoalValue(double goalValue) {
         this._goalValue = goalValue;
     }
-
-    private double _actualValue;
-    private double _goalValue;
 
 }

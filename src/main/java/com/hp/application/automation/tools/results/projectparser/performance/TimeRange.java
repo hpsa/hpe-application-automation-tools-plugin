@@ -1,69 +1,147 @@
 package com.hp.application.automation.tools.results.projectparser.performance;
 
 /**
- * Created by kazaky on 11/07/2016.
+ * The type Time range.
  */
 public class TimeRange {
-        public TimeRange(double _actualValue, double _goalValue, LrTest.SLA_STATUS slaStatus, int loadAmount, double startTime, double endTime) {
-            this._actualValue = _actualValue;
-            this._goalValue = _goalValue;
-            this.slaStatus = slaStatus;
-            this.loadAmount = loadAmount;
-            this.startTime = startTime;
-            this.endTime = endTime;
-        }
 
-        public double getActualValue() {
-            return _actualValue;
-        }
+    private LrTest.SLA_STATUS slaStatus = LrTest.SLA_STATUS.bad;
+    private double _actualValue;
+    private double _goalValue;
+    private int loadAmount;
+    private double startTime;
+    private double endTime;
 
-        public void setActualValue(double actualValue) {
-            this._actualValue = actualValue;
-        }
+    /**
+     * Instantiates a new Time range.
+     *
+     * @param _actualValue the actual value
+     * @param _goalValue   the goal value
+     * @param slaStatus    the sla status
+     * @param loadAmount   the load amount
+     * @param startTime    the start time
+     * @param endTime      the end time
+     */
+    public TimeRange(double _actualValue, double _goalValue, LrTest.SLA_STATUS slaStatus, int loadAmount,
+                     double startTime, double endTime) {
+        this._actualValue = _actualValue;
+        this._goalValue = _goalValue;
+        this.slaStatus = slaStatus;
+        this.loadAmount = 0;
+        this.loadAmount = loadAmount;
+        this.startTime = 0;
+        this.startTime = startTime;
+        this.endTime = 0;
+        this.endTime = endTime;
+    }
 
-        public double getGoalValue() {
-            return _goalValue;
-        }
+    /**
+     * Gets sla status.
+     *
+     * @return the sla status
+     */
+    public LrTest.SLA_STATUS getSlaStatus() {
+        return slaStatus;
+    }
 
-        public void setGoalValue(double goalValue) {
-            this._goalValue = goalValue;
-        }
+    /**
+     * Sets sla status.
+     *
+     * @param slaStatus the sla status
+     */
+    public void setSlaStatus(LrTest.SLA_STATUS slaStatus) {
+        this.slaStatus = slaStatus;
+    }
 
-        private double _actualValue;
-        private double _goalValue;
+    /**
+     * Gets actual value.
+     *
+     * @return the actual value
+     */
+    public double getActualValue() {
+        return _actualValue;
+    }
 
-        LrTest.SLA_STATUS slaStatus = LrTest.SLA_STATUS.bad;
+    /**
+     * Sets actual value.
+     *
+     * @param actualValue the actual value
+     */
+    public void setActualValue(double actualValue) {
+        this._actualValue = actualValue;
+    }
 
-        public int getLoadAmount() {
-            return loadAmount;
-        }
+    /**
+     * Gets goal value.
+     *
+     * @return the goal value
+     */
+    public double getGoalValue() {
+        return _goalValue;
+    }
 
-        public void setLoadAmount(int loadAmount) {
-            this.loadAmount = loadAmount;
-        }
+    /**
+     * Sets goal value.
+     *
+     * @param goalValue the goal value
+     */
+    public void setGoalValue(double goalValue) {
+        this._goalValue = goalValue;
+    }
 
-        private int loadAmount = 0;
+    /**
+     * Gets load amount.
+     *
+     * @return the load amount
+     */
+    public int getLoadAmount() {
+        return loadAmount;
+    }
 
+    /**
+     * Sets load amount.
+     *
+     * @param loadAmount the load amount
+     */
+    public void setLoadAmount(int loadAmount) {
+        this.loadAmount = loadAmount;
+    }
 
-        public double getStartTime() {
-            return startTime;
-        }
+    /**
+     * Gets start time.
+     *
+     * @return the start time
+     */
+    public double getStartTime() {
+        return startTime;
+    }
 
-        public void setStartTime(double startTime) {
-            this.startTime = startTime;
-        }
+    /**
+     * Sets start time.
+     *
+     * @param startTime the start time
+     */
+    public void setStartTime(double startTime) {
+        this.startTime = startTime;
+    }
 
-        public double getEndTime() {
-            return endTime;
-        }
+    /**
+     * Gets end time.
+     *
+     * @return the end time
+     */
+    public double getEndTime() {
+        return endTime;
+    }
 
-        public void setEndTime(double endTime) {
-            this.endTime = endTime;
-        }
-
-        private double startTime = 0;
-        private double endTime = 0;
-
+    /**
+     * Sets end time.
+     *
+     * @param endTime the end time
+     */
+    public void setEndTime(double endTime) {
+        this.endTime = endTime;
+    }
 
 
 }

@@ -34,14 +34,10 @@ import com.hp.application.automation.tools.results.projectparser.performance.Per
 import com.hp.application.automation.tools.results.projectparser.performance.ProjectLrResults;
 import com.hp.application.automation.tools.results.projectparser.performance.TimeRangeResult;
 import com.hp.application.automation.tools.results.projectparser.performance.WholeRunResult;
-import hudson.model.AbstractProject;
 import hudson.model.Action;
 import hudson.model.Job;
-import hudson.model.Project;
 import hudson.model.Run;
-import hudson.tasks.test.TestResultProjectAction;
 import hudson.util.RunList;
-import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
@@ -61,7 +57,7 @@ import static com.hp.application.automation.tools.results.projectparser.performa
 /**
  * The type Performance project action.
  */
-public class PerformanceProjectAction implements Action{
+public class PerformanceProjectAction implements Action {
 
     /**
      * Logger.
@@ -122,8 +118,7 @@ public class PerformanceProjectAction implements Action{
     @JavaScriptMethod
     public JSONObject getGraphData() {
         JSONObject projectDataSet = new JSONObject();
-        if(_projectResult == null)
-        {
+        if (_projectResult == null) {
 //            getUpdatedData();
             return new JSONObject();
         }
@@ -132,11 +127,12 @@ public class PerformanceProjectAction implements Action{
 
             JSONObject scenarioData = new JSONObject();
             JSONObject scenarioStats = new JSONObject();
-            LrGraphUtils.constructVuserSummary(scenarioResults.getValue().vUserSummary, scenarioStats, _workedBuilds
-                    .size());
-            LrGraphUtils.constructDurationSummary(scenarioResults.getValue().durationData, scenarioStats);
-            LrGraphUtils.constructConnectionSummary(scenarioResults.getValue().maxConnectionsCount, scenarioStats);
-            LrGraphUtils.constructTransactionSummary(scenarioResults.getValue().transactionSum, scenarioStats,
+            LrGraphUtils
+                    .constructVuserSummary(scenarioResults.getValue().getvUserSummary(), scenarioStats, _workedBuilds
+                            .size());
+            LrGraphUtils.constructDurationSummary(scenarioResults.getValue().getDurationData(), scenarioStats);
+            LrGraphUtils.constructConnectionSummary(scenarioResults.getValue().getMaxConnectionsCount(), scenarioStats);
+            LrGraphUtils.constructTransactionSummary(scenarioResults.getValue().getTransactionSum(), scenarioStats,
                     _workedBuilds.size());
 
 
@@ -212,11 +208,9 @@ public class PerformanceProjectAction implements Action{
      * @return the boolean
      */
     boolean isVisible() {
-         List<? extends Run<?,?>> builds = currentProject.getBuilds();
-        for(Run run : builds)
-        {
-            if(run.getAction(PerformanceJobReportAction.class) != null)
-            {
+        List<? extends Run<?, ?>> builds = currentProject.getBuilds();
+        for (Run run : builds) {
+            if (run.getAction(PerformanceJobReportAction.class) != null) {
                 return true;
             }
         }
@@ -289,21 +283,21 @@ public class PerformanceProjectAction implements Action{
                                    JobLrScenarioResult scenarioRunResult) {
         long scenarioConnectionMax = scenarioRunResult.getScenarioDuration();
         if (scenarioConnectionMax != DEFAULT_SCENARIO_DURATION) {
-            lrProjectScenarioResults.durationData.put(runNumber, scenarioConnectionMax);
+            lrProjectScenarioResults.getDurationData().put(runNumber, scenarioConnectionMax);
         }
     }
 
     private void joinTransactionScenarioStats(int runNumber, LrProjectScenarioResults lrProjectScenarioResults,
                                               JobLrScenarioResult scenarioRunResult) {
-        HashMap<Integer, HashMap<String, HashMap<String, Integer>>> projectTransactionPerRun =
-                lrProjectScenarioResults.transactionPerRun;
-        Map<String, Integer> projectTransactionSum = lrProjectScenarioResults.transactionSum;
+        Map<Integer, HashMap<String, HashMap<String, Integer>>> projectTransactionPerRun =
+                lrProjectScenarioResults.getTransactionPerRun();
+        Map<String, Integer> projectTransactionSum = lrProjectScenarioResults.getTransactionSum();
 
         final HashMap<String, HashMap<String, Integer>> scenarioTransactionData =
                 scenarioRunResult.transactionData;
         final HashMap<String, Integer> scenarioTransactionSum = scenarioRunResult.transactionSum;
 
-        if(scenarioTransactionData == null || scenarioTransactionSum == null){
+        if (scenarioTransactionData == null || scenarioTransactionSum == null) {
             return;
         }
 
@@ -313,8 +307,7 @@ public class PerformanceProjectAction implements Action{
             //add all summary transcation states to project level summary
             for (Map.Entry<String, Integer> transactionState : scenarioTransactionSum.entrySet()) {
                 int previousCount = 0;
-                if(projectTransactionSum.containsKey(transactionState.getKey()))
-                {
+                if (projectTransactionSum.containsKey(transactionState.getKey())) {
                     previousCount = projectTransactionSum.get(transactionState.getKey());
                 }
                 projectTransactionSum.put(transactionState.getKey(), previousCount + transactionState.getValue());
@@ -322,20 +315,19 @@ public class PerformanceProjectAction implements Action{
 
 
             //add all per transcation states to project level per transaction summary
-            Map<String, HashMap<String, Integer>> projectTransactionsData = lrProjectScenarioResults.transactionData;
-            for(Map.Entry<String, HashMap<String, Integer>> scenarioTransactionDataSet :
-                    scenarioTransactionData.entrySet())
-            {
+            Map<String, HashMap<String, Integer>> projectTransactionsData =
+                    lrProjectScenarioResults.getTransactionData();
+            for (Map.Entry<String, HashMap<String, Integer>> scenarioTransactionDataSet :
+                    scenarioTransactionData.entrySet()) {
                 String transactionName = scenarioTransactionDataSet.getKey();
                 HashMap<String, Integer> TransactionStateData = scenarioTransactionDataSet.getValue();
-                if(!projectTransactionsData.containsKey(transactionName)){
+                if (!projectTransactionsData.containsKey(transactionName)) {
                     projectTransactionsData.put(transactionName, new HashMap<String, Integer>(TransactionStateData));
                     continue;
                 }
 
                 HashMap<String, Integer> projectTransactionState = projectTransactionsData.get(transactionName);
-                for(Map.Entry<String, Integer> scenarioTransactionState : TransactionStateData.entrySet())
-                {
+                for (Map.Entry<String, Integer> scenarioTransactionState : TransactionStateData.entrySet()) {
                     Integer currentValue = scenarioTransactionState.getValue();
                     projectTransactionState.put(scenarioTransactionState.getKey(), currentValue +
                             scenarioTransactionState.getValue());
@@ -346,7 +338,7 @@ public class PerformanceProjectAction implements Action{
 
     private void joinVUserScenarioStats(int runNumber, LrProjectScenarioResults lrProjectScenarioResults,
                                         JobLrScenarioResult scenarioRunResult) {
-        Map<Integer, Map<String, Integer>> vUserPerRun = lrProjectScenarioResults.vUserPerRun;
+        Map<Integer, Map<String, Integer>> vUserPerRun = lrProjectScenarioResults.getvUserPerRun();
         if (scenarioRunResult.vUserSum != null && !scenarioRunResult.vUserSum.isEmpty()) {
             for (Map.Entry<String, Integer> vUserStat : scenarioRunResult.vUserSum.entrySet()) {
                 if (!vUserPerRun.containsKey(runNumber)) {
@@ -355,11 +347,10 @@ public class PerformanceProjectAction implements Action{
                 }
                 vUserPerRun.get(runNumber).put(vUserStat.getKey(), vUserStat.getValue());
                 int previousCount = 0;
-                if(lrProjectScenarioResults.vUserSummary.containsKey(vUserStat.getKey()))
-                {
-                    previousCount = lrProjectScenarioResults.vUserSummary.get(vUserStat.getKey());
+                if (lrProjectScenarioResults.getvUserSummary().containsKey(vUserStat.getKey())) {
+                    previousCount = lrProjectScenarioResults.getvUserSummary().get(vUserStat.getKey());
                 }
-                lrProjectScenarioResults.vUserSummary
+                lrProjectScenarioResults.getvUserSummary()
                         .put(vUserStat.getKey(), previousCount + vUserStat.getValue());
             }
         }
@@ -369,7 +360,7 @@ public class PerformanceProjectAction implements Action{
                                               JobLrScenarioResult scenarioRunResult) {
         int scenarioConnectionMax = scenarioRunResult.getConnectionMax();
         if (scenarioConnectionMax != DEFAULT_CONNECTION_MAX) {
-            lrProjectScenarioResults.maxConnectionsCount.put(runNumber, scenarioConnectionMax);
+            lrProjectScenarioResults.getMaxConnectionsCount().put(runNumber, scenarioConnectionMax);
         }
     }
 
@@ -377,44 +368,43 @@ public class PerformanceProjectAction implements Action{
                                            GoalResult goalResult) {
         switch (goalResult.getSlaGoal()) {
             case AverageThroughput:
-                lrProjectScenarioResults.averageThroughputResults
+                lrProjectScenarioResults.getAverageThroughputResults()
                         .put(runNumber, (WholeRunResult) goalResult);
                 break;
             case TotalThroughput:
-                lrProjectScenarioResults.totalThroughtputResults
-                        .put(runNumber, (WholeRunResult) goalResult);
+                lrProjectScenarioResults.getTotalThroughtputResults().put(runNumber, (WholeRunResult) goalResult);
                 break;
             case AverageHitsPerSecond:
-                lrProjectScenarioResults.averageHitsPerSecondResults
+                lrProjectScenarioResults.getAverageHitsPerSecondResults()
                         .put(runNumber, (WholeRunResult) goalResult);
                 break;
             case TotalHits:
-                lrProjectScenarioResults.totalHitsResults.put(runNumber, (WholeRunResult) goalResult);
+                lrProjectScenarioResults.getTotalHitsResults().put(runNumber, (WholeRunResult) goalResult);
                 break;
             case ErrorsPerSecond:
-                lrProjectScenarioResults.errPerSecResults
+                lrProjectScenarioResults.getErrPerSecResults()
                         .put(runNumber, (TimeRangeResult) goalResult);
                 break;
             case PercentileTRT:
-                if (!lrProjectScenarioResults.percentileTransactionResults.containsKey(runNumber)) {
-                    lrProjectScenarioResults.percentileTransactionResults
+                if (!lrProjectScenarioResults.getPercentileTransactionResults().containsKey(runNumber)) {
+                    lrProjectScenarioResults.getPercentileTransactionResults()
                             .put(runNumber, new HashMap<String, PercentileTransactionWholeRun>(0));
                 }
-                lrProjectScenarioResults.transactions
+                lrProjectScenarioResults.getTransactions()
                         .add(((PercentileTransactionWholeRun) goalResult).getName());
-                lrProjectScenarioResults.percentileTransactionResults.get(runNumber)
+                lrProjectScenarioResults.getPercentileTransactionResults().get(runNumber)
                         .put(((PercentileTransactionWholeRun) goalResult).getName(),
                                 (PercentileTransactionWholeRun) goalResult);
                 break;
             case AverageTRT:
-                if (!lrProjectScenarioResults.avgTransactionResponseTimeResults
+                if (!lrProjectScenarioResults.getAvgTransactionResponseTimeResults()
                         .containsKey(runNumber)) {
-                    lrProjectScenarioResults.avgTransactionResponseTimeResults
+                    lrProjectScenarioResults.getAvgTransactionResponseTimeResults()
                             .put(runNumber, new HashMap<String, AvgTransactionResponseTime>(0));
                 }
-                lrProjectScenarioResults.transactions
+                lrProjectScenarioResults.getTransactions()
                         .add(((AvgTransactionResponseTime) goalResult).getName());
-                lrProjectScenarioResults.avgTransactionResponseTimeResults.get(runNumber)
+                lrProjectScenarioResults.getAvgTransactionResponseTimeResults().get(runNumber)
                         .put(((AvgTransactionResponseTime) goalResult).getName(),
                                 (AvgTransactionResponseTime) goalResult);
                 break;

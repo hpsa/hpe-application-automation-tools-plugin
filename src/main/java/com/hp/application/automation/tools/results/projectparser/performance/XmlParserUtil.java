@@ -64,15 +64,12 @@ public class XmlParserUtil {
         NodeList childNodes = node.getChildNodes();
         for (int y = 0; y < childNodes.getLength(); y++) {
           Node data = childNodes.item(y);
-          if (data.getNodeType() == Node.ATTRIBUTE_NODE) {
-            if (data.getNodeName().equalsIgnoreCase(attrName))
+          if ((data.getNodeType() == Node.ATTRIBUTE_NODE) && data.getNodeName().equalsIgnoreCase(attrName)) {
               return data.getNodeValue();
+            }
           }
         }
       }
-    }
-
     return "";
-
   }
 }

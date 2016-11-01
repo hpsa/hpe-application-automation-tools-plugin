@@ -8,40 +8,80 @@ import java.util.ArrayList;
 public class TimeRangeResult extends GoalResult implements LrTest {
 
 
+    /**
+     * The Time ranges.
+     */
+    public ArrayList<TimeRange> timeRanges;
+    private double _avgActualValue;
+    private double _actualValueSum;
+    private double _goalValue;
+    private String LoadThrashold;
 
+    /**
+     * Instantiates a new Time range result.
+     */
+    public TimeRangeResult() {
+        _actualValueSum = 0;
+        _goalValue = 0;
+        _avgActualValue = 0;
+        timeRanges = new ArrayList<TimeRange>(0);
+    }
+
+    /**
+     * Gets actual value avg.
+     *
+     * @return the actual value avg
+     */
     public double getActualValueAvg() {
-
-        return (_avgActualValue =  (double) _actualValueSum / timeRanges.size());
+        _avgActualValue = (double) _actualValueSum / timeRanges.size();
+        return _avgActualValue;
     }
 
+    /**
+     * Gets goal value.
+     *
+     * @return the goal value
+     */
     public double getGoalValue() {
-         return _goalValue;
+        return _goalValue;
     }
 
+    /**
+     * Sets goal value.
+     *
+     * @param goalValue the goal value
+     */
     public void setGoalValue(double goalValue) {
         this._goalValue = goalValue;
     }
 
-    private double _avgActualValue = 0;
-
+    /**
+     * Inc actual value.
+     *
+     * @param actualValue the actual value
+     */
     public void incActualValue(double actualValue) {
         this._actualValueSum += actualValue;
     }
 
-    private double _actualValueSum = 0;
-    private double _goalValue = 0;
-
+    /**
+     * Gets load thrashold.
+     *
+     * @return the load thrashold
+     */
     public String getLoadThrashold() {
         return LoadThrashold;
     }
 
+    /**
+     * Sets load thrashold.
+     *
+     * @param loadThrashold the load thrashold
+     * @return the load thrashold
+     */
     public TimeRangeResult setLoadThrashold(String loadThrashold) {
         LoadThrashold = loadThrashold;
         return this;
     }
-
-    private String LoadThrashold;
-
-    public ArrayList<TimeRange> timeRanges = new ArrayList<TimeRange>(0);
 
 }

@@ -34,5 +34,5 @@ public abstract class LrScenario extends LrJobResults{
     void setScenrioName(String scenrioName)
     {
         _scenrioName = scenrioName;
-    };
+    }
 }
