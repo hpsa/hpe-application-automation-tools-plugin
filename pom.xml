@@ -256,7 +256,7 @@
 			<artifactId>json-path</artifactId>
 			<version>1.1.0</version>
 		</dependency>
-       <dependency>
+		<dependency>
 			<groupId>org.jenkins-ci.plugins</groupId>
 			<artifactId>matrix-project</artifactId>
 			<version>1.6</version>
@@ -297,7 +297,7 @@
 		<dependency>
 			<groupId>com.hp.sv</groupId>
 			<artifactId>SVConfigurator</artifactId>
-			<version>3.82.1-SNAPSHOT</version>
+			<version>3.82.1.45909</version>
 			<exclusions>
 				<exclusion>
 					<groupId>commons-io</groupId>
