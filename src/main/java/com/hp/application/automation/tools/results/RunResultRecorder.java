@@ -440,7 +440,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
                                 //don't use FileFilter for zip, or it will cause bug when files are on slave
                                 reportFolder.zip(outstr);
-                                
+
 								/*
                                  * I did't use copyRecursiveTo or copyFrom due to
 								 * bug in
