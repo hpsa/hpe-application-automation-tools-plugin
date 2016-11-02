@@ -365,7 +365,6 @@ namespace HpToolsLauncher.TestRunners
                 }
                 //per scenario timeout stopwatch
                 _stopWatch = Stopwatch.StartNew();
-
                 //wait for scenario to end:
                 if (!waitForScenario(ref errorReason))
                 {
@@ -575,6 +574,7 @@ namespace HpToolsLauncher.TestRunners
                     errorReason = Resources.GeneralTimedOut;
                     return false;
                 }
+                ConsoleWriter.WriteLine("Scenario started");
 
                 HpToolsLauncher.Helper.WaitNMiliSeconds(_pollingInterval * 1000);
 
@@ -629,7 +629,7 @@ namespace HpToolsLauncher.TestRunners
                     return false;
                 }
 
-                int tries = 2;
+                int tries = 3;
                 while (_engine.Scenario.IsActive() && tries > 0)
                 {
                     //ConsoleWriter.WriteLine("\t\tScenario is still running. Waiting for the scenario to stop...");
