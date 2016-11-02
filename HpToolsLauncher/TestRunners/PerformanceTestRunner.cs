@@ -514,7 +514,7 @@ namespace HpToolsLauncher.TestRunners
 
             while (!_engine.Scenario.IsResultsCollated() && _stopWatch.Elapsed < _perScenarioTimeOutMinutes)
             {
-                Thread.Sleep(_pollingInterval * 1000);
+                HpToolsLauncher.Helper.WaitNMiliSeconds(_pollingInterval * 1000);
             }
         }
 
@@ -537,7 +537,7 @@ namespace HpToolsLauncher.TestRunners
                     }
 
                     //give the controller 15 secs to shutdown. otherwise, print an error.
-                    Thread.Sleep(20000);
+                    HpToolsLauncher.Helper.WaitNMiliSeconds(20000);
 
                     if (_engine != null)
                     {
@@ -546,7 +546,7 @@ namespace HpToolsLauncher.TestRunners
                         if (process.Length > 0)
                         {
                             ConsoleWriter.WriteErrLine("\t\tThe Controller is still running...");
-                            Thread.Sleep(10000);
+                            HpToolsLauncher.Helper.WaitNMiliSeconds(10000);
                             KillController();
                             return;
                         }
@@ -576,7 +576,7 @@ namespace HpToolsLauncher.TestRunners
                     return false;
                 }
 
-                Thread.Sleep(_pollingInterval * 1000);
+                HpToolsLauncher.Helper.WaitNMiliSeconds(_pollingInterval * 1000);
 
 
                 if (_stopWatch.Elapsed > _perScenarioTimeOutMinutes)
@@ -633,7 +633,7 @@ namespace HpToolsLauncher.TestRunners
                 while (_engine.Scenario.IsActive() && tries > 0)
                 {
                     //ConsoleWriter.WriteLine("\t\tScenario is still running. Waiting for the scenario to stop...");
-                    Thread.Sleep(_pollingInterval * 1000);
+                    HpToolsLauncher.Helper.WaitNMiliSeconds(_pollingInterval * 1000);
                     tries--;
                 }
 
@@ -852,7 +852,8 @@ namespace HpToolsLauncher.TestRunners
                 foreach (Process p in mdrvProcesses)
                 {
                     p.Kill();
-                    Thread.Sleep(500);
+                    HpToolsLauncher.Helper.WaitNMiliSeconds(500);
+
 
                 }
 
@@ -888,9 +889,9 @@ namespace HpToolsLauncher.TestRunners
                             }
                             break;
                         }
-                        Thread.Sleep(1000);
+                        HpToolsLauncher.Helper.WaitNMiliSeconds(2000);
                     }
-                    Thread.Sleep(1000);
+                    HpToolsLauncher.Helper.WaitNMiliSeconds(2000);
                 }
                 ConsoleWriter.WriteLine("wlrun killed");
             }

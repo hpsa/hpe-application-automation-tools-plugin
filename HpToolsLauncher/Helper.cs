@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Timers;
 using System.Web.UI;
 using System.Xml;
 using System.Xml.Linq;
@@ -938,5 +939,21 @@ namespace HpToolsLauncher
         }
 
         #endregion
+
+        /// <summary>
+        /// Creates timer in seconds to replace thread.sleep due to ui freezes in jenkins. 
+        /// Should be replaced in the future with ASync tasks
+        /// </summary>
+        /// <param name="milliSeconds">miliseconds to wait for completion</param>
+        public static void WaitNMiliSeconds(int milliSeconds)
+        {
+            if (milliSeconds < 1) return;
+            DateTime _desired = DateTime.Now.AddMilliseconds(milliSeconds);
+            var a = 0;
+            while (DateTime.Now < _desired)
+            {
+                a += 1;
+            }
+        }
     }
 }
