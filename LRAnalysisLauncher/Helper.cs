@@ -6,7 +6,6 @@ using Analysis.Api;
 using Analysis.ApiLib;
 using HpToolsLauncher;
 using LRAnalysisLauncher.Properties;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace LRAnalysisLauncher
 {
