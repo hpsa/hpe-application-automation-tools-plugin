@@ -67,6 +67,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConsoleQuickEdit.cs" />
     <Compile Include="Launcher.cs" />
     <Compile Include="ConsoleWriter.cs" />
     <Compile Include="Interfaces\IAssetRunner.cs" />
