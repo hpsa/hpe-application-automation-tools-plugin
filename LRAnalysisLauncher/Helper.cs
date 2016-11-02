@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using Analysis.Api;
 using Analysis.ApiLib;
 using HpToolsLauncher;
 using LRAnalysisLauncher.Properties;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace LRAnalysisLauncher
 {
@@ -49,20 +51,32 @@ namespace LRAnalysisLauncher
                 vUserGraph.ApplyFilterAndGroupBy();
                 double sum = 0;
                 foreach (var val in vUserGraph.Series)
+                {
+                    var vUserTypeMax = val.GraphStatistics.Maximum;
+                    if (!HasValue(vUserTypeMax)){
+                        continue;
+                    }
                     sum += val.GraphStatistics.Maximum;
+                }
+                
                 vuserDictionary[vuserType] = (int) sum;
             }
 
-
+            ConsoleWriter.WriteLine("Getting maximum ran vUsers this scenarion");
             var g = lrAnalysis.Session.OpenGraph("VuserStateGraph");
-            //g.Granularity = 4;
+            g.Granularity = 4;
             var filterDimensionVUser = g.Filter["Vuser Status"];
             filterDimensionVUser.ClearValues();
             filterDimensionVUser.AddDiscreteValue("Run");
             g.ApplyFilterAndGroupBy();
-            int maxVUserRun = (int) Math.Round(g.Series[0].GraphStatistics.Maximum);
+            var vUserMax = g.Series[0].GraphStatistics.Maximum;
+            if (!HasValue(vUserMax))
+            {
+                vUserMax = -1;
+            }
+            int maxVUserRun = (int) Math.Round(vUserMax);
             vuserDictionary.Add("MaxVuserRun", maxVUserRun);
-            ConsoleWriter.WriteLine(String.Format("{0} maximum vUser ran per {1} ", maxVUserRun, g.Granularity));
+            ConsoleWriter.WriteLine(String.Format("{0} maximum vUser ran per {1} seconds", maxVUserRun, g.Granularity));
         
             return vuserDictionary;
         }
@@ -141,6 +155,10 @@ namespace LRAnalysisLauncher
 
                 g.ApplyFilterAndGroupBy();
                 connectionsCount = g.Series["Connections"].GraphStatistics.Maximum;
+                if (!HasValue(connectionsCount))
+                {
+                    connectionsCount = -1;
+                }
             }
             catch (Exception ex)
             {
@@ -167,5 +185,11 @@ namespace LRAnalysisLauncher
             var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Local);
             return epoch.AddSeconds(unixTime);
         }
+
+        public static bool HasValue(double value)
+        {
+            return !Double.IsNaN(value) && !Double.IsInfinity(value);
+        }
+
     }
 }

@@ -132,7 +132,7 @@ namespace LRAnalysisLauncher
                     general.AppendChild(durationElement);
 
                     XmlElement vUsers = runReprotDoc.CreateElement("VUsers");
-                    log("Adding VUser statistics");
+                    //log("Adding VUser statistics");
                     Dictionary<string, int> vuserCountDictionary = Helper.GetVusersCountByStatus(analysis);
                     foreach (KeyValuePair<string, int> kvp in vuserCountDictionary)
                     {
