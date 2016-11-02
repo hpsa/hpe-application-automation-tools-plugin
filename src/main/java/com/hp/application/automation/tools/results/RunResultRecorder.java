@@ -968,7 +968,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             throws ParserConfigurationException, SAXException,
             IOException, InterruptedException {
         listener.getLogger().println(
-                "Starting the creation of test run dataset for graphing");
+                "Parsing test run dataset for perfomrance report");
         LrJobResults jobResults = new LrJobResults();
 
         // read each RunReport.xml
