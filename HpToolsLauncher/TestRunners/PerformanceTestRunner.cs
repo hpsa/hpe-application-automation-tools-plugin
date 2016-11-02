@@ -537,20 +537,25 @@ namespace HpToolsLauncher.TestRunners
                     }
 
                     //give the controller 15 secs to shutdown. otherwise, print an error.
-                    Thread.Sleep(15000);
+                    Thread.Sleep(20000);
 
-                    process = Process.GetProcessesByName("Wlrun");
-                    if (process.Length > 0)
+                    if (_engine != null)
                     {
-                        ConsoleWriter.WriteErrLine("\t\tThe Controller is still running...");
-                        return;
+
+                        process = Process.GetProcessesByName("Wlrun");
+                        if (process.Length > 0)
+                        {
+                            ConsoleWriter.WriteErrLine("\t\tThe Controller is still running...");
+                            Thread.Sleep(10000);
+                            KillController();
+                            return;
+                        }
                     }
-                }catch(Exception e)
+                    }catch(Exception e)
                     {
                         ConsoleWriter.WriteErrLine("\t\t Cannot close Controller gracefully, exception details:");
                         ConsoleWriter.WriteErrLine(e.Message);
                         ConsoleWriter.WriteErrLine(e.StackTrace);
-
                         ConsoleWriter.WriteErrLine("killing Controller process");
                         cleanENV();
                     }
@@ -853,36 +858,41 @@ namespace HpToolsLauncher.TestRunners
 
                 // check if any wlrun.exe process existed, kill them.
 
-                var wlrunProcesses = Process.GetProcessesByName("Wlrun");
-                if (wlrunProcesses.Length > 0)
-                {
-                    foreach (Process p in wlrunProcesses)
-                    {
-                        p.Kill();
-                        // When kill wlrun process directly, there might be a werfault.exe process generated, kill it if it appears.
-                        DateTime nowTime = DateTime.Now;
-                        while (DateTime.Now.Subtract(nowTime).TotalSeconds < 10)
-                        {
-                            var werFaultProcesses = Process.GetProcessesByName("WerFault");
-                            if (werFaultProcesses.Length > 0)
-                            {
-                                //Console.WriteLine("Kill process of WerFault");
-                                foreach (Process pf in werFaultProcesses)
-                                {
-                                    pf.Kill();
-                                }
-                                break;
-                            }
-                            Thread.Sleep(1000);
-                        }
-                        Thread.Sleep(1000);
-                    }
-                    ConsoleWriter.WriteLine("wlrun killed");
-                }
+                KillController();
             }
             catch (Exception e)
             {
 
+            }
+        }
+
+        private static void KillController()
+        {
+            var wlrunProcesses = Process.GetProcessesByName("Wlrun");
+            if (wlrunProcesses.Length > 0)
+            {
+                foreach (Process p in wlrunProcesses)
+                {
+                    p.Kill();
+                    // When kill wlrun process directly, there might be a werfault.exe process generated, kill it if it appears.
+                    DateTime nowTime = DateTime.Now;
+                    while (DateTime.Now.Subtract(nowTime).TotalSeconds < 10)
+                    {
+                        var werFaultProcesses = Process.GetProcessesByName("WerFault");
+                        if (werFaultProcesses.Length > 0)
+                        {
+                            //Console.WriteLine("Kill process of WerFault");
+                            foreach (Process pf in werFaultProcesses)
+                            {
+                                pf.Kill();
+                            }
+                            break;
+                        }
+                        Thread.Sleep(1000);
+                    }
+                    Thread.Sleep(1000);
+                }
+                ConsoleWriter.WriteLine("wlrun killed");
             }
         }
 
