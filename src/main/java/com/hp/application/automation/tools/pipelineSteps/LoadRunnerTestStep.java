@@ -44,7 +44,7 @@ import java.util.Objects;
 /**
  * Load runner pipeline step
  */
-public class LrScenarioLoadStep extends AbstractStepImpl {
+public class LoadRunnerTestStep extends AbstractStepImpl {
 
     private final RunFromFileBuilder runFromFileBuilder;
     private final RunResultRecorder runResultRecorder;
@@ -56,7 +56,7 @@ public class LrScenarioLoadStep extends AbstractStepImpl {
      * @param archiveTestResultsMode the type of archiving the user wants.
      */
     @DataBoundConstructor
-    public LrScenarioLoadStep(String testPaths, String archiveTestResultsMode) {
+    public LoadRunnerTestStep(String testPaths, String archiveTestResultsMode) {
         this.runFromFileBuilder = new RunFromFileBuilder(testPaths);
         this.runResultRecorder = new RunResultRecorder(archiveTestResultsMode);
     }
@@ -172,7 +172,7 @@ public class LrScenarioLoadStep extends AbstractStepImpl {
      * The type Descriptor.
      */
     @Extension
-    @Symbol("LrScenarioLoad")
+    @Symbol("LoadRunnerTest")
     public static class DescriptorImpl extends AbstractStepDescriptorImpl {
         /**
          * Instantiates a new Descriptor.
@@ -183,7 +183,7 @@ public class LrScenarioLoadStep extends AbstractStepImpl {
 
         @Override
         public String getFunctionName() {
-            return "lrScenarioLoad";
+            return "LoadRunnerTest";
         }
 
         @Nonnull
