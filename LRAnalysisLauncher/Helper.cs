@@ -62,7 +62,7 @@ namespace LRAnalysisLauncher
             }
 
             ConsoleWriter.WriteLine("Getting maximum ran vUsers this scenarion");
-            var g = lrAnalysis.Session.OpenGraph("VuserStateGraph");
+            var g = lrAnalysis.Session.Runs[0].OpenGraph("VuserStateGraph");
             g.Granularity = 4;
             var filterDimensionVUser = g.Filter["Vuser Status"];
             filterDimensionVUser.ClearValues();
