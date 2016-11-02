@@ -172,7 +172,7 @@ public class LoadRunnerTestStep extends AbstractStepImpl {
      * The type Descriptor.
      */
     @Extension
-    @Symbol("LoadRunnerTest")
+    @Symbol("loadRunnerTest")
     public static class DescriptorImpl extends AbstractStepDescriptorImpl {
         /**
          * Instantiates a new Descriptor.
@@ -183,13 +183,13 @@ public class LoadRunnerTestStep extends AbstractStepImpl {
 
         @Override
         public String getFunctionName() {
-            return "LoadRunnerTest";
+            return "loadRunnerTest";
         }
 
         @Nonnull
         @Override
         public String getDisplayName() {
-            return "Run LoadRunner scenario";
+            return "Run LoadRunner performance scenario tests";
         }
 
         /**
