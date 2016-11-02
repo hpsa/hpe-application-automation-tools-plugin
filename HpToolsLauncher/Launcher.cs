@@ -245,7 +245,9 @@ namespace HpToolsLauncher
             //run the tests!
             RunTests(runner, resultsFilename);
 
-
+            //Console.WriteLine("Press any key to exit...");
+            //Console.ReadKey();
+            ConsoleQuickEdit.Enable();
             if (Launcher.ExitCode != ExitCodeEnum.Passed)
                 Environment.Exit((int)Launcher.ExitCode);
         }
