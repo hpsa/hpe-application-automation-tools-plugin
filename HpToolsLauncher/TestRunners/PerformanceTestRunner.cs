@@ -576,7 +576,7 @@ namespace HpToolsLauncher.TestRunners
                     return false;
                 }
 
-                HpToolsLauncher.Helper.WaitNMiliSeconds(_pollingInterval * 1000);
+               Thread.Sleep(_pollingInterval * 1000);
 
 
                 if (_stopWatch.Elapsed > _perScenarioTimeOutMinutes)
