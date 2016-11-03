@@ -24,7 +24,6 @@
 
 package com.hp.application.automation.tools.results;
 
-import com.hp.application.automation.tools.PerformanceProjectAction;
 import com.hp.application.automation.tools.results.projectparser.performance.LrJobResults;
 import hudson.model.Action;
 import hudson.model.InvisibleAction;
