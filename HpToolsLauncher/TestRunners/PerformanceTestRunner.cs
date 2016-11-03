@@ -505,7 +505,6 @@ namespace HpToolsLauncher.TestRunners
         }
 
 
-        [MethodImpl(MethodImplOptions.NoOptimization)]
         private void collateResults()
         {
             int ret = _engine.Scenario.CollateResults();
@@ -522,7 +521,6 @@ namespace HpToolsLauncher.TestRunners
             }
         }
 
-        [MethodImpl(MethodImplOptions.NoOptimization)]
         private void closeController()
         {
             //try to gracefully shut down the controller
@@ -577,7 +575,6 @@ namespace HpToolsLauncher.TestRunners
         {
             AutoResetEvent are = (AutoResetEvent)state;
             int time = _pollingInterval * 1000;
-            Console.WriteLine("Waiting for controller to finish for {0} milliseconds.", time);
             Thread.Sleep(time);
             are.Set();
         }
@@ -588,7 +585,7 @@ namespace HpToolsLauncher.TestRunners
         {
             ConsoleWriter.WriteLine("Scenario run has started");
             //wait for the scenario to end gracefully:
-            while (!_scenarioEnded)
+            while (!_scenarioEnded || !_scenarioEndedEvent)
             {
                 //ConsoleWriter.WriteLine("waitForScenario");
                 if (_runCancelled())
@@ -780,6 +777,7 @@ namespace HpToolsLauncher.TestRunners
                          _vuserStatus[(int)VuserStatus.Exiting] == 0 &&
                          _vuserStatus[(int)VuserStatus.GradualExiting] == 0;
 
+            Console.WriteLine("Did all vusers finished?" + isFinished.ToString());
             return isFinished;
         }
 
@@ -897,7 +895,6 @@ namespace HpToolsLauncher.TestRunners
             }
         }
 
-        [MethodImpl(MethodImplOptions.NoOptimization)]
         private static void KillController()
         {
             var wlrunProcesses = Process.GetProcessesByName("Wlrun");
