@@ -47,6 +47,18 @@
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
+			<groupId>com.atlassian.bamboo</groupId>
+			<artifactId>atlassian-bamboo-api</artifactId>
+			<version>5.13.0.1</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.atlassian.bamboo.plugins</groupId>
+			<artifactId>atlassian-bamboo-plugin-git</artifactId>
+			<version>${bamboo.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
 			<artifactId>atlassian-spring-scanner-runtime</artifactId>
 			<groupId>com.atlassian.plugin</groupId>
 			<version>${atlassian.spring.scanner.version}</version>
