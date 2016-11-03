@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace HpToolsLauncher
 {
-    class ConsoleQuickEdit
+    public class ConsoleQuickEdit
     {
         const uint ENABLE_QUICK_EDIT_FLAG = 0x0040;
 

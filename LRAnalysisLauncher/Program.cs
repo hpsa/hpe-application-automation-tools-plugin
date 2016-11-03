@@ -53,6 +53,7 @@ namespace LRAnalysisLauncher
         [STAThread]
         static int Main(string[] args)
         {
+            //HpToolsLauncher.ConsoleQuickEdit.Disa//ble();
             Console.OutputEncoding = System.Text.Encoding.GetEncoding("utf-8");
             log("starting analysis launcher");
             int iPassed = (int)Launcher.ExitCodeEnum.Passed;//variable to keep track of whether all of the SLAs passed
@@ -61,7 +62,7 @@ namespace LRAnalysisLauncher
                 if (args.Length != 3)
                 {
                     ShowHelp();
-                    return (int)Launcher.ExitCodeEnum.Aborted;
+                    return (int) Launcher.ExitCodeEnum.Aborted;
                 }
 
                 string lrrlocation = args[0];
@@ -80,8 +81,12 @@ namespace LRAnalysisLauncher
                     HtmlReportMaker reportMaker = session.CreateHtmlReportMaker();
                     reportMaker.AddGraph("Connections");
                     reportMaker.AddGraph("ConnectionsPerSecond");
-                    reportMaker.CreateDefaultHtmlReport(Path.Combine(Path.GetDirectoryName(htmlLocation), "IE", Path.GetFileName(htmlLocation)), ApiBrowserType.IE);
-                    reportMaker.CreateDefaultHtmlReport(Path.Combine(Path.GetDirectoryName(htmlLocation), "Netscape", Path.GetFileName(htmlLocation)), ApiBrowserType.Netscape);
+                    reportMaker.CreateDefaultHtmlReport(
+                        Path.Combine(Path.GetDirectoryName(htmlLocation), "IE", Path.GetFileName(htmlLocation)),
+                        ApiBrowserType.IE);
+                    reportMaker.CreateDefaultHtmlReport(
+                        Path.Combine(Path.GetDirectoryName(htmlLocation), "Netscape", Path.GetFileName(htmlLocation)),
+                        ApiBrowserType.Netscape);
                     log("HTML reports created");
 
                     XmlDocument xmlDoc = new XmlDocument();
@@ -113,7 +118,7 @@ namespace LRAnalysisLauncher
                         xmlDoc.Save(Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(lrrlocation)), "Errors.xml"));
 
                         xmlDoc.RemoveAll();
-                        log ("");
+                        log("");
                     }
                     XmlDocument runReprotDoc = new XmlDocument();
                     log("Gathering Run statistics");
@@ -151,7 +156,8 @@ namespace LRAnalysisLauncher
                         {"Fail", 0},
                         {"Stop", 0}
                     };
-                    Dictionary<string, Dictionary<string, double>> transactionDictionary = Helper.CalcFailedTransPercent(analysis);
+                    Dictionary<string, Dictionary<string, double>> transactionDictionary =
+                        Helper.CalcFailedTransPercent(analysis);
                     foreach (KeyValuePair<string, Dictionary<string, double>> kvp in transactionDictionary)
                     {
                         XmlElement transaction = runReprotDoc.CreateElement("Transaction");
@@ -196,7 +202,7 @@ namespace LRAnalysisLauncher
                         if (a.Measurement.Equals(SlaMeasurement.PercentileTRT))
                         {
                             SlaPercentileRuleResult b = slaResult.TransactionRules.PercentileRules[iCounter];
-                            elem = xmlDoc.CreateElement("SLA_GOAL");    //no white space in the element name
+                            elem = xmlDoc.CreateElement("SLA_GOAL"); //no white space in the element name
                             log("Transaction Name : " + b.TransactionName);
                             elem.SetAttribute("TransactionName", b.TransactionName.ToString());
                             log("Percentile : " + b.Percentage);
@@ -214,13 +220,13 @@ namespace LRAnalysisLauncher
 
                             if (b.Status.Equals(SlaRuleStatus.Failed)) // 0 = failed
                             {
-                                iPassed = (int)Launcher.ExitCodeEnum.Failed;
+                                iPassed = (int) Launcher.ExitCodeEnum.Failed;
                             }
                             iCounter++;
                         }
                         else
                         {
-                            elem = xmlDoc.CreateElement("SLA_GOAL");    //no white space in the element name
+                            elem = xmlDoc.CreateElement("SLA_GOAL"); //no white space in the element name
                             elem.SetAttribute("FullName", a.RuleUiName);
                             log("Full Name : " + a.RuleUiName);
                             log("Measurement : " + a.Measurement);
@@ -234,7 +240,7 @@ namespace LRAnalysisLauncher
 
                             if (a.Status.Equals(SlaRuleStatus.Failed)) // 0 = failed
                             {
-                                iPassed = (int)Launcher.ExitCodeEnum.Failed;
+                                iPassed = (int) Launcher.ExitCodeEnum.Failed;
                             }
                         }
                         root.AppendChild(elem);
@@ -245,13 +251,13 @@ namespace LRAnalysisLauncher
                     log("TimeRangeRules : " + slaResult.TimeRangeRules.Count);
                     foreach (SlaTimeRangeRuleResult a in slaResult.TimeRangeRules)
                     {
-                        
+
                         log(Resources.DoubleLineSeperator);
                         XmlElement rule;
                         if (a.Measurement.Equals(SlaMeasurement.AverageTRT))
-                         {
+                        {
                             SlaTransactionTimeRangeRuleResult b = slaResult.TransactionRules.TimeRangeRules[iCounter];
-                            rule = xmlDoc.CreateElement("SLA_GOAL");      //no white space in the element name
+                            rule = xmlDoc.CreateElement("SLA_GOAL"); //no white space in the element name
                             log("Transaction Name: " + b.TransactionName);
                             rule.SetAttribute("TransactionName", b.TransactionName);
                             log("Full Name : " + b.RuleUiName);
@@ -284,17 +290,17 @@ namespace LRAnalysisLauncher
                                 timeRanges.AppendChild(subsubelem);
                             }
                             rule.AppendChild(timeRanges);
-                           log("status : " + b.Status);
+                            log("status : " + b.Status);
                             rule.AppendChild(xmlDoc.CreateTextNode(b.Status.ToString()));
                             if (b.Status.Equals(SlaRuleStatus.Failed)) // 0 = failed
                             {
-                                iPassed = (int)Launcher.ExitCodeEnum.Failed;
+                                iPassed = (int) Launcher.ExitCodeEnum.Failed;
                             }
                             iCounter++;
-                         }
+                        }
                         else
                         {
-                            rule = xmlDoc.CreateElement("SLA_GOAL");  //no white space in the element name
+                            rule = xmlDoc.CreateElement("SLA_GOAL"); //no white space in the element name
                             log("Full Name : " + a.RuleUiName);
                             rule.SetAttribute("FullName", a.RuleUiName);
                             log("Measurement : " + a.Measurement);
@@ -329,23 +335,26 @@ namespace LRAnalysisLauncher
                             rule.AppendChild(xmlDoc.CreateTextNode(a.Status.ToString()));
                             if (a.Status.Equals(SlaRuleStatus.Failed))
                             {
-                                iPassed = (int)Launcher.ExitCodeEnum.Failed;
+                                iPassed = (int) Launcher.ExitCodeEnum.Failed;
                             }
-                        
+
                         }
                         root.AppendChild(rule);
 
                         log(Resources.DoubleLineSeperator);
                     }
 
-                    XmlNode slaNode  = runReprotDoc.ImportNode(root, true);
+                    XmlNode slaNode = runReprotDoc.ImportNode(root, true);
                     runsRoot.AppendChild(slaNode);
-                    log("saving RunReport.xml to " + Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(lrrlocation)), "RunReport.xml"));
-                    runReprotDoc.Save(Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(lrrlocation)), "RunReport.xml"));
+                    log("saving RunReport.xml to " +
+                        Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(lrrlocation)), "RunReport.xml"));
+                    runReprotDoc.Save(Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(lrrlocation)),
+                        "RunReport.xml"));
                     runReprotDoc.RemoveAll();
 
                     //write XML to location:
-                    log("saving SLA.xml to " + Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(lrrlocation)), "SLA.xml"));
+                    log("saving SLA.xml to " +
+                        Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(lrrlocation)), "SLA.xml"));
                     xmlDoc.Save(Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(lrrlocation)), "SLA.xml"));
 
                 }
@@ -353,7 +362,7 @@ namespace LRAnalysisLauncher
                 {
 
                     log(Resources.CannotCreateSession);
-                    return (int)Launcher.ExitCodeEnum.Aborted;
+                    return (int) Launcher.ExitCodeEnum.Aborted;
                 }
                 log("closing analysis session");
                 session.Close();
@@ -361,24 +370,26 @@ namespace LRAnalysisLauncher
             catch (TypeInitializationException ex)
             {
                 if (ex.InnerException is UnauthorizedAccessException)
-                    log("UnAuthorizedAccessException: Please check the account privilege of current user, LoadRunner tests should be run by administrators.");
+                    log(
+                        "UnAuthorizedAccessException: Please check the account privilege of current user, LoadRunner tests should be run by administrators.");
                 else
                 {
                     log(ex.Message);
                     log(ex.StackTrace);
                 }
-                return (int)Launcher.ExitCodeEnum.Aborted;
+                return (int) Launcher.ExitCodeEnum.Aborted;
             }
             catch (Exception e)
             {
                 log(e.Message);
                 log(e.StackTrace);
-                return (int)Launcher.ExitCodeEnum.Aborted;
+                return (int) Launcher.ExitCodeEnum.Aborted;
             }
 
+
             // return SLA status code, if any SLA fails return a fail here.
-           // writer.Flush();
-           // writer.Close();
+            // writer.Flush();
+            // writer.Close();
             return iPassed;
 
         }

@@ -405,8 +405,9 @@ namespace HpToolsLauncher.TestRunners
                     catch (Exception) { }
                 };
                 Thread t = new Thread(tstart);
+                t.SetApartmentState(ApartmentState.STA);
                 t.Start();
-                if (!t.Join(_pollingInterval * 1000))
+                if (!t.Join(_pollingInterval * 1000 * 2))
                 {
                     errorReason = "cannot open scenario - timeout!";
                     return false;
@@ -564,7 +565,7 @@ namespace HpToolsLauncher.TestRunners
 
         private bool waitForScenario(ref string errorReason)
         {
-
+            ConsoleWriter.WriteLine("Scenario run has started");
             //wait for the scenario to end gracefully:
             while (!_scenarioEnded)
             {
@@ -574,7 +575,6 @@ namespace HpToolsLauncher.TestRunners
                     errorReason = Resources.GeneralTimedOut;
                     return false;
                 }
-                ConsoleWriter.WriteLine("Scenario started");
 
                 HpToolsLauncher.Helper.WaitNMiliSeconds(_pollingInterval * 1000);
 
