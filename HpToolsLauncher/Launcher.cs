@@ -343,18 +343,19 @@ namespace HpToolsLauncher
                     int pollingInterval = 30;
                     if (_ciParams.ContainsKey("controllerPollingInterval"))
                         pollingInterval = int.Parse(_ciParams["controllerPollingInterval"]);
+                        ConsoleWriter.WriteLine("Controller Polling Interval: " + pollingInterval + " seconds");
 
                     TimeSpan perScenarioTimeOutMinutes = TimeSpan.MaxValue;
                     if (_ciParams.ContainsKey("PerScenarioTimeOut"))
                     {
                         string strTimoutInMinutes = _ciParams["PerScenarioTimeOut"];
-                        ConsoleWriter.WriteLine("reading PerScenarioTimeout: "+strTimoutInMinutes);
+                        //ConsoleWriter.WriteLine("reading PerScenarioTimeout: "+ strTimoutInMinutes);
                         if (strTimoutInMinutes.Trim() != "-1")
                         {
                             int intTimoutInMinutes = 0;
                             if (int.TryParse(strTimoutInMinutes, out intTimoutInMinutes))
                                 perScenarioTimeOutMinutes = TimeSpan.FromMinutes(intTimoutInMinutes);
-                            ConsoleWriter.WriteLine("PerScenarioTimeout: "+perScenarioTimeOutMinutes+" minutes");
+                            //ConsoleWriter.WriteLine("PerScenarioTimeout: "+perScenarioTimeOutMinutes+" minutes");
                         }
                     }
                     ConsoleWriter.WriteLine("PerScenarioTimeout: " + perScenarioTimeOutMinutes.ToString(@"dd\:\:hh\:mm\:ss") + " minutes");

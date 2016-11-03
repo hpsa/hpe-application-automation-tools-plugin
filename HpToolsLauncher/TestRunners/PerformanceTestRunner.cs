@@ -514,7 +514,9 @@ namespace HpToolsLauncher.TestRunners
 
             while (!_engine.Scenario.IsResultsCollated() && _stopWatch.Elapsed < _perScenarioTimeOutMinutes)
             {
-                HpToolsLauncher.Helper.WaitNMiliSeconds(_pollingInterval * 1000);
+
+                Stopper collateStopper = new Stopper(_pollingInterval * 1000);
+                collateStopper.Start();
             }
         }
 
@@ -537,7 +539,8 @@ namespace HpToolsLauncher.TestRunners
                     }
 
                     //give the controller 15 secs to shutdown. otherwise, print an error.
-                    HpToolsLauncher.Helper.WaitNMiliSeconds(20000);
+                    Stopper controllerStopper = new Stopper(15000);
+                    controllerStopper.Start();
 
                     if (_engine != null)
                     {
@@ -546,7 +549,8 @@ namespace HpToolsLauncher.TestRunners
                         if (process.Length > 0)
                         {
                             ConsoleWriter.WriteErrLine("\t\tThe Controller is still running...");
-                            HpToolsLauncher.Helper.WaitNMiliSeconds(10000);
+                            Stopper wlrunStopper = new Stopper(10000);
+                            wlrunStopper.Start();
                             KillController();
                             return;
                         }
@@ -576,7 +580,8 @@ namespace HpToolsLauncher.TestRunners
                     return false;
                 }
 
-               Thread.Sleep(_pollingInterval * 1000);
+                Stopper stopper = new Stopper(_pollingInterval * 1000);
+                stopper.Start();
 
 
                 if (_stopWatch.Elapsed > _perScenarioTimeOutMinutes)
@@ -629,11 +634,12 @@ namespace HpToolsLauncher.TestRunners
                     return false;
                 }
 
-                int tries = 3;
+                int tries = 2;
                 while (_engine.Scenario.IsActive() && tries > 0)
                 {
                     //ConsoleWriter.WriteLine("\t\tScenario is still running. Waiting for the scenario to stop...");
-                    HpToolsLauncher.Helper.WaitNMiliSeconds(_pollingInterval * 1000);
+                    Stopper wlrunStopper = new Stopper(_pollingInterval * 1000);
+                    wlrunStopper.Start();
                     tries--;
                 }
 
@@ -852,7 +858,8 @@ namespace HpToolsLauncher.TestRunners
                 foreach (Process p in mdrvProcesses)
                 {
                     p.Kill();
-                    HpToolsLauncher.Helper.WaitNMiliSeconds(500);
+                    Stopper stopper = new Stopper(500);
+                    stopper.Start();
 
 
                 }
@@ -889,9 +896,11 @@ namespace HpToolsLauncher.TestRunners
                             }
                             break;
                         }
-                        HpToolsLauncher.Helper.WaitNMiliSeconds(2000);
+                        Stopper werFaultProcessesStopper = new Stopper(2000);
+                        werFaultProcessesStopper.Start();
                     }
-                    HpToolsLauncher.Helper.WaitNMiliSeconds(2000);
+                    Stopper wlrunStopper = new Stopper(2000);
+                    wlrunStopper.Start();
                 }
                 ConsoleWriter.WriteLine("wlrun killed");
             }
