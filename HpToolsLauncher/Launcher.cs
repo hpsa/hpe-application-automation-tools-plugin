@@ -560,12 +560,45 @@ namespace HpToolsLauncher
                     Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
                 }
 
-                //this is the total run summary
-                ConsoleWriter.ActiveTestRun = null;
-                string runStatus = (Launcher.ExitCode == ExitCodeEnum.Passed || Launcher.ExitCode == ExitCodeEnum.Unstable) ? "Job succeeded" : "Job failed";
                 int numFailures = results.TestRuns.Count(t => t.TestState == TestState.Failed);
                 int numSuccess = results.TestRuns.Count(t => t.TestState == TestState.Passed);
                 int numErrors = results.TestRuns.Count(t => t.TestState == TestState.Error);
+
+                //TODO: Timed fix to remove since jenkins doesnt retrive resutls from jobs that marked as failed and unstable marks jobs with only failed tests
+                if ((numErrors <= 0) && (numFailures > 0))
+                {
+                    Launcher.ExitCode = Launcher.ExitCodeEnum.Unstable;
+                }
+
+                foreach (var testRun in results.TestRuns)
+                {
+                    if (testRun.FatalErrors > 0)
+                    {
+                        Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
+                    }
+                }
+
+                //this is the total run summary
+                ConsoleWriter.ActiveTestRun = null;
+                string runStatus = "";
+                switch (Launcher.ExitCode)
+                {
+                    case ExitCodeEnum.Passed:
+                        runStatus = "Job succeeded";
+                        break;
+                    case ExitCodeEnum.Unstable:
+                        runStatus = "Job unstable (Passed with failed tests)";
+                        break;
+                    case ExitCodeEnum.Aborted:
+                        runStatus = "Job failed due to being Aborted";
+                        break;
+                    case ExitCodeEnum.Failed:
+                        runStatus = "Job failed";
+                        break;
+                    default:
+                        break;
+                }
+
                 ConsoleWriter.WriteLine(Resources.LauncherDoubleSeperator);
                 ConsoleWriter.WriteLine(string.Format(Resources.LauncherDisplayStatistics, runStatus, results.TestRuns.Count, numSuccess, numFailures, numErrors));
 
@@ -579,12 +612,7 @@ namespace HpToolsLauncher
                         ConsoleWriter.WriteLine("Job Errors summary:");
                         ConsoleWriter.ErrorSummaryLines.ForEach(line => ConsoleWriter.WriteLine(line));
                     }
-                    //TODO: Timed fix to remove since jenkins doesnt retrive resutls from jobs that marked as failed and unstable marks jobs with only failed tests
-                    if ((numErrors <= 0) && (numFailures > 0))
-                    {
-                        Launcher.ExitCode = Launcher.ExitCodeEnum.Unstable;
-                    }
-
+     
                 }
 
                 //ConsoleWriter.WriteLine("Returning " + runStatus + ".");

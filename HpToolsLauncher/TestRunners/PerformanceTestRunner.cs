@@ -217,7 +217,7 @@ namespace HpToolsLauncher.TestRunners
                     //count how many ignorable errors and how many fatal errors occured.
                     int ignore = getErrorsCount(ERRORState.Ignore);
                     int fatal = getErrorsCount(ERRORState.Error);
-                    
+                    runDesc.FatalErrors = fatal;
                     ConsoleWriter.WriteLine(String.Format(Resources.LrErrorSummeryNum, ignore, fatal));
                     ConsoleWriter.WriteLine("");
                     if (_errors != null && _errors.Count > 0)
@@ -585,7 +585,7 @@ namespace HpToolsLauncher.TestRunners
         {
             ConsoleWriter.WriteLine("Scenario run has started");
             //wait for the scenario to end gracefully:
-            while (!_scenarioEnded || !_scenarioEndedEvent)
+            while (!_scenarioEnded && _scenarioEndedEvent)
             {
                 //ConsoleWriter.WriteLine("waitForScenario");
                 if (_runCancelled())
@@ -594,8 +594,6 @@ namespace HpToolsLauncher.TestRunners
                     return false;
                 }
 
-                //Stopper stopper = new Stopper(6 * 1000);
-                //stopper.Start();
                 WaitHandle[] waitHandles = new WaitHandle[]
                     {
                         new AutoResetEvent(false)
@@ -777,7 +775,6 @@ namespace HpToolsLauncher.TestRunners
                          _vuserStatus[(int)VuserStatus.Exiting] == 0 &&
                          _vuserStatus[(int)VuserStatus.GradualExiting] == 0;
 
-            Console.WriteLine("Did all vusers finished?" + isFinished.ToString());
             return isFinished;
         }
 

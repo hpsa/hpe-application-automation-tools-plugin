@@ -9,6 +9,11 @@ namespace HpToolsLauncher
 {
     public class TestRunResults
     {
+        public TestRunResults()
+        {
+            FatalErrors = -1;
+        }
+
         private TestState m_enmTestState = TestState.Unknown;
         private TestState m_enmPrevTestState = TestState.Unknown;
         private bool m_hasWarnings = false;
