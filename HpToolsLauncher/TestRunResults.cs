@@ -29,7 +29,7 @@ namespace HpToolsLauncher
         public TimeSpan Runtime { get; set; }
         public string TestType { get; set; }
         public string ReportLocation { get; set; }
-        
+        public int FatalErrors { get; set; }
         public TestState TestState
         {
             get { return m_enmTestState; }

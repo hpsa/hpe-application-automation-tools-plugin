@@ -585,14 +585,6 @@ namespace HpToolsLauncher
                         Launcher.ExitCode = Launcher.ExitCodeEnum.Unstable;
                     }
 
-                    foreach (var testRun in results.TestRuns)
-                    {
-                        if(testRun.ErrorDesc != "" )
-                        {
-                            Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
-                        }
-                    }
-
                 }
 
                 //ConsoleWriter.WriteLine("Returning " + runStatus + ".");

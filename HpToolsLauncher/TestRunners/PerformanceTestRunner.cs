@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using HP.LoadRunner.Interop.Wlrun;
 using HpToolsLauncher.Properties;
@@ -103,7 +104,7 @@ namespace HpToolsLauncher.TestRunners
             string scenarioPath = scenarioInf.TestPath;
             //prepare the instance that will contain test results for JUnit
             TestRunResults runDesc = new TestRunResults();
-
+            
             ConsoleWriter.ActiveTestRun = runDesc;
             ConsoleWriter.WriteLine(DateTime.Now.ToString(Launcher.DateFormat) + " Running: " + scenarioPath);
 
@@ -216,6 +217,7 @@ namespace HpToolsLauncher.TestRunners
                     //count how many ignorable errors and how many fatal errors occured.
                     int ignore = getErrorsCount(ERRORState.Ignore);
                     int fatal = getErrorsCount(ERRORState.Error);
+                    
                     ConsoleWriter.WriteLine(String.Format(Resources.LrErrorSummeryNum, ignore, fatal));
                     ConsoleWriter.WriteLine("");
                     if (_errors != null && _errors.Count > 0)
@@ -405,7 +407,6 @@ namespace HpToolsLauncher.TestRunners
                     catch (Exception) { }
                 };
                 Thread t = new Thread(tstart);
-                t.SetApartmentState(ApartmentState.STA);
                 t.Start();
                 if (!t.Join(_pollingInterval * 1000 * 2))
                 {
@@ -504,6 +505,7 @@ namespace HpToolsLauncher.TestRunners
         }
 
 
+        [MethodImpl(MethodImplOptions.NoOptimization)]
         private void collateResults()
         {
             int ret = _engine.Scenario.CollateResults();
@@ -520,6 +522,7 @@ namespace HpToolsLauncher.TestRunners
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoOptimization)]
         private void closeController()
         {
             //try to gracefully shut down the controller
@@ -555,17 +558,31 @@ namespace HpToolsLauncher.TestRunners
                             return;
                         }
                     }
-                    }catch(Exception e)
-                    {
-                        ConsoleWriter.WriteErrLine("\t\t Cannot close Controller gracefully, exception details:");
-                        ConsoleWriter.WriteErrLine(e.Message);
-                        ConsoleWriter.WriteErrLine(e.StackTrace);
-                        ConsoleWriter.WriteErrLine("killing Controller process");
-                        cleanENV();
-                    }
+                }
+                catch (Exception e)
+                {
+                    ConsoleWriter.WriteErrLine("\t\t Cannot close Controller gracefully, exception details:");
+                    ConsoleWriter.WriteErrLine(e.Message);
+                    ConsoleWriter.WriteErrLine(e.StackTrace);
+                    ConsoleWriter.WriteErrLine("killing Controller process");
+                    cleanENV();
+                }
             }
             _engine = null;
         }
+
+
+
+        void DoTask(Object state)
+        {
+            AutoResetEvent are = (AutoResetEvent)state;
+            int time = _pollingInterval * 1000;
+            Console.WriteLine("Waiting for controller to finish for {0} milliseconds.", time);
+            Thread.Sleep(time);
+            are.Set();
+        }
+
+
 
         private bool waitForScenario(ref string errorReason)
         {
@@ -580,9 +597,14 @@ namespace HpToolsLauncher.TestRunners
                     return false;
                 }
 
-                Stopper stopper = new Stopper(_pollingInterval * 1000);
-                stopper.Start();
-
+                //Stopper stopper = new Stopper(6 * 1000);
+                //stopper.Start();
+                WaitHandle[] waitHandles = new WaitHandle[]
+                    {
+                        new AutoResetEvent(false)
+                    };
+                ThreadPool.QueueUserWorkItem(new WaitCallback(DoTask), waitHandles[0]);
+                WaitHandle.WaitAny(waitHandles);
 
                 if (_stopWatch.Elapsed > _perScenarioTimeOutMinutes)
                 {
@@ -604,11 +626,12 @@ namespace HpToolsLauncher.TestRunners
                 // if the end scenario event was not registered, 
                 if (!_scenarioEndedEvent)
                 {
-
                     //if all Vusers are in ending state, scenario is finished.
                     _scenarioEnded = isFinished();
                 }
             }
+
+
 
             if (_scenarioEndedEvent)
             {
@@ -874,6 +897,7 @@ namespace HpToolsLauncher.TestRunners
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoOptimization)]
         private static void KillController()
         {
             var wlrunProcesses = Process.GetProcessesByName("Wlrun");

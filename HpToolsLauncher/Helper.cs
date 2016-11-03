@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Timers;
 using System.Web.UI;
@@ -963,10 +964,6 @@ namespace HpToolsLauncher
 
     }
 
-
-
-
-
     public class Stopper {
         private readonly int _milliSeconds;
 
@@ -975,6 +972,7 @@ namespace HpToolsLauncher
         {
             this._milliSeconds = milliSeconds;
         }
+
 
         /// <summary>
         /// Creates timer in seconds to replace thread.sleep due to ui freezes in jenkins. 
