@@ -564,7 +564,7 @@ namespace HpToolsLauncher
                 int numSuccess = results.TestRuns.Count(t => t.TestState == TestState.Passed);
                 int numErrors = results.TestRuns.Count(t => t.TestState == TestState.Error);
 
-                //TODO: Timed fix to remove since jenkins doesnt retrive resutls from jobs that marked as failed and unstable marks jobs with only failed tests
+                //TODO: Temporery fix to remove since jenkins doesnt retrive resutls from jobs that marked as failed and unstable marks jobs with only failed tests
                 if ((numErrors <= 0) && (numFailures > 0))
                 {
                     Launcher.ExitCode = Launcher.ExitCodeEnum.Unstable;
@@ -572,10 +572,9 @@ namespace HpToolsLauncher
 
                 foreach (var testRun in results.TestRuns)
                 {
-                    if (testRun.FatalErrors > 0)
-                    {
-                        Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
-                    }
+                    if (testRun.FatalErrors <= 0 || testRun.TestPath.Equals("")) continue;
+                    Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
+                    break;
                 }
 
                 //this is the total run summary
