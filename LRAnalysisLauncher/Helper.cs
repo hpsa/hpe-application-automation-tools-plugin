@@ -34,7 +34,7 @@ namespace LRAnalysisLauncher
                 return vuserDictionary;
             }
 
-            FilterItem filterDimension = vUserGraph.Filter["Vuser End Status"];
+            //FilterItem filterDimension = vUserGraph.Filter["Vuser End Status"];
             List<String> vUserStates = new List<String>()
             {
                 {"Passed"},
@@ -45,8 +45,8 @@ namespace LRAnalysisLauncher
             ConsoleWriter.WriteLine("Counting vUser Results for this scenario");
             foreach (Series vUserType in vUserGraph.Series)
             {
-                filterDimension.ClearValues();
-                filterDimension.AddDiscreteValue(vUserType.Name);
+                //filterDimension.ClearValues();
+                //filterDimension.AddDiscreteValue(vUserType.Name);
                 vUserGraph.ApplyFilterAndGroupBy();
 
                 double vUserTypeMax = vUserType.GraphStatistics.Maximum;
@@ -68,7 +68,7 @@ namespace LRAnalysisLauncher
             {
                 if (vUserType.Name.Equals("Run"))
                 {
-                    filterDimension.ClearValues();
+                    filterDimensionVUser.ClearValues();
                     //filterDimensionVUser.AddDiscreteValue("Run");
                     vUserGraph.ApplyFilterAndGroupBy();
                     double vUserMax = vUserType.GraphStatistics.Maximum;
