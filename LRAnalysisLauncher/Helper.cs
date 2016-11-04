@@ -48,11 +48,11 @@ namespace LRAnalysisLauncher
                 //filterDimension.ClearValues();
                 //filterDimension.AddDiscreteValue(vUserType.Name);
                 vUserGraph.ApplyFilterAndGroupBy();
-
                 double vUserTypeMax = vUserType.GraphStatistics.Maximum;
                 if (!HasValue(vUserTypeMax)){
                     continue;
                 }
+                
                 vuserDictionary[vUserType.Name] = (int)Math.Round(vUserTypeMax);
             }
 
