@@ -200,9 +200,9 @@ namespace LRAnalysisLauncher
         /// Returns scenario duration
         /// </summary>
         /// <returns>Scenario duration</returns>
-        public static String GetScenarioDuration(LrAnalysis lrAnalysis)
+        public static String GetScenarioDuration(Run run)
         {
-            var testDuration = lrAnalysis.Session.Runs[0].EndTime - lrAnalysis.Session.Runs[0].StartTime;
+            var testDuration = run.EndTime - run.StartTime;
             return testDuration.ToString();
         }
 

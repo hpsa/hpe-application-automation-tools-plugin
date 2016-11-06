@@ -573,59 +573,50 @@ namespace HpToolsLauncher.TestRunners
 
         void DoTask(Object state)
         {
-            AutoResetEvent are = (AutoResetEvent)state;
-            int time = _pollingInterval * 1000;
-            Thread.Sleep(time);
+            AutoResetEvent are = (AutoResetEvent) state;
+
+            while (!_scenarioEnded)
+            {
+                if (!_scenarioEndedEvent)
+                {
+                    //if all Vusers are in ending state, scenario is finished.
+                    _scenarioEnded = isFinished();
+                    Thread.Sleep(5000);
+                }
+            }
             are.Set();
         }
 
-
+        AutoResetEvent autoEvent = new AutoResetEvent(false);
+        
 
         private bool waitForScenario(ref string errorReason)
         {
             ConsoleWriter.WriteLine("Scenario run has started");
+
+            ThreadPool.QueueUserWorkItem(DoTask, autoEvent);
+
             //wait for the scenario to end gracefully:
-            while (!_scenarioEnded && _scenarioEndedEvent)
+            int time = _pollingInterval * 1000;
+            while (_stopWatch.Elapsed <= _perScenarioTimeOutMinutes)
             {
-                //ConsoleWriter.WriteLine("waitForScenario");
                 if (_runCancelled())
                 {
                     errorReason = Resources.GeneralTimedOut;
                     return false;
                 }
-
-                WaitHandle[] waitHandles = new WaitHandle[]
-                    {
-                        new AutoResetEvent(false)
-                    };
-                ThreadPool.QueueUserWorkItem(new WaitCallback(DoTask), waitHandles[0]);
-                WaitHandle.WaitAny(waitHandles);
-
-                if (_stopWatch.Elapsed > _perScenarioTimeOutMinutes)
+                if (autoEvent.WaitOne(time))
                 {
-                    _stopWatch.Stop();
-                    ConsoleWriter.WriteErrLine(string.Format(Resources.LrScenarioTimeOut, _stopWatch.Elapsed.Seconds));
-                    errorReason = string.Format(Resources.LrScenarioTimeOut, _stopWatch.Elapsed.Seconds);
                     break;
-                }
-
-                //checkForErrors();
-
-
-                //if (getErrorsCount(ERRORState.Error) > 0)
-                //{
-                //    //need to stop the scenario, there is an un ignorable error:
-                //    break;
-                //}
-
-                // if the end scenario event was not registered, 
-                if (!_scenarioEndedEvent)
-                {
-                    //if all Vusers are in ending state, scenario is finished.
-                    _scenarioEnded = isFinished();
                 }
             }
 
+            if (_stopWatch.Elapsed > _perScenarioTimeOutMinutes)
+            {
+                _stopWatch.Stop();
+                ConsoleWriter.WriteErrLine(string.Format(Resources.LrScenarioTimeOut, _stopWatch.Elapsed.Seconds));
+                errorReason = string.Format(Resources.LrScenarioTimeOut, _stopWatch.Elapsed.Seconds);
+            }
 
 
             if (_scenarioEndedEvent)
