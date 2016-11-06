@@ -161,67 +161,67 @@
 			</plugin>
 		</plugins>
 	</build>
-	<profiles>
-		<profile>
-			<id>jar-signing</id>
-			<build>
-				<defaultGoal>install</defaultGoal>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.7</version>
-						<executions>
-							<execution>
-								<id>default-cli</id>
-								<phase>post-integration-test</phase>
-								<configuration>
-									<target name="Sign">
-										<echo message="This is the file name:${file.name}"/>
-										<exec executable="/bin/bash" failonerror="true">
-											<arg value="/opt/HPCSS/HPSignClient/HPSign.sh"/>
-											<!--<arg value="-r jarAgm -c HPSign.conf -i /tmp/tmp/hp-integration-bridge-upgrade-windows.jar -o /tmp/tmp/Signed -obj jarfile_batch_sign_local_timestamp" />-->
-											<arg value="-r ${cert.project.name} -c HPSign.conf -i ${project.build.directory}/${file.name} -o ${original.folder} -obj ${matching.obj}"/>
-										</exec>
-									</target>
-								</configuration>
-								<goals>
-									<goal>run</goal>
-								</goals>
-							</execution>
-							<execution>
-								<id>copy signed jar to target</id>
-								<phase>post-integration-test</phase>
-								<configuration>
-									<target>
-										<copy file="${original.folder}/${file.name}"
-											  toFile="${project.build.directory}/${file.name}" overwrite="true"/>
-									</target>
-								</configuration>
-								<goals>
-									<goal>run</goal>
-								</goals>
-							</execution>
-							<execution>
-								<id>verify-signing</id>
-								<phase>post-integration-test</phase>
-								<configuration>
-									<target name="Verify sign">
-										<echo message="This is the file name:${file.name}"/>
-										<exec executable="/bin/bash" failonerror="true">
-											<arg value="-c"/>
-											<arg value="if /usr/bin/jarsigner -verify ${project.build.directory}/${file.name} | grep &apos;jar verified.&apos;; then echo THE JAR ${file.name} WAS SIGNED SUCCESSFULLY; exit 0; else echo THE BUILD FAILED BECAUSE JAR ${file.name} IS UNSIGNED; exit 1; fi"/>
-										</exec>
-									</target>
-								</configuration>
-								<goals>
-									<goal>run</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
+	<!--<profiles>-->
+		<!--&lt;!&ndash;<profile>&ndash;&gt;-->
+			<!--&lt;!&ndash;<id>jar-signing</id>&ndash;&gt;-->
+			<!--&lt;!&ndash;<build>&ndash;&gt;-->
+				<!--&lt;!&ndash;<defaultGoal>install</defaultGoal>&ndash;&gt;-->
+				<!--&lt;!&ndash;<plugins>&ndash;&gt;-->
+					<!--&lt;!&ndash;<plugin>&ndash;&gt;-->
+						<!--&lt;!&ndash;<groupId>org.apache.maven.plugins</groupId>&ndash;&gt;-->
+						<!--&lt;!&ndash;<artifactId>maven-antrun-plugin</artifactId>&ndash;&gt;-->
+						<!--&lt;!&ndash;<version>1.7</version>&ndash;&gt;-->
+						<!--&lt;!&ndash;<executions>&ndash;&gt;-->
+							<!--&lt;!&ndash;<execution>&ndash;&gt;-->
+								<!--&lt;!&ndash;<id>default-cli</id>&ndash;&gt;-->
+								<!--&lt;!&ndash;<phase>post-integration-test</phase>&ndash;&gt;-->
+								<!--&lt;!&ndash;<configuration>&ndash;&gt;-->
+									<!--&lt;!&ndash;<target name="Sign">&ndash;&gt;-->
+										<!--&lt;!&ndash;<echo message="This is the file name:${file.name}"/>&ndash;&gt;-->
+										<!--&lt;!&ndash;<exec executable="/bin/bash" failonerror="true">&ndash;&gt;-->
+											<!--&lt;!&ndash;<arg value="/opt/HPCSS/HPSignClient/HPSign.sh"/>&ndash;&gt;-->
+											<!--&lt;!&ndash;&lt;!&ndash;<arg value="-r jarAgm -c HPSign.conf -i /tmp/tmp/hp-integration-bridge-upgrade-windows.jar -o /tmp/tmp/Signed -obj jarfile_batch_sign_local_timestamp" />&ndash;&gt;&ndash;&gt;-->
+											<!--&lt;!&ndash;<arg value="-r ${cert.project.name} -c HPSign.conf -i ${project.build.directory}/${file.name} -o ${original.folder} -obj ${matching.obj}"/>&ndash;&gt;-->
+										<!--&lt;!&ndash;</exec>&ndash;&gt;-->
+									<!--&lt;!&ndash;</target>&ndash;&gt;-->
+								<!--&lt;!&ndash;</configuration>&ndash;&gt;-->
+								<!--&lt;!&ndash;<goals>&ndash;&gt;-->
+									<!--&lt;!&ndash;<goal>run</goal>&ndash;&gt;-->
+								<!--&lt;!&ndash;</goals>&ndash;&gt;-->
+							<!--&lt;!&ndash;</execution>&ndash;&gt;-->
+							<!--&lt;!&ndash;<execution>&ndash;&gt;-->
+								<!--&lt;!&ndash;<id>copy signed jar to target</id>&ndash;&gt;-->
+								<!--&lt;!&ndash;<phase>post-integration-test</phase>&ndash;&gt;-->
+								<!--&lt;!&ndash;<configuration>&ndash;&gt;-->
+									<!--&lt;!&ndash;<target>&ndash;&gt;-->
+										<!--&lt;!&ndash;<copy file="${original.folder}/${file.name}"&ndash;&gt;-->
+											  <!--&lt;!&ndash;toFile="${project.build.directory}/${file.name}" overwrite="true"/>&ndash;&gt;-->
+									<!--&lt;!&ndash;</target>&ndash;&gt;-->
+								<!--&lt;!&ndash;</configuration>&ndash;&gt;-->
+								<!--&lt;!&ndash;<goals>&ndash;&gt;-->
+									<!--&lt;!&ndash;<goal>run</goal>&ndash;&gt;-->
+								<!--&lt;!&ndash;</goals>&ndash;&gt;-->
+							<!--&lt;!&ndash;</execution>&ndash;&gt;-->
+							<!--&lt;!&ndash;<execution>&ndash;&gt;-->
+								<!--&lt;!&ndash;<id>verify-signing</id>&ndash;&gt;-->
+								<!--&lt;!&ndash;<phase>post-integration-test</phase>&ndash;&gt;-->
+								<!--&lt;!&ndash;<configuration>&ndash;&gt;-->
+									<!--&lt;!&ndash;<target name="Verify sign">&ndash;&gt;-->
+										<!--&lt;!&ndash;<echo message="This is the file name:${file.name}"/>&ndash;&gt;-->
+										<!--&lt;!&ndash;<exec executable="/bin/bash" failonerror="true">&ndash;&gt;-->
+											<!--&lt;!&ndash;<arg value="-c"/>&ndash;&gt;-->
+											<!--&lt;!&ndash;<arg value="if /usr/bin/jarsigner -verify ${project.build.directory}/${file.name} | grep &apos;jar verified.&apos;; then echo THE JAR ${file.name} WAS SIGNED SUCCESSFULLY; exit 0; else echo THE BUILD FAILED BECAUSE JAR ${file.name} IS UNSIGNED; exit 1; fi"/>&ndash;&gt;-->
+										<!--&lt;!&ndash;</exec>&ndash;&gt;-->
+									<!--&lt;!&ndash;</target>&ndash;&gt;-->
+								<!--&lt;!&ndash;</configuration>&ndash;&gt;-->
+								<!--&lt;!&ndash;<goals>&ndash;&gt;-->
+									<!--&lt;!&ndash;<goal>run</goal>&ndash;&gt;-->
+								<!--&lt;!&ndash;</goals>&ndash;&gt;-->
+							<!--&lt;!&ndash;</execution>&ndash;&gt;-->
+						<!--&lt;!&ndash;</executions>&ndash;&gt;-->
+					<!--&lt;!&ndash;</plugin>&ndash;&gt;-->
+				<!--&lt;!&ndash;</plugins>&ndash;&gt;-->
+			<!--&lt;!&ndash;</build>&ndash;&gt;-->
+		<!--&lt;!&ndash;</profile>&ndash;&gt;-->
+	<!--</profiles>-->
 </project>
