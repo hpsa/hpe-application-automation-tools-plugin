@@ -53,9 +53,9 @@
 	</properties>
 
 	<modules>
+		<module>bamboo</module>
 		<module>jenkins</module>
 		<module>teamcity</module>
-		<module>bamboo</module>
 		<module>mqm-client</module>
 		<module>collection-tool</module>
 		<module>nga-surefire-listener</module>
