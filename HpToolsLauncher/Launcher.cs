@@ -364,10 +364,12 @@ namespace HpToolsLauncher
                     List<string> ignoreErrorStrings = new List<string>();
                     if (_ciParams.ContainsKey("ignoreErrorStrings"))
                     {
-                        ignoreErrorStrings.AddRange(_ciParams["ignoreErrorStrings"].Split(delim, StringSplitOptions.RemoveEmptyEntries));
+                        if (_ciParams.ContainsKey("ignoreErrorStrings"))
+                        {
+                            ignoreErrorStrings.AddRange(Array.ConvertAll(_ciParams["ignoreErrorStrings"].Split(delim, StringSplitOptions.RemoveEmptyEntries), ignoreError => ignoreError.Trim()));
+                        }
                     }
 
-                    
                     if (tests == null || tests.Count() == 0)
                     {
                         WriteToConsole(Resources.LauncherNoTestsFound);
