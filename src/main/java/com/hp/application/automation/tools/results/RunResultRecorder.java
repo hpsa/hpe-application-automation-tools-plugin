@@ -82,10 +82,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import static com.hp.application.automation.tools.results.projectparser.performance.XmlParserUtil.getNode;
 import static com.hp.application.automation.tools.results.projectparser.performance.XmlParserUtil.getNodeAttr;
@@ -213,9 +213,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             LrJobResults jobDataSet = null;
             try {
                 jobDataSet = buildJobDataset(listener);
-            } catch (ParserConfigurationException e) {
-                listener.error(ARCHIVING_TEST_REPORTS_FAILED_DUE_TO_XML_PARSING_ERROR + e);
-            } catch (SAXException e) {
+            } catch (ParserConfigurationException | SAXException e) {
                 listener.error(ARCHIVING_TEST_REPORTS_FAILED_DUE_TO_XML_PARSING_ERROR + e);
             }
 
@@ -1038,7 +1036,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 continue;
             }
             Element transaction = (Element) transactionNodes.item(transIdx);
-            HashMap<String, Integer> transactionData = new HashMap<String, Integer>(0);
+            TreeMap<String, Integer> transactionData = new TreeMap<String, Integer>();
             transactionData.put("Pass", Integer.valueOf(transaction.getAttribute("Pass")));
             transactionData.put("Fail", Integer.valueOf(transaction.getAttribute("Fail")));
             transactionData.put("Stop", Integer.valueOf(transaction.getAttribute("Stop")));

@@ -26,16 +26,18 @@ package com.hp.application.automation.tools.results.projectparser.performance;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 
 public class ProjectLrResults extends LrRunResults {
-    private Map<String, LrProjectScenarioResults> _scenarioResults;
+    private SortedMap<String, LrProjectScenarioResults> _scenarioResults;
 
     public ProjectLrResults() {
-        _scenarioResults = new HashMap<String, LrProjectScenarioResults>();
+        _scenarioResults = new TreeMap<String, LrProjectScenarioResults>();
     }
 
-    public Map<String, LrProjectScenarioResults> getScenarioResults() {
+    public SortedMap<String, LrProjectScenarioResults> getScenarioResults() {
         return _scenarioResults;
     }
 
