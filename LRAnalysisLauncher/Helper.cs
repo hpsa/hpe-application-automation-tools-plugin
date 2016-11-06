@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using Analysis.Api;
 using Analysis.ApiLib;
+using Analysis.ApiLib.Dimensions;
 using HpToolsLauncher;
 using LRAnalysisLauncher.Properties;
 
@@ -44,19 +45,22 @@ namespace LRAnalysisLauncher
 
             try
             {
-                ConsoleWriter.WriteLine("Counting vUser Results for this scenario");
+                Console.Write("Counting vUser Results for this scenario from ");
                 FilterItem filterDimensionVUser;
                 FilterItem item;
                 Series vuserRanSeries;
                 vUserGraph.Filter.Reset();
+                Console.Write(vUserGraph.Name);
                 if (vUserGraph.Filter.TryGetValue("Vuser Status", out filterDimensionVUser) &&
                     vUserGraph.Filter.TryGetValue("Vuser End Status", out item))
                 {
                     filterDimensionVUser.ClearValues();
                     item.ClearValues();
-                    foreach (var vUserEndStatus in item.AvailableValues.DiscreteValues)
+                    Console.Write(" by ");
+                    foreach (string vUserEndStatus in item.AvailableValues.DiscreteValues)
                     {
                         item.ClearValues();
+                        Console.Write(vUserEndStatus + " ");
                         item.AddDiscreteValue(vUserEndStatus);
                         vUserGraph.ApplyFilterAndGroupBy();
                         if (vUserGraph.Series.TryGetValue("Run", out vuserRanSeries))
@@ -73,6 +77,7 @@ namespace LRAnalysisLauncher
                             vuserDictionary[vUserEndStatus] = (int)Math.Round(vUserTypeMax);
                         }
                     }
+                    Console.WriteLine("");
                 }
 
                 ConsoleWriter.WriteLine("Getting maximum ran vUsers this scenarion");
