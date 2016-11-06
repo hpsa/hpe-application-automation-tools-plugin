@@ -7,8 +7,11 @@
 
 .ct-chart {
     margin: 10px 0 0 30px;
-    height: 600px;
+    /*height: 600px;*/
     /*width: 750px;*/
+      color: rgb(239, 239, 239);
+      width: 80.7%;
+      height: 52.3%;
 }
 
 .ct-chart-seprator

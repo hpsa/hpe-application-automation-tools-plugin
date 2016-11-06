@@ -2,19 +2,29 @@
   position: relative;
   display: inline-block;
   opacity: 0;
-  min-width: 5em;
-  padding: .5em;
-  background: #F4C63D;
-  color: #453D3F;
-  font-family: Oxygen,Helvetica,Arial,sans-serif;
-  font-weight: 700;
-  text-align: center;
+  /*min-width: 5em;*/
+  /*padding: .5em;*/
+  /*color: #453D3F;*/
+  /*font-family: Oxygen,Helvetica,Arial,sans-serif;*/
+  /*font-weight: 700;*/
+  /*text-align: center;*/
   pointer-events: none;
   z-index: 1;
   -webkit-transition: opacity .2s linear;
   -moz-transition: opacity .2s linear;
   -o-transition: opacity .2s linear;
-  transition: opacity .2s linear; }
+  transition: opacity .2s linear;
+  background-color: #efefef;
+  box-shadow: 0px 3px 7px 0px rgba(0, 0, 0, 0.17);
+  width: 118px;
+  height: 78px;
+  font-family: Metric;
+  color: #333333;
+  font-size: 19px; /* Approximation due to font substitution */
+  font-weight: 300;
+  line-height: 88px; /* Approximation due to font substitution */
+  text-align: center;
+}
   .chartist-tooltip:before {
     content: "";
     position: absolute;
@@ -24,7 +34,8 @@
     height: 0;
     margin-left: -15px;
     border: 15px solid transparent;
-    border-top-color: #F4C63D; }
+    border-top-color: #efefef;
+  }
   .chartist-tooltip.tooltip-show {
     opacity: 1; }
 
