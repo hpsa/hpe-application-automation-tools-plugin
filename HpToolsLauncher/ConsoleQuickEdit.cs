@@ -38,9 +38,15 @@ namespace HpToolsLauncher
             IntPtr consoleHandle = GetStdHandle(STD_INPUT_HANDLE);
             // get current console mode
             uint consoleMode;
-            if (!GetCurrentConsoleMode(consoleHandle, out consoleMode)) return false;
+            if (!GetCurrentConsoleMode(consoleHandle, out consoleMode))
+            {
+                return false;
+            }
             consoleMode &= ENABLE_QUICK_EDIT_FLAG;
-            if (!SetNewConsoleMode(consoleHandle, consoleMode)) return false;
+            if (!SetNewConsoleMode(consoleHandle, consoleMode))
+            {
+                return false;
+            }
             return true;
         }
 
@@ -48,11 +54,18 @@ namespace HpToolsLauncher
         public static bool Disable()
         {
             IntPtr consoleHandle = GetStdHandle(STD_INPUT_HANDLE);
-            // get current console mode
+            //Get current console mode
             uint consoleMode;
-            if (!GetCurrentConsoleMode(consoleHandle, out consoleMode)) return false;
+            if (!GetCurrentConsoleMode(consoleHandle, out consoleMode))
+            {
+                return false;
+            }
             consoleMode &= ~ENABLE_QUICK_EDIT_FLAG;
-            if (!SetNewConsoleMode(consoleHandle, consoleMode)) return false;
+            //Set new console mode
+            if (!SetNewConsoleMode(consoleHandle, consoleMode))
+            {
+                return false;
+            }
             return true;
         }
 

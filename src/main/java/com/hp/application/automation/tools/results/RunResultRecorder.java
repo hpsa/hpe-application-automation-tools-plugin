@@ -546,7 +546,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             write2XML(doc, xmlFile);
         } catch (TransformerException e) {
             _logger.error("Failed transforming xml file: " + e);
-            e.printStackTrace();
         } catch (FileNotFoundException e) {
             _logger.error("Failed to find " + xmlFile + ": " + e);
         }

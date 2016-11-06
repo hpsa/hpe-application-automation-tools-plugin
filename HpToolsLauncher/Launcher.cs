@@ -572,9 +572,11 @@ namespace HpToolsLauncher
 
                 foreach (var testRun in results.TestRuns)
                 {
-                    if (testRun.FatalErrors <= 0 || testRun.TestPath.Equals("")) continue;
-                    Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
-                    break;
+                    if (testRun.FatalErrors > 0 && !testRun.TestPath.Equals(""))
+                    {
+                        Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
+                        break;
+                    }
                 }
 
                 //this is the total run summary
@@ -595,6 +597,7 @@ namespace HpToolsLauncher
                         runStatus = "Job failed";
                         break;
                     default:
+                        runStatus = "Error: Job status is Undefined";
                         break;
                 }
 

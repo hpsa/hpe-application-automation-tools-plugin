@@ -980,7 +980,10 @@ namespace HpToolsLauncher
         /// </summary>
         public void Start()
         {
-            if (_milliSeconds < 1) return;
+            if (_milliSeconds < 1)
+            {
+                return;
+            }
             DateTime desired = DateTime.Now.AddMilliseconds(_milliSeconds);
             var a = 0;
             while (DateTime.Now < desired)
