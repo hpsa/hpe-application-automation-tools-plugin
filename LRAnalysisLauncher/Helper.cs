@@ -63,7 +63,7 @@ namespace LRAnalysisLauncher
                         Console.Write(vUserEndStatus + " ");
                         item.AddDiscreteValue(vUserEndStatus);
                         vUserGraph.ApplyFilterAndGroupBy();
-                        if (vUserGraph.Series.TryGetValue("Run", out vuserRanSeries))
+                        if (vUserGraph.Series.TryGetValue("Quit", out vuserRanSeries))
                         {
                             if (!vuserRanSeries.GraphStatistics.IsFunctionAvailable(StatisticsFunctionKind.Maximum))
                             {
