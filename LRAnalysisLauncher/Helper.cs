@@ -34,7 +34,6 @@ namespace LRAnalysisLauncher
                 return vuserDictionary;
             }
 
-            //FilterItem filterDimension = vUserGraph.Filter["Vuser End Status"];
             List<String> vUserStates = new List<String>()
             {
                 {"Passed"},
@@ -45,14 +44,16 @@ namespace LRAnalysisLauncher
             ConsoleWriter.WriteLine("Counting vUser Results for this scenario");
             foreach (Series vUserType in vUserGraph.Series)
             {
-                //filterDimension.ClearValues();
-                //filterDimension.AddDiscreteValue(vUserType.Name);
-                //vUserGraph.ApplyFilterAndGroupBy();
-                double vUserTypeMax = vUserType.GraphStatistics.Maximum;
-                if (!HasValue(vUserTypeMax)){
+                if (!vUserType.GraphStatistics.IsFunctionAvailable(StatisticsFunctionKind.Maximum))
+                {
                     continue;
                 }
-                
+                double vUserTypeMax = vUserType.GraphStatistics.Maximum;
+                if (!HasValue(vUserTypeMax))
+                {
+                    continue;
+                }
+
                 vuserDictionary[vUserType.Name] = (int)Math.Round(vUserTypeMax);
             }
 
@@ -63,24 +64,19 @@ namespace LRAnalysisLauncher
                 return vuserDictionary;
             }
             vUserStateGraph.Granularity = 4;
-            FilterItem filterDimensionVUser = vUserStateGraph.Filter["Vuser Status"];
-            foreach (Series vUserType in vUserStateGraph.Series)
+            FilterItem filterDimensionVUser;
+            Series vuserRanSeries;
+            if (vUserStateGraph.Filter.TryGetValue("Vuser Status", out filterDimensionVUser) && vUserStateGraph.Series.TryGetValue("Run", out vuserRanSeries))
             {
-                if (vUserType.Name.Equals("Run"))
+                filterDimensionVUser.ClearValues();
+                vUserGraph.ApplyFilterAndGroupBy();
+                double vUserMax = vuserRanSeries.GraphStatistics.Maximum;
+                if (!HasValue(vUserMax))
                 {
-                    filterDimensionVUser.ClearValues();
-                    //filterDimensionVUser.AddDiscreteValue("Run");
-                    vUserGraph.ApplyFilterAndGroupBy();
-                    double vUserMax = vUserType.GraphStatistics.Maximum;
-                    if (!HasValue(vUserMax))
-                    {
-                        vUserMax = -1;
-                    }
-                    vuserDictionary.Add("MaxVuserRun", (int)Math.Round(vUserMax));
-                    ConsoleWriter.WriteLine(String.Format("{0} maximum vUser ran per {1} seconds", vUserMax, vUserStateGraph.Granularity));
-
-                    break;
+                    vUserMax = -1;
                 }
+                vuserDictionary.Add("MaxVuserRun", (int)Math.Round(vUserMax));
+                ConsoleWriter.WriteLine(String.Format("{0} maximum vUser ran per {1} seconds", vUserMax, vUserStateGraph.Granularity));
             }
             return vuserDictionary;
         }
