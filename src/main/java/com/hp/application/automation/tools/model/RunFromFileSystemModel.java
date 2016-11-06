@@ -564,7 +564,7 @@ public class RunFromFileSystemModel {
             int i = 1;
 
             for (String test : testsArr) {
-                test.trim();
+                test = test.trim();
                 props.put("Test" + i, test);
                 i++;
             }
