@@ -190,6 +190,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         for (String resultFile : mergedResultNames) {
             JUnitResultArchiver jUnitResultArchiver = new JUnitResultArchiver(resultFile);
             jUnitResultArchiver.setKeepLongStdio(true);
+            jUnitResultArchiver.setAllowEmptyResults(true);
             jUnitResultArchiver.perform(build, workspace, launcher, listener);
         }
 
