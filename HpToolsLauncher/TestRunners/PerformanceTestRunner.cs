@@ -263,7 +263,7 @@ namespace HpToolsLauncher.TestRunners
             runDesc.Runtime = scenarioStopWatch.Elapsed;
             if (!string.IsNullOrEmpty(errorReason))
                 runDesc.ErrorDesc = errorReason;
-            closeController_Kill();
+            KillController();
             return runDesc;
         }
 
@@ -580,10 +580,6 @@ namespace HpToolsLauncher.TestRunners
                                 "\t\tFailed to close Controller with CloseController API function, rc: " + rc);
                         }
                     }
-
-                    //give the controller 15 secs to shutdown. otherwise, print an error.
-                    Stopper controllerStopper = new Stopper(15000);
-                    controllerStopper.Start();
 
                     if (_engine != null)
                     {

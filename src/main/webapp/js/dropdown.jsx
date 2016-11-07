@@ -272,21 +272,21 @@ class ScenarioTable extends React.Component{
 
     render() {
         const tableId = this.props.scenarioKey + '_table'
-        const time = this.props.scenData.AvgScenarioDuration.AvgDuration;
+        // const time = this.props.scenData.AvgScenarioDuration.AvgDuration;
 
-        const days = Math.floor(time / 86400);
-        const hours = Math.floor((time - (86400 * days)) / 3600);
-        const minutes = Math.floor((time - (3600 * hours)) / 60);
-        const seconds = Math.floor(time - (60 * minutes));
+        // const days = Math.floor(time / 86400);
+        // const hours = Math.floor((time - (86400 * days)) / 3600);
+        // const minutes = Math.floor((time - (3600 * hours)) / 60);
+        // const seconds = Math.floor(time - (60 * minutes));
 
         return (<div id={this.props.scenarioKey} className='scenario-stats'>
             <table className="st-table">
                 <thead className="st-table-head">
                     <tr className="st-table-row">
-                        <th className="st-table-header">
-                            Average duration
-                            (Days:Hours:Min:Sec)
-                        </th>
+                        {/*<th className="st-table-header">*/}
+                            {/*Average duration*/}
+                            {/*(Days:Hours:Min:Sec)*/}
+                        {/*</th>*/}
                         <th className="st-table-header">
                             Average total transaction state
                         </th>
@@ -300,9 +300,9 @@ class ScenarioTable extends React.Component{
                 </thead>
                 <tbody className="st-table-body">
                     <tr className="st-table-row">
-                        <td className="st-table-cell">
-                            {days}:{hours}:{minutes}:{seconds}
-                        </td>
+                        {/*<td className="st-table-cell">*/}
+                            {/*{days}:{hours}:{minutes}:{seconds}*/}
+                        {/*</td>*/}
                         <td className = "st-table-cell">
                             <td className = "st-table-inner-cell">
                                 <img src="/plugin/hp-application-automation-tools-plugin/icons/16x16/passed.png" alt="Passed:"/>
