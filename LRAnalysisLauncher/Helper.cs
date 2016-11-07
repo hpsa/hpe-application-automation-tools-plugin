@@ -114,23 +114,22 @@ namespace LRAnalysisLauncher
         /// </summary>
         /// <returns>Transactions by status</returns>
         public static Dictionary<string, Dictionary<string, double>> CalcFailedTransPercent(LrAnalysis lrAnalysis)
-        { 
-          
+        {
+            var transDictionary = new Dictionary<string, Dictionary<string, double>>();
+            Console.WriteLine("Adding Transaction statistics");
             var transactionGraph = lrAnalysis.Session.OpenGraph("TransactionSummary");
-
-            foreach (FilterItem fi in transactionGraph.Filter)
+            if (transactionGraph == null)
             {
-                fi.ClearValues();
-                fi.IsActive = false;
-                transactionGraph.ApplyFilterAndGroupBy();
+                return transDictionary;
+            }
+            transactionGraph.Filter.Reset();
+            transactionGraph.Granularity = 4;
+            FilterItem filterDimension;
+            if (!transactionGraph.Filter.TryGetValue("Transaction End Status", out filterDimension))
+            {
+                return transDictionary;
             }
 
-
-            var transDictionary = new Dictionary<string, Dictionary<string, double> > () ;
-
-            transactionGraph.Granularity = 4;
-            
-            var filterDimension = transactionGraph.Filter["Transaction End Status"];
             foreach (var series in transactionGraph.Series)
             {
                 SeriesAttributeValue a;

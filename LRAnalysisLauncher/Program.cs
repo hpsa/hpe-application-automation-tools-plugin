@@ -154,7 +154,6 @@ namespace LRAnalysisLauncher
                     general.AppendChild(vUsers);
 
                     XmlElement transactions = runReprotDoc.CreateElement("Transactions");
-                    log("Adding Transaction statistics");
                     Dictionary<string, double> transactionSumStatusDictionary = new Dictionary<string, double>()
                     {
                         {"Count", 0},
