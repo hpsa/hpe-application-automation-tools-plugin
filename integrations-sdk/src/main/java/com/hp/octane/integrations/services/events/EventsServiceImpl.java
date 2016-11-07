@@ -25,7 +25,6 @@ import java.util.Map;
  * User: gullery
  * Date: 31/08/14
  * Time: 14:07
- * To change this template use File | Settings | File Templates.
  */
 
 public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements EventsService {
