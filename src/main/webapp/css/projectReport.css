@@ -1,21 +1,21 @@
 .st-table{
-    /*margin-top: 20px;*/
-    /*border: 1px solid #cecece;*/
-    /*height: 100%;*/
-    /*width: 100%;*/
-    /*border-collapse: collapse;*/
-    /*font-family: "Lucida Console", Courier, monospace;*/
-    /*padding: 0px;*/
-    background-color: #efefef;
-    width: 81.5%;
-    height: 11.6%;
+    margin-top: 20px;
+    border: 1px solid #cecece;
+    height: 100%;
+    width: 100%;
+    border-collapse: collapse;
+    font-family: "Lucida Console", Courier, monospace;
+    padding: 0px;
 }
 
 .st-table-head{
-
+    padding: 30px;
 }
 
 .st-table-row{
+    border-collapse: collapse;
+    vertical-align: center;
+    font-family: "Lucida Console", Courier, monospace;
 }
 
 
@@ -24,48 +24,31 @@
 }
 
 .st-table-header{
-    /*border-collapse: collapse;*/
-/*border-right: 1px solid #cecece;*/
-/*font-family: Metric;*/
-/*color: rgba(47, 47, 47, 0.5);*/
-/*font-size: 14px; !* Approximation due to font substitution *!*/
-/*font-weight: 400;*/
-/*line-height: 88px; !* Approximation due to font substitution *!*/
-/*text-align: left;*/
-    background-color: #efefef;
-    width: 81.5%;
-    height: 11.6%;
-    font-family: Metric;
-    color: rgba(47, 47, 47, 0.5);
-    font-size: 14px; /* Approximation due to font substitution */
-    font-weight: 400;
-    line-height: 88px; /* Approximation due to font substitution */
-    text-align: left;
+    text-align: center;
+    height: 20px;
+    border-collapse: collapse;
+    border-right: 1px solid #cecece;
+    padding: 10px 10px 0;
 }
 
 .st-table-cell{
-    /*height: 40px;*/
-    /*text-align: center;*/
-    /*vertical-align: middle;*/
-    /*border-collapse: collapse;*/
-    /*border-right: 1px solid #cecece;*/
-    /*font-family: "Lucida Console", Courier, monospace;*/
-    /*font-size: 24px;*/
-    /*padding: 8px;*/
-    /*color: #757575;*/
-    font-family: Metric;
-    color: rgba(0, 0, 0, 0.9);
-    font-size: 25px; /* Approximation due to font substitution */
-    font-weight: 400;
-    line-height: 88px; /* Approximation due to font substitution */
-    text-align: left;
+    height: 40px;
+    text-align: center;
+    vertical-align: middle;
+    border-collapse: collapse;
+    border-right: 1px solid #cecece;
+    font-family: "Lucida Console", Courier, monospace;
+    font-size: 24px;
+    padding: 8px;
+    color: #757575;
 }
 
 .st-table-inner-cell{
-    font-family: Metric;
-    color: rgba(0, 0, 0, 0.9);
-    font-size: 25px; /* Approximation due to font substitution */
-    font-weight: 400;
-    line-height: 88px; /* Approximation due to font substitution */
-    text-align: left;
+    height: 40px;
+    text-align: center;
+    vertical-align: middle;
+    font-family: "Lucida Console", Courier, monospace;
+    font-size: 24px;
+    padding: 8px;
+    color: #757575;
 }

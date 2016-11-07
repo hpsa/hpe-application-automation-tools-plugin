@@ -247,11 +247,6 @@ namespace HpToolsLauncher.TestRunners
                         runDesc.TestState = TestState.Passed;
                     }
 
-
-
-
-
-
                 }
                 catch (Exception e)
                 {
@@ -268,7 +263,7 @@ namespace HpToolsLauncher.TestRunners
             runDesc.Runtime = scenarioStopWatch.Elapsed;
             if (!string.IsNullOrEmpty(errorReason))
                 runDesc.ErrorDesc = errorReason;
-            closeController();
+            closeController_Kill();
             return runDesc;
         }
 
@@ -552,7 +547,6 @@ namespace HpToolsLauncher.TestRunners
                             ConsoleWriter.WriteErrLine("\t\tThe Controller is still running...");
                             Stopper wlrunStopper = new Stopper(10000);
                             wlrunStopper.Start();
-                            KillController();
                             return;
                         }
                     }
@@ -569,7 +563,53 @@ namespace HpToolsLauncher.TestRunners
             _engine = null;
         }
 
+        private void closeController_Kill()
+        {
+            //try to gracefully shut down the controller
+            if (_engine != null)
+            {
+                try
+                {
+                    var process = Process.GetProcessesByName("Wlrun");
+                    if (process.Length > 0)
+                    {
+                        int rc = _engine.CloseController();
+                        if (rc != 0)
+                        {
+                            ConsoleWriter.WriteErrLine(
+                                "\t\tFailed to close Controller with CloseController API function, rc: " + rc);
+                        }
+                    }
 
+                    //give the controller 15 secs to shutdown. otherwise, print an error.
+                    Stopper controllerStopper = new Stopper(15000);
+                    controllerStopper.Start();
+
+                    if (_engine != null)
+                    {
+
+                        process = Process.GetProcessesByName("Wlrun");
+                        if (process.Length > 0)
+                        {
+                            ConsoleWriter.WriteErrLine("\t\tThe Controller is still running...");
+                            Stopper wlrunStopper = new Stopper(10000);
+                            wlrunStopper.Start();
+                            KillController();
+                            return;
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    ConsoleWriter.WriteErrLine("\t\t Cannot close Controller gracefully, exception details:");
+                    ConsoleWriter.WriteErrLine(e.Message);
+                    ConsoleWriter.WriteErrLine(e.StackTrace);
+                    ConsoleWriter.WriteErrLine("killing Controller process");
+                    cleanENV();
+                }
+            }
+            _engine = null;
+        }
 
         void DoTask(Object state)
         {
