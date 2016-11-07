@@ -89,10 +89,10 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
 			} else {
 				result.setStatus(404);
 			}
-		} catch (PermissionException jenkinsRequestException) {
-			logger.warn("task execution failed; error: " + jenkinsRequestException.getErrorCode());
-			result.setStatus(jenkinsRequestException.getErrorCode());
-			result.setBody(String.valueOf(jenkinsRequestException.getErrorCode()));
+		} catch (PermissionException pe) {
+			logger.warn("task execution failed; error: " + pe.getErrorCode());
+			result.setStatus(pe.getErrorCode());
+			result.setBody(String.valueOf(pe.getErrorCode()));
 		} catch (ConfigurationException ce) {
 			logger.warn("task execution failed; error: " + ce.getErrorCode());
 			result.setStatus(404);
