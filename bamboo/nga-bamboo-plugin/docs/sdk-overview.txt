@@ -1,3 +1,5 @@
+PLUGIN README
+
 plugin init
   if uuid does not exist, create it and persist it
   init the SDK
@@ -16,4 +18,5 @@ PipelineNode
   plugin is sending IDs known by the CI server
 parametrized run is out of scope, runPipeline originalBody is null
 getHistoryPipeline is postponed, so does not need an implementation
+
 
