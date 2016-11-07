@@ -132,8 +132,13 @@ namespace LRAnalysisLauncher
                     durationElement.SetAttribute("Start", "-1");
                     durationElement.SetAttribute("Duration", "-1");
                     Run currentRun;
+
+                    Stopper stopper = new Stopper(5000);
+                    stopper.Start();
                     if (analysis.Session.Runs.TryGetValue("0", out currentRun))
                     {
+                        stopper.Start();
+                        log("Gathering Duration statistics");
                         DateTime startTime = Helper.FromUnixTime(currentRun.StartTime);
                         DateTime endTime = Helper.FromUnixTime(currentRun.EndTime);
                         durationElement.SetAttribute("End", endTime.ToString());
