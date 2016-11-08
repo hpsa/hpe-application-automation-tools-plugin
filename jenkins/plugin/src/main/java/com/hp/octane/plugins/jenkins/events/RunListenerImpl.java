@@ -35,7 +35,6 @@ import java.util.concurrent.TimeUnit;
  * User: gullery
  * Date: 24/08/14
  * Time: 17:21
- * To change this template use File | Settings | File Templates.
  */
 
 @Extension
