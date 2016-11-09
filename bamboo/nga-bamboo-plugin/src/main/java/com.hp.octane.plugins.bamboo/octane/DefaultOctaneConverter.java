@@ -327,6 +327,7 @@ public class DefaultOctaneConverter implements DTOConverter {
 			scmData = DTOFactory.getInstance().newDTO(SCMData.class);
 			scmData.setCommits(scmCommitList);
 			scmData.setRepository(scmRepository);
+			scmData.setBuiltRevId(buildContext.getBuildResultKey());
 		}
 		return scmData;
 	}
