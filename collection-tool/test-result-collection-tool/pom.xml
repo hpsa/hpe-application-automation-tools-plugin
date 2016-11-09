@@ -131,119 +131,119 @@
             </plugin>
         </plugins>
     </build>
-	<profiles>
-		<profile>
-			<id>jar-signing</id>
-			<build>
-				<defaultGoal>install</defaultGoal>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.7</version>
-						<executions>
-                            <!-- one-jar -->
-							<execution>
-								<id>default-cli</id>
-								<phase>pre-integration-test</phase>
-								<configuration>
-									<target name="Sign">
-										<echo message="This is the file name:${file.name}" />
-										<exec executable="/bin/bash" failonerror="true">
-											<arg value="/opt/HPCSS/HPSignClient/HPSign.sh"/>
-											<!--<arg value="-r jarAgm -c HPSign.conf -i /tmp/tmp/hp-integration-bridge-upgrade-windows.jar -o /tmp/tmp/Signed -obj jarfile_batch_sign_local_timestamp" />-->
-											<arg value="-r ${cert.project.name} -c HPSign.conf -i ${project.build.directory}/${file.name} -o ${original.folder} -obj ${matching.obj}" />							 
-										</exec>
-									</target>
-								</configuration>
-								<goals>
-									<goal>run</goal>
-								</goals>
-							</execution>
-							<execution>
-								<id>copy signed jar to target</id>
-								<phase>pre-integration-test</phase>
-								<configuration>
-									<target>
-										<copy file="${original.folder}/${file.name}" toFile="${project.build.directory}/${file.name}"
-                                              overwrite="true">
-										</copy>
-									</target>
-								</configuration>
-								<goals>
-									<goal>run</goal>
-								</goals>
-							</execution>
-							<execution>
-								<id>verify-signing</id>
-								<phase>post-integration-test</phase>
-								<configuration>
-									<target name="Verify sign">
-										<echo message="This is the file name:${file.name}" />
-										<exec executable="/bin/bash" failonerror="true">
-											<arg value="-c"/>
-											<arg value="if /usr/bin/jarsigner -verify ${project.build.directory}/${file.name} | grep 'jar verified.'; then echo THE JAR ${file.name} WAS SIGNED SUCCESSFULLY; exit 0; else echo THE BUILD FAILED BECAUSE JAR ${file.name} IS UNSIGNED; exit 1; fi"/>										
-										</exec>
-									</target>
-								</configuration>
-								<goals>
-									<goal>run</goal>
-								</goals>
-							</execution>
-                            <!-- shade -->
-                            <execution>
-                                <id>default-shade-cli</id>
-                                <phase>pre-integration-test</phase>
-                                <configuration>
-                                    <target name="SignShade">
-                                        <echo message="This is the shade file name: ${shade.file.name.with.jar}" />
-                                        <exec executable="/bin/bash" failonerror="true">
-                                            <arg value="/opt/HPCSS/HPSignClient/HPSign.sh"/>
-                                            <!--<arg value="-r jarAgm -c HPSign.conf -i /tmp/tmp/hp-integration-bridge-upgrade-windows.jar -o /tmp/tmp/Signed -obj jarfile_batch_sign_local_timestamp" />-->
-                                            <arg value="-r ${cert.project.name} -c HPSign.conf -i ${project.build.directory}/${shade.file.name.with.jar} -o ${original.folder} -obj ${matching.obj}" />
-                                        </exec>
-                                    </target>
-                                </configuration>
-                                <goals>
-                                    <goal>run</goal>
-                                </goals>
-                            </execution>
-                            <execution>
-                                <id>copy shade signed jar to target</id>
-                                <phase>pre-integration-test</phase>
-                                <configuration>
-                                    <target>
-                                        <copy file="${original.folder}/${shade.file.name.with.jar}" toFile="${project.build.directory}/${shade.file.name.with.jar}"
-                                              overwrite="true">
-                                        </copy>
-                                    </target>
-                                </configuration>
-                                <goals>
-                                    <goal>run</goal>
-                                </goals>
-                            </execution>
-                            <execution>
-                                <id>verify-shade-signing</id>
-                                <phase>post-integration-test</phase>
-                                <configuration>
-                                    <target name="Verify shade sign">
-                                        <echo message="This is the file name: ${shade.file.name.with.jar}" />
-                                        <exec executable="/bin/bash" failonerror="true">
-                                            <arg value="-c"/>
-                                            <arg value="if /usr/bin/jarsigner -verify ${project.build.directory}/${shade.file.name.with.jar} | grep 'jar verified.'; then echo THE JAR ${shade.file.name.with.jar} WAS SIGNED SUCCESSFULLY; exit 0; else echo THE BUILD FAILED BECAUSE JAR ${shade.file.name.with.jar} IS UNSIGNED; exit 1; fi"/>
-                                        </exec>
-                                    </target>
-                                </configuration>
-                                <goals>
-                                    <goal>run</goal>
-                                </goals>
-                            </execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>						
-		</profile>
-	</profiles>
+	<!--<profiles>-->
+		<!--<profile>-->
+			<!--<id>jar-signing</id>-->
+			<!--<build>-->
+				<!--<defaultGoal>install</defaultGoal>-->
+				<!--<plugins>-->
+					<!--<plugin>-->
+						<!--<groupId>org.apache.maven.plugins</groupId>-->
+						<!--<artifactId>maven-antrun-plugin</artifactId>-->
+						<!--<version>1.7</version>-->
+						<!--<executions>-->
+                            <!--&lt;!&ndash; one-jar &ndash;&gt;-->
+							<!--<execution>-->
+								<!--<id>default-cli</id>-->
+								<!--<phase>pre-integration-test</phase>-->
+								<!--<configuration>-->
+									<!--<target name="Sign">-->
+										<!--<echo message="This is the file name:${file.name}" />-->
+										<!--<exec executable="/bin/bash" failonerror="true">-->
+											<!--<arg value="/opt/HPCSS/HPSignClient/HPSign.sh"/>-->
+											<!--&lt;!&ndash;<arg value="-r jarAgm -c HPSign.conf -i /tmp/tmp/hp-integration-bridge-upgrade-windows.jar -o /tmp/tmp/Signed -obj jarfile_batch_sign_local_timestamp" />&ndash;&gt;-->
+											<!--<arg value="-r ${cert.project.name} -c HPSign.conf -i ${project.build.directory}/${file.name} -o ${original.folder} -obj ${matching.obj}" />-->
+										<!--</exec>-->
+									<!--</target>-->
+								<!--</configuration>-->
+								<!--<goals>-->
+									<!--<goal>run</goal>-->
+								<!--</goals>-->
+							<!--</execution>-->
+							<!--<execution>-->
+								<!--<id>copy signed jar to target</id>-->
+								<!--<phase>pre-integration-test</phase>-->
+								<!--<configuration>-->
+									<!--<target>-->
+										<!--<copy file="${original.folder}/${file.name}" toFile="${project.build.directory}/${file.name}"-->
+                                              <!--overwrite="true">-->
+										<!--</copy>-->
+									<!--</target>-->
+								<!--</configuration>-->
+								<!--<goals>-->
+									<!--<goal>run</goal>-->
+								<!--</goals>-->
+							<!--</execution>-->
+							<!--<execution>-->
+								<!--<id>verify-signing</id>-->
+								<!--<phase>post-integration-test</phase>-->
+								<!--<configuration>-->
+									<!--<target name="Verify sign">-->
+										<!--<echo message="This is the file name:${file.name}" />-->
+										<!--<exec executable="/bin/bash" failonerror="true">-->
+											<!--<arg value="-c"/>-->
+											<!--<arg value="if /usr/bin/jarsigner -verify ${project.build.directory}/${file.name} | grep 'jar verified.'; then echo THE JAR ${file.name} WAS SIGNED SUCCESSFULLY; exit 0; else echo THE BUILD FAILED BECAUSE JAR ${file.name} IS UNSIGNED; exit 1; fi"/>-->
+										<!--</exec>-->
+									<!--</target>-->
+								<!--</configuration>-->
+								<!--<goals>-->
+									<!--<goal>run</goal>-->
+								<!--</goals>-->
+							<!--</execution>-->
+                            <!--&lt;!&ndash; shade &ndash;&gt;-->
+                            <!--<execution>-->
+                                <!--<id>default-shade-cli</id>-->
+                                <!--<phase>pre-integration-test</phase>-->
+                                <!--<configuration>-->
+                                    <!--<target name="SignShade">-->
+                                        <!--<echo message="This is the shade file name: ${shade.file.name.with.jar}" />-->
+                                        <!--<exec executable="/bin/bash" failonerror="true">-->
+                                            <!--<arg value="/opt/HPCSS/HPSignClient/HPSign.sh"/>-->
+                                            <!--&lt;!&ndash;<arg value="-r jarAgm -c HPSign.conf -i /tmp/tmp/hp-integration-bridge-upgrade-windows.jar -o /tmp/tmp/Signed -obj jarfile_batch_sign_local_timestamp" />&ndash;&gt;-->
+                                            <!--<arg value="-r ${cert.project.name} -c HPSign.conf -i ${project.build.directory}/${shade.file.name.with.jar} -o ${original.folder} -obj ${matching.obj}" />-->
+                                        <!--</exec>-->
+                                    <!--</target>-->
+                                <!--</configuration>-->
+                                <!--<goals>-->
+                                    <!--<goal>run</goal>-->
+                                <!--</goals>-->
+                            <!--</execution>-->
+                            <!--<execution>-->
+                                <!--<id>copy shade signed jar to target</id>-->
+                                <!--<phase>pre-integration-test</phase>-->
+                                <!--<configuration>-->
+                                    <!--<target>-->
+                                        <!--<copy file="${original.folder}/${shade.file.name.with.jar}" toFile="${project.build.directory}/${shade.file.name.with.jar}"-->
+                                              <!--overwrite="true">-->
+                                        <!--</copy>-->
+                                    <!--</target>-->
+                                <!--</configuration>-->
+                                <!--<goals>-->
+                                    <!--<goal>run</goal>-->
+                                <!--</goals>-->
+                            <!--</execution>-->
+                            <!--<execution>-->
+                                <!--<id>verify-shade-signing</id>-->
+                                <!--<phase>post-integration-test</phase>-->
+                                <!--<configuration>-->
+                                    <!--<target name="Verify shade sign">-->
+                                        <!--<echo message="This is the file name: ${shade.file.name.with.jar}" />-->
+                                        <!--<exec executable="/bin/bash" failonerror="true">-->
+                                            <!--<arg value="-c"/>-->
+                                            <!--<arg value="if /usr/bin/jarsigner -verify ${project.build.directory}/${shade.file.name.with.jar} | grep 'jar verified.'; then echo THE JAR ${shade.file.name.with.jar} WAS SIGNED SUCCESSFULLY; exit 0; else echo THE BUILD FAILED BECAUSE JAR ${shade.file.name.with.jar} IS UNSIGNED; exit 1; fi"/>-->
+                                        <!--</exec>-->
+                                    <!--</target>-->
+                                <!--</configuration>-->
+                                <!--<goals>-->
+                                    <!--<goal>run</goal>-->
+                                <!--</goals>-->
+                            <!--</execution>-->
+						<!--</executions>-->
+					<!--</plugin>-->
+				<!--</plugins>-->
+			<!--</build>-->
+		<!--</profile>-->
+	<!--</profiles>-->
 
     <pluginRepositories>
         <pluginRepository>
