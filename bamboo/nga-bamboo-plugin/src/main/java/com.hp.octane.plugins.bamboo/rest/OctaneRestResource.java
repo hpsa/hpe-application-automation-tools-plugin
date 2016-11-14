@@ -43,18 +43,18 @@ public class OctaneRestResource {
             String apiSecret = dto.getApiSecret();
             String userName = dto.getUserName();
             if (octaneUrl == null || octaneUrl.isEmpty()) {
-                return "Octane Instance URL is required.";
+                return "Octane Instance URL is required";
             }
             if (accessKey == null || accessKey.isEmpty()) {
-                return "Access Key is required.";
+                return "Access Key is required";
             }
 
             if (apiSecret == null || apiSecret.isEmpty()) {
-                return "API Secret is required.";
+                return "API Secret is required";
             }
 
             if(userName == null || userName.isEmpty()){
-                return "bamboo user name is required.";
+                return "Bamboo user name is required";
             }
 
 

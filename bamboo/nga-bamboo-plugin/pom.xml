@@ -3,16 +3,24 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<name>HPE ALM Octane Bamboo CI Plugin</name>
-	<description>HPE Lifecycle Management CI plugin for Atlassian Bamboo CI</description>
+	<name>HPE ALM Octane CI Plugin</name>
+	<description>This plugin enables ALM Octane to retrieve and display Bamboo build pipelines and synchronize test results with Bamboo.
+	</description>
 	<organization>
 		<name>HPE</name>
 	</organization>
 	<packaging>atlassian-plugin</packaging>
 	<artifactId>hp-lifecycle-management-bamboo-ci-plugin</artifactId>
+
+	<!--<parent>-->
+		<!--<groupId>com.hp.mqm</groupId>-->
+		<!--<artifactId>bamboo</artifactId>-->
+		<!--<version>12.53.17-SNAPSHOT</version>-->
+	<!--</parent>-->
+
 	<parent>
 		<groupId>com.hp.mqm</groupId>
-		<artifactId>bamboo</artifactId>
+		<artifactId>indi-integrations-root</artifactId>
 		<version>12.53.17-SNAPSHOT</version>
 	</parent>
 

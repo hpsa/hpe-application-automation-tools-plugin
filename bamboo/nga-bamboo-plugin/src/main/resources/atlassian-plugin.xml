@@ -22,7 +22,7 @@
   <!-- 	</web-resource> -->
   <web-item key="ngaAdminLink" section="system.admin/communication" weight="130">
     <description>Octane configuration link</description>
-    <label key="HPE Octane Plugin"/>
+    <label key="HPE ALM Octane CI Plugin"/>
     <link linkId="ngaConfig">/admin/nga/configureOctaneEdit.action</link>
   </web-item>
   <xwork key="ngaActions" name="Octane Configuration Actions">
