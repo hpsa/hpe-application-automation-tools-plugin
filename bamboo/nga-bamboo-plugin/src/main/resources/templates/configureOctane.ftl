@@ -1,6 +1,8 @@
 <!--<img src="${req.contextPath}/download/resources/alm-octane-logo.png" border="0"/>-->
 <script>
     function testConfiguration() {
+        var p = document.getElementById("resultPNode");
+        p.textContent ='';
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
             if (this.readyState == 4 && this.status == 200) {
@@ -22,7 +24,8 @@
         xhttp.send(JSON.stringify({
             octaneUrl: document.getElementById("octaneConfigurationForm_octaneUrl").value,
             accessKey: document.getElementById("octaneConfigurationForm_accessKey").value,
-            apiSecret: document.getElementById("octaneConfigurationForm_apiSecret").value
+            apiSecret: document.getElementById("octaneConfigurationForm_apiSecret").value,
+            userName: document.getElementById("octaneConfigurationForm_userName").value
         }));
     }
 </script>
