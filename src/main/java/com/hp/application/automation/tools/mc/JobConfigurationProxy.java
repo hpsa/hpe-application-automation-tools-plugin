@@ -51,6 +51,12 @@ public class JobConfigurationProxy {
                 String setCookie = null;
                 if (setCookieList != null && setCookieList.size() != 0) {
                     setCookie = setCookieList.get(0);
+                    for(String str : setCookieList){
+                        if(str.contains(Constants.JSESSIONID) && str.startsWith(Constants.JSESSIONID)){
+                            setCookie = str;
+                            break;
+                        }
+                    }
                 }
                 String jsessionId = getJSESSIONID(setCookie);
                 returnObject.put(Constants.JSESSIONID, jsessionId);
