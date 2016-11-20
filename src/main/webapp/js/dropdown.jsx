@@ -160,9 +160,8 @@ function updateGraphs(scenarioKey)
         let graphsData = (t.responseObject())[scenarioKey];
         ReactDOM.render(<ChartDashboard graphsData = {graphsData.scenarioData} dataProcessFunc = {isMultipleTransactionGraph}/>
             ,document.querySelector('.graphCon'));
-        ReactDOM.render(<ScenarioTable scenName = {scenarioKey} scenData = {graphsData.scenarioStats}/>,
-            document.querySelector('.scenarioSummary'));
-
+        // ReactDOM.render(<ScenarioTable scenName = {scenarioKey} scenData = {graphsData.scenarioStats}/>,
+        //     document.querySelector('.scenarioSummary'));
     });
 };
 
@@ -222,7 +221,7 @@ var Dropdown = React.createClass({
         var options = self.props.options.map(function(option) {
             return (
                 <option key={option[self.props.valueField]} value={option[self.props.valueField]}>
-                    {option[self.props.labelField]}
+                    Scenario name: {option[self.props.labelField]}
                 </option>
             )
         });
@@ -257,36 +256,36 @@ instance.getScenarioList(function(t)
 {
     let tData = t.responseObject();
     ReactDOM.render(<div>
-            <span>
-                Scenario name:
-            </span>
+            {/*<span>*/}
+                {/*Scenario name:*/}
+            {/*</span>*/}
             <Dropdown id='myDropdown' options= {tData} labelField='ScenarioName' valueField='ScenarioName' onChange={dropDownOnChange}/>
         </div>, document.getElementById('scenarioDropDown'));
 });
 
 class ScenarioTable extends React.Component{
-    staticpropTypes: {
+    static propTypes: {
         scenName: React.PropTypes.string.isRequired,
         scenData: React.PropTypes.array.isRequired,
     };
 
     render() {
         const tableId = this.props.scenarioKey + '_table'
-        // const time = this.props.scenData.AvgScenarioDuration.AvgDuration;
+        const time = this.props.scenData.AvgScenarioDuration.AvgDuration;
 
-        // const days = Math.floor(time / 86400);
-        // const hours = Math.floor((time - (86400 * days)) / 3600);
-        // const minutes = Math.floor((time - (3600 * hours)) / 60);
-        // const seconds = Math.floor(time - (60 * minutes));
+        const days = Math.floor(time / 86400);
+        const hours = Math.floor((time - (86400 * days)) / 3600);
+        const minutes = Math.floor((time - (3600 * hours)) / 60);
+        const seconds = Math.floor(time - (60 * minutes));
 
         return (<div id={this.props.scenarioKey} className='scenario-stats'>
             <table className="st-table">
                 <thead className="st-table-head">
                     <tr className="st-table-row">
-                        {/*<th className="st-table-header">*/}
-                            {/*Average duration*/}
-                            {/*(Days:Hours:Min:Sec)*/}
-                        {/*</th>*/}
+                        <th className="st-table-header">
+                            Average duration
+                            (Days:Hours:Min:Sec)
+                        </th>
                         <th className="st-table-header">
                             Average total transaction state
                         </th>
@@ -300,9 +299,9 @@ class ScenarioTable extends React.Component{
                 </thead>
                 <tbody className="st-table-body">
                     <tr className="st-table-row">
-                        {/*<td className="st-table-cell">*/}
-                            {/*{days}:{hours}:{minutes}:{seconds}*/}
-                        {/*</td>*/}
+                        <td className="st-table-cell">
+                            {days}:{hours}:{minutes}:{seconds}
+                        </td>
                         <td className = "st-table-cell">
                             <td className = "st-table-inner-cell">
                                 <img src="/plugin/hp-application-automation-tools-plugin/icons/16x16/passed.png" alt="Passed:"/>

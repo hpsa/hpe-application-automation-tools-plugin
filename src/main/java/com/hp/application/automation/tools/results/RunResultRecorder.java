@@ -218,7 +218,13 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             }
 
             if ((jobDataSet != null && !jobDataSet.getLrScenarioResults().isEmpty())) {
-                build.replaceAction(new PerformanceJobReportAction(build, jobDataSet));
+                PerformanceJobReportAction performanceJobReportAction = build.getAction(PerformanceJobReportAction.class);
+                if (performanceJobReportAction != null) {
+                    performanceJobReportAction.mergeResults(jobDataSet);
+                } else {
+                    performanceJobReportAction = new PerformanceJobReportAction(build, jobDataSet);
+                }
+                build.replaceAction(performanceJobReportAction);
             }
         }
         publishLrReports(build);

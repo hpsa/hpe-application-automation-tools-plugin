@@ -503,9 +503,12 @@ public final class LrGraphUtils {
                 continue;
             }
         }
-        double scenarioDurationAverage = (double) runDurationSum / durationData.size();
+        double scenarioDurationAverage = -1;
+        if(!durationData.isEmpty())
+        {
+            scenarioDurationAverage = (double) runDurationSum / durationData.size();
+        }
         durationSummary.put("AvgDuration", scenarioDurationAverage);
         scenarioStats.put("AvgScenarioDuration", durationSummary);
-
     }
 }

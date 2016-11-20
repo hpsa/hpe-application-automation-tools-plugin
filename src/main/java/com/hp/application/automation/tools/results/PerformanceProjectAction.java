@@ -29,6 +29,7 @@ import com.hp.application.automation.tools.results.projectparser.performance.Goa
 import com.hp.application.automation.tools.results.projectparser.performance.JobLrScenarioResult;
 import com.hp.application.automation.tools.results.projectparser.performance.LrJobResults;
 import com.hp.application.automation.tools.results.projectparser.performance.LrProjectScenarioResults;
+import com.hp.application.automation.tools.results.projectparser.performance.LrTest;
 import com.hp.application.automation.tools.results.projectparser.performance.PercentileTransactionWholeRun;
 import com.hp.application.automation.tools.results.projectparser.performance.ProjectLrResults;
 import com.hp.application.automation.tools.results.projectparser.performance.TimeRangeResult;
@@ -129,21 +130,21 @@ public class PerformanceProjectAction implements Action {
 
             JSONObject scenarioData = new JSONObject();
             JSONObject scenarioStats = new JSONObject();
-            LrGraphUtils
-                    .constructVuserSummary(scenarioResults.getValue().getvUserSummary(), scenarioStats, _workedBuilds
-                            .size());
-            LrGraphUtils.constructDurationSummary(scenarioResults.getValue().getDurationData(), scenarioStats);
-            LrGraphUtils.constructConnectionSummary(scenarioResults.getValue().getMaxConnectionsCount(), scenarioStats);
-            LrGraphUtils.constructTransactionSummary(scenarioResults.getValue().getTransactionSum(), scenarioStats,
-                    _workedBuilds.size());
+//            LrGraphUtils
+//                    .constructVuserSummary(scenarioResults.getValue().getvUserSummary(), scenarioStats, _workedBuilds
+//                            .size());
+//            LrGraphUtils.constructDurationSummary(scenarioResults.getValue().getDurationData(), scenarioStats);
+//            LrGraphUtils.constructConnectionSummary(scenarioResults.getValue().getMaxConnectionsCount(), scenarioStats);
+//            LrGraphUtils.constructTransactionSummary(scenarioResults.getValue().getTransactionSum(), scenarioStats,
+//                    _workedBuilds.size());
 
 
             scenarioData.put("scenarioStats", scenarioStats);
 
             JSONObject scenarioGraphData = new JSONObject();
             //Scenario data graphs
-            LrGraphUtils.constructVuserGraph(scenarioResults, scenarioGraphData);
-            LrGraphUtils.constructConnectionsGraph(scenarioResults, scenarioGraphData);
+//            LrGraphUtils.constructVuserGraph(scenarioResults, scenarioGraphData);
+//            LrGraphUtils.constructConnectionsGraph(scenarioResults, scenarioGraphData);
             //Scenario SLA graphs
             LrGraphUtils.constructTotalHitsGraph(scenarioResults, scenarioGraphData);
             LrGraphUtils.constructAvgHitsGraph(scenarioResults, scenarioGraphData);
@@ -366,6 +367,10 @@ public class PerformanceProjectAction implements Action {
 
     private static void scenarioGoalResult(int runNumber, LrProjectScenarioResults lrProjectScenarioResults,
                                            GoalResult goalResult) {
+        if(goalResult.getStatus().equals(LrTest.SLA_STATUS.NoData))
+        {
+            return;
+        }
         switch (goalResult.getSlaGoal()) {
             case AverageThroughput:
                 lrProjectScenarioResults.getAverageThroughputResults()

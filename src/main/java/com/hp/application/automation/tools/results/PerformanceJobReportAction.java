@@ -24,6 +24,7 @@
 
 package com.hp.application.automation.tools.results;
 
+import com.hp.application.automation.tools.results.projectparser.performance.JobLrScenarioResult;
 import com.hp.application.automation.tools.results.projectparser.performance.LrJobResults;
 import hudson.model.Action;
 import hudson.model.InvisibleAction;
@@ -34,23 +35,56 @@ import net.minidev.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 
+/**
+ * Holds LoadRunner infomation on a specific Job Run / Build
+ */
 public class PerformanceJobReportAction extends InvisibleAction implements SimpleBuildStep.LastBuildAction {
 
     private Run<?, ?> build;
     private JSONObject jobDataSet;
     private LrJobResults _resultFiles;
 
+    /**
+     * Instantiates a new Performance job report action.
+     *
+     * @param build       the build
+     * @param resultFiles the result dataset
+     */
     public PerformanceJobReportAction(Run<?, ?> build, LrJobResults resultFiles) {
         this.build = build;
         this._resultFiles = resultFiles;
     }
 
+    /**
+     * Merge results of several runs - espcially useful in pipeline jobs with multiple LR steps
+     *
+     * @param resultFiles the result files
+     */
+    public void mergeResults(LrJobResults resultFiles)
+    {
+        for(JobLrScenarioResult scenarioResult : resultFiles.getLrScenarioResults().values())
+        {
+            this._resultFiles.addScenario(scenarioResult);
+        }
+    }
+
+    /**
+     * Gets lr result build dataset.
+     *
+     * @return the lr result build dataset
+     */
     public LrJobResults getLrResultBuildDataset() {
         return _resultFiles;
     }
 
+    /**
+     * Gets json data.
+     *
+     * @return the json data
+     */
     public JSONObject getJsonData()
     {
         return jobDataSet;

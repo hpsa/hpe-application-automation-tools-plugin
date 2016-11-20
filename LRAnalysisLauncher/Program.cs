@@ -70,7 +70,7 @@ namespace LRAnalysisLauncher
 
                 log("creating analysis COM object");
                 LrAnalysis analysis = new LrAnalysis();
-
+                
                 Session session = analysis.Session;
                 log("creating analysis session");
                 if (session.Create(lralocation, lrrlocation))
@@ -149,7 +149,14 @@ namespace LRAnalysisLauncher
 
                     XmlElement vUsers = runReprotDoc.CreateElement("VUsers");
                     //log("Adding VUser statistics");
-                    Dictionary<string, int> vuserCountDictionary = Helper.GetVusersCountByStatus(analysis);
+                    Dictionary<string, int> vuserCountDictionary = new Dictionary<string, int>(4)
+                    {
+                        {"Passed", 0},
+                        {"Stopped", 0},
+                        {"Failed", 0},
+                        {"Error", 0}
+                    };
+                    //vuserCountDictionary = Helper.GetVusersCountByStatus(analysis);
                     foreach (KeyValuePair<string, int> kvp in vuserCountDictionary)
                     {
                         log(msg: String.Format("{0} vUsers: {1}", kvp.Key, kvp.Value));
@@ -187,7 +194,8 @@ namespace LRAnalysisLauncher
                     }
                     general.AppendChild(transactions);
 
-                    string connectionsMaximum = Helper.GetConnectionsCount(analysis).ToString();
+                    string connectionsMaximum = "0";
+                    //connectionsMaximum = Helper.GetConnectionsCount(analysis).ToString();
                     XmlElement connections = runReprotDoc.CreateElement("Connections");
                     connections.SetAttribute("MaxCount", connectionsMaximum);
                     general.AppendChild(connections);

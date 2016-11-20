@@ -514,6 +514,7 @@ namespace HpToolsLauncher.TestRunners
                 Stopper collateStopper = new Stopper(_pollingInterval * 1000);
                 collateStopper.Start();
             }
+
         }
 
         private void closeController()
