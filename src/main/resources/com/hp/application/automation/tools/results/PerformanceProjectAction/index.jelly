@@ -1,7 +1,7 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-    <l:layout title="Jenkins JS Lib Samples" norefresh="true">
+    <l:layout title="${it.DisplayName}" norefresh="true">
         <l:side-panel>
             <st:include it="${it.currentProject}" page="sidepanel.jelly"/>
         </l:side-panel>
@@ -33,7 +33,7 @@
             <st:bind var="projectName" value="${it.DisplayName}"/>
             <st:bind var="" value="${it.UpdatedData}"/>
             <div>
-            <h1 >${it.DisplayName}</h1>
+            <h1 >Project performance tests summary report</h1>
             <div id="scenarioDropDown">
                 <!-- This element's contents will be replaced with your component. -->
             </div>

@@ -34,6 +34,15 @@ import java.util.TreeMap;
  */
 public class LrProjectScenarioResults extends LrScenario {
 
+    public int getBuildCount() {
+        return buildCount;
+    }
+
+    public void incBuildCount() {
+        this.buildCount++;
+    }
+
+    private int buildCount;
     private SortedMap<Integer, WholeRunResult> totalThroughtputResults;
     private SortedMap<Integer, WholeRunResult> averageHitsPerSecondResults;
     private SortedMap<Integer, WholeRunResult> totalHitsResults;
@@ -85,6 +94,8 @@ public class LrProjectScenarioResults extends LrScenario {
 
         vUserMapInit(vUserSummary);
         vTransactionMapInit(transactionSum);
+
+        buildCount = 0;
     }
 
     /**

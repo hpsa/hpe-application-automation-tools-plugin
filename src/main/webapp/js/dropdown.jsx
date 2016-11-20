@@ -8,7 +8,12 @@ class Chart extends React.Component{
     updateChart() {
         let chartName = this.props.chartName;
         let options = this.optionsSetter();
-        return new Chartist.Line('#' + chartName, this.props.chartData, options);
+        let newChart = new Chartist.Line('#' + chartName, this.props.chartData, options);
+        newChart.on('draw', function(data) {
+            if(data.type === 'grid' && data.index !== 0) {
+                data.element;
+            }});
+        return newChart;
     };
 
     shouldComponentUpdate() {
@@ -21,10 +26,15 @@ class Chart extends React.Component{
 
     optionsSetter() {
         let options = new Object();
-        options.fullWidth = false;
-        // options.chartPadding = {right: 40};
+        options.fullWidth = true;
+        options.width = "100%";
+        options.height = "85%";
+        options.chartPadding = {left: 40, right: 20,bottom: 10};
         options.plugins = [];
-        options.plugins.push(Chartist.plugins.tooltip());
+        options.plugins.push(Chartist.plugins.tooltip({
+            anchorToPoint: true,
+            appendToBody: false
+        }));
         options.plugins.push(Chartist.plugins.ctAxisTitle({
             axisX: {
                 axisTitle: this.props.chartData.x_axis_title,
@@ -37,20 +47,21 @@ class Chart extends React.Component{
             },
             axisY: {
                 axisTitle: this.props.chartData.y_axis_title,
-                axisClass: 'ct-axis-title',
+                axisClass: 'ct-axis-title-y',
                 offset: {
                     x: 0,
-                    y: -20
+                    y: 0
                 },
                 textAnchor: 'middle',
-                flipTitle: true
+                flipTitle: false
             }
         }));
-        if ((this.props.multiSeriesChart == true)) {
+        if ((this.props.multiSeriesChart === true)) {
             options.plugins.push(Chartist.plugins.legend({
                 position: 'bottom'
             }));
         }
+        options.lineSmooth = Chartist.Interpolation.step();
         options.axisY = {
             labelInterpolationFnc: function(value)
             {
@@ -94,10 +105,11 @@ class Charts extends React.Component
             {
                 multiSeriesChart = true;
             }
-            return (<div><div key = {chartName}>
+            return (<div><div key = {chartName} className="ct-chartBox">
                 <div>
-                    <h1>{chartData.title}</h1>
-                    <span className="ct-chart-description">{chartData.description}</span>
+                    <span className="ct-chart-title">{chartData.title}</span><br/>
+                    <span className="ct-chart-desc-title">Description: </span>
+                    <span className="ct-chart-desc">{chartData.description}</span>
                 </div>
                     <Chart key = {chartName} chartName = {chartName} chartData = {chartData}
                            multiSeriesChart = {multiSeriesChart} {...this.props}/>
@@ -227,7 +239,7 @@ var Dropdown = React.createClass({
         });
         return (
             <select id={this.props.id}
-                    className='form-control'
+                    className='st-dropdown'
                     value={this.state.selected}
                     onChange={this.handleChange}>
                 {options}

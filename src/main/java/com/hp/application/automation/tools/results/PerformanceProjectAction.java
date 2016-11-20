@@ -65,6 +65,7 @@ public class PerformanceProjectAction implements Action {
      */
     private static final Logger LOGGER = Logger
             .getLogger(PerformanceProjectAction.class.getName());
+    private static final int MAX_DISPLAY_BUILDS = 20;
     /**
      * The Current project.
      */
@@ -130,13 +131,13 @@ public class PerformanceProjectAction implements Action {
 
             JSONObject scenarioData = new JSONObject();
             JSONObject scenarioStats = new JSONObject();
-//            LrGraphUtils
-//                    .constructVuserSummary(scenarioResults.getValue().getvUserSummary(), scenarioStats, _workedBuilds
-//                            .size());
-//            LrGraphUtils.constructDurationSummary(scenarioResults.getValue().getDurationData(), scenarioStats);
-//            LrGraphUtils.constructConnectionSummary(scenarioResults.getValue().getMaxConnectionsCount(), scenarioStats);
-//            LrGraphUtils.constructTransactionSummary(scenarioResults.getValue().getTransactionSum(), scenarioStats,
-//                    _workedBuilds.size());
+            //            LrGraphUtils
+            //                    .constructVuserSummary(scenarioResults.getValue().getvUserSummary(), scenarioStats, _workedBuilds
+            //                            .size());
+            //            LrGraphUtils.constructDurationSummary(scenarioResults.getValue().getDurationData(), scenarioStats);
+            //            LrGraphUtils.constructConnectionSummary(scenarioResults.getValue().getMaxConnectionsCount(), scenarioStats);
+            //            LrGraphUtils.constructTransactionSummary(scenarioResults.getValue().getTransactionSum(), scenarioStats,
+            //                    _workedBuilds.size());
 
 
             scenarioData.put("scenarioStats", scenarioStats);
@@ -250,6 +251,8 @@ public class PerformanceProjectAction implements Action {
                 continue;
             }
 
+
+
             _workedBuilds.add(runNumber);
             LrJobResults jobLrResult = performanceJobReportAction.getLrResultBuildDataset();
 
@@ -263,7 +266,11 @@ public class PerformanceProjectAction implements Action {
                 // Join the SLA rule results
                 LrProjectScenarioResults lrProjectScenarioResults =
                         _projectResult.getScenarioResults().get(runResult.getKey());
-
+                if(lrProjectScenarioResults.getBuildCount() > MAX_DISPLAY_BUILDS)
+                {
+                    continue;
+                }
+                lrProjectScenarioResults.incBuildCount();
                 JobLrScenarioResult scenarioRunResult = runResult.getValue();
                 for (GoalResult goalResult : scenarioRunResult.scenarioSlaResults) {
                     scenarioGoalResult(runNumber, lrProjectScenarioResults, goalResult);

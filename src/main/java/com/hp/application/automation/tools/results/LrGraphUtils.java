@@ -75,7 +75,7 @@ public final class LrGraphUtils {
     /**
      * The constant TRANSACTIONS_RESPONSE_TIME_SECONDS.
      */
-    private static final String TRANSACTIONS_RESPONSE_TIME_SECONDS = "Transactions response time (Seconds)";
+    private static final String TRANSACTIONS_RESPONSE_TIME_SECONDS = "Time (Sec)";
     private static final String PRECENTILE_GRAPH_DESCRIPTION =
             "Displays the average time taken to perform transactions during each second of the load test." +
                     " This graph helps you determine whether the performance of the server is within " +
@@ -170,7 +170,7 @@ public final class LrGraphUtils {
             avgTransactionResponseTimeGraphSet.put(TITLE, "Average Transaction Response TIme");
             avgTransactionResponseTimeGraphSet.put(X_AXIS_TITLE, "Build number");
             avgTransactionResponseTimeGraphSet
-                    .put(Y_AXIS_TITLE, "Average response time (Seconds)");
+                    .put(Y_AXIS_TITLE, "Time (Sec.)");
             avgTransactionResponseTimeGraphSet.put(DESCRIPTION,
                     "Displays the average time taken to perform transactions during each second of the load test." +
                             " This graph helps you determine whether the performance of the server is within " +
@@ -224,7 +224,7 @@ public final class LrGraphUtils {
         if (!errPerSecResultsResultsGraphSet.getJSONArray(LABELS).isEmpty()) {
             errPerSecResultsResultsGraphSet.put(TITLE, "Total errors per second");
             errPerSecResultsResultsGraphSet.put(X_AXIS_TITLE, "Build number");
-            errPerSecResultsResultsGraphSet.put(Y_AXIS_TITLE, "Errors count");
+            errPerSecResultsResultsGraphSet.put(Y_AXIS_TITLE, "Errors");
             errPerSecResultsResultsGraphSet.put(DESCRIPTION, "");
             scenarioGraphData.put("errorPerSecResults", errPerSecResultsResultsGraphSet);
         }
@@ -265,7 +265,7 @@ public final class LrGraphUtils {
         if (!averageThroughputResultsGraphSet.getJSONArray(LABELS).isEmpty()) {
             averageThroughputResultsGraphSet.put(TITLE, "Average Throughput per second");
             averageThroughputResultsGraphSet.put(X_AXIS_TITLE, "Build number");
-            averageThroughputResultsGraphSet.put(Y_AXIS_TITLE, "Average Bytes / Second");
+            averageThroughputResultsGraphSet.put(Y_AXIS_TITLE, "Bytes");
             averageThroughputResultsGraphSet.put(DESCRIPTION,
                     " Displays the amount of throughput (in bytes) on the Web server during the load test. " +
                             "Throughput represents the amount of data that the Vusers received from the server at" +
@@ -310,7 +310,7 @@ public final class LrGraphUtils {
         if (!totalThroughputResultsGraphSet.getJSONArray(LABELS).isEmpty()) {
             totalThroughputResultsGraphSet.put(TITLE, "Total Throughput");
             totalThroughputResultsGraphSet.put(X_AXIS_TITLE, "Build number");
-            totalThroughputResultsGraphSet.put(Y_AXIS_TITLE, "Bytes count");
+            totalThroughputResultsGraphSet.put(Y_AXIS_TITLE, "Bytes");
             totalThroughputResultsGraphSet.put(DESCRIPTION,
                     " Displays the amount of throughput (in bytes) on the Web server during the load test. " +
                             "Throughput represents the amount of data that the Vusers received from the server at" +
@@ -333,7 +333,7 @@ public final class LrGraphUtils {
         if (!avgHitsPerSecGraphSet.getJSONArray(LABELS).isEmpty()) {
             avgHitsPerSecGraphSet.put(TITLE, "Average Hits per Second");
             avgHitsPerSecGraphSet.put(X_AXIS_TITLE, "Build number");
-            avgHitsPerSecGraphSet.put(Y_AXIS_TITLE, "Average Hits per Second");
+            avgHitsPerSecGraphSet.put(Y_AXIS_TITLE, "Hits");
             avgHitsPerSecGraphSet.put(DESCRIPTION,
                     "Displays the number of hits made on the Web server by Vusers " +
                             "during each second of the load test. This graph helps you evaluate the amount of load " +
@@ -357,7 +357,7 @@ public final class LrGraphUtils {
         if (!totalHitsGraphSet.getJSONArray(LABELS).isEmpty()) {
             totalHitsGraphSet.put(TITLE, "Total Hits");
             totalHitsGraphSet.put(X_AXIS_TITLE, "Build number");
-            totalHitsGraphSet.put(Y_AXIS_TITLE, "Hits count");
+            totalHitsGraphSet.put(Y_AXIS_TITLE, "Hits");
             totalHitsGraphSet.put(DESCRIPTION,
                     "Displays the number of hits made on the Web server by Vusers " +
                             "during each second of the load test. This graph helps you evaluate the amount of load " +
@@ -438,7 +438,7 @@ public final class LrGraphUtils {
                 data.add(runConnectionMax.getValue().toString());
             }
         }
-        maxConnections.put("name", "Maximum connections per test run");
+        maxConnections.put("name", "Max connections");
         maxConnections.put("data", data);
         dataSets.add(maxConnections);
         graphDataSet.put(LABELS, labels);

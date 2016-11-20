@@ -6,22 +6,22 @@
 }
 
 .ct-chart {
-    margin: 10px 0 0 30px;
-    height: 600px;
-    /*width: 750px;*/
+    /*!*!*margin: 10px 0 0 30px;*!*!*/
+    /*height: 400px;*/
+    /*!*!*width: 750px;*!*!*/
+    width: 100.0%;
+    height: 85.0%;
     background-color: rgb(239, 239, 239);
-    width: 80.7%;
-    height: 52.3%;
-}
+    padding-left: 35px;
+    /*padding-right: 45px;*/
 
-.ct-chart-seprator {
-    margin-top: 120px;
-    position: relative;
 }
 
 .ct-chart-line {
     overflow: visible;
-    margin: 10px 0 0 30px;
+    /*!*!*!*margin: 0px 0px 0px 50px;*!*!*!*/
+    /*!*!*align-content: right;*!*!*/
+    /*!*!*!*width: 69.5%;*!*!*!*/
 }
 
 .ct-chart-line .ct-label,
@@ -165,19 +165,19 @@
 }
 
 .ct-grid {
-    stroke: rgba(0, 0, 0, 0.2);
-    stroke-width: 1px;
-    stroke-dasharray: 2px;
+    stroke:  #ccc;
+    stroke-width: 0.5px;
+    /*stroke-dasharray: 2px;*/
 }
 
 .ct-point {
-    stroke-width: 10px;
+    stroke-width: 4px;
     stroke-linecap: round;
 }
 
 .ct-line {
     fill: none;
-    stroke-width: 4px;
+    stroke-width: 1px;
 }
 
 .ct-area {
