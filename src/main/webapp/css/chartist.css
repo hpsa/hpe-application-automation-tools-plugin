@@ -14,7 +14,7 @@
     background-color: rgb(239, 239, 239);
     padding-left: 35px;
     padding-bottom: 40px;
-
+    margin-top: 20px;
 }
 
 .ct-chart-line {
@@ -171,7 +171,7 @@
 }
 
 .ct-point {
-    stroke-width: 4px;
+    stroke-width: 5px;
     stroke-linecap: round;
 }
 

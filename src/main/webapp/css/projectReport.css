@@ -1,4 +1,4 @@
-.st-table{
+.st-table {
     margin-top: 20px;
     border: 1px solid #cecece;
     height: 100%;
@@ -8,21 +8,21 @@
     padding: 0px;
 }
 
-.st-table-head{
+.st-table-head {
     padding: 30px;
 }
 
-.st-table-row{
+.st-table-row {
     border-collapse: collapse;
     vertical-align: center;
     font-family: "Lucida Console", Courier, monospace;
 }
 
-.st-stats{
-    overflow-x:auto;
+.st-stats {
+    overflow-x: auto;
 }
 
-.st-table-header{
+.st-table-header {
     text-align: center;
     height: 20px;
     border-collapse: collapse;
@@ -30,7 +30,7 @@
     padding: 10px 10px 0;
 }
 
-.st-table-cell{
+.st-table-cell {
     height: 40px;
     text-align: center;
     vertical-align: middle;
@@ -42,7 +42,7 @@
     color: #757575;
 }
 
-.st-table-inner-cell{
+.st-table-inner-cell {
     height: 40px;
     text-align: center;
     vertical-align: middle;
@@ -52,7 +52,7 @@
     color: #757575;
 }
 
-.ct-axis-title-y{
+.ct-axis-title-y {
     word-wrap: break-word;
     textLength: 2;
     /* Safari */
@@ -65,19 +65,25 @@
     -o-transform: rotate(0deg);
     /* Internet Explorer */
     filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+    font-family: Metric;
+    color: #666666;
+    font-size: 15px; /* Approximation due to font substitution */
+    font-weight: 400;
+    line-height: 17px; /* Approximation due to font substitution */
+    text-align: left;
 
 }
 
-.ct-axis-title .ct-axis-title-y{
+.ct-axis-title {
     font-family: Metric;
     color: #666666;
-    font-size: 15px;/* Approximation due to font substitution */
+    font-size: 15px; /* Approximation due to font substitution */
     font-weight: 400;
-    line-height: 17px;/* Approximation due to font substitution */
+    line-height: 17px; /* Approximation due to font substitution */
     text-align: left;
 }
 
-.st-dropdown{
+.st-dropdown {
     border-width: 1px;
     border-color: #cccccc;
     border-style: solid;
@@ -87,7 +93,7 @@
     height: 20px;
 }
 
-.ct-chartBox{
+.ct-chartBox {
     /*padding-bottom: 10px;*/
     /*height: 600px;*/
     /*height: 400px;*/
@@ -96,31 +102,47 @@
 }
 
 .ct-chart-seprator {
-    margin-top: 20px;
+    margin-top: 25px;
     position: relative;
+    border: 0;
+    height: 1px;
+    background: #333;
+    background-image: linear-gradient(to right, #ccc, #333, #ccc);
+    width:1000px;
 }
 
-.ct-chart-title{
+.ct-chart-title {
     font-family: Metric;
     color: #333333;
     font-size: 25px;
-    line-height: 70px;
     text-align: left;
-    font-weight: 700;
+    font-style: normal;
 }
 
-.ct-chart-desc{
+.ct-chart-desc {
     font-family: Metric;
     color: #666666;
-    font-size: 14px;/* Approximation due to font substitution */
+    font-size: 14px; /* Approximation due to font substitution */
     text-align: left;
-    text-indent:100px;
+    text-indent: 100px;
 }
 
-.ct-chart-desc-title{
+.ct-chart-desc-title {
     font-family: Metric;
     color: #333333;
-    font-size: 14px;/* Approximation due to font substitution */
+    font-size: 14px; /* Approximation due to font substitution */
     text-align: left;
     font-weight: 600;
+}
+
+.pageTitle{
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    color: #01a982;
+    font-size: 26px;
+    letter-spacing: 0.5px;
+    margin-bottom: 58px;
+    word-spacing: 0px;
+    margin-top: 20px;
 }
