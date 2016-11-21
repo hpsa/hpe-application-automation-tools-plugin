@@ -72,6 +72,7 @@ public class TCConfigurationService {
 			Marshaller m = context.createMarshaller();
 			m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 			m.marshal(config, getConfigurationResource());
+			OctaneSDK.getInstance().getConfigurationService().notifyChange();
 		} catch (JAXBException jaxbe) {
 			logger.error("failed to save Octane configuration", jaxbe);
 		}
