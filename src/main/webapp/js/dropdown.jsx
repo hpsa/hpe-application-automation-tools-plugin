@@ -122,7 +122,7 @@ class Charts extends React.Component
                 <div key = {chartAreaKey} className="ct-chartBox">
                 <div>
                     <span className="ct-chart-title">{chartData.title}</span>
-                    <br/>
+                    <br className="ct-chart-seprator"/>
                     <span className="ct-chart-desc-title">Description: </span>
                     <span className="ct-chart-desc">{chartData.description}</span>
                 </div>

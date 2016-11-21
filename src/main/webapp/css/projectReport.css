@@ -54,9 +54,9 @@
 
 .ct-axis-title-y {
     word-wrap: break-word;
-    textLength: 2;
+    transform: rotate(0deg);
     /* Safari */
-    -webkit-transform: rotate(330deg);
+    -webkit-transform: rotate(0deg);
     /* Firefox */
     -moz-transform: rotate(0deg);
     /* IE */
@@ -71,7 +71,6 @@
     font-weight: 400;
     line-height: 17px; /* Approximation due to font substitution */
     text-align: left;
-
 }
 
 .ct-axis-title {
@@ -91,6 +90,7 @@
     opacity: 0.5;
     width: 219px;
     height: 20px;
+    margin-top: 15px;
 }
 
 .ct-chartBox {
@@ -99,16 +99,11 @@
     /*height: 400px;*/
     height: 600px;
     width: 1000px;
+    margin-top: 20px;
 }
 
 .ct-chart-seprator {
-    margin-top: 25px;
-    position: relative;
-    border: 0;
-    height: 1px;
-    background: #333;
-    background-image: linear-gradient(to right, #ccc, #333, #ccc);
-    width:1000px;
+    margin-bottom: 13px;
 }
 
 .ct-chart-title {
@@ -145,4 +140,6 @@
     margin-bottom: 58px;
     word-spacing: 0px;
     margin-top: 20px;
+    font-family: Metric;
+    font-weight: 700;
 }
