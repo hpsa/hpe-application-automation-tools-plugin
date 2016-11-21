@@ -5,7 +5,7 @@
     <parent>
         <artifactId>teamcity-plugin-root</artifactId>
         <groupId>com.hp.mqm</groupId>
-        <version>12.53.17-SNAPSHOT</version>
+        <version>12.53.18-SNAPSHOT</version>
     </parent>
 
 	<artifactId>build</artifactId>
@@ -114,43 +114,43 @@
 				</plugins>
 			</build>
 		</profile>
-		<profile>
-			<id>jar-signing</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.codehaus.mojo</groupId>
-						<artifactId>exec-maven-plugin</artifactId>
-						<executions>
-							<execution>
-								<id>script-chmod</id>
-								<phase>pre-integration-test</phase>
-								<goals>
-									<goal>exec</goal>
-								</goals>
-								<configuration>
-									<executable>chmod</executable>
-									<arguments>
-										<argument>+x</argument>
-										<argument>${basedir}/../misc/scripts/jarSigning.py</argument>
-									</arguments>
-								</configuration>
-							</execution>
-							<execution>
-								<id>teamcity jars signing</id>
-								<phase>pre-integration-test</phase>
-								<goals>
-									<goal>exec</goal>
-								</goals>
-								<configuration>
-									<executable>${basedir}/../misc/scripts/jarSigning.py </executable>
-									<commandlineArgs>${zip.location} ${extraction.folder} ${temp.target} ${jar.folder} </commandlineArgs>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
+		<!--<profile>-->
+			<!--<id>jar-signing</id>-->
+			<!--<build>-->
+				<!--<plugins>-->
+					<!--<plugin>-->
+						<!--<groupId>org.codehaus.mojo</groupId>-->
+						<!--<artifactId>exec-maven-plugin</artifactId>-->
+						<!--<executions>-->
+							<!--<execution>-->
+								<!--<id>script-chmod</id>-->
+								<!--<phase>pre-integration-test</phase>-->
+								<!--<goals>-->
+									<!--<goal>exec</goal>-->
+								<!--</goals>-->
+								<!--<configuration>-->
+									<!--<executable>chmod</executable>-->
+									<!--<arguments>-->
+										<!--<argument>+x</argument>-->
+										<!--<argument>${basedir}/../misc/scripts/jarSigning.py</argument>-->
+									<!--</arguments>-->
+								<!--</configuration>-->
+							<!--</execution>-->
+							<!--<execution>-->
+								<!--<id>teamcity jars signing</id>-->
+								<!--<phase>pre-integration-test</phase>-->
+								<!--<goals>-->
+									<!--<goal>exec</goal>-->
+								<!--</goals>-->
+								<!--<configuration>-->
+									<!--<executable>${basedir}/../misc/scripts/jarSigning.py </executable>-->
+									<!--<commandlineArgs>${zip.location} ${extraction.folder} ${temp.target} ${jar.folder} </commandlineArgs>-->
+								<!--</configuration>-->
+							<!--</execution>-->
+						<!--</executions>-->
+					<!--</plugin>-->
+				<!--</plugins>-->
+			<!--</build>-->
+		<!--</profile>-->
 	</profiles>
 </project>

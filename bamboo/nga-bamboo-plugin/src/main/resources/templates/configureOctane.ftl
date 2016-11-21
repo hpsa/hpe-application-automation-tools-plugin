@@ -1,6 +1,8 @@
 <!--<img src="${req.contextPath}/download/resources/alm-octane-logo.png" border="0"/>-->
 <script>
     function testConfiguration() {
+        var p = document.getElementById("resultPNode");
+        p.textContent ='';
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
             if (this.readyState == 4 && this.status == 200) {
@@ -22,20 +24,21 @@
         xhttp.send(JSON.stringify({
             octaneUrl: document.getElementById("octaneConfigurationForm_octaneUrl").value,
             accessKey: document.getElementById("octaneConfigurationForm_accessKey").value,
-            apiSecret: document.getElementById("octaneConfigurationForm_apiSecret").value
+            apiSecret: document.getElementById("octaneConfigurationForm_apiSecret").value,
+            userName: document.getElementById("octaneConfigurationForm_userName").value
         }));
     }
 </script>
-<h1>HPE ALM Octane CI Plugin Configuration</h1>
+<h1>HPE ALM Octane CI Plugin</h1>
 <div class="paddedClearer"></div>
 [@ww.form action="/admin/nga/configureOctaneSave.action"
 id="octaneConfigurationForm"
 submitLabelKey='global.buttons.update']
-[@ui.bambooSection title="Credentials"]
-[@ww.textfield name='octaneUrl' label='Location' /]
-[@ww.textfield name="accessKey" label='Client ID' /]
-[@ww.textfield name="apiSecret" label='Client secret' /]
-[@ww.textfield name="userName" label='Bamboo user' /]
+[@ui.bambooSection title="HPE ALM Octane Server Configuration"]
+[@ww.textfield name='octaneUrl' label='Location' required='true' description='Location of the HPE ALM Octane application' /]
+[@ww.textfield name="accessKey" label='Client ID'  required='true' description='Client ID used for logging into the ALM Octane server'/]
+[@ww.textfield name="apiSecret" label='Client secret'  required='true' description='Client secret used for logging into the ALM Octane server'/]
+[@ww.textfield name="userName" label='Bamboo user'  required='true' description='The user to impersonate (Jobs will be executed on behalf of this user)'/]
 [/@ui.bambooSection]
 [/@ww.form]
 <script>
@@ -43,7 +46,7 @@ submitLabelKey='global.buttons.update']
     var buttonsContainer = document.querySelector('#octaneConfigurationForm > .buttons-container > .buttons'),
     testButton = document.createElement('input');
     testButton.type = 'button';
-    testButton.value = 'Check Connection';
+    testButton.value = 'Test Connection';
     testButton.className = 'aui-button aui-button-primary';
     testButton.onclick = testConfiguration;
     buttonsContainer.appendChild(testButton);

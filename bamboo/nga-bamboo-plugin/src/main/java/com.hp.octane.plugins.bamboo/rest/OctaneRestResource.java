@@ -1,10 +1,14 @@
 package com.hp.octane.plugins.bamboo.rest;
 
+import com.atlassian.bamboo.user.BambooUser;
+import com.atlassian.bamboo.user.BambooUserManager;
+import com.atlassian.sal.api.component.ComponentLocator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import org.acegisecurity.GrantedAuthority;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,16 +41,29 @@ public class OctaneRestResource {
             String octaneUrl = dto.getOctaneUrl();
             String accessKey = dto.getAccessKey();
             String apiSecret = dto.getApiSecret();
+            String userName = dto.getUserName();
             if (octaneUrl == null || octaneUrl.isEmpty()) {
-                return "Octane Instance URL is required.";
+                return "Octane Instance URL is required";
             }
             if (accessKey == null || accessKey.isEmpty()) {
-                return "Access Key is required.";
+                return "Access Key is required";
             }
 
             if (apiSecret == null || apiSecret.isEmpty()) {
-                return "API Secret is required.";
+                return "API Secret is required";
             }
+
+            if(userName == null || userName.isEmpty()){
+                return "Bamboo user name is required";
+            }
+
+
+            BambooUserManager bambooUserManager = ComponentLocator.getComponent(BambooUserManager.class);
+            BambooUser bambooUser = bambooUserManager.loadUserByUsername(userName);
+            if((bambooUser == null) || !isUserAuthorized(bambooUser)){
+                return "Bamboo user misconfigured or doesn't have enough permissions\n";
+            }
+
             OctaneConfiguration config = OctaneSDK.getInstance().getConfigurationService().buildConfiguration(octaneUrl, accessKey, apiSecret);
             OctaneResponse result = OctaneSDK.getInstance().getConfigurationService().validateConfiguration(config);
             if (result.getStatus() == HttpStatus.SC_OK) {
@@ -67,11 +84,24 @@ public class OctaneRestResource {
         }
     }
 
+    private boolean isUserAuthorized(BambooUser bambooUser) {
+        for(GrantedAuthority authority: bambooUser.getAuthorities()){
+            if(authority.getAuthority().equals("ROLE_ADMIN")){
+                return true;
+            }
+        }
+        return false;
+    }
+
     @JsonIgnoreProperties(ignoreUnknown = true)
     private static final class OctaneConnectionDTO {
         private String octaneUrl;
         private String accessKey;
         private String apiSecret;
+        private String userName;
+        public String getUserName() { return userName;}
+
+        public void setUserName(String userName) { this.userName = userName;}
 
         public String getOctaneUrl() {
             return octaneUrl;

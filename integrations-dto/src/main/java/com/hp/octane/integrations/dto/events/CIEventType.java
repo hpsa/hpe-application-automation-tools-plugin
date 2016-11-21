@@ -15,7 +15,8 @@ public enum CIEventType {
 	UNDEFINED("undefined"),
 	QUEUED("queued"),
 	STARTED("started"),
-	FINISHED("finished");
+	FINISHED("finished"),
+	SCM("scm");
 
 	private String value;
 

@@ -3,12 +3,20 @@ package com.hp.octane.plugins.bamboo.octane;
 import com.atlassian.bamboo.builder.BuildState;
 import com.atlassian.bamboo.builder.LifeCycleState;
 import com.atlassian.bamboo.chains.cache.ImmutableChainStage;
+import com.atlassian.bamboo.commit.CommitContext;
+import com.atlassian.bamboo.commit.CommitFile;
 import com.atlassian.bamboo.plan.PlanIdentifier;
 import com.atlassian.bamboo.plan.cache.ImmutableJob;
 import com.atlassian.bamboo.plan.cache.ImmutablePlan;
 import com.atlassian.bamboo.plan.cache.ImmutableTopLevelPlan;
+import com.atlassian.bamboo.plugins.git.GitRepository;
+import com.atlassian.bamboo.repository.Repository;
+import com.atlassian.bamboo.repository.RepositoryDefinition;
+import com.atlassian.bamboo.repository.svn.SvnRepository;
 import com.atlassian.bamboo.results.tests.TestResults;
 import com.atlassian.bamboo.resultsummary.ImmutableResultsSummary;
+import com.atlassian.bamboo.v2.build.BuildChanges;
+import com.atlassian.bamboo.v2.build.BuildRepositoryChanges;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.causes.CIEventCause;
 import com.hp.octane.integrations.dto.causes.CIEventCauseType;
@@ -20,6 +28,7 @@ import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.general.CIServerTypes;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
+import com.hp.octane.integrations.dto.scm.*;
 import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
 import com.hp.octane.integrations.dto.snapshots.CIBuildStatus;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
@@ -208,11 +217,27 @@ public class DefaultOctaneConverter implements DTOConverter {
 
 	public CIEvent getEventWithDetails(String project, String buildCiId, String displayName, CIEventType eventType,
 	                                   long startTime, long estimatedDuration, List<CIEventCause> causes, String number) {
+//		CIEvent event = dtoFactoryInstance.newDTO(CIEvent.class).setEventType(eventType).setCauses(causes)
+//				.setProject(project).setProjectDisplayName(displayName).setBuildCiId(buildCiId)
+//				.setEstimatedDuration(estimatedDuration).setStartTime(startTime);
+//		if (number != null) {
+//			event.setNumber(number);
+//		}
+//		return event;
+		return getEventWithDetails( project,  buildCiId,  displayName,  eventType,startTime,  estimatedDuration, causes,  number, null);
+	}
+
+	@Override
+	public CIEvent getEventWithDetails(String project, String buildCiId, String displayName, CIEventType eventType, long startTime, long estimatedDuration, List<CIEventCause> causes, String number, SCMData scmData) {
+
 		CIEvent event = dtoFactoryInstance.newDTO(CIEvent.class).setEventType(eventType).setCauses(causes)
 				.setProject(project).setProjectDisplayName(displayName).setBuildCiId(buildCiId)
 				.setEstimatedDuration(estimatedDuration).setStartTime(startTime);
 		if (number != null) {
 			event.setNumber(number);
+		}
+		if(scmData!=null){
+			event.setScmData(scmData);
 		}
 		return event;
 	}
@@ -229,4 +254,81 @@ public class DefaultOctaneConverter implements DTOConverter {
 				.setJobId(jobId).setJobName(jobId).setServerId(instanceId);
 	}
 
+
+
+	private List<SCMChange> getChangeList(List<CommitFile> fileList){
+		List<SCMChange> scmChangesList = new ArrayList<>();
+
+		for(CommitFile commitFile: fileList){
+			SCMChange scmChange = DTOFactory.getInstance().newDTO(SCMChange.class).
+					setFile(commitFile.getName()).
+					setType("edit");//this is the default value - SCMChange not contains the change type and it must be not empty. for more information: https://answers.atlassian.com/questions/43728210/answers/43730617/comments/43880899
+			scmChangesList.add(scmChange);
+		}
+
+		return scmChangesList;
+	}
+
+	private SCMRepository createRepository(Repository repo){
+		SCMRepository scmRepository = DTOFactory.getInstance().newDTO(SCMRepository.class);
+		if (repo instanceof SvnRepository) {
+			SvnRepository svn = (SvnRepository) repo;
+			scmRepository.setUrl(svn.getUrl());
+			scmRepository.setType(SCMType.SVN);
+			scmRepository.setBranch(svn.getVcsBranch().getName());
+		}else if (repo instanceof GitRepository){
+			GitRepository git = (GitRepository) repo;
+			scmRepository.setUrl(git.getRepositoryUrl());
+			scmRepository.setType(SCMType.GIT);
+			scmRepository.setBranch(git.getVcsBranch().getName());
+		}else{
+			scmRepository.setType(SCMType.UNKNOWN);
+		}
+
+		return scmRepository;
+	}
+
+	private SCMCommit getScmCommit(CommitContext commitContext){
+		SCMCommit scmCommit = DTOFactory.getInstance().newDTO(SCMCommit.class);
+		scmCommit.setRevId(commitContext.getChangeSetId());
+		scmCommit.setComment(commitContext.getComment());
+		scmCommit.setUser(commitContext.getAuthorContext().getName());
+		scmCommit.setUserEmail(commitContext.getAuthorContext().getEmail());
+		//scmCommit.setParentRevId();
+		scmCommit.setTime(commitContext.getDate().getTime());
+		scmCommit.setChanges(getChangeList(commitContext.getFiles()));
+		return  scmCommit;
+	}
+
+	@Override
+	public SCMData getScmData(com.atlassian.bamboo.v2.build.BuildContext buildContext) {
+
+		SCMData scmData = null;
+//		for(BuildRepositoryChanges buildRepoChanges : buildContext.getBuildChanges().getRepositoryChanges()){
+//			buildRepoChanges.getRepositoryId();
+//			break;
+//		}
+
+		SCMRepository scmRepository = null;
+		for(RepositoryDefinition repDef : buildContext.getRepositoryDefinitions()){
+			Repository repo = repDef.getRepository();
+			scmRepository = createRepository(repo);
+			break;
+		}
+		List<SCMCommit> scmCommitList = new ArrayList<>();
+		BuildChanges buildChanges =  buildContext.getBuildChanges();
+		for(BuildRepositoryChanges change: buildChanges.getRepositoryChanges()){
+			for(CommitContext commitContext: change.getChanges()){
+				scmCommitList.add(getScmCommit(commitContext));
+			}
+		}
+
+		if(scmCommitList.size() >0) {
+			scmData = DTOFactory.getInstance().newDTO(SCMData.class);
+			scmData.setCommits(scmCommitList);
+			scmData.setRepository(scmRepository);
+			scmData.setBuiltRevId(buildContext.getBuildResultKey());
+		}
+		return scmData;
+	}
 }
