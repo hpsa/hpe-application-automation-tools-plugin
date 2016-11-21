@@ -9,10 +9,11 @@ class Chart extends React.Component{
         let chartName = this.props.chartName;
         let options = this.optionsSetter();
         let newChart = new Chartist.Line('#' + chartName, this.props.chartData, options);
-        newChart.on('draw', function(data) {
-            if(data.type === 'grid' && data.index !== 0) {
-                data.element;
-            }});
+        // newChart.on('draw', function(data) {
+        //     if(data.type === 'grid' && data.index !== 0) {
+        //         data.element.remove();
+        //     }});
+
         return newChart;
     };
 
@@ -29,11 +30,16 @@ class Chart extends React.Component{
         options.fullWidth = true;
         options.width = "100%";
         options.height = "85%";
+        options.stretch = true;
         options.chartPadding = {left: 40, right: 20,bottom: 10};
         options.plugins = [];
         options.plugins.push(Chartist.plugins.tooltip({
             anchorToPoint: true,
-            appendToBody: false
+            appendToBody: false,
+            tooltipOffset: {
+                x: 0,
+                y: 5
+            }
         }));
         options.plugins.push(Chartist.plugins.ctAxisTitle({
             axisX: {
@@ -105,7 +111,11 @@ class Charts extends React.Component
             {
                 multiSeriesChart = true;
             }
-            return (<div><div key = {chartName} className="ct-chartBox">
+            let chartBoxKey = chartName + "box";
+            let chartAreaKey = chartName + "Area";
+            return (
+                <div key = {chartBoxKey}>
+                <div key = {chartAreaKey} className="ct-chartBox">
                 <div>
                     <span className="ct-chart-title">{chartData.title}</span><br/>
                     <span className="ct-chart-desc-title">Description: </span>
@@ -114,7 +124,10 @@ class Charts extends React.Component
                     <Chart key = {chartName} chartName = {chartName} chartData = {chartData}
                            multiSeriesChart = {multiSeriesChart} {...this.props}/>
 
-                </div><hr className="ct-chart-seprator"/></div>);
+                </div>
+                    <hr className="ct-chart-seprator"/>
+                </div>
+            );
         });
         let returnValue = <div id="charts"> </div>;
         if(charts.length > 0)
