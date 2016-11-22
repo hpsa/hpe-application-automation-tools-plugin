@@ -38,7 +38,7 @@ class Chart extends React.Component{
             appendToBody: false,
             tooltipOffset: {
                 x: 0,
-                y: 25
+                y: 40
             },
             transformTooltipTextFnc: function(value)
             {

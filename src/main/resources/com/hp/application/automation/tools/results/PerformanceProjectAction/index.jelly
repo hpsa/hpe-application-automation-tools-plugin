@@ -58,10 +58,11 @@
             <st:bind var="projectName" value="${it.DisplayName}"/>
             <st:bind var="" value="${it.UpdatedData}"/>
             <div>
-                <span class="pageTitle">PROJECT PERFORMANCE TESTS SUMMARY REPORT</span>
-                <div id="scenarioDropDown">
+                <span class="pageTitle">PERFORMANCE TESTS SUMMARY REPORT</span>
                     <!-- This element's contents will be replaced with your component. -->
                 </div>
+            <div id="scenarioDropDown">
+
             </div>
             <div class="scenarioSummary"></div>
             <div class="graphCon"></div>

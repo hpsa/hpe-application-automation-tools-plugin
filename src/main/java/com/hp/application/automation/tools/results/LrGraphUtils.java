@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Queue;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -71,7 +72,7 @@ public final class LrGraphUtils {
     /**
      * The constant PERCENTILE_TRANSACTION_RESPONSE_TIME.
      */
-    private static final String PERCENTILE_TRANSACTION_RESPONSE_TIME = "Percentile Transaction Response TIme";
+    private static final String PERCENTILE_TRANSACTION_RESPONSE_TIME = "Percentile Transaction Response Time";
     /**
      * The constant TRANSACTIONS_RESPONSE_TIME_SECONDS.
      */
@@ -261,7 +262,7 @@ public final class LrGraphUtils {
                                            JSONObject scenarioGraphData) {
         Map<Integer, WholeRunResult> averageThroughputResults = scenarioResults.getValue().getAverageThroughputResults();
         JSONObject averageThroughputResultsGraphSet =
-                extractWholeRunSlaResult(averageThroughputResults);
+                extractWholeRunSlaResult(averageThroughputResults, "Bytes/Sec");
         if (!averageThroughputResultsGraphSet.getJSONArray(LABELS).isEmpty()) {
             averageThroughputResultsGraphSet.put(TITLE, "Average Throughput per second");
             averageThroughputResultsGraphSet.put(X_AXIS_TITLE, "Build number");
@@ -279,10 +280,10 @@ public final class LrGraphUtils {
      * @param graphData
      * @return
      */
-    private static JSONObject extractWholeRunSlaResult(Map<Integer, WholeRunResult> graphData) {
+    private static JSONObject extractWholeRunSlaResult(Map<Integer, WholeRunResult> graphData, String seriesName) {
         JSONObject graphDataSet;
         graphDataSet = new JSONObject();
-
+        JSONObject wholeRunSlaResults = new JSONObject();
         JSONArray labels = new JSONArray();
         JSONArray datasets = new JSONArray();
         JSONArray data = new JSONArray();
@@ -291,7 +292,9 @@ public final class LrGraphUtils {
             data.add(result.getValue().getActualValue());
         }
         graphDataSet.put(LABELS, labels);
-        datasets.add(data);
+        wholeRunSlaResults.put("name",seriesName);
+        wholeRunSlaResults.put("data",data);
+        datasets.add(wholeRunSlaResults);
         graphDataSet.put(SERIES, datasets);
         return graphDataSet;
     }
@@ -306,7 +309,7 @@ public final class LrGraphUtils {
                                               JSONObject scenarioGraphData) {
         Map<Integer, WholeRunResult> totalThroughputResults = scenarioResults.getValue().getTotalThroughtputResults();
         JSONObject totalThroughputResultsGraphSet =
-                extractWholeRunSlaResult(totalThroughputResults);
+                extractWholeRunSlaResult(totalThroughputResults, "Bytes");
         if (!totalThroughputResultsGraphSet.getJSONArray(LABELS).isEmpty()) {
             totalThroughputResultsGraphSet.put(TITLE, "Total Throughput");
             totalThroughputResultsGraphSet.put(X_AXIS_TITLE, "Build number");
@@ -329,7 +332,7 @@ public final class LrGraphUtils {
     static void constructAvgHitsGraph(Map.Entry<String, LrProjectScenarioResults> scenarioResults,
                                       JSONObject scenarioGraphData) {
         Map<Integer, WholeRunResult> avgHitsPerSec = scenarioResults.getValue().getAverageHitsPerSecondResults();
-        JSONObject avgHitsPerSecGraphSet = extractWholeRunSlaResult(avgHitsPerSec);
+        JSONObject avgHitsPerSecGraphSet = extractWholeRunSlaResult(avgHitsPerSec, "Hits/Sec");
         if (!avgHitsPerSecGraphSet.getJSONArray(LABELS).isEmpty()) {
             avgHitsPerSecGraphSet.put(TITLE, "Average Hits per Second");
             avgHitsPerSecGraphSet.put(X_AXIS_TITLE, "Build number");
@@ -353,7 +356,7 @@ public final class LrGraphUtils {
     static void constructTotalHitsGraph(Map.Entry<String, LrProjectScenarioResults> scenarioResults,
                                         JSONObject scenarioGraphData) {
         Map<Integer, WholeRunResult> totalHitsResults = scenarioResults.getValue().getTotalHitsResults();
-        JSONObject totalHitsGraphSet = extractWholeRunSlaResult(totalHitsResults);
+        JSONObject totalHitsGraphSet = extractWholeRunSlaResult(totalHitsResults, "Hits");
         if (!totalHitsGraphSet.getJSONArray(LABELS).isEmpty()) {
             totalHitsGraphSet.put(TITLE, "Total Hits");
             totalHitsGraphSet.put(X_AXIS_TITLE, "Build number");

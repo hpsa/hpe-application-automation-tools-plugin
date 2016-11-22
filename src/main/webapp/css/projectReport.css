@@ -65,7 +65,7 @@
     -o-transform: rotate(0deg);
     /* Internet Explorer */
     filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
-    font-family: Metric;
+    font-family: Lucida Sans Unicode;
     color: #666666;
     font-size: 15px; /* Approximation due to font substitution */
     font-weight: 400;
@@ -74,7 +74,7 @@
 }
 
 .ct-axis-title {
-    font-family: Metric;
+    font-family: Lucida Sans Unicode;
     color: #666666;
     font-size: 15px; /* Approximation due to font substitution */
     font-weight: 400;
@@ -88,9 +88,11 @@
     border-style: solid;
     background-color: #efefef;
     opacity: 0.5;
-    width: 219px;
-    height: 20px;
+    height: 25px;
     margin-top: 15px;
+    font-family: Lucida Sans Unicode;
+    font-size: medium;
+
 }
 
 .ct-chartBox {
@@ -99,7 +101,8 @@
     /*height: 400px;*/
     height: 600px;
     width: 1000px;
-    margin-top: 20px;
+    margin-bottom: 50px;
+    font-family: Lucida Sans Unicode;
 }
 
 .ct-chart-seprator {
@@ -107,7 +110,7 @@
 }
 
 .ct-chart-title {
-    font-family: Metric;
+    font-family: Lucida Sans Unicode;
     color: #333333;
     font-size: 25px;
     text-align: left;
@@ -115,7 +118,7 @@
 }
 
 .ct-chart-desc {
-    font-family: Metric;
+    font-family: Lucida Sans Unicode;
     color: #666666;
     font-size: 14px; /* Approximation due to font substitution */
     text-align: left;
@@ -123,7 +126,7 @@
 }
 
 .ct-chart-desc-title {
-    font-family: Metric;
+    font-family: Lucida Sans Unicode;
     color: #333333;
     font-size: 14px; /* Approximation due to font substitution */
     text-align: left;
@@ -140,6 +143,11 @@
     margin-bottom: 58px;
     word-spacing: 0px;
     margin-top: 20px;
-    font-family: Metric;
+    font-family: Lucida Sans Unicode;
     font-weight: 700;
+}
+
+#scenarioDropDown{
+    margin-top: 15px;
+    margin-bottom: 15px;
 }
