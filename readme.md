@@ -33,8 +33,8 @@
 
 ## Contribute to the Jenkins plugin
 - Contributions of code are always welcome!
-- Follow the standard GIT workflow: Fork, Code, Commit, Push and start a Pull requestץ
-- Each pull request will be tested, statistically code analyzed and have its code review results automatically published.
+- Follow the standard GIT workflow: Fork, Code, Commit, Push and start a Pull request
+- Each pull request will be tested, pass static code analysis and code review results.
 - All efforts will be made to expedite this process.
 
 #### Guidelines
