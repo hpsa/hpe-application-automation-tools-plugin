@@ -289,6 +289,9 @@ function octane_job_configuration(target, progress, proxy) {
                 jobConfiguration.workspaces[response.pipeline.workspaceId].pipelines[response.pipeline.id] = response.pipeline;
 
                 renderConfiguration(jobConfiguration, pipeline.id);
+                if(response.error){
+                    renderError(response.error);
+                }
             }
 
             var groupBy = {};
