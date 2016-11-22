@@ -1,6 +1,7 @@
 package com.hp.octane.integrations.services.rest;
 
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.api.RestClient;
 import com.hp.octane.integrations.api.RestService;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.spi.CIPluginServices;
@@ -30,7 +31,7 @@ public final class RestServiceImpl extends OctaneSDK.SDKServiceBase implements R
 		this.pluginServices = pluginServices;
 	}
 
-	public RestClientImpl obtainClient() {
+	public RestClient obtainClient() {
 		if (defaultClient == null) {
 			synchronized (DEFAULT_CLIENT_INIT_LOCK) {
 				if (defaultClient == null) {
@@ -41,7 +42,13 @@ public final class RestServiceImpl extends OctaneSDK.SDKServiceBase implements R
 		return defaultClient;
 	}
 
-	public RestClientImpl createClient(CIProxyConfiguration proxyConfiguration) {
+	public RestClient createClient(CIProxyConfiguration proxyConfiguration) {
 		return new RestClientImpl(pluginServices);
+	}
+
+	@Override
+	public void notifyConfigurationChange() {
+		logger.info("connectivity configuration change has been notified; publishing to the RestClients");
+		defaultClient.notifyConfigurationChange();
 	}
 }

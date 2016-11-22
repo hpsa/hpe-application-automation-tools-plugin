@@ -26,7 +26,6 @@ public class JenkinsMqmRestClientFactoryImpl implements JenkinsMqmRestClientFact
 	@Override
 	public synchronized MqmRestClient obtain(String location, String sharedSpace, String username, String password) {
 		if (mqmRestClient == null) {
-
 			mqmRestClient = create(location, sharedSpace, username, password);
 			logger.info("NGA REST Clint: initialized for " + location + " - " + sharedSpace + " - " + username);
 		}
@@ -35,7 +34,6 @@ public class JenkinsMqmRestClientFactoryImpl implements JenkinsMqmRestClientFact
 
 	@Override
 	public MqmRestClient obtainTemp(String location, String sharedSpace, String username, String password) {
-
 		MqmRestClient mqmRestClientTemp = create(location, sharedSpace, username, password);
 		logger.info("NGA REST Clint: initialized for " + location + " - " + sharedSpace + " - " + username);
 		return mqmRestClientTemp;
@@ -43,14 +41,13 @@ public class JenkinsMqmRestClientFactoryImpl implements JenkinsMqmRestClientFact
 
 	@Override
 	public synchronized void updateMqmRestClient(String location, String sharedSpace, String username, String password) {
-
 		mqmRestClient = create(location, sharedSpace, username, password);
 		logger.info("NGA REST Clint: updated to " + location + " - " + sharedSpace + " - " + username);
 	}
 
 	private MqmRestClient create(String location, String sharedSpace, String username, String password) {
 		MqmConnectionConfig clientConfig = new MqmConnectionConfig(location, sharedSpace, username, password, CLIENT_TYPE);
-		URL locationUrl = null;
+		URL locationUrl;
 		try {
 			locationUrl = new URL(clientConfig.getLocation());
 		} catch (MalformedURLException e) {
@@ -64,8 +61,7 @@ public class JenkinsMqmRestClientFactoryImpl implements JenkinsMqmRestClientFact
 				clientConfig.setProxyCredentials(new UsernamePasswordProxyCredentials(username, getPassword()));
 			}
 		}
-		MqmRestClient restClient = new MqmRestClientImpl(clientConfig);
-		return restClient;
+		return new MqmRestClientImpl(clientConfig);
 	}
 
 	private String getProxyHost() {

@@ -85,10 +85,8 @@ public class ConfigurationActionsController implements Controller {
 		cfg.setUsername(octaneConfiguration.getApiKey());
 		cfg.setSecretPassword(octaneConfiguration.getSecret());
 		configurationService.saveConfig(cfg);
-
-		OctaneSDK.getInstance().getConfigurationService().notifyChange(octaneConfiguration);
-
-		return "Updated successfully";
+		OctaneSDK.getInstance().getConfigurationService().notifyChange();
+		return "Configuration updated successfully";
 	}
 
 	public String reloadConfiguration() {
