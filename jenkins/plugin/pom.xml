@@ -15,6 +15,7 @@
 
 	<properties>
 		<baseNexusURL>http://mydtbld0051.hpeswlab.net:8081/nexus</baseNexusURL>
+        <maven.compiler.plugin.version>3.1</maven.compiler.plugin.version>
 		<surefire.version>2.18.1</surefire.version>
 		<jacoco.version>0.7.4.201502262128</jacoco.version>
 
@@ -232,6 +233,15 @@
 		</plugins>
 		<pluginManagement>
 			<plugins>
+                <plugin>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <version>${maven.compiler.plugin.version}</version>
+                    <configuration>
+                        <source>1.7</source>
+                        <target>1.7</target>
+                    </configuration>
+                </plugin>
 				<plugin>
 					<artifactId>maven-surefire-plugin</artifactId>
 					<version>${surefire.version}</version>
@@ -334,70 +344,38 @@
 				</snapshotRepository>
 			</distributionManagement>
 		</profile>
-
-		<!--<profile>-->
-			<!--<id>jar-signing</id>-->
-			<!--<build>-->
-				<!--<defaultGoal>install</defaultGoal>-->
-				<!--<plugins>-->
-					<!--<plugin>-->
-						<!--<groupId>org.apache.maven.plugins</groupId>-->
-						<!--<artifactId>maven-antrun-plugin</artifactId>-->
-						<!--<version>1.7</version>-->
-						<!--<executions>-->
-							<!--<execution>-->
-								<!--<id>default-cli</id>-->
-								<!--<phase>post-integration-test</phase>-->
-								<!--<configuration>-->
-									<!--<target name="Sign">-->
-										<!--<echo message="This is the file name:${file.name}"/>-->
-										<!--<exec executable="/bin/bash" failonerror="true">-->
-											<!--<arg value="/opt/HPCSS/HPSignClient/HPSign.sh"/>-->
-											<!--&lt;!&ndash;<arg value="-r jarAgm -c HPSign.conf -i /tmp/tmp/hp-integration-bridge-upgrade-windows.jar -o /tmp/tmp/Signed -obj jarfile_batch_sign_local_timestamp" />&ndash;&gt;-->
-											<!--<arg value="-r ${cert.project.name} -c HPSign.conf -i ${project.build.directory}/${file.name} -o ${original.folder} -obj ${matching.obj}"/>-->
-										<!--</exec>-->
-									<!--</target>-->
-								<!--</configuration>-->
-								<!--<goals>-->
-									<!--<goal>run</goal>-->
-								<!--</goals>-->
-							<!--</execution>-->
-							<!--<execution>-->
-								<!--<id>copy signed hpi to target</id>-->
-								<!--<phase>post-integration-test</phase>-->
-								<!--<configuration>-->
-									<!--<target>-->
-										<!--<copy file="${original.folder}/${file.name}"-->
-											  <!--toFile="${project.build.directory}/${file.name}"-->
-											  <!--overwrite="true">-->
-										<!--</copy>-->
-									<!--</target>-->
-								<!--</configuration>-->
-								<!--<goals>-->
-									<!--<goal>run</goal>-->
-								<!--</goals>-->
-							<!--</execution>-->
-							<!--<execution>-->
-								<!--<id>verify-signing</id>-->
-								<!--<phase>post-integration-test</phase>-->
-								<!--<configuration>-->
-									<!--<target name="Verify sign">-->
-										<!--<echo message="This is the file name:${file.name}"/>-->
-										<!--<exec executable="/bin/bash" failonerror="true">-->
-											<!--<arg value="-c"/>-->
-											<!--<arg value="if /usr/bin/jarsigner -verify ${project.build.directory}/${file.name} | grep 'jar verified.'; then echo THE JAR ${file.name} WAS SIGNED SUCCESSFULLY; exit 0; else echo THE BUILD FAILED BECAUSE JAR ${file.name} IS UNSIGNED; exit 1; fi"/>-->
-										<!--</exec>-->
-									<!--</target>-->
-								<!--</configuration>-->
-								<!--<goals>-->
-									<!--<goal>run</goal>-->
-								<!--</goals>-->
-							<!--</execution>-->
-						<!--</executions>-->
-					<!--</plugin>-->
-				<!--</plugins>-->
-			<!--</build>-->
-		<!--</profile>-->
+		<profile>
+			<id>jar-signing</id>
+			<build>
+				<defaultGoal>install</defaultGoal>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>1.7</version>
+                        <executions>
+							<execution>
+								<id>default-cli</id>
+								<phase>post-integration-test</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+									<target name="Sign">
+										<echo message="Signing JAR"/>
+										<exec executable="/bin/bash" failonerror="true">
+											<arg value="../../scripts/Sign/sign_jar.sh"/>
+											<arg value="${project.build.directory}"/>
+											<arg value="${file.name}"/>
+										</exec>
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 	</profiles>
 
 </project>
