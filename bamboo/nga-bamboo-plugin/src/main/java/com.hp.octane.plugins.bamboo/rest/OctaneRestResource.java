@@ -57,10 +57,7 @@ public class OctaneRestResource {
                 return "Bamboo user name is required";
             }
 
-
-            BambooUserManager bambooUserManager = ComponentLocator.getComponent(BambooUserManager.class);
-            BambooUser bambooUser = bambooUserManager.loadUserByUsername(userName);
-            if((bambooUser == null) || !isUserAuthorized(bambooUser)){
+            if(!isUserAuthorized(userName)){
                 return "Bamboo user misconfigured or doesn't have enough permissions\n";
             }
 
@@ -84,10 +81,15 @@ public class OctaneRestResource {
         }
     }
 
-    private boolean isUserAuthorized(BambooUser bambooUser) {
-        for(GrantedAuthority authority: bambooUser.getAuthorities()){
-            if(authority.getAuthority().equals("ROLE_ADMIN")){
-                return true;
+    private boolean isUserAuthorized(String userName) {
+
+        BambooUserManager bambooUserManager = ComponentLocator.getComponent(BambooUserManager.class);
+        BambooUser bambooUser = bambooUserManager.loadUserByUsername(userName);
+        if(bambooUser!=null) {
+            for (GrantedAuthority authority : bambooUser.getAuthorities()) {
+                if (authority.getAuthority().equals("ROLE_ADMIN")) {
+                    return true;
+                }
             }
         }
         return false;
