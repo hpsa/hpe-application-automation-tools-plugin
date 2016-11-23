@@ -149,7 +149,11 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 		return Secret.toString(secretPassword);
 	}
 
-	public String getImpersonatedUser() {
+    private String getSecretPassword() {
+        return secretPassword.getEncryptedValue();
+    }
+
+    public String getImpersonatedUser() {
 		return impersonatedUser;
 	}
 
@@ -216,7 +220,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 				JSONObject mqmData = formData.getJSONObject("mqm"); // NON-NLS
 				octanePlugin.configurePlugin(mqmData.getString("uiLocation"), // NON-NLS
 						mqmData.getString("username"), // NON-NLS
-						mqmData.getString("password"),
+						mqmData.getString("secretPassword"),
 						mqmData.getString("impersonatedUser"));
 				return true;
 			} catch (IOException e) {
@@ -226,7 +230,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 
 		public FormValidation doTestGlobalConnection(@QueryParameter("uiLocation") String uiLocation,
 		                                             @QueryParameter("username") String username,
-		                                             @QueryParameter("password") String password,
+		                                             @QueryParameter("secretPassword") String secretPassword,
 		                                             @QueryParameter("impersonatedUser") String impersonatedUser) {
 			MqmProject mqmProject;
 			try {
@@ -236,13 +240,17 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 				return fv;
 			}
 
+            String octanePassword = secretPassword.equals(octanePlugin.getSecretPassword())
+                    ? octanePlugin.getPassword()
+                    : secretPassword;
+
 			//  if parse is good, check authentication/authorization
 			FormValidation validation = configurationService.checkConfiguration(mqmProject.getLocation(),
-					mqmProject.getSharedSpace(), username, password);
+					mqmProject.getSharedSpace(), username, octanePassword);
 			if (validation.kind == FormValidation.Kind.OK &&
 					uiLocation.equals(octanePlugin.getUiLocation()) &&
 					username.equals(octanePlugin.getUsername()) &&
-					password.equals(octanePlugin.getPassword())) {
+                    octanePassword.equals(octanePlugin.getPassword())) {
 				retryModel.success();
 			}
 
@@ -294,7 +302,11 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 			return octanePlugin.getPassword();
 		}
 
-		public String getImpersonatedUser() {
+        public String getSecretPassword() {
+            return octanePlugin.getSecretPassword();
+        }
+
+        public String getImpersonatedUser() {
 			return octanePlugin.getImpersonatedUser();
 		}
 
