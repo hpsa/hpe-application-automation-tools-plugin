@@ -2,7 +2,7 @@
 <Configuration status="INFO">
 
 	<Properties>
-		<Property name="pattern">%d{dd/MM/yyyy HH:mm:ss,SSS} - %c{1}: %m%n</Property>
+		<Property name="pattern">%d{dd/MM/yyyy HH:mm:ss,SSS} %p - %c{1}: %m%n</Property>
 	</Properties>
 
 	<Appenders>

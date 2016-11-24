@@ -31,114 +31,116 @@ import java.util.List;
 
 public class UFTTestDetectionPublisher extends Recorder {
 
-    private final String workspaceName;
+	private final String workspaceName;
 
-    public String getWorkspaceName() {
-        return workspaceName;
-    }
+	public String getWorkspaceName() {
+		return workspaceName;
+	}
 
-    // Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
-    @DataBoundConstructor
-    public UFTTestDetectionPublisher(String workspaceName) {
-        this.workspaceName = workspaceName;
-    }
+	// Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
+	@DataBoundConstructor
+	public UFTTestDetectionPublisher(String workspaceName) {
+		this.workspaceName = workspaceName;
+	}
 
-    @Override
-    public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) {
-        // This is where you 'build' the project.
-        // Since this is a dummy, we just say 'hello world' and call that a build.
+	@Override
+	public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) {
+		// This is where you 'build' the project.
+		// Since this is a dummy, we just say 'hello world' and call that a build.
 
-        // This also shows how you can consult the global configuration of the builder
-        String message;
-
-
-        UFTTestDetectionBuildAction buildAction = new UFTTestDetectionBuildAction("", build, getWorkspaceName());
-        build.addAction(buildAction);
-
-        return true;
-    }
-
-    @Override
-    public DescriptorImpl getDescriptor() {
-        return (DescriptorImpl) super.getDescriptor();
-    }
-
-    @Override
-    public BuildStepMonitor getRequiredMonitorService() {
-        return BuildStepMonitor.NONE;
-    }
+		// This also shows how you can consult the global configuration of the builder
+		String message;
 
 
-    private static <T> T getExtension(Class<T> clazz) {
-        ExtensionList<T> items = Jenkins.getInstance().getExtensionList(clazz);
-        return items.get(0);
-    }
+		UFTTestDetectionBuildAction buildAction = new UFTTestDetectionBuildAction("", build, getWorkspaceName());
+		build.addAction(buildAction);
 
-    @Extension // This indicates to Jenkins that this is an implementation of an extension point.
-    public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
-        private MqmRestClient createClient() {
-            ServerConfiguration configuration = ConfigurationService.getServerConfiguration();
-            JenkinsMqmRestClientFactory clientFactory = getExtension(JenkinsMqmRestClientFactory.class);
-            MqmRestClient client = clientFactory.obtain(
-                    configuration.location,
-                    configuration.sharedSpace,
-                    configuration.username,
-                    configuration.password);
-            return client;
-        }
+		return true;
+	}
 
-        MqmRestClient client = createClient();
-        private String workspace;
+	@Override
+	public DescriptorImpl getDescriptor() {
+		return (DescriptorImpl) super.getDescriptor();
+	}
 
-        public DescriptorImpl() {
-            load();
-        }
-
-        /**
-         * This method determines the values of the album drop-down list box.
-         */
-        public ListBoxModel doFillWorkspaceNameItems() {
-            ListBoxModel m = new ListBoxModel();
-            PagedList<Workspace> workspacePagedList = client.queryWorkspaces("", 0, 200);
-            List<Workspace> items = workspacePagedList.getItems();
-            for (int i = 0; i < items.size(); i++) {
-                Workspace workspace = items.get(i);
-                m.add(workspace.getName(), String.valueOf(workspace.getId()));
-            }
-            return m;
-        }
-
-        public FormValidation doCheckWorkspaceName(@QueryParameter String value)
-                throws IOException, ServletException {
-            if (value.length() == 0)
-                return FormValidation.error("Please select workspace");
-            return FormValidation.ok();
-        }
-
-        public boolean isApplicable(Class<? extends AbstractProject> aClass) {
-            // Indicates that this builder can be used with all kinds of project types
-            return true;
-        }
+	@Override
+	public BuildStepMonitor getRequiredMonitorService() {
+		return BuildStepMonitor.NONE;
+	}
 
 
-        public String getDisplayName() {
-            return "HP Octane UFT Tests Scanner";
-        }
+	private static <T> T getExtension(Class<T> clazz) {
+		ExtensionList<T> items = Jenkins.getInstance().getExtensionList(clazz);
+		return items.get(0);
+	}
 
-        @Override
-        public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
-            // To persist global configuration information,
-            // set that to properties and call save().
-            workspace = formData.getString("useFrench");
-            // ^Can also use req.bindJSON(this, formData);
-            //  (easier when there are many fields; need set* methods for this, like setUseFrench)
-            save();
-            return super.configure(req, formData);
-        }
+	@Extension // This indicates to Jenkins that this is an implementation of an extension point.
+	public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
+		private MqmRestClient createClient() {
+			ServerConfiguration configuration = ConfigurationService.getServerConfiguration();
+			JenkinsMqmRestClientFactory clientFactory = getExtension(JenkinsMqmRestClientFactory.class);
+			MqmRestClient client = clientFactory.obtain(
+					configuration.location,
+					configuration.sharedSpace,
+					configuration.username,
+					configuration.password);
+			return client;
+		}
+
+		MqmRestClient client = createClient();
+		private String workspace;
+
+		public DescriptorImpl() {
+			load();
+		}
+
+		/**
+		 * This method determines the values of the album drop-down list box.
+		 *
+		 * @return ListBoxModel result
+		 */
+		public ListBoxModel doFillWorkspaceNameItems() {
+			ListBoxModel m = new ListBoxModel();
+			PagedList<Workspace> workspacePagedList = client.queryWorkspaces("", 0, 200);
+			List<Workspace> items = workspacePagedList.getItems();
+			for (int i = 0; i < items.size(); i++) {
+				Workspace workspace = items.get(i);
+				m.add(workspace.getName(), String.valueOf(workspace.getId()));
+			}
+			return m;
+		}
+
+		public FormValidation doCheckWorkspaceName(@QueryParameter String value)
+				throws IOException, ServletException {
+			if (value.length() == 0)
+				return FormValidation.error("Please select workspace");
+			return FormValidation.ok();
+		}
+
+		public boolean isApplicable(Class<? extends AbstractProject> aClass) {
+			// Indicates that this builder can be used with all kinds of project types
+			return true;
+		}
 
 
-        public String getWorkspace() {
-            return workspace;
-        }
-    }
+		public String getDisplayName() {
+			return "HP Octane UFT Tests Scanner";
+		}
+
+		@Override
+		public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
+			// To persist global configuration information,
+			// set that to properties and call save().
+			workspace = formData.getString("useFrench");
+			// ^Can also use req.bindJSON(this, formData);
+			//  (easier when there are many fields; need set* methods for this, like setUseFrench)
+			save();
+			return super.configure(req, formData);
+		}
+
+
+		public String getWorkspace() {
+			return workspace;
+		}
+	}
 }
