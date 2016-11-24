@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
-import org.acegisecurity.GrantedAuthority;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,11 +85,7 @@ public class OctaneRestResource {
         BambooUserManager bambooUserManager = ComponentLocator.getComponent(BambooUserManager.class);
         BambooUser bambooUser = bambooUserManager.loadUserByUsername(userName);
         if(bambooUser!=null) {
-            for (GrantedAuthority authority : bambooUser.getAuthorities()) {
-                if (authority.getAuthority().equals("ROLE_ADMIN")) {
-                    return true;
-                }
-            }
+            return true;
         }
         return false;
     }
