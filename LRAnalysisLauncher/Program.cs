@@ -159,7 +159,7 @@ namespace LRAnalysisLauncher
                     //vuserCountDictionary = Helper.GetVusersCountByStatus(analysis);
                     foreach (KeyValuePair<string, int> kvp in vuserCountDictionary)
                     {
-                        log(msg: String.Format("{0} vUsers: {1}", kvp.Key, kvp.Value));
+                        //log(msg: String.Format("{0} vUsers: {1}", kvp.Key, kvp.Value));
                         vUsers.SetAttribute(kvp.Key, kvp.Value.ToString());
                     }
                     vUsers.SetAttribute("Count", session.VUsers.Count.ToString());
@@ -190,7 +190,7 @@ namespace LRAnalysisLauncher
                     foreach (var transStatus in transactionSumStatusDictionary)
                     {
                         transactions.SetAttribute(transStatus.Key, transStatus.Value.ToString());
-                        log(msg: String.Format("{0} transaction: {1}", transStatus.Key, transStatus.Value));
+                        //log(msg: String.Format("{0} transaction: {1}", transStatus.Key, transStatus.Value));
                     }
                     general.AppendChild(transactions);
 

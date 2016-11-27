@@ -117,7 +117,7 @@ namespace LRAnalysisLauncher
         public static Dictionary<string, Dictionary<string, double>> CalcFailedTransPercent(LrAnalysis lrAnalysis)
         {
             var transDictionary = new Dictionary<string, Dictionary<string, double>>();
-            Console.WriteLine("Adding Transaction statistics");
+            //Console.WriteLine("Adding Transaction statistics");
             //var transactionGraph = lrAnalysis.Session.OpenGraph("TransactionSummary");
             //if (transactionGraph == null)
             //{
