@@ -13,13 +13,13 @@
                         <f:textbox field="username" />
                     </f:entry>
                     <f:entry title="${%global.config.password.title}" description="${%global.config.password.description}">
-                        <f:password field="secretPassword" />
+                        <f:password field="password" />
                     </f:entry>
                     <f:entry title="${%global.config.impersonatedUser.title}" description="${%global.config.impersonatedUser.description}" help="/plugin/hp-lifecycle-management-ci-plugin/help/impersonatedUser.html">
                         <f:textbox field="impersonatedUser" />
                     </f:entry>
                     <f:validateButton title="${%global.config.test.connection}" progress="${%global.config.test.connection.progress}"
-                        method="testGlobalConnection" with="uiLocation,username,secretPassword,impersonatedUser" />
+                        method="testGlobalConnection" with="uiLocation,username,password,impersonatedUser" />
                 </table>
             </f:nested>
         </f:entry>
