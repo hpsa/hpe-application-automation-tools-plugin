@@ -26,8 +26,9 @@ import java.util.Map;
  * Created by franksha on 20/03/2016.
  */
 public class GherkinTestResultsCollector implements TestResultsExcluder {
-    public static final String GHERKIN_NGA_RESULTS_XML_ = "gherkinNGAResults.xml_";
-    public static final String GHERKIN_NGA_RESULTS = "gherkinNGAResults";
+
+    public static final String RESULTS_FOLDER = "octane_gherkin_results";
+    public static final String GHERKIN_NGA_RESULTS = "gherkinOctaneResults";
 
     private Map<String, List<String>> gherkinTestsByFeature;
     private Map<String, List<String>> gherkinTestsByScenario;
