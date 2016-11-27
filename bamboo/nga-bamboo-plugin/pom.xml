@@ -18,12 +18,6 @@
 		<version>12.53.18-SNAPSHOT</version>
 	</parent>
 
-	<!--<parent>-->
-		<!--<groupId>com.hp.mqm</groupId>-->
-		<!--<artifactId>indi-integrations-root</artifactId>-->
-		<!--<version>12.53.17-SNAPSHOT</version>-->
-	<!--</parent>-->
-
 	<properties>
 		<bamboo.version>5.9.10</bamboo.version>
 		<bamboo.data.version>5.9.10</bamboo.data.version>
