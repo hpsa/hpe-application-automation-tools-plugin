@@ -145,6 +145,7 @@ public final class RunListenerImpl extends RunListener<Run> {
         }
         if (r instanceof AbstractBuild) {
             AbstractBuild build = (AbstractBuild) r;
+            SCMProcessor scmProcessor = SCMProcessors.getAppropriate(build.getProject().getScm().getClass().getName());
             CIEvent event = dtoFactory.newDTO(CIEvent.class)
                     .setEventType(CIEventType.FINISHED)
                     .setProject(getProjectName(r))
@@ -156,6 +157,7 @@ public final class RunListenerImpl extends RunListener<Run> {
                     .setCauses(CIEventCausesFactory.processCauses(extractCauses(build)))
                     .setParameters(ParameterProcessors.getInstances(build))
                     .setResult(result)
+                    .setScmData(scmProcessor == null ? null : scmProcessor.getSCMData(build))
                     .setDuration(build.getDuration());
             EventsService.getExtensionInstance().dispatchEvent(event);
             GherkinEventsService.copyGherkinTestResultsToBuildDir(build);
