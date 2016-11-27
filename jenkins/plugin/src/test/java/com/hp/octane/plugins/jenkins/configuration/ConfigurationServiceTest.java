@@ -39,7 +39,7 @@ public class ConfigurationServiceTest {
 
 		form.getInputByName("_.uiLocation").setValueAttribute("http://localhost:8008/ui/?p=1001/1002");
 		form.getInputByName("_.username").setValueAttribute("username");
-		form.getInputByName("_.secretPassword").setValueAttribute("password");
+		form.getInputByName("_.password").setValueAttribute("password");
 		rule.submit(form);
 	}
 
@@ -60,7 +60,7 @@ public class ConfigurationServiceTest {
 		Assert.assertEquals(formIn.getInputByName("_.uiLocation").getValueAttribute(), formOut.getInputByName("_.uiLocation").getValueAttribute());
 		Assert.assertEquals(formIn.getInputByName("_.username").getValueAttribute(), formOut.getInputByName("_.username").getValueAttribute());
 		// NOTE: password is actually empty (bug or security feature?)
-		Assert.assertEquals(formIn.getInputByName("_.secretPassword").getValueAttribute(), formOut.getInputByName("_.secretPassword").getValueAttribute());
+		Assert.assertEquals(formIn.getInputByName("_.password").getValueAttribute(), formOut.getInputByName("_.password").getValueAttribute());
 	}
 
 	@Test
