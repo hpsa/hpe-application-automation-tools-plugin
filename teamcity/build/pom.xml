@@ -15,11 +15,14 @@
 		<teamcity.plugin.version>${version}</teamcity.plugin.version>
 		<teamcity.plugin.vendorName>Plugin vendor name</teamcity.plugin.vendorName>
 		<teamcity.plugin.vendorUrl>Plugin vendor URL</teamcity.plugin.vendorUrl>
-		<zip.location>${project.parent.basedir}/target/hp-lifecycle-management-teamcity-ci-plugin.zip</zip.location>
-		<extraction.folder>${project.build.directory}/extracted</extraction.folder> 
+		<!--zip.location>${project.parent.basedir}/target/hp-lifecycle-management-teamcity-ci-plugin.zip</zip.location-->
+		<zip.location>../target/hp-lifecycle-management-teamcity-ci-plugin.zip</zip.location>
+		<extraction.folder>${project.build.directory}/extracted</extraction.folder>
 		<temp.target>${project.build.directory}/temp</temp.target>
-		<jar.folder>${extraction.folder}/server/</jar.folder> 
-		
+		<!--jar.folder>${extraction.folder}/server/</jar.folder-->
+		<jar.folder>server</jar.folder>
+
+
 	</properties>
 	<dependencies>
 		<dependency>
@@ -114,43 +117,37 @@
 				</plugins>
 			</build>
 		</profile>
-		<!--<profile>-->
-			<!--<id>jar-signing</id>-->
-			<!--<build>-->
-				<!--<plugins>-->
-					<!--<plugin>-->
-						<!--<groupId>org.codehaus.mojo</groupId>-->
-						<!--<artifactId>exec-maven-plugin</artifactId>-->
-						<!--<executions>-->
-							<!--<execution>-->
-								<!--<id>script-chmod</id>-->
-								<!--<phase>pre-integration-test</phase>-->
-								<!--<goals>-->
-									<!--<goal>exec</goal>-->
-								<!--</goals>-->
-								<!--<configuration>-->
-									<!--<executable>chmod</executable>-->
-									<!--<arguments>-->
-										<!--<argument>+x</argument>-->
-										<!--<argument>${basedir}/../misc/scripts/jarSigning.py</argument>-->
-									<!--</arguments>-->
-								<!--</configuration>-->
-							<!--</execution>-->
-							<!--<execution>-->
-								<!--<id>teamcity jars signing</id>-->
-								<!--<phase>pre-integration-test</phase>-->
-								<!--<goals>-->
-									<!--<goal>exec</goal>-->
-								<!--</goals>-->
-								<!--<configuration>-->
-									<!--<executable>${basedir}/../misc/scripts/jarSigning.py </executable>-->
-									<!--<commandlineArgs>${zip.location} ${extraction.folder} ${temp.target} ${jar.folder} </commandlineArgs>-->
-								<!--</configuration>-->
-							<!--</execution>-->
-						<!--</executions>-->
-					<!--</plugin>-->
-				<!--</plugins>-->
-			<!--</build>-->
-		<!--</profile>-->
+		<profile>
+			<id>jar-signing</id>
+			<build>
+				<defaultGoal>install</defaultGoal>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>1.7</version>
+						<executions>
+							<execution>
+								<id>default-cli</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target name="Sign">
+										<echo message="Signing JAR"/>
+										<exec executable="/bin/bash" failonerror="true">
+											<arg value="../../scripts/Sign/signJarsInZip.sh"/>
+											<arg value="${zip.location}"/>
+											<arg value="${jar.folder}"/>
+										</exec>
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 	</profiles>
 </project>
