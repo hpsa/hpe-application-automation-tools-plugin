@@ -39,6 +39,8 @@
             <link rel="stylesheet" type="text/css"
                   href="${resURL}/plugin/hp-application-automation-tools-plugin/css/chartist-plugin-tooltip.css"></link>
             <link rel="stylesheet" type="text/css"
+                  href="${resURL}/plugin/hp-application-automation-tools-plugin/css/ColorPlate.css"></link>
+            <link rel="stylesheet" type="text/css"
                   href="${resURL}/plugin/hp-application-automation-tools-plugin/css/projectReport.css"></link>
             <script src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/libaries/chartist/chartist.js"/>
             <script src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/libaries/chartist/chartist-plugin-legend.js"/>
