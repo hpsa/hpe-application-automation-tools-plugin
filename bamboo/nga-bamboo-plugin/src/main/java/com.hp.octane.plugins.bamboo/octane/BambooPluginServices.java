@@ -7,6 +7,8 @@ import com.atlassian.bamboo.plan.PlanKeys;
 import com.atlassian.bamboo.plan.cache.CachedPlanManager;
 import com.atlassian.bamboo.plan.cache.ImmutableChain;
 import com.atlassian.bamboo.plan.cache.ImmutableTopLevelPlan;
+import com.atlassian.bamboo.security.BambooPermissionManager;
+import com.atlassian.bamboo.security.acegi.acls.BambooPermission;
 import com.atlassian.bamboo.user.BambooUser;
 import com.atlassian.bamboo.user.BambooUserManager;
 import com.atlassian.sal.api.component.ComponentLocator;
@@ -23,8 +25,10 @@ import com.hp.octane.integrations.dto.pipelines.BuildHistory;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.dto.tests.TestsResult;
+import com.hp.octane.integrations.exceptions.PermissionException;
 import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.plugins.bamboo.api.OctaneConfigurationKeys;
+import org.acegisecurity.acls.Permission;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -163,17 +167,33 @@ public class BambooPluginServices implements CIPluginServices {
 				log.info("plan key is " + chain.getPlanKey().getKey());
 				log.info("build key is " + chain.getBuildKey());
 				log.info("chain key is " + chain.getKey());
-				planExecMan.startManualExecution(chain, user, new HashMap<String, String>(),
-						new HashMap<String, String>());
+
+				if(!isUserHasPermission(BambooPermission.BUILD, user,chain)) {
+					throw new PermissionException(403);
+				}
+				planExecMan.startManualExecution(chain, user, new HashMap<String, String>(), new HashMap<String, String>());
+
 				return null;
 			}
 		});
 		try {
 			impersonated.call();
-		} catch (Exception e) {
+		} catch (PermissionException e){
+			throw e;
+		}catch (Exception e) {
 			log.info("Error impersonating for plan execution", e);
 		}
 
+	}
+
+	private boolean isUserHasPermission(Permission permissionType, BambooUser user, ImmutableChain chain ){
+		Collection<Permission> permissionForPlan = ComponentLocator.getComponent(BambooPermissionManager.class).getPermissionsForPlan(chain.getPlanKey());
+		for(Permission permission : permissionForPlan){
+			if(permission.equals(permissionType)){
+				 return true;
+			}
+		}
+		return false;
 	}
 
 	private String getRunAsUser() {
