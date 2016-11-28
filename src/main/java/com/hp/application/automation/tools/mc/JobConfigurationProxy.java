@@ -12,6 +12,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * communicate with MC servers, login to MC, upload application to MC server, create job, get job details.
+ */
 public class JobConfigurationProxy {
 
     private static JobConfigurationProxy instance = null;
