@@ -12,6 +12,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * communicate with MC servers, login to MC, upload application to MC server, create job, get job details.
+ */
 public class JobConfigurationProxy {
 
     private static JobConfigurationProxy instance = null;
@@ -51,6 +54,12 @@ public class JobConfigurationProxy {
                 String setCookie = null;
                 if (setCookieList != null && setCookieList.size() != 0) {
                     setCookie = setCookieList.get(0);
+                    for(String str : setCookieList){
+                        if(str.contains(Constants.JSESSIONID) && str.startsWith(Constants.JSESSIONID)){
+                            setCookie = str;
+                            break;
+                        }
+                    }
                 }
                 String jsessionId = getJSESSIONID(setCookie);
                 returnObject.put(Constants.JSESSIONID, jsessionId);
