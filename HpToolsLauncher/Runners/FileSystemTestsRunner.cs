@@ -298,9 +298,7 @@ namespace HpToolsLauncher
 
                 Stopwatch s = Stopwatch.StartNew();
 
-                TestRunResults results = null;
-
-                results = runner.RunTest(testinf, ref errorReason, RunCancelled);
+                var results = runner.RunTest(testinf, ref errorReason, RunCancelled);
 
                 results.Runtime = s.Elapsed;
                 if (type == TestType.LoadRunner)
@@ -329,29 +327,15 @@ namespace HpToolsLauncher
         /// <returns></returns>
         public bool RunCancelled()
         {
-
             //if timeout has passed
-            if (_stopwatch.Elapsed > _timeout)
+            if (_stopwatch.Elapsed > _timeout && !_blnRunCancelled)
             {
+                ConsoleWriter.WriteLine(Resources.GeneralTimedOut);
 
-                if (!_blnRunCancelled)
-                {
-                    ConsoleWriter.WriteLine(Resources.GeneralTimedOut);
-
-                    Launcher.ExitCode = Launcher.ExitCodeEnum.Aborted;
-                    _blnRunCancelled = true;
-                }
+                Launcher.ExitCode = Launcher.ExitCodeEnum.Aborted;
+                _blnRunCancelled = true;
             }
 
-            //if (System.IO.File.Exists(_abortFilename))
-            //{
-            //    if (!_blnRunCancelled)
-            //    {
-            //        ConsoleWriter.WriteLine(Resources.GeneralAbortedByUser);
-            //        Launcher.ExitCode = Launcher.ExitCodeEnum.Aborted;
-            //        _blnRunCancelled = true;
-            //    }
-            //}
             return _blnRunCancelled;
         }
 

@@ -5,7 +5,12 @@ package com.hp.application.automation.tools.results.projectparser.performance;
  */
 public class PercentileTransactionWholeRun extends WholeRunResult {
 
+    private String name;
+    private double _precentage;
+
     public PercentileTransactionWholeRun() {
+        _precentage = 0.0;
+        name = "";
     }
 
     public String getName() {
@@ -16,7 +21,6 @@ public class PercentileTransactionWholeRun extends WholeRunResult {
         this.name = name;
     }
 
-    protected String name = "";
     public double getPrecentage() {
         return _precentage;
     }
@@ -24,8 +28,6 @@ public class PercentileTransactionWholeRun extends WholeRunResult {
     public void setPrecentage(double precentage) {
         this._precentage = precentage;
     }
-
-    double _precentage;
 
 
 }

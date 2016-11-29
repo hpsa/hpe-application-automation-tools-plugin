@@ -24,15 +24,43 @@
 
 package com.hp.application.automation.tools.results.projectparser.performance;
 
-public abstract class LrScenario extends LrJobResults{
-    private String _scenrioName = "";
+/**
+ * The type Lr scenario.
+ */
+public abstract class LrScenario extends LrJobResults {
+    private String _scenrioName;
 
+    /**
+     * Instantiates a new Lr scenario.
+     */
+    public LrScenario() {
+        this("");
+    }
+
+    /**
+     * Instantiates a new Lr scenario.
+     *
+     * @param _scenrioName the scenrio name
+     */
+    public LrScenario(String _scenrioName) {
+        this._scenrioName = _scenrioName;
+    }
+
+    /**
+     * Gets scenario name.
+     *
+     * @return the scenario name
+     */
     public String getScenarioName() {
         return _scenrioName;
     }
 
-    void setScenrioName(String scenrioName)
-    {
+    /**
+     * Sets scenrio name.
+     *
+     * @param scenrioName the scenrio name
+     */
+    void setScenrioName(String scenrioName) {
         _scenrioName = scenrioName;
-    };
+    }
 }

@@ -82,10 +82,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import static com.hp.application.automation.tools.results.projectparser.performance.XmlParserUtil.getNode;
 import static com.hp.application.automation.tools.results.projectparser.performance.XmlParserUtil.getNodeAttr;
@@ -190,6 +190,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         for (String resultFile : mergedResultNames) {
             JUnitResultArchiver jUnitResultArchiver = new JUnitResultArchiver(resultFile);
             jUnitResultArchiver.setKeepLongStdio(true);
+            jUnitResultArchiver.setAllowEmptyResults(true);
             jUnitResultArchiver.perform(build, workspace, launcher, listener);
         }
 
@@ -212,14 +213,18 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             LrJobResults jobDataSet = null;
             try {
                 jobDataSet = buildJobDataset(listener);
-            } catch (ParserConfigurationException e) {
-                listener.error(ARCHIVING_TEST_REPORTS_FAILED_DUE_TO_XML_PARSING_ERROR + e);
-            } catch (SAXException e) {
+            } catch (ParserConfigurationException | SAXException e) {
                 listener.error(ARCHIVING_TEST_REPORTS_FAILED_DUE_TO_XML_PARSING_ERROR + e);
             }
 
             if ((jobDataSet != null && !jobDataSet.getLrScenarioResults().isEmpty())) {
-                build.replaceAction(new PerformanceJobReportAction(build, jobDataSet));
+                PerformanceJobReportAction performanceJobReportAction = build.getAction(PerformanceJobReportAction.class);
+                if (performanceJobReportAction != null) {
+                    performanceJobReportAction.mergeResults(jobDataSet);
+                } else {
+                    performanceJobReportAction = new PerformanceJobReportAction(build, jobDataSet);
+                }
+                build.replaceAction(performanceJobReportAction);
             }
         }
         publishLrReports(build);
@@ -360,7 +365,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                             FilePath testSla = copyRunReport(reportFolder, build.getRootDir(),
                                     testFolder.getName());
                             runReportList.add(testSla);
-                        } catch (Exception e) {
+                        } catch (IOException | InterruptedException e) {
                             listener.getLogger().println(e.getMessage());
                         }
                     }
@@ -440,7 +445,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
 
                                 //don't use FileFilter for zip, or it will cause bug when files are on slave
                                 reportFolder.zip(outstr);
-                                
+
 								/*
                                  * I did't use copyRecursiveTo or copyFrom due to
 								 * bug in
@@ -545,7 +550,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             write2XML(doc, xmlFile);
         } catch (TransformerException e) {
             _logger.error("Failed transforming xml file: " + e);
-            e.printStackTrace();
         } catch (FileNotFoundException e) {
             _logger.error("Failed to find " + xmlFile + ": " + e);
         }
@@ -968,7 +972,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             throws ParserConfigurationException, SAXException,
             IOException, InterruptedException {
         listener.getLogger().println(
-                "Starting the creation of test run dataset for graphing");
+                "Parsing test run dataset for perfomrance report");
         LrJobResults jobResults = new LrJobResults();
 
         // read each RunReport.xml
@@ -1038,7 +1042,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 continue;
             }
             Element transaction = (Element) transactionNodes.item(transIdx);
-            HashMap<String, Integer> transactionData = new HashMap<String, Integer>(0);
+            TreeMap<String, Integer> transactionData = new TreeMap<String, Integer>();
             transactionData.put("Pass", Integer.valueOf(transaction.getAttribute("Pass")));
             transactionData.put("Fail", Integer.valueOf(transaction.getAttribute("Fail")));
             transactionData.put("Stop", Integer.valueOf(transaction.getAttribute("Stop")));
@@ -1168,7 +1172,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         NodeList timeRanges = slaRuleElement.getElementsByTagName("TimeRangeInfo");
 
         //Taking the goal per transaction -
-        double generalGoalValue = Double.valueOf(((Element) timeRanges.item(0)).getAttribute(SLA_GOAL_VALUE_LABEL));
+        double generalGoalValue = Double.parseDouble(((Element) timeRanges.item(0)).getAttribute(SLA_GOAL_VALUE_LABEL));
         transactionTimeRange.setGoalValue(generalGoalValue);
 
         for (int k = 0; k < timeRanges.getLength(); k++) {
@@ -1183,7 +1187,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             LrTest.SLA_STATUS slaStatus =
                     LrTest.SLA_STATUS.checkStatus(timeRangeElement.getFirstChild().getTextContent());
             TimeRange timeRange = new TimeRange(actualValue, goalValue, slaStatus, loadValue, startTime, endTIme);
-            transactionTimeRange.timeRanges.add(timeRange);
+            transactionTimeRange.getTimeRanges().add(timeRange);
         }
     }
 

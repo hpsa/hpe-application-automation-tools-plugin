@@ -10,7 +10,7 @@ import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
 /** 
-* LrScenarioLoadStep Tester. 
+* LoadRunnerTestStep Tester.
 * 
 * @author <Authors name> 
 * @since <pre>??? 28, 2016</pre> 

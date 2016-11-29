@@ -25,8 +25,8 @@
 package com.hp.application.automation.tools.results.projectparser.performance;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 
 /**
@@ -37,10 +37,20 @@ public class JobLrScenarioResult extends LrScenario {
     public static final int DEFAULT_SCENARIO_DURATION = -1;
     public ArrayList<GoalResult> scenarioSlaResults;
     public Map<String, Integer> vUserSum;
-    public HashMap<String, Integer> transactionSum;
-    public HashMap<String, HashMap<String, Integer>> transactionData;
-    int connectionMax;
-    long scenarioDuration;
+    public TreeMap<String, Integer> transactionSum;
+    public TreeMap<String, TreeMap<String, Integer>> transactionData;
+    private int connectionMax;
+    private long scenarioDuration;
+
+    public JobLrScenarioResult(String scenarioName) {
+        super.setScenrioName(scenarioName);
+        connectionMax = DEFAULT_CONNECTION_MAX;
+        scenarioDuration = DEFAULT_SCENARIO_DURATION;
+        vUserSum = new TreeMap<String, Integer>();
+        transactionSum = new TreeMap<String, Integer>();
+        transactionData = new TreeMap<>();
+        scenarioSlaResults = new ArrayList<GoalResult>(0);
+    }
 
     public long getScenarioDuration() {
         return scenarioDuration;
@@ -48,16 +58,6 @@ public class JobLrScenarioResult extends LrScenario {
 
     public void setScenarioDuration(long scenarioDuration) {
         this.scenarioDuration = scenarioDuration;
-    }
-
-    public JobLrScenarioResult(String scenarioName) {
-        super.setScenrioName(scenarioName);
-        connectionMax = DEFAULT_CONNECTION_MAX;
-        scenarioDuration = DEFAULT_SCENARIO_DURATION;
-        vUserSum = new HashMap<String, Integer>(0);
-        transactionSum = new HashMap<String, Integer>(0);
-        transactionData = new HashMap<String, HashMap<String, Integer>>(0);
-        scenarioSlaResults = new ArrayList<GoalResult>(0);
     }
 
     public int getConnectionMax() {
