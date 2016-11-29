@@ -29,12 +29,11 @@ public class ModelFactory {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	public static PipelineNode createStructureItem(Job project) {
+		AbstractProjectProcessor projectProcessor = AbstractProjectProcessor.getFlowProcessor(project);
 		PipelineNode pipelineNode = dtoFactory.newDTO(PipelineNode.class);
-		pipelineNode.setJobCiId(project.getName());
+		pipelineNode.setJobCiId(projectProcessor.getJobCiId());
 		pipelineNode.setName(project.getName());
 		pipelineNode.setParameters(ParameterProcessors.getConfigs(project));
-
-		AbstractProjectProcessor projectProcessor = AbstractProjectProcessor.getFlowProcessor(project);
 		pipelineNode.setPhasesInternal(projectProcessor.getInternals());
 		pipelineNode.setPhasesPostBuild(projectProcessor.getPostBuilds());
 
@@ -120,12 +119,11 @@ public class ModelFactory {
 
 	public static SnapshotNode createSnapshotItem(AbstractProject project, boolean metaOnly) {
 		SnapshotNode snapshotNode = dtoFactory.newDTO(SnapshotNode.class);
-
-		snapshotNode.setJobCiId(project.getName());
+		AbstractProjectProcessor flowProcessor = AbstractProjectProcessor.getFlowProcessor(project);
+		snapshotNode.setJobCiId(flowProcessor.getJobCiId());
 		snapshotNode.setName(project.getName());
 
 		if (!metaOnly) {
-			AbstractProjectProcessor flowProcessor = AbstractProjectProcessor.getFlowProcessor(project);
 			snapshotNode.setPhasesPostBuild(inflatePhases(flowProcessor.getPostBuilds(), null));
 			snapshotNode.setPhasesInternal(inflatePhases(flowProcessor.getInternals(), null));
 		}

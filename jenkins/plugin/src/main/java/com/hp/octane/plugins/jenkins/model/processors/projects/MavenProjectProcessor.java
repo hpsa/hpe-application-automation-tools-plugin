@@ -17,18 +17,16 @@ import java.util.List;
 
 public class MavenProjectProcessor extends AbstractProjectProcessor{
 
-	private final MavenModuleSet project;
 
 	public MavenProjectProcessor(AbstractProject project) {
-		this.project = (MavenModuleSet) project;
-
+		super(project);
 		//  Internal phases - pre maven phases
 		//
-		super.processBuilders(this.project.getPrebuilders(), this.project, "pre-maven");
+		super.processBuilders(((MavenModuleSet)this.project).getPrebuilders(), this.project, "pre-maven");
 
 		//  Internal phases - post maven phases
 		//
-		super.processBuilders(this.project.getPostbuilders(), this.project, "post-maven");
+		super.processBuilders(((MavenModuleSet)this.project).getPostbuilders(), this.project, "post-maven");
 
 		//  Post build phases
 		//

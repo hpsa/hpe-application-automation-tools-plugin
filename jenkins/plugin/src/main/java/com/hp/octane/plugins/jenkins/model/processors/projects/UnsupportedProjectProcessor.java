@@ -1,5 +1,6 @@
 package com.hp.octane.plugins.jenkins.model.processors.projects;
 
+import hudson.model.AbstractProject;
 import hudson.tasks.Builder;
 
 import java.util.ArrayList;
@@ -14,8 +15,12 @@ import java.util.List;
  */
 
 public class UnsupportedProjectProcessor extends AbstractProjectProcessor {
+    protected UnsupportedProjectProcessor(AbstractProject project) {
+        super(project);
+    }
+
     @Override
     public List<Builder> tryGetBuilders() {
-        return new ArrayList<Builder>();
+        return new ArrayList<>();
     }
 }

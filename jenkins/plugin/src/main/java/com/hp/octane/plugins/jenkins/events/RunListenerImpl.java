@@ -52,7 +52,7 @@ public final class RunListenerImpl extends RunListener<Run> {
         if (r.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowRun")) {
             event = dtoFactory.newDTO(CIEvent.class)
                     .setEventType(CIEventType.STARTED)
-                    .setProject(r.getParent().getName())
+                    .setProject(AbstractProjectProcessor.getFlowProcessor(r.getParent()).getJobCiId())
                     .setBuildCiId(String.valueOf(r.getNumber()))
                     .setNumber(String.valueOf(r.getNumber()))
                     .setStartTime(r.getStartTimeInMillis())
@@ -67,7 +67,7 @@ public final class RunListenerImpl extends RunListener<Run> {
                 AbstractBuild build = (AbstractBuild) r;
                 event = dtoFactory.newDTO(CIEvent.class)
                         .setEventType(CIEventType.STARTED)
-                        .setProject(((MatrixRun) r).getParentBuild().getParent().getName())
+                        .setProject(AbstractProjectProcessor.getFlowProcessor(r.getParent()).getJobCiId())
                         .setProjectDisplayName(((MatrixRun) r).getParentBuild().getParent().getName())
                         .setBuildCiId(String.valueOf(build.getNumber()))
                         .setNumber(String.valueOf(build.getNumber()))
@@ -80,7 +80,7 @@ public final class RunListenerImpl extends RunListener<Run> {
                 AbstractBuild build = (AbstractBuild) r;
                 event = dtoFactory.newDTO(CIEvent.class)
                         .setEventType(CIEventType.STARTED)
-                        .setProject(build.getProject().getName())
+                        .setProject(AbstractProjectProcessor.getFlowProcessor(r.getParent()).getJobCiId())
                         .setProjectDisplayName(build.getProject().getName())
                         .setBuildCiId(String.valueOf(build.getNumber()))
                         .setNumber(String.valueOf(build.getNumber()))
@@ -149,7 +149,7 @@ public final class RunListenerImpl extends RunListener<Run> {
             SCMProcessor scmProcessor = SCMProcessors.getAppropriate(build.getProject().getScm().getClass().getName());
             CIEvent event = dtoFactory.newDTO(CIEvent.class)
                     .setEventType(CIEventType.FINISHED)
-                    .setProject(getProjectName(r))
+                    .setProject(AbstractProjectProcessor.getFlowProcessor(r.getParent()).getJobCiId())
                     .setProjectDisplayName(getProjectName(r))
                     .setBuildCiId(String.valueOf(build.getNumber()))
                     .setNumber(String.valueOf(build.getNumber()))
@@ -166,7 +166,7 @@ public final class RunListenerImpl extends RunListener<Run> {
         } else if (r.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowRun")) {
             CIEvent event = dtoFactory.newDTO(CIEvent.class)
                     .setEventType(CIEventType.FINISHED)
-                    .setProject(getProjectName(r))
+                    .setProject(AbstractProjectProcessor.getFlowProcessor(r.getParent()).getJobCiId())
                     .setBuildCiId(String.valueOf(r.getNumber()))
                     .setNumber(String.valueOf(r.getNumber()))
                     .setStartTime(r.getStartTimeInMillis())

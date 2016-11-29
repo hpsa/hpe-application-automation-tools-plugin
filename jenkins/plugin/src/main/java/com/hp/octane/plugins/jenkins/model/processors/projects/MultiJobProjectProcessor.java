@@ -16,22 +16,20 @@ import java.util.List;
 
 public class MultiJobProjectProcessor extends AbstractProjectProcessor {
 
-	private final MultiJobProject project;
 
-	public MultiJobProjectProcessor(AbstractProject project) {
-		this.project = (MultiJobProject) project;
+    public MultiJobProjectProcessor(AbstractProject project) {
+        super(project);
+        //  Internal phases
+        //
+        super.processBuilders(((MultiJobProject) this.project).getBuilders(), this.project);
 
-		//  Internal phases
-		//
-		super.processBuilders(this.project.getBuilders(), this.project);
+        //  Post build phases
+        //
+        super.processPublishers(this.project);
+    }
 
-		//  Post build phases
-		//
-		super.processPublishers(this.project);
-	}
-
-	@Override
-	public List<Builder> tryGetBuilders() {
-		return project.getBuilders();
-	}
+    @Override
+    public List<Builder> tryGetBuilders() {
+        return ((MultiJobProject) project).getBuilders();
+    }
 }

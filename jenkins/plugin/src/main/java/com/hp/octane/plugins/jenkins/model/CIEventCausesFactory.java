@@ -22,7 +22,7 @@ public final class CIEventCausesFactory {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	public static List<CIEventCause> processCauses(List<Cause> causes) {
-		List<CIEventCause> result = new LinkedList<CIEventCause>();
+		List<CIEventCause> result = new LinkedList<>();
 		CIEventCause tmpResultCause;
 		Cause.UserIdCause tmpUserCause;
 		Cause.UpstreamCause tmpUpstreamCause;
@@ -41,7 +41,8 @@ public final class CIEventCausesFactory {
 				} else if (cause instanceof Cause.UpstreamCause) {
 					tmpUpstreamCause = (Cause.UpstreamCause) cause;
 					tmpResultCause.setType(CIEventCauseType.UPSTREAM);
-					tmpResultCause.setProject(tmpUpstreamCause.getUpstreamProject());
+					//tmpResultCause.setProject(tmpUpstreamCause.getUpstreamProject());
+					tmpResultCause.setProject(resolveJobCiId(tmpUpstreamCause.getUpstreamProject()));
 					tmpResultCause.setBuildCiId(String.valueOf(tmpUpstreamCause.getUpstreamBuild()));
 					tmpResultCause.setCauses(processCauses(tmpUpstreamCause.getUpstreamCauses()));
 				} else {
@@ -51,5 +52,10 @@ public final class CIEventCausesFactory {
 			}
 		}
 		return result;
+	}
+
+	private static String resolveJobCiId(String jobPlainName) {
+			String separator = jobPlainName.contains("/") ? "/" : "\\";
+			return jobPlainName.replaceAll(separator, separator+"job"+separator);
 	}
 }

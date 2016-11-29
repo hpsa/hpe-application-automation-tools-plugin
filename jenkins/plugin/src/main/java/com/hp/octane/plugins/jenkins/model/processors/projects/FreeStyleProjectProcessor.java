@@ -15,14 +15,13 @@ import java.util.List;
  */
 
 public class FreeStyleProjectProcessor extends AbstractProjectProcessor {
-	private final FreeStyleProject project;
 
 	public FreeStyleProjectProcessor(AbstractProject project) {
-		this.project = (FreeStyleProject) project;
+		super(project);
 
 		//  Internal phases
 		//
-		super.processBuilders(this.project.getBuilders(), this.project);
+		super.processBuilders(((FreeStyleProject) this.project).getBuilders(), this.project);
 
 		//  Post build phases
 		//
@@ -31,6 +30,7 @@ public class FreeStyleProjectProcessor extends AbstractProjectProcessor {
 
 	@Override
 	public List<Builder> tryGetBuilders() {
-		return project.getBuilders();
+		return ((FreeStyleProject)project).getBuilders();
 	}
+
 }

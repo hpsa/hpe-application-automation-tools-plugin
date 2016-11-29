@@ -1,11 +1,7 @@
 package com.hp.octane.plugins.jenkins.model.processors.projects;
 
 import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
-import com.hp.octane.plugins.jenkins.model.processors.builders.AbstractBuilderProcessor;
-import com.hp.octane.plugins.jenkins.model.processors.builders.BuildTriggerProcessor;
-import com.hp.octane.plugins.jenkins.model.processors.builders.MultiJobBuilderProcessor;
-import com.hp.octane.plugins.jenkins.model.processors.builders.ParameterizedTriggerProcessor;
-import com.hp.octane.plugins.jenkins.model.processors.builders.WorkFlowJobProcessor;
+import com.hp.octane.plugins.jenkins.model.processors.builders.*;
 import hudson.model.AbstractProject;
 import hudson.model.Job;
 import hudson.tasks.BuildStep;
@@ -30,8 +26,13 @@ import java.util.List;
 public abstract class AbstractProjectProcessor {
 	private static final Logger logger = LogManager.getLogger(AbstractProjectProcessor.class);
 
+	protected AbstractProject project;
 	private List<PipelinePhase> internals = new ArrayList<>();
 	private List<PipelinePhase> postBuilds = new ArrayList<>();
+
+	protected AbstractProjectProcessor(AbstractProject project) {
+		this.project = project;
+	}
 
 	protected void processBuilders(List<Builder> builders, AbstractProject project) {
 		this.processBuilders(builders, project, "");
@@ -95,6 +96,16 @@ public abstract class AbstractProjectProcessor {
 
 	public abstract List<Builder> tryGetBuilders();
 
+	public String getJobCiId() {
+		if (project.getParent().getClass().getName().equals("com.cloudbees.hudson.plugins.folder.Folder")) {
+			String jobPlainName = project.getFullName();
+			String separator = jobPlainName.contains("/") ? "/" : "\\";
+			return jobPlainName.replaceAll(separator, separator+"job"+separator);
+		} else {
+			return project.getName();
+		}
+	}
+
 	public static AbstractProjectProcessor getFlowProcessor(Job job) {
 		AbstractProjectProcessor flowProcessor = null;
 		AbstractProject project;
@@ -109,7 +120,7 @@ public abstract class AbstractProjectProcessor {
 			} else if (project.getClass().getName().equals("com.tikal.jenkins.plugins.multijob.MultiJobProject")) {
 				flowProcessor = new MultiJobProjectProcessor(project);
 			} else {
-				flowProcessor = new UnsupportedProjectProcessor();
+				flowProcessor = new UnsupportedProjectProcessor(project);
 			}
 		} else if (job.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob")) {
 			flowProcessor = new WorkFlowJobProcessor(job);
