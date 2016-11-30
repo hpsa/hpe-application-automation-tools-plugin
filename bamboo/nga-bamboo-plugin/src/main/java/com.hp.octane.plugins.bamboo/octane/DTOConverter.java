@@ -14,6 +14,7 @@ import com.hp.octane.integrations.dto.general.CIJobsList;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
+import com.hp.octane.integrations.dto.scm.SCMData;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.dto.tests.BuildContext;
 import com.hp.octane.integrations.dto.tests.TestRun;
@@ -44,8 +45,13 @@ public interface DTOConverter {
 	CIEvent getEventWithDetails(String project, String buildCiId, String displayName, CIEventType eventType,
 	                            long startTime, long estimatedDuration, List<CIEventCause> causes, String number);
 
+	CIEvent getEventWithDetails(String project, String buildCiId, String displayName, CIEventType eventType,
+								long startTime, long estimatedDuration, List<CIEventCause> causes, String number, SCMData scmData);
+
+
 	CIEventCause getCauseWithDetails(String buildCiId, String project, String user);
 
 	BuildContext getBuildContext(String instanceId, String identifier, String build);
 
+	SCMData getScmData(com.atlassian.bamboo.v2.build.BuildContext buildContext);
 }

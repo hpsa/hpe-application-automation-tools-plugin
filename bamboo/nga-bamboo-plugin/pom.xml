@@ -3,17 +3,19 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<name>HPE ALM Octane Bamboo CI Plugin</name>
-	<description>HPE Lifecycle Management CI plugin for Atlassian Bamboo CI</description>
+	<name>HPE ALM Octane CI Plugin</name>
+	<description>This plugin enables ALM Octane to retrieve and display Bamboo build pipelines and synchronize test results with Bamboo.
+	</description>
 	<organization>
 		<name>HPE</name>
 	</organization>
 	<packaging>atlassian-plugin</packaging>
 	<artifactId>hp-lifecycle-management-bamboo-ci-plugin</artifactId>
+
 	<parent>
 		<groupId>com.hp.mqm</groupId>
 		<artifactId>bamboo</artifactId>
-		<version>12.53.17-SNAPSHOT</version>
+		<version>12.53.18-SNAPSHOT</version>
 	</parent>
 
 	<properties>
@@ -45,6 +47,18 @@
 			<groupId>com.atlassian.plugin</groupId>
 			<version>${atlassian.spring.scanner.version}</version>
 			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.atlassian.bamboo</groupId>
+			<artifactId>atlassian-bamboo-api</artifactId>
+			<version>5.13.0.1</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.atlassian.bamboo.plugins</groupId>
+			<artifactId>atlassian-bamboo-plugin-git</artifactId>
+			<version>${bamboo.version}</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<artifactId>atlassian-spring-scanner-runtime</artifactId>
@@ -149,67 +163,50 @@
 			</plugin>
 		</plugins>
 	</build>
-	<profiles>
-		<profile>
-			<id>jar-signing</id>
-			<build>
-				<defaultGoal>install</defaultGoal>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.7</version>
-						<executions>
-							<execution>
-								<id>default-cli</id>
-								<phase>post-integration-test</phase>
-								<configuration>
-									<target name="Sign">
-										<echo message="This is the file name:${file.name}"/>
-										<exec executable="/bin/bash" failonerror="true">
-											<arg value="/opt/HPCSS/HPSignClient/HPSign.sh"/>
-											<!--<arg value="-r jarAgm -c HPSign.conf -i /tmp/tmp/hp-integration-bridge-upgrade-windows.jar -o /tmp/tmp/Signed -obj jarfile_batch_sign_local_timestamp" />-->
-											<arg value="-r ${cert.project.name} -c HPSign.conf -i ${project.build.directory}/${file.name} -o ${original.folder} -obj ${matching.obj}"/>
-										</exec>
-									</target>
-								</configuration>
-								<goals>
-									<goal>run</goal>
-								</goals>
-							</execution>
-							<execution>
-								<id>copy signed jar to target</id>
-								<phase>post-integration-test</phase>
-								<configuration>
-									<target>
-										<copy file="${original.folder}/${file.name}"
-											  toFile="${project.build.directory}/${file.name}" overwrite="true"/>
-									</target>
-								</configuration>
-								<goals>
-									<goal>run</goal>
-								</goals>
-							</execution>
-							<execution>
-								<id>verify-signing</id>
-								<phase>post-integration-test</phase>
-								<configuration>
-									<target name="Verify sign">
-										<echo message="This is the file name:${file.name}"/>
-										<exec executable="/bin/bash" failonerror="true">
-											<arg value="-c"/>
-											<arg value="if /usr/bin/jarsigner -verify ${project.build.directory}/${file.name} | grep &apos;jar verified.&apos;; then echo THE JAR ${file.name} WAS SIGNED SUCCESSFULLY; exit 0; else echo THE BUILD FAILED BECAUSE JAR ${file.name} IS UNSIGNED; exit 1; fi"/>
-										</exec>
-									</target>
-								</configuration>
-								<goals>
-									<goal>run</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
+	<!--<profiles>-->
+		<!--<profile>-->
+			<!--<id>jar-signing</id>-->
+			<!--<build>-->
+				<!--<defaultGoal>install</defaultGoal>-->
+				<!--<plugins>-->
+					<!--<plugin>-->
+						<!--<groupId>org.apache.maven.plugins</groupId>-->
+						<!--<artifactId>maven-antrun-plugin</artifactId>-->
+						<!--<version>1.7</version>-->
+						<!--<executions>-->
+							<!--<execution>-->
+								<!--<phase>generate-resources</phase>-->
+								<!--<goals>-->
+									<!--<goal>run</goal>-->
+								<!--</goals>-->
+								<!--<configuration>-->
+									<!--<tasks>-->
+										<!--<echo>inside jar-signing</echo>-->
+									<!--</tasks>-->
+								<!--</configuration>-->
+							<!--</execution>-->
+
+							<!--<execution>-->
+								<!--<id>default-cli</id>-->
+								<!--<phase>post-integration-test</phase>-->
+								<!--<goals>-->
+									<!--<goal>run</goal>-->
+								<!--</goals>-->
+								<!--<configuration>-->
+									<!--<target name="Sign">-->
+										<!--<echo message="Signing JAR"/>-->
+										<!--<exec executable="/bin/bash" failonerror="true">-->
+											<!--<arg value="../../scripts/Sign/sign_jar.sh"/>-->
+											<!--<arg value="${project.build.directory}"/>-->
+											<!--<arg value="${file.name}"/>-->
+										<!--</exec>-->
+									<!--</target>-->
+								<!--</configuration>-->
+							<!--</execution>-->
+						<!--</executions>-->
+					<!--</plugin>-->
+				<!--</plugins>-->
+			<!--</build>-->
+		<!--</profile>-->
+	<!--</profiles>-->
 </project>

@@ -10,8 +10,13 @@
 	<parent>
 		<artifactId>teamcity-plugin-root</artifactId>
 		<groupId>com.hp.mqm</groupId>
-		<version>12.53.17-SNAPSHOT</version>
+		<version>12.53.18-SNAPSHOT</version>
 	</parent>
+
+	<properties>
+		<!-- signing -->
+		<file.name>${project.artifactId}-${project.version}.jar</file.name>
+	</properties>
 
 	<dependencies>
 

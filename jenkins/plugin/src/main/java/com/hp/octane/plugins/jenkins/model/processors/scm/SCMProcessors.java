@@ -9,6 +9,7 @@ import org.apache.logging.log4j.Logger;
  */
 
 public enum SCMProcessors {
+	NONE("hudson.scm.NullSCM", null),
 	GIT("hudson.plugins.git.GitSCM", GitSCMProcessor.class),
 	SVN("hudson.scm.SubversionSCM", SvnSCMProcessor.class);
 
@@ -23,18 +24,21 @@ public enum SCMProcessors {
 
 	public static SCMProcessor getAppropriate(String className) {
 		SCMProcessor result = null;
-		for (SCMProcessors p : values()) {
-			if (className.startsWith(p.targetSCMPluginClassName))
-				try {
-					result = p.processorClass.newInstance();
-					break;
-				} catch (InstantiationException | IllegalAccessException e) {
-					logger.error("failed to instantiate SCM processor of type '" + p.targetSCMPluginClassName, e);
-				}
-		}
 
-		if (result == null) {
-			result = getGenericSCMProcessor(className);
+		//  skip any processing if NULL SCM declared
+		if (!className.startsWith(NONE.targetSCMPluginClassName)) {
+			for (SCMProcessors p : values()) {
+				if (className.startsWith(p.targetSCMPluginClassName))
+					try {
+						result = p.processorClass.newInstance();
+						break;
+					} catch (InstantiationException | IllegalAccessException e) {
+						logger.error("failed to instantiate SCM processor of type '" + p.targetSCMPluginClassName, e);
+					}
+			}
+			if (result == null) {
+				result = getGenericSCMProcessor(className);
+			}
 		}
 
 		return result;

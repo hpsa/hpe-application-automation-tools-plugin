@@ -154,7 +154,19 @@ public class JobConfigurationProxy {
 			//WORKAROUND END
 			result.put("pipeline", pipelineJSON);
 
-		} catch (RequestException e) {
+
+			//Server might do partial sucess
+			//So need to validate each item if it succedded or not
+			//For now we add handling of duplicate pipeline name
+            String originalName = pipelineObject.get("name").toString();
+            String updatedName = pipelineJSON.get("name").toString();
+            if (!originalName.equalsIgnoreCase(updatedName)) {
+                JSONObject errorObj = new JSONObject();
+                errorObj.put("message", "Failed to update pipeline name. Make sure not to enter the name of an existing pipeline.");
+                result.put("error", errorObj);
+            }
+
+        } catch (RequestException e) {
 			logger.warn("Failed to update pipeline", e);
 			return error("Unable to update pipeline");
 		} catch (RequestErrorException e) {

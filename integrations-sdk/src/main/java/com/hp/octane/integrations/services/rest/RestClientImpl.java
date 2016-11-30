@@ -59,9 +59,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Created by gullery on 14/01/2016.
@@ -71,22 +73,24 @@ import java.util.Set;
 
 final class RestClientImpl implements RestClient {
 	private static final Logger logger = LogManager.getLogger(RestClientImpl.class);
+
+	private static final Object REQUESTS_LIST_LOCK = new Object();
 	private static final Set<Integer> AUTHENTICATION_ERROR_CODES;
 	private static final String CLIENT_TYPE_HEADER = "HPECLIENTTYPE";
 	private static final String CLIENT_TYPE_VALUE = "HPE_CI_CLIENT";
 	private static final String LWSSO_COOKIE_NAME = "LWSSO_COOKIE_KEY";
-
 	private static final String AUTHENTICATION_URI = "authentication/sign_in";
 
 	private final CIPluginServices pluginServices;
 	private final CloseableHttpClient httpClient;
 	private final CredentialsProvider credentialsProvider;
+	private final List<HttpUriRequest> ongoingRequests = new LinkedList<>();
 
 	private int MAX_TOTAL_CONNECTIONS = 20;
 	private Cookie LWSSO_TOKEN = null;
 
 	static {
-		AUTHENTICATION_ERROR_CODES = new HashSet<Integer>();
+		AUTHENTICATION_ERROR_CODES = new HashSet<>();
 		AUTHENTICATION_ERROR_CODES.add(HttpStatus.SC_UNAUTHORIZED);
 	}
 
@@ -110,6 +114,16 @@ final class RestClientImpl implements RestClient {
 				.setDefaultCredentialsProvider(credentialsProvider);
 
 		httpClient = clientBuilder.build();
+	}
+
+	void notifyConfigurationChange() {
+		synchronized (REQUESTS_LIST_LOCK) {
+			LWSSO_TOKEN = null;
+			for (HttpUriRequest request : ongoingRequests) {
+				logger.info("aborting " + request + " due to configuration change notification");
+				request.abort();
+			}
+		}
 	}
 
 	public OctaneResponse execute(OctaneRequest request) throws IOException {
@@ -166,7 +180,14 @@ final class RestClientImpl implements RestClient {
 		return result;
 	}
 
+	/**
+	 * This method should be the ONLY mean that creates Http Request objects
+	 *
+	 * @param octaneRequest Request data as it is maintained in Octane related flavor
+	 * @return pre-configured HttpUriRequest
+	 */
 	private HttpUriRequest createHttpRequest(OctaneRequest octaneRequest) {
+		HttpUriRequest request;
 		RequestBuilder requestBuilder;
 
 		//  create base request by METHOD
@@ -202,7 +223,11 @@ final class RestClientImpl implements RestClient {
 		//  set system headers
 		requestBuilder.setHeader(CLIENT_TYPE_HEADER, CLIENT_TYPE_VALUE);
 
-		return requestBuilder.build();
+		request = requestBuilder.build();
+		synchronized (REQUESTS_LIST_LOCK) {
+			ongoingRequests.add(request);
+		}
+		return request;
 	}
 
 	private HttpClientContext createHttpContext(String requestUrl) {
@@ -242,7 +267,7 @@ final class RestClientImpl implements RestClient {
 			octaneResponse.setBody(readResponseBody(response.getEntity().getContent()));
 		}
 		if (response.getAllHeaders() != null && response.getAllHeaders().length > 0) {
-			Map<String, String> mapHeaders = new HashMap<String, String>();
+			Map<String, String> mapHeaders = new HashMap<>();
 			for (Header header : response.getAllHeaders()) {
 				mapHeaders.put(header.getName(), header.getValue());
 			}
@@ -285,13 +310,18 @@ final class RestClientImpl implements RestClient {
 	}
 
 	private HttpUriRequest buildLoginRequest(OctaneConfiguration config) throws IOException {
+		HttpUriRequest loginRequest;
 		try {
 			LoginApiBody loginApiBody = new LoginApiBody(config.getApiKey(), config.getSecret());
 			StringEntity loginApiJson = new StringEntity(new ObjectMapper().writeValueAsString(loginApiBody), ContentType.APPLICATION_JSON);
 			RequestBuilder requestBuilder = RequestBuilder.post(config.getUrl() + "/" + AUTHENTICATION_URI)
 					.setHeader(CLIENT_TYPE_HEADER, CLIENT_TYPE_VALUE)
 					.setEntity(loginApiJson);
-			return requestBuilder.build();
+			loginRequest = requestBuilder.build();
+			synchronized (REQUESTS_LIST_LOCK) {
+				ongoingRequests.add(loginRequest);
+			}
+			return loginRequest;
 		} catch (JsonProcessingException jpe) {
 			throw new IOException("failed to serialize login content", jpe);
 		}
@@ -306,9 +336,11 @@ final class RestClientImpl implements RestClient {
 				try {
 					Certificate[] ex = sslSession.getPeerCertificates();
 					X509Certificate x509 = (X509Certificate) ex[0];
-					Collection altNames = x509.getSubjectAlternativeNames();
-					for (List<Object> namePair : new ArrayList<List<Object>>(altNames)) {
-						if (namePair != null && namePair.size() > 1 && namePair.get(1) instanceof String &&
+					Collection<List<?>> altNames = x509.getSubjectAlternativeNames();
+					for (List<?> namePair : altNames) {
+						if (namePair != null &&
+								namePair.size() > 1 &&
+								namePair.get(1) instanceof String &&
 								"*.saas.hp.com".equals(namePair.get(1))) {
 							result = true;
 							break;

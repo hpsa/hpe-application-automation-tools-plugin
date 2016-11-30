@@ -35,7 +35,6 @@ import java.util.concurrent.TimeUnit;
  * User: gullery
  * Date: 24/08/14
  * Time: 17:21
- * To change this template use File | Settings | File Templates.
  */
 
 @Extension
@@ -146,7 +145,6 @@ public final class RunListenerImpl extends RunListener<Run> {
         }
         if (r instanceof AbstractBuild) {
             AbstractBuild build = (AbstractBuild) r;
-            SCMProcessor scmProcessor = SCMProcessors.getAppropriate(build.getProject().getScm().getClass().getName());
             CIEvent event = dtoFactory.newDTO(CIEvent.class)
                     .setEventType(CIEventType.FINISHED)
                     .setProject(AbstractProjectProcessor.getFlowProcessor(r.getParent()).getJobCiId())
@@ -158,8 +156,7 @@ public final class RunListenerImpl extends RunListener<Run> {
                     .setCauses(CIEventCausesFactory.processCauses(extractCauses(build)))
                     .setParameters(ParameterProcessors.getInstances(build))
                     .setResult(result)
-                    .setDuration(build.getDuration())
-                    .setScmData(scmProcessor == null ? null : scmProcessor.getSCMData(build));
+                    .setDuration(build.getDuration());
             EventsService.getExtensionInstance().dispatchEvent(event);
             GherkinEventsService.copyGherkinTestResultsToBuildDir(build);
             testListener.processBuild(build, listener);
