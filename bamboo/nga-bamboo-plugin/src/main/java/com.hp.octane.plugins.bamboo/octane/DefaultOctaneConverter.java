@@ -215,6 +215,15 @@ public class DefaultOctaneConverter implements DTOConverter {
 		return testRun;
 	}
 
+	@Override
+	public CIEvent getEventWithDetails(String project, String buildCiId, String displayName, CIEventType eventType, long startTime,
+									   long estimatedDuration, List<CIEventCause> causes, String number, BuildState buildState, Long currnetTime) {
+		CIEvent event =  getEventWithDetails( project,  buildCiId,  displayName,  eventType,startTime,  estimatedDuration, causes,  number, null);
+		event.setDuration(currnetTime -event.getStartTime());
+		event.setResult(getJobResult(buildState));
+		return event;
+	}
+
 	public CIEvent getEventWithDetails(String project, String buildCiId, String displayName, CIEventType eventType,
 	                                   long startTime, long estimatedDuration, List<CIEventCause> causes, String number) {
 //		CIEvent event = dtoFactoryInstance.newDTO(CIEvent.class).setEventType(eventType).setCauses(causes)
@@ -230,9 +239,13 @@ public class DefaultOctaneConverter implements DTOConverter {
 	@Override
 	public CIEvent getEventWithDetails(String project, String buildCiId, String displayName, CIEventType eventType, long startTime, long estimatedDuration, List<CIEventCause> causes, String number, SCMData scmData) {
 
-		CIEvent event = dtoFactoryInstance.newDTO(CIEvent.class).setEventType(eventType).setCauses(causes)
-				.setProject(project).setProjectDisplayName(displayName).setBuildCiId(buildCiId)
-				.setEstimatedDuration(estimatedDuration).setStartTime(startTime);
+		CIEvent event = dtoFactoryInstance.newDTO(CIEvent.class).setEventType(eventType).
+				setCauses(causes)
+				.setProject(project)
+				.setProjectDisplayName(displayName)
+				.setBuildCiId(buildCiId)
+				.setEstimatedDuration(estimatedDuration)
+				.setStartTime(startTime);
 		if (number != null) {
 			event.setNumber(number);
 		}
