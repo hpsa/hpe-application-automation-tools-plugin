@@ -18,9 +18,9 @@ import com.hp.octane.integrations.exceptions.PermissionException;
 import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jenkins.model.ModelFactory;
-import com.hp.octane.plugins.jenkins.model.processors.builders.WorkFlowJobProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
-import com.hp.octane.plugins.jenkins.model.processors.projects.AbstractProjectProcessor;
+import com.hp.octane.plugins.jenkins.model.processors.projects.JobProcessorFactory;
+import com.hp.octane.plugins.jenkins.model.processors.projects.WorkFlowJobProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessors;
 import hudson.ProxyConfiguration;
@@ -137,7 +137,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
                 if (tmpItem instanceof AbstractProject) {
                     AbstractProject abstractProject = (AbstractProject) tmpItem;
                     tmpConfig = dtoFactory.newDTO(PipelineNode.class)
-                            .setJobCiId(AbstractProjectProcessor.getFlowProcessor(abstractProject).getJobCiId())
+                            .setJobCiId(JobProcessorFactory.getFlowProcessor(abstractProject).getJobCiId())
                             .setName(name);
                     if (includeParameters) {
                         tmpConfig.setParameters(ParameterProcessors.getConfigs(abstractProject));
@@ -146,7 +146,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
                 } else if (tmpItem.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob")) {
                     Job tmpJob = (Job) tmpItem;
                     tmpConfig = dtoFactory.newDTO(PipelineNode.class)
-                            .setJobCiId(AbstractProjectProcessor.getFlowProcessor(tmpJob).getJobCiId())
+                            .setJobCiId(JobProcessorFactory.getFlowProcessor(tmpJob).getJobCiId())
                             .setName(name);
                     if (includeParameters) {
                         tmpConfig.setParameters(ParameterProcessors.getConfigs(tmpJob));
@@ -155,7 +155,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
                 } else if (tmpItem.getClass().getName().equals("com.cloudbees.hudson.plugins.folder.Folder")) {
                     for (Job tmpJob : tmpItem.getAllJobs()) {
                         tmpConfig = dtoFactory.newDTO(PipelineNode.class)
-                                .setJobCiId(AbstractProjectProcessor.getFlowProcessor(tmpJob).getJobCiId())
+                                .setJobCiId(JobProcessorFactory.getFlowProcessor(tmpJob).getJobCiId())
                                 .setName(tmpJob.getName());
                         if (includeParameters) {
                             tmpConfig.setParameters(ParameterProcessors.getConfigs(tmpJob));
@@ -464,7 +464,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
                 TopLevelItem item = getTopLevelItem(jobRefId);
                 if (item != null && item instanceof Job) {
                     result = (Job) item;
-                } else {
+                } else if(jobRefId.contains("/") && item == null){
                     String newJobRefId = jobRefId.substring(0,jobRefId.indexOf("/"));
                     item = getTopLevelItem(newJobRefId);
                     if(item != null){

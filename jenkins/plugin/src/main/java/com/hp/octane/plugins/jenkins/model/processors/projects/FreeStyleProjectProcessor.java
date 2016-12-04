@@ -1,7 +1,7 @@
 package com.hp.octane.plugins.jenkins.model.processors.projects;
 
-import hudson.model.AbstractProject;
 import hudson.model.FreeStyleProject;
+import hudson.model.Job;
 import hudson.tasks.Builder;
 
 import java.util.List;
@@ -16,21 +16,21 @@ import java.util.List;
 
 public class FreeStyleProjectProcessor extends AbstractProjectProcessor {
 
-	public FreeStyleProjectProcessor(AbstractProject project) {
-		super(project);
+	public FreeStyleProjectProcessor(Job job) {
+		super(job);
 
 		//  Internal phases
 		//
-		super.processBuilders(((FreeStyleProject) this.project).getBuilders(), this.project);
+		super.processBuilders(((FreeStyleProject) this.job).getBuilders(), this.job);
 
 		//  Post build phases
 		//
-		super.processPublishers(this.project);
+		super.processPublishers(this.job);
 	}
 
 	@Override
 	public List<Builder> tryGetBuilders() {
-		return ((FreeStyleProject)project).getBuilders();
+		return ((FreeStyleProject)job).getBuilders();
 	}
 
 }

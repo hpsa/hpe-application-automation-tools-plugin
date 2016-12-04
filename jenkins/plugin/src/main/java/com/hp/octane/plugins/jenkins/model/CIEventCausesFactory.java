@@ -41,7 +41,6 @@ public final class CIEventCausesFactory {
 				} else if (cause instanceof Cause.UpstreamCause) {
 					tmpUpstreamCause = (Cause.UpstreamCause) cause;
 					tmpResultCause.setType(CIEventCauseType.UPSTREAM);
-					//tmpResultCause.setProject(tmpUpstreamCause.getUpstreamProject());
 					tmpResultCause.setProject(resolveJobCiId(tmpUpstreamCause.getUpstreamProject()));
 					tmpResultCause.setBuildCiId(String.valueOf(tmpUpstreamCause.getUpstreamBuild()));
 					tmpResultCause.setCauses(processCauses(tmpUpstreamCause.getUpstreamCauses()));
@@ -55,7 +54,10 @@ public final class CIEventCausesFactory {
 	}
 
 	private static String resolveJobCiId(String jobPlainName) {
+		if((jobPlainName.contains("/") ||  jobPlainName.contains("\\")) && !jobPlainName.contains(",")) {
 			String separator = jobPlainName.contains("/") ? "/" : "\\";
-			return jobPlainName.replaceAll(separator, separator+"job"+separator);
+			return jobPlainName.replaceAll(separator, separator + "job" + separator);
+		}
+		return jobPlainName;
 	}
 }

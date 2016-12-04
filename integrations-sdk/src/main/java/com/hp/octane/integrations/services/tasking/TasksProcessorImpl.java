@@ -70,7 +70,6 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
         result.setId(task.getId());
         result.setStatus(200);
         result.setHeaders(new HashMap<String, String>());
-        //String[] path = Pattern.compile("^.*" + NGA_API + "/?").matcher(task.getUrl()).replaceFirst("").split("/");
         String[] path = pathTokenizer(task.getUrl());
         try {
             if (path.length == 1 && STATUS.equals(path[0])) {
@@ -94,10 +93,10 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
             } else {
                 result.setStatus(404);
             }
-        } catch (PermissionException jenkinsRequestException) {
-            logger.warn("task execution failed; error: " + jenkinsRequestException.getErrorCode());
-            result.setStatus(jenkinsRequestException.getErrorCode());
-            result.setBody(String.valueOf(jenkinsRequestException.getErrorCode()));
+        } catch (PermissionException pe) {
+            logger.warn("task execution failed; error: " + pe.getErrorCode());
+            result.setStatus(pe.getErrorCode());
+            result.setBody(String.valueOf(pe.getErrorCode()));
         } catch (ConfigurationException ce) {
             logger.warn("task execution failed; error: " + ce.getErrorCode());
             result.setStatus(404);
@@ -117,9 +116,9 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
         String[] path = Pattern.compile("^.*" + NGA_API + "/?").matcher(url).replaceFirst("").split("/");
         params.put(0, path[0]);
         for (int i = 1; i < path.length; i++) {
-            if ((path[i].equals(HISTORY) || path[i].equals(BUILDS) || path[i].equals(RUN)) && i == path.length - 1) { // last word
+            if ((path[i].equals(HISTORY) || path[i].equals(BUILDS) || path[i].equals(RUN)) && i == path.length - 1) { // last token
                 params.put(2, path[i]);
-            } else if (path[i].equals(BUILDS) && i == path.length - 2) {        // one before last
+            } else if (path[i].equals(BUILDS) && i == path.length - 2) {        // one before last token
                 params.put(2, path[i]);
                 params.put(3, path[i + 1]);
             } else {
@@ -130,7 +129,6 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
                 }
             }
         }
-
         // converting to an array
         List<String> listAsArray = new ArrayList<String>();
         for (int i = 0; i < params.size(); i++) {

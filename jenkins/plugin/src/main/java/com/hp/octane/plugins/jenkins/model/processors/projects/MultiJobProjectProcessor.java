@@ -1,7 +1,7 @@
 package com.hp.octane.plugins.jenkins.model.processors.projects;
 
 import com.tikal.jenkins.plugins.multijob.MultiJobProject;
-import hudson.model.AbstractProject;
+import hudson.model.Job;
 import hudson.tasks.Builder;
 
 import java.util.List;
@@ -17,19 +17,19 @@ import java.util.List;
 public class MultiJobProjectProcessor extends AbstractProjectProcessor {
 
 
-    public MultiJobProjectProcessor(AbstractProject project) {
-        super(project);
+    public MultiJobProjectProcessor(Job job) {
+        super(job);
         //  Internal phases
         //
-        super.processBuilders(((MultiJobProject) this.project).getBuilders(), this.project);
+        super.processBuilders(((MultiJobProject) this.job).getBuilders(), (MultiJobProject)this.job);
 
         //  Post build phases
         //
-        super.processPublishers(this.project);
+        super.processPublishers((MultiJobProject)this.job);
     }
 
     @Override
     public List<Builder> tryGetBuilders() {
-        return ((MultiJobProject) project).getBuilders();
+        return ((MultiJobProject) job).getBuilders();
     }
 }

@@ -1,7 +1,7 @@
 package com.hp.octane.plugins.jenkins.model.processors.projects;
 
 import hudson.matrix.MatrixProject;
-import hudson.model.AbstractProject;
+import hudson.model.Job;
 import hudson.tasks.Builder;
 
 import java.util.List;
@@ -16,20 +16,20 @@ import java.util.List;
 
 public class MatrixProjectProcessor extends AbstractProjectProcessor {
 
-	public MatrixProjectProcessor(AbstractProject project) {
+	public MatrixProjectProcessor(Job project) {
 		super(project);
 
 		//  Internal phases
 		//
-		super.processBuilders(((MatrixProject)this.project).getBuilders(), this.project);
+		super.processBuilders(((MatrixProject)this.job).getBuilders(), this.job);
 
 		//  Post build phases
 		//
-		super.processPublishers(this.project);
+		super.processPublishers(this.job);
 	}
 
 	@Override
 	public List<Builder> tryGetBuilders() {
-		return ((MatrixProject)project).getBuilders();
+		return ((MatrixProject)job).getBuilders();
 	}
 }
