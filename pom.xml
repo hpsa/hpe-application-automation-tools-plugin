@@ -45,6 +45,11 @@
 		<tag>HEAD</tag>
 	</scm>
 
+	<organization>
+		<name>HPE</name>
+		<url>http://www.hpe.com</url>
+	</organization>
+
 	<developers>
 		<developer>
 			<id>YafimK</id>
