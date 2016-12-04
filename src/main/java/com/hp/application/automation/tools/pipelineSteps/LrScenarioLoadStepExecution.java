@@ -22,7 +22,6 @@
 
 package com.hp.application.automation.tools.pipelineSteps;
 
-import com.hp.application.automation.tools.PerformanceProjectAction;
 import com.hp.application.automation.tools.run.RunFromFileBuilder;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -52,7 +51,7 @@ public class LrScenarioLoadStepExecution extends AbstractSynchronousNonBlockingS
   private static final long serialVersionUID = 1L;
   @Inject
   @SuppressWarnings("squid:S3306")
-  private transient LrScenarioLoadStep step;
+  private transient LoadRunnerTestStep step;
   @StepContextParameter
   private transient TaskListener listener;
   @StepContextParameter

@@ -22,14 +22,14 @@
  * THE SOFTWARE.
  */
 
-package com.hp.application.automation.tools;
+package com.hp.application.automation.tools.results;
 
-import com.hp.application.automation.tools.results.PerformanceJobReportAction;
 import com.hp.application.automation.tools.results.projectparser.performance.AvgTransactionResponseTime;
 import com.hp.application.automation.tools.results.projectparser.performance.GoalResult;
 import com.hp.application.automation.tools.results.projectparser.performance.JobLrScenarioResult;
 import com.hp.application.automation.tools.results.projectparser.performance.LrJobResults;
 import com.hp.application.automation.tools.results.projectparser.performance.LrProjectScenarioResults;
+import com.hp.application.automation.tools.results.projectparser.performance.LrTest;
 import com.hp.application.automation.tools.results.projectparser.performance.PercentileTransactionWholeRun;
 import com.hp.application.automation.tools.results.projectparser.performance.ProjectLrResults;
 import com.hp.application.automation.tools.results.projectparser.performance.TimeRangeResult;
@@ -44,9 +44,10 @@ import org.kohsuke.stapler.bind.JavaScriptMethod;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import static com.hp.application.automation.tools.results.projectparser.performance.JobLrScenarioResult
@@ -64,6 +65,7 @@ public class PerformanceProjectAction implements Action {
      */
     private static final Logger LOGGER = Logger
             .getLogger(PerformanceProjectAction.class.getName());
+    private static final int MAX_DISPLAY_BUILDS = 20;
     /**
      * The Current project.
      */
@@ -122,26 +124,28 @@ public class PerformanceProjectAction implements Action {
 //            getUpdatedData();
             return new JSONObject();
         }
-        for (Map.Entry<String, LrProjectScenarioResults> scenarioResults : _projectResult.getScenarioResults()
+
+
+        for (SortedMap.Entry<String, LrProjectScenarioResults> scenarioResults : _projectResult.getScenarioResults()
                 .entrySet()) {
 
             JSONObject scenarioData = new JSONObject();
             JSONObject scenarioStats = new JSONObject();
-            LrGraphUtils
-                    .constructVuserSummary(scenarioResults.getValue().getvUserSummary(), scenarioStats, _workedBuilds
-                            .size());
-            LrGraphUtils.constructDurationSummary(scenarioResults.getValue().getDurationData(), scenarioStats);
-            LrGraphUtils.constructConnectionSummary(scenarioResults.getValue().getMaxConnectionsCount(), scenarioStats);
-            LrGraphUtils.constructTransactionSummary(scenarioResults.getValue().getTransactionSum(), scenarioStats,
-                    _workedBuilds.size());
+            //            LrGraphUtils
+            //                    .constructVuserSummary(scenarioResults.getValue().getvUserSummary(), scenarioStats, _workedBuilds
+            //                            .size());
+            //            LrGraphUtils.constructDurationSummary(scenarioResults.getValue().getDurationData(), scenarioStats);
+            //            LrGraphUtils.constructConnectionSummary(scenarioResults.getValue().getMaxConnectionsCount(), scenarioStats);
+            //            LrGraphUtils.constructTransactionSummary(scenarioResults.getValue().getTransactionSum(), scenarioStats,
+            //                    _workedBuilds.size());
 
 
             scenarioData.put("scenarioStats", scenarioStats);
 
             JSONObject scenarioGraphData = new JSONObject();
             //Scenario data graphs
-            LrGraphUtils.constructVuserGraph(scenarioResults, scenarioGraphData);
-            LrGraphUtils.constructConnectionsGraph(scenarioResults, scenarioGraphData);
+//            LrGraphUtils.constructVuserGraph(scenarioResults, scenarioGraphData);
+//            LrGraphUtils.constructConnectionsGraph(scenarioResults, scenarioGraphData);
             //Scenario SLA graphs
             LrGraphUtils.constructTotalHitsGraph(scenarioResults, scenarioGraphData);
             LrGraphUtils.constructAvgHitsGraph(scenarioResults, scenarioGraphData);
@@ -220,7 +224,7 @@ public class PerformanceProjectAction implements Action {
     /**
      * Gets updated data.
      */
-    public void getUpdatedData() {
+    public synchronized void getUpdatedData() {
         if (!isUpdateDataNeeded()) {
             return;
         }
@@ -228,7 +232,6 @@ public class PerformanceProjectAction implements Action {
         this._projectResult = new ProjectLrResults();
 
         _workedBuilds = new ArrayList<Integer>();
-        // TODO: remove after testing!
 
         RunList<? extends Run> projectBuilds = currentProject.getBuilds();
 
@@ -248,6 +251,8 @@ public class PerformanceProjectAction implements Action {
                 continue;
             }
 
+
+
             _workedBuilds.add(runNumber);
             LrJobResults jobLrResult = performanceJobReportAction.getLrResultBuildDataset();
 
@@ -261,7 +266,11 @@ public class PerformanceProjectAction implements Action {
                 // Join the SLA rule results
                 LrProjectScenarioResults lrProjectScenarioResults =
                         _projectResult.getScenarioResults().get(runResult.getKey());
-
+                if(lrProjectScenarioResults.getBuildCount() > MAX_DISPLAY_BUILDS)
+                {
+                    continue;
+                }
+                lrProjectScenarioResults.incBuildCount();
                 JobLrScenarioResult scenarioRunResult = runResult.getValue();
                 for (GoalResult goalResult : scenarioRunResult.scenarioSlaResults) {
                     scenarioGoalResult(runNumber, lrProjectScenarioResults, goalResult);
@@ -276,7 +285,6 @@ public class PerformanceProjectAction implements Action {
             }
 
         }
-
     }
 
     private void joinDurationStats(int runNumber, LrProjectScenarioResults lrProjectScenarioResults,
@@ -289,13 +297,13 @@ public class PerformanceProjectAction implements Action {
 
     private void joinTransactionScenarioStats(int runNumber, LrProjectScenarioResults lrProjectScenarioResults,
                                               JobLrScenarioResult scenarioRunResult) {
-        Map<Integer, HashMap<String, HashMap<String, Integer>>> projectTransactionPerRun =
+        SortedMap<Integer, TreeMap<String, TreeMap<String, Integer>>> projectTransactionPerRun =
                 lrProjectScenarioResults.getTransactionPerRun();
-        Map<String, Integer> projectTransactionSum = lrProjectScenarioResults.getTransactionSum();
+        SortedMap<String, Integer> projectTransactionSum = lrProjectScenarioResults.getTransactionSum();
 
-        final HashMap<String, HashMap<String, Integer>> scenarioTransactionData =
+        final TreeMap<String, TreeMap<String, Integer>> scenarioTransactionData =
                 scenarioRunResult.transactionData;
-        final HashMap<String, Integer> scenarioTransactionSum = scenarioRunResult.transactionSum;
+        final TreeMap<String, Integer> scenarioTransactionSum = scenarioRunResult.transactionSum;
 
         if (scenarioTransactionData == null || scenarioTransactionSum == null) {
             return;
@@ -305,7 +313,7 @@ public class PerformanceProjectAction implements Action {
             //store transaction state data per run
             projectTransactionPerRun.put(runNumber, scenarioTransactionData);
             //add all summary transcation states to project level summary
-            for (Map.Entry<String, Integer> transactionState : scenarioTransactionSum.entrySet()) {
+            for (SortedMap.Entry<String, Integer> transactionState : scenarioTransactionSum.entrySet()) {
                 int previousCount = 0;
                 if (projectTransactionSum.containsKey(transactionState.getKey())) {
                     previousCount = projectTransactionSum.get(transactionState.getKey());
@@ -315,18 +323,18 @@ public class PerformanceProjectAction implements Action {
 
 
             //add all per transcation states to project level per transaction summary
-            Map<String, HashMap<String, Integer>> projectTransactionsData =
+            SortedMap<String, TreeMap<String, Integer>> projectTransactionsData =
                     lrProjectScenarioResults.getTransactionData();
-            for (Map.Entry<String, HashMap<String, Integer>> scenarioTransactionDataSet :
+            for (SortedMap.Entry<String, TreeMap<String, Integer>> scenarioTransactionDataSet :
                     scenarioTransactionData.entrySet()) {
                 String transactionName = scenarioTransactionDataSet.getKey();
-                HashMap<String, Integer> TransactionStateData = scenarioTransactionDataSet.getValue();
+                TreeMap<String, Integer> TransactionStateData = scenarioTransactionDataSet.getValue();
                 if (!projectTransactionsData.containsKey(transactionName)) {
-                    projectTransactionsData.put(transactionName, new HashMap<String, Integer>(TransactionStateData));
+                    projectTransactionsData.put(transactionName, new TreeMap<String, Integer>(TransactionStateData));
                     continue;
                 }
 
-                HashMap<String, Integer> projectTransactionState = projectTransactionsData.get(transactionName);
+                TreeMap<String, Integer> projectTransactionState = projectTransactionsData.get(transactionName);
                 for (Map.Entry<String, Integer> scenarioTransactionState : TransactionStateData.entrySet()) {
                     Integer currentValue = scenarioTransactionState.getValue();
                     projectTransactionState.put(scenarioTransactionState.getKey(), currentValue +
@@ -338,11 +346,11 @@ public class PerformanceProjectAction implements Action {
 
     private void joinVUserScenarioStats(int runNumber, LrProjectScenarioResults lrProjectScenarioResults,
                                         JobLrScenarioResult scenarioRunResult) {
-        Map<Integer, Map<String, Integer>> vUserPerRun = lrProjectScenarioResults.getvUserPerRun();
+        SortedMap<Integer, TreeMap<String, Integer>> vUserPerRun = lrProjectScenarioResults.getvUserPerRun();
         if (scenarioRunResult.vUserSum != null && !scenarioRunResult.vUserSum.isEmpty()) {
-            for (Map.Entry<String, Integer> vUserStat : scenarioRunResult.vUserSum.entrySet()) {
+            for (SortedMap.Entry<String, Integer> vUserStat : scenarioRunResult.vUserSum.entrySet()) {
                 if (!vUserPerRun.containsKey(runNumber)) {
-                    vUserPerRun.put(runNumber, new HashMap<String, Integer>(0));
+                    vUserPerRun.put(runNumber, new TreeMap<String, Integer>());
                     LrProjectScenarioResults.vUserMapInit(vUserPerRun.get(runNumber));
                 }
                 vUserPerRun.get(runNumber).put(vUserStat.getKey(), vUserStat.getValue());
@@ -366,6 +374,10 @@ public class PerformanceProjectAction implements Action {
 
     private static void scenarioGoalResult(int runNumber, LrProjectScenarioResults lrProjectScenarioResults,
                                            GoalResult goalResult) {
+        if(goalResult.getStatus().equals(LrTest.SLA_STATUS.NoData))
+        {
+            return;
+        }
         switch (goalResult.getSlaGoal()) {
             case AverageThroughput:
                 lrProjectScenarioResults.getAverageThroughputResults()
@@ -388,7 +400,7 @@ public class PerformanceProjectAction implements Action {
             case PercentileTRT:
                 if (!lrProjectScenarioResults.getPercentileTransactionResults().containsKey(runNumber)) {
                     lrProjectScenarioResults.getPercentileTransactionResults()
-                            .put(runNumber, new HashMap<String, PercentileTransactionWholeRun>(0));
+                            .put(runNumber, new TreeMap<String, PercentileTransactionWholeRun>());
                 }
                 lrProjectScenarioResults.getTransactions()
                         .add(((PercentileTransactionWholeRun) goalResult).getName());
@@ -400,7 +412,7 @@ public class PerformanceProjectAction implements Action {
                 if (!lrProjectScenarioResults.getAvgTransactionResponseTimeResults()
                         .containsKey(runNumber)) {
                     lrProjectScenarioResults.getAvgTransactionResponseTimeResults()
-                            .put(runNumber, new HashMap<String, AvgTransactionResponseTime>(0));
+                            .put(runNumber, new TreeMap<String, AvgTransactionResponseTime>());
                 }
                 lrProjectScenarioResults.getTransactions()
                         .add(((AvgTransactionResponseTime) goalResult).getName());

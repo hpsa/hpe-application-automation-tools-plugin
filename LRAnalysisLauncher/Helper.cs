@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using Analysis.Api;
 using Analysis.ApiLib;
+using Analysis.ApiLib.Dimensions;
 using HpToolsLauncher;
 using LRAnalysisLauncher.Properties;
 
@@ -26,44 +28,84 @@ namespace LRAnalysisLauncher
                 {"Failed", 0},
                 {"Error", 0}
             };
+            lrAnalysis.Session.VUsers.LoadValuesIfNeeded();
 
-            var vUserGraph = lrAnalysis.Session.OpenGraph("VuserSummary");
+            Graph vUserGraph = lrAnalysis.Session.OpenGraph("VuserStateGraph");
             if (vUserGraph == null)
             {
                 return vuserDictionary;
             }
 
-            var filterDimension = vUserGraph.Filter["Vuser End Status"];
-            var vUserStates = new List<String>()
+            List<String> vUserStates = new List<String>()
             {
                 {"Passed"},
                 {"Stopped"},
                 {"Failed"},
                 {"Error"}
             };
-            ConsoleWriter.WriteLine("Counting vUser Results for this scenarion");
-            foreach (var vuserType in vUserStates)
+
+            try
             {
-                filterDimension.ClearValues();
-                filterDimension.AddDiscreteValue(vuserType);
-                vUserGraph.ApplyFilterAndGroupBy();
-                double sum = 0;
-                foreach (var val in vUserGraph.Series)
-                    sum += val.GraphStatistics.Maximum;
-                vuserDictionary[vuserType] = (int) sum;
+                Console.Write("Counting vUser Results for this scenario from ");
+                FilterItem filterDimensionVUser;
+                FilterItem item;
+                Series vuserRanSeries;
+                vUserGraph.Filter.Reset();
+                Console.Write(vUserGraph.Name);
+                if (vUserGraph.Filter.TryGetValue("Vuser Status", out filterDimensionVUser) &&
+                    vUserGraph.Filter.TryGetValue("Vuser End Status", out item))
+                {
+                    filterDimensionVUser.ClearValues();
+                    item.ClearValues();
+                    Console.Write(" by ");
+                    foreach (string vUserEndStatus in item.AvailableValues.DiscreteValues)
+                    {
+                        item.ClearValues();
+                        Console.Write(vUserEndStatus + " ");
+                        item.AddDiscreteValue(vUserEndStatus);
+                        vUserGraph.ApplyFilterAndGroupBy();
+                        if (vUserGraph.Series.TryGetValue("Quit", out vuserRanSeries))
+                        {
+                            if (!vuserRanSeries.GraphStatistics.IsFunctionAvailable(StatisticsFunctionKind.Maximum))
+                            {
+                                continue;
+                            }
+                            double vUserTypeMax = vuserRanSeries.GraphStatistics.Maximum;
+                            if (!HasValue(vUserTypeMax))
+                            {
+                                continue;
+                            }
+                            vuserDictionary[vUserEndStatus] = (int)Math.Round(vUserTypeMax);
+                        }
+                    }
+                    Console.WriteLine("");
+                }
+
+                ConsoleWriter.WriteLine("Getting maximum ran vUsers this scenarion");
+                var vUserStateGraph = lrAnalysis.Session.OpenGraph("VuserStateGraph");
+                if (vUserStateGraph == null)
+                {
+                    return vuserDictionary;
+                }
+                vUserStateGraph.Granularity = 4;
+                if (vUserStateGraph.Filter.TryGetValue("Vuser Status", out filterDimensionVUser) && vUserStateGraph.Series.TryGetValue("Run", out vuserRanSeries))
+                    {
+                        filterDimensionVUser.ClearValues();
+                        vUserGraph.ApplyFilterAndGroupBy();
+                        double vUserMax = vuserRanSeries.GraphStatistics.Maximum;
+                        if (!HasValue(vUserMax))
+                        {
+                            vUserMax = -1;
+                        }
+                        vuserDictionary.Add("MaxVuserRun", (int)Math.Round(vUserMax));
+                        ConsoleWriter.WriteLine(String.Format("{0} maximum vUser ran per {1} seconds", vUserMax, vUserStateGraph.Granularity));
+                    }
+            }
+            catch (StackOverflowException exception)
+            {
+                ConsoleWriter.WriteLine(String.Format("Debug: Error on getting VUsers from Analysis" + exception));
             }
 
-
-            var g = lrAnalysis.Session.OpenGraph("VuserStateGraph");
-            //g.Granularity = 4;
-            var filterDimensionVUser = g.Filter["Vuser Status"];
-            filterDimensionVUser.ClearValues();
-            filterDimensionVUser.AddDiscreteValue("Run");
-            g.ApplyFilterAndGroupBy();
-            int maxVUserRun = (int) Math.Round(g.Series[0].GraphStatistics.Maximum);
-            vuserDictionary.Add("MaxVuserRun", maxVUserRun);
-            ConsoleWriter.WriteLine(String.Format("{0} maximum vUser ran per {1} ", maxVUserRun, g.Granularity));
-        
             return vuserDictionary;
         }
 
@@ -73,39 +115,38 @@ namespace LRAnalysisLauncher
         /// </summary>
         /// <returns>Transactions by status</returns>
         public static Dictionary<string, Dictionary<string, double>> CalcFailedTransPercent(LrAnalysis lrAnalysis)
-        { 
-          
-            var transactionGraph = lrAnalysis.Session.OpenGraph("TransactionSummary");
+        {
+            var transDictionary = new Dictionary<string, Dictionary<string, double>>();
+            //Console.WriteLine("Adding Transaction statistics");
+            //var transactionGraph = lrAnalysis.Session.OpenGraph("TransactionSummary");
+            //if (transactionGraph == null)
+            //{
+            //    return transDictionary;
+            //}
+            //transactionGraph.Filter.Reset();
+            //transactionGraph.Granularity = 4;
+            //FilterItem filterDimension;
+            //if (!transactionGraph.Filter.TryGetValue("Transaction End Status", out filterDimension))
+            //{
+            //    return transDictionary;
+            //}
 
-            foreach (FilterItem fi in transactionGraph.Filter)
-            {
-                fi.ClearValues();
-                fi.IsActive = false;
-                transactionGraph.ApplyFilterAndGroupBy();
-            }
+            //foreach (var series in transactionGraph.Series)
+            //{
+            //    SeriesAttributeValue a;
+            //    if (!series.Attributes.TryGetValue("Event Name", out a)) continue;
+            //    SeriesAttributeValue transEndStatusAttr;
 
+            //    if (!series.Attributes.TryGetValue("Transaction End Status", out transEndStatusAttr)) continue;
 
-            var transDictionary = new Dictionary<string, Dictionary<string, double> > () ;
-
-            transactionGraph.Granularity = 4;
-            
-            var filterDimension = transactionGraph.Filter["Transaction End Status"];
-            foreach (var series in transactionGraph.Series)
-            {
-                SeriesAttributeValue a;
-                if (!series.Attributes.TryGetValue("Event Name", out a)) continue;
-                SeriesAttributeValue transEndStatusAttr;
-
-                if (!series.Attributes.TryGetValue("Transaction End Status", out transEndStatusAttr)) continue;
-
-                Dictionary<string, double> value;
-                if (!transDictionary.TryGetValue(a.Value.ToString(), out value))
-                {
-                    transDictionary.Add(a.Value.ToString(),
-                        new Dictionary<string, double>() {{"Pass", 0}, {"Fail", 0}, {"Stop", 0}});
-                }
-                (transDictionary[a.Value.ToString()])[transEndStatusAttr.Value.ToString()] = series.Points[0].Value;
-            }
+            //    Dictionary<string, double> value;
+            //    if (!transDictionary.TryGetValue(a.Value.ToString(), out value))
+            //    {
+            //        transDictionary.Add(a.Value.ToString(),
+            //            new Dictionary<string, double>() {{"Pass", 0}, {"Fail", 0}, {"Stop", 0}});
+            //    }
+            //    (transDictionary[a.Value.ToString()])[transEndStatusAttr.Value.ToString()] = series.Points[0].Value;
+            //}
         
             return transDictionary;
         }
@@ -141,6 +182,10 @@ namespace LRAnalysisLauncher
 
                 g.ApplyFilterAndGroupBy();
                 connectionsCount = g.Series["Connections"].GraphStatistics.Maximum;
+                if (!HasValue(connectionsCount))
+                {
+                    connectionsCount = -1;
+                }
             }
             catch (Exception ex)
             {
@@ -155,9 +200,9 @@ namespace LRAnalysisLauncher
         /// Returns scenario duration
         /// </summary>
         /// <returns>Scenario duration</returns>
-        public static String GetScenarioDuration(LrAnalysis lrAnalysis)
+        public static String GetScenarioDuration(Run run)
         {
-            var testDuration = lrAnalysis.Session.Runs[0].EndTime - lrAnalysis.Session.Runs[0].StartTime;
+            var testDuration = run.EndTime - run.StartTime;
             return testDuration.ToString();
         }
 
@@ -167,5 +212,11 @@ namespace LRAnalysisLauncher
             var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Local);
             return epoch.AddSeconds(unixTime);
         }
+
+        public static bool HasValue(double value)
+        {
+            return !Double.IsNaN(value) && !Double.IsInfinity(value);
+        }
+
     }
 }

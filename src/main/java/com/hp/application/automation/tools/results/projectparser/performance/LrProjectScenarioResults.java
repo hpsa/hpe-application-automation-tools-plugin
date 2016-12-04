@@ -24,39 +24,48 @@
 
 package com.hp.application.automation.tools.results.projectparser.performance;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
  * Data model for a project / build / pipeline that contains multiple runs per scenario being run.
  */
 public class LrProjectScenarioResults extends LrScenario {
 
-    private Map<Integer, WholeRunResult> totalThroughtputResults;
-    private Map<Integer, WholeRunResult> averageHitsPerSecondResults;
-    private Map<Integer, WholeRunResult> totalHitsResults;
-    private Map<Integer, TimeRangeResult> errPerSecResults;
-    private Map<Integer, HashMap<String, PercentileTransactionWholeRun>> percentileTransactionResults;
-    private Map<Integer, HashMap<String, AvgTransactionResponseTime>> avgTransactionResponseTimeResults;
+    public int getBuildCount() {
+        return buildCount;
+    }
+
+    public void incBuildCount() {
+        this.buildCount++;
+    }
+
+    private int buildCount;
+    private SortedMap<Integer, WholeRunResult> totalThroughtputResults;
+    private SortedMap<Integer, WholeRunResult> averageHitsPerSecondResults;
+    private SortedMap<Integer, WholeRunResult> totalHitsResults;
+    private SortedMap<Integer, TimeRangeResult> errPerSecResults;
+    private SortedMap<Integer, TreeMap<String, PercentileTransactionWholeRun>> percentileTransactionResults;
+    private SortedMap<Integer, TreeMap<String, AvgTransactionResponseTime>> avgTransactionResponseTimeResults;
     //Holds the data of a transactionss for the whole Job
     private HashSet<String> transactions;
     //Holds the data of connections per run for the whole Job
-    private Map<Integer, Integer> maxConnectionsCount;
+    private SortedMap<Integer, Integer> maxConnectionsCount;
     //Holds the summary data of vuser status(count, fail, pass, error) for the whole Job
-    private Map<String, Integer> vUserSummary;
+    private SortedMap<String, Integer> vUserSummary;
     //Holds the summary data of vuser status(count, fail, pass, error) **per run** for the whole Job
-    private Map<Integer, Map<String, Integer>> vUserPerRun;
+    private SortedMap<Integer, TreeMap<String, Integer>> vUserPerRun;
     //Holds the summary status data of transactions(count, fail, pass, error) for the whole Job
-    private Map<String, Integer> transactionSum;
+    private SortedMap<String, Integer> transactionSum;
     //Holds the summary data of transaction status(count, fail, pass, error) **per run** for the whole Job
-    private Map<String, HashMap<String, Integer>> transactionData;
+    private SortedMap<String, TreeMap<String, Integer>> transactionData;
     //Holds the duration aggragation for all scenario runs
-    private Map<Integer, Long> durationData;
+    private SortedMap<Integer, Long> durationData;
     //Holds the data of an SLA rule per run for the whole Job
-    private Map<Integer, WholeRunResult> averageThroughputResults;
-    private HashMap<Integer, HashMap<String, HashMap<String, Integer>>> transactionPerRun;
+    private SortedMap<Integer, WholeRunResult> averageThroughputResults;
+    private SortedMap<Integer, TreeMap<String, TreeMap<String, Integer>>> transactionPerRun;
     /**
      * Instantiates a new Lr project scenario results.
      *
@@ -64,27 +73,29 @@ public class LrProjectScenarioResults extends LrScenario {
      */
     public LrProjectScenarioResults(String scenarioName) {
         this.setScenrioName(scenarioName);
-        averageThroughputResults = new HashMap<Integer, WholeRunResult>(0);
-        totalThroughtputResults = new HashMap<Integer, WholeRunResult>(0);
-        averageHitsPerSecondResults = new HashMap<Integer, WholeRunResult>(0);
-        totalHitsResults = new HashMap<Integer, WholeRunResult>(0);
-        errPerSecResults = new HashMap<Integer, TimeRangeResult>(0);
-        percentileTransactionResults = new HashMap<Integer, HashMap<String, PercentileTransactionWholeRun>>(0);
-        avgTransactionResponseTimeResults = new HashMap<Integer, HashMap<String, AvgTransactionResponseTime>>(0);
-        transactions = new HashSet<String>(0);
-        maxConnectionsCount = new HashMap<Integer, Integer>(0);
+        averageThroughputResults = new TreeMap<Integer, WholeRunResult>();
+        totalThroughtputResults = new TreeMap<Integer, WholeRunResult>();
+        averageHitsPerSecondResults = new TreeMap<Integer, WholeRunResult>();
+        totalHitsResults = new TreeMap<Integer, WholeRunResult>();
+        errPerSecResults = new TreeMap<Integer, TimeRangeResult>();
+        percentileTransactionResults = new TreeMap<>();
+        avgTransactionResponseTimeResults = new TreeMap<Integer, TreeMap<String, AvgTransactionResponseTime>>();
+        transactions = new HashSet<String>();
+        maxConnectionsCount = new TreeMap<>();
 
-        durationData = new HashMap<>(0);
+        durationData = new TreeMap<>();
 
-        vUserSummary = new HashMap<String, Integer>(0);
-        vUserPerRun = new HashMap<Integer, Map<String, Integer>>(0);
+        vUserSummary = new TreeMap<String, Integer>();
+        vUserPerRun = new TreeMap<Integer, TreeMap<String, Integer>>();
 
-        transactionSum = new HashMap<String, Integer>(0);
-        transactionData = new HashMap<String, HashMap<String, Integer>>(0);
-        transactionPerRun = new HashMap<Integer, HashMap<String, HashMap<String, Integer>>>(0);
+        transactionSum = new TreeMap<String, Integer>();
+        transactionData = new TreeMap<String, TreeMap<String, Integer>>();
+        transactionPerRun = new TreeMap<Integer, TreeMap<String, TreeMap<String, Integer>>>();
 
         vUserMapInit(vUserSummary);
         vTransactionMapInit(transactionSum);
+
+        buildCount = 0;
     }
 
     /**
@@ -92,7 +103,7 @@ public class LrProjectScenarioResults extends LrScenario {
      *
      * @param map the map
      */
-    public static void vUserMapInit(Map<String, Integer> map) {
+    public static void vUserMapInit(SortedMap<String, Integer> map) {
         map.put("Passed", 0);
         map.put("Stopped", 0);
         map.put("Failed", 0);
@@ -105,7 +116,7 @@ public class LrProjectScenarioResults extends LrScenario {
      *
      * @param map the map
      */
-    public static void vTransactionMapInit(Map<String, Integer> map) {
+    public static void vTransactionMapInit(SortedMap<String, Integer> map) {
         map.put("Pass", 0);
         map.put("Stop", 0);
         map.put("Fail", 0);
@@ -117,7 +128,7 @@ public class LrProjectScenarioResults extends LrScenario {
      *
      * @return the total throughtput results
      */
-    public Map<Integer, WholeRunResult> getTotalThroughtputResults() {
+    public SortedMap<Integer, WholeRunResult> getTotalThroughtputResults() {
         return totalThroughtputResults;
     }
 
@@ -126,7 +137,7 @@ public class LrProjectScenarioResults extends LrScenario {
      *
      * @return the average hits per second results
      */
-    public Map<Integer, WholeRunResult> getAverageHitsPerSecondResults() {
+    public SortedMap<Integer, WholeRunResult> getAverageHitsPerSecondResults() {
         return averageHitsPerSecondResults;
     }
 
@@ -135,7 +146,7 @@ public class LrProjectScenarioResults extends LrScenario {
      *
      * @return the total hits results
      */
-    public Map<Integer, WholeRunResult> getTotalHitsResults() {
+    public SortedMap<Integer, WholeRunResult> getTotalHitsResults() {
         return totalHitsResults;
     }
 
@@ -144,7 +155,7 @@ public class LrProjectScenarioResults extends LrScenario {
      *
      * @return the err per sec results
      */
-    public Map<Integer, TimeRangeResult> getErrPerSecResults() {
+    public SortedMap<Integer, TimeRangeResult> getErrPerSecResults() {
         return errPerSecResults;
     }
 
@@ -153,7 +164,7 @@ public class LrProjectScenarioResults extends LrScenario {
      *
      * @return the percentile transaction results
      */
-    public Map<Integer, HashMap<String, PercentileTransactionWholeRun>> getPercentileTransactionResults() {
+    public SortedMap<Integer, TreeMap<String, PercentileTransactionWholeRun>> getPercentileTransactionResults() {
         return percentileTransactionResults;
     }
 
@@ -162,7 +173,7 @@ public class LrProjectScenarioResults extends LrScenario {
      *
      * @return the avg transaction response time results
      */
-    public Map<Integer, HashMap<String, AvgTransactionResponseTime>> getAvgTransactionResponseTimeResults() {
+    public SortedMap<Integer, TreeMap<String, AvgTransactionResponseTime>> getAvgTransactionResponseTimeResults() {
         return avgTransactionResponseTimeResults;
     }
 
@@ -180,7 +191,7 @@ public class LrProjectScenarioResults extends LrScenario {
      *
      * @return the max connections count
      */
-    public Map<Integer, Integer> getMaxConnectionsCount() {
+    public SortedMap<Integer, Integer> getMaxConnectionsCount() {
         return maxConnectionsCount;
     }
 
@@ -189,7 +200,7 @@ public class LrProjectScenarioResults extends LrScenario {
      *
      * @return the user summary
      */
-    public Map<String, Integer> getvUserSummary() {
+    public SortedMap<String, Integer> getvUserSummary() {
         return vUserSummary;
     }
 
@@ -198,7 +209,7 @@ public class LrProjectScenarioResults extends LrScenario {
      *
      * @return the user per run
      */
-    public Map<Integer, Map<String, Integer>> getvUserPerRun() {
+    public SortedMap<Integer, TreeMap<String, Integer>> getvUserPerRun() {
         return vUserPerRun;
     }
 
@@ -207,7 +218,7 @@ public class LrProjectScenarioResults extends LrScenario {
      *
      * @return the transaction sum
      */
-    public Map<String, Integer> getTransactionSum() {
+    public SortedMap<String, Integer> getTransactionSum() {
         return transactionSum;
     }
 
@@ -216,7 +227,7 @@ public class LrProjectScenarioResults extends LrScenario {
      *
      * @return the transaction data
      */
-    public Map<String, HashMap<String, Integer>> getTransactionData() {
+    public SortedMap<String, TreeMap<String, Integer>> getTransactionData() {
         return transactionData;
     }
 
@@ -225,7 +236,7 @@ public class LrProjectScenarioResults extends LrScenario {
      *
      * @return the duration data
      */
-    public Map<Integer, Long> getDurationData() {
+    public SortedMap<Integer, Long> getDurationData() {
         return durationData;
     }
 
@@ -234,7 +245,7 @@ public class LrProjectScenarioResults extends LrScenario {
      *
      * @return the average throughput results
      */
-    public Map<Integer, WholeRunResult> getAverageThroughputResults() {
+    public SortedMap<Integer, WholeRunResult> getAverageThroughputResults() {
         return averageThroughputResults;
     }
 
@@ -243,7 +254,7 @@ public class LrProjectScenarioResults extends LrScenario {
      *
      * @return the transaction per run
      */
-    public Map<Integer, HashMap<String, HashMap<String, Integer>>> getTransactionPerRun() {
+    public SortedMap<Integer, TreeMap<String, TreeMap<String, Integer>>> getTransactionPerRun() {
         return transactionPerRun;
     }
 }

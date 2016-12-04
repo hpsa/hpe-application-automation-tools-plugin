@@ -25,7 +25,7 @@ namespace HpToolsLauncher
         static void Main(string[] args)
         {
             ConsoleWriter.WriteLine(Resources.GeneralStarted);
-            
+            ConsoleQuickEdit.Disable();
             if (args.Count() == 0 || args.Contains("/?"))
             {
                 ShowHelp();

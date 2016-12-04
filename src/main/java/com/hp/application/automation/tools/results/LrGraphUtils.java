@@ -22,7 +22,7 @@
  * THE SOFTWARE.
  */
 
-package com.hp.application.automation.tools;
+package com.hp.application.automation.tools.results;
 
 import com.hp.application.automation.tools.results.projectparser.performance.AvgTransactionResponseTime;
 import com.hp.application.automation.tools.results.projectparser.performance.LrProjectScenarioResults;
@@ -36,6 +36,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Queue;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
  * The type Lr graph utils.
@@ -69,11 +72,11 @@ public final class LrGraphUtils {
     /**
      * The constant PERCENTILE_TRANSACTION_RESPONSE_TIME.
      */
-    private static final String PERCENTILE_TRANSACTION_RESPONSE_TIME = "Percentile Transaction Response TIme";
+    private static final String PERCENTILE_TRANSACTION_RESPONSE_TIME = "Percentile Transaction Response Time";
     /**
      * The constant TRANSACTIONS_RESPONSE_TIME_SECONDS.
      */
-    private static final String TRANSACTIONS_RESPONSE_TIME_SECONDS = "Transactions response time (Seconds)";
+    private static final String TRANSACTIONS_RESPONSE_TIME_SECONDS = "Time (Sec)";
     private static final String PRECENTILE_GRAPH_DESCRIPTION =
             "Displays the average time taken to perform transactions during each second of the load test." +
                     " This graph helps you determine whether the performance of the server is within " +
@@ -92,7 +95,7 @@ public final class LrGraphUtils {
      */
     static void constructPercentileTransactionGraph(Map.Entry<String, LrProjectScenarioResults> scenarioResults,
                                                     JSONObject scenarioGraphData) {
-        Map<Integer, HashMap<String, PercentileTransactionWholeRun>> percentileTransactionResults =
+        Map<Integer, TreeMap<String, PercentileTransactionWholeRun>> percentileTransactionResults =
                 scenarioResults.getValue().getPercentileTransactionResults();
         JSONObject percentileTransactionResultsGraphSet =
                 extractPercentileTransactionSet(percentileTransactionResults,
@@ -111,7 +114,7 @@ public final class LrGraphUtils {
     }
 
     private static JSONObject extractPercentileTransactionSet(
-            Map<Integer, HashMap<String, PercentileTransactionWholeRun>> graphData, HashSet<String> transactions) {
+            Map<Integer, TreeMap<String, PercentileTransactionWholeRun>> graphData, HashSet<String> transactions) {
         JSONObject graphDataSet = new JSONObject();
         JSONArray labels = new JSONArray();
 
@@ -120,7 +123,7 @@ public final class LrGraphUtils {
             percentileTrtData.put(transaction, new ArrayList<Number>(0));
         }
 
-        for (Map.Entry<Integer, HashMap<String, PercentileTransactionWholeRun>> result : graphData.entrySet()) {
+        for (Map.Entry<Integer, TreeMap<String, PercentileTransactionWholeRun>> result : graphData.entrySet()) {
             labels.add(result.getKey());
 
             for (String transaction : transactions) {
@@ -160,7 +163,7 @@ public final class LrGraphUtils {
      */
     static void constructAvgTransactionGraph(Map.Entry<String, LrProjectScenarioResults> scenarioResults,
                                              JSONObject scenarioGraphData) {
-        Map<Integer, HashMap<String, AvgTransactionResponseTime>> avgTransactionResponseTimeResults =
+        Map<Integer, TreeMap<String, AvgTransactionResponseTime>> avgTransactionResponseTimeResults =
                 scenarioResults.getValue().getAvgTransactionResponseTimeResults();
         JSONObject avgTransactionResponseTimeGraphSet =
                 extractAvgTrtData(avgTransactionResponseTimeResults, scenarioResults.getValue().getTransactions());
@@ -168,7 +171,7 @@ public final class LrGraphUtils {
             avgTransactionResponseTimeGraphSet.put(TITLE, "Average Transaction Response TIme");
             avgTransactionResponseTimeGraphSet.put(X_AXIS_TITLE, "Build number");
             avgTransactionResponseTimeGraphSet
-                    .put(Y_AXIS_TITLE, "Average response time (Seconds)");
+                    .put(Y_AXIS_TITLE, "Time (Sec.)");
             avgTransactionResponseTimeGraphSet.put(DESCRIPTION,
                     "Displays the average time taken to perform transactions during each second of the load test." +
                             " This graph helps you determine whether the performance of the server is within " +
@@ -178,7 +181,7 @@ public final class LrGraphUtils {
         }
     }
 
-    private static JSONObject extractAvgTrtData(Map<Integer, HashMap<String, AvgTransactionResponseTime>> graphData,
+    private static JSONObject extractAvgTrtData(Map<Integer, TreeMap<String, AvgTransactionResponseTime>> graphData,
                                                 HashSet<String> transactions) {
         HashMap<String, ArrayList<Number>> averageTRTData = new HashMap<String, ArrayList<Number>>(0);
         JSONObject graphDataSet = new JSONObject();
@@ -189,7 +192,7 @@ public final class LrGraphUtils {
             averageTRTData.put(transaction, new ArrayList<Number>(0));
         }
 
-        for (Map.Entry<Integer, HashMap<String, AvgTransactionResponseTime>> result : graphData.entrySet()) {
+        for (Map.Entry<Integer, TreeMap<String, AvgTransactionResponseTime>> result : graphData.entrySet()) {
             labels.add(result.getKey());
 
             for (String transaction : transactions) {
@@ -222,7 +225,7 @@ public final class LrGraphUtils {
         if (!errPerSecResultsResultsGraphSet.getJSONArray(LABELS).isEmpty()) {
             errPerSecResultsResultsGraphSet.put(TITLE, "Total errors per second");
             errPerSecResultsResultsGraphSet.put(X_AXIS_TITLE, "Build number");
-            errPerSecResultsResultsGraphSet.put(Y_AXIS_TITLE, "Errors count");
+            errPerSecResultsResultsGraphSet.put(Y_AXIS_TITLE, "Errors");
             errPerSecResultsResultsGraphSet.put(DESCRIPTION, "");
             scenarioGraphData.put("errorPerSecResults", errPerSecResultsResultsGraphSet);
         }
@@ -259,11 +262,11 @@ public final class LrGraphUtils {
                                            JSONObject scenarioGraphData) {
         Map<Integer, WholeRunResult> averageThroughputResults = scenarioResults.getValue().getAverageThroughputResults();
         JSONObject averageThroughputResultsGraphSet =
-                extractWholeRunSlaResult(averageThroughputResults);
+                extractWholeRunSlaResult(averageThroughputResults, "Bytes/Sec");
         if (!averageThroughputResultsGraphSet.getJSONArray(LABELS).isEmpty()) {
             averageThroughputResultsGraphSet.put(TITLE, "Average Throughput per second");
             averageThroughputResultsGraphSet.put(X_AXIS_TITLE, "Build number");
-            averageThroughputResultsGraphSet.put(Y_AXIS_TITLE, "Average Bytes / Second");
+            averageThroughputResultsGraphSet.put(Y_AXIS_TITLE, "Bytes");
             averageThroughputResultsGraphSet.put(DESCRIPTION,
                     " Displays the amount of throughput (in bytes) on the Web server during the load test. " +
                             "Throughput represents the amount of data that the Vusers received from the server at" +
@@ -277,10 +280,10 @@ public final class LrGraphUtils {
      * @param graphData
      * @return
      */
-    private static JSONObject extractWholeRunSlaResult(Map<Integer, WholeRunResult> graphData) {
+    private static JSONObject extractWholeRunSlaResult(Map<Integer, WholeRunResult> graphData, String seriesName) {
         JSONObject graphDataSet;
         graphDataSet = new JSONObject();
-
+        JSONObject wholeRunSlaResults = new JSONObject();
         JSONArray labels = new JSONArray();
         JSONArray datasets = new JSONArray();
         JSONArray data = new JSONArray();
@@ -289,7 +292,9 @@ public final class LrGraphUtils {
             data.add(result.getValue().getActualValue());
         }
         graphDataSet.put(LABELS, labels);
-        datasets.add(data);
+        wholeRunSlaResults.put("name",seriesName);
+        wholeRunSlaResults.put("data",data);
+        datasets.add(wholeRunSlaResults);
         graphDataSet.put(SERIES, datasets);
         return graphDataSet;
     }
@@ -304,11 +309,11 @@ public final class LrGraphUtils {
                                               JSONObject scenarioGraphData) {
         Map<Integer, WholeRunResult> totalThroughputResults = scenarioResults.getValue().getTotalThroughtputResults();
         JSONObject totalThroughputResultsGraphSet =
-                extractWholeRunSlaResult(totalThroughputResults);
+                extractWholeRunSlaResult(totalThroughputResults, "Bytes");
         if (!totalThroughputResultsGraphSet.getJSONArray(LABELS).isEmpty()) {
             totalThroughputResultsGraphSet.put(TITLE, "Total Throughput");
             totalThroughputResultsGraphSet.put(X_AXIS_TITLE, "Build number");
-            totalThroughputResultsGraphSet.put(Y_AXIS_TITLE, "Bytes count");
+            totalThroughputResultsGraphSet.put(Y_AXIS_TITLE, "Bytes");
             totalThroughputResultsGraphSet.put(DESCRIPTION,
                     " Displays the amount of throughput (in bytes) on the Web server during the load test. " +
                             "Throughput represents the amount of data that the Vusers received from the server at" +
@@ -327,11 +332,11 @@ public final class LrGraphUtils {
     static void constructAvgHitsGraph(Map.Entry<String, LrProjectScenarioResults> scenarioResults,
                                       JSONObject scenarioGraphData) {
         Map<Integer, WholeRunResult> avgHitsPerSec = scenarioResults.getValue().getAverageHitsPerSecondResults();
-        JSONObject avgHitsPerSecGraphSet = extractWholeRunSlaResult(avgHitsPerSec);
+        JSONObject avgHitsPerSecGraphSet = extractWholeRunSlaResult(avgHitsPerSec, "Hits/Sec");
         if (!avgHitsPerSecGraphSet.getJSONArray(LABELS).isEmpty()) {
             avgHitsPerSecGraphSet.put(TITLE, "Average Hits per Second");
             avgHitsPerSecGraphSet.put(X_AXIS_TITLE, "Build number");
-            avgHitsPerSecGraphSet.put(Y_AXIS_TITLE, "Average Hits per Second");
+            avgHitsPerSecGraphSet.put(Y_AXIS_TITLE, "Hits");
             avgHitsPerSecGraphSet.put(DESCRIPTION,
                     "Displays the number of hits made on the Web server by Vusers " +
                             "during each second of the load test. This graph helps you evaluate the amount of load " +
@@ -351,11 +356,11 @@ public final class LrGraphUtils {
     static void constructTotalHitsGraph(Map.Entry<String, LrProjectScenarioResults> scenarioResults,
                                         JSONObject scenarioGraphData) {
         Map<Integer, WholeRunResult> totalHitsResults = scenarioResults.getValue().getTotalHitsResults();
-        JSONObject totalHitsGraphSet = extractWholeRunSlaResult(totalHitsResults);
+        JSONObject totalHitsGraphSet = extractWholeRunSlaResult(totalHitsResults, "Hits");
         if (!totalHitsGraphSet.getJSONArray(LABELS).isEmpty()) {
             totalHitsGraphSet.put(TITLE, "Total Hits");
             totalHitsGraphSet.put(X_AXIS_TITLE, "Build number");
-            totalHitsGraphSet.put(Y_AXIS_TITLE, "Hits count");
+            totalHitsGraphSet.put(Y_AXIS_TITLE, "Hits");
             totalHitsGraphSet.put(DESCRIPTION,
                     "Displays the number of hits made on the Web server by Vusers " +
                             "during each second of the load test. This graph helps you evaluate the amount of load " +
@@ -366,7 +371,7 @@ public final class LrGraphUtils {
         }
     }
 
-    private static JSONObject extractVuserResult(Map<Integer, Map<String, Integer>> graphData) {
+    private static JSONObject extractVuserResult(Map<Integer, TreeMap<String, Integer>> graphData) {
         JSONObject graphDataSet;
         graphDataSet = new JSONObject();
         JSONArray labels = new JSONArray();
@@ -376,7 +381,7 @@ public final class LrGraphUtils {
         vUserState.put("Failed", new ArrayList<Number>(0));
         vUserState.put("Stopped", new ArrayList<Number>(0));
         vUserState.put("Error", new ArrayList<Number>(0));
-        for(Map.Entry<Integer, Map<String, Integer>> run : graphData.entrySet())
+        for(Map.Entry<Integer, TreeMap<String, Integer>> run : graphData.entrySet())
         {
             Number tempVUserCount = run.getValue().get("Count");
             if(tempVUserCount != null && tempVUserCount.intValue() > 0)
@@ -397,7 +402,7 @@ public final class LrGraphUtils {
 
     static void constructVuserGraph(Map.Entry<String, LrProjectScenarioResults> scenarioResults,
                                          JSONObject scenarioGraphData) {
-        Map<Integer, Map<String, Integer>> vUserResults = scenarioResults.getValue().getvUserPerRun();
+        Map<Integer, TreeMap<String, Integer>> vUserResults = scenarioResults.getValue().getvUserPerRun();
         JSONObject vUserGraphSet = extractVuserResult(vUserResults);
         if (!vUserGraphSet.getJSONArray(LABELS).isEmpty()) {
             vUserGraphSet.put(TITLE, "VUser");
@@ -410,7 +415,7 @@ public final class LrGraphUtils {
 
     static void constructConnectionsGraph(Map.Entry<String, LrProjectScenarioResults> scenarioResults,
                                     JSONObject scenarioGraphData) {
-        Map<Integer, Integer> connectionsResults = scenarioResults.getValue().getMaxConnectionsCount();
+        SortedMap<Integer, Integer> connectionsResults = scenarioResults.getValue().getMaxConnectionsCount();
         JSONObject maxConnectionsGraphSet = extractConnectionResults(connectionsResults);
         if (!maxConnectionsGraphSet.getJSONArray(LABELS).isEmpty()) {
             maxConnectionsGraphSet.put(TITLE, "Connections");
@@ -421,7 +426,7 @@ public final class LrGraphUtils {
         }
     }
 
-    private static JSONObject extractConnectionResults(Map<Integer, Integer> connectionsResults) {
+    private static JSONObject extractConnectionResults(SortedMap<Integer, Integer> connectionsResults) {
         JSONObject graphDataSet;
         graphDataSet = new JSONObject();
         JSONArray labels = new JSONArray();
@@ -436,7 +441,7 @@ public final class LrGraphUtils {
                 data.add(runConnectionMax.getValue().toString());
             }
         }
-        maxConnections.put("name", "Maximum connections per test run");
+        maxConnections.put("name", "Max connections");
         maxConnections.put("data", data);
         dataSets.add(maxConnections);
         graphDataSet.put(LABELS, labels);
@@ -444,7 +449,7 @@ public final class LrGraphUtils {
         return graphDataSet;
     }
 
-    static void constructVuserSummary(Map<String, Integer> vUserResults,
+    static void constructVuserSummary(SortedMap<String, Integer> vUserResults,
                                       JSONObject scenarioStats, int size){
         JSONObject vUserSummary = new JSONObject();
         int vUserCount = vUserResults.get("Count");
@@ -463,7 +468,7 @@ public final class LrGraphUtils {
 
     
 
-    static void constructConnectionSummary(Map<Integer, Integer> maxConnectionPerRun,
+    static void constructConnectionSummary(SortedMap<Integer, Integer> maxConnectionPerRun,
                                       JSONObject scenarioStats){
         JSONObject maxConnectionsSummary = new JSONObject();
         int connectionSum = 0;
@@ -481,16 +486,16 @@ public final class LrGraphUtils {
         scenarioStats.put("AvgMaxConnections", maxConnectionsSummary);
     }
 
-    static void constructTransactionSummary(Map<String, Integer> transactionSummary,
+    static void constructTransactionSummary(SortedMap<String, Integer> transactionSummary,
                                            JSONObject scenarioStats, int size){
         JSONObject transactionSum = new JSONObject();
-        for(Map.Entry<String, Integer> transaction : transactionSummary.entrySet()){
+        for(SortedMap.Entry<String, Integer> transaction : transactionSummary.entrySet()){
             transactionSum.put(transaction.getKey(), (transaction.getValue().intValue() / size ));
         }
         scenarioStats.put("TransactionSummary", transactionSum);
     }
 
-    static void constructDurationSummary(Map<Integer, Long> durationData, JSONObject scenarioStats) {
+    static void constructDurationSummary(SortedMap<Integer, Long> durationData, JSONObject scenarioStats) {
         JSONObject durationSummary = new JSONObject();
         long runDurationSum = 0;
         for(Long runDuration: durationData.values())
@@ -501,9 +506,12 @@ public final class LrGraphUtils {
                 continue;
             }
         }
-        double scenarioDurationAverage = (double) runDurationSum / durationData.size();
+        double scenarioDurationAverage = -1;
+        if(!durationData.isEmpty())
+        {
+            scenarioDurationAverage = (double) runDurationSum / durationData.size();
+        }
         durationSummary.put("AvgDuration", scenarioDurationAverage);
         scenarioStats.put("AvgScenarioDuration", durationSummary);
-
     }
 }

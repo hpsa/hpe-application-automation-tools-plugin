@@ -78,11 +78,7 @@ public class RunFromFileSystemModel {
                                   String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics, String fsInstrumented,
                                   String fsExtraApps, String fsJobId, ProxySettings proxySettings, boolean useSSL) {
 
-        this.fsTests = fsTests;
-
-        if (!this.fsTests.contains("\n")) {
-            this.fsTests += "\n";
-        }
+        this.setFsTests(fsTests);
 
         this.fsTimeout = fsTimeout;
 
@@ -120,11 +116,7 @@ public class RunFromFileSystemModel {
      */
     @DataBoundConstructor
     public RunFromFileSystemModel(String fsTests) {
-        this.fsTests = fsTests;
-
-        if (!this.fsTests.contains("\n")) {
-            this.fsTests += "\n";
-        }
+        this.setFsTests(fsTests);
 
         //Init default vals
         this.fsTimeout = "";
@@ -140,7 +132,11 @@ public class RunFromFileSystemModel {
      * @param fsTests the fs tests
      */
     public void setFsTests(String fsTests) {
-        this.fsTests = fsTests;
+        this.fsTests = fsTests.trim();
+
+        if (!this.fsTests.contains("\n")) {
+            this.fsTests += "\n";
+        }
     }
 
     /**
@@ -568,6 +564,7 @@ public class RunFromFileSystemModel {
             int i = 1;
 
             for (String test : testsArr) {
+                test = test.trim();
                 props.put("Test" + i, test);
                 i++;
             }
