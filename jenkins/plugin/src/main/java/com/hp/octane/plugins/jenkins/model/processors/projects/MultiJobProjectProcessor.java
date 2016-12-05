@@ -1,7 +1,7 @@
 package com.hp.octane.plugins.jenkins.model.processors.projects;
 
 import com.tikal.jenkins.plugins.multijob.MultiJobProject;
-import hudson.model.AbstractProject;
+import hudson.model.Job;
 import hudson.tasks.Builder;
 
 import java.util.List;
@@ -14,24 +14,22 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 
-public class MultiJobProjectProcessor extends AbstractProjectProcessor {
+ class MultiJobProjectProcessor extends AbstractProjectProcessor {
 
-	private final MultiJobProject project;
 
-	public MultiJobProjectProcessor(AbstractProject project) {
-		this.project = (MultiJobProject) project;
+     MultiJobProjectProcessor(Job job) {
+        super(job);
+        //  Internal phases
+        //
+        super.processBuilders(((MultiJobProject) this.job).getBuilders(), (MultiJobProject)this.job);
 
-		//  Internal phases
-		//
-		super.processBuilders(this.project.getBuilders(), this.project);
+        //  Post build phases
+        //
+        super.processPublishers((MultiJobProject)this.job);
+    }
 
-		//  Post build phases
-		//
-		super.processPublishers(this.project);
-	}
-
-	@Override
-	public List<Builder> tryGetBuilders() {
-		return project.getBuilders();
-	}
+    @Override
+    public List<Builder> tryGetBuilders() {
+        return ((MultiJobProject) job).getBuilders();
+    }
 }

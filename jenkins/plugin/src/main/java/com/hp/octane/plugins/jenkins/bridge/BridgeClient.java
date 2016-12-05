@@ -116,7 +116,7 @@ public class BridgeClient {
 
 			logger.info("received " + tasks.length + " task(s)");
 			for (final OctaneTaskAbridged task : tasks) {
-				taskProcessingExecutors.execute(new Runnable() {
+  				taskProcessingExecutors.execute(new Runnable() {
 					@Override
 					public void run() {
 						TasksProcessor TasksProcessor = OctaneSDK.getInstance().getTasksProcessor();

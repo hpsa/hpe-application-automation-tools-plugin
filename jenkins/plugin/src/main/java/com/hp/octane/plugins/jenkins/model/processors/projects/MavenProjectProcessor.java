@@ -1,7 +1,7 @@
 package com.hp.octane.plugins.jenkins.model.processors.projects;
 
 import hudson.maven.MavenModuleSet;
-import hudson.model.AbstractProject;
+import hudson.model.Job;
 import hudson.tasks.Builder;
 
 import java.util.ArrayList;
@@ -15,24 +15,22 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 
-public class MavenProjectProcessor extends AbstractProjectProcessor{
+ class MavenProjectProcessor extends AbstractProjectProcessor{
 
-	private final MavenModuleSet project;
 
-	public MavenProjectProcessor(AbstractProject project) {
-		this.project = (MavenModuleSet) project;
-
+	 MavenProjectProcessor(Job job) {
+		super(job);
 		//  Internal phases - pre maven phases
 		//
-		super.processBuilders(this.project.getPrebuilders(), this.project, "pre-maven");
+		super.processBuilders(((MavenModuleSet)this.job).getPrebuilders(),(MavenModuleSet) this.job, "pre-maven");
 
 		//  Internal phases - post maven phases
 		//
-		super.processBuilders(this.project.getPostbuilders(), this.project, "post-maven");
+		super.processBuilders(((MavenModuleSet)this.job).getPostbuilders(), (MavenModuleSet)this.job, "post-maven");
 
 		//  Post build phases
 		//
-		super.processPublishers(this.project);
+		super.processPublishers((MavenModuleSet)this.job);
 	}
 
 	@Override

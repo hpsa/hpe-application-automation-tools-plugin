@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
-import org.acegisecurity.GrantedAuthority;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,10 +56,7 @@ public class OctaneRestResource {
                 return "Bamboo user name is required";
             }
 
-
-            BambooUserManager bambooUserManager = ComponentLocator.getComponent(BambooUserManager.class);
-            BambooUser bambooUser = bambooUserManager.loadUserByUsername(userName);
-            if((bambooUser == null) || !isUserAuthorized(bambooUser)){
+            if(!isUserAuthorized(userName)){
                 return "Bamboo user misconfigured or doesn't have enough permissions\n";
             }
 
@@ -84,11 +80,12 @@ public class OctaneRestResource {
         }
     }
 
-    private boolean isUserAuthorized(BambooUser bambooUser) {
-        for(GrantedAuthority authority: bambooUser.getAuthorities()){
-            if(authority.getAuthority().equals("ROLE_ADMIN")){
-                return true;
-            }
+    private boolean isUserAuthorized(String userName) {
+
+        BambooUserManager bambooUserManager = ComponentLocator.getComponent(BambooUserManager.class);
+        BambooUser bambooUser = bambooUserManager.loadUserByUsername(userName);
+        if(bambooUser!=null) {
+            return true;
         }
         return false;
     }

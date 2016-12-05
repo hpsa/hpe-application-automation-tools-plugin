@@ -12,6 +12,7 @@ import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.dto.snapshots.SnapshotPhase;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import com.hp.octane.plugins.jenkins.model.processors.projects.AbstractProjectProcessor;
+import com.hp.octane.plugins.jenkins.model.processors.projects.JobProcessorFactory;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessors;
 import hudson.model.*;
@@ -28,13 +29,12 @@ public class ModelFactory {
 	private static final Logger logger = LogManager.getLogger(ModelFactory.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
-	public static PipelineNode createStructureItem(Job project) {
+	public static PipelineNode createStructureItem(Job job) {
+		AbstractProjectProcessor projectProcessor = JobProcessorFactory.getFlowProcessor(job);
 		PipelineNode pipelineNode = dtoFactory.newDTO(PipelineNode.class);
-		pipelineNode.setJobCiId(project.getName());
-		pipelineNode.setName(project.getName());
-		pipelineNode.setParameters(ParameterProcessors.getConfigs(project));
-
-		AbstractProjectProcessor projectProcessor = AbstractProjectProcessor.getFlowProcessor(project);
+		pipelineNode.setJobCiId(projectProcessor.getJobCiId());
+		pipelineNode.setName(job.getName());
+		pipelineNode.setParameters(ParameterProcessors.getConfigs(job));
 		pipelineNode.setPhasesInternal(projectProcessor.getInternals());
 		pipelineNode.setPhasesPostBuild(projectProcessor.getPostBuilds());
 
@@ -88,7 +88,7 @@ public class ModelFactory {
 		}
 
 		if (!metaOnly) {
-			AbstractProjectProcessor flowProcessor = AbstractProjectProcessor.getFlowProcessor(build.getParent());
+			AbstractProjectProcessor flowProcessor = JobProcessorFactory.getFlowProcessor(build.getParent());
 			List<PipelinePhase> tmpPipelinePhasesInternals = flowProcessor.getInternals();
 			List<PipelinePhase> tmpPipelinePhasesPostBuilds = flowProcessor.getPostBuilds();
 			ArrayList<String> invokeesNames = new ArrayList<String>();
@@ -118,14 +118,13 @@ public class ModelFactory {
 	}
 
 
-	public static SnapshotNode createSnapshotItem(AbstractProject project, boolean metaOnly) {
+	public static SnapshotNode createSnapshotItem(Job project, boolean metaOnly) {
 		SnapshotNode snapshotNode = dtoFactory.newDTO(SnapshotNode.class);
-
-		snapshotNode.setJobCiId(project.getName());
+		AbstractProjectProcessor flowProcessor = JobProcessorFactory.getFlowProcessor(project);
+		snapshotNode.setJobCiId(flowProcessor.getJobCiId());
 		snapshotNode.setName(project.getName());
 
 		if (!metaOnly) {
-			AbstractProjectProcessor flowProcessor = AbstractProjectProcessor.getFlowProcessor(project);
 			snapshotNode.setPhasesPostBuild(inflatePhases(flowProcessor.getPostBuilds(), null));
 			snapshotNode.setPhasesInternal(inflatePhases(flowProcessor.getInternals(), null));
 		}
@@ -195,7 +194,7 @@ public class ModelFactory {
 			if (structures.get(i) != null) {
 				tmpBuilds = invokedBuilds == null ? null : invokedBuilds.get(structures.get(i).getJobCiId());
 				if (tmpBuilds == null || tmpBuilds.size() == 0) {
-					tmp.add(i, createSnapshotItem((AbstractProject) Jenkins.getInstance().getItem(structures.get(i).getJobCiId()), false));
+					tmp.add(i, createSnapshotItem((Job) Jenkins.getInstance().getItem(structures.get(i).getJobCiId()), false));
 				} else {
 					tmp.add(i, createSnapshotItem(tmpBuilds.get(0), false));
 					tmpBuilds.remove(0);
