@@ -144,7 +144,6 @@ public final class RunListenerImpl extends RunListener<Run> {
         TopLevelItem item = Jenkins.getInstance().getItem(newJobRefId);
         if (item != null) {
             Collection<? extends Job> allJobs = item.getAllJobs();
-            String cleanJobName = causeJobName.substring(causeJobName.lastIndexOf("/") + 1);
             for (Job job : allJobs) {
                 if (causeJobName.endsWith(job.getName())) {
                     return (TopLevelItem) job;

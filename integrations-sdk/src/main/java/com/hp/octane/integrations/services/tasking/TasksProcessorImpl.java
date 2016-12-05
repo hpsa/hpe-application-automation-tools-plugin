@@ -130,7 +130,7 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
             }
         }
         // converting to an array
-        List<String> listAsArray = new ArrayList<String>();
+        List<String> listAsArray = new ArrayList<>();
         for (int i = 0; i < params.size(); i++) {
             listAsArray.add(i, params.get(i));
         }

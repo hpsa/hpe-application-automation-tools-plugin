@@ -54,9 +54,8 @@ public final class CIEventCausesFactory {
 	}
 
 	private static String resolveJobCiId(String jobPlainName) {
-		if((jobPlainName.contains("/") ||  jobPlainName.contains("\\")) && !jobPlainName.contains(",")) {
-			String separator = jobPlainName.contains("/") ? "/" : "\\";
-			return jobPlainName.replaceAll(separator, separator + "job" + separator);
+		if(jobPlainName.contains("/")  && !jobPlainName.contains(",")) {
+			return jobPlainName.replaceAll("/", "/job/");
 		}
 		return jobPlainName;
 	}
