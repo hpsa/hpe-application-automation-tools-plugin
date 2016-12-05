@@ -102,8 +102,7 @@ public abstract class AbstractProjectProcessor {
 	public String getJobCiId() {
 		if (job.getParent().getClass().getName().equals("com.cloudbees.hudson.plugins.folder.Folder")) {
 			String jobPlainName = job.getFullName();    // e.g: myFolder/myJob
-			String separator = jobPlainName.contains("/") ? "/" : "\\";
-			return jobPlainName.replaceAll(separator, separator+"job"+separator);
+			return jobPlainName.replaceAll("/", "/job/");
 		} else {
 			return job.getName();
 		}

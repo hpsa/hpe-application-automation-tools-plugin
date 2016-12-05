@@ -14,9 +14,9 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 
-public class FreeStyleProjectProcessor extends AbstractProjectProcessor {
+ class FreeStyleProjectProcessor extends AbstractProjectProcessor {
 
-	public FreeStyleProjectProcessor(Job job) {
+	 FreeStyleProjectProcessor(Job job) {
 		super(job);
 
 		//  Internal phases

@@ -14,10 +14,10 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 
-public class MultiJobProjectProcessor extends AbstractProjectProcessor {
+ class MultiJobProjectProcessor extends AbstractProjectProcessor {
 
 
-    public MultiJobProjectProcessor(Job job) {
+     MultiJobProjectProcessor(Job job) {
         super(job);
         //  Internal phases
         //

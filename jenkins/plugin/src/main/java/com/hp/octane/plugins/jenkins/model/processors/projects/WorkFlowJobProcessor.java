@@ -27,12 +27,12 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 
-public class WorkFlowJobProcessor extends AbstractProjectProcessor {
+ public class WorkFlowJobProcessor extends AbstractProjectProcessor {
     private static final Logger logger = LogManager.getLogger(CIJenkinsServicesImpl.class);
     private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 
-    public WorkFlowJobProcessor(Job job) {
+     WorkFlowJobProcessor(Job job) {
         super(job);
     }
 

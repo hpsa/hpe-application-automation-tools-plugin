@@ -73,6 +73,11 @@ public final class RunListenerImpl extends RunListener<Run> {
                         .setEstimatedDuration(build.getEstimatedDuration())
                         .setCauses(CIEventCausesFactory.processCauses(extractCauses(build)))
                         .setParameters(ParameterProcessors.getInstances(build));
+                if (isInternal(r)) {
+                    event.setPhaseType(PhaseType.INTERNAL);
+                } else {
+                    event.setPhaseType(PhaseType.POST);
+                }
                 EventsService.getExtensionInstance().dispatchEvent(event);
             } else if (r instanceof AbstractBuild) {
                 AbstractBuild build = (AbstractBuild) r;
@@ -141,7 +146,7 @@ public final class RunListenerImpl extends RunListener<Run> {
             Collection<? extends Job> allJobs = item.getAllJobs();
             String cleanJobName = causeJobName.substring(causeJobName.lastIndexOf("/") + 1);
             for (Job job : allJobs) {
-                if (job.getName().equals(cleanJobName)) {
+                if (causeJobName.endsWith(job.getName())) {
                     return (TopLevelItem) job;
                 }
             }

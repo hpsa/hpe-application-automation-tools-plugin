@@ -14,9 +14,9 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 
-public class MatrixProjectProcessor extends AbstractProjectProcessor {
+ class MatrixProjectProcessor extends AbstractProjectProcessor {
 
-	public MatrixProjectProcessor(Job project) {
+	 MatrixProjectProcessor(Job project) {
 		super(project);
 
 		//  Internal phases

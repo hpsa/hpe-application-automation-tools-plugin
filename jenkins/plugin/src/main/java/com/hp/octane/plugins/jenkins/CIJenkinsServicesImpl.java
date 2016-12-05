@@ -177,8 +177,6 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
     }
 
 
-
-
     @Override
     public PipelineNode getPipeline(String rootJobCiId) {
         PipelineNode result;
@@ -386,7 +384,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 
             project.scheduleBuild(delay, new Cause.RemoteCause(getOctaneConfiguration() == null ? "non available URL" : getOctaneConfiguration().getUrl(), "octane driven execution"), parametersAction);
         } else if (job.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob")) {
-            WorkFlowJobProcessor workFlowJobProcessor = new WorkFlowJobProcessor(job);
+            WorkFlowJobProcessor workFlowJobProcessor = (WorkFlowJobProcessor)JobProcessorFactory.getFlowProcessor(job);
             workFlowJobProcessor.scheduleBuild(originalBody);
         }
     }
@@ -464,21 +462,19 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
                 TopLevelItem item = getTopLevelItem(jobRefId);
                 if (item != null && item instanceof Job) {
                     result = (Job) item;
-                } else if(jobRefId.contains("/") && item == null){
-                    String newJobRefId = jobRefId.substring(0,jobRefId.indexOf("/"));
+                } else if (jobRefId.contains("/") && item == null) {
+                    String newJobRefId = jobRefId.substring(0, jobRefId.indexOf("/"));
                     item = getTopLevelItem(newJobRefId);
-                    if(item != null){
+                    if (item != null) {
                         Collection<? extends Job> allJobs = item.getAllJobs();
-                        String cleanJobName = jobRefId.substring(jobRefId.lastIndexOf("/")+1);
-                        for(Job job :allJobs ){
-                            if(job.getName().equals(cleanJobName)){
+                        for (Job job : allJobs) {
+                            if (jobRefId.endsWith(job.getName())) {
                                 result = job;
                                 break;
                             }
                         }
                     }
                 }
-
             } catch (UnsupportedEncodingException uee) {
                 logger.error("failed to decode job ref ID '" + jobRefId + "'", uee);
             }

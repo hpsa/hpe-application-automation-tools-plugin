@@ -15,10 +15,10 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 
-public class MavenProjectProcessor extends AbstractProjectProcessor{
+ class MavenProjectProcessor extends AbstractProjectProcessor{
 
 
-	public MavenProjectProcessor(Job job) {
+	 MavenProjectProcessor(Job job) {
 		super(job);
 		//  Internal phases - pre maven phases
 		//

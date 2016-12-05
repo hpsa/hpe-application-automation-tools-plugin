@@ -14,8 +14,8 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 
-public class UnsupportedProjectProcessor extends AbstractProjectProcessor {
-    protected UnsupportedProjectProcessor(Job job) {
+ class UnsupportedProjectProcessor extends AbstractProjectProcessor {
+     UnsupportedProjectProcessor(Job job) {
         super(job);
     }
 
