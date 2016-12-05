@@ -79,7 +79,7 @@ public class TestDispatcherTest {
 		HtmlForm form = configPage.getFormByName("config");
 		form.getInputByName("_.uiLocation").setValueAttribute("http://localhost:8008/ui/?p=1001/1002");
 		form.getInputByName("_.username").setValueAttribute("username");
-		form.getInputByName("_.password").setValueAttribute("password");
+		form.getInputByName("_.secretPassword").setValueAttribute("password");
 		rule.submit(form);
 	}
 
