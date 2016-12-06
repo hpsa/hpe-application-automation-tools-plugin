@@ -98,7 +98,10 @@ public class TestApiTest {
 
 		// make sure dispatcher logic was executed
 		//queue.waitForTicks(3);
-		Thread.sleep(5000);
+		try {
+			Thread.sleep(6000);
+		}
+		catch (Exception e){}
 	}
 
 	@Test
