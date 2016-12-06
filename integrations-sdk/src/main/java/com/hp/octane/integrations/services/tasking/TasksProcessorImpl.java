@@ -121,6 +121,7 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
             } else if (path[i].equals(BUILDS) && i == path.length - 2) {        // one before last token
                 params.put(2, path[i]);
                 params.put(3, path[i + 1]);
+                break;
             } else {
                 if (params.get(1) == null) {
                     params.put(1, path[i]);
