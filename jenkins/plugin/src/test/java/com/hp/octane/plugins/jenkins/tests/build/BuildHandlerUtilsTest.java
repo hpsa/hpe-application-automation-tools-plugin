@@ -71,7 +71,6 @@ public class BuildHandlerUtilsTest {
 		BuildDescriptor descriptor = BuildHandlerUtils.getBuildType(build);
 		Assert.assertEquals("freestyle-project", descriptor.getJobId());
 		Assert.assertEquals("", descriptor.getSubType());
-
 		Assert.assertEquals("freestyle-project", BuildHandlerUtils.getProjectFullName(build));
 	}
 }
