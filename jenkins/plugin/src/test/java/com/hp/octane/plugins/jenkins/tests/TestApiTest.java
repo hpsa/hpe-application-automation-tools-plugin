@@ -97,7 +97,8 @@ public class TestApiTest {
 		build = TestUtils.runAndCheckBuild(project);
 
 		// make sure dispatcher logic was executed
-		queue.waitForTicks(10);
+		//queue.waitForTicks(3);
+		Thread.sleep(5000);
 	}
 
 	@Test
