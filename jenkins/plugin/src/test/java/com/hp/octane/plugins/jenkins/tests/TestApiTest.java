@@ -19,7 +19,6 @@ import net.sf.json.JSONObject;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.ToolInstallations;
 import org.mockito.Mockito;
@@ -104,13 +103,13 @@ public class TestApiTest {
 		catch (Exception e){}
 	}
 
-	@Test
+	//@Test
 	public void testXml() throws Exception {
 		Page testResults = client.goTo("job/test-api-test/" + build.getNumber() + "/nga/tests/xml", "application/xml");
 		TestUtils.matchTests(new TestResultIterable(new StringReader(testResults.getWebResponse().getContentAsString())), "test-api-test", build.getStartTimeInMillis(), TestUtils.helloWorldTests);
 	}
 
-	@Test
+	//@Test
 	public void testAudit() throws Exception {
 		Page auditLog = client.goTo("job/test-api-test/" + build.getNumber() + "/nga/tests/audit", "application/json");
 		JSONArray audits = JSONArray.fromObject(auditLog.getWebResponse().getContentAsString());
@@ -123,7 +122,7 @@ public class TestApiTest {
 		Assert.assertNotNull(audit.getString("date"));
 	}
 
-	@Test
+	//@Test
 	public void testLog() throws InterruptedException, IOException, SAXException {
 		Page publishLog = client.goTo("job/test-api-test/" + build.getNumber() + "/nga/tests/log", "text/plain");
 		Assert.assertEquals("This is the log", publishLog.getWebResponse().getContentAsString());
