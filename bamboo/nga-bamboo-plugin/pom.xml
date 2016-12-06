@@ -9,7 +9,7 @@
 	<organization>
 		<name>HPE</name>
 	</organization>
-	<packaging>atlassian-plugin</packaging>
+	<packaging>jar</packaging>
 	<artifactId>hp-lifecycle-management-bamboo-ci-plugin</artifactId>
 
 	<parent>
