@@ -1,13 +1,15 @@
 package com.hp.mqm.atrf;
 
 import com.hp.mqm.atrf.alm.services.AlmWrapperService;
-import com.hp.mqm.atrf.core.*;
+import com.hp.mqm.atrf.core.configuration.CliParser;
+import com.hp.mqm.atrf.core.configuration.FetchConfiguration;
 import com.hp.mqm.atrf.octane.services.OctaneWrapperService;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 
+import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -20,23 +22,20 @@ public class Main {
     private static AlmWrapperService almWrapper;
     private static OctaneWrapperService octaneWrapper;
 
-    public static void main(String[] args)  {
+    public static void main(String[] args) {
 
         configureLog4J();
         setUncaughtExceptionHandler();
 
-        logger.info("Command line args are : " + ((args.length > 0) ? StringUtils.join(args, ",") : " none "));
-
-        //fetch settings from xml file
-
-        configuration = FetchConfiguration.loadFromArguments(args);
+        CliParser cliParser = new CliParser();
+        configuration = cliParser.parse(args);
 
         loginToAlm();
         loginToOctane();
         almWrapper.init(configuration);
     }
 
-    private static void loginToAlm()  {
+    private static void loginToAlm() {
         almWrapper = new AlmWrapperService(configuration.getAlmServerUrl(), configuration.getAlmDomain(), configuration.getAlmProject());
         if (almWrapper.login(configuration.getAlmUser(), configuration.getAlmPassword())) {
 
@@ -51,7 +50,7 @@ public class Main {
         }
     }
 
-    private static void loginToOctane()  {
+    private static void loginToOctane() {
         long sharedSpaceId = Long.parseLong(configuration.getOctaneSharedSpaceId());
         long workspaceId = Long.parseLong(configuration.getOctaneWorkspaceId());
 
@@ -80,19 +79,25 @@ public class Main {
     private static void configureLog4J() {
         String log4jConfiguration = System.getProperty("log4j.configuration");
         if (StringUtils.isEmpty(log4jConfiguration)) {
-            //take it from resources
+            //try to take from file
+            File f = new File("log4j2.xml");
             URI uri = null;
-            try {
-                uri = Main.class.getClassLoader().getResource("log4j2.xml").toURI();
-                LoggerContext context = (LoggerContext) LogManager.getContext(false);
-                context.setConfigLocation(uri);
-                logger.info("Log4j configuration loaded from resource file configuration");
-            } catch (URISyntaxException e) {
-                throw new RuntimeException("Failed to load Log4j configuration from resource file configuration");
+            if (f.exists() && !f.isDirectory() && f.canRead()) {
+                uri = f.toURI();
+            } else {
+                //take it from resources
+                try {
+                    uri = Main.class.getClassLoader().getResource("log4j2.xml").toURI();
+                } catch (URISyntaxException e) {
+                    logger.info("Failed to load Log4j configuration loaded from resource file");
+                }
             }
 
+            LoggerContext context = (LoggerContext) LogManager.getContext(false);
+            context.setConfigLocation(uri);
+            logger.info("Log4j configuration loaded from " + uri.toString());
         } else {
-            logger.info("Log4j configuration loaded from " + log4jConfiguration);
+            logger.info("Log4j configuration loaded from JVM argument log4j.configuration=" + log4jConfiguration);
         }
     }
 }

@@ -2,9 +2,9 @@
 <Configuration status="WARN">
     <Appenders>
         <Console name="console" target="SYSTEM_OUT">
-            <PatternLayout pattern="[%-5p] %d{yyyy-MM-dd HH:mm:ss.SSS} %c{1} - %msg%n"/>
+            <PatternLayout pattern="%msg%n"/>
         </Console>
-		<RollingFile  name="generalFile" fileName="./logs/sync.log" filePattern="./logs/sync-%i.log">
+		<RollingFile  name="generalFile" fileName="./logs/fetchLog.log" filePattern="./logs/fetchLog-%i.log">
             <PatternLayout pattern="[%-5p] %d{yyyy-MM-dd HH:mm:ss.SSS} %-10c{1} - %msg%n"/>
             <Policies>
                 <SizeBasedTriggeringPolicy size="10MB"/>

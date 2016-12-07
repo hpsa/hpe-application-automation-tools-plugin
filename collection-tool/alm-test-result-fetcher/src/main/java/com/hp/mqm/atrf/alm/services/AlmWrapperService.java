@@ -3,7 +3,7 @@ package com.hp.mqm.atrf.alm.services;
 import com.hp.mqm.atrf.alm.core.AlmEntity;
 import com.hp.mqm.atrf.alm.entities.*;
 import com.hp.mqm.atrf.alm.services.querybuilder.QueryBuilder;
-import com.hp.mqm.atrf.core.*;
+import com.hp.mqm.atrf.core.configuration.FetchConfiguration;
 import com.hp.mqm.atrf.core.rest.RestConnector;
 import com.hp.mqm.atrf.octane.entities.NgaInjectionEntity;
 import org.apache.commons.lang.StringUtils;
