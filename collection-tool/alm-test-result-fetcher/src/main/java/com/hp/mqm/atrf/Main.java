@@ -17,6 +17,7 @@ import java.net.URISyntaxException;
  *
  */
 public class Main {
+
     static final Logger logger = LogManager.getLogger();
     private static FetchConfiguration configuration;
     private static AlmWrapperService almWrapper;
@@ -32,7 +33,8 @@ public class Main {
 
         loginToAlm();
         loginToOctane();
-        almWrapper.init(configuration);
+
+        almWrapper.fetchRunsAndRelatedEntities(configuration);
     }
 
     private static void loginToAlm() {
@@ -97,7 +99,7 @@ public class Main {
             context.setConfigLocation(uri);
             logger.info("Log4j configuration loaded from " + uri.toString());
         } else {
-            logger.info("Log4j configuration loaded from JVM argument log4j.configuration=" + log4jConfiguration);
+            logger.info("Log4j configuration is loading from JVM argument log4j.configuration=" + log4jConfiguration);
         }
     }
 }

@@ -45,42 +45,33 @@ public class AlmWrapperService {
         alm2OctaneTestingToolMapper.put("BUSINESS-PROCESS", "BPT");
     }
 
-    public void init(FetchConfiguration configuration) {
-        System.out.println("Starting fetch process");
+    public void fetchRunsAndRelatedEntities(FetchConfiguration configuration) {
+        logger.info("Starting fetch process from ALM");
 
         QueryBuilder queryBuilder = buildRunFilter(configuration);
-        System.out.print("Fetch runs : ");
-        this.runs = fetchRunsREST(queryBuilder);
-        System.out.println(" , " + runs.size() + " fetched");
 
-        System.out.print("Fetch tests");
+        int expectedRuns = getExpectedRuns(queryBuilder);
+        logger.info("Expected runs : " + expectedRuns);
+
+        this.runs = fetchRuns(queryBuilder);
+        logger.info("Fetch runs : " + runs.size());
+
         Set<String> testsIds = fetchTests();
-        System.out.println(" " + testsIds.size() + " fetched");
+        logger.info("Fetch tests : " + testsIds.size());
 
-        System.out.print("Fetch test sets");
         Set<String> testSetIds = fetchTestSets();
-        System.out.println(" " + testSetIds.size() + " fetched");
+        logger.info("Fetch test sets : " + testSetIds.size());
 
-        System.out.print("Fetch test configs");
         Set<String> testConfigsIds = fetchTestConfigurations();
-        System.out.println(" " + testConfigsIds.size() + " test configs");
+        logger.info("Fetch test configs : " + testConfigsIds.size());
 
-        System.out.print("Fetch sprints");
         Set<String> sprintIds = fetchSprints();
-        System.out.println(" " + sprintIds.size() + " fetched");
+        logger.info("Fetch sprints : " + sprintIds.size());
 
-        System.out.print("Fetch releases");
         Set<String> releaseIds = fetchReleases();
-        System.out.println(" " + releaseIds.size() + " releases");
-
+        logger.info("Fetch releases : " + releaseIds.size());
 
         List<NgaInjectionEntity> runsForInjection = prepareRunsForInjection();
-
-
-        // this._tests = Test.createTestsWithRuns(this._runs);
-        // logger.info(String.format("#of alm tests fetched: %d", this._tests.size()));
-
-        // logger.info(String.format("#of alm runs fetched: %d", this._runs.size()));
 
         System.out.println("\nFetching from alm is done.");
     }
@@ -193,7 +184,6 @@ public class AlmWrapperService {
         return ids;
     }
 
-
     public Set<String> fetchReleases() {
 
         Set<String> ids = getIdsNotIncludedInSet(sprints.values(), Sprint.FIELD_RELEASE_ID, releases.keySet());
@@ -205,7 +195,7 @@ public class AlmWrapperService {
     }
 
 
-    public List<Run> fetchRunsREST(QueryBuilder queryBuilder) { // maxPages = -1 --> fetch all runs
+    public List<Run> fetchRuns(QueryBuilder queryBuilder) { // maxPages = -1 --> fetch all runs
 
         QueryBuilder qb = QueryBuilder.create();
         qb.addOrderBy(Run.FIELD_ID);
@@ -227,12 +217,16 @@ public class AlmWrapperService {
                 Run.FIELD_EXECUTOR);
         qb.addQueryConditions(queryBuilder.getQueryConditions());
 
-        List<AlmEntity> entities = almEntityService.getAllPagedEntities(Run.COLLECTION_NAME, qb, 1000);
+        List<AlmEntity> entities = almEntityService.getAllPagedEntities(Run.COLLECTION_NAME, qb, 10000);
         for (AlmEntity entity : entities) {
             runs.add((Run) entity);
         }
 
         return runs;
+    }
+
+    public int getExpectedRuns(QueryBuilder queryBuilder){
+        return almEntityService.getTotalNumber(Run.COLLECTION_NAME, queryBuilder);
     }
 
     public boolean login(String user, String password) {

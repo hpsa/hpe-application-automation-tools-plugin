@@ -69,18 +69,19 @@ public class AlmEntityService {
         List<AlmEntity> entities = new ArrayList<>();
 
         //get num of pages
-        int totalNumber = getTotalNumber(collectionName, qb);
-        int totalNumOfPages = getNumberOfPages(totalNumber);
+        //int totalNumber = getTotalNumber(collectionName, qb);
+        int totalNumOfPages = Integer.MAX_VALUE;
         int currentStartIndex = 1;
 
         for (int i = 1; i <= totalNumOfPages && i <= maxPages; i++) {
             QueryBuilder myQb = qb.clone().addPageSize(PAGE_SIZE).addStartIndex(currentStartIndex);
             AlmEntityCollection coll = getEntities(collectionName, myQb);
+            if (totalNumOfPages == Integer.MAX_VALUE) {
+                totalNumOfPages = getNumberOfPages(coll.getTotal());
+            }
 
             entities.addAll(coll.getEntities());
-
             currentStartIndex = i * PAGE_SIZE + 1;
-            System.out.print(".");
         }
 
         return entities;
@@ -88,9 +89,7 @@ public class AlmEntityService {
 
     public static int getNumberOfPages(int totalItems) {
         int ret;
-
         ret = totalItems / PAGE_SIZE;
-
         if (totalItems % PAGE_SIZE > 0) {
             ret++;
         }
@@ -105,10 +104,9 @@ public class AlmEntityService {
         for (int i = 0; i < list.size(); i = i + PAGE_SIZE) {
             int maxIndex = Math.min(i + PAGE_SIZE, list.size());
             List<String> subList = list.subList(i, maxIndex);
-            QueryBuilder qb = QueryBuilder.create().addQueryCondition("id",StringUtils.join(subList, " OR "));
+            QueryBuilder qb = QueryBuilder.create().addQueryCondition("id", StringUtils.join(subList, " OR "));
             AlmEntityCollection coll = getEntities(collectionName, qb);
             allEntities.addAll(coll.getEntities());
-            System.out.print(".");
         }
         return allEntities;
     }
