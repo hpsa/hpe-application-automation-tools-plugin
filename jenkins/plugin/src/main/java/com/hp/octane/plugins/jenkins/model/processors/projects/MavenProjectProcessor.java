@@ -15,26 +15,30 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 
- class MavenProjectProcessor extends AbstractProjectProcessor{
+class MavenProjectProcessor extends AbstractProjectProcessor<MavenModuleSet> {
 
-
-	 MavenProjectProcessor(Job job) {
-		super(job);
+	MavenProjectProcessor(Job mavenJob) {
+		super((MavenModuleSet) mavenJob);
 		//  Internal phases - pre maven phases
 		//
-		super.processBuilders(((MavenModuleSet)this.job).getPrebuilders(),(MavenModuleSet) this.job, "pre-maven");
+		super.processBuilders(this.job.getPrebuilders(), this.job, "pre-maven");
 
 		//  Internal phases - post maven phases
 		//
-		super.processBuilders(((MavenModuleSet)this.job).getPostbuilders(), (MavenModuleSet)this.job, "post-maven");
+		super.processBuilders(this.job.getPostbuilders(), this.job, "post-maven");
 
 		//  Post build phases
 		//
-		super.processPublishers((MavenModuleSet)this.job);
+		super.processPublishers(this.job);
 	}
 
 	@Override
 	public List<Builder> tryGetBuilders() {
-		return new ArrayList<Builder>();
+		return new ArrayList<>();
+	}
+
+	@Override
+	public void scheduleBuild(String parametersBody) {
+		throw new RuntimeException("non yet implemented");
 	}
 }

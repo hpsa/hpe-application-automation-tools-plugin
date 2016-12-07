@@ -181,7 +181,7 @@ public class TestDispatcherTest {
 
 		Mockito.doNothing().when(restClient).validateConfiguration();
 		Mockito.when(restClient.isTestResultRelevant(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
-		Mockito.doThrow(new RequestException("fails")).doReturn(1l).when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq(false));
+		Mockito.doThrow(new RequestErrorException("fails")).doReturn(1L).when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq(false));
 		InOrder order = Mockito.inOrder(restClient);
 
 		FreeStyleBuild build = executeBuild();
@@ -205,7 +205,7 @@ public class TestDispatcherTest {
 		Mockito.reset(restClient);
 		Mockito.doNothing().when(restClient).validateConfiguration();
 		Mockito.when(restClient.isTestResultRelevant(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
-		Mockito.doThrow(new RequestException("fails")).doThrow(new RequestException("fails")).when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq(false));
+		Mockito.doThrow(new RequestErrorException("fails")).doThrow(new RequestErrorException("fails")).when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq(false));
 
 		order = Mockito.inOrder(restClient);
 
@@ -273,13 +273,13 @@ public class TestDispatcherTest {
 	@Test
 	public void testDispatcherTemporarilyUnavailable() throws Exception {
 		Mockito.reset(restClient);
-		Mockito.doReturn(1l)
+		Mockito.doReturn(1L)
 				.doThrow(new TemporarilyUnavailableException("Server busy"))
 				.doThrow(new TemporarilyUnavailableException("Server busy"))
 				.doThrow(new TemporarilyUnavailableException("Server busy"))
 				.doThrow(new TemporarilyUnavailableException("Server busy"))
 				.doThrow(new TemporarilyUnavailableException("Server busy"))
-				.doReturn(1l)
+				.doReturn(1L)
 				.when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq(false));
 		Mockito.when(restClient.isTestResultRelevant(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
 		FreeStyleBuild build = executeBuild();
@@ -324,7 +324,7 @@ public class TestDispatcherTest {
 			Assert.assertEquals("1001", audit.getString("sharedSpace"));
 			Assert.assertEquals(statuses[i], audit.getBoolean("pushed"));
 			if (statuses[i]) {
-				Assert.assertEquals(1l, audit.getLong("id"));
+				Assert.assertEquals(1L, audit.getLong("id"));
 			}
 			if (!statuses[i] && unavailableIfFailed) {
 				Assert.assertTrue(audit.getBoolean("temporarilyUnavailable"));
@@ -345,7 +345,7 @@ public class TestDispatcherTest {
 		} else if (!sharedSpace) {
 			Mockito.doThrow(new SharedSpaceNotExistException()).when(restClient).validateConfiguration();
 		} else {
-			Mockito.doReturn(1l).when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq(false));
+			Mockito.doReturn(1L).when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq(false));
 		}
 	}
 

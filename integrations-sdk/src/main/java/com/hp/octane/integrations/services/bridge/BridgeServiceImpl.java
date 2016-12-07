@@ -92,7 +92,7 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 
 	private String getAbridgedTasks(String selfIdentity, String selfType, String selfLocation, Integer apiVersion, String sdkVersion) {
 		String responseBody = null;
-		RestClient restClientImpl = restService.obtainClient();
+		RestClient restClient = restService.obtainClient();
 		OctaneConfiguration octaneConfiguration = pluginServices.getOctaneConfiguration();
 		if (octaneConfiguration != null && octaneConfiguration.isValid()) {
 			Map<String, String> headers = new HashMap<>();
@@ -104,7 +104,7 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 							selfIdentity + "/tasks?self-type=" + selfType + "&self-url=" + selfLocation + "&api-version=" + apiVersion + "&sdk-version=" + sdkVersion)
 					.setHeaders(headers);
 			try {
-				OctaneResponse octaneResponse = restClientImpl.execute(octaneRequest);
+				OctaneResponse octaneResponse = restClient.execute(octaneRequest);
 				if (octaneResponse.getStatus() == HttpStatus.SC_OK) {
 					responseBody = octaneResponse.getBody();
 				} else {

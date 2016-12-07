@@ -14,14 +14,14 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 
- class FreeStyleProjectProcessor extends AbstractProjectProcessor {
+class FreeStyleProjectProcessor extends AbstractProjectProcessor<FreeStyleProject> {
 
-	 FreeStyleProjectProcessor(Job job) {
-		super(job);
+	FreeStyleProjectProcessor(Job job) {
+		super((FreeStyleProject) job);
 
 		//  Internal phases
 		//
-		super.processBuilders(((FreeStyleProject) this.job).getBuilders(), this.job);
+		super.processBuilders(this.job.getBuilders(), this.job);
 
 		//  Post build phases
 		//
@@ -30,7 +30,11 @@ import java.util.List;
 
 	@Override
 	public List<Builder> tryGetBuilders() {
-		return ((FreeStyleProject)job).getBuilders();
+		return job.getBuilders();
 	}
 
+	@Override
+	public void scheduleBuild(String parametersBody) {
+		throw new RuntimeException("non yet implemented");
+	}
 }

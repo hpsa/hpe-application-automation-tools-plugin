@@ -17,7 +17,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.List;
 
-
 /**
  * Client for connection to MQM public API. It wraps whole http communication with MQM server. Client handles login automatically.
  * When client is not intended to use anymore or for a long time, method {@link #release()} must be called.
@@ -64,7 +63,7 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * Checks if the test results are needed in NGA.
 	 *
 	 * @param serverIdentity The server id
-	 * @param jobName       The job name
+	 * @param jobName        The job name
 	 */
 	Boolean isTestResultRelevant(String serverIdentity, String jobName);
 
@@ -132,9 +131,9 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * <p/>
 	 * <p/>
 	 *
-	 * @param jobName        name of the job
-	 * @param pipelineId       pipeline id
-	 * @param workspaceId 	 workspace id
+	 * @param jobName     name of the job
+	 * @param pipelineId  pipeline id
+	 * @param workspaceId workspace id
 	 */
 	void deleteTestsFromPipelineNodes(String jobName, Long pipelineId, Long workspaceId);
 
@@ -239,29 +238,20 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	List<FieldMetadata> getFieldsMetadata(long workspaceId);
 
 	/**
-	 *
-	 * @param entity
-	 * @param skipErrors
-	 * @param uftTests
 	 * @param uftTestJson
 	 * @param uftTestData
 	 * @param serverURL
-     * @return
+	 * @return
 	 * @throws UnsupportedEncodingException
-     */
-
-
+	 */
 	JSONObject postTest(String uftTestJson, HashMap<String, String> uftTestData, String serverURL) throws UnsupportedEncodingException;
 
 	/**
-	 *
 	 * @param testId
 	 * @param resourceMtrAsJSON
 	 * @param serverURL
 	 * @throws UnsupportedEncodingException
-     */
-
-
+	 */
 	void attachUFTParametersToTest(String testId, String resourceMtrAsJSON, String serverURL) throws UnsupportedEncodingException;
 
 	/**

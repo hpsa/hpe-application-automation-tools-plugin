@@ -10,7 +10,7 @@ import java.util.Set;
 
 public class TestUtils {
 
-	public static Set<String> helloWorldTests = new HashSet<>();
+	static Set<String> helloWorldTests = new HashSet<>();
 
 	static {
 		helloWorldTests.add(testSignature("helloWorld", "hello", "HelloWorldTest", "testOne", TestResultStatus.PASSED));
@@ -26,16 +26,16 @@ public class TestUtils {
 		return build;
 	}
 
-	public static String testSignature(TestResult testResult) {
+	private static String testSignature(TestResult testResult) {
 		return testSignature(testResult.getModuleName(), testResult.getPackageName(), testResult.getClassName(),
 				testResult.getTestName(), testResult.getResult());
 	}
 
-	public static String testSignature(String moduleName, String packageName, String className, String testName, TestResultStatus status) {
+	static String testSignature(String moduleName, String packageName, String className, String testName, TestResultStatus status) {
 		return moduleName + "#" + packageName + "#" + className + "#" + testName + "#" + status.toPrettyName() + "#";
 	}
 
-	public static void matchTests(TestResultIterable testResultIterable, String buildType, long started, Set<String>... expectedTests) {
+	static void matchTests(TestResultIterable testResultIterable, String buildType, long started, Set<String>... expectedTests) {
 		Set<String> copy = new HashSet<>();
 		for (Set<String> expected : expectedTests) {
 			copy.addAll(expected);

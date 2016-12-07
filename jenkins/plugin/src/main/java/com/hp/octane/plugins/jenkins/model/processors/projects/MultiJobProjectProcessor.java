@@ -14,22 +14,26 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 
- class MultiJobProjectProcessor extends AbstractProjectProcessor {
+class MultiJobProjectProcessor extends AbstractProjectProcessor<MultiJobProject> {
 
+	MultiJobProjectProcessor(Job job) {
+		super((MultiJobProject) job);
+		//  Internal phases
+		//
+		super.processBuilders(this.job.getBuilders(), this.job);
 
-     MultiJobProjectProcessor(Job job) {
-        super(job);
-        //  Internal phases
-        //
-        super.processBuilders(((MultiJobProject) this.job).getBuilders(), (MultiJobProject)this.job);
+		//  Post build phases
+		//
+		super.processPublishers(this.job);
+	}
 
-        //  Post build phases
-        //
-        super.processPublishers((MultiJobProject)this.job);
-    }
+	@Override
+	public List<Builder> tryGetBuilders() {
+		return job.getBuilders();
+	}
 
-    @Override
-    public List<Builder> tryGetBuilders() {
-        return ((MultiJobProject) job).getBuilders();
-    }
+	@Override
+	public void scheduleBuild(String parametersBody) {
+		throw new RuntimeException("non yet implemented");
+	}
 }

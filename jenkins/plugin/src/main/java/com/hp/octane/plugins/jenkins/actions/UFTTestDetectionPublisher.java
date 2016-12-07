@@ -28,7 +28,6 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.List;
 
-
 public class UFTTestDetectionPublisher extends Recorder {
 
 	private final String workspaceName;
@@ -49,10 +48,9 @@ public class UFTTestDetectionPublisher extends Recorder {
 		// Since this is a dummy, we just say 'hello world' and call that a build.
 
 		// This also shows how you can consult the global configuration of the builder
-		String message;
+		String message = "";
 
-
-		UFTTestDetectionBuildAction buildAction = new UFTTestDetectionBuildAction("", build, getWorkspaceName());
+		UFTTestDetectionBuildAction buildAction = new UFTTestDetectionBuildAction(message, build, getWorkspaceName());
 		build.addAction(buildAction);
 
 		return true;
@@ -68,7 +66,6 @@ public class UFTTestDetectionPublisher extends Recorder {
 		return BuildStepMonitor.NONE;
 	}
 
-
 	private static <T> T getExtension(Class<T> clazz) {
 		ExtensionList<T> items = Jenkins.getInstance().getExtensionList(clazz);
 		return items.get(0);
@@ -79,15 +76,13 @@ public class UFTTestDetectionPublisher extends Recorder {
 		private MqmRestClient createClient() {
 			ServerConfiguration configuration = ConfigurationService.getServerConfiguration();
 			JenkinsMqmRestClientFactory clientFactory = getExtension(JenkinsMqmRestClientFactory.class);
-			MqmRestClient client = clientFactory.obtain(
+			return clientFactory.obtain(
 					configuration.location,
 					configuration.sharedSpace,
 					configuration.username,
 					configuration.password);
-			return client;
 		}
 
-		MqmRestClient client = createClient();
 		private String workspace;
 
 		public DescriptorImpl() {
@@ -101,27 +96,26 @@ public class UFTTestDetectionPublisher extends Recorder {
 		 */
 		public ListBoxModel doFillWorkspaceNameItems() {
 			ListBoxModel m = new ListBoxModel();
-			PagedList<Workspace> workspacePagedList = client.queryWorkspaces("", 0, 200);
+			PagedList<Workspace> workspacePagedList = createClient().queryWorkspaces("", 0, 200);
 			List<Workspace> items = workspacePagedList.getItems();
-			for (int i = 0; i < items.size(); i++) {
-				Workspace workspace = items.get(i);
+			for (Workspace workspace : items) {
 				m.add(workspace.getName(), String.valueOf(workspace.getId()));
 			}
 			return m;
 		}
 
-		public FormValidation doCheckWorkspaceName(@QueryParameter String value)
-				throws IOException, ServletException {
-			if (value.length() == 0)
+		public FormValidation doCheckWorkspaceName(@QueryParameter String value) throws IOException, ServletException {
+			if (value == null || value.length() == 0) {
 				return FormValidation.error("Please select workspace");
-			return FormValidation.ok();
+			} else {
+				return FormValidation.ok();
+			}
 		}
 
 		public boolean isApplicable(Class<? extends AbstractProject> aClass) {
 			// Indicates that this builder can be used with all kinds of project types
 			return true;
 		}
-
 
 		public String getDisplayName() {
 			return "HP Octane UFT Tests Scanner";
@@ -137,7 +131,6 @@ public class UFTTestDetectionPublisher extends Recorder {
 			save();
 			return super.configure(req, formData);
 		}
-
 
 		public String getWorkspace() {
 			return workspace;

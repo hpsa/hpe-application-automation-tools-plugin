@@ -14,14 +14,14 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 
- class MatrixProjectProcessor extends AbstractProjectProcessor {
+class MatrixProjectProcessor extends AbstractProjectProcessor<MatrixProject> {
 
-	 MatrixProjectProcessor(Job project) {
-		super(project);
+	MatrixProjectProcessor(Job project) {
+		super((MatrixProject) project);
 
 		//  Internal phases
 		//
-		super.processBuilders(((MatrixProject)this.job).getBuilders(), this.job);
+		super.processBuilders(this.job.getBuilders(), this.job);
 
 		//  Post build phases
 		//
@@ -30,6 +30,11 @@ import java.util.List;
 
 	@Override
 	public List<Builder> tryGetBuilders() {
-		return ((MatrixProject)job).getBuilders();
+		return job.getBuilders();
+	}
+
+	@Override
+	public void scheduleBuild(String parametersBody) {
+		throw new RuntimeException("non yet implemented");
 	}
 }

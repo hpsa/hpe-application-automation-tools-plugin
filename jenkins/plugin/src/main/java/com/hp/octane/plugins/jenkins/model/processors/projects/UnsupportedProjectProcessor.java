@@ -14,13 +14,18 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 
- class UnsupportedProjectProcessor extends AbstractProjectProcessor {
-     UnsupportedProjectProcessor(Job job) {
-        super(job);
-    }
+class UnsupportedProjectProcessor extends AbstractProjectProcessor<Job> {
+	UnsupportedProjectProcessor(Job job) {
+		super(job);
+	}
 
-    @Override
-    public List<Builder> tryGetBuilders() {
-        return new ArrayList<>();
-    }
+	@Override
+	public List<Builder> tryGetBuilders() {
+		return new ArrayList<>();
+	}
+
+	@Override
+	public void scheduleBuild(String parametersBody) {
+		throw new IllegalStateException("unsupported job MAY NOT be run");
+	}
 }

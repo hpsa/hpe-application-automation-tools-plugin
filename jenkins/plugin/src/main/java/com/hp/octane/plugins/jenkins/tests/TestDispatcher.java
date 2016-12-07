@@ -5,7 +5,6 @@ import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.SharedSpaceNotExistException;
 import com.hp.mqm.client.exception.FileNotFoundException;
 import com.hp.mqm.client.exception.LoginException;
-import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
 import com.hp.mqm.client.exception.TemporarilyUnavailableException;
 import com.hp.octane.plugins.jenkins.client.EventPublisher;
@@ -40,7 +39,7 @@ import java.util.Date;
 public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
 	private static Logger logger = LogManager.getLogger(TestDispatcher.class);
 
-	public static final String TEST_AUDIT_FILE = "mqmTests_audit.json";
+	static final String TEST_AUDIT_FILE = "mqmTests_audit.json";
 
 	@Inject
 	private RetryModel retryModel;
@@ -85,7 +84,7 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
 						configuration.username,
 						configuration.password);
 				try {
-					client.validateConfiguration();
+					client.validateConfigurationWithoutLogin();
 				} catch (SharedSpaceNotExistException e) {
 					logger.warn("Invalid shared space. Pending test results can't be submitted", e);
 					retryModel.failure();
@@ -98,11 +97,8 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
 					logger.warn("Problem with communication with MQM server. Pending test results can't be submitted", e);
 					retryModel.failure();
 					return;
-				} catch (RequestErrorException e) {
-					logger.warn("Connection problem, pending test results can't be submitted", e);
-					retryModel.failure();
-					return;
 				}
+
 				retryModel.success();
 			}
 
@@ -120,7 +116,7 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
 				continue;
 			}
 
-			String jobName = null;
+			String jobName;
 			if (build instanceof MatrixRun) {
 				jobName = ((MatrixRun) build).getProject().getParent().getName();
 			} else {
@@ -140,8 +136,6 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
 						audit(configuration, build, null, true);
 						break;
 					} catch (RequestException e) {
-						logger.warn("Failed to submit test results [" + build.getProject().getName() + "#" + build.getNumber() + "]", e);
-					} catch (RequestErrorException e) {
 						logger.warn("Failed to submit test results [" + build.getProject().getName() + "#" + build.getNumber() + "]", e);
 					}
 
@@ -215,22 +209,22 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
 	}
 
 
-	public void _setMqmRestClientFactory(JenkinsMqmRestClientFactory clientFactory) {
+	void _setMqmRestClientFactory(JenkinsMqmRestClientFactory clientFactory) {
 		this.clientFactory = clientFactory;
 	}
 
 
-	public void _setTestResultQueue(TestResultQueue queue) {
+	void _setTestResultQueue(TestResultQueue queue) {
 		this.queue = queue;
 	}
 
 
-	public void _setRetryModel(RetryModel retryModel) {
+	void _setRetryModel(RetryModel retryModel) {
 		this.retryModel = retryModel;
 	}
 
 
-	public void _setEventPublisher(EventPublisher eventPublisher) {
+	void _setEventPublisher(EventPublisher eventPublisher) {
 		this.eventPublisher = eventPublisher;
 	}
 }

@@ -70,8 +70,8 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 
 	private static final String URI_PARAM_ENCODING = "UTF-8";
 
-	public static final int DEFAULT_CONNECTION_TIMEOUT = 20 * 1000;     // in milliseconds
-	public static final int DEFAULT_SO_TIMEOUT = 2 * 60 * 1000;         // in milliseconds
+	private static final int DEFAULT_CONNECTION_TIMEOUT = 20 * 1000;     // in milliseconds
+	private static final int DEFAULT_SO_TIMEOUT = 2 * 60 * 1000;         // in milliseconds
 
 	private CloseableHttpClient httpClient;
 	private CookieStore cookieStore;
@@ -139,7 +139,6 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 					.setDefaultCookieStore(cookieStore)
 					.setDefaultRequestConfig(requestConfig)
 					.build();
-
 		}
 	}
 
@@ -196,6 +195,12 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 		}
 	}
 
+	//  YG: temporary workaround with optional login; will become unneeded once migrated to SDK
+	@Override
+	public void validateConfigurationWithoutLogin() {
+		checkAuthorization();
+	}
+
 	@Override
 	public void validateConfiguration() {
 		login();
@@ -205,10 +210,8 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	private void checkAuthorization() {
 		HttpGet request = new HttpGet(createSharedSpaceInternalApiUri(CONNECTIVITY_API_URI));
 		HttpResponse response = null;
-		String responseBody;
 		try {
 			response = execute(request);
-			responseBody = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_INTERNAL_SERVER_ERROR) {
 				throw new SharedSpaceNotExistException("Cannot connect to given shared space.");
 			} else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_FORBIDDEN) {
@@ -234,7 +237,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	 *                 Example: ["J Unit", 123]
 	 * @return absolute URI of endpoint with all parameters which are URI encoded. Example: http://mqm.hp.com/qcbin/test/J%20Unit?id=123
 	 */
-	protected URI createBaseUri(String template, Object... params) {
+	private URI createBaseUri(String template, Object... params) {
 		String result = location + "/" + resolveTemplate(template, asMap(params));
 		return URI.create(result);
 	}
@@ -254,19 +257,19 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 		return createProjectUri(PROJECT_API_URI, template, asMap(params));
 	}
 
-	protected URI createSharedSpaceApiUri(String template, Object... params) {
+	URI createSharedSpaceApiUri(String template, Object... params) {
 		return createSharedSpaceApiUriMap(template, asMap(params));
 	}
 
-	protected URI createSharedSpaceApiUriMap(String template, Map<String, ?> params) {
+	private URI createSharedSpaceApiUriMap(String template, Map<String, ?> params) {
 		return URI.create(createBaseUri(SHARED_SPACE_API_URI, sharedSpace).toString() + "/" + resolveTemplate(template, params));
 	}
 
-	protected URI createSharedSpaceInternalApiUri(String template, Object... params) {
+	URI createSharedSpaceInternalApiUri(String template, Object... params) {
 		return createSharedSpaceInternalApiUriMap(template, asMap(params));
 	}
 
-	protected URI createSharedSpaceInternalApiUriMap(String template, Map<String, ?> params) {
+	private URI createSharedSpaceInternalApiUriMap(String template, Map<String, ?> params) {
 		return URI.create(createBaseUri(SHARED_SPACE_INTERNAL_API_URI, sharedSpace).toString() + "/" + resolveTemplate(template, params));
 	}
 
@@ -284,19 +287,19 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	}
 
 	// don't remove (used in test-support)
-	protected URI createWorkspaceInternalApiUriMap(String template, long workspaceId, Object... params) {
+	URI createWorkspaceInternalApiUriMap(String template, long workspaceId, Object... params) {
 		return URI.create(createBaseUri(WORKSPACE_INTERNAL_API_URI, sharedSpace, workspaceId).toString() + "/" + resolveTemplate(template, asMap(params)));
 	}
 
-	protected URI createWorkspaceApiUri(String template, long workspaceId, Object... params) {
+	URI createWorkspaceApiUri(String template, long workspaceId, Object... params) {
 		return createWorkspaceApiUriMap(template, workspaceId, asMap(params));
 	}
 
-	protected URI createWorkspaceApiUriMap(String template, long workspaceId, Map<String, ?> params) {
+	private URI createWorkspaceApiUriMap(String template, long workspaceId, Map<String, ?> params) {
 		return URI.create(createBaseUri(WORKSPACE_API_URI, sharedSpace, workspaceId).toString() + "/" + resolveTemplate(template, params));
 	}
 
-	protected URI createProjectUri(String projectPartTemplate, String template, Map<String, ?> params) {
+	private URI createProjectUri(String projectPartTemplate, String template, Map<String, ?> params) {
 		return URI.create(createBaseUri(projectPartTemplate, sharedSpace).toString() + "/" + resolveTemplate(template, params));
 	}
 
@@ -319,7 +322,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	}
 
 	private Map<String, Object> asMap(Object... params) {
-		Map<String, Object> map = new HashMap<String, Object>();
+		Map<String, Object> map = new HashMap<>();
 		for (int i = 0; i < params.length; i++) {
 			map.put(String.valueOf(i), params[i]);
 		}
@@ -370,7 +373,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 		return response;
 	}
 
-	protected <E> PagedList<E> getEntities(URI uri, int offset, EntityFactory<E> factory) {
+	<E> PagedList<E> getEntities(URI uri, int offset, EntityFactory<E> factory) {
 		HttpGet request = new HttpGet(uri);
 		HttpResponse response = null;
 		try {
@@ -381,11 +384,11 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 			String entitiesJson = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
 			JSONObject entities = JSONObject.fromObject(entitiesJson);
 
-			LinkedList<E> items = new LinkedList<E>();
+			LinkedList<E> items = new LinkedList<>();
 			for (JSONObject entityObject : getJSONObjectCollection(entities, "data")) {
 				items.add(factory.create(entityObject.toString()));
 			}
-			return new PagedList<E>(items, offset, entities.getInt("total_count"));
+			return new PagedList<>(items, offset, entities.getInt("total_count"));
 		} catch (IOException e) {
 			throw new RequestErrorException("Cannot retrieve entities from MQM.", e);
 		} finally {
@@ -393,7 +396,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 		}
 	}
 
-	protected URI getEntityURI(String collection, List<String> conditions, Long workspaceId, int offset, int limit, String orderBy) {
+	URI getEntityURI(String collection, List<String> conditions, Long workspaceId, int offset, int limit, String orderBy) {
 		Map<String, Object> params = pagingParams(offset, limit);
 		StringBuilder template = new StringBuilder(collection + "?" + PAGING_FRAGMENT);
 
@@ -421,7 +424,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 		}
 	}
 
-	protected RequestException createRequestException(String message, HttpResponse response) {
+	RequestException createRequestException(String message, HttpResponse response) {
 		String description = null;
 		String stackTrace = null;
 		String errorCode = null;
@@ -454,19 +457,19 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 		int statusCode = response.getStatusLine().getStatusCode();
 		String reason = response.getStatusLine().getReasonPhrase();
 		if (!StringUtils.isEmpty(errorCode)) {
-			return new RequestException(message + "; error code: " + errorCode + "; description: " + description,
+			return new RequestErrorException(message + "; error code: " + errorCode + "; description: " + description,
 					description, errorCode, statusCode, reason, cause);
 		} else {
-			return new RequestException(message + "; status code " + statusCode + "; reason " + reason,
+			return new RequestErrorException(message + "; status code " + statusCode + "; reason " + reason,
 					description, errorCode, statusCode, reason, cause);
 		}
 	}
 
-	protected String conditionRef(String name, long id) {
+	String conditionRef(String name, long id) {
 		return name + "={id=" + id + "}";
 	}
 
-	protected String conditionRef(String name, String refName, String value) {
+	String conditionRef(String name, String refName, String value) {
 		return name + "={" + condition(refName, value) + "}";
 	}
 
@@ -483,17 +486,13 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 	}
 
 	private Map<String, Object> pagingParams(int offset, int limit) {
-		Map<String, Object> params = new HashMap<String, Object>();
+		Map<String, Object> params = new HashMap<>();
 		params.put("offset", offset);
 		params.put("limit", limit);
 		return params;
 	}
 
 	private void addRequestHeaders(HttpUriRequest request) {
-		addRequestHeaders(request, false);
-	}
-
-	private void addRequestHeaders(HttpUriRequest request, boolean isLogin) {
 		request.setHeader(HEADER_CLIENT_TYPE, clientType);
 	}
 

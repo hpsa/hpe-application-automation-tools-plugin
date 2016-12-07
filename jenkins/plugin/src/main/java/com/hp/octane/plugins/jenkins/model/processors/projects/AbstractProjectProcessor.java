@@ -26,28 +26,75 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 
-public abstract class AbstractProjectProcessor {
+public abstract class AbstractProjectProcessor<T extends Job> {
 	private static final Logger logger = LogManager.getLogger(AbstractProjectProcessor.class);
+	private final List<PipelinePhase> internals = new ArrayList<>();
+	private final List<PipelinePhase> postBuilds = new ArrayList<>();
 
-	protected Job job;
-	private List<PipelinePhase> internals = new ArrayList<>();
-	private List<PipelinePhase> postBuilds = new ArrayList<>();
+	T job;
 
-	protected AbstractProjectProcessor(Job job) {
+	AbstractProjectProcessor(T job) {
 		this.job = job;
 	}
 
-	protected void processBuilders(List<Builder> builders, Job job) {
+	//  PUBLIC APIs
+	//
+	public abstract List<Builder> tryGetBuilders();
+
+	public abstract void scheduleBuild(String parametersBody);
+
+	public String getJobCiId() {
+		if (job.getParent().getClass().getName().equals("com.cloudbees.hudson.plugins.folder.Folder")) {
+			String jobPlainName = job.getFullName();    // e.g: myFolder/myJob
+			return jobPlainName.replaceAll("/", "/job/");
+		} else {
+			return job.getName();
+		}
+	}
+
+	public List<PipelinePhase> getInternals() {
+		return internals;
+	}
+
+	public List<PipelinePhase> getPostBuilds() {
+		return postBuilds;
+	}
+
+	//  INTERNALS
+	//
+	void processBuilders(List<Builder> builders, Job job) {
 		this.processBuilders(builders, job, "");
 	}
 
-	protected void processBuilders(List<Builder> builders, Job job, String phasesName) {
+	void processBuilders(List<Builder> builders, Job job, String phasesName) {
 		for (Builder builder : builders) {
 			builderClassValidator(builder, job, phasesName);
 		}
 	}
 
-	protected void builderClassValidator(Builder builder, Job job, String phasesName) {
+	@SuppressWarnings("unchecked")
+	void processPublishers(Job job) {
+		if (job instanceof AbstractProject) {
+			AbstractProject project = (AbstractProject) job;
+			AbstractBuilderProcessor builderProcessor;
+			List<Publisher> publishers = project.getPublishersList();
+			for (Publisher publisher : publishers) {
+				builderProcessor = null;
+				if (publisher.getClass().getName().equals("hudson.tasks.BuildTrigger")) {
+					builderProcessor = new BuildTriggerProcessor(publisher, project);
+				} else if (publisher.getClass().getName().equals("hudson.plugins.parameterizedtrigger.BuildTrigger")) {
+					builderProcessor = new ParameterizedTriggerProcessor(publisher, project, "");
+				}
+				if (builderProcessor != null) {
+					postBuilds.addAll(builderProcessor.getPhases());
+				} else {
+					logger.info("not yet supported publisher (post build) action: " + publisher.getClass().getName());
+				}
+			}
+		}
+	}
+
+	private void builderClassValidator(Builder builder, Job job, String phasesName) {
 		AbstractBuilderProcessor builderProcessor = null;
 		if (builder.getClass().getName().equals("org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder")) {
 			ConditionalBuilder conditionalBuilder = (ConditionalBuilder) builder;
@@ -69,46 +116,4 @@ public abstract class AbstractProjectProcessor {
 			logger.info("not yet supported build (internal) action: " + builder.getClass().getName());
 		}
 	}
-
-	@SuppressWarnings("unchecked")
-	protected void processPublishers(Job job) {
-		if(job instanceof AbstractProject ) {
-			AbstractProject project = (AbstractProject)job;
-			AbstractBuilderProcessor builderProcessor;
-			List<Publisher> publishers = project.getPublishersList();
-			for (Publisher publisher : publishers) {
-				builderProcessor = null;
-				if (publisher.getClass().getName().equals("hudson.tasks.BuildTrigger")) {
-					builderProcessor = new BuildTriggerProcessor(publisher, project);
-				} else if (publisher.getClass().getName().equals("hudson.plugins.parameterizedtrigger.BuildTrigger")) {
-					builderProcessor = new ParameterizedTriggerProcessor(publisher, project, "");
-				}
-				if (builderProcessor != null) {
-					postBuilds.addAll(builderProcessor.getPhases());
-				} else {
-					logger.info("not yet supported publisher (post build) action: " + publisher.getClass().getName());
-				}
-			}
-		}
-	}
-
-	public List<PipelinePhase> getInternals() {
-		return internals;
-	}
-
-	public List<PipelinePhase> getPostBuilds() {
-		return postBuilds;
-	}
-
-	public abstract List<Builder> tryGetBuilders();
-
-	public String getJobCiId() {
-		if (job.getParent().getClass().getName().equals("com.cloudbees.hudson.plugins.folder.Folder")) {
-			String jobPlainName = job.getFullName();    // e.g: myFolder/myJob
-			return jobPlainName.replaceAll("/", "/job/");
-		} else {
-			return job.getName();
-		}
-	}
-
 }
