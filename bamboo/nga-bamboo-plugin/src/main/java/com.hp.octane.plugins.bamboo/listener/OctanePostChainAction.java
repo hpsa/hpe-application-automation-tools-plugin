@@ -53,13 +53,18 @@ public class OctanePostChainAction extends BaseListener implements PostChainActi
 						event.getContext().getParentBuildIdentifier().getBuildResultKey(),
 						event.getContext().getParentBuildContext().getPlanResultKey().getPlanKey().getKey(), "admin");
 
-				CIEvent ciEvent = CONVERTER.getEventWithDetails(planResultKey.getPlanKey().getKey(),
-						planResultKey.getKey(), event.getContext().getDisplayName(), CIEventType.FINISHED,
-						System.currentTimeMillis(), 100, Arrays.asList(cause),
-						String.valueOf(planResultKey.getBuildNumber()));
-				ciEvent.setResult(event.getContext().getCurrentResult().getBuildState().equals(BuildState.SUCCESS)
-						? CIBuildResult.SUCCESS : CIBuildResult.FAILURE);
-				ciEvent.setDuration(System.currentTimeMillis() - ciEvent.getStartTime());
+				CIEvent ciEvent = CONVERTER.getEventWithDetails(
+						planResultKey.getPlanKey().getKey(),
+						planResultKey.getKey(),
+						event.getContext().getDisplayName(),
+						CIEventType.FINISHED,
+						System.currentTimeMillis(),
+						100,
+						Arrays.asList(cause),
+						String.valueOf(planResultKey.getBuildNumber()),
+						event.getContext().getCurrentResult().getBuildState(),
+						System.currentTimeMillis());
+
 				OctaneSDK.getInstance().getEventsService().publishEvent(ciEvent);
 			}
 			String identifier = planKey.getKey();
@@ -108,11 +113,14 @@ public class OctanePostChainAction extends BaseListener implements PostChainActi
 				chainExecution.getStartTime() != null ? chainExecution.getStartTime().getTime() : chainExecution.getQueueTime().getTime(),
 				chainResultsSummary.getDuration(),
 				causes,
-				String.valueOf(chainExecution.getBuildIdentifier().getBuildNumber()));
-		event.setResult((chainResultsSummary.getBuildState() == BuildState.SUCCESS) ? CIBuildResult.SUCCESS : CIBuildResult.FAILURE);
+				String.valueOf(chainExecution.getBuildIdentifier().getBuildNumber()),
+				chainResultsSummary.getBuildState(),
+				System.currentTimeMillis());
+
+//		event.setResult((chainResultsSummary.getBuildState() == BuildState.SUCCESS) ? CIBuildResult.SUCCESS : CIBuildResult.FAILURE);
 		// TODO pushing finished type event with null duration results in http
 		// 400, octane rest api could be more verbose to specify the reason
-		event.setDuration(System.currentTimeMillis() - chainExecution.getQueueTime().getTime());
+//		event.setDuration(System.currentTimeMillis() - chainExecution.getQueueTime().getTime());
 		OctaneSDK.getInstance().getEventsService().publishEvent(event);
 	}
 

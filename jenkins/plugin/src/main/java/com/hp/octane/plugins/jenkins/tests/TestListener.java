@@ -3,7 +3,7 @@
 package com.hp.octane.plugins.jenkins.tests;
 
 import com.google.inject.Inject;
-import com.hp.octane.plugins.jenkins.model.processors.projects.AbstractProjectProcessor;
+import com.hp.octane.plugins.jenkins.model.processors.projects.JobProcessorFactory;
 import com.hp.octane.plugins.jenkins.tests.build.BuildHandlerUtils;
 import com.hp.octane.plugins.jenkins.tests.detection.UFTExtension;
 import com.hp.octane.plugins.jenkins.tests.gherkin.GherkinTestResultsCollector;
@@ -39,7 +39,7 @@ public class TestListener {
 		boolean hasTests = false;
 		String jenkinsRootUrl = Jenkins.getInstance().getRootUrl();
 		JUnitExtension.HPRunnerType hpRunnerType = JUnitExtension.HPRunnerType.NONE;
-		List<Builder> builders = AbstractProjectProcessor.getFlowProcessor(build.getProject()).tryGetBuilders();
+		List<Builder> builders = JobProcessorFactory.getFlowProcessor(build.getProject()).tryGetBuilders();
 		if (builders != null) {
 			for (Builder builder : builders) {
 				if (builder.getClass().getName().equals(JENKINS_STORM_TEST_RUNNER_CLASS)) {

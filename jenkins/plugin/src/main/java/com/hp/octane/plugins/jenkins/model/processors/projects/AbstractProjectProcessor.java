@@ -5,7 +5,6 @@ import com.hp.octane.plugins.jenkins.model.processors.builders.AbstractBuilderPr
 import com.hp.octane.plugins.jenkins.model.processors.builders.BuildTriggerProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.builders.MultiJobBuilderProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.builders.ParameterizedTriggerProcessor;
-import com.hp.octane.plugins.jenkins.model.processors.builders.WorkFlowJobProcessor;
 import hudson.model.AbstractProject;
 import hudson.model.Job;
 import hudson.tasks.BuildStep;
@@ -30,31 +29,36 @@ import java.util.List;
 public abstract class AbstractProjectProcessor {
 	private static final Logger logger = LogManager.getLogger(AbstractProjectProcessor.class);
 
+	protected Job job;
 	private List<PipelinePhase> internals = new ArrayList<>();
 	private List<PipelinePhase> postBuilds = new ArrayList<>();
 
-	protected void processBuilders(List<Builder> builders, AbstractProject project) {
-		this.processBuilders(builders, project, "");
+	protected AbstractProjectProcessor(Job job) {
+		this.job = job;
 	}
 
-	protected void processBuilders(List<Builder> builders, AbstractProject project, String phasesName) {
+	protected void processBuilders(List<Builder> builders, Job job) {
+		this.processBuilders(builders, job, "");
+	}
+
+	protected void processBuilders(List<Builder> builders, Job job, String phasesName) {
 		for (Builder builder : builders) {
-			builderClassValidator(builder, project, phasesName);
+			builderClassValidator(builder, job, phasesName);
 		}
 	}
 
-	protected void builderClassValidator(Builder builder, AbstractProject project, String phasesName) {
+	protected void builderClassValidator(Builder builder, Job job, String phasesName) {
 		AbstractBuilderProcessor builderProcessor = null;
 		if (builder.getClass().getName().equals("org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder")) {
 			ConditionalBuilder conditionalBuilder = (ConditionalBuilder) builder;
 			for (BuildStep currentBuildStep : conditionalBuilder.getConditionalbuilders()) {
-				builderClassValidator((Builder) currentBuildStep, project, phasesName);
+				builderClassValidator((Builder) currentBuildStep, job, phasesName);
 			}
 		} else if (builder.getClass().getName().equals("org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder")) {
 			SingleConditionalBuilder singleConditionalBuilder = (SingleConditionalBuilder) builder;
-			builderClassValidator((Builder) singleConditionalBuilder.getBuildStep(), project, phasesName);
+			builderClassValidator((Builder) singleConditionalBuilder.getBuildStep(), job, phasesName);
 		} else if (builder.getClass().getName().equals("hudson.plugins.parameterizedtrigger.TriggerBuilder")) {
-			builderProcessor = new ParameterizedTriggerProcessor(builder, project, phasesName);
+			builderProcessor = new ParameterizedTriggerProcessor(builder, job, phasesName);
 		} else if (builder.getClass().getName().equals("com.tikal.jenkins.plugins.multijob.MultiJobBuilder")) {
 			builderProcessor = new MultiJobBuilderProcessor(builder);
 		}
@@ -67,20 +71,23 @@ public abstract class AbstractProjectProcessor {
 	}
 
 	@SuppressWarnings("unchecked")
-	protected void processPublishers(AbstractProject project) {
-		AbstractBuilderProcessor builderProcessor;
-		List<Publisher> publishers = project.getPublishersList();
-		for (Publisher publisher : publishers) {
-			builderProcessor = null;
-			if (publisher.getClass().getName().equals("hudson.tasks.BuildTrigger")) {
-				builderProcessor = new BuildTriggerProcessor(publisher, project);
-			} else if (publisher.getClass().getName().equals("hudson.plugins.parameterizedtrigger.BuildTrigger")) {
-				builderProcessor = new ParameterizedTriggerProcessor(publisher, project, "");
-			}
-			if (builderProcessor != null) {
-				postBuilds.addAll(builderProcessor.getPhases());
-			} else {
-				logger.info("not yet supported publisher (post build) action: " + publisher.getClass().getName());
+	protected void processPublishers(Job job) {
+		if(job instanceof AbstractProject ) {
+			AbstractProject project = (AbstractProject)job;
+			AbstractBuilderProcessor builderProcessor;
+			List<Publisher> publishers = project.getPublishersList();
+			for (Publisher publisher : publishers) {
+				builderProcessor = null;
+				if (publisher.getClass().getName().equals("hudson.tasks.BuildTrigger")) {
+					builderProcessor = new BuildTriggerProcessor(publisher, project);
+				} else if (publisher.getClass().getName().equals("hudson.plugins.parameterizedtrigger.BuildTrigger")) {
+					builderProcessor = new ParameterizedTriggerProcessor(publisher, project, "");
+				}
+				if (builderProcessor != null) {
+					postBuilds.addAll(builderProcessor.getPhases());
+				} else {
+					logger.info("not yet supported publisher (post build) action: " + publisher.getClass().getName());
+				}
 			}
 		}
 	}
@@ -95,26 +102,13 @@ public abstract class AbstractProjectProcessor {
 
 	public abstract List<Builder> tryGetBuilders();
 
-	public static AbstractProjectProcessor getFlowProcessor(Job job) {
-		AbstractProjectProcessor flowProcessor = null;
-		AbstractProject project;
-		if (job instanceof AbstractProject) {
-			project = (AbstractProject) job;
-			if (project.getClass().getName().equals("hudson.model.FreeStyleProject")) {
-				flowProcessor = new FreeStyleProjectProcessor(project);
-			} else if (project.getClass().getName().equals("hudson.matrix.MatrixProject")) {
-				flowProcessor = new MatrixProjectProcessor(project);
-			} else if (project.getClass().getName().equals("hudson.maven.MavenModuleSet")) {
-				flowProcessor = new MavenProjectProcessor(project);
-			} else if (project.getClass().getName().equals("com.tikal.jenkins.plugins.multijob.MultiJobProject")) {
-				flowProcessor = new MultiJobProjectProcessor(project);
-			} else {
-				flowProcessor = new UnsupportedProjectProcessor();
-			}
-		} else if (job.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob")) {
-			flowProcessor = new WorkFlowJobProcessor(job);
+	public String getJobCiId() {
+		if (job.getParent().getClass().getName().equals("com.cloudbees.hudson.plugins.folder.Folder")) {
+			String jobPlainName = job.getFullName();    // e.g: myFolder/myJob
+			return jobPlainName.replaceAll("/", "/job/");
+		} else {
+			return job.getName();
 		}
-
-		return flowProcessor;
 	}
+
 }

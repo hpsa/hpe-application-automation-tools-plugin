@@ -1,8 +1,7 @@
 package com.hp.octane.plugins.jenkins.model.processors.projects;
 
 import hudson.matrix.MatrixProject;
-import hudson.model.AbstractProject;
-import hudson.model.FreeStyleProject;
+import hudson.model.Job;
 import hudson.tasks.Builder;
 
 import java.util.List;
@@ -15,23 +14,22 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 
-public class MatrixProjectProcessor extends AbstractProjectProcessor {
-	private final MatrixProject project;
+ class MatrixProjectProcessor extends AbstractProjectProcessor {
 
-	public MatrixProjectProcessor(AbstractProject project) {
-		this.project = (MatrixProject) project;
+	 MatrixProjectProcessor(Job project) {
+		super(project);
 
 		//  Internal phases
 		//
-		super.processBuilders(this.project.getBuilders(), this.project);
+		super.processBuilders(((MatrixProject)this.job).getBuilders(), this.job);
 
 		//  Post build phases
 		//
-		super.processPublishers(this.project);
+		super.processPublishers(this.job);
 	}
 
 	@Override
 	public List<Builder> tryGetBuilders() {
-		return project.getBuilders();
+		return ((MatrixProject)job).getBuilders();
 	}
 }

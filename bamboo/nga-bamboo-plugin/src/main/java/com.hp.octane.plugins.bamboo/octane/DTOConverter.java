@@ -1,5 +1,6 @@
 package com.hp.octane.plugins.bamboo.octane;
 
+import com.atlassian.bamboo.builder.BuildState;
 import com.atlassian.bamboo.chains.cache.ImmutableChainStage;
 import com.atlassian.bamboo.plan.PlanIdentifier;
 import com.atlassian.bamboo.plan.cache.ImmutableJob;
@@ -15,6 +16,7 @@ import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
 import com.hp.octane.integrations.dto.scm.SCMData;
+import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.dto.tests.BuildContext;
 import com.hp.octane.integrations.dto.tests.TestRun;
@@ -41,6 +43,10 @@ public interface DTOConverter {
 	String getCiId(PlanIdentifier identifier);
 
 	TestRun getTestRunFromTestResult(TestResults currentTestResult, TestRunResult result, long startTime);
+
+
+	CIEvent getEventWithDetails(String project, String buildCiId, String displayName, CIEventType eventType,
+								long startTime, long estimatedDuration, List<CIEventCause> causes, String number, BuildState buildState, Long currnetTime);
 
 	CIEvent getEventWithDetails(String project, String buildCiId, String displayName, CIEventType eventType,
 	                            long startTime, long estimatedDuration, List<CIEventCause> causes, String number);

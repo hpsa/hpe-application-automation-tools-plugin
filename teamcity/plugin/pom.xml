@@ -13,6 +13,11 @@
 		<version>12.53.18-SNAPSHOT</version>
 	</parent>
 
+	<properties>
+		<!-- signing -->
+		<file.name>${project.artifactId}-${project.version}.jar</file.name>
+	</properties>
+
 	<dependencies>
 
 		<!-- start: taken from Jetbrains TeamCity-->

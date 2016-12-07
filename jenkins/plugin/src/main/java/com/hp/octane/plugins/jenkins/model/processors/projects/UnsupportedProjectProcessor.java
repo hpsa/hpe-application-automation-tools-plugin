@@ -1,5 +1,6 @@
 package com.hp.octane.plugins.jenkins.model.processors.projects;
 
+import hudson.model.Job;
 import hudson.tasks.Builder;
 
 import java.util.ArrayList;
@@ -13,9 +14,13 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 
-public class UnsupportedProjectProcessor extends AbstractProjectProcessor {
+ class UnsupportedProjectProcessor extends AbstractProjectProcessor {
+     UnsupportedProjectProcessor(Job job) {
+        super(job);
+    }
+
     @Override
     public List<Builder> tryGetBuilders() {
-        return new ArrayList<Builder>();
+        return new ArrayList<>();
     }
 }

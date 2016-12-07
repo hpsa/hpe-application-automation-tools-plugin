@@ -2,6 +2,7 @@ package com.hp.octane.plugins.jenkins.model.processors.builders;
 
 import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import hudson.model.AbstractProject;
+import hudson.model.Job;
 import hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig;
 import hudson.plugins.parameterizedtrigger.BuildTrigger;
 import hudson.plugins.parameterizedtrigger.BuildTriggerConfig;
@@ -26,12 +27,12 @@ import java.util.List;
 public class ParameterizedTriggerProcessor extends AbstractBuilderProcessor {
 	private static final Logger logger = LogManager.getLogger(ParameterizedTriggerProcessor.class);
 
-	public ParameterizedTriggerProcessor(Builder builder, AbstractProject project, String phasesName) {
+	public ParameterizedTriggerProcessor(Builder builder, Job job, String phasesName) {
 		TriggerBuilder b = (TriggerBuilder) builder;
 		super.phases = new ArrayList<>();
 		List<AbstractProject> items;
 		for (BlockableBuildTriggerConfig config : b.getConfigs()) {
-			items = config.getProjectList(project.getParent(), null);
+			items = config.getProjectList(job.getParent(), null);
 			for (Iterator<AbstractProject> iterator = items.iterator(); iterator.hasNext(); ) {
 				AbstractProject next = iterator.next();
 				if (next == null) {
