@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<conf>
+  <alm>
+    <user>sa</user>
+    <pasword></pasword>
+    <!--http://host:port/qcbin-->
+    <serverUrl>http://myd-vm02033.hpeswlab.net:8080/qcbin</serverUrl>
+    <domain>RADI</domain>
+    <project>p1</project>
+    <runFilter> <!--all parameters are optional, defined parameters are taken with AND -->
+      <!--Possible value : any id or 'LAST_SENT', in last case - filter by id of last sent run id -->
+      <startFromId>0</startFromId>
+      <!--Format yyyy-MM-dd-->
+      <startFromDate></startFromDate>
+      <!--Allowed test types : MANUAL, ????-->
+      <testType></testType>
+      <relatedEntity>
+        <!--Available types : test,testset,sprint, release-->
+        <type></type>
+        <!--id or ids separated with 'OR' : 1+OR+2+OR+3-->
+        <id></id>
+      </relatedEntity>
+      <!--Any custom filter, example : assign-rcyc[1001+or+1002]-->
+      <custom></custom>
+    </runFilter>
+  </alm>
+  <octane>
+    <clientId>sa@nga</clientId>
+    <clientSecret>Welcome1</clientSecret>
+    <!--http://host:port-->
+    <serverUrl>http://localhost.emea.hpqcorp.net:8080</serverUrl>
+    <sharedSpaceId>2001</sharedSpaceId>
+    <workspaceId>1002</workspaceId>
+  </octane>
+  <proxy>
+    <host></host>
+    <port></port>
+  </proxy>
+</conf>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Appenders>
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout pattern="[%-5p] %d{yyyy-MM-dd HH:mm:ss.SSS} %c{1} - %msg%n"/>
+        </Console>
+		<RollingFile  name="generalFile" fileName="./logs/sync.log" filePattern="./logs/sync-%i.log">
+            <PatternLayout pattern="[%-5p] %d{yyyy-MM-dd HH:mm:ss.SSS} %-10c{1} - %msg%n"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="10MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile  name="restFile" fileName="./logs/rest.log" filePattern="./logs/rest-%i.log">
+            <PatternLayout pattern="[%-5p] %d{yyyy-MM-dd HH:mm:ss.SSS} %c{1} - %msg%n"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="10MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+    </Appenders>
+    <Loggers>
+        <Logger name="com.hp.mqm.atrf.core.rest.RestConnector" level="debug" additivity="false">
+            <AppenderRef ref="restFile" level="debug"/>
+        </Logger>
+        <Root level="info" additivity="false">
+            <AppenderRef ref="console"/>
+			<AppenderRef ref="generalFile"/>
+        </Root>
+    </Loggers>
+</Configuration>
