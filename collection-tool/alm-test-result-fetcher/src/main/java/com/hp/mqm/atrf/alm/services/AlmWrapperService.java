@@ -50,30 +50,48 @@ public class AlmWrapperService {
 
         QueryBuilder queryBuilder = buildRunFilter(configuration);
 
+        long start, end, globalStart, globalEnd;
+
+        globalStart = System.currentTimeMillis();
         int expectedRuns = getExpectedRuns(queryBuilder);
-        logger.info("Expected runs : " + expectedRuns);
+        logger.info(String.format("Expected runs : %d", expectedRuns));
 
+        start = System.currentTimeMillis();
         this.runs = fetchRuns(queryBuilder);
-        logger.info("Fetch runs : " + runs.size());
+        end = System.currentTimeMillis();
+        logger.info(String.format("Fetch runs : %d, total time %d ms", runs.size(), end - start));
 
+        start = System.currentTimeMillis();
         Set<String> testsIds = fetchTests();
-        logger.info("Fetch tests : " + testsIds.size());
+        end = System.currentTimeMillis();
+        logger.info(String.format("Fetch tests : %d, total time %d ms", testsIds.size(), end - start));
 
+        start = System.currentTimeMillis();
         Set<String> testSetIds = fetchTestSets();
-        logger.info("Fetch test sets : " + testSetIds.size());
+        end = System.currentTimeMillis();
+        logger.info(String.format("Fetch test sets : %d, total time %d ms", testSetIds.size(), end - start));
 
+        start = System.currentTimeMillis();
         Set<String> testConfigsIds = fetchTestConfigurations();
-        logger.info("Fetch test configs : " + testConfigsIds.size());
+        end = System.currentTimeMillis();
+        logger.info(String.format("Fetch test configs : %d, total time %d ms", testConfigsIds.size(), end - start));
 
+        start = System.currentTimeMillis();
         Set<String> sprintIds = fetchSprints();
-        logger.info("Fetch sprints : " + sprintIds.size());
+        end = System.currentTimeMillis();
+        logger.info(String.format("Fetch sprints : %d, total time %d ms", sprintIds.size(), end - start));
 
+        start = System.currentTimeMillis();
         Set<String> releaseIds = fetchReleases();
-        logger.info("Fetch releases : " + releaseIds.size());
+        end = System.currentTimeMillis();
+        logger.info(String.format("Fetch releases : %d, total time %d ms", releaseIds.size(), end - start));
+
+        globalEnd = System.currentTimeMillis();
+        logger.info(String.format("Fetching from alm is done, total time %d ms", globalEnd - globalStart));
 
         List<NgaInjectionEntity> runsForInjection = prepareRunsForInjection();
 
-        System.out.println("\nFetching from alm is done.");
+
     }
 
     private QueryBuilder buildRunFilter(FetchConfiguration configuration) {
@@ -225,7 +243,7 @@ public class AlmWrapperService {
         return runs;
     }
 
-    public int getExpectedRuns(QueryBuilder queryBuilder){
+    public int getExpectedRuns(QueryBuilder queryBuilder) {
         return almEntityService.getTotalNumber(Run.COLLECTION_NAME, queryBuilder);
     }
 

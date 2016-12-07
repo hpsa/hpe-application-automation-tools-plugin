@@ -9,7 +9,6 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.util.Arrays;
 import java.util.LinkedList;
 
@@ -26,29 +25,49 @@ public class CliParser {
     public static final String DEFAULT_CONF_FILE = "conf.xml";
     public static final String DEFAULT_OUTPUT_FILE = "output.xml";
 
+    public static final String HELP_OPTION = "h";
+    public static final String HELP_OPTION_LONG = "help";
+    public static final String VERSION_OPTION = "v";
+    public static final String VERSION_OPTION_LONG = "version";
+    public static final String OUTPUT_FILE_OPTION = "o";
+    public static final String OUTPUT_FILE_OPTION_LONG = "output-file";
+    public static final String CONFIG_FILE_OPTION = "c";
+    public static final String CONFIG_FILE_OPTION_LONG = "config-file";
+    public static final String PASSWORD_ALM_OPTION = "pa";
+    public static final String PASSWORD_ALM_OPTION_LONG = "password-alm";
+    public static final String PASSWORD_ALM_FILE_OPTION = "paf";
+    public static final String PASSWORD_ALM_FILE_OPTION_LONG = "password-alm-file";
+    public static final String PASSWORD_OCTANE_OPTION = "po";
+    public static final String PASSWORD_OCTANE_OPTION_LONG = "password-oct";
+    public static final String PASSWORD_OCTANE_FILE_OPTION = "pof";
+    public static final String PASSWORD_OCTANE_FILE_OPTION_LONG = "password-oct-file";
+    public static final String RUN_FILTER_ID_OPTION = "rfid";
+    public static final String RUN_FILTER_ID_OPTION_LONG = "run-filter-id";
+
     private Options options = new Options();
     private LinkedList<String> argsWithSingleOccurrence = new LinkedList<>();
 
 
     public CliParser() {
-        options.addOption(Option.builder("h").longOpt("help").desc("show this help").build());
-        options.addOption(Option.builder("v").longOpt("version").desc("show version of this tool").build());
+        options.addOption(Option.builder(HELP_OPTION).longOpt(HELP_OPTION_LONG).desc("show this help").build());
+        options.addOption(Option.builder(VERSION_OPTION).longOpt(VERSION_OPTION_LONG).desc("show version of this tool").build());
 
-        options.addOption(Option.builder("o").longOpt("output-file").desc("write output to file instead of pushing it to the server").optionalArg(true).argName("FILE").build());
-        options.addOption(Option.builder("c").longOpt("config-file").desc("configuration file location").hasArg().argName("FILE").build());
+        options.addOption(Option.builder(OUTPUT_FILE_OPTION).longOpt(OUTPUT_FILE_OPTION_LONG).desc("write output to file instead of pushing it to the server").optionalArg(true).argName("FILE").build());
+        options.addOption(Option.builder(CONFIG_FILE_OPTION).longOpt(CONFIG_FILE_OPTION_LONG).desc("configuration file location").hasArg().argName("FILE").build());
 
         OptionGroup passAlmGroup = new OptionGroup();
-        passAlmGroup.addOption(Option.builder("pa").longOpt("password-alm").desc("password for alm user").hasArg().argName("PASSWORD").build());
-        passAlmGroup.addOption(Option.builder("paf").longOpt("password-alm-file").desc("location of file with password for alm user").hasArg().argName("FILE").build());
+        passAlmGroup.addOption(Option.builder(PASSWORD_ALM_OPTION).longOpt(PASSWORD_ALM_OPTION_LONG).desc("password for alm user").hasArg().argName("PASSWORD").build());
+        passAlmGroup.addOption(Option.builder(PASSWORD_ALM_FILE_OPTION).longOpt(PASSWORD_ALM_FILE_OPTION_LONG).desc("location of file with password for alm user").hasArg().argName("FILE").build());
         options.addOptionGroup(passAlmGroup);
 
         OptionGroup passOctaneGroup = new OptionGroup();
-        passOctaneGroup.addOption(Option.builder("po").longOpt("password-oct").desc("password for octane user").hasArg().argName("PASSWORD").optionalArg(true).build());
-        passOctaneGroup.addOption(Option.builder("pof").longOpt("password-oct-file").desc("location of file with password for octane user").hasArg().argName("FILE").build());
+        passOctaneGroup.addOption(Option.builder(PASSWORD_OCTANE_OPTION).longOpt(PASSWORD_OCTANE_OPTION_LONG).desc("password for octane user").hasArg().argName("PASSWORD").optionalArg(true).build());
+        passOctaneGroup.addOption(Option.builder(PASSWORD_OCTANE_FILE_OPTION).longOpt(PASSWORD_OCTANE_FILE_OPTION_LONG).desc("location of file with password for octane user").hasArg().argName("FILE").build());
         options.addOptionGroup(passOctaneGroup);
 
+        options.addOption(Option.builder(RUN_FILTER_ID_OPTION).longOpt(RUN_FILTER_ID_OPTION_LONG).desc("start run fetching from id").hasArg().argName("ID").build());
 
-        argsWithSingleOccurrence.addAll(Arrays.asList("o", "c", "pa", "paf", "po", "pof"));
+        argsWithSingleOccurrence.addAll(Arrays.asList(OUTPUT_FILE_OPTION, CONFIG_FILE_OPTION, PASSWORD_ALM_OPTION, PASSWORD_ALM_FILE_OPTION, PASSWORD_OCTANE_OPTION, PASSWORD_OCTANE_FILE_OPTION, "rfi"));
 
     }
 
@@ -59,13 +78,13 @@ public class CliParser {
             CommandLine cmd = parser.parse(options, args);
 
             //help
-            if (cmd.hasOption("h")) {
+            if (cmd.hasOption(HELP_OPTION)) {
                 printHelp();
                 System.exit(ReturnCode.SUCCESS.getReturnCode());
             }
 
             //version
-            if (cmd.hasOption("v")) {
+            if (cmd.hasOption(VERSION_OPTION)) {
                 printVersion();
                 System.exit(ReturnCode.SUCCESS.getReturnCode());
             }
@@ -74,8 +93,8 @@ public class CliParser {
 
             // load config
             String configFile = null;
-            if (cmd.hasOption("c")) {
-                configFile = cmd.getOptionValue("c");
+            if (cmd.hasOption(CONFIG_FILE_OPTION)) {
+                configFile = cmd.getOptionValue(CONFIG_FILE_OPTION);
             }
             if (StringUtils.isEmpty(configFile)) {
                 configFile = DEFAULT_CONF_FILE;
@@ -90,8 +109,8 @@ public class CliParser {
             }
 
             //load output file
-            if (cmd.hasOption("o")) {
-                String outputFilePath = cmd.getOptionValue("o");
+            if (cmd.hasOption(OUTPUT_FILE_OPTION)) {
+                String outputFilePath = cmd.getOptionValue(OUTPUT_FILE_OPTION);
                 if (StringUtils.isEmpty(outputFilePath)) {
                     outputFilePath = DEFAULT_OUTPUT_FILE;
                 }
@@ -119,27 +138,32 @@ public class CliParser {
             }
 
             //load alm password
-            if (cmd.hasOption("pa")) {
-                configuration.setAlmPassword(cmd.getOptionValue("pa"));
-            } else if (cmd.hasOption("paf")) {
+            if (cmd.hasOption(PASSWORD_ALM_OPTION)) {
+                configuration.setAlmPassword(cmd.getOptionValue(PASSWORD_ALM_OPTION));
+            } else if (cmd.hasOption(PASSWORD_ALM_FILE_OPTION)) {
                 try {
-                    configuration.setAlmPassword(FileUtils.readFileToString(new File(cmd.getOptionValue("paf"))));
+                    configuration.setAlmPassword(FileUtils.readFileToString(new File(cmd.getOptionValue(PASSWORD_ALM_FILE_OPTION))));
                 } catch (IOException e) {
-                    logger.error("Can not read the ALM password file: " + cmd.getOptionValue("paf"));
+                    logger.error("Can not read the ALM password file: " + cmd.getOptionValue(PASSWORD_ALM_FILE_OPTION));
                     System.exit(ReturnCode.FAILURE.getReturnCode());
                 }
             }
 
             //load octane password
-            if (cmd.hasOption("po")) {
-                configuration.setOctanePassword(cmd.getOptionValue("p"));
-            } else if (cmd.hasOption("pof")) {
+            if (cmd.hasOption(PASSWORD_OCTANE_OPTION)) {
+                configuration.setOctanePassword(cmd.getOptionValue(PASSWORD_OCTANE_OPTION));
+            } else if (cmd.hasOption(PASSWORD_OCTANE_FILE_OPTION)) {
                 try {
-                    configuration.setOctanePassword(FileUtils.readFileToString(new File(cmd.getOptionValue("pof"))));
+                    configuration.setOctanePassword(FileUtils.readFileToString(new File(cmd.getOptionValue(PASSWORD_OCTANE_FILE_OPTION))));
                 } catch (IOException e) {
-                    logger.error("Can not read the Octane password file: " + cmd.getOptionValue("pof"));
+                    logger.error("Can not read the Octane password file: " + cmd.getOptionValue(PASSWORD_OCTANE_FILE_OPTION));
                     System.exit(ReturnCode.FAILURE.getReturnCode());
                 }
+            }
+
+            //run filter from id
+            if (cmd.hasOption(RUN_FILTER_ID_OPTION)) {
+                configuration.setAlmRunFilterStartFromId(cmd.getOptionValue(RUN_FILTER_ID_OPTION));
             }
 
             try {

@@ -327,6 +327,10 @@ public class FetchConfiguration {
         return getProperty(PROXY_PORT_PARAM);
     }
 
+    public void setAlmRunFilterStartFromId(String value) {
+        setProperty(ALM_RUN_FILTER_START_FROM_ID_PARAM, value);
+    }
+
     public String getAlmRunFilterStartFromId() {
         return getProperty(ALM_RUN_FILTER_START_FROM_ID_PARAM);
     }
