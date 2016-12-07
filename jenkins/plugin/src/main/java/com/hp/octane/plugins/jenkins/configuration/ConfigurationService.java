@@ -7,7 +7,6 @@ import com.hp.mqm.client.exception.AuthorizationException;
 import com.hp.mqm.client.exception.LoginErrorException;
 import com.hp.mqm.client.exception.SharedSpaceNotExistException;
 import com.hp.mqm.client.exception.RequestErrorException;
-import com.hp.mqm.client.exception.SessionCreationException;
 import com.hp.octane.plugins.jenkins.Messages;
 import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
@@ -80,9 +79,6 @@ public class ConfigurationService {
 		} catch (AuthorizationException ae) {
 			logger.warn("Authorization failure", ae);
 			return FormValidation.errorWithMarkup(markup("red", Messages.AuthorizationFailure()));
-		} catch (SessionCreationException sce) {
-			logger.warn("Session creation failure", sce);
-			return FormValidation.errorWithMarkup(markup("red", Messages.SessionCreationFailure()));
 		} catch (SharedSpaceNotExistException ssnee) {
 			logger.warn("Shared space validation failure", ssnee);
 			return FormValidation.errorWithMarkup(markup("red", Messages.ConnectionSharedSpaceInvalid()));

@@ -8,7 +8,6 @@ public interface BaseMqmRestClient {
 	 * Tries login and when it passes it tries to connect to project.
 	 *
 	 * @throws com.hp.mqm.client.exception.AuthenticationException  when authentication fails
-	 * @throws com.hp.mqm.client.exception.SessionCreationException when session creation fails
 	 * @throws SharedSpaceNotExistException                         when shared space does not exist
 	 * @throws com.hp.mqm.client.exception.LoginErrorException      in case of IO error or error in the HTTP protocol
 	 *                                                              during login (authentication or session creation)
