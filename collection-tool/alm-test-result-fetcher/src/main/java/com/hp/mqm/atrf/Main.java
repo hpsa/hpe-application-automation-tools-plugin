@@ -86,13 +86,13 @@ public class Main {
                 uri = Main.class.getClassLoader().getResource("log4j2.xml").toURI();
                 LoggerContext context = (LoggerContext) LogManager.getContext(false);
                 context.setConfigLocation(uri);
-                logger.warn("Log4j configuration loaded from resource file configuration");
+                logger.info("Log4j configuration loaded from resource file configuration");
             } catch (URISyntaxException e) {
                 throw new RuntimeException("Failed to load Log4j configuration from resource file configuration");
             }
 
         } else {
-            logger.error("Log4j configuration loaded from external configuration");
+            logger.info("Log4j configuration loaded from " + log4jConfiguration);
         }
     }
 }

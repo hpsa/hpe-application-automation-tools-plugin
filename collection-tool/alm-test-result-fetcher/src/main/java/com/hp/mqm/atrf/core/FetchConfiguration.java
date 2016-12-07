@@ -23,46 +23,62 @@ import java.util.*;
  */
 public class FetchConfiguration {
 
-    public static String DATE_FORMAT = "yyyy-MM-dd";
-    public static String CONF_FILE_PREFIX = "conf=";
     static final Logger logger = LogManager.getLogger();
     Map<String, String> properties = new HashMap<>();
+    private static String DATE_FORMAT = "yyyy-MM-dd";
+    private static String CONF_FILE_PREFIX = "conf=";
+
 
     public static String ALM_USER_PARAM = "conf.alm.user";
-    public static String ALM_PASSWORD_PARAM = "conf.alm.pasword";
-    public static String ALM_SERVER_URL_PARAM = "conf.alm.serverurl";
+    public static String ALM_PASSWORD_PARAM = "conf.alm.password";
+    public static String ALM_SERVER_URL_PARAM = "conf.alm.serverUrl";
     public static String ALM_DOMAIN_PARAM = "conf.alm.domain";
     public static String ALM_PROJECT_PARAM = "conf.alm.project";
 
-    public static String OCTANE_PASSWORD_PARAM = "conf.octane.clientsecret";
-    public static String OCTANE_USER_PARAM = "conf.octane.clientid";
-    public static String OCTANE_SERVER_URL_PARAM = "conf.octane.serverurl";
-    public static String OCTANE_SHAREDSPACE_ID_PARAM = "conf.octane.sharedspaceid";
-    public static String OCTANE_WORKSPACE_ID_PARAM = "conf.octane.workspaceid";
+    public static String OCTANE_PASSWORD_PARAM = "conf.octane.clientSecret";
+    public static String OCTANE_USER_PARAM = "conf.octane.clientId";
+    public static String OCTANE_SERVER_URL_PARAM = "conf.octane.serverUrl";
+    public static String OCTANE_SHAREDSPACE_ID_PARAM = "conf.octane.sharedSpaceId";
+    public static String OCTANE_WORKSPACE_ID_PARAM = "conf.octane.workspaceId";
 
 
-    public static String ALM_RUN_FILTER_START_FROM_ID_PARAM = "conf.alm.runfilter.startfromid";
-    public static String ALM_RUN_FILTER_START_FROM_DATE_PARAM = "conf.alm.runfilter.startfromdate";
-    public static String ALM_RUN_FILTER_TEST_TYPE_PARAM = "conf.alm.runfilter.testtype";
-    public static String ALM_RUN_FILTER_RELATED_ENTITY_TYPE_PARAM = "conf.alm.runfilter.relatedentity.type";
-    public static String ALM_RUN_FILTER_RELATED_ENTITY_ID_PARAM = "conf.alm.runfilter.relatedentity.id";
-    public static String ALM_RUN_FILTER_CUSTOM_PARAM = "conf.alm.runfilter.custom";
-
+    public static String ALM_RUN_FILTER_START_FROM_ID_PARAM = "conf.alm.runFilter.startFromId";
+    public static String ALM_RUN_FILTER_START_FROM_DATE_PARAM = "conf.alm.runFilter.startFromDate";
+    public static String ALM_RUN_FILTER_TEST_TYPE_PARAM = "conf.alm.runFilter.testType";
+    public static String ALM_RUN_FILTER_RELATED_ENTITY_TYPE_PARAM = "conf.alm.runFilter.relatedEntity.type";
+    public static String ALM_RUN_FILTER_RELATED_ENTITY_ID_PARAM = "conf.alm.runFilter.relatedEntity.id";
+    public static String ALM_RUN_FILTER_CUSTOM_PARAM = "conf.alm.runFilter.custom";
     public static String SYNC_BULK_SIZE_PARAM = "conf.sync.bulkSize";
-    public static int SYNC_BULK_SIZE_DEFAULT = 1000;
-    public static int SYNC_BULK_SIZE_MAX = 1000;
-    public static int SYNC_BULK_SIZE_MIN = 100;
-
     public static String SYNC_SLEEP_BETWEEN_POSTS_PARAM = "conf.sync.sleepBetweenPosts";
-    public static int SYNC_SLEEP_BETWEEN_POSTS_DEFAULT = 5;
-    public static int SYNC_SLEEP_BETWEEN_POSTS_MAX = 100;
-    public static int SYNC_SLEEP_BETWEEN_POSTS_MIN = 5;
 
     public static String PROXY_HOST_PARAM = "conf.proxy.host";
     public static String PROXY_PORT_PARAM = "conf.proxy.port";
 
+    public Set<String> allowedParameters;
+    private  Map<String,String>lowered2allowedParams;
+
+    private static int SYNC_BULK_SIZE_DEFAULT = 1000;
+    private static int SYNC_BULK_SIZE_MAX = 1000;
+    private static int SYNC_BULK_SIZE_MIN = 100;
+
+
+    private static int SYNC_SLEEP_BETWEEN_POSTS_DEFAULT = 5;
+    private static int SYNC_SLEEP_BETWEEN_POSTS_MAX = 100;
+    private static int SYNC_SLEEP_BETWEEN_POSTS_MIN = 5;
+
     public static String ALM_RUN_FILTER_START_FROM_ID_LAST_SENT = "LAST_SENT";
 
+    public FetchConfiguration(){
+        allowedParameters = new HashSet<>(Arrays.asList(ALM_USER_PARAM, ALM_PASSWORD_PARAM, ALM_SERVER_URL_PARAM,ALM_DOMAIN_PARAM,ALM_PROJECT_PARAM,
+                OCTANE_PASSWORD_PARAM,OCTANE_USER_PARAM,OCTANE_SERVER_URL_PARAM,OCTANE_SHAREDSPACE_ID_PARAM,OCTANE_WORKSPACE_ID_PARAM,
+                ALM_RUN_FILTER_START_FROM_ID_PARAM,ALM_RUN_FILTER_START_FROM_DATE_PARAM,ALM_RUN_FILTER_TEST_TYPE_PARAM,ALM_RUN_FILTER_RELATED_ENTITY_TYPE_PARAM,ALM_RUN_FILTER_RELATED_ENTITY_ID_PARAM,
+                ALM_RUN_FILTER_CUSTOM_PARAM,SYNC_BULK_SIZE_PARAM,SYNC_SLEEP_BETWEEN_POSTS_PARAM,PROXY_HOST_PARAM,PROXY_PORT_PARAM));
+
+        lowered2allowedParams = new HashMap<>();
+        for(String param : allowedParameters){
+            lowered2allowedParams.put(param.toLowerCase(),param);
+        }
+    }
     public static FetchConfiguration loadFromArguments(String[] args) {
 
         String pathName = tryFindConfigurationFile(args);
@@ -228,7 +244,7 @@ public class FetchConfiguration {
             if (arg.startsWith("conf.") && arg.contains("=")) {
                 String[] parts = arg.split("=");
                 if (parts.length == 2) {
-                    String key = parts[0].toLowerCase();
+                    String key = parts[0];
                     String value = parts[1];
                     configuration.setProperty(key, value);
                     logger.info(key + " key is taken from command line.");
@@ -287,10 +303,10 @@ public class FetchConfiguration {
             Document doc = dBuilder.parse(inputFile);
             doc.getDocumentElement().normalize();
             Node root = doc.getDocumentElement();
-            if (!root.getNodeName().toLowerCase().equals("conf")) {
+            if (!root.getNodeName().equals("conf")) {
                 throw new RuntimeException("Missing root element <conf> in file " + pathName);
             }
-            parseNodes(root, root.getNodeName().toLowerCase(), configuration);
+            parseNodes(root, root.getNodeName(), configuration);
         } catch (IOException e) {
             throw new RuntimeException("Failed to parse configuration from file " + pathName, e);
         } catch (ParserConfigurationException e) {
@@ -307,7 +323,7 @@ public class FetchConfiguration {
         for (int i = 0; i < nList.getLength(); i++) {
             Node nNode = nList.item(i);
             if (nNode.getNodeType() == Node.ELEMENT_NODE) {
-                parseNodes(nNode, prefix + "." + nNode.getNodeName().toLowerCase(), configuration);
+                parseNodes(nNode, prefix + "." + nNode.getNodeName(), configuration);
             } else if (nNode.getNodeType() == Node.TEXT_NODE) {
                 String value = nNode.getTextContent().trim();
                 if (StringUtils.isNotEmpty(value)) {
@@ -324,7 +340,11 @@ public class FetchConfiguration {
     }
 
     public void setProperty(String key, String value) {
-        properties.put(key, value);
+        String myKey = lowered2allowedParams.get(key.toLowerCase());
+        if(!allowedParameters.contains(myKey)){
+            throw new RuntimeException("Unknown parameter : " + key);
+        }
+        properties.put(myKey, value);
     }
 
     public String getAlmUser() {
