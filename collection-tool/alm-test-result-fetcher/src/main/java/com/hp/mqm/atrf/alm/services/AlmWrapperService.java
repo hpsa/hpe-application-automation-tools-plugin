@@ -148,7 +148,8 @@ public class AlmWrapperService {
     private Set<String> fetchTests() {
         Set<String> ids = getIdsNotIncludedInSet(runs, Run.FIELD_TEST_ID, tests.keySet());
         if (!ids.isEmpty()) {
-            List<AlmEntity> myTests = almEntityService.getEntitiesByIds(Test.COLLECTION_NAME, ids);
+            List<String> fields = Arrays.asList(Test.FIELD_NAME);
+            List<AlmEntity> myTests = almEntityService.getEntitiesByIds(Test.COLLECTION_NAME, ids, fields);
             for (AlmEntity test : myTests) {
                 tests.put(test.getId(), (Test) test);
             }
@@ -172,7 +173,8 @@ public class AlmWrapperService {
     private Set<String> fetchSprints() {
         Set<String> ids = getIdsNotIncludedInSet(runs, Run.FIELD_SPRINT_ID, sprints.keySet());
         if (!ids.isEmpty()) {
-            List<AlmEntity> mySprints = almEntityService.getEntitiesByIds(Sprint.COLLECTION_NAME, ids);
+            List<String> fields = Arrays.asList(Sprint.FIELD_RELEASE_ID);
+            List<AlmEntity> mySprints = almEntityService.getEntitiesByIds(Sprint.COLLECTION_NAME, ids, fields);
             for (AlmEntity e : mySprints) {
                 sprints.put(e.getId(), (Sprint) e);
             }
@@ -184,7 +186,8 @@ public class AlmWrapperService {
     private Set<String> fetchTestConfigurations() {
         Set<String> ids = getIdsNotIncludedInSet(runs, Run.FIELD_TEST_CONFIG_ID, testConfigurations.keySet());
         if (!ids.isEmpty()) {
-            List<AlmEntity> myTestConfigs = almEntityService.getEntitiesByIds(TestConfiguration.COLLECTION_NAME, ids);
+            List<String> fields = Arrays.asList(TestConfiguration.FIELD_NAME);
+            List<AlmEntity> myTestConfigs = almEntityService.getEntitiesByIds(TestConfiguration.COLLECTION_NAME, ids, fields);
             for (AlmEntity e : myTestConfigs) {
                 testConfigurations.put(e.getId(), (TestConfiguration) e);
             }
@@ -195,7 +198,8 @@ public class AlmWrapperService {
 
     private Set<String> fetchTestSets() {
         Set<String> ids = getIdsNotIncludedInSet(runs, Run.FIELD_TEST_SET_ID, testSets.keySet());
-        List<AlmEntity> myTestSets = almEntityService.getEntitiesByIds(TestSet.COLLECTION_NAME, ids);
+        List<String> fields = Arrays.asList(TestSet.FIELD_NAME);
+        List<AlmEntity> myTestSets = almEntityService.getEntitiesByIds(TestSet.COLLECTION_NAME, ids, fields);
         for (AlmEntity e : myTestSets) {
             testSets.put(e.getId(), (TestSet) e);
         }
@@ -205,7 +209,8 @@ public class AlmWrapperService {
     public Set<String> fetchReleases() {
 
         Set<String> ids = getIdsNotIncludedInSet(sprints.values(), Sprint.FIELD_RELEASE_ID, releases.keySet());
-        List<AlmEntity> myReleases = almEntityService.getEntitiesByIds(Release.COLLECTION_NAME, ids);
+        List<String> fields = Arrays.asList(Release.FIELD_NAME);
+        List<AlmEntity> myReleases = almEntityService.getEntitiesByIds(Release.COLLECTION_NAME, ids, fields);
         for (AlmEntity e : myReleases) {
             releases.put(e.getId(), (Release) e);
         }

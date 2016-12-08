@@ -20,7 +20,7 @@ import java.util.*;
  */
 public class AlmEntityService {
 
-    public static final int PAGE_SIZE = 100;
+    public static final int PAGE_SIZE = 200;
 
     RestConnector restConnector;
     Map<String, String> jsonHeaders = new HashMap<>();
@@ -98,13 +98,13 @@ public class AlmEntityService {
     }
 
 
-    public List<AlmEntity> getEntitiesByIds(String collectionName, Set<String> ids) {
+    public List<AlmEntity> getEntitiesByIds(String collectionName, Set<String> ids,Collection<String> fields) {
         List<String> list = new ArrayList<>(ids);
         List<AlmEntity> allEntities = new ArrayList<>();
         for (int i = 0; i < list.size(); i = i + PAGE_SIZE) {
             int maxIndex = Math.min(i + PAGE_SIZE, list.size());
             List<String> subList = list.subList(i, maxIndex);
-            QueryBuilder qb = QueryBuilder.create().addQueryCondition("id", StringUtils.join(subList, " OR "));
+            QueryBuilder qb = QueryBuilder.create().addQueryCondition("id", StringUtils.join(subList, " OR ")).addSelectedFields(fields);
             AlmEntityCollection coll = getEntities(collectionName, qb);
             allEntities.addAll(coll.getEntities());
         }

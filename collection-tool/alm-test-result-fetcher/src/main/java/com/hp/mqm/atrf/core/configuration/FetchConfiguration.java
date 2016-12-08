@@ -60,12 +60,12 @@ public class FetchConfiguration {
 
     private static int SYNC_BULK_SIZE_DEFAULT = 1000;
     private static int SYNC_BULK_SIZE_MAX = 1000;
-    private static int SYNC_BULK_SIZE_MIN = 100;
+    private static int SYNC_BULK_SIZE_MIN = 10;
 
 
     private static int SYNC_SLEEP_BETWEEN_POSTS_DEFAULT = 5;
-    private static int SYNC_SLEEP_BETWEEN_POSTS_MAX = 100;
-    private static int SYNC_SLEEP_BETWEEN_POSTS_MIN = 5;
+    private static int SYNC_SLEEP_BETWEEN_POSTS_MAX = 120;
+    private static int SYNC_SLEEP_BETWEEN_POSTS_MIN = 1;
 
     public static String ALM_RUN_FILTER_START_FROM_ID_LAST_SENT = "LAST_SENT";
 
@@ -86,8 +86,14 @@ public class FetchConfiguration {
         TreeMap<String, String> props = new TreeMap<>(this.properties);
         props.remove(ALM_PASSWORD_PARAM);
         props.remove(OCTANE_PASSWORD_PARAM);
-        props.remove(SYNC_BULK_SIZE_PARAM);
-        props.remove(SYNC_SLEEP_BETWEEN_POSTS_PARAM);
+
+        if(Integer.toString(SYNC_BULK_SIZE_DEFAULT).equals(getSyncBulkSize())){
+            props.remove(SYNC_BULK_SIZE_PARAM);
+        }
+        if(Integer.toString(SYNC_SLEEP_BETWEEN_POSTS_DEFAULT).equals(getSyncSleepBetweenPosts())){
+            props.remove(SYNC_SLEEP_BETWEEN_POSTS_PARAM);
+        }
+
         logger.info("Loaded configuration : " + (props.entrySet().toString()));
     }
 
@@ -353,6 +359,14 @@ public class FetchConfiguration {
 
     public String getAlmRunFilterCustom() {
         return getProperty(ALM_RUN_FILTER_CUSTOM_PARAM);
+    }
+
+    public String getSyncSleepBetweenPosts() {
+        return getProperty(SYNC_SLEEP_BETWEEN_POSTS_PARAM);
+    }
+
+    public String getSyncBulkSize() {
+        return getProperty(SYNC_BULK_SIZE_PARAM);
     }
 
     public void setOutputFile(String outputFile) {

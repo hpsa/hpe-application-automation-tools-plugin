@@ -38,6 +38,7 @@ public class Main {
     }
 
     private static void loginToAlm() {
+        logger.info("ALM : Validating login configuration ...");
         almWrapper = new AlmWrapperService(configuration.getAlmServerUrl(), configuration.getAlmDomain(), configuration.getAlmProject());
         if (almWrapper.login(configuration.getAlmUser(), configuration.getAlmPassword())) {
 
@@ -53,6 +54,7 @@ public class Main {
     }
 
     private static void loginToOctane() {
+        logger.info("Octane : Validating login configuration ...");
         long sharedSpaceId = Long.parseLong(configuration.getOctaneSharedSpaceId());
         long workspaceId = Long.parseLong(configuration.getOctaneWorkspaceId());
 
