@@ -31,6 +31,7 @@
 		<original.folder>${project.build.directory}/temp</original.folder>
 		<matching.obj>jarfile_batch_sign_local_timestamp</matching.obj>
 		<file.name>${project.artifactId}-${project.version}.jar</file.name>
+		<shaded.file.name>${project.artifactId}-${project.version}-shaded.jar</shaded.file.name>
 	</properties>
 
 	<dependencies>
@@ -161,52 +162,108 @@
 					</execution>
 				</executions>
 			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>2.4.3</version>
+				<executions>
+					<execution>
+						<id>shade</id>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<filters>
+								<filter>
+									<artifact>*:*</artifact>
+									<!-- We need to exclude the signatures for any signed jars otherwise
+                                    we get an exception. -->
+									<excludes>
+										<exclude>META-INF/*.SF</exclude>
+										<!--<exclude>META-INF/*.DSA</exclude>-->
+										<!--<exclude>META-INF/*.RSA</exclude>-->
+									</excludes>
+								</filter>
+							</filters>
+							<outputFile>${project.build.directory}\${shaded.file.name}</outputFile>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!--<plugin>-->
+			<!--<artifactId>maven-jarsigner-plugin</artifactId>-->
+			<!--<version>1.4</version>-->
+			<!--<executions>-->
+			<!--<execution>-->
+			<!--<id>sign</id>-->
+			<!--<phase>package</phase>-->
+			<!--<goals>-->
+			<!--<goal>sign</goal>-->
+			<!--</goals>-->
+			<!--<configuration>-->
+			<!--<storetype>JKS</storetype>-->
+			<!--<keystore>c:\Temp\signTest\KeyStore.jks</keystore>-->
+			<!--<keypass>123456</keypass>-->
+			<!--<alias>mydomain</alias>-->
+			<!--<storepass>123456</storepass>-->
+			<!--<excludes>-->
+			<!--<exclude>**/META-INF/*.SF</exclude>-->
+			<!--</excludes>-->
+			<!--<verbose>true</verbose>-->
+			<!--</configuration>-->
+
+			<!--</execution>-->
+			<!--</executions>-->
+			<!--</plugin>-->
 		</plugins>
 	</build>
-	<!--<profiles>-->
-		<!--<profile>-->
-			<!--<id>jar-signing</id>-->
-			<!--<build>-->
-				<!--<defaultGoal>install</defaultGoal>-->
-				<!--<plugins>-->
-					<!--<plugin>-->
-						<!--<groupId>org.apache.maven.plugins</groupId>-->
-						<!--<artifactId>maven-antrun-plugin</artifactId>-->
-						<!--<version>1.7</version>-->
-						<!--<executions>-->
-							<!--<execution>-->
-								<!--<phase>generate-resources</phase>-->
-								<!--<goals>-->
-									<!--<goal>run</goal>-->
-								<!--</goals>-->
-								<!--<configuration>-->
-									<!--<tasks>-->
-										<!--<echo>inside jar-signing</echo>-->
-									<!--</tasks>-->
-								<!--</configuration>-->
-							<!--</execution>-->
+	<profiles>
+		<profile>
+			<id>jar-signing</id>
+			<build>
+				<defaultGoal>install</defaultGoal>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>1.7</version>
+						<executions>
+							<execution>
+								<phase>generate-resources</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<tasks>
+										<echo>inside jar-signing</echo>
+									</tasks>
+								</configuration>
+							</execution>
 
-							<!--<execution>-->
-								<!--<id>default-cli</id>-->
-								<!--<phase>post-integration-test</phase>-->
-								<!--<goals>-->
-									<!--<goal>run</goal>-->
-								<!--</goals>-->
-								<!--<configuration>-->
-									<!--<target name="Sign">-->
-										<!--<echo message="Signing JAR"/>-->
-										<!--<exec executable="/bin/bash" failonerror="true">-->
-											<!--<arg value="../../scripts/Sign/sign_jar.sh"/>-->
-											<!--<arg value="${project.build.directory}"/>-->
-											<!--<arg value="${file.name}"/>-->
-										<!--</exec>-->
-									<!--</target>-->
-								<!--</configuration>-->
-							<!--</execution>-->
-						<!--</executions>-->
-					<!--</plugin>-->
-				<!--</plugins>-->
-			<!--</build>-->
-		<!--</profile>-->
-	<!--</profiles>-->
+							<execution>
+								<id>default-cli</id>
+								<phase>post-integration-test</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target name="Sign">
+										<echo message="Signing JAR"/>
+										<exec executable="/bin/bash" failonerror="true">
+											<arg value="../../scripts/Sign/sign_jar.sh"/>
+											<arg value="${project.build.directory}"/>
+											<arg value="${shaded.file.name}"/>
+										</exec>
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>
