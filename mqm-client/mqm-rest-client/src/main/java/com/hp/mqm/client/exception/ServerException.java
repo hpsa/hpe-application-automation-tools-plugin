@@ -6,9 +6,13 @@ package com.hp.mqm.client.exception;
  * Exception used as delimiter when reconstructing server exception as part of the client exception cause hierarchy in
  * order to clearly differentiate the two parts.
  */
-public class ServerException extends RuntimeException {
+public class ServerException extends RequestException {
 
-    public ServerException(String message, Throwable cause) {
-        super(message, cause);
-    }
+	public ServerException(String message) {
+		super(message);
+	}
+
+	public ServerException(String message, Throwable cause) {
+		super(message, cause);
+	}
 }

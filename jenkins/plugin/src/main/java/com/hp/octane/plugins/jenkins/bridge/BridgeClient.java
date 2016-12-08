@@ -2,6 +2,7 @@ package com.hp.octane.plugins.jenkins.bridge;
 
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.AuthenticationException;
+import com.hp.mqm.client.exception.ServerException;
 import com.hp.mqm.client.exception.TemporarilyUnavailableException;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.spi.CIPluginServices;
@@ -88,6 +89,15 @@ public class BridgeClient {
 							logger.info("interrupted while breathing on temporary exception, continue to re-connect...");
 						}
 						connect();
+					} catch (ServerException se) {
+						isConnected = false;
+						logger.error("connection to MQM Server temporary failed: " + se.getMessage(), se);
+						try {
+							Thread.sleep(10000);
+						} catch (InterruptedException ie) {
+							logger.info("interrupted while breathing on temporary exception, continue to re-connect...");
+						}
+						connect();
 					} catch (Exception e) {
 						isConnected = false;
 						logger.error("connection to MQM Server temporary failed: " + e.getMessage(), e);
@@ -116,7 +126,7 @@ public class BridgeClient {
 
 			logger.info("received " + tasks.length + " task(s)");
 			for (final OctaneTaskAbridged task : tasks) {
-  				taskProcessingExecutors.execute(new Runnable() {
+				taskProcessingExecutors.execute(new Runnable() {
 					@Override
 					public void run() {
 						TasksProcessor TasksProcessor = OctaneSDK.getInstance().getTasksProcessor();

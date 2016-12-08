@@ -150,10 +150,10 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 	}
 
     private String getSecretPassword() {
-        return secretPassword.getEncryptedValue();
+        return secretPassword != null ? secretPassword.getEncryptedValue() : "";
     }
 
-    public String getImpersonatedUser() {
+    String getImpersonatedUser() {
 		return impersonatedUser;
 	}
 

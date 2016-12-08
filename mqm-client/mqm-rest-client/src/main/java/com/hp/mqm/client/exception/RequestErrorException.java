@@ -3,9 +3,9 @@ package com.hp.mqm.client.exception;
 /**
  * Exception means some IO error or error in the HTTP protocol.
  */
-public class RequestErrorException extends RuntimeException {
+public class RequestErrorException extends RequestException {
 
-    public RequestErrorException() {
+    RequestErrorException() {
     }
 
     public RequestErrorException(String message) {
@@ -18,5 +18,9 @@ public class RequestErrorException extends RuntimeException {
 
     public RequestErrorException(Throwable cause) {
         super(cause);
+    }
+
+    public RequestErrorException(String message, String description, String errorCode, int statusCode, String reason, Throwable cause) {
+        super(message, description, errorCode, statusCode, reason, cause);
     }
 }

@@ -85,13 +85,13 @@ public class TestDispatcherTest {
 
 	@Test
 	public void testDispatcher() throws Exception {
-		mockRestClient(restClient, true, true, true);
+		mockRestClient(restClient, true);
 		FreeStyleBuild build = executeBuild();
 		queue.waitForTicks(5);
 		verifyRestClient(restClient, build, true);
 		verifyAudit(build, true);
 
-		mockRestClient(restClient, true, true, true);
+		mockRestClient(restClient, true);
 		FreeStyleBuild build2 = executeBuild();
 		queue.waitForTicks(5);
 		verifyRestClient(restClient, build2, true);
@@ -101,14 +101,14 @@ public class TestDispatcherTest {
 
 	@Test
 	public void testDispatcherBatch() throws Exception {
-		mockRestClient(restClient, true, true, true);
+		mockRestClient(restClient, true);
 		FreeStyleBuild build = project.scheduleBuild2(0).get();
 		FreeStyleBuild build2 = project.scheduleBuild2(0).get();
 		FreeStyleBuild build3 = project.scheduleBuild2(0).get();
 		queue.add(Arrays.asList(build, build2, build3));
 		queue.waitForTicks(10);
 
-		Mockito.verify(restClient).validateConfiguration();
+		Mockito.verify(restClient).validateConfigurationWithoutLogin();
 		Mockito.verify(restClient, Mockito.atMost(3)).isTestResultRelevant(ServerIdentity.getIdentity(), build.getProject().getName());
 		Mockito.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
 		Mockito.verify(restClient).postTestResult(new File(build2.getRootDir(), "mqmTests.xml"), false);
@@ -122,44 +122,8 @@ public class TestDispatcherTest {
 	}
 
 	@Test
-	public void testDispatcherLoginFailure() throws Exception {
-		mockRestClient(restClient, false, true, true);
-		FreeStyleBuild build = executeBuild();
-		queue.waitForTicks(5);
-
-		verifyRestClient(restClient, build, false);
-		verifyAudit(build);
-		Mockito.reset(restClient);
-
-		executeBuild();
-		queue.waitForTicks(5);
-
-		// in quiet period
-		Mockito.verifyNoMoreInteractions(restClient);
-		Assert.assertEquals(2, queue.size());
-	}
-
-	@Test
-	public void testDispatcherSessionFailure() throws Exception {
-		mockRestClient(restClient, true, false, true);
-		FreeStyleBuild build = executeBuild();
-		queue.waitForTicks(5);
-
-		verifyRestClient(restClient, build, false);
-		verifyAudit(build);
-		Mockito.reset(restClient);
-
-		executeBuild();
-		queue.waitForTicks(5);
-
-		// in quiet period
-		Mockito.verifyNoMoreInteractions(restClient);
-		Assert.assertEquals(2, queue.size());
-	}
-
-	@Test
 	public void testDispatcherSharedSpaceFailure() throws Exception {
-		mockRestClient(restClient, true, true, false);
+		mockRestClient(restClient, false);
 		FreeStyleBuild build = executeBuild();
 		queue.waitForTicks(5);
 
@@ -179,19 +143,19 @@ public class TestDispatcherTest {
 	public void testDispatcherBodyFailure() throws Exception {
 		// body post fails for the first time, succeeds afterwards
 
-		Mockito.doNothing().when(restClient).validateConfiguration();
+		Mockito.doNothing().when(restClient).validateConfigurationWithoutLogin();
 		Mockito.when(restClient.isTestResultRelevant(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
-		Mockito.doThrow(new RequestException("fails")).doReturn(1l).when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq(false));
+		Mockito.doThrow(new RequestErrorException("fails")).doReturn(1L).when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq(false));
 		InOrder order = Mockito.inOrder(restClient);
 
 		FreeStyleBuild build = executeBuild();
 		queue.waitForTicks(5);
 
-		order.verify(restClient).validateConfiguration();
+		order.verify(restClient).validateConfigurationWithoutLogin();
 		order.verify(restClient).isTestResultRelevant(ServerIdentity.getIdentity(), build.getProject().getName());
 		order.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
 
-		Mockito.verify(restClient, Mockito.times(2)).validateConfiguration();
+		Mockito.verify(restClient, Mockito.times(2)).validateConfigurationWithoutLogin();
 		Mockito.verify(restClient, Mockito.times(2)).isTestResultRelevant(ServerIdentity.getIdentity(), build.getProject().getName());
 		Mockito.verify(restClient, Mockito.times(2)).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
 		Mockito.verifyNoMoreInteractions(restClient);
@@ -203,23 +167,23 @@ public class TestDispatcherTest {
 		// body post fails for two consecutive times
 
 		Mockito.reset(restClient);
-		Mockito.doNothing().when(restClient).validateConfiguration();
+		Mockito.doNothing().when(restClient).validateConfigurationWithoutLogin();
 		Mockito.when(restClient.isTestResultRelevant(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
-		Mockito.doThrow(new RequestException("fails")).doThrow(new RequestException("fails")).when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq(false));
+		Mockito.doThrow(new RequestErrorException("fails")).doThrow(new RequestErrorException("fails")).when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq(false));
 
 		order = Mockito.inOrder(restClient);
 
 		build = executeBuild();
 		queue.waitForTicks(5);
 
-		order.verify(restClient).validateConfiguration();
+		order.verify(restClient).validateConfigurationWithoutLogin();
 		order.verify(restClient).isTestResultRelevant(ServerIdentity.getIdentity(), build.getProject().getName());
 		order.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
-		order.verify(restClient).validateConfiguration();
+		order.verify(restClient).validateConfigurationWithoutLogin();
 		order.verify(restClient).isTestResultRelevant(ServerIdentity.getIdentity(), build.getProject().getName());
 		order.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
 
-		Mockito.verify(restClient, Mockito.times(2)).validateConfiguration();
+		Mockito.verify(restClient, Mockito.times(2)).validateConfigurationWithoutLogin();
 		Mockito.verify(restClient, Mockito.times(2)).isTestResultRelevant(ServerIdentity.getIdentity(), build.getProject().getName());
 		Mockito.verify(restClient, Mockito.times(2)).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
 		Mockito.verifyNoMoreInteractions(restClient);
@@ -253,13 +217,13 @@ public class TestDispatcherTest {
 		matrixProject.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
 		matrixProject.setScm(new CopyResourceSCM("/helloWorldRoot"));
 
-		mockRestClient(restClient, true, true, true);
+		mockRestClient(restClient, true);
 		MatrixBuild matrixBuild = matrixProject.scheduleBuild2(0).get();
 		for (MatrixRun run : matrixBuild.getExactRuns()) {
 			queue.add("TestDispatcherMatrix/" + run.getParent().getName(), run.getNumber());
 		}
 		queue.waitForTicks(5);
-		Mockito.verify(restClient).validateConfiguration();
+		Mockito.verify(restClient).validateConfigurationWithoutLogin();
 		for (MatrixRun run : matrixBuild.getExactRuns()) {
 			Mockito.verify(restClient, Mockito.atLeast(2)).isTestResultRelevant(ServerIdentity.getIdentity(), run.getProject().getParent().getName());
 			Mockito.verify(restClient).postTestResult(new File(run.getRootDir(), "mqmTests.xml"), false);
@@ -273,19 +237,19 @@ public class TestDispatcherTest {
 	@Test
 	public void testDispatcherTemporarilyUnavailable() throws Exception {
 		Mockito.reset(restClient);
-		Mockito.doReturn(1l)
+		Mockito.doReturn(1L)
 				.doThrow(new TemporarilyUnavailableException("Server busy"))
 				.doThrow(new TemporarilyUnavailableException("Server busy"))
 				.doThrow(new TemporarilyUnavailableException("Server busy"))
 				.doThrow(new TemporarilyUnavailableException("Server busy"))
 				.doThrow(new TemporarilyUnavailableException("Server busy"))
-				.doReturn(1l)
+				.doReturn(1L)
 				.when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq(false));
 		Mockito.when(restClient.isTestResultRelevant(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
 		FreeStyleBuild build = executeBuild();
 		FreeStyleBuild build2 = executeBuild();
 		queue.waitForTicks(12);
-		Mockito.verify(restClient, Mockito.atMost(7)).validateConfiguration();
+		Mockito.verify(restClient, Mockito.atMost(7)).validateConfigurationWithoutLogin();
 		Mockito.verify(restClient, Mockito.times(7)).isTestResultRelevant(ServerIdentity.getIdentity(), build.getProject().getName());
 		Mockito.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
 		Mockito.verify(restClient, Mockito.times(6)).postTestResult(new File(build2.getRootDir(), "mqmTests.xml"), false);
@@ -324,7 +288,7 @@ public class TestDispatcherTest {
 			Assert.assertEquals("1001", audit.getString("sharedSpace"));
 			Assert.assertEquals(statuses[i], audit.getBoolean("pushed"));
 			if (statuses[i]) {
-				Assert.assertEquals(1l, audit.getLong("id"));
+				Assert.assertEquals(1L, audit.getLong("id"));
 			}
 			if (!statuses[i] && unavailableIfFailed) {
 				Assert.assertTrue(audit.getBoolean("temporarilyUnavailable"));
@@ -335,22 +299,18 @@ public class TestDispatcherTest {
 		}
 	}
 
-	private void mockRestClient(MqmRestClient restClient, boolean login, boolean session, boolean sharedSpace) throws IOException {
+	private void mockRestClient(MqmRestClient restClient, boolean sharedSpace) throws IOException {
 		Mockito.reset(restClient);
 		Mockito.when(restClient.isTestResultRelevant(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
-		if (!login) {
-			Mockito.doThrow(new AuthenticationException()).when(restClient).validateConfiguration();
-		} else if (!session) {
-			Mockito.doThrow(new SessionCreationException()).when(restClient).validateConfiguration();
-		} else if (!sharedSpace) {
-			Mockito.doThrow(new SharedSpaceNotExistException()).when(restClient).validateConfiguration();
+		if (!sharedSpace) {
+			Mockito.doThrow(new SharedSpaceNotExistException()).when(restClient).validateConfigurationWithoutLogin();
 		} else {
-			Mockito.doReturn(1l).when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq(false));
+			Mockito.doReturn(1L).when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq(false));
 		}
 	}
 
 	private void verifyRestClient(MqmRestClient restClient, AbstractBuild build, boolean body) throws IOException {
-		Mockito.verify(restClient).validateConfiguration();
+		Mockito.verify(restClient).validateConfigurationWithoutLogin();
 
 		if (body) {
 			Mockito.verify(restClient).isTestResultRelevant(ServerIdentity.getIdentity(), build.getProject().getName());

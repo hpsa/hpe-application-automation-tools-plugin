@@ -3,7 +3,7 @@ package com.hp.mqm.client.exception;
 /**
  * Exception is thrown when MQM server returns unexpected response. Which means that intended result was not achieved.
  */
-public class RequestException extends RuntimeException {
+public abstract class RequestException extends RuntimeException {
 
     private String description;
     private String errorCode;

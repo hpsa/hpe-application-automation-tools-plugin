@@ -1,7 +1,6 @@
 package com.hp.octane.plugins.jenkins.configuration;
 
 import com.hp.mqm.client.MqmRestClient;
-import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
 import com.hp.mqm.client.model.*;
 import com.hp.octane.integrations.OctaneSDK;
@@ -38,7 +37,7 @@ public class JobConfigurationProxy {
 	private static final String PRODUCT_NAME = Messages.ServerName();
 	private static final String NOT_SPECIFIED = "-- Not specified --";
 
-	public JobConfigurationProxy(AbstractProject project) {
+	JobConfigurationProxy(AbstractProject project) {
 		this.project = project;
 	}
 
@@ -70,7 +69,7 @@ public class JobConfigurationProxy {
 
 			//WORKAROUND BEGIN
 			//getting workspaceName - because the workspaceName is not returned from configuration API
-			List<Workspace> workspaces = client.getWorkspaces(Arrays.asList(createdPipeline.getWorkspaceId()));
+			List<Workspace> workspaces = client.getWorkspaces(Collections.singletonList(createdPipeline.getWorkspaceId()));
 			if (workspaces.size() != 1) {
 				throw new ClientException("WorkspaceName could not be retrieved for workspaceId: " + createdPipeline.getWorkspaceId());
 			}
@@ -87,9 +86,6 @@ public class JobConfigurationProxy {
 			result.put("fieldsMetadata", fieldsMetadata);
 
 		} catch (RequestException e) {
-			logger.warn("Failed to create pipeline", e);
-			return error("Unable to create pipeline");
-		} catch (RequestErrorException e) {
 			logger.warn("Failed to create pipeline", e);
 			return error("Unable to create pipeline");
 		} catch (ClientException e) {
@@ -113,17 +109,17 @@ public class JobConfigurationProxy {
 		try {
 			long pipelineId = pipelineObject.getLong("id");
 
-			LinkedList<Taxonomy> taxonomies = new LinkedList<Taxonomy>();
+			LinkedList<Taxonomy> taxonomies = new LinkedList<>();
 			JSONArray taxonomyTags = pipelineObject.getJSONArray("taxonomyTags");
 			for (JSONObject jsonObject : toCollection(taxonomyTags)) {
 				taxonomies.add(new Taxonomy(jsonObject.optLong("tagId"), jsonObject.getString("tagName"),
 						new Taxonomy(jsonObject.optLong("tagTypeId"), jsonObject.getString("tagTypeName"), null)));
 			}
 
-			LinkedList<ListField> fields = new LinkedList<ListField>();
+			LinkedList<ListField> fields = new LinkedList<>();
 			JSONArray fieldTags = pipelineObject.getJSONArray("fieldTags");
 			for (JSONObject jsonObject : toCollection(fieldTags)) {
-				List<ListItem> assignedValues = new LinkedList<ListItem>();
+				List<ListItem> assignedValues = new LinkedList<>();
 				for (JSONObject value : toCollection(jsonObject.getJSONArray("values"))) {
 					Long id;
 					if (value.containsKey("id")) {
@@ -141,7 +137,7 @@ public class JobConfigurationProxy {
 
 			//WORKAROUND BEGIN
 			//getting workspaceName - because the workspaceName is not returned from configuration API
-			List<Workspace> workspaces = client.getWorkspaces(Arrays.asList(pipeline.getWorkspaceId()));
+			List<Workspace> workspaces = client.getWorkspaces(Collections.singletonList(pipeline.getWorkspaceId()));
 			if (workspaces.size() != 1) {
 				throw new ClientException("WorkspaceName could not be retrieved for workspaceId: " + pipeline.getWorkspaceId());
 			}
@@ -158,18 +154,15 @@ public class JobConfigurationProxy {
 			//Server might do partial sucess
 			//So need to validate each item if it succedded or not
 			//For now we add handling of duplicate pipeline name
-            String originalName = pipelineObject.get("name").toString();
-            String updatedName = pipelineJSON.get("name").toString();
-            if (!originalName.equalsIgnoreCase(updatedName)) {
-                JSONObject errorObj = new JSONObject();
-                errorObj.put("message", "Failed to update pipeline name. Make sure not to enter the name of an existing pipeline.");
-                result.put("error", errorObj);
-            }
+			String originalName = pipelineObject.get("name").toString();
+			String updatedName = pipelineJSON.get("name").toString();
+			if (!originalName.equalsIgnoreCase(updatedName)) {
+				JSONObject errorObj = new JSONObject();
+				errorObj.put("message", "Failed to update pipeline name. Make sure not to enter the name of an existing pipeline.");
+				result.put("error", errorObj);
+			}
 
-        } catch (RequestException e) {
-			logger.warn("Failed to update pipeline", e);
-			return error("Unable to update pipeline");
-		} catch (RequestErrorException e) {
+		} catch (RequestException e) {
 			logger.warn("Failed to update pipeline", e);
 			return error("Unable to update pipeline");
 		} catch (ClientException e) {
@@ -200,9 +193,6 @@ public class JobConfigurationProxy {
 		} catch (RequestException e) {
 			logger.warn("Failed to delete tests", e);
 			return error("Unable to delete tests");
-		} catch (RequestErrorException e) {
-			logger.warn("Failed to delete tests", e);
-			return error("Unable to delete tests");
 		}
 
 		return result;
@@ -228,14 +218,14 @@ public class JobConfigurationProxy {
 				Map<Long, List<Pipeline>> workspacesMap = jobConfiguration.getWorkspacePipelinesMap();
 				//WORKAROUND BEGIN
 				//getting workspaceName - because the workspaceName is not returned from configuration API
-				Map<Long, String> relatedWorkspaces = new HashMap<Long, String>();
-				List<Workspace> workspaceList = client.getWorkspaces(new LinkedList<Long>(workspacesMap.keySet()));
+				Map<Long, String> relatedWorkspaces = new HashMap<>();
+				List<Workspace> workspaceList = client.getWorkspaces(new LinkedList<>(workspacesMap.keySet()));
 				for (Workspace workspace : workspaceList) {
 					relatedWorkspaces.put(workspace.getId(), workspace.getName());
 				}
 				//WORKAROUND END
 
-				Map<Workspace, List<Pipeline>> sortedWorkspacesMap = new TreeMap<Workspace, List<Pipeline>>(new Comparator<Workspace>() {
+				Map<Workspace, List<Pipeline>> sortedWorkspacesMap = new TreeMap<>(new Comparator<Workspace>() {
 					@Override
 					public int compare(final Workspace w1, final Workspace w2) {
 						return w1.getName().compareTo(w2.getName());
@@ -291,9 +281,6 @@ public class JobConfigurationProxy {
 		} catch (RequestException e) {
 			logger.warn("Failed to retrieve job configuration", e);
 			return error("Unable to retrieve job configuration");
-		} catch (RequestErrorException e) {
-			logger.warn("Failed to retrieve job configuration", e);
-			return error("Unable to retrieve job configuration");
 		}
 
 		return ret;
@@ -313,17 +300,13 @@ public class JobConfigurationProxy {
 		try {
 			JSONArray fieldsMetadata = getFieldMetadata(pipelineJSON.getLong("workspaceId"), client);
 			ret.put("fieldsMetadata", fieldsMetadata);
-
 			enrichPipeline(pipelineJSON, client);
 			ret.put("pipeline", pipelineJSON);
-
 		} catch (RequestException e) {
 			logger.warn("Failed to retrieve metadata for workspace", e);
 			return error("Unable to retrieve metadata for workspace");
-		} catch (RequestErrorException e) {
-			logger.warn("Failed to retrieve metadata for workspace", e);
-			return error("Unable to retrieve metadata for workspace");
 		}
+
 		return ret;
 	}
 
@@ -356,14 +339,11 @@ public class JobConfigurationProxy {
 		try {
 			enrichPipeline(pipelineJSON, client);
 			ret.put("pipeline", pipelineJSON);
-
 		} catch (RequestException e) {
 			logger.warn("Failed to retrieve metadata for pipeline", e);
 			return error("Unable to retrieve metadata for pipeline");
-		} catch (RequestErrorException e) {
-			logger.warn("Failed to retrieve metadata for pipeline", e);
-			return error("Unable to retrieve metadata for pipeline");
 		}
+
 		return ret;
 	}
 
@@ -387,7 +367,7 @@ public class JobConfigurationProxy {
 		if (pipeline.has("taxonomyTags")) {
 
 			JSONArray taxonomyTags = pipeline.getJSONArray("taxonomyTags");
-			List<Long> taxonomyIdsList = new LinkedList<Long>();
+			List<Long> taxonomyIdsList = new LinkedList<>();
 			for (int i = 0; i < taxonomyTags.size(); i++) {
 				JSONObject taxonomy = taxonomyTags.getJSONObject(i);
 				if (taxonomy.has("tagId")) {
@@ -413,7 +393,7 @@ public class JobConfigurationProxy {
 			while (keys.hasNext()) {
 				String key = (String) keys.next();
 				if (pipelineFields.get(key) instanceof JSONArray) {
-					List<Long> fieldTagsIdsList = new LinkedList<Long>();
+					List<Long> fieldTagsIdsList = new LinkedList<>();
 					//getting all ids assigned to listField
 					for (JSONObject singleField : toCollection(pipelineFields.getJSONArray(key))) {
 						fieldTagsIdsList.add(singleField.getLong("id"));
@@ -512,10 +492,8 @@ public class JobConfigurationProxy {
 		} catch (RequestException e) {
 			logger.warn("Failed to retrieve list items", e);
 			return error("Unable to retrieve job configuration");
-		} catch (RequestErrorException e) {
-			logger.warn("Failed to retrieve list items", e);
-			return error("Unable to retrieve list items");
 		}
+
 		return ret;
 	}
 
@@ -563,11 +541,9 @@ public class JobConfigurationProxy {
 
 		} catch (RequestException e) {
 			logger.warn("Failed to retrieve releases", e);
-			return error("Unable to retrieve job configuration");
-		} catch (RequestErrorException e) {
-			logger.warn("Failed to retrieve releases", e);
-			return error("Unable to retrieve taxonomies");
+			return error("Unable to retrieve releases");
 		}
+
 		return ret;
 	}
 
@@ -604,10 +580,8 @@ public class JobConfigurationProxy {
 		} catch (RequestException e) {
 			logger.warn("Failed to retrieve workspaces", e);
 			return error("Unable to retrieve workspaces");
-		} catch (RequestErrorException e) {
-			logger.warn("Failed to retrieve workspaces", e);
-			return error("Unable to retrieve workspaces");
 		}
+
 		return ret;
 	}
 
@@ -626,7 +600,7 @@ public class JobConfigurationProxy {
 		try {
 
 			//currently existing taxonomies on pipeline -> we need to show these options as disabled
-			List<Long> pipelineTaxonomiesList = new LinkedList<Long>();
+			List<Long> pipelineTaxonomiesList = new LinkedList<>();
 			for (int i = 0; i < pipelineTaxonomies.size(); i++) {
 				JSONObject pipelineTaxonomy = pipelineTaxonomies.getJSONObject(i);
 				if (pipelineTaxonomy.containsKey("tagId") && pipelineTaxonomy.containsKey("tagTypeId")) {   // we need to compare only taxonomies which already exist on server
@@ -640,14 +614,14 @@ public class JobConfigurationProxy {
 
 			//creating map <TaxonomyCategoryID : Set<Taxonomy>>
 			// for easier creating result JSON
-			Map<Long, Set<Taxonomy>> taxonomyMap = new HashMap<Long, Set<Taxonomy>>();
-			Map<Long, String> taxonomyCategories = new HashMap<Long, String>();
+			Map<Long, Set<Taxonomy>> taxonomyMap = new HashMap<>();
+			Map<Long, String> taxonomyCategories = new HashMap<>();
 			for (Taxonomy taxonomy : foundTaxonomiesList) {
 				if (taxonomy.getRoot() != null) {
 					if (taxonomyMap.containsKey(taxonomy.getRoot().getId())) {
 						taxonomyMap.get(taxonomy.getRoot().getId()).add(taxonomy);
 					} else {
-						taxonomyMap.put(taxonomy.getRoot().getId(), new LinkedHashSet<Taxonomy>(Arrays.asList(taxonomy)));
+						taxonomyMap.put(taxonomy.getRoot().getId(), new LinkedHashSet<>(Arrays.asList(taxonomy)));
 						taxonomyCategories.put(taxonomy.getRoot().getId(), taxonomy.getRoot().getName());
 					}
 				}
@@ -731,11 +705,9 @@ public class JobConfigurationProxy {
 
 		} catch (RequestException e) {
 			logger.warn("Failed to retrieve environments", e);
-			return error("Unable to retrieve job configuration");
-		} catch (RequestErrorException e) {
-			logger.warn("Failed to retrieve environments", e);
 			return error("Unable to retrieve environments");
 		}
+
 		return ret;
 	}
 
@@ -852,16 +824,13 @@ public class JobConfigurationProxy {
 				configuration.username,
 				configuration.password);
 		try {
-			client.validateConfiguration();
+			client.validateConfigurationWithoutLogin();
 		} catch (RequestException e) {
 			logger.warn(PRODUCT_NAME + " connection failed", e);
 			retryModel.failure();
 			throw new ClientException("Connection to " + PRODUCT_NAME + " failed");
-		} catch (RequestErrorException e) {
-			logger.warn(PRODUCT_NAME + " connection failed", e);
-			retryModel.failure();
-			throw new ClientException("Connection to " + PRODUCT_NAME + " failed");
 		}
+
 		retryModel.success();
 		return client;
 	}
@@ -883,11 +852,11 @@ public class JobConfigurationProxy {
 
 		private ExceptionLink link;
 
-		public ClientException(String message) {
+		ClientException(String message) {
 			this(message, null);
 		}
 
-		public ClientException(String message, ExceptionLink link) {
+		ClientException(String message, ExceptionLink link) {
 			super(message);
 			this.link = link;
 		}
@@ -902,7 +871,7 @@ public class JobConfigurationProxy {
 		private String url;
 		private String label;
 
-		public ExceptionLink(String url, String label) {
+		ExceptionLink(String url, String label) {
 			this.url = url;
 			this.label = label;
 		}

@@ -286,7 +286,7 @@ public class DefaultOctaneConverter implements DTOConverter {
 		SCMRepository scmRepository = DTOFactory.getInstance().newDTO(SCMRepository.class);
 		if (repo instanceof SvnRepository) {
 			SvnRepository svn = (SvnRepository) repo;
-			scmRepository.setUrl(svn.getUrl());
+			scmRepository.setUrl(svn.getRepositoryUrl());
 			scmRepository.setType(SCMType.SVN);
 			scmRepository.setBranch(svn.getVcsBranch().getName());
 		}else if (repo instanceof GitRepository){
