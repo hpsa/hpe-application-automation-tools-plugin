@@ -20,10 +20,10 @@ namespace HpToolsLauncher
     {
         // Setting keys for mobile
         private const string MOBILE_HOST_ADDRESS = "ALM_MobileHostAddress";
-        private const string MOBILE_HOST_PORT = "MobileHostPort";
+        private const string MOBILE_HOST_PORT = "ALM_MobileHostPort";
         private const string MOBILE_USER   = "ALM_MobileUserName";
         private const string MOBILE_PASSWORD = "ALM_MobilePassword";
-        private const string MOBILE_USE_SSL = "MobileUseSSL";
+        private const string MOBILE_USE_SSL = "ALM_MobileUseSSL";
         private const string MOBILE_USE_PROXY= "MobileProxySetting_UseProxy";
         private const string MOBILE_PROXY_SETTING_ADDRESS = "MobileProxySetting_Address";
         private const string MOBILE_PROXY_SETTING_PORT = "MobileProxySetting_Port";
