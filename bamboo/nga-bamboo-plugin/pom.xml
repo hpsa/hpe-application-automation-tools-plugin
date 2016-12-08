@@ -9,8 +9,8 @@
 	<organization>
 		<name>HPE</name>
 	</organization>
-	<packaging>jar</packaging>
-	<artifactId>hp-lifecycle-management-bamboo-ci-plugin</artifactId>
+    <packaging>atlassian-plugin</packaging>
+    <artifactId>hp-lifecycle-management-bamboo-ci-plugin</artifactId>
 
 	<parent>
 		<groupId>com.hp.mqm</groupId>
