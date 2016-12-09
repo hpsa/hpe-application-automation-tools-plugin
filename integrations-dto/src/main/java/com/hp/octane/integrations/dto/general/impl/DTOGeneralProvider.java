@@ -1,8 +1,6 @@
 package com.hp.octane.integrations.dto.general.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.hp.octane.integrations.dto.DTOBase;
 import com.hp.octane.integrations.dto.DTOInternalProviderBase;
 import com.hp.octane.integrations.dto.general.CIPluginSDKInfo;
@@ -13,55 +11,44 @@ import com.hp.octane.integrations.dto.general.CIServerInfo;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by gullery on 10/02/2016.
+ *
+ * General purposes DTOs definitions, mostly configuration related ones
  */
 
 public final class DTOGeneralProvider extends DTOInternalProviderBase {
-	private final Map<Class, Class> dtoPairs = new HashMap<>();
+	private final Map<Class<? extends DTOBase>, Class> dtoPairs = new HashMap<>();
 
-	private DTOGeneralProvider() {
+	public DTOGeneralProvider() {
+		dtoPairs.put(CIPluginInfo.class, CIPluginInfoImpl.class);
+		dtoPairs.put(CIServerInfo.class, CIServerInfoImpl.class);
+		dtoPairs.put(CIPluginSDKInfo.class, CIPluginSDKInfoImpl.class);
+		dtoPairs.put(CIProviderSummaryInfo.class, CIProviderSummaryInfoImpl.class);
+		dtoPairs.put(CIJobsList.class, CIJobsListImpl.class);
 	}
 
 	@Override
-	protected Class[] getXMLAbleClasses() {
-		return new Class[0];
+	protected void provideImplResolvingMap(SimpleAbstractTypeResolver dtoImplResolver) {
+		dtoImplResolver.addMapping(CIPluginInfo.class, CIPluginInfoImpl.class);
+		dtoImplResolver.addMapping(CIServerInfo.class, CIServerInfoImpl.class);
+		dtoImplResolver.addMapping(CIPluginSDKInfo.class, CIPluginSDKInfoImpl.class);
+		dtoImplResolver.addMapping(CIProviderSummaryInfo.class, CIProviderSummaryInfoImpl.class);
+		dtoImplResolver.addMapping(CIJobsList.class, CIJobsListImpl.class);
 	}
 
-	public static void ensureInit(Map<Class<? extends DTOBase>, DTOInternalProviderBase> registry, ObjectMapper objectMapper) {
-		registry.put(CIPluginInfo.class, INSTANCE_HOLDER.instance);
-		registry.put(CIServerInfo.class, INSTANCE_HOLDER.instance);
-		registry.put(CIPluginSDKInfo.class, INSTANCE_HOLDER.instance);
-		registry.put(CIProviderSummaryInfo.class, INSTANCE_HOLDER.instance);
-		registry.put(CIJobsList.class, INSTANCE_HOLDER.instance);
-
-		INSTANCE_HOLDER.instance.dtoPairs.put(CIPluginInfo.class, CIPluginInfoImpl.class);
-		INSTANCE_HOLDER.instance.dtoPairs.put(CIServerInfo.class, CIServerInfoImpl.class);
-		INSTANCE_HOLDER.instance.dtoPairs.put(CIPluginSDKInfo.class, CIPluginSDKInfoImpl.class);
-		INSTANCE_HOLDER.instance.dtoPairs.put(CIProviderSummaryInfo.class, CIProviderSummaryInfoImpl.class);
-		INSTANCE_HOLDER.instance.dtoPairs.put(CIJobsList.class, CIJobsListImpl.class);
-
-		SimpleAbstractTypeResolver resolver = new SimpleAbstractTypeResolver();
-		resolver.addMapping(CIPluginInfo.class, CIPluginInfoImpl.class);
-		resolver.addMapping(CIServerInfo.class, CIServerInfoImpl.class);
-		resolver.addMapping(CIPluginSDKInfo.class, CIPluginSDKInfoImpl.class);
-		resolver.addMapping(CIProviderSummaryInfo.class, CIProviderSummaryInfoImpl.class);
-		resolver.addMapping(CIJobsList.class, CIJobsListImpl.class);
-		SimpleModule module = new SimpleModule();
-		module.setAbstractTypes(resolver);
-		objectMapper.registerModule(module);
+	@Override
+	protected Set<Class<? extends DTOBase>> getJSONAbleDTOs() {
+		return dtoPairs.keySet();
 	}
 
-	public <T> T instantiateDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException {
+	protected <T extends DTOBase> T instantiateDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException {
 		T result = null;
 		if (dtoPairs.containsKey(targetType)) {
 			result = (T) dtoPairs.get(targetType).newInstance();
 		}
 		return result;
-	}
-
-	private static final class INSTANCE_HOLDER {
-		private static final DTOGeneralProvider instance = new DTOGeneralProvider();
 	}
 }

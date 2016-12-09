@@ -14,10 +14,103 @@ import static org.junit.Assert.assertNull;
 
 /**
  * Created by gullery on 08/02/2016.
+ *
+ * Basic tests to verify every DTO is registered and available for serialization
  */
 
 public class DTOFactoryTest {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+
+	@Test
+	public void test_All_DTOs() {
+		//  CIEventCauseType
+
+		//  CIEventCause
+
+		//  CIProxyConfiguration
+
+		//  OctaneConfiguration
+
+		//  HttpMethod
+
+		//  OctaneRequest
+
+		//  OctaneResponse
+
+		//  OctaneResultAbridged
+
+		//  OctaneTaskAbridged
+
+		//  BuildConverage
+
+		//  FileCoverage
+
+		//  LineCoverage
+
+		//  TestCoverage
+
+		//  CIEventType
+
+		//  PhaseType
+
+		//  CIEvent
+
+		//  CIEventsList
+
+		//  CIServerTypes
+
+		//  CIJobsList
+
+		//  CIPluginInfo
+
+		//  CIPluginSDKInfo
+
+		//  CIProviderSummaryInfo
+
+		//  CIServerInfo
+
+		//  CIParameterType
+
+		//  CIParameter
+
+		//  PipelineNode
+
+		//  PipelinePhase
+
+		//  SCMType
+
+		//  SCMChange
+
+		//  SCMCommit
+
+		//  SCMData
+
+		//  SCMRepository
+
+		//  CIBuildResult
+
+		//  CIBuildStatus
+
+		//  SnapshotNode
+
+		//  SnapshotPhase
+
+		//  TestRunResult
+
+		//  BuildContext
+
+		//  Property
+
+		//  TestCase
+
+		//  TestRun
+
+		//  TestRunError
+
+		//  TestsResult
+
+		//  TestSuite
+	}
 
 	@Test
 	public void test_A() {
@@ -42,8 +135,7 @@ public class DTOFactoryTest {
 
 	@Test
 	public void test_B() {
-		CIServerInfo ciServerInfo = dtoFactory.newDTO(CIServerInfo.class);
-		ciServerInfo
+		CIServerInfo ciServerInfo = dtoFactory.newDTO(CIServerInfo.class)
 				.setType(CIServerTypes.JENKINS)
 				.setInstanceId("instance id")
 				.setInstanceIdFrom(123456789L)
@@ -63,25 +155,22 @@ public class DTOFactoryTest {
 
 	@Test
 	public void test_C() {
-		List<CIServerInfo> coll = new ArrayList<CIServerInfo>();
-		CIServerInfo instA = dtoFactory.newDTO(CIServerInfo.class);
-		instA
+		List<CIServerInfo> coll = new ArrayList<>();
+		CIServerInfo instA = dtoFactory.newDTO(CIServerInfo.class)
 				.setType(CIServerTypes.JENKINS)
 				.setInstanceId("instance id A")
 				.setInstanceIdFrom(123456789L)
 				.setSendingTime(123456789L)
 				.setUrl("http://localhost:8080/A")
 				.setVersion("1.2.3");
-		CIServerInfo instB = dtoFactory.newDTO(CIServerInfo.class);
-		instB
+		CIServerInfo instB = dtoFactory.newDTO(CIServerInfo.class)
 				.setType(CIServerTypes.JENKINS)
 				.setInstanceId("instance id B")
 				.setInstanceIdFrom(123456789L)
 				.setSendingTime(123456789L)
 				.setUrl("http://localhost:8080/B")
 				.setVersion("1.2.4");
-		CIServerInfo instC = dtoFactory.newDTO(CIServerInfo.class);
-		instC
+		CIServerInfo instC = dtoFactory.newDTO(CIServerInfo.class)
 				.setType(CIServerTypes.JENKINS)
 				.setInstanceId("instance id C")
 				.setInstanceIdFrom(123456789L)

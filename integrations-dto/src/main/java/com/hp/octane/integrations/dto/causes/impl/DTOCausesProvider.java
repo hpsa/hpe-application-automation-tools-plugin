@@ -1,51 +1,42 @@
 package com.hp.octane.integrations.dto.causes.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.hp.octane.integrations.dto.DTOBase;
 import com.hp.octane.integrations.dto.DTOInternalProviderBase;
 import com.hp.octane.integrations.dto.causes.CIEventCause;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by gullery on 10/02/2016.
+ *
+ * CI Events causes DTO definitions provider
  */
 
 public final class DTOCausesProvider extends DTOInternalProviderBase {
-	private final Map<Class, Class> dtoPairs = new HashMap<>();
+	private final Map<Class<? extends DTOBase>, Class> dtoPairs = new HashMap<>();
 
-	private DTOCausesProvider() {
+	public DTOCausesProvider() {
+		dtoPairs.put(CIEventCause.class, CIEventCauseImpl.class);
 	}
 
 	@Override
-	protected Class[] getXMLAbleClasses() {
-		return new Class[0];
+	protected void provideImplResolvingMap(SimpleAbstractTypeResolver dtoImplResolver) {
+		dtoImplResolver.addMapping(CIEventCause.class, CIEventCauseImpl.class);
 	}
 
-	public static void ensureInit(Map<Class<? extends DTOBase>, DTOInternalProviderBase> registry, ObjectMapper objectMapper) {
-		registry.put(CIEventCause.class, INSTANCE_HOLDER.instance);
-
-		INSTANCE_HOLDER.instance.dtoPairs.put(CIEventCause.class, CIEventCauseImpl.class);
-
-		SimpleAbstractTypeResolver resolver = new SimpleAbstractTypeResolver();
-		resolver.addMapping(CIEventCause.class, CIEventCauseImpl.class);
-		SimpleModule module = new SimpleModule();
-		module.setAbstractTypes(resolver);
-		objectMapper.registerModule(module);
+	@Override
+	protected Set<Class<? extends DTOBase>> getJSONAbleDTOs() {
+		return dtoPairs.keySet();
 	}
 
-	public <T> T instantiateDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException {
+	protected <T extends DTOBase> T instantiateDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException {
 		T result = null;
 		if (dtoPairs.containsKey(targetType)) {
 			result = (T) dtoPairs.get(targetType).newInstance();
 		}
 		return result;
-	}
-
-	private static final class INSTANCE_HOLDER {
-		private static final DTOCausesProvider instance = new DTOCausesProvider();
 	}
 }

@@ -1,11 +1,11 @@
-package com.hp.octane.integrations.dto.pipelines.impl;
+package com.hp.octane.integrations.dto.tests.impl;
 
 import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
 import com.hp.octane.integrations.dto.DTOBase;
 import com.hp.octane.integrations.dto.DTOInternalProviderBase;
-import com.hp.octane.integrations.dto.pipelines.BuildHistory;
-import com.hp.octane.integrations.dto.pipelines.PipelineNode;
-import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
+import com.hp.octane.integrations.dto.tests.Property;
+import com.hp.octane.integrations.dto.tests.TestCase;
+import com.hp.octane.integrations.dto.tests.TestSuite;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,23 +14,23 @@ import java.util.Set;
 /**
  * Created by gullery on 10/02/2016.
  *
- * Pipelines structure related DTOs definitions provider
+ * JUnit report related DTOs definitions provider
  */
 
-public final class DTOPipelinesProvider extends DTOInternalProviderBase {
+public final class DTOJUnitTestsProvider extends DTOInternalProviderBase {
 	private final Map<Class<? extends DTOBase>, Class> dtoPairs = new HashMap<>();
 
-	public DTOPipelinesProvider() {
-		dtoPairs.put(PipelineNode.class, PipelineNodeImpl.class);
-		dtoPairs.put(PipelinePhase.class, PipelinePhaseImpl.class);
-		dtoPairs.put(BuildHistory.class, BuildHistoryImpl.class);
+	public DTOJUnitTestsProvider() {
+		dtoPairs.put(Property.class, PropertyImpl.class);
+		dtoPairs.put(TestCase.class, TestCaseImpl.class);
+		dtoPairs.put(TestSuite.class, TestSuiteImpl.class);
 	}
 
 	@Override
 	protected void provideImplResolvingMap(SimpleAbstractTypeResolver dtoImplResolver) {
-		dtoImplResolver.addMapping(PipelineNode.class, PipelineNodeImpl.class);
-		dtoImplResolver.addMapping(PipelinePhase.class, PipelinePhaseImpl.class);
-		dtoImplResolver.addMapping(BuildHistory.class, BuildHistoryImpl.class);
+		dtoImplResolver.addMapping(Property.class, PropertyImpl.class);
+		dtoImplResolver.addMapping(TestCase.class, TestCaseImpl.class);
+		dtoImplResolver.addMapping(TestSuite.class, TestSuiteImpl.class);
 	}
 
 	@Override
@@ -40,7 +40,7 @@ public final class DTOPipelinesProvider extends DTOInternalProviderBase {
 
 	@Override
 	protected Class[] getXMLAbleDTOs() {
-		return new Class[0];
+		return new Class[]{TestSuiteImpl.class, TestCaseImpl.class, PropertyImpl.class};
 	}
 
 	protected <T extends DTOBase> T instantiateDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException {

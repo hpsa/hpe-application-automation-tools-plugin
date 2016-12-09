@@ -53,6 +53,15 @@
 				</executions>
 			</plugin>
 		</plugins>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>META-INF/services/*</include>
+				</includes>
+			</resource>
+		</resources>
 	</build>
 
 </project>

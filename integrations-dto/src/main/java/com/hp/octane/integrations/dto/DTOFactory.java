@@ -2,18 +2,8 @@ package com.hp.octane.integrations.dto;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hp.octane.integrations.dto.causes.impl.DTOCausesProvider;
-import com.hp.octane.integrations.dto.configuration.impl.DTOConfigsProvider;
-import com.hp.octane.integrations.dto.connectivity.impl.DTOConnectivityProvider;
-import com.hp.octane.integrations.dto.coverage.impl.DTOCoverageProvider;
-import com.hp.octane.integrations.dto.events.impl.DTOEventsProvider;
-import com.hp.octane.integrations.dto.general.impl.DTOGeneralProvider;
-import com.hp.octane.integrations.dto.parameters.impl.DTOParametersProvider;
-import com.hp.octane.integrations.dto.pipelines.impl.DTOPipelinesProvider;
-import com.hp.octane.integrations.dto.scm.impl.DTOSCMProvider;
-import com.hp.octane.integrations.dto.snapshots.impl.DTOSnapshotsProvider;
-import com.hp.octane.integrations.dto.tests.impl.DTOJUnitProvider;
-import com.hp.octane.integrations.dto.tests.impl.DTOTestsProvider;
+import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 
 import javax.xml.bind.JAXBException;
 import java.io.File;
@@ -21,6 +11,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.ServiceLoader;
 
 /**
  * Created by gullery on 11/02/2016.
@@ -33,18 +24,17 @@ public final class DTOFactory {
 	private final ObjectMapper jsonMapper = new ObjectMapper();
 
 	private DTOFactory() {
-		DTOCausesProvider.ensureInit(registry, jsonMapper);
-		DTOConfigsProvider.ensureInit(registry, jsonMapper);
-		DTOConnectivityProvider.ensureInit(registry, jsonMapper);
-		DTOCoverageProvider.ensureInit(registry, jsonMapper);
-		DTOEventsProvider.ensureInit(registry, jsonMapper);
-		DTOGeneralProvider.ensureInit(registry, jsonMapper);
-		DTOParametersProvider.ensureInit(registry, jsonMapper);
-		DTOPipelinesProvider.ensureInit(registry, jsonMapper);
-		DTOSCMProvider.ensureInit(registry, jsonMapper);
-		DTOSnapshotsProvider.ensureInit(registry, jsonMapper);
-		DTOTestsProvider.ensureInit(registry, jsonMapper);
-		DTOJUnitProvider.ensureInit(registry, jsonMapper);
+		ServiceLoader<DTOInternalProviderBase> dtoProvidersLoader = ServiceLoader.load(DTOInternalProviderBase.class, getClass().getClassLoader());
+		SimpleAbstractTypeResolver resolver = new SimpleAbstractTypeResolver();
+		for (DTOInternalProviderBase dtoProvider : dtoProvidersLoader) {
+			for (Class<? extends DTOBase> dto : dtoProvider.getJSONAbleDTOs()) {
+				registry.put(dto, dtoProvider);
+			}
+			dtoProvider.provideImplResolvingMap(resolver);
+		}
+		SimpleModule module = new SimpleModule();
+		module.setAbstractTypes(resolver);
+		jsonMapper.registerModule(module);
 	}
 
 	public static DTOFactory getInstance() {

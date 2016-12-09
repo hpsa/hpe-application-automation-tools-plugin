@@ -1,8 +1,6 @@
 package com.hp.octane.integrations.dto.connectivity.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.hp.octane.integrations.dto.DTOBase;
 import com.hp.octane.integrations.dto.DTOInternalProviderBase;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
@@ -12,52 +10,47 @@ import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by gullery on 10/02/2016.
+ *
+ * Connectivity related DTOs definitions provider
  */
 
 public final class DTOConnectivityProvider extends DTOInternalProviderBase {
-	private final Map<Class, Class> dtoPairs = new HashMap<>();
+	private final Map<Class<? extends DTOBase>, Class> dtoPairs = new HashMap<>();
 
-	private DTOConnectivityProvider() {
+	public DTOConnectivityProvider() {
+		dtoPairs.put(OctaneRequest.class, OctaneRequestImpl.class);
+		dtoPairs.put(OctaneResponse.class, OctaneResponseImpl.class);
+		dtoPairs.put(OctaneTaskAbridged.class, OctaneTaskAbridgedImpl.class);
+		dtoPairs.put(OctaneResultAbridged.class, OctaneResultAbridgedImpl.class);
 	}
 
 	@Override
-	protected Class[] getXMLAbleClasses() {
+	protected void provideImplResolvingMap(SimpleAbstractTypeResolver dtoImplResolver) {
+		dtoImplResolver.addMapping(OctaneRequest.class, OctaneRequestImpl.class);
+		dtoImplResolver.addMapping(OctaneResponse.class, OctaneResponseImpl.class);
+		dtoImplResolver.addMapping(OctaneTaskAbridged.class, OctaneTaskAbridgedImpl.class);
+		dtoImplResolver.addMapping(OctaneResultAbridged.class, OctaneResultAbridgedImpl.class);
+	}
+
+	@Override
+	protected Set<Class<? extends DTOBase>> getJSONAbleDTOs() {
+		return dtoPairs.keySet();
+	}
+
+	@Override
+	protected Class[] getXMLAbleDTOs() {
 		return new Class[0];
 	}
 
-	public static void ensureInit(Map<Class<? extends DTOBase>, DTOInternalProviderBase> registry, ObjectMapper objectMapper) {
-		registry.put(OctaneRequest.class, INSTANCE_HOLDER.instance);
-		registry.put(OctaneResponse.class, INSTANCE_HOLDER.instance);
-		registry.put(OctaneTaskAbridged.class, INSTANCE_HOLDER.instance);
-		registry.put(OctaneResultAbridged.class, INSTANCE_HOLDER.instance);
-
-		INSTANCE_HOLDER.instance.dtoPairs.put(OctaneRequest.class, OctaneRequestImpl.class);
-		INSTANCE_HOLDER.instance.dtoPairs.put(OctaneResponse.class, OctaneResponseImpl.class);
-		INSTANCE_HOLDER.instance.dtoPairs.put(OctaneTaskAbridged.class, OctaneTaskAbridgedImpl.class);
-		INSTANCE_HOLDER.instance.dtoPairs.put(OctaneResultAbridged.class, OctaneResultAbridgedImpl.class);
-
-		SimpleAbstractTypeResolver resolver = new SimpleAbstractTypeResolver();
-		resolver.addMapping(OctaneRequest.class, OctaneRequestImpl.class);
-		resolver.addMapping(OctaneResponse.class, OctaneResponseImpl.class);
-		resolver.addMapping(OctaneTaskAbridged.class, OctaneTaskAbridgedImpl.class);
-		resolver.addMapping(OctaneResultAbridged.class, OctaneResultAbridgedImpl.class);
-		SimpleModule module = new SimpleModule();
-		module.setAbstractTypes(resolver);
-		objectMapper.registerModule(module);
-	}
-
-	public <T> T instantiateDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException {
+	protected <T extends DTOBase> T instantiateDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException {
 		T result = null;
 		if (dtoPairs.containsKey(targetType)) {
 			result = (T) dtoPairs.get(targetType).newInstance();
 		}
 		return result;
-	}
-
-	private static final class INSTANCE_HOLDER {
-		private static final DTOConnectivityProvider instance = new DTOConnectivityProvider();
 	}
 }

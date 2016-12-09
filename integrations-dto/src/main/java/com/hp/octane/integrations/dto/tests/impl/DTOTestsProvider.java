@@ -1,8 +1,6 @@
 package com.hp.octane.integrations.dto.tests.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.hp.octane.integrations.dto.DTOBase;
 import com.hp.octane.integrations.dto.DTOInternalProviderBase;
 import com.hp.octane.integrations.dto.tests.BuildContext;
@@ -12,52 +10,47 @@ import com.hp.octane.integrations.dto.tests.TestRun;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by gullery on 10/02/2016.
+ *
+ * Octane oriented tests results DTOs definitions provider
  */
 
 public final class DTOTestsProvider extends DTOInternalProviderBase {
-	private final Map<Class, Class> dtoPairs = new HashMap<>();
+	private final Map<Class<? extends DTOBase>, Class> dtoPairs = new HashMap<>();
 
-	private DTOTestsProvider() {
+	public DTOTestsProvider() {
+		dtoPairs.put(BuildContext.class, BuildContextImpl.class);
+		dtoPairs.put(TestRunError.class, TestRunErrorImpl.class);
+		dtoPairs.put(TestRun.class, TestRunImpl.class);
+		dtoPairs.put(TestsResult.class, TestsResultImpl.class);
 	}
 
 	@Override
-	protected Class[] getXMLAbleClasses() {
+	protected void provideImplResolvingMap(SimpleAbstractTypeResolver dtoImplResolver) {
+		dtoImplResolver.addMapping(BuildContext.class, BuildContextImpl.class);
+		dtoImplResolver.addMapping(TestRunError.class, TestRunErrorImpl.class);
+		dtoImplResolver.addMapping(TestRun.class, TestRunImpl.class);
+		dtoImplResolver.addMapping(TestsResult.class, TestsResultImpl.class);
+	}
+
+	@Override
+	protected Set<Class<? extends DTOBase>> getJSONAbleDTOs() {
+		return dtoPairs.keySet();
+	}
+
+	@Override
+	protected Class[] getXMLAbleDTOs() {
 		return new Class[]{BuildContextImpl.class, TestRunErrorImpl.class, TestRunImpl.class, TestsResultImpl.class};
 	}
 
-	public static void ensureInit(Map<Class<? extends DTOBase>, DTOInternalProviderBase> registry, ObjectMapper objectMapper) {
-		registry.put(BuildContext.class, INSTANCE_HOLDER.instance);
-		registry.put(TestRunError.class, INSTANCE_HOLDER.instance);
-		registry.put(TestRun.class, INSTANCE_HOLDER.instance);
-		registry.put(TestsResult.class, INSTANCE_HOLDER.instance);
-
-		INSTANCE_HOLDER.instance.dtoPairs.put(BuildContext.class, BuildContextImpl.class);
-		INSTANCE_HOLDER.instance.dtoPairs.put(TestRunError.class, TestRunErrorImpl.class);
-		INSTANCE_HOLDER.instance.dtoPairs.put(TestRun.class, TestRunImpl.class);
-		INSTANCE_HOLDER.instance.dtoPairs.put(TestsResult.class, TestsResultImpl.class);
-
-		SimpleAbstractTypeResolver resolver = new SimpleAbstractTypeResolver();
-		resolver.addMapping(BuildContext.class, BuildContextImpl.class);
-		resolver.addMapping(TestRunError.class, TestRunErrorImpl.class);
-		resolver.addMapping(TestRun.class, TestRunImpl.class);
-		resolver.addMapping(TestsResult.class, TestsResultImpl.class);
-		SimpleModule module = new SimpleModule();
-		module.setAbstractTypes(resolver);
-		objectMapper.registerModule(module);
-	}
-
-	public <T> T instantiateDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException {
+	protected <T extends DTOBase> T instantiateDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException {
 		T result = null;
 		if (dtoPairs.containsKey(targetType)) {
 			result = (T) dtoPairs.get(targetType).newInstance();
 		}
 		return result;
-	}
-
-	private static final class INSTANCE_HOLDER {
-		private static final DTOTestsProvider instance = new DTOTestsProvider();
 	}
 }
