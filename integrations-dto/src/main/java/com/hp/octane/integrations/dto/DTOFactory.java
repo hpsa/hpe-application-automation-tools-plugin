@@ -69,7 +69,7 @@ public final class DTOFactory {
 		try {
 			return jsonMapper.writeValueAsString(dto);
 		} catch (JsonProcessingException ioe) {
-			throw new RuntimeException("failed to serialize " + dto + " from JSON; error: " + ioe.getMessage());
+			throw new RuntimeException("failed to serialize " + dto + " to JSON; error: " + ioe.getMessage());
 		}
 	}
 
@@ -81,7 +81,7 @@ public final class DTOFactory {
 		try {
 			return jsonMapper.writeValueAsString(dto);
 		} catch (JsonProcessingException ioe) {
-			throw new RuntimeException("failed to serialize " + dto + " from JSON; error: " + ioe.getMessage());
+			throw new RuntimeException("failed to serialize " + dto + " to JSON; error: " + ioe.getMessage());
 		}
 	}
 
@@ -134,7 +134,7 @@ public final class DTOFactory {
 				throw new RuntimeException(dto.getClass() + " is not supported in this flow");
 			}
 		} catch (JAXBException jaxbe) {
-			throw new RuntimeException("failed to serialize " + dto + " from JSON; error: " + jaxbe.getMessage());
+			throw new RuntimeException("failed to serialize " + dto + " to XML; error: " + jaxbe.getMessage());
 		}
 	}
 
