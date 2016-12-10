@@ -37,7 +37,6 @@ import com.hp.octane.integrations.dto.tests.BuildContext;
 import com.hp.octane.integrations.dto.tests.TestRun;
 import com.hp.octane.integrations.dto.tests.TestRunError;
 import com.hp.octane.integrations.dto.tests.TestRunResult;
-import com.hp.octane.plugins.bamboo.api.OctaneConfigurationKeys;
 
 import java.util.ArrayList;
 import java.util.List;
