@@ -1,9 +1,7 @@
 package com.hp.mqm.atrf;
 
-import com.hp.mqm.atrf.alm.services.AlmWrapperService;
 import com.hp.mqm.atrf.core.configuration.CliParser;
 import com.hp.mqm.atrf.core.configuration.FetchConfiguration;
-import com.hp.mqm.atrf.octane.services.OctaneWrapperService;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -19,9 +17,7 @@ import java.net.URISyntaxException;
 public class Main {
 
     static final Logger logger = LogManager.getLogger();
-    private static FetchConfiguration configuration;
-    private static AlmWrapperService almWrapper;
-    private static OctaneWrapperService octaneWrapper;
+
 
     public static void main(String[] args) {
 
@@ -29,48 +25,11 @@ public class Main {
         setUncaughtExceptionHandler();
 
         CliParser cliParser = new CliParser();
-        configuration = cliParser.parse(args);
-
-        loginToAlm();
-        loginToOctane();
-
-        almWrapper.fetchRunsAndRelatedEntities(configuration);
+        FetchConfiguration configuration = cliParser.parse(args);
+        App app = new App(configuration);
+        app.start();
     }
 
-    private static void loginToAlm() {
-        logger.info("ALM : Validating login configuration ...");
-        almWrapper = new AlmWrapperService(configuration.getAlmServerUrl(), configuration.getAlmDomain(), configuration.getAlmProject());
-        if (almWrapper.login(configuration.getAlmUser(), configuration.getAlmPassword())) {
-
-            logger.info("ALM : Login successful");
-            if (almWrapper.validateConnectionToProject()) {
-                logger.info("ALM : Connected to ALM project successfully");
-            } else {
-                throw new RuntimeException("ALM : Failed to connect to ALM Project.");
-            }
-        } else {
-            throw new RuntimeException("ALM : Failed to login");
-        }
-    }
-
-    private static void loginToOctane() {
-        logger.info("Octane : Validating login configuration ...");
-        long sharedSpaceId = Long.parseLong(configuration.getOctaneSharedSpaceId());
-        long workspaceId = Long.parseLong(configuration.getOctaneWorkspaceId());
-
-        octaneWrapper = new OctaneWrapperService(configuration.getOctaneServerUrl(), sharedSpaceId, workspaceId);
-        if (octaneWrapper.login(configuration.getOctaneUser(), configuration.getOctanePassword())) {
-
-            logger.info("Octane : Login successful");
-            if (octaneWrapper.validateConnectionToWorkspace()) {
-                logger.info("Octane : Connected to Octane project successfully");
-            } else {
-                throw new RuntimeException("Octane : Failed to connect to Octane Workspace.");
-            }
-        } else {
-            throw new RuntimeException("Octane : Failed to login");
-        }
-    }
 
     private static void setUncaughtExceptionHandler() {
         Thread.currentThread().setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {

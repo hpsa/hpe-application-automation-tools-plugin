@@ -9,7 +9,6 @@ public class NgaInjectionEntity {
 
     private String testName;//test name + test configuration, if Test name =Test configuration, just keep test name
     private String testingToolType;//test type
-    private String testDescription;//test description
     private String packageValue;//project
     private String classValue;//test path (not equal to test URL)
     private String component;//domain
@@ -40,14 +39,6 @@ public class NgaInjectionEntity {
 
     public void setTestingToolType(String testingToolType) {
         this.testingToolType = testingToolType;
-    }
-
-    public String getTestDescription() {
-        return testDescription;
-    }
-
-    public void setTestDescription(String testDescription) {
-        this.testDescription = testDescription;
     }
 
     public String getPackageValue() {
