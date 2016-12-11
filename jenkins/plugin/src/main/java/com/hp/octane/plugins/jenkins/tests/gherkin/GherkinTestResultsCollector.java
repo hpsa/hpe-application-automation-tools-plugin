@@ -1,11 +1,11 @@
 package com.hp.octane.plugins.jenkins.tests.gherkin;
 
+import com.hp.octane.plugins.jenkins.actions.cucumber.CucumberResultsService;
 import com.hp.octane.plugins.jenkins.tests.CustomTestResult;
 import com.hp.octane.plugins.jenkins.tests.TestResult;
 import com.hp.octane.plugins.jenkins.tests.TestResultStatus;
 import com.hp.octane.plugins.jenkins.tests.TestResultsExcluder;
 import hudson.FilePath;
-import hudson.model.AbstractBuild;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -26,9 +26,6 @@ import java.util.Map;
  * Created by franksha on 20/03/2016.
  */
 public class GherkinTestResultsCollector implements TestResultsExcluder {
-
-    public static final String RESULTS_FOLDER = "octane_gherkin_results";
-    public static final String GHERKIN_NGA_RESULTS = "gherkinOctaneResults";
 
     private Map<String, List<String>> gherkinTestsByFeature;
     private Map<String, List<String>> gherkinTestsByScenario;
@@ -67,12 +64,12 @@ public class GherkinTestResultsCollector implements TestResultsExcluder {
     private List<CustomTestResult> collectGherkinTestsResults(File buildDir) throws ParserConfigurationException, IOException, InterruptedException, SAXException, TransformerException {
         List<CustomTestResult> result = new ArrayList<CustomTestResult>();
 
-        //Retrieve the gherkin results xml
+        //Retrieve the cucumber results xml
         int i = 0;
-        FilePath gherkinTestResultsFilePath = new FilePath(buildDir).child(GHERKIN_NGA_RESULTS + i + ".xml");
+        FilePath gherkinTestResultsFilePath = new FilePath(buildDir).child(CucumberResultsService.getGherkinResultFileName(i));
 
         while (gherkinTestResultsFilePath.exists()) {
-            String gherkinTestResultsPath = buildDir.getAbsolutePath() + File.separator + GHERKIN_NGA_RESULTS + i + ".xml";
+            String gherkinTestResultsPath = buildDir.getAbsolutePath() + File.separator + CucumberResultsService.getGherkinResultFileName(i);
 
             //parse the xml
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -176,7 +173,7 @@ public class GherkinTestResultsCollector implements TestResultsExcluder {
             }
 
             i++;
-            gherkinTestResultsFilePath = new FilePath(buildDir).child(GHERKIN_NGA_RESULTS + i + ".xml");
+            gherkinTestResultsFilePath = new FilePath(buildDir).child(CucumberResultsService.getGherkinResultFileName(i));
         } //end while
 
         return result;

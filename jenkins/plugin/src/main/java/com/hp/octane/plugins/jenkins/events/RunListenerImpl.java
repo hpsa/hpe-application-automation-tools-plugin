@@ -13,7 +13,6 @@ import com.hp.octane.plugins.jenkins.model.processors.builders.WorkFlowRunProces
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import com.hp.octane.plugins.jenkins.model.processors.projects.JobProcessorFactory;
 import com.hp.octane.plugins.jenkins.tests.TestListener;
-import com.hp.octane.plugins.jenkins.tests.gherkin.GherkinEventsService;
 import hudson.Extension;
 import hudson.matrix.MatrixConfiguration;
 import hudson.matrix.MatrixRun;
@@ -130,7 +129,6 @@ public final class RunListenerImpl extends RunListener<Run> {
 					.setResult(result)
 					.setDuration(build.getDuration());
 			EventsService.getExtensionInstance().dispatchEvent(event);
-			GherkinEventsService.copyGherkinTestResultsToBuildDir(build);
 			testListener.processBuild(build, listener);
 		} else if (r.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowRun")) {
 			CIEvent event = dtoFactory.newDTO(CIEvent.class)
