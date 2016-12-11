@@ -5,7 +5,6 @@ import com.hp.mqm.atrf.alm.entities.*;
 import com.hp.mqm.atrf.alm.services.querybuilder.QueryBuilder;
 import com.hp.mqm.atrf.core.configuration.FetchConfiguration;
 import com.hp.mqm.atrf.core.rest.RestConnector;
-import com.hp.mqm.atrf.octane.entities.NgaInjectionEntity;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,24 +24,17 @@ public class AlmWrapperService {
     private Map<String, Test> tests = new HashMap<>();
     private Map<String, TestConfiguration> testConfigurations = new HashMap<>();
     private List<Run> runs = new ArrayList<>();
-    private Map<String, String> alm2OctaneTestingToolMapper = new HashMap<>();
 
-    RestConnector restConnector;
     AlmEntityService almEntityService;
 
     public AlmWrapperService(String almBaseUrl, String domain, String project) {
 
-        restConnector = new RestConnector();
+        RestConnector restConnector = new RestConnector();
         restConnector.setBaseUrl(almBaseUrl);
 
         almEntityService = new AlmEntityService(restConnector);
         almEntityService.setDomain(domain);
         almEntityService.setProject(project);
-
-        alm2OctaneTestingToolMapper.put("MANUAL", "Manual");
-        alm2OctaneTestingToolMapper.put("LEANFT-TEST", "LeanFT");
-        alm2OctaneTestingToolMapper.put("QUICKTEST_TEST", "UFT");
-        alm2OctaneTestingToolMapper.put("BUSINESS-PROCESS", "BPT");
     }
 
     public void fetchRunsAndRelatedEntities(FetchConfiguration configuration) {
@@ -88,10 +80,6 @@ public class AlmWrapperService {
 
         globalEnd = System.currentTimeMillis();
         logger.info(String.format("Fetching from alm is done, total time %d ms", globalEnd - globalStart));
-
-        List<NgaInjectionEntity> runsForInjection = prepareRunsForInjection();
-
-
     }
 
     private QueryBuilder buildRunFilter(FetchConfiguration configuration) {
@@ -158,7 +146,6 @@ public class AlmWrapperService {
         return ids;
     }
 
-
     private Set<String> getIdsNotIncludedInSet(Collection<? extends AlmEntity> entities, String keyFieldName, Collection<String> ids) {
         Set<String> notIncludedIds = new HashSet<>();
         for (AlmEntity entity : entities) {
@@ -217,7 +204,6 @@ public class AlmWrapperService {
         return ids;
     }
 
-
     public List<Run> fetchRuns(QueryBuilder queryBuilder) { // maxPages = -1 --> fetch all runs
 
         QueryBuilder qb = QueryBuilder.create();
@@ -267,81 +253,39 @@ public class AlmWrapperService {
         }
     }
 
-    private List<NgaInjectionEntity> prepareRunsForInjection() {
-        List<NgaInjectionEntity> list = new ArrayList<>();
-
-        for (Run run : runs) {
-
-            Test test = tests.get(run.getTestId());
-            TestSet testSet = testSets.get(run.getTestSetId());
-            TestConfiguration testConfiguration = testConfigurations.get(run.getTestConfigId());
-
-            Release release = null;
-            if (StringUtils.isNotEmpty(run.getSprintId())) {
-                Sprint sprint = sprints.get(run.getSprintId());
-                release = releases.get(sprint.getReleaseId());
-            }
-
-            /*private String testName;
-            private String testingToolType;//test type
-            private String testDescription;//test description
-            private String packageValue;//project
-            private String classValue;//test path (not equal to test URL)
-            private String component;//domain
-            private String testLastModified;//test last modified
-
-            private String duration;//run duration
-            private List<String> environment;//testSet name
-            private String externalReportUrl;//run url to alm
-            private String runName;//alm Run ID\ alm Run Name
-            private String releaseId;
-            private String releaseName;
-            private String startedTime;
-            private String status;
-            private String runBy;
-            private String draftRun;*/
-
-            NgaInjectionEntity injectionEntity = new NgaInjectionEntity();
-            list.add(injectionEntity);
-
-            String testingTool = alm2OctaneTestingToolMapper.get(test.getSubType());
-            injectionEntity.setTestingToolType(testingTool);
-            injectionEntity.setTestDescription(test.getDescription());
-            injectionEntity.setPackageValue(almEntityService.getProject());
-            injectionEntity.setComponent(almEntityService.getDomain());
-            injectionEntity.setClassValue(test.getId() + "_" + test.getName());
-
-            //test name + test configuration, if Test name =Test configuration, just keep test name
-            String testName = testConfiguration.getName().equals(test.getName()) ? test.getName() : test.getName() + "_" + testConfiguration.getName();
-            injectionEntity.setTestName(testName);
-
-
-            injectionEntity.setDuration(run.getDuration());
-            Map<String, String> environment = new HashMap<>();
-            injectionEntity.setEnvironment(environment);
-            environment.put("test-set", testSet.getName());
-            if (StringUtils.isNotEmpty(run.getOsName())) {
-                environment.put("os", run.getOsName());
-            }
-
-
-            injectionEntity.setExternalReportUrl(almEntityService.generateALMReferenceURL(run));
-            injectionEntity.setRunName(run.getId() + "_" + run.getName());
-
-            if (release != null) {
-                injectionEntity.setReleaseId(release.getId());
-                injectionEntity.setReleaseName(release.getName());
-
-            }
-
-            injectionEntity.setStartedTime(run.getExecutionDate() + " " + run.getExecutionTime());
-            injectionEntity.setStatus(run.getStatus());
-            injectionEntity.setRunBy(run.getExecutor());
-            injectionEntity.setDraftRun(run.getDraft());
-        }
-
-        return list;
+    public Release getRelease(String key) {
+        return releases.get(key);
     }
 
+    public TestSet getTestSet(String key) {
+        return testSets.get(key);
+    }
 
+    public Sprint getSprint(String key) {
+        return sprints.get(key);
+    }
+
+    public Test getTest(String key) {
+        return tests.get(key);
+    }
+
+    public TestConfiguration getTestConfiguration(String key) {
+        return testConfigurations.get(key);
+    }
+
+    public List<Run> getRuns() {
+        return runs;
+    }
+
+    public String getDomain() {
+        return almEntityService.getDomain();
+    }
+
+    public String getProject() {
+        return almEntityService.getProject();
+    }
+
+    public String generateALMReferenceURL(AlmEntity entity) {
+        return almEntityService.generateALMReferenceURL(entity);
+    }
 }
