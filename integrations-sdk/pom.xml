@@ -77,7 +77,9 @@
 				<executions>
 					<execution>
 						<id>test-jar</id>
-						<goals><goal>test-jar</goal></goals>
+						<goals>
+							<goal>test-jar</goal>
+						</goals>
 						<configuration>
 							<includes>
 								<include>

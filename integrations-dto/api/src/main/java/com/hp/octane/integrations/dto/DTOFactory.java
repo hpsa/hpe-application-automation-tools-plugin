@@ -27,10 +27,10 @@ public final class DTOFactory {
 		ServiceLoader<DTOInternalProviderBase> dtoProvidersLoader = ServiceLoader.load(DTOInternalProviderBase.class, getClass().getClassLoader());
 		SimpleAbstractTypeResolver resolver = new SimpleAbstractTypeResolver();
 		for (DTOInternalProviderBase dtoProvider : dtoProvidersLoader) {
-			for (Class<? extends DTOBase> dto : dtoProvider.getJSONAbleDTOs()) {
-				registry.put(dto, dtoProvider);
+			for (Map.Entry<Class<? extends DTOBase>, Class> dtoPair : dtoProvider.getDTOPairs().entrySet()) {
+				registry.put(dtoPair.getKey(), dtoProvider);
+				resolver.addMapping(dtoPair.getKey(), dtoPair.getValue());
 			}
-			dtoProvider.provideImplResolvingMap(resolver);
 		}
 		SimpleModule module = new SimpleModule();
 		module.setAbstractTypes(resolver);

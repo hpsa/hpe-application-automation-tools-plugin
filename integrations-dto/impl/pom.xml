@@ -20,13 +20,6 @@
 			<version>${project.version}</version>
 		</dependency>
 
-		<!-- EXTERNAL -->
-		<dependency>
-			<artifactId>jackson-databind</artifactId>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<version>${jackson.version}</version>
-		</dependency>
-
 	</dependencies>
 
 </project>
