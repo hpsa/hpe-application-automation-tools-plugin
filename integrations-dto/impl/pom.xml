@@ -4,6 +4,7 @@
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<parent>
 		<artifactId>indi-integrations-root</artifactId>
+		<relativePath>../../pom.xml</relativePath>
 		<groupId>com.hp.mqm</groupId>
 		<version>12.53.18-SNAPSHOT</version>
 	</parent>
