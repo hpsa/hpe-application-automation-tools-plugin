@@ -45,6 +45,7 @@ public class AlmEntityService {
         typesMap.put(Test.TYPE, new TestDescriptor());
         typesMap.put(Sprint.TYPE, new SprintDescriptor());
         typesMap.put(TestConfiguration.TYPE, new TestConfigurationDescriptor());
+        typesMap.put(TestFolder.TYPE, new TestFolderDescriptor());
     }
 
     public int getTotalNumber(String collectionName, QueryBuilder queryBuilder) {

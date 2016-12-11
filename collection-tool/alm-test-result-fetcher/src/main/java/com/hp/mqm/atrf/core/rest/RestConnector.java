@@ -4,6 +4,7 @@
 package com.hp.mqm.atrf.core.rest;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -132,7 +133,7 @@ public class RestConnector {
 
             updateCookies(ret);
 
-            if (ret.getStatusCode() != 200 && ret.getStatusCode() != 201) {
+            if (ret.getStatusCode() !=  HttpStatus.SC_OK && ret.getStatusCode() !=  HttpStatus.SC_CREATED && ret.getStatusCode() != HttpStatus.SC_ACCEPTED) {
                 throw new RestStatusException(ret);
             }
 

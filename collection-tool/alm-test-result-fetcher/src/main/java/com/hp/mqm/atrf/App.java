@@ -3,16 +3,28 @@ package com.hp.mqm.atrf;
 import com.hp.mqm.atrf.alm.entities.*;
 import com.hp.mqm.atrf.alm.services.AlmWrapperService;
 import com.hp.mqm.atrf.core.configuration.FetchConfiguration;
-import com.hp.mqm.atrf.octane.entities.NgaInjectionEntity;
+import com.hp.mqm.atrf.octane.core.OctaneTestResultOutput;
+import com.hp.mqm.atrf.octane.entities.TestRunResultEntity;
 import com.hp.mqm.atrf.octane.services.OctaneWrapperService;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.File;
+import java.io.StringWriter;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * Created by berkovir on 08/12/2016.
@@ -24,12 +36,16 @@ public class App {
     private OctaneWrapperService octaneWrapper;
 
     private Map<String, String> alm2OctaneTestingToolMapper = new HashMap<>();
+    private DateFormat DATE_TIME_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//2016-03-22 11:34:23
+    private DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");//2016-03-22 11:34:23
 
+    private final String OCTANE_RUN_SKIPPED_STATUS = "Skipped";
+    private Set<String> OCTANE_RUN_VALID_STATUS = new HashSet<>(Arrays.asList("Passed", "Failed"));
 
     public App(FetchConfiguration configuration) {
         this.configuration = configuration;
 
-        alm2OctaneTestingToolMapper.put("MANUAL", "Manual");
+        alm2OctaneTestingToolMapper.put("MANUAL", "Selenium"/*"Manual"*/);
         alm2OctaneTestingToolMapper.put("LEANFT-TEST", "LeanFT");
         alm2OctaneTestingToolMapper.put("QUICKTEST_TEST", "UFT");
         alm2OctaneTestingToolMapper.put("BUSINESS-PROCESS", "BPT");
@@ -41,7 +57,51 @@ public class App {
         loginToOctane();
 
         almWrapper.fetchRunsAndRelatedEntities(configuration);
-        List<NgaInjectionEntity> ngaRuns = prepareRunsForInjection();
+        List<TestRunResultEntity> ngaRuns = prepareRunsForInjection();
+
+        if (StringUtils.isNotEmpty(configuration.getOutputFile())) {
+            saveResults(configuration, ngaRuns);
+        } else {
+            sendResults(configuration, ngaRuns);
+        }
+    }
+
+    private void saveResults(FetchConfiguration configuration, List<TestRunResultEntity> runResults) {
+        File file = new File(configuration.getOutputFile());
+        StreamResult result = new StreamResult(file);
+        convertToXml(runResults, result, true);
+        logger.info("The results are saved to  : " + file.getAbsolutePath());
+    }
+
+    private void sendResults(FetchConfiguration configuration, List<TestRunResultEntity> runResults) {
+        int bulkSize = Integer.parseInt(configuration.getSyncBulkSize());
+        int sleepSize = Integer.parseInt(configuration.getSyncSleepBetweenPosts());
+
+        long startTime = System.currentTimeMillis();
+        for (int i = 0; i < runResults.size(); i += bulkSize) {
+            int subListStart = i;
+            int subListEnd = Math.min(subListStart + bulkSize, runResults.size());
+            List<TestRunResultEntity> subList = runResults.subList(subListStart, subListEnd);
+
+            StringWriter writer = new StringWriter();
+            StreamResult result = new StreamResult(writer);
+
+            convertToXml(subList, result, false);
+            String xmlData = writer.toString();
+            OctaneTestResultOutput output = octaneWrapper.postTestResults(xmlData);
+            logger.info(String.format("Sent bulk #%s of %s runs , run ids from %s to %s : %s",
+                    i / bulkSize + 1, subList.size(), subList.get(0).getRunId(), subList.get(subList.size() - 1).getRunId(), output.getStatus()));
+            try {
+                Thread.sleep(sleepSize);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        long endTime = System.currentTimeMillis();
+        logger.info(String.format("Sent %s runs , total time %s ms", runResults.size(), endTime - startTime));
+
+
     }
 
     private void loginToAlm() {
@@ -79,80 +139,131 @@ public class App {
         }
     }
 
-    private List<NgaInjectionEntity> prepareRunsForInjection() {
-        List<NgaInjectionEntity> list = new ArrayList<>();
+    private List<TestRunResultEntity> prepareRunsForInjection() {
+        List<TestRunResultEntity> list = new ArrayList<>();
 
         for (Run run : almWrapper.getRuns()) {
 
+            //preparation
             Test test = almWrapper.getTest(run.getTestId());
+            TestFolder testFolder = almWrapper.getTestFolder(test.getTestFolderId());
             TestSet testSet = almWrapper.getTestSet(run.getTestSetId());
             TestConfiguration testConfiguration = almWrapper.getTestConfiguration(run.getTestConfigId());
 
-            Release release = null;
-            if (StringUtils.isNotEmpty(run.getSprintId())) {
-                Sprint sprint = almWrapper.getSprint(run.getSprintId());
-                release = almWrapper.getRelease(sprint.getReleaseId());
-            }
 
-            NgaInjectionEntity injectionEntity = new NgaInjectionEntity();
-            list.add(injectionEntity);
+            TestRunResultEntity injectionEntity = new TestRunResultEntity();
+            injectionEntity.setRunId(run.getId());
 
-            //TEST NAME
+            //TEST FIELDS
             //test name + test configuration, if Test name =Test configuration, just keep test name
-            String testName = String.format("AlmTestId #%s : %s", test.getId(),test.getName());
-            if(!testConfiguration.getName().equals(test.getName())) {
-                testName = String.format("AlmTestId #%s, ConfId#%s : %s - %s", test.getId(), testConfiguration.getId(), test.getName(), testConfiguration.getName());
+            String testName = String.format("AlmTestId #%s : %s", test.getId(), test.getName());
+            if (!testConfiguration.getName().equals(test.getName())) {
+                testName = String.format("AlmTestId %s, ConfId %s : %s - %s", test.getId(), testConfiguration.getId(), test.getName(), testConfiguration.getName());
             }
             testName = restrictTo255(testName);
             injectionEntity.setTestName(testName);
 
-            //TESTING TOOL
-            String testingTool = alm2OctaneTestingToolMapper.get(test.getSubType());
-            injectionEntity.setTestingToolType(testingTool);
-
-            //PACKAGE AND COMPONENT
+            injectionEntity.setTestingToolType(alm2OctaneTestingToolMapper.get(test.getSubType()));
             injectionEntity.setPackageValue(almWrapper.getProject());
-            injectionEntity.setComponent(almWrapper.getDomain());
-
-            //CLASS NAME
-            injectionEntity.setClassValue(test.getId() + "_" + test.getName());
+            injectionEntity.setModule(almWrapper.getDomain());
+            injectionEntity.setClassValue(testFolder.getName());
 
 
-
-
+            //RUN FIELDS
             injectionEntity.setDuration(run.getDuration());
-            Map<String, String> environment = new HashMap<>();
-            injectionEntity.setEnvironment(environment);
-            environment.put("test-set", testSet.getName());
-            if (StringUtils.isNotEmpty(run.getOsName())) {
-                environment.put("os", run.getOsName());
-            }
-
-
+            injectionEntity.setRunName(restrictTo255(String.format("AlmTestSet %s : %s", testSet.getId(), testSet.getName())));
             injectionEntity.setExternalReportUrl(almWrapper.generateALMReferenceURL(run));
-            injectionEntity.setRunName(run.getId() + "_" + run.getName());
 
-            if (release != null) {
-                injectionEntity.setReleaseId(release.getId());
-                injectionEntity.setReleaseName(release.getName());
 
+            Date startedDate = null;
+            try {
+                startedDate = DATE_TIME_FORMAT.parse(run.getExecutionDate() + " " + run.getExecutionTime());
+            } catch (ParseException e) {
+                try {
+                    startedDate = DATE_FORMAT.parse(run.getExecutionDate());
+                } catch (ParseException e1) {
+                    throw new RuntimeException(String.format("Failed to convert run execution date '%s' to Java Date : %s", run.getExecutionDate(), e1.getMessage()));
+                }
             }
+            injectionEntity.setStartedTime(Long.toString(startedDate.getTime()));
 
-            injectionEntity.setStartedTime(run.getExecutionDate() + " " + run.getExecutionTime());
-            injectionEntity.setStatus(run.getStatus());
-            injectionEntity.setRunBy(run.getExecutor());
-            injectionEntity.setDraftRun(run.getDraft());
+            String status = OCTANE_RUN_VALID_STATUS.contains(run.getStatus()) ? run.getStatus() : OCTANE_RUN_SKIPPED_STATUS;
+            injectionEntity.setStatus(status);
+
+            injectionEntity.validateEntity();
+            list.add(injectionEntity);
         }
 
         return list;
     }
 
     private String restrictTo255(String value) {
-        if(value==null || value.length()<=255){
+        if (value == null || value.length() <= 255) {
             return value;
         }
 
-        return value.substring(0,255);
+        return value.substring(0, 255);
+    }
+
+    private void convertToXml(List<TestRunResultEntity> runResults, StreamResult result, boolean formatXml) {
+
+        try {
+            DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+
+            // root elements
+            Document doc = docBuilder.newDocument();
+            Element rootElement = doc.createElement("test_result");
+            doc.appendChild(rootElement);
+
+
+            Element testRuns = doc.createElement("test_runs");
+            rootElement.appendChild(testRuns);
+
+            for (TestRunResultEntity runResult : runResults) {
+                Element testRun = doc.createElement("test_run");
+                testRuns.appendChild(testRun);
+
+                testRun.setAttribute("module", runResult.getModule());
+                testRun.setAttribute("package", runResult.getPackageValue());
+                testRun.setAttribute("class", runResult.getClassValue());
+                testRun.setAttribute("name", runResult.getTestName());
+
+                testRun.setAttribute("duration", runResult.getDuration());
+                testRun.setAttribute("status", runResult.getStatus());
+                testRun.setAttribute("started", runResult.getStartedTime());
+                testRun.setAttribute("external_report_url", runResult.getExternalReportUrl());
+                testRun.setAttribute("run_name", runResult.getRunName());
+                //ERROR????
+
+                Element testFields = doc.createElement("test_fields");
+                testRun.appendChild(testFields);
+
+                if (StringUtils.isNotEmpty(runResult.getTestingToolType())) {
+                    Element testField = doc.createElement("test_field");
+                    testFields.appendChild(testField);
+                    testField.setAttribute("type", "Testing_Tool_Type");
+                    testField.setAttribute("value", runResult.getTestingToolType());
+                }
+
+            }
+
+
+            // write the content into xml file
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            if (formatXml) {
+                transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+                //transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+            }
+
+
+            DOMSource source = new DOMSource(doc);
+
+            transformer.transform(source, result);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
     }
 
 }
