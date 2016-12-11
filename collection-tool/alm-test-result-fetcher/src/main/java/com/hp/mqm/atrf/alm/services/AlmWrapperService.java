@@ -22,6 +22,7 @@ public class AlmWrapperService {
     private Map<String, TestSet> testSets = new HashMap<>();
     private Map<String, Sprint> sprints = new HashMap<>();
     private Map<String, Test> tests = new HashMap<>();
+    private Map<String, TestFolder> testFolders = new HashMap<>();
     private Map<String, TestConfiguration> testConfigurations = new HashMap<>();
     private List<Run> runs = new ArrayList<>();
 
@@ -59,6 +60,12 @@ public class AlmWrapperService {
         logger.info(String.format("Fetch tests : %d, total time %d ms", testsIds.size(), end - start));
 
         start = System.currentTimeMillis();
+        Set<String> testFoldersIds = fetchTestFolders();
+        end = System.currentTimeMillis();
+        logger.info(String.format("Fetch test folders : %d, total time %d ms", testFoldersIds.size(), end - start));
+
+
+        start = System.currentTimeMillis();
         Set<String> testSetIds = fetchTestSets();
         end = System.currentTimeMillis();
         logger.info(String.format("Fetch test sets : %d, total time %d ms", testSetIds.size(), end - start));
@@ -68,7 +75,7 @@ public class AlmWrapperService {
         end = System.currentTimeMillis();
         logger.info(String.format("Fetch test configs : %d, total time %d ms", testConfigsIds.size(), end - start));
 
-        start = System.currentTimeMillis();
+        /*start = System.currentTimeMillis();
         Set<String> sprintIds = fetchSprints();
         end = System.currentTimeMillis();
         logger.info(String.format("Fetch sprints : %d, total time %d ms", sprintIds.size(), end - start));
@@ -77,6 +84,7 @@ public class AlmWrapperService {
         Set<String> releaseIds = fetchReleases();
         end = System.currentTimeMillis();
         logger.info(String.format("Fetch releases : %d, total time %d ms", releaseIds.size(), end - start));
+        */
 
         globalEnd = System.currentTimeMillis();
         logger.info(String.format("Fetching from alm is done, total time %d ms", globalEnd - globalStart));
@@ -110,7 +118,7 @@ public class AlmWrapperService {
 
             if (configuration.getAlmRunFilterRelatedEntityType().equals("release")) {
                 //fetch sprints of the release
-                QueryBuilder sprintQb = QueryBuilder.create().addQueryCondition(Sprint.FIELD_RELEASE_ID, configuration.getAlmRunFilterRelatedEntityId()).addSelectedFields("id");
+                QueryBuilder sprintQb = QueryBuilder.create().addQueryCondition(Sprint.FIELD_PARENT_ID, configuration.getAlmRunFilterRelatedEntityId()).addSelectedFields("id");
                 List<AlmEntity> sprints = almEntityService.getAllPagedEntities(Sprint.COLLECTION_NAME, sprintQb, 1000);
                 Set<String> sprintIds = new HashSet<>();
                 for (AlmEntity sprint : sprints) {
@@ -136,13 +144,24 @@ public class AlmWrapperService {
     private Set<String> fetchTests() {
         Set<String> ids = getIdsNotIncludedInSet(runs, Run.FIELD_TEST_ID, tests.keySet());
         if (!ids.isEmpty()) {
-            List<String> fields = Arrays.asList(Test.FIELD_NAME);
+            List<String> fields = Arrays.asList(Test.FIELD_NAME, Test.FIELD_PARENT_ID, Test.FIELD_SUBTYPE);
             List<AlmEntity> myTests = almEntityService.getEntitiesByIds(Test.COLLECTION_NAME, ids, fields);
             for (AlmEntity test : myTests) {
                 tests.put(test.getId(), (Test) test);
             }
         }
 
+        return ids;
+    }
+
+    public Set<String> fetchTestFolders() {
+
+        Set<String> ids = getIdsNotIncludedInSet(tests.values(), Test.FIELD_PARENT_ID, testFolders.keySet());
+        List<String> fields = Arrays.asList(TestFolder.FIELD_NAME);
+        List<AlmEntity> myTestFolders = almEntityService.getEntitiesByIds(TestFolder.COLLECTION_NAME, ids, fields);
+        for (AlmEntity e : myTestFolders) {
+            testFolders.put(e.getId(), (TestFolder) e);
+        }
         return ids;
     }
 
@@ -160,7 +179,7 @@ public class AlmWrapperService {
     private Set<String> fetchSprints() {
         Set<String> ids = getIdsNotIncludedInSet(runs, Run.FIELD_SPRINT_ID, sprints.keySet());
         if (!ids.isEmpty()) {
-            List<String> fields = Arrays.asList(Sprint.FIELD_RELEASE_ID);
+            List<String> fields = Arrays.asList(Sprint.FIELD_PARENT_ID);
             List<AlmEntity> mySprints = almEntityService.getEntitiesByIds(Sprint.COLLECTION_NAME, ids, fields);
             for (AlmEntity e : mySprints) {
                 sprints.put(e.getId(), (Sprint) e);
@@ -195,7 +214,7 @@ public class AlmWrapperService {
 
     public Set<String> fetchReleases() {
 
-        Set<String> ids = getIdsNotIncludedInSet(sprints.values(), Sprint.FIELD_RELEASE_ID, releases.keySet());
+        Set<String> ids = getIdsNotIncludedInSet(sprints.values(), Sprint.FIELD_PARENT_ID, releases.keySet());
         List<String> fields = Arrays.asList(Release.FIELD_NAME);
         List<AlmEntity> myReleases = almEntityService.getEntitiesByIds(Release.COLLECTION_NAME, ids, fields);
         for (AlmEntity e : myReleases) {
@@ -265,6 +284,11 @@ public class AlmWrapperService {
         return sprints.get(key);
     }
 
+
+    public TestFolder getTestFolder(String key) {
+        return testFolders.get(key);
+    }
+
     public Test getTest(String key) {
         return tests.get(key);
     }
@@ -288,4 +312,5 @@ public class AlmWrapperService {
     public String generateALMReferenceURL(AlmEntity entity) {
         return almEntityService.generateALMReferenceURL(entity);
     }
+
 }

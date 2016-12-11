@@ -13,6 +13,7 @@ public class Test extends AlmEntity {
     public static String FIELD_SUBTYPE = "subtype-id";
 
 
+
     public Test() {
         super(TYPE);
     }
@@ -21,8 +22,8 @@ public class Test extends AlmEntity {
         return  getString(FIELD_SUBTYPE);
     }
 
-    public String getDescription(){
-        return  getString(FIELD_DESCRIPTION);
+    public String getTestFolderId() {
+        return getString(FIELD_PARENT_ID);
     }
 
 }

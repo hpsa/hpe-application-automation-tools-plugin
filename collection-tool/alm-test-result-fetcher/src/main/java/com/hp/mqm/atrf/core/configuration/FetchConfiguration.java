@@ -178,7 +178,7 @@ public class FetchConfiguration {
         if (StringUtils.isNotEmpty(bulkSizeStr)) {
             try {
                 bulkSize = Integer.parseInt(bulkSizeStr);
-                if (bulkSize <= SYNC_BULK_SIZE_MIN || bulkSize >= SYNC_BULK_SIZE_MAX) {
+                if (bulkSize < SYNC_BULK_SIZE_MIN || bulkSize > SYNC_BULK_SIZE_MAX) {
                     bulkSize = SYNC_BULK_SIZE_DEFAULT;
                 }
             } catch (Exception e) {
@@ -193,8 +193,8 @@ public class FetchConfiguration {
         int sleepBetweenPosts = SYNC_SLEEP_BETWEEN_POSTS_DEFAULT;
         if (StringUtils.isNotEmpty(sleepBetweenPostsStr)) {
             try {
-                sleepBetweenPosts = Integer.parseInt(bulkSizeStr);
-                if (sleepBetweenPosts <= SYNC_SLEEP_BETWEEN_POSTS_MIN || sleepBetweenPosts >= SYNC_SLEEP_BETWEEN_POSTS_MAX) {
+                sleepBetweenPosts = Integer.parseInt(sleepBetweenPostsStr);
+                if (sleepBetweenPosts < SYNC_SLEEP_BETWEEN_POSTS_MIN || sleepBetweenPosts > SYNC_SLEEP_BETWEEN_POSTS_MAX) {
                     sleepBetweenPosts = SYNC_SLEEP_BETWEEN_POSTS_DEFAULT;
                 }
             } catch (Exception e) {

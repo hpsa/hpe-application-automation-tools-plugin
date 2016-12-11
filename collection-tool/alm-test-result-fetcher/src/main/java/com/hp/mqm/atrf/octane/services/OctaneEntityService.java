@@ -8,6 +8,7 @@ import com.hp.mqm.atrf.core.rest.RestConnector;
 import com.hp.mqm.atrf.octane.core.OctaneEntity;
 import com.hp.mqm.atrf.octane.core.OctaneEntityCollection;
 import com.hp.mqm.atrf.octane.core.OctaneEntityDescriptor;
+import com.hp.mqm.atrf.octane.core.OctaneTestResultOutput;
 import com.hp.mqm.atrf.octane.entities.*;
 import org.apache.http.HttpStatus;
 import org.json.JSONArray;
@@ -103,6 +104,22 @@ public class OctaneEntityService {
         JSONObject jsonObj = new JSONObject(entitiesCollectionStr);
         OctaneEntityCollection col = parseCollection(jsonObj);
         return col;
+    }
+
+    public OctaneTestResultOutput postTestResults(String data) {
+        String entityCollectionUrl = String.format(OctaneRestConstants.PUBLIC_API_WORKSPACE_LEVEL_ENTITIES, getSharedSpaceId(), getWorkspaceId(), "test-results");
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put(HTTPUtils.HEADER_ACCEPT, HTTPUtils.HEADER_APPLICATION_JSON);
+        headers.put(HTTPUtils.HEADER_CONTENT_TYPE, HTTPUtils.HEADER_APPLICATION_XML);
+
+        String responseStr = restConnector.httpPost(entityCollectionUrl, data, headers).getResponseData();
+        JSONObject jsonObj = new JSONObject(responseStr);
+
+        OctaneTestResultOutput  result = new OctaneTestResultOutput();
+        result.put(OctaneTestResultOutput.FIELD_ID, jsonObj.get(OctaneTestResultOutput.FIELD_ID));
+        result.put(OctaneTestResultOutput.FIELD_STATUS, jsonObj.get(OctaneTestResultOutput.FIELD_STATUS));
+        return result;
     }
 
     private OctaneEntityCollection parseCollection(JSONObject jsonObj) {
