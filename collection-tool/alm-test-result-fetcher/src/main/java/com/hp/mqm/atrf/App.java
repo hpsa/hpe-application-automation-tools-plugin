@@ -45,7 +45,7 @@ public class App {
     public App(FetchConfiguration configuration) {
         this.configuration = configuration;
 
-        alm2OctaneTestingToolMapper.put("MANUAL", "Selenium"/*"Manual"*/);
+        alm2OctaneTestingToolMapper.put("MANUAL", "Manual");
         alm2OctaneTestingToolMapper.put("LEANFT-TEST", "LeanFT");
         alm2OctaneTestingToolMapper.put("QUICKTEST_TEST", "UFT");
         alm2OctaneTestingToolMapper.put("BUSINESS-PROCESS", "BPT");
@@ -62,7 +62,42 @@ public class App {
         if (StringUtils.isNotEmpty(configuration.getOutputFile())) {
             saveResults(configuration, ngaRuns);
         } else {
-            sendResults(configuration, ngaRuns);
+            List<OctaneTestResultOutput> outputs = sendResults(configuration, ngaRuns);
+            getPersistanceStatus(configuration, outputs);
+        }
+    }
+
+    private void getPersistanceStatus(FetchConfiguration configuration,List<OctaneTestResultOutput> outputs) {
+
+        int sleepSize = Integer.parseInt(configuration.getSyncSleepBetweenPosts());
+        logger.info("Sent results are : ");
+        for (OctaneTestResultOutput output : outputs) {
+            boolean finished = false;
+            while (!finished) {
+                if (!output.getStatus().equals("success")) {
+                    try {
+                        output = octaneWrapper.getTestResultStatus(output);
+                    } catch (Exception e) {
+                        logger.info(String.format("Sent id %s : %s", output.getId(), "Failed to get final result"));
+                        finished = true;
+                        break;
+                    }
+
+                }
+
+                logger.info(String.format("Sent id %s : %s", output.getId(), output.getStatus()));
+
+                if (!(output.getStatus().equals("running") || output.getStatus().equals("queued"))) {
+                    finished = true;
+                } else {
+                    try {
+                        int timeToWait = Math.max(10000/*10 sec*/, sleepSize * 1000 * 3);
+                        Thread.sleep(timeToWait);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
         }
     }
 
@@ -73,9 +108,11 @@ public class App {
         logger.info("The results are saved to  : " + file.getAbsolutePath());
     }
 
-    private void sendResults(FetchConfiguration configuration, List<TestRunResultEntity> runResults) {
+    private  List<OctaneTestResultOutput> sendResults(FetchConfiguration configuration, List<TestRunResultEntity> runResults) {
         int bulkSize = Integer.parseInt(configuration.getSyncBulkSize());
         int sleepSize = Integer.parseInt(configuration.getSyncSleepBetweenPosts());
+
+        List<OctaneTestResultOutput> outputs = new ArrayList<>();
 
         long startTime = System.currentTimeMillis();
         for (int i = 0; i < runResults.size(); i += bulkSize) {
@@ -89,19 +126,22 @@ public class App {
             convertToXml(subList, result, false);
             String xmlData = writer.toString();
             OctaneTestResultOutput output = octaneWrapper.postTestResults(xmlData);
-            logger.info(String.format("Sent bulk #%s of %s runs , run ids from %s to %s : %s",
-                    i / bulkSize + 1, subList.size(), subList.get(0).getRunId(), subList.get(subList.size() - 1).getRunId(), output.getStatus()));
+            outputs.add(output);
+            //output.put("LIST", subList);
+            logger.info(String.format("Sending bulk #%s of %s runs , run ids from %s to %s : %s, sent id=%s",
+                    i / bulkSize + 1, subList.size(), subList.get(0).getRunId(), subList.get(subList.size() - 1).getRunId(), output.getStatus(), output.getId()));
             try {
-                Thread.sleep(sleepSize);
+                Thread.sleep(sleepSize * 1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
 
+
         long endTime = System.currentTimeMillis();
         logger.info(String.format("Sent %s runs , total time %s ms", runResults.size(), endTime - startTime));
 
-
+        return  outputs;
     }
 
     private void loginToAlm() {

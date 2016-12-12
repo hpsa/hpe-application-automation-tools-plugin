@@ -50,7 +50,8 @@ public class AlmWrapperService {
         logger.info(String.format("Expected runs : %d", expectedRuns));
 
         start = System.currentTimeMillis();
-        this.runs = fetchRuns(queryBuilder);
+        int fetchLimit = Integer.valueOf(configuration.getFetchLimit());
+        this.runs = fetchRuns(queryBuilder, fetchLimit);
         end = System.currentTimeMillis();
         logger.info(String.format("Fetch runs : %d, total time %d ms", runs.size(), end - start));
 
@@ -95,8 +96,11 @@ public class AlmWrapperService {
         //StartFromId
         if (StringUtils.isNotEmpty(configuration.getAlmRunFilterStartFromId())) {
             int startFromId = Integer.parseInt(configuration.getAlmRunFilterStartFromId());
-            qb.addQueryCondition("id", ">=" + startFromId);
+            if (startFromId > 0) {
+                qb.addQueryCondition("id", ">=" + startFromId);
+            }
         }
+
         //StartFromDate
         if (StringUtils.isNotEmpty(configuration.getAlmRunFilterStartFromDate())) {
             qb.addQueryCondition("execution-date", ">=" + configuration.getAlmRunFilterStartFromDate());
@@ -223,7 +227,7 @@ public class AlmWrapperService {
         return ids;
     }
 
-    public List<Run> fetchRuns(QueryBuilder queryBuilder) { // maxPages = -1 --> fetch all runs
+    public List<Run> fetchRuns(QueryBuilder queryBuilder, int fetchLimit) { // maxPages = -1 --> fetch all runs
 
         QueryBuilder qb = QueryBuilder.create();
         qb.addOrderBy(Run.FIELD_ID);
@@ -245,9 +249,13 @@ public class AlmWrapperService {
                 Run.FIELD_EXECUTOR);
         qb.addQueryConditions(queryBuilder.getQueryConditions());
 
-        List<AlmEntity> entities = almEntityService.getAllPagedEntities(Run.COLLECTION_NAME, qb, 10000);
+        int maxPages = fetchLimit / AlmEntityService.PAGE_SIZE + 1;
+        List<AlmEntity> entities = almEntityService.getAllPagedEntities(Run.COLLECTION_NAME, qb, maxPages);
         for (AlmEntity entity : entities) {
             runs.add((Run) entity);
+            if (runs.size() >= fetchLimit) {
+                break;
+            }
         }
 
         return runs;
