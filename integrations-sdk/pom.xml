@@ -72,23 +72,6 @@
 	<build>
 		<plugins>
 			<plugin>
-				<artifactId>maven-jar-plugin</artifactId>
-				<groupId>org.apache.maven.plugins</groupId>
-				<executions>
-					<execution>
-						<id>test-jar</id>
-						<goals><goal>test-jar</goal></goals>
-						<configuration>
-							<includes>
-								<include>
-									com/hp/octane/integrations/exported/tests/**
-								</include>
-							</includes>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
 				<version>2.4.3</version>
@@ -105,6 +88,25 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<artifactId>maven-jar-plugin</artifactId>
+				<groupId>org.apache.maven.plugins</groupId>
+				<executions>
+					<execution>
+						<id>test-jar</id>
+						<goals>
+							<goal>test-jar</goal>
+						</goals>
+						<configuration>
+							<includes>
+								<include>
+									com/hp/octane/integrations/exported/tests/**
+								</include>
+							</includes>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 		<resources>
 			<resource>
@@ -117,5 +119,32 @@
 			</resource>
 		</resources>
 	</build>
+
+	<profiles>
+		<profile>
+			<id>uber-jar</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-shade-plugin</artifactId>
+						<version>2.4.3</version>
+						<executions>
+							<execution>
+								<phase>package</phase>
+								<goals>
+									<goal>shade</goal>
+								</goals>
+								<configuration>
+									<minimizeJar>true</minimizeJar>
+									<createDependencyReducedPom>false</createDependencyReducedPom>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 
 </project>

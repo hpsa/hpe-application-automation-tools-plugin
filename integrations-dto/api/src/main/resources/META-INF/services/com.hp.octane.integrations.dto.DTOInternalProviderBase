@@ -1,0 +1,12 @@
+com.hp.octane.integrations.dto.causes.DTOCausesProvider
+com.hp.octane.integrations.dto.configuration.DTOConfigsProvider
+com.hp.octane.integrations.dto.connectivity.DTOConnectivityProvider
+com.hp.octane.integrations.dto.coverage.DTOCoverageProvider
+com.hp.octane.integrations.dto.events.DTOEventsProvider
+com.hp.octane.integrations.dto.general.DTOGeneralProvider
+com.hp.octane.integrations.dto.parameters.DTOParametersProvider
+com.hp.octane.integrations.dto.pipelines.DTOPipelinesProvider
+com.hp.octane.integrations.dto.scm.DTOSCMProvider
+com.hp.octane.integrations.dto.snapshots.DTOSnapshotsProvider
+com.hp.octane.integrations.dto.tests.DTOTestsProvider
+com.hp.octane.integrations.dto.tests.DTOJUnitTestsProvider

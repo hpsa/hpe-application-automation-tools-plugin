@@ -8,6 +8,8 @@ import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.causes.CIEventCause;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
+import com.hp.octane.integrations.dto.events.PhaseType;
+
 import java.util.Arrays;
 
 public class OctanePreJobAction extends BaseListener implements PreJobAction {
@@ -24,12 +26,13 @@ public class OctanePreJobAction extends BaseListener implements PreJobAction {
 		CIEvent event = CONVERTER.getEventWithDetails(
 				resultKey.getPlanKey().getKey(),
 				resultKey.getKey(),
-				buildContext.getDisplayName(),
+				buildContext.getShortName(),
 				CIEventType.STARTED,
 				System.currentTimeMillis(),
 				paramStageExecution.getChainExecution().getAverageDuration(),
 				Arrays.asList(cause),
-				String.valueOf(resultKey.getBuildNumber()));
+				String.valueOf(resultKey.getBuildNumber()),
+				PhaseType.INTERNAL);
 
 		OctaneSDK.getInstance().getEventsService().publishEvent(event);
 
@@ -37,13 +40,14 @@ public class OctanePreJobAction extends BaseListener implements PreJobAction {
         CIEvent scmEvent = CONVERTER.getEventWithDetails(
                 resultKey.getPlanKey().getKey(),
                 resultKey.getKey(),
-                buildContext.getDisplayName(),
+                buildContext.getShortName(),
                 CIEventType.SCM,
                 System.currentTimeMillis(),
                 paramStageExecution.getChainExecution().getAverageDuration(),
                 Arrays.asList(cause),
                 String.valueOf(resultKey.getBuildNumber()),
-                CONVERTER.getScmData(buildContext));
+                CONVERTER.getScmData(buildContext),
+				PhaseType.INTERNAL);
 
         OctaneSDK.getInstance().getEventsService().publishEvent(scmEvent);
 	}
