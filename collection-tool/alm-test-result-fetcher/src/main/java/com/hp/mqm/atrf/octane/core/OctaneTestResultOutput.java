@@ -9,8 +9,8 @@ public class OctaneTestResultOutput extends MapBasedObject {
     public static final String FIELD_ID = "id";
     public static final String FIELD_STATUS = "status";
 
-    public String getId() {
-        return getString(FIELD_ID);
+    public Integer getId() {
+        return (Integer) get(FIELD_ID);
     }
 
     public String getStatus() {

@@ -7,6 +7,7 @@ import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.api.causes.CIEventCause;
 import com.hp.octane.integrations.dto.api.events.CIEvent;
 import com.hp.octane.integrations.dto.api.events.CIEventType;
+import com.hp.octane.integrations.dto.api.events.PhaseType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +23,8 @@ public class OctanePreChainAction extends BaseListener implements PreChainAction
 				chainExecution.getBuildIdentifier().getBuildResultKey(), chain.getName(), CIEventType.STARTED,
 				chainExecution.getStartTime() != null ? chainExecution.getStartTime().getTime() : System.currentTimeMillis(),
 				chainExecution.getAverageDuration(), causes,
-				String.valueOf(chainExecution.getBuildIdentifier().getBuildNumber()));
+				String.valueOf(chainExecution.getBuildIdentifier().getBuildNumber()),
+				PhaseType.INTERNAL);
 
 		OctaneSDK.getInstance().getEventsService().publishEvent(event);
 	}

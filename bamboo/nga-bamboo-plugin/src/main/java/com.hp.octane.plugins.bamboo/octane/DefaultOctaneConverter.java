@@ -23,11 +23,13 @@ import com.hp.octane.integrations.dto.api.causes.CIEventCauseType;
 import com.hp.octane.integrations.dto.api.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.api.events.CIEvent;
 import com.hp.octane.integrations.dto.api.events.CIEventType;
+import com.hp.octane.integrations.dto.api.events.PhaseType;
 import com.hp.octane.integrations.dto.api.general.CIJobsList;
 import com.hp.octane.integrations.dto.api.general.CIServerInfo;
 import com.hp.octane.integrations.dto.api.general.CIServerTypes;
 import com.hp.octane.integrations.dto.api.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.api.pipelines.PipelinePhase;
+import com.hp.octane.integrations.dto.api.scm.*;
 import com.hp.octane.integrations.dto.api.snapshots.CIBuildResult;
 import com.hp.octane.integrations.dto.api.snapshots.CIBuildStatus;
 import com.hp.octane.integrations.dto.api.snapshots.SnapshotNode;
@@ -214,28 +216,18 @@ public class DefaultOctaneConverter implements DTOConverter {
 	}
 
 	@Override
-	public CIEvent getEventWithDetails(String project, String buildCiId, String displayName, CIEventType eventType, long startTime,
-									   long estimatedDuration, List<CIEventCause> causes, String number, BuildState buildState, Long currnetTime) {
-		CIEvent event =  getEventWithDetails( project,  buildCiId,  displayName,  eventType,startTime,  estimatedDuration, causes,  number, null);
+	public CIEvent getEventWithDetails(String project, String buildCiId, String displayName, CIEventType eventType, long startTime, long estimatedDuration,
+									   List<CIEventCause> causes, String number, BuildState buildState, Long currnetTime, PhaseType phaseType) {
+
+		CIEvent event =  getEventWithDetails( project,  buildCiId,  displayName,  eventType,startTime,  estimatedDuration, causes,  number, phaseType);
 		event.setDuration(currnetTime -event.getStartTime());
 		event.setResult(getJobResult(buildState));
 		return event;
 	}
 
-	public CIEvent getEventWithDetails(String project, String buildCiId, String displayName, CIEventType eventType,
-	                                   long startTime, long estimatedDuration, List<CIEventCause> causes, String number) {
-//		CIEvent event = dtoFactoryInstance.newDTO(CIEvent.class).setEventType(eventType).setCauses(causes)
-//				.setProject(project).setProjectDisplayName(displayName).setBuildCiId(buildCiId)
-//				.setEstimatedDuration(estimatedDuration).setStartTime(startTime);
-//		if (number != null) {
-//			event.setNumber(number);
-//		}
-//		return event;
-		return getEventWithDetails( project,  buildCiId,  displayName,  eventType,startTime,  estimatedDuration, causes,  number, null);
-	}
-
 	@Override
-	public CIEvent getEventWithDetails(String project, String buildCiId, String displayName, CIEventType eventType, long startTime, long estimatedDuration, List<CIEventCause> causes, String number, SCMData scmData) {
+	public CIEvent getEventWithDetails(String project, String buildCiId, String displayName, CIEventType eventType,
+	                                   long startTime, long estimatedDuration, List<CIEventCause> causes, String number, PhaseType phaseType) {
 
 		CIEvent event = dtoFactoryInstance.newDTO(CIEvent.class).setEventType(eventType).
 				setCauses(causes)
@@ -243,13 +235,21 @@ public class DefaultOctaneConverter implements DTOConverter {
 				.setProjectDisplayName(displayName)
 				.setBuildCiId(buildCiId)
 				.setEstimatedDuration(estimatedDuration)
-				.setStartTime(startTime);
+				.setStartTime(startTime)
+				.setPhaseType(phaseType);
 		if (number != null) {
 			event.setNumber(number);
 		}
-		if(scmData!=null){
-			event.setScmData(scmData);
-		}
+
+		return event;
+	}
+
+	@Override
+	public CIEvent getEventWithDetails(String project, String buildCiId, String displayName, CIEventType eventType, long startTime, long estimatedDuration,
+									   List<CIEventCause> causes, String number, SCMData scmData, PhaseType phaseType) {
+
+		CIEvent event =  getEventWithDetails( project,  buildCiId,  displayName,  eventType,startTime,  estimatedDuration, causes,  number, phaseType);
+		event.setScmData(scmData);
 		return event;
 	}
 

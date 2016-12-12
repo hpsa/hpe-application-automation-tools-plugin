@@ -19,6 +19,7 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.api.causes.CIEventCause;
 import com.hp.octane.integrations.dto.api.events.CIEvent;
 import com.hp.octane.integrations.dto.api.events.CIEventType;
+import com.hp.octane.integrations.dto.api.events.PhaseType;
 import com.hp.octane.integrations.dto.api.tests.BuildContext;
 import com.hp.octane.integrations.dto.api.tests.TestRun;
 import com.hp.octane.integrations.dto.api.tests.TestRunResult;
@@ -54,14 +55,15 @@ public class OctanePostChainAction extends BaseListener implements PostChainActi
 				CIEvent ciEvent = CONVERTER.getEventWithDetails(
 						planResultKey.getPlanKey().getKey(),
 						planResultKey.getKey(),
-						event.getContext().getDisplayName(),
+						event.getContext().getShortName(),
 						CIEventType.FINISHED,
 						System.currentTimeMillis(),
 						100,
 						Arrays.asList(cause),
 						String.valueOf(planResultKey.getBuildNumber()),
 						event.getContext().getCurrentResult().getBuildState(),
-						System.currentTimeMillis());
+						System.currentTimeMillis(),
+						PhaseType.INTERNAL);
 
 				OctaneSDK.getInstance().getEventsService().publishEvent(ciEvent);
 			}
@@ -113,7 +115,8 @@ public class OctanePostChainAction extends BaseListener implements PostChainActi
 				causes,
 				String.valueOf(chainExecution.getBuildIdentifier().getBuildNumber()),
 				chainResultsSummary.getBuildState(),
-				System.currentTimeMillis());
+				System.currentTimeMillis(),
+				PhaseType.INTERNAL);
 
 //		event.setResult((chainResultsSummary.getBuildState() == BuildState.SUCCESS) ? CIBuildResult.SUCCESS : CIBuildResult.FAILURE);
 		// TODO pushing finished type event with null duration results in http

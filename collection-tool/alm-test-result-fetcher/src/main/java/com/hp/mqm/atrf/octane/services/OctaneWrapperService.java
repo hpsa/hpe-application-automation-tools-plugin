@@ -42,4 +42,8 @@ public class OctaneWrapperService {
     public OctaneTestResultOutput postTestResults(String xml) {
         return octaneEntityService.postTestResults(xml);
     }
+
+    public OctaneTestResultOutput getTestResultStatus(OctaneTestResultOutput output) {
+        return octaneEntityService.getTestResultStatus(output);
+    }
 }

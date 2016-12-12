@@ -114,11 +114,27 @@ public class OctaneEntityService {
         headers.put(HTTPUtils.HEADER_CONTENT_TYPE, HTTPUtils.HEADER_APPLICATION_XML);
 
         String responseStr = restConnector.httpPost(entityCollectionUrl, data, headers).getResponseData();
-        JSONObject jsonObj = new JSONObject(responseStr);
+        OctaneTestResultOutput result = parseTestResultOutput(responseStr);
+        return result;
+    }
 
-        OctaneTestResultOutput  result = new OctaneTestResultOutput();
+    public OctaneTestResultOutput getTestResultStatus(OctaneTestResultOutput output) {
+        String entityCollectionUrl = String.format(OctaneRestConstants.PUBLIC_API_WORKSPACE_LEVEL_ENTITIES, getSharedSpaceId(), getWorkspaceId(), "test-results") + "/" + output.getId();
+        Map<String, String> headers = new HashMap<>();
+        headers.put(HTTPUtils.HEADER_ACCEPT, HTTPUtils.HEADER_APPLICATION_JSON);
+
+
+        String responseStr = restConnector.httpGet(entityCollectionUrl, null, headers).getResponseData();
+        OctaneTestResultOutput result = parseTestResultOutput(responseStr);
+        return result;
+    }
+
+    private OctaneTestResultOutput parseTestResultOutput(String responseStr) {
+        JSONObject jsonObj = new JSONObject(responseStr);
+        OctaneTestResultOutput result = new OctaneTestResultOutput();
         result.put(OctaneTestResultOutput.FIELD_ID, jsonObj.get(OctaneTestResultOutput.FIELD_ID));
         result.put(OctaneTestResultOutput.FIELD_STATUS, jsonObj.get(OctaneTestResultOutput.FIELD_STATUS));
+
         return result;
     }
 
@@ -128,7 +144,7 @@ public class OctaneEntityService {
         int total = jsonObj.getInt("total_count");
         coll.setTotalCount(total);
 
-        if(jsonObj.has("exceeds_total_count")) {
+        if (jsonObj.has("exceeds_total_count")) {
             boolean exceedsTotalCount = jsonObj.getBoolean("exceeds_total_count");
             coll.setExceedsTotalCount(exceedsTotalCount);
         }
@@ -152,20 +168,18 @@ public class OctaneEntityService {
         OctaneEntity entity = createEntity(type);
         for (String key : entObj.keySet()) {
             Object value = entObj.get(key);
-            if(value instanceof JSONObject){
-                JSONObject jObj = (JSONObject)value;
-                if(jObj.has("type")){
+            if (value instanceof JSONObject) {
+                JSONObject jObj = (JSONObject) value;
+                if (jObj.has("type")) {
                     OctaneEntity valueEntity = parseEntity(jObj);
                     value = valueEntity;
-                }else if(jObj.has("total_count")){
+                } else if (jObj.has("total_count")) {
                     OctaneEntityCollection coll = parseCollection(jObj);
                     value = coll;
-                }
-                else{
+                } else {
                     value = jObj.toString();
                 }
-            }
-            else if(JSONObject.NULL.equals(value)){
+            } else if (JSONObject.NULL.equals(value)) {
                 value = null;
             }
             entity.put(key, value);
@@ -188,4 +202,5 @@ public class OctaneEntityService {
 
         return entity;
     }
+
 }
