@@ -2,12 +2,12 @@ package com.hp.octane.plugins.jenkins.actions.build;
 
 import com.gargoylesoftware.htmlunit.Page;
 import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.causes.CIEventCauseType;
-import com.hp.octane.integrations.dto.parameters.CIParameter;
-import com.hp.octane.integrations.dto.parameters.CIParameterType;
-import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
-import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
-import com.hp.octane.integrations.dto.snapshots.CIBuildStatus;
+import com.hp.octane.integrations.dto.api.causes.CIEventCauseType;
+import com.hp.octane.integrations.dto.api.parameters.CIParameter;
+import com.hp.octane.integrations.dto.api.parameters.CIParameterType;
+import com.hp.octane.integrations.dto.api.snapshots.SnapshotNode;
+import com.hp.octane.integrations.dto.api.snapshots.CIBuildResult;
+import com.hp.octane.integrations.dto.api.snapshots.CIBuildStatus;
 import com.hp.octane.plugins.jenkins.actions.Utils;
 import hudson.model.*;
 import hudson.plugins.parameterizedtrigger.*;

@@ -2,12 +2,12 @@ package com.hp.octane.plugins.jenkins.events;
 
 import com.google.inject.Inject;
 import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.events.CIEvent;
-import com.hp.octane.integrations.dto.events.CIEventType;
-import com.hp.octane.integrations.dto.events.PhaseType;
-import com.hp.octane.integrations.dto.pipelines.PipelineNode;
-import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
-import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
+import com.hp.octane.integrations.dto.api.events.CIEvent;
+import com.hp.octane.integrations.dto.api.events.CIEventType;
+import com.hp.octane.integrations.dto.api.events.PhaseType;
+import com.hp.octane.integrations.dto.api.pipelines.PipelineNode;
+import com.hp.octane.integrations.dto.api.pipelines.PipelinePhase;
+import com.hp.octane.integrations.dto.api.snapshots.CIBuildResult;
 import com.hp.octane.plugins.jenkins.model.CIEventCausesFactory;
 import com.hp.octane.plugins.jenkins.model.processors.builders.WorkFlowRunProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;

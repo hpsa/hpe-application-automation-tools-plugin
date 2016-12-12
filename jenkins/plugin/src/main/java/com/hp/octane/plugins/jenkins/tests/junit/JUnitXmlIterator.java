@@ -1,8 +1,8 @@
 package com.hp.octane.plugins.jenkins.tests.junit;
 
 import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.tests.Property;
-import com.hp.octane.integrations.dto.tests.TestSuite;
+import com.hp.octane.integrations.dto.api.tests.Property;
+import com.hp.octane.integrations.dto.api.tests.TestSuite;
 import com.hp.octane.plugins.jenkins.tests.TestError;
 import com.hp.octane.plugins.jenkins.tests.TestResult;
 import com.hp.octane.plugins.jenkins.tests.TestResultStatus;

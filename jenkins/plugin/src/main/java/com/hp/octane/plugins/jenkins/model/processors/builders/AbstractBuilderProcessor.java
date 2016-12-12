@@ -1,7 +1,7 @@
 package com.hp.octane.plugins.jenkins.model.processors.builders;
 
 
-import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
+import com.hp.octane.integrations.dto.api.pipelines.PipelinePhase;
 
 import java.util.ArrayList;
 import java.util.List;

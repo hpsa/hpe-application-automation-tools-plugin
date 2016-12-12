@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jenkins.model.processors.projects;
 
-import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
+import com.hp.octane.integrations.dto.api.pipelines.PipelinePhase;
 import com.hp.octane.plugins.jenkins.model.processors.builders.AbstractBuilderProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.builders.BuildTriggerProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.builders.MultiJobBuilderProcessor;

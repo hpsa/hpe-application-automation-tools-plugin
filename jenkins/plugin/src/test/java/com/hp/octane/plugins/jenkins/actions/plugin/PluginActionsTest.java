@@ -2,11 +2,11 @@ package com.hp.octane.plugins.jenkins.actions.plugin;
 
 import com.gargoylesoftware.htmlunit.Page;
 import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.general.CIJobsList;
-import com.hp.octane.integrations.dto.general.CIProviderSummaryInfo;
-import com.hp.octane.integrations.dto.general.CIServerTypes;
-import com.hp.octane.integrations.dto.parameters.CIParameterType;
-import com.hp.octane.integrations.dto.pipelines.PipelineNode;
+import com.hp.octane.integrations.dto.api.general.CIJobsList;
+import com.hp.octane.integrations.dto.api.general.CIProviderSummaryInfo;
+import com.hp.octane.integrations.dto.api.general.CIServerTypes;
+import com.hp.octane.integrations.dto.api.parameters.CIParameterType;
+import com.hp.octane.integrations.dto.api.pipelines.PipelineNode;
 import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.actions.PluginActions;
 import hudson.model.BooleanParameterDefinition;

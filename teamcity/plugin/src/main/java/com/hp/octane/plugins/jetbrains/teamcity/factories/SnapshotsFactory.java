@@ -1,10 +1,10 @@
 package com.hp.octane.plugins.jetbrains.teamcity.factories;
 
 import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
-import com.hp.octane.integrations.dto.snapshots.CIBuildStatus;
-import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
-import com.hp.octane.integrations.dto.snapshots.SnapshotPhase;
+import com.hp.octane.integrations.dto.api.snapshots.CIBuildResult;
+import com.hp.octane.integrations.dto.api.snapshots.CIBuildStatus;
+import com.hp.octane.integrations.dto.api.snapshots.SnapshotNode;
+import com.hp.octane.integrations.dto.api.snapshots.SnapshotPhase;
 import com.hp.octane.plugins.jetbrains.teamcity.OctaneTeamCityPlugin;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SBuildType;

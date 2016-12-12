@@ -2,10 +2,10 @@ package com.hp.octane.plugins.jetbrains.teamcity.events;
 
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.causes.CIEventCause;
-import com.hp.octane.integrations.dto.causes.CIEventCauseType;
-import com.hp.octane.integrations.dto.events.CIEvent;
-import com.hp.octane.integrations.dto.events.CIEventType;
+import com.hp.octane.integrations.dto.api.causes.CIEventCause;
+import com.hp.octane.integrations.dto.api.causes.CIEventCauseType;
+import com.hp.octane.integrations.dto.api.events.CIEvent;
+import com.hp.octane.integrations.dto.api.events.CIEventType;
 import com.hp.octane.plugins.jetbrains.teamcity.OctaneTeamCityPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelCommonFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ParametersFactory;

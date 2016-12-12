@@ -1,11 +1,11 @@
 package com.hp.octane.plugins.jenkins;
 
-import com.hp.octane.integrations.dto.causes.CIEventCauseType;
-import com.hp.octane.integrations.dto.events.CIEventType;
-import com.hp.octane.integrations.dto.parameters.CIParameterType;
-import com.hp.octane.integrations.dto.scm.SCMType;
-import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
-import com.hp.octane.integrations.dto.snapshots.CIBuildStatus;
+import com.hp.octane.integrations.dto.api.causes.CIEventCauseType;
+import com.hp.octane.integrations.dto.api.events.CIEventType;
+import com.hp.octane.integrations.dto.api.parameters.CIParameterType;
+import com.hp.octane.integrations.dto.api.scm.SCMType;
+import com.hp.octane.integrations.dto.api.snapshots.CIBuildResult;
+import com.hp.octane.integrations.dto.api.snapshots.CIBuildStatus;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

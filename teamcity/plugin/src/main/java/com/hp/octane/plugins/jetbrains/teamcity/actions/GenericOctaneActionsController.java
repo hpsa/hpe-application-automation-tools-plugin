@@ -3,9 +3,9 @@ package com.hp.octane.plugins.jetbrains.teamcity.actions;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.api.TasksProcessor;
 import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.connectivity.HttpMethod;
-import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
-import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
+import com.hp.octane.integrations.dto.api.connectivity.HttpMethod;
+import com.hp.octane.integrations.dto.api.connectivity.OctaneResultAbridged;
+import com.hp.octane.integrations.dto.api.connectivity.OctaneTaskAbridged;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.Controller;
 

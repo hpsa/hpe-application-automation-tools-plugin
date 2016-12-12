@@ -1,7 +1,7 @@
 package com.hp.octane.integrations.api;
 
-import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
-import com.hp.octane.integrations.dto.tests.TestsResult;
+import com.hp.octane.integrations.dto.api.connectivity.OctaneResponse;
+import com.hp.octane.integrations.dto.api.tests.TestsResult;
 
 import java.io.IOException;
 

@@ -1,7 +1,6 @@
 package com.hp.octane.plugins.jenkins.model.processors.scm;
 
 import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.scm.*;
 import hudson.model.AbstractBuild;
 import hudson.model.User;
 import hudson.model.UserProperty;

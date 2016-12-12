@@ -1,7 +1,7 @@
 package com.hp.octane.integrations.api;
 
-import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
-import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
+import com.hp.octane.integrations.dto.api.connectivity.OctaneResultAbridged;
+import com.hp.octane.integrations.dto.api.connectivity.OctaneTaskAbridged;
 
 /**
  * Created by gullery on 17/08/2015.

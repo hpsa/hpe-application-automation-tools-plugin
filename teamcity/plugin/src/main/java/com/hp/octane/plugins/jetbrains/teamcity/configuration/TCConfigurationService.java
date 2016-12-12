@@ -1,8 +1,8 @@
 package com.hp.octane.plugins.jetbrains.teamcity.configuration;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
-import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.hp.octane.integrations.dto.api.configuration.OctaneConfiguration;
+import com.hp.octane.integrations.dto.api.connectivity.OctaneResponse;
 import com.hp.octane.plugins.jetbrains.teamcity.OctaneTeamCityPlugin;
 import jetbrains.buildServer.serverSide.SBuildServer;
 import org.apache.http.HttpStatus;
