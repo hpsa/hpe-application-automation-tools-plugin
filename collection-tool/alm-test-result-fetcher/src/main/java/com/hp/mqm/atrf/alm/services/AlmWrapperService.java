@@ -47,10 +47,10 @@ public class AlmWrapperService {
 
         globalStart = System.currentTimeMillis();
         int expectedRuns = getExpectedRuns(queryBuilder);
-        logger.info(String.format("Expected runs : %d", expectedRuns));
+        int fetchLimit = Integer.valueOf(configuration.getFetchLimit());
+        logger.info(String.format("Expected runs : %d", Math.min(expectedRuns, fetchLimit)));
 
         start = System.currentTimeMillis();
-        int fetchLimit = Integer.valueOf(configuration.getFetchLimit());
         this.runs = fetchRuns(queryBuilder, fetchLimit);
         end = System.currentTimeMillis();
         logger.info(String.format("Fetch runs : %d, total time %d ms", runs.size(), end - start));
