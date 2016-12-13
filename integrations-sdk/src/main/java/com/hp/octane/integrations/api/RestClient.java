@@ -1,8 +1,8 @@
 package com.hp.octane.integrations.api;
 
-import com.hp.octane.integrations.dto.api.configuration.OctaneConfiguration;
-import com.hp.octane.integrations.dto.api.connectivity.OctaneRequest;
-import com.hp.octane.integrations.dto.api.connectivity.OctaneResponse;
+import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
+import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
+import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 
 import java.io.IOException;
 

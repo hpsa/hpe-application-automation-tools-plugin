@@ -1,9 +1,9 @@
 package com.hp.octane.plugins.jenkins.events;
 
 import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.api.events.CIEvent;
-import com.hp.octane.integrations.dto.api.events.CIEventType;
-import com.hp.octane.integrations.dto.api.scm.SCMData;
+import com.hp.octane.integrations.dto.events.CIEvent;
+import com.hp.octane.integrations.dto.events.CIEventType;
+import com.hp.octane.integrations.dto.scm.SCMData;
 import com.hp.octane.plugins.jenkins.model.CIEventCausesFactory;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessor;
 import com.hp.octane.plugins.jenkins.model.processors.scm.SCMProcessors;

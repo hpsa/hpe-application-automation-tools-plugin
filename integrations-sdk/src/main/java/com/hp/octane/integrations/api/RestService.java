@@ -1,6 +1,6 @@
 package com.hp.octane.integrations.api;
 
-import com.hp.octane.integrations.dto.api.configuration.CIProxyConfiguration;
+import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 
 public interface RestService {
 

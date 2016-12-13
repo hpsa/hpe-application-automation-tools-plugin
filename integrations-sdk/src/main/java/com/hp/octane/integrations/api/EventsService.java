@@ -1,6 +1,6 @@
 package com.hp.octane.integrations.api;
 
-import com.hp.octane.integrations.dto.api.events.CIEvent;
+import com.hp.octane.integrations.dto.events.CIEvent;
 
 public interface EventsService {
 

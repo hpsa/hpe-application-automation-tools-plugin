@@ -1,7 +1,7 @@
 package com.hp.octane.plugins.jenkins.events;
 
 import com.google.inject.Inject;
-import com.hp.octane.integrations.dto.api.events.CIEvent;
+import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactoryImpl;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationListener;

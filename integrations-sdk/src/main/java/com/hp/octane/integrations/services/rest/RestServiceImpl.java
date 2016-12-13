@@ -3,7 +3,7 @@ package com.hp.octane.integrations.services.rest;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.api.RestClient;
 import com.hp.octane.integrations.api.RestService;
-import com.hp.octane.integrations.dto.api.configuration.CIProxyConfiguration;
+import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

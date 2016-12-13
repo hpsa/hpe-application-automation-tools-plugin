@@ -4,10 +4,10 @@ import com.atlassian.bamboo.chains.Chain;
 import com.atlassian.bamboo.chains.ChainExecution;
 import com.atlassian.bamboo.chains.plugins.PreChainAction;
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.dto.api.causes.CIEventCause;
-import com.hp.octane.integrations.dto.api.events.CIEvent;
-import com.hp.octane.integrations.dto.api.events.CIEventType;
-import com.hp.octane.integrations.dto.api.events.PhaseType;
+import com.hp.octane.integrations.dto.causes.CIEventCause;
+import com.hp.octane.integrations.dto.events.CIEvent;
+import com.hp.octane.integrations.dto.events.CIEventType;
+import com.hp.octane.integrations.dto.events.PhaseType;
 
 import java.util.ArrayList;
 import java.util.List;

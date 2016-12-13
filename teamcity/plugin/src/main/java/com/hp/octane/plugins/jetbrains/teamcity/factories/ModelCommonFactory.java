@@ -1,10 +1,10 @@
 package com.hp.octane.plugins.jetbrains.teamcity.factories;
 
 import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.api.general.CIJobsList;
-import com.hp.octane.integrations.dto.api.pipelines.PipelineNode;
-import com.hp.octane.integrations.dto.api.pipelines.PipelinePhase;
-import com.hp.octane.integrations.dto.api.snapshots.CIBuildResult;
+import com.hp.octane.integrations.dto.general.CIJobsList;
+import com.hp.octane.integrations.dto.pipelines.PipelineNode;
+import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
+import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
 import com.hp.octane.plugins.jetbrains.teamcity.OctaneTeamCityPlugin;
 import jetbrains.buildServer.messages.Status;
 import jetbrains.buildServer.serverSide.*;

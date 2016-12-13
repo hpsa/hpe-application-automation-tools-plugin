@@ -1,9 +1,9 @@
 package com.hp.octane.integrations.dto;
 
-import com.hp.octane.integrations.dto.api.general.CIProviderSummaryInfo;
-import com.hp.octane.integrations.dto.api.general.CIServerTypes;
-import com.hp.octane.integrations.dto.api.general.CIPluginInfo;
-import com.hp.octane.integrations.dto.api.general.CIServerInfo;
+import com.hp.octane.integrations.dto.general.CIProviderSummaryInfo;
+import com.hp.octane.integrations.dto.general.CIServerTypes;
+import com.hp.octane.integrations.dto.general.CIPluginInfo;
+import com.hp.octane.integrations.dto.general.CIServerInfo;
 import org.junit.Test;
 
 import java.util.UUID;

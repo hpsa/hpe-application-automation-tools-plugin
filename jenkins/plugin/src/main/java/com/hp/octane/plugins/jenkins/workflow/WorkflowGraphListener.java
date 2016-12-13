@@ -1,7 +1,7 @@
 package com.hp.octane.plugins.jenkins.workflow;
 
 import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.api.events.CIEvent;
+import com.hp.octane.integrations.dto.events.CIEvent;
 import org.jenkinsci.plugins.workflow.flow.GraphListener;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
 

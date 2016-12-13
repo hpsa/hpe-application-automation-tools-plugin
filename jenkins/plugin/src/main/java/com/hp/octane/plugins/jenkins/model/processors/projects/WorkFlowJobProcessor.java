@@ -1,7 +1,7 @@
 package com.hp.octane.plugins.jenkins.model.processors.projects;
 
 import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.api.configuration.OctaneConfiguration;
+import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import hudson.model.Cause;

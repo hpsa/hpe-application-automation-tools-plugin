@@ -1,8 +1,8 @@
 package com.hp.octane.plugins.jenkins.model.processors.parameters;
 
 import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.api.parameters.CIParameter;
-import com.hp.octane.integrations.dto.api.parameters.CIParameterType;
+import com.hp.octane.integrations.dto.parameters.CIParameter;
+import com.hp.octane.integrations.dto.parameters.CIParameterType;
 import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import hudson.model.ParameterDefinition;
 import hudson.model.ParameterValue;

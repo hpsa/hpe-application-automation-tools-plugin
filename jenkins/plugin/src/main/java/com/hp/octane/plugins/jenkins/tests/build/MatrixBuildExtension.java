@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jenkins.tests.build;
 
-import com.hp.octane.integrations.dto.api.parameters.CIParameter;
+import com.hp.octane.integrations.dto.parameters.CIParameter;
 import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import hudson.Extension;

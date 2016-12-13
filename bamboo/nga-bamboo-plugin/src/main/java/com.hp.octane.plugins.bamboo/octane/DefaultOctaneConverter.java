@@ -18,26 +18,30 @@ import com.atlassian.bamboo.resultsummary.ImmutableResultsSummary;
 import com.atlassian.bamboo.v2.build.BuildChanges;
 import com.atlassian.bamboo.v2.build.BuildRepositoryChanges;
 import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.api.causes.CIEventCause;
-import com.hp.octane.integrations.dto.api.causes.CIEventCauseType;
-import com.hp.octane.integrations.dto.api.configuration.CIProxyConfiguration;
-import com.hp.octane.integrations.dto.api.events.CIEvent;
-import com.hp.octane.integrations.dto.api.events.CIEventType;
-import com.hp.octane.integrations.dto.api.events.PhaseType;
-import com.hp.octane.integrations.dto.api.general.CIJobsList;
-import com.hp.octane.integrations.dto.api.general.CIServerInfo;
-import com.hp.octane.integrations.dto.api.general.CIServerTypes;
-import com.hp.octane.integrations.dto.api.pipelines.PipelineNode;
-import com.hp.octane.integrations.dto.api.pipelines.PipelinePhase;
-import com.hp.octane.integrations.dto.api.scm.*;
-import com.hp.octane.integrations.dto.api.snapshots.CIBuildResult;
-import com.hp.octane.integrations.dto.api.snapshots.CIBuildStatus;
-import com.hp.octane.integrations.dto.api.snapshots.SnapshotNode;
-import com.hp.octane.integrations.dto.api.snapshots.SnapshotPhase;
-import com.hp.octane.integrations.dto.api.tests.BuildContext;
-import com.hp.octane.integrations.dto.api.tests.TestRun;
-import com.hp.octane.integrations.dto.api.tests.TestRunError;
-import com.hp.octane.integrations.dto.api.tests.TestRunResult;
+import com.hp.octane.integrations.dto.causes.CIEventCause;
+import com.hp.octane.integrations.dto.causes.CIEventCauseType;
+import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
+import com.hp.octane.integrations.dto.events.CIEvent;
+import com.hp.octane.integrations.dto.events.CIEventType;
+import com.hp.octane.integrations.dto.events.PhaseType;
+import com.hp.octane.integrations.dto.general.CIJobsList;
+import com.hp.octane.integrations.dto.general.CIServerInfo;
+import com.hp.octane.integrations.dto.general.CIServerTypes;
+import com.hp.octane.integrations.dto.pipelines.PipelineNode;
+import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
+import com.hp.octane.integrations.dto.scm.SCMChange;
+import com.hp.octane.integrations.dto.scm.SCMCommit;
+import com.hp.octane.integrations.dto.scm.SCMData;
+import com.hp.octane.integrations.dto.scm.SCMRepository;
+import com.hp.octane.integrations.dto.scm.SCMType;
+import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
+import com.hp.octane.integrations.dto.snapshots.CIBuildStatus;
+import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
+import com.hp.octane.integrations.dto.snapshots.SnapshotPhase;
+import com.hp.octane.integrations.dto.tests.BuildContext;
+import com.hp.octane.integrations.dto.tests.TestRun;
+import com.hp.octane.integrations.dto.tests.TestRunError;
+import com.hp.octane.integrations.dto.tests.TestRunResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -246,7 +250,7 @@ public class DefaultOctaneConverter implements DTOConverter {
 
 	@Override
 	public CIEvent getEventWithDetails(String project, String buildCiId, String displayName, CIEventType eventType, long startTime, long estimatedDuration,
-									   List<CIEventCause> causes, String number, SCMData scmData, PhaseType phaseType) {
+	                                   List<CIEventCause> causes, String number, SCMData scmData, PhaseType phaseType) {
 
 		CIEvent event =  getEventWithDetails( project,  buildCiId,  displayName,  eventType,startTime,  estimatedDuration, causes,  number, phaseType);
 		event.setScmData(scmData);
