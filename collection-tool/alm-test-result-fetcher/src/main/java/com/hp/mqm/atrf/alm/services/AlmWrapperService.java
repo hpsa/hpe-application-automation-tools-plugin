@@ -35,6 +35,12 @@ public class AlmWrapperService {
         almEntityService = new AlmEntityService(restConnector);
         almEntityService.setDomain(domain);
         almEntityService.setProject(project);
+
+        //Add synthetic data
+        TestFolder unattachedTestFolder = new TestFolder();
+        unattachedTestFolder.put(TestFolder.FIELD_ID,"-2");
+        unattachedTestFolder.put(TestFolder.FIELD_NAME,"Unattached");
+        testFolders.put(unattachedTestFolder.getId(),unattachedTestFolder);
     }
 
     public void fetchRunsAndRelatedEntities(FetchConfiguration configuration) {
