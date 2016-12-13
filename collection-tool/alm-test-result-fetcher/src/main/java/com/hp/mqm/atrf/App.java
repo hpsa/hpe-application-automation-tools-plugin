@@ -39,8 +39,10 @@ public class App {
     private DateFormat DATE_TIME_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//2016-03-22 11:34:23
     private DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");//2016-03-22 11:34:23
 
+    private final String OCTANE_RUN_PASSED_STATUS = "Passed";
+    private final String OCTANE_RUN_FAILED_STATUS = "Failed";
     private final String OCTANE_RUN_SKIPPED_STATUS = "Skipped";
-    private Set<String> OCTANE_RUN_VALID_STATUS = new HashSet<>(Arrays.asList("Passed", "Failed"));
+    private Set<String> OCTANE_RUN_VALID_STATUS = new HashSet<>(Arrays.asList(OCTANE_RUN_PASSED_STATUS, OCTANE_RUN_FAILED_STATUS));
 
     public App(FetchConfiguration configuration) {
         this.configuration = configuration;
@@ -67,7 +69,7 @@ public class App {
         }
     }
 
-    private void getPersistanceStatus(FetchConfiguration configuration,List<OctaneTestResultOutput> outputs) {
+    private void getPersistanceStatus(FetchConfiguration configuration, List<OctaneTestResultOutput> outputs) {
 
         int sleepSize = Integer.parseInt(configuration.getSyncSleepBetweenPosts());
         logger.info("Sent results are : ");
@@ -108,7 +110,7 @@ public class App {
         logger.info("The results are saved to  : " + file.getAbsolutePath());
     }
 
-    private  List<OctaneTestResultOutput> sendResults(FetchConfiguration configuration, List<TestRunResultEntity> runResults) {
+    private List<OctaneTestResultOutput> sendResults(FetchConfiguration configuration, List<TestRunResultEntity> runResults) {
         int bulkSize = Integer.parseInt(configuration.getSyncBulkSize());
         int sleepSize = Integer.parseInt(configuration.getSyncSleepBetweenPosts());
 
@@ -141,7 +143,7 @@ public class App {
         long endTime = System.currentTimeMillis();
         logger.info(String.format("Sent %s runs , total time %s ms", runResults.size(), endTime - startTime));
 
-        return  outputs;
+        return outputs;
     }
 
     private void loginToAlm() {
@@ -275,6 +277,14 @@ public class App {
                 testRun.setAttribute("external_report_url", runResult.getExternalReportUrl());
                 testRun.setAttribute("run_name", runResult.getRunName());
                 //ERROR????
+
+                /*if (OCTANE_RUN_FAILED_STATUS.equals(runResult.getStatus())) {
+                    Element error = doc.createElement("error");
+                    testRun.appendChild(error);
+
+                    testRun.setAttribute("type", "Error");
+                    testRun.setAttribute("message", "For more details , goto ALM run : " + runResult.getExternalReportUrl());
+                }*/
 
                 Element testFields = doc.createElement("test_fields");
                 testRun.appendChild(testFields);

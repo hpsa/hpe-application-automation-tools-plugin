@@ -26,7 +26,6 @@ public class FetchConfiguration {
     private static String DATE_FORMAT = "yyyy-MM-dd";
     static final Logger logger = LogManager.getLogger();
 
-
     public static String ALM_USER_PARAM = "conf.alm.user";
     public static String ALM_PASSWORD_PARAM = "conf.alm.password";
     public static String ALM_SERVER_URL_PARAM = "conf.alm.serverUrl";
@@ -48,6 +47,7 @@ public class FetchConfiguration {
     public static String ALM_RUN_FILTER_CUSTOM_PARAM = "conf.alm.runFilter.custom";
 
     public static String ALM_RUN_FILTER_FETCH_LIMIT_PARAM = "conf.alm.runFilter.fetchLimit";
+    public static String ALM_RUN_FILTER_SUPPORT_MANUAL_PARAM = "conf.alm.runFilter.supportManual";
 
     public static String SYNC_BULK_SIZE_PARAM = "conf.sync.bulkSize";
     public static String SYNC_SLEEP_BETWEEN_POSTS_PARAM = "conf.sync.sleepBetweenPosts";
@@ -73,13 +73,15 @@ public class FetchConfiguration {
     private static int SYNC_SLEEP_BETWEEN_POSTS_MAX = 120;//sec
     private static int SYNC_SLEEP_BETWEEN_POSTS_MIN = 2;//sec
 
+    private static boolean ALM_RUN_FILTER_SUPPORT_MANUAL_DEFAULT = false;
+
     public static String ALM_RUN_FILTER_START_FROM_ID_LAST_SENT = "LAST_SENT";
 
     public FetchConfiguration(){
         allowedParameters = new HashSet<>(Arrays.asList(ALM_USER_PARAM, ALM_PASSWORD_PARAM, ALM_SERVER_URL_PARAM,ALM_DOMAIN_PARAM,ALM_PROJECT_PARAM,
                 OCTANE_PASSWORD_PARAM,OCTANE_USER_PARAM,OCTANE_SERVER_URL_PARAM,OCTANE_SHAREDSPACE_ID_PARAM,OCTANE_WORKSPACE_ID_PARAM,
                 ALM_RUN_FILTER_START_FROM_ID_PARAM,ALM_RUN_FILTER_START_FROM_DATE_PARAM,ALM_RUN_FILTER_TEST_TYPE_PARAM,ALM_RUN_FILTER_RELATED_ENTITY_TYPE_PARAM,ALM_RUN_FILTER_RELATED_ENTITY_ID_PARAM,
-                ALM_RUN_FILTER_CUSTOM_PARAM,SYNC_BULK_SIZE_PARAM,SYNC_SLEEP_BETWEEN_POSTS_PARAM,PROXY_HOST_PARAM,PROXY_PORT_PARAM, OUTPUT_FILE_PARAM, ALM_RUN_FILTER_FETCH_LIMIT_PARAM));
+                ALM_RUN_FILTER_CUSTOM_PARAM,SYNC_BULK_SIZE_PARAM,SYNC_SLEEP_BETWEEN_POSTS_PARAM,PROXY_HOST_PARAM,PROXY_PORT_PARAM, OUTPUT_FILE_PARAM, ALM_RUN_FILTER_FETCH_LIMIT_PARAM, ALM_RUN_FILTER_SUPPORT_MANUAL_PARAM));
 
         lowered2allowedParams = new HashMap<>();
         for(String param : allowedParameters){
@@ -101,6 +103,10 @@ public class FetchConfiguration {
         }
 
         if(Integer.toString(ALM_RUN_FILTER_FETCH_LIMIT_DEFAULT).equals(getRunFilterFetchLimit())){
+            props.remove(ALM_RUN_FILTER_FETCH_LIMIT_PARAM);
+        }
+
+        if(Boolean.valueOf(ALM_RUN_FILTER_SUPPORT_MANUAL_DEFAULT).equals(Boolean.valueOf(getRunFilterSupportManual()))){
             props.remove(ALM_RUN_FILTER_FETCH_LIMIT_PARAM);
         }
 
@@ -197,12 +203,25 @@ public class FetchConfiguration {
         }
         setProperty(ALM_RUN_FILTER_FETCH_LIMIT_PARAM, Integer.toString(fetchLimit));
 
+        //SUPPORT MANUAL
+        String supportManualStr = getProperty(ALM_RUN_FILTER_SUPPORT_MANUAL_PARAM);
+        boolean supportManual = ALM_RUN_FILTER_SUPPORT_MANUAL_DEFAULT;
+        if (StringUtils.isNotEmpty(supportManualStr)) {
+            try {
+                supportManual = Boolean.valueOf(supportManualStr);
+            } catch (Exception e) {
+                supportManual = ALM_RUN_FILTER_SUPPORT_MANUAL_DEFAULT;
+            }
+        }
+        setProperty(ALM_RUN_FILTER_SUPPORT_MANUAL_PARAM, Boolean.toString(supportManual));
+
+
         //BULK SIZE
         String bulkSizeStr = getProperty(SYNC_BULK_SIZE_PARAM);
         int bulkSize = SYNC_BULK_SIZE_DEFAULT;
         if (StringUtils.isNotEmpty(bulkSizeStr)) {
             try {
-                bulkSize = Integer.parseInt(bulkSizeStr);
+                bulkSize = Integer.valueOf(bulkSizeStr);
                 if (bulkSize < SYNC_BULK_SIZE_MIN || bulkSize > SYNC_BULK_SIZE_MAX) {
                     bulkSize = SYNC_BULK_SIZE_DEFAULT;
                 }
@@ -218,7 +237,7 @@ public class FetchConfiguration {
         int sleepBetweenPosts = SYNC_SLEEP_BETWEEN_POSTS_DEFAULT;
         if (StringUtils.isNotEmpty(sleepBetweenPostsStr)) {
             try {
-                sleepBetweenPosts = Integer.parseInt(sleepBetweenPostsStr);
+                sleepBetweenPosts = Integer.valueOf(sleepBetweenPostsStr);
                 if (sleepBetweenPosts < SYNC_SLEEP_BETWEEN_POSTS_MIN || sleepBetweenPosts > SYNC_SLEEP_BETWEEN_POSTS_MAX) {
                     sleepBetweenPosts = SYNC_SLEEP_BETWEEN_POSTS_DEFAULT;
                 }
@@ -408,5 +427,13 @@ public class FetchConfiguration {
 
     public String getRunFilterFetchLimit(){
         return getProperty(ALM_RUN_FILTER_FETCH_LIMIT_PARAM);
+    }
+
+    public String getRunFilterSupportManual(){
+        return getProperty(ALM_RUN_FILTER_SUPPORT_MANUAL_PARAM);
+    }
+
+    public void setRunFilterSupportManual(String value){
+        setProperty(ALM_RUN_FILTER_SUPPORT_MANUAL_PARAM, value);
     }
 }

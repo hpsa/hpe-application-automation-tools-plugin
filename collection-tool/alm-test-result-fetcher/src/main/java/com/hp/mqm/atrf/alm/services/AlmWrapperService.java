@@ -141,6 +141,11 @@ public class AlmWrapperService {
             qb.addQueryCondition(AlmQueryBuilder.PREPARED_FILTER, configuration.getAlmRunFilterCustom());
         }
 
+        if(!Boolean.valueOf(configuration.getRunFilterSupportManual())){
+            qb.addQueryCondition("subtype-id", "<>hp.qc.run.MANUAL");
+        }
+
+
         return qb;
     }
 
