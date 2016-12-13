@@ -99,7 +99,7 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
             result.setBody(String.valueOf(pe.getErrorCode()));
         } catch (ConfigurationException ce) {
             logger.warn("task execution failed; error: " + ce.getErrorCode());
-            result.setStatus(404);
+            result.setStatus(ce.getErrorCode());
             result.setBody(String.valueOf(ce.getErrorCode()));
         } catch (Exception e) {
             logger.error("task execution failed", e);

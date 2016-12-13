@@ -39,8 +39,10 @@ public class App {
     private DateFormat DATE_TIME_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//2016-03-22 11:34:23
     private DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");//2016-03-22 11:34:23
 
+    private final String OCTANE_RUN_PASSED_STATUS = "Passed";
+    private final String OCTANE_RUN_FAILED_STATUS = "Failed";
     private final String OCTANE_RUN_SKIPPED_STATUS = "Skipped";
-    private Set<String> OCTANE_RUN_VALID_STATUS = new HashSet<>(Arrays.asList("Passed", "Failed"));
+    private Set<String> OCTANE_RUN_VALID_STATUS = new HashSet<>(Arrays.asList(OCTANE_RUN_PASSED_STATUS, OCTANE_RUN_FAILED_STATUS));
 
     public App(FetchConfiguration configuration) {
         this.configuration = configuration;
@@ -67,7 +69,7 @@ public class App {
         }
     }
 
-    private void getPersistanceStatus(FetchConfiguration configuration,List<OctaneTestResultOutput> outputs) {
+    private void getPersistanceStatus(FetchConfiguration configuration, List<OctaneTestResultOutput> outputs) {
 
         int sleepSize = Integer.parseInt(configuration.getSyncSleepBetweenPosts());
         logger.info("Sent results are : ");
@@ -108,7 +110,7 @@ public class App {
         logger.info("The results are saved to  : " + file.getAbsolutePath());
     }
 
-    private  List<OctaneTestResultOutput> sendResults(FetchConfiguration configuration, List<TestRunResultEntity> runResults) {
+    private List<OctaneTestResultOutput> sendResults(FetchConfiguration configuration, List<TestRunResultEntity> runResults) {
         int bulkSize = Integer.parseInt(configuration.getSyncBulkSize());
         int sleepSize = Integer.parseInt(configuration.getSyncSleepBetweenPosts());
 
@@ -141,7 +143,7 @@ public class App {
         long endTime = System.currentTimeMillis();
         logger.info(String.format("Sent %s runs , total time %s ms", runResults.size(), endTime - startTime));
 
-        return  outputs;
+        return outputs;
     }
 
     private void loginToAlm() {
@@ -182,6 +184,8 @@ public class App {
     private List<TestRunResultEntity> prepareRunsForInjection() {
         List<TestRunResultEntity> list = new ArrayList<>();
 
+        List<String> skippedRunIds = new ArrayList<>();
+
         for (Run run : almWrapper.getRuns()) {
 
             //preparation
@@ -190,6 +194,11 @@ public class App {
             TestSet testSet = almWrapper.getTestSet(run.getTestSetId());
             TestConfiguration testConfiguration = almWrapper.getTestConfiguration(run.getTestConfigId());
 
+            if (testSet == null) {
+                //testSet was deleted
+                skippedRunIds.add(run.getId());
+                continue;
+            }
 
             TestRunResultEntity injectionEntity = new TestRunResultEntity();
             injectionEntity.setRunId(run.getId());
@@ -225,13 +234,22 @@ public class App {
                     throw new RuntimeException(String.format("Failed to convert run execution date '%s' to Java Date : %s", run.getExecutionDate(), e1.getMessage()));
                 }
             }
-            injectionEntity.setStartedTime(Long.toString(startedDate.getTime()));
+            injectionEntity.setStartedTime(Long.toString(startedDate.getTime() + 6000));
 
             String status = OCTANE_RUN_VALID_STATUS.contains(run.getStatus()) ? run.getStatus() : OCTANE_RUN_SKIPPED_STATUS;
             injectionEntity.setStatus(status);
 
             injectionEntity.validateEntity();
             list.add(injectionEntity);
+        }
+
+        if (!skippedRunIds.isEmpty()) {
+            List subList = skippedRunIds;
+            int showCount = 10;
+            if (skippedRunIds.size() > showCount) {
+                subList = skippedRunIds.subList(0, showCount);
+            }
+            logger.info(String.format("%s runs are skipped as their testset is not available, first 10 runs are : %s", skippedRunIds.size(), StringUtils.join(subList, ",")));
         }
 
         return list;
@@ -274,7 +292,6 @@ public class App {
                 testRun.setAttribute("started", runResult.getStartedTime());
                 testRun.setAttribute("external_report_url", runResult.getExternalReportUrl());
                 testRun.setAttribute("run_name", runResult.getRunName());
-                //ERROR????
 
                 Element testFields = doc.createElement("test_fields");
                 testRun.appendChild(testFields);
@@ -286,6 +303,13 @@ public class App {
                     testField.setAttribute("value", runResult.getTestingToolType());
                 }
 
+                if (OCTANE_RUN_FAILED_STATUS.equals(runResult.getStatus())) {
+                    Element error = doc.createElement("error");
+                    testRun.appendChild(error);
+
+                    error.setAttribute("type", "Error");
+                    error.setAttribute("message", "For more details , goto ALM run : " + runResult.getExternalReportUrl());
+                }
             }
 
 

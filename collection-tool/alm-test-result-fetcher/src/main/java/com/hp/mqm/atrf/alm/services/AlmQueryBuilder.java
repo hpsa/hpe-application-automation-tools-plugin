@@ -1,5 +1,6 @@
-package com.hp.mqm.atrf.alm.services.querybuilder;
+package com.hp.mqm.atrf.alm.services;
 
+import com.hp.mqm.atrf.core.rest.HTTPUtils;
 import org.apache.commons.lang.SerializationUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -9,7 +10,7 @@ import java.util.*;
 /**
  * Created by berkovir on 06/12/2016.
  */
-public class QueryBuilder implements Serializable {
+public class AlmQueryBuilder implements Serializable {
 
 
     private StringBuilder sb;
@@ -21,11 +22,11 @@ public class QueryBuilder implements Serializable {
 
     public static final String PREPARED_FILTER = "_PREPARED_FILTER_";
 
-    public static QueryBuilder create() {
-        return new QueryBuilder();
+    public static AlmQueryBuilder create() {
+        return new AlmQueryBuilder();
     }
 
-    public QueryBuilder addQueryConditions(Map<String, String> conditions) {
+    public AlmQueryBuilder addQueryConditions(Map<String, String> conditions) {
         if (conditions != null && !conditions.isEmpty()) {
             if (this.queryConditions == null) {
                 this.queryConditions = new HashMap<>();
@@ -35,7 +36,7 @@ public class QueryBuilder implements Serializable {
         return this;
     }
 
-    public QueryBuilder addQueryCondition(String field, String value) {
+    public AlmQueryBuilder addQueryCondition(String field, String value) {
         if (queryConditions == null) {
             queryConditions = new HashMap<>();
         }
@@ -43,21 +44,21 @@ public class QueryBuilder implements Serializable {
         return this;
     }
 
-    public QueryBuilder addStartIndex(Integer startIndex) {
+    public AlmQueryBuilder addStartIndex(Integer startIndex) {
         this.startIndex = startIndex;
         return this;
     }
 
-    public QueryBuilder addPageSize(int pageSize) {
+    public AlmQueryBuilder addPageSize(int pageSize) {
         this.pageSize = pageSize;
         return this;
     }
 
-    public QueryBuilder addSelectedFields(String... fieldNames) {
+    public AlmQueryBuilder addSelectedFields(String... fieldNames) {
         return addSelectedFields(Arrays.asList(fieldNames));
     }
 
-    public QueryBuilder addSelectedFields(Collection<String> fieldNames) {
+    public AlmQueryBuilder addSelectedFields(Collection<String> fieldNames) {
         if (fieldNames != null && !fieldNames.isEmpty()) {
             if (selectedFields == null) {
                 selectedFields = new ArrayList<>();
@@ -67,11 +68,11 @@ public class QueryBuilder implements Serializable {
         return this;
     }
 
-    public QueryBuilder addOrderBy(String... fieldNames) {
+    public AlmQueryBuilder addOrderBy(String... fieldNames) {
         return addOrderBy(Arrays.asList(fieldNames));
     }
 
-    public QueryBuilder addOrderBy(Collection<String> fieldNames) {
+    public AlmQueryBuilder addOrderBy(Collection<String> fieldNames) {
         if (fieldNames != null && !fieldNames.isEmpty()) {
             if (orderBy == null) {
                 orderBy = new ArrayList<>();
@@ -105,12 +106,13 @@ public class QueryBuilder implements Serializable {
                 for (Map.Entry<String, String> entry : queryConditions.entrySet()) {
                     sb.append(splitter);
                     if (entry.getKey().equals(PREPARED_FILTER)) {
-                        sb.append(entry.getValue());
+                        sb.append(HTTPUtils.encodeParam(entry.getValue()));
                     } else {
                         //if value contains spaces (for example A OR B), spaces should be converted to '+',
                         //if value wrapped with ' , vor example 'Not Completed', it should be handled as is
-                        String value = entry.getValue().startsWith("'") ? entry.getValue() : entry.getValue().replaceAll(" ", "+");
-                        sb.append(entry.getKey()).append("[").append(value).append("]");
+                        //String value = entry.getValue().startsWith("'") ? entry.getValue() : entry.getValue().replaceAll(" ", "+");
+
+                        sb.append(entry.getKey()).append("[").append(HTTPUtils.encodeParam(entry.getValue())).append("]");
                         splitter = ";";
                     }
 
@@ -144,8 +146,8 @@ public class QueryBuilder implements Serializable {
         return queryConditions;
     }
 
-    public QueryBuilder clone() {
-        QueryBuilder qb = (QueryBuilder) SerializationUtils.clone(this);
+    public AlmQueryBuilder clone() {
+        AlmQueryBuilder qb = (AlmQueryBuilder) SerializationUtils.clone(this);
         return qb;
     }
 }

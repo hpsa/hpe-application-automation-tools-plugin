@@ -137,7 +137,7 @@ public class TestRunResultEntity {
             throw new RuntimeException(String.format("The field %s is empty in the run ", "testName", getRunId()));
         }
         if (testingToolType == null) {
-            throw new RuntimeException(String.format("The field %s is empty in the run ", "testingToolType", getRunId()));
+            //throw new RuntimeException(String.format("The field %s is empty in the run ", "testingToolType", getRunId()));
         }
         if (packageValue == null) {
             throw new RuntimeException(String.format("The field %s is empty in the run ", "packageValue", getRunId()));

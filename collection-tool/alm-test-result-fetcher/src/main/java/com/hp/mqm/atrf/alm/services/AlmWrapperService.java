@@ -2,7 +2,6 @@ package com.hp.mqm.atrf.alm.services;
 
 import com.hp.mqm.atrf.alm.core.AlmEntity;
 import com.hp.mqm.atrf.alm.entities.*;
-import com.hp.mqm.atrf.alm.services.querybuilder.QueryBuilder;
 import com.hp.mqm.atrf.core.configuration.FetchConfiguration;
 import com.hp.mqm.atrf.core.rest.RestConnector;
 import org.apache.commons.lang.StringUtils;
@@ -36,18 +35,24 @@ public class AlmWrapperService {
         almEntityService = new AlmEntityService(restConnector);
         almEntityService.setDomain(domain);
         almEntityService.setProject(project);
+
+        //Add synthetic data
+        TestFolder unattachedTestFolder = new TestFolder();
+        unattachedTestFolder.put(TestFolder.FIELD_ID,"-2");
+        unattachedTestFolder.put(TestFolder.FIELD_NAME,"Unattached");
+        testFolders.put(unattachedTestFolder.getId(),unattachedTestFolder);
     }
 
     public void fetchRunsAndRelatedEntities(FetchConfiguration configuration) {
         logger.info("Starting fetch process from ALM");
 
-        QueryBuilder queryBuilder = buildRunFilter(configuration);
+        AlmQueryBuilder queryBuilder = buildRunFilter(configuration);
 
         long start, end, globalStart, globalEnd;
 
         globalStart = System.currentTimeMillis();
         int expectedRuns = getExpectedRuns(queryBuilder);
-        int fetchLimit = Integer.valueOf(configuration.getFetchLimit());
+        int fetchLimit = Integer.valueOf(configuration.getRunFilterFetchLimit());
         logger.info(String.format("Expected runs : %d", Math.min(expectedRuns, fetchLimit)));
 
         start = System.currentTimeMillis();
@@ -91,8 +96,8 @@ public class AlmWrapperService {
         logger.info(String.format("Fetching from alm is done, total time %d ms", globalEnd - globalStart));
     }
 
-    private QueryBuilder buildRunFilter(FetchConfiguration configuration) {
-        QueryBuilder qb = QueryBuilder.create();
+    private AlmQueryBuilder buildRunFilter(FetchConfiguration configuration) {
+        AlmQueryBuilder qb = AlmQueryBuilder.create();
         //StartFromId
         if (StringUtils.isNotEmpty(configuration.getAlmRunFilterStartFromId())) {
             int startFromId = Integer.parseInt(configuration.getAlmRunFilterStartFromId());
@@ -122,7 +127,7 @@ public class AlmWrapperService {
 
             if (configuration.getAlmRunFilterRelatedEntityType().equals("release")) {
                 //fetch sprints of the release
-                QueryBuilder sprintQb = QueryBuilder.create().addQueryCondition(Sprint.FIELD_PARENT_ID, configuration.getAlmRunFilterRelatedEntityId()).addSelectedFields("id");
+                AlmQueryBuilder sprintQb = AlmQueryBuilder.create().addQueryCondition(Sprint.FIELD_PARENT_ID, configuration.getAlmRunFilterRelatedEntityId()).addSelectedFields("id");
                 List<AlmEntity> sprints = almEntityService.getAllPagedEntities(Sprint.COLLECTION_NAME, sprintQb, 1000);
                 Set<String> sprintIds = new HashSet<>();
                 for (AlmEntity sprint : sprints) {
@@ -139,8 +144,13 @@ public class AlmWrapperService {
         }
         //custom
         if (StringUtils.isNotEmpty(configuration.getAlmRunFilterCustom())) {
-            qb.addQueryCondition(QueryBuilder.PREPARED_FILTER, configuration.getAlmRunFilterCustom());
+            qb.addQueryCondition(AlmQueryBuilder.PREPARED_FILTER, configuration.getAlmRunFilterCustom());
         }
+
+        if(!Boolean.valueOf(configuration.getRunFilterSupportManual())){
+            qb.addQueryCondition("subtype-id", "<>hp.qc.run.MANUAL");
+        }
+
 
         return qb;
     }
@@ -227,9 +237,9 @@ public class AlmWrapperService {
         return ids;
     }
 
-    public List<Run> fetchRuns(QueryBuilder queryBuilder, int fetchLimit) { // maxPages = -1 --> fetch all runs
+    public List<Run> fetchRuns(AlmQueryBuilder queryBuilder, int fetchLimit) { // maxPages = -1 --> fetch all runs
 
-        QueryBuilder qb = QueryBuilder.create();
+        AlmQueryBuilder qb = AlmQueryBuilder.create();
         qb.addOrderBy(Run.FIELD_ID);
         qb.addSelectedFields(
                 Run.FIELD_ID,
@@ -261,7 +271,7 @@ public class AlmWrapperService {
         return runs;
     }
 
-    public int getExpectedRuns(QueryBuilder queryBuilder) {
+    public int getExpectedRuns(AlmQueryBuilder queryBuilder) {
         return almEntityService.getTotalNumber(Run.COLLECTION_NAME, queryBuilder);
     }
 
@@ -272,7 +282,7 @@ public class AlmWrapperService {
     public boolean validateConnectionToProject() {
         try {
             //try to get resource, if succeeded - the connection is valid
-            QueryBuilder qb = QueryBuilder.create().addQueryCondition("id", "0");
+            AlmQueryBuilder qb = AlmQueryBuilder.create().addQueryCondition("id", "0");
             almEntityService.getTotalNumber(Test.COLLECTION_NAME, qb);
             return true;
         } catch (Exception e) {

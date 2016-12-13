@@ -4,7 +4,6 @@ import com.hp.mqm.atrf.alm.core.AlmEntity;
 import com.hp.mqm.atrf.alm.core.AlmEntityCollection;
 import com.hp.mqm.atrf.alm.core.AlmEntityDescriptor;
 import com.hp.mqm.atrf.alm.entities.*;
-import com.hp.mqm.atrf.alm.services.querybuilder.QueryBuilder;
 import com.hp.mqm.atrf.core.rest.HTTPUtils;
 import com.hp.mqm.atrf.core.rest.Response;
 import com.hp.mqm.atrf.core.rest.RestConnector;
@@ -48,16 +47,16 @@ public class AlmEntityService {
         typesMap.put(TestFolder.TYPE, new TestFolderDescriptor());
     }
 
-    public int getTotalNumber(String collectionName, QueryBuilder queryBuilder) {
+    public int getTotalNumber(String collectionName, AlmQueryBuilder queryBuilder) {
         String entityCollectionUrl = String.format(AlmRestConstants.ALM_REST_PROJECT_ENTITIES_FORMAT, getDomain(), getProject(), collectionName);
 
-        String queryString = QueryBuilder.create().addSelectedFields(AlmEntity.FIELD_ID).addPageSize(1).addQueryConditions(queryBuilder.getQueryConditions()).build();
+        String queryString = AlmQueryBuilder.create().addSelectedFields(AlmEntity.FIELD_ID).addPageSize(1).addQueryConditions(queryBuilder.getQueryConditions()).build();
         String entitiesCollectionStr = restConnector.httpGet(entityCollectionUrl, Arrays.asList(queryString), jsonHeaders).getResponseData();
         AlmEntityCollection col = parseCollection(entitiesCollectionStr);
         return col.getTotal();
     }
 
-    public AlmEntityCollection getEntities(String collectionName, QueryBuilder qb) {
+    public AlmEntityCollection getEntities(String collectionName, AlmQueryBuilder qb) {
         String entityCollectionUrl = String.format(AlmRestConstants.ALM_REST_PROJECT_ENTITIES_FORMAT, getDomain(), getProject(), collectionName);
         String queryString = qb.build();
 
@@ -66,7 +65,7 @@ public class AlmEntityService {
         return coll;
     }
 
-    public List<AlmEntity> getAllPagedEntities(String collectionName, QueryBuilder qb, int maxPages) {
+    public List<AlmEntity> getAllPagedEntities(String collectionName, AlmQueryBuilder qb, int maxPages) {
         List<AlmEntity> entities = new ArrayList<>();
 
         //get num of pages
@@ -75,7 +74,7 @@ public class AlmEntityService {
         int currentStartIndex = 1;
 
         for (int i = 1; i <= totalNumOfPages && i <= maxPages; i++) {
-            QueryBuilder myQb = qb.clone().addPageSize(PAGE_SIZE).addStartIndex(currentStartIndex);
+            AlmQueryBuilder myQb = qb.clone().addPageSize(PAGE_SIZE).addStartIndex(currentStartIndex);
             AlmEntityCollection coll = getEntities(collectionName, myQb);
             if (totalNumOfPages == Integer.MAX_VALUE) {
                 totalNumOfPages = getNumberOfPages(coll.getTotal());
@@ -105,7 +104,7 @@ public class AlmEntityService {
         for (int i = 0; i < list.size(); i = i + PAGE_SIZE) {
             int maxIndex = Math.min(i + PAGE_SIZE, list.size());
             List<String> subList = list.subList(i, maxIndex);
-            QueryBuilder qb = QueryBuilder.create().addQueryCondition("id", StringUtils.join(subList, " OR ")).addSelectedFields(fields);
+            AlmQueryBuilder qb = AlmQueryBuilder.create().addQueryCondition("id", StringUtils.join(subList, " OR ")).addSelectedFields(fields);
             AlmEntityCollection coll = getEntities(collectionName, qb);
             allEntities.addAll(coll.getEntities());
         }
