@@ -2,6 +2,7 @@ package com.hp.octane.plugins.bamboo.octane;
 
 import com.atlassian.bamboo.applinks.ImpersonationService;
 import com.atlassian.bamboo.configuration.AdministrationConfigurationAccessor;
+import com.atlassian.bamboo.plan.ExecutionRequestResult;
 import com.atlassian.bamboo.plan.PlanExecutionManager;
 import com.atlassian.bamboo.plan.PlanKeys;
 import com.atlassian.bamboo.plan.cache.CachedPlanManager;
@@ -25,6 +26,7 @@ import com.hp.octane.integrations.dto.pipelines.BuildHistory;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.dto.tests.TestsResult;
+import com.hp.octane.integrations.exceptions.ConfigurationException;
 import com.hp.octane.integrations.exceptions.PermissionException;
 import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.plugins.bamboo.api.OctaneConfigurationKeys;
@@ -171,7 +173,10 @@ public class BambooPluginServices implements CIPluginServices {
 				if(!isUserHasPermission(BambooPermission.BUILD, user,chain)) {
 					throw new PermissionException(403);
 				}
-				planExecMan.startManualExecution(chain, user, new HashMap<String, String>(), new HashMap<String, String>());
+				ExecutionRequestResult result = planExecMan.startManualExecution(chain, user, new HashMap<String, String>(), new HashMap<String, String>());
+				if (result.getErrors().getTotalErrors() > 0) {
+					throw new ConfigurationException(504);
+				}
 
 				return null;
 			}
@@ -180,7 +185,9 @@ public class BambooPluginServices implements CIPluginServices {
 			impersonated.call();
 		} catch (PermissionException e){
 			throw e;
-		}catch (Exception e) {
+		} catch(ConfigurationException ce) {
+			throw ce;
+		} catch (Exception e) {
 			log.info("Error impersonating for plan execution", e);
 		}
 
