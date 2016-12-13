@@ -1,6 +1,5 @@
 package com.hp.mqm.atrf.core.configuration;
 
-import com.hp.mqm.atrf.core.rest.RestConnector;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -48,7 +47,7 @@ public class FetchConfiguration {
     public static String ALM_RUN_FILTER_RELATED_ENTITY_ID_PARAM = "conf.alm.runFilter.relatedEntity.id";
     public static String ALM_RUN_FILTER_CUSTOM_PARAM = "conf.alm.runFilter.custom";
 
-    public static String ALM_FETCH_LIMIT_PARAM = "conf.alm.fetchLimit";
+    public static String ALM_RUN_FILTER_FETCH_LIMIT_PARAM = "conf.alm.runFilter.fetchLimit";
 
     public static String SYNC_BULK_SIZE_PARAM = "conf.sync.bulkSize";
     public static String SYNC_SLEEP_BETWEEN_POSTS_PARAM = "conf.sync.sleepBetweenPosts";
@@ -61,9 +60,9 @@ public class FetchConfiguration {
     public Set<String> allowedParameters;
     private  Map<String,String>lowered2allowedParams;
 
-    private static int ALM_FETCH_LIMIT_DEFAULT = 100000;
-    private static int ALM_FETCH_LIMIT_MAX = 200000;
-    private static int ALM_FETCH_LIMIT_MIN = 1;
+    private static int ALM_RUN_FILTER_FETCH_LIMIT_DEFAULT = 100000;
+    private static int ALM_RUN_FILTER_FETCH_LIMIT_MAX = 200000;
+    private static int ALM_RUN_FILTER_FETCH_LIMIT_MIN = 1;
 
     private static int SYNC_BULK_SIZE_DEFAULT = 1000;
     private static int SYNC_BULK_SIZE_MAX = 1000;
@@ -80,7 +79,7 @@ public class FetchConfiguration {
         allowedParameters = new HashSet<>(Arrays.asList(ALM_USER_PARAM, ALM_PASSWORD_PARAM, ALM_SERVER_URL_PARAM,ALM_DOMAIN_PARAM,ALM_PROJECT_PARAM,
                 OCTANE_PASSWORD_PARAM,OCTANE_USER_PARAM,OCTANE_SERVER_URL_PARAM,OCTANE_SHAREDSPACE_ID_PARAM,OCTANE_WORKSPACE_ID_PARAM,
                 ALM_RUN_FILTER_START_FROM_ID_PARAM,ALM_RUN_FILTER_START_FROM_DATE_PARAM,ALM_RUN_FILTER_TEST_TYPE_PARAM,ALM_RUN_FILTER_RELATED_ENTITY_TYPE_PARAM,ALM_RUN_FILTER_RELATED_ENTITY_ID_PARAM,
-                ALM_RUN_FILTER_CUSTOM_PARAM,SYNC_BULK_SIZE_PARAM,SYNC_SLEEP_BETWEEN_POSTS_PARAM,PROXY_HOST_PARAM,PROXY_PORT_PARAM, OUTPUT_FILE_PARAM, ALM_FETCH_LIMIT_PARAM));
+                ALM_RUN_FILTER_CUSTOM_PARAM,SYNC_BULK_SIZE_PARAM,SYNC_SLEEP_BETWEEN_POSTS_PARAM,PROXY_HOST_PARAM,PROXY_PORT_PARAM, OUTPUT_FILE_PARAM, ALM_RUN_FILTER_FETCH_LIMIT_PARAM));
 
         lowered2allowedParams = new HashMap<>();
         for(String param : allowedParameters){
@@ -101,8 +100,8 @@ public class FetchConfiguration {
             props.remove(SYNC_SLEEP_BETWEEN_POSTS_PARAM);
         }
 
-        if(Integer.toString(ALM_FETCH_LIMIT_DEFAULT).equals(getFetchLimit())){
-            props.remove(ALM_FETCH_LIMIT_PARAM);
+        if(Integer.toString(ALM_RUN_FILTER_FETCH_LIMIT_DEFAULT).equals(getRunFilterFetchLimit())){
+            props.remove(ALM_RUN_FILTER_FETCH_LIMIT_PARAM);
         }
 
         logger.info("Loaded configuration : " + (props.entrySet().toString()));
@@ -184,19 +183,19 @@ public class FetchConfiguration {
         }
 
         //FETCH LIMIT
-        String fetchLimitStr = getProperty(ALM_FETCH_LIMIT_PARAM);
-        int fetchLimit = ALM_FETCH_LIMIT_DEFAULT;
+        String fetchLimitStr = getProperty(ALM_RUN_FILTER_FETCH_LIMIT_PARAM);
+        int fetchLimit = ALM_RUN_FILTER_FETCH_LIMIT_DEFAULT;
         if (StringUtils.isNotEmpty(fetchLimitStr)) {
             try {
                 fetchLimit = Integer.parseInt(fetchLimitStr);
-                if (fetchLimit < ALM_FETCH_LIMIT_MIN || fetchLimit > ALM_FETCH_LIMIT_MAX) {
-                    fetchLimit = ALM_FETCH_LIMIT_DEFAULT;
+                if (fetchLimit < ALM_RUN_FILTER_FETCH_LIMIT_MIN || fetchLimit > ALM_RUN_FILTER_FETCH_LIMIT_MAX) {
+                    fetchLimit = ALM_RUN_FILTER_FETCH_LIMIT_DEFAULT;
                 }
             } catch (Exception e) {
-                fetchLimit = ALM_FETCH_LIMIT_DEFAULT;
+                fetchLimit = ALM_RUN_FILTER_FETCH_LIMIT_DEFAULT;
             }
         }
-        setProperty(ALM_FETCH_LIMIT_PARAM, Integer.toString(fetchLimit));
+        setProperty(ALM_RUN_FILTER_FETCH_LIMIT_PARAM, Integer.toString(fetchLimit));
 
         //BULK SIZE
         String bulkSizeStr = getProperty(SYNC_BULK_SIZE_PARAM);
@@ -407,7 +406,7 @@ public class FetchConfiguration {
         return getProperty(OUTPUT_FILE_PARAM);
     }
 
-    public String getFetchLimit(){
-        return getProperty(ALM_FETCH_LIMIT_PARAM);
+    public String getRunFilterFetchLimit(){
+        return getProperty(ALM_RUN_FILTER_FETCH_LIMIT_PARAM);
     }
 }
