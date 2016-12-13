@@ -9,6 +9,7 @@ import com.hp.octane.integrations.dto.causes.CIEventCause;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
 import com.hp.octane.integrations.dto.events.PhaseType;
+
 import java.util.Arrays;
 
 public class OctanePreJobAction extends BaseListener implements PreJobAction {
@@ -21,7 +22,7 @@ public class OctanePreJobAction extends BaseListener implements PreJobAction {
 				buildContext.getParentBuildIdentifier().getBuildResultKey(),
 				buildContext.getParentBuildContext().getPlanResultKey().getPlanKey().getKey(), "admin");
 
-        //create and send started event
+		//create and send started event
 		CIEvent event = CONVERTER.getEventWithDetails(
 				resultKey.getPlanKey().getKey(),
 				resultKey.getKey(),
@@ -35,21 +36,19 @@ public class OctanePreJobAction extends BaseListener implements PreJobAction {
 
 		OctaneSDK.getInstance().getEventsService().publishEvent(event);
 
-        //create and send SCM event
-        CIEvent scmEvent = CONVERTER.getEventWithDetails(
-                resultKey.getPlanKey().getKey(),
-                resultKey.getKey(),
-                buildContext.getShortName(),
-                CIEventType.SCM,
-                System.currentTimeMillis(),
-                paramStageExecution.getChainExecution().getAverageDuration(),
-                Arrays.asList(cause),
-                String.valueOf(resultKey.getBuildNumber()),
-                CONVERTER.getScmData(buildContext),
+		//create and send SCM event
+		CIEvent scmEvent = CONVERTER.getEventWithDetails(
+				resultKey.getPlanKey().getKey(),
+				resultKey.getKey(),
+				buildContext.getShortName(),
+				CIEventType.SCM,
+				System.currentTimeMillis(),
+				paramStageExecution.getChainExecution().getAverageDuration(),
+				Arrays.asList(cause),
+				String.valueOf(resultKey.getBuildNumber()),
+				CONVERTER.getScmData(buildContext),
 				PhaseType.INTERNAL);
 
-        OctaneSDK.getInstance().getEventsService().publishEvent(scmEvent);
+		OctaneSDK.getInstance().getEventsService().publishEvent(scmEvent);
 	}
-
-
 }

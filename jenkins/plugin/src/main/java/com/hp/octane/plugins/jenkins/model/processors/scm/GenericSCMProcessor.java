@@ -19,6 +19,7 @@ import java.util.ArrayList;
 /**
  * Created by benmeior on 9/8/2016.
  */
+
 public class GenericSCMProcessor implements SCMProcessor {
     private static final Logger logger = LogManager.getLogger(GenericSCMProcessor.class);
     private static final DTOFactory dtoFactory = DTOFactory.getInstance();
