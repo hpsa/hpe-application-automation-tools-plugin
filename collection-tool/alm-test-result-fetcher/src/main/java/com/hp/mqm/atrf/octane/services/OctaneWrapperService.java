@@ -1,6 +1,7 @@
 package com.hp.mqm.atrf.octane.services;
 
 import com.hp.mqm.atrf.core.rest.RestConnector;
+import com.hp.mqm.atrf.octane.core.OctaneTestResultOutput;
 import com.hp.mqm.atrf.octane.entities.Test;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -31,10 +32,20 @@ public class OctaneWrapperService {
 
     public boolean validateConnectionToWorkspace() {
         try {
-            octaneEntityService.getEntities(Test.COLLECTION_NAME, null);
+            OctaneQueryBuilder qb = OctaneQueryBuilder.create();
+            qb.addQueryCondition("id","0");
+            octaneEntityService.getEntities(Test.COLLECTION_NAME, qb);
             return true;
         }catch (Exception e){
             return false;
         }
+    }
+
+    public OctaneTestResultOutput postTestResults(String xml) {
+        return octaneEntityService.postTestResults(xml);
+    }
+
+    public OctaneTestResultOutput getTestResultStatus(OctaneTestResultOutput output) {
+        return octaneEntityService.getTestResultStatus(output);
     }
 }

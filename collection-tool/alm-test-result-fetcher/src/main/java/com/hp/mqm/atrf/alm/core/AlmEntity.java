@@ -9,8 +9,7 @@ public class AlmEntity extends MapBasedObject {
 
     public static final String FIELD_ID = "id";
     public static final String FIELD_NAME = "name";
-    public static final String FIELD_DESCRIPTION = "description";
-
+    public static String FIELD_PARENT_ID = "parent-id";
 
     private String type;
 

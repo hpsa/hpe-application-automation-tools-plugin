@@ -11,14 +11,12 @@ public class Sprint extends AlmEntity {
 
     public static String COLLECTION_NAME = "release-cycles";
 
-    public static String FIELD_RELEASE_ID = "parent-id";
-
     public Sprint() {
         super(TYPE);
     }
 
     public String getReleaseId() {
-        return getString(FIELD_RELEASE_ID);
+        return getString(FIELD_PARENT_ID);
     }
 
 }

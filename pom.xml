@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.hp.mqm</groupId>
 	<artifactId>indi-integrations-root</artifactId>
-	<version>12.53.18-SNAPSHOT</version>
+	<version>12.53.19-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<properties>
@@ -61,6 +61,8 @@
 		<module>nga-surefire-listener</module>
 		<module>integrations-sdk</module>
 		<module>integrations-dto</module>
+		<module>integrations-dto/api</module>
+		<module>integrations-dto/impl</module>
 	</modules>
 
 	<build>

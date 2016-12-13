@@ -11,6 +11,7 @@ import com.hp.octane.integrations.dto.causes.CIEventCause;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
+import com.hp.octane.integrations.dto.events.PhaseType;
 import com.hp.octane.integrations.dto.general.CIJobsList;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
@@ -46,13 +47,13 @@ public interface DTOConverter {
 
 
 	CIEvent getEventWithDetails(String project, String buildCiId, String displayName, CIEventType eventType,
-								long startTime, long estimatedDuration, List<CIEventCause> causes, String number, BuildState buildState, Long currnetTime);
+								long startTime, long estimatedDuration, List<CIEventCause> causes, String number, BuildState buildState, Long currnetTime, PhaseType phaseType);
 
 	CIEvent getEventWithDetails(String project, String buildCiId, String displayName, CIEventType eventType,
-	                            long startTime, long estimatedDuration, List<CIEventCause> causes, String number);
+								long startTime, long estimatedDuration, List<CIEventCause> causes, String number, PhaseType phaseType);
 
 	CIEvent getEventWithDetails(String project, String buildCiId, String displayName, CIEventType eventType,
-								long startTime, long estimatedDuration, List<CIEventCause> causes, String number, SCMData scmData);
+								long startTime, long estimatedDuration, List<CIEventCause> causes, String number, SCMData scmData, PhaseType phaseType);
 
 
 	CIEventCause getCauseWithDetails(String buildCiId, String project, String user);
