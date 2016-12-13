@@ -14,8 +14,8 @@ import org.apache.http.HttpStatus;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -93,14 +93,15 @@ public class OctaneEntityService {
         return workspaceId;
     }
 
-    public OctaneEntityCollection getEntities(String collectionName, List<String> params) {
+    public OctaneEntityCollection getEntities(String collectionName, OctaneQueryBuilder queryBuilder) {
         String entityCollectionUrl = String.format(OctaneRestConstants.PUBLIC_API_WORKSPACE_LEVEL_ENTITIES, getSharedSpaceId(), getWorkspaceId(), collectionName);
+        String queryString = queryBuilder.build();
 
         Map<String, String> headers = new HashMap<>();
         headers.put(HTTPUtils.HEADER_ACCEPT, HTTPUtils.HEADER_APPLICATION_JSON);
         headers.put(OctaneRestConstants.CLIENTTYPE_HEADER, OctaneRestConstants.CLIENTTYPE_INTERNAL);
 
-        String entitiesCollectionStr = restConnector.httpGet(entityCollectionUrl, params, headers).getResponseData();
+        String entitiesCollectionStr = restConnector.httpGet(entityCollectionUrl,  Arrays.asList(queryString), headers).getResponseData();
         JSONObject jsonObj = new JSONObject(entitiesCollectionStr);
         OctaneEntityCollection col = parseCollection(jsonObj);
         return col;

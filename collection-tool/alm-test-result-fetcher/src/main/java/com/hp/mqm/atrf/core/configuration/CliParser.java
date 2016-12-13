@@ -43,6 +43,8 @@ public class CliParser {
     public static final String PASSWORD_OCTANE_FILE_OPTION_LONG = "password-oct-file";
     public static final String RUN_FILTER_ID_OPTION = "rfid";
     public static final String RUN_FILTER_ID_OPTION_LONG = "run-filter-id";
+    public static final String RUN_FILTER_DATE_OPTION = "rfd";
+    public static final String RUN_FILTER_DATE_OPTION_LONG = "run-filter-date";
 
     private Options options = new Options();
     private LinkedList<String> argsWithSingleOccurrence = new LinkedList<>();
@@ -52,8 +54,8 @@ public class CliParser {
         options.addOption(Option.builder(HELP_OPTION).longOpt(HELP_OPTION_LONG).desc("show this help").build());
         options.addOption(Option.builder(VERSION_OPTION).longOpt(VERSION_OPTION_LONG).desc("show version of this tool").build());
 
-        options.addOption(Option.builder(OUTPUT_FILE_OPTION).longOpt(OUTPUT_FILE_OPTION_LONG).desc("write output to file instead of pushing it to the server").optionalArg(true).argName("FILE").build());
-        options.addOption(Option.builder(CONFIG_FILE_OPTION).longOpt(CONFIG_FILE_OPTION_LONG).desc("configuration file location").hasArg().argName("FILE").build());
+        options.addOption(Option.builder(OUTPUT_FILE_OPTION).longOpt(OUTPUT_FILE_OPTION_LONG).desc("write output to file instead of pushing it to the server. File path is optional. Default file name is " + DEFAULT_OUTPUT_FILE).optionalArg(true).argName("FILE").build());
+        options.addOption(Option.builder(CONFIG_FILE_OPTION).longOpt(CONFIG_FILE_OPTION_LONG).desc("configuration file location.").hasArg().argName("FILE").build());
 
         OptionGroup passAlmGroup = new OptionGroup();
         passAlmGroup.addOption(Option.builder(PASSWORD_ALM_OPTION).longOpt(PASSWORD_ALM_OPTION_LONG).desc("password for alm user").hasArg().argName("PASSWORD").build());
@@ -66,8 +68,10 @@ public class CliParser {
         options.addOptionGroup(passOctaneGroup);
 
         options.addOption(Option.builder(RUN_FILTER_ID_OPTION).longOpt(RUN_FILTER_ID_OPTION_LONG).desc("start run fetching from id").hasArg().argName("ID").build());
+        options.addOption(Option.builder(RUN_FILTER_DATE_OPTION).longOpt(RUN_FILTER_DATE_OPTION_LONG).desc("start run fetching from date").hasArg().argName("YYYY-MM-DD").build());
 
-        argsWithSingleOccurrence.addAll(Arrays.asList(OUTPUT_FILE_OPTION, CONFIG_FILE_OPTION, PASSWORD_ALM_OPTION, PASSWORD_ALM_FILE_OPTION, PASSWORD_OCTANE_OPTION, PASSWORD_OCTANE_FILE_OPTION, "rfi"));
+        argsWithSingleOccurrence.addAll(Arrays.asList(OUTPUT_FILE_OPTION, CONFIG_FILE_OPTION, PASSWORD_ALM_OPTION, PASSWORD_ALM_FILE_OPTION, PASSWORD_OCTANE_OPTION,
+                PASSWORD_OCTANE_FILE_OPTION, RUN_FILTER_ID_OPTION, RUN_FILTER_DATE_OPTION));
 
     }
 
@@ -164,6 +168,9 @@ public class CliParser {
             //run filter from id
             if (cmd.hasOption(RUN_FILTER_ID_OPTION)) {
                 configuration.setAlmRunFilterStartFromId(cmd.getOptionValue(RUN_FILTER_ID_OPTION));
+            }
+            if (cmd.hasOption(RUN_FILTER_DATE_OPTION)) {
+                configuration.setAlmRunFilterStartFromDate(cmd.getOptionValue(RUN_FILTER_DATE_OPTION));
             }
 
             try {

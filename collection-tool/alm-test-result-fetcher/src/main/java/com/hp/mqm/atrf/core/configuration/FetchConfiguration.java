@@ -62,7 +62,7 @@ public class FetchConfiguration {
     private  Map<String,String>lowered2allowedParams;
 
     private static int ALM_FETCH_LIMIT_DEFAULT = 100000;
-    private static int ALM_FETCH_LIMIT_MAX = 100000;
+    private static int ALM_FETCH_LIMIT_MAX = 200000;
     private static int ALM_FETCH_LIMIT_MIN = 1;
 
     private static int SYNC_BULK_SIZE_DEFAULT = 1000;
@@ -70,9 +70,9 @@ public class FetchConfiguration {
     private static int SYNC_BULK_SIZE_MIN = 10;
 
 
-    private static int SYNC_SLEEP_BETWEEN_POSTS_DEFAULT = 5;
-    private static int SYNC_SLEEP_BETWEEN_POSTS_MAX = 120;
-    private static int SYNC_SLEEP_BETWEEN_POSTS_MIN = 2;
+    private static int SYNC_SLEEP_BETWEEN_POSTS_DEFAULT = 5;//sec
+    private static int SYNC_SLEEP_BETWEEN_POSTS_MAX = 120;//sec
+    private static int SYNC_SLEEP_BETWEEN_POSTS_MIN = 2;//sec
 
     public static String ALM_RUN_FILTER_START_FROM_ID_LAST_SENT = "LAST_SENT";
 
@@ -99,6 +99,10 @@ public class FetchConfiguration {
         }
         if(Integer.toString(SYNC_SLEEP_BETWEEN_POSTS_DEFAULT).equals(getSyncSleepBetweenPosts())){
             props.remove(SYNC_SLEEP_BETWEEN_POSTS_PARAM);
+        }
+
+        if(Integer.toString(ALM_FETCH_LIMIT_DEFAULT).equals(getFetchLimit())){
+            props.remove(ALM_FETCH_LIMIT_PARAM);
         }
 
         logger.info("Loaded configuration : " + (props.entrySet().toString()));
@@ -365,6 +369,10 @@ public class FetchConfiguration {
 
     public String getAlmRunFilterStartFromDate() {
         return getProperty(ALM_RUN_FILTER_START_FROM_DATE_PARAM);
+    }
+
+    public void setAlmRunFilterStartFromDate(String value) {
+        setProperty(ALM_RUN_FILTER_START_FROM_DATE_PARAM, value);
     }
 
     public String getAlmRunFilterTestType() {

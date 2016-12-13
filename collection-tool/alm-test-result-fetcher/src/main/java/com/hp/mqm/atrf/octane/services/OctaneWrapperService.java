@@ -32,7 +32,9 @@ public class OctaneWrapperService {
 
     public boolean validateConnectionToWorkspace() {
         try {
-            octaneEntityService.getEntities(Test.COLLECTION_NAME, null);
+            OctaneQueryBuilder qb = OctaneQueryBuilder.create();
+            qb.addQueryCondition("id","0");
+            octaneEntityService.getEntities(Test.COLLECTION_NAME, qb);
             return true;
         }catch (Exception e){
             return false;
