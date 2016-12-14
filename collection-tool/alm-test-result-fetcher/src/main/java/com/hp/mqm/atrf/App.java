@@ -55,13 +55,18 @@ public class App {
 
     public void start() {
 
+        boolean isOutput = StringUtils.isNotEmpty(configuration.getOutputFile());
+
         loginToAlm();
-        loginToOctane();
+
+        if (!isOutput) {
+            loginToOctane();
+        }
 
         almWrapper.fetchRunsAndRelatedEntities(configuration);
         List<TestRunResultEntity> ngaRuns = prepareRunsForInjection();
 
-        if (StringUtils.isNotEmpty(configuration.getOutputFile())) {
+        if (isOutput) {
             saveResults(configuration, ngaRuns);
         } else {
             List<OctaneTestResultOutput> outputs = sendResults(configuration, ngaRuns);
@@ -245,11 +250,11 @@ public class App {
 
         if (!skippedRunIds.isEmpty()) {
             List subList = skippedRunIds;
-            int showCount = 10;
+            int showCount = 20;
             if (skippedRunIds.size() > showCount) {
                 subList = skippedRunIds.subList(0, showCount);
             }
-            logger.info(String.format("%s runs are skipped as their testset is not available, first 10 runs are : %s", skippedRunIds.size(), StringUtils.join(subList, ",")));
+            logger.info(String.format("%s runs are skipped as their testsets are not available, first %s runs are : %s", skippedRunIds.size(), showCount, StringUtils.join(subList, ",")));
         }
 
         return list;

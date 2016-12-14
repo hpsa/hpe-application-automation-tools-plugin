@@ -10,6 +10,9 @@ import org.apache.logging.log4j.core.LoggerContext;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.DateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 /**
  *
@@ -23,6 +26,13 @@ public class Main {
 
         configureLog4J();
         setUncaughtExceptionHandler();
+
+        logger.info("***************************************************************************************************");
+
+        DateFormat dateFormatter = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault());
+        DateFormat timeFormatter = DateFormat.getTimeInstance(DateFormat.DEFAULT, Locale.getDefault());
+        logger.info((String.format("Starting fetch process %s %s", dateFormatter.format(new Date()), timeFormatter.format(new Date()))));
+        logger.info("***************************************************************************************************");
 
         CliParser cliParser = new CliParser();
         FetchConfiguration configuration = cliParser.parse(args);
@@ -60,7 +70,7 @@ public class Main {
             context.setConfigLocation(uri);
             logger.info("Log4j configuration loaded from " + uri.toString());
         } else {
-            logger.info("Log4j configuration is loading from JVM argument log4j.configuration=" + log4jConfiguration);
+            logger.info("Log4j configuration is loading from log4j.configuration=" + log4jConfiguration);
         }
     }
 }

@@ -38,9 +38,9 @@ public class AlmWrapperService {
 
         //Add synthetic data
         TestFolder unattachedTestFolder = new TestFolder();
-        unattachedTestFolder.put(TestFolder.FIELD_ID,"-2");
-        unattachedTestFolder.put(TestFolder.FIELD_NAME,"Unattached");
-        testFolders.put(unattachedTestFolder.getId(),unattachedTestFolder);
+        unattachedTestFolder.put(TestFolder.FIELD_ID, "-2");
+        unattachedTestFolder.put(TestFolder.FIELD_NAME, "Unattached");
+        testFolders.put(unattachedTestFolder.getId(), unattachedTestFolder);
     }
 
     public void fetchRunsAndRelatedEntities(FetchConfiguration configuration) {
@@ -111,9 +111,16 @@ public class AlmWrapperService {
             qb.addQueryCondition("execution-date", ">=" + configuration.getAlmRunFilterStartFromDate());
         }
         //TestType
+        boolean supportManual = Boolean.valueOf(configuration.getRunFilterSupportManual());
+
         if (StringUtils.isNotEmpty(configuration.getAlmRunFilterTestType())) {
-            qb.addQueryCondition("test.subtype-id", configuration.getAlmRunFilterTestType());
+            qb.addQueryCondition("test.subtype-id", configuration.getAlmRunFilterTestType() + (supportManual ? "" : " AND <>MANUAL"));
+        } else {
+            if (!supportManual) {
+                qb.addQueryCondition("test.subtype-id", "<>MANUAL");
+            }
         }
+
         //RelatedEntity
         if (StringUtils.isNotEmpty(configuration.getAlmRunFilterRelatedEntityType())) {
             Map<String, String> relatedEntity2runFieldMap = new HashMap<>();
@@ -145,10 +152,6 @@ public class AlmWrapperService {
         //custom
         if (StringUtils.isNotEmpty(configuration.getAlmRunFilterCustom())) {
             qb.addQueryCondition(AlmQueryBuilder.PREPARED_FILTER, configuration.getAlmRunFilterCustom());
-        }
-
-        if(!Boolean.valueOf(configuration.getRunFilterSupportManual())){
-            qb.addQueryCondition("subtype-id", "<>hp.qc.run.MANUAL");
         }
 
 
