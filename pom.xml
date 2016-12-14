@@ -61,8 +61,6 @@
 		<module>nga-surefire-listener</module>
 		<module>integrations-sdk</module>
 		<module>integrations-dto</module>
-		<module>integrations-dto/api</module>
-		<module>integrations-dto/impl</module>
 	</modules>
 
 	<build>

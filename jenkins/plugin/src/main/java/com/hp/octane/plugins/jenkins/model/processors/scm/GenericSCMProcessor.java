@@ -1,7 +1,11 @@
 package com.hp.octane.plugins.jenkins.model.processors.scm;
 
 import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.scm.*;
+import com.hp.octane.integrations.dto.scm.SCMChange;
+import com.hp.octane.integrations.dto.scm.SCMCommit;
+import com.hp.octane.integrations.dto.scm.SCMData;
+import com.hp.octane.integrations.dto.scm.SCMRepository;
+import com.hp.octane.integrations.dto.scm.SCMType;
 import hudson.model.AbstractBuild;
 import hudson.model.User;
 import hudson.model.UserProperty;
@@ -15,6 +19,7 @@ import java.util.ArrayList;
 /**
  * Created by benmeior on 9/8/2016.
  */
+
 public class GenericSCMProcessor implements SCMProcessor {
     private static final Logger logger = LogManager.getLogger(GenericSCMProcessor.class);
     private static final DTOFactory dtoFactory = DTOFactory.getInstance();

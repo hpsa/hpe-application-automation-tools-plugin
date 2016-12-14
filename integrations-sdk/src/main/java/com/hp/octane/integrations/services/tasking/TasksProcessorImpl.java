@@ -36,7 +36,6 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
     private static final String NGA_API = "nga/api/v1";
     private static final String STATUS = "status";
     private static final String JOBS = "jobs";
-    private static final String JOB = "job";
     private static final String RUN = "run";
     private static final String HISTORY = "history";
     private static final String BUILDS = "builds";
