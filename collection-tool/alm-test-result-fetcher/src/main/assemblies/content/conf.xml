@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<conf>
+  <alm>
+
+    <user></user>
+
+    <pasword></pasword>
+
+    <!--http://host:port/qcbin-->
+    <serverUrl>http://myserver:8080/qcbin</serverUrl>
+
+    <domain></domain>
+
+    <project></project>
+
+    <runFilter> <!--all parameters are optional, defined parameters are taken with AND operator -->
+      <!--Fetch runs that has id greater than specified id. Possible value : any id or 'LAST_SENT', in last case - filtering is started from last sent run id (recognized automatically) -->
+      <startFromId></startFromId>
+
+      <!--Fetch runs that executed after specified date. Format yyyy-MM-dd-->
+      <startFromDate>2016-01-01</startFromDate>
+
+      <!--Filter runs by test type, allowed test types : QUICKTEST_TEST,BUSINESS-PROCESS,LEANFT-TEST-->
+      <testType></testType>
+
+      <!--Filter runs that related to some entity, for example 'runs that related to release AAA' or runs frin  -->
+      <relatedEntity>
+
+        <!--Available types : test,testset,sprint, release-->
+        <type></type>
+
+        <!--id or ids separated with 'OR' : 1 OR 2 OR 3-->
+        <id></id>
+      </relatedEntity>
+
+      <!--Any custom valid filter, example : assign-rcyc[1001 or 1002];id[>100 AND &lt;500]-->
+      <custom></custom>
+
+      <!--limit fetching runs from ALM, max is 200000 -->
+      <fetchLimit></fetchLimit>
+
+    </runFilter>
+
+  </alm>
+  <octane>
+    <clientId></clientId>
+
+    <clientSecret></clientSecret>
+
+    <!--http://host:port-->
+    <serverUrl>http://myserver:8080</serverUrl>
+
+    <sharedSpaceId></sharedSpaceId>
+
+    <workspaceId></workspaceId>
+
+  </octane>
+
+  <proxy>
+    <host></host>
+    <port></port>
+  </proxy>
+</conf>

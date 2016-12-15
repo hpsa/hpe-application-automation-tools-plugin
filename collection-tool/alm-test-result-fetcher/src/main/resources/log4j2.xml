@@ -4,14 +4,14 @@
         <Console name="console" target="SYSTEM_OUT">
             <PatternLayout pattern="%msg%n"/>
         </Console>
-		<RollingFile  name="generalFile" fileName="./output/consoleLog.log" filePattern="./output/consoleLog-%i.log">
+		<RollingFile  name="generalFile" fileName="./logs/consoleLog.log" filePattern="./logs/consoleLog-%i.log">
             <PatternLayout pattern="[%-5p] %d{yyyy-MM-dd HH:mm:ss.SSS} %-20c{1} - %msg%n"/>
             <Policies>
                 <SizeBasedTriggeringPolicy size="10MB"/>
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile  name="restFile" fileName="./output/restLog.log" filePattern="./output/restLog-%i.log">
+        <RollingFile  name="restFile" fileName="./logs/restLog.log" filePattern="./logs/restLog-%i.log">
             <PatternLayout pattern="[%-5p] %d{yyyy-MM-dd HH:mm:ss.SSS} %c{1} - %msg%n"/>
             <Policies>
                 <SizeBasedTriggeringPolicy size="10MB"/>
