@@ -1,5 +1,7 @@
 package com.hp.mqm.atrf.octane.entities;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.util.Map;
 
 /**
@@ -73,7 +75,11 @@ public class TestRunResultEntity {
     }
 
     public void setDuration(String duration) {
-        this.duration = duration;
+        if (StringUtils.isEmpty(duration)) {
+            this.duration = "0";
+        } else {
+            this.duration = duration;
+        }
     }
 
     public Map<String, String> getEnvironment() {
@@ -146,22 +152,22 @@ public class TestRunResultEntity {
             throw new RuntimeException(String.format("The field %s is empty in the run ", "classValue", getRunId()));
         }
         if (module == null) {
-            throw new RuntimeException(String.format("The field %s is empty in the run ", "module", getRunId()));
+            throw new RuntimeException(String.format("The field %s is empty in the run %s", "module", getRunId()));
         }
         if (duration == null) {
-            throw new RuntimeException(String.format("The field %s is empty in the run ", "duration", getRunId()));
+            throw new RuntimeException(String.format("The field %s is empty in the run %s", "duration", getRunId()));
         }
         if (externalReportUrl == null) {
-            throw new RuntimeException(String.format("The field %s is empty in the run ", "externalReportUrl", getRunId()));
+            throw new RuntimeException(String.format("The field %s is empty in the run %s", "externalReportUrl", getRunId()));
         }
         if (runName == null) {
-            throw new RuntimeException(String.format("The field %s is empty in the run ", "runName", getRunId()));
+            throw new RuntimeException(String.format("The field %s is empty in the run %s", "runName", getRunId()));
         }
         if (startedTime == null) {
-            throw new RuntimeException(String.format("The field %s is empty in the run ", "startedTime", getRunId()));
+            throw new RuntimeException(String.format("The field %s is empty in the run %s", "startedTime", getRunId()));
         }
         if (status == null) {
-            throw new RuntimeException(String.format("The field %s is empty in the run ", "", getRunId()));
+            throw new RuntimeException(String.format("The field %s is empty in the run %s", "", getRunId()));
         }
     }
 
