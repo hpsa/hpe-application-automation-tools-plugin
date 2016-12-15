@@ -429,6 +429,10 @@ public class FetchConfiguration {
         return getProperty(ALM_RUN_FILTER_FETCH_LIMIT_PARAM);
     }
 
+    public void setRunFilterFetchLimit(String value){
+        setProperty(ALM_RUN_FILTER_FETCH_LIMIT_PARAM, value);
+    }
+
     public String getRunFilterSupportManual(){
         return getProperty(ALM_RUN_FILTER_SUPPORT_MANUAL_PARAM);
     }

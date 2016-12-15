@@ -45,6 +45,8 @@ public class CliParser {
     public static final String RUN_FILTER_ID_OPTION_LONG = "run-filter-id";
     public static final String RUN_FILTER_DATE_OPTION = "rfd";
     public static final String RUN_FILTER_DATE_OPTION_LONG = "run-filter-date";
+    public static final String RUN_FILTER_LIMIT_OPTION = "rfl";
+    public static final String RUN_FILTER_LIMIT_OPTION_LONG = "run-filter-limit";
 
     private Options options = new Options();
     private LinkedList<String> argsWithSingleOccurrence = new LinkedList<>();
@@ -70,8 +72,10 @@ public class CliParser {
         options.addOption(Option.builder(RUN_FILTER_ID_OPTION).longOpt(RUN_FILTER_ID_OPTION_LONG).desc("start run fetching from id").hasArg().argName("ID").build());
         options.addOption(Option.builder(RUN_FILTER_DATE_OPTION).longOpt(RUN_FILTER_DATE_OPTION_LONG).desc("start run fetching from date").hasArg().argName("YYYY-MM-DD").build());
 
+        options.addOption(Option.builder(RUN_FILTER_LIMIT_OPTION).longOpt(RUN_FILTER_LIMIT_OPTION_LONG).desc("limit number of fetched runs").hasArg().argName("NUMBER").build());
+
         argsWithSingleOccurrence.addAll(Arrays.asList(OUTPUT_FILE_OPTION, CONFIG_FILE_OPTION, PASSWORD_ALM_OPTION, PASSWORD_ALM_FILE_OPTION, PASSWORD_OCTANE_OPTION,
-                PASSWORD_OCTANE_FILE_OPTION, RUN_FILTER_ID_OPTION, RUN_FILTER_DATE_OPTION));
+                PASSWORD_OCTANE_FILE_OPTION, RUN_FILTER_ID_OPTION, RUN_FILTER_DATE_OPTION, RUN_FILTER_LIMIT_OPTION));
 
     }
 
@@ -165,12 +169,15 @@ public class CliParser {
                 }
             }
 
-            //run filter from id
+            //run filter options
             if (cmd.hasOption(RUN_FILTER_ID_OPTION)) {
                 configuration.setAlmRunFilterStartFromId(cmd.getOptionValue(RUN_FILTER_ID_OPTION));
             }
             if (cmd.hasOption(RUN_FILTER_DATE_OPTION)) {
                 configuration.setAlmRunFilterStartFromDate(cmd.getOptionValue(RUN_FILTER_DATE_OPTION));
+            }
+            if (cmd.hasOption(RUN_FILTER_LIMIT_OPTION)) {
+                configuration.setRunFilterFetchLimit(cmd.getOptionValue(RUN_FILTER_LIMIT_OPTION));
             }
 
             try {
