@@ -6,6 +6,7 @@ import com.hp.mqm.atrf.core.configuration.FetchConfiguration;
 import com.hp.mqm.atrf.octane.core.OctaneTestResultOutput;
 import com.hp.mqm.atrf.octane.entities.TestRunResultEntity;
 import com.hp.mqm.atrf.octane.services.OctaneWrapperService;
+import com.sun.org.apache.xerces.internal.util.XMLChar;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -210,9 +211,9 @@ public class App {
 
             //TEST FIELDS
             //test name + test configuration, if Test name =Test configuration, just keep test name
-            String testName = String.format("AlmTestId #%s : %s", test.getId(), test.getName());
+            String testName = String.format("AlmTestId #%s : %s", test.getId(), sanitizeForXml(test.getName()));
             if (!testConfiguration.getName().equals(test.getName())) {
-                testName = String.format("AlmTestId #%s, ConfId #%s : %s - %s", test.getId(), testConfiguration.getId(), test.getName(), testConfiguration.getName());
+                testName = String.format("AlmTestId #%s, ConfId #%s : %s - %s", test.getId(), testConfiguration.getId(), sanitizeForXml(test.getName()), sanitizeForXml(testConfiguration.getName()));
             }
             testName = restrictTo255(testName);
             injectionEntity.setTestName(testName);
@@ -220,12 +221,12 @@ public class App {
             injectionEntity.setTestingToolType(alm2OctaneTestingToolMapper.get(test.getSubType()));
             injectionEntity.setPackageValue(almWrapper.getProject());
             injectionEntity.setModule(almWrapper.getDomain());
-            injectionEntity.setClassValue(testFolder.getName());
+            injectionEntity.setClassValue(sanitizeForXml(testFolder.getName()));
 
 
             //RUN FIELDS
             injectionEntity.setDuration(run.getDuration());
-            injectionEntity.setRunName(restrictTo255(String.format("AlmTestSet #%s : %s", testSet.getId(), testSet.getName())));
+            injectionEntity.setRunName(restrictTo255(String.format("AlmTestSet #%s : %s", testSet.getId(), sanitizeForXml(testSet.getName()))));
             injectionEntity.setExternalReportUrl(almWrapper.generateALMReferenceURL(run));
 
 
@@ -261,6 +262,34 @@ public class App {
         }
 
         return list;
+    }
+
+    private String sanitizeForXml(String str) {
+        if (hasInvalidCharacter(str)) {
+            StringBuilder strBuilder = new StringBuilder();
+            for (int i = 0; i < str.length(); i++) {
+                char c = str.charAt(i);
+                if (!XMLChar.isInvalid(c)) {
+                    strBuilder.append(c);
+                } else {
+                    strBuilder.append("_");
+                }
+            }
+
+            return strBuilder.toString();
+        }
+        return str;
+    }
+
+
+    private boolean hasInvalidCharacter(String str) {
+        for (int i = 0; i < str.length(); i++) {
+            char c = str.charAt(i);
+            if (XMLChar.isInvalid(c)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private String restrictTo255(String value) {
