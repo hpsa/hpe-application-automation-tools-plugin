@@ -135,7 +135,7 @@ public class AlmWrapperService {
             if (configuration.getAlmRunFilterRelatedEntityType().equals("release")) {
                 //fetch sprints of the release
                 AlmQueryBuilder sprintQb = AlmQueryBuilder.create().addQueryCondition(Sprint.FIELD_PARENT_ID, configuration.getAlmRunFilterRelatedEntityId()).addSelectedFields("id");
-                List<AlmEntity> sprints = almEntityService.getAllPagedEntities(Sprint.COLLECTION_NAME, sprintQb, 1000);
+                List<AlmEntity> sprints = almEntityService.getAllPagedEntities(Sprint.COLLECTION_NAME, sprintQb, 10000);
                 Set<String> sprintIds = new HashSet<>();
                 for (AlmEntity sprint : sprints) {
                     sprintIds.add(sprint.getId());

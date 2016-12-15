@@ -66,6 +66,7 @@ public class AlmEntityService {
     }
 
     public List<AlmEntity> getAllPagedEntities(String collectionName, AlmQueryBuilder qb, int maxPages) {
+
         List<AlmEntity> entities = new ArrayList<>();
 
         //get num of pages
@@ -73,15 +74,27 @@ public class AlmEntityService {
         int totalNumOfPages = Integer.MAX_VALUE;
         int currentStartIndex = 1;
 
+
+        boolean printToConsole = false;
         for (int i = 1; i <= totalNumOfPages && i <= maxPages; i++) {
             AlmQueryBuilder myQb = qb.clone().addPageSize(PAGE_SIZE).addStartIndex(currentStartIndex);
             AlmEntityCollection coll = getEntities(collectionName, myQb);
             if (totalNumOfPages == Integer.MAX_VALUE) {
                 totalNumOfPages = getNumberOfPages(coll.getTotal());
+                printToConsole = totalNumOfPages >= 3;
             }
 
             entities.addAll(coll.getEntities());
             currentStartIndex = i * PAGE_SIZE + 1;
+
+            if (printToConsole) {
+                System.out.print(".");
+            }
+        }
+
+        if (printToConsole) {
+            //add new line
+            System.out.print("\n");
         }
 
         return entities;
@@ -98,16 +111,26 @@ public class AlmEntityService {
     }
 
 
-    public List<AlmEntity> getEntitiesByIds(String collectionName, Set<String> ids,Collection<String> fields) {
+    public List<AlmEntity> getEntitiesByIds(String collectionName, Set<String> ids, Collection<String> fields) {
         List<String> list = new ArrayList<>(ids);
         List<AlmEntity> allEntities = new ArrayList<>();
+        boolean printToConsole = (ids.size() / PAGE_SIZE >= 2);
         for (int i = 0; i < list.size(); i = i + PAGE_SIZE) {
             int maxIndex = Math.min(i + PAGE_SIZE, list.size());
             List<String> subList = list.subList(i, maxIndex);
             AlmQueryBuilder qb = AlmQueryBuilder.create().addQueryCondition("id", StringUtils.join(subList, " OR ")).addSelectedFields(fields);
             AlmEntityCollection coll = getEntities(collectionName, qb);
             allEntities.addAll(coll.getEntities());
+            if (printToConsole) {
+                System.out.print(".");
+            }
         }
+
+        if (printToConsole) {
+            //add new line
+            System.out.print("\n");
+        }
+
         return allEntities;
     }
 
