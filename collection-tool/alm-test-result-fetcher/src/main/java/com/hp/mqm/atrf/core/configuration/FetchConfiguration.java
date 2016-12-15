@@ -60,7 +60,7 @@ public class FetchConfiguration {
     public Set<String> allowedParameters;
     private  Map<String,String>lowered2allowedParams;
 
-    private static int ALM_RUN_FILTER_FETCH_LIMIT_DEFAULT = 100000;
+    private static int ALM_RUN_FILTER_FETCH_LIMIT_DEFAULT = 200000;
     private static int ALM_RUN_FILTER_FETCH_LIMIT_MAX = 200000;
     private static int ALM_RUN_FILTER_FETCH_LIMIT_MIN = 1;
 

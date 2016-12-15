@@ -54,8 +54,8 @@ public class CliParser {
         options.addOption(Option.builder(HELP_OPTION).longOpt(HELP_OPTION_LONG).desc("show this help").build());
         options.addOption(Option.builder(VERSION_OPTION).longOpt(VERSION_OPTION_LONG).desc("show version of this tool").build());
 
-        options.addOption(Option.builder(OUTPUT_FILE_OPTION).longOpt(OUTPUT_FILE_OPTION_LONG).desc("write output to file instead of pushing it to the server. File path is optional. Default file name is " + DEFAULT_OUTPUT_FILE).optionalArg(true).argName("FILE").build());
-        options.addOption(Option.builder(CONFIG_FILE_OPTION).longOpt(CONFIG_FILE_OPTION_LONG).desc("configuration file location.").hasArg().argName("FILE").build());
+        options.addOption(Option.builder(OUTPUT_FILE_OPTION).longOpt(OUTPUT_FILE_OPTION_LONG).desc("write output to file instead of pushing it to the server. File path is optional. Default file name is '" + DEFAULT_OUTPUT_FILE + "'").optionalArg(true).argName("FILE").build());
+        options.addOption(Option.builder(CONFIG_FILE_OPTION).longOpt(CONFIG_FILE_OPTION_LONG).desc("configuration file location. Default configuration file name is '" + DEFAULT_CONF_FILE + "'").hasArg().argName("FILE").build());
 
         OptionGroup passAlmGroup = new OptionGroup();
         passAlmGroup.addOption(Option.builder(PASSWORD_ALM_OPTION).longOpt(PASSWORD_ALM_OPTION_LONG).desc("password for alm user").hasArg().argName("PASSWORD").build());

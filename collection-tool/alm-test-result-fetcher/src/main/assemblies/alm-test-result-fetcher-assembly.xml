@@ -14,5 +14,8 @@
         <file>
             <source>${project.basedir}/src/main/assemblies/content/readme.txt</source>
         </file>
+        <file>
+            <source>${project.basedir}/src/main/assemblies/content/conf.xml</source>
+        </file>
     </files>
 </assembly>
