@@ -88,7 +88,7 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 				if (builderProcessor != null) {
 					postBuilds.addAll(builderProcessor.getPhases());
 				} else {
-					logger.info("not yet supported publisher (post build) action: " + publisher.getClass().getName());
+					logger.debug("not yet supported publisher (post build) action: " + publisher.getClass().getName());
 				}
 			}
 		}
@@ -113,7 +113,7 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 		if (builderProcessor != null) {
 			internals.addAll(builderProcessor.getPhases());
 		} else {
-			logger.info("not yet supported build (internal) action: " + builder.getClass().getName());
+			logger.debug("not yet supported build (internal) action: " + builder.getClass().getName());
 		}
 	}
 }
