@@ -1,20 +1,22 @@
 README
 ======
 
-HP Lifecycle Management Test Result Collection Tool
----------------------------------------------------
+HPE ALM Test Result Fetcher Tool
+------------------------------------------------------------------------------------------------------------------------
 
-The Test Result Collection Tool is a command line tool for fetching test result from ALM into Octane server.
+The ALM Test Result Fetcher is a command line tool for fetching test result from ALM into Octane server.
 
-Usage:
--------
+------------------------------------------------------------------------------------------------------------------------
+Usage ******************************************************************************************************************
+------------------------------------------------------------------------------------------------------------------------
 
 java -jar alm-test-result-fetcher.jar [OPTIONS]...
 
 
  -c,--config-file <FILE>               configuration file location. Default configuration file name is 'conf.xml'
  -h,--help                             show this help
- -o,--output-file                      write output to file instead of pushing it to the Octane server. File path is optional. Default file name is 'output.xml'
+ -o,--output-file                      write output to file instead of pushing it to the Octane server.
+                                       File path is optional. Default file name is 'output.xml'
  -pa,--password-alm <PASSWORD>         password for alm user
  -paf,--password-alm-file <FILE>       location of file with password for alm user
  -po,--password-oct <PASSWORD>         password for octane user
@@ -23,25 +25,31 @@ java -jar alm-test-result-fetcher.jar [OPTIONS]...
  -rfid,--run-filter-id <ID>            start run fetching from id
  -v,--version                          show version of this tool
 
-Configuration
--------------
+------------------------------------------------------------------------------------------------------------------------
+Configuration **********************************************************************************************************
+------------------------------------------------------------------------------------------------------------------------
+To fetch test results from ALM to Octane server, this tool requires information about ALM and Octane servers,
+authentication details, definition of which runs to fetch from ALM side.
+All this data can be passed in a configuration file.
 
-To fetch test results from ALM to Octane server, this tool requires the server location of ALM and Octane servers
-This data can be passed in a configuration file.
-
-If the configuration file is named 'conf.xml' and is in same
+If the configuration file is named 'conf.xml' and is located in same
 directory as this tool, it is automatically detected. Otherwise, pass the 
 configuration file pathname as a command-line argument (-c option). 
 
-If an output file is specified (-o option), this tool writes
+------------------------------------------------------------------------------------------------------------------------
+Output *****************************************************************************************************************
+------------------------------------------------------------------------------------------------------------------------
+Instead of sending data to Octane, its possible to save fetched data to some file.
+If an output option is specified (-o option), this tool writes
 the output XML to a file instead of pushing it to the server.
-If file pathname parameter is missing, the output will be written into default file
+If output file pathname parameter is missing, the output will be written into default file
 "output.xml"  in same  directory as this tool.
 No Octane server or credential configuration is required in this case.
 
 
-Password handling
------------------
+------------------------------------------------------------------------------------------------------------------------
+Password handling ******************************************************************************************************
+------------------------------------------------------------------------------------------------------------------------
 
 The password can be entered in the following ways:
 *  Configuration file
@@ -49,13 +57,99 @@ The password can be entered in the following ways:
 *  Password is entered from file (-paf and -pof option)
 
 
-Run Filtering
---------------
-The tool allow to filter runs from ALM, there are several predefined filters + option to define some of custom filters.
-All filter are translated to ALM Rest API filter.
-Here are extraction of runFilter section from configuration file
+------------------------------------------------------------------------------------------------------------------------
+Run Filtering **********************************************************************************************************
+------------------------------------------------------------------------------------------------------------------------
+The tool allow to filter runs from ALM, there are several predefined filters + option to define some of custom filters , for example
+- fetch runs that has id greater than X (startFromId filter)
+- fetch runs that executed from some date (startFromDate filter)
+- fetch runs from specific test type (testType filter)
+- fetch runs that related to some release/sprint/test/testset (relatedEntity filter)
+- fetch only first X runs (fetchLimit filter)
 
-         <runFilter> <!--all parameters are optional, defined parameters are taken with AND operator-->
+
+All filter options are optional and if specified more that one options, they are taken with "AND" operator .
+The filters are located in the section of 'conf->alm->runFilter' section of Configuration
+Some filter options are available also from command line
+ - startFromId (option -rfid)
+ - startFromDate (option -rfd)
+
+
+------------------------------------------------------------------------------------------------------------------------
+Required permissions and Supported servers *****************************************************************************
+------------------------------------------------------------------------------------------------------------------------
+
+The tool supports 12.* versions of ALM.
+The tool supports 12.53.19+ versions of Octane.
+
+ALM user might have 'viewer' role and Octane user might have 'team member' role.
+Octane user should be defined as API Access.
+
+
+------------------------------------------------------------------------------------------------------------------------
+Tool Usage Examples ****************************************************************************************************
+------------------------------------------------------------------------------------------------------------------------
+
+1. Configuration is loaded from default file ('conf.xml') that located in the same directory as this tool
+    java -jar alm-test-result-fetcher.jar
+
+2. Configuration is loaded from file ('myNewConf.xml') that located in the same directory as this tool
+    java -jar alm-test-result-fetcher.jar -c myNewConf.xml
+
+3. Tool save fetch results into default output file ('output.xml') that located in the same directory as this tool
+    java -jar alm-test-result-fetcher.jar -o
+
+4. Tool fetch runs that starts from id 1000 by defining filter on command line
+    java -jar alm-test-result-fetcher.jar -rfid 1000
+
+4. Tool get passwords from command line
+    java -jar alm-test-result-fetcher.jar -pa myAlmPassword -po myOctane password
+
+
+------------------------------------------------------------------------------------------------------------------------
+ALM 2 Octane Fields Mapping ********************************************************************************************
+------------------------------------------------------------------------------------------------------------------------
+
+--------------|--------------------|------------------------------------------------------------------------------------
+Octane Entity | Octane Field       | Alm Field
+--------------|--------------------|------------------------------------------------------------------------------------
+Test          | Name               | If run's test name == run's test configuration name
+              |                    |   Then => Format : AlmTestId #{testId} : {testName}
+              |                    |   Else => Format : AlmTestId #{testId}, ConfId #{confId} : {testName} - {confName}
+              | TestingToolType    | ALM Test type is converted as following : "LEANFT-TEST=>LeanFT"; "QUICKTEST_TEST=>UFT"; "BUSINESS-PROCESS=>BPT"
+              | Package            | Project Name
+              | Module             | Domain Name
+              | Class              | Direct test folder name
+--------------|--------------------|------------------------------------------------------------------------------------
+Run           | Name               | Format : AlmTestSet #{testSetId} : {testSetName}
+              | Duration           | Run Duration
+              | ExternalReportUrl  | Td reference to run in the ALM Server (can be opened only in IE)
+              | StartedTime        | Executed Date + Executed Time => transfomed to Unix time
+              | Status             | ALM run statuses 'Passed' and 'Failed' are taken as is, all other types are converted to "Skipped"
+--------------|--------------------|------------------------------------------------------------------------------------
+
+
+
+
+------------------------------------------------------------------------------------------------------------------------
+Full configuration file example ****************************************************************************************
+------------------------------------------------------------------------------------------------------------------------
+        <?xml version="1.0" encoding="utf-8"?>
+        <conf>
+          <alm>
+
+            <user></user>
+
+            <password></password>
+
+            <!--http://host:port/qcbin-->
+            <serverUrl>http://myserver:8080/qcbin</serverUrl>
+
+            <domain></domain>
+
+            <project></project>
+
+            <runFilter> <!--all parameters are optional, defined parameters are taken with AND operator -->
               <!--Fetch runs that has id greater than specified id. Possible value : any id or 'LAST_SENT', in last case - filtering is started from last sent run id (recognized automatically) -->
               <startFromId></startFromId>
 
@@ -80,36 +174,36 @@ Here are extraction of runFilter section from configuration file
 
               <!--limit fetching runs from ALM, max is 200000 -->
               <fetchLimit></fetchLimit>
-          </runFilter>
 
-Some filter options are available also from command line
- - startFromId (option -rfid)
- - startFromDate (option -rfd)
+            </runFilter>
 
-Examples
---------
+          </alm>
 
-1. Configuration is loaded from default file ('conf.xml') that located in the same directory as this tool
-    java -jar alm-test-result-fetcher.jar
+          <octane>
+            <clientId></clientId>
 
-2. Configuration is loaded from file ('myNewConf.xml') that located in the same directory as this tool
-    java -jar alm-test-result-fetcher.jar -c myNewConf.xml
+            <clientSecret></clientSecret>
 
-3. Tool save fetch results into default output file ('output.xml') that located in the same directory as this tool
-    java -jar alm-test-result-fetcher.jar -o
+            <!--http://host:port-->
+            <serverUrl>http://myserver:8080</serverUrl>
 
-4. Tool fetch runs that starts from id 1000 by defining filter on command line
-    java -jar alm-test-result-fetcher.jar -rfid 1000
+            <sharedSpaceId></sharedSpaceId>
 
-4. Tool get passwords from command line
-    java -jar alm-test-result-fetcher.jar -pa myAlmPassword -po myOctane password
+            <workspaceId></workspaceId>
+
+          </octane>
+
+          <proxy>
+            <host></host>
+            <port></port>
+          </proxy>
+        </conf>
 
 
-Required permissions and Supported servers
-----------------------------------------------
-
-The tool supports 12.* versions of ALM.
-The tool supports 12.53.19+ versions of Octane.
-ALM user might have 'viewer' role and Octane user might have 'team member' role.
-Octane user should be defined as API Access
+------------------------------------------------------------------------------------------------------------------------
+Q & A ******************************************************************************************************************
+------------------------------------------------------------------------------------------------------------------------
+Q : How I can find in Octane tests that are fetched from ALM?
+A : During fetching, we map ALM Domain name to test "module" field and ALM Project name to test "package" field.
+    You can filter test with matching "module" and "package" to find fetched tests.
 

@@ -212,7 +212,7 @@ public class App {
             //test name + test configuration, if Test name =Test configuration, just keep test name
             String testName = String.format("AlmTestId #%s : %s", test.getId(), test.getName());
             if (!testConfiguration.getName().equals(test.getName())) {
-                testName = String.format("AlmTestId %s, ConfId %s : %s - %s", test.getId(), testConfiguration.getId(), test.getName(), testConfiguration.getName());
+                testName = String.format("AlmTestId #%s, ConfId #%s : %s - %s", test.getId(), testConfiguration.getId(), test.getName(), testConfiguration.getName());
             }
             testName = restrictTo255(testName);
             injectionEntity.setTestName(testName);
@@ -225,7 +225,7 @@ public class App {
 
             //RUN FIELDS
             injectionEntity.setDuration(run.getDuration());
-            injectionEntity.setRunName(restrictTo255(String.format("AlmTestSet %s : %s", testSet.getId(), testSet.getName())));
+            injectionEntity.setRunName(restrictTo255(String.format("AlmTestSet #%s : %s", testSet.getId(), testSet.getName())));
             injectionEntity.setExternalReportUrl(almWrapper.generateALMReferenceURL(run));
 
 
@@ -239,7 +239,7 @@ public class App {
                     throw new RuntimeException(String.format("Failed to convert run execution date '%s' to Java Date : %s", run.getExecutionDate(), e1.getMessage()));
                 }
             }
-            injectionEntity.setStartedTime(Long.toString(startedDate.getTime() + 6000));
+            injectionEntity.setStartedTime(Long.toString(startedDate.getTime()));
 
             String status = OCTANE_RUN_VALID_STATUS.contains(run.getStatus()) ? run.getStatus() : OCTANE_RUN_SKIPPED_STATUS;
             injectionEntity.setStatus(status);
@@ -251,10 +251,13 @@ public class App {
         if (!skippedRunIds.isEmpty()) {
             List subList = skippedRunIds;
             int showCount = 20;
+            String firstNMessage = "";
             if (skippedRunIds.size() > showCount) {
                 subList = skippedRunIds.subList(0, showCount);
+                firstNMessage = String.format(", first %s runs are", showCount);
             }
-            logger.info(String.format("%s runs are skipped as their testsets are not available, first %s runs are : %s", skippedRunIds.size(), showCount, StringUtils.join(subList, ",")));
+
+            logger.info(String.format("%s runs are skipped as their testsets are deleted %s : %s", skippedRunIds.size(), firstNMessage, StringUtils.join(subList, ",")));
         }
 
         return list;

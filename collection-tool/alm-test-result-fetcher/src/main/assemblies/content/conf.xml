@@ -4,7 +4,7 @@
 
     <user></user>
 
-    <pasword></pasword>
+    <password></password>
 
     <!--http://host:port/qcbin-->
     <serverUrl>http://myserver:8080/qcbin</serverUrl>
@@ -42,6 +42,7 @@
     </runFilter>
 
   </alm>
+
   <octane>
     <clientId></clientId>
 
