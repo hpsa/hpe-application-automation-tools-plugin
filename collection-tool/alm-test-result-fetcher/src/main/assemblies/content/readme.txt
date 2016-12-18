@@ -23,6 +23,7 @@ java -jar alm-test-result-fetcher.jar [OPTIONS]...
  -pof,--password-oct-file <FILE>       location of file with password for octane user
  -rfd,--run-filter-date <YYYY-MM-DD>   start run fetching from date
  -rfid,--run-filter-id <ID>            start run fetching from id
+ -rfl,--run-filter-limit <NUMBER>      limit number of fetched runs from ALM side
  -v,--version                          show version of this tool
 
 ------------------------------------------------------------------------------------------------------------------------

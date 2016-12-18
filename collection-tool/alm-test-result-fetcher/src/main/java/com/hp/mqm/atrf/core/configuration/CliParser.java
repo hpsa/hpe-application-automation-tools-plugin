@@ -72,7 +72,7 @@ public class CliParser {
         options.addOption(Option.builder(RUN_FILTER_ID_OPTION).longOpt(RUN_FILTER_ID_OPTION_LONG).desc("start run fetching from id").hasArg().argName("ID").build());
         options.addOption(Option.builder(RUN_FILTER_DATE_OPTION).longOpt(RUN_FILTER_DATE_OPTION_LONG).desc("start run fetching from date").hasArg().argName("YYYY-MM-DD").build());
 
-        options.addOption(Option.builder(RUN_FILTER_LIMIT_OPTION).longOpt(RUN_FILTER_LIMIT_OPTION_LONG).desc("limit number of fetched runs").hasArg().argName("NUMBER").build());
+        options.addOption(Option.builder(RUN_FILTER_LIMIT_OPTION).longOpt(RUN_FILTER_LIMIT_OPTION_LONG).desc("limit number of fetched runs from ALM side").hasArg().argName("NUMBER").build());
 
         argsWithSingleOccurrence.addAll(Arrays.asList(OUTPUT_FILE_OPTION, CONFIG_FILE_OPTION, PASSWORD_ALM_OPTION, PASSWORD_ALM_FILE_OPTION, PASSWORD_OCTANE_OPTION,
                 PASSWORD_OCTANE_FILE_OPTION, RUN_FILTER_ID_OPTION, RUN_FILTER_DATE_OPTION, RUN_FILTER_LIMIT_OPTION));

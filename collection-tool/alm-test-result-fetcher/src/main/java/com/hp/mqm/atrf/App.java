@@ -81,14 +81,18 @@ public class App {
         logger.info("Sent results are : ");
         for (OctaneTestResultOutput output : outputs) {
             boolean finished = false;
+            int failsCount = 0;
             while (!finished) {
                 if (!output.getStatus().equals("success")) {
                     try {
                         output = octaneWrapper.getTestResultStatus(output);
                     } catch (Exception e) {
-                        logger.info(String.format("Sent id %s : %s", output.getId(), "Failed to get final result"));
-                        finished = true;
-                        break;
+                        failsCount++;
+                        logger.info(String.format("Sent id %s : %s", output.getId(), "Failed to get final result, trial " + failsCount));
+                        if (failsCount > 3) {
+                            finished = true;
+                            break;
+                        }
                     }
 
                 }
