@@ -60,6 +60,22 @@
 			</roles>
 		</developer>
 		<developer>
+			<id>Rlu</id>
+			<name>Roy Lu</name>
+			<email>li.lu@hpe.com</email>
+			<roles>
+				<role>ALM Lab managment</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>pavelchuchma</id>
+			<name>Pavel Chuchma</name>
+			<email>pavel.chuchma@hpe.com</email>
+			<roles>
+				<role>Service Virtualization</role>
+			</roles>
+		</developer>
+		<developer>
 			<id>imrman</id>
 			<name>Avishai Moshka</name>
 			<email>avishai.moshka@hp.com</email>
