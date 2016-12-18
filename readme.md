@@ -9,12 +9,12 @@
 -	**View the plugin’s usage statistics** at [Jenkins.io plugin stats](http://stats.jenkins.io/plugin-installation-trend/hp-application-automation-tools-plugin.stats.json).
 
 ## Development & release timeline 
-####LTS release
+####LTS release branch
 - Once in 3 to 4 months, we will release an LTS version.
 - After a rigid QA cycle, the version will be released to the main Jenkins update center.
 - Each release will have feature freeze and code freeze dates that will be published at our Jira. After this dates, We will accept only fixes to issues discovered during the QA to the current release.
 
-####Feature release / Stable release
+####Current release branches
 -	Each pull request merge that will pass module owner QA cycle will trigger a stable release to Jenkins exprimental update center.
 - Additional releases handled by the standard pull request process followed by a basic QA cycle of the related module.
 -	Release to the Jenkins experimental update center (More information below).
