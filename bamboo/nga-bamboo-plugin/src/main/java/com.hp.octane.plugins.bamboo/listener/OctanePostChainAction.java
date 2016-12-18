@@ -57,7 +57,7 @@ public class OctanePostChainAction extends BaseListener implements PostChainActi
 						planResultKey.getKey(),
 						event.getContext().getShortName(),
 						CIEventType.FINISHED,
-						System.currentTimeMillis(),
+						event.getContext().getCurrentResult().getTasksStartDate().getTime(),
 						100,
 						Arrays.asList(cause),
 						String.valueOf(planResultKey.getBuildNumber()),
