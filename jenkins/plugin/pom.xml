@@ -344,31 +344,30 @@
 				</snapshotRepository>
 			</distributionManagement>
 		</profile>
+
 		<profile>
 			<id>jar-signing</id>
 			<build>
 				<defaultGoal>install</defaultGoal>
 				<plugins>
 					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.7</version>
-                        <executions>
+						<groupId>SignHPUtility.plugin</groupId>
+						<artifactId>signhp-maven-plugin</artifactId>
+						<version>8.0</version>
+						<executions>
 							<execution>
-								<id>default-cli</id>
 								<phase>post-integration-test</phase>
-                                <goals>
-                                    <goal>run</goal>
-                                </goals>
-                                <configuration>
-									<target name="Sign">
-										<echo message="Signing JAR"/>
-										<exec executable="/bin/bash" failonerror="true">
-											<arg value="../../scripts/Sign/sign_jar.sh"/>
-											<arg value="${project.build.directory}"/>
-											<arg value="${file.name}"/>
-										</exec>
-									</target>
+								<goals>
+									<goal>signHP</goal>
+								</goals>
+								<configuration>
+									<parameters>-g ${project.build.directory}/${file.name} -t 24 -p AGN_JAR -i -v -u jarsigner -c 1 -o ${project.build.directory}</parameters>
+									<properties>
+										<sign.nottozip>msi,bin,jar,hpi</sign.nottozip>
+										<tool.jarsigner>jar,ear,war,apk,hpi</tool.jarsigner>
+										<krb.account_name>qcbuilder@EMEA.CPQCORP.NET</krb.account_name>
+										<krb.password>red.mud-83</krb.password>
+									</properties>
 								</configuration>
 							</execution>
 						</executions>
@@ -377,5 +376,4 @@
 			</build>
 		</profile>
 	</profiles>
-
 </project>

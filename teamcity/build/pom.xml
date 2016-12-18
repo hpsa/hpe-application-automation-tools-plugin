@@ -15,8 +15,10 @@
 		<teamcity.plugin.version>${version}</teamcity.plugin.version>
 		<teamcity.plugin.vendorName>Plugin vendor name</teamcity.plugin.vendorName>
 		<teamcity.plugin.vendorUrl>Plugin vendor URL</teamcity.plugin.vendorUrl>
-		<!--zip.location>${project.parent.basedir}/target/hp-lifecycle-management-teamcity-ci-plugin.zip</zip.location-->
-		<zip.location>../target/hp-lifecycle-management-teamcity-ci-plugin.zip</zip.location>
+		<zip.folder>../target</zip.folder>
+		<zip.name>hp-lifecycle-management-teamcity-ci-plugin</zip.name>
+		<zip.full.name>${zip.folder}/${zip.name}.zip</zip.full.name>
+		<zip.location>${zip.folder}/${zip.name}.zip</zip.location>
 		<extraction.folder>${project.build.directory}/extracted</extraction.folder>
 		<temp.target>${project.build.directory}/temp</temp.target>
 		<!--jar.folder>${extraction.folder}/server/</jar.folder-->
@@ -123,25 +125,54 @@
 				<defaultGoal>install</defaultGoal>
 				<plugins>
 					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
-						<version>1.7</version>
+						<version>1.8</version>
 						<executions>
 							<execution>
-								<id>default-cli</id>
+								<id>unzip</id>
 								<phase>pre-integration-test</phase>
+								<configuration>
+									<tasks>
+										<echo message="unziping file ${zip.full.name}" />
+										<unzip src="${zip.full.name}" dest="${extraction.folder}" />
+									</tasks>
+								</configuration>
 								<goals>
 									<goal>run</goal>
 								</goals>
+							</execution>
+							<execution>
+								<id>zip</id>
+								<phase>post-integration-test</phase>
 								<configuration>
-									<target name="Sign">
-										<echo message="Signing JAR"/>
-										<exec executable="/bin/bash" failonerror="true">
-											<arg value="../../scripts/Sign/signJarsInZip.sh"/>
-											<arg value="${zip.location}"/>
-											<arg value="${jar.folder}"/>
-										</exec>
-									</target>
+									<tasks>
+										<copy file="${extraction.folder}/teamcity-plugin.xml" todir="${project.build.directory}/${zip.name}"/>
+										<echo message="ziping jars into ${zip.full.name}" />
+										<zip destfile="${zip.full.name}" basedir="${project.build.directory}/${zip.name}"/>
+									</tasks>
+								</configuration>
+								<goals>
+									<goal>run</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>SignHPUtility.plugin</groupId>
+						<artifactId>signhp-maven-plugin</artifactId>
+						<version>8.0</version>
+						<executions>
+							<execution>
+								<phase>integration-test</phase>
+								<goals>
+									<goal>signHP</goal>
+								</goals>
+								<configuration>
+									<parameters>-s ${extraction.folder}/${jar.folder} -t 24 -p AGN_JAR -i -v -u jarsigner -c 1 -o ${project.build.directory}/${zip.name}/${jar.folder}</parameters>
+									<properties>
+										<krb.account_name>qcbuilder@EMEA.CPQCORP.NET</krb.account_name>
+										<krb.password>red.mud-83</krb.password>
+									</properties>
 								</configuration>
 							</execution>
 						</executions>

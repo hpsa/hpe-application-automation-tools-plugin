@@ -135,4 +135,35 @@
             </resource>
         </resources>
     </build>
+
+    <profiles>
+        <profile>
+            <id>jar-signing</id>
+            <build>
+                <defaultGoal>install</defaultGoal>
+                <plugins>
+                    <plugin>
+                        <groupId>SignHPUtility.plugin</groupId>
+                        <artifactId>signhp-maven-plugin</artifactId>
+                        <version>8.0</version>
+                        <executions>
+                            <execution>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>signHP</goal>
+                                </goals>
+                                <configuration>
+                                    <parameters>-g ${project.build.directory}/${shade.file.name.with.jar} -t 24 -p AGN_JAR -i -v -u jarsigner -c 1 -o ${project.build.directory}</parameters>
+                                    <properties>
+                                        <krb.account_name>qcbuilder@EMEA.CPQCORP.NET</krb.account_name>
+                                        <krb.password>red.mud-83</krb.password>
+                                    </properties>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
