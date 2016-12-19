@@ -172,7 +172,7 @@ Full configuration file example ************************************************
                 <id></id>
               </relatedEntity>
 
-              <!--Any custom valid filter, example : assign-rcyc[1001 or 1002];id[>100 AND &lt;500]-->
+              <!--Any custom valid REST filter, example : assign-rcyc[1001 or 1002];id[>100 AND &lt;500]-->
               <custom></custom>
 
               <!--limit fetching runs from ALM, max is 200000 -->

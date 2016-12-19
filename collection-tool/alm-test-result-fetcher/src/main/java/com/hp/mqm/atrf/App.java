@@ -21,7 +21,12 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.File;
+import java.io.IOException;
 import java.io.StringWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -80,7 +85,7 @@ public class App {
         logger.info("***************************************************************************************************");
         logger.info("Starting persistence validation in Octane");
 
-        int sleepSize = Integer.parseInt(configuration.getSyncSleepBetweenPosts());
+
         for (OctaneTestResultOutput output : outputs) {
             boolean finished = false;
             int failsCount = 0;
@@ -103,12 +108,11 @@ public class App {
                 if (!(output.getStatus().equals("running") || output.getStatus().equals("queued"))) {
                     finished = true;
                 } else {
-                    try {
-                        int timeToWait = Math.max(10000/*10 sec*/, sleepSize * 1000 * 3);
-                        Thread.sleep(timeToWait);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                    //We got some error, maybe because of network problem,
+                    //wait at least 10 sec or 3*SleepBetweenPosts
+                    int sleepSize = Integer.parseInt(configuration.getSyncSleepBetweenPosts());
+                    int timeToWait = Math.max(10000/*10 sec*/, sleepSize * 1000 * 3);
+                    sleep(timeToWait);
                 }
             }
         }
@@ -135,7 +139,7 @@ public class App {
         logger.info("Starting sending test results to Octane");
 
         int bulkSize = Integer.parseInt(configuration.getSyncBulkSize());
-        int sleepSize = Integer.parseInt(configuration.getSyncSleepBetweenPosts());
+        int sleepTime = Integer.parseInt(configuration.getSyncSleepBetweenPosts());
 
         List<OctaneTestResultOutput> outputs = new ArrayList<>();
 
@@ -155,18 +159,51 @@ public class App {
             //output.put("LIST", subList);
             logger.info(String.format("Sending bulk #%s of %s runs , run ids from %s to %s : %s, sent id=%s",
                     i / bulkSize + 1, subList.size(), subList.get(0).getRunId(), subList.get(subList.size() - 1).getRunId(), output.getStatus(), output.getId()));
-            try {
-                Thread.sleep(sleepSize * 1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            saveLastSentRun(output.getId(), subList);
+            sleep(sleepTime);
         }
 
 
         long endTime = System.currentTimeMillis();
-        logger.info(String.format("Sent %s runs , total time %s sec", runResults.size(), (endTime - startTime)/1000));
+        logger.info(String.format("Sent %s runs , total time %s sec", runResults.size(), (endTime - startTime) / 1000));
 
         return outputs;
+    }
+
+    boolean writeToLastSentRun = true;
+
+    private void saveLastSentRun(Integer sentId, List<TestRunResultEntity> subList) {
+        String pathName = "logs/lastSent.csv";
+        Path path = Paths.get(pathName);
+        try {
+            if (!Files.exists(path)) {
+                Files.createFile(path);
+                String header = "Date,SentId,Count,FromId,ToId" + System.lineSeparator();
+                Files.write(path, header.getBytes(), StandardOpenOption.APPEND);
+            }
+            String date = DATE_TIME_FORMAT.format(new Date());
+            String count = Integer.toString(subList.size());
+            String minId = subList.get(0).getRunId();
+            String maxId = subList.get(subList.size() - 1).getRunId();
+            String msg = StringUtils.join(Arrays.asList(date, sentId, count, minId, maxId), ",") + System.lineSeparator();
+            Files.write(path, msg.getBytes(), StandardOpenOption.APPEND);
+        } catch (IOException e) {
+            //.toFile().getAbsolutePath()
+            logger.error(String.format("Failed to write LAST_SENT_ID to %s", path.toFile().getAbsolutePath()));
+            writeToLastSentRun = false;
+        } catch (Exception e) {
+            //.toFile().getAbsolutePath()
+            logger.error(String.format("Exception occured during writing LAST_SENT_ID to %s : %s", path.toFile().getAbsolutePath()), e.getMessage());
+            writeToLastSentRun = false;
+        }
+    }
+
+    private void sleep(int sleepSize) {
+        try {
+            Thread.sleep(sleepSize * 1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     private void loginToAlm() {
