@@ -71,11 +71,14 @@ public class App {
             saveResults(configuration, ngaRuns);
         } else {
             List<OctaneTestResultOutput> outputs = sendResults(configuration, ngaRuns);
-            getPersistanceStatus(configuration, outputs);
+            getPersistenceStatus(configuration, outputs);
         }
     }
 
-    private void getPersistanceStatus(FetchConfiguration configuration, List<OctaneTestResultOutput> outputs) {
+    private void getPersistenceStatus(FetchConfiguration configuration, List<OctaneTestResultOutput> outputs) {
+
+        logger.info("***************************************************************************************************");
+        logger.info("Starting persistence validation in Octane");
 
         int sleepSize = Integer.parseInt(configuration.getSyncSleepBetweenPosts());
         logger.info("Sent results are : ");
@@ -86,17 +89,18 @@ public class App {
                 if (!output.getStatus().equals("success")) {
                     try {
                         output = octaneWrapper.getTestResultStatus(output);
-                        logger.info(String.format("Sent id %s : %s", output.getId(), output.getStatus()));
+
                     } catch (Exception e) {
                         failsCount++;
-                        logger.info(String.format("Sent id %s : %s", output.getId(), "Failed to get final result, trial " + failsCount));
                         if (failsCount > 3) {
+                            logger.info(String.format("Sent id %s : %s", output.getId(), "Failed to get final result " + failsCount));
                             finished = true;
                             break;
                         }
                     }
                 }
 
+                logger.info(String.format("Sent id %s : %s", output.getId(), output.getStatus()));
                 if (!(output.getStatus().equals("running") || output.getStatus().equals("queued"))) {
                     finished = true;
                 } else {
@@ -127,6 +131,10 @@ public class App {
     }
 
     private List<OctaneTestResultOutput> sendResults(FetchConfiguration configuration, List<TestRunResultEntity> runResults) {
+
+        logger.info("***************************************************************************************************");
+        logger.info("Starting sending test results to Octane");
+
         int bulkSize = Integer.parseInt(configuration.getSyncBulkSize());
         int sleepSize = Integer.parseInt(configuration.getSyncSleepBetweenPosts());
 
