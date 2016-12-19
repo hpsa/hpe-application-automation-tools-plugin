@@ -81,7 +81,6 @@ public class App {
         logger.info("Starting persistence validation in Octane");
 
         int sleepSize = Integer.parseInt(configuration.getSyncSleepBetweenPosts());
-        logger.info("Sent results are : ");
         for (OctaneTestResultOutput output : outputs) {
             boolean finished = false;
             int failsCount = 0;
@@ -165,7 +164,7 @@ public class App {
 
 
         long endTime = System.currentTimeMillis();
-        logger.info(String.format("Sent %s runs , total time %s ms", runResults.size(), endTime - startTime));
+        logger.info(String.format("Sent %s runs , total time %s sec", runResults.size(), (endTime - startTime)/1000));
 
         return outputs;
     }

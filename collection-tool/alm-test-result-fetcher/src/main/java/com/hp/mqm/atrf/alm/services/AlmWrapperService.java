@@ -93,7 +93,7 @@ public class AlmWrapperService {
         */
 
         globalEnd = System.currentTimeMillis();
-        logger.info(String.format("Fetching from alm is done, total time %d ms", globalEnd - globalStart));
+        logger.info(String.format("Fetching from alm is done, total time %d sec", (globalEnd - globalStart)/1000));
     }
 
     private AlmQueryBuilder buildRunFilter(FetchConfiguration configuration) {
