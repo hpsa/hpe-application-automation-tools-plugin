@@ -112,10 +112,18 @@ public class App {
     }
 
     private void saveResults(FetchConfiguration configuration, List<TestRunResultEntity> runResults) {
+
+        String note = "";
+        List<TestRunResultEntity> myRunResults = runResults;
+        if (runResults.size() > 1000) {
+            myRunResults = runResults.subList(0, 1000);
+            note = "(first 1000 runs)";
+        }
+
         File file = new File(configuration.getOutputFile());
         StreamResult result = new StreamResult(file);
-        convertToXml(runResults, result, true);
-        logger.info("The results are saved to  : " + file.getAbsolutePath());
+        convertToXml(myRunResults, result, true);
+        logger.info(String.format("The results are saved to  %s: %s", note, file.getAbsolutePath()));
     }
 
     private List<OctaneTestResultOutput> sendResults(FetchConfiguration configuration, List<TestRunResultEntity> runResults) {

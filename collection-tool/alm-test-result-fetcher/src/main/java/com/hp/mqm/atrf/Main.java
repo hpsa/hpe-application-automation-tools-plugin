@@ -24,6 +24,7 @@ public class Main {
 
     public static void main(String[] args) {
 
+        long start = System.currentTimeMillis();
         configureLog4J();
         setUncaughtExceptionHandler();
 
@@ -38,6 +39,10 @@ public class Main {
         FetchConfiguration configuration = cliParser.parse(args);
         App app = new App(configuration);
         app.start();
+
+        long end = System.currentTimeMillis();
+        logger.info(String.format("Fetch process is finished in %s seconds", end - start));
+        logger.info("***************************************************************************************************");
     }
 
 
