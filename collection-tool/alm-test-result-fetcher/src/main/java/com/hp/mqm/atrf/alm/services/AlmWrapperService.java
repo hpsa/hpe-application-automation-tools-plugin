@@ -111,14 +111,8 @@ public class AlmWrapperService {
             qb.addQueryCondition("execution-date", ">=" + configuration.getAlmRunFilterStartFromDate());
         }
         //TestType
-        boolean supportManual = Boolean.valueOf(configuration.getRunFilterSupportManual());
-
         if (StringUtils.isNotEmpty(configuration.getAlmRunFilterTestType())) {
             qb.addQueryCondition("test.subtype-id", configuration.getAlmRunFilterTestType());
-        } else {
-            if (!supportManual) {
-                qb.addQueryCondition("test.subtype-id", "<>MANUAL");
-            }
         }
 
         //RelatedEntity

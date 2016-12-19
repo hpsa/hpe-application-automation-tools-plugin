@@ -157,7 +157,7 @@ Full configuration file example ************************************************
               <!--Fetch runs that executed after specified date. Format yyyy-MM-dd-->
               <startFromDate>2016-01-01</startFromDate>
 
-              <!--Filter runs by test type, allowed test types : QUICKTEST_TEST,BUSINESS-PROCESS,LEANFT-TEST-->
+              <!--Filter runs by test type, allowed test types : MANUAL, QUICKTEST_TEST,BUSINESS-PROCESS,LEANFT-TEST-->
               <testType></testType>
 
               <!--Filter runs that related to some entity, for example 'runs that related to release AAA' or runs frin  -->

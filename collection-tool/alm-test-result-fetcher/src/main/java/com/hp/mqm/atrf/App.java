@@ -86,6 +86,7 @@ public class App {
                 if (!output.getStatus().equals("success")) {
                     try {
                         output = octaneWrapper.getTestResultStatus(output);
+                        logger.info(String.format("Sent id %s : %s", output.getId(), output.getStatus()));
                     } catch (Exception e) {
                         failsCount++;
                         logger.info(String.format("Sent id %s : %s", output.getId(), "Failed to get final result, trial " + failsCount));
@@ -94,10 +95,7 @@ public class App {
                             break;
                         }
                     }
-
                 }
-
-                logger.info(String.format("Sent id %s : %s", output.getId(), output.getStatus()));
 
                 if (!(output.getStatus().equals("running") || output.getStatus().equals("queued"))) {
                     finished = true;

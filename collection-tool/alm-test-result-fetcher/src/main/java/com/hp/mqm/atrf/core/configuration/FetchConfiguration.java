@@ -47,7 +47,6 @@ public class FetchConfiguration {
     public static String ALM_RUN_FILTER_CUSTOM_PARAM = "conf.alm.runFilter.custom";
 
     public static String ALM_RUN_FILTER_FETCH_LIMIT_PARAM = "conf.alm.runFilter.fetchLimit";
-    public static String ALM_RUN_FILTER_SUPPORT_MANUAL_PARAM = "conf.alm.runFilter.supportManual";
 
     public static String SYNC_BULK_SIZE_PARAM = "conf.sync.bulkSize";
     public static String SYNC_SLEEP_BETWEEN_POSTS_PARAM = "conf.sync.sleepBetweenPosts";
@@ -81,7 +80,7 @@ public class FetchConfiguration {
         allowedParameters = new HashSet<>(Arrays.asList(ALM_USER_PARAM, ALM_PASSWORD_PARAM, ALM_SERVER_URL_PARAM,ALM_DOMAIN_PARAM,ALM_PROJECT_PARAM,
                 OCTANE_PASSWORD_PARAM,OCTANE_USER_PARAM,OCTANE_SERVER_URL_PARAM,OCTANE_SHAREDSPACE_ID_PARAM,OCTANE_WORKSPACE_ID_PARAM,
                 ALM_RUN_FILTER_START_FROM_ID_PARAM,ALM_RUN_FILTER_START_FROM_DATE_PARAM,ALM_RUN_FILTER_TEST_TYPE_PARAM,ALM_RUN_FILTER_RELATED_ENTITY_TYPE_PARAM,ALM_RUN_FILTER_RELATED_ENTITY_ID_PARAM,
-                ALM_RUN_FILTER_CUSTOM_PARAM,SYNC_BULK_SIZE_PARAM,SYNC_SLEEP_BETWEEN_POSTS_PARAM,PROXY_HOST_PARAM,PROXY_PORT_PARAM, OUTPUT_FILE_PARAM, ALM_RUN_FILTER_FETCH_LIMIT_PARAM, ALM_RUN_FILTER_SUPPORT_MANUAL_PARAM));
+                ALM_RUN_FILTER_CUSTOM_PARAM,SYNC_BULK_SIZE_PARAM,SYNC_SLEEP_BETWEEN_POSTS_PARAM,PROXY_HOST_PARAM,PROXY_PORT_PARAM, OUTPUT_FILE_PARAM, ALM_RUN_FILTER_FETCH_LIMIT_PARAM));
 
         lowered2allowedParams = new HashMap<>();
         for(String param : allowedParameters){
@@ -103,10 +102,6 @@ public class FetchConfiguration {
         }
 
         if(Integer.toString(ALM_RUN_FILTER_FETCH_LIMIT_DEFAULT).equals(getRunFilterFetchLimit())){
-            props.remove(ALM_RUN_FILTER_FETCH_LIMIT_PARAM);
-        }
-
-        if(Boolean.valueOf(ALM_RUN_FILTER_SUPPORT_MANUAL_DEFAULT).equals(Boolean.valueOf(getRunFilterSupportManual()))){
             props.remove(ALM_RUN_FILTER_FETCH_LIMIT_PARAM);
         }
 
@@ -202,19 +197,6 @@ public class FetchConfiguration {
             }
         }
         setProperty(ALM_RUN_FILTER_FETCH_LIMIT_PARAM, Integer.toString(fetchLimit));
-
-        //SUPPORT MANUAL
-        String supportManualStr = getProperty(ALM_RUN_FILTER_SUPPORT_MANUAL_PARAM);
-        boolean supportManual = ALM_RUN_FILTER_SUPPORT_MANUAL_DEFAULT;
-        if (StringUtils.isNotEmpty(supportManualStr)) {
-            try {
-                supportManual = Boolean.valueOf(supportManualStr);
-            } catch (Exception e) {
-                supportManual = ALM_RUN_FILTER_SUPPORT_MANUAL_DEFAULT;
-            }
-        }
-        setProperty(ALM_RUN_FILTER_SUPPORT_MANUAL_PARAM, Boolean.toString(supportManual));
-
 
         //BULK SIZE
         String bulkSizeStr = getProperty(SYNC_BULK_SIZE_PARAM);
@@ -433,11 +415,4 @@ public class FetchConfiguration {
         setProperty(ALM_RUN_FILTER_FETCH_LIMIT_PARAM, value);
     }
 
-    public String getRunFilterSupportManual(){
-        return getProperty(ALM_RUN_FILTER_SUPPORT_MANUAL_PARAM);
-    }
-
-    public void setRunFilterSupportManual(String value){
-        setProperty(ALM_RUN_FILTER_SUPPORT_MANUAL_PARAM, value);
-    }
 }
