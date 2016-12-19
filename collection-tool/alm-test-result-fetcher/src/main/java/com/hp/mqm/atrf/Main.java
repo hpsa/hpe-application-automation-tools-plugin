@@ -41,10 +41,9 @@ public class Main {
         app.start();
 
         long end = System.currentTimeMillis();
-        logger.info(String.format("Fetch process is finished in %s seconds", end - start));
+        logger.info(String.format("Fetch process is finished in %s seconds", (end - start)/1000));
         logger.info("***************************************************************************************************");
     }
-
 
     private static void setUncaughtExceptionHandler() {
         Thread.currentThread().setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
