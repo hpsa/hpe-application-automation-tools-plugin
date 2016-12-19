@@ -117,7 +117,9 @@ Octane Entity | Octane Field       | Alm Field
 Test          | Name               | If run's test name == run's test configuration name
               |                    |   Then => Format : AlmTestId #{testId} : {testName}
               |                    |   Else => Format : AlmTestId #{testId}, ConfId #{confId} : {testName} - {confName}
-              | TestingToolType    | ALM Test type is converted as following : "LEANFT-TEST=>LeanFT"; "QUICKTEST_TEST=>UFT"; "BUSINESS-PROCESS=>BPT"
+              | TestingToolType    | ALM Test type is converted to Octane TestingToolType as following :
+              |                    |  "MANUAL=>Manual"; "LEANFT-TEST=>LeanFT"; "QUICKTEST_TEST=>UFT"; "BUSINESS-PROCESS=>BPT"
+              |                    |   Other ALM test types are not converted.
               | Package            | Project Name
               | Module             | Domain Name
               | Class              | Direct test folder name
