@@ -48,6 +48,10 @@
 		<url>https://github.com/hpsa/hp-application-automation-tools-plugin</url>
 		<tag>HEAD</tag>
 	</scm>
+	<issueManagement>
+		<system>JIRA</system>
+		<url>https://issues.jenkins-ci.org/issues/?jql=project%20%3D%20JENKINS%20AND%20component%20%3D%20hp-application-automation-tools-plugin</url>
+	</issueManagement>
 
 	<organization>
 		<name>HPE</name>
@@ -60,7 +64,7 @@
 			<name>Fima (Yafim) Kazak</name>
 			<email>kazak@hpe.com</email>
 			<roles>
-				<role>Global owner and LoadRuner Dev</role>
+				<role>Global owner and Load Runner Dev</role>
 			</roles>
 		</developer>
 		<developer>
