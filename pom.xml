@@ -32,9 +32,13 @@
 
 	<distributionManagement>
 		<repository>
-			<id>maven.jenkins-ci.org</id>
-			<url>http://maven.jenkins-ci.org:8081/content/repositories/releases/</url>
+		  <id>repo.jenkins-ci.org</id>
+		  <url>https://repo.jenkins-ci.org/releases</url>
 		</repository>
+		<snapshotRepository>
+			<id>maven.jenkins-ci.org</id>
+		  <url>https://repo.jenkins-ci.org/snapshots</url>
+		</snapshotRepository>
 	</distributionManagement>
 
 	<scm>
@@ -161,6 +165,18 @@
 					<additionalparam>-Xdoclint:none</additionalparam>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>findbugs-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>none</phase>
+					</execution>
+				</executions>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
 			<!--  -->
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
@@ -233,7 +249,7 @@
 	<repositories>
 		<repository>
 			<id>repo.jenkins-ci.org</id>
-			<url>http://repo.jenkins-ci.org/public/</url>
+			<url>https://repo.jenkins-ci.org/public/</url>
 		</repository>
 		<repository>
 			<id>central</id>
@@ -248,7 +264,7 @@
 	<pluginRepositories>
 		<pluginRepository>
 			<id>repo.jenkins-ci.org</id>
-			<url>http://repo.jenkins-ci.org/public/</url>
+			<url>https://repo.jenkins-ci.org/public/</url>
 		</pluginRepository>
 	</pluginRepositories>
 
