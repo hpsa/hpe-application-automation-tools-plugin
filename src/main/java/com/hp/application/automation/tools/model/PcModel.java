@@ -128,7 +128,7 @@ public class PcModel {
                         "TestInstanceID='%s', TimeslotDuration='%s', PostRunAction='%s'%s%s]",
 
                 almDomain, almProject, testId, testInstanceId,
-                timeslotDuration, postRunAction.getValue(), vudsModeString,trendString);
+                timeslotDuration, postRunAction.getValue(), vudsModeString, trendString);
     }
 
 

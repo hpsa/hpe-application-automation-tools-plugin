@@ -10,17 +10,18 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
-import hudson.model.BuildListener;
+
 import hudson.model.Result;
-import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Hudson;
+import hudson.model.Run;
+import hudson.model.TaskListener;
+
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
 import hudson.util.IOUtils;
 import hudson.util.VariableResolver;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,7 +33,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
+import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
@@ -44,7 +47,7 @@ import com.hp.application.automation.tools.model.RunFromAlmModel;
 import com.hp.application.automation.tools.run.AlmRunTypes.RunType;
 import com.hp.application.automation.tools.settings.AlmServerSettingsBuilder;
 
-public class RunFromAlmBuilder extends Builder {
+public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
     
     private final RunFromAlmModel runFromAlmModel;
     private final static String HpToolsLauncher_SCRIPT_NAME = "HpToolsLauncher.exe";
@@ -78,22 +81,62 @@ public class RunFromAlmBuilder extends Builder {
                         almRunMode,
                         almRunHost);
     }
+
+    public String getAlmServerName(){
+        return runFromAlmModel.getAlmServerName();
+    }
+
+    public String getAlmUserName(){
+        return runFromAlmModel.getAlmUserName();
+    }
+
+    public String getAlmPassword(){
+        return runFromAlmModel.getAlmPassword();
+    }
+
+    public String getAlmDomain(){
+        return runFromAlmModel.getAlmDomain();
+    }
+
+    public String getAlmProject(){
+        return runFromAlmModel.getAlmProject();
+    }
+
+    public String getAlmTestSets(){
+        return runFromAlmModel.getAlmTestSets();
+    }
+
+    public String getAlmRunResultsMode(){
+        return runFromAlmModel.getAlmRunResultsMode();
+    }
+
+    public String getAlmTimeout(){
+        return runFromAlmModel.getAlmTimeout();
+    }
+
+    public String getAlmRunMode(){
+        return runFromAlmModel.getAlmRunMode();
+    }
+
+    public String getAlmRunHost(){
+        return runFromAlmModel.getAlmRunHost();
+    }
     
     @Override
     public DescriptorImpl getDescriptor() {
         return (DescriptorImpl) super.getDescriptor();
     }
-    
+
     @Override
-    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
-            throws InterruptedException, IOException {
+    public void perform(Run<?, ?> build, FilePath workspace, Launcher launcher,
+                        TaskListener listener) throws InterruptedException, IOException {
         
         // get the alm server settings
         AlmServerSettingsModel almServerSettingsModel = getAlmServerSettingsModel();
         
         if (almServerSettingsModel == null) {
             listener.fatalError("An ALM server is not defined. Go to Manage Jenkins->Configure System and define your ALM server under Application Lifecycle Management");
-            return false;
+            return;
         }
         
         EnvVars env = null;
@@ -103,7 +146,7 @@ public class RunFromAlmBuilder extends Builder {
             // TODO Auto-generated catch block
             e2.printStackTrace();
         }
-        VariableResolver<String> varResolver = build.getBuildVariableResolver();
+        VariableResolver<String> varResolver = new VariableResolver.ByMap<String>(build.getEnvironment(listener));
         
         // now merge them into one list
         Properties mergedProperties = new Properties();
@@ -152,7 +195,7 @@ public class RunFromAlmBuilder extends Builder {
         InputStream propsStream = IOUtils.toInputStream(propsSerialization);
         
         // get the remote workspace filesys
-        FilePath projectWS = build.getWorkspace();
+        FilePath projectWS = workspace;
         
         // Get the URL to the Script used to run the test, which is bundled
         // in the plugin
@@ -160,7 +203,7 @@ public class RunFromAlmBuilder extends Builder {
                 Hudson.getInstance().pluginManager.uberClassLoader.getResource(HpToolsLauncher_SCRIPT_NAME);
         if (cmdExeUrl == null) {
             listener.fatalError(HpToolsLauncher_SCRIPT_NAME + " not found in resources");
-            return false;
+            return;
         }
         
         FilePath propsFileName = projectWS.child(ParamFileName);
@@ -184,7 +227,7 @@ public class RunFromAlmBuilder extends Builder {
         } catch (IOException ioe) {
             Util.displayIOException(ioe, listener);
             build.setResult(Result.FAILURE);
-            return false;
+            return;
         } catch (InterruptedException e) {
             build.setResult(Result.ABORTED);
             PrintStream out = listener.getLogger();
@@ -208,11 +251,11 @@ public class RunFromAlmBuilder extends Builder {
             }*/
             
     			try {
-    				AlmToolsUtils.runHpToolsAborterOnBuildEnv(build, launcher, listener, ParamFileName);
+    				AlmToolsUtils.runHpToolsAborterOnBuildEnv(build, launcher, listener, ParamFileName, workspace);
     			} catch (IOException e1) {
     				Util.displayIOException(e1, listener);
     				build.setResult(Result.FAILURE);
-    				return false;
+    				return;
     		} catch (InterruptedException e1) {
     				// TODO Auto-generated catch block
     				e1.printStackTrace();
@@ -221,7 +264,7 @@ public class RunFromAlmBuilder extends Builder {
             out.println("Operation was aborted by user.");
             //build.setResult(Result.FAILURE);
         }
-        return true;
+        return;
         
     }
     
@@ -238,10 +281,12 @@ public class RunFromAlmBuilder extends Builder {
     public RunFromAlmModel getRunFromAlmModel() {
         return runFromAlmModel;
     }
-    
-    @Extension
+
     // This indicates to Jenkins that this is an implementation of an extension
     // point.
+    @Extension
+    // To expose this builder in the Snippet Generator.
+    @Symbol("runFromAlmBuilder")
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
         
         public DescriptorImpl() {
@@ -323,6 +368,13 @@ public class RunFromAlmBuilder extends Builder {
                 return FormValidation.error("Testsets are missing");
             }
             
+            String[] testSetsArr = value.replaceAll("\r", "").split("\n");
+
+			for (int i=0; i < testSetsArr.length; i++) {
+				if (StringUtils.isBlank(testSetsArr[i])) {
+					return FormValidation.error("Testsets should not contains empty lines");
+				}
+			}
             return FormValidation.ok();
         }
         
