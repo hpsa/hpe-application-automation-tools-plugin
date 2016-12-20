@@ -203,7 +203,7 @@ public class FetchConfiguration {
         int bulkSize = SYNC_BULK_SIZE_DEFAULT;
         if (StringUtils.isNotEmpty(bulkSizeStr)) {
             try {
-                bulkSize = Integer.valueOf(bulkSizeStr);
+                bulkSize = Integer.parseInt(bulkSizeStr);
                 if (bulkSize < SYNC_BULK_SIZE_MIN || bulkSize > SYNC_BULK_SIZE_MAX) {
                     bulkSize = SYNC_BULK_SIZE_DEFAULT;
                 }
@@ -219,7 +219,7 @@ public class FetchConfiguration {
         int sleepBetweenPosts = SYNC_SLEEP_BETWEEN_POSTS_DEFAULT;
         if (StringUtils.isNotEmpty(sleepBetweenPostsStr)) {
             try {
-                sleepBetweenPosts = Integer.valueOf(sleepBetweenPostsStr);
+                sleepBetweenPosts = Integer.parseInt(sleepBetweenPostsStr);
                 if (sleepBetweenPosts < SYNC_SLEEP_BETWEEN_POSTS_MIN || sleepBetweenPosts > SYNC_SLEEP_BETWEEN_POSTS_MAX) {
                     sleepBetweenPosts = SYNC_SLEEP_BETWEEN_POSTS_DEFAULT;
                 }

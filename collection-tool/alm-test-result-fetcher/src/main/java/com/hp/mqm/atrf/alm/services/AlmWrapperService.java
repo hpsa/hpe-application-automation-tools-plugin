@@ -2,6 +2,7 @@ package com.hp.mqm.atrf.alm.services;
 
 import com.hp.mqm.atrf.alm.core.AlmEntity;
 import com.hp.mqm.atrf.alm.entities.*;
+import com.hp.mqm.atrf.core.configuration.ConfigurationUtilities;
 import com.hp.mqm.atrf.core.configuration.FetchConfiguration;
 import com.hp.mqm.atrf.core.rest.RestConnector;
 import org.apache.commons.lang.StringUtils;
@@ -52,7 +53,7 @@ public class AlmWrapperService {
 
         globalStart = System.currentTimeMillis();
         int expectedRuns = getExpectedRuns(queryBuilder);
-        int fetchLimit = Integer.valueOf(configuration.getRunFilterFetchLimit());
+        int fetchLimit = Integer.parseInt(configuration.getRunFilterFetchLimit());
         logger.info(String.format("Expected runs : %d", Math.min(expectedRuns, fetchLimit)));
 
         start = System.currentTimeMillis();
@@ -93,14 +94,34 @@ public class AlmWrapperService {
         */
 
         globalEnd = System.currentTimeMillis();
-        logger.info(String.format("Fetching from alm is done, total time %d sec", (globalEnd - globalStart)/1000));
+        logger.info(String.format("Fetching from alm is done, total time %d sec", (globalEnd - globalStart) / 1000));
     }
 
     private AlmQueryBuilder buildRunFilter(FetchConfiguration configuration) {
         AlmQueryBuilder qb = AlmQueryBuilder.create();
         //StartFromId
         if (StringUtils.isNotEmpty(configuration.getAlmRunFilterStartFromId())) {
-            int startFromId = Integer.parseInt(configuration.getAlmRunFilterStartFromId());
+            int startFromId = 0;
+            if (FetchConfiguration.ALM_RUN_FILTER_START_FROM_ID_LAST_SENT.equals(configuration.getAlmRunFilterStartFromId())) {
+                String lastSentRunIdStr = ConfigurationUtilities.readLastSentRunId();
+                int lastSentRunId = 0;
+                if (StringUtils.isNotEmpty(lastSentRunIdStr)) {
+                    try {
+                        lastSentRunId = Integer.parseInt(lastSentRunIdStr);
+                    } catch (NumberFormatException e) {
+
+                    }
+                }
+                if (lastSentRunId > 0) {
+                    startFromId = lastSentRunId + 1;
+                    logger.info(String.format("Last sent run id is %s", lastSentRunId));
+                } else {
+                    logger.warn(String.format("Valid last sent run id is not found, filtering by lastSentId is ignored"));
+                }
+
+            } else {
+                startFromId = Integer.parseInt(configuration.getAlmRunFilterStartFromId());
+            }
             if (startFromId > 0) {
                 qb.addQueryCondition("id", ">=" + startFromId);
             }

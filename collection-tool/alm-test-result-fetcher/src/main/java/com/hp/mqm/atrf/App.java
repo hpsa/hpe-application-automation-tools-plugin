@@ -2,6 +2,7 @@ package com.hp.mqm.atrf;
 
 import com.hp.mqm.atrf.alm.entities.*;
 import com.hp.mqm.atrf.alm.services.AlmWrapperService;
+import com.hp.mqm.atrf.core.configuration.ConfigurationUtilities;
 import com.hp.mqm.atrf.core.configuration.FetchConfiguration;
 import com.hp.mqm.atrf.octane.core.OctaneTestResultOutput;
 import com.hp.mqm.atrf.octane.entities.TestRunResultEntity;
@@ -156,10 +157,12 @@ public class App {
             String xmlData = writer.toString();
             OctaneTestResultOutput output = octaneWrapper.postTestResults(xmlData);
             outputs.add(output);
+
+            String lastRunId = subList.get(subList.size() - 1).getRunId();
             //output.put("LIST", subList);
             logger.info(String.format("Sending bulk #%s of %s runs , run ids from %s to %s : %s, sent id=%s",
-                    i / bulkSize + 1, subList.size(), subList.get(0).getRunId(), subList.get(subList.size() - 1).getRunId(), output.getStatus(), output.getId()));
-            saveLastSentRun(output.getId(), subList);
+                    i / bulkSize + 1, subList.size(), subList.get(0).getRunId(), lastRunId, output.getStatus(), output.getId()));
+            ConfigurationUtilities.saveLastSentRunId(lastRunId);
             sleep(sleepTime);
         }
 
@@ -168,34 +171,6 @@ public class App {
         logger.info(String.format("Sent %s runs , total time %s sec", runResults.size(), (endTime - startTime) / 1000));
 
         return outputs;
-    }
-
-    boolean writeToLastSentRun = true;
-
-    private void saveLastSentRun(Integer sentId, List<TestRunResultEntity> subList) {
-        String pathName = "logs/lastSent.csv";
-        Path path = Paths.get(pathName);
-        try {
-            if (!Files.exists(path)) {
-                Files.createFile(path);
-                String header = "Date,SentId,Count,FromId,ToId" + System.lineSeparator();
-                Files.write(path, header.getBytes(), StandardOpenOption.APPEND);
-            }
-            String date = DATE_TIME_FORMAT.format(new Date());
-            String count = Integer.toString(subList.size());
-            String minId = subList.get(0).getRunId();
-            String maxId = subList.get(subList.size() - 1).getRunId();
-            String msg = StringUtils.join(Arrays.asList(date, sentId, count, minId, maxId), ",") + System.lineSeparator();
-            Files.write(path, msg.getBytes(), StandardOpenOption.APPEND);
-        } catch (IOException e) {
-            //.toFile().getAbsolutePath()
-            logger.error(String.format("Failed to write LAST_SENT_ID to %s", path.toFile().getAbsolutePath()));
-            writeToLastSentRun = false;
-        } catch (Exception e) {
-            //.toFile().getAbsolutePath()
-            logger.error(String.format("Exception occured during writing LAST_SENT_ID to %s : %s", path.toFile().getAbsolutePath()), e.getMessage());
-            writeToLastSentRun = false;
-        }
     }
 
     private void sleep(int sleepSize) {
@@ -334,7 +309,6 @@ public class App {
         }
         return str;
     }
-
 
     private boolean hasInvalidCharacter(String str) {
         for (int i = 0; i < str.length(); i++) {
