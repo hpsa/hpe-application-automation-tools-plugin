@@ -205,7 +205,7 @@
 								<argument> -jar</argument>
 								<argument>${env.JENKINS_HOME}war\WEB-INF\jenkins-cli.jar</argument>
 								<argument>-s</argument>
-								<argument>http://localhost:8080/</argument>
+								<argument>http://localhost:8080/jenkins</argument>
 								<argumnet>install-plugin</argumnet>
 								<argumnet>${project.build.directory}\${project.build.finalName}.${project.packaging}</argumnet>
 								<argument>-name</argument>
