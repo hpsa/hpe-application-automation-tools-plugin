@@ -34,6 +34,7 @@ public class RunFromAlmModel {
 	private String almDomain;
 	private String almProject;
 	private String almTestSets;
+	private String almRunResultsMode;
 	private String almTimeout;
 	private String almRunMode;
 	private String almRunHost;
@@ -54,8 +55,10 @@ public class RunFromAlmModel {
 		if (!this.almTestSets.contains("\n")) {
 			this.almTestSets += "\n";
 		}
+
+		this.almRunResultsMode = almRunResultsMode;
 		
-		this.almTimeout=almTimeout;
+		this.almTimeout = almTimeout;
 		this.almRunMode = almRunMode;
 
 		if (this.almRunMode.equals(runModeRemote.getValue())) {
@@ -87,6 +90,10 @@ public class RunFromAlmModel {
 
 	public String getAlmTestSets() {
 		return almTestSets;
+	}
+
+	public String getAlmRunResultsMode() {
+		return almRunResultsMode;
 	}
 
 	public String getAlmTimeout() {
@@ -141,9 +148,11 @@ public class RunFromAlmModel {
 			int i = 1;
 
 			for (String testSet : testSetsArr) {
-				props.put("TestSet" + i,
-					Util.replaceMacro(envVars.expand(testSet), varResolver));
-				i++;
+				if (!StringUtils.isBlank(testSet)) {
+					props.put("TestSet" + i,
+						Util.replaceMacro(envVars.expand(testSet), varResolver));
+					i++;
+				}
 			}
 		} else {
 			props.put("almTestSets", "");

@@ -132,4 +132,8 @@
   <data name="SLAReportTitle" xml:space="preserve">
     <value>SLA report:</value>
   </data>
+  <data name="Helper_GetConnectionsCount_" xml:space="preserve">
+    <value>Failed to retrieve values from Connections graph or no data exists...
+</value>
+  </data>
 </root>

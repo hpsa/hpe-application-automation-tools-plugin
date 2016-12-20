@@ -1,15 +1,13 @@
 package com.hp.application.automation.tools.results;
 
-import java.io.IOException;
-
-import javax.servlet.ServletException;
-
+import hudson.model.DirectoryBrowserSupport;
+import hudson.model.ModelObject;
+import hudson.model.Run;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
-import hudson.model.AbstractBuild;
-import hudson.model.DirectoryBrowserSupport;
-import hudson.model.ModelObject;
+import javax.servlet.ServletException;
+import java.io.IOException;
 
 public class DetailReport implements ModelObject {
 
@@ -18,10 +16,10 @@ public class DetailReport implements ModelObject {
     private String duration = "";
     private String pass = "";
     private String fail = "";
-    private AbstractBuild<?,?> build = null;
+    private Run<?, ?> build = null;
     private DirectoryBrowserSupport _directoryBrowserSupport = null;
 
-    public DetailReport(AbstractBuild<?,?> build, String name, DirectoryBrowserSupport directoryBrowserSupport) {
+    public DetailReport(Run<?,?> build, String name, DirectoryBrowserSupport directoryBrowserSupport) {
         this.build = build;
         this.name = name;
         _directoryBrowserSupport = directoryBrowserSupport;
@@ -32,7 +30,8 @@ public class DetailReport implements ModelObject {
         return name;
     }
 
-    public AbstractBuild<?,?> getBuild() {
+    @SuppressWarnings("squid:S1452")
+    public Run<?, ?> getBuild() {
         return build;
     }
 

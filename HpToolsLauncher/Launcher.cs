@@ -245,7 +245,9 @@ namespace HpToolsLauncher
             //run the tests!
             RunTests(runner, resultsFilename);
 
-
+            //Console.WriteLine("Press any key to exit...");
+            //Console.ReadKey();
+            ConsoleQuickEdit.Enable();
             if (Launcher.ExitCode != ExitCodeEnum.Passed)
                 Environment.Exit((int)Launcher.ExitCode);
         }
@@ -341,18 +343,19 @@ namespace HpToolsLauncher
                     int pollingInterval = 30;
                     if (_ciParams.ContainsKey("controllerPollingInterval"))
                         pollingInterval = int.Parse(_ciParams["controllerPollingInterval"]);
+                        ConsoleWriter.WriteLine("Controller Polling Interval: " + pollingInterval + " seconds");
 
                     TimeSpan perScenarioTimeOutMinutes = TimeSpan.MaxValue;
                     if (_ciParams.ContainsKey("PerScenarioTimeOut"))
                     {
                         string strTimoutInMinutes = _ciParams["PerScenarioTimeOut"];
-                        ConsoleWriter.WriteLine("reading PerScenarioTimeout: "+strTimoutInMinutes);
+                        //ConsoleWriter.WriteLine("reading PerScenarioTimeout: "+ strTimoutInMinutes);
                         if (strTimoutInMinutes.Trim() != "-1")
                         {
                             int intTimoutInMinutes = 0;
                             if (int.TryParse(strTimoutInMinutes, out intTimoutInMinutes))
                                 perScenarioTimeOutMinutes = TimeSpan.FromMinutes(intTimoutInMinutes);
-                            ConsoleWriter.WriteLine("PerScenarioTimeout: "+perScenarioTimeOutMinutes+" minutes");
+                            //ConsoleWriter.WriteLine("PerScenarioTimeout: "+perScenarioTimeOutMinutes+" minutes");
                         }
                     }
                     ConsoleWriter.WriteLine("PerScenarioTimeout: " + perScenarioTimeOutMinutes.ToString(@"dd\:\:hh\:mm\:ss") + " minutes");
@@ -361,10 +364,12 @@ namespace HpToolsLauncher
                     List<string> ignoreErrorStrings = new List<string>();
                     if (_ciParams.ContainsKey("ignoreErrorStrings"))
                     {
-                        ignoreErrorStrings.AddRange(_ciParams["ignoreErrorStrings"].Split(delim, StringSplitOptions.RemoveEmptyEntries));
+                        if (_ciParams.ContainsKey("ignoreErrorStrings"))
+                        {
+                            ignoreErrorStrings.AddRange(Array.ConvertAll(_ciParams["ignoreErrorStrings"].Split(delim, StringSplitOptions.RemoveEmptyEntries), ignoreError => ignoreError.Trim()));
+                        }
                     }
 
-                    
                     if (tests == null || tests.Count() == 0)
                     {
                         WriteToConsole(Resources.LauncherNoTestsFound);
@@ -557,12 +562,47 @@ namespace HpToolsLauncher
                     Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
                 }
 
-                //this is the total run summary
-                ConsoleWriter.ActiveTestRun = null;
-                string runStatus = (Launcher.ExitCode == ExitCodeEnum.Passed || Launcher.ExitCode == ExitCodeEnum.Unstable) ? "Job succeeded" : "Job failed";
                 int numFailures = results.TestRuns.Count(t => t.TestState == TestState.Failed);
                 int numSuccess = results.TestRuns.Count(t => t.TestState == TestState.Passed);
                 int numErrors = results.TestRuns.Count(t => t.TestState == TestState.Error);
+
+                //TODO: Temporery fix to remove since jenkins doesnt retrive resutls from jobs that marked as failed and unstable marks jobs with only failed tests
+                if ((numErrors <= 0) && (numFailures > 0))
+                {
+                    Launcher.ExitCode = Launcher.ExitCodeEnum.Unstable;
+                }
+
+                foreach (var testRun in results.TestRuns)
+                {
+                    if (testRun.FatalErrors > 0 && !testRun.TestPath.Equals(""))
+                    {
+                        Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
+                        break;
+                    }
+                }
+
+                //this is the total run summary
+                ConsoleWriter.ActiveTestRun = null;
+                string runStatus = "";
+                switch (Launcher.ExitCode)
+                {
+                    case ExitCodeEnum.Passed:
+                        runStatus = "Job succeeded";
+                        break;
+                    case ExitCodeEnum.Unstable:
+                        runStatus = "Job unstable (Passed with failed tests)";
+                        break;
+                    case ExitCodeEnum.Aborted:
+                        runStatus = "Job failed due to being Aborted";
+                        break;
+                    case ExitCodeEnum.Failed:
+                        runStatus = "Job failed";
+                        break;
+                    default:
+                        runStatus = "Error: Job status is Undefined";
+                        break;
+                }
+
                 ConsoleWriter.WriteLine(Resources.LauncherDoubleSeperator);
                 ConsoleWriter.WriteLine(string.Format(Resources.LauncherDisplayStatistics, runStatus, results.TestRuns.Count, numSuccess, numFailures, numErrors));
 
@@ -576,6 +616,7 @@ namespace HpToolsLauncher
                         ConsoleWriter.WriteLine("Job Errors summary:");
                         ConsoleWriter.ErrorSummaryLines.ForEach(line => ConsoleWriter.WriteLine(line));
                     }
+     
                 }
 
                 //ConsoleWriter.WriteLine("Returning " + runStatus + ".");

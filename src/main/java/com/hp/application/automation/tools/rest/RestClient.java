@@ -1,14 +1,33 @@
 package com.hp.application.automation.tools.rest;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.Authenticator;
 import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.PasswordAuthentication;
+import java.net.Proxy;
 import java.net.URL;
+import java.net.URLConnection;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
+import org.apache.commons.lang.StringUtils;
 
 import com.hp.application.automation.tools.common.SSEException;
 import com.hp.application.automation.tools.sse.sdk.Client;
@@ -29,7 +48,50 @@ public class RestClient implements Client {
     private final String _restPrefix;
     private final String _webuiPrefix;
     private final String _username;
+    private ProxyInfo proxyInfo;
+    
+    /**
+     * Configure SSL context for the client.
+     */
+    static {
+    	// First create a trust manager that won't care.
+		X509TrustManager trustManager = new X509TrustManager() {
+			@Override
+			public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+				// Don't do anything.
+			}
+			@Override
+			public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+				// Don't do anything.
+			}
+			@Override
+			public X509Certificate[] getAcceptedIssuers() {
+				// Don't do anything.
+				return null;
+			}
 
+		};
+		// Now put the trust manager into an SSLContext.
+		SSLContext sslcontext;
+		try {
+			sslcontext = SSLContext.getInstance("SSL");
+			sslcontext.init(null, new TrustManager[] { trustManager }, null);
+		} catch (KeyManagementException | NoSuchAlgorithmException e) {
+			throw new SSEException(e);
+		}
+		
+		HttpsURLConnection.setDefaultSSLSocketFactory(sslcontext.getSocketFactory());
+		
+		//Ignore hostname verify
+		HttpsURLConnection.setDefaultHostnameVerifier(
+		    new HostnameVerifier(){
+		        public boolean verify(String hostname, SSLSession sslSession) {
+		        	return true;
+		        }
+		    }
+		);
+    }
+    
     public RestClient(String url, String domain, String project, String username) {
 
         if (!url.endsWith("/")) {
@@ -37,6 +99,25 @@ public class RestClient implements Client {
         }
         _serverUrl = url;
         _username = username;
+        _restPrefix =
+                getPrefixUrl(
+                        "rest",
+                        String.format("domains/%s", domain),
+                        String.format("projects/%s", project));
+        _webuiPrefix = getPrefixUrl("webui/alm", domain, project);
+    }
+
+    /**
+     * Constructor for setting rest client properties including proxy info.
+     */
+    public RestClient(String url, String domain, String project, String username, ProxyInfo proxyInfo) {
+
+        if (!url.endsWith("/")) {
+            url = String.format("%s/", url);
+        }
+        _serverUrl = url;
+        _username = username;
+        this.proxyInfo = proxyInfo;
         _restPrefix =
                 getPrefixUrl(
                         "rest",
@@ -73,7 +154,7 @@ public class RestClient implements Client {
         Response ret = null;
         try {
             ret = doHttp(RESTConstants.GET, url, queryString, null, headers, resourceAccessLevel);
-        } catch (Throwable cause) {
+        } catch (Exception cause) {
             throw new SSEException(cause);
         }
 
@@ -90,13 +171,14 @@ public class RestClient implements Client {
         Response ret = null;
         try {
             ret = doHttp(RESTConstants.POST, url, null, data, headers, resourceAccessLevel);
-        } catch (Throwable cause) {
+        } catch (Exception cause) {
             throw new SSEException(cause);
         }
 
         return ret;
     }
 
+    @Override
     public Response httpPut(
             String url,
             byte[] data,
@@ -106,7 +188,7 @@ public class RestClient implements Client {
         Response ret = null;
         try {
             ret = doHttp(RESTConstants.PUT, url, null, data, headers, resourceAccessLevel);
-        } catch (Throwable cause) {
+        } catch (Exception cause) {
             throw new SSEException(cause);
         }
 
@@ -146,12 +228,13 @@ public class RestClient implements Client {
             Map<String, String> headers,
             ResourceAccessLevel resourceAccessLevel) {
 
-        Response ret = null;
+        Response ret;
         if ((queryString != null) && !queryString.isEmpty()) {
             url += "?" + queryString;
         }
         try {
-            HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+            HttpURLConnection connection = (HttpURLConnection) openConnection(proxyInfo, url);
+            
             connection.setRequestMethod(type);
 
             Map<String, String> decoratedHeaders = new HashMap<String, String>();
@@ -168,7 +251,7 @@ public class RestClient implements Client {
             connection.connect();
             ret = retrieveHtmlResponse(connection);
             updateCookies(ret);
-        } catch (Throwable cause) {
+        } catch (Exception cause) {
             throw new SSEException(cause);
         }
 
@@ -205,7 +288,7 @@ public class RestClient implements Client {
                 out.write(bytes);
                 out.flush();
                 out.close();
-            } catch (Throwable cause) {
+            } catch (Exception cause) {
                 throw new SSEException(cause);
             }
         }
@@ -235,7 +318,7 @@ public class RestClient implements Client {
         try {
             ret.setStatusCode(connection.getResponseCode());
             ret.setHeaders(connection.getHeaderFields());
-        } catch (Throwable cause) {
+        } catch (Exception cause) {
             throw new SSEException(cause);
         }
 
@@ -247,7 +330,7 @@ public class RestClient implements Client {
         // if the connection to the server somehow failed, for example 404 or 500,
         // con.getInputStream() will throw an exception, which we'll keep.
         // we'll also store the body of the exception page, in the response data. */
-        catch (Throwable e) {
+        catch (Exception e) {
             inputStream = connection.getErrorStream();
             ret.setFailure(e);
         }
@@ -299,5 +382,99 @@ public class RestClient implements Client {
     public String getUsername() {
 
         return _username;
+    }
+    
+    public static URLConnection openConnection(final ProxyInfo proxyInfo, String urlString) throws IOException {
+        Proxy proxy = null;
+        URL url = new URL(urlString);
+        
+        if (proxyInfo != null && StringUtils.isNotBlank(proxyInfo._host) && StringUtils.isNotBlank(proxyInfo._port)) {            
+            int port = Integer.parseInt(proxyInfo._port.trim());
+            proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyInfo._host, port));
+        }
+        
+        if (proxy != null && StringUtils.isNotBlank(proxyInfo._userName) && StringUtils.isNotBlank(proxyInfo._password)) {
+            Authenticator authenticator = new Authenticator() {
+                @Override
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(proxyInfo._userName, proxyInfo._password.toCharArray());    //To change body of overridden methods use File | Settings | File Templates.
+                }
+            };
+            Authenticator.setDefault(authenticator);
+        }
+
+        if (proxy == null) {
+            return url.openConnection();
+        }
+
+
+        return url.openConnection(proxy);
+    }
+    
+    /**
+     * Set proxy configuration.
+     * @param host
+     * @param port
+     * @param userName
+     * @param password
+     * @return proxyinfo instance
+     */
+    public static ProxyInfo setProxyCfg(String host, String port, String userName, String password) {
+        return new ProxyInfo(host, port, userName, password);
+    }
+
+    public static ProxyInfo setProxyCfg(String host, String port) {
+
+        ProxyInfo proxyInfo = new ProxyInfo();
+
+        proxyInfo._host = host;
+        proxyInfo._port = port;
+
+        return proxyInfo;
+    }
+
+    public static ProxyInfo setProxyCfg(String address, String userName, String password) {
+        ProxyInfo proxyInfo = new ProxyInfo();
+
+        if (address != null) {
+        	String host = address;
+        	
+            if (address.endsWith("/")) {
+                int end = address.lastIndexOf('/');
+                host = address.substring(0, end);
+            }
+
+            int index = host.lastIndexOf(':');
+            if (index > 0) {
+                proxyInfo._host = host.substring(0, index);
+                proxyInfo._port = host.substring(index + 1, host.length());
+            } else {
+                proxyInfo._host = host;
+                proxyInfo._port = "80";
+            }
+        }
+        proxyInfo._userName = userName;
+        proxyInfo._password = password;
+
+        return proxyInfo;
+    }
+
+    static class ProxyInfo {
+        String _host;
+        String _port;
+        String _userName;
+        String _password;
+
+        public ProxyInfo() {
+        	//Keep the non parameter constructor.
+        }
+
+        public ProxyInfo(String host, String port, String userName, String password) {
+            _host = host;
+            _port = port;
+            _userName = userName;
+            _password = password;
+        }
+
     }
 }
