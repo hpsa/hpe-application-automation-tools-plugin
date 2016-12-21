@@ -105,19 +105,17 @@ public class AlmQueryBuilder implements Serializable {
             if (queryConditions != null) {
                 for (Map.Entry<String, String> entry : queryConditions.entrySet()) {
                     sb.append(splitter);
+
                     if (entry.getKey().equals(PREPARED_FILTER)) {
                         sb.append(HTTPUtils.encodeParam(entry.getValue()));
-                        if(!entry.getValue().endsWith(";")){
-                            sb.append(";");
-                        }
                     } else {
                         //if value contains spaces (for example A OR B), spaces should be converted to '+',
                         //if value wrapped with ' , vor example 'Not Completed', it should be handled as is
                         //String value = entry.getValue().startsWith("'") ? entry.getValue() : entry.getValue().replaceAll(" ", "+");
 
                         sb.append(entry.getKey()).append("[").append(HTTPUtils.encodeParam(entry.getValue())).append("]");
-                        splitter = ";";
                     }
+                    splitter = ";";
 
                 }
             }

@@ -20,13 +20,14 @@
       <!--Fetch runs that executed after specified date. Format yyyy-MM-dd-->
       <startFromDate>2016-01-01</startFromDate>
 
-      <!--Filter runs by test type, allowed test types : MANUAL, QUICKTEST_TEST,BUSINESS-PROCESS,LEANFT-TEST-->
+      <!--Filter runs by test type, allowed test types : MANUAL, QUICKTEST_TEST,BUSINESS-PROCESS,LEANFT-TEST.
+      You can select one or several types separated with 'OR" : MANUAL OR QUICKTEST_TEST-->
       <testType></testType>
 
-      <!--Filter runs that related to some entity, for example 'runs that related to release AAA' or runs frin  -->
+      <!--Filter runs that related to some entity, for example 'runs that related to release AAA' -->
       <relatedEntity>
 
-        <!--Available types : test,testset,sprint, release-->
+        <!--Available types : test, testset, sprint, release-->
         <type></type>
 
         <!--id or ids separated with 'OR' : 1 OR 2 OR 3-->

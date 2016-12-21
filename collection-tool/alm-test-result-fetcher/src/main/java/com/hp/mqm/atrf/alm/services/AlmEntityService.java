@@ -81,7 +81,7 @@ public class AlmEntityService {
             AlmEntityCollection coll = getEntities(collectionName, myQb);
             if (totalNumOfPages == Integer.MAX_VALUE) {
                 totalNumOfPages = getNumberOfPages(coll.getTotal());
-                printToConsole = totalNumOfPages >= 3;
+                printToConsole = isToPrintToConsole(totalNumOfPages);
             }
 
             entities.addAll(coll.getEntities());
@@ -100,6 +100,10 @@ public class AlmEntityService {
         return entities;
     }
 
+    private boolean isToPrintToConsole(int numOfExpectedRequests) {
+        return numOfExpectedRequests >= 3;
+    }
+
     public static int getNumberOfPages(int totalItems) {
         int ret;
         ret = totalItems / PAGE_SIZE;
@@ -114,7 +118,7 @@ public class AlmEntityService {
     public List<AlmEntity> getEntitiesByIds(String collectionName, Set<String> ids, Collection<String> fields) {
         List<String> list = new ArrayList<>(ids);
         List<AlmEntity> allEntities = new ArrayList<>();
-        boolean printToConsole = (ids.size() / PAGE_SIZE >= 2);
+        boolean printToConsole = isToPrintToConsole(ids.size() / PAGE_SIZE);
         for (int i = 0; i < list.size(); i = i + PAGE_SIZE) {
             int maxIndex = Math.min(i + PAGE_SIZE, list.size());
             List<String> subList = list.subList(i, maxIndex);

@@ -38,9 +38,22 @@ directory as this tool, it is automatically detected. Otherwise, pass the
 configuration file pathname as a command-line argument (-c option). 
 
 ------------------------------------------------------------------------------------------------------------------------
+Tool Flow **************************************************************************************************************
+------------------------------------------------------------------------------------------------------------------------
+The activity of the tool can be divided to 3 parts
+1.Fetch data from ALM : the tool fetch runs and its related entity from ALM by using REST API. Each request -
+ fetches upto 200 item. Note : during fetching , console print '.' for each request to indicate progress in fetching of entities.
+2.Send data to Octane : The data is sent in the XML format through dedicate TestResuls API.
+(see more details ~your-octane-server:port/Help/WebUI/Online/Content/API/test-results.htm). On each post - 1000 runs are sent.
+ Each post - return "Sent Id" for tracking about the status of the bulk.
+3.Persistence validation in Octane : in this stage we validate that all posts are persisted successfully.
+  The tracking is done by using "Sent Id" from previous step.
+
+
+------------------------------------------------------------------------------------------------------------------------
 Output *****************************************************************************************************************
 ------------------------------------------------------------------------------------------------------------------------
-Instead of sending data to Octane, its possible to save fetched data to some file.
+Instead of sending data to Octane, its possible to save data that should be sent to Octane to some file.
 If an output option is specified (-o option), this tool writes
 the output XML to a file instead of pushing it to the server.
 If output file pathname parameter is missing, the output will be written into default file
@@ -51,18 +64,17 @@ No Octane server or credential configuration is required in this case.
 ------------------------------------------------------------------------------------------------------------------------
 Password handling ******************************************************************************************************
 ------------------------------------------------------------------------------------------------------------------------
-
 The password can be entered in the following ways:
 *  Configuration file
 *  Password is entered directly to command line (-pa and -po options)
-*  Password is entered from file (-paf and -pof option)
+*  Password is entered from file (-paf and -pof option). The file should contain only password as content.
 
 
 ------------------------------------------------------------------------------------------------------------------------
 Run Filtering **********************************************************************************************************
 ------------------------------------------------------------------------------------------------------------------------
 The tool allow to filter runs from ALM, there are several predefined filters + option to define some of custom filters , for example
-- fetch runs that has id greater than X (startFromId filter)
+- fetch runs that has id equal or greater than X (startFromId filter)
 - fetch runs that executed from some date (startFromDate filter)
 - fetch runs from specific test type (testType filter)
 - fetch runs that related to some release/sprint/test/testset (relatedEntity filter)
@@ -75,6 +87,16 @@ Some filter options are available also from command line
  - startFromId (option -rfid)
  - startFromDate (option -rfd)
 
+
+As well, its possible to define some custom REST filter on run entity (see help page about "ALM REST API" to find more how to filter in REST API)
+
+------------------------------------------------------------------------------------------------------------------------
+Log files **************************************************************************************************************
+------------------------------------------------------------------------------------------------------------------------
+The tool is write log information to 3 log files that are located in the "logs" directory
+1.consoleLog.log : all information that is printed to console , also written to this file, so here you can find information about all your historical runs
+2.restLog.log : all rest request are persisted to this log
+3.lastSent.txt : this file contains only id of the last run id that was sent to Octane. So, tool would be able to recognize
 
 ------------------------------------------------------------------------------------------------------------------------
 Required permissions and Supported servers *****************************************************************************
@@ -209,4 +231,8 @@ Q & A **************************************************************************
 Q : How I can find in Octane tests that are fetched from ALM?
 A : During fetching, we map ALM Domain name to test "module" field and ALM Project name to test "package" field.
     You can filter test with matching "module" and "package" to find fetched tests.
+
+Q: On previous week, I fetched all existing runs from ALM to Octane. On this week, many new runs were added to ALM.
+   I want to fetch To Octane only runs that were created after my last fetch.
+A: You can filter runs that were created after your last fetch by defining runFilter option "startFromId" with value "LAST_SENT" in configuration file
 
