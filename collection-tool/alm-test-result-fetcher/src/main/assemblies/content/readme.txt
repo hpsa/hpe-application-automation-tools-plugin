@@ -4,7 +4,7 @@ README
 HPE ALM Test Result Fetcher Tool
 ------------------------------------------------------------------------------------------------------------------------
 
-The ALM Test Result Fetcher is a command line tool for fetching test result from ALM into Octane server.
+The HPE ALM Test Result Fetcher Tool is a command line tool for fetching test result from ALM into Octane server.
 
 ------------------------------------------------------------------------------------------------------------------------
 Usage ******************************************************************************************************************
