@@ -160,7 +160,6 @@
 					<plugin>
 						<groupId>SignHPUtility.plugin</groupId>
 						<artifactId>signhp-maven-plugin</artifactId>
-						<version>8.0</version>
 						<executions>
 							<execution>
 								<phase>integration-test</phase>

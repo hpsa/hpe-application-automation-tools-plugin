@@ -50,6 +50,8 @@
 			**/NotificationEmail.java
 		</sonar.exclusions>
 
+		<!-- plugin dependencies versions -->
+		<sign-hp-utility.version>9.0</sign-hp-utility.version>
 	</properties>
 
 	<modules>
@@ -92,6 +94,11 @@
 				<plugin>
 					<artifactId>maven-dependency-plugin</artifactId>
 					<groupId>org.apache.maven.plugins</groupId>
+				</plugin>
+				<plugin>
+					<groupId>SignHPUtility.plugin</groupId>
+					<artifactId>signhp-maven-plugin</artifactId>
+					<version>${sign-hp-utility.version}</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>
