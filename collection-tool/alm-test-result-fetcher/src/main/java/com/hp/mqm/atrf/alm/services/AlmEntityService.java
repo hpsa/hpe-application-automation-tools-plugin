@@ -19,7 +19,8 @@ import java.util.*;
  */
 public class AlmEntityService {
 
-    public static final int PAGE_SIZE = 200;
+    public static final int PAGE_SIZE = 1000;
+    public static final int PAGE_SIZE_BY_ID = 200;
 
     RestConnector restConnector;
     Map<String, String> jsonHeaders = new HashMap<>();
@@ -65,49 +66,32 @@ public class AlmEntityService {
         return coll;
     }
 
-    public List<AlmEntity> getAllPagedEntities(String collectionName, AlmQueryBuilder qb, int maxPages) {
+    public List<AlmEntity> getAllPagedEntities(String collectionName, AlmQueryBuilder qb) {
 
         List<AlmEntity> entities = new ArrayList<>();
 
         //get num of pages
-        //int totalNumber = getTotalNumber(collectionName, qb);
         int totalNumOfPages = Integer.MAX_VALUE;
         int currentStartIndex = 1;
 
-
-        boolean printToConsole = false;
-        for (int i = 1; i <= totalNumOfPages && i <= maxPages; i++) {
+        for (int i = 1; i <= totalNumOfPages; i++) {
             AlmQueryBuilder myQb = qb.clone().addPageSize(PAGE_SIZE).addStartIndex(currentStartIndex);
             AlmEntityCollection coll = getEntities(collectionName, myQb);
             if (totalNumOfPages == Integer.MAX_VALUE) {
-                totalNumOfPages = getNumberOfPages(coll.getTotal());
-                printToConsole = isToPrintToConsole(totalNumOfPages);
+                totalNumOfPages = getNumberOfPages(coll.getTotal(), PAGE_SIZE);
             }
 
             entities.addAll(coll.getEntities());
             currentStartIndex = i * PAGE_SIZE + 1;
-
-            if (printToConsole) {
-                System.out.print(".");
-            }
-        }
-
-        if (printToConsole) {
-            //add new line
-            System.out.print("\n");
         }
 
         return entities;
     }
 
-    private boolean isToPrintToConsole(int numOfExpectedRequests) {
-        return numOfExpectedRequests >= 3;
-    }
-
-    public static int getNumberOfPages(int totalItems) {
+    public static int getNumberOfPages(int totalItems, int pageSize) {
         int ret;
-        ret = totalItems / PAGE_SIZE;
-        if (totalItems % PAGE_SIZE > 0) {
+        ret = totalItems / pageSize;
+        if (totalItems % pageSize > 0) {
             ret++;
         }
 
@@ -118,21 +102,12 @@ public class AlmEntityService {
     public List<AlmEntity> getEntitiesByIds(String collectionName, Set<String> ids, Collection<String> fields) {
         List<String> list = new ArrayList<>(ids);
         List<AlmEntity> allEntities = new ArrayList<>();
-        boolean printToConsole = isToPrintToConsole(ids.size() / PAGE_SIZE);
-        for (int i = 0; i < list.size(); i = i + PAGE_SIZE) {
-            int maxIndex = Math.min(i + PAGE_SIZE, list.size());
+        for (int i = 0; i < list.size(); i = i + PAGE_SIZE_BY_ID) {
+            int maxIndex = Math.min(i + PAGE_SIZE_BY_ID, list.size());
             List<String> subList = list.subList(i, maxIndex);
             AlmQueryBuilder qb = AlmQueryBuilder.create().addQueryCondition("id", StringUtils.join(subList, " OR ")).addSelectedFields(fields);
             AlmEntityCollection coll = getEntities(collectionName, qb);
             allEntities.addAll(coll.getEntities());
-            if (printToConsole) {
-                System.out.print(".");
-            }
-        }
-
-        if (printToConsole) {
-            //add new line
-            System.out.print("\n");
         }
 
         return allEntities;
