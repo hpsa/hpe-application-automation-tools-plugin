@@ -51,7 +51,7 @@
 		</sonar.exclusions>
 
 		<!-- plugin dependencies versions -->
-		<sign-hp-utility.version>9.0</sign-hp-utility.version>
+		<sign-hp-utility.version>11.0</sign-hp-utility.version>
 	</properties>
 
 	<modules>
