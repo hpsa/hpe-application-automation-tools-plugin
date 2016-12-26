@@ -5,6 +5,8 @@ import com.hp.mqm.atrf.alm.services.AlmQueryBuilder;
 import com.hp.mqm.atrf.alm.services.AlmWrapperService;
 import com.hp.mqm.atrf.core.configuration.ConfigurationUtilities;
 import com.hp.mqm.atrf.core.configuration.FetchConfiguration;
+import com.hp.mqm.atrf.core.configuration.ReturnCode;
+import com.hp.mqm.atrf.core.rest.RestStatusException;
 import com.hp.mqm.atrf.octane.core.OctaneTestResultOutput;
 import com.hp.mqm.atrf.octane.entities.TestRunResultEntity;
 import com.hp.mqm.atrf.octane.services.OctaneWrapperService;
@@ -25,6 +27,7 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
+import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -118,12 +121,13 @@ public class App {
         }
     }
 
-    private boolean isOutput(){
+    private boolean isOutput() {
         boolean isOutput = StringUtils.isNotEmpty(configuration.getOutputFile());
         return isOutput;
     }
+
     private List<OctaneTestResultOutput> outputToOctane() {
-        if(!isOutput()){
+        if (!isOutput()) {
             logger.info("Starting send of data to Octane");
         }
 
@@ -264,37 +268,80 @@ public class App {
     }
 
     private void loginToAlm() {
-        logger.info("ALM : Validating login configuration ...");
-        almWrapper = new AlmWrapperService(configuration.getAlmServerUrl(), configuration.getAlmDomain(), configuration.getAlmProject());
-        if (almWrapper.login(configuration.getAlmUser(), configuration.getAlmPassword())) {
-
-            logger.info("ALM : Login successful");
-            if (almWrapper.validateConnectionToProject()) {
-                logger.info("ALM : Connected to ALM project successfully");
-            } else {
-                throw new RuntimeException("ALM : Failed to connect to ALM Project.");
+        try {
+            logger.info("ALM : Validating login configuration ...");
+            almWrapper = new AlmWrapperService(configuration.getAlmServerUrl(), configuration.getAlmDomain(), configuration.getAlmProject());
+            boolean loggedIn = false;
+            try {
+                loggedIn = almWrapper.login(configuration.getAlmUser(), configuration.getAlmPassword());
+            } catch (RestStatusException e) {
+                //validate credentials
+                if (e.getResponse().getStatusCode() == 401) {
+                    String msg = String.format("Failed to login as '%s', validate credentials.", configuration.getAlmUser());
+                    throw new RuntimeException(msg);
+                } else {
+                    throw e;
+                }
+            } catch (RuntimeException e) {
+                //validate host
+                if (e.getCause() instanceof UnknownHostException) {
+                    String msg = "Failed to connect to host : " + configuration.getAlmServerUrl();
+                    throw new RuntimeException(msg);
+                } else {
+                    throw e;
+                }
             }
-        } else {
-            throw new RuntimeException("ALM : Failed to login");
+
+            if (loggedIn) {
+                logger.info("ALM : Login successful");
+
+                if (almWrapper.validateConnectionToDomain()) {
+                    logger.info("ALM : Connected to ALM domain successfully");
+                } else {
+                    throw new RuntimeException("Failed to connect to ALM domain " + configuration.getAlmDomain());
+                }
+
+                logger.info("ALM : Connected to ALM domain successfully");
+                if (almWrapper.validateConnectionToProject()) {
+                    logger.info("ALM : Connected to ALM project successfully");
+                } else {
+                    throw new RuntimeException("Failed to connect to ALM project " + configuration.getAlmProject());
+                }
+            } else {
+                throw new RuntimeException("ALM : Failed to login");
+            }
+        } catch (Exception e) {
+            logger.error("ALM : " + e.getMessage());
+            System.exit(ReturnCode.FAILURE.getReturnCode());
         }
     }
 
     private void loginToOctane() {
-        logger.info("Octane : Validating login configuration ...");
-        long sharedSpaceId = Long.parseLong(configuration.getOctaneSharedSpaceId());
-        long workspaceId = Long.parseLong(configuration.getOctaneWorkspaceId());
+        try {
+            logger.info("Octane : Validating login configuration ...");
+            long sharedSpaceId = Long.parseLong(configuration.getOctaneSharedSpaceId());
+            long workspaceId = Long.parseLong(configuration.getOctaneWorkspaceId());
 
-        octaneWrapper = new OctaneWrapperService(configuration.getOctaneServerUrl(), sharedSpaceId, workspaceId);
-        if (octaneWrapper.login(configuration.getOctaneUser(), configuration.getOctanePassword())) {
+            octaneWrapper = new OctaneWrapperService(configuration.getOctaneServerUrl(), sharedSpaceId, workspaceId);
+            if (octaneWrapper.login(configuration.getOctaneUser(), configuration.getOctanePassword())) {
 
-            logger.info("Octane : Login successful");
-            if (octaneWrapper.validateConnectionToWorkspace()) {
-                logger.info("Octane : Connected to Octane project successfully");
+                logger.info("Octane : Login successful");
+                if (octaneWrapper.validateConnectionToSharedspace()) {
+                    logger.info("Octane : Connected to Octane sharedspace successfully");
+                } else {
+                    throw new RuntimeException("Failed to connect to Octane sharedspace " + sharedSpaceId);
+                }
+                if (octaneWrapper.validateConnectionToWorkspace()) {
+                    logger.info("Octane : Connected to Octane workspace successfully");
+                } else {
+                    throw new RuntimeException("Failed to connect to Octane workspace " + workspaceId);
+                }
             } else {
-                throw new RuntimeException("Octane : Failed to connect to Octane Workspace.");
+                throw new RuntimeException("Failed to login");
             }
-        } else {
-            throw new RuntimeException("Octane : Failed to login");
+        } catch (Exception e) {
+            logger.error("Octane : " + e.getMessage());
+            System.exit(ReturnCode.FAILURE.getReturnCode());
         }
     }
 

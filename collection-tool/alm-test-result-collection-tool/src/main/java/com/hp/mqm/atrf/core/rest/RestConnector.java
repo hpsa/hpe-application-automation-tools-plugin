@@ -148,7 +148,7 @@ public class RestConnector {
         } catch (RestStatusException e) {
             throw e;//rethrow
         } catch (Exception e) {
-            throw new RuntimeException("Failed to doHttp : " + e.getMessage(), e);
+            throw new RuntimeException(e.getMessage(), e);
         }
     }
 

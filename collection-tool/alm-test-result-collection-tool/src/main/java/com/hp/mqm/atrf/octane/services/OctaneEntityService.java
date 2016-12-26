@@ -44,6 +44,7 @@ public class OctaneEntityService {
         typesMap.put(Phase.TYPE, new PhaseDescriptor());
         typesMap.put(Release.TYPE, new ReleaseDescriptor());
         typesMap.put(Sprint.TYPE, new SprintDescriptor());
+        typesMap.put(Workspace.TYPE, new WorkspaceDescriptor());
     }
 
 
@@ -94,15 +95,21 @@ public class OctaneEntityService {
         return workspaceId;
     }
 
-    public OctaneEntityCollection getEntities(String collectionName, OctaneQueryBuilder queryBuilder) {
-        String entityCollectionUrl = String.format(OctaneRestConstants.PUBLIC_API_WORKSPACE_LEVEL_ENTITIES, getSharedSpaceId(), getWorkspaceId(), collectionName);
+    public OctaneEntityCollection getEntities(String type, OctaneQueryBuilder queryBuilder) {
+        String entityCollectionUrl = null;
+        OctaneEntityDescriptor descriptor = typesMap.get(type);
+        if (descriptor.getContext().equals(OctaneEntityDescriptor.Context.Workspace)) {
+            entityCollectionUrl = String.format(OctaneRestConstants.PUBLIC_API_WORKSPACE_LEVEL_ENTITIES, getSharedSpaceId(), getWorkspaceId(), descriptor.getCollectionName());
+        } else {
+            entityCollectionUrl = String.format(OctaneRestConstants.PUBLIC_API_SHAREDSPACE_LEVEL_ENTITIES, getSharedSpaceId(), descriptor.getCollectionName());
+        }
         String queryString = queryBuilder.build();
 
         Map<String, String> headers = new HashMap<>();
         headers.put(HTTPUtils.HEADER_ACCEPT, HTTPUtils.HEADER_APPLICATION_JSON);
         headers.put(OctaneRestConstants.CLIENTTYPE_HEADER, OctaneRestConstants.CLIENTTYPE_INTERNAL);
 
-        String entitiesCollectionStr = restConnector.httpGet(entityCollectionUrl,  Arrays.asList(queryString), headers).getResponseData();
+        String entitiesCollectionStr = restConnector.httpGet(entityCollectionUrl, Arrays.asList(queryString), headers).getResponseData();
         JSONObject jsonObj = new JSONObject(entitiesCollectionStr);
         OctaneEntityCollection col = parseCollection(jsonObj);
         return col;

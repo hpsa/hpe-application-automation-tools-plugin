@@ -7,6 +7,7 @@ import com.hp.mqm.atrf.alm.entities.*;
 import com.hp.mqm.atrf.core.rest.HTTPUtils;
 import com.hp.mqm.atrf.core.rest.Response;
 import com.hp.mqm.atrf.core.rest.RestConnector;
+import com.hp.mqm.atrf.core.rest.RestStatusException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpStatus;
 import org.json.JSONArray;
@@ -57,6 +58,32 @@ public class AlmEntityService {
         return col.getTotal();
     }
 
+    public List<String> getAllowedProjectsList() {
+        String url = String.format(AlmRestConstants.ALM_REST_PROJECTS, getDomain());
+
+        try {
+            String json = restConnector.httpGet(url, null, jsonHeaders).getResponseData();
+            List<String> projects = parseProjects(json);
+            return projects;
+        } catch (RestStatusException e) {
+            handleExceptionFromALM(e);
+        }
+
+        return Collections.emptyList();
+    }
+
+    private void handleExceptionFromALM(RuntimeException e) {
+        String errorMsg;
+        try {
+            String msg = e.getMessage();
+            JSONObject jsonObj = new JSONObject(msg);
+            errorMsg = (String) jsonObj.get("Title");
+        } catch (Exception parseEx) {
+            throw e;
+        }
+        throw new AlmRestException(errorMsg);
+    }
+
     public AlmEntityCollection getEntities(String collectionName, AlmQueryBuilder qb) {
         String entityCollectionUrl = String.format(AlmRestConstants.ALM_REST_PROJECT_ENTITIES_FORMAT, getDomain(), getProject(), collectionName);
         String queryString = qb.build();
@@ -97,7 +124,6 @@ public class AlmEntityService {
 
         return ret;
     }
-
 
     public List<AlmEntity> getEntitiesByIds(String collectionName, Set<String> ids, Collection<String> fields) {
         List<String> list = new ArrayList<>(ids);
@@ -170,6 +196,31 @@ public class AlmEntityService {
         }
 
         return coll;
+    }
+
+    private List<String> parseProjects(String projectsjson) {
+        List<String> projectList = new ArrayList<>();
+        JSONObject jsonObj = new JSONObject(projectsjson);
+
+        JSONArray projectArr = null;
+        //single project
+        if (jsonObj.has("Project")) {
+            projectArr = (JSONArray) jsonObj.get("Project");
+            ;
+        } else {
+            //several projects
+            JSONObject projectsObj = (JSONObject) jsonObj.get("Projects");
+            projectArr = (JSONArray) projectsObj.get("Project");
+
+        }
+        for (int i = 0; i < projectArr.length(); i++) {
+            JSONObject entObj = projectArr.getJSONObject(i);
+            String name = entObj.getString("Name");
+            projectList.add(name);
+        }
+
+
+        return projectList;
     }
 
     private AlmEntity createEntity(String type) {

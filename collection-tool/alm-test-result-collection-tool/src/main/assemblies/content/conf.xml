@@ -18,7 +18,7 @@
       <startFromId></startFromId>
 
       <!--Fetch runs that executed after specified date. Format yyyy-MM-dd-->
-      <startFromDate>2016-01-01</startFromDate>
+      <startFromDate></startFromDate>
 
       <!--Filter runs by test type, allowed test types : MANUAL, QUICKTEST_TEST,BUSINESS-PROCESS,LEANFT-TEST.
       You can select one or several types separated with 'OR" : MANUAL OR QUICKTEST_TEST-->

@@ -11,7 +11,8 @@ public interface AlmRestConstants {
 
 
     String ALM_REST_DOMAINS = "/rest/domains";
-    String ALM_REST_PROJECT = ALM_REST_DOMAINS + "/%s/projects/%s";
+    String ALM_REST_PROJECTS = ALM_REST_DOMAINS + "/%s/projects";
+    String ALM_REST_PROJECT = ALM_REST_PROJECTS +"/%s";
     String ALM_REST_PROJECT_ENTITIES_FORMAT = AlmRestConstants.ALM_REST_PROJECT + "/%s";
 
 

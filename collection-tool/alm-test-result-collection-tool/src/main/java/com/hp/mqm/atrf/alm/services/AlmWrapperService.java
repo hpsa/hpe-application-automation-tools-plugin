@@ -236,7 +236,7 @@ public class AlmWrapperService {
     public void fetchRunRelatedEntities(List<Run> runs) {
         //clear cache maps
         clearMapIfSizeIsExceed(tests, 4000);
-        if(clearMapIfSizeIsExceed(testFolders, 3000)){
+        if (clearMapIfSizeIsExceed(testFolders, 3000)) {
             tests.clear();
         }
         clearMapIfSizeIsExceed(testSets, 3000);
@@ -263,6 +263,15 @@ public class AlmWrapperService {
 
     public boolean login(String user, String password) {
         return almEntityService.login(user, password);
+    }
+
+    public boolean validateConnectionToDomain() {
+        try {
+            almEntityService.getAllowedProjectsList();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean validateConnectionToProject() {
