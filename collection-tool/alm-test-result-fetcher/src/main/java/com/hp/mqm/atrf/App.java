@@ -63,8 +63,7 @@ public class App {
         loginToAlm();
 
         //VALIDATE LOGIN TO OCTANE
-        boolean isOutput = StringUtils.isNotEmpty(configuration.getOutputFile());
-        if (!isOutput) {
+        if (!isOutput()) {
             loginToOctane();
         }
 
@@ -119,8 +118,15 @@ public class App {
         }
     }
 
+    private boolean isOutput(){
+        boolean isOutput = StringUtils.isNotEmpty(configuration.getOutputFile());
+        return isOutput;
+    }
     private List<OctaneTestResultOutput> outputToOctane() {
-        logger.info("Starting send of data to Octane");
+        if(!isOutput()){
+            logger.info("Starting send of data to Octane");
+        }
+
         int bulkSize = Integer.parseInt(configuration.getSyncBulkSize());
         int fetchLimit = Integer.parseInt(configuration.getRunFilterFetchLimit());
 
@@ -167,8 +173,7 @@ public class App {
 
             //4.3SEND/OUTPUT
             List<TestRunResultEntity> ngaRuns = prepareRunsForInjection(bulkId, runs);
-            boolean isOutput = StringUtils.isNotEmpty(configuration.getOutputFile());
-            if (isOutput) {
+            if (isOutput()) {
                 File file = saveResults(configuration, ngaRuns);
                 String note = "";
                 if (runStartIndex < expectedRunsCount) {
