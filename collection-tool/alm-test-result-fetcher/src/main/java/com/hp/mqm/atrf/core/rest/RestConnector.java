@@ -301,7 +301,7 @@ public class RestConnector {
 
         this.baseUrl = url;
         if (StringUtils.isNotEmpty(baseUrl) && baseUrl.endsWith("/")) {
-            baseUrl = baseUrl.substring(0, baseUrl.length() - 2);
+            baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
         }
     }
 }
