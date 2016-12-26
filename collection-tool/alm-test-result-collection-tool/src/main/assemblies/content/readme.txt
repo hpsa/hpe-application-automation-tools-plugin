@@ -143,7 +143,7 @@ Test          | Name               | If run's test name == run's test configurat
               |                    |  "MANUAL=>Manual"; "LEANFT-TEST=>LeanFT"; "QUICKTEST_TEST=>UFT"; "BUSINESS-PROCESS=>BPT"
               |                    |   Other ALM test types are not converted.
               | Package            | Project Name
-              | Module             | Domain Name
+              | Component          | Domain Name
               | Class              | Direct test folder name
 --------------|--------------------|------------------------------------------------------------------------------------
 Run           | Name               | Format : AlmTestSet #{testSetId} : {testSetName}
@@ -179,7 +179,7 @@ Full configuration file example ************************************************
               <startFromId></startFromId>
 
               <!--Fetch runs that executed after specified date. Format yyyy-MM-dd-->
-              <startFromDate>2016-01-01</startFromDate>
+              <startFromDate></startFromDate>
 
               <!--Filter runs by test type, allowed test types : MANUAL, QUICKTEST_TEST,BUSINESS-PROCESS,LEANFT-TEST-->
               <testType></testType>
@@ -235,4 +235,10 @@ A : During fetching, we map ALM Domain name to test "module" field and ALM Proje
 Q: On previous week, I fetched all existing runs from ALM to Octane. On this week, many new runs were added to ALM.
    I want to fetch To Octane only runs that were created after my last fetch.
 A: You can filter runs that were created after your last fetch by defining runFilter option "startFromId" with value "LAST_SENT" in configuration file
+
+Q: I have test that has been executed several times ,but in tab "Runs" , I see only last run. Where I can found other runs?
+A: If all execution were done in context of the same testset in ALM,  Octane  will show only last run, other runs are appear in tab "Previous Runs" of run details.
+   If there were execution in different testsets, Octane will show last run for each testset. To see name of testset - switch "runs" tab to grid view. Testset name is appear in name of run (see ALM 2 Octane Fields Mapping)
+
+
 
