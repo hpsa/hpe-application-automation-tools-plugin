@@ -7,6 +7,7 @@ public class OctaneAuthenticationPojo {
 
     private String user;
     private String password;
+    private boolean enable_csrf;
 
     public String getUser() {
         return user;
@@ -26,7 +27,13 @@ public class OctaneAuthenticationPojo {
         } else {
             this.password = password;
         }
+    }
 
+    public boolean getEnable_csrf() {
+        return enable_csrf;
+    }
 
+    public void setEnable_csrf(boolean enable_csrf) {
+        this.enable_csrf = enable_csrf;
     }
 }

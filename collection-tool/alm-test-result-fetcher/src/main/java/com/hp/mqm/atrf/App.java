@@ -193,6 +193,7 @@ public class App {
 
         int failsCount = 0;
         boolean finished = false;
+        int sleepSize = Integer.parseInt(configuration.getSyncSleepBetweenPosts()) * 1000;
         while (!finished) {
             if (!output.getStatus().equals("success")) {
                 try {
@@ -204,6 +205,8 @@ public class App {
                         break;
                     } else {
                         logger.info(String.format("Bulk #%s : failed to get persistence status, trial %s", bulkId, failsCount));
+                        sleep(sleepSize);
+                        continue;
                     }
                 }
             }
@@ -212,7 +215,6 @@ public class App {
             if (!(output.getStatus().equals("running") || output.getStatus().equals("queued"))) {
                 finished = true;
             } else {
-                int sleepSize = Integer.parseInt(configuration.getSyncSleepBetweenPosts()) * 1000;
                 sleep(sleepSize);
             }
         }

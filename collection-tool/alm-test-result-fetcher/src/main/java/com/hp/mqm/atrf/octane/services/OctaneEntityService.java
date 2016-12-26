@@ -55,6 +55,7 @@ public class OctaneEntityService {
         OctaneAuthenticationPojo authData = new OctaneAuthenticationPojo();
         authData.setUser(user);
         authData.setPassword(password);
+        authData.setEnable_csrf(true);
 
 
         ObjectMapper mapper = new ObjectMapper();

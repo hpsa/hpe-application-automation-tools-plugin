@@ -30,12 +30,19 @@ public class RestConnector {
     private static String proxyHost;
     private static int proxyPort;
 
+    private String csrfHeaderName;
+    private String csrfCookieName;
+
 
     public static void setProxy(String host, int port) {
         proxyHost = host;
         proxyPort = port;
     }
 
+    public void setCSRF(String csrfHeader, String csrfCookieName) {
+        this.csrfHeaderName = csrfHeader;
+        this.csrfCookieName = csrfCookieName;
+    }
 
     /**
      * @return the cookies
@@ -133,7 +140,7 @@ public class RestConnector {
 
             updateCookies(ret);
 
-            if (ret.getStatusCode() !=  HttpStatus.SC_OK && ret.getStatusCode() !=  HttpStatus.SC_CREATED && ret.getStatusCode() != HttpStatus.SC_ACCEPTED) {
+            if (ret.getStatusCode() != HttpStatus.SC_OK && ret.getStatusCode() != HttpStatus.SC_CREATED && ret.getStatusCode() != HttpStatus.SC_ACCEPTED) {
                 throw new RestStatusException(ret);
             }
 
@@ -176,6 +183,11 @@ public class RestConnector {
                 Entry<String, String> header = headersIterator.next();
                 con.setRequestProperty(header.getKey(), header.getValue());
             }
+        }
+
+        //set CSRF
+        if (StringUtils.isNotEmpty(csrfHeaderName) && StringUtils.isNotEmpty(csrfCookieName) && cookies.containsKey(csrfCookieName)) {
+            con.setRequestProperty(csrfHeaderName, cookies.get(csrfCookieName));
         }
 
         //if there's data to attach to the request, it's handled here. note that if data exists, we take into account previously removed content-TYPE.
@@ -285,7 +297,11 @@ public class RestConnector {
         return baseUrl;
     }
 
-    public void setBaseUrl(String baseUrl) {
-        this.baseUrl = baseUrl;
+    public void setBaseUrl(String url) {
+
+        this.baseUrl = url;
+        if (StringUtils.isNotEmpty(baseUrl) && baseUrl.endsWith("/")) {
+            baseUrl = baseUrl.substring(0, baseUrl.length() - 2);
+        }
     }
 }
