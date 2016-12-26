@@ -25,20 +25,21 @@ public class Main {
     public static void main(String[] args) {
 
         long start = System.currentTimeMillis();
-        configureLog4J();
         setUncaughtExceptionHandler();
 
-        logger.info("***************************************************************************************************");
+        CliParser cliParser = new CliParser();
+        FetchConfiguration configuration = cliParser.parse(args);
 
+        configureLog4J();
+
+        logger.info("***************************************************************************************************");
+        App app = new App(configuration);
+        app.start();
         DateFormat dateFormatter = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault());
         DateFormat timeFormatter = DateFormat.getTimeInstance(DateFormat.DEFAULT, Locale.getDefault());
         logger.info((String.format("Starting fetch process %s %s", dateFormatter.format(new Date()), timeFormatter.format(new Date()))));
         logger.info("***************************************************************************************************");
 
-        CliParser cliParser = new CliParser();
-        FetchConfiguration configuration = cliParser.parse(args);
-        App app = new App(configuration);
-        app.start();
 
         long end = System.currentTimeMillis();
         logger.info(String.format("The process is finished in %s seconds", (end - start) / 1000));
