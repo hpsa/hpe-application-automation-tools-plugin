@@ -25,7 +25,6 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -60,73 +59,84 @@ public class App {
 
     public void start() {
 
+        //VALIDATE LOGIN TO ALM
         loginToAlm();
 
+        //VALIDATE LOGIN TO OCTANE
         boolean isOutput = StringUtils.isNotEmpty(configuration.getOutputFile());
         if (!isOutput) {
             loginToOctane();
         }
 
+
+        logger.info("***************************************************************************************************");
+        //SEND/OUTPUT DATA
+        List<OctaneTestResultOutput> resultOutputs = outputToOctane();
+
+
+        logger.info("***************************************************************************************************");
+
+        //GET PERSISTENCE STATUS
+        logger.info("Starting get final persistence status");
+        for (int i = 0; i < resultOutputs.size(); i++) {
+            OctaneTestResultOutput current = resultOutputs.get(i);
+            getPersistenceStatus(configuration, i + 1, current);
+        }
+    }
+
+    private List<OctaneTestResultOutput> outputToOctane() {
         int bulkSize = Integer.parseInt(configuration.getSyncBulkSize());
-        int sleepBetweenPosts = Integer.parseInt(configuration.getSyncSleepBetweenPosts()) * 1000;
         int fetchLimit = Integer.parseInt(configuration.getRunFilterFetchLimit());
 
         int pageSize = Math.min(bulkSize, fetchLimit);
         AlmQueryBuilder queryBuilder = almWrapper.buildRunFilter(configuration);
         queryBuilder.addPageSize(pageSize);
 
-        int expectedRunsCount = almWrapper.getExpectedRuns(queryBuilder);
 
+        //PRINT EXPECTED RUN COUNT
+        int expectedRunsCount = almWrapper.getExpectedRuns(queryBuilder);
         expectedRunsCount = Math.min(expectedRunsCount, fetchLimit);
         logger.info(String.format("Expected runs : %d", expectedRunsCount));
         int expectedBulks = expectedRunsCount / bulkSize;
-        if(expectedRunsCount % bulkSize>0){
+        if (expectedRunsCount % bulkSize > 0) {
             expectedBulks++;
         }
         logger.info(String.format("Expected bulks : %d", expectedBulks));
 
 
+        //LOOP OF SEND
         long lastSentTime = 0;
-        int actualRunsCount = 0;
-        int loopCounter = 0;
-        OctaneTestResultOutput previousOutput = null;
-        List<OctaneTestResultOutput> failedOutputs = new ArrayList<>();
-        while (actualRunsCount < expectedRunsCount) {
+        int runStartIndex = 0;
+        int sleepBetweenPosts = Integer.parseInt(configuration.getSyncSleepBetweenPosts()) * 1000;
 
-            //prepare next bulk
-            queryBuilder.addStartIndex(actualRunsCount + 1);
+        logger.info("Starting send of data to Octane");
+        long start = System.currentTimeMillis();
+        List<OctaneTestResultOutput> resultOutputs = new ArrayList<>();
+        for (int bulkId = 1; bulkId <= expectedBulks; bulkId++) {
+
+            logger.info(String.format("Bulk #%s : preparing", bulkId));
+
+            //4.1 GET DATA FROM ALM
+            queryBuilder.addStartIndex(runStartIndex + 1);
             List<Run> runs = almWrapper.fetchRuns(queryBuilder);
-            actualRunsCount += runs.size();
             almWrapper.fetchRunRelatedEntities(runs);
+            runStartIndex += runs.size();
 
 
-            //Sleep if required
+            //4.2 SLEEP IF REQUIRED
             long fromLastSent = System.currentTimeMillis() - lastSentTime;
             long toSleep = sleepBetweenPosts - fromLastSent;
             if (toSleep > 0) {
                 sleep(toSleep);
             }
 
-            //get PersistenceStatus for previous sent
-            if (previousOutput != null) {
-                getPersistenceStatus(configuration, loopCounter, previousOutput);
-                if(OctaneTestResultOutput.ERROR_STATUS.equals(previousOutput.getStatus())){
-                    failedOutputs.add(previousOutput);
-                }
-            }
-            previousOutput = null;
-
-            loopCounter++;
-            logger.info(String.format("Bulk #%s : preparing", loopCounter));
-
-            //preparation
-            List<TestRunResultEntity> ngaRuns = prepareRunsForInjection(loopCounter, runs);
-
-            //Output
+            //4.3SEND/OUTPUT
+            List<TestRunResultEntity> ngaRuns = prepareRunsForInjection(bulkId, runs);
+            boolean isOutput = StringUtils.isNotEmpty(configuration.getOutputFile());
             if (isOutput) {
                 File file = saveResults(configuration, ngaRuns);
                 String note = "";
-                if (actualRunsCount < expectedRunsCount) {
+                if (runStartIndex < expectedRunsCount) {
                     note = String.format("(first %s runs)", bulkSize);
                 }
 
@@ -136,57 +146,32 @@ public class App {
 
                 String firstRunId = ngaRuns.get(0).getRunId();
                 String lastRunId = ngaRuns.get(ngaRuns.size() - 1).getRunId();
+                OctaneTestResultOutput currentOutput = null;
                 try {
-                    previousOutput = sendResults(loopCounter, ngaRuns);
+                    currentOutput = sendResults(bulkId, ngaRuns);
                     lastSentTime = System.currentTimeMillis();
-
                     ConfigurationUtilities.saveLastSentRunId(lastRunId);
-                    logger.info(String.format("Bulk #%s : sending %s runs , run ids from %s to %s , sent id=%s",
-                            loopCounter, ngaRuns.size(), firstRunId, lastRunId, previousOutput.getId()));
+                    logger.info(String.format("Bulk #%s : sending %s runs , run ids from %s to %s , sent id=%s, %s",
+                            bulkId, ngaRuns.size(), firstRunId, lastRunId, currentOutput.getId(), currentOutput.getStatus().toUpperCase()));
 
-                    previousOutput.put(OctaneTestResultOutput.FIELD_BULK_ID, loopCounter);
-                    previousOutput.put(OctaneTestResultOutput.FIELD_FIRST_RUN_ID, firstRunId);
-                    previousOutput.put(OctaneTestResultOutput.FIELD_LAST_RUN_ID, lastRunId);
                 } catch (Exception e) {
                     String msg = e.getMessage();
-                    int msgLength = 250;
+                    int msgLength = 350;
                     if (msg.length() > msgLength) {
                         msg = msg.substring(0, msgLength);
                     }
-                    logger.info(String.format("Bulk #%s : failed to send run ids from %s to %s: %s", loopCounter, firstRunId, lastRunId, msg));
+                    logger.info(String.format("Bulk #%s : failed to send run ids from %s to %s: %s", bulkId, firstRunId, lastRunId, msg));
 
-                    OctaneTestResultOutput failedOutput = new OctaneTestResultOutput();
-                    failedOutput.put(OctaneTestResultOutput.FIELD_BULK_ID, loopCounter);
-                    failedOutput.put(OctaneTestResultOutput.FIELD_FIRST_RUN_ID, firstRunId);
-                    failedOutput.put(OctaneTestResultOutput.FIELD_LAST_RUN_ID, lastRunId);
-                    failedOutput.put(OctaneTestResultOutput.FIELD_STATUS, OctaneTestResultOutput.FAILED_SEND_STATUS);
-                    failedOutputs.add(failedOutput);
+                    currentOutput = new OctaneTestResultOutput();
+                    currentOutput.put(OctaneTestResultOutput.FIELD_STATUS, OctaneTestResultOutput.FAILED_SEND_STATUS);
                 }
-
+                resultOutputs.add(currentOutput);
             }
         }
 
-        //get PersistenceStatus for last sent
-        if (previousOutput != null) {
-            getPersistenceStatus(configuration, loopCounter, previousOutput);
-        }
-
-        //print fails
-        if (!failedOutputs.isEmpty()) {
-            logger.info("***************************************************************************************************");
-            logger.info(String.format("failed to send %s bulks :", failedOutputs.size()));
-            for (OctaneTestResultOutput str : failedOutputs) {
-                logger.info(String.format("   Bulk #%s , run ids %s - %s",
-                        str.get(OctaneTestResultOutput.FIELD_BULK_ID), str.get(OctaneTestResultOutput.FIELD_FIRST_RUN_ID), str.get(OctaneTestResultOutput.FIELD_LAST_RUN_ID)));
-            }
-        }
-    }
-
-    private void addToMap(Map<String, List<OctaneTestResultOutput>> map, OctaneTestResultOutput output) {
-        if (!map.containsKey(output.getStatus())) {
-            map.put(output.getStatus(), new ArrayList<OctaneTestResultOutput>());
-        }
-        map.get(output.getStatus()).add(output);
+        long end = System.currentTimeMillis();
+        logger.info(String.format("Finish send of data to Octane in %d sec ", (end - start) / 1000));
+        return resultOutputs;
     }
 
     private void getPersistenceStatus(FetchConfiguration configuration, int bulkId, OctaneTestResultOutput output) {
@@ -195,7 +180,7 @@ public class App {
         boolean finished = false;
         int sleepSize = Integer.parseInt(configuration.getSyncSleepBetweenPosts()) * 1000;
         while (!finished) {
-            if (!output.getStatus().equals("success")) {
+            if (!output.getStatus().equals("success") && !output.getStatus().equals(OctaneTestResultOutput.FAILED_SEND_STATUS)) {
                 try {
                     output = octaneWrapper.getTestResultStatus(output);
                 } catch (Exception e) {
@@ -211,7 +196,7 @@ public class App {
                 }
             }
 
-            logger.info(String.format("Bulk #%s : persistence status is %s", bulkId, output.getStatus().toUpperCase()));
+            logger.info(String.format("Bulk #%s : status is %s", bulkId, output.getStatus().toUpperCase()));
             if (!(output.getStatus().equals("running") || output.getStatus().equals("queued"))) {
                 finished = true;
             } else {

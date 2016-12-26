@@ -41,7 +41,7 @@ public class Main {
         app.start();
 
         long end = System.currentTimeMillis();
-        logger.info(String.format("Fetch process is finished in %s seconds", (end - start)/1000));
+        logger.info(String.format("The process is finished in %s seconds", (end - start) / 1000));
         logger.info("***************************************************************************************************");
     }
 
