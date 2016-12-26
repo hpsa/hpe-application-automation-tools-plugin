@@ -77,14 +77,50 @@ public class App {
         logger.info("***************************************************************************************************");
 
         //GET PERSISTENCE STATUS
-        logger.info("Starting get final persistence status");
+        getPersistenceStatusInternal(resultOutputs);
+    }
+
+    private void getPersistenceStatusInternal(List<OctaneTestResultOutput> resultOutputs) {
+        logger.info("Get final persistence status");
         for (int i = 0; i < resultOutputs.size(); i++) {
             OctaneTestResultOutput current = resultOutputs.get(i);
-            getPersistenceStatus(configuration, i + 1, current);
+            getPersistenceStatusInternal(configuration, i + 1, current);
+        }
+    }
+
+    private void getPersistenceStatusInternal(FetchConfiguration configuration, int bulkId, OctaneTestResultOutput output) {
+
+        int failsCount = 0;
+        boolean finished = false;
+        int sleepSize = Integer.parseInt(configuration.getSyncSleepBetweenPosts()) * 1000;
+        while (!finished) {
+            if (!output.getStatus().equals("success") && !output.getStatus().equals(OctaneTestResultOutput.FAILED_SEND_STATUS)) {
+                try {
+                    output = octaneWrapper.getTestResultStatus(output);
+                } catch (Exception e) {
+                    failsCount++;
+                    if (failsCount > 3) {
+                        logger.info(String.format("Bulk #%s : failed to get persistence status ", bulkId));
+                        break;
+                    } else {
+                        logger.info(String.format("Bulk #%s : failed to get persistence status, trial %s", bulkId, failsCount));
+                        sleep(sleepSize);
+                        continue;
+                    }
+                }
+            }
+
+            logger.info(String.format("Bulk #%s : status is %s", bulkId, output.getStatus().toUpperCase()));
+            if (!(output.getStatus().equals("running") || output.getStatus().equals("queued"))) {
+                finished = true;
+            } else {
+                sleep(sleepSize);
+            }
         }
     }
 
     private List<OctaneTestResultOutput> outputToOctane() {
+        logger.info("Starting send of data to Octane");
         int bulkSize = Integer.parseInt(configuration.getSyncBulkSize());
         int fetchLimit = Integer.parseInt(configuration.getRunFilterFetchLimit());
 
@@ -103,13 +139,12 @@ public class App {
         }
         logger.info(String.format("Expected bulks : %d", expectedBulks));
 
-
         //LOOP OF SEND
         long lastSentTime = 0;
         int runStartIndex = 0;
         int sleepBetweenPosts = Integer.parseInt(configuration.getSyncSleepBetweenPosts()) * 1000;
 
-        logger.info("Starting send of data to Octane");
+
         long start = System.currentTimeMillis();
         List<OctaneTestResultOutput> resultOutputs = new ArrayList<>();
         for (int bulkId = 1; bulkId <= expectedBulks; bulkId++) {
@@ -174,36 +209,6 @@ public class App {
         return resultOutputs;
     }
 
-    private void getPersistenceStatus(FetchConfiguration configuration, int bulkId, OctaneTestResultOutput output) {
-
-        int failsCount = 0;
-        boolean finished = false;
-        int sleepSize = Integer.parseInt(configuration.getSyncSleepBetweenPosts()) * 1000;
-        while (!finished) {
-            if (!output.getStatus().equals("success") && !output.getStatus().equals(OctaneTestResultOutput.FAILED_SEND_STATUS)) {
-                try {
-                    output = octaneWrapper.getTestResultStatus(output);
-                } catch (Exception e) {
-                    failsCount++;
-                    if (failsCount > 3) {
-                        logger.info(String.format("Bulk #%s : failed to get persistence status ", bulkId));
-                        break;
-                    } else {
-                        logger.info(String.format("Bulk #%s : failed to get persistence status, trial %s", bulkId, failsCount));
-                        sleep(sleepSize);
-                        continue;
-                    }
-                }
-            }
-
-            logger.info(String.format("Bulk #%s : status is %s", bulkId, output.getStatus().toUpperCase()));
-            if (!(output.getStatus().equals("running") || output.getStatus().equals("queued"))) {
-                finished = true;
-            } else {
-                sleep(sleepSize);
-            }
-        }
-    }
 
     private File saveResults(FetchConfiguration configuration, List<TestRunResultEntity> runResults) {
 
