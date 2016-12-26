@@ -10,7 +10,7 @@ The HPE ALM Test Result Collection Tool is a command line tool for fetching test
 Usage ******************************************************************************************************************
 ------------------------------------------------------------------------------------------------------------------------
 
-java -jar alm-test-result-fetcher.jar [OPTIONS]...
+java -jar alm-test-result-collection-tool.jar [OPTIONS]...
 
 
  -c,--config-file <FILE>               configuration file location. Default configuration file name is 'conf.xml'
