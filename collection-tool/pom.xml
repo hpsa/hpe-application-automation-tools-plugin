@@ -14,7 +14,7 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>alm-test-result-fetcher</module>
+        <module>alm-test-result-collection-tool</module>
         <module>test-result-collection-tool</module>
         <module>test-result-collection-tool-test</module>
     </modules>

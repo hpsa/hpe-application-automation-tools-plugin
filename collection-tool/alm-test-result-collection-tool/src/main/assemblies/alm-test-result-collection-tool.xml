@@ -1,15 +1,15 @@
 <assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.3"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.3 http://maven.apache.org/xsd/assembly-1.1.3.xsd">
-    <id>alm-test-result-fetcher</id>
+    <id>alm-test-result-collection-tool</id>
     <includeBaseDirectory>false</includeBaseDirectory>
     <formats>
         <format>zip</format>
     </formats>
     <files>
         <file>
-            <source>${project.build.directory}/alm-test-result-fetcher.shade.jar</source>
-            <destName>alm-test-result-fetcher.jar</destName>
+            <source>${project.build.directory}/alm-test-result-collection-tool.shade.jar</source>
+            <destName>alm-test-result-collection-tool.jar</destName>
         </file>
         <file>
             <source>${project.basedir}/src/main/assemblies/content/readme.txt</source>

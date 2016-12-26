@@ -9,7 +9,7 @@
         <version>12.53.18-SNAPSHOT</version>
     </parent>
 
-	<artifactId>alm-test-result-fetcher</artifactId>
+	<artifactId>alm-test-result-collection-tool</artifactId>
 
 	<properties>
 		<matching.obj>jarfile_batch_sign_local_timestamp</matching.obj>
@@ -116,7 +116,7 @@
                         <configuration>
                             <appendAssemblyId>false</appendAssemblyId>
                             <descriptors>
-                                <descriptor>src/main/assemblies/alm-test-result-fetcher-assembly.xml</descriptor>
+                                <descriptor>src/main/assemblies/alm-test-result-collection-tool.xml</descriptor>
                             </descriptors>
                         </configuration>
                     </execution>
