@@ -83,93 +83,9 @@ public class GherkinTestResultsCollector implements TestResultsExcluder {
             NodeList featureNodes = doc.getElementsByTagName("feature");
             for (int f = 0; f < featureNodes.getLength(); f++) {
                 Element featureElement = (Element) featureNodes.item(f);
-                String featureName = featureElement.getAttribute("name");
-                List<String> scenarioNames = new ArrayList<String>();
-                TestResultStatus featureStatus = TestResultStatus.PASSED;
-                boolean featureStatusDetermined = false;
-                long featureDuration = 0;
-                NodeList backgroundNodes = featureElement.getElementsByTagName("background");
-                Element backgroundElement = backgroundNodes.getLength() > 0 ? (Element)backgroundNodes.item(0) : null;
-                NodeList backgroundSteps = backgroundElement != null ? backgroundElement.getElementsByTagName("step") : null;
-
-                //Go over the scenarios
-                NodeList scenarioNodes = featureElement.getElementsByTagName("scenario");
-                for (int s = 0; s < scenarioNodes.getLength(); s++) {
-                    Element scenarioElement = (Element) scenarioNodes.item(s);
-                    String scenarioName = scenarioElement.getAttribute("name");
-                    if (scenarioElement.hasAttribute("outlineIndex")) {
-                        String outlineIndexStr = scenarioElement.getAttribute("outlineIndex");
-                        if (outlineIndexStr != null && !outlineIndexStr.isEmpty()) {
-                            Integer outlineIndex = Integer.valueOf(scenarioElement.getAttribute("outlineIndex"));
-                            if (outlineIndex > 1) {
-                                //we add the index only from 2 and upwards seeing as that is the naming convention in junit xml.
-                                String delimiter = " ";
-                                if (!scenarioName.contains(" ")) {
-                                    //we need to use the same logic as used in the junit report
-                                    delimiter = "_";
-                                }
-                                scenarioName = scenarioName + delimiter + scenarioElement.getAttribute("outlineIndex");
-                            }
-                        }
-                    }
-                    scenarioNames.add(scenarioName);
-                    TestResultStatus scenarioStatus = TestResultStatus.PASSED;
-                    boolean scenarioStatusDetermined = false;
-                    long scenarioDuration = 0;
-                    List<Element> stepElements = new ArrayList<Element>();
-                    List<String> stepNames = new ArrayList<String>();
-
-                    if(backgroundSteps != null) {
-                        for (int bs = 0; bs < backgroundSteps.getLength(); bs++) {
-                            Element stepElement = (Element) backgroundSteps.item(bs);
-                            stepElements.add(stepElement);
-                        }
-                    }
-                    NodeList stepNodes = scenarioElement.getElementsByTagName("step");
-                    for (int sn = 0; sn < stepNodes.getLength(); sn++) {
-                        Element stepElement = (Element) stepNodes.item(sn);
-                        stepElements.add(stepElement);
-                    }
-
-                    //Go over the steps
-                    for (Element stepElement : stepElements) {
-                        String stepName = stepElement.getAttribute("name");
-                        stepNames.add(stepName);
-
-                        String duration = stepElement.getAttribute("duration");
-                        long stepDuration = duration != "" ? Long.parseLong(duration) : 0;
-                        scenarioDuration += stepDuration;
-
-                        String stepStatus = stepElement.getAttribute("status");
-                        if (!scenarioStatusDetermined && "pending".equals(stepStatus)) {
-                            scenarioStatus = TestResultStatus.SKIPPED;
-                            scenarioStatusDetermined = true;
-                        } else if (!scenarioStatusDetermined && "failed".equals(stepStatus)) {
-                            scenarioStatus = TestResultStatus.FAILED;
-                            scenarioStatusDetermined = true;
-                        }
-                    }
-
-                    featureDuration += scenarioDuration;
-                    if (!featureStatusDetermined && TestResultStatus.SKIPPED.equals(scenarioStatus)) {
-                        featureStatus = TestResultStatus.SKIPPED;
-                        featureStatusDetermined = true;
-                    } else if (!featureStatusDetermined && TestResultStatus.FAILED.equals(scenarioStatus)) {
-                        featureStatus = TestResultStatus.FAILED;
-                        featureStatusDetermined = true;
-                    }
-
-                    scenarioElement.setAttribute("status", scenarioStatus.toPrettyName());
-
-                    //for surefire report
-                    stepNames.add(scenarioName);
-                    stepNames.add("Scenario: " + scenarioName);
-                    gherkinTestsByScenario.put(scenarioName, stepNames);
-                    gherkinTestsByScenario.put("Scenario: " + scenarioName, stepNames);
-                }
-
-                gherkinTestsByFeature.put(featureName, scenarioNames);
-                result.add(new GherkinTestResult(featureName, featureElement, featureDuration, featureStatus));
+                FeatureInfo featureInfo = new FeatureInfo(featureElement);
+                gherkinTestsByFeature.put(featureInfo.getName(), featureInfo.getScenarioNames());
+                result.add(new GherkinTestResult(featureInfo.getName(), featureElement, featureInfo.getDuration(), featureInfo.getStatus()));
             }
 
             i++;
@@ -177,6 +93,153 @@ public class GherkinTestResultsCollector implements TestResultsExcluder {
         } //end while
 
         return result;
+    }
+
+    private class FeatureInfo {
+        private String name;
+        private List<String> scenarioNames = new ArrayList<>();
+        private TestResultStatus status = TestResultStatus.PASSED;
+        private boolean statusDetermined = false;
+        private long duration = 0;
+
+        public FeatureInfo(Element featureElement) {
+            name = featureElement.getAttribute("name");
+            NodeList backgroundNodes = featureElement.getElementsByTagName("background");
+            Element backgroundElement = backgroundNodes.getLength() > 0 ? (Element)backgroundNodes.item(0) : null;
+            NodeList backgroundSteps = backgroundElement != null ? backgroundElement.getElementsByTagName("step") : null;
+
+            //Go over the scenarios
+            NodeList scenarioNodes = featureElement.getElementsByTagName("scenario");
+            for (int s = 0; s < scenarioNodes.getLength(); s++) {
+                Element scenarioElement = (Element) scenarioNodes.item(s);
+                ScenarioInfo scenarioInfo = new ScenarioInfo(scenarioElement, backgroundSteps);
+                String scenarioName = scenarioInfo.getName();
+                scenarioNames.add(scenarioName);
+
+                duration += scenarioInfo.getDuration();
+                if (!statusDetermined && TestResultStatus.SKIPPED.equals(scenarioInfo.getStatus())) {
+                    status = TestResultStatus.SKIPPED;
+                    statusDetermined = true;
+                } else if (!statusDetermined && TestResultStatus.FAILED.equals(scenarioInfo.getStatus())) {
+                    status = TestResultStatus.FAILED;
+                    statusDetermined = true;
+                }
+
+                gherkinTestsByScenario.put(scenarioName, scenarioInfo.getStepNames());
+                gherkinTestsByScenario.put("Scenario: " + scenarioName, scenarioInfo.getStepNames());
+            }
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public List<String> getScenarioNames() {
+            return scenarioNames;
+        }
+
+        public TestResultStatus getStatus() {
+            return status;
+        }
+
+        public long getDuration() {
+            return duration;
+        }
+
+        private class ScenarioInfo {
+            private List<String> stepNames = new ArrayList<String>();
+            private long duration = 0;
+            private TestResultStatus status = TestResultStatus.PASSED;
+            private boolean statusDetermined = false;
+            private String name;
+
+            public ScenarioInfo(Element scenarioElement, NodeList backgroundSteps) {
+                name = getScenarioName(scenarioElement);
+
+                List<Element> stepElements = getStepElements(backgroundSteps, scenarioElement);
+                for (Element stepElement : stepElements) {
+                    addStep(stepElement);
+                }
+
+                scenarioElement.setAttribute("status", status.toPrettyName());
+
+                //for surefire report
+                stepNames.add(name);
+                stepNames.add("Scenario: " + name);
+            }
+
+            public List<String> getStepNames() {
+                return stepNames;
+            }
+
+            public long getDuration() {
+                return duration;
+            }
+
+            public TestResultStatus getStatus() {
+                return status;
+            }
+
+            public String getName() {
+                return name;
+            }
+
+            private void addStep(Element stepElement) {
+                String stepName = stepElement.getAttribute("name");
+                stepNames.add(stepName);
+
+                String durationStr = stepElement.getAttribute("duration");
+                long stepDuration = durationStr != "" ? Long.parseLong(durationStr) : 0;
+                duration += stepDuration;
+
+                String stepStatus = stepElement.getAttribute("status");
+                if (!statusDetermined && "pending".equals(stepStatus)) {
+                    status = TestResultStatus.SKIPPED;
+                    statusDetermined = true;
+                } else if (!statusDetermined && "failed".equals(stepStatus)) {
+                    status = TestResultStatus.FAILED;
+                    statusDetermined = true;
+                }
+            }
+
+            private List<Element> getStepElements(NodeList backgroundSteps, Element scenarioElement) {
+                List<Element> stepElements = new ArrayList<Element>();
+                if(backgroundSteps != null) {
+                    for (int bs = 0; bs < backgroundSteps.getLength(); bs++) {
+                        Element stepElement = (Element) backgroundSteps.item(bs);
+                        stepElements.add(stepElement);
+                    }
+                }
+                NodeList stepNodes = scenarioElement.getElementsByTagName("step");
+                for (int sn = 0; sn < stepNodes.getLength(); sn++) {
+                    Element stepElement = (Element) stepNodes.item(sn);
+                    stepElements.add(stepElement);
+                }
+
+                return stepElements;
+            }
+
+            private String getScenarioName(Element scenarioElement) {
+                String scenarioName = scenarioElement.getAttribute("name");
+                if (scenarioElement.hasAttribute("outlineIndex")) {
+                    String outlineIndexStr = scenarioElement.getAttribute("outlineIndex");
+                    if (outlineIndexStr != null && !outlineIndexStr.isEmpty()) {
+                        Integer outlineIndex = Integer.valueOf(scenarioElement.getAttribute("outlineIndex"));
+                        if (outlineIndex > 1) {
+                            //we add the index only from 2 and upwards seeing as that is the naming convention in junit xml.
+                            String delimiter = " ";
+                            if (!scenarioName.contains(" ")) {
+                                //we need to use the same logic as used in the junit report
+                                delimiter = "_";
+                            }
+                            scenarioName = scenarioName + delimiter + scenarioElement.getAttribute("outlineIndex");
+                        }
+                    }
+
+                }
+                return scenarioName;
+            }
+        }
     }
 
     private void validateXMLVersion(Document doc) {
