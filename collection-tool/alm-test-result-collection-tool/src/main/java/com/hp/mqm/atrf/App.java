@@ -306,7 +306,7 @@ public class App {
                     throw new RuntimeException("Failed to connect to ALM project " + configuration.getAlmProject());
                 }
             } else {
-                throw new RuntimeException("ALM : Failed to login");
+                throw new RuntimeException("Failed to login");
             }
         } catch (Exception e) {
             logger.error("ALM : " + e.getMessage());
