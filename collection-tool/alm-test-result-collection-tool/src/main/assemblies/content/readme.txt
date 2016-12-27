@@ -35,20 +35,7 @@ All this data can be passed in a configuration file.
 
 If the configuration file is named 'conf.xml' and is located in same
 directory as this tool, it is automatically detected. Otherwise, pass the 
-configuration file pathname as a command-line argument (-c option). 
-
-------------------------------------------------------------------------------------------------------------------------
-Tool Flow **************************************************************************************************************
-------------------------------------------------------------------------------------------------------------------------
-The activity of the tool can be divided to 3 parts
-1.Fetch data from ALM : the tool fetch runs and its related entity from ALM by using REST API. Each request -
- fetches upto 200 item. Note : during fetching , console print '.' for each request to indicate progress in fetching of entities.
-2.Send data to Octane : The data is sent in the XML format through dedicate TestResuls API.
-(see more details ~your-octane-server:port/Help/WebUI/Online/Content/API/test-results.htm). On each post - 1000 runs are sent.
- Each post - return "Sent Id" for tracking about the status of the bulk.
-3.Persistence validation in Octane : in this stage we validate that all posts are persisted successfully.
-  The tracking is done by using "Sent Id" from previous step.
-
+configuration file pathname as a command-line argument (-c option).
 
 ------------------------------------------------------------------------------------------------------------------------
 Output *****************************************************************************************************************
@@ -93,10 +80,10 @@ As well, its possible to define some custom REST filter on run entity (see help 
 ------------------------------------------------------------------------------------------------------------------------
 Log files **************************************************************************************************************
 ------------------------------------------------------------------------------------------------------------------------
-The tool is write log information to 3 log files that are located in the "logs" directory
+The tool writew log information to 3 log files that are located in the "logs" directory
 1.consoleLog.log : all information that is printed to console , also written to this file, so here you can find information about all your historical runs
-2.restLog.log : all rest request are persisted to this log
-3.lastSent.txt : this file contains only id of the last run id that was sent to Octane. So, tool would be able to recognize
+2.restLog.log : all rest requests are persisted to this log
+3.lastSent.txt : this file contains only last run id that was sent to Octane.
 
 ------------------------------------------------------------------------------------------------------------------------
 Required permissions and Supported servers *****************************************************************************
@@ -152,6 +139,30 @@ Run           | Name               | Format : AlmTestSet #{testSetId} : {testSet
               | StartedTime        | Executed Date + Executed Time => transfomed to Unix time
               | Status             | ALM run statuses 'Passed' and 'Failed' are taken as is, all other types are converted to "Skipped"
 --------------|--------------------|------------------------------------------------------------------------------------
+
+
+------------------------------------------------------------------------------------------------------------------------
+Test Result API *******************************************************************************************************
+------------------------------------------------------------------------------------------------------------------------
+The tool uses dedicated Test-Results API in order to send test results to Octane
+(see more details in the URL http://<your-octane-server>:<port>/Help/WebUI/Online/Content/API/test-results.htm).
+
+
+In first stage , the tool retrieve all relevant runs from ALM and send it to Octane to Test-Results API.
+The API doesn't create tests and runs synchronously. Instead , the API returns a job ID which can later be queried for the test run creation status.
+Later, the tool is querying the API about creation status for all created jobs.
+
+
+The API create test and runs in Octane according to some uniquely identified fields of the entities
+ - A test is uniquely identified by a combination of the following attributes: test name, component, package, and class.
+ - A test run is uniquely identified by combination of the following: component, package, class, test name, and run name.
+
+ According to the field mappings :
+ - The test that was run with different test configurations - will be duplicated according to the number of test configurations (because test configuration is part of the test name)
+ - The runs that were created in context of the same test and testset, they will be recognized as the same run, and in tab of TEST->Runs will appear only last executed run.
+   Other runs will appear in tab "Previous Runs" of run details.
+   If the run was created in context different testsets, Octane will show last run for each testset. To see name of testset - switch "runs" tab to grid view. Testset name is appear in name of run (see ALM 2 Octane Fields Mapping)
+
 
 
 
@@ -229,8 +240,8 @@ Full configuration file example ************************************************
 Q & A ******************************************************************************************************************
 ------------------------------------------------------------------------------------------------------------------------
 Q : How I can find in Octane tests that are fetched from ALM?
-A : During fetching, we map ALM Domain name to test "module" field and ALM Project name to test "package" field.
-    You can filter test with matching "module" and "package" to find fetched tests.
+A : During fetching, we map ALM Domain name to test "component" field and ALM Project name to test "package" field.
+    You can filter test with matching "component" and "package" to find fetched tests.
 
 Q: On previous week, I fetched all existing runs from ALM to Octane. On this week, many new runs were added to ALM.
    I want to fetch To Octane only runs that were created after my last fetch.
@@ -238,7 +249,17 @@ A: You can filter runs that were created after your last fetch by defining runFi
 
 Q: I have test that has been executed several times ,but in tab "Runs" , I see only last run. Where I can found other runs?
 A: If all execution were done in context of the same testset in ALM,  Octane  will show only last run, other runs are appear in tab "Previous Runs" of run details.
-   If there were execution in different testsets, Octane will show last run for each testset. To see name of testset - switch "runs" tab to grid view. Testset name is appear in name of run (see ALM 2 Octane Fields Mapping)
+   If there were execution in different testsets, Octane will show last run for each testset. To see name of testset -
+   switch "runs" tab to grid view. Testset name is appear in name of run (see ALM 2 Octane Fields Mapping)
+
+Q: How I can assign fetched tests to my Application Modules
+A: Workspace Admin can define "Test Assignment Rules" for fetched tests. It can done in Configuration->Workspaces->Dev-Ops->Test Assignment Rules.
+   The rules is created by using the following test fields :
+   - ClassName (ALM direct test folder name)
+   - Component ( ALM Domain Name)
+   - Package (ALM Project Name)
+   - Test Name
+
 
 
 
