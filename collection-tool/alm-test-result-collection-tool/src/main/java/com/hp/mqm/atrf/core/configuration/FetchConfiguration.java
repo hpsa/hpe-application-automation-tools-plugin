@@ -57,7 +57,7 @@ public class FetchConfiguration {
     public static String OUTPUT_FILE_PARAM = "conf.outputFile";
 
     public Set<String> allowedParameters;
-    private  Map<String,String>lowered2allowedParams;
+    private Map<String, String> lowered2allowedParams;
 
     private static int ALM_RUN_FILTER_FETCH_LIMIT_DEFAULT = 200000;
     private static int ALM_RUN_FILTER_FETCH_LIMIT_MAX = 200000;
@@ -76,15 +76,15 @@ public class FetchConfiguration {
 
     public static String ALM_RUN_FILTER_START_FROM_ID_LAST_SENT = "LAST_SENT";
 
-    public FetchConfiguration(){
-        allowedParameters = new HashSet<>(Arrays.asList(ALM_USER_PARAM, ALM_PASSWORD_PARAM, ALM_SERVER_URL_PARAM,ALM_DOMAIN_PARAM,ALM_PROJECT_PARAM,
-                OCTANE_PASSWORD_PARAM,OCTANE_USER_PARAM,OCTANE_SERVER_URL_PARAM,OCTANE_SHAREDSPACE_ID_PARAM,OCTANE_WORKSPACE_ID_PARAM,
-                ALM_RUN_FILTER_START_FROM_ID_PARAM,ALM_RUN_FILTER_START_FROM_DATE_PARAM,ALM_RUN_FILTER_TEST_TYPE_PARAM,ALM_RUN_FILTER_RELATED_ENTITY_TYPE_PARAM,ALM_RUN_FILTER_RELATED_ENTITY_ID_PARAM,
-                ALM_RUN_FILTER_CUSTOM_PARAM,SYNC_BULK_SIZE_PARAM,SYNC_SLEEP_BETWEEN_POSTS_PARAM,PROXY_HOST_PARAM,PROXY_PORT_PARAM, OUTPUT_FILE_PARAM, ALM_RUN_FILTER_FETCH_LIMIT_PARAM));
+    public FetchConfiguration() {
+        allowedParameters = new HashSet<>(Arrays.asList(ALM_USER_PARAM, ALM_PASSWORD_PARAM, ALM_SERVER_URL_PARAM, ALM_DOMAIN_PARAM, ALM_PROJECT_PARAM,
+                OCTANE_PASSWORD_PARAM, OCTANE_USER_PARAM, OCTANE_SERVER_URL_PARAM, OCTANE_SHAREDSPACE_ID_PARAM, OCTANE_WORKSPACE_ID_PARAM,
+                ALM_RUN_FILTER_START_FROM_ID_PARAM, ALM_RUN_FILTER_START_FROM_DATE_PARAM, ALM_RUN_FILTER_TEST_TYPE_PARAM, ALM_RUN_FILTER_RELATED_ENTITY_TYPE_PARAM, ALM_RUN_FILTER_RELATED_ENTITY_ID_PARAM,
+                ALM_RUN_FILTER_CUSTOM_PARAM, SYNC_BULK_SIZE_PARAM, SYNC_SLEEP_BETWEEN_POSTS_PARAM, PROXY_HOST_PARAM, PROXY_PORT_PARAM, OUTPUT_FILE_PARAM, ALM_RUN_FILTER_FETCH_LIMIT_PARAM));
 
         lowered2allowedParams = new HashMap<>();
-        for(String param : allowedParameters){
-            lowered2allowedParams.put(param.toLowerCase(),param);
+        for (String param : allowedParameters) {
+            lowered2allowedParams.put(param.toLowerCase(), param);
         }
     }
 
@@ -94,14 +94,14 @@ public class FetchConfiguration {
         props.remove(ALM_PASSWORD_PARAM);
         props.remove(OCTANE_PASSWORD_PARAM);
 
-        if(Integer.toString(SYNC_BULK_SIZE_DEFAULT).equals(getSyncBulkSize())){
+        if (Integer.toString(SYNC_BULK_SIZE_DEFAULT).equals(getSyncBulkSize())) {
             props.remove(SYNC_BULK_SIZE_PARAM);
         }
-        if(Integer.toString(SYNC_SLEEP_BETWEEN_POSTS_DEFAULT).equals(getSyncSleepBetweenPosts())){
+        if (Integer.toString(SYNC_SLEEP_BETWEEN_POSTS_DEFAULT).equals(getSyncSleepBetweenPosts())) {
             props.remove(SYNC_SLEEP_BETWEEN_POSTS_PARAM);
         }
 
-        if(Integer.toString(ALM_RUN_FILTER_FETCH_LIMIT_DEFAULT).equals(getRunFilterFetchLimit())){
+        if (Integer.toString(ALM_RUN_FILTER_FETCH_LIMIT_DEFAULT).equals(getRunFilterFetchLimit())) {
             props.remove(ALM_RUN_FILTER_FETCH_LIMIT_PARAM);
         }
 
@@ -116,17 +116,17 @@ public class FetchConfiguration {
         validateMustParameter(ALM_DOMAIN_PARAM);
         validateMustParameter(ALM_SERVER_URL_PARAM);
 
-        validateMustParameter( OCTANE_USER_PARAM);
-        validateMustParameter( OCTANE_WORKSPACE_ID_PARAM);
-        validateMustParameter( OCTANE_SHAREDSPACE_ID_PARAM);
-        validateMustParameter( OCTANE_SERVER_URL_PARAM);
+        validateMustParameter(OCTANE_USER_PARAM);
+        validateMustParameter(OCTANE_WORKSPACE_ID_PARAM);
+        validateMustParameter(OCTANE_SHAREDSPACE_ID_PARAM);
+        validateMustParameter(OCTANE_SERVER_URL_PARAM);
 
         //INTEGER
-        validateIntegerParameter( OCTANE_WORKSPACE_ID_PARAM);
-        validateIntegerParameter( OCTANE_SHAREDSPACE_ID_PARAM);
-        validateIntegerParameter( SYNC_BULK_SIZE_PARAM);
-        validateIntegerParameter( SYNC_SLEEP_BETWEEN_POSTS_PARAM);
-        validateIntegerParameter( PROXY_PORT_PARAM);
+        validateIntegerParameter(OCTANE_WORKSPACE_ID_PARAM);
+        validateIntegerParameter(OCTANE_SHAREDSPACE_ID_PARAM);
+        validateIntegerParameter(SYNC_BULK_SIZE_PARAM);
+        validateIntegerParameter(SYNC_SLEEP_BETWEEN_POSTS_PARAM);
+        validateIntegerParameter(PROXY_PORT_PARAM);
 
         //CUSTOM VALIDATIONS
         //ALM_RUN_FILTER_START_FROM_ID
@@ -140,12 +140,12 @@ public class FetchConfiguration {
                     Integer.parseInt(startFromIdValue);
                     isValid = true;
                 } catch (NumberFormatException e) {
-
+                    isValid = false;
                 }
             }
 
             if (!isValid) {
-                throw new RuntimeException(String.format("Configuration parameter '%s' can hold integer value or '%', but contains '%s'",
+                throw new RuntimeException(String.format("Configuration parameter '%s' can hold integer value or '%s' string, but contains '%s'",
                         ALM_RUN_FILTER_START_FROM_ID_PARAM, ALM_RUN_FILTER_START_FROM_ID_LAST_SENT, startFromIdValue));
             }
         }
@@ -156,6 +156,11 @@ public class FetchConfiguration {
             SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
             try {
                 Date d = dateFormat.parse(startFromDateValue);
+                if (d.after(dateFormat.parse("2099-12-31")) || d.before(dateFormat.parse("1900-01-01"))) {
+                    throw new RuntimeException(String.format("Configuration parameter '%s' should be in range of 1900-2100",
+                            ALM_RUN_FILTER_START_FROM_DATE_PARAM));
+                }
+                //The date 2017-12-06 is out of <1900-2100> range"
             } catch (ParseException e) {
                 throw new RuntimeException(String.format("Configuration parameter '%s' should contain date in the following format '%s'",
                         ALM_RUN_FILTER_START_FROM_DATE_PARAM, DATE_FORMAT));
@@ -189,12 +194,14 @@ public class FetchConfiguration {
         if (StringUtils.isNotEmpty(fetchLimitStr)) {
             try {
                 fetchLimit = Integer.parseInt(fetchLimitStr);
-                if (fetchLimit < ALM_RUN_FILTER_FETCH_LIMIT_MIN || fetchLimit > ALM_RUN_FILTER_FETCH_LIMIT_MAX) {
-                    fetchLimit = ALM_RUN_FILTER_FETCH_LIMIT_DEFAULT;
-                }
             } catch (Exception e) {
-                fetchLimit = ALM_RUN_FILTER_FETCH_LIMIT_DEFAULT;
+                throw new RuntimeException(String.format("Configuration contains illegal value for parameter '%s', the value should be integer in range of  1-200000", ALM_RUN_FILTER_FETCH_LIMIT_PARAM));
             }
+            if (fetchLimit > ALM_RUN_FILTER_FETCH_LIMIT_MAX || fetchLimit < ALM_RUN_FILTER_FETCH_LIMIT_MIN) {
+                throw new RuntimeException(String.format("Configuration contains illegal value for parameter '%s', the value should be integer in range of  1-200000", ALM_RUN_FILTER_FETCH_LIMIT_PARAM));
+            }
+        } else {
+            fetchLimit = ALM_RUN_FILTER_FETCH_LIMIT_DEFAULT;
         }
         setProperty(ALM_RUN_FILTER_FETCH_LIMIT_PARAM, Integer.toString(fetchLimit));
 
@@ -297,7 +304,7 @@ public class FetchConfiguration {
 
     public void setProperty(String key, String value) {
         String myKey = lowered2allowedParams.get(key.toLowerCase());
-        if(!allowedParameters.contains(myKey)){
+        if (!allowedParameters.contains(myKey)) {
             throw new RuntimeException("Unknown parameter : " + key);
         }
         properties.put(myKey, value);
@@ -403,15 +410,15 @@ public class FetchConfiguration {
         setProperty(OUTPUT_FILE_PARAM, outputFile);
     }
 
-    public String getOutputFile(){
+    public String getOutputFile() {
         return getProperty(OUTPUT_FILE_PARAM);
     }
 
-    public String getRunFilterFetchLimit(){
+    public String getRunFilterFetchLimit() {
         return getProperty(ALM_RUN_FILTER_FETCH_LIMIT_PARAM);
     }
 
-    public void setRunFilterFetchLimit(String value){
+    public void setRunFilterFetchLimit(String value) {
         setProperty(ALM_RUN_FILTER_FETCH_LIMIT_PARAM, value);
     }
 

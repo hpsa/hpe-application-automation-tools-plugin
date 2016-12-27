@@ -140,7 +140,15 @@ public class App {
 
 
         //PRINT EXPECTED RUN COUNT
-        int expectedRunsCount = almWrapper.getExpectedRuns(queryBuilder);
+        int expectedRunsCount = 0;
+        try {
+            expectedRunsCount = almWrapper.getExpectedRuns(queryBuilder);
+        } catch (RestStatusException e) {
+            logger.error(String.format("Failed to execute Rest query in ALM. Validate Run Filter section in configuration. The received exception from ALM is %s", e.getMessage()));
+            System.exit(ReturnCode.FAILURE.getReturnCode());
+        }
+
+
         expectedRunsCount = Math.min(expectedRunsCount, fetchLimit);
         logger.info(String.format("Expected runs : %d", expectedRunsCount));
         int expectedBulks = expectedRunsCount / bulkSize;
