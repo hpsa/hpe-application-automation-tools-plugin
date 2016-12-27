@@ -99,19 +99,19 @@ Tool Usage Examples ************************************************************
 ------------------------------------------------------------------------------------------------------------------------
 
 1. Configuration is loaded from default file ('conf.xml') that located in the same directory as this tool
-    java -jar alm-test-result-fetcher.jar
+    java -jar alm-test-result-collection-tool.jar
 
 2. Configuration is loaded from file ('myNewConf.xml') that located in the same directory as this tool
-    java -jar alm-test-result-fetcher.jar -c myNewConf.xml
+    java -jar alm-test-result-collection-tool.jar -c myNewConf.xml
 
 3. Tool save fetch results into default output file ('output.xml') that located in the same directory as this tool
-    java -jar alm-test-result-fetcher.jar -o
+    java -jar alm-test-result-collection-tool.jar -o
 
 4. Tool fetch runs that starts from id 1000 by defining filter on command line
-    java -jar alm-test-result-fetcher.jar -rfid 1000
+    java -jar alm-test-result-collection-tool.jar -rfid 1000
 
-4. Tool get passwords from command line
-    java -jar alm-test-result-fetcher.jar -pa myAlmPassword -po myOctane password
+5. Tool get passwords from command line
+    java -jar alm-test-result-collection-tool.jar -pa myAlmPassword -po myOctane password
 
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -134,8 +134,8 @@ Test          | Name               | If run's test name == run's test configurat
 --------------|--------------------|------------------------------------------------------------------------------------
 Run           | Name               | Format : AlmTestSet #{testSetId} : {testSetName}
               | Duration           | Run Duration
-              | ExternalReportUrl | Td reference to run in the ALM Server (can be opened only in IE)
-              | StartedTime        | Executed Date + Executed Time => transfomed to Unix time
+              | ExternalReportUrl* | Td reference to run in the ALM Server (can be opened only in IE)
+              | StartedTime        | Executed Date + Executed Time => transformed to Unix time
               | Status             | ALM run statuses 'Passed' and 'Failed' are taken as is, all other types are converted to "Skipped"
 --------------|--------------------|------------------------------------------------------------------------------------
 
