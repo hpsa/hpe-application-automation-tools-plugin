@@ -40,11 +40,9 @@ configuration file pathname as a command-line argument (-c option).
 ------------------------------------------------------------------------------------------------------------------------
 Output *****************************************************************************************************************
 ------------------------------------------------------------------------------------------------------------------------
-Instead of sending data to Octane, its possible to save data that should be sent to Octane to some file.
-If an output option is specified (-o option), this tool writes
-the output XML to a file instead of pushing it to the server.
-If output file pathname parameter is missing, the output will be written into default file
-"output.xml"  in same  directory as this tool.
+If an output option is specified (-o option), the tool writes the output XML to a file instead of pushing it to the Octane server.
+If output file pathname parameter is missing, the output will be written into default file "output.xml"  in same  directory as this tool.
+The tool saves only the first bulk (upto 1000 runs)
 No Octane server or credential configuration is required in this case.
 
 
@@ -75,7 +73,7 @@ Some filter options are available also from command line
  - startFromDate (option -rfd)
 
 
-As well, its possible to define some custom REST filter on run entity (see help page about "ALM REST API" to find more how to filter in REST API)
+As well, its possible to define some custom REST filter on run entity (see ALM help page about "ALM REST API" to find more how to filter in REST API)
 
 ------------------------------------------------------------------------------------------------------------------------
 Log files **************************************************************************************************************

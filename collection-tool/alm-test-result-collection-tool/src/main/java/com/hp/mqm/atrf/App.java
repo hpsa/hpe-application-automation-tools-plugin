@@ -79,18 +79,18 @@ public class App {
         logger.info("***************************************************************************************************");
 
         //GET PERSISTENCE STATUS
-        getPersistenceStatusInternal(resultOutputs);
+        getCreationStatus(resultOutputs);
     }
 
-    private void getPersistenceStatusInternal(List<OctaneTestResultOutput> resultOutputs) {
-        logger.info("Get final persistence status");
+    private void getCreationStatus(List<OctaneTestResultOutput> resultOutputs) {
+        logger.info("Get creation statuses");
         for (int i = 0; i < resultOutputs.size(); i++) {
             OctaneTestResultOutput current = resultOutputs.get(i);
-            getPersistenceStatusInternal(configuration, i + 1, current);
+            getCreationStatusInternal(configuration, i + 1, current);
         }
     }
 
-    private void getPersistenceStatusInternal(FetchConfiguration configuration, int bulkId, OctaneTestResultOutput output) {
+    private void getCreationStatusInternal(FetchConfiguration configuration, int bulkId, OctaneTestResultOutput output) {
 
         int failsCount = 0;
         boolean finished = false;
@@ -102,17 +102,17 @@ public class App {
                 } catch (Exception e) {
                     failsCount++;
                     if (failsCount > 3) {
-                        logger.info(String.format("Bulk #%s : failed to get persistence status ", bulkId));
+                        logger.info(String.format("Bulk #%s : failed to get creation status ", bulkId));
                         break;
                     } else {
-                        logger.info(String.format("Bulk #%s : failed to get persistence status, trial %s", bulkId, failsCount));
+                        logger.info(String.format("Bulk #%s : failed to get creation status, trial %s", bulkId, failsCount));
                         sleep(sleepSize);
                         continue;
                     }
                 }
             }
 
-            logger.info(String.format("Bulk #%s : status is %s", bulkId, output.getStatus().toUpperCase()));
+            logger.info(String.format("Bulk #%s : creation status is %s", bulkId, output.getStatus().toUpperCase()));
             if (!(output.getStatus().equals("running") || output.getStatus().equals("queued"))) {
                 finished = true;
             } else {
@@ -195,7 +195,7 @@ public class App {
                     currentOutput = sendResults(bulkId, ngaRuns);
                     lastSentTime = System.currentTimeMillis();
                     ConfigurationUtilities.saveLastSentRunId(lastRunId);
-                    logger.info(String.format("Bulk #%s : sending %s runs , run ids from %s to %s , sent id=%s, %s",
+                    logger.info(String.format("Bulk #%s : sending %s runs , run ids from %s to %s , job id=%s, %s",
                             bulkId, ngaRuns.size(), firstRunId, lastRunId, currentOutput.getId(), currentOutput.getStatus().toUpperCase()));
 
                 } catch (Exception e) {
@@ -217,7 +217,6 @@ public class App {
         logger.info(String.format("Finish send of data to Octane in %d sec ", (end - start) / 1000));
         return resultOutputs;
     }
-
 
     private File saveResults(FetchConfiguration configuration, List<TestRunResultEntity> runResults) {
 
