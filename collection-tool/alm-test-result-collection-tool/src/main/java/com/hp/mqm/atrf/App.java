@@ -300,7 +300,6 @@ public class App {
                     throw new RuntimeException("Failed to connect to ALM domain " + configuration.getAlmDomain());
                 }
 
-                logger.info("ALM : Connected to ALM domain successfully");
                 if (almWrapper.validateConnectionToProject()) {
                     logger.info("ALM : Connected to ALM project successfully");
                 } else {
