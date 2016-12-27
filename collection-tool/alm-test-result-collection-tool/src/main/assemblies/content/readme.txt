@@ -118,6 +118,7 @@ Tool Usage Examples ************************************************************
 ALM 2 Octane Fields Mapping ********************************************************************************************
 ------------------------------------------------------------------------------------------------------------------------
 
+
 --------------|--------------------|------------------------------------------------------------------------------------
 Octane Entity | Octane Field       | Alm Field
 --------------|--------------------|------------------------------------------------------------------------------------
@@ -127,17 +128,18 @@ Test          | Name               | If run's test name == run's test configurat
               | TestingToolType    | ALM Test type is converted to Octane TestingToolType as following :
               |                    |  "MANUAL=>Manual"; "LEANFT-TEST=>LeanFT"; "QUICKTEST_TEST=>UFT"; "BUSINESS-PROCESS=>BPT"
               |                    |   Other ALM test types are not converted.
-              | Package            | Project Name
-              | Component          | Domain Name
-              | Class              | Direct test folder name
+              | Package*           | Project Name
+              | Component*         | Domain Name
+              | Class*             | Direct test folder name
 --------------|--------------------|------------------------------------------------------------------------------------
 Run           | Name               | Format : AlmTestSet #{testSetId} : {testSetName}
               | Duration           | Run Duration
-              | ExternalReportUrl  | Td reference to run in the ALM Server (can be opened only in IE)
+              | ExternalReportUrl | Td reference to run in the ALM Server (can be opened only in IE)
               | StartedTime        | Executed Date + Executed Time => transfomed to Unix time
               | Status             | ALM run statuses 'Passed' and 'Failed' are taken as is, all other types are converted to "Skipped"
 --------------|--------------------|------------------------------------------------------------------------------------
 
+* The fields are visible only in grid view and not in document view
 
 ------------------------------------------------------------------------------------------------------------------------
 Test Result API *******************************************************************************************************
@@ -160,9 +162,6 @@ The API create test and runs in Octane according to some uniquely identified fie
  - The runs that were created in context of the same test and testset, they will be recognized as the same run, and in tab of TEST->Runs will appear only last executed run.
    Other runs will appear in tab "Previous Runs" of run details.
    If the run was created in context different testsets, Octane will show last run for each testset. To see name of testset - switch "runs" tab to grid view. Testset name is appear in name of run (see ALM 2 Octane Fields Mapping)
-
-
-
 
 
 ------------------------------------------------------------------------------------------------------------------------
