@@ -116,10 +116,12 @@ public class FetchConfiguration {
         validateMustParameter(ALM_DOMAIN_PARAM);
         validateMustParameter(ALM_SERVER_URL_PARAM);
 
-        validateMustParameter(OCTANE_USER_PARAM);
-        validateMustParameter(OCTANE_WORKSPACE_ID_PARAM);
-        validateMustParameter(OCTANE_SHAREDSPACE_ID_PARAM);
-        validateMustParameter(OCTANE_SERVER_URL_PARAM);
+        if(StringUtils.isEmpty(getOutputFile())) {
+            validateMustParameter(OCTANE_USER_PARAM);
+            validateMustParameter(OCTANE_WORKSPACE_ID_PARAM);
+            validateMustParameter(OCTANE_SHAREDSPACE_ID_PARAM);
+            validateMustParameter(OCTANE_SERVER_URL_PARAM);
+        }
 
         //INTEGER
         validateIntegerParameter(OCTANE_WORKSPACE_ID_PARAM);
