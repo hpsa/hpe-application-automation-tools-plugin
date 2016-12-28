@@ -85,17 +85,6 @@ public class CliParser {
         try {
             CommandLine cmd = parser.parse(options, args);
 
-            //help
-            if (cmd.hasOption(HELP_OPTION)) {
-                printHelp();
-                System.exit(ReturnCode.SUCCESS.getReturnCode());
-            }
-
-            //version
-            if (cmd.hasOption(VERSION_OPTION)) {
-                printVersion();
-                System.exit(ReturnCode.SUCCESS.getReturnCode());
-            }
             validateArguments(cmd);
 
 
@@ -231,4 +220,27 @@ public class CliParser {
         }
     }
 
+    public void handleHelpAndVersionOptions(String[] args) {
+
+        CommandLineParser parser = new DefaultParser();
+        CommandLine cmd = null;
+        try {
+            cmd = parser.parse(options, args);
+        } catch (ParseException e) {
+            System.out.print(e.getMessage());
+            System.exit(ReturnCode.FAILURE.getReturnCode());
+        }
+
+        //help
+        if (cmd.hasOption(HELP_OPTION)) {
+            printHelp();
+            System.exit(ReturnCode.SUCCESS.getReturnCode());
+        }
+
+        //version
+        if (cmd.hasOption(VERSION_OPTION)) {
+            printVersion();
+            System.exit(ReturnCode.SUCCESS.getReturnCode());
+        }
+    }
 }
