@@ -3,7 +3,6 @@ package com.hp.octane.plugins.bamboo.rest;
 import com.atlassian.bamboo.user.BambooUser;
 import com.atlassian.bamboo.user.BambooUserManager;
 import com.atlassian.sal.api.component.ComponentLocator;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
@@ -90,38 +89,4 @@ public class OctaneRestResource {
         return false;
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    private static final class OctaneConnectionDTO {
-        private String octaneUrl;
-        private String accessKey;
-        private String apiSecret;
-        private String userName;
-        public String getUserName() { return userName;}
-
-        public void setUserName(String userName) { this.userName = userName;}
-
-        public String getOctaneUrl() {
-            return octaneUrl;
-        }
-
-        public void setOctaneUrl(String octaneUrl) {
-            this.octaneUrl = octaneUrl;
-        }
-
-        public String getAccessKey() {
-            return accessKey;
-        }
-
-        public void setAccessKey(String accessKey) {
-            this.accessKey = accessKey;
-        }
-
-        public String getApiSecret() {
-            return apiSecret;
-        }
-
-        public void setApiSecret(String apiSecret) {
-            this.apiSecret = apiSecret;
-        }
-    }
 }
