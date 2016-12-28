@@ -20,7 +20,7 @@ public class CliParser {
     private static final String CMD_LINE_SYNTAX = "java -jar alm-test-result-collection-tool.jar [OPTIONS]... \n";
     private static final String HEADER = "HPE ALM Test Result Collection Tool";
     private static final String FOOTER = "";
-    private static final String VERSION = "1.0";
+    private static final String VERSION = "1.01";
 
     public static final String DEFAULT_CONF_FILE = "conf.xml";
     public static final String DEFAULT_OUTPUT_FILE = "output.xml";
