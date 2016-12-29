@@ -19,7 +19,7 @@ public class ConfigurationUtilities {
     static final Logger logger = LogManager.getLogger();
     public static String LAST_SENT_FILE_PATH = "logs/lastSent.txt";
 
-    public static String readLastSentRunId(){
+    public static String readLastSentRunId() {
         String value = null;
         Path path = Paths.get(LAST_SENT_FILE_PATH);
         if (Files.exists(path)) {
@@ -39,7 +39,7 @@ public class ConfigurationUtilities {
 
     public static void saveLastSentRunId(String lastSentId) {
 
-        if(writeToLastSentRun) {
+        if (writeToLastSentRun) {
             Path path = Paths.get(LAST_SENT_FILE_PATH);
             try {
                 if (!Files.exists(path)) {
