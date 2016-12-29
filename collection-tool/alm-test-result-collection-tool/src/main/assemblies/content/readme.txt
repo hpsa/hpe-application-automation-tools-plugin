@@ -222,7 +222,7 @@ Full configuration file example ************************************************
           </alm-octane>
 
           <proxy>
-            <!--proxy hostname or IP address-->
+            <!--proxy hostname or IP address (without http://)-->
             <host></host>
             <!-- proxy port number-->
             <port></port>
