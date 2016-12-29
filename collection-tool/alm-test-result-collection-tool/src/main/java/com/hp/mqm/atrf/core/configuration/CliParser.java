@@ -4,11 +4,21 @@ import com.hp.mqm.atrf.core.rest.RestConnector;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.params.ConnRoutePNames;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.CoreConnectionPNames;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.LinkedList;
 
@@ -53,26 +63,28 @@ public class CliParser {
 
 
     public CliParser() {
-        options.addOption(Option.builder(HELP_OPTION).longOpt(HELP_OPTION_LONG).desc("show this help").build());
-        options.addOption(Option.builder(VERSION_OPTION).longOpt(VERSION_OPTION_LONG).desc("show version of this tool").build());
+        options.addOption(Option.builder(HELP_OPTION).longOpt(HELP_OPTION_LONG).desc("Show this help").build());
+        options.addOption(Option.builder(VERSION_OPTION).longOpt(VERSION_OPTION_LONG).desc("Show version of this tool").build());
 
-        options.addOption(Option.builder(OUTPUT_FILE_OPTION).longOpt(OUTPUT_FILE_OPTION_LONG).desc("write output to file instead of pushing it to the server. File path is optional. Default file name is '" + DEFAULT_OUTPUT_FILE + "'").hasArg().argName("FILE").optionalArg(true).build());
-        options.addOption(Option.builder(CONFIG_FILE_OPTION).longOpt(CONFIG_FILE_OPTION_LONG).desc("configuration file location. Default configuration file name is '" + DEFAULT_CONF_FILE + "'").hasArg().argName("FILE").build());
+        options.addOption(Option.builder(OUTPUT_FILE_OPTION).longOpt(OUTPUT_FILE_OPTION_LONG).desc("Write output to file instead of sending it to ALM Octane. File path is optional. Default file name is '" +
+                DEFAULT_OUTPUT_FILE + "'." + System.lineSeparator() + " When saving to a file, the tool saves first 1000 runs." + System.lineSeparator() +
+                "No ALM Octane URL or authentication configuration is required if you use this option.").hasArg().argName("FILE").optionalArg(true).build());
+        options.addOption(Option.builder(CONFIG_FILE_OPTION).longOpt(CONFIG_FILE_OPTION_LONG).desc("Configuration file location. Default configuration file name is '" + DEFAULT_CONF_FILE + "'").hasArg().argName("FILE").build());
 
         OptionGroup passAlmGroup = new OptionGroup();
-        passAlmGroup.addOption(Option.builder(PASSWORD_ALM_OPTION).longOpt(PASSWORD_ALM_OPTION_LONG).desc("password for alm user").hasArg().argName("PASSWORD").build());
-        passAlmGroup.addOption(Option.builder(PASSWORD_ALM_FILE_OPTION).longOpt(PASSWORD_ALM_FILE_OPTION_LONG).desc("location of file with password for alm user").hasArg().argName("FILE").build());
+        passAlmGroup.addOption(Option.builder(PASSWORD_ALM_OPTION).longOpt(PASSWORD_ALM_OPTION_LONG).desc("Password for ALM user to use for retrieving test results").hasArg().argName("PASSWORD").build());
+        passAlmGroup.addOption(Option.builder(PASSWORD_ALM_FILE_OPTION).longOpt(PASSWORD_ALM_FILE_OPTION_LONG).desc("Location of file with password for ALM user").hasArg().argName("FILE").build());
         options.addOptionGroup(passAlmGroup);
 
         OptionGroup passOctaneGroup = new OptionGroup();
-        passOctaneGroup.addOption(Option.builder(PASSWORD_OCTANE_OPTION).longOpt(PASSWORD_OCTANE_OPTION_LONG).desc("password for octane user").hasArg().argName("PASSWORD").optionalArg(true).build());
-        passOctaneGroup.addOption(Option.builder(PASSWORD_OCTANE_FILE_OPTION).longOpt(PASSWORD_OCTANE_FILE_OPTION_LONG).desc("location of file with password for octane user").hasArg().argName("FILE").build());
+        passOctaneGroup.addOption(Option.builder(PASSWORD_OCTANE_OPTION).longOpt(PASSWORD_OCTANE_OPTION_LONG).desc("Password for ALM Octane user").hasArg().argName("PASSWORD").optionalArg(true).build());
+        passOctaneGroup.addOption(Option.builder(PASSWORD_OCTANE_FILE_OPTION).longOpt(PASSWORD_OCTANE_FILE_OPTION_LONG).desc("Location of file with password for ALM Octane user").hasArg().argName("FILE").build());
         options.addOptionGroup(passOctaneGroup);
 
-        options.addOption(Option.builder(RUN_FILTER_ID_OPTION).longOpt(RUN_FILTER_ID_OPTION_LONG).desc("start run fetching from id").hasArg().argName("ID").build());
-        options.addOption(Option.builder(RUN_FILTER_DATE_OPTION).longOpt(RUN_FILTER_DATE_OPTION_LONG).desc("start run fetching from date").hasArg().argName("YYYY-MM-DD").build());
+        options.addOption(Option.builder(RUN_FILTER_ID_OPTION).longOpt(RUN_FILTER_ID_OPTION_LONG).desc("Filter the ALM test results to retrieve only test runs with this run ID or higher").hasArg().argName("ID").build());
+        options.addOption(Option.builder(RUN_FILTER_DATE_OPTION).longOpt(RUN_FILTER_DATE_OPTION_LONG).desc("Filter the ALM test results to retrieve only test runs from this date or later").hasArg().argName("YYYY-MM-DD").build());
 
-        options.addOption(Option.builder(RUN_FILTER_LIMIT_OPTION).longOpt(RUN_FILTER_LIMIT_OPTION_LONG).desc("limit number of fetched runs from ALM side").hasArg().argName("NUMBER").build());
+        options.addOption(Option.builder(RUN_FILTER_LIMIT_OPTION).longOpt(RUN_FILTER_LIMIT_OPTION_LONG).desc("Limit number of ALM runs to retrieve ").hasArg().argName("NUMBER").build());
 
         argsWithSingleOccurrence.addAll(Arrays.asList(OUTPUT_FILE_OPTION, CONFIG_FILE_OPTION, PASSWORD_ALM_OPTION, PASSWORD_ALM_FILE_OPTION, PASSWORD_OCTANE_OPTION,
                 PASSWORD_OCTANE_FILE_OPTION, RUN_FILTER_ID_OPTION, RUN_FILTER_DATE_OPTION, RUN_FILTER_LIMIT_OPTION));
@@ -123,7 +135,13 @@ public class CliParser {
                         canCreate = false;
                     }
                     if (!canCreate) {
-                        logger.error("Can not create the output file: " + outputFile.getAbsolutePath());
+                        //check if parent exist
+                        Path parent = Paths.get(outputFile.getParent());
+                        if (!parent.toFile().exists()) {
+                            logger.error(String.format("Can not create the output file '%s'  as parent folder '%s' is not exist", outputFile.getAbsolutePath(), outputFile.getParent()));
+                        } else {
+                            logger.error("Can not create the output file: " + outputFile.getAbsolutePath());
+                        }
                         System.exit(ReturnCode.FAILURE.getReturnCode());
                     }
                 }
@@ -217,8 +235,11 @@ public class CliParser {
                 logger.error("Failed to set proxy : " + e.getMessage());
                 System.exit(ReturnCode.FAILURE.getReturnCode());
             }
+
+
         }
     }
+
 
     public void handleHelpAndVersionOptions(String[] args) {
 

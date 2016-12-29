@@ -7,38 +7,38 @@
     <password></password>
 
     <!--http://host:port/qcbin-->
-    <serverUrl>http://myserver:8080/qcbin</serverUrl>
+    <serverUrl></serverUrl>
 
     <domain></domain>
 
     <project></project>
 
-    <runFilter> <!--all parameters are optional, defined parameters are taken with AND operator -->
-      <!--Fetch runs that has id greater than specified id. Possible value : any id or 'LAST_SENT', in last case - filtering is started from last sent run id (recognized automatically) -->
+    <runFilter> <!--all parameters are optional, defined parameters are used with AND logic -->
+      <!--Retrieve runs with IDs equal to or greater than the specified ID. Possible values : any ID or 'LAST_SENT'. For LAST_SENT, filtering is started the run that followed the last sent run ID -->
       <startFromId></startFromId>
 
-      <!--Fetch runs that executed after specified date. Format yyyy-MM-dd-->
+      <!--Retrieve runs executed on or after a specified date. Format yyyy-MM-dd-->
       <startFromDate></startFromDate>
 
-      <!--Filter runs by test type, allowed test types : MANUAL, QUICKTEST_TEST,BUSINESS-PROCESS,LEANFT-TEST.
-      You can select one or several types separated with 'OR" : MANUAL OR QUICKTEST_TEST-->
+      <!--Filter runs by test type. Possible values: MANUAL, QUICKTEST_TEST, BUSINESS-PROCESS, LEANFT-TEST
+      You can select one or several types separated with 'OR' : MANUAL OR QUICKTEST_TEST-->
       <testType></testType>
 
-      <!--Filter runs that related to some entity, for example 'runs that related to release AAA' -->
+      <!--Retrieve runs related to a specific entity, for example 'runs that related to release AAA' or ‘runs from sprint 5’. Provide the entity type and ID -->
       <relatedEntity>
 
-        <!--Available types : test, testset, sprint, release-->
+        <!--Supported types : test, testset, sprint, release-->
         <type></type>
 
-        <!--id or ids separated with 'OR' : 1 OR 2 OR 3-->
+        <!--ID or IDs separated with 'OR' : 1 OR 2 OR 3-->
         <id></id>
       </relatedEntity>
 
       <!--Any custom valid REST filter, example : assign-rcyc[1001 or 1002];id[>100 AND &lt;500]-->
       <custom></custom>
 
-      <!--limit fetching runs from ALM, max is 200000 -->
-      <fetchLimit></fetchLimit>
+      <!--Limit number of runs retrieved from ALM, max is 200000 -->
+      <retrievalLimit></retrievalLimit>
 
     </runFilter>
 
@@ -50,7 +50,7 @@
     <clientSecret></clientSecret>
 
     <!--http://host:port-->
-    <serverUrl>http://myserver:8080</serverUrl>
+    <serverUrl></serverUrl>
 
     <sharedSpaceId></sharedSpaceId>
 
@@ -59,7 +59,9 @@
   </octane>
 
   <proxy>
+    <!--proxy hostname or IP address-->
     <host></host>
+    <!-- proxy port number-->
     <port></port>
   </proxy>
 </conf>
