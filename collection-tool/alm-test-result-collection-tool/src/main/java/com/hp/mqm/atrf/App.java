@@ -278,9 +278,9 @@ public class App {
         try {
             logger.info("ALM : Validating login configuration ...");
             almWrapper = new AlmWrapperService(configuration.getAlmServerUrl(), configuration.getAlmDomain(), configuration.getAlmProject());
-            boolean loggedIn = false;
             try {
-                loggedIn = almWrapper.login(configuration.getAlmUser(), configuration.getAlmPassword());
+                almWrapper.login(configuration.getAlmUser(), configuration.getAlmPassword());
+                logger.info("ALM : Login successful");
             } catch (RestStatusException e) {
                 //validate credentials
                 if (e.getResponse().getStatusCode() == 401) {
@@ -299,22 +299,17 @@ public class App {
                 }
             }
 
-            if (loggedIn) {
-                logger.info("ALM : Login successful");
 
-                if (almWrapper.validateConnectionToDomain()) {
-                    logger.info("ALM : Connected to ALM domain successfully");
-                } else {
-                    throw new RuntimeException("Failed to connect to ALM domain " + configuration.getAlmDomain());
-                }
-
-                if (almWrapper.validateConnectionToProject()) {
-                    logger.info("ALM : Connected to ALM project successfully");
-                } else {
-                    throw new RuntimeException("Failed to connect to ALM project " + configuration.getAlmProject());
-                }
+            if (almWrapper.validateConnectionToDomain()) {
+                logger.info("ALM : Connected to ALM domain successfully");
             } else {
-                throw new RuntimeException("Failed to login");
+                throw new RuntimeException("Failed to connect to ALM domain " + configuration.getAlmDomain());
+            }
+
+            if (almWrapper.validateConnectionToProject()) {
+                logger.info("ALM : Connected to ALM project successfully");
+            } else {
+                throw new RuntimeException("Failed to connect to ALM project " + configuration.getAlmProject());
             }
         } catch (Exception e) {
             logger.error("ALM : " + e.getMessage());
@@ -329,21 +324,36 @@ public class App {
             long workspaceId = Long.parseLong(configuration.getOctaneWorkspaceId());
 
             octaneWrapper = new OctaneWrapperService(configuration.getOctaneServerUrl(), sharedSpaceId, workspaceId);
-            if (octaneWrapper.login(configuration.getOctaneUser(), configuration.getOctanePassword())) {
-
+            try {
+                octaneWrapper.login(configuration.getOctaneUser(), configuration.getOctanePassword());
                 logger.info("Octane : Login successful");
-                if (octaneWrapper.validateConnectionToSharedspace()) {
-                    logger.info("Octane : Connected to Octane sharedspace successfully");
+            } catch (RestStatusException e) {
+                //validate credentials
+                if (e.getResponse().getStatusCode() == 401) {
+                    String msg = String.format("Failed to login as '%s', validate credentials.", configuration.getOctaneUser());
+                    throw new RuntimeException(msg);
                 } else {
-                    throw new RuntimeException("Failed to connect to Octane sharedspace " + sharedSpaceId);
+                    throw e;
                 }
-                if (octaneWrapper.validateConnectionToWorkspace()) {
-                    logger.info("Octane : Connected to Octane workspace successfully");
+            } catch (RuntimeException e) {
+                //validate host
+                if (e.getCause() instanceof UnknownHostException) {
+                    String msg = "Failed to connect to host : " + configuration.getAlmServerUrl();
+                    throw new RuntimeException(msg);
                 } else {
-                    throw new RuntimeException("Failed to connect to Octane workspace " + workspaceId);
+                    throw e;
                 }
+            }
+
+            if (octaneWrapper.validateConnectionToSharedspace()) {
+                logger.info("Octane : Connected to Octane sharedspace successfully");
             } else {
-                throw new RuntimeException("Failed to login");
+                throw new RuntimeException("Failed to connect to Octane sharedspace " + sharedSpaceId);
+            }
+            if (octaneWrapper.validateConnectionToWorkspace()) {
+                logger.info("Octane : Connected to Octane workspace successfully");
+            } else {
+                throw new RuntimeException("Failed to connect to Octane workspace " + workspaceId);
             }
         } catch (Exception e) {
             logger.error("Octane : " + e.getMessage());
