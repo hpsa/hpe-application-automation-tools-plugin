@@ -46,7 +46,7 @@ public class FetchConfiguration {
     public static String ALM_RUN_FILTER_RELATED_ENTITY_ID_PARAM = "conf.alm.runFilter.relatedEntity.id";
     public static String ALM_RUN_FILTER_CUSTOM_PARAM = "conf.alm.runFilter.custom";
 
-    public static String ALM_RUN_FILTER_FETCH_LIMIT_PARAM = "conf.alm.runFilter.fetchLimit";
+    public static String ALM_RUN_FILTER_FETCH_LIMIT_PARAM = "conf.alm.runFilter.retrievalLimit";
 
     public static String SYNC_BULK_SIZE_PARAM = "conf.sync.bulkSize";
     public static String SYNC_SLEEP_BETWEEN_POSTS_PARAM = "conf.sync.sleepBetweenPosts";
@@ -72,7 +72,6 @@ public class FetchConfiguration {
     private static int SYNC_SLEEP_BETWEEN_POSTS_MAX = 120;//sec
     private static int SYNC_SLEEP_BETWEEN_POSTS_MIN = 2;//sec
 
-    private static boolean ALM_RUN_FILTER_SUPPORT_MANUAL_DEFAULT = false;
 
     public static String ALM_RUN_FILTER_START_FROM_ID_LAST_SENT = "LAST_SENT";
 
