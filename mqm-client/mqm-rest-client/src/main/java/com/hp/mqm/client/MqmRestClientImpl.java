@@ -1,20 +1,8 @@
 package com.hp.mqm.client;
 
-import com.hp.mqm.client.exception.AuthenticationException;
+import com.hp.mqm.client.exception.*;
 import com.hp.mqm.client.exception.FileNotFoundException;
-import com.hp.mqm.client.exception.RequestErrorException;
-import com.hp.mqm.client.exception.ServerException;
-import com.hp.mqm.client.exception.TemporarilyUnavailableException;
-import com.hp.mqm.client.model.FieldMetadata;
-import com.hp.mqm.client.model.JobConfiguration;
-import com.hp.mqm.client.model.ListField;
-import com.hp.mqm.client.model.ListItem;
-import com.hp.mqm.client.model.PagedList;
-import com.hp.mqm.client.model.Pipeline;
-import com.hp.mqm.client.model.Release;
-import com.hp.mqm.client.model.Taxonomy;
-import com.hp.mqm.client.model.TestResultStatus;
-import com.hp.mqm.client.model.Workspace;
+import com.hp.mqm.client.model.*;
 import com.hp.mqm.org.apache.http.HttpResponse;
 import com.hp.mqm.org.apache.http.HttpStatus;
 import com.hp.mqm.org.apache.http.client.methods.HttpDelete;
@@ -45,12 +33,15 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 
 	private static final String DATETIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ";
 	private static final String PREFIX_CI = "analytics/ci/";
+	private static final String PREFIX_BDI = "analytics/bdi/";
 	private static final String URI_TEST_RESULT_PUSH = PREFIX_CI + "test-results?skip-errors={0}";
 	private static final String URI_TEST_RESULT_STATUS = PREFIX_CI + "test-results/{0}";
 	private static final String URI_TEST_RESULT_LOG = URI_TEST_RESULT_STATUS + "/log";
 	private static final String URI_JOB_CONFIGURATION = "analytics/ci/servers/{0}/jobs/{1}/configuration";
 	private static final String URI_DELETE_NODES_TESTS = "analytics/ci/pipelines/{0}/jobs/{1}/tests";
 	private static final String URI_PREFLIGHT = "analytics/ci/servers/{0}/jobs/{1}/tests-result-preflight";
+	private static final String URI_WORKSPACE_BY_JOB_AND_SERVER = PREFIX_CI + "servers/{0}/jobs/{1}/workspaceId";
+	private static final String URI_BDI_CONFIGURATION = PREFIX_BDI + "configuration";
 	private static final String URI_RELEASES = "releases";
 	private static final String URI_WORKSPACES = "workspaces";
 	private static final String URI_LIST_ITEMS = "list_nodes";
@@ -100,6 +91,58 @@ public class MqmRestClientImpl extends AbstractMqmRestClient implements MqmRestC
 				throw createRequestException("Result status retrieval failed", response);
 			}
 			return Boolean.parseBoolean(IOUtils.toString(response.getEntity().getContent(), "UTF-8"));
+		} catch (IOException e) {
+			throw new RequestErrorException("Cannot obtain status.", e);
+		} finally {
+			HttpClientUtils.closeQuietly(response);
+		}
+	}
+
+	@Override
+	public JSONObject getBdiConfiguration() {
+		HttpGet request = new HttpGet(createSharedSpaceInternalApiUri(URI_BDI_CONFIGURATION));
+		HttpResponse response = null;
+		try {
+			response = execute(request);
+
+			int statusCode = response.getStatusLine().getStatusCode();
+			if (statusCode == HttpStatus.SC_NO_CONTENT) {
+				logger.info("BDI is not configured in Octane");
+				return null;
+			}
+
+			if (statusCode != HttpStatus.SC_OK) {
+				throw createRequestException("BDI configuration retrieval failed", response);
+			}
+
+			String bdiConfiguration = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
+			return JSONObject.fromObject(bdiConfiguration);
+		} catch (IOException e) {
+			throw new RequestErrorException("Cannot obtain status.", e);
+		} finally {
+			HttpClientUtils.closeQuietly(response);
+		}
+	}
+
+	@Override
+	public List<String> getJobWorkspaceId(String ciServerId, String ciJobName) {
+		HttpGet request = new HttpGet(createSharedSpaceInternalApiUri(URI_WORKSPACE_BY_JOB_AND_SERVER, ciServerId, ciJobName));
+		HttpResponse response = null;
+		try {
+			response = execute(request);
+
+			int statusCode = response.getStatusLine().getStatusCode();
+			if (statusCode == HttpStatus.SC_NO_CONTENT) {
+				logger.info("Job " + ciJobName + " has no build context in Octane");
+				return new ArrayList<>();
+			}
+
+			if (statusCode != HttpStatus.SC_OK) {
+				throw createRequestException("workspace retrieval failed", response);
+			}
+
+			JSONArray workspaces = JSONArray.fromObject(IOUtils.toString(response.getEntity().getContent(), "UTF-8"));
+			return workspaces.subList(0, workspaces.size());
 		} catch (IOException e) {
 			throw new RequestErrorException("Cannot obtain status.", e);
 		} finally {
