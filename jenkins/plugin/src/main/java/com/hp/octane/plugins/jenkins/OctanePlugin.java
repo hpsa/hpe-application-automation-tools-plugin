@@ -4,13 +4,9 @@ import com.google.inject.Inject;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.plugins.jenkins.bridge.BridgesService;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
-import com.hp.octane.plugins.jenkins.configuration.ConfigurationListener;
-import com.hp.octane.plugins.jenkins.configuration.ConfigurationService;
-import com.hp.octane.plugins.jenkins.configuration.MqmProject;
-import com.hp.octane.plugins.jenkins.configuration.PredefinedConfiguration;
-import com.hp.octane.plugins.jenkins.configuration.PredefinedConfigurationUnmarshaller;
-import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
+import com.hp.octane.plugins.jenkins.configuration.*;
 import com.hp.octane.plugins.jenkins.events.EventsService;
+import com.hp.octane.plugins.jenkins.buildLogs.BdiConfigurationFetcher;
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.Plugin;
@@ -210,6 +206,9 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 		@Inject
 		private RetryModel retryModel;
 
+		@Inject
+		private BdiConfigurationFetcher bdiConfigurationFetcher;
+
 		public OctanePluginDescriptor() {
 			octanePlugin = Jenkins.getInstance().getPlugin(OctanePlugin.class);
 		}
@@ -222,6 +221,10 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 						mqmData.getString("username"), // NON-NLS
 						mqmData.getString("secretPassword"),
 						mqmData.getString("impersonatedUser"));
+
+				// When Jenkins configuration is saved we refresh the bdi configuration
+				bdiConfigurationFetcher.refresh();
+
 				return true;
 			} catch (IOException e) {
 				throw new FormException(e, Messages.ConfigurationSaveFailed());
