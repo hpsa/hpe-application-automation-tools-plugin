@@ -2,13 +2,14 @@
 
 package com.hp.octane.plugins.jenkins.tests;
 
+import com.hp.octane.plugins.jenkins.ResultQueue;
 import hudson.model.AbstractBuild;
 import org.junit.Assert;
 
 import java.util.Collection;
 import java.util.LinkedList;
 
-class TestQueue implements TestResultQueue {
+class TestQueue implements ResultQueue {
 
 	private LinkedList<QueueItem> queue = new LinkedList<QueueItem>();
 	private int discard;
@@ -26,7 +27,7 @@ class TestQueue implements TestResultQueue {
 	@Override
 	public synchronized boolean failed() {
 		QueueItem item = queue.removeFirst();
-		if (item.failCount++ < 1) {
+		if (item.incrementFailCount() < 1) {
 			queue.add(item);
 			return true;
 		} else {
@@ -43,6 +44,11 @@ class TestQueue implements TestResultQueue {
 	@Override
 	public synchronized void add(String projectName, int buildNumber) {
 		queue.add(new QueueItem(projectName, buildNumber));
+	}
+
+	@Override
+	public void add(String projectName, int buildNumber, String workspace) {
+		queue.add(new QueueItem(projectName, buildNumber, workspace));
 	}
 
 	public synchronized void add(Collection<? extends AbstractBuild> builds) {

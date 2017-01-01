@@ -1,28 +1,20 @@
 package com.hp.octane.plugins.jenkins.tests;
 
 import com.hp.octane.plugins.jenkins.ExtensionUtil;
+import com.hp.octane.plugins.jenkins.ResultQueue;
 import hudson.matrix.*;
 import hudson.maven.MavenModuleSet;
 import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleProject;
-import hudson.model.Result;
 import hudson.tasks.Maven;
 import hudson.tasks.junit.JUnitResultArchiver;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.*;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.ToolInstallations;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public class JUnitResultsTest {
 
@@ -202,9 +194,9 @@ public class JUnitResultsTest {
 
 	private Set<String> getQueuedItems() {
 		Set<String> ret = new HashSet<>();
-		TestResultQueue.QueueItem item;
+		ResultQueue.QueueItem item;
 		while ((item = queue.peekFirst()) != null) {
-			ret.add(item.projectName + "#" + item.buildNumber);
+			ret.add(item.getProjectName() + "#" + item.getBuildNumber());
 			queue.remove();
 		}
 		return ret;

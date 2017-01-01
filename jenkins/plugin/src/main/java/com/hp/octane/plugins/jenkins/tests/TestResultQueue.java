@@ -2,31 +2,25 @@
 
 package com.hp.octane.plugins.jenkins.tests;
 
-import java.io.Serializable;
+import com.hp.octane.plugins.jenkins.ResultQueueImpl;
+import hudson.Extension;
+import jenkins.model.Jenkins;
 
-public interface TestResultQueue {
+import java.io.File;
+import java.io.IOException;
 
-    TestResultQueue.QueueItem peekFirst();
+@Extension
+public class TestResultQueue extends ResultQueueImpl {
 
-    boolean failed();
+    public TestResultQueue() throws IOException {
+        File queueFile = new File(Jenkins.getInstance().getRootDir(), "octane-test-result-queue.dat");
+        init(queueFile);
+    }
 
-    void remove();
-
-    void add(String projectName, int buildNumber);
-
-    class QueueItem implements Serializable {
-        String projectName;
-        int buildNumber;
-        int failCount;
-
-        QueueItem(String projectName, int buildNumber) {
-            this(projectName, buildNumber, 0);
-        }
-
-        QueueItem(String projectName, int buildNumber, int failCount) {
-            this.projectName = projectName;
-            this.buildNumber = buildNumber;
-            this.failCount = failCount;
-        }
+    /*
+     * To be used in tests only.
+     */
+    TestResultQueue(File queueFile) throws IOException {
+        init(queueFile);
     }
 }

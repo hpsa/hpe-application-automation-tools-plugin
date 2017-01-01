@@ -7,6 +7,7 @@ import com.hp.mqm.client.exception.FileNotFoundException;
 import com.hp.mqm.client.exception.LoginException;
 import com.hp.mqm.client.exception.RequestException;
 import com.hp.mqm.client.exception.TemporarilyUnavailableException;
+import com.hp.octane.plugins.jenkins.ResultQueue;
 import com.hp.octane.plugins.jenkins.client.EventPublisher;
 import com.hp.octane.plugins.jenkins.client.JenkinsInsightEventPublisher;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
@@ -44,7 +45,7 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
 	@Inject
 	private RetryModel retryModel;
 
-	private TestResultQueue queue;
+	private ResultQueue queue;
 
 	private JenkinsMqmRestClientFactory clientFactory;
 
@@ -65,7 +66,7 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
 		}
 		MqmRestClient client = null;
 		ServerConfiguration configuration = null;
-		TestResultQueue.QueueItem item;
+		ResultQueue.QueueItem item;
 		while ((item = queue.peekFirst()) != null) {
 			if (client == null) {
 				configuration = ConfigurationService.getServerConfiguration();
@@ -102,16 +103,16 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
 				retryModel.success();
 			}
 
-			AbstractProject project = (AbstractProject) Jenkins.getInstance().getItemByFullName(item.projectName);
+			AbstractProject project = (AbstractProject) Jenkins.getInstance().getItemByFullName(item.getProjectName());
 			if (project == null) {
-				logger.warn("Project [" + item.projectName + "] no longer exists, pending test results can't be submitted");
+				logger.warn("Project [" + item.getProjectName() + "] no longer exists, pending test results can't be submitted");
 				queue.remove();
 				continue;
 			}
 
-			AbstractBuild build = project.getBuildByNumber(item.buildNumber);
+			AbstractBuild build = project.getBuildByNumber(item.getBuildNumber());
 			if (build == null) {
-				logger.warn("Build [" + item.projectName + "#" + item.buildNumber + "] no longer exists, pending test results can't be submitted");
+				logger.warn("Build [" + item.getProjectName() + "#" + item.getBuildNumber() + "] no longer exists, pending test results can't be submitted");
 				queue.remove();
 				continue;
 			}
@@ -140,10 +141,9 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
 					}
 
 					if (id != null) {
-						logger.info("Successfully pushed test results of build [" + item.projectName + "#" + item.buildNumber + "]");
-						queue.remove();
+						logger.info("Successfully pushed test results of build [" + item.getProjectName() + "#" + item.getBuildNumber() + "]");
 					} else {
-						logger.warn("Failed to push test results of build [" + item.projectName + "#" + item.buildNumber + "]");
+						logger.warn("Failed to push test results of build [" + item.getProjectName() + "#" + item.getBuildNumber() + "]");
 						if (!queue.failed()) {
 							logger.warn("Maximum number of attempts reached, operation will not be re-attempted for this build");
 						}
@@ -151,11 +151,12 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
 					}
 					audit(configuration, build, id, false);
 				} catch (FileNotFoundException e) {
-					logger.warn("File no longer exists, failed to push test results of build [" + item.projectName + "#" + item.buildNumber + "]");
+					logger.warn("File no longer exists, failed to push test results of build [" + item.getProjectName() + "#" + item.getBuildNumber() + "]");
+				} finally {
 					queue.remove();
 				}
 			} else {
-				logger.info("Test result not needed for build [" + item.projectName + "#" + item.buildNumber + "]");
+				logger.info("Test result not needed for build [" + item.getProjectName() + "#" + item.getBuildNumber() + "]");
 				queue.remove();
 			}
 		}
@@ -199,7 +200,7 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
 	}
 
 	@Inject
-	public void setTestResultQueue(TestResultQueueImpl queue) {
+	public void setTestResultQueue(TestResultQueue queue) {
 		this.queue = queue;
 	}
 
@@ -214,7 +215,7 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
 	}
 
 
-	void _setTestResultQueue(TestResultQueue queue) {
+	void _setTestResultQueue(ResultQueue queue) {
 		this.queue = queue;
 	}
 

@@ -3,6 +3,7 @@
 package com.hp.octane.plugins.jenkins.tests;
 
 import com.google.inject.Inject;
+import com.hp.octane.plugins.jenkins.ResultQueue;
 import com.hp.octane.plugins.jenkins.model.processors.projects.JobProcessorFactory;
 import com.hp.octane.plugins.jenkins.tests.build.BuildHandlerUtils;
 import com.hp.octane.plugins.jenkins.tests.detection.UFTExtension;
@@ -29,7 +30,7 @@ public class TestListener {
 	static final String TEST_RESULT_FILE = "mqmTests.xml";
 	public static final String JENKINS_STORM_TEST_RUNNER_CLASS = "com.hpe.sr.plugins.jenkins.StormTestRunner";
 
-	private TestResultQueue queue;
+	private ResultQueue queue;
 
 	public void processBuild(AbstractBuild build, TaskListener listener) {
 
@@ -112,14 +113,14 @@ public class TestListener {
 	}
 
 	@Inject
-	public void setTestResultQueue(TestResultQueueImpl queue) {
+	public void setTestResultQueue(TestResultQueue queue) {
 		this.queue = queue;
 	}
 
 	/*
 	 * To be used in tests only.
 	 */
-	public void _setTestResultQueue(TestResultQueue queue) {
+	public void _setTestResultQueue(ResultQueue queue) {
 		this.queue = queue;
 	}
 }
