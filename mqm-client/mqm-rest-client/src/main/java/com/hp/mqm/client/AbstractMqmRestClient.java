@@ -174,7 +174,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 		try {
 			cookieStore.clear();
 			response = httpClient.execute(post);
-			if (response.getStatusLine().getStatusCode() == 200) {
+			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 				for (Cookie cookie : cookieStore.getCookies()) {
 					if (cookie.getName().equals(LWSSO_COOKIE_NAME)) {
 						LWSSO_TOKEN = cookie;
@@ -438,9 +438,7 @@ public abstract class AbstractMqmRestClient implements BaseMqmRestClient {
 				// stack trace may not be present in production
 				stackTrace = jsonObject.optString("stack_trace");
 			}
-		} catch (IOException e) {
-			logger.log(Level.SEVERE, "Unable to determine failure message: ", e);
-		} catch (JSONException e) {
+		} catch (IOException | JSONException e) {
 			logger.log(Level.SEVERE, "Unable to determine failure message: ", e);
 		}
 
