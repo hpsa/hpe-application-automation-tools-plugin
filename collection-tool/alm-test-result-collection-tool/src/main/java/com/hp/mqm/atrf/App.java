@@ -128,7 +128,7 @@ public class App {
 
     private List<OctaneTestResultOutput> outputToOctane() {
         if (!isOutput()) {
-            logger.info("Starting send of data to Octane");
+            logger.info("Starting to send data to ALM Octane");
         }
 
         int bulkSize = Integer.parseInt(configuration.getSyncBulkSize());
@@ -222,7 +222,7 @@ public class App {
         }
 
         long end = System.currentTimeMillis();
-        logger.info(String.format("Finish send of data to Octane in %d sec ", (end - start) / 1000));
+        logger.info(String.format("Finished sending data to ALM Octane in %d sec ", (end - start) / 1000));
         return resultOutputs;
     }
 
@@ -319,14 +319,14 @@ public class App {
 
     private void loginToOctane() {
         try {
-            logger.info("Octane : Validating login configuration ...");
+            logger.info("ALM Octane : Validating login configuration ...");
             long sharedSpaceId = Long.parseLong(configuration.getOctaneSharedSpaceId());
             long workspaceId = Long.parseLong(configuration.getOctaneWorkspaceId());
 
             octaneWrapper = new OctaneWrapperService(configuration.getOctaneServerUrl(), sharedSpaceId, workspaceId);
             try {
                 octaneWrapper.login(configuration.getOctaneUser(), configuration.getOctanePassword());
-                logger.info("Octane : Login successful");
+                logger.info("ALM Octane : Login successful");
             } catch (RestStatusException e) {
                 //validate credentials
                 if (e.getResponse().getStatusCode() == 401) {
@@ -346,17 +346,17 @@ public class App {
             }
 
             if (octaneWrapper.validateConnectionToSharedspace()) {
-                logger.info("Octane : Connected to Octane sharedspace successfully");
+                logger.info("ALM Octane : Connected to ALM Octane shared space successfully");
             } else {
-                throw new RuntimeException("Failed to connect to Octane sharedspace " + sharedSpaceId);
+                throw new RuntimeException("Failed to connect to ALM Octane shared space " + sharedSpaceId);
             }
             if (octaneWrapper.validateConnectionToWorkspace()) {
-                logger.info("Octane : Connected to Octane workspace successfully");
+                logger.info("ALM Octane : Connected to ALM Octane workspace successfully");
             } else {
-                throw new RuntimeException("Failed to connect to Octane workspace " + workspaceId);
+                throw new RuntimeException("Failed to connect to ALM Octane workspace " + workspaceId);
             }
         } catch (Exception e) {
-            logger.error("Octane : " + e.getMessage());
+            logger.error("ALM Octane : " + e.getMessage());
             System.exit(ReturnCode.FAILURE.getReturnCode());
         }
     }

@@ -35,7 +35,7 @@ public class Main {
         logger.info("***************************************************************************************************");
         DateFormat dateFormatter = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault());
         DateFormat timeFormatter = DateFormat.getTimeInstance(DateFormat.DEFAULT, Locale.getDefault());
-        logger.info((String.format("Starting fetch process %s %s", dateFormatter.format(new Date()), timeFormatter.format(new Date()))));
+        logger.info((String.format("Starting HPE ALM Test Result Collection Tool %s %s", dateFormatter.format(new Date()), timeFormatter.format(new Date()))));
         logger.info("***************************************************************************************************");
 
 
@@ -46,7 +46,7 @@ public class Main {
         app.start();
 
         long end = System.currentTimeMillis();
-        logger.info(String.format("The process is finished in %s seconds", (end - start) / 1000));
+        logger.info(String.format("Finished creating tests and test results on ALM Octane in %s seconds", (end - start) / 1000));
         logger.info("***************************************************************************************************");
     }
 
@@ -71,7 +71,7 @@ public class Main {
                 try {
                     uri = Main.class.getClassLoader().getResource("log4j2.xml").toURI();
                 } catch (URISyntaxException e) {
-                    logger.info("Failed to load Log4j configuration loaded from resource file");
+                    logger.info("Failed to load Log4j configuration from resource file");
                 }
             }
 

@@ -102,7 +102,7 @@ public class CliParser {
             }
             try {
                 File f = new File(configFile);
-                logger.info("Configuration is loading from : " + f.getAbsolutePath());
+                logger.info("Loading configuration : " + f.getAbsolutePath());
                 configuration = FetchConfiguration.loadPropertiesFromFile(configFile);
             } catch (Exception e) {
                 logger.error("Failed to load configuration file : " + e.getMessage());
