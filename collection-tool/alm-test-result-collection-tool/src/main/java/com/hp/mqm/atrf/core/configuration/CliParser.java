@@ -4,14 +4,6 @@ import com.hp.mqm.atrf.core.rest.RestConnector;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.params.ConnRoutePNames;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.CoreConnectionPNames;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -156,24 +148,14 @@ public class CliParser {
             if (cmd.hasOption(PASSWORD_ALM_OPTION)) {
                 configuration.setAlmPassword(cmd.getOptionValue(PASSWORD_ALM_OPTION));
             } else if (cmd.hasOption(PASSWORD_ALM_FILE_OPTION)) {
-                try {
-                    configuration.setAlmPassword(FileUtils.readFileToString(new File(cmd.getOptionValue(PASSWORD_ALM_FILE_OPTION))));
-                } catch (IOException e) {
-                    logger.error("Can not read the ALM password file: " + cmd.getOptionValue(PASSWORD_ALM_FILE_OPTION));
-                    System.exit(ReturnCode.FAILURE.getReturnCode());
-                }
+                configuration.setAlmPassword(getPasswordFromFile(cmd.getOptionValue(PASSWORD_ALM_FILE_OPTION)));
             }
 
             //load octane password
             if (cmd.hasOption(PASSWORD_OCTANE_OPTION)) {
                 configuration.setOctanePassword(cmd.getOptionValue(PASSWORD_OCTANE_OPTION));
             } else if (cmd.hasOption(PASSWORD_OCTANE_FILE_OPTION)) {
-                try {
-                    configuration.setOctanePassword(FileUtils.readFileToString(new File(cmd.getOptionValue(PASSWORD_OCTANE_FILE_OPTION))));
-                } catch (IOException e) {
-                    logger.error("Can not read the Octane password file: " + cmd.getOptionValue(PASSWORD_OCTANE_FILE_OPTION));
-                    System.exit(ReturnCode.FAILURE.getReturnCode());
-                }
+                configuration.setOctanePassword(getPasswordFromFile(cmd.getOptionValue(PASSWORD_OCTANE_FILE_OPTION)));
             }
 
             //run filter options
@@ -202,6 +184,33 @@ public class CliParser {
             System.exit(ReturnCode.FAILURE.getReturnCode());
         }
         return configuration;
+    }
+
+    private String getPasswordFromFile(String fileName) {
+        File file = new File(fileName);
+
+        if (!file.exists()) {
+            logger.error("Password file does not exist : " + fileName);
+            System.exit(ReturnCode.FAILURE.getReturnCode());
+        } else if (!file.isFile()) {
+            logger.error("Invalid path to password file : " + fileName);
+            System.exit(ReturnCode.FAILURE.getReturnCode());
+        } else if (!file.canRead()) {
+            logger.error("Can not read the password file: " + fileName);
+            System.exit(ReturnCode.FAILURE.getReturnCode());
+        } else if (file.length() > 256) {
+            logger.error("Password file is too big (>256b): " + fileName);
+            System.exit(ReturnCode.FAILURE.getReturnCode());
+        }
+
+        String password = null;
+        try {
+            password = FileUtils.readFileToString(new File(fileName));
+        } catch (IOException e) {
+            logger.error("Can not read the password file: " + fileName);
+            System.exit(ReturnCode.FAILURE.getReturnCode());
+        }
+        return password;
     }
 
     private void validateArguments(CommandLine cmd) {
