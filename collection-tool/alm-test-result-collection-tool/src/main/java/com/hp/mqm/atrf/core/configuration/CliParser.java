@@ -117,23 +117,25 @@ public class CliParser {
                 }
                 configuration.setOutputFile(outputFilePath);
                 File outputFile = new File(outputFilePath);
+                Path parent = Paths.get(outputFile.getParent());
+                if (!parent.toFile().exists()) {
+                    logger.error(String.format("Can not create the output file '%s' as parent folder '%s' is not exist", outputFile.getAbsolutePath(), outputFile.getParent()));
+                    System.exit(ReturnCode.FAILURE.getReturnCode());
+                }
+
                 if (!outputFile.exists()) {
                     boolean canCreate = true;
+                    String errorMsg = null;
                     try {
                         if (!outputFile.createNewFile()) {
                             canCreate = false;
                         }
                     } catch (IOException e) {
                         canCreate = false;
+                        errorMsg = " : " + e.getMessage();
                     }
                     if (!canCreate) {
-                        //check if parent exist
-                        Path parent = Paths.get(outputFile.getParent());
-                        if (!parent.toFile().exists()) {
-                            logger.error(String.format("Can not create the output file '%s'  as parent folder '%s' is not exist", outputFile.getAbsolutePath(), outputFile.getParent()));
-                        } else {
-                            logger.error("Can not create the output file: " + outputFile.getAbsolutePath());
-                        }
+                        logger.error("Can not create the output file  '" + outputFile.getAbsolutePath() + "'" + errorMsg);
                         System.exit(ReturnCode.FAILURE.getReturnCode());
                     }
                 }
