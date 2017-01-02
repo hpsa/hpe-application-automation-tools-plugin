@@ -83,7 +83,7 @@ public abstract class ResultQueueImpl implements ResultQueue {
         }
 
         private QueueItem objectFromJson(JSONObject json) {
-            return json.containsValue("workspace") ?
+            return json.containsKey("workspace") ?
                     new QueueItem(
                             json.getString("project"),
                             json.getInt("build"),
