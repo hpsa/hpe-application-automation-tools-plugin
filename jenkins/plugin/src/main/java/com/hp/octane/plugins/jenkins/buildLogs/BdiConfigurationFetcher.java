@@ -11,6 +11,8 @@ import com.hp.octane.plugins.jenkins.tests.SafeLoggingAsyncPeriodWork;
 import hudson.Extension;
 import hudson.model.TaskListener;
 import hudson.util.TimeUnit2;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 
@@ -19,6 +21,8 @@ import java.io.IOException;
  */
 @Extension
 public class BdiConfigurationFetcher extends SafeLoggingAsyncPeriodWork {
+
+    private static Logger logger = LogManager.getLogger(BdiConfigurationFetcher.class);
 
     private JenkinsMqmRestClientFactory clientFactory;
 
@@ -43,10 +47,14 @@ public class BdiConfigurationFetcher extends SafeLoggingAsyncPeriodWork {
     }
 
     private void fetchBdiConfiguration() {
-        MqmRestClient mqmRestClient = createMqmRestClient();
-        bdiConfiguration = BdiConfiguration.fromJSON(mqmRestClient.getBdiConfiguration());
-        LogDispatchAction.descriptor().setIsApplicable(bdiConfiguration != null && bdiConfiguration.isFullyConfigured());
-        shouldFetchBdiConfiguration = false;
+        try {
+            MqmRestClient mqmRestClient = createMqmRestClient();
+            bdiConfiguration = BdiConfiguration.fromJSON(mqmRestClient.getBdiConfiguration());
+            LogDispatchAction.descriptor().setIsApplicable(bdiConfiguration != null && bdiConfiguration.isFullyConfigured());
+            shouldFetchBdiConfiguration = false;
+        } catch (Exception e) {
+            logger.error("Failed to fetch BDI configuration from Octane", e);
+        }
     }
 
     private MqmRestClient createMqmRestClient() {

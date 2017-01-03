@@ -3,10 +3,10 @@ package com.hp.octane.plugins.jenkins;
 import com.google.inject.Inject;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.plugins.jenkins.bridge.BridgesService;
+import com.hp.octane.plugins.jenkins.buildLogs.BdiConfigurationFetcher;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.configuration.*;
 import com.hp.octane.plugins.jenkins.events.EventsService;
-import com.hp.octane.plugins.jenkins.buildLogs.BdiConfigurationFetcher;
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.Plugin;
@@ -206,7 +206,6 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 		@Inject
 		private RetryModel retryModel;
 
-		@Inject
 		private BdiConfigurationFetcher bdiConfigurationFetcher;
 
 		public OctanePluginDescriptor() {
@@ -311,6 +310,11 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 
         public String getImpersonatedUser() {
 			return octanePlugin.getImpersonatedUser();
+		}
+
+		@Inject
+		public void setBdiConfigurationFetcher(BdiConfigurationFetcher bdiConfigurationFetcher) {
+			this.bdiConfigurationFetcher = bdiConfigurationFetcher;
 		}
 
 		private String markup(String color, String message) {
