@@ -40,6 +40,9 @@ public abstract class ResultQueueImpl implements ResultQueue {
             } else {
                 retry = false;
             }
+
+            remove();
+
             return retry;
         } else {
             throw new IllegalStateException("no outstanding item");

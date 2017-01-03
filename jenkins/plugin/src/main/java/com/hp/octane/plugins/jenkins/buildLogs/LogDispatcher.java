@@ -83,14 +83,14 @@ public class LogDispatcher extends SafeLoggingAsyncPeriodWork {
 
                 logger.info("Successfully sent log of build [" + item.getProjectName() + "#" + item.getBuildNumber()
                         + "]. response from bdi server: " + response);
+
+                logsQueue.remove();
             } catch (Exception e) {
                 logger.error("Could not send log of build [" + item.getProjectName() + "#" + item.getBuildNumber()
                         + "] to BDI. Reason: " + e.getMessage());
                 if (!logsQueue.failed()) {
                     logger.warn("Maximum number of attempts reached, operation will not be re-attempted for this build");
                 }
-            } finally {
-                logsQueue.remove();
             }
         }
     }

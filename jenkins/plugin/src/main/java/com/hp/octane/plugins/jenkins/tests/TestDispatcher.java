@@ -142,6 +142,7 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
 
 					if (id != null) {
 						logger.info("Successfully pushed test results of build [" + item.getProjectName() + "#" + item.getBuildNumber() + "]");
+						queue.remove();
 					} else {
 						logger.warn("Failed to push test results of build [" + item.getProjectName() + "#" + item.getBuildNumber() + "]");
 						if (!queue.failed()) {
@@ -152,7 +153,6 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
 					audit(configuration, build, id, false);
 				} catch (FileNotFoundException e) {
 					logger.warn("File no longer exists, failed to push test results of build [" + item.getProjectName() + "#" + item.getBuildNumber() + "]");
-				} finally {
 					queue.remove();
 				}
 			} else {
