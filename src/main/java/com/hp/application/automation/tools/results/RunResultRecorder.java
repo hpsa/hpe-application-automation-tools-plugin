@@ -87,6 +87,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import static com.hp.application.automation.tools.model.ResultsPublisherModel.dontArchiveResults;
 import static com.hp.application.automation.tools.results.projectparser.performance.XmlParserUtil.getNode;
 import static com.hp.application.automation.tools.results.projectparser.performance.XmlParserUtil.getNodeAttr;
 
@@ -285,6 +286,10 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         listener.getLogger().println(
                 "Report archiving mode is set to: "
                         + _resultsPublisherModel.getArchiveTestResultsMode());
+
+        // if user specified not to archive report
+        if (_resultsPublisherModel.getArchiveTestResultsMode().equals(dontArchiveResults.getValue()))
+            return;
 
         FilePath projectWS = runWorkspace;
 
