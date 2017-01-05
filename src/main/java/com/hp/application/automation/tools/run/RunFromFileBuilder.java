@@ -542,7 +542,10 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		 * @return the job id
 		 */
 		@JavaScriptMethod
-		public String getJobId(String mcUrl, String mcUserName, String mcPassword, String proxyAddress, String proxyUserName, String proxyPassword) {
+		public String getJobId(String mcUrl, String mcUserName, String mcPassword, String proxyAddress, String proxyUserName, String proxyPassword, String previousJobId) {
+			if(null != previousJobId && !previousJobId.isEmpty()){
+				return previousJobId;
+			}
 			return instance.createTempJob(mcUrl, mcUserName, mcPassword, proxyAddress, proxyUserName, proxyPassword);
 		}
 
