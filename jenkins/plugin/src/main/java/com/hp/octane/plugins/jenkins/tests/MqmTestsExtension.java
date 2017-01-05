@@ -15,7 +15,7 @@ public abstract class MqmTestsExtension implements ExtensionPoint {
     public abstract boolean supports(AbstractBuild<?, ?> build) throws IOException, InterruptedException;
 
 
-    public abstract TestResultContainer getTestResults(AbstractBuild<?, ?> build, JUnitExtension.HPRunnerType hpRunnerType, String jenkinsRootUrl) throws IOException, InterruptedException;
+    public abstract TestResultContainer getTestResults(AbstractBuild<?, ?> build, HPRunnerType hpRunnerType, String jenkinsRootUrl) throws IOException, InterruptedException, TestProcessingException;
 
     public static ExtensionList<MqmTestsExtension> all() {
         return Hudson.getInstance().getExtensionList(MqmTestsExtension.class);

@@ -7,13 +7,11 @@ import com.hp.octane.plugins.jenkins.tests.*;
 import com.hp.octane.plugins.jenkins.tests.build.BuildHandlerUtils;
 import com.hp.octane.plugins.jenkins.tests.build.BuildDescriptor;
 import com.hp.octane.plugins.jenkins.tests.detection.ResultFields;
+import com.hp.octane.plugins.jenkins.tests.testResult.TestResult;
 import hudson.FilePath;
 import hudson.model.AbstractBuild;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -21,8 +19,6 @@ import javax.xml.stream.XMLStreamWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 
 public class TestResultXmlWriter {
 
@@ -31,71 +27,21 @@ public class TestResultXmlWriter {
 
 	private XMLStreamWriter writer;
 	private OutputStream outputStream;
-	private TestResultContainer testResultContainer;
-	private TestResultsExcluder testResultsExcluder;
-	private List<CustomTestResult> customTestResults;
 
 	public TestResultXmlWriter(FilePath targetPath, AbstractBuild build) {
 		this.targetPath = targetPath;
 		this.build = build;
 	}
 
-	public void setCustomTestResults(List<CustomTestResult> customTestResults) {
-		this.customTestResults = customTestResults;
-	}
-
-	public void setTestResultContainer(TestResultContainer container, TestResultsExcluder excluder) {
-		this.testResultContainer = container;
-		this.testResultsExcluder = excluder;
-	}
-
-	public void writeResults() throws InterruptedException, XMLStreamException, IOException {
-		ResultFields resultFields = null;
+	public void writeResults(TestResultContainer testResultContainer) throws InterruptedException, XMLStreamException, IOException {
 		if (testResultContainer != null) {
-			resultFields = testResultContainer.getResultFields();
-		}
-		initialize(resultFields);
+			ResultFields resultFields = testResultContainer.getResultFields();
+			initialize(resultFields);
 
-		if (testResultContainer != null) {
-			Iterator<TestResult> items = testResultContainer.getIterator();
-			while (items.hasNext()) {
-				TestResult item = items.next();
-				if (testResultsExcluder == null || !testResultsExcluder.shouldExclude(item)) {
-					writer.writeStartElement("test_run");
-					writer.writeAttribute("module", item.getModuleName());
-					writer.writeAttribute("package", item.getPackageName());
-					writer.writeAttribute("class", item.getClassName());
-					writer.writeAttribute("name", item.getTestName());
-					writer.writeAttribute("duration", String.valueOf(item.getDuration()));
-					writer.writeAttribute("status", item.getResult().toPrettyName());
-					writer.writeAttribute("started", String.valueOf(item.getStarted()));
-					if(item.getExternalReportUrl() != null) {
-						writer.writeAttribute("external_report_url", item.getExternalReportUrl());
-					}
-					if (item.getResult().equals(TestResultStatus.FAILED) && item.getTestError() != null) {
-						TestError testError = item.getTestError();
-						writer.writeStartElement("error");
-						writer.writeAttribute("type", String.valueOf(testError.getErrorType()));
-						writer.writeAttribute("message", String.valueOf(testError.getErrorMsg()));
-						writer.writeCharacters(testError.getStackTraceStr());
-						writer.writeEndElement();
-					}
-					writer.writeEndElement();
-				}
-			}
-		}
-
-		if (customTestResults != null) {
-			for (CustomTestResult result : customTestResults) {
-                writer.writeStartElement("gherkin_test_run");
-				Map<String, String> attributes = result.getAttributes();
-				if (attributes != null) {
-					for (String attrName : attributes.keySet()) {
-						writer.writeAttribute(attrName, result.getAttributes().get(attrName));
-					}
-				}
-				writeXmlElement(result.getXmlElement());
-				writer.writeEndElement();
+			Iterator<TestResult> testResults = testResultContainer.getIterator();
+			while (testResults.hasNext()) {
+				TestResult testResult = testResults.next();
+				testResult.writeXmlElement(writer);
 			}
 		}
 	}
@@ -162,26 +108,6 @@ public class TestResultXmlWriter {
 		} catch (Exception e) {
 			// do without indentation
 			return writer;
-		}
-	}
-
-	private void writeXmlElement(Element rootElement) throws XMLStreamException {
-		if (rootElement != null) {
-			writer.writeStartElement(rootElement.getTagName());
-			for (int a = 0; a < rootElement.getAttributes().getLength(); a++) {
-				String attrName = rootElement.getAttributes().item(a).getNodeName();
-				writer.writeAttribute(attrName, rootElement.getAttribute(attrName));
-			}
-			NodeList childNodes = rootElement.getChildNodes();
-			for (int c = 0; c < childNodes.getLength(); c++) {
-				Node child = childNodes.item(c);
-				if (child instanceof Element) {
-					writeXmlElement((Element) child);
-				} else if (child.getNodeType() == Node.CDATA_SECTION_NODE) {
-					writer.writeCharacters(child.getNodeValue());
-				}
-			}
-			writer.writeEndElement();
 		}
 	}
 }

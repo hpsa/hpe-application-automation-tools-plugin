@@ -7,8 +7,6 @@ import com.hp.octane.plugins.jenkins.ResultQueue;
 import com.hp.octane.plugins.jenkins.model.processors.projects.JobProcessorFactory;
 import com.hp.octane.plugins.jenkins.tests.build.BuildHandlerUtils;
 import com.hp.octane.plugins.jenkins.tests.detection.UFTExtension;
-import com.hp.octane.plugins.jenkins.tests.gherkin.GherkinTestResultsCollector;
-import com.hp.octane.plugins.jenkins.tests.junit.JUnitExtension;
 import com.hp.octane.plugins.jenkins.tests.xml.TestResultXmlWriter;
 import hudson.Extension;
 import hudson.FilePath;
@@ -39,16 +37,16 @@ public class TestListener {
 		boolean success = false;
 		boolean hasTests = false;
 		String jenkinsRootUrl = Jenkins.getInstance().getRootUrl();
-		JUnitExtension.HPRunnerType hpRunnerType = JUnitExtension.HPRunnerType.NONE;
+		HPRunnerType hpRunnerType = HPRunnerType.NONE;
 		List<Builder> builders = JobProcessorFactory.getFlowProcessor(build.getProject()).tryGetBuilders();
 		if (builders != null) {
 			for (Builder builder : builders) {
 				if (builder.getClass().getName().equals(JENKINS_STORM_TEST_RUNNER_CLASS)) {
-					hpRunnerType = JUnitExtension.HPRunnerType.StormRunner;
+					hpRunnerType = HPRunnerType.StormRunner;
 					break;
 				}
 				if (builder.getClass().getName().equals(UFTExtension.RUN_FROM_FILE_BUILDER) || builder.getClass().getName().equals(UFTExtension.RUN_FROM_ALM_BUILDER)) {
-					hpRunnerType = JUnitExtension.HPRunnerType.UFT;
+					hpRunnerType = HPRunnerType.UFT;
 					break;
 				}
 			}
@@ -58,21 +56,9 @@ public class TestListener {
 			for (MqmTestsExtension ext : MqmTestsExtension.all()) {
 				try {
 					if (ext.supports(build)) {
-						GherkinTestResultsCollector gherkinResultsCollector = new GherkinTestResultsCollector(build.getRootDir());
-						List<CustomTestResult> gherkinTestResults = gherkinResultsCollector.getGherkinTestsResults();
-						if (gherkinTestResults != null && gherkinTestResults.size() > 0) {
-							resultWriter.setCustomTestResults(gherkinTestResults);
-							hasTests = true;
-						}
-
 						TestResultContainer testResultContainer = ext.getTestResults(build, hpRunnerType, jenkinsRootUrl);
 						if (testResultContainer != null && testResultContainer.getIterator().hasNext()) {
-							resultWriter.setTestResultContainer(testResultContainer, gherkinResultsCollector);
-							hasTests = true;
-						}
-
-						if (hasTests) {
-							resultWriter.writeResults();
+							resultWriter.writeResults(testResultContainer);
 						}
 					}
 				} catch (IllegalArgumentException e) {

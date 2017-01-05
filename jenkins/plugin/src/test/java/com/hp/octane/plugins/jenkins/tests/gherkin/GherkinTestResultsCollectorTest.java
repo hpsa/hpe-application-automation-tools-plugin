@@ -1,10 +1,8 @@
 package com.hp.octane.plugins.jenkins.tests.gherkin;
 
-import com.hp.octane.plugins.jenkins.tests.CustomTestResult;
-import com.hp.octane.plugins.jenkins.tests.TestResult;
-import com.hp.octane.plugins.jenkins.tests.TestResultStatus;
+import com.hp.octane.plugins.jenkins.tests.testResult.TestResult;
+import com.hp.octane.plugins.jenkins.tests.junit.TestResultStatus;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.xml.sax.SAXException;
 
@@ -13,7 +11,7 @@ import javax.xml.transform.TransformerException;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class GherkinTestResultsCollectorTest {
@@ -38,23 +36,12 @@ public class GherkinTestResultsCollectorTest {
 
     @Test
     public void testConstruct() throws InterruptedException, ParserConfigurationException, IOException, SAXException, TransformerException {
-        new GherkinTestResultsCollector(new File(getDefaultRootResourceFolder()));
-    }
-
-    @Test
-    public void testShouldExclude() throws InterruptedException, ParserConfigurationException, IOException, SAXException, TransformerException {
-        GherkinTestResultsCollector gherkinTestResultsCollector =  new GherkinTestResultsCollector(new File(getDefaultRootResourceFolder()));
-        Assert.assertFalse(gherkinTestResultsCollector.shouldExclude(new TestResult("","","Class1","test6",null,(long)0,(long)0,null,"")));
-        Assert.assertTrue(gherkinTestResultsCollector.shouldExclude(new TestResult("","","test Feature1","test scenario2",null,(long)0,(long)0,null,"")));
-        Assert.assertTrue(gherkinTestResultsCollector.shouldExclude(new TestResult("","","test Feature1","test scenario3",null,(long)0,(long)0,null,"")));
-        Assert.assertTrue(gherkinTestResultsCollector.shouldExclude(new TestResult("","","test Feature2","test scenario4",null,(long)0,(long)0,null,"")));
-        Assert.assertTrue(gherkinTestResultsCollector.shouldExclude(new TestResult("","","test Feature2","test scenario5",null,(long)0,(long)0,null,"")));
+        GherkinTestResultsCollector.collectGherkinTestsResults(new File(getDefaultRootResourceFolder()));
     }
 
     @Test
     public void testGetResults() throws InterruptedException, ParserConfigurationException, IOException, SAXException, TransformerException {
-        GherkinTestResultsCollector gherkinTestResultsCollector =  new GherkinTestResultsCollector(new File(getDefaultRootResourceFolder()));
-        ArrayList<CustomTestResult> gherkinTestsResults = (ArrayList<CustomTestResult>) gherkinTestResultsCollector.getGherkinTestsResults();
+        List<TestResult> gherkinTestsResults = GherkinTestResultsCollector.collectGherkinTestsResults(new File(getDefaultRootResourceFolder()));
         Assert.assertEquals(3,gherkinTestsResults.size());
         validateGherkinTestResult((GherkinTestResult)gherkinTestsResults.get(0),"test Feature1",21,TestResultStatus.FAILED);
         validateGherkinTestResult((GherkinTestResult)gherkinTestsResults.get(1),"test Feature10",21,TestResultStatus.FAILED);
@@ -63,12 +50,12 @@ public class GherkinTestResultsCollectorTest {
 
     @Test (expected=IllegalArgumentException.class)
     public void testXmlHasNoVersion() throws InterruptedException, ParserConfigurationException, IOException, SAXException, TransformerException {
-        new GherkinTestResultsCollector(new File(getRootResourceFolder("f2",defaultResourceName)));
+        GherkinTestResultsCollector.collectGherkinTestsResults(new File(getRootResourceFolder("f2",defaultResourceName)));
     }
 
     @Test (expected=IllegalArgumentException.class)
     public void testXmlHasHigherVersion() throws InterruptedException, ParserConfigurationException, IOException, SAXException, TransformerException {
-        new GherkinTestResultsCollector(new File(getRootResourceFolder("f3",defaultResourceName)));
+        GherkinTestResultsCollector.collectGherkinTestsResults(new File(getRootResourceFolder("f3",defaultResourceName)));
     }
 
     private void validateGherkinTestResult(GherkinTestResult gherkinTestResult, String name, long duration, TestResultStatus status){

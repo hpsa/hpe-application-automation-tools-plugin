@@ -1,6 +1,7 @@
 package com.hp.octane.plugins.jenkins.tests;
 
 import com.hp.octane.plugins.jenkins.tests.detection.ResultFields;
+import com.hp.octane.plugins.jenkins.tests.testResult.TestResult;
 
 import java.util.Iterator;
 

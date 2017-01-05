@@ -2,6 +2,7 @@ package com.hp.octane.plugins.jenkins.tests;
 
 import com.hp.octane.plugins.jenkins.ExtensionUtil;
 import com.hp.octane.plugins.jenkins.ResultQueue;
+import com.hp.octane.plugins.jenkins.tests.junit.TestResultStatus;
 import hudson.matrix.*;
 import hudson.maven.MavenModuleSet;
 import hudson.model.AbstractBuild;

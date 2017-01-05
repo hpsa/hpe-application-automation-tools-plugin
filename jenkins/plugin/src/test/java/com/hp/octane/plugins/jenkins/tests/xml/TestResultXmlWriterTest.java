@@ -1,12 +1,13 @@
 package com.hp.octane.plugins.jenkins.tests.xml;
 
-import com.hp.octane.plugins.jenkins.tests.TestResult;
+import com.hp.octane.plugins.jenkins.tests.junit.JUnitTestResult;
 import com.hp.octane.plugins.jenkins.tests.TestResultContainer;
 import com.hp.octane.plugins.jenkins.tests.TestResultIterable;
 import com.hp.octane.plugins.jenkins.tests.TestResultIterator;
-import com.hp.octane.plugins.jenkins.tests.TestResultStatus;
+import com.hp.octane.plugins.jenkins.tests.junit.TestResultStatus;
 import com.hp.octane.plugins.jenkins.tests.TestUtils;
 import com.hp.octane.plugins.jenkins.tests.detection.ResultFields;
+import com.hp.octane.plugins.jenkins.tests.testResult.TestResult;
 import hudson.FilePath;
 import hudson.matrix.Axis;
 import hudson.matrix.AxisList;
@@ -24,7 +25,8 @@ import org.jvnet.hudson.test.JenkinsRule;
 import javax.xml.stream.XMLStreamException;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TestResultXmlWriterTest {
 
@@ -35,7 +37,9 @@ public class TestResultXmlWriterTest {
 
 	@Before
 	public void initialize() throws IOException {
-		container = new TestResultContainer(Collections.singleton(new TestResult("module", "package", "class", "testName", TestResultStatus.PASSED, 1l, 2l, null, null)).iterator(), new ResultFields());
+		List<TestResult> testResults = new ArrayList<>();
+		testResults.add(new JUnitTestResult("module", "package", "class", "testName", TestResultStatus.PASSED, 1l, 2l, null, null));
+		container = new TestResultContainer(testResults.iterator(), new ResultFields());
 	}
 
 	@Test
@@ -58,8 +62,7 @@ public class TestResultXmlWriterTest {
 	private void assertBuildType(AbstractBuild build, String buildType, String subType) throws IOException, XMLStreamException, InterruptedException {
 		FilePath testXml = new FilePath(build.getWorkspace(), "test.xml");
 		TestResultXmlWriter xmlWriter = new TestResultXmlWriter(testXml, build);
-		xmlWriter.setTestResultContainer(container, null);
-		xmlWriter.writeResults();
+		xmlWriter.writeResults(container);
 		xmlWriter.close();
 
 		TestResultIterator iterator = new TestResultIterable(new File(testXml.getRemote())).iterator();

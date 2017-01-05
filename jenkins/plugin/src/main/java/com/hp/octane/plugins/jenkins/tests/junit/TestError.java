@@ -1,4 +1,4 @@
-package com.hp.octane.plugins.jenkins.tests;
+package com.hp.octane.plugins.jenkins.tests.junit;
 
 import java.io.Serializable;
 
