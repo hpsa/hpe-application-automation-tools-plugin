@@ -11,9 +11,7 @@ import com.hp.octane.plugins.jenkins.tests.SafeLoggingAsyncPeriodWork;
 import hudson.Extension;
 import hudson.model.TaskListener;
 import hudson.util.TimeUnit2;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
+import java.util.logging.Logger;
 import java.io.IOException;
 
 /**
@@ -22,7 +20,7 @@ import java.io.IOException;
 @Extension
 public class BdiConfigurationFetcher extends SafeLoggingAsyncPeriodWork {
 
-    private static Logger logger = LogManager.getLogger(BdiConfigurationFetcher.class);
+    private static Logger logger = Logger.getLogger(BdiConfigurationFetcher.class.getName());
 
     private JenkinsMqmRestClientFactory clientFactory;
 
@@ -53,7 +51,7 @@ public class BdiConfigurationFetcher extends SafeLoggingAsyncPeriodWork {
             LogDispatchAction.descriptor().setIsApplicable(bdiConfiguration != null && bdiConfiguration.isFullyConfigured());
             shouldFetchBdiConfiguration = false;
         } catch (Exception e) {
-            logger.error("Failed to fetch BDI configuration from Octane", e);
+            logger.warning("Failed to fetch BDI configuration from Octane. reason:" + e.getMessage());
         }
     }
 
