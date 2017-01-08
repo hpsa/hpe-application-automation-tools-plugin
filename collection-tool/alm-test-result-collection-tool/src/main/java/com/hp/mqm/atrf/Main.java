@@ -32,11 +32,11 @@ public class Main {
         cliParser.handleHelpAndVersionOptions(args);
 
         configureLog4J();
-        logger.info("***************************************************************************************************");
+        logger.info("************************************************************************************");
         DateFormat dateFormatter = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault());
         DateFormat timeFormatter = DateFormat.getTimeInstance(DateFormat.DEFAULT, Locale.getDefault());
         logger.info((String.format("Starting HPE ALM Test Result Collection Tool %s %s", dateFormatter.format(new Date()), timeFormatter.format(new Date()))));
-        logger.info("***************************************************************************************************");
+        logger.info("************************************************************************************");
 
 
         FetchConfiguration configuration = cliParser.parse(args);
@@ -47,7 +47,7 @@ public class Main {
 
         long end = System.currentTimeMillis();
         logger.info(String.format("Finished creating tests and test results on ALM Octane in %s seconds", (end - start) / 1000));
-        logger.info("***************************************************************************************************");
+        logger.info("************************************************************************************");
     }
 
     private static void setUncaughtExceptionHandler() {
