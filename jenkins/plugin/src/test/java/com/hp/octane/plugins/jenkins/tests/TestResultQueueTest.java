@@ -2,6 +2,7 @@
 
 package com.hp.octane.plugins.jenkins.tests;
 
+import com.hp.octane.plugins.jenkins.ResultQueue;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -9,24 +10,24 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 
-public class TestResultQueueImplTest {
+public class TestResultQueueTest {
 
-    private TestResultQueueImpl queue;
+    private TestResultQueue queue;
 
     @Before
     public void init() throws IOException {
-        File file = File.createTempFile("TestResultQueueImplTest", "");
+        File file = File.createTempFile("TestResultQueueTest", "");
         file.delete();
-        queue = new TestResultQueueImpl(file);
+        queue = new TestResultQueue(file);
     }
 
     @Test
     public void testQueue() {
         queue.add("foo", 1);
-        TestResultQueue.QueueItem item = queue.peekFirst();
-        Assert.assertEquals("foo", item.projectName);
-        Assert.assertEquals(1, item.buildNumber);
-        Assert.assertEquals(0, item.failCount);
+        ResultQueue.QueueItem item = queue.peekFirst();
+        Assert.assertEquals("foo", item.getProjectName());
+        Assert.assertEquals(1, item.getBuildNumber());
+        Assert.assertEquals(0, item.getFailCount());
     }
 
     @Test
@@ -43,19 +44,19 @@ public class TestResultQueueImplTest {
     public void testRetry() {
         Assert.assertNull(queue.peekFirst());
         queue.add("foo", 1);
-        Assert.assertEquals(0, queue.peekFirst().failCount);
+        Assert.assertEquals(0, queue.peekFirst().getFailCount());
         Assert.assertTrue(queue.failed());
-        Assert.assertEquals("foo", queue.peekFirst().projectName);
-        Assert.assertEquals(1, queue.peekFirst().buildNumber);
-        Assert.assertEquals(1, queue.peekFirst().failCount);
+        Assert.assertEquals("foo", queue.peekFirst().getProjectName());
+        Assert.assertEquals(1, queue.peekFirst().getBuildNumber());
+        Assert.assertEquals(1, queue.peekFirst().getFailCount());
         Assert.assertTrue(queue.failed());
-        Assert.assertEquals("foo", queue.peekFirst().projectName);
-        Assert.assertEquals(1, queue.peekFirst().buildNumber);
-        Assert.assertEquals(2, queue.peekFirst().failCount);
+        Assert.assertEquals("foo", queue.peekFirst().getProjectName());
+        Assert.assertEquals(1, queue.peekFirst().getBuildNumber());
+        Assert.assertEquals(2, queue.peekFirst().getFailCount());
         Assert.assertTrue(queue.failed());
-        Assert.assertEquals("foo", queue.peekFirst().projectName);
-        Assert.assertEquals(1, queue.peekFirst().buildNumber);
-        Assert.assertEquals(3, queue.peekFirst().failCount);
+        Assert.assertEquals("foo", queue.peekFirst().getProjectName());
+        Assert.assertEquals(1, queue.peekFirst().getBuildNumber());
+        Assert.assertEquals(3, queue.peekFirst().getFailCount());
         Assert.assertFalse(queue.failed());
         Assert.assertNull(queue.peekFirst());
     }

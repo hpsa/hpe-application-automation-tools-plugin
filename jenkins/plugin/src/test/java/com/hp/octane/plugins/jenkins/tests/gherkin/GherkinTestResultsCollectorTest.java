@@ -18,7 +18,7 @@ import java.util.Map;
 
 public class GherkinTestResultsCollectorTest {
     String defaultResourceRelativePath = "f1";
-    String defaultResourceName = "gherkinNGAResults0.xml";
+    String defaultResourceName = "OctaneGherkinResults0.xml";
 
     private String getDefaultRootResourceFolder(){
         return getRootResourceFolder(defaultResourceRelativePath,defaultResourceName);

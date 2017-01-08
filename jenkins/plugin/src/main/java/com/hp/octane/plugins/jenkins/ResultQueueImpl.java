@@ -1,22 +1,16 @@
-// (C) Copyright 2003-2015 Hewlett-Packard Development Company, L.P.
-
-package com.hp.octane.plugins.jenkins.tests;
+package com.hp.octane.plugins.jenkins;
 
 import com.squareup.tape.FileObjectQueue;
-import hudson.Extension;
-import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import net.sf.json.JSONSerializer;
 import org.apache.commons.io.IOUtils;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
+import java.io.*;
 
-@Extension
-public class TestResultQueueImpl implements TestResultQueue {
+/**
+ * Created by benmeior on 11/21/2016.
+ */
+public abstract class ResultQueueImpl implements ResultQueue {
 
     private static final int RETRY_COUNT = 3;
 
@@ -24,19 +18,7 @@ public class TestResultQueueImpl implements TestResultQueue {
 
     private QueueItem currentItem;
 
-    public TestResultQueueImpl() throws IOException {
-        File queueFile = new File(Jenkins.getInstance().getRootDir(), "octane-test-result-queue.dat");
-        init(queueFile);
-    }
-
-    /*
-     * To be used in tests only.
-     */
-    TestResultQueueImpl(File queueFile) throws IOException {
-        init(queueFile);
-    }
-
-    private void init(File queueFile) throws IOException {
+    protected void init(File queueFile) throws IOException {
         queue = new FileObjectQueue<QueueItem>(queueFile, new JsonConverter());
     }
 
@@ -58,8 +40,9 @@ public class TestResultQueueImpl implements TestResultQueue {
             } else {
                 retry = false;
             }
-            queue.remove();
-            currentItem = null;
+
+            remove();
+
             return retry;
         } else {
             throw new IllegalStateException("no outstanding item");
@@ -81,6 +64,11 @@ public class TestResultQueueImpl implements TestResultQueue {
         queue.add(new QueueItem(projectName, buildNumber));
     }
 
+    @Override
+    public synchronized void add(String projectName, int buildNumber, String workspace) {
+        queue.add(new QueueItem(projectName, buildNumber, workspace));
+    }
+
     private static class JsonConverter implements FileObjectQueue.Converter<QueueItem> {
 
         @Override
@@ -98,10 +86,16 @@ public class TestResultQueueImpl implements TestResultQueue {
         }
 
         private QueueItem objectFromJson(JSONObject json) {
-            return new QueueItem(
-                    json.getString("project"),
-                    json.getInt("build"),
-                    json.getInt("count"));
+            return json.containsKey("workspace") ?
+                    new QueueItem(
+                            json.getString("project"),
+                            json.getInt("build"),
+                            json.getInt("count"),
+                            json.getString("workspace")) :
+                    new QueueItem(
+                            json.getString("project"),
+                            json.getInt("build"),
+                            json.getInt("count"));
         }
 
         private JSONObject jsonFromObject(QueueItem item) {
@@ -109,6 +103,7 @@ public class TestResultQueueImpl implements TestResultQueue {
             json.put("project", item.projectName);
             json.put("build", item.buildNumber);
             json.put("count", item.failCount);
+            json.put("workspace", item.workspace);
             return json;
         }
     }

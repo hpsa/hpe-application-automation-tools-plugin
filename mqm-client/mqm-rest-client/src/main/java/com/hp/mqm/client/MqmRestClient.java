@@ -285,4 +285,18 @@ public interface MqmRestClient extends BaseMqmRestClient {
 	 * @return status code
 	 */
 	int putAbridgedResult(String selfIdentity, String taskId, String contentJSON);
+
+	/**
+	 * @return BDI configuration of the current tenant
+	 */
+	JSONObject getBdiConfiguration();
+
+	/**
+	 *
+	 * @param ciServerId identity of the server
+	 * @param ciJobName The job name
+	 * @return The job's workspace id if the job is part of a build context, null otherwise.
+	 */
+	List<String> getJobWorkspaceId(String ciServerId, String ciJobName);
+
 }
