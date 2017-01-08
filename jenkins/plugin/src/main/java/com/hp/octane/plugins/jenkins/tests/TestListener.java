@@ -35,6 +35,7 @@ public class TestListener {
 		FilePath resultPath = new FilePath(new FilePath(build.getRootDir()), TEST_RESULT_FILE);
 		TestResultXmlWriter resultWriter = new TestResultXmlWriter(resultPath, build);
 		boolean success = false;
+		boolean hasTests = false;
 		String jenkinsRootUrl = Jenkins.getInstance().getRootUrl();
 		HPRunnerType hpRunnerType = HPRunnerType.NONE;
 		List<Builder> builders = JobProcessorFactory.getFlowProcessor(build.getProject()).tryGetBuilders();
@@ -58,6 +59,7 @@ public class TestListener {
 						TestResultContainer testResultContainer = ext.getTestResults(build, hpRunnerType, jenkinsRootUrl);
 						if (testResultContainer != null && testResultContainer.getIterator().hasNext()) {
 							resultWriter.writeResults(testResultContainer);
+							hasTests = true;
 						}
 					}
 				} catch (IllegalArgumentException e) {
@@ -80,7 +82,7 @@ public class TestListener {
 		} finally {
 			try {
 				resultWriter.close();
-				if (success) {
+				if (success && hasTests) {
 					String projectFullName = BuildHandlerUtils.getProjectFullName(build);
 					if (projectFullName != null) {
 						queue.add(projectFullName, build.getNumber());
