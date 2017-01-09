@@ -14,17 +14,18 @@ import hudson.model.AbstractProject;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.model.listeners.RunListener;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nonnull;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * Created by benmeior on 11/16/2016.
  */
 @Extension
 public class RunListenerForLogs extends RunListener<Run> {
-    private static Logger logger = Logger.getLogger(RunListenerForLogs.class.getName());
+    private static Logger logger = LogManager.getLogger(RunListenerForLogs.class);
 
     private JenkinsMqmRestClientFactory clientFactory;
 

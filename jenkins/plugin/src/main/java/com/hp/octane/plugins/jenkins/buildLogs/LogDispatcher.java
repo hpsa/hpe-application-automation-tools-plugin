@@ -17,7 +17,9 @@ import hudson.model.TaskListener;
 import hudson.util.TimeUnit2;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
-import java.util.logging.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.IOException;
 
 /**
@@ -26,7 +28,7 @@ import java.io.IOException;
 @Extension
 public class LogDispatcher extends SafeLoggingAsyncPeriodWork {
     private static final String BDI_PRODUCT = "app";
-    private static Logger logger = Logger.getLogger(LogDispatcher.class.getName());
+    private static Logger logger = LogManager.getLogger(LogDispatcher.class);
 
     @Inject
     private RetryModel retryModel;
@@ -55,7 +57,7 @@ public class LogDispatcher extends SafeLoggingAsyncPeriodWork {
     private void manageLogsQueue() {
         BdiConfiguration configuration = bdiConfigurationFetcher.obtain();
         if (configuration == null || !configuration.isFullyConfigured()) {
-            logger.warning("Could not send logs. BDI is not configured");
+            logger.error("Could not send logs. BDI is not configured");
             return;
         }
 
@@ -84,10 +86,10 @@ public class LogDispatcher extends SafeLoggingAsyncPeriodWork {
 
                 logsQueue.remove();
             } catch (Exception e) {
-                logger.warning("Could not send log of build [" + item.getProjectName() + "#" + item.getBuildNumber()
+                logger.error("Could not send log of build [" + item.getProjectName() + "#" + item.getBuildNumber()
                         + "] to BDI. Reason: " + e.getMessage());
                 if (!logsQueue.failed()) {
-                    logger.warning("Maximum number of attempts reached, operation will not be re-attempted for this build");
+                    logger.warn("Maximum number of attempts reached, operation will not be re-attempted for this build");
                 }
             }
         }
@@ -96,13 +98,13 @@ public class LogDispatcher extends SafeLoggingAsyncPeriodWork {
     private Run getBuildFromQueueItem(ResultQueue.QueueItem item) {
         Job project = (Job) Jenkins.getInstance().getItemByFullName(item.getProjectName());
         if (project == null) {
-            logger.warning("Project [" + item.getProjectName() + "] no longer exists, pending logs can't be submitted");
+            logger.warn("Project [" + item.getProjectName() + "] no longer exists, pending logs can't be submitted");
             return null;
         }
 
         Run build = project.getBuildByNumber(item.getBuildNumber());
         if (build == null) {
-            logger.warning("Build [" + item.getProjectName() + "#" + item.getBuildNumber() + "] no longer exists, pending logs can't be submitted");
+            logger.warn("Build [" + item.getProjectName() + "#" + item.getBuildNumber() + "] no longer exists, pending logs can't be submitted");
             return null;
         }
         return build;
