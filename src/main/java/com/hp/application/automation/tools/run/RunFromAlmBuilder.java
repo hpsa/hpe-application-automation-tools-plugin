@@ -136,7 +136,10 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         
         if (almServerSettingsModel == null) {
             listener.fatalError("An ALM server is not defined. Go to Manage Jenkins->Configure System and define your ALM server under Application Lifecycle Management");
-            build.setResult(Result.FAILURE);
+            
+	    // set pipeline stage as failure in case if ALM server was not configured
+	    build.setResult(Result.FAILURE);
+		
             return;
         }
         
