@@ -4,6 +4,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -16,15 +18,51 @@ public class ConfigurationUtilities {
 
     private static boolean writeToLastSentRun = true;
 
+    private static String lastSentFilePath;
+    private static FetchConfiguration fetchConfiguration;
     static final Logger logger = LogManager.getLogger();
-    public static String LAST_SENT_FILE_PATH = "logs/lastSent.txt";
+
+
+    public static void setConfiguration(FetchConfiguration conf) {
+        fetchConfiguration = conf;
+    }
+
+
+    private static String getLastSentFilePath() {
+
+        if (lastSentFilePath == null) {
+
+            String almHost = "ALM", octaneHost = "OCTANE";
+            try {
+                URI uri = new URI(fetchConfiguration.getAlmServerUrl());
+                almHost = uri.getHost();
+
+                uri = new URI(fetchConfiguration.getOctaneServerUrl());
+                octaneHost = uri.getHost();
+            } catch (URISyntaxException e) {
+
+            }
+
+            String splitter = "_";
+            StringBuilder sb = new StringBuilder("logs/lastSent").append(splitter);
+            sb.append(almHost).append(splitter);
+            sb.append(fetchConfiguration.getAlmDomain()).append(splitter);
+            sb.append(fetchConfiguration.getAlmProject()).append(splitter);
+            sb.append(octaneHost).append(splitter);
+            sb.append(fetchConfiguration.getOctaneSharedSpaceId()).append(splitter);
+            sb.append(fetchConfiguration.getOctaneWorkspaceId());
+            sb.append(".txt");
+            lastSentFilePath = sb.toString();
+        }
+        return lastSentFilePath;
+    }
 
     public static String readLastSentRunId() {
         String value = null;
-        Path path = Paths.get(LAST_SENT_FILE_PATH);
+        Path path = Paths.get(getLastSentFilePath());
         if (Files.exists(path)) {
             try {
-                value = new String(Files.readAllBytes(Paths.get(LAST_SENT_FILE_PATH))).trim();
+                value = new String(Files.readAllBytes(path)).trim();
                 int intValue = Integer.parseInt(value);
 
             } catch (IOException e) {
@@ -40,7 +78,7 @@ public class ConfigurationUtilities {
     public static void saveLastSentRunId(String lastSentId) {
 
         if (writeToLastSentRun) {
-            Path path = Paths.get(LAST_SENT_FILE_PATH);
+            Path path = Paths.get(getLastSentFilePath());
             try {
                 if (!Files.exists(path)) {
                     Files.createFile(path);

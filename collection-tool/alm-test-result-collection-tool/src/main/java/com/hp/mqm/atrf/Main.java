@@ -1,6 +1,7 @@
 package com.hp.mqm.atrf;
 
 import com.hp.mqm.atrf.core.configuration.CliParser;
+import com.hp.mqm.atrf.core.configuration.ConfigurationUtilities;
 import com.hp.mqm.atrf.core.configuration.FetchConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -32,6 +33,7 @@ public class Main {
         cliParser.handleHelpAndVersionOptions(args);
 
         configureLog4J();
+        logger.info("\n\n");
         logger.info("************************************************************************************");
         DateFormat dateFormatter = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault());
         DateFormat timeFormatter = DateFormat.getTimeInstance(DateFormat.DEFAULT, Locale.getDefault());
@@ -40,7 +42,7 @@ public class Main {
 
 
         FetchConfiguration configuration = cliParser.parse(args);
-
+        ConfigurationUtilities.setConfiguration(configuration);
 
         App app = new App(configuration);
         app.start();
