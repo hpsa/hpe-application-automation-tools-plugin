@@ -50,7 +50,6 @@ public class BdiConfigurationFetcher extends SafeLoggingAsyncPeriodWork {
         try {
             MqmRestClient mqmRestClient = createMqmRestClient();
             bdiConfiguration = BdiConfiguration.fromJSON(mqmRestClient.getBdiConfiguration());
-            LogDispatchAction.descriptor().setIsApplicable(bdiConfiguration != null && bdiConfiguration.isFullyConfigured());
             shouldFetchBdiConfiguration = false;
         } catch (Exception e) {
             logger.error("Failed to fetch BDI configuration from Octane", e);

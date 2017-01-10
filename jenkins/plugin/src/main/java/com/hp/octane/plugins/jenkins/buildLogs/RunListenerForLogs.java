@@ -10,7 +10,6 @@ import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
 import hudson.Extension;
 import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.model.listeners.RunListener;
@@ -48,24 +47,12 @@ public class RunListenerForLogs extends RunListener<Run> {
 
         AbstractBuild build = (AbstractBuild) r;
 
-        if (hasLogDispatchAction(build.getProject())) {
-            MqmRestClient mqmRestClient = createMqmRestClient();
-            List<String> workspaces = mqmRestClient.getJobWorkspaceId(ServerIdentity.getIdentity(), build.getParent().getName());
+        MqmRestClient mqmRestClient = createMqmRestClient();
+        List<String> workspaces = mqmRestClient.getJobWorkspaceId(ServerIdentity.getIdentity(), build.getParent().getName());
 
-            for (String workspace : workspaces) {
-                logDispatcher.enqueueLog(build.getProject().getName(), build.getNumber(), workspace);
-            }
+        for (String workspace : workspaces) {
+            logDispatcher.enqueueLog(build.getProject().getName(), build.getNumber(), workspace);
         }
-    }
-
-    private boolean hasLogDispatchAction(AbstractProject project) {
-        List publishers = project.getPublishersList().toList();
-        for (Object publisher : publishers) {
-            if ((publisher.getClass().getName()).equals("com.hp.octane.plugins.jenkins.buildLogs.LogDispatchAction")) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private MqmRestClient createMqmRestClient() {
