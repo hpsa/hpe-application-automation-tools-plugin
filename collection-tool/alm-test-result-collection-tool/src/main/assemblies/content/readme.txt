@@ -114,7 +114,7 @@ ALM 2 ALM Octane Field Mapping *************************************************
 
 
 ------------------|--------------------|--------------------------------------------------------------------------------
-ALM Octane Entity | ALM Octane Field       | ALM Field
+ALM Octane Entity | ALM Octane Field   | ALM Field
 ------------------|--------------------|--------------------------------------------------------------------------------
 Test              | Name               | If run's test name == run's test configuration name
                   |                    |   Then => Format : AlmTestId #{testId} : {testName}
@@ -183,8 +183,9 @@ Full configuration file example ************************************************
               <!--Retrieve runs executed on or after a specified date. Format yyyy-MM-dd-->
               <startFromDate></startFromDate>
 
-              <!--Filter runs by test type. Possible values: MANUAL, QUICKTEST_TEST, BUSINESS-PROCESS, LEANFT-TEST. 
-			  You can select one or several types separated with 'OR' : MANUAL OR QUICKTEST_TEST-->
+              <!--Filter runs by test type. Possible values: MANUAL, QUICKTEST_TEST, BUSINESS-PROCESS, LEANFT-TEST.
+                 To specify multiple types, separate them with 'OR'. For example: BUSINESS-PROCESS OR QUICKTEST_TEST.
+                 To retrieve test results for all test types except one, use the 'NOT' operator. For example: NOT MANUAL. -->
               <testType></testType>
 
               <!--Retrieve runs related to a specific entity, for example 'runs that related to release AAA' or ‘runs from sprint 5’. Provide the entity type and ID-->
