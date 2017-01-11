@@ -15,7 +15,7 @@ java -jar alm-test-result-collection-tool.jar [OPTIONS]...
 
  -c,--config-file <FILE>               Configuration file location. Default configuration file name is 'conf.xml'
  -h,--help                             Show this help
- -o,--output-file <FILE>                     Write output to file instead of sending it to ALM Octane. File path is optional. 
+ -o,--output-file <FILE>               Write output to file instead of sending it to ALM Octane. File path is optional.
                                        Default file name is 'output.xml'.
                                        When saving to a file, the tool saves up to 1000 runs. 
                                        No ALM Octane URL or authentication configuration is required if you use this option.
