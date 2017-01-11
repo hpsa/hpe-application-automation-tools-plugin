@@ -62,6 +62,16 @@ public class App {
 
     public void start() {
 
+        confValidation();
+
+        List<OctaneTestResultOutput> resultOutputs = outputToOctane();
+
+        getCreationStatus(resultOutputs);
+    }
+
+    private void confValidation() {
+        logger.info(System.lineSeparator());
+        logger.info("PHASE : connectivity validation");
         //VALIDATE LOGIN TO ALM
         loginToAlm();
 
@@ -69,21 +79,12 @@ public class App {
         if (!isOutput()) {
             loginToOctane();
         }
-
-
-        logger.info("************************************************************************************");
-        //SEND/OUTPUT DATA
-        List<OctaneTestResultOutput> resultOutputs = outputToOctane();
-
-
-        logger.info("************************************************************************************");
-
-        //GET PERSISTENCE STATUS
-        getCreationStatus(resultOutputs);
     }
 
     private void getCreationStatus(List<OctaneTestResultOutput> resultOutputs) {
-        logger.info("Get creation statuses");
+        logger.info(System.lineSeparator());
+        logger.info("PHASE : get creation statuses");
+        sleep(5 * 1000);//wait at least 5 sec before to give time to octane to complete the creation
         for (int i = 0; i < resultOutputs.size(); i++) {
             OctaneTestResultOutput current = resultOutputs.get(i);
             getCreationStatusInternal(configuration, i + 1, current);
@@ -128,7 +129,8 @@ public class App {
 
     private List<OctaneTestResultOutput> outputToOctane() {
         if (!isOutput()) {
-            logger.info("Starting to send data to ALM Octane");
+            logger.info(System.lineSeparator());
+            logger.info("PHASE : send data to ALM Octane");
         }
 
         int bulkSize = Integer.parseInt(configuration.getSyncBulkSize());

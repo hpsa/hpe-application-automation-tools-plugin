@@ -6,9 +6,12 @@ import com.hp.mqm.atrf.core.configuration.FetchConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.ThreadContext;
 import org.apache.logging.log4j.core.LoggerContext;
 
 import java.io.File;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.DateFormat;
@@ -33,7 +36,7 @@ public class Main {
         cliParser.handleHelpAndVersionOptions(args);
 
         configureLog4J();
-        logger.info("\n\n");
+        logger.info(System.lineSeparator() + System.lineSeparator());
         logger.info("************************************************************************************");
         DateFormat dateFormatter = DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault());
         DateFormat timeFormatter = DateFormat.getTimeInstance(DateFormat.DEFAULT, Locale.getDefault());
@@ -49,7 +52,7 @@ public class Main {
 
         long end = System.currentTimeMillis();
         logger.info(String.format("Finished creating tests and test results on ALM Octane in %s seconds", (end - start) / 1000));
-        logger.info("************************************************************************************");
+        logger.info(System.lineSeparator());
     }
 
     private static void setUncaughtExceptionHandler() {
@@ -61,6 +64,13 @@ public class Main {
     }
 
     private static void configureLog4J() {
+
+        //set process Id on local
+        RuntimeMXBean rt = ManagementFactory.getRuntimeMXBean();
+        String pid = rt.getName();
+        ThreadContext.put("PID", pid);
+
+
         String log4jConfiguration = System.getProperty("log4j.configuration");
         if (StringUtils.isEmpty(log4jConfiguration)) {
             //try to take from file
@@ -79,7 +89,7 @@ public class Main {
 
             LoggerContext context = (LoggerContext) LogManager.getContext(false);
             context.setConfigLocation(uri);
-            logger.info("Log4j configuration loaded from " + uri.toString());
+            //logger.info("Log4j configuration loaded from " + uri.toString());
         } else {
             logger.info("Log4j configuration is loading from log4j.configuration=" + log4jConfiguration);
         }
