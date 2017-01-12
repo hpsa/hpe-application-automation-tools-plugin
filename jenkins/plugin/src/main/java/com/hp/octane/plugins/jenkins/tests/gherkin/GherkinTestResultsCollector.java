@@ -203,13 +203,17 @@ public class GherkinTestResultsCollector {
     private static void validateXMLVersion(Document doc) {
         String XML_VERSION = "1";
         NodeList featuresNodes = doc.getElementsByTagName("features");
-        String versionAttr = ((Element)featuresNodes.item(0)).getAttribute("version");
-        if(versionAttr ==null || versionAttr.isEmpty() || versionAttr.compareTo(XML_VERSION)!=0){
-            throw new IllegalArgumentException("\n********************************************************\n" +
-                                                "Incompatible xml version received from the Octane formatter.\n" +
-                                                "expected version = " + XML_VERSION + " actual version = " + versionAttr + ".\n" +
-                                                "You may need to update the octane formatter version to the correct version in order to work with this jenkins plugin\n" +
-                                                "********************************************************");
+        if(featuresNodes.getLength() > 0) {
+            String versionAttr = ((Element) featuresNodes.item(0)).getAttribute("version");
+            if (versionAttr == null || versionAttr.isEmpty() || versionAttr.compareTo(XML_VERSION) != 0) {
+                throw new IllegalArgumentException("\n********************************************************\n" +
+                    "Incompatible xml version received from the Octane formatter.\n" +
+                    "expected version = " + XML_VERSION + " actual version = " + versionAttr + ".\n" +
+                    "You may need to update the octane formatter version to the correct version in order to work with this jenkins plugin\n" +
+                    "********************************************************");
+            }
+        } else {
+            throw new IllegalArgumentException("The file does not contain Octane Gherkin results. Configuration error?");
         }
     }
 }

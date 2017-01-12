@@ -50,11 +50,22 @@ public class CucumberResultsService {
 
         byte[] content = workspace.act(new FileContentCallable(resultFile));
         log("Got result file content");
+
+        validateContent(content);
+
         File target = existingReportFile;
         try (FileOutputStream os = new FileOutputStream(target)) {
             os.write(content);
         }
         log("Result file copied to %s", target.getPath());
+    }
+
+    private static void validateContent(byte[] content) {
+        String contentStr = new String(content, 0, content.length > 2000 ? 2000 : content.length);
+        //Heuristic validation. we don't check the whole file structure here - we should be quick.
+        if(!contentStr.contains("<features")) {
+            throw new IllegalArgumentException("The file is not Octane Gherkin results file");
+        }
     }
 
     public static void log(final String message, final String... stringFormatArgs) {

@@ -134,6 +134,16 @@ public class GherkinResultsTest {
         Assert.assertFalse(new File(build.getRootDir(), "mqmTests.xml").exists());
     }
 
+    @Test
+    public void testGherkinResultsWrongFile() throws Exception {
+        gherkinResults("pom.xml", false);
+    }
+
+    @Test
+    public void testGherkinResultsWrongLongFile() throws Exception {
+        gherkinResults("settings.xml", false);
+    }
+
     private void gherkinResults(String glob, boolean buildShouldSucceed) throws Exception {
         String projectName = "root-job-" + UUID.randomUUID().toString();
         FreeStyleProject project = rule.createFreeStyleProject(projectName);
