@@ -10,13 +10,16 @@ The HPE ALM Test Result Collection Tool is a command line tool for retrieving te
 Usage ******************************************************************************************************************
 ------------------------------------------------------------------------------------------------------------------------
 
+Store the tool and run it from a location that can access both ALM and ALM Octane. This location can also be the machine on
+which the ALM or ALM Octane server is installed:
+
 java -jar alm-test-result-collection-tool.jar [OPTIONS]...
 
 
- -c,--config-file <FILE>               Configuration file location. Default configuration file name is 'conf.xml'
+ -c,--config-file <FILE>               Configuration file location. Default is 'conf.xml' in the same directory as the tool.
  -h,--help                             Show this help
  -o,--output-file <FILE>               Write output to file instead of sending it to ALM Octane. File path is optional.
-                                       Default file name is 'output.xml'.
+                                       Default file name is 'output.xml' in the same directory as the tool.
                                        When saving to a file, the tool saves up to 1000 runs. 
                                        No ALM Octane URL or authentication configuration is required if you use this option.
  -pa,--password-alm <PASSWORD>         Password for ALM user to use for retrieving test results
@@ -32,12 +35,11 @@ java -jar alm-test-result-collection-tool.jar [OPTIONS]...
 Configuration **********************************************************************************************************
 ------------------------------------------------------------------------------------------------------------------------
 To retrieve test results from ALM and send them to ALM Octane, this tool requires ALM and ALM Octane URLs,
-authentication details, definition of which runs to retrieve from ALM side.
-All this data can be passed in a configuration file. For details about the configuration file format and structure, see the end of this readme.
+authentication details, and a definition of which runs to retrieve from ALM.
+All of this data can be passed in a configuration file. For details about the configuration file format and structure, see the end of this readme.
 
-If the configuration file is named 'conf.xml' and is located in the same
-directory as this tool, it is automatically detected. Otherwise, pass the 
-configuration file pathname as a command-line argument (-c option).
+If the configuration file is named 'conf.xml' and is located in the same directory as this tool, it is automatically detected. 
+Otherwise, pass the configuration file pathname as a command-line argument (-c option).
 
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -45,8 +47,8 @@ Password handling **************************************************************
 ------------------------------------------------------------------------------------------------------------------------
 The password can be entered in the following ways:
 *  Configuration file
-*  Password is entered directly to command line (-pa and -po options)
-*  Password is entered from file (-paf and -pof option). The file should contain only the password.
+*  Password is entered directly in the command line (-pa and -po options)
+*  Password is entered from a file (-paf and -pof option). The file should contain only the password.
 
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -67,7 +69,7 @@ Predefined filters:
 All filter options are optional. If you specify more than one option, they are used  with "AND" logic.
 
 REST-based custom filter:
-In the 'conf->alm->runFilter' section of the configuration file, define a <custom> element with a  REST filter on the
+In the 'conf->alm->runFilter' section of the configuration file, define a <custom> element with a REST filter on the
 run entity (for details about building a REST filter, see the ALM help page about "ALM REST API").
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -75,11 +77,21 @@ Log files **********************************************************************
 ------------------------------------------------------------------------------------------------------------------------
 The tool writes log information to 3 log files located in the "logs" directory.
 1. consoleLog.log : all information printed to the console is also written to this file. This is where you can find historical information about past runs.
-2. restLog.log : all REST requests are stored in this log
+2. restLog.log : all REST requests are stored in this log.
 3. lastSent.txt : this file contains only the ID of the last run that was sent to ALM Octane.
+3. lastSent_<endpointPairID>.txt : A text file containing the ID of the last test run that was sent to ALM Octane. 
+   This ID is used for the <startFromId>LAST_SENT</startFromId>  filter option.
+   The tools saves one file for each pair of ALM project -> ALM Octane workspace for which the tool sent results.
+   The file name reflects the endpoint URLs as follows: lastSent_<almServerHost>_<almDomain>_<almProject>_<almOctaneServerHost>_<almOctaneSharedSpace>_< almOctaneWorkspace >.txt
+   Notes: 
+   a. The last sent id represents the highest test run ID previously retrieved from a specific ALM project and sent to a specific ALM Octane workspace, regardless of the filter used. 
+   If you change the filter, you may want to retrieve test runs whose ID is lower that the stored one. 
+   To ignore the stored 'last sent id', delete the relevant lastSent file.
+   b. The lastSent file is not updated when you run the tool with the –o option (output to file).
+
 
 ------------------------------------------------------------------------------------------------------------------------
-Required permissions and Supported servers *****************************************************************************
+Required permissions and supported servers *****************************************************************************
 ------------------------------------------------------------------------------------------------------------------------
 
 The tool supports 12.* versions of ALM.
