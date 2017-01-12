@@ -2,13 +2,15 @@
 
 package com.hp.octane.plugins.jenkins.tests;
 
+import com.hp.octane.plugins.jenkins.tests.junit.JUnitTestResult;
+
 import javax.xml.stream.XMLStreamException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.Reader;
 
-public class TestResultIterable implements Iterable<TestResult> {
+public class TestResultIterable implements Iterable<JUnitTestResult> {
 
     private Reader reader;
 

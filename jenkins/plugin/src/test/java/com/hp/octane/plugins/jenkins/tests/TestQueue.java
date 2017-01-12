@@ -9,7 +9,7 @@ import org.junit.Assert;
 import java.util.Collection;
 import java.util.LinkedList;
 
-class TestQueue implements ResultQueue {
+public class TestQueue implements ResultQueue {
 
 	private LinkedList<QueueItem> queue = new LinkedList<QueueItem>();
 	private int discard;

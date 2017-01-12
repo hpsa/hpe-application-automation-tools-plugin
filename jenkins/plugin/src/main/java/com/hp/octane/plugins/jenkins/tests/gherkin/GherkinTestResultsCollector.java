@@ -1,10 +1,8 @@
 package com.hp.octane.plugins.jenkins.tests.gherkin;
 
 import com.hp.octane.plugins.jenkins.actions.cucumber.CucumberResultsService;
-import com.hp.octane.plugins.jenkins.tests.CustomTestResult;
-import com.hp.octane.plugins.jenkins.tests.TestResult;
-import com.hp.octane.plugins.jenkins.tests.TestResultStatus;
-import com.hp.octane.plugins.jenkins.tests.TestResultsExcluder;
+import com.hp.octane.plugins.jenkins.tests.testResult.TestResult;
+import com.hp.octane.plugins.jenkins.tests.junit.TestResultStatus;
 import hudson.FilePath;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -18,51 +16,15 @@ import javax.xml.transform.TransformerException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by franksha on 20/03/2016.
  */
-public class GherkinTestResultsCollector implements TestResultsExcluder {
+public class GherkinTestResultsCollector {
 
-    private Map<String, List<String>> gherkinTestsByFeature;
-    private Map<String, List<String>> gherkinTestsByScenario;
-    private List<CustomTestResult> testResults;
-
-    //force using the parametrized c-tor
-    private GherkinTestResultsCollector() {
-    }
-
-    public GherkinTestResultsCollector(File buildDir) throws InterruptedException, ParserConfigurationException, TransformerException, SAXException, IOException {
-        gherkinTestsByFeature = new HashMap<String, List<String>>();
-        gherkinTestsByScenario = new HashMap<String, List<String>>();
-        testResults = collectGherkinTestsResults(buildDir);
-    }
-
-    @Override
-    public boolean shouldExclude(TestResult testResult) {
-        String className = testResult.getClassName();
-        String testName = testResult.getTestName();
-        if (gherkinTestsByFeature.containsKey(className)) {
-            if (gherkinTestsByFeature.get(className).contains(testName)) {
-                return true;
-            }
-        } else if (gherkinTestsByScenario.containsKey(className)) {
-            if (gherkinTestsByScenario.get(className).contains(testName)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public List<CustomTestResult> getGherkinTestsResults() {
-        return testResults;
-    }
-
-    private List<CustomTestResult> collectGherkinTestsResults(File buildDir) throws ParserConfigurationException, IOException, InterruptedException, SAXException, TransformerException {
-        List<CustomTestResult> result = new ArrayList<CustomTestResult>();
+    public static List<TestResult> collectGherkinTestsResults(File buildDir) throws ParserConfigurationException, IOException, InterruptedException, SAXException, TransformerException {
+        List<TestResult> result = new ArrayList<>();
 
         //Retrieve the cucumber results xml
         int i = 0;
@@ -84,7 +46,6 @@ public class GherkinTestResultsCollector implements TestResultsExcluder {
             for (int f = 0; f < featureNodes.getLength(); f++) {
                 Element featureElement = (Element) featureNodes.item(f);
                 FeatureInfo featureInfo = new FeatureInfo(featureElement);
-                gherkinTestsByFeature.put(featureInfo.getName(), featureInfo.getScenarioNames());
                 result.add(new GherkinTestResult(featureInfo.getName(), featureElement, featureInfo.getDuration(), featureInfo.getStatus()));
             }
 
@@ -95,7 +56,7 @@ public class GherkinTestResultsCollector implements TestResultsExcluder {
         return result;
     }
 
-    private class FeatureInfo {
+    private static class FeatureInfo {
         private String name;
         private List<String> scenarioNames = new ArrayList<>();
         private TestResultStatus status = TestResultStatus.PASSED;
@@ -124,9 +85,6 @@ public class GherkinTestResultsCollector implements TestResultsExcluder {
                     status = TestResultStatus.FAILED;
                     statusDetermined = true;
                 }
-
-                gherkinTestsByScenario.put(scenarioName, scenarioInfo.getStepNames());
-                gherkinTestsByScenario.put("Scenario: " + scenarioName, scenarioInfo.getStepNames());
             }
         }
 
@@ -242,16 +200,20 @@ public class GherkinTestResultsCollector implements TestResultsExcluder {
         }
     }
 
-    private void validateXMLVersion(Document doc) {
+    private static void validateXMLVersion(Document doc) {
         String XML_VERSION = "1";
         NodeList featuresNodes = doc.getElementsByTagName("features");
-        String versionAttr = ((Element)featuresNodes.item(0)).getAttribute("version");
-        if(versionAttr ==null || versionAttr.isEmpty() || versionAttr.compareTo(XML_VERSION)!=0){
-            throw new IllegalArgumentException("\n********************************************************\n" +
-                                                "Incompatible xml version received from the Octane formatter.\n" +
-                                                "expected version = " + XML_VERSION + " actual version = " + versionAttr + ".\n" +
-                                                "You may need to update the octane formatter version to the correct version in order to work with this jenkins plugin\n" +
-                                                "********************************************************");
+        if(featuresNodes.getLength() > 0) {
+            String versionAttr = ((Element) featuresNodes.item(0)).getAttribute("version");
+            if (versionAttr == null || versionAttr.isEmpty() || versionAttr.compareTo(XML_VERSION) != 0) {
+                throw new IllegalArgumentException("\n********************************************************\n" +
+                    "Incompatible xml version received from the Octane formatter.\n" +
+                    "expected version = " + XML_VERSION + " actual version = " + versionAttr + ".\n" +
+                    "You may need to update the octane formatter version to the correct version in order to work with this jenkins plugin\n" +
+                    "********************************************************");
+            }
+        } else {
+            throw new IllegalArgumentException("The file does not contain Octane Gherkin results. Configuration error?");
         }
     }
 }

@@ -1,12 +1,14 @@
 package com.hp.octane.plugins.jenkins.tests.junit;
 
 import com.google.inject.Inject;
+import com.hp.octane.plugins.jenkins.actions.cucumber.CucumberTestResultsAction;
+import com.hp.octane.plugins.jenkins.tests.HPRunnerType;
 import com.hp.octane.plugins.jenkins.tests.MqmTestsExtension;
-import com.hp.octane.plugins.jenkins.tests.TestResult;
 import com.hp.octane.plugins.jenkins.tests.TestResultContainer;
 import com.hp.octane.plugins.jenkins.tests.detection.ResultFields;
 import com.hp.octane.plugins.jenkins.tests.detection.ResultFieldsDetectionService;
 import com.hp.octane.plugins.jenkins.tests.impl.ObjectStreamIterator;
+import com.hp.octane.plugins.jenkins.tests.testResult.TestResult;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.maven.MavenBuild;
@@ -42,14 +44,11 @@ public class JUnitExtension extends MqmTestsExtension {
 	@Inject
 	ResultFieldsDetectionService resultFieldsDetectionService;
 
-	public enum HPRunnerType {
-		StormRunner,
-		UFT,
-		NONE
-	}
-
 	public boolean supports(AbstractBuild<?, ?> build) throws IOException, InterruptedException {
-		if (build.getAction(AbstractTestResultAction.class) != null) {
+		if (build.getAction(CucumberTestResultsAction.class) != null) {
+			logger.debug("CucumberTestResultsAction found. Will not process JUnit results.");
+			return false;
+		} else if (build.getAction(AbstractTestResultAction.class) != null) {
 			logger.debug("AbstractTestResultAction found, JUnit results expected");
 			return true;
 		} else {

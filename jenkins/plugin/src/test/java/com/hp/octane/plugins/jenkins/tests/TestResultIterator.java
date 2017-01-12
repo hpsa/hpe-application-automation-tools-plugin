@@ -2,6 +2,8 @@
 
 package com.hp.octane.plugins.jenkins.tests;
 
+import com.hp.octane.plugins.jenkins.tests.junit.JUnitTestResult;
+import com.hp.octane.plugins.jenkins.tests.junit.TestResultStatus;
 import org.apache.commons.io.IOUtils;
 
 import javax.xml.namespace.QName;
@@ -17,11 +19,11 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
 
-public class TestResultIterator implements Iterator<TestResult> {
+public class TestResultIterator implements Iterator<JUnitTestResult> {
 
 	private Reader input;
 	private XMLEventReader reader;
-	private LinkedList<TestResult> items = new LinkedList<TestResult>();
+	private LinkedList<JUnitTestResult> items = new LinkedList<JUnitTestResult>();
 	private boolean closed;
 	private String serverId;
 	private String jobId;
@@ -50,7 +52,7 @@ public class TestResultIterator implements Iterator<TestResult> {
 							long duration = Long.valueOf(element.getAttributeByName(new QName("duration")).getValue());
 							TestResultStatus status = TestResultStatus.fromPrettyName(element.getAttributeByName(new QName("status")).getValue());
 							long started = Long.valueOf(element.getAttributeByName(new QName("started")).getValue());
-							items.add(new TestResult(moduleName, packageName, className, testName, status, duration, started, null, null));
+							items.add(new JUnitTestResult(moduleName, packageName, className, testName, status, duration, started, null, null));
 						} else if ("build".equals(localName)) {
 							serverId = element.getAttributeByName(new QName("server_id")).getValue();
 							jobId = element.getAttributeByName(new QName("job_id")).getValue();
@@ -74,7 +76,7 @@ public class TestResultIterator implements Iterator<TestResult> {
 	}
 
 	@Override
-	public TestResult next() {
+	public JUnitTestResult next() {
 		if (!hasNext()) {
 			throw new NoSuchElementException();
 		}

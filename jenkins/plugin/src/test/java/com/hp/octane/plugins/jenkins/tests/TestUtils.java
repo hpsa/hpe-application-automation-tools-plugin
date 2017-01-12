@@ -1,5 +1,7 @@
 package com.hp.octane.plugins.jenkins.tests;
 
+import com.hp.octane.plugins.jenkins.tests.junit.JUnitTestResult;
+import com.hp.octane.plugins.jenkins.tests.junit.TestResultStatus;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Result;
@@ -26,7 +28,7 @@ public class TestUtils {
 		return build;
 	}
 
-	private static String testSignature(TestResult testResult) {
+	private static String testSignature(JUnitTestResult testResult) {
 		return testSignature(testResult.getModuleName(), testResult.getPackageName(), testResult.getClassName(),
 				testResult.getTestName(), testResult.getResult());
 	}
@@ -43,7 +45,7 @@ public class TestUtils {
 		TestResultIterator it = testResultIterable.iterator();
 		Assert.assertEquals(buildType, it.getJobId());
 		while (it.hasNext()) {
-			TestResult testResult = it.next();
+			JUnitTestResult testResult = it.next();
 			String testSignature = TestUtils.testSignature(testResult);
 			Assert.assertTrue("Not found: " + testSignature + " in " + copy, copy.remove(testSignature));
 			Assert.assertEquals("Start time differs", started, testResult.getStarted());

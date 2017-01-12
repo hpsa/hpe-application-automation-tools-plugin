@@ -3,9 +3,7 @@ package com.hp.octane.plugins.jenkins.tests.junit;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.tests.Property;
 import com.hp.octane.integrations.dto.tests.TestSuite;
-import com.hp.octane.plugins.jenkins.tests.TestError;
-import com.hp.octane.plugins.jenkins.tests.TestResult;
-import com.hp.octane.plugins.jenkins.tests.TestResultStatus;
+import com.hp.octane.plugins.jenkins.tests.HPRunnerType;
 import com.hp.octane.plugins.jenkins.tests.xml.AbstractXmlIterator;
 import hudson.FilePath;
 import org.apache.logging.log4j.LogManager;
@@ -23,7 +21,7 @@ import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.List;
 
-public class JUnitXmlIterator extends AbstractXmlIterator<TestResult> {
+public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 	private static final Logger logger = LogManager.getLogger(JUnitXmlIterator.class);
 
 	public static final String DASHBOARD_URL = "dashboardUrl";
@@ -31,7 +29,7 @@ public class JUnitXmlIterator extends AbstractXmlIterator<TestResult> {
 	private final long buildStarted;
 	private final String buildId;
 	private final String jobName;
-	private final JUnitExtension.HPRunnerType hpRunnerType;
+	private final HPRunnerType hpRunnerType;
 	private boolean stripPackageAndClass;
 	private String moduleName;
 	private String packageName;
@@ -46,7 +44,7 @@ public class JUnitXmlIterator extends AbstractXmlIterator<TestResult> {
 	private List<ModuleDetection> moduleDetection;
 	private String jenkinsRootUrl;
 
-	public JUnitXmlIterator(InputStream read, List<ModuleDetection> moduleDetection, FilePath workspace, String jobName, String buildId, long buildStarted, boolean stripPackageAndClass, JUnitExtension.HPRunnerType hpRunnerType, String jenkinsRootUrl) throws XMLStreamException {
+	public JUnitXmlIterator(InputStream read, List<ModuleDetection> moduleDetection, FilePath workspace, String jobName, String buildId, long buildStarted, boolean stripPackageAndClass, HPRunnerType hpRunnerType, String jenkinsRootUrl) throws XMLStreamException {
 		super(read);
 		this.stripPackageAndClass = stripPackageAndClass;
 		this.moduleDetection = moduleDetection;
@@ -103,7 +101,7 @@ public class JUnitXmlIterator extends AbstractXmlIterator<TestResult> {
 						break;
 					}
 				}
-				if (hpRunnerType.equals(JUnitExtension.HPRunnerType.StormRunner)) {
+				if (hpRunnerType.equals(HPRunnerType.StormRunner)) {
 					logger.error("HP Runner: " + hpRunnerType);
 					externalURL = getStormRunnerURL(path);
 				}
@@ -132,7 +130,7 @@ public class JUnitXmlIterator extends AbstractXmlIterator<TestResult> {
 					// currently this handling is needed for UFT tests
 					testName = testName.substring(workspace.getRemote().length()).replaceAll("^[/\\\\]", "");
 				}
-				if (hpRunnerType.equals(JUnitExtension.HPRunnerType.UFT)) {
+				if (hpRunnerType.equals(HPRunnerType.UFT)) {
 					externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/artifact/UFTReport/" + cleanTestName(testName) + "/run_results.html";
 				}
 			} else if ("duration".equals(localName)) { // NON-NLS
@@ -172,9 +170,9 @@ public class JUnitXmlIterator extends AbstractXmlIterator<TestResult> {
 				TestError testError = new TestError(stackTraceStr, errorType, errorMsg);
 				if (stripPackageAndClass) {
 					//workaround only for UFT - we do not want packageName="All-Tests" and className="&lt;None>" as it comes from JUnit report
-					addItem(new TestResult(moduleName, "", "", testName, status, duration, buildStarted, testError, externalURL));
+					addItem(new JUnitTestResult(moduleName, "", "", testName, status, duration, buildStarted, testError, externalURL));
 				} else {
-					addItem(new TestResult(moduleName, packageName, className, testName, status, duration, buildStarted, testError, externalURL));
+					addItem(new JUnitTestResult(moduleName, packageName, className, testName, status, duration, buildStarted, testError, externalURL));
 				}
 			}
 		}
