@@ -337,6 +337,12 @@ namespace HpToolsLauncher
                     }
                     ConsoleWriter.WriteLine("Launcher timeout is " + timeout.ToString(@"dd\:\:hh\:mm\:ss"));
 
+                    string runMode = "Fast";
+                    if (_ciParams.ContainsKey("runMode"))
+                    {
+                        runMode = _ciParams["runMode"];
+                    }
+
                     //LR specific values:
                     //default values are set by JAVA code, in com.hp.application.automation.tools.model.RunFromFileSystemModel.java
 
@@ -507,7 +513,7 @@ namespace HpToolsLauncher
                         mobileinfo = _ciParams["mobileinfo"];
                     }
 
-                    runner = new FileSystemTestsRunner(validTests, timeout, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo);
+                    runner = new FileSystemTestsRunner(validTests, timeout, runMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo);
 
                     break;
 

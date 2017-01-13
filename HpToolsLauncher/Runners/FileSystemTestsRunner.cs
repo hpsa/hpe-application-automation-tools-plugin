@@ -23,6 +23,7 @@ namespace HpToolsLauncher
         private int _errors, _fail;
         private bool _useUFTLicense;
         private TimeSpan _timeout = TimeSpan.MaxValue;
+        private string _runMode = "Fast";
         private Stopwatch _stopwatch = null;
         private string _abortFilename = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\stop" + Launcher.UniqueTimeStamp + ".txt";
 
@@ -52,6 +53,7 @@ namespace HpToolsLauncher
         /// <param name="useUFTLicense"></param>
         public FileSystemTestsRunner(List<string> sources,
             TimeSpan timeout,
+            string runMode,
             int ControllerPollingInterval,
             TimeSpan perScenarioTimeOutMinutes,
             List<string> ignoreErrorStrings,
@@ -70,6 +72,7 @@ namespace HpToolsLauncher
             }
 
             _timeout = timeout;
+            _runMode = runMode;
             ConsoleWriter.WriteLine("FileSystemTestRunner timeout is " + _timeout );
             _stopwatch = Stopwatch.StartNew();
 
@@ -282,7 +285,7 @@ namespace HpToolsLauncher
                     runner = new ApiTestRunner(this, _timeout - _stopwatch.Elapsed);
                     break;
                 case TestType.QTP:
-                    runner = new GuiTestRunner(this, _useUFTLicense, _timeout - _stopwatch.Elapsed, _mcConnection, _mobileInfoForAllGuiTests);
+                    runner = new GuiTestRunner(this, _useUFTLicense, _timeout - _stopwatch.Elapsed, _runMode, _mcConnection, _mobileInfoForAllGuiTests);
                     break;
                 case TestType.LoadRunner:
                     AppDomain.CurrentDomain.AssemblyResolve += Helper.HPToolsAssemblyResolver;
