@@ -31,10 +31,10 @@
         <f:textbox name="runPipeline.fsTimeout" value="${instance.fsTimeout}" default=""/>
     </f:entry>
 
-    <f:entry title="Run Mode" field="fsRunMode">
-        <select name="runPipeline.fsRunMode">
-            <j:forEach var="runMode" items="${descriptor.fsRunModes}">
-                <f:option selected="${runMode.value == instance.RunFromFileSystemModel.fsRunMode}" value="${runMode.value}">
+    <f:entry title="Run Mode" field="fsUftRunMode">
+        <select name="runPipeline.fsUftRunMode">
+            <j:forEach var="runMode" items="${descriptor.fsUftRunModes}">
+                <f:option selected="${runMode.value == instance.RunFromFileSystemModel.fsUftRunMode}" value="${runMode.value}">
                     ${runMode.description}
                 </f:option>
             </j:forEach>

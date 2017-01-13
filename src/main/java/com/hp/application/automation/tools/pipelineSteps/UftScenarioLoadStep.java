@@ -91,31 +91,31 @@ public class UftScenarioLoadStep extends AbstractStepImpl {
     }
 
     /**
-     * Gets fsRunMode
+     * Gets fsUftRunMode
      *
-     * @return fsRunMode value
+     * @return fsUftRunMode value
      */
-    public String getFsRunMode() {
-        return runFromFileBuilder.getRunFromFileModel().getFsRunMode();
+    public String getFsUftRunMode() {
+        return runFromFileBuilder.getRunFromFileModel().getFsUftRunMode();
     }
 
     /**
-     * Sets fsRunMode value
+     * Sets fsUftRunMode value
      *
-     * @param fsRunMode the fsRunMode value
+     * @param fsUftRunMode the fsUftRunMode value
      */
     @DataBoundSetter
-    public void setFsRunMode(String fsRunMode) {
-        runFromFileBuilder.setFsRunMode(fsRunMode);
+    public void setFsUftRunMode(String fsUftRunMode) {
+        runFromFileBuilder.setFsUftRunMode(fsUftRunMode);
     }
 
     /**
-     * Gets fsRunModes
+     * Gets fsUftRunModes
      *
-     * @return fsRunModes value
+     * @return fsUftRunModes value
      */
-    public List<EnumDescription> getFsRunModes() {
-        return RunFromFileSystemModel.fsRunModes;
+    public List<EnumDescription> getFsUftRunModes() {
+        return RunFromFileSystemModel.fsUftRunModes;
     }
 
     /**
@@ -175,7 +175,7 @@ public class UftScenarioLoadStep extends AbstractStepImpl {
          *
          * @return the fs runModes
          */
-        public List<EnumDescription> getFsRunModes() { return RunFromFileSystemModel.fsRunModes; }
+        public List<EnumDescription> getFsUftRunModes() { return RunFromFileSystemModel.fsUftRunModes; }
 
         /**
          * Gets report archive modes.

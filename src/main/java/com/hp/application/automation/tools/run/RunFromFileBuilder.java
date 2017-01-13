@@ -111,12 +111,12 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 	 */
 	@SuppressWarnings("squid:S00107")
 	@Deprecated
-	public RunFromFileBuilder(String fsTests, String fsTimeout, String fsRunMode, String controllerPollingInterval,
+	public RunFromFileBuilder(String fsTests, String fsTimeout, String fsUftRunMode, String controllerPollingInterval,
 							  String perScenarioTimeOut, String ignoreErrorStrings, String mcServerName, String fsUserName, String fsPassword, String fsDeviceId, String fsTargetLab,
 							  String fsManufacturerAndModel, String fsOs, String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics, String fsInstrumented, String fsExtraApps, String fsJobId,
 							  ProxySettings proxySettings, boolean useSSL) {
 
-		runFromFileModel = new RunFromFileSystemModel(fsTests, fsTimeout, fsRunMode, controllerPollingInterval,
+		runFromFileModel = new RunFromFileSystemModel(fsTests, fsTimeout, fsUftRunMode, controllerPollingInterval,
 				perScenarioTimeOut, ignoreErrorStrings, mcServerName, fsUserName, fsPassword, fsDeviceId, fsTargetLab, fsManufacturerAndModel, fsOs, fsAutActions, fsLaunchAppName,
 				fsDevicesMetrics, fsInstrumented, fsExtraApps, fsJobId, proxySettings, useSSL);
 	}
@@ -173,11 +173,11 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 	/**
 	 * Sets fs runMode.
 	 *
-	 * @param fsRunMode the fs runMode
+	 * @param fsUftRunMode the fs runMode
 	 */
 	@DataBoundSetter
-	public void setFsRunMode(String fsRunMode) {
-		runFromFileModel.setFsRunMode(fsRunMode);
+	public void setFsUftRunMode(String fsUftRunMode) {
+		runFromFileModel.setFsUftRunMode(fsUftRunMode);
 	}
 
 	/**
