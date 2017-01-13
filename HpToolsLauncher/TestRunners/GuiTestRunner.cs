@@ -35,7 +35,7 @@ namespace HpToolsLauncher
         private readonly IAssetRunner _runNotifier;
         private readonly object _lockObject = new object();
         private TimeSpan _timeLeftUntilTimeout = TimeSpan.MaxValue;
-        private string _runMode = "Fast";
+        private string _uftRunMode = "Fast";
         private Stopwatch _stopwatch = null;
         private Application _qtpApplication;
         private ParameterDefinitions _qtpParamDefs;
@@ -50,10 +50,10 @@ namespace HpToolsLauncher
         /// <param name="runNotifier"></param>
         /// <param name="useUftLicense"></param>
         /// <param name="timeLeftUntilTimeout"></param>
-        public GuiTestRunner(IAssetRunner runNotifier, bool useUftLicense, TimeSpan timeLeftUntilTimeout, string runMode, McConnectionInfo mcConnectionInfo, string mobileInfo)
+        public GuiTestRunner(IAssetRunner runNotifier, bool useUftLicense, TimeSpan timeLeftUntilTimeout, string uftRunMode, McConnectionInfo mcConnectionInfo, string mobileInfo)
         {
             _timeLeftUntilTimeout = timeLeftUntilTimeout;
-            _runMode = runMode;
+            _uftRunMode = uftRunMode;
             _stopwatch = Stopwatch.StartNew();
             _runNotifier = runNotifier;
             _useUFTLicense = useUftLicense;
@@ -388,7 +388,7 @@ namespace HpToolsLauncher
                 Type runResultsOptionstype = Type.GetTypeFromProgID("QuickTest.RunResultsOptions");
                 var options = (RunResultsOptions)Activator.CreateInstance(runResultsOptionstype);
                 options.ResultsLocation = testResults.ReportLocation;
-                _qtpApplication.Options.Run.RunMode = _runMode;
+                _qtpApplication.Options.Run.RunMode = _uftRunMode;
 
                 //Check for cancel before executing
                 if (_runCancelled())

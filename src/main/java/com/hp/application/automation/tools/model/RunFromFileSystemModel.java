@@ -14,6 +14,8 @@ import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -25,6 +27,11 @@ public class RunFromFileSystemModel {
 	public static final String MOBILE_PROXY_SETTING_USER_NAME = "MobileProxySetting_UserName";
 	public static final String MOBILE_PROXY_SETTING_AUTHENTICATION = "MobileProxySetting_Authentication";
 	public static final String MOBILE_USE_SSL = "MobileUseSSL";
+
+    public final static EnumDescription FAST_RUN_MODE = new EnumDescription("Fast", "Fast");
+    public final static EnumDescription NORMAL_RUN_MODE = new EnumDescription("Normal", "Normal");
+    public final static List<EnumDescription> fsRunModes = Arrays.asList(FAST_RUN_MODE, NORMAL_RUN_MODE);
+
 	private String fsTests;
     private String fsTimeout;
     private String fsRunMode;
@@ -320,6 +327,13 @@ public class RunFromFileSystemModel {
     public String getFsRunMode() {
         return fsRunMode;
     }
+
+    /**
+     * Gets fs runModes
+     *
+     * @return the fs runModes
+     */
+    public List<EnumDescription> getFsRunModes() { return fsRunModes; }
 
     /**
      * Gets mc server name.
