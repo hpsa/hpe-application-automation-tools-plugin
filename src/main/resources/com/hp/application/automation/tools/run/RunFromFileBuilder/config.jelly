@@ -38,6 +38,9 @@
     <f:entry title="Timeout" field="fsTimeout">
         <f:textbox name="runfromfs.fsTimeout" value="${instance.runFromFileModel.fsTimeout}"/>
     </f:entry>
+    <f:entry title="Run Mode" field="fsRunMode">
+        <f:textbox name="runfromfs.fsRunMode" value="${instance.runFromFileModel.fsRunMode}"/>
+    </f:entry>
     <f:advanced title="LoadRunner-Specific Settings">
     	<f:section title="LoadRunner Settings">
 			<f:entry title="Controller Polling Interval" field="controllerPollingInterval">

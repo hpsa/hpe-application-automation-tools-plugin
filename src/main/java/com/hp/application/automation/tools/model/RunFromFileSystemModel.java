@@ -27,6 +27,7 @@ public class RunFromFileSystemModel {
 	public static final String MOBILE_USE_SSL = "MobileUseSSL";
 	private String fsTests;
     private String fsTimeout;
+    private String fsRunMode;
     private String controllerPollingInterval;
     private String perScenarioTimeOut;
     private String ignoreErrorStrings;
@@ -72,7 +73,7 @@ public class RunFromFileSystemModel {
      * @param useSSL                    the use ssl
      */
     @SuppressWarnings("squid:S00107")
-    public RunFromFileSystemModel(String fsTests, String fsTimeout, String controllerPollingInterval,String perScenarioTimeOut,
+    public RunFromFileSystemModel(String fsTests, String fsTimeout, String fsRunMode, String controllerPollingInterval,String perScenarioTimeOut,
                                   String ignoreErrorStrings, String mcServerName, String fsUserName, String fsPassword,
                                   String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel, String fsOs,
                                   String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics, String fsInstrumented,
@@ -81,7 +82,7 @@ public class RunFromFileSystemModel {
         this.setFsTests(fsTests);
 
         this.fsTimeout = fsTimeout;
-
+        this.fsRunMode = fsRunMode;
 
         this.perScenarioTimeOut = perScenarioTimeOut;
         this.controllerPollingInterval = controllerPollingInterval;
@@ -120,6 +121,7 @@ public class RunFromFileSystemModel {
 
         //Init default vals
         this.fsTimeout = "";
+        this.fsRunMode = "Fast";
         this.controllerPollingInterval = "30";
         this.perScenarioTimeOut = "10";
         this.ignoreErrorStrings = "";
@@ -146,6 +148,15 @@ public class RunFromFileSystemModel {
      */
     public void setFsTimeout(String fsTimeout) {
         this.fsTimeout = fsTimeout;
+    }
+
+    /**
+     * Sets fs runMode.
+     *
+     * @param fsRunMode the fs runMode
+     */
+    public void setFsRunMode(String fsRunMode) {
+        this.fsRunMode = fsRunMode;
     }
 
     /**
@@ -299,6 +310,15 @@ public class RunFromFileSystemModel {
      */
     public String getFsTimeout() {
         return fsTimeout;
+    }
+
+    /**
+     * Gets fs runMode.
+     *
+     * @return the fs runMode
+     */
+    public String getFsRunMode() {
+        return fsRunMode;
     }
 
     /**
@@ -578,6 +598,13 @@ public class RunFromFileSystemModel {
         }
         else{
             props.put("fsTimeout", "" + fsTimeout);
+        }
+
+        if (StringUtils.isEmpty(fsRunMode)){
+            props.put("fsRunMode", "Fast");
+        }
+        else{
+            props.put("fsRunMode", "" + fsRunMode);
         }
 
 

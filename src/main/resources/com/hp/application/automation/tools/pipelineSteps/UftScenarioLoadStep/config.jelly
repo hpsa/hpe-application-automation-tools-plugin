@@ -31,6 +31,10 @@
         <f:textbox name="runPipeline.fsTimeout" value="${instance.fsTimeout}" default=""/>
     </f:entry>
 
+    <f:entry title="Run Mode" field="fsRunMode">
+        <f:textbox name="runPipeline.fsRunMode" value="${instance.fsRunMode}" default=""/>
+    </f:entry>
+
     <f:entry title="Report archive mode" field="archiveTestResultsMode">
         <select name="runPipeline.archiveTestResultsMode">
             <j:forEach var="archiveMode" items="${descriptor.reportArchiveModes}">

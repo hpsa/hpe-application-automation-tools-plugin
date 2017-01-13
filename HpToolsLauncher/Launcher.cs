@@ -338,9 +338,9 @@ namespace HpToolsLauncher
                     ConsoleWriter.WriteLine("Launcher timeout is " + timeout.ToString(@"dd\:\:hh\:mm\:ss"));
 
                     string runMode = "Fast";
-                    if (_ciParams.ContainsKey("runMode"))
+                    if (_ciParams.ContainsKey("fsRunMode"))
                     {
-                        runMode = _ciParams["runMode"];
+                        runMode = _ciParams["fsRunMode"];
                     }
 
                     //LR specific values:

@@ -90,6 +90,16 @@ public class UftScenarioLoadStep extends AbstractStepImpl {
     }
 
     /**
+     * Sets fsRunMode value
+     *
+     * @param fsRunMode the fsRunMode value
+     */
+    @DataBoundSetter
+    public void setFsRunMode(String fsRunMode) {
+        runFromFileBuilder.setFsRunMode(fsRunMode);
+    }
+
+    /**
      * Gets test paths.
      *
      * @return the test paths
