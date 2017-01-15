@@ -1,5 +1,7 @@
 package com.hp.octane.plugins.bamboo.ui;
 
+import org.acegisecurity.AccessDeniedException;
+import com.atlassian.bamboo.security.BambooPermissionManager;
 import com.atlassian.bamboo.ww2.BambooActionSupport;
 import com.atlassian.sal.api.pluginsettings.PluginSettings;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
@@ -23,18 +25,28 @@ public class ConfigureOctaneAction extends BambooActionSupport implements Initia
 	private String userName;
 	private String uuid;
 
-	public ConfigureOctaneAction(PluginSettingsFactory settingsFactory) {
+	public ConfigureOctaneAction(PluginSettingsFactory settingsFactory, BambooPermissionManager bambooPermissionManager) {
+	    this.setBambooPermissionManager(bambooPermissionManager);
 		this.settingsFactory = settingsFactory;
 		readData();
 	}
 
 	public String doEdit() {
-		logger.info("edit configuration");
+        logger.info("edit configuration");
+        if(!this.hasAdminPermission()){
+            logger.error("Access Denied, no admin permissions.");
+            throw new AccessDeniedException(null);
+        }
 		return INPUT;
 	}
 
 	public String doSave() {
 		logger.info("save configuration");
+        if(!this.hasAdminPermission()){
+            logger.error("Access Denied, no admin permissions.");
+            throw new AccessDeniedException(null);
+        }
+
 		PluginSettings settings = settingsFactory.createGlobalSettings();
 		settings.put(OctaneConfigurationKeys.OCTANE_URL, octaneUrl);
 		settings.put(OctaneConfigurationKeys.ACCESS_KEY, accessKey);
