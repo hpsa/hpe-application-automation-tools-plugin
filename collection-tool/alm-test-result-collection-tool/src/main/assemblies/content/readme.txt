@@ -78,7 +78,6 @@ Log files **********************************************************************
 The tool writes log information to 3 log files located in the "logs" directory.
 1. consoleLog.log : all information printed to the console is also written to this file. This is where you can find historical information about past runs.
 2. restLog.log : all REST requests are stored in this log.
-3. lastSent.txt : this file contains only the ID of the last run that was sent to ALM Octane.
 3. lastSent_<endpointPairID>.txt : A text file containing the ID of the last test run that was sent to ALM Octane. 
    This ID is used for the <startFromId>LAST_SENT</startFromId>  filter option.
    The tools saves one file for each pair of ALM project -> ALM Octane workspace for which the tool sent results.
@@ -152,7 +151,7 @@ Run               | Name               | Format : AlmTestSet #{testSetId} : {tes
 Test Result API ********************************************************************************************************
 ------------------------------------------------------------------------------------------------------------------------
 This tool uses a dedicated Test-Results API in order to send test results to ALM Octane
-(see more details in the URL http://octane-help.saas.hpe.com/en/Latest/Online/Help_Center.htm#cshid=test_results_api).
+(see more details in the URL http://octane-help.saas.hpe.com/en/Latest/API/Developer_Help.htm#API/test-results.htm).
 
 First, the tool retrieves all relevant test results from ALM and sends them to ALM Octane to the test-results API. The test results are sent in bulks of 1000 at a time.
 Next, the API creates the matching automated tests and test runs in ALM Octane. If a relevant automated test already exists, the results are associated with that test.
