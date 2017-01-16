@@ -1,5 +1,7 @@
 package ut.com.hp.octane.plugins.bamboo.ui;
 
+import com.atlassian.bamboo.security.BambooPermissionManager;
+import com.atlassian.bamboo.security.acegi.acls.BambooPermission;
 import com.atlassian.sal.api.pluginsettings.PluginSettings;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
 
@@ -26,6 +28,9 @@ public class ConfigureOctaneActionTest {
 	@Mock
 	PluginSettings settings;
 
+	@Mock
+    BambooPermissionManager bambooPermissionManager;
+
 	@Captor
 	ArgumentCaptor<String> propertyNameCaptor;
 
@@ -47,7 +52,9 @@ public class ConfigureOctaneActionTest {
 	@Before
 	public void setUp() {
 		Mockito.when(settingsFactory.createGlobalSettings()).thenReturn(settings);
-		underTest = new ConfigureOctaneAction(settingsFactory);
+        Mockito.when(bambooPermissionManager.hasGlobalPermission(Mockito.<BambooPermission>any())).thenReturn(true);
+
+		underTest = new ConfigureOctaneAction(settingsFactory, bambooPermissionManager);
 
 		underTest.setUuid(values[0]);
 		underTest.setOctaneUrl(values[1]);
