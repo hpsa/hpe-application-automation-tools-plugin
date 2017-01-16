@@ -212,7 +212,7 @@ Full configuration file example ************************************************
               <!--Any custom valid REST filter, example : assign-rcyc[1001 or 1002];id[>100 AND &lt;500]-->
               <custom></custom>
 
-              <!--Limit number of runs retrieved from ALM, max is 200000 -->
+              <!--Limit number of runs retrieved from ALM, default is 200000 -->
               <retrievalLimit></retrievalLimit>
 
             </runFilter>
