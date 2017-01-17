@@ -151,7 +151,7 @@ Run               | Name               | Format : AlmTestSet #{testSetId} : {tes
 Test Result API ********************************************************************************************************
 ------------------------------------------------------------------------------------------------------------------------
 This tool uses a dedicated Test-Results API in order to send test results to ALM Octane
-(see more details in the URL http://octane-help.saas.hpe.com/en/Latest/API/Developer_Help.htm#API/test-results.htm).
+(see more details in the URL http://octane-help.saas.hpe.com/en/Latest/API/Developer_Help.htm#API/test-results.htm ).
 
 First, the tool retrieves all relevant test results from ALM and sends them to ALM Octane to the test-results API. The test results are sent in bulks of 1000 at a time.
 Next, the API creates the matching automated tests and test runs in ALM Octane. If a relevant automated test already exists, the results are associated with that test.
