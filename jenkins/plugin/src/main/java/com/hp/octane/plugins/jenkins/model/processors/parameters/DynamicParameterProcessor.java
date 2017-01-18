@@ -31,6 +31,7 @@ public class DynamicParameterProcessor extends AbstractParametersProcessor {
 
 	@Override
 	public CIParameter createParameterInstance(ParameterDefinition pd, ParameterValue pv) {
-		return ModelFactory.createParameterInstance(createParameterConfig(pd), pv);
+	    Object value = pv == null ? null : pv.getValue();
+		return ModelFactory.createParameterInstance(createParameterConfig(pd), value);
 	}
 }

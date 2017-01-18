@@ -38,7 +38,7 @@ public class ExtendedChoiceParameterProcessor extends AbstractParametersProcesso
 
 	@Override
 	public CIParameter createParameterInstance(ParameterDefinition pd, ParameterValue pv) {
-		ExtendedChoiceParameterValue extValue = (ExtendedChoiceParameterValue) pv;
-		return ModelFactory.createParameterInstance(createParameterConfig(pd), extValue);
+        Object value = pv == null ? null : pv.getValue();
+		return ModelFactory.createParameterInstance(createParameterConfig(pd), value);
 	}
 }
