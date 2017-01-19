@@ -276,7 +276,8 @@ public class ModelFactory {
 	}
 
 
-	public static CIParameter createParameterInstance(CIParameter pc, ParameterValue value) {
+	public static CIParameter createParameterInstance(CIParameter pc, Object rawValue) {
+	    String value = rawValue == null ? null : rawValue.toString();
 		return dtoFactory.newDTO(CIParameter.class)
 				.setName(pc.getName())
 				.setType(pc.getType())
@@ -284,11 +285,11 @@ public class ModelFactory {
 				.setChoices(pc.getChoices())
 				.setDescription(pc.getDescription())
 				.setDefaultValue(pc.getDefaultValue())
-				.setValue(value == null ? null : value.getValue().toString());
+				.setValue(value);
 	}
 
 	public static String generateSubBuildName(List<CIParameter> parameters) {
-		List<CIParameter> sortedList = new ArrayList<CIParameter>();
+		List<CIParameter> sortedList = new ArrayList<>();
 		for (CIParameter p : parameters) {
 			if (p.getType() == CIParameterType.AXIS) {
 				sortedList.add(p);
