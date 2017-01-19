@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.mqm.atrf.core.rest.HTTPUtils;
 import com.hp.mqm.atrf.core.rest.Response;
 import com.hp.mqm.atrf.core.rest.RestConnector;
+import com.hp.mqm.atrf.core.rest.SupportRelogin;
 import com.hp.mqm.atrf.octane.core.OctaneEntity;
 import com.hp.mqm.atrf.octane.core.OctaneEntityCollection;
 import com.hp.mqm.atrf.octane.core.OctaneEntityDescriptor;
@@ -21,17 +22,17 @@ import java.util.Map;
 /**
  * Created by berkovir on 21/11/2016.
  */
-public class OctaneEntityService {
+public class OctaneEntityService implements SupportRelogin {
 
     private RestConnector restConnector;
     private long sharedSpaceId;
     private long workspaceId;
+    private OctaneAuthenticationPojo authData;
 
     Map<String, OctaneEntityDescriptor> typesMap = new HashMap<>();
 
     public OctaneEntityService(RestConnector restConnector) {
         this.restConnector = restConnector;
-
 
         registerTypes();
     }
@@ -49,16 +50,26 @@ public class OctaneEntityService {
 
 
     public boolean login(String user, String password) {
-        boolean ret = false;
-
-        restConnector.clearAll();
-
-        OctaneAuthenticationPojo authData = new OctaneAuthenticationPojo();
+        authData = new OctaneAuthenticationPojo();
         authData.setUser(user);
         authData.setPassword(password);
         authData.setEnable_csrf(true);
+        boolean result = loginInternal();
+        if (result) {
+            restConnector.setSupportRelogin(this);
+        }
 
+        return result;
+    }
 
+    @Override
+    public boolean relogin() {
+        return loginInternal();
+    }
+
+    private boolean loginInternal() {
+        boolean ret = false;
+        restConnector.clearAll();
         ObjectMapper mapper = new ObjectMapper();
         String jsonString = null;
         try {

@@ -26,6 +26,7 @@ public class RestConnector {
     static final Logger logger = LogManager.getLogger();
     protected Map<String, String> cookies = new HashMap<>();
 
+    private SupportRelogin supportRelogin;
     private String baseUrl;
     private static String proxyHost;
     private static int proxyPort;
@@ -98,6 +99,25 @@ public class RestConnector {
             List<String> queryParams,
             String data,
             Map<String, String> headers) {
+        return doHttp(type, url, queryParams, data, headers, false);
+    }
+
+    /**
+     * @param type        of the http operation: get post put delete
+     * @param url         to work on
+     * @param queryParams
+     * @param data        to write, if a writable operation
+     * @param headers     to use in the request
+     * @param afterRelogin  if equal to false and received 401 and supportRelogin is exist - trial to relogin will be done
+     * @return http response
+     */
+    private Response doHttp(
+            String type,
+            String url,
+            List<String> queryParams,
+            String data,
+            Map<String, String> headers,
+            boolean afterRelogin) {
 
 
         //add query params
@@ -146,6 +166,23 @@ public class RestConnector {
 
             return ret;
         } catch (RestStatusException e) {
+            if (e.getResponse().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
+                if (!afterRelogin && supportRelogin != null) {
+                    boolean reloginResult = false;
+                    try {
+                        reloginResult = supportRelogin.relogin();
+                        String msg = "Received status 401. Relogin succeeded.";
+                        logger.warn(msg);
+                    } catch (Exception ex) {
+                        String msg = String.format("Received status 401. Relogin failed %s", ex.getMessage());
+                        logger.warn(msg);
+                    }
+
+                    if (reloginResult) {
+                        return doHttp(type, url, queryParams, data, headers, true);
+                    }
+                }
+            }
             throw e;//rethrow
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage(), e);
@@ -174,13 +211,14 @@ public class RestConnector {
 
         //send data from headers
         if (headers != null) {
-
-            //skip the content-TYPE header - should only be sent if you actually have any content to send. see below.
-            contentType = headers.remove("Content-Type");
-
             Iterator<Entry<String, String>> headersIterator = headers.entrySet().iterator();
             while (headersIterator.hasNext()) {
                 Entry<String, String> header = headersIterator.next();
+                if (header.getKey().equals("Content-Type")) {
+                    //skip the content-TYPE header - should only be sent if you actually have any content to send. see below.
+                    contentType = header.getValue();
+                    continue;
+                }
                 con.setRequestProperty(header.getKey(), header.getValue());
             }
         }
@@ -303,5 +341,9 @@ public class RestConnector {
         if (StringUtils.isNotEmpty(baseUrl) && baseUrl.endsWith("/")) {
             baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
         }
+    }
+
+    public void setSupportRelogin(SupportRelogin supportRelogin) {
+        this.supportRelogin = supportRelogin;
     }
 }
