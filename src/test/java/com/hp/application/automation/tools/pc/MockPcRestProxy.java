@@ -2,6 +2,7 @@ package com.hp.application.automation.tools.pc;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Iterator;
 
@@ -25,8 +26,8 @@ public class MockPcRestProxy extends PcRestProxy {
     
     private static Iterator<RunState> runState = initializeRunStateIterator();
     
-    public MockPcRestProxy(String pcServerName, String almDomain, String almProject) {
-        super(pcServerName, almDomain, almProject);
+    public MockPcRestProxy(String webProtocol, String pcServerName, String almDomain, String almProject,PrintStream logger) {
+        super(webProtocol, pcServerName, almDomain, almProject,logger);
     }
 
     @Override
@@ -34,8 +35,8 @@ public class MockPcRestProxy extends PcRestProxy {
             IOException {
         HttpResponse response = null;
         String requestUrl = request.getURI().toString();
-        if (requestUrl.equals(String.format(AUTHENTICATION_LOGIN_URL, PC_SERVER_NAME))
-                || requestUrl.equals(String.format(AUTHENTICATION_LOGOUT_URL, PC_SERVER_NAME))
+        if (requestUrl.equals(String.format(AUTHENTICATION_LOGIN_URL,WEB_PROTOCOL, PC_SERVER_NAME))
+                || requestUrl.equals(String.format(AUTHENTICATION_LOGOUT_URL,WEB_PROTOCOL, PC_SERVER_NAME))
                 || requestUrl.equals(String.format(getBaseURL() + "/%s/%s/%s", RUNS_RESOURCE_NAME, RUN_ID, STOP_MODE))) {
             response = getOkResponse();
         } else if (requestUrl.equals(String.format(getBaseURL() + "/%s", RUNS_RESOURCE_NAME))

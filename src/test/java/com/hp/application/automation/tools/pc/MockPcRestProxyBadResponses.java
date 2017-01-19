@@ -1,6 +1,7 @@
 package com.hp.application.automation.tools.pc;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Iterator;
 
@@ -20,8 +21,8 @@ public class MockPcRestProxyBadResponses extends PcRestProxy {
     
     private static Iterator<RunState> runState = initializeRunStateIterator();
     
-    public MockPcRestProxyBadResponses(String pcServerName, String almDomain, String almProject) {
-        super(pcServerName, almDomain, almProject);
+    public MockPcRestProxyBadResponses(String webProtocol, String pcServerName, String almDomain, String almProject,PrintStream logger) {
+        super(webProtocol, pcServerName, almDomain, almProject,logger);
     }
 
     @Override
@@ -29,7 +30,7 @@ public class MockPcRestProxyBadResponses extends PcRestProxy {
             IOException {
         HttpResponse response = null;
         String requestUrl = request.getURI().toString();
-        if (requestUrl.equals(String.format(AUTHENTICATION_LOGIN_URL, PC_SERVER_NAME))) {
+        if (requestUrl.equals(String.format(AUTHENTICATION_LOGIN_URL,WEB_PROTOCOL, PC_SERVER_NAME))) {
             throw new PcException(pcAuthenticationFailureMessage);
         } else if (requestUrl.equals(String.format(getBaseURL() + "/%s", RUNS_RESOURCE_NAME))){
             throw new PcException(pcNoTimeslotExceptionMessage);

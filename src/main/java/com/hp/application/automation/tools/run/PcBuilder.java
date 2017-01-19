@@ -88,6 +88,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     private FilePath pcReportFile;
     private String junitResultsFileName;
     private PrintStream logger;
+    private final boolean HTTPSProtocol;
   //  private boolean trendReportReady;
     
     @DataBoundConstructor
@@ -106,13 +107,15 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             boolean statusBySLA,
             String description,
             boolean addRunToTrendReport,
-            String trendReportId) {
+            String trendReportId,
+            boolean HTTPSProtocol) {
         this.almUserName = almUserName;
         this.almPassword = almPassword;
         this.timeslotDurationHours = timeslotDurationHours;
         this.timeslotDurationMinutes = timeslotDurationMinutes;
         this.statusBySLA = statusBySLA;
-        
+        this.HTTPSProtocol = HTTPSProtocol;
+
         pcModel =
                 new PcModel(
                         pcServerName.trim(),
@@ -128,7 +131,8 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                         vudsMode,
                         description,
                         addRunToTrendReport,
-                        trendReportId);
+                        trendReportId,
+                        HTTPSProtocol);
     }
     
     @Override
@@ -340,7 +344,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                 }
                 catch(NumberFormatException e) {
 
-                    res = FormValidation.error("Illegal Parameter: trend report ID is is not a number");
+                    res = FormValidation.error("Illegal Parameter: trend report ID is not a number");
                 }
 
             }
@@ -589,6 +593,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         return getPcModel().isAddRunToTrendReport();
     }
 
+
     public boolean isVudsMode()
     {
         return getPcModel().isVudsMode();
@@ -608,6 +613,11 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         return almPassword;
     }
 
+    public boolean isHTTPSProtocol()
+    {
+        return getPcModel().HTTPSProtocol();
+    }
+
     public boolean isStatusBySLA() {
         return statusBySLA;
     }
@@ -617,9 +627,9 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     @Extension
     @Symbol("pcBuild")
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
-        
+
         public DescriptorImpl() {
-            
+
             load();
         }
         

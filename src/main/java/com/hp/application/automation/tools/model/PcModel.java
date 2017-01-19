@@ -24,11 +24,12 @@ public class PcModel {
     private final String           description;
     private final boolean          addRunToTrendReport;
     private final String trendReportId;
+    private final boolean HTTPSProtocol;
 
     @DataBoundConstructor
     public PcModel(String pcServerName, String almUserName, String almPassword, String almDomain, String almProject,
                    String testId, String testInstanceId, String timeslotDurationHours, String timeslotDurationMinutes,
-                   PostRunAction postRunAction, boolean vudsMode, String description, boolean addRunToTrendReport, String trendReportId) {
+                   PostRunAction postRunAction, boolean vudsMode, String description, boolean addRunToTrendReport, String trendReportId, boolean HTTPSProtocol) {
 
         this.pcServerName = pcServerName;
         this.almUserName = almUserName;
@@ -42,6 +43,7 @@ public class PcModel {
         this.vudsMode = vudsMode;
         this.description = description;
         this.addRunToTrendReport = addRunToTrendReport;
+        this.HTTPSProtocol = HTTPSProtocol;
         this.trendReportId = trendReportId;
     }
 
@@ -107,6 +109,9 @@ public class PcModel {
         return this.description;
     }
 
+    public boolean HTTPSProtocol(){
+        return this.HTTPSProtocol;
+    }
 
 
     public static List<PostRunAction> getPostRunActions() {
@@ -128,7 +133,7 @@ public class PcModel {
                         "TestInstanceID='%s', TimeslotDuration='%s', PostRunAction='%s'%s%s]",
 
                 almDomain, almProject, testId, testInstanceId,
-                timeslotDuration, postRunAction.getValue(), vudsModeString, trendString);
+                timeslotDuration, postRunAction.getValue(), vudsModeString, trendString,HTTPSProtocol);
     }
 
 
@@ -138,5 +143,11 @@ public class PcModel {
 
     public boolean isAddRunToTrendReport() {
         return addRunToTrendReport;
+    }
+
+    public String isHTTPSProtocol(){
+        if (HTTPSProtocol == false)
+            return "http";
+        return "https";
     }
 }

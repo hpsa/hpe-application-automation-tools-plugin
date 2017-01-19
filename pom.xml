@@ -166,7 +166,7 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<configuration>
-					<additionalparam>-Xdoclint:none</additionalparam>
+					<!--<additionalparam>-Xdoclint:none</additionalparam>-->
 				</configuration>
 			</plugin>
 			<plugin>
@@ -182,68 +182,68 @@
 				</configuration>
 			</plugin>
 			<!--  -->
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<version>1.4.0</version>
-				<configuration>
-					<executable>${msbuild.exe}</executable>
-					<workingDirectory>${basedir}/HpToolsLauncher</workingDirectory>
-				</configuration>
-				<executions>
-					<execution>
-						<id>InstallPlugin - "${project.artifactId}"</id>
-						<phase>install</phase>
-						<goals>
-							<goal>exec</goal>
-						</goals>
+			<!--<plugin>-->
+				<!--<groupId>org.codehaus.mojo</groupId>-->
+				<!--<artifactId>exec-maven-plugin</artifactId>-->
+				<!--<version>1.4.0</version>-->
+				<!--<configuration>-->
+					<!--<executable>${msbuild.exe}</executable>-->
+					<!--<workingDirectory>${basedir}/HpToolsLauncher</workingDirectory>-->
+				<!--</configuration>-->
+				<!--<executions>-->
+					<!--<execution>-->
+						<!--<id>InstallPlugin - "${project.artifactId}"</id>-->
+						<!--<phase>install</phase>-->
+						<!--<goals>-->
+							<!--<goal>exec</goal>-->
+						<!--</goals>-->
 
-						<configuration>
-							<skip>false</skip>
-							<executable>java</executable>
-							<arguments>
-								<argument> -jar</argument>
-								<argument>${env.JENKINS_HOME}war\WEB-INF\jenkins-cli.jar</argument>
-								<argument>-s</argument>
-								<argument>http://localhost:8080/jenkins</argument>
-								<argumnet>install-plugin</argumnet>
-								<argumnet>${project.build.directory}\${project.build.finalName}.${project.packaging}</argumnet>
-								<argument>-name</argument>
-								<argument>"${project.artifactId}"</argument>
-								<!-- <argument>-deploy</argument> -->
-								<argument>-restart</argument>
-								<argument>--password-file ${id_rsa_file}</argument>
-							</arguments>
-						</configuration>
-					</execution>
-					<execution>
-						<id>clean HPToolsLauncher</id>
-						<phase>clean</phase>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<configuration>
-							<arguments>
-								<argument>/t:Clean</argument>
-								<argument>/p:Configuration=${msbuild.configuration}</argument>
-							</arguments>
-						</configuration>
-					</execution>
-					<execution>
-						<id>creating HPToolsLauncher</id>
-						<phase>generate-resources</phase>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<configuration>
-							<arguments>
-								<argument>/t:Rebuild</argument>
-								<argument>/p:Configuration=${msbuild.configuration}</argument>
-							</arguments>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
+						<!--<configuration>-->
+							<!--<skip>false</skip>-->
+							<!--<executable>java</executable>-->
+							<!--<arguments>-->
+								<!--<argument> -jar</argument>-->
+								<!--<argument>${env.JENKINS_HOME}war\WEB-INF\jenkins-cli.jar</argument>-->
+								<!--<argument>-s</argument>-->
+								<!--<argument>http://localhost:8080/jenkins</argument>-->
+								<!--<argumnet>install-plugin</argumnet>-->
+								<!--<argumnet>${project.build.directory}\${project.build.finalName}.${project.packaging}</argumnet>-->
+								<!--<argument>-name</argument>-->
+								<!--<argument>"${project.artifactId}"</argument>-->
+								<!--&lt;!&ndash; <argument>-deploy</argument> &ndash;&gt;-->
+								<!--<argument>-restart</argument>-->
+								<!--<argument>&#45;&#45;password-file ${id_rsa_file}</argument>-->
+							<!--</arguments>-->
+						<!--</configuration>-->
+					<!--</execution>-->
+					<!--<execution>-->
+						<!--<id>clean HPToolsLauncher</id>-->
+						<!--<phase>clean</phase>-->
+						<!--<goals>-->
+							<!--<goal>exec</goal>-->
+						<!--</goals>-->
+						<!--<configuration>-->
+							<!--<arguments>-->
+								<!--<argument>/t:Clean</argument>-->
+								<!--<argument>/p:Configuration=${msbuild.configuration}</argument>-->
+							<!--</arguments>-->
+						<!--</configuration>-->
+					<!--</execution>-->
+					<!--<execution>-->
+						<!--<id>creating HPToolsLauncher</id>-->
+						<!--<phase>generate-resources</phase>-->
+						<!--<goals>-->
+							<!--<goal>exec</goal>-->
+						<!--</goals>-->
+						<!--<configuration>-->
+							<!--<arguments>-->
+								<!--<argument>/t:Rebuild</argument>-->
+								<!--<argument>/p:Configuration=${msbuild.configuration}</argument>-->
+							<!--</arguments>-->
+						<!--</configuration>-->
+					<!--</execution>-->
+				<!--</executions>-->
+			<!--</plugin>-->
 		</plugins>
 
 	</build>

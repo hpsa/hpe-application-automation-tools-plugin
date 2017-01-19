@@ -117,6 +117,8 @@
 		<script>onPostRunActionLoad();</script>
 	</f:block>
 
+
+
 	<f:block>
 		<j:set var="h_id" value="${h.generateId()}" />
 		<j:set var="m_id" value="${h.generateId()}" />
@@ -203,8 +205,11 @@
 		<br />
 	</f:block>
 	
-	<f:optionalBlock title="Use VUDs" field="vudsMode"
-		name="pc.vudsMode" checked="${instance.pcModel.vudsMode}" inline="true" />
+	<f:optionalBlock title="Use HTTPS Protocol" field="HTTPSProtocol" name="pc.HTTPSProtocol" checked="${instance.pcModel.HTTPSProtocol}" inline="true" />
+    <f:block>
+        <br />
+    </f:block>
+	<f:optionalBlock title="Use VUDs" field="vudsMode" name="pc.vudsMode" checked="${instance.pcModel.vudsMode}" inline="true" />
 	<f:block>
 		<br />
 	</f:block>
