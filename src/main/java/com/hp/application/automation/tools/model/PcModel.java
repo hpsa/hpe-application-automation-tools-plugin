@@ -1,3 +1,6 @@
+/*
+* Takes all the parameter from the job in order to create a loadtest object
+* */
 package com.hp.application.automation.tools.model;
 
 import java.util.Arrays;

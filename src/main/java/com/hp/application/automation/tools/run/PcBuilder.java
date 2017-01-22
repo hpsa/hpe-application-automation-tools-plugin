@@ -20,6 +20,10 @@
  * THE SOFTWARE.
  */
 
+
+/*
+* Create the PCModel and the PCClient and allows the connection between the job and PC
+* */
 package com.hp.application.automation.tools.run;
 
 import com.hp.application.automation.tools.common.PcException;
