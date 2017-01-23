@@ -112,7 +112,7 @@ public class PcModel {
         return this.description;
     }
 
-    public boolean HTTPSProtocol(){
+    public boolean httpsProtocol(){
         return this.HTTPSProtocol;
     }
 

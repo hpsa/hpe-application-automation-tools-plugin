@@ -29,7 +29,6 @@ package com.hp.application.automation.tools.run;
 import com.hp.application.automation.tools.common.PcException;
 import com.hp.application.automation.tools.model.PcModel;
 import com.hp.application.automation.tools.model.PostRunAction;
-import com.hp.application.automation.tools.model.SecretContainer;
 import com.hp.application.automation.tools.model.TimeslotDuration;
 import com.hp.application.automation.tools.pc.*;
 import com.hp.application.automation.tools.sse.result.model.junit.Error;
@@ -619,7 +618,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
 
     public boolean isHTTPSProtocol()
     {
-        return getPcModel().HTTPSProtocol();
+        return getPcModel().httpsProtocol();
     }
 
     public boolean isStatusBySLA() {
