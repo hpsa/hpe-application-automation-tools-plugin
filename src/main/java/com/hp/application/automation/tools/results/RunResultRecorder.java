@@ -655,6 +655,15 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         return true;
     }
 
+    /**
+     * Copies the run report from the executing node to the Jenkins master for processing.
+     * @param reportFolder
+     * @param buildDir
+     * @param scenarioName
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     */
     private FilePath copyRunReport(FilePath reportFolder, File buildDir, String
             scenarioName)
             throws IOException, InterruptedException {
