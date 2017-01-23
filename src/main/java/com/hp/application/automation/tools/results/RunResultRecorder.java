@@ -110,8 +110,8 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
     private static final String REPORTMETADATE_XML = "report_metadata.xml";
     private static final String TRANSACTION_SUMMARY_FOLDER = "TransactionSummary";
     private static final String TRANSACTION_REPORT_NAME = "Report3";
-    public static final String SLA_ACTUAL_VALUE_LABEL = "ActualValue";
-    public static final String SLA_GOAL_VALUE_LABEL = "GoalValue";
+    private static final String SLA_ACTUAL_VALUE_LABEL = "ActualValue";
+    private static final String SLA_GOAL_VALUE_LABEL = "GoalValue";
     public static final String SLA_ULL_NAME = "FullName";
     public static final String ARCHIVING_TEST_REPORTS_FAILED_DUE_TO_XML_PARSING_ERROR =
             "Archiving test reports failed due to xml parsing error: ";
@@ -304,9 +304,9 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
      */
 
         // add previous report names for aggregation when using pipelines.
-        for (SuiteResult suiteResult : testResult.getSuites()) {
-            String[] temp = suiteResult.getName().split("_");
-            reportNames.add(temp[temp.length - 1]);
+        PerformanceJobReportAction performanceJobReportAction = build.getAction(PerformanceJobReportAction.class);
+        if (performanceJobReportAction != null){
+            reportNames.addAll(performanceJobReportAction.getLrResultBuildDataset().getLrScenarioResults().keySet());
         }
 
         for (String resultsFilePath : resultFiles) {
@@ -332,6 +332,9 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                         continue;
                     }
                     String testFolderPath = testSuiteElement.getAttribute("name");
+                    int testPathArr = testFolderPath.lastIndexOf('\\');
+                    String testName = testFolderPath.substring(testPathArr + 1);
+                    reportNames.add(testName);
                     String testStatus = ("0".equals(testSuiteElement.getAttribute("failures"))) ? "pass" : "fail";
 
                     Node testCaseNode = testSuiteElement.getElementsByTagName("testcase").item(0);
