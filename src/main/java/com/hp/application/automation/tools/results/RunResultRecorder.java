@@ -367,9 +367,13 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                         try {
                             FilePath testSla = copyRunReport(reportFolder, build.getRootDir(),
                                     testFolder.getName());
-                            runReportList.add(testSla);
+                            if(testSla == null){
+                                listener.getLogger().println("no RunReport.xml file was created");
+                            } else {
+                                runReportList.add(testSla);
+                            }
                         } catch (IOException | InterruptedException e) {
-                            listener.getLogger().println(e.getMessage());
+                            listener.getLogger().println(e);
                         }
                     }
                 }
@@ -652,7 +656,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
     }
 
     private FilePath copyRunReport(FilePath reportFolder, File buildDir, String
-            scenerioName)
+            scenarioName)
             throws IOException, InterruptedException {
         FilePath slaReportFilePath = new FilePath(reportFolder, "RunReport.xml");
         if (slaReportFilePath.exists()) {
@@ -671,13 +675,13 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
             tmpZipFile.unzip(slaDirectoryFilePath);
             FilePath slaFile = new FilePath(slaDirectoryFilePath, "RunReport.xml");
             slaFile.getBaseName();
-            slaFile.renameTo(new FilePath(slaDirectoryFilePath, scenerioName + ".xml"));
+            slaFile.renameTo(new FilePath(slaDirectoryFilePath, scenarioName + ".xml"));
 
-            slaFile = new FilePath(slaDirectoryFilePath, scenerioName + ".xml");
+            slaFile = new FilePath(slaDirectoryFilePath, scenarioName + ".xml");
 
             return slaFile;
         }
-        throw (new IOException("no RunReport.xml file was created"));
+        return null;
     }
 
     private boolean archiveFolder(FilePath reportFolder,
@@ -995,7 +999,6 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
         Document doc = dBuilder.parse(slaFilePath.read());
-//		doc.getDocumentElement().normalize();
 
         processSLA(jobLrScenarioResult, doc);
         processLrScenarioStats(jobLrScenarioResult, doc);
