@@ -30,6 +30,8 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -43,7 +45,7 @@ import java.util.Map;
  */
 
 public class TeamCityPluginServicesImpl implements CIPluginServices {
-	private static final Logger logger = LogManager.getLogger(TeamCityPluginServicesImpl.class);
+	private static final Logger log = LogManager.getLogger(TeamCityPluginServicesImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String pluginVersion = "9.1.5";
 
@@ -94,14 +96,16 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 
 	@Override
 	public CIProxyConfiguration getProxyConfiguration(String targetHost) {
+		log.info("get proxy configuration");
 		CIProxyConfiguration result = null;
 		if (isProxyNeeded(targetHost)) {
+			log.info("proxy is required for host " + targetHost);
 			Map<String, String> propertiesMap = parseProperties(System.getenv("TEAMCITY_SERVER_OPTS"));
 			result = dtoFactory.newDTO(CIProxyConfiguration.class)
 					.setHost(propertiesMap.get("Dhttps.proxyHost"))
 					.setPort(Integer.parseInt(propertiesMap.get("Dhttps.proxyPort")))
-					.setUsername("")
-					.setPassword("");
+					.setUsername("Dhttps.proxyUser")
+					.setPassword("Dhttps.proxyPassword");
 		}
 		return result;
 	}
@@ -197,16 +201,22 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 	private boolean isProxyNeeded(String targetHost) {
 		boolean result = false;
 		Map<String, String> propertiesMap = parseProperties(System.getenv("TEAMCITY_SERVER_OPTS"));
-		if (propertiesMap.get("Dhttps.proxyHost") != null) {
-			result = true;
-			if (targetHost != null) {
-				for (String noProxyHost : getNoProxyHosts()) {
-					if (targetHost.contains(noProxyHost)) {
-						result = false;
-						break;
+		try {
+			URL url = new URL(targetHost);
+			String proxyHost = "D" + url.getProtocol() + ".proxyHost";
+			if (propertiesMap.get(proxyHost) != null) {
+				result = true;
+				if (targetHost != null) {
+					for (String noProxyHost : getNoProxyHosts(url.getProtocol())) {
+						if (targetHost.contains(noProxyHost)) {
+							result = false;
+							break;
+						}
 					}
 				}
 			}
+		} catch (MalformedURLException e) {
+			log.error("Invalid url", e);
 		}
 		return result;
 	}
@@ -224,9 +234,10 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 		}
 		return propertiesMap;
 	}
-
-	//  TODO: when no proxy locations management will be available - use that list here
-	private List<String> getNoProxyHosts() {
-		return Arrays.asList("localhost.emea.hpqcorp.net");
+	private String[] getNoProxyHosts(String protocol) {
+		Map<String, String> propertiesMap = parseProperties(System.getenv("TEAMCITY_SERVER_OPTS"));
+		String nonProxyHostsStr = propertiesMap.get("D" + protocol + ".nonProxyHosts").replace("\"", "");
+		String[] nonProxyHosts = nonProxyHostsStr.split("\\|");
+		return nonProxyHosts;
 	}
 }
