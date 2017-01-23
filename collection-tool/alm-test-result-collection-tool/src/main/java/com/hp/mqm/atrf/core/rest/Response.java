@@ -104,7 +104,7 @@ public class Response {
     @Override
     public String toString() {
         
-        return new String(this.responseData);
+        return this.responseData == null ? "responseData is null" : new String(this.responseData);
     }
     
 }

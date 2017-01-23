@@ -84,7 +84,7 @@ public class App {
     private void getCreationStatus(List<OctaneTestResultOutput> resultOutputs) {
         logger.info(System.lineSeparator());
         logger.info("PHASE : get creation statuses");
-        sleep(5 * 1000);//wait at least 5 sec before to give time to octane to complete the creation
+        sleep(10 * 1000);//wait at least 5 sec before to give time to octane to complete the creation
         for (int i = 0; i < resultOutputs.size(); i++) {
             OctaneTestResultOutput current = resultOutputs.get(i);
             getCreationStatusInternal(configuration, i + 1, current);

@@ -45,14 +45,15 @@ public class InherentParameterProcessor extends AbstractParametersProcessor {
 	public CIParameter createParameterInstance(ParameterDefinition pd, ParameterValue pv) {
 		CIParameter result;
 		CIParameter pc = createParameterConfig(pd);
+		Object value = pv == null ? null : pv.getValue();
 		if (pd instanceof BooleanParameterDefinition) {
-			result = ModelFactory.createParameterInstance(pc, pv);
+			result = ModelFactory.createParameterInstance(pc, value);
 		} else if (pd instanceof TextParameterDefinition) {
-			result = ModelFactory.createParameterInstance(pc, pv);
+			result = ModelFactory.createParameterInstance(pc, value);
 		} else if (pd instanceof StringParameterDefinition) {
-			result = ModelFactory.createParameterInstance(pc, pv);
+			result = ModelFactory.createParameterInstance(pc, value);
 		} else if (pd instanceof ChoiceParameterDefinition) {
-			result = ModelFactory.createParameterInstance(pc, pv);
+			result = ModelFactory.createParameterInstance(pc, value);
 		} else if (pd instanceof PasswordParameterDefinition) {
 			result = dtoFactory.newDTO(CIParameter.class)
 					.setType(pc.getType())

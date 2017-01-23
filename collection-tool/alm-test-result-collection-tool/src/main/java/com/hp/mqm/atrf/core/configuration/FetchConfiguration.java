@@ -60,7 +60,7 @@ public class FetchConfiguration {
     private Map<String, String> lowered2allowedParams;
 
     private static int ALM_RUN_FILTER_FETCH_LIMIT_DEFAULT = 200000;
-    private static int ALM_RUN_FILTER_FETCH_LIMIT_MAX = 200000;
+    private static int ALM_RUN_FILTER_FETCH_LIMIT_MAX = 1000000;
     private static int ALM_RUN_FILTER_FETCH_LIMIT_MIN = 1;
 
     private static int SYNC_BULK_SIZE_DEFAULT = 1000;
@@ -68,9 +68,9 @@ public class FetchConfiguration {
     private static int SYNC_BULK_SIZE_MIN = 10;
 
 
-    private static int SYNC_SLEEP_BETWEEN_POSTS_DEFAULT = 5;//sec
+    private static int SYNC_SLEEP_BETWEEN_POSTS_DEFAULT = 10;//sec
     private static int SYNC_SLEEP_BETWEEN_POSTS_MAX = 120;//sec
-    private static int SYNC_SLEEP_BETWEEN_POSTS_MIN = 2;//sec
+    private static int SYNC_SLEEP_BETWEEN_POSTS_MIN = 1;//sec
 
 
     public static String ALM_RUN_FILTER_START_FROM_ID_LAST_SENT = "LAST_SENT";
