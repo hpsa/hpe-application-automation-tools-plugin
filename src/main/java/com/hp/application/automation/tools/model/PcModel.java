@@ -149,7 +149,7 @@ public class PcModel {
     }
 
     public String isHTTPSProtocol(){
-        if (HTTPSProtocol == false)
+        if (!HTTPSProtocol)
             return "http";
         return "https";
     }

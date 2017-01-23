@@ -122,6 +122,7 @@ public class PcRestProxy {
 
     public PcRunResponse startRun(int testId, int testInstaceId, TimeslotDuration timeslotDuration,
             String postRunAction, boolean vudsMode) throws PcException, ClientProtocolException, IOException {
+        logger.println("Starting run");
         HttpPost startRunRequest = new HttpPost(String.format(baseURL + "/%s", RUNS_RESOURCE_NAME));
         startRunRequest.addHeader(RESTConstants.CONTENT_TYPE, CONTENT_TYPE_XML);
         PcRunRequest runRequestData = new PcRunRequest(testId, testInstaceId, 0, timeslotDuration, postRunAction, vudsMode);
