@@ -6,6 +6,7 @@ import com.hp.octane.integrations.dto.causes.CIEventCause;
 import com.hp.octane.integrations.dto.causes.CIEventCauseType;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
+import com.hp.octane.integrations.dto.events.PhaseType;
 import com.hp.octane.plugins.jetbrains.teamcity.OctaneTeamCityPlugin;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ModelCommonFactory;
 import com.hp.octane.plugins.jetbrains.teamcity.factories.ParametersFactory;
@@ -66,13 +67,7 @@ public class ProgressEventsListener extends BuildServerAdapter {
 		TriggeredBy triggeredBy = build.getTriggeredBy();
 		List<CIEventCause> causes = new ArrayList<>();
 
-		if (triggeredBy.getParameters().containsKey(TRIGGER_BUILD_TYPE_KEY)) {
-			String rootBuildTypeId = triggeredBy.getParameters().get(TRIGGER_BUILD_TYPE_KEY);
-			SQueuedBuild rootBuild = getTriggerBuild(rootBuildTypeId);
-			if (rootBuild != null) {
-				causes.add(causeFromBuild(rootBuild));
-			}
-		}
+		updateBuildTriggerCause(triggeredBy, causes);
 
 		CIEvent event = dtoFactory.newDTO(CIEvent.class)
 				.setEventType(CIEventType.STARTED)
@@ -88,17 +83,32 @@ public class ProgressEventsListener extends BuildServerAdapter {
 	}
 
 	@Override
+	public void changesLoaded(@NotNull SRunningBuild build) {
+		TriggeredBy triggeredBy = build.getTriggeredBy();
+		List<CIEventCause> causes = new ArrayList<>();
+
+		updateBuildTriggerCause(triggeredBy, causes);
+		CIEvent scmEvent = dtoFactory.newDTO(CIEvent.class)
+			.setEventType(CIEventType.SCM)
+			.setCauses(causes)
+			.setProject(build.getBuildTypeExternalId())
+			.setProjectDisplayName(build.getBuildTypeName())
+			.setBuildCiId(String.valueOf(build.getBuildId()))
+			.setNumber(build.getBuildNumber())
+			.setEstimatedDuration(build.getDurationEstimate() * 1000)
+			.setStartTime(System.currentTimeMillis())
+			.setPhaseType(PhaseType.INTERNAL)
+			.setScmData(ScmUtils.getScmData(build));
+
+		OctaneSDK.getInstance().getEventsService().publishEvent(scmEvent);
+	}
+
+	@Override
 	public void buildFinished(@NotNull SRunningBuild build) {
 		TriggeredBy triggeredBy = build.getTriggeredBy();
 		List<CIEventCause> causes = new ArrayList<>();
 
-		if (triggeredBy.getParameters().containsKey(TRIGGER_BUILD_TYPE_KEY)) {
-			String rootBuildTypeId = triggeredBy.getParameters().get(TRIGGER_BUILD_TYPE_KEY);
-			SQueuedBuild rootBuild = getTriggerBuild(rootBuildTypeId);
-			if (rootBuild != null) {
-				causes.add(causeFromBuild(rootBuild));
-			}
-		}
+		updateBuildTriggerCause(triggeredBy, causes);
 
 		CIEvent event = dtoFactory.newDTO(CIEvent.class)
 				.setEventType(CIEventType.FINISHED)
@@ -113,6 +123,16 @@ public class ProgressEventsListener extends BuildServerAdapter {
 				.setDuration(build.getDuration() * 1000)
 				.setResult(modelCommonFactory.resultFromNativeStatus(build.getBuildStatus()));
 		OctaneSDK.getInstance().getEventsService().publishEvent(event);
+	}
+
+	private void updateBuildTriggerCause(TriggeredBy triggeredBy, List<CIEventCause> causes) {
+		if (triggeredBy.getParameters().containsKey(TRIGGER_BUILD_TYPE_KEY)) {
+			String rootBuildTypeId = triggeredBy.getParameters().get(TRIGGER_BUILD_TYPE_KEY);
+			SQueuedBuild rootBuild = getTriggerBuild(rootBuildTypeId);
+			if (rootBuild != null) {
+				causes.add(causeFromBuild(rootBuild));
+			}
+		}
 	}
 
 	private SQueuedBuild getTriggerBuild(String triggerBuildTypeId) {
