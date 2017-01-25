@@ -70,7 +70,7 @@ class ScmUtils {
 		String repositoryType = vcsRootInstance.getVcsDisplayName();
 		if (repositoryType.equalsIgnoreCase("git")) {
 			return SCMType.GIT;
-		} else if (repositoryType.equalsIgnoreCase("svn")) {
+		} else if (repositoryType.equalsIgnoreCase("Subversion")) {
 			return SCMType.SVN;
 		}
 		return SCMType.UNKNOWN;
