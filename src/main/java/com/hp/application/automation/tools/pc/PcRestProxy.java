@@ -90,9 +90,9 @@ public class PcRestProxy {
     private CookieStore cookieStore;
     private PrintStream logger;
 
-    public PcRestProxy(String webProtocolName, String pcServerName, String almDomain, String almProject,PrintStream logger) {
+    public PcRestProxy(String webProtocolName, String pcServerName, String almDomain, String almProject,PrintStream mainLogger) {
 
-        this.logger = logger;
+        logger = mainLogger;
     	pcServer = pcServerName;
     	domain = almDomain;
     	project = almProject;

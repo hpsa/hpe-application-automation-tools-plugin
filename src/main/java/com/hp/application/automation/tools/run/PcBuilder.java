@@ -91,8 +91,6 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     private FilePath pcReportFile;
     private String junitResultsFileName;
     private PrintStream logger;
-    private final boolean HTTPSProtocol;
-  //  private boolean trendReportReady;
     
     @DataBoundConstructor
     public PcBuilder(
@@ -117,7 +115,6 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         this.timeslotDurationHours = timeslotDurationHours;
         this.timeslotDurationMinutes = timeslotDurationMinutes;
         this.statusBySLA = statusBySLA;
-        this.HTTPSProtocol = HTTPSProtocol;
 
         pcModel =
                 new PcModel(
