@@ -59,6 +59,7 @@ import java.io.StringWriter;
 import java.lang.reflect.Method;
 import java.text.Format;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -219,11 +220,13 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         boolean trendReportReady = false;
         try {
             runId = pcClient.startRun();
-            
+            List<ParameterValue> parameters = new ArrayList<>();
+            parameters.add(new StringParameterValue(RUNID_BUILD_VARIABLE, "" + runId));
             // This allows a user to access the runId from within Jenkins using a build variable.
-            build.addAction(new ParametersAction(new StringParameterValue(RUNID_BUILD_VARIABLE, "" + runId))); 
+            build.addAction(new AdditionalParametersAction(parameters));
             logger.print("Set " + RUNID_BUILD_VARIABLE + " Env Variable to " + runId + "\n");
-            
+
+
             response = pcClient.waitForRunCompletion(runId);
 
 
