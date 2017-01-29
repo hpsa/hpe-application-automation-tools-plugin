@@ -1,0 +1,27 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
+                 xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+    <f:section title="${%global.config.description}" name="mqm">
+        <f:entry title="${%global.config.server.title}">
+            <f:nested>
+                <table width="100%">
+                    <f:entry title="${%global.config.location.title}"
+                             description="${%global.config.location.description}" help="/plugin/hp-lifecycle-management-ci-plugin/help/uiLocation.html">
+                        <f:textbox field="uiLocation" />
+                    </f:entry>
+                    <f:entry title="${%global.config.username.title}" description="${%global.config.username.description}" help="/plugin/hp-lifecycle-management-ci-plugin/help/accessKey.html">
+                        <f:textbox field="username" />
+                    </f:entry>
+                    <f:entry title="${%global.config.password.title}" description="${%global.config.password.description}">
+                        <f:password field="secretPassword" />
+                    </f:entry>
+                    <f:entry title="${%global.config.impersonatedUser.title}" description="${%global.config.impersonatedUser.description}" help="/plugin/hp-lifecycle-management-ci-plugin/help/impersonatedUser.html">
+                        <f:textbox field="impersonatedUser" />
+                    </f:entry>
+                    <f:validateButton title="${%global.config.test.connection}" progress="${%global.config.test.connection.progress}"
+                        method="testGlobalConnection" with="uiLocation,username,secretPassword,impersonatedUser" />
+                </table>
+            </f:nested>
+        </f:entry>
+    </f:section>
+</j:jelly>
