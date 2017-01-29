@@ -27,7 +27,7 @@ import java.io.IOException;
  */
 @Extension
 public class LogDispatcher extends SafeLoggingAsyncPeriodWork {
-    private static final String BDI_PRODUCT = "app";
+    private static final String BDI_PRODUCT = "octane";
     private static Logger logger = LogManager.getLogger(LogDispatcher.class);
 
     @Inject
