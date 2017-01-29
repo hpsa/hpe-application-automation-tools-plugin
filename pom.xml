@@ -28,6 +28,7 @@
 		<msbuild.configuration>Release</msbuild.configuration>
 		<jenkins.version>1.642.4</jenkins.version>
 		<workflow.version>2.2</workflow.version>
+		<bdi.version>1.0.0-92-master</bdi.version>
 	</properties>
 
 	<distributionManagement>
@@ -156,6 +157,7 @@
 			</plugins>
 		</pluginManagement>
 		<plugins>
+				<!-- we need to overide the enforcer rules here because we have java 1.6 and not the  old 1.4 -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-release-plugin</artifactId>
@@ -252,16 +254,16 @@
 	<!-- get every artifact through repo.jenkins-ci.org, which proxies all the artifacts that we need -->
 	<repositories>
 		<repository>
+			<id>hp-application-automation-tools-plugin-mvn-repo</id>
+			<url>https://raw.github.com/HpeServiceVirtualization/3g/mvn-repo/</url>
+		</repository>
+		<repository>
 			<id>repo.jenkins-ci.org</id>
 			<url>https://repo.jenkins-ci.org/public/</url>
 		</repository>
 		<repository>
 			<id>central</id>
 			<url>http://repo1.maven.org/maven2</url>
-		</repository>
-		<repository>
-			<id>hp-application-automation-tools-plugin-mvn-repo</id>
-			<url>https://raw.github.com/HpeServiceVirtualization/3g/mvn-repo/</url>
 		</repository>
 	</repositories>
 
@@ -346,6 +348,168 @@
 			<groupId>org.jenkins-ci.plugins</groupId>
 			<artifactId>junit</artifactId>
 			<version>1.19</version>
+		</dependency>
+
+
+<!-- Octane jenkins-->
+		<!---->
+		<!---->
+		<!---->
+		<!---->
+
+		<dependency>
+			<artifactId>integrations-sdk</artifactId>
+			<groupId>com.hpe.alm.octane.plugins</groupId>
+			<version>1.0</version>
+		</dependency>
+
+		<!-- TO BE REMOVED -->
+		<dependency>
+			<artifactId>mqm-rest-client</artifactId>
+			<groupId>com.hpe.alm.octane.plugins</groupId>
+			<version>1.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jenkins-ci.main</groupId>
+			<artifactId>maven-plugin</artifactId>
+			<version>2.6</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>branch-api</artifactId>
+			<version>1.10</version>
+			<optional>true</optional>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>git-server</artifactId>
+			<version>1.7</version>
+			<optional>true</optional>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jenkins-ci.plugins.pipeline-stage-view</groupId>
+			<artifactId>pipeline-rest-api</artifactId>
+			<version>1.7</version>
+			<optional>true</optional>
+		</dependency>
+
+		<!-- pipeline as a code  ends here -->
+
+		<dependency>
+			<groupId>com.squareup</groupId>
+			<artifactId>tape</artifactId>
+			<version>1.2.3</version>
+		</dependency>
+
+		<!--Extensibility-->
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi</artifactId>
+			<version>3.7</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>git</artifactId>
+			<version>2.2.7</version>
+			<optional>true</optional>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>jenkins-multijob-plugin</artifactId>
+			<version>1.15</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>parameterized-trigger</artifactId>
+			<version>2.25</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>com.seitenbau.jenkins.plugins</groupId>
+			<artifactId>dynamicparameter</artifactId>
+			<version>0.2.0</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>extended-choice-parameter</artifactId>
+			<version>0.34</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>random-string-parameter</artifactId>
+			<version>1.0</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>nodelabelparameter</artifactId>
+			<version>1.5.0</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>jquery</artifactId>
+			<version>1.7.2-1</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>subversion</artifactId>
+			<version>1.45</version>
+			<optional>true</optional>
+		</dependency>
+		<!--Test-->
+
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20141113</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-server</artifactId>
+			<version>9.2.6.v20141205</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>1.10.19</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>hp-application-automation-tools-plugin</artifactId>
+			<version>3.0.7</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.main</groupId>
+			<artifactId>jenkins-test-harness-tools</artifactId>
+			<version>2.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jdom</groupId>
+			<artifactId>jdom2</artifactId>
+			<version>2.0.4</version>
+		</dependency>
+
+		<!-- BDI dependencies -->
+		<dependency>
+			<groupId>com.hp.bdi</groupId>
+			<artifactId>bdi-sdk</artifactId>
+			<version>${bdi.version}</version>
 		</dependency>
 	</dependencies>
 </project>
