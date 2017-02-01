@@ -1,11 +1,6 @@
 package com.hp.octane.integrations;
 
-import com.hp.octane.integrations.spi.CIPluginServices;
-import com.hp.octane.integrations.api.ConfigurationService;
-import com.hp.octane.integrations.api.EventsService;
-import com.hp.octane.integrations.api.RestService;
-import com.hp.octane.integrations.api.TasksProcessor;
-import com.hp.octane.integrations.api.TestsService;
+import com.hp.octane.integrations.api.*;
 import com.hp.octane.integrations.services.bridge.BridgeServiceImpl;
 import com.hp.octane.integrations.services.configuration.ConfigurationServiceImpl;
 import com.hp.octane.integrations.services.events.EventsServiceImpl;
@@ -13,9 +8,11 @@ import com.hp.octane.integrations.services.logging.LoggingService;
 import com.hp.octane.integrations.services.rest.RestServiceImpl;
 import com.hp.octane.integrations.services.tasking.TasksProcessorImpl;
 import com.hp.octane.integrations.services.tests.TestsServiceImpl;
+import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 
@@ -37,6 +34,7 @@ public final class OctaneSDK {
 	private OctaneSDK(CIPluginServices ciPluginServices) {
 		initSDKProperties();
 		configurator = new SDKConfigurator(ciPluginServices);
+		setPredictiveKeyPath(ciPluginServices);
 	}
 
 	//  TODO: remove the boolean once migrated JP
@@ -98,6 +96,14 @@ public final class OctaneSDK {
 		if (!p.isEmpty()) {
 			API_VERSION = Integer.parseInt(p.getProperty("api.version"));
 			SDK_VERSION = p.getProperty("sdk.version");
+		}
+	}
+
+	private void setPredictiveKeyPath(CIPluginServices ciPluginServices) {
+		File file = new File(Jenkins.getInstance().getRootDir());
+		if (file != null && (file.isDirectory() || !file.exists())) {
+			System.setProperty("pem_file", file.getAbsolutePath() + File.separator
+					+ "keys" + File.separator + "predictive.pem");
 		}
 	}
 
