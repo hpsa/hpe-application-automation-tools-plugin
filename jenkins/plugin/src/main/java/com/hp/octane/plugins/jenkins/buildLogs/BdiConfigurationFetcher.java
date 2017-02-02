@@ -48,9 +48,14 @@ public class BdiConfigurationFetcher extends SafeLoggingAsyncPeriodWork {
 
     private void fetchBdiConfiguration() {
         try {
-            MqmRestClient mqmRestClient = createMqmRestClient();
-            bdiConfiguration = BdiConfiguration.fromJSON(mqmRestClient.getBdiConfiguration());
             shouldFetchBdiConfiguration = false;
+            MqmRestClient mqmRestClient = createMqmRestClient();
+            if (mqmRestClient == null) {
+                logger.info("Octane configuration is not valid");
+                bdiConfiguration = null;
+                return;
+            }
+            bdiConfiguration = BdiConfiguration.fromJSON(mqmRestClient.getBdiConfiguration());
 
             String loggingMessage = bdiConfiguration == null ? "BDI is not configured in Octane." : "Fetched BDI configuration from Octane. Address: " + bdiConfiguration.getHost() + ", Port: " + bdiConfiguration.getPort();
             logger.info(loggingMessage);
@@ -61,11 +66,14 @@ public class BdiConfigurationFetcher extends SafeLoggingAsyncPeriodWork {
 
     private MqmRestClient createMqmRestClient() {
         ServerConfiguration configuration = ConfigurationService.getServerConfiguration();
-        return clientFactory.obtain(
-                configuration.location,
-                configuration.sharedSpace,
-                configuration.username,
-                configuration.password);
+        if (configuration.isValid()) {
+            return clientFactory.obtain(
+                    configuration.location,
+                    configuration.sharedSpace,
+                    configuration.username,
+                    configuration.password);
+        }
+        return null;
     }
 
     @Override
