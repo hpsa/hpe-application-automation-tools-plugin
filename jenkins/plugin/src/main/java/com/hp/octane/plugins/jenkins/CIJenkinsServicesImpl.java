@@ -82,11 +82,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 
 	@Override
 	public File getPredictiveOctanePath() {
-		File predictiveDir = new File(Jenkins.getInstance().getRootDir(), "predictive");
-		if (!predictiveDir.exists()) {
-			predictiveDir.mkdir();
-		}
-		return predictiveDir;
+		return new File(Jenkins.getInstance().getRootDir(), "predictive");
 	}
 
 	@Override
