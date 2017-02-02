@@ -28,7 +28,7 @@ public final class PredictiveService extends OctaneSDK.SDKServiceBase {
 
     private void configurePredictivePemFile() {
         File predictiveOctanePath = pluginServices.getPredictiveOctanePath();
-        if (predictiveOctanePath != null && predictiveOctanePath.isDirectory()) {
+        if (predictiveOctanePath != null) {
             synchronized (INIT_LOCKER) {
                 String pemFilePath = predictiveOctanePath.getAbsolutePath() + File.separator + PREDICTIVE_PEM_FILE_NAME;
                 System.setProperty(PEM_FILE_SYS_PARAM, pemFilePath);
