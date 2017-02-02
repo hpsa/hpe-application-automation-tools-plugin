@@ -2,7 +2,11 @@ package com.hp.application.automation.tools.run;
 
 import hudson.EnvVars;
 import hudson.Extension;
-import hudson.model.*;
+import hudson.model.EnvironmentContributor;
+import hudson.model.ParameterValue;
+import hudson.model.Run;
+import hudson.model.TaskListener;
+import hudson.model.ParametersAction;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -18,9 +22,11 @@ public class AdditionalParametersAction  extends ParametersAction{
 
     private List<ParameterValue> parameters;
 
-    public AdditionalParametersAction(List<ParameterValue> parameters){
-        this.parameters = parameters;
+    public AdditionalParametersAction(List<ParameterValue> cparameters){
+        this.parameters = Collections.unmodifiableList(cparameters);
     }
+
+
 
     @Override
     public List<ParameterValue> getParameters() {
@@ -30,7 +36,8 @@ public class AdditionalParametersAction  extends ParametersAction{
     @Override
     public ParameterValue getParameter(String name){
         for (ParameterValue p : parameters) {
-            if (p == null) continue;
+            if (p == null)
+                continue;
             if (p.getName().equals(name))
                 return p;
         }
@@ -38,7 +45,7 @@ public class AdditionalParametersAction  extends ParametersAction{
     }
 
     @Extension
-    public static final class AdditionalParametersActionEnvironmentContributor extends EnvironmentContributor{
+    public static final class AdditionalParametersActionEnvironmentContributor extends EnvironmentContributor {
         @Override
         public void buildEnvironmentFor(Run r, EnvVars envs, TaskListener listener)
             throws IOException, InterruptedException {
