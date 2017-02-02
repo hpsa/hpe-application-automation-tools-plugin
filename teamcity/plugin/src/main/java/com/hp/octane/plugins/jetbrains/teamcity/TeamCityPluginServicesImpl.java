@@ -81,6 +81,11 @@ public class TeamCityPluginServicesImpl implements CIPluginServices {
 	}
 
 	@Override
+	public File getPredictiveOctanePath() {
+		return null;
+	}
+
+	@Override
 	public OctaneConfiguration getOctaneConfiguration() {
 		OctaneConfiguration result = null;
 		OctaneConfigStructure config = octaneTeamCityPlugin.getConfig();

@@ -11,6 +11,7 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.*;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -68,7 +69,11 @@ public class EventsTest {
 				while ((len = request.getInputStream().read(buffer, 0, 1024)) > 0) {
 					body += new String(buffer, 0, len);
 				}
-				eventsLists.add(new JSONObject(body));
+				try {
+					eventsLists.add(new JSONObject(body));
+				} catch (JSONException e) {
+					logger.warning("EVENTS TEST: response wasn't JSON compatible");
+				}
 				logger.info("EVENTS TEST: server mock events list length " + eventsLists.size());
 				response.setStatus(HttpServletResponse.SC_OK);
 			}

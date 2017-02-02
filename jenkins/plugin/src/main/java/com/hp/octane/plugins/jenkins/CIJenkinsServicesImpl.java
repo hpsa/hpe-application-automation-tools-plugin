@@ -81,6 +81,15 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 	}
 
 	@Override
+	public File getPredictiveOctanePath() {
+		File predictiveDir = new File(Jenkins.getInstance().getRootDir(), "predictive");
+		if (!predictiveDir.exists()) {
+			predictiveDir.mkdir();
+		}
+		return predictiveDir;
+	}
+
+	@Override
 	public OctaneConfiguration getOctaneConfiguration() {
 		OctaneConfiguration result = null;
 		ServerConfiguration serverConfiguration = Jenkins.getInstance().getPlugin(OctanePlugin.class).getServerConfiguration();

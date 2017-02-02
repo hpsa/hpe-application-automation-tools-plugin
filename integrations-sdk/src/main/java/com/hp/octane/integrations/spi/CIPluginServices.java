@@ -42,6 +42,13 @@ public interface CIPluginServices {
 	File getAllowedOctaneStorage();
 
 	/**
+	 * Provider the folder that includes predictive-Octane properties
+	 *
+	 * @return File object of type Directory; if no available storage exists the implementation should return NULL
+	 */
+	File getPredictiveOctanePath();
+
+	/**
 	 * Provides NGA Server configuration (managed by plugin implementation)
 	 *
 	 * @return NGAConfiguration object; if no configuration available the implementation should return NULL
