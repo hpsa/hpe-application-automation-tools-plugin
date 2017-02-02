@@ -5,6 +5,7 @@ import com.hp.octane.integrations.services.bridge.BridgeServiceImpl;
 import com.hp.octane.integrations.services.configuration.ConfigurationServiceImpl;
 import com.hp.octane.integrations.services.events.EventsServiceImpl;
 import com.hp.octane.integrations.services.logging.LoggingService;
+import com.hp.octane.integrations.services.predictive.PredictiveService;
 import com.hp.octane.integrations.services.rest.RestServiceImpl;
 import com.hp.octane.integrations.services.tasking.TasksProcessorImpl;
 import com.hp.octane.integrations.services.tests.TestsServiceImpl;
@@ -12,7 +13,6 @@ import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 
@@ -34,7 +34,6 @@ public final class OctaneSDK {
 	private OctaneSDK(CIPluginServices ciPluginServices) {
 		initSDKProperties();
 		configurator = new SDKConfigurator(ciPluginServices);
-		setPredictiveKeyPath(ciPluginServices);
 	}
 
 	//  TODO: remove the boolean once migrated JP
@@ -99,14 +98,6 @@ public final class OctaneSDK {
 		}
 	}
 
-	private void setPredictiveKeyPath(CIPluginServices ciPluginServices) {
-		File file = new File(Jenkins.getInstance().getRootDir());
-		if (file != null && (file.isDirectory() || !file.exists())) {
-			System.setProperty("pem_file", file.getAbsolutePath() + File.separator
-					+ "keys" + File.separator + "predictive.pem");
-		}
-	}
-
 	private static class SDKConfigurator {
 		private final CIPluginServices pluginServices;
 		private final LoggingService loggingService;
@@ -116,6 +107,7 @@ public final class OctaneSDK {
 		private final TasksProcessor tasksProcessor;
 		private final EventsService eventsService;
 		private final TestsService testsService;
+		private final PredictiveService predictiveService;
 
 		private SDKConfigurator(CIPluginServices pluginServices) {
 			this.pluginServices = pluginServices;
@@ -126,6 +118,7 @@ public final class OctaneSDK {
 			eventsService = new EventsServiceImpl(this, pluginServices, restService);
 			testsService = new TestsServiceImpl(this, pluginServices, restService);
 			bridgeServiceImpl = new BridgeServiceImpl(this, pluginServices, restService, tasksProcessor, initBridge);
+			predictiveService = new PredictiveService(this, pluginServices);
 		}
 	}
 

@@ -64,6 +64,11 @@ public class BambooPluginServices implements CIPluginServices {
 		return null;
 	}
 
+	@Override
+	public File getPredictiveOctanePath() {
+		return null;
+	}
+
 	public BuildHistory getHistoryPipeline(String arg0, String arg1) {
 		log.info("Get build history pipeline " + arg0 + " , " + arg1);
 		return null;

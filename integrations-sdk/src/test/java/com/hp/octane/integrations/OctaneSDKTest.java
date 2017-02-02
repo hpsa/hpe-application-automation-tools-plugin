@@ -39,6 +39,11 @@ public class OctaneSDKTest {
 			return null;
 		}
 
+		@Override
+		public File getPredictiveOctanePath() {
+			return null;
+		}
+
 		public OctaneConfiguration getOctaneConfiguration() {
 			return null;
 		}
