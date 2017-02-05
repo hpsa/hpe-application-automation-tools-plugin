@@ -52,7 +52,7 @@ public class EventsTest {
 	private final JenkinsRule.WebClient client = rule.createWebClient();
 
 	private static final class EventsHandler extends AbstractHandler {
-		private final List<JSONObject> eventsLists = new ArrayList<JSONObject>();
+		private final List<JSONObject> eventsLists = new ArrayList<>();
 
 		@Override
 		public void handle(String s, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
@@ -105,7 +105,7 @@ public class EventsTest {
 
 		//WebRequestSettings req = new WebRequestSettings(client.createCrumbedUrl("nga/status"), HttpMethod.GET);
 		// the above 1 line changed to this 1 line
-		WebRequest req = new WebRequest(client.createCrumbedUrl("nga/status"), HttpMethod.GET);
+		WebRequest req = new WebRequest(client.createCrumbedUrl("nga/api/v1/status"), HttpMethod.GET);
 
 		WebResponse res = client.loadWebResponse(req);
 		JSONObject resJSON = new JSONObject(res.getContentAsString());
