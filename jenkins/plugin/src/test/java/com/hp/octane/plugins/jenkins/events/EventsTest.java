@@ -75,7 +75,7 @@ public class EventsTest {
 			baseRequest.setHandled(true);
 		}
 
-		public List<JSONObject> getResults() {
+		List<JSONObject> getResults() {
 			return eventsLists;
 		}
 
