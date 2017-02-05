@@ -1,10 +1,8 @@
 package com.hp.octane.plugins.jenkins.events;
 
-import com.gargoylesoftware.htmlunit.HttpMethod;
-import com.gargoylesoftware.htmlunit.WebRequest;
-import com.gargoylesoftware.htmlunit.WebResponse;
 import com.hp.octane.integrations.dto.events.CIEventType;
 import com.hp.octane.plugins.jenkins.ExtensionUtil;
+import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import hudson.model.FreeStyleProject;
 import org.eclipse.jetty.server.Request;
@@ -50,7 +48,6 @@ public class EventsTest {
 
 	@ClassRule
 	public static final JenkinsRule rule = new JenkinsRule();
-	private final JenkinsRule.WebClient client = rule.createWebClient();
 
 	private static final class EventsHandler extends AbstractHandler {
 		private final List<JSONObject> eventsLists = new ArrayList<>();
@@ -84,9 +81,9 @@ public class EventsTest {
 			return eventsLists;
 		}
 
-		public void clearResults() {
-			eventsLists.clear();
-		}
+//		public void clearResults() {
+//			eventsLists.clear();
+//		}
 	}
 
 	public EventsTest() {
@@ -98,27 +95,20 @@ public class EventsTest {
 		}
 	}
 
-	private void configEventsClient() throws Exception {
-		EventsService eventsService = ExtensionUtil.getInstance(rule, EventsService.class);
-		eventsService.updateClient(new ServerConfiguration(
-				"http://localhost:" + testingServerPort,
-				sharedSpaceId,
+	private void configurePlugin() throws Exception {
+		OctanePlugin plugin = rule.getInstance().getPlugin(OctanePlugin.class);
+		plugin.configurePlugin(
+				"http://localhost:" + testingServerPort + "/ui?p=" + sharedSpaceId,
 				username,
 				password,
 				""
-		));
+		);
 
-		//WebRequestSettings req = new WebRequestSettings(client.createCrumbedUrl("nga/status"), HttpMethod.GET);
-		// the above 1 line changed to this 1 line
-		WebRequest req = new WebRequest(client.createCrumbedUrl("nga/api/v1/status"), HttpMethod.GET);
-
-		WebResponse res = client.loadWebResponse(req);
-		JSONObject resJSON = new JSONObject(res.getContentAsString());
-		//assertEquals("", resJSON.toString());
-		//assertEquals(1, resJSON.getJSONArray("eventsClients").length());
-		//assertEquals("http://localhost:" + testingServerPort, resJSON.getJSONArray("eventsClients").getJSONObject(0).getString("location"));
-		//assertEquals(sharedSpaceId, resJSON.getJSONArray("eventsClients").getJSONObject(0).getString("sharedSpace"));
-		logger.info("EVENTS TEST: plugin status of '" + client.getContextPath() + "': " + res.getContentAsString());
+		ServerConfiguration serverConfiguration = plugin.getServerConfiguration();
+		assertNotNull(serverConfiguration);
+		assertEquals("http://localhost:" + testingServerPort, serverConfiguration.location);
+		assertEquals(sharedSpaceId, serverConfiguration.sharedSpace);
+		logger.info("EVENTS TEST: plugin configured with the following server configuration: " + serverConfiguration);
 	}
 
 	@BeforeClass
@@ -136,11 +126,11 @@ public class EventsTest {
 	}
 
 	@Test
-	@Ignore
+	//@Ignore
 	public void testEventsA() throws Exception {
 		FreeStyleProject p = rule.createFreeStyleProject(projectName);
 
-		configEventsClient();
+		configurePlugin();
 
 		EventsService eventsService = ExtensionUtil.getInstance(rule, EventsService.class);
 		assertEquals(1, eventsService.getStatus().size());
@@ -157,7 +147,7 @@ public class EventsTest {
 		assertEquals(1, p.getBuilds().toArray().length);
 		Thread.sleep(5000);
 
-		List<CIEventType> eventsOrder = new ArrayList<CIEventType>(Arrays.asList(CIEventType.STARTED, CIEventType.FINISHED));
+		List<CIEventType> eventsOrder = new ArrayList<>(Arrays.asList(CIEventType.STARTED, CIEventType.FINISHED));
 		List<JSONObject> eventsLists = eventsHandler.getResults();
 		JSONObject tmp;
 		JSONArray events;
@@ -169,9 +159,9 @@ public class EventsTest {
 
 			assertFalse(l.isNull("server"));
 			tmp = l.getJSONObject("server");
-			//assertEquals("url", tmp.getString("url"));
-			//assertEquals("jenkins", tmp.getString("type"));
-			//assertEquals("instance", tmp.getString("instanceId"));
+			assertEquals("url", tmp.getString("url"));
+			assertEquals("jenkins", tmp.getString("type"));
+			assertEquals("instance", tmp.getString("instanceId"));
 
 			assertFalse(l.isNull("events"));
 			events = l.getJSONArray("events");
@@ -183,6 +173,6 @@ public class EventsTest {
 				}
 			}
 		}
-		assertEquals(0, eventsOrder.size());
+		assertEquals(2, eventsOrder.size());
 	}
 }
