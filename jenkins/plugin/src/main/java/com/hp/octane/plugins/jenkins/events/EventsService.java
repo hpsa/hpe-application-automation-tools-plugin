@@ -11,8 +11,6 @@ import jenkins.model.Jenkins;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 
@@ -47,7 +45,7 @@ public final class EventsService implements ConfigurationListener {
 	}
 
 	public void updateClient(ServerConfiguration conf) {
-		if (isConfigurationValid(conf)) {
+		if (conf.isValid()) {
 			if (eventsClient != null) {
 				eventsClient.update(conf);
 			} else {
@@ -94,19 +92,5 @@ public final class EventsService implements ConfigurationListener {
 	@Override
 	public void onChanged(ServerConfiguration conf, ServerConfiguration oldConf) {
 		updateClient(conf);
-	}
-
-	private boolean isConfigurationValid(ServerConfiguration serverConfiguration) {
-		boolean result = false;
-		if (serverConfiguration.location != null && !serverConfiguration.location.isEmpty() &&
-				serverConfiguration.sharedSpace != null && !serverConfiguration.sharedSpace.isEmpty()) {
-			try {
-				URL tmp = new URL(serverConfiguration.location);
-				result = true;
-			} catch (MalformedURLException mue) {
-				logger.error("configuration with malformed URL supplied", mue);
-			}
-		}
-		return result;
 	}
 }
