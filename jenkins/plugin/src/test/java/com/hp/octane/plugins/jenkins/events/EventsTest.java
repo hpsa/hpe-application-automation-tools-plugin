@@ -126,7 +126,6 @@ public class EventsTest {
 	}
 
 	@Test
-	//@Ignore
 	public void testEventsA() throws Exception {
 		FreeStyleProject p = rule.createFreeStyleProject(projectName);
 
