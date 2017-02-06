@@ -67,21 +67,26 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 				public void run() {
 					String tasksJSON;
 					CIServerInfo serverInfo = pluginServices.getServerInfo();
-					try {
-						tasksJSON = getAbridgedTasks(
-								serverInfo.getInstanceId(),
-								serverInfo.getType().value(),
-								serverInfo.getUrl(),
-								OctaneSDK.API_VERSION,
-								OctaneSDK.SDK_VERSION);
-						connect();
-						if (tasksJSON != null && !tasksJSON.isEmpty()) {
-							handleTasks(tasksJSON);
+					if (serverInfo != null) {
+						try {
+							tasksJSON = getAbridgedTasks(
+									serverInfo.getInstanceId(),
+									serverInfo.getType().value(),
+									serverInfo.getUrl(),
+									OctaneSDK.API_VERSION,
+									OctaneSDK.SDK_VERSION);
+							connect();
+							if (tasksJSON != null && !tasksJSON.isEmpty()) {
+								handleTasks(tasksJSON);
+							}
+						} catch (Exception e) {
+							logger.error("connection to Octane Server temporary failed", e);
+							doBreakableWait(1000);
+							connect();
 						}
-					} catch (Exception e) {
-						logger.error("connection to Octane Server temporary failed", e);
-						doBreakableWait(1000);
-						connect();
+					} else {
+						logger.info("bridge service is shutting down due to an empty (NULL) server info received from the hosting CI Server");
+						shutdown();
 					}
 				}
 			});
