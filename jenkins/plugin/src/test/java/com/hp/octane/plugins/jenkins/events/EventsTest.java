@@ -47,8 +47,83 @@ public class EventsTest {
 	static private int testingServerPort = DEFAULT_TESTING_SERVER_PORT;
 	static private EventsHandler eventsHandler;
 
-	@ClassRule
-	public static final JenkinsRule rule = new JenkinsRule();
+	public EventsTest() {
+		String p = System.getProperty("testingServerPort");
+		try {
+			if (p != null) testingServerPort = Integer.parseInt(p);
+		} catch (NumberFormatException nfe) {
+			logger.info("EVENTS TEST: bad port number format, default port will be used: " + testingServerPort);
+		}
+	}
+
+	@Rule
+	public JenkinsRule rule = new JenkinsRule();
+
+	@BeforeClass
+	static public void beforeClass() throws Exception {
+		eventsHandler = new EventsHandler();
+		server = new Server(testingServerPort);
+		server.setHandler(eventsHandler);
+		server.start();
+	}
+
+	@AfterClass
+	static public void afterClass() throws Exception {
+		server.stop();
+		server.destroy();
+	}
+
+	@Test
+	public void testEventsA() throws Exception {
+		configurePlugin();
+
+		EventsService eventsService = ExtensionUtil.getInstance(rule, EventsService.class);
+		assertNotNull(eventsService.getClient());
+		assertEquals("http://127.0.0.1:" + testingServerPort, eventsService.getClient().getLocation());
+		assertEquals(sharedSpaceId, eventsService.getClient().getSharedSpace());
+		logger.info("EVENTS TEST: event client configuration is: " +
+				eventsService.getClient().getLocation() + " - " +
+				eventsService.getClient().getSharedSpace() + " - " +
+				eventsService.getClient().getUsername());
+
+		FreeStyleProject p = rule.createFreeStyleProject(projectName);
+
+		assertEquals(0, p.getBuilds().toArray().length);
+		p.scheduleBuild2(0);
+		while (p.getLastBuild() == null || p.getLastBuild().isBuilding()) {
+			Thread.sleep(1000);
+		}
+		assertEquals(1, p.getBuilds().toArray().length);
+		Thread.sleep(10000);
+
+		List<CIEventType> eventsOrder = new ArrayList<>(Arrays.asList(CIEventType.STARTED, CIEventType.FINISHED));
+		List<JSONObject> eventsLists = eventsHandler.getResults();
+		JSONObject tmp;
+		JSONArray events;
+		logger.info(eventsLists.toString());
+		System.out.print(eventsLists.toString());
+		logger.info("EVENTS TEST: server mock received " + eventsLists.size() + " list/s of events");
+		for (JSONObject l : eventsLists) {
+			assertEquals(2, l.length());
+
+			assertFalse(l.isNull("server"));
+			tmp = l.getJSONObject("server");
+			assertTrue(rule.getInstance().getRootUrl().startsWith(tmp.getString("url")));
+			assertEquals("jenkins", tmp.getString("type"));
+			assertEquals(rule.getInstance().getPlugin(OctanePlugin.class).getIdentity(), tmp.getString("instanceId"));
+
+			assertFalse(l.isNull("events"));
+			events = l.getJSONArray("events");
+			for (int i = 0; i < events.length(); i++) {
+				tmp = events.getJSONObject(i);
+				if (tmp.getString("project").equals(projectName)) {
+					assertEquals(eventsOrder.get(0), CIEventType.fromValue(tmp.getString("eventType")));
+					eventsOrder.remove(0);
+				}
+			}
+		}
+		assertEquals(0, eventsOrder.size());
+	}
 
 	private static final class EventsHandler extends AbstractHandler {
 		private final List<JSONObject> eventsLists = new ArrayList<>();
@@ -92,16 +167,7 @@ public class EventsTest {
 		}
 	}
 
-	public EventsTest() {
-		String p = System.getProperty("testingServerPort");
-		try {
-			if (p != null) testingServerPort = Integer.parseInt(p);
-		} catch (NumberFormatException nfe) {
-			logger.info("EVENTS TEST: bad port number format, default port will be used: " + testingServerPort);
-		}
-	}
-
-	private static void configurePlugin() throws Exception {
+	private void configurePlugin() throws Exception {
 		OctanePlugin plugin = rule.getInstance().getPlugin(OctanePlugin.class);
 		plugin.configurePlugin(
 				"http://127.0.0.1:" + testingServerPort + "/ui?p=" + sharedSpaceId,
@@ -115,69 +181,5 @@ public class EventsTest {
 		assertEquals("http://127.0.0.1:" + testingServerPort, serverConfiguration.location);
 		assertEquals(sharedSpaceId, serverConfiguration.sharedSpace);
 		logger.info("EVENTS TEST: plugin configured with the following server configuration: " + serverConfiguration);
-	}
-
-	@BeforeClass
-	static public void beforeClass() throws Exception {
-		eventsHandler = new EventsHandler();
-		server = new Server(testingServerPort);
-		server.setHandler(eventsHandler);
-		server.start();
-
-		configurePlugin();
-		EventsService eventsService = ExtensionUtil.getInstance(rule, EventsService.class);
-		assertEquals(1, eventsService.getStatus().size());
-		assertEquals("http://127.0.0.1:" + testingServerPort, eventsService.getStatus().get(0).getLocation());
-		assertEquals(sharedSpaceId, eventsService.getStatus().get(0).getSharedSpace());
-	}
-
-	@AfterClass
-	static public void afterClass() throws Exception {
-		server.stop();
-		server.destroy();
-	}
-
-	@Test
-	public void testEventsA() throws Exception {
-		FreeStyleProject p = rule.createFreeStyleProject(projectName);
-
-		assertEquals(1, rule.jenkins.getTopLevelItemNames().size());
-		assertTrue(rule.jenkins.getTopLevelItemNames().contains(projectName));
-
-		assertEquals(0, p.getBuilds().toArray().length);
-		p.scheduleBuild2(0);
-		while (p.getLastBuild() == null || p.getLastBuild().isBuilding()) {
-			Thread.sleep(1000);
-		}
-		assertEquals(1, p.getBuilds().toArray().length);
-		Thread.sleep(5000);
-
-		List<CIEventType> eventsOrder = new ArrayList<>(Arrays.asList(CIEventType.STARTED, CIEventType.FINISHED));
-		List<JSONObject> eventsLists = eventsHandler.getResults();
-		JSONObject tmp;
-		JSONArray events;
-		logger.info(eventsLists.toString());
-		System.out.print(eventsLists.toString());
-		logger.info("EVENTS TEST: server mock received " + eventsLists.size() + " list/s of events");
-		for (JSONObject l : eventsLists) {
-			assertEquals(2, l.length());
-
-			assertFalse(l.isNull("server"));
-			tmp = l.getJSONObject("server");
-			assertTrue(rule.getInstance().getRootUrl().startsWith(tmp.getString("url")));
-			assertEquals("jenkins", tmp.getString("type"));
-			assertEquals(rule.getInstance().getPlugin(OctanePlugin.class).getIdentity(), tmp.getString("instanceId"));
-
-			assertFalse(l.isNull("events"));
-			events = l.getJSONArray("events");
-			for (int i = 0; i < events.length(); i++) {
-				tmp = events.getJSONObject(i);
-				if (tmp.getString("project").equals(projectName)) {
-					assertEquals(eventsOrder.get(0), CIEventType.fromValue(tmp.getString("eventType")));
-					eventsOrder.remove(0);
-				}
-			}
-		}
-		assertEquals(0, eventsOrder.size());
 	}
 }
