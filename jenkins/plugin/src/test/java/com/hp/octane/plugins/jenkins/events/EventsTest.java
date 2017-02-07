@@ -75,6 +75,7 @@ public class EventsTest {
 	}
 
 	@Test
+	@Ignore
 	public void testEventsA() throws Exception {
 		configurePlugin();
 
