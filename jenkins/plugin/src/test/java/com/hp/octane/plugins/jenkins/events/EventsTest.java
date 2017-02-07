@@ -108,7 +108,7 @@ public class EventsTest {
 	private void configurePlugin() throws Exception {
 		OctanePlugin plugin = rule.getInstance().getPlugin(OctanePlugin.class);
 		plugin.configurePlugin(
-				"http://localhost:" + testingServerPort + "/ui?p=" + sharedSpaceId,
+				"http://127.0.0.1:" + testingServerPort + "/ui?p=" + sharedSpaceId,
 				username,
 				password,
 				""
@@ -116,7 +116,7 @@ public class EventsTest {
 
 		ServerConfiguration serverConfiguration = plugin.getServerConfiguration();
 		assertNotNull(serverConfiguration);
-		assertEquals("http://localhost:" + testingServerPort, serverConfiguration.location);
+		assertEquals("http://127.0.0.1:" + testingServerPort, serverConfiguration.location);
 		assertEquals(sharedSpaceId, serverConfiguration.sharedSpace);
 		logger.info("EVENTS TEST: plugin configured with the following server configuration: " + serverConfiguration);
 	}
@@ -143,7 +143,7 @@ public class EventsTest {
 
 		EventsService eventsService = ExtensionUtil.getInstance(rule, EventsService.class);
 		assertEquals(1, eventsService.getStatus().size());
-		assertEquals("http://localhost:" + testingServerPort, eventsService.getStatus().get(0).getLocation());
+		assertEquals("http://127.0.0.1:" + testingServerPort, eventsService.getStatus().get(0).getLocation());
 		assertEquals(sharedSpaceId, eventsService.getStatus().get(0).getSharedSpace());
 		assertEquals(1, rule.jenkins.getTopLevelItemNames().size());
 		assertTrue(rule.jenkins.getTopLevelItemNames().contains(projectName));
