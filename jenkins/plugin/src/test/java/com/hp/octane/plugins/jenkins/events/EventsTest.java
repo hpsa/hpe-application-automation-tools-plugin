@@ -64,10 +64,12 @@ public class EventsTest {
 		server = new Server(testingServerPort);
 		server.setHandler(eventsHandler);
 		server.start();
+		logger.info("EVENTS TEST: mock Octane server started on local port " + testingServerPort);
 	}
 
 	@AfterClass
 	static public void afterClass() throws Exception {
+		logger.info("EVENTS TEST: stopping and destroying mock Octane server");
 		server.stop();
 		server.destroy();
 	}
