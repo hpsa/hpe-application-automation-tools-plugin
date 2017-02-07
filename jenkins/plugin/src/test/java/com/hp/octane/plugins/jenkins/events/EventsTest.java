@@ -105,7 +105,7 @@ public class EventsTest {
 		}
 	}
 
-	private void configurePlugin() throws Exception {
+	private static void configurePlugin() throws Exception {
 		OctanePlugin plugin = rule.getInstance().getPlugin(OctanePlugin.class);
 		plugin.configurePlugin(
 				"http://127.0.0.1:" + testingServerPort + "/ui?p=" + sharedSpaceId,
@@ -127,6 +127,12 @@ public class EventsTest {
 		server = new Server(testingServerPort);
 		server.setHandler(eventsHandler);
 		server.start();
+
+		configurePlugin();
+		EventsService eventsService = ExtensionUtil.getInstance(rule, EventsService.class);
+		assertEquals(1, eventsService.getStatus().size());
+		assertEquals("http://127.0.0.1:" + testingServerPort, eventsService.getStatus().get(0).getLocation());
+		assertEquals(sharedSpaceId, eventsService.getStatus().get(0).getSharedSpace());
 	}
 
 	@AfterClass
@@ -139,12 +145,6 @@ public class EventsTest {
 	public void testEventsA() throws Exception {
 		FreeStyleProject p = rule.createFreeStyleProject(projectName);
 
-		configurePlugin();
-
-		EventsService eventsService = ExtensionUtil.getInstance(rule, EventsService.class);
-		assertEquals(1, eventsService.getStatus().size());
-		assertEquals("http://127.0.0.1:" + testingServerPort, eventsService.getStatus().get(0).getLocation());
-		assertEquals(sharedSpaceId, eventsService.getStatus().get(0).getSharedSpace());
 		assertEquals(1, rule.jenkins.getTopLevelItemNames().size());
 		assertTrue(rule.jenkins.getTopLevelItemNames().contains(projectName));
 

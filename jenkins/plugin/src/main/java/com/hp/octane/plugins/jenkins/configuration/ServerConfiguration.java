@@ -66,4 +66,11 @@ final public class ServerConfiguration {
 		}
 		return result;
 	}
+
+	@Override
+	public String toString() {
+		return "{ url: " + location +
+				", sharedSpace: " + sharedSpace +
+				", username: " + username + " }";
+	}
 }
