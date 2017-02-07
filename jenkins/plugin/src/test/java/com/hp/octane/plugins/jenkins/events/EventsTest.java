@@ -15,6 +15,7 @@ import org.junit.*;
 import org.jvnet.hudson.test.JenkinsRule;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -60,7 +61,16 @@ public class EventsTest {
 			byte[] buffer;
 			int len;
 			if (request.getPathInfo().equals("/authentication/sign_in")) {
+				response.addCookie(new Cookie("LWSSO_COOKIE_KEY", "some_dummy_security_token"));
 				response.setStatus(HttpServletResponse.SC_OK);
+			} else if (request.getPathInfo().endsWith("/tasks")) {
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException ie) {
+					//  do nothing here
+				} finally {
+					response.setStatus(HttpServletResponse.SC_OK);
+				}
 			} else if (request.getPathInfo().equals("/internal-api/shared_spaces/" + sharedSpaceId + "/analytics/ci/events")) {
 				buffer = new byte[1024];
 				while ((len = request.getInputStream().read(buffer, 0, 1024)) > 0) {
@@ -139,7 +149,7 @@ public class EventsTest {
 		assertTrue(rule.jenkins.getTopLevelItemNames().contains(projectName));
 
 		assertEquals(0, p.getBuilds().toArray().length);
-		p.scheduleBuild(0, null);
+		p.scheduleBuild2(0);
 		while (p.getLastBuild() == null || p.getLastBuild().isBuilding()) {
 			Thread.sleep(1000);
 		}
@@ -158,9 +168,9 @@ public class EventsTest {
 
 			assertFalse(l.isNull("server"));
 			tmp = l.getJSONObject("server");
-			assertEquals("url", tmp.getString("url"));
+			assertTrue(rule.getInstance().getRootUrl().startsWith(tmp.getString("url")));
 			assertEquals("jenkins", tmp.getString("type"));
-			assertEquals("instance", tmp.getString("instanceId"));
+			assertEquals(rule.getInstance().getPlugin(OctanePlugin.class).getIdentity(), tmp.getString("instanceId"));
 
 			assertFalse(l.isNull("events"));
 			events = l.getJSONArray("events");
@@ -172,6 +182,6 @@ public class EventsTest {
 				}
 			}
 		}
-		assertEquals(2, eventsOrder.size());
+		assertEquals(0, eventsOrder.size());
 	}
 }
