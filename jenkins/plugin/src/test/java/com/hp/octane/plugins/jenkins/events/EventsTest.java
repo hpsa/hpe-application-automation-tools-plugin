@@ -90,10 +90,6 @@ public class EventsTest {
 		List<JSONObject> getResults() {
 			return eventsLists;
 		}
-
-//		public void clearResults() {
-//			eventsLists.clear();
-//		}
 	}
 
 	public EventsTest() {
