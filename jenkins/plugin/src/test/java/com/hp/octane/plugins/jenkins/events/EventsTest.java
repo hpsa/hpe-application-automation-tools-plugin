@@ -47,20 +47,19 @@ public class EventsTest {
 	static private int testingServerPort = DEFAULT_TESTING_SERVER_PORT;
 	static private EventsHandler eventsHandler;
 
-	public EventsTest() {
+	@ClassRule
+	public static final JenkinsRule rule = new JenkinsRule();
+
+	@BeforeClass
+	static public void beforeClass() throws Exception {
 		String p = System.getProperty("testingServerPort");
 		try {
 			if (p != null) testingServerPort = Integer.parseInt(p);
 		} catch (NumberFormatException nfe) {
 			logger.info("EVENTS TEST: bad port number format, default port will be used: " + testingServerPort);
 		}
-	}
+		logger.info("EVENTS TEST: port chosen for mock Octane server: " + testingServerPort);
 
-	@Rule
-	public JenkinsRule rule = new JenkinsRule();
-
-	@BeforeClass
-	static public void beforeClass() throws Exception {
 		eventsHandler = new EventsHandler();
 		server = new Server(testingServerPort);
 		server.setHandler(eventsHandler);
@@ -94,7 +93,7 @@ public class EventsTest {
 			Thread.sleep(1000);
 		}
 		assertEquals(1, p.getBuilds().toArray().length);
-		Thread.sleep(10000);
+		Thread.sleep(5000);
 
 		List<CIEventType> eventsOrder = new ArrayList<>(Arrays.asList(CIEventType.STARTED, CIEventType.FINISHED));
 		List<JSONObject> eventsLists = eventsHandler.getResults();
