@@ -81,13 +81,14 @@ public class LogDispatcher extends SafeLoggingAsyncPeriodWork {
                 response = client.post(BdiConstants.CONSOLE_LOG_DATA_TYPE, BDI_PRODUCT, Long.valueOf(configuration.getTenantId()),
                         item.getWorkspace(), buildDataId(build), build.getLogFile());
 
+                // OBM: After response for data-in is changed, validate it
+
                 logger.info("Successfully sent log of build [" + item.getProjectName() + "#" + item.getBuildNumber()
                         + "]. response from bdi server: " + response);
 
                 logsQueue.remove();
             } catch (Exception e) {
-                logger.error("Could not send log of build [" + item.getProjectName() + "#" + item.getBuildNumber()
-                        + "] to BDI. Reason: " + e.getMessage());
+                logger.error(String.format("Could not send log of build [%s#%s] to bdi.", item.getProjectName(), item.getBuildNumber()), e);
                 if (!logsQueue.failed()) {
                     logger.warn("Maximum number of attempts reached, operation will not be re-attempted for this build");
                 }
