@@ -49,9 +49,12 @@ public class RunListenerForLogs extends RunListener<Run> {
 
         MqmRestClient mqmRestClient = createMqmRestClient();
         List<String> workspaces = mqmRestClient.getJobWorkspaceId(ServerIdentity.getIdentity(), build.getParent().getName());
-
-        for (String workspace : workspaces) {
-            logDispatcher.enqueueLog(build.getProject().getName(), build.getNumber(), workspace);
+        if (workspaces.isEmpty()) {
+            logger.info(String.format("Job '%s' is not part of an Octane pipeline in any workspace, so its log will not be sent.", build.getParent().getName()));
+        } else {
+            for (String workspace : workspaces) {
+                logDispatcher.enqueueLog(build.getProject().getName(), build.getNumber(), workspace);
+            }
         }
     }
 
