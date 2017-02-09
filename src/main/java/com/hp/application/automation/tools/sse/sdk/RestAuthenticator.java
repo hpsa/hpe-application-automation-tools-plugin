@@ -15,12 +15,12 @@ import com.hp.application.automation.tools.rest.RestClient;
  * 
  */
 
-public class RestAuthenticator {
+public class RestAuthenticator implements Authenticator {
     
     public static final String IS_AUTHENTICATED = "rest/is-authenticated";
     public static String AUTHENTICATE_HEADER = "WWW-Authenticate";
     public static String INVALID_ALM_SERVER_URL = "Invalid ALM Server URL";
-    public static String AUTHENTICATEION_INFO = "AuthenticationInfo";
+    public static String AUTHENTICATION_INFO = "AuthenticationInfo";
     public static String USER_NAME = "Username";
     
     public boolean login(Client client, String username, String password, Logger logger) {
@@ -66,7 +66,7 @@ public class RestAuthenticator {
      * @throws Exception
      *             close session on server and clean session cookies on client
      */
-    public boolean logout(RestClient client, String username) {
+    public boolean logout(Client client, String username) {
         
         // note the get operation logs us out by setting authentication cookies to:
         // LWSSO_COOKIE_KEY="" via server response header Set-Cookie
@@ -142,7 +142,7 @@ public class RestAuthenticator {
     //<?xml version="1.0" encoding="UTF-8" standalone="yes"?><AuthenticationInfo><Username>sa</Username></AuthenticationInfo>
 	private boolean containAuthenticatedInfo(String authInfo, String authUser){
 		
-		return authInfo.contains(AUTHENTICATEION_INFO) && authInfo.contains(USER_NAME) && authInfo.contains(authUser);
+		return authInfo.contains(AUTHENTICATION_INFO) && authInfo.contains(USER_NAME) && authInfo.contains(authUser);
 	}
 
 

@@ -62,7 +62,7 @@ public class RunManager {
         _pollHandler = new PollHandlerFactory().create(client, args.getRunType(), entityId);
     }
 
-    private void appendQCSessionCookies(RestClient client) {
+    private void appendQCSessionCookies(Client client) {
 
         // issue a post request so that cookies relevant to the QC Session will be added to the RestClient
         Response response =
@@ -93,24 +93,46 @@ public class RunManager {
         }
     }
 
+    /**
+     * Login flow.
+     * First try login legacy if failed try login through SSO.
+     * @param client client
+     * @param args args
+     * @return
+     */
     private boolean login(Client client, Args args) {
+        _logger.log("Start login to ALM server.");
+        boolean result = loginLegacy(client, args);
+        if (!result) {
+            _logger.log("Start login to ALM server through SSO.");
+            result = loginSSO(client, args);
+        }
+        return result;
+    }
 
-        boolean ret = true;
+    private boolean loginLegacy(Client client, Args args) {
+        boolean ret = false;
         try {
-            ret =
-                    new RestAuthenticator().login(
-                            client,
-                            args.getUsername(),
-                            args.getPassword(),
-                            _logger);
+            ret = new RestAuthenticator().login(client, args.getUsername(), args.getPassword(), _logger);
         } catch (Throwable cause) {
-            ret = false;
             _logger.log(String.format(
                     "Failed login to ALM Server URL: %s. Exception: %s",
                     args.getUrl(),
                     cause.getMessage()));
         }
+        return ret;
+    }
 
+    private boolean loginSSO(Client client, Args args) {
+        boolean ret = false;
+        try {
+            ret = new RestAuthenticatorSSO().login(client, args.getUsername(), args.getPassword(), _logger);
+        } catch (Exception e) {
+            _logger.log(String.format(
+                    "Failed login to ALM Server URL via SSO: %s. Exception: %s",
+                    args.getUrl(),
+                    e.getMessage()));
+        }
         return ret;
     }
 
