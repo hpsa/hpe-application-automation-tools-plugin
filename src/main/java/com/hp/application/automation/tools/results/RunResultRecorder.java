@@ -857,58 +857,60 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         writer.close();
 
         File indexFile = new File(reportDirectory, REPORT_INDEX_NAME);
-        writer = new BufferedWriter(new FileWriter(indexFile));
-
-        Iterator<SuiteResult> resultIterator = null;
-        if ((testResult != null) && (!testResult.getSuites().isEmpty())) {
-            resultIterator = testResult.getSuites().iterator();//get the first
-        }
-        for (String report : reportNames) {
-            SuiteResult suitResult = null;
-            if ((resultIterator != null) && resultIterator.hasNext()) {
-                suitResult = resultIterator.next();
+        try {
+            writer = new BufferedWriter(new FileWriter(indexFile));
+            Iterator<SuiteResult> resultIterator = null;
+            if ((testResult != null) && (!testResult.getSuites().isEmpty())) {
+                resultIterator = testResult.getSuites().iterator();//get the first
             }
-            if (suitResult == null) {
-                writer.write(report + "\t##\t##\t##%n");
-            } else {
-                int iDuration = (int) suitResult.getDuration();
-                StringBuilder bld = new StringBuilder();
-                String duration = "";
-                if ((iDuration / SECS_IN_DAY) > 0) {
-                    bld.append(String.format("%dday ", iDuration / SECS_IN_DAY));
-                    iDuration = iDuration % SECS_IN_DAY;
+            for (String report : reportNames) {
+                SuiteResult suitResult = null;
+                if ((resultIterator != null) && resultIterator.hasNext()) {
+                    suitResult = resultIterator.next();
                 }
-                if ((iDuration / SECS_IN_HOUR) > 0) {
-                    bld.append(String.format("%02dhr ", iDuration / SECS_IN_HOUR));
-                    iDuration = iDuration % SECS_IN_HOUR;
-                } else if (!duration.isEmpty()) {
-                    bld.append("00hr ");
+                if (suitResult == null) {
+                    writer.write(report + "\t##\t##\t##%n");
+                } else {
+                    int iDuration = (int) suitResult.getDuration();
+                    StringBuilder bld = new StringBuilder();
+                    String duration = "";
+                    if ((iDuration / SECS_IN_DAY) > 0) {
+                        bld.append(String.format("%dday ", iDuration / SECS_IN_DAY));
+                        iDuration = iDuration % SECS_IN_DAY;
+                    }
+                    if ((iDuration / SECS_IN_HOUR) > 0) {
+                        bld.append(String.format("%02dhr ", iDuration / SECS_IN_HOUR));
+                        iDuration = iDuration % SECS_IN_HOUR;
+                    } else if (!duration.isEmpty()) {
+                        bld.append("00hr ");
+                    }
+                    if ((iDuration / SECS_IN_MINUTE) > 0) {
+                        bld.append(String.format("%02dmin ", iDuration / SECS_IN_MINUTE));
+                        iDuration = iDuration % SECS_IN_MINUTE;
+                    } else if (!duration.isEmpty()) {
+                        bld.append("00min ");
+                    }
+                    bld.append(String.format("%02dsec", iDuration));
+                    duration = bld.toString();
+                    int iPassCount = 0;
+                    int iFailCount = 0;
+                    for (Iterator i = suitResult.getCases().iterator(); i.hasNext(); ) {
+                        CaseResult caseResult = (CaseResult) i.next();
+                        iPassCount += caseResult.getPassCount();
+                        iFailCount += caseResult.getFailCount();
+                    }
+                    writer.write(
+                            String.format("%s\t%s\t%d\t%d%n",
+                                    report,
+                                    duration,
+                                    iPassCount,
+                                    iFailCount));
                 }
-                if ((iDuration / SECS_IN_MINUTE) > 0) {
-                    bld.append(String.format("%02dmin ", iDuration / SECS_IN_MINUTE));
-                    iDuration = iDuration % SECS_IN_MINUTE;
-                } else if (!duration.isEmpty()) {
-                    bld.append("00min ");
-                }
-                bld.append(String.format("%02dsec", iDuration));
-                duration = bld.toString();
-                int iPassCount = 0;
-                int iFailCount = 0;
-                for (Iterator i = suitResult.getCases().iterator(); i.hasNext(); ) {
-                    CaseResult caseResult = (CaseResult) i.next();
-                    iPassCount += caseResult.getPassCount();
-                    iFailCount += caseResult.getFailCount();
-                }
-                writer.write(
-                        String.format("%s\t%s\t%d\t%d%n",
-                                report,
-                                duration,
-                                iPassCount,
-                                iFailCount));
             }
+        } finally {
+            writer.flush();
+            writer.close();
         }
-        writer.flush();
-        writer.close();
     }
 
     /**
