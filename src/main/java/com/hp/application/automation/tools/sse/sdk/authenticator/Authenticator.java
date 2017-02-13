@@ -20,7 +20,10 @@
  * THE SOFTWARE.
  */
 
-package com.hp.application.automation.tools.sse.sdk;
+package com.hp.application.automation.tools.sse.sdk.authenticator;
+
+import com.hp.application.automation.tools.sse.sdk.Client;
+import com.hp.application.automation.tools.sse.sdk.Logger;
 
 /**
  * Created by llu4 on 1/16/2017.

@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.hp.application.automation.tools.common.Pair;
-import com.hp.application.automation.tools.common.SSEException;
 import com.hp.application.automation.tools.rest.RestClient;
 import com.hp.application.automation.tools.results.service.almentities.AlmEntity;
 import com.hp.application.automation.tools.results.service.rest.CreateAlmEntityRequest;
@@ -17,7 +16,7 @@ import com.hp.application.automation.tools.sse.common.XPathUtils;
 import com.hp.application.automation.tools.sse.sdk.Logger;
 import com.hp.application.automation.tools.sse.sdk.ResourceAccessLevel;
 import com.hp.application.automation.tools.sse.sdk.Response;
-import com.hp.application.automation.tools.sse.sdk.RestAuthenticator;
+import com.hp.application.automation.tools.sse.sdk.authenticator.RestAuthenticator;
 
 public class AlmRestTool {
 	

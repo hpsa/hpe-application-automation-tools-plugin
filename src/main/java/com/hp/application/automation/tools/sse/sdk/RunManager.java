@@ -5,10 +5,17 @@ import com.hp.application.automation.tools.rest.RestClient;
 import com.hp.application.automation.tools.sse.common.StringUtils;
 import com.hp.application.automation.tools.sse.result.PublisherFactory;
 import com.hp.application.automation.tools.sse.result.model.junit.Testsuites;
+import com.hp.application.automation.tools.sse.sdk.authenticator.Authenticator;
+import com.hp.application.automation.tools.sse.sdk.authenticator.RestAuthenticator;
+import com.hp.application.automation.tools.sse.sdk.authenticator.RestAuthenticatorSSO;
+import com.hp.application.automation.tools.sse.sdk.authenticator.RestAuthenticatorSaas;
 import com.hp.application.automation.tools.sse.sdk.handler.PollHandler;
 import com.hp.application.automation.tools.sse.sdk.handler.PollHandlerFactory;
 import com.hp.application.automation.tools.sse.sdk.handler.RunHandler;
 import com.hp.application.automation.tools.sse.sdk.handler.RunHandlerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -63,7 +70,7 @@ public class RunManager {
     }
 
     private void appendQCSessionCookies(Client client) {
-
+        _logger.log("Creating session...");
         // issue a post request so that cookies relevant to the QC Session will be added to the RestClient
         Response response =
                 client.httpPost(
@@ -101,39 +108,26 @@ public class RunManager {
      * @return
      */
     private boolean login(Client client, Args args) {
-        _logger.log("Start login to ALM server.");
-        boolean result = loginLegacy(client, args);
-        if (!result) {
-            _logger.log("Start login to ALM server through SSO.");
-            result = loginSSO(client, args);
+        List<Authenticator> authenticators = new ArrayList<>();
+        authenticators.add(new RestAuthenticator());
+        authenticators.add(new RestAuthenticatorSaas());
+        authenticators.add(new RestAuthenticatorSSO());
+
+        boolean result = false;
+        for(Authenticator authenticator : authenticators) {
+            try {
+                result = authenticator.login(client, args.getUsername(), args.getPassword(), _logger);
+                if (result) {
+                    break;
+                }
+            } catch (Throwable e) {
+                _logger.log(String.format(
+                        "Failed login to ALM Server URL: %s. Exception: %s",
+                        args.getUrl(),
+                        e.getMessage()));
+            }
         }
         return result;
-    }
-
-    private boolean loginLegacy(Client client, Args args) {
-        boolean ret = false;
-        try {
-            ret = new RestAuthenticator().login(client, args.getUsername(), args.getPassword(), _logger);
-        } catch (Throwable cause) {
-            _logger.log(String.format(
-                    "Failed login to ALM Server URL: %s. Exception: %s",
-                    args.getUrl(),
-                    cause.getMessage()));
-        }
-        return ret;
-    }
-
-    private boolean loginSSO(Client client, Args args) {
-        boolean ret = false;
-        try {
-            ret = new RestAuthenticatorSSO().login(client, args.getUsername(), args.getPassword(), _logger);
-        } catch (Exception e) {
-            _logger.log(String.format(
-                    "Failed login to ALM Server URL via SSO: %s. Exception: %s",
-                    args.getUrl(),
-                    e.getMessage()));
-        }
-        return ret;
     }
 
     private boolean start(Args args) {

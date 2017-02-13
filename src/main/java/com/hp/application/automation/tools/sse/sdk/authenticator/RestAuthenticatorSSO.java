@@ -20,20 +20,20 @@
  * THE SOFTWARE.
  */
 
-package com.hp.application.automation.tools.sse.sdk;
+package com.hp.application.automation.tools.sse.sdk.authenticator;
 
 import com.hp.application.automation.tools.common.SSEException;
+import com.hp.application.automation.tools.sse.sdk.Client;
+import com.hp.application.automation.tools.sse.sdk.Logger;
 import com.hp.idm.client.sdk.java.api.*;
 import com.hp.idm.client.sdk.java.connectionsetting.ConnectionSettings;
 import jenkins.model.Jenkins;
 
 import java.net.*;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Rest Authenticator via SSO(Alm server pointed to ALM14)
- * Created by llu4 on 1/16/2017.
+ * Created by Roy Lu on 1/16/2017.
  */
 public class RestAuthenticatorSSO implements Authenticator {
     private static final int NUMBER_OF_LOGIN_COOKIES = 2;
@@ -56,37 +56,38 @@ public class RestAuthenticatorSSO implements Authenticator {
      */
     @Override
     public boolean login(Client client, String username, String password, Logger logger) {
+        logger.log("Start login to ALM server through SSO.");
         boolean result = false;
 
         URI url = null;
         try {
             url = new URI(client.getServerUrl());
-        } catch (URISyntaxException e) {
+
+            ConnectionSettings connectionSettings = new ConnectionSettings();
+            connectionSettings.ignoreServerCertificate(true);
+            connectionSettings.turnOffHostVerifier(true);
+
+            // Use the Jenkins' uberClassLoader otherwise the implements of Initializer can't be found.
+            Thread.currentThread().setContextClassLoader(Jenkins.getInstance().getPluginManager().uberClassLoader);
+            SSOConnector ssoConnector = ssoService.create(url, connectionSettings);
+            if (ssoConnector != null) {
+                SSOCredentials credentials = new UserNameSSOCredentials(username, password.toCharArray());
+                ssoToken = ssoConnector.authenticate(credentials);
+                if (ssoToken != null) {
+                    result = true;
+                    applyCookie(ssoToken, client);
+                    logger.log(String.format(
+                            "Logged in successfully to ALM Server %s using %s",
+                            client.getServerUrl(),
+                            username));
+                } else {
+                    throw new SSEException("Failed to login: can't create SSO connector.");
+                }
+            }
+        } catch (Exception e) {
+            // We don't want the process stop while exception happens.
             throw new SSEException(e);
         }
-
-        ConnectionSettings connectionSettings = new ConnectionSettings();
-        connectionSettings.ignoreServerCertificate(true);
-        connectionSettings.turnOffHostVerifier(true);
-
-        // Use the Jenkins' uberClassLoader otherwise the implements of Initializer can't be found.
-        Thread.currentThread().setContextClassLoader(Jenkins.getInstance().getPluginManager().uberClassLoader);
-        SSOConnector ssoConnector = ssoService.create(url, connectionSettings);
-        if (ssoConnector != null) {
-            SSOCredentials credentials = new UserNameSSOCredentials(username, password.toCharArray());
-            ssoToken = ssoConnector.authenticate(credentials);
-            if (ssoToken != null) {
-                result = true;
-                applyCookie(ssoToken, client);
-                logger.log(String.format(
-                        "Logged in successfully to ALM Server %s using %s",
-                        client.getServerUrl(),
-                        username));
-            } else {
-                throw new SSEException("Failed to login: can't create SSO connector.");
-            }
-        }
-
         return result;
     }
 
@@ -107,7 +108,7 @@ public class RestAuthenticatorSSO implements Authenticator {
      * @param logger logger
      * @return
      */
-    public boolean isAuthenticated(Client client, Logger logger) {
+    private boolean isAuthenticated(Client client, Logger logger) {
         int i = 0;
         for (String cookieName : client.getCookies().keySet()) {
             if(cookieName.equals(ssoToken.getName()) && cookieName.contains(SESSION_COOKIE_PARAM_NAME)) {

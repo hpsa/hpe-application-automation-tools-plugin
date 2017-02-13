@@ -17,7 +17,6 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
 import com.hp.application.automation.tools.model.AlmServerSettingsModel;
-import com.hp.application.automation.tools.sse.sdk.RestAuthenticator;
 
 import hudson.CopyOnWrite;
 import hudson.Extension;
@@ -142,11 +141,11 @@ public class AlmServerSettingsBuilder extends Builder {
             }
 
             // Check url pattern
-            String regex = "^https?://(\\S*):([0-9]{2,5})/qcbin$";
+            String regex = "^https?://(\\S*)/qcbin$";
             Pattern p = Pattern.compile(regex);
             Matcher m = p.matcher(value);
             if (!m.find()) {
-                return FormValidation.error("ALM server URL should in the following format: http(s)://<Servername>:<port>/qcbin");
+                return FormValidation.error("ALM server URL should in the following format: http(s)://<Servername>/qcbin");
             }
 
             // Does the URL ends with a "/" ? if not, add it
