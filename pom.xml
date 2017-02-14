@@ -29,6 +29,7 @@
 		<jenkins.version>1.642.4</jenkins.version>
 		<workflow.version>2.2</workflow.version>
 		<bdi.version>1.0.0-92-master</bdi.version>
+		<maven.exec.skip>false</maven.exec.skip>
 	</properties>
 
 	<distributionManagement>
@@ -190,6 +191,7 @@
 				<configuration>
 					<executable>${msbuild.exe}</executable>
 					<workingDirectory>${basedir}/HpToolsLauncher</workingDirectory>
+					<skip>${maven.exec.skip}</skip>
 				</configuration>
 				<executions>
 					<execution>
