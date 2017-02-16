@@ -10,10 +10,8 @@ import com.hp.octane.integrations.api.TasksProcessor;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
 import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
-import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
-import jenkins.model.Jenkins;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.kohsuke.stapler.export.Exported;
@@ -26,8 +24,7 @@ import java.util.concurrent.ThreadFactory;
 public class BridgeClient {
 	private static final Logger logger = LogManager.getLogger(BridgeClient.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-	private static final OctanePlugin plugin = Jenkins.getInstance().getPlugin(OctanePlugin.class);
-	private static final String serverInstanceId = plugin.getIdentity();
+	private static String serverInstanceId;
 	private ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
 	private ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30, new AbridgedTasksExecutorsFactory());
 	volatile private boolean isConnected = false;
@@ -36,14 +33,16 @@ public class BridgeClient {
 	private ServerConfiguration mqmConfig;
 	private JenkinsMqmRestClientFactory restClientFactory;
 
-	public BridgeClient(ServerConfiguration mqmConfig, JenkinsMqmRestClientFactory clientFactory) {
+	public BridgeClient(ServerConfiguration mqmConfig, JenkinsMqmRestClientFactory clientFactory, String serverIdentity) {
+		this.serverInstanceId = serverIdentity;
 		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password, mqmConfig.impersonatedUser);
 		restClientFactory = clientFactory;
 		connect();
 		logger.info("client initialized for '" + this.mqmConfig.location + "'; SP: " + this.mqmConfig.sharedSpace + "; access key: " + this.mqmConfig.username);
 	}
 
-	public void update(ServerConfiguration newConfig) {
+	public void update(ServerConfiguration newConfig, String serverIdentity) {
+		this.serverInstanceId = serverIdentity;
 		mqmConfig = new ServerConfiguration(newConfig.location, newConfig.sharedSpace, newConfig.username, newConfig.password, newConfig.impersonatedUser);
 		logger.info("client updated to '" + mqmConfig.location + "'; SP: " + mqmConfig.sharedSpace + "; access key: " + newConfig.username);
 		restClientFactory.updateMqmRestClient(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);

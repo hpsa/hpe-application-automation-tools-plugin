@@ -7,7 +7,6 @@ import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactoryImpl;
 import com.hp.octane.plugins.jenkins.configuration.BdiConfiguration;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationService;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
-import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
 import hudson.Extension;
 import hudson.model.AbstractBuild;
 import hudson.model.Run;
@@ -48,7 +47,7 @@ public class RunListenerForLogs extends RunListener<Run> {
         AbstractBuild build = (AbstractBuild) r;
 
         MqmRestClient mqmRestClient = createMqmRestClient();
-        List<String> workspaces = mqmRestClient.getJobWorkspaceId(ServerIdentity.getIdentity(), build.getParent().getName());
+        List<String> workspaces = mqmRestClient.getJobWorkspaceId(ConfigurationService.getModel().getIdentity(), build.getParent().getName());
         if (workspaces.isEmpty()) {
             logger.info(String.format("Job '%s' is not part of an Octane pipeline in any workspace, so its log will not be sent.", build.getParent().getName()));
         } else {
