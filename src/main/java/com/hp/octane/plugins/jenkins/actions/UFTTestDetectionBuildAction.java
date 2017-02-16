@@ -1,7 +1,6 @@
 package com.hp.octane.plugins.jenkins.actions;
 
 import com.hp.mqm.client.MqmRestClient;
-import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.actions.dto.AutomatedTest;
 import com.hp.octane.plugins.jenkins.actions.dto.AutomatedTests;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
@@ -86,7 +85,7 @@ public class UFTTestDetectionBuildAction implements Action {
         this.message = message;
         this.build = build;
         MqmRestClient client = createClient();
-        ServerConfiguration serverConfiguration = Jenkins.getInstance().getPlugin(OctanePlugin.class).getServerConfiguration();
+        ServerConfiguration serverConfiguration = ConfigurationService.getServerConfiguration();
         try {
             HashMap<String, String> uftTestData = new HashMap<>();
             findUFTTestsPath(build.getWorkspace().list(), uftTestData);

@@ -24,7 +24,7 @@ public class ConfigurationListenerTest {
 
 		form.getInputByName("_.uiLocation").setValueAttribute("http://localhost:8028/ui/?p=1001/1002");
 		form.getInputByName("_.username").setValueAttribute("username");
-		form.getInputByName("_.secretPassword").setValueAttribute("password");
+		form.getInputByName("_.password").setValueAttribute("password");
 		rule.submit(form);
 		rule.submit(form);
 
@@ -45,7 +45,7 @@ public class ConfigurationListenerTest {
 		HtmlPage configPage = rule.createWebClient().goTo("configure");
 		HtmlForm form = configPage.getFormByName("config");
 		// password is cleared upon form retrieval (restore the value)
-		form.getInputByName("_.secretPassword").setValueAttribute("password");
+		form.getInputByName("_.password").setValueAttribute("password");
 
 		// not increased on re-submit
 		rule.submit(form);

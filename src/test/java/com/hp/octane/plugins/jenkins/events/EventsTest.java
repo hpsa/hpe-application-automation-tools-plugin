@@ -1,10 +1,12 @@
 package com.hp.octane.plugins.jenkins.events;
 
+import com.hp.application.automation.tools.model.OctaneServerSettingsModel;
 import com.hp.octane.integrations.dto.events.CIEventType;
 import com.hp.octane.plugins.jenkins.ExtensionUtil;
-import com.hp.octane.plugins.jenkins.OctanePlugin;
+import com.hp.octane.plugins.jenkins.configuration.ConfigurationService;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import hudson.model.FreeStyleProject;
+import hudson.util.Secret;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -112,7 +114,7 @@ public class EventsTest {
 			tmp = l.getJSONObject("server");
 			assertTrue(rule.getInstance().getRootUrl().startsWith(tmp.getString("url")));
 			assertEquals("jenkins", tmp.getString("type"));
-			assertEquals(rule.getInstance().getPlugin(OctanePlugin.class).getIdentity(), tmp.getString("instanceId"));
+			assertEquals(ConfigurationService.getModel().getIdentity(), tmp.getString("instanceId"));
 
 			assertFalse(l.isNull("events"));
 			events = l.getJSONArray("events");
@@ -170,15 +172,13 @@ public class EventsTest {
 	}
 
 	private void configurePlugin() throws Exception {
-		OctanePlugin plugin = rule.getInstance().getPlugin(OctanePlugin.class);
-		plugin.configurePlugin(
-				"http://127.0.0.1:" + testingServerPort + "/ui?p=" + sharedSpaceId,
+		OctaneServerSettingsModel model = new OctaneServerSettingsModel("http://127.0.0.1:" + testingServerPort + "/ui?p=" + sharedSpaceId,
 				username,
-				password,
-				""
-		);
+				Secret.fromString(password),
+				"");
+		ConfigurationService.configurePlugin(model);
 
-		ServerConfiguration serverConfiguration = plugin.getServerConfiguration();
+		ServerConfiguration serverConfiguration = ConfigurationService.getServerConfiguration();
 		assertNotNull(serverConfiguration);
 		assertEquals("http://127.0.0.1:" + testingServerPort, serverConfiguration.location);
 		assertEquals(sharedSpaceId, serverConfiguration.sharedSpace);

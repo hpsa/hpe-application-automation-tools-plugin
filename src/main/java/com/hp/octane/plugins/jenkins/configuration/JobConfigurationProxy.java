@@ -10,7 +10,6 @@ import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.plugins.jenkins.Messages;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
-import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
 import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import hudson.ExtensionList;
 import hudson.model.AbstractProject;
@@ -59,7 +58,7 @@ public class JobConfigurationProxy {
 
 		try {
 			Pipeline createdPipeline = client.createPipeline(
-					ServerIdentity.getIdentity(),
+					ConfigurationService.getModel().getIdentity(),
 					project.getName(),
 					pipelineObject.getString("name"),
 					pipelineObject.getLong("workspaceId"),
@@ -132,7 +131,7 @@ public class JobConfigurationProxy {
 				fields.add(new ListField(jsonObject.getString("name"), assignedValues));
 			}
 
-			Pipeline pipeline = client.updatePipeline(ServerIdentity.getIdentity(), project.getName(),
+			Pipeline pipeline = client.updatePipeline(ConfigurationService.getModel().getIdentity(), project.getName(),
 					new Pipeline(pipelineId, pipelineObject.getString("name"), null, pipelineObject.getLong("workspaceId"), pipelineObject.getLong("releaseId"), taxonomies, fields, pipelineObject.getBoolean("ignoreTests")));
 
 			//WORKAROUND BEGIN
@@ -212,7 +211,7 @@ public class JobConfigurationProxy {
 		JSONObject workspaces = new JSONObject();
 		JSONArray fieldsMetadata = new JSONArray();
 		try {
-			JobConfiguration jobConfiguration = client.getJobConfiguration(ServerIdentity.getIdentity(), project.getName());
+			JobConfiguration jobConfiguration = client.getJobConfiguration(ConfigurationService.getModel().getIdentity(), project.getName());
 
 			if (!jobConfiguration.getWorkspacePipelinesMap().isEmpty()) {
 				Map<Long, List<Pipeline>> workspacesMap = jobConfiguration.getWorkspacePipelinesMap();

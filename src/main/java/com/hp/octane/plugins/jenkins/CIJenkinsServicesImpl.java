@@ -1,5 +1,6 @@
 package com.hp.octane.plugins.jenkins;
 
+import com.hp.application.automation.tools.model.OctaneServerSettingsModel;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
@@ -16,6 +17,7 @@ import com.hp.octane.integrations.dto.tests.TestsResult;
 import com.hp.octane.integrations.exceptions.ConfigurationException;
 import com.hp.octane.integrations.exceptions.PermissionException;
 import com.hp.octane.integrations.spi.CIPluginServices;
+import com.hp.octane.plugins.jenkins.configuration.ConfigurationService;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
@@ -59,11 +61,12 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 		if (serverUrl != null && serverUrl.endsWith("/")) {
 			serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
 		}
+		OctaneServerSettingsModel model = ConfigurationService.getModel();
 		result.setType(CIServerTypes.JENKINS)
 				.setVersion(Jenkins.VERSION)
 				.setUrl(serverUrl)
-				.setInstanceId(Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity())
-				.setInstanceIdFrom(Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentityFrom())
+				.setInstanceId(model.getIdentity())
+				.setInstanceIdFrom(model.getIdentityFrom())
 				.setSendingTime(System.currentTimeMillis());
 		return result;
 	}
@@ -71,7 +74,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 	@Override
 	public CIPluginInfo getPluginInfo() {
 		CIPluginInfo result = dtoFactory.newDTO(CIPluginInfo.class);
-		result.setVersion(Jenkins.getInstance().getPlugin(OctanePlugin.class).getWrapper().getVersion());
+		result.setVersion(ConfigurationService.getPluginVersion());
 		return result;
 	}
 
@@ -88,7 +91,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 	@Override
 	public OctaneConfiguration getOctaneConfiguration() {
 		OctaneConfiguration result = null;
-		ServerConfiguration serverConfiguration = Jenkins.getInstance().getPlugin(OctanePlugin.class).getServerConfiguration();
+		ServerConfiguration serverConfiguration = ConfigurationService.getServerConfiguration();
 		if (serverConfiguration.location != null && !serverConfiguration.location.isEmpty() &&
 				serverConfiguration.sharedSpace != null && !serverConfiguration.sharedSpace.isEmpty()) {
 			result = dtoFactory.newDTO(OctaneConfiguration.class)
@@ -205,7 +208,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 	}
 
 	private SecurityContext startImpersonation() {
-		String user = Jenkins.getInstance().getPlugin(OctanePlugin.class).getImpersonatedUser();
+		String user = ConfigurationService.getModel().getImpersonatedUser();
 		SecurityContext originalContext = null;
 		if (user != null && !user.equalsIgnoreCase("")) {
 			User jenkinsUser = User.get(user, false);
@@ -490,7 +493,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 		try {
 			item = Jenkins.getInstance().getItem(jobRefId);
 		} catch (AccessDeniedException e) {
-			String user = Jenkins.getInstance().getPlugin(OctanePlugin.class).getImpersonatedUser();
+			String user = ConfigurationService.getModel().getImpersonatedUser();
 			if (user != null && !user.isEmpty()) {
 				throw new PermissionException(403);
 			} else {

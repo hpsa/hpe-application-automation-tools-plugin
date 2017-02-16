@@ -7,8 +7,8 @@ import com.hp.octane.integrations.dto.general.CIProviderSummaryInfo;
 import com.hp.octane.integrations.dto.general.CIServerTypes;
 import com.hp.octane.integrations.dto.parameters.CIParameterType;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
-import com.hp.octane.plugins.jenkins.OctanePlugin;
 import com.hp.octane.plugins.jenkins.actions.PluginActions;
+import com.hp.octane.plugins.jenkins.configuration.ConfigurationService;
 import hudson.model.BooleanParameterDefinition;
 import hudson.model.FileParameterDefinition;
 import hudson.model.FreeStyleProject;
@@ -62,12 +62,12 @@ public class PluginActionsTest {
 		assertEquals(CIServerTypes.JENKINS, status.getServer().getType());
 		assertEquals(Jenkins.VERSION, status.getServer().getVersion());
 		assertEquals(rule.getInstance().getRootUrl(), status.getServer().getUrl() + "/");
-		assertEquals(Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentity(), status.getServer().getInstanceId());
-		assertEquals(Jenkins.getInstance().getPlugin(OctanePlugin.class).getIdentityFrom(), status.getServer().getInstanceIdFrom());
+		assertEquals(ConfigurationService.getModel().getIdentity(), status.getServer().getInstanceId());
+		assertEquals(ConfigurationService.getModel().getIdentityFrom(), status.getServer().getInstanceIdFrom());
 		assertNotNull(status.getServer().getSendingTime());
 
 		assertNotNull(status.getPlugin());
-		assertEquals(Jenkins.getInstance().getPlugin(OctanePlugin.class).getWrapper().getVersion(), status.getPlugin().getVersion());
+		assertEquals(ConfigurationService.getPluginVersion(), status.getPlugin().getVersion());
 	}
 
 	@Test

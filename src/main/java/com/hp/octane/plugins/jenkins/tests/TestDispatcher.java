@@ -15,7 +15,6 @@ import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactoryImpl;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationService;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
-import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.matrix.MatrixRun;
@@ -124,7 +123,7 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
 				jobName = build.getProject().getName();
 			}
 
-			Boolean needTestResult = client.isTestResultRelevant(ServerIdentity.getIdentity(), jobName);
+			Boolean needTestResult = client.isTestResultRelevant(ConfigurationService.getModel().getIdentity(), jobName);
 
 			if (needTestResult) {
 				try {

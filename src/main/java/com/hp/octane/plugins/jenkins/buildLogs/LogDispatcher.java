@@ -7,7 +7,7 @@ import com.hp.indi.bdi.client.BdiConstants;
 import com.hp.octane.plugins.jenkins.ResultQueue;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.configuration.BdiConfiguration;
-import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
+import com.hp.octane.plugins.jenkins.configuration.ConfigurationService;
 import com.hp.octane.plugins.jenkins.tests.SafeLoggingAsyncPeriodWork;
 import hudson.Extension;
 import hudson.ProxyConfiguration;
@@ -112,7 +112,7 @@ public class LogDispatcher extends SafeLoggingAsyncPeriodWork {
     }
 
     private String buildDataId(Run build) {
-        String ciServerId = ServerIdentity.getIdentity();
+        String ciServerId = ConfigurationService.getModel().getIdentity();
         String ciBuildId = String.valueOf(build.getNumber());
         String jobName = build.getParent().getName();
 

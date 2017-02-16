@@ -34,7 +34,7 @@ import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.UUID;
 
-public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
+public class OctanePlugin {/*extends Plugin implements Describable<OctanePlugin> {
 	private static final Logger logger = LogManager.getLogger(OctanePlugin.class);
 
 	private String identity;
@@ -99,7 +99,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 			if (configurationFile != null && configurationFile.canRead() && predefinedConfigurationUnmarshaller != null) {
 				PredefinedConfiguration predefinedConfiguration = predefinedConfigurationUnmarshaller.unmarshall(configurationFile);
 				if (predefinedConfiguration != null) {
-					configurePlugin(predefinedConfiguration.getUiLocation(), null, null, null);
+					setModel(predefinedConfiguration.getUiLocation(), null, null, null);
 				}
 			}
 		}
@@ -153,7 +153,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 		return impersonatedUser;
 	}
 
-	public void configurePlugin(String uiLocation, String username, String password, String impersonatedUser) throws IOException {
+	public void setModel(String uiLocation, String username, String password, String impersonatedUser) throws IOException {
 		ServerConfiguration oldConfiguration = getServerConfiguration();
 		String oldUiLocation = this.uiLocation;
 
@@ -216,7 +216,7 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 		public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
 			try {
 				JSONObject mqmData = formData.getJSONObject("mqm"); // NON-NLS
-				octanePlugin.configurePlugin(mqmData.getString("uiLocation"), // NON-NLS
+				octanePlugin.setModel(mqmData.getString("uiLocation"), // NON-NLS
 						mqmData.getString("username"), // NON-NLS
 						mqmData.getString("secretPassword"),
 						mqmData.getString("impersonatedUser"));
@@ -339,5 +339,5 @@ public class OctanePlugin extends Plugin implements Describable<OctanePlugin> {
 				ACL.impersonate(originalContext.getAuthentication());
 			}
 		}
-	}
+	}*/
 }
