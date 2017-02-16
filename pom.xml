@@ -28,7 +28,7 @@
 		<msbuild.configuration>Release</msbuild.configuration>
 		<jenkins.version>1.642.4</jenkins.version>
 		<workflow.version>2.2</workflow.version>
-		<bdi.version>1.0.0-92-master</bdi.version>
+		<bdi.version>0.1</bdi.version>
 		<maven.exec.skip>false</maven.exec.skip>
 	</properties>
 
@@ -265,6 +265,11 @@
 		<repository>
 			<id>hp-application-automation-tools-plugin-mvn-repo</id>
 			<url>https://raw.github.com/HpeServiceVirtualization/3g/mvn-repo/</url>
+		</repository>
+		<repository>
+			<id>bintray-adm-maven</id>
+			<name>bintray</name>
+			<url>http://dl.bintray.com/adm/maven</url>
 		</repository>
 	</repositories>
 
