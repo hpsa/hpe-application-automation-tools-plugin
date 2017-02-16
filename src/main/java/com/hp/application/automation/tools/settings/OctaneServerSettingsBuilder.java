@@ -122,6 +122,16 @@ public class OctaneServerSettingsBuilder extends Builder {
             List<OctaneServerSettingsModel> list = req.bindJSONToList(OctaneServerSettingsModel.class, jsonObject);
             OctaneServerSettingsModel newModel = list.get(0);
 
+            if(jsonObject.containsKey("showIdentity")){
+                JSONObject showIdentityJo = (JSONObject)jsonObject.get("showIdentity");
+                String identity = showIdentityJo.getString("identity");
+                validateConfiguration(doCheckInstanceId(identity), "Plugin instance id");
+
+                OctaneServerSettingsModel oldModel = getModel();
+                if(!oldModel.getIdentity().equals(identity)){
+                    newModel.setIdentity(identity);
+                }
+            }
             setModel(newModel);
             return super.configure(req, formData);
         }
@@ -137,10 +147,14 @@ public class OctaneServerSettingsBuilder extends Builder {
                 logger.warn("tested configuration failed on Octane URL parse: " + fv.getMessage(), fv);
             }
 
-            //set identity in new model
             OctaneServerSettingsModel oldModel = getModel();
-            newModel.setIdentity(oldModel.getIdentity());
-            newModel.setIdentityFrom(oldModel.getIdentityFrom());
+
+            //set identity in new model
+            boolean identityChanged = StringUtils.isNotEmpty(newModel.getIdentity());
+            if(!identityChanged){ //set identity from old model
+                newModel.setIdentity(oldModel.getIdentity());
+                newModel.setIdentityFrom(oldModel.getIdentityFrom());
+            }
 
             servers = (new OctaneServerSettingsModel[]{newModel});
             save();
@@ -245,6 +259,20 @@ public class OctaneServerSettingsBuilder extends Builder {
         @Inject
         public void setBdiConfigurationFetcher(BdiConfigurationFetcher bdiConfigurationFetcher) {
             this.bdiConfigurationFetcher = bdiConfigurationFetcher;
+        }
+
+        public FormValidation doCheckInstanceId(@QueryParameter String value) {
+            if (StringUtils.isBlank(value)) {
+                return FormValidation.error("Plugin Instance Id cannot be empty");
+            }
+
+            return FormValidation.ok();
+        }
+
+        private void validateConfiguration(FormValidation result, String formField) throws FormException {
+            if (!result.equals(FormValidation.ok())) {
+                throw new FormException("Validation of property in ALM Octane Server Configuration failed: " + result.getMessage(), formField);
+            }
         }
 
     }
