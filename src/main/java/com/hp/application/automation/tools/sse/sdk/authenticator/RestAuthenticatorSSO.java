@@ -36,8 +36,8 @@ import java.net.*;
  * Created by Roy Lu on 1/16/2017.
  */
 public class RestAuthenticatorSSO implements Authenticator {
-    private static final int NUMBER_OF_LOGIN_COOKIES = 2;
-    private final String SESSION_COOKIE_PARAM_NAME = "SiteSession-";
+    public static final int NUMBER_OF_LOGIN_COOKIES = 2;
+    public static final String SESSION_COOKIE_PARAM_NAME = "SiteSession-";
 
     private SSOService ssoService;
     private SSOToken ssoToken;

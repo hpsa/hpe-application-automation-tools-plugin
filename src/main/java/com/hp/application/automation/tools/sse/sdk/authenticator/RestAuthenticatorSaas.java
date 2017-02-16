@@ -97,6 +97,7 @@ public class RestAuthenticatorSaas implements Authenticator {
      * @return
      */
     private boolean isAuthenticated(Client client, Logger logger) {
+        logger.log("Already authenticated.");
         return client.getCookies().keySet().contains(LWSSO_COOKIE_KEY);
     }
 
