@@ -8,14 +8,15 @@ package com.hp.application.automation.tools.settings;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
 import com.hp.application.automation.tools.model.AlmServerSettingsModel;
-import com.hp.application.automation.tools.rest.RestClient;
-import com.hp.application.automation.tools.sse.sdk.RestAuthenticator;
 
 import hudson.CopyOnWrite;
 import hudson.Extension;
@@ -128,7 +129,7 @@ public class AlmServerSettingsBuilder extends Builder {
         private FormValidation checkQcServerURL(String value, Boolean acceptEmpty) {
             String url;
             // Path to the page to check if the server is alive
-            String page = RestAuthenticator.IS_AUTHENTICATED;
+            String page = "servlet/tdservlet/TDAPI_GeneralWebTreatment";
             
             // Do will allow empty value?
             if (StringUtils.isBlank(value)) {
@@ -138,7 +139,15 @@ public class AlmServerSettingsBuilder extends Builder {
                     return FormValidation.ok();
                 }
             }
-            
+
+            // Check url pattern
+            String regex = "^https?://(\\S*)/qcbin$";
+            Pattern p = Pattern.compile(regex);
+            Matcher m = p.matcher(value);
+            if (!m.find()) {
+                return FormValidation.error("ALM server URL should in the following format: http(s)://<Servername>/qcbin");
+            }
+
             // Does the URL ends with a "/" ? if not, add it
             if (value.lastIndexOf("/") == value.length() - 1) {
                 url = value + page;
@@ -149,12 +158,12 @@ public class AlmServerSettingsBuilder extends Builder {
             // Open the connection and perform a HEAD request
             HttpURLConnection connection;
             try {
-            	connection = (HttpURLConnection) RestClient.openConnection(null, url);
+                connection = (HttpURLConnection) new URL(url).openConnection();
                 connection.setRequestMethod("GET");
-                
-                // Check whether the response is from ALM Server
-                if (!isALMServerResponse(connection)) {
-                    return FormValidation.error(RestAuthenticator.INVALID_ALM_SERVER_URL);
+
+                // Check the response code
+                if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                    return FormValidation.error(connection.getResponseMessage());
                 }
             } catch (MalformedURLException ex) {
                 // This is not a valid URL
@@ -166,19 +175,8 @@ public class AlmServerSettingsBuilder extends Builder {
             
             return FormValidation.ok();
         }
-        
-        private boolean isALMServerResponse(HttpURLConnection conn) throws IOException {
-        	boolean ret = false;
-        	
-        	if (conn.getResponseCode() == HttpURLConnection.HTTP_UNAUTHORIZED 
-        			&& conn.getHeaderFields().get(RestAuthenticator.AUTHENTICATE_HEADER) != null){
-        		ret = true;
-        	}
-        	
-			return ret;
-		}
 
-		public Boolean hasAlmServers() {
+        public Boolean hasAlmServers() {
             return installations.length > 0;
         }
     }

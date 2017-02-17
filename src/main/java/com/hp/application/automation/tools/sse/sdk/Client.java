@@ -37,4 +37,6 @@ public interface Client {
     String getServerUrl();
 
     String getUsername();
+
+    Map<String, String> getCookies();
 }
