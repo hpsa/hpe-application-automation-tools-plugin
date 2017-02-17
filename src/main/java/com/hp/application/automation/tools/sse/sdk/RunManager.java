@@ -7,7 +7,6 @@ import com.hp.application.automation.tools.sse.result.PublisherFactory;
 import com.hp.application.automation.tools.sse.result.model.junit.Testsuites;
 import com.hp.application.automation.tools.sse.sdk.authenticator.Authenticator;
 import com.hp.application.automation.tools.sse.sdk.authenticator.RestAuthenticator;
-import com.hp.application.automation.tools.sse.sdk.authenticator.RestAuthenticatorSSO;
 import com.hp.application.automation.tools.sse.sdk.authenticator.RestAuthenticatorSaas;
 import com.hp.application.automation.tools.sse.sdk.handler.PollHandler;
 import com.hp.application.automation.tools.sse.sdk.handler.PollHandlerFactory;
@@ -111,7 +110,6 @@ public class RunManager {
         List<Authenticator> authenticators = new ArrayList<>();
         authenticators.add(new RestAuthenticator());
         authenticators.add(new RestAuthenticatorSaas());
-        authenticators.add(new RestAuthenticatorSSO());
 
         boolean result = false;
         for(Authenticator authenticator : authenticators) {
