@@ -28,7 +28,7 @@
 		<msbuild.configuration>Release</msbuild.configuration>
 		<jenkins.version>1.642.4</jenkins.version>
 		<workflow.version>2.2</workflow.version>
-		<bdi.version>0.1</bdi.version>
+		<bdi.version>1.0.2</bdi.version>
 		<maven.exec.skip>false</maven.exec.skip>
 	</properties>
 
