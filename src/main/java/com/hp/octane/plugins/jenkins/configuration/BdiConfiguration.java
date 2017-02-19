@@ -1,6 +1,21 @@
+/*
+ *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Licensed under the Apache License, Version 2.0 (the "License");
+ *     you may not use this file except in compliance with the License.
+ *     You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *     Unless required by applicable law or agreed to in writing, software
+ *     distributed under the License is distributed on an "AS IS" BASIS,
+ *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *     See the License for the specific language governing permissions and
+ *     limitations under the License.
+ *
+ */
+
 package com.hp.octane.plugins.jenkins.configuration;
 
-import com.hp.indi.bdi.client.BdiConstants;
 import net.sf.json.JSONObject;
 
 /**
@@ -35,14 +50,14 @@ public class BdiConfiguration {
     }
 
     public static BdiConfiguration fromJSON(JSONObject jsonObject) {
-        if (jsonObject == null || !jsonObject.containsKey(BdiConstants.HOST_PARAM)
-                || !jsonObject.containsKey(BdiConstants.PORT_PARAM) || !jsonObject.containsKey(BdiConstants.TENANT_PARAM)) {
+        if (jsonObject == null || !jsonObject.containsKey("host")
+                || !jsonObject.containsKey("port") || !jsonObject.containsKey("tenant")) {
             return null;
         }
 
-        String host = jsonObject.getString(BdiConstants.HOST_PARAM);
-        String port = jsonObject.getString(BdiConstants.PORT_PARAM);
-        String tenant = jsonObject.getString(BdiConstants.TENANT_PARAM);
+        String host = jsonObject.getString("host");
+        String port = jsonObject.getString("port");
+        String tenant = jsonObject.getString("tenant");
 
         return new BdiConfiguration(host, port, tenant);
     }
