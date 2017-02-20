@@ -511,5 +511,15 @@
 			<artifactId>bdi-sdk</artifactId>
 			<version>${bdi.version}</version>
 		</dependency>
+
+		<dependency>
+			<groupId>org.jenkins-ci.main</groupId>
+			<artifactId>jenkins-test-harness-tools</artifactId>
+			<version>2.0</version>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
+
+
 </project>
