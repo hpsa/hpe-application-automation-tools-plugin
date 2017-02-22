@@ -5,6 +5,7 @@ import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import hudson.Extension;
 import hudson.model.AbstractBuild;
+import hudson.model.Run;
 
 import java.util.List;
 
@@ -12,24 +13,26 @@ import java.util.List;
 public class MatrixBuildExtension extends BuildHandlerExtension {
 
 	@Override
-	public boolean supports(AbstractBuild<?, ?> build) {
+	public boolean supports(Run<?, ?> build) {
 		return "hudson.matrix.MatrixRun".equals(build.getClass().getName());
 	}
 
 	@Override
-	public BuildDescriptor getBuildType(AbstractBuild<?, ?> build) {
+	public BuildDescriptor getBuildType(Run<?, ?> build) {
+		AbstractBuild matrixRun = (AbstractBuild) build;
 		List<CIParameter> parameters = ParameterProcessors.getInstances(build);
 		String subBuildName = ModelFactory.generateSubBuildName(parameters);
 		return new BuildDescriptor(
-				build.getRootBuild().getProject().getName(),
-				build.getRootBuild().getProject().getName(),
+				matrixRun.getRootBuild().getProject().getName(),
+				matrixRun.getRootBuild().getProject().getName(),
 				String.valueOf(build.getNumber()),
 				String.valueOf(build.getNumber()),
 				subBuildName);
 	}
 
 	@Override
-	public String getProjectFullName(AbstractBuild<?, ?> build) {
-		return build.getRootBuild().getProject().getName() + "/" + build.getProject().getName();
+	public String getProjectFullName(Run<?, ?> build) {
+        AbstractBuild matrixRun = (AbstractBuild) build;
+		return matrixRun.getRootBuild().getProject().getName() + "/" + matrixRun.getProject().getName();
 	}
 }

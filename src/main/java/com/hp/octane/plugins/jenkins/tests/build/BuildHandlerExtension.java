@@ -6,14 +6,15 @@ import hudson.ExtensionList;
 import hudson.ExtensionPoint;
 import hudson.model.AbstractBuild;
 import hudson.model.Hudson;
+import hudson.model.Run;
 
 public abstract class BuildHandlerExtension implements ExtensionPoint {
 
-    public abstract boolean supports(AbstractBuild<?, ?> build);
+    public abstract boolean supports(Run<?, ?> build);
 
-    public abstract BuildDescriptor getBuildType(AbstractBuild<?, ?> build);
+    public abstract BuildDescriptor getBuildType(Run<?, ?> build);
 
-    public abstract String getProjectFullName(AbstractBuild<?, ?> build);
+    public abstract String getProjectFullName(Run<?, ?> build);
 
     public static ExtensionList<BuildHandlerExtension> all() {
         return Hudson.getInstance().getExtensionList(BuildHandlerExtension.class);

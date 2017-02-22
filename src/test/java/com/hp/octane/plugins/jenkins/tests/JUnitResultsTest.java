@@ -179,17 +179,19 @@ public class JUnitResultsTest {
 	public void testJUnitResultsMatrixProject() throws Exception {
 		String projectName = "root-job-" + UUID.randomUUID().toString();
 		MatrixProject matrixProject = rule.createProject(MatrixProject.class, projectName);
-		matrixProject.setAxes(new AxisList(new Axis("OS", "Linux", "Windows")));
+	//	matrixProject.setAxes(new AxisList(new Axis("OS", "Linux", "Windows")));
+        matrixProject.setAxes(new AxisList(new Axis("param", "A", "B")));
 
-		matrixProject.getBuildersList().add(new Maven("-s settings.xml clean test", mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
-		matrixProject.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
+        matrixProject.getBuildersList().add(new Maven("-s settings.xml clean test -Dmaven.test.failure.ignore=true -X", mavenName));
+
+        matrixProject.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
 		matrixProject.setScm(new CopyResourceSCM("/helloWorldRoot"));
 		MatrixBuild build = (MatrixBuild) TestUtils.runAndCheckBuild(matrixProject);
 
 		for (MatrixRun run : build.getExactRuns()) {
 			matchTests(run, projectName, TestUtils.helloWorldTests, helloWorld2Tests);
 		}
-		Assert.assertEquals(new HashSet<>(Arrays.asList(projectName + "/OS=Windows#1", projectName + "/OS=Linux#1")), getQueuedItems());
+		Assert.assertEquals(new HashSet<>(Arrays.asList(projectName + "/param=B#1", projectName + "/param=A#1")), getQueuedItems());
 		Assert.assertFalse(new File(build.getRootDir(), "mqmTests.xml").exists());
 	}
 

@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jenkins.tests.detection;
 
-import hudson.model.AbstractBuild;
+import hudson.model.Run;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -10,7 +10,7 @@ import org.apache.logging.log4j.Logger;
 public class ResultFieldsDetectionService {
 	private static Logger logger = LogManager.getLogger(ResultFieldsDetectionService.class);
 
-	public ResultFields getDetectedFields(AbstractBuild build) throws InterruptedException {
+	public ResultFields getDetectedFields(Run<?,?> build) throws InterruptedException {
 		for (ResultFieldsDetectionExtension ext : ResultFieldsDetectionExtension.all()) {
 			try {
 				ResultFields fields = ext.detect(build);

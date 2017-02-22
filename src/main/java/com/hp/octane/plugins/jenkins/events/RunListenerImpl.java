@@ -13,12 +13,15 @@ import com.hp.octane.plugins.jenkins.model.processors.builders.WorkFlowRunProces
 import com.hp.octane.plugins.jenkins.model.processors.parameters.ParameterProcessors;
 import com.hp.octane.plugins.jenkins.model.processors.projects.JobProcessorFactory;
 import com.hp.octane.plugins.jenkins.tests.TestListener;
+import com.hp.octane.plugins.jenkins.workflow.WorkflowGraphListener;
 import hudson.Extension;
 import hudson.matrix.MatrixConfiguration;
 import hudson.matrix.MatrixRun;
 import hudson.model.*;
 import hudson.model.listeners.RunListener;
 import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.workflow.job.WorkflowJob;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -58,7 +61,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 					.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)));
 			EventsService.getExtensionInstance().dispatchEvent(event);
 			WorkFlowRunProcessor workFlowRunProcessor = new WorkFlowRunProcessor(r);
-			workFlowRunProcessor.registerEvents(executor);
+			workFlowRunProcessor.registerEvents(executor, this);
 		} else {
 			if (r.getParent() instanceof MatrixConfiguration) {
 				AbstractBuild build = (AbstractBuild) r;
@@ -114,26 +117,10 @@ public final class RunListenerImpl extends RunListener<Run> {
 		} else {
 			result = CIBuildResult.UNAVAILABLE;
 		}
-		if (r instanceof AbstractBuild) {
-			AbstractBuild build = (AbstractBuild) r;
-			CIEvent event = dtoFactory.newDTO(CIEvent.class)
+		CIEvent	event = dtoFactory.newDTO(CIEvent.class)
 					.setEventType(CIEventType.FINISHED)
 					.setProject(getJobCiId(r))
 					.setProjectDisplayName(getJobCiId(r))
-					.setBuildCiId(String.valueOf(build.getNumber()))
-					.setNumber(String.valueOf(build.getNumber()))
-					.setStartTime(build.getStartTimeInMillis())
-					.setEstimatedDuration(build.getEstimatedDuration())
-					.setCauses(CIEventCausesFactory.processCauses(extractCauses(build)))
-					.setParameters(ParameterProcessors.getInstances(build))
-					.setResult(result)
-					.setDuration(build.getDuration());
-			EventsService.getExtensionInstance().dispatchEvent(event);
-			testListener.processBuild(build, listener);
-		} else if (r.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowRun")) {
-			CIEvent event = dtoFactory.newDTO(CIEvent.class)
-					.setEventType(CIEventType.FINISHED)
-					.setProject(getJobCiId(r))
 					.setBuildCiId(String.valueOf(r.getNumber()))
 					.setNumber(String.valueOf(r.getNumber()))
 					.setStartTime(r.getStartTimeInMillis())
@@ -141,7 +128,13 @@ public final class RunListenerImpl extends RunListener<Run> {
 					.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
 					.setResult(result)
 					.setDuration(r.getDuration());
+
+		if (r instanceof AbstractBuild) {
+			event.setParameters(ParameterProcessors.getInstances(r));
+		}
+		if(event!=null){
 			EventsService.getExtensionInstance().dispatchEvent(event);
+			testListener.processBuild(r, listener);
 		}
 	}
 
@@ -216,8 +209,8 @@ public final class RunListenerImpl extends RunListener<Run> {
 	private List<Cause> extractCauses(Run r) {
 		if (r.getParent() instanceof MatrixConfiguration) {
 			return ((MatrixRun) r).getParentBuild().getCauses();
-		} else {
-			return r.getCauses();
 		}
+
+		return r.getCauses();
 	}
 }

@@ -5,17 +5,17 @@ package com.hp.octane.plugins.jenkins.tests;
 import com.hp.octane.plugins.jenkins.tests.junit.JUnitExtension;
 import hudson.ExtensionList;
 import hudson.ExtensionPoint;
-import hudson.model.AbstractBuild;
 import hudson.model.Hudson;
+import hudson.model.Run;
 
 import java.io.IOException;
 
 public abstract class MqmTestsExtension implements ExtensionPoint {
 
-    public abstract boolean supports(AbstractBuild<?, ?> build) throws IOException, InterruptedException;
+    public abstract boolean supports(Run<?, ?> build) throws IOException, InterruptedException;
 
 
-    public abstract TestResultContainer getTestResults(AbstractBuild<?, ?> build, HPRunnerType hpRunnerType, String jenkinsRootUrl) throws IOException, InterruptedException, TestProcessingException;
+    public abstract TestResultContainer getTestResults(Run<?, ?> build, HPRunnerType hpRunnerType, String jenkinsRootUrl) throws IOException, InterruptedException, TestProcessingException;
 
     public static ExtensionList<MqmTestsExtension> all() {
         return Hudson.getInstance().getExtensionList(MqmTestsExtension.class);

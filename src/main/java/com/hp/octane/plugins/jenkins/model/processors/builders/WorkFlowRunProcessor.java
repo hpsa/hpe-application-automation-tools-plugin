@@ -1,6 +1,7 @@
 package com.hp.octane.plugins.jenkins.model.processors.builders;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import com.hp.octane.plugins.jenkins.events.RunListenerImpl;
 import com.hp.octane.plugins.jenkins.workflow.WorkflowGraphListener;
 import hudson.model.Run;
 import org.apache.logging.log4j.LogManager;
@@ -23,7 +24,7 @@ public class WorkFlowRunProcessor {
 		this.workFlowRun = (WorkflowRun) r;
 	}
 
-	public void registerEvents(ExecutorService executor) {
+	public void registerEvents(ExecutorService executor, final RunListenerImpl runListener) {
 		ListenableFuture<FlowExecution> promise = workFlowRun.getExecutionPromise();
 		promise.addListener(new Runnable() {
 			@Override

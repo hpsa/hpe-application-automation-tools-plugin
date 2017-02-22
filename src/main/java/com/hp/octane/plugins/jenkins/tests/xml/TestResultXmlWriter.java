@@ -9,7 +9,7 @@ import com.hp.octane.plugins.jenkins.tests.build.BuildDescriptor;
 import com.hp.octane.plugins.jenkins.tests.detection.ResultFields;
 import com.hp.octane.plugins.jenkins.tests.testResult.TestResult;
 import hudson.FilePath;
-import hudson.model.AbstractBuild;
+import hudson.model.Run;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -23,14 +23,21 @@ import java.util.Iterator;
 public class TestResultXmlWriter {
 
 	private FilePath targetPath;
-	private AbstractBuild build;
+	//private Run build;
+	private BuildDescriptor buildDescriptor;
 
 	private XMLStreamWriter writer;
 	private OutputStream outputStream;
 
-	public TestResultXmlWriter(FilePath targetPath, AbstractBuild build) {
+	public TestResultXmlWriter(FilePath targetPath, BuildDescriptor buildDescriptor) {
 		this.targetPath = targetPath;
-		this.build = build;
+		this.buildDescriptor = buildDescriptor;
+	}
+
+	public TestResultXmlWriter(FilePath targetPath, Run build) {
+		this.targetPath = targetPath;
+		//this.build = build;
+		this.buildDescriptor = BuildHandlerUtils.getBuildType(build);
 	}
 
 	public void writeResults(TestResultContainer testResultContainer) throws InterruptedException, XMLStreamException, IOException {
@@ -65,7 +72,7 @@ public class TestResultXmlWriter {
 			writer.writeStartElement("test_result");
 			writer.writeStartElement("build");
 			writer.writeAttribute("server_id", ServerIdentity.getIdentity());
-			BuildDescriptor descriptor = BuildHandlerUtils.getBuildType(build);
+			BuildDescriptor descriptor = this.buildDescriptor;
 			writer.writeAttribute("job_id", descriptor.getJobId());
 			writer.writeAttribute("job_name", descriptor.getJobName());
 			writer.writeAttribute("build_id", descriptor.getBuildId());

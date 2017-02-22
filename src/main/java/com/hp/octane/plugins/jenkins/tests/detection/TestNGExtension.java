@@ -1,5 +1,6 @@
 package com.hp.octane.plugins.jenkins.tests.detection;
 
+import com.hp.octane.plugins.jenkins.tests.build.BuildHandlerUtils;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Util;
@@ -7,6 +8,7 @@ import hudson.maven.MavenBuild;
 import hudson.maven.MavenModule;
 import hudson.maven.MavenModuleSetBuild;
 import hudson.model.AbstractBuild;
+import hudson.model.Run;
 import hudson.remoting.VirtualChannel;
 import hudson.tasks.junit.JUnitResultArchiver;
 import hudson.tasks.test.AbstractTestResultAction;
@@ -37,14 +39,24 @@ public class TestNGExtension  extends ResultFieldsDetectionExtension {
 
 
     @Override
-    public ResultFields detect(final AbstractBuild build) throws IOException, InterruptedException {
+    public ResultFields detect(final Run build) throws IOException, InterruptedException {
+        if(!(build instanceof AbstractBuild)){
+            return new ResultFields(null, null, null);
+        }
+//        if(build instanceof WorkflowBuildAdapter){
+//            FilePath workspace = BuildHandlerUtils.getWorkspace(build);
+//            ((TestResultAction)((WorkflowBuildAdapter)build).getAction(TestResultAction.class)).getResult().getSuites();
+//            if (BuildHandlerUtils.getWorkspace(build).act(new TestNgPipelineResultsFileFinder(testResultsPattern))) {
+//                return new ResultFields(TESTNG, null, null);
+//            }
+//        }
 
-        final List<Object> publishers = build.getProject().getPublishersList().toList();
+        final List<Object> publishers = ((AbstractBuild) build).getProject().getPublishersList().toList();
         for (Object publisher : publishers) {
             if ("hudson.tasks.junit.JUnitResultArchiver".equals(publisher.getClass().getName())) {
                 JUnitResultArchiver junit = (JUnitResultArchiver) publisher;
                 String testResultsPattern = junit.getTestResults();
-                if (build.getWorkspace().act(new TestNgResultsFileFinder(testResultsPattern))) {
+                if (BuildHandlerUtils.getWorkspace(build).act(new TestNgResultsFileFinder(testResultsPattern))) {
                     return new ResultFields(TESTNG, null, null);
                 }
             }

@@ -21,6 +21,9 @@ import hudson.scm.SCM;
 import hudson.scm.SCMRevisionState;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jenkinsci.plugins.workflow.job.WorkflowJob;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
+
 import java.io.File;
 import java.util.List;
 
@@ -48,15 +51,29 @@ public class SCMListenerImpl extends SCMListener {
             if (changelog != null && !changelog.isEmptySet()) {        // if there are any commiters
                 SCMProcessor scmProcessor = SCMProcessors.getAppropriate(scm.getClass().getName());
                 if (scmProcessor != null) {
-                    SCMData scmData = scmProcessor.getSCMData(build);
-                    event = dtoFactory.newDTO(CIEvent.class)
-                            .setEventType(CIEventType.SCM)
-                            .setProject(getProjectName(r))
-                            .setBuildCiId(String.valueOf(r.getNumber()))
-                            .setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
-                            .setNumber(String.valueOf(r.getNumber()))
-                            .setScmData(scmData);
-                    EventsService.getExtensionInstance().dispatchEvent(event);
+                    createSCMData(r, build, scmProcessor);
+                } else {
+                    logger.info("SCM changes detected, but no processors found for SCM provider of type " + scm.getClass().getName());
+                }
+            }
+        }
+
+        else if (r.getParent() instanceof WorkflowJob) {
+            WorkflowRun wRun = (WorkflowRun)r;
+            if (changelog != null && !changelog.isEmptySet() || !wRun.getChangeSets().isEmpty()) {
+                SCMProcessor scmProcessor = SCMProcessors.getAppropriate(scm.getClass().getName());
+                if (scmProcessor != null) {
+                    List<SCMData> scmDataList = scmProcessor.getSCMData(wRun);
+                    for (SCMData scmData : scmDataList) {
+                        event = dtoFactory.newDTO(CIEvent.class)
+                          .setEventType(CIEventType.SCM)
+                          .setProject(getProjectName(r))
+                          .setBuildCiId(String.valueOf(r.getNumber()))
+                          .setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
+                          .setNumber(String.valueOf(r.getNumber()))
+                          .setScmData(scmData);
+                        EventsService.getExtensionInstance().dispatchEvent(event);
+                    }
                 } else {
                     logger.info("SCM changes detected, but no processors found for SCM provider of type " + scm.getClass().getName());
                 }
@@ -64,6 +81,18 @@ public class SCMListenerImpl extends SCMListener {
         }
     }
 
+    private void createSCMData(Run<?, ?> r, AbstractBuild build, SCMProcessor scmProcessor) {
+        CIEvent event;
+        SCMData scmData = scmProcessor.getSCMData(build);
+        event = dtoFactory.newDTO(CIEvent.class)
+					.setEventType(CIEventType.SCM)
+					.setProject(getProjectName(r))
+					.setBuildCiId(String.valueOf(r.getNumber()))
+					.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
+					.setNumber(String.valueOf(r.getNumber()))
+					.setScmData(scmData);
+        EventsService.getExtensionInstance().dispatchEvent(event);
+    }
 
     private String getProjectName(Run r) {
         if (r.getParent() instanceof MatrixConfiguration) {
