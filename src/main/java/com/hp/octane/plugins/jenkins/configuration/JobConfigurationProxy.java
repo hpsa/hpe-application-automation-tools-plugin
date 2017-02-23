@@ -12,7 +12,7 @@ import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.model.ModelFactory;
 import hudson.ExtensionList;
-import hudson.model.AbstractProject;
+import hudson.model.Job;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -30,21 +30,21 @@ public class JobConfigurationProxy {
 	private final static Logger logger = LogManager.getLogger(JobConfigurationProxy.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
-	final private AbstractProject project;
+	final private Job job;
 	private RetryModel retryModel;
 
 	private static final String PRODUCT_NAME = Messages.ServerName();
 	private static final String NOT_SPECIFIED = "-- Not specified --";
 
-	JobConfigurationProxy(AbstractProject project) {
-		this.project = project;
+	JobConfigurationProxy(Job job) {
+		this.job = job;
 	}
 
 	@JavaScriptMethod
 	public JSONObject createPipelineOnServer(JSONObject pipelineObject) throws IOException {
 		JSONObject result = new JSONObject();
 
-		PipelineNode pipelineNode = ModelFactory.createStructureItem(project);
+		PipelineNode pipelineNode = ModelFactory.createStructureItem(job);
 		CIServerInfo ciServerInfo = OctaneSDK.getInstance().getPluginServices().getServerInfo();
 		Long releaseId = pipelineObject.getLong("releaseId") != -1 ? pipelineObject.getLong("releaseId") : null;
 
@@ -59,7 +59,7 @@ public class JobConfigurationProxy {
 		try {
 			Pipeline createdPipeline = client.createPipeline(
 					ConfigurationService.getModel().getIdentity(),
-					project.getName(),
+					job.getName(),
 					pipelineObject.getString("name"),
 					pipelineObject.getLong("workspaceId"),
 					releaseId,
@@ -131,7 +131,7 @@ public class JobConfigurationProxy {
 				fields.add(new ListField(jsonObject.getString("name"), assignedValues));
 			}
 
-			Pipeline pipeline = client.updatePipeline(ConfigurationService.getModel().getIdentity(), project.getName(),
+			Pipeline pipeline = client.updatePipeline(ConfigurationService.getModel().getIdentity(), job.getName(),
 					new Pipeline(pipelineId, pipelineObject.getString("name"), null, pipelineObject.getLong("workspaceId"), pipelineObject.getLong("releaseId"), taxonomies, fields, pipelineObject.getBoolean("ignoreTests")));
 
 			//WORKAROUND BEGIN
@@ -187,7 +187,7 @@ public class JobConfigurationProxy {
 		try {
 			long pipelineId = pipelineObject.getLong("id");
 			long workspaceId = pipelineObject.getLong("workspaceId");
-			client.deleteTestsFromPipelineNodes(project.getName(), pipelineId, workspaceId);
+			client.deleteTestsFromPipelineNodes(job.getName(), pipelineId, workspaceId);
 			result.put("Test deletion was succeful", "");
 		} catch (RequestException e) {
 			logger.warn("Failed to delete tests", e);
@@ -211,7 +211,7 @@ public class JobConfigurationProxy {
 		JSONObject workspaces = new JSONObject();
 		JSONArray fieldsMetadata = new JSONArray();
 		try {
-			JobConfiguration jobConfiguration = client.getJobConfiguration(ConfigurationService.getModel().getIdentity(), project.getName());
+			JobConfiguration jobConfiguration = client.getJobConfiguration(ConfigurationService.getModel().getIdentity(), job.getName());
 
 			if (!jobConfiguration.getWorkspacePipelinesMap().isEmpty()) {
 				Map<Long, List<Pipeline>> workspacesMap = jobConfiguration.getWorkspacePipelinesMap();

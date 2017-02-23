@@ -3,19 +3,19 @@
 package com.hp.octane.plugins.jenkins.configuration;
 
 import com.hp.octane.plugins.jenkins.Messages;
-import hudson.model.AbstractProject;
 import hudson.model.Action;
 import hudson.model.Item;
+import hudson.model.Job;
 import org.kohsuke.stapler.StaplerProxy;
 
 public class ConfigurationAction implements Action, StaplerProxy {
 
-    final public AbstractProject owner;
+    final public Job owner;
     final public JobConfigurationProxy proxy;
 
-    public ConfigurationAction(AbstractProject project) {
-        this.owner = project;
-        this.proxy = new JobConfigurationProxy(project);
+    public ConfigurationAction(Job job) {
+        this.owner = job;
+        this.proxy = new JobConfigurationProxy(job);
     }
 
     @Override
