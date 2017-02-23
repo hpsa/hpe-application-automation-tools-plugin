@@ -1,8 +1,8 @@
 package com.hp.octane.plugins.jenkins.configuration;
 
-import com.hp.octane.plugins.jenkins.OctanePlugin;
-import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
+import com.hp.application.automation.tools.model.OctaneServerSettingsModel;
 import hudson.util.FormValidation;
+import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
@@ -47,7 +47,7 @@ public class ConfigApi {
 		}
 		try {
 			// validate location format
-			ConfigurationService.parseUiLocation(uiLocation);
+			ConfigurationParser.parseUiLocation(uiLocation);
 		} catch (FormValidation ex) {
 			res.sendError(400, ex.getMessage());
 			return;
@@ -69,11 +69,12 @@ public class ConfigApi {
 		if (configuration.containsKey("password")) {
 			password = configuration.getString("password");
 		}
-		OctanePlugin octanePlugin = Jenkins.getInstance().getPlugin(OctanePlugin.class);
-		octanePlugin.configurePlugin(uiLocation, username, password, impersonatedUser);
+		OctaneServerSettingsModel model = new OctaneServerSettingsModel(uiLocation, username, Secret.fromString(password), impersonatedUser);
+		ConfigurationService.configurePlugin(model);
+
 		String serverIdentity = (String) configuration.get("serverIdentity");
 		if (!StringUtils.isEmpty(serverIdentity)) {
-			octanePlugin.setIdentity(serverIdentity);
+			ConfigurationService.getModel().setIdentity(serverIdentity);
 		}
 
 		res.serveExposedBean(req, getConfiguration(), Flavor.JSON);
@@ -90,7 +91,7 @@ public class ConfigApi {
 				serverConfiguration.sharedSpace,
 				serverConfiguration.username,
 				serverConfiguration.impersonatedUser,
-				ServerIdentity.getIdentity());
+				ConfigurationService.getModel().getIdentity());
 	}
 
 	@ExportedBean

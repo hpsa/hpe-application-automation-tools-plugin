@@ -2,7 +2,7 @@
 
 package com.hp.octane.plugins.jenkins.tests.xml;
 
-import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
+import com.hp.octane.plugins.jenkins.configuration.ConfigurationService;
 import com.hp.octane.plugins.jenkins.tests.*;
 import com.hp.octane.plugins.jenkins.tests.build.BuildHandlerUtils;
 import com.hp.octane.plugins.jenkins.tests.build.BuildDescriptor;
@@ -71,7 +71,7 @@ public class TestResultXmlWriter {
 
 			writer.writeStartElement("test_result");
 			writer.writeStartElement("build");
-			writer.writeAttribute("server_id", ServerIdentity.getIdentity());
+			writer.writeAttribute("server_id", ConfigurationService.getModel().getIdentity());
 			BuildDescriptor descriptor = this.buildDescriptor;
 			writer.writeAttribute("job_id", descriptor.getJobId());
 			writer.writeAttribute("job_name", descriptor.getJobName());

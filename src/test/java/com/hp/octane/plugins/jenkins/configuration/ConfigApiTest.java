@@ -8,7 +8,6 @@ import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.WebRequest;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import com.hp.octane.plugins.jenkins.identity.ServerIdentity;
 import net.sf.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
@@ -30,7 +29,7 @@ public class ConfigApiTest {
 		HtmlForm form = configPage.getFormByName("config");
 		form.getInputByName("_.uiLocation").setValueAttribute("http://localhost:8008/ui/?p=1001/1002");
 		form.getInputByName("_.username").setValueAttribute("username");
-		form.getInputByName("_.secretPassword").setValueAttribute("password");
+		form.getInputByName("_.password").setValueAttribute("password");
 		rule.submit(form);
 	}
 
@@ -42,7 +41,7 @@ public class ConfigApiTest {
 		Assert.assertEquals("http://localhost:8008", config.getString("location"));
 		Assert.assertEquals("1001", config.getString("sharedSpace"));
 		Assert.assertEquals("username", config.getString("username"));
-		Assert.assertEquals(ServerIdentity.getIdentity(), config.getString("serverIdentity"));
+		Assert.assertEquals(ConfigurationService.getModel().getIdentity(), config.getString("serverIdentity"));
 	}
 
 	@Test
@@ -63,7 +62,7 @@ public class ConfigApiTest {
 		Page page = wc.getPage(req);
 		config = JSONObject.fromObject(page.getWebResponse().getContentAsString());
 		checkConfig(config, "http://localhost:8088", "1001", "username1", "password1");
-		Assert.assertEquals(ServerIdentity.getIdentity(), config.getString("serverIdentity"));
+		Assert.assertEquals(ConfigurationService.getModel().getIdentity(), config.getString("serverIdentity"));
 
 
 		// location, shared space, no credentials
@@ -74,7 +73,7 @@ public class ConfigApiTest {
 		page = client.getPage(req);
 		config = JSONObject.fromObject(page.getWebResponse().getContentAsString());
 		checkConfig(config, "http://localhost:8888", "1002", "username1", "password1");
-		Assert.assertEquals(ServerIdentity.getIdentity(), config.getString("serverIdentity"));
+		Assert.assertEquals(ConfigurationService.getModel().getIdentity(), config.getString("serverIdentity"));
 //
 		// location, shared space and username without password
 		config = new JSONObject();
@@ -85,7 +84,7 @@ public class ConfigApiTest {
 		page = client.getPage(req);
 		config = JSONObject.fromObject(page.getWebResponse().getContentAsString());
 		checkConfig(config, "http://localhost:8882", "1003", "username3", "");
-		Assert.assertEquals(ServerIdentity.getIdentity(), config.getString("serverIdentity"));
+		Assert.assertEquals(ConfigurationService.getModel().getIdentity(), config.getString("serverIdentity"));
 
 		// uiLocation and identity
 		config = new JSONObject();
@@ -96,7 +95,7 @@ public class ConfigApiTest {
 		config = JSONObject.fromObject(page.getWebResponse().getContentAsString());
 		checkConfig(config, "http://localhost:8881", "1001", "username3", "");
 		Assert.assertEquals("2d2fa955-1d13-4d8c-947f-ab11c72bf850", config.getString("serverIdentity"));
-		Assert.assertEquals("2d2fa955-1d13-4d8c-947f-ab11c72bf850", ServerIdentity.getIdentity());
+		Assert.assertEquals("2d2fa955-1d13-4d8c-947f-ab11c72bf850", ConfigurationService.getModel().getIdentity());
 
 		// requires POST
 		req.setHttpMethod(HttpMethod.GET);

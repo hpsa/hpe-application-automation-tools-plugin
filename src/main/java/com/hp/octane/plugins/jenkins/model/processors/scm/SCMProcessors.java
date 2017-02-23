@@ -1,6 +1,6 @@
 package com.hp.octane.plugins.jenkins.model.processors.scm;
 
-import com.hp.octane.plugins.jenkins.OctanePlugin;
+import com.hp.application.automation.tools.settings.OctaneServerSettingsBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -13,7 +13,7 @@ public enum SCMProcessors {
 	GIT("hudson.plugins.git.GitSCM", GitSCMProcessor.class),
 	SVN("hudson.scm.SubversionSCM", SvnSCMProcessor.class);
 
-	private static Logger logger = LogManager.getLogger(OctanePlugin.class);
+	private static Logger logger = LogManager.getLogger(OctaneServerSettingsBuilder.class);
 	private String targetSCMPluginClassName;
 	private Class<? extends SCMProcessor> processorClass;
 

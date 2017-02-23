@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactoryImpl;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationListener;
+import com.hp.octane.plugins.jenkins.configuration.ConfigurationService;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import hudson.Extension;
 import jenkins.model.Jenkins;
@@ -41,12 +42,12 @@ public class BridgesService implements ConfigurationListener {
 		return extensionInstance;
 	}
 
-	public void updateBridge(ServerConfiguration conf) {
+	public void updateBridge(ServerConfiguration conf, String serverIdentity) {
 		if (conf.isValid()) {
 			if (bridgeClient != null) {
-				bridgeClient.update(conf);
+				bridgeClient.update(conf, serverIdentity);
 			} else {
-				bridgeClient = new BridgeClient(conf, clientFactory);
+				bridgeClient = new BridgeClient(conf, clientFactory, serverIdentity);
 			}
 		} else {
 			if (bridgeClient != null) {
@@ -64,6 +65,6 @@ public class BridgesService implements ConfigurationListener {
 
 	@Override
 	public void onChanged(ServerConfiguration conf, ServerConfiguration oldConf) {
-		updateBridge(conf);
+		updateBridge(conf, ConfigurationService.getModel().getIdentity());
 	}
 }

@@ -28,7 +28,7 @@
 		<msbuild.configuration>Release</msbuild.configuration>
 		<jenkins.version>1.642.4</jenkins.version>
 		<workflow.version>2.2</workflow.version>
-		<bdi.version>1.0.0-92-master</bdi.version>
+		<bdi.version>1.0.2</bdi.version>
 		<maven.exec.skip>false</maven.exec.skip>
 	</properties>
 
@@ -208,7 +208,7 @@
 								<argument> -jar</argument>
 								<argument>${env.JENKINS_HOME}war\WEB-INF\jenkins-cli.jar</argument>
 								<argument>-s</argument>
-								<argument>http://localhost:8080/</argument>
+								<argument>http://localhost:8080</argument>
 								<argumnet>install-plugin</argumnet>
 								<argumnet>${project.build.directory}\${project.build.finalName}.${project.packaging}</argumnet>
 								<argument>-name</argument>
@@ -266,6 +266,11 @@
 			<id>hp-application-automation-tools-plugin-mvn-repo</id>
 			<url>https://raw.github.com/HpeServiceVirtualization/3g/mvn-repo/</url>
 		</repository>
+		<repository>
+			<id>bintray-adm-maven</id>
+			<name>bintray</name>
+			<url>http://dl.bintray.com/adm/maven</url>
+		</repository>
 	</repositories>
 
 	<pluginRepositories>
@@ -319,13 +324,13 @@
 			<artifactId>workflow-cps</artifactId>
 			<version>2.6</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.jenkins-ci.plugins</groupId>
 			<artifactId>pipeline-build-step</artifactId>
 			<version>2.2</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.jenkins-ci.plugins</groupId>
 			<artifactId>structs</artifactId>
@@ -360,11 +365,7 @@
 		</dependency>
 
 
-<!-- Octane jenkins-->
-		<!---->
-		<!---->
-		<!---->
-		<!---->
+<!-- Octane jenkins plugins -->
 
 		<dependency>
 			<artifactId>integrations-sdk</artifactId>
@@ -372,13 +373,14 @@
 			<version>1.0</version>
 		</dependency>
 
-		<!-- TO BE REMOVED -->
+		<!-- Obsolete TO BE REMOVED -->
 		<dependency>
 			<artifactId>mqm-rest-client</artifactId>
 			<groupId>com.hpe.alm.octane.plugins</groupId>
 			<version>1.0</version>
 		</dependency>
 
+		<!-- org.jenkins-ci.main -->
 		<dependency>
 			<groupId>org.jenkins-ci.main</groupId>
 			<artifactId>maven-plugin</artifactId>
@@ -391,13 +393,13 @@
 			<version>1.10</version>
 			<optional>true</optional>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.jenkins-ci.plugins</groupId>
 			<artifactId>ssh-credentials</artifactId>
 			<version>1.13</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.jenkins-ci.plugins</groupId>
 			<artifactId>git-server</artifactId>
@@ -412,6 +414,73 @@
 			<optional>true</optional>
 		</dependency>
 
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>git</artifactId>
+			<version>2.4.4</version>
+			<optional>true</optional>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>token-macro</artifactId>
+			<version>1.12</version>
+			<optional>true</optional>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>mailer</artifactId>
+			<version>1.16</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>jenkins-multijob-plugin</artifactId>
+			<version>1.15</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>parameterized-trigger</artifactId>
+			<version>2.25</version>
+			<optional>true</optional>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>extended-choice-parameter</artifactId>
+			<version>0.34</version>
+			<optional>true</optional>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>random-string-parameter</artifactId>
+			<version>1.0</version>
+			<optional>true</optional>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>nodelabelparameter</artifactId>
+			<version>1.5.0</version>
+			<optional>true</optional>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>jquery</artifactId>
+			<version>1.7.2-1</version>
+			<optional>true</optional>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>subversion</artifactId>
+			<version>2.5</version>
+			<optional>true</optional>
+		</dependency>
 		<!-- pipeline as a code  ends here -->
 
 		<dependency>
@@ -428,73 +497,12 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.jenkins-ci.plugins</groupId>
-			<artifactId>git</artifactId>
-			<version>2.4.4</version>
-			<optional>true</optional>
-		</dependency>
-
-		<dependency>
-			<groupId>org.jenkins-ci.plugins</groupId>
-			<artifactId>token-macro</artifactId>
-			<version>1.12</version>
-			<optional>true</optional>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.jenkins-ci.plugins</groupId>
-			<artifactId>mailer</artifactId>
-			<version>1.16</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.jenkins-ci.plugins</groupId>
-			<artifactId>jenkins-multijob-plugin</artifactId>
-			<version>1.15</version>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.jenkins-ci.plugins</groupId>
-			<artifactId>parameterized-trigger</artifactId>
-			<version>2.25</version>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
 			<groupId>com.seitenbau.jenkins.plugins</groupId>
 			<artifactId>dynamicparameter</artifactId>
 			<version>0.2.0</version>
 			<optional>true</optional>
 		</dependency>
-		<dependency>
-			<groupId>org.jenkins-ci.plugins</groupId>
-			<artifactId>extended-choice-parameter</artifactId>
-			<version>0.34</version>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.jenkins-ci.plugins</groupId>
-			<artifactId>random-string-parameter</artifactId>
-			<version>1.0</version>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.jenkins-ci.plugins</groupId>
-			<artifactId>nodelabelparameter</artifactId>
-			<version>1.5.0</version>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.jenkins-ci.plugins</groupId>
-			<artifactId>jquery</artifactId>
-			<version>1.7.2-1</version>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.jenkins-ci.plugins</groupId>
-			<artifactId>subversion</artifactId>
-			<version>2.5</version>
-			<optional>true</optional>
-		</dependency>
+
 		<!--Test-->
 
 		<dependency>
@@ -503,30 +511,21 @@
 			<version>20090211</version>
 			<scope>test</scope>
 		</dependency>
+
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>
 			<version>9.2.6.v20141205</version>
 			<scope>test</scope>
 		</dependency>
+
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-all</artifactId>
 			<version>1.10.19</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.jenkins-ci.plugins</groupId>
-			<artifactId>hp-application-automation-tools-plugin</artifactId>
-			<version>3.0.7</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.jenkins-ci.main</groupId>
-			<artifactId>jenkins-test-harness-tools</artifactId>
-			<version>2.0</version>
-			<scope>test</scope>
-		</dependency>
+
 		<dependency>
 			<groupId>org.jdom</groupId>
 			<artifactId>jdom2</artifactId>
@@ -539,5 +538,15 @@
 			<artifactId>bdi-sdk</artifactId>
 			<version>${bdi.version}</version>
 		</dependency>
+
+		<dependency>
+			<groupId>org.jenkins-ci.main</groupId>
+			<artifactId>jenkins-test-harness-tools</artifactId>
+			<version>2.0</version>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
+
+
 </project>

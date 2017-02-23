@@ -2,12 +2,11 @@ package com.hp.octane.plugins.jenkins.model.processors.projects;
 
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
-import com.hp.octane.plugins.jenkins.OctanePlugin;
+import com.hp.octane.plugins.jenkins.configuration.ConfigurationService;
 import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
 import hudson.model.Cause;
 import hudson.model.Job;
 import hudson.tasks.Builder;
-import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 
@@ -51,7 +50,7 @@ public class WorkFlowJobProcessor extends AbstractProjectProcessor<WorkflowJob> 
 
 	private OctaneConfiguration getOctaneConfiguration() {
 		OctaneConfiguration result = null;
-		ServerConfiguration serverConfiguration = Jenkins.getInstance().getPlugin(OctanePlugin.class).getServerConfiguration();
+		ServerConfiguration serverConfiguration = ConfigurationService.getServerConfiguration();
 		if (serverConfiguration.location != null && !serverConfiguration.location.isEmpty() &&
 				serverConfiguration.sharedSpace != null && !serverConfiguration.sharedSpace.isEmpty()) {
 			result = dtoFactory.newDTO(OctaneConfiguration.class)
