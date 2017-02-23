@@ -94,8 +94,8 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
             }
             try {
                 //TODO: fix bdi!
-                client.post("consolelog",BDI_PRODUCT,Long.valueOf(configuration.getTenantId()),
-                        item.getWorkspace(),buildDataId(build),build.getLogFile());
+//                client.post("consolelog",BDI_PRODUCT,Long.valueOf(configuration.getTenantId()),
+//                        item.getWorkspace(),buildDataId(build),build.getLogFile());
 //                client.post("consolelog",BDI_PRODUCT,Long.valueOf(configuration.getTenantId()),
 //                        item.getWorkspace(),buildDataId(build),build.getLogFile());
 ////                response = client.post("consolelog", BDI_PRODUCT, Long.valueOf(configuration.getTenantId()),

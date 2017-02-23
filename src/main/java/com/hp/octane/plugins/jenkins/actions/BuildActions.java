@@ -44,7 +44,7 @@ import java.util.Collection;
 @Extension
 public class BuildActions extends TransientActionFactory<AbstractBuild> {
 
-	protected BuildActions(){}
+	public BuildActions(){}
 
 	private JenkinsMqmRestClientFactory clientFactory;
 

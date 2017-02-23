@@ -39,7 +39,7 @@ import java.util.List;
 @Extension
 public class ConfigurationParser {
 
-	protected ConfigurationParser(){}
+	public ConfigurationParser(){}
 
 	private final static Logger logger = LogManager.getLogger(ConfigurationParser.class);
 
