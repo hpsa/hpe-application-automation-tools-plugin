@@ -40,6 +40,7 @@ import static org.junit.Assert.assertNotNull;
 * @since <pre>??? 17, 2016</pre> 
 * @version 1.0
  */
+@SuppressWarnings("squid:S2699")
 public class RunResultRecorderTest { 
 
 @Before

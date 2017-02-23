@@ -31,7 +31,7 @@ import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.ToolInstallations;
 
 import java.util.HashMap;
-
+@SuppressWarnings({"squid:S2699","squid:S3658","squid:S2259","squid:S1872","squid:S2925","squid:S109","squid:S1607","squid:S2701"})
 public class BuildHandlerUtilsTest {
 
 	@ClassRule

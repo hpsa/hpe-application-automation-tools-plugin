@@ -23,6 +23,7 @@ import org.junit.Assert;
 import java.util.Collection;
 import java.util.LinkedList;
 
+@SuppressWarnings("squid:S2925")
 public class TestQueue implements ResultQueue {
 
 	private LinkedList<QueueItem> queue = new LinkedList<QueueItem>();

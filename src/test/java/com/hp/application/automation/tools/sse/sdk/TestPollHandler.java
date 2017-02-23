@@ -28,6 +28,7 @@ import com.hp.application.automation.tools.sse.common.TestCase;
 import com.hp.application.automation.tools.sse.sdk.handler.PollHandler;
 import com.hp.application.automation.tools.sse.sdk.handler.PollHandlerFactory;
 
+@SuppressWarnings("squid:S2698")
 public class TestPollHandler extends TestCase {
     
     @Test

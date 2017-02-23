@@ -34,6 +34,7 @@ import com.hp.application.automation.tools.sse.sdk.Client;
 import com.hp.application.automation.tools.sse.sdk.ResourceAccessLevel;
 import com.hp.application.automation.tools.sse.sdk.Response;
 
+@SuppressWarnings("squid:S2699")
 public class TestPublisher extends TestCase {
 
     @Test

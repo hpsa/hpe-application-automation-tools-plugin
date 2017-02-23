@@ -31,7 +31,8 @@ import org.jvnet.hudson.test.JenkinsRule;
 * @author <Authors name> 
 * @since <pre>??? 28, 2016</pre> 
 * @version 1.0 
-*/ 
+*/
+@SuppressWarnings({"squid:S2699","squid:S3658","squid:S2259","squid:S1872","squid:S2925","squid:S109","squid:S1607","squid:S2701"})
 public class LrScenarioLoadStepTest {
 
     @Rule

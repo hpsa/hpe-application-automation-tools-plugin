@@ -52,6 +52,7 @@ import java.util.concurrent.TimeUnit;
  */
 
 @Extension
+@SuppressWarnings({"squid:S2259","squid:S1872","squid:S1698","squid:S1132"})
 public final class RunListenerImpl extends RunListener<Run> {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private ExecutorService executor = new ThreadPoolExecutor(0, 5, 10L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
@@ -204,8 +205,8 @@ public final class RunListenerImpl extends RunListener<Run> {
 		return result;
 	}
 
-	private TopLevelItem getJobFromFolder(String causeJobName) {
-		String newJobRefId = causeJobName.substring(0, causeJobName.indexOf("/"));
+	private static TopLevelItem getJobFromFolder(String causeJobName) {
+		String newJobRefId = causeJobName.substring(0, causeJobName.indexOf('/'));
 		TopLevelItem item = Jenkins.getInstance().getItem(newJobRefId);
 		if (item != null) {
 			Collection<? extends Job> allJobs = item.getAllJobs();
@@ -219,7 +220,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 		return null;
 	}
 
-	private String getJobCiId(Run r) {
+	private static String getJobCiId(Run r) {
 		if (r.getParent() instanceof MatrixConfiguration) {
 			return JobProcessorFactory.getFlowProcessor(((MatrixRun) r).getParentBuild().getParent()).getJobCiId();
 		}
@@ -229,7 +230,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 		return JobProcessorFactory.getFlowProcessor(((AbstractBuild) r).getProject()).getJobCiId();
 	}
 
-	private List<Cause> extractCauses(Run r) {
+	private static List<Cause> extractCauses(Run r) {
 		if (r.getParent() instanceof MatrixConfiguration) {
 			return ((MatrixRun) r).getParentBuild().getCauses();
 		} else {

@@ -31,6 +31,7 @@ import com.hp.application.automation.tools.sse.sdk.handler.RunHandlerFactory;
 /**
  * @author Effi Bar-She'an
  */
+@SuppressWarnings("squid:S2699")
 public class TestTestSetRunHandlerGetReportUrl extends TestCase {
 
     private static final String _dataFormat = "<SiteVersions>\n" +

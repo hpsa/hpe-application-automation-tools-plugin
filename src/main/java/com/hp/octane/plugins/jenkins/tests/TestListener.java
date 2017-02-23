@@ -36,6 +36,7 @@ import javax.xml.stream.XMLStreamException;
 import java.util.List;
 
 @Extension
+@SuppressWarnings({"squid:S2699","squid:S3658","squid:S2259","squid:S1872"})
 public class TestListener {
 	private static Logger logger = LogManager.getLogger(TestListener.class);
 
@@ -114,7 +115,7 @@ public class TestListener {
 	}
 
 	@Inject
-	public void setTestResultQueue(TestResultQueue queue) {
+	public void setTestResultQueue(TestAbstractResultQueue queue) {
 		this.queue = queue;
 	}
 

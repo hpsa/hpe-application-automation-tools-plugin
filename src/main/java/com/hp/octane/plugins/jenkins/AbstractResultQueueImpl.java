@@ -26,7 +26,8 @@ import java.io.*;
 /**
  * Created by benmeior on 11/21/2016.
  */
-public abstract class ResultQueueImpl implements ResultQueue {
+
+public abstract class AbstractResultQueueImpl implements ResultQueue {
 
     private static final int RETRY_COUNT = 3;
 
@@ -101,7 +102,7 @@ public abstract class ResultQueueImpl implements ResultQueue {
             writer.close();
         }
 
-        private QueueItem objectFromJson(JSONObject json) {
+        private static QueueItem objectFromJson(JSONObject json) {
             return json.containsKey("workspace") ?
                     new QueueItem(
                             json.getString("project"),
@@ -114,7 +115,7 @@ public abstract class ResultQueueImpl implements ResultQueue {
                             json.getInt("count"));
         }
 
-        private JSONObject jsonFromObject(QueueItem item) {
+        private static JSONObject jsonFromObject(QueueItem item) {
             JSONObject json = new JSONObject();
             json.put("project", item.projectName);
             json.put("build", item.buildNumber);

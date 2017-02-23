@@ -26,6 +26,8 @@ public class UFTParameter {
     private String argType;
     private int argIsExternal;
 
+    public UFTParameter(){}
+
     public String getArgName() {
         return argName;
     }

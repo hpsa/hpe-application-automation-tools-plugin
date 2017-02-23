@@ -24,7 +24,7 @@ import org.junit.Test;
 
 import com.hp.application.automation.tools.results.parser.jenkinsjunit.JenkinsJUnitReportParserImpl;
 import com.hp.application.automation.tools.results.service.almentities.AlmTestSet;
-
+@SuppressWarnings({"squid:S2699","squid:S3658","squid:S2259","squid:S1872"})
 public class TestJenkinsJunitReportParserImpl {
 
 	//@Test

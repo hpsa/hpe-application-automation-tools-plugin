@@ -23,6 +23,7 @@ import org.apache.logging.log4j.Logger;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+@SuppressWarnings({"squid:S1312","squid:S00122"})
 final public class ServerConfiguration {
 	private static final Logger logger = LogManager.getLogger(ServerConfiguration.class);
 
@@ -74,6 +75,7 @@ final public class ServerConfiguration {
 				sharedSpace != null && !sharedSpace.isEmpty()) {
 			try {
 				URL tmp = new URL(location);
+				logger.debug(String.format("location: %s",tmp.toString()));
 				result = true;
 			} catch (MalformedURLException mue) {
 				logger.error("configuration with malformed URL supplied", mue);

@@ -44,6 +44,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings({"squid:S2698","squid:S2699"})
 public class TestResultXmlWriterTest {
 
 	@ClassRule

@@ -22,6 +22,7 @@ import org.junit.Test;
 import com.hp.application.automation.tools.rest.RestClient;
 import com.hp.application.automation.tools.sse.common.TestCase;
 
+@SuppressWarnings("squid:S2699")
 public class TestRestClient extends TestCase {
     
     @Test

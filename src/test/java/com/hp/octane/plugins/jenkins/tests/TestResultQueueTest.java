@@ -24,15 +24,16 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 
+@SuppressWarnings("squid:S2699")
 public class TestResultQueueTest {
 
-    private TestResultQueue queue;
+    private TestAbstractResultQueue queue;
 
     @Before
     public void init() throws IOException {
         File file = File.createTempFile("TestResultQueueTest", "");
         file.delete();
-        queue = new TestResultQueue(file);
+        queue = new TestAbstractResultQueue(file);
     }
 
     @Test

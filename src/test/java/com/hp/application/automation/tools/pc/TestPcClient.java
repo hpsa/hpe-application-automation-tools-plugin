@@ -24,6 +24,7 @@ import org.junit.Test;
 
 import com.hp.application.automation.tools.run.PcBuilder;
 
+@SuppressWarnings({"squid:S2699","squid:S3658"})
 public class TestPcClient {
          
     private static PcClient pcClient;

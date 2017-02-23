@@ -29,6 +29,7 @@ import com.hp.application.automation.tools.sse.common.ConsoleLogger;
 import com.hp.application.automation.tools.sse.common.RestClient4Test;
 import com.hp.application.automation.tools.sse.common.TestCase;
 
+@SuppressWarnings("squid:S2698")
 public class TestRestAuthenticator extends TestCase {
     
     @Test

@@ -45,6 +45,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
 
+@SuppressWarnings({"squid:S2698","squid:S2699","squid:S3658"})
 public class TestNGExtensionTest {
 
 	@ClassRule

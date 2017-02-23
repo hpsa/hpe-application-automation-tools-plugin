@@ -1,3 +1,19 @@
+/*
+ *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Licensed under the Apache License, Version 2.0 (the "License");
+ *     you may not use this file except in compliance with the License.
+ *     You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *     Unless required by applicable law or agreed to in writing, software
+ *     distributed under the License is distributed on an "AS IS" BASIS,
+ *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *     See the License for the specific language governing permissions and
+ *     limitations under the License.
+ *
+ */
+
 package com.hp.octane.plugins.jenkins.tests;
 
 import com.google.inject.Inject;
@@ -36,7 +52,7 @@ import java.io.*;
 import java.util.Date;
 
 @Extension(dynamicLoadable = YesNoMaybe.NO)
-public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
+public class TestDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 	private static Logger logger = LogManager.getLogger(TestDispatcher.class);
 
 	static final String TEST_AUDIT_FILE = "mqmTests_audit.json";
@@ -199,7 +215,7 @@ public class TestDispatcher extends SafeLoggingAsyncPeriodWork {
 	}
 
 	@Inject
-	public void setTestResultQueue(TestResultQueue queue) {
+	public void setTestResultQueue(TestAbstractResultQueue queue) {
 		this.queue = queue;
 	}
 

@@ -20,11 +20,10 @@ package com.hp.octane.plugins.jenkins.actions.dto;
 /**
  * Created by kashbi on 25/09/2016.
  */
+@SuppressWarnings({"squid:S2699","squid:S3658","squid:S2259","squid:S1872","squid:S2925","squid:S109"})
 public class TestFramework {
-    //    private String type = "";
     private String type = "list_node";
     private String logical_name = "list_node.testing_tool_type.uft";
-    //    private String logical_name ;
     private String name = "UFT";
     private Integer index = 3;
     private Integer id = 1055;

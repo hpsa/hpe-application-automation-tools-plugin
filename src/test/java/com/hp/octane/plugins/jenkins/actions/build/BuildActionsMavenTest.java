@@ -27,7 +27,7 @@ import org.jvnet.hudson.test.JenkinsRule;
  * Time: 11:47
  * To change this template use File | Settings | File Templates.
  */
-
+@SuppressWarnings({"squid:S2699","squid:S3658","squid:S2259","squid:S1872","squid:S2925","squid:S109","squid:S1607","squid:S2701"})
 public class BuildActionsMavenTest {
 
 //  TBD

@@ -46,6 +46,7 @@ import java.util.*;
 /**
  * Created by franksha on 05/01/2017.
  */
+@SuppressWarnings({"squid:S2699","squid:S3658","squid:S2259","squid:S1872","squid:S2925","squid:S109","squid:S1607","squid:S2701","squid:S2698"})
 public class GherkinResultsTest {
 
     @ClassRule

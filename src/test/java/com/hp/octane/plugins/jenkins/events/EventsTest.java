@@ -51,7 +51,7 @@ import static org.junit.Assert.*;
  * Time: 22:05
  * To change this template use File | Settings | File Templates.
  */
-
+@SuppressWarnings({"squid:S2699","squid:S3658","squid:S2259","squid:S1872","squid:S2925","squid:S109","squid:S1607","squid:S2701","squid:S2698"})
 public class EventsTest {
 	private static final Logger logger = Logger.getLogger(EventsTest.class.getName());
 

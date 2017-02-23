@@ -1,4 +1,18 @@
-// (C) Copyright 2003-2015 Hewlett-Packard Development Company, L.P.
+/*
+ *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Licensed under the Apache License, Version 2.0 (the "License");
+ *     you may not use this file except in compliance with the License.
+ *     You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *     Unless required by applicable law or agreed to in writing, software
+ *     distributed under the License is distributed on an "AS IS" BASIS,
+ *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *     See the License for the specific language governing permissions and
+ *     limitations under the License.
+ *
+ */
 
 package com.hp.octane.plugins.jenkins.tests;
 
@@ -9,11 +23,11 @@ import java.io.IOException;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
-public abstract class SafeLoggingAsyncPeriodWork extends AsyncPeriodicWork {
+public abstract class AbstractSafeLoggingAsyncPeriodWork extends AsyncPeriodicWork {
 
-    private static Logger logger = Logger.getLogger(SafeLoggingAsyncPeriodWork.class.getName());
+    private static Logger logger = Logger.getLogger(AbstractSafeLoggingAsyncPeriodWork.class.getName());
 
-    protected SafeLoggingAsyncPeriodWork(String name) {
+    protected AbstractSafeLoggingAsyncPeriodWork(String name) {
         super(name);
     }
 
@@ -21,12 +35,9 @@ public abstract class SafeLoggingAsyncPeriodWork extends AsyncPeriodicWork {
     protected void execute(TaskListener listener) throws IOException, InterruptedException {
         try {
             doExecute(listener);
-        } catch (IOException e) {
+        } catch (IOException|InterruptedException e) {
             // by default this ends up in log file and is rewritten on each execution
             // we want this in the regular Jenkins log in order to be able to troubleshoot
-            logError(e);
-        } catch (InterruptedException e) {
-            // the same as IOException
             logError(e);
         } catch (Throwable t) {
             // by default this ends up on the console as uncaught exception

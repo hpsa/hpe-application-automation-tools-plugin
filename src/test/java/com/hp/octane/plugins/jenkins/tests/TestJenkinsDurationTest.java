@@ -28,6 +28,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * Created by berkovir on 06/02/2017.
  */
+@SuppressWarnings({"squid:S2698","squid:S2699","squid:S3658","squid:S2259","squid:S1872","squid:S2925"})
 public class TestJenkinsDurationTest {
 
     @ClassRule

@@ -21,6 +21,7 @@ import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleProject;
 import hudson.tasks.Builder;
 
+@SuppressWarnings("squid:S1872")
 @Extension
 public class UFTExtension extends ResultFieldsDetectionExtension {
 

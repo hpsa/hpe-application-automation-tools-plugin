@@ -24,7 +24,7 @@ public enum TestResultStatus {
 
     private final String prettyName;
 
-    private TestResultStatus(String prettyName) {
+    TestResultStatus(String prettyName) {
         this.prettyName = prettyName;
     }
 

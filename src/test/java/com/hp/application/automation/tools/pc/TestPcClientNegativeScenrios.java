@@ -31,6 +31,7 @@ import org.junit.rules.ExpectedException;
 
 import com.hp.application.automation.tools.run.PcBuilder;
 
+@SuppressWarnings({"squid:S2699","squid:S3658"})
 public class TestPcClientNegativeScenrios {
 
     private static PcClient  pcClient;

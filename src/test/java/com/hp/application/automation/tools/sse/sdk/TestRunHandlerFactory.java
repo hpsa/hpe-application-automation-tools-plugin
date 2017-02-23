@@ -27,6 +27,7 @@ import com.hp.application.automation.tools.sse.sdk.handler.RunHandler;
 import com.hp.application.automation.tools.sse.sdk.handler.RunHandlerFactory;
 import com.hp.application.automation.tools.sse.sdk.handler.TestSetRunHandler;
 
+@SuppressWarnings("squid:S2699")
 public class TestRunHandlerFactory extends TestCase {
     
     @Test

@@ -49,6 +49,7 @@ import static org.junit.Assert.*;
  * To change this template use File | Settings | File Templates.
  */
 
+@SuppressWarnings({"squid:S2699","squid:S3658","squid:S2259","squid:S1872","squid:S2925","squid:S109","squid:S1607","squid:S2701"})
 public class ProjectActionsMatrixTest {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 

@@ -16,6 +16,7 @@
 
 package com.hp.octane.plugins.jenkins.model.processors.scm;
 
+
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.scm.SCMChange;
 import com.hp.octane.integrations.dto.scm.SCMCommit;
@@ -42,6 +43,7 @@ import java.util.regex.Pattern;
 /**
  * Created by benmeior on 5/15/2016.
  */
+@SuppressWarnings({"squid:S2221","squid:S00105"})
 public class SvnSCMProcessor implements SCMProcessor {
 	private static final Logger logger = LogManager.getLogger(SvnSCMProcessor.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
@@ -121,27 +123,25 @@ public class SvnSCMProcessor implements SCMProcessor {
 
             String revisionStateStr = String.valueOf(svnData.calcRevisionsFromBuild(build, null, null));
             builtRevId = getRevisionIdFromBuild(revisionStateStr, scmRepositoryUrl);
-        } catch (IOException e) {
+        } catch (IOException|InterruptedException e) {
             logger.error("failed to get revision state", e);
-		} catch (InterruptedException e) {
-            logger.error("failed to get revision state", e);
-        }
+		}
 		return builtRevId;
 	}
 
-	private String getParentRevId(SubversionChangeLogSet.LogEntry commit) {
+	private static String getParentRevId(SubversionChangeLogSet.LogEntry commit) {
 		String parentRevId = null;
 
 		try {
             parentRevId = commit.getParent().getLogs().get(PARENT_COMMIT_INDEX).getCommitId();
         } catch (Exception e){
-        	// Do nothing, the parentRevId will be null
+        	logger.error("Could not retrieve parentRevId",e);
 		}
 
 		return parentRevId;
 	}
 
-	private String getRevisionIdFromBuild(String revisionStateStr, String repositoryUrl) {
+	private static String getRevisionIdFromBuild(String revisionStateStr, String repositoryUrl) {
 		Matcher m = Pattern.compile("(\\d+)").matcher(
 				revisionStateStr.substring(revisionStateStr.indexOf(repositoryUrl) + repositoryUrl.length() + 1)
 		);
@@ -151,7 +151,7 @@ public class SvnSCMProcessor implements SCMProcessor {
 		return m.group(1);
 	}
 
-	private SCMRepository getSCMRepository(SubversionSCM svnData) {
+	private static SCMRepository getSCMRepository(SubversionSCM svnData) {
 		SCMRepository result;
 		String url = null;
 		if (svnData.getLocations().length == 1) {

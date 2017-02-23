@@ -28,6 +28,7 @@ import com.hp.application.automation.tools.sse.result.model.junit.JUnitTestCaseS
 import com.hp.application.automation.tools.sse.result.model.junit.Testcase;
 import com.hp.application.automation.tools.sse.result.model.junit.Testsuites;
 
+@SuppressWarnings({"squid:S2698","squid:S2699"})
 public class TestRunManager extends TestCase {
     
     @Test

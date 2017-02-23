@@ -36,6 +36,7 @@ import java.io.FileReader;
 import java.util.List;
 import java.util.UUID;
 
+@SuppressWarnings("squid:S2699")
 public class UFTExtensionTest {
 
 	@ClassRule

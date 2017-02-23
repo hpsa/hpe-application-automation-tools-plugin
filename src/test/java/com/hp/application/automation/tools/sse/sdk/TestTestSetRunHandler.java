@@ -30,6 +30,7 @@ import com.hp.application.automation.tools.sse.sdk.handler.TestSetRunHandler;
 /**
  * @author Effi Bar-She'an
  */
+@SuppressWarnings("squid:S2699")
 public class TestTestSetRunHandler extends TestCase {
 
     @Test

@@ -1,3 +1,19 @@
+/*
+ *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Licensed under the Apache License, Version 2.0 (the "License");
+ *     you may not use this file except in compliance with the License.
+ *     You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *     Unless required by applicable law or agreed to in writing, software
+ *     distributed under the License is distributed on an "AS IS" BASIS,
+ *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *     See the License for the specific language governing permissions and
+ *     limitations under the License.
+ *
+ */
+
 package com.hp.octane.plugins.jenkins.configuration;
 
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
@@ -29,13 +45,13 @@ public class ConfigurationListenerTest {
 		rule.submit(form);
 
 		listener = ExtensionUtil.getInstance(rule, TestConfigurationListener.class);
-		Assert.assertEquals(1, listener.getCount());
+		Assert.assertEquals("Listener count doesn't match 1",1, listener.getCount());
 
 		List<ServerConfiguration> confs = listener.getConfigurationsChange();
-		Assert.assertNotNull(confs);
-		Assert.assertEquals(2, confs.size());
-		Assert.assertEquals("http://localhost:8028", confs.get(0).location);
-		Assert.assertEquals("username", confs.get(0).username);
+		Assert.assertNotNull("Configuration is null",confs);
+		Assert.assertEquals("Config size doesn't match 2",2, confs.size());
+		Assert.assertEquals("location doesn't match localhost:8020","http://localhost:8028", confs.get(0).location);
+		Assert.assertEquals("username doesn't match username","username", confs.get(0).username);
 		Assert.assertNull(confs.get(1).location);
 		Assert.assertNull(confs.get(1).username);
 	}
@@ -49,18 +65,18 @@ public class ConfigurationListenerTest {
 
 		// not increased on re-submit
 		rule.submit(form);
-		Assert.assertEquals(1, listener.getCount());
+		Assert.assertEquals("Listener count doesn't match 1",1, listener.getCount());
 
 		configPage = rule.createWebClient().goTo("configure");
 		form = configPage.getFormByName("config");
 		// increased when configuration changes
 		form.getInputByName("_.username").setValueAttribute("username2");
 		rule.submit(form);
-		Assert.assertEquals(2, listener.getCount());
+		Assert.assertEquals("Listener count doesn't match 2",2, listener.getCount());
 
 		List<ServerConfiguration> confs = listener.getConfigurationsChange();
-		Assert.assertNotNull(confs);
-		Assert.assertEquals(2, confs.size());
+		Assert.assertNotNull("Configuration is null",confs);
+		Assert.assertEquals("Config count doesn't match 2",2, confs.size());
 		Assert.assertEquals("http://localhost:8028", confs.get(0).location);
 		Assert.assertEquals("username2", confs.get(0).username);
 		Assert.assertEquals("http://localhost:8028", confs.get(1).location);

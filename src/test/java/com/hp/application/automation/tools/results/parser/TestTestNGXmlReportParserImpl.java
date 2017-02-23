@@ -26,6 +26,7 @@ import org.junit.Test;
 import com.hp.application.automation.tools.results.parser.testngxml.TestNGXmlReportParserImpl;
 import com.hp.application.automation.tools.results.service.almentities.AlmTestSet;
 
+@SuppressWarnings("squid:S2698")
 public class TestTestNGXmlReportParserImpl {
 
 	//@Test

@@ -35,15 +35,14 @@ import java.util.List;
  * This class Converts UFT's Paramters info stored in Resource.mtr file into JSON string
  */
 public class UFTParameterFactory {
-    private static POIFSFileSystem poiFS = null;
+    private static POIFSFileSystem poiFS;
     private static String xmlData = "";
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(UFTParameterFactory.class.getName());
 
 
     public static String convertResourceMtrAsJSON(InputStream  resourceMtrInputStream) throws IOException {
 
-//        poiFS = new POIFSFileSystem(new FileInputStream(new File("C:\\Users\\kashbi\\Desktop\\very-public-repository-master\\CalculatorPlusParams\\Action0\\Resource.mtr")));
-        //todo Check is exists
+        //TODO: Check is exists
         poiFS = new POIFSFileSystem(resourceMtrInputStream);
         DirectoryNode root = poiFS.getRoot();
 
@@ -56,7 +55,7 @@ public class UFTParameterFactory {
                     byte[] content = new byte[((DocumentEntry) entry).getSize()];
                     poiFS.createDocumentInputStream("ComponentInfo").read(content);
                     String fromUnicodeLE = StringUtil.getFromUnicodeLE(content);
-                    xmlData = fromUnicodeLE.substring(fromUnicodeLE.indexOf("<")).replaceAll("\u0000", "");
+                    xmlData = fromUnicodeLE.substring(fromUnicodeLE.indexOf('<')).replaceAll("\u0000", "");
 //                    System.out.println(xmlData);
                 }
             }
@@ -65,18 +64,14 @@ public class UFTParameterFactory {
             SAXBuilder saxBuilder = new SAXBuilder(XMLReaders.NONVALIDATING, (SAXHandlerFactory) null, (JDOMFactory) null);
             Document document = null;
             document = saxBuilder.build(new StringReader(xmlData));
-//            System.out.println("Root element :" + document.getRootElement().getName());
             Element classElement = document.getRootElement();
             List<Element> studentList = classElement.getChildren();
-//            System.out.println("----------------------------");
             ObjectMapper mapper = new ObjectMapper();
             ArrayList<UFTParameter> uftParameters = new ArrayList<UFTParameter>();
             UFTParameter uftParameter = new UFTParameter();
             for (int temp = 0; temp < studentList.size(); temp++) {
                 Element tag = studentList.get(temp);
-//                System.out.println("\nCurrent Element :"
-//                        + tag.getName());
-                if (tag.getName().equalsIgnoreCase("ArgumentsCollection")) {
+                if ("ArgumentsCollection".equalsIgnoreCase(tag.getName())) {
                     List<Element> children = tag.getChildren();
                     for (int i = 0; i < children.size(); i++) {
                         Element element = children.get(i);
@@ -101,12 +96,14 @@ public class UFTParameterFactory {
                                 case "ArgIsExternal":
                                     uftParameter.setArgIsExternal(Integer.parseInt(element1.getValue()));
                                     break;
+                                default:
+                                    logger.warning(String.format("Element name %s didn't match any case",element1.getName()));
+                                    break;
                             }
                         }
                         uftParameters.add(uftParameter);
                     }
-                    String jsonInString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(uftParameters);
-                    return jsonInString;
+                    return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(uftParameters);
                 }
             }
         } catch (Exception e) {

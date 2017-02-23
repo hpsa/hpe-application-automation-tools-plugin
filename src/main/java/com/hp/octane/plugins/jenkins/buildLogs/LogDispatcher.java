@@ -23,7 +23,7 @@ import com.hp.octane.plugins.jenkins.ResultQueue;
 import com.hp.octane.plugins.jenkins.client.RetryModel;
 import com.hp.octane.plugins.jenkins.configuration.BdiConfiguration;
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationService;
-import com.hp.octane.plugins.jenkins.tests.SafeLoggingAsyncPeriodWork;
+import com.hp.octane.plugins.jenkins.tests.AbstractSafeLoggingAsyncPeriodWork;
 import hudson.Extension;
 import hudson.ProxyConfiguration;
 import hudson.model.Job;
@@ -41,7 +41,7 @@ import java.io.IOException;
  * Created by benmeior on 11/20/2016.
  */
 @Extension
-public class LogDispatcher extends SafeLoggingAsyncPeriodWork {
+public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
     private static final String BDI_PRODUCT = "octane";
     private static Logger logger = LogManager.getLogger(LogDispatcher.class);
 
@@ -94,6 +94,8 @@ public class LogDispatcher extends SafeLoggingAsyncPeriodWork {
             }
             try {
                 //TODO: fix bdi!
+                client.post("consolelog",BDI_PRODUCT,Long.valueOf(configuration.getTenantId()),
+                        item.getWorkspace(),buildDataId(build),build.getLogFile());
 //                client.post("consolelog",BDI_PRODUCT,Long.valueOf(configuration.getTenantId()),
 //                        item.getWorkspace(),buildDataId(build),build.getLogFile());
 ////                response = client.post("consolelog", BDI_PRODUCT, Long.valueOf(configuration.getTenantId()),
@@ -151,7 +153,7 @@ public class LogDispatcher extends SafeLoggingAsyncPeriodWork {
     }
 
     @Inject
-    public void setLogResultQueue(LogResultQueue queue) {
+    public void setLogResultQueue(LogAbstractResultQueue queue) {
         this.logsQueue = queue;
     }
 }

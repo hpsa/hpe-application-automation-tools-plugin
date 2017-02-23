@@ -18,6 +18,7 @@ package com.hp.octane.plugins.jenkins;
 
 import java.io.Serializable;
 
+@SuppressWarnings("squid:S2039")
 public interface ResultQueue {
 
     ResultQueue.QueueItem peekFirst();
@@ -31,6 +32,8 @@ public interface ResultQueue {
     void add(String projectName, int buildNumber, String workspace);
 
     class QueueItem implements Serializable {
+        private static final long serialVersionUID = 1;
+
         String projectName;
         int buildNumber;
         String workspace;

@@ -45,6 +45,7 @@ import java.util.List;
  */
 
 @Extension
+@SuppressWarnings("squid:S1872")
 public class SCMListenerImpl extends SCMListener {
     private static final Logger logger = LogManager.getLogger(SCMListenerImpl.class);
     private static final DTOFactory dtoFactory = DTOFactory.getInstance();
@@ -85,7 +86,7 @@ public class SCMListenerImpl extends SCMListener {
         if (r.getParent() instanceof MatrixConfiguration) {
             return ((MatrixRun) r).getParentBuild().getParent().getName();
         }
-        if (r.getParent().getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob")) {
+        if ("org.jenkinsci.plugins.workflow.job.WorkflowJob".equals(r.getParent().getClass().getName())) {
             return r.getParent().getName();
         }
         return ((AbstractBuild) r).getProject().getName();

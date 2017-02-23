@@ -34,6 +34,7 @@ import com.hp.application.automation.tools.sse.result.model.junit.Testsuites;
  * 
  */
 @Ignore
+@SuppressWarnings("squid:S2699")
 public class TestRunManagerSystemTests {
     
     private static final String SERVER_NAME = "zahavia1.emea.hpqcorp.net";

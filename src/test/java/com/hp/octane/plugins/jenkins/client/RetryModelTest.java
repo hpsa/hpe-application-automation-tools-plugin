@@ -21,6 +21,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+@SuppressWarnings("squid:S2699")
 public class RetryModelTest {
 
     private RetryModel retryModel;

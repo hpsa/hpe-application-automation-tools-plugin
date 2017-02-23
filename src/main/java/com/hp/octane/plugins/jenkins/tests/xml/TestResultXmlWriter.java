@@ -17,7 +17,7 @@
 package com.hp.octane.plugins.jenkins.tests.xml;
 
 import com.hp.octane.plugins.jenkins.configuration.ConfigurationService;
-import com.hp.octane.plugins.jenkins.tests.*;
+import com.hp.octane.plugins.jenkins.tests.TestResultContainer;
 import com.hp.octane.plugins.jenkins.tests.build.BuildHandlerUtils;
 import com.hp.octane.plugins.jenkins.tests.build.BuildDescriptor;
 import com.hp.octane.plugins.jenkins.tests.detection.ResultFields;
@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Iterator;
 
+@SuppressWarnings("all")
 public class TestResultXmlWriter {
 
 	private FilePath targetPath;

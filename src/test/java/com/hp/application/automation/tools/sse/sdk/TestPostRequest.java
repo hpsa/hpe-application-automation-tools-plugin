@@ -26,6 +26,7 @@ import com.hp.application.automation.tools.sse.common.StringUtils;
 import com.hp.application.automation.tools.sse.common.TestCase;
 import com.hp.application.automation.tools.sse.sdk.request.PostRequest;
 
+@SuppressWarnings("squid:S2699")
 public class TestPostRequest extends TestCase {
     
     @Test

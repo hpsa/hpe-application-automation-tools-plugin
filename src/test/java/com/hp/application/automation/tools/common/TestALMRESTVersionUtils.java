@@ -25,6 +25,7 @@ import java.io.UnsupportedEncodingException;
 /**
  * @author Effi Bar-She'an
  */
+@SuppressWarnings("squid:S2699")
 public class TestALMRESTVersionUtils {
 
     @Test

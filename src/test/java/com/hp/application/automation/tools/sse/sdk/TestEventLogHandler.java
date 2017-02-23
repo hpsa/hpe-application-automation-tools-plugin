@@ -27,6 +27,7 @@ import com.hp.application.automation.tools.sse.common.RestClient4Test;
 import com.hp.application.automation.tools.sse.common.TestCase;
 import com.hp.application.automation.tools.sse.sdk.handler.EventLogHandler;
 
+@SuppressWarnings({"squid:S2699","squid:S3658","squid:S2259","squid:S1872","squid:S2925","squid:S109"})
 public class TestEventLogHandler extends TestCase {
     
     String _expectedEventLogUrl =

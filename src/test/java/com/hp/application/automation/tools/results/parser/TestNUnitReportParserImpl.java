@@ -26,6 +26,7 @@ import org.junit.Test;
 import com.hp.application.automation.tools.results.parser.nunit.NUnitReportParserImpl;
 import com.hp.application.automation.tools.results.service.almentities.AlmTestSet;
 
+@SuppressWarnings({"squid:S2699","squid:S3658"})
 public class TestNUnitReportParserImpl {
 
 	//@Test

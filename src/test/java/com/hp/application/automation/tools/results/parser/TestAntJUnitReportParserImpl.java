@@ -25,7 +25,7 @@ import org.junit.Test;
 
 import com.hp.application.automation.tools.results.parser.antjunit.AntJUnitReportParserImpl;
 import com.hp.application.automation.tools.results.service.almentities.AlmTestSet;
-
+@SuppressWarnings("squid:S2698")
 public class TestAntJUnitReportParserImpl {
 
 	//@Test

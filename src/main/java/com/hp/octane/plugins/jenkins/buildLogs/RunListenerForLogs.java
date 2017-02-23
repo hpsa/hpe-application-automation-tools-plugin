@@ -39,6 +39,8 @@ import java.util.List;
  */
 @Extension
 public class RunListenerForLogs extends RunListener<Run> {
+    public RunListenerForLogs(){}
+
     private static Logger logger = LogManager.getLogger(RunListenerForLogs.class);
 
     private JenkinsMqmRestClientFactory clientFactory;

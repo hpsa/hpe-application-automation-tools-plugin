@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Set;
 
 @Extension(optional = true)
+@SuppressWarnings({"squid:S2699","squid:S3658","squid:S2259"})
 public class TestNGExtension  extends ResultFieldsDetectionExtension {
 
     private static String TESTNG = "TestNG";

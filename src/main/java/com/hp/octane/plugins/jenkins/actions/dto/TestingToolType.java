@@ -19,6 +19,7 @@ package com.hp.octane.plugins.jenkins.actions.dto;
 /**
  * Created by kashbi on 25/09/2016.
  */
+@SuppressWarnings("squid:S109")
 public class TestingToolType {
     private String type = "list_node";
     private String logical_name = "list_node.testing_tool_type.uft";
@@ -32,14 +33,6 @@ public class TestingToolType {
 
     public void setType(String type) {
         this.type = type;
-    }
-
-    public String getLogical_name() {
-        return logical_name;
-    }
-
-    public void setLogical_name(String logical_name) {
-        this.logical_name = logical_name;
     }
 
     public String getName() {

@@ -33,6 +33,7 @@ import java.util.Map;
  * @author Effi Bar-She'an
  * @author Dani Schreiber
  */
+@SuppressWarnings({"squid:S2699","squid:S3658"})
 public class TestPCRunHandler extends TestCase {
 
     @Test
