@@ -8,6 +8,7 @@ import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactory;
 import com.hp.octane.plugins.jenkins.client.JenkinsMqmRestClientFactoryImpl;
 import hudson.Extension;
 import hudson.util.FormValidation;
+import hudson.util.Secret;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
@@ -58,7 +59,7 @@ public class ConfigurationParser {
 		}
 	}
 
-	public FormValidation checkConfiguration(String location, String sharedSpace, String username, String password) {
+	public FormValidation checkConfiguration(String location, String sharedSpace, String username, Secret password) {
 		MqmRestClient client = clientFactory.obtainTemp(location, sharedSpace, username, password);
 		try {
 			client.validateConfiguration();

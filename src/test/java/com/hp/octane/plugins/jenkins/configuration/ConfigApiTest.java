@@ -8,15 +8,15 @@ import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.WebRequest;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import hudson.util.Secret;
+import net.jcip.annotations.NotThreadSafe;
 import net.sf.json.JSONObject;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.*;
 import org.jvnet.hudson.test.JenkinsRule;
 
 // import com.gargoylesoftware.htmlunit.WebRequestSettings;
 
+@NotThreadSafe
 public class ConfigApiTest {
 
 	@ClassRule
@@ -61,7 +61,7 @@ public class ConfigApiTest {
 		req.setRequestBody(config.toString());
 		Page page = wc.getPage(req);
 		config = JSONObject.fromObject(page.getWebResponse().getContentAsString());
-		checkConfig(config, "http://localhost:8088", "1001", "username1", "password1");
+		checkConfig(config, "http://localhost:8088", "1001", "username1", Secret.fromString("password1"));
 		Assert.assertEquals(ConfigurationService.getModel().getIdentity(), config.getString("serverIdentity"));
 
 
@@ -72,7 +72,7 @@ public class ConfigApiTest {
 		req.setRequestBody(config.toString());
 		page = client.getPage(req);
 		config = JSONObject.fromObject(page.getWebResponse().getContentAsString());
-		checkConfig(config, "http://localhost:8888", "1002", "username1", "password1");
+		checkConfig(config, "http://localhost:8888", "1002", "username1", Secret.fromString("password1"));
 		Assert.assertEquals(ConfigurationService.getModel().getIdentity(), config.getString("serverIdentity"));
 //
 		// location, shared space and username without password
@@ -83,7 +83,7 @@ public class ConfigApiTest {
 		req.setRequestBody(config.toString());
 		page = client.getPage(req);
 		config = JSONObject.fromObject(page.getWebResponse().getContentAsString());
-		checkConfig(config, "http://localhost:8882", "1003", "username3", "");
+		checkConfig(config, "http://localhost:8882", "1003", "username3", Secret.fromString(""));
 		Assert.assertEquals(ConfigurationService.getModel().getIdentity(), config.getString("serverIdentity"));
 
 		// uiLocation and identity
@@ -93,7 +93,7 @@ public class ConfigApiTest {
 		req.setRequestBody(config.toString());
 		page = client.getPage(req);
 		config = JSONObject.fromObject(page.getWebResponse().getContentAsString());
-		checkConfig(config, "http://localhost:8881", "1001", "username3", "");
+		checkConfig(config, "http://localhost:8881", "1001", "username3", Secret.fromString(""));
 		Assert.assertEquals("2d2fa955-1d13-4d8c-947f-ab11c72bf850", config.getString("serverIdentity"));
 		Assert.assertEquals("2d2fa955-1d13-4d8c-947f-ab11c72bf850", ConfigurationService.getModel().getIdentity());
 
@@ -123,7 +123,7 @@ public class ConfigApiTest {
 
 
 
-	private void checkConfig(JSONObject config, String location, String sharedSpace, String username, String password) {
+	private void checkConfig(JSONObject config, String location, String sharedSpace, String username, Secret password) {
 		// check values returned
 		Assert.assertEquals(location, config.getString("location"));
 		Assert.assertEquals(sharedSpace, config.getString("sharedSpace"));

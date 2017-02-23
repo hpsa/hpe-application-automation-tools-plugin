@@ -6,6 +6,7 @@ import com.hp.mqm.client.MqmRestClientImpl;
 import com.hp.mqm.client.UsernamePasswordProxyCredentials;
 import hudson.Extension;
 import hudson.ProxyConfiguration;
+import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -24,7 +25,7 @@ public class JenkinsMqmRestClientFactoryImpl implements JenkinsMqmRestClientFact
 	private static MqmRestClient mqmRestClient;
 
 	@Override
-	public synchronized MqmRestClient obtain(String location, String sharedSpace, String username, String password) {
+	public synchronized MqmRestClient obtain(String location, String sharedSpace, String username, Secret password) {
 		if (mqmRestClient == null) {
 			mqmRestClient = create(location, sharedSpace, username, password);
 			logger.info("NGA REST Clint: initialized for " + location + " - " + sharedSpace + " - " + username);
@@ -33,20 +34,20 @@ public class JenkinsMqmRestClientFactoryImpl implements JenkinsMqmRestClientFact
 	}
 
 	@Override
-	public MqmRestClient obtainTemp(String location, String sharedSpace, String username, String password) {
+	public MqmRestClient obtainTemp(String location, String sharedSpace, String username, Secret password) {
 		MqmRestClient mqmRestClientTemp = create(location, sharedSpace, username, password);
 		logger.info("NGA REST Clint: initialized for " + location + " - " + sharedSpace + " - " + username);
 		return mqmRestClientTemp;
 	}
 
 	@Override
-	public synchronized void updateMqmRestClient(String location, String sharedSpace, String username, String password) {
+	public synchronized void updateMqmRestClient(String location, String sharedSpace, String username, Secret password) {
 		mqmRestClient = create(location, sharedSpace, username, password);
 		logger.info("NGA REST Clint: updated to " + location + " - " + sharedSpace + " - " + username);
 	}
 
-	private MqmRestClient create(String location, String sharedSpace, String username, String password) {
-		MqmConnectionConfig clientConfig = new MqmConnectionConfig(location, sharedSpace, username, password, CLIENT_TYPE);
+	private MqmRestClient create(String location, String sharedSpace, String username, Secret password) {
+		MqmConnectionConfig clientConfig = new MqmConnectionConfig(location, sharedSpace, username, password.getPlainText(), CLIENT_TYPE);
 		URL locationUrl;
 		try {
 			locationUrl = new URL(clientConfig.getLocation());

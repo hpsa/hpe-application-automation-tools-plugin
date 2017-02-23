@@ -47,11 +47,8 @@ public class OctaneServerSettingsModel {
         return username;
     }
 
-    public String getPassword() {
-        if (password == null) {
-            return null;
-        }
-        return password.getPlainText();
+    public Secret getPassword() {
+        return password;
     }
 
     public String getImpersonatedUser() {

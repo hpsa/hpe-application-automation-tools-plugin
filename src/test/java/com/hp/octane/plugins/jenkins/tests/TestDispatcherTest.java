@@ -16,6 +16,7 @@ import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.tasks.Maven;
 import hudson.tasks.junit.JUnitResultArchiver;
+import hudson.util.Secret;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
@@ -55,7 +56,7 @@ public class TestDispatcherTest {
 	public void init() throws Exception {
 		restClient = Mockito.mock(MqmRestClient.class);
 		clientFactory = Mockito.mock(JenkinsMqmRestClientFactory.class);
-		Mockito.when(clientFactory.obtain(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(restClient);
+		Mockito.when(clientFactory.obtain(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.<Secret>any())).thenReturn(restClient);
 		testDispatcher = ExtensionUtil.getInstance(rule, TestDispatcher.class);
 		testDispatcher._setMqmRestClientFactory(clientFactory);
 		queue = new TestQueue();

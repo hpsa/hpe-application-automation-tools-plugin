@@ -55,7 +55,8 @@ public class ConfigApi {
 
 		String impersonatedUser = configuration.containsKey("impersonatedUser") ? configuration.getString("impersonatedUser") : "";
 
-		String username, password;
+		String username;
+		Secret password;
 		if (!configuration.containsKey("username")) {
 			// when username is not provided, use existing credentials (password can be overridden later)
 			ServerConfiguration serverConfiguration = ConfigurationService.getServerConfiguration();
@@ -64,12 +65,12 @@ public class ConfigApi {
 		} else {
 			// when username is provided, clear password unless provided later
 			username = configuration.getString("username");
-			password = "";
+			password = Secret.fromString("");
 		}
 		if (configuration.containsKey("password")) {
-			password = configuration.getString("password");
+			password = Secret.fromString(configuration.getString("password"));
 		}
-		OctaneServerSettingsModel model = new OctaneServerSettingsModel(uiLocation, username, Secret.fromString(password), impersonatedUser);
+		OctaneServerSettingsModel model = new OctaneServerSettingsModel(uiLocation, username, password, impersonatedUser);
 		ConfigurationService.configurePlugin(model);
 
 		String serverIdentity = (String) configuration.get("serverIdentity");

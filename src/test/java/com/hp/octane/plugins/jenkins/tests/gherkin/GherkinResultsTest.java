@@ -120,7 +120,7 @@ public class GherkinResultsTest {
     public void testGherkinResultsMatrixProject() throws Exception {
         String projectName = "root-job-" + UUID.randomUUID().toString();
         MatrixProject matrixProject = rule.createProject(MatrixProject.class, projectName);
-        matrixProject.setAxes(new AxisList(new Axis("OS", "Linux", "Windows")));
+        matrixProject.setAxes(new AxisList(new Axis("osType", "Linux", "Windows")));
 
         matrixProject.getBuildersList().add(new Maven("-s settings.xml clean test", mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
         matrixProject.getPublishersList().add(new CucumberTestResultsActionPublisher(""));
@@ -130,7 +130,7 @@ public class GherkinResultsTest {
         for (MatrixRun run : build.getExactRuns()) {
             assertTestResultsEqual(tests, new File(run.getRootDir(), "mqmTests.xml"));
         }
-        Assert.assertEquals(new HashSet<>(Arrays.asList(projectName + "/OS=Windows#1", projectName + "/OS=Linux#1")), getQueuedItems());
+        Assert.assertEquals(new HashSet<>(Arrays.asList(projectName + "/osType=Windows#1", projectName + "/osType=Linux#1")), getQueuedItems());
         Assert.assertFalse(new File(build.getRootDir(), "mqmTests.xml").exists());
     }
 

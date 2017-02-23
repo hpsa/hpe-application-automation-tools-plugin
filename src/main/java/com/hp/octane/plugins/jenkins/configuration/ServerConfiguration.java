@@ -2,6 +2,7 @@
 
 package com.hp.octane.plugins.jenkins.configuration;
 
+import hudson.util.Secret;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -14,10 +15,10 @@ final public class ServerConfiguration {
 	public String location;
 	public String sharedSpace;
 	public String username;
-	public String password;
+	public Secret password;
 	public String impersonatedUser;
 
-	public ServerConfiguration(String location, String sharedSpace, String username, String password, String impersonatedUser) {
+	public ServerConfiguration(String location, String sharedSpace, String username, Secret password, String impersonatedUser) {
 		this.location = location;
 		this.sharedSpace = sharedSpace;
 		this.username = username;
