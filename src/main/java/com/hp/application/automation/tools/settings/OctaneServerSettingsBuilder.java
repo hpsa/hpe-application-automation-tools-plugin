@@ -28,6 +28,7 @@ import hudson.security.ACL;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
+import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.acegisecurity.context.SecurityContext;
@@ -198,7 +199,7 @@ public class OctaneServerSettingsBuilder extends Builder {
 
             //  if parse is good, check authentication/authorization
             ConfigurationParser parser = Jenkins.getInstance().getExtensionList(ConfigurationParser.class).iterator().next();
-            FormValidation validation = parser.checkConfiguration(mqmProject.getLocation(), mqmProject.getSharedSpace(), username, password);
+            FormValidation validation = parser.checkConfiguration(mqmProject.getLocation(), mqmProject.getSharedSpace(), username, Secret.fromString(password));
             /*if (validation.kind == FormValidation.Kind.OK &&
                     uiLocation.equals(octanePlugin.getUiLocation()) &&
                     username.equals(octanePlugin.getUsername()) &&

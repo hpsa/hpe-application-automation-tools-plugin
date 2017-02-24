@@ -98,7 +98,7 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 					.setUrl(serverConfiguration.location)
 					.setSharedSpace(serverConfiguration.sharedSpace)
 					.setApiKey(serverConfiguration.username)
-					.setSecret(serverConfiguration.password);
+					.setSecret(serverConfiguration.password.getPlainText());
 		}
 		return result;
 	}

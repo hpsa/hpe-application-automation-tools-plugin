@@ -3,13 +3,14 @@
 package com.hp.octane.plugins.jenkins.client;
 
 import com.hp.mqm.client.MqmRestClient;
+import hudson.util.Secret;
 
 public interface JenkinsMqmRestClientFactory {
 
-    MqmRestClient obtain(String location, String sharedSpace, String username, String password);
+    MqmRestClient obtain(String location, String sharedSpace, String username, Secret password);
 
-    MqmRestClient obtainTemp(String location, String sharedSpace, String username, String password);
+    MqmRestClient obtainTemp(String location, String sharedSpace, String username, Secret password);
 
-    void updateMqmRestClient(String location, String sharedSpace, String username, String password);
+    void updateMqmRestClient(String location, String sharedSpace, String username, Secret password);
 
 }

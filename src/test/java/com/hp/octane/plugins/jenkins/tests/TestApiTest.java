@@ -14,12 +14,10 @@ import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleProject;
 import hudson.tasks.Maven;
 import hudson.tasks.junit.JUnitResultArchiver;
+import hudson.util.Secret;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.*;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.ToolInstallations;
 import org.mockito.Mockito;
@@ -61,7 +59,7 @@ public class TestApiTest {
 		}).when(restClient).getTestResultLog(Mockito.eq(10001l), Mockito.<LogOutput>any());
 
 		clientFactory = Mockito.mock(JenkinsMqmRestClientFactory.class);
-		Mockito.when(clientFactory.obtain(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(restClient);
+		Mockito.when(clientFactory.obtain(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.<Secret>any())).thenReturn(restClient);
 
 		BuildActions buildActions = ExtensionUtil.getInstance(rule, BuildActions.class);
 		buildActions._setMqmRestClientFactory(clientFactory);
