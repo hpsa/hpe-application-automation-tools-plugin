@@ -8,15 +8,15 @@ package com.hp.application.automation.tools.settings;
 import com.google.inject.Inject;
 import com.hp.application.automation.tools.model.OctaneServerSettingsModel;
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.plugins.jenkins.CIJenkinsServicesImpl;
-import com.hp.octane.plugins.jenkins.Messages;
-import com.hp.octane.plugins.jenkins.bridge.BridgesService;
-import com.hp.octane.plugins.jenkins.buildLogs.BdiConfigurationFetcher;
-import com.hp.octane.plugins.jenkins.configuration.ConfigurationListener;
-import com.hp.octane.plugins.jenkins.configuration.ConfigurationParser;
-import com.hp.octane.plugins.jenkins.configuration.MqmProject;
-import com.hp.octane.plugins.jenkins.configuration.ServerConfiguration;
-import com.hp.octane.plugins.jenkins.events.EventsService;
+import com.hp.application.automation.tools.octane.CIJenkinsServicesImpl;
+import com.hp.application.automation.tools.octane.Messages;
+import com.hp.application.automation.tools.octane.bridge.BridgesService;
+import com.hp.application.automation.tools.octane.buildLogs.BdiConfigurationFetcher;
+import com.hp.application.automation.tools.octane.configuration.ConfigurationListener;
+import com.hp.application.automation.tools.octane.configuration.ConfigurationParser;
+import com.hp.application.automation.tools.octane.configuration.MqmProject;
+import com.hp.application.automation.tools.octane.configuration.ServerConfiguration;
+import com.hp.application.automation.tools.octane.events.EventsService;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import hudson.CopyOnWrite;
 import hudson.Extension;
@@ -28,6 +28,7 @@ import hudson.security.ACL;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
+import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.acegisecurity.context.SecurityContext;
@@ -198,7 +199,7 @@ public class OctaneServerSettingsBuilder extends Builder {
 
             //  if parse is good, check authentication/authorization
             ConfigurationParser parser = Jenkins.getInstance().getExtensionList(ConfigurationParser.class).iterator().next();
-            FormValidation validation = parser.checkConfiguration(mqmProject.getLocation(), mqmProject.getSharedSpace(), username, password);
+            FormValidation validation = parser.checkConfiguration(mqmProject.getLocation(), mqmProject.getSharedSpace(), username, Secret.fromString(password));
             /*if (validation.kind == FormValidation.Kind.OK &&
                     uiLocation.equals(octanePlugin.getUiLocation()) &&
                     username.equals(octanePlugin.getUsername()) &&
