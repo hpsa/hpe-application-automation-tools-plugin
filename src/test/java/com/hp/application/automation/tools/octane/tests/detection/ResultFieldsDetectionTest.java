@@ -16,8 +16,8 @@
 
 package com.hp.application.automation.tools.octane.tests.detection;
 
-import com.hp.application.automation.tools.octane.ExtensionUtil;
 import com.hp.application.automation.tools.octane.tests.CopyResourceSCM;
+import com.hp.application.automation.tools.octane.tests.ExtensionUtil;
 import com.hp.application.automation.tools.octane.tests.TestUtils;
 import com.hp.application.automation.tools.octane.tests.junit.JUnitExtension;
 import hudson.model.AbstractBuild;

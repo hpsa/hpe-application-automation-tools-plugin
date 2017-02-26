@@ -14,7 +14,6 @@
  *
  */
 
-//package com.hp.octane.plugins.jenkins.buildLogs;
 package com.hp.application.automation.tools.octane.buildLogs;
 
 import com.google.inject.Inject;

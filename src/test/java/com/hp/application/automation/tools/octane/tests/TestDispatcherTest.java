@@ -18,12 +18,11 @@ package com.hp.application.automation.tools.octane.tests;
 
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.hp.application.automation.tools.octane.client.TestEventPublisher;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.*;
-import com.hp.application.automation.tools.octane.ExtensionUtil;
 import com.hp.application.automation.tools.octane.client.JenkinsMqmRestClientFactory;
 import com.hp.application.automation.tools.octane.client.RetryModel;
-import com.hp.application.automation.tools.octane.client.TestEventPublisher;
 import com.hp.application.automation.tools.octane.configuration.ConfigurationService;
 import hudson.FilePath;
 import hudson.matrix.*;

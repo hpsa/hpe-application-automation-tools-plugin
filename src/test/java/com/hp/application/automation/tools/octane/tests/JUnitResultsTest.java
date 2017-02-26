@@ -16,7 +16,6 @@
 
 package com.hp.application.automation.tools.octane.tests;
 
-import com.hp.application.automation.tools.octane.ExtensionUtil;
 import com.hp.application.automation.tools.octane.ResultQueue;
 import com.hp.application.automation.tools.octane.tests.junit.TestResultStatus;
 import hudson.matrix.*;
@@ -197,8 +196,9 @@ public class JUnitResultsTest {
 		MatrixProject matrixProject = rule.createProject(MatrixProject.class, projectName);
 		matrixProject.setAxes(new AxisList(new Axis("osType", "Linux", "Windows")));
 
-		matrixProject.getBuildersList().add(new Maven("-s settings.xml clean test", mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
-		matrixProject.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
+        matrixProject.getBuildersList().add(new Maven("-s settings.xml clean test -Dmaven.test.failure.ignore=true -X", mavenName));
+
+        matrixProject.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
 		matrixProject.setScm(new CopyResourceSCM("/helloWorldRoot"));
 		MatrixBuild build = (MatrixBuild) TestUtils.runAndCheckBuild(matrixProject);
 

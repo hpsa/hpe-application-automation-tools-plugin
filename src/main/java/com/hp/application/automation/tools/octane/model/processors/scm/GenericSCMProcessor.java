@@ -29,8 +29,10 @@ import hudson.scm.ChangeLogSet;
 import hudson.tasks.Mailer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by benmeior on 9/8/2016.
@@ -56,6 +58,12 @@ public class GenericSCMProcessor implements SCMProcessor {
                 .setRepository(repository);
 
         return result;
+    }
+
+    @Override
+    public List<SCMData> getSCMData(WorkflowRun run) {
+        // todo: implement default - yanivl
+        return null;
     }
 
     private ArrayList<SCMCommit> buildScmCommits(ChangeLogSet<ChangeLogSet.Entry> changes) {

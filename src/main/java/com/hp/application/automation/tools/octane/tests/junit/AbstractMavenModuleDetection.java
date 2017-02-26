@@ -16,8 +16,9 @@
 
 package com.hp.application.automation.tools.octane.tests.junit;
 
+import com.hp.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.FilePath;
-import hudson.model.AbstractBuild;
+import hudson.model.Run;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -28,14 +29,14 @@ public abstract class AbstractMavenModuleDetection implements ModuleDetection {
     protected FilePath rootDir;
     protected List<FilePath> pomDirs;
 
-    public AbstractMavenModuleDetection(AbstractBuild build) {
-        rootDir = build.getWorkspace();
-        pomDirs = new LinkedList<FilePath>();
+    public AbstractMavenModuleDetection(Run build) {
+        rootDir = BuildHandlerUtils.getWorkspace(build);
+        pomDirs = new LinkedList<>();
 
         addPomDirectories(build);
     }
 
-    protected abstract void addPomDirectories(AbstractBuild build);
+    protected abstract void addPomDirectories(Run build);
 
     @Override
     public String getModule(FilePath resultFile) throws IOException, InterruptedException {

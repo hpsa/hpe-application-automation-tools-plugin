@@ -17,8 +17,8 @@
 package com.hp.application.automation.tools.octane.tests.gherkin;
 
 import com.hp.application.automation.tools.octane.actions.cucumber.CucumberResultsService;
-import com.hp.application.automation.tools.octane.tests.testResult.TestResult;
 import com.hp.application.automation.tools.octane.tests.junit.TestResultStatus;
+import com.hp.application.automation.tools.octane.tests.testResult.TestResult;
 import hudson.FilePath;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;

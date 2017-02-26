@@ -33,6 +33,7 @@ import hudson.scm.SubversionSCM;
 import hudson.tasks.Mailer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -73,6 +74,12 @@ public class SvnSCMProcessor implements SCMProcessor {
 					.setCommits(tmpCommits);
 		}
 		return result;
+	}
+
+	@Override
+	public List<SCMData> getSCMData(WorkflowRun run) {
+		// todo: add implementatiohn  - yanivl
+		return null;
 	}
 
 	private ArrayList<SCMCommit> buildScmCommits(ChangeLogSet<ChangeLogSet.Entry> changes) {

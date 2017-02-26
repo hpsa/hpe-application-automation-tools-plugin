@@ -21,6 +21,7 @@ import com.hp.application.automation.tools.octane.actions.cucumber.CucumberTestR
 import com.hp.application.automation.tools.octane.tests.HPRunnerType;
 import com.hp.application.automation.tools.octane.tests.MqmTestsExtension;
 import com.hp.application.automation.tools.octane.tests.TestResultContainer;
+import com.hp.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import com.hp.application.automation.tools.octane.tests.detection.ResultFields;
 import com.hp.application.automation.tools.octane.tests.detection.ResultFieldsDetectionService;
 import com.hp.application.automation.tools.octane.tests.impl.ObjectStreamIterator;
@@ -30,8 +31,7 @@ import hudson.FilePath;
 import hudson.maven.MavenBuild;
 import hudson.maven.MavenModule;
 import hudson.maven.MavenModuleSetBuild;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
+import hudson.model.Run;
 import hudson.remoting.VirtualChannel;
 import hudson.tasks.test.AbstractTestResultAction;
 import org.apache.logging.log4j.LogManager;
@@ -60,7 +60,7 @@ public class JUnitExtension extends MqmTestsExtension {
 	@Inject
 	ResultFieldsDetectionService resultFieldsDetectionService;
 
-	public boolean supports(AbstractBuild<?, ?> build) throws IOException, InterruptedException {
+	public boolean supports(Run<?, ?> build) throws IOException, InterruptedException {
 		if (build.getAction(CucumberTestResultsAction.class) != null) {
 			logger.debug("CucumberTestResultsAction found. Will not process JUnit results.");
 			return false;
@@ -74,7 +74,7 @@ public class JUnitExtension extends MqmTestsExtension {
 	}
 
 	@Override
-	public TestResultContainer getTestResults(AbstractBuild<?, ?> build, HPRunnerType hpRunnerType, String jenkinsRootUrl) throws IOException, InterruptedException {
+	public TestResultContainer getTestResults(Run<?, ?> build, HPRunnerType hpRunnerType, String jenkinsRootUrl) throws IOException, InterruptedException {
 		logger.debug("Collecting JUnit results");
 
 		boolean isLoadRunnerProject = isLoadRunnerProject(build);
@@ -87,9 +87,10 @@ public class JUnitExtension extends MqmTestsExtension {
 			} else if (isLoadRunnerProject) {
 				detectedFields = new ResultFields(null, LOAD_RUNNER, null);
 			} else {
+				//@// TODO: 15/02/2017  - should handle the workflow build
 				detectedFields = resultFieldsDetectionService.getDetectedFields(build);
 			}
-			FilePath filePath = build.getWorkspace().act(new GetJUnitTestResults(build, Arrays.asList(resultFile), shallStripPackageAndClass(detectedFields), hpRunnerType, jenkinsRootUrl));
+			FilePath filePath= BuildHandlerUtils.getWorkspace(build).act(new GetJUnitTestResults(build, Arrays.asList(resultFile), shallStripPackageAndClass(detectedFields), hpRunnerType, jenkinsRootUrl));
 			return new TestResultContainer(new ObjectStreamIterator<TestResult>(filePath, true), detectedFields);
 		} else {
 			//avoid java.lang.NoClassDefFoundError when maven plugin is not present
@@ -117,7 +118,7 @@ public class JUnitExtension extends MqmTestsExtension {
 					} else {
 						detectedFields = resultFieldsDetectionService.getDetectedFields(build);
 					}
-					FilePath filePath = build.getWorkspace().act(new GetJUnitTestResults(build, resultFiles, shallStripPackageAndClass(detectedFields), hpRunnerType, jenkinsRootUrl));
+					FilePath filePath = BuildHandlerUtils.getWorkspace(build).act(new GetJUnitTestResults(build, resultFiles, shallStripPackageAndClass(detectedFields), hpRunnerType, jenkinsRootUrl));
 					return new TestResultContainer(new ObjectStreamIterator<TestResult>(filePath, true), detectedFields);
 				}
 			}
@@ -133,7 +134,7 @@ public class JUnitExtension extends MqmTestsExtension {
 		return resultFields.equals(new ResultFields("UFT", "UFT", null));
 	}
 
-	private boolean isLoadRunnerProject(AbstractBuild<?, ?> build) throws IOException, InterruptedException {
+	private boolean isLoadRunnerProject(Run build) throws IOException, InterruptedException {
 		FilePath preformanceReportFolder = new FilePath(build.getRootDir()).child(PREFORMANCE_REPORT);
 		FilePath transactionSummaryFolder = new FilePath(build.getRootDir()).child(TRANSACTION_SUMMARY);
 		if ((preformanceReportFolder.exists() && preformanceReportFolder.isDirectory()) && (transactionSummaryFolder.exists() && transactionSummaryFolder.isDirectory())) {
@@ -156,18 +157,18 @@ public class JUnitExtension extends MqmTestsExtension {
 		private FilePath workspace;
 		private boolean stripPackageAndClass;
 
-		public GetJUnitTestResults(AbstractBuild<?, ?> build, List<FilePath> reports, boolean stripPackageAndClass, HPRunnerType hpRunnerType, String jenkinsRootUrl) throws IOException, InterruptedException {
+		public GetJUnitTestResults( Run<?, ?> build, List<FilePath> reports, boolean stripPackageAndClass, HPRunnerType hpRunnerType, String jenkinsRootUrl) throws IOException, InterruptedException {
 			this.reports = reports;
 			this.filePath = new FilePath(build.getRootDir()).createTempFile(getClass().getSimpleName(), null);
 			this.buildStarted = build.getStartTimeInMillis();
-			this.workspace = build.getWorkspace();
+			this.workspace = BuildHandlerUtils.getWorkspace(build);//build.getExecutor().getCurrentWorkspace();//build.getWorkspace();
 			this.stripPackageAndClass = stripPackageAndClass;
 			this.hpRunnerType = hpRunnerType;
 			this.jenkinsRootUrl = jenkinsRootUrl;
-			AbstractProject project = build.getProject();
-			this.jobName = project.getName();
-			this.buildId = build.getProject().getBuilds().getLastBuild().getId();
-			moduleDetection = Arrays.asList(
+			//AbstractProject project = (AbstractProject)build.getParent();/*build.getProject()*/;
+			this.jobName =build.getParent().getName();// project.getName();
+			this.buildId =BuildHandlerUtils.getBuildId(build);///*build.getProject()*/((AbstractProject)build.getParent()).getBuilds().getLastBuild().getId();
+			moduleDetection =Arrays.asList(
 					new MavenBuilderModuleDetection(build),
 					new MavenSetModuleDetection(build),
 					new ModuleDetection.Default());

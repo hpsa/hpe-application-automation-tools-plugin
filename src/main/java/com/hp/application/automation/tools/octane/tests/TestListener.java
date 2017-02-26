@@ -26,6 +26,7 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.model.AbstractBuild;
 import hudson.model.Result;
+import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.tasks.Builder;
 import jenkins.model.Jenkins;
@@ -45,7 +46,7 @@ public class TestListener {
 
 	private ResultQueue queue;
 
-	public void processBuild(AbstractBuild build, TaskListener listener) {
+	public void processBuild(Run build, TaskListener listener) {
 
 		FilePath resultPath = new FilePath(new FilePath(build.getRootDir()), TEST_RESULT_FILE);
 		TestResultXmlWriter resultWriter = new TestResultXmlWriter(resultPath, build);
@@ -53,7 +54,7 @@ public class TestListener {
 		boolean hasTests = false;
 		String jenkinsRootUrl = Jenkins.getInstance().getRootUrl();
 		HPRunnerType hpRunnerType = HPRunnerType.NONE;
-		List<Builder> builders = JobProcessorFactory.getFlowProcessor(build.getProject()).tryGetBuilders();
+		List<Builder> builders = JobProcessorFactory.getFlowProcessor(build.getParent()).tryGetBuilders();
 		if (builders != null) {
 			for (Builder builder : builders) {
 				if (builder.getClass().getName().equals(JENKINS_STORM_TEST_RUNNER_CLASS)) {
@@ -71,10 +72,14 @@ public class TestListener {
 			for (MqmTestsExtension ext : MqmTestsExtension.all()) {
 				try {
 					if (ext.supports(build)) {
-						TestResultContainer testResultContainer = ext.getTestResults(build, hpRunnerType, jenkinsRootUrl);
-						if (testResultContainer != null && testResultContainer.getIterator().hasNext()) {
-							resultWriter.writeResults(testResultContainer);
-							hasTests = true;
+
+						List<Run> buildsList = BuildHandlerUtils.getBuildPerWorkspaces(build);
+						for(Run buildX : buildsList){
+							TestResultContainer testResultContainer = ext.getTestResults(buildX, hpRunnerType, jenkinsRootUrl);
+							if (testResultContainer != null && testResultContainer.getIterator().hasNext()) {
+								resultWriter.writeResults(testResultContainer);
+								hasTests = true;
+							}
 						}
 					}
 				} catch (IllegalArgumentException e) {

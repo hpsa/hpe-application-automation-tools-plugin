@@ -34,9 +34,7 @@ import com.hp.application.automation.tools.octane.configuration.ServerConfigurat
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.matrix.MatrixRun;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.TaskListener;
+import hudson.model.*;
 import hudson.util.TimeUnit2;
 import jenkins.YesNoMaybe;
 import jenkins.model.Jenkins;
@@ -117,15 +115,15 @@ public class TestDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 
 				retryModel.success();
 			}
-
-			AbstractProject project = (AbstractProject) Jenkins.getInstance().getItemByFullName(item.getProjectName());
+			Job project = (Job) Jenkins.getInstance().getItemByFullName(item.getProjectName());
+		//	AbstractProject project1 = (AbstractProject) Jenkins.getInstance().getItemByFullName(item.getProjectName());
 			if (project == null) {
 				logger.warn("Project [" + item.getProjectName() + "] no longer exists, pending test results can't be submitted");
 				queue.remove();
 				continue;
 			}
-
-			AbstractBuild build = project.getBuildByNumber(item.getBuildNumber());
+			Run build = project.getBuildByNumber(item.getBuildNumber());
+			//AbstractBuild build = project.getBuildByNumber(item.getBuildNumber());
 			if (build == null) {
 				logger.warn("Build [" + item.getProjectName() + "#" + item.getBuildNumber() + "] no longer exists, pending test results can't be submitted");
 				queue.remove();
@@ -136,7 +134,7 @@ public class TestDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 			if (build instanceof MatrixRun) {
 				jobName = ((MatrixRun) build).getProject().getParent().getName();
 			} else {
-				jobName = build.getProject().getName();
+				jobName = build.getParent().getName();
 			}
 
 			Boolean needTestResult = client.isTestResultRelevant(ConfigurationService.getModel().getIdentity(), jobName);
@@ -152,7 +150,7 @@ public class TestDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 						audit(configuration, build, null, true);
 						break;
 					} catch (RequestException e) {
-						logger.warn("Failed to submit test results [" + build.getProject().getName() + "#" + build.getNumber() + "]", e);
+						logger.warn("Failed to submit test results [" + build.getParent().getName()/*build.getProject().getName()*/ + "#" + build.getNumber() + "]", e);
 					}
 
 					if (id != null) {
@@ -177,7 +175,7 @@ public class TestDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 		}
 	}
 
-	private void audit(ServerConfiguration configuration, AbstractBuild build, Long id, boolean temporarilyUnavailable) throws IOException, InterruptedException {
+	private void audit(ServerConfiguration configuration, Run build, Long id, boolean temporarilyUnavailable) throws IOException, InterruptedException {
 		FilePath auditFile = new FilePath(new File(build.getRootDir(), TEST_AUDIT_FILE));
 		JSONArray audit;
 		if (auditFile.exists()) {

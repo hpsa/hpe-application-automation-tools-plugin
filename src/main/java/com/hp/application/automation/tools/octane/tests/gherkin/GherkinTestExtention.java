@@ -23,7 +23,7 @@ import com.hp.application.automation.tools.octane.tests.TestProcessingException;
 import com.hp.application.automation.tools.octane.tests.TestResultContainer;
 import com.hp.application.automation.tools.octane.tests.testResult.TestResult;
 import hudson.Extension;
-import hudson.model.AbstractBuild;
+import hudson.model.Run;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -35,7 +35,7 @@ public class GherkinTestExtention extends MqmTestsExtension {
     private static Logger logger = LogManager.getLogger(GherkinTestExtention.class);
 
     @Override
-    public boolean supports(AbstractBuild<?, ?> build) throws IOException, InterruptedException {
+    public boolean supports(Run<?, ?> build) throws IOException, InterruptedException {
         if (build.getAction(CucumberTestResultsAction.class) != null) {
             logger.debug("CucumberTestResultsAction found, gherkin results expected");
             return true;
@@ -46,7 +46,7 @@ public class GherkinTestExtention extends MqmTestsExtension {
     }
 
     @Override
-    public TestResultContainer getTestResults(AbstractBuild<?, ?> build, HPRunnerType hpRunnerType, String jenkinsRootUrl) throws TestProcessingException, IOException, InterruptedException {
+    public TestResultContainer getTestResults(Run<?, ?> build, HPRunnerType hpRunnerType, String jenkinsRootUrl) throws TestProcessingException, IOException, InterruptedException {
         try {
             List<TestResult> testResults = GherkinTestResultsCollector.collectGherkinTestsResults(build.getRootDir());
             return new TestResultContainer(testResults.iterator(), null);

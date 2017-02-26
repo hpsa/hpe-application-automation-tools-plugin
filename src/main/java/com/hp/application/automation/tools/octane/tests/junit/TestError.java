@@ -22,8 +22,6 @@ import java.io.Serializable;
  * Created by lev on 14/03/2016.
  */
 public final class TestError  implements Serializable {
-    private static final long serialVersionUID = 1;
-
     private final String stackTraceStr;
     private final String errorType;
     private final String errorMsg;
