@@ -24,6 +24,7 @@
 	</licenses>
 
 	<properties>
+		<concurrency>1</concurrency>
 		<msbuild.exe>C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe</msbuild.exe>
 		<msbuild.configuration>Release</msbuild.configuration>
 		<jenkins.version>1.642.4</jenkins.version>
@@ -247,6 +248,26 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.19.1</version>
+				<configuration>
+					<excludes>
+						<exclude>**/ConfigApiTest.java</exclude>
+						<exclude>**/ConfigurationServiceTest.java</exclude>
+						<exclude>**/JUnitResultsTest.java</exclude>
+						<exclude>**/TestApiTest.java</exclude>
+						<exclude>**/TestDispatcherTest.java</exclude>
+						<exclude>**/TestJenkinsDurationTest.java</exclude>
+						<exclude>**/BuildActionsFreeStyleTest.java</exclude>
+						<exclude>**/GherkinResultsTest.java</exclude>
+						<exclude>**/TestNGExtensionTest.java</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+
+
 		</plugins>
 
 	</build>
@@ -481,7 +502,7 @@
 		<dependency>
 			<groupId>org.json</groupId>
 			<artifactId>json</artifactId>
-			<version>20141113</version>
+			<version>20090211</version>
 			<scope>test</scope>
 		</dependency>
 
