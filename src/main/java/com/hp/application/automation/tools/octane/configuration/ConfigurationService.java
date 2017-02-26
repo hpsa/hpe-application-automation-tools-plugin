@@ -26,9 +26,6 @@ import jenkins.model.Jenkins;
 @Extension
 public class ConfigurationService {
 
-
-	private static OctaneServerSettingsBuilder.OctaneDescriptorImpl octaneDescriptorImpl;
-
 	public static OctaneServerSettingsModel getModel() {
 		return getOctaneDescriptor().getModel();
 	}
@@ -42,10 +39,7 @@ public class ConfigurationService {
 	}
 
 	private static OctaneServerSettingsBuilder.OctaneDescriptorImpl getOctaneDescriptor(){
-		if(octaneDescriptorImpl == null){
-			octaneDescriptorImpl = Hudson.getInstance().getDescriptorByType(OctaneServerSettingsBuilder.OctaneDescriptorImpl.class);
-		}
-		return  octaneDescriptorImpl;
+		return  Hudson.getInstance().getDescriptorByType(OctaneServerSettingsBuilder.OctaneDescriptorImpl.class);
 	}
 
 	public static String getPluginVersion(){

@@ -42,7 +42,6 @@ public class ConfigurationListenerTest {
 		form.getInputByName("_.username").setValueAttribute("username");
 		form.getInputByName("_.password").setValueAttribute("password");
 		rule.submit(form);
-		rule.submit(form);
 
 		listener = ExtensionUtil.getInstance(rule, TestConfigurationListener.class);
 		Assert.assertEquals("Listener count doesn't match 1",1, listener.getCount());
