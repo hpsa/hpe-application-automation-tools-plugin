@@ -1,4 +1,4 @@
-package com.hp.octane.plugins.jenkins.actions;
+package com.hp.application.automation.tools.octane.actions;
 
 /**
  * Created with IntelliJ IDEA.

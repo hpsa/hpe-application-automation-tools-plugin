@@ -1,8 +1,7 @@
 // (C) Copyright 2003-2015 Hewlett-Packard Development Company, L.P.
 
-package com.hp.octane.plugins.jenkins.tests;
+package com.hp.application.automation.tools.octane.tests;
 
-import com.hp.octane.plugins.jenkins.tests.junit.JUnitExtension;
 import hudson.ExtensionList;
 import hudson.ExtensionPoint;
 import hudson.model.Hudson;

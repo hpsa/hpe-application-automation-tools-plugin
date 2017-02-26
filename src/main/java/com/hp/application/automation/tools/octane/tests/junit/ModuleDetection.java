@@ -1,6 +1,6 @@
 // (C) Copyright 2003-2015 Hewlett-Packard Development Company, L.P.
 
-package com.hp.octane.plugins.jenkins.tests.junit;
+package com.hp.application.automation.tools.octane.tests.junit;
 
 import hudson.FilePath;
 

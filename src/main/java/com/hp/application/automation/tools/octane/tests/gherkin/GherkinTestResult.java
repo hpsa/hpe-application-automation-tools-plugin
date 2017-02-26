@@ -16,8 +16,8 @@
 
 package com.hp.application.automation.tools.octane.tests.gherkin;
 
-import com.hp.application.automation.tools.octane.tests.testResult.TestResult;
 import com.hp.application.automation.tools.octane.tests.junit.TestResultStatus;
+import com.hp.application.automation.tools.octane.tests.testResult.TestResult;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;

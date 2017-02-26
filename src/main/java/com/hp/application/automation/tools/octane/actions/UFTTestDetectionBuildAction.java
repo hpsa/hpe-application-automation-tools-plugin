@@ -16,9 +16,9 @@
 
 package com.hp.application.automation.tools.octane.actions;
 
+import com.hp.application.automation.tools.octane.actions.dto.AutomatedTests;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.application.automation.tools.octane.actions.dto.AutomatedTest;
-import com.hp.application.automation.tools.octane.actions.dto.AutomatedTests;
 import com.hp.application.automation.tools.octane.client.JenkinsMqmRestClientFactory;
 import com.hp.application.automation.tools.octane.configuration.ConfigurationService;
 import com.hp.application.automation.tools.octane.configuration.ServerConfiguration;

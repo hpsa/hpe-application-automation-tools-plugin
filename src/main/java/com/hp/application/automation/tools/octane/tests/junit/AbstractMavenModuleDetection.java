@@ -16,9 +16,8 @@
 
 package com.hp.application.automation.tools.octane.tests.junit;
 
-import com.hp.octane.plugins.jenkins.tests.build.BuildHandlerUtils;
+import com.hp.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.FilePath;
-import hudson.model.AbstractBuild;
 import hudson.model.Run;
 
 import java.io.IOException;

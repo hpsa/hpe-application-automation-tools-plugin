@@ -16,6 +16,7 @@
 
 package com.hp.application.automation.tools.octane.model;
 
+import com.hp.application.automation.tools.octane.model.processors.scm.SCMProcessor;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.parameters.CIParameter;
 import com.hp.octane.integrations.dto.parameters.CIParameterType;
@@ -29,7 +30,6 @@ import com.hp.octane.integrations.dto.snapshots.SnapshotPhase;
 import com.hp.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.hp.application.automation.tools.octane.model.processors.projects.AbstractProjectProcessor;
 import com.hp.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
-import com.hp.application.automation.tools.octane.model.processors.scm.SCMProcessor;
 import com.hp.application.automation.tools.octane.model.processors.scm.SCMProcessors;
 import hudson.model.*;
 import jenkins.model.Jenkins;

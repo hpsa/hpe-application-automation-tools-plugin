@@ -18,8 +18,8 @@ package com.hp.application.automation.tools.octane.tests.xml;
 
 import com.hp.application.automation.tools.octane.configuration.ConfigurationService;
 import com.hp.application.automation.tools.octane.tests.TestResultContainer;
-import com.hp.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import com.hp.application.automation.tools.octane.tests.build.BuildDescriptor;
+import com.hp.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import com.hp.application.automation.tools.octane.tests.detection.ResultFields;
 import com.hp.application.automation.tools.octane.tests.testResult.TestResult;
 import hudson.FilePath;

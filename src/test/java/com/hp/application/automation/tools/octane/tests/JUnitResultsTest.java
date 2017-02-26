@@ -16,7 +16,6 @@
 
 package com.hp.application.automation.tools.octane.tests;
 
-import com.hp.application.automation.tools.octane.ExtensionUtil;
 import com.hp.application.automation.tools.octane.ResultQueue;
 import com.hp.application.automation.tools.octane.tests.junit.TestResultStatus;
 import hudson.matrix.*;

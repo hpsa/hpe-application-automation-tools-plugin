@@ -1,6 +1,6 @@
-package com.hp.octane.plugins.jenkins.identity;
+package com.hp.application.automation.tools.octane.identity;
 
-import com.hp.octane.plugins.jenkins.configuration.ConfigurationService;
+import com.hp.application.automation.tools.octane.configuration.ConfigurationService;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;

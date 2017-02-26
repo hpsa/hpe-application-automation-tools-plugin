@@ -16,12 +16,12 @@
 
 package com.hp.application.automation.tools.octane.events;
 
+import com.hp.application.automation.tools.octane.model.processors.scm.SCMProcessor;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
 import com.hp.octane.integrations.dto.scm.SCMData;
 import com.hp.application.automation.tools.octane.model.CIEventCausesFactory;
-import com.hp.application.automation.tools.octane.model.processors.scm.SCMProcessor;
 import com.hp.application.automation.tools.octane.model.processors.scm.SCMProcessors;
 import hudson.Extension;
 import hudson.FilePath;

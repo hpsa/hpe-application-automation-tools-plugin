@@ -17,6 +17,7 @@
 package com.hp.application.automation.tools.octane;
 
 import com.hp.application.automation.tools.model.OctaneServerSettingsModel;
+import com.hp.application.automation.tools.octane.model.processors.scm.SCMProcessor;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
@@ -39,7 +40,6 @@ import com.hp.application.automation.tools.octane.model.ModelFactory;
 import com.hp.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.hp.application.automation.tools.octane.model.processors.projects.AbstractProjectProcessor;
 import com.hp.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
-import com.hp.application.automation.tools.octane.model.processors.scm.SCMProcessor;
 import com.hp.application.automation.tools.octane.model.processors.scm.SCMProcessors;
 import hudson.ProxyConfiguration;
 import hudson.model.*;

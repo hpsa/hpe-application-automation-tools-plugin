@@ -18,7 +18,7 @@ package com.hp.application.automation.tools.octane.configuration;
 
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import com.hp.application.automation.tools.octane.ExtensionUtil;
+import com.hp.application.automation.tools.octane.tests.ExtensionUtil;
 import org.junit.*;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.TestExtension;

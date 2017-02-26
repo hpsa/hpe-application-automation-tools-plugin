@@ -1,5 +1,6 @@
-package com.hp.octane.plugins.jenkins.tests.detection;
+package com.hp.application.automation.tools.octane.detection;
 
+import com.hp.application.automation.tools.octane.tests.detection.ResultFields;
 import org.junit.Assert;
 import org.junit.Test;
 

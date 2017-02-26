@@ -16,10 +16,10 @@
 
 package com.hp.application.automation.tools.octane.tests.junit;
 
+import com.hp.application.automation.tools.octane.tests.HPRunnerType;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.tests.Property;
 import com.hp.octane.integrations.dto.tests.TestSuite;
-import com.hp.application.automation.tools.octane.tests.HPRunnerType;
 import com.hp.application.automation.tools.octane.tests.xml.AbstractXmlIterator;
 import hudson.FilePath;
 import org.apache.logging.log4j.LogManager;

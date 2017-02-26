@@ -18,10 +18,10 @@ package com.hp.application.automation.tools.octane.configuration;
 
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.hp.application.automation.tools.octane.tests.ExtensionUtil;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.AuthenticationException;
 import com.hp.mqm.client.exception.SharedSpaceNotExistException;
-import com.hp.application.automation.tools.octane.ExtensionUtil;
 import com.hp.application.automation.tools.octane.Messages;
 import com.hp.application.automation.tools.octane.client.JenkinsMqmRestClientFactory;
 import hudson.util.FormValidation;

@@ -16,8 +16,8 @@
 
 package com.hp.application.automation.tools.octane.tests.gherkin;
 
-import com.hp.application.automation.tools.octane.tests.testResult.TestResult;
 import com.hp.application.automation.tools.octane.tests.junit.TestResultStatus;
+import com.hp.application.automation.tools.octane.tests.testResult.TestResult;
 import org.junit.Assert;
 import org.junit.Test;
 import org.xml.sax.SAXException;
@@ -59,7 +59,7 @@ public class GherkinTestResultsCollectorTest {
     public void testGetResults() throws InterruptedException, ParserConfigurationException, IOException, SAXException, TransformerException {
         List<TestResult> gherkinTestsResults = GherkinTestResultsCollector.collectGherkinTestsResults(new File(getDefaultRootResourceFolder()));
         Assert.assertEquals(3,gherkinTestsResults.size());
-        validateGherkinTestResult((GherkinTestResult)gherkinTestsResults.get(0),"test Feature1",21,TestResultStatus.FAILED);
+        validateGherkinTestResult((GherkinTestResult)gherkinTestsResults.get(0),"test Feature1",21, TestResultStatus.FAILED);
         validateGherkinTestResult((GherkinTestResult)gherkinTestsResults.get(1),"test Feature10",21,TestResultStatus.FAILED);
         validateGherkinTestResult((GherkinTestResult)gherkinTestsResults.get(2),"test Feature2",21,TestResultStatus.PASSED);
     }

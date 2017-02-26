@@ -1,4 +1,4 @@
-package com.hp.octane.plugins.jenkins.model.processors.scm;
+package com.hp.application.automation.tools.octane.model.processors.scm;
 
 import com.hp.octane.integrations.dto.scm.SCMData;
 import hudson.model.AbstractBuild;

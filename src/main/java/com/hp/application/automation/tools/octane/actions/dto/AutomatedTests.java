@@ -1,4 +1,4 @@
-package com.hp.octane.plugins.jenkins.actions.dto;
+package com.hp.application.automation.tools.octane.actions.dto;
 
 import java.util.ArrayList;
 

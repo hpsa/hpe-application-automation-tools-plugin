@@ -16,13 +16,13 @@
 
 package com.hp.application.automation.tools.octane.tests.xml;
 
-import com.hp.application.automation.tools.octane.tests.junit.JUnitTestResult;
 import com.hp.application.automation.tools.octane.tests.TestResultContainer;
 import com.hp.application.automation.tools.octane.tests.TestResultIterable;
+import com.hp.application.automation.tools.octane.tests.junit.JUnitTestResult;
 import com.hp.application.automation.tools.octane.tests.TestResultIterator;
-import com.hp.application.automation.tools.octane.tests.junit.TestResultStatus;
 import com.hp.application.automation.tools.octane.tests.TestUtils;
 import com.hp.application.automation.tools.octane.tests.detection.ResultFields;
+import com.hp.application.automation.tools.octane.tests.junit.TestResultStatus;
 import com.hp.application.automation.tools.octane.tests.testResult.TestResult;
 import hudson.FilePath;
 import hudson.matrix.Axis;

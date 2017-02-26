@@ -17,8 +17,8 @@
 package com.hp.application.automation.tools.octane.events;
 
 import com.hp.application.automation.tools.model.OctaneServerSettingsModel;
+import com.hp.application.automation.tools.octane.tests.ExtensionUtil;
 import com.hp.octane.integrations.dto.events.CIEventType;
-import com.hp.application.automation.tools.octane.ExtensionUtil;
 import com.hp.application.automation.tools.octane.configuration.ConfigurationService;
 import com.hp.application.automation.tools.octane.configuration.ServerConfiguration;
 import hudson.model.FreeStyleProject;

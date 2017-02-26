@@ -16,7 +16,7 @@
 
 package com.hp.application.automation.tools.octane.configuration;
 
-import com.hp.application.automation.tools.octane.ExtensionUtil;
+import com.hp.application.automation.tools.octane.tests.ExtensionUtil;
 import hudson.matrix.Axis;
 import hudson.matrix.AxisList;
 import hudson.matrix.MatrixConfiguration;
