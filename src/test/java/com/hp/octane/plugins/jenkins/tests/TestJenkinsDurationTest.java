@@ -4,6 +4,7 @@ import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import org.junit.Assert;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
@@ -12,6 +13,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * Created by berkovir on 06/02/2017.
  */
+@Ignore
 public class TestJenkinsDurationTest {
 
     @ClassRule
