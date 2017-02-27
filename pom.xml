@@ -71,6 +71,14 @@
 			</roles>
 		</developer>
 		<developer>
+			<id>mseldin</id>
+			<name>Michael Seldin</name>
+			<email>michael.seldin@hpe.com</email>
+			<roles>
+				<role>ALM Octane</role>
+			</roles>
+		</developer>
+		<developer>
 			<id>Rlu</id>
 			<name>Roy Lu</name>
 			<email>li.lu@hpe.com</email>
@@ -259,10 +267,10 @@
 						<exclude>**/JUnitResultsTest.java</exclude>
 						<exclude>**/TestApiTest.java</exclude>
 						<exclude>**/TestDispatcherTest.java</exclude>
-						<exclude>**/TestJenkinsDurationTest.java</exclude>
 						<exclude>**/BuildActionsFreeStyleTest.java</exclude>
 						<exclude>**/GherkinResultsTest.java</exclude>
 						<exclude>**/TestNGExtensionTest.java</exclude>
+						<!--<exclude>**/TestJenkinsDurationTest.java</exclude>-->
 					</excludes>
 				</configuration>
 			</plugin>
@@ -530,7 +538,6 @@
 			<groupId>org.json</groupId>
 			<artifactId>json</artifactId>
 			<version>20090211</version>
-			<scope>test</scope>
 		</dependency>
 
 		<dependency>
