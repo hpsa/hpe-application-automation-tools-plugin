@@ -26,6 +26,7 @@ using HpToolsLauncher;
 using Analysis.ApiSL;
 using Analysis.Api.Dictionaries;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 
 namespace LRAnalysisLauncher
@@ -45,9 +46,9 @@ namespace LRAnalysisLauncher
         static void log(string msg)
         {
             Console.WriteLine(msg);
-          //  writer.WriteLine(msg);
+            //  writer.WriteLine(msg);
         }
-//        static StreamWriter writer = new StreamWriter(new FileStream("c:\\AnalysisLauncherOutput.txt", FileMode.OpenOrCreate, FileAccess.Write));
+        //        static StreamWriter writer = new StreamWriter(new FileStream("c:\\AnalysisLauncherOutput.txt", FileMode.OpenOrCreate, FileAccess.Write));
         //args: lrr location, lra location, html report location
         [STAThread]
         static int Main(string[] args)
@@ -61,7 +62,7 @@ namespace LRAnalysisLauncher
                 if (args.Length != 3)
                 {
                     ShowHelp();
-                    return (int) Launcher.ExitCodeEnum.Aborted;
+                    return (int)Launcher.ExitCodeEnum.Aborted;
                 }
 
                 string lrrlocation = args[0];
@@ -70,7 +71,7 @@ namespace LRAnalysisLauncher
 
                 log("creating analysis COM object");
                 LrAnalysis analysis = new LrAnalysis();
-                
+
                 Session session = analysis.Session;
                 log("creating analysis session");
                 if (session.Create(lralocation, lrrlocation))
@@ -139,11 +140,11 @@ namespace LRAnalysisLauncher
                     //    stopper.Start();
                     //    log("Gathering Duration statistics");
                     //    stopper.Start();
-                        //DateTime startTime = Helper.FromUnixTime(currentRun.StartTime);
-                        //DateTime endTime = Helper.FromUnixTime(currentRun.EndTime);
-                        //durationElement.SetAttribute("End", endTime.ToString());
-                        //durationElement.SetAttribute("Start", startTime.ToString());
-                        //durationElement.SetAttribute("Duration", Helper.GetScenarioDuration(currentRun));
+                    //DateTime startTime = Helper.FromUnixTime(currentRun.StartTime);
+                    //DateTime endTime = Helper.FromUnixTime(currentRun.EndTime);
+                    //durationElement.SetAttribute("End", endTime.ToString());
+                    //durationElement.SetAttribute("Start", startTime.ToString());
+                    //durationElement.SetAttribute("Duration", Helper.GetScenarioDuration(currentRun));
                     //}
                     general.AppendChild(durationElement);
 
@@ -238,7 +239,7 @@ namespace LRAnalysisLauncher
 
                             if (b.Status.Equals(SlaRuleStatus.Failed)) // 0 = failed
                             {
-                                iPassed = (int) Launcher.ExitCodeEnum.Failed;
+                                iPassed = (int)Launcher.ExitCodeEnum.Failed;
                             }
                             iCounter++;
                         }
@@ -250,15 +251,15 @@ namespace LRAnalysisLauncher
                             log("Measurement : " + a.Measurement);
                             elem.SetAttribute("Measurement", a.Measurement.ToString());
                             log("Goal Value : " + a.GoalValue);
-                            elem.SetAttribute("GoalValue", a.GoalValue.ToString());
+                            elem.SetAttribute("GoalValue", a.GoalValue.ToString(new CultureInfo("en-US")));
                             log("Actual value : " + a.ActualValue);
-                            elem.SetAttribute("ActualValue", a.ActualValue.ToString());
+                            elem.SetAttribute("ActualValue", a.ActualValue.ToString(new CultureInfo("en-US")));
                             log("status : " + a.Status);
                             elem.AppendChild(xmlDoc.CreateTextNode(a.Status.ToString()));
 
                             if (a.Status.Equals(SlaRuleStatus.Failed)) // 0 = failed
                             {
-                                iPassed = (int) Launcher.ExitCodeEnum.Failed;
+                                iPassed = (int)Launcher.ExitCodeEnum.Failed;
                             }
                         }
                         root.AppendChild(elem);
@@ -288,9 +289,9 @@ namespace LRAnalysisLauncher
                             foreach (SlaLoadThreshold slat in b.LoadThresholds)
                             {
                                 XmlElement loadThr = xmlDoc.CreateElement("SlaLoadThreshold");
-                                loadThr.SetAttribute("StartLoadValue", slat.StartLoadValue.ToString());
-                                loadThr.SetAttribute("EndLoadValue", slat.EndLoadValue.ToString());
-                                loadThr.SetAttribute("ThresholdValue", slat.ThresholdValue.ToString());
+                                loadThr.SetAttribute("StartLoadValue", slat.StartLoadValue.ToString(new CultureInfo("en-US")));
+                                loadThr.SetAttribute("EndLoadValue", slat.EndLoadValue.ToString(new CultureInfo("en-US")));
+                                loadThr.SetAttribute("ThresholdValue", slat.ThresholdValue.ToString(new CultureInfo("en-US")));
                                 rule.AppendChild(loadThr);
 
                             }
@@ -301,9 +302,9 @@ namespace LRAnalysisLauncher
                                 XmlElement subsubelem = xmlDoc.CreateElement("TimeRangeInfo");
                                 subsubelem.SetAttribute("StartTime", slatri.StartTime.ToString());
                                 subsubelem.SetAttribute("EndTime", slatri.EndTime.ToString());
-                                subsubelem.SetAttribute("GoalValue", slatri.GoalValue.ToString());
-                                subsubelem.SetAttribute("ActualValue", slatri.ActualValue.ToString());
-                                subsubelem.SetAttribute("LoadValue", slatri.LoadValue.ToString());
+                                subsubelem.SetAttribute("GoalValue", slatri.GoalValue.ToString(new CultureInfo("en-US")));
+                                subsubelem.SetAttribute("ActualValue", slatri.ActualValue.ToString(new CultureInfo("en-US")));
+                                subsubelem.SetAttribute("LoadValue", slatri.LoadValue.ToString(new CultureInfo("en-US")));
                                 subsubelem.InnerText = slatri.Status.ToString();
                                 timeRanges.AppendChild(subsubelem);
                             }
@@ -312,7 +313,7 @@ namespace LRAnalysisLauncher
                             rule.AppendChild(xmlDoc.CreateTextNode(b.Status.ToString()));
                             if (b.Status.Equals(SlaRuleStatus.Failed)) // 0 = failed
                             {
-                                iPassed = (int) Launcher.ExitCodeEnum.Failed;
+                                iPassed = (int)Launcher.ExitCodeEnum.Failed;
                             }
                             iCounter++;
                         }
@@ -329,9 +330,9 @@ namespace LRAnalysisLauncher
                             foreach (SlaLoadThreshold slat in a.LoadThresholds)
                             {
                                 XmlElement loadThr = xmlDoc.CreateElement("SlaLoadThreshold");
-                                loadThr.SetAttribute("StartLoadValue", slat.StartLoadValue.ToString());
-                                loadThr.SetAttribute("EndLoadValue", slat.EndLoadValue.ToString());
-                                loadThr.SetAttribute("ThresholdValue", slat.ThresholdValue.ToString());
+                                loadThr.SetAttribute("StartLoadValue", slat.StartLoadValue.ToString(new CultureInfo("en-US")));
+                                loadThr.SetAttribute("EndLoadValue", slat.EndLoadValue.ToString(new CultureInfo("en-US")));
+                                loadThr.SetAttribute("ThresholdValue", slat.ThresholdValue.ToString(new CultureInfo("en-US")));
                                 rule.AppendChild(loadThr);
 
                             }
@@ -342,9 +343,9 @@ namespace LRAnalysisLauncher
                                 XmlElement subsubelem = xmlDoc.CreateElement("TimeRangeInfo");
                                 subsubelem.SetAttribute("StartTime", slatri.StartTime.ToString());
                                 subsubelem.SetAttribute("EndTime", slatri.EndTime.ToString());
-                                subsubelem.SetAttribute("GoalValue", slatri.GoalValue.ToString());
-                                subsubelem.SetAttribute("ActualValue", slatri.ActualValue.ToString());
-                                subsubelem.SetAttribute("LoadValue", slatri.LoadValue.ToString());
+                                subsubelem.SetAttribute("GoalValue", slatri.GoalValue.ToString(new CultureInfo("en-US")));
+                                subsubelem.SetAttribute("ActualValue", slatri.ActualValue.ToString(new CultureInfo("en-US")));
+                                subsubelem.SetAttribute("LoadValue", slatri.LoadValue.ToString(new CultureInfo("en-US")));
                                 subsubelem.InnerText = slatri.Status.ToString();
                                 timeRanges.AppendChild(subsubelem);
                             }
@@ -353,7 +354,7 @@ namespace LRAnalysisLauncher
                             rule.AppendChild(xmlDoc.CreateTextNode(a.Status.ToString()));
                             if (a.Status.Equals(SlaRuleStatus.Failed))
                             {
-                                iPassed = (int) Launcher.ExitCodeEnum.Failed;
+                                iPassed = (int)Launcher.ExitCodeEnum.Failed;
                             }
 
                         }
@@ -380,7 +381,7 @@ namespace LRAnalysisLauncher
                 {
 
                     log(Resources.CannotCreateSession);
-                    return (int) Launcher.ExitCodeEnum.Aborted;
+                    return (int)Launcher.ExitCodeEnum.Aborted;
                 }
                 log("closing analysis session");
                 session.Close();
@@ -395,13 +396,13 @@ namespace LRAnalysisLauncher
                     log(ex.Message);
                     log(ex.StackTrace);
                 }
-                return (int) Launcher.ExitCodeEnum.Aborted;
+                return (int)Launcher.ExitCodeEnum.Aborted;
             }
             catch (Exception e)
             {
                 log(e.Message);
                 log(e.StackTrace);
-                return (int) Launcher.ExitCodeEnum.Aborted;
+                return (int)Launcher.ExitCodeEnum.Aborted;
             }
 
 
