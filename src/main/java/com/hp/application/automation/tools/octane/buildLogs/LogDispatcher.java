@@ -93,18 +93,10 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
                 continue;
             }
             try {
-                //TODO: fix bdi!
-//                client.post("consolelog",BDI_PRODUCT,Long.valueOf(configuration.getTenantId()),
-//                        item.getWorkspace(),buildDataId(build),build.getLogFile());
-//                client.post("consolelog",BDI_PRODUCT,Long.valueOf(configuration.getTenantId()),
-//                        item.getWorkspace(),buildDataId(build),build.getLogFile());
-////                response = client.post("consolelog", BDI_PRODUCT, Long.valueOf(configuration.getTenantId()),
-//                        item.getWorkspace(), buildDataId(build), build.getLogFile());
+                client.post("consolelog",BDI_PRODUCT,Long.valueOf(configuration.getTenantId()),
+                        item.getWorkspace(),buildDataId(build),build.getLogFile());
 
-                // OBM: After response for data-in is changed, validate it
-
-//                logger.info("Successfully sent log of build [" + item.getProjectName() + "#" + item.getBuildNumber()
-//                        + "]. response from bdi server: " + response);
+                logger.info(String.format("Successfully sent log of build [%s#%s]"),item.getProjectName() ,item.getBuildNumber());
 
                 logsQueue.remove();
             } catch (Exception e) {
