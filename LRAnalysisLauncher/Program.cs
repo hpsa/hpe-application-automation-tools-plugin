@@ -214,6 +214,7 @@ namespace LRAnalysisLauncher
 
                     int iCounter = 0; // set counter
                     log("WholeRunRules : " + slaResult.WholeRunRules.Count);
+                    CultureInfo formatProvider = new CultureInfo("en-US");
                     foreach (SlaWholeRunRuleResult a in slaResult.WholeRunRules)
                     {
                         log(Resources.DoubleLineSeperator);
@@ -225,15 +226,15 @@ namespace LRAnalysisLauncher
                             log("Transaction Name : " + b.TransactionName);
                             elem.SetAttribute("TransactionName", b.TransactionName.ToString());
                             log("Percentile : " + b.Percentage);
-                            elem.SetAttribute("Percentile", b.Percentage.ToString());
+                            elem.SetAttribute("Percentile", b.Percentage.ToString(formatProvider));
                             elem.SetAttribute("FullName", b.RuleUiName);
                             log("Full Name : " + b.RuleUiName);
                             log("Measurement : " + b.Measurement);
                             elem.SetAttribute("Measurement", b.Measurement.ToString());
                             log("Goal Value : " + b.GoalValue);
-                            elem.SetAttribute("GoalValue", b.GoalValue.ToString());
+                            elem.SetAttribute("GoalValue", b.GoalValue.ToString(formatProvider));
                             log("Actual value : " + b.ActualValue);
-                            elem.SetAttribute("ActualValue", b.ActualValue.ToString());
+                            elem.SetAttribute("ActualValue", b.ActualValue.ToString(formatProvider));
                             log("status : " + b.Status);
                             elem.AppendChild(xmlDoc.CreateTextNode(b.Status.ToString()));
 
@@ -251,9 +252,9 @@ namespace LRAnalysisLauncher
                             log("Measurement : " + a.Measurement);
                             elem.SetAttribute("Measurement", a.Measurement.ToString());
                             log("Goal Value : " + a.GoalValue);
-                            elem.SetAttribute("GoalValue", a.GoalValue.ToString(new CultureInfo("en-US")));
+                            elem.SetAttribute("GoalValue", a.GoalValue.ToString(formatProvider));
                             log("Actual value : " + a.ActualValue);
-                            elem.SetAttribute("ActualValue", a.ActualValue.ToString(new CultureInfo("en-US")));
+                            elem.SetAttribute("ActualValue", a.ActualValue.ToString(formatProvider));
                             log("status : " + a.Status);
                             elem.AppendChild(xmlDoc.CreateTextNode(a.Status.ToString()));
 
@@ -289,9 +290,9 @@ namespace LRAnalysisLauncher
                             foreach (SlaLoadThreshold slat in b.LoadThresholds)
                             {
                                 XmlElement loadThr = xmlDoc.CreateElement("SlaLoadThreshold");
-                                loadThr.SetAttribute("StartLoadValue", slat.StartLoadValue.ToString(new CultureInfo("en-US")));
-                                loadThr.SetAttribute("EndLoadValue", slat.EndLoadValue.ToString(new CultureInfo("en-US")));
-                                loadThr.SetAttribute("ThresholdValue", slat.ThresholdValue.ToString(new CultureInfo("en-US")));
+                                loadThr.SetAttribute("StartLoadValue", slat.StartLoadValue.ToString(formatProvider));
+                                loadThr.SetAttribute("EndLoadValue", slat.EndLoadValue.ToString(formatProvider));
+                                loadThr.SetAttribute("ThresholdValue", slat.ThresholdValue.ToString(formatProvider));
                                 rule.AppendChild(loadThr);
 
                             }
@@ -302,9 +303,9 @@ namespace LRAnalysisLauncher
                                 XmlElement subsubelem = xmlDoc.CreateElement("TimeRangeInfo");
                                 subsubelem.SetAttribute("StartTime", slatri.StartTime.ToString());
                                 subsubelem.SetAttribute("EndTime", slatri.EndTime.ToString());
-                                subsubelem.SetAttribute("GoalValue", slatri.GoalValue.ToString(new CultureInfo("en-US")));
-                                subsubelem.SetAttribute("ActualValue", slatri.ActualValue.ToString(new CultureInfo("en-US")));
-                                subsubelem.SetAttribute("LoadValue", slatri.LoadValue.ToString(new CultureInfo("en-US")));
+                                subsubelem.SetAttribute("GoalValue", slatri.GoalValue.ToString(formatProvider));
+                                subsubelem.SetAttribute("ActualValue", slatri.ActualValue.ToString(formatProvider));
+                                subsubelem.SetAttribute("LoadValue", slatri.LoadValue.ToString(formatProvider));
                                 subsubelem.InnerText = slatri.Status.ToString();
                                 timeRanges.AppendChild(subsubelem);
                             }
@@ -330,9 +331,9 @@ namespace LRAnalysisLauncher
                             foreach (SlaLoadThreshold slat in a.LoadThresholds)
                             {
                                 XmlElement loadThr = xmlDoc.CreateElement("SlaLoadThreshold");
-                                loadThr.SetAttribute("StartLoadValue", slat.StartLoadValue.ToString(new CultureInfo("en-US")));
-                                loadThr.SetAttribute("EndLoadValue", slat.EndLoadValue.ToString(new CultureInfo("en-US")));
-                                loadThr.SetAttribute("ThresholdValue", slat.ThresholdValue.ToString(new CultureInfo("en-US")));
+                                loadThr.SetAttribute("StartLoadValue", slat.StartLoadValue.ToString(formatProvider));
+                                loadThr.SetAttribute("EndLoadValue", slat.EndLoadValue.ToString(formatProvider));
+                                loadThr.SetAttribute("ThresholdValue", slat.ThresholdValue.ToString(formatProvider));
                                 rule.AppendChild(loadThr);
 
                             }
@@ -343,9 +344,9 @@ namespace LRAnalysisLauncher
                                 XmlElement subsubelem = xmlDoc.CreateElement("TimeRangeInfo");
                                 subsubelem.SetAttribute("StartTime", slatri.StartTime.ToString());
                                 subsubelem.SetAttribute("EndTime", slatri.EndTime.ToString());
-                                subsubelem.SetAttribute("GoalValue", slatri.GoalValue.ToString(new CultureInfo("en-US")));
-                                subsubelem.SetAttribute("ActualValue", slatri.ActualValue.ToString(new CultureInfo("en-US")));
-                                subsubelem.SetAttribute("LoadValue", slatri.LoadValue.ToString(new CultureInfo("en-US")));
+                                subsubelem.SetAttribute("GoalValue", slatri.GoalValue.ToString(formatProvider));
+                                subsubelem.SetAttribute("ActualValue", slatri.ActualValue.ToString(formatProvider));
+                                subsubelem.SetAttribute("LoadValue", slatri.LoadValue.ToString(formatProvider));
                                 subsubelem.InnerText = slatri.Status.ToString();
                                 timeRanges.AppendChild(subsubelem);
                             }
