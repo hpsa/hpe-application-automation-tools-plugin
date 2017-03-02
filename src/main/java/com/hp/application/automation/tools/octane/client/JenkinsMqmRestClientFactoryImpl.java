@@ -38,7 +38,7 @@ import java.util.regex.Pattern;
 public class JenkinsMqmRestClientFactoryImpl implements JenkinsMqmRestClientFactory {
 	private static final Logger logger = LogManager.getLogger(JenkinsMqmRestClientFactoryImpl.class);
 	private static final String CLIENT_TYPE = "HPE_CI_CLIENT";
-	private static MqmRestClient mqmRestClient;
+	private MqmRestClient mqmRestClient;
 
 	@Override
 	public synchronized MqmRestClient obtain(String location, String sharedSpace, String username, Secret password) {

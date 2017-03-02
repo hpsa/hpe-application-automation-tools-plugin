@@ -223,11 +223,10 @@ public class TestDispatcherTest {
 		Assert.assertEquals(1, queue.size());
 	}
 
-	@Ignore
 	@Test
 	public void testDispatchMatrixBuild() throws Exception {
 		MatrixProject matrixProject = rule.createProject(MatrixProject.class, "TestDispatcherMatrix");
-		matrixProject.setAxes(new AxisList(new Axis("OS", "Linux", "Windows")));
+		matrixProject.setAxes(new AxisList(new Axis("osType", "Linux", "Windows")));
 
 		Maven.MavenInstallation mavenInstallation = ToolInstallations.configureMaven3();
 
