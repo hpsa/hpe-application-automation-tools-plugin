@@ -17,6 +17,7 @@
 package com.hp.application.automation.tools.octane.tests;
 
 import com.google.inject.Inject;
+import com.hp.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.SharedSpaceNotExistException;
 import com.hp.mqm.client.exception.FileNotFoundException;
@@ -130,14 +131,14 @@ public class TestDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 				continue;
 			}
 
-			String jobName;
+			String jobCiId;
 			if (build instanceof MatrixRun) {
-				jobName = ((MatrixRun) build).getProject().getParent().getName();
+				jobCiId = ((MatrixRun) build).getProject().getParent().getName();
 			} else {
-				jobName = build.getParent().getName();
+				jobCiId = BuildHandlerUtils.getJobCiId(build);//build.getParent().getName();
 			}
 
-			Boolean needTestResult = client.isTestResultRelevant(ConfigurationService.getModel().getIdentity(), jobName);
+			Boolean needTestResult = client.isTestResultRelevant(ConfigurationService.getModel().getIdentity(), jobCiId);
 
 			if (needTestResult) {
 				try {
