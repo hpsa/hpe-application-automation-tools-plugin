@@ -11,8 +11,7 @@
 	<version>5.1-SNAPSHOT</version>
 	<packaging>hpi</packaging>
 	<name>HP Application Automation Tools</name>
-	<description>Allowing to run HP testing tools tests: Unified Functional Testing, QuickTest Professional, Service Test, Mobile Center and Performance Center
-	</description>
+	<description>The plugin integrates Jenkins with the following HPE products - Service Virtualization, LoadRunner, Performance Center, Unified Functional Testing, QuickTest Professional, Service Test, Mobile Center, Application Lifecycle Management and Application Lifecycle Management Octane.</description>
 	<url>https://wiki.jenkins-ci.org/display/JENKINS/HP+Application+Automation+Tools</url>
 
 	<licenses>
