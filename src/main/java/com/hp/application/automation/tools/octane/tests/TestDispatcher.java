@@ -34,7 +34,6 @@ import com.hp.application.automation.tools.octane.configuration.ConfigurationSer
 import com.hp.application.automation.tools.octane.configuration.ServerConfiguration;
 import hudson.Extension;
 import hudson.FilePath;
-import hudson.matrix.MatrixRun;
 import hudson.model.*;
 import hudson.util.TimeUnit2;
 import jenkins.YesNoMaybe;
@@ -117,28 +116,20 @@ public class TestDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 				retryModel.success();
 			}
 			Job project = (Job) Jenkins.getInstance().getItemByFullName(item.getProjectName());
-		//	AbstractProject project1 = (AbstractProject) Jenkins.getInstance().getItemByFullName(item.getProjectName());
 			if (project == null) {
 				logger.warn("Project [" + item.getProjectName() + "] no longer exists, pending test results can't be submitted");
 				queue.remove();
 				continue;
 			}
 			Run build = project.getBuildByNumber(item.getBuildNumber());
-			//AbstractBuild build = project.getBuildByNumber(item.getBuildNumber());
 			if (build == null) {
 				logger.warn("Build [" + item.getProjectName() + "#" + item.getBuildNumber() + "] no longer exists, pending test results can't be submitted");
 				queue.remove();
 				continue;
 			}
 
-			String jobCiId;
-			if (build instanceof MatrixRun) {
-				jobCiId = ((MatrixRun) build).getProject().getParent().getName();
-			} else {
-				jobCiId = BuildHandlerUtils.getJobCiId(build);//build.getParent().getName();
-			}
-
-			Boolean needTestResult = client.isTestResultRelevant(ConfigurationService.getModel().getIdentity(), jobCiId);
+			Boolean needTestResult = client.isTestResultRelevant(
+					ConfigurationService.getModel().getIdentity(), BuildHandlerUtils.getJobCiId(build));
 
 			if (needTestResult) {
 				try {
