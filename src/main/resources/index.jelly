@@ -3,5 +3,5 @@
 -->
 <?jelly escape-by-default='true'?>
 <div>
-  This plugin allows integration with HP ALM, HP Unified Functional Testing, HP LoadRunner and HP Performance cente
+  This plugin enables integration with HPE products, such as: ALM, ALM Octane, Unified Functional Testing, LoadRunner, and Performance Center.
 </div>
