@@ -1,4 +1,5 @@
-Make sure these boxes are checked before submitting your pull request - Thanks ahead!
+
+Please Make sure these boxes are checked before submitting your pull request - Thanks ahead!
 
 - [ ] Proper pull request title - concise and clear for others.
 - [ ] Proper pull request short description - clear and concise (as it should appear in the Jira ticket) for other developers and users.
