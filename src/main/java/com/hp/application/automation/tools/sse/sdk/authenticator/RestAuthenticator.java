@@ -1,4 +1,26 @@
-package com.hp.application.automation.tools.sse.sdk;
+/*
+ * Copyright (c) 2012 Hewlett-Packard Development Company, L.P.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+package com.hp.application.automation.tools.sse.sdk.authenticator;
 
 import java.net.HttpURLConnection;
 import java.util.HashMap;
@@ -6,7 +28,7 @@ import java.util.Map;
 
 import com.hp.application.automation.tools.common.SSEException;
 import com.hp.application.automation.tools.rest.RESTConstants;
-import com.hp.application.automation.tools.rest.RestClient;
+import com.hp.application.automation.tools.sse.sdk.*;
 
 /***
  * 
@@ -15,16 +37,16 @@ import com.hp.application.automation.tools.rest.RestClient;
  * 
  */
 
-public class RestAuthenticator {
+public class RestAuthenticator implements Authenticator {
     
     public static final String IS_AUTHENTICATED = "rest/is-authenticated";
     public static String AUTHENTICATE_HEADER = "WWW-Authenticate";
     public static String INVALID_ALM_SERVER_URL = "Invalid ALM Server URL";
-    public static String AUTHENTICATEION_INFO = "AuthenticationInfo";
+    public static String AUTHENTICATION_INFO = "AuthenticationInfo";
     public static String USER_NAME = "Username";
     
     public boolean login(Client client, String username, String password, Logger logger) {
-        
+        logger.log("Start login to ALM server.");
         boolean ret = true;
         String authenticationPoint = isAuthenticated(client, logger);
         if (authenticationPoint != null) {
@@ -66,7 +88,7 @@ public class RestAuthenticator {
      * @throws Exception
      *             close session on server and clean session cookies on client
      */
-    public boolean logout(RestClient client, String username) {
+    public boolean logout(Client client, String username) {
         
         // note the get operation logs us out by setting authentication cookies to:
         // LWSSO_COOKIE_KEY="" via server response header Set-Cookie
@@ -87,7 +109,7 @@ public class RestAuthenticator {
      * @throws Exception
      *             if error such as 404, or 500
      */
-    public String isAuthenticated(Client client, Logger logger) {
+    private String isAuthenticated(Client client, Logger logger) {
         
         String ret;
         Response response =
@@ -142,7 +164,7 @@ public class RestAuthenticator {
     //<?xml version="1.0" encoding="UTF-8" standalone="yes"?><AuthenticationInfo><Username>sa</Username></AuthenticationInfo>
 	private boolean containAuthenticatedInfo(String authInfo, String authUser){
 		
-		return authInfo.contains(AUTHENTICATEION_INFO) && authInfo.contains(USER_NAME) && authInfo.contains(authUser);
+		return authInfo.contains(AUTHENTICATION_INFO) && authInfo.contains(USER_NAME) && authInfo.contains(authUser);
 	}
 
 

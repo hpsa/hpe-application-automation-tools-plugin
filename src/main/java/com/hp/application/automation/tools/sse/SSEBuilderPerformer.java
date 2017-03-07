@@ -25,42 +25,34 @@ public class SSEBuilderPerformer {
             VariableResolver<String> buildVariableResolver) throws InterruptedException {
         
         Testsuites ret = new Testsuites();
-        try {
-            Args args = new ArgsFactory().createResolved(model, buildVariableResolver);
-            SseProxySettings proxySettings = model.getProxySettings();
-            
-            RestClient restClient;
-            
-            if (proxySettings != null) {
-            	// Construct restClient with proxy.
-            	String username = proxySettings.getFsProxyUserName();
-            	String password = proxySettings.getFsProxyPassword() == null ? null : proxySettings.getFsProxyPassword().getPlainText();
-            	String passwordCrypt = proxySettings.getFsProxyPassword() == null ? null : proxySettings.getFsProxyPassword().getEncryptedValue();
-            	
-            	restClient = new RestClient(args.getUrl(),
-                                args.getDomain(),
-                                args.getProject(),
-                                args.getUsername(),
-                                RestClient.setProxyCfg(proxySettings.getFsProxyAddress(), username, password));
-            	logger.log(String.format("Connect with proxy. Address: %s, Username: %s, Password: %s",
-            			proxySettings.getFsProxyAddress(), username, passwordCrypt));
-            }
-            else {
-            	// Construct restClient without proxy.
-            	restClient = new RestClient(args.getUrl(),
-            					args.getDomain(),
-                                args.getProject(),
-                                args.getUsername());
-            }
-            ret = _runManager.execute(restClient, args, logger);
+
+        Args args = new ArgsFactory().createResolved(model, buildVariableResolver);
+        SseProxySettings proxySettings = model.getProxySettings();
+
+        RestClient restClient;
+
+        if (proxySettings != null) {
+            // Construct restClient with proxy.
+            String username = proxySettings.getFsProxyUserName();
+            String password = proxySettings.getFsProxyPassword() == null ? null : proxySettings.getFsProxyPassword().getPlainText();
+            String passwordCrypt = proxySettings.getFsProxyPassword() == null ? null : proxySettings.getFsProxyPassword().getEncryptedValue();
+
+            restClient = new RestClient(args.getUrl(),
+                            args.getDomain(),
+                            args.getProject(),
+                            args.getUsername(),
+                            RestClient.setProxyCfg(proxySettings.getFsProxyAddress(), username, password));
+            logger.log(String.format("Connect with proxy. Address: %s, Username: %s, Password: %s",
+                    proxySettings.getFsProxyAddress(), username, passwordCrypt));
         }
-        catch (InterruptedException ex) {
-            throw ex;
+        else {
+            // Construct restClient without proxy.
+            restClient = new RestClient(args.getUrl(),
+                            args.getDomain(),
+                            args.getProject(),
+                            args.getUsername());
         }
-        catch (Exception cause) {
-            logger.log(String.format("Failed to execute ALM tests. Cause: %s", cause.getMessage()));
-        }
-        
+        ret = _runManager.execute(restClient, args, logger);
         return ret;
     }
     

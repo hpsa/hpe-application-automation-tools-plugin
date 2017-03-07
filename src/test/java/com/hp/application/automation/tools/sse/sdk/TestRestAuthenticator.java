@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.hp.application.automation.tools.sse.sdk.authenticator.RestAuthenticator;
 import org.junit.Assert;
 import org.junit.Test;
 

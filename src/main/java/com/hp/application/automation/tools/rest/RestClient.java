@@ -4,13 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.Authenticator;
-import java.net.HttpURLConnection;
-import java.net.InetSocketAddress;
-import java.net.PasswordAuthentication;
-import java.net.Proxy;
-import java.net.URL;
-import java.net.URLConnection;
+import java.net.*;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
@@ -54,42 +48,42 @@ public class RestClient implements Client {
      * Configure SSL context for the client.
      */
     static {
-    	// First create a trust manager that won't care.
-		X509TrustManager trustManager = new X509TrustManager() {
-			@Override
-			public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-				// Don't do anything.
-			}
-			@Override
-			public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-				// Don't do anything.
-			}
-			@Override
-			public X509Certificate[] getAcceptedIssuers() {
-				// Don't do anything.
-				return null;
-			}
+        // First create a trust manager that won't care.
+        X509TrustManager trustManager = new X509TrustManager() {
+            @Override
+            public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+                // Don't do anything.
+            }
+            @Override
+            public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+                // Don't do anything.
+            }
+            @Override
+            public X509Certificate[] getAcceptedIssuers() {
+                // Don't do anything.
+                return null;
+            }
 
-		};
-		// Now put the trust manager into an SSLContext.
-		SSLContext sslcontext;
-		try {
-			sslcontext = SSLContext.getInstance("SSL");
-			sslcontext.init(null, new TrustManager[] { trustManager }, null);
-		} catch (KeyManagementException | NoSuchAlgorithmException e) {
-			throw new SSEException(e);
-		}
-		
-		HttpsURLConnection.setDefaultSSLSocketFactory(sslcontext.getSocketFactory());
-		
-		//Ignore hostname verify
-		HttpsURLConnection.setDefaultHostnameVerifier(
-		    new HostnameVerifier(){
-		        public boolean verify(String hostname, SSLSession sslSession) {
-		        	return true;
-		        }
-		    }
-		);
+        };
+        // Now put the trust manager into an SSLContext.
+        SSLContext sslcontext;
+        try {
+            sslcontext = SSLContext.getInstance("SSL");
+            sslcontext.init(null, new TrustManager[] { trustManager }, null);
+        } catch (KeyManagementException | NoSuchAlgorithmException e) {
+            throw new SSEException(e);
+        }
+        
+        HttpsURLConnection.setDefaultSSLSocketFactory(sslcontext.getSocketFactory());
+        
+        //Ignore hostname verify
+        HttpsURLConnection.setDefaultHostnameVerifier(
+            new HostnameVerifier(){
+                public boolean verify(String hostname, SSLSession sslSession) {
+                    return true;
+                }
+            }
+        );
     }
     
     public RestClient(String url, String domain, String project, String username) {
@@ -272,7 +266,7 @@ public class RestClient implements Client {
             byte[] bytes) {
 
         // set all cookies for request
-        connnection.setRequestProperty(RESTConstants.COOKIE, getCookies());
+        connnection.setRequestProperty(RESTConstants.COOKIE, getCookiesString());
 
         setConnectionHeaders(connnection, headers);
 
@@ -366,8 +360,7 @@ public class RestClient implements Client {
         }
     }
 
-    private String getCookies() {
-
+    private String getCookiesString() {
         StringBuilder ret = new StringBuilder();
         if (!_cookies.isEmpty()) {
             for (Entry<String, String> entry : _cookies.entrySet()) {
@@ -383,7 +376,7 @@ public class RestClient implements Client {
 
         return _username;
     }
-    
+
     public static URLConnection openConnection(final ProxyInfo proxyInfo, String urlString) throws IOException {
         Proxy proxy = null;
         URL url = new URL(urlString);
@@ -437,8 +430,8 @@ public class RestClient implements Client {
         ProxyInfo proxyInfo = new ProxyInfo();
 
         if (address != null) {
-        	String host = address;
-        	
+            String host = address;
+            
             if (address.endsWith("/")) {
                 int end = address.lastIndexOf('/');
                 host = address.substring(0, end);
@@ -466,7 +459,7 @@ public class RestClient implements Client {
         String _password;
 
         public ProxyInfo() {
-        	//Keep the non parameter constructor.
+            //Keep the non parameter constructor.
         }
 
         public ProxyInfo(String host, String port, String userName, String password) {
@@ -476,5 +469,9 @@ public class RestClient implements Client {
             _password = password;
         }
 
+    }
+
+    public Map<String, String> getCookies() {
+        return _cookies;
     }
 }
