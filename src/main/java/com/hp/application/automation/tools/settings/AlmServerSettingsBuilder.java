@@ -140,14 +140,6 @@ public class AlmServerSettingsBuilder extends Builder {
                 }
             }
 
-            // Check url pattern
-            String regex = "^https?://(\\S*)/qcbin$";
-            Pattern p = Pattern.compile(regex);
-            Matcher m = p.matcher(value);
-            if (!m.find()) {
-                return FormValidation.error("ALM server URL should in the following format: http(s)://<Servername>/qcbin");
-            }
-
             // Does the URL ends with a "/" ? if not, add it
             if (value.lastIndexOf("/") == value.length() - 1) {
                 url = value + page;
@@ -170,7 +162,7 @@ public class AlmServerSettingsBuilder extends Builder {
                 return FormValidation.error("ALM server URL is malformed.");
             } catch (IOException ex) {
                 // Cant open connection to the server
-                return FormValidation.error("Error openning a connection to the ALM server");
+                return FormValidation.error("Error opening a connection to the ALM server");
             }
             
             return FormValidation.ok();
