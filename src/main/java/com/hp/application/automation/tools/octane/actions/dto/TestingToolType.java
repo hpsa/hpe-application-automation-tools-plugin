@@ -16,46 +16,41 @@
 
 package com.hp.application.automation.tools.octane.actions.dto;
 
+import com.hp.mqm.client.model.ListItem;
+
 /**
  * Created by kashbi on 25/09/2016.
  */
 @SuppressWarnings("squid:S109")
 public class TestingToolType {
     private String type = "list_node";
-    private String logical_name = "list_node.testing_tool_type.uft";
-    private String name = "UFT";
-    private Integer index = 4;
-    private Integer id = 1075;
+    private String logical_name;
+    private String name;
+    private Long id;
+
+    public static TestingToolType fromListItem(ListItem item) {
+        TestingToolType type = new TestingToolType();
+        type.logical_name = item.getLogicalName();
+        type.id = item.getId();
+        type.name = item.getName();
+        return type;
+    }
 
     public String getType() {
         return type;
     }
 
-    public void setType(String type) {
-        this.type = type;
-    }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
 
-    public Integer getIndex() {
-        return index;
-    }
-
-    public void setIndex(Integer index) {
-        this.index = index;
-    }
-
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
-        this.id = id;
+    public String getLogical_name() {
+        return logical_name;
     }
 }

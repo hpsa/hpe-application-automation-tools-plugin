@@ -60,14 +60,9 @@ public class UFTTestDetectionPublisher extends Recorder {
 
 	@Override
 	public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) {
-		// This is where you 'build' the project.
-		// Since this is a dummy, we just say 'hello world' and call that a build.
-
-		// This also shows how you can consult the global configuration of the builder
-		String message = "";
-
-		UFTTestDetectionBuildAction buildAction = new UFTTestDetectionBuildAction(message, build, getWorkspaceName());
-		build.addAction(buildAction);
+		UFTTestDetectionBuildAction buildAction = new UFTTestDetectionBuildAction(build, getWorkspaceName(), listener);
+		buildAction.startScanning();
+		//build.addAction(buildAction);
 
 		return true;
 	}
