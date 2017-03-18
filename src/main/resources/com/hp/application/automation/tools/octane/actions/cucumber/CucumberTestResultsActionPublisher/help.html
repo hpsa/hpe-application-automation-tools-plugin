@@ -1,0 +1,25 @@
+<!--
+  ~     Copyright 2017 Hewlett-Packard Development Company, L.P.
+  ~     Licensed under the Apache License, Version 2.0 (the "License");
+  ~     you may not use this file except in compliance with the License.
+  ~     You may obtain a copy of the License at
+  ~
+  ~       http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~     Unless required by applicable law or agreed to in writing, software
+  ~     distributed under the License is distributed on an "AS IS" BASIS,
+  ~     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~     See the License for the specific language governing permissions and
+  ~     limitations under the License.
+  ~
+  -->
+
+<div>
+    When using this action, Jenkins understands and reads the Cucumber test report XML structure.
+    After reading the structure, Jenkins can provide useful information about Cucumber tests results to HPE ALM Octane.
+
+    <p>
+    To use the feature, ensure that you have added a Publish JUnit test results post-build action to your build.
+    Then, specify the path to the Cucumber report XML files in the <a href="http://ant.apache.org/manual/Types/fileset.html">Ant glob syntax</a>.
+    Be sure not to include any non-Cucumber-report files in this path. You can specify multiple patterns by separating them with commas.
+</div>
