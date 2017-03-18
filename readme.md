@@ -1,6 +1,9 @@
 ![HPE LOGO](https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Hewlett_Packard_Enterprise_logo.svg/200px-Hewlett_Packard_Enterprise_logo.svg.png)
 
 # HPE automation plugin for Jenkins CI                        
+
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/8ec4415bffe94fda8ae40415388c063e)](https://www.codacy.com/app/HPEbot/hp-application-automation-tools-plugin?utm_source=github.com&utm_medium=referral&utm_content=hpsa/hp-application-automation-tools-plugin&utm_campaign=badger)
+
 ##### The plugin provides the ability to run HPE products with Jenkins during builds.
 
 ## Relevent links
