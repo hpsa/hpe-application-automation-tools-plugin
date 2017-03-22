@@ -40,7 +40,7 @@ public class WorkFlowRunProcessor {
 		this.workFlowRun = (WorkflowRun) r;
 	}
 
-	public void registerEvents(ExecutorService executor, final RunListenerImpl runListener) {
+	public void registerEvents(ExecutorService executor) {
 		ListenableFuture<FlowExecution> promise = workFlowRun.getExecutionPromise();
 		promise.addListener(new Runnable() {
 			@Override
