@@ -16,6 +16,7 @@
 
 package com.hp.application.automation.tools.octane.events;
 
+import com.hp.application.automation.tools.octane.configuration.ConfigurationService;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
@@ -39,6 +40,10 @@ public final class QueueListenerImpl extends QueueListener {
 
 	@Override
 	public void onEnterWaiting(Queue.WaitingItem wi) {
+		if(!ConfigurationService.getServerConfiguration().isValid()){
+			return;
+		}
+
 		AbstractProject project;
 		if (wi.task instanceof AbstractProject) {
 			project = (AbstractProject) wi.task;

@@ -17,6 +17,7 @@
 package com.hp.application.automation.tools.octane.events;
 
 import com.google.inject.Inject;
+import com.hp.application.automation.tools.octane.configuration.ConfigurationService;
 import com.hp.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.events.CIEvent;
@@ -63,6 +64,10 @@ public final class RunListenerImpl extends RunListener<Run> {
 
 	@Override
 	public void onStarted(final Run r, TaskListener listener) {
+		if(!ConfigurationService.getServerConfiguration().isValid()){
+			return;
+		}
+
 		CIEvent event;
 		if (r.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowRun")) {
 			event = dtoFactory.newDTO(CIEvent.class)
@@ -120,6 +125,10 @@ public final class RunListenerImpl extends RunListener<Run> {
 
 	@Override
 	public void onCompleted(Run r, @Nonnull TaskListener listener) {
+		if(!ConfigurationService.getServerConfiguration().isValid()){
+			return;
+		}
+
 		CIBuildResult result;
 		if (r.getResult() == Result.SUCCESS) {
 			result = CIBuildResult.SUCCESS;
