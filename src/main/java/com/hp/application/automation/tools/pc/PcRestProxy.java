@@ -20,6 +20,9 @@
  * THE SOFTWARE.
  */
 
+/*
+* Implements the REST API methods for executing the loadtest
+* */
 package com.hp.application.automation.tools.pc;
 
 import com.hp.application.automation.tools.common.PcException;
@@ -27,6 +30,7 @@ import com.hp.application.automation.tools.model.TimeslotDuration;
 import com.hp.application.automation.tools.rest.RESTConstants;
 import com.hp.application.automation.tools.sse.sdk.Base64Encoder;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -45,19 +49,22 @@ import org.apache.http.impl.conn.SchemeRegistryFactory;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.InputStream;
+import java.io.IOException;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import java.io.PrintStream;
+
+
 import static org.apache.commons.httpclient.HttpStatus.*;
 
 public class PcRestProxy {
-	
-    protected static final String        BASE_PC_API_URL                = "http://%s/LoadTest/rest";
+
+    protected static final String        BASE_PC_API_URL                = "%s://%s/LoadTest/rest";
     protected static final String        BASE_PC_API_AUTHENTICATION_URL = BASE_PC_API_URL + "/authentication-point";
     protected static final String        AUTHENTICATION_LOGIN_URL       = BASE_PC_API_AUTHENTICATION_URL + "/authenticate";
     protected static final String        AUTHENTICATION_LOGOUT_URL      = BASE_PC_API_AUTHENTICATION_URL + "/logout";
@@ -76,21 +83,26 @@ public class PcRestProxy {
     private String pcServer;
 	private String domain;
 	private String project;
+	private String webProtocol;
 
 	private HttpClient client;
     private HttpContext context;
     private CookieStore cookieStore;
-    
-    public PcRestProxy(String pcServerName, String almDomain, String almProject) {
- 
+  //  private PrintStream logger;
+
+    public PcRestProxy(String webProtocolName, String pcServerName, String almDomain, String almProject,PrintStream mainLogger) {
+
+//        logger = mainLogger;
     	pcServer = pcServerName;
     	domain = almDomain;
     	project = almProject;
-    	baseURL = String.format(PC_API_RESOURCES_TEMPLATE, pcServer, domain, project);
+    	webProtocol = webProtocolName;
+    	baseURL = String.format(PC_API_RESOURCES_TEMPLATE, webProtocol,pcServer, domain, project);
 
     	PoolingClientConnectionManager cxMgr = new PoolingClientConnectionManager(SchemeRegistryFactory.createDefault());
     	cxMgr.setMaxTotal(100);
     	cxMgr.setDefaultMaxPerRoute(20);
+
     	
     	client = new DefaultHttpClient(cxMgr);   	
     	context = new BasicHttpContext();
@@ -100,10 +112,9 @@ public class PcRestProxy {
 
     
     public boolean authenticate(String userName, String password) throws PcException, ClientProtocolException, IOException {
-
         String userNameAndPassword = userName + ":" + password;
         String encodedCredentials = Base64Encoder.encode(userNameAndPassword.getBytes());
-        HttpGet authRequest = new HttpGet(String.format(AUTHENTICATION_LOGIN_URL, pcServer));
+        HttpGet authRequest = new HttpGet(String.format(AUTHENTICATION_LOGIN_URL,webProtocol, pcServer));
         authRequest.addHeader("Authorization", String.format("Basic %s", encodedCredentials));
         executeRequest(authRequest);
         return true;
@@ -111,6 +122,7 @@ public class PcRestProxy {
 
     public PcRunResponse startRun(int testId, int testInstaceId, TimeslotDuration timeslotDuration,
             String postRunAction, boolean vudsMode) throws PcException, ClientProtocolException, IOException {
+     //   logger.println("Starting run");
         HttpPost startRunRequest = new HttpPost(String.format(baseURL + "/%s", RUNS_RESOURCE_NAME));
         startRunRequest.addHeader(RESTConstants.CONTENT_TYPE, CONTENT_TYPE_XML);
         PcRunRequest runRequestData = new PcRunRequest(testId, testInstaceId, 0, timeslotDuration, postRunAction, vudsMode);
@@ -204,23 +216,32 @@ public class PcRestProxy {
     }
     
     public boolean logout() throws PcException, ClientProtocolException, IOException {
-        HttpGet logoutRequest = new HttpGet(String.format(AUTHENTICATION_LOGOUT_URL, pcServer));
+        HttpGet logoutRequest = new HttpGet(String.format(AUTHENTICATION_LOGOUT_URL, webProtocol,pcServer));
         executeRequest(logoutRequest);
         return true;
     }
 
     protected HttpResponse executeRequest(HttpRequestBase request) throws PcException, IOException {
-    		HttpResponse response = client.execute(request,context);
+//        logger.println(String.format("DEBUGMSG - Request uri %s",request.getURI().toString()));
+//        logger.println(String.format("DEBUGMSG - Request Method %s",request.getMethod().toString()));
+//        // Print all headers
+//        logger.println("DEBUGMSG - Headers");
+//        List<Header> httpHeaders = Arrays.asList(request.getAllHeaders());
+//        for (Header header : httpHeaders) {
+//            logger.println("DEBUGMSG - " + header.getName() + " : " + header.getValue());
+//        }
+        HttpResponse response = client.execute(request,context);
 			if (!isOk(response)){
 				String message;
 				try {
 					String content = IOUtils.toString(response.getEntity().getContent());
+//                    logger.println("DEBUGMSG - response content: " + content);
 					PcErrorResponse exception = PcErrorResponse.xmlToObject(content);
-					message  = String.format("%s Error code: %s", exception.ExceptionMessage, exception.ErrorCode);					
-				} catch (Exception ex) {
+					message  = String.format("%s Error code: %s", exception.ExceptionMessage, exception.ErrorCode);
+                } catch (Exception ex) {
 					message = response.getStatusLine().toString();
 				}
-				throw new PcException(message); 
+				throw new PcException("executeRequest exception: " + message);
 			}  		
     		return response;           
     }
