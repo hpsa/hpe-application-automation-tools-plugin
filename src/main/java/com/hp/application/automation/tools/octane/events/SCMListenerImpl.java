@@ -17,6 +17,7 @@
 package com.hp.application.automation.tools.octane.events;
 
 import com.hp.application.automation.tools.octane.model.processors.scm.SCMProcessor;
+import com.hp.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
@@ -84,7 +85,7 @@ public class SCMListenerImpl extends SCMListener {
                     for (SCMData scmData : scmDataList) {
                         event = dtoFactory.newDTO(CIEvent.class)
                           .setEventType(CIEventType.SCM)
-                          .setProject(getProjectName(r))
+                          .setProject(BuildHandlerUtils.getJobCiId(r))
                           .setBuildCiId(String.valueOf(r.getNumber()))
                           .setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
                           .setNumber(String.valueOf(r.getNumber()))
@@ -103,24 +104,13 @@ public class SCMListenerImpl extends SCMListener {
         SCMData scmData = scmProcessor.getSCMData(build);
         event = dtoFactory.newDTO(CIEvent.class)
 					.setEventType(CIEventType.SCM)
-					.setProject(getProjectName(r))
+                    .setProject(BuildHandlerUtils.getJobCiId(r))
 					.setBuildCiId(String.valueOf(r.getNumber()))
 					.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
 					.setNumber(String.valueOf(r.getNumber()))
 					.setScmData(scmData);
         EventsService.getExtensionInstance().dispatchEvent(event);
     }
-
-    private String getProjectName(Run r) {
-        if (r.getParent() instanceof MatrixConfiguration) {
-            return ((MatrixRun) r).getParentBuild().getParent().getName();
-        }
-        if ("org.jenkinsci.plugins.workflow.job.WorkflowJob".equals(r.getParent().getClass().getName())) {
-            return r.getParent().getName();
-        }
-        return ((AbstractBuild) r).getProject().getName();
-    }
-
 
     private List<Cause> extractCauses(Run r) {
         if (r.getParent() instanceof MatrixConfiguration) {

@@ -17,6 +17,7 @@
 package com.hp.application.automation.tools.octane.events;
 
 import com.google.inject.Inject;
+import com.hp.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
@@ -35,8 +36,6 @@ import hudson.matrix.MatrixRun;
 import hudson.model.*;
 import hudson.model.listeners.RunListener;
 import jenkins.model.Jenkins;
-import org.jenkinsci.plugins.workflow.job.WorkflowJob;
-import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -68,7 +67,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 		if (r.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowRun")) {
 			event = dtoFactory.newDTO(CIEvent.class)
 					.setEventType(CIEventType.STARTED)
-					.setProject(JobProcessorFactory.getFlowProcessor(r.getParent()).getJobCiId())
+					.setProject(BuildHandlerUtils.getJobCiId(r))
 					.setBuildCiId(String.valueOf(r.getNumber()))
 					.setNumber(String.valueOf(r.getNumber()))
 					.setStartTime(r.getStartTimeInMillis())
@@ -83,8 +82,8 @@ public final class RunListenerImpl extends RunListener<Run> {
 				AbstractBuild build = (AbstractBuild) r;
 				event = dtoFactory.newDTO(CIEvent.class)
 						.setEventType(CIEventType.STARTED)
-						.setProject(getJobCiId(r))
-						.setProjectDisplayName(getJobCiId(r))
+						.setProject(BuildHandlerUtils.getJobCiId(r))
+						.setProjectDisplayName(BuildHandlerUtils.getJobCiId(r))
 						.setBuildCiId(String.valueOf(build.getNumber()))
 						.setNumber(String.valueOf(build.getNumber()))
 						.setStartTime(build.getStartTimeInMillis())
@@ -101,8 +100,8 @@ public final class RunListenerImpl extends RunListener<Run> {
 				AbstractBuild build = (AbstractBuild) r;
 				event = dtoFactory.newDTO(CIEvent.class)
 						.setEventType(CIEventType.STARTED)
-						.setProject(getJobCiId(r))
-						.setProjectDisplayName(getJobCiId(r))
+						.setProject(BuildHandlerUtils.getJobCiId(r))
+						.setProjectDisplayName(BuildHandlerUtils.getJobCiId(r))
 						.setBuildCiId(String.valueOf(build.getNumber()))
 						.setNumber(String.valueOf(build.getNumber()))
 						.setStartTime(build.getStartTimeInMillis())
@@ -135,18 +134,18 @@ public final class RunListenerImpl extends RunListener<Run> {
 		}
 		CIEvent	event = dtoFactory.newDTO(CIEvent.class)
 					.setEventType(CIEventType.FINISHED)
-					.setProject(getJobCiId(r))
-					.setProjectDisplayName(getJobCiId(r))
 					.setBuildCiId(String.valueOf(r.getNumber()))
 					.setNumber(String.valueOf(r.getNumber()))
+					.setProject(BuildHandlerUtils.getJobCiId(r))
 					.setStartTime(r.getStartTimeInMillis())
 					.setEstimatedDuration(r.getEstimatedDuration())
 					.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
 					.setResult(result)
 					.setDuration(r.getDuration());
 
-		if (r instanceof AbstractBuild) {
-			event.setParameters(ParameterProcessors.getInstances(r));
+		if(r instanceof AbstractBuild){
+			event.setParameters(ParameterProcessors.getInstances(r))
+			.setProjectDisplayName(BuildHandlerUtils.getJobCiId(r));
 		}
 		if(event!=null){
 			EventsService.getExtensionInstance().dispatchEvent(event);
@@ -210,16 +209,6 @@ public final class RunListenerImpl extends RunListener<Run> {
 			return null;
 		}
 		return null;
-	}
-
-	private static String getJobCiId(Run r) {
-		if (r.getParent() instanceof MatrixConfiguration) {
-			return JobProcessorFactory.getFlowProcessor(((MatrixRun) r).getParentBuild().getParent()).getJobCiId();
-		}
-		if (r.getParent().getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob")) {
-			return r.getParent().getName();
-		}
-		return JobProcessorFactory.getFlowProcessor(((AbstractBuild) r).getProject()).getJobCiId();
 	}
 
 	private static List<Cause> extractCauses(Run r) {

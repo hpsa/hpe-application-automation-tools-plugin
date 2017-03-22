@@ -46,9 +46,6 @@ public class OctaneServerSettingsBuilder extends Builder {
 
     private static final Logger logger = LogManager.getLogger(OctaneServerSettingsBuilder.class);
 
-    @Inject
-    private static BdiConfigurationFetcher bdiConfigurationFetcher;
-
     @Override
     public OctaneDescriptorImpl getDescriptor() {
         return (OctaneDescriptorImpl) super.getDescriptor();

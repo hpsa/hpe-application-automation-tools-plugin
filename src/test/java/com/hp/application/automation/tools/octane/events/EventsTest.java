@@ -72,7 +72,9 @@ public class EventsTest {
 	static public void beforeClass() throws Exception {
 		String p = System.getProperty("testingServerPort");
 		try {
-			if (p != null) testingServerPort = Integer.parseInt(p);
+			if (p != null) {
+				testingServerPort = Integer.parseInt(p);
+			}
 		} catch (NumberFormatException nfe) {
 			logger.info("EVENTS TEST: bad port number format, default port will be used: " + testingServerPort);
 		}
@@ -93,7 +95,6 @@ public class EventsTest {
 	}
 
 	@Test
-	@Ignore
 	public void testEventsA() throws Exception {
 		configurePlugin();
 

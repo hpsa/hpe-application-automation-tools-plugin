@@ -22,11 +22,10 @@ package com.hp.application.automation.tools.octane.actions.dto;
 public class AutomatedTest {
     private String type = "test";
     private String subtype = "test_automated";
-    private com.hp.application.automation.tools.octane.actions.dto.TestingToolType testing_tool_type;
+    private TestingToolType testing_tool_type;
     private TestFramework framework;
     private String name;
-
-    public AutomatedTest(){}
+    private String component;
 
     public String getName() {
         return name;
@@ -52,13 +51,6 @@ public class AutomatedTest {
         this.subtype = subtype;
     }
 
-    public TestingToolType getTestingToolType() {
-        return testing_tool_type;
-    }
-
-    public void setTesting_tool_type(TestingToolType testing_tool_type) {
-        this.testing_tool_type = testing_tool_type;
-    }
 
     public TestFramework getFramework() {
         return framework;
@@ -66,5 +58,21 @@ public class AutomatedTest {
 
     public void setFramework(TestFramework framework) {
         this.framework = framework;
+    }
+
+    public String getComponent() {
+        return component;
+    }
+
+    public void setComponent(String component) {
+        this.component = component;
+    }
+
+    public TestingToolType getTesting_tool_type() {
+        return testing_tool_type;
+    }
+
+    public void setTesting_tool_type(TestingToolType testing_tool_type) {
+        this.testing_tool_type = testing_tool_type;
     }
 }
