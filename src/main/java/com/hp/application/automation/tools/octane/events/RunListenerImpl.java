@@ -76,7 +76,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 					.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)));
 			EventsService.getExtensionInstance().dispatchEvent(event);
 			WorkFlowRunProcessor workFlowRunProcessor = new WorkFlowRunProcessor(r);
-			workFlowRunProcessor.registerEvents(executor, this);
+			workFlowRunProcessor.registerEvents(executor);
 		} else {
 			if (r.getParent() instanceof MatrixConfiguration) {
 				AbstractBuild build = (AbstractBuild) r;
