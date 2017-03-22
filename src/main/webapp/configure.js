@@ -16,9 +16,10 @@ function load(a,path){
         buttonStatus = false;
         return;
     }
+    var previousJobId = document.getElementsByName("runfromfs.fsJobId")[0].value;
     a.getMcServerUrl(mcUrl, function(r){
         baseUrl = r.responseObject();
-        a.getJobId(baseUrl,mcUserName, mcPassword, proxyAddress, proxyUserName, proxyPassword, function (response) {
+        a.getJobId(baseUrl,mcUserName, mcPassword, proxyAddress, proxyUserName, proxyPassword, previousJobId, function (response) {
             var jobResponse = response.responseObject();
             if(jobResponse == null){
                 document.getElementById("errorMessage").style.display = "block";
