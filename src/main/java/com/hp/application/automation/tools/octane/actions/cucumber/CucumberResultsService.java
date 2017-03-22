@@ -35,7 +35,7 @@ public class CucumberResultsService {
 
     public static final String GHERKIN_NGA_RESULTS_XML = "OctaneGherkinResults.xml";
     public static final String GHERKIN_NGA_RESULTS = "OctaneGherkinResults";
-    public static final String DEFAULT_GLOB = "**/" + GHERKIN_NGA_RESULTS_XML;
+    public static final String DEFAULT_GLOB = "**/*" + GHERKIN_NGA_RESULTS_XML;
 
     private static BuildListener listener;
 
