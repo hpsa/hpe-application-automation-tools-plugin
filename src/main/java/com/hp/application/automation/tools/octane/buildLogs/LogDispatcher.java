@@ -17,13 +17,12 @@
 package com.hp.application.automation.tools.octane.buildLogs;
 
 import com.google.inject.Inject;
-import com.hp.indi.bdi.client.BdiClient;
-import com.hp.indi.bdi.client.BdiClientFactory;
 import com.hp.application.automation.tools.octane.ResultQueue;
 import com.hp.application.automation.tools.octane.client.RetryModel;
 import com.hp.application.automation.tools.octane.configuration.BdiConfiguration;
 import com.hp.application.automation.tools.octane.configuration.ConfigurationService;
 import com.hp.application.automation.tools.octane.tests.AbstractSafeLoggingAsyncPeriodWork;
+import com.hp.mqm.client.exception.RequestErrorException;
 import hudson.Extension;
 import hudson.ProxyConfiguration;
 import hudson.model.Job;
@@ -31,19 +30,53 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.TimeUnit2;
 import jenkins.model.Jenkins;
+import org.apache.http.HttpEntity;
+import org.apache.http.auth.Credentials;
+import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.client.utils.HttpClientUtils;
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.FileEntity;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.protocol.HTTP;
+import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.IOException;
+import javax.xml.bind.DatatypeConverter;
+import java.io.*;
+import java.net.URI;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * Created by benmeior on 11/20/2016.
  */
 @Extension
 public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
-    private static final String BDI_PRODUCT = "octane";
     private static Logger logger = LogManager.getLogger(LogDispatcher.class);
+
+    private static final String BDI_PRODUCT = "octane";
+    private static final String CONTENT_ENCODING_GZIP = "gzip";
+    private static final String CLIENT_CERTIFICATE_HEADER = "X-CERT";
+    private static final String SECURE_PROTOCOL = "https";
+    private static final String CONSOLE_LOG_DATA_TYPE = "consolelog";
+    private static final String DATA_IN_QUERY_TYPE = "data-in";
+    private static final String UNCOMPRESSED_CONTENT_LENGTH_HEADER = "Uncompressed-Content-Length";
+    private static final int MAX_TOTAL_CONNECTIONS = 20;
+    private static final int MIN_SIZE_TO_ZIP = 1024;
 
     @Inject
     private RetryModel retryModel;
@@ -53,12 +86,29 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 
     private ResultQueue logsQueue;
 
+    private final CloseableHttpClient httpClient;
+    private ProxyConfiguration proxyConfiguration;
+    private HttpClientContext clientContext;
+
+    private String encodedPem;
+
     public LogDispatcher() {
         super("BDI log dispatcher");
+
+        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+        cm.setMaxTotal(MAX_TOTAL_CONNECTIONS);
+        cm.setDefaultMaxPerRoute(MAX_TOTAL_CONNECTIONS);
+
+        httpClient = HttpClients.custom()
+                .setConnectionManager(cm)
+                .build();
     }
 
     @Override
     protected void doExecute(TaskListener listener) throws IOException, InterruptedException {
+        if (!isPemFilePropertyInit()) {
+            return;
+        }
         if (logsQueue.peekFirst() == null) {
             return;
         }
@@ -70,21 +120,12 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
     }
 
     private void manageLogsQueue() {
-        BdiConfiguration configuration = bdiConfigurationFetcher.obtain();
-        if (configuration == null || !configuration.isFullyConfigured()) {
+        BdiConfiguration bdiConfiguration = bdiConfigurationFetcher.obtain();
+        if (bdiConfiguration == null || !bdiConfiguration.isFullyConfigured()) {
             logger.error("Could not send logs. BDI is not configured");
             return;
         }
 
-        BdiClient client = BdiClientFactory.getBdiClient(configuration.getHost(), Integer.parseInt(configuration.getPort()));
-
-        // Configure proxy if needed
-        ProxyConfiguration proxy = Jenkins.getInstance().proxy;
-        if (proxy != null) {
-            client.setProxy(proxy.name, proxy.port);
-        }
-
-        String response;
         ResultQueue.QueueItem item;
         while ((item = logsQueue.peekFirst()) != null) {
             Run build = getBuildFromQueueItem(item);
@@ -92,11 +133,39 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
                 logsQueue.remove();
                 continue;
             }
+            String encodedPem = getEncodedPem();
+            HttpResponse httpResponse = null;
             try {
-                client.post("consolelog",BDI_PRODUCT,Long.valueOf(configuration.getTenantId()),
-                        item.getWorkspace(),buildDataId(build),build.getLogFile());
+                HttpClientContext clientContext = getHttpClientContext();
 
-                logger.info(String.format("Successfully sent log of build [%s#%s]"),item.getProjectName() ,item.getBuildNumber());
+                String url = String.format("%s://%s:%s/rest-service/api/%s/%s?product=%s&tenantid=%d&workspace=%s&dataid=%s",
+                        SECURE_PROTOCOL, bdiConfiguration.getHost(), bdiConfiguration.getPort(), CONSOLE_LOG_DATA_TYPE, DATA_IN_QUERY_TYPE,
+                        BDI_PRODUCT, Long.valueOf(bdiConfiguration.getTenantId()), item.getWorkspace(), buildDataId(build));
+                HttpPost request = new HttpPost(URI.create(url));
+
+                request.setHeader(CLIENT_CERTIFICATE_HEADER, encodedPem);
+
+                File logFile = build.getLogFile();
+                if (logFile.length() > MIN_SIZE_TO_ZIP) {
+                    request.setHeader(HTTP.CONTENT_ENCODING, CONTENT_ENCODING_GZIP);
+                    request.setHeader(UNCOMPRESSED_CONTENT_LENGTH_HEADER, String.valueOf(logFile.length()));
+                    request.setEntity(createGZipEntity(logFile));
+                } else {
+                    request.setEntity(new FileEntity(logFile));
+                }
+
+                httpResponse = httpClient.execute(request, clientContext);
+                HttpEntity entity = httpResponse.getEntity();
+                ContentType entityContentType = ContentType.getOrDefault(entity);
+                Charset charset = entityContentType.getCharset() != null ? entityContentType.getCharset() : StandardCharsets.UTF_8;
+                String responseString = EntityUtils.toString(entity, charset);
+
+                if (httpResponse.getStatusLine().getStatusCode() != 200) {
+                    throw new RequestErrorException(String.format("Response status: %d, Response message: %s",
+                            httpResponse.getStatusLine().getStatusCode(), responseString));
+                }
+
+                logger.info(String.format("Successfully sent log of build [%s#%s]", item.getProjectName(), item.getBuildNumber()));
 
                 logsQueue.remove();
             } catch (Exception e) {
@@ -104,7 +173,39 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
                 if (!logsQueue.failed()) {
                     logger.warn("Maximum number of attempts reached, operation will not be re-attempted for this build");
                 }
+            } finally {
+                if (httpResponse != null) {
+                    EntityUtils.consumeQuietly(httpResponse.getEntity());
+                    HttpClientUtils.closeQuietly(httpResponse);
+                }
             }
+        }
+    }
+
+    private HttpClientContext getHttpClientContext() {
+        if (this.clientContext != null && this.proxyConfiguration == Jenkins.getInstance().proxy) {
+            return this.clientContext;
+        } else {
+            this.clientContext = new HttpClientContext();
+            RequestConfig.Builder config = RequestConfig.custom()
+                    .setConnectTimeout(20 * 1000)
+                    .setSocketTimeout(2 * 60 * 1000);
+
+            proxyConfiguration = Jenkins.getInstance().proxy;
+            if (proxyConfiguration != null) {
+                HttpHost proxyHost = new HttpHost(proxyConfiguration.name, proxyConfiguration.port);
+                config.setProxy(proxyHost);
+                if (proxyConfiguration.getUserName() != null && !proxyConfiguration.getUserName().isEmpty()
+                        && proxyConfiguration.getPassword() != null && !proxyConfiguration.getPassword().isEmpty()) {
+                    AuthScope proxyAuthScope = new AuthScope(proxyConfiguration.name, proxyConfiguration.port);
+                    Credentials credentials = new UsernamePasswordCredentials(proxyConfiguration.getUserName(), proxyConfiguration.getPassword());
+
+                    CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+                    credentialsProvider.setCredentials(proxyAuthScope, credentials);
+                }
+            }
+            this.clientContext.setRequestConfig(config.build());
+            return this.clientContext;
         }
     }
 
@@ -147,5 +248,56 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
     @Inject
     public void setLogResultQueue(LogAbstractResultQueue queue) {
         this.logsQueue = queue;
+    }
+
+    private String getEncodedPem() {
+        if (this.encodedPem != null) {
+            return this.encodedPem;
+        } else {
+            String path = System.getProperty("pem_file");
+
+            try (Reader reader = new FileReader(path)) {
+                String pem = readToString(reader);
+                this.encodedPem = DatatypeConverter.printBase64Binary(pem.getBytes());
+            } catch (IOException ex) {
+                logger.error("cannot read pem file from path: " + path);
+            }
+            return this.encodedPem;
+        }
+    }
+
+    private String readToString(Reader reader) throws IOException {
+        try (BufferedReader bufferedReader = new BufferedReader(reader)) {
+            StringBuilder builder = new StringBuilder();
+            String line = bufferedReader.readLine();
+            while (line != null) {
+                builder.append(line);
+                builder.append(System.lineSeparator());
+                line = bufferedReader.readLine();
+            }
+            return builder.toString();
+        }
+    }
+
+    private ByteArrayEntity createGZipEntity(File file) {
+        try (FileInputStream inputStream = new FileInputStream(file);
+             ByteArrayOutputStream arr = new ByteArrayOutputStream()) {
+            try (GZIPOutputStream zipper = new GZIPOutputStream(arr)) {
+                byte[] buffer = new byte[1024];
+
+                int len;
+                while ((len = inputStream.read(buffer)) > 0) {
+                    zipper.write(buffer, 0, len);
+                }
+            }
+
+            return new ByteArrayEntity(arr.toByteArray(), ContentType.APPLICATION_XML);
+        } catch (IOException ex) {
+            throw new RequestErrorException("Failed to create GZip entity.", ex);
+        }
+    }
+
+    private boolean isPemFilePropertyInit() {
+        return System.getProperty("pem_file") != null && !System.getProperty("pem_file").isEmpty();
     }
 }
