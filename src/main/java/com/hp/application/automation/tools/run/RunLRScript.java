@@ -12,6 +12,9 @@ import hudson.model.TaskListener;
 import hudson.remoting.VirtualChannel;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
+import hudson.tasks.junit.JUnitParser;
+import hudson.tasks.junit.JUnitResultArchiver;
+import hudson.tasks.junit.TestResult;
 import hudson.util.ArgumentListBuilder;
 import jenkins.MasterToSlaveFileCallable;
 import jenkins.SlaveToMasterFileCallable;
@@ -24,8 +27,16 @@ import org.jenkinsci.Symbol;
 import org.jenkinsci.remoting.RoleChecker;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import javax.annotation.Nonnull;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -106,7 +117,6 @@ public class RunLRScript extends Builder implements SimpleBuildStep {
         }
 
         FilePath masterBuildWorkspace = new FilePath(build.getRootDir());
-        copyScriptsResultToMaster(build, listener, buildWorkDir, masterBuildWorkspace);
 
         //This part is on the master - we convert the results to JUnit and HTML report using specialized XSLT
         final String resultXmlPath = buildWorkDir.child(scriptName).child("Results.xml").absolutize()
@@ -121,7 +131,7 @@ public class RunLRScript extends Builder implements SimpleBuildStep {
         final String xsltPath = Jenkins.getInstance().pluginManager.uberClassLoader.getResource(libLR).getPath();
 
 
-        FilePath outputHTML = buildWorkDir.child(scriptName).child("output");
+        FilePath outputHTML = buildWorkDir.child(scriptName);
         outputHTML.mkdirs();
         outputHTML = outputHTML.child("result.html");
         FilePath xsltOnNode = workspace.child("resultsHtml.xslt");
@@ -129,7 +139,23 @@ public class RunLRScript extends Builder implements SimpleBuildStep {
         if (xsltOnNode.exists()) {
             logger.println("Found XSLT on slave");
         }
+        createHtmlReports(buildWorkDir, scriptName, outputHTML, xsltOnNode);
+        LrScriptResultsParser lrScriptResultsParser = new LrScriptResultsParser();
+        lrScriptResultsParser.parseScriptResult(scriptName, build, buildWorkDir, launcher, listener);
+        copyScriptsResultToMaster(build, listener, buildWorkDir, masterBuildWorkspace);
+        Thread.sleep(4000);
 
+        JUnitResultArchiver jUnitResultArchiver = new JUnitResultArchiver("JunitResult.xml");
+        jUnitResultArchiver.setKeepLongStdio(true);
+        jUnitResultArchiver.setAllowEmptyResults(true);
+        jUnitResultArchiver.perform(build, buildWorkDir.child(scriptName), launcher, listener);
+
+
+        build.setResult(Result.SUCCESS);
+    }
+
+    private void createHtmlReports(FilePath buildWorkDir, String scriptName, FilePath outputHTML, FilePath xsltOnNode)
+            throws IOException, InterruptedException {
         //TODO: check arguments
         try {
             TransformerFactory factory = TransformerFactory.newInstance();
@@ -146,9 +172,6 @@ public class RunLRScript extends Builder implements SimpleBuildStep {
             logger.println("TransformerException");
             logger.println(e);
         }
-
-
-        build.setResult(Result.SUCCESS);
     }
 
     private void copyScriptsResultToMaster(@Nonnull Run<?, ?> build, @Nonnull TaskListener listener,
@@ -166,7 +189,7 @@ public class RunLRScript extends Builder implements SimpleBuildStep {
             String lrPath = env.get("M_LROOT", "");
             if (Objects.equals(lrPath, "")) {
                 throw new IllegalArgumentException(
-                        "Please make sure enviroment varibals are set correctly on the running node - " +
+                        "Please make sure environment variables are set correctly on the running node - " +
                                 "LR_PATH for windows and M_LROOT for linux");
             }
             lrPath += LINUX_MDRV_PATH;
