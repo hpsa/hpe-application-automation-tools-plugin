@@ -397,7 +397,7 @@
 		<dependency>
 			<artifactId>mqm-rest-client</artifactId>
 			<groupId>com.hpe.adm.octane.ciplugins</groupId>
-			<version>1.1</version>
+			<version>1.2</version>
 		</dependency>
 
 		<!-- org.jenkins-ci.main -->
