@@ -29,7 +29,7 @@ import java.io.*;
 import java.nio.file.Files;
 
 /**
- * Created by franksha on 22/03/2016.
+ * Helper Service for Gherkin results
  */
 public class CucumberResultsService {
 
