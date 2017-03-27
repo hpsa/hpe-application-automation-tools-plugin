@@ -102,7 +102,7 @@ public class JobConfigurationProxy {
 
 		} catch (RequestException e) {
 			logger.warn("Failed to create pipeline", e);
-			return error("Unable to create pipeline");
+			return error("Unable to create pipeline. " + e.getDescription());
 		} catch (ClientException e) {
 			logger.warn("Failed to create pipeline", e);
 			return error(e.getMessage(), e.getLink());
