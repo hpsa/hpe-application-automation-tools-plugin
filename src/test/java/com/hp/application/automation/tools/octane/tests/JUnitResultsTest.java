@@ -67,6 +67,8 @@ public class JUnitResultsTest {
 		TestListener testListener = ExtensionUtil.getInstance(rule, TestListener.class);
 		queue = new TestQueue();
 		testListener._setTestResultQueue(queue);
+
+		TestUtils.createDummyConfiguration();
 	}
 
 	@Test
