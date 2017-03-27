@@ -35,7 +35,7 @@ public class WorkflowBuildAdapter extends Run {
     private WorkflowRun run;
     private FilePath workspace;
     protected WorkflowBuildAdapter(@Nonnull Job job, WorkflowRun run,FilePath workspace) throws IOException {
-        super(job);
+        super(job, run.getTimestamp().getTimeInMillis());
         this.run = run;
         this.workspace =workspace;
     }
