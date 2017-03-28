@@ -262,7 +262,7 @@
 				<version>2.19.1</version>
 				<configuration>
 					<excludes>
-						<exclude>**/TestJenkinsDurationTest.java</exclude>
+						<exclude>**/GherkinResultsTest.java</exclude>
 					</excludes>
 				</configuration>
 			</plugin>
