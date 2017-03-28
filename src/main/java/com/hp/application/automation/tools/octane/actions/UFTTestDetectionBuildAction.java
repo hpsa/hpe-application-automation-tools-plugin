@@ -54,7 +54,7 @@ public class UFTTestDetectionBuildAction implements Action {
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(UFTTestDetectionBuildAction.class.getName());
 
 
-    private final String INITIAL_DETECTION_FILE = "INITIAL_DETECTION_FILE.txt";
+    private static final String INITIAL_DETECTION_FILE = "INITIAL_DETECTION_FILE.txt";
     private final String STFileExtention = ".st";//api test
     private final String QTPFileExtention = ".tsp";//gui test
 
@@ -148,9 +148,8 @@ public class UFTTestDetectionBuildAction implements Action {
             }
         }
 
-        postTests(client, serverURL, addedTests);
         deleteTests(client, removedTests);
-
+        postTests(client, serverURL, addedTests);
     }
 
     private AutomatedTest createAutomatedTest(FilePath root, FilePath dirPath) throws IOException, InterruptedException {
@@ -162,8 +161,8 @@ public class UFTTestDetectionBuildAction implements Action {
         String rootPath = root.toURI().toString();
         String path = testPath.replace(rootPath, "");
         path = StringUtils.strip(path, "\\/");
-        String component = path.length() != dirPath.getName().length() ? path.substring(0, path.length() - dirPath.getName().length() - 1) : "";
-        test.setComponent(component);
+        String _package = path.length() != dirPath.getName().length() ? path.substring(0, path.length() - dirPath.getName().length() - 1) : "";
+        test.setPackage(_package);
         return test;
     }
 
@@ -182,6 +181,12 @@ public class UFTTestDetectionBuildAction implements Action {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public static void removeInitialDetectionFlag(FilePath workspace ) throws IOException, InterruptedException {
+        File rootFile = new File(workspace.toURI());
+        File file = new File(rootFile, INITIAL_DETECTION_FILE);
+        file.delete();
     }
 
     private Collection<AutomatedTest> doInitialDetection(MqmRestClient client, String serverURL) throws IOException, InterruptedException {
@@ -258,7 +263,7 @@ public class UFTTestDetectionBuildAction implements Action {
         for (AutomatedTest test : removedTests) {
             Map<String, String> queryFields = new HashMap<>();
             queryFields.put("name", test.getName());
-            queryFields.put("component", test.getComponent());
+            queryFields.put("package", test.getPackage());
             PagedList<Test> foundTests = client.getTests(workspaceIdAsLong, queryFields, Arrays.asList("id"));
             if (foundTests.getItems().size() == 1) {
                 idsToDelete.add(foundTests.getItems().get(0).getId());

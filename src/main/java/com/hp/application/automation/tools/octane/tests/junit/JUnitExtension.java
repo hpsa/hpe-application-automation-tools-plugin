@@ -131,7 +131,7 @@ public class JUnitExtension extends MqmTestsExtension {
 		if (resultFields == null) {
 			return false;
 		}
-		return resultFields.equals(new ResultFields("UFT", "UFT", null));
+		return false; //resultFields.equals(new ResultFields("UFT", "UFT", null));
 	}
 
 	private boolean isLoadRunnerProject(Run build) throws IOException, InterruptedException {
