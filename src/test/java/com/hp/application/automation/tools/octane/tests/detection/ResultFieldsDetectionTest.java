@@ -24,10 +24,7 @@ import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleProject;
 import hudson.tasks.Maven;
 import hudson.tasks.junit.JUnitResultArchiver;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.ToolInstallations;
 import org.mockito.Mockito;
@@ -36,8 +33,7 @@ import java.io.File;
 import java.io.FileReader;
 
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class ResultFieldsDetectionTest {
 
@@ -47,6 +43,8 @@ public class ResultFieldsDetectionTest {
 	private static FreeStyleProject project;
 
 	private static ResultFieldsDetectionService detectionService;
+
+	private final JenkinsRule.WebClient jClient = rule.createWebClient();
 
 	@Before
 	public void setUp() throws Exception {
@@ -59,6 +57,8 @@ public class ResultFieldsDetectionTest {
 
 		project.getBuildersList().add(new Maven("-s settings.xml -U test", mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
 		project.setScm(new CopyResourceSCM("/helloWorldRoot"));
+
+		TestUtils.createDummyConfiguration();
 	}
 
 	@Test
@@ -116,7 +116,6 @@ public class ResultFieldsDetectionTest {
 		File mqmTestsXml = new File(build.getRootDir(), "mqmTests.xml");
 		ResultFieldsXmlReader xmlReader = new ResultFieldsXmlReader(new FileReader(mqmTestsXml));
 		ResultFields resultFields = xmlReader.readXml().getResultFields();
-		;
 
 		Assert.assertNull(resultFields.getFramework());
 		Assert.assertNull(resultFields.getTestingTool());
