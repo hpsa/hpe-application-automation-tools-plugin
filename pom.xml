@@ -263,6 +263,7 @@
 				<configuration>
 					<excludes>
 						<exclude>**/GherkinResultsTest.java</exclude>
+						<exclude>**/JUnitResultsTest.java</exclude>
 					</excludes>
 				</configuration>
 			</plugin>
