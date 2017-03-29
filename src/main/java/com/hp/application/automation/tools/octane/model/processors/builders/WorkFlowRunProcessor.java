@@ -17,7 +17,6 @@
 package com.hp.application.automation.tools.octane.model.processors.builders;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import com.hp.application.automation.tools.octane.events.RunListenerImpl;
 import com.hp.application.automation.tools.octane.workflow.WorkflowGraphListener;
 import hudson.model.Run;
 import org.apache.logging.log4j.LogManager;
@@ -40,7 +39,7 @@ public class WorkFlowRunProcessor {
 		this.workFlowRun = (WorkflowRun) r;
 	}
 
-	public void registerEvents(ExecutorService executor, final RunListenerImpl runListener) {
+	public void registerEvents(ExecutorService executor) {
 		ListenableFuture<FlowExecution> promise = workFlowRun.getExecutionPromise();
 		promise.addListener(new Runnable() {
 			@Override

@@ -16,11 +16,14 @@
 
 package com.hp.application.automation.tools.octane.tests;
 
+import com.hp.application.automation.tools.model.OctaneServerSettingsModel;
+import com.hp.application.automation.tools.octane.configuration.ConfigurationService;
 import com.hp.application.automation.tools.octane.tests.junit.JUnitTestResult;
 import com.hp.application.automation.tools.octane.tests.junit.TestResultStatus;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Result;
+import hudson.util.Secret;
 import org.junit.Assert;
 
 import java.util.HashSet;
@@ -34,6 +37,12 @@ public class TestUtils {
 		helloWorldTests.add(testSignature("helloWorld", "hello", "HelloWorldTest", "testOne", TestResultStatus.PASSED));
 		helloWorldTests.add(testSignature("helloWorld", "hello", "HelloWorldTest", "testTwo", TestResultStatus.FAILED));
 		helloWorldTests.add(testSignature("helloWorld", "hello", "HelloWorldTest", "testThree", TestResultStatus.SKIPPED));
+	}
+
+	public static void createDummyConfiguration(){
+		ConfigurationService.configurePlugin(new OctaneServerSettingsModel(
+				"http://localhost:8008/ui/?p=1001/1002","username",
+				Secret.fromString("password"),null));
 	}
 
 	public static AbstractBuild runAndCheckBuild(AbstractProject project) throws Exception {

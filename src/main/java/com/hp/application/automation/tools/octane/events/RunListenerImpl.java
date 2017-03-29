@@ -16,6 +16,7 @@
 
 package com.hp.application.automation.tools.octane.events;
 
+import com.hp.application.automation.tools.octane.configuration.ConfigurationService;
 import com.hp.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.events.CIEvent;
@@ -57,6 +58,10 @@ public final class RunListenerImpl extends RunListener<Run> {
 
 	@Override
 	public void onStarted(final Run r, TaskListener listener) {
+		if(!ConfigurationService.getServerConfiguration().isValid()){
+			return;
+		}
+
 		CIEvent event;
 		if (r.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowRun")) {
 			event = dtoFactory.newDTO(CIEvent.class)
@@ -70,7 +75,7 @@ public final class RunListenerImpl extends RunListener<Run> {
 					.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)));
 			EventsService.getExtensionInstance().dispatchEvent(event);
 			WorkFlowRunProcessor workFlowRunProcessor = new WorkFlowRunProcessor(r);
-			workFlowRunProcessor.registerEvents(executor, this);
+			workFlowRunProcessor.registerEvents(executor);
 		} else {
 			if (r.getParent() instanceof MatrixConfiguration) {
 				AbstractBuild build = (AbstractBuild) r;
@@ -115,6 +120,10 @@ public final class RunListenerImpl extends RunListener<Run> {
 	@Override
 	public void onFinalized(Run r)
 	{
+		if(!ConfigurationService.getServerConfiguration().isValid()){
+			return;
+		}
+
 		CIBuildResult result;
 		if (r.getResult() == Result.SUCCESS) {
 			result = CIBuildResult.SUCCESS;

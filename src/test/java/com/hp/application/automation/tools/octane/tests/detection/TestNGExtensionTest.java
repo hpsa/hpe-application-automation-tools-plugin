@@ -62,10 +62,12 @@ public class TestNGExtensionTest {
 	@Before
 	public void setUp() throws Exception {
 		mavenName = ToolInstallations.configureMaven3().getName();
+		TestUtils.createDummyConfiguration();
 	}
 
 	@Test
 	public void testFreestyleProject() throws Exception {
+
 		String projectName = "testNG-job-" + UUID.randomUUID().toString();
 		FreeStyleProject project = rule.createFreeStyleProject(projectName);
 		project.setScm(new CopyResourceSCM("/helloWorldTestNGRoot"));

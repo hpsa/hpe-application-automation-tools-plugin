@@ -16,6 +16,7 @@
 
 package com.hp.application.automation.tools.octane.events;
 
+import com.hp.application.automation.tools.octane.configuration.ConfigurationService;
 import com.hp.application.automation.tools.octane.model.processors.scm.SCMProcessor;
 import com.hp.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import com.hp.octane.integrations.dto.DTOFactory;
@@ -63,6 +64,11 @@ public class SCMListenerImpl extends SCMListener {
     @Override
     public void onChangeLogParsed(Run<?, ?> r, SCM scm, TaskListener listener, ChangeLogSet<?> changelog) throws Exception {
         super.onChangeLogParsed(r, scm, listener, changelog);
+
+        if(!ConfigurationService.getServerConfiguration().isValid()){
+            return;
+        }
+
         CIEvent event;
         if (r.getParent() instanceof MatrixConfiguration || r instanceof AbstractBuild) {
             AbstractBuild build = (AbstractBuild) r;
