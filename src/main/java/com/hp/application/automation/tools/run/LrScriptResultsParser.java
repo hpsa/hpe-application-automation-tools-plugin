@@ -40,7 +40,6 @@ public class LrScriptResultsParser {
     public static final String LR_SCRIPT_REPORT_PASSED_STATUS = "passed";
     public static final String LR_SCRIPT_REPORT_FAILED_STATUS = "failed";
     private TaskListener _logger;
-    private Element testSuits;
     private String _scriptName;
 
     public LrScriptResultsParser(TaskListener listener) {
@@ -95,7 +94,7 @@ public class LrScriptResultsParser {
             doc.getDocumentElement().normalize();
             NodeList actionNodes = doc.getElementsByTagName("Action");
 
-            testSuits = newDoc.createElement("testsuites");
+            Element testSuits = newDoc.createElement("testsuites");
             parseScriptAction(newDoc, actionNodes, testSuits, scriptName.getParent().getBaseName());
             Element reportSummaryNode = (Element) doc.getElementsByTagName("Summary").item(actionNodes.getLength());
             testSuits.setAttribute(
@@ -165,10 +164,11 @@ public class LrScriptResultsParser {
             Element actionName = (Element) actionProps.item(0);
 
             Element testSuite = newDoc.createElement("testsuite");
-            testSuite.setAttribute("name", getCharacterDataFromElement(actionName));
+            final String suiteName = getCharacterDataFromElement(actionName);
+            testSuite.setAttribute("name", suiteName);
 
             NodeList stepNodes = action.getElementsByTagName("Step");
-            parseScriptActionStep(newDoc, testSuite, stepNodes);
+            parseScriptActionStep(newDoc, testSuite, stepNodes, scriptName + "." + suiteName);
 
             Element suiteSummaryNode = (Element) action.getElementsByTagName("Summary").item(0);
             testSuite.setAttribute(
@@ -178,7 +178,6 @@ public class LrScriptResultsParser {
                     Integer.parseInt(suiteSummaryNode.getAttribute(LR_SCRIPT_REPORT_FAILED_STATUS)) +
                             Integer.parseInt(suiteSummaryNode.getAttribute(LR_SCRIPT_REPORT_PASSED_STATUS));
             testSuite.setAttribute("package", scriptName);
-            testSuite.setAttribute("classname", scriptName);
 
             testSuite.setAttribute("tests", String.valueOf(tests));
             if (tests > 0) {
@@ -187,7 +186,8 @@ public class LrScriptResultsParser {
         }
     }
 
-    private static void parseScriptActionStep(Document newDoc, Element testSuite, NodeList stepNodes) {
+    private static void parseScriptActionStep(Document newDoc, Element testSuite, NodeList stepNodes,
+                                              String className) {
         for (int j = 0; j < stepNodes.getLength(); j++) {
             Element step = (Element) stepNodes.item(j);
             Element objNode = (Element) step.getElementsByTagName("Obj").item(0);
@@ -205,6 +205,7 @@ public class LrScriptResultsParser {
                 testCase.appendChild(failureMessage);
             }
             testCase.setAttribute("status", stepStatus);
+            testCase.setAttribute("classname", className);
 
             testSuite.appendChild(testCase);
         }

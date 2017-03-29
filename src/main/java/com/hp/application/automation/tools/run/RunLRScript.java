@@ -83,7 +83,7 @@ public class RunLRScript extends Builder implements SimpleBuildStep {
             scriptWorkDir.mkdirs();
             scriptWorkDir = scriptWorkDir.absolutize();
             env = build.getEnvironment(listener);
-            if (runScriptMdrv(build, launcher, args, env, scriptPath, scriptWorkDir)) {
+            if (runScriptMdrv(launcher, args, env, scriptPath, scriptWorkDir)) {
                 build.setResult(Result.FAILURE);
                 return;
             }
@@ -132,11 +132,11 @@ public class RunLRScript extends Builder implements SimpleBuildStep {
         return xsltOnNode;
     }
 
-    private boolean runScriptMdrv(@Nonnull Run<?, ?> build, @Nonnull Launcher launcher, ArgumentListBuilder args,
+    private boolean runScriptMdrv(@Nonnull Launcher launcher, ArgumentListBuilder args,
                                   EnvVars env, FilePath scriptPath, FilePath scriptWorkDir)
             throws IOException, InterruptedException {
-        FilePath
-                mdrv;//base command line mmdrv.exe -usr "%1\%1.usr" -extra_ext NVReportExt -qt_result_dir
+        FilePath mdrv;
+        //base command line mmdrv.exe -usr "%1\%1.usr" -extra_ext NVReportExt -qt_result_dir
         // "c:\%1_results"
         //Do run the script on linux or windows?
         mdrv = getMDRVPath(launcher, env);
