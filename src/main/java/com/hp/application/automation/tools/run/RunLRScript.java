@@ -41,7 +41,6 @@ import java.net.URL;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 
 /**
  * Created by kazaky on 14/03/2017.
@@ -74,7 +73,7 @@ public class RunLRScript extends Builder implements SimpleBuildStep {
             logger = listener.getLogger();
             ArgumentListBuilder args = new ArgumentListBuilder();
             FilePath mdrv;
-            EnvVars env = null;
+            EnvVars env;
 
             env = build.getEnvironment(listener);
 
@@ -97,10 +96,6 @@ public class RunLRScript extends Builder implements SimpleBuildStep {
             buildWorkDir = buildWorkDir.absolutize();
 
             String scriptName = FilenameUtils.getBaseName(this.lrScriptPath);
-            if (Objects.equals(scriptName, "")) {
-                //TODO: if "" it's folder and we need to scan it
-
-            }
             FilePath scriptWorkDir = buildWorkDir.child(scriptName);
             scriptWorkDir.mkdirs();
             scriptWorkDir = scriptWorkDir.absolutize();
@@ -146,9 +141,9 @@ public class RunLRScript extends Builder implements SimpleBuildStep {
 
             createHtmlReports(buildWorkDir, scriptName, outputHTML, xsltOnNode);
 
-            LrScriptResultsParser lrScriptResultsParser = new LrScriptResultsParser();
+            LrScriptResultsParser lrScriptResultsParser = new LrScriptResultsParser(listener);
 
-            lrScriptResultsParser.parseScriptResult(scriptName, build, buildWorkDir, launcher, listener);
+            lrScriptResultsParser.parseScriptResult(scriptName, buildWorkDir);
             copyScriptsResultToMaster(build, listener, buildWorkDir, new FilePath(masterBuildWorkspace));
 //        Thread.sleep(5000); //TODO: try to remove this and see if we still work
 
@@ -177,8 +172,9 @@ public class RunLRScript extends Builder implements SimpleBuildStep {
         }
     }
 
-    private void parseJunitResult(@Nonnull Run<?, ?> build, @Nonnull Launcher launcher, @Nonnull TaskListener listener,
-                                  FilePath buildWorkDir, String scriptName) throws InterruptedException, IOException {
+    private static void parseJunitResult(@Nonnull Run<?, ?> build, @Nonnull Launcher launcher, @Nonnull TaskListener
+            listener,
+                                         FilePath buildWorkDir, String scriptName) throws InterruptedException, IOException {
         JUnitResultArchiver jUnitResultArchiver = new JUnitResultArchiver("JunitResult.xml");
         jUnitResultArchiver.setKeepLongStdio(true);
         jUnitResultArchiver.setAllowEmptyResults(true);
@@ -232,8 +228,8 @@ public class RunLRScript extends Builder implements SimpleBuildStep {
         }
     }
 
-    private void copyScriptsResultToMaster(@Nonnull Run<?, ?> build, @Nonnull TaskListener listener,
-                                           FilePath buildWorkDir, FilePath masterBuildWorkspace)
+    private static void copyScriptsResultToMaster(@Nonnull Run<?, ?> build, @Nonnull TaskListener listener,
+                                                  FilePath buildWorkDir, FilePath masterBuildWorkspace)
             throws IOException, InterruptedException {
         listener.getLogger().printf("Copying script results, from '%s' on '%s' to '%s' on the master. %n"
                 , buildWorkDir.toURI(), Computer.currentComputer().getNode(), build.getRootDir().toURI());
@@ -241,7 +237,7 @@ public class RunLRScript extends Builder implements SimpleBuildStep {
         buildWorkDir.copyRecursiveTo(masterBuildWorkspace);
     }
 
-    private FilePath getMDRVPath(@Nonnull Launcher launcher, EnvVars env) throws LrScriptParserException {
+    private static FilePath getMDRVPath(@Nonnull Launcher launcher, EnvVars env) {
         FilePath mdrv;
         if (launcher.isUnix()) {
             String lrPath = env.get("M_LROOT", "");
