@@ -1,5 +1,5 @@
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt" xmlns:p="/lib/hudson/project" xmlns:s="/lib/samples">
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout">
   <l:layout title="LoadRunner Script Report">
     <style type="text/css">
     .bodycell {
@@ -51,7 +51,9 @@
            <tr>
             <td class = "bodycell" align = "center"><img src="${rootURL}/plugin/hp-application-automation-tools-plugin/icons/16x16/html_report.png" alt="Html_report" title="Html Report"/></td>
             <td class = "bodycell"><a href="../${s.htmlUrl}" target="_blank">${s.scriptName}</a></td>
-            <td class = "bodycell"><a href="../${s.scriptFolderPath}">Open ${s.scriptFolderPath}</a></td>
+               <td class="bodycell">
+                   <a href="../${s.scriptFolderPath}">Open ${s.scriptName} result</a>
+               </td>
            </tr>
          </j:forEach>
        </table>

@@ -72,41 +72,21 @@ public class RunLRScript extends Builder implements SimpleBuildStep {
             jenkinsInstance = Jenkins.getInstance();
             logger = listener.getLogger();
             ArgumentListBuilder args = new ArgumentListBuilder();
-            FilePath mdrv;
             EnvVars env;
-
-            env = build.getEnvironment(listener);
-
-
-            //base command line mmdrv.exe -usr "%1\%1.usr" -extra_ext NVReportExt -qt_result_dir "c:\%1_results"
-            //Do run the script on linux or windows?
-            mdrv = getMDRVPath(launcher, env);
-            args.add(mdrv);
-
-
-            FilePath scriptPath = workspace.child(this.lrScriptPath);
-            args.add("-usr");
-            args.add(scriptPath);
-            args.add("-extra_ext NVReportExt");
-
-            args.add("-qt_result_dir");
-
+            String scriptName = FilenameUtils.getBaseName(this.lrScriptPath);
             FilePath buildWorkDir = workspace.child(build.getId());
             buildWorkDir.mkdirs();
             buildWorkDir = buildWorkDir.absolutize();
+            FilePath scriptPath = workspace.child(this.lrScriptPath);
 
-            String scriptName = FilenameUtils.getBaseName(this.lrScriptPath);
             FilePath scriptWorkDir = buildWorkDir.child(scriptName);
             scriptWorkDir.mkdirs();
             scriptWorkDir = scriptWorkDir.absolutize();
-            args.add(scriptWorkDir);
-
-            int returnCode = launcher.launch().cmds(args).stdout(logger).pwd(scriptWorkDir).join();
-            if (returnCode != 0) {
+            env = build.getEnvironment(listener);
+            if (runScriptMdrv(build, launcher, args, env, scriptPath, scriptWorkDir)) {
                 build.setResult(Result.FAILURE);
                 return;
             }
-
 
             final VirtualFile root = build.getArtifactManager().root();
 
@@ -118,46 +98,17 @@ public class RunLRScript extends Builder implements SimpleBuildStep {
                 masterBuildWorkspace.mkdirs();
             }
 
-            //This part is on the master - we convert the results to JUnit and HTML report using specialized XSLT
-            final String resultXmlPath = buildWorkDir.child(scriptName).child("Results.xml").absolutize()
-                    .getRemote();
-            if (resultXmlPath == null) {
-                listener.fatalError(resultXmlPath + "not found in resources");
-                return;
-            }
-
-
-            final URL xsltPath = jenkinsInstance.pluginManager.uberClassLoader.getResource(LR_SCRIPT_HTML_XSLT);
-
-
             FilePath outputHTML = buildWorkDir.child(scriptName);
             outputHTML.mkdirs();
             outputHTML = outputHTML.child("result.html");
-            FilePath xsltOnNode = workspace.child("resultsHtml.xslt");
-            xsltOnNode.copyFrom(xsltPath);
-            if (xsltOnNode.exists()) {
-                logger.println("Found XSLT on slave");
-            }
-
+            FilePath xsltOnNode = copyXsltToNode(workspace);
             createHtmlReports(buildWorkDir, scriptName, outputHTML, xsltOnNode);
-
             LrScriptResultsParser lrScriptResultsParser = new LrScriptResultsParser(listener);
-
             lrScriptResultsParser.parseScriptResult(scriptName, buildWorkDir);
             copyScriptsResultToMaster(build, listener, buildWorkDir, new FilePath(masterBuildWorkspace));
-//        Thread.sleep(5000); //TODO: try to remove this and see if we still work
-
             parseJunitResult(build, launcher, listener, buildWorkDir, scriptName);
-            synchronized (build) {
-                LrScriptHtmlReportAction action = build.getAction(LrScriptHtmlReportAction.class);
-                if (action == null) {
-                    action = new LrScriptHtmlReportAction(build);
-                    action.mergeResult(build, scriptName);
-                    build.addAction(action);
-                } else {
-                    action.mergeResult(build, scriptName);
-                }
-            }
+            addLrScriptHtmlReportAcrion(build, scriptName);
+
             build.setResult(Result.SUCCESS);
 
         } catch (IllegalArgumentException e) {
@@ -165,16 +116,82 @@ public class RunLRScript extends Builder implements SimpleBuildStep {
             logger.println(e);
         } catch (IOException | InterruptedException e) {
             listener.error("Failed loading build environment " + e);
-
+            build.setResult(Result.FAILURE);
         } catch (XMLStreamException e) {
             listener.error(e.getMessage(), e);
             build.setResult(Result.FAILURE);
         }
     }
 
+    private FilePath copyXsltToNode(@Nonnull FilePath workspace) throws IOException, InterruptedException {
+        final URL xsltPath = jenkinsInstance.pluginManager.uberClassLoader.getResource(LR_SCRIPT_HTML_XSLT);
+        FilePath xsltOnNode = workspace.child("resultsHtml.xslt");
+        if (!xsltOnNode.exists()) {
+            xsltOnNode.copyFrom(xsltPath);
+        }
+        return xsltOnNode;
+    }
+
+    private boolean runScriptMdrv(@Nonnull Run<?, ?> build, @Nonnull Launcher launcher, ArgumentListBuilder args,
+                                  EnvVars env, FilePath scriptPath, FilePath scriptWorkDir)
+            throws IOException, InterruptedException {
+        FilePath
+                mdrv;//base command line mmdrv.exe -usr "%1\%1.usr" -extra_ext NVReportExt -qt_result_dir
+        // "c:\%1_results"
+        //Do run the script on linux or windows?
+        mdrv = getMDRVPath(launcher, env);
+        args.add(mdrv);
+        args.add("-usr");
+        args.add(scriptPath);
+        args.add("-extra_ext NVReportExt");
+        args.add("-qt_result_dir");
+        args.add(scriptWorkDir);
+
+        int returnCode = launcher.launch().cmds(args).stdout(logger).pwd(scriptWorkDir).join();
+        return returnCode != 0;
+    }
+
+    private static FilePath getMDRVPath(@Nonnull Launcher launcher, EnvVars env) {
+        FilePath mdrv;
+        if (launcher.isUnix()) {
+            String lrPath = env.get("M_LROOT", "");
+            if ("".equals(lrPath)) {
+                throw new LrScriptParserException(
+                        "Please make sure environment variables are set correctly on the running node - " +
+                                "LR_PATH for windows and M_LROOT for linux");
+            }
+            lrPath += LINUX_MDRV_PATH;
+            mdrv = new FilePath(launcher.getChannel(), lrPath);
+        } else {
+            String lrPath = env.get("LR_PATH", "");
+            if ("".equals(lrPath)) {
+                throw new LrScriptParserException("P1lease make sure environment variables are set correctly on the " +
+                        "running node - " +
+                        "LR_PATH for windows and M_LROOT for linux");
+            }
+            lrPath += WIN_MDRV_PATH;
+            mdrv = new FilePath(launcher.getChannel(), lrPath);
+        }
+        return mdrv;
+    }
+
+    private void addLrScriptHtmlReportAcrion(@Nonnull Run<?, ?> build, String scriptName) {
+        synchronized (build) {
+            LrScriptHtmlReportAction action = build.getAction(LrScriptHtmlReportAction.class);
+            if (action == null) {
+                action = new LrScriptHtmlReportAction(build);
+                action.mergeResult(build, scriptName);
+                build.addAction(action);
+            } else {
+                action.mergeResult(build, scriptName);
+            }
+        }
+    }
+
     private static void parseJunitResult(@Nonnull Run<?, ?> build, @Nonnull Launcher launcher, @Nonnull TaskListener
             listener,
-                                         FilePath buildWorkDir, String scriptName) throws InterruptedException, IOException {
+                                         FilePath buildWorkDir, String scriptName)
+            throws InterruptedException, IOException {
         JUnitResultArchiver jUnitResultArchiver = new JUnitResultArchiver("JunitResult.xml");
         jUnitResultArchiver.setKeepLongStdio(true);
         jUnitResultArchiver.setAllowEmptyResults(true);
@@ -236,31 +253,6 @@ public class RunLRScript extends Builder implements SimpleBuildStep {
 
         buildWorkDir.copyRecursiveTo(masterBuildWorkspace);
     }
-
-    private static FilePath getMDRVPath(@Nonnull Launcher launcher, EnvVars env) {
-        FilePath mdrv;
-        if (launcher.isUnix()) {
-            String lrPath = env.get("M_LROOT", "");
-            if ("".equals(lrPath)) {
-                throw new LrScriptParserException(
-                        "Please make sure environment variables are set correctly on the running node - " +
-                                "LR_PATH for windows and M_LROOT for linux");
-            }
-            lrPath += LINUX_MDRV_PATH;
-            mdrv = new FilePath(launcher.getChannel(), lrPath);
-        } else {
-            String lrPath = env.get("LR_PATH", "");
-            if ("".equals(lrPath)) {
-                throw new LrScriptParserException("P1lease make sure environment variables are set correctly on the " +
-                        "running node - " +
-                        "LR_PATH for windows and M_LROOT for linux");
-            }
-            lrPath += WIN_MDRV_PATH;
-            mdrv = new FilePath(launcher.getChannel(), lrPath);
-        }
-        return mdrv;
-    }
-
 
     public String getScriptsPath() {
         return lrScriptPath;
