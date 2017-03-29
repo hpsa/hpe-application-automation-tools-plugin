@@ -96,12 +96,14 @@ public class LrScriptResultsParser {
             NodeList actionNodes = doc.getElementsByTagName("Action");
 
             testSuits = newDoc.createElement("testsuites");
-            parseScriptAction(newDoc, actionNodes);
+            parseScriptAction(newDoc, actionNodes, testSuits, scriptName.getParent().getBaseName());
             Element reportSummaryNode = (Element) doc.getElementsByTagName("Summary").item(actionNodes.getLength());
             testSuits.setAttribute(
                     LR_SCRIPT_REPORT_PASSED_STATUS, reportSummaryNode.getAttribute(LR_SCRIPT_REPORT_PASSED_STATUS));
             testSuits.setAttribute("failures", reportSummaryNode.getAttribute(LR_SCRIPT_REPORT_FAILED_STATUS));
-            testSuits.setAttribute("name", reportSummaryNode.getAttribute(scriptName.getParent().getBaseName()));
+            testSuits.setAttribute("name", scriptName.getParent().getBaseName());
+            testSuits.setAttribute("xmlns:xsd", "http://www.w3.org/2001/XMLSchema");
+            testSuits.setAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
             int tests =
                     Integer.parseInt(reportSummaryNode.getAttribute(LR_SCRIPT_REPORT_FAILED_STATUS)) +
                             Integer.parseInt(reportSummaryNode
@@ -153,9 +155,11 @@ public class LrScriptResultsParser {
         _logger.error(msg.toString());
     }
 
-    private void parseScriptAction(Document newDoc, NodeList actionNodes) {
+    private void parseScriptAction(Document newDoc, NodeList actionNodes, Element rootnode, String packageName) {
         for (int i = 0; i < actionNodes.getLength(); i++) {
+
             Element action = (Element) actionNodes.item(i);
+
 
             NodeList actionProps = action.getElementsByTagName("AName");
             Element actionName = (Element) actionProps.item(0);
@@ -173,9 +177,11 @@ public class LrScriptResultsParser {
             int tests =
                     Integer.parseInt(suiteSummaryNode.getAttribute(LR_SCRIPT_REPORT_FAILED_STATUS)) +
                             Integer.parseInt(suiteSummaryNode.getAttribute(LR_SCRIPT_REPORT_PASSED_STATUS));
+            testSuite.setAttribute("package", packageName);
+
             testSuite.setAttribute("tests", String.valueOf(tests));
             if (tests > 0) {
-                testSuits.appendChild(testSuite);
+                rootnode.appendChild(testSuite);
             }
         }
     }
@@ -192,6 +198,10 @@ public class LrScriptResultsParser {
                 stepStatus = "pass";
             } else {
                 stepStatus = "fail";
+                Element failureMessage = newDoc.createElement("failure");
+                failureMessage.setAttribute("message", "");
+
+                testCase.appendChild(failureMessage);
             }
             testCase.setAttribute("status", stepStatus);
 

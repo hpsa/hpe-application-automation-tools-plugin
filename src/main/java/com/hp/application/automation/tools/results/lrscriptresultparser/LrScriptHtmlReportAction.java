@@ -32,11 +32,16 @@ public class LrScriptHtmlReportAction implements Action {
     }
 
     protected File reportFile() {
-        return getBuildHtmlReport(this.build);
+        return getBuildHtmlReport();
     }
 
-    private File getBuildHtmlReport(Run run) {
+    private File getBuildHtmlReport() {
         return new File(basePath.child("index.html").toURI());
+    }
+
+    @Override
+    public String getIconFileName() {
+        return "/plugin/hp-application-automation-tools-plugin/PerformanceReport/VuGen.png";
     }
 
     @Override
@@ -47,11 +52,6 @@ public class LrScriptHtmlReportAction implements Action {
     @Override
     public String getUrlName() {
         return "LRReport";
-    }
-
-    @Override
-    public String getIconFileName() {
-        return "/plugin/hp-application-automation-tools-plugin/PerformanceReport/VuGen.png";
     }
 
     // other property of the report
