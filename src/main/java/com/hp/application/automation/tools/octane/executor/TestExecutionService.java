@@ -4,6 +4,7 @@ import antlr.ANTLRException;
 import com.hp.application.automation.tools.model.ResultsPublisherModel;
 import com.hp.application.automation.tools.octane.actions.UFTTestDetectionBuildAction;
 import com.hp.application.automation.tools.octane.actions.UFTTestDetectionPublisher;
+import com.hp.application.automation.tools.octane.actions.UFTTestDetectionService;
 import com.hp.application.automation.tools.results.RunResultRecorder;
 import com.hp.application.automation.tools.run.RunFromFileBuilder;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
@@ -180,7 +181,7 @@ public class TestExecutionService {
 
         if (discoveryInfo.isForceFullDiscovery() && proj.getWorkspace() != null) {
             try {
-                UFTTestDetectionBuildAction.removeInitialDetectionFlag(proj.getWorkspace());
+                UFTTestDetectionService.removeInitialDetectionFlag(proj.getWorkspace());
             } catch (IOException | InterruptedException e) {
                 throw new RuntimeException("Failed to remove InitialDetectionFlag : " + e.getMessage());
             }
