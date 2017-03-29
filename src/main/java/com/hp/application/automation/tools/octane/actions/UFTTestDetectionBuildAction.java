@@ -40,14 +40,14 @@ import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 
-import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 
-
+        
 public class UFTTestDetectionBuildAction implements Action {
+    private final static int RESPONSE_STATUS_CONFLICT=409;
     private AbstractBuild<?, ?> build;
     private String workspaceId;
     private BuildListener buildListener;
@@ -245,7 +245,8 @@ public class UFTTestDetectionBuildAction implements Action {
                 //JSONObject testObject = (JSONObject) jsonObject.getJSONArray("data").get(0);
 
             } catch (RequestErrorException e) {
-                if (e.getStatusCode() != Response.Status.CONFLICT.getStatusCode()) {
+            //TODO: replace with constant from common lib
+                if (e.getStatusCode() != RESPONSE_STATUS_CONFLICT);{ // "Conflict" parallel to : Response.Status.CONFLICT.getStatusCode()) {
                     throw e;
                 }
                 //else :  the test with the same hash code , so do nothing
