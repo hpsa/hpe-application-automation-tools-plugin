@@ -384,7 +384,8 @@ namespace HpToolsLauncher
             string tsPath = "Root\\" + tsFolderName;
             ITestSetFolder tsFolder = null;
             bool isTestPath = false;
-            string tName = "";
+            string testName = "";
+            string testSuiteName = tsName;
 
             try
             {
@@ -405,8 +406,8 @@ namespace HpToolsLauncher
                 try
                 {
                     int pos = tsPath.LastIndexOf("\\") + 1;
-                    tName = tsName;
-                    tsName = tsPath.Substring(pos, tsPath.Length - pos);
+                    testName = testSuiteName;
+                    testSuiteName = tsPath.Substring(pos, tsPath.Length - pos);
                     tsPath = tsPath.Substring(0, pos - 1);
 
                     tsFolder = (ITestSetFolder)tsTreeManager.get_NodeByPath(tsPath);
@@ -429,11 +430,11 @@ namespace HpToolsLauncher
             }
             else
             {
-                tsList = tsFolder.FindTestSets(tsName);
+                tsList = tsFolder.FindTestSets(testSuiteName);
             }
             if (tsList == null)
             {
-                ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerCantFindTest, tsName));
+                ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerCantFindTest, testSuiteName));
 
                 //this will make sure run will fail at the end. (since there was an error)
                 Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
@@ -443,7 +444,7 @@ namespace HpToolsLauncher
             foreach (ITestSet ts in tsList)
             {
                 string tempName = ts.Name;
-                if (tempName.Equals(tsName, StringComparison.InvariantCultureIgnoreCase))
+                if (tempName.Equals(testSuiteName, StringComparison.InvariantCultureIgnoreCase))
                 {
                     targetTestSet = ts;
                     break;
@@ -452,7 +453,7 @@ namespace HpToolsLauncher
 
             if (targetTestSet == null)
             {
-                ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerCantFindTest, tsName));
+                ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerCantFindTest, testSuiteName));
 
                 //this will make sure run will fail at the end. (since there was an error)
                 Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
@@ -462,7 +463,7 @@ namespace HpToolsLauncher
 
             ConsoleWriter.WriteLine(Resources.GeneralDoubleSeperator);
             ConsoleWriter.WriteLine(Resources.AlmRunnerStartingExecution);
-            ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerDisplayTest, tsName, targetTestSet.ID));
+            ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerDisplayTest, testSuiteName, targetTestSet.ID));
 
             ITSScheduler Scheduler = null;
             try
@@ -511,7 +512,7 @@ namespace HpToolsLauncher
                 {
                     string tListIndexName = tList[index].Name;
                     string tListIndexTestName = tList[index].TestName;
-                    if (!string.IsNullOrEmpty(tListIndexName) && !string.IsNullOrEmpty(tName) && !tName.Equals(tListIndexName))
+                    if (!string.IsNullOrEmpty(tListIndexName) && !string.IsNullOrEmpty(testName) && !testName.Equals(tListIndexName))
                     {
                         tList.Remove(index);
                     }
@@ -732,7 +733,7 @@ namespace HpToolsLauncher
 
                     //currentTest = targetTestSet.TSTestFactory[testExecStatusObj.TSTestId];
 
-                    string testPath = "Root\\" + tsFolderName + "\\" + tsName + "\\" + activeTestDesc.TestName;
+                    string testPath = "Root\\" + tsFolderName + "\\" + testSuiteName + "\\" + activeTestDesc.TestName;
 
                     activeTestDesc.TestPath = testPath;
                 }
@@ -740,7 +741,7 @@ namespace HpToolsLauncher
                 //update the total runtime
                 runDesc.TotalRunTime = sw.Elapsed;
 
-                ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerTestsetDone, tsName, DateTime.Now.ToString(Launcher.DateFormat)));
+                ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerTestsetDone, testSuiteName, DateTime.Now.ToString(Launcher.DateFormat)));
             }
             else
             {
