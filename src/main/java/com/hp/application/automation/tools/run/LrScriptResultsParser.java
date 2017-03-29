@@ -155,7 +155,7 @@ public class LrScriptResultsParser {
         _logger.error(msg.toString());
     }
 
-    private void parseScriptAction(Document newDoc, NodeList actionNodes, Element rootnode, String packageName) {
+    private void parseScriptAction(Document newDoc, NodeList actionNodes, Element rootnode, String scriptName) {
         for (int i = 0; i < actionNodes.getLength(); i++) {
 
             Element action = (Element) actionNodes.item(i);
@@ -177,7 +177,8 @@ public class LrScriptResultsParser {
             int tests =
                     Integer.parseInt(suiteSummaryNode.getAttribute(LR_SCRIPT_REPORT_FAILED_STATUS)) +
                             Integer.parseInt(suiteSummaryNode.getAttribute(LR_SCRIPT_REPORT_PASSED_STATUS));
-            testSuite.setAttribute("package", packageName);
+            testSuite.setAttribute("package", scriptName);
+            testSuite.setAttribute("classname", scriptName);
 
             testSuite.setAttribute("tests", String.valueOf(tests));
             if (tests > 0) {
