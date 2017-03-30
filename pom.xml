@@ -284,10 +284,6 @@
 			<url>http://repo1.maven.org/maven2</url>
 		</repository>
 		<repository>
-			<id>hp-application-automation-tools-plugin-mvn-repo</id>
-			<url>https://raw.github.com/HpeServiceVirtualization/3g/mvn-repo/</url>
-		</repository>
-		<repository>
 			<id>bintray-adm-maven</id>
 			<name>bintray</name>
 			<url>http://dl.bintray.com/adm/maven</url>
@@ -370,7 +366,7 @@
 		<dependency>
 			<groupId>com.hp.sv</groupId>
 			<artifactId>SVConfigurator</artifactId>
-			<version>3.82.1.45909</version>
+			<version>4.00.1.46729</version>
 			<exclusions>
 				<exclusion>
 					<groupId>commons-io</groupId>
