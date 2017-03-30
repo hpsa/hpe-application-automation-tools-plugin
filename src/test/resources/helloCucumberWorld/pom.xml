@@ -10,9 +10,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.hpe.alm.octane</groupId>
-            <artifactId>octane-cucumber-jvm</artifactId>
-            <version>12.53.19</version>
+            <groupId>info.cukes</groupId>
+            <artifactId>cucumber-jvm</artifactId>
+            <version>1.2.5</version>
         </dependency>
     </dependencies>
 

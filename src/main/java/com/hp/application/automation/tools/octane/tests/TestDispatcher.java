@@ -17,6 +17,7 @@
 package com.hp.application.automation.tools.octane.tests;
 
 import com.google.inject.Inject;
+import com.hp.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.SharedSpaceNotExistException;
 import com.hp.mqm.client.exception.FileNotFoundException;
@@ -33,7 +34,6 @@ import com.hp.application.automation.tools.octane.configuration.ConfigurationSer
 import com.hp.application.automation.tools.octane.configuration.ServerConfiguration;
 import hudson.Extension;
 import hudson.FilePath;
-import hudson.matrix.MatrixRun;
 import hudson.model.*;
 import hudson.util.TimeUnit2;
 import jenkins.YesNoMaybe;
@@ -116,28 +116,20 @@ public class TestDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 				retryModel.success();
 			}
 			Job project = (Job) Jenkins.getInstance().getItemByFullName(item.getProjectName());
-		//	AbstractProject project1 = (AbstractProject) Jenkins.getInstance().getItemByFullName(item.getProjectName());
 			if (project == null) {
 				logger.warn("Project [" + item.getProjectName() + "] no longer exists, pending test results can't be submitted");
 				queue.remove();
 				continue;
 			}
 			Run build = project.getBuildByNumber(item.getBuildNumber());
-			//AbstractBuild build = project.getBuildByNumber(item.getBuildNumber());
 			if (build == null) {
 				logger.warn("Build [" + item.getProjectName() + "#" + item.getBuildNumber() + "] no longer exists, pending test results can't be submitted");
 				queue.remove();
 				continue;
 			}
 
-			String jobName;
-			if (build instanceof MatrixRun) {
-				jobName = ((MatrixRun) build).getProject().getParent().getName();
-			} else {
-				jobName = build.getParent().getName();
-			}
-
-			Boolean needTestResult = client.isTestResultRelevant(ConfigurationService.getModel().getIdentity(), jobName);
+			Boolean needTestResult = client.isTestResultRelevant(
+					ConfigurationService.getModel().getIdentity(), BuildHandlerUtils.getJobCiId(build));
 
 			if (needTestResult) {
 				try {

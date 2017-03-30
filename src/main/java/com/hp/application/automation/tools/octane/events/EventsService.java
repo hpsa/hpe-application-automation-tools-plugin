@@ -42,22 +42,11 @@ import java.util.List;
 public final class EventsService implements ConfigurationListener {
 	private static final Logger logger = LogManager.getLogger(EventsService.class);
 
-	private static EventsService extensionInstance;
 	private JenkinsMqmRestClientFactory clientFactory;
 	private EventsClient eventsClient;
 
 	public static EventsService getExtensionInstance() {
-		if (extensionInstance == null) {
-			List<EventsService> extensions = Jenkins.getInstance().getExtensionList(EventsService.class);
-			if (extensions.isEmpty()) {
-				throw new RuntimeException("events service was not initialized properly");
-			} else if (extensions.size() > 1) {
-				throw new RuntimeException("events service expected to be singleton, found " + extensions.size() + " instances");
-			} else {
-				extensionInstance = extensions.get(0);
-			}
-		}
-		return extensionInstance;
+			return Jenkins.getInstance().getExtensionList(EventsService.class).get(0);
 	}
 
 	public void updateClient(ServerConfiguration conf) {

@@ -7,7 +7,7 @@ import hudson.ExtensionPoint;
 import hudson.model.Hudson;
 import hudson.model.Run;
 
-public abstract class BuildHandlerExtension implements ExtensionPoint {
+abstract class BuildHandlerExtension implements ExtensionPoint {
 
     public abstract boolean supports(Run<?, ?> build);
 
