@@ -154,7 +154,7 @@ public class LrScriptResultsParser {
         _logger.error(msg.toString());
     }
 
-    private void parseScriptAction(Document newDoc, NodeList actionNodes, Element rootnode, String scriptName) {
+    private static void parseScriptAction(Document newDoc, NodeList actionNodes, Element rootnode, String scriptName) {
         for (int i = 0; i < actionNodes.getLength(); i++) {
 
             Element action = (Element) actionNodes.item(i);
