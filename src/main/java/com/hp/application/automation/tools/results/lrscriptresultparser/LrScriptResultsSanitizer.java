@@ -8,7 +8,6 @@ import java.io.Reader;
  * Created by kazaky on 27/03/2017.
  */
 public class LrScriptResultsSanitizer extends FilterReader {
-
     /**
      * Creates a new filtered reader.
      *
@@ -17,6 +16,22 @@ public class LrScriptResultsSanitizer extends FilterReader {
      */
     public LrScriptResultsSanitizer(Reader in) {
         super(in);
+    }
+
+    /**
+     * This is another no-op read() method we have to implement. We implement it
+     * in terms of the method above. Our superclass implements the remaining
+     * read() methods in terms of these two.
+     */
+    @Override
+    public int read() throws IOException {
+        char[] buf = new char[1];
+        int result = read(buf, 0, 1);
+        if (result == -1) {
+            return -1;
+        } else {
+            return (int) buf[0];
+        }
     }
 
     @Override
@@ -36,7 +51,8 @@ public class LrScriptResultsSanitizer extends FilterReader {
 
                 if(!isBadXMLChar(buf[i]))
                 {
-                    buf[last++] = buf[i];
+                    buf[last] = buf[i];
+                    last++;
                 }
             }
 
@@ -46,7 +62,8 @@ public class LrScriptResultsSanitizer extends FilterReader {
         return numchars; // Then return that number.
     }
 
-    private boolean isBadXMLChar(char current)
+    @SuppressWarnings("squid:S109")
+    private static boolean isBadXMLChar(char current)
     {
         switch(current){
             case 9:
@@ -57,25 +74,7 @@ public class LrScriptResultsSanitizer extends FilterReader {
                 break;
         }
 
-        if ((current >= 57344) && (current <= 65533)||(current >= 32) && (current <= 55295)) {
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * This is another no-op read() method we have to implement. We implement it
-     * in terms of the method above. Our superclass implements the remaining
-     * read() methods in terms of these two.
-     */
-    @Override
-    public int read() throws IOException {
-        char[] buf = new char[1];
-        int result = read(buf, 0, 1);
-        if (result == -1)
-            return -1;
-        else
-            return (int) buf[0];
+        return !(((current >= 57344) && (current <= 0xfffd)) || ((current >= 32) && (current <= 55295)));
     }
 
 }

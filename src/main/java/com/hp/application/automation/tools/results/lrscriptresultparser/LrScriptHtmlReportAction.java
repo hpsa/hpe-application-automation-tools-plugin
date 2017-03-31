@@ -27,6 +27,7 @@ public class LrScriptHtmlReportAction implements Action {
         this.basePath = build.getArtifactManager().root().child(LrScriptHtmlReport.LR_REPORT_FOLDER);
     }
 
+    @SuppressWarnings("squid:S1452")
     public final Run<?, ?> getBuild() {
         return build;
     }
