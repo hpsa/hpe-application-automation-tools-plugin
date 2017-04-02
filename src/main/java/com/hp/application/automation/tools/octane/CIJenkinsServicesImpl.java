@@ -17,10 +17,20 @@
 package com.hp.application.automation.tools.octane;
 
 import com.hp.application.automation.tools.model.OctaneServerSettingsModel;
+import com.hp.application.automation.tools.octane.configuration.ConfigurationService;
+import com.hp.application.automation.tools.octane.configuration.ServerConfiguration;
+import com.hp.application.automation.tools.octane.executor.TestExecutionService;
+import com.hp.application.automation.tools.octane.model.ModelFactory;
+import com.hp.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
+import com.hp.application.automation.tools.octane.model.processors.projects.AbstractProjectProcessor;
+import com.hp.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import com.hp.application.automation.tools.octane.model.processors.scm.SCMProcessor;
+import com.hp.application.automation.tools.octane.model.processors.scm.SCMProcessors;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
+import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
+import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
 import com.hp.octane.integrations.dto.general.CIJobsList;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
@@ -33,14 +43,7 @@ import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.dto.tests.TestsResult;
 import com.hp.octane.integrations.exceptions.ConfigurationException;
 import com.hp.octane.integrations.exceptions.PermissionException;
-import com.hp.octane.integrations.spi.CIPluginServices;
-import com.hp.application.automation.tools.octane.configuration.ConfigurationService;
-import com.hp.application.automation.tools.octane.configuration.ServerConfiguration;
-import com.hp.application.automation.tools.octane.model.ModelFactory;
-import com.hp.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
-import com.hp.application.automation.tools.octane.model.processors.projects.AbstractProjectProcessor;
-import com.hp.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
-import com.hp.application.automation.tools.octane.model.processors.scm.SCMProcessors;
+import com.hp.octane.integrations.spi.CIPluginServicesBase;
 import hudson.ProxyConfiguration;
 import hudson.model.*;
 import hudson.security.ACL;
@@ -66,7 +69,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-public class CIJenkinsServicesImpl implements CIPluginServices {
+public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 	private static final Logger logger = LogManager.getLogger(CIJenkinsServicesImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
@@ -518,4 +521,16 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 		}
 		return item;
 	}
+
+	@Override
+	public void runTestDiscovery(DiscoveryInfo discoveryInfo) {
+		TestExecutionService.runTestDiscovery(discoveryInfo);
+	}
+
+	@Override
+	public void runTestSuiteExecution(TestSuiteExecutionInfo suiteExecutionInfo) {
+		TestExecutionService.runTestSuiteExecution(suiteExecutionInfo);
+	}
+
+
 }

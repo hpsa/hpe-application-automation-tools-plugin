@@ -25,7 +25,7 @@ public class AutomatedTest {
     private TestingToolType testing_tool_type;
     private TestFramework framework;
     private String name;
-    private String component;
+    private String _package;
 
     public String getName() {
         return name;
@@ -60,12 +60,12 @@ public class AutomatedTest {
         this.framework = framework;
     }
 
-    public String getComponent() {
-        return component;
+    public String getPackage() {
+        return _package;
     }
 
-    public void setComponent(String component) {
-        this.component = component;
+    public void setPackage(String _package) {
+        this._package = _package;
     }
 
     public TestingToolType getTesting_tool_type() {

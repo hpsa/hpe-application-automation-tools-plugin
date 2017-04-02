@@ -60,9 +60,9 @@ public class UFTTestDetectionPublisher extends Recorder {
 
 	@Override
 	public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) {
-		UFTTestDetectionBuildAction buildAction = new UFTTestDetectionBuildAction(build, getWorkspaceName(), listener);
-		buildAction.startScanning();
-		//build.addAction(buildAction);
+		UFTTestDetectionResult results = UFTTestDetectionService.startScanning(build, getWorkspaceName(), listener);
+		UFTTestDetectionBuildAction buildAction = new UFTTestDetectionBuildAction(build, results);
+		build.addAction(buildAction);
 
 		return true;
 	}

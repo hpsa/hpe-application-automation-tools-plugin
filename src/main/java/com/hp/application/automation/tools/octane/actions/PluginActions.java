@@ -31,6 +31,7 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
 import javax.servlet.ServletException;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
@@ -80,7 +81,7 @@ public class PluginActions implements RootAction {
 			octaneTaskAbridged.setId(UUID.randomUUID().toString());
 			octaneTaskAbridged.setMethod(method);
 			octaneTaskAbridged.setUrl(req.getRequestURIWithQueryString());
-			octaneTaskAbridged.setBody("");
+			octaneTaskAbridged.setBody(getBody(req.getReader()));
 			TasksProcessor taskProcessor = OctaneSDK.getInstance().getTasksProcessor();
 			OctaneResultAbridged result = taskProcessor.execute(octaneTaskAbridged);
 
@@ -96,5 +97,16 @@ public class PluginActions implements RootAction {
 		} else {
 			res.setStatus(501);
 		}
+	}
+
+	public static String getBody(BufferedReader reader) throws IOException {
+
+		StringBuilder buffer = new StringBuilder();
+		String line;
+		while ((line = reader.readLine()) != null) {
+			buffer.append(line);
+		}
+		String body = buffer.toString();
+		return body;
 	}
 }
