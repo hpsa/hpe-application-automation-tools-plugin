@@ -44,7 +44,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import javax.ws.rs.core.Response;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -64,6 +63,7 @@ public class UFTTestDetectionService {
     private static final String DETECTION_RESULT_FILE = "detection_result.xml";
     private static final String STFileExtention = ".st";//api test
     private static final String QTPFileExtention = ".tsp";//gui test
+    private final static int RESPONSE_STATUS_CONFLICT = 409;
 
 
     public static UFTTestDetectionResult startScanning(AbstractBuild<?, ?> build, String workspaceId, BuildListener buildListener) {
@@ -240,7 +240,7 @@ public class UFTTestDetectionService {
                 //JSONObject testObject = (JSONObject) jsonObject.getJSONArray("data").get(0);
 
             } catch (RequestErrorException e) {
-                if (e.getStatusCode() != Response.Status.CONFLICT.getStatusCode()) {
+                if (e.getStatusCode() != RESPONSE_STATUS_CONFLICT) {
                     throw e;
                 }
                 //else :  the test with the same hash code , so do nothing
