@@ -4,6 +4,13 @@
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/8ec4415bffe94fda8ae40415388c063e)](https://www.codacy.com/app/HPEbot/hp-application-automation-tools-plugin?utm_source=github.com&utm_medium=referral&utm_content=hpsa/hp-application-automation-tools-plugin&utm_campaign=badger)
 
+Project status:
+[![Build status](https://ci.appveyor.com/api/projects/status/gqd0x8ov1ebqjjcu?svg=true)](https://ci.appveyor.com/project/HPEbot/hp-application-automation-tools-plugin)
+
+Latest release branch status:
+[![Build status](https://ci.appveyor.com/api/projects/status/gqd0x8ov1ebqjjcu/branch/latest?svg=true)](https://ci.appveyor.com/project/HPEbot/hp-application-automation-tools-plugin/branch/latest)
+
+
 ##### The plugin provides the ability to run HPE products with Jenkins during builds.
 
 ## Relevent links
