@@ -17,11 +17,12 @@
 package com.hp.application.automation.tools.octane.tests.junit;
 
 import com.hp.application.automation.tools.octane.tests.HPRunnerType;
+import com.hp.application.automation.tools.octane.tests.xml.AbstractXmlIterator;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.tests.Property;
 import com.hp.octane.integrations.dto.tests.TestSuite;
-import com.hp.application.automation.tools.octane.tests.xml.AbstractXmlIterator;
 import hudson.FilePath;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -141,12 +142,27 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 				}
 			} else if ("testName".equals(localName)) { // NON-NLS
 				testName = readNextValue();
-				if (testName.startsWith(workspace.getRemote())) {
-					// if workspace is prefix of the method name, cut it off
-					// currently this handling is needed for UFT tests
-					testName = testName.substring(workspace.getRemote().length()).replaceAll("^[/\\\\]", "");
-				}
+
 				if (hpRunnerType.equals(HPRunnerType.UFT)) {
+					packageName = "";
+					className = "";
+
+					if (testName.startsWith(workspace.getRemote())) {
+						// if workspace is prefix of the method name, cut it off
+						// currently this handling is needed for UFT tests
+						String path = testName.substring(workspace.getRemote().length());
+						path = StringUtils.strip(path, "\\/");
+
+						//split path to package and and name fields
+						if (path.contains(File.separator)) {
+							int testNameStartIndex = path.indexOf(File.separator);
+
+							testName = path.substring(testNameStartIndex + 1);
+							packageName = path.substring(0, testNameStartIndex);
+						} else {
+							testName = path;
+						}
+					}
 					externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/artifact/UFTReport/" + cleanTestName(testName) + "/run_results.html";
 				}
 			} else if ("duration".equals(localName)) { // NON-NLS
