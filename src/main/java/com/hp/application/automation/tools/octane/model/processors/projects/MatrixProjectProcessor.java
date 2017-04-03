@@ -21,6 +21,7 @@ import hudson.model.Job;
 import hudson.tasks.Builder;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created with IntelliJ IDEA.
@@ -32,16 +33,16 @@ import java.util.List;
 
 class MatrixProjectProcessor extends AbstractProjectProcessor<MatrixProject> {
 
-	MatrixProjectProcessor(Job project) {
+	MatrixProjectProcessor(Job project, Set<Job> processedJobs) {
 		super((MatrixProject) project);
 
 		//  Internal phases
 		//
-		super.processBuilders(this.job.getBuilders(), this.job);
+		super.processBuilders(this.job.getBuilders(), this.job, processedJobs);
 
 		//  Post build phases
 		//
-		super.processPublishers(this.job);
+		super.processPublishers(this.job, processedJobs);
 	}
 
 	@Override

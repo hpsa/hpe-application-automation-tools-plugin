@@ -33,6 +33,7 @@ import org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBu
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created with IntelliJ IDEA.
@@ -79,28 +80,29 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 
 	//  INTERNALS
 	//
-	void processBuilders(List<Builder> builders, Job job) {
-		this.processBuilders(builders, job, "");
+	void processBuilders(List<Builder> builders, Job job, Set<Job> processedJobs) {
+		this.processBuilders(builders, job, "", processedJobs);
 	}
 
-	void processBuilders(List<Builder> builders, Job job, String phasesName) {
+	void processBuilders(List<Builder> builders, Job job, String phasesName, Set<Job> processedJobs) {
 		for (Builder builder : builders) {
-			builderClassValidator(builder, job, phasesName);
+			builderClassValidator(builder, job, phasesName, processedJobs);
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	void processPublishers(Job job) {
+	void processPublishers(Job job, Set<Job> processedJobs) {
 		if (job instanceof AbstractProject) {
 			AbstractProject project = (AbstractProject) job;
+			processedJobs.add(job);
 			AbstractBuilderProcessor builderProcessor;
 			List<Publisher> publishers = project.getPublishersList();
 			for (Publisher publisher : publishers) {
 				builderProcessor = null;
 				if (publisher.getClass().getName().equals("hudson.tasks.BuildTrigger")) {
-					builderProcessor = new BuildTriggerProcessor(publisher, project);
+					builderProcessor = new BuildTriggerProcessor(publisher, project, processedJobs);
 				} else if (publisher.getClass().getName().equals("hudson.plugins.parameterizedtrigger.BuildTrigger")) {
-					builderProcessor = new ParameterizedTriggerProcessor(publisher, project, "");
+					builderProcessor = new ParameterizedTriggerProcessor(publisher, project, "", processedJobs);
 				}
 				if (builderProcessor != null) {
 					postBuilds.addAll(builderProcessor.getPhases());
@@ -111,20 +113,21 @@ public abstract class AbstractProjectProcessor<T extends Job> {
 		}
 	}
 
-	private void builderClassValidator(Builder builder, Job job, String phasesName) {
+	private void builderClassValidator(Builder builder, Job job, String phasesName, Set<Job> processedJobs) {
+		processedJobs.add(job);
 		AbstractBuilderProcessor builderProcessor = null;
 		if (builder.getClass().getName().equals("org.jenkinsci.plugins.conditionalbuildstep.ConditionalBuilder")) {
 			ConditionalBuilder conditionalBuilder = (ConditionalBuilder) builder;
 			for (BuildStep currentBuildStep : conditionalBuilder.getConditionalbuilders()) {
-				builderClassValidator((Builder) currentBuildStep, job, phasesName);
+				builderClassValidator((Builder) currentBuildStep, job, phasesName, processedJobs);
 			}
 		} else if (builder.getClass().getName().equals("org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder")) {
 			SingleConditionalBuilder singleConditionalBuilder = (SingleConditionalBuilder) builder;
-			builderClassValidator((Builder) singleConditionalBuilder.getBuildStep(), job, phasesName);
+			builderClassValidator((Builder) singleConditionalBuilder.getBuildStep(), job, phasesName, processedJobs);
 		} else if (builder.getClass().getName().equals("hudson.plugins.parameterizedtrigger.TriggerBuilder")) {
-			builderProcessor = new ParameterizedTriggerProcessor(builder, job, phasesName);
+			builderProcessor = new ParameterizedTriggerProcessor(builder, job, phasesName, processedJobs);
 		} else if (builder.getClass().getName().equals("com.tikal.jenkins.plugins.multijob.MultiJobBuilder")) {
-			builderProcessor = new MultiJobBuilderProcessor(builder);
+			builderProcessor = new MultiJobBuilderProcessor(builder, processedJobs);
 		}
 
 		if (builderProcessor != null) {

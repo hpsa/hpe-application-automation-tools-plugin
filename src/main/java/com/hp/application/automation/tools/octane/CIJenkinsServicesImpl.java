@@ -158,36 +158,45 @@ public class CIJenkinsServicesImpl implements CIPluginServices {
 			List<String> itemNames = (List<String>) Jenkins.getInstance().getTopLevelItemNames();
 			for (String name : itemNames) {
 				tmpItem = Jenkins.getInstance().getItem(name);
-				if (tmpItem instanceof AbstractProject) {
-					AbstractProject abstractProject = (AbstractProject) tmpItem;
-					tmpConfig = dtoFactory.newDTO(PipelineNode.class)
-							.setJobCiId(JobProcessorFactory.getFlowProcessor(abstractProject).getJobCiId())
-							.setName(name);
-					if (includeParameters) {
-						tmpConfig.setParameters(ParameterProcessors.getConfigs(abstractProject));
-					}
-					list.add(tmpConfig);
-				} else if (tmpItem.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob")) {
-					Job tmpJob = (Job) tmpItem;
-					tmpConfig = dtoFactory.newDTO(PipelineNode.class)
-							.setJobCiId(JobProcessorFactory.getFlowProcessor(tmpJob).getJobCiId())
-							.setName(name);
-					if (includeParameters) {
-						tmpConfig.setParameters(ParameterProcessors.getConfigs(tmpJob));
-					}
-					list.add(tmpConfig);
-				} else if (tmpItem.getClass().getName().equals("com.cloudbees.hudson.plugins.folder.Folder")) {
-					for (Job tmpJob : tmpItem.getAllJobs()) {
+
+				try {
+					if (tmpItem instanceof AbstractProject) {
+						AbstractProject abstractProject = (AbstractProject) tmpItem;
+						if (abstractProject.isDisabled()) {
+							continue;
+						}
+						tmpConfig = dtoFactory.newDTO(PipelineNode.class)
+								.setJobCiId(JobProcessorFactory.getFlowProcessor(abstractProject).getJobCiId())
+								.setName(name);
+						if (includeParameters) {
+							tmpConfig.setParameters(ParameterProcessors.getConfigs(abstractProject));
+						}
+						list.add(tmpConfig);
+					} else if (tmpItem.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob")) {
+						Job tmpJob = (Job) tmpItem;
 						tmpConfig = dtoFactory.newDTO(PipelineNode.class)
 								.setJobCiId(JobProcessorFactory.getFlowProcessor(tmpJob).getJobCiId())
-								.setName(tmpJob.getName());
+								.setName(name);
 						if (includeParameters) {
 							tmpConfig.setParameters(ParameterProcessors.getConfigs(tmpJob));
 						}
 						list.add(tmpConfig);
+					} else if (tmpItem.getClass().getName().equals("com.cloudbees.hudson.plugins.folder.Folder")) {
+						for (Job tmpJob : tmpItem.getAllJobs()) {
+							tmpConfig = dtoFactory.newDTO(PipelineNode.class)
+									.setJobCiId(JobProcessorFactory.getFlowProcessor(tmpJob).getJobCiId())
+									.setName(tmpJob.getName());
+							if (includeParameters) {
+								tmpConfig.setParameters(ParameterProcessors.getConfigs(tmpJob));
+							}
+							list.add(tmpConfig);
+						}
+					} else {
+						logger.info("item '" + name + "' is not of supported type");
 					}
-				} else {
-					logger.info("item '" + name + "' is not of supported type");
+				} catch (Throwable e) {
+					logger.error("Failed to add job '" + name + "' to JobList  : " + e.getClass().getCanonicalName() + " - " + e.getMessage(), e);
+					//throw e;
 				}
 
 			}

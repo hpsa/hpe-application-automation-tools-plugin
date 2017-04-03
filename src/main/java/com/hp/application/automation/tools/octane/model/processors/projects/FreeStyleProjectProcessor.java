@@ -21,6 +21,7 @@ import hudson.model.Job;
 import hudson.tasks.Builder;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created with IntelliJ IDEA.
@@ -32,16 +33,16 @@ import java.util.List;
 
 class FreeStyleProjectProcessor extends AbstractProjectProcessor<FreeStyleProject> {
 
-	FreeStyleProjectProcessor(Job job) {
+	FreeStyleProjectProcessor(Job job, Set<Job> processedJobs) {
 		super((FreeStyleProject) job);
 
 		//  Internal phases
 		//
-		super.processBuilders(this.job.getBuilders(), this.job);
+		super.processBuilders(this.job.getBuilders(), this.job, processedJobs);
 
 		//  Post build phases
 		//
-		super.processPublishers(this.job);
+		super.processPublishers(this.job, processedJobs);
 	}
 
 	@Override
