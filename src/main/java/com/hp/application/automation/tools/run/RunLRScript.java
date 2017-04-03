@@ -53,8 +53,8 @@ public class RunLRScript extends Builder implements SimpleBuildStep {
     public static final String LR_SCRIPT_HTML_REPORT_CSS = "PResults.css";
     private static final String LINUX_MDRV_PATH = "/bin/mdrv";
     private static final String WIN_MDRV_PATH = "\\bin\\mmdrv.exe";
-    private static final String LR_SCRIPT_HTML_XSLT = "\\lib\\LR\\PDetails.xsl";
-    private static final String LR_SCRIPT_HTML_CSS = "\\lib\\LR\\LR_SCRIPT_REPORT.css";
+    private static final String LR_SCRIPT_HTML_XSLT = "PDetails.xsl";
+    private static final String LR_SCRIPT_HTML_CSS = "LR_SCRIPT_REPORT.css";
     private final String lrScriptPath;
     private Jenkins jenkinsInstance;
     private PrintStream logger;
@@ -77,12 +77,13 @@ public class RunLRScript extends Builder implements SimpleBuildStep {
             FilePath buildWorkDir = workspace.child(build.getId());
             buildWorkDir.mkdirs();
             buildWorkDir = buildWorkDir.absolutize();
-            FilePath scriptPath = workspace.child(this.lrScriptPath);
-
+            env = build.getEnvironment(listener);
+            FilePath scriptPath = workspace.child(env.expand(this.lrScriptPath));
             FilePath scriptWorkDir = buildWorkDir.child(scriptName);
             scriptWorkDir.mkdirs();
             scriptWorkDir = scriptWorkDir.absolutize();
-            env = build.getEnvironment(listener);
+
+
             if (runScriptMdrv(launcher, args, env, scriptPath, scriptWorkDir)) {
                 build.setResult(Result.FAILURE);
                 return;
@@ -125,6 +126,7 @@ public class RunLRScript extends Builder implements SimpleBuildStep {
 
     private FilePath copyXsltToNode(@Nonnull FilePath workspace) throws IOException, InterruptedException {
         final URL xsltPath = jenkinsInstance.pluginManager.uberClassLoader.getResource(LR_SCRIPT_HTML_XSLT);
+        logger.println("loading XSLT from " + xsltPath.getFile());
         FilePath xsltOnNode = workspace.child("resultsHtml.xslt");
         if (!xsltOnNode.exists()) {
             xsltOnNode.copyFrom(xsltPath);
