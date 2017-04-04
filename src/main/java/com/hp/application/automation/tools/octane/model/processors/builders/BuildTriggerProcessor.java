@@ -44,7 +44,6 @@ public class BuildTriggerProcessor extends AbstractBuilderProcessor {
 		BuildTrigger t = (BuildTrigger) publisher;
 		super.phases = new ArrayList<>();
 		List<AbstractProject> items = t.getChildProjects(project.getParent());
-		List<AbstractProject> children = new ArrayList<>();
 		for (Iterator<AbstractProject> iterator = items.iterator(); iterator.hasNext(); ) {
 			AbstractProject next = iterator.next();
 			if (next == null || processedJobs.contains(next)) {
@@ -52,6 +51,6 @@ public class BuildTriggerProcessor extends AbstractBuilderProcessor {
 				logger.warn("encountered null project reference; considering it as corrupted configuration and skipping");
 			}
 		}
-		super.phases.add(ModelFactory.createStructurePhase("downstream", false, children));
+		super.phases.add(ModelFactory.createStructurePhase("downstream", false, items));
 	}
 }
