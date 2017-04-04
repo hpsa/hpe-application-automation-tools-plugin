@@ -1114,7 +1114,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 averageThroughput.setActualValue(Double.valueOf(slaRuleElement.getAttribute(SLA_ACTUAL_VALUE_LABEL)));
                 averageThroughput.setGoalValue(Double.valueOf(slaRuleElement.getAttribute(SLA_GOAL_VALUE_LABEL)));
                 averageThroughput.setFullName(slaRuleElement.getAttribute(SLA_ULL_NAME));
-                averageThroughput.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
+                averageThroughput.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getLastChild().getTextContent().trim()));
                 jobLrScenarioResult.scenarioSlaResults.add(averageThroughput);
                 break;
             case TotalThroughput:
@@ -1123,7 +1123,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 totalThroughput.setActualValue(Double.valueOf(slaRuleElement.getAttribute(SLA_ACTUAL_VALUE_LABEL)));
                 totalThroughput.setGoalValue(Double.valueOf(slaRuleElement.getAttribute(SLA_GOAL_VALUE_LABEL)));
                 totalThroughput.setFullName(slaRuleElement.getAttribute(SLA_ULL_NAME));
-                totalThroughput.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
+                totalThroughput.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getLastChild().getTextContent().trim()));
                 jobLrScenarioResult.scenarioSlaResults.add(totalThroughput);
 
                 break;
@@ -1133,7 +1133,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 averageHitsPerSecond.setActualValue(Double.valueOf(slaRuleElement.getAttribute(SLA_ACTUAL_VALUE_LABEL)));
                 averageHitsPerSecond.setGoalValue(Double.valueOf(slaRuleElement.getAttribute(SLA_GOAL_VALUE_LABEL)));
                 averageHitsPerSecond.setFullName(slaRuleElement.getAttribute(SLA_ULL_NAME));
-                averageHitsPerSecond.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
+                averageHitsPerSecond.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getLastChild().getTextContent().trim()));
                 jobLrScenarioResult.scenarioSlaResults.add(averageHitsPerSecond);
 
                 break;
@@ -1143,7 +1143,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 totalHits.setActualValue(Double.valueOf(slaRuleElement.getAttribute(SLA_ACTUAL_VALUE_LABEL)));
                 totalHits.setGoalValue(Double.valueOf(slaRuleElement.getAttribute(SLA_GOAL_VALUE_LABEL)));
                 totalHits.setFullName(slaRuleElement.getAttribute(SLA_ULL_NAME));
-                totalHits.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
+                totalHits.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getLastChild().getTextContent().trim()));
                 jobLrScenarioResult.scenarioSlaResults.add(totalHits);
 
                 break;
@@ -1153,7 +1153,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 errPerSec.setFullName(slaRuleElement.getAttribute(SLA_ULL_NAME));
                 errPerSec.setLoadThrashold(slaRuleElement.getAttribute("SLALoadThresholdValue"));
                 errPerSec.setStatus(LrTest.SLA_STATUS.checkStatus(
-                        slaRuleElement.getFirstChild().getTextContent())); //Might not work due to time ranges
+                        slaRuleElement.getLastChild().getTextContent().trim())); //Might not work due to time ranges
                 addTimeRanges(errPerSec, slaRuleElement);
                 jobLrScenarioResult.scenarioSlaResults.add(errPerSec);
 
@@ -1168,7 +1168,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                         SLA_GOAL_VALUE_LABEL)));
                 percentileTransactionWholeRun.setFullName(slaRuleElement.getAttribute(SLA_ULL_NAME));
                 percentileTransactionWholeRun.setPrecentage(Double.valueOf(slaRuleElement.getAttribute("Percentile")));
-                percentileTransactionWholeRun.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getTextContent()));
+                percentileTransactionWholeRun.setStatus(LrTest.SLA_STATUS.checkStatus(slaRuleElement.getLastChild().getTextContent().trim()));
                 jobLrScenarioResult.scenarioSlaResults.add(percentileTransactionWholeRun);
 
                 break;
@@ -1179,7 +1179,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
                 transactionTimeRange.setFullName(slaRuleElement.getAttribute(SLA_ULL_NAME));
                 transactionTimeRange.setLoadThrashold(slaRuleElement.getAttribute("SLALoadThresholdValue"));
                 transactionTimeRange.setStatus(LrTest.SLA_STATUS.checkStatus(
-                        slaRuleElement.getFirstChild().getTextContent())); //Might not work due to time ranges
+                        slaRuleElement.getLastChild().getTextContent().trim())); //Might not work due to time ranges
                 addTimeRanges(transactionTimeRange, slaRuleElement);
                 jobLrScenarioResult.scenarioSlaResults.add(transactionTimeRange);
                 break;
@@ -1192,7 +1192,9 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         Node timeRangeNode;
         Element timeRangeElement;
         NodeList timeRanges = slaRuleElement.getElementsByTagName("TimeRangeInfo");
-
+        if(timeRanges == null || timeRanges.getLength() == 0){
+            return;
+        }
         //Taking the goal per transaction -
         double generalGoalValue = Double.parseDouble(((Element) timeRanges.item(0)).getAttribute(SLA_GOAL_VALUE_LABEL));
         transactionTimeRange.setGoalValue(generalGoalValue);
