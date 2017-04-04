@@ -8,7 +8,7 @@
 	</parent>
 
 	<artifactId>hp-application-automation-tools-plugin</artifactId>
-	<version>5.1.0.1-beta</version>
+	<version>5.1.0.2-beta-SNAPSHOT</version>
 	<packaging>hpi</packaging>
 	<name>HP Application Automation Tools</name>
 	<description>The plugin integrates Jenkins with the following HPE products - Service Virtualization, LoadRunner, Performance Center, Unified Functional Testing, QuickTest Professional, Service Test, Mobile Center, Application Lifecycle Management and Application Lifecycle Management Octane.</description>
@@ -47,7 +47,7 @@
 		<developerConnection>scm:git:ssh://git@github.com/hpsa/hp-application-automation-tools-plugin.git
 		</developerConnection>
 		<url>https://github.com/hpsa/hp-application-automation-tools-plugin</url>
-		<tag>hp-application-automation-tools-plugin-5.1.0.1-beta</tag>
+		<tag>HEAD</tag>
 	</scm>
 	<issueManagement>
 		<system>JIRA</system>
