@@ -138,7 +138,7 @@ public class UFTTestDetectionService {
             }
         }
 
-        deleteTests(client, result.getDeletedTests(), workspaceId);
+        //deleteTests(client, result.getDeletedTests(), workspaceId);
         postTests(client, serverURL, result.getNewTests(), workspaceId);
 
         return result;
