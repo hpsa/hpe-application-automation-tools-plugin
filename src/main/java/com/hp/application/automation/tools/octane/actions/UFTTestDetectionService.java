@@ -80,13 +80,13 @@ public class UFTTestDetectionService {
             if (!isInitialDetectionDone(build.getWorkspace())) {
                 printToConsole(buildListener, "Executing initial detection");
                 result = doInitialDetection(client, serverURL, build.getWorkspace(), workspaceId);
-
-                printToConsole(buildListener, String.format("Found %s tests", result.getNewTests().size()));
             } else {
-                printToConsole(buildListener, "Executing ChangeSetDetection");
+                printToConsole(buildListener, "Executing changeSet detection");
                 result = doChangeSetDetection(client, serverURL, changeSetItems, build.getWorkspace(), workspaceId);
             }
 
+            printToConsole(buildListener, String.format("Found %s tests", result.getNewTests().size()));
+            printToConsole(buildListener, "Posted successfully = " + result.isPostedSuccessfully());
             publishDetectionResults(build, buildListener, result);
 
         } catch (InterruptedException | IOException e) {
@@ -97,7 +97,10 @@ public class UFTTestDetectionService {
     }
 
     private static void printToConsole(BuildListener buildListener, String msg) {
-        buildListener.getLogger().println("UFTTestDetectionBuildAction : " + msg);
+        if (buildListener != null) {
+            buildListener.getLogger().println("UFTTestDetectionService : " + msg);
+        }
+
         logger.info(msg);
     }
 
@@ -139,7 +142,8 @@ public class UFTTestDetectionService {
         }
 
         //deleteTests(client, result.getDeletedTests(), workspaceId);
-        postTests(client, serverURL, result.getNewTests(), workspaceId);
+        boolean posted = postTests(client, serverURL, result.getNewTests(), workspaceId);
+        result.setPostedSuccessfully(posted);
 
         return result;
     }
@@ -185,8 +189,8 @@ public class UFTTestDetectionService {
 
         scanFileSystemRecursively(workspace, workspace, result);
 
-        postTests(client, serverURL, result.getNewTests(), workspaceId);
-
+        boolean posted = postTests(client, serverURL, result.getNewTests(), workspaceId);
+        result.setPostedSuccessfully(posted);
 
         File rootFile = new File(workspace.toURI());
         File file = new File(rootFile, INITIAL_DETECTION_FILE);
@@ -197,7 +201,6 @@ public class UFTTestDetectionService {
 
     private static void scanFileSystemRecursively(FilePath root, FilePath dirPath, UFTTestDetectionResult result) throws IOException, InterruptedException {
         List<FilePath> paths = dirPath.list();
-
 
         //if it test folder - create new test, else drill down to subFolders
         if (isUftTestFolder(paths)) {
@@ -224,27 +227,34 @@ public class UFTTestDetectionService {
         return client;
     }
 
-    private static void postTests(MqmRestClient client, String serverURL, List<AutomatedTest> tests, String workspaceId) throws UnsupportedEncodingException {
-        if (tests.isEmpty()) {
-            return;
-        }
+    private static boolean postTests(MqmRestClient client, String serverURL, List<AutomatedTest> tests, String workspaceId) throws UnsupportedEncodingException {
 
-        completeUftProperties(client, Long.parseLong(workspaceId), tests);
-
-        int BULK_SIZE = 100;
-        for (int i = 0; i < tests.size(); i += BULK_SIZE)
+        if (!tests.isEmpty()) {
             try {
-                AutomatedTests data = AutomatedTests.createWithTests(tests.subList(i, Math.min(i + BULK_SIZE, tests.size())));
-                String uftTestJson = JSONObject.fromObject(data).toString();
-                client.postTest(uftTestJson, null, serverURL);
-                //JSONObject testObject = (JSONObject) jsonObject.getJSONArray("data").get(0);
-
+                completeUftProperties(client, Long.parseLong(workspaceId), tests);
             } catch (RequestErrorException e) {
-                if (e.getStatusCode() != RESPONSE_STATUS_CONFLICT) {
-                    throw e;
-                }
-                //else :  the test with the same hash code , so do nothing
+                logger.warning("Failed to completeUftProperties : " + e.getMessage());
+                return false;
             }
+
+            int BULK_SIZE = 100;
+            for (int i = 0; i < tests.size(); i += BULK_SIZE)
+                try {
+                    AutomatedTests data = AutomatedTests.createWithTests(tests.subList(i, Math.min(i + BULK_SIZE, tests.size())));
+                    String uftTestJson = JSONObject.fromObject(data).toString();
+                    client.postTest(uftTestJson, null, serverURL);
+                    //JSONObject testObject = (JSONObject) jsonObject.getJSONArray("data").get(0);
+
+                } catch (RequestErrorException e) {
+                    if (e.getStatusCode() != RESPONSE_STATUS_CONFLICT) {
+                        logger.warning("Failed to postTests to Octane : " + e.getMessage());
+                        return false;
+                    }
+
+                    //else :  the test with the same hash code , so do nothing
+                }
+        }
+        return true;
     }
 
     private static void deleteTests(MqmRestClient client, Collection<AutomatedTest> removedTests, String workspaceId) throws UnsupportedEncodingException {
@@ -351,7 +361,7 @@ public class UFTTestDetectionService {
 
         root.setAttribute("new", String.valueOf(detectionResult.getNewTests().size()));
         root.setAttribute("deleted", String.valueOf(detectionResult.getDeletedTests().size()));
-
+        root.setAttribute("postedSuccessfully", String.valueOf(detectionResult.isPostedSuccessfully()));
 
         for (AutomatedTest test : detectionResult.getNewTests()) {
             Element elmTest = doc.createElement("test");

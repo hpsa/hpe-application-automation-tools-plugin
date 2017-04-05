@@ -651,7 +651,9 @@ public class RunFromFileSystemModel {
 
             String filePath = File.separator + "test_suite.mtbx";
             String fullPath = workspace.getRemote() + filePath;
-            FileUtils.writeStringToFile(new File(fullPath), mtbxContent);
+
+            String content = mtbxContent.replace("${WORKSPACE}",workspace.getRemote());
+            FileUtils.writeStringToFile(new File(fullPath), content);
 
             String relativePath = "${WORKSPACE}" + filePath;
             return relativePath;

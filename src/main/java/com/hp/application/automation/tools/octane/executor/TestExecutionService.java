@@ -2,7 +2,6 @@ package com.hp.application.automation.tools.octane.executor;
 
 import antlr.ANTLRException;
 import com.hp.application.automation.tools.model.ResultsPublisherModel;
-import com.hp.application.automation.tools.octane.actions.UFTTestDetectionBuildAction;
 import com.hp.application.automation.tools.octane.actions.UFTTestDetectionPublisher;
 import com.hp.application.automation.tools.octane.actions.UFTTestDetectionService;
 import com.hp.application.automation.tools.results.RunResultRecorder;
@@ -14,7 +13,9 @@ import com.hp.octane.integrations.dto.scm.SCMRepository;
 import com.hp.octane.integrations.dto.scm.SCMType;
 import hudson.model.FreeStyleProject;
 import hudson.plugins.git.GitSCM;
+import hudson.tasks.LogRotator;
 import hudson.triggers.SCMTrigger;
+import jenkins.model.BuildDiscarder;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
@@ -62,21 +63,33 @@ public class TestExecutionService {
                 "testingToolType": "uft"
             }
          */
-        String projectName = String.format("test_suite_%s_execution", suiteExecutionInfo.getSuiteId());
+        FreeStyleProject proj = getExecutionJob(suiteExecutionInfo);
+
+        //start job
+        proj.scheduleBuild2(0);
+    }
+
+    private static FreeStyleProject getExecutionJob(TestSuiteExecutionInfo suiteExecutionInfo) {
+
+        String projectName = String.format("%s test execution job, executor id %s, suite id %s",
+                suiteExecutionInfo.getTestingToolType().toString(),
+                suiteExecutionInfo.getExecutorId(),
+                suiteExecutionInfo.getSuiteId());
 
         //validate creation of job
         FreeStyleProject proj = (FreeStyleProject) Jenkins.getInstance().getItem(projectName);
         if (proj == null) {
             try {
                 proj = Jenkins.getInstance().createProject(FreeStyleProject.class, projectName);
+                proj.setDescription(String.format("This job was created by HP AA Plugin for execution of %s tests, as part of Octane executor with id %s and suite with id %s",
+                        suiteExecutionInfo.getTestingToolType().toString(), suiteExecutionInfo.getExecutorId(), suiteExecutionInfo.getSuiteId()));
             } catch (IOException e) {
                 throw new RuntimeException("Failed to create FreeStyleProject : " + e.getMessage());
             }
         }
 
-        //set repository
         setScmRepository(suiteExecutionInfo.getScmRepository(), proj);
-
+        setBuildDiscarder(proj, 20);
 
         //add build action
         String fsTestsData = prepareMtbxData(suiteExecutionInfo.getTests());
@@ -99,9 +112,7 @@ public class TestExecutionService {
             runResultRecorder = new RunResultRecorder(ResultsPublisherModel.alwaysArchiveResults.getValue());
             publishers.add(runResultRecorder);
         }
-
-        //start job
-        proj.scheduleBuild2(0);
+        return proj;
     }
 
     private static void setScmRepository(SCMRepository scmRepository, FreeStyleProject proj) {
@@ -206,6 +217,7 @@ public class TestExecutionService {
         }
 
         setScmRepository(discoveryInfo.getScmRepository(), proj);
+        setBuildDiscarder(proj, 20);
 
         //set polling once in two minutes
         try {
@@ -238,8 +250,19 @@ public class TestExecutionService {
         return proj;
     }
 
+    private static void setBuildDiscarder(FreeStyleProject proj, int numBuildsToKeep) {
+        try {
+            int IRRELEVANT = -1;
+            BuildDiscarder bd = new LogRotator(IRRELEVANT, numBuildsToKeep, IRRELEVANT, IRRELEVANT);
+            proj.setBuildDiscarder(bd);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to set  build discarder : " + e.getMessage());
+        }
+    }
+
     /**
      * Delay starting of polling by 5 minutes to allow original clone
+     *
      * @param proj
      * @param scmTrigger
      */

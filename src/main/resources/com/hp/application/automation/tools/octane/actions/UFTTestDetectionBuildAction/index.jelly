@@ -54,6 +54,11 @@
                 <br/>
             </j:if>
 
+            <j:if test="${it.results.isPostedSuccessfully()}">
+                Tests are posted successfully to  Octane.
+                <br/>
+                <br/>
+            </j:if>
          </p>
        <p>
        <table class = "myTable" frame="vsides above bottom" >

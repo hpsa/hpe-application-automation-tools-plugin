@@ -18,18 +18,20 @@ package com.hp.application.automation.tools.octane.actions;
 
 import com.hp.application.automation.tools.octane.actions.dto.AutomatedTest;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UFTTestDetectionResult {
 
     private List<AutomatedTest> newTests = new ArrayList<>();
     private List<AutomatedTest> deletedTests = new ArrayList<>();
+    private boolean postedSuccessfully = false;
 
-    public void addNewTest(AutomatedTest test){
+    public void addNewTest(AutomatedTest test) {
         getNewTests().add(test);
     }
 
-    public void addDeletedTest(AutomatedTest test){
+    public void addDeletedTest(AutomatedTest test) {
         getDeletedTests().add(test);
     }
 
@@ -40,5 +42,13 @@ public class UFTTestDetectionResult {
 
     public List<AutomatedTest> getDeletedTests() {
         return deletedTests;
+    }
+
+    public boolean isPostedSuccessfully() {
+        return postedSuccessfully;
+    }
+
+    public void setPostedSuccessfully(boolean postedSuccessfully) {
+        this.postedSuccessfully = postedSuccessfully;
     }
 }
