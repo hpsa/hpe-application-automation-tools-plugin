@@ -24,13 +24,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Created with IntelliJ IDEA.
- * User: gullery
- * Date: 24/12/14
- * Time: 13:30
- * To change this template use File | Settings | File Templates.
+ * Implementation for discovery/provisioning of an internal phases/steps of the specific Job in context of MatrixProject Plugin
  */
-
 class MatrixProjectProcessor extends AbstractProjectProcessor<MatrixProject> {
 
 	MatrixProjectProcessor(Job project, Set<Job> processedJobs) {

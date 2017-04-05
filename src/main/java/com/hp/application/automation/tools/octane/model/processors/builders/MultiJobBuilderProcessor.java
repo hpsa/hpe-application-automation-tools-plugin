@@ -31,13 +31,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Created with IntelliJ IDEA.
- * User: gullery
- * Date: 08/01/15
- * Time: 23:02
- * To change this template use File | Settings | File Templates.
+ * Implementation for discovery/provisioning of an internal phases/steps of the specific Job in context of MultiJob Plugin
  */
-
 public class MultiJobBuilderProcessor extends AbstractBuilderProcessor {
 	private static final Logger logger = LogManager.getLogger(MultiJobBuilderProcessor.class);
 

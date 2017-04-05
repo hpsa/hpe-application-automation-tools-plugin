@@ -34,13 +34,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Created with IntelliJ IDEA.
- * User: gullery
- * Date: 08/01/15
- * Time: 23:01
- * To change this template use File | Settings | File Templates.
+ * Implementation for discovery/provisioning of an internal phases/steps of the specific Job in context of ParameterizedTrigger Plugin
  */
-
 public class ParameterizedTriggerProcessor extends AbstractBuilderProcessor {
 	private static final Logger logger = LogManager.getLogger(ParameterizedTriggerProcessor.class);
 

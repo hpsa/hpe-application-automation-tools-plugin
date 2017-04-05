@@ -24,13 +24,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Created with IntelliJ IDEA.
- * User: gullery
- * Date: 24/12/14
- * Time: 13:47
- * To change this template use File | Settings | File Templates.
+ * Implementation for discovery/provisioning of an internal phases/steps of the specific FreeStyleProject
  */
-
 class FreeStyleProjectProcessor extends AbstractProjectProcessor<FreeStyleProject> {
 
 	FreeStyleProjectProcessor(Job job, Set<Job> processedJobs) {
