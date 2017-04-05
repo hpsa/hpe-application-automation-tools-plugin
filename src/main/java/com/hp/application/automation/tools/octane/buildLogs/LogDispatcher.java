@@ -39,7 +39,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 
 /**
  * Created by benmeior on 11/20/2016.
@@ -48,6 +50,7 @@ import java.io.InputStream;
 public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
     private static Logger logger = LogManager.getLogger(LogDispatcher.class);
 
+    private static final String OCTANE_LOG_FILE_NAME = "octane_log";
     private static final String BDI_PRODUCT = "octane";
     private static final String CONSOLE_LOG_DATA_TYPE = "consolelog";
 
@@ -108,6 +111,8 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
     private void manageLogsQueue() {
         BdiConfiguration bdiConfiguration;
         ResultQueue.QueueItem item;
+        File logFile = null;
+        Run build = null;
         while ((item = logsQueue.peekFirst()) != null) {
             try {
                 bdiConfiguration = bdiConfigurationFetcher.obtain();
@@ -120,28 +125,56 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
                     return;
                 }
 
-                Run build = getBuildFromQueueItem(item);
+                build = getBuildFromQueueItem(item);
                 if (build == null) {
                     logsQueue.remove();
                     continue;
                 }
 
+                logFile = getOctaneLogFile(build);
+
                 if (proxyConfiguration != Jenkins.getInstance().proxy) {
                     initClient();
                 }
 
-                bdiClient.post(CONSOLE_LOG_DATA_TYPE, BDI_PRODUCT, Long.valueOf(bdiConfiguration.getTenantId()), item.getWorkspace(), buildDataId(build), build.getLogFile());
+                bdiClient.post(CONSOLE_LOG_DATA_TYPE, BDI_PRODUCT, Long.valueOf(bdiConfiguration.getTenantId()), item.getWorkspace(), buildDataId(build), logFile);
 
                 logger.info(String.format("Successfully sent log of build [%s#%s]", item.getProjectName(), item.getBuildNumber()));
 
                 logsQueue.remove();
+                Files.deleteIfExists(logFile.toPath());
             } catch (Exception e) {
                 logger.error(String.format("Could not send log of build [%s#%s] to bdi.", item.getProjectName(), item.getBuildNumber()), e);
                 if (!logsQueue.failed()) {
                     logger.warn("Maximum number of attempts reached, operation will not be re-attempted for this build");
+                    if (logFile != null) {
+                        try {
+                            Files.deleteIfExists(logFile.toPath());
+                        } catch (IOException e1) {
+                            String errorMsg = "Could not delete Octane log file";
+                            if (build != null) {
+                                errorMsg = String.format("%s of %s#%s", errorMsg, build.getParent().getName(), String.valueOf(build.getNumber()));
+                            }
+                            logger.error(errorMsg);
+                        }
+                    }
                 }
             }
         }
+    }
+
+    private File getOctaneLogFile(Run build) throws IOException {
+        String octaneLogFilePath = build.getLogFile().getParent() + File.separator + OCTANE_LOG_FILE_NAME;
+        File logFile = new File(octaneLogFilePath);
+        if (!logFile.exists()) {
+            try (FileOutputStream fileOutputStream = new FileOutputStream(logFile);
+                 InputStream logStream = build.getLogInputStream();
+                 PlainTextConsoleOutputStream out = new PlainTextConsoleOutputStream(fileOutputStream)) {
+                IOUtils.copy(logStream, out);
+                out.flush();
+            }
+        }
+        return logFile;
     }
 
     private void closeClient() {
