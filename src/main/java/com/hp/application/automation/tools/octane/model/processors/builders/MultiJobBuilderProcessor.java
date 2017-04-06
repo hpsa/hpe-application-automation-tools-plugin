@@ -20,6 +20,7 @@ import com.hp.application.automation.tools.octane.model.ModelFactory;
 import com.tikal.jenkins.plugins.multijob.MultiJobBuilder;
 import com.tikal.jenkins.plugins.multijob.PhaseJobsConfig;
 import hudson.model.AbstractProject;
+import hudson.model.Job;
 import hudson.tasks.Builder;
 import jenkins.model.Jenkins;
 import org.apache.logging.log4j.LogManager;
@@ -27,29 +28,27 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
- * Created with IntelliJ IDEA.
- * User: gullery
- * Date: 08/01/15
- * Time: 23:02
- * To change this template use File | Settings | File Templates.
+ * Implementation for discovery/provisioning of an internal phases/steps of the specific Job in context of MultiJob Plugin
  */
-
 public class MultiJobBuilderProcessor extends AbstractBuilderProcessor {
 	private static final Logger logger = LogManager.getLogger(MultiJobBuilderProcessor.class);
 
-	public MultiJobBuilderProcessor(Builder builder) {
+	public MultiJobBuilderProcessor(Builder builder, Set<Job> processedJobs) {
 		MultiJobBuilder b = (MultiJobBuilder) builder;
 		super.phases = new ArrayList<>();
 		List<AbstractProject> items = new ArrayList<>();
 		AbstractProject tmpProject;
 		for (PhaseJobsConfig config : b.getPhaseJobs()) {
 			tmpProject = (AbstractProject) Jenkins.getInstance().getItem(config.getJobName());
-			if (tmpProject != null) {
-				items.add(tmpProject);
-			} else {
+			if (tmpProject == null) {
 				logger.warn("project named '" + config.getJobName() + "' not found; considering this as corrupted configuration and skipping the project");
+			} else if (processedJobs.contains(tmpProject)) {
+				logger.warn("project named '" + config.getJobName() + "' is duplicated");
+			} else {
+				items.add(tmpProject);
 			}
 		}
 		super.phases.add(ModelFactory.createStructurePhase(b.getPhaseName(), true, items));

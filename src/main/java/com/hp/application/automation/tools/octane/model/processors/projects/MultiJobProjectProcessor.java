@@ -21,26 +21,22 @@ import hudson.model.Job;
 import hudson.tasks.Builder;
 
 import java.util.List;
+import java.util.Set;
 
 /**
- * Created with IntelliJ IDEA.
- * User: gullery
- * Date: 24/12/14
- * Time: 13:40
- * To change this template use File | Settings | File Templates.
+ * Implementation for discovery/provisioning of an internal phases/steps of the specific Job in context of MultiJob Plugin
  */
-
 class MultiJobProjectProcessor extends AbstractProjectProcessor<MultiJobProject> {
 
-	MultiJobProjectProcessor(Job job) {
+	MultiJobProjectProcessor(Job job, Set<Job> processedJobs) {
 		super((MultiJobProject) job);
 		//  Internal phases
 		//
-		super.processBuilders(this.job.getBuilders(), this.job);
+		super.processBuilders(this.job.getBuilders(), this.job, processedJobs);
 
 		//  Post build phases
 		//
-		super.processPublishers(this.job);
+		super.processPublishers(this.job, processedJobs);
 	}
 
 	@Override
