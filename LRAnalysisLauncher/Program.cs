@@ -321,6 +321,8 @@ namespace LRAnalysisLauncher
                                     case SlaRuleStatus.NoData:
                                         noData++;
                                         break;
+                                    default:
+                                        break;
                                 }
                                 timeRanges.AppendChild(subsubelem);
                             }
@@ -381,6 +383,8 @@ namespace LRAnalysisLauncher
                                         break;
                                     case SlaRuleStatus.NoData:
                                         noData++;
+                                        break;
+                                    default:
                                         break;
                                 }
                                 timeRanges.AppendChild(subsubelem);
