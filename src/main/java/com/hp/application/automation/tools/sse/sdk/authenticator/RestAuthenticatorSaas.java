@@ -23,7 +23,11 @@
 package com.hp.application.automation.tools.sse.sdk.authenticator;
 
 import com.hp.application.automation.tools.rest.RESTConstants;
-import com.hp.application.automation.tools.sse.sdk.*;
+import com.hp.application.automation.tools.sse.sdk.Base64Encoder;
+import com.hp.application.automation.tools.sse.sdk.Client;
+import com.hp.application.automation.tools.sse.sdk.Logger;
+import com.hp.application.automation.tools.sse.sdk.ResourceAccessLevel;
+import com.hp.application.automation.tools.sse.sdk.Response;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,7 +40,7 @@ import java.util.Map;
 public class RestAuthenticatorSaas implements Authenticator {
     public static final String AUTHENTICATION_POINT = "authentication-point/authenticate";
     public static final String AUTHENTICATION_LOGOUT = "authentication-point/logout";
-    public static String LWSSO_COOKIE_KEY = "LWSSO_COOKIE_KEY";
+    public static final String LWSSO_COOKIE_KEY = "LWSSO_COOKIE_KEY";
     
     public boolean login(Client client, String username, String password, Logger logger) {
         logger.log("Start login to ALM server through SaaS.");
@@ -52,6 +56,8 @@ public class RestAuthenticatorSaas implements Authenticator {
                         response.getStatusCode()));
                 ret = false;
             }
+        } else {
+            logger.log("Already authenticated.");
         }
         return ret;
     }
@@ -97,7 +103,6 @@ public class RestAuthenticatorSaas implements Authenticator {
      * @return
      */
     private boolean isAuthenticated(Client client, Logger logger) {
-        logger.log("Already authenticated.");
         return client.getCookies().keySet().contains(LWSSO_COOKIE_KEY);
     }
 

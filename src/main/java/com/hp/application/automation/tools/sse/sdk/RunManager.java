@@ -5,16 +5,11 @@ import com.hp.application.automation.tools.rest.RestClient;
 import com.hp.application.automation.tools.sse.common.StringUtils;
 import com.hp.application.automation.tools.sse.result.PublisherFactory;
 import com.hp.application.automation.tools.sse.result.model.junit.Testsuites;
-import com.hp.application.automation.tools.sse.sdk.authenticator.Authenticator;
-import com.hp.application.automation.tools.sse.sdk.authenticator.RestAuthenticator;
-import com.hp.application.automation.tools.sse.sdk.authenticator.RestAuthenticatorSaas;
+import com.hp.application.automation.tools.sse.sdk.authenticator.AuthenticationTool;
 import com.hp.application.automation.tools.sse.sdk.handler.PollHandler;
 import com.hp.application.automation.tools.sse.sdk.handler.PollHandlerFactory;
 import com.hp.application.automation.tools.sse.sdk.handler.RunHandler;
 import com.hp.application.automation.tools.sse.sdk.handler.RunHandlerFactory;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  *
@@ -30,13 +25,21 @@ public class RunManager {
     private boolean _running = false;
     private boolean _polling = false;
 
+    /**
+     * Execute
+     * @param client
+     * @param args
+     * @param logger
+     * @return
+     * @throws InterruptedException
+     */
     public Testsuites execute(RestClient client, Args args, Logger logger)
             throws InterruptedException {
 
         Testsuites ret = null;
         _logger = logger;
         _running = true;
-        if (login(client, args)) {
+        if (AuthenticationTool.authenticate(client, args.getUsername(), args.getPassword(), args.getUrl(), logger)) {
             initialize(args, client);
             if (start(args)) {
                 _polling = true;
@@ -60,33 +63,30 @@ public class RunManager {
         return ret;
     }
 
+    /**
+     * Initialize
+     * @param args
+     * @param client
+     */
     private void initialize(Args args, RestClient client) {
-
         String entityId = args.getEntityId();
-        appendQCSessionCookies(client);
         _runHandler = new RunHandlerFactory().create(client, args.getRunType(), entityId);
         _pollHandler = new PollHandlerFactory().create(client, args.getRunType(), entityId);
     }
 
-    private void appendQCSessionCookies(Client client) {
-        _logger.log("Creating session...");
-        // issue a post request so that cookies relevant to the QC Session will be added to the RestClient
-        Response response =
-                client.httpPost(
-                        client.build("rest/site-session"),
-                        null,
-                        null,
-                        ResourceAccessLevel.PUBLIC);
-        if (!response.isOk()) {
-            throw new SSEException("Cannot appned QCSession cookies", response.getFailure());
-        }
-    }
-
+    /**
+     * Poll
+     * @return
+     * @throws InterruptedException
+     */
     private boolean poll() throws InterruptedException {
 
         return _pollHandler.poll(_logger);
     }
 
+    /**
+     * Stop
+     */
     public void stop() {
 
         _logger.log("Stopping run...");
@@ -100,34 +100,10 @@ public class RunManager {
     }
 
     /**
-     * Login flow.
-     * First try login legacy if failed try login through SSO.
-     * @param client client
-     * @param args args
+     * Start
+     * @param args
      * @return
      */
-    private boolean login(Client client, Args args) {
-        List<Authenticator> authenticators = new ArrayList<>();
-        authenticators.add(new RestAuthenticator());
-        authenticators.add(new RestAuthenticatorSaas());
-
-        boolean result = false;
-        for(Authenticator authenticator : authenticators) {
-            try {
-                result = authenticator.login(client, args.getUsername(), args.getPassword(), _logger);
-                if (result) {
-                    break;
-                }
-            } catch (Throwable e) {
-                _logger.log(String.format(
-                        "Failed login to ALM Server URL: %s. Exception: %s",
-                        args.getUrl(),
-                        e.getMessage()));
-            }
-        }
-        return result;
-    }
-
     private boolean start(Args args) {
 
         boolean ret = false;
@@ -149,6 +125,10 @@ public class RunManager {
         return ret;
     }
 
+    /**
+     * Set Run id
+     * @param runResponse
+     */
     private void setRunId(RunResponse runResponse) {
 
         String runId = runResponse.getRunId();
@@ -161,6 +141,11 @@ public class RunManager {
         }
     }
 
+    /**
+     * Log report url
+     * @param isSucceeded
+     * @param args
+     */
     private void logReportUrl(boolean isSucceeded, Args args) {
 
         if (isSucceeded) {
@@ -181,11 +166,22 @@ public class RunManager {
         }
     }
 
+    /**
+     * Get run response
+     * @param response
+     * @return
+     */
     private RunResponse getRunResponse(Response response) {
 
         return _runHandler.getRunResponse(response);
     }
 
+    /**
+     * Is ok
+     * @param response
+     * @param args
+     * @return
+     */
     private boolean isOk(Response response, Args args) {
 
         boolean ret = false;

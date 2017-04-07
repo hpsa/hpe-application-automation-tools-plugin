@@ -24,7 +24,7 @@ public class SSEBuilderPerformer {
             Logger logger,
             VariableResolver<String> buildVariableResolver) throws InterruptedException {
         
-        Testsuites ret = new Testsuites();
+        Testsuites ret;
 
         Args args = new ArgsFactory().createResolved(model, buildVariableResolver);
         SseProxySettings proxySettings = model.getProxySettings();

@@ -39,7 +39,7 @@ import java.util.Map;
 public class TestRestAuthenticatorSaas extends TestCase {
     
     @Test
-    public void testLogin_alreadyAuthenticated() {
+    public void testLoginAlreadyAuthenticated() {
         Client client = new MockRestClientAlreadyAuthenticated(URL, DOMAIN, PROJECT, USER);
         boolean ok = new RestAuthenticatorSaas().login(client, "tester", "blabla", new ConsoleLogger());
         Assert.assertTrue(ok);
@@ -66,7 +66,7 @@ public class TestRestAuthenticatorSaas extends TestCase {
     }
     
     @Test
-    public void testLogin_notAuthenticated() {
+    public void testLoginNotAuthenticated() {
         Client client = new MockRestClientNotAuthenticated(URL, DOMAIN, PROJECT, USER);
         boolean ok = new RestAuthenticatorSaas().login(client, "tester", "blabla", new ConsoleLogger());
         Assert.assertTrue(ok);
@@ -91,7 +91,7 @@ public class TestRestAuthenticatorSaas extends TestCase {
     }
     
     @Test
-    public void testLogin_failedToLogin() {
+    public void testLoginFailedToLogin() {
         Client client = new MockRestClientFailedToLogin(URL, DOMAIN, PROJECT, USER);
         boolean ok = new RestAuthenticatorSaas().login(client, "tester", "blabla", new ConsoleLogger());
         Assert.assertFalse(ok);

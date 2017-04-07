@@ -4,7 +4,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.*;
+import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.URLConnection;
+import java.net.URL;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
@@ -406,6 +412,7 @@ public class RestClient implements Client {
     
     /**
      * Set proxy configuration.
+     * To get Jenkins proxy configuration: Jenkins.getInstance().proxy; So the proxy could be improved later.
      * @param host
      * @param port
      * @param userName
