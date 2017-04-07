@@ -35,7 +35,7 @@ namespace HpToolsLauncher
         private readonly IAssetRunner _runNotifier;
         private readonly object _lockObject = new object();
         private TimeSpan _timeLeftUntilTimeout = TimeSpan.MaxValue;
-        private string _uftRunMode = "Fast";
+        private readonly string _uftRunMode;
         private Stopwatch _stopwatch = null;
         private Application _qtpApplication;
         private ParameterDefinitions _qtpParamDefs;

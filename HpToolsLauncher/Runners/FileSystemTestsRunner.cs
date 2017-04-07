@@ -23,7 +23,7 @@ namespace HpToolsLauncher
         private int _errors, _fail;
         private bool _useUFTLicense;
         private TimeSpan _timeout = TimeSpan.MaxValue;
-        private string _uftRunMode = "Fast";
+        private readonly string _uftRunMode;
         private Stopwatch _stopwatch = null;
         private string _abortFilename = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\stop" + Launcher.UniqueTimeStamp + ".txt";
 
