@@ -326,12 +326,9 @@ namespace LRAnalysisLauncher
                             }
                             rule.AppendChild(timeRanges);
                             SlaRuleStatus currentRuleStatus = b.Status;
-                            if (currentRuleStatus.Equals(SlaRuleStatus.NoData))
+                            if (currentRuleStatus.Equals(SlaRuleStatus.NoData) && (passed > noData))
                             {
-                                if (passed > noData)
-                                {
-                                    currentRuleStatus = SlaRuleStatus.Passed;
-                                }
+                                currentRuleStatus = SlaRuleStatus.Passed;
                             }
                             log("status : " + currentRuleStatus);
                             rule.AppendChild(xmlDoc.CreateTextNode(currentRuleStatus.ToString()));
@@ -390,12 +387,9 @@ namespace LRAnalysisLauncher
                             }
                             rule.AppendChild(timeRanges);
                             SlaRuleStatus currentRuleStatus = a.Status;
-                            if (currentRuleStatus.Equals(SlaRuleStatus.NoData))
+                            if (currentRuleStatus.Equals(SlaRuleStatus.NoData) && (passed > noData))
                             {
-                                if (passed > noData)
-                                {
-                                    currentRuleStatus = SlaRuleStatus.Passed;
-                                }
+                                currentRuleStatus = SlaRuleStatus.Passed;
                             }
                             log("status : " + currentRuleStatus);
                             rule.AppendChild(xmlDoc.CreateTextNode(currentRuleStatus.ToString()));
