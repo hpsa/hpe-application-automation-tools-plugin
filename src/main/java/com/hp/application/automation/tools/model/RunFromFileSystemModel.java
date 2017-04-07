@@ -14,6 +14,8 @@ import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -25,8 +27,14 @@ public class RunFromFileSystemModel {
 	public static final String MOBILE_PROXY_SETTING_USER_NAME = "MobileProxySetting_UserName";
 	public static final String MOBILE_PROXY_SETTING_AUTHENTICATION = "MobileProxySetting_Authentication";
 	public static final String MOBILE_USE_SSL = "MobileUseSSL";
+
+    public final static EnumDescription FAST_RUN_MODE = new EnumDescription("Fast", "Fast");
+    public final static EnumDescription NORMAL_RUN_MODE = new EnumDescription("Normal", "Normal");
+    public final static List<EnumDescription> fsUftRunModes = Arrays.asList(FAST_RUN_MODE, NORMAL_RUN_MODE);
+
 	private String fsTests;
     private String fsTimeout;
+    private String fsUftRunMode;
     private String controllerPollingInterval;
     private String perScenarioTimeOut;
     private String ignoreErrorStrings;
@@ -72,7 +80,7 @@ public class RunFromFileSystemModel {
      * @param useSSL                    the use ssl
      */
     @SuppressWarnings("squid:S00107")
-    public RunFromFileSystemModel(String fsTests, String fsTimeout, String controllerPollingInterval,String perScenarioTimeOut,
+    public RunFromFileSystemModel(String fsTests, String fsTimeout, String fsUftRunMode, String controllerPollingInterval,String perScenarioTimeOut,
                                   String ignoreErrorStrings, String mcServerName, String fsUserName, String fsPassword,
                                   String fsDeviceId, String fsTargetLab, String fsManufacturerAndModel, String fsOs,
                                   String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics, String fsInstrumented,
@@ -81,7 +89,7 @@ public class RunFromFileSystemModel {
         this.setFsTests(fsTests);
 
         this.fsTimeout = fsTimeout;
-
+        this.fsUftRunMode = fsUftRunMode;
 
         this.perScenarioTimeOut = perScenarioTimeOut;
         this.controllerPollingInterval = controllerPollingInterval;
@@ -120,6 +128,7 @@ public class RunFromFileSystemModel {
 
         //Init default vals
         this.fsTimeout = "";
+        this.fsUftRunMode = "Fast";
         this.controllerPollingInterval = "30";
         this.perScenarioTimeOut = "10";
         this.ignoreErrorStrings = "";
@@ -146,6 +155,15 @@ public class RunFromFileSystemModel {
      */
     public void setFsTimeout(String fsTimeout) {
         this.fsTimeout = fsTimeout;
+    }
+
+    /**
+     * Sets fs runMode.
+     *
+     * @param fsUftRunMode the fs runMode
+     */
+    public void setFsUftRunMode(String fsUftRunMode) {
+        this.fsUftRunMode = fsUftRunMode;
     }
 
     /**
@@ -300,6 +318,22 @@ public class RunFromFileSystemModel {
     public String getFsTimeout() {
         return fsTimeout;
     }
+
+    /**
+     * Gets fs runMode.
+     *
+     * @return the fs runMode
+     */
+    public String getFsUftRunMode() {
+        return fsUftRunMode;
+    }
+
+    /**
+     * Gets fs runModes
+     *
+     * @return the fs runModes
+     */
+    public List<EnumDescription> getFsUftRunModes() { return fsUftRunModes; }
 
     /**
      * Gets mc server name.
@@ -578,6 +612,13 @@ public class RunFromFileSystemModel {
         }
         else{
             props.put("fsTimeout", "" + fsTimeout);
+        }
+
+        if (StringUtils.isEmpty(fsUftRunMode)){
+            props.put("fsUftRunMode", "Fast");
+        }
+        else{
+            props.put("fsUftRunMode", "" + fsUftRunMode);
         }
 
 
