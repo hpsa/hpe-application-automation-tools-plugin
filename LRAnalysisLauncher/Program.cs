@@ -298,6 +298,9 @@ namespace LRAnalysisLauncher
                             }
                             XmlElement timeRanges = xmlDoc.CreateElement("TimeRanges");
                             log("TimeRanges : " + b.TimeRanges.Count);
+                            int passed = 0;
+                            int failed = 0;
+                            int noData = 0;
                             foreach (SlaTimeRangeInfo slatri in b.TimeRanges)
                             {
                                 XmlElement subsubelem = xmlDoc.CreateElement("TimeRangeInfo");
@@ -307,12 +310,31 @@ namespace LRAnalysisLauncher
                                 subsubelem.SetAttribute("ActualValue", slatri.ActualValue.ToString(formatProvider));
                                 subsubelem.SetAttribute("LoadValue", slatri.LoadValue.ToString(formatProvider));
                                 subsubelem.InnerText = slatri.Status.ToString();
+                                switch (slatri.Status)
+                                {
+                                    case SlaRuleStatus.Failed:
+                                        failed++;
+                                        break;
+                                    case SlaRuleStatus.Passed:
+                                        passed++;
+                                        break;
+                                    case SlaRuleStatus.NoData:
+                                        noData++;
+                                        break;
+                                    default:
+                                        break;
+                                }
                                 timeRanges.AppendChild(subsubelem);
                             }
                             rule.AppendChild(timeRanges);
-                            log("status : " + b.Status);
-                            rule.AppendChild(xmlDoc.CreateTextNode(b.Status.ToString()));
-                            if (b.Status.Equals(SlaRuleStatus.Failed)) // 0 = failed
+                            SlaRuleStatus currentRuleStatus = b.Status;
+                            if (currentRuleStatus.Equals(SlaRuleStatus.NoData) && (passed > noData))
+                            {
+                                currentRuleStatus = SlaRuleStatus.Passed;
+                            }
+                            log("status : " + currentRuleStatus);
+                            rule.AppendChild(xmlDoc.CreateTextNode(currentRuleStatus.ToString()));
+                            if (currentRuleStatus.Equals(SlaRuleStatus.Failed)) // 0 = failed
                             {
                                 iPassed = (int)Launcher.ExitCodeEnum.Failed;
                             }
@@ -339,6 +361,9 @@ namespace LRAnalysisLauncher
                             }
                             XmlElement timeRanges = xmlDoc.CreateElement("TimeRanges");
                             log("TimeRanges : " + a.TimeRanges.Count);
+                            int passed = 0;
+                            int failed = 0;
+                            int noData = 0;
                             foreach (SlaTimeRangeInfo slatri in a.TimeRanges)
                             {
                                 XmlElement subsubelem = xmlDoc.CreateElement("TimeRangeInfo");
@@ -348,12 +373,31 @@ namespace LRAnalysisLauncher
                                 subsubelem.SetAttribute("ActualValue", slatri.ActualValue.ToString(formatProvider));
                                 subsubelem.SetAttribute("LoadValue", slatri.LoadValue.ToString(formatProvider));
                                 subsubelem.InnerText = slatri.Status.ToString();
+                                switch (slatri.Status)
+                                {
+                                    case SlaRuleStatus.Failed:
+                                        failed++;
+                                        break;
+                                    case SlaRuleStatus.Passed:
+                                        passed++;
+                                        break;
+                                    case SlaRuleStatus.NoData:
+                                        noData++;
+                                        break;
+                                    default:
+                                        break;
+                                }
                                 timeRanges.AppendChild(subsubelem);
                             }
                             rule.AppendChild(timeRanges);
-                            log("status : " + a.Status);
-                            rule.AppendChild(xmlDoc.CreateTextNode(a.Status.ToString()));
-                            if (a.Status.Equals(SlaRuleStatus.Failed))
+                            SlaRuleStatus currentRuleStatus = a.Status;
+                            if (currentRuleStatus.Equals(SlaRuleStatus.NoData) && (passed > noData))
+                            {
+                                currentRuleStatus = SlaRuleStatus.Passed;
+                            }
+                            log("status : " + currentRuleStatus);
+                            rule.AppendChild(xmlDoc.CreateTextNode(currentRuleStatus.ToString()));
+                            if (currentRuleStatus.Equals(SlaRuleStatus.Failed))
                             {
                                 iPassed = (int)Launcher.ExitCodeEnum.Failed;
                             }
