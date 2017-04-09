@@ -72,7 +72,6 @@ import java.util.regex.Pattern;
 /**
  * Base implementation of SPI(service provider interface) of Octane CI SDK for Jenkins
  */
-public class CIJenkinsServicesImpl implements CIPluginServices {
 public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 	private static final Logger logger = LogManager.getLogger(CIJenkinsServicesImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();

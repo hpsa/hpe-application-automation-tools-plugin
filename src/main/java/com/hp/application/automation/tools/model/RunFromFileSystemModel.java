@@ -16,10 +16,10 @@ import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.List;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -27,16 +27,16 @@ import java.util.Properties;
  */
 public class RunFromFileSystemModel {
 
-	public static final String MOBILE_PROXY_SETTING_PASSWORD_FIELD = "MobileProxySetting_Password";
-	public static final String MOBILE_PROXY_SETTING_USER_NAME = "MobileProxySetting_UserName";
-	public static final String MOBILE_PROXY_SETTING_AUTHENTICATION = "MobileProxySetting_Authentication";
-	public static final String MOBILE_USE_SSL = "MobileUseSSL";
+    public static final String MOBILE_PROXY_SETTING_PASSWORD_FIELD = "MobileProxySetting_Password";
+    public static final String MOBILE_PROXY_SETTING_USER_NAME = "MobileProxySetting_UserName";
+    public static final String MOBILE_PROXY_SETTING_AUTHENTICATION = "MobileProxySetting_Authentication";
+    public static final String MOBILE_USE_SSL = "MobileUseSSL";
 
     public final static EnumDescription FAST_RUN_MODE = new EnumDescription("Fast", "Fast");
     public final static EnumDescription NORMAL_RUN_MODE = new EnumDescription("Normal", "Normal");
     public final static List<EnumDescription> fsUftRunModes = Arrays.asList(FAST_RUN_MODE, NORMAL_RUN_MODE);
 
-	private String fsTests;
+    private String fsTests;
     private String fsTimeout;
     private String fsUftRunMode;
     private String controllerPollingInterval;
@@ -598,10 +598,10 @@ public class RunFromFileSystemModel {
 
         if (!StringUtils.isEmpty(this.fsTests)) {
             String expandedFsTests;
-            if(isMtbxContent(fsTests)){
+            if (isMtbxContent(fsTests)) {
                 String path = createMtbxFileInWs(fsTests);
                 expandedFsTests = envVars.expand(path);
-            }else{
+            } else {
                 expandedFsTests = envVars.expand(fsTests);
             }
 
@@ -693,7 +693,7 @@ public class RunFromFileSystemModel {
             String filePath = File.separator + "test_suite.mtbx";
             String fullPath = workspace.getRemote() + filePath;
 
-            String content = mtbxContent.replace("${WORKSPACE}",workspace.getRemote());
+            String content = mtbxContent.replace("${WORKSPACE}", workspace.getRemote());
             FileUtils.writeStringToFile(new File(fullPath), content);
 
             String relativePath = "${WORKSPACE}" + filePath;
