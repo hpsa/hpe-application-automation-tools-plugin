@@ -18,8 +18,8 @@ package com.hp.application.automation.tools.octane.actions;
 
 import com.hp.application.automation.tools.octane.actions.dto.AutomatedTest;
 import com.hp.application.automation.tools.octane.actions.dto.AutomatedTests;
-import com.hp.application.automation.tools.octane.actions.dto.TestFramework;
-import com.hp.application.automation.tools.octane.actions.dto.TestingToolType;
+import com.hp.application.automation.tools.octane.actions.dto.BaseRefEntity;
+import com.hp.application.automation.tools.octane.actions.dto.ListNodeEntity;
 import com.hp.application.automation.tools.octane.client.JenkinsMqmRestClientFactory;
 import com.hp.application.automation.tools.octane.configuration.ConfigurationService;
 import com.hp.application.automation.tools.octane.configuration.ServerConfiguration;
@@ -38,6 +38,8 @@ import hudson.scm.ChangeLogSet;
 import hudson.scm.EditType;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
+import net.sf.json.JsonConfig;
+import net.sf.json.processors.PropertyNameProcessor;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -80,14 +82,14 @@ public class UFTTestDetectionService {
             boolean initialDetection = !initialDetectionFileExist(build.getWorkspace());
             if (initialDetection) {
                 printToConsole(buildListener, "Executing initial detection");
-                result = doInitialDetection(client, serverURL, build.getWorkspace(), workspaceId);
+                result = doInitialDetection(build.getWorkspace());
             } else {
                 printToConsole(buildListener, "Executing changeSet detection");
-                result = doChangeSetDetection(client, serverURL, changeSetItems, build.getWorkspace(), workspaceId);
+                result = doChangeSetDetection(changeSetItems, build.getWorkspace());
             }
             printToConsole(buildListener, String.format("Found %s tests", result.getNewTests().size()));
 
-            boolean posted = postTests(client, serverURL, result.getNewTests(), workspaceId);
+            boolean posted = postTests(client, serverURL, result.getNewTests(), workspaceId, scmResourceId);
             result.setPostedSuccessfully(posted);
 
             //create initial detection file
@@ -114,7 +116,7 @@ public class UFTTestDetectionService {
         logger.info(msg);
     }
 
-    private static UFTTestDetectionResult doChangeSetDetection(MqmRestClient client, String serverURL, Object[] changeSetItems, FilePath workspace, String workspaceId) throws IOException, InterruptedException {
+    private static UFTTestDetectionResult doChangeSetDetection(Object[] changeSetItems, FilePath workspace) throws IOException, InterruptedException {
         UFTTestDetectionResult result = new UFTTestDetectionResult();
         if (changeSetItems.length == 0) {
             return result;
@@ -190,7 +192,7 @@ public class UFTTestDetectionService {
         file.delete();
     }
 
-    private static UFTTestDetectionResult doInitialDetection(MqmRestClient client, String serverURL, FilePath workspace, String workspaceId) throws IOException, InterruptedException {
+    private static UFTTestDetectionResult doInitialDetection(FilePath workspace) throws IOException, InterruptedException {
         UFTTestDetectionResult result = new UFTTestDetectionResult();
 
         scanFileSystemRecursively(workspace, workspace, result);
@@ -226,13 +228,13 @@ public class UFTTestDetectionService {
         return client;
     }
 
-    private static boolean postTests(MqmRestClient client, String serverURL, List<AutomatedTest> tests, String workspaceId) throws UnsupportedEncodingException {
+    private static boolean postTests(MqmRestClient client, String serverURL, List<AutomatedTest> tests, String workspaceId, String scmResourceId) throws UnsupportedEncodingException {
 
         if (!tests.isEmpty()) {
             try {
-                completeUftProperties(client, Long.parseLong(workspaceId), tests);
+                completeTestProperties(client, Long.parseLong(workspaceId), tests, scmResourceId);
             } catch (RequestErrorException e) {
-                logger.warning("Failed to completeUftProperties : " + e.getMessage());
+                logger.warning("Failed to completeTestProperties : " + e.getMessage());
                 return false;
             }
 
@@ -240,7 +242,8 @@ public class UFTTestDetectionService {
             for (int i = 0; i < tests.size(); i += BULK_SIZE)
                 try {
                     AutomatedTests data = AutomatedTests.createWithTests(tests.subList(i, Math.min(i + BULK_SIZE, tests.size())));
-                    String uftTestJson = JSONObject.fromObject(data).toString();
+                    String uftTestJson = convertToJsonString(data);
+
                     client.postTest(uftTestJson, null, serverURL);
                     //JSONObject testObject = (JSONObject) jsonObject.getJSONArray("data").get(0);
 
@@ -254,6 +257,30 @@ public class UFTTestDetectionService {
                 }
         }
         return true;
+    }
+
+    private static String convertToJsonString(AutomatedTests data) {
+        JsonConfig config = new JsonConfig();
+        config.registerJsonPropertyNameProcessor(AutomatedTest.class, new PropertyNameProcessor() {
+
+            @Override
+            public String processPropertyName(Class className, String fieldName) {
+                String result = fieldName;
+                switch (fieldName) {
+                    case "scmRepository":
+                        result = "scm_repository";
+                        break;
+                    case "testingToolType":
+                        result = "testing_tool_type";
+                        break;
+                    default:
+                        break;
+                }
+                return result;
+            }
+        });
+
+        return JSONObject.fromObject(data, config).toString();
     }
 
     private static void deleteTests(MqmRestClient client, Collection<AutomatedTest> removedTests, String workspaceId) throws UnsupportedEncodingException {
@@ -276,12 +303,14 @@ public class UFTTestDetectionService {
     }
 
 
-    private static void completeUftProperties(MqmRestClient client, long workspaceId, Collection<AutomatedTest> tests) {
-        TestingToolType uftTestingTool = getUftTestingTool(client, workspaceId);
-        TestFramework uftFramework = getUftFramework(client, workspaceId);
+    private static void completeTestProperties(MqmRestClient client, long workspaceId, Collection<AutomatedTest> tests, String scmResourceId) {
+        ListNodeEntity uftTestingTool = getUftTestingTool(client, workspaceId);
+        ListNodeEntity uftFramework = getUftFramework(client, workspaceId);
+        BaseRefEntity scmRepository = StringUtils.isEmpty(scmResourceId) ? null : BaseRefEntity.create("scm_repository", Long.valueOf(scmResourceId));
         for (AutomatedTest test : tests) {
-            test.setTesting_tool_type(uftTestingTool);
+            test.setTestingToolType(uftTestingTool);
             test.setFramework(uftFramework);
+            test.setScmRepository(scmRepository);
         }
     }
 
@@ -309,25 +338,25 @@ public class UFTTestDetectionService {
         return null;
     }
 
-    private static TestingToolType getUftTestingTool(MqmRestClient client, long workspaceId) {
+    private static ListNodeEntity getUftTestingTool(MqmRestClient client, long workspaceId) {
         PagedList<ListItem> testingTools = client.queryListItems("list_node.testing_tool_type", null, workspaceId, 0, 100);
         String uftTestingToolLogicalName = "list_node.testing_tool_type.uft";
 
         for (ListItem item : testingTools.getItems()) {
             if (uftTestingToolLogicalName.equals(item.getLogicalName())) {
-                return TestingToolType.fromListItem(item);
+                return ListNodeEntity.create(item.getId());
             }
         }
         return null;
     }
 
-    private static TestFramework getUftFramework(MqmRestClient client, long workspaceId) {
+    private static ListNodeEntity getUftFramework(MqmRestClient client, long workspaceId) {
         PagedList<ListItem> testingTools = client.queryListItems("list_node.je.framework", null, workspaceId, 0, 100);
         String uftTestingToolLogicalName = "list_node.je.framework.uft";
 
         for (ListItem item : testingTools.getItems()) {
             if (uftTestingToolLogicalName.equals(item.getLogicalName())) {
-                return TestFramework.fromListItem(item);
+                return ListNodeEntity.create(item.getId());
             }
         }
         return null;
