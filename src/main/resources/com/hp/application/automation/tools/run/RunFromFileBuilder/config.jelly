@@ -38,6 +38,21 @@
     <f:entry title="Timeout" field="fsTimeout">
         <f:textbox name="runfromfs.fsTimeout" value="${instance.runFromFileModel.fsTimeout}"/>
     </f:entry>
+
+    <f:advanced title="UFT-Specific Settings">
+    	<f:section title="UFT Settings">
+		    <f:entry title="Run Mode" field="fsUftRunMode">
+				<select name="runPipeline.fsUftRunMode">
+					<j:forEach var="runMode" items="${instance.runFromFileModel.fsUftRunModes}">
+						<f:option selected="${runMode.value == instance.RunFromFileSystemModel.fsUftRunMode}" value="${runMode.value}">
+							${runMode.description}
+						</f:option>
+					</j:forEach>
+				</select>
+			</f:entry>
+    	</f:section>
+    </f:advanced>
+	
     <f:advanced title="LoadRunner-Specific Settings">
     	<f:section title="LoadRunner Settings">
 			<f:entry title="Controller Polling Interval" field="controllerPollingInterval">
