@@ -28,6 +28,7 @@ import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
+import hudson.model.FreeStyleProject;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
@@ -47,20 +48,27 @@ import java.util.List;
 public class UFTTestDetectionPublisher extends Recorder {
 
 	private final String workspaceName;
+	private final String scmResourceId;
 
 	public String getWorkspaceName() {
 		return workspaceName;
 	}
 
+	public String getScmResourceId() {
+		return scmResourceId;
+	}
+
 	// Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
 	@DataBoundConstructor
-	public UFTTestDetectionPublisher(String workspaceName) {
+	public UFTTestDetectionPublisher(String workspaceName, String scmResourceId) {
+
 		this.workspaceName = workspaceName;
+		this.scmResourceId = scmResourceId;
 	}
 
 	@Override
 	public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) {
-		UFTTestDetectionResult results = UFTTestDetectionService.startScanning(build, getWorkspaceName(), listener);
+		UFTTestDetectionResult results = UFTTestDetectionService.startScanning(build, getWorkspaceName(), getScmResourceId(), listener);
 		UFTTestDetectionBuildAction buildAction = new UFTTestDetectionBuildAction(build, results);
 		build.addAction(buildAction);
 
@@ -125,7 +133,8 @@ public class UFTTestDetectionPublisher extends Recorder {
 
 		public boolean isApplicable(Class<? extends AbstractProject> aClass) {
 			// Indicates that this builder can be used with all kinds of project types
-			return true;
+
+			return aClass.equals(FreeStyleProject.class);
 		}
 
 		public String getDisplayName() {
@@ -146,5 +155,6 @@ public class UFTTestDetectionPublisher extends Recorder {
 		public String getWorkspace() {
 			return workspace;
 		}
+
 	}
 }

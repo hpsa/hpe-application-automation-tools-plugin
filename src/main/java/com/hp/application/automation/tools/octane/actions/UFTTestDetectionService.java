@@ -66,7 +66,7 @@ public class UFTTestDetectionService {
     private final static int RESPONSE_STATUS_CONFLICT = 409;
 
 
-    public static UFTTestDetectionResult startScanning(AbstractBuild<?, ?> build, String workspaceId, BuildListener buildListener) {
+    public static UFTTestDetectionResult startScanning(AbstractBuild<?, ?> build, String workspaceId, String scmResourceId, BuildListener buildListener) {
         ServerConfiguration serverConfiguration = ConfigurationService.getServerConfiguration();
         MqmRestClient client = createClient(serverConfiguration);
         String serverURL = getServerURL(workspaceId, serverConfiguration.sharedSpace, serverConfiguration.location);
@@ -77,18 +77,28 @@ public class UFTTestDetectionService {
 
         try {
 
-            if (!isInitialDetectionDone(build.getWorkspace())) {
+            boolean initialDetection = !initialDetectionFileExist(build.getWorkspace());
+            if (initialDetection) {
                 printToConsole(buildListener, "Executing initial detection");
                 result = doInitialDetection(client, serverURL, build.getWorkspace(), workspaceId);
             } else {
                 printToConsole(buildListener, "Executing changeSet detection");
                 result = doChangeSetDetection(client, serverURL, changeSetItems, build.getWorkspace(), workspaceId);
             }
-
             printToConsole(buildListener, String.format("Found %s tests", result.getNewTests().size()));
+
+            boolean posted = postTests(client, serverURL, result.getNewTests(), workspaceId);
+            result.setPostedSuccessfully(posted);
+
+            //create initial detection file
+            if (initialDetection) {
+                File rootFile = new File(build.getWorkspace().toURI());
+                File file = new File(rootFile, INITIAL_DETECTION_FILE);
+                file.createNewFile();
+            }
+
             printToConsole(buildListener, "Posted successfully = " + result.isPostedSuccessfully());
             publishDetectionResults(build, buildListener, result);
-
         } catch (InterruptedException | IOException e) {
             e.printStackTrace();
         }
@@ -141,10 +151,6 @@ public class UFTTestDetectionService {
             }
         }
 
-        //deleteTests(client, result.getDeletedTests(), workspaceId);
-        boolean posted = postTests(client, serverURL, result.getNewTests(), workspaceId);
-        result.setPostedSuccessfully(posted);
-
         return result;
     }
 
@@ -167,7 +173,7 @@ public class UFTTestDetectionService {
         return file.exists();
     }
 
-    private static boolean isInitialDetectionDone(FilePath workspace) {
+    private static boolean initialDetectionFileExist(FilePath workspace) {
         try {
             File rootFile = new File(workspace.toURI());
             File file = new File(rootFile, INITIAL_DETECTION_FILE);
@@ -188,13 +194,6 @@ public class UFTTestDetectionService {
         UFTTestDetectionResult result = new UFTTestDetectionResult();
 
         scanFileSystemRecursively(workspace, workspace, result);
-
-        boolean posted = postTests(client, serverURL, result.getNewTests(), workspaceId);
-        result.setPostedSuccessfully(posted);
-
-        File rootFile = new File(workspace.toURI());
-        File file = new File(rootFile, INITIAL_DETECTION_FILE);
-        file.createNewFile();
 
         return result;
     }

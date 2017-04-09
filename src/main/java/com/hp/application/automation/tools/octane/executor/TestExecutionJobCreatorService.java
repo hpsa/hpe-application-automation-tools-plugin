@@ -11,7 +11,10 @@ import com.hp.octane.integrations.dto.executor.TestExecutionInfo;
 import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
 import com.hp.octane.integrations.dto.scm.SCMType;
+import hudson.model.ChoiceParameterDefinition;
 import hudson.model.FreeStyleProject;
+import hudson.model.ParameterDefinition;
+import hudson.model.ParametersDefinitionProperty;
 import hudson.plugins.git.GitSCM;
 import hudson.tasks.LogRotator;
 import hudson.triggers.SCMTrigger;
@@ -31,14 +34,16 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 /**
+ * This service is responsible to create jobs (discovery and execution) for execution process
  * Created by berkovir on 20/03/2017.
  */
-public class TestExecutionService {
+public class TestExecutionJobCreatorService {
 
 
     public static void runTestSuiteExecution(TestSuiteExecutionInfo suiteExecutionInfo) {
@@ -90,6 +95,8 @@ public class TestExecutionService {
 
         setScmRepository(suiteExecutionInfo.getScmRepository(), proj);
         setBuildDiscarder(proj, 20);
+        addParameter(proj, "executorId", suiteExecutionInfo.getExecutorId(), "Octane executor id");
+        addParameter(proj, "suiteId", suiteExecutionInfo.getSuiteId(), "Octane suite id");
 
         //add build action
         String fsTestsData = prepareMtbxData(suiteExecutionInfo.getTests());
@@ -218,6 +225,7 @@ public class TestExecutionService {
 
         setScmRepository(discoveryInfo.getScmRepository(), proj);
         setBuildDiscarder(proj, 20);
+        addParameter(proj, "executorId", discoveryInfo.getExecutorId(), "Octane executor id");
 
         //set polling once in two minutes
         try {
@@ -243,7 +251,7 @@ public class TestExecutionService {
 
 
         if (uftTestDetectionPublisher == null) {
-            uftTestDetectionPublisher = new UFTTestDetectionPublisher(discoveryInfo.getWorkspaceId());
+            uftTestDetectionPublisher = new UFTTestDetectionPublisher(discoveryInfo.getWorkspaceId(), discoveryInfo.getScmRepositoryId());
             publishers.add(uftTestDetectionPublisher);
         }
 
@@ -275,6 +283,27 @@ public class TestExecutionService {
                 scmTrigger.start(proj, false);
             }
         }, delayStartPolling);
+    }
+
+    private static void addParameter(FreeStyleProject proj, String parameterName, String parameterValue, String desc) {
+
+        ParametersDefinitionProperty parameters = proj.getProperty(ParametersDefinitionProperty.class);
+        if (parameters == null) {
+            try {
+                parameters = new ParametersDefinitionProperty(new ArrayList<ParameterDefinition>());
+                proj.addProperty(parameters);
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to set  parameters : " + e.getMessage());
+            }
+        }
+
+        if (parameters.getParameterDefinition(parameterName) == null) {
+            //String name, List<String> choices, String defaultValue, String description
+            ParameterDefinition param = new ChoiceParameterDefinition(parameterName, new String[]{parameterValue}, desc);
+            parameters.getParameterDefinitions().add(param);
+        }
+
+
     }
 
 }

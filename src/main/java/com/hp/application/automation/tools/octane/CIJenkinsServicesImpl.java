@@ -19,7 +19,7 @@ package com.hp.application.automation.tools.octane;
 import com.hp.application.automation.tools.model.OctaneServerSettingsModel;
 import com.hp.application.automation.tools.octane.configuration.ConfigurationService;
 import com.hp.application.automation.tools.octane.configuration.ServerConfiguration;
-import com.hp.application.automation.tools.octane.executor.TestExecutionService;
+import com.hp.application.automation.tools.octane.executor.TestExecutionJobCreatorService;
 import com.hp.application.automation.tools.octane.model.ModelFactory;
 import com.hp.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.hp.application.automation.tools.octane.model.processors.projects.AbstractProjectProcessor;
@@ -524,12 +524,12 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 
 	@Override
 	public void runTestDiscovery(DiscoveryInfo discoveryInfo) {
-		TestExecutionService.runTestDiscovery(discoveryInfo);
+		TestExecutionJobCreatorService.runTestDiscovery(discoveryInfo);
 	}
 
 	@Override
 	public void runTestSuiteExecution(TestSuiteExecutionInfo suiteExecutionInfo) {
-		TestExecutionService.runTestSuiteExecution(suiteExecutionInfo);
+		TestExecutionJobCreatorService.runTestSuiteExecution(suiteExecutionInfo);
 	}
 
 
