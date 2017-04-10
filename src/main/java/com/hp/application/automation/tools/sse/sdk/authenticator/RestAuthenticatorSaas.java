@@ -45,7 +45,7 @@ public class RestAuthenticatorSaas implements Authenticator {
     public boolean login(Client client, String username, String password, Logger logger) {
         logger.log("Start login to ALM server through SaaS.");
         boolean ret = true;
-        if (!isAuthenticated(client, logger)) {
+        if (!isAuthenticated(client)) {
             Response response = login(client, AUTHENTICATION_POINT, username, password);
             if (response.isOk()) {
                 logLoggedInSuccessfully(username, client.getServerUrl(), logger);
@@ -98,11 +98,8 @@ public class RestAuthenticatorSaas implements Authenticator {
 
     /**
      * Check the client is already authenticated.
-     * @param client
-     * @param logger
-     * @return
      */
-    private boolean isAuthenticated(Client client, Logger logger) {
+    private boolean isAuthenticated(Client client) {
         return client.getCookies().keySet().contains(LWSSO_COOKIE_KEY);
     }
 

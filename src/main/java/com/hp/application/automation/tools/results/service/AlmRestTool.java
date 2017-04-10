@@ -35,7 +35,6 @@ public class AlmRestTool {
 
     /**
      * Get rest client
-     * @return
      */
 	public RestClient getRestClient() {
 		return this.restClient;
@@ -43,8 +42,6 @@ public class AlmRestTool {
 
     /**
      * Login
-     * @return
-     * @throws Exception
      */
 	public boolean login() throws Exception {
 		boolean ret;
@@ -60,9 +57,6 @@ public class AlmRestTool {
 
     /**
      * Get Pair list for ALM entity fields
-     * @param almEntity
-     * @param fieldNames
-     * @return
      */
 	public List<Pair<String, String>> getPairListForAlmEntityFields(AlmEntity almEntity, List<String> fieldNames){
 		List<Pair<String, String>> pairs = new ArrayList<Pair<String, String>>();
@@ -74,9 +68,6 @@ public class AlmRestTool {
 
     /**
      * Get pair list for ALM entity fields
-     * @param almEntity
-     * @param fieldNames
-     * @return
      */
 	public List<Pair<String, String>> getPairListForAlmEntityFields(AlmEntity almEntity, String[] fieldNames){
 		List<Pair<String, String>> pairs = new ArrayList<Pair<String, String>>();
@@ -88,9 +79,6 @@ public class AlmRestTool {
 
     /**
      * Get map list for ALM entity fields
-     * @param almEntity
-     * @param fieldNames
-     * @return
      */
 	public List<Map<String, String>> getMapListForAlmEntityFields(AlmEntity almEntity, String[] fieldNames){
 		List<Map<String, String>> fieldsMapList = new ArrayList<Map<String, String>>();
@@ -106,8 +94,6 @@ public class AlmRestTool {
 
     /**
      * Populate ALM entity field value
-     * @param mapFieldValue
-     * @param almEntity
      */
 	public void populateAlmEntityFieldValue(Map<String, String> mapFieldValue, AlmEntity almEntity) {
 		for(Map.Entry<String, String> entry : mapFieldValue.entrySet()){
@@ -117,10 +103,6 @@ public class AlmRestTool {
 
     /**
      * Get ALM entity list
-     * @param entities
-     * @param c
-     * @param <E>
-     * @return
      */
 	public <E extends AlmEntity>  List<E> getAlmEntityList(List<Map<String, String>> entities, Class<E> c) {
 		
@@ -141,8 +123,6 @@ public class AlmRestTool {
 
     /**
      * Get encode string
-     * @param s
-     * @return
      */
 	public static String getEncodedString(String s) {
 		String quotedStr = "\"" + s +"\"";
@@ -156,11 +136,6 @@ public class AlmRestTool {
 
     /**
      * Get entity under parent folder
-     * @param entityClass
-     * @param parentId
-     * @param entityName
-     * @param <E>
-     * @return
      */
 	public <E extends AlmEntity > E getEntityUnderParentFolder( Class<E> entityClass, int parentId, String entityName ){
 
@@ -191,10 +166,6 @@ public class AlmRestTool {
 
     /**
      * Get ALM entity
-     * @param entity
-     * @param queryString
-     * @param <E>
-     * @return
      */
 	public <E extends AlmEntity > List<E> getAlmEntity( E entity, String queryString){
 
@@ -221,11 +192,6 @@ public class AlmRestTool {
 
     /**
      * Create ALM entity
-     * @param entity
-     * @param fieldsForCreation
-     * @param <E>
-     * @return
-     * @throws ExternalEntityUploadException
      */
 	public <E extends AlmEntity> E createAlmEntity (E entity, String[] fieldsForCreation) throws ExternalEntityUploadException {
 		
@@ -251,9 +217,6 @@ public class AlmRestTool {
 
     /**
      * Update ALM entity
-     * @param entity
-     * @param fieldsForUpdate
-     * @param <E>
      */
 	public <E extends AlmEntity> void updateAlmEntity (E entity, String[] fieldsForUpdate) {
 		

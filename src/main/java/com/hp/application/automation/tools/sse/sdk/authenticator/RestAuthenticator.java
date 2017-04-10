@@ -28,7 +28,11 @@ import java.util.Map;
 
 import com.hp.application.automation.tools.common.SSEException;
 import com.hp.application.automation.tools.rest.RESTConstants;
-import com.hp.application.automation.tools.sse.sdk.*;
+import com.hp.application.automation.tools.sse.sdk.Base64Encoder;
+import com.hp.application.automation.tools.sse.sdk.Client;
+import com.hp.application.automation.tools.sse.sdk.Logger;
+import com.hp.application.automation.tools.sse.sdk.ResourceAccessLevel;
+import com.hp.application.automation.tools.sse.sdk.Response;
 
 /***
  * 
@@ -134,11 +138,7 @@ public class RestAuthenticator implements Authenticator {
         }
         // error such as 404, or 500
         else {
-            try {
-                throw response.getFailure();
-            } catch (Throwable cause) {
-                throw new SSEException(cause);
-            }
+            throw new SSEException(response.getFailure());
         }
         
         return ret;

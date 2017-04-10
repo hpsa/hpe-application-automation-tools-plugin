@@ -38,6 +38,13 @@ import java.util.List;
  */
 public class AuthenticationTool {
 
+    private AuthenticationTool() {
+        //Hide the public constructor.
+    }
+
+    /**
+     * Try authenticate use a list of authenticators and then create session.
+     */
     public static boolean authenticate(Client client, String username, String password, String url, Logger logger) {
         if (login(client, username, password, url, logger)) {
             appendQCSessionCookies(client, logger);
@@ -47,10 +54,6 @@ public class AuthenticationTool {
     }
 
     private static boolean login(Client client, String username, String password, String url, Logger logger) {
-        if (!url.endsWith("/")) {
-            url = String.format("%s/", url);
-        }
-
         List<Authenticator> authenticators = new ArrayList<>();
         authenticators.add(new RestAuthenticator());
         authenticators.add(new RestAuthenticatorSaas());
@@ -62,10 +65,10 @@ public class AuthenticationTool {
                 if (result) {
                     break;
                 }
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 logger.log(String.format(
                         "Failed login to ALM Server URL: %s. Exception: %s",
-                        url,
+                        url.endsWith("/") ? url : String.format("%s/", url),
                         e.getMessage()));
             }
         }

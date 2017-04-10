@@ -12,10 +12,8 @@ import com.hp.application.automation.tools.sse.sdk.handler.RunHandler;
 import com.hp.application.automation.tools.sse.sdk.handler.RunHandlerFactory;
 
 /**
- *
  * @author Effi Bar-She'an
  * @author Dani Schreiber
- *
  */
 public class RunManager {
 
@@ -27,15 +25,9 @@ public class RunManager {
 
     /**
      * Execute
-     * @param client
-     * @param args
-     * @param logger
-     * @return
-     * @throws InterruptedException
      */
     public Testsuites execute(RestClient client, Args args, Logger logger)
             throws InterruptedException {
-
         Testsuites ret = null;
         _logger = logger;
         _running = true;
@@ -59,14 +51,11 @@ public class RunManager {
                 _polling = false;
             }
         }
-
         return ret;
     }
 
     /**
      * Initialize
-     * @param args
-     * @param client
      */
     private void initialize(Args args, RestClient client) {
         String entityId = args.getEntityId();
@@ -76,11 +65,8 @@ public class RunManager {
 
     /**
      * Poll
-     * @return
-     * @throws InterruptedException
      */
     private boolean poll() throws InterruptedException {
-
         return _pollHandler.poll(_logger);
     }
 
@@ -88,7 +74,6 @@ public class RunManager {
      * Stop
      */
     public void stop() {
-
         _logger.log("Stopping run...");
         if (_runHandler != null) {
             _runHandler.stop();
@@ -101,11 +86,8 @@ public class RunManager {
 
     /**
      * Start
-     * @param args
-     * @return
      */
     private boolean start(Args args) {
-
         boolean ret = false;
         Response response =
                 _runHandler.start(
@@ -121,16 +103,13 @@ public class RunManager {
             }
         }
         logReportUrl(ret, args);
-
         return ret;
     }
 
     /**
      * Set Run id
-     * @param runResponse
      */
     private void setRunId(RunResponse runResponse) {
-
         String runId = runResponse.getRunId();
         if (StringUtils.isNullOrEmpty(runId)) {
             _logger.log("No run ID");
@@ -143,11 +122,8 @@ public class RunManager {
 
     /**
      * Log report url
-     * @param isSucceeded
-     * @param args
      */
     private void logReportUrl(boolean isSucceeded, Args args) {
-
         if (isSucceeded) {
             _logger.log(String.format(
                     "%s run report for run id %s is at: %s",
@@ -168,22 +144,15 @@ public class RunManager {
 
     /**
      * Get run response
-     * @param response
-     * @return
      */
     private RunResponse getRunResponse(Response response) {
-
         return _runHandler.getRunResponse(response);
     }
 
     /**
-     * Is ok
-     * @param response
-     * @param args
-     * @return
+     * Is response ok
      */
     private boolean isOk(Response response, Args args) {
-
         boolean ret = false;
         if (response.isOk()) {
             _logger.log(String.format(
@@ -213,17 +182,20 @@ public class RunManager {
                         response.getStatusCode()));
             }
         }
-
         return ret;
     }
 
+    /**
+     * Get running
+     */
     public boolean getRunning() {
-
         return _running;
     }
 
+    /**
+     * Get polling
+     */
     public boolean getPolling() {
-
         return _polling;
     }
 
