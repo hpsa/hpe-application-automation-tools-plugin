@@ -36,7 +36,7 @@ import java.util.List;
  * Any authentication change will only need to change here.
  * Created by llu2 on 4/5/2017.
  */
-public class AuthenticationTool {
+public final class AuthenticationTool {
 
     private AuthenticationTool() {
         //Hide the public constructor.

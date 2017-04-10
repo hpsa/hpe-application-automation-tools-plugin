@@ -124,20 +124,21 @@ public class RestAuthenticator implements Authenticator {
                         ResourceAccessLevel.PUBLIC);
         int responseCode = response.getStatusCode();
         
-        // already authenticated
+
         if (isAlreadyAuthenticated(response, client.getUsername())) {
+            // already authenticated
             ret = null;
             logLoggedInSuccessfully(client.getUsername(), client.getServerUrl(), logger);
-        }
-        // if not authenticated - get the address where to authenticate via WWW-Authenticate
-        else if (responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
+
+        } else if (responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
+            // if not authenticated - get the address where to authenticate via WWW-Authenticate
             String newUrl = response.getHeaders().get(AUTHENTICATE_HEADER).get(0).split("=")[1];
             newUrl = newUrl.replace("\"", "");
             newUrl += "/authenticate";
             ret = newUrl;
-        }
-        // error such as 404, or 500
-        else {
+
+        } else {
+            // error such as 404, or 500
             throw new SSEException(response.getFailure());
         }
         
@@ -145,30 +146,26 @@ public class RestAuthenticator implements Authenticator {
     }
     
     private boolean isAlreadyAuthenticated(Response response, String authUser) {
-    	boolean ret = false;
-    	
-    	if (response.getStatusCode() == HttpURLConnection.HTTP_OK){
-    		
-    		if (response.getData() != null && containAuthenticatedInfo(new String(response.getData()), authUser)){
-        		ret = true;
-        	}
-        	else{
-        		throw new SSEException(INVALID_ALM_SERVER_URL);
-        	}
-    	}
-    	
-		return ret;
-	}
+        boolean ret = false;
+        if (response.getStatusCode() == HttpURLConnection.HTTP_OK){
+            if (response.getData() != null && containAuthenticatedInfo(new String(response.getData()), authUser)){
+                ret = true;
+            } else{
+                throw new SSEException(INVALID_ALM_SERVER_URL);
+            }
+        }
+        
+        return ret;
+    }
 
     //if it's authenticated, the response should look like that:
     //<?xml version="1.0" encoding="UTF-8" standalone="yes"?><AuthenticationInfo><Username>sa</Username></AuthenticationInfo>
-	private boolean containAuthenticatedInfo(String authInfo, String authUser){
-		
-		return authInfo.contains(AUTHENTICATION_INFO) && authInfo.contains(USER_NAME) && authInfo.contains(authUser);
-	}
+    private boolean containAuthenticatedInfo(String authInfo, String authUser){
+        return authInfo.contains(AUTHENTICATION_INFO) && authInfo.contains(USER_NAME) && authInfo.contains(authUser);
+    }
 
 
-	private void logLoggedInSuccessfully(String username, String loginServerUrl, Logger logger) {
+    private void logLoggedInSuccessfully(String username, String loginServerUrl, Logger logger) {
         
         logger.log(String.format(
                 "Logged in successfully to ALM Server %s using %s",
