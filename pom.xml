@@ -29,7 +29,7 @@
 		<jenkins.version>1.642.4</jenkins.version>
 		<workflow.version>2.2</workflow.version>
 		<maven.exec.skip>false</maven.exec.skip>
-		<bdi.version>12.53.01-25</bdi.version>
+		<bdi.version>1.0.3</bdi.version>
 	</properties>
 
 	<distributionManagement>
