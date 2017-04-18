@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.hp.application.automation.tools.sse.sdk.authenticator.RestAuthenticator;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -33,7 +34,7 @@ import com.hp.application.automation.tools.sse.common.TestCase;
 public class TestRestAuthenticator extends TestCase {
     
     @Test
-    public void testLogin_alreadyAuthenticated() {
+    public void testLoginAlreadyAuthenticated() {
         
         Client client = new MockRestClientAlreadyAuthenticated(URL, DOMAIN, PROJECT, USER);
         boolean ok = new RestAuthenticator().login(client, "tester", "blabla", new ConsoleLogger());
@@ -59,7 +60,7 @@ public class TestRestAuthenticator extends TestCase {
     }
     
     @Test
-    public void testLogin_notAuthenticated() {
+    public void testLoginNotAuthenticated() {
         
         Client client = new MockRestClientNotAuthenticated(URL, DOMAIN, PROJECT, USER);
         boolean ok = new RestAuthenticator().login(client, "tester", "blabla", new ConsoleLogger());
@@ -116,7 +117,7 @@ public class TestRestAuthenticator extends TestCase {
     }
     
     @Test
-    public void testLogin_failedToLogin() {
+    public void testLoginFailedToLogin() {
         
         Client client = new MockRestClientFailedToLogin(URL, DOMAIN, PROJECT, USER);
         boolean ok = new RestAuthenticator().login(client, "tester", "blabla", new ConsoleLogger());

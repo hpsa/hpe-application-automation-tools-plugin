@@ -9,6 +9,7 @@ import com.hp.application.automation.tools.model.AutEnvironmentParameterModel;
 import com.hp.application.automation.tools.rest.RestClient;
 import com.hp.application.automation.tools.sse.common.StringUtils;
 import com.hp.application.automation.tools.sse.sdk.*;
+import com.hp.application.automation.tools.sse.sdk.authenticator.RestAuthenticator;
 import hudson.util.VariableResolver;
 
 /**

@@ -1,4 +1,26 @@
-package com.hp.application.automation.tools.sse.sdk;
+/*
+ * Copyright (c) 2012 Hewlett-Packard Development Company, L.P.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+package com.hp.application.automation.tools.sse.sdk.authenticator;
 
 import java.net.HttpURLConnection;
 import java.util.HashMap;
@@ -6,7 +28,11 @@ import java.util.Map;
 
 import com.hp.application.automation.tools.common.SSEException;
 import com.hp.application.automation.tools.rest.RESTConstants;
-import com.hp.application.automation.tools.rest.RestClient;
+import com.hp.application.automation.tools.sse.sdk.Base64Encoder;
+import com.hp.application.automation.tools.sse.sdk.Client;
+import com.hp.application.automation.tools.sse.sdk.Logger;
+import com.hp.application.automation.tools.sse.sdk.ResourceAccessLevel;
+import com.hp.application.automation.tools.sse.sdk.Response;
 
 /***
  * 
@@ -15,16 +41,16 @@ import com.hp.application.automation.tools.rest.RestClient;
  * 
  */
 
-public class RestAuthenticator {
+public class RestAuthenticator implements Authenticator {
     
     public static final String IS_AUTHENTICATED = "rest/is-authenticated";
-    public static String AUTHENTICATE_HEADER = "WWW-Authenticate";
-    public static String INVALID_ALM_SERVER_URL = "Invalid ALM Server URL";
-    public static String AUTHENTICATEION_INFO = "AuthenticationInfo";
-    public static String USER_NAME = "Username";
+    public static final String AUTHENTICATE_HEADER = "WWW-Authenticate";
+    public static final String INVALID_ALM_SERVER_URL = "Invalid ALM Server URL";
+    public static final String AUTHENTICATION_INFO = "AuthenticationInfo";
+    public static final String USER_NAME = "Username";
     
     public boolean login(Client client, String username, String password, Logger logger) {
-        
+        logger.log("Start login to ALM server.");
         boolean ret = true;
         String authenticationPoint = isAuthenticated(client, logger);
         if (authenticationPoint != null) {
@@ -66,7 +92,7 @@ public class RestAuthenticator {
      * @throws Exception
      *             close session on server and clean session cookies on client
      */
-    public boolean logout(RestClient client, String username) {
+    public boolean logout(Client client, String username) {
         
         // note the get operation logs us out by setting authentication cookies to:
         // LWSSO_COOKIE_KEY="" via server response header Set-Cookie
@@ -87,7 +113,7 @@ public class RestAuthenticator {
      * @throws Exception
      *             if error such as 404, or 500
      */
-    public String isAuthenticated(Client client, Logger logger) {
+    private String isAuthenticated(Client client, Logger logger) {
         
         String ret;
         Response response =
@@ -98,55 +124,48 @@ public class RestAuthenticator {
                         ResourceAccessLevel.PUBLIC);
         int responseCode = response.getStatusCode();
         
-        // already authenticated
+
         if (isAlreadyAuthenticated(response, client.getUsername())) {
+            // already authenticated
             ret = null;
             logLoggedInSuccessfully(client.getUsername(), client.getServerUrl(), logger);
-        }
-        // if not authenticated - get the address where to authenticate via WWW-Authenticate
-        else if (responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
+
+        } else if (responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
+            // if not authenticated - get the address where to authenticate via WWW-Authenticate
             String newUrl = response.getHeaders().get(AUTHENTICATE_HEADER).get(0).split("=")[1];
             newUrl = newUrl.replace("\"", "");
             newUrl += "/authenticate";
             ret = newUrl;
-        }
-        // error such as 404, or 500
-        else {
-            try {
-                throw response.getFailure();
-            } catch (Throwable cause) {
-                throw new SSEException(cause);
-            }
+
+        } else {
+            // error such as 404, or 500
+            throw new SSEException(response.getFailure());
         }
         
         return ret;
     }
     
     private boolean isAlreadyAuthenticated(Response response, String authUser) {
-    	boolean ret = false;
-    	
-    	if (response.getStatusCode() == HttpURLConnection.HTTP_OK){
-    		
-    		if (response.getData() != null && containAuthenticatedInfo(new String(response.getData()), authUser)){
-        		ret = true;
-        	}
-        	else{
-        		throw new SSEException(INVALID_ALM_SERVER_URL);
-        	}
-    	}
-    	
-		return ret;
-	}
+        boolean ret = false;
+        if (response.getStatusCode() == HttpURLConnection.HTTP_OK){
+            if (response.getData() != null && containAuthenticatedInfo(new String(response.getData()), authUser)){
+                ret = true;
+            } else{
+                throw new SSEException(INVALID_ALM_SERVER_URL);
+            }
+        }
+        
+        return ret;
+    }
 
     //if it's authenticated, the response should look like that:
     //<?xml version="1.0" encoding="UTF-8" standalone="yes"?><AuthenticationInfo><Username>sa</Username></AuthenticationInfo>
-	private boolean containAuthenticatedInfo(String authInfo, String authUser){
-		
-		return authInfo.contains(AUTHENTICATEION_INFO) && authInfo.contains(USER_NAME) && authInfo.contains(authUser);
-	}
+    private boolean containAuthenticatedInfo(String authInfo, String authUser){
+        return authInfo.contains(AUTHENTICATION_INFO) && authInfo.contains(USER_NAME) && authInfo.contains(authUser);
+    }
 
 
-	private void logLoggedInSuccessfully(String username, String loginServerUrl, Logger logger) {
+    private void logLoggedInSuccessfully(String username, String loginServerUrl, Logger logger) {
         
         logger.log(String.format(
                 "Logged in successfully to ALM Server %s using %s",
