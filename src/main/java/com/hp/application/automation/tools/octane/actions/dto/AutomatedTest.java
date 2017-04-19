@@ -26,6 +26,7 @@ public class AutomatedTest {
     private ListNodeEntity framework;
     private String name;
     private String _package;
+    private String description;
     private BaseRefEntity scmRepository;
 
     public String getName() {
@@ -82,5 +83,13 @@ public class AutomatedTest {
 
     public void setScmRepository(BaseRefEntity scmRepository) {
         this.scmRepository = scmRepository;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

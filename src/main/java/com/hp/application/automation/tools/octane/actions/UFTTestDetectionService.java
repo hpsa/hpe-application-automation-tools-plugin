@@ -207,6 +207,9 @@ public class UFTTestDetectionService {
         if (isUftTestFolder(paths)) {
             AutomatedTest test = createAutomatedTest(root, dirPath);
 
+            String description = UFTTestUtil.getTestDescription(dirPath);
+            test.setDescription(description);
+
             result.addNewTest(test);
 
         } else {
@@ -301,7 +304,6 @@ public class UFTTestDetectionService {
             client.deleteTests(workspaceIdAsLong, idsToDelete.subList(i, Math.min(i + BULK_SIZE, idsToDelete.size())));
         }
     }
-
 
     private static void completeTestProperties(MqmRestClient client, long workspaceId, Collection<AutomatedTest> tests, String scmResourceId) {
         ListNodeEntity uftTestingTool = getUftTestingTool(client, workspaceId);
