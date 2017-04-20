@@ -76,7 +76,7 @@ public class TestExecutionJobCreatorService {
 
     private static FreeStyleProject getExecutionJob(TestSuiteExecutionInfo suiteExecutionInfo) {
 
-        String projectName = String.format("%s test execution job, executor id %s, suite id %s",
+        String projectName = String.format("%s test execution job - executor id %s suite id %s",
                 suiteExecutionInfo.getTestingToolType().toString(),
                 suiteExecutionInfo.getExecutorId(),
                 suiteExecutionInfo.getSuiteId());
@@ -210,7 +210,7 @@ public class TestExecutionJobCreatorService {
 
     private static FreeStyleProject getDiscoveryJob(DiscoveryInfo discoveryInfo) {
 
-        String discoveryJobName = String.format("%s test discovery job, executor id %s", discoveryInfo.getTestingToolType().toString(), discoveryInfo.getExecutorId());
+        String discoveryJobName = String.format("%s test discovery job - executor id %s", discoveryInfo.getTestingToolType().toString(), discoveryInfo.getExecutorId());
         //validate creation of job
         FreeStyleProject proj = (FreeStyleProject) Jenkins.getInstance().getItem(discoveryJobName);
         if (proj == null) {
