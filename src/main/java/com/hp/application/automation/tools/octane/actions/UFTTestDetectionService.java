@@ -16,10 +16,7 @@
 
 package com.hp.application.automation.tools.octane.actions;
 
-import com.hp.application.automation.tools.octane.actions.dto.AutomatedTest;
-import com.hp.application.automation.tools.octane.actions.dto.AutomatedTests;
-import com.hp.application.automation.tools.octane.actions.dto.BaseRefEntity;
-import com.hp.application.automation.tools.octane.actions.dto.ListNodeEntity;
+import com.hp.application.automation.tools.octane.actions.dto.*;
 import com.hp.application.automation.tools.octane.client.JenkinsMqmRestClientFactory;
 import com.hp.application.automation.tools.octane.configuration.ConfigurationService;
 import com.hp.application.automation.tools.octane.configuration.ServerConfiguration;
@@ -204,9 +201,10 @@ public class UFTTestDetectionService {
         List<FilePath> paths = dirPath.list();
 
         //if it test folder - create new test, else drill down to subFolders
-        if (isUftTestFolder(paths)) {
+        UftTestType testType = isUftTestFolder(paths);
+        if (!testType.isNone()) {
             AutomatedTest test = createAutomatedTest(root, dirPath);
-
+            test.setUftTestType(testType);
             String description = UFTTestUtil.getTestDescription(dirPath);
             test.setDescription(description);
 
@@ -276,6 +274,9 @@ public class UFTTestDetectionService {
                     case "testingToolType":
                         result = "testing_tool_type";
                         break;
+                    case "testTypes":
+                        result = "test_type";
+                        break;
                     default:
                         break;
                 }
@@ -283,6 +284,7 @@ public class UFTTestDetectionService {
             }
         });
 
+        config.registerPropertyExclusion(AutomatedTest.class, "uftTestType");
         return JSONObject.fromObject(data, config).toString();
     }
 
@@ -308,27 +310,46 @@ public class UFTTestDetectionService {
     private static void completeTestProperties(MqmRestClient client, long workspaceId, Collection<AutomatedTest> tests, String scmResourceId) {
         ListNodeEntity uftTestingTool = getUftTestingTool(client, workspaceId);
         ListNodeEntity uftFramework = getUftFramework(client, workspaceId);
+        ListNodeEntity guiTestType = getGuiTestType(client, workspaceId);
+        ListNodeEntity apiTestType = getApiTestType(client, workspaceId);
+
         BaseRefEntity scmRepository = StringUtils.isEmpty(scmResourceId) ? null : BaseRefEntity.create("scm_repository", Long.valueOf(scmResourceId));
         for (AutomatedTest test : tests) {
             test.setTestingToolType(uftTestingTool);
             test.setFramework(uftFramework);
             test.setScmRepository(scmRepository);
+
+            ListNodeEntity testType = guiTestType;
+            if (test.getUftTestType().equals(UftTestType.API)) {
+                testType = apiTestType;
+            }
+            test.setTestTypes(ListNodeEntityCollection.create(testType));
         }
     }
 
-    private static boolean isUftTestFolder(List<FilePath> paths) {
+    private static UftTestType isUftTestFolder(List<FilePath> paths) {
         for (FilePath path : paths) {
-            if (path.getName().endsWith(STFileExtention) || path.getName().endsWith(QTPFileExtention))
-                return true;
+            if (path.getName().endsWith(STFileExtention)) {
+                return UftTestType.API;
+            }
+            if (path.getName().endsWith(QTPFileExtention)) {
+                return UftTestType.GUI;
+            }
         }
 
-        return false;
+        return UftTestType.None;
     }
 
     private static boolean isTestMainFilePath(String path) {
         String lowerPath = path.toLowerCase();
-        boolean isMainFile = lowerPath.endsWith(STFileExtention) || lowerPath.endsWith(QTPFileExtention);
-        return isMainFile;
+        if (lowerPath.endsWith(STFileExtention)) {
+            return true;
+        }
+        if (lowerPath.endsWith(QTPFileExtention)) {
+            return true;
+        }
+
+        return false;
     }
 
     private static FilePath getTestFolderForTestMainFile(String path) {
@@ -363,6 +384,31 @@ public class UFTTestDetectionService {
         }
         return null;
     }
+
+    private static ListNodeEntity getGuiTestType(MqmRestClient client, long workspaceId) {
+        PagedList<ListItem> testingTools = client.queryListItems("list_node.test_type", null, workspaceId, 0, 100);
+        String guiLogicalName = "list_node.test_type.gui";
+
+        for (ListItem item : testingTools.getItems()) {
+            if (guiLogicalName.equals(item.getLogicalName())) {
+                return ListNodeEntity.create(item.getId());
+            }
+        }
+        return null;
+    }
+
+    private static ListNodeEntity getApiTestType(MqmRestClient client, long workspaceId) {
+        PagedList<ListItem> testingTools = client.queryListItems("list_node.test_type", null, workspaceId, 0, 100);
+        String guiLogicalName = "list_node.test_type.api";
+
+        for (ListItem item : testingTools.getItems()) {
+            if (guiLogicalName.equals(item.getLogicalName())) {
+                return ListNodeEntity.create(item.getId());
+            }
+        }
+        return null;
+    }
+
 
     private static String getServerURL(String workspaceId, String sharedspaceId, String location) {
         return location + "/api/shared_spaces/" + sharedspaceId + "/workspaces/" + workspaceId;
