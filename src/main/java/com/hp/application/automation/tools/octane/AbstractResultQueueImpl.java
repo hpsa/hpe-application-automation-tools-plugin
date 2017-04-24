@@ -86,6 +86,14 @@ public abstract class AbstractResultQueueImpl implements ResultQueue {
         queue.add(new QueueItem(projectName, buildNumber, workspace));
     }
 
+    @Override
+    public synchronized void clear() {
+        while (queue.size() > 0) {
+            queue.remove();
+        }
+        currentItem = null;
+    }
+
     private static class JsonConverter implements FileObjectQueue.Converter<QueueItem> {
 
         @Override
