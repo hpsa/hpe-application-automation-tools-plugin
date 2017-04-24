@@ -22,6 +22,7 @@ import com.hp.application.automation.tools.octane.actions.UftTestType;
  * Created by kashbi on 25/09/2016.
  */
 public class AutomatedTest {
+    private Long id;
     private String type = "test";
     private String subtype = "test_automated";
     private ListNodeEntity testingToolType;
@@ -114,5 +115,13 @@ public class AutomatedTest {
 
     public void setTestTypes(ListNodeEntityCollection testTypes) {
         this.testTypes = testTypes;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 }

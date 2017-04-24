@@ -67,6 +67,10 @@ public class UFTTestDetectionBuildAction implements Action {
         return results.getDeletedTests().size() > 0;
     }
 
+    public boolean getHasUpdatedTests() {
+        return results.getUpdatedTests().size() > 0;
+    }
+
     public List<AutomatedTest> getNewTests() {
         return results.getNewTests();
     }

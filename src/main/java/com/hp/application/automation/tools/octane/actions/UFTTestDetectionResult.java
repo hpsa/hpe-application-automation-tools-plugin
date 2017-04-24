@@ -25,16 +25,9 @@ public class UFTTestDetectionResult {
 
     private List<AutomatedTest> newTests = new ArrayList<>();
     private List<AutomatedTest> deletedTests = new ArrayList<>();
+    private List<AutomatedTest> updatedTests = new ArrayList<>();
     private boolean postedSuccessfully = false;
-
-    public void addNewTest(AutomatedTest test) {
-        getNewTests().add(test);
-    }
-
-    public void addDeletedTest(AutomatedTest test) {
-        getDeletedTests().add(test);
-    }
-
+    private boolean updatedSuccessfully = false;
 
     public List<AutomatedTest> getNewTests() {
         return newTests;
@@ -50,5 +43,21 @@ public class UFTTestDetectionResult {
 
     public void setPostedSuccessfully(boolean postedSuccessfully) {
         this.postedSuccessfully = postedSuccessfully;
+    }
+
+    public List<AutomatedTest> getUpdatedTests() {
+        return updatedTests;
+    }
+
+    public void setUpdatedTests(List<AutomatedTest> updatedTests) {
+        this.updatedTests = updatedTests;
+    }
+
+    public void setUpdatedSuccessfully(boolean updated) {
+        updatedSuccessfully = updated;
+    }
+
+    public boolean isUpdatedSuccessfully() {
+        return updatedSuccessfully;
     }
 }
