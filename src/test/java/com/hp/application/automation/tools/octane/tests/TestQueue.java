@@ -72,6 +72,13 @@ public class TestQueue implements ResultQueue {
 		}
 	}
 
+	@Override
+	public synchronized void clear() {
+		while (!queue.isEmpty()) {
+			queue.remove();
+		}
+	}
+
 	public synchronized int size() {
 		return queue.size();
 	}

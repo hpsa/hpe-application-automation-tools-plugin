@@ -44,23 +44,7 @@ public class UFTParameterFactory {
         //String QTPFileParameterFileName = "resource.mtr";
         //InputStream is = paths.get(0).getParent().child("Action0").child(QTPFileParameterFileName).read();
 
-        POIFSFileSystem poiFS = new POIFSFileSystem(resourceMtrInputStream);
-        DirectoryNode root = poiFS.getRoot();
-        String xmlData = "";
-
-        for (Entry entry : root) {
-            String name = entry.getName();
-            if (name.equals("ComponentInfo")) {
-                if (entry instanceof DirectoryEntry) {
-                    System.out.println(entry);
-                } else if (entry instanceof DocumentEntry) {
-                    byte[] content = new byte[((DocumentEntry) entry).getSize()];
-                    poiFS.createDocumentInputStream("ComponentInfo").read(content);
-                    String fromUnicodeLE = StringUtil.getFromUnicodeLE(content);
-                    xmlData = fromUnicodeLE.substring(fromUnicodeLE.indexOf('<')).replaceAll("\u0000", "");
-                }
-            }
-        }
+        String xmlData = UFTTestUtil.decodeXmlContent(resourceMtrInputStream);
 
         try {
             SAXBuilder saxBuilder = new SAXBuilder(XMLReaders.NONVALIDATING, null, null);

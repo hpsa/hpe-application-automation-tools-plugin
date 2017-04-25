@@ -44,7 +44,7 @@
         <p>
 
             <j:if test="${it.hasNewTests}">
-                New tests : ${it.results.newTests.size()}
+                New tests : ${it.results.newTests.size()} <j:if test="${it.results.isPostedSuccessfully()}">( posted successfully )</j:if>
                 <br/>
                 <br/>
             </j:if>
@@ -53,9 +53,8 @@
                 <br/>
                 <br/>
             </j:if>
-
-            <j:if test="${it.results.isPostedSuccessfully()}">
-                Tests are posted successfully to  Octane.
+            <j:if test="${it.hasUpdatedTests}">
+                Updated tests :  ${it.results.updatedTests.size()} <j:if test="${it.results.isUpdatedSuccessfully()}">( updated successfully )</j:if>
                 <br/>
                 <br/>
             </j:if>
@@ -85,6 +84,13 @@
                   <td >${s.name}</td>
                   <td >deleted</td>
               </tr>
+          </j:forEach>
+          <j:forEach var="s" items="${it.results.updatedTests}">
+                        <tr>
+                            <td >${s.package}</td>
+                            <td >${s.name}</td>
+                            <td >updated</td>
+                        </tr>
           </j:forEach>
 
           </tbody>

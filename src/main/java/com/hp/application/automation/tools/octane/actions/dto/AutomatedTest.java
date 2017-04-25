@@ -16,16 +16,25 @@
 
 package com.hp.application.automation.tools.octane.actions.dto;
 
+import com.hp.application.automation.tools.octane.actions.UftTestType;
+
 /**
  * Created by kashbi on 25/09/2016.
  */
 public class AutomatedTest {
+    private Long id;
     private String type = "test";
     private String subtype = "test_automated";
     private ListNodeEntity testingToolType;
     private ListNodeEntity framework;
+    private ListNodeEntityCollection testTypes;
+
+    //don't serialized to server, used to set testType property
+    private UftTestType uftTestType;
+
     private String name;
     private String _package;
+    private String description;
     private BaseRefEntity scmRepository;
 
     public String getName() {
@@ -82,5 +91,37 @@ public class AutomatedTest {
 
     public void setScmRepository(BaseRefEntity scmRepository) {
         this.scmRepository = scmRepository;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setUftTestType(UftTestType uftTestType) {
+        this.uftTestType = uftTestType;
+    }
+
+    public UftTestType getUftTestType() {
+        return uftTestType;
+    }
+
+    public ListNodeEntityCollection getTestTypes() {
+        return testTypes;
+    }
+
+    public void setTestTypes(ListNodeEntityCollection testTypes) {
+        this.testTypes = testTypes;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 }
