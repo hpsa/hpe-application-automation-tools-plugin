@@ -128,10 +128,10 @@ public class TestExecutionJobCreatorService {
                 GitSCM scm = new GitSCM(scmRepository.getUrl());
                 proj.setScm(scm);
             } catch (IOException e) {
-                throw new RuntimeException("Failed to set Git repository : " + e.getMessage());
+                throw new IllegalArgumentException("Failed to set Git repository : " + e.getMessage());
             }
         } else {
-            throw new RuntimeException("SCM repository " + scmRepository.getType() + " isn't supported yet");
+            throw new IllegalArgumentException("SCM repository " + scmRepository.getType() + " isn't supported yet");
         }
     }
 

@@ -153,28 +153,21 @@ public class UFTTestDetectionService {
         for (int i = 0; i < changeSetItems.length; i++) {
             GitChangeSet changeSet = (GitChangeSet) changeSetItems[i];
             for (GitChangeSet.Path path : changeSet.getPaths()) {
-                if (EditType.ADD.equals(path.getEditType())) {
-                    if (isTestMainFilePath(path.getPath())) {
-                        String filePath = workspace + File.separator + path.getPath();
+                if (isTestMainFilePath(path.getPath())) {
+                    String filePath = workspace + File.separator + path.getPath();
+
+                    if (EditType.ADD.equals(path.getEditType())) {
                         if (isFileExist(filePath)) {
                             FilePath testFolder = getTestFolderForTestMainFile(filePath);
                             scanFileSystemRecursively(workspace, testFolder, result.getNewTests());
                         }
-
-                    }
-                } else if (EditType.DELETE.equals(path.getEditType())) {
-                    if (isTestMainFilePath(path.getPath())) {
-                        String filePath = workspace + File.separator + path.getPath();
+                    } else if (EditType.DELETE.equals(path.getEditType())) {
                         if (!isFileExist(filePath)) {
                             FilePath testFolder = getTestFolderForTestMainFile(filePath);
                             AutomatedTest test = createAutomatedTest(workspace, testFolder);
                             result.getDeletedTests().add(test);
                         }
-                    }
-
-                } else if (EditType.EDIT.equals(path.getEditType())) {
-                    if (isTestMainFilePath(path.getPath())) {
-                        String filePath = workspace + File.separator + path.getPath();
+                    } else if (EditType.EDIT.equals(path.getEditType())) {
                         if (isFileExist(filePath)) {
                             FilePath testFolder = getTestFolderForTestMainFile(filePath);
                             scanFileSystemRecursively(workspace, testFolder, result.getUpdatedTests());
@@ -344,7 +337,7 @@ public class UFTTestDetectionService {
         return config;
     }
 
-    private static void deleteTests(MqmRestClient client, Collection<AutomatedTest> removedTests, String workspaceId) throws UnsupportedEncodingException {
+    /*private static void deleteTests(MqmRestClient client, Collection<AutomatedTest> removedTests, String workspaceId) throws UnsupportedEncodingException {
         List<Long> idsToDelete = new ArrayList<>();
         long workspaceIdAsLong = Long.parseLong(workspaceId);
         for (AutomatedTest test : removedTests) {
@@ -361,7 +354,7 @@ public class UFTTestDetectionService {
         for (int i = 0; i < idsToDelete.size(); i += BULK_SIZE) {
             client.deleteTests(workspaceIdAsLong, idsToDelete.subList(i, Math.min(i + BULK_SIZE, idsToDelete.size())));
         }
-    }
+    }*/
 
     private static boolean updateTests(MqmRestClient client, Collection<AutomatedTest> updateTests, String workspaceId) throws UnsupportedEncodingException {
         long workspaceIdAsLong = Long.parseLong(workspaceId);
@@ -396,7 +389,7 @@ public class UFTTestDetectionService {
         ListNodeEntity uftTestingTool = getUftTestingTool(client, workspaceId);
         ListNodeEntity uftFramework = getUftFramework(client, workspaceId);
         ListNodeEntity guiTestType = hasTestsByType(tests, UftTestType.GUI) ? getGuiTestType(client, workspaceId) : null;
-        ListNodeEntity apiTestType = hasTestsByType(tests, UftTestType.GUI) ? getApiTestType(client, workspaceId) : null;
+        ListNodeEntity apiTestType = hasTestsByType(tests, UftTestType.API) ? getApiTestType(client, workspaceId) : null;
 
         BaseRefEntity scmRepository = StringUtils.isEmpty(scmResourceId) ? null : BaseRefEntity.create("scm_repository", Long.valueOf(scmResourceId));
         for (AutomatedTest test : tests) {
@@ -439,7 +432,7 @@ public class UFTTestDetectionService {
         if (lowerPath.endsWith(STFileExtention)) {
             return true;
         }
-        if (lowerPath.endsWith(QTPFileExtention)) {
+        else if (lowerPath.endsWith(QTPFileExtention)) {
             return true;
         }
 

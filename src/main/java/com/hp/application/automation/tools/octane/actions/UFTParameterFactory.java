@@ -17,8 +17,6 @@
 package com.hp.application.automation.tools.octane.actions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.poi.poifs.filesystem.*;
-import org.apache.poi.util.StringUtil;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.input.SAXBuilder;

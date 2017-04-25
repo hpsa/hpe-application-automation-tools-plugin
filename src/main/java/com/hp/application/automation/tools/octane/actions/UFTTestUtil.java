@@ -44,7 +44,7 @@ public class UFTTestUtil {
 
         for (Entry entry : root) {
             String name = entry.getName();
-            if (name.equals("ComponentInfo")) {
+            if ("ComponentInfo".equals(name)) {
                 if (entry instanceof DirectoryEntry) {
                     System.out.println(entry);
                 } else if (entry instanceof DocumentEntry) {

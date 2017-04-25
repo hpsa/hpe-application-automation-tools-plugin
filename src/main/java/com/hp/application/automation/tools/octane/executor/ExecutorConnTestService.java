@@ -9,7 +9,9 @@ import hudson.EnvVars;
 import hudson.model.TaskListener;
 import hudson.plugins.git.GitException;
 import hudson.plugins.git.GitTool;
-import hudson.plugins.git.UserRemoteConfig;
+import org.apache.commons.lang.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jenkinsci.plugins.gitclient.Git;
 import org.jenkinsci.plugins.gitclient.GitClient;
 
@@ -20,32 +22,27 @@ import java.io.IOException;
  */
 public class ExecutorConnTestService {
 
+    private static final Logger logger = LogManager.getLogger(ExecutorConnTestService.class);
+
     public static boolean checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {
-        if (testConnectivityInfo.getScmRepository() != null && testConnectivityInfo.getScmRepository().getUrl() != null && !testConnectivityInfo.getScmRepository().getUrl().isEmpty()) {
-            if (testConnectivityInfo.getScmRepository().getType() == SCMType.GIT) {
+        if (testConnectivityInfo.getScmRepository() != null && StringUtils.isNotEmpty(testConnectivityInfo.getScmRepository().getUrl())) {
+            if (SCMType.GIT.equals(testConnectivityInfo.getScmRepository().getType())) {
                 BaseStandardCredentials c = null;
-                if (testConnectivityInfo.getUsername() != null && !testConnectivityInfo.getUsername().isEmpty()
-                        && testConnectivityInfo.getPassword() != null) {
+                if (StringUtils.isNotEmpty(testConnectivityInfo.getUsername()) && testConnectivityInfo.getPassword() != null) {
                     c = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, null, null, testConnectivityInfo.getUsername(), testConnectivityInfo.getPassword());
                 }
-                UserRemoteConfig.DescriptorImpl userRemoteConfig = new UserRemoteConfig.DescriptorImpl();
-                try {
-//						FormValidation res = userRemoteConfig.doCheckUrl(null,c != null ? c.getId() : "",testConnectivityInfo.getScmRepository().getUrl());
 
+                try {
                     EnvVars environment = new EnvVars(System.getenv());
                     GitClient git = Git.with(TaskListener.NULL, environment).using(GitTool.getDefaultInstallation().getGitExe()).getClient();
                     git.addDefaultCredentials(c);
+                    git.getHeadRev(testConnectivityInfo.getScmRepository().getUrl(), "HEAD");
 
-                    try {
-                        git.getHeadRev(testConnectivityInfo.getScmRepository().getUrl(), "HEAD");
-                    } catch (GitException e) {
-                        return false;
-                    }
                     return true;
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                } catch (IOException | InterruptedException e) {
+                    logger.error("Failed to connect to git : " + e.getMessage());
+                } catch (GitException e) {
+                    logger.error("Failed to execute getHeadRev : " + e.getMessage());
                 }
             }
         }
