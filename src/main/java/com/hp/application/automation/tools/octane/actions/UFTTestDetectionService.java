@@ -39,6 +39,8 @@ import net.sf.json.JsonConfig;
 import net.sf.json.processors.PropertyNameProcessor;
 import net.sf.json.util.PropertyFilter;
 import org.apache.commons.lang.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -56,7 +58,7 @@ import java.util.*;
 
 public class UFTTestDetectionService {
 
-    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(UFTTestDetectionService.class.getName());
+    private static final Logger logger = LogManager.getLogger(UFTTestDetectionService.class);
     private static final String INITIAL_DETECTION_FILE = "INITIAL_DETECTION_FILE.txt";
     private static final String DETECTION_RESULT_FILE = "detection_result.xml";
     private static final String STFileExtention = ".st";//api test
@@ -210,17 +212,19 @@ public class UFTTestDetectionService {
         }
     }
 
-    public static void removeInitialDetectionFlag(FilePath workspace) throws IOException, InterruptedException {
-        File rootFile = new File(workspace.toURI());
-        File file = new File(rootFile, INITIAL_DETECTION_FILE);
-        file.delete();
+    public static void removeInitialDetectionFlag(FilePath workspace) {
+        try {
+            File rootFile = new File(workspace.toURI());
+            File file = new File(rootFile, INITIAL_DETECTION_FILE);
+            file.delete();
+        } catch (IOException | InterruptedException e) {
+            logger.error("Failed to removeInitialDetectionFlag");
+        }
     }
 
     private static UFTTestDetectionResult doInitialDetection(FilePath workspace) throws IOException, InterruptedException {
         UFTTestDetectionResult result = new UFTTestDetectionResult();
-
         scanFileSystemRecursively(workspace, workspace, result.getNewTests());
-
         return result;
     }
 
@@ -261,7 +265,7 @@ public class UFTTestDetectionService {
             try {
                 completeTestProperties(client, Long.parseLong(workspaceId), tests, scmResourceId);
             } catch (RequestErrorException e) {
-                logger.warning("Failed to completeTestProperties : " + e.getMessage());
+                logger.error("Failed to completeTestProperties : " + e.getMessage());
                 return false;
             }
 
@@ -276,7 +280,7 @@ public class UFTTestDetectionService {
 
                 } catch (RequestErrorException e) {
                     if (e.getStatusCode() != RESPONSE_STATUS_CONFLICT) {
-                        logger.warning("Failed to postTests to Octane : " + e.getMessage());
+                        logger.error("Failed to postTests to Octane : " + e.getMessage());
                         return false;
                     }
 
@@ -431,8 +435,7 @@ public class UFTTestDetectionService {
         String lowerPath = path.toLowerCase();
         if (lowerPath.endsWith(STFileExtention)) {
             return true;
-        }
-        else if (lowerPath.endsWith(QTPFileExtention)) {
+        } else if (lowerPath.endsWith(QTPFileExtention)) {
             return true;
         }
 

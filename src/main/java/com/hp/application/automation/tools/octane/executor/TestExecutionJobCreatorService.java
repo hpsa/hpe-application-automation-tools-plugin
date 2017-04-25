@@ -21,6 +21,8 @@ import hudson.triggers.SCMTrigger;
 import jenkins.model.BuildDiscarder;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -45,6 +47,8 @@ import java.util.TimerTask;
  */
 public class TestExecutionJobCreatorService {
 
+
+    private static final Logger logger = LogManager.getLogger(ExecutorConnTestService.class);
 
     public static void runTestSuiteExecution(TestSuiteExecutionInfo suiteExecutionInfo) {
 
@@ -71,55 +75,58 @@ public class TestExecutionJobCreatorService {
         FreeStyleProject proj = getExecutionJob(suiteExecutionInfo);
 
         //start job
-        proj.scheduleBuild2(0);
+        if (proj != null) {
+            proj.scheduleBuild2(0);
+        }
     }
 
     private static FreeStyleProject getExecutionJob(TestSuiteExecutionInfo suiteExecutionInfo) {
 
-        String projectName = String.format("%s test execution job - executorId %s suiteId %s",
-                suiteExecutionInfo.getTestingToolType().toString(),
-                suiteExecutionInfo.getExecutorId(),
-                suiteExecutionInfo.getSuiteId());
+        try {
+            String projectName = String.format("%s test execution job - executorId %s suiteId %s",
+                    suiteExecutionInfo.getTestingToolType().toString(),
+                    suiteExecutionInfo.getExecutorId(),
+                    suiteExecutionInfo.getSuiteId());
 
-        //validate creation of job
-        FreeStyleProject proj = (FreeStyleProject) Jenkins.getInstance().getItem(projectName);
-        if (proj == null) {
-            try {
+            //validate creation of job
+            FreeStyleProject proj = (FreeStyleProject) Jenkins.getInstance().getItem(projectName);
+            if (proj == null) {
                 proj = Jenkins.getInstance().createProject(FreeStyleProject.class, projectName);
                 proj.setDescription(String.format("This job was created by HP AA Plugin for execution of %s tests, as part of Octane executor with id %s and suite with id %s",
                         suiteExecutionInfo.getTestingToolType().toString(), suiteExecutionInfo.getExecutorId(), suiteExecutionInfo.getSuiteId()));
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to create FreeStyleProject : " + e.getMessage());
             }
-        }
 
-        setScmRepository(suiteExecutionInfo.getScmRepository(), proj);
-        setBuildDiscarder(proj, 20);
-        addParameter(proj, "executorId", suiteExecutionInfo.getExecutorId(), "Octane executor id");
-        addParameter(proj, "suiteId", suiteExecutionInfo.getSuiteId(), "Octane suite id");
+            setScmRepository(suiteExecutionInfo.getScmRepository(), proj);
+            setBuildDiscarder(proj, 20);
+            addParameter(proj, "executorId", suiteExecutionInfo.getExecutorId(), "Octane executor id");
+            addParameter(proj, "suiteId", suiteExecutionInfo.getSuiteId(), "Octane suite id");
 
-        //add build action
-        String fsTestsData = prepareMtbxData(suiteExecutionInfo.getTests());
-        List<RunFromFileBuilder> builders = proj.getBuildersList().getAll(RunFromFileBuilder.class);
-        if (builders != null && !builders.isEmpty()) {
-            builders.get(0).setFsTests(fsTestsData);
-        } else {
-            proj.getBuildersList().add(new RunFromFileBuilder(fsTestsData));
-        }
-
-        //add post-build action - publisher
-        RunResultRecorder runResultRecorder = null;
-        List publishers = proj.getPublishersList();//.add(new RunResultRecorder(ResultsPublisherModel.alwaysArchiveResults.getValue()));
-        for (Object publisher : publishers) {
-            if (publisher instanceof RunResultRecorder) {
-                runResultRecorder = (RunResultRecorder) publisher;
+            //add build action
+            String fsTestsData = prepareMtbxData(suiteExecutionInfo.getTests());
+            List<RunFromFileBuilder> builders = proj.getBuildersList().getAll(RunFromFileBuilder.class);
+            if (builders != null && !builders.isEmpty()) {
+                builders.get(0).setFsTests(fsTestsData);
+            } else {
+                proj.getBuildersList().add(new RunFromFileBuilder(fsTestsData));
             }
+
+            //add post-build action - publisher
+            RunResultRecorder runResultRecorder = null;
+            List publishers = proj.getPublishersList();//.add(new RunResultRecorder(ResultsPublisherModel.alwaysArchiveResults.getValue()));
+            for (Object publisher : publishers) {
+                if (publisher instanceof RunResultRecorder) {
+                    runResultRecorder = (RunResultRecorder) publisher;
+                }
+            }
+            if (runResultRecorder == null) {
+                runResultRecorder = new RunResultRecorder(ResultsPublisherModel.alwaysArchiveResults.getValue());
+                publishers.add(runResultRecorder);
+            }
+            return proj;
+        } catch (IOException e) {
+            logger.error("Failed to create ExecutionJob : " + e.getMessage());
+            return null;
         }
-        if (runResultRecorder == null) {
-            runResultRecorder = new RunResultRecorder(ResultsPublisherModel.alwaysArchiveResults.getValue());
-            publishers.add(runResultRecorder);
-        }
-        return proj;
     }
 
     private static void setScmRepository(SCMRepository scmRepository, FreeStyleProject proj) {
@@ -135,7 +142,7 @@ public class TestExecutionJobCreatorService {
         }
     }
 
-    private static String prepareMtbxData(List<TestExecutionInfo> tests) {
+    private static String prepareMtbxData(List<TestExecutionInfo> tests) throws IOException {
         /*<Mtbx>
             <Test name="test1" path="c:\tests\APITest1">
 			<Parameter name="A" value="abc" type="string"/>
@@ -176,7 +183,7 @@ public class TestExecutionJobCreatorService {
             String str = writer.toString();
             return str;
         } catch (Exception e) {
-            throw new RuntimeException("Failed to build MTBX content : " + e.getMessage());
+            throw new IOException("Failed to build MTBX content : " + e.getMessage());
         }
 
     }
@@ -197,75 +204,64 @@ public class TestExecutionJobCreatorService {
          */
         FreeStyleProject proj = getDiscoveryJob(discoveryInfo);
 
-        if (discoveryInfo.isForceFullDiscovery() && proj.getWorkspace() != null) {
-            try {
+        if (proj != null) {
+            if (discoveryInfo.isForceFullDiscovery() && proj.getWorkspace() != null) {
                 UFTTestDetectionService.removeInitialDetectionFlag(proj.getWorkspace());
-            } catch (IOException | InterruptedException e) {
-                throw new RuntimeException("Failed to remove InitialDetectionFlag : " + e.getMessage());
             }
-        }
 
-        proj.scheduleBuild2(0);
+            proj.scheduleBuild2(0);
+        }
     }
 
     private static FreeStyleProject getDiscoveryJob(DiscoveryInfo discoveryInfo) {
 
-        String discoveryJobName = String.format("%s test discovery job - executorId %s", discoveryInfo.getTestingToolType().toString(), discoveryInfo.getExecutorId());
-        //validate creation of job
-        FreeStyleProject proj = (FreeStyleProject) Jenkins.getInstance().getItem(discoveryJobName);
-        if (proj == null) {
-            try {
+        try {
+            String discoveryJobName = String.format("%s test discovery job - executorId %s", discoveryInfo.getTestingToolType().toString(), discoveryInfo.getExecutorId());
+            //validate creation of job
+            FreeStyleProject proj = (FreeStyleProject) Jenkins.getInstance().getItem(discoveryJobName);
+            if (proj == null) {
+
                 proj = Jenkins.getInstance().createProject(FreeStyleProject.class, discoveryJobName);
                 proj.setDescription(String.format("This job was created by HP AA Plugin for discovery of %s tests, as part of Octane executor with id %s",
                         discoveryInfo.getTestingToolType().toString(), discoveryInfo.getExecutorId()));
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to create FreeStyleProject : " + e.getMessage());
             }
-        }
 
-        setScmRepository(discoveryInfo.getScmRepository(), proj);
-        setBuildDiscarder(proj, 20);
-        addParameter(proj, "executorId", discoveryInfo.getExecutorId(), "Octane executor id");
+            setScmRepository(discoveryInfo.getScmRepository(), proj);
+            setBuildDiscarder(proj, 20);
+            addParameter(proj, "executorId", discoveryInfo.getExecutorId(), "Octane executor id");
 
-        //set polling once in two minutes
-        try {
+            //set polling once in two minutes
             SCMTrigger scmTrigger = new SCMTrigger("H/2 * * * *");//H/2 * * * * : once in two minutes
             proj.addTrigger(scmTrigger);
-
             delayPollingStart(proj, scmTrigger);
 
-        } catch (ANTLRException e) {
-            throw new RuntimeException("Failed to set SCM Polling spec : " + e.getMessage());
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to add  SCMTrigger : " + e.getMessage());
-        }
 
-        //add post-build action - publisher
-        UFTTestDetectionPublisher uftTestDetectionPublisher = null;
-        List publishers = proj.getPublishersList();
-        for (Object publisher : publishers) {
-            if (publisher instanceof UFTTestDetectionPublisher) {
-                uftTestDetectionPublisher = (UFTTestDetectionPublisher) publisher;
+            //add post-build action - publisher
+            UFTTestDetectionPublisher uftTestDetectionPublisher = null;
+            List publishers = proj.getPublishersList();
+            for (Object publisher : publishers) {
+                if (publisher instanceof UFTTestDetectionPublisher) {
+                    uftTestDetectionPublisher = (UFTTestDetectionPublisher) publisher;
+                }
             }
+
+
+            if (uftTestDetectionPublisher == null) {
+                uftTestDetectionPublisher = new UFTTestDetectionPublisher(discoveryInfo.getWorkspaceId(), discoveryInfo.getScmRepositoryId());
+                publishers.add(uftTestDetectionPublisher);
+            }
+
+            return proj;
+        } catch (IOException | ANTLRException e) {
+            logger.error("Failed to  create DiscoveryJob : " + e.getMessage());
+            return null;
         }
-
-
-        if (uftTestDetectionPublisher == null) {
-            uftTestDetectionPublisher = new UFTTestDetectionPublisher(discoveryInfo.getWorkspaceId(), discoveryInfo.getScmRepositoryId());
-            publishers.add(uftTestDetectionPublisher);
-        }
-
-        return proj;
     }
 
-    private static void setBuildDiscarder(FreeStyleProject proj, int numBuildsToKeep) {
-        try {
-            int IRRELEVANT = -1;
-            BuildDiscarder bd = new LogRotator(IRRELEVANT, numBuildsToKeep, IRRELEVANT, IRRELEVANT);
-            proj.setBuildDiscarder(bd);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to set  build discarder : " + e.getMessage());
-        }
+    private static void setBuildDiscarder(FreeStyleProject proj, int numBuildsToKeep) throws IOException {
+        int IRRELEVANT = -1;
+        BuildDiscarder bd = new LogRotator(IRRELEVANT, numBuildsToKeep, IRRELEVANT, IRRELEVANT);
+        proj.setBuildDiscarder(bd);
     }
 
     /**
@@ -285,16 +281,11 @@ public class TestExecutionJobCreatorService {
         }, delayStartPolling);
     }
 
-    private static void addParameter(FreeStyleProject proj, String parameterName, String parameterValue, String desc) {
-
+    private static void addParameter(FreeStyleProject proj, String parameterName, String parameterValue, String desc) throws IOException {
         ParametersDefinitionProperty parameters = proj.getProperty(ParametersDefinitionProperty.class);
         if (parameters == null) {
-            try {
-                parameters = new ParametersDefinitionProperty(new ArrayList<ParameterDefinition>());
-                proj.addProperty(parameters);
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to set  parameters : " + e.getMessage());
-            }
+            parameters = new ParametersDefinitionProperty(new ArrayList<ParameterDefinition>());
+            proj.addProperty(parameters);
         }
 
         if (parameters.getParameterDefinition(parameterName) == null) {
@@ -302,8 +293,6 @@ public class TestExecutionJobCreatorService {
             ParameterDefinition param = new ChoiceParameterDefinition(parameterName, new String[]{parameterValue}, desc);
             parameters.getParameterDefinitions().add(param);
         }
-
-
     }
 
 }
