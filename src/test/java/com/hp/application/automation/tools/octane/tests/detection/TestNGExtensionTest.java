@@ -71,7 +71,7 @@ public class TestNGExtensionTest {
 		String projectName = "testNG-job-" + UUID.randomUUID().toString();
 		FreeStyleProject project = rule.createFreeStyleProject(projectName);
 		project.setScm(new CopyResourceSCM("/helloWorldTestNGRoot"));
-		project.getBuildersList().add(new Maven("-s settings.xml test", mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
+		project.getBuildersList().add(new Maven("test", mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
 		project.getPublishersList().add(new JUnitResultArchiver("helloWorld/target/surefire-reports/TEST*.xml, helloWorld2/target/surefire-reports/TEST*.xml"));
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
@@ -84,7 +84,7 @@ public class TestNGExtensionTest {
 		String projectName = "testNG-job-" + UUID.randomUUID().toString();
 		FreeStyleProject project = rule.createFreeStyleProject(projectName);
 		project.setScm(new CopyResourceSCM("/helloWorldTestNGRoot/helloWorld"));
-		project.getBuildersList().add(new Maven("-s settings.xml test", mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
+		project.getBuildersList().add(new Maven("test", mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
 		project.getPublishersList().add(new JUnitResultArchiver("target/surefire-reports/TEST*.xml"));
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
@@ -97,7 +97,7 @@ public class TestNGExtensionTest {
 		String projectName = "testNG-job-" + UUID.randomUUID().toString();
 		FreeStyleProject project = rule.createFreeStyleProject(projectName);
 		project.setScm(new CopyResourceSCM("/helloWorldTestNGRoot"));
-		project.getBuildersList().add(new Maven("-s settings.xml test -P custom-report-location", mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
+		project.getBuildersList().add(new Maven("test -P custom-report-location", mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
 		project.getPublishersList().add(new JUnitResultArchiver("**\\custom-report-location/**.xml"));
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
@@ -111,7 +111,7 @@ public class TestNGExtensionTest {
 		MavenModuleSet mavenProject = rule.createProject(MavenModuleSet.class, projectName);
 		mavenProject.runHeadless();
 		mavenProject.setMaven(mavenName);
-		mavenProject.setGoals("-s settings.xml test -Dmaven.test.failure.ignore=true");
+		mavenProject.setGoals("test -Dmaven.test.failure.ignore=true");
 		mavenProject.setScm(new CopyResourceSCM("/helloWorldTestNGRoot/helloWorld"));
 		AbstractBuild build = TestUtils.runAndCheckBuild(mavenProject);
 
@@ -125,7 +125,7 @@ public class TestNGExtensionTest {
 		MavenModuleSet mavenProject = rule.createProject(MavenModuleSet.class, projectName);
 		mavenProject.runHeadless();
 		mavenProject.setMaven(mavenName);
-		mavenProject.setGoals("-s settings.xml test -Dmaven.test.failure.ignore=true");
+		mavenProject.setGoals("test -Dmaven.test.failure.ignore=true");
 		mavenProject.setScm(new CopyResourceSCM("/helloWorldTestNGRoot"));
 		MavenModuleSetBuild build = (MavenModuleSetBuild) TestUtils.runAndCheckBuild(mavenProject);
 
@@ -149,7 +149,7 @@ public class TestNGExtensionTest {
 		MavenModuleSet mavenProject = rule.createProject(MavenModuleSet.class, projectName);
 		mavenProject.runHeadless();
 		mavenProject.setMaven(mavenName);
-		mavenProject.setGoals("-s settings.xml test -P custom-report-location -Dmaven.test.failure.ignore=true");
+		mavenProject.setGoals("test -P custom-report-location -Dmaven.test.failure.ignore=true");
 		mavenProject.setScm(new CopyResourceSCM("/helloWorldTestNGRoot/helloWorld"));
 		AbstractBuild build = TestUtils.runAndCheckBuild(mavenProject);
 
@@ -166,7 +166,7 @@ public class TestNGExtensionTest {
 		MavenModuleSet mavenProject = rule.createProject(MavenModuleSet.class, projectName);
 		mavenProject.runHeadless();
 		mavenProject.setMaven(mavenName);
-		mavenProject.setGoals("-s settings.xml test -P custom-report-location -Dmaven.test.failure.ignore=true");
+		mavenProject.setGoals("test -P custom-report-location -Dmaven.test.failure.ignore=true");
 		mavenProject.setScm(new CopyResourceSCM("/helloWorldTestNGRoot"));
 		AbstractBuild build = TestUtils.runAndCheckBuild(mavenProject);
 
@@ -183,7 +183,7 @@ public class TestNGExtensionTest {
 		MavenModuleSet mavenProject = rule.createProject(MavenModuleSet.class, projectName);
 		mavenProject.runHeadless();
 		mavenProject.setMaven(mavenName);
-		mavenProject.setGoals("-s settings.xml test -P custom-report-location -Dmaven.test.failure.ignore=true");
+		mavenProject.setGoals("test -P custom-report-location -Dmaven.test.failure.ignore=true");
 		mavenProject.getPublishersList().add(new JUnitResultArchiver("**/custom-report-location/**.xml"));
 		mavenProject.setScm(new CopyResourceSCM("/helloWorldTestNGRoot"));
 		AbstractBuild build = TestUtils.runAndCheckBuild(mavenProject);
@@ -198,7 +198,7 @@ public class TestNGExtensionTest {
 		MavenModuleSet mavenProject = rule.createProject(MavenModuleSet.class, projectName);
 		mavenProject.runHeadless();
 		mavenProject.setMaven(mavenName);
-		mavenProject.setGoals("-s settings.xml verify");
+		mavenProject.setGoals("verify");
 		mavenProject.setScm(new CopyResourceSCM("/helloWorldFailsafe"));
 		AbstractBuild build = TestUtils.runAndCheckBuild(mavenProject);
 
@@ -247,7 +247,7 @@ public class TestNGExtensionTest {
 		MavenModuleSet mavenProject = rule.createProject(MavenModuleSet.class, projectName);
 		mavenProject.runHeadless();
 		mavenProject.setMaven(mavenName);
-		mavenProject.setGoals("-s settings.xml test -Dmaven.test.failure.ignore=true");
+		mavenProject.setGoals("test -Dmaven.test.failure.ignore=true");
 		mavenProject.setScm(new CopyResourceSCM("/helloWorldRoot/helloWorld"));
 		MavenModuleSetBuild build = (MavenModuleSetBuild) TestUtils.runAndCheckBuild(mavenProject);
 
@@ -277,7 +277,7 @@ public class TestNGExtensionTest {
 		MavenModuleSet mavenProject = rule.createProject(MavenModuleSet.class, projectName);
 		mavenProject.runHeadless();
 		mavenProject.setMaven(mavenName);
-		mavenProject.setGoals("-s settings.xml test -Dmaven.test.failure.ignore=true");
+		mavenProject.setGoals("test -Dmaven.test.failure.ignore=true");
 		mavenProject.setScm(new CopyResourceSCM("/helloWorldRoot/helloWorld"));
 		MavenModuleSetBuild build = (MavenModuleSetBuild) TestUtils.runAndCheckBuild(mavenProject);
 

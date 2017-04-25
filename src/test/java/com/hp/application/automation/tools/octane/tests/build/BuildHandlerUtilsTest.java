@@ -69,7 +69,7 @@ public class BuildHandlerUtilsTest {
 
 		Maven.MavenInstallation mavenInstallation = ToolInstallations.configureMaven3();
 		project.setMaven(mavenInstallation.getName());
-		project.setGoals("-s settings.xml test -Dmaven.test.failure.ignore=true");
+		project.setGoals("test -Dmaven.test.failure.ignore=true");
 		project.setScm(new CopyResourceSCM("/helloWorldRoot"));
 		MavenModuleSetBuild build = (MavenModuleSetBuild) TestUtils.runAndCheckBuild(project);
 

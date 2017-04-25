@@ -136,7 +136,7 @@ public class GherkinResultsTest {
         MatrixProject matrixProject = rule.createProject(MatrixProject.class, projectName);
         matrixProject.setAxes(new AxisList(new Axis("osType", "Linux", "Windows")));
 
-        matrixProject.getBuildersList().add(new Maven("-s settings.xml clean test", mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
+        matrixProject.getBuildersList().add(new Maven("clean test", mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
         matrixProject.getPublishersList().add(new CucumberTestResultsActionPublisher(""));
         matrixProject.setScm(new CopyResourceSCM("/helloCucumberWorld"));
 
@@ -162,7 +162,7 @@ public class GherkinResultsTest {
         String projectName = "root-job-" + UUID.randomUUID().toString();
         FreeStyleProject project = rule.createFreeStyleProject(projectName);
 
-        project.getBuildersList().add(new Maven("-s settings.xml clean test", mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
+        project.getBuildersList().add(new Maven("clean test", mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
         project.setScm(new CopyResourceSCM("/helloCucumberWorld"));
 
         project.getPublishersList().add(new CucumberTestResultsActionPublisher(glob));
@@ -200,7 +200,7 @@ public class GherkinResultsTest {
         project.runHeadless();
 
         project.setMaven(mavenName);
-        project.setGoals("-s settings.xml clean test -Dmaven.test.failure.ignore=true");
+        project.setGoals("clean test -Dmaven.test.failure.ignore=true");
         if(subfolder) {
             project.setRootPOM("subFolder/pom.xml");
             project.setScm(new CopyResourceSCM("/helloCucumberWorld", "subFolder"));
