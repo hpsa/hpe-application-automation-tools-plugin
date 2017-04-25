@@ -39,8 +39,6 @@ import java.util.List;
 @Extension
 public class ConfigurationParser {
 
-	public ConfigurationParser(){}
-
 	private final static Logger logger = LogManager.getLogger(ConfigurationParser.class);
 
 	private static final String PARAM_SHARED_SPACE = "p"; // NON-NLS
