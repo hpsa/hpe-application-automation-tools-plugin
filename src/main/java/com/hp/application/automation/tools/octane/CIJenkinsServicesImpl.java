@@ -19,6 +19,7 @@ package com.hp.application.automation.tools.octane;
 import com.hp.application.automation.tools.model.OctaneServerSettingsModel;
 import com.hp.application.automation.tools.octane.configuration.ConfigurationService;
 import com.hp.application.automation.tools.octane.configuration.ServerConfiguration;
+import com.hp.application.automation.tools.octane.executor.ExecutorConnTestService;
 import com.hp.application.automation.tools.octane.executor.TestExecutionJobCreatorService;
 import com.hp.application.automation.tools.octane.model.ModelFactory;
 import com.hp.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
@@ -30,6 +31,7 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
+import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
 import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
 import com.hp.octane.integrations.dto.general.CIJobsList;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
@@ -544,5 +546,9 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 		TestExecutionJobCreatorService.runTestSuiteExecution(suiteExecutionInfo);
 	}
 
+	@Override
+	public boolean checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {
+		return ExecutorConnTestService.checkRepositoryConnectivity(testConnectivityInfo);
+	}
 
 }
