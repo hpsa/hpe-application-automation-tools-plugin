@@ -14,20 +14,36 @@
  *
  */
 
-package com.hp.application.automation.tools.octane.actions;
+package com.hp.application.automation.tools.octane.executor;
 
 import com.hp.application.automation.tools.octane.actions.dto.AutomatedTest;
 
+import javax.xml.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 
+
+@XmlRootElement(name="detectionResult")
+@XmlAccessorType(XmlAccessType.FIELD)
 public class UFTTestDetectionResult {
 
+
+    @XmlElementWrapper(name="newTests")
+    @XmlElement(name="test")
     private List<AutomatedTest> newTests = new ArrayList<>();
+
     private List<AutomatedTest> deletedTests = new ArrayList<>();
+
     private List<AutomatedTest> updatedTests = new ArrayList<>();
-    private boolean postedSuccessfully = false;
-    private boolean updatedSuccessfully = false;
+
+    @XmlAttribute
+    private String scmResourceId;
+
+    @XmlAttribute
+    private String workspaceId;
+
+    @XmlAttribute
+    private boolean initialDetection;
 
     public List<AutomatedTest> getNewTests() {
         return newTests;
@@ -35,14 +51,6 @@ public class UFTTestDetectionResult {
 
     public List<AutomatedTest> getDeletedTests() {
         return deletedTests;
-    }
-
-    public boolean isPostedSuccessfully() {
-        return postedSuccessfully;
-    }
-
-    public void setPostedSuccessfully(boolean postedSuccessfully) {
-        this.postedSuccessfully = postedSuccessfully;
     }
 
     public List<AutomatedTest> getUpdatedTests() {
@@ -53,11 +61,31 @@ public class UFTTestDetectionResult {
         this.updatedTests = updatedTests;
     }
 
-    public void setUpdatedSuccessfully(boolean updated) {
-        updatedSuccessfully = updated;
+    public String getScmResourceId() {
+        return scmResourceId;
     }
 
-    public boolean isUpdatedSuccessfully() {
-        return updatedSuccessfully;
+    public void setScmResourceId(String scmResourceId) {
+        this.scmResourceId = scmResourceId;
+    }
+
+    public String getWorkspaceId() {
+        return workspaceId;
+    }
+
+    public void setWorkspaceId(String workspaceId) {
+        this.workspaceId = workspaceId;
+    }
+
+    public boolean isInitialDetection() {
+        return initialDetection;
+    }
+
+    public void setInitialDetection(boolean initialDetection) {
+        this.initialDetection = initialDetection;
+    }
+
+    public boolean hasChanges(){
+        return !getNewTests().isEmpty() || !getUpdatedTests().isEmpty();
     }
 }

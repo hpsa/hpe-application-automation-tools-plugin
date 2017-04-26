@@ -17,6 +17,7 @@
 package com.hp.application.automation.tools.octane.actions;
 
 import com.hp.application.automation.tools.octane.actions.dto.AutomatedTest;
+import com.hp.application.automation.tools.octane.executor.UFTTestDetectionResult;
 import hudson.model.AbstractBuild;
 import hudson.model.Action;
 import hudson.model.Run;

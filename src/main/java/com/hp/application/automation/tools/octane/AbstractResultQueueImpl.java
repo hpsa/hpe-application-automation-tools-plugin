@@ -81,6 +81,10 @@ public abstract class AbstractResultQueueImpl implements ResultQueue {
         queue.add(new QueueItem(projectName, buildNumber));
     }
 
+    public int size(){
+        return queue.size();
+    }
+
     @Override
     public synchronized void add(String projectName, int buildNumber, String workspace) {
         queue.add(new QueueItem(projectName, buildNumber, workspace));

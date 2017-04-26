@@ -18,23 +18,40 @@ package com.hp.application.automation.tools.octane.actions.dto;
 
 import com.hp.application.automation.tools.octane.actions.UftTestType;
 
+import javax.xml.bind.annotation.*;
+
 /**
  * Created by kashbi on 25/09/2016.
  */
+@XmlRootElement(name="test")
+@XmlAccessorType(XmlAccessType.FIELD)
 public class AutomatedTest {
+
+    @XmlTransient
     private Long id;
+    @XmlTransient
     private String type = "test";
+    @XmlTransient
     private String subtype = "test_automated";
+    @XmlTransient
     private ListNodeEntity testingToolType;
+    @XmlTransient
     private ListNodeEntity framework;
+    @XmlTransient
     private ListNodeEntityCollection testTypes;
 
     //don't serialized to server, used to set testType property
+    @XmlAttribute
     private UftTestType uftTestType;
 
+    @XmlAttribute
     private String name;
-    private String _package;
+    @XmlAttribute
+    private String packageName;
+
     private String description;
+
+    @XmlTransient
     private BaseRefEntity scmRepository;
 
     public String getName() {
@@ -70,11 +87,11 @@ public class AutomatedTest {
     }
 
     public String getPackage() {
-        return _package;
+        return packageName;
     }
 
-    public void setPackage(String _package) {
-        this._package = _package;
+    public void setPackage(String packageName) {
+        this.packageName = packageName;
     }
 
     public ListNodeEntity getTestingToolType() {

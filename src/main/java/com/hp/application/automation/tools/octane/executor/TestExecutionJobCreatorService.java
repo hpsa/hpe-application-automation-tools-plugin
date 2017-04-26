@@ -3,7 +3,6 @@ package com.hp.application.automation.tools.octane.executor;
 import antlr.ANTLRException;
 import com.hp.application.automation.tools.model.ResultsPublisherModel;
 import com.hp.application.automation.tools.octane.actions.UFTTestDetectionPublisher;
-import com.hp.application.automation.tools.octane.actions.UFTTestDetectionService;
 import com.hp.application.automation.tools.results.RunResultRecorder;
 import com.hp.application.automation.tools.run.RunFromFileBuilder;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
@@ -48,7 +47,7 @@ import java.util.TimerTask;
 public class TestExecutionJobCreatorService {
 
 
-    private static final Logger logger = LogManager.getLogger(ExecutorConnTestService.class);
+    private static final Logger logger = LogManager.getLogger(TestExecutionJobCreatorService.class);
 
     public static void runTestSuiteExecution(TestSuiteExecutionInfo suiteExecutionInfo) {
 

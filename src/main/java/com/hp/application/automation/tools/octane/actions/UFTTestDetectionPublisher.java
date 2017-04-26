@@ -16,6 +16,8 @@
 
 package com.hp.application.automation.tools.octane.actions;
 
+import com.hp.application.automation.tools.octane.executor.UFTTestDetectionResult;
+import com.hp.application.automation.tools.octane.executor.UFTTestDetectionService;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.model.PagedList;
 import com.hp.mqm.client.model.Workspace;

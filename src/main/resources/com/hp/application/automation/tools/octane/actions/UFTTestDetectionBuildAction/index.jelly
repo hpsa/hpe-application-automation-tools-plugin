@@ -44,7 +44,7 @@
         <p>
 
             <j:if test="${it.hasNewTests}">
-                New tests : ${it.results.newTests.size()} <j:if test="${it.results.isPostedSuccessfully()}">( posted successfully )</j:if>
+                New tests : ${it.results.newTests.size()}
                 <br/>
                 <br/>
             </j:if>
@@ -54,7 +54,7 @@
                 <br/>
             </j:if>
             <j:if test="${it.hasUpdatedTests}">
-                Updated tests :  ${it.results.updatedTests.size()} <j:if test="${it.results.isUpdatedSuccessfully()}">( updated successfully )</j:if>
+                Updated tests :  ${it.results.updatedTests.size()}
                 <br/>
                 <br/>
             </j:if>
@@ -86,11 +86,11 @@
               </tr>
           </j:forEach>
           <j:forEach var="s" items="${it.results.updatedTests}">
-                        <tr>
-                            <td >${s.package}</td>
-                            <td >${s.name}</td>
-                            <td >updated</td>
-                        </tr>
+                <tr>
+                    <td >${s.package}</td>
+                    <td >${s.name}</td>
+                    <td >updated</td>
+                </tr>
           </j:forEach>
 
           </tbody>
