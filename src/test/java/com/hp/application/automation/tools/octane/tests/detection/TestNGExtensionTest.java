@@ -71,7 +71,7 @@ public class TestNGExtensionTest {
 		String projectName = "testNG-job-" + UUID.randomUUID().toString();
 		FreeStyleProject project = rule.createFreeStyleProject(projectName);
 		project.setScm(new CopyResourceSCM("/helloWorldTestNGRoot"));
-		project.getBuildersList().add(new Maven(String.format("--settings %s\\conf\\settings.xml test",System.getenv("MAVEN_HOME")), mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
+		project.getBuildersList().add(new Maven(String.format("--settings \"%s\\conf\\settings.xml\" test",System.getenv("MAVEN_HOME")), mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
 		project.getPublishersList().add(new JUnitResultArchiver("helloWorld/target/surefire-reports/TEST*.xml, helloWorld2/target/surefire-reports/TEST*.xml"));
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
@@ -84,7 +84,7 @@ public class TestNGExtensionTest {
 		String projectName = "testNG-job-" + UUID.randomUUID().toString();
 		FreeStyleProject project = rule.createFreeStyleProject(projectName);
 		project.setScm(new CopyResourceSCM("/helloWorldTestNGRoot/helloWorld"));
-		project.getBuildersList().add(new Maven(String.format("--settings %s\\conf\\settings.xml test",System.getenv("MAVEN_HOME")), mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
+		project.getBuildersList().add(new Maven(String.format("--settings \"%s\\conf\\settings.xml\" test",System.getenv("MAVEN_HOME")), mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
 		project.getPublishersList().add(new JUnitResultArchiver("target/surefire-reports/TEST*.xml"));
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
@@ -97,7 +97,7 @@ public class TestNGExtensionTest {
 		String projectName = "testNG-job-" + UUID.randomUUID().toString();
 		FreeStyleProject project = rule.createFreeStyleProject(projectName);
 		project.setScm(new CopyResourceSCM("/helloWorldTestNGRoot"));
-		project.getBuildersList().add(new Maven(String.format("--settings %s\\conf\\settings.xml test -P custom-report-location",System.getenv("MAVEN_HOME")), mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
+		project.getBuildersList().add(new Maven(String.format("--settings \"%s\\conf\\settings.xml\" test -P custom-report-location",System.getenv("MAVEN_HOME")), mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
 		project.getPublishersList().add(new JUnitResultArchiver("**\\custom-report-location/**.xml"));
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 

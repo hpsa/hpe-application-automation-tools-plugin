@@ -66,7 +66,7 @@ public class UFTExtensionTest {
 	public void testMockMoreBuilders() throws Exception {
 		String projectName = "root-job-" + UUID.randomUUID().toString();
 		FreeStyleProject project = rule.createFreeStyleProject(projectName);
-		project.getBuildersList().add(new Maven(String.format("--settings %s\\conf\\settings.xml test",System.getenv("MAVEN_HOME")), ToolInstallations.configureMaven3().getName(), null, null, "-Dmaven.test.failure.ignore=true"));
+		project.getBuildersList().add(new Maven(String.format("--settings \"%s\\conf\\settings.xml\" test",System.getenv("MAVEN_HOME")), ToolInstallations.configureMaven3().getName(), null, null, "-Dmaven.test.failure.ignore=true"));
 		project.getBuildersList().add(new RunFromAlmBuilder("notExistingServer", "notExistingUser", "password", "domain", "project", "notExistingTests", "", "", "", ""));
 
 		AbstractBuild buildMock = Mockito.mock(AbstractBuild.class);

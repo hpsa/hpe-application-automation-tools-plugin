@@ -56,7 +56,7 @@ public class ResultFieldsDetectionTest {
 
 		Maven.MavenInstallation mavenInstallation = ToolInstallations.configureMaven3();
 
-		project.getBuildersList().add(new Maven(String.format("--settings %s\\conf\\settings.xml -U test",System.getenv("MAVEN_HOME")), mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
+		project.getBuildersList().add(new Maven(String.format("--settings \"%s\\conf\\settings.xml\" -U test",System.getenv("MAVEN_HOME")), mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
 		project.setScm(new CopyResourceSCM("/helloWorldRoot"));
 
 		TestUtils.createDummyConfiguration();
