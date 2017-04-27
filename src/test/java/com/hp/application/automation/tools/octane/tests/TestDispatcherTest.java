@@ -87,7 +87,7 @@ public class TestDispatcherTest {
 		project = rule.createFreeStyleProject("TestDispatcher");
 		Maven.MavenInstallation mavenInstallation = ToolInstallations.configureMaven3();
 
-		project.getBuildersList().add(new Maven("install", mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
+		project.getBuildersList().add(new Maven(String.format("--settings %s\\conf\\settings.xml install",System.getenv("MAVEN_HOME")), mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
 		project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
 		project.setScm(new CopyResourceSCM("/helloWorldRoot"));
 
@@ -230,7 +230,7 @@ public class TestDispatcherTest {
 
 		Maven.MavenInstallation mavenInstallation = ToolInstallations.configureMaven3();
 
-		matrixProject.getBuildersList().add(new Maven("install", mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
+		matrixProject.getBuildersList().add(new Maven(String.format("--settings %s\\conf\\settings.xml install",System.getenv("MAVEN_HOME")), mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
 		matrixProject.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
 		matrixProject.setScm(new CopyResourceSCM("/helloWorldRoot"));
 

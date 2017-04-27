@@ -78,7 +78,7 @@ public class JUnitResultsTest {
 		String projectName = "root-job-" + UUID.randomUUID().toString();
 		FreeStyleProject project = rule.createFreeStyleProject(projectName);
 
-		project.getBuildersList().add(new Maven("clean test", mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
+		project.getBuildersList().add(new Maven(String.format("--settings %s\\conf\\settings.xml clean test",System.getenv("MAVEN_HOME")), mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
 		project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
 		project.setScm(new CopyResourceSCM("/helloWorldRoot"));
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
@@ -92,7 +92,7 @@ public class JUnitResultsTest {
 		String projectName = "root-job-" + UUID.randomUUID().toString();
 		FreeStyleProject project = rule.createFreeStyleProject(projectName);
 
-		project.getBuildersList().add(new Maven("-s subFolder/settings.xml clean test", mavenName, "subFolder/helloWorld/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
+		project.getBuildersList().add(new Maven(String.format("--settings %s\\conf\\settings.xml clean test",System.getenv("MAVEN_HOME")), mavenName, "subFolder/helloWorld/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
 		project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
 		project.setScm(new CopyResourceSCM("/helloWorldRoot", "subFolder"));
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
@@ -106,8 +106,7 @@ public class JUnitResultsTest {
 		String projectName = "root-job-" + UUID.randomUUID().toString();
 		FreeStyleProject project = rule.createFreeStyleProject(projectName);
 
-		project.getBuildersList().add(new Maven("clean test", mavenName, "helloWorld/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
-		project.getBuildersList().add(new Maven("clean test", mavenName, "helloWorld2/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
+		project.getBuildersList().add(new Maven(String.format("--settings %s\\conf\\settings.xml clean test",System.getenv("MAVEN_HOME")), mavenName, "helloWorld/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
 		project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
 		project.setScm(new CopyResourceSCM("/helloWorldRoot"));
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
@@ -185,7 +184,7 @@ public class JUnitResultsTest {
 		String projectName = "root-job-" + UUID.randomUUID().toString();
 		FreeStyleProject project = rule.createFreeStyleProject(projectName);
 
-		project.getBuildersList().add(new Maven("clean test", mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
+		project.getBuildersList().add(new Maven(String.format("--settings %s\\conf\\settings.xml clean test",System.getenv("MAVEN_HOME")), mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
 		project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
 		project.setScm(new CopyResourceSCM("/helloWorldRoot"));
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
@@ -200,7 +199,7 @@ public class JUnitResultsTest {
 		MatrixProject matrixProject = rule.createProject(MatrixProject.class, projectName);
 		matrixProject.setAxes(new AxisList(new Axis("osType", "Linux", "Windows")));
 
-        matrixProject.getBuildersList().add(new Maven("clean test -Dmaven.test.failure.ignore=true -X", mavenName));
+        matrixProject.getBuildersList().add(new Maven(String.format("--settings %s\\conf\\settings.xml clean test -Dmaven.test.failure.ignore=true -X",System.getenv("MAVEN_HOME")), mavenName));
 
         matrixProject.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
 		matrixProject.setScm(new CopyResourceSCM("/helloWorldRoot"));
