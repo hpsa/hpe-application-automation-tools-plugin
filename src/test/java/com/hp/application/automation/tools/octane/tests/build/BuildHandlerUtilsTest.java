@@ -66,8 +66,10 @@ public class BuildHandlerUtilsTest {
 	public void testMavenBuildType() throws Exception {
 		MavenModuleSet project = jenkins.createProject(MavenModuleSet.class, "maven-project");
 		project.runHeadless();
-
+		
 		Maven.MavenInstallation mavenInstallation = ToolInstallations.configureMaven3();
+		System.out.println("Maven install name: " + mavenInstallation.getName());
+		System.out.println("Maven home name: " + mavenInstallation.getHomeDir().getPath());
 		project.setMaven(mavenInstallation.getName());
 		project.setGoals("test -Dmaven.test.failure.ignore=true");
 		project.setScm(new CopyResourceSCM("/helloWorldRoot"));
