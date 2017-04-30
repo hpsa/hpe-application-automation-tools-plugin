@@ -336,11 +336,11 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
             client.validateConfigurationWithoutLogin();
             return client;
         } catch (SharedSpaceNotExistException e) {
-            logger.warn("Invalid shared space.", e);
+            logger.warn("Invalid shared space");
         } catch (LoginException e) {
-            logger.warn("Login failed", e);
+            logger.warn("Login failed : " + e.getMessage());
         } catch (RequestException e) {
-            logger.warn("Problem with communication with MQM server", e);
+            logger.warn("Problem with communication with MQM server : " + e.getMessage());
         }
 
         return null;
@@ -352,7 +352,7 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
         if (!StringUtils.isEmpty(value)) {
             return Long.valueOf(value);
         }
-        return TimeUnit2.SECONDS.toMillis(60);
+        return TimeUnit2.SECONDS.toMillis(30);
     }
 
     @Inject
