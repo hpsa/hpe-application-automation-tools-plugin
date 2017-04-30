@@ -31,6 +31,9 @@ import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.ToolInstallations;
 
 import java.util.HashMap;
+
+import static org.jvnet.hudson.test.JenkinsRule.NO_PROPERTIES;
+
 @SuppressWarnings({"squid:S2699","squid:S3658","squid:S2259","squid:S1872","squid:S2925","squid:S109","squid:S1607","squid:S2701"})
 public class BuildHandlerUtilsTest {
 
@@ -67,7 +70,10 @@ public class BuildHandlerUtilsTest {
 		MavenModuleSet project = jenkins.createProject(MavenModuleSet.class, "maven-project");
 		project.runHeadless();
 
-		Maven.MavenInstallation mavenInstallation = ToolInstallations.configureMaven3();
+		//Maven.MavenInstallation mavenInstallation = ToolInstallations.configureMaven3();
+
+		Maven.MavenInstallation mavenInstallation = new Maven.MavenInstallation("default-system-maven", System.getenv("MAVEN_HOME"), JenkinsRule.NO_PROPERTIES);
+
 		project.setMaven(mavenInstallation.getName());
 		project.setGoals("test -Dmaven.test.failure.ignore=true");
 		project.setScm(new CopyResourceSCM("/helloWorldRoot"));

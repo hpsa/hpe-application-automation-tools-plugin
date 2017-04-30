@@ -58,7 +58,7 @@ public class JUnitResultsTest {
 	@BeforeClass
 	public static void prepareClass() throws Exception {
 		rule.jenkins.setNumExecutors(10);
-		Maven.MavenInstallation mavenInstallation = ToolInstallations.configureMaven3();
+		Maven.MavenInstallation mavenInstallation = new Maven.MavenInstallation("default-system-maven", System.getenv("MAVEN_HOME"), JenkinsRule.NO_PROPERTIES);
 		mavenName = mavenInstallation.getName();
 	}
 
