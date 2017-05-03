@@ -85,7 +85,8 @@ public class TestDispatcherTest {
 		testDispatcher._setEventPublisher(testEventPublisher);
 
 		project = rule.createFreeStyleProject("TestDispatcher");
-		Maven.MavenInstallation mavenInstallation = new Maven.MavenInstallation("default-system-maven", System.getenv("MAVEN_HOME"), JenkinsRule.NO_PROPERTIES);
+		Maven.MavenInstallation mavenInstallation = ToolInstallations.configureMaven3();
+		//Maven.MavenInstallation mavenInstallation = new Maven.MavenInstallation("default-system-maven", System.getenv("MAVEN_HOME"), JenkinsRule.NO_PROPERTIES);
 
 		project.getBuildersList().add(new Maven(String.format("--settings \"%s\\conf\\settings.xml\" install",System.getenv("MAVEN_HOME")), mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
 		project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
@@ -228,7 +229,8 @@ public class TestDispatcherTest {
 		MatrixProject matrixProject = rule.createProject(MatrixProject.class, "TestDispatcherMatrix");
 		matrixProject.setAxes(new AxisList(new Axis("osType", "Linux", "Windows")));
 
-		Maven.MavenInstallation mavenInstallation = new Maven.MavenInstallation("default-system-maven", System.getenv("MAVEN_HOME"), JenkinsRule.NO_PROPERTIES);
+		Maven.MavenInstallation mavenInstallation = ToolInstallations.configureMaven3();
+		//Maven.MavenInstallation mavenInstallation = new Maven.MavenInstallation("default-system-maven", System.getenv("MAVEN_HOME"), JenkinsRule.NO_PROPERTIES);
 
 		matrixProject.getBuildersList().add(new Maven(String.format("--settings \"%s\\conf\\settings.xml\" install",System.getenv("MAVEN_HOME")), mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
 		matrixProject.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));

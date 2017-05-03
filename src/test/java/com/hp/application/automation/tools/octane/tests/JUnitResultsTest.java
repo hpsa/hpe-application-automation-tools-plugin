@@ -58,7 +58,9 @@ public class JUnitResultsTest {
 	@BeforeClass
 	public static void prepareClass() throws Exception {
 		rule.jenkins.setNumExecutors(10);
-		Maven.MavenInstallation mavenInstallation = new Maven.MavenInstallation("default-system-maven", System.getenv("MAVEN_HOME"), JenkinsRule.NO_PROPERTIES);
+		Maven.MavenInstallation mavenInstallation = ToolInstallations.configureMaven3();
+
+//		Maven.MavenInstallation mavenInstallation = new Maven.MavenInstallation("default-system-maven", System.getenv("MAVEN_HOME"), JenkinsRule.NO_PROPERTIES);
 		mavenName = mavenInstallation.getName();
 	}
 
@@ -122,7 +124,8 @@ public class JUnitResultsTest {
 		project.runHeadless();
 
 		project.setMaven(mavenName);
-		project.setGoals("clean test -Dmaven.test.failure.ignore=true");
+		project.setGoals(String.format("clean test --settings %s\\conf\\settings.xml -Dmaven.repo.local=%s\\m2-temp -Dmaven.test.failure.ignore=true",
+				System.getenv("MAVEN_HOME"),System.getenv("TEMP")));
 		project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
 		project.setScm(new CopyResourceSCM("/helloWorldRoot"));
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
@@ -138,7 +141,8 @@ public class JUnitResultsTest {
 		project.runHeadless();
 
 		project.setMaven(mavenName);
-		project.setGoals("clean test -Dmaven.test.failure.ignore=true");
+		project.setGoals(String.format("clean test --settings %s\\conf\\settings.xml -Dmaven.repo.local=%s\\m2-temp -Dmaven.test.failure.ignore=true",
+				System.getenv("MAVEN_HOME"),System.getenv("TEMP")));
 		project.setScm(new CopyResourceSCM("/helloWorldRoot"));
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);
 
@@ -154,7 +158,8 @@ public class JUnitResultsTest {
 
 		project.setMaven(mavenName);
 		project.setRootPOM("subFolder/helloWorld/pom.xml");
-		project.setGoals("clean test -Dmaven.test.failure.ignore=true");
+		project.setGoals(String.format("clean test --settings %s\\conf\\settings.xml -Dmaven.repo.local=%s\\m2-temp -Dmaven.test.failure.ignore=true",
+				System.getenv("MAVEN_HOME"),System.getenv("TEMP")));
 		project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
 		project.setScm(new CopyResourceSCM("/helloWorldRoot", "subFolder"));
 		AbstractBuild build = TestUtils.runAndCheckBuild(project);

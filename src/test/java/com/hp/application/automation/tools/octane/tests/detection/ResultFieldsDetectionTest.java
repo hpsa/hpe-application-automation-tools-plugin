@@ -54,7 +54,8 @@ public class ResultFieldsDetectionTest {
 		detectionService = Mockito.mock(ResultFieldsDetectionService.class);
 		junitExtension._setResultFieldsDetectionService(detectionService);
 
-		Maven.MavenInstallation mavenInstallation = new Maven.MavenInstallation("default-system-maven", System.getenv("MAVEN_HOME"), JenkinsRule.NO_PROPERTIES);
+		Maven.MavenInstallation mavenInstallation = ToolInstallations.configureMaven3();
+		//Maven.MavenInstallation mavenInstallation = new Maven.MavenInstallation("default-system-maven", System.getenv("MAVEN_HOME"), JenkinsRule.NO_PROPERTIES);
 
 		project.getBuildersList().add(new Maven(String.format("--settings \"%s\\conf\\settings.xml\" -U test",System.getenv("MAVEN_HOME")), mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
 		project.setScm(new CopyResourceSCM("/helloWorldRoot"));

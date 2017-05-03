@@ -70,9 +70,9 @@ public class BuildHandlerUtilsTest {
 		MavenModuleSet project = jenkins.createProject(MavenModuleSet.class, "maven-project");
 		project.runHeadless();
 
-		//Maven.MavenInstallation mavenInstallation = ToolInstallations.configureMaven3();
+		Maven.MavenInstallation mavenInstallation = ToolInstallations.configureMaven3();
 
-		Maven.MavenInstallation mavenInstallation = new Maven.MavenInstallation("default-system-maven", System.getenv("MAVEN_HOME"), JenkinsRule.NO_PROPERTIES);
+		//Maven.MavenInstallation mavenInstallation = new Maven.MavenInstallation("default-system-maven", System.getenv("MAVEN_HOME"), JenkinsRule.NO_PROPERTIES);
 
 		project.setMaven(mavenInstallation.getName());
 		project.setGoals("test -Dmaven.test.failure.ignore=true");
