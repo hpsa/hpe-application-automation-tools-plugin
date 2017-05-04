@@ -551,4 +551,9 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 		return ExecutorConnTestService.checkRepositoryConnectivity(testConnectivityInfo);
 	}
 
+	@Override
+	public void deleteExecutor(String id) {
+		TestExecutionJobCreatorService.deleteExecutor(id);
+	}
+
 }

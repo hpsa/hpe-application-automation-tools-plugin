@@ -10,11 +10,11 @@ import com.hp.octane.integrations.dto.executor.TestExecutionInfo;
 import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
 import com.hp.octane.integrations.dto.scm.SCMType;
-import hudson.model.ChoiceParameterDefinition;
-import hudson.model.FreeStyleProject;
-import hudson.model.ParameterDefinition;
-import hudson.model.ParametersDefinitionProperty;
+import hudson.model.*;
+import hudson.plugins.git.BranchSpec;
 import hudson.plugins.git.GitSCM;
+import hudson.plugins.git.SubmoduleConfig;
+import hudson.plugins.git.UserRemoteConfig;
 import hudson.tasks.LogRotator;
 import hudson.triggers.SCMTrigger;
 import jenkins.model.BuildDiscarder;
@@ -35,10 +35,7 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 /**
  * This service is responsible to create jobs (discovery and execution) for execution process
@@ -48,6 +45,9 @@ public class TestExecutionJobCreatorService {
 
 
     private static final Logger logger = LogManager.getLogger(TestExecutionJobCreatorService.class);
+    public static final String EXECUTOR_ID_PARAMETER_NAME = "executorId";
+    public static final String SUITE_ID_PARAMETER_NAME = "suiteId";
+    public static final String SUITE_RUN_ID_PARAMETER_NAME = "suiteRunId";
 
     public static void runTestSuiteExecution(TestSuiteExecutionInfo suiteExecutionInfo) {
 
@@ -75,30 +75,36 @@ public class TestExecutionJobCreatorService {
 
         //start job
         if (proj != null) {
-            proj.scheduleBuild2(0);
+            ParameterValue suiteRunIdParam = new StringParameterValue(SUITE_RUN_ID_PARAMETER_NAME, suiteExecutionInfo.getSuiteRunId());
+            ParameterValue suiteIdParam = new StringParameterValue(SUITE_ID_PARAMETER_NAME, suiteExecutionInfo.getSuiteId());
+            ParametersAction parameters = new ParametersAction(suiteRunIdParam, suiteIdParam);
+
+            Cause cause = StringUtils.isNotEmpty(suiteExecutionInfo.getSuiteRunId()) ? TriggeredBySuiteRunCause.create(suiteExecutionInfo.getSuiteRunId()) : new Cause.UserIdCause();
+            CauseAction causeAction = new CauseAction(cause);
+            proj.scheduleBuild2(0, parameters, causeAction);
         }
     }
 
     private static FreeStyleProject getExecutionJob(TestSuiteExecutionInfo suiteExecutionInfo) {
 
         try {
-            String projectName = String.format("%s test execution job - executorId %s suiteId %s",
+            String projectName = String.format("%s test execution job - suiteId %s",
                     suiteExecutionInfo.getTestingToolType().toString(),
-                    suiteExecutionInfo.getExecutorId(),
                     suiteExecutionInfo.getSuiteId());
 
             //validate creation of job
             FreeStyleProject proj = (FreeStyleProject) Jenkins.getInstance().getItem(projectName);
             if (proj == null) {
                 proj = Jenkins.getInstance().createProject(FreeStyleProject.class, projectName);
-                proj.setDescription(String.format("This job was created by HP AA Plugin for execution of %s tests, as part of Octane executor with id %s and suite with id %s",
-                        suiteExecutionInfo.getTestingToolType().toString(), suiteExecutionInfo.getExecutorId(), suiteExecutionInfo.getSuiteId()));
+                proj.setDescription(String.format("This job was created by HP AA Plugin for execution of %s tests, as part of Octane suite with id %s",
+                        suiteExecutionInfo.getTestingToolType().toString(), suiteExecutionInfo.getSuiteId()));
             }
 
-            setScmRepository(suiteExecutionInfo.getScmRepository(), proj);
+            setScmRepository(suiteExecutionInfo.getScmRepository(), suiteExecutionInfo.getScmRepositoryCredentialsId(), proj);
             setBuildDiscarder(proj, 20);
-            addParameter(proj, "executorId", suiteExecutionInfo.getExecutorId(), "Octane executor id");
-            addParameter(proj, "suiteId", suiteExecutionInfo.getSuiteId(), "Octane suite id");
+            addParameter(proj, SUITE_ID_PARAMETER_NAME, suiteExecutionInfo.getSuiteId(), true, "Octane suite id");
+            addParameter(proj, SUITE_RUN_ID_PARAMETER_NAME, null, false, "This parameter is relevant only if the suite is run from Octane and allows to publish tests to the existing Octane suite run");
+            addAssignedNode(proj);
 
             //add build action
             String fsTestsData = prepareMtbxData(suiteExecutionInfo.getTests());
@@ -128,10 +134,14 @@ public class TestExecutionJobCreatorService {
         }
     }
 
-    private static void setScmRepository(SCMRepository scmRepository, FreeStyleProject proj) {
+    private static void setScmRepository(SCMRepository scmRepository, String scmRepositoryCredentialsId, FreeStyleProject proj) {
         if (SCMType.GIT.equals(scmRepository.getType())) {
             try {
-                GitSCM scm = new GitSCM(scmRepository.getUrl());
+
+                List<UserRemoteConfig> repoLists = Arrays.asList(new UserRemoteConfig(scmRepository.getUrl(), null, null, scmRepositoryCredentialsId));
+                GitSCM scm = new GitSCM(repoLists, Collections.singletonList(new BranchSpec("")), Boolean.valueOf(false), Collections.<SubmoduleConfig>emptyList(), null, null, null);
+
+                //GitSCM scm = new GitSCM(scmRepository.getUrl());
                 proj.setScm(scm);
             } catch (IOException e) {
                 throw new IllegalArgumentException("Failed to set Git repository : " + e.getMessage());
@@ -225,9 +235,9 @@ public class TestExecutionJobCreatorService {
                         discoveryInfo.getTestingToolType().toString(), discoveryInfo.getExecutorId()));
             }
 
-            setScmRepository(discoveryInfo.getScmRepository(), proj);
+            setScmRepository(discoveryInfo.getScmRepository(), discoveryInfo.getScmRepositoryCredentialsId(), proj);
             setBuildDiscarder(proj, 20);
-            addParameter(proj, "executorId", discoveryInfo.getExecutorId(), "Octane executor id");
+            addParameter(proj, EXECUTOR_ID_PARAMETER_NAME, discoveryInfo.getExecutorId(), true, "Octane executor id");
 
             //set polling once in two minutes
             SCMTrigger scmTrigger = new SCMTrigger("H/2 * * * *");//H/2 * * * * : once in two minutes
@@ -280,18 +290,102 @@ public class TestExecutionJobCreatorService {
         }, delayStartPolling);
     }
 
-    private static void addParameter(FreeStyleProject proj, String parameterName, String parameterValue, String desc) throws IOException {
+    private static void addParameter(FreeStyleProject proj, String parameterName, String parameterValue, boolean constantValue, String desc) throws IOException {
         ParametersDefinitionProperty parameters = proj.getProperty(ParametersDefinitionProperty.class);
         if (parameters == null) {
             parameters = new ParametersDefinitionProperty(new ArrayList<ParameterDefinition>());
             proj.addProperty(parameters);
         }
 
-        if (parameters.getParameterDefinition(parameterName) == null) {
-            //String name, List<String> choices, String defaultValue, String description
-            ParameterDefinition param = new ChoiceParameterDefinition(parameterName, new String[]{parameterValue}, desc);
-            parameters.getParameterDefinitions().add(param);
+        if (constantValue) {
+            if (parameters.getParameterDefinition(parameterName) == null) {
+                //String name, List<String> choices, String defaultValue, String description
+                ParameterDefinition param = new ChoiceParameterDefinition(parameterName, new String[]{parameterValue}, desc);
+                parameters.getParameterDefinitions().add(param);
+            }
+        } else {
+            if (parameters.getParameterDefinition(parameterName) == null) {
+                //String name, List<String> choices, String defaultValue, String description
+                ParameterDefinition param = new StringParameterDefinition(parameterName, null, desc);
+                parameters.getParameterDefinitions().add(param);
+            }
+        }
+
+    }
+
+    public static void deleteExecutor(String id) {
+        String jobName = EXECUTOR_ID_PARAMETER_NAME + " " + id;
+        deleteJobWithParameter(jobName, EXECUTOR_ID_PARAMETER_NAME, id);
+    }
+
+    public static void deleteJobWithParameter(String partOfName, String parameterName, String parameterValue) {
+        List<FreeStyleProject> jobs = Jenkins.getInstance().getAllItems(FreeStyleProject.class);
+
+        for (FreeStyleProject job : jobs) {
+            if (job.getName().contains(partOfName)) {
+                ParametersDefinitionProperty parameters = job.getProperty(ParametersDefinitionProperty.class);
+                if (parameters != null) {
+                    ParameterDefinition pd = parameters.getParameterDefinition(parameterName);
+                    if (pd != null && pd.getDefaultParameterValue() != null) {
+                        Object defaultValue = pd.getDefaultParameterValue().getValue();
+                        if (parameterValue.equals(defaultValue)) {
+                            try {
+                                job.disable();
+                                if (job.isBuilding() && job.getLastBuild().isBuilding()) {
+                                    job.getLastBuild().getExecutor().interrupt();
+                                } else if (job.isInQueue()) {
+                                    Jenkins.getInstance().getQueue().cancel(job);
+                                }
+
+                            } catch (IOException e) {
+                                logger.error("Failed to delete job  " + job.getName() + " : " + e.getMessage());
+                            }
+                            try{
+                                job.delete();
+                            }catch (IOException | InterruptedException e) {
+                                logger.error("Failed to delete job  " + job.getName() + " : " + e.getMessage());
+                            }
+                        }
+                    }
+
+                }
+            }
         }
     }
 
+    private static void addAssignedNode(FreeStyleProject proj) {
+        Computer[] computers = Jenkins.getInstance().getComputers();
+        Set<String> labels = new HashSet();
+
+        //add existing
+        String assigned = proj.getAssignedLabelString();
+        if (assigned != null) {
+            String[] assignedArr = StringUtils.split(assigned, "||");
+            for (String item : assignedArr) {
+                labels.add(item.trim());
+            }
+        }
+
+        //try to add new
+        try {
+            for (Computer computer : computers) {
+                if (computer instanceof Jenkins.MasterComputer) {
+                    continue;
+                }
+
+                String label = "" + computer.getNode().getSelfLabel();
+                if (label.toLowerCase().contains("uft")) {
+                    labels.add(label.trim());
+                }
+            }
+
+            if (!labels.isEmpty()) {
+                Label joinedLabel = Label.parseExpression(StringUtils.join(labels, "||"));
+                proj.setAssignedLabel(joinedLabel);
+            }
+
+        } catch (IOException | ANTLRException e) {
+            logger.error("Failed to  set addAssignedNode : " + e.getMessage());
+        }
+    }
 }
