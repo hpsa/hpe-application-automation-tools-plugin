@@ -26,6 +26,7 @@ import hudson.tasks.Maven;
 import org.junit.*;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.ToolInstallations;
+import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -60,6 +61,7 @@ public class GherkinResultsTest {
     public static void prepareClass() throws Exception {
         rule.jenkins.setNumExecutors(10);
         Maven.MavenInstallation mavenInstallation = ToolInstallations.configureMaven3();
+        //Maven.MavenInstallation mavenInstallation = new Maven.MavenInstallation("default-system-maven", System.getenv("MAVEN_HOME"), JenkinsRule.NO_PROPERTIES);
         mavenName = mavenInstallation.getName();
     }
 
@@ -136,7 +138,8 @@ public class GherkinResultsTest {
         MatrixProject matrixProject = rule.createProject(MatrixProject.class, projectName);
         matrixProject.setAxes(new AxisList(new Axis("osType", "Linux", "Windows")));
 
-        matrixProject.getBuildersList().add(new Maven(String.format("--settings \"%s\\conf\\settings.xml\" clean test",System.getenv("MAVEN_HOME")), mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
+        matrixProject.getBuildersList().add(new Maven(String.format("--settings \"%s\\conf\\settings.xml\" clean test -Dmaven.repo.local=%s\\m2-temp",
+                System.getenv("MAVEN_HOME"), System.getenv("TEMP")), mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
         matrixProject.getPublishersList().add(new CucumberTestResultsActionPublisher(""));
         matrixProject.setScm(new CopyResourceSCM("/helloCucumberWorld"));
 
@@ -162,7 +165,8 @@ public class GherkinResultsTest {
         String projectName = "root-job-" + UUID.randomUUID().toString();
         FreeStyleProject project = rule.createFreeStyleProject(projectName);
 
-        project.getBuildersList().add(new Maven(String.format("--settings \"%s\\conf\\settings.xml\" clean test",System.getenv("MAVEN_HOME")), mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
+        project.getBuildersList().add(new Maven(String.format("--settings \"%s\\conf\\settings.xml\" clean test -Dmaven.repo.local=%s\\m2-temp",
+                System.getenv("MAVEN_HOME"),System.getenv("TEMP")), mavenName, null, null, "-Dmaven.test.failure.ignore=true"));
         project.setScm(new CopyResourceSCM("/helloCucumberWorld"));
 
         project.getPublishersList().add(new CucumberTestResultsActionPublisher(glob));
@@ -174,7 +178,8 @@ public class GherkinResultsTest {
         String projectName = "root-job-" + UUID.randomUUID().toString();
         FreeStyleProject project = rule.createFreeStyleProject(projectName);
 
-        project.getBuildersList().add(new Maven(String.format("--settings \"%s\\conf\\settings.xml\" clean test",System.getenv("MAVEN_HOME")), mavenName, "subFolder/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
+        project.getBuildersList().add(new Maven(String.format("--settings \"%s\\conf\\settings.xml\" clean test -Dmaven.repo.local=%s\\m2-temp",
+                System.getenv("MAVEN_HOME"),System.getenv("TEMP")), mavenName, "subFolder/pom.xml", null, "-Dmaven.test.failure.ignore=true"));
         project.setScm(new CopyResourceSCM("helloCucumberWorld", "subFolder"));
 
         project.getPublishersList().add(new CucumberTestResultsActionPublisher(glob));
@@ -200,7 +205,8 @@ public class GherkinResultsTest {
         project.runHeadless();
 
         project.setMaven(mavenName);
-        project.setGoals("clean test -Dmaven.test.failure.ignore=true");
+        project.setGoals(String.format("clean test --settings %s\\conf\\settings.xml -Dmaven.repo.local=%s\\m2-temp -Dmaven.test.failure.ignore=true",
+                System.getenv("MAVEN_HOME"),System.getenv("TEMP")));
         if(subfolder) {
             project.setRootPOM("subFolder/pom.xml");
             project.setScm(new CopyResourceSCM("/helloCucumberWorld", "subFolder"));
