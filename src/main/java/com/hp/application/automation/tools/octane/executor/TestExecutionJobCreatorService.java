@@ -38,7 +38,7 @@ import java.io.StringWriter;
 import java.util.*;
 
 /**
- * This service is responsible to create jobs (discovery and execution) for execution process
+ * This service is responsible to create jobs (discovery and execution) for execution process.
  * Created by berkovir on 20/03/2017.
  */
 public class TestExecutionJobCreatorService {
@@ -340,9 +340,9 @@ public class TestExecutionJobCreatorService {
                             } catch (IOException e) {
                                 logger.error("Failed to delete job  " + job.getName() + " : " + e.getMessage());
                             }
-                            try{
+                            try {
                                 job.delete();
-                            }catch (IOException | InterruptedException e) {
+                            } catch (IOException | InterruptedException e) {
                                 logger.error("Failed to delete job  " + job.getName() + " : " + e.getMessage());
                             }
                         }
