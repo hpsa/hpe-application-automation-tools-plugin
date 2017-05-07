@@ -75,7 +75,9 @@ public class BuildHandlerUtilsTest {
 		//Maven.MavenInstallation mavenInstallation = new Maven.MavenInstallation("default-system-maven", System.getenv("MAVEN_HOME"), JenkinsRule.NO_PROPERTIES);
 
 		project.setMaven(mavenInstallation.getName());
-		project.setGoals("test -Dmaven.test.failure.ignore=true");
+		//project.setGoals("test -Dmaven.test.failure.ignore=true");
+		project.setGoals(String.format("clean test --settings %s\\conf\\settings.xml -Dmaven.repo.local=%s\\m2-temp -Dmaven.test.failure.ignore=true",
++				System.getenv("MAVEN_HOME"),System.getenv("TEMP")));
 		project.setScm(new CopyResourceSCM("/helloWorldRoot"));
 		MavenModuleSetBuild build = (MavenModuleSetBuild) TestUtils.runAndCheckBuild(project);
 
