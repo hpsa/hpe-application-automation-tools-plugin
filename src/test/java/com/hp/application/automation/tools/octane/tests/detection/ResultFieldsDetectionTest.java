@@ -57,7 +57,10 @@ public class ResultFieldsDetectionTest {
 		Maven.MavenInstallation mavenInstallation = ToolInstallations.configureMaven3();
 		//Maven.MavenInstallation mavenInstallation = new Maven.MavenInstallation("default-system-maven", System.getenv("MAVEN_HOME"), JenkinsRule.NO_PROPERTIES);
 
-		project.getBuildersList().add(new Maven(String.format("--settings \"%s\\conf\\settings.xml\" -U test",System.getenv("MAVEN_HOME")), mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
+		//project.getBuildersList().add(new Maven(String.format("--settings \"%s\\conf\\settings.xml\" -U test",System.getenv("MAVEN_HOME")), mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
+		project.getBuildersList().add(new Maven(String.format("--settings \"%s\\conf\\settings.xml\" -U test -Dmaven.repo.local=%s\\m2-temp",
+				System.getenv("MAVEN_HOME"),System.getenv("TEMP")), mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
+
 		project.setScm(new CopyResourceSCM("/helloWorldRoot"));
 
 		TestUtils.createDummyConfiguration();
