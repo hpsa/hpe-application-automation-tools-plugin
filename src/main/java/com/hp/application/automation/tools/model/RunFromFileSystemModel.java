@@ -5,6 +5,7 @@
 
 package com.hp.application.automation.tools.model;
 
+import com.hp.application.automation.tools.common.RuntimeIOException;
 import com.hp.application.automation.tools.mc.JobConfigurationProxy;
 import hudson.EnvVars;
 import hudson.FilePath;
@@ -696,14 +697,13 @@ public class RunFromFileSystemModel {
             String content = mtbxContent.replace("${WORKSPACE}", workspace.getRemote());
             FileUtils.writeStringToFile(new File(fullPath), content);
 
-            String relativePath = "${WORKSPACE}" + filePath;
-            return relativePath;
+            return "${WORKSPACE}" + filePath;
         } catch (IOException e) {
-            throw new RuntimeException("Failed to save MTBX file : " + e.getMessage());
+            throw new RuntimeIOException("Failed to save MTBX file : " + e.getMessage());
         }
     }
 
-    private boolean isMtbxContent(String fsTests) {
+    private static boolean isMtbxContent(String fsTests) {
         return fsTests.toLowerCase().contains("<mtbx>");
     }
 
