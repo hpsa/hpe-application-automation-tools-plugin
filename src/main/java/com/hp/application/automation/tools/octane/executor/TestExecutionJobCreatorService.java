@@ -8,6 +8,7 @@ import com.hp.application.automation.tools.run.RunFromFileBuilder;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
 import com.hp.octane.integrations.dto.executor.TestExecutionInfo;
 import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
+import com.hp.octane.integrations.dto.executor.impl.TestingToolType;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
 import com.hp.octane.integrations.dto.scm.SCMType;
 import hudson.model.*;
@@ -225,7 +226,7 @@ public class TestExecutionJobCreatorService {
     private static FreeStyleProject getDiscoveryJob(DiscoveryInfo discoveryInfo) {
 
         try {
-            String discoveryJobName = String.format("%s test discovery job - executorId %s", discoveryInfo.getTestingToolType().toString(), discoveryInfo.getExecutorId());
+            String discoveryJobName = buildDiscoveryJobName(discoveryInfo.getTestingToolType(), discoveryInfo.getExecutorId());
             //validate creation of job
             FreeStyleProject proj = (FreeStyleProject) Jenkins.getInstance().getItem(discoveryJobName);
             if (proj == null) {
@@ -265,6 +266,11 @@ public class TestExecutionJobCreatorService {
             logger.error("Failed to  create DiscoveryJob : " + e.getMessage());
             return null;
         }
+    }
+
+    private static String buildDiscoveryJobName(TestingToolType testingToolType, String executorId) {
+        String name = String.format("%s test discovery job - executorId %s", testingToolType.toString(), executorId);
+        return name;
     }
 
     private static void setBuildDiscarder(FreeStyleProject proj, int numBuildsToKeep) throws IOException {
@@ -314,11 +320,37 @@ public class TestExecutionJobCreatorService {
     }
 
     public static void deleteExecutor(String id) {
-        String jobName = EXECUTOR_ID_PARAMETER_NAME + " " + id;
-        deleteJobWithParameter(jobName, EXECUTOR_ID_PARAMETER_NAME, id);
+        String jobName = buildDiscoveryJobName(TestingToolType.UFT, id);
+        FreeStyleProject proj = (FreeStyleProject) Jenkins.getInstance().getItem(jobName);
+        if (proj != null) {
+            boolean waitBeforeDelete = false;
+
+            if (proj.isBuilding()) {
+                proj.getLastBuild().getExecutor().interrupt();
+                waitBeforeDelete = true;
+            } else if (proj.isInQueue()) {
+                Jenkins.getInstance().getQueue().cancel(proj);
+                waitBeforeDelete = true;
+            }
+
+            if (waitBeforeDelete) {
+                try {
+                    //we cancelled building/queue - wait before deleting the job
+                    Thread.sleep(10000);
+                } catch (InterruptedException e) {
+                    //do nothing
+                }
+            }
+
+            try {
+                proj.delete();
+            } catch (IOException | InterruptedException e) {
+                logger.error("Failed to delete job  " + proj.getName() + " : " + e.getMessage());
+            }
+        }
     }
 
-    public static void deleteJobWithParameter(String partOfName, String parameterName, String parameterValue) {
+    /*public static void deleteJobWithParameter(String partOfName, String parameterName, String parameterValue) {
         List<FreeStyleProject> jobs = Jenkins.getInstance().getAllItems(FreeStyleProject.class);
 
         for (FreeStyleProject job : jobs) {
@@ -347,11 +379,10 @@ public class TestExecutionJobCreatorService {
                             }
                         }
                     }
-
                 }
             }
         }
-    }
+    }*/
 
     private static void addAssignedNode(FreeStyleProject proj) {
         Computer[] computers = Jenkins.getInstance().getComputers();
