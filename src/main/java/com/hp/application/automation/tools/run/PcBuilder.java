@@ -646,7 +646,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         @Override
         public String getDisplayName() {
             
-            return "Execute HP tests using HP Performance Center";
+            return "Execute performance test using Performance Center";
         }
         
         public FormValidation doCheckPcServerName(@QueryParameter String value) {
