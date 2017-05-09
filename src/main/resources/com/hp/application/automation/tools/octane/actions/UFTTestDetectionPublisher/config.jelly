@@ -12,8 +12,12 @@
   -->
 
 
-<f:entry title="" field="workspaceName">
+<f:entry title="Octane workspace" field="workspaceName" description="Select the workspace to assign discovered tests to.">
           <f:select />
 </f:entry>
+
+<f:entry title="Octane scm repository id" field="scmResourceId"  description="Set scm repository id that will be assigned to discovered tests.">
+    <f:textbox />
+  </f:entry>
 
 </j:jelly>

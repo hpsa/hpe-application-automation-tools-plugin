@@ -16,41 +16,28 @@
 
 package com.hp.application.automation.tools.octane.actions.dto;
 
-import com.hp.mqm.client.model.ListItem;
+import java.util.Arrays;
+import java.util.List;
 
 /**
- * Created by kashbi on 25/09/2016.
+ * Class for (de)serialization of collection of list_node entities in Octane
  */
-@SuppressWarnings("squid:S109")
-public class TestingToolType {
-    private String type = "list_node";
-    private String logical_name;
-    private String name;
-    private Long id;
+@SuppressWarnings({"squid:S2699", "squid:S3658", "squid:S2259", "squid:S1872", "squid:S2925", "squid:S109"})
+public class ListNodeEntityCollection {
 
-    public static TestingToolType fromListItem(ListItem item) {
-        TestingToolType type = new TestingToolType();
-        type.logical_name = item.getLogicalName();
-        type.id = item.getId();
-        type.name = item.getName();
-        return type;
+    private List<ListNodeEntity> data;
+
+    public static ListNodeEntityCollection create(ListNodeEntity item) {
+        ListNodeEntityCollection coll = new ListNodeEntityCollection();
+        coll.setData(Arrays.asList(item));
+        return coll;
     }
 
-    public String getType() {
-        return type;
+    public List<ListNodeEntity> getData() {
+        return data;
     }
 
-
-    public String getName() {
-        return name;
-    }
-
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getLogical_name() {
-        return logical_name;
+    public void setData(List<ListNodeEntity> data) {
+        this.data = data;
     }
 }

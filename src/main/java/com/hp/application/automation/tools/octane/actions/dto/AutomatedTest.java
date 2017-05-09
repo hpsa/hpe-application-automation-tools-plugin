@@ -16,16 +16,43 @@
 
 package com.hp.application.automation.tools.octane.actions.dto;
 
+import com.hp.application.automation.tools.octane.actions.UftTestType;
+
+import javax.xml.bind.annotation.*;
+
 /**
  * Created by kashbi on 25/09/2016.
  */
+@XmlRootElement(name="test")
+@XmlAccessorType(XmlAccessType.FIELD)
 public class AutomatedTest {
+
+    @XmlTransient
+    private Long id;
+    @XmlTransient
     private String type = "test";
+    @XmlTransient
     private String subtype = "test_automated";
-    private TestingToolType testing_tool_type;
-    private TestFramework framework;
+    @XmlTransient
+    private ListNodeEntity testingToolType;
+    @XmlTransient
+    private ListNodeEntity framework;
+    @XmlTransient
+    private ListNodeEntityCollection testTypes;
+
+    //don't serialized to server, used to set testType property
+    @XmlAttribute
+    private UftTestType uftTestType;
+
+    @XmlAttribute
     private String name;
-    private String component;
+    @XmlAttribute
+    private String packageName;
+
+    private String description;
+
+    @XmlTransient
+    private BaseRefEntity scmRepository;
 
     public String getName() {
         return name;
@@ -51,28 +78,67 @@ public class AutomatedTest {
         this.subtype = subtype;
     }
 
-
-    public TestFramework getFramework() {
+    public ListNodeEntity getFramework() {
         return framework;
     }
 
-    public void setFramework(TestFramework framework) {
+    public void setFramework(ListNodeEntity framework) {
         this.framework = framework;
     }
 
-    public String getComponent() {
-        return component;
+    public String getPackage() {
+        return packageName;
     }
 
-    public void setComponent(String component) {
-        this.component = component;
+    public void setPackage(String packageName) {
+        this.packageName = packageName;
     }
 
-    public TestingToolType getTesting_tool_type() {
-        return testing_tool_type;
+    public ListNodeEntity getTestingToolType() {
+        return testingToolType;
     }
 
-    public void setTesting_tool_type(TestingToolType testing_tool_type) {
-        this.testing_tool_type = testing_tool_type;
+    public void setTestingToolType(ListNodeEntity testingToolType) {
+        this.testingToolType = testingToolType;
+    }
+
+    public BaseRefEntity getScmRepository() {
+        return scmRepository;
+    }
+
+    public void setScmRepository(BaseRefEntity scmRepository) {
+        this.scmRepository = scmRepository;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setUftTestType(UftTestType uftTestType) {
+        this.uftTestType = uftTestType;
+    }
+
+    public UftTestType getUftTestType() {
+        return uftTestType;
+    }
+
+    public ListNodeEntityCollection getTestTypes() {
+        return testTypes;
+    }
+
+    public void setTestTypes(ListNodeEntityCollection testTypes) {
+        this.testTypes = testTypes;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 }

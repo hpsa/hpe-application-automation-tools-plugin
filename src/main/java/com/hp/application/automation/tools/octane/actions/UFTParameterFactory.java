@@ -17,8 +17,6 @@
 package com.hp.application.automation.tools.octane.actions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.poi.poifs.filesystem.*;
-import org.apache.poi.util.StringUtil;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.input.SAXBuilder;
@@ -31,7 +29,7 @@ import java.io.StringReader;
 import java.util.*;
 
 /**
- * This class Converts UFT's Paramters info stored in Resource.mtr file into JSON string
+ * This class Converts UFT's Parameters info stored in Resource.mtr file into JSON string
  */
 public class UFTParameterFactory {
 
@@ -44,23 +42,7 @@ public class UFTParameterFactory {
         //String QTPFileParameterFileName = "resource.mtr";
         //InputStream is = paths.get(0).getParent().child("Action0").child(QTPFileParameterFileName).read();
 
-        POIFSFileSystem poiFS = new POIFSFileSystem(resourceMtrInputStream);
-        DirectoryNode root = poiFS.getRoot();
-        String xmlData = "";
-
-        for (Entry entry : root) {
-            String name = entry.getName();
-            if (name.equals("ComponentInfo")) {
-                if (entry instanceof DirectoryEntry) {
-                    System.out.println(entry);
-                } else if (entry instanceof DocumentEntry) {
-                    byte[] content = new byte[((DocumentEntry) entry).getSize()];
-                    poiFS.createDocumentInputStream("ComponentInfo").read(content);
-                    String fromUnicodeLE = StringUtil.getFromUnicodeLE(content);
-                    xmlData = fromUnicodeLE.substring(fromUnicodeLE.indexOf('<')).replaceAll("\u0000", "");
-                }
-            }
-        }
+        String xmlData = UFTTestUtil.decodeXmlContent(resourceMtrInputStream);
 
         try {
             SAXBuilder saxBuilder = new SAXBuilder(XMLReaders.NONVALIDATING, null, null);

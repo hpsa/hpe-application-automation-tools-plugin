@@ -1,5 +1,4 @@
 /*
-/*
  *     Copyright 2017 Hewlett-Packard Development Company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -17,43 +16,20 @@
 
 package com.hp.application.automation.tools.octane.actions.dto;
 
-import com.hp.mqm.client.model.ListItem;
-
 /**
- * Created by kashbi on 25/09/2016.
+ * Class for (de)serialization of list_node entities in Octane
  */
 @SuppressWarnings({"squid:S2699", "squid:S3658", "squid:S2259", "squid:S1872", "squid:S2925", "squid:S109"})
-public class TestFramework {
-    private String type = "list_node";
-    private String logical_name;
-    private String name;
-    private Long id;
+public class ListNodeEntity extends BaseRefEntity {
 
-    public static TestFramework fromListItem(ListItem item) {
-        TestFramework type = new TestFramework();
-        type.logical_name = item.getLogicalName();
-        type.id = item.getId();
-        type.name = item.getName();
-        return type;
+    public ListNodeEntity(){
+        setType("list_node");
     }
 
-    public String getType() {
-        return type;
+    public static ListNodeEntity create(Long id) {
+        ListNodeEntity entity = new ListNodeEntity();
+        entity.setId(id);
+        return entity;
     }
 
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getLogical_name() {
-        return logical_name;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public Long getId() {
-        return id;
-    }
 }

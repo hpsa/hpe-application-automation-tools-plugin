@@ -74,6 +74,10 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		runFromFileModel = new RunFromFileSystemModel(fsTests);
 	}
 
+	public void setFsTests(String fsTests){
+		runFromFileModel.setFsTests(fsTests);
+	}
+
 	/**
 	 * Instantiates a new Run from file builder.
 	 *
@@ -324,6 +328,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 	public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener)
 
 			throws InterruptedException, IOException {
+
+		runFromFileModel.setWorkspace(workspace);
 
 		// get the mc server settings
 		MCServerSettingsModel mcServerSettingsModel = getMCServerSettingsModel();
@@ -704,8 +710,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 				return FormValidation.error("Per Scenario Timeout must be a number");
 			}
 
-            return FormValidation.ok();
-        }
+			return FormValidation.ok();
+		}
 
-    }
+	}
 }

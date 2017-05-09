@@ -5,15 +5,20 @@
 
 package com.hp.application.automation.tools.model;
 
+import com.hp.application.automation.tools.common.RuntimeIOException;
 import com.hp.application.automation.tools.mc.JobConfigurationProxy;
 import hudson.EnvVars;
+import hudson.FilePath;
 import hudson.util.Secret;
 import hudson.util.VariableResolver;
 import net.minidev.json.JSONObject;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nullable;
+import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
@@ -23,16 +28,16 @@ import java.util.Properties;
  */
 public class RunFromFileSystemModel {
 
-	public static final String MOBILE_PROXY_SETTING_PASSWORD_FIELD = "MobileProxySetting_Password";
-	public static final String MOBILE_PROXY_SETTING_USER_NAME = "MobileProxySetting_UserName";
-	public static final String MOBILE_PROXY_SETTING_AUTHENTICATION = "MobileProxySetting_Authentication";
-	public static final String MOBILE_USE_SSL = "MobileUseSSL";
+    public static final String MOBILE_PROXY_SETTING_PASSWORD_FIELD = "MobileProxySetting_Password";
+    public static final String MOBILE_PROXY_SETTING_USER_NAME = "MobileProxySetting_UserName";
+    public static final String MOBILE_PROXY_SETTING_AUTHENTICATION = "MobileProxySetting_Authentication";
+    public static final String MOBILE_USE_SSL = "MobileUseSSL";
 
     public final static EnumDescription FAST_RUN_MODE = new EnumDescription("Fast", "Fast");
     public final static EnumDescription NORMAL_RUN_MODE = new EnumDescription("Normal", "Normal");
     public final static List<EnumDescription> fsUftRunModes = Arrays.asList(FAST_RUN_MODE, NORMAL_RUN_MODE);
 
-	private String fsTests;
+    private String fsTests;
     private String fsTimeout;
     private String fsUftRunMode;
     private String controllerPollingInterval;
@@ -54,6 +59,7 @@ public class RunFromFileSystemModel {
     private String fsJobId;
     private ProxySettings proxySettings;
     private boolean useSSL;
+    private FilePath workspace;
 
     /**
      * Instantiates a new Run from file system model.
@@ -592,7 +598,14 @@ public class RunFromFileSystemModel {
         Properties props = new Properties();
 
         if (!StringUtils.isEmpty(this.fsTests)) {
-            String expandedFsTests = envVars.expand(fsTests);
+            String expandedFsTests;
+            if (isMtbxContent(fsTests)) {
+                String path = createMtbxFileInWs(fsTests);
+                expandedFsTests = envVars.expand(path);
+            } else {
+                expandedFsTests = envVars.expand(fsTests);
+            }
+
             String[] testsArr = expandedFsTests.replaceAll("\r", "").split("\n");
 
             int i = 1;
@@ -675,6 +688,25 @@ public class RunFromFileSystemModel {
         return props;
     }
 
+    private String createMtbxFileInWs(String mtbxContent) {
+        try {
+
+            String filePath = File.separator + "test_suite.mtbx";
+            String fullPath = workspace.getRemote() + filePath;
+
+            String content = mtbxContent.replace("${WORKSPACE}", workspace.getRemote());
+            FileUtils.writeStringToFile(new File(fullPath), content);
+
+            return "${WORKSPACE}" + filePath;
+        } catch (IOException e) {
+            throw new RuntimeIOException("Failed to save MTBX file : " + e.getMessage());
+        }
+    }
+
+    private static boolean isMtbxContent(String fsTests) {
+        return fsTests.toLowerCase().contains("<mtbx>");
+    }
+
     /**
      * Get proxy details json object.
      *
@@ -691,4 +723,7 @@ public class RunFromFileSystemModel {
         return JobConfigurationProxy.getInstance().getJobById(mcUrl, fsUserName, fsPassword.getPlainText(), proxyAddress, proxyUserName, proxyPassword, fsJobId);
     }
 
+    public void setWorkspace(FilePath workspace) {
+        this.workspace = workspace;
+    }
 }

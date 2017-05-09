@@ -128,10 +128,10 @@ public class JUnitExtension extends MqmTestsExtension {
 	}
 
 	private boolean shallStripPackageAndClass(ResultFields resultFields) {
-		if (resultFields == null) {
+		/*if (resultFields == null) {
 			return false;
-		}
-		return resultFields.equals(new ResultFields("UFT", "UFT", null));
+		}*/
+		return false; //resultFields.equals(new ResultFields("UFT", "UFT", null));
 	}
 
 	private boolean isLoadRunnerProject(Run build) throws IOException, InterruptedException {
