@@ -29,7 +29,7 @@ import java.io.StringReader;
 import java.util.*;
 
 /**
- * This class Converts UFT's Paramters info stored in Resource.mtr file into JSON string
+ * This class Converts UFT's Parameters info stored in Resource.mtr file into JSON string
  */
 public class UFTParameterFactory {
 

@@ -57,10 +57,6 @@ public class UFTTestDetectionResult {
         return updatedTests;
     }
 
-    public void setUpdatedTests(List<AutomatedTest> updatedTests) {
-        this.updatedTests = updatedTests;
-    }
-
     public String getScmResourceId() {
         return scmResourceId;
     }

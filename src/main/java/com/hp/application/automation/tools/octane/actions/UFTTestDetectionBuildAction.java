@@ -16,15 +16,15 @@
 
 package com.hp.application.automation.tools.octane.actions;
 
-import com.hp.application.automation.tools.octane.actions.dto.AutomatedTest;
 import com.hp.application.automation.tools.octane.executor.UFTTestDetectionResult;
+import com.hp.application.automation.tools.octane.executor.UFTTestDetectionService;
 import hudson.model.AbstractBuild;
 import hudson.model.Action;
 import hudson.model.Run;
 
-import java.util.List;
-
-
+/**
+ * Class responsible to show report of  {@link UFTTestDetectionService}
+ */
 public class UFTTestDetectionBuildAction implements Action {
     private AbstractBuild<?, ?> build;
 
@@ -60,20 +60,31 @@ public class UFTTestDetectionBuildAction implements Action {
         return results;
     }
 
+    /**
+     * used by ~\src\main\resources\com\hp\application\automation\tools\octane\actions\UFTTestDetectionBuildAction\index.jelly
+     *
+     * @return
+     */
     public boolean getHasNewTests() {
         return results.getNewTests().size() > 0;
     }
 
+    /**
+     * used by ~\src\main\resources\com\hp\application\automation\tools\octane\actions\UFTTestDetectionBuildAction\index.jelly
+     *
+     * @return
+     */
     public boolean getHasDeletedTests() {
         return results.getDeletedTests().size() > 0;
     }
 
+    /**
+     * used by ~\src\main\resources\com\hp\application\automation\tools\octane\actions\UFTTestDetectionBuildAction\index.jelly
+     *
+     * @return
+     */
     public boolean getHasUpdatedTests() {
         return results.getUpdatedTests().size() > 0;
-    }
-
-    public List<AutomatedTest> getNewTests() {
-        return results.getNewTests();
     }
 
     public void setResults(UFTTestDetectionResult results) {

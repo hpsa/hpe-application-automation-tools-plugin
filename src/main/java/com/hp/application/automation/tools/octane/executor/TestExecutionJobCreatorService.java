@@ -1,3 +1,19 @@
+/*
+ *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Licensed under the Apache License, Version 2.0 (the "License");
+ *     you may not use this file except in compliance with the License.
+ *     You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *     Unless required by applicable law or agreed to in writing, software
+ *     distributed under the License is distributed on an "AS IS" BASIS,
+ *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *     See the License for the specific language governing permissions and
+ *     limitations under the License.
+ *
+ */
+
 package com.hp.application.automation.tools.octane.executor;
 
 import antlr.ANTLRException;
@@ -40,7 +56,6 @@ import java.util.*;
 
 /**
  * This service is responsible to create jobs (discovery and execution) for execution process.
- * Created by berkovir on 20/03/2017.
  */
 public class TestExecutionJobCreatorService {
 
@@ -50,6 +65,11 @@ public class TestExecutionJobCreatorService {
     public static final String SUITE_ID_PARAMETER_NAME = "suiteId";
     public static final String SUITE_RUN_ID_PARAMETER_NAME = "suiteRunId";
 
+    /**
+     * Create (if needed) and run test execution
+     *
+     * @param suiteExecutionInfo
+     */
     public static void runTestSuiteExecution(TestSuiteExecutionInfo suiteExecutionInfo) {
 
         /*
@@ -198,6 +218,11 @@ public class TestExecutionJobCreatorService {
 
     }
 
+    /**
+     * Create (if needed) and run test discovery
+     *
+     * @param discoveryInfo
+     */
     public static void runTestDiscovery(DiscoveryInfo discoveryInfo) {
 
         /*
@@ -319,6 +344,11 @@ public class TestExecutionJobCreatorService {
 
     }
 
+    /**
+     * Delete discovery job that related to specific executor in Octane
+     *
+     * @param id
+     */
     public static void deleteExecutor(String id) {
         String jobName = buildDiscoveryJobName(TestingToolType.UFT, id);
         FreeStyleProject proj = (FreeStyleProject) Jenkins.getInstance().getItem(jobName);
@@ -335,7 +365,7 @@ public class TestExecutionJobCreatorService {
 
             if (waitBeforeDelete) {
                 try {
-                    //we cancelled building/queue - wait before deleting the job
+                    //we cancelled building/queue - wait before deleting the job, so Jenkins will be able to complete some IO actions
                     Thread.sleep(10000);
                 } catch (InterruptedException e) {
                     //do nothing
@@ -349,40 +379,6 @@ public class TestExecutionJobCreatorService {
             }
         }
     }
-
-    /*public static void deleteJobWithParameter(String partOfName, String parameterName, String parameterValue) {
-        List<FreeStyleProject> jobs = Jenkins.getInstance().getAllItems(FreeStyleProject.class);
-
-        for (FreeStyleProject job : jobs) {
-            if (job.getName().contains(partOfName)) {
-                ParametersDefinitionProperty parameters = job.getProperty(ParametersDefinitionProperty.class);
-                if (parameters != null) {
-                    ParameterDefinition pd = parameters.getParameterDefinition(parameterName);
-                    if (pd != null && pd.getDefaultParameterValue() != null) {
-                        Object defaultValue = pd.getDefaultParameterValue().getValue();
-                        if (parameterValue.equals(defaultValue)) {
-                            try {
-                                job.disable();
-                                if (job.isBuilding() && job.getLastBuild().isBuilding()) {
-                                    job.getLastBuild().getExecutor().interrupt();
-                                } else if (job.isInQueue()) {
-                                    Jenkins.getInstance().getQueue().cancel(job);
-                                }
-
-                            } catch (IOException e) {
-                                logger.error("Failed to delete job  " + job.getName() + " : " + e.getMessage());
-                            }
-                            try {
-                                job.delete();
-                            } catch (IOException | InterruptedException e) {
-                                logger.error("Failed to delete job  " + job.getName() + " : " + e.getMessage());
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }*/
 
     private static void addAssignedNode(FreeStyleProject proj) {
         Computer[] computers = Jenkins.getInstance().getComputers();

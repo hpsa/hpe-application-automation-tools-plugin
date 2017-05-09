@@ -1,3 +1,19 @@
+/*
+ *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Licensed under the Apache License, Version 2.0 (the "License");
+ *     you may not use this file except in compliance with the License.
+ *     You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *     Unless required by applicable law or agreed to in writing, software
+ *     distributed under the License is distributed on an "AS IS" BASIS,
+ *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *     See the License for the specific language governing permissions and
+ *     limitations under the License.
+ *
+ */
+
 package com.hp.application.automation.tools.octane.executor;
 
 import com.cloudbees.plugins.credentials.CredentialsProvider;
@@ -25,12 +41,17 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * Created by shitritn on 4/23/2017.
+ * Utility for handling of scm repositories
  */
 public class ExecutorConnTestService {
 
     private static final Logger logger = LogManager.getLogger(ExecutorConnTestService.class);
 
+    /**
+     * Validate that scm repository is valid
+     * @param testConnectivityInfo
+     * @return
+     */
     public static boolean checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {
         if (testConnectivityInfo.getScmRepository() != null &&
                 StringUtils.isNotEmpty(testConnectivityInfo.getScmRepository().getUrl()) &&
@@ -57,15 +78,21 @@ public class ExecutorConnTestService {
         return false;
     }
 
-    public static CredentialsInfo upsertRepositoryCredentials(final CredentialsInfo repositoryCredentialsInfo) {
+    /**
+     * Insert of update(if already exist) of credentials in Jenkins.
+     * If credentialsInfo containscredentialsId - we update existing credentials with new user/password, otherwise - create new credentials
+     * @param credentialsInfo
+     * @return created/updated credentials with filled credentials id
+     */
+    public static CredentialsInfo upsertRepositoryCredentials(final CredentialsInfo credentialsInfo) {
 
-        if (StringUtils.isEmpty(repositoryCredentialsInfo.getCredentialId())) {
-            if (StringUtils.isNotEmpty(repositoryCredentialsInfo.getUsername()) && repositoryCredentialsInfo.getPassword() != null) {
-                BaseStandardCredentials c = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, null, null, repositoryCredentialsInfo.getUsername(), repositoryCredentialsInfo.getPassword());
+        if (StringUtils.isEmpty(credentialsInfo.getCredentialId())) {
+            if (StringUtils.isNotEmpty(credentialsInfo.getUsername()) && credentialsInfo.getPassword() != null) {
+                BaseStandardCredentials c = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, null, null, credentialsInfo.getUsername(), credentialsInfo.getPassword());
                 CredentialsStore store = new SystemCredentialsProvider.StoreImpl();
                 try {
                     store.addCredentials(Domain.global(), c);
-                    repositoryCredentialsInfo.setCredentialId(c.getId());
+                    credentialsInfo.setCredentialId(c.getId());
                 } catch (IOException e) {
                     logger.error("Failed to add credentials " + e.getMessage());
                 }
@@ -73,9 +100,9 @@ public class ExecutorConnTestService {
         } else {
             List<BaseStandardCredentials> list = CredentialsProvider.lookupCredentials(BaseStandardCredentials.class, (Item) null, null);
             for (BaseStandardCredentials cred : list) {
-                if (cred.getId().equals(repositoryCredentialsInfo.getCredentialId())) {
-                    BaseStandardCredentials newCred = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, repositoryCredentialsInfo.getCredentialId(),
-                            null, repositoryCredentialsInfo.getUsername(), repositoryCredentialsInfo.getPassword());
+                if (cred.getId().equals(credentialsInfo.getCredentialId())) {
+                    BaseStandardCredentials newCred = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, credentialsInfo.getCredentialId(),
+                            null, credentialsInfo.getUsername(), credentialsInfo.getPassword());
                     CredentialsStore store = new SystemCredentialsProvider.StoreImpl();
                     try {
                         store.updateCredentials(Domain.global(), cred, newCred);
@@ -86,6 +113,6 @@ public class ExecutorConnTestService {
             }
         }
 
-        return repositoryCredentialsInfo;
+        return credentialsInfo;
     }
 }

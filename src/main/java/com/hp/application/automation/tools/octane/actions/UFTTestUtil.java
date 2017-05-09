@@ -1,3 +1,19 @@
+/*
+ *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Licensed under the Apache License, Version 2.0 (the "License");
+ *     you may not use this file except in compliance with the License.
+ *     You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *     Unless required by applicable law or agreed to in writing, software
+ *     distributed under the License is distributed on an "AS IS" BASIS,
+ *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *     See the License for the specific language governing permissions and
+ *     limitations under the License.
+ *
+ */
+
 package com.hp.application.automation.tools.octane.actions;
 
 import hudson.FilePath;
@@ -14,10 +30,16 @@ import java.io.InputStream;
 import java.io.StringReader;
 
 /**
- * Created by berkovir on 19/04/2017.
+ * Utility for extracting information from UFT test located on FS
  */
 public class UFTTestUtil {
 
+    /**
+     * Extract test description from UFT GUI test.
+     * Note : UFT API test doesn't contain description
+     * @param dirPath path of UFT test
+     * @return test description
+     */
     public static String getTestDescription(FilePath dirPath) {
         String desc = null;
         try {

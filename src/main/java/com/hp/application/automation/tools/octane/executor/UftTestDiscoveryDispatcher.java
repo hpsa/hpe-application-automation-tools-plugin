@@ -1,3 +1,19 @@
+/*
+ *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Licensed under the Apache License, Version 2.0 (the "License");
+ *     you may not use this file except in compliance with the License.
+ *     You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *     Unless required by applicable law or agreed to in writing, software
+ *     distributed under the License is distributed on an "AS IS" BASIS,
+ *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *     See the License for the specific language governing permissions and
+ *     limitations under the License.
+ *
+ */
+
 package com.hp.application.automation.tools.octane.executor;
 
 import com.google.inject.Inject;
@@ -6,7 +22,6 @@ import com.hp.application.automation.tools.octane.actions.UftTestType;
 import com.hp.application.automation.tools.octane.actions.dto.*;
 import com.hp.application.automation.tools.octane.client.JenkinsMqmRestClientFactory;
 import com.hp.application.automation.tools.octane.client.JenkinsMqmRestClientFactoryImpl;
-import com.hp.application.automation.tools.octane.client.RetryModel;
 import com.hp.application.automation.tools.octane.configuration.ConfigurationService;
 import com.hp.application.automation.tools.octane.configuration.ServerConfiguration;
 import com.hp.application.automation.tools.octane.tests.AbstractSafeLoggingAsyncPeriodWork;
@@ -39,7 +54,11 @@ import java.util.*;
 
 
 /**
- * Created by berkovir on 24/04/2017.
+ * This class is responsible to send discovered uft tests to Octane.
+ * Class uses file-based queue so if octane or jenkins will be down before sending,
+ * after connection is up - this dispatcher will send tests to Octane.
+ * <p>
+ * Actually list of discovered tests are persisted in job run directory. Queue contains only reference to that job run.
  */
 @Extension
 public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
@@ -374,6 +393,12 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
         return false;
     }
 
+    /**
+     * Queue that current run contains discovered tests
+     *
+     * @param projectName
+     * @param buildNumber
+     */
     public void enqueueResult(String projectName, int buildNumber) {
         queue.add(projectName, buildNumber);
     }
