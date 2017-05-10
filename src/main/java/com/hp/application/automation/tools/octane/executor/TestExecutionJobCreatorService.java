@@ -373,6 +373,7 @@ public class TestExecutionJobCreatorService {
             }
 
             try {
+                logger.warn(String.format("Job %s is going to be deleted since matching executor in Octane was deleted", proj.getName()));
                 proj.delete();
             } catch (IOException | InterruptedException e) {
                 logger.error("Failed to delete job  " + proj.getName() + " : " + e.getMessage());
