@@ -55,8 +55,8 @@ public class ExecutorConnectivityService {
     /**
      * Validate that scm repository is valid
      *
-     * @param testConnectivityInfo
-     * @return
+     * @param testConnectivityInfo contains values to check
+     * @return OctaneResponse return status code and error to show for client
      */
     public static OctaneResponse checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {
         OctaneResponse result = DTOFactory.getInstance().newDTO(OctaneResponse.class);
@@ -99,8 +99,8 @@ public class ExecutorConnectivityService {
      * Insert of update(if already exist) of credentials in Jenkins.
      * If credentialsInfo contains credentialsId - we update existing credentials with new user/password, otherwise - create new credentials
      *
-     * @param credentialsInfo
-     * @return created/updated credentials with filled credentials id
+     * @param credentialsInfo contains values to insert / update - exist credentials will be updated or recreate if deleted in jenkins
+     * @return OctaneResponse created/updated credentials with filled credentials id as body
      */
     public static OctaneResponse upsertRepositoryCredentials(final CredentialsInfo credentialsInfo) {
 
