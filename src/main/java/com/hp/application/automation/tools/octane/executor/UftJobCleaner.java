@@ -23,6 +23,7 @@ import hudson.model.ParametersDefinitionProperty;
 import hudson.model.PeriodicWork;
 import hudson.model.TaskListener;
 import jenkins.model.Jenkins;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -48,7 +49,7 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
 
     @Override
     public long getRecurrencePeriod() {
-        return DAY;
+        return HOUR;
     }
 
     @Override
@@ -57,7 +58,17 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
     }
 
     private long getOutdateThreshold() {
-        return 7;
+        int DEFAULT_OUTDATE_THRESHOLD = 7;
+        int threshold = DEFAULT_OUTDATE_THRESHOLD;
+        String paramValue = System.getProperty("octane.plugin.UftJobCleaner.outdateThreshold");
+        if (StringUtils.isNotEmpty(paramValue)) {
+            try {
+                threshold = Integer.parseInt(paramValue);
+            } catch (NumberFormatException e) {
+                threshold = DEFAULT_OUTDATE_THRESHOLD;
+            }
+        }
+        return threshold;
     }
 
     @Override
