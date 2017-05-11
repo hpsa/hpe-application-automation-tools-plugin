@@ -5,21 +5,23 @@
 
 package com.hp.application.automation.tools.model;
 
-import com.hp.application.automation.tools.common.RuntimeIOException;
 import com.hp.application.automation.tools.mc.JobConfigurationProxy;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.util.Secret;
 import hudson.util.VariableResolver;
 import net.minidev.json.JSONObject;
-import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.text.Format;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
@@ -690,16 +692,23 @@ public class RunFromFileSystemModel {
 
     private String createMtbxFileInWs(String mtbxContent) {
         try {
+            Date now = new Date();
+            Format formatter = new SimpleDateFormat("ddMMyyyyHHmmssSSS");
+            String time = formatter.format(now);
 
-            String filePath = File.separator + "test_suite.mtbx";
-            String fullPath = workspace.getRemote() + filePath;
+            String fileName = "test_suite_" + time + ".mtbx";
 
-            String content = mtbxContent.replace("${WORKSPACE}", workspace.getRemote());
-            FileUtils.writeStringToFile(new File(fullPath), content);
+            FilePath remoteFile = workspace.child(fileName);
 
-            return "${WORKSPACE}" + filePath;
-        } catch (IOException e) {
-            throw new RuntimeIOException("Failed to save MTBX file : " + e.getMessage());
+            String mtbxContentUpdated = mtbxContent.replace("${WORKSPACE}", workspace.getRemote());
+            InputStream in = IOUtils.toInputStream(mtbxContentUpdated, "UTF-8");
+            remoteFile.copyFrom(in);
+
+            String filePath = remoteFile.getRemote();
+            return filePath;
+
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException("Failed to save MTBX file : " + e.getMessage());
         }
     }
 
