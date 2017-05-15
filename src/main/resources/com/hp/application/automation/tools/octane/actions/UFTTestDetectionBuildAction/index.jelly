@@ -58,9 +58,15 @@
                 <br/>
                 <br/>
             </j:if>
+            <j:if test="${it.hasNewScmResources}">
+                            New data tables : ${it.results.newScmResourceFiles.size()}
+                            <br/>
+                            <br/>
+                        </j:if>
          </p>
        <p>
        <table class = "myTable" frame="vsides above bottom" >
+        <caption>Tests changes</caption>
         <thead>
 
          <tr>
@@ -96,6 +102,30 @@
           </tbody>
        </table>
        </p>
+
+       <br/><br/>
+       <p>
+              <table class = "myTable" frame="vsides above bottom" >
+               <caption>Data tables changes</caption>
+               <thead>
+                <tr>
+                    <th>Path</th>
+                    <th>Status</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                  <j:forEach var="s" items="${it.results.newScmResourceFiles}">
+                      <tr>
+                          <td >${s.relativePath}</td>
+                          <td >new</td>
+                      </tr>
+                  </j:forEach>
+
+
+                 </tbody>
+              </table>
+              </p>
     </l:main-panel>
 
   </l:layout>

@@ -17,6 +17,7 @@
 package com.hp.application.automation.tools.octane.executor;
 
 import com.google.inject.Inject;
+import com.hp.application.automation.tools.common.HttpStatus;
 import com.hp.application.automation.tools.octane.ResultQueue;
 import com.hp.application.automation.tools.octane.actions.UftTestType;
 import com.hp.application.automation.tools.octane.actions.dto.*;
@@ -30,9 +31,9 @@ import com.hp.mqm.client.exception.LoginException;
 import com.hp.mqm.client.exception.RequestErrorException;
 import com.hp.mqm.client.exception.RequestException;
 import com.hp.mqm.client.exception.SharedSpaceNotExistException;
+import com.hp.mqm.client.model.Entity;
 import com.hp.mqm.client.model.ListItem;
 import com.hp.mqm.client.model.PagedList;
-import com.hp.mqm.client.model.Test;
 import hudson.Extension;
 import hudson.model.AbstractBuild;
 import hudson.model.Job;
@@ -64,7 +65,10 @@ import java.util.*;
 public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 
     private static Logger logger = LogManager.getLogger(UftTestDiscoveryDispatcher.class);
-    private final static int RESPONSE_STATUS_CONFLICT = 409;
+    private final static String TESTS_COLLECTION_NAME = "tests";
+    private final static String SCM_RESOURCE_COLLECTION_NAME = "scm_resources";
+
+    private final static int BULK_SIZE = 100;
 
     private UftTestDiscoveryQueue queue;
     private JenkinsMqmRestClientFactory clientFactory;
@@ -113,7 +117,7 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
             }
 
             logger.warn("Persistence [" + item.getProjectName() + "#" + item.getBuildNumber() + "]");
-            dispatchDetectionResults(item, client, serverConfiguration, result);
+            dispatchDetectionResults(item, client, result);
             if (result.isInitialDetection()) {
                 UFTTestDetectionService.createInitialDetectionFile(((AbstractBuild) build).getWorkspace());
             }
@@ -121,12 +125,17 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
         }
     }
 
-    private void dispatchDetectionResults(ResultQueue.QueueItem item, MqmRestClient client, ServerConfiguration serverConfiguration, UFTTestDetectionResult result) throws UnsupportedEncodingException {
-        String serverURL = getServerURL(result.getWorkspaceId(), serverConfiguration.sharedSpace, serverConfiguration.location);
+    private void dispatchDetectionResults(ResultQueue.QueueItem item, MqmRestClient client, UFTTestDetectionResult result) throws UnsupportedEncodingException {
         //post new tests
         if (!result.getNewTests().isEmpty()) {
-            boolean posted = postTests(client, serverURL, result.getNewTests(), result.getWorkspaceId(), result.getScmResourceId());
+            boolean posted = postTests(client, result.getNewTests(), result.getWorkspaceId(), result.getScmResourceId());
             logger.warn("Persistence [" + item.getProjectName() + "#" + item.getBuildNumber() + "] : " + result.getNewTests().size() + "  new tests posted successfully = " + posted);
+        }
+
+        //post scm resources
+        if (!result.getNewScmResourceFiles().isEmpty()) {
+            boolean posted = postScmResources(client, result.getNewScmResourceFiles(), result.getWorkspaceId(), result.getScmResourceId());
+            logger.warn("Persistence [" + item.getProjectName() + "#" + item.getBuildNumber() + "] : " + result.getNewScmResourceFiles().size() + "  new scmResources posted successfully = " + posted);
         }
 
         //post updated
@@ -136,7 +145,7 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
         }
     }
 
-    private static boolean postTests(MqmRestClient client, String serverURL, List<AutomatedTest> tests, String workspaceId, String scmResourceId) throws UnsupportedEncodingException {
+    private static boolean postTests(MqmRestClient client, List<AutomatedTest> tests, String workspaceId, String scmResourceId) throws UnsupportedEncodingException {
 
         if (!tests.isEmpty()) {
             try {
@@ -146,17 +155,15 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
                 return false;
             }
 
-            int BULK_SIZE = 100;
             for (int i = 0; i < tests.size(); i += BULK_SIZE)
                 try {
                     AutomatedTests data = AutomatedTests.createWithTests(tests.subList(i, Math.min(i + BULK_SIZE, tests.size())));
                     String uftTestJson = convertToJsonString(data);
 
-                    client.postTest(uftTestJson, null, serverURL);
-                    //JSONObject testObject = (JSONObject) jsonObject.getJSONArray("data").get(0);
+                    client.postEntities(Long.parseLong(workspaceId), TESTS_COLLECTION_NAME, uftTestJson);
 
                 } catch (RequestErrorException e) {
-                    if (e.getStatusCode() != RESPONSE_STATUS_CONFLICT) {
+                    if (e.getStatusCode() != HttpStatus.CONFLICT.getCode()) {
                         logger.error("Failed to postTests to Octane : " + e.getMessage());
                         return false;
                     }
@@ -167,14 +174,38 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
         return true;
     }
 
-    private static String convertToJsonString(AutomatedTests data) {
-        JsonConfig config = getJsonConfig();
-        return JSONObject.fromObject(data, config).toString();
+    private static boolean postScmResources(MqmRestClient client, List<ScmResourceFile> resources, String workspaceId, String scmResourceId) throws UnsupportedEncodingException {
+
+        if (!resources.isEmpty()) {
+            try {
+                completeScmResourceProperties(client, Long.parseLong(workspaceId), resources, scmResourceId);
+            } catch (RequestErrorException e) {
+                logger.error("Failed to completeTestProperties : " + e.getMessage());
+                return false;
+            }
+
+            for (int i = 0; i < resources.size(); i += BULK_SIZE)
+                try {
+                    ScmResources data = ScmResources.createWithItems(resources.subList(i, Math.min(i + BULK_SIZE, resources.size())));
+                    String uftTestJson = convertToJsonString(data);
+
+                    client.postEntities(Long.parseLong(workspaceId), SCM_RESOURCE_COLLECTION_NAME, uftTestJson);
+
+                } catch (RequestErrorException e) {
+                    if (e.getStatusCode() != HttpStatus.CONFLICT.getCode()) {
+                        logger.error("Failed to postTests to Octane : " + e.getMessage());
+                        return false;
+                    }
+
+                    //else :  the test with the same hash code , so do nothing
+                }
+        }
+        return true;
     }
 
-    private static String convertToJsonString(AutomatedTest test) {
+    private static String convertToJsonString(Object data) {
         JsonConfig config = getJsonConfig();
-        return JSONObject.fromObject(test, config).toString();
+        return JSONObject.fromObject(data, config).toString();
     }
 
     private static JsonConfig getJsonConfig() {
@@ -194,6 +225,25 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
                         break;
                     case "testTypes":
                         result = "test_type";
+                        break;
+                    default:
+                        break;
+                }
+                return result;
+            }
+        });
+
+        config.registerJsonPropertyNameProcessor(ScmResourceFile.class, new PropertyNameProcessor() {
+
+            @Override
+            public String processPropertyName(Class className, String fieldName) {
+                String result = fieldName;
+                switch (fieldName) {
+                    case "relativePath":
+                        result = "relative_path";
+                        break;
+                    case "scmRepository":
+                        result = "scm_repository";
                         break;
                     default:
                         break;
@@ -248,15 +298,15 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
                 Map<String, String> queryFields = new HashMap<>();
                 queryFields.put("name", test.getName());
                 queryFields.put("package", test.getPackage());
-                PagedList<Test> foundTests = client.getTests(workspaceIdAsLong, queryFields, Arrays.asList("id, description"));
+                PagedList<Entity> foundTests = client.getEntities(workspaceIdAsLong, TESTS_COLLECTION_NAME, queryFields, Arrays.asList("id, description"));
                 if (foundTests.getItems().size() == 1) {
-                    Test foundTest = foundTests.getItems().get(0);
+                    Entity foundTest = foundTests.getItems().get(0);
                     AutomatedTest testForUpdate = new AutomatedTest();
                     testForUpdate.setSubtype(null);
                     testForUpdate.setDescription(test.getDescription());
                     testForUpdate.setId(foundTest.getId());
                     String json = convertToJsonString(testForUpdate);
-                    client.updateTest(Long.parseLong(workspaceId), foundTests.getItems().get(0).getId(), json);
+                    client.updateEntity(Long.parseLong(workspaceId), TESTS_COLLECTION_NAME, foundTests.getItems().get(0).getId(), json);
                 }
             }
             return true;
@@ -285,6 +335,14 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
             test.setTestTypes(ListNodeEntityCollection.create(testType));
         }
     }
+
+    private static void completeScmResourceProperties(MqmRestClient client, long l, List<ScmResourceFile> resources, String scmResourceId) {
+        BaseRefEntity scmRepository = StringUtils.isEmpty(scmResourceId) ? null : BaseRefEntity.create("scm_repository", Long.valueOf(scmResourceId));
+        for (ScmResourceFile resource : resources) {
+            resource.setScmRepository(scmRepository);
+        }
+    }
+
 
     private static ListNodeEntity getUftTestingTool(MqmRestClient client, long workspaceId) {
         PagedList<ListItem> testingTools = client.queryListItems("list_node.testing_tool_type", null, workspaceId, 0, 100);

@@ -17,12 +17,15 @@
 package com.hp.application.automation.tools.octane.executor;
 
 import com.hp.application.automation.tools.octane.actions.dto.AutomatedTest;
+import com.hp.application.automation.tools.octane.actions.dto.ScmResourceFile;
 
 import javax.xml.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 
-
+/**
+ * This file represents result of UFT detection files (tests and data tables)
+ */
 @XmlRootElement(name="detectionResult")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class UFTTestDetectionResult {
@@ -32,9 +35,26 @@ public class UFTTestDetectionResult {
     @XmlElement(name="test")
     private List<AutomatedTest> newTests = new ArrayList<>();
 
+    @XmlElementWrapper(name="deletedTests")
+    @XmlElement(name="test")
     private List<AutomatedTest> deletedTests = new ArrayList<>();
 
+    @XmlElementWrapper(name="updatedTests")
+    @XmlElement(name="test")
     private List<AutomatedTest> updatedTests = new ArrayList<>();
+
+    @XmlElementWrapper(name="newScmResources")
+    @XmlElement(name="scmResource")
+    private List<ScmResourceFile> newScmResourceFiles = new ArrayList<>();
+
+    @XmlElementWrapper(name="deletedScmResources")
+    @XmlElement(name="scmResource")
+    private List<ScmResourceFile> deletedScmResourceFiles = new ArrayList<>();
+
+    @XmlElementWrapper(name="updatedScmResources")
+    @XmlElement(name="scmResource")
+    private List<ScmResourceFile> updatedScmResourceFiles = new ArrayList<>();
+
 
     @XmlAttribute
     private String scmResourceId;
@@ -84,4 +104,17 @@ public class UFTTestDetectionResult {
     public boolean hasChanges(){
         return !getNewTests().isEmpty() || !getUpdatedTests().isEmpty();
     }
+
+    public List<ScmResourceFile> getNewScmResourceFiles() {
+        return newScmResourceFiles;
+    }
+
+    public List<ScmResourceFile> getDeletedScmResourceFiles() {
+        return deletedScmResourceFiles;
+    }
+
+    public List<ScmResourceFile> getUpdatedScmResourceFiles() {
+        return updatedScmResourceFiles;
+    }
+
 }
