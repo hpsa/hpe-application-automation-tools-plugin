@@ -13,16 +13,8 @@ import com.hp.application.automation.tools.model.ProxySettings;
 import com.hp.application.automation.tools.model.RunFromFileSystemModel;
 import com.hp.application.automation.tools.run.AlmRunTypes.RunType;
 import com.hp.application.automation.tools.settings.MCServerSettingsBuilder;
-import hudson.EnvVars;
-import hudson.Extension;
-import hudson.FilePath;
-import hudson.Launcher;
-import hudson.Util;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.Result;
-import hudson.model.Run;
-import hudson.model.TaskListener;
+import hudson.*;
+import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
@@ -329,8 +321,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
 			throws InterruptedException, IOException {
 
-		runFromFileModel.setWorkspace(workspace);
-
 		// get the mc server settings
 		MCServerSettingsModel mcServerSettingsModel = getMCServerSettingsModel();
 
@@ -409,6 +399,16 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		mergedProperties.put("runType", RunType.FileSystem.toString());
 		mergedProperties.put("resultsFilename", ResultFilename);
 
+		//handling mtbx file content :
+		// If we have mtbx content - it is located in Test1 property and there is no other test properties (like Test2 etc)
+		// We save mtbx content in workspace and replace content of Test1 by reference to saved file
+		String firstTestKey = "Test1";
+		String firstTestContent = mergedProperties.getProperty(firstTestKey, "");
+		if (RunFromFileSystemModel.isMtbxContent(firstTestContent)) {
+			String mtbxFilePath = createMtbxFileInWs(workspace, firstTestContent);
+			mergedProperties.setProperty(firstTestKey, mtbxFilePath);
+		}
+
 		// get properties serialized into a stream
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		try {
@@ -480,6 +480,28 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 				listener.error("Failed running HpToolsAborter " + e1);
 			}
 			out.println("Operation Was aborted by user.");
+		}
+	}
+
+	private String createMtbxFileInWs(FilePath workspace, String mtbxContent) {
+		try {
+			Date now = new Date();
+			Format formatter = new SimpleDateFormat("ddMMyyyyHHmmssSSS");
+			String time = formatter.format(now);
+
+			String fileName = "test_suite_" + time + ".mtbx";
+
+			FilePath remoteFile = workspace.child(fileName);
+
+			String mtbxContentUpdated = mtbxContent.replace("${WORKSPACE}", workspace.getRemote());
+			InputStream in = IOUtils.toInputStream(mtbxContentUpdated, "UTF-8");
+			remoteFile.copyFrom(in);
+
+			String filePath = remoteFile.getRemote();
+			return filePath;
+
+		} catch (IOException | InterruptedException e) {
+			throw new RuntimeException("Failed to save MTBX file : " + e.getMessage());
 		}
 	}
 
