@@ -60,7 +60,7 @@ public class UFTTestDetectionService {
 
         try {
 
-            boolean initialDetection = !initialDetectionFileExist(build.getWorkspace());
+            boolean initialDetection = build.getId().equals("1") || !initialDetectionFileExist(build.getWorkspace());
             if (initialDetection) {
                 printToConsole(buildListener, "Executing initial detection");
                 result = doInitialDetection(build.getWorkspace());

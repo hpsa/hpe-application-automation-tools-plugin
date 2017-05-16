@@ -41,8 +41,13 @@ public class UFTTestUtil {
      * @return test description
      */
     public static String getTestDescription(FilePath dirPath) {
-        String desc = null;
+        String desc;
+
         try {
+            if(!dirPath.exists()){
+                return  null;
+            }
+
             FilePath tspTestFile = new FilePath(dirPath, "Test.tsp");
             InputStream is = new FileInputStream(tspTestFile.getRemote());
             String xmlContent = decodeXmlContent(is);
