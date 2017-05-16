@@ -158,6 +158,18 @@ public class TestExecutionJobCreatorService {
     private static void setScmRepository(SCMRepository scmRepository, String scmRepositoryCredentialsId, FreeStyleProject proj) {
         if (SCMType.GIT.equals(scmRepository.getType())) {
             try {
+                //if scm setting already exist - don't reset
+                if (proj.getScm() instanceof GitSCM) {
+                    GitSCM gitScm = (GitSCM) proj.getScm();
+                    List<UserRemoteConfig> existingRepos = gitScm.getUserRemoteConfigs();
+                    if (existingRepos.size() == 1) {
+                        UserRemoteConfig existingRepo = existingRepos.get(0);
+                        if (StringUtils.equalsIgnoreCase(existingRepo.getUrl(), scmRepository.getUrl()) &&
+                                StringUtils.equalsIgnoreCase(existingRepo.getCredentialsId(), scmRepositoryCredentialsId)) {
+                            return;
+                        }
+                    }
+                }
 
                 List<UserRemoteConfig> repoLists = Arrays.asList(new UserRemoteConfig(scmRepository.getUrl(), null, null, scmRepositoryCredentialsId));
                 GitSCM scm = new GitSCM(repoLists, Collections.singletonList(new BranchSpec("")), Boolean.valueOf(false), Collections.<SubmoduleConfig>emptyList(), null, null, null);
