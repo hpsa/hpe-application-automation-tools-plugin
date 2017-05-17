@@ -77,6 +77,7 @@
 	<f:entry title="PC Server" field="pcServerName">
 		<f:textbox name="pc.pcServerName" value="${instance.pcModel.pcServerName}" />
 	</f:entry>
+    <f:optionalBlock title="Use HTTPS Protocol" field="HTTPSProtocol" name="pc.HTTPSProtocol" checked="${instance.pcModel.HTTPSProtocol}" inline="true" />
 	<f:entry title="User name" field="almUserName">
 		<f:textbox name="pc.almUserName" value="${instance.pcModel.almUserName}" />
 	</f:entry>
@@ -94,6 +95,9 @@
 	</f:entry>
 	<f:entry title="Test Instance ID &#160;" field="testInstanceId">
 		<f:textbox name="pc.testInstanceId" value="${instance.pcModel.testInstanceId}" />
+	</f:entry>
+	<f:entry title="Local Proxy" field="proxyOutURL">
+		<f:textbox name="pc.proxyOutURL" value="${instance.pcModel.proxyOutURL}" />
 	</f:entry>
 	<f:block>
 		<br />
@@ -205,7 +209,7 @@
 		<br />
 	</f:block>
 	
-	<f:optionalBlock title="Use HTTPS Protocol" field="HTTPSProtocol" name="pc.HTTPSProtocol" checked="${instance.pcModel.HTTPSProtocol}" inline="true" />
+
     <f:block>
         <br />
     </f:block>

@@ -28,11 +28,12 @@ public class PcModel {
     private final boolean          addRunToTrendReport;
     private final String trendReportId;
     private final boolean HTTPSProtocol;
+    private final String proxyOutURL;
 
     @DataBoundConstructor
     public PcModel(String pcServerName, String almUserName, String almPassword, String almDomain, String almProject,
                    String testId, String testInstanceId, String timeslotDurationHours, String timeslotDurationMinutes,
-                   PostRunAction postRunAction, boolean vudsMode, String description, boolean addRunToTrendReport, String trendReportId, boolean HTTPSProtocol) {
+                   PostRunAction postRunAction, boolean vudsMode, String description, boolean addRunToTrendReport, String trendReportId, boolean HTTPSProtocol, String proxyOutURL) {
 
         this.pcServerName = pcServerName;
         this.almUserName = almUserName;
@@ -48,6 +49,7 @@ public class PcModel {
         this.addRunToTrendReport = addRunToTrendReport;
         this.HTTPSProtocol = HTTPSProtocol;
         this.trendReportId = trendReportId;
+        this.proxyOutURL = proxyOutURL;
     }
 
     protected SecretContainer setPassword(String almPassword) {
@@ -114,6 +116,10 @@ public class PcModel {
 
     public boolean httpsProtocol(){
         return this.HTTPSProtocol;
+    }
+
+    public String getProxyOutURL(){
+        return this.proxyOutURL;
     }
 
 

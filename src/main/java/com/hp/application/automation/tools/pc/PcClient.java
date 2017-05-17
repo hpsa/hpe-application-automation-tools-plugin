@@ -54,9 +54,14 @@ public class PcClient {
     private PrintStream logger;
 
     public PcClient(PcModel pcModel, PrintStream logger) {
-        model = pcModel;
-        restProxy = new PcRestProxy(model.isHTTPSProtocol(),model.getPcServerName(), model.getAlmDomain(), model.getAlmProject(),logger);
-        this.logger = logger;
+        try {
+            model = pcModel;
+            restProxy = new PcRestProxy(model.isHTTPSProtocol(),model.getPcServerName(), model.getAlmDomain(), model.getAlmProject(),logger, model.getProxyOutURL());
+            this.logger = logger;
+        }catch (PcException e){
+            logger.println(e.getMessage());
+        }
+
     }
 
     public <T extends PcRestProxy> PcClient(PcModel pcModel, PrintStream logger, T proxy) {

@@ -21,8 +21,8 @@ public class MockPcRestProxyBadResponses extends PcRestProxy {
     
     private static Iterator<RunState> runState = initializeRunStateIterator();
     
-    public MockPcRestProxyBadResponses(String webProtocol, String pcServerName, String almDomain, String almProject,PrintStream logger) {
-        super(webProtocol, pcServerName, almDomain, almProject,logger);
+    public MockPcRestProxyBadResponses(String webProtocol, String pcServerName, String almDomain, String almProject,PrintStream logger) throws PcException {
+        super(webProtocol, pcServerName, almDomain, almProject,logger,null);
     }
 
     @Override
