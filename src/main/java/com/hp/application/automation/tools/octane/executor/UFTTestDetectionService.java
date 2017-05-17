@@ -71,11 +71,21 @@ public class UFTTestDetectionService {
                 removeTestDuplicated(result.getUpdatedTests());
             }
 
-            printToConsole(buildListener, String.format("Found %s new tests", result.getNewTests().size()));
-            printToConsole(buildListener, String.format("Found %s updated tests", result.getUpdatedTests().size()));
-            printToConsole(buildListener, String.format("Found %s deleted tests", result.getDeletedTests().size()));
-            printToConsole(buildListener, String.format("Found %s new data tables", result.getNewScmResourceFiles().size()));
-            printToConsole(buildListener, String.format("Found %s deleted data tables", result.getDeletedScmResourceFiles().size()));
+            if (!result.getNewTests().isEmpty()) {
+                printToConsole(buildListener, String.format("Found %s new tests", result.getNewTests().size()));
+            }
+            if (!result.getUpdatedTests().isEmpty()) {
+                printToConsole(buildListener, String.format("Found %s updated tests", result.getUpdatedTests().size()));
+            }
+            if (!result.getDeletedTests().isEmpty()) {
+                printToConsole(buildListener, String.format("Found %s deleted tests", result.getDeletedTests().size()));
+            }
+            if (!result.getNewScmResourceFiles().isEmpty()) {
+                printToConsole(buildListener, String.format("Found %s new data tables", result.getNewScmResourceFiles().size()));
+            }
+            if (!result.getDeletedScmResourceFiles().isEmpty()) {
+                printToConsole(buildListener, String.format("Found %s deleted data tables", result.getDeletedScmResourceFiles().size()));
+            }
 
             result.setScmRepositoryId(scmRepositoryId);
             result.setWorkspaceId(workspaceId);
