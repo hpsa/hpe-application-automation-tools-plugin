@@ -21,16 +21,14 @@ import javax.xml.bind.annotation.*;
 /**
  * This file represents scm resource for sending to Octane
  */
-@XmlRootElement(name="scmResource")
+@XmlRootElement(name="dataTable")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class ScmResourceFile {
 
     @XmlTransient
     private Long id;
     @XmlTransient
-    private String type = "scm_resource";
-    @XmlTransient
-    private String subtype = "scm_resource_file";
+    private String type = "scm_resource_file";
     @XmlTransient
     private BaseRefEntity scmRepository;
 
@@ -54,14 +52,6 @@ public class ScmResourceFile {
 
     public void setType(String type) {
         this.type = type;
-    }
-
-    public String getSubtype() {
-        return subtype;
-    }
-
-    public void setSubtype(String subtype) {
-        this.subtype = subtype;
     }
 
     public Long getId() {

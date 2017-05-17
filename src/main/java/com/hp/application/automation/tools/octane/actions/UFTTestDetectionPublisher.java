@@ -50,27 +50,27 @@ import java.util.List;
 public class UFTTestDetectionPublisher extends Recorder {
 
 	private final String workspaceName;
-	private final String scmResourceId;
+	private final String scmRepositoryId;
 
 	public String getWorkspaceName() {
 		return workspaceName;
 	}
 
-	public String getScmResourceId() {
-		return scmResourceId;
+	public String getScmRepositoryId() {
+		return scmRepositoryId;
 	}
 
 	// Fields in config.jelly must match the parameter names in the "DataBoundConstructor"
 	@DataBoundConstructor
-	public UFTTestDetectionPublisher(String workspaceName, String scmResourceId) {
+	public UFTTestDetectionPublisher(String workspaceName, String scmRepositoryId) {
 
 		this.workspaceName = workspaceName;
-		this.scmResourceId = scmResourceId;
+		this.scmRepositoryId = scmRepositoryId;
 	}
 
 	@Override
 	public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) {
-		UFTTestDetectionResult results = UFTTestDetectionService.startScanning(build, getWorkspaceName(), getScmResourceId(), listener);
+		UFTTestDetectionResult results = UFTTestDetectionService.startScanning(build, getWorkspaceName(), getScmRepositoryId(), listener);
 		UFTTestDetectionBuildAction buildAction = new UFTTestDetectionBuildAction(build, results);
 		build.addAction(buildAction);
 
