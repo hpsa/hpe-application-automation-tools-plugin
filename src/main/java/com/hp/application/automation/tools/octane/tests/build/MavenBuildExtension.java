@@ -32,7 +32,7 @@ public class MavenBuildExtension extends BuildHandlerExtension {
 	@Override
 	public BuildDescriptor getBuildType(Run<?, ?> build) {
 		return new BuildDescriptor(
-				((AbstractBuild)build).getRootBuild().getProject().getName(),
+				BuildHandlerUtils.getJobCiId(build),
 				((AbstractBuild)build).getProject().getName(),
 				String.valueOf(build.getNumber()),
 				String.valueOf(build.getNumber()),
@@ -45,7 +45,7 @@ public class MavenBuildExtension extends BuildHandlerExtension {
 			// we don't push individual maven module results (although we create the file)
 			return null;
 		} else {
-			return ((AbstractBuild)build).getProject().getName();
+			return ((AbstractBuild)build).getProject().getFullName();
 		}
 	}
 }
