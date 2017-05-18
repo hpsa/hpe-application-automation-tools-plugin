@@ -21,17 +21,12 @@ import com.hp.application.automation.tools.common.HttpStatus;
 import com.hp.application.automation.tools.octane.ResultQueue;
 import com.hp.application.automation.tools.octane.actions.UftTestType;
 import com.hp.application.automation.tools.octane.actions.dto.*;
-import com.hp.application.automation.tools.octane.client.JenkinsMqmRestClientFactory;
-import com.hp.application.automation.tools.octane.client.JenkinsMqmRestClientFactoryImpl;
 import com.hp.application.automation.tools.octane.configuration.ConfigurationService;
 import com.hp.application.automation.tools.octane.configuration.ServerConfiguration;
 import com.hp.application.automation.tools.octane.tests.AbstractSafeLoggingAsyncPeriodWork;
 import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.QueryHelper;
-import com.hp.mqm.client.exception.LoginException;
 import com.hp.mqm.client.exception.RequestErrorException;
-import com.hp.mqm.client.exception.RequestException;
-import com.hp.mqm.client.exception.SharedSpaceNotExistException;
 import com.hp.mqm.client.model.Entity;
 import com.hp.mqm.client.model.ListItem;
 import com.hp.mqm.client.model.PagedList;
@@ -67,14 +62,12 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
 
     private static Logger logger = LogManager.getLogger(UftTestDiscoveryDispatcher.class);
     private final static String TESTS_COLLECTION_NAME = "tests";
-    private final static String AUTOMATED_TESTS_COLLECTION_NAME = "automated_tests";
-    private final static String SCM_RESOURCE_COLLECTION_NAME = "scm_resources";
     private final static String SCM_RESOURCE_FILES_COLLECTION_NAME = "scm_resource_files";
 
     private final static int BULK_SIZE = 100;
 
     private UftTestDiscoveryQueue queue;
-    private JenkinsMqmRestClientFactory clientFactory;
+    private ConfigurationService configurationService;
 
     public UftTestDiscoveryDispatcher() {
         super("Uft Test Discovery Dispatcher");
@@ -88,10 +81,11 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
         }
 
         logger.warn("Queue size  " + queue.size());
-        //logger.info("... done, left to send " + events.size() + " events");
         ServerConfiguration serverConfiguration = ConfigurationService.getServerConfiguration();
-        MqmRestClient client = createClient(serverConfiguration);
+        MqmRestClient client = configurationService.createClient(serverConfiguration);
+
         if (client == null) {
+            logger.warn("There are pending discovered UFT tests, but MQM server configuration is not valid, results can't be submitted");
             return;
         }
 
@@ -439,37 +433,6 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
         return null;
     }
 
-    private static String getServerURL(String workspaceId, String sharedspaceId, String location) {
-        return location + "/api/shared_spaces/" + sharedspaceId + "/workspaces/" + workspaceId;
-    }
-
-    private MqmRestClient createClient(ServerConfiguration serverConfiguration) {
-
-        if (!serverConfiguration.isValid()) {
-            logger.warn("There are pending discovered UFT tests, but MQM server configuration is not valid, results can't be submitted");
-            return null;
-        }
-
-        MqmRestClient client = clientFactory.obtain(
-                serverConfiguration.location,
-                serverConfiguration.sharedSpace,
-                serverConfiguration.username,
-                serverConfiguration.password);
-
-        try {
-            client.validateConfigurationWithoutLogin();
-            return client;
-        } catch (SharedSpaceNotExistException e) {
-            logger.warn("Invalid shared space");
-        } catch (LoginException e) {
-            logger.warn("Login failed : " + e.getMessage());
-        } catch (RequestException e) {
-            logger.warn("Problem with communication with MQM server : " + e.getMessage());
-        }
-
-        return null;
-    }
-
     @Override
     public long getRecurrencePeriod() {
         String value = System.getProperty("UftTestDiscoveryDispatcher.Period"); // let's us config the recurrence period. default is 60 seconds.
@@ -485,8 +448,8 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
     }
 
     @Inject
-    public void setMqmRestClientFactory(JenkinsMqmRestClientFactoryImpl clientFactory) {
-        this.clientFactory = clientFactory;
+    public void setConfigurationService(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
     }
 
     private static boolean hasTestsByType(Collection<AutomatedTest> tests, UftTestType uftTestType) {
