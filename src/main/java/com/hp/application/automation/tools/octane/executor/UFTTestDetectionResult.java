@@ -17,27 +17,47 @@
 package com.hp.application.automation.tools.octane.executor;
 
 import com.hp.application.automation.tools.octane.actions.dto.AutomatedTest;
+import com.hp.application.automation.tools.octane.actions.dto.ScmResourceFile;
 
 import javax.xml.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 
-
-@XmlRootElement(name="detectionResult")
+/**
+ * This file represents result of UFT detection files (tests and data tables)
+ */
+@XmlRootElement(name = "detectionResult")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class UFTTestDetectionResult {
 
 
-    @XmlElementWrapper(name="newTests")
-    @XmlElement(name="test")
+    @XmlElementWrapper(name = "newTests")
+    @XmlElement(name = "test")
     private List<AutomatedTest> newTests = new ArrayList<>();
 
+    @XmlElementWrapper(name = "deletedTests")
+    @XmlElement(name = "test")
     private List<AutomatedTest> deletedTests = new ArrayList<>();
 
+    @XmlElementWrapper(name = "updatedTests")
+    @XmlElement(name = "test")
     private List<AutomatedTest> updatedTests = new ArrayList<>();
 
+    @XmlElementWrapper(name = "newDataTables")
+    @XmlElement(name = "dataTable")
+    private List<ScmResourceFile> newScmResourceFiles = new ArrayList<>();
+
+    @XmlElementWrapper(name = "deletedDataTables")
+    @XmlElement(name = "dataTable")
+    private List<ScmResourceFile> deletedScmResourceFiles = new ArrayList<>();
+
+    @XmlElementWrapper(name = "updatedDataTables")
+    @XmlElement(name = "dataTable")
+    private List<ScmResourceFile> updatedScmResourceFiles = new ArrayList<>();
+
+
     @XmlAttribute
-    private String scmResourceId;
+    private String scmRepositoryId;
 
     @XmlAttribute
     private String workspaceId;
@@ -57,12 +77,12 @@ public class UFTTestDetectionResult {
         return updatedTests;
     }
 
-    public String getScmResourceId() {
-        return scmResourceId;
+    public String getScmRepositoryId() {
+        return scmRepositoryId;
     }
 
-    public void setScmResourceId(String scmResourceId) {
-        this.scmResourceId = scmResourceId;
+    public void setScmRepositoryId(String scmRepositoryId) {
+        this.scmRepositoryId = scmRepositoryId;
     }
 
     public String getWorkspaceId() {
@@ -81,7 +101,21 @@ public class UFTTestDetectionResult {
         this.initialDetection = initialDetection;
     }
 
-    public boolean hasChanges(){
-        return !getNewTests().isEmpty() || !getUpdatedTests().isEmpty();
+    public boolean hasChanges() {
+        return !getNewTests().isEmpty() || !getUpdatedTests().isEmpty() || !getDeletedTests().isEmpty()
+                || !getNewScmResourceFiles().isEmpty() || !getDeletedScmResourceFiles().isEmpty() || !getUpdatedScmResourceFiles().isEmpty();
     }
+
+    public List<ScmResourceFile> getNewScmResourceFiles() {
+        return newScmResourceFiles;
+    }
+
+    public List<ScmResourceFile> getDeletedScmResourceFiles() {
+        return deletedScmResourceFiles;
+    }
+
+    public List<ScmResourceFile> getUpdatedScmResourceFiles() {
+        return updatedScmResourceFiles;
+    }
+
 }

@@ -17,22 +17,19 @@
 package com.hp.application.automation.tools.octane.executor;
 
 import com.google.inject.Inject;
+import com.hp.application.automation.tools.common.HttpStatus;
 import com.hp.application.automation.tools.octane.ResultQueue;
 import com.hp.application.automation.tools.octane.actions.UftTestType;
 import com.hp.application.automation.tools.octane.actions.dto.*;
-import com.hp.application.automation.tools.octane.client.JenkinsMqmRestClientFactory;
-import com.hp.application.automation.tools.octane.client.JenkinsMqmRestClientFactoryImpl;
 import com.hp.application.automation.tools.octane.configuration.ConfigurationService;
 import com.hp.application.automation.tools.octane.configuration.ServerConfiguration;
 import com.hp.application.automation.tools.octane.tests.AbstractSafeLoggingAsyncPeriodWork;
 import com.hp.mqm.client.MqmRestClient;
-import com.hp.mqm.client.exception.LoginException;
+import com.hp.mqm.client.QueryHelper;
 import com.hp.mqm.client.exception.RequestErrorException;
-import com.hp.mqm.client.exception.RequestException;
-import com.hp.mqm.client.exception.SharedSpaceNotExistException;
+import com.hp.mqm.client.model.Entity;
 import com.hp.mqm.client.model.ListItem;
 import com.hp.mqm.client.model.PagedList;
-import com.hp.mqm.client.model.Test;
 import hudson.Extension;
 import hudson.model.AbstractBuild;
 import hudson.model.Job;
@@ -64,10 +61,13 @@ import java.util.*;
 public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 
     private static Logger logger = LogManager.getLogger(UftTestDiscoveryDispatcher.class);
-    private final static int RESPONSE_STATUS_CONFLICT = 409;
+    private final static String TESTS_COLLECTION_NAME = "tests";
+    private final static String SCM_RESOURCE_FILES_COLLECTION_NAME = "scm_resource_files";
+
+    private final static int BULK_SIZE = 100;
 
     private UftTestDiscoveryQueue queue;
-    private JenkinsMqmRestClientFactory clientFactory;
+    private ConfigurationService configurationService;
 
     public UftTestDiscoveryDispatcher() {
         super("Uft Test Discovery Dispatcher");
@@ -81,52 +81,69 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
         }
 
         logger.warn("Queue size  " + queue.size());
-        //logger.info("... done, left to send " + events.size() + " events");
         ServerConfiguration serverConfiguration = ConfigurationService.getServerConfiguration();
-        MqmRestClient client = createClient(serverConfiguration);
+        MqmRestClient client = configurationService.createClient(serverConfiguration);
+
         if (client == null) {
+            logger.warn("There are pending discovered UFT tests, but MQM server configuration is not valid, results can't be submitted");
             return;
         }
 
-        ResultQueue.QueueItem item;
-        while ((item = queue.peekFirst()) != null) {
+        ResultQueue.QueueItem item = null;
+        try {
+            while ((item = queue.peekFirst()) != null) {
 
-            Job project = (Job) Jenkins.getInstance().getItemByFullName(item.getProjectName());
-            if (project == null) {
-                logger.warn("Project [" + item.getProjectName() + "] no longer exists, pending discovered tests can't be submitted");
+                Job project = (Job) Jenkins.getInstance().getItemByFullName(item.getProjectName());
+                if (project == null) {
+                    logger.warn("Project [" + item.getProjectName() + "] no longer exists, pending discovered tests can't be submitted");
+                    queue.remove();
+                    continue;
+                }
+
+                Run build = project.getBuildByNumber(item.getBuildNumber());
+                if (build == null) {
+                    logger.warn("Build [" + item.getProjectName() + "#" + item.getBuildNumber() + "] no longer exists, pending discovered tests can't be submitted");
+                    queue.remove();
+                    continue;
+                }
+
+                UFTTestDetectionResult result = UFTTestDetectionService.readDetectionResults(build);
+                if (result == null) {
+                    logger.warn("Build [" + item.getProjectName() + "#" + item.getBuildNumber() + "] no longer contains valid detection result file");
+                    queue.remove();
+                    continue;
+                }
+
+                logger.warn("Persistence [" + item.getProjectName() + "#" + item.getBuildNumber() + "]");
+                dispatchDetectionResults(item, client, result);
+                if (result.isInitialDetection()) {
+                    UFTTestDetectionService.createInitialDetectionFile(((AbstractBuild) build).getWorkspace());
+                }
                 queue.remove();
-                continue;
             }
-
-            Run build = project.getBuildByNumber(item.getBuildNumber());
-            if (build == null) {
-                logger.warn("Build [" + item.getProjectName() + "#" + item.getBuildNumber() + "] no longer exists, pending discovered tests can't be submitted");
-                queue.remove();
-                continue;
+        } catch (Exception e) {
+            if (item != null) {
+                item.incrementFailCount();
+                int maxTrial = 5;
+                if (item.incrementFailCount() > maxTrial) {
+                    queue.remove();
+                    logger.warn("Failed to  persist discovery of [" + item.getProjectName() + "#" + item.getBuildNumber() + "]  after " + maxTrial + " trials");
+                }
             }
-
-            UFTTestDetectionResult result = UFTTestDetectionService.readDetectionResults(build);
-            if (result == null) {
-                logger.warn("Build [" + item.getProjectName() + "#" + item.getBuildNumber() + "] no longer contains valid detection result file");
-                queue.remove();
-                continue;
-            }
-
-            logger.warn("Persistence [" + item.getProjectName() + "#" + item.getBuildNumber() + "]");
-            dispatchDetectionResults(item, client, serverConfiguration, result);
-            if (result.isInitialDetection()) {
-                UFTTestDetectionService.createInitialDetectionFile(((AbstractBuild) build).getWorkspace());
-            }
-            queue.remove();
         }
     }
 
-    private void dispatchDetectionResults(ResultQueue.QueueItem item, MqmRestClient client, ServerConfiguration serverConfiguration, UFTTestDetectionResult result) throws UnsupportedEncodingException {
-        String serverURL = getServerURL(result.getWorkspaceId(), serverConfiguration.sharedSpace, serverConfiguration.location);
+    private void dispatchDetectionResults(ResultQueue.QueueItem item, MqmRestClient client, UFTTestDetectionResult result) throws UnsupportedEncodingException {
         //post new tests
         if (!result.getNewTests().isEmpty()) {
-            boolean posted = postTests(client, serverURL, result.getNewTests(), result.getWorkspaceId(), result.getScmResourceId());
+            boolean posted = postTests(client, result.getNewTests(), result.getWorkspaceId(), result.getScmRepositoryId());
             logger.warn("Persistence [" + item.getProjectName() + "#" + item.getBuildNumber() + "] : " + result.getNewTests().size() + "  new tests posted successfully = " + posted);
+        }
+
+        //post scm resources
+        if (!result.getNewScmResourceFiles().isEmpty()) {
+            boolean posted = postScmResources(client, result.getNewScmResourceFiles(), result.getWorkspaceId(), result.getScmRepositoryId());
+            logger.warn("Persistence [" + item.getProjectName() + "#" + item.getBuildNumber() + "] : " + result.getNewScmResourceFiles().size() + "  new scmResources posted successfully = " + posted);
         }
 
         //post updated
@@ -134,29 +151,34 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
             boolean updated = updateTests(client, result.getUpdatedTests(), result.getWorkspaceId());
             logger.warn("Persistence [" + item.getProjectName() + "#" + item.getBuildNumber() + "] : " + result.getUpdatedTests().size() + "  updated tests posted successfully = " + updated);
         }
+
+        //delete scm resources
+        if (!result.getDeletedScmResourceFiles().isEmpty()) {
+            boolean posted = deleteScmResources(client, result.getDeletedScmResourceFiles(), result.getWorkspaceId(), result.getScmRepositoryId());
+            logger.warn("Persistence [" + item.getProjectName() + "#" + item.getBuildNumber() + "] : " + result.getDeletedScmResourceFiles().size() + "  scmResources deleted successfully = " + posted);
+        }
+
     }
 
-    private static boolean postTests(MqmRestClient client, String serverURL, List<AutomatedTest> tests, String workspaceId, String scmResourceId) throws UnsupportedEncodingException {
+    private static boolean postTests(MqmRestClient client, List<AutomatedTest> tests, String workspaceId, String scmRepositoryId) throws UnsupportedEncodingException {
 
         if (!tests.isEmpty()) {
             try {
-                completeTestProperties(client, Long.parseLong(workspaceId), tests, scmResourceId);
+                completeTestProperties(client, Long.parseLong(workspaceId), tests, scmRepositoryId);
             } catch (RequestErrorException e) {
                 logger.error("Failed to completeTestProperties : " + e.getMessage());
                 return false;
             }
 
-            int BULK_SIZE = 100;
             for (int i = 0; i < tests.size(); i += BULK_SIZE)
                 try {
                     AutomatedTests data = AutomatedTests.createWithTests(tests.subList(i, Math.min(i + BULK_SIZE, tests.size())));
                     String uftTestJson = convertToJsonString(data);
 
-                    client.postTest(uftTestJson, null, serverURL);
-                    //JSONObject testObject = (JSONObject) jsonObject.getJSONArray("data").get(0);
+                    client.postEntities(Long.parseLong(workspaceId), TESTS_COLLECTION_NAME, uftTestJson);
 
                 } catch (RequestErrorException e) {
-                    if (e.getStatusCode() != RESPONSE_STATUS_CONFLICT) {
+                    if (e.getStatusCode() != HttpStatus.CONFLICT.getCode()) {
                         logger.error("Failed to postTests to Octane : " + e.getMessage());
                         return false;
                     }
@@ -167,14 +189,38 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
         return true;
     }
 
-    private static String convertToJsonString(AutomatedTests data) {
-        JsonConfig config = getJsonConfig();
-        return JSONObject.fromObject(data, config).toString();
+    private static boolean postScmResources(MqmRestClient client, List<ScmResourceFile> resources, String workspaceId, String scmResourceId) throws UnsupportedEncodingException {
+
+        if (!resources.isEmpty()) {
+            try {
+                completeScmResourceProperties(client, Long.parseLong(workspaceId), resources, scmResourceId);
+            } catch (RequestErrorException e) {
+                logger.error("Failed to completeTestProperties : " + e.getMessage());
+                return false;
+            }
+
+            for (int i = 0; i < resources.size(); i += BULK_SIZE)
+                try {
+                    ScmResources data = ScmResources.createWithItems(resources.subList(i, Math.min(i + BULK_SIZE, resources.size())));
+                    String uftTestJson = convertToJsonString(data);
+
+                    client.postEntities(Long.parseLong(workspaceId), SCM_RESOURCE_FILES_COLLECTION_NAME, uftTestJson);
+
+                } catch (RequestErrorException e) {
+                    if (e.getStatusCode() != HttpStatus.CONFLICT.getCode()) {
+                        logger.error("Failed to post scm resource files to Octane : " + e.getMessage());
+                        return false;
+                    }
+
+                    //else :  the file with the same hash code , so do nothing
+                }
+        }
+        return true;
     }
 
-    private static String convertToJsonString(AutomatedTest test) {
+    private static String convertToJsonString(Object data) {
         JsonConfig config = getJsonConfig();
-        return JSONObject.fromObject(test, config).toString();
+        return JSONObject.fromObject(data, config).toString();
     }
 
     private static JsonConfig getJsonConfig() {
@@ -194,6 +240,25 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
                         break;
                     case "testTypes":
                         result = "test_type";
+                        break;
+                    default:
+                        break;
+                }
+                return result;
+            }
+        });
+
+        config.registerJsonPropertyNameProcessor(ScmResourceFile.class, new PropertyNameProcessor() {
+
+            @Override
+            public String processPropertyName(Class className, String fieldName) {
+                String result = fieldName;
+                switch (fieldName) {
+                    case "relativePath":
+                        result = "relative_path";
+                        break;
+                    case "scmRepository":
+                        result = "scm_repository";
                         break;
                     default:
                         break;
@@ -245,18 +310,19 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
                 if (StringUtils.isEmpty(test.getDescription())) {
                     continue;
                 }
-                Map<String, String> queryFields = new HashMap<>();
-                queryFields.put("name", test.getName());
-                queryFields.put("package", test.getPackage());
-                PagedList<Test> foundTests = client.getTests(workspaceIdAsLong, queryFields, Arrays.asList("id, description"));
+
+                List<String> conditions = new ArrayList<>();
+                conditions.add(QueryHelper.condition("name", test.getName()));
+                conditions.add(QueryHelper.condition("package", test.getPackage()));
+                PagedList<Entity> foundTests = client.getEntities(workspaceIdAsLong, TESTS_COLLECTION_NAME, conditions, Arrays.asList("id"));
                 if (foundTests.getItems().size() == 1) {
-                    Test foundTest = foundTests.getItems().get(0);
+                    Entity foundTest = foundTests.getItems().get(0);
                     AutomatedTest testForUpdate = new AutomatedTest();
                     testForUpdate.setSubtype(null);
                     testForUpdate.setDescription(test.getDescription());
                     testForUpdate.setId(foundTest.getId());
                     String json = convertToJsonString(testForUpdate);
-                    client.updateTest(Long.parseLong(workspaceId), foundTests.getItems().get(0).getId(), json);
+                    client.updateEntity(Long.parseLong(workspaceId), TESTS_COLLECTION_NAME, foundTests.getItems().get(0).getId(), json);
                 }
             }
             return true;
@@ -266,13 +332,39 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
         }
     }
 
-    private static void completeTestProperties(MqmRestClient client, long workspaceId, Collection<AutomatedTest> tests, String scmResourceId) {
+    private boolean deleteScmResources(MqmRestClient client, List<ScmResourceFile> deletedResourceFiles, String workspaceId, String scmRepositoryId) {
+
+        long workspaceIdAsLong = Long.parseLong(workspaceId);
+        Set<Long> deletedIds = new HashSet<>();
+        try {
+            for (ScmResourceFile scmResource : deletedResourceFiles) {
+                List<String> conditions = new ArrayList<>();
+                conditions.add(QueryHelper.condition("relative_path", scmResource.getRelativePath()));
+                conditions.add(QueryHelper.conditionRef("scm_repository", Long.valueOf(scmRepositoryId)));
+
+                PagedList<Entity> foundResources = client.getEntities(workspaceIdAsLong, SCM_RESOURCE_FILES_COLLECTION_NAME, conditions, Arrays.asList("id, name"));
+                if (foundResources.getItems().size() == 1) {
+                    Entity found = foundResources.getItems().get(0);
+                    deletedIds.add(found.getId());
+                }
+            }
+
+            client.deleteEntities(Long.parseLong(workspaceId), SCM_RESOURCE_FILES_COLLECTION_NAME, deletedIds);
+            return true;
+
+        } catch (Exception e) {
+            return false;
+        }
+
+    }
+
+    private static void completeTestProperties(MqmRestClient client, long workspaceId, Collection<AutomatedTest> tests, String scmRepositoryId) {
         ListNodeEntity uftTestingTool = getUftTestingTool(client, workspaceId);
         ListNodeEntity uftFramework = getUftFramework(client, workspaceId);
         ListNodeEntity guiTestType = hasTestsByType(tests, UftTestType.GUI) ? getGuiTestType(client, workspaceId) : null;
         ListNodeEntity apiTestType = hasTestsByType(tests, UftTestType.API) ? getApiTestType(client, workspaceId) : null;
 
-        BaseRefEntity scmRepository = StringUtils.isEmpty(scmResourceId) ? null : BaseRefEntity.create("scm_repository", Long.valueOf(scmResourceId));
+        BaseRefEntity scmRepository = StringUtils.isEmpty(scmRepositoryId) ? null : BaseRefEntity.create("scm_repository", Long.valueOf(scmRepositoryId));
         for (AutomatedTest test : tests) {
             test.setTestingToolType(uftTestingTool);
             test.setFramework(uftFramework);
@@ -283,6 +375,13 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
                 testType = apiTestType;
             }
             test.setTestTypes(ListNodeEntityCollection.create(testType));
+        }
+    }
+
+    private static void completeScmResourceProperties(MqmRestClient client, long l, List<ScmResourceFile> resources, String scmResourceId) {
+        BaseRefEntity scmRepository = StringUtils.isEmpty(scmResourceId) ? null : BaseRefEntity.create("scm_repository", Long.valueOf(scmResourceId));
+        for (ScmResourceFile resource : resources) {
+            resource.setScmRepository(scmRepository);
         }
     }
 
@@ -334,37 +433,6 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
         return null;
     }
 
-    private static String getServerURL(String workspaceId, String sharedspaceId, String location) {
-        return location + "/api/shared_spaces/" + sharedspaceId + "/workspaces/" + workspaceId;
-    }
-
-    private MqmRestClient createClient(ServerConfiguration serverConfiguration) {
-
-        if (!serverConfiguration.isValid()) {
-            logger.warn("There are pending discovered UFT tests, but MQM server configuration is not valid, results can't be submitted");
-            return null;
-        }
-
-        MqmRestClient client = clientFactory.obtain(
-                serverConfiguration.location,
-                serverConfiguration.sharedSpace,
-                serverConfiguration.username,
-                serverConfiguration.password);
-
-        try {
-            client.validateConfigurationWithoutLogin();
-            return client;
-        } catch (SharedSpaceNotExistException e) {
-            logger.warn("Invalid shared space");
-        } catch (LoginException e) {
-            logger.warn("Login failed : " + e.getMessage());
-        } catch (RequestException e) {
-            logger.warn("Problem with communication with MQM server : " + e.getMessage());
-        }
-
-        return null;
-    }
-
     @Override
     public long getRecurrencePeriod() {
         String value = System.getProperty("UftTestDiscoveryDispatcher.Period"); // let's us config the recurrence period. default is 60 seconds.
@@ -380,8 +448,8 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
     }
 
     @Inject
-    public void setMqmRestClientFactory(JenkinsMqmRestClientFactoryImpl clientFactory) {
-        this.clientFactory = clientFactory;
+    public void setConfigurationService(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
     }
 
     private static boolean hasTestsByType(Collection<AutomatedTest> tests, UftTestType uftTestType) {
