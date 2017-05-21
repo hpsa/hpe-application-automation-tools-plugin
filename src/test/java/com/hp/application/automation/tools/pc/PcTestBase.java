@@ -18,6 +18,8 @@ package com.hp.application.automation.tools.pc;
 
 import com.hp.application.automation.tools.model.PostRunAction;
 
+import java.io.PrintStream;
+
 public interface PcTestBase {
 
     public static final String        PC_SERVER_NAME                  = "pcServer.hp.com";
@@ -37,13 +39,16 @@ public interface PcTestBase {
     public static final String        RUN_ID_WAIT                     = "8";
     public static final String        REPORT_ID                       = "9";
     public static final String        STOP_MODE                       = "stop";
+    public static final String		  WEB_PROTOCOL					  = "http";
+	public static final Boolean		  IS_HTTPS					  	  = false;
+	public static final PrintStream LOGGER					  	  = null;
 
     public static final MockPcModel   pcModel                         = new MockPcModel(PC_SERVER_NAME, ALM_USER_NAME,
                                                                           ALM_PASSWORD, ALM_DOMAIN, ALM_PROJECT,
                                                                           TEST_ID, TEST_INSTANCE_ID,
                                                                           TIMESLOT_DURATION_HOURS,
                                                                           TIMESLOT_DURATION_MINUTES, POST_RUN_ACTION,
-                                                                          VUDS_MODE, DESCRIPTION);
+                                                                          VUDS_MODE, DESCRIPTION,IS_HTTPS);
     
     public static final String          runResponseEntity  = "<Run xmlns=\"http://www.hp.com/PC/REST/API\">" +
     		                                                    "<TestID>" + TEST_ID + "</TestID>" +
