@@ -30,8 +30,8 @@ import com.hp.application.automation.tools.model.TimeslotDuration;
 import com.hp.application.automation.tools.rest.RESTConstants;
 import com.hp.application.automation.tools.sse.sdk.Base64Encoder;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CookieStore;
@@ -40,6 +40,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
@@ -53,9 +54,7 @@ import java.io.OutputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.FileOutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import java.io.PrintStream;
 
@@ -84,13 +83,16 @@ public class PcRestProxy {
 	private String domain;
 	private String project;
 	private String webProtocol;
+	private String proxyScheme;
+	private String proxyHostName;
+	private int proxyPort;
 
 	private HttpClient client;
     private HttpContext context;
     private CookieStore cookieStore;
   //  private PrintStream logger;
 
-    public PcRestProxy(String webProtocolName, String pcServerName, String almDomain, String almProject,PrintStream mainLogger) {
+    public PcRestProxy(String webProtocolName, String pcServerName, String almDomain, String almProject,PrintStream mainLogger, String proxyOutURL) throws PcException {
 
 //        logger = mainLogger;
     	pcServer = pcServerName;
@@ -104,11 +106,41 @@ public class PcRestProxy {
     	cxMgr.setDefaultMaxPerRoute(20);
 
     	
-    	client = new DefaultHttpClient(cxMgr);   	
+    	client = new DefaultHttpClient(cxMgr);
+        if (proxyOutURL != null && !proxyOutURL.isEmpty()) {
+            // Setting proxy
+            // we should get the full proxy URL from the user: http(s)://<server>:<port>
+            // PAC (proxy auto-config) or Automatic configuration script is not supported (for example our proxy: http://autocache.hpecorp.net/)
+            getProxyDataFromURL(proxyOutURL);
+            HttpHost proxy = new HttpHost(proxyHostName, proxyPort, proxyScheme);
+            client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+        }
     	context = new BasicHttpContext();
     	cookieStore = new BasicCookieStore();
     	context.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
 	}
+
+	private void getProxyDataFromURL(String proxyURL) throws PcException{
+
+        try {
+            if (proxyURL != null && !proxyURL.isEmpty()){
+                proxyScheme = proxyURL.split("://")[0];
+                proxyHostName = proxyURL.split("://")[1].split(":")[0];
+                if (proxyURL.split("://")[1].contains(":")){
+                    proxyPort = Integer.parseInt(proxyURL.split("://")[1].split(":")[1]);
+                }else{
+                    proxyPort = 80;
+                }
+
+            }
+        } catch (Exception ex) {
+            throw new PcException("Error: Validating Proxy URL: " + ex + " Please add a proxy URL in this pattern: http(s)://<host>:<port> or leave blank");
+        }
+
+
+
+
+    }
 
     
     public boolean authenticate(String userName, String password) throws PcException, ClientProtocolException, IOException {
@@ -222,14 +254,7 @@ public class PcRestProxy {
     }
 
     protected HttpResponse executeRequest(HttpRequestBase request) throws PcException, IOException {
-//        logger.println(String.format("DEBUGMSG - Request uri %s",request.getURI().toString()));
-//        logger.println(String.format("DEBUGMSG - Request Method %s",request.getMethod().toString()));
-//        // Print all headers
-//        logger.println("DEBUGMSG - Headers");
-//        List<Header> httpHeaders = Arrays.asList(request.getAllHeaders());
-//        for (Header header : httpHeaders) {
-//            logger.println("DEBUGMSG - " + header.getName() + " : " + header.getValue());
-//        }
+
         HttpResponse response = client.execute(request,context);
 			if (!isOk(response)){
 				String message;

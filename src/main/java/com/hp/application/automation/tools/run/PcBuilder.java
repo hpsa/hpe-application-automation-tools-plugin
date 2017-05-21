@@ -110,7 +110,8 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             String description,
             boolean addRunToTrendReport,
             String trendReportId,
-            boolean HTTPSProtocol) {
+            boolean HTTPSProtocol,
+            String proxyOutURL) {
         this.almUserName = almUserName;
         this.almPassword = almPassword;
         this.timeslotDurationHours = timeslotDurationHours;
@@ -133,7 +134,8 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                         description,
                         addRunToTrendReport,
                         trendReportId,
-                        HTTPSProtocol);
+                        HTTPSProtocol,
+                        proxyOutURL);
     }
     
     @Override
@@ -625,6 +627,8 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         return statusBySLA;
     }
 
+    public String getProxyOutURL(){ return getPcModel().getProxyOutURL();}
+
     // This indicates to Jenkins that this is an implementation of an extension
     // point
     @Extension
@@ -646,7 +650,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         @Override
         public String getDisplayName() {
             
-            return "Execute HP tests using HP Performance Center";
+            return "Execute performance test using Performance Center";
         }
         
         public FormValidation doCheckPcServerName(@QueryParameter String value) {
