@@ -5,16 +5,15 @@ import com.hp.application.automation.tools.rest.RestClient;
 import com.hp.application.automation.tools.sse.common.StringUtils;
 import com.hp.application.automation.tools.sse.result.PublisherFactory;
 import com.hp.application.automation.tools.sse.result.model.junit.Testsuites;
+import com.hp.application.automation.tools.sse.sdk.authenticator.AuthenticationTool;
 import com.hp.application.automation.tools.sse.sdk.handler.PollHandler;
 import com.hp.application.automation.tools.sse.sdk.handler.PollHandlerFactory;
 import com.hp.application.automation.tools.sse.sdk.handler.RunHandler;
 import com.hp.application.automation.tools.sse.sdk.handler.RunHandlerFactory;
 
 /**
- *
  * @author Effi Bar-She'an
  * @author Dani Schreiber
- *
  */
 public class RunManager {
 
@@ -24,13 +23,15 @@ public class RunManager {
     private boolean _running = false;
     private boolean _polling = false;
 
+    /**
+     * Execute
+     */
     public Testsuites execute(RestClient client, Args args, Logger logger)
             throws InterruptedException {
-
         Testsuites ret = null;
         _logger = logger;
         _running = true;
-        if (login(client, args)) {
+        if (AuthenticationTool.authenticate(client, args.getUsername(), args.getPassword(), args.getUrl(), logger)) {
             initialize(args, client);
             if (start(args)) {
                 _polling = true;
@@ -50,39 +51,29 @@ public class RunManager {
                 _polling = false;
             }
         }
-
         return ret;
     }
 
+    /**
+     * Initialize
+     */
     private void initialize(Args args, RestClient client) {
-
         String entityId = args.getEntityId();
-        appendQCSessionCookies(client);
         _runHandler = new RunHandlerFactory().create(client, args.getRunType(), entityId);
         _pollHandler = new PollHandlerFactory().create(client, args.getRunType(), entityId);
     }
 
-    private void appendQCSessionCookies(RestClient client) {
-
-        // issue a post request so that cookies relevant to the QC Session will be added to the RestClient
-        Response response =
-                client.httpPost(
-                        client.build("rest/site-session"),
-                        null,
-                        null,
-                        ResourceAccessLevel.PUBLIC);
-        if (!response.isOk()) {
-            throw new SSEException("Cannot appned QCSession cookies", response.getFailure());
-        }
-    }
-
+    /**
+     * Poll
+     */
     private boolean poll() throws InterruptedException {
-
         return _pollHandler.poll(_logger);
     }
 
+    /**
+     * Stop
+     */
     public void stop() {
-
         _logger.log("Stopping run...");
         if (_runHandler != null) {
             _runHandler.stop();
@@ -93,29 +84,10 @@ public class RunManager {
         }
     }
 
-    private boolean login(Client client, Args args) {
-
-        boolean ret = true;
-        try {
-            ret =
-                    new RestAuthenticator().login(
-                            client,
-                            args.getUsername(),
-                            args.getPassword(),
-                            _logger);
-        } catch (Throwable cause) {
-            ret = false;
-            _logger.log(String.format(
-                    "Failed login to ALM Server URL: %s. Exception: %s",
-                    args.getUrl(),
-                    cause.getMessage()));
-        }
-
-        return ret;
-    }
-
+    /**
+     * Start
+     */
     private boolean start(Args args) {
-
         boolean ret = false;
         Response response =
                 _runHandler.start(
@@ -131,12 +103,13 @@ public class RunManager {
             }
         }
         logReportUrl(ret, args);
-
         return ret;
     }
 
+    /**
+     * Set Run id
+     */
     private void setRunId(RunResponse runResponse) {
-
         String runId = runResponse.getRunId();
         if (StringUtils.isNullOrEmpty(runId)) {
             _logger.log("No run ID");
@@ -147,8 +120,10 @@ public class RunManager {
         }
     }
 
+    /**
+     * Log report url
+     */
     private void logReportUrl(boolean isSucceeded, Args args) {
-
         if (isSucceeded) {
             _logger.log(String.format(
                     "%s run report for run id %s is at: %s",
@@ -167,13 +142,17 @@ public class RunManager {
         }
     }
 
+    /**
+     * Get run response
+     */
     private RunResponse getRunResponse(Response response) {
-
         return _runHandler.getRunResponse(response);
     }
 
+    /**
+     * Is response ok
+     */
     private boolean isOk(Response response, Args args) {
-
         boolean ret = false;
         if (response.isOk()) {
             _logger.log(String.format(
@@ -203,17 +182,20 @@ public class RunManager {
                         response.getStatusCode()));
             }
         }
-
         return ret;
     }
 
+    /**
+     * Get running
+     */
     public boolean getRunning() {
-
         return _running;
     }
 
+    /**
+     * Get polling
+     */
     public boolean getPolling() {
-
         return _polling;
     }
 

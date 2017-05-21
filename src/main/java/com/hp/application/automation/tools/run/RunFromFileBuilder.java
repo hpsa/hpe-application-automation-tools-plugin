@@ -74,6 +74,10 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		runFromFileModel = new RunFromFileSystemModel(fsTests);
 	}
 
+	public void setFsTests(String fsTests){
+		runFromFileModel.setFsTests(fsTests);
+	}
+
 	/**
 	 * Instantiates a new Run from file builder.
 	 *
@@ -111,12 +115,12 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 	 */
 	@SuppressWarnings("squid:S00107")
 	@Deprecated
-	public RunFromFileBuilder(String fsTests, String fsTimeout, String controllerPollingInterval,
+	public RunFromFileBuilder(String fsTests, String fsTimeout, String fsUftRunMode, String controllerPollingInterval,
 							  String perScenarioTimeOut, String ignoreErrorStrings, String mcServerName, String fsUserName, String fsPassword, String fsDeviceId, String fsTargetLab,
 							  String fsManufacturerAndModel, String fsOs, String fsAutActions, String fsLaunchAppName, String fsDevicesMetrics, String fsInstrumented, String fsExtraApps, String fsJobId,
 							  ProxySettings proxySettings, boolean useSSL) {
 
-		runFromFileModel = new RunFromFileSystemModel(fsTests, fsTimeout, controllerPollingInterval,
+		runFromFileModel = new RunFromFileSystemModel(fsTests, fsTimeout, fsUftRunMode, controllerPollingInterval,
 				perScenarioTimeOut, ignoreErrorStrings, mcServerName, fsUserName, fsPassword, fsDeviceId, fsTargetLab, fsManufacturerAndModel, fsOs, fsAutActions, fsLaunchAppName,
 				fsDevicesMetrics, fsInstrumented, fsExtraApps, fsJobId, proxySettings, useSSL);
 	}
@@ -168,6 +172,16 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 	@DataBoundSetter
 	public void setFsTimeout(String fsTimeout) {
 		runFromFileModel.setFsTimeout(fsTimeout);
+	}
+
+	/**
+	 * Sets fs runMode.
+	 *
+	 * @param fsUftRunMode the fs runMode
+	 */
+	@DataBoundSetter
+	public void setFsUftRunMode(String fsUftRunMode) {
+		runFromFileModel.setFsUftRunMode(fsUftRunMode);
 	}
 
 	/**
@@ -314,6 +328,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 	public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener)
 
 			throws InterruptedException, IOException {
+
+		runFromFileModel.setWorkspace(workspace);
 
 		// get the mc server settings
 		MCServerSettingsModel mcServerSettingsModel = getMCServerSettingsModel();
@@ -532,6 +548,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
 		/**
 		 * Gets job id.
+		 * If there is already a job created by jenkins plugin, then return this job id,
+		 * otherwise, create a new temp job and return the new job id.
 		 *
 		 * @param mcUrl         the mc url
 		 * @param mcUserName    the mc user name
@@ -539,10 +557,14 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		 * @param proxyAddress  the proxy address
 		 * @param proxyUserName the proxy user name
 		 * @param proxyPassword the proxy password
+		 * @param previousJobId the previous job id
 		 * @return the job id
 		 */
 		@JavaScriptMethod
-		public String getJobId(String mcUrl, String mcUserName, String mcPassword, String proxyAddress, String proxyUserName, String proxyPassword) {
+		public String getJobId(String mcUrl, String mcUserName, String mcPassword, String proxyAddress, String proxyUserName, String proxyPassword, String previousJobId) {
+			if(null != previousJobId && !previousJobId.isEmpty()){
+				return previousJobId;
+			}
 			return instance.createTempJob(mcUrl, mcUserName, mcPassword, proxyAddress, proxyUserName, proxyPassword);
 		}
 
@@ -688,8 +710,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 				return FormValidation.error("Per Scenario Timeout must be a number");
 			}
 
-            return FormValidation.ok();
-        }
+			return FormValidation.ok();
+		}
 
-    }
+	}
 }

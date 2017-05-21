@@ -25,6 +25,7 @@ package com.hp.application.automation.tools.pipelineSteps;
 
 import com.hp.application.automation.tools.model.EnumDescription;
 import com.hp.application.automation.tools.model.ResultsPublisherModel;
+import com.hp.application.automation.tools.model.RunFromFileSystemModel;
 import com.hp.application.automation.tools.results.RunResultRecorder;
 import com.hp.application.automation.tools.run.RunFromFileBuilder;
 import hudson.Extension;
@@ -90,6 +91,34 @@ public class UftScenarioLoadStep extends AbstractStepImpl {
     }
 
     /**
+     * Gets fsUftRunMode
+     *
+     * @return fsUftRunMode value
+     */
+    public String getFsUftRunMode() {
+        return runFromFileBuilder.getRunFromFileModel().getFsUftRunMode();
+    }
+
+    /**
+     * Sets fsUftRunMode value
+     *
+     * @param fsUftRunMode the fsUftRunMode value
+     */
+    @DataBoundSetter
+    public void setFsUftRunMode(String fsUftRunMode) {
+        runFromFileBuilder.setFsUftRunMode(fsUftRunMode);
+    }
+
+    /**
+     * Gets fsUftRunModes
+     *
+     * @return fsUftRunModes value
+     */
+    public List<EnumDescription> getFsUftRunModes() {
+        return RunFromFileSystemModel.fsUftRunModes;
+    }
+
+    /**
      * Gets test paths.
      *
      * @return the test paths
@@ -140,6 +169,13 @@ public class UftScenarioLoadStep extends AbstractStepImpl {
         public String getDisplayName() {
             return "Run UFT scenario";
         }
+
+        /**
+         * Gets fs runModes
+         *
+         * @return the fs runModes
+         */
+        public List<EnumDescription> getFsUftRunModes() { return RunFromFileSystemModel.fsUftRunModes; }
 
         /**
          * Gets report archive modes.

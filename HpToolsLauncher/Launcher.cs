@@ -507,7 +507,16 @@ namespace HpToolsLauncher
                         mobileinfo = _ciParams["mobileinfo"];
                     }
 
-                    runner = new FileSystemTestsRunner(validTests, timeout, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo);
+                    if (_ciParams.ContainsKey("fsUftRunMode"))
+                    {
+                        string uftRunMode = "Fast";
+                        uftRunMode = _ciParams["fsUftRunMode"];
+                        runner = new FileSystemTestsRunner(validTests, timeout, uftRunMode, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo);
+                    }
+                    else
+                    {
+                        runner = new FileSystemTestsRunner(validTests, timeout, pollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnectionInfo, mobileinfo);
+                    }
 
                     break;
 

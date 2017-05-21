@@ -4,13 +4,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.Authenticator;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
-import java.net.PasswordAuthentication;
 import java.net.Proxy;
-import java.net.URL;
 import java.net.URLConnection;
+import java.net.URL;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
@@ -54,44 +54,47 @@ public class RestClient implements Client {
      * Configure SSL context for the client.
      */
     static {
-    	// First create a trust manager that won't care.
-		X509TrustManager trustManager = new X509TrustManager() {
-			@Override
-			public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-				// Don't do anything.
-			}
-			@Override
-			public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-				// Don't do anything.
-			}
-			@Override
-			public X509Certificate[] getAcceptedIssuers() {
-				// Don't do anything.
-				return null;
-			}
+        // First create a trust manager that won't care.
+        X509TrustManager trustManager = new X509TrustManager() {
+            @Override
+            public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+                // Don't do anything.
+            }
+            @Override
+            public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+                // Don't do anything.
+            }
+            @Override
+            public X509Certificate[] getAcceptedIssuers() {
+                // Don't do anything.
+                return null;
+            }
 
-		};
-		// Now put the trust manager into an SSLContext.
-		SSLContext sslcontext;
-		try {
-			sslcontext = SSLContext.getInstance("SSL");
-			sslcontext.init(null, new TrustManager[] { trustManager }, null);
-		} catch (KeyManagementException | NoSuchAlgorithmException e) {
-			throw new SSEException(e);
-		}
-		
-		HttpsURLConnection.setDefaultSSLSocketFactory(sslcontext.getSocketFactory());
-		
-		//Ignore hostname verify
-		HttpsURLConnection.setDefaultHostnameVerifier(
-		    new HostnameVerifier(){
-		        public boolean verify(String hostname, SSLSession sslSession) {
-		        	return true;
-		        }
-		    }
-		);
+        };
+        // Now put the trust manager into an SSLContext.
+        SSLContext sslcontext;
+        try {
+            sslcontext = SSLContext.getInstance("SSL");
+            sslcontext.init(null, new TrustManager[] { trustManager }, null);
+        } catch (KeyManagementException | NoSuchAlgorithmException e) {
+            throw new SSEException(e);
+        }
+        
+        HttpsURLConnection.setDefaultSSLSocketFactory(sslcontext.getSocketFactory());
+        
+        //Ignore hostname verify
+        HttpsURLConnection.setDefaultHostnameVerifier(
+            new HostnameVerifier(){
+                public boolean verify(String hostname, SSLSession sslSession) {
+                    return true;
+                }
+            }
+        );
     }
-    
+
+    /**
+     * Constructor for setting rest client properties.
+     */
     public RestClient(String url, String domain, String project, String username) {
 
         if (!url.endsWith("/")) {
@@ -108,7 +111,7 @@ public class RestClient implements Client {
     }
 
     /**
-     * Constructor for setting rest client properties including proxy info.
+     * Constructor for setting rest client properties with proxy info.
      */
     public RestClient(String url, String domain, String project, String username, ProxyInfo proxyInfo) {
 
@@ -126,24 +129,35 @@ public class RestClient implements Client {
         _webuiPrefix = getPrefixUrl("webui/alm", domain, project);
     }
 
+    /**
+     * Build
+     * @param suffix
+     * @return
+     */
     @Override
     public String build(String suffix) {
-
         return String.format("%1$s%2$s", _serverUrl, suffix);
     }
 
+    /**
+     * Build rest request
+     */
     @Override
     public String buildRestRequest(String suffix) {
-
         return String.format("%1$s/%2$s", _restPrefix, suffix);
     }
 
+    /**
+     * Build web ui request
+     */
     @Override
     public String buildWebUIRequest(String suffix) {
-
         return String.format("%1$s/%2$s", _webuiPrefix, suffix);
     }
 
+    /**
+     * Http get request
+     */
     @Override
     public Response httpGet(
             String url,
@@ -161,6 +175,9 @@ public class RestClient implements Client {
         return ret;
     }
 
+    /**
+     * Http post request
+     */
     @Override
     public Response httpPost(
             String url,
@@ -178,6 +195,9 @@ public class RestClient implements Client {
         return ret;
     }
 
+    /**
+     * Http put request
+     */
     @Override
     public Response httpPut(
             String url,
@@ -195,30 +215,27 @@ public class RestClient implements Client {
         return ret;
     }
 
+    /**
+     * Get server url
+     */
     @Override
     public String getServerUrl() {
-
         return _serverUrl;
     }
 
+    /**
+     * Get prefix url
+     * @param protocol
+     * @param domain
+     * @param project
+     * @return
+     */
     private String getPrefixUrl(String protocol, String domain, String project) {
-
         return String.format("%s%s/%s/%s", _serverUrl, protocol, domain, project);
     }
 
     /**
-     * @param type
-     *            http operation: get post put delete
-     * @param url
-     *            to work on
-     * @param queryString
-     * @param data
-     *            to write, if a writable operation
-     * @param headers
-     *            to use in the request
-     * @param cookies
-     *            to use in the request and update from the response
-     * @return http response
+     * Do http request
      */
     private Response doHttp(
             String type,
@@ -259,12 +276,7 @@ public class RestClient implements Client {
     }
 
     /**
-     * @param connnection
-     *            connection to set the headers and bytes in
-     * @param headers
-     *            to use in the request, such as content-type
-     * @param bytes
-     *            the actual data to post in the connection.
+     * Prepare http request
      */
     private void prepareHttpRequest(
             HttpURLConnection connnection,
@@ -272,13 +284,16 @@ public class RestClient implements Client {
             byte[] bytes) {
 
         // set all cookies for request
-        connnection.setRequestProperty(RESTConstants.COOKIE, getCookies());
+        connnection.setRequestProperty(RESTConstants.COOKIE, getCookiesString());
 
         setConnectionHeaders(connnection, headers);
 
         setConnectionData(connnection, bytes);
     }
 
+    /**
+     * Set connection data
+     */
     private void setConnectionData(HttpURLConnection connnection, byte[] bytes) {
 
         if (bytes != null && bytes.length > 0) {
@@ -294,6 +309,9 @@ public class RestClient implements Client {
         }
     }
 
+    /**
+     * Set connection headers
+     */
     private void setConnectionHeaders(HttpURLConnection connnection, Map<String, String> headers) {
 
         if (headers != null) {
@@ -306,6 +324,7 @@ public class RestClient implements Client {
     }
 
     /**
+     * Retrieve Html Response
      * @param connection
      *            that is already connected to its url with an http request, and that should contain
      *            a response for us to retrieve
@@ -352,6 +371,9 @@ public class RestClient implements Client {
         return ret;
     }
 
+    /**
+     * Update cookies
+     */
     private void updateCookies(Response response) {
 
         Iterable<String> newCookies = response.getHeaders().get(RESTConstants.SET_COOKIE);
@@ -366,8 +388,10 @@ public class RestClient implements Client {
         }
     }
 
-    private String getCookies() {
-
+    /**
+     * Get cookies string
+     */
+    private String getCookiesString() {
         StringBuilder ret = new StringBuilder();
         if (!_cookies.isEmpty()) {
             for (Entry<String, String> entry : _cookies.entrySet()) {
@@ -380,19 +404,19 @@ public class RestClient implements Client {
 
     @Override
     public String getUsername() {
-
         return _username;
     }
-    
+
+    /**
+     * Open http connection
+     */
     public static URLConnection openConnection(final ProxyInfo proxyInfo, String urlString) throws IOException {
         Proxy proxy = null;
         URL url = new URL(urlString);
-        
         if (proxyInfo != null && StringUtils.isNotBlank(proxyInfo._host) && StringUtils.isNotBlank(proxyInfo._port)) {            
             int port = Integer.parseInt(proxyInfo._port.trim());
             proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyInfo._host, port));
         }
-        
         if (proxy != null && StringUtils.isNotBlank(proxyInfo._userName) && StringUtils.isNotBlank(proxyInfo._password)) {
             Authenticator authenticator = new Authenticator() {
                 @Override
@@ -402,43 +426,39 @@ public class RestClient implements Client {
             };
             Authenticator.setDefault(authenticator);
         }
-
         if (proxy == null) {
             return url.openConnection();
         }
-
-
         return url.openConnection(proxy);
     }
     
     /**
      * Set proxy configuration.
-     * @param host
-     * @param port
-     * @param userName
-     * @param password
-     * @return proxyinfo instance
+     * To get Jenkins proxy configuration: Jenkins.getInstance().proxy; So the proxy could be improved later.
      */
     public static ProxyInfo setProxyCfg(String host, String port, String userName, String password) {
         return new ProxyInfo(host, port, userName, password);
     }
 
+    /**
+     * Set proxy configuration with username/password.
+     */
     public static ProxyInfo setProxyCfg(String host, String port) {
-
         ProxyInfo proxyInfo = new ProxyInfo();
-
         proxyInfo._host = host;
         proxyInfo._port = port;
-
         return proxyInfo;
     }
 
+    /**
+     * Set proxy configuration with address, username, password.
+     */
     public static ProxyInfo setProxyCfg(String address, String userName, String password) {
         ProxyInfo proxyInfo = new ProxyInfo();
 
         if (address != null) {
-        	String host = address;
-        	
+            String host = address;
+            
             if (address.endsWith("/")) {
                 int end = address.lastIndexOf('/');
                 host = address.substring(0, end);
@@ -466,7 +486,7 @@ public class RestClient implements Client {
         String _password;
 
         public ProxyInfo() {
-        	//Keep the non parameter constructor.
+            //Keep the non parameter constructor.
         }
 
         public ProxyInfo(String host, String port, String userName, String password) {
@@ -476,5 +496,12 @@ public class RestClient implements Client {
             _password = password;
         }
 
+    }
+
+    /**
+     * Get cookies
+     */
+    public Map<String, String> getCookies() {
+        return _cookies;
     }
 }
