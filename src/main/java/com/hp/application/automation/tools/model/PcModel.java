@@ -1,3 +1,6 @@
+/*
+* Takes all the parameter from the job in order to create a loadtest object
+* */
 package com.hp.application.automation.tools.model;
 
 import java.util.Arrays;
@@ -24,11 +27,13 @@ public class PcModel {
     private final String           description;
     private final boolean          addRunToTrendReport;
     private final String trendReportId;
+    private final boolean HTTPSProtocol;
+    private final String proxyOutURL;
 
     @DataBoundConstructor
     public PcModel(String pcServerName, String almUserName, String almPassword, String almDomain, String almProject,
                    String testId, String testInstanceId, String timeslotDurationHours, String timeslotDurationMinutes,
-                   PostRunAction postRunAction, boolean vudsMode, String description, boolean addRunToTrendReport, String trendReportId) {
+                   PostRunAction postRunAction, boolean vudsMode, String description, boolean addRunToTrendReport, String trendReportId, boolean HTTPSProtocol, String proxyOutURL) {
 
         this.pcServerName = pcServerName;
         this.almUserName = almUserName;
@@ -42,7 +47,9 @@ public class PcModel {
         this.vudsMode = vudsMode;
         this.description = description;
         this.addRunToTrendReport = addRunToTrendReport;
+        this.HTTPSProtocol = HTTPSProtocol;
         this.trendReportId = trendReportId;
+        this.proxyOutURL = proxyOutURL;
     }
 
     protected SecretContainer setPassword(String almPassword) {
@@ -107,6 +114,13 @@ public class PcModel {
         return this.description;
     }
 
+    public boolean httpsProtocol(){
+        return this.HTTPSProtocol;
+    }
+
+    public String getProxyOutURL(){
+        return this.proxyOutURL;
+    }
 
 
     public static List<PostRunAction> getPostRunActions() {
@@ -128,7 +142,7 @@ public class PcModel {
                         "TestInstanceID='%s', TimeslotDuration='%s', PostRunAction='%s'%s%s]",
 
                 almDomain, almProject, testId, testInstanceId,
-                timeslotDuration, postRunAction.getValue(), vudsModeString, trendString);
+                timeslotDuration, postRunAction.getValue(), vudsModeString, trendString,HTTPSProtocol);
     }
 
 
@@ -138,5 +152,11 @@ public class PcModel {
 
     public boolean isAddRunToTrendReport() {
         return addRunToTrendReport;
+    }
+
+    public String isHTTPSProtocol(){
+        if (!HTTPSProtocol)
+            return "http";
+        return "https";
     }
 }

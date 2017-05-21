@@ -20,6 +20,12 @@
  * THE SOFTWARE.
  */
 
+
+/*
+*  Implements the main method of loadtest
+*
+* */
+
 package com.hp.application.automation.tools.pc;
 
 import hudson.FilePath;
@@ -48,9 +54,14 @@ public class PcClient {
     private PrintStream logger;
 
     public PcClient(PcModel pcModel, PrintStream logger) {
-        model = pcModel;
-        restProxy = new PcRestProxy(model.getPcServerName(), model.getAlmDomain(), model.getAlmProject());
-        this.logger = logger;
+        try {
+            model = pcModel;
+            restProxy = new PcRestProxy(model.isHTTPSProtocol(),model.getPcServerName(), model.getAlmDomain(), model.getAlmProject(),logger, model.getProxyOutURL());
+            this.logger = logger;
+        }catch (PcException e){
+            logger.println(e.getMessage());
+        }
+
     }
 
     public <T extends PcRestProxy> PcClient(PcModel pcModel, PrintStream logger, T proxy) {
@@ -66,12 +77,23 @@ public class PcClient {
             loggedIn = restProxy.authenticate(user, model.getAlmPassword().toString());
         } catch (PcException e) {
             logger.println(e.getMessage());
+          //  stackTraceToString(e);
         } catch (Exception e) {
             logger.println(e);
+           // stackTraceToString(e);
         }
         logger.println(String.format("Login %s", loggedIn ? "succeeded" : "failed"));
         return loggedIn;
     }
+
+//    public void stackTraceToString(Throwable e) {
+//        StringBuilder sb = new StringBuilder();
+//        logger.println("DEBUGMSG - STACKTRACE");
+//        for (StackTraceElement element : e.getStackTrace()) {
+//            logger.println("DEBUGMSG - " + element.toString());
+//        }
+//    }
+
 
     public boolean isLoggedIn() {
 
@@ -247,7 +269,6 @@ public class PcClient {
                     break;
                 }else{
                     Thread.sleep(5000);
-                    logger.println("Publishing...");
                     counter++;
                     if(counter >= 120){
                         logger.println("Error: Publishing didn't ended after 10 minutes, aborting...");

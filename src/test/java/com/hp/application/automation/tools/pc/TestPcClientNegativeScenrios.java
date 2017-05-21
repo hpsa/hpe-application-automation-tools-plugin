@@ -44,8 +44,8 @@ public class TestPcClientNegativeScenrios {
     public static void setUp() {
         System.out.println("Starting HP Performance Center client negative testing scenarios:");
         try {
-            PcRestProxy resetProxy = new MockPcRestProxyBadResponses(PcTestBase.PC_SERVER_NAME, PcTestBase.ALM_DOMAIN,
-                PcTestBase.ALM_PROJECT);
+            PcRestProxy resetProxy = new MockPcRestProxyBadResponses(PcTestBase.WEB_PROTOCOL,PcTestBase.PC_SERVER_NAME, PcTestBase.ALM_DOMAIN,
+                PcTestBase.ALM_PROJECT,PcTestBase.LOGGER);
             pcClient = new PcClient(PcTestBase.pcModel, new PrintStream(new OutputStream() {
                 
                 @Override
@@ -89,9 +89,8 @@ public class TestPcClientNegativeScenrios {
         System.out.println("Testing Publish PC Run Report to while run results are empty");
         try {
 
-            FilePath reportHtml = pcClient.publishRunReport(Integer.parseInt(PcTestBase.RUN_ID), String.format(
-                PcBuilder.getRunReportStructure(), RESOURCES_DIR, PcBuilder.getArtifactsDirectoryName(),
-                PcTestBase.RUN_ID));
+            FilePath reportHtml = pcClient.publishRunReport(Integer.parseInt(PcTestBase.RUN_ID),
+                    String.format(PcBuilder.getRunReportStructure(), RESOURCES_DIR, PcBuilder.getArtifactsDirectoryName(),PcTestBase.RUN_ID));
             Assert.assertNull("pcClient.publishRunReport should have returned null due to empty run results",
                 reportHtml);
         } catch (Exception e) {
