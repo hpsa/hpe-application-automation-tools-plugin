@@ -25,7 +25,7 @@ import hudson.model.listeners.RunListener;
 import javax.annotation.Nonnull;
 
 /**
- * Created by leviy on 27/03/2017.
+ * Listener on job complete event
  */
 @Extension
 public class TestListenerImpl extends RunListener<Run> {

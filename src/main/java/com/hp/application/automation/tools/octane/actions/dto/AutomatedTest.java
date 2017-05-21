@@ -21,7 +21,7 @@ import com.hp.application.automation.tools.octane.actions.UftTestType;
 import javax.xml.bind.annotation.*;
 
 /**
- * Created by kashbi on 25/09/2016.
+ * This file represents automated test for sending to Octane
  */
 @XmlRootElement(name = "test")
 @XmlAccessorType(XmlAccessType.FIELD)
