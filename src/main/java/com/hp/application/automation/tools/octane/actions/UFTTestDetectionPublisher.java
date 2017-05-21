@@ -47,6 +47,9 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * Post-build action of Uft test detection
+ */
 public class UFTTestDetectionPublisher extends Recorder {
 
 	private final String workspaceName;

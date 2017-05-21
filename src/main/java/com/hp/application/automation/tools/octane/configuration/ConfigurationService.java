@@ -30,6 +30,12 @@ import jenkins.model.Jenkins;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/***
+ * Octane plugin configuration service -
+ * 1. helps to change Octane configuration
+ * 2. helps to get Octane configuration and model
+ * 3. helps to get RestClient based on some configuration
+ */
 @Extension
 public class ConfigurationService {
 
@@ -37,14 +43,26 @@ public class ConfigurationService {
 
     private static Logger logger = LogManager.getLogger(ConfigurationService.class);
 
+    /**
+     * Get current {@see OctaneServerSettingsModel} model
+     * @return
+     */
     public static OctaneServerSettingsModel getModel() {
         return getOctaneDescriptor().getModel();
     }
 
+    /**
+     * Get current Octane server configuration (that is based on model)
+      * @return
+     */
     public static ServerConfiguration getServerConfiguration() {
         return getOctaneDescriptor().getServerConfiguration();
     }
 
+    /**
+     * Change model (used by tests)
+     * @param newModel
+     */
     public static void configurePlugin(OctaneServerSettingsModel newModel) {
         getOctaneDescriptor().setModel(newModel);
     }
@@ -53,11 +71,20 @@ public class ConfigurationService {
         return Jenkins.getInstance().getDescriptorByType(OctaneServerSettingsBuilder.OctaneDescriptorImpl.class);
     }
 
+    /**
+     * Get plugin version
+     * @return
+     */
     public static String getPluginVersion() {
         Plugin plugin = Jenkins.getInstance().getPlugin("hp-application-automation-tools-plugin");
         return plugin.getWrapper().getVersion();
     }
 
+    /**
+     * Create restClient based on some server configuration
+     * @param serverConfiguration
+     * @return
+     */
     public MqmRestClient createClient(ServerConfiguration serverConfiguration) {
 
         if (!serverConfiguration.isValid()) {
@@ -85,6 +112,10 @@ public class ConfigurationService {
         return null;
     }
 
+    /**
+     * Inject client factory
+     * @param clientFactory
+     */
     @Inject
     public void setMqmRestClientFactory(JenkinsMqmRestClientFactoryImpl clientFactory) {
         this.clientFactory = clientFactory;
