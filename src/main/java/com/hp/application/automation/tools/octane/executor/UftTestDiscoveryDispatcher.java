@@ -116,9 +116,6 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
 
                 logger.warn("Persistence [" + item.getProjectName() + "#" + item.getBuildNumber() + "]");
                 dispatchDetectionResults(item, client, result);
-                if (result.isInitialDetection()) {
-                    UFTTestDetectionService.createInitialDetectionFile(((AbstractBuild) build).getWorkspace());
-                }
                 queue.remove();
             }
         } catch (Exception e) {

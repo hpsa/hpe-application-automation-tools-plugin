@@ -63,7 +63,7 @@ public class UFTTestDetectionResult {
     private String workspaceId;
 
     @XmlAttribute
-    private boolean initialDetection;
+    private boolean fullScan;
 
     public List<AutomatedTest> getNewTests() {
         return newTests;
@@ -93,12 +93,12 @@ public class UFTTestDetectionResult {
         this.workspaceId = workspaceId;
     }
 
-    public boolean isInitialDetection() {
-        return initialDetection;
+    public boolean isFullScan() {
+        return fullScan;
     }
 
-    public void setInitialDetection(boolean initialDetection) {
-        this.initialDetection = initialDetection;
+    public void setFullScan(boolean fullScan) {
+        this.fullScan = fullScan;
     }
 
     public boolean hasChanges() {

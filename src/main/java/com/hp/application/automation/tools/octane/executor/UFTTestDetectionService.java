@@ -22,10 +22,7 @@ import com.hp.application.automation.tools.octane.actions.dto.AutomatedTest;
 import com.hp.application.automation.tools.octane.actions.dto.ScmResourceFile;
 import hudson.ExtensionList;
 import hudson.FilePath;
-import hudson.model.AbstractBuild;
-import hudson.model.BuildListener;
-import hudson.model.Run;
-import hudson.model.TaskListener;
+import hudson.model.*;
 import hudson.plugins.git.GitChangeSet;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.EditType;
@@ -61,8 +58,8 @@ public class UFTTestDetectionService {
 
         try {
 
-            boolean initialDetection = build.getId().equals("1") || !initialDetectionFileExist(build.getWorkspace());
-            if (initialDetection) {
+            boolean fullScan = build.getId().equals("1") || !initialDetectionFileExist(build.getWorkspace()) || isFullScan((build));
+            if (fullScan) {
                 printToConsole(buildListener, "Executing initial detection");
                 result = doInitialDetection(build.getWorkspace());
             } else {
@@ -89,7 +86,7 @@ public class UFTTestDetectionService {
 
             result.setScmRepositoryId(scmRepositoryId);
             result.setWorkspaceId(workspaceId);
-            result.setInitialDetection(initialDetection);
+            result.setFullScan(fullScan);
             sortTests(result.getNewTests());
             sortTests(result.getUpdatedTests());
             publishDetectionResults(build, buildListener, result);
@@ -98,12 +95,24 @@ public class UFTTestDetectionService {
                 UftTestDiscoveryDispatcher dispatcher = getExtension(UftTestDiscoveryDispatcher.class);
                 dispatcher.enqueueResult(build.getProject().getName(), build.getNumber());
             }
+            createInitialDetectionFile(build.getWorkspace());
 
         } catch (InterruptedException | IOException e) {
             e.printStackTrace();
         }
 
         return result;
+    }
+
+    private static boolean isFullScan(AbstractBuild<?, ?> build) {
+        ParametersAction parameters = build.getAction(ParametersAction.class);
+        if (parameters != null) {
+            ParameterValue parameterValue = parameters.getParameter(TestExecutionJobCreatorService.FULL_SCAN_PARAMETER_NAME);
+            if (parameterValue != null) {
+                return (Boolean) parameterValue.getValue();
+            }
+        }
+        return false;
     }
 
     private static void sortTests(List<AutomatedTest> newTests) {
@@ -246,7 +255,7 @@ public class UFTTestDetectionService {
         }
     }
 
-    public static void createInitialDetectionFile(FilePath workspace) {
+    private static void createInitialDetectionFile(FilePath workspace) {
         try {
             File rootFile = new File(workspace.toURI());
             File file = new File(rootFile, INITIAL_DETECTION_FILE);
@@ -256,7 +265,7 @@ public class UFTTestDetectionService {
         }
     }
 
-    public static void removeInitialDetectionFlag(FilePath workspace) {
+    /*private static void removeInitialDetectionFlag(FilePath workspace) {
         try {
             File rootFile = new File(workspace.toURI());
             File file = new File(rootFile, INITIAL_DETECTION_FILE);
@@ -264,7 +273,7 @@ public class UFTTestDetectionService {
         } catch (IOException | InterruptedException e) {
             logger.error("Failed to removeInitialDetectionFlag");
         }
-    }
+    }*/
 
     private static UFTTestDetectionResult doInitialDetection(FilePath workspace) throws IOException, InterruptedException {
         UFTTestDetectionResult result = new UFTTestDetectionResult();
