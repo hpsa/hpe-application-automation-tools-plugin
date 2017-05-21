@@ -49,6 +49,8 @@ public class UFTTestDetectionService {
     private static final String QTPFileExtention = ".tsp";//gui test
     private static final String XLSXExtention = ".xlsx";//excel file
     private static final String XLSExtention = ".xls";//excel file
+    private static final String windowsPathSplitter = "\\";
+    private static final String linuxPathSplitter = "/";
 
 
     public static UFTTestDetectionResult startScanning(AbstractBuild<?, ?> build, String workspaceId, String scmRepositoryId, BuildListener buildListener) {
@@ -66,6 +68,7 @@ public class UFTTestDetectionService {
                 printToConsole(buildListener, "Executing changeSet detection");
                 result = doChangeSetDetection(changeSetItems, build.getWorkspace());
                 removeTestDuplicated(result.getUpdatedTests());
+                removeFalsePositiveDeletedDataTables(result.getDeletedTests(), result.getDeletedScmResourceFiles());
             }
 
             if (!result.getNewTests().isEmpty()) {
@@ -102,6 +105,34 @@ public class UFTTestDetectionService {
         }
 
         return result;
+    }
+
+    /**
+     * Deleted data table might be part of deleted test. During discovery its very hard to know.
+     * Here we pass through all deleted data tables, if we found table parent is test package - we know that the delete was part of test delete
+     *
+     * @param deletedTests
+     * @param deletedScmResourceFiles
+     */
+    private static void removeFalsePositiveDeletedDataTables(List<AutomatedTest> deletedTests, List<ScmResourceFile> deletedScmResourceFiles) {
+        if (!deletedScmResourceFiles.isEmpty() && !deletedTests.isEmpty()) {
+
+            List<ScmResourceFile> falsePositive = new ArrayList<>();
+            for (ScmResourceFile item : deletedScmResourceFiles) {
+                int parentSplitterIndex = item.getRelativePath().lastIndexOf(windowsPathSplitter);
+                if (parentSplitterIndex != -1) {
+                    String parentName = item.getRelativePath().substring(0, parentSplitterIndex);
+                    for (AutomatedTest test : deletedTests) {
+                        String testPath = test.getPackage() + windowsPathSplitter + test.getName();
+                        if (testPath.equals(parentName)) {
+                            falsePositive.add(item);
+                            break;
+                        }
+                    }
+                }
+            }
+            deletedScmResourceFiles.removeAll(falsePositive);
+        }
     }
 
     private static boolean isFullScan(AbstractBuild<?, ?> build) {
@@ -179,7 +210,7 @@ public class UFTTestDetectionService {
                     } else if (EditType.DELETE.equals(path.getEditType())) {
                         if (!isFileExist(fileFullPath)) {
                             FilePath testFolder = getTestFolderForTestMainFile(fileFullPath);
-                            AutomatedTest test = createAutomatedTest(workspace, testFolder, null);
+                            AutomatedTest test = createAutomatedTest(workspace, testFolder, null, false);
                             result.getDeletedTests().add(test);
                         }
                     } else if (EditType.EDIT.equals(path.getEditType())) {
@@ -190,18 +221,18 @@ public class UFTTestDetectionService {
                     }
                 } else if (isUftDataTableFile(path.getPath())) {
                     FilePath filePath = new FilePath(new File(fileFullPath));
-                    UftTestType testType = isUftTestFolder(filePath.getParent().list());
-                    if (testType.isNone()) {
-                        if (EditType.ADD.equals(path.getEditType())) {
+                    if (EditType.ADD.equals(path.getEditType())) {
+                        UftTestType testType = isUftTestFolder(filePath.getParent().list());
+                        if (testType.isNone()) {
                             if (filePath.exists()) {
                                 ScmResourceFile resourceFile = createDataTable(workspace, filePath);
                                 result.getNewScmResourceFiles().add(resourceFile);
                             }
-                        } else if (EditType.DELETE.equals(path.getEditType())) {
-                            if (!filePath.exists()) {
-                                ScmResourceFile resourceFile = createDataTable(workspace, filePath);
-                                result.getDeletedScmResourceFiles().add(resourceFile);
-                            }
+                        }
+                    } else if (EditType.DELETE.equals(path.getEditType())) {
+                        if (!filePath.exists()) {
+                            ScmResourceFile resourceFile = createDataTable(workspace, filePath);
+                            result.getDeletedScmResourceFiles().add(resourceFile);
                         }
                     }
                 }
@@ -211,14 +242,15 @@ public class UFTTestDetectionService {
         return result;
     }
 
-    private static AutomatedTest createAutomatedTest(FilePath root, FilePath dirPath, UftTestType testType) throws IOException, InterruptedException {
+    private static AutomatedTest createAutomatedTest(FilePath root, FilePath dirPath, UftTestType testType, boolean executable) throws IOException, InterruptedException {
         AutomatedTest test = new AutomatedTest();
         test.setName(dirPath.getName());
 
-        //set component - relative path from root
+
         String relativePath = getRelativePath(root, dirPath);
         String packageName = relativePath.length() != dirPath.getName().length() ? relativePath.substring(0, relativePath.length() - dirPath.getName().length() - 1) : "";
         test.setPackage(packageName);
+        test.setExecutable(executable);
 
         if (testType != null && !testType.isNone()) {
             test.setUftTestType(testType);
@@ -234,8 +266,8 @@ public class UFTTestDetectionService {
         String testPath = path.getRemote();
         String rootPath = root.getRemote();
         String relativePath = testPath.replace(rootPath, "");
-        relativePath = StringUtils.strip(relativePath, "\\/");
-        relativePath.replaceAll("/", "\\");
+        relativePath = StringUtils.strip(relativePath, windowsPathSplitter + linuxPathSplitter);
+        relativePath.replaceAll(linuxPathSplitter, windowsPathSplitter + windowsPathSplitter);
         return relativePath;
     }
 
@@ -287,7 +319,7 @@ public class UFTTestDetectionService {
         //if it test folder - create new test, else drill down to subFolders
         UftTestType testType = isUftTestFolder(paths);
         if (!testType.isNone()) {
-            AutomatedTest test = createAutomatedTest(root, dirPath, testType);
+            AutomatedTest test = createAutomatedTest(root, dirPath, testType, true);
             foundTests.add(test);
 
         } else {

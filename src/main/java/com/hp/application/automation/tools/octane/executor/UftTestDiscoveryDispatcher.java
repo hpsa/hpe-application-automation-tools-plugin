@@ -61,7 +61,7 @@ import java.util.*;
 public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 
     private static Logger logger = LogManager.getLogger(UftTestDiscoveryDispatcher.class);
-    private final static String TESTS_COLLECTION_NAME = "tests";
+    private final static String TESTS_COLLECTION_NAME = "automated_tests";
     private final static String SCM_RESOURCE_FILES_COLLECTION_NAME = "scm_resource_files";
 
     private final static int BULK_SIZE = 100;
@@ -137,16 +137,22 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
             logger.warn("Persistence [" + item.getProjectName() + "#" + item.getBuildNumber() + "] : " + result.getNewTests().size() + "  new tests posted successfully = " + posted);
         }
 
+        //post test updated
+        if (!result.getUpdatedTests().isEmpty()) {
+            boolean updated = updateTests(client, result.getUpdatedTests(), result.getWorkspaceId());
+            logger.warn("Persistence [" + item.getProjectName() + "#" + item.getBuildNumber() + "] : " + result.getUpdatedTests().size() + "  updated tests posted successfully = " + updated);
+        }
+
+        //post test deleted
+        if (!result.getDeletedTests().isEmpty()) {
+            boolean updated = setTestsNotExecutable(client, result.getDeletedTests(), result.getWorkspaceId());
+            logger.warn("Persistence [" + item.getProjectName() + "#" + item.getBuildNumber() + "] : " + result.getDeletedTests().size() + "  deleted tests set as not executable successfully = " + updated);
+        }
+
         //post scm resources
         if (!result.getNewScmResourceFiles().isEmpty()) {
             boolean posted = postScmResources(client, result.getNewScmResourceFiles(), result.getWorkspaceId(), result.getScmRepositoryId());
             logger.warn("Persistence [" + item.getProjectName() + "#" + item.getBuildNumber() + "] : " + result.getNewScmResourceFiles().size() + "  new scmResources posted successfully = " + posted);
-        }
-
-        //post updated
-        if (!result.getUpdatedTests().isEmpty()) {
-            boolean updated = updateTests(client, result.getUpdatedTests(), result.getWorkspaceId());
-            logger.warn("Persistence [" + item.getProjectName() + "#" + item.getBuildNumber() + "] : " + result.getUpdatedTests().size() + "  updated tests posted successfully = " + updated);
         }
 
         //delete scm resources
@@ -299,6 +305,31 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
         }
     }*/
 
+    private static boolean setTestsNotExecutable(MqmRestClient client, Collection<AutomatedTest> deletedTest, String workspaceId) throws UnsupportedEncodingException {
+        long workspaceIdAsLong = Long.parseLong(workspaceId);
+
+        try {
+            for (AutomatedTest test : deletedTest) {
+                 List<String> conditions = new ArrayList<>();
+                conditions.add(QueryHelper.condition("name", test.getName()));
+                conditions.add(QueryHelper.condition("package", test.getPackage()));
+                PagedList<Entity> foundTests = client.getEntities(workspaceIdAsLong, TESTS_COLLECTION_NAME, conditions, Arrays.asList("id"));
+                if (foundTests.getItems().size() == 1) {
+                    Entity foundTest = foundTests.getItems().get(0);
+                    AutomatedTest testForUpdate = new AutomatedTest();
+                    testForUpdate.setExecutable(false);
+                    testForUpdate.setId(foundTest.getId());
+                    String json = convertToJsonString(testForUpdate);
+                    client.updateEntity(Long.parseLong(workspaceId), TESTS_COLLECTION_NAME, foundTests.getItems().get(0).getId(), json);
+                }
+            }
+            return true;
+
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     private static boolean updateTests(MqmRestClient client, Collection<AutomatedTest> updateTests, String workspaceId) throws UnsupportedEncodingException {
         long workspaceIdAsLong = Long.parseLong(workspaceId);
 
@@ -315,8 +346,8 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
                 if (foundTests.getItems().size() == 1) {
                     Entity foundTest = foundTests.getItems().get(0);
                     AutomatedTest testForUpdate = new AutomatedTest();
-                    testForUpdate.setSubtype(null);
                     testForUpdate.setDescription(test.getDescription());
+                    testForUpdate.setExecutable(test.getExecutable());
                     testForUpdate.setId(foundTest.getId());
                     String json = convertToJsonString(testForUpdate);
                     client.updateEntity(Long.parseLong(workspaceId), TESTS_COLLECTION_NAME, foundTests.getItems().get(0).getId(), json);
