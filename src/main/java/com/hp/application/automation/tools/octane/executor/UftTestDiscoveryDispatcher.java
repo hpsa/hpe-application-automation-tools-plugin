@@ -31,7 +31,6 @@ import com.hp.mqm.client.model.Entity;
 import com.hp.mqm.client.model.ListItem;
 import com.hp.mqm.client.model.PagedList;
 import hudson.Extension;
-import hudson.model.AbstractBuild;
 import hudson.model.Job;
 import hudson.model.Run;
 import hudson.model.TaskListener;
@@ -196,7 +195,7 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
 
         if (!resources.isEmpty()) {
             try {
-                completeScmResourceProperties(client, Long.parseLong(workspaceId), resources, scmResourceId);
+                completeScmResourceProperties(resources, scmResourceId);
             } catch (RequestErrorException e) {
                 logger.error("Failed to completeTestProperties : " + e.getMessage());
                 return false;
@@ -310,7 +309,7 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
 
         try {
             for (AutomatedTest test : deletedTest) {
-                 List<String> conditions = new ArrayList<>();
+                List<String> conditions = new ArrayList<>();
                 conditions.add(QueryHelper.condition("name", test.getName()));
                 conditions.add(QueryHelper.condition("package", test.getPackage()));
                 PagedList<Entity> foundTests = client.getEntities(workspaceIdAsLong, TESTS_COLLECTION_NAME, conditions, Arrays.asList("id"));
@@ -406,7 +405,7 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
         }
     }
 
-    private static void completeScmResourceProperties(MqmRestClient client, long l, List<ScmResourceFile> resources, String scmResourceId) {
+    private static void completeScmResourceProperties(List<ScmResourceFile> resources, String scmResourceId) {
         BaseRefEntity scmRepository = StringUtils.isEmpty(scmResourceId) ? null : BaseRefEntity.create("scm_repository", Long.valueOf(scmResourceId));
         for (ScmResourceFile resource : resources) {
             resource.setScmRepository(scmRepository);

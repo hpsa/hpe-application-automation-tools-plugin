@@ -39,12 +39,13 @@ import org.apache.logging.log4j.Logger;
 @Extension
 public class ConfigurationService {
 
-    JenkinsMqmRestClientFactoryImpl clientFactory;
+    private JenkinsMqmRestClientFactoryImpl clientFactory;
 
     private static Logger logger = LogManager.getLogger(ConfigurationService.class);
 
     /**
      * Get current {@see OctaneServerSettingsModel} model
+     *
      * @return
      */
     public static OctaneServerSettingsModel getModel() {
@@ -53,7 +54,8 @@ public class ConfigurationService {
 
     /**
      * Get current Octane server configuration (that is based on model)
-      * @return
+     *
+     * @return
      */
     public static ServerConfiguration getServerConfiguration() {
         return getOctaneDescriptor().getServerConfiguration();
@@ -61,6 +63,7 @@ public class ConfigurationService {
 
     /**
      * Change model (used by tests)
+     *
      * @param newModel
      */
     public static void configurePlugin(OctaneServerSettingsModel newModel) {
@@ -73,6 +76,7 @@ public class ConfigurationService {
 
     /**
      * Get plugin version
+     *
      * @return
      */
     public static String getPluginVersion() {
@@ -82,6 +86,7 @@ public class ConfigurationService {
 
     /**
      * Create restClient based on some server configuration
+     *
      * @param serverConfiguration
      * @return
      */
@@ -114,6 +119,7 @@ public class ConfigurationService {
 
     /**
      * Inject client factory
+     *
      * @param clientFactory
      */
     @Inject

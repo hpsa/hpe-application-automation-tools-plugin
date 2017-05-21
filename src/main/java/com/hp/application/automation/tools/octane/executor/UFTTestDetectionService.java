@@ -267,7 +267,9 @@ public class UFTTestDetectionService {
         String rootPath = root.getRemote();
         String relativePath = testPath.replace(rootPath, "");
         relativePath = StringUtils.strip(relativePath, windowsPathSplitter + linuxPathSplitter);
-        relativePath.replaceAll(linuxPathSplitter, windowsPathSplitter + windowsPathSplitter);
+        //we want all paths will be in sindows style, because tests are run in windows, therefore we replace all linux splitters (/) by windows one (\)
+        //http://stackoverflow.com/questions/23869613/how-to-replace-one-or-more-in-string-with-just
+        relativePath = relativePath.replaceAll(linuxPathSplitter, windowsPathSplitter + windowsPathSplitter);//str.replaceAll("/", "\\\\");
         return relativePath;
     }
 
