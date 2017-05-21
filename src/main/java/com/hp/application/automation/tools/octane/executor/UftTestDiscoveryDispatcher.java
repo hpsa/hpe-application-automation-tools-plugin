@@ -138,7 +138,7 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
 
         //post test updated
         if (!result.getUpdatedTests().isEmpty()) {
-            boolean updated = updateTests(client, result.getUpdatedTests(), result.getWorkspaceId());
+            boolean updated = updateTests(client, result.getUpdatedTests(), result.getWorkspaceId(), result.getScmRepositoryId());
             logger.warn("Persistence [" + item.getProjectName() + "#" + item.getBuildNumber() + "] : " + result.getUpdatedTests().size() + "  updated tests posted successfully = " + updated);
         }
 
@@ -329,10 +329,11 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
         }
     }
 
-    private static boolean updateTests(MqmRestClient client, Collection<AutomatedTest> updateTests, String workspaceId) throws UnsupportedEncodingException {
+    private static boolean updateTests(MqmRestClient client, Collection<AutomatedTest> updateTests, String workspaceId, String scmRepositoryId) throws UnsupportedEncodingException {
         long workspaceIdAsLong = Long.parseLong(workspaceId);
 
         try {
+            List<AutomatedTest> createAsNewTests = new ArrayList<>();
             for (AutomatedTest test : updateTests) {
                 if (StringUtils.isEmpty(test.getDescription())) {
                     continue;
@@ -350,10 +351,20 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
                     testForUpdate.setId(foundTest.getId());
                     String json = convertToJsonString(testForUpdate);
                     client.updateEntity(Long.parseLong(workspaceId), TESTS_COLLECTION_NAME, foundTests.getItems().get(0).getId(), json);
+                } else if (foundTests.getItems().size() == 0) {
+                    //test not exist in Octane, create it from scratch
+                    logger.error(String.format("Test %s\\%s should be updated but wasn't found on Octane, creating test from scratch ", test.getPackage(), test.getName()));
+                    createAsNewTests.add(test);
+
                 }
             }
-            return true;
 
+
+            if (!createAsNewTests.isEmpty()) {
+                return postTests(client, createAsNewTests, workspaceId, scmRepositoryId);
+            } else {
+                return true;
+            }
         } catch (Exception e) {
             return false;
         }
