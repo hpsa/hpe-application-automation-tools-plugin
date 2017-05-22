@@ -13,8 +13,16 @@ import com.hp.application.automation.tools.model.ProxySettings;
 import com.hp.application.automation.tools.model.RunFromFileSystemModel;
 import com.hp.application.automation.tools.run.AlmRunTypes.RunType;
 import com.hp.application.automation.tools.settings.MCServerSettingsBuilder;
-import hudson.*;
-import hudson.model.*;
+import hudson.EnvVars;
+import hudson.Extension;
+import hudson.FilePath;
+import hudson.Launcher;
+import hudson.Util;
+import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
+import hudson.model.Result;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
@@ -355,9 +363,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		}
 
 		if (runFromFileModel != null && StringUtils.isNotBlank(runFromFileModel.getFsPassword())) {
-			String encPassword = "";
 			try {
-				encPassword = EncryptionUtils.Encrypt(runFromFileModel.getFsPassword(), EncryptionUtils.getSecretKey());
+				String encPassword = EncryptionUtils.Encrypt(runFromFileModel.getFsPassword(), EncryptionUtils.getSecretKey());
 				mergedProperties.put("MobilePassword", encPassword);
 			} catch (Exception e) {
 				build.setResult(Result.FAILURE);
@@ -483,7 +490,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		}
 	}
 
-	private String createMtbxFileInWs(FilePath workspace, String mtbxContent) {
+	private static String createMtbxFileInWs(FilePath workspace, String mtbxContent) {
 		try {
 			Date now = new Date();
 			Format formatter = new SimpleDateFormat("ddMMyyyyHHmmssSSS");
@@ -497,11 +504,10 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 			InputStream in = IOUtils.toInputStream(mtbxContentUpdated, "UTF-8");
 			remoteFile.copyFrom(in);
 
-			String filePath = remoteFile.getRemote();
-			return filePath;
+			return remoteFile.getRemote();
 
 		} catch (IOException | InterruptedException e) {
-			throw new RuntimeException("Failed to save MTBX file : " + e.getMessage());
+			throw new RuntimeException("Failed to save MTBX file : " + e.getMessage(), e);
 		}
 	}
 
