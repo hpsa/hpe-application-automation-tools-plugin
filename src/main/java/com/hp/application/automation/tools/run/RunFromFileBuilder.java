@@ -412,8 +412,13 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		String firstTestKey = "Test1";
 		String firstTestContent = mergedProperties.getProperty(firstTestKey, "");
 		if (RunFromFileSystemModel.isMtbxContent(firstTestContent)) {
-			String mtbxFilePath = createMtbxFileInWs(workspace, firstTestContent);
-			mergedProperties.setProperty(firstTestKey, mtbxFilePath);
+			try {
+				String mtbxFilePath = createMtbxFileInWs(workspace, firstTestContent);
+				mergedProperties.setProperty(firstTestKey, mtbxFilePath);
+			} catch (IOException | InterruptedException e) {
+				build.setResult(Result.FAILURE);
+				listener.error("Failed to save MTBX file : " + e.getMessage());
+			}
 		}
 
 		// get properties serialized into a stream
@@ -490,25 +495,20 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		}
 	}
 
-	private static String createMtbxFileInWs(FilePath workspace, String mtbxContent) {
-		try {
-			Date now = new Date();
-			Format formatter = new SimpleDateFormat("ddMMyyyyHHmmssSSS");
-			String time = formatter.format(now);
+	private static String createMtbxFileInWs(FilePath workspace, String mtbxContent) throws IOException, InterruptedException {
+		Date now = new Date();
+		Format formatter = new SimpleDateFormat("ddMMyyyyHHmmssSSS");
+		String time = formatter.format(now);
 
-			String fileName = "test_suite_" + time + ".mtbx";
+		String fileName = "test_suite_" + time + ".mtbx";
 
-			FilePath remoteFile = workspace.child(fileName);
+		FilePath remoteFile = workspace.child(fileName);
 
-			String mtbxContentUpdated = mtbxContent.replace("${WORKSPACE}", workspace.getRemote());
-			InputStream in = IOUtils.toInputStream(mtbxContentUpdated, "UTF-8");
-			remoteFile.copyFrom(in);
+		String mtbxContentUpdated = mtbxContent.replace("${WORKSPACE}", workspace.getRemote());
+		InputStream in = IOUtils.toInputStream(mtbxContentUpdated, "UTF-8");
+		remoteFile.copyFrom(in);
 
-			return remoteFile.getRemote();
-
-		} catch (IOException | InterruptedException e) {
-			throw new RuntimeException("Failed to save MTBX file : " + e.getMessage(), e);
-		}
+		return remoteFile.getRemote();
 	}
 
 	/**
