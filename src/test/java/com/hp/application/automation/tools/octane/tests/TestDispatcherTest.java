@@ -86,8 +86,10 @@ public class TestDispatcherTest {
 
 		project = rule.createFreeStyleProject("TestDispatcher");
 		Maven.MavenInstallation mavenInstallation = ToolInstallations.configureMaven3();
+		//Maven.MavenInstallation mavenInstallation = new Maven.MavenInstallation("default-system-maven", System.getenv("MAVEN_HOME"), JenkinsRule.NO_PROPERTIES);
 
-		project.getBuildersList().add(new Maven("-s settings.xml install", mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
+		project.getBuildersList().add(new Maven(String.format("--settings \"%s\\conf\\settings.xml\" install -Dmaven.repo.local=%s\\m2-temp",
+				System.getenv("MAVEN_HOME"),System.getenv("TEMP")), mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
 		project.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
 		project.setScm(new CopyResourceSCM("/helloWorldRoot"));
 
@@ -223,15 +225,16 @@ public class TestDispatcherTest {
 		Assert.assertEquals(1, queue.size());
 	}
 
-	@Ignore
 	@Test
 	public void testDispatchMatrixBuild() throws Exception {
 		MatrixProject matrixProject = rule.createProject(MatrixProject.class, "TestDispatcherMatrix");
-		matrixProject.setAxes(new AxisList(new Axis("OS", "Linux", "Windows")));
+		matrixProject.setAxes(new AxisList(new Axis("osType", "Linux", "Windows")));
 
 		Maven.MavenInstallation mavenInstallation = ToolInstallations.configureMaven3();
+		//Maven.MavenInstallation mavenInstallation = new Maven.MavenInstallation("default-system-maven", System.getenv("MAVEN_HOME"), JenkinsRule.NO_PROPERTIES);
 
-		matrixProject.getBuildersList().add(new Maven("-s settings.xml install", mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
+		matrixProject.getBuildersList().add(new Maven(String.format("--settings \"%s\\conf\\settings.xml\" install -Dmaven.repo.local=%s\\m2-temp",
+				System.getenv("MAVEN_HOME"),System.getenv("TEMP")), mavenInstallation.getName(), null, null, "-Dmaven.test.failure.ignore=true"));
 		matrixProject.getPublishersList().add(new JUnitResultArchiver("**/target/surefire-reports/*.xml"));
 		matrixProject.setScm(new CopyResourceSCM("/helloWorldRoot"));
 

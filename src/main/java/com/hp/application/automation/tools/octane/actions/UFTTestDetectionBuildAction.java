@@ -16,134 +16,78 @@
 
 package com.hp.application.automation.tools.octane.actions;
 
-import com.hp.application.automation.tools.octane.actions.dto.AutomatedTests;
-import com.hp.mqm.client.MqmRestClient;
-import com.hp.application.automation.tools.octane.actions.dto.AutomatedTest;
-import com.hp.application.automation.tools.octane.client.JenkinsMqmRestClientFactory;
-import com.hp.application.automation.tools.octane.configuration.ConfigurationService;
-import com.hp.application.automation.tools.octane.configuration.ServerConfiguration;
-import hudson.ExtensionList;
-import hudson.FilePath;
+import com.hp.application.automation.tools.octane.executor.UFTTestDetectionResult;
+import com.hp.application.automation.tools.octane.executor.UFTTestDetectionService;
 import hudson.model.AbstractBuild;
 import hudson.model.Action;
-import jenkins.model.Jenkins;
-import net.sf.json.JSONObject;
+import hudson.model.Run;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
-
-
+/**
+ * Class responsible to show report of  {@link UFTTestDetectionService}
+ */
 public class UFTTestDetectionBuildAction implements Action {
-    private String message;
     private AbstractBuild<?, ?> build;
-    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(UFTTestDetectionBuildAction.class.getName());
+
+
+    private UFTTestDetectionResult results;
 
     @Override
     public String getIconFileName() {
-        return "/plugin/testExample/img/build-goals.png";
+        return "notepad.png";
     }
 
     @Override
     public String getDisplayName() {
-        return "Test Example Build Page";
+        return "HP Octane UFT Tests Scanner Report";
     }
 
     @Override
     public String getUrlName() {
-        return "testExampleBA";
+        return "uft_report";
     }
 
-    public String getMessage() {
-        return this.message;
-    }
-
-    public int getBuildNumber() {
-        return this.build.number;
-    }
-
-    public AbstractBuild<?, ?> getBuild() {
+    @SuppressWarnings("squid:S1452")
+    public final Run<?, ?> getBuild() {
         return build;
     }
 
-    private void findUFTTestsPath(List<FilePath> root, HashMap<String, String> testData) throws IOException, InterruptedException {
-        for (FilePath path : root) {
-            if (path.isDirectory()) {
-                findUFTTestsPath(path.list(), testData);
-            } else {
-                if (path.getName().contains(".tsp")) {
-                    String convertResourceMtrAsJSON = UFTParameterFactory.convertResourceMtrAsJSON(path.getParent().child("Action0").child("Resource.mtr").read());
-                    testData.put(path.getParent().getName(), convertResourceMtrAsJSON);
-                }
-            }
-        }
-    }
-
-    private static <T> T getExtension(Class<T> clazz) {
-        ExtensionList<T> items = Jenkins.getInstance().getExtensionList(clazz);
-        return items.get(0);
-    }
-
-    private MqmRestClient createClient() {
-        ServerConfiguration configuration = ConfigurationService.getServerConfiguration();
-        JenkinsMqmRestClientFactory clientFactory = getExtension(JenkinsMqmRestClientFactory.class);
-        MqmRestClient client = clientFactory.obtain(
-                configuration.location,
-                configuration.sharedSpace,
-                configuration.username,
-                configuration.password);
-        return client;
-    }
-
-    UFTTestDetectionBuildAction(final String message, final AbstractBuild<?, ?> build, String workspaceId) {
-        this.message = message;
+    public UFTTestDetectionBuildAction(final AbstractBuild<?, ?> build, UFTTestDetectionResult results) {
         this.build = build;
-        MqmRestClient client = createClient();
-        ServerConfiguration serverConfiguration = ConfigurationService.getServerConfiguration();
-        try {
-            HashMap<String, String> uftTestData = new HashMap<>();
-            findUFTTestsPath(build.getWorkspace().list(), uftTestData);
-            ArrayList<AutomatedTest> data = new ArrayList<>();
-            AutomatedTests automatedTests = new AutomatedTests();
-
-            logger.info(uftTestData.toString());
-
-            Set<String> keys = uftTestData.keySet();
-            String[] uftTestNames = keys.toArray(new String[keys.size()]);
-            for (int i = 0; i < uftTestNames.length; i++) {
-                String uftTestName = uftTestNames[i];
-                AutomatedTest automatedTest = new AutomatedTest();
-                // todo: To enable once decided, need to get the ID dynamicly from server.
-//                automatedTest.setFramework(new TestFramework());
-//                automatedTest.setTesting_tool_type(new com.hp.application.automation.tools.jenkins.actions.dto.TestingToolType());
-                automatedTest.setName(uftTestName);
-                data.add(automatedTest);
-            }
-            automatedTests.setData(data);
-            String uftTestJson = JSONObject.fromObject(automatedTests).toString();
-            String serverURL = getServerURL(workspaceId, serverConfiguration.sharedSpace, serverConfiguration.location);
-            JSONObject jsonObject = client.postTest(uftTestJson, uftTestData, serverURL);
-            for (int i = 0; i < jsonObject.getInt("total_count"); i++) {
-                String testID = ((JSONObject) jsonObject.getJSONArray("data").get(i)).getString("id");
-                String testName = ((JSONObject) jsonObject.getJSONArray("data").get(i)).getString("name");
-                try {
-                    String parametersJSON = uftTestData.get(testName);
-                    if (parametersJSON != null) {
-                        client.attachUFTParametersToTest(testID, parametersJSON, serverURL);
-                    }
-
-                } catch (IOException e) {
-                    logger.severe(e.getMessage());
-                }
-            }
-        } catch (InterruptedException | IOException e) {
-            logger.severe(e.getMessage());
-        }
+        this.results = results == null ? new UFTTestDetectionResult() : results;
     }
 
-    private String getServerURL(String workspaceId, String sharedspaceId, String location) {
-        return location + "/api/shared_spaces/" + sharedspaceId + "/workspaces/" + workspaceId;
+    public UFTTestDetectionResult getResults() {
+        return results;
+    }
+
+    /**
+     * used by ~\src\main\resources\com\hp\application\automation\tools\octane\actions\UFTTestDetectionBuildAction\index.jelly
+     *
+     * @return
+     */
+    public boolean getHasNewTests() {
+        return results.getNewTests().size() > 0;
+    }
+
+    /**
+     * used by ~\src\main\resources\com\hp\application\automation\tools\octane\actions\UFTTestDetectionBuildAction\index.jelly
+     *
+     * @return
+     */
+    public boolean getHasDeletedTests() {
+        return results.getDeletedTests().size() > 0;
+    }
+
+    /**
+     * used by ~\src\main\resources\com\hp\application\automation\tools\octane\actions\UFTTestDetectionBuildAction\index.jelly
+     *
+     * @return
+     */
+    public boolean getHasUpdatedTests() {
+        return results.getUpdatedTests().size() > 0;
+    }
+
+    public void setResults(UFTTestDetectionResult results) {
+        this.results = results;
     }
 }

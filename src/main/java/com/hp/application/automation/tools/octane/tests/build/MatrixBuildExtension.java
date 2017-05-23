@@ -20,6 +20,7 @@ import com.hp.octane.integrations.dto.parameters.CIParameter;
 import com.hp.application.automation.tools.octane.model.ModelFactory;
 import com.hp.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import hudson.Extension;
+import hudson.matrix.MatrixRun;
 import hudson.model.AbstractBuild;
 import hudson.model.Run;
 
@@ -39,7 +40,7 @@ public class MatrixBuildExtension extends BuildHandlerExtension {
 		List<CIParameter> parameters = ParameterProcessors.getInstances(build);
 		String subBuildName = ModelFactory.generateSubBuildName(parameters);
 		return new BuildDescriptor(
-				matrixRun.getRootBuild().getProject().getName(),
+				BuildHandlerUtils.getJobCiId(build),
 				matrixRun.getRootBuild().getProject().getName(),
 				String.valueOf(build.getNumber()),
 				String.valueOf(build.getNumber()),
@@ -48,7 +49,6 @@ public class MatrixBuildExtension extends BuildHandlerExtension {
 
 	@Override
 	public String getProjectFullName(Run<?, ?> build) {
-        AbstractBuild matrixRun = (AbstractBuild) build;
-		return matrixRun.getRootBuild().getProject().getName() + "/" + matrixRun.getProject().getName();
+		return ((MatrixRun)build).getProject().getFullName();
 	}
 }

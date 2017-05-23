@@ -31,19 +31,15 @@ import org.apache.logging.log4j.Logger;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 /**
- * Created with IntelliJ IDEA.
- * User: gullery
- * Date: 08/01/15
- * Time: 23:01
- * To change this template use File | Settings | File Templates.
+ * Implementation for discovery/provisioning of an internal phases/steps of the specific Job in context of ParameterizedTrigger Plugin
  */
-
 public class ParameterizedTriggerProcessor extends AbstractBuilderProcessor {
 	private static final Logger logger = LogManager.getLogger(ParameterizedTriggerProcessor.class);
 
-	public ParameterizedTriggerProcessor(Builder builder, Job job, String phasesName) {
+	public ParameterizedTriggerProcessor(Builder builder, Job job, String phasesName, Set<Job> processedJobs) {
 		TriggerBuilder b = (TriggerBuilder) builder;
 		super.phases = new ArrayList<>();
 		List<AbstractProject> items;
@@ -51,7 +47,7 @@ public class ParameterizedTriggerProcessor extends AbstractBuilderProcessor {
 			items = config.getProjectList(job.getParent(), null);
 			for (Iterator<AbstractProject> iterator = items.iterator(); iterator.hasNext(); ) {
 				AbstractProject next = iterator.next();
-				if (next == null) {
+				if (next == null || processedJobs.contains(next)) {
 					iterator.remove();
 					logger.warn("encountered null project reference; considering it as corrupted configuration and skipping");
 				}
@@ -60,7 +56,7 @@ public class ParameterizedTriggerProcessor extends AbstractBuilderProcessor {
 		}
 	}
 
-	public ParameterizedTriggerProcessor(Publisher publisher, AbstractProject project, String phasesName) {
+	public ParameterizedTriggerProcessor(Publisher publisher, AbstractProject project, String phasesName, Set<Job> processedJobs) {
 		BuildTrigger t = (BuildTrigger) publisher;
 		super.phases = new ArrayList<>();
 		List<AbstractProject> items;
@@ -68,7 +64,7 @@ public class ParameterizedTriggerProcessor extends AbstractBuilderProcessor {
 			items = config.getProjectList(project.getParent(), null);
 			for (Iterator<AbstractProject> iterator = items.iterator(); iterator.hasNext(); ) {
 				AbstractProject next = iterator.next();
-				if (next == null) {
+				if (next == null || processedJobs.contains(next)) {
 					iterator.remove();
 					logger.warn("encountered null project reference; considering it as corrupted configuration and skipping");
 				}

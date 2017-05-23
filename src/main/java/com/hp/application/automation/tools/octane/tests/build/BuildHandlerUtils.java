@@ -2,9 +2,12 @@
 
 package com.hp.application.automation.tools.octane.tests.build;
 
+import com.hp.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import com.hp.application.automation.tools.octane.workflow.WorkflowBuildAdapter;
 import com.hp.application.automation.tools.octane.workflow.WorkflowGraphListener;
 import hudson.FilePath;
+import hudson.matrix.MatrixConfiguration;
+import hudson.matrix.MatrixRun;
 import hudson.model.AbstractBuild;
 import hudson.model.Run;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
@@ -21,7 +24,7 @@ public class BuildHandlerUtils {
 			}
 		}
 		return new BuildDescriptor(
-				build.getParent().getName(),
+				BuildHandlerUtils.getJobCiId(build),
 				build.getParent().getName(),
 				String.valueOf(build.getNumber()),
 				String.valueOf(build.getNumber()),
@@ -34,7 +37,7 @@ public class BuildHandlerUtils {
 				return ext.getProjectFullName(build);
 			}
 		}
-		return build.getParent().getName();//builgetProject().getName();
+		return build.getParent().getFullName();
 	}
 
 	public static FilePath getWorkspace(Run<?,?> build){
@@ -75,4 +78,15 @@ public class BuildHandlerUtils {
 			return runsList;
 		}
 	}
+
+	public static String getJobCiId(Run r) {
+		if (r.getParent() instanceof MatrixConfiguration) {
+			return JobProcessorFactory.getFlowProcessor(((MatrixRun) r).getParentBuild().getParent()).getJobCiId();
+		}
+		if (r.getParent().getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob")) {
+			return JobProcessorFactory.getFlowProcessor(r.getParent()).getJobCiId();
+		}
+		return JobProcessorFactory.getFlowProcessor(((AbstractBuild) r).getProject()).getJobCiId();
+	}
+
 }

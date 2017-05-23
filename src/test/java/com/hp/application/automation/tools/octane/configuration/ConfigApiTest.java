@@ -121,22 +121,6 @@ public class ConfigApiTest {
 		}
 	}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 	private void checkConfig(JSONObject config, String location, String sharedSpace, String username, Secret password) {
 		// check values returned
 		Assert.assertEquals(location, config.getString("location"));

@@ -59,6 +59,22 @@
 
 		}
 
+		function verifyURLAvailable(){
+
+            var pcServer = document.getElementsByName("pc.pcServerName")[0].value;
+            var scheme = "http";
+            if(document.getElementsByName("pc.HTTPSProtocol")[0].checked){
+                scheme = "https"
+            }
+            if(pcServer){
+                var popup = window.open(scheme + "://" + pcServer + "/loadtest/");
+                popup.opener = null;
+            }else{
+                alert("Performance Center Server name is missing.");
+            }
+            return false;
+		}
+
 		</script>
 	</f:block>
 	
@@ -75,8 +91,9 @@
 		<f:textbox name="pc.description" value="${instance.pcModel.description}" />
 	</f:entry>
 	<f:entry title="PC Server" field="pcServerName">
-		<f:textbox name="pc.pcServerName" value="${instance.pcModel.pcServerName}" />
+		<f:textbox name="pc.pcServerName" value="${instance.pcModel.pcServerName}" onchange="verifyURLAvailable" />
 	</f:entry>
+        <f:optionalBlock title="Use HTTPS Protocol" field="HTTPSProtocol" name="pc.HTTPSProtocol" checked="${instance.pcModel.HTTPSProtocol}" />
 	<f:entry title="User name" field="almUserName">
 		<f:textbox name="pc.almUserName" value="${instance.pcModel.almUserName}" />
 	</f:entry>
@@ -92,8 +109,14 @@
 	<f:entry title="Test ID" field="testId">
 		<f:textbox name="pc.testId" value="${instance.pcModel.testId}" />
 	</f:entry>
+	<f:entry title="&#160;&#160;&#160;&#160;&#160;" field="">
+		<a id="pcServerURL" href="#" onclick="verifyURLAvailable();return false;">Browse to find the Test ID</a>
+	</f:entry>
 	<f:entry title="Test Instance ID &#160;" field="testInstanceId">
 		<f:textbox name="pc.testInstanceId" value="${instance.pcModel.testInstanceId}" />
+	</f:entry>
+	<f:entry title="Local Proxy" field="proxyOutURL">
+		<f:textbox name="pc.proxyOutURL" value="${instance.pcModel.proxyOutURL}" />
 	</f:entry>
 	<f:block>
 		<br />
@@ -116,6 +139,8 @@
 		</div>
 		<script>onPostRunActionLoad();</script>
 	</f:block>
+
+
 
 	<f:block>
 		<j:set var="h_id" value="${h.generateId()}" />
@@ -203,8 +228,11 @@
 		<br />
 	</f:block>
 	
-	<f:optionalBlock title="Use VUDs" field="vudsMode"
-		name="pc.vudsMode" checked="${instance.pcModel.vudsMode}" inline="true" />
+
+    <f:block>
+        <br />
+    </f:block>
+	<f:optionalBlock title="Use VUDs" field="vudsMode" name="pc.vudsMode" checked="${instance.pcModel.vudsMode}" inline="true" />
 	<f:block>
 		<br />
 	</f:block>

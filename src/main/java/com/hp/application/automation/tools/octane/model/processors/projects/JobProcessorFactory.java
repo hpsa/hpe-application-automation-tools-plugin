@@ -18,6 +18,9 @@ package com.hp.application.automation.tools.octane.model.processors.projects;
 
 import hudson.model.Job;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Created by gadiel on 30/11/2016.
  *
@@ -29,17 +32,23 @@ public class JobProcessorFactory {
 	private JobProcessorFactory() {
 	}
 
-	public static <T extends Job> AbstractProjectProcessor<T> getFlowProcessor(T job) {
+	public static <T extends Job> AbstractProjectProcessor<T> getFlowProcessor(T job){
+		Set<Job> processedJobs = new HashSet<>();
+		return getFlowProcessor(job, processedJobs);
+	}
+
+	private static <T extends Job> AbstractProjectProcessor<T> getFlowProcessor(T job, Set<Job> processedJobs) {
 		AbstractProjectProcessor flowProcessor;
+		processedJobs.add(job);
 
 		if (job.getClass().getName().equals("hudson.model.FreeStyleProject")) {
-			flowProcessor = new FreeStyleProjectProcessor(job);
+			flowProcessor = new FreeStyleProjectProcessor(job, processedJobs);
 		} else if (job.getClass().getName().equals("hudson.matrix.MatrixProject")) {
-			flowProcessor = new MatrixProjectProcessor(job);
+			flowProcessor = new MatrixProjectProcessor(job, processedJobs);
 		} else if (job.getClass().getName().equals("hudson.maven.MavenModuleSet")) {
-			flowProcessor = new MavenProjectProcessor(job);
+			flowProcessor = new MavenProjectProcessor(job, processedJobs);
 		} else if (job.getClass().getName().equals("com.tikal.jenkins.plugins.multijob.MultiJobProject")) {
-			flowProcessor = new MultiJobProjectProcessor(job);
+			flowProcessor = new MultiJobProjectProcessor(job, processedJobs);
 		} else if (job.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowJob")) {
 			flowProcessor = new WorkFlowJobProcessor(job);
 		} else {

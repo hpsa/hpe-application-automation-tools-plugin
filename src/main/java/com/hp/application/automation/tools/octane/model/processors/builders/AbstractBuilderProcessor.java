@@ -23,17 +23,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created with IntelliJ IDEA.
- * User: gullery
- * Date: 09/01/15
- * Time: 00:59
- * To change this template use File | Settings | File Templates.
+ * Base class for discovery/provisioning of an internal phases/steps of the specific Job
  */
-
 public abstract class AbstractBuilderProcessor {
-	protected ArrayList<PipelinePhase> phases = new ArrayList<PipelinePhase>();
+    protected ArrayList<PipelinePhase> phases = new ArrayList<>();
 
-	public List<PipelinePhase> getPhases() {
-		return phases;
-	}
+    /**
+     * Retrieves previously processed and prepared phases of the specific Builder (Jenkins' internal Job invoker)
+     *
+     * @return list of phases
+     */
+    public List<PipelinePhase> getPhases() {
+        return phases;
+    }
 }

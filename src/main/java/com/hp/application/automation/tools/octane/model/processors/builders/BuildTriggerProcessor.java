@@ -18,6 +18,7 @@ package com.hp.application.automation.tools.octane.model.processors.builders;
 
 import com.hp.application.automation.tools.octane.model.ModelFactory;
 import hudson.model.AbstractProject;
+import hudson.model.Job;
 import hudson.tasks.BuildTrigger;
 import hudson.tasks.Publisher;
 import org.apache.logging.log4j.LogManager;
@@ -26,25 +27,21 @@ import org.apache.logging.log4j.Logger;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 /**
- * Created with IntelliJ IDEA.
- * User: gullery
- * Date: 08/01/15
- * Time: 23:01
- * To change this template use File | Settings | File Templates.
+ * Implementation for discovery/provisioning of an internal phases/steps of the specific Job in context of BuildTrigger
  */
-
 public class BuildTriggerProcessor extends AbstractBuilderProcessor {
 	private static final Logger logger = LogManager.getLogger(BuildTriggerProcessor.class);
 
-	public BuildTriggerProcessor(Publisher publisher, AbstractProject project) {
+	public BuildTriggerProcessor(Publisher publisher, AbstractProject project, Set<Job> processedJobs) {
 		BuildTrigger t = (BuildTrigger) publisher;
 		super.phases = new ArrayList<>();
 		List<AbstractProject> items = t.getChildProjects(project.getParent());
 		for (Iterator<AbstractProject> iterator = items.iterator(); iterator.hasNext(); ) {
 			AbstractProject next = iterator.next();
-			if (next == null) {
+			if (next == null || processedJobs.contains(next)) {
 				iterator.remove();
 				logger.warn("encountered null project reference; considering it as corrupted configuration and skipping");
 			}

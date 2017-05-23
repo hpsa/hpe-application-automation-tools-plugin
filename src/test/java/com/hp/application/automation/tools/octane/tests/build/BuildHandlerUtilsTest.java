@@ -31,6 +31,9 @@ import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.ToolInstallations;
 
 import java.util.HashMap;
+
+import static org.jvnet.hudson.test.JenkinsRule.NO_PROPERTIES;
+
 @SuppressWarnings({"squid:S2699","squid:S3658","squid:S2259","squid:S1872","squid:S2925","squid:S109","squid:S1607","squid:S2701"})
 public class BuildHandlerUtilsTest {
 
@@ -68,8 +71,12 @@ public class BuildHandlerUtilsTest {
 		project.runHeadless();
 
 		Maven.MavenInstallation mavenInstallation = ToolInstallations.configureMaven3();
+
+		//Maven.MavenInstallation mavenInstallation = new Maven.MavenInstallation("default-system-maven", System.getenv("MAVEN_HOME"), JenkinsRule.NO_PROPERTIES);
+
 		project.setMaven(mavenInstallation.getName());
-		project.setGoals("-s settings.xml test -Dmaven.test.failure.ignore=true");
+		//project.setGoals("test -Dmaven.test.failure.ignore=true");
+		project.setGoals(String.format("clean test --settings %s\\conf\\settings.xml -Dmaven.repo.local=%s\\m2-temp -Dmaven.test.failure.ignore=true",System.getenv("MAVEN_HOME"),System.getenv("TEMP")));
 		project.setScm(new CopyResourceSCM("/helloWorldRoot"));
 		MavenModuleSetBuild build = (MavenModuleSetBuild) TestUtils.runAndCheckBuild(project);
 

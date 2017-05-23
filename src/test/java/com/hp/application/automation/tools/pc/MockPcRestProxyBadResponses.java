@@ -1,22 +1,7 @@
-/*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
- *     Licensed under the Apache License, Version 2.0 (the "License");
- *     you may not use this file except in compliance with the License.
- *     You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *     Unless required by applicable law or agreed to in writing, software
- *     distributed under the License is distributed on an "AS IS" BASIS,
- *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *     See the License for the specific language governing permissions and
- *     limitations under the License.
- *
- */
-
 package com.hp.application.automation.tools.pc;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Iterator;
 
@@ -36,8 +21,8 @@ public class MockPcRestProxyBadResponses extends PcRestProxy {
     
     private static Iterator<RunState> runState = initializeRunStateIterator();
     
-    public MockPcRestProxyBadResponses(String pcServerName, String almDomain, String almProject) {
-        super(pcServerName, almDomain, almProject);
+    public MockPcRestProxyBadResponses(String webProtocol, String pcServerName, String almDomain, String almProject,PrintStream logger) throws PcException {
+        super(webProtocol, pcServerName, almDomain, almProject,logger,null);
     }
 
     @Override
@@ -45,7 +30,7 @@ public class MockPcRestProxyBadResponses extends PcRestProxy {
             IOException {
         HttpResponse response = null;
         String requestUrl = request.getURI().toString();
-        if (requestUrl.equals(String.format(AUTHENTICATION_LOGIN_URL, PC_SERVER_NAME))) {
+        if (requestUrl.equals(String.format(AUTHENTICATION_LOGIN_URL,WEB_PROTOCOL, PC_SERVER_NAME))) {
             throw new PcException(pcAuthenticationFailureMessage);
         } else if (requestUrl.equals(String.format(getBaseURL() + "/%s", RUNS_RESOURCE_NAME))){
             throw new PcException(pcNoTimeslotExceptionMessage);

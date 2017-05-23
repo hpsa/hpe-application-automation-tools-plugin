@@ -17,33 +17,42 @@
 package com.hp.application.automation.tools.octane.buildLogs;
 
 import com.google.inject.Inject;
-import com.hp.indi.bdi.client.BdiClient;
-import com.hp.indi.bdi.client.BdiClientFactory;
 import com.hp.application.automation.tools.octane.ResultQueue;
 import com.hp.application.automation.tools.octane.client.RetryModel;
 import com.hp.application.automation.tools.octane.configuration.BdiConfiguration;
 import com.hp.application.automation.tools.octane.configuration.ConfigurationService;
 import com.hp.application.automation.tools.octane.tests.AbstractSafeLoggingAsyncPeriodWork;
+import com.hp.indi.bdi.client.BdiClient;
+import com.hp.indi.bdi.client.BdiClientFactory;
+import com.hp.indi.bdi.client.BdiProxyConfiguration;
 import hudson.Extension;
 import hudson.ProxyConfiguration;
+import hudson.console.PlainTextConsoleOutputStream;
 import hudson.model.Job;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.TimeUnit2;
 import jenkins.model.Jenkins;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 
 /**
  * Created by benmeior on 11/20/2016.
  */
 @Extension
 public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
-    private static final String BDI_PRODUCT = "octane";
     private static Logger logger = LogManager.getLogger(LogDispatcher.class);
+
+    private static final String OCTANE_LOG_FILE_NAME = "octane_log";
+    private static final String BDI_PRODUCT = "octane";
+    private static final String CONSOLE_LOG_DATA_TYPE = "consolelog";
 
     @Inject
     private RetryModel retryModel;
@@ -53,12 +62,41 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 
     private ResultQueue logsQueue;
 
+    private BdiClient bdiClient;
+
+    private ProxyConfiguration proxyConfiguration;
+
     public LogDispatcher() {
         super("BDI log dispatcher");
     }
 
+    private void initClient() {
+        if (bdiClient != null) {
+            closeClient();
+        }
+
+        this.proxyConfiguration = Jenkins.getInstance().proxy;
+
+        BdiConfiguration bdiConfiguration = bdiConfigurationFetcher.obtain();
+        if (bdiConfiguration == null || !bdiConfiguration.isFullyConfigured()) {
+            logger.debug("BDI is not configured in Octane");
+            return;
+        }
+
+        if (proxyConfiguration == null) {
+            bdiClient = BdiClientFactory.getBdiClient(bdiConfiguration.getHost(), bdiConfiguration.getPort());
+        } else {
+            BdiProxyConfiguration bdiProxyConfiguration =
+                    new BdiProxyConfiguration(proxyConfiguration.name, proxyConfiguration.port, proxyConfiguration.getUserName(), proxyConfiguration.getPassword());
+            bdiClient = BdiClientFactory.getBdiClient(bdiConfiguration.getHost(), bdiConfiguration.getPort(), bdiProxyConfiguration);
+        }
+    }
+
     @Override
-    protected void doExecute(TaskListener listener) throws IOException, InterruptedException {
+    protected void doExecute(TaskListener listener) {
+        if (!isPemFilePropertyInit()) {
+            return;
+        }
         if (logsQueue.peekFirst() == null) {
             return;
         }
@@ -66,45 +104,86 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
             logger.info("There are pending logs, but we are in quiet period");
             return;
         }
+        obtainClient();
         manageLogsQueue();
     }
 
     private void manageLogsQueue() {
-        BdiConfiguration configuration = bdiConfigurationFetcher.obtain();
-        if (configuration == null || !configuration.isFullyConfigured()) {
-            logger.error("Could not send logs. BDI is not configured");
-            return;
-        }
-
-        BdiClient client = BdiClientFactory.getBdiClient(configuration.getHost(), Integer.parseInt(configuration.getPort()));
-
-        // Configure proxy if needed
-        ProxyConfiguration proxy = Jenkins.getInstance().proxy;
-        if (proxy != null) {
-            client.setProxy(proxy.name, proxy.port);
-        }
-
-        String response;
+        BdiConfiguration bdiConfiguration;
         ResultQueue.QueueItem item;
+        File logFile = null;
+        Run build = null;
         while ((item = logsQueue.peekFirst()) != null) {
-            Run build = getBuildFromQueueItem(item);
-            if (build == null) {
-                logsQueue.remove();
-                continue;
-            }
             try {
-                client.post("consolelog",BDI_PRODUCT,Long.valueOf(configuration.getTenantId()),
-                        item.getWorkspace(),buildDataId(build),build.getLogFile());
+                bdiConfiguration = bdiConfigurationFetcher.obtain();
+                if (bdiConfiguration == null || !bdiConfiguration.isFullyConfigured()) {
+                    logger.error("Could not send logs. BDI is not configured");
+                    logsQueue.clear();
+                    if (bdiClient != null) {
+                        closeClient();
+                    }
+                    return;
+                }
 
-                logger.info(String.format("Successfully sent log of build [%s#%s]"),item.getProjectName() ,item.getBuildNumber());
+                build = getBuildFromQueueItem(item);
+                if (build == null) {
+                    logsQueue.remove();
+                    continue;
+                }
+
+                logFile = getOctaneLogFile(build);
+
+                if (proxyConfiguration != Jenkins.getInstance().proxy) {
+                    initClient();
+                }
+
+                bdiClient.post(CONSOLE_LOG_DATA_TYPE, BDI_PRODUCT, Long.valueOf(bdiConfiguration.getTenantId()), item.getWorkspace(), buildDataId(build), logFile);
+
+                logger.info(String.format("Successfully sent log of build [%s#%s]", item.getProjectName(), item.getBuildNumber()));
 
                 logsQueue.remove();
+                Files.deleteIfExists(logFile.toPath());
             } catch (Exception e) {
                 logger.error(String.format("Could not send log of build [%s#%s] to bdi.", item.getProjectName(), item.getBuildNumber()), e);
                 if (!logsQueue.failed()) {
                     logger.warn("Maximum number of attempts reached, operation will not be re-attempted for this build");
+                    if (logFile != null) {
+                        try {
+                            Files.deleteIfExists(logFile.toPath());
+                        } catch (IOException e1) {
+                            String errorMsg = "Could not delete Octane log file";
+                            if (build != null) {
+                                errorMsg = String.format("%s of %s#%s", errorMsg, build.getParent().getName(), String.valueOf(build.getNumber()));
+                            }
+                            logger.error(errorMsg);
+                        }
+                    }
                 }
             }
+        }
+    }
+
+    private File getOctaneLogFile(Run build) throws IOException {
+        String octaneLogFilePath = build.getLogFile().getParent() + File.separator + OCTANE_LOG_FILE_NAME;
+        File logFile = new File(octaneLogFilePath);
+        if (!logFile.exists()) {
+            try (FileOutputStream fileOutputStream = new FileOutputStream(logFile);
+                 InputStream logStream = build.getLogInputStream();
+                 PlainTextConsoleOutputStream out = new PlainTextConsoleOutputStream(fileOutputStream)) {
+                IOUtils.copy(logStream, out);
+                out.flush();
+            }
+        }
+        return logFile;
+    }
+
+    private void closeClient() {
+        try {
+            bdiClient.close();
+        } catch (Exception e) {
+            logger.error("Failed to close BDI client");
+        } finally {
+            bdiClient = null;
         }
     }
 
@@ -147,5 +226,15 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
     @Inject
     public void setLogResultQueue(LogAbstractResultQueue queue) {
         this.logsQueue = queue;
+    }
+
+    private boolean isPemFilePropertyInit() {
+        return System.getProperty("pem_file") != null && !System.getProperty("pem_file").isEmpty();
+    }
+
+    private void obtainClient() {
+        if (bdiClient == null) {
+            initClient();
+        }
     }
 }

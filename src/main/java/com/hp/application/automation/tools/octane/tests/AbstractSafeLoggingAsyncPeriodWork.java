@@ -20,6 +20,7 @@ import hudson.model.AsyncPeriodicWork;
 import hudson.model.TaskListener;
 
 import java.io.IOException;
+import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
@@ -53,5 +54,10 @@ public abstract class AbstractSafeLoggingAsyncPeriodWork extends AsyncPeriodicWo
         lr.setThrown(t);
         lr.setParameters(new Object[] { name });
         logger.log(lr);
+    }
+
+    @Override
+    protected Level getNormalLoggingLevel() {
+        return Level.CONFIG;
     }
 }

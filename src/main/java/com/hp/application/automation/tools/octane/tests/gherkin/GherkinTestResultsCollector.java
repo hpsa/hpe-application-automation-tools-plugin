@@ -167,7 +167,7 @@ public class GherkinTestResultsCollector {
                 duration += stepDuration;
 
                 String stepStatus = stepElement.getAttribute("status");
-                if (!statusDetermined && "pending".equals(stepStatus)) {
+                if (!statusDetermined && ("pending".equals(stepStatus) || "skipped".equals(stepStatus))) {
                     status = TestResultStatus.SKIPPED;
                     statusDetermined = true;
                 } else if (!statusDetermined && "failed".equals(stepStatus)) {

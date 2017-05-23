@@ -26,10 +26,7 @@ import com.hp.application.automation.tools.octane.Messages;
 import com.hp.application.automation.tools.octane.client.JenkinsMqmRestClientFactory;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.*;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.mockito.Mockito;
 @SuppressWarnings({"squid:S2699","squid:S3658","squid:S2259","squid:S1872","squid:S2925","squid:S109","squid:S1607","squid:S2701","squid:S2698"})

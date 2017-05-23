@@ -77,7 +77,7 @@ public class RunListenerForLogs extends RunListener<Run> {
                 logger.info(String.format("Job '%s' is not part of an Octane pipeline in any workspace, so its log will not be sent.", build.getParent().getName()));
             } else {
                 for (String workspace : workspaces) {
-                    logger.info(String.format("Enqueued job %s of workspace %s", build.getParent().getName(), workspace));
+                    logger.info(String.format("Enqueued job [%s#%d] of workspace %s", build.getParent().getName(), build.getNumber(), workspace));
                     logDispatcher.enqueueLog(build.getProject().getName(), build.getNumber(), workspace);
                 }
             }

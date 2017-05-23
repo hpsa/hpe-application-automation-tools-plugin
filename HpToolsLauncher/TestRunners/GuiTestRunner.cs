@@ -20,10 +20,10 @@ namespace HpToolsLauncher
     {
         // Setting keys for mobile
         private const string MOBILE_HOST_ADDRESS = "ALM_MobileHostAddress";
-        private const string MOBILE_HOST_PORT = "MobileHostPort";
+        private const string MOBILE_HOST_PORT = "ALM_MobileHostPort";
         private const string MOBILE_USER   = "ALM_MobileUserName";
         private const string MOBILE_PASSWORD = "ALM_MobilePassword";
-        private const string MOBILE_USE_SSL = "MobileUseSSL";
+        private const string MOBILE_USE_SSL = "ALM_MobileUseSSL";
         private const string MOBILE_USE_PROXY= "MobileProxySetting_UseProxy";
         private const string MOBILE_PROXY_SETTING_ADDRESS = "MobileProxySetting_Address";
         private const string MOBILE_PROXY_SETTING_PORT = "MobileProxySetting_Port";
@@ -35,6 +35,7 @@ namespace HpToolsLauncher
         private readonly IAssetRunner _runNotifier;
         private readonly object _lockObject = new object();
         private TimeSpan _timeLeftUntilTimeout = TimeSpan.MaxValue;
+        private readonly string _uftRunMode;
         private Stopwatch _stopwatch = null;
         private Application _qtpApplication;
         private ParameterDefinitions _qtpParamDefs;
@@ -49,9 +50,10 @@ namespace HpToolsLauncher
         /// <param name="runNotifier"></param>
         /// <param name="useUftLicense"></param>
         /// <param name="timeLeftUntilTimeout"></param>
-        public GuiTestRunner(IAssetRunner runNotifier, bool useUftLicense, TimeSpan timeLeftUntilTimeout, McConnectionInfo mcConnectionInfo, string mobileInfo)
+        public GuiTestRunner(IAssetRunner runNotifier, bool useUftLicense, TimeSpan timeLeftUntilTimeout, string uftRunMode, McConnectionInfo mcConnectionInfo, string mobileInfo)
         {
             _timeLeftUntilTimeout = timeLeftUntilTimeout;
+            _uftRunMode = uftRunMode;
             _stopwatch = Stopwatch.StartNew();
             _runNotifier = runNotifier;
             _useUFTLicense = useUftLicense;
@@ -386,7 +388,7 @@ namespace HpToolsLauncher
                 Type runResultsOptionstype = Type.GetTypeFromProgID("QuickTest.RunResultsOptions");
                 var options = (RunResultsOptions)Activator.CreateInstance(runResultsOptionstype);
                 options.ResultsLocation = testResults.ReportLocation;
-                _qtpApplication.Options.Run.RunMode = "Fast";
+                _qtpApplication.Options.Run.RunMode = _uftRunMode;
 
                 //Check for cancel before executing
                 if (_runCancelled())

@@ -1,5 +1,4 @@
 /*
-/*
  *     Copyright 2017 Hewlett-Packard Development Company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -18,16 +17,20 @@
 package com.hp.application.automation.tools.octane.actions.dto;
 
 /**
- * Created by kashbi on 25/09/2016.
+ * Base class for (de)serialization of reference entities in Octane
  */
-@SuppressWarnings({"squid:S2699","squid:S3658","squid:S2259","squid:S1872","squid:S2925","squid:S109"})
-public class TestFramework {
-    private String type = "list_node";
-    private String logical_name = "list_node.testing_tool_type.uft";
-    private String name = "UFT";
-    private Integer index = 3;
-    private Integer id = 1055;
+@SuppressWarnings({"squid:S2699", "squid:S3658", "squid:S2259", "squid:S1872", "squid:S2925", "squid:S109"})
+public class BaseRefEntity {
 
+    private String type;
+    private Long id;
+
+    public static BaseRefEntity create(String type, Long id) {
+        BaseRefEntity baseRefEntity = new BaseRefEntity();
+        baseRefEntity.setType(type);
+        baseRefEntity.setId(id);
+        return baseRefEntity;
+    }
 
     public String getType() {
         return type;
@@ -37,35 +40,12 @@ public class TestFramework {
         this.type = type;
     }
 
-    public String getLogical_name() {
-        return logical_name;
-    }
-
-    public void setLogical_name(String logical_name) {
-        this.logical_name = logical_name;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Integer getIndex() {
-        return index;
-    }
-
-    public void setIndex(Integer index) {
-        this.index = index;
-    }
-
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+
+    public void setId(Long id) {
         this.id = id;
     }
 }

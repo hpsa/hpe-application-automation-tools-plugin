@@ -59,7 +59,7 @@ public class PerformanceJobReportAction extends InvisibleAction implements Simpl
     }
 
     /**
-     * Merge results of several runs - espcially useful in pipeline jobs with multiple LR steps
+     * Merge results of several runs - especially useful in pipeline jobs with multiple LR steps
      *
      * @param resultFiles the result files
      */
