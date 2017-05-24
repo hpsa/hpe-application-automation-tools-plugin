@@ -9,9 +9,9 @@ public class MockPcModel extends PcModel {
 
 
     public MockPcModel(String pcServerName, String almUserName, String almPassword, String almDomain,
-            String almProject, String testId, String testInstanceId, String timeslotDurationHours,
+            String almProject, String testId,String autoTestInstanceID, String testInstanceId, String timeslotDurationHours,
             String timeslotDurationMinutes, PostRunAction postRunAction, boolean vudsMode, String description,boolean webProtocol) {
-        super(pcServerName, almUserName, almPassword, almDomain, almProject, testId, testInstanceId, timeslotDurationHours,
+        super(pcServerName, almUserName, almPassword, almDomain, almProject, testId, autoTestInstanceID, testInstanceId, timeslotDurationHours,
             timeslotDurationMinutes, postRunAction, vudsMode, description, false, null,false,null
         );
     }

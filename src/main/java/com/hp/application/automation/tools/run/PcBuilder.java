@@ -102,6 +102,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             String almProject,
             String testId,
             String testInstanceId,
+            String autoTestInstanceID,
             String timeslotDurationHours,
             String timeslotDurationMinutes,
             PostRunAction postRunAction,
@@ -126,6 +127,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                         almDomain.trim(),
                         almProject.trim(),
                         testId.trim(),
+                        autoTestInstanceID,
                         testInstanceId.trim(),
                         timeslotDurationHours.trim(),
                         timeslotDurationMinutes.trim(),
@@ -311,8 +313,10 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                     String modelMethodName = modelMethod.getName();
                     if (modelMethodName.toLowerCase().equals("get" + name)) {
                         try {
-                            Object obj =
-                                    method.invoke(getDescriptor(), modelMethod.invoke(getPcModel()));
+                            Object obj = FormValidation.ok();
+                            if (!(name.equals("testinstanceid")&& pcModel.getAutoTestInstanceID().equals("AUTO"))){
+                                obj = method.invoke(getDescriptor(), modelMethod.invoke(getPcModel()));
+                            }
                             if (!obj.equals(FormValidation.ok())) {
                                 logger.println(obj);
                                 ret = false;
@@ -333,6 +337,8 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         return ret;
         
     }
+
+
 
     private boolean validateTrendReportIdIsNumeric(String trendReportId, boolean addRunToTrendReport){
 
@@ -587,6 +593,10 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         return getPcModel().getTrendReportId();
     }
 
+    public String autoTestInstanceID()
+    {
+        return getPcModel().getAutoTestInstanceID();
+    }
     public String getTestInstanceId()
     {
         return getPcModel().getTestInstanceId();
@@ -677,11 +687,23 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             
             return validateHigherThanInt(value, "Test ID", 0, true);
         }
-        
-        public FormValidation doCheckTestInstanceId(@QueryParameter String value) {
-            
+
+
+        // if autoTestInstanceID is selected we don't need to check the validation of the test instance
+//        public static FormValidation CheckOnlyAutoTestInstanceId(String autoTestInstanceID){
+//            if(autoTestInstanceID.equals("AUTO"))
+//                return FormValidation.ok();
+//            else
+//                return FormValidation.error("Error ");
+//        }
+
+
+
+        public FormValidation doCheckTestInstanceId(@QueryParameter String value){
             return validateHigherThanInt(value, "Test Instance ID", 0, true);
         }
+
+
         
         public FormValidation doCheckTimeslotDuration(@QueryParameter TimeslotDuration value) {
             
@@ -737,12 +759,12 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             return ret;
         }
 
-
         
         public List<PostRunAction> getPostRunActions() {
             
             return PcModel.getPostRunActions();
         }
+
         
     }
     
