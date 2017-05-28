@@ -21,18 +21,16 @@ import com.hp.application.automation.tools.octane.actions.UftTestType;
 import javax.xml.bind.annotation.*;
 
 /**
- * Created by kashbi on 25/09/2016.
+ * This file represents automated test for sending to Octane
  */
-@XmlRootElement(name="test")
+@XmlRootElement(name = "test")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class AutomatedTest {
 
     @XmlTransient
     private Long id;
     @XmlTransient
-    private String type = "test";
-    @XmlTransient
-    private String subtype = "test_automated";
+    private String type = "test_automated";
     @XmlTransient
     private ListNodeEntity testingToolType;
     @XmlTransient
@@ -48,6 +46,8 @@ public class AutomatedTest {
     private String name;
     @XmlAttribute
     private String packageName;
+    @XmlAttribute
+    private Boolean executable;
 
     private String description;
 
@@ -68,14 +68,6 @@ public class AutomatedTest {
 
     public void setType(String type) {
         this.type = type;
-    }
-
-    public String getSubtype() {
-        return subtype;
-    }
-
-    public void setSubtype(String subtype) {
-        this.subtype = subtype;
     }
 
     public ListNodeEntity getFramework() {
@@ -140,5 +132,13 @@ public class AutomatedTest {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Boolean getExecutable() {
+        return executable;
+    }
+
+    public void setExecutable(Boolean executable) {
+        this.executable = executable;
     }
 }

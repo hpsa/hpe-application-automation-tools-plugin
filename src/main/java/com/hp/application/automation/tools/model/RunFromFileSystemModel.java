@@ -7,21 +7,14 @@ package com.hp.application.automation.tools.model;
 
 import com.hp.application.automation.tools.mc.JobConfigurationProxy;
 import hudson.EnvVars;
-import hudson.FilePath;
 import hudson.util.Secret;
 import hudson.util.VariableResolver;
 import net.minidev.json.JSONObject;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.text.Format;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
@@ -61,7 +54,6 @@ public class RunFromFileSystemModel {
     private String fsJobId;
     private ProxySettings proxySettings;
     private boolean useSSL;
-    private FilePath workspace;
 
     /**
      * Instantiates a new Run from file system model.
@@ -600,15 +592,13 @@ public class RunFromFileSystemModel {
         Properties props = new Properties();
 
         if (!StringUtils.isEmpty(this.fsTests)) {
-            String expandedFsTests;
-            if (isMtbxContent(fsTests)) {
-                String path = createMtbxFileInWs(fsTests);
-                expandedFsTests = envVars.expand(path);
+            String expandedFsTests = envVars.expand(fsTests);
+            String[] testsArr;
+            if (isMtbxContent(expandedFsTests)) {
+                testsArr = new String[]{expandedFsTests};
             } else {
-                expandedFsTests = envVars.expand(fsTests);
+                testsArr = expandedFsTests.replaceAll("\r", "").split("\n");
             }
-
-            String[] testsArr = expandedFsTests.replaceAll("\r", "").split("\n");
 
             int i = 1;
 
@@ -690,30 +680,8 @@ public class RunFromFileSystemModel {
         return props;
     }
 
-    private String createMtbxFileInWs(String mtbxContent) {
-        try {
-            Date now = new Date();
-            Format formatter = new SimpleDateFormat("ddMMyyyyHHmmssSSS");
-            String time = formatter.format(now);
-
-            String fileName = "test_suite_" + time + ".mtbx";
-
-            FilePath remoteFile = workspace.child(fileName);
-
-            String mtbxContentUpdated = mtbxContent.replace("${WORKSPACE}", workspace.getRemote());
-            InputStream in = IOUtils.toInputStream(mtbxContentUpdated, "UTF-8");
-            remoteFile.copyFrom(in);
-
-            String filePath = remoteFile.getRemote();
-            return filePath;
-
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException("Failed to save MTBX file : " + e.getMessage());
-        }
-    }
-
-    private static boolean isMtbxContent(String fsTests) {
-        return fsTests.toLowerCase().contains("<mtbx>");
+    public static boolean isMtbxContent(String testContent) {
+        return testContent.toLowerCase().contains("<mtbx>");
     }
 
     /**
@@ -730,9 +698,5 @@ public class RunFromFileSystemModel {
             return null;
         }
         return JobConfigurationProxy.getInstance().getJobById(mcUrl, fsUserName, fsPassword.getPlainText(), proxyAddress, proxyUserName, proxyPassword, fsJobId);
-    }
-
-    public void setWorkspace(FilePath workspace) {
-        this.workspace = workspace;
     }
 }

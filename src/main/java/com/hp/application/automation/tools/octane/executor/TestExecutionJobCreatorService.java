@@ -64,6 +64,7 @@ public class TestExecutionJobCreatorService {
     public static final String EXECUTOR_ID_PARAMETER_NAME = "executorId";
     public static final String SUITE_ID_PARAMETER_NAME = "suiteId";
     public static final String SUITE_RUN_ID_PARAMETER_NAME = "suiteRunId";
+    public static final String FULL_SCAN_PARAMETER_NAME = "Full Scan";
 
     /**
      * Create (if needed) and run test execution
@@ -123,8 +124,8 @@ public class TestExecutionJobCreatorService {
 
             setScmRepository(suiteExecutionInfo.getScmRepository(), suiteExecutionInfo.getScmRepositoryCredentialsId(), proj);
             setBuildDiscarder(proj, 20);
-            addParameter(proj, SUITE_ID_PARAMETER_NAME, suiteExecutionInfo.getSuiteId(), true, "Octane suite id");
-            addParameter(proj, SUITE_RUN_ID_PARAMETER_NAME, null, false, "This parameter is relevant only if the suite is run from Octane and allows to publish tests to the existing Octane suite run");
+            addConstantParameter(proj, SUITE_ID_PARAMETER_NAME, suiteExecutionInfo.getSuiteId(), "Octane suite id");
+            addStringParameter(proj, SUITE_RUN_ID_PARAMETER_NAME, null, "This parameter is relevant only if the suite is run from Octane and allows to publish tests to the existing Octane suite run");
             addAssignedNode(proj);
 
             //add build action
@@ -239,12 +240,15 @@ public class TestExecutionJobCreatorService {
          */
         FreeStyleProject proj = getDiscoveryJob(discoveryInfo);
 
+        //start job
         if (proj != null) {
-            if (discoveryInfo.isForceFullDiscovery() && proj.getWorkspace() != null) {
-                UFTTestDetectionService.removeInitialDetectionFlag(proj.getWorkspace());
-            }
+            ParameterValue executorIdParam = new StringParameterValue(EXECUTOR_ID_PARAMETER_NAME, discoveryInfo.getExecutorId());
+            ParameterValue fullScanParam = new BooleanParameterValue(FULL_SCAN_PARAMETER_NAME, discoveryInfo.isForceFullDiscovery());
+            ParametersAction parameters = new ParametersAction(executorIdParam, fullScanParam);
 
-            proj.scheduleBuild2(0);
+            Cause cause = new Cause.UserIdCause();
+            CauseAction causeAction = new CauseAction(cause);
+            proj.scheduleBuild2(0, parameters, causeAction);
         }
     }
 
@@ -263,7 +267,8 @@ public class TestExecutionJobCreatorService {
 
             setScmRepository(discoveryInfo.getScmRepository(), discoveryInfo.getScmRepositoryCredentialsId(), proj);
             setBuildDiscarder(proj, 20);
-            addParameter(proj, EXECUTOR_ID_PARAMETER_NAME, discoveryInfo.getExecutorId(), true, "Octane executor id");
+            addConstantParameter(proj, EXECUTOR_ID_PARAMETER_NAME, discoveryInfo.getExecutorId(), "Octane executor id");
+            addBooleanParameter(proj, FULL_SCAN_PARAMETER_NAME, false, "Indicate whether to scan full scm repository to discover all tests or to use changes (Change Sets) to update already existing tests");
 
             //set polling once in two minutes
             SCMTrigger scmTrigger = new SCMTrigger("H/2 * * * *");//H/2 * * * * : once in two minutes
@@ -321,27 +326,37 @@ public class TestExecutionJobCreatorService {
         }, delayStartPolling);
     }
 
-    private static void addParameter(FreeStyleProject proj, String parameterName, String parameterValue, boolean constantValue, String desc) throws IOException {
+    private static ParametersDefinitionProperty getParametersDefinitions(FreeStyleProject proj) throws IOException {
         ParametersDefinitionProperty parameters = proj.getProperty(ParametersDefinitionProperty.class);
         if (parameters == null) {
             parameters = new ParametersDefinitionProperty(new ArrayList<ParameterDefinition>());
             proj.addProperty(parameters);
         }
+        return parameters;
+    }
 
-        if (constantValue) {
-            if (parameters.getParameterDefinition(parameterName) == null) {
-                //String name, List<String> choices, String defaultValue, String description
-                ParameterDefinition param = new ChoiceParameterDefinition(parameterName, new String[]{parameterValue}, desc);
-                parameters.getParameterDefinitions().add(param);
-            }
-        } else {
-            if (parameters.getParameterDefinition(parameterName) == null) {
-                //String name, List<String> choices, String defaultValue, String description
-                ParameterDefinition param = new StringParameterDefinition(parameterName, null, desc);
-                parameters.getParameterDefinitions().add(param);
-            }
+    private static void addConstantParameter(FreeStyleProject proj, String parameterName, String parameterValue, String desc) throws IOException {
+        ParametersDefinitionProperty parameters = getParametersDefinitions(proj);
+        if (parameters.getParameterDefinition(parameterName) == null) {
+            ParameterDefinition param = new ChoiceParameterDefinition(parameterName, new String[]{parameterValue}, desc);
+            parameters.getParameterDefinitions().add(param);
         }
+    }
 
+    private static void addStringParameter(FreeStyleProject proj, String parameterName, String defaultValue, String desc) throws IOException {
+        ParametersDefinitionProperty parameters = getParametersDefinitions(proj);
+        if (parameters.getParameterDefinition(parameterName) == null) {
+            ParameterDefinition param = new StringParameterDefinition(parameterName, defaultValue, desc);
+            parameters.getParameterDefinitions().add(param);
+        }
+    }
+
+    private static void addBooleanParameter(FreeStyleProject proj, String parameterName, Boolean defaultValue, String desc) throws IOException {
+        ParametersDefinitionProperty parameters = getParametersDefinitions(proj);
+        if (parameters.getParameterDefinition(parameterName) == null) {
+            ParameterDefinition param = new BooleanParameterDefinition(parameterName, defaultValue, desc);
+            parameters.getParameterDefinitions().add(param);
+        }
     }
 
     /**
@@ -373,7 +388,7 @@ public class TestExecutionJobCreatorService {
             }
 
             try {
-                logger.warn(String.format("Job %s is going to be deleted since matching executor in Octane was deleted", proj.getName()));
+                logger.warn(String.format("Job '%s' is going to be deleted since matching executor in Octane was deleted", proj.getName()));
                 proj.delete();
             } catch (IOException | InterruptedException e) {
                 logger.error("Failed to delete job  " + proj.getName() + " : " + e.getMessage());

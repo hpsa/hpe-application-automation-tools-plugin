@@ -87,6 +87,24 @@ public class UFTTestDetectionBuildAction implements Action {
         return results.getUpdatedTests().size() > 0;
     }
 
+    /**
+     * used by ~\src\main\resources\com\hp\application\automation\tools\octane\actions\UFTTestDetectionBuildAction\index.jelly
+     *
+     * @return
+     */
+    public boolean getHasNewScmResources() {
+        return results.getNewScmResourceFiles().size() > 0;
+    }
+
+    /**
+     * used by ~\src\main\resources\com\hp\application\automation\tools\octane\actions\UFTTestDetectionBuildAction\index.jelly
+     *
+     * @return
+     */
+    public boolean getHasDeletedScmResources() {
+        return results.getDeletedScmResourceFiles().size() > 0;
+    }
+
     public void setResults(UFTTestDetectionResult results) {
         this.results = results;
     }

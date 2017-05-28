@@ -16,20 +16,25 @@
 
 package com.hp.application.automation.tools.octane.executor;
 
+import com.google.inject.Inject;
+import com.hp.application.automation.tools.octane.actions.UFTTestDetectionPublisher;
+import com.hp.application.automation.tools.octane.configuration.ConfigurationService;
+import com.hp.application.automation.tools.octane.configuration.ServerConfiguration;
 import com.hp.application.automation.tools.octane.tests.AbstractSafeLoggingAsyncPeriodWork;
+import com.hp.mqm.client.MqmRestClient;
+import com.hp.mqm.client.QueryHelper;
+import com.hp.mqm.client.model.Entity;
+import com.hp.mqm.client.model.PagedList;
 import hudson.Extension;
-import hudson.model.FreeStyleProject;
-import hudson.model.ParametersDefinitionProperty;
-import hudson.model.PeriodicWork;
-import hudson.model.TaskListener;
+import hudson.model.*;
 import jenkins.model.Jenkins;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 
 /**
@@ -40,7 +45,8 @@ import java.util.List;
 public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
 
     private static Logger logger = LogManager.getLogger(UftJobCleaner.class);
-
+    private ConfigurationService configurationService;
+    private static String EXECUTORS_COLLECTION_NAME = "executors";
 
     public UftJobCleaner() {
         super("Uft Job Cleaner");
@@ -74,8 +80,13 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
     @Override
     protected void doExecute(TaskListener listener) throws IOException, InterruptedException {
         List<FreeStyleProject> jobs = Jenkins.getInstance().getAllItems(FreeStyleProject.class);
-        long thresholdTimeInMillis = new Date().getTime() - PeriodicWork.DAY * getOutdateThreshold();
 
+        clearExecutionJobs(jobs);
+        clearDiscoveryJobs(jobs);
+    }
+
+    private void clearExecutionJobs(List<FreeStyleProject> jobs) {
+        long thresholdTimeInMillis = new Date().getTime() - PeriodicWork.DAY * getOutdateThreshold();
         int clearCounter = 0;
         for (FreeStyleProject job : jobs) {
             if (isExecutorJob(job) && job.getLastBuild() != null && !job.isBuilding()) {
@@ -92,18 +103,118 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
             }
         }
 
-        logger.warn(String.format("Cleaner found %s outdated job", clearCounter));
+        logger.warn(String.format("Cleaner found %s outdated execution job", clearCounter));
     }
 
     private boolean isExecutorJob(FreeStyleProject job) {
         ParametersDefinitionProperty parameters = job.getProperty(ParametersDefinitionProperty.class);
-        if (parameters != null &&
+        boolean isExecutorJob = job.getName().contains("execution job") &&
+                parameters != null &&
                 parameters.getParameterDefinition(TestExecutionJobCreatorService.SUITE_ID_PARAMETER_NAME) != null &&
-                parameters.getParameterDefinition(TestExecutionJobCreatorService.SUITE_RUN_ID_PARAMETER_NAME) != null) {
-            return true;
-        }
-        return false;
+                parameters.getParameterDefinition(TestExecutionJobCreatorService.SUITE_RUN_ID_PARAMETER_NAME) != null;
+
+        return isExecutorJob;
     }
 
+
+    private boolean isDiscoveryJobJob(FreeStyleProject job) {
+        ParametersDefinitionProperty parameters = job.getProperty(ParametersDefinitionProperty.class);
+        boolean isDiscoveryJob = job.getName().contains("discovery job") &&
+                parameters != null &&
+                parameters.getParameterDefinition(TestExecutionJobCreatorService.EXECUTOR_ID_PARAMETER_NAME) != null;
+        return isDiscoveryJob;
+    }
+
+    private void clearDiscoveryJobs(List<FreeStyleProject> jobs) {
+
+        //Generally, after deleting executor in Octane, relevant job in Jenkins is also deleted. But if jenkins was down during delete of executor, job remains
+        //This method handle orphan job that doesn't hava mathing executors in Octane
+        //1. build map of discovery jobs per workspace
+        //2. Loop by workspace
+        //2.1 Get from octane executors in workspace
+        //2.2 If some discovery job exist that doesn't have matching executor - remove it from Jenkins
+
+        Map<Long, Map<Long, FreeStyleProject>> workspace2executorId2DiscoveryJobMap = new HashMap<>();
+        for (FreeStyleProject job : jobs) {
+            if (isDiscoveryJobJob(job)) {
+                Long executorId = getExecutorId(job);
+                Long workspaceId = getOctaneWorkspaceId(job);
+                if (executorId != null && workspaceId != null) {
+                    if (!workspace2executorId2DiscoveryJobMap.containsKey(workspaceId)) {
+                        workspace2executorId2DiscoveryJobMap.put(workspaceId, new HashedMap());
+                    }
+                    workspace2executorId2DiscoveryJobMap.get(workspaceId).put(executorId, job);
+                }
+            }
+        }
+
+        if (!workspace2executorId2DiscoveryJobMap.isEmpty()) {
+            ServerConfiguration serverConfiguration = ConfigurationService.getServerConfiguration();
+            MqmRestClient client = configurationService.createClient(serverConfiguration);
+            if (client != null) {
+                int deleteCounter = 0;
+                for (Long workspaceId : workspace2executorId2DiscoveryJobMap.keySet()) {
+                    Map<Long, FreeStyleProject> discoveryJobs = workspace2executorId2DiscoveryJobMap.get(workspaceId);
+                    List<String> conditions = new ArrayList<>();
+                    conditions.add(QueryHelper.conditionIn("id", discoveryJobs.keySet(), true));
+                    try {
+                        PagedList<Entity> entities = client.getEntities(workspaceId, EXECUTORS_COLLECTION_NAME, conditions, Arrays.asList("id"));
+                        Set<Long> octaneExecutorIds = new HashSet<>();
+                        for (Entity executor : entities.getItems()) {
+                            octaneExecutorIds.add(executor.getId());
+                        }
+                        for (Long jobExecutorId : discoveryJobs.keySet()) {
+                            if (!octaneExecutorIds.contains(jobExecutorId)) {
+                                //found discovery job that is not related to any executor in Octane
+                                FreeStyleProject job = discoveryJobs.get(jobExecutorId);
+                                try {
+                                    logger.warn(String.format("Job %s is going to be deleted as is doesn't have matching executor in Octane in workspace %s", job.getName(), workspaceId));
+                                    deleteCounter++;
+                                    job.delete();
+
+                                } catch (Exception e) {
+                                    logger.warn(String.format("Failed to delete job %s : %s", job.getName(), e.getMessage()));
+                                }
+
+                            }
+                        }
+                    } catch (Exception e) {
+                        //on exception - do nothing and skip to next workspace
+                        logger.warn(String.format("Failed to get executors from workspace %s : %s", workspaceId, e.getMessage()));
+                        continue;
+                    }
+                }
+                logger.warn(String.format("Cleaner found %s not-related discovery job", deleteCounter));
+            }
+        }
+    }
+
+
+    private Long getExecutorId(FreeStyleProject job) {
+        ParametersDefinitionProperty parameters = job.getProperty(ParametersDefinitionProperty.class);
+        ParameterDefinition pd = parameters.getParameterDefinition(TestExecutionJobCreatorService.EXECUTOR_ID_PARAMETER_NAME);
+        String value = (String) pd.getDefaultParameterValue().getValue();
+        return Long.valueOf(value);
+    }
+
+    private Long getOctaneWorkspaceId(FreeStyleProject job) {
+
+        UFTTestDetectionPublisher uftTestDetectionPublisher = null;
+        List publishers = job.getPublishersList();
+        for (Object publisher : publishers) {
+            if (publisher instanceof UFTTestDetectionPublisher) {
+                uftTestDetectionPublisher = (UFTTestDetectionPublisher) publisher;
+                String workspaceId = uftTestDetectionPublisher.getWorkspaceName();
+                return Long.valueOf(workspaceId);
+            }
+        }
+
+        return null;
+    }
+
+    @Inject
+    public void setConfigurationService(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
+    }
 
 }
