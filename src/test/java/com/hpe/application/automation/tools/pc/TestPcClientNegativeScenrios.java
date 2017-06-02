@@ -42,7 +42,7 @@ public class TestPcClientNegativeScenrios {
 
     @BeforeClass
     public static void setUp() {
-        System.out.println("Starting HP Performance Center client negative testing scenarios:");
+        System.out.println("Starting HPE Performance Center client negative testing scenarios:");
         try {
             PcRestProxy resetProxy = new MockPcRestProxyBadResponses(PcTestBase.WEB_PROTOCOL,PcTestBase.PC_SERVER_NAME, PcTestBase.ALM_DOMAIN,
                 PcTestBase.ALM_PROJECT,PcTestBase.LOGGER);
@@ -59,13 +59,13 @@ public class TestPcClientNegativeScenrios {
 
     @AfterClass
     public static void tearDown() {
-        System.out.println("End of HP Performance Center client negative testing scenarios");
+        System.out.println("End of HPE Performance Center client negative testing scenarios");
     }
 
     @Test
     public void testLoginWithWrongCredentials() {
 
-        System.out.println("Testing Login to HP PC server with wrong credentials");
+        System.out.println("Testing Login to HPE PC server with wrong credentials");
         Assert.assertFalse("Login to PC server with wrong creadentials should have failed", pcClient.login());
     }
 

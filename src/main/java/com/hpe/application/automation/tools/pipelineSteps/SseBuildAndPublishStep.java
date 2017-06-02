@@ -196,7 +196,7 @@ public class SseBuildAndPublishStep extends AbstractStepImpl {
 
         @Override
         public String getDisplayName() {
-            return "Execute HP tests using HP ALM Lab Management and Publish HP tests result";
+            return "Execute HPE tests using HPE ALM Lab Management and Publish HPE tests result";
         }
 
         public boolean hasAlmServers() {

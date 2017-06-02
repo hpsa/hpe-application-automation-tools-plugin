@@ -118,7 +118,7 @@ public class TestExecutionJobCreatorService {
             FreeStyleProject proj = (FreeStyleProject) Jenkins.getInstance().getItem(projectName);
             if (proj == null) {
                 proj = Jenkins.getInstance().createProject(FreeStyleProject.class, projectName);
-                proj.setDescription(String.format("This job was created by HP AA Plugin for execution of %s tests, as part of Octane suite with id %s",
+                proj.setDescription(String.format("This job was created by HPE AA Plugin for execution of %s tests, as part of Octane suite with id %s",
                         suiteExecutionInfo.getTestingToolType().toString(), suiteExecutionInfo.getSuiteId()));
             }
 
@@ -261,7 +261,7 @@ public class TestExecutionJobCreatorService {
             if (proj == null) {
 
                 proj = Jenkins.getInstance().createProject(FreeStyleProject.class, discoveryJobName);
-                proj.setDescription(String.format("This job was created by HP AA Plugin for discovery of %s tests, as part of Octane executor with id %s",
+                proj.setDescription(String.format("This job was created by HPE AA Plugin for discovery of %s tests, as part of Octane executor with id %s",
                         discoveryInfo.getTestingToolType().toString(), discoveryInfo.getExecutorId()));
             }
 

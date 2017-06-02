@@ -51,8 +51,8 @@ import hudson.util.VariableResolver;
 import jenkins.tasks.SimpleBuildStep;
 
 /***
- * This Jenkins plugin contains an unofficial implementation of some of the elements of the HP ALM
- * Lab Management SDK. Users are free to use this plugin as they wish, but HP does not take
+ * This Jenkins plugin contains an unofficial implementation of some of the elements of the HPE ALM
+ * Lab Management SDK. Users are free to use this plugin as they wish, but HPE does not take
  * responsibility for supporting or providing backwards compatibility for the functionality herein.
  * 
  * 
@@ -385,7 +385,7 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
         @Override
         public String getDisplayName() {
             
-            return "Execute HP tests using HP ALM Lab Management";
+            return "Execute HPE tests using HPE ALM Lab Management";
         }
         
         public boolean hasAlmServers() {

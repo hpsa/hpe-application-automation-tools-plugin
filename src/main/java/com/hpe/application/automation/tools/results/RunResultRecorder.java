@@ -1304,7 +1304,7 @@ public class RunResultRecorder extends Recorder implements Serializable, MatrixA
         @Override
         public String getDisplayName() {
 
-            return "Publish HP tests result";
+            return "Publish HPE tests result";
         }
 
         @Override

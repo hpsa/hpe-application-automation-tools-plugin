@@ -58,7 +58,7 @@ public class SseBuilderPublishResultStepExecution extends AbstractSynchronousNon
 
     @Override
     protected Void run() throws Exception {
-        listener.getLogger().println("Execute HP tests using HP ALM Lab Management");
+        listener.getLogger().println("Execute HPE tests using HPE ALM Lab Management");
 
         SseBuilder sseBuilder = step.getSseBuilder();
         RunResultRecorder runResultRecorder = step.getRunResultRecorder();
@@ -68,7 +68,7 @@ public class SseBuilderPublishResultStepExecution extends AbstractSynchronousNon
         sseBuilder.perform(build, ws, launcher, listener);
 
         if (StringUtils.isNotBlank(archiveTestResultsMode)) {
-            listener.getLogger().println("Publish HP tests result");
+            listener.getLogger().println("Publish HPE tests result");
 
             HashMap<String, String> resultFilename = new HashMap<String, String>(0);
             resultFilename.put(RunFromFileBuilder.class.getName(), sseBuilder.getRunResultsFileName());

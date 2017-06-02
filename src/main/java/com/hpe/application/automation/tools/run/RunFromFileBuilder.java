@@ -635,7 +635,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
 		@Override
 		public String getDisplayName() {
-			return "Execute HP tests from file system";
+			return "Execute HPE tests from file system";
 		}
 
 		/**

@@ -34,7 +34,7 @@ public interface PcTestBase {
     public static final String        TIMESLOT_ID                     = "56";
     public static final PostRunAction POST_RUN_ACTION                 = PostRunAction.COLLATE_AND_ANALYZE;
     public static final boolean       VUDS_MODE                       = false;
-    public static final String        DESCRIPTION                     = "Testing HP Performance Center Jenkins plugin";
+    public static final String        DESCRIPTION                     = "Testing HPE Performance Center Jenkins plugin";
     public static final String        RUN_ID                          = "7";
     public static final String        RUN_ID_WAIT                     = "8";
     public static final String        REPORT_ID                       = "9";
@@ -97,7 +97,7 @@ public interface PcTestBase {
                                                                 "</RunResult>" +
                                                              "</RunResults>";
 
-    public static final String        pcAuthenticationFailureMessage    = "Exception of type 'HP.PC.API.Model.Exceptions.InvalidAuthenticationDataException' was thrown. Error code: 1100";
+    public static final String        pcAuthenticationFailureMessage    = "Exception of type 'HPE.PC.API.Model.Exceptions.InvalidAuthenticationDataException' was thrown. Error code: 1100";
 
     public static final String        pcNoTimeslotExceptionMessage      = "Failed to retrieve reservation information for reservation " + TIMESLOT_ID + ". Error code: 1202";
 

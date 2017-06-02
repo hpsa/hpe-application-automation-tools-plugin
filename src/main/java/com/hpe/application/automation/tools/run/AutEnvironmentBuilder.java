@@ -171,7 +171,7 @@ public class AutEnvironmentBuilder extends Builder {
         @Override
         public String getDisplayName() {
             
-            return "Execute AUT Environment preparation using HP ALM Lab Management";
+            return "Execute AUT Environment preparation using HPE ALM Lab Management";
         }
         
         public AlmServerSettingsModel[] getAlmServers() {

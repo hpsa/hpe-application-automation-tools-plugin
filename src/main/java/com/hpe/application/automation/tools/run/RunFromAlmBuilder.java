@@ -305,7 +305,7 @@ public class RunFromAlmBuilder extends Builder implements SimpleBuildStep {
         
         @Override
         public String getDisplayName() {
-            return "Execute HP functional tests from HP ALM";
+            return "Execute HPE functional tests from HPE ALM";
         }
         
         public boolean hasAlmServers() {
