@@ -329,8 +329,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
 			throws InterruptedException, IOException {
 
-		runFromFileModel.setWorkspace(workspace);
-
 		// get the mc server settings
 		MCServerSettingsModel mcServerSettingsModel = getMCServerSettingsModel();
 
@@ -365,9 +363,8 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		}
 
 		if (runFromFileModel != null && StringUtils.isNotBlank(runFromFileModel.getFsPassword())) {
-			String encPassword = "";
 			try {
-				encPassword = EncryptionUtils.Encrypt(runFromFileModel.getFsPassword(), EncryptionUtils.getSecretKey());
+				String encPassword = EncryptionUtils.Encrypt(runFromFileModel.getFsPassword(), EncryptionUtils.getSecretKey());
 				mergedProperties.put("MobilePassword", encPassword);
 			} catch (Exception e) {
 				build.setResult(Result.FAILURE);
@@ -408,6 +405,21 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
 		mergedProperties.put("runType", RunType.FileSystem.toString());
 		mergedProperties.put("resultsFilename", ResultFilename);
+
+		//handling mtbx file content :
+		// If we have mtbx content - it is located in Test1 property and there is no other test properties (like Test2 etc)
+		// We save mtbx content in workspace and replace content of Test1 by reference to saved file
+		String firstTestKey = "Test1";
+		String firstTestContent = mergedProperties.getProperty(firstTestKey, "");
+		if (RunFromFileSystemModel.isMtbxContent(firstTestContent)) {
+			try {
+				String mtbxFilePath = createMtbxFileInWs(workspace, firstTestContent);
+				mergedProperties.setProperty(firstTestKey, mtbxFilePath);
+			} catch (IOException | InterruptedException e) {
+				build.setResult(Result.FAILURE);
+				listener.error("Failed to save MTBX file : " + e.getMessage());
+			}
+		}
 
 		// get properties serialized into a stream
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -481,6 +493,22 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 			}
 			out.println("Operation Was aborted by user.");
 		}
+	}
+
+	private static String createMtbxFileInWs(FilePath workspace, String mtbxContent) throws IOException, InterruptedException {
+		Date now = new Date();
+		Format formatter = new SimpleDateFormat("ddMMyyyyHHmmssSSS");
+		String time = formatter.format(now);
+
+		String fileName = "test_suite_" + time + ".mtbx";
+
+		FilePath remoteFile = workspace.child(fileName);
+
+		String mtbxContentUpdated = mtbxContent.replace("${WORKSPACE}", workspace.getRemote());
+		InputStream in = IOUtils.toInputStream(mtbxContentUpdated, "UTF-8");
+		remoteFile.copyFrom(in);
+
+		return remoteFile.getRemote();
 	}
 
 	/**

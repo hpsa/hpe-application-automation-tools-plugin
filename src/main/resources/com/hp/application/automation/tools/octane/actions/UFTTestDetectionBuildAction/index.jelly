@@ -20,6 +20,11 @@
         color: #555753;
     }
 
+    .myTable caption{
+        font-weight: bold;
+        padding-bottom: 10px;
+    }
+
     .myTable td, .myTable th {
         border-left: 1px solid #cbcbcb;
         border-width: 0 0 0 1px;
@@ -58,9 +63,20 @@
                 <br/>
                 <br/>
             </j:if>
+            <j:if test="${it.hasNewScmResources}">
+                New data tables : ${it.results.newScmResourceFiles.size()}
+                <br/>
+                <br/>
+            </j:if>
+            <j:if test="${it.hasDeletedScmResources}">
+                Deleted data tables : ${it.results.deletedScmResourceFiles.size()}
+                <br/>
+                <br/>
+            </j:if>
          </p>
        <p>
        <table class = "myTable" frame="vsides above bottom" >
+        <caption>Tests</caption>
         <thead>
 
          <tr>
@@ -96,6 +112,36 @@
           </tbody>
        </table>
        </p>
+
+       <br/><br/>
+       <p>
+              <table class = "myTable" frame="vsides above bottom" >
+               <caption>Data tables</caption>
+               <thead>
+                <tr>
+                    <th>Path</th>
+                    <th>Status</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                  <j:forEach var="s" items="${it.results.newScmResourceFiles}">
+                      <tr>
+                          <td >${s.relativePath}</td>
+                          <td >new</td>
+                      </tr>
+                  </j:forEach>
+                  <j:forEach var="s" items="${it.results.deletedScmResourceFiles}">
+                        <tr>
+                            <td >${s.relativePath}</td>
+                            <td >deleted</td>
+                        </tr>
+                    </j:forEach>
+
+
+                 </tbody>
+              </table>
+              </p>
     </l:main-panel>
 
   </l:layout>
