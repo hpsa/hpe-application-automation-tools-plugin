@@ -118,7 +118,7 @@ public class PcClient {
     }
 
     private int getCorrectTestInstanceID(int testID) throws IOException, PcException {
-        if(model.getAutoTestInstanceID().equals("AUTO")){
+        if("AUTO".equals(model.getAutoTestInstanceID())){
             try {
 
 

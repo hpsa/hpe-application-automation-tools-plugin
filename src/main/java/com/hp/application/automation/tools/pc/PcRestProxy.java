@@ -180,12 +180,10 @@ public class PcRestProxy {
         int testInstanceID = 0;
         try {
             testInstanceID = testInstanceCreateRequest.getTestInstanceIDFromResponse(responseXml,"TestInstanceID");
-        } catch (SAXException e) {
-            e.printStackTrace();
-        } catch (ParserConfigurationException e) {
-            e.printStackTrace();
+        } catch (SAXException|ParserConfigurationException e) {
+            throw new PcException("createTestInstance exception: " + e);
         }
-        return testInstanceID;//PcRunResponse.xmlToObject(runData);
+        return testInstanceID;
     }
 
     public PcTestSets GetAllTestSets()throws IOException,PcException{
