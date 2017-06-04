@@ -56,6 +56,7 @@ import java.io.OutputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.FileOutputStream;
+import java.net.URLEncoder;
 import java.util.*;
 
 import java.io.PrintStream;
@@ -71,7 +72,8 @@ public class PcRestProxy {
     protected static final String        AUTHENTICATION_LOGOUT_URL      = BASE_PC_API_AUTHENTICATION_URL + "/logout";
     protected static final String        PC_API_RESOURCES_TEMPLATE      = BASE_PC_API_URL + "/domains/%s/projects/%s";
     protected static final String        RUNS_RESOURCE_NAME             = "Runs";
-    protected static final String        TEST_INSTANCES_NAME             = "testinstances";
+    protected static final String        TEST_INSTANCES_NAME            = "testinstances";
+    protected static final String        TEST_SETS_NAME                 = "testsets";
     protected static final String        RESULTS_RESOURCE_NAME          = "Results";
     protected static final String        EVENTLOG_RESOURCE_NAME         = "EventLog";
     protected static final String        TREND_REPORT_RESOURCE_NAME     = "TrendReports";
@@ -184,6 +186,23 @@ public class PcRestProxy {
             e.printStackTrace();
         }
         return testInstanceID;//PcRunResponse.xmlToObject(runData);
+    }
+
+    public PcTestSets GetAllTestSets()throws IOException,PcException{
+        String getTestSetsUrl = String.format(baseURL + "/%s", TEST_SETS_NAME);
+        HttpGet getTestSetsRequest = new HttpGet(getTestSetsUrl);
+        HttpResponse response = executeRequest(getTestSetsRequest);
+        String testSets = IOUtils.toString(response.getEntity().getContent());
+        return PcTestSets.xmlToObject(testSets);
+    }
+
+    public PcTestInstances getTestInstancesByTestId(int testId)throws PcException,IOException{
+        String uri = String.format(baseURL + "/%s?%s=%s", TEST_INSTANCES_NAME,"query",URLEncoder.encode("{test-id[" + testId + "]}","UTF-8"));
+        HttpGet getFirtstTestInstanceByTestID = new HttpGet(uri);
+        HttpResponse response = executeRequest(getFirtstTestInstanceByTestID);
+        String testInstances = IOUtils.toString(response.getEntity().getContent());
+        return PcTestInstances.xmlToObject(testInstances);
+
     }
 
     public boolean stopRun(int runId, String stopMode) throws PcException, ClientProtocolException, IOException {
@@ -300,4 +319,5 @@ public class PcRestProxy {
     protected String getBaseURL() {
         return baseURL;
     }
+
 }
