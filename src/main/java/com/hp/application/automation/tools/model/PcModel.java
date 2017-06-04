@@ -11,7 +11,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 public class PcModel {
 
     public static final String    COLLATE         = "Collate Results";
-    public static final String    COLLATE_ANALYZE = "Collate And Analyze";
+    public static final String    COLLATE_ANALYZE = "Collate and Analyze";
     public static final String    DO_NOTHING      = "Do Not Collate";
 
     private final String           pcServerName;
