@@ -16,7 +16,6 @@
 
 package com.hp.application.automation.tools.octane.configuration;
 
-import com.google.inject.Inject;
 import com.hp.application.automation.tools.model.OctaneServerSettingsModel;
 import com.hp.application.automation.tools.octane.client.JenkinsMqmRestClientFactoryImpl;
 import com.hp.application.automation.tools.settings.OctaneServerSettingsBuilder;
@@ -24,7 +23,6 @@ import com.hp.mqm.client.MqmRestClient;
 import com.hp.mqm.client.exception.LoginException;
 import com.hp.mqm.client.exception.RequestException;
 import com.hp.mqm.client.exception.SharedSpaceNotExistException;
-import hudson.Extension;
 import hudson.Plugin;
 import jenkins.model.Jenkins;
 import org.apache.logging.log4j.LogManager;
@@ -36,10 +34,9 @@ import org.apache.logging.log4j.Logger;
  * 2. helps to get Octane configuration and model
  * 3. helps to get RestClient based on some configuration
  */
-@Extension
 public class ConfigurationService {
 
-    private JenkinsMqmRestClientFactoryImpl clientFactory;
+    private static JenkinsMqmRestClientFactoryImpl clientFactory;
 
     private static Logger logger = LogManager.getLogger(ConfigurationService.class);
 
@@ -90,14 +87,14 @@ public class ConfigurationService {
      * @param serverConfiguration
      * @return
      */
-    public MqmRestClient createClient(ServerConfiguration serverConfiguration) {
+    public static MqmRestClient createClient(ServerConfiguration serverConfiguration) {
 
         if (!serverConfiguration.isValid()) {
             logger.warn("MQM server configuration is not valid");
             return null;
         }
 
-        MqmRestClient client = clientFactory.obtain(
+        MqmRestClient client = getMqmRestClientFactory().obtain(
                 serverConfiguration.location,
                 serverConfiguration.sharedSpace,
                 serverConfiguration.username,
@@ -117,14 +114,11 @@ public class ConfigurationService {
         return null;
     }
 
-    /**
-     * Inject client factory
-     *
-     * @param clientFactory
-     */
-    @Inject
-    public void setMqmRestClientFactory(JenkinsMqmRestClientFactoryImpl clientFactory) {
-        this.clientFactory = clientFactory;
+    private static JenkinsMqmRestClientFactoryImpl getMqmRestClientFactory() {
+        if (clientFactory == null) {
+            clientFactory = Jenkins.getInstance().getExtensionList(JenkinsMqmRestClientFactoryImpl.class).get(0);
+        }
+        return clientFactory;
     }
 
 }

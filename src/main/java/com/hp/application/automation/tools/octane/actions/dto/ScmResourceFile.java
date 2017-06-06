@@ -36,8 +36,6 @@ public class ScmResourceFile {
 
     private String relativePath;
 
-    private String relativePathPrevious;
-
     public String getName() {
         return name;
     }
@@ -68,14 +66,6 @@ public class ScmResourceFile {
 
     public void setRelativePath(String relativePath) {
         this.relativePath = relativePath;
-    }
-
-    public String getRelativePathPrevious() {
-        return relativePathPrevious;
-    }
-
-    public void setRelativePathPrevious(String relativePathPrevious) {
-        this.relativePathPrevious = relativePathPrevious;
     }
 
     public BaseRefEntity getScmRepository() {

@@ -21,6 +21,7 @@ import com.hp.application.automation.tools.octane.configuration.ConfigurationSer
 import com.hp.application.automation.tools.octane.configuration.ServerConfiguration;
 import com.hp.application.automation.tools.octane.executor.ExecutorConnectivityService;
 import com.hp.application.automation.tools.octane.executor.TestExecutionJobCreatorService;
+import com.hp.application.automation.tools.octane.executor.UftJobCleaner;
 import com.hp.application.automation.tools.octane.model.ModelFactory;
 import com.hp.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.hp.application.automation.tools.octane.model.processors.projects.AbstractProjectProcessor;
@@ -555,7 +556,7 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 
     @Override
     public void deleteExecutor(String id) {
-        TestExecutionJobCreatorService.deleteExecutor(id);
+        UftJobCleaner.deleteExecutor(id);
     }
 
     @Override

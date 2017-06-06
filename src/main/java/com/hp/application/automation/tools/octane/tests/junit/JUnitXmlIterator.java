@@ -16,6 +16,7 @@
 
 package com.hp.application.automation.tools.octane.tests.junit;
 
+import com.hp.application.automation.tools.octane.executor.OctaneConstants;
 import com.hp.application.automation.tools.octane.tests.HPRunnerType;
 import com.hp.application.automation.tools.octane.tests.xml.AbstractXmlIterator;
 import com.hp.octane.integrations.dto.DTOFactory;
@@ -38,6 +39,9 @@ import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.List;
 
+/**
+ * JUnit iterator over test result. Enrich test result before sending to server
+ */
 public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 	private static final Logger logger = LogManager.getLogger(JUnitXmlIterator.class);
 
@@ -151,11 +155,12 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 						// if workspace is prefix of the method name, cut it off
 						// currently this handling is needed for UFT tests
 						String path = testName.substring(workspace.getRemote().length());
-						path = StringUtils.strip(path, "\\/");
+						path = path.replace(OctaneConstants.General.LINUX_PATH_SPLITTER, OctaneConstants.General.WINDOWS_PATH_SPLITTER);
+						path = StringUtils.strip(path, OctaneConstants.General.WINDOWS_PATH_SPLITTER);
 
 						//split path to package and and name fields
-						if (path.contains(File.separator)) {
-							int testNameStartIndex = path.indexOf(File.separator);
+						if (path.contains(OctaneConstants.General.WINDOWS_PATH_SPLITTER)) {
+							int testNameStartIndex = path.lastIndexOf(OctaneConstants.General.WINDOWS_PATH_SPLITTER);
 
 							testName = path.substring(testNameStartIndex + 1);
 							packageName = path.substring(0, testNameStartIndex);

@@ -103,7 +103,7 @@ public class UFTTestDetectionResult {
 
     public boolean hasChanges() {
         return !getNewTests().isEmpty() || !getUpdatedTests().isEmpty() || !getDeletedTests().isEmpty()
-                || !getNewScmResourceFiles().isEmpty() || !getDeletedScmResourceFiles().isEmpty() || !getUpdatedScmResourceFiles().isEmpty();
+                || !getNewScmResourceFiles().isEmpty() || !getDeletedScmResourceFiles().isEmpty();
     }
 
     public List<ScmResourceFile> getNewScmResourceFiles() {
