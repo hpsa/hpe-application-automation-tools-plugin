@@ -72,6 +72,7 @@ public class PcRestProxy {
     protected static final String        AUTHENTICATION_LOGOUT_URL      = BASE_PC_API_AUTHENTICATION_URL + "/logout";
     protected static final String        PC_API_RESOURCES_TEMPLATE      = BASE_PC_API_URL + "/domains/%s/projects/%s";
     protected static final String        RUNS_RESOURCE_NAME             = "Runs";
+    protected static final String        TESTS_RESOURCE_NAME            = "tests";
     protected static final String        TEST_INSTANCES_NAME            = "testinstances";
     protected static final String        TEST_SETS_NAME                 = "testsets";
     protected static final String        RESULTS_RESOURCE_NAME          = "Results";
@@ -218,6 +219,13 @@ public class PcRestProxy {
         HttpResponse response = executeRequest(getRunDataRequest);
         String runData = IOUtils.toString(response.getEntity().getContent());
         return PcRunResponse.xmlToObject(runData);
+    }
+
+    public PcTest getTestData(int testId) throws IOException, PcException {
+        HttpGet getTestDataRequest = new HttpGet(String.format(baseURL + "/%s/%s",TESTS_RESOURCE_NAME,testId ));
+        HttpResponse response = executeRequest(getTestDataRequest);
+        String testData = IOUtils.toString(response.getEntity().getContent());
+        return PcTestData.xmlToObject(testData);
     }
 
     public PcRunResults getRunResults(int runId) throws PcException, ClientProtocolException, IOException {

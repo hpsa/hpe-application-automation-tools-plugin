@@ -73,7 +73,7 @@ public class PcClient {
     public boolean login() {
         try {
             String user = model.getAlmUserName();
-            logger.println(String.format("Trying to login\n[PCServer='%s', User='%s']", model.getPcServerName(), user));
+            logger.println(String.format("Trying to login\n[PCServer='%s://%s', User='%s']",model.isHTTPSProtocol(), model.getPcServerName(), user));
             loggedIn = restProxy.authenticate(user, model.getAlmPassword().toString());
         } catch (PcException e) {
             logger.println(e.getMessage());
@@ -102,8 +102,12 @@ public class PcClient {
 
     public int startRun() throws NumberFormatException, ClientProtocolException, PcException, IOException {
 
+
+
+
         int testID = Integer.parseInt(model.getTestId());
         int testInstance = getCorrectTestInstanceID(testID);
+        setCorrectTrendReportID();
 
         logger.println(String.format("\nExecuting Load Test: \n====================\nTest ID: %s \nTest Instance ID: %s \nTimeslot Duration: %s \nPost Run Action: %s \nUse VUDS: %s\n====================\n", Integer.parseInt(model.getTestId()), testInstance, model.getTimeslotDuration() ,model.getPostRunAction().getValue(),model.isVudsMode()));
 //        logger.println("Sending run request:\n" + model.runParamsToString());
@@ -153,6 +157,15 @@ public class PcClient {
             }
         }
         return Integer.parseInt(model.getTestInstanceId());
+    }
+
+    private void setCorrectTrendReportID() throws IOException, PcException {
+        // If the user selected "Use trend report associated with the test" or "Add run to trend report with ID: <id_number>"
+        // And he has auto trending on, we will take the  trendreportID of the test in any case and not the added ID.
+        // If he don't have auto trending on, we will take the ID from the job if supplied
+        PcTest pcTest = restProxy.getTestData(Integer.parseInt(model.getTestId()));
+        if (pcTest.getTrendReportId() > -1)
+            model.setTrendReportId(String.valueOf(pcTest.getTrendReportId()));
     }
 
     public PcRunResponse waitForRunCompletion(int runId) throws InterruptedException, ClientProtocolException, PcException, IOException {
@@ -274,7 +287,8 @@ public class PcClient {
         return null;
     }
 
-    public void addRunToTrendReport(int runId, String trendReportId){
+    public void addRunToTrendReport(int runId, String trendReportId)
+    {
 
         TrendReportRequest trRequest = new TrendReportRequest(model.getAlmProject(), runId, null);
         logger.println("Adding run: " + runId + " to trend report: " + trendReportId);

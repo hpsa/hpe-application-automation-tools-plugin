@@ -109,7 +109,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             boolean vudsMode,
             boolean statusBySLA,
             String description,
-            boolean addRunToTrendReport,
+            String addRunToTrendReport,
             String trendReportId,
             boolean HTTPSProtocol,
             String proxyOutURL) {
@@ -237,8 +237,16 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             if (response != null && RunState.get(response.getRunState()) == FINISHED) {
                 pcReportFile = pcClient.publishRunReport(runId, getReportDirectory(build));
 
-                // Adding the trend report section
-                if(pcModel.isAddRunToTrendReport() && pcModel.getTrendReportId() != null && RunState.get(response.getRunState()) != RUN_FAILURE){
+                // Adding the trend report section if ID has been set
+                if(("USE_ID").equals(pcModel.getAddRunToTrendReport()) && pcModel.getTrendReportId() != null && RunState.get(response.getRunState()) != RUN_FAILURE){
+                    pcClient.addRunToTrendReport(this.runId, pcModel.getTrendReportId());
+                    pcClient.waitForRunToPublishOnTrendReport(this.runId, pcModel.getTrendReportId());
+                    pcClient.downloadTrendReportAsPdf(pcModel.getTrendReportId(), getTrendReportsDirectory(build));
+                    trendReportReady = true;
+                }
+
+                // Adding the trend report if the Associated Trend report is slected.
+                if(("ASSOCIATED").equals(pcModel.getAddRunToTrendReport()) && RunState.get(response.getRunState()) != RUN_FAILURE){
                     pcClient.addRunToTrendReport(this.runId, pcModel.getTrendReportId());
                     pcClient.waitForRunToPublishOnTrendReport(this.runId, pcModel.getTrendReportId());
                     pcClient.downloadTrendReportAsPdf(pcModel.getTrendReportId(), getTrendReportsDirectory(build));
@@ -330,8 +338,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             }
         }
 
-        boolean isTrendReportIdValid = validateTrendReportIdIsNumeric(getPcModel().getTrendReportId(),
-                getPcModel().isAddRunToTrendReport());
+        boolean isTrendReportIdValid = validateTrendReportIdIsNumeric(getPcModel().getTrendReportId(),("USE_ID").equals(getPcModel().getAddRunToTrendReport()));
 
         ret &= isTrendReportIdValid;
         return ret;
@@ -603,9 +610,9 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     }
 
 
-    public boolean isAddRunToTrendReport()
+    public String getAddRunToTrendReport()
     {
-        return getPcModel().isAddRunToTrendReport();
+        return getPcModel().getAddRunToTrendReport();
     }
 
 

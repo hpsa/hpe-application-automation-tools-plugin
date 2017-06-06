@@ -26,8 +26,8 @@ public class PcModel {
     private final PostRunAction    postRunAction;
     private final boolean          vudsMode;
     private final String           description;
-    private final boolean          addRunToTrendReport;
-    private final String trendReportId;
+    private final String          addRunToTrendReport;
+    private String trendReportId;
     private final boolean HTTPSProtocol;
     private final String proxyOutURL;
 
@@ -35,7 +35,7 @@ public class PcModel {
     @DataBoundConstructor
     public PcModel(String pcServerName, String almUserName, String almPassword, String almDomain, String almProject,
                    String testId,String autoTestInstanceID, String testInstanceId, String timeslotDurationHours, String timeslotDurationMinutes,
-                   PostRunAction postRunAction, boolean vudsMode, String description, boolean addRunToTrendReport, String trendReportId, boolean HTTPSProtocol, String proxyOutURL) {
+                   PostRunAction postRunAction, boolean vudsMode, String description, String addRunToTrendReport, String trendReportId, boolean HTTPSProtocol, String proxyOutURL) {
 
         this.pcServerName = pcServerName;
         this.almUserName = almUserName;
@@ -142,7 +142,7 @@ public class PcModel {
     public String runParamsToString() {
 
         String vudsModeString = (vudsMode) ? ", VUDsMode='true'" : "";
-        String trendString = (addRunToTrendReport) ? String.format(", TrendReportID = '%s'",trendReportId) : "";
+        String trendString = ("USE_ID").equals(addRunToTrendReport) ? String.format(", TrendReportID = '%s'",trendReportId) : "";
 
         return String.format("[Domain='%s', Project='%s', TestID='%s', " +
                         "TestInstanceID='%s', TimeslotDuration='%s', PostRunAction='%s'%s%s]",
@@ -156,7 +156,11 @@ public class PcModel {
         return trendReportId;
     }
 
-    public boolean isAddRunToTrendReport() {
+    public void setTrendReportId(String trendReportId){
+        this.trendReportId = trendReportId;
+    }
+
+    public String getAddRunToTrendReport() {
         return addRunToTrendReport;
     }
 

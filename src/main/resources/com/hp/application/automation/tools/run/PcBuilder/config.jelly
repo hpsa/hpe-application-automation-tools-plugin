@@ -121,7 +121,7 @@
     <td>Test Instance ID</td>
     <td colspan="2">
         <table style="width:100%">
-        <f:radioBlock field="autoTestInstanceID" name="pc.autoTestInstanceID" value="AUTO" checked="${instance.pcModel.autoTestInstanceID=='AUTO' || instance.pcModel.autoTestInstanceID== null}" title="Automatically select existing or create new if none exists" inline="true">
+        <f:radioBlock field="autoTestInstanceID" name="pc.autoTestInstanceID" value="AUTO" checked="${instance.pcModel.autoTestInstanceID=='AUTO' || instance.pcModel.autoTestInstanceID== null}" title="Automatically select existing or create new if none exists (Performance Center 12.55 or later)" inline="true">
        </f:radioBlock>
 
          <f:radioBlock  field="autoTestInstanceID" name="pc.autoTestInstanceID" value="MANUAL"  checked="${instance.pcModel.autoTestInstanceID=='MANUAL'}" title="Manual selection" inline="true">
@@ -153,12 +153,28 @@
 	</f:entry>
 
 	<f:block>
-		<div id="addRunToTrendReport" class="disabledLine">
-			<f:checkbox name="addRunToTrendReport" title="Add run to trend report with ID" checked="${instance.pcModel.addRunToTrendReport}" value="${instance.pcModel.addRunToTrendReport}"/>
-			<f:textbox  name="trendReportId" style="width:40px;height:24px;text-align:center;margin:10px" value="${instance.pcModel.trendReportId}"/>
-		</div>
-		<script>onPostRunActionLoad();</script>
+		<br />
 	</f:block>
+
+	    <td class="setting-leftspace">&#160;</td>
+        <td>Trending</td>
+        <td colspan="2">
+            <table style="width:100%">
+            <f:radioBlock field="addRunToTrendReport" name="addRunToTrendReport" value="NO_TREND" checked="${instance.pcModel.addRunToTrendReport=='NO_TREND'}" title="Do Not Trend" inline="true">
+            </f:radioBlock>
+            <f:radioBlock field="addRunToTrendReport" name="addRunToTrendReport" value="ASSOCIATED" checked="${instance.pcModel.addRunToTrendReport=='ASSOCIATED'}" title="Use trend report associated with the test" inline="true">
+            </f:radioBlock>
+            <f:radioBlock field="addRunToTrendReport" name="addRunToTrendReport" value="USE_ID" checked="${instance.pcModel.addRunToTrendReport=='USE_ID'}" title="Add run to trend report with ID" inline="true">
+                <f:entry title="Trend report ID:" field="addRunToTrendReport">
+			        <f:textbox  name="trendReportId" style="width:40px;height:24px;text-align:center;margin:0px" value="${instance.pcModel.trendReportId}" inline="true"/>
+                </f:entry>
+            </f:radioBlock>
+            </table>
+        </td>
+
+
+		<script>onPostRunActionLoad();</script>
+
 
 
 
