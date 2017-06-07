@@ -41,6 +41,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
+/**
+ * Service is responsible to detect changes according to SCM change and to put it to queue of UftTestDiscoveryDispatcher
+ */
 public class UFTTestDetectionService {
     private static final Logger logger = LogManager.getLogger(UFTTestDetectionService.class);
     private static final String INITIAL_DETECTION_FILE = "INITIAL_DETECTION_FILE.txt";
@@ -92,7 +95,10 @@ public class UFTTestDetectionService {
             result.setFullScan(fullScan);
             sortTests(result.getNewTests());
             sortTests(result.getUpdatedTests());
-            publishDetectionResults(build, buildListener, result);
+            sortTests(result.getDeletedTests());
+            sortDataTables(result.getNewScmResourceFiles());
+            sortDataTables(result.getDeletedScmResourceFiles());
+            publishDetectionResults(getReportXmlFile(build), buildListener, result);
 
             if (result.hasChanges()) {
                 UftTestDiscoveryDispatcher dispatcher = getExtension(UftTestDiscoveryDispatcher.class);
@@ -156,6 +162,15 @@ public class UFTTestDetectionService {
                 } else {
                     return comparePackage;
                 }
+            }
+        });
+    }
+
+    private static void sortDataTables(List<ScmResourceFile> dataTables) {
+        Collections.sort(dataTables, new Comparator<ScmResourceFile>() {
+            @Override
+            public int compare(ScmResourceFile o1, ScmResourceFile o2) {
+                return o1.getRelativePath().compareTo(o2.getRelativePath());
             }
         });
     }
@@ -242,10 +257,9 @@ public class UFTTestDetectionService {
         return result;
     }
 
-    private static AutomatedTest createAutomatedTest(FilePath root, FilePath dirPath, UftTestType testType, boolean executable) throws IOException, InterruptedException {
+    private static AutomatedTest createAutomatedTest(FilePath root, FilePath dirPath, UftTestType testType, boolean executable)  {
         AutomatedTest test = new AutomatedTest();
         test.setName(dirPath.getName());
-
 
         String relativePath = getRelativePath(root, dirPath);
         String packageName = relativePath.length() != dirPath.getName().length() ? relativePath.substring(0, relativePath.length() - dirPath.getName().length() - 1) : "";
@@ -262,12 +276,12 @@ public class UFTTestDetectionService {
         return test;
     }
 
-    private static String getRelativePath(FilePath root, FilePath path) throws IOException, InterruptedException {
+    private static String getRelativePath(FilePath root, FilePath path)  {
         String testPath = path.getRemote();
         String rootPath = root.getRemote();
         String relativePath = testPath.replace(rootPath, "");
         relativePath = StringUtils.strip(relativePath, windowsPathSplitter + linuxPathSplitter);
-        //we want all paths will be in sindows style, because tests are run in windows, therefore we replace all linux splitters (/) by windows one (\)
+        //we want all paths will be in windows style, because tests are run in windows, therefore we replace all linux splitters (/) by windows one (\)
         //http://stackoverflow.com/questions/23869613/how-to-replace-one-or-more-in-string-with-just
         relativePath = relativePath.replaceAll(linuxPathSplitter, windowsPathSplitter + windowsPathSplitter);//str.replaceAll("/", "\\\\");
         return relativePath;
@@ -336,7 +350,7 @@ public class UFTTestDetectionService {
         }
     }
 
-    private static ScmResourceFile createDataTable(FilePath root, FilePath path) throws IOException, InterruptedException {
+    private static ScmResourceFile createDataTable(FilePath root, FilePath path)  {
         ScmResourceFile resourceFile = new ScmResourceFile();
         resourceFile.setName(path.getName());
         resourceFile.setRelativePath(getRelativePath(root, path));
@@ -381,19 +395,26 @@ public class UFTTestDetectionService {
         return null;
     }
 
-    private static void publishDetectionResults(AbstractBuild<?, ?> build, TaskListener _logger, UFTTestDetectionResult detectionResult) {
+    /**
+     * Serialize detectionResult to file in XML format
+     * @param fileToWriteTo
+     * @param taskListenerLog
+     * @param detectionResult
+     */
+    public static void publishDetectionResults(File fileToWriteTo, TaskListener taskListenerLog, UFTTestDetectionResult detectionResult) {
 
         try {
-            File file = getReportXmlFile(build);
             JAXBContext jaxbContext = JAXBContext.newInstance(UFTTestDetectionResult.class);
             Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
 
             jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-            jaxbMarshaller.marshal(detectionResult, file);
-            //jaxbMarshaller.marshal(detectionResult, System.out);
+            jaxbMarshaller.marshal(detectionResult, fileToWriteTo);
 
         } catch (JAXBException e) {
-            _logger.error("Failed to persist detection results: " + e);
+            if (taskListenerLog != null) {
+                taskListenerLog.error("Failed to persist detection results: " + e.getMessage());
+            }
+            logger.error("Failed to persist detection results: " + e.getMessage());
         }
     }
 
@@ -403,15 +424,13 @@ public class UFTTestDetectionService {
         try {
             JAXBContext context = JAXBContext.newInstance(UFTTestDetectionResult.class);
             Unmarshaller m = context.createUnmarshaller();
-            UFTTestDetectionResult result = (UFTTestDetectionResult) m.unmarshal(new FileReader(file));
-            return result;
+            return (UFTTestDetectionResult) m.unmarshal(new FileReader(file));
         } catch (JAXBException | FileNotFoundException e) {
             return null;
         }
     }
 
     private static File getReportXmlFile(Run run) {
-        File reportXmlFile = new File(run.getRootDir(), DETECTION_RESULT_FILE);
-        return reportXmlFile;
+        return new File(run.getRootDir(), DETECTION_RESULT_FILE);
     }
 }

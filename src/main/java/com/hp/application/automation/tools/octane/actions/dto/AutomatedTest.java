@@ -141,4 +141,9 @@ public class AutomatedTest {
     public void setExecutable(Boolean executable) {
         this.executable = executable;
     }
+
+    @Override
+    public String toString() {
+        return "#" + getId() == null ? "0" : getId() + " - " + getPackage() + "@" + getName();
+    }
 }
