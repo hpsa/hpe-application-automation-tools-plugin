@@ -245,7 +245,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                     trendReportReady = true;
                 }
 
-                // Adding the trend report if the Associated Trend report is slected.
+                // Adding the trend report if the Associated Trend report is selected.
                 if(("ASSOCIATED").equals(pcModel.getAddRunToTrendReport()) && RunState.get(response.getRunState()) != RUN_FAILURE){
                     pcClient.addRunToTrendReport(this.runId, pcModel.getTrendReportId());
                     pcClient.waitForRunToPublishOnTrendReport(this.runId, pcModel.getTrendReportId());

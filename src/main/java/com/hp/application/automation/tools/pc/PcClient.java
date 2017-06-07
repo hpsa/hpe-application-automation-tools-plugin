@@ -160,12 +160,19 @@ public class PcClient {
     }
 
     private void setCorrectTrendReportID() throws IOException, PcException {
-        // If the user selected "Use trend report associated with the test" or "Add run to trend report with ID: <id_number>"
-        // And he has auto trending on, we will take the  trendreportID of the test in any case and not the added ID.
-        // If he don't have auto trending on, we will take the ID from the job if supplied
-        PcTest pcTest = restProxy.getTestData(Integer.parseInt(model.getTestId()));
-        if (pcTest.getTrendReportId() > -1)
-            model.setTrendReportId(String.valueOf(pcTest.getTrendReportId()));
+        // If the user selected "Use trend report associated with the test" we want the report ID to be the one from the test
+        if (("ASSOCIATED").equals(model.getAddRunToTrendReport())){
+            PcTest pcTest = restProxy.getTestData(Integer.parseInt(model.getTestId()));
+            if (pcTest.getTrendReportId() > -1)
+                model.setTrendReportId(String.valueOf(pcTest.getTrendReportId()));
+            else{
+                String msg = "No trend report ID is associated with the test.\n" +
+                        "Please turn Automatic Trending on for the test through Performance Center UI.\n" +
+                        "Alternatively you can check 'Add run to trend report with ID' on Jenkins job configuration.";
+                throw new PcException(msg);
+            }
+        }
+
     }
 
     public PcRunResponse waitForRunCompletion(int runId) throws InterruptedException, ClientProtocolException, PcException, IOException {
