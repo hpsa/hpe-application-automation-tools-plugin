@@ -43,6 +43,10 @@ public class MockPcRestProxy extends PcRestProxy {
                 || requestUrl.equals(String.format(getBaseURL() + "/%s/%s", RUNS_RESOURCE_NAME, RUN_ID))) {
             response = getOkResponse();
             response.setEntity(new StringEntity(PcTestBase.runResponseEntity));
+        } else if(requestUrl.equals(String.format(getBaseURL() + "/%s", TESTS_RESOURCE_NAME))
+                || requestUrl.equals(String.format(getBaseURL() + "/%s/%s", TESTS_RESOURCE_NAME, TEST_ID))){
+                response = getOkResponse();
+                response.setEntity(new StringEntity(PcTestBase.testResponseEntity));
         } else if (requestUrl.equals(String.format(getBaseURL() + "/%s/%s", RUNS_RESOURCE_NAME, RUN_ID_WAIT))) {
             response = getOkResponse();
             response.setEntity(new StringEntity(PcTestBase.runResponseEntity.replace("*", runState.next().value())));

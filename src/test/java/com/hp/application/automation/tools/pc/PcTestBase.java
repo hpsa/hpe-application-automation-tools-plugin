@@ -103,5 +103,10 @@ public interface PcTestBase {
     public static final String        pcNoTimeslotExceptionMessage      = "Failed to retrieve reservation information for reservation " + TIMESLOT_ID + ". Error code: 1202";
 
     public static final String        pcStopNonExistRunFailureMessage   = "Failed to retrieve run " + RUN_ID + " information from domain " + ALM_DOMAIN + ", project " + ALM_PROJECT + ". Error code: 1300";
+
+    public static final String 		  testResponseEntity =			 "<Test>" +
+																	"<ID>2</ID>" +
+																	"<Name>test1</Name>" +
+																	"</Test>";
     
 }
