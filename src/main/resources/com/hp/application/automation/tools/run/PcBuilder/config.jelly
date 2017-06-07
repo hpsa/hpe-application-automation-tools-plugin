@@ -40,7 +40,7 @@
 		function isAddRunToTrendReportEnabled(sender) {
 			var x = sender.selectedIndex;
 			var y = sender.options;
-			var addRunToTrendReport = document.getElementById('addRunToTrendReport');
+			var addRunToTrendReport = document.getElementById('trendReportTable');
 			//alert(y[x].value);
 			if (y[x].value === 'COLLATE_AND_ANALYZE'){
 				addRunToTrendReport.classList.remove("disabledLine");
@@ -159,7 +159,7 @@
 	    <td class="setting-leftspace">&#160;</td>
         <td>Trending</td>
         <td colspan="2">
-            <table style="width:100%">
+            <table style="width:100%" id="trendReportTable">
             <f:radioBlock field="addRunToTrendReport" name="addRunToTrendReport" value="NO_TREND" checked="${instance.pcModel.addRunToTrendReport=='NO_TREND'}" title="Do Not Trend" inline="true">
             </f:radioBlock>
             <f:radioBlock field="addRunToTrendReport" name="addRunToTrendReport" value="ASSOCIATED" checked="${instance.pcModel.addRunToTrendReport=='ASSOCIATED'}" title="Use trend report associated with the test" inline="true">
