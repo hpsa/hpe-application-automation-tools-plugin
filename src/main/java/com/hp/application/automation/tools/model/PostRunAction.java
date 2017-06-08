@@ -3,7 +3,7 @@ package com.hp.application.automation.tools.model;
 public enum PostRunAction {
 
     COLLATE("Collate Results"), 
-    COLLATE_AND_ANALYZE("Collate And Analyze"), 
+    COLLATE_AND_ANALYZE("Collate and Analyze"),
     DO_NOTHING("Do Not Collate");
 
     private String value;

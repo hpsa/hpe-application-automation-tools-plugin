@@ -102,13 +102,14 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             String almProject,
             String testId,
             String testInstanceId,
+            String autoTestInstanceID,
             String timeslotDurationHours,
             String timeslotDurationMinutes,
             PostRunAction postRunAction,
             boolean vudsMode,
             boolean statusBySLA,
             String description,
-            boolean addRunToTrendReport,
+            String addRunToTrendReport,
             String trendReportId,
             boolean HTTPSProtocol,
             String proxyOutURL) {
@@ -126,6 +127,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                         almDomain.trim(),
                         almProject.trim(),
                         testId.trim(),
+                        autoTestInstanceID,
                         testInstanceId.trim(),
                         timeslotDurationHours.trim(),
                         timeslotDurationMinutes.trim(),
@@ -235,8 +237,16 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             if (response != null && RunState.get(response.getRunState()) == FINISHED) {
                 pcReportFile = pcClient.publishRunReport(runId, getReportDirectory(build));
 
-                // Adding the trend report section
-                if(pcModel.isAddRunToTrendReport() && pcModel.getTrendReportId() != null && RunState.get(response.getRunState()) != RUN_FAILURE){
+                // Adding the trend report section if ID has been set
+                if(("USE_ID").equals(pcModel.getAddRunToTrendReport()) && pcModel.getTrendReportId() != null && RunState.get(response.getRunState()) != RUN_FAILURE){
+                    pcClient.addRunToTrendReport(this.runId, pcModel.getTrendReportId());
+                    pcClient.waitForRunToPublishOnTrendReport(this.runId, pcModel.getTrendReportId());
+                    pcClient.downloadTrendReportAsPdf(pcModel.getTrendReportId(), getTrendReportsDirectory(build));
+                    trendReportReady = true;
+                }
+
+                // Adding the trend report if the Associated Trend report is selected.
+                if(("ASSOCIATED").equals(pcModel.getAddRunToTrendReport()) && RunState.get(response.getRunState()) != RUN_FAILURE){
                     pcClient.addRunToTrendReport(this.runId, pcModel.getTrendReportId());
                     pcClient.waitForRunToPublishOnTrendReport(this.runId, pcModel.getTrendReportId());
                     pcClient.downloadTrendReportAsPdf(pcModel.getTrendReportId(), getTrendReportsDirectory(build));
@@ -311,8 +321,10 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                     String modelMethodName = modelMethod.getName();
                     if (modelMethodName.toLowerCase().equals("get" + name)) {
                         try {
-                            Object obj =
-                                    method.invoke(getDescriptor(), modelMethod.invoke(getPcModel()));
+                            Object obj = FormValidation.ok();
+                            if (!(name.equals("testinstanceid")&& pcModel.getAutoTestInstanceID().equals("AUTO"))){
+                                obj = method.invoke(getDescriptor(), modelMethod.invoke(getPcModel()));
+                            }
                             if (!obj.equals(FormValidation.ok())) {
                                 logger.println(obj);
                                 ret = false;
@@ -326,13 +338,14 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             }
         }
 
-        boolean isTrendReportIdValid = validateTrendReportIdIsNumeric(getPcModel().getTrendReportId(),
-                getPcModel().isAddRunToTrendReport());
+        boolean isTrendReportIdValid = validateTrendReportIdIsNumeric(getPcModel().getTrendReportId(),("USE_ID").equals(getPcModel().getAddRunToTrendReport()));
 
         ret &= isTrendReportIdValid;
         return ret;
         
     }
+
+
 
     private boolean validateTrendReportIdIsNumeric(String trendReportId, boolean addRunToTrendReport){
 
@@ -587,15 +600,19 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         return getPcModel().getTrendReportId();
     }
 
+    public String autoTestInstanceID()
+    {
+        return getPcModel().getAutoTestInstanceID();
+    }
     public String getTestInstanceId()
     {
         return getPcModel().getTestInstanceId();
     }
 
 
-    public boolean isAddRunToTrendReport()
+    public String getAddRunToTrendReport()
     {
-        return getPcModel().isAddRunToTrendReport();
+        return getPcModel().getAddRunToTrendReport();
     }
 
 
@@ -677,11 +694,23 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             
             return validateHigherThanInt(value, "Test ID", 0, true);
         }
-        
-        public FormValidation doCheckTestInstanceId(@QueryParameter String value) {
-            
+
+
+        // if autoTestInstanceID is selected we don't need to check the validation of the test instance
+//        public static FormValidation CheckOnlyAutoTestInstanceId(String autoTestInstanceID){
+//            if(autoTestInstanceID.equals("AUTO"))
+//                return FormValidation.ok();
+//            else
+//                return FormValidation.error("Error ");
+//        }
+
+
+
+        public FormValidation doCheckTestInstanceId(@QueryParameter String value){
             return validateHigherThanInt(value, "Test Instance ID", 0, true);
         }
+
+
         
         public FormValidation doCheckTimeslotDuration(@QueryParameter TimeslotDuration value) {
             
@@ -737,12 +766,12 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             return ret;
         }
 
-
         
         public List<PostRunAction> getPostRunActions() {
             
             return PcModel.getPostRunActions();
         }
+
         
     }
     
