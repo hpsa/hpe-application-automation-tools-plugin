@@ -41,11 +41,12 @@ public interface PcTestBase {
     public static final String        STOP_MODE                       = "stop";
     public static final String		  WEB_PROTOCOL					  = "http";
 	public static final Boolean		  IS_HTTPS					  	  = false;
+	public static final String 	  TESTINSTANCEID				= "MANUAL";
 	public static final PrintStream LOGGER					  	  = null;
 
     public static final MockPcModel   pcModel                         = new MockPcModel(PC_SERVER_NAME, ALM_USER_NAME,
                                                                           ALM_PASSWORD, ALM_DOMAIN, ALM_PROJECT,
-                                                                          TEST_ID, TEST_INSTANCE_ID,
+                                                                          TEST_ID,TESTINSTANCEID, TEST_INSTANCE_ID,
                                                                           TIMESLOT_DURATION_HOURS,
                                                                           TIMESLOT_DURATION_MINUTES, POST_RUN_ACTION,
                                                                           VUDS_MODE, DESCRIPTION,IS_HTTPS);

@@ -102,15 +102,57 @@ public class PcClient {
 
     public int startRun() throws NumberFormatException, ClientProtocolException, PcException, IOException {
 
+        int testID = Integer.parseInt(model.getTestId());
+        int testInstance = getCorrectTestInstanceID(testID);
+
+        logger.println(String.format("\nExecuting Load Test: \n====================\nTest ID: %s \nTest Instance ID: %s \nTimeslot Duration: %s \nPost Run Action: %s \nUse VUDS: %s\n====================\n", Integer.parseInt(model.getTestId()), testInstance, model.getTimeslotDuration() ,model.getPostRunAction().getValue(),model.isVudsMode()));
 //        logger.println("Sending run request:\n" + model.runParamsToString());
-        PcRunResponse response = restProxy.startRun(Integer.parseInt(model.getTestId()),
-                Integer.parseInt(model.getTestInstanceId()),
+        PcRunResponse response = restProxy.startRun(testID,
+                testInstance,
                 model.getTimeslotDuration(),
                 model.getPostRunAction().getValue(),
                 model.isVudsMode());
         logger.println(String.format("\nRun started (TestID: %s, RunID: %s, TimeslotID: %s)\n",
                 response.getTestID(), response.getID(), response.getTimeslotID()));
         return response.getID();
+    }
+
+    private int getCorrectTestInstanceID(int testID) throws IOException, PcException {
+        if("AUTO".equals(model.getAutoTestInstanceID())){
+            try {
+
+
+            logger.println("Searching for available Test Instance");
+            PcTestInstances pcTestInstances = restProxy.getTestInstancesByTestId(testID);
+            int testInstanceID = 0;
+            if (pcTestInstances != null && pcTestInstances.getTestInstancesList() != null){
+                PcTestInstance pcTestInstance = pcTestInstances.getTestInstancesList().get(pcTestInstances.getTestInstancesList().size()-1);
+                testInstanceID = pcTestInstance.getInstanceId();
+                logger.println("Found testInstanceId: " + testInstanceID);
+            }else{
+                logger.println("Could not find available TestInstanceID, Creating Test Instance.");
+                logger.println("Searching for available TestSet");
+                // Get a random TestSet
+                PcTestSets pcTestSets = restProxy.GetAllTestSets();
+                if (pcTestSets !=null && pcTestSets.getPcTestSetsList() !=null){
+                    PcTestSet pcTestSet = pcTestSets.getPcTestSetsList().get(pcTestSets.getPcTestSetsList().size()-1);
+                    int testSetID = pcTestSet.TestSetID;
+                    logger.println(String.format("Creating Test Instance with testID: %s and TestSetID: %s", testID,testSetID));
+                    testInstanceID = restProxy.createTestInstance(testID,testSetID);
+                    logger.println(String.format("Test Instance with ID : %s has been created successfully.", testInstanceID));
+                }else{
+                    String msg = "No TestSetID available in project, please create a testset from Performance Center UI";
+                    logger.println(msg);
+                    throw new PcException(msg);
+                }
+            }
+            return testInstanceID;
+            } catch (Exception e){
+                logger.println(String.format("getCorrectTestInstanceID failed, reason: %s",e));
+                return Integer.parseInt(null);
+            }
+        }
+        return Integer.parseInt(model.getTestInstanceId());
     }
 
     public PcRunResponse waitForRunCompletion(int runId) throws InterruptedException, ClientProtocolException, PcException, IOException {
