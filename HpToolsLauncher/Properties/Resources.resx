@@ -149,13 +149,13 @@ Save the test in QuickTest and then run it again.</value>
     <value>Could not find results file '{0}'.</value>
   </data>
   <data name="STExecuterNotFound" xml:space="preserve">
-    <value>HP Testing Tool is missing : HP Service Test/HP Unified Function Testing</value>
+    <value>HPE Testing Tool is missing : HPE Service Test/HPE Unified Function Testing</value>
   </data>
   <data name="XmlNodeNotExistError" xml:space="preserve">
     <value>XML node '{0}' could not be found.</value>
   </data>
   <data name="FileSystemTestsRunner_No_HP_testing_tool_is_installed_on" xml:space="preserve">
-    <value>No HP testing tool is installed on {0}</value>
+    <value>No HPE testing tool is installed on {0}</value>
   </data>
   <data name="AlmRunnerCantFindTest" xml:space="preserve">
     <value>Could not find TestSet {0}</value>
@@ -437,6 +437,6 @@ Save the test in QuickTest and then run it again.</value>
     <value>UFT cannot start while the LeanFT engine is running.</value>
   </data>
   <data name="UFT_Sprinter_Running" xml:space="preserve">
-    <value>UFT cannot start while HP Sprinter is running.</value>
+    <value>UFT cannot start while HPE Sprinter is running.</value>
   </data>
 </root>
