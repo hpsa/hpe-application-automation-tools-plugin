@@ -23,9 +23,9 @@ package com.hpe.application.automation.tools.octane.actions.dto;
 public class BaseRefEntity {
 
     private String type;
-    private Long id;
+    private String id;
 
-    public static BaseRefEntity create(String type, Long id) {
+    public static BaseRefEntity create(String type, String id) {
         BaseRefEntity baseRefEntity = new BaseRefEntity();
         baseRefEntity.setType(type);
         baseRefEntity.setId(id);
@@ -40,12 +40,12 @@ public class BaseRefEntity {
         this.type = type;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 }

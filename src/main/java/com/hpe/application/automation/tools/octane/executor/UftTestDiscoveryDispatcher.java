@@ -584,7 +584,7 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
         ListNodeEntity guiTestType = hasTestsByType(tests, UftTestType.GUI) ? getGuiTestType(client, workspaceId) : null;
         ListNodeEntity apiTestType = hasTestsByType(tests, UftTestType.API) ? getApiTestType(client, workspaceId) : null;
 
-        BaseRefEntity scmRepository = StringUtils.isEmpty(scmRepositoryId) ? null : BaseRefEntity.create(OctaneConstants.Tests.SCM_REPOSITORY_FIELD, Long.valueOf(scmRepositoryId));
+        BaseRefEntity scmRepository = StringUtils.isEmpty(scmRepositoryId) ? null : BaseRefEntity.create(OctaneConstants.Tests.SCM_REPOSITORY_FIELD, scmRepositoryId);
         for (AutomatedTest test : tests) {
             test.setTestingToolType(uftTestingTool);
             test.setFramework(uftFramework);
@@ -599,7 +599,7 @@ public class UftTestDiscoveryDispatcher extends AbstractSafeLoggingAsyncPeriodWo
     }
 
     private static void completeScmResourceProperties(List<ScmResourceFile> resources, String scmResourceId) {
-        BaseRefEntity scmRepository = StringUtils.isEmpty(scmResourceId) ? null : BaseRefEntity.create(OctaneConstants.DataTables.SCM_REPOSITORY_FIELD, Long.valueOf(scmResourceId));
+        BaseRefEntity scmRepository = StringUtils.isEmpty(scmResourceId) ? null : BaseRefEntity.create(OctaneConstants.DataTables.SCM_REPOSITORY_FIELD, scmResourceId);
         for (ScmResourceFile resource : resources) {
             resource.setScmRepository(scmRepository);
         }
