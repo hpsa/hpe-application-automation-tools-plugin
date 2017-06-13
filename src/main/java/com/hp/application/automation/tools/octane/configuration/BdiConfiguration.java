@@ -46,7 +46,7 @@ public class BdiConfiguration {
     }
 
     public boolean isFullyConfigured() {
-        return host != null && port != null && tenantId != null;
+        return host != null && port != null && !port.isEmpty() && tenantId != null && !tenantId.isEmpty();
     }
 
     public static BdiConfiguration fromJSON(JSONObject jsonObject) {
