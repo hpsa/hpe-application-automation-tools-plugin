@@ -180,7 +180,18 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		runFromFileModel.setMcServerName(mcServerName);
 	}
 
-	/**
+    /**
+     * Sets mc server name.
+     *
+     * @param useSSL the mc server name
+     */
+    @DataBoundSetter
+    public void setuseSSL(boolean useSSL) {
+        runFromFileModel.setUseSSL(useSSL);
+    }
+
+
+    /**
 	 * Sets fs user name.
 	 *
 	 * @param fsUserName the fs user name
