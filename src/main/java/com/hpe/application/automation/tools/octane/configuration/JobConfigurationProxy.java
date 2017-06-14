@@ -136,9 +136,9 @@ public class JobConfigurationProxy {
 			for (JSONObject jsonObject : toCollection(fieldTags)) {
 				List<ListItem> assignedValues = new LinkedList<>();
 				for (JSONObject value : toCollection(jsonObject.getJSONArray("values"))) {
-					Long id;
+					String id;
 					if (value.containsKey("id")) {
-						id = value.getLong("id");
+						id = value.getString("id");
 					} else {
 						id = null;
 					}
@@ -408,10 +408,10 @@ public class JobConfigurationProxy {
 			while (keys.hasNext()) {
 				String key = (String) keys.next();
 				if (pipelineFields.get(key) instanceof JSONArray) {
-					List<Long> fieldTagsIdsList = new LinkedList<>();
+					List<String> fieldTagsIdsList = new LinkedList<>();
 					//getting all ids assigned to listField
 					for (JSONObject singleField : toCollection(pipelineFields.getJSONArray(key))) {
-						fieldTagsIdsList.add(singleField.getLong("id"));
+						fieldTagsIdsList.add(singleField.getString("id"));
 					}
 					//retrieving names of assigned items
 					if (fieldTagsIdsList.size() > 0) {

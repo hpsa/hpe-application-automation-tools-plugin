@@ -340,7 +340,7 @@ function octane_job_configuration(target, progress, proxy) {
                             });
                         } else {
                             field.values.push({
-                                id: Number(option.value),
+                                id: option.value,
                                 name: option.text
                             });
                         }
