@@ -6,8 +6,8 @@
 package com.hpe.application.automation.tools.settings;
 
 import com.google.inject.Inject;
-import com.hpe.application.automation.tools.model.OctaneServerSettingsModel;
 import com.hp.octane.integrations.OctaneSDK;
+import com.hpe.application.automation.tools.model.OctaneServerSettingsModel;
 import com.hpe.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.hpe.application.automation.tools.octane.Messages;
 import com.hpe.application.automation.tools.octane.bridge.BridgesService;
@@ -21,6 +21,7 @@ import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import hudson.CopyOnWrite;
 import hudson.Extension;
 import hudson.ExtensionList;
+import hudson.XmlFile;
 import hudson.model.AbstractProject;
 import hudson.model.Item;
 import hudson.model.User;
@@ -32,16 +33,22 @@ import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.acegisecurity.context.SecurityContext;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Octane configuration settings
+ */
 public class OctaneServerSettingsBuilder extends Builder {
 
     private static final Logger logger = LogManager.getLogger(OctaneServerSettingsBuilder.class);
@@ -69,6 +76,33 @@ public class OctaneServerSettingsBuilder extends Builder {
 
         @XStreamOmitField
         BdiConfigurationFetcher bdiConfigurationFetcher;
+
+        @Override
+        protected XmlFile getConfigFile() {
+            XmlFile xmlFile = super.getConfigFile();
+            //Between 5.1 to 5.2 - migration hp->hpe was done.
+            //Old configuration file 'com.hp.application.automation.tools.settings.OctaneServerSettingsBuilder.xml'
+            //is replaced by new one 'com.hpe.application.automation.tools.settings.OctaneServerSettingsBuilder.xml'.
+            //As well, inside the configuration, there were replaces of hp->hpe
+            //if xmlFile is not exist, we will check if configuration file name exist in format of 5.1 version
+            //if so, we will copy old configuration to new one with replacements of hp->hpe
+            if (!xmlFile.exists()) {
+                //try to get from old path
+                File oldConfigurationFile = new File(xmlFile.getFile().getPath().replace("hpe", "hp"));
+                if (oldConfigurationFile.exists()) {
+                    try {
+                        String configuration = FileUtils.readFileToString(oldConfigurationFile);
+                        String newConfiguration = StringUtils.replace(configuration, ".hp.", ".hpe.");
+                        FileUtils.writeStringToFile(xmlFile.getFile(), newConfiguration);
+                        xmlFile = super.getConfigFile();
+                    } catch (IOException e) {
+                        logger.error("failed to copy ALM Octane Plugin configuration 5.1 to new 5.2 format : " + e.getMessage());
+                    }
+                }
+            }
+
+            return xmlFile;
+        }
 
         public OctaneDescriptorImpl() {
             load();
@@ -120,13 +154,13 @@ public class OctaneServerSettingsBuilder extends Builder {
             List<OctaneServerSettingsModel> list = req.bindJSONToList(OctaneServerSettingsModel.class, jsonObject);
             OctaneServerSettingsModel newModel = list.get(0);
 
-            if(jsonObject.containsKey("showIdentity")){
-                JSONObject showIdentityJo = (JSONObject)jsonObject.get("showIdentity");
+            if (jsonObject.containsKey("showIdentity")) {
+                JSONObject showIdentityJo = (JSONObject) jsonObject.get("showIdentity");
                 String identity = showIdentityJo.getString("identity");
                 validateConfiguration(doCheckInstanceId(identity), "Plugin instance id");
 
                 OctaneServerSettingsModel oldModel = getModel();
-                if(!oldModel.getIdentity().equals(identity)){
+                if (!oldModel.getIdentity().equals(identity)) {
                     newModel.setIdentity(identity);
                 }
             }
@@ -149,7 +183,7 @@ public class OctaneServerSettingsBuilder extends Builder {
 
             //set identity in new model
             boolean identityChanged = StringUtils.isNotEmpty(newModel.getIdentity());
-            if(!identityChanged){ //set identity from old model
+            if (!identityChanged) { //set identity from old model
                 newModel.setIdentity(oldModel.getIdentity());
                 newModel.setIdentityFrom(oldModel.getIdentityFrom());
             }
