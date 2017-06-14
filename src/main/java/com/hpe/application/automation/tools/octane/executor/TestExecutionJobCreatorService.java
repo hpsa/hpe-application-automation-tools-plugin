@@ -59,11 +59,14 @@ import java.util.*;
 public class TestExecutionJobCreatorService {
 
     private static final Logger logger = LogManager.getLogger(TestExecutionJobCreatorService.class);
-    public static final String EXECUTOR_ID_PARAMETER_NAME = "executorId";
-    public static final String EXECUTOR_LOGICAL_NAME_PARAMETER_NAME = "executorLogicalName";
-    public static final String SUITE_ID_PARAMETER_NAME = "suiteId";
-    public static final String SUITE_RUN_ID_PARAMETER_NAME = "suiteRunId";
-    public static final String FULL_SCAN_PARAMETER_NAME = "Full Scan";
+    public static final String EXECUTOR_ID_PARAMETER_NAME = "Connection ID";
+    public static final String EXECUTOR_LOGICAL_NAME_PARAMETER_NAME = "Connection logical name";
+    public static final String SUITE_ID_PARAMETER_NAME = "suiteId";//"Suite ID";
+    public static final String SUITE_RUN_ID_PARAMETER_NAME = "suiteRunId";//"Suite run ID";
+    public static final String FULL_SCAN_PARAMETER_NAME = "Full sync";
+
+    public static final String EXECUTION_JOB_MIDDLE_NAME = "test run job - Suite ID";
+    public static final String DISCOVERY_JOB_MIDDLE_NAME = "test discovery job - Connection ID";
 
     /**
      * Create (if needed) and run test execution
@@ -109,22 +112,23 @@ public class TestExecutionJobCreatorService {
     private static FreeStyleProject getExecutionJob(TestSuiteExecutionInfo suiteExecutionInfo) {
 
         try {
-            String projectName = String.format("%s test execution job - suiteId %s",
+            String projectName = String.format("%s %s %s",
                     suiteExecutionInfo.getTestingToolType().toString(),
+                    EXECUTION_JOB_MIDDLE_NAME,
                     suiteExecutionInfo.getSuiteId());
 
             //validate creation of job
             FreeStyleProject proj = (FreeStyleProject) Jenkins.getInstance().getItem(projectName);
             if (proj == null) {
                 proj = Jenkins.getInstance().createProject(FreeStyleProject.class, projectName);
-                proj.setDescription(String.format("This job was created by HPE AA Plugin for execution of %s tests, as part of Octane suite with id %s",
+                proj.setDescription(String.format("This job was created by the HPE Application Automation Tools plugin for running %s tests. It is associated with ALM Octane test suite #%s.",
                         suiteExecutionInfo.getTestingToolType().toString(), suiteExecutionInfo.getSuiteId()));
             }
 
             setScmRepository(suiteExecutionInfo.getScmRepository(), suiteExecutionInfo.getScmRepositoryCredentialsId(), proj);
-            setBuildDiscarder(proj, 20);
-            addConstantParameter(proj, SUITE_ID_PARAMETER_NAME, suiteExecutionInfo.getSuiteId(), "Octane suite id");
-            addStringParameter(proj, SUITE_RUN_ID_PARAMETER_NAME, null, "This parameter is relevant only if the suite is run from Octane and allows to publish tests to the existing Octane suite run");
+            setBuildDiscarder(proj, 40);
+            addConstantParameter(proj, SUITE_ID_PARAMETER_NAME, suiteExecutionInfo.getSuiteId(), "ALM Octane test suite ID");
+            addStringParameter(proj, SUITE_RUN_ID_PARAMETER_NAME, "", "The ID of the ALM Octane test suite run to associate with the test run results. Provided by ALM Octane when running a planned suite run.\nOtherwise, leave this parameter empty. ALM Octane creates a new  test suite run for the new results.");
             addAssignedNode(proj);
 
             //add build action
@@ -268,15 +272,15 @@ public class TestExecutionJobCreatorService {
             if (proj == null) {
 
                 proj = Jenkins.getInstance().createProject(FreeStyleProject.class, discoveryJobName);
-                proj.setDescription(String.format("This job was created by HPE AA Plugin for discovery of %s tests, as part of Octane executor with id %s",
+                proj.setDescription(String.format("This job was created by the HPE Application Automation Tools plugin for discovery of %s tests. It is associated with ALM Octane testing tool connection #%s.",
                         discoveryInfo.getTestingToolType().toString(), discoveryInfo.getExecutorId()));
             }
 
             setScmRepository(discoveryInfo.getScmRepository(), discoveryInfo.getScmRepositoryCredentialsId(), proj);
             setBuildDiscarder(proj, 20);
-            addConstantParameter(proj, EXECUTOR_ID_PARAMETER_NAME, discoveryInfo.getExecutorId(), "Octane executor id");
-            addConstantParameter(proj, EXECUTOR_LOGICAL_NAME_PARAMETER_NAME, discoveryInfo.getExecutorLogicalName(), "Octane executor logical name");
-            addBooleanParameter(proj, FULL_SCAN_PARAMETER_NAME, false, "Indicate whether to scan full scm repository to discover all tests or to use changes (Change Sets) to update already existing tests");
+            addConstantParameter(proj, EXECUTOR_ID_PARAMETER_NAME, discoveryInfo.getExecutorId(), "ALM Octane testing tool connection ID");
+            addConstantParameter(proj, EXECUTOR_LOGICAL_NAME_PARAMETER_NAME, discoveryInfo.getExecutorLogicalName(), "ALM Octane testing tool connection logical name");
+            addBooleanParameter(proj, FULL_SCAN_PARAMETER_NAME, false, "Specify whether to synchronize the set of tests on ALM Octane with the whole SCM repository or to update the set of tests on ALM Octane based on the latest commits.");
 
             //set polling once in two minutes
             SCMTrigger scmTrigger = new SCMTrigger("H/2 * * * *");//H/2 * * * * : once in two minutes
@@ -307,7 +311,7 @@ public class TestExecutionJobCreatorService {
     }
 
     private static String buildDiscoveryJobName(TestingToolType testingToolType, String executorId, String executorLogicalName) {
-        String name = String.format("%s test discovery job - executorId %s (%s)", testingToolType.toString(), executorId, executorLogicalName);
+        String name = String.format("%s %s %s (%s)", testingToolType.toString(), DISCOVERY_JOB_MIDDLE_NAME, executorId, executorLogicalName);
         return name;
     }
 
