@@ -26,7 +26,7 @@ public class ListNodeEntity extends BaseRefEntity {
         setType("list_node");
     }
 
-    public static ListNodeEntity create(Long id) {
+    public static ListNodeEntity create(String id) {
         ListNodeEntity entity = new ListNodeEntity();
         entity.setId(id);
         return entity;

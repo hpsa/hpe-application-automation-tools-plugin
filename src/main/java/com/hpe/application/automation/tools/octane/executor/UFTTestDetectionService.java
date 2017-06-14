@@ -65,10 +65,10 @@ public class UFTTestDetectionService {
 
             boolean fullScan = build.getId().equals("1") || !initialDetectionFileExist(build.getWorkspace()) || isFullScan((build));
             if (fullScan) {
-                printToConsole(buildListener, "Executing initial detection");
+                printToConsole(buildListener, "Executing full sync");
                 result = doInitialDetection(build.getWorkspace());
             } else {
-                printToConsole(buildListener, "Executing changeSet detection");
+                printToConsole(buildListener, "Executing changeSet sync");
                 result = doChangeSetDetection(changeSetItems, build.getWorkspace());
                 removeTestDuplicated(result.getUpdatedTests());
                 removeFalsePositiveDeletedDataTables(result.getDeletedTests(), result.getDeletedScmResourceFiles());

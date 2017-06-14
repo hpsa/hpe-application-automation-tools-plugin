@@ -103,7 +103,7 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
 
     private static boolean isExecutorJob(FreeStyleProject job) {
         ParametersDefinitionProperty parameters = job.getProperty(ParametersDefinitionProperty.class);
-        boolean isExecutorJob = job.getName().contains("execution job") &&
+        boolean isExecutorJob = job.getName().contains(TestExecutionJobCreatorService.EXECUTION_JOB_MIDDLE_NAME) &&
                 parameters != null &&
                 parameters.getParameterDefinition(TestExecutionJobCreatorService.SUITE_ID_PARAMETER_NAME) != null &&
                 parameters.getParameterDefinition(TestExecutionJobCreatorService.SUITE_RUN_ID_PARAMETER_NAME) != null;
@@ -113,7 +113,7 @@ public class UftJobCleaner extends AbstractSafeLoggingAsyncPeriodWork {
 
     private static boolean isDiscoveryJobJob(FreeStyleProject job) {
         ParametersDefinitionProperty parameters = job.getProperty(ParametersDefinitionProperty.class);
-        boolean isDiscoveryJob = job.getName().contains("discovery job") &&
+        boolean isDiscoveryJob = job.getName().contains(TestExecutionJobCreatorService.DISCOVERY_JOB_MIDDLE_NAME) &&
                 parameters != null &&
                 parameters.getParameterDefinition(TestExecutionJobCreatorService.EXECUTOR_ID_PARAMETER_NAME) != null;
         return isDiscoveryJob;
