@@ -8,11 +8,11 @@
 	</parent>
 
 	<artifactId>hp-application-automation-tools-plugin</artifactId>
-	<version>5.1</version>
+	<version>5.1.0.3-beta-SNAPSHOT</version>
 	<packaging>hpi</packaging>
-	<name>HP Application Automation Tools</name>
+	<name>HPE Application Automation Tools</name>
 	<description>The plugin integrates Jenkins with the following HPE products - Service Virtualization, LoadRunner, Performance Center, Unified Functional Testing, QuickTest Professional, Service Test, Mobile Center, Application Lifecycle Management and Application Lifecycle Management Octane.</description>
-	<url>https://wiki.jenkins-ci.org/display/JENKINS/HP+Application+Automation+Tools</url>
+	<url>https://wiki.jenkins-ci.org/display/JENKINS/HPE+Application+Automation+Tools</url>
 
 	<licenses>
 		<license>
@@ -28,8 +28,8 @@
 		<msbuild.configuration>Release</msbuild.configuration>
 		<jenkins.version>1.642.4</jenkins.version>
 		<workflow.version>2.2</workflow.version>
-		<bdi.version>1.0.2</bdi.version>
 		<maven.exec.skip>false</maven.exec.skip>
+		<bdi.version>1.0.3</bdi.version>
 	</properties>
 
 	<distributionManagement>
@@ -225,6 +225,7 @@
 								<argument>-restart</argument>
 								<argument>--password-file ${id_rsa_file}</argument>
 							</arguments>
+							<skip>${maven.exec.skip}</skip>
 						</configuration>
 					</execution>
 					<execution>
@@ -261,15 +262,8 @@
 				<version>2.19.1</version>
 				<configuration>
 					<excludes>
-						<exclude>**/ConfigApiTest.java</exclude>
-						<exclude>**/ConfigurationServiceTest.java</exclude>
-						<exclude>**/JUnitResultsTest.java</exclude>
-						<exclude>**/TestApiTest.java</exclude>
-						<exclude>**/TestDispatcherTest.java</exclude>
-						<exclude>**/BuildActionsFreeStyleTest.java</exclude>
 						<exclude>**/GherkinResultsTest.java</exclude>
-						<exclude>**/TestNGExtensionTest.java</exclude>
-						<!--<exclude>**/TestJenkinsDurationTest.java</exclude>-->
+						<exclude>**/JUnitResultsTest.java</exclude>
 					</excludes>
 				</configuration>
 			</plugin>
@@ -289,10 +283,6 @@
 		<repository>
 			<id>central</id>
 			<url>http://repo1.maven.org/maven2</url>
-		</repository>
-		<repository>
-			<id>hp-application-automation-tools-plugin-mvn-repo</id>
-			<url>https://raw.github.com/HpeServiceVirtualization/3g/mvn-repo/</url>
 		</repository>
 		<repository>
 			<id>bintray-adm-maven</id>
@@ -377,7 +367,7 @@
 		<dependency>
 			<groupId>com.hp.sv</groupId>
 			<artifactId>SVConfigurator</artifactId>
-			<version>3.82.1.45909</version>
+			<version>4.00.1.46729</version>
 			<exclusions>
 				<exclusion>
 					<groupId>commons-io</groupId>
@@ -397,15 +387,15 @@
 
 		<dependency>
 			<artifactId>integrations-sdk</artifactId>
-			<groupId>com.hpe.alm.octane.plugins</groupId>
-			<version>1.0</version>
+			<groupId>com.hpe.adm.octane.ciplugins</groupId>
+			<version>1.4.4</version>
 		</dependency>
 
 		<!-- Obsolete TO BE REMOVED -->
 		<dependency>
 			<artifactId>mqm-rest-client</artifactId>
-			<groupId>com.hpe.alm.octane.plugins</groupId>
-			<version>1.0</version>
+			<groupId>com.hpe.adm.octane.ciplugins</groupId>
+			<version>1.4.4</version>
 		</dependency>
 
 		<!-- org.jenkins-ci.main -->
@@ -433,6 +423,12 @@
 			<artifactId>git-server</artifactId>
 			<version>1.7</version>
 			<optional>true</optional>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>git-client</artifactId>
+			<version>1.19.6</version>
 		</dependency>
 
 		<dependency>
@@ -559,13 +555,6 @@
 			<version>2.0.4</version>
 		</dependency>
 
-		<!-- BDI dependencies -->
-		<dependency>
-			<groupId>com.hp.bdi</groupId>
-			<artifactId>bdi-sdk</artifactId>
-			<version>${bdi.version}</version>
-		</dependency>
-
 		<dependency>
 			<groupId>org.jenkins-ci.main</groupId>
 			<artifactId>jenkins-test-harness-tools</artifactId>
@@ -573,6 +562,11 @@
 			<scope>test</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>com.hp.bdi</groupId>
+			<artifactId>bdi-sdk</artifactId>
+			<version>${bdi.version}</version>
+		</dependency>
 	</dependencies>
 
 
