@@ -33,15 +33,15 @@
 
         <l:main-panel>
             <link rel="stylesheet" type="text/css"
-                  href="${resURL}/plugin/hpe-application-automation-tools-plugin/css/chartist.css"></link>
+                  href="${resURL}/plugin/hp-application-automation-tools-plugin/css/chartist.css"></link>
             <link rel="stylesheet" type="text/css"
-                  href="${resURL}/plugin/hpe-application-automation-tools-plugin/css/chartistLegend.css"></link>
+                  href="${resURL}/plugin/hp-application-automation-tools-plugin/css/chartistLegend.css"></link>
             <link rel="stylesheet" type="text/css"
-                  href="${resURL}/plugin/hpe-application-automation-tools-plugin/css/chartist-plugin-tooltip.css"></link>
+                  href="${resURL}/plugin/hp-application-automation-tools-plugin/css/chartist-plugin-tooltip.css"></link>
             <link rel="stylesheet" type="text/css"
-                  href="${resURL}/plugin/hpe-application-automation-tools-plugin/css/ColorPlate.css"></link>
+                  href="${resURL}/plugin/hp-application-automation-tools-plugin/css/ColorPlate.css"></link>
             <link rel="stylesheet" type="text/css"
-                  href="${resURL}/plugin/hpe-application-automation-tools-plugin/css/projectReport.css"></link>
+                  href="${resURL}/plugin/hp-application-automation-tools-plugin/css/projectReport.css"></link>
             <script src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/libaries/chartist/chartist.js"/>
             <script src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/libaries/chartist/chartist-plugin-legend.js"/>
             <script src="${rootURL}/plugin/hp-application-automation-tools-plugin/js/libaries/chartist/chartist-plugin-tooltip.min.js"/>
