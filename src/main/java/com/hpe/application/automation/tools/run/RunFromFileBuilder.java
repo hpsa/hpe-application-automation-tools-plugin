@@ -17,6 +17,7 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
+import hudson.XmlFile;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Result;
@@ -29,6 +30,7 @@ import hudson.util.VariableResolver;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
 import net.minidev.json.JSONObject;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -38,6 +40,7 @@ import org.kohsuke.stapler.bind.JavaScriptMethod;
 
 import javax.annotation.Nonnull;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -48,6 +51,8 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Describs a regular jenkins build step from UFT or LR
@@ -60,6 +65,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 	private final RunFromFileSystemModel runFromFileModel;
 	private static final  String HP_TOOLS_LAUNCHER_EXE = "HpToolsLauncher.exe";
 	private static final  String LRANALYSIS_LAUNCHER_EXE = "LRAnalysisLauncher.exe";
+	private static final Logger LOGGER = Logger.getLogger(RunFromFileBuilder.class.getName());
 
 
 	/**
@@ -566,6 +572,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		public DescriptorImpl() {
 			load();
 		}
+
 
 		@Override
 		public boolean isApplicable(
