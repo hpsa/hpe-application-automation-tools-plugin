@@ -137,7 +137,7 @@
                         <f:textbox name="runfromfs.fsDevicesMetrics" readonly = "true" value="${instance.runFromFileModel.fsDevicesMetrics}"/>
                 </f:entry>
                 <f:entry>
-                        <input id="wizard" type="button" value="wizard" onClick="load(a,'/integration/#/wizard?jobId=')"/>
+                        <input id="wizard" type="button" value="wizard" onClick="load(a,'/integration/#/login?jobId=')"/>
                 </f:entry>
                 <f:entry>
                         <div id="errorMessage" style="color:red;display:none">MC login information or proxy is incorrect.</div>
