@@ -16,70 +16,47 @@
 
 package com.hpe.application.automation.tools.octane.configuration;
 
-import net.sf.json.JSONObject;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
- * Created by benmeior on 12/12/2016.
+ * Created by benmeior on 12/12/2016
  */
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public class BdiConfiguration {
+	private String host;
+	private String port;
+	private Long tenantId;
+	private boolean accessTokenFlavor;
 
-    private String host;
-    private String port;
-    private String tenantId;
+	public String getHost() {
+		return host;
+	}
 
-    private BdiConfiguration(String host, String port, String tenantId) {
-        this.host = host;
-        this.port = port;
-        this.tenantId = tenantId;
-    }
+	public String getPort() {
+		return port;
+	}
 
-    public String getHost() {
-        return host;
-    }
+	public Long getTenantId() {
+		return tenantId;
+	}
 
-    public String getPort() {
-        return port;
-    }
+	public boolean isAccessTokenFlavor() {
+		return accessTokenFlavor;
+	}
 
-    public String getTenantId() {
-        return tenantId;
-    }
+	public boolean isFullyConfigured() {
+		return host != null && !host.isEmpty() && port != null && tenantId != null;
+	}
 
-    public boolean isFullyConfigured() {
-        return host != null && port != null && tenantId != null;
-    }
-
-    public static BdiConfiguration fromJSON(JSONObject jsonObject) {
-        if (jsonObject == null || !jsonObject.containsKey("host")
-                || !jsonObject.containsKey("port") || !jsonObject.containsKey("tenant")) {
-            return null;
-        }
-
-        String host = jsonObject.getString("host");
-        String port = jsonObject.getString("port");
-        String tenant = jsonObject.getString("tenant");
-
-        return new BdiConfiguration(host, port, tenant);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        BdiConfiguration that = (BdiConfiguration) o;
-
-        if (host != null ? !host.equals(that.host) : that.host != null) return false;
-        if (port != null ? !port.equals(that.port) : that.port != null) return false;
-        if (tenantId != null ? !tenantId.equals(that.tenantId) : that.tenantId != null) return false;
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = host != null ? host.hashCode() : 0;
-        result = 31 * result + (port != null ? port.hashCode() : 0);
-        result = 31 * result + (tenantId != null ? tenantId.hashCode() : 0);
-        return result;
-    }
+	@Override
+	public String toString() {
+		return "BdiConfiguration: {" +
+				"host: '" + host + "'" +
+				", port: '" + port + "'" +
+				", tenantId: " + tenantId +
+				", accessTokenFlavor: " + accessTokenFlavor + "}";
+	}
 }
