@@ -36,6 +36,7 @@ import java.util.List;
 
 /**
  * Created by benmeior on 11/16/2016
+ * Jenkins events listener to dispatch build logs to bdi server
  */
 
 @Extension

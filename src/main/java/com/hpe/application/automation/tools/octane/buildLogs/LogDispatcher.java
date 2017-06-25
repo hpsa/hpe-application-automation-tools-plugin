@@ -54,6 +54,7 @@ import java.nio.file.Files;
 
 /**
  * Created by benmeior on 11/20/2016
+ * Log dispatcher is responsible for dispatching bdi - octane related log messages to bdi server
  */
 
 @Extension

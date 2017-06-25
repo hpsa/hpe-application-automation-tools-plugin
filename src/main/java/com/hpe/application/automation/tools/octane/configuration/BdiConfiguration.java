@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
  * Created by benmeior on 12/12/2016
+ * Class for storing bdi configuration in memory
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
