@@ -27,6 +27,7 @@ import com.hpe.application.automation.tools.octane.Messages;
 import com.hpe.application.automation.tools.octane.client.JenkinsMqmRestClientFactory;
 import com.hpe.application.automation.tools.octane.client.RetryModel;
 import com.hpe.application.automation.tools.octane.model.ModelFactory;
+import com.hpe.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import hudson.ExtensionList;
 import hudson.model.Job;
 import jenkins.model.Jenkins;
@@ -75,7 +76,7 @@ public class JobConfigurationProxy {
 		try {
 			Pipeline createdPipeline = client.createPipeline(
 					ConfigurationService.getModel().getIdentity(),
-					job.getName(),
+                    pipelineNode.getJobCiId(),
 					pipelineObject.getString("name"),
 					pipelineObject.getLong("workspaceId"),
 					releaseId,
@@ -102,7 +103,8 @@ public class JobConfigurationProxy {
 
 		} catch (RequestException e) {
 			logger.warn("Failed to create pipeline", e);
-			return error("Unable to create pipeline. " + e.getDescription());
+            String msg = e.getDescription() != null ? e.getDescription() : e.getMessage();
+            return error("Unable to create pipeline. " + msg);
 		} catch (ClientException e) {
 			logger.warn("Failed to create pipeline", e);
 			return error(e.getMessage(), e.getLink());
@@ -147,7 +149,9 @@ public class JobConfigurationProxy {
 				fields.add(new ListField(jsonObject.getString("name"), assignedValues));
 			}
 
-			Pipeline pipeline = client.updatePipeline(ConfigurationService.getModel().getIdentity(), job.getName(),
+            final String jobCiId = JobProcessorFactory.getFlowProcessor(job).getJobCiId();
+
+            Pipeline pipeline = client.updatePipeline(ConfigurationService.getModel().getIdentity(), jobCiId,
 					new Pipeline(pipelineId, pipelineObject.getString("name"), null, pipelineObject.getLong("workspaceId"), pipelineObject.getLong("releaseId"), taxonomies, fields, pipelineObject.getBoolean("ignoreTests")));
 
 			//WORKAROUND BEGIN
@@ -227,7 +231,9 @@ public class JobConfigurationProxy {
 		JSONObject workspaces = new JSONObject();
 		JSONArray fieldsMetadata = new JSONArray();
 		try {
-			JobConfiguration jobConfiguration = client.getJobConfiguration(ConfigurationService.getModel().getIdentity(), job.getName());
+            final String jobCiId = JobProcessorFactory.getFlowProcessor(job).getJobCiId();
+
+            JobConfiguration jobConfiguration = client.getJobConfiguration(ConfigurationService.getModel().getIdentity(), jobCiId);
 
 			if (!jobConfiguration.getWorkspacePipelinesMap().isEmpty()) {
 				Map<Long, List<Pipeline>> workspacesMap = jobConfiguration.getWorkspacePipelinesMap();

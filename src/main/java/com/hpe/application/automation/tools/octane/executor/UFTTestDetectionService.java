@@ -115,7 +115,7 @@ public class UFTTestDetectionService {
 
     /**
      * Deleted data table might be part of deleted test. During discovery its very hard to know.
-     * Here we pass through all deleted data tables, if we found table parent is test package - we know that the delete was part of test delete
+     * Here we pass through all deleted data tables, if we found data table parent is test folder - we know that the delete was part of test delete
      *
      * @param deletedTests
      * @param deletedScmResourceFiles
@@ -129,7 +129,7 @@ public class UFTTestDetectionService {
                 if (parentSplitterIndex != -1) {
                     String parentName = item.getRelativePath().substring(0, parentSplitterIndex);
                     for (AutomatedTest test : deletedTests) {
-                        String testPath = test.getPackage() + windowsPathSplitter + test.getName();
+                        String testPath = StringUtils.isEmpty(test.getPackage()) ? test.getName() : test.getPackage() + windowsPathSplitter + test.getName();
                         if (testPath.equals(parentName)) {
                             falsePositive.add(item);
                             break;
@@ -257,7 +257,7 @@ public class UFTTestDetectionService {
         return result;
     }
 
-    private static AutomatedTest createAutomatedTest(FilePath root, FilePath dirPath, UftTestType testType, boolean executable)  {
+    private static AutomatedTest createAutomatedTest(FilePath root, FilePath dirPath, UftTestType testType, boolean executable) {
         AutomatedTest test = new AutomatedTest();
         test.setName(dirPath.getName());
 
@@ -276,7 +276,7 @@ public class UFTTestDetectionService {
         return test;
     }
 
-    private static String getRelativePath(FilePath root, FilePath path)  {
+    private static String getRelativePath(FilePath root, FilePath path) {
         String testPath = path.getRemote();
         String rootPath = root.getRemote();
         String relativePath = testPath.replace(rootPath, "");
@@ -350,7 +350,7 @@ public class UFTTestDetectionService {
         }
     }
 
-    private static ScmResourceFile createDataTable(FilePath root, FilePath path)  {
+    private static ScmResourceFile createDataTable(FilePath root, FilePath path) {
         ScmResourceFile resourceFile = new ScmResourceFile();
         resourceFile.setName(path.getName());
         resourceFile.setRelativePath(getRelativePath(root, path));
@@ -397,6 +397,7 @@ public class UFTTestDetectionService {
 
     /**
      * Serialize detectionResult to file in XML format
+     *
      * @param fileToWriteTo
      * @param taskListenerLog
      * @param detectionResult
