@@ -36,6 +36,9 @@ import org.apache.logging.log4j.Logger;
 import javax.xml.stream.XMLStreamException;
 import java.util.List;
 
+/**
+ * Jenkins events life cycle listener for processing test results on build completed
+ */
 @Extension
 @SuppressWarnings({"squid:S2699","squid:S3658","squid:S2259","squid:S1872"})
 public class TestListener {
@@ -43,6 +46,8 @@ public class TestListener {
 
 	static final String TEST_RESULT_FILE = "mqmTests.xml";
 	public static final String JENKINS_STORM_TEST_RUNNER_CLASS = "com.hpe.sr.plugins.jenkins.StormTestRunner";
+	public static final String JENKINS_PERFORMANCE_CENTER_TEST_RUNNER_CLASS = "com.hpe.application.automation.tools.run.PcBuilder";
+
 
 	private ResultQueue queue;
 
@@ -63,6 +68,10 @@ public class TestListener {
 				}
 				if (builder.getClass().getName().equals(UFTExtension.RUN_FROM_FILE_BUILDER) || builder.getClass().getName().equals(UFTExtension.RUN_FROM_ALM_BUILDER)) {
 					hpRunnerType = HPRunnerType.UFT;
+					break;
+				}
+				if (builder.getClass().getName().equals(JENKINS_PERFORMANCE_CENTER_TEST_RUNNER_CLASS)) {
+					hpRunnerType = HPRunnerType.PerformanceCenter;
 					break;
 				}
 			}

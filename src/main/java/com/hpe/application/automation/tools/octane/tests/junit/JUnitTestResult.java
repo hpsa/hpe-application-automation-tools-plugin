@@ -22,6 +22,9 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import java.io.Serializable;
 
+/**
+ * Test Run XML writer to mqmTests.xml
+ */
 final public class JUnitTestResult implements Serializable, TestResult {
 
     private final String moduleName;
