@@ -16,6 +16,7 @@
 
 package com.hpe.application.automation.tools.octane.buildLogs;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import com.hp.mqm.client.MqmRestClient;
 import com.hpe.application.automation.tools.octane.client.JenkinsMqmRestClientFactory;
@@ -27,83 +28,88 @@ import com.hpe.application.automation.tools.octane.tests.AbstractSafeLoggingAsyn
 import hudson.Extension;
 import hudson.model.TaskListener;
 import hudson.util.TimeUnit2;
+import net.sf.json.JSONObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 
 /**
- * Created by benmeior on 12/21/2016.
+ * Created by benmeior on 12/21/2016
+ *
+ * Component, based on Jenkins' AsyncPeriodicWork, to check status of BDI configuration of the tenant configured in plugin in timely, recursive fashion
  */
+
 @Extension
 public class BdiConfigurationFetcher extends AbstractSafeLoggingAsyncPeriodWork {
+	private static final Logger logger = LogManager.getLogger(BdiConfigurationFetcher.class);
+	private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    private static Logger logger = LogManager.getLogger(BdiConfigurationFetcher.class);
+	private JenkinsMqmRestClientFactory clientFactory;
 
-    private JenkinsMqmRestClientFactory clientFactory;
+	private static BdiConfiguration bdiConfiguration;
 
-    private static BdiConfiguration bdiConfiguration;
+	private volatile boolean bdiConfigurationInitialized = false;
 
-    private boolean shouldFetchBdiConfiguration;
+	public BdiConfigurationFetcher() {
+		super("BDI configuration fetcher");
+	}
 
-    public BdiConfigurationFetcher() {
-        super("BDI configuration fetcher");
-        shouldFetchBdiConfiguration = true;
-    }
+	public synchronized BdiConfiguration obtain() {
+		if (!bdiConfigurationInitialized && bdiConfiguration == null) {
+			fetchBdiConfiguration();
+		}
+		return bdiConfiguration;
+	}
 
-    public synchronized BdiConfiguration obtain() {
-        if (shouldFetchBdiConfiguration && bdiConfiguration == null) {
-            fetchBdiConfiguration();
-        }
-        return bdiConfiguration;
-    }
+	public void refresh() {
+		fetchBdiConfiguration();
+	}
 
-    public void refresh() {
-        fetchBdiConfiguration();
-    }
+	private void fetchBdiConfiguration() {
+		try {
+			bdiConfigurationInitialized = true;
+			MqmRestClient mqmRestClient = createMqmRestClient();
+			if (mqmRestClient == null) {
+				logger.info("Octane configuration is not valid");
+				bdiConfiguration = null;
+				return;
+			}
+			JSONObject response = mqmRestClient.getBdiConfiguration();
+			if (response != null) {
+				bdiConfiguration = objectMapper.readValue(response.toString(), BdiConfiguration.class);
+			}
+			String loggingMessage = bdiConfiguration == null ? "BDI is not configured in Octane" : "fetched BDI configuration from Octane: " + bdiConfiguration;
+			logger.info(loggingMessage);
+		} catch (Exception e) {
+			logger.error("failed to fetch BDI configuration from Octane", e);
+		}
+	}
 
-    private void fetchBdiConfiguration() {
-        try {
-            shouldFetchBdiConfiguration = false;
-            MqmRestClient mqmRestClient = createMqmRestClient();
-            if (mqmRestClient == null) {
-                logger.info("Octane configuration is not valid");
-                bdiConfiguration = null;
-                return;
-            }
-            bdiConfiguration = BdiConfiguration.fromJSON(mqmRestClient.getBdiConfiguration());
+	private MqmRestClient createMqmRestClient() {
+		ServerConfiguration configuration = ConfigurationService.getServerConfiguration();
+		if (configuration.isValid()) {
+			return clientFactory.obtain(
+					configuration.location,
+					configuration.sharedSpace,
+					configuration.username,
+					configuration.password);
+		}
+		return null;
+	}
 
-            String loggingMessage = bdiConfiguration == null ? "BDI is not configured in Octane." : "Fetched BDI configuration from Octane. Address: " + bdiConfiguration.getHost() + ", Port: " + bdiConfiguration.getPort();
-            logger.info(loggingMessage);
-        } catch (Exception e) {
-            logger.error("Failed to fetch BDI configuration from Octane", e);
-        }
-    }
+	@Override
+	protected void doExecute(TaskListener listener) throws IOException, InterruptedException {
+		fetchBdiConfiguration();
+	}
 
-    private MqmRestClient createMqmRestClient() {
-        ServerConfiguration configuration = ConfigurationService.getServerConfiguration();
-        if (configuration.isValid()) {
-            return clientFactory.obtain(
-                    configuration.location,
-                    configuration.sharedSpace,
-                    configuration.username,
-                    configuration.password);
-        }
-        return null;
-    }
+	@Override
+	public long getRecurrencePeriod() {
+		return TimeUnit2.DAYS.toMillis(1);
+	}
 
-    @Override
-    protected void doExecute(TaskListener listener) throws IOException, InterruptedException {
-        fetchBdiConfiguration();
-    }
-
-    @Override
-    public long getRecurrencePeriod() {
-        return TimeUnit2.DAYS.toMillis(1);
-    }
-
-    @Inject
-    public void setMqmRestClientFactory(JenkinsMqmRestClientFactoryImpl clientFactory) {
-        this.clientFactory = clientFactory;
-    }
+	@Inject
+	public void setMqmRestClientFactory(JenkinsMqmRestClientFactoryImpl clientFactory) {
+		this.clientFactory = clientFactory;
+	}
 }

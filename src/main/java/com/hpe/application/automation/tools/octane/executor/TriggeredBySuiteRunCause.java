@@ -36,6 +36,6 @@ public class TriggeredBySuiteRunCause extends Cause {
 
     @Override
     public String getShortDescription() {
-        return "Triggered by octane suite run " + suiteRunId;
+        return "Triggered by ALM Octane suite run #" + suiteRunId;
     }
 }

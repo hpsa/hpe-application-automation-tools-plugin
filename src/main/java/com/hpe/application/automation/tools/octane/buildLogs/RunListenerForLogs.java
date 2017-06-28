@@ -35,71 +35,71 @@ import javax.annotation.Nonnull;
 import java.util.List;
 
 /**
- * Created by benmeior on 11/16/2016.
+ * Created by benmeior on 11/16/2016
+ * Jenkins events listener to dispatch build logs to bdi server
  */
+
 @Extension
 public class RunListenerForLogs extends RunListener<Run> {
-    public RunListenerForLogs(){}
+	private static Logger logger = LogManager.getLogger(RunListenerForLogs.class);
 
-    private static Logger logger = LogManager.getLogger(RunListenerForLogs.class);
+	private JenkinsMqmRestClientFactory clientFactory;
 
-    private JenkinsMqmRestClientFactory clientFactory;
+	@Inject
+	private LogDispatcher logDispatcher;
+	@Inject
+	private BdiConfigurationFetcher bdiConfigurationFetcher;
 
-    @Inject
-    private LogDispatcher logDispatcher;
+	//  [YG] TODO: move workspace resolving logic to the async processor off the main thread
+	@Override
+	public void onCompleted(Run r, @Nonnull TaskListener listener) {
+		BdiConfiguration bdiConfiguration = bdiConfigurationFetcher.obtain();
+		if (bdiConfiguration == null || !bdiConfiguration.isFullyConfigured()) {
+			logger.debug("BDI is not configured in Octane");
+			return;
+		}
 
-    @Inject
-    private BdiConfigurationFetcher bdiConfigurationFetcher;
+		if (!(r instanceof AbstractBuild)) {
+			return;
+		}
 
-    @Override
-    public void onCompleted(Run r, @Nonnull TaskListener listener) {
-        BdiConfiguration bdiConfiguration = bdiConfigurationFetcher.obtain();
-        if (bdiConfiguration == null || !bdiConfiguration.isFullyConfigured()) {
-            logger.debug("BDI is not configured in Octane");
-            return;
-        }
+		AbstractBuild build = (AbstractBuild) r;
 
-        if (!(r instanceof AbstractBuild)) {
-            return;
-        }
+		try {
+			MqmRestClient mqmRestClient = createMqmRestClient();
+			if (mqmRestClient == null) {
+				logger.warn("Octane configuration is not valid");
+				return;
+			}
 
-        AbstractBuild build = (AbstractBuild) r;
+			List<String> workspaces = mqmRestClient.getJobWorkspaceId(ConfigurationService.getModel().getIdentity(), build.getParent().getName());
+			if (workspaces.isEmpty()) {
+				logger.info(String.format("Job '%s' is not part of an Octane pipeline in any workspace, so its log will not be sent.", build.getParent().getName()));
+			} else {
+				for (String workspace : workspaces) {
+					logger.info(String.format("Enqueued job [%s#%d] of workspace %s", build.getParent().getName(), build.getNumber(), workspace));
+					logDispatcher.enqueueLog(build.getProject().getName(), build.getNumber(), workspace);
+				}
+			}
+		} catch (Exception e) {
+			logger.error(String.format("Could not enqueue log for job %s", build.getParent().getName()));
+		}
+	}
 
-        try {
-            MqmRestClient mqmRestClient = createMqmRestClient();
-            if (mqmRestClient == null) {
-                logger.warn("Octane configuration is not valid");
-                return;
-            }
+	private MqmRestClient createMqmRestClient() {
+		ServerConfiguration configuration = ConfigurationService.getServerConfiguration();
+		if (configuration.isValid()) {
+			return clientFactory.obtain(
+					configuration.location,
+					configuration.sharedSpace,
+					configuration.username,
+					configuration.password);
+		}
+		return null;
+	}
 
-            List<String> workspaces = mqmRestClient.getJobWorkspaceId(ConfigurationService.getModel().getIdentity(), build.getParent().getName());
-            if (workspaces.isEmpty()) {
-                logger.info(String.format("Job '%s' is not part of an Octane pipeline in any workspace, so its log will not be sent.", build.getParent().getName()));
-            } else {
-                for (String workspace : workspaces) {
-                    logger.info(String.format("Enqueued job [%s#%d] of workspace %s", build.getParent().getName(), build.getNumber(), workspace));
-                    logDispatcher.enqueueLog(build.getProject().getName(), build.getNumber(), workspace);
-                }
-            }
-        } catch (Exception e) {
-            logger.error(String.format("Could not enqueue log for job %s", build.getParent().getName()));
-        }
-    }
-
-    private MqmRestClient createMqmRestClient() {
-        ServerConfiguration configuration = ConfigurationService.getServerConfiguration();
-        if (configuration.isValid()) {
-            return clientFactory.obtain(
-                    configuration.location,
-                    configuration.sharedSpace,
-                    configuration.username,
-                    configuration.password);
-        }
-        return null;
-    }
-
-    @Inject
-    public void setMqmRestClientFactory(JenkinsMqmRestClientFactoryImpl clientFactory) {
-        this.clientFactory = clientFactory;
-    }
+	@Inject
+	public void setMqmRestClientFactory(JenkinsMqmRestClientFactoryImpl clientFactory) {
+		this.clientFactory = clientFactory;
+	}
 }

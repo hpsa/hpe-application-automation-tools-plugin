@@ -23,12 +23,20 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * Created by benmeior on 11/21/2016.
+ * Created by benmeior on 11/21/2016
+ *
+ * Queue, based on persisted, file-object backed by base queue, serving the Logs dispatching logic to BDI when relevant
  */
+
 public class LogAbstractResultQueue extends AbstractResultQueueImpl {
 
-    public LogAbstractResultQueue() throws IOException {
-        File queueFile = new File(Jenkins.getInstance().getRootDir(), "octane-log-result-queue.dat");
-        init(queueFile);
-    }
+	public LogAbstractResultQueue() throws IOException {
+		Jenkins jenkinsContainer = Jenkins.getInstance();
+		if (jenkinsContainer != null) {
+			File queueFile = new File(jenkinsContainer.getRootDir(), "octane-log-result-queue.dat");
+			init(queueFile);
+		} else {
+			throw new IllegalStateException("Jenkins container not initialized properly");
+		}
+	}
 }
