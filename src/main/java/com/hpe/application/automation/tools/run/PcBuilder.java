@@ -46,12 +46,13 @@ import com.hpe.application.automation.tools.sse.result.model.junit.Testsuites;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.PluginWrapper;
 import hudson.console.HyperlinkNote;
 import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
-import hudson.tasks.junit.JUnitResultArchiver;
 import hudson.util.FormValidation;
+import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.ClientProtocolException;
@@ -62,15 +63,15 @@ import org.kohsuke.stapler.QueryParameter;
 import javax.annotation.Nonnull;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.io.StringWriter;
+import java.beans.IntrospectionException;
+import java.io.*;
 import java.lang.reflect.Method;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import static com.hpe.application.automation.tools.pc.RunState.FINISHED;
 import static com.hpe.application.automation.tools.pc.RunState.RUN_FAILURE;
@@ -79,7 +80,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     
     private static final String artifactsDirectoryName = "archive";
     public static final String artifactsResourceName = "artifact";
-    public static final String runReportStructure = "%s/%s/performanceTestsReports/pcRun%s";
+    public static final String runReportStructure = "%s/%s/performanceTestsReports/pcRun";
     public static final String trendReportStructure = "%s/%s/performanceTestsReports/TrendReports";
     public static final String pcReportArchiveName = "Reports.zip";
     public static final String pcReportFileName = "Report.html";
@@ -98,9 +99,11 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     private final String timeslotDurationMinutes;
     private final boolean statusBySLA;
     private int runId;
+    private String testName;
     private FilePath pcReportFile;
     private String junitResultsFileName;
     private PrintStream logger;
+    private File WorkspacePath;
     
     @DataBoundConstructor
     public PcBuilder(
@@ -158,9 +161,14 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
             throws InterruptedException, IOException {
+        WorkspacePath =  new File(build.getWorkspace().toURI());
         perform(build, build.getWorkspace(), launcher, listener);
 
         return true;
+    }
+
+    public File getWorkspacePath(){
+        return WorkspacePath;
     }
     
     public PcModel getPcModel() {
@@ -233,12 +241,13 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         boolean trendReportReady = false;
         try {
             runId = pcClient.startRun();
+            testName = pcClient.getTestName();
+
             List<ParameterValue> parameters = new ArrayList<>();
             parameters.add(new StringParameterValue(RUNID_BUILD_VARIABLE, "" + runId));
             // This allows a user to access the runId from within Jenkins using a build variable.
             build.addAction(new AdditionalParametersAction(parameters));
             logger.print("Set " + RUNID_BUILD_VARIABLE + " Env Variable to " + runId + "\n");
-
 
             response = pcClient.waitForRunCompletion(runId);
 
@@ -275,7 +284,14 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
 
         Testsuites ret = new Testsuites();
         parsePcRunResponse(ret,response, build, errorMessage, eventLogString);
-        parsePcTrendResponse(ret,pcClient,trendReportReady,pcModel.getTrendReportId(),runId);
+        try {
+            parsePcTrendResponse(ret,build,pcClient,trendReportReady,pcModel.getTrendReportId(),runId);
+        } catch (IntrospectionException e) {
+            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+
         return ret;
     }
     
@@ -297,8 +313,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         return String.format(
                 runReportStructure,
                 build.getRootDir().getPath(),
-                artifactsDirectoryName,
-                runId);
+                artifactsDirectoryName);
     }
 
     private String getTrendReportsDirectory(Run<?, ?> build) {
@@ -393,42 +408,143 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         List<Testsuite> testSuites = ret.getTestsuite();
         Testsuite testSuite = new Testsuite();
         Testcase testCase = new Testcase();
-        testCase.setClassname("Performance Tests.Test ID: " + runResponse.getTestID());
-        testCase.setName("Run ID: " + runResponse.getID());
+        //testCase.setClassname("Performance Tests.Test ID: " + runResponse.getTestID());
+        testCase.setClassname("Performance Test.Load Test");
+        testCase.setName(testName + "(ID:" + runResponse.getTestID() + ")");
         testCase.setTime(String.valueOf(runResponse.getDuration() * 60));
-        if (pcReportFile != null && pcReportFile.exists() && runState == FINISHED)
+        if (pcReportFile != null && pcReportFile.exists() && runState == FINISHED) {
             testCase.getSystemOut().add(getOutputForReportLinks(build));
+        }
         updateTestStatus(testCase, runResponse, errorMessage, eventLogString);
         testSuite.getTestcase().add(testCase);
+        testSuite.setName("Performance Test ID: " + runResponse.getTestID() + ", Run ID: " + runResponse.getID());
         testSuites.add(testSuite);
         return ret;
     }
 
-    private Testsuites parsePcTrendResponse(Testsuites ret,PcClient pcClient,boolean trendReportReady,String TrendReportID, int runID) throws IOException, InterruptedException {
+    private Testsuites parsePcTrendResponse(Testsuites ret,Run<?, ?> build,PcClient pcClient,boolean trendReportReady,String TrendReportID, int runID) throws PcException,IntrospectionException,IOException, InterruptedException ,NoSuchMethodException{
 
 
-        // Create Trend Report
         if(trendReportReady){
-            List<Testsuite> testSuites = ret.getTestsuite();
-            Testsuite testSuite = new Testsuite();
-            Testcase testCase = new Testcase();
-
             String reportUrlTemp = trendReportStructure.replaceFirst("%s/", "") + "/trendReport%s.pdf";
             String reportUrl = String.format(reportUrlTemp, artifactsResourceName, pcModel.getTrendReportId());
-
-            testCase.setClassname("Trend report publishing .Trend Report ID: " + TrendReportID);
-            testCase.setName("Run ID: " + runID);
             pcClient.publishTrendReport(reportUrl, pcModel.getTrendReportId());
-            //testCase.setTime(String.valueOf(runResponse.getDuration() * 60));
-            testCase.setStatus(JUnitTestCaseStatus.PASS);
-            testSuite.getTestcase().add(testCase);
-            testSuites.add(testSuite);
-        }
-        // End Create Trend Report
 
+            // Updating all CSV files for plot plugin
+            // this helps to show the transaction of each result
+            if (isPluginActive("Plot plugin")) {
+                logger.println("Updating csv files for Trending Charts.");
+                updateCSVFilesForPlot(pcClient, runID);
+                String plotUrlPath = "/job/" + build.getParent().getName() + "/plot";
+                logger.println(HyperlinkNote.encodeTo(plotUrlPath, "Trending Charts")); // + HyperlinkNote.encodeTo("https://wiki.jenkins-ci.org/display/JENKINS/HP+Application+Automation+Tools#HPApplicationAutomationTools-RunningPerformanceTestsusingHPPerformanceCenter","More Info"));
+            }else{
+                logger.println("You can view Trending Charts directly from Jenkins using Plot Plugin, see more details on the " + HyperlinkNote.encodeTo("https://wiki.jenkins.io/display/JENKINS/HPE+Application+Automation+Tools#HPEApplicationAutomationTools-RunningPerformanceTestsusingHPEPerformanceCenter","documentation") + "(Performance Center 12.55 and Later).");
+            }
+        }
         return ret;
     }
-    
+
+    private boolean isPluginActive(String pluginDisplayName){
+        List<PluginWrapper> allPlugin = Jenkins.getInstance().pluginManager.getPlugins();
+        for (PluginWrapper pw :
+                allPlugin) {
+
+            if (pw.getDisplayName().toLowerCase().equals(pluginDisplayName.toLowerCase())) {
+                return pw.isActive();
+            }
+        }
+        return false;
+    }
+
+    private void updateCSVFilesForPlot(PcClient pcClient, int runId) throws IOException, PcException, IntrospectionException, NoSuchMethodException {
+
+        //Map<String, String> measurementMap =pcClient.getTrendReportByXML(pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRT, TrendReportTypes.Measurement.PCT_AVERAGE);
+
+        // Transaction - TRT
+        saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRT, TrendReportTypes.Measurement.PCT_MINIMUM);
+        saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRT, TrendReportTypes.Measurement.PCT_MAXIMUM);
+        saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRT, TrendReportTypes.Measurement.PCT_AVERAGE);
+        saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRT, TrendReportTypes.Measurement.PCT_MEDIAN);
+        saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRT, TrendReportTypes.Measurement.PCT_STDDEVIATION);
+        saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRT, TrendReportTypes.Measurement.PCT_COUNT1);
+        //saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRT, TrendReportTypes.Measurement.PCT_SUM1);
+        saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRT, TrendReportTypes.Measurement.PCT_PERCENTILE_90);
+
+        // Transaction - TPS
+        saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TPS, TrendReportTypes.Measurement.PCT_MINIMUM);
+        saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TPS, TrendReportTypes.Measurement.PCT_MAXIMUM);
+        saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TPS, TrendReportTypes.Measurement.PCT_AVERAGE);
+        saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TPS, TrendReportTypes.Measurement.PCT_MEDIAN);
+        //saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TPS, TrendReportTypes.Measurement.PCT_STDDEVIATION);
+        saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TPS, TrendReportTypes.Measurement.PCT_SUM1);
+
+        // Transaction - TRS
+        //saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRS, TrendReportTypes.Measurement.PCT_MINIMUM);
+        //saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRS, TrendReportTypes.Measurement.PCT_MAXIMUM);
+        //saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRS, TrendReportTypes.Measurement.PCT_AVERAGE);
+        //saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRS, TrendReportTypes.Measurement.PCT_MEDIAN);
+        //saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRS, TrendReportTypes.Measurement.PCT_STDDEVIATION);
+        saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Transaction, TrendReportTypes.PctType.TRS, TrendReportTypes.Measurement.PCT_COUNT1);
+
+
+        // Monitors - UDP
+        saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Monitors, TrendReportTypes.PctType.UDP, TrendReportTypes.Measurement.PCT_MINIMUM);
+        saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Monitors, TrendReportTypes.PctType.UDP, TrendReportTypes.Measurement.PCT_MAXIMUM);
+        saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Monitors, TrendReportTypes.PctType.UDP, TrendReportTypes.Measurement.PCT_AVERAGE);
+        saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Monitors, TrendReportTypes.PctType.UDP, TrendReportTypes.Measurement.PCT_MEDIAN);
+        saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Monitors, TrendReportTypes.PctType.UDP, TrendReportTypes.Measurement.PCT_STDDEVIATION);
+        saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Monitors, TrendReportTypes.PctType.UDP, TrendReportTypes.Measurement.PCT_COUNT1);
+        saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Monitors, TrendReportTypes.PctType.UDP, TrendReportTypes.Measurement.PCT_SUM1);
+
+        // Regular - VU
+        //saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Regular, TrendReportTypes.PctType.VU, TrendReportTypes.Measurement.PCT_MINIMUM);
+        saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Regular, TrendReportTypes.PctType.VU, TrendReportTypes.Measurement.PCT_MAXIMUM);
+        saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Regular, TrendReportTypes.PctType.VU, TrendReportTypes.Measurement.PCT_AVERAGE);
+        //saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Regular, TrendReportTypes.PctType.VU, TrendReportTypes.Measurement.PCT_MEDIAN);
+        //saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Regular, TrendReportTypes.PctType.VU, TrendReportTypes.Measurement.PCT_STDDEVIATION);
+
+
+        // Regular - WEB
+        saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Regular, TrendReportTypes.PctType.WEB, TrendReportTypes.Measurement.PCT_MINIMUM);
+        saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Regular, TrendReportTypes.PctType.WEB, TrendReportTypes.Measurement.PCT_MAXIMUM);
+        saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Regular, TrendReportTypes.PctType.WEB, TrendReportTypes.Measurement.PCT_AVERAGE);
+        saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Regular, TrendReportTypes.PctType.WEB, TrendReportTypes.Measurement.PCT_MEDIAN);
+        //saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Regular, TrendReportTypes.PctType.WEB, TrendReportTypes.Measurement.PCT_STDDEVIATION);
+        saveFileToWorkspacePath(pcClient,pcModel.getTrendReportId(),runId,TrendReportTypes.DataType.Regular, TrendReportTypes.PctType.WEB, TrendReportTypes.Measurement.PCT_SUM1);
+
+
+
+      //  logger.print(build.getRootDir().getPath());
+    }
+
+
+    private boolean saveFileToWorkspacePath(PcClient pcClient, String trendReportID, int runId,TrendReportTypes.DataType dataType, TrendReportTypes.PctType pctType, TrendReportTypes.Measurement measurement)throws IOException, PcException, IntrospectionException, NoSuchMethodException{
+        String fileName = measurement.toString().toLowerCase()  + "_" +  pctType.toString().toLowerCase() + ".csv";
+        File file = new File(getWorkspacePath().getPath() + "/" + fileName);
+        try{
+            Map<String, String> measurementMap = pcClient.getTrendReportByXML(trendReportID,runId,dataType, pctType, measurement);
+            if (!file.exists()){
+                file.createNewFile();
+            }
+            PrintWriter writer = new PrintWriter(file);
+            for (String key : measurementMap.keySet()) {
+                writer.print(key + ",");
+            }
+            writer.print("\r\n");
+            for (String value : measurementMap.values()) {
+                writer.print(value + ",");
+            }
+            writer.close();
+       //     logger.println(fileName + " Created.");
+            return true;
+        } catch (IOException e) {
+            logger.println("Error saving file: "+ fileName + " with Error: " + e.getMessage());
+            return false;
+        }
+
+    }
+
+
     private void updateTestStatus(Testcase testCase, PcRunResponse response, String errorMessage, String eventLog) {
         RunState runState = RunState.get(response.getRunState());
         if (runState == RUN_FAILURE) {
@@ -468,10 +584,10 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     
     private String getOutputForReportLinks(Run<?, ?> build) {
         String urlPattern = getArtifactsUrlPattern(build);
-        String viewUrl = String.format(urlPattern, pcReportFileName);
-        String downloadUrl = String.format(urlPattern, "*zip*/pcRun" + runId);
+        String viewUrl = String.format(urlPattern + "/%s", pcReportFileName);
+        String downloadUrl = String.format(urlPattern + "/%s", "*zip*/pcRun");
         logger.println(HyperlinkNote.encodeTo(viewUrl, "View analysis report of run " + runId));
-        return String.format("View analysis report:\n%s\n\n\nDownload Report:\n%s", viewUrl, downloadUrl);
+        return String.format("Load Test Run ID: %s\n\nView analysis report:\n%s\n\nDownload Report:\n%s", runId,viewUrl, downloadUrl);
 
     }
     
@@ -480,8 +596,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         String runReportUrlTemp = runReportStructure.replaceFirst("%s/", "");
         return String.format(
                 runReportUrlTemp,
-                artifactsResourceName,
-                runId + "/%s");
+                artifactsResourceName);
     }
     
     private void provideStepResultStatus(Result resultStatus, Run<?, ?> build) {
@@ -567,10 +682,10 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         if (!Result.SUCCESS.equals(resultStatus) && !Result.FAILURE.equals(resultStatus)) {
             return;
         }
-        //Only do this if build worked (Not unstable or aborted - which might mean there is no report
-        JUnitResultArchiver jUnitResultArchiver = new JUnitResultArchiver(this.getRunResultsFileName());
-        jUnitResultArchiver.setKeepLongStdio(true);
-        jUnitResultArchiver.perform(build, workspace, launcher, listener);
+//        //Only do this if build worked (Not unstable or aborted - which might mean there is no report
+//        JUnitResultArchiver jUnitResultArchiver = new JUnitResultArchiver(this.getRunResultsFileName());
+//        jUnitResultArchiver.setKeepLongStdio(true);
+//        jUnitResultArchiver.perform(build, workspace, launcher, listener);
 
     }
 

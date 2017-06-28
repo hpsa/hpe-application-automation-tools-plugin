@@ -80,7 +80,7 @@ public class PcRestProxy {
     protected static final String        TREND_REPORT_RESOURCE_NAME     = "TrendReports";
     protected static final String        TREND_REPORT_RESOURCE_SUFFIX     = "data";
     protected static final String        CONTENT_TYPE_XML               = "application/xml";
-    static final String                  PC_API_XMLNS                   = "http://www.hp.com/PC/REST/API";
+    public static final String                  PC_API_XMLNS                   = "http://www.hp.com/PC/REST/API";
 	
     protected static final List<Integer> validStatusCodes = Arrays.asList(SC_OK, SC_CREATED, SC_ACCEPTED, SC_NO_CONTENT);
 	
@@ -251,12 +251,12 @@ public class PcRestProxy {
     }
 
 
-    public ArrayList<PcTrendedRun> getTrendReportMetaData (String trendReportId) throws PcException, ClientProtocolException, IOException {
-        String getTrendReportMetaDataUrl = String.format(baseURL + "/%s/%s", TREND_REPORT_RESOURCE_NAME, trendReportId);
-        HttpGet getTrendReportMetaDataRequest = new HttpGet(getTrendReportMetaDataUrl);
-        HttpResponse response = executeRequest(getTrendReportMetaDataRequest);
-        String trendReportMetaData = IOUtils.toString(response.getEntity().getContent());
-        return PcTrendReportMetaData.xmlToObject(trendReportMetaData);
+    public TrendReportTransactionDataRoot getTrendReportByXML (String trendReportId, int runId) throws PcException, ClientProtocolException, IOException {
+        String getTrendReportByXMLUrl = String.format(baseURL + "/%s/%s/%s", TREND_REPORT_RESOURCE_NAME, trendReportId,runId);
+        HttpGet getTrendReportByXMLRequest = new HttpGet(getTrendReportByXMLUrl);
+        HttpResponse response = executeRequest(getTrendReportByXMLRequest);
+        String trendReportByXML = IOUtils.toString(response.getEntity().getContent());
+        return TrendReportTransactionDataRoot.xmlToObject(trendReportByXML);
     }
 
 
@@ -283,6 +283,14 @@ public class PcRestProxy {
 
         return in;
 
+    }
+
+    public ArrayList<PcTrendedRun> getTrendReportMetaData (String trendReportId) throws PcException, ClientProtocolException, IOException {
+        String getTrendReportMetaDataUrl = String.format(baseURL + "/%s/%s", TREND_REPORT_RESOURCE_NAME, trendReportId);
+        HttpGet getTrendReportMetaDataRequest = new HttpGet(getTrendReportMetaDataUrl);
+        HttpResponse response = executeRequest(getTrendReportMetaDataRequest);
+        String trendReportMetaData = IOUtils.toString(response.getEntity().getContent());
+        return PcTrendReportMetaData.xmlToObject(trendReportMetaData);
     }
     
     public PcRunEventLog getRunEventLog(int runId) throws PcException, ClientProtocolException, IOException {

@@ -16,12 +16,12 @@
 
 package com.hpe.application.automation.tools.octane.tests.junit;
 
-import com.hpe.application.automation.tools.octane.executor.OctaneConstants;
-import com.hpe.application.automation.tools.octane.tests.HPRunnerType;
-import com.hpe.application.automation.tools.octane.tests.xml.AbstractXmlIterator;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.tests.Property;
 import com.hp.octane.integrations.dto.tests.TestSuite;
+import com.hpe.application.automation.tools.octane.executor.OctaneConstants;
+import com.hpe.application.automation.tools.octane.tests.HPRunnerType;
+import com.hpe.application.automation.tools.octane.tests.xml.AbstractXmlIterator;
 import hudson.FilePath;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -40,7 +40,7 @@ import java.text.ParseException;
 import java.util.List;
 
 /**
- * JUnit iterator over test result. Enrich test result before sending to server
+ * JUnit result parser and enricher according to HPRunnerType
  */
 public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 	private static final Logger logger = LogManager.getLogger(JUnitXmlIterator.class);
@@ -169,8 +169,10 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 						}
 					}
 					externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/artifact/UFTReport/" + cleanTestName(testName) + "/run_results.html";
-				}
-			} else if ("duration".equals(localName)) { // NON-NLS
+                } else if (hpRunnerType.equals(HPRunnerType.PerformanceCenter)) {
+                    externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/artifact/performanceTestsReports/pcRun/Report.html";
+                }
+            } else if ("duration".equals(localName)) { // NON-NLS
 				duration = parseTime(readNextValue());
 			} else if ("skipped".equals(localName)) { // NON-NLS
 				if ("true".equals(readNextValue())) { // NON-NLS

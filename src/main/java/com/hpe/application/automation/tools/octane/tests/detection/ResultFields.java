@@ -16,20 +16,28 @@
 
 package com.hpe.application.automation.tools.octane.tests.detection;
 
-
+/**
+ * Class describing metadata of executed tests for test pushing to Octane
+ */
 public class ResultFields {
 
     private String framework;
     private String testingTool;
     private String testLevel;
+    private String testType;
 
     public ResultFields() {
     }
 
     public ResultFields(final String framework, final String testingTool, final String testLevel) {
+        this(framework, testingTool, testLevel, null);
+    }
+
+    public ResultFields(final String framework, final String testingTool, final String testLevel, final String testType) {
         this.framework = framework;
         this.testingTool = testingTool;
         this.testLevel = testLevel;
+        this.testType = testType;
     }
 
     public String getFramework() {
@@ -73,6 +81,10 @@ public class ResultFields {
         if (testingTool != null ? !testingTool.equals(that.testingTool) : that.testingTool != null) {
             return false;
         }
+
+        if (testType != null ? !testType.equals(that.testType) : that.testType != null) {
+            return false;
+        }
         return !(testLevel != null ? !testLevel.equals(that.testLevel) : that.testLevel != null);
 
     }
@@ -82,6 +94,15 @@ public class ResultFields {
         int result = framework != null ? framework.hashCode() : 0;
         result = 31 * result + (testingTool != null ? testingTool.hashCode() : 0);
         result = 31 * result + (testLevel != null ? testLevel.hashCode() : 0);
+        result = 31 * result + (testType != null ? testType.hashCode() : 0);
         return result;
+    }
+
+    public String getTestType() {
+        return testType;
+    }
+
+    public void setTestType(String testType) {
+        this.testType = testType;
     }
 }
