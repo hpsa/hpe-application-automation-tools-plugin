@@ -5,12 +5,17 @@
 
 package com.hpe.application.automation.tools.settings;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import hudson.XmlFile;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -44,6 +49,8 @@ import net.sf.json.JSONObject;
  * @author Kohsuke Kawaguchi
  */
 public class AlmServerSettingsBuilder extends Builder {
+
+    private static final Logger logger = LogManager.getLogger(AlmServerSettingsBuilder.class);
     
     @Override
     public DescriptorImpl getDescriptor() {
@@ -81,6 +88,33 @@ public class AlmServerSettingsBuilder extends Builder {
         
         public DescriptorImpl() {
             load();
+        }
+
+        @Override
+        protected XmlFile getConfigFile() {
+            XmlFile xmlFile = super.getConfigFile();
+            //Between 5.1 to 5.2 - migration hp->hpe was done.
+            //Old configuration file 'com.hp.application.automation.tools.settings.AlmServerSettingsBuilder.xml'
+            //is replaced by new one 'com.hpe.application.automation.tools.settings.AlmServerSettingsBuilder.xml'.
+            //As well, inside the configuration, there were replaces of hp->hpe
+            //if xmlFile is not exist, we will check if configuration file name exist in format of 5.1 version
+            //if so, we will copy old configuration to new one with replacements of hp->hpe
+            if (!xmlFile.exists()) {
+                //try to get from old path
+                File oldConfigurationFile = new File(xmlFile.getFile().getPath().replace("hpe", "hp"));
+                if (oldConfigurationFile.exists()) {
+                    try {
+                        String configuration = FileUtils.readFileToString(oldConfigurationFile);
+                        String newConfiguration = StringUtils.replace(configuration, ".hp.", ".hpe.");
+                        FileUtils.writeStringToFile(xmlFile.getFile(), newConfiguration);
+                        xmlFile = super.getConfigFile();
+                    } catch (IOException e) {
+                        logger.error("failed to copy ALM Server Plugin configuration 5.1 to new 5.2 format : " + e.getMessage());
+                    }
+                }
+            }
+
+            return xmlFile;
         }
         
         @Override
