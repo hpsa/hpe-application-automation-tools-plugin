@@ -6,24 +6,24 @@ import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Computer;
 import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import hudson.remoting.Channel;
 import hudson.tasks.BuildStepDescriptor;
+import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Builder;
 import hudson.tasks.junit.JUnitResultArchiver;
 import hudson.util.ArgumentListBuilder;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
 import jenkins.util.VirtualFile;
-import net.sf.json.JSONObject;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.BOMInputStream;
-import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.StaplerRequest;
 
 import javax.annotation.Nonnull;
 import javax.xml.stream.XMLStreamException;
@@ -49,36 +49,74 @@ import java.nio.charset.StandardCharsets;
 /**
  * This step enables to run LoadRunner scripts directly and collecting their results by converting them to JUnit
  */
-public class RunLRScript extends Builder implements SimpleBuildStep {
+public class RunLoadRunnerScript extends Builder implements SimpleBuildStep {
     public static final String LR_SCRIPT_HTML_REPORT_CSS = "PResults.css";
     private static final String LINUX_MDRV_PATH = "/bin/mdrv";
     private static final String WIN_MDRV_PATH = "\\bin\\mmdrv.exe";
     private static final String LR_SCRIPT_HTML_XSLT = "PDetails.xsl";
     private static final String LR_SCRIPT_HTML_CSS = "LR_SCRIPT_REPORT.css";
-    private final String lrScriptPath;
+    private String scriptsPath;
     private Jenkins jenkinsInstance;
     private PrintStream logger;
 
     @DataBoundConstructor
-    public RunLRScript(String scriptsPath) {
-        this.lrScriptPath = scriptsPath;
+    public RunLoadRunnerScript(@Nonnull String scriptsPath) {
+        if (scriptsPath.equals(DescriptorImpl.scriptsPath)) {
+            this.scriptsPath = "";
+        } else {
+            this.scriptsPath = scriptsPath;
+        }
     }
 
+    /**
+     * Returns {@link BuildStepMonitor#NONE} by default, as {@link Builder}s normally don't depend
+     * on its previous result.
+     */
+    @Override
+    public BuildStepMonitor getRequiredMonitorService() {
+        return BuildStepMonitor.NONE;
+    }
 
     @Override
     public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
                         @Nonnull TaskListener listener) throws InterruptedException, IOException {
         try {
             jenkinsInstance = Jenkins.getInstance();
+            if (jenkinsInstance == null) {
+                listener.error("Failed loading Jenkins instance ");
+                build.setResult(Result.FAILURE);
+                return;
+            }
             logger = listener.getLogger();
             ArgumentListBuilder args = new ArgumentListBuilder();
             EnvVars env;
-            String scriptName = FilenameUtils.getBaseName(this.lrScriptPath);
+            String scriptName = FilenameUtils.getBaseName(this.scriptsPath);
             FilePath buildWorkDir = workspace.child(build.getId());
             buildWorkDir.mkdirs();
             buildWorkDir = buildWorkDir.absolutize();
             env = build.getEnvironment(listener);
-            FilePath scriptPath = workspace.child(env.expand(this.lrScriptPath));
+            if (!(build instanceof AbstractBuild)) {
+                final Channel channel = (Channel) launcher.getChannel();
+                EnvVars newEnv;
+                Computer node = jenkinsInstance.getComputer(channel.getName());
+                if (node != null) {
+                    newEnv = node.getEnvironment();
+                    if (newEnv != null) {
+                        env = env.overrideExpandingAll(newEnv);
+                    } else {
+                        listener.error("Failed loading build environment in pipeline script run ");
+                        build.setResult(Result.FAILURE);
+                        return;
+                    }
+                } else {
+                    listener.error("Failed loading node in pipeline script run ");
+                    build.setResult(Result.FAILURE);
+                    return;
+                }
+
+            }
+
+            FilePath scriptPath = workspace.child(env.expand(this.scriptsPath));
             FilePath scriptWorkDir = buildWorkDir.child(scriptName);
             scriptWorkDir.mkdirs();
             scriptWorkDir = scriptWorkDir.absolutize();
@@ -159,17 +197,16 @@ public class RunLRScript extends Builder implements SimpleBuildStep {
             String lrPath = env.get("M_LROOT", "");
             if ("".equals(lrPath)) {
                 throw new LrScriptParserException(
-                        "Please make sure environment variables are set correctly on the running node - " +
-                                "LR_PATH for windows and M_LROOT for linux");
+                        "Please make sure environment variables are set correctly on the running node - M_LROOT for " +
+                                "linux");
             }
             lrPath += LINUX_MDRV_PATH;
             mdrv = new FilePath(launcher.getChannel(), lrPath);
         } else {
             String lrPath = env.get("LR_PATH", "");
             if ("".equals(lrPath)) {
-                throw new LrScriptParserException("P1lease make sure environment variables are set correctly on the " +
-                        "running node - " +
-                        "LR_PATH for windows and M_LROOT for linux");
+                throw new LrScriptParserException("Please make sure environment variables are set correctly on the " +
+                        "running node - LR_PATH for windows");
             }
             lrPath += WIN_MDRV_PATH;
             mdrv = new FilePath(launcher.getChannel(), lrPath);
@@ -250,23 +287,21 @@ public class RunLRScript extends Builder implements SimpleBuildStep {
     private static void copyScriptsResultToMaster(@Nonnull Run<?, ?> build, @Nonnull TaskListener listener,
                                                   FilePath buildWorkDir, FilePath masterBuildWorkspace)
             throws IOException, InterruptedException {
-        listener.getLogger().printf("Copying script results, from '%s' on '%s' to '%s' on the master. %n"
-                , buildWorkDir.toURI(), Computer.currentComputer().getNode(), build.getRootDir().toURI());
+        listener.getLogger().printf("Copying script results, from '%s' on node to '%s' on the master. %n"
+                , buildWorkDir.toURI(), build.getRootDir().toURI());
 
         buildWorkDir.copyRecursiveTo(masterBuildWorkspace);
     }
 
-    public String getScriptsPath() {
-        return lrScriptPath;
+    public @Nonnull
+    String getScriptsPath() {
+        return scriptsPath == null ? DescriptorImpl.scriptsPath : this.scriptsPath;
     }
 
-    @Symbol("RunLoadRunnerScript")
-    @Extension
-    public static class Descriptor extends BuildStepDescriptor<Builder> {
 
-        public Descriptor() {
-            load();
-        }
+    @Extension
+    public static class DescriptorImpl extends BuildStepDescriptor<Builder> {
+        public static final String scriptsPath = "";
 
         @Override
         public String getDisplayName() {
@@ -274,15 +309,7 @@ public class RunLRScript extends Builder implements SimpleBuildStep {
         }
 
         @Override
-
-        public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
-            formData.getString("scriptsPath");
-            save();
-            return super.configure(req, formData);
-        }
-
-        @Override
-        public boolean isApplicable(Class<? extends AbstractProject> aClass) {
+        public boolean isApplicable(@SuppressWarnings("rawtypes") Class<? extends AbstractProject> aClass) {
             return true;
         }
 
@@ -296,4 +323,5 @@ public class RunLRScript extends Builder implements SimpleBuildStep {
         }
 
     }
+
 }
