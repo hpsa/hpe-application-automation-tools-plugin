@@ -61,7 +61,6 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 	private static final  String HP_TOOLS_LAUNCHER_EXE = "HpToolsLauncher.exe";
 	private static final  String LRANALYSIS_LAUNCHER_EXE = "LRAnalysisLauncher.exe";
 
-
 	/**
 	 * Instantiates a new Run from file builder.
 	 *
@@ -193,7 +192,18 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		runFromFileModel.setMcServerName(mcServerName);
 	}
 
-	/**
+    /**
+     * Sets mc server name.
+     *
+     * @param useSSL the mc server name
+     */
+    @DataBoundSetter
+    public void setuseSSL(boolean useSSL) {
+        runFromFileModel.setUseSSL(useSSL);
+    }
+
+
+    /**
 	 * Sets fs user name.
 	 *
 	 * @param fsUserName the fs user name
@@ -566,6 +576,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		public DescriptorImpl() {
 			load();
 		}
+
 
 		@Override
 		public boolean isApplicable(
