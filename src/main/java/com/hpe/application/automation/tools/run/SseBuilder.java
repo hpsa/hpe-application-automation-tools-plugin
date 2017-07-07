@@ -209,16 +209,13 @@ public class SseBuilder extends Builder implements SimpleBuildStep {
     }
         
     public AlmServerSettingsModel getAlmServerSettingsModel() {
-        
         AlmServerSettingsModel ret = null;
         for (AlmServerSettingsModel almServer : getDescriptor().getAlmServers()) {
-            if (_sseModel != null
-                && _sseModel.getAlmServerName().equals(almServer.getAlmServerName())) {
+            if (this.almServerName.equals(almServer.getAlmServerName())) {
                 ret = almServer;
                 break;
             }
         }
-        
         return ret;
     }
     
