@@ -586,7 +586,7 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 
 		/**
 		 * Gets job id.
-		 * If there is already a job created by jenkins plugin, then return this job id,
+		 * If there is already a job created by jenkins plugin, and exists then return this job id,
 		 * otherwise, create a new temp job and return the new job id.
 		 *
 		 * @param mcUrl         the mc url
@@ -601,7 +601,12 @@ public class RunFromFileBuilder extends Builder implements SimpleBuildStep {
 		@JavaScriptMethod
 		public String getJobId(String mcUrl, String mcUserName, String mcPassword, String proxyAddress, String proxyUserName, String proxyPassword, String previousJobId) {
 			if(null != previousJobId && !previousJobId.isEmpty()){
-				return previousJobId;
+                JSONObject jobJSON = instance.getJobById(mcUrl, mcUserName, mcPassword, proxyAddress, proxyUserName, proxyPassword, previousJobId);
+                if(jobJSON != null && previousJobId.equals(jobJSON.getAsString("id"))){
+                    return previousJobId;
+                }else {
+                    return instance.createTempJob(mcUrl, mcUserName, mcPassword, proxyAddress, proxyUserName, proxyPassword);
+                }
 			}
 			return instance.createTempJob(mcUrl, mcUserName, mcPassword, proxyAddress, proxyUserName, proxyPassword);
 		}
