@@ -8,11 +8,9 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-import hudson.model.Computer;
 import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.TaskListener;
-import hudson.remoting.Channel;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Builder;
@@ -58,10 +56,11 @@ public class RunLoadRunnerScript extends Builder implements SimpleBuildStep {
     private String scriptsPath;
     private Jenkins jenkinsInstance;
     private PrintStream logger;
+    private EnvVars slaveEnvVars;
 
     @DataBoundConstructor
     public RunLoadRunnerScript(@Nonnull String scriptsPath) {
-        if (scriptsPath.equals(DescriptorImpl.scriptsPath)) {
+        if (scriptsPath.equals(DescriptorImpl.DEFAULT_SCRIPTS_PATH)) {
             this.scriptsPath = "";
         } else {
             this.scriptsPath = scriptsPath;
@@ -77,6 +76,14 @@ public class RunLoadRunnerScript extends Builder implements SimpleBuildStep {
         return BuildStepMonitor.NONE;
     }
 
+
+    public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
+                        @Nonnull TaskListener listener, @Nonnull EnvVars envVars) throws InterruptedException,
+            IOException {
+        this.slaveEnvVars = envVars;
+        this.perform(build, workspace, launcher, listener);
+    }
+
     @Override
     public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
                         @Nonnull TaskListener listener) throws InterruptedException, IOException {
@@ -89,40 +96,20 @@ public class RunLoadRunnerScript extends Builder implements SimpleBuildStep {
             }
             logger = listener.getLogger();
             ArgumentListBuilder args = new ArgumentListBuilder();
-            EnvVars env;
             String scriptName = FilenameUtils.getBaseName(this.scriptsPath);
             FilePath buildWorkDir = workspace.child(build.getId());
             buildWorkDir.mkdirs();
             buildWorkDir = buildWorkDir.absolutize();
-            env = build.getEnvironment(listener);
-            if (!(build instanceof AbstractBuild)) {
-                final Channel channel = (Channel) launcher.getChannel();
-                EnvVars newEnv;
-                Computer node = jenkinsInstance.getComputer(channel.getName());
-                if (node != null) {
-                    newEnv = node.getEnvironment();
-                    if (newEnv != null) {
-                        env = env.overrideExpandingAll(newEnv);
-                    } else {
-                        listener.error("Failed loading build environment in pipeline script run ");
-                        build.setResult(Result.FAILURE);
-                        return;
-                    }
-                } else {
-                    listener.error("Failed loading node in pipeline script run ");
-                    build.setResult(Result.FAILURE);
-                    return;
-                }
-
+            if(build instanceof AbstractBuild){
+                slaveEnvVars = build.getEnvironment(listener);
             }
-
-            FilePath scriptPath = workspace.child(env.expand(this.scriptsPath));
+            FilePath scriptPath = workspace.child(slaveEnvVars.expand(this.scriptsPath));
             FilePath scriptWorkDir = buildWorkDir.child(scriptName);
             scriptWorkDir.mkdirs();
             scriptWorkDir = scriptWorkDir.absolutize();
 
 
-            if (runScriptMdrv(launcher, args, env, scriptPath, scriptWorkDir)) {
+            if (runScriptMdrv(launcher, args, slaveEnvVars, scriptPath, scriptWorkDir)) {
                 build.setResult(Result.FAILURE);
                 return;
             }
@@ -295,13 +282,13 @@ public class RunLoadRunnerScript extends Builder implements SimpleBuildStep {
 
     public @Nonnull
     String getScriptsPath() {
-        return scriptsPath == null ? DescriptorImpl.scriptsPath : this.scriptsPath;
+        return scriptsPath == null ? DescriptorImpl.DEFAULT_SCRIPTS_PATH : this.scriptsPath;
     }
 
 
     @Extension
     public static class DescriptorImpl extends BuildStepDescriptor<Builder> {
-        public static final String scriptsPath = "";
+        public static final String DEFAULT_SCRIPTS_PATH = "";
 
         @Override
         public String getDisplayName() {

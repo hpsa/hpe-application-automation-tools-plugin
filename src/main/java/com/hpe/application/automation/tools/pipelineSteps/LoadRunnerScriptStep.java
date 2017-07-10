@@ -1,9 +1,12 @@
 package com.hpe.application.automation.tools.pipelineSteps;
 
 import com.hpe.application.automation.tools.run.RunLoadRunnerScript;
+import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.model.Computer;
+import hudson.model.Node;
 import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.TaskListener;
@@ -87,6 +90,13 @@ public class LoadRunnerScriptStep extends AbstractStepImpl {
         private transient Run build;
         @StepContextParameter
         private transient Launcher launcher;
+        @StepContextParameter
+        private transient EnvVars env;
+        @StepContextParameter
+        private transient Computer computer;
+        @StepContextParameter
+        private transient Node node;
+
         public LoadRunnerScriptStepExecution() {
             //No need for constructor
         }
@@ -102,7 +112,7 @@ public class LoadRunnerScriptStep extends AbstractStepImpl {
             listener.getLogger().println("Running LoadRunner Script Runner step");
 
             try {
-                step.getRunLoadRunnerScript().perform(build, ws, launcher, listener);
+                step.getRunLoadRunnerScript().perform(build, ws, launcher, listener, env);
             } catch (IOException e) {
                 listener.fatalError("LoadRunner script runner stage encountered an IOException " + e);
                 build.setResult(Result.FAILURE);
