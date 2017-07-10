@@ -210,7 +210,15 @@ public class TestResultToALMUploader extends Recorder implements Serializable, M
             throws InterruptedException, IOException {
     	ExternalEntityUploadLogger logger = new ExternalEntityUploadLogger(listener.getLogger());
 
+    	// Credentials id maybe can't be blank
+        if (StringUtils.isBlank(credentialsId)) {
+            logger.log("INFO: credentials is not configured.");
+            build.setResult(Result.UNSTABLE);
+            return true;
+        }
         UsernamePasswordCredentials credentials = getCredentialsById(credentialsId, build, logger);
+
+
     	logger.log(String.format("INFO: 'Upload test result to ALM' Post Build Step is being invoked by %s.",
                 credentials.getUsername()));
 
@@ -291,10 +299,6 @@ public class TestResultToALMUploader extends Recorder implements Serializable, M
      * Get user name password credentials by id.
      */
     private UsernamePasswordCredentials getCredentialsById(String credentialsId, Run<?, ?> run, ExternalEntityUploadLogger logger) {
-        if (StringUtils.isBlank(credentialsId)) {
-            throw new NullPointerException("credentials is not configured.");
-        }
-
         UsernamePasswordCredentials credentials = CredentialsProvider.findCredentialById(credentialsId,
                 StandardUsernamePasswordCredentials.class,
                 run,
