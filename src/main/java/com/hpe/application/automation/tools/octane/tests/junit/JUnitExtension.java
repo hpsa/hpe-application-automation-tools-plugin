@@ -46,12 +46,17 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Converter of Jenkins test report to ALM Octane test report format(junitResult.xml->mqmTests.xml)
+ */
 @Extension
 public class JUnitExtension extends MqmTestsExtension {
 	private static Logger logger = LogManager.getLogger(JUnitExtension.class);
 
 	public static final String STORM_RUNNER = "StormRunner";
 	public static final String LOAD_RUNNER = "LoadRunner";
+	public static final String PERFORMANCE_CENTER_RUNNER = "Performance Center1";
+	public static final String PERFORMANCE_TEST_TYPE = "Performance";
 
 	private static final String JUNIT_RESULT_XML = "junitResult.xml"; // NON-NLS
 
@@ -81,15 +86,7 @@ public class JUnitExtension extends MqmTestsExtension {
 		FilePath resultFile = new FilePath(build.getRootDir()).child(JUNIT_RESULT_XML);
 		if (resultFile.exists()) {
 			logger.debug("JUnit result report found");
-			ResultFields detectedFields = null;
-			if (hpRunnerType.equals(HPRunnerType.StormRunner)) {
-				detectedFields = new ResultFields(null, STORM_RUNNER, null);
-			} else if (isLoadRunnerProject) {
-				detectedFields = new ResultFields(null, LOAD_RUNNER, null);
-			} else {
-				//@// TODO: 15/02/2017  - should handle the workflow build
-				detectedFields = resultFieldsDetectionService.getDetectedFields(build);
-			}
+			ResultFields detectedFields = getResultFields(build, hpRunnerType, isLoadRunnerProject);
 			FilePath filePath= BuildHandlerUtils.getWorkspace(build).act(new GetJUnitTestResults(build, Arrays.asList(resultFile), shallStripPackageAndClass(detectedFields), hpRunnerType, jenkinsRootUrl));
 			return new TestResultContainer(new ObjectStreamIterator<TestResult>(filePath, true), detectedFields);
 		} else {
@@ -110,14 +107,7 @@ public class JUnitExtension extends MqmTestsExtension {
 					}
 				}
 				if (!resultFiles.isEmpty()) {
-					ResultFields detectedFields = null;
-					if (hpRunnerType.equals(HPRunnerType.StormRunner)) {
-						detectedFields = new ResultFields(null, STORM_RUNNER, null);
-					} else if (isLoadRunnerProject) {
-						detectedFields = new ResultFields(null, LOAD_RUNNER, null);
-					} else {
-						detectedFields = resultFieldsDetectionService.getDetectedFields(build);
-					}
+					ResultFields detectedFields = getResultFields(build, hpRunnerType, isLoadRunnerProject);
 					FilePath filePath = BuildHandlerUtils.getWorkspace(build).act(new GetJUnitTestResults(build, resultFiles, shallStripPackageAndClass(detectedFields), hpRunnerType, jenkinsRootUrl));
 					return new TestResultContainer(new ObjectStreamIterator<TestResult>(filePath, true), detectedFields);
 				}
@@ -125,6 +115,21 @@ public class JUnitExtension extends MqmTestsExtension {
 			logger.debug("No JUnit result report found");
 			return null;
 		}
+	}
+
+	private ResultFields getResultFields(Run<?, ?> build, HPRunnerType hpRunnerType, boolean isLoadRunnerProject) throws InterruptedException {
+		ResultFields detectedFields;
+		if (hpRunnerType.equals(HPRunnerType.StormRunner)) {
+			detectedFields = new ResultFields(null, STORM_RUNNER, null);
+		} else if (isLoadRunnerProject) {
+			detectedFields = new ResultFields(null, LOAD_RUNNER, null);
+		} else if (hpRunnerType.equals(HPRunnerType.PerformanceCenter)) {
+			detectedFields = new ResultFields(null, null/*PERFORMANCE_CENTER_RUNNER*/, null, PERFORMANCE_TEST_TYPE);
+		} else {
+			detectedFields = resultFieldsDetectionService.getDetectedFields(build);
+		}
+
+		return detectedFields;
 	}
 
 	private boolean shallStripPackageAndClass(ResultFields resultFields) {

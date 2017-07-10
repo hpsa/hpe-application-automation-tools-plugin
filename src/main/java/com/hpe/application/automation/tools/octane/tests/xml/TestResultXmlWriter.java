@@ -34,6 +34,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Iterator;
 
+/**
+ * Save results to mqmTests.xml in XML format
+ */
 @SuppressWarnings("all")
 public class TestResultXmlWriter {
 
@@ -107,12 +110,13 @@ public class TestResultXmlWriter {
 			writeField("Framework", resultFields.getFramework());
 			writeField("Test_Level", resultFields.getTestLevel());
 			writeField("Testing_Tool_Type", resultFields.getTestingTool());
+			writeField("Test_Type", resultFields.getTestType());
 			writer.writeEndElement();
 		}
 	}
 
 	private void writeField(String type, String value) throws XMLStreamException {
-		if (value != null) {
+		if (StringUtils.isNotEmpty(value)) {
 			writer.writeStartElement("test_field");
 			writer.writeAttribute("type", type);
 			writer.writeAttribute("value", value);

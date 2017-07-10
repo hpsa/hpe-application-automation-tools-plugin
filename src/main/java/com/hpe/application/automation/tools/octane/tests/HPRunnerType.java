@@ -17,10 +17,11 @@
 package com.hpe.application.automation.tools.octane.tests;
 
 /**
- * Created by franksha on 05/01/2017.
+ * Runner type of test
  */
 public enum HPRunnerType {
     StormRunner,
     UFT,
+    PerformanceCenter,
     NONE
 }

@@ -162,7 +162,7 @@
             <table style="width:100%" id="trendReportTable">
             <f:radioBlock field="addRunToTrendReport" name="addRunToTrendReport" value="NO_TREND" checked="${instance.pcModel.addRunToTrendReport=='NO_TREND'}" title="Do Not Trend" inline="true">
             </f:radioBlock>
-            <f:radioBlock field="addRunToTrendReport" name="addRunToTrendReport" value="ASSOCIATED" checked="${instance.pcModel.addRunToTrendReport=='ASSOCIATED'}" title="Use trend report associated with the test" inline="true">
+            <f:radioBlock field="addRunToTrendReport" name="addRunToTrendReport" value="ASSOCIATED" checked="${instance.pcModel.addRunToTrendReport=='ASSOCIATED'}" title="Use trend report associated with the test (Performance Center 12.55 or later)" inline="true">
             </f:radioBlock>
             <f:radioBlock field="addRunToTrendReport" name="addRunToTrendReport" value="USE_ID" checked="${instance.pcModel.addRunToTrendReport=='USE_ID'}" title="Add run to trend report with ID" inline="true">
                 <f:entry title="Trend report ID:" field="addRunToTrendReport">
