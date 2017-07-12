@@ -81,22 +81,27 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 		super("BDI log dispatcher");
 	}
 
-	private void initClient() {
+	public void initClient() {
 		closeClient();
 
-		this.proxyConfiguration = Jenkins.getInstance().proxy;
-
+		Jenkins jenkins = Jenkins.getInstance();
+		if (jenkins == null) {
+			logger.error("Jenkins container was not properly initialized");
+			return;
+		}
 		BdiConfiguration bdiConfiguration = bdiConfigurationFetcher.obtain();
 		if (bdiConfiguration == null || !bdiConfiguration.isFullyConfigured()) {
 			logger.debug("BDI is not configured in Octane");
 			return;
 		}
-
+		System.setProperty("bdi_use_ssl", String.valueOf(bdiConfiguration.isSsl() || "443".equals(bdiConfiguration.getPort())));
+		this.proxyConfiguration = jenkins.proxy;
 		if (proxyConfiguration == null) {
 			bdiClient = BdiClientFactory.getBdiClientV2(bdiConfiguration.getHost(), bdiConfiguration.getPort());
 			deprecatedClient = BdiClientFactory.getBdiClient(bdiConfiguration.getHost(), bdiConfiguration.getPort());
 		} else {
-			BdiProxyConfiguration bdiProxyConfiguration = new BdiProxyConfiguration(proxyConfiguration.name, proxyConfiguration.port, proxyConfiguration.getUserName(), proxyConfiguration.getPassword());
+			BdiProxyConfiguration bdiProxyConfiguration =
+					new BdiProxyConfiguration(proxyConfiguration.name, proxyConfiguration.port, proxyConfiguration.getUserName(), proxyConfiguration.getPassword());
 			bdiClient = BdiClientFactory.getBdiClientV2(bdiConfiguration.getHost(), bdiConfiguration.getPort(), bdiProxyConfiguration);
 			deprecatedClient = BdiClientFactory.getBdiClient(bdiConfiguration.getHost(), bdiConfiguration.getPort(), bdiProxyConfiguration);
 		}
@@ -113,6 +118,11 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 		}
 
 		//  verify configuration
+		Jenkins jenkins = Jenkins.getInstance();
+		if (jenkins == null) {
+			logger.error("Jenkins container was not properly initialized");
+			return;
+		}
 		BdiConfiguration bdiConfiguration = bdiConfigurationFetcher.obtain();
 		if (bdiConfiguration == null || !bdiConfiguration.isFullyConfigured()) {
 			logger.error("Could not send logs. BDI is not configured");
@@ -124,16 +134,16 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 		}
 
 		//  proceed to process queue item
-		manageLogsQueue(bdiConfiguration);
+		manageLogsQueue(jenkins, bdiConfiguration);
 	}
 
-	private void manageLogsQueue(BdiConfiguration bdiConfiguration) {
+	private void manageLogsQueue(Jenkins jenkins, BdiConfiguration bdiConfiguration) {
 		ResultQueue.QueueItem item;
 		File logFile = null;
 		Run build = null;
 		while ((item = logsQueue.peekFirst()) != null) {
 			try {
-				build = getBuildFromQueueItem(item);
+				build = getBuildFromQueueItem(jenkins, item);
 				if (build == null) {
 					logsQueue.remove();
 					continue;
@@ -141,7 +151,7 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 
 				logFile = getOctaneLogFile(build);
 
-				if (bdiClient == null || deprecatedClient == null || proxyConfiguration != Jenkins.getInstance().proxy) {
+				if (bdiClient == null || deprecatedClient == null || proxyConfiguration != jenkins.proxy) {
 					initClient();
 				}
 
@@ -206,10 +216,10 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 		MqmRestClient mqmRestClient = createMqmRestClient();
 		if (mqmRestClient != null) {
 			BdiTokenData bdiTokenData = objectMapper.readValue(mqmRestClient.getBdiTokenData(), BdiTokenData.class);
-			if (bdiTokenData.token != null && !bdiTokenData.token.isEmpty()) {
+			if (bdiTokenData.token != null) {
 				result = bdiTokenData.token;
 			} else {
-				throw new IllegalStateException("invalid access token received from Octane: " + bdiTokenData.token);
+				throw new IllegalStateException("invalid [NULL] access token received from Octane");
 			}
 		} else {
 			throw new IllegalStateException("failed to create RestClient to retrieve access token from Octane");
@@ -229,8 +239,8 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 		}
 	}
 
-	private Run getBuildFromQueueItem(ResultQueue.QueueItem item) {
-		Job project = (Job) Jenkins.getInstance().getItemByFullName(item.getProjectName());
+	private Run getBuildFromQueueItem(Jenkins jenkins, ResultQueue.QueueItem item) {
+		Job project = (Job) jenkins.getItemByFullName(item.getProjectName());
 		if (project == null) {
 			logger.warn("Project [" + item.getProjectName() + "] no longer exists, pending logs can't be submitted");
 			return null;

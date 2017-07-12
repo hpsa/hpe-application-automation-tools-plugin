@@ -81,11 +81,11 @@ public final class AuthenticationTool {
         Response response =
                 client.httpPost(
                         client.build("rest/site-session"),
-                        null,
+                        new byte[1],    // For some server would require post request has a Content-Length.
                         null,
                         ResourceAccessLevel.PUBLIC);
         if (!response.isOk()) {
-            throw new SSEException("Cannot appned QCSession cookies", response.getFailure());
+            throw new SSEException("Cannot append QCSession cookies", response.getFailure());
         }
     }
 }
