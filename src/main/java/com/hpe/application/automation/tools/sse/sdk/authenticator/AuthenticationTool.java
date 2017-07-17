@@ -38,8 +38,15 @@ import java.util.List;
  */
 public final class AuthenticationTool {
 
-    private AuthenticationTool() {
-        //Hide the public constructor.
+    private static List<Authenticator> authenticators;
+
+    static {
+        authenticators = new ArrayList<>();
+        authenticators.add(new RestAuthenticator());
+        /**
+         * Mute RestAuthenticatorSaas for it's redundant after the improvement of RestAuthenticator.
+         * authenticators.add(new RestAuthenticatorSaas());
+         */
     }
 
     /**
@@ -54,10 +61,6 @@ public final class AuthenticationTool {
     }
 
     private static boolean login(Client client, String username, String password, String url, Logger logger) {
-        List<Authenticator> authenticators = new ArrayList<>();
-        authenticators.add(new RestAuthenticator());
-        authenticators.add(new RestAuthenticatorSaas());
-
         boolean result = false;
         for(Authenticator authenticator : authenticators) {
             try {
