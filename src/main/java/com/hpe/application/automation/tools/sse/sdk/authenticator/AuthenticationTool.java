@@ -40,6 +40,10 @@ public final class AuthenticationTool {
 
     private static List<Authenticator> authenticators;
 
+    private AuthenticationTool() {
+        // Add the private constructor to hide the implicit public one.
+    }
+
     static {
         authenticators = new ArrayList<>();
         authenticators.add(new RestAuthenticator());

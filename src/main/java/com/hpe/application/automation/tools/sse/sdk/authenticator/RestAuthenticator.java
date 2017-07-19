@@ -117,7 +117,6 @@ public class RestAuthenticator implements Authenticator {
                         null,
                         null,
                         ResourceAccessLevel.PUBLIC);
-        int responseCode = response.getStatusCode();
         
         if (isAlreadyAuthenticated(response, client.getUsername())) {
             logLoggedInSuccessfully(client.getUsername(), client.getServerUrl(), logger);
@@ -129,12 +128,8 @@ public class RestAuthenticator implements Authenticator {
         if (authenticatePoint == null) {
             // If can't get authenticate point, then output the message.
             logger.log("Can't get authenticate header.");
-            if(responseCode != HttpURLConnection.HTTP_OK) {
-                try {
-                    throw new SSEException(response.getFailure());
-                } catch (Throwable e) {
-                    throw new SSEException(e);
-                }
+            if(response.getStatusCode() != HttpURLConnection.HTTP_OK) {
+                throw new SSEException(response.getFailure());
             }
         } else {
             authenticatePoint = authenticatePoint.replace("\"", "");
@@ -166,7 +161,7 @@ public class RestAuthenticator implements Authenticator {
         if (headers == null || headers.size() == 0) {
             return null;
         }
-        if (headers.get(AUTHENTICATE_HEADER) == null || headers.get(AUTHENTICATE_HEADER).size() == 0) {
+        if (headers.get(AUTHENTICATE_HEADER) == null || headers.get(AUTHENTICATE_HEADER).isEmpty()) {
             return null;
         }
         String authenticateHeader = headers.get(AUTHENTICATE_HEADER).get(0);
