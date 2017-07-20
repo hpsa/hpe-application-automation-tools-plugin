@@ -29,7 +29,6 @@ import com.hpe.application.automation.tools.common.PcException;
 import com.hpe.application.automation.tools.model.TimeslotDuration;
 import com.hpe.application.automation.tools.rest.RESTConstants;
 import com.hpe.application.automation.tools.sse.sdk.Base64Encoder;
-import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpHost;
@@ -256,7 +255,7 @@ public class PcRestProxy {
         String getTrendReportByXMLUrl = String.format(baseURL + "/%s/%s/%s", TREND_REPORT_RESOURCE_NAME, trendReportId,runId);
         HttpGet getTrendReportByXMLRequest = new HttpGet(getTrendReportByXMLUrl);
         HttpResponse response = executeRequest(getTrendReportByXMLRequest);
-        String trendReportByXML = IOUtils.toString(response.getEntity().getContent(), CharEncoding.UTF_8);
+        String trendReportByXML = IOUtils.toString(response.getEntity().getContent());
         return TrendReportTransactionDataRoot.xmlToObject(trendReportByXML);
     }
 
