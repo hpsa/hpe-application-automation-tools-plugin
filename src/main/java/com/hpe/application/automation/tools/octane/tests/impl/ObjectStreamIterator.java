@@ -48,7 +48,6 @@ public class ObjectStreamIterator<E> implements Iterator<E> {
 			next = (E) ois.readObject();
 			return true;
 		} catch (Exception e) {
-			logger.error("Failed to read the next item", e);
 			ois.close();
 			return false;
 		}
