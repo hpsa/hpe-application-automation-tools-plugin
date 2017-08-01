@@ -16,18 +16,6 @@
 
 package com.hpe.application.automation.tools.octane;
 
-import com.hpe.application.automation.tools.model.OctaneServerSettingsModel;
-import com.hpe.application.automation.tools.octane.configuration.ConfigurationService;
-import com.hpe.application.automation.tools.octane.configuration.ServerConfiguration;
-import com.hpe.application.automation.tools.octane.executor.ExecutorConnectivityService;
-import com.hpe.application.automation.tools.octane.executor.TestExecutionJobCreatorService;
-import com.hpe.application.automation.tools.octane.executor.UftJobCleaner;
-import com.hpe.application.automation.tools.octane.model.ModelFactory;
-import com.hpe.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
-import com.hpe.application.automation.tools.octane.model.processors.projects.AbstractProjectProcessor;
-import com.hpe.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
-import com.hpe.application.automation.tools.octane.model.processors.scm.SCMProcessor;
-import com.hpe.application.automation.tools.octane.model.processors.scm.SCMProcessors;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
@@ -49,6 +37,18 @@ import com.hp.octane.integrations.dto.tests.TestsResult;
 import com.hp.octane.integrations.exceptions.ConfigurationException;
 import com.hp.octane.integrations.exceptions.PermissionException;
 import com.hp.octane.integrations.spi.CIPluginServicesBase;
+import com.hpe.application.automation.tools.model.OctaneServerSettingsModel;
+import com.hpe.application.automation.tools.octane.configuration.ConfigurationService;
+import com.hpe.application.automation.tools.octane.configuration.ServerConfiguration;
+import com.hpe.application.automation.tools.octane.executor.ExecutorConnectivityService;
+import com.hpe.application.automation.tools.octane.executor.TestExecutionJobCreatorService;
+import com.hpe.application.automation.tools.octane.executor.UftJobCleaner;
+import com.hpe.application.automation.tools.octane.model.ModelFactory;
+import com.hpe.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
+import com.hpe.application.automation.tools.octane.model.processors.projects.AbstractProjectProcessor;
+import com.hpe.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
+import com.hpe.application.automation.tools.octane.model.processors.scm.SCMProcessor;
+import com.hpe.application.automation.tools.octane.model.processors.scm.SCMProcessors;
 import hudson.ProxyConfiguration;
 import hudson.model.*;
 import hudson.security.ACL;
@@ -541,27 +541,53 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
 
     @Override
     public void runTestDiscovery(DiscoveryInfo discoveryInfo) {
-        TestExecutionJobCreatorService.runTestDiscovery(discoveryInfo);
+        SecurityContext securityContext = startImpersonation();
+        try {
+            TestExecutionJobCreatorService.runTestDiscovery(discoveryInfo);
+        } finally {
+            stopImpersonation(securityContext);
+        }
     }
 
     @Override
     public void runTestSuiteExecution(TestSuiteExecutionInfo suiteExecutionInfo) {
-        TestExecutionJobCreatorService.runTestSuiteExecution(suiteExecutionInfo);
+        SecurityContext securityContext = startImpersonation();
+        try {
+            TestExecutionJobCreatorService.runTestSuiteExecution(suiteExecutionInfo);
+        } finally {
+            stopImpersonation(securityContext);
+        }
     }
 
     @Override
     public OctaneResponse checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {
-        return ExecutorConnectivityService.checkRepositoryConnectivity(testConnectivityInfo);
+        SecurityContext securityContext = startImpersonation();
+        try {
+            return ExecutorConnectivityService.checkRepositoryConnectivity(testConnectivityInfo);
+        } finally {
+            stopImpersonation(securityContext);
+        }
     }
 
     @Override
     public void deleteExecutor(String id) {
-        UftJobCleaner.deleteExecutor(id);
+        SecurityContext securityContext = startImpersonation();
+        try {
+            UftJobCleaner.deleteExecutor(id);
+        } finally {
+            stopImpersonation(securityContext);
+        }
+
     }
 
     @Override
     public OctaneResponse upsertCredentials(CredentialsInfo credentialsInfo) {
-        return ExecutorConnectivityService.upsertRepositoryCredentials(credentialsInfo);
+        SecurityContext securityContext = startImpersonation();
+        try {
+            return ExecutorConnectivityService.upsertRepositoryCredentials(credentialsInfo);
+        } finally {
+            stopImpersonation(securityContext);
+        }
     }
 
 }
