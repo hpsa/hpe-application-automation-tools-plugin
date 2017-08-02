@@ -52,7 +52,7 @@ public class JUnitExtension extends MqmTestsExtension {
 
 	public static final String STORM_RUNNER = "StormRunner";
 	public static final String LOAD_RUNNER = "LoadRunner";
-	public static final String PERFORMANCE_CENTER_RUNNER = "Performance Center1";
+	public static final String PERFORMANCE_CENTER_RUNNER = "Performance Center";
 	public static final String PERFORMANCE_TEST_TYPE = "Performance";
 
 	private static final String JUNIT_RESULT_XML = "junitResult.xml"; // NON-NLS
