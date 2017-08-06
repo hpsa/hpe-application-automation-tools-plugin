@@ -46,6 +46,7 @@ public class BdiConfigurationFetcher extends AbstractSafeLoggingAsyncPeriodWork 
 	private static final ObjectMapper objectMapper = new ObjectMapper();
 
 	private JenkinsMqmRestClientFactory clientFactory;
+	private LogDispatcher logDispatcher;
 
 	private static BdiConfiguration bdiConfiguration;
 
@@ -64,6 +65,7 @@ public class BdiConfigurationFetcher extends AbstractSafeLoggingAsyncPeriodWork 
 
 	public void refresh() {
 		fetchBdiConfiguration();
+		logDispatcher.initClient();
 	}
 
 	private void fetchBdiConfiguration() {
@@ -111,5 +113,9 @@ public class BdiConfigurationFetcher extends AbstractSafeLoggingAsyncPeriodWork 
 	@Inject
 	public void setMqmRestClientFactory(JenkinsMqmRestClientFactoryImpl clientFactory) {
 		this.clientFactory = clientFactory;
+	}
+	@Inject
+	public void setLogDispatcher(LogDispatcher logDispatcher) {
+		this.logDispatcher = logDispatcher;
 	}
 }
