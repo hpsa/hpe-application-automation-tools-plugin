@@ -290,10 +290,8 @@ public class TestRunManager extends TestCase {
         Testcase testcase = testsuites.getTestsuite().get(0).getTestcase().get(0);
         ret =
                 (testcase.getStatus().equals(JUnitTestCaseStatus.PASS))
-                        && (testcase.getName().equals("vapi1 (Test instance run ID: 7)"))
-                        && (testcase.getClassname().equals(String.format(
-                                "%s1 (RunId:1005).testset1",
-                                runType))) && (testcase.getTime().equals("0.0"));
+                        && (testcase.getName().equals("vapi1"))
+                        && (testcase.getClassname().equals(String.format("%s1 (id:1041).testset1", runType))) && (testcase.getTime().equals("0.0"));
         
         return ret;
     }
@@ -304,7 +302,7 @@ public class TestRunManager extends TestCase {
         Testcase testcase = testsuites.getTestsuite().get(0).getTestcase().get(0);
         ret =
                 (testcase.getStatus().equals("error"))
-                        && (testcase.getName().equals("Unnamed test (No test instance run ID)"))
+                        && (testcase.getName().equals("Unnamed test"))
                         && (testcase.getClassname().equals("PC Test ID: 5, Run ID: 42, Test Set ID: 1.(Unnamed test set)"))
                         && (testcase.getTime().equals("0.0"));
         
