@@ -15,15 +15,18 @@ import com.hpe.application.automation.tools.sse.result.model.junit.Testsuite;
 import com.hpe.application.automation.tools.sse.result.model.junit.Testsuites;
 
 public class JUnitParser {
+
+    private String entityId;
     
     public Testsuites toModel(
             List<Map<String, String>> testInstanceRuns,
+            String entityId,
             String entityName,
             String runEntityId,
             String url,
             String domain,
             String project) {
-        
+        this.entityId = entityId;
         Map<String, Testsuite> testSetIdToTestsuite = getTestSets(testInstanceRuns);
         addTestcases(
                 testInstanceRuns,
@@ -94,33 +97,21 @@ public class JUnitParser {
         ret.setClassname(getTestSetName(entity, bvsName, runEntityId));
         ret.setName(getTestName(entity));
         ret.setTime(getTime(entity));
+        ret.setType(entity.get("test-subtype"));
         new TestcaseStatusUpdater().update(ret, entity, url, domain, project);
         
         return ret;
     }
-    
+
     private String getTestSetName(Map<String, String> entity, String bvsName, String runEntityId) {
-        
         String ret = String.format("%s.(Unnamed test set)", bvsName);
         String testSetName = entity.get("testset-name");
         if (!StringUtils.isNullOrEmpty(testSetName)) {
-            ret = String.format("%s (RunId:%s).%s", bvsName, runEntityId, testSetName);
+            ret = String.format("%s (id:%s).%s", bvsName, entityId, testSetName);
         }
-        
         return ret;
     }
-    
-    private String getTestInstanceRunId(Map<String, String> entity) {
-        
-        String ret = "No test instance run ID";
-        String runId = entity.get("run-id");
-        if (!StringUtils.isNullOrEmpty(runId)) {
-            ret = String.format("Test instance run ID: %s", runId);
-        }
-        
-        return ret;
-    }
-    
+
     private String getTestName(Map<String, String> entity) {
         
         String testName = entity.get("test-name");
@@ -128,7 +119,7 @@ public class JUnitParser {
             testName = "Unnamed test";
         }
         
-        return String.format("%s (%s)", testName, getTestInstanceRunId(entity));
+        return String.format("%s", testName);
     }
     
     private String getTime(Map<String, String> entity) {
