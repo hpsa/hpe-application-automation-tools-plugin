@@ -114,7 +114,7 @@ public class JUnitParser {
 
     private String getTestName(Map<String, String> entity) {
         
-        String testName = entity.get("test-name");
+        String testName = entity.get("test-config-name");
         if (StringUtils.isNullOrEmpty(testName)) {
             testName = "Unnamed test";
         }
