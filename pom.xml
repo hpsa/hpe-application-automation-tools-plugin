@@ -210,7 +210,7 @@
 						</goals>
 
 						<configuration>
-							<skip>false</skip>
+							<skip>true</skip>
 							<executable>java</executable>
 							<arguments>
 								<argument> -jar</argument>
@@ -223,7 +223,7 @@
 								<argument>"${project.artifactId}"</argument>
 								<!-- <argument>-deploy</argument> -->
 								<argument>-restart</argument>
-								<argument>--password-file ${id_rsa_file}</argument>
+								<argument>password-file ${id_rsa_file}</argument>
 							</arguments>
 							<skip>${maven.exec.skip}</skip>
 						</configuration>
