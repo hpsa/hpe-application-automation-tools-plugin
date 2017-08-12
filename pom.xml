@@ -44,8 +44,8 @@
 	</distributionManagement>
 
 	<scm>
-		<connection>scm:git:ssh://github.com/hpsa/hp-application-automation-tools-plugin.git</connection>
-		<developerConnection>scm:git:ssh://git@github.com/hpsa/hp-application-automation-tools-plugin.git
+		<connection>scm:git:ssh://github.com/jenkinsci/hpe-application-automation-tools-plugin.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/jenkinsci/hpe-application-automation-tools-plugin.git
 		</developerConnection>
 		<url>https://github.com/jenkinsci/hpe-application-automation-tools-plugin</url>
 		<tag>HEAD</tag>
