@@ -16,16 +16,19 @@ function load(a,path){
         buttonStatus = false;
         return;
     }
+    var previousJobId = document.getElementsByName("runfromfs.fsJobId")[0].value;
     a.getMcServerUrl(mcUrl, function(r){
         baseUrl = r.responseObject();
-        a.getJobId(baseUrl,mcUserName, mcPassword, proxyAddress, proxyUserName, proxyPassword, function (response) {
+        a.getJobId(baseUrl,mcUserName, mcPassword, proxyAddress, proxyUserName, proxyPassword, previousJobId, function (response) {
             var jobResponse = response.responseObject();
             if(jobResponse == null){
                 document.getElementById("errorMessage").style.display = "block";
                 buttonStatus = false;
                 return;
             }
-            var openedWindow = window.open(baseUrl+path+jobResponse+'&displayUFTMode=true&appType=native','test parameters','height=820','width=1130');
+            var openedWindow = window.open('/','test parameters','height=820,width=1130');
+            openedWindow.location.href = 'about:blank';
+            openedWindow.location.href = baseUrl+path+jobResponse+'&displayUFTMode=true';
             var messageCallBack = function (event) {
                 if (event && event.data && event.data=="mcCloseWizard") {
                     a.populateAppAndDevice(baseUrl,mcUserName,mcPassword,proxyAddress, proxyUserName, proxyPassword,jobResponse, function (app) {

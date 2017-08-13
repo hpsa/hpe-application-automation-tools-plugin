@@ -313,7 +313,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No HP testing tool is installed on {0}.
+        ///   Looks up a localized string similar to No HPE testing tool is installed on {0}.
         /// </summary>
         internal static string FileSystemTestsRunner_No_HP_testing_tool_is_installed_on {
             get {
@@ -989,7 +989,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to HP Testing Tool is missing : HP Service Test/HP Unified Function Testing.
+        ///   Looks up a localized string similar to HPE Testing Tool is missing : HPE Service Test/HPE Unified Function Testing.
         /// </summary>
         internal static string STExecuterNotFound {
             get {
@@ -1007,7 +1007,7 @@ namespace HpToolsLauncher.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to UFT cannot start while HP Sprinter is running..
+        ///   Looks up a localized string similar to UFT cannot start while HPE Sprinter is running..
         /// </summary>
         internal static string UFT_Sprinter_Running {
             get {
