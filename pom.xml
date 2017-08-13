@@ -225,7 +225,6 @@
 								<argument>-restart</argument>
 								<argument>password-file ${id_rsa_file}</argument>
 							</arguments>
-							<skip>${maven.exec.skip}</skip>
 						</configuration>
 					</execution>
 					<execution>
