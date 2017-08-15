@@ -394,7 +394,7 @@
 		<dependency>
 			<artifactId>mqm-rest-client</artifactId>
 			<groupId>com.hpe.adm.octane.ciplugins</groupId>
-			<version>1.4.11</version>
+			<version>1.4.12</version>
 		</dependency>
 
 		<!-- org.jenkins-ci.main -->
@@ -510,12 +510,6 @@
 			<groupId>com.squareup</groupId>
 			<artifactId>tape</artifactId>
 			<version>1.2.3</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.hp.bdi</groupId>
-			<artifactId>bdi-sdk</artifactId>
-			<version>${bdi.version}</version>
 		</dependency>
 
 		<!--Extensibility-->
