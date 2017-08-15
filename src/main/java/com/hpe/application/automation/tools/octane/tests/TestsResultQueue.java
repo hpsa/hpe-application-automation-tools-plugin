@@ -26,9 +26,9 @@ import java.io.IOException;
 
 @Extension
 @SuppressWarnings("squid:S2259")
-public class TestAbstractResultQueue extends AbstractResultQueueImpl {
+public class TestsResultQueue extends AbstractResultQueueImpl {
 
-    public TestAbstractResultQueue() throws IOException {
+    public TestsResultQueue() throws IOException {
         Jenkins instance =Jenkins.getInstance();
         if(instance==null){
             Assert.isNull(instance);
@@ -40,7 +40,7 @@ public class TestAbstractResultQueue extends AbstractResultQueueImpl {
     /*
      * To be used in tests only.
      */
-    TestAbstractResultQueue(File queueFile) throws IOException {
+    TestsResultQueue(File queueFile) throws IOException {
         init(queueFile);
     }
 }

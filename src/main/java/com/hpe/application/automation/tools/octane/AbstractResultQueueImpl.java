@@ -31,11 +31,19 @@ import java.io.*;
 
 public abstract class AbstractResultQueueImpl implements ResultQueue {
 
-	private static final int RETRY_COUNT = 3;
+	private final int MAX_RETRIES;
 
 	private FileObjectQueue<QueueItem> queue;
 
 	private QueueItem currentItem;
+
+	public AbstractResultQueueImpl() {
+		this.MAX_RETRIES = 3;
+	}
+
+	public AbstractResultQueueImpl(int maxRetries) {
+		this.MAX_RETRIES = maxRetries;
+	}
 
 	protected void init(File queueFile) throws IOException {
 		queue = new FileObjectQueue<>(queueFile, new JsonConverter());
@@ -53,7 +61,7 @@ public abstract class AbstractResultQueueImpl implements ResultQueue {
 	public synchronized boolean failed() {
 		if (currentItem != null) {
 			boolean retry;
-			if (++currentItem.failCount <= RETRY_COUNT) {
+			if (++currentItem.failCount <= MAX_RETRIES) {
 				queue.add(currentItem);
 				retry = true;
 			} else {

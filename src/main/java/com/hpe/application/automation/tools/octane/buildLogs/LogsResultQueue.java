@@ -28,9 +28,10 @@ import java.io.IOException;
  * Queue, based on persisted, file-object backed by base queue, serving the Logs dispatching logic to BDI when relevant
  */
 
-public class LogAbstractResultQueue extends AbstractResultQueueImpl {
+class LogsResultQueue extends AbstractResultQueueImpl {
 
-	public LogAbstractResultQueue() throws IOException {
+	LogsResultQueue(int maxRetries) throws IOException {
+		super(maxRetries);
 		Jenkins jenkinsContainer = Jenkins.getInstance();
 		if (jenkinsContainer != null) {
 			File queueFile = new File(jenkinsContainer.getRootDir(), "octane-log-result-queue.dat");

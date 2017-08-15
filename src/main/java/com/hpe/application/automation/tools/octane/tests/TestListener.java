@@ -129,7 +129,7 @@ public class TestListener {
 	}
 
 	@Inject
-	public void setTestResultQueue(TestAbstractResultQueue queue) {
+	public void setTestResultQueue(TestsResultQueue queue) {
 		this.queue = queue;
 	}
 
