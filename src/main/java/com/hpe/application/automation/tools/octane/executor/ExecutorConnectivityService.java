@@ -24,26 +24,32 @@ import com.cloudbees.plugins.credentials.domains.Domain;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
-import com.hpe.application.automation.tools.common.HttpStatus;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.executor.CredentialsInfo;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
 import com.hp.octane.integrations.dto.scm.SCMType;
+import com.hpe.application.automation.tools.common.HttpStatus;
 import hudson.EnvVars;
 import hudson.model.Item;
 import hudson.model.TaskListener;
+import hudson.model.User;
 import hudson.plugins.git.GitException;
 import hudson.plugins.git.GitTool;
+import hudson.security.Permission;
+import jenkins.model.Jenkins;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jenkinsci.plugins.gitclient.Git;
 import org.jenkinsci.plugins.gitclient.GitClient;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
 
 /**
  * Utility for handling connectivity with scm repositories
@@ -51,6 +57,7 @@ import java.util.List;
 public class ExecutorConnectivityService {
 
     private static final Logger logger = LogManager.getLogger(ExecutorConnectivityService.class);
+    private static final Map<Permission, String> requirePremissions = initRequirePremissions();
 
     /**
      * Validate that scm repository is valid
@@ -69,6 +76,20 @@ public class ExecutorConnectivityService {
                 c = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, null, null, testConnectivityInfo.getUsername(), testConnectivityInfo.getPassword());
             } else if (StringUtils.isEmpty(testConnectivityInfo.getCredentialsId())) {
                 c = getCredentialsById(testConnectivityInfo.getCredentialsId());
+            }
+
+
+            Jenkins jenkins = Jenkins.getActiveInstance();
+
+            List<String> permissionResult = checkCIPermissions(jenkins);
+
+            if (permissionResult != null && !permissionResult.isEmpty()) {
+                String user = User.current() != null ? User.current().getId() : jenkins.ANONYMOUS.getPrincipal().toString();
+                String error = String.format("Failed : User \'%s\' is missing permissions \'%s\' at CI server", user, permissionResult);
+                logger.error(error);
+                result.setStatus(HttpStatus.FORBIDDEN.getCode());
+                result.setBody(error);
+                return result;
             }
 
             try {
@@ -149,5 +170,30 @@ public class ExecutorConnectivityService {
                 return cred;
         }
         return null;
+    }
+
+    private static List<String> checkCIPermissions(final Jenkins jenkins) {
+        List<String> result = null;
+        for (Permission permission : requirePremissions.keySet()) {
+            if (!jenkins.hasPermission(permission)) {
+                if (result == null) {
+                    result = new ArrayList<>();
+                }
+                result.add(requirePremissions.get(permission));
+            }
+        }
+        return result;
+    }
+
+    private static Map<Permission, String> initRequirePremissions() {
+        Map<Permission, String> result = new HashedMap();
+        result.put(Item.CREATE, "Job.CREATE");
+        result.put(Item.DELETE, "Job.DELETE");
+        result.put(Item.READ, "Job.READ");
+        result.put(CredentialsProvider.CREATE, "Credentials.CREATE");
+        result.put(CredentialsProvider.UPDATE, "Credentials.UPDATE");
+        result.put(CredentialsProvider.DELETE, "Credentials.DELETE");
+        result.put(CredentialsProvider.VIEW, "Credentials.VIEW");
+        return result;
     }
 }
