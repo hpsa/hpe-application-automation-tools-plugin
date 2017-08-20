@@ -47,7 +47,7 @@ import static java.lang.Long.parseLong;
 
 /**
  * Created by benmeior on 11/20/2016
- * Log dispatcher is responsible for dispatching bdi - octane related log messages to bdi server
+ * Log dispatcher is responsible for dispatching logs messages to BDI server via Octane as its proxy
  */
 
 @Extension
@@ -215,7 +215,7 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 
 	@Override
 	public long getRecurrencePeriod() {
-		String value = System.getProperty("BDI.LogDispatcher.Period"); // let's us config the recurrence period. default is 10 seconds.
+		String value = System.getProperty("Octane.LogDispatcher.Period"); // let's us config the recurrence period. default is 10 seconds.
 		if (!StringUtils.isEmpty(value)) {
 			return Long.valueOf(value);
 		}
@@ -301,5 +301,4 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 			latch.countDown();
 		}
 	}
-
 }

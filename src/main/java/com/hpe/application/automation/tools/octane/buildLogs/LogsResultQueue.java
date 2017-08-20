@@ -25,7 +25,7 @@ import java.io.IOException;
 /**
  * Created by benmeior on 11/21/2016
  *
- * Queue, based on persisted, file-object backed by base queue, serving the Logs dispatching logic to BDI when relevant
+ * Queue, based on persisted, file-object backed by base queue, serving the logs dispatching logic to BDI via Octane
  */
 
 class LogsResultQueue extends AbstractResultQueueImpl {

@@ -30,7 +30,7 @@ import javax.annotation.Nonnull;
 
 /**
  * Created by benmeior on 11/16/2016
- * Jenkins events listener to dispatch build logs to bdi server
+ * Jenkins events listener to dispatch build logs to BDI server via Octane server as its proxy
  */
 
 @Extension
@@ -40,11 +40,8 @@ public class RunListenerForLogs extends RunListener<Run> {
 	@Inject
 	private LogDispatcher logDispatcher;
 
-
-	//  [YG] TODO: move workspace resolving logic to the async processor off the main thread
 	@Override
 	public void onCompleted(Run r, @Nonnull TaskListener listener) {
-
 		if (r instanceof AbstractBuild && ConfigurationService.getServerConfiguration().isValid()) {
 			AbstractBuild build = (AbstractBuild) r;
 			logger.info(String.format("Enqueued job [%s#%d]", build.getParent().getName(), build.getNumber()));
@@ -52,7 +49,5 @@ public class RunListenerForLogs extends RunListener<Run> {
 		} else {
 			logger.warn("Octane configuration is not valid");
 		}
-
 	}
-
 }
