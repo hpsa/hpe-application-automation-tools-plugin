@@ -58,6 +58,7 @@ public class ExecutorConnectivityService {
 
     private static final Logger logger = LogManager.getLogger(ExecutorConnectivityService.class);
     private static final Map<Permission, String> requirePremissions = initRequirePremissions();
+    private static final Map<Permission, String> credentialsPremissions = initCredentialsPremissions();
 
     /**
      * Validate that scm repository is valid
@@ -81,11 +82,11 @@ public class ExecutorConnectivityService {
 
             Jenkins jenkins = Jenkins.getActiveInstance();
 
-            List<String> permissionResult = checkCIPermissions(jenkins);
+            List<String> permissionResult = checkCIPermissions(jenkins, c != null);
 
             if (permissionResult != null && !permissionResult.isEmpty()) {
                 String user = User.current() != null ? User.current().getId() : jenkins.ANONYMOUS.getPrincipal().toString();
-                String error = String.format("Failed : User \'%s\' is missing permissions \'%s\' at CI server", user, permissionResult);
+                String error = String.format("Failed : User \'%s\' is missing permissions \'%s\' on CI server", user, permissionResult);
                 logger.error(error);
                 result.setStatus(HttpStatus.FORBIDDEN.getCode());
                 result.setBody(error);
@@ -172,17 +173,21 @@ public class ExecutorConnectivityService {
         return null;
     }
 
-    private static List<String> checkCIPermissions(final Jenkins jenkins) {
-        List<String> result = null;
-        for (Permission permission : requirePremissions.keySet()) {
-            if (!jenkins.hasPermission(permission)) {
-                if (result == null) {
-                    result = new ArrayList<>();
-                }
-                result.add(requirePremissions.get(permission));
-            }
+    private static List<String> checkCIPermissions(final Jenkins jenkins, boolean hasCredentials) {
+        List<String> result = new ArrayList<>();
+        checkPermissions(jenkins, result, requirePremissions);
+        if (hasCredentials) {
+            checkPermissions(jenkins, result, credentialsPremissions);
         }
         return result;
+    }
+
+    private static void checkPermissions(Jenkins jenkins, List<String> result, Map<Permission, String> permissions) {
+        for (Permission permission : permissions.keySet()) {
+            if (!jenkins.hasPermission(permission)) {
+                result.add(permissions.get(permission));
+            }
+        }
     }
 
     private static Map<Permission, String> initRequirePremissions() {
@@ -190,10 +195,14 @@ public class ExecutorConnectivityService {
         result.put(Item.CREATE, "Job.CREATE");
         result.put(Item.DELETE, "Job.DELETE");
         result.put(Item.READ, "Job.READ");
+        return result;
+    }
+
+    private static Map<Permission, String> initCredentialsPremissions() {
+        Map<Permission, String> result = new HashedMap();
         result.put(CredentialsProvider.CREATE, "Credentials.CREATE");
         result.put(CredentialsProvider.UPDATE, "Credentials.UPDATE");
-        result.put(CredentialsProvider.DELETE, "Credentials.DELETE");
-        result.put(CredentialsProvider.VIEW, "Credentials.VIEW");
         return result;
+
     }
 }
