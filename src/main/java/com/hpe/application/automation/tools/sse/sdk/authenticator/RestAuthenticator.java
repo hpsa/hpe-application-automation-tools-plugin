@@ -24,6 +24,7 @@ package com.hpe.application.automation.tools.sse.sdk.authenticator;
 
 import java.net.HttpURLConnection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.hpe.application.automation.tools.common.SSEException;
@@ -76,14 +77,12 @@ public class RestAuthenticator implements Authenticator {
      *         cookies for further use)
      */
     private Response login(Client client, String loginUrl, String username, String password) {
-        
         // create a string that looks like:
         // "Basic ((username:password)<as bytes>)<64encoded>"
         byte[] credBytes = (username + ":" + password).getBytes();
         String credEncodedString = "Basic " + Base64Encoder.encode(credBytes);
         Map<String, String> headers = new HashMap<String, String>();
         headers.put(RESTConstants.AUTHORIZATION, credEncodedString);
-        
         return client.httpGet(loginUrl, null, headers, ResourceAccessLevel.PUBLIC);
     }
     
@@ -93,7 +92,6 @@ public class RestAuthenticator implements Authenticator {
      *             close session on server and clean session cookies on client
      */
     public boolean logout(Client client, String username) {
-        
         // note the get operation logs us out by setting authentication cookies to:
         // LWSSO_COOKIE_KEY="" via server response header Set-Cookie
         Response response =
@@ -104,45 +102,40 @@ public class RestAuthenticator implements Authenticator {
                         ResourceAccessLevel.PUBLIC);
         
         return response.isOk();
-        
     }
-    
+
     /**
-     * @return null if authenticated.<br>
-     *         a URL to authenticate against if not authenticated.
-     * @throws Exception
-     *             if error such as 404, or 500
+     * Verify is the client is already authenticated. If not, try get the authenticate point.
+     * @param client client
+     * @param logger logger
+     * @return null or authenticate point
      */
     private String isAuthenticated(Client client, Logger logger) {
-        
-        String ret;
         Response response =
                 client.httpGet(
                         client.build(IS_AUTHENTICATED),
                         null,
                         null,
                         ResourceAccessLevel.PUBLIC);
-        int responseCode = response.getStatusCode();
         
-
         if (isAlreadyAuthenticated(response, client.getUsername())) {
-            // already authenticated
-            ret = null;
             logLoggedInSuccessfully(client.getUsername(), client.getServerUrl(), logger);
-
-        } else if (responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
-            // if not authenticated - get the address where to authenticate via WWW-Authenticate
-            String newUrl = response.getHeaders().get(AUTHENTICATE_HEADER).get(0).split("=")[1];
-            newUrl = newUrl.replace("\"", "");
-            newUrl += "/authenticate";
-            ret = newUrl;
-
-        } else {
-            // error such as 404, or 500
-            throw new SSEException(response.getFailure());
+            return null;
         }
-        
-        return ret;
+
+        // Try to get authenticate point regardless the response status.
+        String authenticatePoint = getAuthenticatePoint(response);
+        if (authenticatePoint == null) {
+            // If can't get authenticate point, then output the message.
+            logger.log("Can't get authenticate header.");
+            if(response.getStatusCode() != HttpURLConnection.HTTP_OK) {
+                throw new SSEException(response.getFailure());
+            }
+        } else {
+            authenticatePoint = authenticatePoint.replace("\"", "");
+            authenticatePoint += "/authenticate";
+        }
+        return authenticatePoint;
     }
     
     private boolean isAlreadyAuthenticated(Response response, String authUser) {
@@ -156,6 +149,27 @@ public class RestAuthenticator implements Authenticator {
         }
         
         return ret;
+    }
+
+    /**
+     * Try get authenticate point from response.
+     * @param response response
+     * @return null or authenticate point
+     */
+    private String getAuthenticatePoint(Response response) {
+        Map<String, List<String>> headers = response.getHeaders();
+        if (headers == null || headers.size() == 0) {
+            return null;
+        }
+        if (headers.get(AUTHENTICATE_HEADER) == null || headers.get(AUTHENTICATE_HEADER).isEmpty()) {
+            return null;
+        }
+        String authenticateHeader = headers.get(AUTHENTICATE_HEADER).get(0);
+        String[] authenticateHeaderArray = authenticateHeader.split("=");
+        if (authenticateHeaderArray.length == 1) {
+            return null;
+        }
+        return authenticateHeaderArray[1];
     }
 
     //if it's authenticated, the response should look like that:
