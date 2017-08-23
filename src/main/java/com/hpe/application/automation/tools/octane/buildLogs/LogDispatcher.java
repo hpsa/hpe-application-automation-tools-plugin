@@ -25,6 +25,7 @@ import com.hpe.application.automation.tools.octane.client.*;
 import com.hpe.application.automation.tools.octane.configuration.ConfigurationService;
 import com.hpe.application.automation.tools.octane.configuration.ServerConfiguration;
 import com.hpe.application.automation.tools.octane.tests.AbstractSafeLoggingAsyncPeriodWork;
+import com.hpe.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.Extension;
 import hudson.console.PlainTextConsoleOutputStream;
 import hudson.model.Job;
@@ -112,9 +113,9 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 					//
 					//  initial queue item flow - no workspaces, works with workspaces retrieval and loop ever each of them
 					//
-					List<String> workspaces = mqmRestClient.getJobWorkspaceId(ConfigurationService.getModel().getIdentity(), build.getParent().getName());
+					List<String> workspaces = mqmRestClient.getJobWorkspaceId(ConfigurationService.getModel().getIdentity(), BuildHandlerUtils.getJobCiId(build));
 					if (workspaces.isEmpty()) {
-						logger.info(String.format("Job '%s' is not part of an Octane pipeline in any workspace, so its log will not be sent.", build.getParent().getName()));
+						logger.info(String.format("Job '%s' is not part of an Octane pipeline in any workspace, so its log will not be sent.", BuildHandlerUtils.getJobCiId(build)));
 					} else {
 						CountDownLatch latch = new CountDownLatch(workspaces.size());
 
@@ -141,7 +142,7 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 						boolean status = mqmRestClient.postLogs(
 								parseLong(item.getWorkspace()),
 								ConfigurationService.getModel().getIdentity(),
-								build.getParent().getName(),
+								BuildHandlerUtils.getJobCiId(build),
 								String.valueOf(build.getNumber()),
 								octaneLog.getLogStream(),
 								octaneLog.getFileLength());
@@ -282,7 +283,7 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 				boolean status = mqmRestClient.postLogs(
 						parseLong(workspaceId),
 						ConfigurationService.getModel().getIdentity(),
-						build.getParent().getName(),
+						BuildHandlerUtils.getJobCiId(build),
 						String.valueOf(build.getNumber()),
 						octaneLog.getLogStream(),
 						octaneLog.getFileLength());
