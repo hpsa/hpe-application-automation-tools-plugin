@@ -21,6 +21,7 @@ import com.hpe.application.automation.tools.octane.model.processors.builders.Bui
 import com.hpe.application.automation.tools.octane.model.processors.builders.MultiJobBuilderProcessor;
 import com.hpe.application.automation.tools.octane.model.processors.builders.ParameterizedTriggerProcessor;
 import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
+import com.hpe.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.model.AbstractProject;
 import hudson.model.Job;
 import hudson.tasks.BuildStep;
@@ -74,10 +75,10 @@ public abstract class AbstractProjectProcessor<T extends Job> {
      *
      * @return Job's CI ID
      */
-    public String getJobCiId() {
+    public String translateFolderJobName() {
         if (job.getParent().getClass().getName().equals("com.cloudbees.hudson.plugins.folder.Folder")) {
             String jobPlainName = job.getFullName();    // e.g: myFolder/myJob
-            return jobPlainName.replaceAll("/", "/job/");
+            return BuildHandlerUtils.translateFolderJobName(jobPlainName);
         } else {
             return job.getName();
         }
