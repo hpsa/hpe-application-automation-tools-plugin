@@ -271,11 +271,13 @@ public class TestDispatcherTest {
 		FreeStyleBuild build2 = executeBuild();
 		queue.waitForTicks(12);
 		Mockito.verify(restClient, Mockito.atMost(7)).validateConfigurationWithoutLogin();
-		Mockito.verify(restClient, Mockito.times(7)).isTestResultRelevant(ConfigurationService.getModel().getIdentity(), build.getProject().getName());
+		Mockito.verify(restClient, Mockito.atMost(7)).isTestResultRelevant(ConfigurationService.getModel().getIdentity(), build.getProject().getName());
 		Mockito.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
 		Mockito.verify(restClient, Mockito.times(6)).postTestResult(new File(build2.getRootDir(), "mqmTests.xml"), false);
 		Mockito.verifyNoMoreInteractions(restClient);
 		verifyAudit(build, true);
+
+		Thread.sleep(1000);//sleep allows to all audits to be written
 		verifyAudit(true, build2, false, false, false, false, false, true);
 		Assert.assertEquals(0, queue.size());
 	}
