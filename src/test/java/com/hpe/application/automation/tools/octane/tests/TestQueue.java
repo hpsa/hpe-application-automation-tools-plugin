@@ -26,7 +26,7 @@ import java.util.LinkedList;
 @SuppressWarnings("squid:S2925")
 public class TestQueue implements ResultQueue {
 
-	private LinkedList<QueueItem> queue = new LinkedList<QueueItem>();
+	private LinkedList<QueueItem> queue = new LinkedList<>();
 	private int discard;
 
 	@Override
