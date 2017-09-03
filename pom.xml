@@ -8,7 +8,7 @@
 	</parent>
 
 	<artifactId>hp-application-automation-tools-plugin</artifactId>
-	<version>5.1.0.3-beta-SNAPSHOT</version>
+	<version>5.2.0.1-beta-SNAPSHOT</version>
 	<packaging>hpi</packaging>
 	<name>HPE Application Automation Tools</name>
 	<description>The plugin integrates Jenkins with the following HPE products - Service Virtualization, LoadRunner, Performance Center, Unified Functional Testing, QuickTest Professional, Service Test, Mobile Center, Application Lifecycle Management and Application Lifecycle Management Octane.</description>
@@ -48,10 +48,10 @@
 	</distributionManagement>
 
 	<scm>
-		<connection>scm:git:ssh://github.com/hpsa/hp-application-automation-tools-plugin.git</connection>
-		<developerConnection>scm:git:ssh://git@github.com/hpsa/hp-application-automation-tools-plugin.git
+		<connection>scm:git:ssh://github.com/jenkinsci/hpe-application-automation-tools-plugin.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/jenkinsci/hpe-application-automation-tools-plugin.git
 		</developerConnection>
-		<url>https://github.com/hpsa/hp-application-automation-tools-plugin</url>
+		<url>https://github.com/jenkinsci/hpe-application-automation-tools-plugin</url>
 		<tag>HEAD</tag>
 	</scm>
 	<issueManagement>
@@ -214,7 +214,7 @@
 						</goals>
 
 						<configuration>
-							<skip>false</skip>
+							<skip>true</skip>
 							<executable>java</executable>
 							<arguments>
 								<argument> -jar</argument>
@@ -227,9 +227,8 @@
 								<argument>"${project.artifactId}"</argument>
 								<!-- <argument>-deploy</argument> -->
 								<argument>-restart</argument>
-								<argument>--password-file ${id_rsa_file}</argument>
+								<argument>password-file ${id_rsa_file}</argument>
 							</arguments>
-							<skip>${maven.exec.skip}</skip>
 						</configuration>
 					</execution>
 					<execution>
@@ -432,7 +431,7 @@
 		<dependency>
 			<artifactId>mqm-rest-client</artifactId>
 			<groupId>com.hpe.adm.octane.ciplugins</groupId>
-			<version>1.4.7</version>
+			<version>1.4.12</version>
 		</dependency>
 
 		<!-- org.jenkins-ci.main -->
@@ -548,12 +547,6 @@
 			<groupId>com.squareup</groupId>
 			<artifactId>tape</artifactId>
 			<version>1.2.3</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.hp.bdi</groupId>
-			<artifactId>bdi-sdk</artifactId>
-			<version>${bdi.version}</version>
 		</dependency>
 
 		<!--Extensibility-->

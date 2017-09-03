@@ -22,11 +22,13 @@ import com.hp.mqm.client.model.*;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
+import com.hp.octane.integrations.dto.parameters.CIParameter;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hpe.application.automation.tools.octane.Messages;
 import com.hpe.application.automation.tools.octane.client.JenkinsMqmRestClientFactory;
 import com.hpe.application.automation.tools.octane.client.RetryModel;
 import com.hpe.application.automation.tools.octane.model.ModelFactory;
+import com.hpe.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.hpe.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
 import hudson.ExtensionList;
 import hudson.model.Job;
@@ -43,6 +45,9 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
+/**
+ * This class is a proxy between JS UI code and server-side job configuration.
+ */
 public class JobConfigurationProxy {
 	private final static Logger logger = LogManager.getLogger(JobConfigurationProxy.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
@@ -231,8 +236,19 @@ public class JobConfigurationProxy {
 		JSONObject workspaces = new JSONObject();
 		JSONArray fieldsMetadata = new JSONArray();
 		try {
-            final String jobCiId = JobProcessorFactory.getFlowProcessor(job).getJobCiId();
+			boolean isUftJob = false;
+			List<CIParameter> parameters = ParameterProcessors.getConfigs(job);
+			if(parameters != null) {
+				for(CIParameter parameter : parameters) {
+					if(parameter != null && parameter.getName() != null && parameter.getName().equals("suiteId")) {
+						isUftJob = true;
+						break;
+					}
+				}
+			}
+			ret.put("isUftJob", isUftJob);
 
+            final String jobCiId = JobProcessorFactory.getFlowProcessor(job).getJobCiId();
             JobConfiguration jobConfiguration = client.getJobConfiguration(ConfigurationService.getModel().getIdentity(), jobCiId);
 
 			if (!jobConfiguration.getWorkspacePipelinesMap().isEmpty()) {
