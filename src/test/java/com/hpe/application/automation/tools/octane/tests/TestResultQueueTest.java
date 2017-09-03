@@ -27,13 +27,13 @@ import java.io.IOException;
 @SuppressWarnings("squid:S2699")
 public class TestResultQueueTest {
 
-    private TestAbstractResultQueue queue;
+    private TestsResultQueue queue;
 
     @Before
     public void init() throws IOException {
         File file = File.createTempFile("TestResultQueueTest", "");
         file.delete();
-        queue = new TestAbstractResultQueue(file);
+        queue = new TestsResultQueue(file);
     }
 
     @Test
