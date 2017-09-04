@@ -19,8 +19,8 @@ package com.hpe.application.automation.tools.nv.common;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hudson.util.ListBoxModel;
 import com.hpe.application.automation.tools.nv.model.NvNetworkProfile;
+import hudson.util.ListBoxModel;
 
 import java.io.IOException;
 import java.io.InputStream;

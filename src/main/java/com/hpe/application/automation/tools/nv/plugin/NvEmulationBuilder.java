@@ -17,6 +17,11 @@
 
 package com.hpe.application.automation.tools.nv.plugin;
 
+import com.hpe.application.automation.tools.nv.common.NvNetworkProfileRegistry;
+import com.hpe.application.automation.tools.nv.common.NvValidatorUtils;
+import com.hpe.application.automation.tools.nv.model.NvModel;
+import com.hpe.application.automation.tools.nv.model.NvNetworkProfile;
+import com.hpe.application.automation.tools.nv.model.NvServer;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -30,11 +35,6 @@ import hudson.tasks.Builder;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import net.sf.json.JSONObject;
-import com.hpe.application.automation.tools.nv.common.NvNetworkProfileRegistry;
-import com.hpe.application.automation.tools.nv.common.NvValidatorUtils;
-import com.hpe.application.automation.tools.nv.model.NvModel;
-import com.hpe.application.automation.tools.nv.model.NvNetworkProfile;
-import com.hpe.application.automation.tools.nv.model.NvServer;
 import org.kohsuke.stapler.*;
 
 import javax.servlet.ServletException;

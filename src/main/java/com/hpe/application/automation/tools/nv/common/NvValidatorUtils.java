@@ -67,27 +67,31 @@ public class NvValidatorUtils {
 
     public static Map<String, Float> readThresholdsFile(String fileName) throws IOException {
         Map<String, Float> result = new HashMap<>();
-        BufferedReader br = new BufferedReader(new FileReader(new File(fileName)));
-        String line;
-        String[] parts;
-        while (null != (line = br.readLine())) {
-            if (!isComment(line)) {
-                parts = line.split(",");
-                // default threshold
-                if (line.startsWith(DEFAULT_THRESHOLD)) {
-                    if (parts.length != 2 || !NvValidatorUtils.validateFloatingPoint(parts[1])) {
-                        return null;
+        BufferedReader br = null;
+        try {
+            br = new BufferedReader(new FileReader(new File(fileName)));
+            String line;
+            String[] parts;
+            while (null != (line = br.readLine())) {
+                if (!isComment(line)) {
+                    parts = line.split(",");
+                    // default threshold
+                    if (line.startsWith(DEFAULT_THRESHOLD)) {
+                        if (parts.length != 2 || !NvValidatorUtils.validateFloatingPoint(parts[1])) {
+                            return null;
+                        }
+                        result.put(parts[0], Float.parseFloat(parts[1]));
+                    } else { // threshold per test
+                        if (parts.length != 3 || !NvValidatorUtils.validateClassName(parts[0]) || parts[1].isEmpty() || !NvValidatorUtils.validateFloatingPoint(parts[2])) {
+                            return null;
+                        }
+                        result.put(parts[0] + "." + parts[1], Float.parseFloat(parts[2]));
                     }
-                    result.put(parts[0], Float.parseFloat(parts[1]));
-                } else { // threshold per test
-                    if (parts.length != 3 || !NvValidatorUtils.validateClassName(parts[0]) || parts[1].isEmpty() || !NvValidatorUtils.validateFloatingPoint(parts[2])) {
-                        return null;
-                    }
-                    result.put(parts[0] + "." + parts[1], Float.parseFloat(parts[2]));
                 }
             }
+        } finally {
+            br.close();
         }
-
         return result;
     }
 
