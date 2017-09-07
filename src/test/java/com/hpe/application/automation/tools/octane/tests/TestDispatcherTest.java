@@ -255,33 +255,33 @@ public class TestDispatcherTest {
 		Assert.assertEquals(0, queue.size());
 	}
 
-	//The test is fleaky, need refactoring
+	//The test is flaky, need refactoring
 	//@Test
-	public void testDispatcherTemporarilyUnavailable() throws Exception {
-		Mockito.reset(restClient);
-		Mockito.doReturn(1L)
-				.doThrow(new TemporarilyUnavailableException("Server busy"))
-				.doThrow(new TemporarilyUnavailableException("Server busy"))
-				.doThrow(new TemporarilyUnavailableException("Server busy"))
-				.doThrow(new TemporarilyUnavailableException("Server busy"))
-				.doThrow(new TemporarilyUnavailableException("Server busy"))
-				.doReturn(1L)
-				.when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq(false));
-		Mockito.when(restClient.isTestResultRelevant(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
-		FreeStyleBuild build = executeBuild();
-		FreeStyleBuild build2 = executeBuild();
-		queue.waitForTicks(12);
-		Mockito.verify(restClient, Mockito.atMost(7)).validateConfigurationWithoutLogin();
-		Mockito.verify(restClient, Mockito.atMost(7)).isTestResultRelevant(ConfigurationService.getModel().getIdentity(), build.getProject().getName());
-		Mockito.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
-		Mockito.verify(restClient, Mockito.times(6)).postTestResult(new File(build2.getRootDir(), "mqmTests.xml"), false);
-		Mockito.verifyNoMoreInteractions(restClient);
-		verifyAudit(build, true);
-
-		Thread.sleep(1000);//sleep allows to all audits to be written
-		verifyAudit(true, build2, false, false, false, false, false, true);
-		Assert.assertEquals(0, queue.size());
-	}
+//	public void testDispatcherTemporarilyUnavailable() throws Exception {
+//		Mockito.reset(restClient);
+//		Mockito.doReturn(1L)
+//				.doThrow(new TemporarilyUnavailableException("Server busy"))
+//				.doThrow(new TemporarilyUnavailableException("Server busy"))
+//				.doThrow(new TemporarilyUnavailableException("Server busy"))
+//				.doThrow(new TemporarilyUnavailableException("Server busy"))
+//				.doThrow(new TemporarilyUnavailableException("Server busy"))
+//				.doReturn(1L)
+//				.when(restClient).postTestResult(Mockito.argThat(new MqmTestsFileMatcher()), Mockito.eq(false));
+//		Mockito.when(restClient.isTestResultRelevant(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
+//		FreeStyleBuild build = executeBuild();
+//		FreeStyleBuild build2 = executeBuild();
+//		queue.waitForTicks(12);
+//		Mockito.verify(restClient, Mockito.atMost(7)).validateConfigurationWithoutLogin();
+//		Mockito.verify(restClient, Mockito.atMost(7)).isTestResultRelevant(ConfigurationService.getModel().getIdentity(), build.getProject().getName());
+//		Mockito.verify(restClient).postTestResult(new File(build.getRootDir(), "mqmTests.xml"), false);
+//		Mockito.verify(restClient, Mockito.times(6)).postTestResult(new File(build2.getRootDir(), "mqmTests.xml"), false);
+//		Mockito.verifyNoMoreInteractions(restClient);
+//		verifyAudit(build, true);
+//
+//		Thread.sleep(1000);//sleep allows to all audits to be written
+//		verifyAudit(true, build2, false, false, false, false, false, true);
+//		Assert.assertEquals(0, queue.size());
+//	}
 
 	private FreeStyleBuild executeBuild() throws ExecutionException, InterruptedException {
 		FreeStyleBuild build = project.scheduleBuild2(0).get();
