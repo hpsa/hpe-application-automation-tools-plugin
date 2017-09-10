@@ -80,7 +80,8 @@ public class BridgeClient {
 								pluginServices.getServerInfo().getType().value(),
 								pluginServices.getServerInfo().getUrl(),
 								OctaneSDK.API_VERSION,
-								OctaneSDK.SDK_VERSION);
+								OctaneSDK.SDK_VERSION,
+								OctaneSDK.getInstance().getPluginServices().getPluginInfo().getVersion());
 						isConnected = false;
 						connect();
 						if (tasksJSON != null && !tasksJSON.isEmpty()) {
