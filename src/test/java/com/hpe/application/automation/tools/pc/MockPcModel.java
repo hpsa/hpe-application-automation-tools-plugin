@@ -8,10 +8,10 @@ import com.hpe.application.automation.tools.model.SecretContainerTest;
 public class MockPcModel extends PcModel {
 
 
-    public MockPcModel(String serverandport, String pcServerName, String almUserName, String almPassword, String almDomain,
+    public MockPcModel(String serverAndPort, String pcServerName, String almUserName, String almPassword, String almDomain,
                        String almProject, String testId, String autoTestInstanceID, String testInstanceId, String timeslotDurationHours,
                        String timeslotDurationMinutes, PostRunAction postRunAction, boolean vudsMode, String description, boolean webProtocol) {
-        super(serverandport, pcServerName, almUserName, almPassword, almDomain, almProject, testId, autoTestInstanceID, testInstanceId, timeslotDurationHours,
+        super(serverAndPort, pcServerName, almUserName, almPassword, almDomain, almProject, testId, autoTestInstanceID, testInstanceId, timeslotDurationHours,
             timeslotDurationMinutes, postRunAction, vudsMode, description, "NO_TREND", null,false,null
         );
     }
