@@ -44,7 +44,7 @@
             var href = window.location.href;
             var splitter = href.split("/job");
             var baseurl = splitter[0];
-            var p = document.getElementById('serverandport');
+            var p = document.getElementById('serverAndPort');
             if(p){
                 p.value = baseurl;
             }
@@ -127,8 +127,8 @@
 	<f:entry title="Project" field="almProject">
 		<f:textbox name="pc.almProject" value="${instance.pcModel.almProject}" />
 	</f:entry>
-		<f:invisibleEntry title="" field="serverandport">
-    		<f:textbox id="serverandport" name="pc.serverandport" value="" onchange="assignhostPath()" />
+		<f:invisibleEntry title="" field="serverAndPort">
+    		<f:textbox id="serverAndPort" name="pc.serverAndPort" value="" onchange="assignhostPath()" />
     	</f:invisibleEntry>
 
 
