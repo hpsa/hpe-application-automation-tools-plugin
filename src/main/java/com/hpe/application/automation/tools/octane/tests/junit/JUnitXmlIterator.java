@@ -65,13 +65,15 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 	private String externalURL;
 	private List<ModuleDetection> moduleDetection;
 	private String jenkinsRootUrl;
+	private String sharedCheckOutDirectory;
 	private Object additionalContext;
 
-	public JUnitXmlIterator(InputStream read, List<ModuleDetection> moduleDetection, FilePath workspace, String jobName, String buildId, long buildStarted, boolean stripPackageAndClass, HPRunnerType hpRunnerType, String jenkinsRootUrl, Object additionalContext) throws XMLStreamException {
+	public JUnitXmlIterator(InputStream read, List<ModuleDetection> moduleDetection, FilePath workspace, String sharedCheckOutDirectory, String jobName, String buildId, long buildStarted, boolean stripPackageAndClass, HPRunnerType hpRunnerType, String jenkinsRootUrl, Object additionalContext) throws XMLStreamException {
 		super(read);
 		this.stripPackageAndClass = stripPackageAndClass;
 		this.moduleDetection = moduleDetection;
 		this.workspace = workspace;
+		this.sharedCheckOutDirectory = sharedCheckOutDirectory;
 		this.buildId = buildId;
 		this.jobName = jobName;
 		this.buildStarted = buildStarted;
@@ -160,7 +162,8 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 					if (testName.startsWith(workspace.getRemote())) {
 						// if workspace is prefix of the method name, cut it off
 						// currently this handling is needed for UFT tests
-						String path = testName.substring(workspace.getRemote().length());
+						int testStartIndex = workspace.getRemote().length() + (sharedCheckOutDirectory == null ? 0 : sharedCheckOutDirectory.length() +1 /*+ for slash between workspace and shared dir*/);
+						String path = testName.substring(testStartIndex);
 						path = path.replace(OctaneConstants.General.LINUX_PATH_SPLITTER, OctaneConstants.General.WINDOWS_PATH_SPLITTER);
 						path = StringUtils.strip(path, OctaneConstants.General.WINDOWS_PATH_SPLITTER);
 
