@@ -72,7 +72,7 @@ namespace HpToolsLauncher
             ConsoleWriter.ActiveTestRun = runDesc;
             ConsoleWriter.WriteLine(DateTime.Now.ToString(Launcher.DateFormat) + " Running: " + testinf.TestPath);
 
-            runDesc.ReportLocation = Helper.CreateTempDir();
+            runDesc.ReportLocation = testinf.TestPath;
             runDesc.ErrorDesc = errorReason;
             runDesc.TestPath = testinf.TestPath;
             runDesc.TestState = TestState.Unknown;

@@ -340,7 +340,7 @@ function octane_job_configuration(target, progress, proxy) {
                             });
                         } else {
                             field.values.push({
-                                id: Number(option.value),
+                                id: option.value,
                                 name: option.text
                             });
                         }
@@ -629,6 +629,10 @@ function octane_job_configuration(target, progress, proxy) {
             addCheckbox(jobConfiguration.currentPipeline);
 
             addApplyButton('Apply', pipeline, saveFunc, saveCallback);
+        }
+
+        if(jobConfiguration.isUftJob) {
+            return;
         }
 
         var CONFIRMATION = "There are unsaved changes, if you continue they will be discarded. Continue?";
