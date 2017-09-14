@@ -37,6 +37,23 @@
 	</style>
 	
 		<script>
+
+
+    function assignhostPath(){
+        setTimeout(function(){
+            var href = window.location.href;
+            var splitter = href.split("/job");
+            var baseurl = splitter[0];
+            var p = document.getElementById('serverAndPort');
+            if(p){
+                p.value = baseurl;
+            }
+        },50)
+
+    }
+
+
+
 		function isAddRunToTrendReportEnabled(sender) {
 			var x = sender.selectedIndex;
 			var y = sender.options;
@@ -110,6 +127,16 @@
 	<f:entry title="Project" field="almProject">
 		<f:textbox name="pc.almProject" value="${instance.pcModel.almProject}" />
 	</f:entry>
+		<f:invisibleEntry title="" field="serverAndPort">
+    		<f:textbox id="serverAndPort" name="pc.serverAndPort" value="" onchange="assignhostPath()" />
+    	</f:invisibleEntry>
+
+
+        <script>assignhostPath();</script>
+
+
+
+
 	<f:entry title="Test ID" field="testId">
 		<f:textbox name="pc.testId" value="${instance.pcModel.testId}" />
 	</f:entry>

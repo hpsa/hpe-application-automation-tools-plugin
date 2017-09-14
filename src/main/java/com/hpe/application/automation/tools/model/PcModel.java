@@ -14,6 +14,7 @@ public class PcModel {
     public static final String    COLLATE_ANALYZE = "Collate and Analyze";
     public static final String    DO_NOTHING      = "Do Not Collate";
 
+    private final String           serverAndPort;
     private final String           pcServerName;
     private final String           almUserName;
     private final SecretContainer  almPassword;
@@ -33,10 +34,11 @@ public class PcModel {
 
 
     @DataBoundConstructor
-    public PcModel(String pcServerName, String almUserName, String almPassword, String almDomain, String almProject,
+    public PcModel(String serverAndPort, String pcServerName, String almUserName, String almPassword, String almDomain, String almProject,
                    String testId,String autoTestInstanceID, String testInstanceId, String timeslotDurationHours, String timeslotDurationMinutes,
                    PostRunAction postRunAction, boolean vudsMode, String description, String addRunToTrendReport, String trendReportId, boolean HTTPSProtocol, String proxyOutURL) {
 
+        this.serverAndPort = serverAndPort;
         this.pcServerName = pcServerName;
         this.almUserName = almUserName;
         this.almPassword = setPassword(almPassword);
@@ -60,6 +62,10 @@ public class PcModel {
         SecretContainer secretContainer = new SecretContainerImpl();
         secretContainer.initialize(almPassword);
         return secretContainer;
+    }
+
+    public String getserverAndPort(){
+        return this.serverAndPort;
     }
 
     public String getPcServerName() {
