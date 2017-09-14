@@ -94,7 +94,8 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
                 .setUrl(serverUrl)
                 .setInstanceId(model.getIdentity())
                 .setInstanceIdFrom(model.getIdentityFrom())
-                .setSendingTime(System.currentTimeMillis());
+                .setSendingTime(System.currentTimeMillis())
+                .setImpersonatedUser(model.getImpersonatedUser());
         return result;
     }
 
