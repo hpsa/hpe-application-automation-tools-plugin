@@ -34,8 +34,9 @@ import java.io.IOException;
 @Extension
 public class CheckOutSubDirEnvContributor extends EnvironmentContributor {
 
-    public static String CHECKOUT_SUBDIR_ENV_NAME  = "CHECKOUT_SUBDIR";
+    public static final String CHECKOUT_SUBDIR_ENV_NAME  = "CHECKOUT_SUBDIR";
 
+    @Override
     public void buildEnvironmentFor(Job j, EnvVars envs, TaskListener listener) throws IOException, InterruptedException {
         String dir = getSharedCheckOutDirectory(j);
         if (dir != null) {
