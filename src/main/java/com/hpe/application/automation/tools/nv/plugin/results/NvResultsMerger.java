@@ -86,7 +86,9 @@ public class NvResultsMerger {
                     writer.close();
                 }
             } finally {
-                writer.close();
+                if (writer != null) {
+                    writer.close();
+                }
             }
 
             return null;

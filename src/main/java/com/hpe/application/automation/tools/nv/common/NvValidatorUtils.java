@@ -90,7 +90,9 @@ public class NvValidatorUtils {
                 }
             }
         } finally {
-            br.close();
+            if (br != null) {
+                br.close();
+            }
         }
         return result;
     }

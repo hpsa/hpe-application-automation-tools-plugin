@@ -24,6 +24,7 @@ import hudson.util.ListBoxModel;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.*;
 
 public class NvNetworkProfileRegistry {
@@ -127,7 +128,8 @@ public class NvNetworkProfileRegistry {
         return null != profiles.get(profileName);
     }
 
-    private static class ProfileNameComparator implements Comparator<String> {
+    private static class ProfileNameComparator implements Comparator<String>, Serializable {
+        private static final long serialVersionUID = 1;
         @Override
         public int compare(String o1, String o2) {
             if (o1 == o2) {
