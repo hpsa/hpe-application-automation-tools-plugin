@@ -16,7 +16,9 @@
 
 package com.hpe.application.automation.tools.octane.events;
 
+import com.google.inject.Inject;
 import com.hpe.application.automation.tools.octane.configuration.ConfigurationService;
+import com.hpe.application.automation.tools.octane.tests.TestListener;
 import com.hpe.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.events.CIEvent;
@@ -55,6 +57,9 @@ import java.util.concurrent.TimeUnit;
 public final class RunListenerImpl extends RunListener<Run> {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private ExecutorService executor = new ThreadPoolExecutor(0, 5, 10L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+
+	@Inject
+	private TestListener testListener;
 
 	@Override
 	public void onStarted(final Run r, TaskListener listener) {
@@ -124,6 +129,8 @@ public final class RunListenerImpl extends RunListener<Run> {
 			return;
 		}
 
+		boolean hasTests = testListener.processBuild(r);
+
 		CIBuildResult result;
 		if (r.getResult() == Result.SUCCESS) {
 			result = CIBuildResult.SUCCESS;
@@ -145,7 +152,8 @@ public final class RunListenerImpl extends RunListener<Run> {
 			.setEstimatedDuration(r.getEstimatedDuration())
 			.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
 			.setResult(result)
-			.setDuration(r.getDuration());
+			.setDuration(r.getDuration())
+			.setTestResultExpected(hasTests);
 
 		if(r instanceof AbstractBuild){
 			event.setParameters(ParameterProcessors.getInstances(r))
