@@ -13,7 +13,7 @@ import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONObject;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.w3c.dom.Document;
+
 import org.xml.sax.SAXException;
 
 import javax.annotation.Nonnull;
@@ -159,7 +159,7 @@ public class CreateTunnelBuilder extends Builder implements SimpleBuildStep {
             return "Create Tunnel";
         }
     }
-    static class TestRunData implements java.io.Serializable {
+    static class TestRunData implements Serializable {
         public TestRunData(JSONObject obj)
         {
             try {
@@ -203,6 +203,7 @@ public class CreateTunnelBuilder extends Builder implements SimpleBuildStep {
 
 
     class TunnelTracker implements Runnable{
+        static final long serialVersionUID=456;
         PrintStream logger;
         Process p;
         public TunnelTracker(PrintStream log, Process p){
@@ -231,8 +232,7 @@ public class CreateTunnelBuilder extends Builder implements SimpleBuildStep {
                 p.waitFor();
                 logger.println("\n\nExit Value is " + exitValue);
             } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+
             }
         }
     }

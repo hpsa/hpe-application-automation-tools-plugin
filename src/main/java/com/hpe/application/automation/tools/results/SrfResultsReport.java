@@ -50,7 +50,7 @@ import java.util.Properties;
 public class SrfResultsReport extends Recorder implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    private static Hashtable<String, SrfTestResultAction> myHash;
+    final static Hashtable<String, SrfTestResultAction> myHash;
 
     @DataBoundConstructor
     public SrfResultsReport() {
