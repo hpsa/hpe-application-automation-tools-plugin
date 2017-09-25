@@ -202,7 +202,7 @@ public class CreateTunnelBuilder extends Builder implements SimpleBuildStep {
     }
 
 
-    class TunnelTracker implements Runnable{
+    private class TunnelTracker implements Runnable{
         static final long serialVersionUID=456;
         PrintStream logger;
         Process p;
