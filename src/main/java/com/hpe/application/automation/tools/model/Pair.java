@@ -9,15 +9,15 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
 class Pair extends AbstractDescribableImpl<Pair> {
-
+    private String name;
+    private   String value;
     @DataBoundConstructor
     public Pair(String name, String value) {
         this.name = name;
         this.value = value;
     }
 
-    private String name;
-    private   String value;
+
     @Extension
     public static class DescriptorImpl extends Descriptor<Pair> {
 

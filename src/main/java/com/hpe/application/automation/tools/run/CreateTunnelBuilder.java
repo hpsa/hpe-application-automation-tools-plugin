@@ -33,7 +33,7 @@ public class CreateTunnelBuilder extends Builder implements SimpleBuildStep {
     private PrintStream logger;
     private  String srfTunnelName;
     private AbstractBuild<?, ?> build;
-    public static final ArrayList<Process> Tunnels = new ArrayList<Process>();
+    protected static final ArrayList<Process> Tunnels = new ArrayList<Process>();
     @DataBoundConstructor
     public CreateTunnelBuilder( String srfTunnelName ){
 
@@ -159,7 +159,7 @@ public class CreateTunnelBuilder extends Builder implements SimpleBuildStep {
             return "Create Tunnel";
         }
     }
-    class TestRunData implements java.io.Serializable {
+    static class TestRunData implements java.io.Serializable {
         public TestRunData(JSONObject obj)
         {
             try {

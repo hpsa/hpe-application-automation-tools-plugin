@@ -30,7 +30,7 @@ public class SrfDetailReport implements ModelObject {
         return name;
     }
 
-    private AbstractBuild<?,?> getBuild() {
+    public AbstractBuild<?,?> getBuild() {
         return build;
     }
 

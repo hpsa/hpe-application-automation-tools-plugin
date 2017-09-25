@@ -800,7 +800,8 @@ private String LoginToSrf() throws MalformedURLException, IOException{
                 logger.print(e.getMessage());
             }
             finally {
-                fs.close();
+                if(fs != null)
+                    fs.close();
             }
             String   xmlReport = "";
             try {
@@ -818,7 +819,7 @@ private String LoginToSrf() throws MalformedURLException, IOException{
 
                 fs = new FileOutputStream(f);
                 fs.write(xmlReport.getBytes());
-                fs.close();
+
                 if(_con != null)
                     _con.disconnect();
             }
@@ -827,6 +828,10 @@ private String LoginToSrf() throws MalformedURLException, IOException{
                 if(eventSrc != null)
                     eventSrc.close();
                 eventSrc = null;
+            }
+            finally {
+                if(fs != null)
+                    fs.close();
             }
             return _success;
         }

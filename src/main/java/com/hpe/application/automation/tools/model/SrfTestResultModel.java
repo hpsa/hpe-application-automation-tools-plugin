@@ -21,7 +21,6 @@ public class SrfTestResultModel extends AbstractDescribableImpl<SrfTestResultMod
     public SrfTestResultModel(){
 
     }
-    private static DescriptorImpl _descriptor;
     @Extension
     public static class DescriptorImpl extends Descriptor<SrfTestResultModel> {
         public String getDisplayName() {

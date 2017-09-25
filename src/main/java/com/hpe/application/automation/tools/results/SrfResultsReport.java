@@ -50,16 +50,17 @@ import java.util.Properties;
 public class SrfResultsReport extends Recorder implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    private static Hashtable<String, SrfTestResultAction> myHash = new Hashtable<String, SrfTestResultAction>();
-
+    private static Hashtable<String, SrfTestResultAction> myHash;
 
     @DataBoundConstructor
     public SrfResultsReport() {
-
+        if(myHash == null)
+            myHash = new Hashtable<String, SrfTestResultAction>();
 
     }
 
     public class SrfTestResultAction extends TestResultAction {
+        private AbstractBuild<?, ?> _build;
         private JSONArray _buildInfo;
         private int _idx;
         private PrintStream _logger;
@@ -105,9 +106,10 @@ public class SrfResultsReport extends Recorder implements Serializable {
             }
             finally {
                   try {
-                      reader.close();
+                      if(reader != null)
+                        reader.close();
                   } catch (IOException e) {
-                      e.printStackTrace();
+
                   }
               }
             _buildInfo = JSONArray.fromObject(data);
@@ -137,7 +139,6 @@ public class SrfResultsReport extends Recorder implements Serializable {
                 String name = jTest.getString("name").toLowerCase();
                 if(name.compareTo(testName) != 0)
                     continue;
-                JSONArray scriptRuns = jTest.getJSONArray("scriptRuns");
 
                 JSONObject jo = (JSONObject)_buildInfo.get(0);
                 String y1 = jo.getString("yac");
@@ -145,7 +146,7 @@ public class SrfResultsReport extends Recorder implements Serializable {
                 int len = runs.size();
                 JSONObject run = runs.getJSONObject(len - idx );
                 String y2 = run.getString("yac");
-                srfUrl = String.format("%1s/results/%1s/details/compare?script-runs=%1s", GetSrfServer(owner), y1, y2);
+                srfUrl = String.format("%1s/results/%1s/details/compare?script-runs=%1s", getSrfServer(owner), y1, y2);
                 String tenant = jTest.getString("tenantid");
                 srfUrl = srfUrl.concat("&TENANTID=").concat(tenant);
             }
@@ -190,8 +191,8 @@ public class SrfResultsReport extends Recorder implements Serializable {
             myHash.putAll(h);
         }
     }
-    AbstractBuild<?, ?> _build;
-    private String GetSrfServer(AbstractBuild<?, ?> build){
+
+    private String getSrfServer(AbstractBuild<?, ?> build){
         String ftaasServerAddress = "";
         try {
             String path = build.getProject().getParent().getRootDir().toString();
@@ -200,17 +201,14 @@ public class SrfResultsReport extends Recorder implements Serializable {
             DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
             Document document = documentBuilder.parse(file);
-            String app = document.getElementsByTagName("srfAppName").item(0).getTextContent();
-            String secret = document.getElementsByTagName("srfSecretName").item(0).getTextContent();
             ftaasServerAddress = document.getElementsByTagName("srfServerName").item(0).getTextContent();
-            if((ftaasServerAddress.startsWith("http://")== false) && (ftaasServerAddress.startsWith("https://")== false))
+            if( !ftaasServerAddress.startsWith("http://") && !ftaasServerAddress.startsWith("https://"))
             {
                 String tmp = ftaasServerAddress;
                 ftaasServerAddress="https://";
                 ftaasServerAddress = ftaasServerAddress.concat(tmp);
             }
-            if(ftaasServerAddress.startsWith("http://")) {
-                if (ftaasServerAddress.substring(6).contains(":") == false)
+            if(ftaasServerAddress.startsWith("http://") && !ftaasServerAddress.substring(6).contains(":") ){
                     ftaasServerAddress = ftaasServerAddress.concat(":8080");
             }
             else if(ftaasServerAddress.startsWith("https://")) {
@@ -242,7 +240,7 @@ public class SrfResultsReport extends Recorder implements Serializable {
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
             throws InterruptedException, IOException {
         final List<String> mergedResultNames = new ArrayList<String>();
-        _build = build;
+
 //        TestNameTransformer.all().add(new TestNameTransformer()  );
         SrfTestResultAction action;
         Project<?, ?> project = RuntimeUtils.cast(build.getProject());
@@ -431,7 +429,8 @@ public class SrfResultsReport extends Recorder implements Serializable {
             ;
         }
         finally {
-            pw.close();
+            if(pw != null)
+                pw.close();
         }
 
     }
@@ -469,7 +468,6 @@ public class SrfResultsReport extends Recorder implements Serializable {
         public static DescriptorImpl _inst;
         public DescriptorImpl() {
             String s=this.getDescriptorUrl();
-
             load();
             _inst = this;
         }
