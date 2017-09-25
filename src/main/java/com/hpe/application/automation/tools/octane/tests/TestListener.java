@@ -24,10 +24,8 @@ import com.hpe.application.automation.tools.octane.tests.detection.UFTExtension;
 import com.hpe.application.automation.tools.octane.tests.xml.TestResultXmlWriter;
 import hudson.Extension;
 import hudson.FilePath;
-import hudson.model.AbstractBuild;
 import hudson.model.Result;
 import hudson.model.Run;
-import hudson.model.TaskListener;
 import hudson.tasks.Builder;
 import jenkins.model.Jenkins;
 import org.apache.logging.log4j.LogManager;
@@ -44,15 +42,14 @@ import java.util.List;
 public class TestListener {
 	private static Logger logger = LogManager.getLogger(TestListener.class);
 
-	static final String TEST_RESULT_FILE = "mqmTests.xml";
-	public static final String JENKINS_STORM_TEST_RUNNER_CLASS = "com.hpe.sr.plugins.jenkins.StormTestRunner";
-	public static final String JENKINS_PERFORMANCE_CENTER_TEST_RUNNER_CLASS = "com.hpe.application.automation.tools.run.PcBuilder";
+	public static final String TEST_RESULT_FILE = "mqmTests.xml";
+	private static final String JENKINS_STORM_TEST_RUNNER_CLASS = "com.hpe.sr.plugins.jenkins.StormTestRunner";
+	private static final String JENKINS_PERFORMANCE_CENTER_TEST_RUNNER_CLASS = "com.hpe.application.automation.tools.run.PcBuilder";
 
 
 	private ResultQueue queue;
 
-	public void processBuild(Run build, TaskListener listener) {
-
+	public boolean processBuild(Run build) {
 		FilePath resultPath = new FilePath(new FilePath(build.getRootDir()), TEST_RESULT_FILE);
 		TestResultXmlWriter resultWriter = new TestResultXmlWriter(resultPath, build);
 		boolean success = false;
@@ -92,19 +89,16 @@ public class TestListener {
 						}
 					}
 				} catch (IllegalArgumentException e) {
-					listener.error(e.getMessage());
+					logger.error(e.getMessage());
 					if (!build.getResult().isWorseOrEqualTo(Result.UNSTABLE)) {
 						build.setResult(Result.UNSTABLE);
 					}
-					return;
 				} catch (InterruptedException ie) {
 					logger.error("Interrupted processing test results in " + ext.getClass().getName(), ie);
 					Thread.currentThread().interrupt();
-					return;
 				} catch (Exception e) {
 					// extensibility involved: catch both checked and RuntimeExceptions
 					logger.error("Error processing test results in " + ext.getClass().getName(), e);
-					return;
 				}
 			}
 			success = true;
@@ -121,11 +115,7 @@ public class TestListener {
 				logger.error("Error processing test results", xmlse);
 			}
 		}
-	}
-
-	private boolean isUFTRunner(AbstractBuild build) {
-		UFTExtension uftExtension = new UFTExtension();
-		return uftExtension.detect(build) != null;
+		return success && hasTests;//test results expected
 	}
 
 	@Inject
