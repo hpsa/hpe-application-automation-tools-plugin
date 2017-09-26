@@ -160,6 +160,7 @@ public class CreateTunnelBuilder extends Builder implements SimpleBuildStep {
         }
     }
     static class TestRunData implements Serializable {
+        static final long serialVersionUID=11;
         public TestRunData(JSONObject obj)
         {
             try {
@@ -211,7 +212,7 @@ public class CreateTunnelBuilder extends Builder implements SimpleBuildStep {
             this.p=p;
         }
         @Override
-        public  void run(){
+        public  void run() {
             try{
                 //Read out dir output
                 logger.println("In tracker!");
@@ -231,8 +232,9 @@ public class CreateTunnelBuilder extends Builder implements SimpleBuildStep {
                 int exitValue =0;
                 p.waitFor();
                 logger.println("\n\nExit Value is " + exitValue);
-            } catch (InterruptedException e) {
-
+            } catch (final InterruptedException e) {
+                p.destroy();
+                return;
             }
         }
     }

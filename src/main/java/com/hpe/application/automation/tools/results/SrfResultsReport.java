@@ -465,7 +465,7 @@ public class SrfResultsReport extends Recorder implements Serializable {
     @Extension
     public static class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
-        public static DescriptorImpl _inst;
+        public static  DescriptorImpl _inst;
         public DescriptorImpl() {
             String s=this.getDescriptorUrl();
             load();

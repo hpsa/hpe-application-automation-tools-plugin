@@ -56,6 +56,7 @@ import java.util.*;
 
 
     public class RunFromSrfBuilder extends Builder implements java.io.Serializable {
+        static final long serialVersionUID = 3;
         class TestRunData implements java.io.Serializable
     {
         public TestRunData(JSONObject obj)
@@ -124,7 +125,7 @@ import java.util.*;
         new OpenThread(eventSource).start();
         return eventSource;
     }
-        private PrintStream logger;
+        private transient PrintStream logger;
         private boolean _https;
         private AbstractBuild<?, ?> build;
         private  String srfTestId;
@@ -136,7 +137,7 @@ import java.util.*;
         private List<SrfTestParamsModel> srfTestParameters;
         private java.util.Hashtable<String, TestRunData> _testRunData;
         private JSONArray tests ;
-        public Object srfTestArg = null;
+        public transient Object srfTestArg = null;
         @DataBoundConstructor
         public RunFromSrfBuilder( String srfTestId,
                                   String srfTagNames,
@@ -196,7 +197,7 @@ import java.util.*;
     private String _secret;
     private boolean _success;
     private boolean _secretApplied;
-    private HttpURLConnection _con;
+    private transient HttpURLConnection _con;
     private static SrfTrustManager _trustMgr = new SrfTrustManager();
     static SSLSocketFactory _factory;
     public static JSONObject GetSrfConnectionData(AbstractBuild<?, ?> build, PrintStream logger) {
