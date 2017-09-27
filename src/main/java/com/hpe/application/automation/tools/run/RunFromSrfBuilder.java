@@ -280,8 +280,7 @@ import java.util.*;
             url=url.concat(_token);
             url=url.concat("&");
 
-            JSONObject obj = JSONObject.fromObject(tests.get(i));
-            String runId = obj.getString("id");
+            String runId = tests.get(i).toString();
             url = url.concat(String.format("id=%1s", runId));
             url = url.concat("&include=resource,script-runs,script-steps");
 
@@ -340,8 +339,7 @@ import java.util.*;
                     _token = LoginToSrf();
                 }
                 reqUrl = reqUrl.concat("?access-token=");
-                reqUrl = reqUrl.concat(_token);
-            //.concat("&TENANTID="+_tenant);
+                reqUrl = reqUrl.concat(_token).concat("&TENANTID="+_tenant);
 
                 URL srvUrl = new URL(reqUrl);
                 HttpURLConnection con = (HttpURLConnection) srvUrl.openConnection();
@@ -382,10 +380,10 @@ import java.util.*;
         String buildNumber = ApplyJobParams(srfBuildNumber);
         String releaseNumber = ApplyJobParams(srfReleaseNumber);
         if (buildNumber != null && buildNumber.length() > 0) {
-            ciProps.put("Build", buildNumber);
+            data.put("build", buildNumber);
         }
         if (releaseNumber != null && releaseNumber.length() > 0)
-            ciProps.put("Release", releaseNumber);
+            data.put("release", releaseNumber);
 
         this.logger.print(String.format("Required build & release: %1s %2s\n\r", buildNumber, releaseNumber));
         HashMap<String, String> paramObj = new HashMap<String, String>();
@@ -402,18 +400,16 @@ import java.util.*;
                 logger.print(String.format("%1s : %2s\n\r", name, val));
             }
         }
-        if (ciProps.size() > 0) {
-            testParams.put("ciParameters", ciProps);
-        }
+
         if (cnt > 0)
-            testParams.put("parameters", paramObj);
+            data.put("params", paramObj);
         //add request header
 
         //     con.setRequestProperty("session-context", context);
         try {
             OutputStream out = _con.getOutputStream();
             OutputStreamWriter writer = new OutputStreamWriter(out);
-            writer.write(testParams.toString());
+            writer.write(data.toString());
             writer.flush();
             out.flush();
             out.close();
@@ -426,7 +422,7 @@ import java.util.*;
 
        StringBuffer response = new StringBuffer();
        JSONArray ar = new JSONArray();
-        _con = Connect("/rest/test-manager/executions", "POST");
+        _con = Connect("/rest/jobmanager/v1/execution/jobs", "POST");
         try {
             FillExecutionReqBody();
         }
@@ -457,11 +453,12 @@ import java.util.*;
 
            if (responseCode != 200) {
                 try{
-                    JSONArray tests = JSONArray.fromObject(response.toString());
+                    JSONArray tests = JSONObject.fromObject(response.toString()).getJSONArray("jobs");
+                            JSONArray.fromObject(response.toString());
                     int len = tests.size();
                     for (int i= 0; i < len; i++) {
                         JSONObject jo = tests.getJSONObject(i);
-                        if(jo.containsKey("id") && ( jo.size() == 1)) {
+                        if(jo.containsKey("testId") && ( jo.size() == 1)) {
                             ar.add(jo);
                         }
                         else {
@@ -483,8 +480,13 @@ import java.util.*;
                 }
             }
             else
-               ar = JSONArray.fromObject(response.toString());
-            return ar;
+               ar = JSONObject.fromObject(response.toString()).getJSONArray("jobs");
+            JSONArray testAr = new JSONArray();
+            int cnt = ar.size();
+            for (int k = 0; k < cnt; k++ ){
+                testAr.add(ar.getJSONObject(k).getString("jobId"));
+            }
+            return testAr;
         }
 
 
@@ -618,7 +620,7 @@ private String LoginToSrf() throws MalformedURLException, IOException{
                             boolean skip = true;
                             String id = obj.getJSONObject("testRun").getString("id");
                             for(int i = 0; i < testsCnt; i++){
-                                if(id.compareTo(tests.getJSONObject(i).getString("id") ) == 0){
+                                if(id.compareTo(tests.getString(i)) == 0){
                                     skip = false;
                                     break;
                                 }
@@ -836,10 +838,12 @@ private String LoginToSrf() throws MalformedURLException, IOException{
             }
             return _success;
         }
-    private synchronized void dowait(long time)
-    {
-     try{   wait(time);}
-     catch (InterruptedException e){}
+    private synchronized void dowait(long time) throws InterruptedException {
+        try {
+            wait(time);
+        } catch (InterruptedException e) {
+            throw e;
+        }
     }
 
     String Convert2Xml(JSONArray report) throws ParserConfigurationException{
