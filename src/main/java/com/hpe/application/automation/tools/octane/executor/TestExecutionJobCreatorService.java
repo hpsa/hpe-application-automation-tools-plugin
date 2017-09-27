@@ -63,8 +63,8 @@ public class TestExecutionJobCreatorService {
     private static final Logger logger = LogManager.getLogger(TestExecutionJobCreatorService.class);
     public static final String EXECUTOR_ID_PARAMETER_NAME = "Connection ID";
     public static final String EXECUTOR_LOGICAL_NAME_PARAMETER_NAME = "Connection logical name";
-    public static final String SUITE_ID_PARAMETER_NAME = "suiteId";//"Suite ID";
-    public static final String SUITE_RUN_ID_PARAMETER_NAME = "suiteRunId";//"Suite run ID";
+    public static final String SUITE_ID_PARAMETER_NAME = "suiteId";
+    public static final String SUITE_RUN_ID_PARAMETER_NAME = "suiteRunId";
     public static final String FULL_SCAN_PARAMETER_NAME = "Full sync";
 
     public static final String EXECUTION_JOB_MIDDLE_NAME = "test run job - Suite ID";
@@ -230,8 +230,7 @@ public class TestExecutionJobCreatorService {
             StringWriter writer = new StringWriter();
             transformer.transform(new DOMSource(doc), new StreamResult(writer));
 
-            String str = writer.toString();
-            return str;
+            return writer.toString();
         } catch (Exception e) {
             throw new IOException("Failed to build MTBX content : " + e.getMessage());
         }
@@ -325,8 +324,8 @@ public class TestExecutionJobCreatorService {
     }
 
     private static void setBuildDiscarder(FreeStyleProject proj, int numBuildsToKeep) throws IOException {
-        int IRRELEVANT = -1;
-        BuildDiscarder bd = new LogRotator(IRRELEVANT, numBuildsToKeep, IRRELEVANT, IRRELEVANT);
+        int irrelevant = -1;
+        BuildDiscarder bd = new LogRotator(irrelevant, numBuildsToKeep, irrelevant, irrelevant);
         proj.setBuildDiscarder(bd);
     }
 
@@ -337,7 +336,7 @@ public class TestExecutionJobCreatorService {
      * @param scmTrigger
      */
     private static void delayPollingStart(final FreeStyleProject proj, final SCMTrigger scmTrigger) {
-        long delayStartPolling = 1000 * 60 * 5;//5 minute
+        long delayStartPolling = 1000L * 60 * 5;//5 minute
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
             @Override
@@ -414,5 +413,22 @@ public class TestExecutionJobCreatorService {
         } catch (IOException | ANTLRException e) {
             logger.error("Failed to  set addAssignedNode : " + e.getMessage());
         }
+    }
+
+    public static boolean isExecutorJob(FreeStyleProject job) {
+        ParametersDefinitionProperty parameters = job.getProperty(ParametersDefinitionProperty.class);
+        boolean isExecutorJob = job.getName().contains(TestExecutionJobCreatorService.EXECUTION_JOB_MIDDLE_NAME) &&
+                parameters != null &&
+                parameters.getParameterDefinition(TestExecutionJobCreatorService.SUITE_ID_PARAMETER_NAME) != null;
+
+        return isExecutorJob;
+    }
+
+    public static boolean isDiscoveryJobJob(FreeStyleProject job) {
+        ParametersDefinitionProperty parameters = job.getProperty(ParametersDefinitionProperty.class);
+        boolean isDiscoveryJob = job.getName().contains(TestExecutionJobCreatorService.DISCOVERY_JOB_MIDDLE_NAME) &&
+                parameters != null &&
+                parameters.getParameterDefinition(TestExecutionJobCreatorService.EXECUTOR_ID_PARAMETER_NAME) != null;
+        return isDiscoveryJob;
     }
 }
