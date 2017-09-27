@@ -56,6 +56,10 @@ public class PcClient {
     public PcClient(PcModel pcModel, PrintStream logger) {
         try {
             model = pcModel;
+
+            if(model.getProxyOutURL() != null && !model.getProxyOutURL().isEmpty()){
+                logger.println("Using proxy: " + model.getProxyOutURL());
+            }
             restProxy = new PcRestProxy(model.isHTTPSProtocol(),model.getPcServerName(), model.getAlmDomain(), model.getAlmProject(),logger, model.getProxyOutURL());
             this.logger = logger;
         }catch (PcException e){
@@ -345,7 +349,7 @@ public class PcClient {
                 }
              }
 
-        }while (!publishEnded );
+        }while (!publishEnded && counter < 120);
     }
 
     public boolean downloadTrendReportAsPdf(String trendReportId, String directory) throws PcException {
