@@ -43,7 +43,7 @@ public class CheckOutSubDirEnvContributor extends EnvironmentContributor {
     }
 
     public static String getSharedCheckOutDirectory(Job j) {
-        if (j instanceof FreeStyleProject && UftJobRecognizer.isExecutorJob((FreeStyleProject) j) && !ConfigurationService.getServerConfiguration().isValid()) {
+        if (j instanceof FreeStyleProject && UftJobRecognizer.isExecutorJob((FreeStyleProject) j) && ConfigurationService.getServerConfiguration().isValid()) {
             return CheckOutSubDirEnvService.getSharedCheckOutDirectory(j);
         }
 
