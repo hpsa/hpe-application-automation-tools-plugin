@@ -23,9 +23,6 @@ import hudson.model.EnvironmentContributor;
 import hudson.model.FreeStyleProject;
 import hudson.model.Job;
 import hudson.model.TaskListener;
-import hudson.plugins.git.GitSCM;
-import hudson.plugins.git.extensions.impl.RelativeTargetDirectory;
-import hudson.scm.SCM;
 
 import java.io.IOException;
 
@@ -46,15 +43,8 @@ public class CheckOutSubDirEnvContributor extends EnvironmentContributor {
     }
 
     public static String getSharedCheckOutDirectory(Job j) {
-        if (j instanceof FreeStyleProject && TestExecutionJobCreatorService.isExecutorJob((FreeStyleProject) j) && ConfigurationService.getServerConfiguration().isValid()) {
-            SCM scm = ((FreeStyleProject) j).getScm();
-            if (scm != null && scm instanceof GitSCM) {
-                GitSCM gitScm = (GitSCM) scm;
-                RelativeTargetDirectory sharedCheckOutDirectory = gitScm.getExtensions().get(RelativeTargetDirectory.class);
-                if (sharedCheckOutDirectory != null) {
-                    return sharedCheckOutDirectory.getRelativeTargetDir();
-                }
-            }
+        if (j instanceof FreeStyleProject && UftJobRecognizer.isExecutorJob((FreeStyleProject) j) && !ConfigurationService.getServerConfiguration().isValid()) {
+            return CheckOutSubDirEnvService.getSharedCheckOutDirectory(j);
         }
 
         return null;
