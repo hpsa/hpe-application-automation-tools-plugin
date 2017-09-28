@@ -691,6 +691,10 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
 
     }
 
+    public String getServerAndPort()
+    {
+        return getPcModel().getserverAndPort();
+    }
     public String getPcServerName()
     {
         return getPcModel().getPcServerName();
