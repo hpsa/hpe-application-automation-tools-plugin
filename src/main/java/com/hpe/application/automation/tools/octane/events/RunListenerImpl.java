@@ -16,10 +16,6 @@
 
 package com.hpe.application.automation.tools.octane.events;
 
-import com.google.inject.Inject;
-import com.hpe.application.automation.tools.octane.configuration.ConfigurationService;
-import com.hpe.application.automation.tools.octane.tests.TestListener;
-import com.hpe.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
@@ -27,10 +23,16 @@ import com.hp.octane.integrations.dto.events.PhaseType;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
 import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
+import com.hpe.application.automation.tools.octane.configuration.ConfigurationService;
+import com.hpe.application.automation.tools.octane.executor.UftJobRecognizer;
 import com.hpe.application.automation.tools.octane.model.CIEventCausesFactory;
 import com.hpe.application.automation.tools.octane.model.processors.builders.WorkFlowRunProcessor;
 import com.hpe.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.hpe.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
+import com.hpe.application.automation.tools.octane.tests.HPRunnerType;
+import com.hpe.application.automation.tools.octane.tests.MqmTestsExtension;
+import com.hpe.application.automation.tools.octane.tests.TestResultContainer;
+import com.hpe.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.Extension;
 import hudson.matrix.MatrixConfiguration;
 import hudson.matrix.MatrixRun;
@@ -57,9 +59,6 @@ import java.util.concurrent.TimeUnit;
 public final class RunListenerImpl extends RunListener<Run> {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private ExecutorService executor = new ThreadPoolExecutor(0, 5, 10L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
-
-	@Inject
-	private TestListener testListener;
 
 	@Override
 	public void onStarted(final Run r, TaskListener listener) {
@@ -129,8 +128,6 @@ public final class RunListenerImpl extends RunListener<Run> {
 			return;
 		}
 
-		boolean hasTests = testListener.processBuild(r);
-
 		CIBuildResult result;
 		if (r.getResult() == Result.SUCCESS) {
 			result = CIBuildResult.SUCCESS;
@@ -152,8 +149,12 @@ public final class RunListenerImpl extends RunListener<Run> {
 			.setEstimatedDuration(r.getEstimatedDuration())
 			.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
 			.setResult(result)
-			.setDuration(r.getDuration())
-			.setTestResultExpected(hasTests);
+			.setDuration(r.getDuration());
+
+        if (r.getResult() == Result.FAILURE) {
+            boolean b = hasUftTests(r);
+            event.setTestResultExpected(b);
+        }
 
 		if(r instanceof AbstractBuild){
 			event.setParameters(ParameterProcessors.getInstances(r))
@@ -204,6 +205,33 @@ public final class RunListenerImpl extends RunListener<Run> {
 
 		return result;
 	}
+
+    private static Boolean hasUftTests(Run build) {
+        if (build.getParent() instanceof FreeStyleProject && UftJobRecognizer.isExecutorJob((FreeStyleProject) build.getParent())) {
+            try {
+                boolean hasTests = false;
+                for (MqmTestsExtension ext : MqmTestsExtension.all()) {
+                    if (ext.supports(build)) {
+                        String jenkinsRootUrl = Jenkins.getInstance().getRootUrl();
+                        List<Run> buildsList = BuildHandlerUtils.getBuildPerWorkspaces(build);
+
+                        for (Run buildX : buildsList) {
+                            TestResultContainer testResultContainer = ext.getTestResults(buildX, HPRunnerType.UFT, jenkinsRootUrl);
+                            if (testResultContainer != null && testResultContainer.getIterator().hasNext()) {
+                                hasTests = true;
+                            }
+                        }
+                    }
+                }
+                return hasTests;
+            } catch (Exception e) {
+                //do nothing
+            }
+
+        }
+
+        return null;
+    }
 
 	private static TopLevelItem getJobFromFolder(String causeJobName) {
 		String newJobRefId = causeJobName.substring(0, causeJobName.indexOf('/'));
