@@ -50,7 +50,7 @@ import java.util.Properties;
 public class SrfResultsReport extends Recorder implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    private static Hashtable<String, SrfTestResultAction> myHash;
+    public  static Hashtable<String, SrfTestResultAction> myHash = new Hashtable<String, SrfTestResultAction>();
 
     @DataBoundConstructor
     public SrfResultsReport() {
@@ -465,7 +465,7 @@ public class SrfResultsReport extends Recorder implements Serializable {
     @Extension
     public static class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
-        public static DescriptorImpl _inst;
+        public static  DescriptorImpl _inst;
         public DescriptorImpl() {
             String s=this.getDescriptorUrl();
             load();

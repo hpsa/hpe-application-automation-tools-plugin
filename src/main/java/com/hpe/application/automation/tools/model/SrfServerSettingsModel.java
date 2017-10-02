@@ -1,10 +1,7 @@
 package com.hpe.application.automation.tools.model;
 
-import com.hpe.application.automation.tools.settings.SrfServerSettingsBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
-
-import java.util.Properties;
 
 /**
  * Created by shepshel on 20/07/2016.
