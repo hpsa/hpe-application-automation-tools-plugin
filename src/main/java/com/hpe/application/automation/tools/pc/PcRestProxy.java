@@ -107,7 +107,7 @@ public class PcRestProxy {
     private CookieStore cookieStore;
   //  private PrintStream logger;
 
-    public PcRestProxy(String webProtocolName, String pcServerName, String almDomain, String almProject,PrintStream mainLogger, String proxyOutURL) throws PcException {
+    public PcRestProxy(String webProtocolName, String pcServerName, String almDomain, String almProject,PrintStream mainLogger, String proxyOutURL, String proxyUser, String proxyPassword) throws PcException {
 
 //        logger = mainLogger;
     	pcServer = pcServerName;
@@ -127,6 +127,8 @@ public class PcRestProxy {
             // we should get the full proxy URL from the user: http(s)://<server>:<port>
             // PAC (proxy auto-config) or Automatic configuration script is not supported (for example our proxy: http://autocache.hpecorp.net/)
             getProxyDataFromURL(proxyOutURL);
+            this.proxyUser = proxyUser;
+            this.proxyPassword = proxyPassword;
             HttpHost proxy = new HttpHost(proxyHostName, proxyPort, proxyScheme);
 
             if (proxyUser != null && !proxyUser.isEmpty()) {
@@ -151,14 +153,14 @@ public class PcRestProxy {
                     String[] urlSplit = proxyURL.split("://");
 
                     proxyScheme = urlSplit[0];
-                    if (urlSplit[1].indexOf("@") != -1){
-                        String Credentials = urlSplit[1].split("@")[0];
-                        mainStr = urlSplit[1].split("@")[1];
-                        proxyUser = Credentials.split(":")[0];
-                        proxyPassword = Credentials.split(":")[1];
-                    }else{
+//                    if (urlSplit[1].indexOf("@") != -1){
+//                        String Credentials = urlSplit[1].split("@")[0];
+//                        mainStr = urlSplit[1].split("@")[1];
+//                        proxyUser = Credentials.split(":")[0];
+//                        proxyPassword = Credentials.split(":")[1];
+//                    }else{
                         mainStr = urlSplit[1];
-                    }
+//                    }
                     if (mainStr.contains(":")){
                         //proxyPort = Integer.parseInt(proxyURL.split("://")[1].split(":")[1]);
                         proxyHostName = mainStr.split(":")[0];

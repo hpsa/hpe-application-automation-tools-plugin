@@ -60,7 +60,7 @@ public class PcClient {
             if(model.getProxyOutURL() != null && !model.getProxyOutURL().isEmpty()){
                 logger.println("Using proxy: " + model.getProxyOutURL());
             }
-            restProxy = new PcRestProxy(model.isHTTPSProtocol(),model.getPcServerName(), model.getAlmDomain(), model.getAlmProject(),logger, model.getProxyOutURL());
+            restProxy = new PcRestProxy(model.isHTTPSProtocol(),model.getPcServerName(), model.getAlmDomain(), model.getAlmProject(),logger, model.getProxyOutURL(),model.getProxyOutUser(),model.getProxyOutPassword());
             this.logger = logger;
         }catch (PcException e){
             logger.println(e.getMessage());
