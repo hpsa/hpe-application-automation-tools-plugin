@@ -151,10 +151,16 @@ public final class RunListenerImpl extends RunListener<Run> {
 			.setResult(result)
 			.setDuration(r.getDuration());
 
-        if (r.getResult() == Result.FAILURE) {
-            boolean b = hasUftTests(r);
-            event.setTestResultExpected(b);
-        }
+		try {
+			if (r.getResult() == Result.FAILURE) {
+				Boolean hasTests = hasUftTests(r);
+				if (hasTests != null) {
+					event.setTestResultExpected(hasTests);
+				}
+			}
+		} catch (Exception e) {
+			//do nothing
+		}
 
 		if(r instanceof AbstractBuild){
 			event.setParameters(ParameterProcessors.getInstances(r))
