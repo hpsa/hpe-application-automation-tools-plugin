@@ -26,6 +26,7 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.model.Result;
 import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.tasks.Builder;
 import jenkins.model.Jenkins;
 import org.apache.logging.log4j.LogManager;
@@ -43,13 +44,14 @@ public class TestListener {
 	private static Logger logger = LogManager.getLogger(TestListener.class);
 
 	public static final String TEST_RESULT_FILE = "mqmTests.xml";
-	private static final String JENKINS_STORM_TEST_RUNNER_CLASS = "com.hpe.sr.plugins.jenkins.StormTestRunner";
-	private static final String JENKINS_PERFORMANCE_CENTER_TEST_RUNNER_CLASS = "com.hpe.application.automation.tools.run.PcBuilder";
+	public static final String JENKINS_STORM_TEST_RUNNER_CLASS = "com.hpe.sr.plugins.jenkins.StormTestRunner";
+	public static final String JENKINS_PERFORMANCE_CENTER_TEST_RUNNER_CLASS = "com.hpe.application.automation.tools.run.PcBuilder";
 
 
 	private ResultQueue queue;
 
-	public boolean processBuild(Run build) {
+	public void processBuild(Run build, TaskListener listener) {
+
 		FilePath resultPath = new FilePath(new FilePath(build.getRootDir()), TEST_RESULT_FILE);
 		TestResultXmlWriter resultWriter = new TestResultXmlWriter(resultPath, build);
 		boolean success = false;
@@ -89,16 +91,19 @@ public class TestListener {
 						}
 					}
 				} catch (IllegalArgumentException e) {
-					logger.error(e.getMessage());
+					listener.error(e.getMessage());
 					if (!build.getResult().isWorseOrEqualTo(Result.UNSTABLE)) {
 						build.setResult(Result.UNSTABLE);
 					}
+					return;
 				} catch (InterruptedException ie) {
 					logger.error("Interrupted processing test results in " + ext.getClass().getName(), ie);
 					Thread.currentThread().interrupt();
+					return;
 				} catch (Exception e) {
 					// extensibility involved: catch both checked and RuntimeExceptions
 					logger.error("Error processing test results in " + ext.getClass().getName(), e);
+					return;
 				}
 			}
 			success = true;
@@ -115,7 +120,6 @@ public class TestListener {
 				logger.error("Error processing test results", xmlse);
 			}
 		}
-		return success && hasTests;//test results expected
 	}
 
 	@Inject
