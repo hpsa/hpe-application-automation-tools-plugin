@@ -5,18 +5,13 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-import hudson.model.Run;
-import hudson.model.TaskListener;
+import hudson.model.BuildListener;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
-import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONObject;
-import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
-
 import org.xml.sax.SAXException;
 
-import javax.annotation.Nonnull;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLSession;
 import javax.xml.parsers.DocumentBuilder;
@@ -29,7 +24,7 @@ import java.util.Date;
 import java.util.Properties;
 import java.util.Timer;
 
-public class CreateTunnelBuilder extends Builder implements SimpleBuildStep {
+public class CreateTunnelBuilder extends Builder  {
     private PrintStream logger;
     private  String srfTunnelName;
     private AbstractBuild<?, ?> build;
@@ -52,10 +47,10 @@ public class CreateTunnelBuilder extends Builder implements SimpleBuildStep {
 
 
     @Override
-    public void perform( @Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener ) throws InterruptedException, IOException {
+    public boolean perform(final AbstractBuild<?, ?> build, final Launcher launcher, BuildListener listener)
+            throws InterruptedException, IOException {
         logger = listener.getLogger();
-        Run<?,?> r = run.getParent().getBuild(run.getId());
-        JSONObject connectionData = RunFromSrfBuilder.GetSrfConnectionData((AbstractBuild<?,?>)r, logger);
+        JSONObject connectionData = RunFromSrfBuilder.GetSrfConnectionData(build, logger);
     String[] s = new String[5] ;
     URL url = new URL(connectionData.getString("server"));
     //check if tunnel exist
@@ -73,7 +68,7 @@ public class CreateTunnelBuilder extends Builder implements SimpleBuildStep {
 
     String name = "-name=" + srfTunnelName;
 
-
+    String config = "\"-config="+srfTunnelName+"\"";
 
     URL proxyUrl ;
     try {
@@ -88,8 +83,8 @@ public class CreateTunnelBuilder extends Builder implements SimpleBuildStep {
 
 
 
-    ProcessBuilder pb = new ProcessBuilder(path, server, client, name, proxy, secret, "\"-log-level=INFO\"","\"-log=stdout\"");
-    logger.println("Launching "+path );
+    ProcessBuilder pb = new ProcessBuilder(path,  config, "\"-log-level=INFO\"","\"-log=stdout\"");
+    logger.println("Launching "+path + " " + config );
 
     Process p = pb.start();
     TunnelTracker tracker = new TunnelTracker(logger, p);
@@ -109,7 +104,7 @@ public class CreateTunnelBuilder extends Builder implements SimpleBuildStep {
             p.destroy();
             logger.println("Failed to launch "+path);
             Tunnels.remove(p);
-            return ;
+            return false;
         }
 
         while ((line = br.readLine()) != null) {
@@ -121,7 +116,7 @@ public class CreateTunnelBuilder extends Builder implements SimpleBuildStep {
             if(diffSeconds > 30){
                 p.destroy();
                 logger.println("Failed to launch "+path);
-                return ;
+                return false;
             }
         }
         break;
@@ -132,13 +127,12 @@ public class CreateTunnelBuilder extends Builder implements SimpleBuildStep {
 
 
 
-        return ;
+        return true;
 }
     private JSONObject GetSrfConnectionData(){
         return new JSONObject();
     }
     @Extension
-    @Symbol("CreateTunnelBuilder")
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
         private  String srfTunnelName;
         @DataBoundConstructor
