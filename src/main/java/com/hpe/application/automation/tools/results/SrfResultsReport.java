@@ -11,6 +11,7 @@ import hudson.Launcher;
 import hudson.model.*;
 import hudson.remoting.VirtualChannel;
 import hudson.tasks.*;
+import hudson.tasks.junit.CaseResult;
 import hudson.tasks.junit.TestResult;
 import hudson.tasks.junit.TestResultAction;
 import hudson.tasks.test.TestObject;
@@ -84,7 +85,31 @@ public class SrfResultsReport extends Recorder implements Serializable {
         public Object getWrappedTarget(){
             return _target;
         }
+        private void getBuildInfo(CaseResult p){
+            String data = null;
+            BufferedReader reader = null;
+            try {
+                String path = p.getRun().getRootDir().getPath().concat("/report.json");
+                reader = new BufferedReader(new FileReader(path));
+                String line = null;
+                StringBuffer buf = new StringBuffer();
+                while ( (line = reader.readLine() ) != null){
+                    buf.append(line);
+                }
+                data = buf.toString();
+            }
+            catch (Exception e) {
+            }
+            finally {
+                try {
+                    if(reader != null)
+                        reader.close();
+                } catch (IOException e) {
 
+                }
+            }
+            _buildInfo = JSONArray.fromObject(data);
+        }
         public SrfTestResultAction(AbstractBuild owner, TestResult result, BuildListener listener) {
            super(owner, result, listener);
             String data = null;
@@ -120,18 +145,8 @@ public class SrfResultsReport extends Recorder implements Serializable {
         public  String getDeepLink(Object p){
             String testName = "";
             int idx = ++_idx;
-            try{
-                testName = p.getClass().getMethod("getClassName").invoke(p).toString().toLowerCase();
-            }
-            catch (NoSuchMethodException e){
-                return "NoSuchMethodException";
-            }
-            catch (IllegalAccessException e){
-                return "IllegalAccessException";
-            }
-            catch(InvocationTargetException e){
-                return "InvocationTargetException";
-            }
+            testName = ((CaseResult) p).getClassName().toLowerCase();
+            getBuildInfo((CaseResult)p);
             int cnt = _buildInfo.size();
             String srfUrl = "";
             for (int i = 0; i < cnt; i++) {
@@ -150,6 +165,7 @@ public class SrfResultsReport extends Recorder implements Serializable {
                 String tenant = jTest.getString("tenantid");
                 srfUrl = srfUrl.concat("&TENANTID=").concat(tenant);
             }
+            _logger.println(srfUrl);
             return srfUrl;
         }
         public String getEnvString(Object p){
