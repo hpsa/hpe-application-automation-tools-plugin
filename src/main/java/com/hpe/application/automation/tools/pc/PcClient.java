@@ -343,8 +343,8 @@ public class PcClient {
                     Thread.sleep(5000);
                     counter++;
                     if(counter >= 120){
-                        logger.println("Error: Publishing didn't ended after 10 minutes, aborting...");
-                        break;
+                        String msg = "Error: Publishing didn't ended after 10 minutes, aborting...";
+                        throw new PcException(msg);
                     }
                 }
              }
