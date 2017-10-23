@@ -107,6 +107,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     
     @DataBoundConstructor
     public PcBuilder(
+            String serverAndPort,
             String pcServerName,
             String almUserName,
             String almPassword,
@@ -133,6 +134,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
 
         pcModel =
                 new PcModel(
+                        serverAndPort.trim(),
                         pcServerName.trim(),
                         almUserName.trim(),
                         almPassword,
@@ -587,8 +589,8 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         String viewUrl = String.format(urlPattern + "/%s", pcReportFileName);
         String downloadUrl = String.format(urlPattern + "/%s", "*zip*/pcRun");
         logger.println(HyperlinkNote.encodeTo(viewUrl, "View analysis report of run " + runId));
-        return String.format("Load Test Run ID: %s\n\nView analysis report:\n%s\n\nDownload Report:\n%s", runId,viewUrl, downloadUrl);
 
+        return String.format("Load Test Run ID: %s\n\nView analysis report:\n%s\n\nDownload Report:\n%s", runId, pcModel.getserverAndPort() +  "/" +  build.getUrl() + viewUrl, pcModel.getserverAndPort() + "/" + build.getUrl() + downloadUrl);
     }
     
     private String getArtifactsUrlPattern(Run<?, ?> build) {
