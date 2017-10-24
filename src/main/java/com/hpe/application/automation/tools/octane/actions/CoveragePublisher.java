@@ -15,11 +15,13 @@
  */
 
 package com.hpe.application.automation.tools.octane.actions;
+import com.hpe.application.automation.tools.octane.Messages;
 import com.hpe.application.automation.tools.octane.actions.coverage.CoveragePublisherAction;
 import com.hpe.application.automation.tools.octane.actions.coverage.CoverageService;
 import com.hpe.application.automation.tools.octane.tests.CoverageReportsDispatcher;
 import hudson.Extension;
 import hudson.ExtensionList;
+import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
@@ -28,8 +30,14 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
+import hudson.util.FormValidation;
 import jenkins.model.Jenkins;
+import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
+
+import javax.servlet.ServletException;
+import java.io.IOException;
 
 /**
  * Post-build action that collects the coverage reports from workspace
@@ -105,16 +113,24 @@ public class CoveragePublisher extends Recorder {
 
 		/**
 		 * Indicates that this builder can be used with all kinds of project types
-		 * @param aClass
-		 * @return
+		 * @param aClass that describe the job
+		 * @return always true, indicate that this post build action suitable for all jenkins jobs
 		 */
 		public boolean isApplicable(Class<? extends AbstractProject> aClass) {
 			return true; // so that it will also be available for maven & other projects
-			//return aClass.equals(FreeStyleProject.class);
 		}
 
 		public String getDisplayName() {
-			return "HPE Octane coverage publisher";
+			return "HPE ALM Octane code coverage publisher";
+		}
+
+		public FormValidation doCheckCoveragePathPattern(@AncestorInPath AbstractProject project, @QueryParameter String value) throws IOException, ServletException {
+			if (value == null || value.isEmpty()) {
+				return FormValidation.warning(Messages.CoverageResultsActionEmptyConfigurationWarning(), CoverageService.DEFAULT_PATH);
+			} else if (project == null) {
+				return FormValidation.ok();
+			}
+			return FilePath.validateFileMask(project.getSomeWorkspace(), value);
 		}
 	}
 }

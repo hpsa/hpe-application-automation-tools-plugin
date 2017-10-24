@@ -37,7 +37,7 @@ public class CoverageService {
 
     private static final String JACOCO_DEFAULT_FILE_NAME = "jacoco.xml";
     private static final String COVERAGE_REPORT_FILE_NAME_PREFIX = "coverage_report";
-    private static final String DEFAULT_PATH = "**/target/site/*/" + JACOCO_DEFAULT_FILE_NAME;
+    public static final String DEFAULT_PATH = "**/target/site/*/" + JACOCO_DEFAULT_FILE_NAME;
 
     private static BuildListener listener;
 
@@ -45,7 +45,7 @@ public class CoverageService {
         return COVERAGE_REPORT_FILE_NAME_PREFIX + index + ".xml";
     }
 
-    public static String[] getCoverageFiles(final FilePath workspace, String glob) throws IOException, InterruptedException {
+    private static String[] getCoverageFiles(final FilePath workspace, String glob) throws IOException, InterruptedException {
         if (glob == null || glob.isEmpty()) {
             glob = DEFAULT_PATH;
             log("Coverage file pattern is empty");
@@ -55,7 +55,7 @@ public class CoverageService {
         return workspace.act(new ResultFilesCallable(glob));
     }
 
-    public static void copyCoverageFile(File resultFile, File targetReportFile, final FilePath workspace) throws IOException, InterruptedException {
+    private static void copyCoverageFile(File resultFile, File targetReportFile, final FilePath workspace) throws IOException, InterruptedException {
         log(String.format("Copying %s to %s", resultFile.getPath(), targetReportFile));
 
         byte[] content = workspace.act(new FileContentCallable(resultFile));
@@ -106,8 +106,7 @@ public class CoverageService {
         public String[] invoke(File rootDir, VirtualChannel channel) throws IOException {
             FileSet fs = Util.createFileSet(rootDir, glob);
             DirectoryScanner ds = fs.getDirectoryScanner();
-            String[] files = ds.getIncludedFiles();
-            return files;
+            return ds.getIncludedFiles();
         }
     }
 

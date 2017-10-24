@@ -47,8 +47,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Created by benmeior on 11/20/2016
- * Log dispatcher is responsible for dispatching coverage reports to OCTANE server
+ * this class manages a queue of coverage report upload tasks
  */
 @Extension
 public class CoverageReportsDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
@@ -58,10 +57,10 @@ public class CoverageReportsDispatcher extends AbstractSafeLoggingAsyncPeriodWor
 
 	private static final double BASE = 2;
 	private static final double EXPONENT = 0;
-
+	@Inject
 	private RetryModel retryModel;
 	private JenkinsMqmRestClientFactory clientFactory;
-	private final CoverageReportsQueue reportsQueue;
+	private final ResultQueue reportsQueue;
 	@Inject
 	public CoverageReportsDispatcher() throws IOException {
 		super("Octane coverage reports dispatcher");

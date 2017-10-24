@@ -11,8 +11,9 @@
     When submitted, it will be passed to the corresponding constructor parameter.
   -->
 
-<f:entry title="Jacoco xml file path" field="coveragePathPattern"  description="Set the path to jacoco output xml file (if empty, a default path of '**/target/site/*/jacoco.xml' will be chosen">
-    <f:textbox />
-  </f:entry>
+    <f:entry title="Coverage report XML" field="coveragePathPattern"
+             description="${%description('http://ant.apache.org/manual/Types/fileset.html')}">
+        <f:textbox />
+    </f:entry>
 
 </j:jelly>
