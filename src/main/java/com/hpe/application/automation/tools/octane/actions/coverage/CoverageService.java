@@ -45,7 +45,7 @@ public class CoverageService {
         return COVERAGE_REPORT_FILE_NAME_PREFIX + index + ".xml";
     }
 
-    private static String[] getCoverageFiles(final FilePath workspace, String glob) throws IOException, InterruptedException {
+    public static String[] getCoverageFiles(final FilePath workspace, String glob) throws IOException, InterruptedException {
         if (glob == null || glob.isEmpty()) {
             glob = DEFAULT_PATH;
             log("Coverage file pattern is empty");
@@ -55,7 +55,7 @@ public class CoverageService {
         return workspace.act(new ResultFilesCallable(glob));
     }
 
-    private static void copyCoverageFile(File resultFile, File targetReportFile, final FilePath workspace) throws IOException, InterruptedException {
+    public static void copyCoverageFile(File resultFile, File targetReportFile, final FilePath workspace) throws IOException, InterruptedException {
         log(String.format("Copying %s to %s", resultFile.getPath(), targetReportFile));
 
         byte[] content = workspace.act(new FileContentCallable(resultFile));
