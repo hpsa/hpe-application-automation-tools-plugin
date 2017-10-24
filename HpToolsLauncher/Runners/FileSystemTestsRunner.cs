@@ -23,6 +23,7 @@ namespace HpToolsLauncher
         private int _errors, _fail;
         private bool _useUFTLicense;
         private TimeSpan _timeout = TimeSpan.MaxValue;
+        private readonly string _uftRunMode;
         private Stopwatch _stopwatch = null;
         private string _abortFilename = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\stop" + Launcher.UniqueTimeStamp + ".txt";
 
@@ -44,6 +45,29 @@ namespace HpToolsLauncher
         #endregion
 
         /// <summary>
+        /// overloaded constructor for adding support for run mode selection
+        /// </summary>
+        /// <param name="sources"></param>
+        /// <param name="timeout"></param>
+        /// <param name="uftRunMode"></param>
+        /// <param name="backgroundWorker"></param>
+        /// <param name="useUFTLicense"></param>
+        public FileSystemTestsRunner(List<string> sources,
+                                    TimeSpan timeout,
+                                    string uftRunMode,
+                                    int ControllerPollingInterval,
+                                    TimeSpan perScenarioTimeOutMinutes,
+                                    List<string> ignoreErrorStrings,
+                                    Dictionary<string, string> jenkinsEnvVariables,
+                                    McConnectionInfo mcConnection,
+                                    string mobileInfo,
+                                    bool useUFTLicense = false)
+            :this(sources, timeout, ControllerPollingInterval, perScenarioTimeOutMinutes, ignoreErrorStrings, jenkinsEnvVariables, mcConnection, mobileInfo, useUFTLicense)
+        {
+            _uftRunMode = uftRunMode;
+        }
+
+        /// <summary>
         /// creates instance of the runner given a source.
         /// </summary>
         /// <param name="sources"></param>
@@ -51,15 +75,14 @@ namespace HpToolsLauncher
         /// <param name="backgroundWorker"></param>
         /// <param name="useUFTLicense"></param>
         public FileSystemTestsRunner(List<string> sources,
-            TimeSpan timeout,
-            int ControllerPollingInterval,
-            TimeSpan perScenarioTimeOutMinutes,
-            List<string> ignoreErrorStrings,
-            Dictionary<string, string> jenkinsEnvVariables,
-            McConnectionInfo mcConnection,
-            string mobileInfo,
-            bool useUFTLicense = false     
-            )
+                                    TimeSpan timeout,
+                                    int ControllerPollingInterval,
+                                    TimeSpan perScenarioTimeOutMinutes,
+                                    List<string> ignoreErrorStrings,
+                                    Dictionary<string, string> jenkinsEnvVariables,
+                                    McConnectionInfo mcConnection,
+                                    string mobileInfo,
+                                    bool useUFTLicense = false)
         {
             _jenkinsEnvVariables = jenkinsEnvVariables;
             //search if we have any testing tools installed
@@ -154,9 +177,6 @@ namespace HpToolsLauncher
             _tests.ForEach(t => ConsoleWriter.WriteLine("" + t.TestName));
             ConsoleWriter.WriteLine(Resources.GeneralDoubleSeperator);
         }
-
-
-
 
         /// <summary>
         /// runs all tests given to this runner and returns a suite of run resutls
@@ -282,7 +302,7 @@ namespace HpToolsLauncher
                     runner = new ApiTestRunner(this, _timeout - _stopwatch.Elapsed);
                     break;
                 case TestType.QTP:
-                    runner = new GuiTestRunner(this, _useUFTLicense, _timeout - _stopwatch.Elapsed, _mcConnection, _mobileInfoForAllGuiTests);
+                    runner = new GuiTestRunner(this, _useUFTLicense, _timeout - _stopwatch.Elapsed, _uftRunMode, _mcConnection, _mobileInfoForAllGuiTests);
                     break;
                 case TestType.LoadRunner:
                     AppDomain.CurrentDomain.AssemblyResolve += Helper.HPToolsAssemblyResolver;

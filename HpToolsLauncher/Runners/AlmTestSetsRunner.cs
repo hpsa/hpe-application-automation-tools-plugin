@@ -383,15 +383,40 @@ namespace HpToolsLauncher
             List tsList = null;
             string tsPath = "Root\\" + tsFolderName;
             ITestSetFolder tsFolder = null;
+            bool isTestPath = false;
+            string testName = "";
+            string testSuiteName = tsName;
 
             try
             {
                 tsFolder = (ITestSetFolder)tsTreeManager.get_NodeByPath(tsPath);
+                isTestPath = false;
             }
             catch (COMException ex)
             {
                 //not found
                 tsFolder = null;
+            }
+
+			// test set not found, try to find specific test by path
+            if(tsFolder == null)
+            {
+                // if test set path was not found, the path may points to specific test
+                // remove the test name and try find test set with parent path
+                try
+                {
+                    int pos = tsPath.LastIndexOf("\\") + 1;
+                    testName = testSuiteName;
+                    testSuiteName = tsPath.Substring(pos, tsPath.Length - pos);
+                    tsPath = tsPath.Substring(0, pos - 1);
+
+                    tsFolder = (ITestSetFolder)tsTreeManager.get_NodeByPath(tsPath);
+                    isTestPath = true;
+                }
+                catch (COMException ex)
+                {
+                    tsFolder = null;
+                }
             }
 
             if (tsFolder == null)
@@ -405,11 +430,11 @@ namespace HpToolsLauncher
             }
             else
             {
-                tsList = tsFolder.FindTestSets(tsName);
+                tsList = tsFolder.FindTestSets(testSuiteName);
             }
             if (tsList == null)
             {
-                ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerCantFindTest, tsName));
+                ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerCantFindTest, testSuiteName));
 
                 //this will make sure run will fail at the end. (since there was an error)
                 Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
@@ -418,7 +443,8 @@ namespace HpToolsLauncher
             ITestSet targetTestSet = null;
             foreach (ITestSet ts in tsList)
             {
-                if (ts.Name.Equals(tsName, StringComparison.InvariantCultureIgnoreCase))
+                string tempName = ts.Name;
+                if (tempName.Equals(testSuiteName, StringComparison.InvariantCultureIgnoreCase))
                 {
                     targetTestSet = ts;
                     break;
@@ -427,7 +453,7 @@ namespace HpToolsLauncher
 
             if (targetTestSet == null)
             {
-                ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerCantFindTest, tsName));
+                ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerCantFindTest, testSuiteName));
 
                 //this will make sure run will fail at the end. (since there was an error)
                 Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
@@ -437,12 +463,12 @@ namespace HpToolsLauncher
 
             ConsoleWriter.WriteLine(Resources.GeneralDoubleSeperator);
             ConsoleWriter.WriteLine(Resources.AlmRunnerStartingExecution);
-            ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerDisplayTest, tsName, targetTestSet.ID));
+            ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerDisplayTest, testSuiteName, targetTestSet.ID));
 
             ITSScheduler Scheduler = null;
             try
             {
-                //need to run this to install everyhting needed http://AlmServer:8080/qcbin/start_a.jsp?common=true
+                //need to run this to install everything needed http://AlmServer:8080/qcbin/start_a.jsp?common=true
                 //start the scheduler
                 Scheduler = targetTestSet.StartExecution("");
 
@@ -474,6 +500,25 @@ namespace HpToolsLauncher
             tdFilter["TC_CYCLE_ID"] = targetTestSet.ID.ToString();
 
             IList tList = tsTestFactory.NewList(tdFilter.Text);
+
+            if (isTestPath)
+            {
+                // index starts from 1 !!!
+                int tListCount = 0;
+                tListCount = tList.Count;
+
+				// must loop from end to begin
+                for (int index = tListCount; index > 0; index--)
+                {
+                    string tListIndexName = tList[index].Name;
+                    string tListIndexTestName = tList[index].TestName;
+                    if (!string.IsNullOrEmpty(tListIndexName) && !string.IsNullOrEmpty(testName) && !testName.Equals(tListIndexName))
+                    {
+                        tList.Remove(index);
+                    }
+                }
+            }
+
             try
             {
                 //set up for the run depending on where the test instances are to execute
@@ -502,6 +547,7 @@ namespace HpToolsLauncher
             ConsoleWriter.WriteLine(Resources.AlmRunnerNumTests + tList.Count);
 
             int i = 1;
+			
             foreach (ITSTest3 test in tList)
             {
                 string runOnHost = runHost;
@@ -525,12 +571,20 @@ namespace HpToolsLauncher
                 i = i + 1;
             }
 
+            if (tList.Count == 0)
+            {
+                ConsoleWriter.WriteErrLine("Specified test not found on ALM, please check your test path.");
+                //this will make sure run will fail at the end. (since there was an error)
+                Launcher.ExitCode = Launcher.ExitCodeEnum.Failed;
+                return null;
+            }
+
             Stopwatch sw = Stopwatch.StartNew();
-            Stopwatch testSw = null;
+            
             try
             {
                 //tests are actually run
-                Scheduler.Run();
+                Scheduler.Run(tList);
             }
             catch (Exception ex)
             {
@@ -679,7 +733,7 @@ namespace HpToolsLauncher
 
                     //currentTest = targetTestSet.TSTestFactory[testExecStatusObj.TSTestId];
 
-                    string testPath = "Root\\" + tsFolderName + "\\" + tsName + "\\" + activeTestDesc.TestName;
+                    string testPath = "Root\\" + tsFolderName + "\\" + testSuiteName + "\\" + activeTestDesc.TestName;
 
                     activeTestDesc.TestPath = testPath;
                 }
@@ -687,7 +741,7 @@ namespace HpToolsLauncher
                 //update the total runtime
                 runDesc.TotalRunTime = sw.Elapsed;
 
-                ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerTestsetDone, tsName, DateTime.Now.ToString(Launcher.DateFormat)));
+                ConsoleWriter.WriteLine(string.Format(Resources.AlmRunnerTestsetDone, testSuiteName, DateTime.Now.ToString(Launcher.DateFormat)));
             }
             else
             {

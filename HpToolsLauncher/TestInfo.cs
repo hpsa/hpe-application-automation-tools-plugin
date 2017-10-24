@@ -124,6 +124,7 @@ namespace HpToolsLauncher
         List<TestParameterInfo> _paramList = new List<TestParameterInfo>();
         string _testName;
         string _testGroup;
+        string _dataTablePath;
 
         public string TestGroup
         {
@@ -147,6 +148,12 @@ namespace HpToolsLauncher
         {
             get { return _paramList; }
             set { _paramList = value; }
+        }
+
+        public string DataTablePath
+        {
+            get { return _dataTablePath; }
+            set { _dataTablePath = value; }
         }
 
 

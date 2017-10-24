@@ -58,7 +58,7 @@ namespace HpToolsLauncher
 
         private static void ShowHelp()
         {
-            Console.WriteLine("HP Automation Tools Command Line Executer");
+            Console.WriteLine("HPE Automation Tools Command Line Executer");
             Console.WriteLine();
             Console.Write("Usage: HpToolsLauncher.exe");
             Console.Write("  -paramfile ");
