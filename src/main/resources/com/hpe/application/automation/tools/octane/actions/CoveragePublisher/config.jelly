@@ -11,7 +11,7 @@
     When submitted, it will be passed to the corresponding constructor parameter.
   -->
 
-    <f:entry title="Coverage report XML" field="coveragePathPattern"
+    <f:entry title="Coverage report XMLs" field="coveragePathPattern"
              description="${%description('http://ant.apache.org/manual/Types/fileset.html')}">
         <f:textbox />
     </f:entry>
