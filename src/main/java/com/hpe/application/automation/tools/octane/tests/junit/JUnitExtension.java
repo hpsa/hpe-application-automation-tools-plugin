@@ -42,6 +42,10 @@ import org.jenkinsci.remoting.RoleChecker;
 
 import javax.xml.stream.XMLStreamException;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 /**
@@ -200,6 +204,16 @@ public class JUnitExtension extends MqmTestsExtension {
 					}
 				}
 				additionalContext = testFolderNames;
+			}
+			if (HPRunnerType.StormRunner.equals(hpRunnerType)) {
+				try {
+					File file = new File(build.getRootDir(), "log");
+					Path path = Paths.get(file.getPath());
+					List<String> lines = Files.readAllLines(path, StandardCharsets.UTF_8);
+					additionalContext = lines;
+				} catch (Exception e) {
+					logger.error("Failed to add log file for StormRunner :" + e.getMessage());
+				}
 			}
 		}
 

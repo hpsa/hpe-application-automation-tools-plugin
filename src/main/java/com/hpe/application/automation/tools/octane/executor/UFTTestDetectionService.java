@@ -359,7 +359,8 @@ public class UFTTestDetectionService {
     }
 
     private static boolean isUftDataTableFile(String path) {
-        return path.endsWith(XLSXExtention) || path.endsWith(XLSExtention);
+        String loweredPath = path.toLowerCase();
+        return loweredPath.endsWith(XLSXExtention) || loweredPath.endsWith(XLSExtention);
     }
 
     private static UftTestType isUftTestFolder(List<FilePath> paths) {

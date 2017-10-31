@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.text.ParseException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -192,11 +193,19 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 						//if UFT didn't created test results page - add reference to Jenkins test results page
 						externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/testReport/" + myPackageName + "/" + jenkinsTestClassFormat(myClassName) + "/" + jenkinsTestNameFormat(myTestName) + "/";
 					}
-
                 } else if (hpRunnerType.equals(HPRunnerType.PerformanceCenter)) {
                     externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/artifact/performanceTestsReports/pcRun/Report.html";
-                }
-            } else if ("duration".equals(localName)) { // NON-NLS
+                } else if (hpRunnerType.equals(HPRunnerType.StormRunner)) {
+					String VIEW_REPORT_PREFIX = "View Report: ";
+					if (additionalContext != null && additionalContext instanceof Collection) {
+						for (Object str : (Collection) additionalContext) {
+							if (str != null && str instanceof String && ((String) str).startsWith(VIEW_REPORT_PREFIX)) {
+								externalURL = str.toString().replace(VIEW_REPORT_PREFIX, "");
+							}
+						}
+					}
+				}
+			} else if ("duration".equals(localName)) { // NON-NLS
 				duration = parseTime(readNextValue());
 			} else if ("skipped".equals(localName)) { // NON-NLS
 				if ("true".equals(readNextValue())) { // NON-NLS
