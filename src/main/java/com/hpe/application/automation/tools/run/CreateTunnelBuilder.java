@@ -82,10 +82,15 @@ public class CreateTunnelBuilder extends Builder  {
                     return true;
                 }
                 Thread.sleep(100);
-                if(p.isAlive()) {
+                int exitVal = 0;
+                try{
+                    exitVal = p.exitValue();
+                }
+                catch (Exception e){
                     continue;
                 }
-                switch (p.exitValue()) {
+
+                switch (exitVal) {
                     case 0:
                         logger.println("Tunnel client terminated by the user or the server");
                         return true;
@@ -194,28 +199,36 @@ public class CreateTunnelBuilder extends Builder  {
         }
         @Override
         public  void run() {
-            try{
-                //Read out dir output
-                logger.println("In tracker!");
-                InputStream is = p.getInputStream();
-                InputStreamReader isr = new InputStreamReader(is);
-                BufferedReader br = new BufferedReader(isr);
-                String line;
-                while ((line = br.readLine())!= null){
-                    // logger.println(line);
+            logger.println("In tracker!");
+            int exitValue =0;
+            while(true) {
+                try {
+                    //Read out dir output
+                    InputStream is = p.getInputStream();
+                    InputStreamReader isr = new InputStreamReader(is);
+                    BufferedReader br = new BufferedReader(isr);
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        // logger.println(line);
+                    }
+                    try {
+                        exitValue = p.exitValue();
+                        break;
+                    } catch (Exception e) {
+                        continue;
+                    }
+                } catch (Exception e) {
+                    logger.print(e.getMessage());
                 }
-            }
-            catch (Exception e){
-                logger.print(e.getMessage());
-            }
-            //Wait to get exit value
-            try {
-                int exitValue =0;
-                p.waitFor();
-                logger.println("\n\nExit Value is " + exitValue);
-            } catch (final InterruptedException e) {
-                p.destroy();
-                return;
+                //Wait to get exit value
+                try {
+
+                    p.waitFor();
+                    logger.println("\n\nExit Value is " + exitValue);
+                } catch (final InterruptedException e) {
+                    p.destroy();
+                    return;
+                }
             }
         }
     }
