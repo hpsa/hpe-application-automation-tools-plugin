@@ -361,7 +361,7 @@ import java.util.*;
         JSONObject testParams = new JSONObject();
         JSONObject ciParameters = new JSONObject();
         if (srfTestId != null && srfTestId.length() > 0) {
-            data.put("yac", ApplyJobParams(srfTestId));
+            data.put("testYac", ApplyJobParams(srfTestId));
         } else {
             String[] tagNames = ApplyJobParams(srfTagNames).split(",");
             data.put("tags", tagNames);
