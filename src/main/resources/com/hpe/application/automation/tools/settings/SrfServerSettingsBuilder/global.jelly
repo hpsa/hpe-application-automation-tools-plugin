@@ -142,7 +142,7 @@
 						<f:textbox value="${inst.srfAppName}" name="srf.srfAppName" />
 					</f:entry>
 					<f:entry title="${%Client Secret}" field="srfSecretName">
-						<f:textbox value="${inst.srfSecretName}" name="srf.srfSecretName" />
+						<f:password value="${inst.srfSecretName}" name="srf.srfSecretName" />
 					</f:entry>
 					<f:entry title="">
 						<div align="right">
