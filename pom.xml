@@ -393,9 +393,9 @@
 			<groupId>com.hpe.adm.octane.ciplugins</groupId>
 			<version>1.4.13</version>
 		</dependency>
-		
+
 		<!-- NV jenkins plugins -->
-		
+
 		<dependency>
             <groupId>com.hpe.nv</groupId>
             <artifactId>hpe-nv-java-api</artifactId>
