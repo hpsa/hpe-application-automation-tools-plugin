@@ -52,17 +52,21 @@ public class CreateTunnelBuilder extends Builder  {
         logger = listener.getLogger();
         JSONObject connectionData = RunFromSrfBuilder.GetSrfConnectionData(build, logger);
         JSONObject configData;
-        String client = "\"" +"-client="  + connectionData.getString("app") +"\"";
+        String client = "-client="  + connectionData.getString("app") ;
 
 
         String path =connectionData.getString("tunnel");
-        String config = String.format("-\"config=%s\"", srfTunnelName);
+        String config = String.format("-config=\"%s\"", srfTunnelName);
 
         ProcessBuilder pb = new ProcessBuilder(path,  config, "-reconnect-attempts=3", "-log-level=info", "-log=stdout");
         pb.redirectOutput();
         logger.println("Launching "+path + " " + config );
+        String[] cmdArray = { path, config, "-reconnect-attempts=3", "-log-level=info", "-log=stdout"};
+        //Process p = pb.start();
+        Process p = Runtime.getRuntime().exec(cmdArray);
 
-        Process p = pb.start();
+
+
         TunnelTracker tracker = new TunnelTracker(logger, p);
         java.lang.Thread th = new Thread(tracker, "trackeer");
         Tunnels.add(p);
