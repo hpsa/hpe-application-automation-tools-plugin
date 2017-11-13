@@ -361,14 +361,14 @@ import java.util.*;
         JSONObject testParams = new JSONObject();
         JSONObject ciParameters = new JSONObject();
         if (srfTestId != null && srfTestId.length() > 0) {
-            data.put("yac", ApplyJobParams(srfTestId));
+            data.put("testYac", ApplyJobParams(srfTestId));
         } else {
             String[] tagNames = ApplyJobParams(srfTagNames).split(",");
             data.put("tags", tagNames);
         }
         if (srfTunnelName != null && srfTunnelName.length() > 0) {
 
-            testParams.put("tunnelName", srfTunnelName);
+            data.put("tunnelName", srfTunnelName);
         }
         if(data.size() == 0){
             throw new IOException("Wrong filter");
