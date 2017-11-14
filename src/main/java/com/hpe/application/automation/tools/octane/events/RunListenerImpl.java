@@ -70,6 +70,9 @@ public final class RunListenerImpl extends RunListener<Run> {
 			return;
 		}
 
+		if(ConfigurationService.getModel().isSuspend()){
+			return;
+		}
 		CIEvent event;
 		if (r.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowRun")) {
 			event = dtoFactory.newDTO(CIEvent.class)
@@ -129,6 +132,10 @@ public final class RunListenerImpl extends RunListener<Run> {
 	public void onFinalized(Run r)
 	{
 		if(!ConfigurationService.getServerConfiguration().isValid()){
+			return;
+		}
+
+		if(ConfigurationService.getModel().isSuspend()){
 			return;
 		}
 

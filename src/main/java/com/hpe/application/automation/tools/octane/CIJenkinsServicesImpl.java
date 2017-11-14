@@ -95,8 +95,18 @@ public class CIJenkinsServicesImpl extends CIPluginServicesBase {
                 .setInstanceId(model.getIdentity())
                 .setInstanceIdFrom(model.getIdentityFrom())
                 .setSendingTime(System.currentTimeMillis())
-                .setImpersonatedUser(model.getImpersonatedUser());
+                .setImpersonatedUser(model.getImpersonatedUser())
+                .setSuspended(model.isSuspend());
+
         return result;
+    }
+
+    @Override
+    public void suspendCiEvents(boolean suspend) {
+        OctaneServerSettingsModel model = ConfigurationService.getModel();
+        model.setSuspend(suspend);
+        ConfigurationService.configurePlugin(model);
+        logger.info("suspend ci event: "+suspend);
     }
 
     @Override

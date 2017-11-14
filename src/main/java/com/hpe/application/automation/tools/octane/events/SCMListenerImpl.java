@@ -69,6 +69,10 @@ public class SCMListenerImpl extends SCMListener {
             return;
         }
 
+        if(ConfigurationService.getModel().isSuspend()){
+            return;
+        }
+
         CIEvent event;
         if (r.getParent() instanceof MatrixConfiguration || r instanceof AbstractBuild) {
             AbstractBuild build = (AbstractBuild) r;
