@@ -36,6 +36,7 @@ public abstract class Publisher extends Handler {
             ret =
                     new JUnitParser().toModel(
                             testInstanceRun,
+                            this.getEntityId(),
                             entityName,
                             _runId,
                             url,

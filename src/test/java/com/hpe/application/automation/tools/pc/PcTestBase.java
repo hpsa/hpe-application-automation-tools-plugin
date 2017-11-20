@@ -22,7 +22,8 @@ import java.io.PrintStream;
 
 public interface PcTestBase {
 
-    public static final String        PC_SERVER_NAME                  = "pcServer.hp.com";
+	public static final String        SERVER_AND_PORT                 = "jenkins.server:8082";
+	public static final String        PC_SERVER_NAME                  = "pcServer.hp.com";
     public static final String        ALM_USER_NAME                   = "sa";
     public static final String        ALM_PASSWORD                    = "pwd";
     public static final String        ALM_DOMAIN                      = "ALMDOM";
@@ -44,7 +45,7 @@ public interface PcTestBase {
 	public static final String 	  TESTINSTANCEID				= "MANUAL";
 	public static final PrintStream LOGGER					  	  = null;
 
-    public static final MockPcModel   pcModel                         = new MockPcModel(PC_SERVER_NAME, ALM_USER_NAME,
+    public static final MockPcModel   pcModel                         = new MockPcModel(SERVER_AND_PORT,PC_SERVER_NAME, ALM_USER_NAME,
                                                                           ALM_PASSWORD, ALM_DOMAIN, ALM_PROJECT,
                                                                           TEST_ID,TESTINSTANCEID, TEST_INSTANCE_ID,
                                                                           TIMESLOT_DURATION_HOURS,

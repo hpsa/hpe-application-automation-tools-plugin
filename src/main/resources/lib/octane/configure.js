@@ -631,6 +631,10 @@ function octane_job_configuration(target, progress, proxy) {
             addApplyButton('Apply', pipeline, saveFunc, saveCallback);
         }
 
+        if(jobConfiguration.isUftJob) {
+            return;
+        }
+
         var CONFIRMATION = "There are unsaved changes, if you continue they will be discarded. Continue?";
 
         if (!jobConfiguration.hasOwnProperty("currentPipeline")) {

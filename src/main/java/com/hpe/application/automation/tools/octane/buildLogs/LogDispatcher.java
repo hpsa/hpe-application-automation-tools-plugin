@@ -16,25 +16,20 @@
 
 package com.hpe.application.automation.tools.octane.buildLogs;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.primitives.Longs;
 import com.google.inject.Inject;
-import com.hp.indi.bdi.client.BdiClientV2;
 import com.hp.mqm.client.MqmRestClient;
+import com.hp.mqm.client.exception.RequestErrorException;
 import com.hpe.application.automation.tools.octane.ResultQueue;
+import com.hpe.application.automation.tools.octane.client.JenkinsInsightEventPublisher;
 import com.hpe.application.automation.tools.octane.client.JenkinsMqmRestClientFactory;
 import com.hpe.application.automation.tools.octane.client.JenkinsMqmRestClientFactoryImpl;
 import com.hpe.application.automation.tools.octane.client.RetryModel;
-import com.hpe.application.automation.tools.octane.configuration.BdiConfiguration;
 import com.hpe.application.automation.tools.octane.configuration.ConfigurationService;
 import com.hpe.application.automation.tools.octane.configuration.ServerConfiguration;
 import com.hpe.application.automation.tools.octane.tests.AbstractSafeLoggingAsyncPeriodWork;
-import com.hp.indi.bdi.client.BdiClient;
-import com.hp.indi.bdi.client.BdiClientFactory;
-import com.hp.indi.bdi.client.BdiProxyConfiguration;
+import com.hpe.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import hudson.Extension;
-import hudson.ProxyConfiguration;
 import hudson.console.PlainTextConsoleOutputStream;
 import hudson.model.Job;
 import hudson.model.Run;
@@ -50,61 +45,47 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static java.lang.Long.parseLong;
 
 /**
  * Created by benmeior on 11/20/2016
- * Log dispatcher is responsible for dispatching bdi - octane related log messages to bdi server
+ * Log dispatcher is responsible for dispatching logs messages to BDI server via Octane as its proxy
  */
 
 @Extension
 public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 	private static final Logger logger = LogManager.getLogger(LogDispatcher.class);
-	private static final ObjectMapper objectMapper = new ObjectMapper();
+	private static final ExecutorService logDispatcherExecutors = Executors.newFixedThreadPool(20, new NamedThreadFactory(LogDispatcher.class.getSimpleName()));
 
 	private static final String OCTANE_LOG_FILE_NAME = "octane_log";
-	private static final String BDI_PRODUCT = "octane";
-	private static final String CONSOLE_LOG_DATA_TYPE = "consolelog";
+	private static final int MAX_RETRIES = 6;
+	private static final long TIMEOUT = 20;
 
-	@Inject
+	private static final double BASE = 2;
+	private static final double EXPONENT = 0;
+
 	private RetryModel retryModel;
-	@Inject
-	private BdiConfigurationFetcher bdiConfigurationFetcher;
-
 	private JenkinsMqmRestClientFactory clientFactory;
-	private ResultQueue logsQueue;
-	private BdiClientV2 bdiClient;
-	private BdiClient deprecatedClient;
-	private ProxyConfiguration proxyConfiguration;
+	private final ResultQueue logsQueue;
 
-	public LogDispatcher() {
-		super("BDI log dispatcher");
+	public LogDispatcher() throws IOException {
+		super("Octane log dispatcher");
+		logsQueue = new LogsResultQueue(MAX_RETRIES);
 	}
 
-	public void initClient() {
-		closeClient();
-
-		Jenkins jenkins = Jenkins.getInstance();
-		if (jenkins == null) {
-			logger.error("Jenkins container was not properly initialized");
-			return;
+	private long[] getQuietPeriodsInMinutes(double retries) {
+		double exponent = EXPONENT;
+		List<Long> quietPeriods = new ArrayList<>();
+		while (exponent <= retries) {
+			quietPeriods.add(TimeUnit2.MINUTES.toMillis((long) Math.pow(BASE, exponent)));
+			exponent++;
 		}
-		BdiConfiguration bdiConfiguration = bdiConfigurationFetcher.obtain();
-		if (bdiConfiguration == null || !bdiConfiguration.isFullyConfigured()) {
-			logger.debug("BDI is not configured in Octane");
-			return;
-		}
-		System.setProperty("bdi_use_ssl", String.valueOf(bdiConfiguration.isSsl() || "443".equals(bdiConfiguration.getPort())));
-		this.proxyConfiguration = jenkins.proxy;
-		if (proxyConfiguration == null) {
-			bdiClient = BdiClientFactory.getBdiClientV2(bdiConfiguration.getHost(), bdiConfiguration.getPort());
-			deprecatedClient = BdiClientFactory.getBdiClient(bdiConfiguration.getHost(), bdiConfiguration.getPort());
-		} else {
-			BdiProxyConfiguration bdiProxyConfiguration =
-					new BdiProxyConfiguration(proxyConfiguration.name, proxyConfiguration.port, proxyConfiguration.getUserName(), proxyConfiguration.getPassword());
-			bdiClient = BdiClientFactory.getBdiClientV2(bdiConfiguration.getHost(), bdiConfiguration.getPort(), bdiProxyConfiguration);
-			deprecatedClient = BdiClientFactory.getBdiClient(bdiConfiguration.getHost(), bdiConfiguration.getPort(), bdiProxyConfiguration);
-		}
+		return Longs.toArray(quietPeriods);
 	}
 
 	@Override
@@ -112,80 +93,121 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 		if (logsQueue.peekFirst() == null) {
 			return;
 		}
-		if (retryModel.isQuietPeriod()) {
-			logger.info("There are pending logs, but we are in quiet period");
+
+		MqmRestClient mqmRestClient = initMqmRestClient();
+		if (mqmRestClient == null) {
+			logger.warn("There are pending build logs, but MQM server location is not specified, build logs can't be submitted");
+			logsQueue.remove();
 			return;
 		}
 
-		//  verify configuration
-		Jenkins jenkins = Jenkins.getInstance();
-		if (jenkins == null) {
-			logger.error("Jenkins container was not properly initialized");
-			return;
-		}
-		BdiConfiguration bdiConfiguration = bdiConfigurationFetcher.obtain();
-		if (bdiConfiguration == null || !bdiConfiguration.isFullyConfigured()) {
-			logger.error("Could not send logs. BDI is not configured");
-			logsQueue.clear();
-			closeClient();
-			return;
-		} else if (!bdiConfiguration.isAccessTokenFlavor() && !isPemFilePropertyInit()) {
-			return;
-		}
-
-		//  proceed to process queue item
-		manageLogsQueue(jenkins, bdiConfiguration);
-	}
-
-	private void manageLogsQueue(Jenkins jenkins, BdiConfiguration bdiConfiguration) {
 		ResultQueue.QueueItem item;
-		File logFile = null;
-		Run build = null;
+
 		while ((item = logsQueue.peekFirst()) != null) {
-			try {
-				build = getBuildFromQueueItem(jenkins, item);
-				if (build == null) {
-					logsQueue.remove();
-					continue;
-				}
 
-				logFile = getOctaneLogFile(build);
+			if (retryModel.isQuietPeriod()) {
+				logger.debug("There are pending logs, but we are in quiet period");
+				return;
+			}
 
-				if (bdiClient == null || deprecatedClient == null || proxyConfiguration != jenkins.proxy) {
-					initClient();
-				}
-
-				if (bdiConfiguration.isAccessTokenFlavor()) {
-					bdiClient.post(CONSOLE_LOG_DATA_TYPE, BDI_PRODUCT, bdiConfiguration.getTenantId(), item.getWorkspace(), buildDataId(build), logFile, retrieveAccessToken());
-				} else {
-					deprecatedClient.post(CONSOLE_LOG_DATA_TYPE, BDI_PRODUCT, bdiConfiguration.getTenantId(), item.getWorkspace(), buildDataId(build), logFile);
-				}
-
-				logger.info(String.format("Successfully sent log of build [%s#%s]", item.getProjectName(), item.getBuildNumber()));
-
+			Run build = getBuildFromQueueItem(item);
+			if (build == null) {
+				logger.warn("Build and/or Project [" + item.getProjectName() + "#" + item.getBuildNumber() + "] no longer exists, pending build logs can't be submitted");
 				logsQueue.remove();
-				Files.deleteIfExists(logFile.toPath());
-			} catch (Exception e) {
-				logger.error(String.format("Could not send log of build [%s#%s] to bdi.", item.getProjectName(), item.getBuildNumber()), e);
-				if (!logsQueue.failed()) {
-					logger.warn("Maximum number of attempts reached, operation will not be re-attempted for this build");
-					if (logFile != null) {
-						try {
-							Files.deleteIfExists(logFile.toPath());
-						} catch (IOException e1) {
-							String errorMsg = "Could not delete Octane log file";
-							if (build != null) {
-								errorMsg = String.format("%s of %s#%s", errorMsg, build.getParent().getName(), String.valueOf(build.getNumber()));
-							}
-							logger.error(errorMsg);
+				continue;
+			}
+
+			try {
+				if (item.getWorkspace() == null) {
+					//
+					//  initial queue item flow - no workspaces, works with workspaces retrieval and loop ever each of them
+					//
+					List<String> workspaces = mqmRestClient.getJobWorkspaceId(ConfigurationService.getModel().getIdentity(), BuildHandlerUtils.getJobCiId(build));
+					if (workspaces.isEmpty()) {
+						logger.info(String.format("Job '%s' is not part of an Octane pipeline in any workspace, so its log will not be sent.", BuildHandlerUtils.getJobCiId(build)));
+					} else {
+						CountDownLatch latch = new CountDownLatch(workspaces.size());
+
+						for (String workspaceId : workspaces) {
+							logDispatcherExecutors.execute(new SendLogsExecutor(
+									mqmRestClient,
+									build,
+									item,
+									workspaceId,
+									logsQueue,
+									latch
+							));
+						}
+
+						boolean completedResult = latch.await(TIMEOUT, TimeUnit.MINUTES);
+						if (completedResult) {
+							logger.error("timed out sending logs to - " + workspaces.size() + " workspaces.");
 						}
 					}
+					logsQueue.remove();
+				} else {
+					//
+					//  secondary queue item flow - workspace is known, we are in retry flow
+					//
+					transferBuildLogs(build, mqmRestClient, item);
 				}
+			} catch (Exception e) {
+				logger.error("fatally failed to fetch relevant workspaces OR to send log for build " + item.getProjectName() + " #" + item.getBuildNumber() + " to workspace " + item.getWorkspace() + ", will not retry this one", e);
 			}
 		}
 	}
 
-	private File getOctaneLogFile(Run build) throws IOException {
+	private void transferBuildLogs(Run build, MqmRestClient mqmRestClient, ResultQueue.QueueItem item) {
+		try {
+			OctaneLog octaneLog = getOctaneLogFile(build);
+			boolean status = mqmRestClient.postLogs(
+					parseLong(item.getWorkspace()),
+					ConfigurationService.getModel().getIdentity(),
+					build.getParent().getName(),
+					String.valueOf(build.getNumber()),
+					octaneLog.getLogStream(),
+					octaneLog.getFileLength());
+			if (status) {
+				logger.info("Successfully sent logs of " + item.getProjectName() + " #" + item.getBuildNumber() + " to workspace " + item.getWorkspace());
+				logsQueue.remove();
+			} else {
+				logger.error("failed to send log for build " + item.getProjectName() + " #" + item.getBuildNumber() + " to workspace " + item.getWorkspace());
+				reAttempt(item.getProjectName(), item.getBuildNumber());
+			}
+		} catch (RequestErrorException ree) {
+			logger.error("failed to send log for build " + item.getProjectName() + " #" + item.getBuildNumber() + " to workspace " + item.getWorkspace(), ree);
+			reAttempt(item.getProjectName(), item.getBuildNumber());
+		} catch (Exception e) {
+			logger.error("fatally failed to send log for build " + item.getProjectName() + " #" + item.getBuildNumber() + " to workspace " + item.getWorkspace() + ", will not retry this one", e);
+			retryModel.success();
+			logsQueue.remove();
+		}
+	}
+
+	private void reAttempt(String projectName, int buildNumber) {
+		if (!logsQueue.failed()) {
+			logger.warn("maximum number of attempts reached, operation will not be re-attempted for build "+ projectName + " #" + buildNumber);
+			retryModel.success();
+		} else {
+			logger.info("There are pending logs, but we are in quiet period");
+			retryModel.failure();
+		}
+	}
+
+	private MqmRestClient initMqmRestClient() {
+		MqmRestClient result = null;
+		ServerConfiguration configuration = ConfigurationService.getServerConfiguration();
+		if (configuration.isValid()) {
+			result = clientFactory.obtain(
+					configuration.location,
+					configuration.sharedSpace,
+					configuration.username,
+					configuration.password);
+		}
+		return result;
+	}
+
+	private OctaneLog getOctaneLogFile(Run build) throws IOException {
 		String octaneLogFilePath = build.getLogFile().getParent() + File.separator + OCTANE_LOG_FILE_NAME;
 		File logFile = new File(octaneLogFilePath);
 		if (!logFile.exists()) {
@@ -196,83 +218,34 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 				out.flush();
 			}
 		}
-		return logFile;
+		return new OctaneLog(logFile);
 	}
 
-	private MqmRestClient createMqmRestClient() {
-		ServerConfiguration configuration = ConfigurationService.getServerConfiguration();
-		if (configuration.isValid()) {
-			return clientFactory.obtain(
-					configuration.location,
-					configuration.sharedSpace,
-					configuration.username,
-					configuration.password);
-		}
-		return null;
-	}
-
-	private String retrieveAccessToken() throws IOException {
-		String result;
-		MqmRestClient mqmRestClient = createMqmRestClient();
-		if (mqmRestClient != null) {
-			BdiTokenData bdiTokenData = objectMapper.readValue(mqmRestClient.getBdiTokenData(), BdiTokenData.class);
-			if (bdiTokenData.token != null) {
-				result = bdiTokenData.token;
-			} else {
-				throw new IllegalStateException("invalid [NULL] access token received from Octane");
-			}
-		} else {
-			throw new IllegalStateException("failed to create RestClient to retrieve access token from Octane");
+	private Run getBuildFromQueueItem(ResultQueue.QueueItem item) {
+		Run result = null;
+		Job project = (Job) Jenkins.getInstance().getItemByFullName(item.getProjectName());
+		if (project != null) {
+			result = project.getBuildByNumber(item.getBuildNumber());
 		}
 		return result;
 	}
 
-	private void closeClient() {
-		try {
-			if (bdiClient != null) bdiClient.close();
-			if (deprecatedClient != null) deprecatedClient.close();
-		} catch (Exception e) {
-			logger.error("Failed to close BDI client");
-		} finally {
-			bdiClient = null;
-			deprecatedClient = null;
-		}
-	}
-
-	private Run getBuildFromQueueItem(Jenkins jenkins, ResultQueue.QueueItem item) {
-		Job project = (Job) jenkins.getItemByFullName(item.getProjectName());
-		if (project == null) {
-			logger.warn("Project [" + item.getProjectName() + "] no longer exists, pending logs can't be submitted");
-			return null;
-		}
-
-		Run build = project.getBuildByNumber(item.getBuildNumber());
-		if (build == null) {
-			logger.warn("Build [" + item.getProjectName() + "#" + item.getBuildNumber() + "] no longer exists, pending logs can't be submitted");
-			return null;
-		}
-		return build;
-	}
-
-	private String buildDataId(Run build) {
-		String ciServerId = ConfigurationService.getModel().getIdentity();
-		String ciBuildId = String.valueOf(build.getNumber());
-		String jobName = build.getParent().getName();
-
-		return String.format("%s-%s-%s", ciServerId, ciBuildId, jobName.replaceAll(" ", ""));
-	}
-
 	@Override
 	public long getRecurrencePeriod() {
-		String value = System.getProperty("BDI.LogDispatcher.Period"); // let's us config the recurrence period. default is 10 seconds.
+		String value = System.getProperty("Octane.LogDispatcher.Period"); // let's us config the recurrence period. default is 10 seconds.
 		if (!StringUtils.isEmpty(value)) {
 			return Long.valueOf(value);
 		}
 		return TimeUnit2.SECONDS.toMillis(10);
 	}
 
-	void enqueueLog(String projectName, int buildNumber, String workspace) {
-		logsQueue.add(projectName, buildNumber, workspace);
+	public void enqueueLog(String projectName, int buildNumber) {
+		logsQueue.add(projectName, buildNumber, null);
+	}
+
+	@Inject
+	public void setEventPublisher(JenkinsInsightEventPublisher eventPublisher) {
+		this.retryModel = new RetryModel(eventPublisher, getQuietPeriodsInMinutes(MAX_RETRIES));
 	}
 
 	@Inject
@@ -280,18 +253,69 @@ public class LogDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 		this.clientFactory = clientFactory;
 	}
 
-	@Inject
-	public void setLogResultQueue(LogAbstractResultQueue queue) {
-		this.logsQueue = queue;
+	private static final class NamedThreadFactory implements ThreadFactory {
+
+		private AtomicInteger threadNumber = new AtomicInteger(1);
+		private final String namePrefix;
+
+		private NamedThreadFactory(String namePrefix) {
+			this.namePrefix = namePrefix;
+		}
+
+		public Thread newThread(Runnable runnable) {
+			Thread result = new Thread(runnable, this.namePrefix + " thread-" + threadNumber.getAndIncrement());
+			result.setDaemon(true);
+			return result;
+		}
 	}
 
-	@JsonIgnoreProperties(ignoreUnknown = true)
-	@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-	private static final class BdiTokenData {
-		private String token;
-	}
+	private final class SendLogsExecutor implements Runnable {
+		private final MqmRestClient mqmRestClient;
+		private final Run build;
+		private final ResultQueue.QueueItem item;
+		private final String workspaceId;
+		private final ResultQueue logsQueue;
+		private final CountDownLatch latch;
 
-	private boolean isPemFilePropertyInit() {
-		return System.getProperty("pem_file") != null && !System.getProperty("pem_file").isEmpty();
+		private SendLogsExecutor(
+				MqmRestClient mqmRestClient,
+				Run build,
+				ResultQueue.QueueItem item,
+				String workspaceId,
+				ResultQueue logsQueue,
+				CountDownLatch latch) {
+			this.mqmRestClient = mqmRestClient;
+			this.build = build;
+			this.item = item;
+			this.workspaceId = workspaceId;
+			this.logsQueue = logsQueue;
+			this.latch = latch;
+		}
+
+		@Override
+		public void run() {
+			try {
+				OctaneLog octaneLog = getOctaneLogFile(build);
+				boolean status = mqmRestClient.postLogs(
+						parseLong(workspaceId),
+						ConfigurationService.getModel().getIdentity(),
+						BuildHandlerUtils.getJobCiId(build),
+						String.valueOf(build.getNumber()),
+						octaneLog.getLogStream(),
+						octaneLog.getFileLength());
+				if (status) {
+					logger.info("Successfully sent logs of " + item.getProjectName() + " #" + item.getBuildNumber() + " to workspace " + workspaceId);
+				} else {
+					logger.debug("failed to send log for build " + item.getProjectName() + " #" + item.getBuildNumber() + " to workspace " + workspaceId);
+					logsQueue.add(item.getProjectName(), item.getBuildNumber(), workspaceId);
+				}
+			} catch (RequestErrorException ree) {
+				logger.debug("failed to send log for build " + item.getProjectName() + " #" + item.getBuildNumber() + " to workspace " + workspaceId, ree);
+				logsQueue.add(item.getProjectName(), item.getBuildNumber(), workspaceId);
+			} catch (Exception e) {
+				logger.error("fatally failed to send log for build " + item.getProjectName() + " #" + item.getBuildNumber() + " to workspace " + workspaceId + ", will not retry this one", e);
+			}
+			latch.countDown();
+		}
 	}
 }

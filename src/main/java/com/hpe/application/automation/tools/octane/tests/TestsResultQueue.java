@@ -14,29 +14,33 @@
  *
  */
 
-package com.hpe.application.automation.tools.octane.buildLogs;
+package com.hpe.application.automation.tools.octane.tests;
 
 import com.hpe.application.automation.tools.octane.AbstractResultQueueImpl;
+import hudson.Extension;
 import jenkins.model.Jenkins;
+import org.springframework.util.Assert;
 
 import java.io.File;
 import java.io.IOException;
 
-/**
- * Created by benmeior on 11/21/2016
- *
- * Queue, based on persisted, file-object backed by base queue, serving the Logs dispatching logic to BDI when relevant
- */
+@Extension
+@SuppressWarnings("squid:S2259")
+public class TestsResultQueue extends AbstractResultQueueImpl {
 
-public class LogAbstractResultQueue extends AbstractResultQueueImpl {
+    public TestsResultQueue() throws IOException {
+        Jenkins instance =Jenkins.getInstance();
+        if(instance==null){
+            Assert.isNull(instance);
+        }
+        File queueFile = new File(instance.getRootDir(), "octane-test-result-queue.dat");
+        init(queueFile);
+    }
 
-	public LogAbstractResultQueue() throws IOException {
-		Jenkins jenkinsContainer = Jenkins.getInstance();
-		if (jenkinsContainer != null) {
-			File queueFile = new File(jenkinsContainer.getRootDir(), "octane-log-result-queue.dat");
-			init(queueFile);
-		} else {
-			throw new IllegalStateException("Jenkins container not initialized properly");
-		}
-	}
+    /*
+     * To be used in tests only.
+     */
+    TestsResultQueue(File queueFile) throws IOException {
+        init(queueFile);
+    }
 }

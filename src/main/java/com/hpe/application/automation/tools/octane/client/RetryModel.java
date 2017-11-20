@@ -25,10 +25,12 @@ import hudson.util.TimeUnit2;
 @Extension
 public class RetryModel implements ConfigurationListener {
 
-    private static final long[] QUIET_PERIOD = { // TODO: janotav: verify against our Saas policy
-            TimeUnit2.MINUTES.toMillis(1),
-            TimeUnit2.MINUTES.toMillis(10),
-            TimeUnit2.MINUTES.toMillis(60)
+    private static final long[] QUIET_PERIOD_DURATION = { 1, 10, 60 };
+
+    private long[] QUIET_PERIOD = {
+            TimeUnit2.MINUTES.toMillis(QUIET_PERIOD_DURATION[0]),
+            TimeUnit2.MINUTES.toMillis(QUIET_PERIOD_DURATION[1]),
+            TimeUnit2.MINUTES.toMillis(QUIET_PERIOD_DURATION[2])
     };
 
     private long boundary;
@@ -42,6 +44,11 @@ public class RetryModel implements ConfigurationListener {
         doSuccess();
     }
 
+    public RetryModel(EventPublisher eventPublisher, long... quietPeriods) {
+        doSuccess();
+        this.eventPublisher = eventPublisher;
+        QUIET_PERIOD = quietPeriods;
+    }
 
     public RetryModel(EventPublisher eventPublisher) {
         this();

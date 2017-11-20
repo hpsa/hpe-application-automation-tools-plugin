@@ -5,19 +5,16 @@
 
 package com.hpe.application.automation.tools.settings;
 
-import com.google.inject.Inject;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hpe.application.automation.tools.model.OctaneServerSettingsModel;
 import com.hpe.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.hpe.application.automation.tools.octane.Messages;
 import com.hpe.application.automation.tools.octane.bridge.BridgesService;
-import com.hpe.application.automation.tools.octane.buildLogs.BdiConfigurationFetcher;
 import com.hpe.application.automation.tools.octane.configuration.ConfigurationListener;
 import com.hpe.application.automation.tools.octane.configuration.ConfigurationParser;
 import com.hpe.application.automation.tools.octane.configuration.MqmProject;
 import com.hpe.application.automation.tools.octane.configuration.ServerConfiguration;
 import com.hpe.application.automation.tools.octane.events.EventsService;
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import hudson.CopyOnWrite;
 import hudson.Extension;
 import hudson.ExtensionList;
@@ -73,9 +70,6 @@ public class OctaneServerSettingsBuilder extends Builder {
 
         @CopyOnWrite
         private OctaneServerSettingsModel[] servers;
-
-        @XStreamOmitField
-        BdiConfigurationFetcher bdiConfigurationFetcher;
 
         @Override
         protected XmlFile getConfigFile() {
@@ -170,7 +164,7 @@ public class OctaneServerSettingsBuilder extends Builder {
 
         public void setModel(OctaneServerSettingsModel newModel) {
             //infer uiLocation
-            MqmProject mqmProject = null;
+            MqmProject mqmProject;
             try {
                 mqmProject = ConfigurationParser.parseUiLocation(newModel.getUiLocation());
                 newModel.setSharedSpace(mqmProject.getSharedSpace());
@@ -196,9 +190,6 @@ public class OctaneServerSettingsBuilder extends Builder {
             if (!oldConfiguration.equals(newConfiguration)) {
                 fireOnChanged(newConfiguration, oldConfiguration);
             }
-
-            // When Jenkins configuration is saved we refresh the bdi configuration
-            bdiConfigurationFetcher.refresh();
         }
 
         private void fireOnChanged(ServerConfiguration configuration, ServerConfiguration oldConfiguration) {
@@ -288,11 +279,6 @@ public class OctaneServerSettingsBuilder extends Builder {
             }
         }
 
-        @Inject
-        public void setBdiConfigurationFetcher(BdiConfigurationFetcher bdiConfigurationFetcher) {
-            this.bdiConfigurationFetcher = bdiConfigurationFetcher;
-        }
-
         public FormValidation doCheckInstanceId(@QueryParameter String value) {
             if (StringUtils.isBlank(value)) {
                 return FormValidation.error("Plugin Instance Id cannot be empty");
@@ -306,6 +292,5 @@ public class OctaneServerSettingsBuilder extends Builder {
                 throw new FormException("Validation of property in ALM Octane Server Configuration failed: " + result.getMessage(), formField);
             }
         }
-
     }
 }

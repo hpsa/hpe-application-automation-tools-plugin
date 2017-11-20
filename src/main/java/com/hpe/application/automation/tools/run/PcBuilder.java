@@ -107,6 +107,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     
     @DataBoundConstructor
     public PcBuilder(
+            String serverAndPort,
             String pcServerName,
             String almUserName,
             String almPassword,
@@ -124,7 +125,9 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
             String addRunToTrendReport,
             String trendReportId,
             boolean HTTPSProtocol,
-            String proxyOutURL) {
+            String proxyOutURL,
+            String proxyOutUser,
+            String proxyOutPassword) {
         this.almUserName = almUserName;
         this.almPassword = almPassword;
         this.timeslotDurationHours = timeslotDurationHours;
@@ -133,6 +136,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
 
         pcModel =
                 new PcModel(
+                        serverAndPort.trim(),
                         pcServerName.trim(),
                         almUserName.trim(),
                         almPassword,
@@ -149,7 +153,9 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                         addRunToTrendReport,
                         trendReportId,
                         HTTPSProtocol,
-                        proxyOutURL);
+                        proxyOutURL,
+                        proxyOutUser,
+                        proxyOutPassword);
     }
     
     @Override
@@ -587,8 +593,8 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         String viewUrl = String.format(urlPattern + "/%s", pcReportFileName);
         String downloadUrl = String.format(urlPattern + "/%s", "*zip*/pcRun");
         logger.println(HyperlinkNote.encodeTo(viewUrl, "View analysis report of run " + runId));
-        return String.format("Load Test Run ID: %s\n\nView analysis report:\n%s\n\nDownload Report:\n%s", runId,viewUrl, downloadUrl);
 
+        return String.format("Load Test Run ID: %s\n\nView analysis report:\n%s\n\nDownload Report:\n%s", runId, pcModel.getserverAndPort() +  "/" +  build.getUrl() + viewUrl, pcModel.getserverAndPort() + "/" + build.getUrl() + downloadUrl);
     }
     
     private String getArtifactsUrlPattern(Run<?, ?> build) {
@@ -689,6 +695,10 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
 
     }
 
+    public String getServerAndPort()
+    {
+        return getPcModel().getserverAndPort();
+    }
     public String getPcServerName()
     {
         return getPcModel().getPcServerName();
@@ -724,7 +734,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
         return getPcModel().getTrendReportId();
     }
 
-    public String autoTestInstanceID()
+    public String getAutoTestInstanceID()
     {
         return getPcModel().getAutoTestInstanceID();
     }
@@ -769,6 +779,8 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     }
 
     public String getProxyOutURL(){ return getPcModel().getProxyOutURL();}
+    public String getProxyOutUser(){ return getPcModel().getProxyOutUser();}
+    public String getProxyOutPassword(){ return getPcModel().getProxyOutPassword();}
 
     // This indicates to Jenkins that this is an implementation of an extension
     // point
