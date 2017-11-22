@@ -51,6 +51,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * this class manages a queue of coverage report upload tasks
  */
+
 @Extension
 public class CoverageReportsDispatcher extends AbstractSafeLoggingAsyncPeriodWork {
 	private static final Logger logger = LogManager.getLogger(CoverageReportsDispatcher.class);
@@ -63,6 +64,7 @@ public class CoverageReportsDispatcher extends AbstractSafeLoggingAsyncPeriodWor
 	private RetryModel retryModel;
 	private JenkinsMqmRestClientFactory clientFactory;
 	private final ResultQueue reportsQueue;
+
 	@Inject
 	public CoverageReportsDispatcher() throws IOException {
 		super("Octane coverage reports dispatcher");
@@ -125,7 +127,7 @@ public class CoverageReportsDispatcher extends AbstractSafeLoggingAsyncPeriodWor
 				boolean status = mqmRestClient.postCoverageReports(
 						ConfigurationService.getModel().getIdentity(),
 						BuildHandlerUtils.getJobCiId(build),
-						String.valueOf(build.getNumber()),
+						BuildHandlerUtils.getBuildCiId(build),
 						new FileInputStream(coverageFile),
 						coverageFile.length(), item.getType());
 				if (status) {
@@ -158,7 +160,7 @@ public class CoverageReportsDispatcher extends AbstractSafeLoggingAsyncPeriodWor
 	private void reAttemptTask(String projectName, int buildNumber, String itemReportType) {
 		if (!reportsQueue.failed()) { // add task to queue and return true if max attempts not reached, else return false
 			logger.warn("maximum number of attempts reached (" + MAX_RETRIES + "), " +
-					"operation will not be re-attempted for build "+ projectName + " #" + buildNumber + " of type " + itemReportType);
+					"operation will not be re-attempted for build " + projectName + " #" + buildNumber + " of type " + itemReportType);
 			retryModel.success();
 		} else {
 			logger.info("There are pending logs, but we are in quiet period");
@@ -181,7 +183,11 @@ public class CoverageReportsDispatcher extends AbstractSafeLoggingAsyncPeriodWor
 
 	private Run getBuildFromQueueItem(ResultQueue.QueueItem item) {
 		Run result = null;
-		Job project = (Job) Jenkins.getInstance().getItemByFullName(item.getProjectName());
+		Jenkins jenkins = Jenkins.getInstance();
+		if (jenkins == null) {
+			throw new IllegalStateException("failed to obtain Jenkins' instance");
+		}
+		Job project = (Job) jenkins.getItemByFullName(item.getProjectName());
 		if (project != null) {
 			result = project.getBuildByNumber(item.getBuildNumber());
 		}

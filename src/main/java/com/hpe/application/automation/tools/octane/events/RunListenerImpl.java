@@ -48,37 +48,37 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Created with IntelliJ IDEA.
+ * Run Listener that handles basic CI events and dispatches notifications to the Octane server
  * User: gullery
  * Date: 24/08/14
  * Time: 17:21
  */
 
 @Extension
-@SuppressWarnings({"squid:S2259","squid:S1872","squid:S1698","squid:S1132"})
+@SuppressWarnings({"squid:S2259", "squid:S1872", "squid:S1698", "squid:S1132"})
 public final class RunListenerImpl extends RunListener<Run> {
+	private static final Logger logger = LogManager.getLogger(RunListenerImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private ExecutorService executor = new ThreadPoolExecutor(0, 5, 10L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
-	private static final Logger logger = LogManager.getLogger(RunListenerImpl.class);
 
 	@Inject
 	private TestListener testListener;
 
 	@Override
 	public void onStarted(final Run r, TaskListener listener) {
-		if(!ConfigurationService.getServerConfiguration().isValid()){
+		if (!ConfigurationService.getServerConfiguration().isValid()) {
+			return;
+		}
+		if (ConfigurationService.getModel().isSuspend()) {
 			return;
 		}
 
-		if(ConfigurationService.getModel().isSuspend()){
-			return;
-		}
 		CIEvent event;
 		if (r.getClass().getName().equals("org.jenkinsci.plugins.workflow.job.WorkflowRun")) {
 			event = dtoFactory.newDTO(CIEvent.class)
 					.setEventType(CIEventType.STARTED)
 					.setProject(BuildHandlerUtils.getJobCiId(r))
-					.setBuildCiId(String.valueOf(r.getNumber()))
+					.setBuildCiId(BuildHandlerUtils.getBuildCiId(r))
 					.setNumber(String.valueOf(r.getNumber()))
 					.setStartTime(r.getStartTimeInMillis())
 					.setPhaseType(PhaseType.POST)
@@ -89,17 +89,16 @@ public final class RunListenerImpl extends RunListener<Run> {
 			workFlowRunProcessor.registerEvents(executor);
 		} else {
 			if (r.getParent() instanceof MatrixConfiguration) {
-				AbstractBuild build = (AbstractBuild) r;
 				event = dtoFactory.newDTO(CIEvent.class)
 						.setEventType(CIEventType.STARTED)
 						.setProject(BuildHandlerUtils.getJobCiId(r))
 						.setProjectDisplayName(BuildHandlerUtils.getJobCiId(r))
-						.setBuildCiId(String.valueOf(build.getNumber()))
-						.setNumber(String.valueOf(build.getNumber()))
-						.setStartTime(build.getStartTimeInMillis())
-						.setEstimatedDuration(build.getEstimatedDuration())
-						.setCauses(CIEventCausesFactory.processCauses(extractCauses(build)))
-						.setParameters(ParameterProcessors.getInstances(build));
+						.setBuildCiId(BuildHandlerUtils.getBuildCiId(r))
+						.setNumber(String.valueOf(r.getNumber()))
+						.setStartTime(r.getStartTimeInMillis())
+						.setEstimatedDuration(r.getEstimatedDuration())
+						.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
+						.setParameters(ParameterProcessors.getInstances(r));
 				if (isInternal(r)) {
 					event.setPhaseType(PhaseType.INTERNAL);
 				} else {
@@ -107,17 +106,16 @@ public final class RunListenerImpl extends RunListener<Run> {
 				}
 				EventsService.getExtensionInstance().dispatchEvent(event);
 			} else if (r instanceof AbstractBuild) {
-				AbstractBuild build = (AbstractBuild) r;
 				event = dtoFactory.newDTO(CIEvent.class)
 						.setEventType(CIEventType.STARTED)
 						.setProject(BuildHandlerUtils.getJobCiId(r))
 						.setProjectDisplayName(BuildHandlerUtils.getJobCiId(r))
-						.setBuildCiId(String.valueOf(build.getNumber()))
-						.setNumber(String.valueOf(build.getNumber()))
-						.setStartTime(build.getStartTimeInMillis())
-						.setEstimatedDuration(build.getEstimatedDuration())
-						.setCauses(CIEventCausesFactory.processCauses(extractCauses(build)))
-						.setParameters(ParameterProcessors.getInstances(build));
+						.setBuildCiId(BuildHandlerUtils.getBuildCiId(r))
+						.setNumber(String.valueOf(r.getNumber()))
+						.setStartTime(r.getStartTimeInMillis())
+						.setEstimatedDuration(r.getEstimatedDuration())
+						.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
+						.setParameters(ParameterProcessors.getInstances(r));
 				if (isInternal(r)) {
 					event.setPhaseType(PhaseType.INTERNAL);
 				} else {
@@ -129,13 +127,11 @@ public final class RunListenerImpl extends RunListener<Run> {
 	}
 
 	@Override
-	public void onFinalized(Run r)
-	{
-		if(!ConfigurationService.getServerConfiguration().isValid()){
+	public void onFinalized(Run r) {
+		if (!ConfigurationService.getServerConfiguration().isValid()) {
 			return;
 		}
-
-		if(ConfigurationService.getModel().isSuspend()){
+		if (ConfigurationService.getModel().isSuspend()) {
 			return;
 		}
 
@@ -153,21 +149,21 @@ public final class RunListenerImpl extends RunListener<Run> {
 		} else {
 			result = CIBuildResult.UNAVAILABLE;
 		}
-		CIEvent	event = dtoFactory.newDTO(CIEvent.class)
-			.setEventType(CIEventType.FINISHED)
-			.setBuildCiId(String.valueOf(r.getNumber()))
-			.setNumber(String.valueOf(r.getNumber()))
-			.setProject(BuildHandlerUtils.getJobCiId(r))
-			.setStartTime(r.getStartTimeInMillis())
-			.setEstimatedDuration(r.getEstimatedDuration())
-			.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
-			.setResult(result)
-			.setDuration(r.getDuration())
-			.setTestResultExpected(hasTests);
+		CIEvent event = dtoFactory.newDTO(CIEvent.class)
+				.setEventType(CIEventType.FINISHED)
+				.setBuildCiId(BuildHandlerUtils.getBuildCiId(r))
+				.setNumber(String.valueOf(r.getNumber()))
+				.setProject(BuildHandlerUtils.getJobCiId(r))
+				.setStartTime(r.getStartTimeInMillis())
+				.setEstimatedDuration(r.getEstimatedDuration())
+				.setCauses(CIEventCausesFactory.processCauses(extractCauses(r)))
+				.setResult(result)
+				.setDuration(r.getDuration())
+				.setTestResultExpected(hasTests);
 
-		if(r instanceof AbstractBuild){
+		if (r instanceof AbstractBuild) {
 			event.setParameters(ParameterProcessors.getInstances(r))
-				.setProjectDisplayName(BuildHandlerUtils.getJobCiId(r));
+					.setProjectDisplayName(BuildHandlerUtils.getJobCiId(r));
 		}
 		EventsService.getExtensionInstance().dispatchEvent(event);
 	}
@@ -211,7 +207,6 @@ public final class RunListenerImpl extends RunListener<Run> {
 				}
 			}
 		}
-
 		return result;
 	}
 
@@ -234,7 +229,6 @@ public final class RunListenerImpl extends RunListener<Run> {
 		if (r.getParent() instanceof MatrixConfiguration) {
 			return ((MatrixRun) r).getParentBuild().getCauses();
 		}
-
 		return r.getCauses();
 	}
 }
