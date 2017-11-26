@@ -44,10 +44,10 @@
                     </f:optionalBlock>
                 </table>
 
-                <span>
-                    <f:checkbox checked="${mqm.suspend}" value="${mqm.suspend}"/>
+                <div style="margin-left: 2px">
+                    <f:checkbox checked="${mqm.suspend}" value="${mqm.suspend}" field="suspend"/>
                     <label>&#160; ${%global.config.suspend.title}</label>
-               </span>
+               </div>
 
             </f:repeatable>
         </f:entry>
