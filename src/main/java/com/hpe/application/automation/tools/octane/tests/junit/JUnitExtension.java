@@ -1,16 +1,33 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
- *     Licensed under the Apache License, Version 2.0 (the "License");
- *     you may not use this file except in compliance with the License.
- *     You may obtain a copy of the License at
+ * © Copyright 2013 EntIT Software LLC
+ *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
+ *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ *  marks are the property of their respective owners.
+ * __________________________________________________________________
+ * MIT License
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * Copyright (c) 2018 Micro Focus Company, L.P.
  *
- *     Unless required by applicable law or agreed to in writing, software
- *     distributed under the License is distributed on an "AS IS" BASIS,
- *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *     See the License for the specific language governing permissions and
- *     limitations under the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ * ___________________________________________________________________
  *
  */
 
@@ -18,6 +35,7 @@ package com.hpe.application.automation.tools.octane.tests.junit;
 
 import com.google.inject.Inject;
 import com.hpe.application.automation.tools.octane.actions.cucumber.CucumberTestResultsAction;
+import com.hpe.application.automation.tools.octane.executor.CheckOutSubDirEnvContributor;
 import com.hpe.application.automation.tools.octane.tests.HPRunnerType;
 import com.hpe.application.automation.tools.octane.tests.MqmTestsExtension;
 import com.hpe.application.automation.tools.octane.tests.TestResultContainer;
@@ -41,10 +59,7 @@ import org.jenkinsci.remoting.RoleChecker;
 
 import javax.xml.stream.XMLStreamException;
 import java.io.*;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Converter of Jenkins test report to ALM Octane test report format(junitResult.xml->mqmTests.xml)
@@ -55,7 +70,7 @@ public class JUnitExtension extends MqmTestsExtension {
 
 	public static final String STORM_RUNNER = "StormRunner";
 	public static final String LOAD_RUNNER = "LoadRunner";
-	public static final String PERFORMANCE_CENTER_RUNNER = "Performance Center1";
+	public static final String PERFORMANCE_CENTER_RUNNER = "Performance Center";
 	public static final String PERFORMANCE_TEST_TYPE = "Performance";
 
 	private static final String JUNIT_RESULT_XML = "junitResult.xml"; // NON-NLS
@@ -124,7 +139,7 @@ public class JUnitExtension extends MqmTestsExtension {
 		} else if (isLoadRunnerProject) {
 			detectedFields = new ResultFields(null, LOAD_RUNNER, null);
 		} else if (hpRunnerType.equals(HPRunnerType.PerformanceCenter)) {
-			detectedFields = new ResultFields(null, null/*PERFORMANCE_CENTER_RUNNER*/, null, PERFORMANCE_TEST_TYPE);
+			detectedFields = new ResultFields(null, PERFORMANCE_CENTER_RUNNER, null, PERFORMANCE_TEST_TYPE);
 		} else {
 			detectedFields = resultFieldsDetectionService.getDetectedFields(build);
 		}
@@ -155,12 +170,17 @@ public class JUnitExtension extends MqmTestsExtension {
 		private final String buildId;
 		private final String jenkinsRootUrl;
 		private final HPRunnerType hpRunnerType;
-		private boolean isUFTProject = false;
 		private FilePath filePath;
 		private List<ModuleDetection> moduleDetection;
 		private long buildStarted;
 		private FilePath workspace;
 		private boolean stripPackageAndClass;
+		private String sharedCheckOutDirectory;
+
+		//this class is run on master and JUnitXmlIterator is runnning on slave.
+		//this object pass some master2slave data
+		private Object additionalContext;
+		private String buildRootDir;
 
 		public GetJUnitTestResults( Run<?, ?> build, List<FilePath> reports, boolean stripPackageAndClass, HPRunnerType hpRunnerType, String jenkinsRootUrl) throws IOException, InterruptedException {
 			this.reports = reports;
@@ -170,13 +190,34 @@ public class JUnitExtension extends MqmTestsExtension {
 			this.stripPackageAndClass = stripPackageAndClass;
 			this.hpRunnerType = hpRunnerType;
 			this.jenkinsRootUrl = jenkinsRootUrl;
+			this.buildRootDir = build.getRootDir().getCanonicalPath();
+			this.sharedCheckOutDirectory = CheckOutSubDirEnvContributor.getSharedCheckOutDirectory(build.getParent());
+
 			//AbstractProject project = (AbstractProject)build.getParent();/*build.getProject()*/;
 			this.jobName =build.getParent().getName();// project.getName();
-			this.buildId =BuildHandlerUtils.getBuildId(build);///*build.getProject()*/((AbstractProject)build.getParent()).getBuilds().getLastBuild().getId();
+			this.buildId = BuildHandlerUtils.getBuildId(build);///*build.getProject()*/((AbstractProject)build.getParent()).getBuilds().getLastBuild().getId();
 			moduleDetection =Arrays.asList(
 					new MavenBuilderModuleDetection(build),
 					new MavenSetModuleDetection(build),
 					new ModuleDetection.Default());
+
+
+			if(HPRunnerType.UFT.equals(hpRunnerType)){
+
+				//extract folder names for created tests
+				String reportFolder = buildRootDir + "/archive/UFTReport";
+				Set<String> testFolderNames = new HashSet<>();
+				File reportFolderFile = new File(reportFolder);
+				if (reportFolderFile.exists()) {
+					File[] children = reportFolderFile.listFiles();
+					if (children != null) {
+						for (File child : children) {
+							testFolderNames.add(child.getName());
+						}
+					}
+				}
+				additionalContext = testFolderNames;
+			}
 		}
 
 		@Override
@@ -187,7 +228,7 @@ public class JUnitExtension extends MqmTestsExtension {
 
 			try {
 				for (FilePath report : reports) {
-					JUnitXmlIterator iterator = new JUnitXmlIterator(report.read(), moduleDetection, workspace, jobName, buildId, buildStarted, stripPackageAndClass, hpRunnerType, jenkinsRootUrl);
+					JUnitXmlIterator iterator = new JUnitXmlIterator(report.read(), moduleDetection, workspace, sharedCheckOutDirectory, jobName, buildId, buildStarted, stripPackageAndClass, hpRunnerType, jenkinsRootUrl, additionalContext);
 					while (iterator.hasNext()) {
 						oos.writeObject(iterator.next());
 					}
