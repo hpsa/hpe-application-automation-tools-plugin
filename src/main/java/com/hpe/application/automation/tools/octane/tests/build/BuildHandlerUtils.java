@@ -68,7 +68,9 @@ public class BuildHandlerUtils {
 	}
 
 	public static String getBuildCiId(Run run) {
-		return run.getNumber() + "_" + run.getStartTimeInMillis();
+		return String.valueOf(run.getNumber());
+		//  YG  temportarty disabling the support for fluid build number until Octane supports it
+		//return run.getNumber() + "_" + run.getStartTimeInMillis();
 	}
 
 	public static String getJobCiId(Run run) {
