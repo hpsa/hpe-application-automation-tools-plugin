@@ -81,7 +81,7 @@
 		<developerConnection>scm:git:ssh://git@github.com/jenkinsci/hpe-application-automation-tools-plugin.git
 		</developerConnection>
 		<url>https://github.com/jenkinsci/hpe-application-automation-tools-plugin</url>
-		<tag>head</tag>
+		<tag>hp-application-automation-tools-plugin-5.3</tag>
 	</scm>
 	<issueManagement>
 		<system>JIRA</system>
