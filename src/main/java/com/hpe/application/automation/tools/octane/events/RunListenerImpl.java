@@ -54,9 +54,6 @@ import hudson.matrix.MatrixRun;
 import hudson.model.*;
 import hudson.model.listeners.RunListener;
 import jenkins.model.Jenkins;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -73,8 +70,7 @@ import java.util.concurrent.TimeUnit;
 
 @Extension
 @SuppressWarnings({"squid:S2259", "squid:S1872", "squid:S1698", "squid:S1132"})
-public final class RunListenerImpl extends RunListener<Run> {
-	private static final Logger logger = LogManager.getLogger(RunListenerImpl.class);
+public final class RunListenerImpl extends RunListener<Run> {	
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private ExecutorService executor = new ThreadPoolExecutor(0, 5, 10L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 
