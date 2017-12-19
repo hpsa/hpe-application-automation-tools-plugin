@@ -41,7 +41,7 @@
 	</parent>
 
 	<artifactId>hp-application-automation-tools-plugin</artifactId>
-	<version>5.3</version>
+	<version>5.3.1-beta</version>
 	<packaging>hpi</packaging>
 	<name>HPE Application Automation Tools</name>
 	<description>The plugin integrates Jenkins with the following HPE products - Service Virtualization, LoadRunner, Performance Center, Unified Functional Testing, QuickTest Professional, Service Test, Mobile Center, Application Lifecycle Management and Application Lifecycle Management Octane.</description>
@@ -81,7 +81,7 @@
 		<developerConnection>scm:git:ssh://git@github.com/jenkinsci/hpe-application-automation-tools-plugin.git
 		</developerConnection>
 		<url>https://github.com/jenkinsci/hpe-application-automation-tools-plugin</url>
-		<tag>hp-application-automation-tools-plugin-5.3</tag>
+		<tag>HEAD</tag>
 	</scm>
 	<issueManagement>
 		<system>JIRA</system>
@@ -210,11 +210,24 @@
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<configuration>
 					<additionalparam>-Xdoclint:none</additionalparam>
+					<skip>true</skip>
 				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>findbugs-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>none</phase>
+					</execution>
+				</executions>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
 				<executions>
 					<execution>
 						<phase>none</phase>
