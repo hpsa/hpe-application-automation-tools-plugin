@@ -37,32 +37,36 @@ import hudson.Extension;
 import hudson.model.AbstractBuild;
 import hudson.model.Run;
 
+/**
+ * Run/Build metadata factory for Maven projects
+ */
+
 @Extension
 public class MavenBuildExtension extends BuildHandlerExtension {
 
 	@Override
-	public boolean supports(Run<?, ?> build) {
-		return "hudson.maven.MavenBuild".equals(build.getClass().getName()) ||
-				"hudson.maven.MavenModuleSetBuild".equals(build.getClass().getName());
+	public boolean supports(Run<?, ?> run) {
+		return "hudson.maven.MavenBuild".equals(run.getClass().getName()) ||
+				"hudson.maven.MavenModuleSetBuild".equals(run.getClass().getName());
 	}
 
 	@Override
-	public BuildDescriptor getBuildType(Run<?, ?> build) {
+	public BuildDescriptor getBuildType(Run<?, ?> run) {
 		return new BuildDescriptor(
-				BuildHandlerUtils.getJobCiId(build),
-				((AbstractBuild)build).getProject().getName(),
-				String.valueOf(build.getNumber()),
-				String.valueOf(build.getNumber()),
+				BuildHandlerUtils.getJobCiId(run),
+				((AbstractBuild) run).getProject().getName(),
+				BuildHandlerUtils.getBuildCiId(run),
+				String.valueOf(run.getNumber()),
 				"");
 	}
 
 	@Override
-	public String getProjectFullName(Run<?, ?> build) {
-		if ("hudson.maven.MavenBuild".equals(build.getClass().getName())) {
+	public String getProjectFullName(Run<?, ?> run) {
+		if ("hudson.maven.MavenBuild".equals(run.getClass().getName())) {
 			// we don't push individual maven module results (although we create the file)
 			return null;
 		} else {
-			return ((AbstractBuild)build).getProject().getFullName();
+			return ((AbstractBuild) run).getProject().getFullName();
 		}
 	}
 }

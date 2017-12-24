@@ -150,7 +150,8 @@ public class OctaneServerSettingsBuilder extends Builder {
                     model.getSharedSpace(),
                     model.getUsername(),
                     model.getPassword(),
-                    model.getImpersonatedUser());
+                    model.getImpersonatedUser(),
+                    model.isSuspend());
         }
 
         @Override

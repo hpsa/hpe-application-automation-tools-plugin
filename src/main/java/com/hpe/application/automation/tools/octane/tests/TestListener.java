@@ -67,11 +67,11 @@ public class TestListener {
 
 	private ResultQueue queue;
 
-	public void processBuild(Run build, TaskListener listener) {
+	public boolean processBuild(Run build) {
 
 		FilePath resultPath = new FilePath(new FilePath(build.getRootDir()), TEST_RESULT_FILE);
 		TestResultXmlWriter resultWriter = new TestResultXmlWriter(resultPath, build);
-		boolean success = false;
+		boolean success = true;
 		boolean hasTests = false;
 		String jenkinsRootUrl = Jenkins.getInstance().getRootUrl();
 		HPRunnerType hpRunnerType = HPRunnerType.NONE;
@@ -108,22 +108,24 @@ public class TestListener {
 						}
 					}
 				} catch (IllegalArgumentException e) {
-					listener.error(e.getMessage());
+					success = false;
+					logger.error(e.getMessage());
 					if (!build.getResult().isWorseOrEqualTo(Result.UNSTABLE)) {
 						build.setResult(Result.UNSTABLE);
 					}
-					return;
+					break;
 				} catch (InterruptedException ie) {
+					success = false;
 					logger.error("Interrupted processing test results in " + ext.getClass().getName(), ie);
 					Thread.currentThread().interrupt();
-					return;
+					break;
 				} catch (Exception e) {
+					success = false;
 					// extensibility involved: catch both checked and RuntimeExceptions
 					logger.error("Error processing test results in " + ext.getClass().getName(), e);
-					return;
+					break;
 				}
 			}
-			success = true;
 		} finally {
 			try {
 				resultWriter.close();
@@ -135,8 +137,10 @@ public class TestListener {
 				}
 			} catch (XMLStreamException xmlse) {
 				logger.error("Error processing test results", xmlse);
+				success = false;
 			}
 		}
+		return success && hasTests;//test results expected
 	}
 
 	@Inject

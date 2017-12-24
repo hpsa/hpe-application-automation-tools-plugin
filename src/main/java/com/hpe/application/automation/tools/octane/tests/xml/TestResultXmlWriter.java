@@ -58,7 +58,6 @@ import java.util.Iterator;
 public class TestResultXmlWriter {
 
 	private FilePath targetPath;
-	//private Run build;
 	private BuildDescriptor buildDescriptor;
 
 	private XMLStreamWriter writer;
@@ -71,7 +70,6 @@ public class TestResultXmlWriter {
 
 	public TestResultXmlWriter(FilePath targetPath, Run build) {
 		this.targetPath = targetPath;
-		//this.build = build;
 		this.buildDescriptor = BuildHandlerUtils.getBuildType(build);
 	}
 
@@ -101,19 +99,18 @@ public class TestResultXmlWriter {
 	private void initialize(ResultFields resultFields) throws IOException, InterruptedException, XMLStreamException {
 		if (outputStream == null) {
 			outputStream = targetPath.write();
-			writer = possiblyCreateIndentingWriter(XMLOutputFactory.newInstance().createXMLStreamWriter(outputStream));
+			writer = XMLOutputFactory.newInstance().createXMLStreamWriter(outputStream);
 			writer.writeStartDocument();
 
 			writer.writeStartElement("test_result");
 			writer.writeStartElement("build");
 			writer.writeAttribute("server_id", ConfigurationService.getModel().getIdentity());
-			BuildDescriptor descriptor = this.buildDescriptor;
-			writer.writeAttribute("job_id", descriptor.getJobId());
-			writer.writeAttribute("job_name", descriptor.getJobName());
-			writer.writeAttribute("build_id", descriptor.getBuildId());
-			writer.writeAttribute("build_name", descriptor.getBuildName());
-			if (!StringUtils.isEmpty(descriptor.getSubType())) {
-				writer.writeAttribute("sub_type", descriptor.getSubType());
+			writer.writeAttribute("job_id", buildDescriptor.getJobId());
+			writer.writeAttribute("job_name", buildDescriptor.getJobName());
+			writer.writeAttribute("build_id", buildDescriptor.getBuildId());
+			writer.writeAttribute("build_name", buildDescriptor.getBuildName());
+			if (!StringUtils.isEmpty(buildDescriptor.getSubType())) {
+				writer.writeAttribute("sub_type", buildDescriptor.getSubType());
 			}
 			writer.writeEndElement(); // build
 			writeFields(resultFields);
@@ -138,19 +135,6 @@ public class TestResultXmlWriter {
 			writer.writeAttribute("type", type);
 			writer.writeAttribute("value", value);
 			writer.writeEndElement();
-		}
-	}
-
-	// TODO: check if there is public mechanism yet
-	private XMLStreamWriter possiblyCreateIndentingWriter(XMLStreamWriter writer) {
-		try {
-			Class<?> clazz = Class.forName("com.sun.xml.txw2.output.IndentingXMLStreamWriter");
-			XMLStreamWriter xmlStreamWriter = (XMLStreamWriter) clazz.getConstructor(XMLStreamWriter.class).newInstance(writer);
-			clazz.getMethod("setIndentStep", String.class).invoke(xmlStreamWriter, " ");
-			return xmlStreamWriter;
-		} catch (Exception e) {
-			// do without indentation
-			return writer;
 		}
 	}
 }

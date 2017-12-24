@@ -70,7 +70,7 @@ public class BridgeClient {
 
 	public BridgeClient(ServerConfiguration mqmConfig, JenkinsMqmRestClientFactory clientFactory, String serverIdentity) {
 		this.serverInstanceId = serverIdentity;
-		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password, mqmConfig.impersonatedUser);
+		this.mqmConfig = new ServerConfiguration(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password, mqmConfig.impersonatedUser, mqmConfig.suspend);
 		restClientFactory = clientFactory;
 		connect();
 		logger.info("client initialized for '" + this.mqmConfig.location + "'; SP: " + this.mqmConfig.sharedSpace + "; access key: " + this.mqmConfig.username);
@@ -78,7 +78,7 @@ public class BridgeClient {
 
 	public void update(ServerConfiguration newConfig, String serverIdentity) {
 		this.serverInstanceId = serverIdentity;
-		mqmConfig = new ServerConfiguration(newConfig.location, newConfig.sharedSpace, newConfig.username, newConfig.password, newConfig.impersonatedUser);
+		mqmConfig = new ServerConfiguration(newConfig.location, newConfig.sharedSpace, newConfig.username, newConfig.password, newConfig.impersonatedUser, mqmConfig.suspend);
 		logger.info("client updated to '" + mqmConfig.location + "'; SP: " + mqmConfig.sharedSpace + "; access key: " + newConfig.username);
 		restClientFactory.updateMqmRestClient(mqmConfig.location, mqmConfig.sharedSpace, mqmConfig.username, mqmConfig.password);
 		connect();
@@ -102,7 +102,8 @@ public class BridgeClient {
 								.setSdkVersion(OctaneSDK.SDK_VERSION)
 								.setPluginVersion(OctaneSDK.getInstance().getPluginServices().getPluginInfo().getVersion())
 								.setOctaneUser(pluginServices.getOctaneConfiguration().getApiKey())
-								.setCiServerUser(ConfigurationService.getModel().getImpersonatedUser());
+								.setCiServerUser(ConfigurationService.getModel().getImpersonatedUser())
+								.setSuspend(pluginServices.getServerInfo().isSuspended());
 						tasksJSON = restClient.getAbridgedTasks(info);
 						isConnected = false;
 						connect();

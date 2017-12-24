@@ -43,29 +43,33 @@ import hudson.model.Run;
 
 import java.util.List;
 
+/**
+ * Run/Build metadata factory for Matrix projects
+ */
+
 @Extension
 public class MatrixBuildExtension extends BuildHandlerExtension {
 
 	@Override
-	public boolean supports(Run<?, ?> build) {
-		return "hudson.matrix.MatrixRun".equals(build.getClass().getName());
+	public boolean supports(Run<?, ?> run) {
+		return "hudson.matrix.MatrixRun".equals(run.getClass().getName());
 	}
 
 	@Override
-	public BuildDescriptor getBuildType(Run<?, ?> build) {
-		AbstractBuild matrixRun = (AbstractBuild) build;
-		List<CIParameter> parameters = ParameterProcessors.getInstances(build);
+	public BuildDescriptor getBuildType(Run<?, ?> run) {
+		AbstractBuild matrixRun = (AbstractBuild) run;
+		List<CIParameter> parameters = ParameterProcessors.getInstances(run);
 		String subBuildName = ModelFactory.generateSubBuildName(parameters);
 		return new BuildDescriptor(
-				BuildHandlerUtils.getJobCiId(build),
+				BuildHandlerUtils.getJobCiId(run),
 				matrixRun.getRootBuild().getProject().getName(),
-				String.valueOf(build.getNumber()),
-				String.valueOf(build.getNumber()),
+				BuildHandlerUtils.getBuildCiId(run),
+				String.valueOf(run.getNumber()),
 				subBuildName);
 	}
 
 	@Override
-	public String getProjectFullName(Run<?, ?> build) {
-		return ((MatrixRun)build).getProject().getFullName();
+	public String getProjectFullName(Run<?, ?> run) {
+		return ((MatrixRun) run).getProject().getFullName();
 	}
 }
