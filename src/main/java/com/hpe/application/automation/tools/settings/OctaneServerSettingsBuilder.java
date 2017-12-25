@@ -1,23 +1,48 @@
-// (c) Copyright 2016 Hewlett Packard Enterprise Development LP
-// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-// The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+/*
+ * © Copyright 2013 EntIT Software LLC
+ *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
+ *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ *  marks are the property of their respective owners.
+ * __________________________________________________________________
+ * MIT License
+ *
+ * Copyright (c) 2018 Micro Focus Company, L.P.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ * ___________________________________________________________________
+ *
+ */
 
 package com.hpe.application.automation.tools.settings;
 
-import com.google.inject.Inject;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hpe.application.automation.tools.model.OctaneServerSettingsModel;
 import com.hpe.application.automation.tools.octane.CIJenkinsServicesImpl;
 import com.hpe.application.automation.tools.octane.Messages;
 import com.hpe.application.automation.tools.octane.bridge.BridgesService;
-import com.hpe.application.automation.tools.octane.buildLogs.BdiConfigurationFetcher;
 import com.hpe.application.automation.tools.octane.configuration.ConfigurationListener;
 import com.hpe.application.automation.tools.octane.configuration.ConfigurationParser;
 import com.hpe.application.automation.tools.octane.configuration.MqmProject;
 import com.hpe.application.automation.tools.octane.configuration.ServerConfiguration;
 import com.hpe.application.automation.tools.octane.events.EventsService;
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import hudson.CopyOnWrite;
 import hudson.Extension;
 import hudson.ExtensionList;
@@ -73,9 +98,6 @@ public class OctaneServerSettingsBuilder extends Builder {
 
         @CopyOnWrite
         private OctaneServerSettingsModel[] servers;
-
-        @XStreamOmitField
-        BdiConfigurationFetcher bdiConfigurationFetcher;
 
         @Override
         protected XmlFile getConfigFile() {
@@ -170,7 +192,7 @@ public class OctaneServerSettingsBuilder extends Builder {
 
         public void setModel(OctaneServerSettingsModel newModel) {
             //infer uiLocation
-            MqmProject mqmProject = null;
+            MqmProject mqmProject;
             try {
                 mqmProject = ConfigurationParser.parseUiLocation(newModel.getUiLocation());
                 newModel.setSharedSpace(mqmProject.getSharedSpace());
@@ -196,9 +218,6 @@ public class OctaneServerSettingsBuilder extends Builder {
             if (!oldConfiguration.equals(newConfiguration)) {
                 fireOnChanged(newConfiguration, oldConfiguration);
             }
-
-            // When Jenkins configuration is saved we refresh the bdi configuration
-            bdiConfigurationFetcher.refresh();
         }
 
         private void fireOnChanged(ServerConfiguration configuration, ServerConfiguration oldConfiguration) {
@@ -288,11 +307,6 @@ public class OctaneServerSettingsBuilder extends Builder {
             }
         }
 
-        @Inject
-        public void setBdiConfigurationFetcher(BdiConfigurationFetcher bdiConfigurationFetcher) {
-            this.bdiConfigurationFetcher = bdiConfigurationFetcher;
-        }
-
         public FormValidation doCheckInstanceId(@QueryParameter String value) {
             if (StringUtils.isBlank(value)) {
                 return FormValidation.error("Plugin Instance Id cannot be empty");
@@ -306,6 +320,5 @@ public class OctaneServerSettingsBuilder extends Builder {
                 throw new FormException("Validation of property in ALM Octane Server Configuration failed: " + result.getMessage(), formField);
             }
         }
-
     }
 }

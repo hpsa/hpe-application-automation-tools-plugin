@@ -1,16 +1,33 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
- *     Licensed under the Apache License, Version 2.0 (the "License");
- *     you may not use this file except in compliance with the License.
- *     You may obtain a copy of the License at
+ * © Copyright 2013 EntIT Software LLC
+ *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
+ *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ *  marks are the property of their respective owners.
+ * __________________________________________________________________
+ * MIT License
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * Copyright (c) 2018 Micro Focus Company, L.P.
  *
- *     Unless required by applicable law or agreed to in writing, software
- *     distributed under the License is distributed on an "AS IS" BASIS,
- *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *     See the License for the specific language governing permissions and
- *     limitations under the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ * ___________________________________________________________________
  *
  */
 
@@ -38,6 +55,7 @@ import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.List;
+import java.util.Set;
 
 /**
  * JUnit result parser and enricher according to HPRunnerType
@@ -64,17 +82,21 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 	private String externalURL;
 	private List<ModuleDetection> moduleDetection;
 	private String jenkinsRootUrl;
+	private String sharedCheckOutDirectory;
+	private Object additionalContext;
 
-	public JUnitXmlIterator(InputStream read, List<ModuleDetection> moduleDetection, FilePath workspace, String jobName, String buildId, long buildStarted, boolean stripPackageAndClass, HPRunnerType hpRunnerType, String jenkinsRootUrl) throws XMLStreamException {
+	public JUnitXmlIterator(InputStream read, List<ModuleDetection> moduleDetection, FilePath workspace, String sharedCheckOutDirectory, String jobName, String buildId, long buildStarted, boolean stripPackageAndClass, HPRunnerType hpRunnerType, String jenkinsRootUrl, Object additionalContext) throws XMLStreamException {
 		super(read);
 		this.stripPackageAndClass = stripPackageAndClass;
 		this.moduleDetection = moduleDetection;
 		this.workspace = workspace;
+		this.sharedCheckOutDirectory = sharedCheckOutDirectory;
 		this.buildId = buildId;
 		this.jobName = jobName;
 		this.buildStarted = buildStarted;
 		this.hpRunnerType = hpRunnerType;
 		this.jenkinsRootUrl = jenkinsRootUrl;
+		this.additionalContext = additionalContext;
 	}
 
 	private static long parseTime(String timeString) {
@@ -137,7 +159,7 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 				errorMsg = "";
 			} else if ("className".equals(localName)) { // NON-NLS
 				String fqn = readNextValue();
-				int p = fqn.lastIndexOf(".");
+				int p = fqn.lastIndexOf('.');
 				className = fqn.substring(p + 1);
 				if (p > 0) {
 					packageName = fqn.substring(0, p);
@@ -147,14 +169,18 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 			} else if ("testName".equals(localName)) { // NON-NLS
 				testName = readNextValue();
 
-				if (hpRunnerType.equals(HPRunnerType.UFT)) {
-					packageName = "";
-					className = "";
+                if (hpRunnerType.equals(HPRunnerType.UFT)) {
+                    String myPackageName = packageName;
+                    String myClassName = className;
+                    String myTestName = testName;
+                    packageName = "";
+                    className = "";
 
 					if (testName.startsWith(workspace.getRemote())) {
 						// if workspace is prefix of the method name, cut it off
 						// currently this handling is needed for UFT tests
-						String path = testName.substring(workspace.getRemote().length());
+						int testStartIndex = workspace.getRemote().length() + (sharedCheckOutDirectory == null ? 0 : (sharedCheckOutDirectory.length() + 1));
+						String path = testName.substring(testStartIndex);
 						path = path.replace(OctaneConstants.General.LINUX_PATH_SPLITTER, OctaneConstants.General.WINDOWS_PATH_SPLITTER);
 						path = StringUtils.strip(path, OctaneConstants.General.WINDOWS_PATH_SPLITTER);
 
@@ -168,7 +194,22 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 							testName = path;
 						}
 					}
-					externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/artifact/UFTReport/" + cleanTestName(testName) + "/run_results.html";
+
+					String cleanedTestName = cleanTestName(testName);
+					boolean testReportCreated = true;
+					if (additionalContext != null && additionalContext instanceof Set) {
+						Set createdTests = (Set) additionalContext;
+						testReportCreated = createdTests.contains(cleanedTestName);
+					}
+
+					workspace.createTextTempFile("build" + buildId + "." + cleanTestName(testName) + ".", "", "Created  " + testReportCreated);
+					if (testReportCreated) {
+						externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/artifact/UFTReport/" + cleanTestName(testName) + "/run_results.html";
+					} else {
+						//if UFT didn't created test results page - add reference to Jenkins test results page
+						externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/testReport/" + myPackageName + "/" + jenkinsTestClassFormat(myClassName) + "/" + jenkinsTestNameFormat(myTestName) + "/";
+					}
+
                 } else if (hpRunnerType.equals(HPRunnerType.PerformanceCenter)) {
                     externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/artifact/performanceTestsReports/pcRun/Report.html";
                 }
@@ -195,7 +236,7 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 			} else if ("errorDetails".equals(localName)) { // NON-NLS
 				status = TestResultStatus.FAILED;
 				errorMsg = readNextValue();
-				int index = stackTraceStr.indexOf(":");
+				int index = stackTraceStr.indexOf(':');
 				if (index >= 0) {
 					errorType = stackTraceStr.substring(0, index);
 				}
@@ -220,8 +261,25 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 	private String cleanTestName(String testName) {
 		// subfolder\testname
 		if (testName.contains("\\")) {
-			return testName.substring(testName.lastIndexOf("\\") + 1);
+			return testName.substring(testName.lastIndexOf('\\') + 1);
+		}
+		if (testName.contains("/")) {
+			return testName.substring(testName.lastIndexOf('/') + 1);
 		}
 		return testName;
+	}
+
+	private String jenkinsTestNameFormat(String testName) {
+		if (StringUtils.isEmpty(testName)) {
+			return testName;
+		}
+		return testName.trim().replaceAll("[-:\\ ,()/\\[\\]]", "_").replace('#', '_').replace('\\', '_').replace('.', '_');
+	}
+
+	private String jenkinsTestClassFormat(String className) {
+		if (StringUtils.isEmpty(className)) {
+			return className;
+		}
+		return className.trim().replaceAll("[:/<>]", "_").replace("\\", "_").replace(" ", "%20");
 	}
 }

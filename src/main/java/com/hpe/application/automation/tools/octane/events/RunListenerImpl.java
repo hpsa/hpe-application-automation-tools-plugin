@@ -1,23 +1,38 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
- *     Licensed under the Apache License, Version 2.0 (the "License");
- *     you may not use this file except in compliance with the License.
- *     You may obtain a copy of the License at
+ * © Copyright 2013 EntIT Software LLC
+ *  Certain versions of software and/or documents (“Material”) accessible here may contain branding from
+ *  Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017,
+ *  the Material is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP
+ *  and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE
+ *  marks are the property of their respective owners.
+ * __________________________________________________________________
+ * MIT License
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * Copyright (c) 2018 Micro Focus Company, L.P.
  *
- *     Unless required by applicable law or agreed to in writing, software
- *     distributed under the License is distributed on an "AS IS" BASIS,
- *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *     See the License for the specific language governing permissions and
- *     limitations under the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ * ___________________________________________________________________
  *
  */
 
 package com.hpe.application.automation.tools.octane.events;
 
-import com.hpe.application.automation.tools.octane.configuration.ConfigurationService;
-import com.hpe.application.automation.tools.octane.tests.build.BuildHandlerUtils;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
@@ -25,16 +40,25 @@ import com.hp.octane.integrations.dto.events.PhaseType;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
 import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
+import com.hpe.application.automation.tools.octane.configuration.ConfigurationService;
+import com.hpe.application.automation.tools.octane.executor.UftJobRecognizer;
 import com.hpe.application.automation.tools.octane.model.CIEventCausesFactory;
 import com.hpe.application.automation.tools.octane.model.processors.builders.WorkFlowRunProcessor;
 import com.hpe.application.automation.tools.octane.model.processors.parameters.ParameterProcessors;
 import com.hpe.application.automation.tools.octane.model.processors.projects.JobProcessorFactory;
+import com.hpe.application.automation.tools.octane.tests.HPRunnerType;
+import com.hpe.application.automation.tools.octane.tests.MqmTestsExtension;
+import com.hpe.application.automation.tools.octane.tests.TestResultContainer;
+import com.hpe.application.automation.tools.octane.tests.build.BuildHandlerUtils;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.Logger;
 import hudson.Extension;
 import hudson.matrix.MatrixConfiguration;
 import hudson.matrix.MatrixRun;
 import hudson.model.*;
 import hudson.model.listeners.RunListener;
 import jenkins.model.Jenkins;
+import org.apache.logging.log4j.LogManager;
 
 import java.util.Collection;
 import java.util.List;
@@ -55,7 +79,7 @@ import java.util.concurrent.TimeUnit;
 public final class RunListenerImpl extends RunListener<Run> {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private ExecutorService executor = new ThreadPoolExecutor(0, 5, 10L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
-
+	private static final Logger logger = LogManager.getLogger(RunListenerImpl.class);
 	@Override
 	public void onStarted(final Run r, TaskListener listener) {
 		if(!ConfigurationService.getServerConfiguration().isValid()){
@@ -147,6 +171,17 @@ public final class RunListenerImpl extends RunListener<Run> {
 			.setResult(result)
 			.setDuration(r.getDuration());
 
+		try {
+			if (r.getResult() == Result.FAILURE) {
+				Boolean hasTests = hasUftTests(r);
+				if (hasTests != null) {
+					event.setTestResultExpected(hasTests);
+				}
+			}
+		} catch (Exception e) {
+			logger.log(Level.WARN,"hasUftTests error",e);
+		}
+
 		if(r instanceof AbstractBuild){
 			event.setParameters(ParameterProcessors.getInstances(r))
 				.setProjectDisplayName(BuildHandlerUtils.getJobCiId(r));
@@ -196,6 +231,32 @@ public final class RunListenerImpl extends RunListener<Run> {
 
 		return result;
 	}
+
+    private static Boolean hasUftTests(Run build) {
+        if (build.getParent() instanceof FreeStyleProject && UftJobRecognizer.isExecutorJob((FreeStyleProject) build.getParent())) {
+            try {
+                boolean hasTests = false;
+                for (MqmTestsExtension ext : MqmTestsExtension.all()) {
+                    if (ext.supports(build)) {
+                        String jenkinsRootUrl = Jenkins.getInstance().getRootUrl();
+                        List<Run> buildsList = BuildHandlerUtils.getBuildPerWorkspaces(build);
+
+                        for (Run buildX : buildsList) {
+                            TestResultContainer testResultContainer = ext.getTestResults(buildX, HPRunnerType.UFT, jenkinsRootUrl);
+                            if (testResultContainer != null && testResultContainer.getIterator().hasNext()) {
+                                hasTests = true;
+                            }
+                        }
+                    }
+                }
+                return hasTests;
+            } catch (Exception e) {
+                logger.log(Level.WARN,"Could not check uft tests exists",e);
+            }
+        }
+
+        return null;
+    }
 
 	private static TopLevelItem getJobFromFolder(String causeJobName) {
 		String newJobRefId = causeJobName.substring(0, causeJobName.indexOf('/'));
