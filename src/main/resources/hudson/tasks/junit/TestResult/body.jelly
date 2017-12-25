@@ -86,11 +86,12 @@
             <tbody>
 
                 <j:set var="prevAll" value="${it.previousResult}" />
-                <j:forEach var="p" items="${it.children}">
+                <j:set var="packageResult" value="${it.getParentAction().getPackageResult(it)}" />
+                <j:forEach var="p" items="${packageResult.children}">
                     <j:set var="prev" value="${prevAll.findCorrespondingResult(p.id)}" />
                     <tr>
                         <td class="pane">
-                            <a href="${p.safeName}/" class="model-link inside">
+                            <a href="(root)/${p.safeName}/" class="model-link inside">
                                 <span style="${prev==null?'font-weight:bold':''}">
                                     <st:out value="${p.displayName}" />
                                 </span>

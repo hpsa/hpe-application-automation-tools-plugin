@@ -36,6 +36,7 @@ package com.hpe.application.automation.tools.results;
 import com.hpe.application.automation.tools.common.RuntimeUtils;
 import com.hpe.application.automation.tools.model.EnumDescription;
 import com.hpe.application.automation.tools.model.ResultsPublisherModel;
+import com.hpe.application.automation.tools.model.SrfScriptRunModel;
 import com.hpe.application.automation.tools.run.RunFromSrfBuilder;
 import hudson.AbortException;
 import hudson.Extension;
@@ -44,9 +45,7 @@ import hudson.Launcher;
 import hudson.model.*;
 import hudson.remoting.VirtualChannel;
 import hudson.tasks.*;
-import hudson.tasks.junit.CaseResult;
-import hudson.tasks.junit.TestResult;
-import hudson.tasks.junit.TestResultAction;
+import hudson.tasks.junit.*;
 import hudson.tasks.test.TestObject;
 import hudson.tasks.test.TestResultProjectAction;
 import net.sf.json.JSONArray;
@@ -70,10 +69,7 @@ import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * This class is adapted from {@link JunitResultArchiver}; Only the {@code perform()} method
@@ -118,7 +114,7 @@ public class SrfResultsReport extends Recorder implements Serializable {
         public Object getWrappedTarget(){
             return _target;
         }
-        private void getBuildInfo(CaseResult p){
+        private void getBuildInfo(ClassResult p){
             String data = null;
             BufferedReader reader = null;
             try {
@@ -172,68 +168,76 @@ public class SrfResultsReport extends Recorder implements Serializable {
               }
             _buildInfo = JSONArray.fromObject(data);
         }
-        public void startLoop(){
-            _idx = 0;
-        }
-        public  String getDeepLink(Object p){
+
+        public SrfScriptRunModel[] getScriptRuns(ClassResult classResult) {
+            JSONArray scriptRunsJson = null;
+            ArrayList<SrfScriptRunModel> scriptRuns = new ArrayList<>();
             String testName = "";
-            int idx = ++_idx;
-            testName = ((CaseResult) p).getClassName().toLowerCase();
-            getBuildInfo((CaseResult)p);
-            int cnt = _buildInfo.size();
-            String srfUrl = "";
-            for (int i = 0; i < cnt; i++) {
-                JSONObject jTest = _buildInfo.getJSONObject(i);
+
+            try{
+                testName = classResult.getClassName();
+            } catch (Exception e){
+                this._logger.println(e);
+                return null;
+            }
+
+            getBuildInfo(classResult);
+
+            JSONObject jTest = null;
+            for (int i = 0; i < _buildInfo.size(); i++) {
+                jTest = _buildInfo.getJSONObject(i);
+                if (jTest == null)
+                    throw new RuntimeException(String.format("Received empty test run"));
+
                 String name = jTest.getString("name").toLowerCase();
+
                 if(name.compareTo(testName) != 0)
                     continue;
 
-                JSONObject jo = (JSONObject)_buildInfo.get(0);
-                String y1 = jo.getString("yac");
-                JSONArray runs = jo.getJSONArray("scriptRuns");
-                int len = runs.size();
-                JSONObject run = runs.getJSONObject(len - idx );
-                String y2 = run.getString("yac");
-                srfUrl = String.format("%1s/results/%1s/details/compare?script-runs=%1s", getSrfServer(owner), y1, y2);
-                String tenant = jTest.getString("tenantid");
-                srfUrl = srfUrl.concat("&TENANTID=").concat(tenant);
+                scriptRunsJson = jTest.getJSONArray("scriptRuns");
+                break;
             }
-            _logger.println(srfUrl);
+
+            for(Iterator<JSONObject> i =  scriptRunsJson.iterator(); i.hasNext(); ) {
+                JSONObject scriptRunJson = i.next();
+
+                JSONObject assetInfo = scriptRunJson.getJSONObject("assetInfo");
+
+                SrfScriptRunModel srfScriptRunModel = new SrfScriptRunModel(
+                        scriptRunJson.getString("id"),
+                        assetInfo.getString("name"),
+                        scriptRunJson.getInt("durationMs"),
+                        SrfScriptRunModel.SrfStatus.valueOf(scriptRunJson.getString("status")),
+                        scriptRunJson.getJSONObject("environment"),
+                        scriptRunJson.getString("yac"),
+                        jTest
+                );
+
+                scriptRuns.add(srfScriptRunModel);
+            }
+
+            return scriptRuns.toArray(new SrfScriptRunModel[scriptRuns.size()]);
+        }
+
+        public SrfScriptRunModel getScriptRunModel(CaseResult caseResult) {
+            SrfScriptRunModel scriptRuns[] = this.getScriptRuns(caseResult.getParent());
+            for (SrfScriptRunModel scriptRun: scriptRuns) {
+                if (scriptRun.getLinkName().equals(caseResult.getSafeName()))
+                     return scriptRun;
+            }
+
+            throw new RuntimeException(String.format("Failed to find script run: %s in script runs", caseResult.getName()));
+        }
+
+        public String getDeepLink(SrfScriptRunModel srfScriptRunModel){
+            String srfUrl = String.format("%1s/results/%1s/details/compare?script-runs=%1s", getSrfServer(owner), srfScriptRunModel.parent.getString("yac"), srfScriptRunModel.yac);
+            srfUrl = srfUrl.concat("&TENANTID=").concat(srfScriptRunModel.parent.getString("tenantid"));
             return srfUrl;
         }
-        public String getEnvString(Object p){
-            String testName = "";
-            int idx = _idx + 1;
-            try{
-                testName = p.getClass().getMethod("getClassName").invoke(p).toString().toLowerCase();
-            }
-            catch (NoSuchMethodException e){
-                return "NoSuchMethodException";
-            }
-            catch (IllegalAccessException e){
-                return "IllegalAccessException";
-            }
-            catch(InvocationTargetException e){
-                return "InvocationTargetException";
-            }
-            catch (Exception e){
-                return e.getMessage();
-            }
-            int cnt = _buildInfo.size();
-            for (int i = 0; i < cnt; i++) {
-                JSONObject jTest = _buildInfo.getJSONObject(i);
-                String name = jTest.getString("name").toLowerCase();
-                if(name.compareTo(testName) != 0)
-                    continue;
-                JSONArray scriptRuns = jTest.getJSONArray("scriptRuns");
-                JSONObject scriptRun = scriptRuns.getJSONObject(idx - 1);
-                JSONObject env = scriptRun.getJSONObject("environment");
-                JSONObject os = env.getJSONObject("os");
-                JSONObject browser = env.getJSONObject("browser");
-                String envString = String.format("%1s %1s %1s %1s", os.getString("name"), os.getString("version"), browser.getString("name"), browser.getString("version"));
-                return envString;
-            }
-            return _buildInfo.size() + "";
+
+        public PackageResult getPackageResult(TestResult testResult) {
+            // There will always be one package level (root)
+            return testResult.getChildren().iterator().next();
         }
         private void setTarget(TestObject t, Hashtable<String, SrfTestResultAction>  h){
             _target = t;
@@ -429,35 +433,8 @@ public class SrfResultsReport extends Recorder implements Serializable {
          * </testsuites>
          */
 
-
-
-
-
-
-
-
-
-
-
-
-
-                
         return true;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     private void write2XML(Document document,String filename)
     {

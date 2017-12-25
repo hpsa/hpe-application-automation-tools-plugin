@@ -38,6 +38,7 @@
   <l:layout title="${it.run} test - ${it.displayName}">
     <st:include page="sidepanel.jelly" />
     <l:main-panel>
+      <j:set var="scriptRun" value="${it.getParentAction().getScriptRunModel(it)}" />
       <j:set var="st" value="${it.status}" />
       <h1 class="${st.cssClass}">
         <st:out value="${st.message}" />
@@ -45,7 +46,7 @@
       ${it.getClass.Name}
       <p>
        <span style="font-weight:bold">
-          <st:out value="${it.fullDisplayName}"/>
+          <st:out value="${scriptRun.fullName}"/>
         </span>
         <j:if test="${it.suiteResult != null &amp;&amp; it.className != it.suiteResult.name}">
           (from <st:out value="${it.suiteResult.name}"/>)

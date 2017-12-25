@@ -885,8 +885,6 @@ private String LoginToSrf() throws MalformedURLException, IOException{
         Document doc = dBuilder.newDocument();
         Element root = doc.createElement("testsuites");
         try {
-
-
             root.setAttribute("tenant", _tenant);
             int testsCnt = report.size();
  //          root.setAttribute("tests", String.format("%1d", testsCnt));
@@ -913,6 +911,7 @@ private String LoginToSrf() throws MalformedURLException, IOException{
                 int duration_i = Integer .parseInt(testDuration, 10)/1000;
                 testSuite.setAttribute("time", String.format("%1d.0",duration_i ));
                 testSuite.setAttribute("yac", test.getString("yac"));
+                testSuite.setAttribute("id", test.getString("yac"));
                 JSONArray scriptRuns = (JSONArray) (test.get("scriptRuns"));
 
                 test = test.getJSONObject("test");
@@ -925,10 +924,11 @@ private String LoginToSrf() throws MalformedURLException, IOException{
                 testSuite.setAttribute("tests", String.format("%1d", scriptCnt));
                 root.appendChild(testSuite);
                 for (int j = 0; j < scriptCnt; j++) {
-                    Element testCase = doc.createElement("testcase");
                     JSONObject scriptRun = scriptRuns.getJSONObject(j);
                     JSONObject assetInfo = scriptRun.getJSONObject("assetInfo");
                     String scriptName = assetInfo.getString("name");
+                    Element testCase = doc.createElement("testcase");
+
                     String scriptStatus = scriptRun.getString("status");
                     if("success".compareTo(scriptStatus) != 0){
                         Element failure = doc.createElement("failure");
@@ -940,30 +940,21 @@ private String LoginToSrf() throws MalformedURLException, IOException{
                         int nSteps = steps.size();
                         StringBuilder allSteps = new StringBuilder();
                         for (int k = 0; k < nSteps; k++) {
-                          allSteps.append(String.format("<p>%1d  %1s</p>",k+1, steps.getJSONObject(k).getString("description")));
+                            allSteps.append(String.format("<p>%1d  %1s</p>",k+1, steps.getJSONObject(k).getString("description")));
                         }
                         script.setTextContent(allSteps.toString());
                     }
                     catch (Exception e){}
                     testCase.appendChild(script);
               //     testCase.setAttribute("classname", scriptName);
-                    testCase.setAttribute("name", scriptName);
-                    testCase.setAttribute("yac", scriptRun.getString("yac"));
+                    testCase.setAttribute("name", String.format("%s_%s", scriptName, scriptRun.getString("yac")));
                     String duration =scriptRun.getString("durationMs");
                     if(duration == null)
                         duration = testDuration;
                     duration_i = Integer.parseInt(duration, 10)/1000;
                     testCase.setAttribute("time", String.format("%1d.0",duration_i ));
+
                     status = scriptRun.getString("status");
-                    JSONObject env = scriptRun.getJSONObject("environment");
-                    JSONObject os = env.getJSONObject("os");
-                    JSONObject browser = env.getJSONObject("browser");
-                    String envString = String.format("%1s %1s %1s %1s", os.getString("name"), os.getString("version"), browser.getString("name"), browser.getString("version"));
-                    Element envXml = doc.createElement("properties");
-                    Element prop = doc.createElement("property");
-                    prop.setAttribute("Environment", envString) ;
-                    envXml.appendChild(prop);
-                    testCase.appendChild(envXml);
                     if((status != null) && (status.compareTo("success") != 0)){
                         if("failed".compareTo(status) == 0) {
                             failuresTestSute++;
