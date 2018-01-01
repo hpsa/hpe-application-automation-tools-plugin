@@ -48,7 +48,11 @@
                 <td class="pane-header" style="width:6em">${%Status}</td>
             </tr>
             <tbody>
-               <j:forEach var="p" items="${jvar_actionType.getScriptRuns(it)}" varStatus="status">
+               <j:set var="scriptRuns" value="${jvar_actionType.getScriptRuns(it)}"/>
+               <j:if test="${scriptRuns == null}">
+                    <span style="font-weight:bold; color:red">Error: Unable to find tests results</span>
+               </j:if>
+               <j:forEach var="p" items="${scriptRuns}" varStatus="status">
                     <tr>
                         <td class="pane">
                             <j:set var="jvar_prev" value="${p.previousResult == null? 'font-weight:bold' : ''}"/>

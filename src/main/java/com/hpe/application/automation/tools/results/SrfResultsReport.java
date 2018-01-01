@@ -66,7 +66,6 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
@@ -92,7 +91,6 @@ public class SrfResultsReport extends Recorder implements Serializable {
     public class SrfTestResultAction extends TestResultAction {
         private AbstractBuild<?, ?> _build;
         private JSONArray _buildInfo;
-        private int _idx;
         private PrintStream _logger;
         private TestObject _target;
         private TestResult _result;
@@ -187,15 +185,14 @@ public class SrfResultsReport extends Recorder implements Serializable {
             for (int i = 0; i < _buildInfo.size(); i++) {
                 jTest = _buildInfo.getJSONObject(i);
                 if (jTest == null)
-                    throw new RuntimeException(String.format("Received empty test run"));
+                    return null;
 
                 String name = jTest.getString("name").toLowerCase();
 
-                if(name.compareTo(testName) != 0)
-                    continue;
-
-                scriptRunsJson = jTest.getJSONArray("scriptRuns");
-                break;
+                if(name.compareTo(testName) == 0) {
+                    scriptRunsJson = jTest.getJSONArray("scriptRuns");
+                    break;
+                }
             }
 
             for(Iterator<JSONObject> i =  scriptRunsJson.iterator(); i.hasNext(); ) {
@@ -225,8 +222,8 @@ public class SrfResultsReport extends Recorder implements Serializable {
                 if (scriptRun.getLinkName().equals(caseResult.getSafeName()))
                      return scriptRun;
             }
-
-            throw new RuntimeException(String.format("Failed to find script run: %s in script runs", caseResult.getName()));
+            _logger.println(String.format("Failed to find script run: %s in script runs", caseResult.getName()));
+            return null;
         }
 
         public String getDeepLink(SrfScriptRunModel srfScriptRunModel){
@@ -293,7 +290,6 @@ public class SrfResultsReport extends Recorder implements Serializable {
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
             throws InterruptedException, IOException {
         final List<String> mergedResultNames = new ArrayList<String>();
-
 //        TestNameTransformer.all().add(new TestNameTransformer()  );
         SrfTestResultAction action;
         Project<?, ?> project = RuntimeUtils.cast(build.getProject());
@@ -305,8 +301,6 @@ public class SrfResultsReport extends Recorder implements Serializable {
             }
 
         }
-
-
 
         // Has any QualityCenter builder been set up?
         if (mergedResultNames.isEmpty()) {

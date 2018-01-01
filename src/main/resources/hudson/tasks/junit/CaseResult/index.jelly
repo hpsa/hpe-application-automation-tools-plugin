@@ -45,9 +45,16 @@
       </h1>
       ${it.getClass.Name}
       <p>
-       <span style="font-weight:bold">
-          <st:out value="${scriptRun.fullName}"/>
-        </span>
+         <j:choose>
+           <j:when test="${scriptRun == null}">
+              <span style="font-weight:bold; color:red">Error: Unable to find test name</span>
+           </j:when>
+           <j:otherwise>
+             <span style="font-weight:bold">
+                       <st:out value="${scriptRun.fullName}"/>
+             </span>
+           </j:otherwise>
+         </j:choose>
         <j:if test="${it.suiteResult != null &amp;&amp; it.className != it.suiteResult.name}">
           (from <st:out value="${it.suiteResult.name}"/>)
         </j:if>
