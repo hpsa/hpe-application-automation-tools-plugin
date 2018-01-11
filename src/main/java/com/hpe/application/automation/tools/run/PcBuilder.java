@@ -179,6 +179,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
             throws InterruptedException, IOException {
         WorkspacePath =  new File(build.getWorkspace().toURI());
+        pcModel.setBuildParameters(((AbstractBuild)build).getBuildVariables().toString());
         perform(build, build.getWorkspace(), launcher, listener);
 
         return true;
@@ -226,6 +227,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     private Testsuites execute(PcClient pcClient, Run<?, ?> build)
             throws InterruptedException,NullPointerException {
         try {
+            pcModel.setBuildParameters(((AbstractBuild)build).getBuildVariables().toString());
             if (!StringUtils.isBlank(pcModel.getDescription()))
                 logger.println("- - -\nTest description: " + pcModel.getDescription());
             if (!beforeRun(pcClient))
@@ -251,7 +253,7 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
     private Testsuites run(PcClient pcClient, Run<?, ?> build)
             throws InterruptedException, ClientProtocolException,
             IOException, PcException {
-        
+        pcModel.setBuildParameters(((AbstractBuild)build).getBuildVariables().toString());
         PcRunResponse response = null;
         String errorMessage = "";
         String eventLogString = "";
@@ -891,12 +893,20 @@ public class PcBuilder extends Builder implements SimpleBuildStep{
                 ret = FormValidation.error(messagePrefix + "set");
             } else {
                 try {
-                    if (limitIncluded && Integer.parseInt(value) <= limit)
-                        ret = FormValidation.error(messagePrefix + "higher than " + limit);
-                    else if (Integer.parseInt(value) < limit)
-                        ret = FormValidation.error(messagePrefix + "at least " + limit);
+                    //regular expression: parameter (with brackets or not)
+                    if (value.matches("^\\$\\{[\\w-. ]*}$|^\\$[\\w-.]*$"))
+                        return ret;
+                    //regular expression: number
+                    else if (value.matches("[0-9]*$|")) {
+                        if (limitIncluded && Integer.parseInt(value) <= limit)
+                            ret = FormValidation.error(messagePrefix + "higher than " + limit);
+                        else if (Integer.parseInt(value) < limit)
+                            ret = FormValidation.error(messagePrefix + "at least " + limit);
+                    }
+                    else
+                        ret = FormValidation.error(messagePrefix + "a whole number or a parameter, e.g.: 23, $TESTID or ${TEST_ID}.");
                 } catch (Exception e) {
-                    ret = FormValidation.error(messagePrefix + "a whole number");
+                    ret = FormValidation.error(messagePrefix + "a whole number or a parameter (e.g.: $TESTID or ${TestID})");
                 }
             }
             
