@@ -48,13 +48,13 @@ public class PcModel {
     public static final String    DO_NOTHING      = "Do Not Collate";
 
     private final String           serverAndPort;
-    private final String           pcServerName;
-    private final String           almUserName;
-    private final SecretContainer  almPassword;
-    private final String           almDomain;
-    private final String           almProject;
-    private final String           testId;
-    private final String           testInstanceId;
+    private String                 pcServerName;
+    private String                 almUserName;
+    private SecretContainer        almPassword;
+    private String                 almDomain;
+    private String                 almProject;
+    private String                 testId;
+    private String                 testInstanceId;
     private final String           autoTestInstanceID;
     private final TimeslotDuration timeslotDuration;
     private final PostRunAction    postRunAction;
@@ -71,7 +71,7 @@ public class PcModel {
     @DataBoundConstructor
     public PcModel(String serverAndPort, String pcServerName, String almUserName, String almPassword, String almDomain, String almProject,
                    String testId,String autoTestInstanceID, String testInstanceId, String timeslotDurationHours, String timeslotDurationMinutes,
-                   PostRunAction postRunAction, boolean vudsMode, String description, String addRunToTrendReport, String trendReportId, boolean HTTPSProtocol, String proxyOutURL, String proxyOutUser, String proxyOutPassword) {
+                   PostRunAction postRunAction, boolean vudsMode, String description, String addRunToTrendReport, String trendReportId, boolean HTTPSProtocol, String proxyOutURL, String proxyOutUser, String proxyOutPassword/*, String buildParameters*/) {
 
         this.serverAndPort = serverAndPort;
         this.pcServerName = pcServerName;
@@ -220,5 +220,48 @@ public class PcModel {
         if (!HTTPSProtocol)
             return "http";
         return "https";
+    }
+
+    public void setBuildParameters(String buildParameters){
+        //this.buildParameters=buildParameters;
+        this.pcServerName=useParameterIfNeeded(buildParameters,this.pcServerName);
+        this.almUserName=useParameterIfNeeded(buildParameters,this.almUserName);
+        this.almDomain = useParameterIfNeeded(buildParameters,this.almDomain);
+        this.almProject = useParameterIfNeeded(buildParameters,this.almProject);
+        this.testId = useParameterIfNeeded(buildParameters,this.testId);
+        this.testInstanceId = useParameterIfNeeded(buildParameters,this.testInstanceId);
+        this.trendReportId = useParameterIfNeeded(buildParameters,this.trendReportId);
+        String guid="905fe758-94bd-4cbe-b377-affecd6bbdb3";
+        String parametrizedPassword = useParameterForPasswordIfNeeded(buildParameters,guid);
+        this.almPassword = parametrizedPassword.equals(guid)? this.almPassword:setPassword(parametrizedPassword);
+    }
+
+    private static String useParameterIfNeeded (String buildParameters,String attribute){
+        if (buildParameters!=null && attribute!=null) {
+            if(attribute.startsWith("$")) {
+                String attributeParameter = attribute.replace("$", "").replace("{", "").replace("}", "");
+                String[] buildParametersArray = buildParameters.replace("{", "").replace("}", "").split(",");
+                for (String buildParameter : buildParametersArray) {
+                    if (buildParameter.trim().startsWith(attributeParameter + "=")) {
+                        return buildParameter.trim().replace(attributeParameter + "=", "");
+                    }
+                }
+            }
+        }
+        return attribute;
+    }
+
+    private static String useParameterForPasswordIfNeeded (String buildParameters, String almPassword){
+        if (buildParameters!=null) {
+            String expectedAlmPasswordParameterName = "PCPASSWORD";
+            String almPasswordFromParameter="";
+            String[] buildParametersArray = buildParameters.replace("{", "").replace("}", "").split(",");
+            for (String buildParameter : buildParametersArray) {
+                if (buildParameter.trim().startsWith(expectedAlmPasswordParameterName + "=")) {
+                    return buildParameter.trim().replace(expectedAlmPasswordParameterName + "=", "");
+                }
+            }
+        }
+        return almPassword;
     }
 }
