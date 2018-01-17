@@ -145,7 +145,7 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 						break;
 					}
 				}
-				if (hpRunnerType.equals(HPRunnerType.StormRunner)) {
+				if (hpRunnerType.equals(HPRunnerType.StormRunnerLoad)) {
 					logger.error("HPE Runner: " + hpRunnerType);
 					externalURL = getStormRunnerURL(path);
 				}
@@ -212,7 +212,9 @@ public class JUnitXmlIterator extends AbstractXmlIterator<JUnitTestResult> {
 					}
                 } else if (hpRunnerType.equals(HPRunnerType.PerformanceCenter)) {
                     externalURL = jenkinsRootUrl + "job/" + jobName + "/" + buildId + "/artifact/performanceTestsReports/pcRun/Report.html";
-                } else if (hpRunnerType.equals(HPRunnerType.StormRunner)) {
+                } else if (hpRunnerType.equals(HPRunnerType.StormRunnerLoad)) {
+                	//console contains link to report
+					//link start with "View Report:"
 					String VIEW_REPORT_PREFIX = "View Report: ";
 					if (additionalContext != null && additionalContext instanceof Collection) {
 						for (Object str : (Collection) additionalContext) {
